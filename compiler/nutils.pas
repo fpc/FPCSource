@@ -634,7 +634,7 @@ implementation
       begin
         result:=fen_false;
 
-        do_resulttypepass(n);
+//        do_resulttypepass(n);
 
         hn:=n.simplify;
         if assigned(hn) then

@@ -386,6 +386,8 @@ end;
 { alias for internal use }
 Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC_WIDESTR_ASSIGN'];
 
+{$ifndef STR_CONCAT_PROCS}
+
 function fpc_WideStr_Concat (const S1,S2 : WideString): WideString; compilerproc;
 Var
   Size,Location : SizeInt;
@@ -437,6 +439,103 @@ begin
         end;
     end;
 end;
+
+{$else STR_CONCAT_PROCS}
+
+procedure fpc_WideStr_Concat (var DestS:Widestring;const S1,S2 : WideString); compilerproc;
+Var
+  Size,Location : SizeInt;
+  pc : pwidechar;
+begin
+  { only assign if s1 or s2 is empty }
+  if (S1='') then
+    begin
+      DestS:=s2;
+      exit;
+    end;
+  if (S2='') then
+    begin
+      DestS:=s1;
+      exit;
+    end;
+  Location:=Length(S1);
+  Size:=length(S2);
+  { Use Pointer() typecasts to prevent extra conversion code }
+  if Pointer(DestS)=Pointer(S1) then
+    begin
+      SetLength(DestS,Size+Location);
+      Move(Pointer(S2)^,(Pointer(DestS)+Location*sizeof(WideChar))^,(Size+1)*sizeof(WideChar));
+    end
+  else if Pointer(DestS)=Pointer(S2) then
+    begin
+      SetLength(DestS,Size+Location);
+      Move(Pointer(DestS)^,(Pointer(DestS)+Location*sizeof(WideChar))^,(Size+1)*sizeof(WideChar));
+      Move(Pointer(S1)^,Pointer(DestS)^,Location*sizeof(WideChar));
+    end
+  else
+    begin
+      DestS:='';
+      SetLength(DestS,Size+Location);
+      Move(Pointer(S1)^,Pointer(DestS)^,Location*sizeof(WideChar));
+      Move(Pointer(S2)^,(Pointer(DestS)+Location*sizeof(WideChar))^,(Size+1)*sizeof(WideChar));
+    end;
+end;
+
+
+procedure fpc_WideStr_Concat_multi (var DestS:Widestring;const sarr:array of Widestring); compilerproc;
+Var
+  lowstart,i  : Longint;
+  p,pc        : pointer;
+  Size,NewLen,
+  OldDestLen  : SizeInt;
+begin
+  if high(sarr)=0 then
+    begin
+      DestS:='';
+      exit;
+    end;
+  lowstart:=low(sarr);
+  if Pointer(DestS)=Pointer(sarr[lowstart]) then
+    begin
+      inc(lowstart);
+      { Check for another reuse, then we can't use
+        the append optimization }
+      for i:=lowstart to high(sarr) do
+        begin
+          if Pointer(DestS)=Pointer(sarr[i]) then
+            begin
+              lowstart:=low(sarr);
+              break;
+            end;
+        end;
+    end;
+  { Start with empty DestS if we start with concatting
+    the first array element }
+  if lowstart=low(sarr) then
+    DestS:='';
+  OldDestLen:=length(DestS);
+  { Calculate size of the result so we can do
+    a single call to SetLength() }
+  NewLen:=0;
+  for i:=low(sarr) to high(sarr) do
+    inc(NewLen,length(sarr[i]));
+  SetLength(DestS,NewLen);
+  { Concat all strings, except the string we already
+    copied in DestS }
+  pc:=Pointer(DestS)+OldDestLen*sizeof(WideChar);
+  for i:=lowstart to high(sarr) do
+    begin
+      p:=pointer(sarr[i]);
+      if assigned(p) then
+        begin
+          Size:=length(widestring(p));
+          Move(p^,pc^,(Size+1)*sizeof(WideChar));
+          inc(pc,size*sizeof(WideChar));
+        end;
+    end;
+end;
+
+{$endif STR_CONCAT_PROCS}
 
 
 Function fpc_Char_To_WideStr(const c : WideChar): WideString; compilerproc;

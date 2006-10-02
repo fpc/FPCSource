@@ -25,7 +25,7 @@ unit nopt;
 
 interface
 
-uses node, nadd;
+uses node,nbas,nadd;
 
 type
   tsubnodetype = (
@@ -86,7 +86,7 @@ var
 
 implementation
 
-uses cutils, htypechk, defutil, defcmp, globtype, globals, cpubase, ncnv, ncon,ncal,nld,
+uses cutils, htypechk, defutil, defcmp, globtype, globals, cpubase, ncnv, ncon,ncal,nld,nmem,
      verbose, symconst,symdef, cgbase, procinfo;
 
 
@@ -289,16 +289,15 @@ var
   hp : tnode;
   i  : longint;
 begin
+  result:=false;
+  if p.resulttype.def.deftype<>stringdef then
+    exit;
   i:=0;
-  if is_ansistring(p.resulttype.def) or
-     is_widestring(p.resulttype.def) then
+  hp:=p;
+  while assigned(hp) and (hp.nodetype=addn) do
     begin
-      hp:=p;
-      while assigned(hp) and (hp.nodetype=addn) do
-        begin
-          inc(i);
-          hp:=taddnode(hp).left;
-        end;
+      inc(i);
+      hp:=taddnode(hp).left;
     end;
   result:=(i>1);
 end;
@@ -306,20 +305,58 @@ end;
 
 function genmultistringadd(p: taddnode): tnode;
 var
-  hp : tnode;
+  hp,sn : tnode;
   arrp  : tarrayconstructornode;
+  newstatement : tstatementnode;
+  tempnode    : ttempcreatenode;
+  is_shortstr : boolean;
 begin
   arrp:=nil;
   hp:=p;
+  is_shortstr:=is_shortstring(p.resulttype.def);
   while assigned(hp) and (hp.nodetype=addn) do
     begin
-      arrp:=carrayconstructornode.create(taddnode(hp).right.getcopy,arrp);
+      sn:=taddnode(hp).right.getcopy;
+      inserttypeconv(sn,p.resulttype);
+      if is_shortstr then
+        begin
+          sn:=caddrnode.create(sn);
+          include(sn.flags,nf_internal);
+        end;
+      arrp:=carrayconstructornode.create(sn,arrp);
       hp:=taddnode(hp).left;
     end;
-  arrp:=carrayconstructornode.create(hp.getcopy,arrp);
-  result := ccallnode.createintern('fpc_'+
-    tstringdef(p.resulttype.def).stringtypname+'_concat_multi',
-    ccallparanode.create(arrp,nil));
+  sn:=hp.getcopy;
+  inserttypeconv(sn,p.resulttype);
+  if is_shortstr then
+    begin
+      sn:=caddrnode.create(sn);
+      include(sn.flags,nf_internal);
+    end;
+  arrp:=carrayconstructornode.create(sn,arrp);
+  if assigned(aktassignmentnode) and
+     (aktassignmentnode.right=p) and
+     (aktassignmentnode.left.resulttype.def=p.resulttype.def) and
+     valid_for_var(aktassignmentnode.left,false) then
+    begin
+      result:=ccallnode.createintern('fpc_'+
+        tstringdef(p.resulttype.def).stringtypname+'_concat_multi',
+        ccallparanode.create(arrp,
+        ccallparanode.create(aktassignmentnode.left.getcopy,nil)));
+      include(aktassignmentnode.flags,nf_assign_done_in_right);
+    end
+  else
+    begin
+      result:=internalstatements(newstatement);
+      tempnode:=ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent ,true);
+      addstatement(newstatement,tempnode);
+      addstatement(newstatement,ccallnode.createintern('fpc_'+
+        tstringdef(p.resulttype.def).stringtypname+'_concat_multi',
+        ccallparanode.create(arrp,
+        ccallparanode.create(ctemprefnode.create(tempnode),nil))));
+      addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode));
+      addstatement(newstatement,ctemprefnode.create(tempnode));
+    end;
 end;
 
 

@@ -223,8 +223,7 @@ interface
          nf_short_bool,
 
          { tassignmentnode }
-         nf_concat_string,
-         nf_use_strconcat,
+         nf_assign_done_in_right,
 
          { tarrayconstructnode }
          nf_forcevaria,

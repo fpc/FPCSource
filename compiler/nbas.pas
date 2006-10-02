@@ -155,6 +155,7 @@ interface
 
         { a node which removes a temp }
         ttempdeletenode = class(tnode)
+          tempinfo: ptempinfo;
           constructor create(const temp: ttempcreatenode); virtual;
           { this will convert the persistant temp to a normal temp
             for returning to the other nodes }
@@ -169,7 +170,6 @@ interface
           destructor destroy; override;
           procedure printnodedata(var t:text);override;
          protected
-          tempinfo: ptempinfo;
           release_to_normal : boolean;
         private
           tempidx : longint;

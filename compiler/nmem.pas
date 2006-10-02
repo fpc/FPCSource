@@ -342,8 +342,13 @@ implementation
 
         make_not_regable(left,vr_addr);
 
-        { don't allow constants }
-        if is_constnode(left) then
+        { don't allow constants, for internal use we also
+          allow taking the address of strings }
+        if is_constnode(left) and
+           not(
+               (nf_internal in flags) and
+               (left.nodetype in [stringconstn])
+              ) then
          begin
            aktfilepos:=left.fileinfo;
            CGMessage(type_e_no_addr_of_constant);

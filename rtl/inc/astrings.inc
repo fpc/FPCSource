@@ -125,22 +125,26 @@ end;
 { also define alias which can be used inside the system unit }
 Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); [external name 'FPC_ANSISTR_INCR_REF'];
 
-Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_ANSISTR_ASSIGN'];  compilerproc;
+Procedure fpc_AnsiStr_Assign (Var DestS : Pointer;S2 : Pointer);[Public,Alias:'FPC_ANSISTR_ASSIGN'];  compilerproc;
 {
   Assigns S2 to S1 (S1:=S2), taking in account reference counts.
 }
 begin
+  if DestS=S2 then
+    exit;
   If S2<>nil then
     If PAnsiRec(S2-FirstOff)^.Ref>0 then
       inclocked(PAnsiRec(S2-FirstOff)^.ref);
   { Decrease the reference count on the old S1 }
-  fpc_ansistr_decr_ref (S1);
-  { And finally, have S1 pointing to S2 (or its copy) }
-  S1:=S2;
+  fpc_ansistr_decr_ref (DestS);
+  { And finally, have DestS pointing to S2 (or its copy) }
+  DestS:=S2;
 end;
 
 { alias for internal use }
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer);[external name 'FPC_ANSISTR_ASSIGN'];
+
+{$ifndef STR_CONCAT_PROCS}
 
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): ansistring; compilerproc;
 Var
@@ -173,14 +177,14 @@ Var
   i  : Longint;
   p  : pointer;
   pc : pchar;
-  Size,NewSize : SizeInt;
+  Size,NewLen : SizeInt;
 begin
   { First calculate size of the result so we can do
     a single call to SetLength() }
-  NewSize:=0;
+  NewLen:=0;
   for i:=low(sarr) to high(sarr) do
-    inc(Newsize,length(sarr[i]));
-  SetLength(result,NewSize);
+    inc(NewLen,length(sarr[i]));
+  SetLength(result,NewLen);
   pc:=pchar(result);
   for i:=low(sarr) to high(sarr) do
     begin
@@ -193,6 +197,104 @@ begin
         end;
     end;
 end;
+
+{$else STR_CONCAT_PROCS}
+
+procedure fpc_AnsiStr_Concat (var DestS:ansistring;const S1,S2 : AnsiString); compilerproc;
+Var
+  Size,Location : SizeInt;
+begin
+  { only assign if s1 or s2 is empty }
+  if (S1='') then
+    begin
+      DestS:=s2;
+      exit;
+    end;
+  if (S2='') then
+    begin
+      DestS:=s1;
+      exit;
+    end;
+  Location:=Length(S1);
+  Size:=length(S2);
+  { Use Pointer() typecasts to prevent extra conversion code }
+  if Pointer(DestS)=Pointer(S1) then
+    begin
+      SetLength(DestS,Size+Location);
+      Move(Pointer(S2)^,(Pointer(DestS)+Location)^,Size+1);
+    end
+  else if Pointer(DestS)=Pointer(S2) then
+    begin
+      SetLength(DestS,Size+Location);
+      Move(Pointer(DestS)^,(Pointer(DestS)+Location)^,Size+1);
+      Move(Pointer(S1)^,Pointer(DestS)^,Location);
+    end
+  else
+    begin
+      DestS:='';
+      SetLength(DestS,Size+Location);
+      Move(Pointer(S1)^,Pointer(DestS)^,Location);
+      Move(Pointer(S2)^,(Pointer(DestS)+Location)^,Size+1);
+    end;
+end;
+
+
+procedure fpc_AnsiStr_Concat_multi (var DestS:ansistring;const sarr:array of Ansistring); compilerproc;
+Var
+  lowstart,i  : Longint;
+  p,pc        : pointer;
+  Size,NewLen,
+  OldDestLen  : SizeInt;
+begin
+  if high(sarr)=0 then
+    begin
+      DestS:='';
+      exit;
+    end;
+  lowstart:=low(sarr);
+  if Pointer(DestS)=Pointer(sarr[lowstart]) then
+    begin
+      inc(lowstart);
+      { Check for another reuse, then we can't use
+        the append optimization }
+      for i:=lowstart to high(sarr) do
+        begin
+          if Pointer(DestS)=Pointer(sarr[i]) then
+            begin
+              lowstart:=low(sarr);
+              break;
+            end;
+        end;
+    end;
+  { Start with empty DestS if we start with concatting
+    the first array element }
+  if lowstart=low(sarr) then
+    DestS:='';
+  OldDestLen:=length(DestS);
+  { Calculate size of the result so we can do
+    a single call to SetLength() }
+  NewLen:=0;
+  for i:=low(sarr) to high(sarr) do
+    inc(NewLen,length(sarr[i]));
+  SetLength(DestS,NewLen);
+  { Concat all strings, except the string we already
+    copied in DestS }
+  pc:=Pointer(DestS)+OldDestLen;
+  for i:=lowstart to high(sarr) do
+    begin
+      p:=pointer(sarr[i]);
+      if assigned(p) then
+        begin
+          Size:=length(ansistring(p));
+          Move(p^,pc^,Size+1);
+          inc(pc,size);
+        end;
+    end;
+end;
+
+
+{$endif STR_CONCAT_PROCS}
+
 
 
 {$ifdef EXTRAANSISHORT}
@@ -806,9 +908,7 @@ Procedure SetString (Out S : AnsiString; Buf : PChar; Len : SizeInt); {$IFNDEF V
 begin
   SetLength(S,Len);
   If (Buf<>Nil) then
-    begin
-      Move (Buf[0],S[1],Len);
-    end;
+    Move (Buf^,Pointer(S)^,Len);
 end;
 
 

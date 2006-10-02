@@ -1920,7 +1920,7 @@ begin
 {$ifdef x86}
 {  def_system_macro('INTERNAL_BACKTRACE');}
 {$endif}
-
+  def_system_macro('STR_CONCAT_PROCS');
   if pocall_default = pocall_register then
     def_system_macro('REGCALL');
 

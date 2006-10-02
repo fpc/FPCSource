@@ -93,8 +93,7 @@ begin
   { ti386addnode.pass_2                                     }
   secondpass(left);
   if not(tg.istemp(left.location.reference) and
-         (tg.sizeoftemp(current_asmdata.CurrAsmList,left.location.reference) = 256)) and
-     not(nf_use_strconcat in flags) then
+         (tg.sizeoftemp(current_asmdata.CurrAsmList,left.location.reference) = 256)) then
     begin
        tg.Gettemp(current_asmdata.CurrAsmList,256,tt_normal,href);
        cg.g_copyshortstring(current_asmdata.CurrAsmList,left.location.reference,href,255);

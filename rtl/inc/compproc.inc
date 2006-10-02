@@ -37,7 +37,12 @@ Procedure fpc_freemem(p:pointer);compilerproc;
 
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt); compilerproc;
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; compilerproc;
+{$ifndef STR_CONCAT_PROCS}
 function fpc_shortstr_concat(const s1,s2:shortstring): shortstring; compilerproc;
+{$else STR_CONCAT_PROCS}
+procedure fpc_shortstr_concat(var dests:shortstring;const s1,s2:shortstring);compilerproc;
+procedure fpc_shortstr_concat_multi(var dests:shortstring;const sarr:array of pshortstring);compilerproc;
+{$endif STR_CONCAT_PROCS}
 procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring); compilerproc;
 function fpc_shortstr_compare(const left,right:shortstring) : longint; compilerproc;
 
@@ -107,9 +112,14 @@ Function fpc_Val_int64_WideStr (Const S : WideString; out Code : ValSInt): Int64
 
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); compilerproc;
 Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc;
-Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
+Procedure fpc_AnsiStr_Assign (Var DestS : Pointer;S2 : Pointer); compilerproc;
+{$ifdef STR_CONCAT_PROCS}
+Procedure fpc_AnsiStr_Concat (Var DestS : Ansistring;const S1,S2 : AnsiString); compilerproc;
+Procedure fpc_AnsiStr_Concat_multi (Var DestS : Ansistring;const sarr:array of Ansistring); compilerproc;
+{$else STR_CONCAT_PROCS}
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): AnsiString; compilerproc;
 function fpc_AnsiStr_Concat_multi (const sarr:array of Ansistring): ansistring; compilerproc;
+{$endif STR_CONCAT_PROCS}
 Procedure fpc_ansistr_append_char(Var S : AnsiString;c : char); compilerproc;
 Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;const Str : ShortString); compilerproc;
 Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;const Str : AnsiString); compilerproc;
@@ -141,8 +151,13 @@ Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString; compilerp
 Function fpc_WideStr_To_AnsiStr (const S2 : WideString): AnsiString; compilerproc;
 Function fpc_AnsiStr_To_WideStr (Const S2 : AnsiString): WideString; compilerproc;
 Procedure fpc_WideStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
+{$ifndef STR_CONCAT_PROCS}
 Function fpc_WideStr_Concat (const S1,S2 : WideString) : WideString; compilerproc;
 function fpc_WideStr_Concat_multi (const sarr:array of Widestring): widestring; compilerproc;
+{$else STR_CONCAT_PROCS}
+Procedure fpc_WideStr_Concat (Var DestS : Widestring;const S1,S2 : WideString); compilerproc;
+Procedure fpc_WideStr_Concat_multi (Var DestS : Widestring;const sarr:array of Widestring); compilerproc;
+{$endif STR_CONCAT_PROCS}
 Function fpc_Char_To_WideStr(const c : WideChar): WideString; compilerproc;
 Function fpc_PChar_To_WideStr(const p : pchar): WideString; compilerproc;
 Function fpc_CharArray_To_WideStr(const arr: array of char; zerobased: boolean = true): WideString; compilerproc;

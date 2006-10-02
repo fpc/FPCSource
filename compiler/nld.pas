@@ -131,6 +131,8 @@ interface
        ctypenode : ttypenodeclass;
        crttinode : trttinodeclass;
 
+       { Current assignment node }
+       aktassignmentnode : tassignmentnode;
 
 
 implementation
@@ -140,7 +142,7 @@ implementation
       symnot,
       defutil,defcmp,
       htypechk,pass_1,procinfo,paramgr,
-      ncon,ninl,ncnv,nmem,ncal,nutils,
+      ncon,ninl,ncnv,nmem,ncal,nutils,nbas,
       cgobj,cgbase
       ;
 
@@ -491,6 +493,7 @@ implementation
 
         resulttypepass(left);
 
+{$ifdef old_append_str}
         if is_ansistring(left.resulttype.def) then
           begin
             { fold <ansistring>:=<ansistring>+<char|shortstring|ansistring> }
@@ -530,6 +533,7 @@ implementation
               end;
           end
         else
+
          if is_shortstring(left.resulttype.def) then
           begin
             { fold <shortstring>:=<shortstring>+<shortstring>,
@@ -561,6 +565,7 @@ implementation
                  end;
               end;
           end;
+{$endif old_append_str}
 
         resulttypepass(right);
         set_varstate(right,vs_read,[vsf_must_be_valid]);
@@ -698,19 +703,64 @@ implementation
     function tassignmentnode.pass_1 : tnode;
       var
         hp: tnode;
+        oldassignmentnode : tassignmentnode;
       begin
          result:=nil;
          expectloc:=LOC_VOID;
 
          firstpass(left);
+
+         { Optimize the reuse of the destination of the assingment in left.
+           Allow the use of the left inside the tree generated on the right.
+           This is especially usefull for string routines where the destination
+           is pushed as a parameter. Using the final destination of left directly
+           save a temp allocation and copy of data (PFV) }
+         oldassignmentnode:=aktassignmentnode;
+         if right.nodetype=addn then
+           aktassignmentnode:=self
+         else
+           aktassignmentnode:=nil;
          firstpass(right);
+         aktassignmentnode:=oldassignmentnode;
+         if nf_assign_done_in_right in flags then
+           begin
+             result:=right;
+             right:=nil;
+             exit;
+           end;
+
+         if codegenerror then
+           exit;
+
+         if (cs_opt_level1 in aktoptimizerswitches) and
+            (right.nodetype = calln) and
+            (right.resulttype.def=left.resulttype.def) and
+            { left must be a temp, since otherwise as soon as you modify the }
+            { result, the current left node is modified and that one may     }
+            { still be an argument to the function or even accessed in the   }
+            { function                                                       }
+            (
+             (
+              (left.nodetype = temprefn) and
+              paramanager.ret_in_param(right.resulttype.def,tcallnode(right).procdefinition.proccalloption)
+             ) or
+             { there's special support for ansi/widestrings in the callnode }
+             is_ansistring(right.resulttype.def) or
+             is_widestring(right.resulttype.def)
+            )  then
+           begin
+             make_not_regable(left,vr_addr);
+             tcallnode(right).funcretnode := left;
+             result := right;
+             left := nil;
+             right := nil;
+             exit;
+           end;
+
          { assignment to refcounted variable -> inc/decref }
          if (not is_class(left.resulttype.def) and
             left.resulttype.def.needs_inittable) then
            include(current_procinfo.flags,pi_do_call);
-
-         if codegenerror then
-           exit;
 
 
         if (is_shortstring(left.resulttype.def)) then
@@ -720,6 +770,7 @@ implementation
               if (right.nodetype<>stringconstn) or
                  (tstringconstnode(right).len<>0) then
                begin
+{$ifdef old_append_str}
                  if (cs_opt_level1 in aktoptimizerswitches) and
                     (right.nodetype in [calln,blockn]) and
                     (left.nodetype = temprefn) and
@@ -738,6 +789,7 @@ implementation
                        exit;
                    end
                  else
+{$endif old_append_str}
                    begin
                      hp:=ccallparanode.create
                            (right,
@@ -751,27 +803,6 @@ implementation
                  exit;
                end;
             end;
-           end;
-
-         if (cs_opt_level1 in aktoptimizerswitches) and
-            (right.nodetype = calln) and
-            { left must be a temp, since otherwise as soon as you modify the }
-            { result, the current left node is modified and that one may     }
-            { still be an argument to the function or even accessed in the   }
-            { function                                                       }
-            (((left.nodetype = temprefn) and
-              paramanager.ret_in_param(right.resulttype.def,
-                tcallnode(right).procdefinition.proccalloption)) or
-             { there's special support for ansi/widestrings in the callnode }
-             is_ansistring(right.resulttype.def) or
-             is_widestring(right.resulttype.def))  then
-           begin
-             make_not_regable(left,vr_addr);
-             tcallnode(right).funcretnode := left;
-             result := right;
-             left := nil;
-             right := nil;
-             exit;
            end;
 
          registersint:=left.registersint+right.registersint;
@@ -872,8 +903,11 @@ implementation
       begin
         result:=nil;
 
-      { are we allowing array constructor? Then convert it to a set }
-        if not allow_array_constructor then
+      { are we allowing array constructor? Then convert it to a set.
+        Do this only if we didn't convert the arrayconstructor yet. This
+        is needed for the cases where the resulttype is forced for a second
+        run }
+        if (not allow_array_constructor) then
          begin
            hp:=tarrayconstructornode(getcopy);
            arrayconstructor_to_set(tnode(hp));

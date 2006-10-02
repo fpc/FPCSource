@@ -140,7 +140,7 @@ interface
 
        tcallparaflag = (
           cpf_is_colon_para,
-          cpf_varargs_para   { belongs this para to varargs }
+          cpf_varargs_para       { belongs this para to varargs }
        );
        tcallparaflags = set of tcallparaflag;
 
@@ -2206,6 +2206,38 @@ type
                    )
                   ) then
                   begin
+                    tempnode:=nil;
+
+{$ifdef reuse_existing_para_temp}
+                    { Try to reuse existing result tempnode from a parameter }
+                    if para.left.nodetype=blockn then
+                      begin
+                        n:=tstatementnode(tblocknode(para.left).left);
+                        while assigned(n) and assigned(tstatementnode(n).right) do
+                          begin
+                            if tstatementnode(n).left.nodetype=tempdeleten then
+                              break;
+                            n:=tstatementnode(tstatementnode(n).right);
+                          end;
+                        { We expect to find the following statements
+                            tempdeletenode
+                            tempref
+                            nil }
+                        if assigned(n) and
+                           assigned(tstatementnode(n).right) and
+                           (tstatementnode(tstatementnode(n).right).right=nil) and
+                           (tstatementnode(tstatementnode(n).right).left.nodetype=temprefn) then
+                          begin
+                            tempnode:=ttempdeletenode(tstatementnode(n).left).tempinfo^.owner;
+                            para.left:=tstatementnode(tstatementnode(n).right).left;
+                            addstatement(deletestatement,tstatementnode(n).left);
+                            { Replace tempdelete,tempref with dummy statement }
+                            tstatementnode(n).left:=cnothingnode.create;
+                            tstatementnode(tstatementnode(n).right).left:=cnothingnode.create;
+                          end;
+                      end;
+{$endif reuse_existing_para_temp}
+
                     tempnode := ctempcreatenode.create(para.parasym.vartype,para.parasym.vartype.def.size,tt_persistent,tparavarsym(para.parasym).is_regvar(false));
                     addstatement(createstatement,tempnode);
                     { assign the value of the parameter to the temp, except in case of the function result }
@@ -2214,7 +2246,7 @@ type
                     if not(vo_is_funcret in tparavarsym(para.parasym).varoptions) then
                       begin
                         addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-                          para.left));
+                            para.left));
                         para.left := ctemprefnode.create(tempnode);
                         addstatement(deletestatement,ctempdeletenode.create(tempnode));
                       end
@@ -2226,7 +2258,7 @@ type
                         para.left := ctemprefnode.create(tempnode);
 
                         addstatement(deletestatement,ctempdeletenode.create_normal_temp(tempnode));
-                      end
+                      end;
                   end
                 { otherwise if the parameter is "complex", take the address   }
                 { of the parameter expression, store it in a temp and replace }

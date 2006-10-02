@@ -437,37 +437,30 @@ implementation
            if codegenerror then
              exit;
 
-           if not(nf_concat_string in flags) then
-            begin
-              { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
-              { can be false                                             }
-              secondpass(left);
-              { decrement destination reference counter }
-              if (left.resulttype.def.needs_inittable) then
-                begin
-                  location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false);
-                  cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resulttype.def,href);
-                end;
-              if codegenerror then
-                exit;
-            end;
+           { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
+           { can be false                                             }
+           secondpass(left);
+           { decrement destination reference counter }
+           if (left.resulttype.def.needs_inittable) then
+             begin
+               location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false);
+               cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resulttype.def,href);
+             end;
+           if codegenerror then
+             exit;
          end
         else
          begin
            { calculate left sides }
-           { don't do it yet if it's a crgister (JM) }
-           if not(nf_concat_string in flags) then
+           secondpass(left);
+           { decrement destination reference counter }
+           if (left.resulttype.def.needs_inittable) then
              begin
-               secondpass(left);
-               { decrement destination reference counter }
-               if (left.resulttype.def.needs_inittable) then
-                 begin
-                   location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false);
-                   cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resulttype.def,href);
-                 end;
-               if codegenerror then
-                 exit;
+               location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false);
+               cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resulttype.def,href);
              end;
+           if codegenerror then
+             exit;
 
            { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
            { can be false                                             }
@@ -489,7 +482,8 @@ implementation
         releaseright:=true;
 
         { optimize temp to temp copies }
-(*        if (left.nodetype = temprefn) and
+{$ifdef old_append_str}
+        if (left.nodetype = temprefn) and
            { we may store certain temps in registers in the future, then this }
            { optimization will have to be adapted                             }
            (left.location.loc = LOC_REFERENCE) and
@@ -504,7 +498,9 @@ implementation
             tcgtemprefnode(left).changelocation(right.location.reference);
           end
         { shortstring assignments are handled separately }
-        else *)
+        else
+{$endif old_append_str}
+
         if is_shortstring(left.resulttype.def) then
           begin
             {
@@ -514,8 +510,13 @@ implementation
                - char
             }
 
+            { The addn is replaced by a blockn or calln }
+            if right.nodetype in [blockn,calln] then
+              begin
+                { nothing to do }
+              end
             { empty constant string }
-            if (right.nodetype=stringconstn) and
+            else if (right.nodetype=stringconstn) and
                (tstringconstnode(right).len=0) then
               begin
                 cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_8,0,left.location.reference);

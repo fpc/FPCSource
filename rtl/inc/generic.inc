@@ -535,6 +535,8 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
+{$ifndef STR_CONCAT_PROCS}
+
 function fpc_shortstr_concat(const s1,s2:shortstring): shortstring;[public,alias:'FPC_SHORTSTR_CONCAT']; compilerproc;
 var
   s1l, s2l : byte;
@@ -547,6 +549,100 @@ begin
   move(s2[1],fpc_shortstr_concat[s1l+1],s2l);
   fpc_shortstr_concat[0]:=chr(s1l+s2l);
 end;
+
+{$else STR_CONCAT_PROCS}
+
+procedure fpc_shortstr_concat(var dests:shortstring;const s1,s2:shortstring);compilerproc;
+var
+  s1l, s2l : byte;
+begin
+  s1l:=length(s1);
+  s2l:=length(s2);
+  if s1l+s2l>high(dests) then
+    s2l:=high(dests)-s1l;
+  if @dests=@s1 then
+    move(s2[1],dests[s1l+1],s2l)
+  else
+    if @dests=@s2 then
+      begin
+        move(dests[1],dests[s1l+1],s2l);
+        move(s1[1],dests[1],s1l);
+      end
+  else
+    begin
+      move(s1[1],dests[1],s1l);
+      move(s2[1],dests[s1l+1],s2l);
+    end;
+  dests[0]:=chr(s1l+s2l);
+end;
+
+procedure fpc_shortstr_concat_multi(var dests:shortstring;const sarr:array of pshortstring);compilerproc;
+var
+  s2l : byte;
+  LowStart,i,
+  Len : longint;
+  pc : pchar;
+  needtemp : boolean;
+  tmpstr  : shortstring;
+  p,pdest  : pshortstring;
+begin
+  if high(sarr)=0 then
+    begin
+      DestS:='';
+      exit;
+    end;
+  lowstart:=low(sarr);
+  if Pointer(@DestS)=Pointer(sarr[lowstart]) then
+    inc(lowstart);
+  { Check for another reuse, then we can't use
+    the append optimization and need to use a temp }
+  needtemp:=false;
+  for i:=lowstart to high(sarr) do
+    begin
+      if Pointer(@DestS)=Pointer(sarr[i]) then
+        begin
+          needtemp:=true;
+          break;
+        end;
+    end;
+  if needtemp then
+    begin
+      lowstart:=low(sarr);
+      tmpstr:='';
+      pdest:=@tmpstr
+    end
+  else
+    begin
+      { Start with empty DestS if we start with concatting
+        the first array element }
+      if lowstart=low(sarr) then
+        DestS:='';
+      pdest:=@DestS;
+    end;
+  { Concat all strings, except the string we already
+    copied in DestS }
+  Len:=length(pdest^);
+  pc:=@pdest^[1+Length(pdest^)];
+  for i:=lowstart to high(sarr) do
+    begin
+      p:=sarr[i];
+      if assigned(p) then
+        begin
+          s2l:=length(p^);
+          if Len+s2l>high(dests) then
+            s2l:=high(dests)-Len;
+          Move(p^[1],pc^,s2l);
+          inc(pc,s2l);
+          inc(Len,s2l);
+        end;
+    end;
+  pdest^[0]:=Chr(Len);
+  if needtemp then
+    DestS:=TmpStr;
+end;
+
+{$endif STR_CONCAT_PROCS}
+
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
 

@@ -90,7 +90,7 @@ implementation
       symconst,symdef,symsym,symtable,defutil,defcmp,
       cgbase,
       htypechk,pass_1,
-      nbas,nmat,ncnv,ncon,nset,nopt,ncal,ninl,nmem,nutils,
+      nld,nbas,nmat,ncnv,ncon,nset,nopt,ncal,ninl,nmem,nutils,
       {$ifdef state_tracking}
       nstate,
       {$endif}
@@ -1579,6 +1579,8 @@ implementation
         swap_relation: array [ltn..unequaln] of Tnodetype=(gtn, gten, ltn, lten, equaln, unequaln);
       var
         p: tnode;
+        newstatement : tstatementnode;
+        tempnode : ttempcreatenode;
       begin
         { when we get here, we are sure that both the left and the right }
         { node are both strings of the same stringtype (JM)              }
@@ -1600,9 +1602,32 @@ implementation
                   exit;
                 end;
               { create the call to the concat routine both strings as arguments }
-              result := ccallnode.createintern('fpc_'+
-                tstringdef(resulttype.def).stringtypname+'_concat',
-                ccallparanode.create(right,ccallparanode.create(left,nil)));
+              if assigned(aktassignmentnode) and
+                  (aktassignmentnode.right=self) and
+                  (aktassignmentnode.left.resulttype.def=resulttype.def) and
+                  valid_for_var(aktassignmentnode.left,false) then
+                begin
+                  result:=ccallnode.createintern('fpc_'+
+                    tstringdef(resulttype.def).stringtypname+'_concat',
+                    ccallparanode.create(right,
+                    ccallparanode.create(left,
+                    ccallparanode.create(aktassignmentnode.left.getcopy,nil))));
+                  include(aktassignmentnode.flags,nf_assign_done_in_right);
+                  firstpass(result);
+                end
+              else
+                begin
+                  result:=internalstatements(newstatement);
+                  tempnode:=ctempcreatenode.create(resulttype,resulttype.def.size,tt_persistent,true);
+                  addstatement(newstatement,tempnode);
+                  addstatement(newstatement,ccallnode.createintern('fpc_'+
+                    tstringdef(resulttype.def).stringtypname+'_concat',
+                    ccallparanode.create(right,
+                    ccallparanode.create(left,
+                    ccallparanode.create(ctemprefnode.create(tempnode),nil)))));
+                  addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode));
+                  addstatement(newstatement,ctemprefnode.create(tempnode));
+                end;
               { we reused the arguments }
               left := nil;
               right := nil;
