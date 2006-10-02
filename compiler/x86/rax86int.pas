@@ -1251,6 +1251,16 @@ Unit Rax86int;
                 Scale:=0;
               end;
 
+            AS_DOT :
+              Begin
+                { Handle like a + }
+                Consume(AS_DOT);
+                Negative:=false;
+                GotPlus:=true;
+                GotStar:=false;
+                Scale:=0;
+              end;
+
             AS_MINUS :
               begin
                 Consume(AS_MINUS);
