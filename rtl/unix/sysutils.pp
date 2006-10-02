@@ -303,50 +303,8 @@ begin
     Result:=Result or faSymLink;
 end;
 
-type
 
- pglob = ^tglob;
-  tglob = record
-    name : pchar;
-    next : pglob;
-  end;
-
-Function Dirname(Const path:pathstr):pathstr;
-{
-  This function returns the directory part of a complete path.
-  Unless the directory is root '/', The last character is not
-  a slash.
-}
-var
-  Dir  : DirStr;
-  Name : NameStr;
-  Ext  : ExtStr;
-begin
-  FSplit(Path,Dir,Name,Ext);
-  if length(Dir)>1 then
-   Delete(Dir,length(Dir),1);
-  DirName:=Dir;
-end;
-
-
-Function Basename(Const path:pathstr;Const suf:pathstr):pathstr;
-{
-  This function returns the filename part of a complete path. If suf is
-  supplied, it is cut off the filename.
-}
-var
-  Dir  : DirStr;
-  Name : NameStr;
-  Ext  : ExtStr;
-begin
-  FSplit(Path,Dir,Name,Ext);
-  if Suf<>Ext then
-   Name:=Name+Ext;
-  BaseName:=Name;
-end;
-
-
-Function FNMatch(const Pattern,Name:shortstring):Boolean;
+Function FNMatch(const Pattern,Name:string):Boolean;
 Var
   LenPat,LenName : longint;
 
@@ -428,187 +386,144 @@ Begin {start FNMatch}
 End;
 
 
-Procedure Globfree(var p : pglob);
-{
-  Release memory occupied by pglob structure, and names in it.
-  sets p to nil.
-}
-var
-  temp : pglob;
-begin
-  while assigned(p) do
-   begin
-     temp:=p^.next;
-     if assigned(p^.name) then
-      freemem(p^.name);
-     dispose(p);
-     p:=temp;
-   end;
-end;
-
-
-Function Glob(Const path:pathstr):pglob;
-{
-  Fills a tglob structure with entries matching path,
-  and returns a pointer to it. Returns nil on error,
-  linuxerror is set accordingly.
-}
-var
-  temp,
-  temp2   : string[255];
-  thedir  : pdir;
-  buffer  : pdirent;
-  root,
-  current : pglob;
-begin
-{ Get directory }
-  temp:=dirname(path);
-  if temp='' then
-   temp:='.';
-  temp:=temp+#0;
-  thedir:=fpopendir(@temp[1]);
-  if thedir=nil then
-    exit(nil);
-  temp:=basename(path,''); { get the pattern }
-  if thedir^.dd_fd<0 then
-     exit(nil);
-{get the entries}
-  root:=nil;
-  current:=nil;
-  repeat
-    buffer:=fpreaddir(thedir^);
-    if buffer=nil then
-     break;
-    temp2:=strpas(@(buffer^.d_name[0]));
-    if fnmatch(temp,temp2) then
-     begin
-       if root=nil then
-        begin
-          new(root);
-          current:=root;
-        end
-       else
-        begin
-          new(current^.next);
-          current:=current^.next;
-        end;
-       if current=nil then
-        begin
-           fpseterrno(ESysENOMEM);
-          globfree(root);
-          break;
-        end;
-       current^.next:=nil;
-       getmem(current^.name,length(temp2)+1);
-       if current^.name=nil then
-        begin
-          fpseterrno(ESysENOMEM);
-          globfree(root);
-          break;
-        end;
-       move(buffer^.d_name[0],current^.name^,length(temp2)+1);
-     end;
-  until false;
-  fpclosedir(thedir^);
-  glob:=root;
-end;
-
-
-{
- GlobToSearch takes a glob entry, stats the file.
- The glob entry is removed.
- If FileAttributes match, the entry is reused
-}
-
 Type
-  TGlobSearchRec = Record
-    Path       : shortString;
-    GlobHandle : PGlob;
-  end;
-  PGlobSearchRec = ^TGlobSearchRec;
+  TUnixFindData = Record
+    NamePos    : LongInt;     {to track which search this is}
+    DirPtr     : Pointer;     {directory pointer for reading directory}
+    SearchSpec : String;
+    SearchType : Byte;        {0=normal, 1=open will close, 2=only 1 file}
+    SearchAttr : Byte;        {attribute we are searching for}
+  End;
+  PUnixFindData = ^TUnixFindData;
+Var
+  CurrSearchNum : LongInt;
 
-Function GlobToTSearchRec (Var Info : TSearchRec) : Boolean;
-
-Var SInfo : Stat;
-    p     : Pglob;
-    GlobSearchRec : PGlobSearchrec;
-
-begin
-  GlobSearchRec:=Info.FindHandle;
-  P:=GlobSearchRec^.GlobHandle;
-  Result:=P<>Nil;
-  If Result then
+Procedure FindClose(Var f: TSearchRec);
+var
+  UnixFindData : PUnixFindData;
+Begin
+  UnixFindData:=PUnixFindData(f.FindHandle);
+  if UnixFindData=nil then
+    exit;
+  if UnixFindData^.SearchType=0 then
     begin
-    GlobSearchRec^.GlobHandle:=P^.Next;
-    Result:=Fpstat(GlobSearchRec^.Path+StrPas(p^.name),SInfo)>=0;
-    Info.PathOnly:=GlobSearchRec^.Path;
-    If Result then
-      begin
-      Info.Attr:=LinuxToWinAttr(p^.name,SInfo);
-      Result:=(Info.ExcludeAttr and Info.Attr)=0;
-      If Result Then
-         With Info do
-           begin
-           Attr:=Info.Attr;
-           If P^.Name<>Nil then
-           Name:=strpas(p^.name);
-           Time:=UnixToWinAge(Sinfo.st_mtime);
-           Size:=Sinfo.st_Size;
-           Mode:=Sinfo.st_mode;
-           end;
-      end;
-    P^.Next:=Nil;
-    GlobFree(P);
+      if UnixFindData^.dirptr<>nil then
+        fpclosedir(pdir(UnixFindData^.dirptr)^);
     end;
-end;
+  Dispose(UnixFindData);
+  f.FindHandle:=nil;
+End;
 
-Function DoFind(Var Rslt : TSearchRec) : Longint;
 
-Var
-  GlobSearchRec : PGlobSearchRec;
-
+Function FindGetFileInfo(const s:string;var f:TSearchRec):boolean;
+var
+  st      : baseunix.stat;
+  WinAttr : longint;
 begin
-  Result:=-1;
-  GlobSearchRec:=Rslt.FindHandle;
-  If (GlobSearchRec^.GlobHandle<>Nil) then
-    While (GlobSearchRec^.GlobHandle<>Nil) and not (Result=0) do
-      If GlobToTSearchRec(Rslt) Then Result:=0;
-end;
-
-
-
-Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
-
-Var
-  GlobSearchRec : PGlobSearchRec;
-
-begin
-  New(GlobSearchRec);
-  GlobSearchRec^.Path:=ExpandFileName(ExtractFilePath(Path));
-  GlobSearchRec^.GlobHandle:=Glob(Path);
-  Rslt.ExcludeAttr:=Not Attr and (faHidden or faSysFile or faVolumeID or faDirectory); //!! Not correct !!
-  Rslt.FindHandle:=GlobSearchRec;
-  Result:=DoFind (Rslt);
+  FindGetFileInfo:=false;
+  if not fpstat(s,st)>=0 then
+   exit;
+  WinAttr:=LinuxToWinAttr(PChar(s),st);
+  If ((WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0) Then
+   Begin
+     f.Name:=Copy(s,PUnixFindData(f.FindHandle)^.NamePos+1,Length(s));
+     f.Attr:=WinAttr;
+     f.Size:=st.st_Size;
+     f.Mode:=st.st_mode;
+     f.Time:=UnixToWinAge(st.st_mtime);
+     result:=true;
+   End;
 end;
 
 
 Function FindNext (Var Rslt : TSearchRec) : Longint;
-
-begin
-  Result:=DoFind (Rslt);
-end;
-
-
-Procedure FindClose (Var F : TSearchrec);
-
+{
+  re-opens dir if not already in array and calls FindWorkProc
+}
 Var
-  GlobSearchRec : PGlobSearchRec;
+  DirName  : String;
+  i,
+  ArrayPos : Longint;
+  FName,
+  SName    : string;
+  Found,
+  Finished : boolean;
+  p        : pdirent;
+  UnixFindData : PUnixFindData;
+Begin
+  Result:=-1;
+  UnixFindData:=PUnixFindData(Rslt.FindHandle);
+  if UnixFindData=nil then
+    exit;
+  if (UnixFindData^.SearchType=0) and
+     (UnixFindData^.Dirptr=nil) then
+    begin
+      If UnixFindData^.NamePos = 0 Then
+        DirName:='./'
+      Else
+        DirName:=Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos);
+      UnixFindData^.DirPtr := fpopendir(Pchar(DirName));
+    end;
+  SName:=Copy(UnixFindData^.SearchSpec,UnixFindData^.NamePos+1,Length(UnixFindData^.SearchSpec));
+  Found:=False;
+  Finished:=(UnixFindData^.dirptr=nil);
+  While Not Finished Do
+   Begin
+     p:=fpreaddir(pdir(UnixFindData^.dirptr)^);
+     if p=nil then
+      FName:=''
+     else
+      FName:=p^.d_name;
+     If FName='' Then
+      Finished:=True
+     Else
+      Begin
+        If FNMatch(SName,FName) Then
+         Begin
+           Found:=FindGetFileInfo(Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos)+FName,Rslt);
+           if Found then
+             begin
+               Result:=0;
+               exit;
+             end;
+         End;
+      End;
+   End;
+End;
 
-begin
-  GlobSearchRec:=F.FindHandle;
-  GlobFree (GlobSearchRec^.GlobHandle);
-  Dispose(GlobSearchRec);
-end;
+
+Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
+{
+  opens dir and calls FindWorkProc
+}
+var
+  UnixFindData : PUnixFindData;
+Begin
+  Result:=-1;
+  fillchar(Rslt,sizeof(Rslt),0);
+  if Path='' then
+    exit;
+  { Allocate UnixFindData }
+  New(UnixFindData);
+  FillChar(UnixFindData^,sizeof(UnixFindData),0);
+  Rslt.FindHandle:=UnixFindData;
+  {Create Info}
+  UnixFindData^.SearchSpec := Path;
+  {We always also search for readonly and archive, regardless of Attr:}
+  UnixFindData^.SearchAttr := Attr or faarchive or fareadonly;
+  UnixFindData^.NamePos := Length(UnixFindData^.SearchSpec);
+  while (UnixFindData^.NamePos>0) and (UnixFindData^.SearchSpec[UnixFindData^.NamePos]<>'/') do
+   dec(UnixFindData^.NamePos);
+  {Wildcards?}
+  if (Pos('?',Path)=0)  and (Pos('*',Path)=0) then
+   begin
+     if FindGetFileInfo(Path,Rslt) then
+       Result:=0;
+     UnixFindData^.SearchType:=1;
+   end
+  else
+    Result:=FindNext(Rslt);
+End;
 
 
 Function FileGetDate (Handle : Longint) : Longint;
@@ -718,7 +633,7 @@ begin
   inc(Drives);
   if Drives>26 then
    Drives:=4;
-  Result:=Drives; 
+  Result:=Drives;
 end;
 
 
