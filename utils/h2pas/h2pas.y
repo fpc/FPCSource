@@ -257,12 +257,10 @@ program h2pas;
     var i : Integer;
     begin
       IsACType := True;
-      WriteLn('IsACType '+s);
       for i := 0 to MAX_CTYPESARRAY do
       begin
         if s = CTypesArray[i] then
         begin
-          WriteLn('IsACType True');
           Exit;
         end;
       end;
@@ -883,6 +881,14 @@ program h2pas;
             t_id :
               begin
                 if pointerprefix then
+                  if UseCtypesUnit then
+                  begin
+                    if not IsACType(p^.p) then
+                    begin
+                      PTypeList.Add('P'+p^.str);
+                    end;
+                  end
+                  else
                    PTypeList.Add('P'+p^.str);
                 if p^.intname then
                  write(outfile,p^.p)
@@ -920,11 +926,19 @@ program h2pas;
                   begin
                     if in_args then
                     begin
-                      write(outfile,'P');
+                      if UseCTypesUnit and (IsACType(p^.p1^.p)=False) then
+                        write(outfile,'P')
+                      else
+                        write(outfile,'p');
                       pointerprefix:=true;
                     end
                     else
-                      write(outfile,'^');
+                    begin
+                      if UseCTypesUnit and (IsACType(p^.p1^.p)=False) then
+                        write(outfile,'^')
+                      else
+                        write(outfile,'p');
+                    end;
                     write_type_specifier(outfile,p^.p1);
                     pointerprefix:=false;
                   end;
@@ -935,7 +949,8 @@ program h2pas;
                     (p^.p2^.typ=t_id) then
                    begin
                       if pointerprefix then
-                        PTypeList.Add('P'+p^.p2^.str);
+                        if UseCTypesUnit and (IsACType( p^.p2^.p )=False) then
+                          PTypeList.Add('P'+p^.p2^.str);
                       write(outfile,p^.p2^.p);
                    end
                  else
@@ -1025,7 +1040,8 @@ program h2pas;
                     (p^.p1=nil) and (p^.p2^.typ=t_id) then
                    begin
                       if pointerprefix then
-                        PTypeList.Add('P'+p^.p2^.str);
+                        if UseCTypesUnit and (IsACType(p^.p2^.str)=false) then
+                          PTypeList.Add('P'+p^.p2^.str);
                      write(outfile,TypeName(p^.p2^.p));
                    end
                  else
