@@ -337,6 +337,14 @@ begin
         case opcode of
           A_MOVZX,A_MOVSX :
             begin
+              if tx86operand(operands[1]).opsize=S_NO then
+                begin
+                  tx86operand(operands[1]).opsize:=S_B;
+                  if (m_delphi in aktmodeswitches) then
+                    Message(asmr_w_unable_to_determine_reference_size_using_byte)
+                  else
+                    Message(asmr_e_unable_to_determine_reference_size);
+                end;
               case tx86operand(operands[1]).opsize of
                 S_W :
                   case tx86operand(operands[2]).opsize of
@@ -344,11 +352,13 @@ begin
                       opsize:=S_WL;
                   end;
                 S_B :
-                  case tx86operand(operands[2]).opsize of
-                    S_W :
-                      opsize:=S_BW;
-                    S_L :
-                      opsize:=S_BL;
+                  begin
+                    case tx86operand(operands[2]).opsize of
+                      S_W :
+                        opsize:=S_BW;
+                      S_L :
+                        opsize:=S_BL;
+                    end;
                   end;
               end;
             end;

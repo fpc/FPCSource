@@ -1857,6 +1857,11 @@ asmr_e_packed_element=07100_E_Address of packed component is not at a byte bound
 % message when trying to index arrays with elements whose size is not a multiple
 % of 8 bits. The same goes for accessing record fields with such an address.
 % multiple of 8 bits.
+asmr_w_unable_to_determine_reference_size_using_byte=07101_W_No size specified and unable to determine the size of the operands, using BYTE as default
+% You should specify explicitly a size for the reference, because
+% the compiler is unable to determine what size (byte,word,dword,etc.) it
+% should use for the reference. This warning is only used in Delphi mode where
+% it falls back to use BYTE as default.
 % \end{verbatim}
 #
 # Assembler/binary writers
