@@ -32,7 +32,11 @@ const
  PathSeparator = ':';
 { FileNameCaseSensitive is defined below! }
  maxExitCode = 255;
- MaxPathLen = 256; 
+ {$ifdef LINUX}
+ MaxPathLen = 4096; // linux has always got to be BIGGER
+ {$else}
+ MaxPathLen = 1024; // BSDs since 1993, Solaris 10, Darwin
+ {$endif}
  
 const
   UnusedHandle    = -1;
