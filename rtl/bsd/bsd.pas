@@ -21,9 +21,9 @@ Unit BSD;
   {$Inline On}
   {$Macro On}
   {$ifdef FPC_USE_LIBC}
-  {$define directives:=cdecl; external 'c';}
+  {$define extdecl:=cdecl; external 'c'}
   {$else}
-  {$define directives:=inline;}
+  {$define extdecl:=inline}
   {$endif}
 {$ENDIF}
 
@@ -101,10 +101,10 @@ type
     uData  : Pointer;    { opaque user data identifier }
   end;
 
-function kqueue: cint; directives
+function kqueue: cint; extdecl;
   
 function kevent(kq: cint; ChangeList: PKEvent; nChanged: cint;
-                  EventList: PKevent; nEvents: cint; Timeout: PTimeSpec): cint; directives
+                  EventList: PKevent; nEvents: cint; Timeout: PTimeSpec): cint; extdecl;
 
 procedure EV_SET(kevp: PKEvent; const aIdent: cuint; const aFilter: cshort;
                    const aFlags: cushort; const aFFlags: cuint;
