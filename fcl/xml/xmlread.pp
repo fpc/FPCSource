@@ -65,10 +65,7 @@ const
   NmToken: TSetOfChar = Letter + Digit + ['.', '-', '_', ':'];
 
 type
-  TXMLReaderDocumentType = class(TDOMDocumentType)
-  public
-    property Name: DOMString read FNodeName write FNodeName;
-  end;
+  TXMLReaderDocumentType = class(TDOMDocumentType);
 
   TXMLReader = class;
 
@@ -463,14 +460,14 @@ end;
 
 function TXMLReader.CheckName: Boolean;        // [5]
 begin
-  Result := (Byte(FCurChar) in NamingBitmap[nameStartPages[hi(Word(FCurChar))]].Work);
+  Result := (Byte(FCurChar) in NamingBitmap[namePages[hi(Word(FCurChar))]]);
   if Result then
   begin
     FNameLength := 0;
     repeat
       AppendName(FCurChar);
       GetChar;
-    until not (Byte(FCurChar) in NamingBitmap[namePages[hi(Word(FCurChar))]].Work);;
+    until not (Byte(FCurChar) in NamingBitmap[namePages[$100 + hi(Word(FCurChar))]]);
   end;
 end;
 
@@ -785,7 +782,7 @@ begin
     if doc.InheritsFrom(TXMLDocument) then
       TXMLDocument(doc).AppendChild(DocType);
     SkipWhitespace;
-    DocType.Name := ExpectName;
+    DocType.FName := ExpectName;
     SkipWhitespace;
     ParseExternalID(False);    // may be absent, ignore result
     SkipWhitespace;

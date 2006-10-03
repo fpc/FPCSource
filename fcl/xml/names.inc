@@ -12,142 +12,165 @@
 
  **********************************************************************}
 
-
 type
-  TByteSet = set of Byte;
-  TNbPage = record
-  case Boolean of
-    False: (Init: array[0..7] of Cardinal);
-  	True: (Work: TByteSet);
-  end;
+  TSetOfByte = set of Byte;
 
 const
-  namingBitmap: array[0..$27] of TNbPage = (
-// #00 - nothing allowed
-(Init: ($00000000, $00000000, $00000000, $00000000,
-        $00000000, $00000000, $00000000, $00000000)),
-// #01 - all allowed
-(Init: ($FFFFFFFF, $FFFFFFFF, $FFFFFFFF, $FFFFFFFF,
-        $FFFFFFFF, $FFFFFFFF, $FFFFFFFF, $FFFFFFFF)),
-// #02 - $0000, NameStart
-(Init: ($00000000, $04000000, $87FFFFFE, $07FFFFFE,
-        $00000000, $00000000, $FF7FFFFF, $FF7FFFFF)),
-// #03 - $0100, both Name and NameStart
-(Init: ($FFFFFFFF, $7FF3FFFF, $FFFFFDFE, $7FFFFFFF,
-        $FFFFFFFF, $FFFFFFFF, $FFFFE00F, $FC31FFFF)),
-// #04 - $0200, NameStart
-(Init: ($00FFFFFF, $00000000, $FFFF0000, $FFFFFFFF,
-        $FFFFFFFF, $F80001FF, $00000003, $00000000)),
-// #05 - $0300, NameStart
-(Init: ($00000000, $00000000, $00000000, $00000000,
-        $FFFFD740, $FFFFFFFB, $547F7FFF, $000FFFFD)),
-// #06 - $0400, NameStart
-(Init: ($FFFFDFFE, $FFFFFFFF, $DFFEFFFF, $FFFFFFFF,
-        $FFFF0003, $FFFFFFFF, $FFFF199F, $033FCFFF)),
-// #07 - $0500, NameStart
-(Init: ($00000000, $FFFE0000, $027FFFFF, $FFFFFFFE,
-        $0000007F, $00000000, $FFFF0000, $000707FF)),
-// #08 - $0600, NameStart
-(Init: ($00000000, $07FFFFFE, $000007FE, $FFFE0000,
-        $FFFFFFFF, $7CFFFFFF, $002F7FFF, $00000060)),
-// #09 - $0900, NameStart
-(Init: ($FFFFFFE0, $23FFFFFF, $FF000000, $00000003,
-        $FFF99FE0, $03C5FDFF, $B0000000, $00030003)),
-// #0A - $0A00, NameStart
-(Init: ($FFF987E0, $036DFDFF, $5E000000, $001C0000,
-        $FFFBAFE0, $23EDFDFF, $00000000, $00000001)),
-// #0B - $0B00, NameStart
-(Init: ($FFF99FE0, $23CDFDFF, $B0000000, $00000003,
-        $D63DC7E0, $03BFC718, $00000000, $00000000)),
-// #0C - $0C00, NameStart
-(Init: ($FFFDDFE0, $03EFFDFF, $00000000, $00000003,
-        $FFFDDFE0, $03EFFDFF, $40000000, $00000003)),
-// #0D - $0D00, NameStart
-(Init: ($FFFDDFE0, $03FFFDFF, $00000000, $00000003,
-        $00000000, $00000000, $00000000, $00000000)),
-// #0E - $0E00, NameStart
-(Init: ($FFFFFFFE, $000D7FFF, $0000003F, $00000000,
-        $FEF02596, $200D6CAE, $0000001F, $00000000)),
-// #0F - $0F00, NameStart
-(Init: ($00000000, $00000000, $FFFFFEFF, $000003FF,
-        $00000000, $00000000, $00000000, $00000000)),
-// #10 - $1000, both Name and NameStart
-(Init: ($00000000, $00000000, $00000000, $00000000,
-        $00000000, $FFFFFFFF, $FFFF003F, $007FFFFF)),
-// #11 - $1100, both Name and NameStart
-(Init: ($0007DAED, $50000000, $82315001, $002C62AB,
-        $40000000, $F580C900, $00000007, $02010800)),
-// #12 - $1E00, both Name and NameStart
-(Init: ($FFFFFFFF, $FFFFFFFF, $FFFFFFFF, $FFFFFFFF,
-        $0FFFFFFF, $FFFFFFFF, $FFFFFFFF, $03FFFFFF)),
-// #13 - $1F00, both Name and NameStart
-(Init: ($3F3FFFFF, $FFFFFFFF, $AAFF3F3F, $3FFFFFFF,
-        $FFFFFFFF, $5FDFFFFF, $0FCF1FDC, $1FDC1FFF)),
-// #14 - $2100, NameStart
-(Init: ($00000000, $00004C40, $00000000, $00000000,
-        $00000007, $00000000, $00000000, $00000000)),
-// #15 - $3000, NameStart
-(Init: ($00000080, $000003FE, $FFFFFFFE, $FFFFFFFF,
-        $001FFFFF, $FFFFFFFE, $FFFFFFFF, $07FFFFFF)),
-// #16 - $3100, NameStart
-(Init: ($FFFFFFE0, $00001FFF, $00000000, $00000000,
-        $00000000, $00000000, $00000000, $00000000)),
-// #17 - $9F00, NameStart
-(Init: ($FFFFFFFF, $FFFFFFFF, $FFFFFFFF, $FFFFFFFF,
-        $FFFFFFFF, $0000003F, $00000000, $00000000)),
-// #18 - $D700, NameStart
-(Init: ($FFFFFFFF, $FFFFFFFF, $FFFFFFFF, $FFFFFFFF,
-        $FFFFFFFF, $0000000F, $00000000, $00000000)),
+  ns_ASCII = [$3A, $41..$5A, $5F, $61..$7A, $C0..$D6, $D8..$F6, $F8..$FF];
+  ns_0200  = [0..$17, $50..$A8, $BB..$C1];
+  ns_0300  = [$86, $88..$8A, $8C, $8E..$A1,
+              $A3..$CE, $D0..$D6, $DA, $DC,
+              $DE, $E0, $E2..$F3];
+  ns_0400  = [$01..$0C, $0E..$4F, $51..$5C,
+              $5E..$81, $90..$C4, $C7..$C8,
+              $CB..$CC, $D0..$EB, $EE..$F5,
+              $F8..$F9];
+  ns_0500  = [$31..$56, $59, $61..$86, $D0..$EA, $F0..$F2];
+  ns_0600  = [$21..$3A, $41..$4A, $71..$B7,
+              $BA..$BE, $C0..$CE, $D0..$D3,
+              $D5, $E5..$E6];
+  ns_0900  = [$05..$39, $3D, $58..$61,
+              $85..$8C, $8F..$90, $93..$A8,
+              $AA..$B0, $B2, $B6..$B9,
+              $DC..$DD, $DF..$E1, $F0..$F1];
+  ns_0A00  = [$05..$0A, $0F..$10, $13..$28,
+              $2A..$30, $32..$33, $35..$36,
+              $38..$39, $59..$5C, $5E, $72..$74,
+              $85..$8B, $8D, $8F..$91, $93..$A8,
+              $AA..$B0, $B2..$B3, $B5..$B9, $BD, $E0];
+  ns_0B00  = [$05..$0C, $0F..$10, $13..$28,
+              $2A..$30, $32..$33, $36..$39,
+              $3D, $5C..$5D, $5F..$61, $85..$8A,
+              $8E..$90, $92..$95, $99..$9A,
+              $9C, $9E..$9F, $A3..$A4, $A8..$AA,
+              $AE..$B5, $B7..$B9];
+  ns_0C00  = [$05..$0C, $0E..$10, $12..$28,
+              $2A..$33, $35..$39, $60..$61,
+              $85..$8C, $8E..$90, $92..$A8,
+              $AA..$B3, $B5..$B9, $DE, $E0..$E1];
+  ns_0D00  = [$05..$0C, $0E..$10, $12..$28, $2A..$39, $60..$61];
+  ns_0E00  = [$01..$2E, $30, $32..$33, $40..$45,
+              $81..$82, $84, $87..$88, $8A, $8D,
+              $94..$97, $99..$9F, $A1..$A3,
+              $A5, $A7, $AA..$AB, $AD..$AE,
+              $B0, $B2..$B3, $BD, $C0..$C4];
+  ns_0F00  = [$40..$47, $49..$69];
 
-// #19 - $0000, Names
-(Init: ($00000000, $07FF6000, $87FFFFFE, $07FFFFFE,
-        $00000000, $00800000, $FF7FFFFF, $FF7FFFFF)),
-// #1A - $0200, Names
-(Init: ($00FFFFFF, $00000000, $FFFF0000, $FFFFFFFF,
-        $FFFFFFFF, $F80001FF, $00030003, $00000000)),
-// #1B - $0300, Names
-(Init: ($FFFFFFFF, $FFFFFFFF, $0000003F, $00000003,
-        $FFFFD7C0, $FFFFFFFB, $547F7FFF, $000FFFFD)),
-// #1C $0400 - Names
-(Init: ($FFFFDFFE, $FFFFFFFF, $DFFEFFFF, $FFFFFFFF,
-        $FFFF007B, $FFFFFFFF, $FFFF199F, $033FCFFF)),
-// #1D $0500 - Names
-(Init: ($00000000, $FFFE0000, $027FFFFF, $FFFFFFFE,
-        $FFFE007F, $BBFFFFFB, $FFFF0016, $000707FF)),
-// #1E $0600 - Names
-(Init: ($00000000, $07FFFFFE, $0007FFFF, $FFFF03FF,
-        $FFFFFFFF, $7CFFFFFF, $FFEF7FFF, $03FF3DFF)),
-// #1F $0900 - Names
-(Init: ($FFFFFFEE, $F3FFFFFF, $FF1E3FFF, $0000FFCF,
-        $FFF99FEE, $D3C5FDFF, $B080399F, $0003FFCF)),
-// #20 $0A00 - Names
-(Init: ($FFF987E4, $D36DFDFF, $5E003987, $001FFFC0,
-        $FFFBAFEE, $F3EDFDFF, $00003BBF, $0000FFC1)),
-// #21 $0B00 - Names
-(Init: ($FFF99FEE, $F3CDFDFF, $B0C0398F, $0000FFC3,
-        $D63DC7EC, $C3BFC718, $00803DC7, $0000FF80)),
-// #22 $0C00 - Names
-(Init: ($FFFDDFEE, $C3EFFDFF, $00603DDF, $0000FFC3,
-        $FFFDDFEC, $C3EFFDFF, $40603DDF, $0000FFC3)),
-// #23 $0D00 - Names
-(Init: ($FFFDDFEC, $C3FFFDFF, $00803DCF, $0000FFC3,
-        $00000000, $00000000, $00000000, $00000000)),
-// #24 $0E00 - Names
-(Init: ($FFFFFFFE, $07FF7FFF, $03FF7FFF, $00000000,
-        $FEF02596, $3BFF6CAE, $03FF3F5F, $00000000)),
-// #25 $0F00 - Names
-(Init: ($03000000, $C2A003FF, $FFFFFEFF, $FFFE03FF,
-        $FEBF0FDF, $02FE3FFF, $00000000, $00000000)),
-// #26 $2000 - Names
-(Init: ($00000000, $00000000, $00000000, $00000000,
-        $00000000, $00000000, $1FFF0000, $00000002)),
-// #27 $3000 - Names
-(Init: ($000000A0, $003EFFFE, $FFFFFFFE, $FFFFFFFF,
-        $661FFFFF, $FFFFFFFE, $FFFFFFFF, $77FFFFFF))
+  ns_3000  = [$41..$94, $A1..$FA] + [$07, $21..$29];
+
+  namingBitmap: array[0..$2F] of TSetOfByte = (
+
+  [],                              // 00 - nothing allowed
+  [0..255],                        // 01 - all allowed
+  ns_ASCII,                        // 02
+  [0..$31, $34..$3E, $41..$48,     // 03 - $0100, both Name and NameStart
+   $4A..$7E, $80..$C3, $CD..$F0,
+   $F4..$F5, $FA..$FF],
+
+  ns_0200,                  // 04
+  ns_0300,                  // 05
+  ns_0400,                  // 06
+  ns_0500,                  // 07
+  ns_0600,                  // 08
+  ns_0900,                  // 09
+  ns_0A00,                  // 0A
+  ns_0B00,                  // 0B
+  ns_0C00,                  // 0C
+  ns_0D00,                  // 0D
+  ns_0E00,                  // 0E
+  ns_0F00,                  // 0F
+  [$A0..$C5, $D0..$F6],            // 10 - $1000, both Name and NameStart
+  [0, $02..03, $05..$07, $09,      // 11 - $1100, both Name and NameStart
+   $0B..$0C, $0E..$12, $3C, $3E,
+   $40, $4C, $4E, $50, $54..$55,
+   $59, $5F..$61, $63, $65, $67,
+   $69, $6D..$6E, $72..$73, $75,
+   $9E, $A8, $AB, $AE..$AF,
+   $B7..$B8, $BA, $BC..$C2, $EB, $F0, $F9],
+  [0..$9B, $A0..$F9],              // 12 - $1E00, both Name and NameStart
+  [0..$15, $18..$1D, $20..$45,     // 13 - $1F00, both Name and NameStart
+   $48..$4D, $50..$57, $59, $5B, $5D,
+   $5F..$7D, $80..$B4, $B6..$BC, $BE,
+   $C2..$C4, $C6..$CC, $D0..$D3,
+   $D6..$DB, $E0..$EC, $F2..$F4, $F6..$FC],
+  [$26, $2A..$2B, $2E, $80..$82],  // 14 - $2100, NameStart
+  ns_3000,                         // 15
+  [$05..$2C],                      // 16 - $3100, NameStart
+  [0..$A5],                        // 17 - $9F00, NameStart (ideographs)
+  [0..$A3],                        // 18 - $D700, NameStart
+
+  ns_ASCII +                       // 19 - $0000, Names
+    [$2D..$2E, $30..$39, $B7],
+  ns_0200 +                        // 1A - $0200, Names
+    [$D0..$D1],
+  ns_0300 +                        // 1B - $0300, Names
+    [0..$45, $60..$61, $87],
+  ns_0400 +                        // 1C - $0400, Names
+    [$83..$86],
+  ns_0500 +                        // 1D - $0500, Names
+    [$91..$A1, $A3..$B9, $BB..$BD,         { combining }
+    $BF, $C1..$C2, $C4],
+  ns_0600 +                        // 1E - $0600, Names
+    [$4B..$52, $70, $D6..$DC, $DD..$DF,    { combining }
+     $E0..$E4, $E7..$E8, $EA..$ED] +
+    [$60..$69, $F0..$F9] + [$40],          { digits + ext }
+  ns_0900 +                        // 1F - $0900, Names
+    [$01..$03, $3C, $3E..$4C, $4D,         { combining }
+     $51..$54, $62..$63, $81..$83,
+     $BC, $BE, $BF, $C0..$C4, $C7..$C8,
+     $CB..$CD, $D7, $E2..$E3] +
+     [$66..$6F, $E6..$EF],                 { digits }
+  ns_0A00 +                        // 20 - $0A00, Names
+  [$02, $3C, $3E..$42, $47..$48, $4B..$4D, { combining }
+   $70..$71, $81..$83, $BC, $BE..$C5,
+   $C7..$C9, $CB..$CD] +
+  [$66..$6F, $E6..$EF],                    { digits }
+  ns_0B00 +                        // 21 - $0B00, Names
+  [$01..$03, $3C, $3E..$43, $47..$48,      { combining }
+   $4B..$4D, $56..$57, $82..$83, $BE..$C2,
+   $C6..$C8, $CA..$CD, $D7] +
+  [$66..$6F, $E7..$EF],                    { digits }
+  ns_0C00 +                        // 22 - $0C00, Names
+    [$01..$03, $3E..$44, $46..$48,        { combining }
+     $4A..$4D, $55..$56, $82..$83,
+     $BE..$C4, $C6..$C8, $CA..$CD, $D5..$D6] +
+    [$66..$6F, $E6..$EF],                { digits }
+  ns_0D00 +                        // 23 - $0D00, Names
+    [$02..$03, $3E..$43,                { combining }
+     $46..$48, $4A..$4D, $57] +
+    [$66..$6F],                         { digits }
+  ns_0E00 +                        // 24 - $0E00, Names
+    [$31, $34..$3A, $47..$4E,           { combining }
+     $B1, $B4..$B9, $BB..$BC,
+     $C8..$CD] +
+    [$50..$59, $D0..$D9] +              { digits }
+    [$46, $C6],                         { extenders }
+  ns_0F00 +                        // 25 - $0F00, Names
+    [$18..$19, $35, $37, $39,           { combining }
+     $3E, $3F, $71..$84, $86..$8B,
+     $90..$95, $97, $99..$AD,
+     $B1..$B7, $B9] +
+    [$20..$29],                         { digits }
+    [$D0..$DC, $E1],               // 26 - $2000, Names (combining)
+  ns_3000 +                        // 27 - $3000, Names
+    [$2A..$2F, $99, $9A] +               { combining }
+    [$05, $31..$35, $9D..$9E, $FC..$FE], { extenders }
+
+{ XML 1.1 additions }
+
+  [0..$CF, $F0..$FF],              // 28 $FD00 - NameStart
+  [0..$EF],                        // 29 $2F00 - NameStart
+  [$0C..$0D, $70..$FF],            // 2A $2000 - NameStart
+  [0..$8F],                        // 2B $2100 - NameStart
+  [$70..$7D, $7F..$FF],            // 2C $0300 - NameStart
+  [1..$FF],                        // 2D $3000 - NameStart
+  [0..$7D, $7F..$FF],              // 2E $0300 - Names
+  [$0C..$0D, $3F..$40, $70..$FF]   // 2F $2000 - Names
 );
 
+  Xml11HighPages: TSetOfByte = [0..$21, $2C..$D7, $F9..$FF];
 
-  NameStartPages: array[0..255] of Byte = (
+  NamePages: array[0..511] of Byte = (
 $02, $03, $04, $05, $06, $07, $08, $00,
 $00, $09, $0A, $0B, $0C, $0D, $0E, $0F,
 $10, $11, $00, $00, $00, $00, $00, $00,
@@ -179,9 +202,8 @@ $00, $00, $00, $00, $00, $00, $00, $00,
 $00, $00, $00, $00, $00, $00, $00, $00,
 $00, $00, $00, $00, $00, $00, $00, $00,
 $00, $00, $00, $00, $00, $00, $00, $00,
-$00, $00, $00, $00, $00, $00, $00, $00);
-
-  namePages: array[0..255] of Byte = (
+$00, $00, $00, $00, $00, $00, $00, $00,
+// second half - NameChars
 $19, $03, $1A, $1B, $1C, $1D, $1E, $00,
 $00, $1F, $20, $21, $22, $23, $24, $25,
 $10, $11, $00, $00, $00, $00, $00, $00,

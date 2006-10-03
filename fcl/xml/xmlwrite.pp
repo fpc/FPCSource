@@ -47,7 +47,7 @@ type
   TCharacters = set of Char;
   TSpecialCharCallback = procedure(c: WideChar) of object;
 
-  TXMLWriter = class(TObject)  // (TAbstractDOMVisitor)?
+  TXMLWriter = class(TObject)
   private
     FInsideTextNode: Boolean;
     FIndent: WideString;
@@ -55,13 +55,15 @@ type
     FBuffer: PChar;
     FBufPos: PChar;
     FCapacity: Integer;
-    procedure wrtChars(Buf: PWideChar; Length: Integer);
+    FLineBreak: string;
+    procedure wrtChars(Src: PWideChar; Length: Integer);
     procedure IncIndent;
     procedure DecIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtStr(const ws: WideString); {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtChr(c: WideChar); {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtLineEnd; {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
+    procedure wrtQuotedLiteral(const ws: WideString);
     procedure ConvWrite(const s: WideString; const SpecialChars: TCharacters;
       const SpecialCharCallback: TSpecialCharCallback);
     procedure AttrSpecialCharCallback(c: WideChar);
@@ -69,18 +71,16 @@ type
   protected
     procedure Write(const Buffer; Count: Longint); virtual; abstract;
     procedure WriteNode(Node: TDOMNode);
-    procedure VisitDocument(Node: TDOMNode);  // override;
+    procedure VisitDocument(Node: TDOMNode);
     procedure VisitElement(Node: TDOMNode);
     procedure VisitText(Node: TDOMNode);
     procedure VisitCDATA(Node: TDOMNode);
     procedure VisitComment(Node: TDOMNode);
     procedure VisitFragment(Node: TDOMNode);
     procedure VisitAttribute(Node: TDOMNode);
-    procedure VisitEntity(Node: TDOMNode);
     procedure VisitEntityRef(Node: TDOMNode);
     procedure VisitDocumentType(Node: TDOMNode);
     procedure VisitPI(Node: TDOMNode);
-    procedure VisitNotation(Node: TDOMNode);
   public
     constructor Create;
     destructor Destroy; override;
@@ -161,6 +161,9 @@ begin
   SetLength(FIndent, 100);
   for I := 1 to 100 do FIndent[I] := ' ';
   FIndentCount := 0;
+  // Later on, this may be put under user control
+  // for now, take OS setting
+  FLineBreak := sLineBreak;
 end;
 
 destructor TXMLWriter.Destroy;
@@ -172,14 +175,16 @@ begin
   inherited Destroy;
 end;
 
-procedure TXMLWriter.wrtChars(Buf: PWideChar; Length: Integer);
+procedure TXMLWriter.wrtChars(Src: PWideChar; Length: Integer);
 var
   pb: PChar;
   wc: Cardinal;
+  SrcEnd: PWideChar;
   I: Integer;
 begin
   pb := FBufPos;
-  for I := 0 to Length-1 do
+  SrcEnd := Src + Length;
+  while Src < SrcEnd do
   begin
     if pb >= @FBuffer[FCapacity] then
     begin
@@ -189,21 +194,44 @@ begin
         Move(FBuffer[FCapacity], FBuffer^, pb - FBuffer);
     end;
 
-    wc := Cardinal(Buf^);  Inc(Buf);
-    if wc <= $7F then
-    begin
-      pb^ := char(wc); Inc(pb);
-    end
-    else if wc > $7FF then
-    begin
-      pb^ := Char($E0 or (wc shr 12));          Inc(pb);
-      pb^ := Char($80 or ((wc shr 6) and $3F)); Inc(pb);
-      pb^ := Char($80 or (wc and $3F));         Inc(pb);
-    end
-    else  // $7f < wc <= $7FF
-    begin
-      pb^ := Char($C0 or (wc shr 6));   Inc(pb);
-      pb^ := Char($80 or (wc and $3F)); Inc(pb);
+    wc := Cardinal(Src^);  Inc(Src);
+    case wc of
+      $0A:  for I := 1 to System.Length(FLineBreak) do
+            begin
+              pb^ := FLineBreak[I]; Inc(pb);
+            end;
+
+      0..$09, $0B..$7F:  begin
+        pb^ := char(wc); Inc(pb);
+      end;
+
+      $80..$7FF: begin
+        pb^ := Char($C0 or (wc shr 6));   Inc(pb);
+        pb^ := Char($80 or (wc and $3F)); Inc(pb);
+      end;
+
+      $D800..$DBFF: begin
+        if (Src < SrcEnd) and (Src^ >= #$DC00) and (Src^ <= #$DFFF) then
+        begin
+          wc := ((wc - $D7C0) shl 10) + (word(Src^) xor $DC00);
+          Inc(Src);
+
+          pb^ := Char($F0 or (wc shr 18));           Inc(pb);
+          pb^ := Char($80 or ((wc shr 12) and $3F)); Inc(pb);
+          pb^ := Char($80 or ((wc shr 6) and $3F));  Inc(pb);
+          pb^ := Char($80 or (wc and $3F));          Inc(pb);
+        end
+        else
+          raise EConvertError.Create('High surrogate without low one');
+      end;
+      $DC00..$DFFF:
+        raise EConvertError.Create('Low surrogate without high one');
+      else   // $800 >= wc > $FFFF, excluding surrogates
+      begin
+        pb^ := Char($E0 or (wc shr 12));          Inc(pb);
+        pb^ := Char($80 or ((wc shr 6) and $3F)); Inc(pb);
+        pb^ := Char($80 or (wc and $3F));         Inc(pb);
+      end;
     end;
   end;
   FBufPos := pb;
@@ -221,7 +249,8 @@ end;
 
 procedure TXMLWriter.wrtLineEnd; { inline }
 begin
-  wrtStr(slinebreak);
+  // line endings now handled in WrtStr!
+  wrtChr(#10);
 end;
 
 procedure TXMLWriter.wrtIndent; { inline }
@@ -249,8 +278,23 @@ begin
   if FIndentCount>0 then dec(FIndentCount);
 end;
 
+procedure TXMLWriter.wrtQuotedLiteral(const ws: WideString);
+var
+  Quote: WideChar;
+begin
+  // TODO: need to check if the string also contains single quote
+  // both quotes present is a error
+  if Pos('"', ws) > 0 then
+    Quote := ''''
+  else
+    Quote := '"';
+  wrtChr(Quote);
+  wrtStr(ws);
+  wrtChr(Quote);
+end;
+
 const
-  AttrSpecialChars = ['<', '>', '"', '&'];
+  AttrSpecialChars = ['<', '"', '&', #9, #10, #13];
   TextSpecialChars = ['<', '>', '&'];
 
 procedure TXMLWriter.ConvWrite(const s: WideString; const SpecialChars: TCharacters;
@@ -274,54 +318,51 @@ begin
     wrtChars(@s[StartPos], EndPos - StartPos);
 end;
 
-procedure TXMLWriter.AttrSpecialCharCallback(c: WideChar);
 const
   QuotStr = '&quot;';
   AmpStr = '&amp;';
   ltStr = '&lt;';
+  gtStr = '&gt;';
+
+procedure TXMLWriter.AttrSpecialCharCallback(c: WideChar);
 begin
-  if c = '"' then
-    wrtStr(QuotStr)
-  else if c = '&' then
-    wrtStr(AmpStr)
-  else if c = '<' then
-    wrtStr(ltStr)
+  case c of
+    '"': wrtStr(QuotStr);
+    '&': wrtStr(AmpStr);
+    '<': wrtStr(ltStr);
+    // Escape whitespace using CharRefs to be consistent with W3 spec § 3.3.3
+    #9: wrtStr('&#x9;');
+    #10: wrtStr('&#xA;');
+    #13: wrtStr('&#xD;');
   else
     wrtChr(c);
+  end;
 end;
 
 procedure TXMLWriter.TextnodeSpecialCharCallback(c: WideChar);
-const
-  ltStr = '&lt;';
-  gtStr = '&gt;';
-  AmpStr = '&amp;';
 begin
-  if c = '<' then
-    wrtStr(ltStr)
-  else if c = '>' then
-    wrtStr(gtStr)
-  else if c = '&' then
-    wrtStr(AmpStr)
+  case c of
+    '<': wrtStr(ltStr);
+    '>': wrtStr(gtStr); // Required only in ']]>' literal, otherwise optional
+    '&': wrtStr(AmpStr);
   else
     wrtChr(c);
+  end;
 end;
 
 procedure TXMLWriter.WriteNode(node: TDOMNode);
 begin
-  // Must be: node.Accept(Self);
   case node.NodeType of
     ELEMENT_NODE:                VisitElement(node);
     ATTRIBUTE_NODE:              VisitAttribute(node);
     TEXT_NODE:                   VisitText(node);
     CDATA_SECTION_NODE:          VisitCDATA(node);
     ENTITY_REFERENCE_NODE:       VisitEntityRef(node);
-    ENTITY_NODE:                 VisitEntity(node);
     PROCESSING_INSTRUCTION_NODE: VisitPI(node);
     COMMENT_NODE:                VisitComment(node);
     DOCUMENT_NODE:               VisitDocument(node);
     DOCUMENT_TYPE_NODE:          VisitDocumentType(node);
     DOCUMENT_FRAGMENT_NODE:      VisitFragment(node);
-    NOTATION_NODE:               VisitNotation(node);
   end;
 end;
 
@@ -406,11 +447,6 @@ begin
   wrtChr(';');
 end;
 
-procedure TXMLWriter.VisitEntity(node: TDOMNode);
-begin
-
-end;
-
 procedure TXMLWriter.VisitPI(node: TDOMNode);
 begin
   if not FInsideTextNode then wrtIndent;
@@ -436,28 +472,33 @@ var
   child: TDOMNode;
 begin
   wrtStr('<?xml version="');
+  // Definitely should not escape anything here
   if Length(TXMLDocument(node).XMLVersion) > 0 then
-    ConvWrite(TXMLDocument(node).XMLVersion, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback)
+    wrtStr(TXMLDocument(node).XMLVersion)
   else
     wrtStr('1.0');
   wrtChr('"');
+  
+// DISABLED - we are only able write in UTF-8 which does not require labeling
+// writing incorrect encoding will render xml unreadable...
+(*
   if Length(TXMLDocument(node).Encoding) > 0 then
   begin
     wrtStr(' encoding="');
-    ConvWrite(TXMLDocument(node).Encoding, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
+    wrtStr(TXMLDocument(node).Encoding);
     wrtChr('"');
   end;
-  wrtStr('?>');
-  wrtLineEnd;
+*)
+  wrtStr('?>'#10);
 
+  // TODO: now handled as a regular PI, remove this?
   if Length(TXMLDocument(node).StylesheetType) > 0 then
   begin
     wrtStr('<?xml-stylesheet type="');
-    ConvWrite(TXMLDocument(node).StylesheetType, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
+    wrtStr(TXMLDocument(node).StylesheetType);
     wrtStr('" href="');
-    ConvWrite(TXMLDocument(node).StylesheetHRef, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
-    wrtStr('"?>');
-    wrtLineEnd;
+    wrtStr(TXMLDocument(node).StylesheetHRef);
+    wrtStr('"?>'#10);
   end;
 
   child := node.FirstChild;
@@ -489,7 +530,30 @@ end;
 
 procedure TXMLWriter.VisitDocumentType(Node: TDOMNode);
 begin
-
+  wrtStr('<!DOCTYPE ');
+  wrtStr(Node.NodeName);
+  with TDOMDocumentType(Node) do
+  begin
+    if PublicID <> '' then
+    begin
+      wrtStr(' PUBLIC ');
+      wrtQuotedLiteral(PublicID);
+      wrtChr(' ');
+      wrtQuotedLiteral(SystemID);
+    end
+    else if SystemID <> '' then
+    begin
+      wrtStr(' SYSTEM ');
+      wrtQuotedLiteral(SystemID);
+    end;
+    if InternalSubset <> '' then
+    begin
+      wrtChr('[');
+      wrtStr(InternalSubset);
+      wrtChr(']');
+    end;
+  end;
+  wrtStr('>'#10);
 end;
 
 procedure TXMLWriter.VisitFragment(Node: TDOMNode);
@@ -503,11 +567,6 @@ begin
     WriteNode(Child);
     Child := Child.NextSibling;
   end;
-end;
-
-procedure TXMLWriter.VisitNotation(Node: TDOMNode);
-begin
-
 end;
 
 
