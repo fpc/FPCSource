@@ -149,41 +149,43 @@ end;
 
 
 procedure TXMLResultsWriter.AddFailure(ATest: TTest; AFailure: TTestFailure);
-  procedure GenerateNode(aNode: TDOMNode);
-  var
-    n: TDOMElement;
-    s: string;
+var
+  n: TDOMElement;
+begin
+  if AFailure.IsIgnoredTest then
   begin
-    if AFailure.IsIgnoredTest then 
-      s := 'ListOfIgnoredTests'
-    else
-      s := 'ListOfFailures';
     { Try and find the node first }
-    if not Assigned(aNode) then
-      aNode := FDoc.FindNode(s);
+    if not Assigned(FIgnores) then
+      FIgnores := FDoc.FindNode('ListOfIgnoredTests');
     { If we couldn't find it, create it }
-    if not Assigned(aNode) then
+    if not Assigned(FIgnores) then
     begin
-      aNode := FDoc.CreateElement(s);
-      FResults.AppendChild(aNode);
+      FIgnores := FDoc.CreateElement('ListOfIgnoredTests');
+      FResults.AppendChild(FIgnores);
     end;
-
-    if AFailure.IsIgnoredTest then 
-      s := 'IgnoredTest'
-    else
-      s := 'Failure';
-    n := FDoc.CreateElement(s);
+    n := FDoc.CreateElement('IgnoredTest');
     n.AppendChild(FDoc.CreateElement('Message')         ).AppendChild(FDoc.CreateTextNode(AFailure.AsString));
     n.AppendChild(FDoc.CreateElement('ExceptionClass')  ).AppendChild(FDoc.CreateTextNode(AFailure.ExceptionClassName));
     n.AppendChild(FDoc.CreateElement('ExceptionMessage')).AppendChild(FDoc.CreateTextNode(AFailure.ExceptionMessage));
-    aNode.AppendChild(n);
-  end;
-
-begin
-  if AFailure.IsIgnoredTest then
-    GenerateNode(FIgnores)
+    FIgnores.AppendChild(n);
+  end
   else
-    GenerateNode(FFailures);
+    begin
+      { Try and find the node first }
+      if not Assigned(FFailures) then
+      FFailures := FDoc.FindNode('ListOfFailures');
+      { If we couldn't find it, create it }
+      if not Assigned(FFailures) then
+      begin
+        FFailures := FDoc.CreateElement('ListOfFailures');
+        FResults.AppendChild(FFailures);
+      end;
+      n := FDoc.CreateElement('Failure');
+      n.AppendChild(FDoc.CreateElement('Message')         ).AppendChild(FDoc.CreateTextNode(AFailure.AsString));
+      n.AppendChild(FDoc.CreateElement('ExceptionClass')  ).AppendChild(FDoc.CreateTextNode(AFailure.ExceptionClassName));
+      n.AppendChild(FDoc.CreateElement('ExceptionMessage')).AppendChild(FDoc.CreateTextNode(AFailure.ExceptionMessage));
+      FFailures.AppendChild(n);
+    end;
 end;
 
 

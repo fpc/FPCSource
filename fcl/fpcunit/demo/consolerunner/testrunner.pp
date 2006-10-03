@@ -17,7 +17,7 @@ program testrunner;
 {$h+}
 
 uses
-  custapp, Classes, SysUtils, fpcunit, suiteconfig, xmlreporter, testregistry;
+  custapp, Classes, SysUtils, fpcunit, suiteconfig, testreport, testregistry;
 
 
 const
