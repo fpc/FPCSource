@@ -108,6 +108,12 @@ implementation
           result := false; }
       end;
       case n.nodetype of
+        asn:
+          if assigned(tasnode(n).call) then
+            begin
+              result := foreachnode(tasnode(n).call,f,arg);
+              exit
+            end;
         calln:
           begin
             { not in one statement, won't work because of b- }
@@ -150,6 +156,12 @@ implementation
       begin
         result:=res;
         case n.nodetype of
+        asn:
+          if assigned(tasnode(n).call) then
+            begin
+              result := foreachnodestatic(procmethod,tasnode(n).call,f,arg);
+              exit
+            end;
           calln:
             begin
               result := foreachnodestatic(procmethod,tcallnode(n).methodpointerinit,f,arg) or result;

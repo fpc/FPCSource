@@ -183,7 +183,6 @@ interface
           function det_resulttype:tnode;override;
           function _getcopy: tnode;override;
           destructor destroy; override;
-         protected
           call: tnode;
        end;
        tasnodeclass = class of tasnode;
