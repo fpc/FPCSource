@@ -311,7 +311,7 @@ function TCompilerMessageListBox.GetPalette: PPalette;
 const
   P: string[length(CBrowserListBox)] = CBrowserListBox;
 begin
-  GetPalette:=@P;
+  GetPalette:=PPalette(@P);
 end;
 
 procedure TCompilerMessageListBox.SelectFirstError;
@@ -436,7 +436,7 @@ function TCompilerMessageWindow.GetPalette: PPalette;
 const
   S : string[length(CBrowserWindow)] = CBrowserWindow;
 begin
-  GetPalette:=@S;
+  GetPalette:=PPalette(@S);
 end;
 
 
