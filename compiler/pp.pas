@@ -54,6 +54,13 @@ program pp;
 
 {$i fpcdefs.inc}
 
+{ Require at least 2.0.2 }
+{$ifdef VER2_0}
+  {$if FPC_PATCH<2}
+    {$fatal At least FPC 2.0.2 is required to compile the compiler}
+  {$endif}  
+{$endif VER2_0}
+
 {$ifdef FPC}
    { exactly one target CPU must be defined }
    {$ifdef I386}
