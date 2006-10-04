@@ -10,5 +10,6 @@ type
   end;
 
 begin
+  myclass.fclassvar := 1;
 end.
 
