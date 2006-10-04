@@ -1092,7 +1092,7 @@ FUNCTION TDialog.GetPalette: PPalette;
 CONST P: Array[dpBlueDialog..dpGrayDialog] Of String[Length(CBlueDialog)] =
     (CBlueDialog, CCyanDialog, CGrayDialog);          { Always normal string }
 BEGIN
-   GetPalette := @P[Palette];                         { Return palette }
+   GetPalette := PPalette(@P[Palette]);               { Return palette }
 END;
 
 {--TDialog------------------------------------------------------------------}
@@ -1329,7 +1329,7 @@ END;
 FUNCTION TInputLine.GetPalette: PPalette;
 CONST P: String[Length(CInputLine)] = CInputLine;     { Always normal string }
 BEGIN
-   GetPalette := @P;                                  { Return palette }
+   GetPalette := PPalette(@P);                        { Return palette }
 END;
 
 {--TInputLine---------------------------------------------------------------}
@@ -1797,7 +1797,7 @@ END;
 FUNCTION TButton.GetPalette: PPalette;
 CONST P: String[Length(CButton)] = CButton;           { Always normal string }
 BEGIN
-   GetPalette := @P;                                  { Get button palette }
+   GetPalette := PPalette(@P);                                  { Get button palette }
 END;
 
 {--TButton------------------------------------------------------------------}
@@ -2098,7 +2098,7 @@ END;
 FUNCTION TCluster.GetPalette: PPalette;
 CONST P: String[Length(CCluster)] = CCluster;         { Always normal string }
 BEGIN
-   GetPalette := @P;                                  { Cluster palette }
+   GetPalette := PPalette(@P);                        { Cluster palette }
 END;
 
 {--TCluster-----------------------------------------------------------------}
@@ -2833,7 +2833,7 @@ END;
 FUNCTION TStaticText.GetPalette: PPalette;
 CONST P: String[Length(CStaticText)] = CStaticText;   { Always normal string }
 BEGIN
-   GetPalette := @P;                                  { Return palette }
+   GetPalette := PPalette(@P);                        { Return palette }
 END;
 
 {--TStaticText--------------------------------------------------------------}
@@ -3005,7 +3005,7 @@ END;
 FUNCTION TLabel.GetPalette: PPalette;
 CONST P: String[Length(CLabel)] = CLabel;             { Always normal string }
 BEGIN
-   GetPalette := @P;                                  { Return palette }
+   GetPalette := PPalette(@P);                        { Return palette }
 END;
 
 {--TLabel-------------------------------------------------------------------}
@@ -3115,7 +3115,7 @@ END;
 FUNCTION THistoryViewer.GetPalette: PPalette;
 CONST P: String[Length(CHistoryViewer)] = CHistoryViewer;{ Always normal string }
 BEGIN
-   GetPalette := @P;                                  { Return palette }
+   GetPalette := PPalette(@P);                           { Return palette }
 END;
 
 {--THistoryViewer-----------------------------------------------------------}
@@ -3175,7 +3175,7 @@ END;
 FUNCTION THistoryWindow.GetPalette: PPalette;
 CONST P: String[Length(CHistoryWindow)] = CHistoryWindow;{ Always normal string }
 BEGIN
-   GetPalette := @P;                                  { Return the palette }
+   GetPalette := PPalette(@P);                           { Return the palette }
 END;
 
 {--THistoryWindow-----------------------------------------------------------}
@@ -3226,7 +3226,7 @@ END;
 FUNCTION THistory.GetPalette: PPalette;
 CONST P: String[Length(CHistory)] = CHistory;         { Always normal string }
 BEGIN
-   GetPalette := @P;                                  { Return the palette }
+   GetPalette := PPalette(@P);                        { Return the palette }
 END;
 
 {--THistory-----------------------------------------------------------------}

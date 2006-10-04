@@ -1177,7 +1177,7 @@ function TIndicator.GetPalette : PPalette;
 const
   P : string[Length (CIndicator)] = CIndicator;
 begin
-  GetPalette := @P;
+  GetPalette := PPalette(@P);
 end; { TIndicator.GetPalette }
 
 
@@ -1942,7 +1942,7 @@ function TEditor.GetPalette : PPalette;
 CONST
   P : String[Length (CEditor)] = CEditor;
 begin
-  GetPalette := @P;
+  GetPalette := PPalette(@P);
 end; { TEditor.GetPalette }
 
 
@@ -3368,7 +3368,7 @@ function TMemo.GetPalette : PPalette;
 CONST
   P : String[Length (CMemo)] = CMemo;
 begin
-  GetPalette := @P;
+  GetPalette := PPalette(@P);
 end; { TMemo.GetPalette }
 
 

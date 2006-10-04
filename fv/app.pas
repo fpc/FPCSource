@@ -437,7 +437,7 @@ END;
 FUNCTION TBackGround.GetPalette: PPalette;
 CONST P: String[Length(CBackGround)] = CbackGround;   { Always normal string }
 BEGIN
-   GetPalette := @P;                                  { Return palette }
+   GetPalette := PPalette(@P);                        { Return palette }
 END;
 
 {--TBackGround--------------------------------------------------------------}
@@ -658,7 +658,7 @@ VAR R: TRect;
 BEGIN
    R.Assign(0, 0, ScreenWidth, ScreenHeight);         { Full screen area }
    Inherited Init(R);                                 { Call ancestor }
-   Application := @Self;                              { Set application ptr }
+   Application := PApplication(@Self);                { Set application ptr }
    InitScreen;                                        { Initialize screen }
    State := sfVisible + sfSelected + sfFocused +
       sfModal + sfExposed;                            { Deafult states }

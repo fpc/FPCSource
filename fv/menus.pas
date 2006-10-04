@@ -702,7 +702,7 @@ CONST P: String = CMenuView;                          { Possible huge string }
 CONST P: String[Length(CMenuView)] = CMenuView;       { Always normal string }
 {$ENDIF}
 BEGIN
-   GetPalette := @P;                                  { Return palette }
+   GetPalette := PPalette(@P);                        { Return palette }
 END;
 
 {--TMenuView----------------------------------------------------------------}
@@ -1249,7 +1249,7 @@ CONST P: String = CStatusLine;                        { Possible huge string }
 CONST P: String[Length(CStatusLine)] = CStatusLine;   { Always normal string }
 {$ENDIF}
 BEGIN
-   GetPalette := @P;                                  { Return palette }
+   GetPalette := PPalette(@P);                        { Return palette }
 END;
 
 {--TStatusLine--------------------------------------------------------------}
