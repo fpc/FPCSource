@@ -808,8 +808,14 @@ uses
                  quoted:=true;
                  s1:=s1+s[i];
                end;
-             else
-               s1:=s1+s[i];
+             else begin
+               if s[i] in ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+                           '{', '}', '''', ';', ':', '\', '`', '~'] then begin
+                 quoted:=True;
+                 s1:=s1 + s[i];
+               end else
+                 s1:=s1+s[i];
+             end;
            end;
          end;
         if quoted then
