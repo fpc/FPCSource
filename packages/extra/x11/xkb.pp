@@ -1797,7 +1797,7 @@ type
 function XkbShapeDoodadColor     (g : PXkbGeometryPtr; d : PXkbShapeDoodadPtr)  : PXkbColorPtr;
 function XkbShapeDoodadShape     (g : PXkbGeometryPtr; d : PXkbShapeDoodadPtr)  : PXkbShapePtr;
 procedure XkbSetShapeDoodadColor (g : PXkbGeometryPtr; d : PXkbShapeDoodadPtr; c : PXkbColorPtr);
-procedure XkbSetShapeDoodadShape (g : PXkbGeometryPtr; d : PXkbShapeDoodadPtr; s : PXkbShapeDoodadPtr);
+procedure XkbSetShapeDoodadShape (g : PXkbGeometryPtr; d : PXkbShapeDoodadPtr; s : PXkbShapePtr);
 
 function XkbTextDoodadColor     (g : PXkbGeometryPtr; d : PXkbTextDoodadPtr)    : PXkbColorPtr;
 procedure XkbSetTextDoodadColor (g : PXkbGeometryPtr; d : PXkbTextDoodadPtr; c : PXkbColorPtr);
@@ -2740,10 +2740,10 @@ begin
         d^.color_ndx := c - @g^.colors [0];
 end;
 
-procedure XkbSetShapeDoodadShape (g : PXkbGeometryPtr; d : PXkbShapeDoodadPtr; s : PXkbShapeDoodadPtr);
+procedure XkbSetShapeDoodadShape (g : PXkbGeometryPtr; d : PXkbShapeDoodadPtr; s : PXkbShapePtr);
 begin
 {#define XkbSetShapeDoodadShape(g,d,s) ((d)->shape_ndx= (s)-&(g)->shapes[0])}
-        d^.shape_ndx := s - @g^.shapes [0];
+        d^.shape_ndx := PXkbShapePtr(s) - @g^.shapes [0];
 end;
 
 function XkbTextDoodadColor (g : PXkbGeometryPtr; d : PXkbTextDoodadPtr) : PXkbColorPtr;
@@ -2761,7 +2761,7 @@ end;
 function XkbIndicatorDoodadShape (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr) : PXkbShapeDoodadPtr;
 begin
 {#define XkbIndicatorDoodadShape(g,d) (&(g)->shapes[(d)->shape_ndx])}
-        Result := @g^.shapes [d^.shape_ndx];
+        Result := PXkbShapeDoodadPtr(@g^.shapes [d^.shape_ndx]);
 end;
 
 function XkbIndicatorDoodadOnColor (g : PXkbGeometryPtr; d : PXkbIndicatorDoodadPtr) : PXkbColorPtr;
@@ -2794,7 +2794,7 @@ procedure XkbSetIndicatorDoodadShape (g : PXkbGeometryPtr; d : PXkbIndicatorDood
                                       s : PXkbShapeDoodadPtr);
 begin
 {#define XkbSetIndicatorDoodadShape(g,d,s) ((d)->shape_ndx= (s)-&(g)->shapes[0])}
-        d^.shape_ndx := s - @g^.shapes [0];
+        d^.shape_ndx := PXkbShapePtr(s) - @g^.shapes [0];
 end;
 
 function XkbLogoDoodadColor (g : PXkbGeometryPtr; d : PXkbLogoDoodadPtr) : PXkbColorPtr;
@@ -2806,7 +2806,7 @@ end;
 function XkbLogoDoodadShape (g : PXkbGeometryPtr; d : PXkbLogoDoodadPtr) : PXkbShapeDoodadPtr;
 begin
 {#define XkbLogoDoodadShape(g,d) (&(g)->shapes[(d)->shape_ndx])}
-        Result := @g^.shapes [d^.shape_ndx];
+        Result := PXkbShapeDoodadPtr(@g^.shapes [d^.shape_ndx]);
 end;
 
 procedure XkbSetLogoDoodadColor (g : PXkbGeometryPtr; d : PXkbLogoDoodadPtr; c : PXkbColorPtr);
@@ -2818,13 +2818,13 @@ end;
 procedure XkbSetLogoDoodadShape (g : PXkbGeometryPtr; d : PXkbLogoDoodadPtr; s : PXkbShapeDoodadPtr);
 begin
 {#define XkbSetLogoDoodadShape(g,d,s) ((d)->shape_ndx= (s)-&(g)->shapes[0])}
-        d^.shape_ndx := s - @g^.shapes [0];
+        d^.shape_ndx := PXkbShapePtr(s) - @g^.shapes [0];
 end;
 
 function XkbKeyShape (g : PXkbGeometryPtr; k : PXkbKeyPtr) : PXkbShapeDoodadPtr;
 begin
 {#define XkbKeyShape(g,k) (&(g)->shapes[(k)->shape_ndx])}
-        Result := @g^.shapes [k^.shape_ndx];
+        Result := PXkbShapeDoodadPtr(@g^.shapes [k^.shape_ndx]);
 end;
 
 function XkbKeyColor (g : PXkbGeometryPtr; k : PXkbKeyPtr) : PXkbColorPtr;
@@ -2836,7 +2836,7 @@ end;
 procedure XkbSetKeyShape (g : PXkbGeometryPtr; k : PXkbKeyPtr; s : PXkbShapeDoodadPtr);
 begin
 {#define XkbSetKeyShape(g,k,s) ((k)->shape_ndx= (s)-&(g)->shapes[0])}
-        k^.shape_ndx := s - @g^.shapes [0];
+        k^.shape_ndx := PXkbShapePtr(s) - @g^.shapes [0];
 end;
 
 procedure XkbSetKeyColor (g : PXkbGeometryPtr; k : PXkbKeyPtr; c : PXkbColorPtr);

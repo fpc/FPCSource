@@ -113,7 +113,7 @@ type    reloc=packed record     {This is the layout of a relocation table
         end;
 
 var aout_str_size:longint;
-    aout_str_tab:array[0..2047] of byte;
+    aout_str_tab:array[0..2047] of char;
     aout_sym_count:longint;
     aout_sym_tab:array[0..5] of nlist;
 
@@ -256,7 +256,7 @@ begin
     blockwrite(out_file,aout_text,aout_text_size);
     blockwrite(out_file,aout_treloc_tab,sizeof(reloc)*aout_treloc_count);
     blockwrite(out_file,aout_sym_tab,sizeof(aout_sym_tab[0])*aout_sym_count);
-    longint((@aout_str_tab)^):=aout_str_size;
+    plongint(@aout_str_tab)^:=aout_str_size;
     blockwrite(out_file,aout_str_tab,aout_str_size);
 end;
 

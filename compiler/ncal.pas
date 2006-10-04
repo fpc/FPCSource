@@ -1368,12 +1368,14 @@ type
         result:=vmttree;
       end;
 
+    type
+      pcallparanode = ^tcallparanode;
 
     procedure tcallnode.bind_parasym;
       var
         i        : integer;
         pt       : tcallparanode;
-        oldppt   : ^tcallparanode;
+        oldppt   : pcallparanode;
         varargspara,
         currpara : tparavarsym;
         used_by_callnode : boolean;
@@ -1382,14 +1384,14 @@ type
         temp         : ttempcreatenode;
       begin
         pt:=tcallparanode(left);
-        oldppt:=@left;
+        oldppt:=pcallparanode(@left);
 
         { flag all callparanodes that belong to the varargs }
         i:=paralength;
         while (i>procdefinition.maxparacount) do
           begin
             include(pt.callparaflags,cpf_varargs_para);
-            oldppt:=@pt.right;
+            oldppt:=pcallparanode(@pt.right);
             pt:=tcallparanode(pt.right);
             dec(i);
           end;
@@ -1475,7 +1477,7 @@ type
            if not assigned(pt) then
              internalerror(200310052);
            pt.parasym:=currpara;
-           oldppt:=@pt.right;
+           oldppt:=pcallparanode(@pt.right);
            pt:=tcallparanode(pt.right);
          end;
 

@@ -707,10 +707,10 @@ begin
   DecodeDateFully(DateTime, Year, Month, Day, DayOfWeek);
   DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
   ResultLen := 0;
-  ResultCurrent := @ResultBuffer;
+  ResultCurrent := @ResultBuffer[0];
   StoreFormat(FormatStr);
   ResultBuffer[ResultLen] := #0;
-  result := StrPas(@ResultBuffer);
+  result := StrPas(@ResultBuffer[0]);
 end ;
 
 {   DateTimeToString formats DateTime to the given format in FormatStr   }

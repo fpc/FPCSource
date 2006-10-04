@@ -138,7 +138,7 @@ function OpenEventLog(lpUNCServerName:LPCSTR; lpSourceName:LPCSTR):HANDLE; exter
 function RegisterEventSource(lpUNCServerName:LPCSTR; lpSourceName:LPCSTR):HANDLE; external 'advapi32' name 'RegisterEventSourceA';
 function OpenBackupEventLog(lpUNCServerName:LPCSTR; lpFileName:LPCSTR):HANDLE; external 'advapi32' name 'OpenBackupEventLogA';
 function ReadEventLog(hEventLog:HANDLE; dwReadFlags:DWORD; dwRecordOffset:DWORD; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD;pnBytesRead:LPDWORD; pnMinNumberOfBytesNeeded:LPDWORD):WINBOOL; external 'advapi32' name 'ReadEventLogA';
-function ReportEvent(hEventLog:HANDLE; wType:WORD; wCategory:WORD; dwEventID:DWORD; lpUserSid:PSID;wNumStrings:WORD; dwDataSize:DWORD; lpStrings:LPCSTR; lpRawData:LPVOID):WINBOOL; external 'advapi32' name 'ReportEventA';
+function ReportEvent(hEventLog:HANDLE; wType:WORD; wCategory:WORD; dwEventID:DWORD; lpUserSid:PSID;wNumStrings:WORD; dwDataSize:DWORD; lpStrings:LPPCSTR; lpRawData:LPVOID):WINBOOL; external 'advapi32' name 'ReportEventA';
 function AccessCheckAndAuditAlarm(SubsystemName:LPCSTR; HandleId:LPVOID; ObjectTypeName:LPSTR; ObjectName:LPSTR; SecurityDescriptor:PSECURITY_DESCRIPTOR;DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING;
   ObjectCreation:WINBOOL; GrantedAccess:LPDWORD;AccessStatus:LPBOOL;pfGenerateOnClose:LPBOOL):WINBOOL; external 'advapi32' name 'AccessCheckAndAuditAlarmA';
 function ObjectOpenAuditAlarm(SubsystemName:LPCSTR; HandleId:LPVOID; ObjectTypeName:LPSTR; ObjectName:LPSTR; pSecurityDescriptor:PSECURITY_DESCRIPTOR;ClientToken:HANDLE; DesiredAccess:DWORD; GrantedAccess:DWORD;

@@ -146,7 +146,7 @@ implementation
       i:=1;
       len:=0;
       varcounter:=0;
-      varptr:=@varvaluedata;
+      varptr:=@varvaluedata[0];
       while i<=length(s) do
         begin
           if (s[i]='$') and (i<length(s)) then
@@ -167,7 +167,7 @@ implementation
                    inc(i);
                  until s[i]='}';
                  varvalues[varcounter]:=Pstring(varptr);
-                 if varptr>@varvaluedata+maxdata then
+                 if varptr>@varvaluedata[maxdata] then
                    internalerrorproc(200411152);
                  Pstring(varptr)^:=get_var_value(varname,get_var_value_arg);
                  inc(len,length(Pstring(varptr)^));

@@ -83,7 +83,7 @@ begin
   AddToList(List,'BUILDDATE',DateToStr(Date));
   AddToList(List,'BUILDTIME',TimeToStr(Time));
   Cfg:=TStringList.Create;
-  Cfg.Text:=StrPas(Addr(DefaultConfig));
+  Cfg.Text:=StrPas(Addr(DefaultConfig[0][1]));
 end;
 
 Procedure Done;
@@ -191,9 +191,9 @@ begin
     begin
       case IDEBuildin of
         1:
-           Cfg.Text:=StrPas(Addr(fpcfg));
+           Cfg.Text:=StrPas(Addr(fpcfg[0][1]));
         2:
-           Cfg.Text:=StrPas(Addr(fpini));
+           Cfg.Text:=StrPas(Addr(fpini[0][1]));
       end;
 
       AddToList(List,'TEMPLATEFILE','builtin');

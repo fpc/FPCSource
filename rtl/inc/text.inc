@@ -939,7 +939,7 @@ Begin
      inc(p);}
     while p<maxp do
       begin
-        q:=@stop_chars;
+        q:=@stop_chars[0];
         while (q^<>#0) and (p^<>q^) do
           inc(q);
         if p^=q^ then 

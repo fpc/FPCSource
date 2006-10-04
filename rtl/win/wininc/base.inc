@@ -155,6 +155,10 @@
      LPCWCH  = Pwidechar;
      LPCWSTR = Pwidechar;
 
+     LPPCSTR = ^LPCSTR;
+     LPPCTSTR = ^LPCTSTR;
+     LPPCWSTR = ^LPCWSTR;
+
      LPDWORD = ^DWORD;
 
      LPHANDLE = ^HANDLE;

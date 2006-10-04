@@ -810,7 +810,7 @@ var
   psrc : PPointer;
 begin
   NewCount:=0;
-  psrc:=@FList[0];
+  psrc:=@FList^[0];
   pdest:=psrc;
   For I:=0 To FCount-1 Do
     begin
@@ -1412,7 +1412,7 @@ var
   psrc : PHashItem;
 begin
   NewCount:=0;
-  psrc:=@FHashList[0];
+  psrc:=@FHashList^[0];
   pdest:=psrc;
   For I:=0 To FCount-1 Do
     begin

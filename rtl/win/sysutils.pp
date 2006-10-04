@@ -310,7 +310,7 @@ begin
   WinToDosTime(F.FindData.ftLastWriteTime,F.Time);
   f.size:=F.FindData.NFileSizeLow;
   f.attr:=F.FindData.dwFileAttributes;
-  f.Name:=StrPas(@F.FindData.cFileName);
+  f.Name:=StrPas(@F.FindData.cFileName[0]);
   Result:=0;
 end;
 
@@ -435,14 +435,14 @@ begin
    end;
   if assigned(GetDiskFreeSpaceEx) then
     begin
-       if GetDiskFreeSpaceEx(@disk,qwcaller,qwtotal,qwfree) then
+       if GetDiskFreeSpaceEx(@disk[1],qwcaller,qwtotal,qwfree) then
          diskfree:=qwfree
        else
          diskfree:=-1;
     end
   else
     begin
-       if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
+       if GetDiskFreeSpace(@disk[1],secs,bytes,free,total) then
          diskfree:=int64(free)*secs*bytes
        else
          diskfree:=-1;
@@ -471,14 +471,14 @@ begin
    end;
   if assigned(GetDiskFreeSpaceEx) then
     begin
-       if GetDiskFreeSpaceEx(@disk,qwcaller,qwtotal,qwfree) then
+       if GetDiskFreeSpaceEx(@disk[1],qwcaller,qwtotal,qwfree) then
          disksize:=qwtotal
        else
          disksize:=-1;
     end
   else
     begin
-       if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
+       if GetDiskFreeSpace(@disk[1],secs,bytes,free,total) then
          disksize:=int64(total)*secs*bytes
        else
          disksize:=-1;

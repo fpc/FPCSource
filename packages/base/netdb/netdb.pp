@@ -159,7 +159,7 @@ const
 
    
 Type 
-  TPayLoad  = Array[0..511] of char;
+  TPayLoad  = Array[0..511] of Byte;
   TQueryData = packed Record
     id      : Array[0..1] of Byte;
     flags1  : Byte;
@@ -171,6 +171,7 @@ Type
     Payload : TPayLoad;
   end;
   
+  PRRData = ^TRRData;
   TRRData = Packed record       // RR record
     Atype    : Word;            // Answer type
     AClass   : Word;
@@ -514,7 +515,7 @@ Var
 begin
   Writeln('Payload : ',l);
   For I:=0 to L-1 do
-    Write(Byte(Q.Payload[i]),' ');
+    Write(Q.Payload[i],' ');
   Writeln;  
 end;
   
@@ -529,7 +530,7 @@ begin
   If length(Name)>506 then
     Exit;
   Result:=0;  
-  P:=@Q.Payload;
+  P:=@Q.Payload[0];
   Repeat
     L:=Pos('.',Name);
     If (L=0) then
@@ -558,7 +559,7 @@ Function NextRR(Const PayLoad : TPayLoad;Var Start : LongInt; AnsLen : LongInt; 
 Var
   I : Integer;
   HaveName : Boolean;
-  PA : ^TRRData;
+  PA : PRRData;
   
 begin
   Result:=False;
@@ -566,19 +567,19 @@ begin
   // Skip labels and pointers. At least 1 label or pointer is present.
   Repeat
     HaveName:=True;
-    If (Payload[i]>#63) then // Pointer, skip
+    If (Payload[i]>63) then // Pointer, skip
       Inc(I,2)
-    else If Payload[i]=#0 then // Null termination of label, skip.
+    else If Payload[i]=0 then // Null termination of label, skip.
       Inc(i)
     else  
       begin
-      Inc(I,Ord(Payload[i])+1); // Label, continue scan.
+      Inc(I,Payload[i]+1); // Label, continue scan.
       HaveName:=False;
       end;
   Until HaveName or (I>(AnsLen-SizeOf(TRRData)));
   Result:=(I<=(AnsLen-SizeOf(TRRData)));
   // Check RR record.
-  PA:=@Payload[i];
+  PA:=PRRData(@Payload[i]);
   RR:=PA^;
   Start:=I+SizeOf(TRRData);
 end;
@@ -599,24 +600,24 @@ begin
   O:=1;
   // Copy labels and pointers. At least 1 label or pointer is present.
   Repeat
-    If (Payload[i]>#63) then // Pointer, move.
+    If (Payload[i]>63) then // Pointer, move.
       begin
       Move(Payload[i],P,2);
       I:=ntohs(p)-FIREDNS_POINTER_VALUE-12;
       end
-    else if Payload[i]<>#0 then // Label, copy
+    else if Payload[i]<>0 then // Label, copy
       begin
       If O<>1 then
         begin
         Result[O]:='.';
         Inc(O);
         end;
-      P:=Ord(Payload[i]);  
+      P:=Payload[i];  
       Move(Payload[i+1],Result[o],P);
       Inc(I,P+1);
       Inc(O,P);
       end;
-   Until (Payload[I]=#0);
+   Until (Payload[I]=0);
    setlength(result,o-1);
 end;
 
@@ -663,20 +664,20 @@ begin
     q:=0;
     While (Q<qdcount) and (i<l) do  
       begin
-      If Ord(Payload[i])>63 then
+      If Payload[i]>63 then
         begin
         Inc(I,6);
         Inc(Q);
         end
       else
         begin
-        If Payload[i]=#0 then
+        If Payload[i]=0 then
           begin
           inc(q);
           Inc(I,5);
           end
         else
-          Inc(I,Ord(Payload[i])+1);  
+          Inc(I,Payload[i]+1);  
         end;  
       end;
     Result:=I;  

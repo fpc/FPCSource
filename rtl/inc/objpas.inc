@@ -304,7 +304,7 @@
                FieldTable := PFieldTable((Pointer(CurClassType) + vmtFieldTable)^);
                if FieldTable <> nil then
                begin
-                 FieldInfo := @FieldTable^.Fields;
+                 FieldInfo := @FieldTable^.Fields[0];
                  for i := 0 to FieldTable^.FieldCount - 1 do
                  begin
                    if UpCase(FieldInfo^.Name) = UName then
@@ -312,7 +312,7 @@
                      fieldaddress := Pointer(Self) + FieldInfo^.FieldOffset;
                      exit;
                    end;
-                   FieldInfo := @FieldInfo^.Name + 1 + Length(FieldInfo^.Name);
+                   FieldInfo := PFieldInfo(PByte(@FieldInfo^.Name) + 1 + Length(FieldInfo^.Name));
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
                    { align to largest field of TFieldInfo }
                    FieldInfo := Align(FieldInfo, SizeOf(PtrUInt));

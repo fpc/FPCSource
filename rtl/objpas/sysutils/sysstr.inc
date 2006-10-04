@@ -1937,7 +1937,7 @@ Var
 
 Begin
   Buf[FloatToTextFmt(@Buf[0],Value,Pchar(Format))]:=#0;
-  Result:=StrPas(@Buf);
+  Result:=StrPas(@Buf[0]);
 End;
 
 function FormatCurr(const Format: string; Value: Currency): string;

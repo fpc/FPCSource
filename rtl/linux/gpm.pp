@@ -534,7 +534,7 @@ begin
   strcopy(addr.path, GPM_NODE_CTL);
   i:=sizeof(addr.family)+length(GPM_NODE_CTL);
 
-  if fpconnect(gpm_fd,@addr,i)<0 then
+  if fpconnect(gpm_fd,psockaddr(@addr),i)<0 then
     begin
 {         gpm_report(GPM_PR_INFO,GPM_MESS_DOUBLE_S,GPM_NODE_CTL,strerror(errno));}
       {Well, try to open a chr device called /dev/gpmctl. This should

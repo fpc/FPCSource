@@ -274,7 +274,7 @@ Begin
   { Generate the Huffman codes and for each, make the table entries }
   i := 0 ;
   x[0] := 0 ;                   { first Huffman code is zero }
-  p := Addr(v) ;                { grab values in bit order }
+  p := @v[0] ;                { grab values in bit order }
   h := -1 ;                     { no tables yet--level -1 }
   w := -l ;                     { bits decoded = (l*h) }
 

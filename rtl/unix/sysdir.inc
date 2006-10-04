@@ -32,7 +32,7 @@ Begin
    exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
-  If Fpmkdir(@buffer, MODE_MKDIR)<0 Then
+  If Fpmkdir(@buffer[0], MODE_MKDIR)<0 Then
    Errno2Inoutres
   Else
    InOutRes:=0;
@@ -49,7 +49,7 @@ Begin
    exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
-  If Fprmdir(@buffer)<0 Then
+  If Fprmdir(@buffer[0])<0 Then
    Errno2Inoutres
   Else
    InOutRes:=0;
@@ -64,7 +64,7 @@ Begin
    exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
-  If Fpchdir(@buffer)<0 Then
+  If Fpchdir(@buffer[0])<0 Then
    Errno2Inoutres
   Else
    InOutRes:=0;
@@ -93,7 +93,7 @@ var
 begin
   dir:='';
 {$ifdef usegetcwd}
- if Fpgetcwd(@buf,sizeof(buf))<>nil then
+ if Fpgetcwd(@buf[0],sizeof(buf))<>nil then
    dir:=strpas(buf);
 {$else}
   thedir:='';

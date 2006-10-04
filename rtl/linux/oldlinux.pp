@@ -2792,7 +2792,7 @@ begin
   sr.reg2:=Textrec(F).Handle;
   SysCall (syscall_nr_close,sr);
 { closed our side, Now wait for the other - this appears to be needed ?? }
-  pl:=@(textrec(f).userdata[2]);
+  pl:=plongint(@(textrec(f).userdata[2]));
   waitpid(pl^,@res,0);
   pclose:=res shr 8;
 end;
@@ -2807,7 +2807,7 @@ begin
   sr.reg2:=FileRec(F).Handle;
   SysCall (Syscall_nr_close,sr);
 { closed our side, Now wait for the other - this appears to be needed ?? }
-  pl:=@(filerec(f).userdata[2]);
+  pl:=plongint(@(filerec(f).userdata[2]));
   waitpid(pl^,@res,0);
   pclose:=res shr 8;
 end;
@@ -4516,7 +4516,7 @@ begin
         textrec(f).bufptr:=@textrec(f).buffer;
       end;
    {Save the process ID - needed when closing }
-     pl:=@(textrec(f).userdata[2]);
+     pl:=plongint(@(textrec(f).userdata[2]));
      pl^:=pid;
      textrec(f).closefunc:=@PCloseText;
    end;
@@ -4602,7 +4602,7 @@ begin
         f:=pipi;
       end;
    {Save the process ID - needed when closing }
-     pl:=@(filerec(f).userdata[2]);
+     pl:=plongint(@(filerec(f).userdata[2]));
      pl^:=pid;
    end;
 end;
@@ -4666,11 +4666,11 @@ begin
      close(pipo);
      close(pipi);
      {Save the process ID - needed when closing }
-     pl:=@(textrec(StreamIn).userdata[2]);
+     pl:=plongint(@(textrec(StreamIn).userdata[2]));
      pl^:=pid;
      textrec(StreamIn).closefunc:=@PCloseText;
      {Save the process ID - needed when closing }
-     pl:=@(textrec(StreamOut).userdata[2]);
+     pl:=plongint(@(textrec(StreamOut).userdata[2]));
      pl^:=pid;
      textrec(StreamOut).closefunc:=@PCloseText;
      AssignStream:=Pid;
@@ -4757,15 +4757,15 @@ begin
     Close(PipeOut);
     Close(PipeIn);
     // Save the process ID - needed when closing
-    pl := @(TextRec(StreamIn).userdata[2]);
+    pl := plongint(@(TextRec(StreamIn).userdata[2]));
     pl^ := pid;
     TextRec(StreamIn).closefunc := @PCloseText;
     // Save the process ID - needed when closing
-    pl := @(TextRec(StreamOut).userdata[2]);
+    pl := plongint(@(TextRec(StreamOut).userdata[2]));
     pl^ := pid;
     TextRec(StreamOut).closefunc := @PCloseText;
     // Save the process ID - needed when closing
-    pl := @(TextRec(StreamErr).userdata[2]);
+    pl := plongint(@(TextRec(StreamErr).userdata[2]));
     pl^ := pid;
     TextRec(StreamErr).closefunc := @PCloseText;
     AssignStream := pid;
@@ -5059,15 +5059,15 @@ var
     d:=Readdir(dirstream);
     while (d<>nil) do
      begin
-       name:=n+'/'+strpas(@(d^.name));
+       name:=n+'/'+strpas(@(d^.name[0]));
        fstat(name,st);
        if linuxerror=0 then
         begin
           if ((st.mode and $E000)=$4000) and  { if it is a directory }
-             (strpas(@(d^.name))<>'.') and    { but not ., .. and fd subdirs }
-             (strpas(@(d^.name))<>'..') and
-             (strpas(@(d^.name))<>'') and
-             (strpas(@(d^.name))<>'fd') then
+             (strpas(@(d^.name[0]))<>'.') and    { but not ., .. and fd subdirs }
+             (strpas(@(d^.name[0]))<>'..') and
+             (strpas(@(d^.name[0]))<>'') and
+             (strpas(@(d^.name[0]))<>'fd') then
            begin                      {we found a directory, search inside it}
              if mysearch(name) then
               begin                 {the device is here}

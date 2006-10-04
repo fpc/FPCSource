@@ -339,16 +339,14 @@ type
     __tm_zone : Pchar;
   end;
 
-procedure CheckError(ProcName : string; Status : array of ISC_STATUS);
+procedure CheckError(ProcName : string; Status : PISC_STATUS);
 var
   buf : array [0..1024] of char;
-  p   : pointer;
   Msg : string;
 begin
   if ((Status[0] = 1) and (Status[1] <> 0)) then
   begin
-    p := @Status;
-    while isc_interprete(Buf, @p) > 0 do
+    while isc_interprete(Buf, @Status) > 0 do
       Msg := Msg + #10' -' + StrPas(Buf);
     raise EInterBaseError.Create(ProcName + ': ' + Msg);
   end;
@@ -360,12 +358,13 @@ procedure TIBDatabase.SetDBDialect;
 var
   x : integer;
   Len : integer;
-  Buffer : string;
+  Buffer : array [0..1] of byte;
   ResBuf : array [0..39] of byte;
 begin
-  Buffer := Chr(isc_info_db_sql_dialect) + Chr(isc_info_end);
-  if isc_database_info(@FStatus, @FIBDatabaseHandle, Length(Buffer),
-    @Buffer[1], SizeOf(ResBuf), @ResBuf) <> 0 then
+  Buffer[0] := isc_info_db_sql_dialect;
+  Buffer[1] := isc_info_end;
+  if isc_database_info(@FStatus[0], @FIBDatabaseHandle, sizeof(Buffer),
+    pchar(@Buffer[0]), SizeOf(ResBuf), pchar(@ResBuf)) <> 0 then
       CheckError('TIBDatabse.SetDBDialect', FStatus);
   x := 0;
   while x < 40 do
@@ -373,9 +372,9 @@ begin
       isc_info_db_sql_dialect :
         begin
           Inc(x);
-          Len := isc_vax_integer(@ResBuf[x], 2);
+          Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
           Inc(x, 2);
-          FDialect := isc_vax_integer(@ResBuf[x], Len);
+          FDialect := isc_vax_integer(pchar(@ResBuf[x]), Len);
           Inc(x, Len);
         end;
       isc_info_end : Break;
@@ -430,7 +429,7 @@ begin
   if (DatabaseName = '') then
     raise EInterBaseError.Create('TIBDatabase.Open: Database connect string (DatabaseName) not filled in!');
   FIBDatabaseHandle := nil;
-  if isc_attach_database(@FStatus, Length(DatabaseName), @DatabaseName[1], @FIBDatabaseHandle,
+  if isc_attach_database(@FStatus[0], Length(DatabaseName), @DatabaseName[1], @FIBDatabaseHandle,
          Length(DPB), @DPB[1]) <> 0 then
     CheckError('TIBDatabase.Open', FStatus);
   SetDBDialect;
@@ -532,7 +531,7 @@ end;
 procedure TIBTransaction.Commit;
 begin
   if not FActive then Exit;
-  if isc_commit_transaction(@FStatus, @FTransactionHandle) <> 0 then
+  if isc_commit_transaction(@FStatus[0], @FTransactionHandle) <> 0 then
     CheckError('TIBTransaction.Commit', FStatus)
   else FActive := False;
 end;
@@ -540,14 +539,14 @@ end;
 procedure TIBTransaction.CommitRetaining;
 begin
   if not FActive then Exit;
-  if isc_commit_retaining(@FStatus, @FTransactionHandle) <> 0 then
+  if isc_commit_retaining(@FStatus[0], @FTransactionHandle) <> 0 then
     CheckError('TIBTransaction.CommitRetaining', FStatus);
 end;
 
 procedure TIBTransaction.Rollback;
 begin
   if not FActive then Exit;
-  if isc_rollback_transaction(@FStatus, @FTransactionHandle) <> 0 then
+  if isc_rollback_transaction(@FStatus[0], @FTransactionHandle) <> 0 then
     CheckError('TIBTransaction.Rollback', FStatus)
   else FActive := False;
 end;
@@ -555,7 +554,7 @@ end;
 procedure TIBTransaction.RollbackRetaining;
 begin
   if not FActive then Exit;
-  if isc_rollback_retaining(@FStatus, @FTransactionHandle) <> 0 then
+  if isc_rollback_retaining(@FStatus[0], @FTransactionHandle) <> 0 then
     CheckError('TIBTransaction.RollbackRetaining', FStatus);
 end;
 
@@ -575,7 +574,7 @@ begin
   SetTPB;
   FTransactionHandle := nil;
 
-  if isc_start_transaction(@FStatus, @FTransactionHandle, 1,
+  if isc_start_transaction(@FStatus[0], @FTransactionHandle, 1,
      [@DBHandle, Length(FTPB), @FTPB[1]]) <> 0 then
     CheckError('TIBTransaction.StartTransaction',FStatus)
   else FActive := True;
@@ -650,13 +649,13 @@ begin
     FDatabase.Open;
   dh := FDatabase.GetHandle;
 
-  if isc_dsql_allocate_statement(@FStatus, @dh, @FStatement) <> 0 then
+  if isc_dsql_allocate_statement(@FStatus[0], @dh, @FStatement) <> 0 then
     CheckError('TIBQuery.AllocStatement', FStatus);
 end;
 
 procedure TIBQuery.FreeStatement;
 begin
-  if isc_dsql_free_statement(@FStatus, @FStatement, DSQL_Drop) <> 0 then
+  if isc_dsql_free_statement(@FStatus[0], @FStatement, DSQL_Drop) <> 0 then
     CheckError('TIBQuery.FreeStatement', FStatus);
   FStatement := nil;
 end;
@@ -677,18 +676,18 @@ begin
   for x := 0 to FSQL.Count - 1 do
     Buf := Buf + FSQL[x] + ' ';
 
-  if isc_dsql_prepare(@FStatus, @tr, @FStatement, 0, @Buf[1], Database.Dialect, nil) <> 0 then
+  if isc_dsql_prepare(@FStatus[0], @tr, @FStatement, 0, @Buf[1], Database.Dialect, nil) <> 0 then
     CheckError('TIBQuery.PrepareStatement', FStatus);
 end;
 
 procedure TIBQuery.DescribeStatement;
 begin
-  if isc_dsql_describe(@FStatus, @FStatement, 1, FSQLDA) <> 0 then
+  if isc_dsql_describe(@FStatus[0], @FStatement, 1, FSQLDA) <> 0 then
     CheckError('TIBQuery.DescribeStatement', FStatus);
   if FSQLDA^.SQLD > FSQLDA^.SQLN then
   begin
     AllocSQLDA(FSQLDA^.SQLD);
-    if isc_dsql_describe(@FStatus, @FStatement, 1, FSQLDA) <> 0 then
+    if isc_dsql_describe(@FStatus[0], @FStatement, 1, FSQLDA) <> 0 then
       CheckError('TIBQuery.DescribeStatement', FStatus);
   end;
 end;
@@ -756,7 +755,7 @@ begin
   if not (FStatementType in [stSelect]) then
     Exit;
 
-  retcode := isc_dsql_fetch(@FStatus, @FStatement, 1, FSQLDA);
+  retcode := isc_dsql_fetch(@FStatus[0], @FStatement, 1, FSQLDA);
   if (retcode <> 0) and (retcode <> 100) then
     CheckError('TIBQuery.Fetch', FStatus);
 
@@ -809,8 +808,8 @@ var
 begin
   FStatementType := stNone;
   x := isc_info_sql_stmt_type;
-  if isc_dsql_sql_info(@FStatus, @FStatement, SizeOf(X),
-    @x, SizeOf(ResBuf), @ResBuf) <> 0 then
+  if isc_dsql_sql_info(@FStatus[0], @FStatement, SizeOf(X),
+    pchar(@x), SizeOf(ResBuf), @ResBuf[0]) <> 0 then
     CheckError('TIBQuery.GetStatementType', FStatus);
   if Ord(ResBuf[0]) = isc_info_sql_stmt_type then
   begin
@@ -910,7 +909,7 @@ begin
   if not FTransaction.Active then
     FTransaction.StartTransaction;
   tr := FTransaction.GetHandle;
-  if isc_dsql_execute(@FStatus, @tr, @FStatement, 1, nil) <> 0 then
+  if isc_dsql_execute(@FStatus[0], @tr, @FStatement, 1, nil) <> 0 then
     CheckError('TIBQuery.Execute', FStatus);
 end;
 

@@ -42,7 +42,7 @@ end;
 Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr ; var AddrLen :longint) : longint;
 
 begin
-  RecvFrom:=fprecvfrom(Sock,@buf,buflen,flags,@Addr,@AddrLen);
+  RecvFrom:=fprecvfrom(Sock,@buf,buflen,flags,@Addr,psocklen(@AddrLen));
 end;
 
 Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
@@ -57,7 +57,7 @@ end;
 
 Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 begin
-  Accept:=fpaccept(sock,@addr,@addrlen);
+  Accept:=fpaccept(sock,@addr,psocklen(@addrlen));
 end;
 
 Function Connect(Sock:Longint;Const Addr;Addrlen:Longint): boolean;
@@ -73,12 +73,12 @@ end;
 
 Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 begin
-  GetSocketName:=fpgetsockname(sock,@addr,@addrlen);
+  GetSocketName:=fpgetsockname(sock,@addr,psocklen(@addrlen));
 end;
 
 Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 begin
-  GetPeerName:=fpgetPeerName(sock,@addr,@addrlen);
+  GetPeerName:=fpgetPeerName(sock,@addr,psocklen(@addrlen));
 end;
 
 Function SetSocketOptions(Sock,Level,OptName:Longint;const OptVal;optlen:longint):Longint;
@@ -88,12 +88,12 @@ end;
 
 Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
 begin
-  GetSocketOptions:=fpgetsockopt(Sock,Level,OptName,@OptVal,@OptLen);
+  GetSocketOptions:=fpgetsockopt(Sock,Level,OptName,@OptVal,psocklen(@OptLen));
 end;
 
 Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
 begin
-  SocketPair:=fpsocketpair(domain,sockettype,protocol,@pair);
+  SocketPair:=fpsocketpair(domain,sockettype,protocol,@pair[1]);
 end;
 
 {******************************************************************************

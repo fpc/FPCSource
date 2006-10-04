@@ -981,13 +981,14 @@ END;
 FUNCTION TObject.Is_Object(P:Pointer):Boolean;
 TYPE
    PVMT=^VMT;
+   PPVMT=^PVMT;
    VMT=RECORD
      Size,NegSize:Longint;
      ParentLink:PVMT;
    END;
-VAR SP:^PVMT; Q:PVMT;
+VAR SP:PPVMT; Q:PVMT;
 BEGIN
-   SP:=@SELF;
+   SP:=PPVMT(@SELF);
    Q:=SP^;
    Is_Object:=False;
    While Q<>Nil Do Begin

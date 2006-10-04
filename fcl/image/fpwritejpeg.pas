@@ -105,7 +105,7 @@ var
     jpeg_create_compress(@FInfo);
     FProgressMgr.pub.progress_monitor := @ProgressCallback;
     FProgressMgr.instance := Self;
-    FInfo.progress := @FProgressMgr;
+    FInfo.progress := @FProgressMgr.pub;
   end;
 
   procedure SetDestination;

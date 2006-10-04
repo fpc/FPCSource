@@ -372,7 +372,7 @@ begin
   FillChar(Result^, Sizeof(a52_decoder), 0);
   Result^.state := a52_init(mm_accel);
   Result^.fsamples := a52_samples(Result^.state);
-  Result^.inbuf_ptr := @Result^.inbuf;
+  Result^.inbuf_ptr := @Result^.inbuf[0];
   Result^.user := user;
   Result^.read := read;
   Result^.seek := seek;
@@ -427,7 +427,7 @@ begin
         (* no header seen : find one. We need at least 7 bytes to parse it *)
         //WriteLn('no header seen (', len, ')');
 
-        len := a52_syncinfo(@decoder^.inbuf, decoder^.flags, sample_rate, bit_rate);
+        len := a52_syncinfo(@decoder^.inbuf[0], decoder^.flags, sample_rate, bit_rate);
         if len = 0 then
         begin
           (* no sync found : move by one byte (inefficient, but simple!) *)
@@ -456,9 +456,9 @@ begin
       flags := A52_STEREO;//decoder^.flags;
       level := High(Smallint)-30;
 
-      if a52_frame(decoder^.state, @decoder^.inbuf, flags, level, 0) <> 0 then
+      if a52_frame(decoder^.state, @decoder^.inbuf[0], flags, level, 0) <> 0 then
       begin
-        decoder^.inbuf_ptr := @decoder^.inbuf;
+        decoder^.inbuf_ptr := @decoder^.inbuf[0];
         decoder^.frame_size := 0;
         Continue;
       end;
@@ -467,7 +467,7 @@ begin
       begin
         if a52_block(decoder^.state) <> 0 then
         begin
-          decoder^.inbuf_ptr := @decoder^.inbuf;
+          decoder^.inbuf_ptr := @decoder^.inbuf[0];
           decoder^.frame_size := 0;
           Exit(-1);
         end;

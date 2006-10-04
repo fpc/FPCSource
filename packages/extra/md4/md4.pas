@@ -41,7 +41,7 @@ implementation
 
 procedure mdfour({out} var _out: TMD4Hash; {in} _in: PByte; {in} n: Integer);
 begin
-  mdfour(@_out, _in, n);
+  mdfour(@_out[0], _in, n);
 end;
 
 
@@ -167,8 +167,8 @@ begin
 
   while n > 64 do
   begin
-    copy64(@M, _in);
-    mdfour64(@M);
+    copy64(@M[0], _in);
+    mdfour64(@M[0]);
     Inc(_in, 64);
     Dec(n, 64);
   end;
@@ -180,18 +180,18 @@ begin
   if n <= 55 then
   begin
     copy4(@buf[56], bb);
-    copy64(@M, @buf);
-    mdfour64(@M);
+    copy64(@M[0], @buf[0]);
+    mdfour64(@M[0]);
   end else begin
     copy4(@buf[120], bb);
-    copy64(@M, @buf);
-    mdfour64(@M);
-    copy64(@M, @buf[64]);
-    mdfour64(@M);
+    copy64(@M[0], @buf[0]);
+    mdfour64(@M[0]);
+    copy64(@M[0], @buf[64]);
+    mdfour64(@M[0]);
   end;
 
   FillChar(buf, sizeof(buf), 0);
-  copy64(@M, @buf);
+  copy64(@M[0], @buf[0]);
 
   copy4(@_out[0], A);
   copy4(@_out[4], B);

@@ -36,6 +36,7 @@ Type
     dma       : byte;
     port      : byte;
   end;
+  PIFrec = ^TIFrec;
   TIFrec = record
     ifr_ifrn : tifr_ifrn;
     case integer of
@@ -94,7 +95,7 @@ var
   buf : Array[0..1023] of byte;
   ifc : TIfConf;
   ifr : TIFRec;
-  ifp : ^TIFRec;
+  ifp : PIFRec;
   p   : PChar;
 begin
   Result:=MacAddrTried>0;
@@ -115,7 +116,7 @@ begin
       i:=0;
       While (Not Result) and (I<N) do
         begin
-        ifp:=@PByte(ifc.ifcu_buf)[i];
+        ifp:=PIFRec(PByte(ifc.ifcu_buf)+i);
         move(ifp^.ifr_ifrn.ifrn_name,ifr.ifr_ifrn.ifrn_name,IF_NAMESIZE);
         if (fpioctl(sd, SIOCGIFHWADDR, @ifr) >= 0) then
           begin
@@ -192,7 +193,7 @@ Var
   P   : PByte;
   
 begin
-  P:=@GUID;
+  P:=PByte(@GUID);
   
   tmp:=uu.time_low;
   P[3]:=tmp and $FF;

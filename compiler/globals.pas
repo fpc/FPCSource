@@ -1835,7 +1835,7 @@ end;
       var
         p: pbyte;
       begin
-        p := @r;
+        p := pbyte(@r);
 {$ifdef CPU_ARM}
         inc(p,4);
 {$else}

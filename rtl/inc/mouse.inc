@@ -25,8 +25,8 @@ Var
 Procedure ClearMouseEventQueue;
 
 begin
-  PendingMouseHead:=@PendingMouseEvent;
-  PendingMouseTail:=@PendingMouseEvent;
+  PendingMouseHead:=@PendingMouseEvent[0];
+  PendingMouseTail:=@PendingMouseEvent[0];
   PendingMouseEvents:=0;
   FillChar(LastMouseEvent,sizeof(TMouseEvent),0);
 end;
@@ -119,7 +119,7 @@ begin
   MouseEvent:=PendingMouseHead^;
   inc(PendingMouseHead);
   if PtrInt(PendingMouseHead)=Ptrint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
-   PendingMouseHead:=@PendingMouseEvent;
+   PendingMouseHead:=@PendingMouseEvent[0];
   dec(PendingMouseEvents);
   if (LastMouseEvent.x<>MouseEvent.x) or
      (LastMouseEvent.y<>MouseEvent.y) then
@@ -162,7 +162,7 @@ begin
     PendingMouseTail^:=MouseEvent;
     inc(PendingMouseTail);
     if PtrInt(PendingMouseTail)=Ptrint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
-      PendingMouseTail:=@PendingMouseEvent;
+      PendingMouseTail:=@PendingMouseEvent[0];
     inc(PendingMouseEvents);
     end
   else

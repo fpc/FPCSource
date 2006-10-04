@@ -216,7 +216,7 @@ var
   m     : Integer;
   n     : Integer;
 begin
-  permute(@pk1, key, @perm1, 56);
+  permute(@pk1[0], key, @perm1[0], 56);
 
   for i := 0 to 27 do
   begin
@@ -226,14 +226,14 @@ begin
 
   for i := 0 to 15 do
   begin
-    lshift(@c, sc[i], 28);
-    lshift(@d, sc[i], 28);
+    lshift(@c[0], sc[i], 28);
+    lshift(@d[0], sc[i], 28);
 
-    concat(@cd, @c, @d, 28, 28);
-    permute(@ki[i][0], @cd, @perm2, 48);
+    concat(@cd[0], @c[0], @d[0], 28, 28);
+    permute(@ki[i][0], @cd[0], @perm2[0], 48);
   end;
 
-  permute(@pd1, _in, @perm3, 64);
+  permute(@pd1[0], _in, @perm3[0], 64);
 
   for i := 0 to 31 do
   begin
@@ -243,11 +243,11 @@ begin
 
   for i := 0 to 15 do
   begin
-    permute(@er, @r, @perm4, 48);
+    permute(@er[0], @r[0], @perm4[0], 48);
 
     if forw then
-      mxor(@erk, @er, @ki[i][0], 48) else
-      mxor(@erk, @er, @ki[15-i][0], 48);
+      mxor(@erk[0], @er[0], @ki[i][0], 48) else
+      mxor(@erk[0], @er[0], @ki[15-i][0], 48);
 
     for j := 0 to 7 do
       for k := 0 to 5 do
@@ -267,9 +267,9 @@ begin
       for k := 0 to 3 do
         cb[j*4+k] := b[j][k];
 
-    permute(@pcb, @cb, @perm5, 32);
+    permute(@pcb[0], @cb[0], @perm5[0], 32);
 
-    mxor(@r2, @l, @pcb, 32);
+    mxor(@r2[0], @l[0], @pcb[0], 32);
 
     for j := 0 to 31 do
     begin
@@ -278,9 +278,9 @@ begin
     end;
   end;
 
-  concat(@rl, @r, @l, 32, 32);
+  concat(@rl[0], @r[0], @l[0], 32, 32);
 
-  permute(_out, @rl, @perm6, 64);
+  permute(_out, @rl[0], @perm6[0], 64);
 end;
 
 procedure str_to_key({in} const str: PByte; {out} const key: PByte);
@@ -307,7 +307,7 @@ var
   keyb  : array[0..63] of Byte;
   key2  : array[0..7] of Byte;
 begin
-  str_to_key(key, @key2);
+  str_to_key(key, @key2[0]);
 
   for i := 0 to 63 do
   begin
@@ -316,7 +316,7 @@ begin
     outb[i] := 0;
   end;
 
-  dohash(@outb, @inb, @keyb, forw);
+  dohash(@outb[0], @inb[0], @keyb[0], forw);
 
   for i := 0 to 7 do
     _out[I] := 0;
@@ -332,8 +332,8 @@ procedure E_P16({in} const p14: PByte; {out} const p16: PByte);
 const
   sp8: array[0..7] of Byte = ($4b, $47, $53, $21, $40, $23, $24, $25);
 begin
-  smbhash(@p16[0], @sp8, @p14[0], True);
-  smbhash(@p16[8], @sp8, @p14[7], True);
+  smbhash(@p16[0], @sp8[0], @p14[0], True);
+  smbhash(@p16[8], @sp8[0], @p14[7], True);
 end;
 
 procedure E_P24({in} const p21: PByte; {in} const c8: PByte; {out} const p24: PByte);
@@ -353,38 +353,41 @@ end;
  * Creates the MD4 Hash of the users password in NT UNICODE.
  *)
 
-procedure E_md4hash({in} const pwd: PByte; {out} const p16: PByte);
+procedure E_md4hash({in} const pwd: PChar; {out} const p16: PByte);
 var
-  len   : Integer;
-  wpwd  : array[0..128] of Word;
+  len, pos: Integer;
+  wpwd  : array[0..255] of Byte;
 begin
   FillChar(wpwd, Sizeof(wpwd), 0);
 
   (* Password must be converted to NT unicode - null terminated *)
   len := 0;
-  while (len < 128) and (pwd[len] <> 0) do
+  pos := 0;
+  while (len < 256) and (pwd[pos] <> #0) do
   begin
-    wpwd[len] := pwd[len];
-    Inc(len);
+    wpwd[len] := byte(pwd[pos]);
+    inc(len);
+    wpwd[len] := 0;
+    inc(pos);
   end;
 
-  mdfour(p16, @wpwd[0], 2*len);
+  mdfour(p16, @wpwd[0], len);
 
   FillChar(wpwd, Sizeof(wpwd), 0);
 end;
 
-procedure E_deshash({in} const pwd: PByte; {out} const p16: PByte);
+procedure E_deshash({in} const pwd: PChar; {out} const p16: PByte);
 var
   dospwd: array[0..14] of Byte;
 begin
   FillChar(dospwd, Sizeof(dospwd), 0);
 
   (* Password must be converted to DOS charset - null terminated, uppercase *)
-  StrLCopy(@dospwd, @pwd[0], Sizeof(dospwd)-1);
-  StrUpper(@dospwd);
+  StrLCopy(pchar(@dospwd[0]), pchar(@pwd[0]), Sizeof(dospwd)-1);
+  StrUpper(pchar(@dospwd[0]));
 
   (* ONly the first 14 chars are considered, password need not be null terminated *)
-  E_P16(@dospwd, p16);
+  E_P16(@dospwd[0], p16);
 
   FillChar(dospwd, Sizeof(dospwd), 0);
 end;
@@ -403,11 +406,11 @@ begin
 
   (* Calculate the MD4 hash (NT compatible) of the password *)
   FillChar(nt_p16, Sizeof(nt_p16), 0);
-  E_md4hash(@passwd, @nt_p16);
+  E_md4hash(@passwd[0], @nt_p16[0]);
 
   (* Calculate the SMB (lanman) hash functions of the password *)
   FillChar(lm_p16, Sizeof(lm_p16), 0);
-  E_deshash(@passwd, @lm_p16);
+  E_deshash(@passwd[0], @lm_p16[0]);
 
   (* clear out local copy of user's password (just being paranoid). *)
   FillChar(passwd, Sizeof(passwd), 0);

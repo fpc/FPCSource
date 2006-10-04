@@ -183,7 +183,7 @@ begin
       DataTransferLength := SizeOf(tOC);
       TimeOutValue    := 5;
       DataBuffer      := @TOC;
-      SenseInfoOffset := @swb.ucSenseBuf-@swb.spt;
+      SenseInfoOffset := @swb.ucSenseBuf[0]-pbyte(@swb.spt);
       Cdb[0]          := $43; // read TOC
       Cdb[1]          := $02; // MSF mode
       Cdb[7]          := $03;
@@ -376,7 +376,7 @@ var
 begin
   FillChar(Drives,SizeOf(Drives),0);
   GetLogicalDriveStrings(105,Drives);
-  P:=@Drives;
+  P:=@Drives[0];
   Result:=0;
   While P[0]<>#0 do
     begin

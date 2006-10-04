@@ -4964,7 +4964,7 @@ begin
 end;
 
 function TFPgtkImage.GetMask : PGdkBitMap;
-var p : PGdkPixmap;
+var p : PGdkImage;
 begin
   gtk_image_get (TheGtkObject, @p, @result);
 end;
@@ -7317,7 +7317,7 @@ var PT : PGtkPackType;
 begin
   pt := @PackType;
   gtk_box_query_child_packing (TheGtkObject, ConvertToGtkWidget(Widget),
-                               @expand, @fill, @padding, pt);
+                               pgboolean(@expand), pgboolean(@fill), pguint(@padding), pt);
 end;
 
 procedure TFPgtkBox.SetChildPacking (Widget:TFPgtkWidget; Expand:boolean; Fill:boolean; Padding:integer; PackType:TGtkPackType);
@@ -8788,7 +8788,7 @@ begin
   s := nil;
   r := gtk_ctree_get_node_info (TheGtkObject, aNode, s,
       @aspacing, @pixmapClosed, @maskClosed, @pixmapOpened, @maskOpened,
-      @IsLeaf, @expanded);
+      pgboolean(@IsLeaf), pgboolean(@expanded));
   if r = 0 then
     begin
     atext := '';
@@ -9154,7 +9154,7 @@ var PT : PGtkPackType;
 begin
   pt := @PackType;
   gtk_notebook_query_tab_label_packing (TheGtkObject, ConvertTogtkWidget(widget),
-                               @expand, @fill, pt);
+                               pgboolean(@expand), pgboolean(@fill), pt);
 end;
 
 procedure TFPgtkNotebook.SetTabLabelPacking (Widget:TFPgtkWidget; Expand:boolean; Fill:boolean; PackType:TGtkPackType);

@@ -2026,7 +2026,7 @@ implementation
            (stabexesec.ObjSectionlist.count=0) then
           exit;
         { Create new stabsection }
-        stabRelocofs:=@hstab.nvalue-@hstab;
+        stabRelocofs:=pointer(@hstab.nvalue)-@hstab;
         mergedstabsec:=internalObjData.CreateSection(sec_stab,'');
         mergedstabstrsec:=internalObjData.CreateSection(sec_stabstr,'');
 

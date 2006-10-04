@@ -501,7 +501,7 @@ begin
       hp:=GetTypeData(Typeinfo);
       // the class info rtti the property rtti follows immediatly
       pd:=aligntoptr(pointer(pointer(@hp^.UnitName)+Length(hp^.UnitName)+1));
-      Result:=@pd^.PropList;
+      Result:=PPropInfo(@pd^.PropList);
       for i:=1 to pd^.PropCount do
         begin
           // found a property of that name ?

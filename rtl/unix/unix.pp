@@ -858,7 +858,7 @@ begin
       end;
      textrec(f).bufptr:=@textrec(f).buffer;
    {Save the process ID - needed when closing }
-     pl:=@(textrec(f).userdata[2]);
+     pl:=pcint(@textrec(f).userdata[2]);
      { avoid alignment error on sparc }
      move(pid,pl^,sizeof(pid));
      textrec(f).closefunc:=@PCloseText;
@@ -972,7 +972,7 @@ begin
         f:=pipi;
       end;
    {Save the process ID - needed when closing }
-     pl:=@(filerec(f).userdata[2]);
+     pl:=pcint(@filerec(f).userdata[2]);
      { avoid alignment error on sparc }
      move(pid,pl^,sizeof(pid));
    end;
@@ -1036,12 +1036,12 @@ begin
      close(pipo);
      close(pipi);
      {Save the process ID - needed when closing }
-     pl:=@(textrec(StreamIn).userdata[2]);
+     pl:=pcint(@textrec(StreamIn).userdata[2]);
      { avoid alignment error on sparc }
      move(pid,pl^,sizeof(pid));
      textrec(StreamIn).closefunc:=@PCloseText;
      {Save the process ID - needed when closing }
-     pl:=@(textrec(StreamOut).userdata[2]);
+     pl:=pcint(@textrec(StreamOut).userdata[2]);
      { avoid alignment error on sparc }
      move(pid,pl^,sizeof(pid));
      textrec(StreamOut).closefunc:=@PCloseText;
@@ -1128,17 +1128,17 @@ begin
     Close(PipeOut);
     Close(PipeIn);
     // Save the process ID - needed when closing
-    pl := @(TextRec(StreamIn).userdata[2]);
+    pl := pcint(@TextRec(StreamIn).userdata[2]);
     { avoid alignment error on sparc }
     move(pid,pl^,sizeof(pid));
     TextRec(StreamIn).closefunc := @PCloseText;
     // Save the process ID - needed when closing
-    pl := @(TextRec(StreamOut).userdata[2]);
+    pl := pcint(@TextRec(StreamOut).userdata[2]);
     { avoid alignment error on sparc }
     move(pid,pl^,sizeof(pid));
     TextRec(StreamOut).closefunc := @PCloseText;
     // Save the process ID - needed when closing
-    pl := @(TextRec(StreamErr).userdata[2]);
+    pl := pcint(@TextRec(StreamErr).userdata[2]);
     { avoid alignment error on sparc }
     move(pid,pl^,sizeof(pid));
     TextRec(StreamErr).closefunc := @PCloseText;

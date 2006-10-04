@@ -535,8 +535,8 @@ implementation
              c2[0]:=char(byte(tordconstnode(right).value));
              c2[1]:=#0;
              l2:=1;
-             s1:=@c1;
-             s2:=@c2;
+             s1:=@c1[0];
+             s2:=@c2[0];
              concatstrings:=true;
           end
         else if (lt=stringconstn) and (rt=ordconstn) and is_char(rd) then
@@ -545,7 +545,7 @@ implementation
              l1:=tstringconstnode(left).len;
              c2[0]:=char(byte(tordconstnode(right).value));
              c2[1]:=#0;
-             s2:=@c2;
+             s2:=@c2[0];
              l2:=1;
              concatstrings:=true;
           end
@@ -554,7 +554,7 @@ implementation
              c1[0]:=char(byte(tordconstnode(left).value));
              c1[1]:=#0;
              l1:=1;
-             s1:=@c1;
+             s1:=@c1[0];
              s2:=tstringconstnode(right).value_str;
              l2:=tstringconstnode(right).len;
              concatstrings:=true;

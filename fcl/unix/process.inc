@@ -27,7 +27,7 @@ end;
 Function TProcess.PeekExitStatus : Boolean;
 
 begin
-  Result:=fpWaitPid(Handle,@FExitCode,WNOHANG)=Handle;
+  Result:=fpWaitPid(Handle,pcint(@FExitCode),WNOHANG)=Handle;
   If Result then
     FExitCode:=wexitstatus(FExitCode)
   else
@@ -338,7 +338,7 @@ end;
 Function TProcess.WaitOnExit : Dword;
 
 begin
-  Result:=fpWaitPid(Handle,@FExitCode,0);
+  Result:=fpWaitPid(Handle,pcint(@FExitCode),0);
   If Result=Handle then
     FExitCode:=WexitStatus(FExitCode);
   FRunning:=False;

@@ -453,7 +453,7 @@ end;
 
 procedure TPQConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;AParams : TParams);
 
-var ar  : array of pointer;
+var ar  : array of pchar;
     i   : integer;
     s   : string;
 

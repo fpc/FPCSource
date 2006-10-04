@@ -648,7 +648,7 @@ Begin
            Move(f.SearchSpec[1], DirName[0], f.NamePos);
            DirName[f.NamePos] := #0;
          End;
-        f.DirPtr := fpopendir(@(DirName));
+        f.DirPtr := fpopendir(@DirName[0]);
         If f.DirPtr <> nil Then
          begin
            ArrayPos:=FindLastUsed;
@@ -673,7 +673,7 @@ Begin
      if p=nil then
       FName:=''
      else
-      FName:=Strpas(@p^.d_name);
+      FName:=Strpas(@p^.d_name[0]);
      If FName='' Then
       Finished:=True
      Else
@@ -767,7 +767,7 @@ Var
   LinAttr : longint;
 Begin
   DosError:=0;
-  if FPStat(@textrec(f).name,info)<0 then
+  if FPStat(@textrec(f).name[0],info)<0 then
    begin
      Attr:=0;
      DosError:=3;
@@ -779,7 +779,7 @@ Begin
    Attr:=$10
   else
    Attr:=$0;
-  if fpAccess(@textrec(f).name,W_OK)<0 then
+  if fpAccess(@textrec(f).name[0],W_OK)<0 then
    Attr:=Attr or $1;
   if filerec(f).name[0]='.' then
    Attr:=Attr or $2;
@@ -816,7 +816,7 @@ Begin
       UnPackTime(Time,DT);
       modtime:=DTToUnixDate(DT);
     end;
-  if fputime(@filerec(f).name,@utim)<0 then
+  if fputime(@filerec(f).name[0],@utim)<0 then
     begin
       Time:=0;
       doserror:=3;

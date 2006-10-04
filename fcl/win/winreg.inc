@@ -74,7 +74,7 @@ Var
 begin
   P := @Name[1];
   If RegQueryValueEx(fCurrentKey,P,Nil,
-                     @RD,Buffer,@BufSize)<>ERROR_SUCCESS Then
+                     @RD,Buffer,lpdword(@BufSize))<>ERROR_SUCCESS Then
     Result:=-1
   else
     begin
@@ -100,7 +100,7 @@ Var
 begin
   P:=@ValueName[1];
   With Value do
-    Result:=RegQueryValueEx(fCurrentKey,P,Nil,@RegData,Nil,@DataSize)=ERROR_SUCCESS;
+    Result:=RegQueryValueEx(fCurrentKey,P,Nil,lpdword(@RegData),Nil,lpdword(@DataSize))=ERROR_SUCCESS;
   If Not Result Then
     begin
     Value.RegData := rdUnknown;
@@ -114,13 +114,20 @@ begin
 end;
 
 function TRegistry.GetKeyInfo(var Value: TRegKeyInfo): Boolean;
-
+var
+  winFileTime: Windows.FILETIME;
+  sysTime: TSystemTime;
 begin
   FillChar(Value, SizeOf(Value), 0);
   With Value do
-    Result:=RegQueryInfoKey(CurrentKey,nil,nil,nil,@NumSubKeys,
-                            @MaxSubKeyLen,nil,@NumValues,@MaxValueLen,
-                            @MaxDataLen,nil,@FileTime)=ERROR_SUCCESS;
+    Result:=RegQueryInfoKey(CurrentKey,nil,nil,nil,lpdword(@NumSubKeys),
+              lpdword(@MaxSubKeyLen),nil,lpdword(@NumValues),lpdword(@MaxValueLen),
+              lpdword(@MaxDataLen),nil,@winFileTime)=ERROR_SUCCESS;
+  if Result then
+  begin
+    FileTimeToSystemTime(@winFileTime, @sysTime);
+    Value.FileTime := SystemTimeToDateTime(sysTime);
+  end;
 end;
 
 function TRegistry.KeyExists(const Key: string): Boolean;
@@ -155,7 +162,7 @@ begin
 
                            REG_OPTION_NON_VOLATILE,
                            fAccess,SecurityAttributes,Handle,
-                           @Disposition)=ERROR_SUCCESS
+                           pdword(@Disposition))=ERROR_SUCCESS
 
     end
   else

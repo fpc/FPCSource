@@ -53,7 +53,7 @@ type
     procedure SetDateTime(CurrBuff: pointer; PTime : TDateTime; AType : integer);
     procedure GetFloat(CurrBuff, Buffer : pointer; Field : TFieldDef);
     procedure SetFloat(CurrBuff: pointer; Dbl: Double; Size: integer);
-    procedure CheckError(ProcName : string; Status : array of ISC_STATUS);
+    procedure CheckError(ProcName : string; Status : PISC_STATUS);
     function getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
     procedure SetParameters(cursor : TSQLCursor;AParams : TParams);
     procedure FreeSQLDABuffer(var aSQLDA : PXSQLDA);
@@ -113,19 +113,17 @@ type
     __tm_zone : Pchar;
   end;
 
-procedure TIBConnection.CheckError(ProcName : string; Status : array of ISC_STATUS);
+procedure TIBConnection.CheckError(ProcName : string; Status : PISC_STATUS);
 var
   buf : array [0..1024] of char;
-  p   : pointer;
   Msg : string;
   E   : EIBDatabaseError;
   
 begin
   if ((Status[0] = 1) and (Status[1] <> 0)) then
   begin
-    p := @Status;
     msg := '';
-    while isc_interprete(Buf, @p) > 0 do
+    while isc_interprete(Buf, @Status) > 0 do
       Msg := Msg + LineEnding +' -' + StrPas(Buf);
     E := EIBDatabaseError.CreateFmt('%s : %s : %s',[self.Name,ProcName,Msg]);
     E.GDSErrorCode := Status[1];
@@ -152,7 +150,7 @@ function TIBConnection.Commit(trans : TSQLHandle) : boolean;
 begin
   result := false;
   with (trans as TIBTrans) do
-    if isc_commit_transaction(@Status, @TransactionHandle) <> 0 then
+    if isc_commit_transaction(@Status[0], @TransactionHandle) <> 0 then
       CheckError('Commit', Status)
     else result := true;
 end;
@@ -160,7 +158,7 @@ end;
 function TIBConnection.RollBack(trans : TSQLHandle) : boolean;
 begin
   result := false;
-  if isc_rollback_transaction(@TIBTrans(trans).Status, @TIBTrans(trans).TransactionHandle) <> 0 then
+  if isc_rollback_transaction(@TIBTrans(trans).Status[0], @TIBTrans(trans).TransactionHandle) <> 0 then
     CheckError('Rollback', TIBTrans(trans).Status)
   else result := true;
 end;
@@ -210,7 +208,7 @@ begin
 
     TransactionHandle := nil;
 
-    if isc_start_transaction(@Status, @TransactionHandle, 1,
+    if isc_start_transaction(@Status[0], @TransactionHandle, 1,
        [@DBHandle, Length(TPB), @TPB[1]]) <> 0 then
       CheckError('StartTransaction',Status)
     else Result := True;
@@ -221,14 +219,14 @@ end;
 procedure TIBConnection.CommitRetaining(trans : TSQLHandle);
 begin
   with trans as TIBtrans do
-    if isc_commit_retaining(@Status, @TransactionHandle) <> 0 then
+    if isc_commit_retaining(@Status[0], @TransactionHandle) <> 0 then
       CheckError('CommitRetaining', Status);
 end;
 
 procedure TIBConnection.RollBackRetaining(trans : TSQLHandle);
 begin
   with trans as TIBtrans do
-    if isc_rollback_retaining(@Status, @TransactionHandle) <> 0 then
+    if isc_rollback_retaining(@Status[0], @TransactionHandle) <> 0 then
       CheckError('RollBackRetaining', Status);
 end;
 
@@ -258,7 +256,7 @@ begin
   FSQLDatabaseHandle := nil;
   if HostName <> '' then ADatabaseName := HostName+':'+DatabaseName
     else ADatabaseName := DatabaseName;
-  if isc_attach_database(@FStatus, Length(ADatabaseName), @ADatabaseName[1], @FSQLDatabaseHandle,
+  if isc_attach_database(@FStatus[0], Length(ADatabaseName), @ADatabaseName[1], @FSQLDatabaseHandle,
          Length(DPB), @DPB[1]) <> 0 then
     CheckError('DoInternalConnect', FStatus);
   SetDBDialect;
@@ -285,12 +283,13 @@ procedure TIBConnection.SetDBDialect;
 var
   x : integer;
   Len : integer;
-  Buffer : string;
+  Buffer : array [0..1] of byte;
   ResBuf : array [0..39] of byte;
 begin
-  Buffer := Chr(isc_info_db_sql_dialect) + Chr(isc_info_end);
-  if isc_database_info(@FStatus, @FSQLDatabaseHandle, Length(Buffer),
-    @Buffer[1], SizeOf(ResBuf), @ResBuf) <> 0 then
+  Buffer[0] := isc_info_db_sql_dialect;
+  Buffer[1] := isc_info_end;
+  if isc_database_info(@FStatus[0], @FSQLDatabaseHandle, Length(Buffer),
+    pchar(@Buffer[0]), SizeOf(ResBuf), pchar(@ResBuf[0])) <> 0 then
       CheckError('SetDBDialect', FStatus);
   x := 0;
   while x < 40 do
@@ -298,9 +297,9 @@ begin
       isc_info_db_sql_dialect :
         begin
           Inc(x);
-          Len := isc_vax_integer(@ResBuf[x], 2);
+          Len := isc_vax_integer(pchar(@ResBuf[x]), 2);
           Inc(x, 2);
-          FDialect := isc_vax_integer(@ResBuf[x], Len);
+          FDialect := isc_vax_integer(pchar(@ResBuf[x]), Len);
           Inc(x, Len);
         end;
       isc_info_end : Break;
@@ -449,20 +448,20 @@ begin
   with cursor as TIBcursor do
     begin
     dh := GetHandle;
-    if isc_dsql_allocate_statement(@Status, @dh, @Statement) <> 0 then
+    if isc_dsql_allocate_statement(@Status[0], @dh, @Statement) <> 0 then
       CheckError('PrepareStatement', Status);
     tr := aTransaction.Handle;
     
     if assigned(AParams) and (AParams.count > 0) then
       buf := AParams.ParseSQL(buf,false,psInterbase,paramBinding);
 
-    if isc_dsql_prepare(@Status, @tr, @Statement, 0, @Buf[1], Dialect, nil) <> 0 then
+    if isc_dsql_prepare(@Status[0], @tr, @Statement, 0, @Buf[1], Dialect, nil) <> 0 then
       CheckError('PrepareStatement', Status);
     FPrepared := True;
     if assigned(AParams) and (AParams.count > 0) then
       begin
       AllocSQLDA(in_SQLDA,Length(ParamBinding));
-      if isc_dsql_describe_bind(@Status, @Statement, 1, in_SQLDA) <> 0 then
+      if isc_dsql_describe_bind(@Status[0], @Statement, 1, in_SQLDA) <> 0 then
         CheckError('PrepareStatement', Status);
       if in_SQLDA^.SQLD > in_SQLDA^.SQLN then
         DatabaseError(SParameterCountIncorrect,self);
@@ -480,12 +479,12 @@ begin
     if FStatementType = stselect then
       begin
       FPrepared := False;
-      if isc_dsql_describe(@Status, @Statement, 1, SQLDA) <> 0 then
+      if isc_dsql_describe(@Status[0], @Statement, 1, SQLDA) <> 0 then
         CheckError('PrepareSelect', Status);
       if SQLDA^.SQLD > SQLDA^.SQLN then
         begin
         AllocSQLDA(SQLDA,SQLDA^.SQLD);
-        if isc_dsql_describe(@Status, @Statement, 1, SQLDA) <> 0 then
+        if isc_dsql_describe(@Status[0], @Statement, 1, SQLDA) <> 0 then
           CheckError('PrepareSelect', Status);
         end;
       {$R-}
@@ -507,7 +506,7 @@ procedure TIBConnection.UnPrepareStatement(cursor : TSQLCursor);
 begin
   with cursor as TIBcursor do
     begin
-    if isc_dsql_free_statement(@Status, @Statement, DSQL_Drop) <> 0 then
+    if isc_dsql_free_statement(@Status[0], @Statement, DSQL_Drop) <> 0 then
       CheckError('FreeStatement', Status);
     Statement := nil;
     FPrepared := False;
@@ -550,7 +549,7 @@ begin
   tr := aTransaction.Handle;
   if Assigned(APArams) and (AParams.count > 0) then SetParameters(cursor, AParams);
   with cursor as TIBCursor do
-    if isc_dsql_execute2(@Status, @tr, @Statement, 1, in_SQLDA, nil) <> 0 then
+    if isc_dsql_execute2(@Status[0], @tr, @Statement, 1, in_SQLDA, nil) <> 0 then
       CheckError('Execute', Status);
 end;
 
@@ -591,7 +590,7 @@ var
 begin
   with cursor as TIBCursor do
     begin
-    retcode := isc_dsql_fetch(@Status, @Statement, 1, SQLDA);
+    retcode := isc_dsql_fetch(@Status[0], @Statement, 1, SQLDA);
     if (retcode <> 0) and (retcode <> 100) then
       CheckError('Fetch', Status);
     end;
@@ -663,7 +662,7 @@ begin
           begin
           TransactionHandle := transaction.Handle;
           blobhandle := nil;
-          if isc_create_blob(@FStatus, @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, @blobId) <> 0 then
+          if isc_create_blob(@FStatus[0], @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, @blobId) <> 0 then
            CheckError('TIBConnection.CreateBlobStream', FStatus);
 
           s := AParams[ParNr].AsString;
@@ -674,14 +673,14 @@ begin
 
           while BlobBytesWritten < (BlobSize-BlobSegmentSize) do
             begin
-            isc_put_segment(@FStatus, @blobHandle, BlobSegmentSize, @s[(i*BlobSegmentSize)+1]);
+            isc_put_segment(@FStatus[0], @blobHandle, BlobSegmentSize, @s[(i*BlobSegmentSize)+1]);
             inc(BlobBytesWritten,BlobSegmentSize);
             inc(i);
             end;
           if BlobBytesWritten <> BlobSize then
-            isc_put_segment(@FStatus, @blobHandle, BlobSize-BlobBytesWritten, @s[(i*BlobSegmentSize)+1]);
+            isc_put_segment(@FStatus[0], @blobHandle, BlobSize-BlobBytesWritten, @s[(i*BlobSegmentSize)+1]);
             
-          if isc_close_blob(@FStatus, @blobHandle) <> 0 then
+          if isc_close_blob(@FStatus[0], @blobHandle) <> 0 then
             CheckError('TIBConnection.CreateBlobStream isc_close_blob', FStatus);
           Move(blobId, in_sqlda^.SQLvar[SQLVarNr].SQLData^, in_SQLDA^.SQLVar[SQLVarNr].SQLLen);
           end;
@@ -998,7 +997,7 @@ var
   blobInfo : array[0..50] of byte;
 
 begin
-  if isc_blob_info(@Fstatus, @blobHandle, sizeof(iscInfoBlobMaxSegment), @iscInfoBlobMaxSegment, sizeof(blobInfo) - 2, @blobInfo) <> 0 then
+  if isc_blob_info(@Fstatus[0], @blobHandle, sizeof(iscInfoBlobMaxSegment), pchar(@iscInfoBlobMaxSegment), sizeof(blobInfo) - 2, pchar(@blobInfo[0])) <> 0 then
     CheckError('isc_blob_info', FStatus);
   if blobInfo[0]  = isc_info_blob_max_segment then
     begin
@@ -1015,7 +1014,7 @@ const
 var
   blobHandle : Isc_blob_Handle;
   blobSegment : pointer;
-  blobSegLen : smallint;
+  blobSegLen : word;
   maxBlobSize : longInt;
   TransactionHandle : pointer;
   BlobBuf : TBufBlobField;
@@ -1023,19 +1022,19 @@ var
 begin
   if not field.getData(@BlobBuf) then
     exit;
-  blobId := @BlobBuf;
+  blobId := PISC_QUAD(@BlobBuf.ConnBlobBuffer);
 
   TransactionHandle := Atransaction.Handle;
   blobHandle := nil;
 
-  if isc_open_blob(@FStatus, @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, blobId) <> 0 then
+  if isc_open_blob(@FStatus[0], @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, blobId) <> 0 then
     CheckError('TIBConnection.CreateBlobStream', FStatus);
 
   maxBlobSize := getMaxBlobSize(blobHandle);
 
   blobSegment := AllocMem(maxBlobSize);
 
-  while (isc_get_segment(@FStatus, @blobHandle, @blobSegLen, maxBlobSize, blobSegment) = 0) do begin
+  while (isc_get_segment(@FStatus[0], @blobHandle, @blobSegLen, maxBlobSize, blobSegment) = 0) do begin
       AStream.writeBuffer(blobSegment^, blobSegLen);
   end;
   freemem(blobSegment);
@@ -1043,7 +1042,7 @@ begin
 
   if FStatus[1] = isc_segstr_eof then
     begin
-      if isc_close_blob(@FStatus, @blobHandle) <> 0 then
+      if isc_close_blob(@FStatus[0], @blobHandle) <> 0 then
         CheckError('TIBConnection.CreateBlobStream isc_close_blob', FStatus);
     end
   else

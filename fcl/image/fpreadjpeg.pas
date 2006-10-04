@@ -270,7 +270,7 @@ begin
       try
         FProgressMgr.pub.progress_monitor := @ProgressCallback;
         FProgressMgr.instance := Self;
-        FInfo.progress := @FProgressMgr;
+        FInfo.progress := @FProgressMgr.pub;
         SetSource;
         ReadHeader;
         ReadPixels;

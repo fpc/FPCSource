@@ -284,7 +284,7 @@ end;
 
 Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
 begin
-  SocketPair:=fpsocketpair(domain,sockettype,protocol,@pair);
+  SocketPair:=fpsocketpair(domain,sockettype,protocol,@pair[1]);
 end;
 
 {$ifdef unix}

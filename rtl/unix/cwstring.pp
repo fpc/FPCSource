@@ -153,7 +153,7 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
     destpos:=pchar(dest);
     outleft:=outlength;
     lockiconv(lock_wide2ansi);
-    while iconv(iconv_wide2ansi,@srcpos,@srclen,@destpos,@outleft)=size_t(-1) do
+    while iconv(iconv_wide2ansi,ppchar(@srcpos),@srclen,@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
           ESysEILSEQ:
@@ -210,7 +210,7 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
     destpos:=pchar(dest);
     outleft:=outlength*2;
     lockiconv(lock_ansi2wide);
-    while iconv(iconv_ansi2wide,@srcpos,@len,@destpos,@outleft)=size_t(-1) do
+    while iconv(iconv_ansi2wide,@srcpos,psize(@len),@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
          ESysEILSEQ:
@@ -286,7 +286,7 @@ procedure Ansi2UCS4Move(source:pchar;var dest:UCS4String;len:SizeInt);
     destpos:=pchar(dest);
     outleft:=outlength*4;
     lockiconv(lock_ansi2ucs4);
-    while iconv(iconv_ansi2ucs4,@srcpos,@len,@destpos,@outleft)=size_t(-1) do
+    while iconv(iconv_ansi2ucs4,@srcpos,psize(@len),@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
           ESysE2BIG:

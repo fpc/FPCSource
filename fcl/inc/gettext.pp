@@ -239,9 +239,9 @@ begin
   Lang := '';
   FallbackLang:='';
   UserLCID := GetUserDefaultLCID;
-  if GetLocaleInfo(UserLCID, LOCALE_SABBREVLANGNAME, @Buffer, 4)<>0 then
+  if GetLocaleInfo(UserLCID, LOCALE_SABBREVLANGNAME, @Buffer[1], 4)<>0 then
     FallbackLang := lowercase(copy(Buffer,1,2));
-  if GetLocaleInfo(UserLCID, LOCALE_SABBREVCTRYNAME, @Buffer, 4)<>0 then begin
+  if GetLocaleInfo(UserLCID, LOCALE_SABBREVCTRYNAME, @Buffer[1], 4)<>0 then begin
     Country := copy(Buffer,1,2);
 
     // some 2 letter codes are not the first two letters of the 3 letter code

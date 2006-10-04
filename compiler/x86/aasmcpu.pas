@@ -1747,7 +1747,7 @@ implementation
         ea_data : ea;
       begin
         len:=0;
-        codes:=@p^.code;
+        codes:=@p^.code[0];
 {$ifdef x86_64}
         rex:=0;
 {$endif x86_64}
@@ -2016,7 +2016,7 @@ implementation
          $0, $A, $A, $B, $8, $4);
       var
         c : byte;
-        pb,
+        pb : pbyte;
         codes : pchar;
         bytes : array[0..3] of byte;
         rfield,
@@ -2298,16 +2298,16 @@ implementation
                    if not process_ea(oper[opidx]^,ea_data,rfield) then
                      Message(asmw_e_invalid_effective_address);
 
-                   pb:=@bytes;
-                   pb^:=chr(ea_data.modrm);
+                   pb:=@bytes[0];
+                   pb^:=ea_data.modrm;
                    inc(pb);
                    if ea_data.sib_present then
                     begin
-                      pb^:=chr(ea_data.sib);
+                      pb^:=ea_data.sib;
                       inc(pb);
                     end;
 
-                   s:=pb-pchar(@bytes);
+                   s:=pb-@bytes[0];
                    objdata.writebytes(bytes,s);
 
                    case ea_data.bytes of

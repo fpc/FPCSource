@@ -218,7 +218,7 @@ const
     (Z_NO_COMPRESSION, Z_BEST_SPEED, Z_DEFAULT_COMPRESSION, Z_BEST_COMPRESSION);
 begin
   inherited Create(Dest);
-  FZRec.next_out := @FBuffer;
+  FZRec.next_out := @FBuffer[0];
   FZRec.avail_out := sizeof(FBuffer);
   If ASkipHeader then
     CompressionCheck(deflateInit2(FZRec, Levels[CompressionLevel],Z_DEFLATED, -MAX_WBITS, DEF_MEM_LEVEL, 0))
@@ -236,7 +236,7 @@ begin
       and (FZRec.avail_out = 0) do
     begin
       Source.WriteBuffer(FBuffer, sizeof(FBuffer));
-      FZRec.next_out := @FBuffer;
+      FZRec.next_out := @FBuffer[0];
       FZRec.avail_out := sizeof(FBuffer);
     end;
     if FZRec.avail_out < sizeof(FBuffer) then
@@ -275,7 +275,7 @@ begin
     if FZRec.avail_out = 0 then
     begin
       Source.WriteBuffer(FBuffer, sizeof(FBuffer));
-      FZRec.next_out := @FBuffer;
+      FZRec.next_out := @FBuffer[0];
       FZRec.avail_out := sizeof(FBuffer);
       FStrmPos := Source.Position;
       Progress(Self);
@@ -309,7 +309,7 @@ end;
 constructor TDecompressionStream.Create(ASource: TStream);
 begin
   inherited Create(ASource);
-  FZRec.next_in := @FBuffer;
+  FZRec.next_in := @FBuffer[0];
   DecompressionCheck(inflateInit(FZRec));
 end;
 
@@ -346,7 +346,7 @@ begin
           Result := Count - FZRec.avail_out;
           Exit;
         end;
-      FZRec.next_in := @FBuffer;
+      FZRec.next_in := @FBuffer[0];
       FStrmPos := Source.Position;
       Progress(Self);
     end;
@@ -373,7 +373,7 @@ begin
   if (Offset = 0) and (Origin = soFromBeginning) then
   begin
     DecompressionCheck(inflateReset(FZRec));
-    FZRec.next_in := @FBuffer;
+    FZRec.next_in := @FBuffer[0];
     FZRec.avail_in := 0;
     Source.Position := 0;
     FStrmPos := 0;

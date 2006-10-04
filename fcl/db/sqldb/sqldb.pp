@@ -481,7 +481,7 @@ var blobId  : pinteger;
 begin
   if not field.getData(@BlobBuf) then
     exit;
-  blobId := @BlobBuf;
+  blobId := @BlobBuf.BufBlobId;
 
   s := cursor.FBlobStrings.Strings[blobid^];
 

@@ -108,7 +108,7 @@ type
   { generic tree type }
   tree_type = array[0..(maxint div SizeOf(ct_data))-1] of ct_data;
 
-  tree_ptr = ^tree_type;
+  tree_ptr = ^ct_data;
   ltree_ptr = ^ltree_type;
   dtree_ptr = ^dtree_type;
   htree_ptr = ^htree_type;
@@ -119,7 +119,7 @@ type
   static_tree_desc =
          record
     {const} static_tree : tree_ptr;     { static tree or NIL }
-    {const} extra_bits : Pintegerarray;   { extra bits for each code or NIL }
+    {const} extra_bits : pinteger;   { extra bits for each code or NIL }
             extra_base : integer;           { base index for extra_bits }
             elems : integer;                { max number of elements in the tree }
             max_length : integer;           { max bit length for the codes }
@@ -686,8 +686,8 @@ var
 {local}
 const
   static_l_desc :  static_tree_desc  =
-      (static_tree: {tree_ptr}(@(static_ltree));  { pointer to array of ct_data }
-       extra_bits: {pzIntfArray}(@(extra_lbits)); { pointer to array of integer }
+      (static_tree: {tree_ptr}@static_ltree[0];  { pointer to array of ct_data }
+       extra_bits: {pzIntfArray}@extra_lbits[0]; { pointer to array of integer }
        extra_base: LITERALS+1;
        elems: L_CODES;
        max_length: MAX_BITS);
@@ -695,8 +695,8 @@ const
 {local}
 const
   static_d_desc : static_tree_desc  =
-      (static_tree: {tree_ptr}(@(static_dtree));
-       extra_bits: {pzIntfArray}(@(extra_dbits));
+      (static_tree: {tree_ptr}@static_dtree[0];
+       extra_bits: {pzIntfArray}@extra_dbits[0];
        extra_base : 0;
        elems: D_CODES;
        max_length: MAX_BITS);
@@ -705,7 +705,7 @@ const
 const
   static_bl_desc : static_tree_desc =
       (static_tree: {tree_ptr}(NIL);
-       extra_bits: {pzIntfArray}@(extra_blbits);
+       extra_bits: {pzIntfArray}@extra_blbits[0];
        extra_base : 0;
        elems: BL_CODES;
        max_length: MAX_BL_BITS);
@@ -868,21 +868,21 @@ begin
 
   for n := 0 to max_code do
   begin
-    len := tree^[n].dl.Len;
+    len := tree[n].dl.Len;
     if (len = 0) then
       continue;
     { Now reverse the bits }
-    tree^[n].fc.Code := bi_reverse(next_code[len], len);
+    tree[n].fc.Code := bi_reverse(next_code[len], len);
     inc(next_code[len]);
     {$ifdef ZLIB_DEBUG}
     if (n>31) and (n<128) then
       Tracecv(tree <> tree_ptr(@static_ltree),
        (^M'n #'+IntToStr(n)+' '+char(n)+' l '+IntToStr(len)+' c '+
-         IntToStr(tree^[n].fc.Code)+' ('+IntToStr(next_code[len]-1)+')'))
+         IntToStr(tree[n].fc.Code)+' ('+IntToStr(next_code[len]-1)+')'))
     else
       Tracecv(tree <> tree_ptr(@static_ltree),
       (^M'n #'+IntToStr(n)+'   l '+IntToStr(len)+' c '+
-         IntToStr(tree^[n].fc.Code)+' ('+IntToStr(next_code[len]-1)+')'));
+         IntToStr(tree[n].fc.Code)+' ('+IntToStr(next_code[len]-1)+')'));
     {$ENDIF}
   end;
 end;
@@ -1157,7 +1157,7 @@ macro smaller(tree, n, m, depth)
 {local}
 
 procedure pqdownheap(var s : deflate_state;
-                     var tree : tree_type;   { the tree to restore }
+                     tree : tree_ptr;   { the tree to restore }
                      k : integer);          { node to move down }
 var
   v : integer;
@@ -1209,7 +1209,7 @@ var
   tree : tree_ptr;
   max_code : integer;
   stree : tree_ptr; {const}
-  extra : Pintegerarray; {const}
+  extra : pinteger; {const}
   base : integer;
   max_length : integer;
   h : integer;              { heap index }
@@ -1233,18 +1233,18 @@ begin
   { In a first pass, compute the optimal bit lengths (which may
     overflow in the case of the bit length tree). }
 
-  tree^[s.heap[s.heap_max]].dl.Len := 0; { root of the heap }
+  tree[s.heap[s.heap_max]].dl.Len := 0; { root of the heap }
 
   for h := s.heap_max+1 to HEAP_SIZE-1 do
   begin
     n := s.heap[h];
-    bits := tree^[tree^[n].dl.Dad].dl.Len + 1;
+    bits := tree[tree[n].dl.Dad].dl.Len + 1;
     if (bits > max_length) then
     begin
       bits := max_length;
       inc(overflow);
     end;
-    tree^[n].dl.Len := word(bits);
+    tree[n].dl.Len := word(bits);
     { We overwrite tree[n].dl.Dad which is no longer needed }
 
     if (n > max_code) then
@@ -1253,11 +1253,11 @@ begin
     inc(s.bl_count[bits]);
     xbits := 0;
     if (n >= base) then
-      xbits := extra^[n-base];
-    f := tree^[n].fc.Freq;
+      xbits := extra[n-base];
+    f := tree[n].fc.Freq;
     inc(s.opt_len, longint(f) * (bits + xbits));
     if (stree <> NIL) then
-      inc(s.static_len, longint(f) * (stree^[n].dl.Len + xbits));
+      inc(s.static_len, longint(f) * (stree[n].dl.Len + xbits));
   end;
   if (overflow = 0) then
     exit;
@@ -1294,15 +1294,15 @@ begin
       m := s.heap[h];
       if (m > max_code) then
         continue;
-      if (tree^[m].dl.Len <> cardinal(bits)) then
+      if (tree[m].dl.Len <> cardinal(bits)) then
       begin
         {$ifdef ZLIB_DEBUG}
-        Trace('code '+IntToStr(m)+' bits '+IntToStr(tree^[m].dl.Len)
+        Trace('code '+IntToStr(m)+' bits '+IntToStr(tree[m].dl.Len)
               +'.'+IntToStr(bits));
         {$ENDIF}
-        inc(s.opt_len, (cardinal(bits) - cardinal(tree^[m].dl.Len))
-                        * cardinal(tree^[m].fc.Freq) );
-        tree^[m].dl.Len := word(bits);
+        inc(s.opt_len, (cardinal(bits) - cardinal(tree[m].dl.Len))
+                        * cardinal(tree[m].fc.Freq) );
+        tree[m].dl.Len := word(bits);
       end;
       dec(n);
     end;
@@ -1342,7 +1342,7 @@ begin
 
   for n := 0 to elems-1 do
   begin
-    if (tree^[n].fc.Freq <> 0) then
+    if (tree[n].fc.Freq <> 0) then
     begin
       max_code := n;
       inc(s.heap_len);
@@ -1351,7 +1351,7 @@ begin
     end
     else
     begin
-      tree^[n].dl.Len := 0;
+      tree[n].dl.Len := 0;
     end;
   end;
 
@@ -1374,11 +1374,11 @@ begin
       s.heap[s.heap_len] := 0;
       node := 0;
     end;
-    tree^[node].fc.Freq := 1;
+    tree[node].fc.Freq := 1;
     s.depth[node] := 0;
     dec(s.opt_len);
     if (stree <> NIL) then
-      dec(s.static_len, stree^[node].dl.Len);
+      dec(s.static_len, stree[node].dl.Len);
     { node is 0 or 1 so it does not have extra bits }
   end;
   desc.max_code := max_code;
@@ -1387,7 +1387,7 @@ begin
     establish sub-heaps of increasing lengths: }
 
   for n := s.heap_len div 2 downto 1 do
-    pqdownheap(s, tree^, n);
+    pqdownheap(s, tree, n);
 
   { Construct the Huffman tree by repeatedly combining the least two
     frequent nodes. }
@@ -1398,7 +1398,7 @@ begin
     n := s.heap[SMALLEST];
     s.heap[SMALLEST] := s.heap[s.heap_len];
     dec(s.heap_len);
-    pqdownheap(s, tree^, SMALLEST);
+    pqdownheap(s, tree, SMALLEST);
 
     m := s.heap[SMALLEST]; { m := node of next least frequency }
 
@@ -1408,26 +1408,26 @@ begin
     s.heap[s.heap_max] := m;
 
     { Create a new node father of n and m }
-    tree^[node].fc.Freq := tree^[n].fc.Freq + tree^[m].fc.Freq;
+    tree[node].fc.Freq := tree[n].fc.Freq + tree[m].fc.Freq;
     { maximum }
     if (s.depth[n] >= s.depth[m]) then
       s.depth[node] := byte (s.depth[n] + 1)
     else
       s.depth[node] := byte (s.depth[m] + 1);
 
-    tree^[m].dl.Dad := word(node);
-    tree^[n].dl.Dad := word(node);
+    tree[m].dl.Dad := word(node);
+    tree[n].dl.Dad := word(node);
 {$ifdef DUMP_BL_TREE}
     if (tree = tree_ptr(@s.bl_tree)) then
     begin
-      WriteLn(#13'node ',node,'(',tree^[node].fc.Freq,') sons ',n,
-              '(',tree^[n].fc.Freq,') ', m, '(',tree^[m].fc.Freq,')');
+      WriteLn(#13'node ',node,'(',tree[node].fc.Freq,') sons ',n,
+              '(',tree[n].fc.Freq,') ', m, '(',tree[m].fc.Freq,')');
     end;
 {$endif}
     { and insert the new node in the heap }
     s.heap[SMALLEST] := node;
     inc(node);
-    pqdownheap(s, tree^, SMALLEST);
+    pqdownheap(s, tree, SMALLEST);
 
   until (s.heap_len < 2);
 

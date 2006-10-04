@@ -227,7 +227,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       // don't create detached, we need to be able to join (waitfor) on
       // the newly created thread!
       //pthread_attr_setdetachstate(@thread_attr, PTHREAD_CREATE_DETACHED);
-      if pthread_create(@threadid, @thread_attr, @ThreadMain,ti) <> 0 then begin
+      if pthread_create(ppthread_t(@threadid), @thread_attr, @ThreadMain,ti) <> 0 then begin
         threadid := TThreadID(0);
       end;
       CBeginThread:=threadid;

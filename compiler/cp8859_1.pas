@@ -270,7 +270,7 @@ unit cp8859_1;
 
      unicodemap : tunicodemap = (
        cpname : '8859-1';
-       map : @map;
+       map : @map[0];
        lastchar : 255;
        next : nil;
        internalmap : true

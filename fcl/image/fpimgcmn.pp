@@ -41,13 +41,8 @@ begin
 end;
 
 function Swap(This : integer): integer;
-var r,p : ^longword;
-  res : integer;
 begin
-  p := @This;
-  r := @res;
-  r^ := Swap (p^);
-  result := res;
+  result := integer(Swap(longword(This)));
 end;
 
 function Swap(This : longword): longword;
@@ -82,13 +77,8 @@ begin
 end;
 
 function Swap(This : int64): int64;
-var r,p : ^qword;
-  res : int64;
 begin
-  p := @This;
-  r := @res;
-  r^ := Swap (p^);
-  result := res;
+  result := int64(Swap(qword(This)));
 end;
 
 var CRCtable : array[0..255] of longword;

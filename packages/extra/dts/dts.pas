@@ -390,7 +390,7 @@ begin
   FillChar(Result^, Sizeof(dts_decoder), 0);
   Result^.state := dts_init(mm_accel);
   Result^.fsamples := dts_samples(Result^.state);
-  Result^.inbuf_ptr := @Result^.inbuf;
+  Result^.inbuf_ptr := @Result^.inbuf[0];
   Result^.user := user;
   Result^.read := read;
   Result^.seek := seek;
@@ -444,7 +444,7 @@ begin
       begin
         (* no header seen : find one. We need at least 7 bytes to parse it *)
 
-        len := dts_syncinfo(decoder^.state, @decoder^.inbuf, decoder^.flags, sample_rate, bit_rate, i{dummy});
+        len := dts_syncinfo(decoder^.state, @decoder^.inbuf[0], decoder^.flags, sample_rate, bit_rate, i{dummy});
         if len = 0 then
         begin
           (* no sync found : move by one byte (inefficient, but simple!) *)
@@ -474,9 +474,9 @@ begin
       level := 0;//High(Smallint)-30;
       (* FIXME dts_frame dont care on level parameters, so I set it to zero and multiply with High(Smallint) later *)
 
-      if dts_frame(decoder^.state, @decoder^.inbuf, flags, level, 0) <> 0 then
+      if dts_frame(decoder^.state, @decoder^.inbuf[0], flags, level, 0) <> 0 then
       begin
-        decoder^.inbuf_ptr := @decoder^.inbuf;
+        decoder^.inbuf_ptr := @decoder^.inbuf[0];
         decoder^.frame_size := 0;
         Continue;
       end;
@@ -486,7 +486,7 @@ begin
       begin
         if dts_block(decoder^.state) <> 0 then
         begin
-          decoder^.inbuf_ptr := @decoder^.inbuf;
+          decoder^.inbuf_ptr := @decoder^.inbuf[0];
           decoder^.frame_size := 0;
           Exit(-1);
         end;

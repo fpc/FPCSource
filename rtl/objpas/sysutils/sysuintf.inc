@@ -73,19 +73,20 @@ function StringToGUID(const S: string): TGUID;
     end;
   end;
 
-  function HexByte(p: PChar): Char;
+  function HexByte(p: PChar): Byte;
   begin
-    Result:=Char((HexChar(p[0]) shl 4) + HexChar(p[1]));
+    Result:=(HexChar(p[0]) shl 4) + HexChar(p[1]);
   end;
 
 var
   i: integer;
-  src, dest: PChar;
+  src: PChar;
+  dest: PByte;
 begin
   if ((Length(S)<>38) or
       (s[1]<>'{')) then
     raise EConvertError.CreateFmt(SInvalidGUID, [s]);
-  dest:=@Result;
+  dest:=PByte(@Result);
   src:=PChar(s);
   inc(src);
   for i:=0 to 3 do

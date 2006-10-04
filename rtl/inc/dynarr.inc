@@ -340,18 +340,18 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
 
 procedure DynArraySetLength(var a: Pointer; typeInfo: Pointer; dimCnt: SizeInt; lengthVec: PSizeInt);
   var
-    preallocated : array[0..10] of PSizeInt;
+    preallocated : array[0..10] of SizeInt;
     i : SizeInt;
     p : PSizeInt;
   begin
     if dimCnt<=high(preallocated)+1 then
-      p:=@preallocated
+      p:=@preallocated[0]
     else
       getmem(p,sizeof(SizeInt)*dimCnt);
     for i:=0 to dimCnt-1 do
       p[i]:=lengthVec[dimCnt-1-i];
     int_dynarray_setlength(a,typeInfo,dimCnt,p);
-    if p<>@preallocated then
+    if p<>@preallocated[0] then
       freemem(p);
   end;
 
