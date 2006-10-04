@@ -245,6 +245,7 @@ Var
   p,pc        : pointer;
   Size,NewLen,
   OldDestLen  : SizeInt;
+  destcopy    : ansistring;
 begin
   if high(sarr)=0 then
     begin
@@ -253,17 +254,19 @@ begin
     end;
   lowstart:=low(sarr);
   if Pointer(DestS)=Pointer(sarr[lowstart]) then
+    inc(lowstart);
+  { Check for another reuse, then we can't use
+    the append optimization }
+  for i:=lowstart to high(sarr) do
     begin
-      inc(lowstart);
-      { Check for another reuse, then we can't use
-        the append optimization }
-      for i:=lowstart to high(sarr) do
+      if Pointer(DestS)=Pointer(sarr[i]) then
         begin
-          if Pointer(DestS)=Pointer(sarr[i]) then
-            begin
-              lowstart:=low(sarr);
-              break;
-            end;
+          { if DestS is used somewhere in the middle of the expression,
+            we need to make sure the original string still exists after
+            we empty/modify DestS                                       }
+          destcopy:=dests;
+          lowstart:=low(sarr);
+          break;
         end;
     end;
   { Start with empty DestS if we start with concatting
