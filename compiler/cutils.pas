@@ -787,6 +787,14 @@ uses
     end;
 
     function maybequoted(const s:string):string;
+      const
+        {$IFDEF MSWINDOWS}
+          FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+                             '{', '}', '''', '`', '~'];
+        {$ELSE}
+          FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+                             '{', '}', '''', ':', '\', '`', '~'];
+        {$ENDIF}
       var
         s1 : string;
         i  : integer;
@@ -809,12 +817,9 @@ uses
                  s1:=s1+s[i];
                end;
              else begin
-               if s[i] in ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
-                           '{', '}', '''', ';', ':', '\', '`', '~'] then begin
+               if s[i] in FORBIDDEN_CHARS then
                  quoted:=True;
-                 s1:=s1 + s[i];
-               end else
-                 s1:=s1+s[i];
+               s1:=s1+s[i];
              end;
            end;
          end;
