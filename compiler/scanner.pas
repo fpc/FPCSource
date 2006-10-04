@@ -263,12 +263,14 @@ implementation
          if s='TP' then
           aktmodeswitches:=tpmodeswitches
         else
-         if s='FPC' then
-          aktmodeswitches:=fpcmodeswitches
-        else
-         if s='OBJFPC' then
-          aktmodeswitches:=objfpcmodeswitches
-        else
+         if s='FPC' then begin
+          aktmodeswitches:=fpcmodeswitches;
+          include(aktlocalswitches, cs_typed_addresses);
+        end else
+         if s='OBJFPC' then begin
+          aktmodeswitches:=objfpcmodeswitches;
+          include(aktlocalswitches, cs_typed_addresses);
+        end else
          if s='GPC' then
           aktmodeswitches:=gpcmodeswitches
         else
