@@ -2719,7 +2719,7 @@ begin
   FillChar(FrameMask[1],Size.X-2,InitFrame[n+1]);
   FrameMask[Size.X-1]:=InitFrame[n+2];
   CurrView:=Owner^.Last^.Next;
-  while (CurrView<>@Self) do
+  while (CurrView<>PView(@Self)) do
    begin
      if ((CurrView^.Options and ofFramed)<>0) and
         ((CurrView^.State and sfVisible)<>0) then
@@ -2882,7 +2882,7 @@ end;
 FUNCTION TFrame.GetPalette: PPalette;
 CONST P: String[Length(CFrame)] = CFrame;             { Always normal string }
 BEGIN
-   GetPalette := @P;                                  { Return palette }
+   GetPalette := PPalette(@P);                        { Return palette }
 END;
 
 procedure TFrame.HandleEvent(var Event: TEvent);
@@ -3023,7 +3023,7 @@ END;
 FUNCTION TScrollBar.GetPalette: PPalette;
 CONST P: String[Length(CScrollBar)] = CScrollBar;     { Always normal string }
 BEGIN
-   GetPalette := @P;                                  { Return palette }
+   GetPalette := PPalette(@P);                        { Return palette }
 END;
 
 {--TScrollBar---------------------------------------------------------------}
@@ -3342,7 +3342,7 @@ END;
 FUNCTION TScroller.GetPalette: PPalette;
 CONST P: String[Length(CScroller)] = CScroller;       { Always normal string }
 BEGIN
-   GetPalette := @P;                                  { Scroller palette }
+   GetPalette := PPalette(@P);                        { Scroller palette }
 END;
 
 {--TScroller----------------------------------------------------------------}
@@ -3474,7 +3474,7 @@ END;
 FUNCTION TListViewer.GetPalette: PPalette;
 CONST P: String[Length(CListViewer)] = CListViewer;   { Always normal string }
 BEGIN
-   GetPalette := @P;                                  { Return palette }
+   GetPalette := PPalette(@P);                        { Return palette }
 END;
 
 {--TListViewer--------------------------------------------------------------}
@@ -3814,7 +3814,7 @@ FUNCTION TWindow.GetPalette: PPalette;
 CONST  P: ARRAY [wpBlueWindow..wpGrayWindow] Of String[Length(CBlueWindow)] =
   (CBlueWindow, CCyanWindow, CGrayWindow);            { Always normal string }
 BEGIN
-   GetPalette := @P[Palette];                         { Return palette }
+   GetPalette := PPalette(@P[Palette]);               { Return palette }
 END;
 
 {--TWindow------------------------------------------------------------------}
