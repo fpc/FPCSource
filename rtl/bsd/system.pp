@@ -38,7 +38,7 @@ Interface
 {$I sysunixh.inc}
 
 {$ifdef Darwin}
-var argc:cardinal;
+var argc:longint;
     argv:PPchar;
     envp:PPchar;
 {$endif}
