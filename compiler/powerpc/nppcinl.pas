@@ -104,10 +104,16 @@ implementation
        end;
 
      procedure tppcinlinenode.second_sqr_real;
+       var
+         op: tasmop;
        begin
          location.loc:=LOC_FPUREGISTER;
          load_fpu_location;
-         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FMUL,location.register,
+         if (left.location.size = OS_F32) then
+           op := A_FMULS
+         else
+           op := A_FMUL;
+         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,
            left.location.register,left.location.register));
        end;
 
