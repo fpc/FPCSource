@@ -188,7 +188,7 @@ interface
         DW_FORM_ref2 := $12,DW_FORM_ref4 := $13,
         DW_FORM_ref8 := $14,DW_FORM_ref_udata := $15,
         DW_FORM_indirect := $16);
-        
+
       TDwarfFile = record
         Index: integer;
         Name: PChar;
@@ -211,12 +211,12 @@ interface
         filerecdef,
         textrecdef : tdef;
         }
-        
+
         dirlist: Tdictionary;
         filesequence: Integer;
         loclist: tdynamicarray;
         asmline: TAsmList;
-        
+
         function get_file_index(afile: tinputfile): Integer;
         procedure write_symtable_syms(st:tsymtable);
         function def_dwarf_lab(def:tdef) : tasmsymbol;
@@ -260,7 +260,7 @@ interface
         procedure appendprocdef(pd:tprocdef); virtual;
 
         procedure enum_members_callback(p:Tnamedindexitem;arg:pointer);
-        
+
         procedure finish_children;
         procedure finish_entry;
 
@@ -278,9 +278,9 @@ interface
         function  dwarf_version: Word; virtual; abstract;
         procedure write_symtable_defs(list:TAsmList;st:tsymtable);override;
       end;
-      
+
       { TDebugInfoDwarf2 }
-      
+
       TDebugInfoDwarf2 = class(TDebugInfoDwarf)
       private
       protected
@@ -510,7 +510,7 @@ implementation
       DW_OP_lo_user = $e0;
       { Implementation-defined range end.   }
       DW_OP_hi_user = $ff;
-      
+
 
     const
       DW_LNS_extended_op     = $00;
@@ -547,7 +547,7 @@ implementation
         destructor  Destroy;override;
         property Files: TDictionary read FFiles;
       end;
-      
+
       { TFileIndexItem }
 
       TFileIndexItem = class(TNamedIndexItem)
@@ -613,10 +613,6 @@ end;
 
     function TDebugInfoDwarf.def_dwarf_lab(def:tdef) : tasmsymbol;
       begin
-        { procdefs only need a number, mark them as already written
-          so they won't be written implicitly }
-        if (def.deftype=procdef) then
-          def.dbg_state:=dbg_state_written;
         { dwarf must already be written, or we must be busy writing it }
         if writing_def_dwarf and
            not(def.dbg_state in [dbg_state_writing,dbg_state_written]) then
@@ -627,13 +623,30 @@ end;
         if def.dbg_state=dbg_state_unused then
           def.dbg_state:=dbg_state_used;
         { Need a new label? }
-        if def.dwarf_lab=nil then
+        if not assigned(def.dwarf_lab) then
           begin
-            current_asmdata.getdatalabel(def.dwarf_lab);
-            if nextdefnumber>=defnumberlist.count then
-              defnumberlist.count:=nextdefnumber+250;
-            defnumberlist[nextdefnumber]:=def;
-            inc(nextdefnumber);
+            if (df_has_dwarf_dbg_info in def.defoptions) then
+              begin
+                if not assigned(def.typesym) then
+                  internalerror(200610011);
+                def.dwarf_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG',def.owner,def.typesym.name));
+                def.dbg_state:=dbg_state_written;
+              end
+            else
+              begin
+                { Create an exported DBG symbol if we are generating a def defined in the
+                  globalsymtable of the current unit }
+                if assigned(def.typesym) and
+                   (def.owner.symtabletype=globalsymtable) and
+                   (def.owner.iscurrentunit) then
+                  begin
+                    def.dwarf_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG',def.owner,def.typesym.name),AB_GLOBAL,AT_DATA);
+                    include(def.defoptions,df_has_dwarf_dbg_info);
+                  end
+                else
+                  current_asmdata.getdatalabel(TAsmLabel(def.dwarf_lab));
+              end;
+            defnumberlist.Add(def);
           end;
         result:=def.dwarf_lab;
       end;
@@ -1372,9 +1385,15 @@ end;
       end;
 
     procedure TDebugInfoDwarf.appendtag(list:TAsmList;def:tdef);
-
+      var
+        labsym : tasmsymbol;
       begin
-        list.concat(tai_symbol.create(def_dwarf_lab(def),0));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Definition '+def.typename)));
+        labsym:=def_dwarf_lab(def);
+        if df_has_dwarf_dbg_info in def.defoptions then
+          list.concat(tai_symbol.create_global(labsym,0))
+        else
+          list.concat(tai_symbol.create(labsym,0));
         case def.deftype of
           stringdef :
             appendtag_stringdef(tstringdef(def));
@@ -1555,6 +1574,7 @@ end;
       begin
         if assigned(pd.procstarttai) then
           begin
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Procdef '+pd.fullprocname(true))));
             append_entry(DW_TAG_subprogram,true,
               [DW_AT_name,DW_FORM_string,pd.procsym.name+#0
               { data continues below }
@@ -1716,7 +1736,7 @@ end;
       procedure TDebugInfoDwarf.appendsym_fieldvar(sym: tfieldvarsym);
         begin
           if sp_static in sym.symoptions then Exit;
-          
+
           append_entry(DW_TAG_member,false,[
             DW_AT_name,DW_FORM_string,sym.name+#0,
             DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(sym.fieldoffset)
@@ -1842,7 +1862,7 @@ end;
             can have more than one label associated e.g. in case of
             an inline procedure expansion }
         end;
-        
+
       procedure TDebugInfoDwarf.appendsym_proc(sym:tprocsym);
         var
           i : longint;
@@ -1933,6 +1953,7 @@ end;
     procedure TDebugInfoDwarf.appendsym(sym:tsym);
 
       begin
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Symbol '+sym.name)));
         case sym.typ of
           globalvarsym :
             appendsym_var(tglobalvarsym(sym));
@@ -1983,7 +2004,10 @@ end;
     procedure TDebugInfoDwarf.write_symtable_syms(st:tsymtable);
       var
         p : tsym;
+        old_writing_def_dwarf : boolean;
       begin
+        old_writing_def_dwarf:=writing_def_dwarf;
+        writing_def_dwarf:=false;
         p:=tsym(st.symindex.first);
         while assigned(p) do
           begin
@@ -1991,6 +2015,7 @@ end;
               appendsym(p);
             p:=tsym(p.indexnext);
           end;
+        writing_def_dwarf:=old_writing_def_dwarf;
       end;
 
 
@@ -2065,7 +2090,7 @@ end;
         { line_base }
         linelist.concat(tai_const.create_8bit(LINE_BASE));
 
-        { line_range }                              
+        { line_range }
         { only line increase, no adress }
         linelist.concat(tai_const.create_8bit(255));
 
@@ -2147,7 +2172,7 @@ end;
 
         { add line program }
         linelist.concatList(asmline);
-        
+
         { end of debug line table }
         linelist.concat(tai_symbol.createname('.Ledebug_line0',AT_DATA,0));
       end;
@@ -2247,7 +2272,7 @@ end;
         { end of debug info table }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(0));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.createname('.Ledebug_info0',AT_DATA,0));
-        
+
         { end of abbrev table }
         current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
 
@@ -2305,7 +2330,10 @@ end;
               ait_section :
                 currsectype:=tai_section(hp).sectype;
               ait_function_name :
-                currfuncname:=tai_function_name(hp).funcname;
+                begin
+                  currfuncname:=tai_function_name(hp).funcname;
+                  asmline.concat(tai_comment.Create(strpnew('function: '+currfuncname^)));
+                end;
               ait_force_line : begin
                 lastfileinfo.line:=-1;
               end;
@@ -2339,7 +2367,7 @@ end;
                           end;
                         { force new line info }
                         lastfileinfo.line:=-1;
-                      end;                                      
+                      end;
                   end;
 
                 { line changed ? }
@@ -2350,7 +2378,7 @@ end;
                     list.insertbefore(tai_label.create(currlabel), hp);
 
                     asmline.concat(tai_comment.Create(strpnew('['+tostr(currfileinfo.line)+':'+tostr(currfileinfo.column)+']')));
-                    
+
                     if prevlabel = nil then
                       begin
                         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
@@ -2370,7 +2398,7 @@ end;
                         asmline.concat(tai_const.create_rel_sym(aitconst_uleb128bit, prevlabel, currlabel));
                       end;
                     prevlabel := currlabel;
-                    
+
                     { set column }
                     if prevcolumn <> currfileinfo.column then
                       begin
@@ -2398,7 +2426,7 @@ end;
                       end;
                     prevline := currfileinfo.line;
                   end;
-                  
+
                 lastfileinfo:=currfileinfo;
               end;
 
@@ -2473,6 +2501,7 @@ end;
             end;
 
           def.symtable.foreach(@enum_members_callback,nil);
+          write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
 
           finish_children;
         end;
@@ -2603,7 +2632,7 @@ end;
 
           current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(obj,0));
         end;
-        
+
       procedure doparent(isinterface: boolean);
         begin
           if not assigned(def.childof) then
@@ -2656,7 +2685,7 @@ end;
         else
           internalerror(200609171);
         end;
-        
+
         { add implemented interfaces }
         if assigned(def.implementedinterfaces) then
           for n := 1 to def.implementedinterfaces.count do
@@ -2737,14 +2766,14 @@ end;
       begin
         { it could be done with DW_TAG_variant for the union part (if that info was available)
           now we do it manually for variants (MWE) }
-        
+
         { struct }
         append_entry(DW_TAG_structure_type,true,[
           DW_AT_name,DW_FORM_string,'VARIANT'#0,
           DW_AT_byte_size,DW_FORM_udata,vardatadef.size
           ]);
         finish_entry;
-        
+
         append_entry(DW_TAG_variant_part,true,[
           ]);
         current_asmdata.getaddrlabel(lbl);
@@ -2757,7 +2786,7 @@ end;
           internalerror(200609271);
         current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(lbl,0));
         appendsym_fieldvar(fs);
-        
+
         { variants }
         for idx := Low(VARIANTS) to High(VARIANTS) do
           begin
@@ -2776,7 +2805,7 @@ end;
 
             finish_children; { variant }
           end;
-        
+
 
         finish_children; { variant part }
 
@@ -2825,7 +2854,7 @@ end;
            id     : dbg_dwarf3;
            idtxt  : 'DWARF3';
          );
-         
+
 initialization
   RegisterDebugInfo(dbg_dwarf2_info,TDebugInfoDwarf2);
   RegisterDebugInfo(dbg_dwarf3_info,TDebugInfoDwarf3);

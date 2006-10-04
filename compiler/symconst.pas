@@ -154,6 +154,8 @@ type
     df_has_inittable,
     { rtti data has been generated }
     df_has_rttitable,
+    { dwarf debug info has been generated }
+    df_has_dwarf_dbg_info,
     { type is unique, i.e. declared with type = type <tdef>; }
     df_unique,
     { type is a generic }
