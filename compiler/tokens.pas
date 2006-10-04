@@ -53,6 +53,8 @@ type
     _OP_SHR,
     _OP_XOR,
     _ASSIGNMENT,
+    _OPEN_FORMAL,
+    _CLOSE_FORMAL,
     { special chars }
     _CARET,
     _UNEQUAL,
@@ -291,6 +293,8 @@ const
       (str:'shr'           ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'xor'           ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:':='            ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'{@'            ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'}'             ;special:true ;keyword:m_none;op:NOTOKEN),
     { Special chars }
       (str:'^'             ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'<>'            ;special:true ;keyword:m_none;op:NOTOKEN),

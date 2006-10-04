@@ -326,7 +326,7 @@ scan_n_app_type_not_support=02073_N_APPTYPE is not supported by the target OS
 #
 # Parser
 #
-# 03192 is the last used one
+# 03219 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1051,6 +1051,9 @@ parser_w_overridden_methods_not_same_ret=03218_W_Overridden methods must have a 
 % return type of interface methods, and even to change procedures into
 % functions, but the resulting code may crash depending on the types used
 % and the way the methods are called.
+parser_w_formal_annotation_not_compiled=03219_W_Formal annotation will not be compiled into an assert statement (use -Sa)
+% Formal annotation was encountered, but run-time assertion checking is not
+% switched on; only the syntax of the formal annotation will be checked.
 % \end{description}
 #
 # Type Checking

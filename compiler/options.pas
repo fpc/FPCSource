@@ -970,6 +970,8 @@ begin
                            SetErrorFlags(copy(more,j+1,length(more)));
                            break;
                          end;
+                       'f' :
+                         include(initlocalswitches,cs_formal_annotation);
                        'g' :
                          include(initmoduleswitches,cs_support_goto);
                        'h' :

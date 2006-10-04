@@ -1422,6 +1422,24 @@ In case not, the value returned can be arbitrary.
         mac.is_used:=true;
       end;
 
+    procedure dir_formal;
+    (* Parse comments of the form {$FORMAL ON} and {$FORMAL OFF}
+    *)
+    var
+      s : string;
+    begin
+      current_scanner.skipspace;
+      s:=current_scanner.readcomment;
+      s:=upcase(s);
+      if (s='ON') then 
+         include(aktlocalswitches,cs_formal_annotation)
+      else if (s='OFF') then
+         exclude(aktlocalswitches,cs_formal_annotation)
+      else
+         Message1(scan_w_illegal_switch,'$FORMAL '+s);
+
+    end;
+
     procedure dir_include;
 
         function findincludefile(const path,name,ext:string;var foundfile:string):boolean;
@@ -2717,7 +2735,19 @@ In case not, the value returned can be arbitrary.
         inc_comment_level;
       { handle compiler switches }
         if (c='$') then
-         handledirectives;
+         handledirectives
+        else if (c='@') then
+         begin
+         { ignore formal annotation if compiler directive
+           not set }
+           if (cs_formal_annotation in aktlocalswitches) then
+            begin
+              dec_comment_level;
+              readchar;
+              nexttoken:=_OPEN_FORMAL;
+              exit;
+            end;
+         end;
       { handle_switches can dec comment_level,  }
         while (comment_level>0) do
          begin
@@ -2860,7 +2890,15 @@ In case not, the value returned can be arbitrary.
         repeat
           case c of
             '{' :
-              skipcomment;
+              begin
+                 skipcomment;
+                 if (nexttoken=_OPEN_FORMAL) then
+                  begin
+                    token:=_OPEN_FORMAL;
+                    nexttoken:=NOTOKEN;
+                    goto exit_label;
+                  end;
+              end;
             #26 :
               begin
                 reload;
@@ -2955,6 +2993,19 @@ In case not, the value returned can be arbitrary.
          begin
            idtoken:=_NOID;
            case c of
+             '}' :
+               begin
+                 { this character is a _CLOSE_FORMAL, if formal annotation 
+                 is used, else it is an illegal character }
+                 if (cs_formal_annotation in aktlocalswitches) then
+                  begin
+                    readchar;
+                    token:=_CLOSE_FORMAL;
+                    goto exit_label;
+                  end
+                 else
+                  Illegal_Char(c);
+               end;
 
              '$' :
                begin
@@ -3781,6 +3832,7 @@ exit_label:
         AddDirective('I',directive_all, @dir_include);
         AddDirective('DEFINE',directive_all, @dir_define);
         AddDirective('UNDEF',directive_all, @dir_undef);
+        AddDirective('FORMAL',directive_all, @dir_formal);
 
         AddConditional('IF',directive_all, @dir_if);
         AddConditional('IFDEF',directive_all, @dir_ifdef);

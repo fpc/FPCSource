@@ -906,7 +906,7 @@ implementation
       end;
 
 
-    function statement : tnode;
+    function pure_statement : tnode;
       var
          p       : tnode;
          code    : tnode;
@@ -1068,8 +1068,55 @@ implementation
              resulttypepass(code);
              code.fileinfo:=filepos;
            end;
-         statement:=code;
+         pure_statement:=code;
       end;
+
+    function formal_annotation : tnode;
+    { parse _OPEN_FORMAL expr _CLOSE_FORMAL }
+    var
+      expr : tnode;
+      s : tnode;
+    begin
+      consume(_OPEN_FORMAL);
+      if (try_to_consume(_CLOSE_FORMAL)) then
+       formal_annotation:=cnothingnode.create
+      else
+       begin
+         expr:=comp_expr(true);
+         s:=cstringconstnode.createstr('Formal annotation failed', st_default);
+         formal_annotation:=geninlinenode(in_assert_x_y,false,ccallparanode.create(expr,ccallparanode.create(s,nil)));
+         consume(_CLOSE_FORMAL);
+       end;
+    end;
+
+    function statement : tnode;
+    { parse statement -> formal_annotation* pure_statement formal_annotation* }
+    var
+      ass : tnode;
+      first : tnode;
+      tochange : ^tnode;
+
+        procedure parse_formal_annotation_star;
+        begin
+          while (token=_OPEN_FORMAL) do
+           begin
+             if not(cs_do_assertion in aktlocalswitches) then
+              Message(parser_w_formal_annotation_not_compiled);
+             ass:=formal_annotation;
+             tochange^:=cstatementnode.create(ass, nil);
+             tochange:=@(tstatementnode(tochange^).right);
+           end;
+        end;
+
+    begin
+      first:=nil;
+      tochange:=@first;
+      parse_formal_annotation_star;
+      tochange^:=cstatementnode.create(pure_statement, nil);
+      tochange:=@(tstatementnode(tochange^).right);
+      parse_formal_annotation_star;
+      statement:=first; 
+    end;
 
 
     function statement_block(starttoken : ttoken) : tnode;

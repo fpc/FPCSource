@@ -86,7 +86,9 @@ than 255 characters. That's why using Ansi Strings}
          { parser }
          cs_typed_addresses,cs_strict_var_strings,cs_ansistrings,
          { macpas specific}
-         cs_external_var, cs_externally_visible
+         cs_external_var, cs_externally_visible,
+         { formal annotation }
+         cs_formal_annotation
        );
        tlocalswitches = set of tlocalswitch;
 
