@@ -875,6 +875,7 @@ fcl/inc/inicol.pp svneol=native#text/plain
 fcl/inc/inifiles.pp svneol=native#text/plain
 fcl/inc/iostream.pp svneol=native#text/plain
 fcl/inc/pipes.pp svneol=native#text/plain
+fcl/inc/pooledmm.pp svneol=native#text/plain
 fcl/inc/process.pp svneol=native#text/plain
 fcl/inc/process.txt svneol=native#text/plain
 fcl/inc/regdef.inc svneol=native#text/plain
@@ -1005,6 +1006,8 @@ fcl/tests/list.pp svneol=native#text/plain
 fcl/tests/mstream.pp svneol=native#text/plain
 fcl/tests/overview.rtf -text svneol=unset#unset
 fcl/tests/parser.dat -text
+fcl/tests/poolmm1.pp svneol=native#text/plain
+fcl/tests/poolmm2.pp svneol=native#text/plain
 fcl/tests/restest.pp svneol=native#text/plain
 fcl/tests/showver.pp svneol=native#text/plain
 fcl/tests/showver.rc -text
