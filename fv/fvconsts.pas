@@ -183,11 +183,11 @@ const
   cmSave          = 32;
   cmSaveAs        = 33;
   cmSaveAll       = 34;
-  cmSaveDone      = 35;
-  cmChangeDir     = 36;
-  cmDosShell      = 37;
-  cmCloseAll      = 38;
-  cmDelete        = 39;
+  cmSaveDone      = 39;  {! Needs to match value in app.pas}
+  cmChangeDir     = 35;  {!}
+  cmDosShell      = 36;  {!}
+  cmCloseAll      = 37;
+  cmDelete        = 38;
   cmEdit          = 40;
   cmAbout         = 41;
   cmDesktopLoad   = 42;
