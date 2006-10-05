@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- Poolmm1;
+program Poolmm1;
 
 {$mode objfpc}{$H+}
 

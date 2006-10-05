@@ -15,7 +15,7 @@
   Author: Mattias Gaertner
 
   Abstract:
-    Defines TLCLMemManager, which is the base class for various
+    Defines TPooledMemManager, which is the base class for various
     memory managers in the lcl and its interfaces.
     An own memory manager is somewhat faster and makes debugging and
     profiling easier.

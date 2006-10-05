@@ -9,6 +9,8 @@ Names
 MVC : Michael Van Canneyt
 SG  : Sebastian Guenther
 MH  : Michael Hess
+MG  : Mattias Gaertner
+VS  : Vincet  Snijders
 
 
 File         Tests what ?
@@ -26,7 +28,7 @@ testrtf.pp   TRTFParser object from rtfpars (MVC)
 cfgtest.pp   Example for using XML read/write as cfg file (SG)
 xmldump.pp   xml dump program (SG)
 htdump.pp    htdump dumps XL IDL definition as ObjectPascal classes (MVC)
-testez.pp   test program for ezcgi class (MH)
+testez.pp    test program for ezcgi class (MH)
 tidea.pp     test program for IDEA encryption/decryption streams (MVC)
 b64test.pp   test program for base64 encoding streams (SG)
 b64test2.pp  test program for base64 encoding streams (SG)
@@ -66,5 +68,5 @@ testdebug    Client part of dbugintf debugging info test (MVC)
 testbf.pp    Test for BlowFish encryption (MVC)
 testbfs.pp   Test for BlowFish encryption/descryption stream (MVC)
 testzip.pp   Test for TZipper class (MVC)
-poolmm1.pp   Test for pooledmm (free) (VS)
-poolmm2.pp   Test for pooledmm (nonfree) (MG)
+poolmm1.pp   Test for pooledmm (free) (MG)
+poolmm2.pp   Test for pooledmm (nonfree) (VS)
