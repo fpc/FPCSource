@@ -44,7 +44,7 @@ CONST PTHREAD_EXPLICIT_SCHED       = 0;
 function  pthread_getspecific      (t : pthread_key_t):pointer; cdecl; external;
 function  pthread_setspecific      (t : pthread_key_t;p:pointer):cint; cdecl; external;
 function  pthread_key_create       (p : ppthread_key_t;f: __destr_func_t):cint; cdecl;external;
-function  pthread_attr_init           (p : ppthread_key_t):cint; cdecl; external;
+function  pthread_attr_init           (p : ppthread_attr_t):cint; cdecl; external;
 function  pthread_attr_setinheritsched(p : ppthread_attr_t;i:cint):cint; cdecl; external;
 function  pthread_attr_setscope      (p : ppthread_attr_t;i:cint):cint;cdecl;external;
 function  pthread_attr_setdetachstate (p : ppthread_attr_t;i:cint):cint;cdecl;external;

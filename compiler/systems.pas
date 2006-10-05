@@ -439,7 +439,7 @@ Begin
         mib[1] := KERN_OSRELDATE;
         len    := 4;
         oerrno:= fpgeterrno;
-        if (FPsysctl(@mib, 2, pchar(@v), @len, NIL, 0) = -1) Then
+        if (FPsysctl(pChar(@mib), 2, pchar(@v), @len, NIL, 0) = -1) Then
            Begin
                 if (fpgeterrno = ESysENOMEM) Then
                         fpseterrno(oerrno);
