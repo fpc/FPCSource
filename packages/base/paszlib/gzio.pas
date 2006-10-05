@@ -164,7 +164,7 @@ begin
 
   s^.path := path; { limit to 255 chars }
 
-  s^.mode := chr(0);
+  s^.mode := #0;
   for i:=1 to Length(mode) do begin
     case mode[i] of
       'r'      : s^.mode := 'r';
@@ -174,9 +174,9 @@ begin
       'h'      : strategy := Z_HUFFMAN_ONLY;
     end;
   end;
-  if (s^.mode=chr(0)) then begin
+  if s^.mode=#0 then begin
     destroy(s);
-    gzopen := gzFile(nil);
+    gzopen := nil;
     exit;
   end;
 
@@ -305,17 +305,16 @@ end;
 function get_byte (s:gz_streamp) : integer;
 
 begin
-
-  if (s^.z_eof = true) then begin
+  if s^.z_eof then begin
     get_byte := Z_EOF;
     exit;
   end;
 
-  if (s^.stream.avail_in = 0) then begin
+  if s^.stream.avail_in=0 then begin
     {$I-}
     blockread (s^.gzfile, s^.inbuf^, Z_BUFSIZE, s^.stream.avail_in);
     {$I+}
-    if (s^.stream.avail_in = 0) then begin
+    if s^.stream.avail_in=0 then begin
       s^.z_eof := true;
       if (IOResult <> 0) then s^.z_err := Z_ERRNO;
       get_byte := Z_EOF;
@@ -327,7 +326,6 @@ begin
   Dec(s^.stream.avail_in);
   get_byte := s^.stream.next_in^;
   Inc(s^.stream.next_in);
-
 end;
 
 
@@ -377,7 +375,7 @@ begin
 {$endif}
   if (c = Z_EOF) then
     s^.z_err := Z_DATA_ERROR;
-  GetLong := cardinal(longint(x));
+  GetLong := cardinal(x);
 end;
 
 
@@ -712,7 +710,7 @@ begin
       inc (buf);
     until (len = 0) or (bytes <> 1) or (gzchar = Chr(13));
 
-    buf^ := Chr(0);
+    buf^ := #0;
     if (b = buf) and (len > 0) then gzgets := nil else gzgets := b;
 
 end;

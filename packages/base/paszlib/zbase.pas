@@ -70,7 +70,7 @@ interface
 
 { Maximum value for memLevel in deflateInit2 }
 {$ifdef MAXSEG_64K}
-  {$IFDEF VER70}
+  {$IFDEF TP}
   const
     MAX_MEM_LEVEL = 7;
     DEF_MEM_LEVEL = MAX_MEM_LEVEL;  { default memLevel }
@@ -87,7 +87,7 @@ const
 
 { Maximum value for windowBits in deflateInit2 and inflateInit2 }
 const
-{$IFDEF VER70}
+{$IFDEF TP}
   MAX_WBITS = 14; { 32K LZ77 window }
 {$ELSE}
   MAX_WBITS = 15; { 32K LZ77 window }

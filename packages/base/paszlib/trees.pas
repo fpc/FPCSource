@@ -2050,7 +2050,7 @@ begin
   begin
 {$endif}
     { Since LIT_BUFSIZE <= 2*WSIZE, the input data must be there: }
-    if (buf = Pchar(0)) then
+    if buf=nil then
       error ('block vanished');
 
     copy_block(buf, cardinal(stored_len), 0); { without header }
@@ -2061,7 +2061,7 @@ begin
 {$endif} { STORED_FILE_OK }
 
 {$ifdef FORCE_STORED}
-  if (buf <> pchar(0)) then
+  if buf<>nil then
   begin { force stored block }
 {$else}
   if (stored_len+4 <= opt_lenb) and (buf <> nil) then

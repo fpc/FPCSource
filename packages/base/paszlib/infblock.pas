@@ -115,7 +115,7 @@ begin
   s.read := s.window;
   if Assigned(s.checkfn) then
   begin
-    s.check := s.checkfn(cardinal(0), Pbyte(NIL), 0);
+    s.check := s.checkfn(cardinal(0), nil, 0);
     z.adler := s.check;
   end;
   {$IFDEF ZLIB_DEBUG}
