@@ -505,7 +505,7 @@ Begin
     exit;
   { Allocate UnixFindData }
   New(UnixFindData);
-  FillChar(UnixFindData^,sizeof(UnixFindData),0);
+  FillChar(UnixFindData^,sizeof(UnixFindData^),0);
   Rslt.FindHandle:=UnixFindData;
   {Create Info}
   UnixFindData^.SearchSpec := Path;
