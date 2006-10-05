@@ -52,6 +52,9 @@ end;
 function TBufDataset.AllocRecordBuffer: PChar;
 begin
   result := AllocMem(FRecordsize + sizeof(TBufBookmark));
+// The records are initialised, or else the fields of an empty, just-opened dataset
+// are not null
+  InitRecord(result);
 end;
 
 procedure TBufDataset.FreeRecordBuffer(var Buffer: PChar);

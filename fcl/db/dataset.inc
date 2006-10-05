@@ -1160,6 +1160,7 @@ begin
       FEOF := true;
       FBOF := true;
       FRecordcount := 0;
+      InitRecord(ActiveBuffer);
       SetState(dsBrowse);
       DataEvent(deDatasetChange,0);
       end
