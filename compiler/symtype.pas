@@ -112,7 +112,7 @@ interface
          defref,
          lastwritten : tref;
          refcount    : longint;
-         isstabwritten : boolean;
+         isdbgwritten : boolean;
          constructor create(st:tsymtyp;const n : string);
          destructor destroy;override;
          function  realname:string;
@@ -335,7 +335,7 @@ implementation
             inc(refcount);
           end;
          lastref:=defref;
-         isstabwritten := false;
+         isdbgwritten := false;
          symoptions:=current_object_option;
       end;
 

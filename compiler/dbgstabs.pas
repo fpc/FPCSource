@@ -1324,7 +1324,7 @@ implementation
         { For object types write also the symtable entries }
         if (sym.typ=typesym) and (ttypesym(sym).restype.def.deftype=objectdef) then
           write_symtable_syms(list,tobjectdef(ttypesym(sym).restype.def).symtable);
-        sym.isstabwritten:=true;
+        sym.isdbgwritten:=true;
       end;
 
 
@@ -1341,7 +1341,7 @@ implementation
         p:=tsym(st.symindex.first);
         while assigned(p) do
           begin
-            if (not p.isstabwritten) then
+            if (not p.isdbgwritten) then
               insertsym(list,p);
             p:=tsym(p.indexnext);
           end;

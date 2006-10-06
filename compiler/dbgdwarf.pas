@@ -1,4 +1,3 @@
-
 {
     Copyright (c) 2003-2006 by Peter Vreman and Florian Klaempfl
 
@@ -201,8 +200,11 @@ interface
         currabbrevnumber : longint;
 
         { collect all defs in one list so we can reset them easily }
+        { not used (MWE)
         nextdefnumber    : longint;
-        defnumberlist    : TFPObjectList;
+        }
+        defnumberlist,
+        deftowritelist   : TFPObjectList;
 
         writing_def_dwarf : boolean;
 
@@ -217,9 +219,9 @@ interface
         loclist: tdynamicarray;
         asmline: TAsmList;
 
+        function def_dwarf_lab(def:tdef) : tasmsymbol;
         function get_file_index(afile: tinputfile): Integer;
         procedure write_symtable_syms(st:tsymtable);
-        function def_dwarf_lab(def:tdef) : tasmsymbol;
       protected
         isdwarf64: Boolean;
         vardatadef: trecorddef;
@@ -228,21 +230,21 @@ interface
         procedure append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_data(attr : tdwarf_attribute;sym : tasmsymbol);
 
-        procedure appendtag(list:TAsmList;def:tdef);
-        procedure appendtag_orddef(def:torddef); virtual;
-        procedure appendtag_floatdef(def:tfloatdef); virtual;
-        procedure appendtag_filedef(def:tfiledef); virtual;
-        procedure appendtag_enumdef(def:tenumdef); virtual;
-        procedure appendtag_arraydef(def:tarraydef); virtual;
-        procedure appendtag_recorddef(def:trecorddef); virtual;
-        procedure appendtag_objectdef(def:tobjectdef); virtual; abstract;
-        procedure appendtag_pointerdef(def:tpointerdef); virtual;
-        procedure appendtag_stringdef(def:tstringdef); virtual;
-        procedure appendtag_procvardef(def:tprocvardef); virtual;
-        procedure appendtag_variantdef(def:tvariantdef); virtual; abstract;
-        procedure appendtag_setdef(def:tsetdef); virtual; abstract;
-        procedure appendtag_formaldef(def:tformaldef); virtual;
-        procedure appendtag_undefineddef(def:tundefineddef); virtual; abstract;
+        procedure appenddef(def:tdef);
+        procedure appenddef_ord(def:torddef); virtual;
+        procedure appenddef_float(def:tfloatdef); virtual;
+        procedure appenddef_file(def:tfiledef); virtual;
+        procedure appenddef_enum(def:tenumdef); virtual;
+        procedure appenddef_array(def:tarraydef); virtual;
+        procedure appenddef_record(def:trecorddef); virtual;
+        procedure appenddef_object(def:tobjectdef); virtual; abstract;
+        procedure appenddef_pointer(def:tpointerdef); virtual;
+        procedure appenddef_string(def:tstringdef); virtual;
+        procedure appenddef_procvar(def:tprocvardef); virtual;
+        procedure appenddef_variant(def:tvariantdef); virtual; abstract;
+        procedure appenddef_set(def:tsetdef); virtual; abstract;
+        procedure appenddef_formal(def:tformaldef); virtual;
+        procedure appenddef_unineddef(def:tundefineddef); virtual; abstract;
 
 
         procedure appendsym(sym:tsym);
@@ -259,24 +261,22 @@ interface
 
         procedure appendprocdef(pd:tprocdef); virtual;
 
-        procedure enum_members_callback(p:Tnamedindexitem;arg:pointer);
+        procedure enum_membersyms_callback(p:Tnamedindexitem;arg:pointer);
 
         procedure finish_children;
         procedure finish_entry;
-
-        procedure insertdef_dependency(list:TAsmList;def:tdef); virtual;
       public
         constructor Create;override;
         destructor Destroy;override;
 
-        procedure insertdef(list:TAsmList;def:tdef);override;
+        procedure insertdef(unused:TAsmList;def:tdef);override;
 
         procedure insertmoduleinfo;override;
         procedure inserttypeinfo;override;
         procedure referencesections(list:TAsmList);override;
         procedure insertlineinfo(list:TAsmList);override;
         function  dwarf_version: Word; virtual; abstract;
-        procedure write_symtable_defs(list:TAsmList;st:tsymtable);override;
+        procedure write_symtable_defs(unused:TAsmList;st:tsymtable);override;
       end;
 
       { TDebugInfoDwarf2 }
@@ -284,12 +284,12 @@ interface
       TDebugInfoDwarf2 = class(TDebugInfoDwarf)
       private
       protected
-        procedure appendtag_filedef(def:tfiledef); override;
-        procedure appendtag_formaldef(def:tformaldef); override;
-        procedure appendtag_objectdef(def:tobjectdef); override;
-        procedure appendtag_setdef(def:tsetdef); override;
-        procedure appendtag_undefineddef(def:tundefineddef); override;
-        procedure appendtag_variantdef(def:tvariantdef); override;
+        procedure appenddef_file(def:tfiledef); override;
+        procedure appenddef_formal(def:tformaldef); override;
+        procedure appenddef_object(def:tobjectdef); override;
+        procedure appenddef_set(def:tsetdef); override;
+        procedure appenddef_unineddef(def:tundefineddef); override;
+        procedure appenddef_variant(def:tvariantdef); override;
       public
         function  dwarf_version: Word; override;
       end;
@@ -298,16 +298,13 @@ interface
 
       TDebugInfoDwarf3 = class(TDebugInfoDwarf)
       private
-        procedure property_write_defs(p :tnamedindexitem;arg:pointer);
       protected
-        procedure appendtag_filedef(def:tfiledef); override;
-        procedure appendtag_formaldef(def:tformaldef); override;
-        procedure appendtag_objectdef(def:tobjectdef); override;
-        procedure appendtag_setdef(def:tsetdef); override;
-        procedure appendtag_undefineddef(def:tundefineddef); override;
-        procedure appendtag_variantdef(def:tvariantdef); override;
-
-        procedure insertdef_dependency(list:TAsmList;def:tdef); override;
+        procedure appenddef_file(def:tfiledef); override;
+        procedure appenddef_formal(def:tformaldef); override;
+        procedure appenddef_object(def:tobjectdef); override;
+        procedure appenddef_set(def:tsetdef); override;
+        procedure appenddef_unineddef(def:tundefineddef); override;
+        procedure appenddef_variant(def:tvariantdef); override;
       public
         function  dwarf_version: Word; override;
       end;
@@ -613,10 +610,6 @@ end;
 
     function TDebugInfoDwarf.def_dwarf_lab(def:tdef) : tasmsymbol;
       begin
-        { dwarf must already be written, or we must be busy writing it }
-        if writing_def_dwarf and
-           not(def.dbg_state in [dbg_state_writing,dbg_state_written]) then
-          internalerror(200601241);
         { Keep track of used dwarf entries, this info is only usefull for dwarf entries
           referenced by the symbols. Definitions will always include all
           required stabs }
@@ -645,6 +638,8 @@ end;
                   end
                 else
                   current_asmdata.getdatalabel(TAsmLabel(def.dwarf_lab));
+                if def.dbg_state=dbg_state_used then
+                  deftowritelist.Add(def);
               end;
             defnumberlist.Add(def);
           end;
@@ -669,6 +664,18 @@ end;
         loclist.Free;
         loclist := nil;
         inherited Destroy;
+      end;
+
+    procedure TDebugInfoDwarf.enum_membersyms_callback(p: Tnamedindexitem; arg: pointer);
+      begin
+        case tsym(p).typ of
+          fieldvarsym:
+            appendsym_fieldvar(tfieldvarsym(p));
+          propertysym:
+            appendsym_property(tpropertysym(p));
+          procsym:
+            appendsym_proc(tprocsym(p));
+        end;
       end;
 
     function TDebugInfoDwarf.get_file_index(afile: tinputfile): Integer;
@@ -892,20 +899,7 @@ end;
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(0));
       end;
 
-
-    procedure TDebugInfoDwarf.enum_members_callback(p: Tnamedindexitem; arg: pointer);
-      begin
-        case tsym(p).typ of
-          fieldvarsym:
-            appendsym_fieldvar(tfieldvarsym(p));
-          propertysym:
-            appendsym_property(tpropertysym(p));
-          procsym:
-            appendsym_proc(tprocsym(p));
-        end;
-      end;
-
-    procedure TDebugInfoDwarf.appendtag_orddef(def:torddef);
+    procedure TDebugInfoDwarf.appenddef_ord(def:torddef);
       begin
         case def.typ of
           s8bit,
@@ -1043,7 +1037,7 @@ end;
         end;
       end;
 
-    procedure TDebugInfoDwarf.appendtag_floatdef(def:tfloatdef);
+    procedure TDebugInfoDwarf.appenddef_float(def:tfloatdef);
       begin
         case def.typ of
           s32real,
@@ -1091,13 +1085,13 @@ end;
         finish_entry;
       end;
 
-    procedure TDebugInfoDwarf.appendtag_formaldef(def: tformaldef);
+    procedure TDebugInfoDwarf.appenddef_formal(def: tformaldef);
       begin
         { implemented in derived classes }
       end;
 
 
-    procedure TDebugInfoDwarf.appendtag_enumdef(def:tenumdef);
+    procedure TDebugInfoDwarf.appenddef_enum(def:tenumdef);
       var
         hp : tenumsym;
       begin
@@ -1129,13 +1123,13 @@ end;
         finish_children;
       end;
 
-    procedure TDebugInfoDwarf.appendtag_filedef(def: tfiledef);
+    procedure TDebugInfoDwarf.appenddef_file(def: tfiledef);
       begin
         { implemented in derived classes }
       end;
 
 
-    procedure TDebugInfoDwarf.appendtag_arraydef(def:tarraydef);
+    procedure TDebugInfoDwarf.appenddef_array(def:tarraydef);
       var
         size : aint;
         elesize : aint;
@@ -1198,7 +1192,7 @@ end;
       end;
 
 
-    procedure TDebugInfoDwarf.appendtag_recorddef(def:trecorddef);
+    procedure TDebugInfoDwarf.appenddef_record(def:trecorddef);
       begin
         if assigned(def.typesym) then
           append_entry(DW_TAG_structure_type,true,[
@@ -1210,12 +1204,12 @@ end;
             DW_AT_byte_size,DW_FORM_udata,def.size
             ]);
         finish_entry;
-        def.symtable.foreach(@enum_members_callback,nil);
+        def.symtable.foreach(@enum_membersyms_callback,nil);
         finish_children;
       end;
 
 
-    procedure TDebugInfoDwarf.appendtag_pointerdef(def:tpointerdef);
+    procedure TDebugInfoDwarf.appenddef_pointer(def:tpointerdef);
       begin
         append_entry(DW_TAG_pointer_type,false,[]);
         if not(is_voidpointer(def)) then
@@ -1224,7 +1218,7 @@ end;
       end;
 
 
-    procedure TDebugInfoDwarf.appendtag_stringdef(def:tstringdef);
+    procedure TDebugInfoDwarf.appenddef_string(def:tstringdef);
       var
         slen : aint;
         arr : tasmlabel;
@@ -1310,7 +1304,7 @@ end;
         end;
       end;
 
-    procedure TDebugInfoDwarf.appendtag_procvardef(def:tprocvardef);
+    procedure TDebugInfoDwarf.appenddef_procvar(def:tprocvardef);
 
       procedure doappend;
         var
@@ -1384,153 +1378,77 @@ end;
           doappend;
       end;
 
-    procedure TDebugInfoDwarf.appendtag(list:TAsmList;def:tdef);
+    procedure TDebugInfoDwarf.appenddef(def:tdef);
       var
         labsym : tasmsymbol;
       begin
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Definition '+def.typename)));
-        labsym:=def_dwarf_lab(def);
-        if df_has_dwarf_dbg_info in def.defoptions then
-          list.concat(tai_symbol.create_global(labsym,0))
-        else
-          list.concat(tai_symbol.create(labsym,0));
-        case def.deftype of
-          stringdef :
-            appendtag_stringdef(tstringdef(def));
-          enumdef :
-            appendtag_enumdef(tenumdef(def));
-          orddef :
-            appendtag_orddef(torddef(def));
-          pointerdef :
-            appendtag_pointerdef(tpointerdef(def));
-          floatdef :
-            appendtag_floatdef(tfloatdef(def));
-          filedef :
-            appendtag_filedef(tfiledef(def));
-          recorddef :
-            appendtag_recorddef(trecorddef(def));
-          variantdef :
-            appendtag_variantdef(tvariantdef(def));
-          classrefdef :
-            appendtag_pointerdef(tpointerdef(pvmttype.def));
-          setdef :
-            appendtag_setdef(tsetdef(def));
-          formaldef :
-            appendtag_formaldef(tformaldef(def));
-          arraydef :
-            appendtag_arraydef(tarraydef(def));
-          procvardef :
-            appendtag_procvardef(tprocvardef(def));
-          objectdef :
-            appendtag_objectdef(tobjectdef(def));
-          undefineddef :
-            appendtag_undefineddef(tundefineddef(def));
-        else
-          internalerror(200601281);
-        end;
-      end;
-
-
-    procedure TDebugInfoDwarf.insertdef(list:TAsmList;def:tdef);
-      begin
         if (def.dbg_state in [dbg_state_writing,dbg_state_written]) then
           exit;
+
         { never write generic template defs }
         if df_generic in def.defoptions then
           begin
             def.dbg_state:=dbg_state_written;
             exit;
           end;
+
         { to avoid infinite loops }
         def.dbg_state := dbg_state_writing;
-        { write dependencies first }
-        insertdef_dependency(list, def);
 
-        appendtag(list,def);
-
-        def.dbg_state:=dbg_state_written;
-      end;
-
-    procedure TDebugInfoDwarf.insertdef_dependency(list: TAsmList; def: tdef);
-      var
-        anc : tobjectdef;
-        oldtypesym : tsym;
-        i : longint;
-      begin
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Definition '+def.typename)));
+        labsym:=def_dwarf_lab(def);
+        if df_has_dwarf_dbg_info in def.defoptions then
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(labsym,0))
+        else
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
+          
         case def.deftype of
           stringdef :
-            begin
-              { todo: check if these are needed or valid for dwarf3 (MWE)}
-              if tstringdef(def).string_typ=st_widestring then
-                insertdef(list,cwidechartype.def)
-              else
-                begin
-                  insertdef(list,cchartype.def);
-                  insertdef(list,u8inttype.def);
-                end;
-            end;
-          floatdef :
-            insertdef(list,s32inttype.def);
-          filedef :
-            begin
-              { todo: check if these are needed or valid for dwarf3 (MWE)}
-              insertdef(list,s32inttype.def);
-              if isdwarf64 then
-                insertdef(list,s64inttype.def);
-              insertdef(list,u8inttype.def);
-              insertdef(list,cchartype.def);
-            end;
-          classrefdef :
-            insertdef(list,pvmttype.def);
-          pointerdef :
-            insertdef(list,tpointerdef(def).pointertype.def);
-          setdef :
-            if assigned(tsetdef(def).elementtype.def) then
-              insertdef(list,tsetdef(def).elementtype.def);
-          procvardef:
-            begin
-              insertdef(list,tprocvardef(def).rettype.def);
-              if tprocvardef(def).is_methodpointer then
-                insertdef(list,class_tobject);
-              { parameters }
-              for i:=0 to tprocvardef(def).paras.count-1 do
-                insertdef(list,tparavarsym(tprocvardef(def).paras[i]).vartype.def);
-            end;
-          procdef :
-            insertdef(list,tprocdef(def).rettype.def);
+            appenddef_string(tstringdef(def));
           enumdef :
-            if assigned(tenumdef(def).basedef) then
-              insertdef(list,tenumdef(def).basedef);
-          arraydef :
-            begin
-              insertdef(list,tarraydef(def).rangetype.def);
-              insertdef(list,tarraydef(def).elementtype.def);
-            end;
+            appenddef_enum(tenumdef(def));
+          orddef :
+            appenddef_ord(torddef(def));
+          pointerdef :
+            appenddef_pointer(tpointerdef(def));
+          floatdef :
+            appenddef_float(tfloatdef(def));
+          filedef :
+            appenddef_file(tfiledef(def));
           recorddef :
-            trecorddef(def).symtable.foreach(@field_write_defs,list);
+            appenddef_record(trecorddef(def));
           variantdef :
-            trecorddef(vardatadef).symtable.foreach(@field_write_defs,list);
+            appenddef_variant(tvariantdef(def));
+          classrefdef :
+            appenddef_pointer(tpointerdef(pvmttype.def));
+          setdef :
+            appenddef_set(tsetdef(def));
+          formaldef :
+            appenddef_formal(tformaldef(def));
+          arraydef :
+            appenddef_array(tarraydef(def));
+          procvardef :
+            appenddef_procvar(tprocvardef(def));
           objectdef :
-            begin
-              { todo: check if vmtarraytype is needed or valid for dwarf3 (MWE)}
-              insertdef(list,vmtarraytype.def);
-              { first the parents }
-              anc:=tobjectdef(def);
-              while assigned(anc.childof) do
-                begin
-                  anc:=anc.childof;
-                  insertdef(list,anc);
-                end;
-              tobjectdef(def).symtable.foreach(@field_write_defs,list);
-              tobjectdef(def).symtable.foreach(@method_write_defs,list);
-            end;
+            appenddef_object(tobjectdef(def));
+          undefineddef :
+            appenddef_unineddef(tundefineddef(def));
+        else
+          internalerror(200601281);
         end;
+
+        def.dbg_state := dbg_state_written;
       end;
 
 
-    procedure TDebugInfoDwarf.write_symtable_defs(list:TAsmList;st:tsymtable);
+    procedure TDebugInfoDwarf.insertdef(unused:TAsmList; def:tdef);
+      begin
+        appenddef(def);
+      end;
 
-       procedure dowritedwarf(list:TAsmList;st:tsymtable);
+    procedure TDebugInfoDwarf.write_symtable_defs(unused:TAsmList;st:tsymtable);
+
+       procedure dowritedwarf(st:tsymtable);
          var
            p : tdef;
          begin
@@ -1538,7 +1456,8 @@ end;
            while assigned(p) do
              begin
                if (p.dbg_state=dbg_state_used) then
-                 insertdef(list,p);
+                 appenddef(p);
+
                p:=tdef(p.indexnext);
              end;
          end;
@@ -1548,19 +1467,19 @@ end;
       begin
         case st.symtabletype of
           staticsymtable :
-            list.concat(tai_comment.Create(strpnew('Defs - Begin Staticsymtable')));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Defs - Begin Staticsymtable')));
           globalsymtable :
-            list.concat(tai_comment.Create(strpnew('Defs - Begin unit '+st.name^+' has index '+tostr(st.moduleid))));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Defs - Begin unit '+st.name^+' has index '+tostr(st.moduleid))));
         end;
         old_writing_def_dwarf:=writing_def_dwarf;
         writing_def_dwarf:=true;
-        dowritedwarf(list,st);
+        dowritedwarf(st);
         writing_def_dwarf:=old_writing_def_dwarf;
         case st.symtabletype of
           staticsymtable :
-            list.concat(tai_comment.Create(strpnew('Defs - End Staticsymtable')));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Defs - End Staticsymtable')));
           globalsymtable :
-            list.concat(tai_comment.Create(strpnew('Defs - End unit '+st.name^+' has index '+tostr(st.moduleid))));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Defs - End unit '+st.name^+' has index '+tostr(st.moduleid))));
         end;
       end;
 
@@ -1633,10 +1552,10 @@ end;
 
             { last write the types from this procdef }
             if assigned(pd.parast) then
-              write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],pd.parast);
+              write_symtable_defs(nil,pd.parast);
             if assigned(pd.localst) and
                (pd.localst.symtabletype=localsymtable) then
-              write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],pd.localst);
+              write_symtable_defs(nil,pd.localst);
 
             finish_children;
           end;
@@ -1883,6 +1802,12 @@ end;
           ]);
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.restype.def));
           finish_entry;
+          
+          { Moved fom append sym, do we need this (MWE)
+          { For object types write also the symtable entries }
+          if (sym.typ=typesym) and (ttypesym(sym).restype.def.deftype=objectdef) then
+            write_symtable_syms(list,tobjectdef(ttypesym(sym).restype.def).symtable);
+          }
         end;
 
       procedure TDebugInfoDwarf.appendsym_unit(sym: tunitsym);
@@ -1951,8 +1876,10 @@ end;
         end;
 
     procedure TDebugInfoDwarf.appendsym(sym:tsym);
-
       begin
+        if sym.isdbgwritten then
+          exit;
+
         current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Symbol '+sym.name)));
         case sym.typ of
           globalvarsym :
@@ -1992,12 +1919,7 @@ end;
               internalerror(200601242);
             end;
         end;
-        {
-        { For object types write also the symtable entries }
-        if (sym.typ=typesym) and (ttypesym(sym).restype.def.deftype=objectdef) then
-          write_symtable_syms(list,tobjectdef(ttypesym(sym).restype.def).symtable);
-        sym.isstabwritten:=true;
-        }
+        sym.isdbgwritten:=true;
       end;
 
 
@@ -2011,7 +1933,7 @@ end;
         p:=tsym(st.symindex.first);
         while assigned(p) do
           begin
-            if (not p.isstabwritten) then
+            if (not p.isdbgwritten) then
               appendsym(p);
             p:=tsym(p.indexnext);
           end;
@@ -2179,10 +2101,48 @@ end;
 
 
     procedure TDebugInfoDwarf.inserttypeinfo;
+
+      procedure write_defs_to_write;
+        var
+          n       : integer;
+          looplist,
+          templist: TFPObjectList;
+          def     : tdef;
+        begin
+          templist := TFPObjectList.Create(False);
+          looplist := deftowritelist;
+          while looplist.count > 0 do
+            begin
+              deftowritelist := templist;
+              for n := 0 to looplist.count - 1 do
+                begin
+                  def := tdef(looplist[n]);
+                  case def.dbg_state of
+                    dbg_state_written:
+                      continue;
+                    dbg_state_writing:
+                      internalerror(200610052);
+                    dbg_state_unused:
+                      internalerror(200610053);
+                    dbg_state_used:
+                      appenddef(def)
+                  else
+                    internalerror(200610054);
+                  end;
+                end;
+              looplist.clear;
+              templist := looplist;
+              looplist := deftowritelist;
+            end;
+          templist.free;
+        end;
+
+    
       var
         storefilepos  : tfileposinfo;
         lenstartlabel : tasmlabel;
         i : longint;
+        def: tdef;
       begin
         storefilepos:=aktfilepos;
         aktfilepos:=current_module.mainfilepos;
@@ -2190,8 +2150,11 @@ end;
         currabbrevnumber:=0;
         writing_def_dwarf:=false;
 
+        { not used (MWE)
         nextdefnumber:=0;
+        }
         defnumberlist:=TFPObjectList.create(false);
+        deftowritelist:=TFPObjectList.create(false);
 
         { not exported (FK)
         filerecdef:=gettypedef('FILEREC');
@@ -2265,6 +2228,9 @@ end;
           write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],current_module.globalsymtable);
         if assigned(current_module.localsymtable) then
           write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],current_module.localsymtable);
+          
+        { write defs not written yet }
+        write_defs_to_write;
 
         { close compilation unit entry }
         finish_children;
@@ -2279,16 +2245,19 @@ end;
         { reset all def labels }
         for i:=0 to defnumberlist.count-1 do
           begin
-            if assigned(defnumberlist[i]) then
+            def := tdef(defnumberlist[i]);
+            if assigned(def) then
               begin
-                tdef(defnumberlist[i]).dwarf_lab:=nil;
-                tdef(defnumberlist[i]).dbg_state:=dbg_state_unused;
+                def.dwarf_lab:=nil;
+                def.dbg_state:=dbg_state_unused;
               end;
           end;
 
         defnumberlist.free;
         defnumberlist:=nil;
-
+        deftowritelist.free;
+        deftowritelist:=nil;
+        
         aktfilepos:=storefilepos;
       end;
 
@@ -2446,7 +2415,7 @@ end;
 
 ****************************************************************************}
 
-    procedure TDebugInfoDwarf2.appendtag_filedef(def: tfiledef);
+    procedure TDebugInfoDwarf2.appenddef_file(def: tfiledef);
       begin
         { gdb 6.4 doesn't support files so far so we use some fake recorddef
           file recs. are less than 1k so using data2 is enough }
@@ -2462,7 +2431,7 @@ end;
         finish_entry;
       end;
 
-    procedure TDebugInfoDwarf2.appendtag_formaldef(def: tformaldef);
+    procedure TDebugInfoDwarf2.appenddef_formal(def: tformaldef);
       begin
         { gdb 6.4 doesn't support DW_TAG_unspecified_type so we
           replace it with a unsigned type with size 0 (FK)
@@ -2475,7 +2444,7 @@ end;
         finish_entry;
       end;
 
-    procedure TDebugInfoDwarf2.appendtag_objectdef(def: tobjectdef);
+    procedure TDebugInfoDwarf2.appenddef_object(def: tobjectdef);
       procedure doappend;
         begin
           if assigned(def.objname) then
@@ -2500,9 +2469,7 @@ end;
               finish_entry;
             end;
 
-          def.symtable.foreach(@enum_members_callback,nil);
-          write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
-
+          def.symtable.foreach(@enum_membersyms_callback,nil);
           finish_children;
         end;
 
@@ -2534,7 +2501,7 @@ end;
         end;
       end;
 
-    procedure TDebugInfoDwarf2.appendtag_setdef(def: tsetdef);
+    procedure TDebugInfoDwarf2.appenddef_set(def: tsetdef);
       begin
         { at least gdb up to 6.4 doesn't support sets in dwarf, there is a patch available to fix this:
           http://sources.redhat.com/ml/gdb-patches/2005-05/msg00278.html (FK) }
@@ -2553,7 +2520,7 @@ end;
         finish_entry;
       end;
 
-    procedure TDebugInfoDwarf2.appendtag_undefineddef(def: tundefineddef);
+    procedure TDebugInfoDwarf2.appenddef_unineddef(def: tundefineddef);
       begin
         { gdb 6.4 doesn't support DW_TAG_unspecified_type so we
           replace it with a unsigned type with size 0 (FK)
@@ -2566,10 +2533,10 @@ end;
         finish_entry;
       end;
 
-    procedure TDebugInfoDwarf2.appendtag_variantdef(def: tvariantdef);
+    procedure TDebugInfoDwarf2.appenddef_variant(def: tvariantdef);
       begin
         { variants aren't known to dwarf2 but writting tvardata should be enough }
-        appendtag_recorddef(trecorddef(vardatadef));
+        appenddef_record(trecorddef(vardatadef));
       end;
 
     function TDebugInfoDwarf2.dwarf_version: Word;
@@ -2581,7 +2548,7 @@ end;
                               TDebugInfoDwarf3
 ****************************************************************************}
 
-    procedure TDebugInfoDwarf3.appendtag_filedef(def: tfiledef);
+    procedure TDebugInfoDwarf3.appenddef_file(def: tfiledef);
       begin
         if assigned(def.typesym) then
           append_entry(DW_TAG_file_type,false,[
@@ -2597,14 +2564,14 @@ end;
         finish_entry;
       end;
 
-    procedure TDebugInfoDwarf3.appendtag_formaldef(def: tformaldef);
+    procedure TDebugInfoDwarf3.appenddef_formal(def: tformaldef);
       begin
         append_entry(DW_TAG_unspecified_type,false,[
           ]);
         finish_entry;
       end;
 
-    procedure TDebugInfoDwarf3.appendtag_objectdef(def: tobjectdef);
+    procedure TDebugInfoDwarf3.appenddef_object(def: tobjectdef);
 
       procedure dostruct(tag: tdwarf_tag);
         begin
@@ -2696,11 +2663,11 @@ end;
             end;
 
         { add members }
-        def.symtable.foreach(@enum_members_callback,nil);
+        def.symtable.foreach(@enum_membersyms_callback,nil);
         finish_children;
       end;
 
-    procedure TDebugInfoDwarf3.appendtag_setdef(def: tsetdef);
+    procedure TDebugInfoDwarf3.appenddef_set(def: tsetdef);
       begin
         if assigned(def.typesym) then
           append_entry(DW_TAG_set_type,false,[
@@ -2711,11 +2678,12 @@ end;
           append_entry(DW_TAG_set_type,false,[
             DW_AT_byte_size,DW_FORM_data2,def.size
             ]);
-        append_labelentry_ref(DW_AT_type,def_dwarf_lab(tsetdef(def).elementtype.def));
+        if assigned(tsetdef(def).elementtype.def) then
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(tsetdef(def).elementtype.def));
         finish_entry;
       end;
 
-    procedure TDebugInfoDwarf3.appendtag_undefineddef(def: tundefineddef);
+    procedure TDebugInfoDwarf3.appenddef_unineddef(def: tundefineddef);
       begin
         { ??? can a undefined def have a typename ? }
         if assigned(def.typesym) then
@@ -2728,7 +2696,7 @@ end;
         finish_entry;
       end;
 
-    procedure TDebugInfoDwarf3.appendtag_variantdef(def: tvariantdef);
+    procedure TDebugInfoDwarf3.appenddef_variant(def: tvariantdef);
       const
         VARIANTS: array[1..27] of record Value: Word; Name: String end = (
           (value:0;     name:''),
@@ -2817,28 +2785,6 @@ end;
         Result:=3;
       end;
 
-    procedure TDebugInfoDwarf3.insertdef_dependency(list: TAsmList; def: tdef);
-      begin
-        case def.deftype of
-          objectdef :
-            begin
-              inherited insertdef_dependency(list, def);
-              tobjectdef(def).symtable.foreach(@property_write_defs,list);
-            end;
-        else
-          inherited insertdef_dependency(list, def);
-        end;
-      end;
-
-    procedure TDebugInfoDwarf3.property_write_defs(p: tnamedindexitem; arg: pointer);
-      begin
-        if Tsym(p).typ <> propertysym then
-          exit;
-
-        insertdef(TAsmList(arg),tpropertysym(p).proptype.def);
-        if ppo_indexed in tpropertysym(p).propoptions then
-          insertdef(TAsmList(arg),tpropertysym(p).indextype.def);
-      end;
 
 {****************************************************************************
 ****************************************************************************}

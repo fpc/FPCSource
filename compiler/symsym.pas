@@ -413,7 +413,7 @@ implementation
          refs:=0;
          lastwritten:=nil;
          refcount:=0;
-         isstabwritten := false;
+         isdbgwritten := false;
       end;
 
 
