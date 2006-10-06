@@ -2652,6 +2652,7 @@ packages/extra/gtk2/gtk+/gtk/gtkcalendar.inc svneol=native#text/plain
 packages/extra/gtk2/gtk+/gtk/gtkcelleditable.inc svneol=native#text/plain
 packages/extra/gtk2/gtk+/gtk/gtkcelllayout.inc svneol=native#text/plain
 packages/extra/gtk2/gtk+/gtk/gtkcellrenderer.inc svneol=native#text/plain
+packages/extra/gtk2/gtk+/gtk/gtkcellrenderercombo.inc svneol=native#text/plain
 packages/extra/gtk2/gtk+/gtk/gtkcellrendererpixbuf.inc svneol=native#text/plain
 packages/extra/gtk2/gtk+/gtk/gtkcellrenderertext.inc svneol=native#text/plain
 packages/extra/gtk2/gtk+/gtk/gtkcellrenderertoggle.inc svneol=native#text/plain
@@ -2822,7 +2823,6 @@ packages/extra/gtk2/gtk+/gtk/gtkwindow.inc svneol=native#text/plain
 packages/extra/gtk2/gtk+/gtk/paste.pas svneol=native#text/plain
 packages/extra/gtk2/gtk+/gtk/xembed.inc svneol=native#text/plain
 packages/extra/gtk2/gtk2forlazarus.lpk -text
-packages/extra/gtk2/gtkcellrenderercombo.inc svneol=native#text/plain
 packages/extra/gtk2/gtkglext/gdkglconfig.inc svneol=native#text/plain
 packages/extra/gtk2/gtkglext/gdkglcontext.inc svneol=native#text/plain
 packages/extra/gtk2/gtkglext/gdkgldefs.inc svneol=native#text/plain
