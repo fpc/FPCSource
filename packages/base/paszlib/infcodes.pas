@@ -83,10 +83,10 @@ begin
   b := s.bitb;
   k := s.bitk;
   q := s.write;
-  if ptrint(q) < ptrint(s.read) then
-    m := cardinal(ptrint(s.read)-ptrint(q)-1)
+  if ptruint(q) < ptruint(s.read) then
+    m := cardinal(ptruint(s.read)-ptruint(q)-1)
   else
-    m := cardinal(ptrint(s.zend)-ptrint(q));
+    m := cardinal(ptruint(s.zend)-ptruint(q));
 
   { process input and output based on current state }
   while True do
@@ -101,7 +101,7 @@ begin
         s.bitb := b;
         s.bitk := k;
         z.avail_in := n;
-        Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+        Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
         z.next_in := p;
         s.write := q;
 
@@ -112,10 +112,10 @@ begin
         b := s.bitb;
         k := s.bitk;
         q := s.write;
-        if ptrint(q) < ptrint(s.read) then
-          m := cardinal(ptrint(s.read)-ptrint(q)-1)
+        if ptruint(q) < ptruint(s.read) then
+          m := cardinal(ptruint(s.read)-ptruint(q)-1)
         else
-          m := cardinal(ptrint(s.zend)-ptrint(q));
+          m := cardinal(ptruint(s.zend)-ptruint(q));
 
         if (r <> Z_OK) then
         begin
@@ -146,7 +146,7 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+          Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_codes := inflate_flush(s,z,r);
@@ -204,7 +204,7 @@ begin
       s.bitb := b;
       s.bitk := k;
       z.avail_in := n;
-      Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+      Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
       z.next_in := p;
       s.write := q;
       inflate_codes := inflate_flush(s,z,r);
@@ -225,7 +225,7 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+          Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_codes := inflate_flush(s,z,r);
@@ -264,7 +264,7 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+          Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_codes := inflate_flush(s,z,r);
@@ -301,7 +301,7 @@ begin
       s.bitb := b;
       s.bitk := k;
       z.avail_in := n;
-      Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+      Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
       z.next_in := p;
       s.write := q;
       inflate_codes := inflate_flush(s,z,r);
@@ -322,7 +322,7 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+          Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_codes := inflate_flush(s,z,r);
@@ -347,10 +347,10 @@ begin
     begin
       f := q;
       dec(f, c^.sub.copy.dist);
-      if (cardinal(ptrint(q) - ptrint(s.window)) < c^.sub.copy.dist) then
+      if (cardinal(ptruint(q) - ptruint(s.window)) < c^.sub.copy.dist) then
       begin
         f := s.zend;
-        dec(f, c^.sub.copy.dist - cardinal(ptrint(q) - ptrint(s.window)));
+        dec(f, c^.sub.copy.dist - cardinal(ptruint(q) - ptruint(s.window)));
       end;
 
       while (c^.len <> 0) do
@@ -362,10 +362,10 @@ begin
           if (q = s.zend) and (s.read <> s.window) then
           begin
             q := s.window;
-            if ptrint(q) < ptrint(s.read) then
-              m := cardinal(ptrint(s.read)-ptrint(q)-1)
+            if ptruint(q) < ptruint(s.read) then
+              m := cardinal(ptruint(s.read)-ptruint(q)-1)
             else
-              m := cardinal(ptrint(s.zend)-ptrint(q));
+              m := cardinal(ptruint(s.zend)-ptruint(q));
           end;
 
           if (m = 0) then
@@ -374,19 +374,19 @@ begin
             s.write := q;
             r := inflate_flush(s,z,r);
             q := s.write;
-            if ptrint(q) < ptrint(s.read) then
-              m := cardinal(ptrint(s.read)-ptrint(q)-1)
+            if ptruint(q) < ptruint(s.read) then
+              m := cardinal(ptruint(s.read)-ptruint(q)-1)
             else
-              m := cardinal(ptrint(s.zend)-ptrint(q));
+              m := cardinal(ptruint(s.zend)-ptruint(q));
 
             {WRAP}
             if (q = s.zend) and (s.read <> s.window) then
             begin
               q := s.window;
-              if ptrint(q) < ptrint(s.read) then
-                m := cardinal(ptrint(s.read)-ptrint(q)-1)
+              if ptruint(q) < ptruint(s.read) then
+                m := cardinal(ptruint(s.read)-ptruint(q)-1)
               else
-                m := cardinal(ptrint(s.zend)-ptrint(q));
+                m := cardinal(ptruint(s.zend)-ptruint(q));
             end;
 
             if (m = 0) then
@@ -395,7 +395,7 @@ begin
               s.bitb := b;
               s.bitk := k;
               z.avail_in := n;
-              Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+              Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
               z.next_in := p;
               s.write := q;
               inflate_codes := inflate_flush(s,z,r);
@@ -427,10 +427,10 @@ begin
         if (q = s.zend) and (s.read <> s.window) then
         begin
           q := s.window;
-          if ptrint(q) < ptrint(s.read) then
-            m := cardinal(ptrint(s.read)-ptrint(q)-1)
+          if ptruint(q) < ptruint(s.read) then
+            m := cardinal(ptruint(s.read)-ptruint(q)-1)
           else
-            m := cardinal(ptrint(s.zend)-ptrint(q));
+            m := cardinal(ptruint(s.zend)-ptruint(q));
         end;
 
         if (m = 0) then
@@ -439,19 +439,19 @@ begin
           s.write := q;
           r := inflate_flush(s,z,r);
           q := s.write;
-          if ptrint(q) < ptrint(s.read) then
-            m := cardinal(ptrint(s.read)-ptrint(q)-1)
+          if ptruint(q) < ptruint(s.read) then
+            m := cardinal(ptruint(s.read)-ptruint(q)-1)
           else
-            m := cardinal(ptrint(s.zend)-ptrint(q));
+            m := cardinal(ptruint(s.zend)-ptruint(q));
 
           {WRAP}
           if (q = s.zend) and (s.read <> s.window) then
           begin
             q := s.window;
-            if ptrint(q) < ptrint(s.read) then
-              m := cardinal(ptrint(s.read)-ptrint(q)-1)
+            if ptruint(q) < ptruint(s.read) then
+              m := cardinal(ptruint(s.read)-ptruint(q)-1)
             else
-              m := cardinal(ptrint(s.zend)-ptrint(q));
+              m := cardinal(ptruint(s.zend)-ptruint(q));
           end;
 
           if (m = 0) then
@@ -460,7 +460,7 @@ begin
             s.bitb := b;
             s.bitk := k;
             z.avail_in := n;
-            Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+            Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
             z.next_in := p;
             s.write := q;
             inflate_codes := inflate_flush(s,z,r);
@@ -495,10 +495,10 @@ begin
       s.write := q;
       r := inflate_flush(s,z,r);
       q := s.write;
-      if ptrint(q) < ptrint(s.read) then
-        m := cardinal(ptrint(s.read)-ptrint(q)-1)
+      if ptruint(q) < ptruint(s.read) then
+        m := cardinal(ptruint(s.read)-ptruint(q)-1)
       else
-        m := cardinal(ptrint(s.zend)-ptrint(q));
+        m := cardinal(ptruint(s.zend)-ptruint(q));
 
       if (s.read <> s.write) then
       begin
@@ -506,7 +506,7 @@ begin
         s.bitb := b;
         s.bitk := k;
         z.avail_in := n;
-        Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+        Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
         z.next_in := p;
         s.write := q;
         inflate_codes := inflate_flush(s,z,r);
@@ -523,7 +523,7 @@ begin
       s.bitb := b;
       s.bitk := k;
       z.avail_in := n;
-      Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+      Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
       z.next_in := p;
       s.write := q;
       inflate_codes := inflate_flush(s,z,r);
@@ -536,7 +536,7 @@ begin
       s.bitb := b;
       s.bitk := k;
       z.avail_in := n;
-      Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+      Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
       z.next_in := p;
       s.write := q;
       inflate_codes := inflate_flush(s,z,r);
@@ -549,7 +549,7 @@ begin
       s.bitb := b;
       s.bitk := k;
       z.avail_in := n;
-      Inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+      Inc(z.total_in, ptruint(p)-ptruint(z.next_in));
       z.next_in := p;
       s.write := q;
       inflate_codes := inflate_flush(s,z,r);
