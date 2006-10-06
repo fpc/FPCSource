@@ -214,39 +214,15 @@ begin
                break;
             end;
           '"' :
+            if pchar(pc+1)^<>'"' then
             begin
-              if quote<>'''' then
-               begin
-                 if pchar(pc+1)^<>'"' then
-                  begin
-                    if quote='"' then
-                     quote:=' '
-                    else
-                     quote:='"';
-                  end
-                 else
-                  inc(pc);
-               end
+              if quote='"' then
+               quote:=' '
               else
-               inc(arglen);
-            end;
-          '''' :
-            begin
-              if quote<>'"' then
-               begin
-                 if pchar(pc+1)^<>'''' then
-                  begin
-                    if quote=''''  then
-                     quote:=' '
-                    else
-                     quote:='''';
-                  end
-                 else
-                  inc(pc);
-               end
-              else
-               inc(arglen);
-            end;
+               quote:='"';
+            end
+            else
+              inc(pc);
           else
             inc(arglen);
         end;
@@ -274,45 +250,15 @@ begin
                   break;
                end;
              '"' :
-               begin
-                 if quote<>'''' then
-                  begin
-                    if pchar(pc+1)^<>'"' then
-                     begin
-                       if quote='"' then
-                        quote:=' '
-                       else
-                        quote:='"';
-                     end
-                    else
-                     inc(pc);
-                  end
-                 else
-                  begin
-                    arg^:=pc^;
-                    inc(arg);
-                  end;
-               end;
-             '''' :
-               begin
-                 if quote<>'"' then
-                  begin
-                    if pchar(pc+1)^<>'''' then
-                     begin
-                       if quote=''''  then
-                        quote:=' '
-                       else
-                        quote:='''';
-                     end
-                    else
-                     inc(pc);
-                  end
-                 else
-                  begin
-                    arg^:=pc^;
-                    inc(arg);
-                  end;
-               end;
+               if pchar(pc+1)^<>'"' then
+                begin
+                  if quote='"' then
+                   quote:=' '
+                  else
+                   quote:='"';
+                end
+               else
+                inc(pc);
              else
                begin
                  arg^:=pc^;
