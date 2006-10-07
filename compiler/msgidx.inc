@@ -638,7 +638,7 @@ const
   unit_u_second_load_unit=10036;
   unit_u_check_time=10037;
   unit_w_cant_compile_unit_with_changed_incfile=10040;
-  unit_h_source_modified=10041;
+  unit_u_source_modified=10041;
   unit_u_ppu_invalid_fpumode=10042;
   unit_u_loading_interface_units=10043;
   unit_u_loading_implementation_units=10044;

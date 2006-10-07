@@ -696,7 +696,7 @@ const msgtxt : array[0..000171,1..240] of char=(
   '10036_U_Second load for unit $1'#000+
   '10037_U_PPU Check file $1 time $2'#000+
   '10040_W_Can'#039't recompile unit $1, but found modifed include files'#000+
-  '10041_H_Fi','le $1 is newer than Release PPU file $2'#000+
+  '10041_U_Fi','le $1 is newer than Release PPU file $2'#000+
   '10042_U_Using a unit which was not compiled with correct FPU mode'#000+
   '10043_U_Loading interface units from $1'#000+
   '10044_U_Loading implementation units from $1'#000+
