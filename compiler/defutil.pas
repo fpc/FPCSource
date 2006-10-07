@@ -208,11 +208,17 @@ interface
     }
     procedure getrange(def : tdef;var l : TConstExprInt;var h : TConstExprInt);
 
+    { type being a vector? }
+    function is_vector(p : tdef) : boolean;
+
     { some type helper routines for MMX support }
     function is_mmx_able_array(p : tdef) : boolean;
 
     {# returns the mmx type }
     function mmx_type(p : tdef) : tmmxtype;
+
+    { returns if the passed type (array) fits into an mm register }
+    function fits_in_mm_register(p : tdef) : boolean;
 
     {# From a definition return the abstract code generator size enum. It is
        to note that the value returned can be @var(OS_NO) }
@@ -805,6 +811,42 @@ implementation
                      mmx_type:=mmxs32bit;
                 end;
            end;
+      end;
+
+
+    function is_vector(p : tdef) : boolean;
+      begin
+        result:=(p.deftype=arraydef) and
+                not(is_special_array(p)) and
+                (tarraydef(p).elementtype.def.deftype=floatdef) and (tfloatdef(tarraydef(p).elementtype.def).typ in [s32real,s64real]);
+      end;
+
+
+    { returns if the passed type (array) fits into an mm register }
+    function fits_in_mm_register(p : tdef) : boolean;
+      begin
+{$ifdef x86}
+        result:= is_vector(p) and
+                 (
+                  (tarraydef(p).elementtype.def.deftype=floatdef) and
+                  (
+                   (tarraydef(p).lowrange=0) and
+                   (tarraydef(p).highrange=3) and
+                   (tfloatdef(tarraydef(p).elementtype.def).typ=s32real)
+                  )
+                 ) or
+
+                 (
+                  (tarraydef(p).elementtype.def.deftype=floatdef) and
+                  (
+                   (tarraydef(p).lowrange=0) and
+                   (tarraydef(p).highrange=1) and
+                   (tfloatdef(tarraydef(p).elementtype.def).typ=s64real)
+                  )
+                 );
+{$else x86}
+        result:=false;
+{$endif x86}
       end;
 
 

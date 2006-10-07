@@ -229,9 +229,11 @@ implementation
               end;
             arraydef :
               begin
-                { not mmx }
-                if (cs_mmx in aktlocalswitches) and
-                   is_mmx_able_array(ld) then
+                { not vector/mmx }
+                if ((cs_mmx in aktlocalswitches) and
+                   is_mmx_able_array(ld)) or
+                   ((cs_support_vectors in aktglobalswitches) and
+                   is_vector(ld)) then
                  begin
                    allowed:=false;
                    exit;

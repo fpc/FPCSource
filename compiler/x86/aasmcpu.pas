@@ -2435,6 +2435,8 @@ implementation
                 result:=taicpu.op_ref_reg(A_MOVSD,reg2opsize(r),ref,r);
               R_SUBMMS:
                 result:=taicpu.op_ref_reg(A_MOVSS,reg2opsize(r),ref,r);
+              R_SUBMMWHOLE:
+                result:=taicpu.op_ref_reg(A_MOVQ,S_NO,ref,r);
               else
                 internalerror(200506043);
             end;
@@ -2455,6 +2457,8 @@ implementation
                 result:=taicpu.op_reg_ref(A_MOVSD,reg2opsize(r),r,ref);
               R_SUBMMS:
                 result:=taicpu.op_reg_ref(A_MOVSS,reg2opsize(r),r,ref);
+              R_SUBMMWHOLE:
+                result:=taicpu.op_reg_ref(A_MOVQ,S_NO,r,ref);
               else
                 internalerror(200506042);
             end;

@@ -1052,6 +1052,8 @@ begin
                          include(initglobalswitches,cs_constructor_name);
                        't' :
                          include(initmoduleswitches,cs_static_keyword);
+                       'v' :
+                         include(initglobalswitches,cs_support_vectors);
                        '-' :
                          begin
                            exclude(initglobalswitches,cs_constructor_name);

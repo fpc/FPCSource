@@ -55,6 +55,7 @@ unit nx86add;
         procedure second_opmmxset;override;
         procedure second_opmmx;override;
 {$endif SUPPORT_MMX}
+        procedure second_opvector;override;
       end;
 
 
@@ -807,6 +808,52 @@ unit nx86add;
             end;
           end;
         location.resflags:=getresflags(true);
+      end;
+
+
+    procedure tx86addnode.second_opvector;
+      var
+        op : topcg;
+      begin
+        pass_left_right;
+        if (nf_swaped in flags) then
+          swapleftright;
+
+        case nodetype of
+          addn :
+            op:=OP_ADD;
+          muln :
+            op:=OP_MUL;
+          subn :
+            op:=OP_SUB;
+          slashn :
+            op:=OP_DIV;
+          else
+            internalerror(200610071);
+        end;
+
+        if fits_in_mm_register(left.resulttype.def) then
+          begin
+            location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
+            { we can use only right as left operand if the operation is commutative }
+            if (right.location.loc=LOC_MMREGISTER) and (op in [OP_ADD,OP_MUL]) then
+              begin
+                location.register:=right.location.register;
+                cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,op,tfloat2tcgsize[tfloatdef(left.resulttype.def).typ],left.location,location.register,nil);
+              end
+            else
+              begin
+                location_force_mmreg(current_asmdata.CurrAsmList,left.location,false);
+                location.register:=left.location.register;
+                cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,op,
+                  tfloat2tcgsize[tfloatdef(tarraydef(left.resulttype.def).elementtype.def).typ],right.location,location.register,nil);
+              end;
+          end
+        else
+          begin
+            { not yet supported }
+            internalerror(200610072);
+          end
       end;
 
 

@@ -64,6 +64,7 @@ interface
     procedure location_force_fpureg(list:TAsmList;var l: tlocation;maybeconst:boolean);
     procedure location_force_mem(list:TAsmList;var l:tlocation);
     procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;maybeconst:boolean);
+    procedure location_force_mmreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
 
     { Retrieve the location of the data pointed to in location l, when the location is
       a register it is expected to contain the address of the data }
@@ -722,6 +723,23 @@ implementation
             cg.a_loadmm_loc_reg(list,l.size,l,reg,mms_movescalar);
             location_freetemp(list,l);
             location_reset(l,LOC_MMREGISTER,l.size);
+            l.register:=reg;
+          end;
+      end;
+
+
+    procedure location_force_mmreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
+      var
+        reg : tregister;
+        href : treference;
+      begin
+        if (l.loc<>LOC_MMREGISTER)  and
+           ((l.loc<>LOC_CMMREGISTER) or (not maybeconst)) then
+          begin
+            reg:=cg.getmmregister(list,OS_VECTOR);
+            cg.a_loadmm_loc_reg(list,OS_VECTOR,l,reg,nil);
+            location_freetemp(list,l);
+            location_reset(l,LOC_MMREGISTER,OS_VECTOR);
             l.register:=reg;
           end;
       end;

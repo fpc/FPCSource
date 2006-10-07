@@ -56,6 +56,7 @@ interface
           procedure second_opmmx;virtual;abstract;
 {$endif SUPPORT_MMX}
 {$endif x86}
+          procedure second_opvector;virtual;abstract;
           procedure second_add64bit;virtual;
           procedure second_addordinal;virtual;
           procedure second_cmpfloat;virtual;abstract;
@@ -777,6 +778,10 @@ interface
               { support dynarr=nil }
               if is_dynamic_array(left.resulttype.def) then
                 second_opordinal
+              else
+                if (cs_support_vectors in aktglobalswitches) and
+                   is_vector(left.resulttype.def) then
+                  second_opvector
 {$ifdef SUPPORT_MMX}
               else
                 if is_mmx_able_array(left.resulttype.def) then

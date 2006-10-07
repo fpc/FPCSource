@@ -760,7 +760,7 @@ implementation
         lt:=left.nodetype;
 
          { but an int/int gives real/real! }
-         if nodetype=slashn then
+         if (nodetype=slashn) and not(is_vector(left.resulttype.def)) and not(is_vector(right.resulttype.def)) then
           begin
             if is_currency(left.resulttype.def) and
                is_currency(right.resulttype.def) then
@@ -1402,6 +1402,18 @@ implementation
               end;
             end
 {$endif SUPPORT_MMX}
+         { vector support, this must be before the zero based array
+           check }
+         else if (cs_support_vectors in aktglobalswitches) and
+                 is_vector(ld) and
+                 is_vector(rd) and
+                 equal_defs(ld,rd) then
+            begin
+              if not(nodetype in [addn,subn,xorn,orn,andn,muln,slashn]) then
+                CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+              { both defs must be equal, so taking left or right as resulttype doesn't matter }
+              resulttype:=left.resulttype;
+            end
 
          { this is a little bit dangerous, also the left type }
          { pointer to should be checked! This broke the mmx support      }

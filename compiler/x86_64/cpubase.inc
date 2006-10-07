@@ -82,7 +82,7 @@ const
       { the maximum float size for a processor,           }
       OS_FLOAT = OS_F80;
       { the size of a vector register for a processor     }
-      OS_VECTOR = OS_M64;
+      OS_VECTOR = OS_M128;
 
 {*****************************************************************************
                           Generic Register names

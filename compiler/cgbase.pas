@@ -157,7 +157,8 @@ interface
         R_SUBFD,   { = 7; Float that allocates 2 FPU registers }
         R_SUBFQ,   { = 8; Float that allocates 4 FPU registers }
         R_SUBMMS,  { = 9; single scalar in multi media register }
-        R_SUBMMD   { = 10; double scalar in multi media register }
+        R_SUBMMD,  { = 10; double scalar in multi media register }
+        R_SUBMMWHOLE  { = 11; complete MM register, size depends on CPU }
       );
 
       TSuperRegister = type word;
@@ -563,6 +564,8 @@ implementation
             result:=result+'md';
           R_SUBMMS:
             result:=result+'ms';
+          R_SUBMMWHOLE:
+            result:=result+'ma';
           else
             internalerror(200308252);
         end;

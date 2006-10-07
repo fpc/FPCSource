@@ -195,6 +195,8 @@ unit cgx86;
             result:=rg[R_MMREGISTER].getregister(list,R_SUBMMD);
           OS_F32:
             result:=rg[R_MMREGISTER].getregister(list,R_SUBMMS);
+          OS_M128:
+            result:=rg[R_MMREGISTER].getregister(list,R_SUBMMWHOLE);
           else
             internalerror(200506041);
         end;
@@ -1003,10 +1005,10 @@ unit cgx86;
               these
             }
             ( { OS_F32 }
-              A_NOP,A_NOP,A_ADDPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_XORPS
+              A_NOP,A_NOP,A_ADDPS,A_NOP,A_DIVPS,A_NOP,A_NOP,A_MULPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBPS,A_XORPS
             ),
             ( { OS_F64 }
-              A_NOP,A_NOP,A_ADDPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_XORPD
+              A_NOP,A_NOP,A_ADDPD,A_NOP,A_DIVPD,A_NOP,A_NOP,A_MULPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBPD,A_XORPD
             )
           )
         );
@@ -1041,7 +1043,7 @@ unit cgx86;
         else
           internalerror(200312211);
         if asmop=A_NOP then
-          internalerror(200312215);
+          internalerror(200312216);
         case loc.loc of
           LOC_CREFERENCE,LOC_REFERENCE:
             begin

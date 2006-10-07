@@ -127,6 +127,7 @@ than 255 characters. That's why using Ansi Strings}
          cs_load_objpas_unit,
          cs_load_gpc_unit,
          cs_load_fpcylix_unit,
+         cs_support_vectors,
          { browser }
          cs_browser_log,
          { debuginfo }
