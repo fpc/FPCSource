@@ -581,13 +581,6 @@ implementation
 {$endif unix}
      end;
 
-{$ifndef FPC}
-    Procedure FindClose(var Info : SearchRec);
-      Begin
-      End;
-{$endif not FPC}
-
-
     Function FileExists ( Const F : String) : Boolean;
 {$IFDEF USE_SYSUTILS}
 {$ELSE USE_SYSUTILS}

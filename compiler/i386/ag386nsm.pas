@@ -152,11 +152,7 @@ interface
         c  : comp;
         dd : pdouble;
       begin
-{$ifdef FPC}
          c:=comp(d);
-{$else}
-         c:=d;
-{$endif}
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
       end;

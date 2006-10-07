@@ -801,11 +801,7 @@ implementation
                if do_line then
                 AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_comp_64bit(hp).value));
                AsmWrite(#9'.byte'#9);
-{$ifdef FPC}
                co:=comp(tai_comp_64bit(hp).value);
-{$else}
-               co:=tai_comp_64bit(hp).value;
-{$endif}
                { swap the values to correct endian if required }
                if source_info.endian <> target_info.endian then
                  swap64bitarray(t64bitarray(co));

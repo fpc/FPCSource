@@ -166,7 +166,7 @@ unit widestr;
     function unicode2asciichar(c : tcompilerwidechar) : char;
 
       begin
-        {$ifdef fpc}{$warning todo}{$endif}
+{$warning TODO unicode2asciichar}
         unicode2asciichar:=#0;
       end;
 

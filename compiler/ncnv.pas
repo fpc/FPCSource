@@ -2342,7 +2342,7 @@ implementation
          r.obj:=self;
          if not assigned(r.proc) then
            internalerror(200312081);
-         first_call_helper:=tprocedureofobject(r){$ifdef FPC}(){$endif FPC}
+         first_call_helper:=tprocedureofobject(r)()
       end;
 
 

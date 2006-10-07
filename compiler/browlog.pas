@@ -154,11 +154,7 @@ implementation
          else
            begin
              buf[bufidx]:=#0;
-{$ifdef FPC}
              write(stderr,buf);
-{$else FPC}
-             write(buf);
-{$endif FPC}
            end;
         bufidx:=0;
       end;

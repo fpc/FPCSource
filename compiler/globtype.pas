@@ -41,10 +41,6 @@ than 255 characters. That's why using Ansi Strings}
        TCmdStr = String;
 {$ENDIF USE_SYSUTILS}
 
-{$ifndef fpc}
-       qword = int64;
-{$endif fpc}
-
        { Natural integer register type and size for the target machine }
 {$ifdef cpu64bit}
        AWord = qword;

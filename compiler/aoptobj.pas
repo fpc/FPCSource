@@ -488,10 +488,10 @@ Unit AoptObj;
                (Not(Assigned(Ref.Symbol)) or
                 (Ref.base = R_NO)) Then
         { local variable which is not an array }
-              RefsEq := {$ifdef fpc}@{$endif}RefsEqual
+              RefsEq := @RefsEqual
             Else
         { local variable which is an array }
-              RefsEq := {$ifdef fpc}@{$endif}ArrayRefsEq;
+              RefsEq := @ArrayRefsEq;
       {write something to a parameter, a local or global variable, so
          * with uncertain optimizations on:
             - destroy the contents of registers whose contents have somewhere a
@@ -714,7 +714,7 @@ Unit AoptObj;
               (Counter <= Content.NrOfMods) Do
           Begin
             If (p.typ = ait_instruction) And
-               RefInInstruction(Ref, p, {$ifdef fpc}@{$endif}references_equal)
+               RefInInstruction(Ref, p, @references_equal)
               Then TmpResult := True;
             Inc(Counter);
             GetNextInstruction(p,p)
@@ -1055,9 +1055,9 @@ Unit AoptObj;
                                       taicpu(p).condition:=inverse_cond(taicpu(p).condition);
                                       tai_label(hp2).labsym.decrefs;
                                       taicpu(p).oper[0]^.ref^.symbol:=taicpu(hp1).oper[0]^.ref^.symbol;
-                                      { when freeing hp1, the reference count 
+                                      { when freeing hp1, the reference count
                                         isn't decreased, so don't increase
- 
+
                                        taicpu(p).oper[0]^.ref^.symbol.increfs;
                                       }
 {$ifdef SPARC}

@@ -330,14 +330,12 @@ begin
   { Display line }
   if ((status.verbosity and (Level and V_LevelMask))=(Level and V_LevelMask)) then
    begin
-{$ifdef FPC}
      if status.use_stderr then
       begin
         writeln(stderr,hs);
         flush(stderr);
       end
      else
-{$endif}
       begin
         if status.use_redir then
          writeln(status.redirfile,hs)
@@ -348,10 +346,8 @@ begin
   { include everything in the bugreport file }
   if status.use_bugreport then
    begin
-{$ifdef FPC}
      Write(status.reportbugfile,hexstr(level,8)+':');
      Writeln(status.reportbugfile,hs);
-{$endif}
    end;
 end;
 
@@ -360,11 +356,9 @@ function def_internalerror(i : longint) : boolean;
 begin
   do_comment(V_Fatal+V_LineInfo,'Internal error '+tostr(i));
 {$ifdef EXTDEBUG}
-  {$ifdef FPC}
-    { Internalerror() and def_internalerror() do not
-      have a stackframe }
-    dump_stack(stdout,get_caller_frame(get_frame));
-  {$endif FPC}
+  { Internalerror() and def_internalerror() do not
+    have a stackframe }
+  dump_stack(stdout,get_caller_frame(get_frame));
 {$endif EXTDEBUG}
   def_internalerror:=true;
 end;

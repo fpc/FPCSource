@@ -694,9 +694,6 @@ implementation
     procedure TElfObjectOutput.createrelocsection(s:TElfObjSection);
       var
         i    : longint;
-{$ifdef ver2_0_0}
-        relnative,
-{$endif ver2_0_0}
         rel  : telfreloc;
         objreloc : TObjRelocation;
         relsym,
@@ -779,12 +776,7 @@ implementation
                rel.info:=(relsym shl 8) or reltyp;
 {$endif cpu64bit}
                { write reloc }
-{$ifdef ver2_0_0}
-               relnative:=MaybeSwapElfReloc(rel);
-               relocsect.write(relnative,sizeof(rel));
-{$else}
                relocsect.write(MaybeSwapElfReloc(rel),sizeof(rel));
-{$endif ver2_0_0}
              end;
          end;
       end;
@@ -792,9 +784,6 @@ implementation
 
     procedure TElfObjectOutput.write_internal_symbol(astridx:longint;ainfo:byte;ashndx:word);
       var
-{$ifdef ver2_0_0}
-        elfsymnative,
-{$endif ver2_0_0}
         elfsym : telfsymbol;
       begin
         fillchar(elfsym,sizeof(elfsym),0);
@@ -803,12 +792,7 @@ implementation
         elfsym.st_shndx:=ashndx;
         inc(symidx);
         inc(localsyms);
-{$ifdef ver2_0_0}
-        elfsymnative:=MaybeSwapElfSymbol(elfsym);
-        symtabsect.write(elfsymnative,sizeof(elfsym));
-{$else}
         symtabsect.write(MaybeSwapElfSymbol(elfsym),sizeof(elfsym));
-{$endif ver2_0_0}
       end;
 
 
@@ -823,9 +807,6 @@ implementation
 
         procedure WriteSym(objsym:TObjSymbol);
         var
-{$ifdef ver2_0_0}
-          elfsymnative,
-{$endif}
           elfsym : telfsymbol;
         begin
           with elf32data do
@@ -878,12 +859,7 @@ implementation
                 end;
               objsym.symidx:=symidx;
               inc(symidx);
-{$ifdef ver2_0_0}
-              elfsymnative:=MaybeSwapElfSymbol(elfsym);
-              symtabsect.write(elfsymnative,sizeof(elfsym));
-{$else}
               symtabsect.write(MaybeSwapElfSymbol(elfsym),sizeof(elfsym));
-{$endif ver2_0_0}
             end;
         end;
 
@@ -942,9 +918,6 @@ implementation
 
     procedure TElfObjectOutput.writesectionheader(s:TElfObjSection);
       var
-{$ifdef ver2_0_0}
-        sechdrnative,
-{$endif ver2_0_0}
         sechdr : telfsechdr;
       begin
         fillchar(sechdr,sizeof(sechdr),0);
@@ -957,12 +930,7 @@ implementation
         sechdr.sh_info:=s.shinfo;
         sechdr.sh_addralign:=s.secalign;
         sechdr.sh_entsize:=s.shentsize;
-{$ifdef ver2_0_0}
-        sechdrnative:=MaybeSwapSecHeader(sechdr);
-        writer.write(sechdrnative,sizeof(sechdr));
-{$else}
         writer.write(MaybeSwapSecHeader(sechdr),sizeof(sechdr));
-{$endif ver2_0_0}
       end;
 
 
@@ -1014,9 +982,6 @@ implementation
 
     function TElfObjectOutput.writedata(data:TObjData):boolean;
       var
-{$ifdef ver2_0_0}
-        headernative,
-{$endif ver2_0_0}
         header : telfheader;
         shoffset,
         datapos   : aint;
@@ -1095,12 +1060,7 @@ implementation
            header.e_shnum:=nsections;
            header.e_ehsize:=sizeof(telfheader);
            header.e_shentsize:=sizeof(telfsechdr);
-{$ifdef ver2_0_0}
-           headernative:=MaybeSwapHeader(header);
-           writer.write(headernative,sizeof(header));
-{$else}
            writer.write(MaybeSwapHeader(header),sizeof(header));
-{$endif ver2_0_0}
            writer.writezeros($40-sizeof(header)); { align }
            { Sections }
            ObjSectionList.ForEachCall(@section_write_data,nil);

@@ -56,11 +56,7 @@ Procedure Error(const s:string;stop:boolean);
   Write an error message to stderr
 }
 begin
-{$ifdef FPC}
   writeln(stderr,s);
-{$else}
-  writeln(s);
-{$endif}
   if stop then
    halt(1);
 end;
@@ -235,9 +231,7 @@ begin
         DoPPU(SplitPath(InFile)+Dir.Name);
         FindNext(Dir);
       end;
-{$ifdef fpc}
      FindClose(Dir);
-{$endif}
    end;
 { Display the files }
   while assigned(outfiles) do

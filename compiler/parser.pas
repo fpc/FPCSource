@@ -554,7 +554,7 @@ implementation
 {$endif BrowserLog}
                   { Write Browser Collections, also used by the TextMode IDE to
                     retrieve a list of sourcefiles }
-                  do_extractsymbolinfo{$ifdef FPC}(){$endif};
+                  do_extractsymbolinfo();
                 end;
               end;
 

@@ -1,9 +1,8 @@
-{$ifdef FPC}
-  {$mode objfpc}
-  {$asmmode default}
-  {$H-}
-  {$goto on}
-  {$inline on}
+{$mode objfpc}
+{$asmmode default}
+{$H-}
+{$goto on}
+{$inline on}
 
 {$ifdef win32}
   { 256 MB stack }
@@ -20,23 +19,23 @@
   {$endif win64}
 {$endif win32}
 
-  { This reduces the memory requirements a lot }
-  {$PACKENUM 1}
+{ This reduces the memory requirements a lot }
+{$PACKENUM 1}
 
-  { We don't use exceptions, so turn off the implicit
-    exceptions in the constructors }
-  {$IMPLICITEXCEPTIONS OFF}
-  { Inline small functions, but not when EXTDEBUG is used }
-  {$ifndef EXTDEBUG}
-    {$define USEINLINE}
-  {$endif EXTDEBUG}
+{ We don't use exceptions, so turn off the implicit
+  exceptions in the constructors }
+{$IMPLICITEXCEPTIONS OFF}
 
-  {$define USEEXCEPT}
+{ Inline small functions, but not when EXTDEBUG is used }
+{$ifndef EXTDEBUG}
+  {$define USEINLINE}
+{$endif EXTDEBUG}
 
-  {$ifdef cpuarm}
-    {$packrecords c}
-  {$endif cpuarm}
-{$endif}
+{$define USEEXCEPT}
+
+{$ifdef cpuarm}
+  {$packrecords c}
+{$endif cpuarm}
 
 {$ifdef i386}
   {$define x86}

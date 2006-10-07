@@ -30,11 +30,6 @@ uses
   cclasses,
   symconst,symtable;
 
-{$ifndef FPC}
-  type
-    sw_integer = integer;
-{$endif FPC}
-
 const
   SymbolTypLen : integer = 6;
 
@@ -262,7 +257,7 @@ uses
 {$IFDEF USE_SYSUTILS}
   SysUtils,
 {$ELSE USE_SYSUTILS}
-  Dos,{$ifndef FPC}strings,{$endif}
+  Dos,
 {$ENDIF USE_SYSUTILS}
 {$ifdef DEBUG}
   verbose,
@@ -1601,7 +1596,7 @@ end;
   end;
 
 function SearchModule(const Name: string): PModuleSymbol;
-function Match(P: PModuleSymbol): boolean; {$ifndef FPC}far;{$endif}
+function Match(P: PModuleSymbol): boolean;
 begin
   Match:=CompareText(P^.GetName,Name)=0;
 end;
@@ -1899,7 +1894,7 @@ end;
 var
   oldexit : pointer;
 
-procedure browcol_exit;{$ifndef FPC}far;{$endif}
+procedure browcol_exit;
 begin
   exitproc:=oldexit;
   DisposeBrowserCol;
@@ -2035,11 +2030,11 @@ end;
 function LoadBrowserCol(S: PStream): boolean;
 var PD: PPointerDictionary;
 procedure FixupPointers;
-procedure FixupReference(P: PReference); {$ifndef FPC}far;{$endif}
+procedure FixupReference(P: PReference);
 begin
   PD^.Resolve(P^.FileName);
 end;
-procedure FixupSymbol(P: PSymbol); {$ifndef FPC}far;{$endif}
+procedure FixupSymbol(P: PSymbol);
 var I: sw_integer;
 begin
   PD^.Resolve(P^.DType);
@@ -2057,7 +2052,7 @@ end;
 begin
   Modules^.ForEach(@FixupSymbol);
 end;
-procedure ReadSymbolPointers(P: PSymbol); {$ifndef FPC}far;{$endif}
+procedure ReadSymbolPointers(P: PSymbol);
 var I: sw_integer;
     PV: pointer;
 begin
@@ -2101,7 +2096,7 @@ begin
 end;
 
 function StoreBrowserCol(S: PStream) : boolean;
-procedure WriteSymbolPointers(P: PSymbol); {$ifndef FPC}far;{$endif}
+procedure WriteSymbolPointers(P: PSymbol);
 var I: sw_integer;
 begin
   S^.Write(P, SizeOf(P));

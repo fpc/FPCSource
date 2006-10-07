@@ -1810,10 +1810,10 @@ begin
          (assigned(ref.symbol) and
           (ref.base <> NR_NO)) then
         { local/global variable or parameter which is an array }
-        refsEq := {$ifdef fpc}@{$endif}arrayRefsOverlapping
+        refsEq := @arrayRefsOverlapping
       else
         { local/global variable or parameter which is not an array }
-        refsEq := {$ifdef fpc}@{$endif}refsOverlapping;
+        refsEq := @refsOverlapping;
       invalsmemwrite :=
         assigned(c.memwrite) and
         ((not(cs_opt_size in aktoptimizerswitches) and

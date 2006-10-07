@@ -49,9 +49,8 @@ implementation
        cpuinfo,cgbase,dbgbase
        ;
 
-{$ifdef fpc}
-  {$maxfpuregisters 0}
-{$endif fpc}
+{$maxfpuregisters 0}
+
     { this procedure reads typed constants }
     procedure readtypedconst(list:tasmlist;const t:ttype;sym : ttypedconstsym;writable : boolean);
       label
@@ -1069,8 +1068,7 @@ implementation
            list.concatlist(datalist);
          datalist.free;
       end;
-{$ifdef fpc}
-  {$maxfpuregisters default}
-{$endif fpc}
+
+{$maxfpuregisters default}
 
 end.

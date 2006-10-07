@@ -490,9 +490,7 @@ interface
 
     procedure tcgtypeconvnode.second_char_to_char;
       begin
-{$ifdef fpc}
         {$warning todo: add RTL routine for widechar-char conversion }
-{$endif}
         { Quick hack to at least generate 'working' code (PFV) }
         second_int_to_int;
       end;

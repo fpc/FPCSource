@@ -635,29 +635,18 @@ b) tests/webtbs/tw4266.pp
       (HighFound > OrgRegFound))
     then
       begin
-{$ifndef fpc}
-        TmpResult := True;
-{$else fpc}
         CheckSequence := True;
-{$endif fpc}
         prev := highPrev;
         reginfo := HighRegInfo;
         Found := HighFound
       end
     else
       begin
-{$ifndef fpc}
-        TmpResult := OrgRegResult;
-{$else fpc}
         CheckSequence := OrgRegResult;
-{$endif fpc}
         prev := orgPrev;
         Found := OrgRegFound;
         reginfo := OrgRegInfo;
       end;
-{$ifndef fpc}
-  CheckSequence := TmpResult;
-{$endif fpc}
 end; {CheckSequence}
 
 
@@ -970,10 +959,10 @@ begin
 {$endif replaceregdebug}
           exit
         end;
-    
+
       getNextInstruction(p,p);
     end;
-  
+
   tmpState := ptaiprop(p.optinfo)^.Regs[supreg].wState;
   if (newrstate = ptaiprop(p.optinfo)^.Regs[supreg].rState) then
     begin

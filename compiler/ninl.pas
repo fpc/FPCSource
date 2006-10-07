@@ -1078,10 +1078,7 @@ implementation
         result := newblock;
       end;
 
-
-{$ifdef fpc}
 {$maxfpuregisters 0}
-{$endif fpc}
 
     function getpi : bestreal;
       begin
@@ -2565,9 +2562,7 @@ implementation
           end;
          dec(parsing_para_level);
        end;
-{$ifdef fpc}
 {$maxfpuregisters default}
-{$endif fpc}
 
     function tinlinenode.docompare(p: tnode): boolean;
       begin

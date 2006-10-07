@@ -101,9 +101,7 @@ implementation
                                 TADDNODE
 *****************************************************************************}
 
-{$ifdef fpc}
 {$maxfpuregisters 0}
-{$endif fpc}
 
     function getbestreal(const t1,t2 : ttype) : ttype;
       const

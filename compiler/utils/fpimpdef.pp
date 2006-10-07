@@ -1,15 +1,9 @@
 {$APPTYPE CONSOLE}
 program FPimpdef;
 {$DEFINE STANDALONE}
-{$IFNDEF FPC}
-uses
- dmisc,
- ImpDef;
-{$ELSE}
 uses
  DOS,
  ImpDef;
-{$ENDIF}
 var
 binname:string;
 function Ofound(const short,full:string):longint;

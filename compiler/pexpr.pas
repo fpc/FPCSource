@@ -1259,9 +1259,8 @@ implementation
 {****************************************************************************
                                Factor
 ****************************************************************************}
-{$ifdef fpc}
+
   {$maxfpuregisters 0}
-{$endif fpc}
 
     function factor(getaddr : boolean) : tnode;
 
@@ -2527,9 +2526,7 @@ implementation
           p1.fileinfo:=filepos;
         factor:=p1;
       end;
-{$ifdef fpc}
   {$maxfpuregisters default}
-{$endif fpc}
 
 {****************************************************************************
                              Sub_Expr

@@ -14,29 +14,6 @@
  **********************************************************************}
 program fixnasm;
 
-{$ifndef FPC}
-  procedure readln(var t:text;var s:string);
-  var
-    c : char;
-    i : longint;
-  begin
-    c:=#0;
-    i:=0;
-    while (not eof(t)) and (c<>#10) do
-     begin
-       read(t,c);
-       if c<>#10 then
-        begin
-          inc(i);
-          s[i]:=c;
-        end;
-     end;
-    if (i>0) and (s[i]=#13) then
-     dec(i);
-    s[0]:=chr(i);
-  end;
-{$endif}
-
 const
   spaces='                                                       ';
 var

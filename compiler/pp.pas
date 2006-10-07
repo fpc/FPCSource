@@ -58,113 +58,103 @@ program pp;
 {$ifdef VER2_0}
   {$if FPC_PATCH<2}
     {$fatal At least FPC 2.0.2 is required to compile the compiler}
-  {$endif}  
+  {$endif}
 {$endif VER2_0}
 
-{$ifdef FPC}
-   { exactly one target CPU must be defined }
-   {$ifdef I386}
-     {$ifdef CPUDEFINED}
-        {$fatal ONLY one of the switches for the CPU type must be defined}
-     {$endif CPUDEFINED}
-     {$define CPUDEFINED}
-   {$endif I386}
-   {$ifdef x86_64}
-     {$ifdef CPUDEFINED}
-        {$fatal ONLY one of the switches for the CPU type must be defined}
-     {$endif CPUDEFINED}
-     {$define CPUDEFINED}
-   {$endif x86_64}
-   {$ifdef M68K}
-     {$ifdef CPUDEFINED}
-        {$fatal ONLY one of the switches for the CPU type must be defined}
-     {$endif CPUDEFINED}
-     {$define CPUDEFINED}
-   {$endif M68K}
-   {$ifdef vis}
-     {$ifdef CPUDEFINED}
-        {$fatal ONLY one of the switches for the CPU type must be defined}
-     {$endif CPUDEFINED}
-     {$define CPUDEFINED}
-   {$endif}
-   {$ifdef iA64}
-     {$ifdef CPUDEFINED}
-        {$fatal ONLY one of the switches for the CPU type must be defined}
-     {$endif CPUDEFINED}
-     {$define CPUDEFINED}
-   {$endif iA64}
-   {$ifdef POWERPC}
-     {$ifdef CPUDEFINED}
-        {$fatal ONLY one of the switches for the CPU type must be defined}
-     {$endif CPUDEFINED}
-     {$define CPUDEFINED}
-   {$endif POWERPC}
-   {$ifdef POWERPC64}
-     {$ifdef CPUDEFINED}
-        {$fatal ONLY one of the switches for the CPU type must be defined}
-     {$endif CPUDEFINED}
-     {$define CPUDEFINED}
-   {$endif POWERPC64}
-   {$ifdef ALPHA}
-     {$ifdef CPUDEFINED}
-        {$fatal ONLY one of the switches for the CPU type must be defined}
-     {$endif CPUDEFINED}
-     {$define CPUDEFINED}
-   {$endif ALPHA}
-   {$ifdef SPARC}
-     {$ifdef CPUDEFINED}
-        {$fatal ONLY one of the switches for the CPU type must be defined}
-     {$endif CPUDEFINED}
-     {$define CPUDEFINED}
-   {$endif SPARC}
-   {$ifdef ARM}
-     {$ifdef CPUDEFINED}
-        {$fatal ONLY one of the switches for the CPU type must be defined}
-     {$endif CPUDEFINED}
-     {$define CPUDEFINED}
-   {$endif ARM}
-   {$ifdef MIPS}
-     {$ifdef CPUDEFINED}
-        {$fatal ONLY one of the switches for the CPU type must be defined}
-     {$endif CPUDEFINED}
-     {$define CPUDEFINED}
-   {$endif MIPS}
-   {$ifdef AVR}
-     {$ifdef CPUDEFINED}
-        {$fatal ONLY one of the switches for the CPU type must be defined}
-     {$endif CPUDEFINED}
-     {$define CPUDEFINED}
-   {$endif AVR}
-   {$ifndef CPUDEFINED}
-     {$fatal A CPU type switch must be defined}
-   {$endif CPUDEFINED}
-   {$ifdef support_mmx}
-     {$ifndef i386}
-       {$fatal I386 switch must be on for MMX support}
-     {$endif i386}
-   {$endif support_mmx}
+{ exactly one target CPU must be defined }
+{$ifdef I386}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif I386}
+{$ifdef x86_64}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif x86_64}
+{$ifdef M68K}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif M68K}
+{$ifdef vis}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
 {$endif}
+{$ifdef iA64}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif iA64}
+{$ifdef POWERPC}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif POWERPC}
+{$ifdef POWERPC64}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif POWERPC64}
+{$ifdef ALPHA}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif ALPHA}
+{$ifdef SPARC}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif SPARC}
+{$ifdef ARM}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif ARM}
+{$ifdef MIPS}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif MIPS}
+{$ifdef AVR}
+  {$ifdef CPUDEFINED}
+    {$fatal ONLY one of the switches for the CPU type must be defined}
+  {$endif CPUDEFINED}
+  {$define CPUDEFINED}
+{$endif AVR}
+{$ifndef CPUDEFINED}
+  {$fatal A CPU type switch must be defined}
+{$endif CPUDEFINED}
+{$ifdef support_mmx}
+  {$ifndef i386}
+    {$fatal I386 switch must be on for MMX support}
+  {$endif i386}
+{$endif support_mmx}
 
 uses
 {$ifdef cmem}
   cmem,
 {$endif cmem}
-{$ifdef FPC}
-  {$ifdef profile}
-    profile,
-  {$endif profile}
-  {$ifndef NOCATCH}
-    {$ifdef Unix}
-      catch,
-    {$endif}
-    {$ifdef go32v2}
-      catch,
-    {$endif}
-    {$ifdef WATCOM}
-      catch,
-    {$endif}
-  {$endif NOCATCH}
-{$endif FPC}
+{$ifdef profile}
+  profile,
+{$endif profile}
+{$ifndef NOCATCH}
+  {$if defined(Unix) or defined(Go32v2) or defined(Watcom)}
+    catch,
+  {$endif}
+{$endif NOCATCH}
   globals,compiler;
 
 var

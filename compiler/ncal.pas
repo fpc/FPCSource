@@ -903,9 +903,7 @@ type
       begin
         inherited ppuload(t,ppufile);
         ppufile.getderef(symtableprocentryderef);
-{$ifdef fpc}
 {$warning FIXME: No withsymtable support}
-{$endif}
         symtableproc:=nil;
         ppufile.getderef(procdefinitionderef);
         ppufile.getsmallset(callnodeflags);

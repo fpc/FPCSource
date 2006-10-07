@@ -24,119 +24,15 @@ unit compiler;
 
 {$i fpcdefs.inc}
 
-{$ifdef FPC}
-   { One of Alpha, I386 or M68K must be defined }
-   {$UNDEF CPUOK}
-
-   {$ifdef I386}
-   {$define CPUOK}
-   {$endif}
-
-   {$ifdef M68K}
-   {$ifndef CPUOK}
-   {$DEFINE CPUOK}
-   {$else}
-     {$fatal cannot define two CPU switches}
-   {$endif}
-   {$endif}
-
-   {$ifdef alpha}
-   {$ifndef CPUOK}
-   {$DEFINE CPUOK}
-   {$else}
-     {$fatal cannot define two CPU switches}
-   {$endif}
-   {$endif}
-
-   {$ifdef vis}
-   {$ifndef CPUOK}
-   {$DEFINE CPUOK}
-   {$else}
-     {$fatal cannot define two CPU switches}
-   {$endif}
-   {$endif}
-
-
-   {$ifdef powerpc}
-   {$ifndef CPUOK}
-   {$DEFINE CPUOK}
-   {$else}
-     {$fatal cannot define two CPU switches}
-   {$endif}
-   {$endif}
-
-   {$ifdef POWERPC64}
-   {$ifndef CPUOK}
-   {$DEFINE CPUOK}
-   {$else}
-     {$fatal cannot define two CPU switches}
-   {$endif}
-   {$endif}
-
-   {$ifdef ia64}
-   {$ifndef CPUOK}
-   {$DEFINE CPUOK}
-   {$else}
-     {$fatal cannot define two CPU switches}
-   {$endif}
-   {$endif}
-
-   {$ifdef SPARC}
-   {$ifndef CPUOK}
-   {$DEFINE CPUOK}
-   {$else}
-     {$fatal cannot define two CPU switches}
-   {$endif}
-   {$endif}
-
-   {$ifdef x86_64}
-   {$ifndef CPUOK}
-   {$DEFINE CPUOK}
-   {$else}
-     {$fatal cannot define two CPU switches}
-   {$endif}
-   {$endif}
-
-   {$ifdef ARM}
-   {$ifndef CPUOK}
-   {$DEFINE CPUOK}
-   {$else}
-     {$fatal cannot define two CPU switches}
-   {$endif ARM}
-   {$endif ARM}
-
-
-   {$ifdef MIPS}
-   {$ifndef CPUOK}
-   {$DEFINE CPUOK}
-   {$else}
-     {$fatal cannot define two CPU switches}
-   {$endif MIPS}
-   {$endif MIPS}
-
-   {$ifndef CPUOK}
-   {$fatal One of the switches I386, iA64, Alpha, PowerPC or M68K must be defined}
-   {$endif}
-
-   {$ifdef support_mmx}
-     {$ifndef i386}
-       {$fatal I386 switch must be on for MMX support}
-     {$endif i386}
-   {$endif support_mmx}
-{$endif}
-
 interface
 
 uses
-{$ifdef fpc}
-  {$ifdef GO32V2}
+{$ifdef GO32V2}
+  emu387,
+{$endif GO32V2}
+{$ifdef WATCOM}
     emu387,
-  {$endif GO32V2}
-  {$ifdef WATCOM} // wiktor: pewnie nie potrzeba
-    emu387,
-{    dpmiexcp, }
-  {$endif WATCOM}
-{$endif}
+{$endif WATCOM}
 {$ifdef BrowserLog}
   browlog,
 {$endif BrowserLog}
@@ -310,9 +206,7 @@ end;
 
 function Compile(const cmd:string):longint;
 
-{$ifdef fpc}
 {$maxfpuregisters 0}
-{$endif fpc}
 
   procedure writepathlist(w:longint;l:TSearchPathList);
   var
