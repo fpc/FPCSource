@@ -1,6 +1,6 @@
 {
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2006 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -10,13 +10,14 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$IFDEF FPC}
 {$mode objfpc}
+{$ENDIF FPC}
 {$H+}
 {
   TMemDataset : In-memory dataset.
   - Has possibility to copy Structure/Data from other dataset.
   - Can load/save to/from stream.
-
   Ideas taken from THKMemTab Component by Harri Kasulke - Hamburg/Germany
   E-mail: harri.kasulke@okay.net
 }
@@ -30,6 +31,9 @@ uses
   SysUtils, Classes, DB;
 
 Const
+  //Default size used when string size is 0
+  MEMDS_STRING_MAXSIZE = 200;
+
   // Stream Markers.
   MarkerSize  = SizeOf(Integer);
 
@@ -67,6 +71,7 @@ type
     FCurrRecNo: integer;
     FIsOpen: boolean;
     FFilterBuffer: PChar;
+    FFieldOffsetList : TList;
   protected
     // Mandatory
     function  AllocRecordBuffer: PChar; override;
@@ -118,7 +123,14 @@ type
     procedure MDSWriteRecord(Buffer:PChar;ARecNo:Integer);
     procedure MDSAppendRecord(Buffer:PChar);
     function  MDSFilterRecord(Buffer: PChar): Boolean;
-
+    function  MDSGetRecInfo(Buffer: PChar): TMTRecInfo;
+    procedure MDSSetRecInfo(Buffer: PChar;
+                            Flag: TBookmarkFlag); 
+    procedure MDSSetRecInfo(Buffer: PChar;
+                            Flag: TBookmarkFlag;
+                            ABookmark: Longint); 
+    procedure MDSSetRecInfo(Buffer: PChar;
+                            ABookmark: Longint); 
   public
     constructor Create(AOwner:tComponent); override;
     destructor Destroy; override;
@@ -226,6 +238,7 @@ constructor TMemDataset.Create(AOwner:tComponent);
 begin
   inherited create(aOwner);
   FStream:=TMemoryStream.Create;
+  FFieldOffsetList := TList.Create;
   FRecInfoSize:=SizeOf(TMTRecInfo);
   FRecCount:=0;
   FRecSize:=0;
@@ -238,6 +251,7 @@ end;
 Destructor TMemDataset.Destroy;
 begin
   FStream.Free;
+  FFieldOffsetList.Free;
   inherited Destroy;
 end;
 
@@ -247,14 +261,9 @@ begin
 end;
 
 function TMemDataset.MDSGetFieldOffset(FieldNo: integer): integer;
-
-var
-  I : integer;
-
 begin
-  Result:=0;
-  for I:=1 to FieldNo-1 do
-    Result:=Result+MDSGetFieldSize(I);
+  //FFieldOffsetList calculated once in createtable
+  Result:=Integer(FFieldOffsetList.Items[FieldNo-1]);
 end;
 
 Procedure TMemDataset.RaiseError(Fmt : String; Args : Array of const);
@@ -298,7 +307,7 @@ begin
  else
    Buffer:=nil;
  end;
- Result:=(Buffer<>nil);
+ Result:=Assigned(Buffer);
 end;
 
 procedure TMemDataset.MDSReadRecord(Buffer:PChar;ARecNo:Integer);   //Reads a Rec from Stream in Buffer
@@ -334,23 +343,8 @@ end;
 
 procedure TMemDataset.InternalInitRecord(Buffer: PChar);
 
-var
-  I : integer;
-
 begin
- for I:=1 to FieldCount do
-   case FieldDefs.Items[I-1].Datatype of
-     ftString:   pChar(Buffer+MDSGetFieldOffset(I))^:=#0;
-     ftBoolean:  pBoolean(Buffer+MDSGetFieldOffset(I))^:=False;
-     ftFloat:    pFloat(Buffer+MDSGetFieldOffset(I))^:=0;
-     ftLargeint: PInt64(Buffer+MDSGetFieldOffset(I))^:=0;
-     ftSmallInt: pSmallInt(Buffer+MDSGetFieldOffset(I))^:=0;
-     ftInteger:  pInteger(Buffer+MDSGetFieldOffset(I))^:=0;
-     ftCurrency: pFloat(Buffer+MDSGetFieldOffset(I))^:=0;
-     ftDate:     pFloat(Buffer+MDSGetFieldOffset(I))^:=0;
-     ftTime:     pFloat(Buffer+MDSGetFieldOffset(I))^:=0;
-     ftDateTime: pFloat(Buffer+MDSGetFieldOffset(I))^:=0;
-   end;
+ FillChar(Buffer^,FRecSize,0);
 end;
 
 procedure TMemDataset.InternalDelete;
@@ -626,7 +620,6 @@ begin
 end;
 
 function TMemDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
-
 var
   Accepted: Boolean;
 
@@ -657,8 +650,8 @@ begin
     if result=grOK then
       begin
       MDSReadRecord(Buffer, FCurrRecNo);
-      PRecInfo(Buffer+FRecInfoOffset)^.Bookmark:=FCurrRecNo;
-      PRecInfo(Buffer+FRecInfoOffset)^.BookmarkFlag:=bfCurrent;
+      MDSSetRecInfo( Buffer,bfCurrent,FCurrRecNo );
+
       if (Filtered) then
         Accepted:=MDSFilterRecord(Buffer) //Filtering
       else
@@ -721,36 +714,34 @@ var
   ReqBookmark: integer;
 
 begin
-  ReqBookmark:=PRecInfo(Buffer+FRecInfoOffset)^.Bookmark;
+  ReqBookmark:=MDSGetRecInfo(Buffer).Bookmark;
   InternalGotoBookmark (@ReqBookmark);
 end;
 
 function TMemDataset.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
-
 begin
-  Result:=PRecInfo(Buffer+FRecInfoOffset)^.BookmarkFlag;
+ Result:=MDSGetRecInfo(Buffer).BookmarkFlag;
 end;
 
 procedure TMemDataset.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
-
 begin
-  PRecInfo(Buffer+FRecInfoOffset)^.BookmarkFlag := Value;
+  MDSSetRecInfo(Buffer,Value);
 end;
 
 procedure TMemDataset.GetBookmarkData(Buffer: PChar; Data: Pointer);
 
 begin
   if Data<>nil then
-    PInteger(Data)^:=PRecInfo(Buffer+FRecInfoOffset)^.Bookmark;
+    PInteger(Data)^:=MDSGetRecInfo(Buffer).Bookmark;
 end;
 
 procedure TMemDataset.SetBookmarkData(Buffer: PChar; Data: Pointer);
 
 begin
   if Data<>nil then
-    PRecInfo(Buffer+FRecInfoOffset)^.Bookmark:=PInteger(Data)^
+    MDSSetRecInfo(Buffer, PInteger(Data)^)
   else
-    PRecInfo(Buffer+FRecInfoOffset)^.Bookmark:=0;
+    MDSSetRecInfo( Buffer, 0);
 end;
 
 function TMemDataset.MDSFilterRecord(Buffer: PChar): Boolean;
@@ -766,6 +757,44 @@ begin
   FFilterBuffer:=Buffer;
   OnFilterRecord(Self,Result);
   RestoreState(SaveState);
+end;
+
+function  TMemDataset.MDSGetRecInfo(Buffer: PChar): TMTRecInfo;
+begin
+  Move(PRecInfo(Buffer+FRecInfoOffset)^,Result,FRecInfoSize);
+end;
+
+procedure TMemDataset.MDSSetRecInfo(Buffer: PChar;
+                                    Flag: TBookmarkFlag);
+var ARecInfo: TMTRecInfo;
+begin
+  //Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).BookmarkFlag := Flag;
+  ARecInfo:=MDSGetRecInfo(Buffer);
+  ARecInfo.BookmarkFlag:=Flag;
+  Move(ARecInfo,PRecInfo(Buffer+FRecInfoOffset)^,FRecInfoSize);
+end;
+
+procedure TMemDataset.MDSSetRecInfo(Buffer: PChar;
+                                    Flag: TBookmarkFlag;
+                                    ABookmark: Longint);
+var ARecInfo: TMTRecInfo;
+begin
+  //Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).Bookmark := ABookmark;
+  //Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).BookmarkFlag := Flag;
+  ARecInfo:=MDSGetRecInfo(Buffer);
+  ARecInfo.Bookmark:=ABookmark;
+  ARecInfo.BookmarkFlag:=Flag;
+  Move(ARecInfo,PRecInfo(Buffer+FRecInfoOffset)^,FRecInfoSize);
+end;
+
+procedure TMemDataset.MDSSetRecInfo(Buffer: PChar;
+                                    ABookmark: Longint);
+var ARecInfo: TMTRecInfo;
+begin
+  //Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).BookmarkFlag := ABookmark;
+  ARecInfo:=MDSGetRecInfo(Buffer);
+  ARecInfo.Bookmark:=ABookmark;
+  Move(ARecInfo,PRecInfo(Buffer+FRecInfoOffset)^,FRecInfoSize);
 end;
 
 Function TMemDataset.DataSize : Integer;
@@ -796,20 +825,20 @@ begin
 end;
 
 procedure TMemDataset.CreateTable;
-
 var
-  I : integer;
-
+  i, iSize : Longint;
 begin
   FStream.Clear;
   FRecCount:=0;
   FCurrRecNo:=-1;
   FIsOpen:=False;
-  FRecSize:=0;
-  for I:=1 to FieldDefs.Count do
-    FRecSize:=FRecSize+MDSGetFieldSize(I);
-  FRecInfoOffset:=FRecSize;
-  FRecSize:=FRecSize+FRecInfoSize;
+  iSize:=0;
+  for I:=1 to FieldDefs.Count do begin
+    FFieldOffsetList.Add(Pointer(iSize));
+    iSize:=iSize+MDSGetFieldSize(I);
+  end;
+  FRecInfoOffset:=iSize;
+  FRecSize:=iSize+FRecInfoSize;
   FRecBufferSize:=FRecSize;
 end;
 
@@ -857,7 +886,7 @@ end;
 Procedure TMemDataset.CopyFromDataset(DataSet : TDataSet; CopyData : Boolean);
 
 Var
-  I  : Integer;
+  I, iDataSize : Integer;
   F,F1,F2 : TField;
   L1,L2  : TList;
   N : String;
@@ -867,8 +896,12 @@ begin
   // NOT from fielddefs. The data may not be available in buffers !!
   For I:=0 to Dataset.FieldCount-1 do
     begin
-    F:=Dataset.Fields[I];
-    TFieldDef.Create(FieldDefs,F.FieldName,F.DataType,F.Size,F.Required,F.FieldNo);
+     F:=Dataset.Fields[I];
+     if (F.DataType=ftString) and (F.Size=0)
+     then iDataSize:=MEMDS_STRING_MAXSIZE
+     else iDataSize:=F.Size;
+
+     TFieldDef.Create(FieldDefs,F.FieldName,F.DataType,iDataSize,F.Required,F.FieldNo);
     end;
   CreateTable;
   If CopyData then
