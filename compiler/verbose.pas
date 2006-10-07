@@ -68,6 +68,9 @@ interface
     var
       msg : pmessage;
 
+    type
+      tmsgqueueevent = procedure(s:string;v,w:longint) of object;
+
     const
       msgfilename : string = '';
 
@@ -84,16 +87,16 @@ interface
     procedure Internalerror(i:longint);
     procedure Comment(l:longint;s:string);
     function  MessagePchar(w:longint):pchar;
-    procedure Message(w:longint);
-    procedure Message1(w:longint;const s1:string);
-    procedure Message2(w:longint;const s1,s2:string);
-    procedure Message3(w:longint;const s1,s2,s3:string);
-    procedure Message4(w:longint;const s1,s2,s3,s4:string);
-    procedure MessagePos(const pos:tfileposinfo;w:longint);
-    procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:string);
-    procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:string);
-    procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:string);
-    procedure MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:string);
+    procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
+    procedure Message1(w:longint;const s1:string;onqueue:tmsgqueueevent=nil);
+    procedure Message2(w:longint;const s1,s2:string;onqueue:tmsgqueueevent=nil);
+    procedure Message3(w:longint;const s1,s2,s3:string;onqueue:tmsgqueueevent=nil);
+    procedure Message4(w:longint;const s1,s2,s3,s4:string;onqueue:tmsgqueueevent=nil);
+    procedure MessagePos(const pos:tfileposinfo;w:longint;onqueue:tmsgqueueevent=nil);
+    procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:string;onqueue:tmsgqueueevent=nil);
+    procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:string;onqueue:tmsgqueueevent=nil);
+    procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:string;onqueue:tmsgqueueevent=nil);
+    procedure MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:string;onqueue:tmsgqueueevent=nil);
 
     { message calls with codegenerror support }
     procedure cgmessage(t : longint);
@@ -486,13 +489,15 @@ var
       end;
 
 
-    Procedure Msg2Comment(s:string);
+    Procedure Msg2Comment(s:string;w:longint;onqueue:tmsgqueueevent);
       var
         idx,i,v : longint;
         dostop  : boolean;
+        doqueue : boolean;
       begin
       {Reset}
         dostop:=false;
+        doqueue:=false;
         v:=0;
       {Parse options}
         idx:=pos('_',s);
@@ -564,13 +569,22 @@ var
         Delete(s,1,idx);
       { check verbosity level }
         if not CheckVerbosity(v) then
-          exit;
+        begin
+          doqueue := onqueue <> nil;
+          if not doqueue then
+            exit;
+        end;
         if (v and V_LineInfoMask)<>0 then
           v:=v or V_LineInfo;
       { fix status }
         UpdateStatus;
       { Fix replacements }
         DefaultReplacements(s);
+        if doqueue then
+        begin
+          onqueue(s,v,w);
+          exit;
+        end;
       { show comment }
         if do_comment(v,s) or dostop then
           raise ECompilerAbort.Create;
@@ -590,98 +604,98 @@ var
       end;
 
 
-    procedure Message(w:longint);
+    procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[]));
+        Msg2Comment(msg^.Get(w,[]),w,onqueue);
       end;
 
 
-    procedure Message1(w:longint;const s1:string);
+    procedure Message1(w:longint;const s1:string;onqueue:tmsgqueueevent=nil);
 
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1]));
+        Msg2Comment(msg^.Get(w,[s1]),w,onqueue);
       end;
 
 
-    procedure Message2(w:longint;const s1,s2:string);
+    procedure Message2(w:longint;const s1,s2:string;onqueue:tmsgqueueevent=nil);
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2]));
+        Msg2Comment(msg^.Get(w,[s1,s2]),w,onqueue);
       end;
 
 
-    procedure Message3(w:longint;const s1,s2,s3:string);
+    procedure Message3(w:longint;const s1,s2,s3:string;onqueue:tmsgqueueevent=nil);
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2,s3]));
+        Msg2Comment(msg^.Get(w,[s1,s2,s3]),w,onqueue);
       end;
 
 
-    procedure Message4(w:longint;const s1,s2,s3,s4:string);
+    procedure Message4(w:longint;const s1,s2,s3,s4:string;onqueue:tmsgqueueevent=nil);
       begin
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]));
+        Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]),w,onqueue);
       end;
 
 
-    procedure MessagePos(const pos:tfileposinfo;w:longint);
+    procedure MessagePos(const pos:tfileposinfo;w:longint;onqueue:tmsgqueueevent=nil);
       var
         oldpos : tfileposinfo;
       begin
         oldpos:=aktfilepos;
         aktfilepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[]));
+        Msg2Comment(msg^.Get(w,[]),w,onqueue);
         aktfilepos:=oldpos;
       end;
 
 
-    procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:string);
+    procedure MessagePos1(const pos:tfileposinfo;w:longint;const s1:string;onqueue:tmsgqueueevent=nil);
       var
         oldpos : tfileposinfo;
       begin
         oldpos:=aktfilepos;
         aktfilepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1]));
+        Msg2Comment(msg^.Get(w,[s1]),w,onqueue);
         aktfilepos:=oldpos;
       end;
 
 
-    procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:string);
+    procedure MessagePos2(const pos:tfileposinfo;w:longint;const s1,s2:string;onqueue:tmsgqueueevent=nil);
       var
         oldpos : tfileposinfo;
       begin
         oldpos:=aktfilepos;
         aktfilepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2]));
+        Msg2Comment(msg^.Get(w,[s1,s2]),w,onqueue);
         aktfilepos:=oldpos;
       end;
 
 
-    procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:string);
+    procedure MessagePos3(const pos:tfileposinfo;w:longint;const s1,s2,s3:string;onqueue:tmsgqueueevent=nil);
       var
         oldpos : tfileposinfo;
       begin
         oldpos:=aktfilepos;
         aktfilepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2,s3]));
+        Msg2Comment(msg^.Get(w,[s1,s2,s3]),w,onqueue);
         aktfilepos:=oldpos;
       end;
 
 
-    procedure MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:string);
+    procedure MessagePos4(const pos:tfileposinfo;w:longint;const s1,s2,s3,s4:string;onqueue:tmsgqueueevent=nil);
       var
         oldpos : tfileposinfo;
       begin
         oldpos:=aktfilepos;
         aktfilepos:=pos;
         MaybeLoadMessageFile;
-        Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]));
+        Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]),w,onqueue);
         aktfilepos:=oldpos;
       end;
 
