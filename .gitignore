@@ -87,6 +87,11 @@ compiler/powerpc/*.ppu
 compiler/powerpc/*.s
 compiler/powerpc/fpcmade.*
 compiler/powerpc/units
+compiler/ppc1
+compiler/ppc2
+compiler/ppc3
+compiler/ppc386
+compiler/ppcrossx64
 compiler/sparc/*.bak
 compiler/sparc/*.exe
 compiler/sparc/*.o
@@ -107,7 +112,14 @@ compiler/utils/*.exe
 compiler/utils/*.o
 compiler/utils/*.ppu
 compiler/utils/*.s
+compiler/utils/fpc
 compiler/utils/fpcmade.*
+compiler/utils/fpcmkcfg
+compiler/utils/fpcsubst
+compiler/utils/fppkg
+compiler/utils/ppudump
+compiler/utils/ppufiles
+compiler/utils/ppumove
 compiler/utils/units
 compiler/vis/*.bak
 compiler/vis/*.exe
