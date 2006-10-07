@@ -1183,10 +1183,16 @@ implementation
                     if (cs_extsyntax in aktmoduleswitches) then
                       begin
                         if is_voidpointer(right.resulttype.def) then
+                        begin
+                          if is_untyped_addrnode(right) then
+                            CGMessage1(type_w_untyped_arithmetic_unportable,node2opstr(nodetype));
                           inserttypeconv(right,left.resulttype)
-                        else if is_voidpointer(left.resulttype.def) then
+                        end else if is_voidpointer(left.resulttype.def) then
+                        begin
+                          if is_untyped_addrnode(left) then
+                            CGMessage1(type_w_untyped_arithmetic_unportable,node2opstr(nodetype));
                           inserttypeconv(left,right.resulttype)
-                        else if not(equal_defs(ld,rd)) then
+                        end else if not(equal_defs(ld,rd)) then
                           IncompatibleTypes(ld,rd);
                       end
                     else
@@ -1199,22 +1205,6 @@ implementation
                         include(hp.flags,nf_has_pointerdiv);
                         result:=cmoddivnode.create(divn,hp,cordconstnode.create(tpointerdef(rd).pointertype.def.size,sinttype,false));
                       end;
-                    resulttype:=sinttype;
-                    exit;
-                 end;
-               addn:
-                 begin
-                    if (cs_extsyntax in aktmoduleswitches) then
-                     begin
-                       if is_voidpointer(right.resulttype.def) then
-                         inserttypeconv(right,left.resulttype)
-                       else if is_voidpointer(left.resulttype.def) then
-                         inserttypeconv(left,right.resulttype)
-                       else if not(equal_defs(ld,rd)) then
-                         IncompatibleTypes(ld,rd);
-                     end
-                    else
-                      CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                     resulttype:=sinttype;
                     exit;
                  end;
@@ -1459,13 +1449,16 @@ implementation
                  if not(cs_extsyntax in aktmoduleswitches) or
                     (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
-                 if (ld.deftype=pointerdef) and
-                    (tpointerdef(ld).pointertype.def.size>1) then
+                 if (ld.deftype=pointerdef) then
+                 begin
+                   if is_untyped_addrnode(left) then
+                     CGMessage1(type_w_untyped_arithmetic_unportable,node2opstr(nodetype));
+                   if (tpointerdef(ld).pointertype.def.size>1) then
                    begin
                      right:=caddnode.create(muln,right,
                        cordconstnode.create(tpointerdef(ld).pointertype.def.size,sinttype,true));
                    end
-                 else
+                 end else
                    if is_zero_based_array(ld) and
                       (tarraydef(ld).elementtype.def.size>1) then
                      begin

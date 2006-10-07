@@ -1520,6 +1520,8 @@ implementation
                      if convtype in [tc_equal,tc_not_possible] then
                       begin
                         left.resulttype:=resulttype;
+                        if (nf_explicit in flags) and (left.nodetype = addrn) then
+                          include(left.flags, nf_typedaddr);
                         result:=left;
                         left:=nil;
                         exit;

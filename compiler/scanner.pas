@@ -265,11 +265,13 @@ implementation
         else
          if s='FPC' then begin
           aktmodeswitches:=fpcmodeswitches;
-          include(aktlocalswitches, cs_typed_addresses);
+          { TODO: enable this for 2.3/2.9 }
+          //  include(aktlocalswitches, cs_typed_addresses);
         end else
          if s='OBJFPC' then begin
           aktmodeswitches:=objfpcmodeswitches;
-          include(aktlocalswitches, cs_typed_addresses);
+          { TODO: enable this for 2.3/2.9 }
+          //  include(aktlocalswitches, cs_typed_addresses);
         end else
          if s='GPC' then
           aktmodeswitches:=gpcmodeswitches
