@@ -1303,7 +1303,7 @@ type_h_smaller_possible_range_check=04049_H_Type size mismatch, possible loss of
 % this may cause a range-check error, or may lead to possible loss of data.
 type_e_cant_take_address_of_abstract_method=04050_E_The address of an abstract method can't be taken
 % An abstract method has no body, so the address of an abstract method can't be taken.
-type_e_operator_not_allowed=04051_E_The operator is not applicable for the operand type
+type_e_operator_not_allowed=04051_E_The operator "$1" is not applicable for the operand type combination "$2" and "$3"
 % You are trying an operator that is not available for the type of the
 % operands
 type_e_constant_expr_expected=04052_E_Constant Expression expected
@@ -1346,6 +1346,8 @@ type_e_no_packed_inittable=04064_E_Elements of packed arrays cannot be of a type
 type_e_no_const_packed_record=04065_E_Constant packed records and objects are not yet supported
 % You cannot declare a (bit)packed array as a typed constant at this time.
 % \end{description}
+type_w_untyped_arithmetic_unportable=04066_W_Arithmetic "$1" on untyped pointer is unportable to {$T+}, suggest typecast
+% Addition/subtraction from untyped pointer may work differently in {$T+}, use typecast to typed pointer
 #
 # Symtable
 #
