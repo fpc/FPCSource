@@ -158,6 +158,9 @@ var
   end;
 
 begin
+  cmdline:=nil;
+  if i>=argc then
+    exit;
   GetMem(buf,ARG_MAX);
   size:=0;
   bufsize:=0;
