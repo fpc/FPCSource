@@ -33,6 +33,9 @@ Procedure FileWriteFunc(var t:TextRec);
 var
   i : longint;
 Begin
+  { prevent unecessary system call }
+  if t.BufPos=0 then
+    exit;
   i:=Do_Write(t.Handle,t.Bufptr,t.BufPos);
   if i<>t.BufPos then
     InOutRes:=101;
