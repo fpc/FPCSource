@@ -1728,7 +1728,7 @@ const
       idtok:_INTERRUPT;
       pd_flags : [pd_implemen,pd_body,pd_notobject,pd_notobjintf];
       handler  : @pd_interrupt;
-      pocall   : pocall_none;
+      pocall   : pocall_oldfpccall;
       pooption : [po_interrupt];
       mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,pocall_stdcall,
                        pocall_pascal,pocall_far16,pocall_oldfpccall];
