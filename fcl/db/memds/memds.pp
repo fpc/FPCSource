@@ -773,7 +773,6 @@ end;
 procedure TMemDataset.MDSSetRecInfo(Buffer: PChar;
                                     Flag: TBookmarkFlag;
                                     ABookmark: Longint);
-var ARecInfo: TMTRecInfo;
 begin
   Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).Bookmark := ABookmark;
   Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).BookmarkFlag := Flag;
@@ -781,9 +780,8 @@ end;
 
 procedure TMemDataset.MDSSetRecInfo(Buffer: PChar;
                                     ABookmark: Longint);
-var ARecInfo: TMTRecInfo;
 begin
-  Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).BookmarkFlag := ABookmark;
+  Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).Bookmark := ABookmark;
 end;
 
 Function TMemDataset.DataSize : Integer;
