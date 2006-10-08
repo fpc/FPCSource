@@ -2298,9 +2298,11 @@ end;
 
 initialization
 
-  {$IFDEF WIN32}
+  { according to bug 7570, this is necessary on all x86 platforms,
+    maybe we've to fix the sse control word as well }
+  {$ifdef x86}
   Set8087CW($133F);
-  {$ENDIF WIN32}
+  {$endif x86}
 
   {$IFDEF Win32}
   LoadOpenGL('opengl32.dll');
