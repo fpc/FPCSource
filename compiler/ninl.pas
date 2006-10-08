@@ -2553,7 +2553,7 @@ implementation
 {$ifdef SUPPORT_UNALIGNED}
          in_unaligned_x:
            begin
-             expectloc:=left.expectloc;
+             expectloc:=tcallparanode(left).left.expectloc;
            end;
 {$endif SUPPORT_UNALIGNED}
           else
