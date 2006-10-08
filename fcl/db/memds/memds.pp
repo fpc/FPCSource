@@ -125,12 +125,12 @@ type
     function  MDSFilterRecord(Buffer: PChar): Boolean;
     function  MDSGetRecInfo(Buffer: PChar): TMTRecInfo;
     procedure MDSSetRecInfo(Buffer: PChar;
-                            Flag: TBookmarkFlag); 
+                            Flag: TBookmarkFlag);
     procedure MDSSetRecInfo(Buffer: PChar;
                             Flag: TBookmarkFlag;
-                            ABookmark: Longint); 
+                            ABookmark: Longint);
     procedure MDSSetRecInfo(Buffer: PChar;
-                            ABookmark: Longint); 
+                            ABookmark: Longint);
   public
     constructor Create(AOwner:tComponent); override;
     destructor Destroy; override;
@@ -766,12 +766,8 @@ end;
 
 procedure TMemDataset.MDSSetRecInfo(Buffer: PChar;
                                     Flag: TBookmarkFlag);
-var ARecInfo: TMTRecInfo;
 begin
-  //Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).BookmarkFlag := Flag;
-  ARecInfo:=MDSGetRecInfo(Buffer);
-  ARecInfo.BookmarkFlag:=Flag;
-  Move(ARecInfo,PRecInfo(Buffer+FRecInfoOffset)^,FRecInfoSize);
+  Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).BookmarkFlag := Flag;
 end;
 
 procedure TMemDataset.MDSSetRecInfo(Buffer: PChar;
@@ -779,22 +775,15 @@ procedure TMemDataset.MDSSetRecInfo(Buffer: PChar;
                                     ABookmark: Longint);
 var ARecInfo: TMTRecInfo;
 begin
-  //Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).Bookmark := ABookmark;
-  //Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).BookmarkFlag := Flag;
-  ARecInfo:=MDSGetRecInfo(Buffer);
-  ARecInfo.Bookmark:=ABookmark;
-  ARecInfo.BookmarkFlag:=Flag;
-  Move(ARecInfo,PRecInfo(Buffer+FRecInfoOffset)^,FRecInfoSize);
+  Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).Bookmark := ABookmark;
+  Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).BookmarkFlag := Flag;
 end;
 
 procedure TMemDataset.MDSSetRecInfo(Buffer: PChar;
                                     ABookmark: Longint);
 var ARecInfo: TMTRecInfo;
 begin
-  //Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).BookmarkFlag := ABookmark;
-  ARecInfo:=MDSGetRecInfo(Buffer);
-  ARecInfo.Bookmark:=ABookmark;
-  Move(ARecInfo,PRecInfo(Buffer+FRecInfoOffset)^,FRecInfoSize);
+  Unaligned(PRecInfo(Buffer+FRecInfoOffset)^).BookmarkFlag := ABookmark;
 end;
 
 Function TMemDataset.DataSize : Integer;
