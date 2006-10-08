@@ -66,9 +66,6 @@ begin
   expectloc := LOC_FPUREGISTER;
   registersint := left.registersint;
   registersfpu := max(left.registersfpu, 1);
-{$IFDEF SUPPORT_MMX}
-  registersmmx := left.registersmmx;
-{$ENDIF SUPPORT_MMX}
   first_abs_real := nil;
 end;
 
@@ -77,9 +74,6 @@ begin
   expectloc := LOC_FPUREGISTER;
   registersint := left.registersint;
   registersfpu := max(left.registersfpu, 1);
-{$IFDEF SUPPORT_MMX}
-  registersmmx := left.registersmmx;
-{$ENDIF SUPPORT_MMX}
   first_sqr_real := nil;
 end;
 
@@ -107,10 +101,17 @@ begin
 end;
 
 procedure tppcinlinenode.second_sqr_real;
+var
+  op : TAsmOp;
 begin
   location.loc := LOC_FPUREGISTER;
   load_fpu_location;
-  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FMUL, location.register,
+  if (left.location.size = OS_F32) then
+    op := A_FMULS
+  else
+    op := A_FMUL;
+
+  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op, location.register,
     left.location.register, left.location.register));
 end;
 

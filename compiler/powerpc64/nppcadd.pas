@@ -370,19 +370,33 @@ procedure tppcaddnode.second_addfloat;
 var
   op: TAsmOp;
   cmpop: boolean;
+  singleprec: boolean;
 begin
   pass_left_and_right;
 
+  singleprec := tfloatdef(left.resulttype.def).typ = s32real;
   cmpop := false;
   case nodetype of
     addn:
-      op := A_FADD;
+	  if (singleprec) then
+	    op := A_FADDS
+	  else
+        op := A_FADD;
     muln:
-      op := A_FMUL;
+	  if (singleprec) then
+	    op := A_FMULS
+	  else
+        op := A_FMUL;
     subn:
-      op := A_FSUB;
+	  if (singleprec) then
+	    op := A_FSUBS
+	  else
+        op := A_FSUB;
     slashn:
-      op := A_FDIV;
+	  if (singleprec) then
+	    op := A_FDIVS
+	  else
+        op := A_FDIV;
     ltn, lten, gtn, gten,
       equaln, unequaln:
       begin

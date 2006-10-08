@@ -404,7 +404,7 @@ function dwarf_reg(r:tregister):shortint;
 implementation
 
 uses
-  rgBase, verbose;
+  rgBase, verbose, itcpugas;
 
 const
   std_regname_table: array[tregisterindex] of string[7] = (
@@ -421,15 +421,15 @@ const
 
   {*****************************************************************************
                                     Helpers
-  *****************************************************************************}
+  ***************** ************************************************************}
 
 function is_calljmp(o: tasmop): boolean;
 begin
   is_calljmp := false;
   case o of
     A_B, A_BA, A_BL, A_BLA, A_BC, A_BCA, A_BCL, A_BCLA, A_BCCTR, A_BCCTRL,
-      A_BCLR,
-      A_BCLRL, A_TW, A_TWI: is_calljmp := true;
+    A_BCLR, A_BF, A_BT,
+    A_BCLRL, A_TW, A_TWI: is_calljmp := true;
   end;
 end;
 
@@ -511,10 +511,12 @@ end;
 function reg_cgsize(const reg: tregister): tcgsize;
 begin
   case getregtype(reg) of
-    R_MMREGISTER,
-      R_FPUREGISTER,
-      R_INTREGISTER:
+    R_INTREGISTER:
       result := OS_64;
+    R_MMREGISTER:
+	  result := OS_M128;
+    R_FPUREGISTER:
+	  result := OS_F64;
   else
     internalerror(200303181);
   end;
