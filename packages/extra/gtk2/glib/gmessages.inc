@@ -8,11 +8,7 @@
   { calculate a string size, guarranteed to fit format + args.
   }
 
-{$IFNDEF KYLIX}
-  function g_printf_string_upper_bound(format:Pgchar; args:array of const):gsize;cdecl;external gliblib name 'g_printf_string_upper_bound';
-{$ELSE}
   function g_printf_string_upper_bound(format:Pgchar):gsize;varargs;cdecl;external gliblib name 'g_printf_string_upper_bound';
-{$ENDIF}
 
   { Log level shift offset for user defined
      log levels (0-7 are used by GLib).
@@ -56,17 +52,8 @@
 
   procedure g_log_default_handler(log_domain:Pgchar; log_level:TGLogLevelFlags; TheMessage:Pgchar; unused_data:gpointer);cdecl;external gliblib name 'g_log_default_handler';
 
-{$IFNDEF KYLIX}
-  procedure g_log(log_domain:Pgchar; log_level:TGLogLevelFlags; format:Pgchar; args:array of const);cdecl;overload;external gliblib name 'g_log';
-  procedure g_log(log_domain:Pgchar; log_level:TGLogLevelFlags; format:Pgchar);cdecl;overload;varargs;external gliblib name 'g_log';
-
-  procedure g_logv(log_domain:Pgchar; log_level:TGLogLevelFlags; format:Pgchar; args:array of const);cdecl;overload;external gliblib name 'g_logv';
-  procedure g_logv(log_domain:Pgchar; log_level:TGLogLevelFlags; format:Pgchar);cdecl;overload;varargs;external gliblib name 'g_logv';
-{$ELSE}
   procedure g_log(log_domain:Pgchar; log_level:TGLogLevelFlags; format:Pgchar);varargs;cdecl;external gliblib name 'g_log';
   procedure g_logv(log_domain:Pgchar; log_level:TGLogLevelFlags; format:Pgchar);varargs;cdecl;external gliblib name 'g_logv';
-{$ENDIF}
-
 
   function g_log_set_fatal_mask(log_domain:Pgchar; fatal_mask:TGLogLevelFlags):TGLogLevelFlags;cdecl;external gliblib name 'g_log_set_fatal_mask';
 
@@ -101,22 +88,12 @@
     type
       TGPrintFunc = procedure   (_string: pgchar);
 
-{$IFNDEF KYLIX}
-    procedure g_print(format:Pgchar; args:array of const);cdecl;overload;external gliblib name 'g_print';
-    procedure g_print(format:Pgchar);cdecl;overload;varargs;external gliblib name 'g_print';
-{$ELSE}
     procedure g_print(format:Pgchar);varargs;cdecl;external gliblib name 'g_print';
-{$ENDIF}
 
     function g_set_print_handler(func:TGPrintFunc):TGPrintFunc;cdecl;external gliblib name 'g_set_print_handler';
 
 
-{$IFNDEF KYLIX}
-    procedure g_printerr(format:Pgchar; args:array of const);cdecl;overload;external gliblib name 'g_printerr';
-    procedure g_printerr(format:Pgchar);cdecl;overload;varargs;external gliblib name 'g_printerr';
-{$ELSE}
     procedure g_printerr(format:Pgchar);varargs;cdecl;external gliblib name 'g_printerr';
-{$ENDIF}
 
     function g_set_printerr_handler(func:TGPrintFunc):TGPrintFunc;cdecl;external gliblib name 'g_set_printerr_handler';
 

@@ -14,7 +14,6 @@ Const
 
 function sem_init(__sem:Psem_t; __pshared:longint; __value:dword):longint;cdecl;external threadslib name 'sem_init';
 function sem_destroy(__sem:Psem_t):longint;cdecl;external threadslib name 'sem_destroy';
-function sem_open(__name:Pchar; __oflag:longint; args:array of const):Psem_t;cdecl;external threadslib name 'sem_open';
 function sem_open(__name:Pchar; __oflag:longint):Psem_t;cdecl;varargs;external threadslib name 'sem_open';
 function sem_close(__sem:Psem_t):longint;cdecl;external threadslib name 'sem_close';
 function sem_unlink(__name:Pchar):longint;cdecl;external threadslib name 'sem_unlink';

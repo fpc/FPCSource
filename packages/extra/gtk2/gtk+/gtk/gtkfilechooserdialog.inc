@@ -31,12 +31,9 @@ function GTK_FILE_CHOOSER_DIALOG_GET_CLASS(obj : pointer) : PGtkFileChooserDialo
 
 function gtk_file_chooser_dialog_get_type:GType;cdecl;external gtklib name 'gtk_file_chooser_dialog_get_type';
 
-function gtk_file_chooser_dialog_new(title:Pgchar; parent:PGtkWindow; action:TGtkFileChooserAction; first_button_text:Pgchar; args:array of const):PGtkWidget;cdecl;overload;external gtklib name 'gtk_file_chooser_dialog_new';
 function gtk_file_chooser_dialog_new(title:Pgchar; parent:PGtkWindow; action:TGtkFileChooserAction; first_button_text:Pgchar):PGtkWidget;cdecl;overload;varargs;external gtklib name 'gtk_file_chooser_dialog_new';
 
-function gtk_file_chooser_dialog_new_with_backend(title:Pgchar; parent:PGtkWindow; action:TGtkFileChooserAction; backend:Pgchar; first_button_text:Pgchar;
-                                                  args:array of const):PGtkWidget;cdecl;overload;external gtklib name 'gtk_file_chooser_dialog_new_with_backend';
-function gtk_file_chooser_dialog_new_with_backend(title:Pgchar; parent:PGtkWindow; action:TGtkFileChooserAction; backend:Pgchar; first_button_text:Pgchar):PGtkWidget;cdecl;overload;external gtklib name 'gtk_file_chooser_dialog_new_with_backend';
+function gtk_file_chooser_dialog_new_with_backend(title:Pgchar; parent:PGtkWindow; action:TGtkFileChooserAction; backend:Pgchar; first_button_text:Pgchar):PGtkWidget;cdecl;overload;varargs;external gtklib name 'gtk_file_chooser_dialog_new_with_backend';
 
 {$endif} {read_interface_rest}
 

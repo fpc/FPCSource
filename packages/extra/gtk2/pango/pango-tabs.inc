@@ -19,12 +19,7 @@
 function PANGO_TYPE_TAB_ARRAY : GType;
 
 function pango_tab_array_new(initial_size:gint; positions_in_pixels:gboolean):PPangoTabArray; cdecl; external pangolib;
-{$IFNDEF KYLIX}
-function pango_tab_array_new_with_positions(size:gint; positions_in_pixels:gboolean; first_alignment:TPangoTabAlign; first_position:gint; args:array of const):PPangoTabArray; cdecl; overload; external pangolib;
-function pango_tab_array_new_with_positions(size:gint; positions_in_pixels:gboolean; first_alignment:TPangoTabAlign; first_position:gint):PPangoTabArray; cdecl; overload; varargs; external pangolib;
-{$ELSE}
 function pango_tab_array_new_with_positions(size:gint; positions_in_pixels:gboolean; first_alignment:TPangoTabAlign; first_position:gint):PPangoTabArray; varargs; cdecl; external pangolib;
-{$ENDIF}
 function pango_tab_array_get_type:GType; cdecl; external pangolib;
 function pango_tab_array_copy(src:PPangoTabArray):PPangoTabArray; cdecl; external pangolib;
 procedure pango_tab_array_free(tab_array:PPangoTabArray); cdecl; external pangolib;

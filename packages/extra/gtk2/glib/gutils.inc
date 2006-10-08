@@ -52,14 +52,8 @@
 
     function g_parse_debug_string(_string:Pgchar; keys:PGDebugKey; nkeys:guint):guint;cdecl;external gliblib name 'g_parse_debug_string';
 
-{$IFNDEF KYLIX}
-    function g_snprintf(_string:Pgchar; n:gulong; format:Pgchar; args:array of const):gint;cdecl;overload;external gliblib name 'g_snprintf';
-    function g_snprintf(_string:Pgchar; n:gulong; format:Pgchar):gint;cdecl;overload;varargs;external gliblib name 'g_snprintf';
-    function g_vsnprintf(_string:Pgchar; n:gulong; format:Pgchar; args:array of const):gint;cdecl;external gliblib name 'g_vsnprintf';
-{$ELSE}
     function g_snprintf(_string:Pgchar; n:gulong; format:Pgchar):gint;varargs;cdecl;external gliblib name 'g_snprintf';
     function g_vsnprintf(_string:Pgchar; n:gulong; format:Pgchar):gint;varargs;cdecl;external gliblib name 'g_vsnprintf';
-{$ENDIF}
 
     { Check if a file name is an absolute path  }
 

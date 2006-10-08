@@ -85,13 +85,7 @@ function gtk_bindings_activate(anObject:PGtkObject; keyval:guint; modifiers:TGdk
 function gtk_binding_set_activate(binding_set:PGtkBindingSet; keyval:guint; modifiers:TGdkModifierType; anObject:PGtkObject):gboolean; cdecl; external gtklib;
 
 procedure gtk_binding_entry_clear(binding_set:PGtkBindingSet; keyval:guint; modifiers:TGdkModifierType); cdecl; external gtklib;
-{$IFNDEF KYLIX}
-procedure gtk_binding_entry_add_signal(binding_set:PGtkBindingSet; keyval:guint; modifiers:TGdkModifierType; signal_name:Pgchar; n_args:guint;
-            args:array of const); cdecl; overload; external gtklib;
-procedure gtk_binding_entry_add_signal(binding_set:PGtkBindingSet; keyval:guint; modifiers:TGdkModifierType; signal_name:Pgchar; n_args:guint); cdecl; overload; varargs; external gtklib;
-{$ELSE}
 procedure gtk_binding_entry_add_signal(binding_set:PGtkBindingSet; keyval:guint; modifiers:TGdkModifierType; signal_name:Pgchar; n_args:guint); varargs; cdecl; external gtklib;
-{$ENDIF}
 procedure gtk_binding_set_add_path(binding_set:PGtkBindingSet; path_type:TGtkPathType; path_pattern:Pgchar; priority:TGtkPathPriorityType); cdecl; external gtklib;
 { Non-public methods  }
 procedure gtk_binding_entry_remove(binding_set:PGtkBindingSet; keyval:guint; modifiers:TGdkModifierType); cdecl; external gtklib;

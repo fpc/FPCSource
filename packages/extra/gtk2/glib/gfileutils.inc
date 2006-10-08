@@ -64,13 +64,6 @@
     { Wrapper for g_mkstemp  }
     function g_file_open_tmp(tmpl:Pchar; name_used:PPchar; error:PPGError):longint;cdecl;external gliblib name 'g_file_open_tmp';
 
-{$IFNDEF KYLIX}
-    function g_build_path(separator:Pgchar; first_element:Pgchar; args:array of const):Pgchar;cdecl;overload;external gliblib name 'g_build_path';
-    function g_build_path(separator:Pgchar; first_element:Pgchar):Pgchar;cdecl;overload;varargs;external gliblib name 'g_build_path';
-    function g_build_filename(first_element:Pgchar; args:array of const):Pgchar;cdecl;overload;external gliblib name 'g_build_filename';
-    function g_build_filename(first_element:Pgchar):Pgchar;cdecl;overload;varargs;external gliblib name 'g_build_filename';
-{$ELSE}
     function g_build_path(separator:Pgchar; first_element:Pgchar):Pgchar;varargs;cdecl;external gliblib name 'g_build_path';
     function g_build_filename(first_element:Pgchar):Pgchar;varargs;cdecl;external gliblib name 'g_build_filename';
-{$ENDIF}
 

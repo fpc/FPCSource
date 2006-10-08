@@ -100,12 +100,7 @@ function gtk_tree_view_get_rules_hint(tree_view:PGtkTreeView):gboolean; cdecl; e
 function gtk_tree_view_append_column(tree_view:PGtkTreeView; column:PGtkTreeViewColumn):gint; cdecl; external gtklib;
 function gtk_tree_view_remove_column(tree_view:PGtkTreeView; column:PGtkTreeViewColumn):gint; cdecl; external gtklib;
 function gtk_tree_view_insert_column(tree_view:PGtkTreeView; column:PGtkTreeViewColumn; position:gint):gint; cdecl; external gtklib;
-{$IFNDEF KYLIX}
-function gtk_tree_view_insert_column_with_attributes(tree_view:PGtkTreeView; position:gint; title:Pgchar; cell:PGtkCellRenderer; args:array of const):gint; cdecl; overload; external gtklib;
-function gtk_tree_view_insert_column_with_attributes(tree_view:PGtkTreeView; position:gint; title:Pgchar; cell:PGtkCellRenderer):gint; cdecl; overload; varargs; external gtklib;
-{$ELSE}
 function gtk_tree_view_insert_column_with_attributes(tree_view:PGtkTreeView; position:gint; title:Pgchar; cell:PGtkCellRenderer):gint; varargs; cdecl; external gtklib;
-{$ENDIF}
 function gtk_tree_view_insert_column_with_data_func(tree_view:PGtkTreeView; position:gint; title:Pgchar; cell:PGtkCellRenderer; func:TGtkTreeCellDataFunc;
            data:gpointer; dnotify:TGDestroyNotify):gint; cdecl; external gtklib;
 function gtk_tree_view_get_column(tree_view:PGtkTreeView; n:gint):PGtkTreeViewColumn; cdecl; external gtklib;

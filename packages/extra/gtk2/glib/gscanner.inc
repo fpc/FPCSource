@@ -298,16 +298,8 @@
                 _message:Pgchar; is_error:gint);cdecl;external gliblib name 'g_scanner_unexp_token';
 
 
-{$IFNDEF KYLIX}
-    procedure g_scanner_error(scanner:PGScanner; format:Pgchar; args:array of const);cdecl;overload;external gliblib name 'g_scanner_error';
-    procedure g_scanner_error(scanner:PGScanner; format:Pgchar);cdecl;overload;varargs;external gliblib name 'g_scanner_error';
-
-    procedure g_scanner_warn(scanner:PGScanner; format:Pgchar; args:array of const);cdecl;overload;external gliblib name 'g_scanner_warn';
-    procedure g_scanner_warn(scanner:PGScanner; format:Pgchar);cdecl;overload;varargs;external gliblib name 'g_scanner_warn';
-{$ELSE}
     procedure g_scanner_error(scanner:PGScanner; format:Pgchar);varargs;cdecl;external gliblib name 'g_scanner_error';
     procedure g_scanner_warn(scanner:PGScanner; format:Pgchar);varargs;cdecl;external gliblib name 'g_scanner_warn';
-{$ENDIF}
 
 {$ifndef G_DISABLE_DEPRECATED}
 //    { keep downward source compatibility  }

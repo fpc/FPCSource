@@ -121,8 +121,6 @@ Type
   function sqlite_get_table(_para1:Psqlite; sql:Pchar; resultp:PPPchar; nrow:Plongint; ncolumn:Plongint;
              errmsg:PPchar):longint;cdecl;external External_library name 'sqlite_get_table';
   procedure sqlite_free_table(result:PPchar);cdecl;external External_library name 'sqlite_free_table';
-  function sqlite_exec_printf(_para1:Psqlite; sqlFormat:Pchar; _para3:sqlite_callback; _para4:pointer; errmsg:PPchar;
-             args:array of const):longint;cdecl;external External_library name 'sqlite_exec_printf';
   function sqlite_exec_printf(_para1:Psqlite; sqlFormat:Pchar; _para3:sqlite_callback; _para4:pointer; errmsg:PPchar):longint;cdecl;varargs;external External_library name 'sqlite_exec_printf';
   function sqlite_exec_vprintf(_para1:Psqlite; sqlFormat:Pchar; _para3:sqlite_callback; _para4:pointer; errmsg:PPchar;
              ap:array of const):longint;cdecl;external External_library name 'sqlite_exec_vprintf';
@@ -132,7 +130,6 @@ Type
              errmsg:PPchar):longint;cdecl;varargs;external External_library name 'sqlite_get_table_printf';
   function sqlite_get_table_vprintf(_para1:Psqlite; sqlFormat:Pchar; resultp:PPPchar; nrow:Plongint; ncolumn:Plongint;
              errmsg:PPchar; ap:array of const):longint;cdecl;external External_library name 'sqlite_get_table_vprintf';
-  function sqlite_mprintf(_para1:Pchar; args:array of const):Pchar;cdecl;external External_library name 'sqlite_mprintf';
   function sqlite_mprintf(_para1:Pchar):Pchar;cdecl;varargs;external External_library name 'sqlite_mprintf';
   procedure sqlite_freemem(p:pointer);cdecl;external External_library name 'sqlite_freemem';
   function sqlite_libversion:Pchar;cdecl;external External_library name 'sqlite_libversion';

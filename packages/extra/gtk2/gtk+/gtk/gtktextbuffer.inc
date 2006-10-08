@@ -91,17 +91,8 @@ function gtk_text_buffer_insert_interactive(buffer:PGtkTextBuffer; iter:PGtkText
 function gtk_text_buffer_insert_interactive_at_cursor(buffer:PGtkTextBuffer; text:Pgchar; len:gint; default_editable:gboolean):gboolean; cdecl; external gtklib;
 procedure gtk_text_buffer_insert_range(buffer:PGtkTextBuffer; iter:PGtkTextIter; start:PGtkTextIter; theEnd:PGtkTextIter); cdecl; external gtklib;
 function gtk_text_buffer_insert_range_interactive(buffer:PGtkTextBuffer; iter:PGtkTextIter; start:PGtkTextIter; theEnd:PGtkTextIter; default_editable:gboolean):gboolean; cdecl; external gtklib;
-{$IFNDEF KYLIX}
-procedure gtk_text_buffer_insert_with_tags(buffer:PGtkTextBuffer; iter:PGtkTextIter; text:Pgchar; len:gint; first_tag:PGtkTextTag;
-            args:array of const); cdecl; overload; external gtklib;
-procedure gtk_text_buffer_insert_with_tags(buffer:PGtkTextBuffer; iter:PGtkTextIter; text:Pgchar; len:gint; first_tag:PGtkTextTag); cdecl; overload; varargs; external gtklib;
-procedure gtk_text_buffer_insert_with_tags_by_name(buffer:PGtkTextBuffer; iter:PGtkTextIter; text:Pgchar; len:gint; first_tag_name:Pgchar;
-            args:array of const); cdecl; overload; external gtklib;
-procedure gtk_text_buffer_insert_with_tags_by_name(buffer:PGtkTextBuffer; iter:PGtkTextIter; text:Pgchar; len:gint; first_tag_name:Pgchar); cdecl; overload; varargs; external gtklib;
-{$ELSE}
 procedure gtk_text_buffer_insert_with_tags(buffer:PGtkTextBuffer; iter:PGtkTextIter; text:Pgchar; len:gint; first_tag:PGtkTextTag); varargs; cdecl; external gtklib;
 procedure gtk_text_buffer_insert_with_tags_by_name(buffer:PGtkTextBuffer; iter:PGtkTextIter; text:Pgchar; len:gint; first_tag_name:Pgchar); varargs; cdecl; external gtklib;
-{$ENDIF}
 { Delete from the buffer  }
 procedure gtk_text_buffer_delete(buffer:PGtkTextBuffer; start:PGtkTextIter; theEnd:PGtkTextIter); cdecl; external gtklib;
 function gtk_text_buffer_delete_interactive(buffer:PGtkTextBuffer; start_iter:PGtkTextIter; end_iter:PGtkTextIter; default_editable:gboolean):gboolean; cdecl; external gtklib;
@@ -134,12 +125,7 @@ procedure gtk_text_buffer_remove_all_tags(buffer:PGtkTextBuffer; start:PGtkTextI
 { You can either ignore the return value, or use it to
    set the attributes of the tag. tag_name can be NULL
   }
-{$IFNDEF KYLIX}
-function gtk_text_buffer_create_tag(buffer:PGtkTextBuffer; tag_name:Pgchar; first_property_name:Pgchar; args:array of const):PGtkTextTag; cdecl; overload; external gtklib;
-function gtk_text_buffer_create_tag(buffer:PGtkTextBuffer; tag_name:Pgchar; first_property_name:Pgchar):PGtkTextTag; cdecl; overload; external gtklib;
-{$ELSE}
 function gtk_text_buffer_create_tag(buffer:PGtkTextBuffer; tag_name:Pgchar; first_property_name:Pgchar):PGtkTextTag; varargs; cdecl; external gtklib;
-{$ENDIF}
 { Obtain iterators pointed at various places, then you can move the
    iterator around using the GtkTextIter operators
   }

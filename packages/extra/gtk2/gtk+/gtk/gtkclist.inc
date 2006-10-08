@@ -337,11 +337,7 @@ procedure set_selectable(var a : TGtkCListRow; __selectable : guint);
 function gtk_clist_get_type:TGtkType; cdecl; external gtklib;
 { create a new GtkCList  }
 function gtk_clist_new(columns:gint):PGtkWidget; cdecl; external gtklib;
-{$IFNDEF KYLIX}
-function gtk_clist_new_with_titles(columns:gint; titles:array of Pgchar):PGtkWidget; cdecl; external gtklib;
-{$ELSE}
 function gtk_clist_new_with_titles(columns:gint):PGtkWidget; varargs; cdecl; external gtklib;
-{$ENDIF}
 { set adjustments of clist  }
 procedure gtk_clist_set_hadjustment(clist:PGtkCList; adjustment:PGtkAdjustment); cdecl; external gtklib;
 procedure gtk_clist_set_vadjustment(clist:PGtkCList; adjustment:PGtkAdjustment); cdecl; external gtklib;
@@ -454,21 +450,12 @@ function gtk_clist_get_selectable(clist:PGtkCList; row:gint):gboolean; cdecl; ex
 { prepend/append returns the index of the row you just added,
    making it easier to append and modify a row
   }
-{$IFNDEF KYLIX}
-function gtk_clist_prepend(clist:PGtkCList; text:PPgchar):gint; cdecl; external gtklib;
-function gtk_clist_append(clist:PGtkCList; text:PPgchar):gint; cdecl; external gtklib;
-{$ELSE}
 function gtk_clist_prepend(clist:PGtkCList):gint; varargs; cdecl; external gtklib;
 function gtk_clist_append(clist:PGtkCList):gint; varargs; cdecl; external gtklib;
-{$ENDIF}
 { inserts a row at index row and returns the row where it was
    actually inserted (may be different from "row" in auto_sort mode)
   }
-{$IFNDEF KYLIX}
-function gtk_clist_insert(clist:PGtkCList; row:gint; text:PPgchar):gint; cdecl; external gtklib;
-{$ELSE}
 function gtk_clist_insert(clist:PGtkCList; row:gint):gint; varargs; cdecl; external gtklib;
-{$ENDIF}
 { removes row at index row  }
 procedure gtk_clist_remove(clist:PGtkCList; row:gint); cdecl; external gtklib;
 { sets a arbitrary data pointer for a given row  }

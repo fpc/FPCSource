@@ -64,22 +64,6 @@ function G_VALUE_HOLDS_OBJECT(value : Pointer) : boolean;
 procedure g_object_class_install_property(oclass:PGObjectClass; property_id:guint; pspec:PGParamSpec); cdecl; external gobjectlib;
 function g_object_class_find_property(oclass:PGObjectClass; property_name:Pgchar):PGParamSpec; cdecl; external gobjectlib;
 function g_object_class_list_properties(oclass:PGObjectClass; n_properties:Pguint):PPGParamSpec; cdecl; external gobjectlib;
-{$IFNDEF KYLIX}
-function g_object_new(object_type:GType; first_property_name:Pgchar; args:array of const):gpointer; cdecl; overload; external gobjectlib;
-function g_object_new(object_type:GType; first_property_name:Pgchar):gpointer; cdecl; overload; varargs; external gobjectlib;
-function g_object_newv(object_type:GType; n_parameters:guint; parameters:PGParameter):gpointer; cdecl; external gobjectlib;
-function g_object_new_valist(object_type:GType; first_property_name:Pgchar; var_args: array of const):PGObject; cdecl; external gobjectlib;
-procedure g_object_set(anObject:gpointer; first_property_name:Pgchar; args:array of const); cdecl; overload; external gobjectlib;
-procedure g_object_set(anObject:gpointer; first_property_name:Pgchar); cdecl; overload; varargs; external gobjectlib;
-procedure g_object_get(anObject:gpointer; first_property_name:Pgchar; args:array of const); cdecl; overload; external gobjectlib;
-procedure g_object_get(anObject:gpointer; first_property_name:Pgchar); cdecl; overload; varargs; external gobjectlib;
-function g_object_connect(anObject:gpointer; signal_spec:Pgchar; args:array of const):gpointer; cdecl; overload; external gobjectlib;
-function g_object_connect(anObject:gpointer; signal_spec:Pgchar):gpointer; cdecl; overload; varargs; external gobjectlib;
-procedure g_object_disconnect(anObject:gpointer; signal_spec:Pgchar; args:array of const); cdecl; overload; external gobjectlib;
-procedure g_object_disconnect(anObject:gpointer; signal_spec:Pgchar); cdecl; overload; varargs; external gobjectlib;
-procedure g_object_set_valist(anObject:PGObject; first_property_name:Pgchar; var_args: array of const); cdecl; external gobjectlib;
-procedure g_object_get_valist(anObject:PGObject; first_property_name:Pgchar; var_args: array of const); cdecl; external gobjectlib;
-{$ELSE}
 function g_object_new(object_type:GType; first_property_name:Pgchar):gpointer; varargs; cdecl; external gobjectlib;
 function g_object_newv(object_type:GType; n_parameters:guint; parameters:PGParameter):gpointer; varargs; cdecl; external gobjectlib;
 function g_object_new_valist(object_type:GType; first_property_name:Pgchar):PGObject; varargs; cdecl; external gobjectlib;
@@ -89,7 +73,6 @@ function g_object_connect(anObject:gpointer; signal_spec:Pgchar):gpointer; varar
 procedure g_object_disconnect(anObject:gpointer; signal_spec:Pgchar); varargs; cdecl; external gobjectlib;
 procedure g_object_set_valist(anObject:PGObject; first_property_name:Pgchar); varargs; cdecl; external gobjectlib;
 procedure g_object_get_valist(anObject:PGObject; first_property_name:Pgchar); varargs; cdecl; external gobjectlib;
-{$ENDIF}
 procedure g_object_set_property(anObject:PGObject; property_name:Pgchar; value:PGValue); cdecl; external gobjectlib;
 procedure g_object_get_property(anObject:PGObject; property_name:Pgchar; value:PGValue); cdecl; external gobjectlib;
 procedure g_object_freeze_notify(anObject:PGObject); cdecl; external gobjectlib;
