@@ -214,7 +214,7 @@ Procedure fpc_Read_End(var f:Text); compilerproc;
 Procedure fpc_ReadLn_End(var f : Text); compilerproc;
 Procedure fpc_Read_Text_ShortStr(var f : Text;out s : String); compilerproc;
 Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text; const s : PChar); compilerproc;
-Procedure fpc_Read_Text_PChar_As_Array(var f : Text;out s : array of char); compilerproc;
+Procedure fpc_Read_Text_PChar_As_Array(var f : Text;out s : array of char; zerobased: boolean = false); compilerproc;
 Procedure fpc_Read_Text_AnsiStr(var f : Text;out s : AnsiString); compilerproc;
 Procedure fpc_Read_Text_Char(var f : Text; out c : char); compilerproc;
 Procedure fpc_Read_Text_SInt(var f : Text; out l :ValSInt); compilerproc;
