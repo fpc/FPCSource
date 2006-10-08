@@ -319,7 +319,7 @@ procedure set_y_set(var a : TGtkWidgetAuxInfo; __y_set : guint);
 function gtk_widget_get_type:TGtkType; cdecl; external gtklib;
 {$IFNDEF KYLIX}
 function gtk_widget_new(_type:TGtkType; first_property_name:Pgchar; args:array of const):PGtkWidget; cdecl; overload; external gtklib;
-function gtk_widget_new(_type:TGtkType; first_property_name:Pgchar):PGtkWidget; overload;
+function gtk_widget_new(_type:TGtkType; first_property_name:Pgchar):PGtkWidget; cdecl; overload; varargs; external gtklib;
 {$ELSE}
 function gtk_widget_new(_type:TGtkType; first_property_name:Pgchar):PGtkWidget; varargs; cdecl; external gtklib;
 {$ENDIF}
@@ -331,7 +331,7 @@ procedure gtk_widget_destroyed(widget:PGtkWidget; var widget_pointer:PGtkWidget)
 {$ifndef GTK_DISABLE_DEPRECATED}
 {$IFNDEF KYLIX}
 procedure gtk_widget_set(widget:PGtkWidget; first_property_name:Pgchar; args:array of const); cdecl; overload; external gtklib;
-procedure gtk_widget_set(widget:PGtkWidget; first_property_name:Pgchar); cdecl; overload; external gtklib;
+procedure gtk_widget_set(widget:PGtkWidget; first_property_name:Pgchar); cdecl; overload; varargs; external gtklib;
 {$ELSE}
 procedure gtk_widget_set(widget:PGtkWidget; first_property_name:Pgchar); varargs; cdecl; external gtklib;
 {$ENDIF}
@@ -499,7 +499,7 @@ procedure gtk_widget_style_get_property(widget:PGtkWidget; property_name:Pgchar;
 {$IFNDEF KYLIX}
 procedure gtk_widget_style_get_valist(widget:PGtkWidget; first_property_name:Pgchar; var_args: array of const); cdecl; external gtklib;
 procedure gtk_widget_style_get(widget:PGtkWidget; first_property_name:Pgchar; args:array of const); cdecl; overload; external gtklib;
-procedure gtk_widget_style_get(widget:PGtkWidget; first_property_name:Pgchar); cdecl; overload; external gtklib;
+procedure gtk_widget_style_get(widget:PGtkWidget; first_property_name:Pgchar); cdecl; overload; varargs; external gtklib;
 {$ELSE}
 procedure gtk_widget_style_get_valist(widget:PGtkWidget; first_property_name:Pgchar); varargs; cdecl; external gtklib;
 procedure gtk_widget_style_get(widget:PGtkWidget; first_property_name:Pgchar); varargs; cdecl; external gtklib;
@@ -744,13 +744,6 @@ procedure gtk_widget_restore_default_style(widget : pointer);
 begin
    gtk_widget_set_style(widget,NULL);
 end;
-
-{$IFNDEF KYLIX}
-function gtk_widget_new(_type:TGtkType; first_property_name:Pgchar):PGtkWidget;
-begin
-   gtk_widget_new:=gtk_widget_new(_type,first_property_name,[]);
-end;
-{$ENDIF}
 
 function GTK_WIDGET_SET_FLAGS (wid   : PGtkWidget;
                                flags : TGtkWidgetFlags): TGtkWidgetFlags;

@@ -6,7 +6,7 @@ function getcontext(__ucp:Pucontext_t):longint;cdecl;external clib name 'getcont
 function setcontext(__ucp:Pucontext_t):longint;cdecl;external clib name 'setcontext';
 function swapcontext(__oucp:Pucontext_t; __ucp:Pucontext_t):longint;cdecl;external clib name 'swapcontext';
 procedure makecontext(__ucp:Pucontext_t; __func:TMakeContextProc; __argc:longint; args:array of const);cdecl;external clib name 'makecontext';
-procedure makecontext(__ucp:Pucontext_t; __func:TMakeContextProc; __argc:longint);cdecl;external clib name 'makecontext';
+procedure makecontext(__ucp:Pucontext_t; __func:TMakeContextProc; __argc:longint);cdecl;varargs;external clib name 'makecontext';
 
 
 { ---------------------------------------------------------------------

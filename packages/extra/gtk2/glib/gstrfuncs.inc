@@ -104,7 +104,7 @@ function g_strup(_string:Pgchar):Pgchar; cdecl; external gliblib;
 function g_strdup(str:Pgchar):Pgchar; cdecl; external gliblib;
 {$IFNDEF KYLIX}
 function g_strdup_printf(format:Pgchar; args:array of const):Pgchar; cdecl; overload; external gliblib;
-function g_strdup_printf(format:Pgchar):Pgchar; cdecl; overload; external gliblib;
+function g_strdup_printf(format:Pgchar):Pgchar; cdecl; overload; varargs; external gliblib;
 function g_strdup_vprintf(format:Pgchar; args: array of const):Pgchar; cdecl; external gliblib;
 {$ELSE}
 function g_strdup_printf(format:Pgchar):Pgchar; varargs; cdecl; external gliblib;
@@ -114,10 +114,10 @@ function g_strndup(str:Pgchar; n:gsize):Pgchar; cdecl; external gliblib;
 function g_strnfill(length:gsize; fill_char:gchar):Pgchar; cdecl; external gliblib;
 {$IFNDEF KYLIX}
 function g_strconcat(string1:Pgchar; args:array of const):Pgchar; cdecl; overload; external gliblib;
-function g_strconcat(string1:Pgchar):Pgchar; cdecl; overload; external gliblib;
+function g_strconcat(string1:Pgchar):Pgchar; cdecl; overload; varargs; external gliblib;
 { NULL terminated  }
 function g_strjoin(separator:Pgchar; args:array of const):Pgchar; cdecl; overload; external gliblib;
-function g_strjoin(separator:Pgchar):Pgchar; cdecl; overload; external gliblib;
+function g_strjoin(separator:Pgchar):Pgchar; cdecl; overload; varargs; external gliblib;
 {$ELSE}
 function g_strconcat(string1:Pgchar):Pgchar; varargs; cdecl; external gliblib;
 function g_strjoin(separator:Pgchar):Pgchar; varargs; cdecl; external gliblib;

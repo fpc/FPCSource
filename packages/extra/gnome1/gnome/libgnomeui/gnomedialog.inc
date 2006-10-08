@@ -39,7 +39,7 @@ function GNOME_IS_DIALOG_CLASS(klass : Pointer) : Boolean;
 
 function gnome_dialog_get_type:TGtkType;cdecl;external libgnomeuidll name 'gnome_dialog_get_type';
 function gnome_dialog_new(title:Pgchar; args:array of const):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_dialog_new';
-function gnome_dialog_new(title:Pgchar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_dialog_new';
+function gnome_dialog_new(title:Pgchar):PGtkWidget;cdecl; varargs; external libgnomeuidll name 'gnome_dialog_new';
 function gnome_dialog_newv(title:Pgchar; buttons:PPgchar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_dialog_newv';
 procedure gnome_dialog_set_parent(dialog:PGnomeDialog; parent:PGtkWindow);cdecl;external libgnomeuidll name 'gnome_dialog_set_parent';
 procedure gnome_dialog_button_connect(dialog:PGnomeDialog; button:gint; callback:TGtkSignalFunc; data:gpointer);cdecl;external libgnomeuidll name 'gnome_dialog_button_connect';
@@ -55,7 +55,7 @@ procedure gnome_dialog_close_hides(dialog:PGnomeDialog; just_hide:gboolean);cdec
 procedure gnome_dialog_set_close(dialog:PGnomeDialog; click_closes:gboolean);cdecl;external libgnomeuidll name 'gnome_dialog_set_close';
 procedure gnome_dialog_editable_enters(dialog:PGnomeDialog; editable:PGtkEditable);cdecl;external libgnomeuidll name 'gnome_dialog_editable_enters';
 procedure gnome_dialog_append_buttons(dialog:PGnomeDialog; first:Pgchar; args:array of const);cdecl;external libgnomeuidll name 'gnome_dialog_append_buttons';
-procedure gnome_dialog_append_buttons(dialog:PGnomeDialog; first:Pgchar);cdecl;external libgnomeuidll name 'gnome_dialog_append_buttons';
+procedure gnome_dialog_append_buttons(dialog:PGnomeDialog; first:Pgchar);cdecl; varargs; external libgnomeuidll name 'gnome_dialog_append_buttons';
 procedure gnome_dialog_append_button(dialog:PGnomeDialog; name:Pgchar);cdecl;external libgnomeuidll name 'gnome_dialog_append_button';
 procedure gnome_dialog_append_buttonsv(dialog:PGnomeDialog; buttons:PPgchar);cdecl;external libgnomeuidll name 'gnome_dialog_append_buttonsv';
 procedure gnome_dialog_append_button_with_pixmap(dialog:PGnomeDialog; name:Pgchar; pixmap:Pgchar);cdecl;external libgnomeuidll name 'gnome_dialog_append_button_with_pixmap';

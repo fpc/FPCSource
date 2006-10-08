@@ -121,7 +121,7 @@ function gtk_tree_view_column_get_type:TGtkType; cdecl; external gtklib;
 function gtk_tree_view_column_new:PGtkTreeViewColumn; cdecl; external gtklib;
 {$IFNDEF KYLIX}
 function gtk_tree_view_column_new_with_attributes(title:Pgchar; cell:PGtkCellRenderer; args:array of const):PGtkTreeViewColumn; cdecl; overload; external gtklib;
-function gtk_tree_view_column_new_with_attributes(title:Pgchar; cell:PGtkCellRenderer):PGtkTreeViewColumn; cdecl; overload; external gtklib;
+function gtk_tree_view_column_new_with_attributes(title:Pgchar; cell:PGtkCellRenderer):PGtkTreeViewColumn; cdecl; overload; varargs; external gtklib;
 {$ELSE}
 function gtk_tree_view_column_new_with_attributes(title:Pgchar; cell:PGtkCellRenderer):PGtkTreeViewColumn; varargs; cdecl; external gtklib;
 {$ENDIF}
@@ -132,7 +132,7 @@ function gtk_tree_view_column_get_cell_renderers(tree_column:PGtkTreeViewColumn)
 procedure gtk_tree_view_column_add_attribute(tree_column:PGtkTreeViewColumn; cell_renderer:PGtkCellRenderer; attribute:Pgchar; column:gint); cdecl; external gtklib;
 {$IFNDEF KYLIX}
 procedure gtk_tree_view_column_set_attributes(tree_column:PGtkTreeViewColumn; cell_renderer:PGtkCellRenderer; args:array of const); cdecl; overload; external gtklib;
-procedure gtk_tree_view_column_set_attributes(tree_column:PGtkTreeViewColumn; cell_renderer:PGtkCellRenderer); cdecl; overload; external gtklib;
+procedure gtk_tree_view_column_set_attributes(tree_column:PGtkTreeViewColumn; cell_renderer:PGtkCellRenderer); cdecl; overload; varargs; external gtklib;
 {$ELSE}
 procedure gtk_tree_view_column_set_attributes(tree_column:PGtkTreeViewColumn; cell_renderer:PGtkCellRenderer); varargs; cdecl; external gtklib;
 {$ENDIF}

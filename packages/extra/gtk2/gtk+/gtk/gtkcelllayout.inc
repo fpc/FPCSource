@@ -41,7 +41,7 @@ procedure gtk_cell_layout_pack_end(cell_layout:PGtkCellLayout; cell:PGtkCellRend
 procedure gtk_cell_layout_clear(cell_layout:PGtkCellLayout);cdecl;external gtklib name 'gtk_cell_layout_clear';
 
 procedure gtk_cell_layout_set_attributes(cell_layout:PGtkCellLayout; cell:PGtkCellRenderer; args:array of const);cdecl;overload;external gtklib name 'gtk_cell_layout_set_attributes';
-procedure gtk_cell_layout_set_attributes(cell_layout:PGtkCellLayout; cell:PGtkCellRenderer);cdecl;overload;external gtklib name 'gtk_cell_layout_set_attributes';
+procedure gtk_cell_layout_set_attributes(cell_layout:PGtkCellLayout; cell:PGtkCellRenderer);cdecl;overload;varargs;external gtklib name 'gtk_cell_layout_set_attributes';
 
 
 procedure gtk_cell_layout_add_attribute(cell_layout:PGtkCellLayout; cell:PGtkCellRenderer; attribute:Pgchar; column:gint);cdecl;external gtklib name 'gtk_cell_layout_add_attribute';

@@ -45,7 +45,7 @@ Const
    PT_SYSCALL = PTRACE_SYSCALL;
 
 function ptrace(__request:__ptrace_request; args:array of const):longint;cdecl;external clib name 'ptrace';
-function ptrace(__request:__ptrace_request):longint;cdecl;external clib name 'ptrace';
+function ptrace(__request:__ptrace_request):longint;cdecl;varargs;external clib name 'ptrace';
 function ptrace(__request: __ptrace_request; PID: pid_t; Address: Pointer; Data: Longint): longint; cdecl; external clib name 'ptrace';
 function ptrace(__request: __ptrace_request; PID: pid_t; Address: Pointer; Data: Longint; Addr2: Pointer): longint; cdecl; external clib name 'ptrace';
 

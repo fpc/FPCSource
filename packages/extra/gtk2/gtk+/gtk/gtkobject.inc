@@ -111,7 +111,7 @@ procedure GTK_OBJECT_UNSET_FLAGS(obj: pointer; flag: guint32);
 
 function gtk_object_get_type:TGtkType; cdecl; external gtklib;
 function gtk_object_new(_type:TGtkType; first_property_name:Pgchar; args:array of const):PGtkObject; cdecl; overload; external gtklib;
-function gtk_object_new(_type:TGtkType; first_property_name:Pgchar):PGtkObject; cdecl; overload; external gtklib;
+function gtk_object_new(_type:TGtkType; first_property_name:Pgchar):PGtkObject; cdecl; overload; varargs; external gtklib;
 procedure gtk_object_sink(anObject:PGtkObject); cdecl; external gtklib;
 procedure gtk_object_destroy(anObject:PGtkObject); cdecl; external gtklib;
 {                                                               }
@@ -160,9 +160,9 @@ const
    GTK_ARG_READWRITE = GTK_ARG_READABLE or GTK_ARG_WRITABLE;
 
 procedure gtk_object_get(anObject:PGtkObject; first_property_name:Pgchar; args:array of const); cdecl; overload; external gtklib;
-procedure gtk_object_get(anObject:PGtkObject; first_property_name:Pgchar); cdecl; overload; external gtklib;
+procedure gtk_object_get(anObject:PGtkObject; first_property_name:Pgchar); cdecl; overload; varargs; external gtklib;
 procedure gtk_object_set(anObject:PGtkObject; first_property_name:Pgchar; args:array of const); cdecl; overload; external gtklib;
-procedure gtk_object_set(anObject:PGtkObject; first_property_name:Pgchar); cdecl; overload; external gtklib;
+procedure gtk_object_set(anObject:PGtkObject; first_property_name:Pgchar); cdecl; overload; varargs; external gtklib;
 procedure gtk_object_add_arg_type(arg_name:Pgchar; arg_type:TGtkType; arg_flags:guint; arg_id:guint); cdecl; external gtklib;
 {$endif}
 { GTK_DISABLE_DEPRECATED  }

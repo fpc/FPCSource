@@ -80,7 +80,7 @@ function g_signal_new_valist(signal_name:Pgchar; itype:GType; signal_flags:TGSig
 function g_signal_new(signal_name:Pgchar; itype:GType; signal_flags:TGSignalFlags; class_offset:guint; accumulator:TGSignalAccumulator;
            accu_data:gpointer; c_marshaller:TGSignalCMarshaller; return_type:GType; n_params:guint; args:array of const):guint; cdecl; overload; external gobjectlib;
 function g_signal_new(signal_name:Pgchar; itype:GType; signal_flags:TGSignalFlags; class_offset:guint; accumulator:TGSignalAccumulator;
-           accu_data:gpointer; c_marshaller:TGSignalCMarshaller; return_type:GType; n_params:guint):guint; cdecl; overload; external gobjectlib;
+           accu_data:gpointer; c_marshaller:TGSignalCMarshaller; return_type:GType; n_params:guint):guint; cdecl; overload; varargs; external gobjectlib;
 {$ELSE}
 function g_signal_new_valist(signal_name:Pgchar; itype:GType; signal_flags:TGSignalFlags; class_closure:PGClosure; accumulator:TGSignalAccumulator;
            accu_data:gpointer; c_marshaller:TGSignalCMarshaller; return_type:GType; n_params:guint):guint; varargs; cdecl; external gobjectlib;
@@ -91,9 +91,9 @@ procedure g_signal_emitv(instance_and_params:PGValue; signal_id:guint; detail:TG
 {$IFNDEF KYLIX}
 procedure g_signal_emit_valist(instance:gpointer; signal_id:guint; detail:TGQuark; var_args: array of const); cdecl; external gobjectlib;
 procedure g_signal_emit(instance:gpointer; signal_id:guint; detail:TGQuark; args:array of const); cdecl; overload; external gobjectlib;
-procedure g_signal_emit(instance:gpointer; signal_id:guint; detail:TGQuark); cdecl; overload; external gobjectlib;
+procedure g_signal_emit(instance:gpointer; signal_id:guint; detail:TGQuark); cdecl; overload; varargs; external gobjectlib;
 procedure g_signal_emit_by_name(instance:gpointer; detailed_signal:Pgchar; args:array of const); cdecl; overload; external gobjectlib;
-procedure g_signal_emit_by_name(instance:gpointer; detailed_signal:Pgchar); cdecl; overload; external gobjectlib;
+procedure g_signal_emit_by_name(instance:gpointer; detailed_signal:Pgchar); cdecl; overload; varargs; external gobjectlib;
 {$ELSE}
 procedure g_signal_emit_valist(instance:gpointer; signal_id:guint; detail:TGQuark); varargs; cdecl; external gobjectlib;
 procedure g_signal_emit(instance:gpointer; signal_id:guint; detail:TGQuark); varargs; cdecl; external gobjectlib;

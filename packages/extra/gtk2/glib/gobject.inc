@@ -66,17 +66,17 @@ function g_object_class_find_property(oclass:PGObjectClass; property_name:Pgchar
 function g_object_class_list_properties(oclass:PGObjectClass; n_properties:Pguint):PPGParamSpec; cdecl; external gobjectlib;
 {$IFNDEF KYLIX}
 function g_object_new(object_type:GType; first_property_name:Pgchar; args:array of const):gpointer; cdecl; overload; external gobjectlib;
-function g_object_new(object_type:GType; first_property_name:Pgchar):gpointer; cdecl; overload; external gobjectlib;
+function g_object_new(object_type:GType; first_property_name:Pgchar):gpointer; cdecl; overload; varargs; external gobjectlib;
 function g_object_newv(object_type:GType; n_parameters:guint; parameters:PGParameter):gpointer; cdecl; external gobjectlib;
 function g_object_new_valist(object_type:GType; first_property_name:Pgchar; var_args: array of const):PGObject; cdecl; external gobjectlib;
 procedure g_object_set(anObject:gpointer; first_property_name:Pgchar; args:array of const); cdecl; overload; external gobjectlib;
-procedure g_object_set(anObject:gpointer; first_property_name:Pgchar); cdecl; overload; external gobjectlib;
+procedure g_object_set(anObject:gpointer; first_property_name:Pgchar); cdecl; overload; varargs; external gobjectlib;
 procedure g_object_get(anObject:gpointer; first_property_name:Pgchar; args:array of const); cdecl; overload; external gobjectlib;
-procedure g_object_get(anObject:gpointer; first_property_name:Pgchar); cdecl; overload; external gobjectlib;
+procedure g_object_get(anObject:gpointer; first_property_name:Pgchar); cdecl; overload; varargs; external gobjectlib;
 function g_object_connect(anObject:gpointer; signal_spec:Pgchar; args:array of const):gpointer; cdecl; overload; external gobjectlib;
-function g_object_connect(anObject:gpointer; signal_spec:Pgchar):gpointer; cdecl; overload; external gobjectlib;
+function g_object_connect(anObject:gpointer; signal_spec:Pgchar):gpointer; cdecl; overload; varargs; external gobjectlib;
 procedure g_object_disconnect(anObject:gpointer; signal_spec:Pgchar; args:array of const); cdecl; overload; external gobjectlib;
-procedure g_object_disconnect(anObject:gpointer; signal_spec:Pgchar); cdecl; overload; external gobjectlib;
+procedure g_object_disconnect(anObject:gpointer; signal_spec:Pgchar); cdecl; overload; varargs; external gobjectlib;
 procedure g_object_set_valist(anObject:PGObject; first_property_name:Pgchar; var_args: array of const); cdecl; external gobjectlib;
 procedure g_object_get_valist(anObject:PGObject; first_property_name:Pgchar; var_args: array of const); cdecl; external gobjectlib;
 {$ELSE}

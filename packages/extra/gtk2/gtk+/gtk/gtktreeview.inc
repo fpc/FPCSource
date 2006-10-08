@@ -102,7 +102,7 @@ function gtk_tree_view_remove_column(tree_view:PGtkTreeView; column:PGtkTreeView
 function gtk_tree_view_insert_column(tree_view:PGtkTreeView; column:PGtkTreeViewColumn; position:gint):gint; cdecl; external gtklib;
 {$IFNDEF KYLIX}
 function gtk_tree_view_insert_column_with_attributes(tree_view:PGtkTreeView; position:gint; title:Pgchar; cell:PGtkCellRenderer; args:array of const):gint; cdecl; overload; external gtklib;
-function gtk_tree_view_insert_column_with_attributes(tree_view:PGtkTreeView; position:gint; title:Pgchar; cell:PGtkCellRenderer):gint; cdecl; overload; external gtklib;
+function gtk_tree_view_insert_column_with_attributes(tree_view:PGtkTreeView; position:gint; title:Pgchar; cell:PGtkCellRenderer):gint; cdecl; overload; varargs; external gtklib;
 {$ELSE}
 function gtk_tree_view_insert_column_with_attributes(tree_view:PGtkTreeView; position:gint; title:Pgchar; cell:PGtkCellRenderer):gint; varargs; cdecl; external gtklib;
 {$ENDIF}

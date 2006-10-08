@@ -109,11 +109,11 @@ function gtk_container_class_find_child_property(cclass:PGObjectClass; property_
 function gtk_container_class_list_child_properties(cclass:PGObjectClass; n_properties:Pguint):PPGParamSpec; cdecl; external gtklib;
 {$IFNDEF KYLIX}
 procedure gtk_container_add_with_properties(container:PGtkContainer; widget:PGtkWidget; first_prop_name:Pgchar; args:array of const); cdecl; overload; external gtklib;
-procedure gtk_container_add_with_properties(container:PGtkContainer; widget:PGtkWidget; first_prop_name:Pgchar); cdecl; overload; external gtklib;
+procedure gtk_container_add_with_properties(container:PGtkContainer; widget:PGtkWidget; first_prop_name:Pgchar); cdecl; overload; varargs; external gtklib;
 procedure gtk_container_child_set(container:PGtkContainer; child:PGtkWidget; first_prop_name:Pgchar; args:array of const); cdecl; overload; external gtklib;
-procedure gtk_container_child_set(container:PGtkContainer; child:PGtkWidget; first_prop_name:Pgchar); cdecl; overload; external gtklib;
+procedure gtk_container_child_set(container:PGtkContainer; child:PGtkWidget; first_prop_name:Pgchar); cdecl; overload; varargs; external gtklib;
 procedure gtk_container_child_get(container:PGtkContainer; child:PGtkWidget; first_prop_name:Pgchar; args:array of const); cdecl; overload; external gtklib;
-procedure gtk_container_child_get(container:PGtkContainer; child:PGtkWidget; first_prop_name:Pgchar); overload; cdecl; external gtklib;
+procedure gtk_container_child_get(container:PGtkContainer; child:PGtkWidget; first_prop_name:Pgchar); overload; cdecl; varargs; external gtklib;
 procedure gtk_container_child_set_valist(container:PGtkContainer; child:PGtkWidget; first_property_name:Pgchar; var_args: array of const); cdecl; external gtklib;
 procedure gtk_container_child_get_valist(container:PGtkContainer; child:PGtkWidget; first_property_name:Pgchar; var_args: array of const); cdecl; external gtklib;
 {$ELSE}

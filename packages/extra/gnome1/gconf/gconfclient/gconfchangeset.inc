@@ -12,7 +12,7 @@ function gconf_engine_reverse_change_set(conf:PGConfEngine; cs:PGConfChangeSet; 
 function gconf_engine_change_set_from_currentv(conf:PGConfEngine; keys:PPgchar; err:PPGError):PGConfChangeSet;cdecl;external gconfclientdll name 'gconf_engine_change_set_from_currentv';
 function gconf_engine_change_set_from_current(conf:PGConfEngine; err:PPGError; first_key:Pgchar;
   args:array of const):PGConfChangeSet;cdecl;external gconfclientdll name 'gconf_engine_change_set_from_current';
-function gconf_engine_change_set_from_current(conf:PGConfEngine; err:PPGError; first_key:Pgchar):PGConfChangeSet;cdecl;external gconfclientdll name 'gconf_engine_change_set_from_current';
+function gconf_engine_change_set_from_current(conf:PGConfEngine; err:PPGError; first_key:Pgchar):PGConfChangeSet;cdecl;varargs;external gconfclientdll name 'gconf_engine_change_set_from_current';
 function gconf_change_set_new:PGConfChangeSet;cdecl;external gconfclientdll name 'gconf_change_set_new';
 procedure gconf_change_set_ref(cs:PGConfChangeSet);cdecl;external gconfclientdll name 'gconf_change_set_ref';
 procedure gconf_change_set_unref(cs:PGConfChangeSet);cdecl;external gconfclientdll name 'gconf_change_set_unref';

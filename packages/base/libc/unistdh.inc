@@ -87,13 +87,13 @@ function execve(__path:Pchar; __argv:PPchar; __envp:PPchar):longint;cdecl;extern
 function fexecve(__fd:longint; __argv:PPchar; __envp:PPchar):longint;cdecl;external clib name 'fexecve';
 
 function execv(__path:Pchar; __argv:PPchar):longint;cdecl;external clib name 'execv';
-function execle(__path:Pchar; __arg:Pchar; args:array of const):longint;cdecl;external clib name 'execle';
+function execle(__path:Pchar; __arg:Pchar; args:array of const):longint;cdecl;varargs;external clib name 'execle';
 function execle(__path:Pchar; __arg:Pchar):longint;cdecl;external clib name 'execle';
 function execl(__path:Pchar; __arg:Pchar; args:array of const):longint;cdecl;external clib name 'execl';
-function execl(__path:Pchar; __arg:Pchar):longint;cdecl;external clib name 'execl';
+function execl(__path:Pchar; __arg:Pchar):longint;cdecl;varargs;external clib name 'execl';
 function execvp(__file:Pchar; __argv:PPchar):longint;cdecl;external clib name 'execvp';
 function execlp(__file:Pchar; __arg:Pchar; args:array of const):longint;cdecl;external clib name 'execlp';
-function execlp(__file:Pchar; __arg:Pchar):longint;cdecl;external clib name 'execlp';
+function execlp(__file:Pchar; __arg:Pchar):longint;cdecl;varargs;external clib name 'execlp';
 
 function nice(__inc:longint):longint;cdecl;external clib name 'nice';
 procedure _exit (__status : longint); cdecl; external clib name '_exit';
@@ -173,7 +173,7 @@ function brk(__addr:pointer):longint;cdecl;external clib name 'brk';
 function sbrk(__delta:intptr_t):pointer;cdecl;external clib name 'sbrk';
 
 function syscall(__sysno:longint; args:array of const):longint;cdecl;external clib name 'syscall';
-function syscall(__sysno:longint):longint;cdecl;external clib name 'syscall';
+function syscall(__sysno:longint):longint;cdecl;varargs;external clib name 'syscall';
 
 
 function crypt(__key:Pchar; __salt:Pchar):Pchar;cdecl;external clib name 'crypt';

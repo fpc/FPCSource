@@ -88,7 +88,7 @@ procedure gtk_binding_entry_clear(binding_set:PGtkBindingSet; keyval:guint; modi
 {$IFNDEF KYLIX}
 procedure gtk_binding_entry_add_signal(binding_set:PGtkBindingSet; keyval:guint; modifiers:TGdkModifierType; signal_name:Pgchar; n_args:guint;
             args:array of const); cdecl; overload; external gtklib;
-procedure gtk_binding_entry_add_signal(binding_set:PGtkBindingSet; keyval:guint; modifiers:TGdkModifierType; signal_name:Pgchar; n_args:guint); cdecl; overload; external gtklib;
+procedure gtk_binding_entry_add_signal(binding_set:PGtkBindingSet; keyval:guint; modifiers:TGdkModifierType; signal_name:Pgchar; n_args:guint); cdecl; overload; varargs; external gtklib;
 {$ELSE}
 procedure gtk_binding_entry_add_signal(binding_set:PGtkBindingSet; keyval:guint; modifiers:TGdkModifierType; signal_name:Pgchar; n_args:guint); varargs; cdecl; external gtklib;
 {$ENDIF}

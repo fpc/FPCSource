@@ -56,7 +56,7 @@ procedure set_columns_dirty(var a : TGtkListStore; __columns_dirty : guint); ove
 function gtk_list_store_get_type:TGtkType; cdecl; external gtklib;
 {$IFNDEF KYLIX}
 function gtk_list_store_new(n_columns:gint; args:array of const):PGtkListStore; cdecl; overload; external gtklib;
-function gtk_list_store_new(n_columns:gint):PGtkListStore; cdecl; overload; external gtklib;
+function gtk_list_store_new(n_columns:gint):PGtkListStore; cdecl; overload; varargs; external gtklib;
 {$ELSE}
 function gtk_list_store_new(n_columns:gint):PGtkListStore; varargs; cdecl; external gtklib;
 {$ENDIF}
@@ -66,7 +66,7 @@ procedure gtk_list_store_set_column_types(list_store:PGtkListStore; n_columns:gi
 procedure gtk_list_store_set_value(list_store:PGtkListStore; iter:PGtkTreeIter; column:gint; value:PGValue); cdecl; external gtklib;
 {$IFNDEF KYLIX}
 procedure gtk_list_store_set(list_store:PGtkListStore; iter:PGtkTreeIter; args:array of const); cdecl; overload; external gtklib;
-procedure gtk_list_store_set(list_store:PGtkListStore; iter:PGtkTreeIter); cdecl; overload; external gtklib;
+procedure gtk_list_store_set(list_store:PGtkListStore; iter:PGtkTreeIter); cdecl; overload; varargs; external gtklib;
 procedure gtk_list_store_set_valist(list_store:PGtkListStore; iter:PGtkTreeIter; var_args:array of const); cdecl; external gtklib;
 {$ELSE}
 procedure gtk_list_store_set(list_store:PGtkListStore; iter:PGtkTreeIter); varargs; cdecl; external gtklib;

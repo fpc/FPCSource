@@ -77,10 +77,10 @@
 
 {$IFNDEF KYLIX}
     procedure g_string_printf(_string:PGString; format:Pgchar; args:array of const);cdecl;overload;external gliblib name 'g_string_printf';
-    procedure g_string_printf(_string:PGString; format:Pgchar);cdecl;overload;external gliblib name 'g_string_printf';
+    procedure g_string_printf(_string:PGString; format:Pgchar);cdecl;overload;varargs;external gliblib name 'g_string_printf';
 
     procedure g_string_append_printf(_string:PGString; format:Pgchar; args:array of const);cdecl;overload;external gliblib name 'g_string_append_printf';
-    procedure g_string_append_printf(_string:PGString; format:Pgchar);cdecl;overload;external gliblib name 'g_string_append_printf';
+    procedure g_string_append_printf(_string:PGString; format:Pgchar);cdecl;varargs;overload;external gliblib name 'g_string_append_printf';
 {$ELSE}
     procedure g_string_printf(_string:PGString; format:Pgchar);varargs;cdecl;external gliblib name 'g_string_printf';
     procedure g_string_append_printf(_string:PGString; format:Pgchar);varargs;cdecl;external gliblib name 'g_string_append_printf';

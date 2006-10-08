@@ -94,10 +94,10 @@ function gtk_text_buffer_insert_range_interactive(buffer:PGtkTextBuffer; iter:PG
 {$IFNDEF KYLIX}
 procedure gtk_text_buffer_insert_with_tags(buffer:PGtkTextBuffer; iter:PGtkTextIter; text:Pgchar; len:gint; first_tag:PGtkTextTag;
             args:array of const); cdecl; overload; external gtklib;
-procedure gtk_text_buffer_insert_with_tags(buffer:PGtkTextBuffer; iter:PGtkTextIter; text:Pgchar; len:gint; first_tag:PGtkTextTag); cdecl; overload; external gtklib;
+procedure gtk_text_buffer_insert_with_tags(buffer:PGtkTextBuffer; iter:PGtkTextIter; text:Pgchar; len:gint; first_tag:PGtkTextTag); cdecl; overload; varargs; external gtklib;
 procedure gtk_text_buffer_insert_with_tags_by_name(buffer:PGtkTextBuffer; iter:PGtkTextIter; text:Pgchar; len:gint; first_tag_name:Pgchar;
             args:array of const); cdecl; overload; external gtklib;
-procedure gtk_text_buffer_insert_with_tags_by_name(buffer:PGtkTextBuffer; iter:PGtkTextIter; text:Pgchar; len:gint; first_tag_name:Pgchar); cdecl; overload; external gtklib;
+procedure gtk_text_buffer_insert_with_tags_by_name(buffer:PGtkTextBuffer; iter:PGtkTextIter; text:Pgchar; len:gint; first_tag_name:Pgchar); cdecl; overload; varargs; external gtklib;
 {$ELSE}
 procedure gtk_text_buffer_insert_with_tags(buffer:PGtkTextBuffer; iter:PGtkTextIter; text:Pgchar; len:gint; first_tag:PGtkTextTag); varargs; cdecl; external gtklib;
 procedure gtk_text_buffer_insert_with_tags_by_name(buffer:PGtkTextBuffer; iter:PGtkTextIter; text:Pgchar; len:gint; first_tag_name:Pgchar); varargs; cdecl; external gtklib;
