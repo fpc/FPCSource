@@ -246,6 +246,7 @@ interface
         procedure appenddef_formal(def:tformaldef); virtual;
         procedure appenddef_unineddef(def:tundefineddef); virtual; abstract;
 
+        procedure appendprocdef(pd:tprocdef); virtual;
 
         procedure appendsym(sym:tsym);
         procedure appendsym_var(sym:tabstractnormalvarsym); virtual;
@@ -258,8 +259,8 @@ interface
         procedure appendsym_absolute(sym:tabsolutevarsym); virtual;
         procedure appendsym_property(sym:tpropertysym); virtual;
         procedure appendsym_proc(sym:tprocsym); virtual;
-
-        procedure appendprocdef(pd:tprocdef); virtual;
+        
+        function symname(sym:tsym): String; virtual;
 
         procedure enum_membersyms_callback(p:Tnamedindexitem;arg:pointer);
 
@@ -305,6 +306,8 @@ interface
         procedure appenddef_set(def:tsetdef); override;
         procedure appenddef_unineddef(def:tundefineddef); override;
         procedure appenddef_variant(def:tvariantdef); override;
+
+        function symname(sym:tsym): String; override;
       public
         function  dwarf_version: Word; override;
       end;
@@ -622,7 +625,7 @@ end;
               begin
                 if not assigned(def.typesym) then
                   internalerror(200610011);
-                def.dwarf_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG',def.owner,def.typesym.name));
+                def.dwarf_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)));
                 def.dbg_state:=dbg_state_written;
               end
             else
@@ -633,7 +636,7 @@ end;
                    (def.owner.symtabletype=globalsymtable) and
                    (def.owner.iscurrentunit) then
                   begin
-                    def.dwarf_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG',def.owner,def.typesym.name),AB_GLOBAL,AT_DATA);
+                    def.dwarf_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
                     include(def.defoptions,df_has_dwarf_dbg_info);
                   end
                 else
@@ -909,7 +912,7 @@ end;
               { we should generate a subrange type here }
               if assigned(def.typesym) then
                 append_entry(DW_TAG_base_type,false,[
-                  DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                  DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
                   DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
                   DW_AT_byte_size,DW_FORM_data1,def.size
                   ])
@@ -927,7 +930,7 @@ end;
               { we should generate a subrange type here }
               if assigned(def.typesym) then
                 append_entry(DW_TAG_base_type,false,[
-                  DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                  DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
                   DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
                   DW_AT_byte_size,DW_FORM_data1,def.size
                   ])
@@ -1045,7 +1048,7 @@ end;
           s80real:
             if assigned(def.typesym) then
               append_entry(DW_TAG_base_type,false,[
-                DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
                 DW_AT_encoding,DW_FORM_data1,DW_ATE_float,
                 DW_AT_byte_size,DW_FORM_data1,def.size
                 ])
@@ -1058,7 +1061,7 @@ end;
             { we should use DW_ATE_signed_fixed, however it isn't supported yet by GDB (FK) }
             if assigned(def.typesym) then
               append_entry(DW_TAG_base_type,false,[
-                DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
                 DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
                 DW_AT_byte_size,DW_FORM_data1,8
                 ])
@@ -1070,7 +1073,7 @@ end;
           s64comp:
             if assigned(def.typesym) then
               append_entry(DW_TAG_base_type,false,[
-                DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
                 DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
                 DW_AT_byte_size,DW_FORM_data1,8
                 ])
@@ -1097,7 +1100,7 @@ end;
       begin
         if assigned(def.typesym) then
           append_entry(DW_TAG_enumeration_type,true,[
-            DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
             DW_AT_byte_size,DW_FORM_data1,def.size
             ])
         else
@@ -1113,7 +1116,7 @@ end;
         while assigned(hp) do
           begin
             append_entry(DW_TAG_enumerator,false,[
-              DW_AT_name,DW_FORM_string,hp.name+#0,
+              DW_AT_name,DW_FORM_string,symname(hp)+#0,
               DW_AT_const_value,DW_FORM_data4,hp.value
             ]);
             finish_entry;
@@ -1146,7 +1149,7 @@ end;
 
         if assigned(def.typesym) then
           append_entry(DW_TAG_array_type,true,[
-            DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
             DW_AT_byte_size,DW_FORM_udata,size,
             DW_AT_stride_size,DW_FORM_udata,elesize
             ])
@@ -1196,7 +1199,7 @@ end;
       begin
         if assigned(def.typesym) then
           append_entry(DW_TAG_structure_type,true,[
-            DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
             DW_AT_byte_size,DW_FORM_udata,def.size
             ])
         else
@@ -1312,7 +1315,7 @@ end;
         begin
           if assigned(def.typesym) then
             append_entry(DW_TAG_subroutine_type,true,[
-              DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+              DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
               DW_AT_prototyped,DW_FORM_flag,true
             ])
           else
@@ -1327,7 +1330,7 @@ end;
           for i:=0 to def.paras.count-1 do
             begin
               append_entry(DW_TAG_formal_parameter,false,[
-                DW_AT_name,DW_FORM_string,tparavarsym(def.paras[i]).name+#0
+                DW_AT_name,DW_FORM_string,symname(tsym(def.paras[i]))+#0
               ]);
               append_labelentry_ref(DW_AT_type,def_dwarf_lab(tparavarsym(def.paras[i]).vartype.def));
               finish_entry;
@@ -1495,7 +1498,7 @@ end;
           begin
             current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Procdef '+pd.fullprocname(true))));
             append_entry(DW_TAG_subprogram,true,
-              [DW_AT_name,DW_FORM_string,pd.procsym.name+#0
+              [DW_AT_name,DW_FORM_string,symname(pd.procsym)+#0
               { data continues below }
               { problem: base reg isn't known here
                 DW_AT_frame_base,DW_FORM_block1,1
@@ -1633,7 +1636,7 @@ end;
             tag:=DW_TAG_variable;
 
           append_entry(tag,false,[
-            DW_AT_name,DW_FORM_string,sym.name+#0,
+            DW_AT_name,DW_FORM_string,symname(sym)+#0,
             {
             DW_AT_decl_file,DW_FORM_data1,0,
             DW_AT_decl_line,DW_FORM_data1,
@@ -1657,7 +1660,7 @@ end;
           if sp_static in sym.symoptions then Exit;
 
           append_entry(DW_TAG_member,false,[
-            DW_AT_name,DW_FORM_string,sym.name+#0,
+            DW_AT_name,DW_FORM_string,symname(sym)+#0,
             DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(sym.fieldoffset)
             ]);
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
@@ -1670,7 +1673,7 @@ end;
       procedure TDebugInfoDwarf.appendsym_const(sym:tconstsym);
         begin
           append_entry(DW_TAG_constant,false,[
-            DW_AT_name,DW_FORM_string,sym.name+#0
+            DW_AT_name,DW_FORM_string,symname(sym)+#0
             ]);
           { for string constants, consttype isn't set because they have no real type }
           if not(sym.consttyp in [conststring,constresourcestring]) then
@@ -1758,7 +1761,7 @@ end;
       procedure TDebugInfoDwarf.appendsym_typedconst(sym: ttypedconstsym);
         begin
           append_entry(DW_TAG_variable,false,[
-            DW_AT_name,DW_FORM_string,sym.name+#0,
+            DW_AT_name,DW_FORM_string,symname(sym)+#0,
             {
             DW_AT_decl_file,DW_FORM_data1,0,
             DW_AT_decl_line,DW_FORM_data1,
@@ -1798,7 +1801,7 @@ end;
       procedure TDebugInfoDwarf.appendsym_type(sym: ttypesym);
         begin
           append_entry(DW_TAG_typedef,false,[
-            DW_AT_name,DW_FORM_string,sym.name+#0
+            DW_AT_name,DW_FORM_string,symname(sym)+#0
           ]);
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.restype.def));
           finish_entry;
@@ -1857,7 +1860,7 @@ end;
           end;
 
           append_entry(DW_TAG_variable,false,[
-            DW_AT_name,DW_FORM_string,sym.name+#0,
+            DW_AT_name,DW_FORM_string,symname(sym)+#0,
             {
             DW_AT_decl_file,DW_FORM_data1,0,
             DW_AT_decl_line,DW_FORM_data1,
@@ -1880,7 +1883,7 @@ end;
         if sym.isdbgwritten then
           exit;
 
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Symbol '+sym.name)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Symbol '+symname(sym))));
         case sym.typ of
           globalvarsym :
             appendsym_var(tglobalvarsym(sym));
@@ -2266,6 +2269,11 @@ end;
       begin
       end;
 
+    function TDebugInfoDwarf.symname(sym: tsym): String;
+      begin
+        result := sym.Name;
+      end;
+
 
     procedure TDebugInfoDwarf.insertlineinfo(list:TAsmList);
       var
@@ -2421,7 +2429,7 @@ end;
           file recs. are less than 1k so using data2 is enough }
         if assigned(def.typesym) then
           append_entry(DW_TAG_structure_type,false,[
-           DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+           DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
            DW_AT_byte_size,DW_FORM_udata,def.size
           ])
         else
@@ -2508,7 +2516,7 @@ end;
 
         if assigned(def.typesym) then
           append_entry(DW_TAG_base_type,false,[
-            DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
             DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
             DW_AT_byte_size,DW_FORM_data2,def.size
             ])
@@ -2552,7 +2560,7 @@ end;
       begin
         if assigned(def.typesym) then
           append_entry(DW_TAG_file_type,false,[
-            DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
             DW_AT_byte_size,DW_FORM_data2,def.size
             ])
         else
@@ -2577,7 +2585,7 @@ end;
         begin
           if assigned(def.objname) then
             append_entry(tag,true,[
-              DW_AT_name,DW_FORM_string,def.objname^+#0,
+              DW_AT_name,DW_FORM_string,def.objrealname^+#0,
               DW_AT_byte_size,DW_FORM_udata,def.size
               ])
           else
@@ -2671,7 +2679,7 @@ end;
       begin
         if assigned(def.typesym) then
           append_entry(DW_TAG_set_type,false,[
-            DW_AT_name,DW_FORM_string,def.typesym.name+#0,
+            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
             DW_AT_byte_size,DW_FORM_data2,def.size
             ])
         else
@@ -2688,7 +2696,7 @@ end;
         { ??? can a undefined def have a typename ? }
         if assigned(def.typesym) then
           append_entry(DW_TAG_unspecified_type,false,[
-            DW_AT_name,DW_FORM_string,def.typesym.name+#0
+            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0
             ])
         else
           append_entry(DW_TAG_unspecified_type,false,[
@@ -2737,7 +2745,7 @@ end;
 
         { struct }
         append_entry(DW_TAG_structure_type,true,[
-          DW_AT_name,DW_FORM_string,'VARIANT'#0,
+          DW_AT_name,DW_FORM_string,'Variant'#0,
           DW_AT_byte_size,DW_FORM_udata,vardatadef.size
           ]);
         finish_entry;
@@ -2784,6 +2792,12 @@ end;
       begin
         Result:=3;
       end;
+
+    function TDebugInfoDwarf3.symname(sym: tsym): String;
+      begin
+        Result:=sym.realname;
+      end;
+
 
 
 {****************************************************************************
