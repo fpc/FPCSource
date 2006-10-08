@@ -821,8 +821,7 @@ implementation
                         tcallparanode(para.right).right := lenpara;
                         { in case of writing a chararray, add whether it's }
                         { zero-based                                       }
-                        if not(do_read) and
-                           (para.left.resulttype.def.deftype = arraydef) then
+                        if (para.left.resulttype.def.deftype = arraydef) then
                           para := ccallparanode.create(cordconstnode.create(
                             ord(tarraydef(para.left.resulttype.def).lowrange=0),booltype,false),para);
                         { create the call statement }

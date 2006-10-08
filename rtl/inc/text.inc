@@ -971,12 +971,15 @@ Begin
 End;
 
 
-Procedure fpc_Read_Text_PChar_As_Array(var f : Text;out s : array of char); iocheck; [Public,Alias:'FPC_READ_TEXT_PCHAR_AS_ARRAY']; compilerproc;
+Procedure fpc_Read_Text_PChar_As_Array(var f : Text;out s : array of char; zerobased: boolean = false); iocheck; [Public,Alias:'FPC_READ_TEXT_PCHAR_AS_ARRAY']; compilerproc;
 var
   len: longint;
 Begin
   len := ReadPCharLen(f,pchar(@s),high(s)+1);
-  if len <= high(s) then
+  if zerobased and
+     (len > high(s)) then
+    len := high(s);
+  if (len <= high(s)) then
     s[len] := #0;
 End;
 
