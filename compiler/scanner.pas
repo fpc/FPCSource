@@ -89,7 +89,6 @@ interface
           ignoredirectives : tstringlist; { ignore directives, used to give warnings only once }
           preprocstack   : tpreprocstack;
           in_asm_string  : boolean;
-          in_formal_annotation : boolean;
 
           preproc_pattern : string;
           preproc_token   : ttoken;
@@ -1688,7 +1687,6 @@ In case not, the value returned can be arbitrary.
         lastasmgetchar:=#0;
         ignoredirectives:=TStringList.Create;
         in_asm_string:=false;
-        in_formal_annotation:=false;
       end;
 
 
@@ -2745,7 +2743,6 @@ In case not, the value returned can be arbitrary.
               dec_comment_level;
               readchar;
               nexttoken:=_OPEN_FORMAL;
-              in_formal_annotation:=true;
               exit;
             end;
          end;
@@ -3002,7 +2999,6 @@ In case not, the value returned can be arbitrary.
                   begin
                     readchar;
                     token:=_CLOSE_FORMAL;
-                    in_formal_annotation:=false;
                     goto exit_label;
                   end
                  else
