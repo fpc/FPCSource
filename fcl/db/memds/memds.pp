@@ -813,7 +813,8 @@ end;
 
 procedure TMemDataset.CreateTable;
 var
-  i, iSize : Longint;
+  i : Longint;
+  iSize : ptrint;
 begin
   FStream.Clear;
   FRecCount:=0;
