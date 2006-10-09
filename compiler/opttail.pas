@@ -1,0 +1,166 @@
+{
+    Tail recursion optimization
+
+    Copyright (c) 2006 by Florian Klaempfl
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+ ****************************************************************************
+}
+unit opttail;
+
+{$i fpcdefs.inc}
+
+  interface
+
+    uses
+      symdef,node;
+
+    procedure do_opttail(var n : tnode;p : tprocdef);
+
+  implementation
+
+    uses
+      globtype,
+      defcmp,
+      nbas,nflw,ncal,nld,ncnv,
+      pass_1;
+
+    procedure do_opttail(var n : tnode;p : tprocdef);
+      var
+        labelnode : tlabelnode;
+      function find_and_replace_tailcalls(var n : tnode) : boolean;
+
+        var
+          usedcallnode : tcallnode;
+
+        function is_recursivecall(n : tnode) : boolean;
+          begin
+            result:=(n.nodetype=calln) and (tcallnode(n).procdefinition=p);
+            if result then
+              usedcallnode:=tcallnode(n)
+            else
+              { obsolete type cast? }
+              result:=((n.nodetype=typeconvn) and (ttypeconvnode(n).convtype=tc_equal) and is_recursivecall(ttypeconvnode(n).left));
+          end;
+
+        function is_resultassignment(n : tnode) : boolean;
+          begin
+            result:=((n.nodetype=loadn) and (tloadnode(n).symtableentry=p.funcretsym)) or
+              ((n.nodetype=typeconvn) and (ttypeconvnode(n).convtype=tc_equal) and is_resultassignment(ttypeconvnode(n).left));
+          end;
+
+        var
+          calcnodes,
+          copynodes,
+          hp : tnode;
+          nodes,
+          calcstatements,
+          copystatements : tstatementnode;
+          paranode : tcallparanode;
+          tempnode : ttempcreatenode;
+        begin
+          { no tail call found and replaced so far }
+          result:=false;
+          if n=nil then
+            exit;
+          case n.nodetype of
+            statementn:
+              begin
+                hp:=n;
+                { search last node }
+                while assigned(tstatementnode(hp).right) do
+                  hp:=tstatementnode(hp).right;
+                result:=find_and_replace_tailcalls(tstatementnode(hp).left);
+              end;
+            ifn:
+              begin
+                result:=find_and_replace_tailcalls(tifnode(n).right);
+                { avoid short bool eval here }
+                result:=find_and_replace_tailcalls(tifnode(n).t1) or result;
+              end;
+            assignn:
+              begin
+                if is_resultassignment(tbinarynode(n).left) and
+                   is_recursivecall(tbinarynode(n).right) then
+                  begin
+                    { found one! }
+                    {
+                    writeln('tail recursion optimization for ',p.mangledname);
+                    printnode(output,n);
+                    }
+                    { create assignments for all parameters }
+
+                    { this is hairy to do because one parameter could be used to calculate another one, so
+                      assign them first to temps and then add them }
+
+                    calcnodes:=internalstatements(calcstatements);
+                    copynodes:=internalstatements(copystatements);
+                    paranode:=tcallparanode(usedcallnode.left);
+                    while assigned(paranode) do
+                      begin
+                        tempnode:=ctempcreatenode.create(paranode.left.resulttype,paranode.left.resulttype.def.size,tt_persistent,true);
+                        addstatement(calcstatements,tempnode);
+                        addstatement(calcstatements,
+                          cassignmentnode.create(
+                            ctemprefnode.create(tempnode),
+                            paranode.left
+                            ));
+                        addstatement(copystatements,
+                          cassignmentnode.create(
+                            cloadnode.create(paranode.parasym,paranode.parasym.owner),
+                            ctemprefnode.create(tempnode)
+                            ));
+                       addstatement(copystatements,ctempdeletenode.create_normal_temp(tempnode));
+
+                        { reused }
+                        paranode.left:=nil;
+                        paranode:=tcallparanode(paranode.right);
+                      end;
+
+                    n.free;
+                    n:=internalstatements(nodes);
+                    addstatement(nodes,calcnodes);
+                    addstatement(nodes,copynodes);
+
+                    { create goto }
+                    addstatement(nodes,cgotonode.create(labelnode));
+
+                    do_firstpass(n);
+                    result:=true;
+                  end;
+              end;
+            blockn:
+              result:=find_and_replace_tailcalls(tblocknode(n).left);
+          end;
+        end;
+      var
+        s : tstatementnode;
+        oldnodes : tnode;
+      begin
+        labelnode:=clabelnode.create(cnothingnode.create);
+        if find_and_replace_tailcalls(n) then
+          begin
+            oldnodes:=n;
+            n:=internalstatements(s);
+            addstatement(s,labelnode);
+            addstatement(s,oldnodes);
+          end
+        else
+          labelnode.free;
+      end;
+
+end.
+

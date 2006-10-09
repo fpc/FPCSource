@@ -275,6 +275,7 @@ compiler/oglx.pas svneol=native#text/plain
 compiler/ogmap.pas svneol=native#text/plain
 compiler/optcse.pas svneol=native#text/plain
 compiler/options.pas svneol=native#text/plain
+compiler/opttail.pas svneol=native#text/plain
 compiler/optunrol.pas svneol=native#text/plain
 compiler/owar.pas svneol=native#text/plain
 compiler/owbase.pas svneol=native#text/plain
