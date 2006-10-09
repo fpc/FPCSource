@@ -104,9 +104,6 @@ end;
 
 var
   ThreadsInited: boolean = false;
-{$IFDEF LINUX}
-  GMainPID: LongInt = 0;
-{$ENDIF}
 const
   // stupid, considering its not even implemented...
   Priorities: array [TThreadPriority] of Integer =
@@ -114,12 +111,8 @@ const
 
 procedure InitThreads;
 begin
-  if not ThreadsInited then begin
+  if not ThreadsInited then
     ThreadsInited := true;
-    {$IFDEF LINUX}
-    GMainPid := fpgetpid();
-    {$ENDIF}
-  end;
 end;
 
 procedure DoneThreads;
@@ -143,12 +136,6 @@ var
 begin
   WRITE_DEBUG('ThreadFunc is here...');
   LThread := TThread(parameter);
-  {$IFDEF LINUX}
-  // save the PID of the "thread"
-  // this is different from the PID of the main thread if
-  // the LinuxThreads implementation is used
-  LThread.FPid := fpgetpid();
-  {$ENDIF}
   WRITE_DEBUG('thread initing, parameter = ', LongInt(LThread));
   try
     if LThread.FInitialSuspended then begin
@@ -244,22 +231,7 @@ begin
       SemaphoreWait(FSem);
     end else begin
       FSuspendedExternal := true;
-{$IFDEF LINUX}
-      // naughty hack if the user doesn't have Linux with NPTL...
-      // in that case, the PID of threads will not be identical
-      // to the other threads, which means that our thread is a normal
-      // process that we can suspend via SIGSTOP...
-      // this violates POSIX, but is the way it works on the
-      // LinuxThreads pthread implementation. Not with NPTL, but in that case
-      // getpid(2) also behaves properly and returns the same PID for
-      // all threads. Thats actually (FINALLY!) native thread support :-)
-      if FPid <> GMainPID then begin
-        FSuspended := true;
-        fpkill(FPid, SIGSTOP);
-      end;
-{$ELSE}
       SuspendThread(FHandle);
-{$ENDIF}
     end;
   end;
 end;
