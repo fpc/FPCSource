@@ -1401,6 +1401,8 @@ implementation
                 var_dec;
               _THREADVAR:
                 threadvar_dec;
+              _OPEN_FORMAL:
+                formal_dec;
               _CONSTRUCTOR,
               _DESTRUCTOR,
               _FUNCTION,

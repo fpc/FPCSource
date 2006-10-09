@@ -1273,6 +1273,17 @@ implementation
                       p1:=cloadnode.create(srsym,srsymtable);
                   end;
 
+                propositionsym:
+                  begin
+                    if (current_scanner.in_formal_annotation) then
+                      p1:=tpropositionsym(srsym).expr.getcopy
+                    else
+                      begin
+                        p1:=cerrornode.create;
+                        Message(parser_e_illegal_expression);
+                      end;
+                  end;
+
                 globalvarsym,
                 localvarsym,
                 paravarsym,

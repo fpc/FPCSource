@@ -42,6 +42,7 @@ interface
     procedure threadvar_dec;
     procedure property_dec;
     procedure resourcestring_dec;
+    procedure formal_dec;
 
 implementation
 
@@ -61,9 +62,10 @@ implementation
        ncgutil,
        { parser }
        scanner,
-       pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,
+       pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,pdecformal,
        { cpu-information }
-       cpuinfo
+       cpuinfo,
+       pass_1
        ;
 
 
@@ -581,6 +583,12 @@ implementation
       begin
         consume(_VAR);
         read_var_decs(false,false,false);
+      end;
+
+    procedure formal_dec;
+      begin
+        consume(_OPEN_FORMAL);
+        read_formal_decs;
       end;
 
 

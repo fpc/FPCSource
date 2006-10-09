@@ -89,6 +89,7 @@ interface
           ignoredirectives : tstringlist; { ignore directives, used to give warnings only once }
           preprocstack   : tpreprocstack;
           in_asm_string  : boolean;
+          in_formal_annotation : boolean;
 
           preproc_pattern : string;
           preproc_token   : ttoken;
@@ -1423,17 +1424,15 @@ In case not, the value returned can be arbitrary.
       end;
 
     procedure dir_formal;
-    (* Parse comments of the form {$FORMAL ON} and {$FORMAL OFF}
+    (* Parse comments of the form {$FORMAL+} and {$FORMAL-}
     *)
     var
       s : string;
     begin
-      current_scanner.skipspace;
       s:=current_scanner.readcomment;
-      s:=upcase(s);
-      if (s='ON') then 
+      if (s='+') then 
          include(aktlocalswitches,cs_formal_annotation)
-      else if (s='OFF') then
+      else if (s='-') then
          exclude(aktlocalswitches,cs_formal_annotation)
       else
          Message1(scan_w_illegal_switch,'$FORMAL '+s);
@@ -1689,6 +1688,7 @@ In case not, the value returned can be arbitrary.
         lastasmgetchar:=#0;
         ignoredirectives:=TStringList.Create;
         in_asm_string:=false;
+        in_formal_annotation:=false;
       end;
 
 
@@ -2745,6 +2745,7 @@ In case not, the value returned can be arbitrary.
               dec_comment_level;
               readchar;
               nexttoken:=_OPEN_FORMAL;
+              in_formal_annotation:=true;
               exit;
             end;
          end;
@@ -3001,6 +3002,7 @@ In case not, the value returned can be arbitrary.
                   begin
                     readchar;
                     token:=_CLOSE_FORMAL;
+                    in_formal_annotation:=false;
                     goto exit_label;
                   end
                  else

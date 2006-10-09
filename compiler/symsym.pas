@@ -36,7 +36,8 @@ interface
        cclasses,symnot,
        { aasm }
        aasmbase,aasmtai,
-       cpuinfo,cpubase,cgbase,cgutils,parabase
+       cpuinfo,cpubase,cgbase,cgutils,parabase,
+       node
        ;
 
     type
@@ -205,6 +206,11 @@ interface
 {$ifdef GDB}
           function stabstring : pchar;override;
 {$endif GDB}
+      end;
+
+      tpropositionsym = class(tabstractnormalvarsym)
+          expr : tnode;
+          constructor create(const n : string; const tt : ttype; aexpr : tnode);
       end;
 
       tparavarsym = class(tabstractnormalvarsym)
@@ -404,8 +410,6 @@ implementation
        systems,
        { symtable }
        defutil,symtable,
-       { tree }
-       node,
        { aasm }
 {$ifdef gdb}
        gdb,
@@ -1726,6 +1730,19 @@ implementation
       end;
     end;
 {$endif GDB}
+
+{****************************************************************************
+                               TPROPOSITIONSYM
+****************************************************************************}
+
+    constructor tpropositionsym.create(const n : string; const tt: ttype; aexpr : tnode);
+      begin
+        if not is_boolean(tt.def) then
+          internalerror(20061009);
+        inherited create(n, vs_value, tt, []);
+        expr:=aexpr;
+        typ:=propositionsym;
+      end;
 
 
 {****************************************************************************
