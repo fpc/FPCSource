@@ -1,4 +1,5 @@
-{ %CPU=i386 %OPT=-S2cgi -OG2 -gl -al }
+{ %CPU=i386 }
+{ %OPT=-S2cgi -OG2 -gl -al }
 program bugloop;
 
 {$mode objfpc}
@@ -12,3 +13,4 @@ begin
     d[i] := i;
   writeln('ok');
 end.
+
