@@ -1766,6 +1766,11 @@ type
               end;
            end;
 
+          { recursive call? }
+          if assigned(current_procinfo) and
+             (procdefinition=current_procinfo.procdef) then
+            include(current_procinfo.flags,pi_is_recursive);
+
           { handle predefined procedures }
           is_const:=(po_internconst in procdefinition.procoptions) and
                     ((block_type in [bt_const,bt_type]) or

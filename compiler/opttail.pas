@@ -34,13 +34,17 @@ unit opttail;
 
     uses
       globtype,
+      symconst,symsym,
       defcmp,
       nbas,nflw,ncal,nld,ncnv,
-      pass_1;
+      pass_1,
+      paramgr;
 
     procedure do_opttail(var n : tnode;p : tprocdef);
+
       var
         labelnode : tlabelnode;
+
       function find_and_replace_tailcalls(var n : tnode) : boolean;
 
         var
@@ -71,6 +75,7 @@ unit opttail;
           copystatements : tstatementnode;
           paranode : tcallparanode;
           tempnode : ttempcreatenode;
+          loadnode : tloadnode;
         begin
           { no tail call found and replaced so far }
           result:=false;
@@ -118,12 +123,17 @@ unit opttail;
                             ctemprefnode.create(tempnode),
                             paranode.left
                             ));
+
+                        { "cast" away const varspezs }
+                        loadnode:=cloadnode.create(paranode.parasym,paranode.parasym.owner);
+                        include(loadnode.flags,nf_isinternal_ignoreconst);
+
                         addstatement(copystatements,
                           cassignmentnode.create(
-                            cloadnode.create(paranode.parasym,paranode.parasym.owner),
+                            loadnode,
                             ctemprefnode.create(tempnode)
                             ));
-                       addstatement(copystatements,ctempdeletenode.create_normal_temp(tempnode));
+                        addstatement(copystatements,ctempdeletenode.create_normal_temp(tempnode));
 
                         { reused }
                         paranode.left:=nil;
@@ -146,11 +156,21 @@ unit opttail;
               result:=find_and_replace_tailcalls(tblocknode(n).left);
           end;
         end;
+
       var
         s : tstatementnode;
         oldnodes : tnode;
+        i : aint;
       begin
         labelnode:=clabelnode.create(cnothingnode.create);
+
+        { check if the parameters actually would support tail recursion elimination }
+        for i:=0 to p.paras.count-1 do
+          with tparavarsym(p.paras[i]) do
+            if (varspez in [vs_out,vs_var]) or
+              ((varspez=vs_const) and
+               (paramanager.push_addr_param(varspez,vartype.def,p.proccalloption))) then
+               exit;
         if find_and_replace_tailcalls(n) then
           begin
             oldnodes:=n;

@@ -729,9 +729,10 @@ implementation
           include(flags,pi_uses_fpu);
 
         { do this before adding the entry code else the tail recursion recognition won't work,
-          if this causes troubles, it must be ifdef'ed
+          if this causes troubles, it must be if'ed
         }
-        if cs_opt_tailrecursion in aktoptimizerswitches then
+        if (cs_opt_tailrecursion in aktoptimizerswitches) and
+          (pi_is_recursive in flags) then
           do_opttail(code,procdef);
 
         { add implicit entry and exit code }

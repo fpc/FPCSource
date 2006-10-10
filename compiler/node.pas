@@ -216,6 +216,10 @@ interface
          nf_is_self,
          nf_load_self_pointer,
          nf_inherited,
+         { the loadnode is generated internally and a varspez=vs_const should be ignore,
+           this requires that the parameter is actually passed by value
+           Be really carefull when using this flag! }
+         nf_isinternal_ignoreconst,
 
          { taddnode }
          nf_is_currency,

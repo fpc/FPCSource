@@ -299,7 +299,9 @@ than 255 characters. That's why using Ansi Strings}
          { set if the procedure has to push parameters onto the stack }
          pi_has_stackparameter,
          { set if the procedure has at least one got }
-         pi_has_goto
+         pi_has_goto,
+         { calls itself recursive }
+         pi_is_recursive
        );
        tprocinfoflags=set of tprocinfoflag;
 

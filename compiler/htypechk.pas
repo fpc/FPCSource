@@ -1255,11 +1255,12 @@ implementation
                        if (tabstractvarsym(tloadnode(hp).symtableentry).varspez=vs_const) then
                         begin
                           { allow p^:= constructions with p is const parameter }
-                          if gotderef or gotdynarray or (Valid_Const in opts) then
-                           result:=true
+                          if gotderef or gotdynarray or (Valid_Const in opts) or
+                            (nf_isinternal_ignoreconst in tloadnode(hp).flags) then
+                            result:=true
                           else
-                           if report_errors then
-                            CGMessagePos(tloadnode(hp).fileinfo,type_e_no_assign_to_const);
+                            if report_errors then
+                              CGMessagePos(tloadnode(hp).fileinfo,type_e_no_assign_to_const);
                           exit;
                         end;
                        result:=true;
