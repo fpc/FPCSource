@@ -1,8 +1,11 @@
-{ Hello World }
+{ The Great Computer Language Shootout
+  http://shootout.alioth.debian.org
+
+  contributed by Ales Katona
+}
 
 program hello;
-uses SysUtils;
 
 begin
-    WriteLn( 'hello world' );
+  WriteLn('hello world');
 end.
