@@ -149,7 +149,7 @@ than 255 characters. That's why using Ansi Strings}
        toptimizerswitch = (cs_opt_none,
          cs_opt_level1,cs_opt_level2,cs_opt_level3,
          cs_opt_regvar,cs_opt_uncertain,cs_opt_size,cs_opt_stackframe,
-         cs_opt_peephole,cs_opt_asmcse,cs_opt_loopunroll
+         cs_opt_peephole,cs_opt_asmcse,cs_opt_loopunroll,cs_opt_tailrecursion
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -157,7 +157,7 @@ than 255 characters. That's why using Ansi Strings}
        OptimizerSwitchStr : array[toptimizerswitch] of string[10] = ('',
          'LEVEL1','LEVEL2','LEVEL3',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
-         'PEEPHOLE','ASMCSE','LOOPUNROLL'
+         'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC'
        );
 
     type

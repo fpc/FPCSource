@@ -100,7 +100,8 @@ implementation
        pbase,pstatmnt,pdecl,pdecsub,pexports,
        { codegen }
        tgobj,cgbase,cgobj,dbgbase,
-       ncgutil,regvars
+       ncgutil,regvars,
+       opttail
 {$if defined(arm) or defined(powerpc) or defined(powerpc64)}
        ,aasmcpu
 {$endif arm}
@@ -727,6 +728,12 @@ implementation
         if code.registersfpu>0 then
           include(flags,pi_uses_fpu);
 
+        { do this before adding the entry code else the tail recursion recognition won't work,
+          if this causes troubles, it must be ifdef'ed
+        }
+        if cs_opt_tailrecursion in aktoptimizerswitches then
+          do_opttail(code,procdef);
+
         { add implicit entry and exit code }
         add_entry_exit_code;
 
@@ -805,7 +812,6 @@ implementation
                 procdef.requiredargarea:=paramanager.create_paraloc_info(procdef,callerside);
                 procdef.has_paraloc_info:=true;
               end;
-
 
             { generate code for the node tree }
             do_secondpass(code);
