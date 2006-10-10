@@ -30,10 +30,42 @@ Unit FreeBSD;
 interface
 
 uses
-  BaseUnix,Unix;
+  BaseUnix;
 
 const
   SF_NODISKIO = $00000001;  // don't wait for disk IO, similar to non-blocking socket setting
+  
+  // kernel threads
+
+  KSE_VER_0        = 0;
+  KSE_VERSION      = KSE_VER_0;
+
+  {* These flags are kept in km_flags *}
+  KMF_NOUPCALL      = $01;
+  KMF_NOCOMPLETED   = $02;
+  KMF_DONE          = $04;
+  KMF_BOUND         = $08;
+  KMF_WAITSIGEVENT  = $10;
+
+  {* These flags are kept in tm_flags *}
+  TMF_NOUPCALL      = $01;
+
+  {* These flags are kept in tm_dlfags *}
+  TMDF_SSTEP        = $01;
+  TMDF_SUSPEND      = $02;
+
+  {* Flags for kse_switchin *}
+  KSE_SWITCHIN_SETTMBX = $01;
+
+  {* Commands for kse_thr_interrupt *}
+  KSE_INTR_INTERRUPT   = 1;
+  KSE_INTR_RESTART     = 2;
+  KSE_INTR_SENDSIG     = 3;
+  KSE_INTR_SIGEXIT     = 4;
+  KSE_INTR_DBSUSPEND   = 5;
+  KSE_INTR_EXECVE      = 6;
+  
+{$i ucontexth.inc} // required for kse threads
 
 Type  
   SF_HDTR = record
@@ -68,9 +100,67 @@ Type
   pkld_sym_lookup = ^kld_sym_lookup;
   TKldSymLookup = kld_sym_lookup;
   PKldSymLookup = ^kld_sym_lookup;
+  
+  // kernel threads
+
+  pkse_mailbox = ^kse_mailbox;
+  
+  pkse_func_t = ^kse_func_t;
+  kse_func_t = procedure(mbx: pkse_mailbox);
+  TKseFunc = kse_func_t;
+  PKseFunc = pkse_func_t;
+  
+  {*
+   * Thread mailbox.
+   *
+   * This describes a user thread to the kernel scheduler.
+   *}
+  pkse_thr_mailbox = ^kse_thr_mailbox;
+  kse_thr_mailbox = record
+    tm_context: ucontext_t;	  {* User and machine context *}
+    tm_flags: cuint32;            {* Thread flags *}
+    tm_next: pkse_thr_mailbox;    {* Next thread in list *}
+    tm_udata: Pointer;            {* For use by the UTS *}
+    tm_uticks: cuint32;           {* Time in userland *}
+    tm_sticks: cuint32;           {* Time in kernel *}
+    tm_syncsig: siginfo_t;
+    tm_dflags: cuint32;           {* Debug flags *}
+    tm_lwp: lwpid_t;              {* kernel thread UTS runs on *}
+    __spare__: array [0..5] of cuint32;
+  end;
+  TKseThrMailBox = kse_thr_mailbox;
+  PKseThrMailBox = pkse_thr_mailbox;
+
+  
+  {*
+   * KSE mailbox.
+   *
+   * Communication path between the UTS and the kernel scheduler specific to
+   * a single KSE.
+   *}
+   
+  kse_mailbox = record
+    km_version: cuint32;             {* Mailbox version *}
+    km_curthread: pkse_thr_mailbox;  {* Currently running thread *}
+    km_completed: pkse_thr_mailbox;  {* Threads back from kernel *}
+    km_sigscaught: sigset_t;	     {* Caught signals *}
+    km_flags: cuint32;               {* Mailbox flags *}
+    km_func: pkse_func_t;            {* UTS function *}
+    km_stack: stack_t;               {* UTS stack *}
+    km_udata: Pointer;               {* For use by the UTS *}
+    km_timeofday: TTimeSpec;         {* Time of day *}
+    km_quantum: cuint32;             {* Upcall quantum in msecs *}
+    km_lwp: lwpid_t;                 {* kernel thread UTS runs on *}
+    __spare2__: array[0..6] of cuint32
+  end;
+  TKseMailBox = kse_mailbox;
+  PKseMailBox = pkse_mailbox;
+
 
   function sendfile(fd: cint; s: cint; Offset: TOff; nBytes: TSize;
                       HDTR: PSF_HDTR; sBytes: POff; Flags: cint): cint; extdecl;
+                      
+  // Kernel modules support
                     
   function kldload(FileName: pChar): cInt; extdecl;
 
@@ -85,13 +175,22 @@ Type
   function kldfirstmod(fileid: cInt): cInt; extdecl;
 
   function kldsym(fileid: cInt; command: cInt; data: PKldSymLookup): cInt; extdecl;
+  
+  // kernel threads support
+  
+  function kse_exit: cInt; extdecl;
+  function kse_wakeup(mbx: PKseMailBox): cInt; extdecl;
+  function kse_create(mbx: PKseMailBox; newgroup: cInt): cInt; extdecl;
+  function kse_thr_interrupt(tmbx: PKseThrMailBox; cmd: cInt; data: cLong): cInt; extdecl;
+  function kse_release(timeout: PTimeSpec): cInt; extdecl;
+  function kse_switchin(tmbx: PKseThrMailBox; flags: cInt): cInt; extdecl;
 
 implementation
 
 Uses
 {$ifndef FPC_USE_LIBC}  SysCall; {$else} InitC; {$endif}
 
-{$IFNDEF FPC_USE_LIBC}  
+{$IFNDEF FPC_USE_LIBC}
 
 function SendFile(fd: cint; s: cint; Offset: TOff; nBytes: TSize;
                   HDTR: PSF_HDTR; sBytes: POff; Flags: cint): cint;
@@ -108,6 +207,8 @@ begin
  {$ENDIF}
     nBytes, TSysParam(HDTR), TSysParam(sBytes), Flags);
 end;
+
+// kernel modules
 
 function kldload(FileName: pChar): cInt;
 begin
@@ -144,6 +245,40 @@ function kldsym(fileid: cInt; command: cInt; data: PKldSymLookup): cInt;
 begin
   kldsym:=do_sysCall(syscall_nr_kldsym, TSysParam(fileid), TSysParam(command),
                      TSysParam(data));
+end;
+
+// kernel threads
+
+function kse_exit: cInt;
+begin
+  kse_exit:=do_sysCall(TSysParam(syscall_nr_kse_exit));
+end;
+
+function kse_wakeup(mbx: PKseMailBox): cInt;
+begin
+  kse_wakeup:=do_sysCall(syscall_nr_kse_wakeup, TSysParam(mbx));
+end;
+
+function kse_create(mbx: PKseMailBox; newgroup: cInt): cInt;
+begin
+  kse_create:=do_sysCall(syscall_nr_kse_create, TSysParam(mbx),
+                         TSysParam(newgroup));
+end;
+
+function kse_thr_interrupt(tmbx: PKseThrMailBox; cmd: cInt; data: cLong): cInt;
+begin
+  kse_thr_interrupt:=do_SysCall(syscall_nr_kse_thr_interrupt, TSysParam(tmbx),
+                               TSysParam(cmd), TSysParam(data));
+end;
+
+function kse_release(timeout: PTimeSpec): cInt;
+begin
+  kse_release:=do_SysCall(syscall_nr_kse_release, TSysParam(timeout));
+end;
+
+function kse_switchin(tmbx: PKseThrMailBox; flags: cInt): cInt;
+begin
+  kse_switchin:=do_SysCall(syscall_nr_kse_switchin, TSysParam(tmbx), TSysParam(flags));
 end;
 
 {$ENDIF}

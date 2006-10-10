@@ -13,7 +13,7 @@
  **********************************************************************}
 
 const
-{ Crude converted FreeBSD  4.0-release syscall.h. Copy and paste if you
+{ Crude converted FreeBSD  6.1-release syscall.h. Copy and paste if you
  checked the function.
  syscall_nr_syscall                     =  0;
  syscall_nr_exit                        =  1;
@@ -221,7 +221,12 @@ syscall_nr_getdirentries                =196;
  syscall_nr_aio_waitcomplete            =359;
  syscall_nr_getresuid                   =360;
  syscall_nr_getresgid                   =361;
- syscall_nr_MAXSYSCALL                  =362;
+ syscall_nr_kse_exit                    = 379;
+ syscall_nr_kse_wakeup                  = 380;
+ syscall_nr_kse_create                  = 381;
+ syscall_nr_kse_thr_interrupt           = 382;
+ syscall_nr_kse_release                 = 383;
+ syscall_nr_kse_switchin                = 440;
 
 }
 
@@ -326,4 +331,11 @@ syscall_nr_getdirentries                =196;
  syscall_nr_kldfirstmod                 = 309;
  syscall_nr_kldsym                      = 337;
  syscall_nr_sendfile 			= 393;
+ syscall_nr_kse_exit                    = 379;
+ syscall_nr_kse_wakeup                  = 380;
+ syscall_nr_kse_create                  = 381;
+ syscall_nr_kse_thr_interrupt           = 382;
+ syscall_nr_kse_release                 = 383;
+ syscall_nr_kse_switchin                = 440;
+
 

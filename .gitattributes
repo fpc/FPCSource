@@ -4174,6 +4174,7 @@ rtl/freebsd/termio.pp svneol=native#text/plain
 rtl/freebsd/termios.inc svneol=native#text/plain
 rtl/freebsd/termiosproc.inc svneol=native#text/plain
 rtl/freebsd/tthread.inc svneol=native#text/plain
+rtl/freebsd/ucontexth.inc -text svneol=unset#plain/text
 rtl/freebsd/unixsock.inc svneol=native#text/plain
 rtl/freebsd/unxconst.inc svneol=native#text/plain
 rtl/freebsd/unxfunc.inc svneol=native#text/plain
