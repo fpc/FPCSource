@@ -57,7 +57,7 @@ interface
          destructor  destroy;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string):string;override;
          procedure CreateDebugSections;override;
-         procedure writereloc(data,len:aint;p:TObjSymbol;relative:TObjRelocationType);override;
+         procedure writereloc(data,len:aint;p:TObjSymbol;reltype:TObjRelocationType);override;
          procedure writestab(offset:aint;ps:TObjSymbol;nidx,nother:byte;ndesc:word;p:pchar);override;
        end;
 
@@ -155,11 +155,11 @@ implementation
       R_X86_64_32S = 11;
       { Direct 16 bit zero extended  }
       R_X86_64_16 = 12;
-      { 16 bit sign extended pc relative  }
+      { 16 bit sign extended PC relative  }
       R_X86_64_PC16 = 13;
       { Direct 8 bit sign extended   }
       R_X86_64_8 = 14;
-      { 8 bit sign extended pc relative  }
+      { 8 bit sign extended PC relative  }
       R_X86_64_PC8 = 15;
       { ID of module containing symbol  }
       R_X86_64_DTPMOD64 = 16;
@@ -611,7 +611,7 @@ implementation
       end;
 
 
-    procedure TElfObjData.writereloc(data,len:aint;p:TObjSymbol;relative:TObjRelocationType);
+    procedure TElfObjData.writereloc(data,len:aint;p:TObjSymbol;reltype:TObjRelocationType);
       var
         symaddr : longint;
       begin
@@ -626,24 +626,25 @@ implementation
            { real address of the symbol }
            symaddr:=p.address;
            { Local ObjSymbols can be resolved already or need a section reloc }
-           if (p.bind=AB_LOCAL) then
+           if (p.bind=AB_LOCAL) and
+              (reltype in [RELOC_RELATIVE,RELOC_ABSOLUTE{$ifdef x86_64},RELOC_ABSOLUTE32{$endif x86_64}]) then
              begin
-               { For a relative relocation in the same section the
+               { For a reltype relocation in the same section the
                  value can be calculated }
                if (p.objsection=CurrObjSec) and
-                  (relative=RELOC_RELATIVE) then
+                  (reltype=RELOC_RELATIVE) then
                  inc(data,symaddr-len-CurrObjSec.Size)
                else
                  begin
-                   CurrObjSec.addsectionreloc(CurrObjSec.Size,p.objsection,relative);
+                   CurrObjSec.addsectionreloc(CurrObjSec.Size,p.objsection,reltype);
                    inc(data,symaddr);
                  end;
              end
            else
              begin
-               CurrObjSec.addsymreloc(CurrObjSec.Size,p,relative);
+               CurrObjSec.addsymreloc(CurrObjSec.Size,p,reltype);
 {$ifndef x86_64}
-               if relative=RELOC_RELATIVE then
+               if reltype=RELOC_RELATIVE then
                  dec(data,len);
 {$endif x86_64}
             end;
@@ -723,24 +724,6 @@ implementation
                objreloc:=TObjRelocation(s.Objrelocations[i]);
                fillchar(rel,sizeof(rel),0);
                rel.address:=objreloc.dataoffset;
-               if assigned(objreloc.symbol) then
-                 begin
-                   if (objreloc.symbol.bind=AB_LOCAL) then
-                     relsym:=objreloc.symbol.objsection.secsymidx
-                   else
-                     begin
-                       if objreloc.symbol.symidx=-1 then
-                         internalerror(200603012);
-                       relsym:=objreloc.symbol.symidx;
-                     end;
-                 end
-               else
-                 begin
-                   if objreloc.objsection<>nil then
-                     relsym:=objreloc.objsection.secsymidx
-                   else
-                     relsym:=SHN_UNDEF;
-                 end;
 
                { when things settle down, we can create processor specific
                  derived classes }
@@ -766,10 +749,37 @@ implementation
                    reltyp:=R_X86_64_64;
                  RELOC_ABSOLUTE32 :
                    reltyp:=R_X86_64_32S;
+                 RELOC_GOTPCREL :
+                   begin
+                     reltyp:=R_X86_64_GOTPCREL;
+                     { length of the relocated location is handled here }
+                     rel.addend:=qword(-4);
+                   end;
+                 RELOC_PLT32 :
+                   begin
+                     reltyp:=R_X86_64_PLT32;
+                     { length of the relocated location is handled here }
+                     rel.addend:=qword(-4);
+                   end;
 {$endif x86_64}
                  else
                    internalerror(200602261);
                end;
+
+               { Symbol }
+               if assigned(objreloc.symbol) then
+                 begin
+                   if objreloc.symbol.symidx=-1 then
+                     internalerror(200603012);
+                   relsym:=objreloc.symbol.symidx;
+                 end
+               else
+                 begin
+                   if objreloc.objsection<>nil then
+                     relsym:=objreloc.objsection.secsymidx
+                   else
+                     relsym:=SHN_UNDEF;
+                 end;
 {$ifdef cpu64bit}
                rel.info:=(qword(relsym) shl 32) or reltyp;
 {$else cpu64bit}

@@ -1017,7 +1017,14 @@ implementation
                 end;
               top_ref :
                 begin
-                  if ref^.refaddr=addr_no then
+                  if (ref^.refaddr=addr_no)
+{$ifdef x86_64}
+                     or (
+                         (ref^.refaddr=addr_pic) and
+                         (ref^.base<>NR_NO)
+                        )
+{$endif x86_64}
+                     then
                     begin
                       { create ot field }
                       if (ot and OT_SIZE_MASK)=0 then
@@ -1463,7 +1470,7 @@ implementation
         o:=input.ref^.offset;
         sym:=input.ref^.symbol;
         if ((ir<>NR_NO) and (getregtype(ir)<>R_INTREGISTER)) or
-           ((br<>NR_NO) and (getregtype(br)<>R_INTREGISTER)) then
+           ((br<>NR_NO) and (br<>NR_RIP) and (getregtype(br)<>R_INTREGISTER)) then
           internalerror(200301081);
         { it's direct address }
         if (br=NR_NO) and (ir=NR_NO) then
@@ -1976,6 +1983,9 @@ implementation
       var
         currval : aint;
         currsym : tobjsymbol;
+        currrelreloc,
+        currabsreloc,
+        currabsreloc32 : TObjRelocationType;
 {$ifdef x86_64}
         rexwritten : boolean;
 {$endif x86_64}
@@ -1987,11 +1997,27 @@ implementation
                 begin
                   currval:=oper[opidx]^.ref^.offset;
                   currsym:=ObjData.symbolref(oper[opidx]^.ref^.symbol);
+{$ifdef x86_64}
+                  if oper[opidx]^.ref^.refaddr=addr_pic then
+                    begin
+                      currrelreloc:=RELOC_PLT32;
+                      currabsreloc:=RELOC_GOTPCREL;
+                      currabsreloc32:=RELOC_GOTPCREL;
+                    end
+                  else
+{$endif x86_64}
+                    begin
+                      currrelreloc:=RELOC_RELATIVE;
+                      currabsreloc:=RELOC_ABSOLUTE;
+                      currabsreloc32:=RELOC_ABSOLUTE32;
+                    end;
                 end;
               top_const :
                 begin
                   currval:=aint(oper[opidx]^.val);
                   currsym:=nil;
+                  currabsreloc:=RELOC_ABSOLUTE;
+                  currabsreloc32:=RELOC_ABSOLUTE32;
                 end;
               else
                 Message(asmw_e_immediate_or_reference_expected);
@@ -2105,7 +2131,7 @@ implementation
                 if (currval<-128) or (currval>127) then
                  Message2(asmw_e_value_exceeds_bounds,'signed byte',tostr(currval));
                 if assigned(currsym) then
-                  objdata.writereloc(currval,1,currsym,RELOC_ABSOLUTE)
+                  objdata.writereloc(currval,1,currsym,currabsreloc)
                 else
                   objdata.writebytes(currval,1);
               end;
@@ -2115,7 +2141,7 @@ implementation
                 if (currval<-256) or (currval>255) then
                  Message2(asmw_e_value_exceeds_bounds,'byte',tostr(currval));
                 if assigned(currsym) then
-                 objdata.writereloc(currval,1,currsym,RELOC_ABSOLUTE)
+                 objdata.writereloc(currval,1,currsym,currabsreloc)
                 else
                  objdata.writebytes(currval,1);
               end;
@@ -2125,7 +2151,7 @@ implementation
                 if (currval<0) or (currval>255) then
                  Message2(asmw_e_value_exceeds_bounds,'unsigned byte',tostr(currval));
                 if assigned(currsym) then
-                 objdata.writereloc(currval,1,currsym,RELOC_ABSOLUTE)
+                 objdata.writereloc(currval,1,currsym,currabsreloc)
                 else
                  objdata.writebytes(currval,1);
               end;
@@ -2135,7 +2161,7 @@ implementation
                 if (currval<-65536) or (currval>65535) then
                  Message2(asmw_e_value_exceeds_bounds,'word',tostr(currval));
                 if assigned(currsym) then
-                 objdata.writereloc(currval,2,currsym,RELOC_ABSOLUTE)
+                 objdata.writereloc(currval,2,currsym,currabsreloc)
                 else
                  objdata.writebytes(currval,2);
               end;
@@ -2145,14 +2171,14 @@ implementation
                 if opsize=S_Q then
                   begin
                     if assigned(currsym) then
-                     objdata.writereloc(currval,8,currsym,RELOC_ABSOLUTE)
+                     objdata.writereloc(currval,8,currsym,currabsreloc)
                     else
                      objdata.writebytes(currval,8);
                   end
                 else
                   begin
                     if assigned(currsym) then
-                      objdata.writereloc(currval,4,currsym,RELOC_ABSOLUTE32)
+                      objdata.writereloc(currval,4,currsym,currabsreloc32)
                     else
                       objdata.writebytes(currval,4);
                   end
@@ -2161,7 +2187,7 @@ implementation
               begin
                 getvalsym(c-32);
                 if assigned(currsym) then
-                 objdata.writereloc(currval,4,currsym,RELOC_ABSOLUTE32)
+                 objdata.writereloc(currval,4,currsym,currabsreloc32)
                 else
                  objdata.writebytes(currval,4);
               end;
@@ -2179,17 +2205,17 @@ implementation
               begin
                 getvalsym(c-52);
                 if assigned(currsym) then
-                 objdata.writereloc(currval,4,currsym,RELOC_RELATIVE)
+                 objdata.writereloc(currval,4,currsym,currrelreloc)
                 else
-                 objdata.writereloc(currval-insend,4,nil,RELOC_ABSOLUTE32)
+                 objdata.writereloc(currval-insend,4,nil,currabsreloc32)
               end;
             56,57,58 :
               begin
                 getvalsym(c-56);
                 if assigned(currsym) then
-                 objdata.writereloc(currval,4,currsym,RELOC_RELATIVE)
+                 objdata.writereloc(currval,4,currsym,currrelreloc)
                 else
-                 objdata.writereloc(currval-insend,4,nil,RELOC_ABSOLUTE32)
+                 objdata.writereloc(currval-insend,4,nil,currabsreloc32)
               end;
             192,193,194 :
               begin
@@ -2317,7 +2343,13 @@ implementation
                          if (oper[opidx]^.ot and OT_MEMORY)=OT_MEMORY then
                            begin
                              currsym:=objdata.symbolref(oper[opidx]^.ref^.symbol);
-                             objdata.writereloc(oper[opidx]^.ref^.offset,1,currsym,RELOC_ABSOLUTE);
+{$ifdef x86_64}
+                             if oper[opidx]^.ref^.refaddr=addr_pic then
+                               currabsreloc:=RELOC_PLT32
+                             else
+{$endif x86_64}
+                               currabsreloc:=RELOC_ABSOLUTE;
+                             objdata.writereloc(oper[opidx]^.ref^.offset,1,currsym,currabsreloc);
                            end
                          else
                           begin
@@ -2328,8 +2360,14 @@ implementation
                        end;
                      2,4 :
                        begin
-                         objdata.writereloc(oper[opidx]^.ref^.offset,ea_data.bytes,
-                           objdata.symbolref(oper[opidx]^.ref^.symbol),RELOC_ABSOLUTE32);
+                         currsym:=objdata.symbolref(oper[opidx]^.ref^.symbol);
+{$ifdef x86_64}
+                         if oper[opidx]^.ref^.refaddr=addr_pic then
+                           currabsreloc:=RELOC_PLT32
+                         else
+{$endif x86_64}
+                           currabsreloc:=RELOC_ABSOLUTE;
+                         objdata.writereloc(oper[opidx]^.ref^.offset,ea_data.bytes,currsym,currabsreloc);
                          inc(s,ea_data.bytes);
                        end;
                    end;
