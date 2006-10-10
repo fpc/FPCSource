@@ -130,7 +130,8 @@ type sigset_t = array[0..3] of Longint;
             End;
 
 
-  TSigInfo_t = record
+  PSigInfo_t = ^SigInfo_t;
+  SigInfo_t = record
                 si_signo,                       { signal number }
                 si_errno,                       { errno association }
         {
@@ -146,9 +147,11 @@ type sigset_t = array[0..3] of Longint;
                 si_addr         : Pointer;      { faulting instruction }
                 si_value        : SigVal;       { signal value }
                 si_band         : Cardinal;     { band event for SIGPOLL }
-                __spare         : array[0..6] of Longint; { gimme some slack
-}
+                __spare         : array[0..6] of Longint; { gimme some slack }
                 end;
+  TSigInfo = SigInfo_t;
+  PSigInfo = PSigInfo_t;
+  TSigInfo_t = TSigInfo;
 
 
 
