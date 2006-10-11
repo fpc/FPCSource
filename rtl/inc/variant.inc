@@ -994,7 +994,7 @@ begin
    Result:=True;
    While Result and (I<(sizeof(tvariantmanager) div sizeof(pointer))-1) do
      begin
-       Result:=Pointer(ppointer(@variantmanager+i*sizeof(pointer))^)<>Pointer(@invalidvariantop);
+       Result:=(PPointer(@variantmanager)+i)^<>Pointer(@invalidvariantop);
        Inc(I);
      end;
 end;
@@ -1009,6 +1009,6 @@ procedure initvariantmanager;
      tvardata(Unassigned).VType:=varEmpty;
      tvardata(Null).VType:=varNull;
      for i:=0 to (sizeof(tvariantmanager) div sizeof(pointer))-1 do
-       ppointer(@variantmanager+i*sizeof(pointer))^:=@invalidvariantopnovariants;
+       (ppointer(@variantmanager)+i)^:=@invalidvariantopnovariants;
      pointer(variantmanager.varclear):=@varclear
   end;

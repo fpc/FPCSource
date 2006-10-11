@@ -120,6 +120,8 @@ interface
        cvecnode : tvecnodeclass;
        cwithnode : twithnodeclass;
 
+    function is_big_untyped_addrnode(p: tnode): boolean;
+
 implementation
 
     uses
@@ -933,6 +935,12 @@ implementation
       begin
         docompare :=
           inherited docompare(p);
+      end;
+
+    function is_big_untyped_addrnode(p: tnode): boolean;
+      begin
+        is_big_untyped_addrnode:=(p.nodetype=addrn) and 
+	  not (nf_typedaddr in p.flags) and (taddrnode(p).left.resulttype.def.size > 1);
       end;
 
 begin

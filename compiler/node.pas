@@ -429,7 +429,6 @@ interface
     function is_constboolnode(p : tnode) : boolean;
     function is_constenumnode(p : tnode) : boolean;
     function is_constwidecharnode(p : tnode) : boolean;
-    function is_untyped_addrnode(p: tnode): boolean;
 
 
 implementation
@@ -631,11 +630,6 @@ implementation
     function is_constenumnode(p : tnode) : boolean;
       begin
          is_constenumnode:=(p.nodetype=ordconstn) and (p.resulttype.def.deftype=enumdef);
-      end;
-
-    function is_untyped_addrnode(p: tnode): boolean;
-      begin
-        is_untyped_addrnode:=(p.nodetype=addrn) and not (nf_typedaddr in p.flags);
       end;
 
 {****************************************************************************

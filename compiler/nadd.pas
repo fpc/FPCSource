@@ -1184,15 +1184,13 @@ implementation
                       begin
                         if is_voidpointer(right.resulttype.def) then
                         begin
-                          if is_untyped_addrnode(right) then
+                          if is_big_untyped_addrnode(right) then
                             CGMessage1(type_w_untyped_arithmetic_unportable,node2opstr(nodetype));
                           inserttypeconv(right,left.resulttype)
-                        end else if is_voidpointer(left.resulttype.def) then
-                        begin
-                          if is_untyped_addrnode(left) then
-                            CGMessage1(type_w_untyped_arithmetic_unportable,node2opstr(nodetype));
+                        end 
+			else if is_voidpointer(left.resulttype.def) then
                           inserttypeconv(left,right.resulttype)
-                        end else if not(equal_defs(ld,rd)) then
+                        else if not(equal_defs(ld,rd)) then
                           IncompatibleTypes(ld,rd);
                       end
                     else
@@ -1463,7 +1461,7 @@ implementation
                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                  if (ld.deftype=pointerdef) then
                  begin
-                   if is_untyped_addrnode(left) then
+                   if is_big_untyped_addrnode(left) then
                      CGMessage1(type_w_untyped_arithmetic_unportable,node2opstr(nodetype));
                    if (tpointerdef(ld).pointertype.def.size>1) then
                    begin
