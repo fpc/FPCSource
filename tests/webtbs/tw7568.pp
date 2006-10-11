@@ -1,3 +1,4 @@
+{$mode macpas}
 program ptest;
 
 type
