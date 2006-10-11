@@ -5103,6 +5103,7 @@ tests/bench/drystone.pas svneol=native#text/plain
 tests/bench/pi.c -text
 tests/bench/pi.pp svneol=native#text/plain
 tests/bench/shootout/README.txt svneol=native#text/plain
+tests/bench/shootout/io/binarytrees-output.txt svneol=native#text/plain
 tests/bench/shootout/io/moments.in -text
 tests/bench/shootout/io/moments.out -text
 tests/bench/shootout/io/recursive-output.txt svneol=native#text/plain
@@ -5148,6 +5149,7 @@ tests/bench/shootout/obsolete/strcat.pp svneol=native#text/plain
 tests/bench/shootout/obsolete/takfp.pp svneol=native#text/plain
 tests/bench/shootout/obsolete/wc.pp svneol=native#text/plain
 tests/bench/shootout/src/bench.c -text
+tests/bench/shootout/src/binarytrees.pp svneol=native#text/plain
 tests/bench/shootout/src/hello.pp svneol=native#text/plain
 tests/bench/shootout/src/nsieve.pp svneol=native#text/plain
 tests/bench/shootout/src/recursive.pp svneol=native#text/plain
