@@ -160,6 +160,11 @@ than 255 characters. That's why using Ansi Strings}
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC'
        );
 
+       { switches being applied to all CPUs at the given level }
+       genericlevel1optimizerswitches = [cs_opt_level1];
+       genericlevel2optimizerswitches = [cs_opt_level2];
+       genericlevel3optimizerswitches = [cs_opt_level3];
+
     type
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,m_all, { needed for keyword }
