@@ -388,7 +388,6 @@ End;
 
 Type
   TUnixFindData = Record
-    NamePos    : LongInt;     {to track which search this is}
     DirPtr     : Pointer;     {directory pointer for reading directory}
     SearchSpec : String;
     SearchType : Byte;        {0=normal, 1=open will close, 2=only 1 file}
@@ -424,9 +423,9 @@ begin
   if not fpstat(s,st)>=0 then
    exit;
   WinAttr:=LinuxToWinAttr(PChar(s),st);
-  If ((WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0) Then
+  If (f.FindHandle = nil) or ((WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0) Then
    Begin
-     f.Name:=Copy(s,PUnixFindData(f.FindHandle)^.NamePos+1,Length(s));
+     f.Name:=ExtractFileName(s);
      f.Attr:=WinAttr;
      f.Size:=st.st_Size;
      f.Mode:=st.st_mode;
@@ -461,7 +460,8 @@ Begin
       If UnixFindData^.NamePos = 0 Then
         DirName:='./'
       Else
-        DirName:=Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos);
+        DirName:=
+	Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos);
       UnixFindData^.DirPtr := fpopendir(Pchar(DirName));
     end;
   SName:=Copy(UnixFindData^.SearchSpec,UnixFindData^.NamePos+1,Length(UnixFindData^.SearchSpec));
@@ -503,26 +503,27 @@ Begin
   fillchar(Rslt,sizeof(Rslt),0);
   if Path='' then
     exit;
-  { Allocate UnixFindData }
-  New(UnixFindData);
-  FillChar(UnixFindData^,sizeof(UnixFindData^),0);
-  Rslt.FindHandle:=UnixFindData;
-  {Create Info}
-  UnixFindData^.SearchSpec := Path;
-  {We always also search for readonly and archive, regardless of Attr:}
-  UnixFindData^.SearchAttr := Attr or faarchive or fareadonly;
-  UnixFindData^.NamePos := Length(UnixFindData^.SearchSpec);
-  while (UnixFindData^.NamePos>0) and (UnixFindData^.SearchSpec[UnixFindData^.NamePos]<>'/') do
-   dec(UnixFindData^.NamePos);
   {Wildcards?}
   if (Pos('?',Path)=0)  and (Pos('*',Path)=0) then
    begin
      if FindGetFileInfo(Path,Rslt) then
        Result:=0;
-     UnixFindData^.SearchType:=1;
    end
   else
-    Result:=FindNext(Rslt);
+   begin
+     { Allocate UnixFindData }
+     New(UnixFindData);
+     FillChar(UnixFindData^,sizeof(UnixFindData^),0);
+     Rslt.FindHandle:=UnixFindData;
+     {Create Info}
+     UnixFindData^.SearchSpec := Path;
+     {We always also search for readonly and archive, regardless of Attr:}
+     UnixFindData^.SearchAttr := Attr or faarchive or fareadonly;
+     UnixFindData^.NamePos := Length(UnixFindData^.SearchSpec);
+     while (UnixFindData^.NamePos>0) and (UnixFindData^.SearchSpec[UnixFindData^.NamePos]<>'/') do
+       dec(UnixFindData^.NamePos);
+     Result:=FindNext(Rslt);
+   end;
 End;
 
 
