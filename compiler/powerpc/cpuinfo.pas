@@ -67,7 +67,12 @@ Const
    );
 
    { Supported optimizations, only used for information }
-   supported_optimizerswitches = [cs_opt_regvar,cs_opt_loopunroll];
+   supported_optimizerswitches = genericlevel1optimizerswitches+
+                                 genericlevel2optimizerswitches+
+                                 genericlevel3optimizerswitches-
+                                 { no need to write info about those }
+                                 [cs_opt_level1,cs_opt_level2,cs_opt_level3]+
+                                 [cs_opt_regvar,cs_opt_loopunroll];
 
    level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + [cs_opt_regvar];

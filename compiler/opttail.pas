@@ -160,7 +160,7 @@ unit opttail;
       var
         s : tstatementnode;
         oldnodes : tnode;
-        i : aint;
+        i : longint;
       begin
         labelnode:=clabelnode.create(cnothingnode.create);
 
