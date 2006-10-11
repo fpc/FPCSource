@@ -11,10 +11,9 @@ const
 {$ifdef wince}
   CrtLib = 'coredll.dll';
 {$else}
-  CrtLib = 'coredll.dll';
+  CrtLib = 'msvcrt.dll';
 {$endif}
 
-{ $linklib msvcrt}
 procedure printf(const formatstr : pchar; const args : array of const);cdecl; external CrtLib name 'printf';
 procedure sprintf(p : pchar;const formatstr : pchar; const args : array of const);cdecl; external CrtLib name 'sprintf';
 const
