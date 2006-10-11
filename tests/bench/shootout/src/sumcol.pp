@@ -1,14 +1,19 @@
-{ Sum a Column of Integers }
+{ The Great Computer Language Shootout
+  http://shootout.alioth.debian.org
+
+  contributed by Ales Katona
+}
 
 program sumcol;
 
-var
-    num, tot: longint;
+{$mode objfpc}
+
+var num, tot: longint;
+
 begin
-    While Not Eof(input) Do
-    begin
-        ReadLn(input, num);
-        tot := tot + num;
-    end;
-    WriteLn(tot);
+  while not Eof(input) do begin
+    ReadLn(input, num);
+    tot := tot + num;
+  end;
+  WriteLn(tot);
 end.
