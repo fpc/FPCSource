@@ -35,6 +35,9 @@ interface
 
     { reads an expression without assignements and .. }
     function comp_expr(accept_equal : boolean):tnode;
+    { reads an expression without assignments and .., but with
+    proposition syms, ... }
+    function comp_expr_in_formal_context(accept_equal : boolean):tnode;
 
     { reads a single factor }
     function factor(getaddr : boolean) : tnode;
@@ -76,6 +79,9 @@ implementation
        cgbase,procinfo,cpuinfo
        ;
 
+    var
+      in_formal_context : boolean;
+
     { sub_expr(opmultiply) is need to get -1 ** 4 to be
       read as - (1**4) and not (-1)**4 PM }
     type
@@ -89,6 +95,8 @@ implementation
     const
        { true, if the inherited call is anonymous }
        anon_inherited : boolean = false;
+
+
 
 
 
@@ -1273,9 +1281,15 @@ implementation
                       p1:=cloadnode.create(srsym,srsymtable);
                   end;
 
-                propositionsym:
+                specvarsym:
                   begin
-                    p1:=tpropositionsym(srsym).expr.getcopy
+                    if not in_formal_context then
+                      begin
+                        p1:=cerrornode.create;
+                        Message(parser_e_illegal_expression);
+                      end
+                    else
+                      p1:=tspecvarsym(srsym).expr.getcopy
                   end;
 
                 globalvarsym,
@@ -2589,6 +2603,15 @@ implementation
         sub_expr:=p1;
       end;
 
+    function comp_expr_in_formal_context(accept_equal : boolean):tnode;
+      var
+        prev : boolean;
+      begin
+        prev:=in_formal_context;
+        in_formal_context:=true;
+        comp_expr_in_formal_context:=comp_expr(accept_equal);
+        in_formal_context:=prev;
+      end;
 
     function comp_expr(accept_equal : boolean):tnode;
       var
@@ -2715,5 +2738,8 @@ implementation
         get_stringconst:=strpas(tstringconstnode(p).value_str);
       p.free;
     end;
+
+initialization
+    in_formal_context:=false;
 
 end.

@@ -107,6 +107,7 @@ implementation
            ,aopt
          {$endif i386}
        {$endif}
+       ,ninl
        ;
 
 {****************************************************************************
@@ -256,8 +257,19 @@ implementation
         para         : tcallparanode;
         newstatement : tstatementnode;
         htype        : ttype;
+        failstring   : tnode;
       begin
         result:=internalstatements(newstatement);
+
+        if assigned(current_procinfo.procdef.precondition) then
+          begin
+            failstring:=cstringconstnode.createstr('Precondition failed', st_default);
+            addstatement(newstatement,
+              geninlinenode(in_assert_x_y,false,ccallparanode.create(
+                current_procinfo.procdef.precondition,
+                ccallparanode.create(failstring,nil)))
+            );
+          end;
 
         if assigned(current_procinfo.procdef._class) then
           begin
@@ -356,8 +368,19 @@ implementation
         srsym : tsym;
         para : tcallparanode;
         newstatement : tstatementnode;
+        failstring : tnode;
       begin
         result:=internalstatements(newstatement);
+
+        if assigned(current_procinfo.procdef.postcondition) then
+          begin
+            failstring:=cstringconstnode.createstr('Postcondition failed', st_default);
+            addstatement(newstatement,
+              geninlinenode(in_assert_x_y,false,ccallparanode.create(
+                current_procinfo.procdef.postcondition,
+                ccallparanode.create(failstring,nil)))
+            );
+          end;
 
         if assigned(current_procinfo.procdef._class) then
           begin

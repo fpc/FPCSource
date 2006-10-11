@@ -590,6 +590,9 @@ interface
           interfacedef : boolean;
           { true if the procedure has a forward declaration }
           hasforward : boolean;
+          { pointer to the pre-/postcondition nodes }
+          precondition : tnode;
+          postcondition : tnode;
           { import info }
           import_dll,
           import_name : pstring;
@@ -3885,6 +3888,8 @@ implementation
          aliasnames:=tstringlist.create;
          funcretsym:=nil;
          localst := nil;
+         precondition:=nil;
+         postcondition:=nil;
          defref:=nil;
          lastwritten:=nil;
          refcount:=0;

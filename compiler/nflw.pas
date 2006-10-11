@@ -70,9 +70,14 @@ interface
        end;
 
        twhilerepeatnode = class(tloopnode)
+          invariant : tnode; { the loop invariant (an expression) }
           constructor create(l,r:Tnode;tab,cn:boolean);virtual;
+          destructor destroy;override;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
+          { Set the invariant and insert an assertion inline node
+          before the first statement } 
+          procedure setinvariant(inv : tnode);
 {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
 {$endif}
@@ -226,7 +231,7 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,paramgr,defcmp,defutil,htypechk,pass_1,
-      ncal,nadd,ncon,nmem,nld,ncnv,nbas,cgobj,nutils,
+      ncal,nadd,ncon,nmem,nld,ncnv,nbas,ninl,cgobj,nutils,
     {$ifdef state_tracking}
       nstate,
     {$endif}
@@ -352,6 +357,34 @@ implementation
               include(loopflags, lnf_testatbegin);
           if cn then
               include(loopflags,lnf_checknegate);
+          invariant:=nil;
+      end;
+
+    destructor twhilerepeatnode.destroy;
+      begin
+        invariant.free;
+        inherited destroy;
+      end;
+
+    procedure twhilerepeatnode.setinvariant(inv: tnode);
+      var
+        s : tnode;
+        ass : tnode;
+      begin
+        invariant:=inv.getcopy;
+        resulttypepass(invariant);
+        if not is_boolean(invariant.resulttype.def) then
+          begin
+            Message1(type_e_boolean_expr_expected, invariant.resulttype.def.typename);
+            invariant.destroy;
+            invariant:=nil;
+          end;
+        s:=cstringconstnode.createstr('Invariant failed', st_default);
+        ass:=geninlinenode(in_assert_x_y, false, 
+          ccallparanode.create(invariant.getcopy,
+          ccallparanode.create(s, nil))
+        );
+        right:=cstatementnode.create(ass, right);
       end;
 
 
@@ -415,6 +448,10 @@ implementation
            cg.t_times:=cg.t_times*8;
 
          firstpass(left);
+         if codegenerror then
+           exit;
+         if assigned(invariant) then
+            firstpass(invariant);
          if codegenerror then
            exit;
          registersint:=left.registersint;

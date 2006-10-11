@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Eindhoven University of Technology
+    Copyright (c) 2006 by Eindhoven University of Technology
 
     Parses formal annotation in declarations.
 
@@ -52,7 +52,9 @@ implementation
        { link }
        import,
        { exceptions }
-       sysutils
+       sysutils,
+       { procinfo }
+       procinfo
        ;
 
 
@@ -60,6 +62,7 @@ implementation
     procedure read_specvar; forward;
     procedure read_precondition; forward;
     procedure read_postcondition; forward;
+    procedure read_retcondition; forward;
 
     type
       EInvalidAnnotation = class(Exception);
@@ -100,6 +103,11 @@ implementation
                 consume(_ID);
                 read_postcondition;
               end
+            else if upcase(pattern)='RET' then
+              begin
+                consume(_ID);
+                read_retcondition;
+              end
             else
               begin
                 raise EInvalidAnnotation.Create('specvar, pre, post or def expected');
@@ -128,39 +136,132 @@ implementation
         vs : tabstractvarsym;
       begin
         { parse P : expression }
-        prop_name := pattern;
-        consume(_ID);
+        repeat
+          prop_name:=pattern;
+          consume(_ID);
+          consume(_COLON);
+          expr:=comp_expr_in_formal_context(true);
+          do_resulttypepass(expr);
+          if not is_boolean(expr.resulttype.def) then
+            begin
+              Message1(type_e_boolean_expr_expected, expr.resulttype.def.typename);
+              exit;
+            end;
+          if not(symtablestack.symtabletype in [localsymtable,globalsymtable]) then
+            begin
+              { TODO : more descriptive error message }
+              raise EInvalidAnnotation.Create('Proposition definition outside local '+
+              'or global declaration context');
+            end;
+          vs:=tspecvarsym.create(prop_name, expr.resulttype { Boolean }, expr);
+          symtablestack.insert(vs);
+        until not try_to_consume(_COMMA);
+      end;
+
+    procedure read_specvar;
+      var
+        sv_name : string;
+        sv_type : ttype;
+        sv_expr : tnode;
+        sv      : tabstractvarsym;
+        type_given : boolean;
+        prev_ignore_equal : boolean;
+      begin
+        repeat
+          { parse P [: type] = expression }
+          sv_name:=pattern;
+          consume(_ID);
+          { Is a type given ? }
+          if try_to_consume(_COLON) then
+            begin
+              prev_ignore_equal:=ignore_equal;
+              ignore_equal:=true; { Signals to read_type to ignore the = token }
+              read_type(sv_type, '', false);
+              ignore_equal:=prev_ignore_equal;
+              type_given:=true;
+            end
+          else
+            type_given:=false;
+            
+          consume(_EQUAL);
+          { Parse the expression }
+          sv_expr:=comp_expr(true);
+          do_resulttypepass(sv_expr);
+          if type_given then
+            { Match the given type and the type of the expression }
+            inserttypeconv(sv_expr, sv_type)
+          else
+            { Set the type to the type of the expression } 
+            sv_type:=sv_expr.resulttype;
+          sv:=tspecvarsym.create(sv_name, sv_type, sv_expr);
+          symtablestack.insert(sv);
+        until not try_to_consume(_COMMA);
+      end;
+
+  
+    procedure read_precondition;
+      var
+        expr : tnode;
+      begin
         consume(_COLON);
-        expr:=comp_expr(true);
+        expr:=comp_expr_in_formal_context(true);
+        { Check here the result type of the expression.
+        This will be checked later on as well (after conversion to "assert"),
+        but then an error message would contain the wrong position }
         do_resulttypepass(expr);
         if not is_boolean(expr.resulttype.def) then
           begin
             Message1(type_e_boolean_expr_expected, expr.resulttype.def.typename);
             exit;
           end;
-        if not(symtablestack.symtabletype in [localsymtable,globalsymtable]) then
-          begin
-            { TODO : more descriptive error message }
-            raise EInvalidAnnotation.Create('Proposition definition outside local '+
-            'or global declaration context');
-          end;
-        vs:=tpropositionsym.create(prop_name, expr.resulttype, expr);
-        symtablestack.insert(vs);
-      end;
-
-    procedure read_specvar;
-      begin
-        raise EInvalidAnnotation.Create('Specification variables are not yet implemented');
-      end;
-
-    procedure read_precondition;
-      begin
-        raise EInvalidAnnotation.Create('Pre-/postconditions are not yet implemented');
+        if assigned(current_procinfo.procdef.precondition) then
+          { There was already a precondition specified,
+          use the conjunction of expr and the previous precondition }
+          expr:=caddnode.create(andn, current_procinfo.procdef.precondition, expr);
+        current_procinfo.procdef.precondition:=expr;
       end;
 
     procedure read_postcondition;
+      var
+        expr : tnode;
       begin
-        raise EInvalidAnnotation.Create('Pre-/postconditions are not yet implemented');
+        consume(_COLON);
+        expr:=comp_expr_in_formal_context(true);
+        { Check here the result type of the expression.
+        This will be checked later on as well (after conversion to "assert"),
+        but then an error message would contain the wrong position }
+        do_resulttypepass(expr);
+        if not is_boolean(expr.resulttype.def) then
+          begin
+            Message1(type_e_boolean_expr_expected, expr.resulttype.def.typename);
+            exit;
+          end;
+        if assigned(current_procinfo.procdef.postcondition) then
+          { There was already a postcondition specified,
+          use the conjunction of expr and the previous postcondition }
+          expr:=caddnode.create(andn, current_procinfo.procdef.postcondition, expr);
+        current_procinfo.procdef.postcondition:=expr;
+      end;
+
+    procedure read_retcondition;
+      var
+        expr : tnode;
+        evald : tnode;
+        rst : tnode;
+      begin
+        consume(_COLON);
+        { Proposition variables are not allowed here }
+        expr:=comp_expr(true);
+        { Convert this to "Result = expr" } 
+        if not assigned(current_procinfo.procdef.funcretsym) then
+          raise EInvalidAnnotation.Create('{@ ret : expr } in a non-returning something'); { TODO }
+        rst:=cloadnode.create(current_procinfo.procdef.funcretsym,current_procinfo.procdef.localst);
+        evald:=caddnode.create(equaln, rst, expr);
+        if assigned(current_procinfo.procdef.postcondition) then
+          { there was already a postcondition specified,
+          use the conjunction of the previous postcondition and result = expr }
+          evald:=caddnode.create(andn, current_procinfo.procdef.postcondition, evald);
+        current_procinfo.procdef.postcondition:=evald;  
       end;
 
 end.

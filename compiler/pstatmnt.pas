@@ -1071,8 +1071,7 @@ implementation
          pure_statement:=code;
       end;
 
-    function formal_annotation : tnode;
-    { parse _OPEN_FORMAL expr _CLOSE_FORMAL }
+    function formal_annotation(var loop_invariant : tnode) : tnode;
     var
       expr : tnode;
       s : tnode;
@@ -1082,10 +1081,31 @@ implementation
        formal_annotation:=cnothingnode.create
       else
        begin
-         expr:=comp_expr(true);
-         s:=cstringconstnode.createstr('Formal annotation failed', st_default);
-         formal_annotation:=geninlinenode(in_assert_x_y,false,ccallparanode.create(expr,ccallparanode.create(s,nil)));
-         consume(_CLOSE_FORMAL);
+         if (token=_ID) and (upcase(pattern)='INV') then
+          begin
+            consume(_ID);
+            consume(_COLON);
+            expr:=comp_expr_in_formal_context(true);
+            if assigned(loop_invariant) then  
+              begin
+                { A loop invariant was already specified.
+                Take the conjunction of this invariant, and the one already
+                specified. }
+                loop_invariant:=caddnode.create(andn,
+                  loop_invariant, expr);
+              end
+            else
+              loop_invariant:=expr;
+            formal_annotation:=cnothingnode.create;
+            consume(_CLOSE_FORMAL);
+          end
+        else
+          begin
+            expr:=comp_expr_in_formal_context(true);
+            s:=cstringconstnode.createstr('Formal annotation failed', st_default);
+            formal_annotation:=geninlinenode(in_assert_x_y,false,ccallparanode.create(expr,ccallparanode.create(s,nil)));
+            consume(_CLOSE_FORMAL);
+          end;
        end;
     end;
 
@@ -1095,6 +1115,7 @@ implementation
       ass : tnode;
       first : tnode;
       tochange : ^tnode;
+      invariant : tnode;
 
         procedure parse_formal_annotation_star;
         begin
@@ -1102,19 +1123,64 @@ implementation
            begin
              if not(cs_do_assertion in aktlocalswitches) then
               Message(parser_w_formal_annotation_not_compiled);
-             ass:=formal_annotation;
+             ass:=formal_annotation(invariant);
              tochange^:=cstatementnode.create(ass, nil);
              tochange:=@(tstatementnode(tochange^).right);
            end;
         end;
 
+    var
+      fail_string : tnode;
+
     begin
+      invariant:=nil;
       first:=nil;
       tochange:=@first;
       parse_formal_annotation_star;
-      tochange^:=cstatementnode.create(pure_statement, nil);
-      tochange:=@(tstatementnode(tochange^).right);
+
+      if assigned(invariant) then
+        begin
+          { ASSUMPTION :
+            repeat_statement and while_statement return a
+            cwhilerepeatnode
+          }
+          case token of
+          _REPEAT :
+            tochange^:=cstatementnode.create(repeat_statement, nil);
+          _WHILE :
+            tochange^:=cstatementnode.create(while_statement, nil);
+          else
+            begin
+              Message(parser_w_invariant_not_before_loop);
+              invariant.destroy;
+              invariant:=nil;
+            end; { else }
+          end; { case }
+          if assigned(invariant) then
+            begin
+              { Set the invariant (include a check in each iteration of the loop) }
+              twhilerepeatnode(tstatementnode(tochange^).left).setinvariant(invariant);
+              tochange:=@(tstatementnode(tochange^).right);
+              { Check the invariant after the loop }
+              fail_string:=cstringconstnode.createstr('Invariant failed at end of loop',
+                st_default);
+              tochange^:=cstatementnode.create(geninlinenode(
+                in_assert_x_y, false, ccallparanode.create(invariant.getcopy,
+                  ccallparanode.create(fail_string, nil))), nil);
+
+              tochange:=@(tstatementnode(tochange^).right);
+            end;
+        end
+      else { not assigned(invariant) }
+        begin
+          tochange^:=cstatementnode.create(pure_statement, nil);
+          tochange:=@(tstatementnode(tochange^).right);
+        end;
+
+      invariant:=nil;
       parse_formal_annotation_star;
+      if assigned(invariant) then
+        Message(parser_w_invariant_not_before_loop);
       statement:=first; 
     end;
 

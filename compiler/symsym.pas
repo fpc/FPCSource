@@ -208,11 +208,11 @@ interface
 {$endif GDB}
       end;
 
-      tpropositionsym = class(tabstractnormalvarsym)
+      tspecvarsym = class(tabstractnormalvarsym)
           expr : tnode;
           constructor create(const n : string; const tt : ttype; aexpr : tnode);
       end;
-
+      
       tparavarsym = class(tabstractnormalvarsym)
           paraloc       : array[tcallercallee] of TCGPara;
           paranr        : word; { position of this parameter }
@@ -1735,13 +1735,11 @@ implementation
                                TPROPOSITIONSYM
 ****************************************************************************}
 
-    constructor tpropositionsym.create(const n : string; const tt: ttype; aexpr : tnode);
+    constructor tspecvarsym.create(const n : string; const tt: ttype; aexpr : tnode);
       begin
-        if not is_boolean(tt.def) then
-          internalerror(20061009);
         inherited create(n, vs_value, tt, []);
         expr:=aexpr;
-        typ:=propositionsym;
+        typ:=specvarsym;
       end;
 
 

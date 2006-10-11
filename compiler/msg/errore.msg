@@ -326,7 +326,7 @@ scan_n_app_type_not_support=02073_N_APPTYPE is not supported by the target OS
 #
 # Parser
 #
-# 03220 is the last used one
+# 03221 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1054,8 +1054,11 @@ parser_w_overridden_methods_not_same_ret=03218_W_Overridden methods must have a 
 parser_w_formal_annotation_not_compiled=03219_W_Formal annotation will not be compiled into an assert statement (use -Sa)
 % Formal annotation was encountered, but run-time assertion checking is not
 % switched on; only the syntax of the formal annotation will be checked.
-parser_e_invalid_formal_annotation=03220_E_Invalid formal annotation
-% A syntax error was encountered in formal annotation.
+parser_e_invalid_formal_annotation=03220_E_Invalid formal annotation: $1
+% A syntax error in formal annotation was encountered.
+parser_w_invariant_not_before_loop=03221_W_Invariant not before loop statement, the invariant is ignored
+% An invariant was given, but it was not immediately followed by a
+% while..do or repeat..until-loop. (Check for extra semicolons)
 % \end{description}
 #
 # Type Checking

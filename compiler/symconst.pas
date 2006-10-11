@@ -366,7 +366,7 @@ type
              typesym,procsym,unitsym,constsym,enumsym,typedconstsym,
              errorsym,syssym,labelsym,absolutevarsym,propertysym,
              macrosym,rttisym,
-             propositionsym);
+             specvarsym);
 
   { State of the variable, if it's declared, assigned or used }
   tvarstate=(vs_none,
