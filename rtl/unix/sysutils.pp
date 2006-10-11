@@ -388,6 +388,7 @@ End;
 
 Type
   TUnixFindData = Record
+    NamePos    : LongInt;     {to track which search this is}
     DirPtr     : Pointer;     {directory pointer for reading directory}
     SearchSpec : String;
     SearchType : Byte;        {0=normal, 1=open will close, 2=only 1 file}
@@ -460,8 +461,7 @@ Begin
       If UnixFindData^.NamePos = 0 Then
         DirName:='./'
       Else
-        DirName:=
-	Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos);
+        DirName:=Copy(UnixFindData^.SearchSpec,1,UnixFindData^.NamePos);
       UnixFindData^.DirPtr := fpopendir(Pchar(DirName));
     end;
   SName:=Copy(UnixFindData^.SearchSpec,UnixFindData^.NamePos+1,Length(UnixFindData^.SearchSpec));
