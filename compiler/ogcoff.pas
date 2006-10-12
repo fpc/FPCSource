@@ -1037,11 +1037,6 @@ const pemagic : array[0..3] of byte = (
       begin
         if not assigned(StabsSec) then
           internalerror(200602256);
-        { Win32 does not need an offset if a symbol relocation is used }
-        if win32 and
-           assigned(ps) and
-           (ps.bind<>AB_LOCAL) then
-          offset:=0;
         if assigned(p) and (p[0]<>#0) then
           begin
             stabstrlen:=strlen(p);
@@ -1080,12 +1075,24 @@ const pemagic : array[0..3] of byte = (
          begin
            { current address }
            curraddr:=StabsSec.mempos+StabsSec.Size;
-           if DLLSource and RelocSection then
-            { avoid relocation in the .stab section
-              because it ends up in the .reloc section instead }
-            StabsSec.addsymreloc(curraddr-4,ps,RELOC_RVA)
-           else
-            StabsSec.addsymreloc(curraddr-4,ps,RELOC_ABSOLUTE);
+	   if ps.bind=AB_LOCAL then
+	     begin
+               { avoid relocation in the .stab section
+                 because it ends up in the .reloc section instead }
+               if DLLSource and RelocSection then
+                 StabsSec.addsectionreloc(curraddr-4,ps.ObjSection,RELOC_RVA)
+               else
+                 StabsSec.addsectionreloc(curraddr-4,ps.ObjSection,RELOC_ABSOLUTE);
+	     end
+	   else
+	     begin
+               { avoid relocation in the .stab section
+                 because it ends up in the .reloc section instead }
+               if DLLSource and RelocSection then
+                 StabsSec.addsymreloc(curraddr-4,ps,RELOC_RVA)
+               else
+                 StabsSec.addsymreloc(curraddr-4,ps,RELOC_ABSOLUTE);
+	     end;     
          end;
       end;
 

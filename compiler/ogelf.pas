@@ -671,7 +671,12 @@ implementation
         stab.nvalue:=offset;
         stabssec.write(stab,sizeof(stab));
         if assigned(ps) then
-          stabssec.addsymreloc(stabssec.Size-4,ps,RELOC_ABSOLUTE);
+	  begin
+	    if ps.bind=AB_LOCAL then
+              stabssec.addsectionreloc(stabssec.Size-4,ps.Objsection,RELOC_ABSOLUTE)
+	    else  
+              stabssec.addsymreloc(stabssec.Size-4,ps,RELOC_ABSOLUTE);
+	  end;      
       end;
 
 
