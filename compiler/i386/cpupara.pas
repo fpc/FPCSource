@@ -178,7 +178,7 @@ unit cpupara;
                 result:=false
               else
                 result:=
-                  (not(calloption in [pocall_cdecl,pocall_cppdecl]) and
+                  (not(calloption in [pocall_cdecl,pocall_cppdecl,pocall_mwpascal]) and
                    (def.size>sizeof(aint))) or
                   ((calloption = pocall_mwpascal) and
                    (varspez=vs_const));
