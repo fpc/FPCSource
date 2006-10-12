@@ -25,8 +25,11 @@ interface
 {$mode objfpc}
 {$H+}
 
-Type TConvType   = type Integer;
-     TConvFamily = type Integer;
+Type TConvType        = type Integer;
+     TConvFamily      = type Integer;
+     TConvFamilyArray = array of TConvFamily;
+     TConvTypeArray   = array of TConvType;
+     TConversionProc  = function(const AValue: Double): Double;
 
 var
 
@@ -200,6 +203,25 @@ Function RegisterConversionType(Fam:TConvFamily;Const S:String;Value:TConvUtilFl
 function Convert ( const Measurement  : Double; const FromType, ToType  : TConvType ) :TConvUtilFloat;
 function Convert ( const Measurement  : Double; const FromType1, FromType2, ToType1, ToType2  : TConvType ) :TConvUtilFloat;
 
+function ConvFamilyToDescription(const AFamily: TConvFamily): string;
+function ConvTypeToDescription(const AType: TConvType): string;
+procedure GetConvFamilies(out AFamilies: TConvFamilyArray);
+procedure GetConvTypes(const AFamily: TConvFamily; out ATypes: TConvTypeArray);
+
+Type
+  TConvTypeInfo = Class(Tobject)
+  private
+     FDescription : String;
+     FConvFamily  : TConvFamily;
+     FConvType	  : TConvType;
+  public
+     Constructor Create(Const AConvFamily : TConvFamily;const ADescription:String);
+     function ToCommon(const AValue: Double) : Double; virtual; abstract;
+     function FromCommon(const AValue: Double) : Double; virtual; abstract;
+     property ConvFamily : TConvFamily read FConvFamily;
+     property ConvType   : TConvType   read FConvType;
+     property Description: String      read FDescription;
+  end;
 
 
 Implementation
@@ -350,6 +372,50 @@ Type ResourceData = record
 var TheUnits    : array of ResourceData =nil;
     TheFamilies : array of string =nil;
 
+function ConvFamilyToDescription(const AFamily: TConvFamily): string;
+
+begin
+  result:='';
+  if AFamily<length(TheFamilies) then
+    result:=TheFamilies[AFamily];
+end;
+
+procedure GetConvFamilies(out AFamilies: TConvFamilyArray);
+
+var i : integer;
+begin
+ setlength(AFamilies,length(thefamilies));
+ for i:=0 to length(TheFamilies)-1 do
+   AFamilies[i]:=i;
+end;
+
+procedure GetConvTypes(const AFamily: TConvFamily; out ATypes: TConvTypeArray);
+
+var i,j,nrTypes:integer;
+
+begin
+  nrTypes:=0;
+  for i:=0 to length(TheUnits)-1 do
+    if TheUnits[i].fam=AFamily Then
+     inc(nrTypes);
+  setlength(atypes,nrtypes);
+  j:=0;
+  for i:=0 to length(TheUnits)-1 do
+    if TheUnits[i].fam=AFamily Then
+     begin
+       atypes[j]:=i;
+       inc(j);
+     end;	
+end;
+
+function ConvTypeToDescription(const AType: TConvType): string;
+
+Begin
+  result:='';
+  if AType<length(TheUnits) then
+    result:=TheUnits[AType].Description;
+end;
+
 Function RegisterConversionFamily(Const S:String):TConvFamily;
 
 var i,l : Longint;
@@ -443,6 +509,13 @@ begin
   if (fromrec1.fam<>torec1.fam) or (fromrec1.fam<>torec1.fam) then
    exit(-1.0);
   result:=Measurement*(fromrec1.value/fromrec2.value)/(torec1.value/torec2.value);
+end;
+
+Constructor TConvTypeInfo.Create(Const AConvFamily : TConvFamily;const ADescription:String);
+
+begin
+  FDescription:=ADescription;
+  FConvFamily :=AConvFamily;
 end;
 
   // initial FFU factors from a HP48g calculator and BSD units program. However after
@@ -636,7 +709,6 @@ begin
    RegisterLengths;
    RegisterArea;
 end;
-
 
 initialization
  registerall;
