@@ -5110,6 +5110,7 @@ tests/bench/shootout/io/recursive-output.txt svneol=native#text/plain
 tests/bench/shootout/io/rev.out -text
 tests/bench/shootout/io/revfile.in -text
 tests/bench/shootout/io/revfile.out -text
+tests/bench/shootout/io/spectralnorm-output.txt svneol=native#text/plain
 tests/bench/shootout/io/sumcol.in -text
 tests/bench/shootout/io/sumcol.out -text
 tests/bench/shootout/io/wc.in -text
@@ -5153,6 +5154,7 @@ tests/bench/shootout/src/binarytrees.pp svneol=native#text/plain
 tests/bench/shootout/src/hello.pp svneol=native#text/plain
 tests/bench/shootout/src/nsieve.pp svneol=native#text/plain
 tests/bench/shootout/src/recursive.pp svneol=native#text/plain
+tests/bench/shootout/src/spectralnorm.pp svneol=native#text/plain
 tests/bench/shootout/src/sumcol.pp svneol=native#text/plain
 tests/bench/shortbench.pp svneol=native#text/plain
 tests/bench/timer.pas svneol=native#text/plain
