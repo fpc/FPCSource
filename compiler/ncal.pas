@@ -1056,6 +1056,10 @@ type
         include(callnodeflags,cnf_uses_varargs);
         { Get arrayconstructor node and insert typeconvs }
         hp:=tarrayconstructornode(oldleft.left);
+        { if there is no formal array-of-const para in the declaration, }
+        { remove the array-of-const para                                }
+        if (po_varargs in procdefinition.procoptions) then
+          left:=tcallparanode(left).right;
         { Add c args parameters }
         { It could be an empty set }
         if assigned(hp) and
@@ -1071,11 +1075,22 @@ type
                 hp:=tarrayconstructornode(hp.right);
               end;
           end;
-        { Remove value of old array of const parameter, but keep it
-          in the list because it is required for bind_parasym.
-          Generate a nothign to keep callparanoed.left valid }
-        oldleft.left.free;
-        oldleft.left:=cnothingnode.create;
+        if not (po_varargs in procdefinition.procoptions) then
+          begin
+            { Remove value of old array of const parameter, but keep it
+              in the list because it is required for bind_parasym.
+              Generate a nothign to keep callparanoed.left valid }
+            oldleft.left.free;
+            oldleft.left:=cnothingnode.create;
+          end
+        else
+          begin
+            { in this case, there is no array of const parameter in the }
+            { function declaration, so remove all traces of it          }
+            dec(paralength);
+            oldleft.right:=nil;
+            oldleft.free;
+          end;
       end;
 
 
@@ -1909,8 +1924,10 @@ type
 
          { Change loading of array of const to varargs }
          if assigned(left) and
-            is_array_of_const(tparavarsym(procdefinition.paras[procdefinition.paras.count-1]).vartype.def) and
-            (procdefinition.proccalloption in [pocall_cppdecl,pocall_cdecl]) then
+            (((po_varargs in procdefinition.procoptions) and
+              (paralength > procdefinition.maxparacount)) or
+             (is_array_of_const(tparavarsym(procdefinition.paras[procdefinition.paras.count-1]).vartype.def) and
+              (procdefinition.proccalloption in [pocall_cppdecl,pocall_cdecl]))) then
            convert_carg_array_of_const;
 
          { bind parasyms to the callparanodes and insert hidden parameters }
