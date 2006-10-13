@@ -1,0 +1,16 @@
+#
+#  Makefile.fpc for dbus units example
+#
+
+[target]
+units=minimain
+programs=mod_example  mod_hello  mod_spelling  testmodule
+
+[require]
+packages=httpd/httpd-2.0
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..

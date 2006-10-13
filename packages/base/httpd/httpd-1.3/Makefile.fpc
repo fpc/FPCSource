@@ -1,0 +1,19 @@
+#
+#  Makefile.fpc for httpd 1.3 unit
+#
+
+[package]
+name=httpd-1.3
+version=2.0.4
+
+[target]
+units=httpd
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
