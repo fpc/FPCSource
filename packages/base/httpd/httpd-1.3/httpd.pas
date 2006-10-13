@@ -35,6 +35,10 @@ unit httpd;
   {$DEFINE WINDOWS}
 {$ENDIF}
 
+{$IFDEF WIN64}
+  {$DEFINE WINDOWS}
+{$ENDIF}
+
 {$ifdef Unix}
   {$PACKRECORDS C}
 {$endif}
@@ -77,7 +81,7 @@ type
 
 {
   Main httpd header files
-  
+
   Note: There are more include files other then these, because some include files
  include more files.
 }
@@ -161,14 +165,14 @@ end;
 
 function ap_get_module_config(v: Pap_conf_vector_t; m: Pmodule): Pap_conf_vector_t;
 begin
-  Result := Pointer(Integer(v) + m^.module_index);
+  Result := Pointer(PtrInt(v) + m^.module_index);
 end;
 
 procedure ap_set_module_config(v: Pap_conf_vector_t; m: Pmodule; val: Pap_conf_vector_t);
 var
   P: PPointer;
 begin
-  P := PPointer(Integer(v) + m^.module_index);
+  P := PPointer(PtrInt(v) + m^.module_index);
   P^ := val;
 end;
 

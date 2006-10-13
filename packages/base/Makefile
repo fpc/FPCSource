@@ -336,7 +336,7 @@ ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync graph mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  mysql ibase odbc sqlite postgres oracle httpd
+override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  mysql ibase odbc sqlite postgres oracle
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 override TARGET_DIRS+=hash paszlib pasjpeg regexpr netdb  gdbint libasync mysql ibase postgres oracle odbc pthreads sqlite graph imagemagick dbus httpd
@@ -1886,7 +1886,6 @@ TARGET_DIRS_ODBC=1
 TARGET_DIRS_SQLITE=1
 TARGET_DIRS_POSTGRES=1
 TARGET_DIRS_ORACLE=1
-TARGET_DIRS_HTTPD=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 TARGET_DIRS_HASH=1
