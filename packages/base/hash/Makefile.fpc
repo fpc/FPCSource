@@ -7,7 +7,7 @@ name=hash
 version=2.0.0
 
 [target]
-units=md5 crc
+units=md4 md5 crc
 examples=md5test
 
 [install]
