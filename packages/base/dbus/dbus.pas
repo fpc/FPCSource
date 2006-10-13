@@ -33,6 +33,8 @@ unit dbus;
 
 {$minenumsize 4}
 
+{$packrecords c}
+
 { FPC 2.0.2 compatibility code }
 {$ifdef win32}
   {$define windows}
