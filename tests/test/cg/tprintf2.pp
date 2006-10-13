@@ -51,7 +51,10 @@ begin
   getmem(p,500);
 
   Writeln('Testing C printf function called from FPC code');
-//  printf('Simple test without arg'+lineending,[]);
+  { for some CPUs, this requires also different calling conventions
+    than procedures taking a single pchar parameter, see #7504 (FK) }
+  printf('Simple test without arg'+lineending);
+
   Writeln('Testing with single pchar argument');
   printf('Text containing "%s" text'+lineending,[s]);
   sprintf(p,'Text containing "%s" text'+lineending,[s]);
