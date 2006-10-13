@@ -828,7 +828,7 @@ begin
             close(pipo);
 {$endif USE_VFORK}
           end;
-        if ret=1 then
+        if ret=-1 then
          fpexit(127);
       end;
      {$if defined(FPC_USE_FPEXEC) and not defined(USE_VFORK)}
@@ -943,7 +943,7 @@ begin
             close(pipo);
 {$endif USE_VFORK}
           end;
-        if ret=1 then
+        if ret=-1 then
          fpexit(127);
       end;
      {$if defined(FPC_USE_FPEXEC) and not defined(USE_VFORK)}
