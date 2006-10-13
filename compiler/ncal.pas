@@ -82,16 +82,15 @@ interface
           { the definition of the procedure to call }
           procdefinition : tabstractprocdef;
           procdefinitionderef : tderef;
-          { tree that contains the pointer to the object for this method }
           methodpointerinit,
           methodpointerdone : tblocknode;
+          { tree that contains the pointer to the object for this method }
           methodpointer  : tnode;
           { varargs parasyms }
           varargsparas : tvarargsparalist;
           { node that specifies where the result should be put for calls }
           { that return their result in a parameter                      }
           property funcretnode: tnode read _funcretnode write setfuncretnode;
-
 
           { separately specified resulttype for some compilerprocs (e.g. }
           { you can't have a function with an "array of char" resulttype }
@@ -2681,9 +2680,36 @@ type
             else
               writeln(t,printnodeindention,'proc = <nil>');
           end;
-        printnode(t,methodpointer);
-        printnode(t,right);
-        printnode(t,left);
+
+        if assigned(methodpointer) then
+          begin
+            writeln(t,printnodeindention,'methodpointer =');
+            printnode(t,methodpointer);
+          end;
+
+        if assigned(methodpointerinit) then
+          begin
+            writeln(t,printnodeindention,'methodpointerinit =');
+            printnode(t,methodpointerinit);
+          end;
+
+        if assigned(methodpointerdone) then
+          begin
+            writeln(t,printnodeindention,'methodpointerdone =');
+            printnode(t,methodpointerdone);
+          end;
+
+        if assigned(right) then
+          begin
+            writeln(t,printnodeindention,'right =');
+            printnode(t,right);
+          end;
+
+        if assigned(left) then
+          begin
+            writeln(t,printnodeindention,'left =');
+            printnode(t,left);
+          end;
       end;
 
 
