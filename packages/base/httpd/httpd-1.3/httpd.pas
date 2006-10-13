@@ -82,6 +82,8 @@ type
  include more files.
 }
 
+{$include readdir.inc}
+
 {.$include ap_provider.inc}
 {.$include util_cfgtree.inc}
 

@@ -1248,6 +1248,8 @@ type
     sig: cint;
     pid: pid_t;
   end;
+  
+  Pap_exception_info_t = ^ap_exception_info_t;
 
 { Register a function to be called after a fatal exception (on *X systems, a
  * "synchronous signal" such as SIGSEGV, SIGILL, etc.).
@@ -1256,7 +1258,9 @@ type
  * If EnableExceptionHook directive is not set to "on", this function will
  * report failure and no such hooks will be called.
  }
-function ap_add_fatal_exception_hook(fn: procedure (param: Pap_exception_info_t) ): cint;
+ fn_afeh_t = procedure (param: Pap_exception_info_t);
+ 
+function ap_add_fatal_exception_hook(fn: fn_afeh_t): cint;
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
 {$endif} { AP_ENABLE_EXCEPTION_HOOK }

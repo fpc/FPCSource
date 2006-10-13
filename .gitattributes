@@ -1333,6 +1333,7 @@ packages/base/httpd/httpd-1.3/http_request.inc svneol=native#text/plain
 packages/base/httpd/httpd-1.3/http_vhost.inc svneol=native#text/plain
 packages/base/httpd/httpd-1.3/httpd.inc svneol=native#text/plain
 packages/base/httpd/httpd-1.3/httpd.pas svneol=native#text/plain
+packages/base/httpd/httpd-1.3/readdir.inc -text
 packages/base/httpd/httpd-1.3/util_uri.inc svneol=native#text/plain
 packages/base/httpd/httpd-1.3/win32_os.inc svneol=native#text/plain
 packages/base/httpd/httpd-2.0/Makefile svneol=native#text/plain
