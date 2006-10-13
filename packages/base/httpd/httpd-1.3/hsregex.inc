@@ -21,7 +21,9 @@
 type
   regoff_t = Integer;
 
-//  off_t = regoff_t;
+{$ifdef windows}
+  off_t = regoff_t;
+{$endif}
 
   Pregex_t = ^regex_t;
   

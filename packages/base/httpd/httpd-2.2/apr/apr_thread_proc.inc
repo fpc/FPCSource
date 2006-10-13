@@ -131,7 +131,7 @@ type
      }
     invoked: PChar;
 {$endif}
-{$if defined(WIN32) or defined(DOXYGEN)}
+{$if defined(WINDOWS) or defined(DOXYGEN)}
     { (Win32 only) Creator's handle granting access to the process
      * @remark This handle is closed and reset to NULL in every case
      * corresponding to a waitpid() on Unix which returns the exit status.

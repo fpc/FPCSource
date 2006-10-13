@@ -32,7 +32,7 @@
  * Structure for determining user ownership.
  }
 type
-{$ifdef WIN32}
+{$ifdef WINDOWS}
   apr_uid_t = PSID;
 {$else}
   apr_uid_t = uid_t;
@@ -43,7 +43,7 @@ type
 {
  * Structure for determining group ownership.
  }
-{$ifdef WIN32}
+{$ifdef WINDOWS}
   apr_gid_t = PSID;
 {$else}
   apr_gid_t = gid_t;
@@ -112,7 +112,7 @@ function apr_uid_homepath_get(dirname: PPChar; const username: PChar;
  * APR_EMISMATCH if not, APR_BADARG if an apr_uid_t is invalid.
  * @remark This function is available only if APR_HAS_USER is defined.
  }
-{$ifdef WIN32}
+{$ifdef WINDOWS}
 //APR_DECLARE(apr_status_t) apr_uid_compare(apr_uid_t left, apr_uid_t right);
 
 {$else}
@@ -151,7 +151,7 @@ function apr_gid_get(groupid: Papr_gid_t; const groupname: PChar;
  * APR_EMISMATCH if not, APR_BADARG if an apr_gid_t is invalid.
  * @remark This function is available only if APR_HAS_USER is defined.
  }
-{$ifdef WIN32}
+{$ifdef WINDOWS}
 //APR_DECLARE(apr_status_t) apr_gid_compare(apr_gid_t left, apr_gid_t right);
 {$else}
 //#define apr_gid_compare(left,right) (((left) == (right)) ? APR_SUCCESS : APR_EMISMATCH)

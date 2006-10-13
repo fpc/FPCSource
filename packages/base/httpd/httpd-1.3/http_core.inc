@@ -143,7 +143,7 @@ API_EXPORT(const char *) ap_auth_nonce (request_rec *);
 API_EXPORT(int) ap_satisfies (request_rec *r);
 API_EXPORT(const array_header *) ap_requires (request_rec *);    }
 
-{$ifdef WIN32}
+{$ifdef WINDOWS}
 {
  * CGI Script stuff for Win32...
  }
@@ -327,7 +327,7 @@ type
     sec: Parray_header;
     r: Pregex_t;
 
-{$ifdef WIN32}
+{$ifdef WINDOWS}
     { Where to find interpreter to run scripts }
     script_interpreter_source: interpreter_source_e;
 {$endif}

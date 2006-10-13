@@ -19,7 +19,7 @@
  * on Windows 95/NT.
  }
 
-{$ifdef WIN32}
+{$ifdef WINDOWS}
 
 {#include <io.h>
 #include <stdio.h>
@@ -31,12 +31,16 @@
 #endif}
 
 { struct dirent - same as Unix }
+
+const
+  _MAX_FNAME = 256;
+  
 type
   dirent = record
     d_ino: clong;                         { inode (always 1 in WIN32) }
     d_off: off_t;                         { offset to this dirent }
     d_reclen: cushort;                    { length of d_name }
-    d_name: array[_MAX_FNAME+1] of Char;  { filename (null terminated) }
+    d_name: array[0.._MAX_FNAME] of Char;    { filename (null terminated) }
   end;
 
 { typedef DIR - not the same as Unix }
@@ -69,5 +73,5 @@ API_EXPORT(int) closedir(DIR *);}
 
   va_list = Pointer;
 
-{$endif} { WIN32 }
+{$endif} { WINDOWS }
 

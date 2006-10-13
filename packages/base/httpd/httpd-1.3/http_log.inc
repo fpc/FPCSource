@@ -44,7 +44,7 @@
 {$endif}
 
   APLOG_NOERRNO	=	(APLOG_LEVELMASK + 1);
-{$ifdef WIN32}
+{$ifdef WINDOWS}
 { Set to indicate that error msg should come from Win32's GetLastError(),
  * not errno. }
   APLOG_WIN32ERROR =	((APLOG_LEVELMASK + 1) * 2);

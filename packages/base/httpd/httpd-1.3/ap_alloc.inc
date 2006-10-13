@@ -36,9 +36,9 @@
  }
 
  { Need declaration of DIR on Win32 }
-{$ifdef WIN32}
-//#include "readdir.h"
-{$endif}
+{.$ifdef Windows}
+  {$include readdir.inc}
+{.$endif}
 
 type
   pool = record end;

@@ -895,7 +895,7 @@ typedef int rlim_t;
 #include <sys/types.h>
 #include <sys/time.h>
 
-{$else}{$if defined(WIN32)}
+{$else}{$if defined(WINDOWS)}
 
 { All windows stuff is now in os/win32/os.h }
 

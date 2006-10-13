@@ -79,7 +79,7 @@ type
 { could also put pointers to the basic I/O routines here }
     fd: cint;			{ the file descriptor }
     fd_in: cint;		{ input file descriptor, if different }
-{$ifdef WIN32}
+{$ifdef WINDOWS}
     hFH: HANDLE;		{ Windows filehandle }
 {$endif}
 
@@ -117,7 +117,7 @@ function ap_bcreate(p: PPool; flags: cint): PBUFF;
 procedure ap_bpushfd(fb: PBUFF; fd_in, fd_out: cint);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-{$ifdef WIN32}
+{$ifdef WINDOWS}
 
 procedure ap_bpushh(fb: PBUFF; hFH: HANDLE);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
@@ -185,7 +185,7 @@ API_EXPORT(int) ap_bfilbuf(BUFF *fb);
 
 type
   child_info = record
-{$ifdef WIN32}
+{$ifdef WINDOWS}
     {
      *  These handles are used by ap_call_exec to call 
      *  create process with pipe handles.
@@ -224,7 +224,7 @@ function ap_bfileno(fb: PBUFF; direction: cint): cint;
 procedure ap_bhalfduplex(fb: PBUFF);
  {$IFDEF WINDOWS} stdcall; {$ELSE} cdecl; {$ENDIF} external LibHTTPD;
 
-{$if defined(WIN32) or defined(NETWARE) or defined(CYGWIN_WINSOCK)}
+{$if defined(WINDOWS) or defined(NETWARE) or defined(CYGWIN_WINSOCK)}
 
 { ap_recvwithtimeout/ap_sendwithtimeout socket primitives for WinSock }
 //API_EXPORT(int) ap_sendwithtimeout(int sock, const char *buf, int len, int flags);

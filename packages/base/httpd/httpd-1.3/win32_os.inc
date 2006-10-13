@@ -14,7 +14,7 @@
  * limitations under the License.
  }
 
-{$ifdef WIN32}
+{$ifdef WINDOWS}
 
 {
  * Compile the server including all the Windows NT 4.0 header files by
@@ -187,5 +187,5 @@ API_EXPORT(const char *) ap_os_dso_error(void);}
 
 //#define gettid() ((tid_t)GetCurrentThreadId())
 
-{$endif} { WIN32 }
+{$endif} { WINDOWS }
 

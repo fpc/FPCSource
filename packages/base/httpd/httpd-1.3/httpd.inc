@@ -106,7 +106,7 @@ const
   DEFAULT_GROUP = '#-1';
 
 {$ifndef DEFAULT_ERRORLOG}
-{$if defined(OS2) or defined(WIN32)}
+{$if defined(OS2) or defined(WINDOWS)}
   DEFAULT_ERRORLOG = 'logs/error.log';
 {$else}
   DEFAULT_ERRORLOG = 'logs/error_log';
@@ -172,7 +172,7 @@ const
 
 { The path to the shell interpreter, for parsed docs }
 
-  {$if defined(OS2) or defined(WIN32)}
+  {$if defined(OS2) or defined(WINDOWS)}
 { Set default for OS/2 and Windows file system }
     SHELL_PATH = 'CMD.EXE';
   {$else}
@@ -233,7 +233,7 @@ const
  * the overhead.
  }
 {$ifndef HARD_SERVER_LIMIT}
-{$ifdef WIN32}
+{$ifdef WINDOWS}
   HARD_SERVER_LIMIT = 1024;
 {$else}{$if defined(NETWARE)}
   HARD_SERVER_LIMIT = 2048;
@@ -1033,7 +1033,7 @@ API_EXPORT(char *) ap_pbase64encode(pool *p, char *string);
 API_EXPORT(char *) ap_uudecode(pool *p, const char *bufcoded);
 API_EXPORT(char *) ap_uuencode(pool *p, char *string); }
 
-{$if defined(OS2) or defined(WIN32)}
+{$if defined(OS2) or defined(WINDOWS)}
 //API_EXPORT(char *) ap_double_quotes(pool *p, const char *str);
 //API_EXPORT(char *) ap_caret_escape_args(pool *p, const char *str);
 {$endif}
@@ -1129,7 +1129,7 @@ procedure ap_chdir_file(const file_: PChar);
 #define ap_os_systemcase_filename(p,f)  (f)}
 {$else}
 //API_EXPORT(char *) ap_os_canonical_filename(pool *p, const char *file);
-{$ifdef WIN32}
+{$ifdef WINDOWS}
 //API_EXPORT(char *) ap_os_case_canonical_filename(pool *pPool, const char *szFile);
 //API_EXPORT(char *) ap_os_systemcase_filename(pool *pPool, const char *szFile);
 {$else}{$ifdef OS2}
