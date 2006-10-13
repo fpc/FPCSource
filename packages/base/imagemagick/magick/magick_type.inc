@@ -25,7 +25,7 @@ const
   MagickTrue = 1;
 
 type
-  MagickBooleanType = Byte;
+  MagickBooleanType = Cardinal;
 
   PMagickBooleanType = ^MagickBooleanType;
 
@@ -510,9 +510,14 @@ type
 
 type
   ExceptionInfo = record
-   severity: ExceptionType;
-   error_number: Shortint;
+   //severity: ExceptionType;
+   //error_number: Shortint;
+   severity: Cardinal;
+   error_number: Cardinal;
    reason, description: PChar;
+	 exceptions: Pointer;
+	 relinquish: MagickBooleanType;
+   semaphore: Pointer; //PSemaphoreInfo;
    signature: Cardinal;
   end;
   
@@ -554,7 +559,7 @@ type
    compose: CompositeOperator;
    dispose: DisposeType;
    clip_mask: Pointer; // PImage
-   scene, delay, iterations, total_colors: Cardinal;
+   scene, delay, ticks_per_second, iterations, total_colors: Cardinal;
    start_loop: Integer;
    error: ErrorInfo;
    timer: TimerInfo;
@@ -565,10 +570,10 @@ type
    ascii85: Pointer; //_Ascii85Info_
    blob: Pointer; // _BlobInfo_
    filename, magick_filename, magick: array[1..MaxTextExtent] of char;
-   magick_columns, magick_rows: Integer;
+   magick_columns, magick_rows: Cardinal;
    exception: ExceptionInfo;
    debug: MagickBooleanType;
-   reference_count: Integer;
+   reference_count: Longint;
    semaphore: Pointer; //PSemaphoreInfo;
    color_profile, iptc_profile: ProfileInfo;
    generic_profile: PProfileInfo;
@@ -606,7 +611,7 @@ type
    colorspace: ColorspaceType;
    type_: ImageType ;
    preview_type: PreviewType;
-   group: Integer;
+   group: Longint;
    ping, verbose: MagickBooleanType;
    view, authenticate: PChar;
    channel: ChannelType;

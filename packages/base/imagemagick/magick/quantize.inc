@@ -30,6 +30,7 @@ type
 
     signature: Cardinal;
   end;
+	PQuantizeInfo = ^QuantizeInfo;
 
 {extern MagickExport MagickBooleanType
   GetImageQuantizeError(Image *),

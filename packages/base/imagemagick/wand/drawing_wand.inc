@@ -106,9 +106,9 @@ function DrawGetFontFamily(const wand: PDrawingWand): PChar; cdecl; external Wan
 function DrawGetTextEncoding(const wand: PDrawingWand): PChar; cdecl; external WandExport;
 function DrawGetVectorGraphics(const wand: PDrawingWand): PChar; cdecl; external WandExport;
 
-function DrawGetClipUnits(const wand: PDrawingWand): ClipPathUnits; external WandExport;
+function DrawGetClipUnits(const wand: PDrawingWand): ClipPathUnits; cdecl; external WandExport;
 
-function DrawGetTextDecoration(const wand: PDrawingWand): DecorationType; external WandExport;
+function DrawGetTextDecoration(const wand: PDrawingWand): DecorationType; cdecl; external WandExport;
 
 function DrawGetFillAlpha(const wand: PDrawingWand): double; cdecl; external WandExport;
 function DrawGetFontSize(const wand: PDrawingWand): double; cdecl; external WandExport;
@@ -122,7 +122,7 @@ function PeekDrawingWand(const wand: PDrawingWand): PDrawInfo; cdecl; external W
 function CloneDrawingWand(const wand: PDrawingWand): PDrawingWand; cdecl; external WandExport;
 function DestroyDrawingWand(wand: PDrawingWand): PDrawingWand; cdecl; external WandExport;
 { Sem documentação
-function DrawAllocateWand(const DrawInfo *,Image *): PDrawingWand; external WandExport;
+function DrawAllocateWand(const DrawInfo *,Image *): PDrawingWand; cdecl; external WandExport;
 }
 function NewDrawingWand: PDrawingWand; cdecl; external WandExport;
 

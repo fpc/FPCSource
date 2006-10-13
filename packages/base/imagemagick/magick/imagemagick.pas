@@ -16,19 +16,22 @@
   ImageMagick Application Programming Interface declarations.
   
   Converted from c by: Felipe Monteiro de Carvalho Dez/2005
+
+	Bug-fixed by Ángel Eduardo García Hernández
+	Thanks to Marc Geldon and RuBBeR
 }
-{Version 0.2}
+{Version 0.4}
 unit ImageMagick;
 
 {$ifdef FPC}
   {$mode objfpc}
+	{$PACKRECORDS C}
 {$endif}
 
 interface
 
 uses SysUtils;
 
-{$PACKRECORDS C}
 {$MINENUMSIZE 1}
 
 const

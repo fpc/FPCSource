@@ -16,15 +16,18 @@
   ImageMagick MagickWand API.
   
   Converted from c by: Felipe Monteiro de Carvalho Dez/2005
+
+	Bug-fixed by Ángel Eduardo García Hernández
+	Thanks to Marc Geldon and RuBBeR
 }
-{Version 0.2}
+{Version 0.4}
 unit magick_wand;
 
 {$IFDEF FPC}
   {$mode objfpc}
+	{$PACKRECORDS C}
 {$ENDIF}
 
-{$PACKRECORDS C}
 {$MINENUMSIZE 1}
 
 interface
@@ -34,12 +37,12 @@ uses ImageMagick;
 type
   MagickWand = record
     id: Cardinal;
-    name: array[0..MaxTextExtent] of Char;
+    name: array[1..MaxTextExtent] of Char;
     exception: ExceptionInfo;
     image_info: PImageInfo;
-    quantize_info: QuantizeInfo;
-    images: Image;
-    iterator, debug: MagickBooleanType;
+    quantize_info: PQuantizeInfo;
+    images: PImage;
+    active, pend, debug: MagickBooleanType;
     signature: Cardinal;
   end;
 
