@@ -231,127 +231,127 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=httpd-2.0 httpd-2.2
+override TARGET_DIRS+=httpd-1.3 httpd-2.0 httpd-2.2
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_EXAMPLEDIRS+=examples
@@ -1559,168 +1559,254 @@ fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIR
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
 ifeq ($(FULL_TARGET),i386-linux)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
+TARGET_DIRS_HTTPD-1.3=1
 TARGET_DIRS_HTTPD-2.0=1
 TARGET_DIRS_HTTPD-2.2=1
+endif
+ifdef TARGET_DIRS_HTTPD-1.3
+httpd-1.3_all:
+	$(MAKE) -C httpd-1.3 all
+httpd-1.3_debug:
+	$(MAKE) -C httpd-1.3 debug
+httpd-1.3_smart:
+	$(MAKE) -C httpd-1.3 smart
+httpd-1.3_release:
+	$(MAKE) -C httpd-1.3 release
+httpd-1.3_units:
+	$(MAKE) -C httpd-1.3 units
+httpd-1.3_examples:
+	$(MAKE) -C httpd-1.3 examples
+httpd-1.3_shared:
+	$(MAKE) -C httpd-1.3 shared
+httpd-1.3_install:
+	$(MAKE) -C httpd-1.3 install
+httpd-1.3_sourceinstall:
+	$(MAKE) -C httpd-1.3 sourceinstall
+httpd-1.3_exampleinstall:
+	$(MAKE) -C httpd-1.3 exampleinstall
+httpd-1.3_distinstall:
+	$(MAKE) -C httpd-1.3 distinstall
+httpd-1.3_zipinstall:
+	$(MAKE) -C httpd-1.3 zipinstall
+httpd-1.3_zipsourceinstall:
+	$(MAKE) -C httpd-1.3 zipsourceinstall
+httpd-1.3_zipexampleinstall:
+	$(MAKE) -C httpd-1.3 zipexampleinstall
+httpd-1.3_zipdistinstall:
+	$(MAKE) -C httpd-1.3 zipdistinstall
+httpd-1.3_clean:
+	$(MAKE) -C httpd-1.3 clean
+httpd-1.3_distclean:
+	$(MAKE) -C httpd-1.3 distclean
+httpd-1.3_cleanall:
+	$(MAKE) -C httpd-1.3 cleanall
+httpd-1.3_info:
+	$(MAKE) -C httpd-1.3 info
+httpd-1.3_makefiles:
+	$(MAKE) -C httpd-1.3 makefiles
+httpd-1.3:
+	$(MAKE) -C httpd-1.3 all
+.PHONY: httpd-1.3_all httpd-1.3_debug httpd-1.3_smart httpd-1.3_release httpd-1.3_units httpd-1.3_examples httpd-1.3_shared httpd-1.3_install httpd-1.3_sourceinstall httpd-1.3_exampleinstall httpd-1.3_distinstall httpd-1.3_zipinstall httpd-1.3_zipsourceinstall httpd-1.3_zipexampleinstall httpd-1.3_zipdistinstall httpd-1.3_clean httpd-1.3_distclean httpd-1.3_cleanall httpd-1.3_info httpd-1.3_makefiles httpd-1.3
 endif
 ifdef TARGET_DIRS_HTTPD-2.0
 httpd-2.0_all:
