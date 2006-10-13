@@ -221,7 +221,7 @@ interface
     function  searchsym_type(const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
     function  searchsym_in_module(pm:pointer;const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
     function  searchsym_in_class(classh,contextclassh:tobjectdef;const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
-    function  searchsym_in_class_by_msgint(classh:tobjectdef;i:longint;out srsym:tsym;out srsymtable:tsymtable):boolean;
+    function  searchsym_in_class_by_msgint(classh:tobjectdef;i:longint;out srdef : tdef;out srsym:tsym;out srsymtable:tsymtable):boolean;
     function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:tsymtable):boolean;
     function  search_system_type(const s: stringid): ttypesym;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
@@ -994,7 +994,7 @@ implementation
           varalign:=size_2_align(l);
         if (usefieldalignment<> bit_alignment) then
           varalignfield:=used_align(varalign,aktalignment.recordalignmin,fieldalignment);
-            
+
         sym.fieldoffset:=align(_datasize,varalignfield);
         if (int64(l)+sym.fieldoffset)>high(aint) then
           begin
@@ -1853,7 +1853,7 @@ implementation
       end;
 
 
-    function searchsym_in_class_by_msgint(classh:tobjectdef;i:longint;out srsym:tsym;out srsymtable:tsymtable):boolean;
+    function searchsym_in_class_by_msgint(classh:tobjectdef;i:longint;out srdef : tdef;out srsym:tsym;out srsymtable:tsymtable):boolean;
       var
         def        : tdef;
       begin
@@ -1870,6 +1870,7 @@ implementation
                    (po_msgint in tprocdef(def).procoptions) and
                    (tprocdef(def).messageinf.i=i) then
                   begin
+                    srdef:=def;
                     srsym:=tprocdef(def).procsym;
                     srsymtable:=classh.symtable;
                     result:=true;

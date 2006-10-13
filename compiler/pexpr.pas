@@ -88,8 +88,8 @@ implementation
     const
        { true, if the inherited call is anonymous }
        anon_inherited : boolean = false;
-
-
+       { last def found, only used by anon. inherited calls to insert proper type casts }
+       srdef : tdef = nil;
 
     procedure string_dec(var t: ttype);
     { reads a string type with optional length }
@@ -990,7 +990,17 @@ implementation
                   begin
                     currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
                     if not(vo_is_hidden_para in currpara.varoptions) then
-                      para:=ccallparanode.create(cloadnode.create(currpara,currpara.owner),para);
+                      begin
+                        { inheritance by msgint? }
+                        if assigned(srdef) then
+                          { anonymous inherited via msgid calls only require a var parameter for
+                            both methods, so we need some type casting here }
+                          para:=ccallparanode.create(ctypeconvnode.create_internal(ctypeconvnode.create_internal(
+                            cloadnode.create(currpara,currpara.owner),cformaltype),tparavarsym(tprocdef(srdef).paras[i]).vartype),
+                          para)
+                        else
+                          para:=ccallparanode.create(cloadnode.create(currpara,currpara.owner),para);
+                      end;
                  end;
               end
              else
@@ -1181,7 +1191,6 @@ implementation
 
     { the ID token has to be consumed before calling this function }
     procedure do_member_read(classh:tobjectdef;getaddr : boolean;sym : tsym;var p1 : tnode;var again : boolean;callflags:tcallnodeflags);
-
       var
          static_name : string;
          isclassref  : boolean;
@@ -2131,8 +2140,9 @@ implementation
                      { For message methods we need to search using the message
                        number or string }
                      pd:=tprocsym(current_procinfo.procdef.procsym).first_procdef;
+                     srdef:=nil;
                      if (po_msgint in pd.procoptions) then
-                       searchsym_in_class_by_msgint(classh,pd.messageinf.i,srsym,srsymtable)
+                       searchsym_in_class_by_msgint(classh,pd.messageinf.i,srdef,srsym,srsymtable)
                      else
                       if (po_msgstr in pd.procoptions) then
                         searchsym_in_class_by_msgstr(classh,pd.messageinf.str^,srsym,srsymtable)
