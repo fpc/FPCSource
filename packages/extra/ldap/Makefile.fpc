@@ -10,7 +10,7 @@ version=2.0.0
 units=lber ldap ntlm
 
 [require]
-packages=md4
+packages=hash
 
 [install]
 fpcpackage=y
