@@ -7,6 +7,5 @@ var
   i: integer;
   p: pointer;
 begin
-  p := pointer(@i)+5;
-  i := integer(@i-p);
+  p := @i+5;
 end.
