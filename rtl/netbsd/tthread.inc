@@ -54,64 +54,6 @@
   Johannes Berg <johannes@sipsolutions.de>, Sunday, November 16 2003
 }
 
-// ========== semaphore stuff ==========
-{
-  I don't like this. It eats up 2 filedescriptors for each thread,
-  and those are a limited resource. If you have a server programm
-  handling client connections (one per thread) it will not be able
-  to handle many if we use 2 fds already for internal structures.
-  However, right now I don't see a better option unless some sem_*
-  functions are added to systhrds.
-  I encapsulated all used functions here to make it easier to
-  change them completely.
-}
-
-function SemaphoreInit: Pointer;
-begin
-  SemaphoreInit := GetMem(SizeOf(TFilDes));
-  fppipe(PFilDes(SemaphoreInit)^);
-end;
-
-procedure SemaphoreWait(const FSem: Pointer);
-var
-  b: byte;
-begin
-  fpread(PFilDes(FSem)^[0], b, 1);
-end;
-
-procedure SemaphorePost(const FSem: Pointer);
-begin
-  fpwrite(PFilDes(FSem)^[1], #0, 1);
-end;
-
-procedure SemaphoreDestroy(const FSem: Pointer);
-begin
-  fpclose(PFilDes(FSem)^[0]);
-  fpclose(PFilDes(FSem)^[1]);
-  FreeMemory(FSem);
-end;
-
-// =========== semaphore end ===========
-
-var
-  ThreadsInited: boolean = false;
-const
-  // stupid, considering its not even implemented...
-  Priorities: array [TThreadPriority] of Integer =
-   (-20,-19,-10,0,9,18,19);
-
-procedure InitThreads;
-begin
-  if not ThreadsInited then begin
-    ThreadsInited := true;
-  end;
-end;
-
-procedure DoneThreads;
-begin
-  ThreadsInited := false;
-end;
-
 { ok, so this is a hack, but it works nicely. Just never use
   a multiline argument with WRITE_DEBUG! }
 {$MACRO ON}
@@ -121,7 +63,28 @@ end;
 {$define WRITE_DEBUG := //}      // just comment out those lines
 {$ENDIF}
 
-function ThreadFunc(parameter: Pointer): LongInt; cdecl;
+var
+  ThreadsInited: boolean = false;
+  CurrentTM: TThreadManager;
+  
+const
+  // stupid, considering its not even implemented...
+  Priorities: array [TThreadPriority] of Integer =
+   (-20,-19,-10,0,9,18,19);
+
+procedure InitThreads;
+begin
+  GetThreadManager(CurrentTM);
+  if not ThreadsInited then
+    ThreadsInited := true;
+end;
+
+procedure DoneThreads;
+begin
+  ThreadsInited := false;
+end;
+
+function ThreadFunc(parameter: Pointer): LongInt;
 var
   LThread: TThread;
   c: char;
@@ -131,7 +94,7 @@ begin
   WRITE_DEBUG('thread initing, parameter = ', LongInt(LThread));
   try
     if LThread.FInitialSuspended then begin
-      SemaphoreWait(LThread.FSem);
+      CurrentTM.SemaphoreWait(LThread.FSem);
       if not LThread.FSuspended then begin
         LThread.FInitialSuspended := false;
         WRITE_DEBUG('going into LThread.Execute');
@@ -172,13 +135,13 @@ begin
   // via BeginThread and creates the first TThread Object in there!
   InitThreads;
   inherited Create;
-  FSem := SemaphoreInit;
+  FSem := CurrentTM.SemaphoreInit;
   FSuspended := CreateSuspended;
   FSuspendedExternal := false;
   FInitialSuspended := CreateSuspended;
   FFatalException := nil;
-  WRITE_DEBUG('creating thread, self = ',longint(self));
-  FHandle:= BeginThread(@ThreadFunc, Pointer(Self), FThreadID, StackSize);
+  WRITE_DEBUG('creating thread, self = ',PtrInt(self));
+  FHandle:= BeginThread(@ThreadFunc, Pointer(Self), FThreadID,StackSize);
   WRITE_DEBUG('TThread.Create done');
 end;
 
@@ -197,12 +160,12 @@ begin
   end;
   if (FInitialSuspended) then begin
     // thread was created suspended but never woken up.
-    SemaphorePost(FSem);
+    CurrentTM.SemaphorePost(FSem);
     WaitFor;
   end;
   FFatalException.Free;
   FFatalException := nil;
-  SemaphoreDestroy(FSem);
+  CurrentTM.SemaphoreDestroy(FSem);
   inherited Destroy;
 end;
 
@@ -220,7 +183,7 @@ begin
   if not FSuspended then begin
     if FThreadID = GetCurrentThreadID then begin
       FSuspended := true;
-      SemaphoreWait(FSem);
+      CurrentTM.SemaphoreWait(FSem);
     end else begin
       FSuspendedExternal := true;
       SuspendThread(FHandle);
@@ -234,7 +197,7 @@ begin
   if (not FSuspendedExternal) then begin
     if FSuspended then begin
       FSuspended := False;
-      SemaphorePost(FSem);
+      CurrentTM.SemaphorePost(FSem);
     end;
   end else begin
     FSuspendedExternal := false;

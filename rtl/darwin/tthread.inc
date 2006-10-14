@@ -63,64 +63,9 @@
 {$define WRITE_DEBUG := //}      // just comment out those lines
 {$ENDIF}
 
-// ========== semaphore stuff ==========
-{
-  I don't like this. It eats up 2 filedescriptors for each thread,
-  and those are a limited resource. If you have a server programm
-  handling client connections (one per thread) it will not be able
-  to handle many if we use 2 fds already for internal structures.
-  However, right now I don't see a better option unless some sem_*
-  functions are added to systhrds.
-  I encapsulated all used functions here to make it easier to
-  change them completely.
-}
-
-function SemaphoreInit: Pointer;
-begin
-  SemaphoreInit := GetMem(SizeOf(TFilDes));
-  fppipe(PFilDes(SemaphoreInit)^);
-  WRITE_DEBUG('Opened file descriptor ',PFilDes(SemaphoreInit)^[0]);
-end;
-
-procedure SemaphoreWait(const FSem: Pointer);
-var
-  b: byte;
-begin
-  WRITE_DEBUG('Waiting for file descriptor ',PFilDes(FSem)^[0]);
-  repeat
-    if fpread(PFilDes(FSem)^[0], b, 1) = -1 then
-      WRITE_DEBUG('Error reading from semaphore ',PFilDes(FSem)^[0],' error = ',fpgeterrno);
-  until fpgeterrno <> ESysEIntr;
-end;
-
-procedure SemaphorePost(const FSem: Pointer);
-{$ifdef VER2_0}
-var
-  b : byte;
-{$endif}
-begin
-  WRITE_DEBUG('Activating file descriptor ',PFilDes(FSem)^[0]);
-{$ifdef VER2_0}
-  b:=0;
-  fpwrite(PFilDes(FSem)^[1], b, 1);
-{$else}
-  if fpwrite(PFilDes(FSem)^[1], #0, 1) = -1 then
-    WRITE_DEBUG('Error writing file descriptor ',PFilDes(FSem)^[0],' error = ',fpgeterrno);
-{$endif}
-end;
-
-procedure SemaphoreDestroy(const FSem: Pointer);
-begin
-  WRITE_DEBUG('Closing file descriptor ',PFilDes(FSem)^[0]);
-  fpclose(PFilDes(FSem)^[0]);
-  fpclose(PFilDes(FSem)^[1]);
-  FreeMemory(FSem);
-end;
-
-// =========== semaphore end ===========
-
 var
   ThreadsInited: boolean = false;
+  CurrentTM: TThreadManager;
 const
   // stupid, considering its not even implemented...
   Priorities: array [TThreadPriority] of Integer =
@@ -128,6 +73,7 @@ const
 
 procedure InitThreads;
 begin
+  GetThreadManager(CurrentTM);
   if not ThreadsInited then begin
     ThreadsInited := true;
   end;
@@ -148,7 +94,7 @@ begin
   try
     if LThread.FInitialSuspended then
       begin
-        SemaphoreWait(LThread.FSem);
+        CurrentTM.SemaphoreWait(LThread.FSem);
         if not(LThread.FTerminated) then
           begin
             if not LThread.FSuspended then
@@ -196,7 +142,7 @@ begin
   // via BeginThread and creates the first TThread Object in there!
   InitThreads;
   inherited Create;
-  FSem := SemaphoreInit;
+  FSem := CurrentTM.SemaphoreInit;
   FSuspended := CreateSuspended;
   FSuspendedExternal := false;
   FInitialSuspended := CreateSuspended;
@@ -225,7 +171,7 @@ begin
     end;
   FFatalException.Free;
   FFatalException := nil;
-  SemaphoreDestroy(FSem);
+  CurrentTM.SemaphoreDestroy(FSem);
   { threadvars have been released by cthreads.ThreadMain -> DoneThread }
   inherited Destroy;
 end;
@@ -244,7 +190,7 @@ begin
   if not FSuspended then begin
     if FThreadID = GetCurrentThreadID then begin
       FSuspended := true;
-      SemaphoreWait(FSem);
+      CurrentTM.SemaphoreWait(FSem);
     end else begin
       FSuspendedExternal := true;
       SuspendThread(FHandle);
@@ -258,7 +204,7 @@ begin
   if (not FSuspendedExternal) then begin
     if FSuspended then begin
       FSuspended := False;
-      SemaphorePost(FSem);
+      CurrentTM.SemaphorePost(FSem);
     end;
   end else begin
     FSuspendedExternal := false;

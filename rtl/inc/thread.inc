@@ -449,6 +449,25 @@ procedure NORTLeventsync(m:trtlmethod;p:tprocedure);
     NoThreadError;
   end;
 
+function NoSemaphoreInit: Pointer;
+begin
+  NoThreadError;
+end;
+
+procedure NoSemaphoreWait(const FSem: Pointer);
+begin
+  NoThreadError;
+end;
+
+procedure NoSemaphorePost(const FSem: Pointer);
+begin
+  NoThreadError;
+end;
+
+procedure NoSemaphoreDestroy(const FSem: Pointer);
+begin
+  NoThreadError;
+end;
 
 Var
   NoThreadManager : TThreadManager;
@@ -490,6 +509,11 @@ begin
     rtleventWaitFor        :=@NortleventWaitFor;
     rtleventsync           :=@Nortleventsync;
     rtleventwaitfortimeout :=@NortleventWaitForTimeout;
+    // semaphores stuff
+    SemaphoreInit          :=@NoSemaphoreInit;
+    SemaphoreDestroy       :=@NoSemaphoreDestroy;
+    SemaphoreWait          :=@NoSemaphoreWait;
+    SemaphorePost          :=@NoSemaphorePost;
     end;
   SetThreadManager(NoThreadManager);
 end;

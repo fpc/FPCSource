@@ -570,7 +570,36 @@ procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
     if (errres=0) or (errres=ESysETIMEDOUT) then
       pthread_mutex_unlock(@p^.mutex);
   end;
+  
+function cSemaphoreInit: Pointer;
+var
+  s: PSemaphore;
+begin
+  GetMem(s, SizeOf(TSemaphore));
+  if sem_init(s, 0, 0) = 0 then
+    cSemaphoreInit:=s
+  else
+    cSemaphoreInit:=nil;
+end;
 
+procedure cSemaphoreWait(const FSem: Pointer);
+begin
+  sem_wait(PSemaphore(FSem));
+end;
+
+procedure cSemaphorePost(const FSem: Pointer);
+begin
+  sem_post(PSemaphore(FSem));
+end;
+
+procedure cSemaphoreDestroy(const FSem: Pointer);
+var
+  s: PSemaphore;
+begin
+  s:=FSem;
+  sem_destroy(PSemaphore(FSem));
+  FreeMem(s);
+end;
 
 type
   threadmethod = procedure of object;
@@ -610,8 +639,7 @@ Var
 Procedure SetCThreadManager;
 
 begin
-  With CThreadManager do
-    begin
+  With CThreadManager do begin
     InitManager            :=@CInitThreads;
     DoneManager            :=@CDoneThreads;
     BeginThread            :=@CBeginThread;
@@ -644,7 +672,12 @@ begin
     rtlEventStartWait      :=@intrtlEventStartWait;
     rtleventWaitForTimeout :=@intrtleventWaitForTimeout;
     rtleventWaitFor        :=@intrtleventWaitFor;
-    end;
+    // semaphores
+    SemaphoreInit          :=@cSemaphoreInit;
+    SemaphoreDestroy       :=@cSemaphoreDestroy;
+    SemaphoreWait          :=@cSemaphoreWait;
+    SemaphorePost          :=@cSemaphorePost;
+  end;
   SetThreadManager(CThreadManager);
   InitHeapMutexes;
 end;

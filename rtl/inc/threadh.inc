@@ -46,6 +46,11 @@ type
   TRTLEventHandlerTimeout   = procedure(AEvent:PRTLEvent;timeout : longint);
   TRTLCreateEventHandler    = function:PRTLEvent;
   TRTLEventSyncHandler      = procedure (m:trtlmethod;p:tprocedure);
+  // semaphores stuff
+  TSempahoreInitHandler     = function: Pointer;
+  TSemaphoreDestroyHandler  = procedure (const sem: Pointer);
+  TSemaphorePostHandler     = procedure (const sem: Pointer);
+  TSemaphoreWaitHandler     = procedure (const sem: Pointer);
 
   // TThreadManager interface.
   TThreadManager = Record
@@ -82,6 +87,11 @@ type
     RTLEventWaitFor        : TRTLEventHandler;
     RTLEventSync           : TRTLEventSyncHandler;
     RTLEventWaitForTimeout : TRTLEventHandlerTimeout;
+    // semaphores stuff
+    SemaphoreInit          : TSempahoreInitHandler;
+    SemaphoreDestroy       : TSemaphoreDestroyHandler;
+    SemaphorePost          : TSemaphorePostHandler;
+    SemaphoreWait          : TSemaphoreWaitHandler;
   end;
 
 {*****************************************************************************
