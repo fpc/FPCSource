@@ -252,8 +252,8 @@ void                  \2\xD9\xE1                      8086,FPU
 
 [FADD,faddF]
 (Ch_FPU, Ch_ROp1, Ch_None)
-mem32                 \300\1\xD8\200                  8086,FPU
-mem64                 \300\1\xDC\200                  8086,FPU
+mem32                 \300\323\1\xD8\200              8086,FPU
+mem64                 \300\323\1\xDC\200              8086,FPU
 void                  \2\xDE\xC1                      8086,FPU
 fpureg|to             \1\xDC\10\xC0                   8086,FPU
 fpureg,fpu0           \1\xDC\10\xC0                   8086,FPU
@@ -268,13 +268,13 @@ fpureg,fpu0           \1\xDE\10\xC0                   8086,FPU
 
 [FBLD,fbldF]
 (Ch_Rop1, Ch_FPU, Ch_None)
-mem80                 \300\1\xDF\204                  8086,FPU
-mem                   \300\1\xDF\204                  8086,FPU
+mem80                 \300\323\1\xDF\204              8086,FPU
+mem                   \300\323\1\xDF\204              8086,FPU
 
 [FBSTP,fbstpF]
 (Ch_Wop1, Ch_FPU, Ch_None)
-mem80                 \300\1\xDF\206                  8086,FPU
-mem                   \300\1\xDF\206                  8086,FPU
+mem80                 \300\323\1\xDF\206              8086,FPU
+mem                   \300\323\1\xDF\206              8086,FPU
 
 [FCHS]
 (Ch_FPU, Ch_None, Ch_None)
@@ -334,8 +334,8 @@ fpu0,fpureg           \1\xDA\11\xD8                   P6,FPU
 
 [FCOM,fcomF]
 (Ch_FPU, Ch_None, Ch_None)
-mem32                 \300\1\xD8\202                  8086,FPU
-mem64                 \300\1\xDC\202                  8086,FPU
+mem32                 \300\323\1\xD8\202              8086,FPU
+mem64                 \300\323\1\xDC\202              8086,FPU
 void                  \2\xD8\xD1                      8086,FPU
 fpureg                \1\xD8\10\xD0                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xD0                   8086,FPU
@@ -354,8 +354,8 @@ fpu0,fpureg           \1\xDF\11\xF0                   P6,FPU
 
 [FCOMP,fcompF]
 (Ch_FPU, Ch_None, Ch_None)
-mem32                 \300\1\xD8\203                  8086,FPU
-mem64                 \300\1\xDC\203                  8086,FPU
+mem32                 \300\323\1\xD8\203              8086,FPU
+mem64                 \300\323\1\xDC\203              8086,FPU
 void                  \2\xD8\xD9                      8086,FPU
 fpureg                \1\xD8\10\xD8                   8086,FPU
 fpu0,fpureg           \1\xD8\11\xD8                   8086,FPU
@@ -378,8 +378,8 @@ void                  \3\x9B\xDB\xE1                  8086,FPU
 
 [FDIV,fdivF]
 (Ch_FPU, Ch_ROp1, Ch_None)
-mem32                 \300\1\xD8\206                  8086,FPU
-mem64                 \300\1\xDC\206                  8086,FPU
+mem32                 \300\323\1\xD8\206              8086,FPU
+mem64                 \300\323\1\xDC\206              8086,FPU
 void                  \2\xDC\xF1                      8086,FPU
 fpureg|to             \1\xDC\10\xF0                   8086,FPU
 fpureg,fpu0           \1\xDC\10\xF0                   8086,FPU
@@ -394,8 +394,8 @@ fpureg                \1\xDE\10\xF0                   8086,FPU
 
 [FDIVR,fdivrF]
 (Ch_FPU, Ch_ROp1, Ch_None)
-mem32                 \300\1\xD8\207                  8086,FPU
-mem64                 \300\1\xDC\207                  8086,FPU
+mem32                 \300\323\1\xD8\207              8086,FPU
+mem64                 \300\323\1\xDC\207              8086,FPU
 void                  \2\xDC\xF9                      8086,FPU
 fpureg|to             \1\xDC\10\xF8                   8086,FPU
 fpureg,fpu0           \1\xDC\10\xF8                   8086,FPU
@@ -422,39 +422,39 @@ fpureg                \1\xDD\10\xC0                   8086,FPU
 
 [FIADD,fiaddR]
 (Ch_FPU, Ch_ROp1, Ch_None)
-mem16                 \300\1\xDE\200                  8086,FPU
-mem32                 \300\1\xDA\200                  8086,FPU
+mem16                 \300\323\1\xDE\200              8086,FPU
+mem32                 \300\323\1\xDA\200              8086,FPU
 
 [FICOM,ficomR]
 (Ch_FPU, Ch_None, Ch_None)
-mem16                 \300\1\xDE\202                  8086,FPU
-mem32                 \300\1\xDA\202                  8086,FPU
+mem16                 \300\323\1\xDE\202              8086,FPU
+mem32                 \300\323\1\xDA\202              8086,FPU
 
 [FICOMP,ficompR]
 (Ch_FPU, Ch_None, Ch_None)
-mem16                 \300\1\xDE\203                  8086,FPU
-mem32                 \300\1\xDA\203                  8086,FPU
+mem16                 \300\323\1\xDE\203              8086,FPU
+mem32                 \300\323\1\xDA\203              8086,FPU
 
 [FIDIV,fidivR]
 (Ch_FPU, Ch_ROp1, Ch_None)
-mem16                 \300\1\xDE\206                  8086,FPU
-mem32                 \300\1\xDA\206                  8086,FPU
+mem16                 \300\323\1\xDE\206              8086,FPU
+mem32                 \300\323\1\xDA\206              8086,FPU
 
 [FIDIVR,fidivrR]
 (Ch_FPU, Ch_ROp1, Ch_None)
-mem16                 \300\1\xDE\207                  8086,FPU
-mem32                 \300\1\xDA\207                  8086,FPU
+mem16                 \300\323\1\xDE\207              8086,FPU
+mem32                 \300\323\1\xDA\207              8086,FPU
 
 [FILD,fildR]
 (Ch_FPU, Ch_ROp1, Ch_None)
-mem32                 \300\1\xDB\200                  8086,FPU
-mem16                 \300\324\1\xDF\200              8086,FPU
-mem64                 \300\1\xDF\205                  8086,FPU
+mem32                 \300\323\1\xDB\200              8086,FPU
+mem16                 \300\323\1\xDF\200              8086,FPU
+mem64                 \300\323\1\xDF\205              8086,FPU
 
 [FIMUL,fimulR]
 (Ch_FPU, Ch_ROp1, Ch_None)
-mem16                 \300\1\xDE\201                  8086,FPU
-mem32                 \300\1\xDA\201                  8086,FPU
+mem16                 \300\323\1\xDE\201              8086,FPU
+mem32                 \300\323\1\xDA\201              8086,FPU
 
 [FINCSTP]
 (Ch_FPU, Ch_None, Ch_None)
@@ -466,36 +466,36 @@ void                  \3\x9B\xDB\xE3                  8086,FPU
 
 [FIST,fistR]
 (Ch_Wop1, Ch_None, Ch_None)
-mem32                 \300\1\xDB\202                  8086,FPU
+mem32                 \300\323\1\xDB\202              8086,FPU
 mem16                 \300\324\1\xDF\202              8086,FPU
 
 [FISTP,fistpR]
 (Ch_Wop1, Ch_None, Ch_None)
-mem32                 \300\1\xDB\203                  8086,FPU
+mem32                 \300\323\1\xDB\203              8086,FPU
 mem16                 \300\324\1\xDF\203              8086,FPU
-mem64                 \300\1\xDF\207                  8086,FPU
+mem64                 \300\323\1\xDF\207              8086,FPU
 
 [FISTTP]
 (Ch_Wop1, Ch_None, Ch_None)
-mem32                 \300\1\xDD\201                  PRESCOTT,FPU
-mem16                 \300\1\xDB\201                  PRESCOTT,FPU
-mem64                 \300\1\xDF\201                  PRESCOTT,FPU
+mem32                 \300\323\1\xDD\201              PRESCOTT,FPU
+mem16                 \300\323\1\xDB\201              PRESCOTT,FPU
+mem64                 \300\323\1\xDF\201              PRESCOTT,FPU
 
 [FISUB,fisubR]
 (Ch_FPU, Ch_ROp1, Ch_None)
-mem16                 \300\1\xDE\204                  8086,FPU
-mem32                 \300\1\xDA\204                  8086,FPU
+mem16                 \300\323\1\xDE\204              8086,FPU
+mem32                 \300\323\1\xDA\204              8086,FPU
 
 [FISUBR,fisubrR]
 (Ch_FPU, Ch_ROp1, Ch_None)
-mem16                 \300\1\xDE\205                  8086,FPU
-mem32                 \300\1\xDA\205                  8086,FPU
+mem16                 \300\323\1\xDE\205              8086,FPU
+mem32                 \300\323\1\xDA\205              8086,FPU
 
 [FLD,fldF]
 (Ch_Rop1, Ch_FPU, Ch_None)
-mem32                 \300\1\xD9\200                  8086,FPU
-mem64                 \300\1\xDD\200                  8086,FPU
-mem80                 \300\1\xDB\205                  8086,FPU
+mem32                 \300\323\1\xD9\200              8086,FPU
+mem64                 \300\323\1\xDD\200              8086,FPU
+mem80                 \300\323\1\xDB\205              8086,FPU
 fpureg                \1\xD9\10\xC0                   8086,FPU
 
 [FLD1]
@@ -504,11 +504,11 @@ void                  \2\xD9\xE8                      8086,FPU
 
 [FLDCW,fldcwX]
 (Ch_FPU, Ch_None, Ch_None)
-mem                   \300\1\xD9\205                  8086,FPU,SW
+mem                   \300\323\1\xD9\205              8086,FPU,SW
 
 [FLDENV,fldenv]
 (Ch_FPU, Ch_None, Ch_None)
-mem                   \300\1\xD9\204                  8086,FPU
+mem                   \300\323\1\xD9\204              8086,FPU
 
 [FLDL2E]
 (Ch_FPU, Ch_None, Ch_None)
@@ -536,8 +536,8 @@ void                  \2\xD9\xEE                      8086,FPU
 
 [FMUL,fmulF]
 (Ch_ROp1, Ch_FPU, Ch_None)
-mem32                 \300\1\xD8\201                  8086,FPU
-mem64                 \300\1\xDC\201                  8086,FPU
+mem32                 \300\323\1\xD8\201              8086,FPU
+mem64                 \300\323\1\xDC\201              8086,FPU
 void                  \2\xDC\xC9                      8086,FPU
 fpureg|to             \1\xDC\10\xC8                   8086,FPU
 fpureg,fpu0           \1\xDC\10\xC8                   8086,FPU
@@ -572,19 +572,19 @@ void                  \2\xD9\xD0                      8086,FPU
 
 [FNSAVE,fnsave]
 (Ch_FPU, Ch_None, Ch_None)
-mem                   \300\1\xDD\206                  8086,FPU
+mem                   \300\323\1\xDD\206              8086,FPU
 
 [FNSTCW,fnstcwX]
 (Ch_Wop1, Ch_None, Ch_None)
-mem                   \300\1\xD9\207                  8086,FPU,SW
+mem                   \300\323\1\xD9\207              8086,FPU,SW
 
 [FNSTENV,fnstenv]
 (Ch_Wop1, Ch_None, Ch_None)
-mem                   \300\1\xD9\206                  8086,FPU
+mem                   \300\323\1\xD9\206              8086,FPU
 
 [FNSTSW,fnstswX]
 (Ch_Wop1, Ch_None, Ch_None)
-mem                   \300\1\xDD\207                  8086,FPU,SW
+mem                   \300\323\1\xDD\207              8086,FPU,SW
 reg_ax                \2\xDF\xE0                      286,FPU
 
 [FPATAN]
@@ -609,11 +609,11 @@ void                  \2\xD9\xFC                      8086,FPU
 
 [FRSTOR,frstor]
 (Ch_FPU, Ch_None, Ch_None)
-mem                   \300\1\xDD\204                  8086,FPU
+mem                   \300\323\1\xDD\204              8086,FPU
 
 [FSAVE,fsave]
 (Ch_Wop1, Ch_None, Ch_None)
-mem                   \300\2\x9B\xDD\206              8086,FPU
+mem                   \300\323\2\x9B\xDD\206          8086,FPU
 
 [FSCALE]
 (Ch_FPU, Ch_None, Ch_None)
@@ -637,35 +637,35 @@ void                  \2\xD9\xFA                      8086,FPU
 
 [FST,fstF]
 (Ch_Wop1, Ch_None, Ch_None)
-mem32                 \300\1\xD9\202                  8086,FPU
-mem64                 \300\1\xDD\202                  8086,FPU
+mem32                 \300\323\1\xD9\202              8086,FPU
+mem64                 \300\323\1\xDD\202              8086,FPU
 fpureg                \1\xDD\10\xD0                   8086,FPU
 
 [FSTCW,fstcwX]
 (Ch_Wop1, Ch_None, Ch_None)
-mem                   \300\2\x9B\xD9\207              8086,FPU,SW
+mem                   \300\323\2\x9B\xD9\207          8086,FPU,SW
 
 [FSTENV,fstenv]
 (Ch_Wop1, Ch_None, Ch_None)
-mem                   \300\2\x9B\xD9\206              8086,FPU
+mem                   \323\300\2\x9B\xD9\206          8086,FPU
 
 [FSTP,fstpF]
 (Ch_Wop1, Ch_FPU, Ch_None)
-mem32                 \300\1\xD9\203                  8086,FPU
-mem64                 \300\1\xDD\203                  8086,FPU
-mem80                 \300\1\xDB\207                  8086,FPU
+mem32                 \300\323\1\xD9\203              8086,FPU
+mem64                 \300\323\1\xDD\203              8086,FPU
+mem80                 \300\323\1\xDB\207              8086,FPU
 fpureg                \1\xDD\10\xD8                   8086,FPU
 
 [FSTSW,fstswX]
 (Ch_Wop1, Ch_None, Ch_None)
-mem                   \300\2\x9B\xDD\207              8086,FPU,SW
+mem                   \300\323\2\x9B\xDD\207          8086,FPU,SW
 void                  \3\x9B\xDF\xE0                  286,FPU
 reg_ax                \3\x9B\xDF\xE0                  286,FPU
 
 [FSUB,fsubF]
 (Ch_ROp1, Ch_FPU, Ch_None)
-mem32                 \300\1\xD8\204                  8086,FPU
-mem64                 \300\1\xDC\204                  8086,FPU
+mem32                 \300\323\1\xD8\204              8086,FPU
+mem64                 \300\323\1\xDC\204              8086,FPU
 void                  \2\xDC\xE1                      8086,FPU
 fpureg|to             \1\xDC\10\xE0                   8086,FPU
 fpureg,fpu0           \1\xDC\10\xE0                   8086,FPU
@@ -680,8 +680,8 @@ fpureg,fpu0           \1\xDE\10\xE0                   8086,FPU
 
 [FSUBR,fsubrF]
 (Ch_ROp1, Ch_FPU, Ch_None)
-mem32                 \300\1\xD8\205                  8086,FPU
-mem64                 \300\1\xDC\205                  8086,FPU
+mem32                 \300\323\1\xD8\205              8086,FPU
+mem64                 \300\323\1\xDC\205              8086,FPU
 void                  \2\xDC\xE9                      8086,FPU
 fpureg|to             \1\xDC\10\xE8                   8086,FPU
 fpureg,fpu0           \1\xDC\10\xE8                   8086,FPU
