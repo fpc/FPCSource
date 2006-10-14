@@ -767,14 +767,14 @@
     opcode  : A_FADD;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#216#128;
+    code    : #192#211#1#216#128;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FADD;
     ops     : 1;
     optypes : (ot_memory or ot_bits64,ot_none,ot_none);
-    code    : #192#1#220#128;
+    code    : #192#211#1#220#128;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -837,28 +837,28 @@
     opcode  : A_FBLD;
     ops     : 1;
     optypes : (ot_memory or ot_bits80,ot_none,ot_none);
-    code    : #192#1#223#132;
+    code    : #192#211#1#223#132;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FBLD;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#1#223#132;
+    code    : #192#211#1#223#132;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FBSTP;
     ops     : 1;
     optypes : (ot_memory or ot_bits80,ot_none,ot_none);
-    code    : #192#1#223#134;
+    code    : #192#211#1#223#134;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FBSTP;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#1#223#134;
+    code    : #192#211#1#223#134;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -1047,14 +1047,14 @@
     opcode  : A_FCOM;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#216#130;
+    code    : #192#211#1#216#130;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FCOM;
     ops     : 1;
     optypes : (ot_memory or ot_bits64,ot_none,ot_none);
-    code    : #192#1#220#130;
+    code    : #192#211#1#220#130;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -1124,14 +1124,14 @@
     opcode  : A_FCOMP;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#216#131;
+    code    : #192#211#1#216#131;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FCOMP;
     ops     : 1;
     optypes : (ot_memory or ot_bits64,ot_none,ot_none);
-    code    : #192#1#220#131;
+    code    : #192#211#1#220#131;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -1187,14 +1187,14 @@
     opcode  : A_FDIV;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#216#134;
+    code    : #192#211#1#216#134;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FDIV;
     ops     : 1;
     optypes : (ot_memory or ot_bits64,ot_none,ot_none);
-    code    : #192#1#220#134;
+    code    : #192#211#1#220#134;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -1257,14 +1257,14 @@
     opcode  : A_FDIVR;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#216#135;
+    code    : #192#211#1#216#135;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FDIVR;
     ops     : 1;
     optypes : (ot_memory or ot_bits64,ot_none,ot_none);
-    code    : #192#1#220#135;
+    code    : #192#211#1#220#135;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -1348,105 +1348,105 @@
     opcode  : A_FIADD;
     ops     : 1;
     optypes : (ot_memory or ot_bits16,ot_none,ot_none);
-    code    : #192#1#222#128;
+    code    : #192#211#1#222#128;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FIADD;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#218#128;
+    code    : #192#211#1#218#128;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FICOM;
     ops     : 1;
     optypes : (ot_memory or ot_bits16,ot_none,ot_none);
-    code    : #192#1#222#130;
+    code    : #192#211#1#222#130;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FICOM;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#218#130;
+    code    : #192#211#1#218#130;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FICOMP;
     ops     : 1;
     optypes : (ot_memory or ot_bits16,ot_none,ot_none);
-    code    : #192#1#222#131;
+    code    : #192#211#1#222#131;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FICOMP;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#218#131;
+    code    : #192#211#1#218#131;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FIDIV;
     ops     : 1;
     optypes : (ot_memory or ot_bits16,ot_none,ot_none);
-    code    : #192#1#222#134;
+    code    : #192#211#1#222#134;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FIDIV;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#218#134;
+    code    : #192#211#1#218#134;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FIDIVR;
     ops     : 1;
     optypes : (ot_memory or ot_bits16,ot_none,ot_none);
-    code    : #192#1#222#135;
+    code    : #192#211#1#222#135;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FIDIVR;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#218#135;
+    code    : #192#211#1#218#135;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FILD;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#219#128;
+    code    : #192#211#1#219#128;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FILD;
     ops     : 1;
     optypes : (ot_memory or ot_bits16,ot_none,ot_none);
-    code    : #192#212#1#223#128;
+    code    : #192#211#1#223#128;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FILD;
     ops     : 1;
     optypes : (ot_memory or ot_bits64,ot_none,ot_none);
-    code    : #192#1#223#133;
+    code    : #192#211#1#223#133;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FIMUL;
     ops     : 1;
     optypes : (ot_memory or ot_bits16,ot_none,ot_none);
-    code    : #192#1#222#129;
+    code    : #192#211#1#222#129;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FIMUL;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#218#129;
+    code    : #192#211#1#218#129;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -1467,7 +1467,7 @@
     opcode  : A_FIST;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#219#130;
+    code    : #192#211#1#219#130;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -1481,7 +1481,7 @@
     opcode  : A_FISTP;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#219#131;
+    code    : #192#211#1#219#131;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -1495,77 +1495,77 @@
     opcode  : A_FISTP;
     ops     : 1;
     optypes : (ot_memory or ot_bits64,ot_none,ot_none);
-    code    : #192#1#223#135;
+    code    : #192#211#1#223#135;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FISTTP;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#221#129;
+    code    : #192#211#1#221#129;
     flags   : if_prescott or if_fpu
   ),
   (
     opcode  : A_FISTTP;
     ops     : 1;
     optypes : (ot_memory or ot_bits16,ot_none,ot_none);
-    code    : #192#1#219#129;
+    code    : #192#211#1#219#129;
     flags   : if_prescott or if_fpu
   ),
   (
     opcode  : A_FISTTP;
     ops     : 1;
     optypes : (ot_memory or ot_bits64,ot_none,ot_none);
-    code    : #192#1#223#129;
+    code    : #192#211#1#223#129;
     flags   : if_prescott or if_fpu
   ),
   (
     opcode  : A_FISUB;
     ops     : 1;
     optypes : (ot_memory or ot_bits16,ot_none,ot_none);
-    code    : #192#1#222#132;
+    code    : #192#211#1#222#132;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FISUB;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#218#132;
+    code    : #192#211#1#218#132;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FISUBR;
     ops     : 1;
     optypes : (ot_memory or ot_bits16,ot_none,ot_none);
-    code    : #192#1#222#133;
+    code    : #192#211#1#222#133;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FISUBR;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#218#133;
+    code    : #192#211#1#218#133;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FLD;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#217#128;
+    code    : #192#211#1#217#128;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FLD;
     ops     : 1;
     optypes : (ot_memory or ot_bits64,ot_none,ot_none);
-    code    : #192#1#221#128;
+    code    : #192#211#1#221#128;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FLD;
     ops     : 1;
     optypes : (ot_memory or ot_bits80,ot_none,ot_none);
-    code    : #192#1#219#133;
+    code    : #192#211#1#219#133;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -1586,14 +1586,14 @@
     opcode  : A_FLDCW;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#1#217#133;
+    code    : #192#211#1#217#133;
     flags   : if_8086 or if_fpu or if_sw
   ),
   (
     opcode  : A_FLDENV;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#1#217#132;
+    code    : #192#211#1#217#132;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -1642,14 +1642,14 @@
     opcode  : A_FMUL;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#216#129;
+    code    : #192#211#1#216#129;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FMUL;
     ops     : 1;
     optypes : (ot_memory or ot_bits64,ot_none,ot_none);
-    code    : #192#1#220#129;
+    code    : #192#211#1#220#129;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -1747,28 +1747,28 @@
     opcode  : A_FNSAVE;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#1#221#134;
+    code    : #192#211#1#221#134;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FNSTCW;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#1#217#135;
+    code    : #192#211#1#217#135;
     flags   : if_8086 or if_fpu or if_sw
   ),
   (
     opcode  : A_FNSTENV;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#1#217#134;
+    code    : #192#211#1#217#134;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FNSTSW;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#1#221#135;
+    code    : #192#211#1#221#135;
     flags   : if_8086 or if_fpu or if_sw
   ),
   (
@@ -1817,14 +1817,14 @@
     opcode  : A_FRSTOR;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#1#221#132;
+    code    : #192#211#1#221#132;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FSAVE;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#2#155#221#134;
+    code    : #192#211#2#155#221#134;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -1866,14 +1866,14 @@
     opcode  : A_FST;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#217#130;
+    code    : #192#211#1#217#130;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FST;
     ops     : 1;
     optypes : (ot_memory or ot_bits64,ot_none,ot_none);
-    code    : #192#1#221#130;
+    code    : #192#211#1#221#130;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -1887,35 +1887,35 @@
     opcode  : A_FSTCW;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#2#155#217#135;
+    code    : #192#211#2#155#217#135;
     flags   : if_8086 or if_fpu or if_sw
   ),
   (
     opcode  : A_FSTENV;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#2#155#217#134;
+    code    : #211#192#2#155#217#134;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FSTP;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#217#131;
+    code    : #192#211#1#217#131;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FSTP;
     ops     : 1;
     optypes : (ot_memory or ot_bits64,ot_none,ot_none);
-    code    : #192#1#221#131;
+    code    : #192#211#1#221#131;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FSTP;
     ops     : 1;
     optypes : (ot_memory or ot_bits80,ot_none,ot_none);
-    code    : #192#1#219#135;
+    code    : #192#211#1#219#135;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -1929,7 +1929,7 @@
     opcode  : A_FSTSW;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #192#2#155#221#135;
+    code    : #192#211#2#155#221#135;
     flags   : if_8086 or if_fpu or if_sw
   ),
   (
@@ -1950,14 +1950,14 @@
     opcode  : A_FSUB;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#216#132;
+    code    : #192#211#1#216#132;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FSUB;
     ops     : 1;
     optypes : (ot_memory or ot_bits64,ot_none,ot_none);
-    code    : #192#1#220#132;
+    code    : #192#211#1#220#132;
     flags   : if_8086 or if_fpu
   ),
   (
@@ -2020,14 +2020,14 @@
     opcode  : A_FSUBR;
     ops     : 1;
     optypes : (ot_memory or ot_bits32,ot_none,ot_none);
-    code    : #192#1#216#133;
+    code    : #192#211#1#216#133;
     flags   : if_8086 or if_fpu
   ),
   (
     opcode  : A_FSUBR;
     ops     : 1;
     optypes : (ot_memory or ot_bits64,ot_none,ot_none);
-    code    : #192#1#220#133;
+    code    : #192#211#1#220#133;
     flags   : if_8086 or if_fpu
   ),
   (
