@@ -73,8 +73,8 @@ const
 
 procedure InitThreads;
 begin
-  GetThreadManager(CurrentTM);
   if not ThreadsInited then begin
+    GetThreadManager(CurrentTM);
     ThreadsInited := true;
   end;
 end;

@@ -75,7 +75,7 @@ const
 
 procedure InitThreads;
 begin
-  if not ThreadsInited then
+  if not ThreadsInited then begin
     GetThreadManager(CurrentTM);
     ThreadsInited := true;
     GMainPid := fpgetpid();
