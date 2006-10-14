@@ -415,7 +415,6 @@ begin
   curs.statement := nil;
   curs.FPrepared := False;
   AllocSQLDA(curs.SQLDA,0);
-  AllocSQLDA(curs.in_SQLDA,0);
   result := curs;
 end;
 
@@ -475,7 +474,9 @@ begin
         if (sqltype and 1) = 1 then New(SQLInd);
         end;
       {$R+}
-      end;
+      end
+    else
+      AllocSQLDA(in_SQLDA,0);
     if FStatementType = stselect then
       begin
       FPrepared := False;
