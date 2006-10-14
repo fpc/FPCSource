@@ -2260,7 +2260,7 @@ const
                 procvars don't need external }
               if not((po_external in pd.procoptions) or
                      (pd.deftype=procvardef)) and
-                 not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+                 not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_mwpascal]) then
                 Message(parser_e_varargs_need_cdecl_and_external);
             end
            else
@@ -2268,7 +2268,7 @@ const
               { both must be defined now }
               if not((po_external in pd.procoptions) or
                      (pd.deftype=procvardef)) or
-                 not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+                 not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_mwpascal]) then
                 Message(parser_e_varargs_need_cdecl_and_external);
             end;
          end;
