@@ -53,7 +53,8 @@ const
   lastblockflag  = 4;   { flag if the block is the last in os chunk }
   firstblockflag = 8;   { flag if the block is the first in os chunk }
   sizemask = not(blocksize-1);
-  fixedsizemask = sizemask and $ffff;
+  fixedoffsetshift = 16;
+  fixedsizemask = sizemask and ((1 shl fixedoffsetshift) - 1);
 
 {****************************************************************************}
 
@@ -95,32 +96,26 @@ const
 {$ifndef HAS_MEMORYMANAGER}
 type
   poschunk = ^toschunk;
-  { keep size of this record dividable by 16 }
   toschunk = record
-    size,
-    used,
-    chunkindex : ptrint;
+    size : ptrint;
     next,
-    prev  : poschunk;
-{$ifdef CPU64}
-    pad1 : array[0..0] of pointer;
-{$else CPU64}
-    pad1 : array[0..2] of pointer;
-{$endif CPU64}
+    prev : poschunk;
+    used : ptrint;
+    { padding inserted automatically by alloc_oschunk }
   end;
 
   pmemchunk_fixed  = ^tmemchunk_fixed;
   tmemchunk_fixed = record
-    size   : ptrint;
-    poc    : poschunk;
+    { aligning is done automatically in alloc_oschunk }
+    size  : ptrint;
     next_fixed,
     prev_fixed : pmemchunk_fixed;
   end;
 
   pmemchunk_var  = ^tmemchunk_var;
   tmemchunk_var = record
-    size     : ptrint;
     prevsize : ptrint;
+    size  : ptrint;
     next_var,
     prev_var  : pmemchunk_var;
   end;
@@ -128,20 +123,24 @@ type
   { ``header'', ie. size of structure valid when chunk is in use }
   { should correspond to tmemchunk_var_hdr structure starting with the
     last field. Reason is that the overlap is starting from the end of the
-    record.
-    Alignment is 8 bytes for 32bit machines. This required
-    for x86 MMX/SSE and for sparc Double values }
+    record. }
   tmemchunk_fixed_hdr = record
-    size     : ptrint;
-    poschunk : pointer;
+    { aligning is done automatically in alloc_oschunk }
+    size : ptrint;
   end;
   tmemchunk_var_hdr = record
-    prevsize,
-    size     : ptrint;
+    prevsize : ptrint;
+    size : ptrint;
   end;
 
   tfreelists   = array[1..maxblockindex] of pmemchunk_fixed;
   pfreelists   = ^tfreelists;
+
+const
+  fixedfirstoffset = ((sizeof(toschunk) + sizeof(tmemchunk_fixed_hdr) + $f) 
+      and not $f) - sizeof(tmemchunk_fixed_hdr);
+  varfirstoffset = ((sizeof(toschunk) + sizeof(tmemchunk_var_hdr) + $f) 
+      and not $f) - sizeof(tmemchunk_var_hdr);
 
 var
   internal_status : TFPCHeapStatus;
@@ -522,7 +521,7 @@ end;
                                 List adding/removal
 *****************************************************************************}
 
-procedure append_to_list_var(pmc: pmemchunk_var);inline;
+procedure append_to_list_var(pmc: pmemchunk_var); inline;
 begin
   pmc^.prev_var := nil;
   pmc^.next_var := freelist_var;
@@ -531,7 +530,17 @@ begin
   freelist_var := pmc;
 end;
 
-procedure remove_from_list_var(pmc: pmemchunk_var);inline;
+procedure remove_from_list_fixed(blockindex: ptrint; pmc: pmemchunk_fixed); inline;
+begin
+  if assigned(pmc^.next_fixed) then
+    pmc^.next_fixed^.prev_fixed := pmc^.prev_fixed;
+  if assigned(pmc^.prev_fixed) then
+    pmc^.prev_fixed^.next_fixed := pmc^.next_fixed
+  else
+    freelists_fixed[blockindex] := pmc^.next_fixed;
+end;
+
+procedure remove_from_list_var(pmc: pmemchunk_var); inline;
 begin
   if assigned(pmc^.next_var) then
     pmc^.next_var^.prev_var := pmc^.prev_var;
@@ -581,32 +590,23 @@ var
   poc: poschunk;
 begin
   // block eligable for freeing
-  poc := pointer(pmc)-sizeof(toschunk);
+  poc := pointer(pmc)-varfirstoffset;
   remove_from_list_var(pmc);
   append_to_oslist(poc);
 end;
 
-procedure append_to_oslist_fixed(poc: poschunk);
+procedure append_to_oslist_fixed(chunkindex, chunksize: ptrint; poc: poschunk);
 var
   pmc: pmemchunk_fixed;
-  chunksize,
-  chunkindex,
-  i, count: ptrint;
+  i, size: ptrint;
 begin
-  chunkindex:=poc^.chunkindex;
-  chunksize:=chunkindex shl blockshift;
-  pmc := pmemchunk_fixed(pointer(poc)+sizeof(toschunk));
-  count := (poc^.size - sizeof(toschunk)) div chunksize;
-  for i := 0 to count - 1 do
-    begin
-      if assigned(pmc^.next_fixed) then
-        pmc^.next_fixed^.prev_fixed := pmc^.prev_fixed;
-      if assigned(pmc^.prev_fixed) then
-        pmc^.prev_fixed^.next_fixed := pmc^.next_fixed
-      else
-        freelists_fixed[chunkindex] := pmc^.next_fixed;
-      pmc := pointer(pmc)+chunksize;
-    end;
+  size := poc^.size;
+  i := fixedfirstoffset;
+  repeat
+    pmc := pmemchunk_fixed(pointer(poc)+i);
+    remove_from_list_fixed(chunkindex, pmc);
+    inc(i, chunksize);
+  until i > size - chunksize;
   append_to_oslist(poc);
 end;
 
@@ -734,24 +734,23 @@ end;
                                 Grow Heap
 *****************************************************************************}
 
-function alloc_oschunk(chunkindex, size: ptrint):pointer;
+function alloc_oschunk(chunkindex, size: ptrint): pointer;
 var
-  pmcfirst,
-  pmclast,
-  pmc       : pmemchunk_fixed;
+  pmc,
+  pmc_next  : pmemchunk_fixed;
   pmcv      : pmemchunk_var;
   poc       : poschunk;
-  chunksize,
   minsize,
   maxsize,
-  i, count  : ptrint;
+  i         : ptrint;
+  chunksize : ptrint;
 begin
-  result:=nil;
-  chunksize:=chunkindex shl blockshift;
   { increase size by size needed for os block header }
-  minsize := size + sizeof(toschunk);
+  minsize := size + varfirstoffset;
+  { for fixed size chunks we keep offset from os chunk to mem chunk in
+    upper bits, so maximum os chunk size is 64K on 32bit for fixed size }
   if chunkindex<>0 then
-    maxsize := (chunksize * $ffff) + sizeof(toschunk)
+    maxsize := 1 shl (32-fixedoffsetshift)
   else
     maxsize := high(ptrint);
   { blocks available in freelist? }
@@ -770,47 +769,47 @@ begin
   if poc = nil then
     begin
 {$ifdef DUMPGROW}
-      writeln('growheap(',size,')  allocating ',(size+sizeof(toschunk)+$ffff) and $ffff0000);
+      writeln('growheap(',size,')  allocating ',(size+sizeof(toschunk)+$ffff) and not $ffff);
       DumpBlocks;
 {$endif}
       { allocate by 64K size }
-      size := (size+sizeof(toschunk)+$ffff) and not $ffff;
+      size := (size+varfirstoffset+$ffff) and not $ffff;
       { allocate smaller blocks for fixed-size chunks }
-      if chunksize<>0 then
+      if chunkindex<>0 then
         begin
           poc := SysOSAlloc(GrowHeapSizeSmall);
           if poc<>nil then
             size := GrowHeapSizeSmall;
         end
-      { first try 256K (default) }
+    { first try 256K (default) }
       else if size<=GrowHeapSize1 then
         begin
           poc := SysOSAlloc(GrowHeapSize1);
           if poc<>nil then
             size := GrowHeapSize1;
         end
-      { second try 1024K (default) }
+    { second try 1024K (default) }
       else if size<=GrowHeapSize2 then
         begin
           poc := SysOSAlloc(GrowHeapSize2);
           if poc<>nil then
             size := GrowHeapSize2;
         end
-      { else allocate the needed bytes }
+    { else allocate the needed bytes }
       else
         poc := SysOSAlloc(size);
-      { try again }
+    { try again }
       if poc=nil then
-        begin
-          poc := SysOSAlloc(size);
-          if (poc=nil) then
-            begin
-              if ReturnNilIfGrowHeapFails then
-                exit
-              else
-                HandleError(203);
-            end;
-        end;
+      begin
+        poc := SysOSAlloc(size);
+        if poc=nil then
+          begin
+            if ReturnNilIfGrowHeapFails then
+              exit
+            else
+              HandleError(203);
+          end;
+      end;
       { set the total new heap size }
       inc(internal_status.currheapsize,size);
       if internal_status.currheapsize>internal_status.maxheapsize then
@@ -819,46 +818,47 @@ begin
   { initialize os-block }
   poc^.used := 0;
   poc^.size := size;
-  poc^.chunkindex := chunkindex;
-  { initialized oschunck for fixed chunks }
   if chunkindex<>0 then
     begin
       { chop os chunk in fixedsize parts,
         maximum of $ffff elements are allowed, otherwise
         there will be an overflow }
-      count := (size-sizeof(toschunk)) div chunksize;
-      if count>$ffff then
+      chunksize := chunkindex shl blockshift;
+      if size-chunksize>maxsize then
         HandleError(204);
-      { Initialize linkedlist of chunks, the first chunk
-        is pmemchunk_fixed(poc) and the last chunk will be in pmc at
-        the end of the loop }
-      pmcfirst := pmemchunk_fixed(pointer(poc)+sizeof(toschunk));
-      pmc:=pmcfirst;
-      for i:=1 to count do
-        begin
-          pmc^.poc:=poc;
-          pmc^.size:=chunksize or fixedsizeflag;
-          pmc^.prev_fixed := pointer(pmc)-chunksize;
-          pmc^.next_fixed := pointer(pmc)+chunksize;
-          pmc := pmemchunk_fixed(pointer(pmc)+chunksize);
-        end;
-      { undo last increase to get last chunk }
-      pmclast := pmemchunk_fixed(pointer(pmc)-chunksize);
-      { Add to freelist and fixup first and last chunk }
-      pmclast^.next_fixed := freelists_fixed[chunkindex];
-      if freelists_fixed[chunkindex]<>nil then
-        freelists_fixed[chunkindex]^.prev_fixed := pmclast;
-      freelists_fixed[chunkindex] := pmcfirst;
-      pmemchunk_fixed(poc)^.prev_fixed:=nil;
-      result:=pmcfirst;
+      { we need to align the user pointers to 8 byte at least for
+        mmx/sse and doubles on sparc, align to 16 bytes }
+      i := fixedfirstoffset;
+      result := pointer(poc) + i;
+      pmc := pmemchunk_fixed(result);
+      pmc^.prev_fixed := nil;
+      repeat
+        pmc^.size := fixedsizeflag or chunksize or (i shl fixedoffsetshift);
+        pmc^.next_fixed := pointer(pmc)+chunksize;
+        inc(i, chunksize);
+        if i <= size - chunksize then
+          begin
+            pmc := pmemchunk_fixed(pointer(pmc)+chunksize);
+            pmc^.prev_fixed := pointer(pmc)-chunksize;
+          end
+        else
+          break;
+      until false;
+      pmc_next := freelists_fixed[chunkindex];
+      pmc^.next_fixed := pmc_next;
+      if pmc_next<>nil then
+        pmc_next^.prev_fixed := pmc;
+      freelists_fixed[chunkindex] := pmemchunk_fixed(result);
     end
   else
     begin
-      pmcv := pmemchunk_var(pointer(poc)+sizeof(toschunk));
+      { we need to align the user pointers to 8 byte at least for
+        mmx/sse and doubles on sparc, align to 16 bytes }
+      result := pointer(poc)+varfirstoffset;
+      pmcv := pmemchunk_var(result);
       append_to_list_var(pmcv);
-      pmcv^.size := ((size-sizeof(toschunk)) and sizemask) or (firstblockflag or lastblockflag);
+      pmcv^.size := ((size-varfirstoffset) and sizemask) or (firstblockflag or lastblockflag);
       pmcv^.prevsize := 0;
-      result:=pmcv;
     end;
 end;
 
@@ -866,40 +866,39 @@ end;
                                  SysGetMem
 *****************************************************************************}
 
-function SysGetMem_Fixed(size: ptrint): pointer;
+function SysGetMem_Fixed(chunksize: ptrint): pointer;
 var
-  pmc,hp : pmemchunk_fixed;
-  poc : poschunk;
-  chunkindex : ptrint;
+  pmc, pmc_next: pmemchunk_fixed;
+  poc: poschunk;
+  chunkindex: ptrint;
 begin
   { try to find a block in one of the freelists per size }
-  chunkindex := size shr blockshift;
+  chunkindex := chunksize shr blockshift;
   pmc := freelists_fixed[chunkindex];
   result:=nil;
   { no free blocks ? }
   if not assigned(pmc) then
     begin
-      pmc:=alloc_oschunk(chunkindex, size);
+      pmc := alloc_oschunk(chunkindex, chunksize);
       if not assigned(pmc) then
         exit;
     end;
   { get a pointer to the block we should return }
   result := pointer(pmc)+sizeof(tmemchunk_fixed_hdr);
   { update freelist }
-  hp:=pmc^.next_fixed;
-  poc := pmc^.poc;
-  freelists_fixed[chunkindex] := hp;
-  if assigned(hp) then
-    hp^.prev_fixed := nil;
+  pmc_next := pmc^.next_fixed;
+  freelists_fixed[chunkindex] := pmc_next;
+  if assigned(pmc_next) then
+    pmc_next^.prev_fixed := nil;
+  poc := poschunk(pointer(pmc) - (pmc^.size shr fixedoffsetshift));
   if (poc^.used = 0) then
     freelists_free_chunk[chunkindex] := false;
   inc(poc^.used);
   { statistics }
-  inc(internal_status.currheapused,size);
+  inc(internal_status.currheapused,chunksize);
   if internal_status.currheapused>internal_status.maxheapused then
     internal_status.maxheapused:=internal_status.currheapused;
 end;
-
 
 function SysGetMem_Var(size: ptrint): pointer;
 var
@@ -994,23 +993,23 @@ end;
 
 function SysFreeMem_Fixed(pmc: pmemchunk_fixed): ptrint;
 var
-  hp : pmemchunk_fixed;
-  chunksize,
-  chunkindex : ptrint;
-  poc : poschunk;
+  chunkindex,
+  chunksize: ptrint;
+  poc: poschunk;
+  pmc_next: pmemchunk_fixed;
 begin
-  poc := pmc^.poc;
-  chunkindex:=poc^.chunkindex;
-  chunksize:=chunkindex shl blockshift;
-  { statistics }
-  dec(internal_status.currheapused,chunksize);
-  hp:=freelists_fixed[chunkindex];
+  chunksize := pmc^.size and fixedsizemask;
+  dec(internal_status.currheapused, chunksize);
   { insert the block in it's freelist }
+  chunkindex := chunksize shr blockshift;
+  pmc_next := freelists_fixed[chunkindex];
   pmc^.prev_fixed := nil;
-  pmc^.next_fixed := hp;
-  if assigned(hp) then
-    hp^.prev_fixed := pmc;
+  pmc^.next_fixed := pmc_next;
+  if assigned(pmc_next) then
+    pmc_next^.prev_fixed := pmc;
   freelists_fixed[chunkindex] := pmc;
+  { decrease used blocks count }
+  poc := poschunk(pointer(pmc)-(pmc^.size shr fixedoffsetshift));
   dec(poc^.used);
   if poc^.used <= 0 then
     begin
@@ -1019,47 +1018,44 @@ begin
         HandleError(204);
       { osblock can be freed? }
       if freelists_free_chunk[chunkindex] then
-        append_to_oslist_fixed(poc)
+        append_to_oslist_fixed(chunkindex, chunksize, poc)
       else
         freelists_free_chunk[chunkindex] := true;
     end;
   result := chunksize;
 end;
 
-
-function SysFreeMem_Var(pcurr: pmemchunk_var): ptrint;
+function SysFreeMem_Var(pmcv: pmemchunk_var): ptrint;
 var
   chunksize: ptrint;
 begin
-  chunksize := pcurr^.size and sizemask;
+  chunksize := pmcv^.size and sizemask;
   dec(internal_status.currheapused,chunksize);
   { insert the block in it's freelist }
-  pcurr^.size := pcurr^.size and (not usedflag);
-  append_to_list_var(pcurr);
+  pmcv^.size := pmcv^.size and (not usedflag);
+  append_to_list_var(pmcv);
+  pmcv := try_concat_free_chunk(pmcv);
+  if (pmcv^.size and (firstblockflag or lastblockflag)) = (firstblockflag or lastblockflag) then
+    append_to_oslist_var(pmcv);
   result := chunksize;
-  pcurr := try_concat_free_chunk(pcurr);
-  if (pcurr^.size and (firstblockflag or lastblockflag)) = (firstblockflag or lastblockflag) then
-    append_to_oslist_var(pcurr);
 end;
 
 
 function SysFreeMem(p: pointer): ptrint;
 var
-  hp : pmemchunk_fixed;
+  pmc: pmemchunk_fixed;
 begin
   if p=nil then
     begin
       result:=0;
       exit;
     end;
-
-  hp:=pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr));
-
+  pmc := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr));
   { check if this is a fixed- or var-sized chunk }
-  if (hp^.size and fixedsizeflag) = 0 then
+  if (pmc^.size and fixedsizeflag) = 0 then
     result := sysfreemem_var(pmemchunk_var(p-sizeof(tmemchunk_var_hdr)))
   else
-    result := sysfreemem_fixed(hp);
+    result := sysfreemem_fixed(pmc);
 end;
 
 {*****************************************************************************
@@ -1067,27 +1063,15 @@ end;
 *****************************************************************************}
 
 Function SysFreeMemSize(p: pointer; size: ptrint):ptrint;
-var
-  hp : pmemchunk_fixed;
 begin
-  SysFreeMemSize := 0;
-  if p=nil then
-    exit;
   if size<=0 then
-    begin
-      if size<0 then
-        HandleError(204);
-      exit;
-    end;
-
-  hp:=pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr));
-  { check if this is a fixed- or var-sized chunk. We can't check the passed
-    size parameter since the block can be resized (by reallocmem) to an
-    optimized value that the user doesn't know }
-  if (hp^.size and fixedsizeflag) = 0 then
-    result := sysfreemem_var(pmemchunk_var(p-sizeof(tmemchunk_var_hdr)))
-  else
-    result := sysfreemem_fixed(hp);
+  begin
+    if size<0 then
+      HandleError(204);
+    exit(0);
+  end;
+  { can't free partial blocks, ignore size }
+  result := SysFreeMem(p);
 end;
 
 
@@ -1100,12 +1084,12 @@ begin
   result := pmemchunk_fixed(pointer(p)-sizeof(tmemchunk_fixed_hdr))^.size;
   if (result and fixedsizeflag) = 0 then
     begin
-      result := SysMemSize and sizemask;
+      result := result and sizemask;
       dec(result, sizeof(tmemchunk_var_hdr));
     end
   else
     begin
-      result := SysMemSize and fixedsizemask;
+      result := result and fixedsizemask;
       dec(result, sizeof(tmemchunk_fixed_hdr));
     end;
 end;
@@ -1151,11 +1135,12 @@ begin
         2. For resizing to greater size first check if the size fits in the fixed block range to prevent
            "truncating" the size by the fixedsizemask }
       if ((size <= (maxblocksize - sizeof(tmemchunk_fixed_hdr))) and
-          ((size+sizeof(tmemchunk_fixed_hdr)+(blocksize-1)) and sizemask<=currsize )) then
+          ((size+sizeof(tmemchunk_fixed_hdr)+(blocksize-1)) and sizemask <= currsize)) then
         begin
           systryresizemem:=true;
           exit;
         end;
+
       { we need to allocate a new fixed or var memchunck }
       exit;
     end;
@@ -1169,7 +1154,7 @@ begin
     begin
       SysTryResizeMem := true;
       exit;
-   end;
+    end;
 
   { get pointer to block }
   pcurr := pmemchunk_var(pointer(p)-sizeof(tmemchunk_var_hdr));
@@ -1289,6 +1274,7 @@ end;
 {*****************************************************************************
                                  InitHeap
 *****************************************************************************}
+
 {$ifndef gba}
 { This function will initialize the Heap manager and need to be called from
   the initialization of the system unit }
@@ -1306,12 +1292,17 @@ end;
 procedure FinalizeHeap;
 var
   poc : poschunk;
+  pmc : pmemchunk_fixed;
   i : longint;
 begin
 {$ifdef HAS_SYSOSFREE}
   for i:=low(freelists_free_chunk) to high(freelists_free_chunk) do
     if freelists_free_chunk[i] then
-      SysOSFree(freelists_fixed[i]^.poc,freelists_fixed[i]^.poc^.size);
+    begin
+      pmc := freelists_fixed[i];
+      poc := poschunk(pointer(pmc)-(pmc^.size shr fixedoffsetshift));
+      SysOSFree(poc,poc^.size);
+    end;
   while assigned(freeoslist) do
     begin
       poc:=freeoslist^.next;
