@@ -87,7 +87,7 @@ begin
   ThreadsInited := false;
 end;
 
-function ThreadFunc(parameter: Pointer): LongInt;
+function ThreadFunc(parameter: Pointer): PtrInt;
 var
   LThread: TThread;
   c: char;
