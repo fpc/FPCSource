@@ -111,6 +111,9 @@ interface
           loadparentfpn  { Load the framepointer of the parent for nested procedures }
        );
 
+       tnodetypeset = set of tnodetype;
+       pnodetypeset = ^tnodetypeset;
+
       const
         nodetype2str : array[tnodetype] of string[24] = (
           '<emptynode>',

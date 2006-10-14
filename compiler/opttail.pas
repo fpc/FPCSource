@@ -36,7 +36,7 @@ unit opttail;
       globtype,
       symconst,symsym,
       defcmp,
-      nbas,nflw,ncal,nld,ncnv,
+      nutils,nbas,nflw,ncal,nld,ncnv,
       pass_1,
       paramgr;
 
@@ -76,6 +76,7 @@ unit opttail;
           paranode : tcallparanode;
           tempnode : ttempcreatenode;
           loadnode : tloadnode;
+          oldnodetree : tnode;
         begin
           { no tail call found and replaced so far }
           result:=false;
@@ -140,13 +141,31 @@ unit opttail;
                         paranode:=tcallparanode(paranode.right);
                       end;
 
-                    n.free;
+                    oldnodetree:=n;
                     n:=internalstatements(nodes);
+
+                    if assigned(usedcallnode.methodpointerinit) then
+                      begin
+                        addstatement(nodes,usedcallnode.methodpointerinit);
+                        usedcallnode.methodpointerinit:=nil;
+                      end;
+
                     addstatement(nodes,calcnodes);
                     addstatement(nodes,copynodes);
 
                     { create goto }
                     addstatement(nodes,cgotonode.create(labelnode));
+
+                    if assigned(usedcallnode.methodpointerdone) then
+                      begin
+                        { methodpointerdone should contain only temp. node clean up }
+                        checktreenodetypes(usedcallnode.methodpointerdone,
+                          [tempdeleten,blockn,statementn,temprefn,nothingn]);
+                        addstatement(nodes,usedcallnode.methodpointerdone);
+                        usedcallnode.methodpointerdone:=nil;
+                      end;
+
+                    oldnodetree.free;
 
                     do_firstpass(n);
                     result:=true;

@@ -55,6 +55,11 @@ interface
     function foreachnodestatic(var n: tnode; f: staticforeachnodefunction; arg: pointer): boolean;
     function foreachnodestatic(procmethod : tforeachprocmethod;var n: tnode; f: staticforeachnodefunction; arg: pointer): boolean;
 
+    { checks if the given node tree contains only nodes of the given type,
+      if this isn't the case, an ie is thrown
+    }
+    procedure checktreenodetypes(n : tnode;typeset : tnodetypeset);
+
     procedure load_procvar_from_calln(var p1:tnode);
     function maybe_call_procvar(var p1:tnode;tponly:boolean):boolean;
     function get_high_value_sym(vs: tparavarsym):tsym; { marking it as inline causes IE 200311075 during loading from ppu file }
@@ -222,6 +227,20 @@ implementation
     function foreachnodestatic(var n: tnode; f: staticforeachnodefunction; arg: pointer): boolean;
       begin
         result:=foreachnodestatic(pm_postprocess,n,f,arg);
+      end;
+
+
+    function do_check(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if not(n.nodetype in pnodetypeset(arg)^) then
+          internalerror(200610141);
+        result:=fen_true;
+      end;
+
+
+    procedure checktreenodetypes(n : tnode;typeset : tnodetypeset);
+      begin
+        foreachnodestatic(n,@do_check,@typeset);
       end;
 
 
