@@ -1303,10 +1303,10 @@ packages/base/hash/Makefile.fpc svneol=native#text/plain
 packages/base/hash/crc.pas -text
 packages/base/hash/fpmake.inc svneol=native#text/plain
 packages/base/hash/fpmake.pp svneol=native#text/plain
-packages/base/hash/md4.pas svneol=native#text/plain
 packages/base/hash/md5.pp svneol=native#text/plain
 packages/base/hash/md5.ref -text
 packages/base/hash/md5test.pp svneol=native#text/plain
+packages/base/hash/ntlm.pas svneol=native#text/plain
 packages/base/httpd/Makefile svneol=native#text/plain
 packages/base/httpd/Makefile.fpc svneol=native#text/plain
 packages/base/httpd/examples/Makefile svneol=native#text/plain
@@ -3095,7 +3095,6 @@ packages/extra/ldap/ldap.pas svneol=native#text/plain
 packages/extra/ldap/ldap_featuresh.inc svneol=native#text/plain
 packages/extra/ldap/ldap_schemah.inc svneol=native#text/plain
 packages/extra/ldap/ldaph.inc svneol=native#text/plain
-packages/extra/ldap/ntlm.pas svneol=native#text/plain
 packages/extra/libgd/Makefile svneol=native#text/plain
 packages/extra/libgd/Makefile.fpc svneol=native#text/plain
 packages/extra/libgd/README -text

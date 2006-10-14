@@ -35,8 +35,8 @@ const
 begin
   Writeln('Executing RFC 1321 test suite ...');
   for I := 1 to 7 do
-    Writeln('MD5 ("',Suite[i],'") = ',MD5Print(MD5String(Suite[I])));
+    Writeln('MD5 ("',Suite[i],'") = ',MDPrint(MDString(Suite[I], 5)));
   Writeln();
-  Writeln('md5file (50)  : ',md5print(Md5File('md5test.pas',50)));
-  Writeln('md5file (def) : ',md5print(Md5File('md5test.pas')));
+  Writeln('md5file (50)  : ',MDPrint(MDFile('md5test.pp',5,10)));
+  Writeln('md5file (def) : ',MDPrint(MDFile('md5test.pp',5)));
 end.

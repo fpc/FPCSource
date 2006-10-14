@@ -7,7 +7,7 @@ name=ldap
 version=2.0.0
 
 [target]
-units=lber ldap ntlm
+units=lber ldap
 
 [require]
 packages=hash

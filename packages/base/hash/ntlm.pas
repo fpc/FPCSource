@@ -1,29 +1,17 @@
-(*
-  Translation of the SAMBA md4 code for FreePascal
-  Copyright (C) 2006 by Ivo Steinmann
-  Ported from SAMBA/source/libsmb/smbdes.c
+{
+    This file is part of the Free Pascal packages.
+    Copyright (c) 1999-2006 by the Free Pascal development team
 
-  Unix SMB/CIFS implementation.
+    Implements a NTLM password hash algorithm.
 
-  a partial implementation of DES designed for use in the 
-  SMB authentication protocol
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
-  Copyright (C) Andrew Tridgell 1998
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*)
+ **********************************************************************}
 
 unit ntlm;
 
@@ -34,7 +22,7 @@ interface
 uses
   Strings,
   Math,
-  md4;
+  md5;
 
 type
   THash = array[0..15] of Byte;
@@ -371,7 +359,7 @@ begin
     inc(pos);
   end;
 
-  mdfour(p16, @wpwd[0], len);
+  PMDDigest(p16)^ := MDBuffer(wpwd[0], len, 4);
 
   FillChar(wpwd, Sizeof(wpwd), 0);
 end;
