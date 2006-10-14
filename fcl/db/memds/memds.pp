@@ -824,7 +824,7 @@ end;
 procedure TMemDataset.SetRecNo(Value: Integer);
 begin
   CheckBrowseMode;
-  if (Value>1) and (Value<=FRecCount) then
+  if (Value>=1) and (Value<=FRecCount) then
     begin
     FCurrRecNo:=Value-1;
     Resync([]);
