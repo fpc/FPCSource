@@ -53,7 +53,6 @@ function MDString(const S: String; const Version: Cardinal): TMDDigest;
 function MDBuffer(var Buf; const BufLen: PtrUInt; const Version: Cardinal): TMDDigest;
 function MDFile(const Filename: String; const Version: Cardinal; const Bufsize: PtrUInt = DefBufSize): TMDDigest;
 function MDPrint(const Digest: TMDDigest): String;
-// based on an implementation by Matthias Fichtner
 function MDMatch(const Digest1, Digest2: TMDDigest): Boolean;
 
 implementation
@@ -364,15 +363,10 @@ end;
 
 function MDMatch(const Digest1, Digest2: TMDDigest): Boolean;
 var
-  I: Byte;
+  A: array[0..3] of Cardinal absolute Digest1;
+  B: array[0..3] of Cardinal absolute Digest2;
 begin
-  I := 0;
-  Result := True;
-  while Result and (I < 16) do
-  begin
-    Result := Digest1[I] = Digest2[I];
-    inc(I);
-  end;
+  Result := (A[0] = B[0]) and (A[1] = B[1]) and (A[2] = B[2]) and (A[3] = B[3]);
 end;
 
 end.

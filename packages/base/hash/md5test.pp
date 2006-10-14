@@ -17,7 +17,8 @@ program md5test;
 
 {$h+}
 
-uses md5;
+uses md5, ntlm;
+
 var
   I: byte;
 
@@ -33,10 +34,22 @@ const
     );
 
 begin
+  Writeln('Executing RFC 1320 test suite ...');
+  for I := 1 to 7 do
+    Writeln('MD4 ("',Suite[i],'") = ',MDPrint(MDString(Suite[I], 4)));
+  Writeln();
+  Writeln('md4file (50)  : ',MDPrint(MDFile('md5test.pp',4,50)));
+  Writeln('md4file (def) : ',MDPrint(MDFile('md5test.pp',4)));
+  Writeln;
+
   Writeln('Executing RFC 1321 test suite ...');
   for I := 1 to 7 do
     Writeln('MD5 ("',Suite[i],'") = ',MDPrint(MDString(Suite[I], 5)));
   Writeln();
-  Writeln('md5file (50)  : ',MDPrint(MDFile('md5test.pp',5,10)));
+  Writeln('md5file (50)  : ',MDPrint(MDFile('md5test.pp',5,50)));
   Writeln('md5file (def) : ',MDPrint(MDFile('md5test.pp',5)));
+  Writeln;
+
+  Writeln('nt-password   : ',MDPrint(NTGenerate('foobar')));
+  Writeln('lm-password   : ',MDPrint(LMGenerate('foobar')));
 end.

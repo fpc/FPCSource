@@ -20,22 +20,13 @@ unit ntlm;
 interface
 
 uses
-  Strings,
-  Math,
-  md5;
+  Math, Strings, md5;
 
-type
-  THash = array[0..15] of Byte;
 
-procedure nt_lm_owf_gen(const pwd: PChar; var nt_p16: THash; var lm_p16: THash);
-procedure hash_to_str(const h: THash; const str: PChar);
+function LMGenerate(const Password: PChar): TMDDigest;
+function NTGenerate(const Password: PChar): TMDDigest;
 
 implementation
-
-
-//
-// Ported from SAMBA/source/libsmb/smbdes.c
-//
 
 const
   perm1: array[0..55] of Byte = (
@@ -150,6 +141,7 @@ begin
     _out[i] := _in[p[i]-1];
 end;
 
+
 procedure lshift({in/out} const d: PByte; {in} const count: Integer; {in} const n: Integer);
 var
   _out  : array[0..63] of Byte;
@@ -161,6 +153,7 @@ begin
     d[i] := _out[i];
 end;
 
+
 procedure concat({out} const _out: PByte; {in} const _in1, _in2: PByte; {in} const l1, l2: Integer);
 var
   i: Integer;
@@ -171,6 +164,7 @@ begin
     _out[i+l1] := _in2[i];
 end;
 
+
 procedure mxor({out} const _out: PByte; {in} const _in1, _in2: PByte; {in} const n: Integer);
 var
   i: Integer;
@@ -178,6 +172,7 @@ begin
   for i := 0 to n-1 do
     _out[i] := _in1[i] xor _in2[i];
 end;
+
 
 procedure dohash({out} const _out: PByte; {in} const _in: PByte; {in} const key: PByte; {in} const forw: Boolean);
 var
@@ -271,6 +266,7 @@ begin
   permute(_out, @rl[0], @perm6[0], 64);
 end;
 
+
 procedure str_to_key({in} const str: PByte; {out} const key: PByte);
 var
   i: Integer;
@@ -286,6 +282,7 @@ begin
   for i := 0 to 7 do
     key[i] := key[i] shl 1;
 end;
+
 
 procedure smbhash({out} const _out: PByte; {in} const _in: PByte; {in} const key: PByte; {in} const forw: Boolean);
 var
@@ -316,6 +313,7 @@ begin
   end;
 end;
 
+
 procedure E_P16({in} const p14: PByte; {out} const p16: PByte);
 const
   sp8: array[0..7] of Byte = ($4b, $47, $53, $21, $40, $23, $24, $25);
@@ -324,102 +322,52 @@ begin
   smbhash(@p16[8], @sp8[0], @p14[7], True);
 end;
 
-procedure E_P24({in} const p21: PByte; {in} const c8: PByte; {out} const p24: PByte);
+
+(*procedure E_P24({in} const p21: PByte; {in} const c8: PByte; {out} const p24: PByte);
 begin
   smbhash(@p24[0],  c8, @p21[0],  True);
   smbhash(@p24[8],  c8, @p21[7],  True);
   smbhash(@p24[16], c8, @p21[14], True);
-end;
+end;*)
 
 
-
-//
-// Ported from SAMBA/source/libsmb/smbencrypt.c
-//
-
-(*
- * Creates the MD4 Hash of the users password in NT UNICODE.
- *)
-
-procedure E_md4hash({in} const pwd: PChar; {out} const p16: PByte);
-var
-  len, pos: Integer;
-  wpwd  : array[0..255] of Byte;
-begin
-  FillChar(wpwd, Sizeof(wpwd), 0);
-
-  (* Password must be converted to NT unicode - null terminated *)
-  len := 0;
-  pos := 0;
-  while (len < 256) and (pwd[pos] <> #0) do
-  begin
-    wpwd[len] := byte(pwd[pos]);
-    inc(len);
-    wpwd[len] := 0;
-    inc(pos);
-  end;
-
-  PMDDigest(p16)^ := MDBuffer(wpwd[0], len, 4);
-
-  FillChar(wpwd, Sizeof(wpwd), 0);
-end;
-
-procedure E_deshash({in} const pwd: PChar; {out} const p16: PByte);
+function LMGenerate(const Password: PChar): TMDDigest;
 var
   dospwd: array[0..14] of Byte;
 begin
+  if not Assigned(Password) then
+    Exit;
+
   FillChar(dospwd, Sizeof(dospwd), 0);
 
   (* Password must be converted to DOS charset - null terminated, uppercase *)
-  StrLCopy(pchar(@dospwd[0]), pchar(@pwd[0]), Sizeof(dospwd)-1);
-  StrUpper(pchar(@dospwd[0]));
+  StrLCopy(PChar(@dospwd[0]), PChar(@Password[0]), SizeOf(dospwd)-1);
+  StrUpper(PChar(@dospwd[0]));
 
-  (* ONly the first 14 chars are considered, password need not be null terminated *)
-  E_P16(@dospwd[0], p16);
+  (* Only the first 14 chars are considered, password need not be null terminated *)
+  E_P16(@dospwd[0], @Result);
 
   FillChar(dospwd, Sizeof(dospwd), 0);
 end;
 
 
-(*
- * Does both the NT and LM owfs of a user's password
- *)
-
-procedure nt_lm_owf_gen({in} const pwd: PChar; {out} var nt_p16: THash; {out} var lm_p16: THash);
+function NTGenerate(const Password: PChar): TMDDigest;
 var
-  passwd: array[0..513] of Char;
+  pos: Integer;
+  wpwd: array[0..127] of WideChar;
 begin
-  FillChar(passwd, Sizeof(passwd), 0);
-  StrLCopy(passwd, pwd, sizeof(passwd)-1);
+  if not Assigned(Password) then
+    Exit;
 
-  (* Calculate the MD4 hash (NT compatible) of the password *)
-  FillChar(nt_p16, Sizeof(nt_p16), 0);
-  E_md4hash(@passwd[0], @nt_p16[0]);
-
-  (* Calculate the SMB (lanman) hash functions of the password *)
-  FillChar(lm_p16, Sizeof(lm_p16), 0);
-  E_deshash(@passwd[0], @lm_p16[0]);
-
-  (* clear out local copy of user's password (just being paranoid). *)
-  FillChar(passwd, Sizeof(passwd), 0);
-end;
-
-procedure hash_to_str({in} const h: THash; {out} const str: PChar);
-const
-  to_hex: array[0..15] of char = ('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
-var
-  i: integer;
-  p: PChar;
-begin
-  p := str;
-  for i := 0 to 15 do
+  pos := 0;
+  while (pos < 128) and (Password[pos] <> #0) do
   begin
-     p^ := to_hex[(h[i] shr 4) and $F];
-     Inc(p);
-     p^ := to_hex[h[i] and $F];
-     inc(p);
+    wpwd[pos] := Password[pos];
+    inc(pos);
   end;
-  p^ := #0;
+
+  Result := MDBuffer(wpwd, 2*pos, 4);
+  FillChar(wpwd, Sizeof(wpwd), 0);
 end;
 
 end.
