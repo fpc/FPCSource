@@ -410,6 +410,9 @@ begin
     A_DCBA, A_DCBI, A_DCBST, A_DCBT, A_DCBTST, A_DCBZ,
     A_ECOWX, A_FCMPO, A_FCMPU, A_MTMSR, A_TLBIE, A_TW, A_TWI, A_MFXER,
     A_CMPWI, A_CMPW, A_CMPLWI, A_CMPLW, A_MT, A_MTLR, A_MTCTR:;
+    A_RLWIMI:
+      if opnr = 0 then
+          result := operand_readwrite;
     else
       if opnr = 0 then
         result := operand_write;
