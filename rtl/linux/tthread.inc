@@ -1,17 +1,18 @@
 {
-    This file is part of the Free Component Library (FCL)
-    Copyright (c) 1999-2000 by Peter Vreman
+   This file is part of the Free Pascal run time library.
+   (c) 2000-2003 by Marco van de Voort
+   member of the Free Pascal development team.
 
-    Linux TThread implementation
+   See the file COPYING.FPC, included in this distribution,
+   for details about the copyright.
 
-    See the file COPYING.FPC, included in this distribution,
-    for details about the copyright.
+   TThread implementation old (1.0) and new (pthreads) style
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY;without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+}
 
- **********************************************************************}
 
 {
   What follows, is a short description on my implementation of TThread.
@@ -53,79 +54,6 @@
   Johannes Berg <johannes@sipsolutions.de>, Sunday, November 16 2003
 }
 
-// ========== semaphore stuff ==========
-{
-  I don't like this. It eats up 2 filedescriptors for each thread,
-  and those are a limited resource. If you have a server programm
-  handling client connections (one per thread) it will not be able
-  to handle many if we use 2 fds already for internal structures.
-  However, right now I don't see a better option unless some sem_*
-  functions are added to systhrds.
-  I encapsulated all used functions here to make it easier to
-  change them completely.
-}
-
-function SemaphoreInit: Pointer;
-begin
-  SemaphoreInit := GetMem(SizeOf(TFilDes));
-  fppipe(PFilDes(SemaphoreInit)^);
-end;
-
-procedure SemaphoreWait(const FSem: Pointer);
-var
-  b: byte;
-begin
-  fpread(PFilDes(FSem)^[0], b, 1);
-end;
-
-procedure SemaphorePost(const FSem: Pointer);
-{$ifdef VER2_0}
-var
-  b : byte;
-{$endif}
-begin
-{$ifdef VER2_0}
-  b:=0;
-  fpwrite(PFilDes(FSem)^[1], b, 1);
-{$else}
-  fpwrite(PFilDes(FSem)^[1], #0, 1);
-{$endif}
-end;
-
-procedure SemaphoreDestroy(const FSem: Pointer);
-begin
-  fpclose(PFilDes(FSem)^[0]);
-  fpclose(PFilDes(FSem)^[1]);
-  FreeMemory(FSem);
-end;
-
-// =========== semaphore end ===========
-
-var
-  ThreadsInited: boolean = false;
-{$IFDEF LINUX}
-  GMainPID: LongInt = 0;
-{$ENDIF}
-const
-  // stupid, considering its not even implemented...
-  Priorities: array [TThreadPriority] of Integer =
-   (-20,-19,-10,0,9,18,19);
-
-procedure InitThreads;
-begin
-  if not ThreadsInited then begin
-    ThreadsInited := true;
-    {$IFDEF LINUX}
-    GMainPid := fpgetpid();
-    {$ENDIF}
-  end;
-end;
-
-procedure DoneThreads;
-begin
-  ThreadsInited := false;
-end;
-
 { ok, so this is a hack, but it works nicely. Just never use
   a multiline argument with WRITE_DEBUG! }
 {$MACRO ON}
@@ -135,23 +63,38 @@ end;
 {$define WRITE_DEBUG := //}      // just comment out those lines
 {$ENDIF}
 
-function ThreadFunc(parameter: Pointer): PtrInt;
+var
+  ThreadsInited: boolean = false;
+  CurrentTM: TThreadManager;
+  
+const
+  // stupid, considering its not even implemented...
+  Priorities: array [TThreadPriority] of Integer =
+   (-20,-19,-10,0,9,18,19);
+
+procedure InitThreads;
+begin
+  GetThreadManager(CurrentTM);
+  if not ThreadsInited then
+    ThreadsInited := true;
+end;
+
+procedure DoneThreads;
+begin
+  ThreadsInited := false;
+end;
+
+function ThreadFunc(parameter: Pointer): LongInt;
 var
   LThread: TThread;
   c: char;
 begin
   WRITE_DEBUG('ThreadFunc is here...');
   LThread := TThread(parameter);
-  {$IFDEF LINUX}
-  // save the PID of the "thread"
-  // this is different from the PID of the main thread if
-  // the LinuxThreads implementation is used
-  LThread.FPid := fpgetpid();
-  {$ENDIF}
-  WRITE_DEBUG('thread initing, parameter = ', PtrInt(LThread));
+  WRITE_DEBUG('thread initing, parameter = ', LongInt(LThread));
   try
     if LThread.FInitialSuspended then begin
-      SemaphoreWait(LThread.FSem);
+      CurrentTM.SemaphoreWait(LThread.FSem);
       if not LThread.FSuspended then begin
         LThread.FInitialSuspended := false;
         WRITE_DEBUG('going into LThread.Execute');
@@ -167,8 +110,7 @@ begin
       LThread.FFatalException :=  TObject(AcquireExceptionObject);
       // not sure if we should really do this...
       // but .Destroy was called, so why not try FreeOnTerminate?
-      if e is EThreadDestroyCalled then
-        LThread.FFreeOnTerminate := true;
+      if e is EThreadDestroyCalled then LThread.FFreeOnTerminate := true;
     end;
   end;
   WRITE_DEBUG('thread done running');
@@ -193,23 +135,22 @@ begin
   // via BeginThread and creates the first TThread Object in there!
   InitThreads;
   inherited Create;
-  FSem := SemaphoreInit;
-  FSuspended :=CreateSuspended;
+  FSem := CurrentTM.SemaphoreInit;
+  FSuspended := CreateSuspended;
   FSuspendedExternal := false;
   FInitialSuspended := CreateSuspended;
   FFatalException := nil;
-  WRITE_DEBUG('creating thread, self = ', PtrInt(self));
-  FHandle:= BeginThread(@ThreadFunc, Pointer(Self), FThreadID, StackSize);
+  WRITE_DEBUG('creating thread, self = ',PtrInt(self));
+  FHandle:= BeginThread(@ThreadFunc, Pointer(Self), FThreadID,StackSize);
   WRITE_DEBUG('TThread.Create done');
 end;
 
 
 destructor TThread.Destroy;
 begin
-  if (FThreadID = GetCurrentThreadID) and not(FFreeOnTerminate) 
-	and not fFinished then		
+  if (FThreadID = GetCurrentThreadID) and not(FFreeOnTerminate) and not ffinished then begin
     raise EThreadDestroyCalled.Create('A thread cannot destroy itself except by setting FreeOnTerminate and leaving!');
-
+  end;
   // if someone calls .Free on a thread with
   // FreeOnTerminate, then don't crash!
   FFreeOnTerminate := false;
@@ -219,12 +160,12 @@ begin
   end;
   if (FInitialSuspended) then begin
     // thread was created suspended but never woken up.
-    SemaphorePost(FSem);
+    CurrentTM.SemaphorePost(FSem);
     WaitFor;
   end;
   FFatalException.Free;
   FFatalException := nil;
-  SemaphoreDestroy(FSem);
+  CurrentTM.SemaphoreDestroy(FSem);
   inherited Destroy;
 end;
 
@@ -242,25 +183,10 @@ begin
   if not FSuspended then begin
     if FThreadID = GetCurrentThreadID then begin
       FSuspended := true;
-      SemaphoreWait(FSem);
+      CurrentTM.SemaphoreWait(FSem);
     end else begin
       FSuspendedExternal := true;
-{$IFDEF LINUX}
-      // naughty hack if the user doesn't have Linux with NPTL...
-      // in that case, the PID of threads will not be identical
-      // to the other threads, which means that our thread is a normal
-      // process that we can suspend via SIGSTOP...
-      // this violates POSIX, but is the way it works on the
-      // LinuxThreads pthread implementation. Not with NPTL, but in that case
-      // getpid(2) also behaves properly and returns the same PID for
-      // all threads. Thats actually (FINALLY!) native thread support :-)
-      if FPid <> GMainPID then begin
-        FSuspended := true;
-        fpkill(FPid, SIGSTOP);
-      end;
-{$ELSE}
       SuspendThread(FHandle);
-{$ENDIF}
     end;
   end;
 end;
@@ -271,19 +197,11 @@ begin
   if (not FSuspendedExternal) then begin
     if FSuspended then begin
       FSuspended := False;
-      SemaphorePost(FSem);
+      CurrentTM.SemaphorePost(FSem);
     end;
   end else begin
     FSuspendedExternal := false;
-{$IFDEF LINUX}
-    // see .Suspend
-    if FPid <> GMainPID then begin
-      FSuspended := False;
-      fpkill(FPid, SIGCONT);
-    end;
-{$ELSE}
     ResumeThread(FHandle);
-{$ENDIF}
   end;
 end;
 
@@ -296,9 +214,6 @@ end;
 function TThread.WaitFor: Integer;
 begin
   WRITE_DEBUG('waiting for thread ',FHandle);
-  if GetCurrentThreadID=MainThreadID then
-    while not(FFinished) do
-      CheckSynchronize(1000);
   WaitFor := WaitForThreadTerminate(FHandle, 0);
   WRITE_DEBUG('thread terminated');
 end;
