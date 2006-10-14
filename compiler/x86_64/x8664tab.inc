@@ -1894,7 +1894,7 @@
     opcode  : A_FSTENV;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #211#192#2#155#217#134;
+    code    : #192#211#2#155#217#134;
     flags   : if_8086 or if_fpu
   ),
   (
