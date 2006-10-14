@@ -131,8 +131,14 @@ function gtk_tree_model_iter_nth_child(tree_model:PGtkTreeModel; iter:PGtkTreeIt
 function gtk_tree_model_iter_parent(tree_model:PGtkTreeModel; iter:PGtkTreeIter; child:PGtkTreeIter):gboolean; cdecl; external gtklib;
 procedure gtk_tree_model_ref_node(tree_model:PGtkTreeModel; iter:PGtkTreeIter); cdecl; external gtklib;
 procedure gtk_tree_model_unref_node(tree_model:PGtkTreeModel; iter:PGtkTreeIter); cdecl; external gtklib;
+{$IFNDEF KYLIX}
+procedure gtk_tree_model_get(tree_model:PGtkTreeModel; iter:PGtkTreeIter; args:array of const); cdecl; overload; external gtklib;
+procedure gtk_tree_model_get(tree_model:PGtkTreeModel; iter:PGtkTreeIter); cdecl; overload; varargs; external gtklib;
+procedure gtk_tree_model_get_valist(tree_model:PGtkTreeModel; iter:PGtkTreeIter; var_args: array of const); cdecl; varargs; external gtklib;
+{$ELSE}
 procedure gtk_tree_model_get(tree_model:PGtkTreeModel; iter:PGtkTreeIter); varargs; cdecl; external gtklib;
 procedure gtk_tree_model_get_valist(tree_model:PGtkTreeModel; iter:PGtkTreeIter); varargs; cdecl; external gtklib;
+{$ENDIF}
 procedure gtk_tree_model_foreach(model:PGtkTreeModel; func:TGtkTreeModelForeachFunc; user_data:gpointer); cdecl; external gtklib;
 { Signals  }
 procedure gtk_tree_model_row_changed(tree_model:PGtkTreeModel; path:PGtkTreePath; iter:PGtkTreeIter); cdecl; external gtklib;

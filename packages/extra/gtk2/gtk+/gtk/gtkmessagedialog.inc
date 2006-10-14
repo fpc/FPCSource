@@ -57,9 +57,18 @@ function GTK_IS_MESSAGE_DIALOG_CLASS(klass: pointer) : boolean;
 function GTK_MESSAGE_DIALOG_GET_CLASS(obj: pointer) : PGtkMessageDialogClass;
 
 function gtk_message_dialog_get_type:TGtkType; cdecl; external gtklib;
+{$IFNDEF KYLIX}
+function gtk_message_dialog_new(parent:PGtkWindow; flags:TGtkDialogFlags;
+  _type:TGtkMessageType; buttons:TGtkButtonsType; message_format:Pgchar;
+  args:array of const):PGtkWidget; cdecl; overload; external gtklib;
+function gtk_message_dialog_new(parent:PGtkWindow; flags:TGtkDialogFlags;
+  _type:TGtkMessageType; buttons:TGtkButtonsType;
+  message_format:Pgchar):PGtkWidget; cdecl; overload; varargs; external gtklib;
+{$ELSE}
 function gtk_message_dialog_new(parent:PGtkWindow; flags:TGtkDialogFlags;
   _type:TGtkMessageType; buttons:TGtkButtonsType;
   message_format:Pgchar):PGtkWidget; varargs; cdecl; external gtklib;
+{$ENDIF}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

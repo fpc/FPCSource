@@ -73,8 +73,13 @@ function gtk_curve_new:PGtkWidget; cdecl; external gtklib;
 procedure gtk_curve_reset(curve:PGtkCurve); cdecl; external gtklib;
 procedure gtk_curve_set_gamma(curve:PGtkCurve; gamma:gfloat); cdecl; external gtklib;
 procedure gtk_curve_set_range(curve:PGtkCurve; min_x:gfloat; max_x:gfloat; min_y:gfloat; max_y:gfloat); cdecl; external gtklib;
+{$IFNDEF KYLIX}
+procedure gtk_curve_get_vector(curve:PGtkCurve; veclen:longint; vector:array of gfloat); cdecl; external gtklib;
+procedure gtk_curve_set_vector(curve:PGtkCurve; veclen:longint; vector:array of gfloat); cdecl; external gtklib;
+{$ELSE}
 procedure gtk_curve_get_vector(curve:PGtkCurve; veclen:longint); varargs; cdecl; external gtklib;
 procedure gtk_curve_set_vector(curve:PGtkCurve; veclen:longint); varargs; cdecl; external gtklib;
+{$ENDIF}
 procedure gtk_curve_set_curve_type(curve:PGtkCurve; _type:TGtkCurveType); cdecl; external gtklib;
 {$ENDIF read_interface_rest}
 

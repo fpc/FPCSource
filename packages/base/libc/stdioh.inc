@@ -52,15 +52,21 @@ function setvbuf(__stream:PFILE; __buf:Pchar; __modes:longint; __n:size_t):longi
 procedure setbuffer(__stream:PFILE; __buf:Pchar; __size:size_t);cdecl;external clib name 'setbuffer';
 procedure setlinebuf(__stream:PFILE);cdecl;external clib name 'setlinebuf';
 
+function fprintf(__stream:PFILE; __format:Pchar; args:array of const):longint;cdecl;external clib name 'fprintf';
 function fprintf(__stream:PFILE; __format:Pchar):longint;cdecl;varargs;external clib name 'fprintf';
+function printf(__format:Pchar; args:array of const):longint;cdecl;external clib name 'printf';
 function printf(__format:Pchar):longint;cdecl;varargs;external clib name 'printf';
+function sprintf(__s:Pchar; __format:Pchar; args:array of const):longint;cdecl;external clib name 'sprintf';
 function sprintf(__s:Pchar; __format:Pchar):longint;varargs;cdecl;external clib name 'sprintf';
 function vfprintf(__s:PFILE; __format:Pchar; __arg:_G_va_list):longint;cdecl;external clib name 'vfprintf';
 function vprintf(__format:Pchar; __arg:_G_va_list):longint;cdecl;external clib name 'vprintf';
 function vsprintf(__s:Pchar; __format:Pchar; __arg:_G_va_list):longint;cdecl;external clib name 'vsprintf';
 
+function fscanf(__stream:PFILE; __format:Pchar; args:array of const):longint;cdecl;external clib name 'fscanf';
 function fscanf(__stream:PFILE; __format:Pchar):longint;varargs;cdecl;external clib name 'fscanf';
+function scanf(__format:Pchar; args:array of const):longint;cdecl;external clib name 'scanf';
 function scanf(__format:Pchar):longint;cdecl;varargs;external clib name 'scanf';
+function sscanf(__s:Pchar; __format:Pchar; args:array of const):longint;cdecl;external clib name 'sscanf';
 function sscanf(__s:Pchar; __format:Pchar):longint;cdecl;varargs;external clib name 'sscanf';
 
 function fgetc(__stream:PFILE):longint;cdecl;external clib name 'fgetc';

@@ -10,10 +10,13 @@ const
    SEEK_CUR = 1;
    SEEK_END = 2;
 
+function fcntl(__fd:longint; __cmd:longint; args:array of const):longint;cdecl;external clib name 'fcntl';
 function fcntl(__fd:longint; __cmd:longint):longint;cdecl;varargs;external clib name 'fcntl';
 
+function open(__file:Pchar; __oflag:longint; args:array of const):longint;cdecl;external clib name 'open';
 function open(__file:Pchar; __oflag:longint):longint;cdecl;varargs;external clib name 'open';
 
+function open64(__file:Pchar; __oflag:longint; args:array of const):longint;cdecl;external clib name 'open64';
 function open64(__file:Pchar; __oflag:longint):longint;cdecl;varargs;external clib name 'open64';
 
 function creat(__file:Pchar; __mode:__mode_t):longint;cdecl;external clib name 'creat';

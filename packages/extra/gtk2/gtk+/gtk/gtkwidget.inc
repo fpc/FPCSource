@@ -317,14 +317,24 @@ procedure set_y_set(var a : TGtkWidgetAuxInfo; __y_set : guint);
 
 
 function gtk_widget_get_type:TGtkType; cdecl; external gtklib;
+{$IFNDEF KYLIX}
+function gtk_widget_new(_type:TGtkType; first_property_name:Pgchar; args:array of const):PGtkWidget; cdecl; overload; external gtklib;
+function gtk_widget_new(_type:TGtkType; first_property_name:Pgchar):PGtkWidget; cdecl; overload; varargs; external gtklib;
+{$ELSE}
 function gtk_widget_new(_type:TGtkType; first_property_name:Pgchar):PGtkWidget; varargs; cdecl; external gtklib;
+{$ENDIF}
 function gtk_widget_ref(widget:PGtkWidget):PGtkWidget; cdecl; external gtklib;
 procedure gtk_widget_unref(widget:PGtkWidget); cdecl; external gtklib;
 procedure gtk_widget_destroy(widget:PGtkWidget); cdecl; external gtklib;
 procedure gtk_widget_destroyed(widget:PGtkWidget; var widget_pointer:PGtkWidget); cdecl; external gtklib;
 
 {$ifndef GTK_DISABLE_DEPRECATED}
+{$IFNDEF KYLIX}
+procedure gtk_widget_set(widget:PGtkWidget; first_property_name:Pgchar; args:array of const); cdecl; overload; external gtklib;
+procedure gtk_widget_set(widget:PGtkWidget; first_property_name:Pgchar); cdecl; overload; varargs; external gtklib;
+{$ELSE}
 procedure gtk_widget_set(widget:PGtkWidget; first_property_name:Pgchar); varargs; cdecl; external gtklib;
+{$ENDIF}
 {$endif}
 { GTK_DISABLE_DEPRECATED  }
 
@@ -486,8 +496,14 @@ procedure gtk_widget_class_install_style_property_parser(klass:PGtkWidgetClass; 
 function gtk_widget_class_find_style_property(klass:PGtkWidgetClass; property_name:Pgchar):PGParamSpec; cdecl; external gtklib;
 function gtk_widget_class_list_style_properties(klass:PGtkWidgetClass; n_properties:Pguint):PPGParamSpec; cdecl; external gtklib;
 procedure gtk_widget_style_get_property(widget:PGtkWidget; property_name:Pgchar; value:PGValue); cdecl; external gtklib;
+{$IFNDEF KYLIX}
+procedure gtk_widget_style_get_valist(widget:PGtkWidget; first_property_name:Pgchar; var_args: array of const); cdecl; external gtklib;
+procedure gtk_widget_style_get(widget:PGtkWidget; first_property_name:Pgchar; args:array of const); cdecl; overload; external gtklib;
+procedure gtk_widget_style_get(widget:PGtkWidget; first_property_name:Pgchar); cdecl; overload; varargs; external gtklib;
+{$ELSE}
 procedure gtk_widget_style_get_valist(widget:PGtkWidget; first_property_name:Pgchar); varargs; cdecl; external gtklib;
 procedure gtk_widget_style_get(widget:PGtkWidget; first_property_name:Pgchar); varargs; cdecl; external gtklib;
+{$ENDIF}
 { Set certain default values to be used at widget creation time.
   }
 procedure gtk_widget_set_default_colormap(colormap:PGdkColormap); cdecl; external gtklib;

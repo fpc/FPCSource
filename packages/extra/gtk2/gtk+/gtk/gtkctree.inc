@@ -135,7 +135,11 @@ procedure set_expanded(var a : TGtkCTreeRow; __expanded : guint); overload;
                                                             }
 
 function gtk_ctree_get_type:TGtkType; cdecl; external gtklib;
+{$IFNDEF KYLIX}
+function gtk_ctree_new_with_titles(columns:gint; tree_column:gint; titles:array of Pgchar):PGtkWidget; cdecl; external gtklib;
+{$ELSE}
 function gtk_ctree_new_with_titles(columns:gint; tree_column:gint):PGtkWidget; varargs; cdecl; external gtklib;
+{$ENDIF}
 function gtk_ctree_new(columns:gint; tree_column:gint):PGtkWidget; cdecl; external gtklib;
 function gtk_ctree_insert_node(ctree:PGtkCTree; parent:PGtkCTreeNode; sibling:PGtkCTreeNode; text:array of Pgchar; spacing:guint8;
            pixmap_closed:PGdkPixmap; mask_closed:PGdkBitmap; pixmap_opened:PGdkPixmap; mask_opened:PGdkBitmap; is_leaf:gboolean;

@@ -1941,7 +1941,9 @@ implementation
 
               { varargs are always equal, but not exact }
               if (po_varargs in hp^.data.procoptions) and
-                 (currparanr>hp^.data.minparacount) then
+                 (currparanr>hp^.data.minparacount) and
+                 not is_array_of_const(def_from) and
+                 not is_array_constructor(def_from) then
                begin
                  eq:=te_equal;
                end

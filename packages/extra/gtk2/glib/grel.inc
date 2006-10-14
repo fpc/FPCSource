@@ -40,7 +40,12 @@
 
   procedure g_relation_index(relation:PGRelation; field:gint; hash_func:TGHashFunc; key_equal_func:TGEqualFunc);cdecl;external gliblib name 'g_relation_index';
 
+{$IFNDEF KYLIX}
+  procedure g_relation_insert(relation:PGRelation; args:array of const);cdecl;overload;external gliblib name 'g_relation_insert';
+  procedure g_relation_insert(relation:PGRelation);cdecl;overload;varargs;external gliblib name 'g_relation_insert';
+{$ELSE}
   procedure g_relation_insert(relation:PGRelation);varargs;cdecl;external gliblib name 'g_relation_insert';
+{$ENDIF}
 
   function g_relation_delete(relation:PGRelation; key:gconstpointer; field:gint):gint;cdecl;external gliblib name 'g_relation_delete';
 
@@ -48,7 +53,12 @@
 
   function g_relation_count(relation:PGRelation; key:gconstpointer; field:gint):gint;cdecl;external gliblib name 'g_relation_count';
 
+{$IFNDEF KYLIX}
+  function g_relation_exists(relation:PGRelation; args:array of const):gboolean;cdecl;overload;external gliblib name 'g_relation_exists';
+  function g_relation_exists(relation:PGRelation):gboolean;cdecl;overload;varargs;external gliblib name 'g_relation_exists';
+{$ELSE}
   function g_relation_exists(relation:PGRelation):gboolean;varargs;cdecl;external gliblib name 'g_relation_exists';
+{$ENDIF}
 
   procedure g_relation_print(relation:PGRelation);cdecl;external gliblib name 'g_relation_print';
 

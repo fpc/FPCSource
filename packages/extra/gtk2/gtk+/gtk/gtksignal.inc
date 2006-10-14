@@ -51,16 +51,30 @@ function gtk_signal_handler_pending_by_func(anObject:PGtkObject;
 {  --- compat functions ---  }
 function gtk_signal_newv(name:Pgchar; signal_flags:TGtkSignalRunType; object_type:TGtkType; function_offset:guint; marshaller:TGtkSignalMarshaller;
            return_val:TGtkType; n_args:guint; args:PGtkType):guint; cdecl; external gtklib;
+{$IFNDEF KYLIX}
+function gtk_signal_new(name:Pgchar; signal_flags:TGtkSignalRunType; object_type:TGtkType; function_offset:guint; marshaller:TGtkSignalMarshaller;
+           return_val:TGtkType; n_args:guint; args:array of const):guint; cdecl; overload; external gtklib;
+function gtk_signal_new(name:Pgchar; signal_flags:TGtkSignalRunType; object_type:TGtkType; function_offset:guint; marshaller:TGtkSignalMarshaller;
+           return_val:TGtkType; n_args:guint):guint; cdecl; varargs; overload; external gtklib;
+{$ELSE}
 function gtk_signal_new(name:Pgchar; signal_flags:TGtkSignalRunType; object_type:TGtkType; function_offset:guint; marshaller:TGtkSignalMarshaller;
            return_val:TGtkType; n_args:guint):guint; varargs; cdecl; external gtklib;
+{$ENDIF}
 procedure gtk_signal_emit_stop_by_name(anObject:PGtkObject; name:Pgchar); cdecl; external gtklib;
 procedure gtk_signal_connect_object_while_alive(anObject:PGtkObject; name:Pgchar; func:TGtkSignalFunc; alive_object:PGtkObject); cdecl; external gtklib;
 procedure gtk_signal_connect_while_alive(anObject:PGtkObject; name:Pgchar; func:TGtkSignalFunc; func_data:gpointer; alive_object:PGtkObject); cdecl; external gtklib;
 function gtk_signal_connect_full(anObject:PGtkObject; name:Pgchar; func:TGtkSignalFunc; unsupported:TGtkCallbackMarshal; data:gpointer;
            destroy_func:TGtkDestroyNotify; object_signal:gint; after:gint):gulong; cdecl; external gtklib;
 procedure gtk_signal_emitv(anObject:PGtkObject; signal_id:guint; args:PGtkArg); cdecl; external gtklib;
+{$IFNDEF KYLIX}
+procedure gtk_signal_emit(anObject:PGtkObject; signal_id:guint; args:array of const); cdecl; overload; external gtklib;
+procedure gtk_signal_emit(anObject:PGtkObject; signal_id:guint); cdecl; overload; varargs; external gtklib;
+procedure gtk_signal_emit_by_name(anObject:PGtkObject; name:Pgchar; args:array of const); cdecl; overload; external gtklib;
+procedure gtk_signal_emit_by_name(anObject:PGtkObject; name:Pgchar); cdecl; overload; varargs; external gtklib;
+{$ELSE}
 procedure gtk_signal_emit(anObject:PGtkObject; signal_id:guint); varargs; cdecl; external gtklib;
 procedure gtk_signal_emit_by_name(anObject:PGtkObject; name:Pgchar); varargs; cdecl; external gtklib;
+{$ENDIF}
 procedure gtk_signal_emitv_by_name(anObject:PGtkObject; name:Pgchar; args:PGtkArg); cdecl; external gtklib;
 procedure gtk_signal_compat_matched(anObject:PGtkObject; func:TGtkSignalFunc; data:gpointer; match:TGSignalMatchType; action:guint); cdecl; external gtklib;
 {$endif}

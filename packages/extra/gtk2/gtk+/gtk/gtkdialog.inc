@@ -93,10 +93,20 @@ function GTK_DIALOG_GET_CLASS(obj: pointer) : PGtkDialogClass;
 
 function gtk_dialog_get_type:TGtkType; cdecl; external gtklib;
 function gtk_dialog_new:PGtkWidget; cdecl; external gtklib;
+{$IFNDEF KYLIX}
+function gtk_dialog_new_with_buttons(title:Pgchar; parent:PGtkWindow; flags:TGtkDialogFlags; first_button_text:Pgchar; args:array of const):PGtkWidget; cdecl; overload; external gtklib;
+function gtk_dialog_new_with_buttons(title:Pgchar; parent:PGtkWindow; flags:TGtkDialogFlags; first_button_text:Pgchar):PGtkWidget; cdecl; overload; varargs; external gtklib;
+{$ELSE}
 function gtk_dialog_new_with_buttons(title:Pgchar; parent:PGtkWindow; flags:TGtkDialogFlags; first_button_text:Pgchar):PGtkWidget; varargs; cdecl; external gtklib;
+{$ENDIF}
 procedure gtk_dialog_add_action_widget(dialog:PGtkDialog; child:PGtkWidget; response_id:gint); cdecl; external gtklib;
 function gtk_dialog_add_button(dialog:PGtkDialog; button_text:Pgchar; response_id:gint):PGtkWidget; cdecl; external gtklib;
+{$IFNDEF KYLIX}
+procedure gtk_dialog_add_buttons(dialog:PGtkDialog; first_button_text:Pgchar; args:array of const); overload; cdecl; external gtklib;
+procedure gtk_dialog_add_buttons(dialog:PGtkDialog; first_button_text:Pgchar); cdecl; overload; varargs; external gtklib;
+{$ELSE}
 procedure gtk_dialog_add_buttons(dialog:PGtkDialog; first_button_text:Pgchar); varargs; cdecl; external gtklib;
+{$ENDIF}
 procedure gtk_dialog_set_response_sensitive(dialog:PGtkDialog; response_id:gint; setting:gboolean); cdecl; external gtklib;
 procedure gtk_dialog_set_default_response(dialog:PGtkDialog; response_id:gint); cdecl; external gtklib;
 procedure gtk_dialog_set_has_separator(dialog:PGtkDialog; setting:gboolean); cdecl; external gtklib;
