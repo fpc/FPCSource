@@ -44,6 +44,7 @@ interface
 {$i commdlg.inc}
 {$i ceshell.inc}
 {$i oleaut32.inc}
+{$i iphlpapi.inc}
 {$i cemiss.inc}
 
 {$i redef.inc}
