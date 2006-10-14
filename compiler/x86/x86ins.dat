@@ -647,7 +647,7 @@ mem                   \300\323\2\x9B\xD9\207          8086,FPU,SW
 
 [FSTENV,fstenv]
 (Ch_Wop1, Ch_None, Ch_None)
-mem                   \323\300\2\x9B\xD9\206          8086,FPU
+mem                   \300\323\2\x9B\xD9\206          8086,FPU
 
 [FSTP,fstpF]
 (Ch_Wop1, Ch_FPU, Ch_None)
