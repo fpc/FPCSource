@@ -38,7 +38,29 @@
 {$goto on}
 
 type
-    TabCoef = array[0..6] of Real;
+  TabCoef = array[0..6] of Real;
+{ also necessary for Int() on systems with 64bit floats (JM) }
+{$ifndef FPC_SYSTEM_HAS_float64}
+{$ifdef ENDIAN_LITTLE}
+  float64 = packed record
+    low: longint;
+    high: longint;
+  end;
+{$else}
+  float64 = packed record
+    high: longint;
+    low: longint;
+  end;
+{$endif}
+{$endif FPC_SYSTEM_HAS_float64}
+
+{$ifndef FPC_SYSTEM_HAS_TRUNC}
+{$ifndef FPC_SYSTEM_HAS_float32}
+  float32 = longint;
+{$endif FPC_SYSTEM_HAS_float32}
+{$ifndef FPC_SYSTEM_HAS_flag}
+  flag = byte;
+{$endif FPC_SYSTEM_HAS_float32}
 
 
 const
@@ -76,54 +98,44 @@ const sincof : TabCoef = (
                 4.16666666666665929218E-2, 0);
 
 
-
-{ also necessary for Int() on systems with 64bit floats (JM) }
-type
-{$ifdef ENDIAN_LITTLE}
-  float64 = packed record
-    low: longint;
-    high: longint;
-  end;
-{$else}
-  float64 = packed record
-    high: longint;
-    low: longint;
-  end;
-{$endif}
-
-{$ifndef FPC_SYSTEM_HAS_TRUNC}
-type
-  float32 = longint;
-  flag = byte;
-
+{$ifndef FPC_SYSTEM_HAS_extractFloat64Frac0}
   Function extractFloat64Frac0(const a: float64): longint;
     Begin
       extractFloat64Frac0 := a.high and $000FFFFF;
     End;
+{$endif FPC_SYSTEM_HAS_extractFloat64Frac0}
 
 
+{$ifndef FPC_SYSTEM_HAS_extractFloat64Frac1}
   Function extractFloat64Frac1(const a: float64): longint;
     Begin
       extractFloat64Frac1 := a.low;
     End;
+{$endif FPC_SYSTEM_HAS_extractFloat64Frac1}
 
 
+{$ifndef FPC_SYSTEM_HAS_extractFloat64Exp}
   Function extractFloat64Exp(const a: float64): smallint;
     Begin
        extractFloat64Exp:= ( a.high shr 20 ) AND $7FF;
     End;
+{$endif FPC_SYSTEM_HAS_extractFloat64Exp}
 
 
+{$ifndef FPC_SYSTEM_HAS_extractFloat64Frac}
   Function extractFloat64Frac(const a: float64): int64;
     Begin
       extractFloat64Frac:=int64(a) and $000FFFFFFFFFFFFF;
     End;
+{$endif FPC_SYSTEM_HAS_extractFloat64Frac}
 
 
+{$ifndef FPC_SYSTEM_HAS_extractFloat64Sign}
   Function extractFloat64Sign(const a: float64) : flag;
     Begin
        extractFloat64Sign := a.high shr 31;
     End;
+{$endif FPC_SYSTEM_HAS_extractFloat64Sign}
 
 
   Procedure shortShift64Left(a0:longint; a1:longint; count:smallint; VAR z0Ptr:longint; VAR z1Ptr:longint );
@@ -216,22 +228,28 @@ type
        result:=z;
      end;
 
+{$ifndef FPC_SYSTEM_HAS_ExtractFloat32Frac}
   Function ExtractFloat32Frac(a : Float32) : longint;
     Begin
        ExtractFloat32Frac := A AND $007FFFFF;
     End;
+{$endif FPC_SYSTEM_HAS_ExtractFloat32Frac}
 
 
+{$ifndef FPC_SYSTEM_HAS_extractFloat32Exp}
   Function extractFloat32Exp( a: float32 ): smallint;
     Begin
       extractFloat32Exp := (a shr 23) AND $FF;
     End;
+{$endif FPC_SYSTEM_HAS_extractFloat32Exp}
 
 
+{$ifndef FPC_SYSTEM_HAS_extractFloat32Sign}
   Function extractFloat32Sign( a: float32 ): Flag;
     Begin
       extractFloat32Sign := a shr 31;
     End;
+{$endif FPC_SYSTEM_HAS_extractFloat32Sign}
 
 
   Function float32_to_int32_round_to_zero( a: Float32 ): longint;
