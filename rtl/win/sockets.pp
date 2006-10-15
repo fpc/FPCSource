@@ -287,8 +287,6 @@ begin
   SocketPair:=fpsocketpair(domain,sockettype,protocol,@pair[1]);
 end;
 
-{$ifdef unix}
-{ mimic the linux fpWrite/fpRead calls for the file/text socket wrapper }
 function fpWrite(handle : longint;Const bufptr;size : dword) : dword;
 begin
   fpWrite := dword(Winsock2.send(handle, bufptr, size, 0));
@@ -327,47 +325,6 @@ function fpRead(handle : longint;var bufptr;size : dword) : dword;
      else
        SocketError:=0;
   end;
-{$else}
-{ mimic the linux fdWrite/fdRead calls for the file/text socket wrapper }
-function fdWrite(handle : longint;Const bufptr;size : dword) : dword;
-begin
-  fdWrite := dword(Winsock2.send(handle, bufptr, size, 0));
-  if fdWrite = dword(SOCKET_ERROR) then
-  begin
-    SocketError := WSAGetLastError;
-    fdWrite := 0;
-  end
-  else
-    SocketError := 0;
-end;
-
-function fdRead(handle : longint;var bufptr;size : dword) : dword;
-  var
-     d : dword;
-
-  begin
-     if ioctlsocket(handle,FIONREAD,@d) = SOCKET_ERROR then
-       begin
-         SocketError:=WSAGetLastError;
-         fdRead:=0;
-         exit;
-       end;
-     if d>0 then
-       begin
-         if size>d then
-           size:=d;
-         fdRead := dword(Winsock2.recv(handle, bufptr, size, 0));
-         if fdRead = dword(SOCKET_ERROR) then
-         begin
-           SocketError:= WSAGetLastError;
-           fdRead := 0;
-         end else
-           SocketError:=0;
-       end
-     else
-       SocketError:=0;
-  end;
-{$endif}
 
 {$i sockets.inc}
 
