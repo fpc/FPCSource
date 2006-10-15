@@ -2120,7 +2120,10 @@ implementation
            _RETURN :
               begin
                 consume(_RETURN);
-                p1 := cexitnode.create(comp_expr(true));
+                if not(token in [_SEMICOLON,_ELSE,_END]) then
+                  p1 := cexitnode.create(comp_expr(true))
+                else
+                  p1 := cexitnode.create(nil);
               end;
            _INHERITED :
              begin
