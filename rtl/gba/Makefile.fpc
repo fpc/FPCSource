@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-loaders=
+loaders=prt0
 units=$(SYSTEMUNIT) objpas macpas strings \
 #      dos \
       sysutils \
@@ -75,8 +75,9 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Loaders
 #
 
-%$(OEXT) : %.as
-        $(AS) -o $(UNITTARGETDIRPREFIX)$*$(OEXT) $*.as
+prt0$(OEXT) : prt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) prt0.as
+
 
 #
 # Base Units (System, strings, os-dependent-base-unit)
