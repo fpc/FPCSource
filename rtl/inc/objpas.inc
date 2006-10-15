@@ -679,7 +679,7 @@
          if getinterface(iid,obj) then
            result:=0
          else
-           result:=longint($80004002);
+           result:=longint(E_NOINTERFACE);
       end;
 
     function TInterfacedObject._AddRef : longint;stdcall;
