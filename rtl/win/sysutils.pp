@@ -49,20 +49,63 @@ Var
   Win32CSDVersion    : ShortString;   // CSD record is 128 bytes only?
 
 { Compatibility with Delphi }
-function Win32Check(res:boolean):boolean;
+function Win32Check(res:boolean):boolean;inline;
+function WinCheck(res:boolean):boolean;
 
+function GetFileVersion(const AFileName: string): Cardinal;
 
 implementation
 
   uses
     sysconst;
 
-function Win32Check(res:boolean):boolean;
-begin
-  if not res then
-    RaiseLastOSError;
-  result:=res;
-end;
+function WinCheck(res:boolean):boolean;
+  begin
+    if not res then
+      RaiseLastOSError;
+    result:=res;
+  end;
+
+
+function Win32Check(res:boolean):boolean;inline;
+  begin
+    result:=WinCheck(res);
+  end;
+
+
+function GetFileVersion(const AFileName:string):Cardinal;
+  var
+    { usefull only as long as we don't need to touch different stack pages }
+    buf : array[0..3071] of byte;
+    bufp : pointer;
+    fn : string;
+    valsize,
+    size : DWORD;
+    h : DWORD;
+    valrec : PVSFixedFileInfo;
+  begin
+    result:=$fffffff;
+    fn:=AFileName;
+    UniqueString(fn);
+    size:=GetFileVersionInfoSize(pchar(fn),@h);
+    if size>sizeof(buf) then
+      begin
+        getmem(bufp,size);
+        try
+          if GetFileVersionInfo(pchar(fn),h,size,bufp) then
+            if VerQueryValue(bufp,'\',valrec,valsize) then
+              result:=valrec^.dwFileVersionMS;
+        finally
+          freemem(bufp);
+        end;
+      end
+    else
+      begin
+        if GetFileVersionInfo(pchar(fn),h,size,@buf) then
+          if VerQueryValue(@buf,'\',valrec,valsize) then
+            result:=valrec^.dwFileVersionMS;
+      end;
+  end;
 
 
 {$define HASCREATEGUID}
@@ -418,8 +461,6 @@ var
   secs,bytes,
   free,total : longint;
   qwtotal,qwfree,qwcaller : int64;
-
-
 begin
   if drive=0 then
    begin
