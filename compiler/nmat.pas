@@ -90,7 +90,8 @@ implementation
       systems,
       verbose,globals,cutils,
       globtype,
-      symconst,symtype,symdef,defutil,
+      symconst,symtype,symdef,symtable,
+      defutil,
       htypechk,pass_1,
       cgbase,
       ncon,ncnv,ncal,nadd;
@@ -663,6 +664,7 @@ implementation
     function tunaryminusnode.pass_1 : tnode;
       var
         procname: string[31];
+        floattype : ttype;
       begin
         result:=nil;
         firstpass(left);
@@ -675,17 +677,24 @@ implementation
               begin
                 case tfloatdef(resulttype.def).typ of
                   s32real:
-                    procname:='float32_sub';
+                    begin
+                      procname:='float32_sub';
+                      floattype:=search_system_type('FLOAT32REC').restype;
+                    end;
                   s64real:
-                    procname:='float64_sub';
+                    begin
+                      procname:='float64_sub';
+                      floattype:=search_system_type('FLOAT64').restype;
+                    end;
                   {!!! not yet implemented
                   s128real:
                   }
                   else
                     internalerror(2005082801);
                 end;
-                result:=ccallnode.createintern(procname,ccallparanode.create(crealconstnode.create(0,resulttype),
-                  ccallparanode.create(left,nil)));
+                result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
+                  ctypeconvnode.create_internal(crealconstnode.create(0,resulttype),floattype),
+                  ccallparanode.create(ctypeconvnode.create_internal(left,floattype),nil))),resulttype);
               end
             else
               begin

@@ -2012,8 +2012,39 @@ implementation
               end
             else
               begin
-                {!! FIXME }
-                internalerror(2005082701);
+                case tfloatdef(left.resulttype.def).typ of
+                  s32real:
+                    case tfloatdef(resulttype.def).typ of
+                      s64real:
+                        result:=ctypeconvnode.create_explicit(ccallnode.createintern('float32_to_float64',ccallparanode.create(
+                          ctypeconvnode.create_internal(left,search_system_type('FLOAT32REC').restype),nil)),resulttype);
+                      s32real:
+                        begin
+                          result:=left;
+                          left:=nil;
+                        end;
+                      else
+                        internalerror(200610151);
+                    end;
+                  s64real:
+                    case tfloatdef(resulttype.def).typ of
+                      s32real:
+                        result:=ctypeconvnode.create_explicit(ccallnode.createintern('float64_to_float32',ccallparanode.create(
+                          ctypeconvnode.create_internal(left,search_system_type('FLOAT64').restype),nil)),resulttype);
+                      s64real:
+                        begin
+                          result:=left;
+                          left:=nil;
+                        end;
+                      else
+                        internalerror(200610152);
+                    end;
+                  else
+                    internalerror(200610153);
+                end;
+                left:=nil;
+                firstpass(result);
+                exit;
               end;
           end
         else

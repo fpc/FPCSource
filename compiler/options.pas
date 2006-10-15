@@ -2248,8 +2248,8 @@ begin
      (cs_profile in initmoduleswitches) then
     exclude(initglobalswitches,cs_link_strip);
 
-  { force fpu emulation on arm/wince }
-  if target_info.system=system_arm_wince then
+  { force fpu emulation on arm/wince and arm/gba }
+  if target_info.system in [system_arm_wince,system_arm_gba] then
     include(initmoduleswitches,cs_fp_emulation);
 
   { Section smartlinking conflicts with import sections on Windows }

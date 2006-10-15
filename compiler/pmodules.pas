@@ -494,9 +494,11 @@ implementation
            if (cs_gdb_valgrind in aktglobalswitches) then
              AddUnit('CMem');
 {$ifdef cpufpemu}
-           { Floating point emulation unit? }
+           { Floating point emulation unit?
+             softfpu must be in the system unit anyways (FK)
            if (cs_fp_emulation in aktmoduleswitches) and not(target_info.system in system_wince) then
              AddUnit('SoftFpu');
+           }
 {$endif cpufpemu}
          end;
         { Objpas unit? }

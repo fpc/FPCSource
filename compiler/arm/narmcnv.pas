@@ -110,7 +110,39 @@ implementation
               end
             else
               begin
-                internalerror(2005082803);
+                { converting a 64bit integer to a float requires a helper }
+                if is_64bitint(left.resulttype.def) or
+                  is_currency(left.resulttype.def) then
+                  begin
+                    { hack to avoid double division by 10000, as it's
+                      already done by resulttypepass.resulttype_int_to_real }
+                    if is_currency(left.resulttype.def) then
+                      left.resulttype := s64inttype;
+                    if is_signed(left.resulttype.def) then
+                      fname:='int64_to_'
+                    else
+                      { we can't do better currently }
+                      fname:='int64_to_';
+                  end
+                else
+                  { other integers are supposed to be 32 bit }
+                  begin
+                    if is_signed(left.resulttype.def) then
+                      fname:='int32_to_'
+                    else
+                      { we can't do better currently }
+                      fname:='int32_to_';
+                    firstpass(left);
+                  end;
+                if tfloatdef(resulttype.def).typ=s64real then
+                  fname:=fname+'float64'
+                else
+                  fname:=fname+'float32';
+                result:=ctypeconvnode.create_internal(ccallnode.createintern(fname,ccallparanode.create(
+                  left,nil)),resulttype);
+                left:=nil;
+                firstpass(result);
+                exit;
               end;
           end
         else

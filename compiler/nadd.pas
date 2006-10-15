@@ -1187,7 +1187,7 @@ implementation
                           if is_big_untyped_addrnode(right) then
                             CGMessage1(type_w_untyped_arithmetic_unportable,node2opstr(nodetype));
                           inserttypeconv(right,left.resulttype)
-                        end 
+                        end
 			else if is_voidpointer(left.resulttype.def) then
                           inserttypeconv(left,right.resulttype)
                         else if not(equal_defs(ld,rd)) then
@@ -2101,6 +2101,7 @@ implementation
         procname: string[31];
         { do we need to reverse the result ? }
         notnode : boolean;
+        floattype : ttype;
       begin
         result := nil;
         notnode := false;
@@ -2114,9 +2115,15 @@ implementation
           begin
             case tfloatdef(left.resulttype.def).typ of
               s32real:
-                procname:='float32';
+                begin
+                  floattype:=search_system_type('FLOAT32REC').restype;
+                  procname:='float32';
+                end;
               s64real:
-                procname:='float64';
+                begin
+                  floattype:=search_system_type('FLOAT64').restype;
+                  procname:='float64';
+                end;
               {!!! not yet implemented
               s128real:
               }
@@ -2197,8 +2204,19 @@ implementation
             end;
 
           end;
-        result:=ccallnode.createintern(procname,ccallparanode.create(right,
-           ccallparanode.create(left,nil)));
+        { cast softfpu result? }
+        if not(target_info.system in system_wince) then
+          begin
+            if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
+              resulttype:=booltype;
+            result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
+                ctypeconvnode.create_internal(right,floattype),
+                ccallparanode.create(
+                  ctypeconvnode.create_internal(left,floattype),nil))),resulttype);
+          end
+        else
+          result:=ccallnode.createintern(procname,ccallparanode.create(right,
+             ccallparanode.create(left,nil)));
         left:=nil;
         right:=nil;
 
