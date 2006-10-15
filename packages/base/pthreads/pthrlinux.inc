@@ -138,10 +138,12 @@ type
   end;
   TPthreadCleanupBuffer = _pthread_cleanup_buffer;
 
+{ Alread in ptypes, bug 7454
   pthread_cond_t = record
     __c_lock: _pthread_fastlock;
     __c_waiting: _pthread_descr;
   end;
+}
   PPthread_cond_t = ^pthread_cond_t;
   TCondVar = pthread_cond_t;
   PCondVar = ^TCondVar;
