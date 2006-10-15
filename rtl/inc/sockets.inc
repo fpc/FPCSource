@@ -34,8 +34,8 @@ end;
 Procedure IOSock(var F:text);
 begin
   case textrec(f).mode of
-   fmoutput : {$ifdef unix}fpWrite{$else}fdwrite{$endif}(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufpos);
-    fminput : textrec(f).BufEnd:={$ifdef Unix}fpRead{$else}fdread{$endif}(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufsize);
+   fmoutput : fpWrite(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufpos);
+    fminput : textrec(f).BufEnd:=fpRead(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufsize);
   end;
   textrec(f).bufpos:=0;
 end;
