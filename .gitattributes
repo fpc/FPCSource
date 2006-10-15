@@ -4840,6 +4840,7 @@ rtl/objpas/objpas.pp svneol=native#text/plain
 rtl/objpas/rtlconst.inc svneol=native#text/plain
 rtl/objpas/rtlconst.pp svneol=native#text/plain
 rtl/objpas/rtlconsts.pp svneol=native#text/plain
+rtl/objpas/stdconvs.pp svneol=native#text/plain
 rtl/objpas/strutils.pp svneol=native#text/plain
 rtl/objpas/sysconst.pp svneol=native#text/plain
 rtl/objpas/sysutils/dati.inc svneol=native#text/plain
