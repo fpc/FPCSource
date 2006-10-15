@@ -5108,6 +5108,17 @@ Const
      TMPF_DEVICE = $8;
      WM_CTLCOLOR = 25;
 
+     LWA_COLORKEY    =        $00000001;
+     LWA_ALPHA       =        $00000002;
+     ULW_COLORKEY    =        $00000001;
+     ULW_ALPHA       =        $00000002;
+     ULW_OPAQUE      =        $00000004;
+     WS_EX_LAYERED   = 	      $00080000;
+     WS_EX_NOINHERITLAYOUT=   $00100000;
+     WS_EX_LAYOUTRTL      =   $00400000;
+     WS_EX_COMPOSITED     =   $02000000;
+     WS_EX_NOACTIVATE     =   $08000000;
+
   { --------------------- old stuff, need to organize! ---------------  }
   { BEGINNING of windowsx.h stuff from old headers:  }
   {  Not convertable by H2PAS
