@@ -67,11 +67,10 @@ type
     ptimespec= UnixType.ptimespec;
     Ttimespec= UnixType.Ttimespec;
     
-{   use pthread package instead 
     pthread_mutex_t   = UnixType.pthread_mutex_t;
     pthread_cond_t    = UnixType.pthread_cond_t;
     pthread_t         = UnixType.pthread_t;
-}
+
     tstatfs  = UnixType.TStatFs;
 
 CONST
