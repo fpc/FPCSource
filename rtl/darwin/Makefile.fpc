@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings sysctl baseunix unixut
       sysutils typinfo classes math varutils \
       charset ucomplex getopts heaptrc lineinfo \
       errors terminfo termio video crt mouse keyboard console \
-      variants types sysctl dateutils \
+      variants types sysctl dateutils convutils stdconvs \
       sysconst cthreads strutils rtlconsts cwstring fpmkunit
 
 rsts=math varutils typinfo classes variants dateutils sysconst rtlconsts fpmkunit
@@ -208,6 +208,14 @@ strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 
 variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Fi$(INC) $(INC)/variants.pp
+
+convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/convutils.pp
+
+stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/stdconvs.pp
 
 #
 # Mac Pascal Model

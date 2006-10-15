@@ -12,8 +12,8 @@ units=system ctypes objpas macpas strings \
       windows winsock winsock2 initc cmem dynlibs signals \
       dos crt objects messages \
       rtlconsts sysconst sysutils math types \
-      strutils convutils dateutils varutils variants typinfo classes \
-      cpu mmx charset ucomplex getopts \
+      strutils dateutils varutils variants typinfo classes \
+      convutils stdconvs cpu mmx charset ucomplex getopts \
       winevent sockets printer \
       video mouse keyboard \
       winsysut sharemem fpmkunit
@@ -190,6 +190,10 @@ dateutils$(PPUEXT) : $(OBJPASDIR)/dateutils.pp
 convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutils.pp
 
+stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) system$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/stdconvs.pp
+
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/strutils.pp
 
@@ -244,3 +248,4 @@ keyboard$(PPUEXT) : $(WINDIR)/keyboard.pp windows$(PPUEXT) dos$(PPUEXT) winevent
 sharemem$(PPUEXT) : $(WINDIR)/sharemem.pp system$(PPUEXT)
 
 fpcmemdll.dll : $(WINDIR)/fpcmemdll.pp system$(PPUEXT)
+

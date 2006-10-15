@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings syscall sysctl  baseun
       $(CPU_UNITS) charset ucomplex crt getopts heaptrc lineinfo \
       errors sockets ipc terminfo bsd freebsd \
       video mouse keyboard console serial dateutils \
-      sysconst cthreads strutils convutils dos objects cwstring fpmkunit
+      sysconst cthreads strutils convutils stdconvs dos objects cwstring fpmkunit
 
 rsts=math varutils typinfo classes variants dateutils sysconst fpmkunit
 
@@ -255,6 +255,10 @@ convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PP
                     sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/convutils.pp
 
+stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/stdconvs.pp
+
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
@@ -263,3 +267,4 @@ variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varut
         $(COMPILER) -Fi$(INC) $(INC)/variants.pp
 
 cwstring$(PPUEXT) : $(UNIXINC)/cwstring.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT)
+
