@@ -27,8 +27,10 @@ Type
     ppthread_mutexattr_t = ^pthread_mutexattr_t;
     ppthread_cond_t      = ^pthread_cond_t;
     ppthread_condattr_t  = ^pthread_condattr_t;
-    
-    pthread_t = culong;
+
+    {already in unixtype
+    pthread_t = culong
+    } 	    
   
     sched_param = record
       __sched_priority: cint;
@@ -38,7 +40,7 @@ Type
       __pthread_attrp : pointer;
     end;
 
-  
+{ already in unixtype  
     pthread_mutex_t = record
       __pthread_mutex_flags : record
            __pthread_mutex_flag1 : word;
@@ -47,6 +49,7 @@ Type
            __pthread_mutex_type : word;
            __pthread_mutex_magic : word;
         end;
+}
       __pthread_mutex_lock : record
           case longint of
              0 : ( __pthread_mutex_lock64 : record
@@ -67,6 +70,7 @@ Type
       __pthread_mutexattrp : pointer;
     end;
   
+{ already in unix type
     pthread_cond_t = record
       __pthread_cond_flags : record
         __pthread_cond_flag : array[0..3] of byte;
@@ -75,6 +79,7 @@ Type
       end;
       __pthread_cond_data : upad64_t;
     end;
+}
   
     pthread_condattr_t = record
       __pthread_condattrp : pointer;
