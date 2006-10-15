@@ -24,10 +24,15 @@ interface
 
 {$I systemh.inc}
 
+{$define fpc_softfpu_interface}
+{$i softfpu.pp}
+{$undef fpc_softfpu_interface}
+
+
 const
  LineEnding = #10;
  LFNSupport = true;
- CtrlZMarksEOF: boolean = false; 
+ CtrlZMarksEOF: boolean = false;
  DirectorySeparator = '/';
  DriveSeparator = ':';
  PathSeparator = ';';
@@ -38,7 +43,7 @@ const
 
  sLineBreak : string[1] = LineEnding;
  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
-  
+
 const
   UnusedHandle    = $ffff;
   StdInputHandle  = 0;
@@ -54,6 +59,23 @@ var
 
 
 implementation
+
+{$define fpc_softfpu_implementation}
+{$i softfpu.pp}
+{$undef fpc_softfpu_implementation}
+
+{ we get these functions and types from the softfpu code }
+{$define FPC_SYSTEM_HAS_float64}
+{$define FPC_SYSTEM_HAS_float32}
+{$define FPC_SYSTEM_HAS_flag}
+{$define FPC_SYSTEM_HAS_extractFloat64Frac0}
+{$define FPC_SYSTEM_HAS_extractFloat64Frac1}
+{$define FPC_SYSTEM_HAS_extractFloat64Exp}
+{$define FPC_SYSTEM_HAS_extractFloat64Frac}
+{$define FPC_SYSTEM_HAS_extractFloat64Sign}
+{$define FPC_SYSTEM_HAS_ExtractFloat32Frac}
+{$define FPC_SYSTEM_HAS_extractFloat32Exp}
+{$define FPC_SYSTEM_HAS_extractFloat32Sign}
 
 {$I system.inc}
 
