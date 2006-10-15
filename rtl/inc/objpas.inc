@@ -659,7 +659,7 @@
             if (i>0) then
               getinterfaceentrybystr:=Res;
           end;
-          if (getinterfaceentrybystr=nil)and not(classparent=nil) then
+          if (getinterfaceentrybystr=nil) and not(classparent=nil) then
             getinterfaceentrybystr:=classparent.getinterfaceentrybystr(iidstr)
         end;
 
