@@ -30,6 +30,8 @@ type
   TSQLConnection = class;
   TSQLTransaction = class;
   TSQLQuery = class;
+  TSQLScript = class;
+
 
   TStatementType = (stNone, stSelect, stInsert, stUpdate, stDelete,
     stDDL, stGetSegment, stPutSegment, stExecProcedure,
@@ -283,6 +285,28 @@ type
     property ParseSQL : Boolean read FParseSQL write SetParseSQL;
     Property DataSource : TDatasource Read GetDataSource Write SetDatasource;
 //    property SchemaInfo : TSchemaInfo read FSchemaInfo default stNoSchema;
+  end;
+
+{ TSQLScript }
+
+  TSQLScript = class (Tcomponent)
+  private
+    FScript  : TStrings;
+    FQuery   : TSQLQuery;
+    FDatabase : TDatabase;
+    FTransaction : TDBTransaction;
+  protected
+    procedure SetScript(const AValue: TStrings);
+    Procedure SetDatabase (Value : TDatabase); virtual;
+    Procedure SetTransaction(Value : TDBTransaction); virtual;
+    Procedure CheckDatabase;
+  public
+    constructor Create(AOwner : TComponent); override;
+    destructor Destroy; override;
+    procedure ExecuteScript;
+    Property Script : TStrings Read FScript Write SetScript;
+    Property DataBase : TDatabase Read FDatabase Write SetDatabase;
+    Property Transaction : TDBTransaction Read FTransaction Write SetTransaction;
   end;
 
 implementation
@@ -1281,6 +1305,75 @@ begin
   Inherited;
   If (Operation=opRemove) and (AComponent=DataSource) then
     DataSource:=Nil;
+end;
+
+{ TSQLScript }
+
+procedure TSQLScript.SetScript(const AValue: TStrings);
+begin
+  FScript.assign(AValue);
+end;
+
+procedure TSQLScript.SetDatabase(Value: TDatabase);
+begin
+  FDatabase := Value;
+end;
+
+procedure TSQLScript.SetTransaction(Value: TDBTransaction);
+begin
+  FTransaction := Value;
+end;
+
+procedure TSQLScript.CheckDatabase;
+begin
+  If (FDatabase=Nil) then
+    DatabaseError(SErrNoDatabaseAvailable,Self)
+end;
+
+constructor TSQLScript.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FScript := TStringList.Create;
+  FQuery := TSQLQuery.Create(nil);
+end;
+
+destructor TSQLScript.Destroy;
+begin
+  FScript.Free;
+  FQuery.Free;
+  inherited Destroy;
+end;
+
+procedure TSQLScript.ExecuteScript;
+
+var BufStr         : String;
+    pBufStatStart,
+    pBufPos        : PChar;
+    Statement      : String;
+
+begin
+  FQuery.DataBase := FDatabase;
+  FQuery.Transaction := FTransaction;
+
+  BufStr := FScript.Text;
+  pBufPos := @BufStr[1];
+
+  repeat
+
+  pBufStatStart := pBufPos;
+  repeat
+  inc(pBufPos);
+  until (pBufPos^ = ';') or (pBufPos^ = #0);
+  SetLength(statement,pbufpos-pBufStatStart);
+  move(pBufStatStart^,Statement[1],pbufpos-pBufStatStart);
+  if trim(statement) <> '' then
+    begin
+    fquery.SQL.Text := Statement;
+    fquery.ExecSQL;
+    inc(pBufPos);
+    end;
+
+  until pBufPos^ = #0;
 end;
 
 { TSQLCursor }
