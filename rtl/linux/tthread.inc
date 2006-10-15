@@ -142,7 +142,7 @@ begin
   // via BeginThread and creates the first TThread Object in there!
   InitThreads;
   inherited Create;
-  FSem := CurrentTM.SemaphoreInit;
+  FSem := CurrentTM.SemaphoreInit();
   FSuspended := CreateSuspended;
   FSuspendedExternal := false;
   FInitialSuspended := CreateSuspended;
