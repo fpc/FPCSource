@@ -29,12 +29,16 @@ program h2pas;
      YYSTYPE = presobject;
 
    const
-     SHORT_STR  = 'smallint';
-     USHORT_STR = 'word';
+     SHORT_STR = 'shortint';
+     USHORT_STR = 'byte';
+     //C++ SHORT types usually map to the small types
+     SMALL_STR  = 'smallint';
+     USMALL_STR = 'word';
      INT_STR    = 'longint';
      UINT_STR   = 'dword';
      CHAR_STR   = 'char';
-     UCHAR_STR  = 'byte'; { should we use byte or char for 'unsigned char' ?? }
+     UCHAR_STR  = USHORT_STR; { should we use byte or char for 'unsigned char' ?? }
+     
      INT64_STR  = 'int64';
      QWORD_STR  = 'qword';
      REAL_STR   = 'double';
@@ -1310,6 +1314,7 @@ program h2pas;
 %left COMMA
 %left STICK
 %token SIGNED
+%token INT8 INT16 INT32 INT64
 %%
 
 file : declaration_list
@@ -2278,6 +2283,14 @@ special_type_name :
               s:=cslong_STR              
             else if s=clonglong_STR then
               s:=cslonglong_STR
+            else if s=cint8_STR then
+              s:=cint8_STR
+            else if s=cint16_STR then
+              s:=cint16_STR 
+            else if s=cint32_STR then
+              s:=cint32_STR 
+            else if s=cint64_STR then
+              s:=cint64_STR                                                     
             else
              s:='';
           end
@@ -2286,7 +2299,9 @@ special_type_name :
             if s=UINT_STR then
               s:=INT_STR
             else if s=USHORT_STR then
-              s:=SHORT_STR
+              s:=SHORT_STR               
+            else if s=USMALL_STR then
+              s:=SMALL_STR
             else if s=UCHAR_STR then
               s:=CHAR_STR
             else if s=QWORD_STR then
@@ -2317,6 +2332,14 @@ special_type_name :
               s:=culong_STR
             else if s=clonglong_STR then
               s:=culonglong_STR
+            else if s=cint8_STR then
+              s:=cuint8_STR
+            else if s=cint16_STR then
+              s:=cuint16_STR 
+            else if s=cint32_STR then
+              s:=cuint32_STR 
+            else if s=cint64_STR then
+              s:=cuint64_STR                
             else
               s:='';          
           end
@@ -2325,7 +2348,9 @@ special_type_name :
             if s=INT_STR then
               s:=UINT_STR
             else if s=SHORT_STR then
-              s:=USHORT_STR
+              s:=USHORT_STR          
+            else if s=SMALL_STR then
+              s:=USMALL_STR          
             else if s=CHAR_STR then
               s:=UCHAR_STR
             else if s=INT64_STR then
@@ -2377,15 +2402,43 @@ special_type_name :
      if UseCTypesUnit then
        $$:=new(presobject,init_id(cshort_STR)) 
      else      
-       $$:=new(presobject,init_intid(SHORT_STR));
+       $$:=new(presobject,init_intid(SMALL_STR));
      } |
      SHORT INT
      {
      if UseCTypesUnit then
        $$:=new(presobject,init_id(csint_STR)) 
      else      
-       $$:=new(presobject,init_intid(SHORT_STR));
+       $$:=new(presobject,init_intid(SMALL_STR));
      } |
+     INT8
+     {
+     if UseCTypesUnit then
+       $$:=new(presobject,init_id(cint8_STR)) 
+     else      
+       $$:=new(presobject,init_intid(SHORT_STR));     
+     } |
+     INT16
+     {    
+     if UseCTypesUnit then
+       $$:=new(presobject,init_id(cint16_STR)) 
+     else      
+       $$:=new(presobject,init_intid(SMALL_STR));     
+     } |
+     INT32   
+     {    
+     if UseCTypesUnit then
+       $$:=new(presobject,init_id(cint32_STR)) 
+     else      
+       $$:=new(presobject,init_intid(INT_STR));     
+     } |
+     INT64
+     {   
+     if UseCTypesUnit then
+       $$:=new(presobject,init_id(cint64_STR)) 
+     else      
+       $$:=new(presobject,init_intid(INT64_STR));         
+     } |   
      REAL
      {
        $$:=new(presobject,init_intid(REAL_STR));

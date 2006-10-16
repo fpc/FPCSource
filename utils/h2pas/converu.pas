@@ -73,7 +73,10 @@ const POINT = 324;
 const DEREF = 325;
 const STICK = 326;
 const SIGNED = 327;
-
+const INT8 = 328;
+const INT16 = 329;
+const INT32 = 330;
+const INT64 = 331;
 
 implementation
 end.

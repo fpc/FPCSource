@@ -791,6 +791,14 @@ D [0-9]
 "long"                  return(LONG);
 "signed"                return(SIGNED);
 "unsigned"              return(UNSIGNED);
+"__int8"                return(INT8);
+"__int16"               return(INT16);
+"__int32"               return(INT32);
+"__int64"               return(INT64);
+"int8"                  return(INT8);
+"int16"                 return(INT16);
+"int32"                 return(INT32);
+"int64"                 return(INT64);
 "float"                 return(REAL);
 "const"                 return(_CONST);
 "CONST"                 return(_CONST);
@@ -855,4 +863,5 @@ begin
 end;
 
 end.
+
 
