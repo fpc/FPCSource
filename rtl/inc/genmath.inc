@@ -54,14 +54,6 @@ type
 {$endif}
 {$endif FPC_SYSTEM_HAS_float64}
 
-{$ifndef FPC_SYSTEM_HAS_TRUNC}
-{$ifndef FPC_SYSTEM_HAS_float32}
-  float32 = longint;
-{$endif FPC_SYSTEM_HAS_float32}
-{$ifndef FPC_SYSTEM_HAS_flag}
-  flag = byte;
-{$endif FPC_SYSTEM_HAS_float32}
-
 
 const
       PIO2   =  1.57079632679489661923;       {  pi/2        }
@@ -96,6 +88,16 @@ const sincof : TabCoef = (
                 2.48015872888517045348E-5,
                -1.38888888888730564116E-3,
                 4.16666666666665929218E-2, 0);
+
+
+{$ifndef FPC_SYSTEM_HAS_TRUNC}
+type
+{$ifndef FPC_SYSTEM_HAS_float32}
+  float32 = longint;
+{$endif FPC_SYSTEM_HAS_float32}
+{$ifndef FPC_SYSTEM_HAS_flag}
+  flag = byte;
+{$endif FPC_SYSTEM_HAS_float32}
 
 
 {$ifndef FPC_SYSTEM_HAS_extractFloat64Frac0}
