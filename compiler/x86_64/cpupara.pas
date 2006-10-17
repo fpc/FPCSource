@@ -96,14 +96,11 @@ unit cpupara;
              end;
            recorddef:
              begin
-               if p.size<=16 then
-                 begin
-                   if (target_info.system=system_x86_64_win64) and
-                      (p.size<=8)  then
-                     loc1:=LOC_REGISTER
-                   else
-                     loc1:=LOC_REFERENCE;
-                 end
+               { win64 abi }
+               if ((target_info.system=system_x86_64_win64) and (p.size<=8)) or
+               { linux abi }
+                 ((target_info.system<>system_x86_64_win64) and (p.size<=16)) then
+                 loc1:=LOC_REGISTER
                else
                  loc1:=LOC_REFERENCE;
              end;
@@ -111,8 +108,10 @@ unit cpupara;
              begin
                if is_object(p) then
                  begin
-                   if (target_info.system=system_x86_64_win64) and
-                      (p.size<=8)  then
+                   { win64 abi }
+                   if ((target_info.system=system_x86_64_win64) and (p.size<=8)) or
+                   { linux abi }
+                     ((target_info.system<>system_x86_64_win64) and (p.size<=16)) then
                      loc1:=LOC_REGISTER
                    else
                      loc1:=LOC_REFERENCE;
@@ -122,15 +121,21 @@ unit cpupara;
              end;
            arraydef:
              begin
-               if (target_info.system=system_x86_64_win64) and
-                  not(is_special_array(p)) and
-                  (p.size<=8)  then
+               if not(is_special_array(p)) and
+                 { win64 abi }
+                 ((target_info.system=system_x86_64_win64) and (p.size<=8)) or
+                 { linux abi }
+                 ((target_info.system<>system_x86_64_win64) and (p.size<=16)) then
                  loc1:=LOC_REGISTER
                else
                  loc1:=LOC_REFERENCE;
              end;
            variantdef:
-             loc1:=LOC_REFERENCE;
+             { linux abi }
+             if target_info.system<>system_x86_64_win64 then
+               loc1:=LOC_REGISTER
+             else
+               loc1:=LOC_REFERENCE;
            stringdef:
              if is_shortstring(p) or is_longstring(p) then
                loc1:=LOC_REFERENCE

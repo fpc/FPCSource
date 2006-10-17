@@ -26,7 +26,7 @@ unit cgcpu;
   interface
 
     uses
-       cgbase,cgobj,cgx86,
+       cgbase,cgutils,cgobj,cgx86,
        aasmbase,aasmtai,aasmdata,aasmcpu,
        cpubase,cpuinfo,cpupara,parabase,
        symdef,
@@ -37,6 +37,8 @@ unit cgcpu;
         procedure init_register_allocators;override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+
+        procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
       end;
 
 
@@ -44,7 +46,7 @@ unit cgcpu;
 
     uses
        globtype,globals,verbose,systems,cutils,
-       symsym,defutil,paramgr,fmodule,cgutils,
+       symsym,defutil,paramgr,fmodule,
        rgobj,tgobj,rgcpu;
 
 
@@ -56,6 +58,35 @@ unit cgcpu;
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBWHOLE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7,
           RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15],first_mm_imreg,[]);
         rgfpu:=Trgx86fpu.create;
+      end;
+
+
+    procedure tcgx86_64.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);
+      var
+        tmpref, ref: treference;
+        location: pcgparalocation;
+        sizeleft: aint;
+      begin
+        location := paraloc.location;
+        tmpref := r;
+        sizeleft := paraloc.intsize;
+        while assigned(location) do
+          begin
+            case location^.loc of
+              LOC_REGISTER,LOC_CREGISTER:
+                a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
+              LOC_REFERENCE:
+                begin
+                  reference_reset_base(ref,location^.reference.index,location^.reference.offset);
+                  g_concatcopy(list,tmpref,ref,sizeleft);
+                end;
+              else
+                internalerror(2002081103);
+            end;
+            inc(tmpref.offset,tcgsize2size[location^.size]);
+            dec(sizeleft,tcgsize2size[location^.size]);
+            location := location^.next;
+          end;
       end;
 
 
