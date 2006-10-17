@@ -282,6 +282,10 @@ interface
           objname,
           objrealname   : pstring;
           objectoptions : tobjectoptions;
+
+          { invariant of this class (conjunction of its invariants),
+          or NIL if there are none }
+          invariant : tnode;
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
           vmt_offset : longint;
@@ -590,9 +594,11 @@ interface
           interfacedef : boolean;
           { true if the procedure has a forward declaration }
           hasforward : boolean;
-          { pointer to the pre-/postcondition nodes }
+          { pointers to precondition/postcondition }
           precondition : tnode;
           postcondition : tnode;
+          { specification variables list }
+          specvars : tlist;
           { import info }
           import_dll,
           import_name : pstring;
@@ -3890,6 +3896,7 @@ implementation
          localst := nil;
          precondition:=nil;
          postcondition:=nil;
+         specvars:=tlist.create;
          defref:=nil;
          lastwritten:=nil;
          refcount:=0;
@@ -5098,6 +5105,7 @@ implementation
         objecttype:=ot;
         deftype:=objectdef;
         objectoptions:=[];
+        invariant:=nil;
         childof:=nil;
         symtable:=tobjectsymtable.create(n,aktpackrecords);
         { create space for vmt !! }
@@ -5195,6 +5203,7 @@ implementation
            implementedinterfaces.free;
          if assigned(iidguid) then
            dispose(iidguid);
+         invariant.free;
          inherited destroy;
       end;
 

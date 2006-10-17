@@ -366,7 +366,7 @@ type
              typesym,procsym,unitsym,constsym,enumsym,typedconstsym,
              errorsym,syssym,labelsym,absolutevarsym,propertysym,
              macrosym,rttisym,
-             specvarsym);
+             definitionsym);
 
   { State of the variable, if it's declared, assigned or used }
   tvarstate=(vs_none,
@@ -435,7 +435,7 @@ const
        'abstractsym','globalvar','localvar','paravar','fieldvar',
        'type','proc','unit','const','enum','typed const',
        'errorsym','system sym','label','absolutevar','property',
-       'macrosym','rttisym', 'proposition'
+       'macrosym','rttisym', 'definition'
      );
 
      DefTypeName : array[tdeftype] of string[12] = (

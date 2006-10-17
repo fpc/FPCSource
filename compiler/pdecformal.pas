@@ -28,7 +28,13 @@ interface
     uses
       symsym, symdef;
 
+    { Read the formal declaration in procedure/function/method "headers"
+    and in the main program }
     procedure read_formal_decs;
+    
+    { Read the formal declaration in class declarations }
+    procedure read_formal_decs_in_class;
+
 
 implementation
   
@@ -58,7 +64,7 @@ implementation
        ;
 
 
-    procedure read_proposition; forward;
+    procedure read_definition; forward;
     procedure read_specvar; forward;
     procedure read_precondition; forward;
     procedure read_postcondition; forward;
@@ -86,7 +92,7 @@ implementation
             if upcase(pattern)='DEF' then
               begin
                 consume(_ID);
-                read_proposition;
+                read_definition;
               end
             else if upcase(pattern)='SPECVAR' then
               begin
@@ -129,72 +135,103 @@ implementation
       
       end; { procedure read_formal_decs }
     
-    procedure read_proposition;
+    procedure read_definition;
       var
-        prop_name : string;
-        expr : tnode;
-        vs : tabstractvarsym;
-      begin
-        { parse P : expression }
-        repeat
-          prop_name:=pattern;
-          consume(_ID);
-          consume(_COLON);
-          expr:=comp_expr_in_formal_context(true);
-          do_resulttypepass(expr);
-          if not is_boolean(expr.resulttype.def) then
-            begin
-              Message1(type_e_boolean_expr_expected, expr.resulttype.def.typename);
-              exit;
-            end;
-          if not(symtablestack.symtabletype in [localsymtable,globalsymtable]) then
-            begin
-              { TODO : more descriptive error message }
-              raise EInvalidAnnotation.Create('Proposition definition outside local '+
-              'or global declaration context');
-            end;
-          vs:=tspecvarsym.create(prop_name, expr.resulttype { Boolean }, expr);
-          symtablestack.insert(vs);
-        until not try_to_consume(_COMMA);
-      end;
-
-    procedure read_specvar;
-      var
-        sv_name : string;
-        sv_type : ttype;
-        sv_expr : tnode;
-        sv      : tabstractvarsym;
+        def_name : string;
+        def_type : ttype;
+        def_expr : tnode;
+        def : tabstractvarsym;
         type_given : boolean;
         prev_ignore_equal : boolean;
       begin
+        { parse A[,A]*, where A::= P [: TYPE ] = EXPRESSION }
         repeat
-          { parse P [: type] = expression }
-          sv_name:=pattern;
+          def_name:=pattern;
           consume(_ID);
-          { Is a type given ? }
+          
           if try_to_consume(_COLON) then
             begin
               prev_ignore_equal:=ignore_equal;
-              ignore_equal:=true; { Signals to read_type to ignore the = token }
-              read_type(sv_type, '', false);
+              ignore_equal:=true;{ Signals to read_type to ignore the = token }
+              read_type(def_type, '', false);
               ignore_equal:=prev_ignore_equal;
               type_given:=true;
             end
           else
             type_given:=false;
-            
+
           consume(_EQUAL);
-          { Parse the expression }
-          sv_expr:=comp_expr(true);
+
+          def_expr:=comp_expr_in_formal_context(true);
+          do_resulttypepass(def_expr);
+
+          if type_given then
+            { Match the given type and the type of the expression }
+            inserttypeconv(def_expr, def_type)
+          else
+            { Use the computed type of the expression }
+            def_type:=def_expr.resulttype;
+
+          if not(symtablestack.symtabletype in [localsymtable,globalsymtable,staticsymtable]) then
+            begin
+              { TODO : more descriptive error message }
+              raise EInvalidAnnotation.Create('Proposition definition outside local '+
+              'or global declaration context');
+            end;
+          def:=tdefinitionsym.create(def_name, def_type, def_expr);
+          symtablestack.insert(def);
+        until not try_to_consume(_COMMA);
+      end;
+
+    procedure read_specvar;
+      var
+        sv : tspecvarsym;
+        sv_name : string;
+        sv_type : ttype;
+        sv_expr : tnode;
+        type_given : boolean;
+        prev_ignore_equal : boolean;
+      begin
+        { parse A[,A]* where A::= ID[:TYPE] = EXPRESSION }
+        repeat
+          sv_name:=pattern;
+          consume(_ID);
+
+          if try_to_consume(_COLON) then
+            begin
+              type_given:=true;
+              prev_ignore_equal:=ignore_equal;
+              ignore_equal:=true; { Signals to read_type that the = token
+                should be ignored }
+              read_type(sv_type, '', false);
+              ignore_equal:=prev_ignore_equal;
+            end
+          else
+            type_given:=false;
+
+          consume(_EQUAL);
+
+          sv_expr:=comp_expr_in_formal_context(true);
           do_resulttypepass(sv_expr);
+
           if type_given then
             { Match the given type and the type of the expression }
             inserttypeconv(sv_expr, sv_type)
           else
-            { Set the type to the type of the expression } 
+            { Use the computed type of the expression }
             sv_type:=sv_expr.resulttype;
+
+          if not(symtablestack.symtabletype in [localsymtable,globalsymtable,staticsymtable]) then
+            raise EInvalidAnnotation.Create('Specvars can only be defined in local or global contexts');
+
           sv:=tspecvarsym.create(sv_name, sv_type, sv_expr);
           symtablestack.insert(sv);
+
+          if (not assigned(current_procinfo)) or (not assigned(current_procinfo.procdef)) then
+            raise EInvalidAnnotation.Create('Specvars cannot be defined here');
+
+          current_procinfo.procdef.specvars.Add(sv);
+
         until not try_to_consume(_COMMA);
       end;
 
@@ -203,7 +240,7 @@ implementation
       var
         expr : tnode;
       begin
-        consume(_COLON);
+        consume(_EQUAL);
         expr:=comp_expr_in_formal_context(true);
         { Check here the result type of the expression.
         This will be checked later on as well (after conversion to "assert"),
@@ -225,7 +262,7 @@ implementation
       var
         expr : tnode;
       begin
-        consume(_COLON);
+        consume(_EQUAL);
         expr:=comp_expr_in_formal_context(true);
         { Check here the result type of the expression.
         This will be checked later on as well (after conversion to "assert"),
@@ -249,7 +286,7 @@ implementation
         evald : tnode;
         rst : tnode;
       begin
-        consume(_COLON);
+        consume(_EQUAL);
         { Proposition variables are not allowed here }
         expr:=comp_expr(true);
         { Convert this to "Result = expr" } 
@@ -264,6 +301,53 @@ implementation
         current_procinfo.procdef.postcondition:=evald;  
       end;
 
+
+    procedure read_formal_decs_in_class;
+
+      var
+        inv_name : string;
+        inv_expr : tnode;
+
+      begin
+        if not (try_to_consume(_CLOSE_FORMAL)) then
+          begin
+            try
+              if (upcase(pattern)<>'INV') then
+                raise EInvalidAnnotation.Create('inv expected');
+              consume(_ID);
+
+              inv_name:=pattern;
+              consume(_ID);
+
+              consume(_EQUAL);
+
+              inv_expr:=comp_expr_in_formal_context_class_header(true);
+
+              do_resulttypepass(inv_expr);
+              if not is_boolean(inv_expr.resulttype.def) then
+                raise EInvalidAnnotation.Create('boolean expression expected');
+
+              if assigned(aktobjectdef.invariant) then
+                aktobjectdef.invariant:=caddnode.create(andn,
+                  aktobjectdef.invariant,
+                  inv_expr)
+              else
+                aktobjectdef.invariant:=inv_expr;
+
+
+              consume(_CLOSE_FORMAL);
+            except
+              on e: EInvalidAnnotation do
+                begin
+                  { Consume the whole annotation }
+                  while token<>_CLOSE_FORMAL do
+                    consume(token);
+                  consume(_CLOSE_FORMAL);
+                  Message1(parser_e_invalid_formal_annotation, e.message);  
+                end; { on EInvalidAnnotation }
+            end; { try..except }
+          end; { if not try_to_consume(_CLOSE_FORMAL) }
+      end;
 end.
 
 

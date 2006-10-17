@@ -30,7 +30,8 @@ interface
        cutils,cclasses,
        globtype,
        symdef,symsym,
-       aasmbase,aasmtai
+       aasmbase,aasmtai,
+       node
        ;
 
     type
@@ -104,6 +105,8 @@ interface
         procedure gintfdoonintf(intf: tobjectdef; intfindex: longint);
         procedure gintfwalkdowninterface(intf: tobjectdef; intfindex: longint);
       public
+        invariant : tnode;
+
         constructor create(c:tobjectdef);
         destructor destroy;override;
         { generates the message tables for a class }
@@ -144,6 +147,7 @@ implementation
       begin
         inherited Create;
         _Class:=c;
+        invariant:=nil;
       end;
 
 

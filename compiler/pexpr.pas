@@ -35,9 +35,18 @@ interface
 
     { reads an expression without assignements and .. }
     function comp_expr(accept_equal : boolean):tnode;
+
     { reads an expression without assignments and .., but with
-    proposition syms, ... }
+    definition syms, specvars }
     function comp_expr_in_formal_context(accept_equal : boolean):tnode;
+    
+    { reads an expression without assignments and .., but with
+    definition syms and specvars.
+    Furthermore, for fields of classes/records a csubscriptnode is created,
+    but the "left" pointer of this node is set to NIL }
+    function comp_expr_in_formal_context_class_header(
+      accept_equal : boolean): tnode;
+
 
     { reads a single factor }
     function factor(getaddr : boolean) : tnode;
@@ -80,7 +89,12 @@ implementation
        ;
 
     var
+      { Initially false, is set to true iff the expression is 
+      in a formal context (i.e. within _OPEN_FORMAL and _CLOSE_FORMAL) }
       in_formal_context : boolean;
+      { Initially false, is set to true iff in_formal_context and
+      we are in a class header (thus in_class_header implies in_formal_context) }
+      in_class_header : boolean;
 
     { sub_expr(opmultiply) is need to get -1 ** 4 to be
       read as - (1**4) and not (-1)**4 PM }
@@ -1281,7 +1295,7 @@ implementation
                       p1:=cloadnode.create(srsym,srsymtable);
                   end;
 
-                specvarsym:
+                definitionsym:
                   begin
                     if not in_formal_context then
                       begin
@@ -1289,49 +1303,61 @@ implementation
                         Message(parser_e_illegal_expression);
                       end
                     else
-                      p1:=tspecvarsym(srsym).expr.getcopy
+                      p1:=tdefinitionsym(srsym).expr.getcopy
                   end;
+
 
                 globalvarsym,
                 localvarsym,
                 paravarsym,
                 fieldvarsym :
                   begin
-                    if (sp_static in srsym.symoptions) then
-                     begin
-                       static_name:=lower(srsym.owner.name^)+'_'+srsym.name;
-                       searchsym(static_name,srsym,srsymtable);
-		       if assigned(srsym) then
-                         check_hints(srsym,srsym.symoptions);
-                     end
+                    if (srsym is tspecvarsym) and not in_formal_context then
+                      begin
+                        p1:=cerrornode.create;
+                        Message(parser_e_illegal_expression);
+                      end
                     else
-                     begin
-                       { are we in a class method, we check here the
-                         srsymtable, because a field in another object
-                         also has objectsymtable. And withsymtable is
-                         not possible for self in class methods (PFV) }
-                       if (srsymtable.symtabletype=objectsymtable) and
-                          assigned(current_procinfo) and
-                          (po_classmethod in current_procinfo.procdef.procoptions) then
-                         Message(parser_e_only_class_methods);
-                     end;
+                      begin
+                        if (sp_static in srsym.symoptions) then
+                         begin
+                           static_name:=lower(srsym.owner.name^)+'_'+srsym.name;
+                           searchsym(static_name,srsym,srsymtable);
+                		       if assigned(srsym) then
+                             check_hints(srsym,srsym.symoptions);
+                         end
+                        else
+                         begin
+                         { are we in a class method, we check here the
+                           srsymtable, because a field in another object
+                           also has objectsymtable. And withsymtable is
+                           not possible for self in class methods (PFV) }
+                           if (srsymtable.symtabletype=objectsymtable) and
+                              assigned(current_procinfo) and
+                              (po_classmethod in current_procinfo.procdef.procoptions) then
+                             Message(parser_e_only_class_methods);
+                         end;
 
-                    case srsymtable.symtabletype of
-                      objectsymtable :
-                        begin
-                          p1:=csubscriptnode.create(srsym,load_self_node);
-                          node_tree_set_filepos(p1,aktfilepos);
+                        case srsymtable.symtabletype of
+                          objectsymtable :
+                            begin
+                              if in_class_header then
+                                p1:=csubscriptnode.create(srsym,nil)
+                              else
+                                p1:=csubscriptnode.create(srsym,load_self_node);
+                              node_tree_set_filepos(p1,aktfilepos);
+                            end;
+                          withsymtable :
+                            begin
+                              p1:=csubscriptnode.create(srsym,tnode(twithsymtable(srsymtable).withrefnode).getcopy);
+                              node_tree_set_filepos(p1,aktfilepos);
+                            end;
+                          else
+                            p1:=cloadnode.create(srsym,srsymtable);
                         end;
-                      withsymtable :
-                        begin
-                          p1:=csubscriptnode.create(srsym,tnode(twithsymtable(srsymtable).withrefnode).getcopy);
-                          node_tree_set_filepos(p1,aktfilepos);
-                        end;
-                      else
-                        p1:=cloadnode.create(srsym,srsymtable);
-                    end;
+                      end;
                   end;
-
+    
                 typedconstsym :
                   begin
                     p1:=cloadnode.create(srsym,srsymtable);
@@ -2612,6 +2638,18 @@ implementation
         comp_expr_in_formal_context:=comp_expr(accept_equal);
         in_formal_context:=prev;
       end;
+    
+    function comp_expr_in_formal_context_class_header(accept_equal : boolean)
+      : tnode;
+
+      var
+        prev : boolean;
+      begin
+        prev:=in_class_header;
+        in_class_header:=true;
+        result:=comp_expr_in_formal_context(accept_equal);
+        in_class_header:=prev;
+      end;
 
     function comp_expr(accept_equal : boolean):tnode;
       var
@@ -2741,5 +2779,6 @@ implementation
 
 initialization
     in_formal_context:=false;
+    in_class_header:=false;
 
 end.

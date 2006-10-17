@@ -251,6 +251,27 @@ implementation
       end;
 
 
+    { While parsing the class invariants, there are probably
+    csubscriptnodes created (if one or more invariants referred to fields)
+    but these have NIL as "left" since there is no "self" pointer in the
+    class declaration. We fill them in in this procedure }
+    procedure fill_in_self_pointers(var node: tnode);
+      begin
+        { Caution: the order is important,
+        since a tsubscriptnode inherits from tunarynode,
+        and a tbinarynode inherits from tunarynode as well. }
+        if node is tsubscriptnode then
+          tsubscriptnode(node).left:=load_self_node 
+        else if node is tbinarynode then
+          begin
+            fill_in_self_pointers(tbinarynode(node).left);
+            fill_in_self_pointers(tbinarynode(node).right);
+          end
+        else if node is tunarynode then
+          fill_in_self_pointers(tunarynode(node).left);
+      end;
+
+
     function generate_bodyentry_block:tnode;
       var
         srsym        : tsym;
@@ -258,9 +279,48 @@ implementation
         newstatement : tstatementnode;
         htype        : ttype;
         failstring   : tnode;
+        i            : Integer;
+        specvar      : tspecvarsym;
+        invariant    : tnode;
       begin
         result:=internalstatements(newstatement);
 
+        { Initialize specification variables }
+        for i := 0 to current_procinfo.procdef.specvars.Count - 1 do
+          begin
+            specvar := tspecvarsym(current_procinfo.procdef.specvars[i]);
+            addstatement(newstatement,
+              cassignmentnode.create(
+                cloadnode.create(specvar, current_procinfo.procdef.localst),
+                specvar.expr.getcopy
+              )
+            );
+          end;
+
+        { Create assertion for class invariant,
+        is this necessary? --TODO
+        } 
+        if assigned(current_procinfo.procdef._class) and
+          assigned(current_procinfo.procdef._class.invariant) then
+          begin
+            if (sp_public in current_procinfo.procdef.symoptions) and
+              not(sp_static in current_procinfo.procdef.symoptions) and
+              not(potype_constructor=current_procinfo.procdef.proctypeoption)
+              then
+              begin
+                invariant:=current_procinfo.procdef._class.invariant.getcopy;
+                fill_in_self_pointers(invariant);
+                failstring:=cstringconstnode.createstr('Class invariant failed', st_default);
+                addstatement(newstatement,
+                  geninlinenode(in_assert_x_y,false,ccallparanode.create(
+                    invariant,
+                    ccallparanode.create(failstring,nil)))
+                ); 
+             end;
+          end; { if in class and class invariant set }
+
+
+        { Create assertion for precondition }
         if assigned(current_procinfo.procdef.precondition) then
           begin
             failstring:=cstringconstnode.createstr('Precondition failed', st_default);
@@ -369,9 +429,31 @@ implementation
         para : tcallparanode;
         newstatement : tstatementnode;
         failstring : tnode;
+        invariant : tnode;
       begin
         result:=internalstatements(newstatement);
 
+        { Create assertion for class invariant } 
+        if assigned(current_procinfo.procdef._class) and
+          assigned(current_procinfo.procdef._class.invariant) then
+          begin
+            if (sp_public in current_procinfo.procdef.symoptions) and
+              not(sp_static in current_procinfo.procdef.symoptions) and
+              not(potype_destructor=current_procinfo.procdef.proctypeoption)
+              then
+              begin
+                invariant:=current_procinfo.procdef._class.invariant.getcopy;
+                fill_in_self_pointers(invariant);
+                failstring:=cstringconstnode.createstr('Class invariant failed', st_default);
+                addstatement(newstatement,
+                  geninlinenode(in_assert_x_y,false,ccallparanode.create(
+                    invariant,
+                    ccallparanode.create(failstring,nil)))
+                ); 
+             end;
+          end; { if in class and class invariant set }
+
+        { Create assertion for postcondition }
         if assigned(current_procinfo.procdef.postcondition) then
           begin
             failstring:=cstringconstnode.createstr('Postcondition failed', st_default);

@@ -208,9 +208,16 @@ interface
 {$endif GDB}
       end;
 
-      tspecvarsym = class(tabstractnormalvarsym)
+      tdefinitionsym = class(tabstractnormalvarsym)
           expr : tnode;
           constructor create(const n : string; const tt : ttype; aexpr : tnode);
+          destructor destroy;
+      end;
+
+      tspecvarsym = class(tlocalvarsym)
+          expr : tnode;
+          constructor create(const n : string; const tt : ttype; aexpr : tnode);
+          destructor destroy;
       end;
       
       tparavarsym = class(tabstractnormalvarsym)
@@ -1732,14 +1739,36 @@ implementation
 {$endif GDB}
 
 {****************************************************************************
-                               TPROPOSITIONSYM
+                               TDEFINITIONSYM
+****************************************************************************}
+
+    constructor tdefinitionsym.create(const n : string; const tt: ttype; aexpr : tnode);
+      begin
+        inherited create(n, vs_value, tt, []);
+        expr:=aexpr;
+        typ:=definitionsym;
+      end;
+
+    destructor tdefinitionsym.destroy;
+      begin
+        expr.free;
+        inherited destroy;
+      end;
+
+{****************************************************************************
+                               TSPECVARSYM
 ****************************************************************************}
 
     constructor tspecvarsym.create(const n : string; const tt: ttype; aexpr : tnode);
       begin
         inherited create(n, vs_value, tt, []);
         expr:=aexpr;
-        typ:=specvarsym;
+      end;
+
+    destructor tspecvarsym.destroy;
+      begin
+        expr.free;
+        inherited destroy;
       end;
 
 

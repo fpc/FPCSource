@@ -578,9 +578,13 @@ implementation
     function tsubscriptnode.det_resulttype:tnode;
       begin
         result:=nil;
-        resulttypepass(left);
-        { tp procvar support }
-        maybe_call_procvar(left,true);
+        if assigned(left) then
+          begin
+            resulttypepass(left);
+            { tp procvar support }
+            maybe_call_procvar(left,true);
+          end;
+
         resulttype:=vs.vartype;
       end;
 

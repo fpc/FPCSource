@@ -39,7 +39,7 @@ implementation
       symconst,symbase,symsym,
       node,nld,nmem,ncon,ncnv,ncal,
       scanner,
-      pbase,pexpr,pdecsub,pdecvar,ptype
+      pbase,pexpr,pdecsub,pdecvar,ptype,pdecformal
       ;
 
     const
@@ -476,6 +476,7 @@ implementation
       var
         pd : tprocdef;
         dummysymoptions : tsymoptions;
+
       begin
          old_object_option:=current_object_option;
 
@@ -653,6 +654,11 @@ implementation
                       pd.symoptions:=pd.symoptions+dummysymoptions;
 
                     parse_only:=oldparse_only;
+                  end;
+                _OPEN_FORMAL :
+                  begin
+                    consume(_OPEN_FORMAL);
+                    read_formal_decs_in_class;
                   end;
                 _CONSTRUCTOR :
                   begin
