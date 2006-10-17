@@ -1015,7 +1015,7 @@ End;
 
 const
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-  maxdigits = 15;
+  maxdigits = 18;
 {$else}
   maxdigits = 14;
 {$endif}
@@ -1073,6 +1073,12 @@ Begin
             end
         else if (P<>0) then // we have a decimalseparator
           begin
+            if (Length(Result) > Precision + 1) and
+               (Precision + 1 > P) then
+              begin
+                P := Precision + 1;
+                SetLength(Result,P);
+              end;
             P := Length(Result);
             While (P>0) and (Result[P] = '0') Do
               Dec(P);
