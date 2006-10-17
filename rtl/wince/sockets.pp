@@ -287,7 +287,6 @@ begin
   SocketPair:=fpsocketpair(domain,sockettype,protocol,@pair);
 end;
 
-{$ifdef unix}
 { mimic the linux fpWrite/fpRead calls for the file/text socket wrapper }
 function fpWrite(handle : longint;Const bufptr;size : dword) : dword;
 begin
@@ -327,7 +326,7 @@ function fpRead(handle : longint;var bufptr;size : dword) : dword;
      else
        SocketError:=0;
   end;
-{$else}
+
 { mimic the linux fdWrite/fdRead calls for the file/text socket wrapper }
 function fdWrite(handle : longint;Const bufptr;size : dword) : dword;
 begin
@@ -367,7 +366,7 @@ function fdRead(handle : longint;var bufptr;size : dword) : dword;
      else
        SocketError:=0;
   end;
-{$endif}
+
 
 {$i sockets.inc}
 
