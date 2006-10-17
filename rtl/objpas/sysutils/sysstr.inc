@@ -1073,6 +1073,10 @@ Begin
             end
         else if (P<>0) then // we have a decimalseparator
           begin
+            { it seems that in this unit "precision" must mean "number of }
+            { significant digits" rather than "number of digits after the }
+            { decimal point" (as it does in the system unit) -> adjust    }
+            { (precision+1 to count the decimal point character)          }
             if (Length(Result) > Precision + 1) and
                (Precision + 1 > P) then
               begin
