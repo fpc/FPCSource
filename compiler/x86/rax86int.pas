@@ -1534,6 +1534,8 @@ Unit Rax86int;
                 begin
                   BuildRecordOffsetSize(expr,toffset,tsize);
                   oper.SetSize(tsize,true);
+                  { we have used the size of a field. Reset the typesize of the record }
+                  oper.typesize:=0;
                   case oper.opr.typ of
                     OPR_LOCAL :
                       begin
