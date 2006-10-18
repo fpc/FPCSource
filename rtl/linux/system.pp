@@ -25,15 +25,25 @@
 
 Unit System;
 
-Interface
+{*****************************************************************************}
+                                    interface
+{*****************************************************************************}
 
 {$define FPC_IS_SYSTEM}
+{$define HAS_CMDLINE}
+{$define USE_NOTHREADMANAGER}
 
 {$i osdefs.inc}
 
 {$I sysunixh.inc}
 
-Implementation
+function get_cmdline:Pchar;
+property cmdline:Pchar read get_cmdline;
+
+
+{*****************************************************************************}
+                                 implementation
+{*****************************************************************************}
 
 { Include ELF resources }
 
@@ -44,6 +54,7 @@ Implementation
 
 {$I system.inc}
 
+const calculated_cmdline:Pchar=nil;
 
 {*****************************************************************************
                        Misc. System Dependent Functions
@@ -63,7 +74,7 @@ Begin
 End;
 
 
-function BackPos(c:char; const s: shortstring): integer;
+{function BackPos(c:char; const s: shortstring): integer;
 var
  i: integer;
 Begin
@@ -73,7 +84,7 @@ Begin
     BackPos := 0
   else
     BackPos := i;
-end;
+end;}
 
 
  { variable where full path and filename and executable is stored }
@@ -98,48 +109,9 @@ Begin
   randseed:=longint(Fptime(nil));
 End;
 
-
 {*****************************************************************************
-                         SystemUnit Initialization
+                                    cmdline
 *****************************************************************************}
-
-function  reenable_signal(sig : longint) : boolean;
-var
-  e : TSigSet;
-  i,j : byte;
-begin
-  fillchar(e,sizeof(e),#0);
-  { set is 1 based PM }
-  dec(sig);
-  i:=sig mod (sizeof(cuLong) * 8);
-  j:=sig div (sizeof(cuLong) * 8);
-  e[j]:=1 shl i;
-  fpsigprocmask(SIG_UNBLOCK,@e,nil);
-  reenable_signal:=geterrno=0;
-end;
-
-
-// signal handler is arch dependant due to processorexception to language
-// exception translation
-
-{$i sighnd.inc}
-
-var
-  act: SigActionRec;
-
-Procedure InstallSignals;
-begin
-  { Initialize the sigaction structure }
-  { all flags and information set to zero }
-  FillChar(act, sizeof(SigActionRec),0);
-  { initialize handler                    }
-  act.sa_handler := SigActionHandler(@SignalToRunError);
-  act.sa_flags:=SA_SIGINFO;
-  FpSigAction(SIGFPE,@act,nil);
-  FpSigAction(SIGSEGV,@act,nil);
-  FpSigAction(SIGBUS,@act,nil);
-  FpSigAction(SIGILL,@act,nil);
-end;
 
 procedure SetupCmdLine;
 var
@@ -151,14 +123,13 @@ var
 
   procedure AddBuf;
   begin
-    reallocmem(cmdline,size+bufsize);
-    move(buf^,cmdline[size],bufsize);
+    reallocmem(calculated_cmdline,size+bufsize);
+    move(buf^,calculated_cmdline[size],bufsize);
     inc(size,bufsize);
     bufsize:=0;
   end;
 
 begin
-  cmdline:=nil;
   if i>=argc then
     exit;
   GetMem(buf,ARG_MAX);
@@ -202,6 +173,55 @@ begin
   FreeMem(buf,ARG_MAX);
 end;
 
+function get_cmdline:Pchar;
+
+begin
+  if calculated_cmdline=nil then
+    setupcmdline;
+  get_cmdline:=calculated_cmdline;
+end;
+
+{*****************************************************************************
+                         SystemUnit Initialization
+*****************************************************************************}
+
+function  reenable_signal(sig : longint) : boolean;
+var
+  e : TSigSet;
+  i,j : byte;
+begin
+  fillchar(e,sizeof(e),#0);
+  { set is 1 based PM }
+  dec(sig);
+  i:=sig mod (sizeof(cuLong) * 8);
+  j:=sig div (sizeof(cuLong) * 8);
+  e[j]:=1 shl i;
+  fpsigprocmask(SIG_UNBLOCK,@e,nil);
+  reenable_signal:=geterrno=0;
+end;
+
+
+// signal handler is arch dependant due to processorexception to language
+// exception translation
+
+{$i sighnd.inc}
+
+var
+  act: SigActionRec;
+
+Procedure InstallSignals;
+begin
+  { Initialize the sigaction structure }
+  { all flags and information set to zero }
+  FillChar(act, sizeof(SigActionRec),0);
+  { initialize handler                    }
+  act.sa_handler := SigActionHandler(@SignalToRunError);
+  act.sa_flags:=SA_SIGINFO;
+  FpSigAction(SIGFPE,@act,nil);
+  FpSigAction(SIGSEGV,@act,nil);
+  FpSigAction(SIGBUS,@act,nil);
+  FpSigAction(SIGILL,@act,nil);
+end;
 
 procedure SysInitStdIO;
 begin
@@ -251,7 +271,7 @@ end;
 
 var
   initialstkptr : Pointer;external name '__stkptr';
-Begin
+begin
   SysResetFPU;
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(initialStkLen);
@@ -264,7 +284,6 @@ Begin
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
   { Arguments }
-  SetupCmdLine;
   SysInitExecPath;
   { Reset IO Error }
   InOutRes:=0;
@@ -272,4 +291,4 @@ Begin
   InitSystemThreads;
   initvariantmanager;
   initwidestringmanager;
-End.
+end.

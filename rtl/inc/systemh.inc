@@ -329,9 +329,6 @@ const
   fmInOut  = $D7B3;
   fmAppend = $D7B4;
   Filemode : byte = 2;
-{$ifndef HAS_CMDLINE}
-  CmdLine : PChar = nil;
-{$endif HAS_CMDLINE}
 (* Value should be changed during system initialization as appropriate. *)
 
   { assume that this program will not spawn other threads, when the
@@ -352,6 +349,11 @@ var
   IsConsole : boolean;
   { Threading support }
   fpc_threadvar_relocate_proc : pointer; public name 'FPC_THREADVAR_RELOCATE';
+
+{$ifndef HAS_CMDLINE}
+{Value should be changed during system initialization as appropriate.}
+var cmdline:Pchar=nil;
+{$endif}
 
 
 ThreadVar
