@@ -923,7 +923,7 @@ uses
       begin
         if assigned(p) then
          begin
-           freemem(p,strlen(p)+1);
+           freemem(p);
            p:=nil;
          end;
       end;
@@ -933,7 +933,7 @@ uses
       begin
          if assigned(p) then
            begin
-             freemem(p,length(p^)+1);
+             freemem(p);
              p:=nil;
            end;
       end;
@@ -1016,7 +1016,7 @@ uses
       begin
          if assigned(p) then
            begin
-             freemem(p,length+1);
+             freemem(p);
              p:=nil;
            end;
       end;
