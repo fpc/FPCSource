@@ -3,7 +3,7 @@
 
 {$linklib libtw3964a}
 
-function testfunc : longint;public name 'testfunc';
+function testfunc : longint;
 begin
   result:=1234;
 end;
