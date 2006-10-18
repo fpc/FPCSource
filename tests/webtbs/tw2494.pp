@@ -15,7 +15,7 @@ type
 
 var p:pointer;
   l : ^longarray;
-  size, storage : cardinal;
+  size, storage : ptruint;
   i,j:longint;
   done:boolean;
   mem : sizeint;
@@ -25,10 +25,10 @@ begin
   done := false;
   size := 40000000;
   repeat
-    size := round(size * 1.1);
+    size := size+(size div 10);
     storage := size * sizeof(real);
-    if storage>2000000000 then
-      storage:=2000000000;
+    if storage>2000000000{$ifdef CPU64}*2000000000{$endif CPU64} then
+      storage:=2000000000{$ifdef CPU64}*2000000000{$endif CPU64};
     writeln('size=',size,' (storage=',storage,')');
     getmem(l,storage);
     if (l=nil) then
