@@ -13,7 +13,7 @@ begin
     begin
       s := FloatToStrF(v, ffGeneral, i, 0);
       WriteLn(i, ' ', s);
-      if (i < 13) then
+      if (i < 14) then
         begin
           if (s <> '1') then
             begin
