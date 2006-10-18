@@ -266,6 +266,7 @@ implementation
          power : longint;
          hl : tasmlabel;
          paraloc1 : tcgpara;
+         opsize : tcgsize;
       begin
          secondpass(left);
          if codegenerror then
@@ -278,12 +279,17 @@ implementation
 {$ifndef cpu64bit}
          if is_64bit(resulttype.def) then
            begin
+              if is_signed(left.resulttype.def) then
+                opsize:=OS_S64
+              else
+                opsize:=OS_64;
+
              { this code valid for 64-bit cpu's only ,
                otherwise helpers are called in pass_1
              }
-             location_force_reg(current_asmdata.CurrAsmList,location,OS_64,false);
+             location_force_reg(current_asmdata.CurrAsmList,location,opsize,false);
              location_copy(location,left.location);
-             location_force_reg(current_asmdata.CurrAsmList,right.location,OS_64,false);
+             location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,false);
              emit64_div_reg_reg(is_signed(left.resulttype.def),
                joinreg64(right.location.register64.reglo,right.location.register64.reghi),
                joinreg64(location.register64.reglo,location.register64.reghi));
@@ -291,8 +297,13 @@ implementation
          else
 {$endif cpu64bit}
            begin
+              if is_signed(left.resulttype.def) then
+                opsize:=OS_SINT
+              else
+                opsize:=OS_INT;
+
               { put numerator in register }
-              location_force_reg(current_asmdata.CurrAsmList,left.location,OS_INT,false);
+              location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
               hreg1:=left.location.register;
 
               if (nodetype=divn) and
@@ -342,7 +353,7 @@ implementation
                   else
                     emit_div_reg_reg(is_signed(left.resulttype.def),hdenom,hreg1);
                 end;
-              location_reset(location,LOC_REGISTER,OS_INT);
+              location_reset(location,LOC_REGISTER,opsize);
               location.register:=hreg1;
            end;
         cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resulttype.def);
@@ -367,6 +378,7 @@ implementation
       var
          op : topcg;
          hcountreg : tregister;
+         opsize : tcgsize;
       begin
          { determine operator }
          case nodetype of
@@ -375,7 +387,11 @@ implementation
          end;
          { load left operators in a register }
          location_copy(location,left.location);
-         location_force_reg(current_asmdata.CurrAsmList,location,OS_INT,false);
+         if is_signed(left.resulttype.def) then
+           opsize:=OS_SINT
+         else
+           opsize:=OS_INT;
+         location_force_reg(current_asmdata.CurrAsmList,location,opsize,false);
 
          { shifting by a constant directly coded: }
          if (right.nodetype=ordconstn) then
@@ -399,12 +415,12 @@ implementation
               }
               if right.location.loc<>LOC_REGISTER then
                 begin
-                  hcountreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                  hcountreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
                   cg.a_load_loc_reg(current_asmdata.CurrAsmList,right.location.size,right.location,hcountreg);
                 end
               else
                 hcountreg:=right.location.register;
-              cg.a_op_reg_reg(current_asmdata.CurrAsmList,op,OS_INT,hcountreg,location.register);
+              cg.a_op_reg_reg(current_asmdata.CurrAsmList,op,opsize,hcountreg,location.register);
            end;
       end;
 
