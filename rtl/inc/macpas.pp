@@ -88,8 +88,6 @@ procedure BClr(var i: int64; j: cardinal); {$ifdef systeminline}inline;{$endif}
 procedure BClr(var i: qword; j: cardinal); {$ifdef systeminline}inline;{$endif}
 
 
-function GetPointerSize(p: pointer): ptrint; {$ifdef systeminline}inline;{$endif}
-
 implementation
 
 
@@ -304,11 +302,6 @@ end;
 procedure BClr(var i: qword; j: cardinal); {$ifdef systeminline}inline;{$endif}
 begin
   i := i and not (qword(1) shl j);
-end;
-
-function GetPointerSize(p: pointer): ptrint; {$ifdef systeminline}inline;{$endif}
-begin
-  GetPointerSize := memsize(p);
 end;
 
 {$ifdef cpupowerpc}
