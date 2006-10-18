@@ -1902,6 +1902,12 @@ END;
 {--TCollection--------------------------------------------------------------}
 {  LastThat -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB             }
 {---------------------------------------------------------------------------}
+
+{$IFOPT W-}
+{$DEFINE STACKFRAME_OFF}
+{$W+}
+{$ENDIF}
+       
 FUNCTION TCollection.LastThat (Test: Pointer): Pointer;
 VAR I: LongInt;
 
@@ -1916,6 +1922,7 @@ BEGIN
      End;
    LastThat := Nil;                                   { None passed test }
 END;
+
 
 {--TCollection--------------------------------------------------------------}
 {  FirstThat -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB            }
@@ -1932,6 +1939,11 @@ BEGIN
    End;
    FirstThat := Nil;                                  { None passed test }
 END;
+
+{$IFDEF STACKFRAME_OFF}
+{$UNDEF STACKFRAME_OFF}
+{$W-}
+{$ENDIF}
 
 {--TCollection--------------------------------------------------------------}
 {  Pack -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB                 }
@@ -2034,12 +2046,22 @@ END;
 {--TCollection--------------------------------------------------------------}
 {  ForEach -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB              }
 {---------------------------------------------------------------------------}
+
+{$IFOPT W-}
+{$DEFINE STACKFRAME_OFF}
+{$W+}
+{$ENDIF}
 PROCEDURE TCollection.ForEach (Action: Pointer);
 VAR I: LongInt;
 BEGIN
    For I := 1 To Count Do                             { Up from first item }
     CallPointerLocal(Action,get_caller_frame(get_frame),Items^[I-1]);   { Call with each item }
 END;
+{$IFDEF STACKFRAME_OFF}
+{$UNDEF STACKFRAME_OFF}
+{$W-}
+{$ENDIF}
+
 
 {--TCollection--------------------------------------------------------------}
 {  SetLimit -> Platforms DOS/DPMI/WIN/OS2 - Checked 22May96 LdB             }
