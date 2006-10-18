@@ -2366,7 +2366,7 @@ implementation
                            currabsreloc:=RELOC_PLT32
                          else
 {$endif x86_64}
-                           currabsreloc:=RELOC_ABSOLUTE;
+                           currabsreloc:=RELOC_ABSOLUTE32;
                          objdata.writereloc(oper[opidx]^.ref^.offset,ea_data.bytes,currsym,currabsreloc);
                          inc(s,ea_data.bytes);
                        end;
