@@ -887,7 +887,7 @@ begin
     extend the sign correctly. (The latter is actually required only for signed subsets and if that
    subset is not >= the tosize). }
   extrdi_startbit := 64 - (sreg.bitlen + sreg.startbit);
-  if (sreg.bitlen <> sizeof(aint)*8) then begin
+  if (sreg.startbit <> 0) then begin
     list.concat(taicpu.op_reg_reg_const_const(A_EXTRDI, destreg, sreg.subsetreg, sreg.bitlen, extrdi_startbit));
     a_load_reg_reg(list, tcgsize2unsigned[subsetsize], subsetsize, destreg, destreg);
     a_load_reg_reg(list, subsetsize, tosize, destreg, destreg);
