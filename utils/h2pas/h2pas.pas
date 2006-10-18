@@ -905,7 +905,7 @@ program h2pas;
               end;
             { what can we do with void defs  ? }
             t_void :
-              write(outfile,'void');
+              write(outfile,'pointer');
             t_pointerdef :
               begin
                  pointerwritten:=false;
