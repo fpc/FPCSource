@@ -1775,6 +1775,7 @@ implementation
           srsym  : tsym;
           srsymtable : tsymtable;
           classh     : tobjectdef;
+          ok: boolean;
 
         label
           skipreckklammercheck;
@@ -1844,6 +1845,7 @@ implementation
                       begin
                         consume(_LECKKLAMMER);
                         repeat
+                          ok := true;
                           case p1.resulttype.def.deftype of
                             pointerdef:
                               begin
@@ -1867,46 +1869,67 @@ implementation
                                 p2:=comp_expr(true);
                                 p1:=cvecnode.create(p1,p2);
                               end;
-                            arraydef :
+                            arraydef,
+                            orddef :
                               begin
-                                p2:=comp_expr(true);
-                              { support SEG:OFS for go32v2 Mem[] }
-                                if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
-                                   (p1.nodetype=loadn) and
-                                   assigned(tloadnode(p1).symtableentry) and
-                                   assigned(tloadnode(p1).symtableentry.owner.name) and
-                                   (tloadnode(p1).symtableentry.owner.name^='SYSTEM') and
-                                   ((tloadnode(p1).symtableentry.name='MEM') or
-                                    (tloadnode(p1).symtableentry.name='MEMW') or
-                                    (tloadnode(p1).symtableentry.name='MEML')) then
+                                { in MacPas mode, you can treat a 32bit int as }
+                                { an array[1..4] of char. The                  }
+                                { FPC_Internal_Four_Char_Array is defined in   }
+                                { the macpas unit                              }
+                                if (p1.resulttype.def.deftype = orddef) then
+                                  if (m_mac in aktmodeswitches) and
+                                     is_integer(p1.resulttype.def) and
+                                     (p1.resulttype.def.size = 4) then
+                                    begin
+                                      if not searchsym_type('FPC_INTERNAL_FOUR_CHAR_ARRAY',srsym,srsymtable) then
+                                        internalerror(2006101801);
+                                      inserttypeconv_internal(p1,ttypesym(srsym).restype);
+                                    end
+                                  else
+                                    ok := false;
+                                if ok then
                                   begin
-                                    if try_to_consume(_COLON) then
-                                     begin
-                                       p3:=caddnode.create(muln,cordconstnode.create($10,s32inttype,false),p2);
-                                       p2:=comp_expr(true);
-                                       p2:=caddnode.create(addn,p2,p3);
-                                       p1:=cvecnode.create(p1,p2);
-                                       include(tvecnode(p1).flags,nf_memseg);
-                                       include(tvecnode(p1).flags,nf_memindex);
-                                     end
+                                    p2:=comp_expr(true);
+                                  { support SEG:OFS for go32v2 Mem[] }
+                                    if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
+                                       (p1.nodetype=loadn) and
+                                       assigned(tloadnode(p1).symtableentry) and
+                                       assigned(tloadnode(p1).symtableentry.owner.name) and
+                                       (tloadnode(p1).symtableentry.owner.name^='SYSTEM') and
+                                       ((tloadnode(p1).symtableentry.name='MEM') or
+                                        (tloadnode(p1).symtableentry.name='MEMW') or
+                                        (tloadnode(p1).symtableentry.name='MEML')) then
+                                      begin
+                                        if try_to_consume(_COLON) then
+                                         begin
+                                           p3:=caddnode.create(muln,cordconstnode.create($10,s32inttype,false),p2);
+                                           p2:=comp_expr(true);
+                                           p2:=caddnode.create(addn,p2,p3);
+                                           p1:=cvecnode.create(p1,p2);
+                                           include(tvecnode(p1).flags,nf_memseg);
+                                           include(tvecnode(p1).flags,nf_memindex);
+                                         end
+                                        else
+                                         begin
+                                           p1:=cvecnode.create(p1,p2);
+                                           include(tvecnode(p1).flags,nf_memindex);
+                                         end;
+                                      end
                                     else
-                                     begin
-                                       p1:=cvecnode.create(p1,p2);
-                                       include(tvecnode(p1).flags,nf_memindex);
-                                     end;
-                                  end
-                                else
-                                  p1:=cvecnode.create(p1,p2);
+                                      p1:=cvecnode.create(p1,p2);
+                                  end;
                               end;
                             else
-                              begin
-                                Message(parser_e_invalid_qualifier);
-                                p1.destroy;
-                                p1:=cerrornode.create;
-                                comp_expr(true);
-                                again:=false;
-                              end;
+                              ok := false;
                           end;
+                          if not ok then
+                            begin
+                              Message(parser_e_invalid_qualifier);
+                              p1.destroy;
+                              p1:=cerrornode.create;
+                              comp_expr(true);
+                              again:=false;
+                            end;
                           do_resulttypepass(p1);
                         until not try_to_consume(_COMMA);
                         consume(_RECKKLAMMER);

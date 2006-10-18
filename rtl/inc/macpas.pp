@@ -26,6 +26,7 @@ interface
 
 type
   LongDouble = ValReal;
+  FPC_Internal_Four_Char_Array = array[1..4] of Char;
 
 {FourCharCode coercion
 This routine coreces string literals to a FourCharCode.}
