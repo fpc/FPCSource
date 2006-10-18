@@ -704,10 +704,10 @@ begin
                              +r[1]*m2.data[1,0]
              {$if matsize>=3}+r[2]*m2.data[2,0]{$endif}
              {$if matsize>=4}+r[3]*m2.data[3,0]{$endif};
-           result.data[i,1]:=r[0]*m2.data[0,1]
-                            +r[1]*m2.data[1,1]
-            {$if matsize>=3}+r[2]*m2.data[2,1]{$endif}
-            {$if matsize>=4}+r[3]*m2.data[3,1]{$endif};
+            result.data[i,1]:=r[0]*m2.data[0,1]
+                             +r[1]*m2.data[1,1]
+             {$if matsize>=3}+r[2]*m2.data[2,1]{$endif}
+             {$if matsize>=4}+r[3]*m2.data[3,1]{$endif};
         {$if matsize>=3}
             result.data[i,2]:=r[0]*m2.data[0,2]
                              +r[1]*m2.data[1,2]
