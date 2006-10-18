@@ -36,8 +36,7 @@ implementation
 Uses
   BaseUnix,
   unix,
-  unixtype,
-  sysutils
+  unixtype
 {$ifdef dynpthreads}
   ,dl
 {$endif}
