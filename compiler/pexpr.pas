@@ -1880,11 +1880,7 @@ implementation
                                   if (m_mac in aktmodeswitches) and
                                      is_integer(p1.resulttype.def) and
                                      (p1.resulttype.def.size = 4) then
-                                    begin
-                                      if not searchsym_type('FPC_INTERNAL_FOUR_CHAR_ARRAY',srsym,srsymtable) then
-                                        internalerror(2006101801);
-                                      inserttypeconv_internal(p1,ttypesym(srsym).restype);
-                                    end
+                                    int_to_4cc(p1)
                                   else
                                     ok := false;
                                 if ok then

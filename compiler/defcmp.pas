@@ -57,6 +57,7 @@ interface
           tc_pointer_2_array,
           tc_int_2_int,
           tc_int_2_bool,
+          tc_int_2_string,
           tc_bool_2_bool,
           tc_bool_2_int,
           tc_real_2_real,
@@ -369,6 +370,13 @@ implementation
                         doconv:=tc_char_2_string;
                         eq:=te_convert_l1;
                       end;
+                     if (m_mac in aktmodeswitches) and
+                        is_integer(def_from) and
+                        (def_from.size = 4) then
+                       begin
+                         doconv:=tc_int_2_string;
+                         eq:=te_convert_l3
+                       end;
                    end;
                  arraydef :
                    begin

@@ -62,6 +62,7 @@ interface
           function resulttype_char_to_string : tnode;
           function resulttype_char_to_chararray : tnode;
           function resulttype_int_to_real : tnode;
+          function resulttype_int_to_string : tnode;
           function resulttype_real_to_real : tnode;
           function resulttype_real_to_currency : tnode;
           function resulttype_cchar_to_pchar : tnode;
@@ -204,6 +205,7 @@ interface
     procedure inserttypeconv_internal(var p:tnode;const t:ttype);
     procedure arrayconstructor_to_set(var p : tnode);
     procedure insert_varargstypeconv(var p : tnode; iscvarargs: boolean);
+    procedure int_to_4cc(var p: tnode);
 
 
 implementation
@@ -590,6 +592,24 @@ implementation
         resulttypepass(p);
       end;
 
+
+    procedure int_to_4cc(var p: tnode);
+      var
+        srsym: tsym;
+        srsymtable: tsymtable;
+      begin
+         if (m_mac in aktmodeswitches) and
+            is_integer(p.resulttype.def) and
+            (p.resulttype.def.size = 4) then
+           begin
+             if not searchsym_type('FPC_INTERNAL_FOUR_CHAR_ARRAY',srsym,srsymtable) then
+               internalerror(2006101802);
+             inserttypeconv_internal(p,ttypesym(srsym).restype);
+           end
+         else
+           internalerror(2006101803);
+      end;
+
 {*****************************************************************************
                            TTYPECONVNODE
 *****************************************************************************}
@@ -693,6 +713,7 @@ implementation
           'tc_pointer_2_array',
           'tc_int_2_int',
           'tc_int_2_bool',
+          'tc_int_2_string',
           'tc_bool_2_bool',
           'tc_bool_2_int',
           'tc_real_2_real',
@@ -1064,6 +1085,21 @@ implementation
       end;
 
 
+    function ttypeconvnode.resulttype_int_to_string : tnode;
+       begin
+         if (m_mac in aktmodeswitches) and
+            is_integer(left.resulttype.def) and
+            (left.resulttype.def.size = 4) then
+           begin
+             int_to_4cc(left);
+             inserttypeconv(left,resulttype);
+             result := left;
+             left := nil;
+           end
+         else
+           internalerror(2006101803);
+       end;
+
     function ttypeconvnode.resulttype_real_to_real : tnode;
       begin
          result:=nil;
@@ -1389,6 +1425,7 @@ implementation
           { pointer_2_array } nil,
           { int_2_int } @ttypeconvnode.resulttype_int_to_int,
           { int_2_bool } nil,
+          { int_2_string } @ttypeconvnode.resulttype_int_to_string,
           { bool_2_bool } nil,
           { bool_2_int } nil,
           { real_2_real } @ttypeconvnode.resulttype_real_to_real,
@@ -2335,6 +2372,7 @@ implementation
            @ttypeconvnode._first_pointer_to_array,
            @ttypeconvnode._first_int_to_int,
            @ttypeconvnode._first_int_to_bool,
+           nil, { removed in resulttype_int_to_string }
            @ttypeconvnode._first_bool_to_bool,
            @ttypeconvnode._first_bool_to_int,
            @ttypeconvnode._first_real_to_real,
@@ -2579,6 +2617,7 @@ implementation
            @ttypeconvnode._second_pointer_to_array,
            @ttypeconvnode._second_int_to_int,
            @ttypeconvnode._second_int_to_bool,
+           @ttypeconvnode._second_nothing, { int_to_string, handled in resulttype pass }
            @ttypeconvnode._second_bool_to_bool,
            @ttypeconvnode._second_bool_to_int,
            @ttypeconvnode._second_real_to_real,
