@@ -1,4 +1,4 @@
-{% fail}
+{ %fail }
 
 {$mode fpc}
 
