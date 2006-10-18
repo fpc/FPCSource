@@ -370,8 +370,8 @@ implementation
                            (vo_is_thread_var in tabstractvarsym(tloadnode(hp).symtableentry).varoptions))
                          ) then
                      begin
-                       { Assigning for-loop variable is only allowed in tp7 }
-                       if not(m_tp7 in aktmodeswitches) then
+                       { Assigning for-loop variable is only allowed in tp7 and macpas }
+                       if ([m_tp7,m_mac] * aktmodeswitches = []) then
                          begin
                            if not assigned(loopvarsym) then
                              loopvarsym:=tabstractvarsym(tloadnode(hp).symtableentry);
