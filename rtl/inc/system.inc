@@ -708,7 +708,11 @@ Begin
     sysfreemem(argv[i]);
   sysfreemem(argv);
 {$endif}
-{$if defined(LINUX) or defined(BSD)}
+{$ifdef LINUX}
+  {sysfreemem already checks for nil}
+  sysfreemem(calculated_cmdline);
+{$endif}
+{$ifdef BSD}
   sysfreemem(cmdline);
 {$endif}
 {$if not (defined(HAS_MEMORYMANAGER) or defined(HAS_MT_MEMORYMANAGER))}

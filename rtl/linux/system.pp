@@ -52,9 +52,9 @@ property cmdline:Pchar read get_cmdline;
 {$i elfres32.inc}
 {$endif}
 
-{$I system.inc}
-
 const calculated_cmdline:Pchar=nil;
+
+{$I system.inc}
 
 {*****************************************************************************
                        Misc. System Dependent Functions
