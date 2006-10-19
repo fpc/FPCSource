@@ -91,13 +91,14 @@ const sincof : TabCoef = (
 
 
 {$ifndef FPC_SYSTEM_HAS_TRUNC}
-type
 {$ifndef FPC_SYSTEM_HAS_float32}
+type
   float32 = longint;
 {$endif FPC_SYSTEM_HAS_float32}
 {$ifndef FPC_SYSTEM_HAS_flag}
+type
   flag = byte;
-{$endif FPC_SYSTEM_HAS_float32}
+{$endif FPC_SYSTEM_HAS_flag}
 
 
 {$ifndef FPC_SYSTEM_HAS_extractFloat64Frac0}
@@ -105,7 +106,7 @@ type
     Begin
       extractFloat64Frac0 := a.high and $000FFFFF;
     End;
-{$endif FPC_SYSTEM_HAS_extractFloat64Frac0}
+{$endif not FPC_SYSTEM_HAS_extractFloat64Frac0}
 
 
 {$ifndef FPC_SYSTEM_HAS_extractFloat64Frac1}
@@ -113,7 +114,7 @@ type
     Begin
       extractFloat64Frac1 := a.low;
     End;
-{$endif FPC_SYSTEM_HAS_extractFloat64Frac1}
+{$endif not FPC_SYSTEM_HAS_extractFloat64Frac1}
 
 
 {$ifndef FPC_SYSTEM_HAS_extractFloat64Exp}
@@ -121,7 +122,7 @@ type
     Begin
        extractFloat64Exp:= ( a.high shr 20 ) AND $7FF;
     End;
-{$endif FPC_SYSTEM_HAS_extractFloat64Exp}
+{$endif not FPC_SYSTEM_HAS_extractFloat64Exp}
 
 
 {$ifndef FPC_SYSTEM_HAS_extractFloat64Frac}
@@ -129,7 +130,7 @@ type
     Begin
       extractFloat64Frac:=int64(a) and $000FFFFFFFFFFFFF;
     End;
-{$endif FPC_SYSTEM_HAS_extractFloat64Frac}
+{$endif not FPC_SYSTEM_HAS_extractFloat64Frac}
 
 
 {$ifndef FPC_SYSTEM_HAS_extractFloat64Sign}
@@ -137,7 +138,7 @@ type
     Begin
        extractFloat64Sign := a.high shr 31;
     End;
-{$endif FPC_SYSTEM_HAS_extractFloat64Sign}
+{$endif not FPC_SYSTEM_HAS_extractFloat64Sign}
 
 
   Procedure shortShift64Left(a0:longint; a1:longint; count:smallint; VAR z0Ptr:longint; VAR z1Ptr:longint );
@@ -235,7 +236,7 @@ type
     Begin
        ExtractFloat32Frac := A AND $007FFFFF;
     End;
-{$endif FPC_SYSTEM_HAS_ExtractFloat32Frac}
+{$endif not FPC_SYSTEM_HAS_ExtractFloat32Frac}
 
 
 {$ifndef FPC_SYSTEM_HAS_extractFloat32Exp}
@@ -243,7 +244,7 @@ type
     Begin
       extractFloat32Exp := (a shr 23) AND $FF;
     End;
-{$endif FPC_SYSTEM_HAS_extractFloat32Exp}
+{$endif not FPC_SYSTEM_HAS_extractFloat32Exp}
 
 
 {$ifndef FPC_SYSTEM_HAS_extractFloat32Sign}
@@ -251,7 +252,7 @@ type
     Begin
       extractFloat32Sign := a shr 31;
     End;
-{$endif FPC_SYSTEM_HAS_extractFloat32Sign}
+{$endif not FPC_SYSTEM_HAS_extractFloat32Sign}
 
 
   Function float32_to_int32_round_to_zero( a: Float32 ): longint;
@@ -321,8 +322,7 @@ type
          result:=float32_to_int32_round_to_zero(f32);
        end;
     end;
-{$endif}
-
+{$endif not FPC_SYSTEM_HAS_TRUNC}
 
 
 {$ifndef FPC_SYSTEM_HAS_INT}
@@ -393,7 +393,7 @@ type
       end;
 {$endif SUPPORT_DOUBLE}
 
-{$endif}
+{$endif not FPC_SYSTEM_HAS_INT}
 
 
 {$ifndef FPC_SYSTEM_HAS_ABS}
