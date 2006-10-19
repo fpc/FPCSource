@@ -29,7 +29,7 @@ Type
   TTargetState = (tsNeutral,tsCompiling,tsCompiled,tsInstalled);
   TTargetStates = Set of TTargetState;
 
-  TRunMode = (rmHelp,rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDownload);
+  TRunMode = (rmHelp,rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDownload,rmManifest);
 
   TVerboseLevel = (vlError,vlWarning,vlInfo,vlCompare,vlCommand,vldebug);
   TVerboseLevels = Set of TVerboseLevel;
@@ -230,11 +230,13 @@ Type
     FAfterCompile: TNotifyEvent;
     FAfterDownload: TNotifyEvent;
     FAfterInstall: TNotifyEvent;
+    FAfterManifest: TNotifyEvent;
     FBeforeArchive: TNotifyEvent;
     FBeforeClean: TNotifyEvent;
     FBeforeCompile: TNotifyEvent;
     FBeforeDownload: TNotifyEvent;
     FBeforeInstall: TNotifyEvent;
+    FBeforeManifest: TNotifyEvent;
     FUnitPath,
     FObjectPath,
     FIncludePath,
@@ -252,7 +254,11 @@ Type
     FLicense: String;
     FURL: String;
     FVersion: String;
+    FEmail : String;
     FCommands : TCommands;
+    FDescriptionFile : String;
+    FDescription : String;
+    Function GetDescription : string;
     function GetCommands: TCommands;
     function GetHasCommands: Boolean;
     function GetHasStrings(AIndex: integer): Boolean;
@@ -268,11 +274,15 @@ Type
     Procedure GetCleanFiles(List : TStrings; Const APrefix : String; AOS : TOS); virtual;
     procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;Const APrefix : String; AOS : TOS);
     Procedure GetArchiveFiles(List : TStrings; Const APrefix : String; AOS : TOS); virtual;
+    Procedure GetManifest(Manifest : TStrings);
     Property Version : String Read FVersion Write FVersion;
     Property URL : String Read FURL Write FURL;
+    Property Email : String Read FEmail Write FEmail;
     Property Author : String Read FAuthor Write FAuthor;
     Property License : String Read FLicense Write FLicense;
     Property Directory : String Read FDirectory Write FDirectory;
+    Property Description : String Read GetDescription Write FDescription;
+    Property DescriptionFile : String Read FDescriptionFile Write FDescriptionFile;
     // Compiler options.
     Property OS : TOses Read FOS Write FOS;
     Property CPU : TCPUs Read FCPU Write FCPU;
@@ -307,6 +317,8 @@ Type
     Property AfterArchive : TNotifyEvent Read FAfterArchive Write FAfterArchive;
     Property BeforeDownload : TNotifyEvent Read FBeforeDownload Write FBeforeDownload;
     Property AfterDownload : TNotifyEvent Read FAfterDownload Write FAfterDownload;
+    Property BeforeManifest : TNotifyEvent Read FBeforeManifest Write FBeforeManifest;
+    Property AfterManifest : TNotifyEvent Read FAfterManifest Write FAfterManifest;
   end;
 
   { TPackages }
@@ -413,11 +425,13 @@ Type
     FAfterCompile: TNotifyEvent;
     FAfterDownload: TNotifyEvent;
     FAfterInstall: TNotifyEvent;
+    FAfterManifest: TNotifyEvent;
     FBeforeArchive: TNotifyEvent;
     FBeforeClean: TNotifyEvent;
     FBeforeCompile: TNotifyEvent;
     FBeforeDownload: TNotifyEvent;
     FBeforeInstall: TNotifyEvent;
+    FBeforeManifest: TNotifyEvent;
     procedure SetDefaults(const AValue: TDefaults);
     procedure SetTargetDir(const AValue: String);
   Protected
@@ -474,6 +488,7 @@ Type
     Procedure Clean(APackage : TPackage);
     Procedure Download(APackage : TPackage);
     Procedure FixDependencies(APackage : TPackage);
+    Procedure GetManifest(APackage : TPackage; Manifest : TStrings);
     procedure CheckExternalPackage(Const APackageName : String);
     procedure CreateOutputDir(APackage: TPackage);
     // Packages commands
@@ -482,6 +497,7 @@ Type
     Procedure Archive(Packages : TPackages);
     Procedure Clean(Packages : TPackages);
     Procedure Download(Packages : TPackages);
+    Procedure GetManifest(Packages : TPackages; Manifest : TStrings);
     Property ListMode : Boolean Read FListMode Write FListMode;
     Property ForceCompile : Boolean Read FForceCompile Write FForceCompile;
     Property Defaults : TDefaults Read FDefaults Write SetDefaults;
@@ -497,6 +513,8 @@ Type
     Property AfterArchive : TNotifyEvent Read FAfterArchive Write FAfterArchive;
     Property BeforeDownload : TNotifyEvent Read FBeforeDownload Write FBeforeDownload;
     Property AfterDownload : TNotifyEvent Read FAfterDownload Write FAfterDownload;
+    Property BeforeManifest : TNotifyEvent Read FBeforeManifest Write FBeforeManifest;
+    Property AfterManifest : TNotifyEvent Read FAfterManifest Write FAfterManifest;
     Property OnLog : TLogEvent Read FOnLog Write FOnlog;
   end;
 
@@ -511,25 +529,15 @@ Type
     FRunMode: TRunMode;
     FListMode : Boolean;
     FLogLevels : TVerboseLevels;
-    function GetAuthor: String;
+    Function GetPackageString(Index : Integer) : String;
+    Procedure SetPackageString(Index : Integer; AValue : String);
     function GetStrings(AIndex : Integer): TStrings;
-    function GetDirectory: String;
-    function GetLicense: String;
     function GetOSes: TOSes;
-    function GetOptions: String;
     function GetTargets: TTargets;
-    function GetURL: String;
-    function GetVersion: String;
-    procedure SetAuthor(const AValue: String);
     procedure SetDefaultPackage(const AValue: TPackage);
     procedure SetDefaults(const AValue: TDefaults);
     procedure SetStrings(AIndex : Integer; const AValue: TStrings);
-    procedure SetDirectory(const AValue: String);
-    procedure SetOptions(const AValue: String);
     procedure SetOses(const AValue: TOSes);
-    procedure SetURL(const AValue: String);
-    procedure SetVersion(const AValue: String);
-    procedure SetLicense(const AValue: String);
   Protected
     Procedure Log(Level : TVerboseLevel; Const Msg : String);
     Procedure CreatePackages; virtual;
@@ -545,6 +553,7 @@ Type
     Procedure Install; virtual;
     Procedure Archive; virtual;
     Procedure Download; Virtual;
+    Procedure Manifest; virtual;
     Property BuildEngine : TBuildEngine Read FBuildEngine;
   Public
     Constructor Create(AOWner : TComponent); override;
@@ -565,13 +574,16 @@ Type
     Property ListMode : Boolean Read FListMode;
     // Default Package redirects.
     Property Targets : TTargets Read GetTargets;
-    Property Version : String Read GetVersion Write SetVersion;
-    Property URL : String Read GetURL Write SetURL;
-    Property Author : String Read GetAuthor Write SetAuthor;
-    Property License : String Read GetLicense Write SetLicense;
-    Property Directory : String Read GetDirectory Write SetDirectory;
-    Property Options : String Read GetOptions Write SetOptions;
     Property OS: TOSes Read GetOSes Write SetOses;
+    Property Author : String Index 0 Read GetPackageString Write SetPackageString;
+    Property Directory : String Index 1 Read GetPackageString Write SetPackageString;
+    Property License : String Index 2 Read GetPackageString Write SetPackageString;
+    Property Options : String Index 3 Read GetPackageString Write SetPackageString;
+    Property URL : String Index 4 Read GetPackageString Write SetPackageString;
+    Property Email : String Index 5 Read GetPackageString Write SetPackageString;
+    Property Description: String Index 6 Read GetPackageString Write SetPackageString;
+    Property DescriptionFileName: String Index 7 Read GetPackageString Write SetPackageString;
+    Property Version : String Index 8 Read GetPackageString Write SetPackageString;
   end;
 
   TReplaceFunction = Function (Const AName,Args : String) : String of Object;
@@ -749,6 +761,31 @@ ResourceString
   SLogCopyingFile        = 'Copying file "%s" to "%s"';
   SLogCompilingFileTimes = 'Comparing file "%s" time "%s" to "%s" time "%s".';
   SLogSourceNewerDest    = 'Source file "%s" (%s) is newer than destination "%s" (%s).';
+
+  // Help messages for usage
+  SValue              = 'Value';
+  SHelpUSage          = 'command [options]';
+  SHelpCommand        = 'Where command is one of the following:';
+  SHelpCompile        = 'Compile all units in the package(s).';
+  SHelpBuild          = 'Build all units in the package(s).';
+  SHelpInstall        = 'Install all units in the package(s).';
+  SHelpClean          = 'Clean (remove) all units in the package(s).';
+  SHelpArchive        = 'Create archive (zip) with all units in the package(s).';
+  SHelpDownload       = 'Download the latest version of the package(s).';
+  SHelpHelp           = 'This message.';
+  SHelpManifest       = 'Create a manifest suitable for import in repository.';
+  SHelpCmdOptions     = 'Where options is one or more of the following:';
+  SHelpCPU            = 'Compile for indicated CPU.';
+  SHelpOS             = 'Compile for indicated OS';
+  SHelpTarget         = 'Compile for indicated target';
+  SHelpList           = 'list commands instead of actually executing them.';
+  SHelpPrefix         = 'Use indicated prefix directory for all commands.';
+  SHelpNoDefaults     = 'Do not use defaults when compiling.';
+  SHelpBaseInstallDir = 'Use indicated directory as base install dir.';
+  SHelpCompiler       = 'Use indicated binary as compiler';
+  SHelpConfig         = 'Use indicated config file when compiling.';
+  SHelpVerbose        = 'Be verbose when working.';
+
 
 Const
   // Keys for Defaults file. Do not localize.
@@ -1515,6 +1552,132 @@ begin
   Result:=Assigned(FCommands);
 end;
 
+Procedure SplitVersion(AValue: String; Var Release,Major,Minor : Word; Var Suffix : String);
+
+  Function NextDigit(sep : Char; var V : string) : integer;
+
+  Var
+    P : Integer;
+
+  begin
+    P:=Pos(Sep,V);
+    If (P=0) then
+      P:=Length(V)+1;
+    Result:=StrToIntDef(Copy(V,1,P-1),-1);
+    If Result<>-1 then
+      Delete(V,1,P)
+    else
+      Result:=0;
+  end;
+
+Var
+  P : Integer;
+  V : String;
+
+begin
+  Release:=0;
+  Major:=0;
+  Minor:=0;
+  Suffix:='';
+  V:=AValue;
+  Release:=NextDigit('.',V);
+  Major:=NextDigit('.',V);
+  Minor:=NextDigit('-',V);
+  P:=Pos('-',V);
+  If (P<>0) then
+    Delete(V,1,P);
+  Suffix:=V;
+end;
+
+Function QuoteXML(S : String) : string;
+
+  Procedure W(Var J : Integer; Var R : String; T : String);
+  
+  Var
+    I: integer;
+  
+  begin
+    If J+Length(T)>Length(R) then
+      SetLength(R,J+Length(T));
+    For I:=1 to Length(t) do
+      begin
+      R[J]:=T[i];
+      If I<Length(T) then
+        Inc(J);
+      end;
+  end;
+
+const
+  QuotStr = '&quot;';
+  AmpStr = '&amp;';
+  ltStr = '&lt;';
+  gtStr = '&gt;';
+
+Var
+  I,J : Integer; 
+ 
+begin
+  SetLength(Result,Length(S));
+  J:=0;
+  For I:=1 to Length(S) do
+    begin
+    Inc(J);
+    case S[i] of
+      '"': W(j,Result,QuotStr);
+      '&': W(J,Result,AmpStr);
+      '<': W(J,Result,ltStr);
+      // Escape whitespace using CharRefs to be consistent with W3 spec X 3.3.3
+       #9: w(J,Result,'&#x9;');
+{      #10: wrtStr('&#xA;');
+       #13: wrtStr('&#xD;');}
+    else
+      Result[J]:=S[i];
+    end;  
+    If (J=Length(Result)) and (I<Length(S)) then  
+      SetLength(Result,J+Length(S)-I);
+    end;
+  If J<>Length(Result) then  
+    SetLength(Result,J);  
+end;
+                                              
+                  
+
+Procedure TPackage.GetManifest(Manifest : TStrings);
+  
+
+Var
+  S : String;
+  Release,Minor,Major : Word;
+  i : integer;
+  
+begin
+  With Manifest do
+    begin
+    Add(Format('<package name="%s">',[QuoteXml(Name)]));
+    SplitVersion(Version,Release,Minor,Major,S);
+    Add(Format('<version release="%d" major="%d" minor="%d" suffix="%s"/>',[Release,Minor,Major,QuoteXMl(S)]));
+    Add(Format('<author>%s</author>',[QuoteXml(Author)]));
+    Add(Format('<url>%s</url>',[QuoteXml(URL)]));
+    Add(Format('<email>%s</email>',[QuoteXMl(Email)]));
+    S:=Description;
+    If (S<>'') then
+      Add(Format('<description>%s</description>',[QuoteXML(S)]));
+    if HasDependencies then
+      begin
+      If (Dependencies.Count>0) then
+        begin
+        Add('<dependencies>');
+        for I:=0 to Dependencies.Count-1 do
+          begin
+          Add(Format('<dependency><package packagename=""/></dependency>',[QuoteXML(Dependencies[i])]));
+          end;
+        Add('</dependencies>');
+        end;
+      end;  
+    Add('</package>');
+    end;
+end;
+
 function TPackage.GetStrings(AIndex: integer): TStrings;
 
   Function EnsureStrings(Var S : TStrings) : TStrings;
@@ -1643,6 +1806,33 @@ begin
     end;
 end;
 
+Function TPackage.GetDescription : string;
+
+Var
+  FN : String;
+  L : TStringList;
+
+begin
+  If (FDescription<>'') then
+    Result:=FDescription
+  else
+    If (FDescriptionFile<>'') then
+      begin
+      // Always relative to binary name.
+      FN:=ExtractFilePath(ParamStr(0));
+      FN:=FN+FDescriptionFile;
+      If FileExists(FN) then
+        begin
+        L:=TStringList.Create;
+        Try
+          L.LoadFromFile(FN);
+          Result:=L.Text;
+        Finally
+          L.Free;  
+        end;
+        end;
+      end;
+end;
 
 
 { TPackages }
@@ -1682,17 +1872,50 @@ begin
   end;
 end;
 
-function TInstaller.GetDirectory: String;
+Function TInstaller.GetPackageString(Index : Integer) : String;
+
+Var
+  P : TPackage;
+
+
 begin
   CheckDefaultPackage;
-  Result:=DefaultPackage.Directory;
+  P:=DefaultPackage;
+  Case Index of
+    0 : Result:=P.Author;
+    1 : Result:=P.Directory;
+    2 : Result:=P.License;
+    3 : Result:=P.Options;
+    4 : Result:=P.URL;
+    5 : Result:=P.Email;
+    6 : Result:=P.Description;
+    7 : Result:=P.DescriptionFile;
+    8 : Result:=P.Version;
+  end;
 end;
 
-function TInstaller.GetLicense: String;
+
+Procedure TInstaller.SetPackageString(Index : Integer; AValue : String);
+
+Var
+  P : TPackage;
+
 begin
   CheckDefaultPackage;
-  Result:=DefaultPackage.License;
+  P:=DefaultPackage;
+  Case Index of
+    0 : P.Author:=AValue;
+    1 : P.Directory:=AValue;
+    2 : P.License:=AValue;
+    3 : P.Options:=AValue;
+    4 : P.URL:=AValue;
+    5 : P.Email:=AValue;
+    6 : P.Description:=AValue;
+    7 : P.DescriptionFile:=AValue;
+    8 : P.Version:=AValue;
+  end;
 end;
+
 
 function TInstaller.GetOSes: TOSes;
 begin
@@ -1700,40 +1923,10 @@ begin
   Result:=DefaultPackage.OS;
 end;
 
-function TInstaller.GetOptions: String;
-begin
-  CheckDefaultPackage;
-  Result:=DefaultPackage.Options;
-end;
-
-function TInstaller.GetAuthor: String;
-begin
-  CheckDefaultPackage;
-  Result:=DefaultPackage.Author;
-end;
-
 function TInstaller.GetTargets: TTargets;
 begin
   CheckDefaultPackage;
   Result:=DefaultPackage.Targets;
-end;
-
-function TInstaller.GetURL: String;
-begin
-  CheckDefaultPackage;
-  Result:=DefaultPackage.URL;
-end;
-
-function TInstaller.GetVersion: String;
-begin
-  CheckDefaultPackage;
-  Result:=DefaultPackage.Version;
-end;
-
-procedure TInstaller.SetAuthor(const AValue: String);
-begin
-  CheckDefaultPackage;
-  DefaultPackage.Author:=AValue;
 end;
 
 procedure TInstaller.SetDefaultPackage(const AValue: TPackage);
@@ -1763,40 +1956,10 @@ begin
   Res.Assign(Avalue);
 end;
 
-procedure TInstaller.SetDirectory(const AValue: String);
-begin
-  CheckDefaultPackage;
-  DefaultPackage.Directory:=AValue;
-end;
-
-procedure TInstaller.SetOptions(const AValue: String);
-begin
-  CheckDefaultPackage;
-  DefaultPackage.Options:=AValue;
-end;
-
 procedure TInstaller.SetOses(const AValue: TOSes);
 begin
   CheckDefaultPackage;
   DefaultPackage.OS:=AValue;
-end;
-
-procedure TInstaller.SetURL(const AValue: String);
-begin
-  CheckDefaultPackage;
-  DefaultPackage.URL:=AValue;
-end;
-
-procedure TInstaller.SetVersion(const AValue: String);
-begin
-  CheckDefaultPackage;
-  DefaultPackage.Version:=AValue;
-end;
-
-procedure TInstaller.SetLicense(const AValue: String);
-begin
-  CheckDefaultPackage;
-  DefaultPackage.License:=AValue;
 end;
 
 procedure TInstaller.Log(Level: TVerboseLevel; const Msg: String);
@@ -1911,7 +2074,9 @@ begin
     else if CheckOption(I,'d','download') then
       FRunMode:=rmDownload
     else if CheckOption(I,'h','help') then
-      FRunMode:=rmhelp
+      FRunMode:=rmHelp
+    else if CheckOption(I,'M','manifest') then
+      FRunMode:=rmManifest
     else if Checkoption(I,'C','CPU') then
       Defaults.CPU:=StringToCPU(OptionArg(I))
     else if Checkoption(I,'O','OS') then
@@ -1924,7 +2089,7 @@ begin
       Defaults.Prefix:=OptionArg(I)
     else if Checkoption(I,'n','nodefaults') then
       NoDefaults:=true
-    else if CheckOption(I,'b','baseinstalldir') then
+    else if CheckOption(I,'B','baseinstalldir') then
       Defaults.BaseInstallDir:=OptionArg(I)
     else if CheckOption(I,'r','compiler') then
       Defaults.Compiler:=OptionArg(I)
@@ -1950,11 +2115,47 @@ begin
 {$endif}
 end;
 
+
+
 procedure TInstaller.Usage(FMT: String; Args: array of const);
+
+  Procedure WriteCmd(C: Char; LC : String; Msg : String);
+  
+  begin
+    Writeln(stderr,'-',C,'  --',LC,'   ',MSG);
+  end;
+  
+  Procedure WriteOption(C: Char; LC : String; Msg : String);
+  
+  begin
+    Writeln(stderr,'-',C,'  --',LC,'=',SValue,'  ',MSG);
+  end;
+
 begin
   If (FMT<>'') then
     Writeln(stderr,Format(Fmt,Args));
   Writeln(stderr,ExtractFileName(Paramstr(0)),' usage: ');
+  Writeln(stderr,SHelpUsage);
+  Writeln(stderr,SHelpCommand);
+  WriteCmd('m','compile',SHelpCompile);
+  WriteCmd('b','build',SHelpBuild);
+  WriteCmd('i','install',SHelpInstall);
+  WriteCmd('c','clean',SHelpClean);
+  WriteCmd('a','archive',SHelpArchive);
+  WriteCmd('d','download',SHelpDownload);
+  WriteCmd('h','help',SHelpHelp);
+  WriteCmd('M','manifest',SHelpManifest);
+  Writeln(stderr,SHelpCmdOptions);
+  WriteCmd('l','list-commands',SHelpList);
+  WriteCmd('n','nodefaults',SHelpNoDefaults);
+  WriteCmd('v','verbose',SHelpVerbose);
+  WriteOption('C','CPU',SHelpCPU);
+  WriteOption('O','OS',SHelpOS);
+  WriteOption('t','target',SHelpTarget);
+  WriteOption('P','prefix',SHelpPrefix);
+  WriteOption('B','baseinstalldir',SHelpBaseInstalldir);
+  WriteOption('r','compiler',SHelpCompiler);
+  WriteOption('f','config',SHelpConfig);
   Writeln(stderr,'');
   If (FMT<>'') then
     halt(1);
@@ -1984,6 +2185,24 @@ end;
 procedure TInstaller.Download;
 begin
   BuildEngine.Download(FPackages);
+end;
+
+procedure TInstaller.Manifest;
+
+Var
+  L : TStrings;
+  I : Integer;
+  
+begin
+  L:=TStringList.Create;
+  Try
+    L.Add('<?xml version="1.0"?>');
+    BuildEngine.GetManifest(FPackages,L);
+    For I:=0 to L.Count-1 do
+      Writeln(L[i]);
+  Finally
+    L.Free;
+  end;    
 end;
 
 constructor TInstaller.Create(AOWner: TComponent);
@@ -2026,6 +2245,7 @@ begin
       rmArchive : Archive;
       rmClean    : Clean;
       rmDownload : Download;
+      rmManifest : Manifest;
     end;
   except
     On E : Exception do
@@ -2861,6 +3081,12 @@ begin
     end;
 end;
 
+Procedure TBuildEngine.GetManifest(APackage : TPackage; Manifest : TStrings);
+
+begin
+  APackage.GetManifest(Manifest);
+end;
+
 
 procedure TBuildEngine.Download(APackage: TPackage);
 begin
@@ -2975,6 +3201,23 @@ begin
   If Assigned(AfterDownload) then
     AfterDownload(Self);
 end;
+
+Procedure TBuildEngine.GetManifest(Packages : TPackages; Manifest : TStrings);
+
+Var
+  I : Integer;
+  
+begin
+  If Assigned(BeforeManifest) then
+    BeforeManifest(Self);
+  Manifest.Add('<packages>');  
+  For I:=0 to Packages.Count-1 do
+    GetManifest(Packages.PackageItems[i],Manifest);
+  Manifest.Add('</packages>');  
+  If Assigned(AfterManifest) then
+    AfterManifest(Self);
+end;
+
 
 { TTarget }
 
