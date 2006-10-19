@@ -1,0 +1,21 @@
+#
+#   Makefile.fpc for TDataSet for FCL
+#
+
+[package]
+main=fcl
+
+[target]
+units=httpdefs fphttp custcgi fpcgi fptemplate fphtml websession fpweb \
+      htmlelements  htmlwriter webutil fpdatasetform
+rsts=fpcgi fphtml fpweb htmlwriter websession
+
+[compiler]
+options=-S2
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+

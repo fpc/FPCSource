@@ -224,7 +224,7 @@ end;
 
 procedure TranslateUnitResourceStrings(const AUnitName:string; AFile: TMOFile);
 begin
-  SetUnitResourceStrings(AUnitName,@Translate,AFile);
+//  SetUnitResourceStrings(AUnitName,@Translate,AFile);
 end;
 
 
