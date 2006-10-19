@@ -139,6 +139,10 @@ ifndef DOTEST
 DOTEST=utils/dotest
 endif
 
+ifndef PREPUP
+DOPREP=utils/prepup
+endif
+
 
 ################################
 # Units
@@ -326,7 +330,7 @@ $(TEST_OUTPUTDIR)/dbdigest.cfg:
         $(ECHOREDIR) "Comment=$(TEST_OPT)" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 
 $(TEST_OUTPUTDIR)/tar.lst:
-        cd $(TEST_OUTPUTDIR) && find . -name '*.log' -or -name '*.elg' > tar.lst
+        cd $(TEST_OUTPUTDIR) && $(PREPUP) > tar.lst
         $(ECHOREDIR) "log" >> $(TEST_OUTPUTDIR)/tar.lst
         $(ECHOREDIR) "dbdigest.cfg" >> $(TEST_OUTPUTDIR)/tar.lst
 

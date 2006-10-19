@@ -13,7 +13,7 @@ fpcdir=../..
 nortl=y
 
 [target]
-programs=dotest fail testfail digest $(DBDIGEST)
+programs=dotest fail testfail digest prepup $(DBDIGEST)
 
 [clean]
 programs=dbdigest
