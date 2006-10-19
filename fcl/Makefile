@@ -233,127 +233,127 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/ext
 override PACKAGE_NAME=fcl
 override PACKAGE_VERSION=2.0.0
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=xml image db shedit passrc net fpcunit
+override TARGET_DIRS+=xml image db shedit passrc net fpcunit web
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio inicol pooledmm htmldefs  process resolve ssockets fpasync syncobjs simpleipc dbugmsg dbugintf
@@ -3356,6 +3356,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 TARGET_DIRS_XML=1
@@ -3365,6 +3366,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 TARGET_DIRS_XML=1
@@ -3374,6 +3376,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 TARGET_DIRS_XML=1
@@ -3383,6 +3386,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 TARGET_DIRS_XML=1
@@ -3392,6 +3396,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 TARGET_DIRS_XML=1
@@ -3401,6 +3406,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 TARGET_DIRS_XML=1
@@ -3410,6 +3416,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 TARGET_DIRS_XML=1
@@ -3419,6 +3426,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 TARGET_DIRS_XML=1
@@ -3428,6 +3436,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 TARGET_DIRS_XML=1
@@ -3437,6 +3446,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 TARGET_DIRS_XML=1
@@ -3446,6 +3456,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 TARGET_DIRS_XML=1
@@ -3455,6 +3466,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 TARGET_DIRS_XML=1
@@ -3464,6 +3476,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 TARGET_DIRS_XML=1
@@ -3473,6 +3486,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 TARGET_DIRS_XML=1
@@ -3482,6 +3496,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 TARGET_DIRS_XML=1
@@ -3491,6 +3506,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 TARGET_DIRS_XML=1
@@ -3500,6 +3516,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 TARGET_DIRS_XML=1
@@ -3509,6 +3526,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 TARGET_DIRS_XML=1
@@ -3518,6 +3536,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 TARGET_DIRS_XML=1
@@ -3527,6 +3546,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 TARGET_DIRS_XML=1
@@ -3536,6 +3556,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 TARGET_DIRS_XML=1
@@ -3545,6 +3566,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 TARGET_DIRS_XML=1
@@ -3554,6 +3576,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 TARGET_DIRS_XML=1
@@ -3563,6 +3586,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 TARGET_DIRS_XML=1
@@ -3572,6 +3596,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 TARGET_DIRS_XML=1
@@ -3581,6 +3606,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 TARGET_DIRS_XML=1
@@ -3590,6 +3616,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 TARGET_DIRS_XML=1
@@ -3599,6 +3626,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 TARGET_DIRS_XML=1
@@ -3608,6 +3636,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 TARGET_DIRS_XML=1
@@ -3617,6 +3646,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 TARGET_DIRS_XML=1
@@ -3626,6 +3656,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 TARGET_DIRS_XML=1
@@ -3635,6 +3666,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 TARGET_DIRS_XML=1
@@ -3644,6 +3676,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 TARGET_DIRS_XML=1
@@ -3653,6 +3686,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_XML=1
@@ -3662,6 +3696,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 TARGET_DIRS_XML=1
@@ -3671,6 +3706,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 TARGET_DIRS_XML=1
@@ -3680,6 +3716,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 TARGET_DIRS_XML=1
@@ -3689,6 +3726,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 TARGET_DIRS_XML=1
@@ -3698,6 +3736,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 TARGET_DIRS_XML=1
@@ -3707,6 +3746,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 TARGET_DIRS_XML=1
@@ -3716,6 +3756,7 @@ TARGET_DIRS_SHEDIT=1
 TARGET_DIRS_PASSRC=1
 TARGET_DIRS_NET=1
 TARGET_DIRS_FPCUNIT=1
+TARGET_DIRS_WEB=1
 endif
 ifdef TARGET_DIRS_XML
 xml_all:
@@ -4031,6 +4072,51 @@ fpcunit_makefiles:
 fpcunit:
 	$(MAKE) -C fpcunit all
 .PHONY: fpcunit_all fpcunit_debug fpcunit_smart fpcunit_release fpcunit_units fpcunit_examples fpcunit_shared fpcunit_install fpcunit_sourceinstall fpcunit_exampleinstall fpcunit_distinstall fpcunit_zipinstall fpcunit_zipsourceinstall fpcunit_zipexampleinstall fpcunit_zipdistinstall fpcunit_clean fpcunit_distclean fpcunit_cleanall fpcunit_info fpcunit_makefiles fpcunit
+endif
+ifdef TARGET_DIRS_WEB
+web_all:
+	$(MAKE) -C web all
+web_debug:
+	$(MAKE) -C web debug
+web_smart:
+	$(MAKE) -C web smart
+web_release:
+	$(MAKE) -C web release
+web_units:
+	$(MAKE) -C web units
+web_examples:
+	$(MAKE) -C web examples
+web_shared:
+	$(MAKE) -C web shared
+web_install:
+	$(MAKE) -C web install
+web_sourceinstall:
+	$(MAKE) -C web sourceinstall
+web_exampleinstall:
+	$(MAKE) -C web exampleinstall
+web_distinstall:
+	$(MAKE) -C web distinstall
+web_zipinstall:
+	$(MAKE) -C web zipinstall
+web_zipsourceinstall:
+	$(MAKE) -C web zipsourceinstall
+web_zipexampleinstall:
+	$(MAKE) -C web zipexampleinstall
+web_zipdistinstall:
+	$(MAKE) -C web zipdistinstall
+web_clean:
+	$(MAKE) -C web clean
+web_distclean:
+	$(MAKE) -C web distclean
+web_cleanall:
+	$(MAKE) -C web cleanall
+web_info:
+	$(MAKE) -C web info
+web_makefiles:
+	$(MAKE) -C web makefiles
+web:
+	$(MAKE) -C web all
+.PHONY: web_all web_debug web_smart web_release web_units web_examples web_shared web_install web_sourceinstall web_exampleinstall web_distinstall web_zipinstall web_zipsourceinstall web_zipexampleinstall web_zipdistinstall web_clean web_distclean web_cleanall web_info web_makefiles web
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 TARGET_EXAMPLEDIRS_TESTS=1
