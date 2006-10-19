@@ -97,6 +97,7 @@ implementation
                   procsym :
                     begin
                       if (Tprocsym(srsym).procdef_count>1) or
+                         (po_kylixlocal in tprocsym(srsym).first_procdef.procoptions) or
                          ((tf_need_export in target_info.flags) and
                           not(po_exports in tprocsym(srsym).first_procdef.procoptions)) then
                         Message(parser_e_illegal_symbol_exported)

@@ -1568,7 +1568,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=38;
+  num_proc_directives=39;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1743,6 +1743,15 @@ const
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
       mutexclpo     : [po_external]
+    ),(
+      idtok:_LOCAL;
+      pd_flags : [pd_implemen,pd_body];
+      handler  : nil;
+      pocall   : pocall_none;
+      pooption : [po_kylixlocal];
+      mutexclpocall : [pocall_internproc,pocall_far16];
+      mutexclpotype : [];
+      mutexclpo     : [po_external,po_exports]
     ),(
       idtok:_MESSAGE;
       pd_flags : [pd_interface,pd_object,pd_notobjintf];
@@ -2566,12 +2575,16 @@ const
                       if assigned(ad) xor assigned(fd) then
                         internalerror(200204178);
                     end;
-
                    { Everything is checked, now we can update the forward declaration
                      with the new data from the implementation }
                    hd.forwarddef:=pd.forwarddef;
                    hd.hasforward:=true;
                    hd.procoptions:=hd.procoptions+pd.procoptions;
+
+                   { marked as local but exported from unit? }
+                   if (hd.procoptions*[po_global,po_kylixlocal])=[po_global,po_kylixlocal] then
+                     MessagePos(hd.fileinfo,type_e_cant_export_local);
+
                    if hd.extnumber=65535 then
                      hd.extnumber:=pd.extnumber;
                    while not pd.aliasnames.empty do

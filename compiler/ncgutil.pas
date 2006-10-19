@@ -2093,7 +2093,8 @@ implementation
         { allocate PIC register }
         if (cs_create_pic in aktmoduleswitches) and
            (tf_pic_uses_got in target_info.flags) and
-           (pi_needs_got in current_procinfo.flags) then
+           (pi_needs_got in current_procinfo.flags) and
+           not(po_kylixlocal in current_procinfo.procdef.procoptions) then
           begin
             current_module.requires_ebx_pic_helper:=true;
             cg.a_call_name_static(list,'fpc_geteipasebx');

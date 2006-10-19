@@ -1932,8 +1932,7 @@ implementation
                  pdtemp:=tprocsym(Tloadnode(currpt.left).symtableentry).search_procdef_byprocvardef(Tprocvardef(def_to));
                  if assigned(pdtemp) then
                    begin
-                     tloadnode(currpt.left).procdef:=pdtemp;
-                     currpt.left.resulttype.setdef(tloadnode(currpt.left).procdef);
+                     tloadnode(currpt.left).setprocdef(pdtemp);
                      currpt.resulttype:=currpt.left.resulttype;
                      def_from:=currpt.left.resulttype.def;
                    end;

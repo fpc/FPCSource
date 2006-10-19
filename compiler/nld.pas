@@ -34,11 +34,13 @@ interface
 
     type
        tloadnode = class(tunarynode)
+       protected
+          procdef : tprocdef;
+          procdefderef : tderef;
+       public
           symtableentry : tsym;
           symtableentryderef : tderef;
           symtable : tsymtable;
-          procdef : tprocdef;
-          procdefderef : tderef;
           constructor create(v : tsym;st : tsymtable);virtual;
           constructor create_procvar(v : tsym;d:tprocdef;st : tsymtable);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -53,6 +55,7 @@ interface
           procedure mark_write;override;
           function  docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
+          procedure setprocdef(p : tprocdef);
        end;
        tloadnodeclass = class of tloadnode;
 
@@ -311,7 +314,9 @@ implementation
                  when the expected procvardef is known, see get_information
                  in htypechk.pas (PFV) }
                if not assigned(procdef) then
-                 procdef:=tprocsym(symtableentry).first_procdef;
+                 procdef:=tprocsym(symtableentry).first_procdef
+               else if po_kylixlocal in procdef.procoptions then
+                 CGMessage(type_e_cant_take_address_of_local_subroutine);
 
                { the result is a procdef, addrn and proc_to_procvar
                  typeconvn need this as resulttype so they know
@@ -431,7 +436,7 @@ implementation
       end;
 
 
-    procedure Tloadnode.printnodedata(var t:text);
+    procedure tloadnode.printnodedata(var t:text);
       begin
         inherited printnodedata(t);
         write(t,printnodeindention,'symbol = ',symtableentry.name);
@@ -440,6 +445,14 @@ implementation
         writeln(t,'');
       end;
 
+
+    procedure tloadnode.setprocdef(p : tprocdef);
+      begin
+        procdef:=p;
+        resulttype.setdef(p);
+        if po_local in p.procoptions then
+          CGMessage(type_e_cant_take_address_of_local_subroutine);
+      end;
 
 {*****************************************************************************
                              TASSIGNMENTNODE
