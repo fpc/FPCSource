@@ -1057,6 +1057,7 @@ fcl/unix/resolve.inc svneol=native#text/plain
 fcl/unix/simpleipc.inc svneol=native#text/plain
 fcl/web/Makefile svneol=native#text/plain
 fcl/web/Makefile.fpc svneol=native#text/plain
+fcl/web/README svneol=native#text/plain
 fcl/web/custcgi.pp svneol=native#text/plain
 fcl/web/fpcgi.pp svneol=native#text/plain
 fcl/web/fpdatasetform.pp svneol=native#text/plain
