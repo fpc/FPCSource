@@ -1039,6 +1039,7 @@ fcl/tests/testrtf.pp svneol=native#text/plain
 fcl/tests/testser.pp svneol=native#text/plain
 fcl/tests/testsres.pp svneol=native#text/plain
 fcl/tests/testur.pp svneol=native#text/plain
+fcl/tests/testweb.pp svneol=native#text/plain
 fcl/tests/testz.pp svneol=native#text/plain
 fcl/tests/testz2.pp svneol=native#text/plain
 fcl/tests/testzip.pp svneol=native#text/plain
