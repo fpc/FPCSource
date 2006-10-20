@@ -2498,6 +2498,7 @@ S*2Aas_assemble using GNU AS
 **2Sp_same as -Mgpc
 **2Ss_constructor name must be init (destructor must be done)
 **2St_allow static keyword in objects
+**2Sx_enable exception keywords (default in Delphi/ObjFPC modes)
 **1s_don't call assembler and linker
 **2sh_Generate script to link on host
 **2st_Generate script to link on target

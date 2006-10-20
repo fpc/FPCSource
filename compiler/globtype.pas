@@ -122,7 +122,7 @@ than 255 characters. That's why using Ansi Strings}
          mostly set with commandline }
        tglobalswitch = (cs_globalnone,
          { parameter switches }
-         cs_check_unit_name,cs_constructor_name,
+         cs_check_unit_name,cs_constructor_name,cs_support_exceptions,
          { units }
          cs_load_objpas_unit,
          cs_load_gpc_unit,
@@ -191,7 +191,8 @@ than 255 characters. That's why using Ansi Strings}
          m_hintdirective,       { support hint directives }
          m_duplicate_names,     { allow locals/paras to have duplicate names of globals }
          m_property,            { allow properties }
-         m_default_inline       { allow inline proc directive }
+         m_default_inline,      { allow inline proc directive }
+         m_except               { allow exception-related keywords }
        );
        tmodeswitches = set of tmodeswitch;
 

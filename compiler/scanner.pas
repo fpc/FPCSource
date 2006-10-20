@@ -357,6 +357,11 @@ implementation
              initasmmode:=aktasmmode;
 {$endif i386}
 
+           { Exception support explicitly turned on (mainly for macpas, to }
+           { compensate for lack of interprocedural goto support)          }
+           if (cs_support_exceptions in aktglobalswitches) then
+             include(aktmodeswitches,m_except);
+
             { Undefine old symbol }
             if (m_delphi in oldaktmodeswitches) then
               undef_system_macro('FPC_DELPHI')

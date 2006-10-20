@@ -1054,9 +1054,11 @@ begin
                          include(initmoduleswitches,cs_static_keyword);
                        'v' :
                          include(initglobalswitches,cs_support_vectors);
+                       'x' :
+                         include(initglobalswitches,cs_support_exceptions);
                        '-' :
                          begin
-                           exclude(initglobalswitches,cs_constructor_name);
+                           initglobalswitches:=initglobalswitches - [cs_constructor_name,cs_support_exceptions];
                            initlocalswitches:=InitLocalswitches - [cs_do_assertion, cs_do_inline, cs_ansistrings];
                            initmoduleswitches:=initmoduleswitches - [cs_support_c_operators, cs_support_goto,
                                                                      cs_support_macro,
