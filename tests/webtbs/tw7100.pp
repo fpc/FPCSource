@@ -51,11 +51,11 @@ end;
 
 procedure DumpString(const s: string);
 var
-  i: integer;
-  pi: pinteger;
+  i: sizeint;
+  pi: psizeint;
   pb: pbyte;
 begin
-  pi := pinteger(s);
+  pi := psizeint(s);
   pb := pbyte(pi);
 
   // Printing reference counter and string length
@@ -65,7 +65,7 @@ begin
     { refcount has to be 1, length 2 -> happens to be the same as i }
     if (pi^ <> i) then
       halt(1);
-    write(IntToHex(pi^, 8),' ');
+    write(IntToHex(pi^, sizeof(sizeint)*2),' ');
     inc(pi);
   end;
 
