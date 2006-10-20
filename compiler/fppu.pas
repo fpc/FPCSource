@@ -43,6 +43,7 @@ interface
        tppumodule = class(tmodule)
           ppufile    : tcompilerppufile; { the PPU file }
           sourcefn   : pstring; { Source specified with "uses .. in '..'" }
+          comments   : tstringlist;
 {$ifdef Test_Double_checksum}
           crc_array  : pointer;
           crc_size   : longint;
@@ -63,6 +64,8 @@ interface
           procedure load_implementation;
           procedure load_symtable_refs;
           procedure load_usedunits;
+          procedure printcomments;
+          procedure queuecomment(s:string;v,w:longint);
           procedure writesourcefiles;
           procedure writeusedunit(intf:boolean);
           procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
@@ -94,7 +97,8 @@ uses
   symtable, symsym,
   scanner,
   aasmbase,
-  parser;
+  parser,
+  comphook;
 
 {****************************************************************************
                                  Helpers
@@ -132,6 +136,8 @@ uses
         if assigned(ppufile) then
          ppufile.free;
         ppufile:=nil;
+        comments.free;
+        comments:=nil;
         stringdispose(sourcefn);
         inherited Destroy;
       end;
@@ -147,13 +153,34 @@ uses
         inherited reset;
       end;
 
+    procedure tppumodule.queuecomment(s:string;v,w:longint);
+    begin
+      if comments = nil then
+        comments := tstringlist.create;
+      comments.insert(s);
+    end;
+
+    procedure tppumodule.printcomments;
+    var
+      comment: string;
+    begin
+      if comments = nil then
+        exit;
+      { comments are inserted in reverse order }
+      repeat
+        comment := comments.getlast;
+        if length(comment) = 0 then
+          exit;
+        do_comment(v_normal, comment);
+      until false;
+    end;
 
     function tppumodule.openppu:boolean;
       var
         ppufiletime : longint;
       begin
         openppu:=false;
-        Message1(unit_t_ppu_loading,ppufilename^);
+        Message1(unit_t_ppu_loading,ppufilename^,@queuecomment);
       { Get ppufile time (also check if the file exists) }
         ppufiletime:=getnamedfiletime(ppufilename^);
         if ppufiletime=-1 then
@@ -179,7 +206,7 @@ uses
       { check for allowed PPU versions }
         if not (ppufile.GetPPUVersion = CurrentPPUVersion) then
          begin
-           Message1(unit_u_ppu_invalid_version,tostr(ppufile.GetPPUVersion));
+           Message1(unit_u_ppu_invalid_version,tostr(ppufile.GetPPUVersion),@queuecomment);
            ppufile.free;
            ppufile:=nil;
            exit;
@@ -189,7 +216,7 @@ uses
          begin
            ppufile.free;
            ppufile:=nil;
-           Message(unit_u_ppu_invalid_processor);
+           Message(unit_u_ppu_invalid_processor,@queuecomment);
            exit;
          end;
       { check target }
@@ -197,7 +224,7 @@ uses
          begin
            ppufile.free;
            ppufile:=nil;
-           Message(unit_u_ppu_invalid_target);
+           Message(unit_u_ppu_invalid_target,@queuecomment);
            exit;
          end;
 {$ifdef cpufpemu}
@@ -1256,7 +1283,7 @@ uses
                   (pu.u.crc<>pu.checksum)
                  ) then
                begin
-                 Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.realmodulename^);
+                 Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.realmodulename^,@queuecomment);
                  recompile_reason:=rr_crcchanged;
                  do_compile:=true;
                  exit;
@@ -1301,7 +1328,7 @@ uses
               { need to recompile the current unit ? }
               if (pu.u.interface_crc<>pu.interface_checksum) then
                 begin
-                  Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.realmodulename^+' {impl}');
+                  Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.realmodulename^+' {impl}',@queuecomment);
                   recompile_reason:=rr_crcchanged;
                   do_compile:=true;
                   exit;
@@ -1493,12 +1520,19 @@ uses
                    search_unit(true,true);
                  if not(sources_avail) then
                   begin
+                    printcomments;
                     if recompile_reason=rr_noppu then
                       Message1(unit_f_cant_find_ppu,realmodulename^)
                     else
                       Message1(unit_f_cant_compile_unit,realmodulename^);
                   end;
                end;
+              { we found the sources, we do not need the verbose messages anymore }
+              if comments <> nil then
+              begin
+                comments.free;
+                comments:=nil;
+              end;
               { Flag modules to reload }
               flagdependent(old_current_module);
               { Reset the module }
