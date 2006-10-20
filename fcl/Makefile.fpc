@@ -27,9 +27,9 @@ units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszl
 [target]
 dirs=xml image db shedit passrc net fpcunit web
 units=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
-      iostream zstream cachecls avl_tree xmlreg registry eventlog custapp cgiapp \
-      wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio \
-      inicol pooledmm htmldefs
+      iostream zstream cachecls avl_tree htmldefs xmlreg registry eventlog custapp \
+      cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio \
+      inicol pooledmm
 units_freebsd=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf
 units_darwin=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf
 units_solaris=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf
