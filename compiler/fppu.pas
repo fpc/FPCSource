@@ -708,7 +708,9 @@ uses
         source_time   : longint;
         hp            : tinputfile;
       begin
-        sources_avail:=true;
+        sources_avail:=(flags and uf_release) = 0;
+        if not sources_avail then
+          exit;
         is_main:=true;
         main_dir:='';
         while not ppufile.endofentry do
@@ -768,13 +770,9 @@ uses
                   if (orgfiletime<>-1) and
                      (source_time<>orgfiletime) then
                     begin
-                      if ((flags and uf_release)=0) then
-                        begin
-                          do_compile:=true;
-                          recompile_reason:=rr_sourcenewer;
-                        end
-                      else
-                        Message2(unit_h_source_modified,hs,ppufilename^);
+                      do_compile:=true;
+                      recompile_reason:=rr_sourcenewer;
+                      Message2(unit_u_source_modified,hs,ppufilename^);
                       temp:=temp+' *';
                     end;
                 end
@@ -797,8 +795,7 @@ uses
          end;
       { check if we want to rebuild every unit, only if the sources are
         available }
-        if do_build and sources_avail and
-           ((flags and uf_release)=0) then
+        if do_build and sources_avail then
           begin
              do_compile:=true;
              recompile_reason:=rr_build;
