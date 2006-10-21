@@ -162,6 +162,7 @@ unit rgobj;
         { can be overriden to add cpu specific interferences }
         procedure add_cpu_interferences(p : tai);virtual;
         procedure add_constraints(reg:Tregister);virtual;
+        function  get_alias(n:Tsuperregister):Tsuperregister;
         function  getregisterinline(list:TAsmList;subreg:Tsubregister):Tregister;
         procedure ungetregisterinline(list:TAsmList;r:Tregister);
         function  get_spill_subreg(r : tregister) : tsubregister;virtual;
@@ -225,7 +226,6 @@ unit rgobj;
         procedure enable_moves(n:Tsuperregister);
         procedure decrement_degree(m:Tsuperregister);
         procedure simplify;
-        function get_alias(n:Tsuperregister):Tsuperregister;
         procedure add_worklist(u:Tsuperregister);
         function adjacent_ok(u,v:Tsuperregister):boolean;
         function conservative(u,v:Tsuperregister):boolean;
@@ -1818,7 +1818,7 @@ unit rgobj;
           supreg : tsuperregister;
         begin
           tmpindex := regindex;
-          supreg:=getsupreg(reg);
+          supreg:=get_alias(getsupreg(reg));
           { did we already encounter this register? }
           for i := 0 to pred(regindex) do
             if (regs[i].orgreg = supreg) then
@@ -1856,7 +1856,7 @@ unit rgobj;
           i: longint;
           supreg: tsuperregister;
         begin
-          supreg:=getsupreg(reg);
+          supreg:=get_alias(getsupreg(reg));
           for i:=0 to pred(regindex) do
             if (regs[i].mustbespilled) and
                (regs[i].orgreg=supreg) then

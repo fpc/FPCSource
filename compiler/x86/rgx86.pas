@@ -139,11 +139,11 @@ implementation
                     begin
                       { One of the arguments shall be able to be replaced }
                       if (getregtype(oper[0]^.reg)=regtype) and
-                         (getsupreg(oper[0]^.reg)=orgreg) then
+                         (get_alias(getsupreg(oper[0]^.reg))=orgreg) then
                         replaceoper:=0
                       else
                         if (getregtype(oper[1]^.reg)=regtype) and
-                           (getsupreg(oper[1]^.reg)=orgreg) then
+                           (get_alias(getsupreg(oper[1]^.reg))=orgreg) then
                           replaceoper:=1
                       else
                         internalerror(200410106);
