@@ -178,6 +178,7 @@ end;
 
 procedure WriteElement(node: TDOMNode);
 var
+  h : THTMLElementTag;
   i: Integer;
   attr, child: TDOMNode;
   s: String;
@@ -186,10 +187,10 @@ var
 begin
   s := LowerCase(node.NodeName);
   ElFlags := [efSubelementContent, efPCDATAContent];    // default flags
-  for i := Low(HTMLElProps) to High(HTMLElProps) do
-    if HTMLElProps[i].Name = s then
+  for h := Low(HTMLElementProps) to High(HTMLElementProps) do
+    if HTMLElementProps[h].Name = s then
     begin
-      ElFlags := HTMLElProps[i].Flags;
+      ElFlags := HTMLElementProps[h].Flags;
       break;
     end;
 
