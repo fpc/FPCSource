@@ -157,10 +157,14 @@ unit cpupara;
             begin
               { variants are small enough to be passed by value except if
                 required by the windows api
+
+                variants are somethings very delphi/windows specific so do it like
+                windows/delphi (FK)
               }
-              if (target_info.system=system_i386_win32) and
+              if ((target_info.system=system_i386_win32) and
                  (calloption=pocall_stdcall) and
-                 (varspez=vs_const) then
+                 (varspez=vs_const)) or
+                 (calloption=pocall_register) then
                 result:=true
               else
                 result:=false;
