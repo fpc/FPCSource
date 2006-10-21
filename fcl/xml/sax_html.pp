@@ -531,6 +531,7 @@ var
   i : Integer;
   j : THTMLElementTag;
   TagInfo: PHTMLElementProps;
+
 begin
   // WriteLn('End: ', LocalName, '. Node buffer: ', FNodeBuffer.Count, ' elements');
   // Find the matching start tag
@@ -544,7 +545,7 @@ begin
       // We found the matching start tag
 
       TagInfo := nil;
-      for j := Low(HTMLElementProps) to High(HTMLElementProps) do
+      for j := Low(THTMLElementTag) to High(THTMLElementTag) do
         if CompareText(HTMLElementProps[j].Name, LocalName) = 0 then
         begin
           TagInfo := @HTMLElementProps[j];
