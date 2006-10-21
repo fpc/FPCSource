@@ -528,7 +528,8 @@ procedure THTMLToDOMConverter.ReaderEndElement(Sender: TObject;
   const NamespaceURI, LocalName, RawName: SAXString);
 var
   NodeInfo, NodeInfo2: THTMLNodeInfo;
-  i, j: Integer;
+  i : Integer;
+  j : THTMLElementTag;
   TagInfo: PHTMLElementProps;
 begin
   // WriteLn('End: ', LocalName, '. Node buffer: ', FNodeBuffer.Count, ' elements');
@@ -543,10 +544,10 @@ begin
       // We found the matching start tag
 
       TagInfo := nil;
-      for j := Low(HTMLElProps) to High(HTMLElProps) do
-        if CompareText(HTMLElProps[j].Name, LocalName) = 0 then
+      for j := Low(HTMLElementProps) to High(HTMLElementProps) do
+        if CompareText(HTMLElementProps[j].Name, LocalName) = 0 then
         begin
-          TagInfo := @HTMLElProps[j];
+          TagInfo := @HTMLElementProps[j];
           break;
         end;
 
