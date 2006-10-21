@@ -1015,7 +1015,7 @@ End;
 
 const
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-  maxdigits = 18;
+  maxdigits = 17;
 {$else}
   maxdigits = 14;
 {$endif}
