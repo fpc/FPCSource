@@ -26,10 +26,8 @@ implementation
 {$linklib c}
 
 {$ifndef linux}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
-{$ifndef FreeBSD5}
  {$linklib iconv}
  {$define useiconv}
-{$endif}
 {$endif linux}
 
 Uses
@@ -73,7 +71,10 @@ const
   CODESET = 0;
 {$else darwin}
 {$ifdef FreeBSD} // actually FreeBSD5. internationalisation is afaik not default on 4.
-  CODESET = 0;
+  __LC_CTYPE = 0;
+  _NL_CTYPE_CLASS = (__LC_CTYPE shl 16);
+  _NL_CTYPE_CODESET_NAME = (_NL_CTYPE_CLASS)+14;
+  CODESET = _NL_CTYPE_CODESET_NAME;
 {$else freebsd}
 {$ifdef solaris}
   CODESET=49;
@@ -98,7 +99,7 @@ type
   nl_item = cint;
 
 function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
-{$ifndef Darwin}
+{$ifndef bsd}
 function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
 function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'iconv_close';
