@@ -597,6 +597,9 @@ implementation
       var
         srsym: tsym;
         srsymtable: tsymtable;
+        inttemp, chararrtemp: ttempcreatenode;
+        newblock: tblocknode;
+        newstatement: tstatementnode;
       begin
          if (m_mac in aktmodeswitches) and
             is_integer(p.resulttype.def) and
@@ -604,7 +607,54 @@ implementation
            begin
              if not searchsym_type('FPC_INTERNAL_FOUR_CHAR_ARRAY',srsym,srsymtable) then
                internalerror(2006101802);
-             inserttypeconv_internal(p,ttypesym(srsym).restype);
+             if (target_info.endian = endian_big) then
+               inserttypeconv_internal(p,ttypesym(srsym).restype)
+             else
+               begin
+                 newblock := internalstatements(newstatement);
+                 inttemp := ctempcreatenode.create(p.resulttype,4,tt_persistent,true);
+                 chararrtemp := ctempcreatenode.create(ttypesym(srsym).restype,4,tt_persistent,true);
+                 addstatement(newstatement,inttemp);
+                 addstatement(newstatement,cassignmentnode.create(
+                   ctemprefnode.create(inttemp),p));
+                 addstatement(newstatement,chararrtemp);
+
+                 addstatement(newstatement,cassignmentnode.create(
+                   cvecnode.create(ctemprefnode.create(chararrtemp),
+                     cordconstnode.create(1,u32inttype,false)),
+                   ctypeconvnode.create_explicit(
+                     cshlshrnode.create(shrn,ctemprefnode.create(inttemp),
+                       cordconstnode.create(24,s32inttype,false)),
+                     cchartype)));
+
+                 addstatement(newstatement,cassignmentnode.create(
+                   cvecnode.create(ctemprefnode.create(chararrtemp),
+                     cordconstnode.create(2,u32inttype,false)),
+                   ctypeconvnode.create_explicit(
+                     cshlshrnode.create(shrn,ctemprefnode.create(inttemp),
+                       cordconstnode.create(16,s32inttype,false)),
+                     cchartype)));
+
+                 addstatement(newstatement,cassignmentnode.create(
+                   cvecnode.create(ctemprefnode.create(chararrtemp),
+                     cordconstnode.create(3,u32inttype,false)),
+                   ctypeconvnode.create_explicit(
+                     cshlshrnode.create(shrn,ctemprefnode.create(inttemp),
+                       cordconstnode.create(8,s32inttype,false)),
+                     cchartype)));
+
+                 addstatement(newstatement,cassignmentnode.create(
+                   cvecnode.create(ctemprefnode.create(chararrtemp),
+                     cordconstnode.create(4,u32inttype,false)),
+                   ctypeconvnode.create_explicit(
+                     ctemprefnode.create(inttemp),cchartype)));
+
+                 addstatement(newstatement,ctempdeletenode.create(inttemp));
+                 addstatement(newstatement,ctempdeletenode.create_normal_temp(chararrtemp));
+                 addstatement(newstatement,ctemprefnode.create(chararrtemp));
+                 p := newblock;
+                 resulttypepass(p);
+               end;
            end
          else
            internalerror(2006101803);
