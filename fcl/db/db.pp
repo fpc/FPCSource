@@ -1895,6 +1895,8 @@ Function DateTimeToDateTimeRec(DT: TFieldType; Data: TDateTime): TDateTimeRec;
 procedure DisposeMem(var Buffer; Size: Integer);
 function BuffersEqual(Buf1, Buf2: Pointer; Size: Integer): Boolean;
 
+function SkipComments(var p: PChar) : boolean;
+
 implementation
 
 uses dbconst,typinfo;

@@ -872,6 +872,9 @@ begin
   repeat
     begin
     inc(CurrentP);
+    
+    if SkipComments(CurrentP) then
+      if ParsePart = ppStart then PhraseP := CurrentP;
 
     if CurrentP^ in [' ',#13,#10,#9,#0,'(',')',';'] then
       begin

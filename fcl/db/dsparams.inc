@@ -176,6 +176,63 @@ begin
   Result := ParseSQL(SQL,DoCreate,ParameterStyle,ParamBinding, rs);
 end;
 
+function SkipComments(var p: PChar) : boolean;
+begin
+  result := false;
+  case p^ of
+    '''': // single quote delimited string
+      begin
+        Inc(p);
+        Result := True;
+        while not (p^ in [#0, '''']) do
+        begin
+          if p^='\' then Inc(p,2) // make sure we handle \' and \\ correct
+          else Inc(p);
+        end;
+        if p^='''' then Inc(p); // skip final '
+      end;
+    '"':  // double quote delimited string
+      begin
+        Inc(p);
+        Result := True;
+        while not (p^ in [#0, '"']) do
+        begin
+          if p^='\'  then Inc(p,2) // make sure we handle \" and \\ correct
+          else Inc(p);
+        end;
+        if p^='"' then Inc(p); // skip final "
+      end;
+    '-': // possible start of -- comment
+      begin
+        Inc(p);
+        if p^='-' then // -- comment
+        begin
+          Result := True;
+          repeat // skip until at end of line
+            Inc(p);
+          until p^ in [#10, #0];
+        end
+      end;
+    '/': // possible start of /* */ comment
+      begin
+        Inc(p);
+        if p^='*' then // /* */ comment
+        begin
+          Result := True;
+          repeat
+            Inc(p);
+            if p^='*' then // possible end of comment
+            begin
+              Inc(p);
+              if p^='/' then Break; // end of comment
+            end;
+          until p^=#0;
+          if p^='/' then Inc(p); // skip final /
+        end;
+      end;
+  end; {case}
+end;
+
 Function TParams.ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding; var ReplaceString : string): String;
 
 type
@@ -218,53 +275,8 @@ begin
   p:=PChar(SQL);
   BufStart:=p; // used to calculate ParamPart.Start values
   repeat
+    SkipComments(p);
     case p^ of
-      '''': // single quote delimited string
-        begin
-          Inc(p);
-          while not (p^ in [#0, '''']) do
-          begin
-            if p^='\' then Inc(p,2) // make sure we handle \' and \\ correct
-            else Inc(p);
-          end;
-          if p^='''' then Inc(p); // skip final '
-        end;
-      '"':  // double quote delimited string
-        begin
-          Inc(p);
-          while not (p^ in [#0, '"']) do
-          begin
-            if p^='\'  then Inc(p,2) // make sure we handle \" and \\ correct
-            else Inc(p);
-          end;
-          if p^='"' then Inc(p); // skip final "
-        end;
-      '-': // possible start of -- comment
-        begin
-          Inc(p);
-          if p='-' then // -- comment
-          begin
-            repeat // skip until at end of line
-              Inc(p);
-            until p^ in [#10, #0];
-          end
-        end;
-      '/': // possible start of /* */ comment
-        begin
-          Inc(p);
-          if p^='*' then // /* */ comment
-          begin
-            repeat
-              Inc(p);
-              if p^='*' then // possible end of comment
-              begin
-                Inc(p);
-                if p^='/' then Break; // end of comment
-              end;
-            until p^=#0;
-            if p^='/' then Inc(p); // skip final /
-          end;
-        end;
       ':','?': // parameter
         begin
           IgnorePart := False;
