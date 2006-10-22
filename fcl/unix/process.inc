@@ -103,9 +103,14 @@ Procedure CommandToList(S : String; List : TStrings);
           end;
        inc(wend);
        end;
+       
      Result:=Copy(S,WStart,WEnd-WStart);
-     Result:=StringReplace(Result,'"','',[rfReplaceAll]);
-     Result:=StringReplace(Result,'''','',[rfReplaceAll]);
+     
+     if  (Length(Result) > 0)
+     and (Result[1] = Result[Length(Result)]) // if 1st char = last char and..
+     and (Result[1] in Literals) then // it's one of the literals, then
+       Result:=Copy(Result, 2, Length(Result) - 2); //delete the 2 (but not others in it)
+
      While (WEnd<=Length(S)) and (S[Wend] in WhiteSpace) do
        inc(Wend);
      Delete(S,1,WEnd-1);
