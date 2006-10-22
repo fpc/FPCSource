@@ -1914,7 +1914,7 @@ end;
 Procedure DatabaseError (Const Msg : String; Comp : TComponent);
 
 begin
-  if assigned(Comp) then
+  if assigned(Comp) and (Comp.Name <> '') then
     Raise EDatabaseError.CreateFmt('%s : %s',[Comp.Name,Msg])
   else
     DatabaseError(Msg);
