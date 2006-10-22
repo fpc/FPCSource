@@ -376,6 +376,9 @@ interface
           begin
             location_reset(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.restype.def));
             tg.GetTempTyped(current_asmdata.CurrAsmList,tempinfo^.restype.def,tempinfo^.temptype,tempinfo^.location.reference);
+            { the temp could have been used previously either because the memory location was reused or
+              because we're in a loop }
+            cg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.restype.def,tempinfo^.location.reference);
           end
         else if tempinfo^.may_be_in_reg then
           begin
