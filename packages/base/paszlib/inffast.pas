@@ -65,10 +65,10 @@ begin
   b := s.bitb;
   k := s.bitk;
   q := s.write;
-  if ptrint(q) < ptrint(s.read) then
-    m := cardinal(ptrint(s.read)-ptrint(q)-1)
+  if ptruint(q) < ptruint(s.read) then
+    m := cardinal(ptruint(s.read)-ptruint(q)-1)
   else
-    m := cardinal(ptrint(s.zend)-ptrint(q));
+    m := cardinal(ptruint(s.zend)-ptruint(q));
 
   { initialize masks }
   ml := inflate_mask[bl];
@@ -161,7 +161,7 @@ begin
             {$ENDIF}
             { do the copy }
             dec(m, c);
-            if (cardinal(ptrint(q) - ptrint(s.window)) >= d) then     { offset before dest }
+            if (cardinal(ptruint(q) - ptruint(s.window)) >= d) then     { offset before dest }
             begin                                  {  just copy }
               r := q;
               dec(r, d);
@@ -170,7 +170,7 @@ begin
             end
             else                        { else offset after destination }
             begin
-              e := d - cardinal(ptrint(q) - ptrint(s.window)); { bytes from offset to end }
+              e := d - cardinal(ptruint(q) - ptruint(s.window)); { bytes from offset to end }
               r := s.zend;
               dec(r, e);                  { pointer to offset }
               if (c > e) then             { if source crosses, }
@@ -213,7 +213,7 @@ begin
             s.bitb := b;
             s.bitk := k;
             z.avail_in := n;
-            inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+            inc(z.total_in, ptruint(p)-ptruint(z.next_in));
             z.next_in := p;
             s.write := q;
 
@@ -265,7 +265,7 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+          inc(z.total_in, ptruint(p)-ptruint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_fast := Z_STREAM_END;
@@ -285,7 +285,7 @@ begin
           s.bitb := b;
           s.bitk := k;
           z.avail_in := n;
-          inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+          inc(z.total_in, ptruint(p)-ptruint(z.next_in));
           z.next_in := p;
           s.write := q;
           inflate_fast := Z_DATA_ERROR;
@@ -306,7 +306,7 @@ begin
   s.bitb := b;
   s.bitk := k;
   z.avail_in := n;
-  inc(z.total_in, ptrint(p)-ptrint(z.next_in));
+  inc(z.total_in, ptruint(p)-ptruint(z.next_in));
   z.next_in := p;
   s.write := q;
   inflate_fast := Z_OK;

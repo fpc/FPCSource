@@ -686,7 +686,7 @@ begin
   end;
 
   { restore }
-  inc(z.total_in, ptrint(p) - ptrint(z.next_in));
+  inc(z.total_in, ptruint(p) - ptruint(z.next_in));
   z.next_in := p;
   z.avail_in := n;
   z.state^.sub.marker := m;

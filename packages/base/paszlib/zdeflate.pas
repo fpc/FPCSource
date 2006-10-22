@@ -1113,7 +1113,7 @@ begin
   move(Pbyte(ss^.head)^,Pbyte(ds^.head)^,ds^.hash_size * sizeof(pos));
   move(Pbyte(ss^.pending_buf)^,Pbyte(ds^.pending_buf)^,cardinal(ds^.pending_buf_size));
 
-  ds^.pending_out := @ds^.pending_buf^[ptrint(ss^.pending_out) - ptrint(ss^.pending_buf)];
+  ds^.pending_out := @ds^.pending_buf^[ptruint(ss^.pending_out) - ptruint(ss^.pending_buf)];
   ds^.d_buf := Pwordarray(@overlay^[ds^.lit_bufsize div sizeof(word)] );
   ds^.l_buf := Pbytearray(@ds^.pending_buf^[(1+sizeof(word))*ds^.lit_bufsize]);
 
@@ -1305,8 +1305,8 @@ distances are limited to MAX_DIST instead of WSIZE. }
         { This code assumes sizeof(cardinal short) = 2. Do not use
           UNALIGNED_OK if your compiler uses a different size. }
   {$IFOPT R+} {$R-} {$DEFINE NoRangeCheck} {$ENDIF}
-        if (pushfArray(match)^[best_len-1] <> scan_end) or
-           (pushf(match)^ <> scan_start) then
+        if (match[best_len-1]<>scan_end) or
+           (match^ <> scan_start) then
           goto nextstep; {continue;}
   {$IFDEF NoRangeCheck} {$R+} {$UNDEF NoRangeCheck} {$ENDIF}
 
@@ -1325,25 +1325,25 @@ distances are limited to MAX_DIST instead of WSIZE. }
         inc(match);
 
         repeat
-          inc(scan,2); inc(match,2); if (pushf(scan)^<>pushf(match)^) then break;
-          inc(scan,2); inc(match,2); if (pushf(scan)^<>pushf(match)^) then break;
-          inc(scan,2); inc(match,2); if (pushf(scan)^<>pushf(match)^) then break;
-          inc(scan,2); inc(match,2); if (pushf(scan)^<>pushf(match)^) then break;
-        until (ptrint(scan) >= ptrint(strend));
+          inc(scan,2); inc(match,2); if scan^<>match^ then break;
+          inc(scan,2); inc(match,2); if scan^<>match^ then break;
+          inc(scan,2); inc(match,2); if scan^<>match^ then break;
+          inc(scan,2); inc(match,2); if scan^<>match^ then break;
+        until ptruint(scan)>=ptruint(strend);
         { The funny "do while" generates better code on most compilers }
 
         { Here, scan <= window+strstart+257 }
         {$IFDEF ZLIB_DEBUG}
         {$ifopt R+} {$define RangeCheck} {$endif} {$R-}
-        Assert(ptrint(scan) <=
-               ptrint(@(s.window^[cardinal(s.window_size-1)])),
+        Assert(ptruint(scan) <=
+               ptruint(@(s.window^[cardinal(s.window_size-1)])),
                'wild scan');
         {$ifdef RangeCheck} {$R+} {$undef RangeCheck} {$endif}
         {$ENDIF}
-        if (scan^ = match^) then
+        if scan^=match^ then
           inc(scan);
 
-        len := (MAX_MATCH - 1) - integer(ptrint(strend)) + integer(ptrint(scan));
+        len := (MAX_MATCH - 1) - integer(ptruint(strend)) + integer(ptruint(scan));
         scan := strend;
         dec(scan, (MAX_MATCH-1));
 
@@ -1374,23 +1374,23 @@ distances are limited to MAX_DIST instead of WSIZE. }
           the 256th check will be made at strstart+258. }
 
         repeat
-          inc(scan); inc(match); if (scan^ <> match^) then break;
-          inc(scan); inc(match); if (scan^ <> match^) then break;
-          inc(scan); inc(match); if (scan^ <> match^) then break;
-          inc(scan); inc(match); if (scan^ <> match^) then break;
-          inc(scan); inc(match); if (scan^ <> match^) then break;
-          inc(scan); inc(match); if (scan^ <> match^) then break;
-          inc(scan); inc(match); if (scan^ <> match^) then break;
-          inc(scan); inc(match); if (scan^ <> match^) then break;
-        until (ptrint(scan) >= ptrint(strend));
+          inc(scan); inc(match); if scan^ <> match^ then break;
+          inc(scan); inc(match); if scan^ <> match^ then break;
+          inc(scan); inc(match); if scan^ <> match^ then break;
+          inc(scan); inc(match); if scan^ <> match^ then break;
+          inc(scan); inc(match); if scan^ <> match^ then break;
+          inc(scan); inc(match); if scan^ <> match^ then break;
+          inc(scan); inc(match); if scan^ <> match^ then break;
+          inc(scan); inc(match); if scan^ <> match^ then break;
+        until ptruint(scan)>=ptruint(strend);
 
         {$IFDEF ZLIB_DEBUG}
-        Assert(ptrint(scan) <=
-               ptrint(@(s.window^[cardinal(s.window_size-1)])),
+        Assert(ptruint(scan) <=
+               ptruint(@(s.window^[cardinal(s.window_size-1)])),
                'wild scan');
         {$ENDIF}
 
-        len := MAX_MATCH - integer(ptrint(strend) - ptrint(scan));
+        len := MAX_MATCH - (ptruint(strend) - ptruint(scan));
         scan := strend;
         dec(scan, MAX_MATCH);
 
@@ -1481,7 +1481,7 @@ begin
       inc(scan); inc(match); if scan^<>match^ then break;
       inc(scan); inc(match); if scan^<>match^ then break;
       inc(scan); inc(match); if scan^<>match^ then break;
-    until (ptrint(scan) >= ptrint(strend));
+    until (ptruint(scan) >= ptruint(strend));
 
     Assert(scan <= s.window+cardinal(s.window_size-1), 'wild scan');
 

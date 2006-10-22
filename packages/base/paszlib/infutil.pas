@@ -152,10 +152,10 @@ begin
   q := s.read;
 
   { compute number of bytes to copy as far as end of window }
-  if ptrint(q) <= ptrint(s.write) then
-    n := cardinal(ptrint(s.write) - ptrint(q))
+  if ptruint(q) <= ptruint(s.write) then
+    n := cardinal(ptruint(s.write) - ptruint(q))
   else
-    n := cardinal(ptrint(s.zend) - ptrint(q));
+    n := cardinal(ptruint(s.zend) - ptruint(q));
   if (n > z.avail_out) then
     n := z.avail_out;
   if (n <> 0) and (r = Z_BUF_ERROR) then
@@ -187,7 +187,7 @@ begin
       s.write := s.window;
 
     { compute bytes to copy }
-    n := cardinal(ptrint(s.write) - ptrint(q));
+    n := cardinal(ptruint(s.write) - ptruint(q));
     if (n > z.avail_out) then
       n := z.avail_out;
     if (n <> 0) and (r = Z_BUF_ERROR) then

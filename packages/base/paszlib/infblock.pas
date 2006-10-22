@@ -812,7 +812,7 @@ begin
         {$IFDEF ZLIB_DEBUG}
         if (ptruint(q) >= ptruint(s.read)) then
           Tracev('inflate:       codes end '+
-              IntToStr(z.total_out + ptrint(q) - ptruint(s.read)) + ' total out')
+              IntToStr(z.total_out + ptruint(q) - ptruint(s.read)) + ' total out')
         else
           Tracev('inflate:       codes end '+
                   IntToStr(z.total_out + ptruint(s.zend) - ptruint(s.read) +

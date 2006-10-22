@@ -366,7 +366,7 @@ Begin
           r.exop := byte(j);     { bits in this table }
           j := i shr (w - l);
           {r.base := cardinal( q - u[h-1] -j);}   { offset to this table }
-          r.base := (ptrint(q) - ptrint(u[h-1]) ) div sizeof(q^) - j;
+          r.base := (ptruint(q) - ptruint(u[h-1]) ) div sizeof(q^) - j;
           huft_Ptr(u[h-1])^[j] := r;  { connect to last table }
         end
         else
@@ -378,7 +378,7 @@ Begin
 
       { C-code: if (p >= v + n) - see ZUTIL.PAS for comments }
 
-      if ptrint(p)>=ptrint(@(v[n])) then  { also works under DPMI ?? }
+      if ptruint(p)>=ptruint(@(v[n])) then  { also works under DPMI ?? }
         r.exop := 128 + 64                  { out of values--invalid code }
       else
         if (p^ < s) then
