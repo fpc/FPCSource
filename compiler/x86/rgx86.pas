@@ -123,7 +123,7 @@ implementation
                 begin
                   if (oper[0]^.typ=top_reg) then
                     begin
-                      if getsupreg(oper[0]^.reg)<>orgreg then
+                      if get_alias(getsupreg(oper[0]^.reg))<>orgreg then
                         internalerror(200410101);
                       replaceoper:=0;
                     end;
