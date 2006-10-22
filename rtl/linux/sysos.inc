@@ -79,43 +79,49 @@ end;
   correct value if an error has occured, else leave it untouched
 }
 
-Function PosixToRunError  (PosixErrno : longint) : longint;
+function PosixToRunError  (PosixErrno : longint):word;
 {
   Convert ErrNo error to the correct Inoutres value
 }
 
+var r:word; {Inoutres is declared as word.}
+
 begin
-  if PosixErrNo=0 then { Else it will go through all the cases }
-   exit(0);
+(*
+  if PosixErrNo=0 then {Else it will go through all the cases}
+    exit(0);
+
+  Statement commented out. It will not go through all the cases. (DM)
+*)
   case PosixErrNo of
-   ESysENFILE,
-   ESysEMFILE : Inoutres:=4;
-   ESysENOENT : Inoutres:=2;
-    ESysEBADF : Inoutres:=6;
-   ESysENOMEM,
-   ESysEFAULT : Inoutres:=217;
-   ESysEINVAL : Inoutres:=218;
+    ESysENFILE,
+    ESysEMFILE:         r:=4;
+    ESysENOENT:         r:=2;
+    ESysEBADF:          r:=6;
+    ESysENOMEM,
+    ESysEFAULT:         r:=217;
+    ESysEINVAL:         r:=218;
     ESysEPIPE,
     ESysEINTR,
-      ESysEIO,
-   ESysEAGAIN,
-   ESysENOSPC : Inoutres:=101;
- ESysENAMETOOLONG : Inoutres := 3;
+    ESysEIO,
+    ESysEAGAIN,
+    ESysENOSPC:         r:=101;
+    ESysENAMETOOLONG:   r:=3;
     ESysEROFS,
-   ESysEEXIST,
-   ESysENOTEMPTY,
-   ESysEACCES : Inoutres:=5;
-   ESysEISDIR : InOutRes:=5;
+    ESysEEXIST,
+    ESysENOTEMPTY,
+    ESysEACCES:         r:=5;
+    ESysEISDIR:         r:=5;
   else
-    begin
-       InOutRes := Integer(PosixErrno);
-    end;
+    r:=PosixErrno;
   end;
- PosixToRunError:=InOutRes;
+  inoutres:=r;
+  PosixToRunError:=r;
 end;
 
 
-Function Errno2InoutRes : longint;
+function Errno2InoutRes : word;
+
 begin
   Errno2InoutRes:=PosixToRunError(getErrno);
   InoutRes:=Errno2InoutRes;
