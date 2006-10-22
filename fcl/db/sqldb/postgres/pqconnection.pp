@@ -39,6 +39,7 @@ type
     FSQLDatabaseHandle   : pointer;
     FIntegerDateTimes    : boolean;
     function TranslateFldType(Type_Oid : integer) : TFieldType;
+    procedure ExecuteDirectPG(const Query : String);
   protected
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -64,6 +65,8 @@ type
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
   public
     constructor Create(AOwner : TComponent); override;
+    procedure CreateDB; override;
+    procedure DropDB; override;
   published
     property DatabaseName;
     property KeepConnection;
@@ -110,6 +113,66 @@ begin
   inherited;
   FConnOptions := FConnOptions + [sqSupportParams];
 end;
+
+procedure TPQConnection.CreateDB;
+
+begin
+  ExecuteDirectPG('CREATE DATABASE ' +DatabaseName);
+end;
+
+procedure TPQConnection.DropDB;
+
+begin
+  ExecuteDirectPG('DROP DATABASE ' +DatabaseName);
+end;
+
+procedure TPQConnection.ExecuteDirectPG(const query : string);
+
+var ASQLDatabaseHandle    : PPGConn;
+    res                   : PPGresult;
+    msg                   : String;
+
+begin
+  CheckDisConnected;
+{$IfDef LinkDynamically}
+  InitialisePostgres3;
+{$EndIf}
+
+  FConnectString := '';
+  if (UserName <> '') then FConnectString := FConnectString + ' user=''' + UserName + '''';
+  if (Password <> '') then FConnectString := FConnectString + ' password=''' + Password + '''';
+  if (HostName <> '') then FConnectString := FConnectString + ' host=''' + HostName + '''';
+  FConnectString := FConnectString + ' dbname=''template1''';
+  if (Params.Text <> '') then FConnectString := FConnectString + ' '+Params.Text;
+
+  ASQLDatabaseHandle := PQconnectdb(pchar(FConnectString));
+
+  if (PQstatus(ASQLDatabaseHandle) = CONNECTION_BAD) then
+    begin
+    msg := PQerrorMessage(ASQLDatabaseHandle);
+    PQFinish(ASQLDatabaseHandle);
+    DatabaseError(sErrConnectionFailed + ' (PostgreSQL: ' + Msg + ')',self);
+    end;
+
+  res := PQexec(ASQLDatabaseHandle,pchar(query));
+
+  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+    begin
+    msg := PQerrorMessage(ASQLDatabaseHandle);
+    PQclear(res);
+    PQFinish(ASQLDatabaseHandle);
+    DatabaseError(SDBCreateDropFailed + ' (PostgreSQL: ' + Msg + ')',self);
+    end
+  else
+    begin
+    PQclear(res);
+    PQFinish(ASQLDatabaseHandle);
+    end;
+{$IfDef LinkDynamically}
+  ReleasePostgres3;
+{$EndIf}
+end;
+
 
 function TPQConnection.GetTransactionHandle(trans : TSQLHandle): pointer;
 begin

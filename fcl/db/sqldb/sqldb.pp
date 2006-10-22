@@ -120,6 +120,8 @@ type
     procedure GetTableNames(List : TStrings; SystemTables : Boolean = false); virtual;
     procedure GetProcedureNames(List : TStrings); virtual;
     procedure GetFieldNames(const TableName : string; List :  TStrings); virtual;
+    procedure CreateDB; virtual;
+    procedure DropDB; virtual;
   published
     property Password : string read FPassword write FPassword;
     property Transaction : TSQLTransaction read FTransaction write SetTransaction;
@@ -512,6 +514,18 @@ begin
   AStream.WriteBuffer(s[1],length(s));
 
   AStream.seek(0,soFromBeginning);
+end;
+
+procedure TSQLConnection.CreateDB;
+
+begin
+  DatabaseError(SNotSupported);
+end;
+
+procedure TSQLConnection.DropDB;
+
+begin
+  DatabaseError(SNotSupported);
 end;
 
 { TSQLTransaction }

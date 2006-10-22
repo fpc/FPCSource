@@ -63,6 +63,7 @@ Type
     function GetClientInfo: string;
     function GetServerStatus: String;
     procedure ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
+    procedure ExecuteDirectMySQL(const query : string);
   protected
     function StrToStatementType(s : string) : TStatementType; override;
     Procedure ConnectToServer; virtual;
@@ -96,6 +97,8 @@ Type
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
   Public
+    procedure CreateDB; override;
+    procedure DropDB; override;
     Property ServerInfo : String Read FServerInfo;
     Property HostInfo : String Read FHostInfo;
     property ClientInfo: string read GetClientInfo;
@@ -240,6 +243,47 @@ procedure TConnectionName.SelectDatabase;
 begin
   if mysql_select_db(FMySQL,pchar(DatabaseName))<>0 then
     MySQLError(FMySQL,SErrDatabaseSelectFailed,Self);
+end;
+
+
+procedure TConnectionName.CreateDB;
+
+begin
+  ExecuteDirectMySQL('CREATE DATABASE ' +DatabaseName);
+end;
+
+procedure TConnectionName.DropDB;
+
+begin
+  ExecuteDirectMySQL('DROP DATABASE ' +DatabaseName);
+end;
+
+procedure TConnectionName.ExecuteDirectMySQL(const query : string);
+
+var ADidConnect : boolean;
+    H,U,P       : String;
+    AMySQL      : PMySQL;
+
+begin
+  CheckDisConnected;
+
+  ADidConnect:=(MySQLLibraryHandle=NilHandle);
+  if ADidConnect then
+    InitialiseMysql;
+
+  H:=HostName;
+  U:=UserName;
+  P:=Password;
+  AMySQL := nil;
+  ConnectMySQL(AMySQL,pchar(H),pchar(U),pchar(P));
+
+  if mysql_query(AMySQL,pchar(query))<>0 then
+    MySQLError(AMySQL,Format(SErrExecuting,[StrPas(mysql_error(AMySQL))]),Self);
+
+  mysql_close(AMySQL);
+
+  if ADidConnect then
+    ReleaseMysql;
 end;
 
 procedure TConnectionName.DoInternalConnect;

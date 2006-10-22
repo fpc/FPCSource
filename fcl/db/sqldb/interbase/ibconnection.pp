@@ -37,6 +37,8 @@ type
     Status              : array [0..19] of ISC_STATUS;
   end;
 
+  { TIBConnection }
+
   TIBConnection = class (TSQLConnection)
   private
     FSQLDatabaseHandle   : pointer;
@@ -44,6 +46,7 @@ type
     FDialect             : integer;
     FBLobSegmentSize     : word;
 
+    procedure ConnectFB;
     procedure SetDBDialect;
     procedure AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
     procedure TranslateFldType(SQLType, SQLLen, SQLScale : integer; var LensSet : boolean;
@@ -84,6 +87,8 @@ type
     procedure LoadBlobIntoStream(Field: TField;AStream: TMemoryStream;cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
   public
     constructor Create(AOwner : TComponent); override;
+    procedure CreateDB; override;
+    procedure DropDB; override;
     property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize;
   published
     property Dialect  : integer read FDialect write FDialect;
@@ -229,37 +234,62 @@ begin
     if isc_rollback_retaining(@Status[0], @TransactionHandle) <> 0 then
       CheckError('RollBackRetaining', Status);
 end;
+procedure TIBConnection.DropDB;
 
+begin
+  CheckDisConnected;
+
+{$IfDef LinkDynamically}
+  InitialiseIBase60;
+{$EndIf}
+
+  ConnectFB;
+
+  if isc_drop_database(@FStatus[0], @FSQLDatabaseHandle) <> 0 then
+    CheckError('DropDB', FStatus);
+
+{$IfDef LinkDynamically}
+  ReleaseIBase60;
+{$EndIf}
+end;
+
+procedure TIBConnection.CreateDB;
+
+var ASQLDatabaseHandle,
+    ASQLTransactionHandle : pointer;
+    CreateSQL             : String;
+
+begin
+  CheckDisConnected;
+{$IfDef LinkDynamically}
+  InitialiseIBase60;
+{$EndIf}
+  ASQLDatabaseHandle := nil;
+  ASQLTransactionHandle := nil;
+  
+  CreateSQL := 'CREATE DATABASE ';
+  if HostName <> '' then CreateSQL := CreateSQL + ''''+ HostName+':'+DatabaseName + ''''
+    else CreateSQL := CreateSQL + '''' + DatabaseName + '''';
+
+  if isc_dsql_execute_immediate(@FStatus[0],@ASQLDatabaseHandle,@ASQLTransactionHandle,length(CreateSQL),@CreateSQL[1],Dialect,nil) <> 0 then
+    CheckError('CreateDB', FStatus);
+
+  isc_detach_database(@FStatus[0], @ASQLDatabaseHandle);
+  CheckError('CreateDB', FStatus);
+{$IfDef LinkDynamically}
+  ReleaseIBase60;
+{$EndIf}
+end;
 
 procedure TIBConnection.DoInternalConnect;
-var
-  DPB           : string;
-  ADatabaseName : String;
+
 begin
 {$IfDef LinkDynamically}
   InitialiseIBase60;
 {$EndIf}
   inherited dointernalconnect;
 
-  DPB := chr(isc_dpb_version1);
-  if (UserName <> '') then
-  begin
-    DPB := DPB + chr(isc_dpb_user_name) + chr(Length(UserName)) + UserName;
-    if (Password <> '') then
-      DPB := DPB + chr(isc_dpb_password) + chr(Length(Password)) + Password;
-  end;
-  if (Role <> '') then
-     DPB := DPB + chr(isc_dpb_sql_role_name) + chr(Length(Role)) + Role;
-  if Length(CharSet) > 0 then
-    DPB := DPB + Chr(isc_dpb_lc_ctype) + Chr(Length(CharSet)) + CharSet;
-
-  FSQLDatabaseHandle := nil;
-  if HostName <> '' then ADatabaseName := HostName+':'+DatabaseName
-    else ADatabaseName := DatabaseName;
-  if isc_attach_database(@FStatus[0], Length(ADatabaseName), @ADatabaseName[1], @FSQLDatabaseHandle,
-         Length(DPB), @DPB[1]) <> 0 then
-    CheckError('DoInternalConnect', FStatus);
-  SetDBDialect;
+  ConnectFB;
 end;
 
 procedure TIBConnection.DoInternalDisconnect;
@@ -304,6 +334,33 @@ begin
         end;
       isc_info_end : Break;
     end;
+end;
+
+procedure TIBConnection.ConnectFB;
+var
+  ADatabaseName: String;
+  DPB: string;
+begin
+  DPB := chr(isc_dpb_version1);
+  if (UserName <> '') then
+  begin
+    DPB := DPB + chr(isc_dpb_user_name) + chr(Length(UserName)) + UserName;
+    if (Password <> '') then
+      DPB := DPB + chr(isc_dpb_password) + chr(Length(Password)) + Password;
+  end;
+  if (Role <> '') then
+     DPB := DPB + chr(isc_dpb_sql_role_name) + chr(Length(Role)) + Role;
+  if Length(CharSet) > 0 then
+    DPB := DPB + Chr(isc_dpb_lc_ctype) + Chr(Length(CharSet)) + CharSet;
+
+  FSQLDatabaseHandle := nil;
+  if HostName <> '' then ADatabaseName := HostName+':'+DatabaseName
+    else ADatabaseName := DatabaseName;
+  if isc_attach_database(@FStatus[0], Length(ADatabaseName), @ADatabaseName[1],
+    @FSQLDatabaseHandle,
+         Length(DPB), @DPB[1]) <> 0 then
+    CheckError('DoInternalConnect', FStatus);
+  SetDBDialect;
 end;
 
 procedure TIBConnection.AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
