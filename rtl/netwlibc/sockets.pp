@@ -25,6 +25,7 @@ Uses
 
 Type
   cushort=word;
+  cuint8 =byte;
   cuint16=word;
   cuint32=cardinal;
   size_t =cuint32;
