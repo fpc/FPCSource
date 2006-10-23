@@ -85,7 +85,7 @@ implementation
 
         try
           repeat
-            { expect "def", "specvar", "pre" or "post" }
+            { expect "def", "specvar", "pre", "post" or "ret" }
             if (token<>_ID) then
               consume(_ID);
 

@@ -374,6 +374,11 @@ implementation
         do_message(scan_f_user_defined);
       end;
 
+    procedure dir_formal;
+      begin
+        do_localswitch(cs_formal_annotation);
+      end;
+
     procedure dir_fputype;
       begin
         current_scanner.skipspace;
@@ -1177,6 +1182,7 @@ implementation
         AddDirective('EXTENDEDSYNTAX',directive_all, @dir_extendedsyntax);
         AddDirective('EXTERNALSYM',directive_all, @dir_externalsym);
         AddDirective('FATAL',directive_all, @dir_fatal);
+        AddDirective('FORMAL',directive_all, @dir_formal);
         AddDirective('FPUTYPE',directive_all, @dir_fputype);
         AddDirective('GOTO',directive_all, @dir_goto);
         AddDirective('HINT',directive_all, @dir_hint);

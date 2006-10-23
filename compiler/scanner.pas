@@ -1422,22 +1422,6 @@ In case not, the value returned can be arbitrary.
         mac.is_used:=true;
       end;
 
-    procedure dir_formal;
-    (* Parse comments of the form {$FORMAL+} and {$FORMAL-}
-    *)
-    var
-      s : string;
-    begin
-      s:=current_scanner.readcomment;
-      if (s='+') then 
-         include(aktlocalswitches,cs_formal_annotation)
-      else if (s='-') then
-         exclude(aktlocalswitches,cs_formal_annotation)
-      else
-         Message1(scan_w_illegal_switch,'$FORMAL '+s);
-
-    end;
-
     procedure dir_include;
 
         function findincludefile(const path,name,ext:string;var foundfile:string):boolean;
@@ -3830,7 +3814,6 @@ exit_label:
         AddDirective('I',directive_all, @dir_include);
         AddDirective('DEFINE',directive_all, @dir_define);
         AddDirective('UNDEF',directive_all, @dir_undef);
-        AddDirective('FORMAL',directive_all, @dir_formal);
 
         AddConditional('IF',directive_all, @dir_if);
         AddConditional('IFDEF',directive_all, @dir_ifdef);
