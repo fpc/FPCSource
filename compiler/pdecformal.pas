@@ -287,8 +287,7 @@ implementation
         rst : tnode;
       begin
         consume(_EQUAL);
-        { Proposition variables are not allowed here }
-        expr:=comp_expr(true);
+        expr:=comp_expr_in_formal_context(true);
         { Convert this to "Result = expr" } 
         if not assigned(current_procinfo.procdef.funcretsym) then
           raise EInvalidAnnotation.Create('{@ ret : expr } in a non-returning something'); { TODO }

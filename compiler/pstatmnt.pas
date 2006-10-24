@@ -1071,7 +1071,7 @@ implementation
          pure_statement:=code;
       end;
 
-    function formal_annotation(var loop_invariant : tnode) : tnode;
+    function formal_annotation(var loop_invariant : tnode; var bound_function : tnode) : tnode;
     var
       expr : tnode;
       s : tnode;
@@ -1099,6 +1099,22 @@ implementation
             formal_annotation:=cnothingnode.create;
             consume(_CLOSE_FORMAL);
           end
+        else if (token=_ID) and (upcase(pattern)='BND') then
+          begin
+            consume(_ID);
+            consume(_COLON);
+            expr:=comp_expr_in_formal_context(true);
+            if assigned(bound_function) then
+              begin
+                { A bound function was already specified,
+                this is an error }
+                { TODO }
+              end
+            else
+              bound_function:=expr;
+            formal_annotation:=cnothingnode.create;
+            consume(_CLOSE_FORMAL);
+          end
         else
           begin
             expr:=comp_expr_in_formal_context(true);
@@ -1116,6 +1132,7 @@ implementation
       first : tnode;
       tochange : ^tnode;
       invariant : tnode;
+      bound : tnode;
 
         procedure parse_formal_annotation_star;
         begin
@@ -1123,7 +1140,7 @@ implementation
            begin
              if not(cs_do_assertion in aktlocalswitches) then
               Message(parser_w_formal_annotation_not_compiled);
-             ass:=formal_annotation(invariant);
+             ass:=formal_annotation(invariant, bound);
              tochange^:=cstatementnode.create(ass, nil);
              tochange:=@(tstatementnode(tochange^).right);
            end;
@@ -1134,11 +1151,12 @@ implementation
 
     begin
       invariant:=nil;
+      bound:=nil;
       first:=nil;
       tochange:=@first;
       parse_formal_annotation_star;
 
-      if assigned(invariant) then
+      if assigned(invariant) or assigned(bound) then
         begin
           { ASSUMPTION :
             repeat_statement and while_statement return a
@@ -1152,10 +1170,18 @@ implementation
           else
             begin
               Message(parser_w_invariant_not_before_loop);
-              invariant.destroy;
+              invariant.free;
               invariant:=nil;
+              bound.free;
+              bound:=nil;
             end; { else }
           end; { case }
+          { Warning: order is important, first bound, then invariant }
+          if assigned(bound) then
+            begin
+              { Set the bound function }
+              twhilerepeatnode(tstatementnode(tochange^).left).setbound(bound);
+            end;
           if assigned(invariant) then
             begin
               { Set the invariant (include a check in each iteration of the loop) }
@@ -1168,10 +1194,11 @@ implementation
                 in_assert_x_y, false, ccallparanode.create(invariant.getcopy,
                   ccallparanode.create(fail_string, nil))), nil);
 
-              tochange:=@(tstatementnode(tochange^).right);
             end;
+          if assigned(invariant) or assigned(bound) then
+            tochange:=@(tstatementnode(tochange^).right);
         end
-      else { not assigned(invariant) }
+      else { not assigned(invariant) and not assigned(bound) }
         begin
           tochange^:=cstatementnode.create(pure_statement, nil);
           tochange:=@(tstatementnode(tochange^).right);

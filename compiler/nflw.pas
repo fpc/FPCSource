@@ -70,7 +70,8 @@ interface
        end;
 
        twhilerepeatnode = class(tloopnode)
-          invariant : tnode; { the loop invariant (an expression) }
+          invariant : tnode; { the loop invariant (an expression or NIL) }
+          bound : tnode; { the loop bound function (an expression or NIL) }
           constructor create(l,r:Tnode;tab,cn:boolean);virtual;
           destructor destroy;override;
           function det_resulttype:tnode;override;
@@ -78,6 +79,9 @@ interface
           { Set the invariant and insert an assertion inline node
           before the first statement } 
           procedure setinvariant(inv : tnode);
+          { Set the bound function and insert checks at the beginning and
+          at the end of the loop }
+          procedure setbound(bnd : tnode);
 {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
 {$endif}
@@ -358,11 +362,13 @@ implementation
           if cn then
               include(loopflags,lnf_checknegate);
           invariant:=nil;
+          bound:=nil;
       end;
 
     destructor twhilerepeatnode.destroy;
       begin
         invariant.free;
+        bound.free;
         inherited destroy;
       end;
 
@@ -378,6 +384,7 @@ implementation
             Message1(type_e_boolean_expr_expected, invariant.resulttype.def.typename);
             invariant.destroy;
             invariant:=nil;
+            exit;
           end;
         s:=cstringconstnode.createstr('Invariant failed', st_default);
         ass:=geninlinenode(in_assert_x_y, false, 
@@ -387,6 +394,82 @@ implementation
         right:=cstatementnode.create(ass, right);
       end;
 
+    procedure twhilerepeatnode.setbound(bnd: tnode);
+       
+      var
+        lvar : tabstractnormalvarsym;
+        assgn : tnode;
+        assert1, expr1, assert2, expr2 : tnode;
+        s : tnode;
+        last : tnode;
+
+      begin
+        bound:=bnd.getcopy;
+        resulttypepass(bound);
+        if not is_integer(bound.resulttype.def) then
+          begin
+            Message1(type_e_integer_expr_expected, bound.resulttype.def.typename);
+            bound.destroy;
+            bound:=nil;
+            exit;
+          end;
+
+        case symtablestack.symtabletype of
+        localsymtable :
+          lvar:=tlocalvarsym.create('$bound',vs_value,bound.resulttype,[]);
+        staticsymtable,
+        globalsymtable :
+          lvar:=tglobalvarsym.create('$bound',vs_value,bound.resulttype,[]);
+        else
+          internalerror(2006102401);
+        end;
+        symtablestack.insert(lvar);
+
+        { Create assertion that this is a positive integer }
+        s:=cstringconstnode.createstr('Bound function is not positive', st_default);
+        expr1:=caddnode.create(gtn,
+          cloadnode.create(lvar, symtablestack),
+          cordconstnode.create(0, s32inttype, false)
+        ); 
+        assert1:=cstatementnode.create(geninlinenode(
+          in_assert_x_y,
+          false,
+          ccallparanode.create(expr1,
+            ccallparanode.create(s, nil)
+          )
+        ), right); 
+
+        { Create assignment to bound variable }
+        assgn:=cstatementnode.create(
+          cassignmentnode.create(
+            cloadnode.create(lvar, symtablestack),
+            bound.getcopy
+          ),
+          assert1
+        );
+        { Add assignment and assertion at beginning of repetition body }
+        right:=assgn;
+
+        { Create assertion that bound function is lower }
+        s:=cstringconstnode.createstr('Bound function did not decrease', st_default);
+        expr2:=caddnode.create(gtn,
+          cloadnode.create(lvar, symtablestack),
+          bound.getcopy
+        );
+        assert2:=cstatementnode.create(geninlinenode(
+          in_assert_x_y,
+          false,
+          ccallparanode.create(expr2,
+            ccallparanode.create(s, nil)
+          )
+        ), nil);
+
+        last:=right;
+        while assigned(tbinarynode(last).right) do
+          last:=tbinarynode(last).right;
+        
+        tbinarynode(last).right:=assert2;
+      end;
 
     function twhilerepeatnode.det_resulttype:tnode;
       var
