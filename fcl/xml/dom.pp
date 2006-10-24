@@ -187,7 +187,7 @@ type
   This lowers memory usage and also obsoletes most constructors,
   at a slight performance penalty. However, NodeName and NodeValue are
   accessible via fields using specialized properties of descendant classes,
-  e.g. TDOMElement.TagName, TDOMCharacterData.Data etc.} 
+  e.g. TDOMElement.TagName, TDOMCharacterData.Data etc.}
 
   TDOMNode = class
   protected
@@ -207,9 +207,10 @@ type
     procedure SetTextContent(const AValue: DOMString); virtual;
   public
     constructor Create(AOwner: TDOMDocument);
+    destructor Destroy; override;
 
     // Free NodeList with TDOMNodeList.Release!
-    function GetChildNodes: TDOMNodeList; virtual;  // why virtual?
+    function GetChildNodes: TDOMNodeList;
 
     property NodeName: DOMString read GetNodeName;
     property NodeValue: DOMString read GetNodeValue write SetNodeValue;
@@ -236,7 +237,7 @@ type
     function Supports(const Feature, Version: DOMString): Boolean;
     *)
     function HasAttributes: Boolean; virtual;
-    procedure Normalize;               // moved from TDOMElement
+    procedure Normalize;
 
     (*
     // TODO: What is that Java NULL for strings ???
@@ -248,10 +249,12 @@ type
     property Prefix: DOMString read FPrefix (write SetPrefix?);
     property LocalName: DOMString read FLocalName;
     *)
+    // DOM level 3
     property TextContent: DOMString read GetTextContent write SetTextContent;
     // Extensions to DOM interface:
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; virtual;
     function FindNode(const ANodeName: DOMString): TDOMNode; virtual;
+    function CompareName(const name: DOMString): Integer; virtual;
   end;
 
 
@@ -320,15 +323,17 @@ type
 //   NamedNodeMap
 // -------------------------------------------------------
 
-  TDOMNamedNodeMap = class(TList)
+  TDOMNamedNodeMap = class(TObject)
   protected
-    // FIX: track ownership by element, in order to implement DOM2 Attr.OwnerElement
     FOwnerElement: TDOMNode;
+    FNodeType: Integer;
+    FList: TList;
     function GetItem(index: LongWord): TDOMNode;
     function GetLength: LongWord;
+    function Find(const name: DOMString; out Index: LongWord): Boolean;
+    function InternalRemove(const name: DOMString): TDOMNode;
   public
-    // FIX: ownership; see above
-    constructor Create(AOwner: TDOMNode);
+    constructor Create(AOwner: TDOMNode; ANodeType: Integer);
     destructor Destroy; override;
 
     function GetNamedItem(const name: DOMString): TDOMNode;
@@ -339,8 +344,8 @@ type
     function setNamedItemNS(arg: TDOMNode): TDOMNode;
     function removeNamedItemNS(const namespaceURI,localName: DOMString): TDOMNode;
 
-    // FIX: made readonly. Reason: Anyone was allowed to insert any node without any checking.  
-    property Item[index: LongWord]: TDOMNode read GetItem {write SetItem}; default;
+    // FIX: made readonly. Reason: Anyone was allowed to insert any node without any checking.
+    property Item[index: LongWord]: TDOMNode read GetItem; default;
     property Length: LongWord read GetLength;
   end;
 
@@ -474,6 +479,8 @@ type
     property Value: DOMString read GetNodeValue write SetNodeValue;
     // Introduced in DOM level 2:
     property OwnerElement: TDOMElement read FOwnerElement;
+    // extensions
+    function CompareName(const AName: DOMString): Integer; override;
   end;
 
 
@@ -496,22 +503,23 @@ type
     procedure SetAttribute(const name, value: DOMString);
     procedure RemoveAttribute(const name: DOMString);
     function  GetAttributeNode(const name: DOMString): TDOMAttr;
-    // FIX: Changed to a function, as per DOM 2
     function SetAttributeNode(NewAttr: TDOMAttr): TDOMAttr;
-    function  RemoveAttributeNode(OldAttr: TDOMAttr): TDOMAttr;
+    function RemoveAttributeNode(OldAttr: TDOMAttr): TDOMAttr;
     // Free NodeList with TDOMNodeList.Release!
     function  GetElementsByTagName(const name: DOMString): TDOMNodeList;
 
     // Introduced in DOM Level 2:
     function GetAttributeNS(const namespaceURI, localName: DOMString): DOMString;
-    procedure SetAttributeNS(const namespaceURI, qualifiedName, value: DOMString); // raises (DOMException)
-    procedure RemoveAttributeNS(const namespaceURI, localName: DOMString);         // raises(DOMException);
+    procedure SetAttributeNS(const namespaceURI, qualifiedName, value: DOMString);
+    procedure RemoveAttributeNS(const namespaceURI, localName: DOMString);
     function GetAttributeNodeNS(const namespaceURI, localName: DOMString): TDOMAttr;
-    function SetAttributeNodeNS(newAttr: TDOMAttr): TDOMAttr;                      // raises(DOMException);
+    function SetAttributeNodeNS(newAttr: TDOMAttr): TDOMAttr;
     function GetElementsByTagNameNS(const namespaceURI, localName: DOMString): TDOMNodeList;
     function hasAttribute(const name: DOMString): Boolean;
     function hasAttributeNS(const namespaceURI, localName: DOMString): Boolean;
     function HasAttributes: Boolean; override;
+    // extension
+    function CompareName(const name: DOMString): Integer; override;
 
     property AttribStrings[const Name: DOMString]: DOMString
       read GetAttribute write SetAttribute; default;
@@ -629,6 +637,8 @@ type
     FName: DOMString;
     function GetNodeType: Integer; override;
     function GetNodeName: DOMString; override;
+  public
+    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
   end;
 
 
@@ -756,6 +766,13 @@ begin
   inherited Create;
 end;
 
+destructor TDOMNode.Destroy;
+begin
+  if Assigned(FParentNode) and FParentNode.InheritsFrom(TDOMNode_WithChildren) then
+    TDOMNode_WithChildren(FParentNode).DoRemoveChild(Self);
+  inherited Destroy;
+end;
+
 function TDOMNode.GetNodeName: DOMString;
 begin
   Result := '';
@@ -805,7 +822,7 @@ end;
 
 function TDOMNode.RemoveChild(OldChild: TDOMNode): TDOMNode;
 begin
-  // OldChild isn't in our child list 
+  // OldChild isn't in our child list
   raise EDOMNotFound.Create('Node.RemoveChild');
   Result:=nil;
 end;
@@ -833,19 +850,8 @@ begin
 end;
 
 function TDOMNode.FindNode(const ANodeName: DOMString): TDOMNode;
-var
-  child: TDOMNode;
 begin
-  child := FirstChild;
-  while Assigned(child) do
-  begin
-    if child.NodeName = ANodeName then
-    begin
-      Result := child;
-      exit;
-    end;
-    child := child.NextSibling;
-  end;
+  // FIX: we have no children, hence cannot find anything
   Result := nil;
 end;
 
@@ -904,8 +910,6 @@ begin
   NodeValue := AValue;
 end;
 
-//------------------------------------------------------------------------------
-
 function CompareDOMStrings(const s1, s2: DOMPChar; l1, l2: integer): integer;
 var i: integer;
 begin
@@ -916,6 +920,18 @@ begin
     inc(i);
   end;
 end;
+
+// generic version (slow)
+function TDOMNode.CompareName(const name: DOMString): Integer;
+var
+  SelfName: DOMString;
+begin
+  SelfName := NodeName;
+  Result := CompareDOMStrings(DOMPChar(name), DOMPChar(SelfName), Length(name), Length(SelfName));
+end;
+
+
+//------------------------------------------------------------------------------
 
 function CompareDOMNodeWithDOMNode(Node1, Node2: Pointer): integer;
 begin
@@ -928,11 +944,7 @@ end;
 
 function CompareDOMStringWithDOMNode(AKey, ANode: Pointer): integer;
 begin
-  Result:=CompareDOMStrings(DOMPChar(AKey),
-                            DOMPChar(TDOMNode(ANode).NodeName),
-                            length(DOMString(AKey)),
-                            length(TDOMNode(ANode).NodeName)
-                            );
+  Result := TDOMNode(ANode).CompareName(DOMString(AKey));
 end;
 
 
@@ -948,10 +960,7 @@ end;
 
 destructor TDOMNode_WithChildren.Destroy;
 begin
-  if FChildNodeTree<>nil then begin
-    FChildNodeTree.Free;
-    FChildNodeTree:=nil;
-  end;
+  FreeAndNil(FChildNodeTree);
   FreeChildren;
   inherited Destroy;
 end;
@@ -979,7 +988,7 @@ begin
 
   // ugly workaround for RemoveChild issue... 
   if Assigned(NewChild.FParentNode) then
-    if NewChild.FParentNode.ClassType = TDOMNode_WithChildren then
+    if NewChild.FParentNode.InheritsFrom(TDOMNode_WithChildren) then
       TDOMNode_WithChildren(NewChild.FParentNode).DoRemoveChild(NewChild);
 
   // DONE: Implemented InsertBefore for DocumentFragments (except ChildNodeTree)
@@ -999,6 +1008,7 @@ begin
     // won't get here if RefChild = nil...
     if (RefChild = nil) or (RefChild.FPreviousSibling = nil) then
     begin  // insert at the beginning  <- AppendChild ??? ->
+      // no, AppendChild will insert after RefChild and we need it before
       if Assigned(FirstChild) then
         FirstChild.FPreviousSibling := NewChild.LastChild;
       NewChild.LastChild.FNextSibling := FirstChild;
@@ -1102,7 +1112,7 @@ begin
   // TODO: RemoveChild destroys removed node -> CRASH
   // this is a very ugly workaround...
   if Assigned(NewChild.FParentNode) then
-    if NewChild.FParentNode.ClassType = TDOMNode_WithChildren then
+    if NewChild.FParentNode.InheritsFrom(TDOMNode_WithChildren) then
       TDOMNode_WithChildren(NewChild.FParentNode).DoRemoveChild(NewChild);
 
   // DONE: supported AppendChild for DocumentFragments (except ChildNodeTree)
@@ -1186,9 +1196,12 @@ begin
   while Assigned(child) do
   begin
     next := child.NextSibling;
+    child.FParentNode := nil;
     child.Free;
     child := next;
   end;
+  FFirstChild := nil;
+  FLastChild := nil;
 end;
 
 function TDOMNode_WithChildren.GetTextContent: DOMString;
@@ -1333,43 +1346,69 @@ end;
 //   NamedNodeMap
 // -------------------------------------------------------
 
-constructor TDOMNamedNodeMap.Create(AOwner: TDOMNode);
+constructor TDOMNamedNodeMap.Create(AOwner: TDOMNode; ANodeType: Integer);
 begin
   inherited Create;
   FOwnerElement := AOwner;
+  FNodeType := ANodeType;
+  FList := TList.Create;
 end;
 
-// TODO: should this be in overriden Clear()?
 destructor TDOMNamedNodeMap.Destroy;
 var
   I: Integer;
 begin
-  for I := Count-1 downto 0 do
-    Item[I].Free;
+  for I := FList.Count-1 downto 0 do
+    TDOMNode(FList[I]).Free;
+  FList.Free;
   inherited Destroy;
 end;
 
 function TDOMNamedNodeMap.GetItem(index: LongWord): TDOMNode;
 begin
-  Result := TDOMNode(Items[index]);
+  if index < LongWord(FList.Count) then
+    Result := TDOMNode(FList.List^[index])
+  else
+    Result := nil;
 end;
 
 function TDOMNamedNodeMap.GetLength: LongWord;
 begin
-  Result := Count;
+  Result := FList.Count;
+end;
+
+function TDOMNamedNodeMap.Find(const name: DOMString; out Index: LongWord): Boolean;
+var
+  L, H, I, C: Integer;
+begin
+  Result := False;
+  L := 0;
+  H := FList.Count - 1;
+  while L <= H do
+  begin
+    I := (L + H) shr 1;
+    C := TDOMNode(FList.List^[I]).CompareName(name);
+    if C > 0 then L := I + 1 else
+    begin
+      H := I - 1;
+      if C = 0 then
+      begin
+        Result := True;
+        L := I;
+      end;
+    end;
+  end;
+  Index := L;
 end;
 
 function TDOMNamedNodeMap.GetNamedItem(const name: DOMString): TDOMNode;
 var
-  i: Integer;
+  i: Cardinal;
 begin
-  for i := 0 to Count - 1 do
-  begin
-    Result := Item[i];
-    if Result.NodeName = name then
-      exit;
-  end;
-  Result := nil;
+  if Find(name, i) then
+    Result := TDOMNode(FList.List^[i])
+  else
+    Result := nil;
 end;
 
 function TDOMNamedNodeMap.GetNamedItemNS(const namespaceURI, localName: DOMString): TDOMNode;
@@ -1381,30 +1420,34 @@ end;
 
 function TDOMNamedNodeMap.SetNamedItem(arg: TDOMNode): TDOMNode;
 var
-  i: Integer;
+  i: Cardinal;
   AttrOwner: TDOMElement;
+  Exists: Boolean;
 begin
-  // FIX: attribute ownership
   if arg.FOwnerDocument <> FOwnerElement.FOwnerDocument then
     raise EDOMWrongDocument.Create('NamedNodeMap.SetNamedItem');
 
-  if arg.NodeType = ATTRIBUTE_NODE then
+  if arg.NodeType <> FNodeType then
+    raise EDOMHierarchyRequest.Create('NamedNodeMap.SetNamedItem');
+
+  if FNodeType = ATTRIBUTE_NODE then
   begin
     AttrOwner := TDOMAttr(arg).ownerElement;
-    // FIX: allow setting items which have the same owner
     if Assigned(AttrOwner) and (AttrOwner <> FOwnerElement) then
       raise EDOMInUseAttribute.Create('NamedNodeMap.SetNamedItem');
     TDOMAttr(arg).FOwnerElement := TDOMElement(FOwnerElement);
-  end;
+    Exists := Find(TDOMAttr(arg).FName, i); // optimization
+  end
+  else
+    Exists := Find(arg.NodeName, i);
 
-  for i := 0 to Count - 1 do
-    if Item[i].NodeName = arg.NodeName then
-    begin
-      Result := Item[i];
-      Items[i] := arg;
-      exit;
-    end;
-  Add(arg);
+  if Exists then
+  begin
+    Result := TDOMNode(FList.List^[i]);
+    FList.List^[i] := arg;
+    exit;
+  end;
+  FList.Insert(i, arg);
   Result := nil;
 end;
 
@@ -1414,23 +1457,25 @@ begin
   Result := nil;
 end;
 
-function TDOMNamedNodeMap.RemoveNamedItem(const name: DOMString): TDOMNode;
+function TDOMNamedNodeMap.InternalRemove(const name: DOMString): TDOMNode;
 var
-  i: Integer;
+  i: Cardinal;
 begin
-  for i := 0 to Count - 1 do
-    if Item[i].NodeName = name then
-    begin
-      Result := Item[i];
-      // DONE: delete item from list
-      Delete(I);
-      // DONE: attribute ownership
-      if Result.NodeType = ATTRIBUTE_NODE then
-        TDOMAttr(Result).FOwnerElement := nil;
-      Result.FParentNode := nil;  // ??? should it ever be assigned for Attrs, Notations or Entities?
-      exit;
-    end;
-  raise EDOMNotFound.Create('NamedNodeMap.RemoveNamedItem');
+  Result := nil;
+  if Find(name, i) then
+  begin
+    Result := TDOMNode(FList.List^[i]);
+    FList.Delete(I);
+    if Result.NodeType = ATTRIBUTE_NODE then
+      TDOMAttr(Result).FOwnerElement := nil;
+  end;
+end;
+
+function TDOMNamedNodeMap.RemoveNamedItem(const name: DOMString): TDOMNode;
+begin
+  Result := InternalRemove(name);
+  if Result = nil then
+    raise EDOMNotFound.Create('NamedNodeMap.RemoveNamedItem');
 end;
 
 function TDOMNamedNodeMap.RemoveNamedItemNS(const namespaceURI, localName: DOMString): TDOMNode;
@@ -1571,7 +1616,7 @@ end;
 constructor TDOMDocument.Create;
 begin
   inherited Create(nil);
-  // TODO: DOM lvl 2 states that Document should be unowned. Any dependencies?  
+  // TODO: DOM lvl 2 states that Document should be unowned. Any dependencies?
   FOwnerDocument := Self;
 end;
 
@@ -1590,16 +1635,9 @@ var
   node: TDOMNode;
 begin
   node := FFirstChild;
-  while Assigned(node) do
-  begin
-    if node.NodeType = ELEMENT_NODE then
-    begin
-      Result := TDOMElement(node);
-      exit;
-    end;
+  while Assigned(node) and (node.NodeType <> ELEMENT_NODE) do
     node := node.NextSibling;
-  end;
-  Result := nil;
+  Result := TDOMElement(node);
 end;
 
 function TDOMDocument.GetDocType: TDOMDocumentType;
@@ -1607,28 +1645,23 @@ var
   node: TDOMNode;
 begin
   node := FFirstChild;
-  while Assigned(node) do
-  begin
-    if node.NodeType = DOCUMENT_TYPE_NODE then
-    begin
-      Result := TDOMDocumentType(node);
-      exit;
-    end;
+  while Assigned(node) and (node.NodeType <> DOCUMENT_TYPE_NODE) do
     node := node.NextSibling;
-  end;
-  Result := nil;
+  Result := TDOMDocumentType(node);
 end;
 
 function TDOMDocument.CreateElement(const tagName: DOMString): TDOMElement;
 begin
   Result := TDOMElement.Create(Self);
   Result.FNodeName := tagName;
+  // TODO: attach default attributes
 end;
 
 function TDOMDocument.CreateElementBuf(Buf: DOMPChar; Length: Integer): TDOMElement;
 begin
   Result := TDOMElement.Create(Self);
   SetString(Result.FNodeName, Buf, Length);
+  // TODO: attach default attributes
 end;
 
 function TDOMDocument.CreateDocumentFragment: TDOMDocumentFragment;
@@ -1786,23 +1819,9 @@ end;
 
 function TDOMAttr.GetNodeValue: DOMString;
 var
-  child: TDOMNode;
   I,J: Integer;
 begin
-  SetLength(Result, 0);
-  if Assigned(FFirstChild) then
-  begin
-    child := FFirstChild;
-    while Assigned(child) do
-    begin
-      if child.NodeType = ENTITY_REFERENCE_NODE then
-      // TODO: here we must substitute entity value
-        Result := Result + '&' + child.NodeName + ';'
-      else
-        Result := Result + child.NodeValue;
-      child := child.NextSibling;
-    end;
-  end;
+  Result := GetTextContent;
   // TODO: probably must be speed optimized
   if FNormalize then
   begin
@@ -1827,6 +1846,10 @@ begin
   SetTextContent(AValue);
 end;
 
+function TDOMAttr.CompareName(const AName: DOMString): Integer;
+begin
+  Result := CompareDOMStrings(DOMPChar(AName), DOMPChar(FName), Length(AName), Length(FName));
+end;
 
 // -------------------------------------------------------
 //   Element
@@ -1854,11 +1877,10 @@ var
   i: Integer;
 begin
   Result := ACloneOwner.CreateElement(FNodeName);
-  if FAttributes<>nil then
+  if Assigned(FAttributes) then
   begin
-    TDOMElement(Result).GetAttributes;
-    for i := 0 to FAttributes.Count - 1 do
-      TDOMElement(Result).FAttributes.Add(FAttributes[i].CloneNode(True, ACloneOwner));
+    for i := 0 to FAttributes.Length - 1 do
+      TDOMElement(Result).SetAttributeNode(TDOMAttr(FAttributes[i].CloneNode(True, ACloneOwner)));
   end;
   if deep then
     CloneChildren(Result, ACloneOwner);
@@ -1867,8 +1889,7 @@ end;
 function TDOMElement.GetAttributes: TDOMNamedNodeMap;
 begin
   if FAttributes=nil then
-    // FIX: ownership
-    FAttributes := TDOMNamedNodeMap.Create(Self);
+    FAttributes := TDOMNamedNodeMap.Create(Self, ATTRIBUTE_NODE);
   Result := FAttributes;
 end;
 
@@ -1876,7 +1897,6 @@ function TDOMElement.GetAttribute(const name: DOMString): DOMString;
 var
   Attr: TDOMNode;
 begin
-  // DONE: delegated to TNamedNodeMap
   SetLength(Result, 0);
   if Assigned(FAttributes) then
   begin
@@ -1901,35 +1921,24 @@ end;
 
 procedure TDOMElement.SetAttribute(const name, value: DOMString);
 var
+  I: Cardinal;
   attr: TDOMAttr;
 begin
-  GetAttributes;
-  // DONE: delegate to TNamedNodeMap
-  Attr := FAttributes.GetNamedItem(name) as TDOMAttr;
-  if Assigned(Attr) then
-    Attr.NodeValue := value
+  if Attributes.Find(name, I) then
+    Attr := FAttributes[I] as TDOMAttr
   else
   begin
-    attr := FOwnerDocument.CreateAttribute(name);
-    attr.NodeValue := value;
-    FAttributes.Add(attr);
+    Attr := FOwnerDocument.CreateAttribute(name);
+    FAttributes.FList.Insert(I, Attr);
   end;
+  attr.NodeValue := value;
 end;
 
 procedure TDOMElement.RemoveAttribute(const name: DOMString);
-var
-  i: Integer;
 begin
-  // (note) cannot call NamedNodeMap.RemoveNamedItem because it can raise NOT_FOUND_ERR
-  // and we should not raise it.
-  if FAttributes=nil then exit;
-  for i := 0 to FAttributes.Count - 1 do
-    if FAttributes[i].NodeName = name then
-    begin
-      FAttributes[i].Free;
-      FAttributes.Delete(i);
-      exit;
-    end;
+// (note) NamedNodeMap.RemoveNamedItem can raise NOT_FOUND_ERR and we should not.
+  if Assigned(FAttributes) then
+    FAttributes.InternalRemove(name).Free;
 end;
 
 procedure TDOMElement.RemoveAttributeNS(const namespaceURI,
@@ -1944,16 +1953,14 @@ procedure TDOMElement.SetAttributeNS(const namespaceURI, qualifiedName,
 var
   Attr: TDOMAttr;
 begin
-  GetAttributes;
-  Attr := FAttributes.GetNamedItemNS(namespaceURI, qualifiedName) as TDOMAttr;
-  if Assigned(Attr) then
-    Attr.NodeValue := value
-  else
+  Attr := Attributes.GetNamedItemNS(namespaceURI, qualifiedName) as TDOMAttr;
+  if attr = nil then
   begin
     attr := FOwnerDocument.CreateAttributeNS(namespaceURI, qualifiedName);
-    attr.NodeValue := value;
-    FAttributes.Add(attr);
+    // TODO 5: keep sorted!
+    FAttributes.FList.Add(attr);
   end;
+  attr.NodeValue := value;
 end;
 
 function TDOMElement.GetAttributeNode(const name: DOMString): TDOMAttr;
@@ -1975,11 +1982,7 @@ end;
 
 function TDOMElement.SetAttributeNode(NewAttr: TDOMAttr): TDOMAttr;
 begin
-  // FIX #1: FAttributes must be created if none
-  // FIX #2: if no such attribute present, it should be added
-  // FIX #3: All delegated to TDOMNamedNodeMap
-  GetAttributes;
-  Result := FAttributes.SetNamedItem(NewAttr) as TDOMAttr;
+  Result := Attributes.SetNamedItem(NewAttr) as TDOMAttr;
 
   // TODO -cConformance: here goes inconsistency with DOM 2 - same as in TDOMNode.RemoveChild
   Result.Free;
@@ -1988,8 +1991,7 @@ end;
 
 function TDOMElement.SetAttributeNodeNS(NewAttr: TDOMAttr): TDOMAttr;
 begin
-  GetAttributes;
-  Result := FAttributes.SetNamedItemNS(NewAttr) as TDOMAttr;
+  Result := Attributes.SetNamedItemNS(NewAttr) as TDOMAttr;
 
   // TODO -cConformance: here goes inconsistency with DOM 2 - same as in TDOMNode.RemoveChild
   Result.Free;
@@ -2005,7 +2007,7 @@ begin
   //       -- but what is the purpose of return value then?
   // TODO: delegate to TNamedNodeMap?  Nope, it does not have such method
   // (note) one way around is to remove by name
-  if FAttributes.Remove(OldAttr) > -1 then
+  if FAttributes.FList.Remove(OldAttr) > -1 then
     Result := OldAttr;
 end;
 
@@ -2033,7 +2035,12 @@ end;
 
 function TDOMElement.HasAttributes: Boolean;
 begin
-  Result := Assigned(FAttributes) and (FAttributes.Count > 0);
+  Result := Assigned(FAttributes) and (FAttributes.Length > 0);
+end;
+
+function TDOMElement.CompareName(const Name: DOMString): Integer;
+begin
+  Result := CompareDOMStrings(DOMPChar(name), DOMPChar(FNodeName), Length(name), Length(FNodeName));
 end;
 
 // -------------------------------------------------------
@@ -2052,8 +2059,7 @@ end;
 
 function TDOMText.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
 begin
-  Result := ACloneOwner.CreateTextNode(FNodeValue); {Data?}
-  // ignore deep because text cannot have children
+  Result := ACloneOwner.CreateTextNode(FNodeValue);
 end;
 
 function TDOMText.SplitText(offset: LongWord): TDOMText;
@@ -2142,14 +2148,14 @@ end;
 function TDOMDocumentType.GetEntities: TDOMNamedNodeMap;
 begin
   if FEntities = nil then
-    FEntities := TDOMNamedNodeMap.Create(Self);
+    FEntities := TDOMNamedNodeMap.Create(Self, ENTITY_NODE);
   Result := FEntities;
 end;
 
 function TDOMDocumentType.GetNotations: TDOMNamedNodeMap;
 begin
   if FNotations = nil then
-    FNotations := TDOMNamedNodeMap.Create(Self);
+    FNotations := TDOMNamedNodeMap.Create(Self, NOTATION_NODE);
   Result := FNotations;
 end;
 
@@ -2203,6 +2209,12 @@ end;
 function TDOMEntityReference.GetNodeName: DOMString;
 begin
   Result := FName;
+end;
+
+function TDOMEntityReference.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
+begin
+  Result := ACloneOwner.CreateEntityReference(FName);
+  CloneChildren(Result, ACloneOwner);
 end;
 
 // -------------------------------------------------------
