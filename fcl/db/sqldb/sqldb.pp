@@ -850,7 +850,7 @@ end;
 
 procedure TSQLQuery.SQLParser(var ASQL : string);
 
-type TParsePart = (ppStart,ppSelect,ppWhere,ppFrom,ppOrder,ppComment,ppBogus);
+type TParsePart = (ppStart,ppSelect,ppWhere,ppFrom,ppOrder,ppComment,ppGroup,ppBogus);
 
 Var
   PSQL,CurrentP,
@@ -858,6 +858,7 @@ Var
   S                       : string;
   ParsePart               : TParsePart;
   StrLength               : Integer;
+  EndOfComment            : Boolean;
 
 begin
   PSQL:=Pchar(ASQL);
@@ -873,10 +874,11 @@ begin
     begin
     inc(CurrentP);
     
-    if SkipComments(CurrentP) then
-      if ParsePart = ppStart then PhraseP := CurrentP;
+    EndOfComment := SkipComments(CurrentP);
+    if EndOfcomment then dec(currentp);
+    if EndOfComment and (ParsePart = ppStart) then PhraseP := CurrentP;
 
-    if CurrentP^ in [' ',#13,#10,#9,#0,'(',')',';'] then
+    if EndOfComment or (CurrentP^ in [' ',#13,#10,#9,#0,'(',')',';']) then
       begin
       if (CurrentP-PhraseP > 0) or (CurrentP^ in [';',#0]) then
         begin
@@ -902,11 +904,16 @@ begin
                        end;
                      end;
           ppFrom   : begin
-                     if (s = 'WHERE') or (s = 'ORDER') or (CurrentP^=#0) or (CurrentP^=';') then
+                     if (s = 'WHERE') or (s = 'ORDER') or (s = 'GROUP') or (CurrentP^=#0) or (CurrentP^=';') then
                        begin
                        if (s = 'WHERE') then
                          begin
                          ParsePart := ppWhere;
+                         StrLength := PhraseP-PStatementPart;
+                         end
+                       else if (s = 'GROUP') then
+                         begin
+                         ParsePart := ppGroup;
                          StrLength := PhraseP-PStatementPart;
                          end
                        else if (s = 'ORDER') then
@@ -927,11 +934,11 @@ begin
                        end;
                      end;
           ppWhere  : begin
-                     if (s = 'ORDER') or (CurrentP^=#0) or (CurrentP^=';') then
+                     if (s = 'ORDER') or (s = 'GROUP') or (CurrentP^=#0) or (CurrentP^=';') then
                        begin
                        ParsePart := ppBogus;
                        FWhereStartPos := PStatementPart-PSQL;
-                       if s = 'ORDER' then
+                       if (s = 'ORDER') or (s = 'GROUP') then
                          FWhereStopPos := PhraseP-PSQL+1
                        else
                          FWhereStopPos := CurrentP-PSQL+1;
