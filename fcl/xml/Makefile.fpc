@@ -9,6 +9,9 @@ main=fcl
 units=sax dom sax_html dom_html xmlcfg xmlread xmlstreaming xmlwrite xhtml htmwrite xpath
 rsts=sax xpath
 
+[require]
+packages=netdb
+
 [compiler]
 options=-S2h
 
