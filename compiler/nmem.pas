@@ -699,11 +699,15 @@ implementation
           exit;
 
          { maybe type conversion for the index value, but
-           do not convert enums,booleans,char }
-         if ((right.resulttype.def.deftype<>enumdef) and
-             not(is_char(right.resulttype.def) or is_widechar(right.resulttype.def)) and
-             not(is_boolean(right.resulttype.def))) or
-            (left.resulttype.def.deftype <> arraydef) then
+           do not convert enums,booleans,char
+           and do not convert range nodes }
+         if (right.nodetype<>rangen) and (
+             ((right.resulttype.def.deftype<>enumdef) and
+               not(is_char(right.resulttype.def) or is_widechar(right.resulttype.def)) and
+               not(is_boolean(right.resulttype.def))
+             ) or
+             (left.resulttype.def.deftype <> arraydef) 
+            ) then
            begin
              inserttypeconv(right,sinttype);
            end;
@@ -731,7 +735,10 @@ implementation
                   { convert pointer to array }
                   htype.setdef(tarraydef.create_from_pointer(tpointerdef(left.resulttype.def).pointertype));
                   inserttypeconv(left,htype);
-                  resulttype:=tarraydef(htype.def).elementtype;
+                  if right.nodetype=rangen then
+                    resulttype:=htype
+                  else
+                    resulttype:=tarraydef(htype.def).elementtype;
                 end
                else
                 CGMessage(type_e_array_required);

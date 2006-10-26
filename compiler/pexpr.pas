@@ -858,6 +858,7 @@ implementation
               statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil)));
               consume(_RKLAMMER);
             end;
+(*
           in_get_frame:
             begin
               statement_syssym:=geninlinenode(l,false,nil);
@@ -876,7 +877,7 @@ implementation
                 end;
               statement_syssym:=geninlinenode(l,false,nil);
             end;
-
+*)
           else
             internalerror(15);
 
@@ -1852,10 +1853,11 @@ implementation
                                  { support delphi autoderef }
                                  if (tpointerdef(p1.resulttype.def).pointertype.def.deftype=arraydef) and
                                     (m_autoderef in aktmodeswitches) then
-                                  begin
-                                    p1:=cderefnode.create(p1);
-                                  end;
+                                   p1:=cderefnode.create(p1);
                                  p2:=comp_expr(true);
+                                 if try_to_consume(_POINTPOINT) then
+                                   { Support Pbytevar[0..9] which returns array [0..9].}
+                                   p2:=crangenode.create(p2,comp_expr(true));
                                  p1:=cvecnode.create(p1,p2);
                               end;
                             variantdef:

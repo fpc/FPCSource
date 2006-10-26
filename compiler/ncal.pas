@@ -184,7 +184,7 @@ implementation
       verbose,globals,
       symconst,defutil,defcmp,
       htypechk,pass_1,
-      ncnv,nld,ninl,nadd,ncon,nmem,
+      ncnv,nld,ninl,nadd,ncon,nmem,nset,
       procinfo,
       cgbase
       ;
@@ -322,11 +322,16 @@ type
 
 
     function gen_high_tree(var p:tnode;paradef:tdef):tnode;
+
+    {When passing an array to an open array, or a string to an open string,
+     some code is needed that generates the high bound of the array. This
+     function returns a tree containing the nodes for it.}
+
       var
         temp: tnode;
         len : integer;
         loadconst : boolean;
-        hightree : tnode;
+        hightree,l,r : tnode;
       begin
         len:=-1;
         loadconst:=true;
@@ -353,17 +358,34 @@ type
                   loadconst:=false;
                   { slice? }
                   if (p.nodetype=inlinen) and (tinlinenode(p).inlinenumber=in_slice_x) then
+                    with Tcallparanode(Tinlinenode(p).left) do
+                      begin
+                        {Array slice using slice builtin function.}
+                        l:=Tcallparanode(right).left;
+                        hightree:=caddnode.create(subn,l,genintconstnode(1));
+                        Tcallparanode(right).left:=nil;
+
+                        {Remove the inline node.}
+                        temp:=p;
+                        p:=left;
+                        Tcallparanode(tinlinenode(temp).left).left:=nil;
+                        temp.free;
+
+                        resulttypepass(hightree);
+                      end
+                  else if (p.nodetype=vecn) and (Tvecnode(p).right.nodetype=rangen) then
                     begin
-                      hightree:=tcallparanode(tcallparanode(tinlinenode(p).left).right).left;
-                      hightree:=caddnode.create(subn,hightree,genintconstnode(1));
-                      tcallparanode(tcallparanode(tinlinenode(p).left).right).left:=nil;
-
-                      temp:=p;
-                      p:=tcallparanode(tinlinenode(p).left).left;
-                      tcallparanode(tinlinenode(temp).left).left:=nil;
-                      temp.free;
-
-                      resulttypepass(hightree);
+                      {Array slice using .. operator.}
+                      with Trangenode(Tvecnode(p).right) do
+                        begin
+                          {Because the bounds are also needed to calculate the pointer,
+                           we take copies instead of clearing the original.}
+                          l:=left.getcopy;  {Get lower bound.}
+                          r:=right.getcopy; {Get upper bound.}
+                        end;
+                      {In the procedure the array range is 0..(upper_bound-lower_bound).}
+                      hightree:=caddnode.create(subn,r,l);
+                      resulttypepass(gen_high_tree);
                     end
                   else
                     begin
