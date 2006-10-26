@@ -17,14 +17,14 @@ units=system ctypes objpas macpas strings \
       sockets printer charset ucomplex \
       winevent video mouse keyboard \
       dynlibs crt messages \
-      sharemem fpmkunit
+      sharemem fpmktype fpmkunit
 #      fpcmemdll
 #     winsysut signals
 #     cpu mmx
 #     no cygwin so far
 #	initc
 
-rsts=math varutils typinfo variants classes dateutils sysconst fpmkunit
+rsts=math varutils typinfo variants classes dateutils sysconst fpmktype fpmkunit
 
 programs=
 
@@ -223,7 +223,10 @@ cmem$(PPUEXT) : $(INC)/cmem.pp system$(PPUEXT)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
 
-fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) system$(PPUEXT)
+fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) system$(PPUEXT) fpmktype$(PPUEXT)
+
+fpmktype$(PPUEXT) : $(COMMON)/fpmktype.pp typinfo$(PPUEXT)
+
 
 #
 # Other system-dependent RTL Units

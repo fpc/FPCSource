@@ -14,8 +14,8 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       sysutils classes math typinfo varutils winsock \
       charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
       video mouse keyboard variants types rtlconst sysconst dateutil \
-      strutils convutil so32dll sockets fpmkunit
-rsts=math varutils typinfo variants pmhelp classes sysconst dateutil fpmkunit
+      strutils convutil so32dll sockets fpmktype fpmkunit
+rsts=math varutils typinfo variants pmhelp classes sysconst dateutil fpmktype fpmkunit
 
 [require]
 nortl=y
@@ -228,7 +228,10 @@ charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 
-fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
+fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) fpmktype$(PPUEXT)
+
+fpmktype$(PPUEXT) : $(COMMON)/fpmktype.pp typinfo$(PPUEXT)
+
 
 #
 # Other system-dependent RTL Units

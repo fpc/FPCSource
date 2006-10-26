@@ -21,10 +21,10 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas macpas \
       keyboard variants types dateutils sysconst \
       strutils rtlconsts cthreads \
       dos objects \
-      cwstring fpmkunit
+      cwstring fpmktype fpmkunit
 
 
-rsts=math varutils typinfo classes variants dateutils sysconst rtlconst fpmkunit
+rsts=math varutils typinfo classes variants dateutils sysconst rtlconst fpmktype fpmkunit
 
 [require]
 nortl=y
@@ -238,7 +238,10 @@ charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) math$(PPUEXT)
 
-fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
+fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)  fpmktype$(PPUEXT)
+
+fpmktype$(PPUEXT) : $(COMMON)/fpmktype.pp typinfo$(PPUEXT)
+
 
 #
 # Other system-dependent RTL Units

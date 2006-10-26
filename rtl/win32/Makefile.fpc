@@ -16,11 +16,11 @@ units=system ctypes objpas macpas strings \
       convutils stdconvs cpu mmx charset ucomplex getopts \
       winevent sockets printer \
       video mouse keyboard \
-      winsysut sharemem fpmkunit
+      winsysut sharemem fpmktype fpmkunit
 
 # shared=$(DLLS)
 
-rsts=math varutils typinfo variants classes dateutils sysconst fpmkunit
+rsts=math varutils typinfo variants classes dateutils sysconst fpmktype fpmkunit
 
 [require]
 nortl=y
@@ -225,7 +225,10 @@ cmem$(PPUEXT) : $(INC)/cmem.pp system$(PPUEXT)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
 
-fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
+fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) fpmktype$(PPUEXT)
+
+fpmktype$(PPUEXT) : $(COMMON)/fpmktype.pp typinfo$(PPUEXT)
+
 
 #
 # Other system-dependent RTL Units
