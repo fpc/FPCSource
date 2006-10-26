@@ -859,6 +859,7 @@ Var
   ParsePart               : TParsePart;
   StrLength               : Integer;
   EndOfComment            : Boolean;
+  BracketCount            : Integer;
 
 begin
   PSQL:=Pchar(ASQL);
@@ -877,8 +878,23 @@ begin
     EndOfComment := SkipComments(CurrentP);
     if EndOfcomment then dec(currentp);
     if EndOfComment and (ParsePart = ppStart) then PhraseP := CurrentP;
+    
+    // skip everything between bracket, since it could be a sub-select, and
+    // further nothing between brackets could be interesting for the parser.
+    if currentp^='(' then
+      begin
+      inc(currentp);
+      BracketCount := 0;
+      while (currentp^ <> #0) and ((currentp^ <> ')') or (BracketCount > 0 )) do
+        begin
+        if currentp^ = '(' then inc(bracketcount)
+        else if currentp^ = ')' then dec(bracketcount);
+        inc(currentp);
+        end;
+      EndOfComment := True;
+      end;
 
-    if EndOfComment or (CurrentP^ in [' ',#13,#10,#9,#0,'(',')',';']) then
+    if EndOfComment or (CurrentP^ in [' ',#13,#10,#9,#0,';']) then
       begin
       if (CurrentP-PhraseP > 0) or (CurrentP^ in [';',#0]) then
         begin
