@@ -891,6 +891,7 @@ fcl/inc/rtfpars.pp svneol=native#text/plain
 fcl/inc/rttiutils.pp svneol=native#text/plain
 fcl/inc/simpleipc.pp svneol=native#text/plain
 fcl/inc/ssockets.pp svneol=native#text/plain
+fcl/inc/streamcoll.pp svneol=native#text/plain
 fcl/inc/streamex.pp svneol=native#text/plain
 fcl/inc/streamio.pp svneol=native#text/plain
 fcl/inc/syncob.inc svneol=native#text/plain
