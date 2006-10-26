@@ -64,6 +64,23 @@ function TestResultAsPlain(aTestResult: TTestResult): string;
 
 implementation
 
+var
+  uLevel: integer;    // indentation counter
+
+
+// Helper function: Return a string of spaces pIntLen long
+function trSpace(pIntLen: integer): string;
+var
+  i: integer;
+  sString: string;
+begin
+  sString := '';
+  for i := 1 to pIntLen do
+    sString := sString + ' ';
+  Result := sString;
+end;
+
+
 {TXMLResultsWriter}
 procedure TXMLResultsWriter.WriteHeader;
 begin
@@ -131,7 +148,7 @@ end;
 
 procedure TPlainResultsWriter.StartTest(ATest: TTest);
 begin
-  writeln('Test: ' , ATest.TestSuiteName + '.' + ATest.TestName);
+  write('Test: ' , ATest.TestSuiteName + '.' + ATest.TestName);
 end;
 
 procedure TPlainResultsWriter.EndTest(ATest: TTest);
@@ -144,15 +161,18 @@ function TestSuiteAsXML(aSuite:TTestSuite): string;
 var
   i: integer;
 begin
-  Result := '<TestSuite name="' + ASuite.TestName + '">' + System.sLineBreak;
+  Result := trSpace(uLevel) + '<TestSuite name="' + ASuite.TestName + '">' + System.sLineBreak;
+  Inc(uLevel, 2);
   for i := 0 to aSuite.Tests.Count - 1 do
     if TTest(aSuite.Tests.Items[i]) is TTestSuite then
       Result := Result + TestSuiteAsXML(TTestSuite(aSuite.Tests.Items[i]))
     else
       if TTest(aSuite.Tests.Items[i]) is TTestCase then
-        Result := Result +'<test>' + TTestcase(aSuite.Tests.Items[i]).TestName + '</test>' + System.sLineBreak;
-  Result := Result + '</TestSuite>' + System.sLineBreak;
+        Result := Result + trSpace(uLevel) + '<test>' + TTestcase(aSuite.Tests.Items[i]).TestName + '</test>' + System.sLineBreak;
+  Dec(uLevel, 2);
+  Result := Result + trSpace(uLevel) + '</TestSuite>' + System.sLineBreak;
 end;
+
 
 function TestSuiteAsLatex(aSuite:TTestSuite): string;
 var
@@ -315,4 +335,8 @@ begin
   Result := Result + System.sLineBreak;
 end;
 
+
+initialization
+  uLevel := 0;
+  
 end.
