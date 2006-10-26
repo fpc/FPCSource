@@ -53,6 +53,7 @@ type
     procedure EndTest(ATest: TTest);
   end;}
 
+function TestSuiteAsXML(aSuite:TTestSuite; Indent : Integer): string;
 function TestSuiteAsXML(aSuite: TTestSuite): string;
 function TestSuiteAsLatex(aSuite:TTestSuite): string;
 function TestSuiteAsPlain(aSuite:TTestSuite): string;
@@ -63,23 +64,6 @@ function TestResultAsXML(aTestResult: TTestResult): string;
 function TestResultAsPlain(aTestResult: TTestResult): string;
 
 implementation
-
-var
-  uLevel: integer;    // indentation counter
-
-
-// Helper function: Return a string of spaces pIntLen long
-function trSpace(pIntLen: integer): string;
-var
-  i: integer;
-  sString: string;
-begin
-  sString := '';
-  for i := 1 to pIntLen do
-    sString := sString + ' ';
-  Result := sString;
-end;
-
 
 {TXMLResultsWriter}
 procedure TXMLResultsWriter.WriteHeader;
@@ -156,21 +140,27 @@ begin
   writeln;
 end;
 
-
 function TestSuiteAsXML(aSuite:TTestSuite): string;
+
+begin
+  Result:=TestSuiteAsXML(ASuite,0);
+end;
+
+function TestSuiteAsXML(aSuite:TTestSuite; Indent : Integer): string;
+
 var
   i: integer;
 begin
-  Result := trSpace(uLevel) + '<TestSuite name="' + ASuite.TestName + '">' + System.sLineBreak;
-  Inc(uLevel, 2);
+  Result := StringOfChar(' ',Indent) + '<TestSuite name="' + ASuite.TestName + '">' + System.sLineBreak;
+  Inc(Indent, 2);
   for i := 0 to aSuite.Tests.Count - 1 do
     if TTest(aSuite.Tests.Items[i]) is TTestSuite then
-      Result := Result + TestSuiteAsXML(TTestSuite(aSuite.Tests.Items[i]))
+      Result := Result + TestSuiteAsXML(TTestSuite(aSuite.Tests.Items[i]),Indent)
     else
       if TTest(aSuite.Tests.Items[i]) is TTestCase then
-        Result := Result + trSpace(uLevel) + '<test>' + TTestcase(aSuite.Tests.Items[i]).TestName + '</test>' + System.sLineBreak;
-  Dec(uLevel, 2);
-  Result := Result + trSpace(uLevel) + '</TestSuite>' + System.sLineBreak;
+        Result := Result + StringOfChar(' ',Indent) + '<test>' + TTestcase(aSuite.Tests.Items[i]).TestName + '</test>' + System.sLineBreak;
+  Dec(Indent, 2);
+  Result := Result + StringOfChar(' ',Indent) + '</TestSuite>' + System.sLineBreak;
 end;
 
 
@@ -336,7 +326,4 @@ begin
 end;
 
 
-initialization
-  uLevel := 0;
-  
 end.
