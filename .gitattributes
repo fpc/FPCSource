@@ -4282,7 +4282,6 @@ rtl/bsd/system.pp svneol=native#text/plain
 rtl/bsd/unxsysch.inc svneol=native#text/plain
 rtl/bsd/x86_64/syscall.inc svneol=native#text/plain
 rtl/bsd/x86_64/syscallh.inc svneol=native#text/plain
-rtl/common/fpmkunit.pp svneol=native#text/plain
 rtl/darwin/Makefile svneol=native#text/plain
 rtl/darwin/Makefile.fpc svneol=native#text/plain
 rtl/darwin/console.pp svneol=native#text/plain
