@@ -1,0 +1,22 @@
+#
+#   Makefile.fpc for fppkg
+#
+
+[target]
+units=fpmktype fpmkunit fprepos fpxmlrep pkgropts
+examples=rep2xml
+rsts=fprepos fpxmlrep
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+#[require]
+#packages=fcl
+
+[rules]
+fpmkunit$(PPUEXT) : fpmkunit.pp fpmkcnst.inc fpmktype$(PPUEXT)
+
+fpmktype$(PPUEXT) : fpmktype.pp fpmkcnst.inc
