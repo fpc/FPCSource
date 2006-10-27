@@ -94,6 +94,7 @@ function TrimLeft(const S: string): string;
 function TrimRight(const S: string): string;
 function QuotedStr(const S: string): string;
 function AnsiQuotedStr(const S: string; Quote: char): string;
+function AnsiDequotedStr(const S: string; AQuote: Char): string; 
 function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
 function AdjustLineBreaks(const S: string): string;
 function AdjustLineBreaks(const S: string; Style: TTextLineBreakStyle): string;

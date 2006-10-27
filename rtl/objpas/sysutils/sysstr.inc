@@ -1336,6 +1336,17 @@ begin
   Result:=FloatToStrF(Value,ffNumber,15,2);
 end;
 
+function AnsiDequotedStr(const S: string; AQuote: Char): string; 
+
+var p : pchar;
+
+begin
+  p:=pchar(s); // work around CONST
+  result:=AnsiExtractquotedStr(p,AQuote);
+  if result='' Then
+    result:=s;
+end;
+
 function StrToCurr(const S: string): Currency;
 begin
   if not TextToFloat(PChar(S), Result, fvCurrency) then

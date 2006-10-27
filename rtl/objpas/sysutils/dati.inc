@@ -768,7 +768,7 @@ begin
 end;
 {$endif unix}
 
-
+// ieuw. These should  be written to work without exceptions?
 function TryStrToDate(const S: string; out Value: TDateTime): Boolean;
   begin
     result:=true;
@@ -813,4 +813,22 @@ function TryStrToDateTime(const S: string; out Value: TDateTime): Boolean;
 
 // function TryStrToDateTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 
+
+function StrToDateDef(const S: string; const Defvalue : TDateTime): TDateTime;
+begin
+  if not TryStrToDate(s,Result) Then
+    result:=defvalue;
+end;
+
+function StrToTimeDef(const S: string; const Defvalue : TDateTime): TDateTime;
+begin
+  if not TryStrToTime(s,Result) Then
+    result:=defvalue;
+end;
+
+function StrToDateTimeDef(const S: string; const Defvalue : TDateTime): TDateTime;
+begin
+  if not TryStrToDateTime(s,Result) Then
+    result:=defvalue;
+end;
 

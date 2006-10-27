@@ -124,11 +124,17 @@ procedure DateTimeToString(out Result: string; const FormatStr: string; const Da
 Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
 Function FileDateToDateTime (Filedate : Longint) :TDateTime;
 function TryStrToDate(const S: string; out Value: TDateTime): Boolean;
-// function TryStrToDate(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 function TryStrToTime(const S: string; out Value: TDateTime): Boolean;
-// function TryStrToTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 function TryStrToDateTime(const S: string; out Value: TDateTime): Boolean;
+
+// function TryStrToDate(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
+// function TryStrToTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 // function TryStrToDateTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
+
+function StrToDateDef(const S: string; const Defvalue : TDateTime): TDateTime;
+function StrToTimeDef(const S: string; const Defvalue : TDateTime): TDateTime;
+function StrToDateTimeDef(const S: string; const Defvalue : TDateTime): TDateTime;
+
 function CurrentYear:Word;
 { FPC Extra }
 Procedure GetLocalTime(var SystemTime: TSystemTime);
