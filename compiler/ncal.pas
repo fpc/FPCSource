@@ -395,6 +395,9 @@ type
                           right:=nil;
                         end;
                       temp.free;
+                      {Tree changed from p[l..h] to p[l], recalculate resulttype.}
+                      p.resulttype.def:=nil;
+                      resulttypepass(p);
                     end
                   else
                     begin

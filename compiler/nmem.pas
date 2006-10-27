@@ -660,7 +660,7 @@ implementation
 
     function tvecnode.det_resulttype:tnode;
       var
-         htype : ttype;
+         htype,elementtype : ttype;
          valid : boolean;
       begin
          result:=nil;
@@ -745,21 +745,30 @@ implementation
              end;
            stringdef :
              begin
-                { indexed access to 0 element is only allowed for shortstrings }
-                if (right.nodetype=ordconstn) and
-                   (tordconstnode(right).value=0) and
-                   not(is_shortstring(left.resulttype.def)) then
-                  CGMessage(cg_e_can_access_element_zero);
                 case tstringdef(left.resulttype.def).string_typ of
-                   st_widestring :
-                     resulttype:=cwidechartype;
-                   st_ansistring :
-                     resulttype:=cchartype;
-                   st_longstring :
-                     resulttype:=cchartype;
-                   st_shortstring :
-                     resulttype:=cchartype;
+                  st_widestring :
+                    elementtype:=cwidechartype;
+                  st_ansistring :
+                    elementtype:=cchartype;
+                  st_longstring :
+                    elementtype:=cchartype;
+                  st_shortstring :
+                    elementtype:=cchartype;
                 end;
+                if right.nodetype=rangen then
+                  begin
+                    htype.setdef(Tarraydef.create_from_pointer(elementtype));
+                    resulttype:=htype;
+                  end
+                else
+                 begin
+                   { indexed access to 0 element is only allowed for shortstrings }
+                   if (right.nodetype=ordconstn) and
+                      (tordconstnode(right).value=0) and
+                      not is_shortstring(left.resulttype.def) then
+                     CGMessage(cg_e_can_access_element_zero);
+                   resulttype:=elementtype;
+                 end;
              end;
            variantdef :
              resulttype:=cvarianttype;

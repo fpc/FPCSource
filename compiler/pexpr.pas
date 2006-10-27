@@ -1869,6 +1869,9 @@ implementation
                             stringdef :
                               begin
                                 p2:=comp_expr(true);
+                                if try_to_consume(_POINTPOINT) then
+                                  { Support string[0..9] which returns array [0..9] of char.}
+                                  p2:=crangenode.create(p2,comp_expr(true));
                                 p1:=cvecnode.create(p1,p2);
                               end;
                             arraydef,
