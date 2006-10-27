@@ -378,14 +378,23 @@ type
                       {Array slice using .. operator.}
                       with Trangenode(Tvecnode(p).right) do
                         begin
-                          {Because the bounds are also needed to calculate the pointer,
-                           we take copies instead of clearing the original.}
-                          l:=left.getcopy;  {Get lower bound.}
-                          r:=right.getcopy; {Get upper bound.}
+                          l:=left;  {Get lower bound.}
+                          r:=right; {Get upper bound.}
                         end;
                       {In the procedure the array range is 0..(upper_bound-lower_bound).}
                       hightree:=caddnode.create(subn,r,l);
                       resulttypepass(gen_high_tree);
+
+                      {Replace the rangnode in the tree by its lower_bound, and
+                       dispose the rangenode.}
+                      temp:=Tvecnode(p).right;
+                      Tvecnode(p).right:=l.getcopy;
+                      with Trangenode(temp) do
+                        begin
+                          left:=nil;
+                          right:=nil;
+                        end;
+                      temp.free;
                     end
                   else
                     begin

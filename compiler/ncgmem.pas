@@ -83,7 +83,7 @@ implementation
       symconst,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
-      pass_1,nld,ncon,nadd,nutils,nset,
+      pass_1,nld,ncon,nadd,nutils,
       cgutils,cgobj,
       tgobj,ncgutil
       ;
@@ -698,13 +698,12 @@ implementation
               ispowerof2(mulsize div 8,temp))) then
            dec(location.reference.offset,bytemulsize*tarraydef(left.resulttype.def).lowrange);
 
-         case right.nodetype of
-           ordconstn:
-             begin
-               { offset can only differ from 0 if arraydef }
-               case left.resulttype.def.deftype of
-                 arraydef :
-                   begin
+         if right.nodetype=ordconstn then
+           begin
+              { offset can only differ from 0 if arraydef }
+              case left.resulttype.def.deftype of
+                arraydef :
+                  begin
                      if not(is_open_array(left.resulttype.def)) and
                         not(is_array_of_const(left.resulttype.def)) and
                         not(is_dynamic_array(left.resulttype.def)) then
@@ -727,11 +726,11 @@ implementation
                           if (cs_check_range in aktlocalswitches) then
                             rangecheck_array;
                        end;
-                   end;
-                 stringdef :
-                   begin
-                     if (cs_check_range in aktlocalswitches) then
-                      begin
+                  end;
+                stringdef :
+                  begin
+                    if (cs_check_range in aktlocalswitches) then
+                     begin
                        case tstringdef(left.resulttype.def).string_typ of
                          { it's the same for ansi- and wide strings }
                          st_widestring,
@@ -763,14 +762,14 @@ implementation
                               {!!!!!!!!!!!!!!!!!}
                            end;
                        end;
-                      end;
+                     end;
                    end;
-               end;
-               if not(is_packed_array(left.resulttype.def)) or
+              end;
+              if not(is_packed_array(left.resulttype.def)) or
                  ((mulsize mod 8 = 0) and
                   ispowerof2(mulsize div 8,temp)) then
-                 begin
-                   inc(location.reference.offset,
+                begin
+                  inc(location.reference.offset,
                     bytemulsize*tordconstnode(right).value);
                   { don't do this for floats etc.; needed to properly set the }
                   { size for bitpacked arrays (e.g. a bitpacked array of      }
@@ -779,44 +778,29 @@ implementation
                   if is_packed_array(left.resulttype.def) and
                      (tcgsize2size[newsize] <> bytemulsize) then
                     newsize:=int_cgsize(bytemulsize);
-                 end
-               else
-                 begin
-                   subsetref.ref := location.reference;
-                   subsetref.ref.alignment := left.resulttype.def.alignment;
-                   if not ispowerof2(subsetref.ref.alignment,temp) then
-                     internalerror(2006081212);
-                   alignpow:=temp;
-                   inc(subsetref.ref.offset,((mulsize * (tordconstnode(right).value-tarraydef(left.resulttype.def).lowrange)) shr (3+alignpow)) shl alignpow);
-                   subsetref.bitindexreg := NR_NO;
-                   subsetref.startbit := (mulsize * (tordconstnode(right).value-tarraydef(left.resulttype.def).lowrange)) and ((1 shl (3+alignpow))-1);
-                   subsetref.bitlen := resulttype.def.packedbitsize;
-                   if (left.location.loc = LOC_REFERENCE) then
-                     location.loc := LOC_SUBSETREF
-                   else
-                     location.loc := LOC_CSUBSETREF;
-                   location.sref := subsetref;
-                 end;
-             end;
-           rangen:
-             begin
-               {Pbyte[0..9] syntax.
-                The .. operator by itself does not generate code, it only determines
-                the type of the resulting array. So we immediately call the second past
-                of the lower bound, which determines the address.}
-
-               {Get lower array bound.}
-               secondpass(Trangenode(right).left);
-               {If mulsize = 1, we won't have to modify the index }
-               location_force_reg(current_asmdata.CurrAsmList,
-                                  Trangenode(right).left.location,
-                                  OS_ADDR,
-                                  mulsize=1);
-               update_reference_reg_mul(Trangenode(right).left.location.register,mulsize)
-             end;
-           else
-             { not nodetype in [ordconstn,rangen] }
-             if (cs_opt_level1 in aktoptimizerswitches) and
+                end
+              else
+                begin
+                  subsetref.ref := location.reference;
+                  subsetref.ref.alignment := left.resulttype.def.alignment;
+                  if not ispowerof2(subsetref.ref.alignment,temp) then
+                    internalerror(2006081212);
+                  alignpow:=temp;
+                  inc(subsetref.ref.offset,((mulsize * (tordconstnode(right).value-tarraydef(left.resulttype.def).lowrange)) shr (3+alignpow)) shl alignpow);
+                  subsetref.bitindexreg := NR_NO;
+                  subsetref.startbit := (mulsize * (tordconstnode(right).value-tarraydef(left.resulttype.def).lowrange)) and ((1 shl (3+alignpow))-1);
+                  subsetref.bitlen := resulttype.def.packedbitsize;
+                  if (left.location.loc = LOC_REFERENCE) then
+                    location.loc := LOC_SUBSETREF
+                  else
+                    location.loc := LOC_CSUBSETREF;
+                  location.sref := subsetref;
+                end;
+           end
+         else
+         { not nodetype=ordconstn }
+           begin
+              if (cs_opt_level1 in aktoptimizerswitches) and
                  { if we do range checking, we don't }
                  { need that fancy code (it would be }
                  { buggy)                            }
@@ -953,11 +937,11 @@ implementation
                 update_reference_reg_mul(right.location.register,mulsize)
               else
                 update_reference_reg_packed(right.location.register,mulsize);
-         end;
+           end;
 
-         location.size:=newsize;
-         paraloc1.done;
-         paraloc2.done;
+        location.size:=newsize;
+        paraloc1.done;
+        paraloc2.done;
       end;
 
 
