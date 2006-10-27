@@ -481,6 +481,18 @@ function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :int
 function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64;   {$ifdef MATHINLINE}inline; {$endif}
 function ifthen(val:boolean;const iftrue:double ; const iffalse:double =0.0):double;  {$ifdef MATHINLINE}inline; {$endif}
 
+function CompareValue ( const A, B  : Integer) : TValueRelationship; inline;
+function CompareValue ( const A, B  : Int64) : TValueRelationship; inline;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function CompareValue ( const A, B : Single; delta : Single = 0.0 ) : TValueRelationship; inline;
+{$endif}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function CompareValue ( const A, B : Double; delta : Double = 0.0) : TValueRelationship; inline;
+{$endif}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function CompareValue ( const A, B : Extended; delta : Extended = 0.0 ) : TValueRelationship; inline;
+{$endif}
+
 { include cpu specific stuff }
 {$i mathuh.inc}
 
@@ -2076,5 +2088,66 @@ function ifthen(val:boolean;const iftrue:double ; const iffalse:double =0.0):dou
 begin
   if val then result:=iftrue else result:=iffalse;
 end;
+
+// dilemma here. asm can do the two comparisons in one go?
+// but pascal is portable and can be i inline;ed. Ah well, we need purepascal's anyway:
+function CompareValue ( const A, B  : Integer) : TValueRelationship; 
+
+begin
+  result:=GreaterThanValue;
+  if a=b then
+    result:=EqualsValue
+  else
+   if a<b then
+     result:=LessThanValue;
+end;
+
+function CompareValue ( const A, B  : Int64) : TValueRelationship; 
+
+begin
+  result:=GreaterThanValue;
+  if a=b then
+    result:=EqualsValue
+  else
+   if a<b then
+     result:=LessThanValue;
+end;
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function CompareValue ( const A, B : Single; delta : Single = 0.0) : TValueRelationship;
+begin
+  result:=GreaterThanValue;
+  if abs(a-b)<=delta then
+    result:=EqualsValue
+  else
+   if a<b then
+     result:=LessThanValue;
+end;
+{$endif}
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function CompareValue ( const A, B : Double; delta : Double = 0.0) : TValueRelationship; 
+begin
+  result:=GreaterThanValue;
+  if abs(a-b)<=delta then
+    result:=EqualsValue
+  else
+   if a<b then
+     result:=LessThanValue;
+end;
+{$endif}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function CompareValue ( const A, B : Extended; delta : Extended = 0.0) : TValueRelationship;
+begin
+  result:=GreaterThanValue;
+  if abs(a-b)<=delta then
+    result:=EqualsValue
+  else
+   if a<b then
+     result:=LessThanValue;
+end;
+{$endif}
+
 
 end.
