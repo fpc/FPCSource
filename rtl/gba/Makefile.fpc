@@ -16,8 +16,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
 #      exec timer doslib utility hardware inputevent graphics layers \
 # these can be moved to packages later
 #      clipboard datatypes asl ahi tinygl get9 muihelper \
-      fpmktype fpmkunit
-rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil fpmktype fpmkunit
+rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil
 
 [require]
 nortl=y
@@ -171,11 +170,6 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 #lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
-
-fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) fpmktype$(PPUEXT)
-
-fpmktype$(PPUEXT) : $(COMMON)/fpmktype.pp typinfo$(PPUEXT)
-
 
 #
 # Other system-dependent RTL Units

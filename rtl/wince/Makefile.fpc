@@ -21,9 +21,9 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
 #    crt graph \
 #    wincrt winmouse winevent  printer \
 #    video mouse keyboard \
-#    winsysut fpmkunit
+#    winsysut
 
-# rsts=math varutils typinfo variants classes dateutils sysconst fpmkunit
+# rsts=math varutils typinfo variants classes dateutils sysconst
 
 # fake dll
 # programs=fpcmemdll
@@ -222,8 +222,6 @@ charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-#fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT)
 
 #
 # Other system-dependent RTL Units

@@ -12,8 +12,8 @@ units=system objpas macpas strings \
       cpu mmx ucomplex getopts heaptrc lineinfo \
       msmouse charset varutils \
       video mouse keyboard variants vesamode types \
-      sysconst rtlconst dateutil convutil strutils fpmktype fpmkunit
-rsts=math varutils typinfo classes variants dateutil sysconst fpmktype fpmkunit
+      sysconst rtlconst dateutil convutil strutils
+rsts=math varutils typinfo classes variants dateutil sysconst
 [require]
 nortl=y
 [install]
@@ -142,10 +142,6 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)
-
-fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) fpmktype$(PPUEXT)
-
-fpmktype$(PPUEXT) : $(COMMON)/fpmktype.pp typinfo$(PPUEXT)
 
 #
 # Other system-dependent RTL Units

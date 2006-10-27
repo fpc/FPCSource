@@ -21,9 +21,9 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
 #    crt graph \
 #    wincrt winmouse winevent  printer \
 #    video mouse keyboard \
-#    winsysut fpmkunit
+#    winsysut
 
-# rsts=math varutils typinfo variants classes dateutils sysconst fpmkunit
+# rsts=math varutils typinfo variants classes dateutils sysconst
 
 [require]
 nortl=y

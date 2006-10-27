@@ -16,8 +16,8 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       charset ucomplex variants \
       rtlconsts math varutils freebidi utf8bidi \
       mouse video keyboard cmem sockets \
-      aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes fpmktype fpmkunit
-rsts=math varutils variants typinfo classes dateutils sysconst convutils rtlconsts fpmktype fpmkunit
+      aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes
+rsts=math varutils variants typinfo classes dateutils sysconst convutils rtlconsts
 
 [require]
 nortl=y
@@ -237,11 +237,6 @@ keyboard$(PPUEXT) : $(INC)/keyboard.inc $(INC)/keybrdh.inc $(SYSTEMUNIT)$(PPUEXT
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
-
-fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) fpmktype$(PPUEXT)
-
-fpmktype$(PPUEXT) : $(COMMON)/fpmktype.pp typinfo$(PPUEXT)
-
 
 #
 # Other system-dependent RTL Units

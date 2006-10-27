@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       sysutils classes math typinfo varutils winsock \
       charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
       video mouse keyboard variants types rtlconst sysconst dateutil \
-      strutils convutil ctypes fpmktype fpmkunit
+      strutils convutil ctypes 
 rsts=math varutils typinfo variants pmhelp classes sysconst dateutil
 
 [require]
@@ -195,10 +195,6 @@ convutil$(PPUEXT) : $(OBJPASDIR)/convutil.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/strutils.pp
-
-fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) fpmktype$(PPUEXT)
-
-fpmktype$(PPUEXT) : $(COMMON)/fpmktype.pp typinfo$(PPUEXT)
 
 #
 # Mac Pascal Model
