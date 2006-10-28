@@ -109,16 +109,6 @@ TESTSUBDIRS=cg cg/cdecl units/system units/dos units/crt units/objects units/str
 # All full dirnames in the test/ dir including the subdir self
 TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
 
-# Unix like OS ?
-ifneq ($(findstring $(TEST_OS_TARGET),$(UNIXs)),)
-INUNIX=1
-endif
-
-# For unixes by default no graph tests
-ifdef INUNIX
-NOGRAPH=1
-endif
-
 .PHONY: utils units copyfiles testprep
 
 ################################
@@ -140,7 +130,7 @@ DOTEST=utils/dotest
 endif
 
 ifndef PREPUP
-DOPREP=utils/prepup
+PREPUP=utils/prepup
 endif
 
 
@@ -329,6 +319,7 @@ $(TEST_OUTPUTDIR)/dbdigest.cfg:
         $(ECHOREDIR) "Machine=$(TEST_HOSTNAME)" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
         $(ECHOREDIR) "Comment=$(TEST_OPT)" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 
+ifndef inWinNT
 $(TEST_OUTPUTDIR)/tar.lst:
         cd $(TEST_OUTPUTDIR) && $(PREPUP) > tar.lst
         $(ECHOREDIR) "log" >> $(TEST_OUTPUTDIR)/tar.lst
@@ -337,8 +328,17 @@ $(TEST_OUTPUTDIR)/tar.lst:
 $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/tar.lst $(TEST_OUTPUTDIR)/dbdigest.cfg
         cd $(TEST_OUTPUTDIR) && tar cfz $(DB_TARGZ) --files-from=tar.lst
 
+else
+$(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/dbdigest.cfg
+        cd $(TEST_OUTPUTDIR) && ../../$(PREPUP) $(DB_TARGZ)
+endif
+
 uploadrun: $(TEST_OUTPUTDIR)/$(DB_TARGZ)
+ifdef inWinNT
+        scp -load "fpc@www.freepascal.org" -v $(TEST_OUTPUTDIR)/$(DB_TARGZ) $(DB_HOST):$(DB_UPLOADDIR)/$(DB_TARGZ).part $(SSH_EXTRA)
+else
         scp $(TEST_OUTPUTDIR)/$(DB_TARGZ) $(DB_HOST):$(DB_UPLOADDIR)/$(DB_TARGZ).part
+endif
         ssh $(DB_HOST) "mv $(DB_UPLOADDIR)/$(DB_TARGZ).part $(DB_UPLOADDIR)/$(DB_TARGZ)"
 
 all : allexectests
