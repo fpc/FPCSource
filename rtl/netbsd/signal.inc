@@ -126,13 +126,13 @@ type sigset_t = array[0..3] of cardinal;
   PSignalRestorer = ^SignalRestorer;
 
 {$ifdef powerpc}
-  TSigaction=  procedure(Sig: Longint); cdecl;
+  SigactionHandler =  procedure(Sig: Longint); cdecl;
 {$else}
 {$define BSDHandler}
 {$ifdef BSDHandler}
-  TSigAction = procedure(Sig: Longint; code:longint;var SigContext: SigContextRec);cdecl;
+  SigActionHandler  = procedure(Sig: Longint; code:longint;var SigContext: SigContextRec);cdecl;
 {$else}
-  TSigAction = procedure(Sig: Longint; var sininfo:tsiginfo_t;var SigContext: SigContextRec);cdecl;
+  SigActionHandler  = procedure(Sig: Longint; var sininfo:tsiginfo_t;var SigContext: SigContextRec);cdecl;
 {$endif}
 {$endif}
 
@@ -142,7 +142,7 @@ type sigset_t = array[0..3] of cardinal;
 
   SigActionRec = packed record
 //    Handler  : record
-    sa_handler : TSigAction;
+    sa_handler : SigActionHandler;
 //      case byte of
 //        0: (Sh: SignalHandler);
 //        1: (Sa: TSigAction);

@@ -27,7 +27,11 @@ end;
 
 function shmget(key:key_t;size:cint;flag:cint):cint;
 begin
+{$ifdef NetBSD}
+  shmget:=do_syscall(syscall_nr_shmget,3, key, size, flag);
+{$else NetBSD}
   shmget:=do_syscall(syscall_nr_shmsys,3, key, size, flag);
+{$endif NetBSD}
 end;
 
 Function shmat (shmid:cint; shmaddr:pointer; shmflg:cint):pointer;
@@ -38,7 +42,11 @@ end;
 Function shmdt (shmaddr:pointer):cint;
 
 begin
+{$ifdef NetBSD}
+  shmdt:=do_syscall(syscall_nr_shmdt,2, TSysParam(shmaddr));
+{$else NetBSD}
   shmdt:=do_syscall(syscall_nr_shmsys,2, TSysParam(shmaddr));
+{$endif NetBSD}
 end;
 
 Function shmctl(shmid:cint; cmd:cint; buf: pshmid_ds): cint;

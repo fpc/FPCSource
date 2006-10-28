@@ -4694,8 +4694,9 @@ rtl/morphos/utility.pp svneol=native#text/plain
 rtl/morphos/varutils.pp svneol=native#text/plain
 rtl/netbsd/Makefile svneol=native#text/plain
 rtl/netbsd/Makefile.fpc svneol=native#text/plain
-rtl/netbsd/classes.pp svneol=native#text/plain
 rtl/netbsd/errno.inc svneol=native#text/plain
+rtl/netbsd/errnostr.inc -text
+rtl/netbsd/i386/bsyscall.inc svneol=native#text/plain
 rtl/netbsd/i386/cprt0.as -text
 rtl/netbsd/i386/prt0.as -text
 rtl/netbsd/i386/prt0_10.as -text
@@ -4717,7 +4718,10 @@ rtl/netbsd/termios.inc svneol=native#text/plain
 rtl/netbsd/termiosproc.inc svneol=native#text/plain
 rtl/netbsd/tthread.inc svneol=native#text/plain
 rtl/netbsd/unixsock.inc svneol=native#text/plain
-rtl/netbsd/unixsysc.inc svneol=native#text/plain
+rtl/netbsd/unxconst.inc svneol=native#text/plain
+rtl/netbsd/unxfunc.inc svneol=native#text/plain
+rtl/netbsd/unxsockh.inc svneol=native#text/plain
+rtl/netbsd/unxsysc.inc svneol=native#text/plain
 rtl/netware/Makefile svneol=native#text/plain
 rtl/netware/Makefile.fpc svneol=native#text/plain
 rtl/netware/README -text

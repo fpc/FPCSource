@@ -6,7 +6,7 @@
    See the file COPYING.FPC, included in this distribution,
    for details about the copyright.
 
-   socket call implementations for FreeBSD
+   socket call implementations for NetBSD
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY;without even the implied warranty of
@@ -14,198 +14,100 @@
 }
 
 
+
+{$warning Taken from FreeBSD, please check }
 {******************************************************************************
                           Basic Socket Functions
 ******************************************************************************}
 
-Function socket(Domain,SocketType,Protocol:Longint):Longint;
+function  fpsocket (domain:cint; xtype:cint; protocol: cint):cint;
+Begin
+  fpSocket:=Do_Syscall(syscall_nr_socket,Domain,xtype,Protocol);
+  socketerror:=fpgeterrno;
+End;
+
+function  fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t;
 begin
-  Socket:=Do_Syscall(syscall_nr_socket,Domain,SocketType,Protocol);
+  fpSend:=do_syscall(syscall_nr_sendto,S,TSysParam(msg),Len,Flags,0,0);
+  socketerror:=fpgeterrno;
 end;
 
-Function CloseSocket (Sock:Longint):Longint;
+function  fpsendto (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t;
 begin
-  if fpclose(Sock)=0 then
-    CloseSocket := 0 else
-    CloseSocket := -1;
+  fpSendto:=do_syscall(syscall_nr_sendto,S,TSysParam(msg),Len,Flags,TSysParam(tox),tolen);
+  socketerror:=fpgeterrno;
 end;
 
-Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
+function  fprecv (s:cint; buf: pointer; len: size_t; flags:cint):ssize_t;
 begin
-  Send:=do_syscall(syscall_nr_sendto,Sock,Longint(@Buf),BufLen,Flags,0,0);
+  fpRecv:=do_syscall(syscall_nr_Recvfrom,S,tsysparam(buf),len,flags,0,0);
+  socketerror:=fpgeterrno;
 end;
 
-Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
+function  fprecvfrom (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
 begin
-  Sendto:=do_syscall(syscall_nr_Sendto,Sock,Longint(@Buf),BufLen,Flags,Longint(@Addr),AddrLen);
+  fpRecvFrom:=do_syscall(syscall_nr_Recvfrom,S,TSysParam(buf),len,flags,TSysParam(from),TSysParam(fromlen));
+  socketerror:=fpgeterrno;
 end;
 
-Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
+function  fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;
 begin
-  Recv:=do_syscall(syscall_nr_Recvfrom,Sock,Longint(@Buf),BufLen,Flags,0,0);
+  fpBind:=do_syscall(syscall_nr_Bind,S,TSysParam(addrx),addrlen);
+  socketerror:=fpgeterrno;
 end;
 
-Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr ; AddrLen : Integer) : longint;
-
+function  fplisten (s:cint; backlog : cint):cint;
 begin
-  RecvFrom:=do_syscall(syscall_nr_Recvfrom,Sock,Longint(@buf),buflen,flags,Longint(@Addr),AddrLen);
+  fpListen:=do_syscall(syscall_nr_Listen,S,backlog);
+  socketerror:=fpgeterrno;
 end;
 
-Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
+function  fpaccept (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
 begin
-  Bind:=(do_syscall(syscall_nr_Bind,Sock,Longint(@Addr),AddrLen)=0);
+  fpAccept:=do_syscall(syscall_nr_accept,S,TSysParam(addrx),TSysParam(addrlen));
+  socketerror:=fpgeterrno;
 end;
 
-Function Listen(Sock,MaxConnect:Longint):Boolean;
+function  fpconnect (s:cint; name  : psockaddr; namelen : tsocklen):cint;
 begin
-  Listen:=(do_syscall(syscall_nr_Listen,Sock,MaxConnect,0)=0);
+  fpConnect:=do_syscall(syscall_nr_connect,S,TSysParam(name),namelen);
+  socketerror:=fpgeterrno;
 end;
 
-Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
+function  fpshutdown (s:cint; how:cint):cint;
 begin
-  Accept:=do_syscall(syscall_nr_accept,Sock,longint(@Addr),longint(@AddrLen));
-  If Accept<0 Then
-    Accept:=-1;
+  fpShutDown:=do_syscall(syscall_nr_shutdown,S,how);
+  socketerror:=fpgeterrno;
 end;
 
-Function Connect(Sock:Longint;Const Addr;Addrlen:Longint): boolean;
-
+function  fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
-  Connect:=do_syscall(syscall_nr_connect,Sock,longint(@Addr),AddrLen)=0;
+  fpGetSockName:=do_syscall(syscall_nr_GetSockName,S,TSysParam(name),TSysParam(namelen));
+  socketerror:=fpgeterrno;
 end;
 
-
-Function Shutdown(Sock:Longint;How:Longint):Longint;
+function  fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
-  ShutDown:=do_syscall(syscall_nr_shutdown,Sock,How);
+  fpGetPeerName:=do_syscall(syscall_nr_GetPeerName,S,TSysParam(name),TSysParam(namelen));
+  socketerror:=fpgeterrno;
 end;
 
-
-Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
+function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : tsocklen):cint;
 begin
-  GetSocketName:=do_syscall(syscall_nr_GetSockName,Sock,longint(@Addr),longint(@AddrLen));
+  fpSetSockOpt:=do_syscall(syscall_nr_SetSockOpt,S,level,optname,TSysParam(optval),optlen);
+  socketerror:=fpgeterrno;
 end;
 
-
-
-Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
+function  fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint;
 begin
-  GetPeerName:=do_syscall(syscall_nr_GetPeerName,Sock,longint(@Addr),longint(@AddrLen));
+  fpGetSockOpt:=do_syscall(syscall_nr_GetSockOpt,S,level,TSysParam(optname),TSysParam(optval),TSysParam(optlen));
+  socketerror:=fpgeterrno;
 end;
 
+function  fpsocketpair (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
 
-
-Function SetSocketOptions(Sock,Level,OptName:Longint;Const OptVal;optlen:longint):Longint;
 begin
-  SetSocketOptions:=do_syscall(syscall_nr_SetSockOpt,Sock,Level,OptName,Longint(@OptVal),OptLen,0);
-end;
-
-
-
-Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
-begin
-  GetSocketOptions:=do_syscall(syscall_nr_GetSockOpt,Sock,Level,OptName,Longint(@OptVal),OptLen,0);
-end;
-
-
-
-Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
-begin
-  SocketPair:=do_syscall(syscall_nr_SocketPair,Domain,SocketType,Protocol,longint(@Pair),0,0);
-end;
-
-{******************************************************************************
-                               UnixSock
-******************************************************************************}
-
-Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint);
-begin
-  Move(Addr[1],t.Path,length(Addr));
-  t.Family:=AF_UNIX;
-  t.Path[length(Addr)]:=#0;
-  Len:=Length(Addr)+3;
-end;
-
-
-Function Bind(Sock:longint;const addr:string):boolean;
-var
-  UnixAddr : TUnixSockAddr;
-  AddrLen  : longint;
-begin
-  Str2UnixSockAddr(addr,UnixAddr,AddrLen);
-  Bind(Sock,UnixAddr,AddrLen);
-  Bind:=(SocketError=0);
-end;
-
-
-
-Function DoAccept(Sock:longint;var addr:string):longint;
-var
-  UnixAddr : TUnixSockAddr;
-  AddrLen  : longint;
-begin
-  AddrLen:=length(addr)+3;
-  DoAccept:=Accept(Sock,UnixAddr,AddrLen);
-  Move(UnixAddr.Path,Addr[1],AddrLen);
-  SetLength(Addr,AddrLen);
-end;
-
-
-
-Function DoConnect(Sock:longint;const addr:string):Boolean;
-var
-  UnixAddr : TUnixSockAddr;
-  AddrLen  : longint;
-begin
-  Str2UnixSockAddr(addr,UnixAddr,AddrLen);
-  DoConnect:=Connect(Sock,UnixAddr,AddrLen);
-end;
-
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;
-var
-  s : longint;
-begin
-  S:=DoAccept(Sock,addr);
-  if S>0 then
-   begin
-     Sock2Text(S,SockIn,SockOut);
-     Accept:=true;
-   end
-  else
-   Accept:=false;
-end;
-
-
-
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
-var
-  s : longint;
-begin
-  S:=DoAccept(Sock,addr);
-  if S>0 then
-   begin
-     Sock2File(S,SockIn,SockOut);
-     Accept:=true;
-   end
-  else
-   Accept:=false;
-end;
-
-
-
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean;
-begin
-  Connect:=DoConnect(Sock,addr);
-  If Connect then
-     Sock2Text(Sock,SockIn,SockOut);
-end;
-
-
-
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean;
-begin
-  Connect:=DoConnect(Sock,addr);
-  if Connect then
-     Sock2File(Sock,SockIn,SockOut);
+  fpSocketPair:=do_syscall(syscall_nr_SocketPair,d,xtype,protocol,TSysParam(sv));
+  socketerror:=fpgeterrno;
 end;
 

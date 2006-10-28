@@ -68,10 +68,10 @@ begin
   fsync:=do_syscall(syscall_nr_fsync,fd);
 end;
 
-Function  Flock (fd,mode : longint) : cint;
+Function  fpFlock (fd,mode : longint) : cint;
 
 begin
- Flock:=do_syscall(syscall_nr_flock,fd,mode);
+ fpFlock:=do_syscall(syscall_nr_flock,fd,mode);
 end;
 
 Function fStatFS(Fd:Longint;Var Info:tstatfs):cint;
@@ -128,6 +128,7 @@ begin
 end;
 
 
+{
 Function PClose(Var F:text) :cint;
 var
   pl  : ^longint;
@@ -153,6 +154,7 @@ begin
   fpwaitpid(pl^,@res,0);
   pclose:=res shr 8;
 end;
+}
 
 function MUnMap (P : Pointer; Size : size_t) : cint;
 
@@ -161,60 +163,11 @@ begin
 end;
 {$else}
 
-Function PClose(Var F:file) : cint;
-var
-  pl : ^cint;
-  res : cint;
+{
 
-begin
-  fpclose(filerec(F).Handle);
-{ closed our side, Now wait for the other - this appears to be needed ?? }
-  pl:=@(filerec(f).userdata[2]);
-  fpwaitpid(pl^,@res,0);
-  pclose:=res shr 8;
-end;
-
-Function PClose(Var F:text) :cint;
-var
-  pl  : ^longint;
-  res : longint;
-
-begin
-  fpclose(Textrec(F).Handle);
-{ closed our side, Now wait for the other - this appears to be needed ?? }
-  pl:=@(textrec(f).userdata[2]);
-  fpwaitpid(pl^,@res,0);
-  pclose:=res shr 8;
-end;
+}
 
 {$endif}
-// can't have oldfpccall here, linux doesn't need it.
-Function AssignPipe(var pipe_in,pipe_out:cint):cint; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
-{
-  Sets up a pair of file variables, which act as a pipe. The first one can
-  be read from, the second one can be written to.
-  If the operation was unsuccesful, linuxerror is set.
-}
-var
-  ret  : longint;
-  errn : cint;
-  {$ifdef FPC_USE_LIBC}
-   fdis : array[0..1] of cint;
-  {$endif}
-begin
-{$ifndef FPC_USE_LIBC}
- ret:=intAssignPipe(pipe_in,pipe_out,errn);
- if ret=-1 Then
-  fpseterrno(errn);
-{$ELSE}
- fdis[0]:=pipe_in;
- fdis[1]:=pipe_out;
- ret:=pipe(fdis);
- pipe_in:=fdis[0];
- pipe_out:=fdis[1];
-{$ENDIF}
- AssignPipe:=ret;
-end;
 
 
 {

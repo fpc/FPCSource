@@ -52,11 +52,21 @@ type
     TPid     = pid_t;
     pPid     = ^pid_t;
 
+ {$ifdef CPU64}
+    size_t   = cuint64;
+{$else}
     size_t   = cuint32;         { as definied in the C standard}
+{$endif}
     TSize    = size_t;
     pSize    = ^size_t;
+    pSize_t  = ^size_t;
 
-    ssize_t  = cint32;          { used by function for returning number of bytes }
+{$ifdef CPU64}
+    ssize_t  = cint64;          { used by function for returning number of bytes }
+{$else}
+    ssize_t  = cint32;          { used by function for returning number of bytes}
+{$endif}
+
     TsSize   = ssize_t;
     psSize   = ^ssize_t;
 
@@ -77,6 +87,40 @@ type
     TSocklen = socklen_t;
     pSocklen = ^socklen_t;
 
+Const
+{$warning Check me, I'am from FreeBSD}
+    MNAMLEN   = 80;      // slightly machine specific.
+    MFSNamLen = 16;	
+type
+{$warning Check me, I'am from FreeBSD}
+    fsid_t  = array[0..1] of cint;
+    // Kernel statfs
+{$warning Check me, I'am from FreeBSD}
+    TStatfs = packed record
+      spare2,            { place holder}
+      bsize,             { fundamental block size}
+      iosize,            { optimal block size }
+      blocks,            {  total blocks}
+      bfree,             { blocks free}
+      bavail,            { block available for mortal users}
+      files,             { Total file nodes}
+      ffree          : clong ;    { file nodes free}
+      fsid           : fsid_t;
+      fowner         : tuid; {mounter uid}
+      ftype          : cint;
+      fflags         : cint; {copy of mount flags}
+      fsyncwrites,
+      fasyncwrites   : clong;
+      fstypename     : array[0..MFSNamLen-1] of char;
+      mountpoint     : array[0..MNAMLEN-1] of char;
+      fsyncreads,            { count of sync reads since mount }
+      fasyncreads    : clong;
+      fspares1       : cshort;
+      mnfromname     : array[0..MNAMLEN-1] of char;
+      fspares2       : cshort;
+      fspare3        : array[0..1] of clong;
+    end;
+    PStatFS=^TStatFS;
     timeval = packed record
                 tv_sec,
                 tv_usec : clong;
@@ -93,7 +137,7 @@ type
 
    pthread_t            = pointer;
    pthread_attr_t       = pointer;
-   pthread_mutex_t      = {$ pmutext.inc}
+   pthread_mutex_t      = {$i pmutext.inc}
    pthread_mutexattr_t  = pointer;
    pthread_cond_t       = pointer;
    pthread_condattr_t   = pointer;
@@ -102,6 +146,8 @@ type
    pthread_rwlockattr_t = pointer;
 
    sem_t                = pointer;
+   rlim_t		= int64;
+   TRlim		= rlim_t;
 
   {
      Mutex types (Single UNIX Specification, Version 2, 1997).
@@ -144,3 +190,7 @@ const
 
     SIG_MAXSIG      = 128;      // highest signal version
 
+    { For getting/setting priority }
+    Prio_Process = 0;
+    Prio_PGrp    = 1;
+    Prio_User    = 2;

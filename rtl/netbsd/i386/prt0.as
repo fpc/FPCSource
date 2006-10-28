@@ -17,6 +17,7 @@
 # NetBSD standard (static) ELF/i386 startup code for Free Pascal
 #
 
+http://cvsweb.netbsd.org/bsdweb.cgi/src/lib/csu/i386/crt0.c?rev=1.33&content-type=text/x-cvsweb-markup
 
 	.file	"prt0.s"
 	.version	"01.01"
@@ -124,13 +125,13 @@ ___start:
 	call _main
 	pushl %eax
 	jmp  _haltproc
-        
+
 .p2align 2,0x90
 .globl _haltproc
 .type _haltproc,@function
 
 _haltproc:
-           mov $1,%eax  
+           mov $1,%eax
            movzwl U_SYSTEM_EXITCODE,%ebx
            pushl %ebx
            call _actualsyscall

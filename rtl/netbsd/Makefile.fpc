@@ -11,13 +11,15 @@ fpcpackage=y
 [target]
 loaders=prt0 cprt0
 units=$(SYSTEMUNIT) objpas macpas strings syscall baseunix \
-      $(LINUXUNIT) unix initc systhrds \
+      $(LINUXUNIT) unix rtlconsts initc \
       dos crt objects printer matrix \
-      sysutils classes typinfo math varutils \
-       charset ucomplex getopts heaptrc lineinfo \
-      errors sockets gpm ipc terminfo \
-      video mouse keyboard  serial variants types systhrds sysctl sysconst $(CPU_UNITS)
-rsts=math varutils typinfo variants classes sysconst
+      sysutils types classes typinfo math varutils \
+      charset ucomplex getopts heaptrc lineinfo \
+      errors sockets terminfo \
+      video mouse keyboard  serial variants types sysctl sysconst fpmkunit $(CPU_UNITS)
+      # ipc
+
+rsts=math varutils typinfo variants classes sysconst fpmkunit
 
 [require]
 nortl=y
@@ -47,6 +49,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
 [prerules]
 RTL=..
 INC=$(RTL)/inc
+COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 BSDINC=$(RTL)/bsd
 BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
@@ -54,16 +57,10 @@ UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 TARGETPROCINC=$(RTL)/netbsd/$(CPU_TARGET)
 
-ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
 LINUXUNIT=
 PRT0=prt0
-else
-SYSTEMUNIT=sysbsd
-LINUXUNIT=
-override FPCOPT+=-dUNIX
-PRT0=prt0_10
-endif
+override FPCOPT+=-dNOMOUSE
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -137,16 +134,16 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 # System Dependent Units
 #
 
-baseunix$(PPUEXT) : errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes.inc \
-  signal.inc $(UNIXINC)/bunxh.inc $(BSDINC)/bunxmain.inc $(BSDINC)/ostypes.inc \
-  $(BSDINC)/bunxfunc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
-  $(BSDINC)/ostypes.inc $(BSDINC)/ossysch.inc $(BSDINC)/bunxmacr.inc $(UNIXINC)/gensigset.inc \
-  $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
+baseunix$(PPUEXT) : errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
+  signal.inc $(UNIXINC)/bunxh.inc \
+  $(BSDINC)/bunxsysc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
+  $(BSDINC)/ostypes.inc $(BSDINC)/osmacro.inc $(UNIXINC)/gensigset.inc \
+  $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT) sysctl$(PPUEXT)
 
 
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
                  syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc \
-                 unixsysc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+                 unxsysc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 
 #
@@ -174,9 +171,12 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
                     objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
-classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
+	$(COMPILER): $(OBJPASDIR)/rtlconsts.pp
+
+classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
@@ -220,6 +220,8 @@ charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
+fpmkunit$(PPUEXT) : $(COMMON)/fpmkunit.pp classes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
 #
 # Other system-dependent RTL Units
 #
@@ -242,4 +244,6 @@ syscall$(PPUEXT) : $(UNIXINC)/syscall.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
-cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp systhrds$(PPUEXT)
+sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp unixtype$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)

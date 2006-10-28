@@ -39,7 +39,7 @@ Type
 Const
   { IPC flags for get calls }
 
-{$ifdef FreeBSD}  // BSD_VISIBLE
+{$if defined(FreeBSD) or defined(NetBSD)}  // BSD_VISIBLE
   IPC_R      =  4 shl 6;
   IPC_W      =  2 shl 6;
   IPC_M      =  2 shl 12;
