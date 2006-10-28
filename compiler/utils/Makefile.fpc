@@ -3,8 +3,8 @@
 #
 
 [target]
-programs=fpc fppkg ppufiles ppudump ppumove fpcsubst fpcmkcfg
-rst=fppkg fpcmkcfg fpcsubst
+programs=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
+rst=fpcmkcfg fpcsubst
 
 [clean]
 units=ppu crc usubst
