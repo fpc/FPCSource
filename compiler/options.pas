@@ -1258,6 +1258,7 @@ begin
                         else
                           include(initglobalswitches,cs_link_map);
                       end;
+                    'p' : ; { Ignore used by fpc.pp }
                     'r' :
                       begin
                         rlinkpath:=Copy(more,2,length(More)-1);

@@ -71,6 +71,9 @@ program fpc;
       findclose(Info);
     end;
 
+  var
+    extrapath : ansistring;
+
   function findexe(var ppcbin:string): boolean;
     var
       path : string;
@@ -79,9 +82,16 @@ program fpc;
       findexe:=false;
       ppcbin:=ppcbin+exeext;
 
+      if (extrapath<>'') and (extrapath[length(extrapath)]<>DirectorySeparator) then
+        extrapath:=extrapath+DirectorySeparator;
       { get path of fpc.exe }
       path:=splitpath(paramstr(0));
-      if FileExists(path+ppcbin) then
+      if FileExists(extrapath+ppcbin) then
+       begin
+         ppcbin:=extrapath+ppcbin;
+         findexe:=true;
+       end
+      else if FileExists(path+ppcbin) then
        begin
          ppcbin:=path+ppcbin;
          findexe:=true;
@@ -111,6 +121,7 @@ program fpc;
      ppccommandline:='';
      cpusuffix     :='';        // if not empty, signals attempt at cross
                                 // compiler.
+     extrapath     :='';
 {$ifdef i386}
      ppcbin:='ppc386';
      processorname:='i386';
@@ -204,8 +215,10 @@ program fpc;
                            ppcbin:='ppcross'+cpusuffix;
                          end;
                  end
-                   else
-                     ppccommandline:=ppccommandline+s+' ';
+              else if pos('-Xp',s)=1 then
+                extrapath:=copy(s,4,length(s)-3)
+              else
+                ppccommandline:=ppccommandline+s+' ';
             end;
        end;
 
