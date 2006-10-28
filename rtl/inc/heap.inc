@@ -805,7 +805,10 @@ begin
         if poc=nil then
           begin
             if ReturnNilIfGrowHeapFails then
-              exit
+              begin
+                result := nil;
+                exit
+              end
             else
               HandleError(203);
           end;
