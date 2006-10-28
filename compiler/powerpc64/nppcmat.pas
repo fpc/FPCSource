@@ -354,7 +354,10 @@ begin
             location_copy(location, left.location);
             inverse_flags(location.resflags);
           end;
-        LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE:
+        LOC_REGISTER, LOC_CREGISTER,
+        LOC_REFERENCE, LOC_CREFERENCE,
+        LOC_SUBSETREG, LOC_CSUBSETREG,
+        LOC_SUBSETREF, LOC_CSUBSETREF:
           begin
             location_force_reg(current_asmdata.CurrAsmList, left.location,
               def_cgsize(left.resulttype.def), true);
