@@ -90,7 +90,6 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
-          procedure derefimpl; override;
           procedure addfield(sym:tfieldvarsym);
           procedure insertfield(sym:tfieldvarsym);
           procedure addalignmentpadding;
@@ -575,7 +574,6 @@ implementation
     procedure tstoredsymtable.derefimpl;
       var
         hp : tdef;
-        hs: tsym;
       begin
         { definitions }
         hp:=tdef(defindex.first);
@@ -583,13 +581,6 @@ implementation
          begin
            hp.derefimpl;
            hp:=tdef(hp.indexnext);
-         end;
-        { symbols }
-        hs:=tsym(symindex.first);
-        while assigned(hs) do
-         begin
-           hs.derefimpl;
-           hs:=tsym(hs.indexnext);
          end;
       end;
 
@@ -897,19 +888,6 @@ implementation
 
         aktrecordsymtable:=storesymtable;
       end;
-
-
-   procedure tabstractrecordsymtable.derefimpl;
-     var
-       storesymtable : tsymtable;
-     begin
-       storesymtable:=aktrecordsymtable;
-       aktrecordsymtable:=self;
-
-       inherited derefimpl;
-
-       aktrecordsymtable:=storesymtable;
-     end;
 
 
     procedure tabstractrecordsymtable.addfield(sym:tfieldvarsym);

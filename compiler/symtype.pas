@@ -119,7 +119,6 @@ interface
          function  mangledname:string; virtual;
          procedure buildderef;virtual;
          procedure deref;virtual;
-         procedure derefimpl; virtual;
          function  gettypedef:tdef;virtual;
          procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
@@ -160,24 +159,24 @@ interface
       end;
 
 {************************************************
-                   TSymList
+                   tpropaccesslist
 ************************************************}
 
-      psymlistitem = ^tsymlistitem;
-      tsymlistitem = record
+      ppropaccesslistitem = ^tpropaccesslistitem;
+      tpropaccesslistitem = record
         sltype : tsltype;
-        next   : psymlistitem;
+        next   : ppropaccesslistitem;
         case byte of
           0 : (sym : tsym; symderef : tderef);
           1 : (value  : TConstExprInt; valuett: ttype);
           2 : (tt : ttype);
       end;
 
-      tsymlist = class
+      tpropaccesslist = class
         procdef  : tdef;
         procdefderef : tderef;
         firstsym,
-        lastsym  : psymlistitem;
+        lastsym  : ppropaccesslistitem;
         constructor create;
         destructor  destroy;override;
         function  empty:boolean;
@@ -186,7 +185,6 @@ interface
         procedure addconst(slt:tsltype;v:TConstExprInt;const tt:ttype);
         procedure addtype(slt:tsltype;const tt:ttype);
         procedure clear;
-        function  getcopy:tsymlist;
         procedure resolve;
         procedure buildderef;
       end;
@@ -202,7 +200,7 @@ interface
          function  getptruint:TConstPtrUInt;
          procedure getposinfo(var p:tfileposinfo);
          procedure getderef(var d:tderef);
-         function  getsymlist:tsymlist;
+         function  getpropaccesslist:tpropaccesslist;
          procedure gettype(var t:ttype);
          function  getasmsymbol:tasmsymbol;
          procedure putguid(const g: tguid);
@@ -210,7 +208,7 @@ interface
          procedure PutPtrUInt(v:TConstPtrUInt);
          procedure putposinfo(const p:tfileposinfo);
          procedure putderef(const d:tderef);
-         procedure putsymlist(p:tsymlist);
+         procedure putpropaccesslist(p:tpropaccesslist);
          procedure puttype(const t:ttype);
          procedure putasmsymbol(s:tasmsymbol);
        end;
@@ -359,11 +357,6 @@ implementation
 
 
     procedure Tsym.deref;
-      begin
-      end;
-
-
-    procedure Tsym.derefimpl;
       begin
       end;
 
@@ -612,10 +605,10 @@ implementation
 
 
 {****************************************************************************
-                                 TSymList
+                                 tpropaccesslist
 ****************************************************************************}
 
-    constructor tsymlist.create;
+    constructor tpropaccesslist.create;
       begin
         procdef:=nil; { needed for procedures }
         firstsym:=nil;
@@ -623,21 +616,21 @@ implementation
       end;
 
 
-    destructor tsymlist.destroy;
+    destructor tpropaccesslist.destroy;
       begin
         clear;
       end;
 
 
-    function tsymlist.empty:boolean;
+    function tpropaccesslist.empty:boolean;
       begin
         empty:=(firstsym=nil);
       end;
 
 
-    procedure tsymlist.clear;
+    procedure tpropaccesslist.clear;
       var
-        hp : psymlistitem;
+        hp : ppropaccesslistitem;
       begin
         while assigned(firstsym) do
          begin
@@ -651,14 +644,14 @@ implementation
       end;
 
 
-    procedure tsymlist.addsym(slt:tsltype;p:tsym);
+    procedure tpropaccesslist.addsym(slt:tsltype;p:tsym);
       var
-        hp : psymlistitem;
+        hp : ppropaccesslistitem;
       begin
         if not assigned(p) then
          internalerror(200110203);
         new(hp);
-        fillchar(hp^,sizeof(tsymlistitem),0);
+        fillchar(hp^,sizeof(tpropaccesslistitem),0);
         hp^.sltype:=slt;
         hp^.sym:=p;
         hp^.symderef.reset;
@@ -670,12 +663,12 @@ implementation
       end;
 
 
-    procedure tsymlist.addsymderef(slt:tsltype;const d:tderef);
+    procedure tpropaccesslist.addsymderef(slt:tsltype;const d:tderef);
       var
-        hp : psymlistitem;
+        hp : ppropaccesslistitem;
       begin
         new(hp);
-        fillchar(hp^,sizeof(tsymlistitem),0);
+        fillchar(hp^,sizeof(tpropaccesslistitem),0);
         hp^.sltype:=slt;
         hp^.symderef:=d;
         if assigned(lastsym) then
@@ -686,12 +679,12 @@ implementation
       end;
 
 
-    procedure tsymlist.addconst(slt:tsltype;v:TConstExprInt;const tt:ttype);
+    procedure tpropaccesslist.addconst(slt:tsltype;v:TConstExprInt;const tt:ttype);
       var
-        hp : psymlistitem;
+        hp : ppropaccesslistitem;
       begin
         new(hp);
-        fillchar(hp^,sizeof(tsymlistitem),0);
+        fillchar(hp^,sizeof(tpropaccesslistitem),0);
         hp^.sltype:=slt;
         hp^.value:=v;
         hp^.valuett:=tt;
@@ -703,12 +696,12 @@ implementation
       end;
 
 
-    procedure tsymlist.addtype(slt:tsltype;const tt:ttype);
+    procedure tpropaccesslist.addtype(slt:tsltype;const tt:ttype);
       var
-        hp : psymlistitem;
+        hp : ppropaccesslistitem;
       begin
         new(hp);
-        fillchar(hp^,sizeof(tsymlistitem),0);
+        fillchar(hp^,sizeof(tpropaccesslistitem),0);
         hp^.sltype:=slt;
         hp^.tt:=tt;
         if assigned(lastsym) then
@@ -719,34 +712,9 @@ implementation
       end;
 
 
-    function tsymlist.getcopy:tsymlist;
+    procedure tpropaccesslist.resolve;
       var
-        hp  : tsymlist;
-        hp2 : psymlistitem;
-        hpn : psymlistitem;
-      begin
-        hp:=tsymlist.create;
-        hp.procdef:=procdef;
-        hp2:=firstsym;
-        while assigned(hp2) do
-         begin
-           new(hpn);
-           hpn^:=hp2^;
-           hpn^.next:=nil;
-           if assigned(hp.lastsym) then
-            hp.lastsym^.next:=hpn
-           else
-            hp.firstsym:=hpn;
-           hp.lastsym:=hpn;
-           hp2:=hp2^.next;
-         end;
-        getcopy:=hp;
-      end;
-
-
-    procedure tsymlist.resolve;
-      var
-        hp : psymlistitem;
+        hp : ppropaccesslistitem;
       begin
         procdef:=tdef(procdefderef.resolve);
         hp:=firstsym;
@@ -770,9 +738,9 @@ implementation
       end;
 
 
-    procedure tsymlist.buildderef;
+    procedure tpropaccesslist.buildderef;
       var
-        hp : psymlistitem;
+        hp : ppropaccesslistitem;
       begin
         procdefderef.build(procdef);
         hp:=firstsym;
@@ -1212,15 +1180,15 @@ implementation
       end;
 
 
-    function tcompilerppufile.getsymlist:tsymlist;
+    function tcompilerppufile.getpropaccesslist:tpropaccesslist;
       var
         symderef : tderef;
         tt  : ttype;
         slt : tsltype;
         idx : longint;
-        p   : tsymlist;
+        p   : tpropaccesslist;
       begin
-        p:=tsymlist.create;
+        p:=tpropaccesslist.create;
         getderef(p.procdefderef);
         repeat
           slt:=tsltype(getbyte);
@@ -1250,7 +1218,7 @@ implementation
               internalerror(200110204);
           end;
         until false;
-        getsymlist:=tsymlist(p);
+        getpropaccesslist:=tpropaccesslist(p);
       end;
 
 
@@ -1387,9 +1355,9 @@ implementation
       end;
 
 
-    procedure tcompilerppufile.putsymlist(p:tsymlist);
+    procedure tcompilerppufile.putpropaccesslist(p:tpropaccesslist);
       var
-        hp : psymlistitem;
+        hp : ppropaccesslistitem;
       begin
         putderef(p.procdefderef);
         hp:=p.firstsym;

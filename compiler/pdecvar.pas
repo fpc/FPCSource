@@ -68,7 +68,7 @@ implementation
 
         { convert a node tree to symlist and return the last
           symbol }
-        function parse_symlist(pl:tsymlist;var def:tdef):boolean;
+        function parse_symlist(pl:tpropaccesslist;var def:tdef):boolean;
           var
             idx : longint;
             sym : tsym;
@@ -366,9 +366,16 @@ implementation
            begin
               { do an property override }
               overriden:=search_class_member(aclass.childof,p.name);
-              if assigned(overriden) and (overriden.typ=propertysym) and not(is_dispinterface(aclass)) then
+              if assigned(overriden) and
+                 (overriden.typ=propertysym) and
+                 not(is_dispinterface(aclass)) then
                 begin
-                  p.dooverride(tpropertysym(overriden));
+                  p.overridenpropsym:=tpropertysym(overriden);
+                  { inherit all type related entries }
+                  p.indextype:=tpropertysym(overriden).indextype;
+                  p.proptype:=tpropertysym(overriden).proptype;
+                  p.index:=tpropertysym(overriden).index;
+                  p.default:=tpropertysym(overriden).default;
                 end
               else
                 begin
@@ -491,8 +498,8 @@ implementation
 
          if assigned(aclass) and not(is_dispinterface(aclass)) then
            begin
-             { ppo_stored might be not set by an overridden property }
-             if not(ppo_is_override in p.propoptions) then
+             { ppo_stored is default on for not overriden properties }
+             if not assigned(p.overridenpropsym) then
                include(p.propoptions,ppo_stored);
              if try_to_consume(_STORED) then
               begin
@@ -540,8 +547,8 @@ implementation
                     end;
                   _TRUE:
                     begin
-                    p.default:=longint($80000000);
-                    consume(_TRUE);
+                      p.default:=longint($80000000);
+                      consume(_TRUE);
                     end;
                 end;
               end;
@@ -867,7 +874,7 @@ implementation
                        abssym:=tabsolutevarsym.create(vs.realname,tt);
                        abssym.fileinfo:=vs.fileinfo;
                        abssym.abstyp:=tovar;
-                       abssym.ref:=node_to_symlist(pt);
+                       abssym.ref:=node_to_propaccesslist(pt);
                        symtablestack.top.replace(vs,abssym);
                        vs.free;
                      end

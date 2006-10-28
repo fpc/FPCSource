@@ -204,7 +204,7 @@ implementation
         storepos : tfileposinfo;
         vs       : tlocalvarsym;
         aliasvs  : tabsolutevarsym;
-        sl       : tsymlist;
+        sl       : tpropaccesslist;
       begin
         { The result from constructors and destructors can't be accessed directly }
         if not(pd.proctypeoption in [potype_constructor,potype_destructor]) and
@@ -231,7 +231,7 @@ implementation
              as the name is lowercase and unreachable from the code }
            if pd.resultname='' then
             pd.resultname:=pd.procsym.name;
-           sl:=tsymlist.create;
+           sl:=tpropaccesslist.create;
            sl.addsym(sl_load,pd.funcretsym);
            aliasvs:=tabsolutevarsym.create_ref(pd.resultname,pd.rettype,sl);
            include(aliasvs.varoptions,vo_is_funcret);
@@ -240,7 +240,7 @@ implementation
            { insert result also if support is on }
            if (m_result in aktmodeswitches) then
             begin
-              sl:=tsymlist.create;
+              sl:=tpropaccesslist.create;
               sl.addsym(sl_load,pd.funcretsym);
               aliasvs:=tabsolutevarsym.create_ref('RESULT',pd.rettype,sl);
               include(aliasvs.varoptions,vo_is_funcret);

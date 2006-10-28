@@ -27,9 +27,9 @@ uses
   ppu;
 
 const
-  Version   = 'Version 2.0.2';
+  Version   = 'Version 2.1.1';
   Title     = 'PPU-Analyser';
-  Copyright = 'Copyright (c) 1998-2005 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2006 by the Free Pascal Development Team';
 
 { verbosity }
   v_none           = $0;
@@ -1552,26 +1552,20 @@ begin
              readcommonsym('Property ');
              i:=getlongint;
              writeln(space,'  PropOptions : ',i);
-             if (i and 32)>0 then
-              begin
-                write  (space,' OverrideProp : ');
-                readderef;
-              end
-             else
-              begin
-                write  (space,'    Prop Type : ');
-                readtype;
-                writeln(space,'        Index : ',getlongint);
-                writeln(space,'      Default : ',getlongint);
-                write  (space,'   Index Type : ');
-                readtype;
-                write  (space,'   Readaccess : ');
-                readsymlist(space+'         Sym: ');
-                write  (space,'  Writeaccess : ');
-                readsymlist(space+'         Sym: ');
-                write  (space,' Storedaccess : ');
-                readsymlist(space+'         Sym: ');
-              end;
+             write  (space,' OverrideProp : ');
+             readderef;
+             write  (space,'    Prop Type : ');
+             readtype;
+             writeln(space,'        Index : ',getlongint);
+             writeln(space,'      Default : ',getlongint);
+             write  (space,'   Index Type : ');
+             readtype;
+             write  (space,'   Readaccess : ');
+             readsymlist(space+'         Sym: ');
+             write  (space,'  Writeaccess : ');
+             readsymlist(space+'         Sym: ');
+             write  (space,' Storedaccess : ');
+             readsymlist(space+'         Sym: ');
            end;
 
          iberror :

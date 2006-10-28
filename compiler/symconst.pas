@@ -332,7 +332,6 @@ type
     ppo_defaultproperty,
     ppo_stored,
     ppo_hasparameters,
-    ppo_is_override,
     ppo_implements
   );
   tpropertyoptions=set of tpropertyoption;

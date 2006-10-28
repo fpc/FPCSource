@@ -185,8 +185,6 @@ interface
           symtable : tsymtable;
           procedure reset;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
-          procedure buildderefimpl;override;
-          procedure derefimpl;override;
           function is_packed:boolean;
        end;
 
@@ -2763,21 +2761,6 @@ implementation
       end;
 
 
-    procedure tabstractrecorddef.buildderefimpl;
-      begin
-        inherited buildderefimpl;
-        tstoredsymtable(symtable).buildderefimpl;
-      end;
-
-
-   procedure tabstractrecorddef.derefimpl;
-     begin
-       inherited derefimpl;
-       tstoredsymtable(symtable).derefimpl;
-     end;
-
-
-
 {***************************************************************************
                                   trecorddef
 ***************************************************************************}
@@ -4826,11 +4809,11 @@ implementation
          proctypesinfo : byte;
          propnameitem  : tpropnamelistitem;
 
-      procedure writeproc(proc : tsymlist; shiftvalue : byte; unsetvalue: byte);
+      procedure writeproc(proc : tpropaccesslist; shiftvalue : byte; unsetvalue: byte);
 
         var
            typvalue : byte;
-           hp : psymlistitem;
+           hp : ppropaccesslistitem;
            address : longint;
            def : tdef;
         begin

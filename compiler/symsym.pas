@@ -218,9 +218,9 @@ interface
 {$endif i386}
          asmname : pstring;
          addroffset : aint;
-         ref     : tsymlist;
+         ref     : tpropaccesslist;
          constructor create(const n : string;const tt : ttype);
-         constructor create_ref(const n : string;const tt : ttype;_ref:tsymlist);
+         constructor create_ref(const n : string;const tt : ttype;_ref:tpropaccesslist);
          destructor  destroy;override;
          constructor ppuload(ppufile:tcompilerppufile);
          procedure buildderef;override;
@@ -231,15 +231,15 @@ interface
 
        tpropertysym = class(Tstoredsym)
           propoptions   : tpropertyoptions;
-          propoverriden : tpropertysym;
-          propoverridenderef : tderef;
+          overridenpropsym : tpropertysym;
+          overridenpropsymderef : tderef;
           proptype,
           indextype     : ttype;
           index,
           default       : longint;
           readaccess,
           writeaccess,
-          storedaccess  : tsymlist;
+          storedaccess  : tpropaccesslist;
           constructor create(const n : string);
           destructor  destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -248,8 +248,6 @@ interface
           function  gettypedef:tdef;override;
           procedure buildderef;override;
           procedure deref;override;
-          procedure derefimpl;override;
-          procedure dooverride(overriden:tpropertysym);
        end;
 
        ttypedconstsym = class(tstoredsym)
@@ -1061,9 +1059,9 @@ implementation
          default:=0;
          proptype.reset;
          indextype.reset;
-         readaccess:=tsymlist.create;
-         writeaccess:=tsymlist.create;
-         storedaccess:=tsymlist.create;
+         readaccess:=tpropaccesslist.create;
+         writeaccess:=tpropaccesslist.create;
+         storedaccess:=tpropaccesslist.create;
       end;
 
 
@@ -1071,24 +1069,14 @@ implementation
       begin
          inherited ppuload(propertysym,ppufile);
          ppufile.getsmallset(propoptions);
-         if (ppo_is_override in propoptions) then
-          begin
-            ppufile.getderef(propoverridenderef);
-            { we need to have these objects initialized }
-            readaccess:=tsymlist.create;
-            writeaccess:=tsymlist.create;
-            storedaccess:=tsymlist.create;
-          end
-         else
-          begin
-            ppufile.gettype(proptype);
-            index:=ppufile.getlongint;
-            default:=ppufile.getlongint;
-            ppufile.gettype(indextype);
-            readaccess:=ppufile.getsymlist;
-            writeaccess:=ppufile.getsymlist;
-            storedaccess:=ppufile.getsymlist;
-          end;
+         ppufile.getderef(overridenpropsymderef);
+         ppufile.gettype(proptype);
+         index:=ppufile.getlongint;
+         default:=ppufile.getlongint;
+         ppufile.gettype(indextype);
+         readaccess:=ppufile.getpropaccesslist;
+         writeaccess:=ppufile.getpropaccesslist;
+         storedaccess:=ppufile.getpropaccesslist;
       end;
 
 
@@ -1109,41 +1097,23 @@ implementation
 
     procedure tpropertysym.buildderef;
       begin
-        if (ppo_is_override in propoptions) then
-         begin
-           propoverridenderef.build(propoverriden);
-         end
-        else
-         begin
-           proptype.buildderef;
-           indextype.buildderef;
-           readaccess.buildderef;
-           writeaccess.buildderef;
-           storedaccess.buildderef;
-         end;
+        overridenpropsymderef.build(overridenpropsym);
+        proptype.buildderef;
+        indextype.buildderef;
+        readaccess.buildderef;
+        writeaccess.buildderef;
+        storedaccess.buildderef;
       end;
 
 
     procedure tpropertysym.deref;
       begin
-        if not(ppo_is_override in propoptions) then
-         begin
-           proptype.resolve;
-           indextype.resolve;
-           readaccess.resolve;
-           writeaccess.resolve;
-           storedaccess.resolve;
-         end;
-      end;
-
-
-    procedure tpropertysym.derefimpl;
-      begin
-        if (ppo_is_override in propoptions) then
-         begin
-           propoverriden:=tpropertysym(propoverridenderef.resolve);
-           dooverride(propoverriden);
-         end
+        overridenpropsym:=tpropertysym(overridenpropsymderef.resolve);
+        indextype.resolve;
+        proptype.resolve;
+        readaccess.resolve;
+        writeaccess.resolve;
+        storedaccess.resolve;
       end;
 
 
@@ -1157,36 +1127,15 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putsmallset(propoptions);
-        if (ppo_is_override in propoptions) then
-         ppufile.putderef(propoverridenderef)
-        else
-         begin
-           ppufile.puttype(proptype);
-           ppufile.putlongint(index);
-           ppufile.putlongint(default);
-           ppufile.puttype(indextype);
-           ppufile.putsymlist(readaccess);
-           ppufile.putsymlist(writeaccess);
-           ppufile.putsymlist(storedaccess);
-         end;
+        ppufile.putderef(overridenpropsymderef);
+        ppufile.puttype(proptype);
+        ppufile.putlongint(index);
+        ppufile.putlongint(default);
+        ppufile.puttype(indextype);
+        ppufile.putpropaccesslist(readaccess);
+        ppufile.putpropaccesslist(writeaccess);
+        ppufile.putpropaccesslist(storedaccess);
         ppufile.writeentry(ibpropertysym);
-      end;
-
-
-    procedure tpropertysym.dooverride(overriden:tpropertysym);
-      begin
-        propoverriden:=overriden;
-        proptype:=overriden.proptype;
-        propoptions:=overriden.propoptions+[ppo_is_override];
-        index:=overriden.index;
-        default:=overriden.default;
-        indextype:=overriden.indextype;
-        readaccess.free;
-        readaccess:=overriden.readaccess.getcopy;
-        writeaccess.free;
-        writeaccess:=overriden.writeaccess.getcopy;
-        storedaccess.free;
-        storedaccess:=overriden.storedaccess.getcopy;
       end;
 
 
@@ -1643,7 +1592,7 @@ implementation
       end;
 
 
-    constructor tabsolutevarsym.create_ref(const n : string;const tt : ttype;_ref:tsymlist);
+    constructor tabsolutevarsym.create_ref(const n : string;const tt : ttype;_ref:tpropaccesslist);
       begin
         inherited create(absolutevarsym,n,vs_value,tt,[]);
         ref:=_ref;
@@ -1669,7 +1618,7 @@ implementation
 {$endif i386}
          case abstyp of
            tovar :
-             ref:=ppufile.getsymlist;
+             ref:=ppufile.getpropaccesslist;
            toasm :
              asmname:=stringdup(ppufile.getstring);
            toaddr :
@@ -1689,7 +1638,7 @@ implementation
          ppufile.putbyte(byte(abstyp));
          case abstyp of
            tovar :
-             ppufile.putsymlist(ref);
+             ppufile.putpropaccesslist(ref);
            toasm :
              ppufile.putstring(asmname^);
            toaddr :

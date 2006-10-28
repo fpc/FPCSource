@@ -41,9 +41,9 @@ interface
 
     procedure string_dec(var t: ttype);
 
-    procedure symlist_to_node(var p1:tnode;st:tsymtable;pl:tsymlist);
+    procedure propaccesslist_to_node(var p1:tnode;st:tsymtable;pl:tpropaccesslist);
 
-    function node_to_symlist(p1:tnode):tsymlist;
+    function node_to_propaccesslist(p1:tnode):tpropaccesslist;
 
     function parse_paras(__colon : boolean;end_of_paras : ttoken) : tnode;
 
@@ -142,9 +142,9 @@ implementation
 
 
 
-    procedure symlist_to_node(var p1:tnode;st:tsymtable;pl:tsymlist);
+    procedure propaccesslist_to_node(var p1:tnode;st:tsymtable;pl:tpropaccesslist);
       var
-        plist : psymlistitem;
+        plist : ppropaccesslistitem;
       begin
         plist:=pl.firstsym;
         while assigned(plist) do
@@ -194,9 +194,9 @@ implementation
       end;
 
 
-    function node_to_symlist(p1:tnode):tsymlist;
+    function node_to_propaccesslist(p1:tnode):tpropaccesslist;
       var
-        sl : tsymlist;
+        sl : tpropaccesslist;
 
         procedure addnode(p:tnode);
         begin
@@ -234,7 +234,7 @@ implementation
         end;
 
       begin
-        sl:=tsymlist.create;
+        sl:=tpropaccesslist.create;
         addnode(p1);
         result:=sl;
       end;
@@ -1070,17 +1070,19 @@ implementation
 
 
     { the following procedure handles the access to a property symbol }
-    procedure handle_propertysym(sym : tsym;st : tsymtable;var p1 : tnode);
+    procedure handle_propertysym(propsym : tpropertysym;st : tsymtable;var p1 : tnode);
       var
          paras : tnode;
          p2    : tnode;
          membercall : boolean;
          callflags  : tcallnodeflags;
+         hpropsym : tpropertysym;
+         propaccesslist : tpropaccesslist;
       begin
-         paras:=nil;
          { property parameters? read them only if the property really }
          { has parameters                                             }
-         if (ppo_hasparameters in tpropertysym(sym).propoptions) then
+         paras:=nil;
+         if (ppo_hasparameters in propsym.propoptions) then
            begin
              if try_to_consume(_LECKKLAMMER) then
                begin
@@ -1089,19 +1091,26 @@ implementation
                end;
            end;
          { indexed property }
-         if (ppo_indexed in tpropertysym(sym).propoptions) then
+         if (ppo_indexed in propsym.propoptions) then
            begin
-             p2:=cordconstnode.create(tpropertysym(sym).index,tpropertysym(sym).indextype,true);
+             p2:=cordconstnode.create(propsym.index,propsym.indextype,true);
              paras:=ccallparanode.create(p2,paras);
            end;
          { we need only a write property if a := follows }
          { if not(afterassignment) and not(in_args) then }
          if token=_ASSIGNMENT then
            begin
-              { write property: }
-              if not tpropertysym(sym).writeaccess.empty then
+              { write property, find property in the overriden list }
+              hpropsym:=propsym;
+              repeat
+                propaccesslist:=hpropsym.writeaccess;
+                if not propaccesslist.empty then
+                   break;
+                hpropsym:=hpropsym.overridenpropsym;
+              until not assigned(hpropsym);
+              if not propaccesslist.empty then
                 begin
-                   case tpropertysym(sym).writeaccess.firstsym^.sym.typ of
+                   case propaccesslist.firstsym^.sym.typ of
                      procsym :
                        begin
                          callflags:=[];
@@ -1109,13 +1118,13 @@ implementation
                          membercall:=maybe_load_methodpointer(st,p1);
                          if membercall then
                            include(callflags,cnf_member_call);
-                         p1:=ccallnode.create(paras,tprocsym(tpropertysym(sym).writeaccess.firstsym^.sym),st,p1,callflags);
-                         addsymref(tpropertysym(sym).writeaccess.firstsym^.sym);
+                         p1:=ccallnode.create(paras,tprocsym(propaccesslist.firstsym^.sym),st,p1,callflags);
+                         addsymref(propaccesslist.firstsym^.sym);
                          paras:=nil;
                          consume(_ASSIGNMENT);
                          { read the expression }
-                         if tpropertysym(sym).proptype.def.deftype=procvardef then
-                           getprocvardef:=tprocvardef(tpropertysym(sym).proptype.def);
+                         if propsym.proptype.def.deftype=procvardef then
+                           getprocvardef:=tprocvardef(propsym.proptype.def);
                          p2:=comp_expr(true);
                          if assigned(getprocvardef) then
                            handle_procvar(getprocvardef,p2);
@@ -1127,7 +1136,7 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-                         symlist_to_node(p1,st,tpropertysym(sym).writeaccess);
+                         propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                          consume(_ASSIGNMENT);
                          { read the expression }
@@ -1149,14 +1158,21 @@ implementation
            end
          else
            begin
-              { read property: }
-              if not tpropertysym(sym).readaccess.empty then
+              { read property, find property in the overriden list }
+              hpropsym:=propsym;
+              repeat
+                propaccesslist:=hpropsym.readaccess;
+                if not propaccesslist.empty then
+                   break;
+                hpropsym:=hpropsym.overridenpropsym;
+              until not assigned(hpropsym);
+              if not propaccesslist.empty then
                 begin
-                   case tpropertysym(sym).readaccess.firstsym^.sym.typ of
+                   case propaccesslist.firstsym^.sym.typ of
                      fieldvarsym :
                        begin
                           { generate access code }
-                          symlist_to_node(p1,st,tpropertysym(sym).readaccess);
+                          propaccesslist_to_node(p1,st,propaccesslist);
                           include(p1.flags,nf_isproperty);
                        end;
                      procsym :
@@ -1166,7 +1182,7 @@ implementation
                           membercall:=maybe_load_methodpointer(st,p1);
                           if membercall then
                             include(callflags,cnf_member_call);
-                          p1:=ccallnode.create(paras,tprocsym(tpropertysym(sym).readaccess.firstsym^.sym),st,p1,callflags);
+                          p1:=ccallnode.create(paras,tprocsym(propaccesslist.firstsym^.sym),st,p1,callflags);
                           paras:=nil;
                           include(p1.flags,nf_isproperty);
                        end
@@ -1258,7 +1274,7 @@ implementation
                    begin
                       if isclassref then
                         Message(parser_e_only_class_methods_via_class_ref);
-                      handle_propertysym(sym,sym.owner,p1);
+                      handle_propertysym(tpropertysym(sym),sym.owner,p1);
                    end;
                  else internalerror(16);
               end;
@@ -1337,7 +1353,7 @@ implementation
                     if (tabsolutevarsym(srsym).abstyp=tovar) then
                       begin
                         p1:=nil;
-                        symlist_to_node(p1,nil,tabsolutevarsym(srsym).ref);
+                        propaccesslist_to_node(p1,nil,tabsolutevarsym(srsym).ref);
                         p1:=ctypeconvnode.create(p1,tabsolutevarsym(srsym).vartype);
                         include(p1.flags,nf_absolute);
                       end
@@ -1585,7 +1601,7 @@ implementation
                      Message(parser_e_only_class_methods);
                     { no method pointer }
                     p1:=nil;
-                    handle_propertysym(srsym,srsymtable,p1);
+                    handle_propertysym(tpropertysym(srsym),srsymtable,p1);
                   end;
 
                 labelsym :

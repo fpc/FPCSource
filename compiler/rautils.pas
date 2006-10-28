@@ -761,7 +761,7 @@ var
   harrdef : tarraydef;
   indexreg : tregister;
   l : aint;
-  plist : psymlistitem;
+  plist : ppropaccesslistitem;
 Begin
   SetupVar:=false;
   asmsearchsym(s,sym,srsymtable);

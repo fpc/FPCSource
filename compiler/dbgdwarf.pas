@@ -259,7 +259,7 @@ interface
         procedure appendsym_absolute(sym:tabsolutevarsym); virtual;
         procedure appendsym_property(sym:tpropertysym); virtual;
         procedure appendsym_proc(sym:tprocsym); virtual;
-        
+
         function symname(sym:tsym): String; virtual;
 
         procedure enum_membersyms_callback(p:Tnamedindexitem;arg:pointer);
@@ -1404,7 +1404,7 @@ end;
           current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(labsym,0))
         else
           current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
-          
+
         case def.deftype of
           stringdef :
             appenddef_string(tstringdef(def));
@@ -1805,7 +1805,7 @@ end;
           ]);
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.restype.def));
           finish_entry;
-          
+
           { Moved fom append sym, do we need this (MWE)
           { For object types write also the symtable entries }
           if (sym.typ=typesym) and (ttypesym(sym).restype.def.deftype=objectdef) then
@@ -1822,7 +1822,7 @@ end;
         var
           templist : TAsmList;
           blocksize : longint;
-          symlist : psymlistitem;
+          symlist : ppropaccesslistitem;
         begin
           templist:=TAsmList.create;
           case tabsolutevarsym(sym).abstyp of
@@ -2140,7 +2140,7 @@ end;
           templist.free;
         end;
 
-    
+
       var
         storefilepos  : tfileposinfo;
         lenstartlabel : tasmlabel;
@@ -2231,7 +2231,7 @@ end;
           write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],current_module.globalsymtable);
         if assigned(current_module.localsymtable) then
           write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],current_module.localsymtable);
-          
+
         { write defs not written yet }
         write_defs_to_write;
 
@@ -2260,7 +2260,7 @@ end;
         defnumberlist:=nil;
         deftowritelist.free;
         deftowritelist:=nil;
-        
+
         aktfilepos:=storefilepos;
       end;
 
