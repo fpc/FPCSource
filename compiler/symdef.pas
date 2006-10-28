@@ -2594,7 +2594,7 @@ implementation
           end;
 
         if (ado_IsBitPacked in arrayoptions) then
-          size:=align(cachedelesize * cachedelecount,alignment*8) div 8
+          size:=(cachedelesize * cachedelecount + 7) div 8
         else
           result:=cachedelesize*cachedelecount;
       end;
