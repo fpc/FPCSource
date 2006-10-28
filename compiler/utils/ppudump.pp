@@ -777,6 +777,8 @@ type
     df_has_inittable,
     { rtti data has been generated }
     df_has_rttitable,
+    { dwarf debug info has been generated }
+    df_has_dwarf_dbg_info,
     { type is unique, i.e. declared with type = type <tdef>; }
     df_unique,
     { type is a generic }
@@ -790,10 +792,11 @@ type
     str  : string[30];
   end;
 const
-  defopts=5;
+  defopts=6;
   defopt : array[1..defopts] of tdefopt=(
      (mask:df_has_inittable;  str:'InitTable'),
      (mask:df_has_rttitable;  str:'RTTITable'),
+     (mask:df_has_dwarf_dbg_info;  str:'Dwarf DbgInfo'),
      (mask:df_unique;         str:'Unique Type'),
      (mask:df_generic;        str:'Generic'),
      (mask:df_specialization; str:'Specialization')
