@@ -13,7 +13,9 @@ fpcdir=../..
 nortl=y
 
 [target]
-programs=dotest fail testfail digest prepup $(DBDIGEST)
+programs=dotest fail testfail digest $(DBDIGEST)
+programs_win32=prepup
+programs_win64=prepup
 
 [clean]
 programs=dbdigest
