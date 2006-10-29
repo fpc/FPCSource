@@ -106,6 +106,7 @@ interface
           procedure derefimpl;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
+          function  dogetcopy : tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
        ttypenodeclass = class of ttypenode;
@@ -1123,6 +1124,17 @@ implementation
            an error }
          if not allowed then
           Message(parser_e_no_type_not_allowed_here);
+      end;
+
+
+    function ttypenode.dogetcopy : tnode;
+      var
+         n : ttypenode;
+      begin
+         n:=ttypenode(inherited dogetcopy);
+         n.allowed:=allowed;
+         n.typedef:=typedef;
+         result:=n;
       end;
 
 
