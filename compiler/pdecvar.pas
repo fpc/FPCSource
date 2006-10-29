@@ -1364,7 +1364,6 @@ implementation
               unionsymtable.datasize:=maxsize;
               unionsymtable.fieldalignment:=maxalignment;
               uniontype.def:=uniondef;
-              uniontype.sym:=nil;
               UnionSym:=tfieldvarsym.create('$case',vs_value,uniontype,[]);
               unionsymtable.addalignmentpadding;
 {$ifdef powerpc}

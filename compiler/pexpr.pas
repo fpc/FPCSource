@@ -1413,7 +1413,7 @@ implementation
 
                 typesym :
                   begin
-                    htype.setsym(srsym);
+                    htype:=ttypesym(srsym).restype;
                     if not assigned(htype.def) then
                      begin
                        again:=false;

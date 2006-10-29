@@ -208,7 +208,7 @@ implementation
                    symtablestack.top.insert(sym);
                    { procvar can have proc directives, but not type references }
                    if (tt.def.deftype=procvardef) and
-                      (tt.sym=nil) then
+                      (tt.def.typesym=nil) then
                     begin
                       { support p : procedure;stdcall=nil; }
                       if try_to_consume(_SEMICOLON) then
@@ -329,7 +329,7 @@ implementation
                     if assigned(srsym) and
                        (srsym.typ=typesym) then
                      begin
-                       tabstractpointerdef(pd).pointertype.setsym(srsym);
+                       tabstractpointerdef(pd).pointertype.setdef(ttypesym(srsym).restype.def);
                        { avoid wrong unused warnings web bug 801 PM }
                        inc(ttypesym(srsym).refs);
                        { we need a class type for classrefdef }
@@ -485,19 +485,19 @@ implementation
               { read the type definition }
               read_named_type(tt,orgtypename,nil,generictypelist,false);
               { update the definition of the type }
-              newtype.restype:=tt;
-              if assigned(tt.sym) then
-                istyperenaming:=true
-              else
-                tt.sym:=newtype;
-              if isunique and assigned(tt.def) then
+              if assigned(tt.def) then
                 begin
-                   tt.setdef(tstoreddef(tt.def).getcopy);
-                   include(tt.def.defoptions,df_unique);
-                   newtype.restype:=tt;
+                  if assigned(tt.def.typesym) then
+                    istyperenaming:=true;
+                  if isunique then
+                    begin
+                      tt.setdef(tstoreddef(tt.def).getcopy);
+                      include(tt.def.defoptions,df_unique);
+                    end;
+                  if not assigned(tt.def.typesym) then
+                    tt.def.typesym:=newtype;
                 end;
-              if assigned(tt.def) and not assigned(tt.def.typesym) then
-                tt.def.typesym:=newtype;
+              newtype.restype:=tt;
               { KAZ: handle TGUID declaration in system unit }
               if (cs_compilesystem in aktmoduleswitches) and not assigned(rec_tguid) and
                  (typename='TGUID') and { name: TGUID and size=16 bytes that is 128 bits }

@@ -229,19 +229,7 @@ implementation
             tt:=generrortype;
             exit;
           end;
-         { Use the definitions for current unit, because
-           they can be refered from the parameters and symbols are not
-           loaded at that time. Only write the definition when the
-           symbol is the real owner of the definition (not a redefine) }
-         if (ttypesym(srsym).owner.symtabletype in [staticsymtable,globalsymtable]) and
-            ttypesym(srsym).owner.iscurrentunit and
-            (
-             (ttypesym(srsym).restype.def.typesym=nil) or
-             (srsym=ttypesym(srsym).restype.def.typesym)
-            ) then
-          tt.setdef(ttypesym(srsym).restype.def)
-         else
-          tt.setsym(srsym);
+        tt.setdef(ttypesym(srsym).restype.def);
       end;
 
 

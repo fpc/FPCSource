@@ -149,11 +149,9 @@ interface
 
       ttype = object
         def : tdef;
-        sym : tsym;
         deref : tderef;
         procedure reset;
         procedure setdef(p:tdef);
-        procedure setsym(p:tsym);
         procedure resolve;
         procedure buildderef;
       end;
@@ -543,23 +541,12 @@ implementation
     procedure ttype.reset;
       begin
         def:=nil;
-        sym:=nil;
       end;
 
 
     procedure ttype.setdef(p:tdef);
       begin
         def:=p;
-        sym:=nil;
-      end;
-
-
-    procedure ttype.setsym(p:tsym);
-      begin
-        sym:=p;
-        def:=p.gettypedef;
-        if not assigned(def) then
-         internalerror(1234005);
       end;
 
 
@@ -569,18 +556,7 @@ implementation
       begin
         p:=deref.resolve;
         if assigned(p) then
-          begin
-            if p is tsym then
-              begin
-                setsym(tsym(p));
-                if not assigned(def) then
-                 internalerror(200212272);
-              end
-            else
-              begin
-                setdef(tdef(p));
-              end;
-          end
+          setdef(tdef(p))
         else
           reset;
       end;
@@ -588,20 +564,7 @@ implementation
 
     procedure ttype.buildderef;
       begin
-        { Write symbol references when the symbol is a redefine,
-          but don't write symbol references for the current unit
-          and for the system unit }
-        if assigned(sym) and
-           (
-            (sym<>def.typesym) or
-            (
-             not((sym.owner.symtabletype in [globalsymtable,staticsymtable]) and
-                 sym.owner.iscurrentunit)
-            )
-           ) then
-          deref.build(sym)
-        else
-          deref.build(def);
+        deref.build(def);
       end;
 
 
@@ -1013,7 +976,6 @@ implementation
       begin
         getderef(t.deref);
         t.def:=nil;
-        t.sym:=nil;
       end;
 
 
