@@ -1583,7 +1583,8 @@ implementation
            we write them to the unit file.
            This enables constant folding for inline procedures loaded from units
          }
-         ppufile.putbyte(ord(varstate));
+         ppufile.putbyte(ord(vs_readwritten));
+
          if vo_has_explicit_paraloc in varoptions then
            begin
              paraloc[callerside].check_simple_location;
