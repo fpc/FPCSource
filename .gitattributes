@@ -7570,6 +7570,7 @@ tests/webtbs/tw7527.pp svneol=native#text/plain
 tests/webtbs/tw7567.pp svneol=native#text/plain
 tests/webtbs/tw7568.pp svneol=native#text/plain
 tests/webtbs/tw7637.pp svneol=native#text/plain
+tests/webtbs/tw7679.pp svneol=native#text/plain
 tests/webtbs/ub1873.pp svneol=native#text/plain
 tests/webtbs/ub1883.pp svneol=native#text/plain
 tests/webtbs/uw0555.pp svneol=native#text/plain
