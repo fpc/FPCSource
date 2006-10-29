@@ -38,6 +38,7 @@ interface
     procedure const_dec;
     procedure label_dec;
     procedure type_dec;
+    procedure types_dec;
     procedure var_dec;
     procedure threadvar_dec;
     procedure property_dec;
@@ -369,8 +370,7 @@ implementation
       end;
 
 
-    { reads a type declaration to the symbol table }
-    procedure type_dec;
+    procedure types_dec;
 
         function parse_generic_parameters:TFPObjectList;
         var
@@ -405,7 +405,6 @@ implementation
       begin
          old_block_type:=block_type;
          block_type:=bt_type;
-         consume(_TYPE);
          typecanbeforward:=true;
          repeat
            defpos:=akttokenpos;
@@ -602,6 +601,14 @@ implementation
          typecanbeforward:=false;
          symtablestack.top.foreach_static(@resolve_type_forward,nil);
          block_type:=old_block_type;
+      end;
+
+
+    { reads a type declaration to the symbol table }
+    procedure type_dec;
+      begin
+        consume(_TYPE);
+        types_dec;
       end;
 
 

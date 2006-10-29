@@ -21,15 +21,19 @@ unit fgl;
 
   interface
 
+   const
+     MaxListSize = Maxint div 16;
+
    type
      { TFPList class }
      generic TGList<TG> = class(TObject)
      type
-       PTGList = ^TPointerList;
+       PTGList = ^TTGList;
        TTGList = array[0..MaxListSize - 1] of TG;
        TListSortCompare = function (Item1, Item2: TG): Integer;
        TListCallback = procedure(data,arg: TG) of object;
        TListStaticCallback = procedure(data,arg: TG);
+     var
      private
        FList: PTGList;
        FCount: Integer;
@@ -68,6 +72,9 @@ unit fgl;
 
   implementation
 
+    uses
+      rtlconsts,sysutils,classes;
+
 {****************************************************************************}
 {*                           TGList                                        *}
 {****************************************************************************}
@@ -94,7 +101,7 @@ unit fgl;
       end;
 
 
-    function TGList.Extract(item: Pointer): Pointer;
+    function TGList.Extract(const item: TG): TG;
       var
         i : Integer;
       begin
@@ -146,7 +153,7 @@ unit fgl;
       end;
 
 
-    function TGList.Add(Item: Pointer): Integer; inline;
+    function TGList.Add(const Item: TG): Integer; inline;
       begin
         if FCount = FCapacity then
           Self.Expand;
@@ -225,7 +232,7 @@ unit fgl;
       end;
 
 
-    function TGList.IndexOf(Item: Pointer): Integer;
+    function TGList.IndexOf(const Item: TG): Integer;
       begin
         Result := 0;
         while(Result < FCount) and (Flist^[Result] <> Item) do Result := Result + 1;
@@ -271,7 +278,7 @@ unit fgl;
       end;
 
 
-    function TGList.Remove(Item: Pointer): Integer;
+    function TGList.Remove(const Item: TG): Integer;
       begin
         Result := IndexOf(Item);
         If Result <> -1 then
@@ -285,9 +292,11 @@ unit fgl;
         Runner : Longint;
       begin
         // Not the fastest; but surely correct
+        {
         for Runner := Fcount - 1 downto 0 do
           if Items[Runner] = Nil then
             Self.Delete(Runner);
+        }
       { The following may be faster in case of large and defragmented lists
         If count=0 then exit;
         Runner:=0;I:=0;

@@ -40,7 +40,7 @@ implementation
       symconst,symbase,symsym,symtable,
       node,nld,nmem,ncon,ncnv,ncal,
       scanner,
-      pbase,pexpr,pdecsub,pdecvar,ptype
+      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl
       ;
 
     const
@@ -505,6 +505,7 @@ implementation
         dummysymoptions : tsymoptions;
         i : longint;
         generictype : ttypesym;
+        current_blocktype : tblock_type;
       begin
          old_object_option:=current_object_option;
 
@@ -564,9 +565,20 @@ implementation
          { short class declaration ? }
          if (classtype<>odt_class) or (token<>_SEMICOLON) then
           begin
-          { Parse componenten }
+            { Parse componenten }
+            current_blocktype:=bt_general;
             repeat
               case token of
+                _TYPE :
+                  begin
+                    consume(_TYPE);
+                    current_blocktype:=bt_type;
+                  end;
+                _VAR :
+                  begin
+                    consume(_VAR);
+                    current_blocktype:=bt_general;
+                  end;
                 _ID :
                   begin
                     case idtoken of
@@ -639,7 +651,10 @@ implementation
                               not(oo_can_have_published in aktobjectdef.objectoptions) then
                               Message(parser_e_cant_have_published);
 
-                            read_record_fields([vd_object]);
+                            if current_blocktype=bt_general then
+                              read_record_fields([vd_object])
+                            else
+                              types_dec;
                           end;
                     end;
                   end;
