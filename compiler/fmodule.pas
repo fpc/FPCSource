@@ -123,6 +123,8 @@ interface
         derefmapsize  : longint;  { number of units in the map }
         derefdataintflen : longint;
         derefdata     : tdynamicarray;
+        deflist,
+        symlist       : TFPObjectList;
         globalsymtable,           { pointer to the global symtable of this unit }
         localsymtable : tsymtable;{ pointer to the local symtable of this unit }
         globalmacrosymtable,           { pointer to the global macro symtable of this unit }
@@ -409,6 +411,8 @@ implementation
         derefmapcnt:=0;
         derefdata:=TDynamicArray.Create(1024);
         derefdataintflen:=0;
+        deflist:=TFPObjectList.Create(false);
+        symlist:=TFPObjectList.Create(false);
         globalsymtable:=nil;
         localsymtable:=nil;
         globalmacrosymtable:=nil;
@@ -510,6 +514,8 @@ implementation
         d:=tmemdebug.create(modulename^+' - symtable');
 {$endif}
         derefdata.free;
+        deflist.free;
+        symlist.free;
         if assigned(globalsymtable) then
           globalsymtable.free;
         if assigned(localsymtable) then
@@ -579,6 +585,10 @@ implementation
             localmacrosymtable.free;
             localmacrosymtable:=nil;
           end;
+        deflist.free;  
+        deflist:=TFPObjectList.Create(false);
+        symlist.free;
+        symlist:=TFPObjectList.Create(false);
         derefdata.free;
         derefdata:=TDynamicArray.Create(1024);
         if assigned(unitmap) then

@@ -63,6 +63,7 @@ interface
 
       tdefentry = class(tsymtableentry)
          deftype : tdeftype;
+         defid   : longint;
       end;
 
 
@@ -72,7 +73,8 @@ interface
 
       { this object is the base for all symbol objects }
       tsymentry = class(tsymtableentry)
-         typ : tsymtyp;
+         typ   : tsymtyp;
+         symid : longint;
       end;
 
 

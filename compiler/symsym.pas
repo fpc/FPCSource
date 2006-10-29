@@ -366,6 +366,7 @@ implementation
        systems,
        { symtable }
        defutil,symtable,
+       fmodule,
        { tree }
        node,
        { aasm }
@@ -386,6 +387,12 @@ implementation
     constructor tstoredsym.create(st:tsymtyp;const n : string);
       begin
          inherited create(st,n);
+         { Register in current_module }
+         if assigned(current_module) then
+           begin
+             current_module.symlist.Add(self);
+             SymId:=current_module.symlist.Count-1;
+           end;  
       end;
 
 
@@ -394,6 +401,8 @@ implementation
         nr : word;
         s  : string;
       begin
+         SymId:=ppufile.getlongint;
+         current_module.symlist[SymId]:=self;
          nr:=ppufile.getword;
          s:=ppufile.getstring;
          if s[1]='$' then
@@ -417,6 +426,7 @@ implementation
 
     procedure tstoredsym.ppuwrite(ppufile:tcompilerppufile);
       begin
+         ppufile.putlongint(SymId);
          ppufile.putword(indexnr);
          ppufile.putstring(_realname^);
          ppufile.putposinfo(fileinfo);

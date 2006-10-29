@@ -164,7 +164,9 @@ type
     size     : longint; { size of the ppufile without header }
     checksum : cardinal; { checksum for this ppufile }
     interface_checksum : cardinal;
-    future   : array[0..2] of longint;
+    deflistsize,
+    symlistsize : longint;
+    future   : array[0..0] of longint;
   end;
 
   tppuentry=packed record

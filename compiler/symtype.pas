@@ -232,7 +232,7 @@ implementation
 
     uses
        verbose,
-       fmodule
+       fmodule,symtable
        ;
 
 
@@ -373,6 +373,7 @@ implementation
     function tsym.mangledname : string;
       begin
         internalerror(200204171);
+        result:='';
       end;
 
 
@@ -774,209 +775,57 @@ implementation
         dataidx:=-1;
       end;
 
-
     procedure tderef.build(s:tsymtableentry);
       var
         len  : byte;
+        st   : tsymtable;
         data : array[0..255] of byte;
-
-        function is_child(currdef,ownerdef:tdef):boolean;
-        begin
-          while assigned(currdef) and
-                (currdef<>ownerdef) do
-            currdef:=currdef.getparentdef;
-          result:=assigned(currdef);
-        end;
-
-        procedure addowner(s:tsymtableentry);
-        var
-          idx : longint;
-        begin
-          if not assigned(s.owner) then
-            internalerror(200306063);
-          case s.owner.symtabletype of
-            globalsymtable :
-              begin
-                if s.owner.iscurrentunit then
-                  begin
-                    data[len]:=ord(deref_aktglobal);
-                    inc(len);
-                  end
-                else
-                  begin
-                    { register that the unit is needed for resolving }
-                    idx:=current_module.derefidx_unit(s.owner.moduleid);
-                    data[len]:=ord(deref_unit);
-                    data[len+1]:=idx shr 8;
-                    data[len+2]:=idx and $ff;
-                    inc(len,3);
-                  end;
-              end;
-            staticsymtable :
-              begin
-                { only references to the current static symtable are allowed }
-                if not s.owner.iscurrentunit then
-                  internalerror(200306233);
-                data[len]:=ord(deref_aktstatic);
-                inc(len);
-              end;
-            localsymtable :
-              begin
-                addowner(s.owner.defowner);
-                data[len]:=ord(deref_def);
-                data[len+1]:=s.owner.defowner.indexnr shr 8;
-                data[len+2]:=s.owner.defowner.indexnr and $ff;
-                data[len+3]:=ord(deref_local);
-                inc(len,4);
-              end;
-            parasymtable :
-              begin
-                addowner(s.owner.defowner);
-                data[len]:=ord(deref_def);
-                data[len+1]:=s.owner.defowner.indexnr shr 8;
-                data[len+2]:=s.owner.defowner.indexnr and $ff;
-                data[len+3]:=ord(deref_para);
-                inc(len,4);
-              end;
-            objectsymtable,
-            recordsymtable :
-              begin
-                addowner(s.owner.defowner);
-                data[len]:=ord(deref_def);
-                data[len+1]:=s.owner.defowner.indexnr shr 8;
-                data[len+2]:=s.owner.defowner.indexnr and $ff;
-                data[len+3]:=ord(deref_record);
-                inc(len,4);
-              end;
-            else
-              internalerror(200306065);
-          end;
-          if len>252 then
-            internalerror(200306062);
-        end;
-
-        procedure addparentobject(currdef,ownerdef:tdef);
-        var
-          nextdef : tdef;
-        begin
-          if not assigned(currdef) then
-            internalerror(200306185);
-          { Already handled by derefaktrecordindex }
-          if currdef=ownerdef then
-            internalerror(200306188);
-          { Generate a direct reference to the top parent
-            class available in the current unit, this is required because
-            the parent class is maybe not resolved yet and therefor
-            has the childof value not available yet }
-          while (currdef<>ownerdef) do
-            begin
-              nextdef:=currdef.getparentdef;
-              { objects are only allowed in globalsymtable,staticsymtable  }
-              if not(nextdef.owner.symtabletype in [globalsymtable,staticsymtable]) then
-                internalerror(200306187);
-              { Next parent is in a different unit, then stop }
-              if not(nextdef.owner.iscurrentunit) then
-                break;
-              currdef:=nextdef;
-            end;
-          { Add reference where to start the parent lookup }
-          if currdef=aktrecordsymtable.defowner then
-            begin
-              data[len]:=ord(deref_aktrecord);
-              inc(len);
-            end
-          else
-            begin
-              if currdef.owner.symtabletype=globalsymtable then
-                data[len]:=ord(deref_aktglobal)
-              else
-                data[len]:=ord(deref_aktstatic);
-              data[len+1]:=ord(deref_def);
-              data[len+2]:=currdef.indexnr shr 8;
-              data[len+3]:=currdef.indexnr and $ff;
-              data[len+4]:=ord(deref_record);
-              inc(len,5);
-            end;
-          { When the current found parent in this module is not the owner we
-            add derefs for the parent classes not available in this unit }
-          while (currdef<>ownerdef) do
-            begin
-              data[len]:=ord(deref_parent_object);
-              inc(len);
-              currdef:=currdef.getparentdef;
-              { It should be valid as it is checked by is_child }
-              if not assigned(currdef) then
-                internalerror(200306186);
-            end;
-        end;
-
+        idx : word;
       begin
         { skip length byte }
         len:=1;
+
         if assigned(s) then
          begin
-           { Static symtable of current unit ? }
-           if (s.owner.symtabletype=staticsymtable) and
-              s.owner.iscurrentunit then
-            begin
-              data[len]:=ord(deref_aktstatic);
-              inc(len);
-            end
-           { Global symtable of current unit ? }
-           else if (s.owner.symtabletype=globalsymtable) and
-                   s.owner.iscurrentunit then
-            begin
-              data[len]:=ord(deref_aktglobal);
-              inc(len);
-            end
-           { Current record/object symtable ? }
-           else if (s.owner=aktrecordsymtable) then
-            begin
-              data[len]:=ord(deref_aktrecord);
-              inc(len);
-            end
-           { Current local symtable ? }
-           else if (s.owner=aktlocalsymtable) then
-            begin
-              data[len]:=ord(deref_aktlocal);
-              inc(len);
-            end
-           { Current para symtable ? }
-           else if (s.owner=aktparasymtable) then
-            begin
-              data[len]:=ord(deref_aktpara);
-              inc(len);
-            end
-           { Parent class? }
-           else if assigned(aktrecordsymtable) and
-                   (aktrecordsymtable.symtabletype=objectsymtable) and
-                   (s.owner.symtabletype=objectsymtable) and
-                   is_child(tdef(aktrecordsymtable.defowner),tdef(s.owner.defowner)) then
-            begin
-              addparentobject(tdef(aktrecordsymtable.defowner),tdef(s.owner.defowner));
-            end
-           else
-           { Default, start by building from unit symtable }
-            begin
-              addowner(s);
-            end;
-           { Add index of the symbol/def }
+           st:=findunitsymtable(s.owner);
+           if not st.iscurrentunit then
+             begin
+               { register that the unit is needed for resolving }
+               data[len]:=ord(deref_unit);
+               idx:=current_module.derefidx_unit(st.moduleid);
+               data[len+1]:=idx shr 8 and $ff;
+               data[len+2]:=idx and $ff;
+               inc(len,3);
+             end;
            if s is tsym then
-             data[len]:=ord(deref_sym)
+             begin
+               data[len]:=ord(deref_symid);
+               data[len+1]:=tsym(s).symid shr 24 and $ff;
+               data[len+2]:=tsym(s).symid shr 16 and $ff;
+               data[len+3]:=tsym(s).symid shr 8 and $ff;
+               data[len+4]:=tsym(s).symid and $ff;
+               inc(len,5);
+             end
            else
-             data[len]:=ord(deref_def);
-           data[len+1]:=s.indexnr shr 8;
-           data[len+2]:=s.indexnr and $ff;
-           inc(len,3);
+             begin
+               data[len]:=ord(deref_defid);
+               data[len+1]:=tdef(s).defid shr 24 and $ff;
+               data[len+2]:=tdef(s).defid shr 16 and $ff;
+               data[len+3]:=tdef(s).defid shr 8 and $ff;
+               data[len+4]:=tdef(s).defid and $ff;
+               inc(len,5);
+             end;
          end
         else
          begin
            { nil pointer }
-           data[len]:=0;
+           data[len]:=ord(deref_nil);
            inc(len);
          end;
+
         { store data length in first byte }
         data[0]:=len-1;
+
         { store index and write to derefdata }
         dataidx:=current_module.derefdata.size;
         current_module.derefdata.write(data,len);
@@ -985,10 +834,8 @@ implementation
 
     function tderef.resolve:tsymtableentry;
       var
-        pd     : tdef;
         pm     : tmodule;
         typ    : tdereftype;
-        st     : tsymtable;
         idx    : word;
         i      : aint;
         len    : byte;
@@ -1008,13 +855,31 @@ implementation
               internalerror(200310222);
           end;
         { process data }
-        st:=nil;
+        pm:=current_module;
         i:=0;
         while (i<len) do
           begin
             typ:=tdereftype(data[i]);
             inc(i);
             case typ of
+              deref_unit :
+                begin
+                  idx:=(data[i] shl 8) or data[i+1];
+                  inc(i,2);
+                  pm:=current_module.resolve_unit(idx);
+                end;
+              deref_defid :
+                begin
+                  idx:=(data[i] shl 24) or (data[i+1] shl 16) or (data[i+2] shl 8) or data[i+3];
+                  inc(i,4);
+                  result:=tdef(pm.deflist[idx]);
+                end;
+              deref_symid :
+                begin
+                  idx:=(data[i] shl 24) or (data[i+1] shl 16) or (data[i+2] shl 8) or data[i+3];
+                  inc(i,4);
+                  result:=tsym(pm.symlist[idx]);
+                end;
               deref_nil :
                 begin
                   result:=nil;
@@ -1022,90 +887,12 @@ implementation
                   if len<>1 then
                     internalerror(200306232);
                 end;
-              deref_sym :
-                begin
-                  if not assigned(st) then
-                    internalerror(200309141);
-                  idx:=(data[i] shl 8) or data[i+1];
-                  inc(i,2);
-                  result:=st.getsymnr(idx);
-                end;
-              deref_def :
-                begin
-                  if not assigned(st) then
-                    internalerror(200309142);
-                  idx:=(data[i] shl 8) or data[i+1];
-                  inc(i,2);
-                  result:=st.getdefnr(idx);
-                end;
-              deref_aktrecord :
-                st:=aktrecordsymtable;
-              deref_aktstatic :
-                st:=current_module.localsymtable;
-              deref_aktglobal :
-                st:=current_module.globalsymtable;
-              deref_aktlocal :
-                st:=aktlocalsymtable;
-              deref_aktpara :
-                st:=aktparasymtable;
-              deref_unit :
-                begin
-                  idx:=(data[i] shl 8) or data[i+1];
-                  inc(i,2);
-                  pm:=current_module.resolve_unit(idx);
-                  st:=pm.globalsymtable;
-                end;
-              deref_local :
-                begin
-                  if not assigned(result) then
-                    internalerror(200306069);
-                  st:=tdef(result).getsymtable(gs_local);
-                  result:=nil;
-                  if not assigned(st) then
-                    internalerror(200212275);
-                end;
-              deref_para :
-                begin
-                  if not assigned(result) then
-                    internalerror(2003060610);
-                  st:=tdef(result).getsymtable(gs_para);
-                  result:=nil;
-                  if not assigned(st) then
-                    internalerror(200212276);
-                end;
-              deref_record :
-                begin
-                  if not assigned(result) then
-                    internalerror(200306068);
-                  st:=tdef(result).getsymtable(gs_record);
-                  result:=nil;
-                  if not assigned(st) then
-                    internalerror(200212274);
-                end;
-              deref_parent_object :
-                begin
-                  { load current object symtable if no
-                    symtable is available yet }
-                  if st=nil then
-                    begin
-                      st:=aktrecordsymtable;
-                      if not assigned(st) then
-                        internalerror(200306068);
-                    end;
-                  if st.symtabletype<>objectsymtable then
-                    internalerror(200306189);
-                  pd:=tdef(st.defowner).getparentdef;
-                  if not assigned(pd) then
-                    internalerror(200306184);
-                  st:=pd.getsymtable(gs_record);
-                  if not assigned(st) then
-                    internalerror(200212274);
-                end;
               else
                 internalerror(200212277);
             end;
           end;
       end;
+
 
 {*****************************************************************************
                             TCompilerPPUFile

@@ -126,7 +126,9 @@ type
     deref_record,
     deref_local,
     deref_para,
-    deref_parent_object
+    deref_parent_object,
+    deref_symid,
+    deref_defid
   );
 
   { symbol options }

@@ -249,6 +249,8 @@ uses
         Message1(unit_u_ppu_flags,tostr(flags));
         Message1(unit_u_ppu_crc,hexstr(ppufile.header.checksum,8));
         Message1(unit_u_ppu_crc,hexstr(ppufile.header.interface_checksum,8)+' (intfc)');
+        Comment(V_used,'Number of definitions: '+tostr(ppufile.header.deflistsize));
+        Comment(V_used,'Number of symbols: '+tostr(ppufile.header.symlistsize));
         do_compile:=false;
         openppu:=true;
       end;
@@ -1106,6 +1108,8 @@ uses
          ppufile.header.cpu:=word(target_cpu);
          ppufile.header.target:=word(target_info.system);
          ppufile.header.flags:=flags;
+         ppufile.header.deflistsize:=current_module.deflist.count;
+         ppufile.header.symlistsize:=current_module.symlist.count;
          ppufile.writeheader;
 
          { save crc in current module also }
@@ -1247,6 +1251,8 @@ uses
         { ok, now load the interface of this unit }
         if current_module<>self then
          internalerror(200208187);
+        deflist.count:=ppufile.header.deflistsize;
+        symlist.count:=ppufile.header.symlistsize;
         globalsymtable:=tglobalsymtable.create(modulename^,moduleid);
         tstoredsymtable(globalsymtable).ppuload(ppufile);
 

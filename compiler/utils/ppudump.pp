@@ -418,7 +418,7 @@ Procedure ReadDerefmap;
 var
   i,mapsize : longint;
 begin
-  mapsize:=ppufile.getword;
+  mapsize:=ppufile.getlongint;
   writeln('DerefMapsize: ',mapsize);
   for i:=0 to mapsize-1 do
     writeln('DerefMap[',i,'] = ',ppufile.getstring);
@@ -570,11 +570,14 @@ type
     deref_record,
     deref_local,
     deref_para,
-    deref_parent_object
+    deref_parent_object,
+    deref_symid,
+    deref_defid
   );
 var
   b : tdereftype;
   first : boolean;
+  unitid : word;
   idx : longint;
   i,n : byte;
   pdata : pbyte;
@@ -609,6 +612,18 @@ begin
      case b of
        deref_nil :
          write('Nil');
+       deref_symid :
+         begin
+           idx:=pdata[i] shl 24 or pdata[i+1] shl 16 or pdata[i+2] shl 8 or pdata[i+3];
+           inc(i,4);
+           write('SymId ',idx);
+         end;
+       deref_defid :
+         begin
+           idx:=pdata[i] shl 24 or pdata[i+1] shl 16 or pdata[i+2] shl 8 or pdata[i+3];
+           inc(i,4);
+           write('DefId ',idx);
+         end;
        deref_def :
          begin
            idx:=pdata[i] shl 8;
@@ -635,8 +650,7 @@ begin
          write('AktPara');
        deref_unit :
          begin
-           idx:=pdata[i] shl 8;
-           idx:=idx or pdata[i+1];
+           idx:=pdata[i] shl 8 or pdata[i+1];
            inc(i,2);
            write('Unit ',idx);
          end;
@@ -760,8 +774,11 @@ end;
 
 
 procedure readcommonsym(const s:string);
+var
+  symid : longint;
 begin
-  writeln(space,'** Symbol Nr. ',ppufile.getword,' **');
+  symid:=ppufile.getlongint;
+  writeln(space,'** Symbol Nr. ',ppufile.getword,' (',symid,') ',' **');
   writeln(space,s,ppufile.getstring);
   write(space,'     File Pos : ');
   readposinfo;
@@ -807,8 +824,10 @@ var
   first  : boolean;
   tokenbufsize : longint;
   tokenbuf : pointer;
+  defid : longint;
 begin
-  writeln(space,'** Definition Nr. ',ppufile.getword,' **');
+  defid:=ppufile.getlongint;
+  writeln(space,'** Definition Nr. ',ppufile.getword,' (',defid,') ',' **');
   writeln(space,s);
   write  (space,'      Type symbol : ');
   readderef;
@@ -2193,6 +2212,8 @@ begin
         Writeln('FileSize (w/o header)   : ',size);
         Writeln('Checksum                : ',hexstr(checksum,8));
         Writeln('Interface Checksum      : ',hexstr(interface_checksum,8));
+        Writeln('Definitions stored      : ',tostr(deflistsize));
+        Writeln('Symbols stored          : ',tostr(symlistsize));
       end;
    end;
 {read the general stuff}

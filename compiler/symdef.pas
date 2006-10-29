@@ -912,11 +912,18 @@ implementation
          fillchar(localrttilab,sizeof(localrttilab),0);
          generictokenbuf:=nil;
          genericdef:=nil;
-         { Register in symtable stack.
-           Don't register forwarddefs, they are disposed at the
+         { Don't register forwarddefs, they are disposed at the
            end of an type block }
-         if assigned(symtablestack) and
-            (dt<>forwarddef) then
+         if (dt=forwarddef) then
+           exit;
+         { Register in current_module }
+         if assigned(current_module) then
+           begin
+             current_module.deflist.Add(self);
+             DefId:=current_module.deflist.Count-1;
+           end;
+         { Register in symtable stack }
+         if assigned(symtablestack) then
            begin
              insertstack:=symtablestack.stack;
              while assigned(insertstack) and
@@ -951,6 +958,8 @@ implementation
 {$endif}
          fillchar(localrttilab,sizeof(localrttilab),0);
       { load }
+         DefId:=ppufile.getlongint;
+         current_module.deflist[DefId]:=self;
          indexnr:=ppufile.getword;
          ppufile.getderef(typesymderef);
          ppufile.getsmallset(defoptions);
@@ -1002,6 +1011,7 @@ implementation
         buf  : array[0..255] of byte;
         oldintfcrc : boolean;
       begin
+        ppufile.putlongint(DefId);
         ppufile.putword(indexnr);
         ppufile.putderef(typesymderef);
         ppufile.putsmallset(defoptions);
