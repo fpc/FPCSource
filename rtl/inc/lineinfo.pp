@@ -398,7 +398,7 @@ begin
   if peheader.pemagic<>$4550 then
    exit;
   { read section info }
-  for i:=1to peheader.NumberOfSections do
+  for i:=1 to peheader.NumberOfSections do
    begin
      blockread(f,coffsec,sizeof(tcoffsechdr));
      if (coffsec.name[4]='b') and
@@ -516,7 +516,7 @@ begin
   if peheader.pemagic<>$4550 then
    exit;
   { read section info }
-  for i:=1to peheader.NumberOfSections do
+  for i:=1 to peheader.NumberOfSections do
    begin
      blockread(f,coffsec,sizeof(tcoffsechdr));
      if (coffsec.name[4]='b') and
