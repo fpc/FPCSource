@@ -676,7 +676,7 @@ type
      * to produce the hexadecimal values shown.
      *
     }
-    function fpc_exp_real(d: Double):Double;compilerproc;
+    function fpc_exp_real(d: ValReal):ValReal;compilerproc;
       const
         one   = 1.0;
         halF : array[0..1] of double = (0.5,-0.5);
