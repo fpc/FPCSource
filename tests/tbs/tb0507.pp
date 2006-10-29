@@ -1,3 +1,4 @@
+{$goto on}
 {$inline on}
 
 var
