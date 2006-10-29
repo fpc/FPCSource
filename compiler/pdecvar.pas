@@ -376,6 +376,7 @@ implementation
                   p.proptype:=tpropertysym(overriden).proptype;
                   p.index:=tpropertysym(overriden).index;
                   p.default:=tpropertysym(overriden).default;
+                  p.propoptions:=tpropertysym(overriden).propoptions;
                 end
               else
                 begin
