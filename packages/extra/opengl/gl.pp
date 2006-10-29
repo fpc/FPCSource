@@ -20,7 +20,7 @@ Abstract:
 
 --*)
 
-(*
+{*
 ** Copyright 1996 Silicon Graphics, Inc.
 ** All Rights Reserved.
 **
@@ -35,15 +35,15 @@ Abstract:
 ** and Computer Software clause at DFARS 252.227-7013, and/or in similar or
 ** successor clauses in the FAR, DOD or NASA FAR Supplement. Unpublished -
 ** rights reserved under the Copyright Laws of the United States.
-*)
+*}
 
 {******************************************************************************}
 { Converted to Delphi by Tom Nuydens (tom@delphi3d.net)                        }
 { For the latest updates, visit Delphi3D: http://www.delphi3d.net              }
 {******************************************************************************}
 
-{$MACRO ON}
 {$MODE Delphi}
+{$MACRO ON}
 {$IFDEF Win32}
   {$DEFINE extdecl := stdcall}
 {$ELSE}
