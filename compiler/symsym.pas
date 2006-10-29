@@ -1575,6 +1575,8 @@ implementation
 
 
     procedure tparavarsym.ppuwrite(ppufile:tcompilerppufile);
+      var
+        oldintfcrc : boolean;
       begin
          inherited ppuwrite(ppufile);
          ppufile.putword(paranr);
@@ -1583,7 +1585,10 @@ implementation
            we write them to the unit file.
            This enables constant folding for inline procedures loaded from units
          }
-         ppufile.putbyte(ord(vs_readwritten));
+         oldintfcrc:=ppufile.do_crc;
+         ppufile.do_crc:=false;
+         ppufile.putbyte(ord(varstate));
+         ppufile.do_crc:=oldintfcrc;
 
          if vo_has_explicit_paraloc in varoptions then
            begin
