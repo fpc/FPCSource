@@ -77,7 +77,7 @@ interface
           procedure deref;override;
           procedure derefimpl;override;
           function  size:aint;override;
-          function  getvartype:longint;override;
+          function  getvardef:longint;override;
           function  alignment:shortint;override;
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
@@ -99,16 +99,17 @@ interface
 
        tfiledef = class(tstoreddef)
           filetyp : tfiletyp;
-          typedfiletype : ttype;
+          typedfiledef : tdef;
+          typedfiledefderef : tderef;
           constructor createtext;
           constructor createuntyped;
-          constructor createtyped(const tt : ttype);
+          constructor createtyped(def : tdef);
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          function  gettypename:string;override;
+          function  GetTypeName:string;override;
           function  getmangledparaname:string;override;
           procedure setsize;
        end;
@@ -118,7 +119,7 @@ interface
           constructor create(v : tvarianttype);
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
-          function gettypename:string;override;
+          function GetTypeName:string;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure setsize;
           function is_publishable : boolean;override;
@@ -130,7 +131,7 @@ interface
           constructor create;
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function  gettypename:string;override;
+          function  GetTypeName:string;override;
        end;
 
        tforwarddef = class(tstoreddef)
@@ -138,26 +139,27 @@ interface
           forwardpos : tfileposinfo;
           constructor create(const s:string;const pos : tfileposinfo);
           destructor destroy;override;
-          function  gettypename:string;override;
+          function  GetTypeName:string;override;
        end;
 
        tundefineddef = class(tstoreddef)
           constructor create;
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function  gettypename:string;override;
+          function  GetTypeName:string;override;
        end;
 
        terrordef = class(tstoreddef)
           constructor create;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function  gettypename:string;override;
+          function  GetTypeName:string;override;
           function  getmangledparaname : string;override;
        end;
 
        tabstractpointerdef = class(tstoreddef)
-          pointertype : ttype;
-          constructor create(dt:tdeftype;const tt : ttype);
+          pointeddef : tdef;
+          pointeddefderef : tderef;
+          constructor create(dt:tdeftype;def:tdef);
           constructor ppuload(dt:tdeftype;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
@@ -166,12 +168,12 @@ interface
 
        tpointerdef = class(tabstractpointerdef)
           is_far : boolean;
-          constructor create(const tt : ttype);
-          constructor createfar(const tt : ttype);
+          constructor create(def:tdef);
+          constructor createfar(def:tdef);
           function getcopy : tstoreddef;override;
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function  gettypename:string;override;
+          function  GetTypeName:string;override;
        end;
 
        tabstractrecorddef= class(tstoreddef)
@@ -201,7 +203,7 @@ interface
           function  size:aint;override;
           function  alignment : shortint;override;
           function  padalignment: shortint;
-          function  gettypename:string;override;
+          function  GetTypeName:string;override;
           { debug }
           function  needs_inittable : boolean;override;
           { rtti }
@@ -221,7 +223,7 @@ interface
          namemappings : tdictionary;
          procdefs     : TIndexArray;
          constructor create(aintf: tobjectdef);
-         constructor create_deref(const d:tderef);
+         constructor create_deref(d:tderef);
          destructor  destroy; override;
        end;
 
@@ -256,7 +258,7 @@ interface
           destructor  destroy;override;
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function gettypename:string;override;
+          function GetTypeName:string;override;
           procedure buildderef;override;
           procedure deref;override;
           function  getparentdef:tdef;override;
@@ -317,32 +319,34 @@ interface
 
 
        tclassrefdef = class(tabstractpointerdef)
-          constructor create(const t:ttype);
+          constructor create(def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function gettypename:string;override;
+          function GetTypeName:string;override;
           function  is_publishable : boolean;override;
        end;
 
        tarraydef = class(tstoreddef)
           lowrange,
           highrange  : aint;
-          rangetype  : ttype;
+          rangedef   : tdef;
+          rangedefderef : tderef;
           arrayoptions : tarraydefoptions;
        protected
-          _elementtype : ttype;
+          _elementdef : tdef;
+          _elementdefderef : tderef;
+          procedure setelementdef(def:tdef);
        public
           function elesize : aint;
           function elepackedbitsize : aint;
           function elecount : aint;
-          constructor create_from_pointer(const elemt : ttype);
-          constructor create(l,h : aint;const t : ttype);
+          constructor create_from_pointer(def:tdef);
+          constructor create(l,h : aint;def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function  gettypename:string;override;
+          function  GetTypeName:string;override;
           function  getmangledparaname : string;override;
-          procedure setelementtype(t: ttype);
           procedure buildderef;override;
           procedure deref;override;
           function size : aint;override;
@@ -351,7 +355,7 @@ interface
           function needs_inittable : boolean;override;
           procedure write_child_rtti_data(rt:trttitype);override;
           procedure write_rtti_data(rt:trttitype);override;
-          property elementtype : ttype Read _ElementType;
+          property elementdef : tdef read _elementdef write setelementdef;
        end;
 
        torddef = class(tstoreddef)
@@ -362,11 +366,11 @@ interface
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  is_publishable : boolean;override;
-          function  gettypename:string;override;
+          function  GetTypeName:string;override;
           function alignment:shortint;override;
           procedure setsize;
           function  packedbitsize: aint; override;
-          function getvartype : longint;override;
+          function getvardef : longint;override;
           { rtti }
           procedure write_rtti_data(rt:trttitype);override;
        end;
@@ -377,18 +381,19 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function  gettypename:string;override;
+          function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
           function alignment:shortint;override;
           procedure setsize;
-          function  getvartype:longint;override;
+          function  getvardef:longint;override;
           { rtti }
           procedure write_rtti_data(rt:trttitype);override;
        end;
 
        tabstractprocdef = class(tstoreddef)
           { saves a definition to the return type }
-          rettype         : ttype;
+          returndef       : tdef;
+          returndefderef  : tderef;
           parast          : tsymtable;
           paras           : tparalist;
           proctypeoption  : tproctypeoption;
@@ -432,7 +437,7 @@ interface
           procedure deref;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
           function  size : aint;override;
-          function  gettypename:string;override;
+          function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
@@ -536,7 +541,7 @@ interface
           procedure derefimpl;override;
           procedure reset;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
-          function gettypename : string;override;
+          function GetTypeName : string;override;
           function  mangledname : string;
           procedure setmangledname(const s : string);
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);
@@ -575,7 +580,7 @@ interface
           function getcopy : tstoreddef;override;
           function  stringtypname:string;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function  gettypename:string;override;
+          function  GetTypeName:string;override;
           function  getmangledparaname:string;override;
           function  is_publishable : boolean;override;
           function alignment : shortint;override;
@@ -601,7 +606,7 @@ interface
           procedure buildderef;override;
           procedure deref;override;
           procedure derefimpl;override;
-          function  gettypename:string;override;
+          function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
           procedure calcsavesize;
           function  packedbitsize: aint; override;
@@ -615,18 +620,19 @@ interface
        end;
 
        tsetdef = class(tstoreddef)
-          elementtype : ttype;
-          settype : tsettype;
+          elementdef : tdef;
+          elementdefderef : tderef;
+          settype  : tsettype;
           setbase,
-          setmax : aint;
-          constructor create(const t:ttype;high : aint);
+          setmax   : aint;
+          constructor create(def:tdef;high : aint);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          function  gettypename:string;override;
+          function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
           { rtti }
           procedure write_rtti_data(rt:trttitype);override;
@@ -639,10 +645,10 @@ interface
        aktobjectdef : tobjectdef;  { used for private functions check !! }
 
     { default types }
-       generrortype,              { error in definition }
-       voidpointertype,           { pointer for Void-Pointerdef }
-       charpointertype,           { pointer for Char-Pointerdef }
-       widecharpointertype,       { pointer for WideChar-Pointerdef }
+       generrordef,              { error in definition }
+       voidpointertype,           { pointer for Void-pointeddef }
+       charpointertype,           { pointer for Char-pointeddef }
+       widecharpointertype,       { pointer for WideChar-pointeddef }
        voidfarpointertype,
        cundefinedtype,
        cformaltype,               { unique formal definition }
@@ -676,7 +682,7 @@ interface
        cfiletype,                 { get the same definition for all file }
                                   { used for stabs }
        methodpointertype,         { typecasting of methodpointers to extract self }
-       hresulttype,
+       hresultdef,
        { we use only one variant def for every variant class }
        cvarianttype,
        colevarianttype,
@@ -688,7 +694,7 @@ interface
        { several types to simulate more or less C++ objects for GDB }
        vmttype,
        vmtarraytype,
-       pvmttype      : ttype;     { type of classrefs, used for stabs }
+       pvmttype      : tdef;     { type of classrefs, used for stabs }
 
        { pointer to the anchestor of all classes }
        class_tobject : tobjectdef;
@@ -700,37 +706,37 @@ interface
 
     const
 {$ifdef i386}
-       pbestrealtype : ^ttype = @s80floattype;
+       pbestrealtype : ^tdef = @s80floattype;
 {$endif}
 {$ifdef x86_64}
-       pbestrealtype : ^ttype = @s80floattype;
+       pbestrealtype : ^tdef = @s80floattype;
 {$endif}
 {$ifdef m68k}
-       pbestrealtype : ^ttype = @s64floattype;
+       pbestrealtype : ^tdef = @s64floattype;
 {$endif}
 {$ifdef alpha}
-       pbestrealtype : ^ttype = @s64floattype;
+       pbestrealtype : ^tdef = @s64floattype;
 {$endif}
 {$ifdef powerpc}
-       pbestrealtype : ^ttype = @s64floattype;
+       pbestrealtype : ^tdef = @s64floattype;
 {$endif}
 {$ifdef POWERPC64}
-       pbestrealtype : ^ttype = @s64floattype;
+       pbestrealtype : ^tdef = @s64floattype;
 {$endif}
 {$ifdef ia64}
-       pbestrealtype : ^ttype = @s64floattype;
+       pbestrealtype : ^tdef = @s64floattype;
 {$endif}
 {$ifdef SPARC}
-       pbestrealtype : ^ttype = @s64floattype;
+       pbestrealtype : ^tdef = @s64floattype;
 {$endif SPARC}
 {$ifdef vis}
-       pbestrealtype : ^ttype = @s64floattype;
+       pbestrealtype : ^tdef = @s64floattype;
 {$endif vis}
 {$ifdef ARM}
-       pbestrealtype : ^ttype = @s64floattype;
+       pbestrealtype : ^tdef = @s64floattype;
 {$endif ARM}
 {$ifdef MIPS}
-       pbestrealtype : ^ttype = @s64floattype;
+       pbestrealtype : ^tdef = @s64floattype;
 {$endif MIPS}
 
     function make_mangledname(const typeprefix:string;st:tsymtable;const suffix:string):string;
@@ -800,7 +806,7 @@ implementation
       varstrarg = $48;
       varstring = $100;
       varany = $101;
-      vartypemask = $fff;
+      vardefmask = $fff;
       vararray = $2000;
       varbyref = $4000;
 
@@ -835,10 +841,10 @@ implementation
             begin
               hp:=tparavarsym(tprocdef(st.defowner).paras[i]);
               if not(vo_is_hidden_para in hp.varoptions) then
-                s:=s+'$'+hp.vartype.def.mangledparaname;
+                s:=s+'$'+hp.vardef.mangledparaname;
             end;
-           if not is_void(tprocdef(st.defowner).rettype.def) then
-             s:=s+'$$'+tprocdef(st.defowner).rettype.def.mangledparaname;
+           if not is_void(tprocdef(st.defowner).returndef) then
+             s:=s+'$$'+tprocdef(st.defowner).returndef.mangledparaname;
            newlen:=length(s);
            { Replace with CRC if the parameter line is very long }
            if (newlen-oldlen>12) and
@@ -850,11 +856,11 @@ implementation
                    hp:=tparavarsym(tprocdef(st.defowner).paras[i]);
                    if not(vo_is_hidden_para in hp.varoptions) then
                      begin
-                       hs:=hp.vartype.def.mangledparaname;
+                       hs:=hp.vardef.mangledparaname;
                        crc:=UpdateCrc32(crc,hs[1],length(hs));
                      end;
                  end;
-               hs:=hp.vartype.def.mangledparaname;
+               hs:=hp.vardef.mangledparaname;
                crc:=UpdateCrc32(crc,hs[1],length(hs));
                s:=Copy(s,1,oldlen)+'$crc'+hexstr(crc,8);
              end;
@@ -1085,7 +1091,7 @@ implementation
       end;
 
 
-    function tstoreddef.getvartype:longint;
+    function tstoreddef.getvardef:longint;
       begin
         result:=varUndefined;
       end;
@@ -1333,12 +1339,12 @@ implementation
       end;
 
 
-    function tstringdef.gettypename : string;
+    function tstringdef.GetTypeName : string;
       const
          names : array[tstringtype] of string[11] = (
            'ShortString','LongString','AnsiString','WideString');
       begin
-         gettypename:=names[string_typ];
+         GetTypeName:=names[string_typ];
       end;
 
 
@@ -1619,10 +1625,10 @@ implementation
          is_publishable:=true;
       end;
 
-    function tenumdef.gettypename : string;
+    function tenumdef.GetTypeName : string;
 
       begin
-         gettypename:='<enumeration type>';
+         GetTypeName:='<enumeration type>';
       end;
 
 {****************************************************************************
@@ -1717,16 +1723,16 @@ implementation
       end;
 
 
-    function torddef.getvartype : longint;
+    function torddef.getvardef : longint;
       const
-        basetype2vartype : array[tbasetype] of longint = (
+        basetype2vardef : array[tbasetype] of longint = (
           varUndefined,
           varbyte,varqword,varlongword,varqword,
           varshortint,varsmallint,varinteger,varint64,
           varboolean,varUndefined,varUndefined,varUndefined,
           varUndefined,varUndefined,varCurrency);
       begin
-        result:=basetype2vartype[typ];
+        result:=basetype2vardef[typ];
       end;
 
 
@@ -1827,7 +1833,7 @@ implementation
       end;
 
 
-    function torddef.gettypename : string;
+    function torddef.GetTypeName : string;
 
       const
         names : array[tbasetype] of string[20] = (
@@ -1838,7 +1844,7 @@ implementation
           'Char','WideChar','Currency');
 
       begin
-         gettypename:=names[typ];
+         GetTypeName:=names[typ];
       end;
 
 {****************************************************************************
@@ -1899,9 +1905,9 @@ implementation
       end;
 
 
-    function tfloatdef.getvartype : longint;
+    function tfloatdef.getvardef : longint;
       const
-        floattype2vartype : array[tfloattype] of longint = (
+        floattype2vardef : array[tfloattype] of longint = (
           varSingle,varDouble,varUndefined,
           varUndefined,varCurrency,varUndefined);
       begin
@@ -1911,7 +1917,7 @@ implementation
           (owner.name^='SYSTEM') then
           result:=varDate
         else
-          result:=floattype2vartype[typ];
+          result:=floattype2vardef[typ];
       end;
 
 
@@ -1943,14 +1949,14 @@ implementation
          is_publishable:=true;
       end;
 
-    function tfloatdef.gettypename : string;
+    function tfloatdef.GetTypeName : string;
 
       const
         names : array[tfloattype] of string[20] = (
           'Single','Double','Extended','Comp','Currency','Float128');
 
       begin
-         gettypename:=names[typ];
+         GetTypeName:=names[typ];
       end;
 
 {****************************************************************************
@@ -1961,7 +1967,7 @@ implementation
       begin
          inherited create(filedef);
          filetyp:=ft_text;
-         typedfiletype.reset;
+         typedfiledef:=nil;
          setsize;
       end;
 
@@ -1970,16 +1976,16 @@ implementation
       begin
          inherited create(filedef);
          filetyp:=ft_untyped;
-         typedfiletype.reset;
+         typedfiledef:=nil;
          setsize;
       end;
 
 
-    constructor tfiledef.createtyped(const tt : ttype);
+    constructor tfiledef.createtyped(def:tdef);
       begin
          inherited create(filedef);
          filetyp:=ft_typed;
-         typedfiletype:=tt;
+         typedfiledef:=def;
          setsize;
       end;
 
@@ -1989,9 +1995,9 @@ implementation
          inherited ppuload(filedef,ppufile);
          filetyp:=tfiletyp(ppufile.getbyte);
          if filetyp=ft_typed then
-           ppufile.gettype(typedfiletype)
+           ppufile.getderef(typedfiledefderef)
          else
-           typedfiletype.reset;
+           typedfiledef:=nil;
          setsize;
       end;
 
@@ -2000,7 +2006,7 @@ implementation
       begin
         case filetyp of
           ft_typed:
-            result:=tfiledef.createtyped(typedfiletype);
+            result:=tfiledef.createtyped(typedfiledef);
           ft_untyped:
             result:=tfiledef.createuntyped;
           ft_text:
@@ -2015,7 +2021,7 @@ implementation
       begin
         inherited buildderef;
         if filetyp=ft_typed then
-          typedfiletype.buildderef;
+          typedfiledefderef.build(typedfiledef);
       end;
 
 
@@ -2023,7 +2029,7 @@ implementation
       begin
         inherited deref;
         if filetyp=ft_typed then
-          typedfiletype.resolve;
+          typedfiledef:=tdef(typedfiledefderef.resolve);
       end;
 
 
@@ -2060,20 +2066,20 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(filetyp));
          if filetyp=ft_typed then
-           ppufile.puttype(typedfiletype);
+           ppufile.putderef(typedfiledefderef);
          ppufile.writeentry(ibfiledef);
       end;
 
 
-    function tfiledef.gettypename : string;
+    function tfiledef.GetTypeName : string;
       begin
          case filetyp of
            ft_untyped:
-             gettypename:='File';
+             GetTypeName:='File';
            ft_typed:
-             gettypename:='File Of '+typedfiletype.def.typename;
+             GetTypeName:='File Of '+typedfiledef.typename;
            ft_text:
-             gettypename:='Text'
+             GetTypeName:='Text'
          end;
       end;
 
@@ -2084,7 +2090,7 @@ implementation
            ft_untyped:
              getmangledparaname:='FILE';
            ft_typed:
-             getmangledparaname:='FILE$OF$'+typedfiletype.def.mangledparaname;
+             getmangledparaname:='FILE$OF$'+typedfiledef.mangledparaname;
            ft_text:
              getmangledparaname:='TEXT'
          end;
@@ -2135,13 +2141,13 @@ implementation
       end;
 
 
-    function tvariantdef.gettypename : string;
+    function tvariantdef.GetTypeName : string;
       begin
          case varianttype of
            vt_normalvariant:
-             gettypename:='Variant';
+             GetTypeName:='Variant';
            vt_olevariant:
-             gettypename:='OleVariant';
+             GetTypeName:='OleVariant';
          end;
       end;
 
@@ -2165,13 +2171,13 @@ implementation
 
 
 {****************************************************************************
-                            TABSTRACTPOINTERDEF
+                            TABSTRACtpointerdef
 ****************************************************************************}
 
-    constructor tabstractpointerdef.create(dt:tdeftype;const tt : ttype);
+    constructor tabstractpointerdef.create(dt:tdeftype;def:tdef);
       begin
         inherited create(dt);
-        pointertype:=tt;
+        pointeddef:=def;
         savesize:=sizeof(aint);
       end;
 
@@ -2179,7 +2185,7 @@ implementation
     constructor tabstractpointerdef.ppuload(dt:tdeftype;ppufile:tcompilerppufile);
       begin
          inherited ppuload(dt,ppufile);
-         ppufile.gettype(pointertype);
+         ppufile.getderef(pointeddefderef);
          savesize:=sizeof(aint);
       end;
 
@@ -2187,38 +2193,38 @@ implementation
     procedure tabstractpointerdef.buildderef;
       begin
         inherited buildderef;
-        pointertype.buildderef;
+        pointeddefderef.build(pointeddef);
       end;
 
 
     procedure tabstractpointerdef.deref;
       begin
         inherited deref;
-        pointertype.resolve;
+        pointeddef:=tdef(pointeddefderef.resolve);
       end;
 
 
     procedure tabstractpointerdef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.puttype(pointertype);
+         ppufile.putderef(pointeddefderef);
       end;
 
 
 {****************************************************************************
-                               TPOINTERDEF
+                               tpointerdef
 ****************************************************************************}
 
-    constructor tpointerdef.create(const tt : ttype);
+    constructor tpointerdef.create(def:tdef);
       begin
-        inherited create(pointerdef,tt);
+        inherited create(pointerdef,def);
         is_far:=false;
       end;
 
 
-    constructor tpointerdef.createfar(const tt : ttype);
+    constructor tpointerdef.createfar(def:tdef);
       begin
-        inherited create(pointerdef,tt);
+        inherited create(pointerdef,def);
         is_far:=true;
       end;
 
@@ -2232,7 +2238,7 @@ implementation
 
     function tpointerdef.getcopy : tstoreddef;
       begin
-        result:=tpointerdef.create(pointertype);
+        result:=tpointerdef.create(pointeddef);
         tpointerdef(result).is_far:=is_far;
         tpointerdef(result).savesize:=savesize;
       end;
@@ -2246,12 +2252,12 @@ implementation
       end;
 
 
-    function tpointerdef.gettypename : string;
+    function tpointerdef.GetTypeName : string;
       begin
          if is_far then
-          gettypename:='^'+pointertype.def.typename+';far'
+          GetTypeName:='^'+pointeddef.typename+';far'
          else
-          gettypename:='^'+pointertype.def.typename;
+          GetTypeName:='^'+pointeddef.typename;
       end;
 
 
@@ -2259,9 +2265,9 @@ implementation
                               TCLASSREFDEF
 ****************************************************************************}
 
-    constructor tclassrefdef.create(const t:ttype);
+    constructor tclassrefdef.create(def:tdef);
       begin
-         inherited create(classrefdef,t);
+         inherited create(classrefdef,def);
       end;
 
 
@@ -2278,9 +2284,9 @@ implementation
       end;
 
 
-    function tclassrefdef.gettypename : string;
+    function tclassrefdef.GetTypeName : string;
       begin
-         gettypename:='Class Of '+pointertype.def.typename;
+         GetTypeName:='Class Of '+pointeddef.typename;
       end;
 
 
@@ -2294,10 +2300,10 @@ implementation
                                    TSETDEF
 ***************************************************************************}
 
-    constructor tsetdef.create(const t:ttype;high : aint);
+    constructor tsetdef.create(def:tdef;high : aint);
       begin
          inherited create(setdef);
-         elementtype:=t;
+         elementdef:=def;
          // setbase:=low;
          setmax:=high;
          if high<32 then
@@ -2325,7 +2331,7 @@ implementation
     constructor tsetdef.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(setdef,ppufile);
-         ppufile.gettype(elementtype);
+         ppufile.getderef(elementdefderef);
          settype:=tsettype(ppufile.getbyte);
          case settype of
            normset : savesize:=32;
@@ -2345,9 +2351,9 @@ implementation
       begin
         case settype of
           smallset:
-            result:=tsetdef.create(elementtype,31);
+            result:=tsetdef.create(elementdef,31);
           normset:
-            result:=tsetdef.create(elementtype,255);
+            result:=tsetdef.create(elementdef,255);
           else
             internalerror(2004121202);
         end;
@@ -2357,7 +2363,7 @@ implementation
     procedure tsetdef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.puttype(elementtype);
+         ppufile.putderef(elementdefderef);
          ppufile.putbyte(byte(settype));
          if settype=varset then
            ppufile.putlongint(savesize);
@@ -2370,20 +2376,20 @@ implementation
     procedure tsetdef.buildderef;
       begin
         inherited buildderef;
-        elementtype.buildderef;
+        elementdefderef.build(elementdef);
       end;
 
 
     procedure tsetdef.deref;
       begin
         inherited deref;
-        elementtype.resolve;
+        elementdef:=tdef(elementdefderef.resolve);
       end;
 
 
     procedure tsetdef.write_child_rtti_data(rt:trttitype);
       begin
-        tstoreddef(elementtype.def).get_rtti_label(rt);
+        tstoreddef(elementdef).get_rtti_label(rt);
       end;
 
 
@@ -2398,7 +2404,7 @@ implementation
 {$ifdef cpurequiresproperalignment}
          current_asmdata.asmlists[al_rtti].concat(Tai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
-         current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(tstoreddef(elementtype.def).get_rtti_label(rt)));
+         current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(tstoreddef(elementdef).get_rtti_label(rt)));
       end;
 
 
@@ -2408,12 +2414,12 @@ implementation
       end;
 
 
-    function tsetdef.gettypename : string;
+    function tsetdef.GetTypeName : string;
       begin
-         if assigned(elementtype.def) then
-          gettypename:='Set Of '+elementtype.def.typename
+         if assigned(elementdef) then
+          GetTypeName:='Set Of '+elementdef.typename
          else
-          gettypename:='Empty Set';
+          GetTypeName:='Empty Set';
       end;
 
 
@@ -2442,9 +2448,9 @@ implementation
       end;
 
 
-    function tformaldef.gettypename : string;
+    function tformaldef.GetTypeName : string;
       begin
-         gettypename:='<Formal type>';
+         GetTypeName:='<Formal type>';
       end;
 
 
@@ -2452,22 +2458,22 @@ implementation
                            TARRAYDEF
 ***************************************************************************}
 
-    constructor tarraydef.create(l,h : aint;const t : ttype);
+    constructor tarraydef.create(l,h : aint;def:tdef);
       begin
          inherited create(arraydef);
          lowrange:=l;
          highrange:=h;
-         rangetype:=t;
-         elementtype.reset;
+         rangedef:=def;
+         _elementdef:=nil;
          arrayoptions:=[];
       end;
 
 
-    constructor tarraydef.create_from_pointer(const elemt : ttype);
+    constructor tarraydef.create_from_pointer(def:tdef);
       begin
          self.create(0,$7fffffff,s32inttype);
          arrayoptions:=[ado_IsConvertedPointer];
-         setelementtype(elemt);
+         setelementdef(def);
       end;
 
 
@@ -2475,8 +2481,8 @@ implementation
       begin
          inherited ppuload(arraydef,ppufile);
          { the addresses are calculated later }
-         ppufile.gettype(_elementtype);
-         ppufile.gettype(rangetype);
+         ppufile.getderef(_elementdefderef);
+         ppufile.getderef(rangedefderef);
          lowrange:=ppufile.getaint;
          highrange:=ppufile.getaint;
          ppufile.getsmallset(arrayoptions);
@@ -2485,33 +2491,33 @@ implementation
 
     function tarraydef.getcopy : tstoreddef;
       begin
-        result:=tarraydef.create(lowrange,highrange,rangetype);
+        result:=tarraydef.create(lowrange,highrange,rangedef);
         tarraydef(result).arrayoptions:=arrayoptions;
-        tarraydef(result)._elementtype:=_elementtype;
+        tarraydef(result)._elementdef:=_elementdef;
       end;
 
 
     procedure tarraydef.buildderef;
       begin
         inherited buildderef;
-        _elementtype.buildderef;
-        rangetype.buildderef;
+        _elementdefderef.build(_elementdef);
+        rangedefderef.build(rangedef);
       end;
 
 
     procedure tarraydef.deref;
       begin
         inherited deref;
-        _elementtype.resolve;
-        rangetype.resolve;
+        _elementdef:=tdef(_elementdefderef.resolve);
+        rangedef:=tdef(rangedefderef.resolve);
       end;
 
 
     procedure tarraydef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.puttype(_elementtype);
-         ppufile.puttype(rangetype);
+         ppufile.putderef(_elementdefderef);
+         ppufile.putderef(rangedefderef);
          ppufile.putaint(lowrange);
          ppufile.putaint(highrange);
          ppufile.putsmallset(arrayoptions);
@@ -2523,7 +2529,10 @@ implementation
       begin
         if (ado_IsBitPacked in arrayoptions) then
           internalerror(2006080101);
-        elesize:=_elementtype.def.size;
+	if assigned(_elementdef) then  
+          result:=_elementdef.size
+	else
+	  result:=0;  
       end;
 
 
@@ -2531,7 +2540,10 @@ implementation
       begin
         if not(ado_IsBitPacked in arrayoptions) then
           internalerror(2006080102);
-        result:=_elementtype.def.packedbitsize;
+	if assigned(_elementdef) then  
+          result:=_elementdef.packedbitsize
+	else
+	  result:=0;  
       end;
 
 
@@ -2610,26 +2622,26 @@ implementation
       end;
 
 
-    procedure tarraydef.setelementtype(t: ttype);
+    procedure tarraydef.setelementdef(def:tdef);
       begin
-        _elementtype:=t;
-       if not((ado_IsDynamicArray in arrayoptions) or
-              (ado_IsConvertedPointer in arrayoptions) or
-              (highrange<lowrange)) then
-         begin
-           if (size=-1) then
-             Message(sym_e_segment_too_large);
-         end;
+        _elementdef:=def;
+        if not(
+               (ado_IsDynamicArray in arrayoptions) or
+               (ado_IsConvertedPointer in arrayoptions) or
+               (highrange<lowrange)
+	      ) and
+           (size=-1) then
+          Message(sym_e_segment_too_large);
       end;
 
 
     function tarraydef.alignment : shortint;
       begin
          { alignment is the size of the elements }
-         if (elementtype.def.deftype in [arraydef,recorddef]) or
-           ((elementtype.def.deftype=objectdef) and
-             is_object(elementtype.def)) then
-           alignment:=elementtype.def.alignment
+         if (elementdef.deftype in [arraydef,recorddef]) or
+           ((elementdef.deftype=objectdef) and
+             is_object(elementdef)) then
+           alignment:=elementdef.alignment
          else if not (ado_IsBitPacked in arrayoptions) then
            alignment:=size_2_align(elesize)
          else
@@ -2639,13 +2651,13 @@ implementation
 
     function tarraydef.needs_inittable : boolean;
       begin
-         needs_inittable:=(ado_IsDynamicArray in arrayoptions) or elementtype.def.needs_inittable;
+         needs_inittable:=(ado_IsDynamicArray in arrayoptions) or elementdef.needs_inittable;
       end;
 
 
     procedure tarraydef.write_child_rtti_data(rt:trttitype);
       begin
-        tstoreddef(elementtype.def).get_rtti_label(rt);
+        tstoreddef(elementdef).get_rtti_label(rt);
       end;
 
 
@@ -2670,13 +2682,13 @@ implementation
          if not(ado_IsDynamicArray in arrayoptions) then
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(elecount));
          { element type }
-         current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(tstoreddef(elementtype.def).get_rtti_label(rt)));
+         current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(tstoreddef(elementdef).get_rtti_label(rt)));
          { variant type }
-         current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tstoreddef(elementtype.def).getvartype));
+         current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tstoreddef(elementdef).getvardef));
       end;
 
 
-    function tarraydef.gettypename : string;
+    function tarraydef.GetTypeName : string;
       begin
          if (ado_IsConstString in arrayoptions) then
            result:='Constant String'
@@ -2684,22 +2696,22 @@ implementation
                  (ado_isConstructor in arrayoptions) then
            begin
              if (ado_isvariant in arrayoptions) or ((highrange=-1) and (lowrange=0)) then
-               gettypename:='Array Of Const'
+               GetTypeName:='Array Of Const'
              else
-               gettypename:='Array Of '+elementtype.def.typename;
+               GetTypeName:='Array Of '+elementdef.typename;
            end
          else if ((highrange=-1) and (lowrange=0)) or (ado_IsDynamicArray in arrayoptions) then
-           gettypename:='Array Of '+elementtype.def.typename
+           GetTypeName:='Array Of '+elementdef.typename
          else
            begin
               result := '';
               if (ado_IsBitPacked in arrayoptions) then
                 result:='Packed ';
-              if rangetype.def.deftype=enumdef then
-                result:=result+'Array['+rangetype.def.typename+'] Of '+elementtype.def.typename
+              if rangedef.deftype=enumdef then
+                result:=result+'Array['+rangedef.typename+'] Of '+elementdef.typename
               else
                 result:=result+'Array['+tostr(lowrange)+'..'+
-                  tostr(highrange)+'] Of '+elementtype.def.typename
+                  tostr(highrange)+'] Of '+elementdef.typename
            end;
       end;
 
@@ -2710,7 +2722,7 @@ implementation
           getmangledparaname:='array_of_const'
          else
           if ((highrange=-1) and (lowrange=0)) then
-           getmangledparaname:='array_of_'+elementtype.def.mangledparaname
+           getmangledparaname:='array_of_'+elementdef.mangledparaname
          else
           internalerror(200204176);
       end;
@@ -2745,7 +2757,7 @@ implementation
       begin
          if (FRTTIType=fullrtti) or
             ((tsym(sym).typ=fieldvarsym) and
-             tfieldvarsym(sym).vartype.def.needs_inittable) then
+             tfieldvarsym(sym).vardef.needs_inittable) then
            inc(Count);
       end;
 
@@ -2754,8 +2766,8 @@ implementation
       begin
          if (FRTTIType=fullrtti) or
             ((tsym(sym).typ=fieldvarsym) and
-             tfieldvarsym(sym).vartype.def.needs_inittable) then
-           tstoreddef(tfieldvarsym(sym).vartype.def).get_rtti_label(FRTTIType);
+             tfieldvarsym(sym).vardef.needs_inittable) then
+           tstoreddef(tfieldvarsym(sym).vardef).get_rtti_label(FRTTIType);
       end;
 
 
@@ -2763,9 +2775,9 @@ implementation
       begin
          if (FRTTIType=fullrtti) or
             ((tsym(sym).typ=fieldvarsym) and
-             tfieldvarsym(sym).vartype.def.needs_inittable) then
+             tfieldvarsym(sym).vardef.needs_inittable) then
           begin
-            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(tstoreddef(tfieldvarsym(sym).vartype.def).get_rtti_label(FRTTIType)));
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(tstoreddef(tfieldvarsym(sym).vardef).get_rtti_label(FRTTIType)));
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tfieldvarsym(sym).fieldoffset));
           end;
       end;
@@ -2913,9 +2925,9 @@ implementation
       end;
 
 
-    function trecorddef.gettypename : string;
+    function trecorddef.GetTypeName : string;
       begin
-         gettypename:='<record type>'
+         GetTypeName:='<record type>'
       end;
 
 
@@ -2934,7 +2946,7 @@ implementation
          proctypeoption:=potype_none;
          proccalloption:=pocall_none;
          procoptions:=[];
-         rettype:=voidtype;
+         returndef:=voidtype;
 {$ifdef i386}
          fpu_used:=0;
 {$endif i386}
@@ -3035,8 +3047,8 @@ implementation
     procedure tabstractprocdef.test_if_fpu_result;
       begin
 {$ifdef i386}
-         if assigned(rettype.def) and
-            (rettype.def.deftype=floatdef) then
+         if assigned(returndef) and
+            (returndef.deftype=floatdef) then
            fpu_used:=maxfpuregs;
 {$endif i386}
       end;
@@ -3048,7 +3060,7 @@ implementation
          if not assigned(parast) then
            exit;
          inherited buildderef;
-         rettype.buildderef;
+         returndefderef.build(returndef);
          { parast }
          tparasymtable(parast).buildderef;
       end;
@@ -3057,7 +3069,7 @@ implementation
     procedure tabstractprocdef.deref;
       begin
          inherited deref;
-         rettype.resolve;
+         returndef:=tdef(returndefderef.resolve);
          { parast }
          tparasymtable(parast).deref;
          { recalculated parameters }
@@ -3074,7 +3086,7 @@ implementation
          Paras:=nil;
          minparacount:=0;
          maxparacount:=0;
-         ppufile.gettype(rettype);
+         ppufile.getderef(returndefderef);
 {$ifdef i386}
          fpu_used:=ppufile.getbyte;
 {$else}
@@ -3107,7 +3119,7 @@ implementation
          if not assigned(parast) then
            exit;
          inherited ppuwrite(ppufile);
-         ppufile.puttype(rettype);
+         ppufile.putderef(returndefderef);
          oldintfcrc:=ppufile.do_interface_crc;
          ppufile.do_interface_crc:=false;
 {$ifdef i386}
@@ -3164,18 +3176,18 @@ implementation
                  vs_out :
                    s:=s+'out';
                end;
-               if assigned(hp.vartype.def.typesym) then
+               if assigned(hp.vardef.typesym) then
                  begin
                    if s<>'(' then
                     s:=s+' ';
-                   hs:=hp.vartype.def.typesym.realname;
+                   hs:=hp.vardef.typesym.realname;
                    if hs[1]<>'$' then
-                     s:=s+hp.vartype.def.typesym.realname
+                     s:=s+hp.vardef.typesym.realname
                    else
-                     s:=s+hp.vartype.def.gettypename;
+                     s:=s+hp.vardef.GetTypeName;
                  end
                else
-                 s:=s+hp.vartype.def.gettypename;
+                 s:=s+hp.vardef.GetTypeName;
                { default value }
                if assigned(hp.defaultconstsym) then
                 begin
@@ -3191,7 +3203,7 @@ implementation
                       hs:=tostr(hpc.value.valueordptr);
                     constord :
                       begin
-                        if is_boolean(hpc.consttype.def) then
+                        if is_boolean(hpc.constdef) then
                           begin
                             if hpc.value.valueord<>0 then
                              hs:='TRUE'
@@ -3522,9 +3534,9 @@ implementation
           potype_destructor:
             s:='destructor '+s;
           else
-            if assigned(rettype.def) and
-              not(is_void(rettype.def)) then
-              s:=s+':'+rettype.def.gettypename;
+            if assigned(returndef) and
+              not(is_void(returndef)) then
+              s:=s+':'+returndef.GetTypeName;
         end;
         { forced calling convention? }
         if (po_hascallingconvention in procoptions) then
@@ -3869,9 +3881,9 @@ implementation
       end;
 
 
-    function tprocdef.gettypename : string;
+    function tprocdef.GetTypeName : string;
       begin
-         gettypename := FullProcName(false);
+         GetTypeName := FullProcName(false);
       end;
 
 
@@ -3902,12 +3914,12 @@ implementation
          begin
            hp:=tparavarsym(paras[i]);
            if not(vo_is_hidden_para in hp.varoptions) then
-             mangledname:=mangledname+'$'+hp.vartype.def.mangledparaname;
+             mangledname:=mangledname+'$'+hp.vardef.mangledparaname;
          end;
-        { add resulttype, add $$ as separator to make it unique from a
+        { add resultdef, add $$ as separator to make it unique from a
           parameter separator }
-        if not is_void(rettype.def) then
-          mangledname:=mangledname+'$$'+rettype.def.mangledparaname;
+        if not is_void(returndef) then
+          mangledname:=mangledname+'$$'+returndef.mangledparaname;
         newlen:=length(mangledname);
         { Replace with CRC if the parameter line is very long }
         if (newlen-oldlen>12) and
@@ -3919,11 +3931,11 @@ implementation
                 hp:=tparavarsym(paras[i]);
                 if not(vo_is_hidden_para in hp.varoptions) then
                   begin
-                    hs:=hp.vartype.def.mangledparaname;
+                    hs:=hp.vardef.mangledparaname;
                     crc:=UpdateCrc32(crc,hs[1],length(hs));
                   end;
               end;
-            hs:=hp.vartype.def.mangledparaname;
+            hs:=hp.vardef.mangledparaname;
             crc:=UpdateCrc32(crc,hs[1],length(hs));
             mangledname:=Copy(mangledname,1,oldlen)+'$crc'+hexstr(crc,8);
           end;
@@ -3955,7 +3967,7 @@ implementation
               orddef:
                 s:=ordtype2str[torddef(p).typ];
               pointerdef:
-                s:='P'+getcppparaname(tpointerdef(p).pointertype.def);
+                s:='P'+getcppparaname(tpointerdef(p).pointeddef);
               else
                 internalerror(2103001);
            end;
@@ -3995,7 +4007,7 @@ implementation
              for i:=0 to paras.count-1 do
                begin
                  hp:=tparavarsym(paras[i]);
-                 s2:=getcppparaname(hp.vartype.def);
+                 s2:=getcppparaname(hp.vardef);
                  if hp.varspez in [vs_var,vs_out] then
                    s2:='R'+s2;
                  s:=s+s2;
@@ -4054,7 +4066,7 @@ implementation
         result:=self;
       (*
           { saves a definition to the return type }
-          rettype         : ttype;
+          returndef         : ttype;
           parast          : tsymtable;
           paras           : tparalist;
           proctypeoption  : tproctypeoption;
@@ -4093,7 +4105,7 @@ implementation
         { a more secure way would be
           to allways store in a temp }
 {$ifdef i386}
-        if is_fpu(rettype.def) then
+        if is_fpu(returndef) then
           fpu_used:={2}maxfpuregs
         else
           fpu_used:=0;
@@ -4207,7 +4219,7 @@ implementation
                current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(parasym.realname));
 
                { write name of type of current parameter }
-               tstoreddef(parasym.vartype.def).write_rtti_name;
+               tstoreddef(parasym.vardef).write_rtti_name;
              end;
          end;
 
@@ -4225,7 +4237,7 @@ implementation
              current_asmdata.asmlists[al_rtti].concat(Tai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
              { write kind of method (can only be function or procedure)}
-             if rettype.def = voidtype.def then
+             if returndef = voidtype then
                methodkind := mkProcedure
              else
                methodkind := mkFunction;
@@ -4248,7 +4260,7 @@ implementation
                end;
 
              { write name of result type }
-             tstoreddef(rettype.def).write_rtti_name;
+             tstoreddef(returndef).write_rtti_name;
           end
         else
           begin
@@ -4264,7 +4276,7 @@ implementation
       end;
 
 
-    function tprocvardef.gettypename : string;
+    function tprocvardef.GetTypeName : string;
       var
         s: string;
         showhidden : boolean;
@@ -4284,14 +4296,14 @@ implementation
              s := s+'procedure variable type of';
          if po_local in procoptions then
            s := s+' local';
-         if assigned(rettype.def) and
-            (rettype.def<>voidtype.def) then
-           s:=s+' function'+typename_paras(showhidden)+':'+rettype.def.gettypename
+         if assigned(returndef) and
+            (returndef<>voidtype) then
+           s:=s+' function'+typename_paras(showhidden)+':'+returndef.GetTypeName
          else
            s:=s+' procedure'+typename_paras(showhidden);
          if po_methodpointer in procoptions then
            s := s+' of object';
-         gettypename := s+';'+ProcCallOptionStr[proccalloption]+'>';
+         GetTypeName := s+';'+ProcCallOptionStr[proccalloption]+'>';
       end;
 
 
@@ -4521,16 +4533,16 @@ implementation
       end;
 
 
-    function tobjectdef.gettypename:string;
+    function tobjectdef.GetTypeName:string;
       begin
         if (self <> aktobjectdef) then
-          gettypename:=typename
+          GetTypeName:=typename
         else
           { in this case we will go in endless recursion, because then  }
           { there is no tsym associated yet with the def. It can occur  }
           { (tests/webtbf/tw4757.pp), so for now give a generic name    }
           { instead of the actual type name                             }
-          gettypename:='<Currently Parsed Class>';
+          GetTypeName:='<Currently Parsed Class>';
       end;
 
 
@@ -4839,7 +4851,7 @@ implementation
                      case hp^.sltype of
                        sl_load :
                          begin
-                           def:=tfieldvarsym(hp^.sym).vartype.def;
+                           def:=tfieldvarsym(hp^.sym).vardef;
                            inc(address,tfieldvarsym(hp^.sym).fieldoffset);
                          end;
                        sl_subscript :
@@ -4847,13 +4859,13 @@ implementation
                            if not(assigned(def) and (def.deftype=recorddef)) then
                              internalerror(200402171);
                            inc(address,tfieldvarsym(hp^.sym).fieldoffset);
-                           def:=tfieldvarsym(hp^.sym).vartype.def;
+                           def:=tfieldvarsym(hp^.sym).vardef;
                          end;
                        sl_vec :
                          begin
                            if not(assigned(def) and (def.deftype=arraydef)) then
                              internalerror(200402172);
-                           def:=tarraydef(def).elementtype.def;
+                           def:=tarraydef(def).elementdef;
                            inc(address,def.size*hp^.value);
                          end;
                      end;
@@ -4891,7 +4903,7 @@ implementation
                proctypesinfo:=$40
              else
                proctypesinfo:=0;
-             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(tstoreddef(tpropertysym(sym).proptype.def).get_rtti_label(fullrtti)));
+             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(tstoreddef(tpropertysym(sym).propdef).get_rtti_label(fullrtti)));
              writeproc(tpropertysym(sym).readaccess,0,0);
              writeproc(tpropertysym(sym).writeaccess,2,0);
              { is it stored ? }
@@ -4921,9 +4933,9 @@ implementation
           begin
             case tsym(sym).typ of
               propertysym:
-                tstoreddef(tpropertysym(sym).proptype.def).get_rtti_label(fullrtti);
+                tstoreddef(tpropertysym(sym).propdef).get_rtti_label(fullrtti);
               fieldvarsym:
-                tstoreddef(tfieldvarsym(sym).vartype.def).get_rtti_label(fullrtti);
+                tstoreddef(tfieldvarsym(sym).vardef).get_rtti_label(fullrtti);
               else
                 internalerror(1509991);
             end;
@@ -4952,13 +4964,13 @@ implementation
          if (tsym(sym).typ=fieldvarsym) and
             (sp_published in tsym(sym).symoptions) then
           begin
-             if tfieldvarsym(sym).vartype.def.deftype<>objectdef then
+             if tfieldvarsym(sym).vardef.deftype<>objectdef then
                internalerror(0206001);
-             hp:=searchproptablelist(tobjectdef(tfieldvarsym(sym).vartype.def));
+             hp:=searchproptablelist(tobjectdef(tfieldvarsym(sym).vardef));
              if not(assigned(hp)) then
                begin
                   hp:=tproptablelistitem.create;
-                  hp.def:=tobjectdef(tfieldvarsym(sym).vartype.def);
+                  hp.def:=tobjectdef(tfieldvarsym(sym).vardef);
                   hp.index:=proptablelist.count+1;
                   proptablelist.concat(hp);
                end;
@@ -4978,7 +4990,7 @@ implementation
              current_asmdata.asmlists[al_rtti].concat(Tai_align.Create(sizeof(AInt)));
 {$endif cpurequiresproperalignment}
              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(tfieldvarsym(sym).fieldoffset));
-             hp:=searchproptablelist(tobjectdef(tfieldvarsym(sym).vartype.def));
+             hp:=searchproptablelist(tobjectdef(tfieldvarsym(sym).vardef));
              if not(assigned(hp)) then
                internalerror(0206002);
              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(hp.index));
@@ -5220,7 +5232,7 @@ implementation
       end;
 
 
-    constructor timplintfentry.create_deref(const d:tderef);
+    constructor timplintfentry.create_deref(d:tderef);
       begin
         inherited create;
         intf:=nil;
@@ -5484,9 +5496,9 @@ implementation
      end;
 
 
-    function tforwarddef.gettypename:string;
+    function tforwarddef.GetTypeName:string;
       begin
-        gettypename:='unresolved forward to '+tosymname^;
+        GetTypeName:='unresolved forward to '+tosymname^;
       end;
 
      destructor tforwarddef.destroy;
@@ -5512,9 +5524,9 @@ implementation
          inherited ppuload(undefineddef,ppufile);
       end;
 
-    function tundefineddef.gettypename:string;
+    function tundefineddef.GetTypeName:string;
       begin
-        gettypename:='<undefined type>';
+        GetTypeName:='<undefined type>';
       end;
 
 
@@ -5542,9 +5554,9 @@ implementation
       end;
 
 
-    function terrordef.gettypename:string;
+    function terrordef.GetTypeName:string;
       begin
-        gettypename:='<erroneous type>';
+        GetTypeName:='<erroneous type>';
       end;
 
 

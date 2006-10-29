@@ -70,8 +70,8 @@ implementation
          parasym:=pboolean(arg)^;
          if (tsym(p).typ=varsym) and ((tvarsym(p).varregable <> vr_none) or
              ((tvarsym(p).varspez in [vs_var,vs_const,vs_out]) and
-              paramanager.push_addr_param(tvarsym(p).varspez,tvarsym(p).vartype.def,current_procinfo.procdef.proccalloption))) and
-            not tvarsym(p).vartype.def.needs_inittable then
+              paramanager.push_addr_param(tvarsym(p).varspez,tvarsym(p).vardef,current_procinfo.procdef.proccalloption))) and
+            not tvarsym(p).vardef.needs_inittable then
            begin
               j:=tvarsym(p).refs;
               { walk through all momentary register variables }
@@ -184,15 +184,15 @@ implementation
                       { unused                                }
 
                       { call by reference/const ? }
-                      if paramanager.push_addr_param(tvarsym(regvarinfo^.regvars[i]).varspez,tvarsym(regvarinfo^.regvars[i]).vartype.def,current_procinfo.procdef.proccalloption) then
+                      if paramanager.push_addr_param(tvarsym(regvarinfo^.regvars[i]).varspez,tvarsym(regvarinfo^.regvars[i]).vardef,current_procinfo.procdef.proccalloption) then
                         siz:=OS_32
                       else
-                       if (tvarsym(regvarinfo^.regvars[i]).vartype.def.deftype in [orddef,enumdef]) and
-                          (tvarsym(regvarinfo^.regvars[i]).vartype.def.size=1) then
+                       if (tvarsym(regvarinfo^.regvars[i]).vardef.deftype in [orddef,enumdef]) and
+                          (tvarsym(regvarinfo^.regvars[i]).vardef.size=1) then
                         siz:=OS_8
                       else
-                       if (tvarsym(regvarinfo^.regvars[i]).vartype.def.deftype in [orddef,enumdef]) and
-                          (tvarsym(regvarinfo^.regvars[i]).vartype.def.size=2) then
+                       if (tvarsym(regvarinfo^.regvars[i]).vardef.deftype in [orddef,enumdef]) and
+                          (tvarsym(regvarinfo^.regvars[i]).vardef.size=2) then
                         siz:=OS_16
                       else
                         siz:=OS_32;
@@ -308,7 +308,7 @@ implementation
                       begin
 {$warning FIXME Check vsym.localloc for regvars}
 //                        reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
-                        cgsize:=def_cgsize(vsym.vartype.def);
+                        cgsize:=def_cgsize(vsym.vardef);
                         cg.a_load_reg_ref(asml,cgsize,cgsize,vsym.localloc.register,hr);
                       end;
                     asml.concat(tai_regalloc.dealloc(vsym.localloc.register));
@@ -338,7 +338,7 @@ implementation
                           begin
 {$warning FIXME Check vsym.localloc for regvars}
 //                            reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
-                            cgsize:=def_cgsize(vsym.vartype.def);
+                            cgsize:=def_cgsize(vsym.vardef);
                             cg.a_load_reg_ref(asml,cgsize,cgsize,vsym.localloc.register,hr);
                           end;
                         asml.concat(tai_regalloc.dealloc(vsym.localloc.register));
@@ -374,10 +374,10 @@ implementation
               asml.concat(tai_regalloc.alloc(reg));
 {$warning FIXME Check vsym.localloc for regvars}
 //              reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
-              if paramanager.push_addr_param(vsym.varspez,vsym.vartype.def,current_procinfo.procdef.proccalloption) then
+              if paramanager.push_addr_param(vsym.varspez,vsym.vardef,current_procinfo.procdef.proccalloption) then
                 opsize := OS_ADDR
               else
-                opsize := def_cgsize(vsym.vartype.def);
+                opsize := def_cgsize(vsym.vardef);
               cg.a_load_ref_reg(asml,opsize,opsize,hr,reg);
               include(rg.regvar_loaded_int,getsupreg(reg));
             end;
@@ -391,10 +391,10 @@ implementation
               asml.concat(tai_regalloc.alloc(reg));
 {$warning FIXME Check vsym.localloc for regvars}
 //              reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
-              if paramanager.push_addr_param(vsym.varspez,vsym.vartype.def,current_procinfo.procdef.proccalloption) then
+              if paramanager.push_addr_param(vsym.varspez,vsym.vardef,current_procinfo.procdef.proccalloption) then
                 opsize := OS_ADDR
               else
-                opsize := def_cgsize(vsym.vartype.def);
+                opsize := def_cgsize(vsym.vardef);
               cg.a_load_ref_reg(asml,opsize,opsize,hr,reg);
               rg.regvar_loaded_other[regidx] := true;
             end;

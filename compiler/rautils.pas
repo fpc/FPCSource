@@ -677,10 +677,10 @@ begin
   SetupResult:=false;
   { replace by correct offset. }
   with current_procinfo.procdef do
-    if (not is_void(rettype.def)) then
+    if (not is_void(returndef)) then
       begin
         if (m_tp7 in aktmodeswitches) and
-          (not paramanager.ret_in_param(rettype.def,proccalloption)) then
+          (not paramanager.ret_in_param(returndef,proccalloption)) then
           begin
             message(asmr_e_cannot_use_RESULT_here);
             exit;
@@ -841,11 +841,11 @@ Begin
               opr.localindexreg:=indexreg;
               opr.localscale:=0;
               opr.localgetoffset:=GetOffset;
-              if paramanager.push_addr_param(tabstractvarsym(sym).varspez,tabstractvarsym(sym).vartype.def,current_procinfo.procdef.proccalloption) then
+              if paramanager.push_addr_param(tabstractvarsym(sym).varspez,tabstractvarsym(sym).vardef,current_procinfo.procdef.proccalloption) then
                 SetSize(sizeof(aint),false);
             end;
         end;
-        case tabstractvarsym(sym).vartype.def.deftype of
+        case tabstractvarsym(sym).vardef.deftype of
           orddef,
           enumdef,
           pointerdef,
@@ -857,10 +857,10 @@ Begin
             begin
               { for arrays try to get the element size, take care of
                 multiple indexes }
-              harrdef:=tarraydef(tabstractvarsym(sym).vartype.def);
-              while assigned(harrdef.elementtype.def) and
-                    (harrdef.elementtype.def.deftype=arraydef) do
-               harrdef:=tarraydef(harrdef.elementtype.def);
+              harrdef:=tarraydef(tabstractvarsym(sym).vardef);
+              while assigned(harrdef.elementdef) and
+                    (harrdef.elementdef.deftype=arraydef) do
+               harrdef:=tarraydef(harrdef.elementdef);
               SetSize(harrdef.elesize,false);
             end;
           *)
@@ -873,7 +873,7 @@ Begin
       begin
         initref;
         opr.ref.symbol:=current_asmdata.RefAsmSymbol(ttypedconstsym(sym).mangledname);
-        case ttypedconstsym(sym).typedconsttype.def.deftype of
+        case ttypedconstsym(sym).typedconstdef.deftype of
           orddef,
           enumdef,
           pointerdef,
@@ -883,10 +883,10 @@ Begin
             begin
               { for arrays try to get the element size, take care of
                 multiple indexes }
-              harrdef:=tarraydef(ttypedconstsym(sym).typedconsttype.def);
-              while assigned(harrdef.elementtype.def) and
-                    (harrdef.elementtype.def.deftype=arraydef) do
-               harrdef:=tarraydef(harrdef.elementtype.def);
+              harrdef:=tarraydef(ttypedconstsym(sym).typedconstdef);
+              while assigned(harrdef.elementdef) and
+                    (harrdef.elementdef.deftype=arraydef) do
+               harrdef:=tarraydef(harrdef.elementdef);
               if not is_packed_array(harrdef) then
                 SetSize(harrdef.elesize,false)
                else
@@ -912,7 +912,7 @@ Begin
       end;
     typesym :
       begin
-        if ttypesym(sym).restype.def.deftype in [recorddef,objectdef] then
+        if ttypesym(sym).typedef.deftype in [recorddef,objectdef] then
          begin
            setconst(0);
            SetupVar:=TRUE;
@@ -1198,7 +1198,7 @@ begin
   if assigned(srsym) and
      (srsym.typ=typesym) then
     begin
-      size:=ttypesym(srsym).restype.def.size;
+      size:=ttypesym(srsym).typedef.size;
       result:=true;
     end;
 end;
@@ -1218,7 +1218,7 @@ Begin
      case srsym.typ of
        typesym :
          begin
-           if ttypesym(srsym).restype.def.deftype in [recorddef,objectdef] then
+           if ttypesym(srsym).typedef.deftype in [recorddef,objectdef] then
             begin
               SearchRecordType:=true;
               exit;
@@ -1314,11 +1314,11 @@ Begin
          globalvarsym,
          localvarsym,
          paravarsym :
-           st:=Tabstractvarsym(sym).vartype.def.getsymtable(gs_record);
+           st:=Tabstractvarsym(sym).vardef.getsymtable(gs_record);
          typesym :
-           st:=Ttypesym(sym).restype.def.getsymtable(gs_record);
+           st:=Ttypesym(sym).typedef.getsymtable(gs_record);
          typedconstsym :
-           st:=Ttypedconstsym(sym).typedconsttype.def.getsymtable(gs_record);
+           st:=Ttypedconstsym(sym).typedconstdef.getsymtable(gs_record);
        end
      else
        s:='';
@@ -1348,30 +1348,29 @@ Begin
            begin
              inc(Offset,fieldoffset);
              size:=getsize;
-             with vartype do
-               case def.deftype of
-                 arraydef :
-                   begin
-                     { for arrays try to get the element size, take care of
-                       multiple indexes }
-                     harrdef:=tarraydef(def);
-                     while assigned(harrdef.elementtype.def) and
-                           (harrdef.elementtype.def.deftype=arraydef) do
-                      harrdef:=tarraydef(harrdef.elementtype.def);
-                     if not is_packed_array(harrdef) then
-                       size:=harrdef.elesize
-                     else
-                       begin
-                         if (harrdef.elepackedbitsize mod 8) <> 0 then
-                           Message(asmr_e_packed_element);
-                         size := (harrdef.elepackedbitsize + 7) div 8;
-                       end;
-                   end;
-                 recorddef :
-                   st:=trecorddef(def).symtable;
-                 objectdef :
-                   st:=tobjectdef(def).symtable;
-               end;
+             case vardef.deftype of
+               arraydef :
+                 begin
+                   { for arrays try to get the element size, take care of
+                     multiple indexes }
+                   harrdef:=tarraydef(vardef);
+                   while assigned(harrdef.elementdef) and
+                         (harrdef.elementdef.deftype=arraydef) do
+                    harrdef:=tarraydef(harrdef.elementdef);
+                   if not is_packed_array(harrdef) then
+                     size:=harrdef.elesize
+                   else
+                     begin
+                       if (harrdef.elepackedbitsize mod 8) <> 0 then
+                         Message(asmr_e_packed_element);
+                       size := (harrdef.elepackedbitsize + 7) div 8;
+                     end;
+                 end;
+               recorddef :
+                 st:=trecorddef(vardef).symtable;
+               objectdef :
+                 st:=tobjectdef(vardef).symtable;
+             end;
            end;
      end;
    end;
@@ -1381,7 +1380,7 @@ Begin
        asmsearchsym(s,sym,srsymtable);
        if assigned(sym) and (sym.typ=typesym) then
          begin
-           size:=ttypesym(sym).restype.def.size;
+           size:=ttypesym(sym).typedef.size;
            s:=''
          end;
      end;

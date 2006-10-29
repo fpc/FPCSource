@@ -108,7 +108,7 @@ implementation
       begin
         if (Tsym(p).typ=fieldvarsym) and
            not(sp_static in Tsym(p).symoptions) then
-          insertdef(TAsmList(arg),tfieldvarsym(p).vartype.def);
+          insertdef(TAsmList(arg),tfieldvarsym(p).vardef);
       end;
 
 
@@ -119,7 +119,7 @@ implementation
         if tsym(p).typ=procsym then
           begin
             pd:=tprocsym(p).first_procdef;
-            insertdef(TAsmList(arg),pd.rettype.def);
+            insertdef(TAsmList(arg),pd.returndef);
           end;
       end;
 

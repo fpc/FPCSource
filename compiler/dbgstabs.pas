@@ -327,12 +327,12 @@ implementation
               spec:='/0'
             else
               spec:='';
-            varsize:=tfieldvarsym(p).vartype.def.size;
+            varsize:=tfieldvarsym(p).vardef.size;
             { open arrays made overflows !! }
             if varsize>$fffffff then
               varsize:=$fffffff;
             newrec:=def_stabstr_evaluate(nil,'$1:$2,$3,$4;',[p.name,
-                                     spec+def_stab_number(tfieldvarsym(p).vartype.def),
+                                     spec+def_stab_number(tfieldvarsym(p).vardef),
                                      tostr(tfieldvarsym(p).fieldoffset*8),tostr(varsize*8)]);
             if state^.stabsize+strlen(newrec)>=state^.staballoc-256 then
               begin
@@ -343,7 +343,7 @@ implementation
             inc(state^.stabsize,strlen(newrec));
             strdispose(newrec);
             {This should be used for case !!}
-            inc(state^.recoffset,Tfieldvarsym(p).vartype.def.size);
+            inc(state^.recoffset,Tfieldvarsym(p).vardef.size);
           end;
       end;
 
@@ -387,7 +387,7 @@ implementation
             for i:=0 to pd.paras.count-1 do
               begin
                 parasym:=tparavarsym(pd.paras[i]);
-                if Parasym.vartype.def.deftype = formaldef then
+                if Parasym.vardef.deftype = formaldef then
                   begin
                     case Parasym.varspez of
                       vs_var :
@@ -402,10 +402,10 @@ implementation
                   begin
                     { if the arg definition is like (v: ^byte;..
                     there is no sym attached to data !!! }
-                    if assigned(Parasym.vartype.def.typesym) then
+                    if assigned(Parasym.vardef.typesym) then
                       begin
-                        arglength := length(Parasym.vartype.def.typesym.name);
-                        argnames := argnames + tostr(arglength)+Parasym.vartype.def.typesym.name;
+                        arglength := length(Parasym.vardef.typesym.name);
+                        argnames := argnames + tostr(arglength)+Parasym.vardef.typesym.name;
                       end
                     else
                       argnames:=argnames+'11unnamedtype';
@@ -420,7 +420,7 @@ implementation
            else
              sp:='2';
            newrec:=def_stabstr_evaluate(nil,'$1::$2=##$3;:$4;$5A$6;',[p.name,def_stab_number(pd),
-                                    def_stab_number(pd.rettype.def),argnames,sp,
+                                    def_stab_number(pd.returndef),argnames,sp,
                                     virtualind]);
            { get spare place for a string at the end }
            olds:=state^.stabsize;
@@ -452,29 +452,29 @@ implementation
                   slen:=def.len;
                   if slen=0 then
                     slen:=255;
-                  charst:=def_stab_number(cchartype.def);
-                  bytest:=def_stab_number(u8inttype.def);
+                  charst:=def_stab_number(cchartype);
+                  bytest:=def_stab_number(u8inttype);
                   result:=def_stabstr_evaluate(def,'s$1length:$2,0,8;st:ar$2;1;$3;$4,8,$5;;',
                               [tostr(slen+1),bytest,tostr(slen),charst,tostr(slen*8)]);
                 end;
               st_longstring:
                 begin
-                  charst:=def_stab_number(cchartype.def);
-                  bytest:=def_stab_number(u8inttype.def);
-                  longst:=def_stab_number(u32inttype.def);
+                  charst:=def_stab_number(cchartype);
+                  bytest:=def_stab_number(u8inttype);
+                  longst:=def_stab_number(u32inttype);
                   result:=def_stabstr_evaluate(def,'s$1length:$2,0,32;dummy:$6,32,8;st:ar$2;1;$3;$4,40,$5;;',
                               [tostr(def.len+5),longst,tostr(def.len),charst,tostr(def.len*8),bytest]);
                end;
              st_ansistring:
                begin
                  { looks like a pchar }
-                 charst:=def_stab_number(cchartype.def);
+                 charst:=def_stab_number(cchartype);
                  result:=strpnew('*'+charst);
                end;
              st_widestring:
                begin
                  { looks like a pwidechar }
-                 charst:=def_stab_number(cwidechartype.def);
+                 charst:=def_stab_number(cwidechartype);
                  result:=strpnew('*'+charst);
                end;
             end;
@@ -558,7 +558,7 @@ implementation
                     result:=strpnew('-32;');
                   s64bit :
                     result:=strpnew('-31;');
-                  {u32bit : result:=def_stab_number(s32inttype.def)+';0;-1;'); }
+                  {u32bit : result:=def_stab_number(s32inttype)+';0;-1;'); }
                   else
                     result:=def_stabstr_evaluate(def,'r${numberstring};$1;$2;',[tostr(longint(def.low)),tostr(longint(def.high))]);
                 end;
@@ -571,10 +571,10 @@ implementation
               s32real,
               s64real,
               s80real:
-                result:=def_stabstr_evaluate(def,'r$1;${savesize};0;',[def_stab_number(s32inttype.def)]);
+                result:=def_stabstr_evaluate(def,'r$1;${savesize};0;',[def_stab_number(s32inttype)]);
               s64currency,
               s64comp:
-                result:=def_stabstr_evaluate(def,'r$1;-${savesize};0;',[def_stab_number(s32inttype.def)]);
+                result:=def_stabstr_evaluate(def,'r$1;-${savesize};0;',[def_stab_number(s32inttype)]);
               else
                 internalerror(200509261);
             end;
@@ -585,16 +585,16 @@ implementation
 {$ifdef cpu64bit}
             result:=def_stabstr_evaluate(def,'s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$2,64,64;'+
                                      '_PRIVATE:ar$1;1;64;$3,128,256;USERDATA:ar$1;1;16;$3,384,128;'+
-                                     'NAME:ar$1;0;255;$4,512,2048;;',[def_stab_number(s32inttype.def),
-                                     def_stab_number(s64inttype.def),
-                                     def_stab_number(u8inttype.def),
-                                     def_stab_number(cchartype.def)]);
+                                     'NAME:ar$1;0;255;$4,512,2048;;',[def_stab_number(s32inttype),
+                                     def_stab_number(s64inttype),
+                                     def_stab_number(u8inttype),
+                                     def_stab_number(cchartype)]);
 {$else cpu64bit}
             result:=def_stabstr_evaluate(def,'s${savesize}HANDLE:$1,0,32;MODE:$1,32,32;RECSIZE:$1,64,32;'+
                                      '_PRIVATE:ar$1;1;32;$3,96,256;USERDATA:ar$1;1;16;$2,352,128;'+
-                                     'NAME:ar$1;0;255;$3,480,2048;;',[def_stab_number(s32inttype.def),
-                                     def_stab_number(u8inttype.def),
-                                     def_stab_number(cchartype.def)]);
+                                     'NAME:ar$1;0;255;$3,480,2048;;',[def_stab_number(s32inttype),
+                                     def_stab_number(u8inttype),
+                                     def_stab_number(cchartype)]);
 {$endif cpu64bit}
           end;
 
@@ -624,7 +624,7 @@ implementation
             stabsstr:=def.mangledname;
             getmem(p,length(stabsstr)+255);
             strpcopy(p,'"'+obj+':'+RType
-                  +def_stab_number(def.rettype.def)+info+'",'+tostr(n_function)
+                  +def_stab_number(def.returndef)+info+'",'+tostr(n_function)
                   +',0,'+
                   tostr(def.fileinfo.line)
                   +',');
@@ -679,7 +679,7 @@ implementation
             if (oo_has_vmt in def.objectoptions) then
               if not assigned(def.childof) or not(oo_has_vmt in def.childof.objectoptions) then
                  begin
-                    ts:='$vf'+def_stab_classnumber(def)+':'+def_stab_number(vmtarraytype.def)+','+tostr(def.vmt_offset*8)+';';
+                    ts:='$vf'+def_stab_classnumber(def)+':'+def_stab_number(vmtarraytype)+','+tostr(def.vmt_offset*8)+';';
                     strpcopy(state.stabstring+state.stabsize,ts);
                     inc(state.stabsize,length(ts));
                  end;
@@ -718,29 +718,29 @@ implementation
           variantdef :
             result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
           pointerdef :
-            result:=strpnew('*'+def_stab_number(tpointerdef(def).pointertype.def));
+            result:=strpnew('*'+def_stab_number(tpointerdef(def).pointeddef));
           classrefdef :
-            result:=strpnew(def_stab_number(pvmttype.def));
+            result:=strpnew(def_stab_number(pvmttype));
           setdef :
-            result:=def_stabstr_evaluate(def,'@s$1;S$2',[tostr(def.size*8),def_stab_number(tsetdef(def).elementtype.def)]);
+            result:=def_stabstr_evaluate(def,'@s$1;S$2',[tostr(def.size*8),def_stab_number(tsetdef(def).elementdef)]);
           formaldef :
             result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
           arraydef :
             if not is_packed_array(def) then
-              result:=def_stabstr_evaluate(def,'ar$1;$2;$3;$4',[def_stab_number(tarraydef(def).rangetype.def),
-                 tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange),def_stab_number(tarraydef(def).elementtype.def)])
+              result:=def_stabstr_evaluate(def,'ar$1;$2;$3;$4',[def_stab_number(tarraydef(def).rangedef),
+                 tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange),def_stab_number(tarraydef(def).elementdef)])
             else
               // will only show highrange-lowrange+1 bits in gdb
               result:=def_stabstr_evaluate(def,'@s$1;@S;S$2',
-                [tostr(TConstExprInt(tarraydef(def).elepackedbitsize) * tarraydef(def).elecount),def_stabstr_evaluate(tarraydef(def).rangetype.def,'r${numberstring};$1;$2;',
+                [tostr(TConstExprInt(tarraydef(def).elepackedbitsize) * tarraydef(def).elecount),def_stabstr_evaluate(tarraydef(def).rangedef,'r${numberstring};$1;$2;',
                   [tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange)
                 ])]);
 // the @P seems to be ignored by gdb
-//              result:=def_stabstr_evaluate(def,'ar$1;$2;$3;$4;@P;',[def_stab_number(tarraydef(def).rangetype.def),tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange),def_stab_number(tarraydef(def).elementtype.def)]);
+//              result:=def_stabstr_evaluate(def,'ar$1;$2;$3;$4;@P;',[def_stab_number(tarraydef(def).rangedef),tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange),def_stab_number(tarraydef(def).elementdef)]);
           procdef :
             result:=procdef_stabstr(tprocdef(def));
           procvardef :
-            result:=strpnew('*f'+def_stab_number(tprocvardef(def).rettype.def));
+            result:=strpnew('*f'+def_stab_number(tprocvardef(def).returndef));
           objectdef :
             result:=objectdef_stabstr(tobjectdef(def));
           undefineddef :
@@ -811,37 +811,37 @@ implementation
           stringdef :
             begin
               if tstringdef(def).string_typ=st_widestring then
-                insertdef(list,cwidechartype.def)
+                insertdef(list,cwidechartype)
               else
                 begin
-                  insertdef(list,cchartype.def);
-                  insertdef(list,u8inttype.def);
+                  insertdef(list,cchartype);
+                  insertdef(list,u8inttype);
                 end;
             end;
           floatdef :
-            insertdef(list,s32inttype.def);
+            insertdef(list,s32inttype);
           filedef :
             begin
-              insertdef(list,s32inttype.def);
+              insertdef(list,s32inttype);
 {$ifdef cpu64bit}
-              insertdef(list,s64inttype.def);
+              insertdef(list,s64inttype);
 {$endif cpu64bit}
-              insertdef(list,u8inttype.def);
-              insertdef(list,cchartype.def);
+              insertdef(list,u8inttype);
+              insertdef(list,cchartype);
             end;
           classrefdef :
-            insertdef(list,pvmttype.def);
+            insertdef(list,pvmttype);
           pointerdef :
-            insertdef(list,tpointerdef(def).pointertype.def);
+            insertdef(list,tpointerdef(def).pointeddef);
           setdef :
-            insertdef(list,tsetdef(def).elementtype.def);
+            insertdef(list,tsetdef(def).elementdef);
           procvardef,
           procdef :
-            insertdef(list,tabstractprocdef(def).rettype.def);
+            insertdef(list,tabstractprocdef(def).returndef);
           arraydef :
             begin
-              insertdef(list,tarraydef(def).rangetype.def);
-              insertdef(list,tarraydef(def).elementtype.def);
+              insertdef(list,tarraydef(def).rangedef);
+              insertdef(list,tarraydef(def).elementdef);
             end;
           recorddef :
             trecorddef(def).symtable.foreach(@field_write_defs,list);
@@ -850,7 +850,7 @@ implementation
               insertdef(list,tenumdef(def).basedef);
           objectdef :
             begin
-              insertdef(list,vmtarraytype.def);
+              insertdef(list,vmtarraytype);
               { first the parents }
               anc:=tobjectdef(def);
               while assigned(anc.childof) do
@@ -886,7 +886,7 @@ implementation
                  assigned(def.owner) and
                  assigned(def.owner.name) then
                 list.concat(Tai_stab.create(stab_stabs,strpnew('"vmt_'+def.owner.name^+tobjectdef(def).name+':S'+
-                       def_stab_number(vmttype.def)+'",'+tostr(N_STSYM)+',0,0,'+tobjectdef(def).vmt_mangledname)));
+                       def_stab_number(vmttype)+'",'+tostr(N_STSYM)+',0,0,'+tobjectdef(def).vmt_mangledname)));
             end;
           procdef :
             begin
@@ -960,16 +960,16 @@ implementation
                 if tabstractnormalvarsym(pd.funcretsym).localloc.loc=LOC_REFERENCE then
                   begin
     {$warning Need to add gdb support for ret in param register calling}
-                    if paramanager.ret_in_param(pd.rettype.def,pd.proccalloption) then
+                    if paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
                       hs:='X*'
                     else
                       hs:='X';
                     templist.concat(Tai_stab.create(stab_stabs,strpnew(
-                       '"'+pd.procsym.name+':'+hs+def_stab_number(pd.rettype.def)+'",'+
+                       '"'+pd.procsym.name+':'+hs+def_stab_number(pd.returndef)+'",'+
                        tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
                     if (m_result in aktmodeswitches) then
                       templist.concat(Tai_stab.create(stab_stabs,strpnew(
-                         '"RESULT:'+hs+def_stab_number(pd.rettype.def)+'",'+
+                         '"RESULT:'+hs+def_stab_number(pd.returndef)+'",'+
                          tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
                   end;
               end;
@@ -1078,7 +1078,7 @@ implementation
             if (sym.owner.symtabletype=objectsymtable) and
                (sp_static in sym.symoptions) then
               result:=sym_stabstr_evaluate(sym,'"${ownername}__${name}:S$1",${N_LCSYM},0,${line},${mangledname}',
-                  [def_stab_number(sym.vartype.def)]);
+                  [def_stab_number(sym.vardef)]);
           end;
 
         function globalvarsym_stabstr(sym:tglobalvarsym):Pchar;
@@ -1092,7 +1092,7 @@ implementation
               can't generate stabs for them }
             if vo_is_external in sym.varoptions then
               exit;
-            st:=def_stab_number(sym.vartype.def);
+            st:=def_stab_number(sym.vardef);
             case sym.localloc.loc of
               LOC_REGISTER,
               LOC_CREGISTER,
@@ -1133,7 +1133,7 @@ implementation
             if (sym.owner.symtabletype=localsymtable) and (sym.refs=0) then
               exit;
 
-            st:=def_stab_number(sym.vartype.def);
+            st:=def_stab_number(sym.vardef);
             case sym.localloc.loc of
               LOC_REGISTER,
               LOC_CREGISTER,
@@ -1181,10 +1181,10 @@ implementation
                   begin
                     if (sym.localloc.loc=LOC_REFERENCE) then
                       result:=sym_stabstr_evaluate(sym,'"pvmt:p$1",${N_TSYM},0,0,$2',
-                        [def_stab_number(pvmttype.def),tostr(sym.localloc.reference.offset)]);
+                        [def_stab_number(pvmttype),tostr(sym.localloc.reference.offset)]);
       (*            else
                       result:=sym_stabstr_evaluate(sym,'"pvmt:r$1",${N_RSYM},0,0,$2',
-                        [def_stab_number(pvmttype.def),tostr(regstabs_table[regidx])]) *)
+                        [def_stab_number(pvmttype),tostr(regstabs_table[regidx])]) *)
                     end
                 else
                   begin
@@ -1202,11 +1202,11 @@ implementation
               end
             else
               begin
-                st:=def_stab_number(sym.vartype.def);
+                st:=def_stab_number(sym.vardef);
 
-                if paramanager.push_addr_param(sym.varspez,sym.vartype.def,tprocdef(sym.owner.defowner).proccalloption) and
+                if paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
                    not(vo_has_local_copy in sym.varoptions) and
-                   not is_open_string(sym.vartype.def) then
+                   not is_open_string(sym.vardef) then
                   st := 'v'+st { should be 'i' but 'i' doesn't work }
                 else
                   st := 'p'+st;
@@ -1276,13 +1276,13 @@ implementation
             stabchar : string[2];
           begin
             result:=nil;
-            if not assigned(sym.restype.def) then
+            if not assigned(sym.typedef) then
               internalerror(200509262);
-            if sym.restype.def.deftype in tagtypes then
+            if sym.typedef.deftype in tagtypes then
               stabchar:='Tt'
             else
               stabchar:='t';
-            result:=sym_stabstr_evaluate(sym,'"${name}:$1$2",${N_LSYM},0,${line},0',[stabchar,def_stab_number(sym.restype.def)]);
+            result:=sym_stabstr_evaluate(sym,'"${name}:$1$2",${N_LSYM},0,${line},0',[stabchar,def_stab_number(sym.typedef)]);
           end;
 
         function procsym_stabstr(sym:tprocsym) : pchar;
@@ -1311,7 +1311,7 @@ implementation
             stabstr:=paravarsym_stabstr(tparavarsym(sym));
           typedconstsym :
             stabstr:=sym_stabstr_evaluate(sym,'"${name}:S$1",${N_STSYM},0,${line},${mangledname}',
-                [def_stab_number(ttypedconstsym(sym).typedconsttype.def)]);
+                [def_stab_number(ttypedconstsym(sym).typedconstdef)]);
           constsym :
             stabstr:=constsym_stabstr(tconstsym(sym));
           typesym :
@@ -1322,8 +1322,8 @@ implementation
         if stabstr<>nil then
           list.concat(Tai_stab.create(stab_stabs,stabstr));
         { For object types write also the symtable entries }
-        if (sym.typ=typesym) and (ttypesym(sym).restype.def.deftype=objectdef) then
-          write_symtable_syms(list,tobjectdef(ttypesym(sym).restype.def).symtable);
+        if (sym.typ=typesym) and (ttypesym(sym).typedef.deftype=objectdef) then
+          write_symtable_syms(list,tobjectdef(ttypesym(sym).typedef).symtable);
         sym.isdbgwritten:=true;
       end;
 

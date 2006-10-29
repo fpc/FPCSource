@@ -52,7 +52,7 @@ interface
        tlabelsym = class(tstoredsym)
           used,
           defined : boolean;
-          { points to the matching node, only valid resulttype pass is run and
+          { points to the matching node, only valid resultdef pass is run and
             the goto<->label relation in the node tree is created, should
             be a tnode }
           code : pointer;
@@ -121,13 +121,14 @@ interface
        end;
 
        ttypesym = class(Tstoredsym)
-          restype    : ttype;
-          constructor create(const n : string;const tt : ttype);
+          typedef      : tdef;
+          typedefderef : tderef;
+          constructor create(const n : string;def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          function  gettypedef:tdef;override;
+          function  getderefdef:tdef;override;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
        end;
@@ -138,7 +139,7 @@ interface
           varregable    : tvarregable;
           varstate      : tvarstate;
           notifications : Tlinkedlist;
-          constructor create(st:tsymtyp;const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+          constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -151,16 +152,17 @@ interface
           function register_notification(flags:Tnotification_flags;
                                          callback:Tnotification_callback):cardinal;
           procedure unregister_notification(id:cardinal);
-         private
-          procedure setvartype(const newtype: ttype);
-          _vartype       : ttype;
-         public
-          property vartype: ttype read _vartype write setvartype;
+        private
+          procedure setvardef(def:tdef);
+          _vardef     : tdef;
+          vardefderef : tderef;
+        public
+          property vardef: tdef read _vardef write setvardef;
       end;
 
       tfieldvarsym = class(tabstractvarsym)
           fieldoffset   : aint;   { offset in record/object }
-          constructor create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function mangledname:string;override;
@@ -171,7 +173,7 @@ interface
           defaultconstsymderef : tderef;
           localloc      : TLocation; { register/reference for local var }
           initialloc    : TLocation; { initial location so it can still be initialized later after the location was changed by SSA }
-          constructor create(st:tsymtyp;const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+          constructor create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
@@ -179,7 +181,7 @@ interface
       end;
 
       tlocalvarsym = class(tabstractnormalvarsym)
-          constructor create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
       end;
@@ -190,7 +192,7 @@ interface
 {$ifdef EXTDEBUG}
           eqval         : tequaltype;
 {$endif EXTDEBUG}
-          constructor create(const n : string;nr:word;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+          constructor create(const n : string;nr:word;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -200,9 +202,9 @@ interface
       private
           _mangledname : pstring;
       public
-          constructor create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
-          constructor create_dll(const n : string;vsp:tvarspez;const tt : ttype);
-          constructor create_C(const n,mangled : string;vsp:tvarspez;const tt : ttype);
+          constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
+          constructor create_dll(const n : string;vsp:tvarspez;def:tdef);
+          constructor create_C(const n,mangled : string;vsp:tvarspez;def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -219,8 +221,8 @@ interface
          asmname : pstring;
          addroffset : aint;
          ref     : tpropaccesslist;
-         constructor create(const n : string;const tt : ttype);
-         constructor create_ref(const n : string;const tt : ttype;_ref:tpropaccesslist);
+         constructor create(const n : string;def:tdef);
+         constructor create_ref(const n : string;def:tdef;_ref:tpropaccesslist);
          destructor  destroy;override;
          constructor ppuload(ppufile:tcompilerppufile);
          procedure buildderef;override;
@@ -233,8 +235,10 @@ interface
           propoptions   : tpropertyoptions;
           overridenpropsym : tpropertysym;
           overridenpropsymderef : tderef;
-          proptype,
-          indextype     : ttype;
+          propdef       : tdef;
+          propdefderef  : tderef;
+          indexdef      : tdef;
+          indexdefderef : tderef;
           index,
           default       : longint;
           readaccess,
@@ -245,7 +249,7 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           function  getsize : longint;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function  gettypedef:tdef;override;
+          function  getderefdef:tdef;override;
           procedure buildderef;override;
           procedure deref;override;
        end;
@@ -254,10 +258,10 @@ interface
        private
           _mangledname : pstring;
        public
-          typedconsttype  : ttype;
+          typedconstdef  : tdef;
+          typedconstdefderef : tderef;
           is_writable     : boolean;
-          constructor create(const n : string;p : tdef;writable : boolean);
-          constructor createtype(const n : string;const tt : ttype;writable : boolean);
+          constructor create(const n : string;def : tdef;writable : boolean);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           function  mangledname : string;override;
@@ -276,13 +280,14 @@ interface
        end;
 
        tconstsym = class(tstoredsym)
-          consttype   : ttype;
+          constdef    : tdef;
+          constdefderef : tderef;
           consttyp    : tconsttyp;
           value       : tconstvalue;
           resstrindex  : longint;     { needed for resource strings }
-          constructor create_ord(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
-          constructor create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;const tt:ttype);
-          constructor create_ptr(const n : string;t : tconsttyp;v : pointer;const tt:ttype);
+          constructor create_ord(const n : string;t : tconsttyp;v : tconstexprint;def:tdef);
+          constructor create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;def:tdef);
+          constructor create_ptr(const n : string;t : tconsttyp;v : pointer;def:tdef);
           constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint);
           constructor create_wstring(const n : string;t : tconsttyp;pw:pcompilerwidestring);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -848,7 +853,7 @@ implementation
         while assigned(pd) do
          begin
            if assigned(retdef) then
-             eq:=compare_defs(retdef,pd^.def.rettype.def,nothingn)
+             eq:=compare_defs(retdef,pd^.def.returndef,nothingn)
            else
              eq:=te_equal;
            if (eq>=te_equal) or
@@ -915,13 +920,13 @@ implementation
         pd:=pdlistfirst;
         while assigned(pd) do
           begin
-            if equal_defs(todef,pd^.def.rettype.def) and
+            if equal_defs(todef,pd^.def.returndef) and
               { the result type must be always really equal and not an alias,
                 if you mess with this code, check tw4093 }
-              ((todef=pd^.def.rettype.def) or
+              ((todef=pd^.def.returndef) or
                (
                  not(df_unique in todef.defoptions) and
-                 not(df_unique in pd^.def.rettype.def.defoptions)
+                 not(df_unique in pd^.def.returndef.defoptions)
                )
               ) then
              begin
@@ -934,14 +939,14 @@ implementation
                if (i<pd^.def.paras.count) and
                   assigned(pd^.def.paras[i]) then
                 begin
-                  eq:=compare_defs_ext(fromdef,tparavarsym(pd^.def.paras[i]).vartype.def,nothingn,convtyp,hpd,[]);
+                  eq:=compare_defs_ext(fromdef,tparavarsym(pd^.def.paras[i]).vardef,nothingn,convtyp,hpd,[]);
 
                   { alias? if yes, only l1 choice,
                     if you mess with this code, check tw4093 }
                   if (eq=te_exact) and
-                    (fromdef<>tparavarsym(pd^.def.paras[i]).vartype.def) and
+                    (fromdef<>tparavarsym(pd^.def.paras[i]).vardef) and
                     ((df_unique in fromdef.defoptions) or
-                    (df_unique in tparavarsym(pd^.def.paras[i]).vartype.def.defoptions)) then
+                    (df_unique in tparavarsym(pd^.def.paras[i]).vardef.defoptions)) then
                     eq:=te_convert_l1;
 
                   if eq=te_exact then
@@ -1067,8 +1072,8 @@ implementation
          propoptions:=[];
          index:=0;
          default:=0;
-         proptype.reset;
-         indextype.reset;
+         propdef:=nil;
+         indexdef:=nil;
          readaccess:=tpropaccesslist.create;
          writeaccess:=tpropaccesslist.create;
          storedaccess:=tpropaccesslist.create;
@@ -1080,10 +1085,10 @@ implementation
          inherited ppuload(propertysym,ppufile);
          ppufile.getsmallset(propoptions);
          ppufile.getderef(overridenpropsymderef);
-         ppufile.gettype(proptype);
+         ppufile.getderef(propdefderef);
          index:=ppufile.getlongint;
          default:=ppufile.getlongint;
-         ppufile.gettype(indextype);
+         ppufile.getderef(indexdefderef);
          readaccess:=ppufile.getpropaccesslist;
          writeaccess:=ppufile.getpropaccesslist;
          storedaccess:=ppufile.getpropaccesslist;
@@ -1099,17 +1104,17 @@ implementation
       end;
 
 
-    function tpropertysym.gettypedef:tdef;
+    function tpropertysym.getderefdef:tdef;
       begin
-        gettypedef:=proptype.def;
+        result:=propdef;
       end;
 
 
     procedure tpropertysym.buildderef;
       begin
         overridenpropsymderef.build(overridenpropsym);
-        proptype.buildderef;
-        indextype.buildderef;
+        propdefderef.build(propdef);
+        indexdefderef.build(indexdef);
         readaccess.buildderef;
         writeaccess.buildderef;
         storedaccess.buildderef;
@@ -1119,8 +1124,8 @@ implementation
     procedure tpropertysym.deref;
       begin
         overridenpropsym:=tpropertysym(overridenpropsymderef.resolve);
-        indextype.resolve;
-        proptype.resolve;
+        indexdef:=tdef(indexdefderef.resolve);
+        propdef:=tdef(propdefderef.resolve);
         readaccess.resolve;
         writeaccess.resolve;
         storedaccess.resolve;
@@ -1138,10 +1143,10 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putsmallset(propoptions);
         ppufile.putderef(overridenpropsymderef);
-        ppufile.puttype(proptype);
+        ppufile.putderef(propdefderef);
         ppufile.putlongint(index);
         ppufile.putlongint(default);
-        ppufile.puttype(indextype);
+        ppufile.putderef(indexdefderef);
         ppufile.putpropaccesslist(readaccess);
         ppufile.putpropaccesslist(writeaccess);
         ppufile.putpropaccesslist(storedaccess);
@@ -1153,10 +1158,10 @@ implementation
                             TABSTRACTVARSYM
 ****************************************************************************}
 
-    constructor tabstractvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+    constructor tabstractvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
          inherited create(st,n);
-         vartype:=tt;
+         vardef:=def;
          varspez:=vsp;
          varstate:=vs_declared;
          varoptions:=vopts;
@@ -1169,7 +1174,7 @@ implementation
          varstate:=vs_readwritten;
          varspez:=tvarspez(ppufile.getbyte);
          varregable:=tvarregable(ppufile.getbyte);
-         ppufile.gettype(_vartype);
+         ppufile.getderef(vardefderef);
          ppufile.getsmallset(varoptions);
       end;
 
@@ -1184,13 +1189,13 @@ implementation
 
     procedure tabstractvarsym.buildderef;
       begin
-        vartype.buildderef;
+        vardefderef.build(vardef);
       end;
 
 
     procedure tabstractvarsym.deref;
       begin
-        vartype.resolve;
+        vardef:=tdef(vardefderef.resolve);
       end;
 
 
@@ -1204,18 +1209,18 @@ implementation
          ppufile.do_crc:=false;
          ppufile.putbyte(byte(varregable));
          ppufile.do_crc:=oldintfcrc;
-         ppufile.puttype(vartype);
+         ppufile.putderef(vardefderef);
          ppufile.putsmallset(varoptions);
       end;
 
 
     function tabstractvarsym.getsize : longint;
       begin
-        if assigned(vartype.def) and
-           ((vartype.def.deftype<>arraydef) or
-            is_dynamic_array(vartype.def) or
-            (tarraydef(vartype.def).highrange>=tarraydef(vartype.def).lowrange)) then
-          result:=vartype.def.size
+        if assigned(vardef) and
+           ((vardef.deftype<>arraydef) or
+            is_dynamic_array(vardef) or
+            (tarraydef(vardef).highrange>=tarraydef(vardef).lowrange)) then
+          result:=vardef.size
         else
           result:=0;
       end;
@@ -1224,9 +1229,9 @@ implementation
     function  tabstractvarsym.getpackedbitsize : longint;
       begin
         { bitpacking is only done for ordinals }
-        if not is_ordinal(vartype.def) then
+        if not is_ordinal(vardef) then
           internalerror(2006082010);
-        result:=vartype.def.packedbitsize;
+        result:=vardef.packedbitsize;
       end;
 
 
@@ -1247,7 +1252,7 @@ implementation
                  (not refpara and
                   not(varregable in [vr_none,vr_addr])))
 {$if not defined(powerpc) and not defined(powerpc64)}
-                and ((vartype.def.deftype <> recorddef) or
+                and ((vardef.deftype <> recorddef) or
                      (varregable = vr_addr) or
                      not(varstate in [vs_written,vs_readwritten]));
 {$endif}
@@ -1308,9 +1313,9 @@ implementation
         end;
     end;
 
-    procedure tabstractvarsym.setvartype(const newtype: ttype);
+    procedure tabstractvarsym.setvardef(def:tdef);
       begin
-        _vartype := newtype;
+        _vardef := def;
          { can we load the value into a register ? }
         if not assigned(owner) or
            (owner.symtabletype in [localsymtable,parasymtable]) or
@@ -1319,7 +1324,7 @@ implementation
             not(cs_create_pic in aktmoduleswitches)
            ) then
           begin
-            if tstoreddef(vartype.def).is_intregable then
+            if tstoreddef(vardef).is_intregable then
               varregable:=vr_intreg
             else
 { $warning TODO: no fpu regvar in staticsymtable yet, need initialization with 0 }
@@ -1327,10 +1332,10 @@ implementation
                   not assigned(owner) or
                   (owner.symtabletype<>staticsymtable)
                  ) and }
-                 tstoreddef(vartype.def).is_fpuregable then
+                 tstoreddef(vardef).is_fpuregable then
                  begin
 {$ifdef x86}
-                   if use_sse(vartype.def) then
+                   if use_sse(vardef) then
                      varregable:=vr_mmreg
                    else
 {$else x86}
@@ -1345,9 +1350,9 @@ implementation
                                TFIELDVARSYM
 ****************************************************************************}
 
-    constructor tfieldvarsym.create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+    constructor tfieldvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(fieldvarsym,n,vsp,tt,vopts);
+         inherited create(fieldvarsym,n,vsp,def,vopts);
          fieldoffset:=-1;
       end;
 
@@ -1387,9 +1392,9 @@ implementation
                         TABSTRACTNORMALVARSYM
 ****************************************************************************}
 
-    constructor tabstractnormalvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+    constructor tabstractnormalvarsym.create(st:tsymtyp;const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(st,n,vsp,tt,vopts);
+         inherited create(st,n,vsp,def,vopts);
          fillchar(localloc,sizeof(localloc),0);
          fillchar(initialloc,sizeof(initialloc),0);
          defaultconstsym:=nil;
@@ -1430,22 +1435,22 @@ implementation
                              TGLOBALVARSYM
 ****************************************************************************}
 
-    constructor tglobalvarsym.create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+    constructor tglobalvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(globalvarsym,n,vsp,tt,vopts);
+         inherited create(globalvarsym,n,vsp,def,vopts);
          _mangledname:=nil;
       end;
 
 
-    constructor tglobalvarsym.create_dll(const n : string;vsp:tvarspez;const tt : ttype);
+    constructor tglobalvarsym.create_dll(const n : string;vsp:tvarspez;def:tdef);
       begin
-         tglobalvarsym(self).create(n,vsp,tt,[vo_is_dll_var]);
+         tglobalvarsym(self).create(n,vsp,def,[vo_is_dll_var]);
       end;
 
 
-    constructor tglobalvarsym.create_C(const n,mangled : string;vsp:tvarspez;const tt : ttype);
+    constructor tglobalvarsym.create_C(const n,mangled : string;vsp:tvarspez;def:tdef);
       begin
-         tglobalvarsym(self).create(n,vsp,tt,[]);
+         tglobalvarsym(self).create(n,vsp,def,[]);
          set_mangledname(mangled);
       end;
 
@@ -1515,9 +1520,9 @@ implementation
                                TLOCALVARSYM
 ****************************************************************************}
 
-    constructor tlocalvarsym.create(const n : string;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+    constructor tlocalvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(localvarsym,n,vsp,tt,vopts);
+         inherited create(localvarsym,n,vsp,def,vopts);
       end;
 
 
@@ -1538,9 +1543,9 @@ implementation
                               TPARAVARSYM
 ****************************************************************************}
 
-    constructor tparavarsym.create(const n : string;nr:word;vsp:tvarspez;const tt : ttype;vopts:tvaroptions);
+    constructor tparavarsym.create(const n : string;nr:word;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(paravarsym,n,vsp,tt,vopts);
+         inherited create(paravarsym,n,vsp,def,vopts);
          if (vsp in [vs_var,vs_value,vs_const]) then
            varstate := vs_initialised;
          paranr:=nr;
@@ -1614,16 +1619,16 @@ implementation
                                TABSOLUTEVARSYM
 ****************************************************************************}
 
-    constructor tabsolutevarsym.create(const n : string;const tt : ttype);
+    constructor tabsolutevarsym.create(const n : string;def:tdef);
       begin
-        inherited create(absolutevarsym,n,vs_value,tt,[]);
+        inherited create(absolutevarsym,n,vs_value,def,[]);
         ref:=nil;
       end;
 
 
-    constructor tabsolutevarsym.create_ref(const n : string;const tt : ttype;_ref:tpropaccesslist);
+    constructor tabsolutevarsym.create_ref(const n : string;def:tdef;_ref:tpropaccesslist);
       begin
-        inherited create(absolutevarsym,n,vs_value,tt,[]);
+        inherited create(absolutevarsym,n,vs_value,def,[]);
         ref:=_ref;
       end;
 
@@ -1716,18 +1721,10 @@ implementation
                              TTYPEDCONSTSYM
 *****************************************************************************}
 
-    constructor ttypedconstsym.create(const n : string;p : tdef;writable : boolean);
+    constructor ttypedconstsym.create(const n : string;def : tdef;writable : boolean);
       begin
          inherited create(typedconstsym,n);
-         typedconsttype.setdef(p);
-         is_writable:=writable;
-      end;
-
-
-    constructor ttypedconstsym.createtype(const n : string;const tt : ttype;writable : boolean);
-      begin
-         inherited create(typedconstsym,n);
-         typedconsttype:=tt;
+         typedconstdef:=def;
          is_writable:=writable;
       end;
 
@@ -1735,7 +1732,7 @@ implementation
     constructor ttypedconstsym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(typedconstsym,ppufile);
-         ppufile.gettype(typedconsttype);
+         ppufile.getderef(typedconstdefderef);
          is_writable:=boolean(ppufile.getbyte);
       end;
 
@@ -1783,8 +1780,8 @@ implementation
 
     function ttypedconstsym.getsize : longint;
       begin
-        if assigned(typedconsttype.def) then
-         getsize:=typedconsttype.def.size
+        if assigned(typedconstdef) then
+         getsize:=typedconstdef.size
         else
          getsize:=0;
       end;
@@ -1792,20 +1789,20 @@ implementation
 
     procedure ttypedconstsym.buildderef;
       begin
-        typedconsttype.buildderef;
+        typedconstdefderef.build(typedconstdef);
       end;
 
 
     procedure ttypedconstsym.deref;
       begin
-        typedconsttype.resolve;
+        typedconstdef:=tdef(typedconstdefderef.resolve);
       end;
 
 
     procedure ttypedconstsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.puttype(typedconsttype);
+         ppufile.putderef(typedconstdefderef);
          ppufile.putbyte(byte(is_writable));
          ppufile.writeentry(ibtypedconstsym);
       end;
@@ -1815,36 +1812,36 @@ implementation
                                   TCONSTSYM
 ****************************************************************************}
 
-    constructor tconstsym.create_ord(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
+    constructor tconstsym.create_ord(const n : string;t : tconsttyp;v : tconstexprint;def:tdef);
       begin
          inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueord:=v;
          ResStrIndex:=0;
-         consttype:=tt;
+         constdef:=def;
       end;
 
 
-    constructor tconstsym.create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;const tt:ttype);
+    constructor tconstsym.create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;def:tdef);
       begin
          inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueordptr:=v;
          ResStrIndex:=0;
-         consttype:=tt;
+         constdef:=def;
       end;
 
 
-    constructor tconstsym.create_ptr(const n : string;t : tconsttyp;v : pointer;const tt:ttype);
+    constructor tconstsym.create_ptr(const n : string;t : tconsttyp;v : pointer;def:tdef);
       begin
          inherited create(constsym,n);
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueptr:=v;
          ResStrIndex:=0;
-         consttype:=tt;
+         constdef:=def;
       end;
 
 
@@ -1854,7 +1851,7 @@ implementation
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueptr:=str;
-         consttype.reset;
+         constdef:=nil;
          value.len:=l;
       end;
 
@@ -1865,7 +1862,7 @@ implementation
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          pcompilerwidestring(value.valueptr):=pw;
-         consttype.reset;
+         constdef:=nil;
          value.len:=getlengthwidestring(pw);
       end;
 
@@ -1878,18 +1875,18 @@ implementation
          pw : pcompilerwidestring;
       begin
          inherited ppuload(constsym,ppufile);
-         consttype.reset;
+         constdef:=nil;
          consttyp:=tconsttyp(ppufile.getbyte);
          fillchar(value, sizeof(value), #0);
          case consttyp of
            constord :
              begin
-               ppufile.gettype(consttype);
+               ppufile.getderef(constdefderef);
                value.valueord:=ppufile.getexprint;
              end;
            constpointer :
              begin
-               ppufile.gettype(consttype);
+               ppufile.getderef(constdefderef);
                value.valueordptr:=ppufile.getptruint;
              end;
            constwstring :
@@ -1917,7 +1914,7 @@ implementation
              end;
            constset :
              begin
-               ppufile.gettype(consttype);
+               ppufile.getderef(constdefderef);
                new(ps);
                ppufile.getnormalset(ps^);
                value.valueptr:=ps;
@@ -1956,14 +1953,14 @@ implementation
     procedure tconstsym.buildderef;
       begin
         if consttyp in [constord,constpointer,constset] then
-         consttype.buildderef;
+          constdefderef.build(constdef);
       end;
 
 
     procedure tconstsym.deref;
       begin
         if consttyp in [constord,constpointer,constset] then
-         consttype.resolve;
+          constdef:=tdef(constdefderef.resolve);
       end;
 
 
@@ -1975,12 +1972,12 @@ implementation
            constnil : ;
            constord :
              begin
-               ppufile.puttype(consttype);
+               ppufile.putderef(constdefderef);
                ppufile.putexprint(value.valueord);
              end;
            constpointer :
              begin
-               ppufile.puttype(consttype);
+               ppufile.putderef(constdefderef);
                ppufile.putptruint(value.valueordptr);
              end;
            constwstring :
@@ -2000,7 +1997,7 @@ implementation
              ppufile.putreal(pbestreal(value.valueptr)^);
            constset :
              begin
-               ppufile.puttype(consttype);
+               ppufile.putderef(constdefderef);
                ppufile.putnormalset(value.valueptr^);
              end;
            constguid :
@@ -2104,48 +2101,48 @@ implementation
                                   TTYPESYM
 ****************************************************************************}
 
-    constructor ttypesym.create(const n : string;const tt : ttype);
+    constructor ttypesym.create(const n : string;def:tdef);
 
       begin
          inherited create(typesym,n);
-         restype:=tt;
+         typedef:=def;
         { register the typesym for the definition }
-        if assigned(restype.def) and
-           (restype.def.deftype<>errordef) and
-           not(assigned(restype.def.typesym)) then
-         restype.def.typesym:=self;
+        if assigned(typedef) and
+           (typedef.deftype<>errordef) and
+           not(assigned(typedef.typesym)) then
+         typedef.typesym:=self;
       end;
 
 
     constructor ttypesym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(typesym,ppufile);
-         ppufile.gettype(restype);
+         ppufile.getderef(typedefderef);
       end;
 
 
-    function  ttypesym.gettypedef:tdef;
+    function  ttypesym.getderefdef:tdef;
       begin
-        gettypedef:=restype.def;
+        result:=typedef;
       end;
 
 
     procedure ttypesym.buildderef;
       begin
-         restype.buildderef;
+         typedefderef.build(typedef);
       end;
 
 
     procedure ttypesym.deref;
       begin
-         restype.resolve;
+         typedef:=tdef(typedefderef.resolve);
       end;
 
 
     procedure ttypesym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.puttype(restype);
+         ppufile.putderef(typedefderef);
          ppufile.writeentry(ibtypesym);
       end;
 
@@ -2153,10 +2150,10 @@ implementation
     procedure ttypesym.load_references(ppufile:tcompilerppufile;locals:boolean);
       begin
          inherited load_references(ppufile,locals);
-         if (restype.def.deftype=recorddef) then
-           tstoredsymtable(trecorddef(restype.def).symtable).load_references(ppufile,locals);
-         if (restype.def.deftype=objectdef) then
-           tstoredsymtable(tobjectdef(restype.def).symtable).load_references(ppufile,locals);
+         if (typedef.deftype=recorddef) then
+           tstoredsymtable(trecorddef(typedef).symtable).load_references(ppufile,locals);
+         if (typedef.deftype=objectdef) then
+           tstoredsymtable(tobjectdef(typedef).symtable).load_references(ppufile,locals);
       end;
 
 
@@ -2170,7 +2167,7 @@ implementation
          { write address of this symbol if record or object
            even if no real refs are there
            because we need it for the symtable }
-           if (restype.def.deftype in [recorddef,objectdef]) then
+           if (typedef.deftype in [recorddef,objectdef]) then
             begin
               d.build(self);
               ppufile.putderef(d);
@@ -2178,10 +2175,10 @@ implementation
             end;
          end;
         write_references:=true;
-        if (restype.def.deftype=recorddef) then
-           tstoredsymtable(trecorddef(restype.def).symtable).write_references(ppufile,locals);
-        if (restype.def.deftype=objectdef) then
-           tstoredsymtable(tobjectdef(restype.def).symtable).write_references(ppufile,locals);
+        if (typedef.deftype=recorddef) then
+           tstoredsymtable(trecorddef(typedef).symtable).write_references(ppufile,locals);
+        if (typedef.deftype=objectdef) then
+           tstoredsymtable(tobjectdef(typedef).symtable).write_references(ppufile,locals);
       end;
 
 

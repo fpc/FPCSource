@@ -88,10 +88,10 @@ interface
        ende:=false;
        s:='';
        if assigned(aktprocdef.funcretsym) and
-          is_fpu(aktprocdef.rettype.def) then
+          is_fpu(aktprocdef.returndef) then
          tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_initialised;
        { !!!!!
-       if (not is_void(aktprocdef.rettype.def)) then
+       if (not is_void(aktprocdef.returndef)) then
          retstr:=upper(tostr(procinfo^.return_offset)+'('+gas_reg2str[procinfo^.framepointer]+')')
        else
        }
@@ -146,7 +146,7 @@ interface
                                 { char ?                                   }
                                 { !!!
                                 if (s[length(s)]='%') and
-                                   ret_in_acc(aktprocdef.rettype.def) and
+                                   ret_in_acc(aktprocdef.returndef) and
                                    ((pos('AX',upper(hs))>0) or
                                    (pos('AL',upper(hs))>0)) then
                                   tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_initialised;
@@ -247,7 +247,7 @@ interface
                                                  end
                                                else if upper(hs)='__RESULT' then
                                                  begin
-                                                    if (not is_void(aktprocdef.rettype.def)) then
+                                                    if (not is_void(aktprocdef.returndef)) then
                                                       hs:=retstr
                                                     else
                                                       Message(asmr_e_void_function);

@@ -71,15 +71,15 @@ uses
 
 function tppctypeconvnode.first_int_to_real: tnode;
 begin
-  if (is_currency(left.resulttype.def)) then begin
+  if (is_currency(left.resultdef)) then begin
     // hack to avoid double division by 10000, as it's
-    // already done by resulttypepass.resulttype_int_to_real
-    left.resulttype := s64inttype;
+    // already done by typecheckpass.resultdef_int_to_real
+    left.resultdef := s64inttype;
   end else begin
     // everything that is less than 64 bits is converted to a 64 bit signed
     // integer - because the int_to_real conversion is faster for 64 bit
     // signed ints compared to 64 bit unsigned ints.
-    if (not (torddef(left.resulttype.def).typ in [s64bit, u64bit, scurrency])) then begin
+    if (not (torddef(left.resultdef).typ in [s64bit, u64bit, scurrency])) then begin
       inserttypeconv(left, s64inttype);
     end;
   end;
@@ -108,7 +108,7 @@ var
   signed: boolean;
 begin
 
-  location_reset(location, LOC_FPUREGISTER, def_cgsize(resulttype.def));
+  location_reset(location, LOC_FPUREGISTER, def_cgsize(resultdef));
 
   { the code here comes from the PowerPC Compiler Writer's Guide }
   { * longint to double (works for all rounding modes) }
@@ -138,7 +138,7 @@ begin
     // allocate temp for constant value used for unsigned 64 bit ints
     tempconst :=
       crealconstnode.create(convconst, pbestrealtype^);
-    resulttypepass(tempconst);
+    typecheckpass(tempconst);
     firstpass(tempconst);
     secondpass(tempconst);
     if (tempconst.location.loc <> LOC_CREFERENCE) then
@@ -164,7 +164,7 @@ begin
           size := OS_S64
         else
           size := OS_64;
-        cg.a_load_ref_reg(current_asmdata.CurrAsmList, def_cgsize(left.resulttype.def),
+        cg.a_load_ref_reg(current_asmdata.CurrAsmList, def_cgsize(left.resultdef),
           size, left.location.reference, leftreg);
       end
   else
@@ -244,7 +244,7 @@ begin
   { byte(boolean) or word(wordbool) or longint(longbool) must }
   { be accepted for var parameters                            }
   if (nf_explicit in flags) and
-    (left.resulttype.def.size = resulttype.def.size) and
+    (left.resultdef.size = resultdef.size) and
     (left.location.loc in [LOC_REFERENCE, LOC_CREFERENCE, LOC_CREGISTER]) then
   begin
     current_procinfo.CurrTrueLabel := oldTrueLabel;
@@ -253,8 +253,8 @@ begin
     exit;
   end;
 
-  location_reset(location, LOC_REGISTER, def_cgsize(resulttype.def));
-  opsize := def_cgsize(left.resulttype.def);
+  location_reset(location, LOC_REGISTER, def_cgsize(resultdef));
+  opsize := def_cgsize(left.resultdef);
   case left.location.loc of
     LOC_CREFERENCE, LOC_REFERENCE, LOC_REGISTER, LOC_CREGISTER:
       begin

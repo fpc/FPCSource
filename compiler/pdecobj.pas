@@ -55,6 +55,12 @@ implementation
       var
          there_is_a_destructor : boolean;
          classtype : tobjectdeftype;
+         pcrd      : tclassrefdef;
+         hdef      : tdef;
+         old_object_option : tsymoptions;
+         oldparse_only : boolean;
+         storetypecanbeforward : boolean;
+
 
       function constructor_head:tprocdef;
         var
@@ -76,12 +82,12 @@ implementation
            { Set return type, class constructors return the
              created instance, object constructors return boolean }
            if is_class(pd._class) then
-             pd.rettype.setdef(pd._class)
+             pd.returndef:=pd._class
            else
 {$ifdef CPU64bit}
-             pd.rettype:=bool64type;
+             pd.returndef:=bool64type;
 {$else CPU64bit}
-             pd.rettype:=bool32type;
+             pd.returndef:=bool32type;
 {$endif CPU64bit}
            constructor_head:=pd;
         end;
@@ -135,16 +141,9 @@ implementation
            consume(_SEMICOLON);
            include(aktobjectdef.objectoptions,oo_has_destructor);
            { no return value }
-           pd.rettype:=voidtype;
+           pd.returndef:=voidtype;
            destructor_head:=pd;
         end;
-
-      var
-         pcrd       : tclassrefdef;
-         tt     : ttype;
-         old_object_option : tsymoptions;
-         oldparse_only : boolean;
-         storetypecanbeforward : boolean;
 
       procedure setclassattributes;
 
@@ -275,19 +274,19 @@ implementation
                         { a hack, but it's easy to handle }
                         { class reference type }
                         consume(_OF);
-                        single_type(tt,typecanbeforward);
+                        single_type(hdef,typecanbeforward);
 
                         { accept hp1, if is a forward def or a class }
-                        if (tt.def.deftype=forwarddef) or
-                           is_class(tt.def) then
+                        if (hdef.deftype=forwarddef) or
+                           is_class(hdef) then
                           begin
-                             pcrd:=tclassrefdef.create(tt);
+                             pcrd:=tclassrefdef.create(hdef);
                              object_dec:=pcrd;
                           end
                         else
                           begin
-                             object_dec:=generrortype.def;
-                             Message1(type_e_class_type_expected,generrortype.def.typename);
+                             object_dec:=generrordef;
+                             Message1(type_e_class_type_expected,generrordef.typename);
                           end;
                         typecanbeforward:=storetypecanbeforward;
                         readobjecttype:=false;
@@ -346,17 +345,17 @@ implementation
 
       procedure readimplementedinterfaces;
         var
-          tt      : ttype;
+          hdef : tdef;
         begin
           while try_to_consume(_COMMA) do
             begin
-               id_type(tt,false);
-               if (tt.def.deftype<>objectdef) then
+               id_type(hdef,false);
+               if (hdef.deftype<>objectdef) then
                  begin
-                    Message1(type_e_interface_type_expected,tt.def.typename);
+                    Message1(type_e_interface_type_expected,hdef.typename);
                     continue;
                  end;
-               handleimplementedinterface(tobjectdef(tt.def));
+               handleimplementedinterface(tobjectdef(hdef));
             end;
         end;
 
@@ -387,7 +386,7 @@ implementation
         var
            intfchildof,
            childof : tobjectdef;
-           tt : ttype;
+           hdef : tdef;
            hasparentdefined : boolean;
         begin
           childof:=nil;
@@ -397,16 +396,16 @@ implementation
           { reads the parent class }
           if try_to_consume(_LKLAMMER) then
             begin
-              id_type(tt,false);
-              if (not assigned(tt.def)) or
-                 (tt.def.deftype<>objectdef) then
+              id_type(hdef,false);
+              if (not assigned(hdef)) or
+                 (hdef.deftype<>objectdef) then
                 begin
-                  if assigned(tt.def) then
-                    Message1(type_e_class_type_expected,tt.def.typename);
+                  if assigned(hdef) then
+                    Message1(type_e_class_type_expected,hdef.typename);
                 end
               else
                 begin
-                  childof:=tobjectdef(tt.def);
+                  childof:=tobjectdef(hdef);
                   { a mix of class, interfaces, objects and cppclasses
                     isn't allowed }
                   case classtype of
@@ -554,7 +553,7 @@ implementation
              for i:=0 to genericlist.count-1 do
                begin
                  generictype:=ttypesym(genericlist[i]);
-                 if generictype.restype.def.deftype=undefineddef then
+                 if generictype.typedef.deftype=undefineddef then
                    include(aktobjectdef.defoptions,df_generic)
                  else
                    include(aktobjectdef.defoptions,df_specialization);

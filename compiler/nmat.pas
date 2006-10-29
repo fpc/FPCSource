@@ -31,7 +31,7 @@ interface
     type
        tmoddivnode = class(tbinopnode)
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function simplify : tnode;override;
          protected
 {$ifndef cpu64bit}
@@ -46,7 +46,7 @@ interface
 
        tshlshrnode = class(tbinopnode)
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function simplify : tnode;override;
 {$ifndef cpu64bit}
           { override the following if you want to implement }
@@ -62,7 +62,7 @@ interface
        tunaryminusnode = class(tunarynode)
           constructor create(expr : tnode);virtual;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function simplify : tnode;override;
        end;
        tunaryminusnodeclass = class of tunaryminusnode;
@@ -70,7 +70,7 @@ interface
        tnotnode = class(tunarynode)
           constructor create(expr : tnode);virtual;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function simplify : tnode;override;
        {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
@@ -114,7 +114,7 @@ implementation
               begin
                 case nodetype of
                   modn:
-                    result := cordconstnode.create(0,left.resulttype,true);
+                    result := cordconstnode.create(0,left.resultdef,true);
                   divn:
                     result := left.getcopy;
                 end;
@@ -124,8 +124,8 @@ implementation
 
         if is_constintnode(right) and is_constintnode(left) then
           begin
-            rd:=torddef(right.resulttype.def);
-            ld:=torddef(left.resulttype.def);
+            rd:=torddef(right.resultdef);
+            ld:=torddef(left.resultdef);
 
             rv:=tordconstnode(right).value;
             lv:=tordconstnode(left).value;
@@ -150,15 +150,15 @@ implementation
       end;
 
 
-    function tmoddivnode.det_resulttype:tnode;
+    function tmoddivnode.pass_typecheck:tnode;
       var
         hp,t : tnode;
         rd,ld : torddef;
         rv : tconstexprint;
       begin
          result:=nil;
-         resulttypepass(left);
-         resulttypepass(right);
+         typecheckpass(left);
+         typecheckpass(right);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
          if codegenerror then
@@ -177,15 +177,15 @@ implementation
            end;
 
          { we need 2 orddefs always }
-         if (left.resulttype.def.deftype<>orddef) then
+         if (left.resultdef.deftype<>orddef) then
            inserttypeconv(right,sinttype);
-         if (right.resulttype.def.deftype<>orddef) then
+         if (right.resultdef.deftype<>orddef) then
            inserttypeconv(right,sinttype);
          if codegenerror then
            exit;
 
-         rd:=torddef(right.resulttype.def);
-         ld:=torddef(left.resulttype.def);
+         rd:=torddef(right.resultdef);
+         ld:=torddef(left.resultdef);
 
          { check for division by zero }
          if is_constintnode(right) then
@@ -208,15 +208,15 @@ implementation
             is_constintnode(left) and
             (tordconstnode(left).value >= 0) then
            begin
-             inserttypeconv(left,right.resulttype);
-             ld:=torddef(left.resulttype.def);
+             inserttypeconv(left,right.resultdef);
+             ld:=torddef(left.resultdef);
            end;
          if (ld.typ in [u32bit,u64bit]) and
             is_constintnode(right) and
             (tordconstnode(right).value >= 0) then
           begin
-            inserttypeconv(right,left.resulttype);
-            rd:=torddef(right.resulttype.def);
+            inserttypeconv(right,left.resultdef);
+            rd:=torddef(right.resultdef);
           end;
 
          { when there is one currency value, everything is done
@@ -228,14 +228,14 @@ implementation
               inserttypeconv(left,s64currencytype);
              if (rd.typ<>scurrency) then
               inserttypeconv(right,s64currencytype);
-             resulttype:=left.resulttype;
+             resultdef:=left.resultdef;
            end
          else
 {$ifndef cpu64bit}
           { when there is one 64bit value, everything is done
             in 64bit }
-          if (is_64bitint(left.resulttype.def) or
-              is_64bitint(right.resulttype.def)) then
+          if (is_64bitint(left.resultdef) or
+              is_64bitint(right.resultdef)) then
            begin
              if is_signed(rd) or is_signed(ld) then
                begin
@@ -251,7 +251,7 @@ implementation
                   if (rd.typ<>u64bit) then
                     inserttypeconv(right,u64inttype);
                end;
-             resulttype:=left.resulttype;
+             resultdef:=left.resultdef;
            end
          else
           { when mixing cardinals and signed numbers, convert everythign to 64bit (JM) }
@@ -265,17 +265,17 @@ implementation
                 inserttypeconv(left,s64inttype);
               if (rd.typ<>s64bit) then
                 inserttypeconv(right,s64inttype);
-              resulttype:=left.resulttype;
+              resultdef:=left.resultdef;
            end
          else
 {$endif cpu64bit}
            begin
               { Make everything always default singed int }
-              if not(rd.typ in [torddef(sinttype.def).typ,torddef(uinttype.def).typ]) then
+              if not(rd.typ in [torddef(sinttype).typ,torddef(uinttype).typ]) then
                 inserttypeconv(right,sinttype);
-              if not(ld.typ in [torddef(sinttype.def).typ,torddef(uinttype.def).typ]) then
+              if not(ld.typ in [torddef(sinttype).typ,torddef(uinttype).typ]) then
                 inserttypeconv(left,sinttype);
-              resulttype:=right.resulttype;
+              resultdef:=right.resultdef;
            end;
 
          { when the result is currency we need some extra code for
@@ -283,7 +283,7 @@ implementation
            created internally }
          if (nodetype=divn) and
             not(nf_is_currency in flags) and
-            is_currency(resulttype.def) then
+            is_currency(resultdef) then
           begin
             hp:=caddnode.create(muln,getcopy,cordconstnode.create(10000,s64currencytype,false));
             include(hp.flags,nf_is_currency);
@@ -306,7 +306,7 @@ implementation
           procname := 'fpc_mod_';
         { only qword needs the unsigned code, the
           signed code is also used for currency }
-        if is_signed(resulttype.def) then
+        if is_signed(resultdef) then
           procname := procname + 'longint'
         else
           procname := procname + 'dword';
@@ -333,10 +333,10 @@ implementation
 
         { when currency is used set the result of the
           parameters to s64bit, so they are not converted }
-        if is_currency(resulttype.def) then
+        if is_currency(resultdef) then
           begin
-            left.resulttype:=s64inttype;
-            right.resulttype:=s64inttype;
+            left.resultdef:=s64inttype;
+            right.resultdef:=s64inttype;
           end;
 
         { otherwise create a call to a helper }
@@ -346,7 +346,7 @@ implementation
           procname := 'fpc_mod_';
         { only qword needs the unsigned code, the
           signed code is also used for currency }
-        if is_signed(resulttype.def) then
+        if is_signed(resultdef) then
           procname := procname + 'int64'
         else
           procname := procname + 'qword';
@@ -370,16 +370,16 @@ implementation
         if (cs_opt_peephole in aktoptimizerswitches) and
            (right.nodetype = ordconstn) and
 {           ((nodetype = divn) or
-            not is_signed(resulttype.def)) and}
-           (not is_signed(resulttype.def)) and
+            not is_signed(resultdef)) and}
+           (not is_signed(resultdef)) and
            ispowerof2(tordconstnode(right).value,power) then
           begin
             if nodetype = divn then
               begin
 (*
-                if is_signed(resulttype.def) then
+                if is_signed(resultdef) then
                   begin
-                    if is_64bitint(left.resulttype.def) then
+                    if is_64bitint(left.resultdef) then
                       if not (cs_opt_size in aktoptimizerswitches) then
                         shiftval := 63
                       else
@@ -395,7 +395,7 @@ implementation
                         cshlshrnode.create(sarn,left.getcopy,
                           cordconstnode.create(shiftval,sinttype,false)),
                         cordconstnode.create(tordconstnode(right).value-1,
-                          right.resulttype,false)));
+                          right.resultdef,false)));
                     newtype := sarn;
                   end
                 else
@@ -433,9 +433,9 @@ implementation
 
 {$ifndef cpu64bit}
          { 64bit }
-         if (left.resulttype.def.deftype=orddef) and
-            (right.resulttype.def.deftype=orddef) and
-            (is_64bitint(left.resulttype.def) or is_64bitint(right.resulttype.def)) then
+         if (left.resultdef.deftype=orddef) and
+            (right.resultdef.deftype=orddef) and
+            (is_64bitint(left.resultdef) or is_64bitint(right.resultdef)) then
            begin
              result := first_moddiv64bitint;
              if assigned(result) then
@@ -483,13 +483,13 @@ implementation
       end;
 
 
-    function tshlshrnode.det_resulttype:tnode;
+    function tshlshrnode.pass_typecheck:tnode;
       var
          t : tnode;
       begin
          result:=nil;
-         resulttypepass(left);
-         resulttypepass(right);
+         typecheckpass(left);
+         typecheckpass(right);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
@@ -510,13 +510,13 @@ implementation
          { calculations for ordinals < 32 bit have to be done in
            32 bit for backwards compatibility. That way 'shl 33' is
            the same as 'shl 1'. It's ugly but compatible with delphi/tp/gcc }
-         if (not is_64bit(left.resulttype.def)) and
-            (torddef(left.resulttype.def).typ<>u32bit) then
+         if (not is_64bit(left.resultdef)) and
+            (torddef(left.resultdef).typ<>u32bit) then
            inserttypeconv(left,s32inttype);
 
          inserttypeconv(right,sinttype);
 
-         resulttype:=left.resulttype;
+         resultdef:=left.resultdef;
       end;
 
 
@@ -554,7 +554,7 @@ implementation
 
 {$ifndef cpu64bit}
          { 64 bit ints have their own shift handling }
-         if is_64bit(left.resulttype.def) then
+         if is_64bit(left.resultdef) then
            begin
              result := first_shlshr64bitint;
              if assigned(result) then
@@ -603,12 +603,12 @@ implementation
       end;
 
 
-    function tunaryminusnode.det_resulttype : tnode;
+    function tunaryminusnode.pass_typecheck : tnode;
       var
          t : tnode;
       begin
          result:=nil;
-         resulttypepass(left);
+         typecheckpass(left);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
@@ -617,32 +617,32 @@ implementation
          if assigned(result) then
            exit;
 
-         resulttype:=left.resulttype;
-         if (left.resulttype.def.deftype=floatdef) then
+         resultdef:=left.resultdef;
+         if (left.resultdef.deftype=floatdef) then
            begin
            end
 {$ifdef SUPPORT_MMX}
          else if (cs_mmx in aktlocalswitches) and
-           is_mmx_able_array(left.resulttype.def) then
+           is_mmx_able_array(left.resultdef) then
              begin
-               { if saturation is on, left.resulttype.def isn't
+               { if saturation is on, left.resultdef isn't
                  "mmx able" (FK)
                if (cs_mmx_saturation in aktlocalswitches^) and
-                 (torddef(tarraydef(resulttype.def).definition).typ in
+                 (torddef(tarraydef(resultdef).definition).typ in
                  [s32bit,u32bit]) then
                  CGMessage(type_e_mismatch);
                }
              end
 {$endif SUPPORT_MMX}
 {$ifndef cpu64bit}
-         else if is_64bitint(left.resulttype.def) then
+         else if is_64bitint(left.resultdef) then
            begin
            end
 {$endif cpu64bit}
-         else if (left.resulttype.def.deftype=orddef) then
+         else if (left.resultdef.deftype=orddef) then
            begin
               inserttypeconv(left,sinttype);
-              resulttype:=left.resulttype;
+              resultdef:=left.resultdef;
            end
          else
            begin
@@ -664,27 +664,27 @@ implementation
     function tunaryminusnode.pass_1 : tnode;
       var
         procname: string[31];
-        floattype : ttype;
+        fdef : tdef;
       begin
         result:=nil;
         firstpass(left);
         if codegenerror then
           exit;
 
-        if (cs_fp_emulation in aktmoduleswitches) and (left.resulttype.def.deftype=floatdef) then
+        if (cs_fp_emulation in aktmoduleswitches) and (left.resultdef.deftype=floatdef) then
           begin
             if not(target_info.system in system_wince) then
               begin
-                case tfloatdef(resulttype.def).typ of
+                case tfloatdef(resultdef).typ of
                   s32real:
                     begin
                       procname:='float32_sub';
-                      floattype:=search_system_type('FLOAT32REC').restype;
+                      fdef:=search_system_type('FLOAT32REC').typedef;
                     end;
                   s64real:
                     begin
                       procname:='float64_sub';
-                      floattype:=search_system_type('FLOAT64').restype;
+                      fdef:=search_system_type('FLOAT64').typedef;
                     end;
                   {!!! not yet implemented
                   s128real:
@@ -693,12 +693,12 @@ implementation
                     internalerror(2005082801);
                 end;
                 result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
-                  ctypeconvnode.create_internal(crealconstnode.create(0,resulttype),floattype),
-                  ccallparanode.create(ctypeconvnode.create_internal(left,floattype),nil))),resulttype);
+                  ctypeconvnode.create_internal(crealconstnode.create(0,resultdef),fdef),
+                  ccallparanode.create(ctypeconvnode.create_internal(left,fDef),nil))),resultdef);
               end
             else
               begin
-                case tfloatdef(resulttype.def).typ of
+                case tfloatdef(resultdef).typ of
                   s32real:
                     procname:='NEGS';
                   s64real:
@@ -722,7 +722,7 @@ implementation
             registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
 
-            if (left.resulttype.def.deftype=floatdef) then
+            if (left.resultdef.deftype=floatdef) then
               begin
                 if (left.expectloc<>LOC_REGISTER) and
                   (registersfpu<1) then
@@ -731,7 +731,7 @@ implementation
               end
 {$ifdef SUPPORT_MMX}
              else if (cs_mmx in aktlocalswitches) and
-               is_mmx_able_array(left.resulttype.def) then
+               is_mmx_able_array(left.resultdef) then
                  begin
                    if (left.expectloc<>LOC_MMXREGISTER) and
                       (registersmmx<1) then
@@ -739,7 +739,7 @@ implementation
                  end
 {$endif SUPPORT_MMX}
 {$ifndef cpu64bit}
-             else if is_64bit(left.resulttype.def) then
+             else if is_64bit(left.resultdef) then
                begin
                   if (left.expectloc<>LOC_REGISTER) and
                      (registersint<2) then
@@ -747,7 +747,7 @@ implementation
                   expectloc:=LOC_REGISTER;
                end
 {$endif cpu64bit}
-             else if (left.resulttype.def.deftype=orddef) then
+             else if (left.resultdef.deftype=orddef) then
                begin
                   if (left.expectloc<>LOC_REGISTER) and
                      (registersint<1) then
@@ -777,7 +777,7 @@ implementation
       var
         v : tconstexprint;
         t : tnode;
-        tt : ttype;
+        def : tdef;
       begin
         result:=nil;
         { Try optmimizing ourself away }
@@ -794,7 +794,7 @@ implementation
            { Not of boolean expression. Turn around the operator and remove
              the not. This is not allowed for sets with the gten/lten,
              because there is no ltn/gtn support }
-           if (taddnode(left).left.resulttype.def.deftype<>setdef) or
+           if (taddnode(left).left.resultdef.deftype<>setdef) or
               (left.nodetype in [equaln,unequaln]) then
             begin
               result:=left;
@@ -808,8 +808,8 @@ implementation
         if (left.nodetype=ordconstn) then
           begin
              v:=tordconstnode(left).value;
-             tt:=left.resulttype;
-             case torddef(left.resulttype.def).typ of
+             def:=left.resultdef;
+             case torddef(left.resultdef).typ of
                bool8bit,
                bool16bit,
                bool32bit,
@@ -831,52 +831,52 @@ implementation
                u64bit :
                  begin
                    v:=int64(not int64(v)); { maybe qword is required }
-                   int_to_type(v,tt);
+                   int_to_type(v,def);
                  end;
                else
                  CGMessage(type_e_mismatch);
              end;
-             t:=cordconstnode.create(v,tt,true);
+             t:=cordconstnode.create(v,def,true);
              result:=t;
              exit;
           end;
       end;
 
 
-    function tnotnode.det_resulttype : tnode;
+    function tnotnode.pass_typecheck : tnode;
       var
          t : tnode;
       begin
          result:=nil;
-         resulttypepass(left);
+         typecheckpass(left);
          set_varstate(left,vs_read,[]);
          if codegenerror then
            exit;
 
-         resulttype:=left.resulttype;
+         resultdef:=left.resultdef;
 
          result:=simplify;
          if assigned(result) then
            exit;
 
-         if is_boolean(resulttype.def) then
+         if is_boolean(resultdef) then
            begin
            end
          else
 {$ifdef SUPPORT_MMX}
            if (cs_mmx in aktlocalswitches) and
-             is_mmx_able_array(left.resulttype.def) then
+             is_mmx_able_array(left.resultdef) then
              begin
              end
          else
 {$endif SUPPORT_MMX}
 {$ifndef cpu64bit}
-           if is_64bitint(left.resulttype.def) then
+           if is_64bitint(left.resultdef) then
              begin
              end
          else
 {$endif cpu64bit}
-           if is_integer(left.resulttype.def) then
+           if is_integer(left.resultdef) then
              begin
              end
          else
@@ -906,7 +906,7 @@ implementation
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
-         if is_boolean(resulttype.def) then
+         if is_boolean(resultdef) then
            begin
              if (expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
               begin
@@ -924,7 +924,7 @@ implementation
          else
 {$ifdef SUPPORT_MMX}
            if (cs_mmx in aktlocalswitches) and
-             is_mmx_able_array(left.resulttype.def) then
+             is_mmx_able_array(left.resultdef) then
              begin
                if (left.expectloc<>LOC_MMXREGISTER) and
                  (registersmmx<1) then
@@ -933,7 +933,7 @@ implementation
          else
 {$endif SUPPORT_MMX}
 {$ifndef cpu64bit}
-           if is_64bit(left.resulttype.def) then
+           if is_64bit(left.resultdef) then
              begin
                 if (expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
                  begin
@@ -944,7 +944,7 @@ implementation
              end
          else
 {$endif cpu64bit}
-           if is_integer(left.resulttype.def) then
+           if is_integer(left.resultdef) then
              begin
                if (left.expectloc<>LOC_REGISTER) and
                   (registersint<1) then
@@ -959,8 +959,8 @@ implementation
         track_state_pass:=true;
         if left.track_state_pass(exec_known) then
           begin
-            left.resulttype.def:=nil;
-            do_resulttypepass(left);
+            left.resultdef:=nil;
+            do_typecheckpass(left);
           end;
       end;
 {$endif}

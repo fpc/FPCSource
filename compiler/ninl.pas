@@ -36,9 +36,9 @@ interface
           constructor create(number : byte;is_const:boolean;l : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function docompare(p: tnode): boolean; override;
 
           { pack and unpack are changed into for-loops by the compiler }
@@ -120,11 +120,11 @@ implementation
       end;
 
 
-    function tinlinenode._getcopy : tnode;
+    function tinlinenode.dogetcopy : tnode;
       var
          n : tinlinenode;
       begin
-         n:=tinlinenode(inherited _getcopy);
+         n:=tinlinenode(inherited dogetcopy);
          n.inlinenumber:=inlinenumber;
          result:=n;
       end;
@@ -169,12 +169,12 @@ implementation
             exit;
           end;
 
-        is_real := source.resulttype.def.deftype = floatdef;
+        is_real := source.resultdef.deftype = floatdef;
 
-        if ((dest.left.resulttype.def.deftype<>stringdef) and
-            not(is_chararray(dest.left.resulttype.def))) or
+        if ((dest.left.resultdef.deftype<>stringdef) and
+            not(is_chararray(dest.left.resultdef))) or
            not(is_real or
-               (source.left.resulttype.def.deftype = orddef)) then
+               (source.left.resultdef.deftype = orddef)) then
           begin
             CGMessagePos(fileinfo,parser_e_illegal_expression);
             exit;
@@ -189,10 +189,10 @@ implementation
 
             { we can let the callnode do the type checking of these parameters too, }
             { but then the error messages aren't as nice                            }
-            if not is_integer(lenpara.resulttype.def) then
+            if not is_integer(lenpara.resultdef) then
               begin
                 CGMessagePos1(lenpara.fileinfo,
-                  type_e_integer_expr_expected,lenpara.resulttype.def.typename);
+                  type_e_integer_expr_expected,lenpara.resultdef.typename);
                 exit;
               end;
             if (cpf_is_colon_para in tcallparanode(lenpara.right).callparaflags) then
@@ -205,10 +205,10 @@ implementation
                     CGMessagePos(lenpara.fileinfo,parser_e_illegal_colon_qualifier);
                     exit
                   end;
-                if not is_integer(lenpara.resulttype.def) then
+                if not is_integer(lenpara.resultdef) then
                   begin
                     CGMessagePos1(lenpara.fileinfo,
-                      type_e_integer_expr_expected,lenpara.resulttype.def.typename);
+                      type_e_integer_expr_expected,lenpara.resultdef.typename);
                     exit;
                   end;
               end;
@@ -222,7 +222,7 @@ implementation
           begin
             { insert realtype parameter }
             newparas.right := ccallparanode.create(cordconstnode.create(
-              ord(tfloatdef(source.left.resulttype.def).typ),s32inttype,true),
+              ord(tfloatdef(source.left.resultdef).typ),s32inttype,true),
                newparas.right);
             { if necessary, insert a fraction parameter }
             if not assigned(fracpara) then
@@ -249,14 +249,14 @@ implementation
         left := nil;
 
         { create procedure name }
-        if is_chararray(dest.resulttype.def) then
+        if is_chararray(dest.resultdef) then
           procname:='fpc_chararray_'
         else
-          procname := 'fpc_' + tstringdef(dest.resulttype.def).stringtypname+'_';
+          procname := 'fpc_' + tstringdef(dest.resultdef).stringtypname+'_';
         if is_real then
           procname := procname + 'float'
         else
-          case torddef(source.resulttype.def).typ of
+          case torddef(source.resultdef).typ of
 {$ifdef cpu64bit}
             u64bit:
               procname := procname + 'uint';
@@ -290,7 +290,7 @@ implementation
         {   parameter is gets lifted out of its original tcallparanode (see round }
         {   line 1306 of ncal.pas), so recreate a tcallparanode here (JM)         }
         left := ccallparanode.create(cordconstnode.create(
-          tfiledef(left.resulttype.def).typedfiletype.def.size,s32inttype,true),
+          tfiledef(left.resultdef).typedfiledef.size,s32inttype,true),
           ccallparanode.create(left,nil));
         { create the correct call }
         if inlinenumber=in_reset_typedfile then
@@ -322,7 +322,7 @@ implementation
         procprefix,
         name          : string[31];
         textsym       : ttypesym;
-        readfunctype  : ttype;
+        readfunctype  : tdef;
         is_typed,
         do_read,
         is_real,
@@ -347,16 +347,16 @@ implementation
             { check if we have a file parameter and if yes, what kind it is }
             filepara := tcallparanode(left);
 
-            if (filepara.resulttype.def.deftype=filedef) then
+            if (filepara.resultdef.deftype=filedef) then
               begin
-                if (tfiledef(filepara.resulttype.def).filetyp=ft_untyped) then
+                if (tfiledef(filepara.resultdef).filetyp=ft_untyped) then
                   begin
                     CGMessagePos(fileinfo,type_e_no_read_write_for_untyped_file);
                     exit;
                   end
                 else
                   begin
-                    if (tfiledef(filepara.resulttype.def).filetyp=ft_typed) then
+                    if (tfiledef(filepara.resultdef).filetyp=ft_typed) then
                       begin
                         if (inlinenumber in [in_readln_x,in_writeln_x]) then
                           begin
@@ -381,15 +381,15 @@ implementation
           begin
             { since the input/output variables are threadvars loading them into
               a temp once is faster. Create a temp which will hold a pointer to the file }
-            filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,true);
+            filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
             addstatement(newstatement,filetemp);
 
-            { make sure the resulttype of the temp (and as such of the }
+            { make sure the resultdef of the temp (and as such of the }
             { temprefs coming after it) is set (necessary because the  }
             { temprefs will be part of the filepara, of which we need  }
-            { the resulttype later on and temprefs can only be         }
-            { resulttypepassed if the resulttype of the temp is known) }
-            resulttypepass(tnode(filetemp));
+            { the resultdef later on and temprefs can only be         }
+            { typecheckpassed if the resultdef of the temp is known) }
+            typecheckpass(tnode(filetemp));
 
             { assign the address of the file to the temp }
             if do_read then
@@ -405,7 +405,7 @@ implementation
             { to the read/write routine)                                 }
             textsym:=search_system_type('TEXT');
             filepara := ccallparanode.create(ctypeconvnode.create_internal(
-              cderefnode.create(ctemprefnode.create(filetemp)),textsym.restype),nil);
+              cderefnode.create(ctemprefnode.create(filetemp)),textsym.typedef),nil);
           end
         else
           { remove filepara from the parameter chain }
@@ -419,28 +419,28 @@ implementation
             if (filepara.left.nodetype <> loadn) then
               begin
                 { create a temp which will hold a pointer to the file }
-                filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,true);
+                filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
 
                 { add it to the statements }
                 addstatement(newstatement,filetemp);
 
-                { make sure the resulttype of the temp (and as such of the }
+                { make sure the resultdef of the temp (and as such of the }
                 { temprefs coming after it) is set (necessary because the  }
                 { temprefs will be part of the filepara, of which we need  }
-                { the resulttype later on and temprefs can only be         }
-                { resulttypepassed if the resulttype of the temp is known) }
-                resulttypepass(tnode(filetemp));
+                { the resultdef later on and temprefs can only be         }
+                { typecheckpassed if the resultdef of the temp is known) }
+                typecheckpass(tnode(filetemp));
 
                 { assign the address of the file to the temp }
                 addstatement(newstatement,
                   cassignmentnode.create(ctemprefnode.create(filetemp),
                     caddrnode.create_internal(filepara.left)));
-                resulttypepass(newstatement.left);
+                typecheckpass(newstatement.left);
                 { create a new fileparameter as follows: file_type(temp^)    }
                 { (so that we pass the value and not the address of the temp }
                 { to the read/write routine)                                 }
                 nextpara := ccallparanode.create(ctypeconvnode.create_internal(
-                  cderefnode.create(ctemprefnode.create(filetemp)),filepara.left.resulttype),nil);
+                  cderefnode.create(ctemprefnode.create(filetemp)),filepara.left.resultdef),nil);
 
                 { replace the old file para with the new one }
                 filepara.left := nil;
@@ -449,7 +449,7 @@ implementation
               end;
           end;
 
-        { the resulttype of the filepara must be set since it's }
+        { the resultdef of the filepara must be set since it's }
         { used below                                            }
         filepara.get_paratype;
 
@@ -470,9 +470,9 @@ implementation
         if is_typed then
           begin
             { add the typesize to the filepara }
-            if filepara.resulttype.def.deftype=filedef then
+            if filepara.resultdef.deftype=filedef then
               filepara.right := ccallparanode.create(cordconstnode.create(
-                tfiledef(filepara.resulttype.def).typedfiletype.def.size,s32inttype,true),nil);
+                tfiledef(filepara.resultdef).typedfiledef.size,s32inttype,true),nil);
 
             { check for "no parameters" (you need at least one extra para for typed files) }
             if not assigned(para) then
@@ -492,15 +492,15 @@ implementation
                   end;
 
                 { support writeln(procvar) }
-                if (para.left.resulttype.def.deftype=procvardef) then
+                if (para.left.resultdef.deftype=procvardef) then
                   begin
                     p1:=ccallnode.create_procvar(nil,para.left);
-                    resulttypepass(p1);
+                    typecheckpass(p1);
                     para.left:=p1;
                   end;
 
-                if filepara.resulttype.def.deftype=filedef then
-                  inserttypeconv(para.left,tfiledef(filepara.resulttype.def).typedfiletype);
+                if filepara.resultdef.deftype=filedef then
+                  inserttypeconv(para.left,tfiledef(filepara.resultdef).typedfiledef);
 
                 if assigned(para.right) and
                    (cpf_is_colon_para in tcallparanode(para.right).callparaflags) then
@@ -532,8 +532,8 @@ implementation
                    (para.left.nodetype <> loadn) then
                   begin
                     { create temp for result }
-                    temp := ctempcreatenode.create(para.left.resulttype,
-                      para.left.resulttype.def.size,tt_persistent,false);
+                    temp := ctempcreatenode.create(para.left.resultdef,
+                      para.left.resultdef.size,tt_persistent,false);
                     addstatement(newstatement,temp);
                     { assign result to temp }
                     addstatement(newstatement,
@@ -572,7 +572,7 @@ implementation
                 is_real:=false;
                 { type used for the read(), this is used to check
                   whether a temp is needed for range checking }
-                readfunctype.reset;
+                readfunctype:=nil;
 
                 { can't read/write types }
                 if para.left.nodetype=typen then
@@ -582,25 +582,25 @@ implementation
                   end;
 
                 { support writeln(procvar) }
-                if (para.left.resulttype.def.deftype=procvardef) then
+                if (para.left.resultdef.deftype=procvardef) then
                   begin
                     p1:=ccallnode.create_procvar(nil,para.left);
-                    resulttypepass(p1);
+                    typecheckpass(p1);
                     para.left:=p1;
                   end;
 
                 { Currency will be written using the bestreal }
-                if is_currency(para.left.resulttype.def) then
+                if is_currency(para.left.resultdef) then
                   inserttypeconv(para.left,pbestrealtype^);
 
-                case para.left.resulttype.def.deftype of
+                case para.left.resultdef.deftype of
                   stringdef :
                     begin
-                      name := procprefix+tstringdef(para.left.resulttype.def).stringtypname;
+                      name := procprefix+tstringdef(para.left.resultdef).stringtypname;
                     end;
                   pointerdef :
                     begin
-                      if (not is_pchar(para.left.resulttype.def)) or do_read then
+                      if (not is_pchar(para.left.resultdef)) or do_read then
                         begin
                           CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
                           error_para := true;
@@ -616,7 +616,7 @@ implementation
                     end;
                   orddef :
                     begin
-                      case torddef(para.left.resulttype.def).typ of
+                      case torddef(para.left.resultdef).typ of
 {$ifdef cpu64bit}
                         s64bit,
 {$endif cpu64bit}
@@ -686,7 +686,7 @@ implementation
                     name:=procprefix+'variant';
                   arraydef :
                     begin
-                      if is_chararray(para.left.resulttype.def) then
+                      if is_chararray(para.left.resultdef) then
                         name := procprefix+'pchar_as_array'
                       else
                         begin
@@ -769,7 +769,7 @@ implementation
                             { and add the realtype para (this also removes the link }
                             { to any parameters coming after it)                    }
                             fracpara.right := ccallparanode.create(
-                                cordconstnode.create(ord(tfloatdef(para.left.resulttype.def).typ),
+                                cordconstnode.create(ord(tfloatdef(para.left.resultdef).typ),
                                 sinttype,true),nil);
                           end;
                       end;
@@ -779,11 +779,11 @@ implementation
                     { use functions because then the call to FPC_IOCHECK destroys     }
                     { their result before we can store it                             }
                     if do_read and
-                       assigned(readfunctype.def) and
-                       (para.left.resulttype.def<>readfunctype.def) then
+                       assigned(readfunctype) and
+                       (para.left.resultdef<>readfunctype) then
                       begin
                         { create the parameter list: the temp ... }
-                        temp := ctempcreatenode.create(readfunctype,readfunctype.def.size,tt_persistent,false);
+                        temp := ctempcreatenode.create(readfunctype,readfunctype.size,tt_persistent,false);
                         addstatement(newstatement,temp);
 
                         { ... and the file }
@@ -821,9 +821,9 @@ implementation
                         tcallparanode(para.right).right := lenpara;
                         { in case of writing a chararray, add whether it's }
                         { zero-based                                       }
-                        if (para.left.resulttype.def.deftype = arraydef) then
+                        if (para.left.resultdef.deftype = arraydef) then
                           para := ccallparanode.create(cordconstnode.create(
-                            ord(tarraydef(para.left.resulttype.def).lowrange=0),booltype,false),para);
+                            ord(tarraydef(para.left.resultdef).lowrange=0),booltype,false),para);
                         { create the call statement }
                         addstatement(newstatement,
                           ccallnode.createintern(name,para));
@@ -923,18 +923,18 @@ implementation
         { check if codepara is valid }
         if assigned(codepara) and
            (
-            (codepara.resulttype.def.deftype <> orddef)
+            (codepara.resultdef.deftype <> orddef)
 {$ifndef cpu64bit}
-            or is_64bitint(codepara.resulttype.def)
+            or is_64bitint(codepara.resultdef)
 {$endif cpu64bit}
             ) then
           begin
-            CGMessagePos1(codepara.fileinfo,type_e_integer_expr_expected,codepara.resulttype.def.typename);
+            CGMessagePos1(codepara.fileinfo,type_e_integer_expr_expected,codepara.resultdef.typename);
             exit;
           end;
 
         { check if dest para is valid }
-        if not(destpara.resulttype.def.deftype in [orddef,floatdef]) then
+        if not(destpara.resultdef.deftype in [orddef,floatdef]) then
           begin
             CGMessagePos(destpara.fileinfo,type_e_integer_or_real_expr_expected);
             exit;
@@ -953,13 +953,13 @@ implementation
         { code is not a 32bit parameter (we already checked whether the }
         { the code para, if specified, was an orddef)                   }
         if not assigned(codepara) or
-           (codepara.resulttype.def.size<>sinttype.def.size) then
+           (codepara.resultdef.size<>sinttype.size) then
           begin
-            tempcode := ctempcreatenode.create(sinttype,sinttype.def.size,tt_persistent,false);
+            tempcode := ctempcreatenode.create(sinttype,sinttype.size,tt_persistent,false);
             addstatement(newstatement,tempcode);
-            { set the resulttype of the temp (needed to be able to get }
-            { the resulttype of the tempref used in the new code para) }
-            resulttypepass(tnode(tempcode));
+            { set the resultdef of the temp (needed to be able to get }
+            { the resultdef of the tempref used in the new code para) }
+            typecheckpass(tnode(tempcode));
             { create a temp codepara, but save the original code para to }
             { assign the result to later on                              }
             if assigned(codepara) then
@@ -969,10 +969,10 @@ implementation
               end
             else
               codepara := ccallparanode.create(ctemprefnode.create(tempcode),nil);
-            { we need its resulttype later on }
+            { we need its resultdef later on }
             codepara.get_paratype;
           end
-        else if (torddef(codepara.resulttype.def).typ = torddef(sinttype.def).typ) then
+        else if (torddef(codepara.resultdef).typ = torddef(sinttype).typ) then
           { because code is a var parameter, it must match types exactly    }
           { however, since it will return values in [0..255], both longints }
           { and cardinals are fine. Since the formal code para type is      }
@@ -988,10 +988,10 @@ implementation
         { create the procedure name }
         procname := 'fpc_val_';
 
-        case destpara.resulttype.def.deftype of
+        case destpara.resultdef.deftype of
           orddef:
             begin
-              case torddef(destpara.resulttype.def).typ of
+              case torddef(destpara.resultdef).typ of
 {$ifdef cpu64bit}
                 scurrency,
                 s64bit,
@@ -1003,7 +1003,7 @@ implementation
                     suffix := 'sint_';
                     { we also need a destsize para in this case }
                     sizepara := ccallparanode.create(cordconstnode.create
-                      (destpara.resulttype.def.size,s32inttype,true),nil);
+                      (destpara.resultdef.size,s32inttype,true),nil);
                   end;
 {$ifdef cpu64bit}
                 u64bit,
@@ -1031,8 +1031,8 @@ implementation
 
         { play a trick to have tcallnode handle invalid source parameters: }
         { the shortstring-longint val routine by default                   }
-        if (sourcepara.resulttype.def.deftype = stringdef) then
-          procname := procname + tstringdef(sourcepara.resulttype.def).stringtypname
+        if (sourcepara.resultdef.deftype = stringdef) then
+          procname := procname + tstringdef(sourcepara.resultdef).stringtypname
         else
           procname := procname + 'shortstr';
 
@@ -1048,11 +1048,11 @@ implementation
 
         { create the call and assign the result to dest (val helpers are functions).
           Use a trick to prevent a type size mismatch warning to be generated by the
-          assignment node. First convert implicitly to the resulttype. This will insert
+          assignment node. First convert implicitly to the resultdef. This will insert
           the range check. The Second conversion is done explicitly to hide the implicit conversion
           for the assignment node and therefor preventing the warning (PFV) }
         addstatement(newstatement,cassignmentnode.create(
-          destpara.left,ctypeconvnode.create_internal(ctypeconvnode.create(ccallnode.createintern(procname,newparas),destpara.left.resulttype),destpara.left.resulttype)));
+          destpara.left,ctypeconvnode.create_internal(ctypeconvnode.create(ccallnode.createintern(procname,newparas),destpara.left.resultdef),destpara.left.resultdef)));
 
         { dispose of the enclosing paranode of the destination }
         destpara.left := nil;
@@ -1065,7 +1065,7 @@ implementation
           addstatement(newstatement,cassignmentnode.create(
               orgcode,
               ctypeconvnode.create_internal(
-                ctemprefnode.create(tempcode),orgcode.resulttype)));
+                ctemprefnode.create(tempcode),orgcode.resultdef)));
 
         { release the temp if we allocated one }
         if assigned(tempcode) then
@@ -1094,27 +1094,27 @@ implementation
       end;
 
 
-    function tinlinenode.det_resulttype:tnode;
+    function tinlinenode.pass_typecheck:tnode;
 
-        function do_lowhigh(const t:ttype) : tnode;
+        function do_lowhigh(def:tdef) : tnode;
         var
            v    : tconstexprint;
            enum : tenumsym;
            hp   : tnode;
         begin
-           case t.def.deftype of
+           case def.deftype of
              orddef:
                begin
                   if inlinenumber=in_low_x then
-                    v:=torddef(t.def).low
+                    v:=torddef(def).low
                   else
-                    v:=torddef(t.def).high;
+                    v:=torddef(def).high;
                   { low/high of torddef are longints, so we need special }
                   { handling for cardinal and 64bit types (JM)           }
                   { 1.0.x doesn't support int64($ffffffff) correct, it'll expand
                     to -1 instead of staying $ffffffff. Therefor we use $ffff with
                     shl twice (PFV) }
-                  case torddef(t.def).typ of
+                  case torddef(def).typ of
                     s64bit,scurrency :
                       begin
                         if (inlinenumber=in_low_x) then
@@ -1130,22 +1130,22 @@ implementation
                       end
                     else
                       begin
-                        if not is_signed(t.def) then
+                        if not is_signed(def) then
                           v := cardinal(v);
                       end;
                   end;
-                  hp:=cordconstnode.create(v,t,true);
-                  resulttypepass(hp);
+                  hp:=cordconstnode.create(v,def,true);
+                  typecheckpass(hp);
                   { fix high(qword) }
-                  if (torddef(t.def).typ=u64bit) and
+                  if (torddef(def).typ=u64bit) and
                      (inlinenumber = in_high_x) then
                     tordconstnode(hp).value := -1; { is the same as qword($ffffffffffffffff) }
                   do_lowhigh:=hp;
                end;
              enumdef:
                begin
-                  enum:=tenumsym(tenumdef(t.def).firstenum);
-                  v:=tenumdef(t.def).maxval;
+                  enum:=tenumsym(tenumdef(def).firstenum);
+                  v:=tenumdef(def).maxval;
                   if inlinenumber=in_high_x then
                     while assigned(enum) and (enum.value <> v) do
                       enum:=enum.nextenum;
@@ -1215,15 +1215,15 @@ implementation
           end;
 
 
-      procedure setfloatresulttype;
+      procedure setfloatresultdef;
         begin
-          if (left.resulttype.def.deftype=floatdef) and
-            (tfloatdef(left.resulttype.def).typ in [s32real,s64real,s80real,s128real]) then
-            resulttype:=left.resulttype
+          if (left.resultdef.deftype=floatdef) and
+            (tfloatdef(left.resultdef).typ in [s32real,s64real,s80real,s128real]) then
+            resultdef:=left.resultdef
           else
             begin
               inserttypeconv(left,pbestrealtype^);
-              resulttype:=pbestrealtype^;
+              resultdef:=pbestrealtype^;
             end;
         end;
 
@@ -1234,7 +1234,7 @@ implementation
           unpackedarraydef, packedarraydef: tarraydef;
           tempindex: TConstExprInt;
         begin
-          resulttype:=voidtype;
+          resultdef:=voidtype;
 
           unpackedarraydef := nil;
           packedarraydef := nil;
@@ -1245,16 +1245,16 @@ implementation
               index := tcallparanode(target.right);
 
               { source must be a packed array }
-              if not is_packed_array(source.left.resulttype.def) then
-                CGMessagePos2(source.left.fileinfo,type_e_got_expected_packed_array,'1',source.left.resulttype.def.gettypename)
+              if not is_packed_array(source.left.resultdef) then
+                CGMessagePos2(source.left.fileinfo,type_e_got_expected_packed_array,'1',source.left.resultdef.GetTypeName)
               else
-                packedarraydef := tarraydef(source.left.resulttype.def);
+                packedarraydef := tarraydef(source.left.resultdef);
               { target can be any kind of array, as long as it's not packed }
-              if (target.left.resulttype.def.deftype <> arraydef) or
-                 is_packed_array(target.left.resulttype.def) then
-                CGMessagePos2(target.left.fileinfo,type_e_got_expected_unpacked_array,'2',target.left.resulttype.def.gettypename)
+              if (target.left.resultdef.deftype <> arraydef) or
+                 is_packed_array(target.left.resultdef) then
+                CGMessagePos2(target.left.fileinfo,type_e_got_expected_unpacked_array,'2',target.left.resultdef.GetTypeName)
               else
-                unpackedarraydef := tarraydef(target.left.resulttype.def);
+                unpackedarraydef := tarraydef(target.left.resultdef);
             end
           else
             begin
@@ -1262,22 +1262,22 @@ implementation
               target := tcallparanode(index.right);
 
               { source can be any kind of array, as long as it's not packed }
-              if (source.left.resulttype.def.deftype <> arraydef) or
-                 is_packed_array(source.left.resulttype.def) then
-                CGMessagePos2(source.left.fileinfo,type_e_got_expected_unpacked_array,'1',source.left.resulttype.def.gettypename)
+              if (source.left.resultdef.deftype <> arraydef) or
+                 is_packed_array(source.left.resultdef) then
+                CGMessagePos2(source.left.fileinfo,type_e_got_expected_unpacked_array,'1',source.left.resultdef.GetTypeName)
               else
-                unpackedarraydef := tarraydef(source.left.resulttype.def);
+                unpackedarraydef := tarraydef(source.left.resultdef);
               { target must be a packed array }
-              if not is_packed_array(target.left.resulttype.def) then
-                CGMessagePos2(target.left.fileinfo,type_e_got_expected_packed_array,'3',target.left.resulttype.def.gettypename)
+              if not is_packed_array(target.left.resultdef) then
+                CGMessagePos2(target.left.fileinfo,type_e_got_expected_packed_array,'3',target.left.resultdef.GetTypeName)
               else
-                packedarraydef := tarraydef(target.left.resulttype.def);
+                packedarraydef := tarraydef(target.left.resultdef);
             end;
 
           if assigned(unpackedarraydef) then
             begin
               { index must be compatible with the unpacked array's indextype }
-              inserttypeconv(index.left,unpackedarraydef.rangetype);
+              inserttypeconv(index.left,unpackedarraydef.rangedef);
 
               { range check at compile time if possible }
               if assigned(packedarraydef) and
@@ -1317,7 +1317,7 @@ implementation
              if left.nodetype=callparan then
                tcallparanode(left).get_paratype
              else
-               resulttypepass(left);
+               typecheckpass(left);
            end;
          inc(parsing_para_level);
 
@@ -1335,7 +1335,7 @@ implementation
                  realconstn :
                    begin
                      { Real functions are all handled with internproc below }
-                     CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename)
+                     CGMessage1(type_e_integer_expr_expected,left.resultdef.typename)
                    end;
                  ordconstn :
                    vl:=tordconstnode(left).value;
@@ -1356,11 +1356,11 @@ implementation
                  in_const_odd :
                    hp:=cordconstnode.create(byte(odd(vl)),booltype,true);
                  in_const_swap_word :
-                   hp:=cordconstnode.create((vl and $ff) shl 8+(vl shr 8),left.resulttype,true);
+                   hp:=cordconstnode.create((vl and $ff) shl 8+(vl shr 8),left.resultdef,true);
                  in_const_swap_long :
-                   hp:=cordconstnode.create((vl and $ffff) shl 16+(vl shr 16),left.resulttype,true);
+                   hp:=cordconstnode.create((vl and $ffff) shl 16+(vl shr 16),left.resultdef,true);
                  in_const_swap_qword :
-                   hp:=cordconstnode.create((vl and $ffff) shl 32+(vl shr 32),left.resulttype,true);
+                   hp:=cordconstnode.create((vl and $ffff) shl 32+(vl shr 32),left.resultdef,true);
                  in_const_ptr :
                    hp:=cpointerconstnode.create((vl2 shl 4)+vl,voidfarpointertype);
                  else
@@ -1392,34 +1392,34 @@ implementation
                    begin
                      case inlinenumber of
                        in_lo_word :
-                         hp:=cordconstnode.create(tordconstnode(left).value and $ff,left.resulttype,true);
+                         hp:=cordconstnode.create(tordconstnode(left).value and $ff,left.resultdef,true);
                        in_hi_word :
-                         hp:=cordconstnode.create(tordconstnode(left).value shr 8,left.resulttype,true);
+                         hp:=cordconstnode.create(tordconstnode(left).value shr 8,left.resultdef,true);
                        in_lo_long :
-                         hp:=cordconstnode.create(tordconstnode(left).value and $ffff,left.resulttype,true);
+                         hp:=cordconstnode.create(tordconstnode(left).value and $ffff,left.resultdef,true);
                        in_hi_long :
-                         hp:=cordconstnode.create(tordconstnode(left).value shr 16,left.resulttype,true);
+                         hp:=cordconstnode.create(tordconstnode(left).value shr 16,left.resultdef,true);
                        in_lo_qword :
-                         hp:=cordconstnode.create(tordconstnode(left).value and $ffffffff,left.resulttype,true);
+                         hp:=cordconstnode.create(tordconstnode(left).value and $ffffffff,left.resultdef,true);
                        in_hi_qword :
-                         hp:=cordconstnode.create(tordconstnode(left).value shr 32,left.resulttype,true);
+                         hp:=cordconstnode.create(tordconstnode(left).value shr 32,left.resultdef,true);
                      end;
                      result:=hp;
                      goto myexit;
                    end;
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
-                  if not is_integer(left.resulttype.def) then
-                    CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename);
+                  if not is_integer(left.resultdef) then
+                    CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
                   case inlinenumber of
                     in_lo_word,
                     in_hi_word :
-                      resulttype:=u8inttype;
+                      resultdef:=u8inttype;
                     in_lo_long,
                     in_hi_long :
-                      resulttype:=u16inttype;
+                      resultdef:=u16inttype;
                     in_lo_qword,
                     in_hi_qword :
-                      resulttype:=u32inttype;
+                      resultdef:=u32inttype;
                   end;
                 end;
 
@@ -1427,34 +1427,34 @@ implementation
               in_sizeof_x:
                 begin
                   set_varstate(left,vs_read,[]);
-                  if paramanager.push_high_param(vs_value,left.resulttype.def,current_procinfo.procdef.proccalloption) then
+                  if paramanager.push_high_param(vs_value,left.resultdef,current_procinfo.procdef.proccalloption) then
                    begin
                      hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                      if assigned(hightree) then
                       begin
                         hp:=caddnode.create(addn,hightree,
                                          cordconstnode.create(1,sinttype,false));
-                        if (left.resulttype.def.deftype=arraydef) then
-                          if not is_packed_array(tarraydef(left.resulttype.def)) then
+                        if (left.resultdef.deftype=arraydef) then
+                          if not is_packed_array(tarraydef(left.resultdef)) then
                             begin
-                              if (tarraydef(left.resulttype.def).elesize<>1) then
+                              if (tarraydef(left.resultdef).elesize<>1) then
                                 hp:=caddnode.create(muln,hp,cordconstnode.create(tarraydef(
-                                  left.resulttype.def).elesize,sinttype,true));
+                                  left.resultdef).elesize,sinttype,true));
                             end
-                          else if (tarraydef(left.resulttype.def).elepackedbitsize <> 8) then
+                          else if (tarraydef(left.resultdef).elepackedbitsize <> 8) then
                             begin
                               { no packed open array support yet }
                               if (hp.nodetype <> ordconstn) then
                                 internalerror(2006081511);
                               hp.free;
-                              hp := cordconstnode.create(left.resulttype.def.size,sinttype,true);
+                              hp := cordconstnode.create(left.resultdef.size,sinttype,true);
 {
                               hp:=
                                  ctypeconvnode.create_explicit(sinttype,
                                    cmoddivnode.create(divn,
                                      caddnode.create(addn,
                                        caddnode.create(muln,hp,cordconstnode.create(tarraydef(
-                                         left.resulttype.def).elepackedbitsize,s64inttype,true)),
+                                         left.resultdef).elepackedbitsize,s64inttype,true)),
                                        cordconstnode.create(a,s64inttype,true)),
                                      cordconstnode.create(8,s64inttype,true)),
                                    sinttype);
@@ -1464,13 +1464,13 @@ implementation
                       end;
                    end
                   else
-                   resulttype:=sinttype;
+                   resultdef:=sinttype;
                 end;
 
               in_typeof_x:
                 begin
                   set_varstate(left,vs_read,[]);
-                  resulttype:=voidpointertype;
+                  resultdef:=voidpointertype;
                 end;
 
               in_ord_x:
@@ -1483,10 +1483,10 @@ implementation
                       goto myexit;
                     end;
                    set_varstate(left,vs_read,[vsf_must_be_valid]);
-                   case left.resulttype.def.deftype of
+                   case left.resultdef.deftype of
                      orddef :
                        begin
-                         case torddef(left.resulttype.def).typ of
+                         case torddef(left.resultdef).typ of
                            bool8bit,
                            uchar:
                              begin
@@ -1518,7 +1518,7 @@ implementation
                                result:=hp;
                              end;
                            uvoid :
-                             CGMessage1(type_e_ordinal_expr_expected,left.resulttype.def.typename);
+                             CGMessage1(type_e_ordinal_expr_expected,left.resultdef.typename);
                            else
                              begin
                                { all other orddef need no transformation }
@@ -1543,10 +1543,10 @@ implementation
                              result:=hp;
                            end
                          else
-                           CGMessage1(type_e_ordinal_expr_expected,left.resulttype.def.typename);
+                           CGMessage1(type_e_ordinal_expr_expected,left.resultdef.typename);
                        end
                      else
-                       CGMessage1(type_e_ordinal_expr_expected,left.resulttype.def.typename);
+                       CGMessage1(type_e_ordinal_expr_expected,left.resultdef.typename);
                    end;
                 end;
 
@@ -1563,7 +1563,7 @@ implementation
                 begin
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
 
-                  case left.resulttype.def.deftype of
+                  case left.resultdef.deftype of
                     variantdef:
                       begin
                         inserttypeconv(left,cansistringtype);
@@ -1573,7 +1573,7 @@ implementation
                       begin
                         { we don't need string convertions here }
                         if (left.nodetype=typeconvn) and
-                           (ttypeconvnode(left).left.resulttype.def.deftype=stringdef) then
+                           (ttypeconvnode(left).left.resultdef.deftype=stringdef) then
                          begin
                            hp:=ttypeconvnode(left).left;
                            ttypeconvnode(left).left:=nil;
@@ -1593,8 +1593,8 @@ implementation
                     orddef :
                       begin
                         { length of char is one allways }
-                        if is_char(left.resulttype.def) or
-                           is_widechar(left.resulttype.def) then
+                        if is_char(left.resultdef) or
+                           is_widechar(left.resultdef) then
                          begin
                            hp:=cordconstnode.create(1,s32inttype,false);
                            result:=hp;
@@ -1605,7 +1605,7 @@ implementation
                       end;
                     pointerdef :
                       begin
-                        if is_pchar(left.resulttype.def) then
+                        if is_pchar(left.resultdef) then
                          begin
                             hp := ccallparanode.create(left,nil);
                             result := ccallnode.createintern('fpc_pchar_length',hp);
@@ -1614,7 +1614,7 @@ implementation
                             left:=nil;
                             goto myexit;
                          end
-                        else if is_pwidechar(left.resulttype.def) then
+                        else if is_pwidechar(left.resultdef) then
                          begin
                             hp := ccallparanode.create(left,nil);
                             result := ccallnode.createintern('fpc_pwidechar_length',hp);
@@ -1628,8 +1628,8 @@ implementation
                       end;
                     arraydef :
                       begin
-                        if is_open_array(left.resulttype.def) or
-                           is_array_of_const(left.resulttype.def) then
+                        if is_open_array(left.resultdef) or
+                           is_array_of_const(left.resultdef) then
                          begin
                            hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                            if assigned(hightree) then
@@ -1641,10 +1641,10 @@ implementation
                            goto myexit;
                          end
                         else
-                         if not is_dynamic_array(left.resulttype.def) then
+                         if not is_dynamic_array(left.resultdef) then
                           begin
-                            hp:=cordconstnode.create(tarraydef(left.resulttype.def).highrange-
-                                                      tarraydef(left.resulttype.def).lowrange+1,
+                            hp:=cordconstnode.create(tarraydef(left.resultdef).highrange-
+                                                      tarraydef(left.resultdef).lowrange+1,
                                                      s32inttype,true);
                             result:=hp;
                             goto myexit;
@@ -1665,16 +1665,16 @@ implementation
 
                   { shortstring return an 8 bit value as the length
                     is the first byte of the string }
-                  if is_shortstring(left.resulttype.def) then
-                   resulttype:=u8inttype
+                  if is_shortstring(left.resultdef) then
+                   resultdef:=u8inttype
                   else
-                   resulttype:=sinttype;
+                   resultdef:=sinttype;
                 end;
 
               in_typeinfo_x:
                 begin
                    set_varstate(left,vs_read,[vsf_must_be_valid]);
-                   resulttype:=voidpointertype;
+                   resultdef:=voidpointertype;
                 end;
 
               in_assigned_x:
@@ -1698,7 +1698,7 @@ implementation
                   { otherwise handle separately, because there could be a procvar, which }
                   { is 2*sizeof(pointer), while we must only check the first pointer     }
                   set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
-                  resulttype:=booltype;
+                  resultdef:=booltype;
                 end;
 
               in_ofs_x :
@@ -1715,19 +1715,19 @@ implementation
               in_succ_x:
                 begin
                    set_varstate(left,vs_read,[vsf_must_be_valid]);
-                   resulttype:=left.resulttype;
-                   if not is_ordinal(resulttype.def) then
+                   resultdef:=left.resultdef;
+                   if not is_ordinal(resultdef) then
                      CGMessage(type_e_ordinal_expr_expected)
                    else
                      begin
-                       if (resulttype.def.deftype=enumdef) and
-                          (tenumdef(resulttype.def).has_jumps) and
+                       if (resultdef.deftype=enumdef) and
+                          (tenumdef(resultdef).has_jumps) and
                           not(m_delphi in aktmodeswitches) then
                          CGMessage(type_e_succ_and_pred_enums_with_assign_not_possible);
                      end;
 
                    { only if the result is an enum do we do range checking }
-                   if (resulttype.def.deftype=enumdef) then
+                   if (resultdef.deftype=enumdef) then
                      checkrange := true
                    else
                      checkrange := false;
@@ -1736,9 +1736,9 @@ implementation
                    if left.nodetype=ordconstn then
                     begin
                       if inlinenumber=in_succ_x then
-                        result:=cordconstnode.create(tordconstnode(left).value+1,left.resulttype,checkrange)
+                        result:=cordconstnode.create(tordconstnode(left).value+1,left.resultdef,checkrange)
                       else
-                        result:=cordconstnode.create(tordconstnode(left).value-1,left.resulttype,checkrange);
+                        result:=cordconstnode.create(tordconstnode(left).value-1,left.resultdef,checkrange);
                     end;
                 end;
 
@@ -1753,26 +1753,26 @@ implementation
               in_inc_x,
               in_dec_x:
                 begin
-                  resulttype:=voidtype;
+                  resultdef:=voidtype;
                   if assigned(left) then
                     begin
                        { first param must be var }
                        valid_for_var(tcallparanode(left).left,true);
                        set_varstate(tcallparanode(left).left,vs_readwritten,[vsf_must_be_valid]);
 
-                       if (left.resulttype.def.deftype in [enumdef,pointerdef]) or
-                          is_ordinal(left.resulttype.def) or
-                          is_currency(left.resulttype.def) then
+                       if (left.resultdef.deftype in [enumdef,pointerdef]) or
+                          is_ordinal(left.resultdef) or
+                          is_currency(left.resultdef) then
                         begin
                           { value of left gets changed -> must be unique }
                           set_unique(tcallparanode(left).left);
                           { two paras ? }
                           if assigned(tcallparanode(left).right) then
                            begin
-                             if is_integer(tcallparanode(left).right.resulttype.def) then
+                             if is_integer(tcallparanode(left).right.resultdef) then
                                begin
                                  set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
-                                 inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resulttype);
+                                 inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef);
                                  if assigned(tcallparanode(tcallparanode(left).right).right) then
                                    { should be handled in the parser (JM) }
                                    internalerror(2006020901);
@@ -1798,10 +1798,10 @@ implementation
 
               in_settextbuf_file_x :
                 begin
-                  resulttype:=voidtype;
+                  resultdef:=voidtype;
                   { now we know the type of buffer }
                   hp:=ccallparanode.create(cordconstnode.create(
-                     tcallparanode(left).left.resulttype.def.size,s32inttype,true),left);
+                     tcallparanode(left).left.resultdef.size,s32inttype,true),left);
                   result:=ccallnode.createintern('SETTEXTBUF',hp);
                   left:=nil;
                 end;
@@ -1826,20 +1826,20 @@ implementation
               in_include_x_y,
               in_exclude_x_y:
                 begin
-                  resulttype:=voidtype;
+                  resultdef:=voidtype;
                   { the parser already checks whether we have two (and exactly two) }
                   { parameters (JM)                                                 }
                   { first param must be var }
                   valid_for_var(tcallparanode(left).left,true);
                   set_varstate(tcallparanode(left).left,vs_readwritten,[vsf_must_be_valid]);
                   { check type }
-                  if (left.resulttype.def.deftype=setdef) then
+                  if (left.resultdef.deftype=setdef) then
                     begin
                       { insert a type conversion       }
                       { to the type of the set elements  }
                       set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
                       inserttypeconv(tcallparanode(tcallparanode(left).right).left,
-                        tsetdef(left.resulttype.def).elementtype);
+                        tsetdef(left.resultdef).elementdef);
                     end
                   else
                     CGMessage(type_e_mismatch);
@@ -1853,47 +1853,47 @@ implementation
               in_slice_x:
                 begin
                   result:=nil;
-                  resulttype:=tcallparanode(left).left.resulttype;
-                  if (resulttype.def.deftype <> arraydef) then
+                  resultdef:=tcallparanode(left).left.resultdef;
+                  if (resultdef.deftype <> arraydef) then
                     CGMessagePos(left.fileinfo,type_e_mismatch)
-                  else if is_packed_array(resulttype.def) then
-                    CGMessagePos2(left.fileinfo,type_e_got_expected_unpacked_array,'1',resulttype.def.typename);
-                  if not(is_integer(tcallparanode(tcallparanode(left).right).left.resulttype.def)) then
+                  else if is_packed_array(resultdef) then
+                    CGMessagePos2(left.fileinfo,type_e_got_expected_unpacked_array,'1',resultdef.typename);
+                  if not(is_integer(tcallparanode(tcallparanode(left).right).left.resultdef)) then
                     CGMessagePos1(tcallparanode(left).right.fileinfo,
                       type_e_integer_expr_expected,
-                      tcallparanode(tcallparanode(left).right).left.resulttype.def.typename);
+                      tcallparanode(tcallparanode(left).right).left.resultdef.typename);
                 end;
 
               in_low_x,
               in_high_x:
                 begin
-                  case left.resulttype.def.deftype of
+                  case left.resultdef.deftype of
                     orddef,
                     enumdef:
                       begin
-                        result:=do_lowhigh(left.resulttype);
+                        result:=do_lowhigh(left.resultdef);
                       end;
                     setdef:
                       begin
-                        result:=do_lowhigh(tsetdef(left.resulttype.def).elementtype);
+                        result:=do_lowhigh(tsetdef(left.resultdef).elementdef);
                       end;
                     arraydef:
                       begin
                         if inlinenumber=in_low_x then
                          begin
                            result:=cordconstnode.create(tarraydef(
-                            left.resulttype.def).lowrange,tarraydef(left.resulttype.def).rangetype,true);
+                            left.resultdef).lowrange,tarraydef(left.resultdef).rangedef,true);
                          end
                         else
                          begin
-                           if is_open_array(left.resulttype.def) or
-                              is_array_of_const(left.resulttype.def) then
+                           if is_open_array(left.resultdef) or
+                              is_array_of_const(left.resultdef) then
                             begin
                               set_varstate(left,vs_read,[]);
                               result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
                             end
                            else
-                            if is_dynamic_array(left.resulttype.def) then
+                            if is_dynamic_array(left.resultdef) then
                               begin
                                 set_varstate(left,vs_read,[vsf_must_be_valid]);
                                 { can't use inserttypeconv because we need }
@@ -1907,7 +1907,7 @@ implementation
                            else
                             begin
                               result:=cordconstnode.create(tarraydef(
-                               left.resulttype.def).highrange,tarraydef(left.resulttype.def).rangetype,true);
+                               left.resultdef).highrange,tarraydef(left.resultdef).rangedef,true);
                             end;
                          end;
                       end;
@@ -1919,13 +1919,13 @@ implementation
                          end
                         else
                          begin
-                           if is_open_string(left.resulttype.def) then
+                           if is_open_string(left.resultdef) then
                             begin
                                set_varstate(left,vs_read,[]);
                                result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry))
                             end
                            else
-                             result:=cordconstnode.create(tstringdef(left.resulttype.def).len,u8inttype,true);
+                             result:=cordconstnode.create(tstringdef(left.resultdef).len,u8inttype,true);
                          end;
                      end;
                     else
@@ -1950,7 +1950,7 @@ implementation
                     begin
                       set_varstate(left,vs_read,[vsf_must_be_valid]);
                       inserttypeconv(left,pbestrealtype^);
-                      resulttype:=pbestrealtype^;
+                      resultdef:=pbestrealtype^;
                     end;
                 end;
 
@@ -1971,7 +1971,7 @@ implementation
                     begin
                       set_varstate(left,vs_read,[vsf_must_be_valid]);
                       inserttypeconv(left,pbestrealtype^);
-                      resulttype:=s64inttype;
+                      resultdef:=s64inttype;
                     end;
                 end;
 
@@ -1992,7 +1992,7 @@ implementation
                     begin
                       set_varstate(left,vs_read,[vsf_must_be_valid]);
                       inserttypeconv(left,pbestrealtype^);
-                      resulttype:=s64inttype;
+                      resultdef:=s64inttype;
                     end;
                 end;
 
@@ -2004,7 +2004,7 @@ implementation
                     begin
                       set_varstate(left,vs_read,[vsf_must_be_valid]);
                       inserttypeconv(left,pbestrealtype^);
-                      resulttype:=pbestrealtype^;
+                      resultdef:=pbestrealtype^;
                     end;
                 end;
 
@@ -2016,7 +2016,7 @@ implementation
                     begin
                       set_varstate(left,vs_read,[vsf_must_be_valid]);
                       inserttypeconv(left,pbestrealtype^);
-                      resulttype:=pbestrealtype^;
+                      resultdef:=pbestrealtype^;
                     end;
                 end;
 
@@ -2025,7 +2025,7 @@ implementation
                   if block_type=bt_const then
                      setconstrealvalue(getpi)
                   else
-                     resulttype:=pbestrealtype^;
+                     resultdef:=pbestrealtype^;
                 end;
 
               in_cos_real :
@@ -2036,7 +2036,7 @@ implementation
                    begin
                      set_varstate(left,vs_read,[vsf_must_be_valid]);
                      inserttypeconv(left,pbestrealtype^);
-                     resulttype:=pbestrealtype^;
+                     resultdef:=pbestrealtype^;
                    end;
                 end;
 
@@ -2048,7 +2048,7 @@ implementation
                    begin
                      set_varstate(left,vs_read,[vsf_must_be_valid]);
                      inserttypeconv(left,pbestrealtype^);
-                     resulttype:=pbestrealtype^;
+                     resultdef:=pbestrealtype^;
                    end;
                 end;
 
@@ -2060,7 +2060,7 @@ implementation
                    begin
                      set_varstate(left,vs_read,[vsf_must_be_valid]);
                      inserttypeconv(left,pbestrealtype^);
-                     resulttype:=pbestrealtype^;
+                     resultdef:=pbestrealtype^;
                    end;
                 end;
 
@@ -2072,7 +2072,7 @@ implementation
                    begin
                      set_varstate(left,vs_read,[vsf_must_be_valid]);
                      inserttypeconv(left,pbestrealtype^);
-                     resulttype:=pbestrealtype^;
+                     resultdef:=pbestrealtype^;
                    end;
                 end;
 
@@ -2083,7 +2083,7 @@ implementation
                   else
                    begin
                      set_varstate(left,vs_read,[vsf_must_be_valid]);
-                     setfloatresulttype;
+                     setfloatresultdef;
                    end;
                 end;
 
@@ -2100,7 +2100,7 @@ implementation
                   else
                    begin
                      set_varstate(left,vs_read,[vsf_must_be_valid]);
-                     setfloatresulttype;
+                     setfloatresultdef;
                    end;
                 end;
 
@@ -2118,7 +2118,7 @@ implementation
                    begin
                      set_varstate(left,vs_read,[vsf_must_be_valid]);
                      inserttypeconv(left,pbestrealtype^);
-                     resulttype:=pbestrealtype^;
+                     resultdef:=pbestrealtype^;
                    end;
                 end;
 
@@ -2129,29 +2129,29 @@ implementation
 {$endif SUPPORT_MMX}
               in_prefetch_var:
                 begin
-                  resulttype:=voidtype;
+                  resultdef:=voidtype;
                 end;
 {$ifdef SUPPORT_UNALIGNED}
               in_unaligned_x:
                 begin
-                  resulttype:=left.resulttype;
+                  resultdef:=left.resultdef;
                 end;
 {$endif SUPPORT_UNALIGNED}
               in_assert_x_y :
                 begin
-                  resulttype:=voidtype;
+                  resultdef:=voidtype;
                   if assigned(left) then
                     begin
                        set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
                        { check type }
-                       if is_boolean(left.resulttype.def) then
+                       if is_boolean(left.resultdef) then
                          begin
                             set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
                             { must always be a string }
                             inserttypeconv(tcallparanode(tcallparanode(left).right).left,cshortstringtype);
                          end
                        else
-                         CGMessage1(type_e_boolean_expr_expected,left.resulttype.def.typename);
+                         CGMessage1(type_e_boolean_expr_expected,left.resultdef.typename);
                     end
                   else
                     CGMessage(type_e_mismatch);
@@ -2170,7 +2170,7 @@ implementation
               in_get_caller_frame,
               in_get_caller_addr:
                 begin
-                  resulttype:=voidpointertype;
+                  resultdef:=voidpointertype;
                 end;
                else
                 internalerror(8);
@@ -2232,9 +2232,9 @@ implementation
               end;
               if shiftconst <> 0 then
                 result := ctypeconvnode.create_internal(cshlshrnode.create(shrn,left,
-                    cordconstnode.create(shiftconst,u32inttype,false)),resulttype)
+                    cordconstnode.create(shiftconst,u32inttype,false)),resultdef)
               else
-                result := ctypeconvnode.create_internal(left,resulttype);
+                result := ctypeconvnode.create_internal(left,resultdef);
               left := nil;
               firstpass(result);
             end;
@@ -2255,7 +2255,7 @@ implementation
 
           in_length_x:
             begin
-               if is_shortstring(left.resulttype.def) then
+               if is_shortstring(left.resultdef) then
                 expectloc:=left.expectloc
                else
                 begin
@@ -2281,7 +2281,7 @@ implementation
           in_pred_x,
           in_succ_x:
             begin
-              if is_64bit(resulttype.def) then
+              if is_64bit(resultdef) then
                begin
                  if (registersint<2) then
                   registersint:=2
@@ -2309,15 +2309,15 @@ implementation
                { check type }
                if
 {$ifndef cpu64bit}
-                  is_64bit(left.resulttype.def) or
+                  is_64bit(left.resultdef) or
 {$endif cpu64bit}
                   { range/overflow checking doesn't work properly }
                   { with the inc/dec code that's generated (JM)   }
                   (
-                   (((left.resulttype.def.deftype = orddef) and
-                     not(is_char(left.resulttype.def)) and
-                     not(is_boolean(left.resulttype.def))) or
-                    (left.resulttype.def.deftype = pointerdef)) and
+                   (((left.resultdef.deftype = orddef) and
+                     not(is_char(left.resultdef)) and
+                     not(is_boolean(left.resultdef))) or
+                    (left.resultdef.deftype = pointerdef)) and
                    (aktlocalswitches * [cs_check_overflow,cs_check_range] <> [])
                   ) then
                  { convert to simple add (JM) }
@@ -2335,29 +2335,29 @@ implementation
                    else
                      begin
                        { no, create constant 1 }
-                       hpp := cordconstnode.create(1,tcallparanode(left).left.resulttype,false);
+                       hpp := cordconstnode.create(1,tcallparanode(left).left.resultdef,false);
                      end;
-                   resulttypepass(hpp);
+                   typecheckpass(hpp);
 {$ifndef cpu64bit}
-                   if not((hpp.resulttype.def.deftype=orddef) and
-                          (torddef(hpp.resulttype.def).typ<>u32bit)) then
+                   if not((hpp.resultdef.deftype=orddef) and
+                          (torddef(hpp.resultdef).typ<>u32bit)) then
 {$endif cpu64bit}
                      inserttypeconv_internal(hpp,sinttype);
                    { No overflow check for pointer operations, because inc(pointer,-1) will always
                      trigger an overflow. For uint32 it works because then the operation is done
                      in 64bit }
-                   if (tcallparanode(left).left.resulttype.def.deftype=pointerdef) then
+                   if (tcallparanode(left).left.resultdef.deftype=pointerdef) then
                      exclude(aktlocalswitches,cs_check_overflow);
                    { make sure we don't call functions part of the left node twice (and generally }
                    { optimize the code generation)                                                }
                    if node_complexity(tcallparanode(left).left) > 1 then
                      begin
-                       tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,true);
+                       tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
                        addstatement(newstatement,tempnode);
                        addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                          caddrnode.create_internal(tcallparanode(left).left.getcopy)));
                        hp := cderefnode.create(ctemprefnode.create(tempnode));
-                       inserttypeconv_internal(hp,tcallparanode(left).left.resulttype);
+                       inserttypeconv_internal(hp,tcallparanode(left).left.resultdef);
                      end
                    else
                      begin
@@ -2370,7 +2370,7 @@ implementation
                    else
                      hpp := caddnode.create(subn,hp,hpp);
                    { assign result of addition }
-                   inserttypeconv_internal(hpp,hp.resulttype);
+                   inserttypeconv_internal(hpp,hp.resultdef);
                    addstatement(newstatement,cassignmentnode.create(hp.getcopy,hpp));
                    { deallocate the temp }
                    if assigned(tempnode) then
@@ -2380,8 +2380,8 @@ implementation
                    { return new node }
                    result := newblock;
                  end
-               else if (left.resulttype.def.deftype in [enumdef,pointerdef]) or
-                       is_ordinal(left.resulttype.def) then
+               else if (left.resultdef.deftype in [enumdef,pointerdef]) or
+                       is_ordinal(left.resultdef) then
                  begin
                     { two paras ? }
                     if assigned(tcallparanode(left).right) then
@@ -2528,7 +2528,7 @@ implementation
           in_write_x,
           in_writeln_x :
             begin
-              { should be handled by det_resulttype }
+              { should be handled by pass_typecheck }
               internalerror(200108234);
             end;
          in_get_frame:
@@ -2600,7 +2600,7 @@ implementation
         { create the call to the helper }
         { on entry left node contains the parameter }
         first_sqr_real := ctypeconvnode.create(ccallnode.createintern('fpc_sqr_real',
-                ccallparanode.create(left,nil)),resulttype);
+                ccallparanode.create(left,nil)),resultdef);
         left := nil;
       end;
 
@@ -2609,7 +2609,7 @@ implementation
         { create the call to the helper }
         { on entry left node contains the parameter }
         first_sqrt_real := ctypeconvnode.create(ccallnode.createintern('fpc_sqrt_real',
-                ccallparanode.create(left,nil)),resulttype);
+                ccallparanode.create(left,nil)),resultdef);
         left := nil;
       end;
 
@@ -2694,7 +2694,7 @@ implementation
          sourcevecindex,
          targetvecindex,
          loopbody         : tnode;
-         temprangetype    : ttype;
+         temprangedef     : tdef;
          ulorange,
          uhirange,
          plorange,
@@ -2723,26 +2723,26 @@ implementation
 
          loop := internalstatements(loopstatement);
          loopvar := ctempcreatenode.create(
-           tarraydef(packednode.resulttype.def).rangetype,
-           tarraydef(packednode.resulttype.def).rangetype.def.size,
+           tarraydef(packednode.resultdef).rangedef,
+           tarraydef(packednode.resultdef).rangedef.size,
            tt_persistent,true);
          addstatement(loopstatement,loopvar);
 
          { For range checking: we have to convert to an integer type (in case the index type }
          { is an enum), add the index and loop variable together, convert the result         }
-         { implicitly to an orddef with range equal to the rangetype to get range checking   }
-         { and finally convert it explicitly back to the actual rangetype to avoid type      }
+         { implicitly to an orddef with range equal to the rangedef to get range checking   }
+         { and finally convert it explicitly back to the actual rangedef to avoid type      }
          { errors                                                                            }
-         temprangetype.reset;
-         getrange(unpackednode.resulttype.def,ulorange,uhirange);
-         getrange(packednode.resulttype.def,plorange,phirange);
-         temprangetype.setdef(torddef.create(torddef(sinttype.def).typ,ulorange,uhirange));
+         temprangedef:=nil;
+         getrange(unpackednode.resultdef,ulorange,uhirange);
+         getrange(packednode.resultdef,plorange,phirange);
+         temprangedef:=torddef.create(torddef(sinttype).typ,ulorange,uhirange);
          sourcevecindex := ctemprefnode.create(loopvar);
          targetvecindex := ctypeconvnode.create_internal(index.getcopy,sinttype);
          targetvecindex := caddnode.create(subn,targetvecindex,cordconstnode.create(plorange,sinttype,true));
          targetvecindex := caddnode.create(addn,targetvecindex,ctemprefnode.create(loopvar));
-         targetvecindex := ctypeconvnode.create(targetvecindex,temprangetype);
-         targetvecindex := ctypeconvnode.create_explicit(targetvecindex,tarraydef(unpackednode.resulttype.def).rangetype);
+         targetvecindex := ctypeconvnode.create(targetvecindex,temprangedef);
+         targetvecindex := ctypeconvnode.create_explicit(targetvecindex,tarraydef(unpackednode.resultdef).rangedef);
 
          if (inlinenumber = in_pack_x_y_z) then
            begin

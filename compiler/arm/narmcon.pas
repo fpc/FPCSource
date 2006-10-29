@@ -30,7 +30,7 @@ interface
 
     type
       tarmrealconstnode = class(tcgrealconstnode)
-        procedure pass_2;override;
+        procedure pass_generate_code;override;
       end;
 
   implementation
@@ -50,7 +50,7 @@ interface
                            TARMREALCONSTNODE
 *****************************************************************************}
 
-    procedure tarmrealconstnode.pass_2;
+    procedure tarmrealconstnode.pass_generate_code;
       { I suppose the parser/pass_1 must make sure the generated real  }
       { constants are actually supported by the target processor? (JM) }
       const
@@ -63,9 +63,9 @@ interface
          hiloswapped : boolean;
 
       begin
-        location_reset(location,LOC_CREFERENCE,def_cgsize(resulttype.def));
+        location_reset(location,LOC_CREFERENCE,def_cgsize(resultdef));
         lastlabel:=nil;
-        realait:=floattype2ait[tfloatdef(resulttype.def).typ];
+        realait:=floattype2ait[tfloatdef(resultdef).typ];
         hiloswapped:=aktfputype in [fpu_fpa,fpu_fpa10,fpu_fpa11];
         { const already used ? }
         if not assigned(lab_real) then

@@ -93,8 +93,8 @@ implementation
         paranr   : word;
       begin
         if not(pd.proctypeoption in [potype_constructor,potype_destructor]) and
-           not is_void(pd.rettype.def) and
-           paramanager.ret_in_param(pd.rettype.def,pd.proccalloption) then
+           not is_void(pd.returndef) and
+           paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
          begin
            storepos:=akttokenpos;
            if pd.deftype=procdef then
@@ -106,7 +106,7 @@ implementation
            else
              paranr:=paranr_result;
            { Generate result variable accessing function result }
-           vs:=tparavarsym.create('$result',paranr,vs_var,pd.rettype,[vo_is_funcret,vo_is_hidden_para]);
+           vs:=tparavarsym.create('$result',paranr,vs_var,pd.returndef,[vo_is_funcret,vo_is_hidden_para]);
            pd.parast.insert(vs);
            { Store the this symbol as funcretsym for procedures }
            if pd.deftype=procdef then
@@ -144,15 +144,14 @@ implementation
       var
         storepos : tfileposinfo;
         vs       : tparavarsym;
-        tt       : ttype;
+        hdef     : tdef;
         vsp      : tvarspez;
       begin
         if (pd.deftype=procvardef) and
            pd.is_methodpointer then
           begin
             { Generate self variable }
-            tt:=voidpointertype;
-            vs:=tparavarsym.create('$self',paranr_self,vs_value,tt,[vo_is_self,vo_is_hidden_para]);
+            vs:=tparavarsym.create('$self',paranr_self,vs_value,voidpointertype,[vo_is_self,vo_is_hidden_para]);
             pd.parast.insert(vs);
           end
         else
@@ -169,8 +168,7 @@ implementation
                  begin
                    { can't use classrefdef as type because inheriting
                      will then always file because of a type mismatch }
-                   tt:=voidpointertype;
-                   vs:=tparavarsym.create('$vmt',paranr_vmt,vs_value,tt,[vo_is_vmt,vo_is_hidden_para]);
+                   vs:=tparavarsym.create('$vmt',paranr_vmt,vs_value,voidpointertype,[vo_is_vmt,vo_is_hidden_para]);
                    pd.parast.insert(vs);
                  end;
 
@@ -180,17 +178,14 @@ implementation
                 vsp:=vs_value;
                 if (po_staticmethod in pd.procoptions) or
                    (po_classmethod in pd.procoptions) then
-                  begin
-                    tt.setdef(tprocdef(pd)._class);
-                    tt.setdef(tclassrefdef.create(tt));
-                  end
+                  hdef:=tclassrefdef.create(tprocdef(pd)._class)
                 else
                   begin
                     if is_object(tprocdef(pd)._class) then
                       vsp:=vs_var;
-                    tt.setdef(tprocdef(pd)._class);
+                    hdef:=tprocdef(pd)._class;
                   end;
-                vs:=tparavarsym.create('$self',paranr_self,vsp,tt,[vo_is_self,vo_is_hidden_para]);
+                vs:=tparavarsym.create('$self',paranr_self,vsp,hdef,[vo_is_self,vo_is_hidden_para]);
                 pd.parast.insert(vs);
 
                 akttokenpos:=storepos;
@@ -208,7 +203,7 @@ implementation
       begin
         { The result from constructors and destructors can't be accessed directly }
         if not(pd.proctypeoption in [potype_constructor,potype_destructor]) and
-           not is_void(pd.rettype.def) then
+           not is_void(pd.returndef) then
          begin
            storepos:=akttokenpos;
            akttokenpos:=pd.fileinfo;
@@ -219,9 +214,9 @@ implementation
 
            { We need to insert a varsym for the result in the localst
              when it is returning in a register }
-           if not paramanager.ret_in_param(pd.rettype.def,pd.proccalloption) then
+           if not paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
             begin
-              vs:=tlocalvarsym.create('$result',vs_value,pd.rettype,[vo_is_funcret]);
+              vs:=tlocalvarsym.create('$result',vs_value,pd.returndef,[vo_is_funcret]);
               pd.localst.insert(vs);
               pd.funcretsym:=vs;
             end;
@@ -233,7 +228,7 @@ implementation
             pd.resultname:=pd.procsym.name;
            sl:=tpropaccesslist.create;
            sl.addsym(sl_load,pd.funcretsym);
-           aliasvs:=tabsolutevarsym.create_ref(pd.resultname,pd.rettype,sl);
+           aliasvs:=tabsolutevarsym.create_ref(pd.resultname,pd.returndef,sl);
            include(aliasvs.varoptions,vo_is_funcret);
            tlocalsymtable(pd.localst).insert(aliasvs);
 
@@ -242,7 +237,7 @@ implementation
             begin
               sl:=tpropaccesslist.create;
               sl.addsym(sl_load,pd.funcretsym);
-              aliasvs:=tabsolutevarsym.create_ref('RESULT',pd.rettype,sl);
+              aliasvs:=tabsolutevarsym.create_ref('RESULT',pd.returndef,sl);
               include(aliasvs.varoptions,vo_is_funcret);
               include(aliasvs.varoptions,vo_is_result);
               tlocalsymtable(pd.localst).insert(aliasvs);
@@ -267,13 +262,13 @@ implementation
              an exception because they are allocated at runtime and the
              address that is pushed is patched }
            if (varspez=vs_value) and
-              paramanager.push_addr_param(varspez,vartype.def,pd.proccalloption) and
-              not(is_open_array(vartype.def) or
-                  is_array_of_const(vartype.def)) then
+              paramanager.push_addr_param(varspez,vardef,pd.proccalloption) and
+              not(is_open_array(vardef) or
+                  is_array_of_const(vardef)) then
              include(varoptions,vo_has_local_copy);
 
            { needs high parameter ? }
-           if paramanager.push_high_param(varspez,vartype.def,pd.proccalloption) then
+           if paramanager.push_high_param(varspez,vardef,pd.proccalloption) then
              begin
                hvs:=tparavarsym.create('$high'+name,paranr+1,vs_const,sinttype,[vo_is_high_para,vo_is_hidden_para]);
                owner.insert(hvs);
@@ -283,9 +278,9 @@ implementation
               { Give a warning that cdecl routines does not include high()
                 support }
               if (pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-                 paramanager.push_high_param(varspez,vartype.def,pocall_default) then
+                 paramanager.push_high_param(varspez,vardef,pocall_default) then
                begin
-                 if is_open_string(vartype.def) then
+                 if is_open_string(vardef) then
                     Message(parser_w_cdecl_no_openstring);
                  if not (po_external in pd.procoptions) then
                    Message(parser_w_cdecl_has_no_high);
@@ -300,16 +295,16 @@ implementation
          exit;
         with tparavarsym(p) do
          begin
-           case vartype.def.deftype of
+           case vardef.deftype of
              arraydef :
                begin
-                 if not is_variant_array(vartype.def) and
-                    not is_array_of_const(vartype.def) then
+                 if not is_variant_array(vardef) and
+                    not is_array_of_const(vardef) then
                   begin
                     if (varspez<>vs_var) then
                       Message(parser_h_c_arrays_are_references);
                   end;
-                 if is_array_of_const(vartype.def) and
+                 if is_array_of_const(vardef) and
                     assigned(indexnext) and
                     (tsym(indexnext).typ=paravarsym) and
                     not(vo_is_high_para in tparavarsym(indexnext).varoptions) then
@@ -346,11 +341,11 @@ implementation
          exit;
         with tparavarsym(p) do
          begin
-           case vartype.def.deftype of
+           case vardef.deftype of
              arraydef :
                begin
-                 if is_array_constructor(vartype.def) or
-                    is_variant_array(vartype.def) then
+                 if is_array_constructor(vardef) or
+                    is_variant_array(vardef) then
                    begin
                      Message1(parser_w_not_supported_for_inline,'array of const');
                      Message(parser_w_inlining_disabled);
@@ -368,8 +363,8 @@ implementation
          exit;
         with tparavarsym(p) do
          begin
-           if not vartype.def.needs_inittable and
-              paramanager.push_addr_param(varspez,vartype.def,tprocdef(arg).proccalloption) then
+           if not vardef.needs_inittable and
+              paramanager.push_addr_param(varspez,vardef,tprocdef(arg).proccalloption) then
              varregable:=vr_intreg;
          end;
       end;
@@ -383,8 +378,8 @@ implementation
         tppv = (pv_none,pv_proc,pv_func);
       var
         sc      : TFPObjectList;
-        tt      : ttype;
-        arrayelementtype : ttype;
+        hdef    : tdef;
+        arrayelementdef : tdef;
         vs      : tparavarsym;
         i       : longint;
         srsym   : tsym;
@@ -452,12 +447,12 @@ implementation
           else
               varspez:=vs_value;
           defaultvalue:=nil;
-          tt.reset;
+          hdef:=nil;
           { read identifiers and insert with error type }
           sc.clear;
           repeat
             inc(paranr);
-            vs:=tparavarsym.create(orgpattern,paranr*10,varspez,generrortype,[]);
+            vs:=tparavarsym.create(orgpattern,paranr*10,varspez,generrordef,[]);
             currparast.insert(vs);
             if assigned(vs.owner) then
              sc.add(vs)
@@ -475,16 +470,16 @@ implementation
              if parseprocvar=pv_func then
               begin
                 consume(_COLON);
-                single_type(pv.rettype,false);
+                single_type(pv.returndef,false);
               end;
-             tt.def:=pv;
+             hdef:=pv;
              { possible proc directives }
              if check_proc_directive(true) then
                begin
-                  dummytype:=ttypesym.create('unnamed',tt);
+                  dummytype:=ttypesym.create('unnamed',hdef);
                   parse_var_proc_directives(tsym(dummytype));
-                  dummytype.restype.def:=nil;
-                  tt.def.typesym:=nil;
+                  dummytype.typedef:=nil;
+                  hdef.typesym:=nil;
                   dummytype.free;
                end;
              { Add implicit hidden parameters and function result }
@@ -501,33 +496,33 @@ implementation
                 consume(_ARRAY);
                 consume(_OF);
                 { define range and type of range }
-                tt.setdef(tarraydef.create(0,-1,s32inttype));
+                hdef:=tarraydef.create(0,-1,s32inttype);
                 { array of const ? }
                 if (token=_CONST) and (m_objpas in aktmodeswitches) then
                  begin
                    consume(_CONST);
                    srsym:=search_system_type('TVARREC');
-                   tarraydef(tt.def).setelementtype(ttypesym(srsym).restype);
-                   include(tarraydef(tt.def).arrayoptions,ado_IsArrayOfConst);
+                   tarraydef(hdef).elementdef:=ttypesym(srsym).typedef;
+                   include(tarraydef(hdef).arrayoptions,ado_IsArrayOfConst);
                  end
                 else
                  begin
                    { define field type }
-                   single_type(arrayelementtype,false);
-                   tarraydef(tt.def).setelementtype(arrayelementtype);
+                   single_type(arrayelementdef,false);
+                   tarraydef(hdef).elementdef:=arrayelementdef;
                  end;
               end
              else
               begin
                 if (m_mac in aktmodeswitches) then
                   try_to_consume(_UNIV); {currently does nothing}
-                single_type(tt,false);
+                single_type(hdef,false);
 
                 { open string ? }
                 if (varspez in [vs_out,vs_var]) and
                    (cs_openstring in aktmoduleswitches) and
-                   is_shortstring(tt.def) then
-                  tt:=openshortstringtype;
+                   is_shortstring(hdef) then
+                  hdef:=openshortstringtype;
 
                 if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
                   begin
@@ -573,10 +568,10 @@ implementation
               end;
            end
           else
-           tt:=cformaltype;
+           hdef:=cformaltype;
 
           { File types are only allowed for var and out parameters }
-          if (tt.def.deftype=filedef) and
+          if (hdef.deftype=filedef) and
              not(varspez in [vs_out,vs_var]) then
             CGMessage(cg_e_file_must_call_by_reference);
 
@@ -584,7 +579,7 @@ implementation
             begin
               vs:=tparavarsym(sc[i]);
               { update varsym }
-              vs.vartype:=tt;
+              vs.vardef:=hdef;
               vs.defaultconstsym:=defaultvalue;
 
               if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
@@ -673,8 +668,8 @@ implementation
            akttokenpos:=storepos;
            { qualifier is interface? }
            if (srsym.typ=typesym) and
-              (ttypesym(srsym).restype.def.deftype=objectdef) then
-             i:=aclass.implementedinterfaces.searchintf(ttypesym(srsym).restype.def)
+              (ttypesym(srsym).typedef.deftype=objectdef) then
+             i:=aclass.implementedinterfaces.searchintf(ttypesym(srsym).typedef)
            else
              i:=-1;
            if (i=-1) then
@@ -714,9 +709,9 @@ implementation
            consume(_ID);
            { qualifier is class name ? }
            if (srsym.typ=typesym) and
-              (ttypesym(srsym).restype.def.deftype=objectdef) then
+              (ttypesym(srsym).typedef.deftype=objectdef) then
             begin
-              aclass:=tobjectdef(ttypesym(srsym).restype.def);
+              aclass:=tobjectdef(ttypesym(srsym).typedef);
               aprocsym:=tprocsym(aclass.symtable.search(sp));
               { we solve this below }
               if assigned(aprocsym) then
@@ -934,7 +929,7 @@ implementation
                              symtablestack.push(pd._class.symtable);
                              popclass:=true;
                            end;
-                         single_type(pd.rettype,false);
+                         single_type(pd.returndef,false);
                          if popclass then
                            symtablestack.pop(pd._class.symtable);
                          pd.test_if_fpu_result;
@@ -996,7 +991,7 @@ implementation
                   { pd=nil when it is a interface mapping }
                   if assigned(pd) then
                     begin
-                      pd.rettype:=voidtype;
+                      pd.returndef:=voidtype;
                       if isclassmethod then
                         include(pd.procoptions,po_classmethod);
                     end;
@@ -1013,12 +1008,12 @@ implementation
                   { Set return type, class constructors return the
                     created instance, object constructors return boolean }
                   if is_class(pd._class) then
-                    pd.rettype.setdef(pd._class)
+                    pd.returndef:=pd._class
                   else
 {$ifdef CPU64bit}
-                    pd.rettype:=bool64type;
+                    pd.returndef:=bool64type;
 {$else CPU64bit}
-                    pd.rettype:=bool32type;
+                    pd.returndef:=bool32type;
 {$endif CPU64bit}
                 end;
             end;
@@ -1028,7 +1023,7 @@ implementation
               consume(_DESTRUCTOR);
               parse_proc_head(aclass,potype_destructor,pd);
               if assigned(pd) then
-                pd.rettype:=voidtype;
+                pd.returndef:=voidtype;
             end;
 
           _OPERATOR :
@@ -1064,20 +1059,20 @@ implementation
                   if not try_to_consume(_COLON) then
                     begin
                       consume(_COLON);
-                      pd.rettype:=generrortype;
+                      pd.returndef:=generrordef;
                       consume_all_until(_SEMICOLON);
                     end
                   else
                    begin
-                     single_type(pd.rettype,false);
+                     single_type(pd.returndef,false);
                      pd.test_if_fpu_result;
                      if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
-                        ((pd.rettype.def.deftype<>orddef) or
-                         (torddef(pd.rettype.def).typ<>bool8bit)) then
+                        ((pd.returndef.deftype<>orddef) or
+                         (torddef(pd.returndef).typ<>bool8bit)) then
                         Message(parser_e_comparative_operator_return_boolean);
                      if (optoken=_ASSIGNMENT) and
-                        equal_defs(pd.rettype.def,
-                           tparavarsym(pd.parast.symindex.first).vartype.def) then
+                        equal_defs(pd.returndef,
+                           tparavarsym(pd.parast.symindex.first).vardef) then
                        message(parser_e_no_such_assignment)
                      else if not isoperatoracceptable(pd,optoken) then
                        Message(parser_e_overload_impossible);
@@ -1347,14 +1342,14 @@ begin
         begin
           if (sym.typ=globalvarsym) and
              (
-              (tabstractvarsym(sym).vartype.def.deftype=pointerdef) or
-              is_32bitint(tabstractvarsym(sym).vartype.def)
+              (tabstractvarsym(sym).vardef.deftype=pointerdef) or
+              is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
               tprocdef(pd).libsym:=sym;
               if po_syscall_legacy in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
+                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
                   paramanager.parseparaloc(vs,'A6');
                   pd.parast.insert(vs);
                 end
@@ -1377,12 +1372,12 @@ begin
         begin
           if (sym.typ=globalvarsym) and
              (
-              (tabstractvarsym(sym).vartype.def.deftype=pointerdef) or
-              is_32bitint(tabstractvarsym(sym).vartype.def)
+              (tabstractvarsym(sym).vardef.deftype=pointerdef) or
+              is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
               tprocdef(pd).libsym:=sym;
-              vs:=tparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para]);
+              vs:=tparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
               pd.parast.insert(vs);
             end
           else
@@ -1440,14 +1435,14 @@ begin
         begin
           if (sym.typ=globalvarsym) and
              (
-              (tabstractvarsym(sym).vartype.def.deftype=pointerdef) or
-              is_32bitint(tabstractvarsym(sym).vartype.def)
+              (tabstractvarsym(sym).vardef.deftype=pointerdef) or
+              is_32bitint(tabstractvarsym(sym).vardef)
              ) then
             begin
               tprocdef(pd).libsym:=sym;
               if po_syscall_legacy in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
+                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_legacy,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
                   paramanager.parseparaloc(vs,'A6');
                   pd.parast.insert(vs);
                 end
@@ -1457,17 +1452,17 @@ begin
                 end
               else if po_syscall_basesysv in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para]);
+                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_basesysv,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
                   pd.parast.insert(vs);
                 end
               else if po_syscall_sysvbase in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_sysvbase,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para]);
+                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_sysvbase,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para]);
                   pd.parast.insert(vs);
                 end
               else if po_syscall_r12base in tprocdef(pd).procoptions then
                 begin
-                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_r12base,vs_value,tabstractvarsym(sym).vartype,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
+                  vs:=tparavarsym.create('$syscalllib',paranr_syscall_r12base,vs_value,tabstractvarsym(sym).vardef,[vo_is_syscall_lib,vo_is_hidden_para,vo_has_explicit_paraloc]);
                   paramanager.parseparaloc(vs,'R12');
                   pd.parast.insert(vs);
                 end
@@ -2375,11 +2370,11 @@ const
           globalvarsym,
           localvarsym,
           paravarsym :
-            pd:=tabstractprocdef(tabstractvarsym(sym).vartype.def);
+            pd:=tabstractprocdef(tabstractvarsym(sym).vardef);
           typedconstsym :
-            pd:=tabstractprocdef(ttypedconstsym(sym).typedconsttype.def);
+            pd:=tabstractprocdef(ttypedconstsym(sym).typedconstdef);
           typesym :
-            pd:=tabstractprocdef(ttypesym(sym).restype.def);
+            pd:=tabstractprocdef(ttypesym(sym).typedef);
           else
             internalerror(2003042617);
         end;
@@ -2442,9 +2437,9 @@ const
                { for operators equal_paras is not enough !! }
                ((pd.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
                 { be careful here, equal_defs doesn't take care of unique }
-                (hd.rettype.def=pd.rettype.def) or
-                (equal_defs(hd.rettype.def,pd.rettype.def) and
-                 not(df_unique in hd.rettype.def.defoptions) and not(df_unique in pd.rettype.def.defoptions)
+                (hd.returndef=pd.returndef) or
+                (equal_defs(hd.returndef,pd.returndef) and
+                 not(df_unique in hd.returndef.defoptions) and not(df_unique in pd.returndef.defoptions)
                 )
                )
               ) then
@@ -2466,8 +2461,8 @@ const
                       ) or
                       (
                        ((m_repeat_forward in aktmodeswitches) or
-                        not(is_void(pd.rettype.def))) and
-                       (not equal_defs(hd.rettype.def,pd.rettype.def))) then
+                        not(is_void(pd.returndef))) and
+                       (not equal_defs(hd.returndef,pd.returndef))) then
                      begin
                        MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,
                                    pd.fullprocname(false));

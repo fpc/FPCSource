@@ -37,10 +37,10 @@ type
      subnodetype: tsubnodetype;
      constructor create(ts: tsubnodetype; l,r : tnode); virtual;
      { pass_1 will be overridden by the separate subclasses    }
-     { By default, pass_2 is the same as for addnode           }
+     { By default, pass_generate_code is the same as for addnode           }
      { Only if there's a processor specific implementation, it }
      { will be overridden.                                     }
-     function _getcopy: tnode; override;
+     function dogetcopy: tnode; override;
      function docompare(p: tnode): boolean; override;
   end;
 
@@ -49,9 +49,9 @@ type
     { sometimes (it's initialized/updated by calling updatecurmaxlen)     }
     curmaxlen: byte;
     { pass_1 must be overridden, otherwise we get an endless loop }
-    function det_resulttype: tnode; override;
+    function pass_typecheck: tnode; override;
     function pass_1: tnode; override;
-    function _getcopy: tnode; override;
+    function dogetcopy: tnode; override;
     function docompare(p: tnode): boolean; override;
    protected
     procedure updatecurmaxlen;
@@ -96,20 +96,20 @@ uses cutils, htypechk, defutil, defcmp, globtype, globals, cpubase, ncnv, ncon,n
 
 constructor taddoptnode.create(ts: tsubnodetype; l,r : tnode);
 begin
-  { we need to keep the addn nodetype, otherwise taddnode.pass_2 will be }
+  { we need to keep the addn nodetype, otherwise taddnode.pass_generate_code will be }
   { confused. Comparison for equal nodetypes therefore has to be         }
   { implemented using the classtype() method (JM)                        }
   inherited create(addn,l,r);
   subnodetype := ts;
 end;
 
-function taddoptnode._getcopy: tnode;
+function taddoptnode.dogetcopy: tnode;
 var
   hp: taddoptnode;
 begin
-  hp := taddoptnode(inherited _getcopy);
+  hp := taddoptnode(inherited dogetcopy);
   hp.subnodetype := subnodetype;
-  _getcopy := hp;
+  dogetcopy := hp;
 end;
 
 function taddoptnode.docompare(p: tnode): boolean;
@@ -124,16 +124,16 @@ end;
                         TADDSSTRINGOPTNODE
 *****************************************************************************}
 
-function taddsstringoptnode.det_resulttype: tnode;
+function taddsstringoptnode.pass_typecheck: tnode;
 begin
   result := nil;
   updatecurmaxlen;
   { left and right are already firstpass'ed by taddnode.pass_1 }
-  if not is_shortstring(left.resulttype.def) then
+  if not is_shortstring(left.resultdef) then
    inserttypeconv(left,cshortstringtype);
-  if not is_shortstring(right.resulttype.def) then
+  if not is_shortstring(right.resultdef) then
    inserttypeconv(right,cshortstringtype);
-  resulttype := left.resulttype;
+  resultdef := left.resultdef;
 end;
 
 function taddsstringoptnode.pass_1: tnode;
@@ -145,13 +145,13 @@ begin
   include(current_procinfo.flags,pi_do_call);
 end;
 
-function taddsstringoptnode._getcopy: tnode;
+function taddsstringoptnode.dogetcopy: tnode;
 var
   hp: taddsstringoptnode;
 begin
-  hp := taddsstringoptnode(inherited _getcopy);
+  hp := taddsstringoptnode(inherited dogetcopy);
   hp.curmaxlen := curmaxlen;
-  _getcopy := hp;
+  dogetcopy := hp;
 end;
 
 function taddsstringoptnode.docompare(p: tnode): boolean;
@@ -188,7 +188,7 @@ begin
     end
   else if (left.nodetype = stringconstn) then
     curmaxlen := min(tstringconstnode(left).len,255)
-  else if is_char(left.resulttype.def) then
+  else if is_char(left.resultdef) then
     curmaxlen := 1
   else if (left.nodetype = typeconvn) then
     begin
@@ -198,7 +198,7 @@ begin
 {       doesn't work yet, don't know why (JM)
         tc_chararray_2_string:
           curmaxlen :=
-            min(ttypeconvnode(left).left.resulttype.def.size,255); }
+            min(ttypeconvnode(left).left.resultdef.size,255); }
         else curmaxlen := 255;
       end;
     end
@@ -247,9 +247,9 @@ begin
     (cs_opt_level1 in aktoptimizerswitches) and
 
 {   the shortstring will be gotten through conversion if necessary (JM)
-    is_shortstring(p.left.resulttype.def) and }
+    is_shortstring(p.left.resultdef) and }
     ((p.nodetype = addn) and
-     is_char(p.right.resulttype.def));
+     is_char(p.right.resultdef));
 end;
 
 function genaddsstringcharoptnode(p: taddnode): tnode;
@@ -269,7 +269,7 @@ begin
     (cs_opt_level1 in aktoptimizerswitches) and
 
 {   the shortstring will be gotten through conversion if necessary (JM)
-    is_shortstring(p.left.resulttype.def) and }
+    is_shortstring(p.left.resultdef) and }
     ((p.nodetype = addn) and
      (p.right.nodetype = stringconstn));
 end;
@@ -290,7 +290,7 @@ var
   i  : longint;
 begin
   result:=false;
-  if p.resulttype.def.deftype<>stringdef then
+  if p.resultdef.deftype<>stringdef then
     exit;
   i:=0;
   hp:=p;
@@ -313,11 +313,11 @@ var
 begin
   arrp:=nil;
   hp:=p;
-  is_shortstr:=is_shortstring(p.resulttype.def);
+  is_shortstr:=is_shortstring(p.resultdef);
   while assigned(hp) and (hp.nodetype=addn) do
     begin
       sn:=taddnode(hp).right.getcopy;
-      inserttypeconv(sn,p.resulttype);
+      inserttypeconv(sn,p.resultdef);
       if is_shortstr then
         begin
           sn:=caddrnode.create(sn);
@@ -327,7 +327,7 @@ begin
       hp:=taddnode(hp).left;
     end;
   sn:=hp.getcopy;
-  inserttypeconv(sn,p.resulttype);
+  inserttypeconv(sn,p.resultdef);
   if is_shortstr then
     begin
       sn:=caddrnode.create(sn);
@@ -336,11 +336,11 @@ begin
   arrp:=carrayconstructornode.create(sn,arrp);
   if assigned(aktassignmentnode) and
      (aktassignmentnode.right=p) and
-     (aktassignmentnode.left.resulttype.def=p.resulttype.def) and
+     (aktassignmentnode.left.resultdef=p.resultdef) and
      valid_for_var(aktassignmentnode.left,false) then
     begin
       result:=ccallnode.createintern('fpc_'+
-        tstringdef(p.resulttype.def).stringtypname+'_concat_multi',
+        tstringdef(p.resultdef).stringtypname+'_concat_multi',
         ccallparanode.create(arrp,
         ccallparanode.create(aktassignmentnode.left.getcopy,nil)));
       include(aktassignmentnode.flags,nf_assign_done_in_right);
@@ -348,10 +348,10 @@ begin
   else
     begin
       result:=internalstatements(newstatement);
-      tempnode:=ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent ,true);
+      tempnode:=ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent ,true);
       addstatement(newstatement,tempnode);
       addstatement(newstatement,ccallnode.createintern('fpc_'+
-        tstringdef(p.resulttype.def).stringtypname+'_concat_multi',
+        tstringdef(p.resultdef).stringtypname+'_concat_multi',
         ccallparanode.create(arrp,
         ccallparanode.create(ctemprefnode.create(tempnode),nil))));
       addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode));

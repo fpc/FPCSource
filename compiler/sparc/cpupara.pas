@@ -146,19 +146,19 @@ implementation
         if (p.proctypeoption=potype_constructor) then
           retcgsize:=OS_ADDR
         else
-          retcgsize:=def_cgsize(p.rettype.def);
+          retcgsize:=def_cgsize(p.returndef);
 
         location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
         p.funcretloc[side].size:=retcgsize;
         { void has no location }
-        if is_void(p.rettype.def) then
+        if is_void(p.returndef) then
           begin
             p.funcretloc[side].loc:=LOC_VOID;
             exit;
           end;
 
         { Return in FPU register? }
-        if p.rettype.def.deftype=floatdef then
+        if p.returndef.deftype=floatdef then
           begin
             p.funcretloc[side].loc:=LOC_FPUREGISTER;
             p.funcretloc[side].register:=NR_FPU_RESULT_REG;
@@ -168,7 +168,7 @@ implementation
           end
         else
          { Return in register? }
-         if not ret_in_param(p.rettype.def,p.proccalloption) then
+         if not ret_in_param(p.returndef,p.proccalloption) then
           begin
 {$ifndef cpu64bit}
             if retcgsize in [OS_64,OS_S64] then
@@ -224,7 +224,7 @@ implementation
             { currently only support C-style array of const,
               there should be no location assigned to the vararg array itself }
             if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-               is_array_of_const(hp.vartype.def) then
+               is_array_of_const(hp.vardef) then
               begin
                 paraloc:=hp.paraloc[side].add_location;
                 { hack: the paraloc must be valid, but is not actually used }
@@ -234,11 +234,11 @@ implementation
                 break;
               end;
 
-            if push_addr_param(hp.varspez,hp.vartype.def,p.proccalloption) then
+            if push_addr_param(hp.varspez,hp.vardef,p.proccalloption) then
               paracgsize:=OS_ADDR
             else
               begin
-                paracgsize:=def_cgSize(hp.vartype.def);
+                paracgsize:=def_cgSize(hp.vardef);
                 if paracgsize=OS_NO then
                   paracgsize:=OS_ADDR;
               end;

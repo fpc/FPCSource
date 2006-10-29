@@ -75,14 +75,14 @@ implementation
         fname: string[19];
       begin
         { converting a 64bit integer to a float requires a helper }
-        if is_64bitint(left.resulttype.def) or
-                is_currency(left.resulttype.def) then
+        if is_64bitint(left.resultdef) or
+                is_currency(left.resultdef) then
           begin
             { hack to avoid double division by 10000, as it's       }
-            { already done by resulttypepass.resulttype_int_to_real }
-            if is_currency(left.resulttype.def) then
-              left.resulttype := s64inttype;
-            if is_signed(left.resulttype.def) then
+            { already done by typecheckpass.resultdef_int_to_real }
+            if is_currency(left.resultdef) then
+              left.resultdef := s64inttype;
+            if is_signed(left.resultdef) then
               fname := 'fpc_int64_to_double'
             else
               fname := 'fpc_qword_to_double';
@@ -95,7 +95,7 @@ implementation
         else
           { other integers are supposed to be 32 bit }
           begin
-            if is_signed(left.resulttype.def) then
+            if is_signed(left.resultdef) then
               inserttypeconv(left,s32inttype)
             else
               inserttypeconv(left,u32inttype);
@@ -128,7 +128,7 @@ implementation
         size: tcgsize;
         signed : boolean;
       begin
-        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
 
         { the code here comes from the PowerPC Compiler Writer's Guide }
 
@@ -148,7 +148,7 @@ implementation
         { fsub FR1,FR1,FR2    # subtract 0x4330000000000000 }
         tg.Gettemp(current_asmdata.CurrAsmList,8,tt_normal,ref);
 
-        signed := is_signed(left.resulttype.def);
+        signed := is_signed(left.resultdef);
 
         { we need a certain constant for the conversion, so create it here }
         if signed then
@@ -160,12 +160,12 @@ implementation
             crealconstnode.create(double(tdummyarray(dummy2)),
             pbestrealtype^);
 
-        resulttypepass(tempconst);
+        typecheckpass(tempconst);
         firstpass(tempconst);
         secondpass(tempconst);
         if (tempconst.location.loc <> LOC_CREFERENCE) or
            { has to be handled by a helper }
-           is_64bitint(left.resulttype.def) then
+           is_64bitint(left.resultdef) then
           internalerror(200110011);
 
         case left.location.loc of
@@ -190,7 +190,7 @@ implementation
                 size := OS_S32
               else
                 size := OS_32;
-              cg.a_load_ref_reg(current_asmdata.CurrAsmList,def_cgsize(left.resulttype.def),
+              cg.a_load_ref_reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),
                 size,left.location.reference,leftreg);
             end
           else
@@ -221,7 +221,7 @@ implementation
            location.register,tmpfpureg));
 
          { work around bug in some PowerPC processors }
-         if (tfloatdef(resulttype.def).typ = s32real) then
+         if (tfloatdef(resultdef).typ = s32real) then
            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FRSP,location.register,
              location.register));
        end;
@@ -232,8 +232,8 @@ implementation
           inherited second_real_to_real;
           { work around bug in some powerpc processors where doubles aren't }
           { properly converted to singles                                   }
-          if (tfloatdef(left.resulttype.def).typ = s64real) and
-             (tfloatdef(resulttype.def).typ = s32real) then
+          if (tfloatdef(left.resultdef).typ = s64real) and
+             (tfloatdef(resultdef).typ = s32real) then
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FRSP,location.register,
               location.register));
        end;
@@ -260,7 +260,7 @@ implementation
          { byte(boolean) or word(wordbool) or longint(longbool) must }
          { be accepted for var parameters                            }
          if (nf_explicit in flags) and
-            (left.resulttype.def.size=resulttype.def.size) and
+            (left.resultdef.size=resultdef.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            begin
               current_procinfo.CurrTrueLabel:=oldTrueLabel;
@@ -269,8 +269,8 @@ implementation
               exit;
            end;
 
-         location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
-         opsize := def_cgsize(left.resulttype.def);
+         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+         opsize := def_cgsize(left.resultdef);
          case left.location.loc of
             LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER :
               begin

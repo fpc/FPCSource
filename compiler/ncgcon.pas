@@ -31,31 +31,31 @@ interface
 
     type
        tcgrealconstnode = class(trealconstnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgordconstnode = class(tordconstnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgpointerconstnode = class(tpointerconstnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgstringconstnode = class(tstringconstnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgsetconstnode = class(tsetconstnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgnilnode = class(tnilnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgguidconstnode = class(tguidconstnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
 
@@ -75,7 +75,7 @@ implementation
                            TCGREALCONSTNODE
 *****************************************************************************}
 
-    procedure tcgrealconstnode.pass_2;
+    procedure tcgrealconstnode.pass_generate_code;
       { I suppose the parser/pass_1 must make sure the generated real  }
       { constants are actually supported by the target processor? (JM) }
       const
@@ -90,9 +90,9 @@ implementation
 {$endif ARM}
 
       begin
-        location_reset(location,LOC_CREFERENCE,def_cgsize(resulttype.def));
+        location_reset(location,LOC_CREFERENCE,def_cgsize(resultdef));
         lastlabel:=nil;
-        realait:=floattype2ait[tfloatdef(resulttype.def).typ];
+        realait:=floattype2ait[tfloatdef(resultdef).typ];
 {$ifdef ARM}
         hiloswapped:=aktfputype in [fpu_fpa,fpu_fpa10,fpu_fpa11];
 {$endif ARM}
@@ -139,7 +139,7 @@ implementation
                   current_asmdata.getdatalabel(lastlabel);
                   lab_real:=lastlabel;
                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                  new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(resulttype.def.size));
+                  new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(resultdef.size));
                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                   case realait of
                     ait_real_32bit :
@@ -209,9 +209,9 @@ implementation
                             TCGORDCONSTNODE
 *****************************************************************************}
 
-    procedure tcgordconstnode.pass_2;
+    procedure tcgordconstnode.pass_generate_code;
       begin
-         location_reset(location,LOC_CONSTANT,def_cgsize(resulttype.def));
+         location_reset(location,LOC_CONSTANT,def_cgsize(resultdef));
 {$ifdef cpu64bit}
          location.value:=value;
 {$else cpu64bit}
@@ -224,7 +224,7 @@ implementation
                           TCGPOINTERCONSTNODE
 *****************************************************************************}
 
-    procedure tcgpointerconstnode.pass_2;
+    procedure tcgpointerconstnode.pass_generate_code;
       begin
          { an integer const. behaves as a memory reference }
          location_reset(location,LOC_CONSTANT,OS_ADDR);
@@ -236,7 +236,7 @@ implementation
                           TCGSTRINGCONSTNODE
 *****************************************************************************}
 
-    procedure tcgstringconstnode.pass_2;
+    procedure tcgstringconstnode.pass_generate_code;
       var
          hp1,hp2 : tai;
          l1,l2,
@@ -255,18 +255,18 @@ implementation
             exit;
           end;
          { return a constant reference in memory }
-         location_reset(location,LOC_CREFERENCE,def_cgsize(resulttype.def));
+         location_reset(location,LOC_CREFERENCE,def_cgsize(resultdef));
          { const already used ? }
          lastlabel:=nil;
          lastlabelhp:=nil;
          if not assigned(lab_str) then
            begin
-              if is_shortstring(resulttype.def) then
+              if is_shortstring(resultdef) then
                 mylength:=len+2
               else
                 mylength:=len+1;
               { widestrings can't be reused yet }
-              if not(is_widestring(resulttype.def)) then
+              if not(is_widestring(resultdef)) then
                 begin
                   { tries to find an old entry }
                   hp1:=tai(current_asmdata.asmlists[al_typedconsts].first);
@@ -428,11 +428,11 @@ implementation
                                 { at least for now                          }
                                 { Consts.concat(Tai_const.Create_8bit(2)); }
                                 if tf_winlikewidestring in target_info.flags then
-                                  current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(len*cwidechartype.def.size))
+                                  current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(len*cwidechartype.size))
                                 else
                                   begin
                                     current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(-1));
-                                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(len*cwidechartype.def.size));
+                                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_aint(len*cwidechartype.size));
                                   end;
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                                 for i:=0 to len-1 do
@@ -476,7 +476,7 @@ implementation
                            TCGSETCONSTNODE
 *****************************************************************************}
 
-    procedure tcgsetconstnode.pass_2;
+    procedure tcgsetconstnode.pass_generate_code;
       var
          hp1         : tai;
          lastlabel   : tasmlabel;
@@ -495,7 +495,7 @@ implementation
         else
           indexadjust := 3;
         { small sets are loaded as constants }
-        if tsetdef(resulttype.def).settype=smallset then
+        if tsetdef(resultdef).settype=smallset then
          begin
            location_reset(location,LOC_CONSTANT,OS_32);
            location.value:=pLongint(value_set)^;
@@ -565,7 +565,7 @@ implementation
                  new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(aint)));
                  current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                  { already handled at the start of this method?? (JM)
-                 if tsetdef(resulttype.def).settype=smallset then
+                 if tsetdef(resultdef).settype=smallset then
                   begin
                     move(value_set^,i,sizeof(longint));
                     Consts.concat(Tai_const.Create_32bit(i));
@@ -586,7 +586,7 @@ implementation
                              TCGNILNODE
 *****************************************************************************}
 
-    procedure tcgnilnode.pass_2;
+    procedure tcgnilnode.pass_generate_code;
       begin
          location_reset(location,LOC_CONSTANT,OS_ADDR);
          location.value:=0;
@@ -597,7 +597,7 @@ implementation
                           TCGPOINTERCONSTNODE
 *****************************************************************************}
 
-    procedure tcgguidconstnode.pass_2;
+    procedure tcgguidconstnode.pass_generate_code;
       var
         tmplabel : TAsmLabel;
         i : integer;

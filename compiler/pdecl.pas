@@ -89,14 +89,14 @@ implementation
         case p.nodetype of
            ordconstn:
              begin
-               if p.resulttype.def.deftype=pointerdef then
-                 hp:=tconstsym.create_ordptr(orgname,constpointer,tordconstnode(p).value,p.resulttype)
+               if p.resultdef.deftype=pointerdef then
+                 hp:=tconstsym.create_ordptr(orgname,constpointer,tordconstnode(p).value,p.resultdef)
                else
-                 hp:=tconstsym.create_ord(orgname,constord,tordconstnode(p).value,p.resulttype);
+                 hp:=tconstsym.create_ord(orgname,constord,tordconstnode(p).value,p.resultdef);
              end;
            stringconstn:
              begin
-               if is_widestring(p.resulttype.def) then
+               if is_widestring(p.resultdef) then
                  begin
                    initwidestring(pw);
                    copywidestring(pcompilerwidestring(tstringconstnode(p).value_str),pw);
@@ -113,34 +113,34 @@ implementation
              begin
                 new(pd);
                 pd^:=trealconstnode(p).value_real;
-                hp:=tconstsym.create_ptr(orgname,constreal,pd,p.resulttype);
+                hp:=tconstsym.create_ptr(orgname,constreal,pd,p.resultdef);
              end;
            setconstn :
              begin
                new(ps);
                ps^:=tsetconstnode(p).value_set^;
-               hp:=tconstsym.create_ptr(orgname,constset,ps,p.resulttype);
+               hp:=tconstsym.create_ptr(orgname,constset,ps,p.resultdef);
              end;
            pointerconstn :
              begin
-               hp:=tconstsym.create_ordptr(orgname,constpointer,tpointerconstnode(p).value,p.resulttype);
+               hp:=tconstsym.create_ordptr(orgname,constpointer,tpointerconstnode(p).value,p.resultdef);
              end;
            niln :
              begin
-               hp:=tconstsym.create_ord(orgname,constnil,0,p.resulttype);
+               hp:=tconstsym.create_ord(orgname,constnil,0,p.resultdef);
              end;
            typen :
              begin
-               if is_interface(p.resulttype.def) then
+               if is_interface(p.resultdef) then
                 begin
-                  if assigned(tobjectdef(p.resulttype.def).iidguid) then
+                  if assigned(tobjectdef(p.resultdef).iidguid) then
                    begin
                      new(pg);
-                     pg^:=tobjectdef(p.resulttype.def).iidguid^;
-                     hp:=tconstsym.create_ptr(orgname,constguid,pg,p.resulttype);
+                     pg^:=tobjectdef(p.resultdef).iidguid^;
+                     hp:=tconstsym.create_ptr(orgname,constguid,pg,p.resultdef);
                    end
                   else
-                   Message1(parser_e_interface_has_no_guid,tobjectdef(p.resulttype.def).objrealname^);
+                   Message1(parser_e_interface_has_no_guid,tobjectdef(p.resultdef).objrealname^);
                 end
                else
                 Message(parser_e_illegal_expression);
@@ -157,7 +157,7 @@ implementation
     procedure const_dec;
       var
          orgname : stringid;
-         tt  : ttype;
+         hdef : tdef;
          sym : tsym;
          dummysymoptions : tsymoptions;
          storetokenpos,filepos : tfileposinfo;
@@ -196,19 +196,19 @@ implementation
                    block_type:=bt_type;
                    consume(_COLON);
                    ignore_equal:=true;
-                   read_anon_type(tt,false);
+                   read_anon_type(hdef,false);
                    ignore_equal:=false;
                    block_type:=bt_const;
                    skipequal:=false;
                    { create symbol }
                    storetokenpos:=akttokenpos;
                    akttokenpos:=filepos;
-                   sym:=ttypedconstsym.createtype(orgname,tt,(cs_typed_const_writable in aktlocalswitches));
+                   sym:=ttypedconstsym.create(orgname,hdef,(cs_typed_const_writable in aktlocalswitches));
                    akttokenpos:=storetokenpos;
                    symtablestack.top.insert(sym);
                    { procvar can have proc directives, but not type references }
-                   if (tt.def.deftype=procvardef) and
-                      (tt.def.typesym=nil) then
+                   if (hdef.deftype=procvardef) and
+                      (hdef.typesym=nil) then
                     begin
                       { support p : procedure;stdcall=nil; }
                       if try_to_consume(_SEMICOLON) then
@@ -228,7 +228,7 @@ implementation
                           parse_var_proc_directives(sym);
                        end;
                       { add default calling convention }
-                      handle_calling_convention(tabstractprocdef(tt.def));
+                      handle_calling_convention(tabstractprocdef(hdef));
                     end;
                    if not skipequal then
                     begin
@@ -238,7 +238,7 @@ implementation
                         tclist:=current_asmdata.asmlists[al_rotypedconsts]
                       else
                         tclist:=current_asmdata.asmlists[al_typedconsts];
-                      readtypedconst(tclist,tt,ttypedconstsym(sym),(cs_typed_const_writable in aktlocalswitches));
+                      readtypedconst(tclist,hdef,ttypedconstsym(sym),(cs_typed_const_writable in aktlocalswitches));
                       consume(_SEMICOLON);
                     end;
                 end;
@@ -287,9 +287,9 @@ implementation
          { Check only typesyms or record/object fields }
          case tsym(p).typ of
            typesym :
-             pd:=ttypesym(p).restype.def;
+             pd:=ttypesym(p).typedef;
            fieldvarsym :
-             pd:=tfieldvarsym(p).vartype.def
+             pd:=tfieldvarsym(p).vardef
            else
              exit;
          end;
@@ -298,15 +298,15 @@ implementation
            case pd.deftype of
              arraydef :
                begin
-                 { elementtype could also be defined using a forwarddef }
-                 pd:=tarraydef(pd).elementtype.def;
+                 { elementdef could also be defined using a forwarddef }
+                 pd:=tarraydef(pd).elementdef;
                  again:=true;
                end;
              pointerdef,
              classrefdef :
                begin
                  { classrefdef inherits from pointerdef }
-                 hpd:=tabstractpointerdef(pd).pointertype.def;
+                 hpd:=tabstractpointerdef(pd).pointeddef;
                  { still a forward def ? }
                  if hpd.deftype=forwarddef then
                   begin
@@ -324,24 +324,24 @@ implementation
                     akttokenpos:=stpos;
                     { we don't need the forwarddef anymore, dispose it }
                     hpd.free;
-                    tabstractpointerdef(pd).pointertype.def:=nil; { if error occurs }
+                    tabstractpointerdef(pd).pointeddef:=nil; { if error occurs }
                     { was a type sym found ? }
                     if assigned(srsym) and
                        (srsym.typ=typesym) then
                      begin
-                       tabstractpointerdef(pd).pointertype.setdef(ttypesym(srsym).restype.def);
+                       tabstractpointerdef(pd).pointeddef:=ttypesym(srsym).typedef;
                        { avoid wrong unused warnings web bug 801 PM }
                        inc(ttypesym(srsym).refs);
                        { we need a class type for classrefdef }
                        if (pd.deftype=classrefdef) and
-                          not(is_class(ttypesym(srsym).restype.def)) then
-                         Message1(type_e_class_type_expected,ttypesym(srsym).restype.def.typename);
+                          not(is_class(ttypesym(srsym).typedef)) then
+                         Message1(type_e_class_type_expected,ttypesym(srsym).typedef.typename);
                      end
                     else
                      begin
                        MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
                        { try to recover }
-                       tabstractpointerdef(pd).pointertype:=generrortype;
+                       tabstractpointerdef(pd).pointeddef:=generrordef;
                      end;
                   end;
                end;
@@ -392,7 +392,7 @@ implementation
          newtype  : ttypesym;
          sym      : tsym;
          srsymtable : tsymtable;
-         tt       : ttype;
+         hdef     : tdef;
          oldfilepos,
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
@@ -456,15 +456,15 @@ implementation
                  if ((token=_CLASS) or
                      (token=_INTERFACE) or
                      (token=_DISPINTERFACE)) and
-                    (assigned(ttypesym(sym).restype.def)) and
-                    is_class_or_interface_or_dispinterface(ttypesym(sym).restype.def) and
-                    (oo_is_forward in tobjectdef(ttypesym(sym).restype.def).objectoptions) then
+                    (assigned(ttypesym(sym).typedef)) and
+                    is_class_or_interface_or_dispinterface(ttypesym(sym).typedef) and
+                    (oo_is_forward in tobjectdef(ttypesym(sym).typedef).objectoptions) then
                   begin
                     { we can ignore the result   }
                     { the definition is modified }
-                    object_dec(orgtypename,nil,nil,tobjectdef(ttypesym(sym).restype.def));
+                    object_dec(orgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef));
                     newtype:=ttypesym(sym);
-                    tt:=newtype.restype;
+                    hdef:=newtype.typedef;
                   end
                  else
                   message1(parser_h_type_redef,orgtypename);
@@ -476,43 +476,43 @@ implementation
               { insert the new type first with an errordef, so that
                 referencing the type before it's really set it
                 will give an error (PFV) }
-              tt:=generrortype;
+              hdef:=generrordef;
               storetokenpos:=akttokenpos;
-              newtype:=ttypesym.create(orgtypename,tt);
+              newtype:=ttypesym.create(orgtypename,hdef);
               symtablestack.top.insert(newtype);
               akttokenpos:=defpos;
               akttokenpos:=storetokenpos;
               { read the type definition }
-              read_named_type(tt,orgtypename,nil,generictypelist,false);
+              read_named_type(hdef,orgtypename,nil,generictypelist,false);
               { update the definition of the type }
-              if assigned(tt.def) then
+              if assigned(hdef) then
                 begin
-                  if assigned(tt.def.typesym) then
+                  if assigned(hdef.typesym) then
                     istyperenaming:=true;
                   if isunique then
                     begin
-                      tt.setdef(tstoreddef(tt.def).getcopy);
-                      include(tt.def.defoptions,df_unique);
+                      hdef:=tstoreddef(hdef).getcopy;
+                      include(hdef.defoptions,df_unique);
                     end;
-                  if not assigned(tt.def.typesym) then
-                    tt.def.typesym:=newtype;
+                  if not assigned(hdef.typesym) then
+                    hdef.typesym:=newtype;
                 end;
-              newtype.restype:=tt;
+              newtype.typedef:=hdef;
               { KAZ: handle TGUID declaration in system unit }
               if (cs_compilesystem in aktmoduleswitches) and not assigned(rec_tguid) and
                  (typename='TGUID') and { name: TGUID and size=16 bytes that is 128 bits }
-                 assigned(tt.def) and (tt.def.deftype=recorddef) and (tt.def.size=16) then
-                rec_tguid:=trecorddef(tt.def);
+                 assigned(hdef) and (hdef.deftype=recorddef) and (hdef.size=16) then
+                rec_tguid:=trecorddef(hdef);
             end;
-           if assigned(tt.def) then
+           if assigned(hdef) then
             begin
-              case tt.def.deftype of
+              case hdef.deftype of
                 pointerdef :
                   begin
                     consume(_SEMICOLON);
                     if try_to_consume(_FAR) then
                      begin
-                       tpointerdef(tt.def).is_far:=true;
+                       tpointerdef(hdef).is_far:=true;
                        consume(_SEMICOLON);
                      end;
                   end;
@@ -526,7 +526,7 @@ implementation
                        if not check_proc_directive(true) then
                         consume(_SEMICOLON);
                        parse_var_proc_directives(tsym(newtype));
-                       handle_calling_convention(tprocvardef(tt.def));
+                       handle_calling_convention(tprocvardef(hdef));
                      end;
                   end;
                 objectdef,
@@ -544,14 +544,14 @@ implementation
            if assigned(generictypelist) then
              begin
                current_scanner.stoprecordtokens;
-               tstoreddef(tt.def).generictokenbuf:=generictokenbuf;
+               tstoreddef(hdef).generictokenbuf:=generictokenbuf;
                { Generic is never a type renaming }
-               tt.def.typesym:=newtype;
+               hdef.typesym:=newtype;
              end;
 
            { Write tables if we are the typesym that defines
              this type. This will not be done for simple type renamings }
-           if (tt.def.typesym=newtype) then
+           if (hdef.typesym=newtype) then
             begin
               { file position }
               oldfilepos:=aktfilepos;
@@ -560,28 +560,28 @@ implementation
               { generate persistent init/final tables when it's declared in the interface so it can
                 be reused in other used }
               if current_module.in_interface and
-                 ((is_class(tt.def) and
-                   tobjectdef(tt.def).members_need_inittable) or
-                  tt.def.needs_inittable) then
+                 ((is_class(hdef) and
+                   tobjectdef(hdef).members_need_inittable) or
+                  hdef.needs_inittable) then
                 generate_inittable(newtype);
 
               { for objects we should write the vmt and interfaces.
                 This need to be done after the rtti has been written, because
                 it can contain a reference to that data (PFV)
                 This is not for forward classes }
-              if (tt.def.deftype=objectdef) and
-                 (tt.def.owner.symtabletype in [staticsymtable,globalsymtable]) then
-                with Tobjectdef(tt.def) do
+              if (hdef.deftype=objectdef) and
+                 (hdef.owner.symtabletype in [staticsymtable,globalsymtable]) then
+                with Tobjectdef(hdef) do
                   begin
                     if not(oo_is_forward in objectoptions) then
                       begin
-                        ch:=tclassheader.create(tobjectdef(tt.def));
+                        ch:=tclassheader.create(tobjectdef(hdef));
                         { generate and check virtual methods, must be done
                           before RTTI is written }
                         ch.genvmt;
                         { Generate RTTI for class }
                         generate_rtti(newtype);
-                        if is_interface(tobjectdef(tt.def)) then
+                        if is_interface(tobjectdef(hdef)) then
                           ch.writeinterfaceids;
                         if (oo_has_vmt in objectoptions) then
                           ch.writevmt;

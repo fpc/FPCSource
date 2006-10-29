@@ -39,7 +39,7 @@ interface
     { reads a single factor }
     function factor(getaddr : boolean) : tnode;
 
-    procedure string_dec(var t: ttype);
+    procedure string_dec(var def: tdef);
 
     procedure propaccesslist_to_node(var p1:tnode;st:tsymtable;pl:tpropaccesslist);
 
@@ -91,14 +91,14 @@ implementation
        { last def found, only used by anon. inherited calls to insert proper type casts }
        srdef : tdef = nil;
 
-    procedure string_dec(var t: ttype);
+    procedure string_dec(var def:tdef);
     { reads a string type with optional length }
     { and returns a pointer to the string      }
     { definition                               }
       var
          p : tnode;
       begin
-         t:=cshortstringtype;
+         def:=cshortstringtype;
          consume(_STRING);
          if try_to_consume(_LECKKLAMMER) then
            begin
@@ -120,23 +120,23 @@ implementation
                  if tordconstnode(p).value>255 then
                   begin
                     { longstring is currently unsupported (CEC)! }
-{                   t.setdef(tstringdef.createlong(tordconstnode(p).value))}
+{                   t:=tstringdef.createlong(tordconstnode(p).value))}
                      Message(parser_e_invalid_string_size);
                      tordconstnode(p).value:=255;
-                     t.setdef(tstringdef.createshort(tordconstnode(p).value));
+                     def:=tstringdef.createshort(tordconstnode(p).value);
                   end
                  else
                    if tordconstnode(p).value<>255 then
-                     t.setdef(tstringdef.createshort(tordconstnode(p).value));
+                     def:=tstringdef.createshort(tordconstnode(p).value);
                end;
               p.free;
            end
           else
             begin
                if cs_ansistrings in aktlocalswitches then
-                 t:=cansistringtype
+                 def:=cansistringtype
                else
-                 t:=cshortstringtype;
+                 def:=cshortstringtype;
             end;
        end;
 
@@ -178,14 +178,14 @@ implementation
                  p1:=csubscriptnode.create(plist^.sym,p1);
                end;
              sl_typeconv :
-               p1:=ctypeconvnode.create_explicit(p1,plist^.tt);
+               p1:=ctypeconvnode.create_explicit(p1,plist^.def);
              sl_absolutetype :
                begin
-                 p1:=ctypeconvnode.create(p1,plist^.tt);
+                 p1:=ctypeconvnode.create(p1,plist^.def);
                  include(p1.flags,nf_absolute);
                end;
              sl_vec :
-               p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,plist^.valuett,true));
+               p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,plist^.valuedef,true));
              else
                internalerror(200110205);
            end;
@@ -210,20 +210,20 @@ implementation
               begin
                 addnode(ttypeconvnode(p).left);
                 if nf_absolute in ttypeconvnode(p).flags then
-                  sl.addtype(sl_absolutetype,ttypeconvnode(p).totype)
+                  sl.addtype(sl_absolutetype,ttypeconvnode(p).totypedef)
                 else
-                  sl.addtype(sl_typeconv,ttypeconvnode(p).totype);
+                  sl.addtype(sl_typeconv,ttypeconvnode(p).totypedef);
               end;
             vecn :
               begin
                 addnode(tvecnode(p).left);
                 if tvecnode(p).right.nodetype=ordconstn then
-                  sl.addconst(sl_vec,tordconstnode(tvecnode(p).right).value,tvecnode(p).right.resulttype)
+                  sl.addconst(sl_vec,tordconstnode(tvecnode(p).right).value,tvecnode(p).right.resultdef)
                 else
                   begin
                     Message(parser_e_illegal_expression);
                     { recovery }
-                    sl.addconst(sl_vec,0,tvecnode(p).right.resulttype);
+                    sl.addconst(sl_vec,0,tvecnode(p).right.resultdef);
                   end;
              end;
             loadn :
@@ -287,7 +287,7 @@ implementation
      function gen_c_style_operator(ntyp:tnodetype;p1,p2:tnode) : tnode;
        var
          hp    : tnode;
-         htype : ttype;
+         hdef  : tdef;
          temp  : ttempcreatenode;
          newstatement : tstatementnode;
        begin
@@ -309,10 +309,10 @@ implementation
            internalerror(200410121);
          if (hp.nodetype=calln) then
            begin
-             resulttypepass(p1);
+             typecheckpass(p1);
              result:=internalstatements(newstatement);
-             htype.setdef(tpointerdef.create(p1.resulttype));
-             temp:=ctempcreatenode.create(htype,sizeof(aint),tt_persistent,false);
+             hdef:=tpointerdef.create(p1.resultdef);
+             temp:=ctempcreatenode.create(hdef,sizeof(aint),tt_persistent,false);
              addstatement(newstatement,temp);
              addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(temp),caddrnode.create_internal(p1)));
              addstatement(newstatement,cassignmentnode.create(
@@ -377,7 +377,7 @@ implementation
                               p1:=nil;
                             end
                           else if (not assigned(current_procinfo) or
-                              is_void(current_procinfo.procdef.rettype.def)) then
+                              is_void(current_procinfo.procdef.returndef)) then
                             begin
                               Message(parser_e_void_function);
                               { recovery }
@@ -456,11 +456,11 @@ implementation
                 ttypenode(p1).allowed:=true;
               { Allow classrefdef, which is required for
                 Typeof(self) in static class methods }
-              if (p1.resulttype.def.deftype = objectdef) or
+              if (p1.resultdef.deftype = objectdef) or
                  (assigned(current_procinfo) and
                   ((po_classmethod in current_procinfo.procdef.procoptions) or
                    (po_staticmethod in current_procinfo.procdef.procoptions)) and
-                  (p1.resulttype.def.deftype=classrefdef)) then
+                  (p1.resultdef.deftype=classrefdef)) then
                statement_syssym:=geninlinenode(in_typeof_x,false,p1)
               else
                begin
@@ -479,11 +479,11 @@ implementation
               consume(_RKLAMMER);
               if (p1.nodetype<>typen) and
                  (
-                  (is_object(p1.resulttype.def) and
-                   (oo_has_constructor in tobjectdef(p1.resulttype.def).objectoptions)) or
-                  is_open_array(p1.resulttype.def) or
-                  is_array_of_const(p1.resulttype.def) or
-                  is_open_string(p1.resulttype.def)
+                  (is_object(p1.resultdef) and
+                   (oo_has_constructor in tobjectdef(p1.resultdef).objectoptions)) or
+                  is_open_array(p1.resultdef) or
+                  is_array_of_const(p1.resultdef) or
+                  is_open_string(p1.resultdef)
                  ) then
                 begin
                   statement_syssym:=geninlinenode(in_sizeof_x,false,p1);
@@ -495,16 +495,16 @@ implementation
                begin
                  if (l = in_sizeof_x) or
                     (not((p1.nodetype = vecn) and
-                         is_packed_array(tvecnode(p1).left.resulttype.def)) and
+                         is_packed_array(tvecnode(p1).left.resultdef)) and
                      not((p1.nodetype = subscriptn) and
-                         is_packed_record_or_object(tsubscriptnode(p1).left.resulttype.def))) then
+                         is_packed_record_or_object(tsubscriptnode(p1).left.resultdef))) then
                    begin
-                     statement_syssym:=cordconstnode.create(p1.resulttype.def.size,sinttype,true);
+                     statement_syssym:=cordconstnode.create(p1.resultdef.size,sinttype,true);
                      if (l = in_bitsizeof_x) then
                        statement_syssym:=caddnode.create(muln,statement_syssym,cordconstnode.create(8,sinttype,true));
                    end
                  else
-                   statement_syssym:=cordconstnode.create(p1.resulttype.def.packedbitsize,sinttype,true);
+                   statement_syssym:=cordconstnode.create(p1.resultdef.packedbitsize,sinttype,true);
                  { p1 not needed !}
                  p1.destroy;
                end;
@@ -568,19 +568,19 @@ implementation
                 end;
               if not codegenerror then
                begin
-                 case p1.resulttype.def.deftype of
+                 case p1.resultdef.deftype of
                    procdef, { procvar }
                    pointerdef,
                    procvardef,
                    classrefdef : ;
                    objectdef :
-                     if not is_class_or_interface(p1.resulttype.def) then
+                     if not is_class_or_interface(p1.resultdef) then
                        begin
                          Message(parser_e_illegal_parameter_list);
                          err:=true;
                        end;
                    arraydef :
-                     if not is_dynamic_array(p1.resulttype.def) then
+                     if not is_dynamic_array(p1.resultdef) then
                        begin
                          Message(parser_e_illegal_parameter_list);
                          err:=true;
@@ -626,9 +626,9 @@ implementation
               in_args:=true;
               p1:=comp_expr(true);
               p1:=caddrnode.create(p1);
-              do_resulttypepass(p1);
+              do_typecheckpass(p1);
               { Ofs() returns a cardinal/qword, not a pointer }
-              p1.resulttype:=uinttype;
+              p1.resultdef:=uinttype;
               consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
@@ -739,9 +739,9 @@ implementation
                   begin
                     { Force string type if it isn't yet }
                     if not(
-                           (p1.resulttype.def.deftype=stringdef) or
-                           is_chararray(p1.resulttype.def) or
-                           is_char(p1.resulttype.def)
+                           (p1.resultdef.deftype=stringdef) or
+                           is_chararray(p1.resultdef) or
+                           is_char(p1.resultdef)
                           ) then
                       inserttypeconv(p1,cshortstringtype);
                     p2:=p1;
@@ -997,7 +997,7 @@ implementation
                           { anonymous inherited via msgid calls only require a var parameter for
                             both methods, so we need some type casting here }
                           para:=ccallparanode.create(ctypeconvnode.create_internal(ctypeconvnode.create_internal(
-                            cloadnode.create(currpara,currpara.owner),cformaltype),tparavarsym(tprocdef(srdef).paras[i]).vartype),
+                            cloadnode.create(currpara,currpara.owner),cformaltype),tparavarsym(tprocdef(srdef).paras[i]).vardef),
                           para)
                         else
                           para:=ccallparanode.create(cloadnode.create(currpara,currpara.owner),para);
@@ -1093,7 +1093,7 @@ implementation
          { indexed property }
          if (ppo_indexed in propsym.propoptions) then
            begin
-             p2:=cordconstnode.create(propsym.index,propsym.indextype,true);
+             p2:=cordconstnode.create(propsym.index,propsym.indexdef,true);
              paras:=ccallparanode.create(p2,paras);
            end;
          { we need only a write property if a := follows }
@@ -1123,8 +1123,8 @@ implementation
                          paras:=nil;
                          consume(_ASSIGNMENT);
                          { read the expression }
-                         if propsym.proptype.def.deftype=procvardef then
-                           getprocvardef:=tprocvardef(propsym.proptype.def);
+                         if propsym.propdef.deftype=procvardef then
+                           getprocvardef:=tprocvardef(propsym.propdef);
                          p2:=comp_expr(true);
                          if assigned(getprocvardef) then
                            handle_procvar(getprocvardef,p2);
@@ -1227,9 +1227,9 @@ implementation
            begin
               if assigned(p1) then
                begin
-                 if not assigned(p1.resulttype.def) then
-                  do_resulttypepass(p1);
-                 isclassref:=(p1.resulttype.def.deftype=classrefdef);
+                 if not assigned(p1.resultdef) then
+                  do_typecheckpass(p1);
+                 isclassref:=(p1.resultdef.deftype=classrefdef);
                end
               else
                isclassref:=false;
@@ -1243,7 +1243,7 @@ implementation
                                    (getaddr and not(token in [_CARET,_POINT])),
                                    again,p1,callflags);
                       { we need to know which procedure is called }
-                      do_resulttypepass(p1);
+                      do_typecheckpass(p1);
                       { calling using classref? }
                       if isclassref and
                          (p1.nodetype=calln) and
@@ -1302,7 +1302,6 @@ implementation
            possible_error : boolean;
            srsymtable : tsymtable;
            hdef  : tdef;
-           htype : ttype;
            static_name : string;
          begin
            { allow post fix operators }
@@ -1334,16 +1333,6 @@ implementation
                   srsym:=generrorsym;
                 end;
               srsymtable:=srsym.owner;
-{
-              storesymtablestack:=symtablestack;
-              symtablestack:=srsym.owner.next;
-              searchsym(srsym.name,srsym,srsymtable);
-              if not assigned(srsym) then
-               srsym:=generrorsym;
-              if (srsym.typ<>procsym) then
-               Message(parser_e_illegal_expression);
-              symtablestack:=storesymtablestack;
-}
             end;
 
             begin
@@ -1354,7 +1343,7 @@ implementation
                       begin
                         p1:=nil;
                         propaccesslist_to_node(p1,nil,tabsolutevarsym(srsym).ref);
-                        p1:=ctypeconvnode.create(p1,tabsolutevarsym(srsym).vartype);
+                        p1:=ctypeconvnode.create(p1,tabsolutevarsym(srsym).vardef);
                         include(p1.flags,nf_absolute);
                       end
                     else
@@ -1413,15 +1402,15 @@ implementation
 
                 typesym :
                   begin
-                    htype:=ttypesym(srsym).restype;
-                    if not assigned(htype.def) then
+                    hdef:=ttypesym(srsym).typedef;
+                    if not assigned(hdef) then
                      begin
                        again:=false;
                      end
                     else
                      begin
                        { We need to know if this unit uses Variants }
-                       if (htype.def=cvarianttype.def) and
+                       if (hdef=cvarianttype) and
                           not(cs_compilesystem in aktmoduleswitches) then
                          current_module.flags:=current_module.flags or uf_uses_variants;
                        if (block_type<>bt_specialize) and
@@ -1429,26 +1418,26 @@ implementation
                         begin
                           p1:=comp_expr(true);
                           consume(_RKLAMMER);
-                          p1:=ctypeconvnode.create_explicit(p1,htype);
+                          p1:=ctypeconvnode.create_explicit(p1,hdef);
                         end
                        else { not LKLAMMER }
                         if (token=_POINT) and
-                           is_object(htype.def) then
+                           is_object(hdef) then
                          begin
                            consume(_POINT);
                            if assigned(current_procinfo) and
                               assigned(current_procinfo.procdef._class) and
                               not(getaddr) then
                             begin
-                              if current_procinfo.procdef._class.is_related(tobjectdef(htype.def)) then
+                              if current_procinfo.procdef._class.is_related(tobjectdef(hdef)) then
                                begin
-                                 p1:=ctypenode.create(htype);
+                                 p1:=ctypenode.create(hdef);
                                  { search also in inherited methods }
-                                 searchsym_in_class(tobjectdef(htype.def),current_procinfo.procdef._class,pattern,srsym,srsymtable);
+                                 searchsym_in_class(tobjectdef(hdef),current_procinfo.procdef._class,pattern,srsym,srsymtable);
                                  if assigned(srsym) then
                                    check_hints(srsym,srsym.symoptions);
                                  consume(_ID);
-                                 do_member_read(tobjectdef(htype.def),false,srsym,p1,again,[]);
+                                 do_member_read(tobjectdef(hdef),false,srsym,p1,again,[]);
                                end
                               else
                                begin
@@ -1460,10 +1449,10 @@ implementation
                             begin
                               { allows @TObject.Load }
                               { also allows static methods and variables }
-                              p1:=ctypenode.create(htype);
+                              p1:=ctypenode.create(hdef);
                               { TP allows also @TMenu.Load if Load is only }
                               { defined in an anchestor class              }
-                              srsym:=search_class_member(tobjectdef(htype.def),pattern);
+                              srsym:=search_class_member(tobjectdef(hdef),pattern);
                               if assigned(srsym) then
                                 begin
                                   check_hints(srsym,srsym.symoptions);
@@ -1472,7 +1461,7 @@ implementation
                                   else
                                     begin
                                       consume(_ID);
-                                      do_member_read(tobjectdef(htype.def),getaddr,srsym,p1,again,[]);
+                                      do_member_read(tobjectdef(hdef),getaddr,srsym,p1,again,[]);
                                     end;
                                 end
                               else
@@ -1482,22 +1471,22 @@ implementation
                        else
                         begin
                           { class reference ? }
-                          if is_class(htype.def) then
+                          if is_class(hdef) then
                            begin
                              if getaddr and (token=_POINT) then
                               begin
                                 consume(_POINT);
                                 { allows @Object.Method }
                                 { also allows static methods and variables }
-                                p1:=ctypenode.create(htype);
+                                p1:=ctypenode.create(hdef);
                                 { TP allows also @TMenu.Load if Load is only }
                                 { defined in an anchestor class              }
-                                srsym:=search_class_member(tobjectdef(htype.def),pattern);
+                                srsym:=search_class_member(tobjectdef(hdef),pattern);
                                 if assigned(srsym) then
                                  begin
                                    check_hints(srsym,srsym.symoptions);
                                    consume(_ID);
-                                   do_member_read(tobjectdef(htype.def),getaddr,srsym,p1,again,[]);
+                                   do_member_read(tobjectdef(hdef),getaddr,srsym,p1,again,[]);
                                  end
                                 else
                                  begin
@@ -1507,7 +1496,7 @@ implementation
                               end
                              else
                               begin
-                                p1:=ctypenode.create(htype);
+                                p1:=ctypenode.create(hdef);
                                 { For a type block we simply return only
                                   the type. For all other blocks we return
                                   a loadvmt node }
@@ -1516,7 +1505,7 @@ implementation
                               end;
                            end
                           else
-                           p1:=ctypenode.create(htype);
+                           p1:=ctypenode.create(hdef);
                         end;
                      end;
                   end;
@@ -1531,9 +1520,9 @@ implementation
                     case tconstsym(srsym).consttyp of
                       constord :
                         begin
-                          if tconstsym(srsym).consttype.def=nil then
+                          if tconstsym(srsym).constdef=nil then
                             internalerror(200403232);
-                          p1:=cordconstnode.create(tconstsym(srsym).value.valueord,tconstsym(srsym).consttype,true);
+                          p1:=cordconstnode.create(tconstsym(srsym).value.valueord,tconstsym(srsym).constdef,true);
                         end;
                       conststring :
                         begin
@@ -1550,16 +1539,16 @@ implementation
                       constreal :
                         p1:=crealconstnode.create(pbestreal(tconstsym(srsym).value.valueptr)^,pbestrealtype^);
                       constset :
-                        p1:=csetconstnode.create(pconstset(tconstsym(srsym).value.valueptr),tconstsym(srsym).consttype);
+                        p1:=csetconstnode.create(pconstset(tconstsym(srsym).value.valueptr),tconstsym(srsym).constdef);
                       constpointer :
-                        p1:=cpointerconstnode.create(tconstsym(srsym).value.valueordptr,tconstsym(srsym).consttype);
+                        p1:=cpointerconstnode.create(tconstsym(srsym).value.valueordptr,tconstsym(srsym).constdef);
                       constnil :
                         p1:=cnilnode.create;
                       constresourcestring:
                         begin
                           p1:=cloadnode.create(srsym,srsymtable);
-                          do_resulttypepass(p1);
-                          p1.resulttype:=cansistringtype;
+                          do_typecheckpass(p1);
+                          p1.resultdef:=cansistringtype;
                         end;
                       constguid :
                         p1:=cguidconstnode.create(pguid(tconstsym(srsym).value.valueptr)^);
@@ -1582,7 +1571,7 @@ implementation
                     { we need to know which procedure is called }
                     if possible_error then
                      begin
-                       do_resulttypepass(p1);
+                       do_typecheckpass(p1);
                        if (p1.nodetype=calln) and
                           assigned(tcallnode(p1).procdefinition) and
                           not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
@@ -1730,12 +1719,12 @@ implementation
               p4:=comp_expr(true);
 
               addstatement(newstatement,cassignmentnode.create(
-                ctemprefnode.create_offset(temp,countindices*sinttype.def.size),p4));
+                ctemprefnode.create_offset(temp,countindices*sinttype.size),p4));
                inc(countindices);
             until not try_to_consume(_COMMA);
 
             { set real size }
-            temp.size:=countindices*sinttype.def.size;
+            temp.size:=countindices*sinttype.size;
 
             consume(_RECKKLAMMER);
 
@@ -1760,7 +1749,7 @@ implementation
             else
               begin
                 { create temp for result }
-                tempresultvariant:=ctempcreatenode.create(cvarianttype,cvarianttype.def.size,tt_persistent,true);
+                tempresultvariant:=ctempcreatenode.create(cvarianttype,cvarianttype.size,tt_persistent,true);
                 addstatement(newstatement,tempresultvariant);
 
                 { create call to fpc_vararray_get }
@@ -1800,8 +1789,8 @@ implementation
           again:=true;
           while again do
            begin
-             { we need the resulttype }
-             do_resulttypepass(p1);
+             { we need the resultdef }
+             do_typecheckpass(p1);
 
              if codegenerror then
               begin
@@ -1818,14 +1807,14 @@ implementation
                       pointer type }
                     if ((m_tp_procvar in aktmodeswitches) or
                         (m_mac_procvar in aktmodeswitches)) and
-                       (p1.resulttype.def.deftype=procvardef) and
-                       (tprocvardef(p1.resulttype.def).rettype.def.deftype=pointerdef) then
+                       (p1.resultdef.deftype=procvardef) and
+                       (tprocvardef(p1.resultdef).returndef.deftype=pointerdef) then
                       begin
                         p1:=ccallnode.create_procvar(nil,p1);
-                        resulttypepass(p1);
+                        typecheckpass(p1);
                       end;
 
-                    if (p1.resulttype.def.deftype<>pointerdef) then
+                    if (p1.resultdef.deftype<>pointerdef) then
                       begin
                          { ^ as binary operator is a problem!!!! (FK) }
                          again:=false;
@@ -1840,10 +1829,10 @@ implementation
 
                _LECKKLAMMER:
                   begin
-                    if is_class_or_interface(p1.resulttype.def) then
+                    if is_class_or_interface(p1.resultdef) then
                       begin
                         { default property }
-                        protsym:=search_default_property(tobjectdef(p1.resulttype.def));
+                        protsym:=search_default_property(tobjectdef(p1.resultdef));
                         if not(assigned(protsym)) then
                           begin
                              p1.destroy;
@@ -1863,16 +1852,16 @@ implementation
                         consume(_LECKKLAMMER);
                         repeat
                           ok := true;
-                          case p1.resulttype.def.deftype of
+                          case p1.resultdef.deftype of
                             pointerdef:
                               begin
                                  { support delphi autoderef }
-                                 if (tpointerdef(p1.resulttype.def).pointertype.def.deftype=arraydef) and
+                                 if (tpointerdef(p1.resultdef).pointeddef.deftype=arraydef) and
                                     (m_autoderef in aktmodeswitches) then
                                    p1:=cderefnode.create(p1);
                                  p2:=comp_expr(true);
+                                 { Support Pbytevar[0..9] which returns array [0..9].}
                                  if try_to_consume(_POINTPOINT) then
-                                   { Support Pbytevar[0..9] which returns array [0..9].}
                                    p2:=crangenode.create(p2,comp_expr(true));
                                  p1:=cvecnode.create(p1,p2);
                               end;
@@ -1885,8 +1874,8 @@ implementation
                             stringdef :
                               begin
                                 p2:=comp_expr(true);
+                                { Support string[0..9] which returns array [0..9] of char.}
                                 if try_to_consume(_POINTPOINT) then
-                                  { Support string[0..9] which returns array [0..9] of char.}
                                   p2:=crangenode.create(p2,comp_expr(true));
                                 p1:=cvecnode.create(p1,p2);
                               end;
@@ -1897,13 +1886,15 @@ implementation
                                 { an array[1..4] of char. The                  }
                                 { FPC_Internal_Four_Char_Array is defined in   }
                                 { the macpas unit                              }
-                                if (p1.resulttype.def.deftype = orddef) then
-                                  if (m_mac in aktmodeswitches) and
-                                     is_integer(p1.resulttype.def) and
-                                     (p1.resulttype.def.size = 4) then
-                                    int_to_4cc(p1)
-                                  else
-                                    ok := false;
+                                if (p1.resultdef.deftype = orddef) then
+                                  begin
+                                    if (m_mac in aktmodeswitches) and
+                                       is_integer(p1.resultdef) and
+                                       (p1.resultdef.size = 4) then
+                                      int_to_4cc(p1)
+                                    else
+                                      ok := false;
+                                  end;    
                                 if ok then
                                   begin
                                     p2:=comp_expr(true);
@@ -1958,7 +1949,7 @@ implementation
                               comp_expr(true);
                               again:=false;
                             end;
-                          do_resulttypepass(p1);
+                          do_typecheckpass(p1);
                         until not try_to_consume(_COMMA);
                         consume(_RECKKLAMMER);
                         { handle_variantarray eats the RECKKLAMMER and jumps here }
@@ -1969,18 +1960,18 @@ implementation
                _POINT :
                   begin
                     consume(_POINT);
-                    if (p1.resulttype.def.deftype=pointerdef) and
+                    if (p1.resultdef.deftype=pointerdef) and
                        (m_autoderef in aktmodeswitches) then
                       begin
                         p1:=cderefnode.create(p1);
-                        do_resulttypepass(p1);
+                        do_typecheckpass(p1);
                       end;
-                    case p1.resulttype.def.deftype of
+                    case p1.resultdef.deftype of
                       recorddef:
                         begin
                           if token=_ID then
                             begin
-                              srsym:=tsym(trecorddef(p1.resulttype.def).symtable.search(pattern));
+                              srsym:=tsym(trecorddef(p1.resultdef).symtable.search(pattern));
                               if assigned(srsym) and
                                  (srsym.typ=fieldvarsym) then
                                 begin
@@ -2003,7 +1994,7 @@ implementation
                          begin
                            if token=_ID then
                              begin
-                               classh:=tobjectdef(tclassrefdef(p1.resulttype.def).pointertype.def);
+                               classh:=tobjectdef(tclassrefdef(p1.resultdef).pointeddef);
                                searchsym_in_class(classh,classh,pattern,srsym,srsymtable);
                                if assigned(srsym) then
                                  begin
@@ -2029,7 +2020,7 @@ implementation
                              begin
                                store_static:=allow_only_static;
                                allow_only_static:=false;
-                               classh:=tobjectdef(p1.resulttype.def);
+                               classh:=tobjectdef(p1.resultdef);
                                searchsym_in_class(classh,classh,pattern,srsym,srsymtable);
                                allow_only_static:=store_static;
                                if assigned(srsym) then
@@ -2053,7 +2044,7 @@ implementation
                        pointerdef:
                          begin
                            Message(parser_e_invalid_qualifier);
-                           if tpointerdef(p1.resulttype.def).pointertype.def.deftype in [recorddef,objectdef,classrefdef] then
+                           if tpointerdef(p1.resultdef).pointeddef.deftype in [recorddef,objectdef,classrefdef] then
                              Message(parser_h_maybe_deref_caret_missing);
                          end;
                        else
@@ -2070,11 +2061,11 @@ implementation
                else
                  begin
                    { is this a procedure variable ? }
-                   if assigned(p1.resulttype.def) and
-                      (p1.resulttype.def.deftype=procvardef) then
+                   if assigned(p1.resultdef) and
+                      (p1.resultdef.deftype=procvardef) then
                      begin
                        if assigned(getprocvardef) and
-                          equal_defs(p1.resulttype.def,getprocvardef) then
+                          equal_defs(p1.resultdef,getprocvardef) then
                          again:=false
                        else
                          begin
@@ -2122,10 +2113,10 @@ implementation
          srsym      : tsym;
          srsymtable : tsymtable;
          pd         : tprocdef;
-         classh     : tobjectdef;
+         hclassdef     : tobjectdef;
          d          : bestreal;
          hs,hsorg   : string;
-         htype      : ttype;
+         hdef       : tdef;
          filepos    : tfileposinfo;
       begin
         oldp1:=nil;
@@ -2178,7 +2169,7 @@ implementation
                if assigned(current_procinfo) and
                   assigned(current_procinfo.procdef._class) then
                 begin
-                  classh:=current_procinfo.procdef._class.childof;
+                  hclassdef:=current_procinfo.procdef._class.childof;
                   { if inherited; only then we need the method with
                     the same name }
                   if token in endtokens then
@@ -2191,12 +2182,12 @@ implementation
                      pd:=tprocsym(current_procinfo.procdef.procsym).first_procdef;
                      srdef:=nil;
                      if (po_msgint in pd.procoptions) then
-                       searchsym_in_class_by_msgint(classh,pd.messageinf.i,srdef,srsym,srsymtable)
+                       searchsym_in_class_by_msgint(hclassdef,pd.messageinf.i,srdef,srsym,srsymtable)
                      else
                       if (po_msgstr in pd.procoptions) then
-                        searchsym_in_class_by_msgstr(classh,pd.messageinf.str^,srsym,srsymtable)
+                        searchsym_in_class_by_msgstr(hclassdef,pd.messageinf.str^,srsym,srsymtable)
                      else
-                       searchsym_in_class(classh,current_procinfo.procdef._class,hs,srsym,srsymtable);
+                       searchsym_in_class(hclassdef,current_procinfo.procdef._class,hs,srsym,srsymtable);
                    end
                   else
                    begin
@@ -2204,7 +2195,7 @@ implementation
                      hsorg:=orgpattern;
                      consume(_ID);
                      anon_inherited:=false;
-                     searchsym_in_class(classh,current_procinfo.procdef._class,hs,srsym,srsymtable);
+                     searchsym_in_class(hclassdef,current_procinfo.procdef._class,hs,srsym,srsymtable);
                    end;
                   if assigned(srsym) then
                    begin
@@ -2215,11 +2206,11 @@ implementation
                       begin
                         if (srsym.typ = procsym) then
                           begin
-                            htype.setdef(classh);
+                            hdef:=hclassdef;
                             if (po_classmethod in current_procinfo.procdef.procoptions) or
                                (po_staticmethod in current_procinfo.procdef.procoptions) then
-                              htype.setdef(tclassrefdef.create(htype));
-                            p1:=ctypenode.create(htype);
+                              hdef:=tclassrefdef.create(hdef);
+                            p1:=ctypenode.create(hdef);
                           end;
                       end
                      else
@@ -2227,7 +2218,7 @@ implementation
                         Message(parser_e_methode_id_expected);
                         p1:=cerrornode.create;
                       end;
-                     do_member_read(classh,getaddr,srsym,p1,again,[cnf_inherited,cnf_anon_inherited]);
+                     do_member_read(hclassdef,getaddr,srsym,p1,again,[cnf_inherited,cnf_anon_inherited]);
                    end
                   else
                    begin
@@ -2237,12 +2228,12 @@ implementation
                         if (po_msgint in pd.procoptions) or
                            (po_msgstr in pd.procoptions) then
                           begin
-                            searchsym_in_class(classh,classh,'DEFAULTHANDLER',srsym,srsymtable);
+                            searchsym_in_class(hclassdef,hclassdef,'DEFAULTHANDLER',srsym,srsymtable);
                             if not assigned(srsym) or
                                (srsym.typ<>procsym) then
                               internalerror(200303171);
                             p1:=nil;
-                            do_proc_call(srsym,srsym.owner,classh,false,again,p1,[]);
+                            do_proc_call(srsym,srsym.owner,hclassdef,false,again,p1,[]);
                           end
                         else
                           begin
@@ -2279,8 +2270,8 @@ implementation
                if code=0 then
                  begin
                     consume(_INTCONST);
-                    int_to_type(ic,htype);
-                    p1:=cordconstnode.create(ic,htype,true);
+                    int_to_type(ic,hdef);
+                    p1:=cordconstnode.create(ic,hdef,true);
                  end
                else
                  begin
@@ -2289,8 +2280,8 @@ implementation
                    if code=0 then
                      begin
                         consume(_INTCONST);
-                        htype:=u64inttype;
-                        p1:=cordconstnode.create(qc,htype,true);
+                        hdef:=u64inttype;
+                        p1:=cordconstnode.create(qc,hdef,true);
                      end;
                  end;
 {$else}
@@ -2299,8 +2290,8 @@ implementation
                if code=0 then
                  begin
                     consume(_INTCONST);
-                    int_to_type(card,htype);
-                    p1:=cordconstnode.create(card,htype,true);
+                    int_to_type(card,hdef);
+                    p1:=cordconstnode.create(card,hdef,true);
                  end
                else
                  begin
@@ -2309,8 +2300,8 @@ implementation
                    if code = 0 then
                      begin
                        consume(_INTCONST);
-                       int_to_type(l,htype);
-                       p1:=cordconstnode.create(l,htype,true);
+                       int_to_type(l,hdef);
+                       p1:=cordconstnode.create(l,hdef,true);
                      end
                    else
                      begin
@@ -2319,8 +2310,8 @@ implementation
                        if code=0 then
                          begin
                             consume(_INTCONST);
-                            int_to_type(ic,htype);
-                            p1:=cordconstnode.create(ic,htype,true);
+                            int_to_type(ic,hdef);
+                            p1:=cordconstnode.create(ic,hdef,true);
                          end
                        else
                          begin
@@ -2329,8 +2320,8 @@ implementation
                            if code=0 then
                              begin
                                 consume(_INTCONST);
-                                htype:=u64inttype;
-                                p1:=cordconstnode.create(tconstexprint(qc),htype,true);
+                                hdef:=u64inttype;
+                                p1:=cordconstnode.create(tconstexprint(qc),hdef,true);
                              end;
                          end;
                      end;
@@ -2369,38 +2360,38 @@ implementation
 
            _STRING :
              begin
-               string_dec(htype);
+               string_dec(hdef);
                { STRING can be also a type cast }
                if try_to_consume(_LKLAMMER) then
                 begin
                   p1:=comp_expr(true);
                   consume(_RKLAMMER);
-                  p1:=ctypeconvnode.create_explicit(p1,htype);
+                  p1:=ctypeconvnode.create_explicit(p1,hdef);
                   { handle postfix operators here e.g. string(a)[10] }
                   again:=true;
                   postfixoperators(p1,again);
                 end
                else
-                p1:=ctypenode.create(htype);
+                p1:=ctypenode.create(hdef);
              end;
 
            _FILE :
              begin
-               htype:=cfiletype;
+               hdef:=cfiletype;
                consume(_FILE);
                { FILE can be also a type cast }
                if try_to_consume(_LKLAMMER) then
                 begin
                   p1:=comp_expr(true);
                   consume(_RKLAMMER);
-                  p1:=ctypeconvnode.create_explicit(p1,htype);
+                  p1:=ctypeconvnode.create_explicit(p1,hdef);
                   { handle postfix operators here e.g. string(a)[10] }
                   again:=true;
                   postfixoperators(p1,again);
                 end
                else
                 begin
-                  p1:=ctypenode.create(htype);
+                  p1:=ctypenode.create(hdef);
                 end;
              end;
 
@@ -2576,9 +2567,9 @@ implementation
            p1:=cerrornode.create;
          end;
 
-        { get the resulttype for the node }
-        if (not assigned(p1.resulttype.def)) then
-         do_resulttypepass(p1);
+        { get the resultdef for the node }
+        if (not assigned(p1.resultdef)) then
+         do_typecheckpass(p1);
 
         if assigned(p1) and
            (p1<>oldp1) then
@@ -2702,9 +2693,9 @@ implementation
          oldafterassignment:=afterassignment;
          afterassignment:=true;
          p1:=sub_expr(opcompare,accept_equal);
-         { get the resulttype for this expression }
-         if not assigned(p1.resulttype.def) then
-          do_resulttypepass(p1);
+         { get the resultdef for this expression }
+         if not assigned(p1.resultdef) then
+          do_typecheckpass(p1);
          afterassignment:=oldafterassignment;
          comp_expr:=p1;
       end;
@@ -2721,9 +2712,9 @@ implementation
       begin
          oldafterassignment:=afterassignment;
          p1:=sub_expr(opcompare,true);
-         { get the resulttype for this expression }
-         if not assigned(p1.resulttype.def) then
-          do_resulttypepass(p1);
+         { get the resultdef for this expression }
+         if not assigned(p1.resultdef) then
+          do_typecheckpass(p1);
          filepos:=akttokenpos;
          if token in [_ASSIGNMENT,_PLUSASN,_MINUSASN,_STARASN,_SLASHASN] then
            afterassignment:=true;
@@ -2738,8 +2729,8 @@ implementation
            _ASSIGNMENT :
              begin
                 consume(_ASSIGNMENT);
-                if (p1.resulttype.def.deftype=procvardef) then
-                  getprocvardef:=tprocvardef(p1.resulttype.def);
+                if (p1.resultdef.deftype=procvardef) then
+                  getprocvardef:=tprocvardef(p1.resultdef);
                 p2:=sub_expr(opcompare,true);
                 if assigned(getprocvardef) then
                   handle_procvar(getprocvardef,p2);
@@ -2771,9 +2762,9 @@ implementation
                p1:=gen_c_style_operator(slashn,p1,p2);
             end;
          end;
-         { get the resulttype for this expression }
-         if not assigned(p1.resulttype.def) then
-          do_resulttypepass(p1);
+         { get the resultdef for this expression }
+         if not assigned(p1.resultdef) then
+          do_typecheckpass(p1);
          afterassignment:=oldafterassignment;
          if p1<>oldp1 then
            p1.fileinfo:=filepos;
@@ -2791,7 +2782,7 @@ implementation
       if not codegenerror then
        begin
          if (p.nodetype<>ordconstn) or
-            not(is_integer(p.resulttype.def)) then
+            not(is_integer(p.resultdef)) then
           Message(parser_e_illegal_expression)
          else
           result:=tordconstnode(p).value;
@@ -2810,7 +2801,7 @@ implementation
       p:=comp_expr(true);
       if p.nodetype<>stringconstn then
         begin
-          if (p.nodetype=ordconstn) and is_char(p.resulttype.def) then
+          if (p.nodetype=ordconstn) and is_char(p.resultdef) then
             get_stringconst:=char(tordconstnode(p).value)
           else
             Message(parser_e_illegal_expression);

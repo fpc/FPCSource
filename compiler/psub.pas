@@ -143,8 +143,8 @@ implementation
       begin
         if (tsym(p).typ=paravarsym) and
            (tparavarsym(p).varspez=vs_value) and
-           not is_class(tparavarsym(p).vartype.def) and
-           tparavarsym(p).vartype.def.needs_inittable then
+           not is_class(tparavarsym(p).vardef) and
+           tparavarsym(p).vardef.needs_inittable then
           include(current_procinfo.flags,pi_needs_implicit_finally);
       end;
 
@@ -154,8 +154,8 @@ implementation
         if (tsym(p).typ=localvarsym) and
            (tlocalvarsym(p).refs>0) and
            not(vo_is_funcret in tlocalvarsym(p).varoptions) and
-           not(is_class(tlocalvarsym(p).vartype.def)) and
-           tlocalvarsym(p).vartype.def.needs_inittable then
+           not(is_class(tlocalvarsym(p).vardef)) and
+           tlocalvarsym(p).vardef.needs_inittable then
           include(current_procinfo.flags,pi_needs_implicit_finally);
       end;
 
@@ -260,7 +260,7 @@ implementation
         srsym        : tsym;
         para         : tcallparanode;
         newstatement : tstatementnode;
-        htype        : ttype;
+        hdef         : tdef;
       begin
         result:=internalstatements(newstatement);
 
@@ -296,8 +296,8 @@ implementation
                 else
                   if is_object(current_procinfo.procdef._class) then
                     begin
-                      htype.setdef(current_procinfo.procdef._class);
-                      htype.setdef(tpointerdef.create(htype));
+                      hdef:=current_procinfo.procdef._class;
+                      hdef:=tpointerdef.create(hdef);
                       { parameter 3 : vmt_offset }
                       { parameter 2 : address of pointer to vmt,
                         this is required to allow setting the vmt to -1 to indicate
@@ -475,9 +475,9 @@ implementation
           begin
             { no constructor }
             { must be the return value finalized before reraising the exception? }
-            if (not is_void(current_procinfo.procdef.rettype.def)) and
-               (current_procinfo.procdef.rettype.def.needs_inittable) and
-               (not is_class(current_procinfo.procdef.rettype.def)) then
+            if (not is_void(current_procinfo.procdef.returndef)) and
+               (current_procinfo.procdef.returndef.needs_inittable) and
+               (not is_class(current_procinfo.procdef.returndef)) then
               addstatement(newstatement,finalize_data_node(load_result_node));
           end;
       end;
@@ -628,8 +628,8 @@ implementation
          if tsym(p).typ=paravarsym then
            begin
              { check if there no parameter of the current procedure is stack dependend }
-             if is_open_array(tparavarsym(p).vartype.def) or
-               is_array_of_const(tparavarsym(p).vartype.def) then
+             if is_open_array(tparavarsym(p).vardef) or
+               is_array_of_const(tparavarsym(p).vardef) then
                pboolean(arg)^:=true;
              if assigned(p) and
                 assigned(tparavarsym(p).paraloc[calleeside].location) and
@@ -1106,8 +1106,8 @@ implementation
             { re-basing of the index, i.e. if you pass an array[1..10] as open array, }
             { you have to add 1 to all index operations if you directly inline it     }
             if ((currpara.varspez in [vs_out,vs_var,vs_const]) and
-                (currpara.vartype.def.deftype=formaldef)) or
-               is_special_array(currpara.vartype.def)  then
+                (currpara.vardef.deftype=formaldef)) or
+               is_special_array(currpara.vardef)  then
               exit;
           end;
         result:=true;
@@ -1194,12 +1194,12 @@ implementation
              entrypos:=code.fileinfo;
 
              { Finish type checking pass }
-             do_resulttypepass(code);
+             do_typecheckpass(code);
            end;
 
          { Check for unused labels, forwards, symbols for procedures. Static
            symtable is checked in pmodules.
-           The check must be done after the resulttypepass }
+           The check must be done after the typecheckpass }
          if (Errorcount=0) and
             (tstoredsymtable(procdef.localst).symtabletype<>staticsymtable) then
            begin
@@ -1263,8 +1263,8 @@ implementation
         if tsym(p).typ<>paravarsym then
          exit;
         with tparavarsym(p) do
-          if (not is_class(vartype.def) and
-             vartype.def.needs_inittable and
+          if (not is_class(vardef) and
+             vardef.needs_inittable and
              (varspez in [vs_value,vs_out])) then
             include(current_procinfo.flags,pi_do_call);
       end;
@@ -1552,8 +1552,8 @@ implementation
     procedure check_forward_class(p : tnamedindexitem;arg:pointer);
       begin
         if (tsym(p).typ=typesym) and
-           (ttypesym(p).restype.def.deftype=objectdef) and
-           (oo_is_forward in tobjectdef(ttypesym(p).restype.def).objectoptions) then
+           (ttypesym(p).typedef.deftype=objectdef) and
+           (oo_is_forward in tobjectdef(ttypesym(p).typedef).objectoptions) then
           MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
       end;
 
@@ -1682,13 +1682,13 @@ implementation
         oldaktfilepos : tfileposinfo;
       begin
         if not((tsym(p).typ=typesym) and
-               (ttypesym(p).restype.def.deftype=objectdef) and
-               (df_specialization in ttypesym(p).restype.def.defoptions)
+               (ttypesym(p).typedef.deftype=objectdef) and
+               (df_specialization in ttypesym(p).typedef.defoptions)
               ) then
           exit;
 
         { definitions }
-        hp:=tdef(tobjectdef(ttypesym(p).restype.def).symtable.defindex.first);
+        hp:=tdef(tobjectdef(ttypesym(p).typedef).symtable.defindex.first);
         while assigned(hp) do
          begin
            if hp.deftype=procdef then

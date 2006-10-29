@@ -316,7 +316,7 @@ implementation
         while assigned(paraloc) do
           begin
             if paraloc^.size=OS_NO then
-              len:=push_size(parasym.varspez,parasym.vartype.def,calloption)
+              len:=push_size(parasym.varspez,parasym.vardef,calloption)
             else
               len:=tcgsize2size[paraloc^.size];
             newparaloc:=cgpara.add_location;

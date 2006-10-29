@@ -30,11 +30,11 @@ interface
 
     type
       tSparcmoddivnode = class(tmoddivnode)
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
       end;
 
       tSparcshlshrnode = class(tshlshrnode)
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
          { everything will be handled in pass_2 }
          function first_shlshr64bitint: tnode; override;
       end;
@@ -60,7 +60,7 @@ implementation
                              TSparcMODDIVNODE
 *****************************************************************************}
 
-    procedure tSparcmoddivnode.pass_2;
+    procedure tSparcmoddivnode.pass_generate_code;
       const
                     { signed   overflow }
         divops: array[boolean, boolean] of tasmop =
@@ -80,7 +80,7 @@ implementation
          location_copy(location,left.location);
 
          { put numerator in register }
-         location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),true);
+         location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
          location_copy(location,left.location);
          numerator := location.register;
 
@@ -100,7 +100,7 @@ implementation
             (right.nodetype = ordconstn) and
             ispowerof2(tordconstnode(right).value,power) then
            begin
-             if is_signed(left.resulttype.def) Then
+             if is_signed(left.resultdef) Then
                begin
                  tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,31,numerator,tmpreg);
@@ -117,7 +117,7 @@ implementation
            begin
              { load divider in a register if necessary }
              location_force_reg(current_asmdata.CurrAsmList,right.location,
-               def_cgsize(right.resulttype.def),true);
+               def_cgsize(right.resultdef),true);
              divider := right.location.register;
 
              { needs overflow checking, (-maxlongint-1) div (-1) overflows! }
@@ -125,7 +125,7 @@ implementation
              { the overflow flag (JM)                                       }
 
              { Fill %y with the -1 or 0 depending on the highest bit }
-             if is_signed(left.resulttype.def) then
+             if is_signed(left.resultdef) then
                begin
                  tmpreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_INT);
                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SRA,numerator,31,tmpreg));
@@ -138,7 +138,7 @@ implementation
              current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
              current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
 
-             op := divops[is_signed(right.resulttype.def),
+             op := divops[is_signed(right.resultdef),
                           cs_check_overflow in aktlocalswitches];
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,numerator,divider,resultreg));
 
@@ -157,7 +157,7 @@ implementation
         { set result location }
         location.loc:=LOC_REGISTER;
         location.register:=resultreg;
-        cg.g_overflowcheck(current_asmdata.CurrAsmList,Location,ResultType.Def);
+        cg.g_overflowcheck(current_asmdata.CurrAsmList,Location,resultdef);
       end;
 
 
@@ -168,7 +168,7 @@ implementation
     function TSparcShlShrNode.first_shlshr64bitint:TNode;
       begin
         { 64bit without constants need a helper }
-        if is_64bit(left.resulttype.def) and
+        if is_64bit(left.resultdef) and
            (right.nodetype<>ordconstn) then
           begin
             result:=inherited first_shlshr64bitint;
@@ -179,7 +179,7 @@ implementation
       end;
 
 
-    procedure tSparcshlshrnode.pass_2;
+    procedure tSparcshlshrnode.pass_generate_code;
       var
         hregister,resultreg,hregister1,
         hreg64hi,hreg64lo : tregister;
@@ -188,13 +188,13 @@ implementation
       begin
         { 64bit without constants need a helper, and is
           already replaced in pass1 }
-        if is_64bit(left.resulttype.def) and
+        if is_64bit(left.resultdef) and
            (right.nodetype<>ordconstn) then
           internalerror(200405301);
 
         secondpass(left);
         secondpass(right);
-        if is_64bit(left.resulttype.def) then
+        if is_64bit(left.resultdef) then
           begin
             location_reset(location,LOC_REGISTER,OS_64);
 
@@ -245,7 +245,7 @@ implementation
         else
           begin
             { load left operators in a register }
-            location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),true);
+            location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
             location_copy(location,left.location);
             resultreg := location.register;
             hregister1 := location.register;
@@ -269,7 +269,7 @@ implementation
             else
               begin
                 { load shift count in a register if necessary }
-                location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resulttype.def),true);
+                location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resultdef),true);
                 cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,OS_32,right.location.register,hregister1,resultreg);
               end;
           end;
@@ -310,7 +310,7 @@ implementation
                 end;
               LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE :
                 begin
-                  location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),true);
+                  location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SUBcc,left.location.register,0,NR_G0));
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_E;

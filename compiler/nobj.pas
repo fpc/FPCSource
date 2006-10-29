@@ -704,13 +704,13 @@ implementation
                                         end;
 
                                      { error, if the return types aren't equal }
-                                     if not(equal_defs(procdefcoll^.data.rettype.def,pd.rettype.def)) and
-                                        not((procdefcoll^.data.rettype.def.deftype=objectdef) and
-                                         (pd.rettype.def.deftype=objectdef) and
-                                         is_class_or_interface(procdefcoll^.data.rettype.def) and
-                                         is_class_or_interface(pd.rettype.def) and
-                                         (tobjectdef(pd.rettype.def).is_related(
-                                             tobjectdef(procdefcoll^.data.rettype.def)))) then
+                                     if not(equal_defs(procdefcoll^.data.returndef,pd.returndef)) and
+                                        not((procdefcoll^.data.returndef.deftype=objectdef) and
+                                         (pd.returndef.deftype=objectdef) and
+                                         is_class_or_interface(procdefcoll^.data.returndef) and
+                                         is_class_or_interface(pd.returndef) and
+                                         (tobjectdef(pd.returndef).is_related(
+                                             tobjectdef(procdefcoll^.data.returndef)))) then
                                        begin
                                          if not((m_delphi in aktmodeswitches) and
                                                 is_interface(_class)) then

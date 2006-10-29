@@ -189,7 +189,7 @@ interface
           top_ref    : (ref:preference);
           top_const  : (val:aint);
           top_bool   : (b:boolean);
-          { local varsym that will be inserted in pass_2 }
+          { local varsym that will be inserted in pass_generate_code }
           top_local  : (localoper:plocaloper);
       {$ifdef arm}
           top_regset : (regset:^tcpuregisterset);

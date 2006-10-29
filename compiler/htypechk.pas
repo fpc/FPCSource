@@ -362,11 +362,11 @@ implementation
         result:=false;
         case pf.parast.symindex.count of
           1 : begin
-                ld:=tparavarsym(pf.parast.symindex.first).vartype.def;
+                ld:=tparavarsym(pf.parast.symindex.first).vardef;
                 { assignment is a special case }
                 if optoken=_ASSIGNMENT then
                   begin
-                    eq:=compare_defs_ext(ld,pf.rettype.def,nothingn,conv,pd,[cdo_explicit]);
+                    eq:=compare_defs_ext(ld,pf.returndef,nothingn,conv,pd,[cdo_explicit]);
                     result:=(eq=te_incompatible);
                   end
                 else
@@ -385,8 +385,8 @@ implementation
                 for i:=1 to tok2nodes do
                   if tok2node[i].tok=optoken then
                     begin
-                      ld:=tparavarsym(pf.parast.symindex.first).vartype.def;
-                      rd:=tparavarsym(pf.parast.symindex.first.indexnext).vartype.def;
+                      ld:=tparavarsym(pf.parast.symindex.first).vardef;
+                      rd:=tparavarsym(pf.parast.symindex.first.indexnext).vardef;
                       result:=
                         tok2node[i].op_overloading_supported and
                         isbinaryoperatoroverloadable(tok2node[i].nod,ld,nothingn,rd,nothingn);
@@ -410,7 +410,7 @@ implementation
         operpd:=nil;
 
         { load easier access variables }
-        ld:=tunarynode(t).left.resulttype.def;
+        ld:=tunarynode(t).left.resultdef;
         if not isunaryoperatoroverloadable(t.nodetype,ld) then
           exit;
 
@@ -484,7 +484,7 @@ implementation
         t:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil,[]);
 
         { we already know the procdef to use, so it can
-          skip the overload choosing in callnode.det_resulttype }
+          skip the overload choosing in callnode.pass_typecheck }
         tcallnode(t).procdefinition:=operpd;
       end;
 
@@ -502,8 +502,8 @@ implementation
         isbinaryoverloaded:=false;
         operpd:=nil;
         { load easier access variables }
-        ld:=tbinarynode(t).left.resulttype.def;
-        rd:=tbinarynode(t).right.resulttype.def;
+        ld:=tbinarynode(t).left.resultdef;
+        rd:=tbinarynode(t).right.resultdef;
         if not isbinaryoperatoroverloadable(t.nodetype,ld,tbinarynode(t).left.nodetype,rd,tbinarynode(t).right.nodetype) then
           exit;
 
@@ -630,7 +630,7 @@ implementation
         ht:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil,[]);
 
         { we already know the procdef to use, so it can
-          skip the overload choosing in callnode.det_resulttype }
+          skip the overload choosing in callnode.pass_typecheck }
         tcallnode(ht).procdefinition:=operpd;
 
         if t.nodetype=unequaln then
@@ -650,7 +650,7 @@ implementation
              subscriptn:
                make_not_regable_intern(tsubscriptnode(p).left,how,true);
             typeconvn :
-               if (ttypeconvnode(p).resulttype.def.deftype = recorddef) then
+               if (ttypeconvnode(p).resultdef.deftype = recorddef) then
                  make_not_regable_intern(ttypeconvnode(p).left,how,false)
                else
                  make_not_regable_intern(ttypeconvnode(p).left,how,records_only);
@@ -658,7 +658,7 @@ implementation
               if (tloadnode(p).symtableentry.typ in [globalvarsym,localvarsym,paravarsym]) and
                  (tabstractvarsym(tloadnode(p).symtableentry).varregable <> vr_none) and
                  ((not records_only) or
-                  (tabstractvarsym(tloadnode(p).symtableentry).vartype.def.deftype = recorddef)) then
+                  (tabstractvarsym(tloadnode(p).symtableentry).vardef.deftype = recorddef)) then
                 if (tloadnode(p).symtableentry.typ = paravarsym) then
                   tabstractvarsym(tloadnode(p).symtableentry).varregable:=how
                 else
@@ -666,7 +666,7 @@ implementation
             temprefn :
               if (ttemprefnode(p).tempinfo^.may_be_in_reg) and
                  ((not records_only) or
-                  (ttemprefnode(p).tempinfo^.restype.def.deftype = recorddef)) then
+                  (ttemprefnode(p).tempinfo^.typedef.deftype = recorddef)) then
                 ttemprefnode(p).tempinfo^.may_be_in_reg:=false;
          end;
       end;
@@ -745,7 +745,7 @@ implementation
         if ((m_tp_procvar in aktmodeswitches) or
             (m_mac_procvar in aktmodeswitches)) and
            (p.nodetype=typeconvn) and
-           is_voidpointer(p.resulttype.def) then
+           is_voidpointer(p.resultdef) then
           p:=tunarynode(p).left;
         result:=(p.nodetype=typeconvn) and
                 (ttypeconvnode(p).convtype=tc_proc_2_procvar);
@@ -799,7 +799,7 @@ implementation
                end;
              subscriptn :
                begin
-                 if is_class_or_interface(tunarynode(p).left.resulttype.def) then
+                 if is_class_or_interface(tunarynode(p).left.resultdef) then
                    newstate := vs_read;
                  p:=tunarynode(p).left;
                end;
@@ -807,7 +807,7 @@ implementation
                begin
                  set_varstate(tbinarynode(p).right,vs_read,[vsf_must_be_valid]);
                  if (newstate in [vs_read,vs_readwritten]) or
-                    not(tunarynode(p).left.resulttype.def.deftype in [stringdef,arraydef]) then
+                    not(tunarynode(p).left.resultdef.deftype in [stringdef,arraydef]) then
                    include(varstateflags,vsf_must_be_valid)
                  else if (newstate = vs_written) then
                    exclude(varstateflags,vsf_must_be_valid);
@@ -923,7 +923,7 @@ implementation
         gotstring:=false;
         hp:=p;
         if not(valid_void in opts) and
-           is_void(hp.resulttype.def) then
+           is_void(hp.resultdef) then
          begin
            if report_errors then
              CGMessagePos(hp.fileinfo,errmsg);
@@ -937,11 +937,11 @@ implementation
               if (hp.nodetype=calln) then
                 begin
                   { check return type }
-                  case hp.resulttype.def.deftype of
+                  case hp.resultdef.deftype of
                     pointerdef :
                       gotpointer:=true;
                     objectdef :
-                      gotclass:=is_class_or_interface(hp.resulttype.def);
+                      gotclass:=is_class_or_interface(hp.resultdef);
                     recorddef :
                       gotrecord:=true;
                     classrefdef :
@@ -1016,8 +1016,8 @@ implementation
                    - from void
                    - from/to open array
                    - typecast from pointer to array }
-                 fromdef:=ttypeconvnode(hp).left.resulttype.def;
-                 todef:=hp.resulttype.def;
+                 fromdef:=ttypeconvnode(hp).left.resultdef;
+                 todef:=hp.resultdef;
                  if not((nf_absolute in ttypeconvnode(hp).flags) or
                         (fromdef.deftype=formaldef) or
                         is_void(fromdef) or
@@ -1045,18 +1045,18 @@ implementation
                        CGMessagePos(hp.fileinfo,errmsg);
                      exit;
                    end;
-                 case hp.resulttype.def.deftype of
+                 case hp.resultdef.deftype of
                    pointerdef :
                      gotpointer:=true;
                    objectdef :
-                     gotclass:=is_class_or_interface(hp.resulttype.def);
+                     gotclass:=is_class_or_interface(hp.resultdef);
                    classrefdef :
                      gotclass:=true;
                    arraydef :
                      begin
                        { pointer -> array conversion is done then we need to see it
                          as a deref, because a ^ is then not required anymore }
-                       if (ttypeconvnode(hp).left.resulttype.def.deftype=pointerdef) then
+                       if (ttypeconvnode(hp).left.resultdef.deftype=pointerdef) then
                         gotderef:=true;
                      end;
                  end;
@@ -1067,9 +1067,9 @@ implementation
                  if { only check for first (= outermost) vec node }
                     not gotvec and
                     not(valid_packed in opts) and
-                    (tvecnode(hp).left.resulttype.def.deftype = arraydef) and
-                    (ado_IsBitPacked in tarraydef(tvecnode(hp).left.resulttype.def).arrayoptions) and
-                    (tarraydef(tvecnode(hp).left.resulttype.def).elepackedbitsize mod 8 <> 0) then
+                    (tvecnode(hp).left.resultdef.deftype = arraydef) and
+                    (ado_IsBitPacked in tarraydef(tvecnode(hp).left.resultdef).arrayoptions) and
+                    (tarraydef(tvecnode(hp).left.resultdef).elepackedbitsize mod 8 <> 0) then
                    begin
                      if report_errors then
                        if (valid_property in opts) then
@@ -1080,7 +1080,7 @@ implementation
                    end;
                  gotvec:=true;
                  { accesses to dyn. arrays override read only access in delphi }
-                 if (m_delphi in aktmodeswitches) and is_dynamic_array(tunarynode(hp).left.resulttype.def) then
+                 if (m_delphi in aktmodeswitches) and is_dynamic_array(tunarynode(hp).left.resultdef) then
                    gotdynarray:=true;
                  hp:=tunarynode(hp).left;
                end;
@@ -1101,7 +1101,7 @@ implementation
                  { only check first (= outermost) subscriptn }
                  if not gotsubscript and
                     not(valid_packed in opts) and
-                    is_packed_record_or_object(tsubscriptnode(hp).left.resulttype.def) then
+                    is_packed_record_or_object(tsubscriptnode(hp).left.resultdef) then
                    begin
                      if report_errors then
                        if (valid_property in opts) then
@@ -1123,7 +1123,7 @@ implementation
                  { a class/interface access is an implicit }
                  { dereferencing                           }
                  hp:=tsubscriptnode(hp).left;
-                 if is_class_or_interface(hp.resulttype.def) then
+                 if is_class_or_interface(hp.resultdef) then
                    gotderef:=true;
                end;
              muln,
@@ -1137,8 +1137,8 @@ implementation
                begin
                  { Allow operators on a pointer, or an integer
                    and a pointer typecast and deref has been found }
-                 if ((hp.resulttype.def.deftype=pointerdef) or
-                     (is_integer(hp.resulttype.def) and gotpointer)) and
+                 if ((hp.resultdef.deftype=pointerdef) or
+                     (is_integer(hp.resultdef) and gotpointer)) and
                     gotderef then
                   result:=true
                  else
@@ -1147,7 +1147,7 @@ implementation
                    if (m_delphi in aktmodeswitches) and
                       ((valid_addr in opts) or
                        (valid_const in opts)) and
-                      (hp.resulttype.def.deftype=stringdef) then
+                      (hp.resultdef.deftype=stringdef) then
                      result:=true
                  else
                   if report_errors then
@@ -1177,12 +1177,12 @@ implementation
              calln :
                begin
                  { check return type }
-                 case hp.resulttype.def.deftype of
+                 case hp.resultdef.deftype of
                    arraydef :
                      begin
                        { dynamic arrays are allowed when there is also a
                          vec node }
-                       if is_dynamic_array(hp.resulttype.def) and
+                       if is_dynamic_array(hp.resultdef) and
                           gotvec then
                         begin
                           gotderef:=true;
@@ -1192,7 +1192,7 @@ implementation
                    pointerdef :
                      gotpointer:=true;
                    objectdef :
-                     gotclass:=is_class_or_interface(hp.resulttype.def);
+                     gotclass:=is_class_or_interface(hp.resultdef);
                    recorddef, { handle record like class it needs a subscription }
                    classrefdef :
                      gotclass:=true;
@@ -1211,7 +1211,7 @@ implementation
                    delphi only }
                    if (m_delphi in aktmodeswitches) and
                       (valid_addr in opts) and
-                      (hp.resulttype.def.deftype=stringdef) then
+                      (hp.resultdef.deftype=stringdef) then
                      result:=true
                  else
                    if ([valid_const,valid_addr] * opts = [valid_const]) then
@@ -1338,7 +1338,7 @@ implementation
 
     function  valid_for_formal_const(p : tnode; report_errors: boolean) : boolean;
       begin
-        valid_for_formal_const:=(p.resulttype.def.deftype=formaldef) or
+        valid_for_formal_const:=(p.resultdef.deftype=formaldef) or
           valid_for_assign(p,[valid_void,valid_const],report_errors);
       end;
 
@@ -1385,10 +1385,10 @@ implementation
               if is_open_array(def_to) then
                 begin
                   if is_dynamic_array(def_from) and
-                     equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
+                     equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
                     eq:=te_convert_l2
                   else
-                    if equal_defs(def_from,tarraydef(def_to).elementtype.def) then
+                    if equal_defs(def_from,tarraydef(def_to).elementdef) then
                       eq:=te_convert_l2;
                 end;
             end;
@@ -1449,19 +1449,19 @@ implementation
               { to support ansi/long/wide strings in a proper way }
               { string and string[10] are assumed as equal }
               { when searching the correct overloaded procedure   }
-              if (p.resulttype.def.deftype=stringdef) and
-                 (tstringdef(def_to).string_typ=tstringdef(p.resulttype.def).string_typ) then
+              if (p.resultdef.deftype=stringdef) and
+                 (tstringdef(def_to).string_typ=tstringdef(p.resultdef).string_typ) then
                 eq:=te_equal
               else
               { Passing a constant char to ansistring or shortstring or
                 a widechar to widestring then handle it as equal. }
                if (p.left.nodetype=ordconstn) and
                   (
-                   is_char(p.resulttype.def) and
+                   is_char(p.resultdef) and
                    (is_shortstring(def_to) or is_ansistring(def_to))
                   ) or
                   (
-                   is_widechar(p.resulttype.def) and
+                   is_widechar(p.resultdef) and
                    is_widestring(def_to)
                   ) then
                 eq:=te_equal
@@ -1469,9 +1469,9 @@ implementation
           setdef :
             begin
               { set can also be a not yet converted array constructor }
-              if (p.resulttype.def.deftype=arraydef) and
-                 is_array_constructor(p.resulttype.def) and
-                 not is_variant_array(p.resulttype.def) then
+              if (p.resultdef.deftype=arraydef) and
+                 is_array_constructor(p.resultdef) and
+                 not is_variant_array(p.resultdef) then
                 eq:=te_equal;
             end;
           procvardef :
@@ -1686,7 +1686,7 @@ implementation
         FParalength:=0;
         while assigned(pt) do
          begin
-           if pt.resulttype.def.deftype=variantdef then
+           if pt.resultdef.deftype=variantdef then
              FAllowVariant:=true;
            inc(FParalength);
            pt:=tcallparanode(pt.right);
@@ -1812,7 +1812,7 @@ implementation
            begin
              if result<>'' then
               result:=','+result;
-             result:=p.resulttype.def.typename+result;
+             result:=p.resultdef.typename+result;
              p:=tcallparanode(p.right);
            end;
         end;
@@ -1845,7 +1845,7 @@ implementation
                begin
                  currpara:=tparavarsym(hp^.data.paras[i]);
                  if not(vo_is_hidden_para in currpara.varoptions) then
-                   Comment(lvl,'    - '+currpara.vartype.def.typename+' : '+EqualTypeName[currpara.eqval]);
+                   Comment(lvl,'    - '+currpara.vardef.typename+' : '+EqualTypeName[currpara.eqval]);
                end;
             end;
            hp:=hp^.next;
@@ -1897,8 +1897,8 @@ implementation
               releasecurrpt:=false;
               { retrieve current parameter definitions to compares }
               eq:=te_incompatible;
-              def_from:=currpt.resulttype.def;
-              def_to:=currpara.vartype.def;
+              def_from:=currpt.resultdef;
+              def_to:=currpara.vardef;
               if not(assigned(def_from)) then
                internalerror(200212091);
               if not(
@@ -1910,14 +1910,14 @@ implementation
 
               { Convert tp procvars when not expecting a procvar }
               if (def_to.deftype<>procvardef) and
-                 (currpt.left.resulttype.def.deftype=procvardef) then
+                 (currpt.left.resultdef.deftype=procvardef) then
                 begin
                   releasecurrpt:=true;
                   currpt:=tcallparanode(pt.getcopy);
                   if maybe_call_procvar(currpt.left,true) then
                     begin
-                      currpt.resulttype:=currpt.left.resulttype;
-                      def_from:=currpt.left.resulttype.def;
+                      currpt.resultdef:=currpt.left.resultdef;
+                      def_from:=currpt.left.resultdef;
                     end;
                 end;
 
@@ -1927,14 +1927,14 @@ implementation
                temporary returned the first procdef (PFV) }
              if (def_to.deftype=procvardef) and
                 (currpt.left.nodetype=loadn) and
-                (currpt.left.resulttype.def.deftype=procdef) then
+                (currpt.left.resultdef.deftype=procdef) then
                begin
                  pdtemp:=tprocsym(Tloadnode(currpt.left).symtableentry).search_procdef_byprocvardef(Tprocvardef(def_to));
                  if assigned(pdtemp) then
                    begin
                      tloadnode(currpt.left).setprocdef(pdtemp);
-                     currpt.resulttype:=currpt.left.resulttype;
-                     def_from:=currpt.left.resulttype.def;
+                     currpt.resultdef:=currpt.left.resultdef;
+                     def_from:=currpt.left.resultdef;
                    end;
                end;
 
@@ -2041,7 +2041,7 @@ implementation
                         eq:=te_incompatible;
                         { var_para_allowed will return te_equal and te_convert_l1 to
                           make a difference for best matching }
-                        var_para_allowed(eq,currpt.resulttype.def,currpara.vartype.def)
+                        var_para_allowed(eq,currpt.resultdef,currpara.vardef)
                       end
                     else
                       para_allowed(eq,currpt,def_to);
@@ -2276,18 +2276,18 @@ implementation
         if wrongpara.varspez in [vs_var,vs_out] then
           begin
             { Maybe passing the correct type but passing a const to var parameter }
-            if (compare_defs(pt.resulttype.def,wrongpara.vartype.def,pt.nodetype)<>te_incompatible) and
+            if (compare_defs(pt.resultdef,wrongpara.vardef,pt.nodetype)<>te_incompatible) and
                not valid_for_var(pt.left,true) then
               CGMessagePos(pt.left.fileinfo,type_e_variable_id_expected)
             else
               CGMessagePos3(pt.left.fileinfo,parser_e_call_by_ref_without_typeconv,tostr(hp^.wrongparanr),
-                FullTypeName(pt.left.resulttype.def,wrongpara.vartype.def),
-                FullTypeName(wrongpara.vartype.def,pt.left.resulttype.def))
+                FullTypeName(pt.left.resultdef,wrongpara.vardef),
+                FullTypeName(wrongpara.vardef,pt.left.resultdef))
           end
         else
           CGMessagePos3(pt.left.fileinfo,type_e_wrong_parameter_type,tostr(hp^.wrongparanr),
-            FullTypeName(pt.left.resulttype.def,wrongpara.vartype.def),
-            FullTypeName(wrongpara.vartype.def,pt.left.resulttype.def));
+            FullTypeName(pt.left.resultdef,wrongpara.vardef),
+            FullTypeName(wrongpara.vardef,pt.left.resultdef));
       end;
 
 
@@ -2312,12 +2312,12 @@ implementation
         if assigned(destdef) and
           (destdef.deftype in [enumdef,orddef,floatdef]) and
           not is_boolean(destdef) and
-          assigned(source.resulttype.def) and
-          (source.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
-          not is_boolean(source.resulttype.def) and
+          assigned(source.resultdef) and
+          (source.resultdef.deftype in [enumdef,orddef,floatdef]) and
+          not is_boolean(source.resultdef) and
           not is_constrealnode(source) then
          begin
-           if (destdef.size < source.resulttype.def.size) then
+           if (destdef.size < source.resultdef.size) then
              begin
                if (cs_check_range in aktlocalswitches) then
                  MessagePos(location,type_w_smaller_possible_range_check)

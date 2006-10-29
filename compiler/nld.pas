@@ -49,9 +49,9 @@ interface
           procedure derefimpl;override;
           procedure set_mp(p:tnode);
           function  is_addr_param_load:boolean;
-          function  _getcopy : tnode;override;
+          function  dogetcopy : tnode;override;
           function  pass_1 : tnode;override;
-          function  det_resulttype:tnode;override;
+          function  pass_typecheck:tnode;override;
           procedure mark_write;override;
           function  docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
@@ -67,9 +67,9 @@ interface
           constructor create(l,r : tnode);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
        {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
        {$endif state_tracking}
@@ -80,31 +80,32 @@ interface
        tarrayconstructorrangenode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
        end;
        tarrayconstructorrangenodeclass = class of tarrayconstructorrangenode;
 
        tarrayconstructornode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function docompare(p: tnode): boolean; override;
-          procedure force_type(tt:ttype);
+          procedure force_type(def:tdef);
           procedure insert_typeconvs;
        end;
        tarrayconstructornodeclass = class of tarrayconstructornode;
 
        ttypenode = class(tnode)
           allowed : boolean;
-          restype : ttype;
-          constructor create(t : ttype);virtual;
+          typedef : tdef;
+          typedefderef : tderef;
+          constructor create(def:tdef);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
        ttypenodeclass = class of ttypenode;
@@ -119,9 +120,9 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function  _getcopy : tnode;override;
+          function  dogetcopy : tnode;override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
        trttinodeclass = class of trttinode;
@@ -218,12 +219,12 @@ implementation
       end;
 
 
-    function tloadnode._getcopy : tnode;
+    function tloadnode.dogetcopy : tnode;
       var
          n : tloadnode;
 
       begin
-         n:=tloadnode(inherited _getcopy);
+         n:=tloadnode(inherited dogetcopy);
          n.symtable:=symtable;
          n.symtableentry:=symtableentry;
          n.procdef:=procdef;
@@ -237,20 +238,20 @@ implementation
                 (symtableentry.typ=paravarsym) and
                 not(vo_has_local_copy in tparavarsym(symtableentry).varoptions) and
                 not(nf_load_self_pointer in flags) and
-                paramanager.push_addr_param(tparavarsym(symtableentry).varspez,tparavarsym(symtableentry).vartype.def,tprocdef(symtable.defowner).proccalloption);
+                paramanager.push_addr_param(tparavarsym(symtableentry).varspez,tparavarsym(symtableentry).vardef,tprocdef(symtable.defowner).proccalloption);
       end;
 
 
-    function tloadnode.det_resulttype:tnode;
+    function tloadnode.pass_typecheck:tnode;
       begin
          result:=nil;
          case symtableentry.typ of
            absolutevarsym :
-             resulttype:=tabsolutevarsym(symtableentry).vartype;
+             resultdef:=tabsolutevarsym(symtableentry).vardef;
            constsym:
              begin
                if tconstsym(symtableentry).consttyp=constresourcestring then
-                 resulttype:=cansistringtype
+                 resultdef:=cansistringtype
                else
                  internalerror(22799);
              end;
@@ -289,24 +290,24 @@ implementation
                  definition }
                if vo_is_self in tabstractvarsym(symtableentry).varoptions then
                  begin
-                   resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
+                   resultdef:=tprocdef(symtableentry.owner.defowner)._class;
                    if (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) or
                       (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
-                     resulttype.setdef(tclassrefdef.create(resulttype))
-                   else if is_object(resulttype.def) and
+                     resultdef:=tclassrefdef.create(resultdef)
+                   else if is_object(resultdef) and
                            (nf_load_self_pointer in flags) then
-                     resulttype.setdef(tpointerdef.create(resulttype));
+                     resultdef:=tpointerdef.create(resultdef);
                  end
                else if vo_is_vmt in tabstractvarsym(symtableentry).varoptions then
                  begin
-                   resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
-                   resulttype.setdef(tclassrefdef.create(resulttype));
+                   resultdef:=tprocdef(symtableentry.owner.defowner)._class;
+                   resultdef:=tclassrefdef.create(resultdef);
                  end
                else
-                 resulttype:=tabstractvarsym(symtableentry).vartype;
+                 resultdef:=tabstractvarsym(symtableentry).vardef;
              end;
            typedconstsym :
-             resulttype:=ttypedconstsym(symtableentry).typedconsttype;
+             resultdef:=ttypedconstsym(symtableentry).typedconstdef;
            procsym :
              begin
                { Return the first procdef. In case of overlaoded
@@ -319,16 +320,16 @@ implementation
                  CGMessage(type_e_cant_take_address_of_local_subroutine);
 
                { the result is a procdef, addrn and proc_to_procvar
-                 typeconvn need this as resulttype so they know
+                 typeconvn need this as resultdef so they know
                  that the address needs to be returned }
-               resulttype.setdef(procdef);
+               resultdef:=procdef;
 
                { process methodpointer }
                if assigned(left) then
-                 resulttypepass(left);
+                 typecheckpass(left);
              end;
            labelsym:
-             resulttype:=voidtype;
+             resultdef:=voidtype;
            else
              internalerror(200104141);
          end;
@@ -384,7 +385,7 @@ implementation
                   if (tabstractvarsym(symtableentry).varspez=vs_const) then
                     expectloc:=LOC_CREFERENCE;
                 { we need a register for call by reference parameters }
-                if paramanager.push_addr_param(tabstractvarsym(symtableentry).varspez,tabstractvarsym(symtableentry).vartype.def,pocall_default) then
+                if paramanager.push_addr_param(tabstractvarsym(symtableentry).varspez,tabstractvarsym(symtableentry).vardef,pocall_default) then
                   registersint:=1;
                 if ([vo_is_thread_var,vo_is_dll_var]*tabstractvarsym(symtableentry).varoptions)<>[] then
                   registersint:=1;
@@ -449,7 +450,7 @@ implementation
     procedure tloadnode.setprocdef(p : tprocdef);
       begin
         procdef:=p;
-        resulttype.setdef(p);
+        resultdef:=p;
         if po_local in p.procoptions then
           CGMessage(type_e_cant_take_address_of_local_subroutine);
       end;
@@ -481,33 +482,33 @@ implementation
       end;
 
 
-    function tassignmentnode._getcopy : tnode;
+    function tassignmentnode.dogetcopy : tnode;
 
       var
          n : tassignmentnode;
 
       begin
-         n:=tassignmentnode(inherited _getcopy);
+         n:=tassignmentnode(inherited dogetcopy);
          n.assigntype:=assigntype;
          result:=n;
       end;
 
 
-    function tassignmentnode.det_resulttype:tnode;
+    function tassignmentnode.pass_typecheck:tnode;
       var
         hp : tnode;
         useshelper : boolean;
       begin
         result:=nil;
-        resulttype:=voidtype;
+        resultdef:=voidtype;
 
         { must be made unique }
         set_unique(left);
 
-        resulttypepass(left);
+        typecheckpass(left);
 
 {$ifdef old_append_str}
-        if is_ansistring(left.resulttype.def) then
+        if is_ansistring(left.resultdef) then
           begin
             { fold <ansistring>:=<ansistring>+<char|shortstring|ansistring> }
             if (right.nodetype=addn) and
@@ -518,27 +519,27 @@ implementation
                (tbinarynode(right).left.nodetype<>addn) and
                (tbinarynode(right).right.nodetype<>addn) then
               begin
-                { don't do a resulttypepass(right), since then the addnode }
+                { don't do a typecheckpass(right), since then the addnode }
                 { may insert typeconversions that make this optimization   }
                 { opportunity quite difficult to detect (JM)               }
-                resulttypepass(tbinarynode(right).left);
-                resulttypepass(tbinarynode(right).right);
+                typecheckpass(tbinarynode(right).left);
+                typecheckpass(tbinarynode(right).right);
                 if (tbinarynode(right).right.nodetype=stringconstn) or
-		   is_char(tbinarynode(right).right.resulttype.def) or
-                   is_shortstring(tbinarynode(right).right.resulttype.def) or
-                   is_ansistring(tbinarynode(right).right.resulttype.def) then
+		   is_char(tbinarynode(right).right.resultdef) or
+                   is_shortstring(tbinarynode(right).right.resultdef) or
+                   is_ansistring(tbinarynode(right).right.resultdef) then
                   begin
                     { remove property flag so it'll not trigger an error }
                     exclude(left.flags,nf_isproperty);
                     { generate call to helper }
                     hp:=ccallparanode.create(tbinarynode(right).right,
                       ccallparanode.create(left,nil));
-                    if is_char(tbinarynode(right).right.resulttype.def) then
-                      result:=ccallnode.createintern('fpc_'+Tstringdef(left.resulttype.def).stringtypname+'_append_char',hp)
-                    else if is_shortstring(tbinarynode(right).right.resulttype.def) then
-                      result:=ccallnode.createintern('fpc_'+Tstringdef(left.resulttype.def).stringtypname+'_append_shortstring',hp)
+                    if is_char(tbinarynode(right).right.resultdef) then
+                      result:=ccallnode.createintern('fpc_'+Tstringdef(left.resultdef).stringtypname+'_append_char',hp)
+                    else if is_shortstring(tbinarynode(right).right.resultdef) then
+                      result:=ccallnode.createintern('fpc_'+Tstringdef(left.resultdef).stringtypname+'_append_shortstring',hp)
                     else
-                      result:=ccallnode.createintern('fpc_'+Tstringdef(left.resulttype.def).stringtypname+'_append_ansistring',hp);
+                      result:=ccallnode.createintern('fpc_'+Tstringdef(left.resultdef).stringtypname+'_append_ansistring',hp);
                     tbinarynode(right).right:=nil;
                     left:=nil;
                     exit;
@@ -547,7 +548,7 @@ implementation
           end
         else
 
-         if is_shortstring(left.resulttype.def) then
+         if is_shortstring(left.resultdef) then
           begin
             { fold <shortstring>:=<shortstring>+<shortstring>,
               <shortstring>+<char> is handled by an optimized node }
@@ -558,19 +559,19 @@ implementation
                (tbinarynode(right).left.nodetype<>addn) and
                (tbinarynode(right).right.nodetype<>addn) then
               begin
-                { don't do a resulttypepass(right), since then the addnode }
+                { don't do a typecheckpass(right), since then the addnode }
                 { may insert typeconversions that make this optimization   }
                 { opportunity quite difficult to detect (JM)               }
-                resulttypepass(tbinarynode(right).left);
-                resulttypepass(tbinarynode(right).right);
-                if is_shortstring(tbinarynode(right).right.resulttype.def) then
+                typecheckpass(tbinarynode(right).left);
+                typecheckpass(tbinarynode(right).right);
+                if is_shortstring(tbinarynode(right).right.resultdef) then
                   begin
                     { remove property flag so it'll not trigger an error }
                     exclude(left.flags,nf_isproperty);
                     { generate call to helper }
                     hp:=ccallparanode.create(tbinarynode(right).right,
                       ccallparanode.create(left,nil));
-                    if is_shortstring(tbinarynode(right).right.resulttype.def) then
+                    if is_shortstring(tbinarynode(right).right.resultdef) then
                       result:=ccallnode.createintern('fpc_shortstr_append_shortstr',hp);
                     tbinarynode(right).right:=nil;
                     left:=nil;
@@ -580,7 +581,7 @@ implementation
           end;
 {$endif old_append_str}
 
-        resulttypepass(right);
+        typecheckpass(right);
         set_varstate(right,vs_read,[vsf_must_be_valid]);
         set_varstate(left,vs_written,[]);
         if codegenerror then
@@ -588,23 +589,23 @@ implementation
 
         { tp procvar support, when we don't expect a procvar
           then we need to call the procvar }
-        if (left.resulttype.def.deftype<>procvardef) then
+        if (left.resultdef.deftype<>procvardef) then
           maybe_call_procvar(right,true);
 
         { assignments to formaldefs and open arrays aren't allowed }
-        if (left.resulttype.def.deftype=formaldef) or
-           is_open_array(left.resulttype.def) then
+        if (left.resultdef.deftype=formaldef) or
+           is_open_array(left.resultdef) then
           CGMessage(type_e_operator_not_allowed);
 
         { test if node can be assigned, properties are allowed }
         valid_for_assignment(left,true);
 
         { assigning nil to a dynamic array clears the array }
-        if is_dynamic_array(left.resulttype.def) and
+        if is_dynamic_array(left.resultdef) and
            (right.nodetype=niln) then
          begin
            hp:=ccallparanode.create(caddrnode.create_internal
-                   (crttinode.create(tstoreddef(left.resulttype.def),initrtti)),
+                   (crttinode.create(tstoreddef(left.resultdef),initrtti)),
                ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),nil));
            result := ccallnode.createintern('fpc_dynarray_clear',hp);
            left:=nil;
@@ -613,15 +614,15 @@ implementation
 
         { shortstring helpers can do the conversion directly,
           so treat them separatly }
-        if (is_shortstring(left.resulttype.def)) then
+        if (is_shortstring(left.resultdef)) then
          begin
            { insert typeconv, except for chars that are handled in
              secondpass and except for ansi/wide string that can
              be converted immediatly }
-           if not(is_char(right.resulttype.def) or
-                  (right.resulttype.def.deftype=stringdef)) then
-             inserttypeconv(right,left.resulttype);
-           if right.resulttype.def.deftype=stringdef then
+           if not(is_char(right.resultdef) or
+                  (right.resultdef.deftype=stringdef)) then
+             inserttypeconv(right,left.resultdef);
+           if right.resultdef.deftype=stringdef then
             begin
               useshelper:=true;
               { convert constant strings to shortstrings. But
@@ -633,10 +634,10 @@ implementation
                   { just emit a warning, delphi gives an    }
                   { error, only if the type definition of   }
                   { of the string is less  < 255 characters }
-                  if not is_open_string(left.resulttype.def) and
-                     (tstringconstnode(right).len > tstringdef(left.resulttype.def).len) then
+                  if not is_open_string(left.resultdef) and
+                     (tstringconstnode(right).len > tstringdef(left.resultdef).len) then
                      cgmessage(type_w_string_too_long);
-                  inserttypeconv(right,left.resulttype);
+                  inserttypeconv(right,left.resultdef);
                   if (tstringconstnode(right).len=0) then
                     useshelper:=false;
                 end;
@@ -648,12 +649,12 @@ implementation
         else
           begin
            { check if the assignment may cause a range check error }
-           check_ranges(fileinfo,right,left.resulttype.def);
-           inserttypeconv(right,left.resulttype);
+           check_ranges(fileinfo,right,left.resultdef);
+           inserttypeconv(right,left.resultdef);
           end;
 
         { call helpers for interface }
-        if is_interfacecom(left.resulttype.def) then
+        if is_interfacecom(left.resultdef) then
          begin
            {
            hp:=
@@ -667,7 +668,7 @@ implementation
 
            hp:=
              ccallparanode.create(
-               cguidconstnode.create(tobjectdef(left.resulttype.def).iidguid^),
+               cguidconstnode.create(tobjectdef(left.resultdef).iidguid^),
              ccallparanode.create(
                ctypeconvnode.create_internal(right,voidpointertype),
              ccallparanode.create(
@@ -682,7 +683,7 @@ implementation
 
         { call helpers for variant, they can contain non ref. counted types like
           vararrays which must be really copied }
-        if left.resulttype.def.deftype=variantdef then
+        if left.resultdef.deftype=variantdef then
          begin
            hp:=ccallparanode.create(ctypeconvnode.create_internal(
                  caddrnode.create_internal(right),voidpointertype),
@@ -696,7 +697,7 @@ implementation
          end;
 
         { call helpers for windows widestrings, they aren't ref. counted }
-        if (tf_winlikewidestring in target_info.flags) and is_widestring(left.resulttype.def) then
+        if (tf_winlikewidestring in target_info.flags) and is_widestring(left.resultdef) then
          begin
            hp:=ccallparanode.create(ctypeconvnode.create_internal(right,voidpointertype),
                ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),
@@ -708,8 +709,8 @@ implementation
          end;
 
         { check if local proc/func is assigned to procvar }
-        if right.resulttype.def.deftype=procvardef then
-          test_local_to_procvar(tprocvardef(right.resulttype.def),left.resulttype.def);
+        if right.resultdef.deftype=procvardef then
+          test_local_to_procvar(tprocvardef(right.resultdef),left.resultdef);
       end;
 
 
@@ -747,7 +748,7 @@ implementation
 
          if (cs_opt_level1 in aktoptimizerswitches) and
             (right.nodetype = calln) and
-            (right.resulttype.def=left.resulttype.def) and
+            (right.resultdef=left.resultdef) and
             { left must be a temp, since otherwise as soon as you modify the }
             { result, the current left node is modified and that one may     }
             { still be an argument to the function or even accessed in the   }
@@ -755,11 +756,11 @@ implementation
             (
              (
               (left.nodetype = temprefn) and
-              paramanager.ret_in_param(right.resulttype.def,tcallnode(right).procdefinition.proccalloption)
+              paramanager.ret_in_param(right.resultdef,tcallnode(right).procdefinition.proccalloption)
              ) or
              { there's special support for ansi/widestrings in the callnode }
-             is_ansistring(right.resulttype.def) or
-             is_widestring(right.resulttype.def)
+             is_ansistring(right.resultdef) or
+             is_widestring(right.resultdef)
             )  then
            begin
              make_not_regable(left,vr_addr);
@@ -771,14 +772,14 @@ implementation
            end;
 
          { assignment to refcounted variable -> inc/decref }
-         if (not is_class(left.resulttype.def) and
-            left.resulttype.def.needs_inittable) then
+         if (not is_class(left.resultdef) and
+            left.resultdef.needs_inittable) then
            include(current_procinfo.flags,pi_do_call);
 
 
-        if (is_shortstring(left.resulttype.def)) then
+        if (is_shortstring(left.resultdef)) then
           begin
-           if right.resulttype.def.deftype=stringdef then
+           if right.resultdef.deftype=stringdef then
             begin
               if (right.nodetype<>stringconstn) or
                  (tstringconstnode(right).len<>0) then
@@ -787,11 +788,11 @@ implementation
                  if (cs_opt_level1 in aktoptimizerswitches) and
                     (right.nodetype in [calln,blockn]) and
                     (left.nodetype = temprefn) and
-                    is_shortstring(right.resulttype.def) and
-                    not is_open_string(left.resulttype.def) and
-                    (tstringdef(left.resulttype.def).len = 255) then
+                    is_shortstring(right.resultdef) and
+                    not is_open_string(left.resultdef) and
+                    (tstringdef(left.resultdef).len = 255) then
                    begin
-                     { the blocknode case is handled in pass_2 at the temp }
+                     { the blocknode case is handled in pass_generate_code at the temp }
                      { reference level (mainly for callparatemp)  (JM)     }
                      if (right.nodetype = calln) then
                        begin
@@ -808,7 +809,7 @@ implementation
                            (right,
                       ccallparanode.create(cinlinenode.create
                            (in_high_x,false,left.getcopy),nil));
-                     result:=ccallnode.createinternreturn('fpc_'+tstringdef(right.resulttype.def).stringtypname+'_to_shortstr',hp,left);
+                     result:=ccallnode.createinternreturn('fpc_'+tstringdef(right.resultdef).stringtypname+'_to_shortstr',hp,left);
                      firstpass(result);
                    end;
                  left:=nil;
@@ -843,10 +844,10 @@ implementation
         if exec_known then
             begin
                 track_state_pass:=right.track_state_pass(exec_known);
-                {Force a new resulttype pass.}
-                right.resulttype.def:=nil;
-                do_resulttypepass(right);
-                resulttypepass(right);
+                {Force a new resultdef pass.}
+                right.resultdef:=nil;
+                do_typecheckpass(right);
+                typecheckpass(right);
                 aktstate.store_fact(left.getcopy,right.getcopy);
             end
         else
@@ -865,16 +866,16 @@ implementation
          inherited create(arrayconstructorrangen,l,r);
       end;
 
-    function tarrayconstructorrangenode.det_resulttype:tnode;
+    function tarrayconstructorrangenode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resulttypepass(left);
-        resulttypepass(right);
+        typecheckpass(left);
+        typecheckpass(right);
         set_varstate(left,vs_read,[vsf_must_be_valid]);
         set_varstate(right,vs_read,[vsf_must_be_valid]);
         if codegenerror then
          exit;
-        resulttype:=left.resulttype;
+        resultdef:=left.resultdef;
       end;
 
 
@@ -898,18 +899,18 @@ implementation
       end;
 
 
-    function tarrayconstructornode._getcopy : tnode;
+    function tarrayconstructornode.dogetcopy : tnode;
       var
          n : tarrayconstructornode;
       begin
-         n:=tarrayconstructornode(inherited _getcopy);
+         n:=tarrayconstructornode(inherited dogetcopy);
          result:=n;
       end;
 
 
-    function tarrayconstructornode.det_resulttype:tnode;
+    function tarrayconstructornode.pass_typecheck:tnode;
       var
-        htype : ttype;
+        hdef  : tdef;
         hp    : tarrayconstructornode;
         len   : longint;
         varia : boolean;
@@ -918,7 +919,7 @@ implementation
 
       { are we allowing array constructor? Then convert it to a set.
         Do this only if we didn't convert the arrayconstructor yet. This
-        is needed for the cases where the resulttype is forced for a second
+        is needed for the cases where the resultdef is forced for a second
         run }
         if (not allow_array_constructor) then
          begin
@@ -929,7 +930,7 @@ implementation
          end;
 
       { only pass left tree, right tree contains next construct if any }
-        htype.reset;
+        hdef:=nil;
         len:=0;
         varia:=false;
         if assigned(left) then
@@ -937,20 +938,20 @@ implementation
            hp:=self;
            while assigned(hp) do
             begin
-              resulttypepass(hp.left);
+              typecheckpass(hp.left);
               set_varstate(hp.left,vs_read,[vsf_must_be_valid]);
-              if (htype.def=nil) then
-               htype:=hp.left.resulttype
+              if (hdef=nil) then
+               hdef:=hp.left.resultdef
               else
                begin
-                 if (not varia) and (not equal_defs(htype.def,hp.left.resulttype.def)) then
+                 if (not varia) and (not equal_defs(hdef,hp.left.resultdef)) then
                    begin
                      { If both are integers we need to take the type that can hold both
                        defs }
-                     if is_integer(htype.def) and is_integer(hp.left.resulttype.def) then
+                     if is_integer(hdef) and is_integer(hp.left.resultdef) then
                        begin
-                         if is_in_limit(htype.def,hp.left.resulttype.def) then
-                           htype:=hp.left.resulttype;
+                         if is_in_limit(hdef,hp.left.resultdef) then
+                           hdef:=hp.left.resultdef;
                        end
                      else
                        if (nf_novariaallowed in flags) then
@@ -963,33 +964,33 @@ implementation
          end;
          { Set the type of empty or varia arrays to void. Also
            do this if the type is array of const/open array
-           because those can't be used with setelementtype }
-         if not assigned(htype.def) or
+           because those can't be used with setelementdef }
+         if not assigned(hdef) or
             varia or
-            is_array_of_const(htype.def) or
-            is_open_array(htype.def) then
-           htype:=voidtype;
-         resulttype.setdef(tarraydef.create(0,len-1,s32inttype));
-         tarraydef(resulttype.def).setelementtype(htype);
-         include(tarraydef(resulttype.def).arrayoptions,ado_IsConstructor);
+            is_array_of_const(hdef) or
+            is_open_array(hdef) then
+           hdef:=voidtype;
+         resultdef:=tarraydef.create(0,len-1,s32inttype);
+         tarraydef(resultdef).elementdef:=hdef;
+         include(tarraydef(resultdef).arrayoptions,ado_IsConstructor);
          if varia then
-           include(tarraydef(resulttype.def).arrayoptions,ado_IsVariant);
+           include(tarraydef(resultdef).arrayoptions,ado_IsVariant);
       end;
 
 
-    procedure tarrayconstructornode.force_type(tt:ttype);
+    procedure tarrayconstructornode.force_type(def:tdef);
       var
         hp : tarrayconstructornode;
       begin
-        tarraydef(resulttype.def).setelementtype(tt);
-        include(tarraydef(resulttype.def).arrayoptions,ado_IsConstructor);
-        exclude(tarraydef(resulttype.def).arrayoptions,ado_IsVariant);
+        tarraydef(resultdef).elementdef:=def;
+        include(tarraydef(resultdef).arrayoptions,ado_IsConstructor);
+        exclude(tarraydef(resultdef).arrayoptions,ado_IsVariant);
         if assigned(left) then
          begin
            hp:=self;
            while assigned(hp) do
             begin
-              inserttypeconv(hp.left,tt);
+              inserttypeconv(hp.left,def);
               hp:=tarrayconstructornode(hp.right);
             end;
          end;
@@ -1001,14 +1002,14 @@ implementation
         hp        : tarrayconstructornode;
         dovariant : boolean;
       begin
-        dovariant:=(nf_forcevaria in flags) or (ado_isvariant in tarraydef(resulttype.def).arrayoptions);
+        dovariant:=(nf_forcevaria in flags) or (ado_isvariant in tarraydef(resultdef).arrayoptions);
         { only pass left tree, right tree contains next construct if any }
         if assigned(left) then
          begin
            hp:=self;
            while assigned(hp) do
             begin
-              resulttypepass(hp.left);
+              typecheckpass(hp.left);
               { Insert typeconvs for array of const }
               if dovariant then
                 { at this time C varargs are no longer an arrayconstructornode }
@@ -1024,11 +1025,11 @@ implementation
         hp : tarrayconstructornode;
         do_variant:boolean;
       begin
-        do_variant:=(nf_forcevaria in flags) or (ado_isvariant in tarraydef(resulttype.def).arrayoptions);
+        do_variant:=(nf_forcevaria in flags) or (ado_isvariant in tarraydef(resultdef).arrayoptions);
         result:=nil;
         { Insert required type convs, this must be
           done in pass 1, because the call must be
-          resulttypepassed already }
+          typecheckpassed already }
         if assigned(left) then
           begin
             insert_typeconvs;
@@ -1064,10 +1065,10 @@ implementation
                               TTYPENODE
 *****************************************************************************}
 
-    constructor ttypenode.create(t : ttype);
+    constructor ttypenode.create(def:tdef);
       begin
          inherited create(typen);
-         restype:=t;
+         typedef:=def;
          allowed:=false;
       end;
 
@@ -1075,7 +1076,7 @@ implementation
     constructor ttypenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        ppufile.gettype(restype);
+        ppufile.getderef(typedefderef);
         allowed:=boolean(ppufile.getbyte);
       end;
 
@@ -1083,7 +1084,7 @@ implementation
     procedure ttypenode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.puttype(restype);
+        ppufile.putderef(typedefderef);
         ppufile.putbyte(byte(allowed));
       end;
 
@@ -1091,23 +1092,23 @@ implementation
     procedure ttypenode.buildderefimpl;
       begin
         inherited buildderefimpl;
-        restype.buildderef;
+        typedefderef.build(typedef);
       end;
 
 
     procedure ttypenode.derefimpl;
       begin
         inherited derefimpl;
-        restype.resolve;
+        typedef:=tdef(typedefderef.resolve);
       end;
 
 
-    function ttypenode.det_resulttype:tnode;
+    function ttypenode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resulttype:=restype;
+        resultdef:=typedef;
         { check if it's valid }
-        if restype.def.deftype = errordef then
+        if typedef.deftype = errordef then
           CGMessage(parser_e_illegal_expression);
       end;
 
@@ -1117,7 +1118,7 @@ implementation
          result:=nil;
          expectloc:=LOC_VOID;
          { a typenode can't generate code, so we give here
-           an error. Else it'll be an abstract error in pass_2.
+           an error. Else it'll be an abstract error in pass_generate_code.
            Only when the allowed flag is set we don't generate
            an error }
          if not allowed then
@@ -1175,22 +1176,22 @@ implementation
       end;
 
 
-    function trttinode._getcopy : tnode;
+    function trttinode.dogetcopy : tnode;
       var
          n : trttinode;
       begin
-         n:=trttinode(inherited _getcopy);
+         n:=trttinode(inherited dogetcopy);
          n.rttidef:=rttidef;
          n.rttitype:=rttitype;
          result:=n;
       end;
 
 
-    function trttinode.det_resulttype:tnode;
+    function trttinode.pass_typecheck:tnode;
       begin
         { rtti information will be returned as a void pointer }
         result:=nil;
-        resulttype:=voidpointertype;
+        resultdef:=voidpointertype;
       end;
 
 

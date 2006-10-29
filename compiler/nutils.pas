@@ -33,7 +33,7 @@ interface
     NODE_COMPLEXITY_INF = 255;
 
   type
-    { resulttype of functions that process on all nodes in a (sub)tree }
+    { resultdef of functions that process on all nodes in a (sub)tree }
     foreachnoderesult = (
       { false, continue recursion }
       fen_false,
@@ -268,7 +268,7 @@ implementation
                (tcallnode(p1).methodpointer.nodetype<>typen) then
               tloadnode(p2).set_mp(tcallnode(p1).get_load_methodpointer);
           end;
-        resulttypepass(p2);
+        typecheckpass(p2);
         p1.free;
         p1:=p2;
       end;
@@ -279,7 +279,7 @@ implementation
         hp : tnode;
       begin
         result:=false;
-        if (p1.resulttype.def.deftype<>procvardef) or
+        if (p1.resultdef.deftype<>procvardef) or
            (tponly and
             not(m_tp_procvar in aktmodeswitches)) then
           exit;
@@ -300,7 +300,7 @@ implementation
         if (hp.nodetype in [calln,loadn,temprefn]) then
           begin
             hp:=ccallnode.create_procvar(nil,p1);
-            resulttypepass(hp);
+            typecheckpass(hp);
             p1:=hp;
             result:=true;
           end;
@@ -322,7 +322,7 @@ implementation
         if assigned(srsym) then
           begin
             result:=cloadnode.create(srsym,vs.owner);
-            resulttypepass(result);
+            typecheckpass(result);
           end
         else
           CGMessage(parser_e_illegal_expression);
@@ -346,7 +346,7 @@ implementation
             result:=cerrornode.create;
             CGMessage(parser_e_illegal_expression);
           end;
-        resulttypepass(result);
+        typecheckpass(result);
       end;
 
 
@@ -364,7 +364,7 @@ implementation
             result:=cerrornode.create;
             CGMessage(parser_e_illegal_expression);
           end;
-        resulttypepass(result);
+        typecheckpass(result);
       end;
 
 
@@ -385,7 +385,7 @@ implementation
             result:=cerrornode.create;
             CGMessage(parser_e_illegal_expression);
           end;
-        resulttypepass(result);
+        typecheckpass(result);
       end;
 
 
@@ -403,7 +403,7 @@ implementation
             result:=cerrornode.create;
             CGMessage(parser_e_illegal_expression);
           end;
-        resulttypepass(result);
+        typecheckpass(result);
       end;
 
 
@@ -481,12 +481,12 @@ implementation
 
     function initialize_data_node(p:tnode):tnode;
       begin
-        if not assigned(p.resulttype.def) then
-          resulttypepass(p);
-        if is_ansistring(p.resulttype.def) or
-           is_widestring(p.resulttype.def) or
-           is_interfacecom(p.resulttype.def) or
-           is_dynamic_array(p.resulttype.def) then
+        if not assigned(p.resultdef) then
+          typecheckpass(p);
+        if is_ansistring(p.resultdef) or
+           is_widestring(p.resultdef) or
+           is_interfacecom(p.resultdef) or
+           is_dynamic_array(p.resultdef) then
           begin
             result:=cassignmentnode.create(
                ctypeconvnode.create_internal(p,voidpointertype),
@@ -499,7 +499,7 @@ implementation
                   ccallparanode.create(
                       caddrnode.create_internal(
                           crttinode.create(
-                              tstoreddef(p.resulttype.def),initrtti)),
+                              tstoreddef(p.resultdef),initrtti)),
                   ccallparanode.create(
                       caddrnode.create_internal(p),
                   nil)));
@@ -511,9 +511,9 @@ implementation
       var
         newstatement : tstatementnode;
       begin
-        if not assigned(p.resulttype.def) then
-          resulttypepass(p);
-        if is_ansistring(p.resulttype.def) then
+        if not assigned(p.resultdef) then
+          typecheckpass(p);
+        if is_ansistring(p.resultdef) then
           begin
             result:=internalstatements(newstatement);
             addstatement(newstatement,ccallnode.createintern('fpc_ansistr_decr_ref',
@@ -525,7 +525,7 @@ implementation
                cnilnode.create
                ));
           end
-        else if is_widestring(p.resulttype.def) then
+        else if is_widestring(p.resultdef) then
           begin
             result:=internalstatements(newstatement);
             addstatement(newstatement,ccallnode.createintern('fpc_widestr_decr_ref',
@@ -542,7 +542,7 @@ implementation
                 ccallparanode.create(
                     caddrnode.create_internal(
                         crttinode.create(
-                            tstoreddef(p.resulttype.def),initrtti)),
+                            tstoreddef(p.resultdef),initrtti)),
                 ccallparanode.create(
                     caddrnode.create_internal(p),
                 nil)));
@@ -665,14 +665,14 @@ implementation
       begin
         result:=fen_false;
 
-//        do_resulttypepass(n);
+//        do_typecheckpass(n);
 
         hn:=n.simplify;
         if assigned(hn) then
           begin
             treechanged:=true;
             n:=hn;
-            resulttypepass(n);
+            typecheckpass(n);
           end;
       end;
 

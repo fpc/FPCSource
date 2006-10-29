@@ -34,7 +34,7 @@ interface
           function first_int_to_real: tnode; override;
           procedure second_int_to_real;override;
           procedure second_int_to_bool;override;
-//          procedure pass_2;override;
+//          procedure pass_generate_code;override;
        end;
 
 implementation
@@ -68,9 +68,9 @@ implementation
           end
         else
         { converting a 64bit integer to a float requires a helper }
-        if is_64bitint(left.resulttype.def) then
+        if is_64bitint(left.resultdef) then
           begin
-            if is_signed(left.resulttype.def) then
+            if is_signed(left.resultdef) then
               fname := 'fpc_int64_to_double'
             else
               fname := 'fpc_qword_to_double';
@@ -83,7 +83,7 @@ implementation
         else
           { other integers are supposed to be 32 bit }
           begin
-            if is_signed(left.resulttype.def) then
+            if is_signed(left.resultdef) then
               inserttypeconv(left,s32inttype)
             else
               { the fpu always considers 32-bit values as signed
@@ -124,11 +124,11 @@ implementation
         opsize : tcgsize;
       begin
         scratch_used := false;
-        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-        signed := is_signed(left.resulttype.def);
-        opsize := def_cgsize(left.resulttype.def);
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        signed := is_signed(left.resultdef);
+        opsize := def_cgsize(left.resultdef);
         { has to be handled by a helper }
-        if is_64bitint(left.resulttype.def) then
+        if is_64bitint(left.resultdef) then
           internalerror(200110011);
         { has to be handled by a helper }
         if not signed then
@@ -164,14 +164,14 @@ implementation
          { byte(boolean) or word(wordbool) or longint(longbool) must }
          { be accepted for var parameters                            }
          if (nf_explicit in flags) and
-            (left.resulttype.def.size=resulttype.def.size) and
+            (left.resultdef.size=resultdef.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            begin
               location_copy(location,left.location);
               exit;
            end;
-         location_reset(location,LOC_REGISTER,def_cgsize(left.resulttype.def));
-         opsize := def_cgsize(left.resulttype.def);
+         location_reset(location,LOC_REGISTER,def_cgsize(left.resultdef));
+         opsize := def_cgsize(left.resultdef);
          case left.location.loc of
             LOC_CREFERENCE,LOC_REFERENCE :
               begin
@@ -214,7 +214,7 @@ implementation
       end;
 
 {
-    procedure tm68ktypeconvnode.pass_2;
+    procedure tm68ktypeconvnode.pass_generate_code;
 {$ifdef TESTOBJEXT2}
       var
          r : preference;

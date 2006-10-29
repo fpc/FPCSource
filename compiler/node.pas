@@ -277,15 +277,16 @@ interface
           { this field is set by concattolist  }
           parent : tnode;
           { there are some properties about the node stored }
-          flags : tnodeflags;
+          flags  : tnodeflags;
           ppuidx : longint;
           { the number of registers needed to evalute the node }
           registersint,registersfpu,registersmm : longint;  { must be longint !!!! }
 {$ifdef SUPPORT_MMX}
-          registersmmx : longint;
+          registersmmx  : longint;
 {$endif SUPPORT_MMX}
-          resulttype : ttype;
-          fileinfo : tfileposinfo;
+          resultdef     : tdef;
+          resultdefderef : tderef;
+          fileinfo      : tfileposinfo;
           localswitches : tlocalswitches;
 {$ifdef extdebug}
           maxfirstpasscount,
@@ -308,10 +309,10 @@ interface
           { the 1.1 code generator may override pass_1 }
           { and it need not to implement det_* then    }
           { 1.1: pass_1 returns a value<>0 if the node has been transformed }
-          { 2.0: runs det_resulttype and det_temp                           }
+          { 2.0: runs pass_typecheck and det_temp                           }
           function pass_1 : tnode;virtual;abstract;
-          { dermines the resulttype of the node }
-          function det_resulttype : tnode;virtual;abstract;
+          { dermines the resultdef of the node }
+          function pass_typecheck : tnode;virtual;abstract;
 
           { tries to simplify the node, returns a value <>nil if a simplified
             node has been created }
@@ -328,7 +329,7 @@ interface
             the node }
           procedure det_temp;virtual;abstract;
 
-          procedure pass_2;virtual;abstract;
+          procedure pass_generate_code;virtual;abstract;
 
           { comparing of nodes }
           function isequal(p : tnode) : boolean;
@@ -338,7 +339,7 @@ interface
           function getcopy : tnode;
 
           { does the real copying of a node }
-          function _getcopy : tnode;virtual;
+          function dogetcopy : tnode;virtual;
 
           procedure insertintolist(l : tnodelist);virtual;
           { writes a node for debugging purpose, shouldn't be called }
@@ -371,7 +372,7 @@ interface
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
           function docompare(p : tnode) : boolean;override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           procedure left_max;
           procedure printnodedata(var t:text);override;
@@ -391,7 +392,7 @@ interface
           function ischild(p : tnode) : boolean;override;
           function docompare(p : tnode) : boolean;override;
           procedure swapleftright;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           procedure left_right_max;
           procedure printnodedata(var t:text);override;
@@ -603,19 +604,19 @@ implementation
 
     function is_constintnode(p : tnode) : boolean;
       begin
-         is_constintnode:=(p.nodetype=ordconstn) and is_integer(p.resulttype.def);
+         is_constintnode:=(p.nodetype=ordconstn) and is_integer(p.resultdef);
       end;
 
 
     function is_constcharnode(p : tnode) : boolean;
       begin
-         is_constcharnode:=(p.nodetype=ordconstn) and is_char(p.resulttype.def);
+         is_constcharnode:=(p.nodetype=ordconstn) and is_char(p.resultdef);
       end;
 
 
     function is_constwidecharnode(p : tnode) : boolean;
       begin
-         is_constwidecharnode:=(p.nodetype=ordconstn) and is_widechar(p.resulttype.def);
+         is_constwidecharnode:=(p.nodetype=ordconstn) and is_widechar(p.resultdef);
       end;
 
 
@@ -627,13 +628,13 @@ implementation
 
     function is_constboolnode(p : tnode) : boolean;
       begin
-         is_constboolnode:=(p.nodetype=ordconstn) and is_boolean(p.resulttype.def);
+         is_constboolnode:=(p.nodetype=ordconstn) and is_boolean(p.resultdef);
       end;
 
 
     function is_constenumnode(p : tnode) : boolean;
       begin
-         is_constenumnode:=(p.nodetype=ordconstn) and (p.resulttype.def.deftype=enumdef);
+         is_constenumnode:=(p.nodetype=ordconstn) and (p.resultdef.deftype=enumdef);
       end;
 
 {****************************************************************************
@@ -653,7 +654,7 @@ implementation
          { save local info }
          fileinfo:=aktfilepos;
          localswitches:=aktlocalswitches;
-         resulttype.reset;
+         resultdef:=nil;
          registersint:=0;
          registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -680,7 +681,7 @@ implementation
         blocktype:=tblock_type(ppufile.getbyte);
         ppufile.getposinfo(fileinfo);
         ppufile.getsmallset(localswitches);
-        ppufile.gettype(resulttype);
+        ppufile.getderef(resultdefderef);
         ppufile.getsmallset(flags);
         { updated by firstpass }
         expectloc:=LOC_INVALID;
@@ -704,20 +705,20 @@ implementation
         ppufile.putbyte(byte(block_type));
         ppufile.putposinfo(fileinfo);
         ppufile.putsmallset(localswitches);
-        ppufile.puttype(resulttype);
+        ppufile.putderef(resultdefderef);
         ppufile.putsmallset(flags);
       end;
 
 
     procedure tnode.buildderefimpl;
       begin
-        resulttype.buildderef;
+        resultdefderef.build(resultdef);
       end;
 
 
     procedure tnode.derefimpl;
       begin
-        resulttype.resolve;
+        resultdef:=tdef(resultdefderef.resolve);
       end;
 
 
@@ -772,10 +773,10 @@ implementation
     procedure tnode.printnodeinfo(var t:text);
       begin
         write(t,nodetype2str[nodetype]);
-        if assigned(resulttype.def) then
-          write(t,', resulttype = "',resulttype.def.gettypename,'"')
+        if assigned(resultdef) then
+          write(t,', resultdef = "',resultdef.GetTypeName,'"')
         else
-          write(t,', resulttype = <nil>');
+          write(t,', resultdef = <nil>');
         write(t,', pos = (',fileinfo.line,',',fileinfo.column,')',
                   ', loc = ',tcgloc2str[location.loc],
                   ', expectloc = ',tcgloc2str[expectloc],
@@ -838,12 +839,12 @@ implementation
 
     function tnode.getcopy : tnode;
       begin
-        result:=_getcopy;
+        result:=dogetcopy;
         foreachnodestatic(pm_postprocess,self,@cleanupcopiedto,nil);
       end;
 
 
-    function tnode._getcopy : tnode;
+    function tnode.dogetcopy : tnode;
       var
          p : tnode;
       begin
@@ -861,7 +862,7 @@ implementation
          p.registersmmx:=registersmmx;
          p.registersmm:=registersmm;
 {$endif SUPPORT_MMX}
-         p.resulttype:=resulttype;
+         p.resultdef:=resultdef;
          p.fileinfo:=fileinfo;
          p.localswitches:=localswitches;
 {$ifdef extdebug}
@@ -941,13 +942,13 @@ implementation
       end;
 
 
-    function tunarynode._getcopy : tnode;
+    function tunarynode.dogetcopy : tnode;
       var
          p : tunarynode;
       begin
-         p:=tunarynode(inherited _getcopy);
+         p:=tunarynode(inherited dogetcopy);
          if assigned(left) then
-           p.left:=left._getcopy
+           p.left:=left.dogetcopy
          else
            p.left:=nil;
          result:=p;
@@ -1072,13 +1073,13 @@ implementation
       end;
 
 
-    function tbinarynode._getcopy : tnode;
+    function tbinarynode.dogetcopy : tnode;
       var
          p : tbinarynode;
       begin
-         p:=tbinarynode(inherited _getcopy);
+         p:=tbinarynode(inherited dogetcopy);
          if assigned(right) then
-           p.right:=right._getcopy
+           p.right:=right.dogetcopy
          else
            p.right:=nil;
          result:=p;

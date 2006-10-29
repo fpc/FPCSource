@@ -31,37 +31,37 @@ interface
 
     type
        tcgwhilerepeatnode = class(twhilerepeatnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
           procedure sync_regvars(checkusedregvars: boolean);
 
           usedregvars: tusedregvars;
        end;
 
        tcgifnode = class(tifnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgfornode = class(tfornode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
           procedure sync_regvars(checkusedregvars: boolean);
 
           usedregvars: tusedregvars;
        end;
 
        tcgexitnode = class(texitnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgbreaknode = class(tbreaknode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgcontinuenode = class(tcontinuenode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcggotonode = class(tgotonode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcglabelnode = class(tlabelnode)
@@ -69,23 +69,23 @@ interface
           asmlabel : tasmlabel;
        public
           function getasmlabel : tasmlabel;
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgraisenode = class(traisenode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgtryexceptnode = class(ttryexceptnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgtryfinallynode = class(ttryfinallynode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgonnode = class(tonnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
 implementation
@@ -132,7 +132,7 @@ implementation
       end;
 
 
-    procedure tcgwhilerepeatnode.pass_2;
+    procedure tcgwhilerepeatnode.pass_generate_code;
       var
          lcont,lbreak,lloop,
          oldclabel,oldblabel : tasmlabel;
@@ -208,7 +208,7 @@ implementation
                                tcgIFNODE
 *****************************************************************************}
 
-    procedure tcgifnode.pass_2;
+    procedure tcgifnode.pass_generate_code;
 
       var
          hl,otlabel,oflabel : tasmlabel;
@@ -407,7 +407,7 @@ implementation
       end;
 
 
-    procedure tcgfornode.pass_2;
+    procedure tcgfornode.pass_generate_code;
       var
          l3,oldclabel,oldblabel : tasmlabel;
          temptovalue : boolean;
@@ -429,8 +429,8 @@ implementation
          current_asmdata.getjumplabel(l3);
 
          { only calculate reference }
-         opsize := def_cgsize(left.resulttype.def);
-         count_var_is_signed:=is_signed(left.resulttype.def);
+         opsize := def_cgsize(left.resultdef);
+         count_var_is_signed:=is_signed(left.resultdef);
 
          { first set the to value
            because the count var can be in the expression ! }
@@ -773,7 +773,7 @@ implementation
                               SecondExitN
 *****************************************************************************}
 
-    procedure tcgexitnode.pass_2;
+    procedure tcgexitnode.pass_generate_code;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -789,7 +789,7 @@ implementation
                               SecondBreakN
 *****************************************************************************}
 
-    procedure tcgbreaknode.pass_2;
+    procedure tcgbreaknode.pass_generate_code;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -810,7 +810,7 @@ implementation
                               SecondContinueN
 *****************************************************************************}
 
-    procedure tcgcontinuenode.pass_2;
+    procedure tcgcontinuenode.pass_generate_code;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -831,7 +831,7 @@ implementation
                              SecondGoto
 *****************************************************************************}
 
-    procedure tcggotonode.pass_2;
+    procedure tcggotonode.pass_generate_code;
 
        begin
          location_reset(location,LOC_VOID,OS_NO);
@@ -856,7 +856,7 @@ implementation
       end;
 
 
-    procedure tcglabelnode.pass_2;
+    procedure tcglabelnode.pass_generate_code;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -873,7 +873,7 @@ implementation
                              SecondRaise
 *****************************************************************************}
 
-    procedure tcgraisenode.pass_2;
+    procedure tcgraisenode.pass_generate_code;
 
       var
          a : tasmlabel;
@@ -980,7 +980,7 @@ implementation
       end;
 
 
-    procedure tcgtryexceptnode.pass_2;
+    procedure tcgtryexceptnode.pass_generate_code;
 
       var
          exceptlabel,doexceptlabel,oldendexceptlabel,
@@ -1228,7 +1228,7 @@ implementation
       end;
 
 
-    procedure tcgonnode.pass_2;
+    procedure tcgonnode.pass_generate_code;
       var
          nextonlabel,
          exitonlabel,
@@ -1270,7 +1270,7 @@ implementation
            begin
              tlocalvarsym(exceptsymtable.symindex.first).localloc.loc:=LOC_REFERENCE;
              tlocalvarsym(exceptsymtable.symindex.first).localloc.size:=OS_ADDR;
-             tg.GetLocal(current_asmdata.CurrAsmList,sizeof(aint),voidpointertype.def,
+             tg.GetLocal(current_asmdata.CurrAsmList,sizeof(aint),voidpointertype,
                 tlocalvarsym(exceptsymtable.symindex.first).localloc.reference);
              cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,tlocalvarsym(exceptsymtable.symindex.first).localloc.reference);
            end
@@ -1384,7 +1384,7 @@ implementation
                              SecondTryFinally
 *****************************************************************************}
 
-    procedure tcgtryfinallynode.pass_2;
+    procedure tcgtryfinallynode.pass_generate_code;
       var
          reraiselabel,
          finallylabel,

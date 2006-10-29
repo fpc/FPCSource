@@ -169,7 +169,7 @@ interface
         location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
         location_force_fpureg(current_asmdata.CurrAsmList,right.location,(left.location.loc<>LOC_CFPUREGISTER));
 
-        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         if left.location.loc<>LOC_CFPUREGISTER then
           location.register:=left.location.register
         else
@@ -340,8 +340,8 @@ interface
         pass_left_right;
         force_reg_left_right(false,false);
 
-        unsigned:=not(is_signed(left.resulttype.def)) or
-                  not(is_signed(right.resulttype.def));
+        unsigned:=not(is_signed(left.resultdef)) or
+                  not(is_signed(right.resultdef));
 
         location_reset(location,LOC_JUMP,OS_NO);
 
@@ -359,8 +359,8 @@ interface
         pass_left_right;
         force_reg_left_right(true,true);
 
-        unsigned:=not(is_signed(left.resulttype.def)) or
-                  not(is_signed(right.resulttype.def));
+        unsigned:=not(is_signed(left.resultdef)) or
+                  not(is_signed(right.resultdef));
 
         if right.location.loc = LOC_CONSTANT then
           tcgsparc(cg).handle_reg_const_reg(current_asmdata.CurrAsmList,A_SUBcc,left.location.register,right.location.value,NR_G0)

@@ -31,20 +31,20 @@ interface
 
     type
        tcgloadnode = class(tloadnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
           procedure generate_picvaraccess;virtual;
        end;
 
        tcgassignmentnode = class(tassignmentnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgarrayconstructornode = class(tarrayconstructornode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgrttinode = class(trttinode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
 
@@ -77,7 +77,7 @@ implementation
       end;
 
 
-    procedure tcgloadnode.pass_2;
+    procedure tcgloadnode.pass_generate_code;
       var
         hregister : tregister;
         symtabletype : tsymtabletype;
@@ -89,7 +89,7 @@ implementation
       begin
 
          { we don't know the size of all arrays }
-         newsize:=def_cgsize(resulttype.def);
+         newsize:=def_cgsize(resultdef);
          location_reset(location,LOC_REFERENCE,newsize);
          case symtableentry.typ of
             absolutevarsym :
@@ -221,12 +221,12 @@ implementation
                             case getregtype(tvarsym(symtableentry).localloc.register) of
                               R_FPUREGISTER :
                                 begin
-                                  location_reset(location,LOC_CFPUREGISTER,def_cgsize(resulttype.def));
+                                  location_reset(location,LOC_CFPUREGISTER,def_cgsize(resultdef));
                                   location.register:=tvarsym(symtableentry).localloc.register;
                                 end;
                               R_INTREGISTER :
                                 begin
-                                  location_reset(location,LOC_CREGISTER,def_cgsize(resulttype.def));
+                                  location_reset(location,LOC_CREGISTER,def_cgsize(resultdef));
                                   location.register:=tvarsym(symtableentry).localloc.register;
                                   hregister := location.register;
                                 end;
@@ -319,7 +319,7 @@ implementation
                          LOC_REGISTER:
                            begin
                               { this is not possible for objects }
-                              if is_object(left.resulttype.def) then
+                              if is_object(left.resultdef) then
                                 internalerror(200304234);
                               hregister:=left.location.register;
                            end;
@@ -327,7 +327,7 @@ implementation
                          LOC_REFERENCE:
                            begin
                               hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                              if is_class_or_interface(left.resulttype.def) then
+                              if is_class_or_interface(left.resultdef) then
                                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,hregister)
                               else
                                 cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,hregister);
@@ -388,7 +388,7 @@ implementation
                              SecondAssignment
 *****************************************************************************}
 
-    procedure tcgassignmentnode.pass_2;
+    procedure tcgassignmentnode.pass_generate_code;
       var
          otlabel,hlabel,oflabel : tasmlabel;
          fputyp : tfloattype;
@@ -421,18 +421,18 @@ implementation
         }
         if not(right.expectloc in [LOC_FLAGS,LOC_JUMP]) and
            ((right.nodetype=calln) or
-            (right.resulttype.def.needs_inittable) or
+            (right.resultdef.needs_inittable) or
             (right.registersint>=left.registersint)) then
          begin
            secondpass(right);
            { increment source reference counter, this is
              useless for string constants}
-           if (right.resulttype.def.needs_inittable) and
+           if (right.resultdef.needs_inittable) and
               (right.nodetype<>stringconstn) then
             begin
               location_force_mem(current_asmdata.CurrAsmList,right.location);
               location_get_data_ref(current_asmdata.CurrAsmList,right.location,href,false);
-              cg.g_incrrefcount(current_asmdata.CurrAsmList,right.resulttype.def,href);
+              cg.g_incrrefcount(current_asmdata.CurrAsmList,right.resultdef,href);
             end;
            if codegenerror then
              exit;
@@ -441,10 +441,10 @@ implementation
            { can be false                                             }
            secondpass(left);
            { decrement destination reference counter }
-           if (left.resulttype.def.needs_inittable) then
+           if (left.resultdef.needs_inittable) then
              begin
                location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false);
-               cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resulttype.def,href);
+               cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
              end;
            if codegenerror then
              exit;
@@ -454,10 +454,10 @@ implementation
            { calculate left sides }
            secondpass(left);
            { decrement destination reference counter }
-           if (left.resulttype.def.needs_inittable) then
+           if (left.resultdef.needs_inittable) then
              begin
                location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false);
-               cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resulttype.def,href);
+               cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
              end;
            if codegenerror then
              exit;
@@ -467,12 +467,12 @@ implementation
            secondpass(right);
            { increment source reference counter, this is
              useless for string constants}
-           if (right.resulttype.def.needs_inittable) and
+           if (right.resultdef.needs_inittable) and
               (right.nodetype<>stringconstn) then
              begin
                location_force_mem(current_asmdata.CurrAsmList,right.location);
                location_get_data_ref(current_asmdata.CurrAsmList,right.location,href,false);
-               cg.g_incrrefcount(current_asmdata.CurrAsmList,right.resulttype.def,href);
+               cg.g_incrrefcount(current_asmdata.CurrAsmList,right.resultdef,href);
              end;
 
            if codegenerror then
@@ -501,7 +501,7 @@ implementation
         else
 {$endif old_append_str}
 
-        if is_shortstring(left.resulttype.def) then
+        if is_shortstring(left.resultdef) then
           begin
             {
               we can get here only in the following situations
@@ -522,7 +522,7 @@ implementation
                 cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_8,0,left.location.reference);
               end
             { char loading }
-            else if is_char(right.resulttype.def) then
+            else if is_char(right.resultdef) then
               begin
                 if right.nodetype=ordconstn then
                   begin
@@ -598,10 +598,10 @@ implementation
                       begin
 {$warning HACK: unaligned test, maybe remove all unaligned locations (array of char) from the compiler}
                         { Use unaligned copy when the offset is not aligned }
-                        len:=left.resulttype.def.size;
+                        len:=left.resultdef.size;
                         if (right.location.reference.offset mod sizeof(aint)<>0) or
                           (left.location.reference.offset mod sizeof(aint)<>0) or
-                          (right.resulttype.def.alignment<sizeof(aint)) then
+                          (right.resultdef.alignment<sizeof(aint)) then
                           cg.g_concatcopy_unaligned(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len)
                         else
                           cg.g_concatcopy(current_asmdata.CurrAsmList,right.location.reference,left.location.reference,len);
@@ -641,7 +641,7 @@ implementation
               LOC_MMREGISTER,
               LOC_CMMREGISTER:
                 begin
-                  if left.resulttype.def.deftype=arraydef then
+                  if left.resultdef.deftype=arraydef then
                     begin
                     end
                   else
@@ -666,15 +666,15 @@ implementation
               LOC_FPUREGISTER,
               LOC_CFPUREGISTER :
                 begin
-                  if (left.resulttype.def.deftype=floatdef) then
-                   fputyp:=tfloatdef(left.resulttype.def).typ
+                  if (left.resultdef.deftype=floatdef) then
+                   fputyp:=tfloatdef(left.resultdef).typ
                   else
-                   if (right.resulttype.def.deftype=floatdef) then
-                    fputyp:=tfloatdef(right.resulttype.def).typ
+                   if (right.resultdef.deftype=floatdef) then
+                    fputyp:=tfloatdef(right.resultdef).typ
                   else
                    if (right.nodetype=typeconvn) and
-                      (ttypeconvnode(right).left.resulttype.def.deftype=floatdef) then
-                    fputyp:=tfloatdef(ttypeconvnode(right).left.resulttype.def).typ
+                      (ttypeconvnode(right).left.resultdef.deftype=floatdef) then
+                    fputyp:=tfloatdef(ttypeconvnode(right).left.resultdef).typ
                   else
                     fputyp:=s32real;
                   { we can't do direct moves between fpu and mm registers }
@@ -723,14 +723,14 @@ implementation
                   {This can be a wordbool or longbool too, no?}
                   case left.location.loc of
                     LOC_REGISTER,LOC_CREGISTER:
-                      cg.g_flags2reg(current_asmdata.CurrAsmList,def_cgsize(left.resulttype.def),right.location.resflags,left.location.register);
+                      cg.g_flags2reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),right.location.resflags,left.location.register);
                     LOC_REFERENCE:
-                      cg.g_flags2ref(current_asmdata.CurrAsmList,def_cgsize(left.resulttype.def),right.location.resflags,left.location.reference);
+                      cg.g_flags2ref(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),right.location.resflags,left.location.reference);
                     LOC_SUBSETREG,LOC_SUBSETREF:
                       begin
-                        r:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(left.resulttype.def));
-                        cg.g_flags2reg(current_asmdata.CurrAsmList,def_cgsize(left.resulttype.def),right.location.resflags,r);
-                        cg.a_load_reg_loc(current_asmdata.CurrAsmList,def_cgsize(left.resulttype.def),r,left.location);
+                        r:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(left.resultdef));
+                        cg.g_flags2reg(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),right.location.resflags,r);
+                        cg.a_load_reg_loc(current_asmdata.CurrAsmList,def_cgsize(left.resultdef),r,left.location);
                       end;
                     else
                       internalerror(200203273);
@@ -774,7 +774,7 @@ implementation
         vtAnsiString16 = 18;
         vtAnsiString64 = 19;
 
-    procedure tcgarrayconstructornode.pass_2;
+    procedure tcgarrayconstructornode.pass_generate_code;
       var
         hp    : tarrayconstructornode;
         href  : treference;
@@ -787,21 +787,21 @@ implementation
         tmpreg  : tregister;
         paraloc : tcgparalocation;
       begin
-        if is_packed_array(resulttype.def) then
+        if is_packed_array(resultdef) then
           internalerror(200608042);
-        dovariant:=(nf_forcevaria in flags) or is_variant_array(resulttype.def);
+        dovariant:=(nf_forcevaria in flags) or is_variant_array(resultdef);
         if dovariant then
           elesize:=sizeof(aint)+sizeof(aint)
         else
-          elesize:=tarraydef(resulttype.def).elesize;
+          elesize:=tarraydef(resultdef).elesize;
         location_reset(location,LOC_CREFERENCE,OS_NO);
         fillchar(paraloc,sizeof(paraloc),0);
         { Allocate always a temp, also if no elements are required, to
           be sure that location is valid (PFV) }
-         if tarraydef(resulttype.def).highrange=-1 then
+         if tarraydef(resultdef).highrange=-1 then
            tg.GetTemp(current_asmdata.CurrAsmList,elesize,tt_normal,location.reference)
          else
-           tg.GetTemp(current_asmdata.CurrAsmList,(tarraydef(resulttype.def).highrange+1)*elesize,tt_normal,location.reference);
+           tg.GetTemp(current_asmdata.CurrAsmList,(tarraydef(resultdef).highrange+1)*elesize,tt_normal,location.reference);
          href:=location.reference;
         { Process nodes in array constructor }
         hp:=self;
@@ -815,13 +815,13 @@ implementation
                exit;
               { Move flags and jump in register }
               if hp.left.location.loc in [LOC_FLAGS,LOC_JUMP] then
-                location_force_reg(current_asmdata.CurrAsmList,hp.left.location,def_cgsize(hp.left.resulttype.def),false);
+                location_force_reg(current_asmdata.CurrAsmList,hp.left.location,def_cgsize(hp.left.resultdef),false);
               if dovariant then
                begin
                  { find the correct vtype value }
                  vtype:=$ff;
                  vaddr:=false;
-                 lt:=hp.left.resulttype.def;
+                 lt:=hp.left.resultdef;
                  case lt.deftype of
                    enumdef,
                    orddef :
@@ -935,7 +935,7 @@ implementation
               else
               { normal array constructor of the same type }
                begin
-                 if resulttype.def.needs_inittable then
+                 if resultdef.needs_inittable then
                    freetemp:=false;
                  case hp.left.location.loc of
                    LOC_MMREGISTER,
@@ -948,9 +948,9 @@ implementation
                    LOC_REFERENCE,
                    LOC_CREFERENCE :
                      begin
-                       if is_shortstring(hp.left.resulttype.def) then
+                       if is_shortstring(hp.left.resultdef) then
                          cg.g_copyshortstring(current_asmdata.CurrAsmList,hp.left.location.reference,href,
-                             Tstringdef(hp.left.resulttype.def).len)
+                             Tstringdef(hp.left.resultdef).len)
                        else
                          cg.g_concatcopy(current_asmdata.CurrAsmList,hp.left.location.reference,href,elesize);
                      end;
@@ -979,7 +979,7 @@ implementation
                            SecondRTTI
 *****************************************************************************}
 
-    procedure tcgrttinode.pass_2;
+    procedure tcgrttinode.pass_generate_code;
       begin
         location_reset(location,LOC_CREFERENCE,OS_NO);
         location.reference.symbol:=rttidef.get_rtti_label(rttitype);

@@ -47,11 +47,11 @@ interface
          procedure second_class_to_intf;override;
          procedure second_char_to_char;override;
          procedure second_nothing;override;
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
        end;
 
        tcgasnode = class(tasnode)
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
        end;
 
   implementation
@@ -76,19 +76,19 @@ interface
         ressize,
         leftsize : longint;
       begin
-        newsize:=def_cgsize(resulttype.def);
+        newsize:=def_cgsize(resultdef);
 
         { insert range check if not explicit conversion }
         if not(nf_explicit in flags) then
-          cg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resulttype.def,resulttype.def);
+          cg.g_rangecheck(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef);
 
         { is the result size smaller? when typecasting from void
           we always reuse the current location, because there is
           nothing that we can load in a register }
-        ressize := resulttype.def.size;
-        leftsize := left.resulttype.def.size;
+        ressize := resultdef.size;
+        leftsize := left.resultdef.size;
         if (ressize<>leftsize) and
-           not is_void(left.resulttype.def) then
+           not is_void(left.resultdef) then
           begin
             location_copy(location,left.location);
             { reuse a loc_reference when the newsize is smaller than
@@ -103,7 +103,7 @@ interface
             else
               location_force_reg(current_asmdata.CurrAsmList,location,newsize,false);
 {$ifndef cpu64bit}
-            // if is_signed(left.resulttype) and
+            // if is_signed(left.resultdef) and
 {$endif cpu64bit}
           end
         else
@@ -116,7 +116,7 @@ interface
             { which don't have 8bit register components etc) (JM)    }
             location_copy(location,left.location);
             location.size:=newsize;
-            orgsize := def_cgsize(left.resulttype.def);
+            orgsize := def_cgsize(left.resultdef);
             if (ressize < tcgsize2size[OS_INT]) and
                (location.loc in [LOC_REGISTER,LOC_CREGISTER]) and
                (orgsize <> newsize) then
@@ -200,12 +200,12 @@ interface
 
     procedure tcgtypeconvnode.second_string_to_chararray;
       begin
-        if is_chararray(left.resulttype.def) then
+        if is_chararray(left.resultdef) then
           begin
             location_copy(location,left.location);
             exit;
           end;
-        { should be handled already in resulttype pass (JM) }
+        { should be handled already in resultdef pass (JM) }
         internalerror(200108292);
       end;
 
@@ -260,7 +260,7 @@ interface
     procedure tcgtypeconvnode.second_char_to_string;
       begin
          location_reset(location,LOC_REFERENCE,OS_NO);
-         case tstringdef(resulttype.def).string_typ of
+         case tstringdef(resultdef).string_typ of
            st_shortstring :
              begin
                tg.GetTemp(current_asmdata.CurrAsmList,256,tt_normal,location.reference);
@@ -268,7 +268,7 @@ interface
                  location.reference);
                location_freetemp(current_asmdata.CurrAsmList,left.location);
              end;
-           { the rest is removed in the resulttype pass and converted to compilerprocs }
+           { the rest is removed in the resultdef pass and converted to compilerprocs }
            else
             internalerror(4179);
         end;
@@ -277,7 +277,7 @@ interface
 
     procedure tcgtypeconvnode.second_real_to_real;
       begin
-         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
 {$ifdef x86}
          { extended types in memory which should be loaded into the sse unit
            must be converted by the fpu first, so force them to be loaded into
@@ -292,7 +292,7 @@ interface
             LOC_CFPUREGISTER:
               begin
                 location_copy(location,left.location);
-                location.size:=def_cgsize(resulttype.def);
+                location.size:=def_cgsize(resultdef);
                 case expectloc of
                   LOC_FPUREGISTER:
                     ;
@@ -308,7 +308,7 @@ interface
               begin
                  if expectloc=LOC_MMREGISTER then
                    begin
-                     location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
+                     location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
                      location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
                      cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar)
                    end
@@ -327,7 +327,7 @@ interface
                   LOC_FPUREGISTER:
                     begin
                       location_force_fpureg(current_asmdata.CurrAsmList,location,false);
-                      location.size:=def_cgsize(resulttype.def);
+                      location.size:=def_cgsize(resultdef);
                     end;
                   LOC_MMREGISTER:
                     ;
@@ -351,7 +351,7 @@ interface
 
     procedure tcgtypeconvnode.second_proc_to_procvar;
       begin
-        if tabstractprocdef(resulttype.def).is_addressonly then
+        if tabstractprocdef(resultdef).is_addressonly then
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
@@ -375,9 +375,9 @@ interface
          { byte(boolean) or word(wordbool) or longint(longbool) must }
          { be accepted for var parameters                            }
          if not((nf_explicit in flags) and
-                (left.resulttype.def.size=resulttype.def.size) and
+                (left.resultdef.size=resultdef.size) and
                 (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER])) then
-           location_force_reg(current_asmdata.CurrAsmList,location,def_cgsize(resulttype.def),false);
+           location_force_reg(current_asmdata.CurrAsmList,location,def_cgsize(resultdef),false);
          current_procinfo.CurrTrueLabel:=oldTrueLabel;
          current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
@@ -400,7 +400,7 @@ interface
             location_copy(location,left.location);
           end
          else
-           if resulttype.def.size<left.resulttype.def.size then
+           if resultdef.size<left.resultdef.size then
              second_int_to_bool
            else
              second_bool_to_int;
@@ -470,14 +470,14 @@ interface
          end;
          current_asmdata.getjumplabel(l1);
          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,location.register,l1);
-         hd:=tobjectdef(left.resulttype.def);
+         hd:=tobjectdef(left.resultdef);
          while assigned(hd) do
            begin
-              if hd.implementedinterfaces.searchintf(resulttype.def)<>-1 then
+              if hd.implementedinterfaces.searchintf(resultdef)<>-1 then
                 begin
                    cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,
                      hd.implementedinterfaces.ioffsets(
-                       hd.implementedinterfaces.searchintf(resulttype.def)),location.register);
+                       hd.implementedinterfaces.searchintf(resultdef)),location.register);
                    break;
                 end;
               hd:=hd.childof;
@@ -509,17 +509,17 @@ interface
           or the other way round, move to memory first to prevent
           invalid LOC_FPUREGISTER locations }
         if (
-            (resulttype.def.deftype=floatdef) and
+            (resultdef.deftype=floatdef) and
             (location.loc=LOC_CONSTANT)
            ) or
            (
-            (left.resulttype.def.deftype=floatdef) xor
-            (resulttype.def.deftype=floatdef)
+            (left.resultdef.deftype=floatdef) xor
+            (resultdef.deftype=floatdef)
            ) then
           location_force_mem(current_asmdata.CurrAsmList,location);
 
         { but use the new size, but we don't know the size of all arrays }
-        newsize:=def_cgsize(resulttype.def);
+        newsize:=def_cgsize(resultdef);
         location.size:=newsize;
       end;
 
@@ -532,7 +532,7 @@ interface
 {$endif TESTOBJEXT2}
 
 
-    procedure tcgtypeconvnode.pass_2;
+    procedure tcgtypeconvnode.pass_generate_code;
       begin
         { the boolean routines can be called with LOC_JUMP and
           call secondpass themselves in the helper }
@@ -548,17 +548,17 @@ interface
 {$ifdef TESTOBJEXT2}
          { Check explicit conversions to objects pointers !! }
          if p^.explizit and
-            (p^.resulttype.def.deftype=pointerdef) and
-            (tpointerdef(p^.resulttype.def).definition.deftype=objectdef) and not
-            (tobjectdef(tpointerdef(p^.resulttype.def).definition).isclass) and
-            ((tobjectdef(tpointerdef(p^.resulttype.def).definition).options and oo_hasvmt)<>0) and
+            (p^.resultdef.deftype=pointerdef) and
+            (tpointerdef(p^.resultdef).definition.deftype=objectdef) and not
+            (tobjectdef(tpointerdef(p^.resultdef).definition).isclass) and
+            ((tobjectdef(tpointerdef(p^.resultdef).definition).options and oo_hasvmt)<>0) and
             (cs_check_range in aktlocalswitches) then
            checkobject;
 {$endif TESTOBJEXT2}
       end;
 
 
-    procedure tcgasnode.pass_2;
+    procedure tcgasnode.pass_generate_code;
       begin
         secondpass(call);
         location_copy(location,call.location);

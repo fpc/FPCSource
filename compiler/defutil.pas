@@ -52,9 +52,9 @@ interface
     {# Returns basetype of the specified integer range }
     function range_to_basetype(l,h:TConstExprInt):tbasetype;
 
-    procedure range_to_type(l,h:TConstExprInt;var tt:ttype);
+    procedure range_to_type(l,h:TConstExprInt;var def:tdef);
 
-    procedure int_to_type(v:TConstExprInt;var tt:ttype);
+    procedure int_to_type(v:TConstExprInt;var def:tdef);
 
     {# Returns true, if definition defines an integer type }
     function is_integer(def : tdef) : boolean;
@@ -245,13 +245,13 @@ implementation
     { returns true, if def is a currency type }
     function is_currency(def : tdef) : boolean;
       begin
-         case s64currencytype.def.deftype of
+         case s64currencytype.deftype of
            orddef :
              result:=(def.deftype=orddef) and
-                     (torddef(s64currencytype.def).typ=torddef(def).typ);
+                     (torddef(s64currencytype).typ=torddef(def).typ);
            floatdef :
              result:=(def.deftype=floatdef) and
-                     (tfloatdef(s64currencytype.def).typ=tfloatdef(def).typ);
+                     (tfloatdef(s64currencytype).typ=tfloatdef(def).typ);
            else
              internalerror(200304222);
          end;
@@ -309,29 +309,29 @@ implementation
       end;
 
 
-    procedure range_to_type(l,h:TConstExprInt;var tt:ttype);
+    procedure range_to_type(l,h:TConstExprInt;var def:tdef);
       begin
         { prefer signed over unsigned }
         if (l>=-128) and (h<=127) then
-         tt:=s8inttype
+         def:=s8inttype
         else if (l>=0) and (h<=255) then
-         tt:=u8inttype
+         def:=u8inttype
         else if (l>=-32768) and (h<=32767) then
-         tt:=s16inttype
+         def:=s16inttype
         else if (l>=0) and (h<=65535) then
-         tt:=u16inttype
+         def:=u16inttype
         else if (l>=low(longint)) and (h<=high(longint)) then
-         tt:=s32inttype
+         def:=s32inttype
         else if (l>=low(cardinal)) and (h<=high(cardinal)) then
-         tt:=u32inttype
+         def:=u32inttype
         else
-         tt:=s64inttype;
+         def:=s64inttype;
       end;
 
 
-    procedure int_to_type(v:TConstExprInt;var tt:ttype);
+    procedure int_to_type(v:TConstExprInt;var def:tdef);
       begin
-        range_to_type(v,v,tt);
+        range_to_type(v,v,def);
       end;
 
 
@@ -440,7 +440,7 @@ implementation
            enumdef :
              is_signed:=tenumdef(def).min < 0;
            arraydef :
-             is_signed:=is_signed(tarraydef(def).rangetype.def);
+             is_signed:=is_signed(tarraydef(def).rangedef);
            else
              is_signed:=false;
          end;
@@ -518,7 +518,7 @@ implementation
          { check for s32inttype is needed, because for u32bit the high
            range is also -1 ! (PFV) }
          result:=(p.deftype=arraydef) and
-                 (tarraydef(p).rangetype.def=s32inttype.def) and
+                 (tarraydef(p).rangedef=s32inttype) and
                  (tarraydef(p).lowrange=0) and
                  (tarraydef(p).highrange=-1) and
                  ((tarraydef(p).arrayoptions * [ado_IsVariant,ado_IsArrayOfConst,ado_IsConstructor,ado_IsDynamicArray])=[]);
@@ -608,7 +608,7 @@ implementation
     function is_chararray(p : tdef) : boolean;
       begin
         is_chararray:=(p.deftype=arraydef) and
-                      is_char(tarraydef(p).elementtype.def) and
+                      is_char(tarraydef(p).elementdef) and
                       not(is_special_array(p));
       end;
 
@@ -616,7 +616,7 @@ implementation
     function is_widechararray(p : tdef) : boolean;
       begin
         is_widechararray:=(p.deftype=arraydef) and
-                          is_widechar(tarraydef(p).elementtype.def) and
+                          is_widechar(tarraydef(p).elementdef) and
                           not(is_special_array(p));
       end;
 
@@ -625,32 +625,32 @@ implementation
     function is_open_chararray(p : tdef) : boolean;
       begin
         is_open_chararray:= is_open_array(p) and
-                            is_char(tarraydef(p).elementtype.def);
+                            is_char(tarraydef(p).elementdef);
       end;
 
     { true if p is a open wide char array def }
     function is_open_widechararray(p : tdef) : boolean;
       begin
         is_open_widechararray:= is_open_array(p) and
-                                is_widechar(tarraydef(p).elementtype.def);
+                                is_widechar(tarraydef(p).elementdef);
       end;
 
     { true if p is a pchar def }
     function is_pchar(p : tdef) : boolean;
       begin
         is_pchar:=(p.deftype=pointerdef) and
-                  (is_char(tpointerdef(p).pointertype.def) or
-                   (is_zero_based_array(tpointerdef(p).pointertype.def) and
-                    is_chararray(tpointerdef(p).pointertype.def)));
+                  (is_char(tpointerdef(p).pointeddef) or
+                   (is_zero_based_array(tpointerdef(p).pointeddef) and
+                    is_chararray(tpointerdef(p).pointeddef)));
       end;
 
     { true if p is a pchar def }
     function is_pwidechar(p : tdef) : boolean;
       begin
         is_pwidechar:=(p.deftype=pointerdef) and
-                      (is_widechar(tpointerdef(p).pointertype.def) or
-                       (is_zero_based_array(tpointerdef(p).pointertype.def) and
-                        is_widechararray(tpointerdef(p).pointertype.def)));
+                      (is_widechar(tpointerdef(p).pointeddef) or
+                       (is_zero_based_array(tpointerdef(p).pointeddef) and
+                        is_widechararray(tpointerdef(p).pointeddef)));
       end;
 
 
@@ -658,8 +658,8 @@ implementation
     function is_voidpointer(p : tdef) : boolean;
       begin
         is_voidpointer:=(p.deftype=pointerdef) and
-                        (tpointerdef(p).pointertype.def.deftype=orddef) and
-                        (torddef(tpointerdef(p).pointertype.def).typ=uvoid);
+                        (tpointerdef(p).pointeddef.deftype=orddef) and
+                        (torddef(tpointerdef(p).pointeddef).typ=uvoid);
       end;
 
 
@@ -790,13 +790,13 @@ implementation
          mmx_type:=mmxno;
          if is_mmx_able_array(p) then
            begin
-              if tarraydef(p).elementtype.def.deftype=floatdef then
-                case tfloatdef(tarraydef(p).elementtype.def).typ of
+              if tarraydef(p).elementdef.deftype=floatdef then
+                case tfloatdef(tarraydef(p).elementdef).typ of
                   s32real:
                     mmx_type:=mmxsingle;
                 end
               else
-                case torddef(tarraydef(p).elementtype.def).typ of
+                case torddef(tarraydef(p).elementdef).typ of
                    u8bit:
                      mmx_type:=mmxu8bit;
                    s8bit:
@@ -818,7 +818,7 @@ implementation
       begin
         result:=(p.deftype=arraydef) and
                 not(is_special_array(p)) and
-                (tarraydef(p).elementtype.def.deftype=floatdef) and (tfloatdef(tarraydef(p).elementtype.def).typ in [s32real,s64real]);
+                (tarraydef(p).elementdef.deftype=floatdef) and (tfloatdef(tarraydef(p).elementdef).typ in [s32real,s64real]);
       end;
 
 
@@ -828,20 +828,20 @@ implementation
 {$ifdef x86}
         result:= is_vector(p) and
                  (
-                  (tarraydef(p).elementtype.def.deftype=floatdef) and
+                  (tarraydef(p).elementdef.deftype=floatdef) and
                   (
                    (tarraydef(p).lowrange=0) and
                    (tarraydef(p).highrange=3) and
-                   (tfloatdef(tarraydef(p).elementtype.def).typ=s32real)
+                   (tfloatdef(tarraydef(p).elementdef).typ=s32real)
                   )
                  ) or
 
                  (
-                  (tarraydef(p).elementtype.def.deftype=floatdef) and
+                  (tarraydef(p).elementdef.deftype=floatdef) and
                   (
                    (tarraydef(p).lowrange=0) and
                    (tarraydef(p).highrange=1) and
-                   (tfloatdef(tarraydef(p).elementtype.def).typ=s64real)
+                   (tfloatdef(tarraydef(p).elementdef).typ=s64real)
                   )
                  );
 {$else x86}
@@ -859,29 +859,29 @@ implementation
                 not(is_special_array(p)) and
                 (
                  (
-                  (tarraydef(p).elementtype.def.deftype=orddef) and
+                  (tarraydef(p).elementdef.deftype=orddef) and
                   (
                    (
                     (tarraydef(p).lowrange=0) and
                     (tarraydef(p).highrange=1) and
-                    (torddef(tarraydef(p).elementtype.def).typ in [u32bit,s32bit])
+                    (torddef(tarraydef(p).elementdef).typ in [u32bit,s32bit])
                    )
                    or
                    (
                     (tarraydef(p).lowrange=0) and
                     (tarraydef(p).highrange=3) and
-                    (torddef(tarraydef(p).elementtype.def).typ in [u16bit,s16bit])
+                    (torddef(tarraydef(p).elementdef).typ in [u16bit,s16bit])
                    )
                   )
                  )
                  or
                 (
                  (
-                  (tarraydef(p).elementtype.def.deftype=floatdef) and
+                  (tarraydef(p).elementdef.deftype=floatdef) and
                   (
                    (tarraydef(p).lowrange=0) and
                    (tarraydef(p).highrange=1) and
-                   (tfloatdef(tarraydef(p).elementtype.def).typ=s32real)
+                   (tfloatdef(tarraydef(p).elementdef).typ=s32real)
                   )
                  )
                 )
@@ -892,34 +892,34 @@ implementation
               is_mmx_able_array:=(p.deftype=arraydef) and
                 (
                  (
-                  (tarraydef(p).elementtype.def.deftype=orddef) and
+                  (tarraydef(p).elementdef.deftype=orddef) and
                   (
                    (
                     (tarraydef(p).lowrange=0) and
                     (tarraydef(p).highrange=1) and
-                    (torddef(tarraydef(p).elementtype.def).typ in [u32bit,s32bit])
+                    (torddef(tarraydef(p).elementdef).typ in [u32bit,s32bit])
                    )
                    or
                    (
                     (tarraydef(p).lowrange=0) and
                     (tarraydef(p).highrange=3) and
-                    (torddef(tarraydef(p).elementtype.def).typ in [u16bit,s16bit])
+                    (torddef(tarraydef(p).elementdef).typ in [u16bit,s16bit])
                    )
                    or
                    (
                     (tarraydef(p).lowrange=0) and
                     (tarraydef(p).highrange=7) and
-                    (torddef(tarraydef(p).elementtype.def).typ in [u8bit,s8bit])
+                    (torddef(tarraydef(p).elementdef).typ in [u8bit,s8bit])
                    )
                   )
                  )
                  or
                  (
-                  (tarraydef(p).elementtype.def.deftype=floatdef) and
+                  (tarraydef(p).elementdef.deftype=floatdef) and
                   (
                    (tarraydef(p).lowrange=0) and
                    (tarraydef(p).highrange=1) and
-                   (tfloatdef(tarraydef(p).elementtype.def).typ=s32real)
+                   (tfloatdef(tarraydef(p).elementdef).typ=s32real)
                   )
                  )
                 );

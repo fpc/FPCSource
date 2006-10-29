@@ -82,13 +82,13 @@ interface
          procedure deref;virtual;abstract;
          procedure derefimpl;virtual;abstract;
          function  typename:string;
-         function  gettypename:string;virtual;
+         function  GetTypeName:string;virtual;
          function  mangledparaname:string;
          function  getmangledparaname:string;virtual;
          function  size:aint;virtual;abstract;
          function  packedbitsize:aint;virtual;
          function  alignment:shortint;virtual;abstract;
-         function  getvartype:longint;virtual;abstract;
+         function  getvardef:longint;virtual;abstract;
          function  getparentdef:tdef;virtual;
          function  getsymtable(t:tgetsymtable):tsymtable;virtual;
          function  is_publishable:boolean;virtual;abstract;
@@ -119,7 +119,7 @@ interface
          function  mangledname:string; virtual;
          procedure buildderef;virtual;
          procedure deref;virtual;
-         function  gettypedef:tdef;virtual;
+         function  getderefdef:tdef;virtual;
          procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
          { currobjdef is the object def to assume, this is necessary for protected and
@@ -144,19 +144,6 @@ interface
      end;
 
 {************************************************
-                   TType
-************************************************}
-
-      ttype = object
-        def : tdef;
-        deref : tderef;
-        procedure reset;
-        procedure setdef(p:tdef);
-        procedure resolve;
-        procedure buildderef;
-      end;
-
-{************************************************
                    tpropaccesslist
 ************************************************}
 
@@ -166,8 +153,8 @@ interface
         next   : ppropaccesslistitem;
         case byte of
           0 : (sym : tsym; symderef : tderef);
-          1 : (value  : TConstExprInt; valuett: ttype);
-          2 : (tt : ttype);
+          1 : (value  : TConstExprInt; valuedef: tdef; valuedefderef:tderef);
+          2 : (def: tdef; defderef:tderef);
       end;
 
       tpropaccesslist = class
@@ -179,9 +166,11 @@ interface
         destructor  destroy;override;
         function  empty:boolean;
         procedure addsym(slt:tsltype;p:tsym);
-        procedure addsymderef(slt:tsltype;const d:tderef);
-        procedure addconst(slt:tsltype;v:TConstExprInt;const tt:ttype);
-        procedure addtype(slt:tsltype;const tt:ttype);
+        procedure addconst(slt:tsltype;v:TConstExprInt;d:tdef);
+        procedure addtype(slt:tsltype;d:tdef);
+        procedure addsymderef(slt:tsltype;d:tderef);
+        procedure addconstderef(slt:tsltype;v:TConstExprInt;d:tderef);
+        procedure addtypederef(slt:tsltype;d:tderef);
         procedure clear;
         procedure resolve;
         procedure buildderef;
@@ -199,7 +188,6 @@ interface
          procedure getposinfo(var p:tfileposinfo);
          procedure getderef(var d:tderef);
          function  getpropaccesslist:tpropaccesslist;
-         procedure gettype(var t:ttype);
          function  getasmsymbol:tasmsymbol;
          procedure putguid(const g: tguid);
          procedure putexprint(v:tconstexprint);
@@ -207,7 +195,6 @@ interface
          procedure putposinfo(const p:tfileposinfo);
          procedure putderef(const d:tderef);
          procedure putpropaccesslist(p:tpropaccesslist);
-         procedure puttype(const t:ttype);
          procedure putasmsymbol(s:tasmsymbol);
        end;
 
@@ -258,13 +245,13 @@ implementation
            (typesym._realname^[1]<>'$') then
          typename:=typesym._realname^
         else
-         typename:=gettypename;
+         typename:=GetTypeName;
       end;
 
 
-    function tdef.gettypename : string;
+    function tdef.GetTypeName : string;
       begin
-         gettypename:='<unknown type>'
+         GetTypeName:='<unknown type>'
       end;
 
 
@@ -375,9 +362,9 @@ implementation
       end;
 
 
-    function tsym.gettypedef:tdef;
+    function tsym.getderefdef:tdef;
       begin
-        gettypedef:=nil;
+        getderefdef:=nil;
       end;
 
 
@@ -535,40 +522,6 @@ implementation
 
 
 {****************************************************************************
-                                   TType
-****************************************************************************}
-
-    procedure ttype.reset;
-      begin
-        def:=nil;
-      end;
-
-
-    procedure ttype.setdef(p:tdef);
-      begin
-        def:=p;
-      end;
-
-
-    procedure ttype.resolve;
-      var
-        p : tsymtableentry;
-      begin
-        p:=deref.resolve;
-        if assigned(p) then
-          setdef(tdef(p))
-        else
-          reset;
-      end;
-
-
-    procedure ttype.buildderef;
-      begin
-        deref.build(def);
-      end;
-
-
-{****************************************************************************
                                  tpropaccesslist
 ****************************************************************************}
 
@@ -612,8 +565,6 @@ implementation
       var
         hp : ppropaccesslistitem;
       begin
-        if not assigned(p) then
-         internalerror(200110203);
         new(hp);
         fillchar(hp^,sizeof(tpropaccesslistitem),0);
         hp^.sltype:=slt;
@@ -627,23 +578,7 @@ implementation
       end;
 
 
-    procedure tpropaccesslist.addsymderef(slt:tsltype;const d:tderef);
-      var
-        hp : ppropaccesslistitem;
-      begin
-        new(hp);
-        fillchar(hp^,sizeof(tpropaccesslistitem),0);
-        hp^.sltype:=slt;
-        hp^.symderef:=d;
-        if assigned(lastsym) then
-         lastsym^.next:=hp
-        else
-         firstsym:=hp;
-        lastsym:=hp;
-      end;
-
-
-    procedure tpropaccesslist.addconst(slt:tsltype;v:TConstExprInt;const tt:ttype);
+    procedure tpropaccesslist.addconst(slt:tsltype;v:TConstExprInt;d:tdef);
       var
         hp : ppropaccesslistitem;
       begin
@@ -651,7 +586,8 @@ implementation
         fillchar(hp^,sizeof(tpropaccesslistitem),0);
         hp^.sltype:=slt;
         hp^.value:=v;
-        hp^.valuett:=tt;
+        hp^.valuedef:=d;
+        hp^.valuedefderef.reset;
         if assigned(lastsym) then
          lastsym^.next:=hp
         else
@@ -660,19 +596,41 @@ implementation
       end;
 
 
-    procedure tpropaccesslist.addtype(slt:tsltype;const tt:ttype);
+    procedure tpropaccesslist.addtype(slt:tsltype;d:tdef);
       var
         hp : ppropaccesslistitem;
       begin
         new(hp);
         fillchar(hp^,sizeof(tpropaccesslistitem),0);
         hp^.sltype:=slt;
-        hp^.tt:=tt;
+        hp^.def:=d;
+        hp^.defderef.reset;
         if assigned(lastsym) then
          lastsym^.next:=hp
         else
          firstsym:=hp;
         lastsym:=hp;
+      end;
+
+
+    procedure tpropaccesslist.addsymderef(slt:tsltype;d:tderef);
+      begin
+        addsym(slt,nil);
+        lastsym^.symderef:=d;
+      end;
+
+
+    procedure tpropaccesslist.addconstderef(slt:tsltype;v:TConstExprInt;d:tderef);
+      begin
+        addconst(slt,v,nil);
+        lastsym^.valuedefderef:=d;
+      end;
+      
+      
+    procedure tpropaccesslist.addtypederef(slt:tsltype;d:tderef);
+      begin
+        addtype(slt,nil);
+        lastsym^.defderef:=d;
       end;
 
 
@@ -691,9 +649,9 @@ implementation
                hp^.sym:=tsym(hp^.symderef.resolve);
              sl_absolutetype,
              sl_typeconv :
-               hp^.tt.resolve;
+               hp^.def:=tdef(hp^.defderef.resolve);
              sl_vec:
-               hp^.valuett.resolve;
+               hp^.valuedef:=tdef(hp^.valuedefderef.resolve);
              else
               internalerror(200110205);
            end;
@@ -717,9 +675,9 @@ implementation
                hp^.symderef.build(hp^.sym);
              sl_absolutetype,
              sl_typeconv :
-               hp^.tt.buildderef;
+               hp^.defderef.build(hp^.def);
              sl_vec:
-               hp^.valuett.buildderef;
+               hp^.valuedefderef.build(hp^.valuedef);
              else
               internalerror(200110205);
            end;
@@ -932,8 +890,7 @@ implementation
 
     function tcompilerppufile.getpropaccesslist:tpropaccesslist;
       var
-        symderef : tderef;
-        tt  : ttype;
+        hderef : tderef;
         slt : tsltype;
         idx : longint;
         p   : tpropaccesslist;
@@ -949,33 +906,26 @@ implementation
             sl_load,
             sl_subscript :
               begin
-                getderef(symderef);
-                p.addsymderef(slt,symderef);
+                getderef(hderef);
+                p.addsymderef(slt,hderef);
               end;
             sl_absolutetype,
             sl_typeconv :
               begin
-                gettype(tt);
-                p.addtype(slt,tt);
+                getderef(hderef);
+                p.addtypederef(slt,hderef);
               end;
             sl_vec :
               begin
                 idx:=getlongint;
-                gettype(tt);
-                p.addconst(slt,idx,tt);
+                getderef(hderef);
+                p.addconstderef(slt,idx,hderef);
               end;
             else
               internalerror(200110204);
           end;
         until false;
         getpropaccesslist:=tpropaccesslist(p);
-      end;
-
-
-    procedure tcompilerppufile.gettype(var t:ttype);
-      begin
-        getderef(t.deref);
-        t.def:=nil;
       end;
 
 
@@ -1120,11 +1070,11 @@ implementation
                putderef(hp^.symderef);
              sl_absolutetype,
              sl_typeconv :
-               puttype(hp^.tt);
+               putderef(hp^.defderef);
              sl_vec :
                begin
                  putlongint(hp^.value);
-                 puttype(hp^.valuett);
+                 putderef(hp^.valuedefderef);
                end;
              else
               internalerror(200110205);
@@ -1132,12 +1082,6 @@ implementation
            hp:=hp^.next;
          end;
         putbyte(byte(sl_none));
-      end;
-
-
-    procedure tcompilerppufile.puttype(const t:ttype);
-      begin
-        putderef(t.deref);
       end;
 
 

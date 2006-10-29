@@ -32,27 +32,27 @@ interface
 
     type
        tcgloadvmtaddrnode = class(tloadvmtaddrnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgloadparentfpnode = class(tloadparentfpnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgaddrnode = class(taddrnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgderefnode = class(tderefnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgsubscriptnode = class(tsubscriptnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgwithnode = class(twithnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgvecnode = class(tvecnode)
@@ -71,7 +71,7 @@ interface
          procedure second_wideansistring;virtual;
          procedure second_dynamicarray;virtual;
        public
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
        end;
 
 
@@ -93,7 +93,7 @@ implementation
                               TCGLOADVMTADDRNODE
 *****************************************************************************}
 
-    procedure tcgloadvmtaddrnode.pass_2;
+    procedure tcgloadvmtaddrnode.pass_generate_code;
       var
        href : treference;
 
@@ -102,7 +102,7 @@ implementation
          if (left.nodetype=typen) then
            begin
              reference_reset_symbol(href,
-               current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),0);
+               current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname),0);
              location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
              cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
            end
@@ -110,7 +110,7 @@ implementation
            begin
              { left contains self, load vmt from self }
              secondpass(left);
-             gen_load_vmt_register(current_asmdata.CurrAsmList,tobjectdef(left.resulttype.def),left.location,location.register);
+             gen_load_vmt_register(current_asmdata.CurrAsmList,tobjectdef(left.resultdef),left.location,location.register);
            end;
       end;
 
@@ -119,7 +119,7 @@ implementation
                         TCGLOADPARENTFPNODE
 *****************************************************************************}
 
-    procedure tcgloadparentfpnode.pass_2;
+    procedure tcgloadparentfpnode.pass_generate_code;
       var
         currpi : tprocinfo;
         hsym   : tparavarsym;
@@ -164,7 +164,7 @@ implementation
                              TCGADDRNODE
 *****************************************************************************}
 
-    procedure tcgaddrnode.pass_2;
+    procedure tcgaddrnode.pass_generate_code;
       var
         tmpref: treference;
       begin
@@ -180,12 +180,12 @@ implementation
                            TCGDEREFNODE
 *****************************************************************************}
 
-    procedure tcgderefnode.pass_2;
+    procedure tcgderefnode.pass_generate_code;
       var
         paraloc1 : tcgpara;
       begin
          secondpass(left);
-         location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
+         location_reset(location,LOC_REFERENCE,def_cgsize(resultdef));
          case left.location.loc of
             LOC_CREGISTER,
             LOC_REGISTER:
@@ -218,7 +218,7 @@ implementation
          if (cs_use_heaptrc in aktglobalswitches) and
             (cs_checkpointer in aktlocalswitches) and
             not(cs_compilesystem in aktmoduleswitches) and
-            not(tpointerdef(left.resulttype.def).is_far) and
+            not(tpointerdef(left.resultdef).is_far) and
             not(nf_no_checkpointer in flags) then
           begin
             paraloc1.init;
@@ -238,7 +238,7 @@ implementation
                           TCGSUBSCRIPTNODE
 *****************************************************************************}
 
-    procedure tcgsubscriptnode.pass_2;
+    procedure tcgsubscriptnode.pass_generate_code;
       var
         paraloc1 : tcgpara;
         sref: tsubsetreference;
@@ -248,9 +248,9 @@ implementation
            exit;
          paraloc1.init;
          { classes and interfaces must be dereferenced implicit }
-         if is_class_or_interface(left.resulttype.def) then
+         if is_class_or_interface(left.resultdef) then
            begin
-             location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
+             location_reset(location,LOC_REFERENCE,def_cgsize(resultdef));
              case left.location.loc of
                 LOC_CREGISTER,
                 LOC_REGISTER:
@@ -287,10 +287,10 @@ implementation
                 cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
               end;
            end
-         else if is_interfacecom(left.resulttype.def) then
+         else if is_interfacecom(left.resultdef) then
            begin
-             location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
-             tg.GetTempTyped(current_asmdata.CurrAsmList,left.resulttype.def,tt_normal,location.reference);
+             location_reset(location,LOC_REFERENCE,def_cgsize(resultdef));
+             tg.GetTempTyped(current_asmdata.CurrAsmList,left.resultdef,tt_normal,location.reference);
              cg.a_load_loc_ref(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference);
              { implicit deferencing also for interfaces }
              if (cs_use_heaptrc in aktglobalswitches) and
@@ -318,7 +318,7 @@ implementation
                LOC_REGISTER,
                LOC_CREGISTER:
                  begin
-                   if (left.resulttype.def.size > sizeof(aint)) then
+                   if (left.resultdef.size > sizeof(aint)) then
                      location_force_mem(current_asmdata.CurrAsmList,location)
                    else
                      begin
@@ -326,10 +326,10 @@ implementation
                          location.loc := LOC_SUBSETREG
                        else
                          location.loc := LOC_CSUBSETREG;
-                       location.size:=def_cgsize(resulttype.def);
+                       location.size:=def_cgsize(resultdef);
                        location.sreg.subsetreg := left.location.register;
                        location.sreg.subsetregsize := left.location.size;
-                       if not is_packed_record_or_object(left.resulttype.def) then
+                       if not is_packed_record_or_object(left.resultdef) then
                          begin
                            if (target_info.endian = ENDIAN_BIG) then
                              location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize] - tcgsize2size[location.size] - vs.fieldoffset) * 8
@@ -339,7 +339,7 @@ implementation
                          end
                        else
                          begin
-                           location.sreg.bitlen := resulttype.def.packedbitsize;
+                           location.sreg.bitlen := resultdef.packedbitsize;
                            if (target_info.endian = ENDIAN_BIG) then
                              location.sreg.startbit := (tcgsize2size[location.sreg.subsetregsize]*8 - location.sreg.bitlen) - vs.fieldoffset
                            else
@@ -350,9 +350,9 @@ implementation
                LOC_SUBSETREG,
                LOC_CSUBSETREG:
                  begin
-                   location.size:=def_cgsize(resulttype.def);
+                   location.size:=def_cgsize(resultdef);
                    if (target_info.endian = ENDIAN_BIG) then
-                     inc(location.sreg.startbit, (left.resulttype.def.size - tcgsize2size[location.size] - vs.fieldoffset) * 8)
+                     inc(location.sreg.startbit, (left.resultdef.size - tcgsize2size[location.size] - vs.fieldoffset) * 8)
                    else
                      inc(location.sreg.startbit, vs.fieldoffset * 8);
                    location.sreg.bitlen := tcgsize2size[location.size] * 8;
@@ -364,7 +364,7 @@ implementation
 
          if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            begin
-             if not is_packed_record_or_object(left.resulttype.def) then
+             if not is_packed_record_or_object(left.resultdef) then
                begin
                  inc(location.reference.offset,vs.fieldoffset);
 {$ifdef SUPPORT_UNALIGNED}
@@ -376,13 +376,13 @@ implementation
     
                end
              else if (vs.fieldoffset mod 8 = 0) and
-                     (resulttype.def.packedbitsize mod 8 = 0) and
+                     (resultdef.packedbitsize mod 8 = 0) and
                      { is different in case of e.g. packenum 2 and an enum }
                      { which fits in 8 bits                                }
-                     (resulttype.def.size*8 = resulttype.def.packedbitsize) then
+                     (resultdef.size*8 = resultdef.packedbitsize) then
                begin
                  inc(location.reference.offset,vs.fieldoffset div 8);
-                 if (resulttype.def.size*8 <> resulttype.def.packedbitsize) then
+                 if (resultdef.size*8 <> resultdef.packedbitsize) then
                    internalerror(2006082013);
                  { packed records always have an alignment of 1 }
                  location.reference.alignment:=1;
@@ -394,7 +394,7 @@ implementation
                  sref.bitindexreg:=NR_NO;
                  inc(sref.ref.offset,vs.fieldoffset div 8);
                  sref.startbit:=vs.fieldoffset mod 8;
-                 sref.bitlen:=resulttype.def.packedbitsize;
+                 sref.bitlen:=resultdef.packedbitsize;
                  if (left.location.loc=LOC_REFERENCE) then
                    location.loc:=LOC_SUBSETREF
                  else
@@ -402,7 +402,7 @@ implementation
                  location.sref:=sref;
                end;
              { also update the size of the location }
-             location.size:=def_cgsize(resulttype.def);
+             location.size:=def_cgsize(resultdef);
            end;
          paraloc1.done;
       end;
@@ -412,7 +412,7 @@ implementation
                             TCGWITHNODE
 *****************************************************************************}
 
-    procedure tcgwithnode.pass_2;
+    procedure tcgwithnode.pass_generate_code;
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
@@ -431,13 +431,13 @@ implementation
           get_mul_size:=1
          else
           begin
-            if (left.resulttype.def.deftype=arraydef) then
-             if not is_packed_array(left.resulttype.def) then
-              get_mul_size:=tarraydef(left.resulttype.def).elesize
+            if (left.resultdef.deftype=arraydef) then
+             if not is_packed_array(left.resultdef) then
+              get_mul_size:=tarraydef(left.resultdef).elesize
              else
-              get_mul_size:=tarraydef(left.resulttype.def).elepackedbitsize
+              get_mul_size:=tarraydef(left.resultdef).elepackedbitsize
             else
-             get_mul_size:=resulttype.def.size;
+             get_mul_size:=resultdef.size;
           end
        end;
 
@@ -488,10 +488,10 @@ implementation
            internalerror(200608051);
          sref.ref := location.reference;
          offsetreg := cg.getaddressregister(current_asmdata.CurrAsmList);
-         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,tarraydef(left.resulttype.def).lowrange,reg);
+         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,tarraydef(left.resultdef).lowrange,reg);
          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_INT,l,reg);
          { keep alignment for index }
-         sref.ref.alignment := left.resulttype.def.alignment;
+         sref.ref.alignment := left.resultdef.alignment;
          if not ispowerof2(sref.ref.alignment,temp) then
            internalerror(2006081201);
          alignpower:=temp;
@@ -509,7 +509,7 @@ implementation
          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,(1 shl (3+alignpower))-1,reg);
          sref.bitindexreg := reg;
          sref.startbit := 0;
-         sref.bitlen := resulttype.def.packedbitsize;
+         sref.bitlen := resultdef.packedbitsize;
          if (left.location.loc = LOC_REFERENCE) then
            location.loc := LOC_SUBSETREF
          else
@@ -537,8 +537,8 @@ implementation
        begin
          paraloc1.init;
          paraloc2.init;
-         if is_open_array(left.resulttype.def) or
-            is_array_of_const(left.resulttype.def) then
+         if is_open_array(left.resultdef) or
+            is_array_of_const(left.resultdef) then
           begin
             { cdecl functions don't have high() so we can not check the range }
             if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
@@ -570,7 +570,7 @@ implementation
              end;
           end
          else
-          if is_dynamic_array(left.resulttype.def) then
+          if is_dynamic_array(left.resultdef) then
             begin
                paramanager.getintparaloc(pocall_default,1,paraloc1);
                paramanager.getintparaloc(pocall_default,2,paraloc2);
@@ -585,13 +585,13 @@ implementation
                cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
             end
          else
-           cg.g_rangecheck(current_asmdata.CurrAsmList,right.location,right.resulttype.def,left.resulttype.def);
+           cg.g_rangecheck(current_asmdata.CurrAsmList,right.location,right.resultdef,left.resultdef);
          paraloc1.done;
          paraloc2.done;
        end;
 
 
-    procedure tcgvecnode.pass_2;
+    procedure tcgvecnode.pass_generate_code;
 
       var
          offsetdec,
@@ -612,12 +612,12 @@ implementation
          paraloc1.init;
          paraloc2.init;
          mulsize:=get_mul_size;
-         if not is_packed_array(left.resulttype.def) then
+         if not is_packed_array(left.resultdef) then
            bytemulsize:=mulsize
          else
            bytemulsize:=mulsize div 8;
 
-         newsize:=def_cgsize(resulttype.def);
+         newsize:=def_cgsize(resultdef);
          secondpass(left);
          if left.location.loc=LOC_CREFERENCE then
            location_reset(location,LOC_CREFERENCE,newsize)
@@ -625,8 +625,8 @@ implementation
            location_reset(location,LOC_REFERENCE,newsize);
 
          { an ansistring needs to be dereferenced }
-         if is_ansistring(left.resulttype.def) or
-            is_widestring(left.resulttype.def) then
+         if is_ansistring(left.resultdef) or
+            is_widestring(left.resultdef) then
            begin
               if nf_callunique in flags then
                 internalerror(200304236);
@@ -655,18 +655,18 @@ implementation
                    cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,location.reference.base,paraloc1);
                    paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                    cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                   cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
+                   cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_CHECKZERO');
                    cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                 end;
 
               { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
-              if is_ansistring(left.resulttype.def) then
+              if is_ansistring(left.resultdef) then
                 offsetdec:=1
               else
                 offsetdec:=2;
               dec(location.reference.offset,offsetdec);
            end
-         else if is_dynamic_array(left.resulttype.def) then
+         else if is_dynamic_array(left.resultdef) then
            begin
               case left.location.loc of
                 LOC_REGISTER,
@@ -691,27 +691,27 @@ implementation
            internalerror(200411013);
 
          { offset can only differ from 0 if arraydef }
-         if (left.resulttype.def.deftype=arraydef) and
-            not(is_dynamic_array(left.resulttype.def)) and
-            (not(is_packed_array(left.resulttype.def)) or
+         if (left.resultdef.deftype=arraydef) and
+            not(is_dynamic_array(left.resultdef)) and
+            (not(is_packed_array(left.resultdef)) or
              ((mulsize mod 8 = 0) and
               ispowerof2(mulsize div 8,temp))) then
-           dec(location.reference.offset,bytemulsize*tarraydef(left.resulttype.def).lowrange);
+           dec(location.reference.offset,bytemulsize*tarraydef(left.resultdef).lowrange);
 
          if right.nodetype=ordconstn then
            begin
               { offset can only differ from 0 if arraydef }
-              case left.resulttype.def.deftype of
+              case left.resultdef.deftype of
                 arraydef :
                   begin
-                     if not(is_open_array(left.resulttype.def)) and
-                        not(is_array_of_const(left.resulttype.def)) and
-                        not(is_dynamic_array(left.resulttype.def)) then
+                     if not(is_open_array(left.resultdef)) and
+                        not(is_array_of_const(left.resultdef)) and
+                        not(is_dynamic_array(left.resultdef)) then
                        begin
-                          if (tordconstnode(right).value>tarraydef(left.resulttype.def).highrange) or
-                             (tordconstnode(right).value<tarraydef(left.resulttype.def).lowrange) then
+                          if (tordconstnode(right).value>tarraydef(left.resultdef).highrange) or
+                             (tordconstnode(right).value<tarraydef(left.resultdef).lowrange) then
                             begin
-                              { this should be caught in the resulttypepass! (JM) }
+                              { this should be caught in the typecheckpass! (JM) }
                               if (cs_check_range in aktlocalswitches) then
                                 CGMessage(parser_e_range_check_error)
                               else
@@ -731,7 +731,7 @@ implementation
                   begin
                     if (cs_check_range in aktlocalswitches) then
                      begin
-                       case tstringdef(left.resulttype.def).string_typ of
+                       case tstringdef(left.resultdef).string_typ of
                          { it's the same for ansi- and wide strings }
                          st_widestring,
                          st_ansistring:
@@ -747,7 +747,7 @@ implementation
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
                               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
+                              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_RANGECHECK');
                               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                            end;
 
@@ -765,7 +765,7 @@ implementation
                      end;
                    end;
               end;
-              if not(is_packed_array(left.resulttype.def)) or
+              if not(is_packed_array(left.resultdef)) or
                  ((mulsize mod 8 = 0) and
                   ispowerof2(mulsize div 8,temp)) then
                 begin
@@ -775,21 +775,21 @@ implementation
                   { size for bitpacked arrays (e.g. a bitpacked array of      }
                   { enums who are size 2 but fit in one byte -> in the array  }
                   { they will be one byte and have to be stored like that)    }
-                  if is_packed_array(left.resulttype.def) and
+                  if is_packed_array(left.resultdef) and
                      (tcgsize2size[newsize] <> bytemulsize) then
                     newsize:=int_cgsize(bytemulsize);
                 end
               else
                 begin
                   subsetref.ref := location.reference;
-                  subsetref.ref.alignment := left.resulttype.def.alignment;
+                  subsetref.ref.alignment := left.resultdef.alignment;
                   if not ispowerof2(subsetref.ref.alignment,temp) then
                     internalerror(2006081212);
                   alignpow:=temp;
-                  inc(subsetref.ref.offset,((mulsize * (tordconstnode(right).value-tarraydef(left.resulttype.def).lowrange)) shr (3+alignpow)) shl alignpow);
+                  inc(subsetref.ref.offset,((mulsize * (tordconstnode(right).value-tarraydef(left.resultdef).lowrange)) shr (3+alignpow)) shl alignpow);
                   subsetref.bitindexreg := NR_NO;
-                  subsetref.startbit := (mulsize * (tordconstnode(right).value-tarraydef(left.resulttype.def).lowrange)) and ((1 shl (3+alignpow))-1);
-                  subsetref.bitlen := resulttype.def.packedbitsize;
+                  subsetref.startbit := (mulsize * (tordconstnode(right).value-tarraydef(left.resultdef).lowrange)) and ((1 shl (3+alignpow))-1);
+                  subsetref.bitlen := resultdef.packedbitsize;
                   if (left.location.loc = LOC_REFERENCE) then
                     location.loc := LOC_SUBSETREF
                   else
@@ -805,8 +805,8 @@ implementation
                  { need that fancy code (it would be }
                  { buggy)                            }
                  not(cs_check_range in aktlocalswitches) and
-                 (left.resulttype.def.deftype=arraydef) and
-                 not is_packed_array(left.resulttype.def) then
+                 (left.resultdef.deftype=arraydef) and
+                 not is_packed_array(left.resultdef) then
                 begin
                    extraoffset:=0;
                    if (right.nodetype=addn) then
@@ -873,7 +873,7 @@ implementation
               secondpass(right);
 
               { if mulsize = 1, we won't have to modify the index }
-              location_force_reg(current_asmdata.CurrAsmList,right.location,OS_ADDR,not is_packed_array(left.resulttype.def) and (mulsize = 1) );
+              location_force_reg(current_asmdata.CurrAsmList,right.location,OS_ADDR,not is_packed_array(left.resultdef) and (mulsize = 1) );
 
               if isjump then
                begin
@@ -886,20 +886,20 @@ implementation
               { only range check now, we can't range check loc_flags/loc_jump }
               if cs_check_range in aktlocalswitches then
                begin
-                 if left.resulttype.def.deftype=arraydef then
+                 if left.resultdef.deftype=arraydef then
                    rangecheck_array;
                end;
 
             { produce possible range check code: }
               if cs_check_range in aktlocalswitches then
                begin
-                 if left.resulttype.def.deftype=arraydef then
+                 if left.resultdef.deftype=arraydef then
                    begin
                      { done defore (PM) }
                    end
-                 else if (left.resulttype.def.deftype=stringdef) then
+                 else if (left.resultdef.deftype=stringdef) then
                    begin
-                      case tstringdef(left.resulttype.def).string_typ of
+                      case tstringdef(left.resultdef).string_typ of
                          { it's the same for ansi- and wide strings }
                          st_widestring,
                          st_ansistring:
@@ -916,7 +916,7 @@ implementation
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
                               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
+                              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_RANGECHECK');
                               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                            end;
                          st_shortstring:
@@ -933,7 +933,7 @@ implementation
 
               { insert the register and the multiplication factor in the
                 reference }
-              if not is_packed_array(left.resulttype.def) then
+              if not is_packed_array(left.resultdef) then
                 update_reference_reg_mul(right.location.register,mulsize)
               else
                 update_reference_reg_packed(right.location.register,mulsize);

@@ -172,7 +172,7 @@ implementation
             if (cs_asm_nodes in aktglobalswitches) then
               logsecond(p.nodetype,true);
 {$endif EXTDEBUG}
-            p.pass_2;
+            p.pass_generate_code;
 {$ifdef EXTDEBUG}
             if (cs_asm_nodes in aktglobalswitches) then
               logsecond(p.nodetype,false);

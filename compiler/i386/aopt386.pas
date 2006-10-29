@@ -74,7 +74,7 @@ Begin
         { Data flow analyzer }
          If (cs_opt_asmcse in aktoptimizerswitches) Then
            begin
-             if dfa.pass_2 then
+             if dfa.pass_generate_code then
               { common subexpression elimination }
                changed := CSE(asmL, blockStart, blockEnd, pass) or changed;
            end;

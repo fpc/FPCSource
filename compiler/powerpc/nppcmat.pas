@@ -31,21 +31,21 @@ interface
     type
       tppcmoddivnode = class(tmoddivnode)
          function pass_1: tnode;override;
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
       end;
 
       tppcshlshrnode = class(tshlshrnode)
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
          { everything will be handled in pass_2 }
          function first_shlshr64bitint: tnode; override;
       end;
 
       tppcunaryminusnode = class(tunaryminusnode)
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
       end;
 
       tppcnotnode = class(tnotnode)
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
       end;
 
 implementation
@@ -175,7 +175,7 @@ end;
       end;
 
 
-    procedure tppcmoddivnode.pass_2;
+    procedure tppcmoddivnode.pass_generate_code;
       const
                     { signed   overflow }
         divops: array[boolean, boolean] of tasmop =
@@ -209,7 +209,7 @@ end;
                 // note: only in the signed case possible..., may overflow
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(negops[cs_check_overflow in aktlocalswitches], resultreg, numerator));
              end else if (ispowerof2(tordconstnode(right).value, power)) then begin
-                if (is_signed(right.resulttype.def)) then begin
+                if (is_signed(right.resultdef)) then begin
                     { From "The PowerPC Compiler Writer's Guide", pg. 52ff          }
                     cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, power,
                         numerator, resultreg);
@@ -221,7 +221,7 @@ end;
                  { replace division by multiplication, both implementations }
                  { from "The PowerPC Compiler Writer's Guide" pg. 53ff      }
                  divreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
-                 if (is_signed(right.resulttype.def)) then begin
+                 if (is_signed(right.resultdef)) then begin
                      getmagic_signed32(tordconstnode(right).value, magic, shift);
                      // load magic value
                      cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, magic, divreg);
@@ -270,7 +270,7 @@ end;
                 // x mod +/-1 is always zero
                 cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 0, resultreg);
              end else if (ispowerof2(tordconstnode(right).value, power)) then begin
-                 if (is_signed(right.resulttype.def)) then begin
+                 if (is_signed(right.resultdef)) then begin
                      
                      tempreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
                      maskreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
@@ -302,7 +302,7 @@ end;
          location_copy(location,left.location);
 
          { put numerator in register }
-         size:=def_cgsize(left.resulttype.def);
+         size:=def_cgsize(left.resultdef);
          location_force_reg(current_asmdata.CurrAsmList,left.location,
            size,true);
          location_copy(location,left.location);
@@ -330,14 +330,14 @@ end;
          if (not done) then begin
              { load divider in a register if necessary }
              location_force_reg(current_asmdata.CurrAsmList,right.location,
-               def_cgsize(right.resulttype.def),true);
+               def_cgsize(right.resultdef),true);
              if (right.nodetype <> ordconstn) then
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_CMPWI,NR_CR1,
                  right.location.register,0));
              divider := right.location.register;
 
              { needs overflow checking, (-maxlongint-1) div (-1) overflows! }
-             op := divops[is_signed(right.resulttype.def),
+             op := divops[is_signed(right.resultdef),
                           cs_check_overflow in aktlocalswitches];
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,resultreg,numerator,
                divider));
@@ -364,8 +364,8 @@ end;
         { unsigned division/module can only overflow in case of division by zero }
         { (but checking this overflow flag is more convoluted than performing a  }
         {  simple comparison with 0)                                             }
-        if is_signed(right.resulttype.def) then
-          cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resulttype.def);
+        if is_signed(right.resultdef) then
+          cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
       end;
 
 
@@ -378,7 +378,7 @@ end;
         result := nil;
       end;
 
-    procedure tppcshlshrnode.pass_2;
+    procedure tppcshlshrnode.pass_generate_code;
 
       var
          resultreg, hregister1,hregister2,
@@ -391,10 +391,10 @@ end;
          secondpass(left);
          secondpass(right);
 
-         if is_64bitint(left.resulttype.def) then
+         if is_64bitint(left.resultdef) then
            begin
              location_force_reg(current_asmdata.CurrAsmList,left.location,
-               def_cgsize(left.resulttype.def),true);
+               def_cgsize(left.resultdef),true);
              location_copy(location,left.location);
              hreg64hi := location.register64.reghi;
              hreg64lo := location.register64.reglo;
@@ -512,7 +512,7 @@ end;
          else
            begin
              { load left operators in a register }
-             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),true);
+             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
              location_copy(location,left.location);
              resultreg := location.register;
              hregister1 := location.register;
@@ -533,7 +533,7 @@ end;
              else
                begin
                  { load shift count in a register if necessary }
-                 location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resulttype.def),true);
+                 location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resultdef),true);
                  hregister2 := right.location.register;
 
                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,location.size,hregister2,
@@ -547,7 +547,7 @@ end;
                           TPPCUNARYMINUSNODE
 *****************************************************************************}
 
-    procedure tppcunaryminusnode.pass_2;
+    procedure tppcunaryminusnode.pass_generate_code;
 
       var
         src1: tregister;
@@ -555,9 +555,9 @@ end;
 
       begin
          secondpass(left);
-         if is_64bitint(left.resulttype.def) then
+         if is_64bitint(left.resultdef) then
            begin
-             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),true);
+             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
              location_copy(location,left.location);
              if (location.loc = LOC_CREGISTER) then
                begin
@@ -594,12 +594,12 @@ end;
                   end;
                 LOC_REFERENCE,LOC_CREFERENCE:
                   begin
-                     if (left.resulttype.def.deftype=floatdef) then
+                     if (left.resultdef.deftype=floatdef) then
                        begin
-                          src1 := cg.getfpuregister(current_asmdata.CurrAsmList,def_cgsize(left.resulttype.def));
+                          src1 := cg.getfpuregister(current_asmdata.CurrAsmList,def_cgsize(left.resultdef));
                           location.register := src1;
                           cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                            def_cgsize(left.resulttype.def),
+                            def_cgsize(left.resultdef),
                             left.location.reference,src1);
                        end
                      else
@@ -612,7 +612,7 @@ end;
                   end;
               end;
               { choose appropriate operand }
-              if left.resulttype.def.deftype <> floatdef then
+              if left.resultdef.deftype <> floatdef then
                 begin
                   if not(cs_check_overflow in aktlocalswitches) then
                     op := A_NEG
@@ -634,7 +634,7 @@ end;
 { 32-bit before doing neg!!     }
 { So this is useless...     }
 { that's not true: -2^31 gives an overflow error if it is negated (FK) }
-        cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resulttype.def);
+        cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
       end;
 
 
@@ -642,13 +642,13 @@ end;
                                TPPCNOTNODE
 *****************************************************************************}
 
-    procedure tppcnotnode.pass_2;
+    procedure tppcnotnode.pass_generate_code;
 
       var
          hl : tasmlabel;
 
       begin
-         if is_boolean(resulttype.def) then
+         if is_boolean(resultdef) then
           begin
             { if the location is LOC_JUMP, we do the secondpass after the
               labels are allocated
@@ -679,7 +679,7 @@ end;
                   LOC_SUBSETREG, LOC_CSUBSETREG, 
                   LOC_SUBSETREF, LOC_CSUBSETREF:
                     begin
-                      location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),true);
+                      location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMPWI,left.location.register,0));
                       location_reset(location,LOC_FLAGS,OS_NO);
                       location.resflags.cr:=RS_CR0;
@@ -690,10 +690,10 @@ end;
                 end;
               end;
           end
-         else if is_64bitint(left.resulttype.def) then
+         else if is_64bitint(left.resultdef) then
            begin
              secondpass(left);
-             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),false);
+             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
              location_copy(location,left.location);
              { perform the NOT operation }
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_NOT,location.register64.reghi,
@@ -704,12 +704,12 @@ end;
          else
            begin
              secondpass(left);
-             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),true);
+             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
              location_copy(location,left.location);
              location.loc := LOC_REGISTER;
              location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
              { perform the NOT operation }
-             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,def_cgsize(resulttype.def),left.location.register,
+             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,def_cgsize(resultdef),left.location.register,
                location.register);
           end;
       end;

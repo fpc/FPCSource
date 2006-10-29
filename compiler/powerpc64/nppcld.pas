@@ -30,7 +30,7 @@ uses
 
 type
   tppcloadnode = class(tcgloadnode)
-    procedure pass_2; override;
+    procedure pass_generate_code override;
     procedure generate_picvaraccess; override;
   end;
 
@@ -46,9 +46,9 @@ uses
   procinfo,
   nld;
 
-procedure tppcloadnode.pass_2;
+procedure tppcloadnode.pass_generate_code;
 begin
-  inherited pass_2;
+  inherited pass_generate_code;
 end;
 
 procedure tppcloadnode.generate_picvaraccess;

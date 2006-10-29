@@ -710,7 +710,7 @@ const
                                end;
                              typesym :
                                begin
-                                 if not(ttypesym(sym).restype.def.deftype in [recorddef,objectdef]) then
+                                 if not(ttypesym(sym).typedef.deftype in [recorddef,objectdef]) then
                                       Message(asmr_e_wrong_sym_type);
                                end;
                              else

@@ -31,7 +31,7 @@ interface
     type
        tx86realconstnode = class(tcgrealconstnode)
           function pass_1 : tnode;override;
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
 implementation
@@ -50,7 +50,7 @@ implementation
     function tx86realconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         if is_number_float(value_real) and not(use_sse(resulttype.def)) and (value_real=1.0) or (value_real=0.0) then
+         if is_number_float(value_real) and not(use_sse(resultdef)) and (value_real=1.0) or (value_real=0.0) then
            begin
               expectloc:=LOC_FPUREGISTER;
               registersfpu:=1;
@@ -59,32 +59,32 @@ implementation
            expectloc:=LOC_CREFERENCE;
       end;
 
-    procedure tx86realconstnode.pass_2;
+    procedure tx86realconstnode.pass_generate_code;
 
       begin
          if is_number_float(value_real) then
            begin
-             if (value_real=1.0) and not(use_sse(resulttype.def)) then
+             if (value_real=1.0) and not(use_sse(resultdef)) then
                begin
                   emit_none(A_FLD1,S_NO);
-                  location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+                  location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
                   location.register:=NR_ST;
                   tcgx86(cg).inc_fpu_stack;
                end
-             else if (value_real=0.0) and not(use_sse(resulttype.def)) then
+             else if (value_real=0.0) and not(use_sse(resultdef)) then
                begin
                   emit_none(A_FLDZ,S_NO);
                   if (get_real_sign(value_real) < 0) then
                     emit_none(A_FCHS,S_NO);
-                  location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+                  location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
                   location.register:=NR_ST;
                   tcgx86(cg).inc_fpu_stack;
                end
             else
-              inherited pass_2;
+              inherited pass_generate_code;
            end
          else
-           inherited pass_2;
+           inherited pass_generate_code;
       end;
 
 

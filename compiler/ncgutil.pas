@@ -226,7 +226,7 @@ implementation
       begin
          { always calculate boolean AND and OR from left to right }
          if (p.nodetype in [orn,andn]) and
-            is_boolean(p.left.resulttype.def) then
+            is_boolean(p.left.resultdef) then
            begin
              if nf_swaped in p.flags then
                internalerror(234234);
@@ -275,7 +275,7 @@ implementation
            exit;
          storepos:=aktfilepos;
          aktfilepos:=p.fileinfo;
-         if is_boolean(p.resulttype.def) then
+         if is_boolean(p.resultdef) then
            begin
 {$ifdef OLDREGVARS}
               if loadregvars = lr_load_regvars then
@@ -290,7 +290,7 @@ implementation
                 end
               else
                 begin
-                   opsize:=def_cgsize(p.resulttype.def);
+                   opsize:=def_cgsize(p.resultdef);
                    case p.location.loc of
                      LOC_SUBSETREG,LOC_CSUBSETREG,
                      LOC_SUBSETREF,LOC_CSUBSETREF:
@@ -367,7 +367,7 @@ implementation
         if jmp_buf_size=-1 then
           begin
             srsym:=search_system_type('JMP_BUF');
-            jmp_buf_size:=srsym.restype.def.size;
+            jmp_buf_size:=srsym.typedef.size;
           end;
         tg.GetTemp(list,EXCEPT_BUF_SIZE,tt_persistent,t.envbuf);
         tg.GetTemp(list,jmp_buf_size,tt_persistent,t.jmpbuf);
@@ -862,11 +862,11 @@ implementation
         list:=TAsmList(arg);
         if (tsym(p).typ=paravarsym) and
            (tparavarsym(p).varspez=vs_value) and
-           (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
+           (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
          begin
            location_get_data_ref(list,tparavarsym(p).initialloc,href,true);
-           if is_open_array(tparavarsym(p).vartype.def) or
-              is_array_of_const(tparavarsym(p).vartype.def) then
+           if is_open_array(tparavarsym(p).vardef) or
+              is_array_of_const(tparavarsym(p).vardef) then
             begin
               { cdecl functions don't have a high pointer so it is not possible to generate
                 a local copy }
@@ -876,11 +876,11 @@ implementation
                   if not assigned(hsym) then
                     internalerror(200306061);
                   hreg:=cg.getaddressregister(list);
-                  if not is_packed_array(tparavarsym(p).vartype.def) then
-                    cg.g_copyvaluepara_openarray(list,href,hsym.initialloc,tarraydef(tparavarsym(p).vartype.def).elesize,hreg)
+                  if not is_packed_array(tparavarsym(p).vardef) then
+                    cg.g_copyvaluepara_openarray(list,href,hsym.initialloc,tarraydef(tparavarsym(p).vardef).elesize,hreg)
                   else
                     internalerror(2006080401);
-//                    cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vartype.def).elepackedbitsize,hreg);
+//                    cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vardef).elepackedbitsize,hreg);
                   cg.a_load_reg_loc(list,OS_ADDR,hreg,tparavarsym(p).initialloc);
                 end;
             end
@@ -890,21 +890,21 @@ implementation
               l:=tparavarsym(p).getsize;
               localcopyloc.loc:=LOC_REFERENCE;
               localcopyloc.size:=int_cgsize(l);
-              tg.GetLocal(list,l,tparavarsym(p).vartype.def,localcopyloc.reference);
+              tg.GetLocal(list,l,tparavarsym(p).vardef,localcopyloc.reference);
               { Copy data }
-              if is_shortstring(tparavarsym(p).vartype.def) then
+              if is_shortstring(tparavarsym(p).vardef) then
                 begin
                   { this code is only executed before the code for the body and the entry/exit code is generated
                     so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
                   }
                   include(current_procinfo.flags,pi_do_call);
-                  cg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vartype.def).len)
+                  cg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vardef).len)
                 end
               else
                 begin
                   { pass proper alignment info }
-                  localcopyloc.reference.alignment:=tparavarsym(p).vartype.def.alignment;
-                  cg.g_concatcopy(list,href,localcopyloc.reference,tparavarsym(p).vartype.def.size);
+                  localcopyloc.reference.alignment:=tparavarsym(p).vardef.alignment;
+                  cg.g_concatcopy(list,href,localcopyloc.reference,tparavarsym(p).vardef.size);
                 end;
               { update localloc of varsym }
               tg.Ungetlocal(list,tparavarsym(p).localloc.reference);
@@ -1042,8 +1042,8 @@ implementation
         if (tsym(p).typ in [globalvarsym,localvarsym]) and
            (tabstractvarsym(p).refs>0) and
            not(vo_is_external in tabstractvarsym(p).varoptions) and
-           not(is_class(tabstractvarsym(p).vartype.def)) and
-           tabstractvarsym(p).vartype.def.needs_inittable then
+           not(is_class(tabstractvarsym(p).vardef)) and
+           tabstractvarsym(p).vardef.needs_inittable then
          begin
            OldAsmList:=current_asmdata.CurrAsmList;
            current_asmdata.CurrAsmList:=TAsmList(arg);
@@ -1079,8 +1079,8 @@ implementation
            (tlocalvarsym(p).refs>0) and
            not(vo_is_external in tlocalvarsym(p).varoptions) and
            not(vo_is_funcret in tlocalvarsym(p).varoptions) and
-           not(is_class(tlocalvarsym(p).vartype.def)) and
-           tlocalvarsym(p).vartype.def.needs_inittable then
+           not(is_class(tlocalvarsym(p).vardef)) and
+           tlocalvarsym(p).vardef.needs_inittable then
           finalize_sym(TAsmList(arg),tsym(p));
       end;
 
@@ -1095,7 +1095,7 @@ implementation
           typedconstsym :
             begin
               if ttypedconstsym(p).is_writable and
-                 ttypedconstsym(p).typedconsttype.def.needs_inittable then
+                 ttypedconstsym(p).typedconstdef.needs_inittable then
                 finalize_sym(TAsmList(arg),tsym(p));
             end;
           procsym :
@@ -1126,14 +1126,14 @@ implementation
               if (tglobalvarsym(p).refs>0) and
                  not(vo_is_funcret in tglobalvarsym(p).varoptions) and
                  not(vo_is_external in tglobalvarsym(p).varoptions) and
-                 not(is_class(tglobalvarsym(p).vartype.def)) and
-                 tglobalvarsym(p).vartype.def.needs_inittable then
+                 not(is_class(tglobalvarsym(p).vardef)) and
+                 tglobalvarsym(p).vardef.needs_inittable then
                 finalize_sym(TAsmList(arg),tsym(p));
             end;
           typedconstsym :
             begin
               if ttypedconstsym(p).is_writable and
-                 ttypedconstsym(p).typedconsttype.def.needs_inittable then
+                 ttypedconstsym(p).typedconstdef.needs_inittable then
                 finalize_sym(TAsmList(arg),tsym(p));
             end;
           procsym :
@@ -1164,14 +1164,14 @@ implementation
         if (tsym(p).typ=paravarsym) then
          begin
            needs_inittable :=
-             not is_class_or_interface(tparavarsym(p).vartype.def) and
-             tparavarsym(p).vartype.def.needs_inittable;
+             not is_class_or_interface(tparavarsym(p).vardef) and
+             tparavarsym(p).vardef.needs_inittable;
            case tparavarsym(p).varspez of
              vs_value :
                if needs_inittable then
                  begin
-                   location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vartype.def));
-                   cg.g_incrrefcount(list,tparavarsym(p).vartype.def,href);
+                   location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef));
+                   cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
                  end;
              vs_out :
                begin
@@ -1184,10 +1184,10 @@ implementation
                      if (localvartrashing <> -1) and
                         { needs separate implementation to trash open arrays }
                         { since their size is only known at run time         }
-                        not is_special_array(tparavarsym(p).vartype.def) then
-                       trash_reference(list,href,tparavarsym(p).vartype.def.size);
+                        not is_special_array(tparavarsym(p).vardef) then
+                       trash_reference(list,href,tparavarsym(p).vardef.size);
                      if needs_inittable then
-                       cg.g_initialize(list,tparavarsym(p).vartype.def,href);
+                       cg.g_initialize(list,tparavarsym(p).vardef,href);
                    end;
                end;
              else if (localvartrashing <> -1) and
@@ -1196,7 +1196,7 @@ implementation
                      tmpreg:=cg.getaddressregister(list);
                      cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).initialloc,tmpreg);
                      reference_reset_base(href,tmpreg,0);
-                     trash_reference(list,href,tparavarsym(p).vartype.def.size);
+                     trash_reference(list,href,tparavarsym(p).vardef.size);
                    end
            end;
          end;
@@ -1212,20 +1212,20 @@ implementation
         if not(tsym(p).typ=paravarsym) then
           exit;
         list:=TAsmList(arg);
-        if not is_class_or_interface(tparavarsym(p).vartype.def) and
-           tparavarsym(p).vartype.def.needs_inittable then
+        if not is_class_or_interface(tparavarsym(p).vardef) and
+           tparavarsym(p).vardef.needs_inittable then
          begin
            if (tparavarsym(p).varspez=vs_value) then
             begin
               include(current_procinfo.flags,pi_needs_implicit_finally);
-              location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vartype.def));
-              cg.g_decrrefcount(list,tparavarsym(p).vartype.def,href);
+              location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vardef));
+              cg.g_decrrefcount(list,tparavarsym(p).vardef,href);
             end;
          end
         else
          if (tparavarsym(p).varspez=vs_value) and
-            (is_open_array(tparavarsym(p).vartype.def) or
-             is_array_of_const(tparavarsym(p).vartype.def)) then
+            (is_open_array(tparavarsym(p).vardef) or
+             is_array_of_const(tparavarsym(p).vardef)) then
            begin
              { cdecl functions don't have a high pointer so it is not possible to generate
                a local copy }
@@ -1397,7 +1397,7 @@ implementation
                         end;
                       { it could be that a structure is passed in memory but the function is expected to
                         return a pointer to this memory }
-                      if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
+                      if paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption) then
                         cg.a_load_loc_reg(list,OS_ADDR,restmploc,hreg)
                       else
                       cg.a_load_loc_reg(list,restmploc.size,restmploc,hreg);
@@ -1663,7 +1663,7 @@ implementation
                 begin
 {$ifndef cpu64bit}
                   if (currpara.paraloc[calleeside].size in [OS_64,OS_S64]) and
-                     is_64bit(currpara.vartype.def) then
+                     is_64bit(currpara.vardef) then
                     begin
                       case paraloc^.loc of
                         LOC_REGISTER:
@@ -2013,7 +2013,7 @@ implementation
         if current_procinfo.procdef.proccalloption in clearstack_pocalls then
           begin
             parasize:=0;
-            if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
+            if paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption) then
               inc(parasize,sizeof(aint));
           end
         else
@@ -2023,7 +2023,7 @@ implementation
         cg.g_proc_exit(list,parasize,(po_nostackframe in current_procinfo.procdef.procoptions));
 
         { release return registers, needed for optimizer }
-        if not is_void(current_procinfo.procdef.rettype.def) then
+        if not is_void(current_procinfo.procdef.returndef) then
           location_free(list,current_procinfo.procdef.funcretloc[calleeside]);
 
         { end of frame marker for call frame info }
@@ -2251,11 +2251,11 @@ implementation
                     else
                       begin
                         isaddr:=(st.symtabletype=parasymtable) and
-                                paramanager.push_addr_param(varspez,vartype.def,current_procinfo.procdef.proccalloption);
+                                paramanager.push_addr_param(varspez,vardef,current_procinfo.procdef.proccalloption);
                         if isaddr then
                           cgsize:=OS_ADDR
                         else
-                          cgsize:=def_cgsize(vartype.def);
+                          cgsize:=def_cgsize(vardef);
 {$ifndef OLDREGVARS}
                         { When there is assembler code we can't use regvars }
                         if is_regvar(isaddr) then
@@ -2281,15 +2281,15 @@ implementation
                                   else
                                     begin
                                       if isaddr then
-                                        tg.GetLocal(list,sizeof(aint),voidpointertype.def,initialloc.reference)
+                                        tg.GetLocal(list,sizeof(aint),voidpointertype,initialloc.reference)
                                       else
-                                        tg.GetLocal(list,getsize,tparavarsym(sym).paraloc[calleeside].alignment,vartype.def,initialloc.reference);
+                                        tg.GetLocal(list,getsize,tparavarsym(sym).paraloc[calleeside].alignment,vardef,initialloc.reference);
                                     end;
                                 end;
                               localsymtable,
                               stt_exceptsymtable :
                                 begin
-                                  tg.GetLocal(list,getsize,vartype.def,initialloc.reference);
+                                  tg.GetLocal(list,getsize,vardef,initialloc.reference);
                                 end;
                               staticsymtable :
                                 begin
@@ -2368,8 +2368,8 @@ implementation
           vecn:
             { range checks sometimes need the high parameter }
             if (cs_check_range in aktlocalswitches) and
-               (is_open_array(tvecnode(n).left.resulttype.def) or
-                is_array_of_const(tvecnode(n).left.resulttype.def)) and
+               (is_open_array(tvecnode(n).left.resultdef) or
+                is_array_of_const(tvecnode(n).left.resultdef)) and
                not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
               add_regvars(rv^,tabstractnormalvarsym(get_high_value_sym(tparavarsym(tloadnode(tvecnode(n).left).symtableentry))).localloc)
 
@@ -2616,7 +2616,7 @@ implementation
                       LOC_CREGISTER :
 {$ifndef cpu64bit}
                         if (pi_has_goto in current_procinfo.flags) then
-                          if def_cgsize(vartype.def) in [OS_64,OS_S64] then
+                          if def_cgsize(vardef) in [OS_64,OS_S64] then
                             begin
                               cg.a_reg_sync(list,localloc.register64.reglo);
                               cg.a_reg_sync(list,localloc.register64.reghi);
@@ -2652,7 +2652,7 @@ implementation
         def  : tstoreddef;
       begin
         { rtti can only be generated for classes that are always typesyms }
-        def:=tstoreddef(ttypesym(p).restype.def);
+        def:=tstoreddef(ttypesym(p).typedef);
         { there is an error, skip rtti info }
         if (def.deftype=errordef) or (Errorcount>0) then
           exit;
@@ -2688,11 +2688,11 @@ implementation
         { anonymous types are also allowed for records that can be varsym }
         case p.typ of
           typesym :
-            def:=tstoreddef(ttypesym(p).restype.def);
+            def:=tstoreddef(ttypesym(p).typedef);
           globalvarsym,
           localvarsym,
           paravarsym :
-            def:=tstoreddef(tabstractvarsym(p).vartype.def);
+            def:=tstoreddef(tabstractvarsym(p).vardef);
           else
             internalerror(200108263);
         end;

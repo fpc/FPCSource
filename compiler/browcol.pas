@@ -1191,8 +1191,8 @@ end;
   var Name: string;
   begin
     Name:='array ['+IntToStr(def.lowrange)+'..'+IntToStr(def.highrange)+'] of ';
-    if assigned(def.elementtype.def) then
-      Name:=Name+GetDefinitionStr(def.elementtype.def);
+    if assigned(def.elementdef) then
+      Name:=Name+GetDefinitionStr(def.elementdef);
     GetArrayDefStr:=Name;
   end;
   function GetFileDefStr(def: tfiledef): string;
@@ -1202,7 +1202,7 @@ end;
     case def.filetyp of
       ft_text    : Name:='text';
       ft_untyped : Name:='file';
-      ft_typed   : Name:='file of '+GetDefinitionStr(def.typedfiletype.def);
+      ft_typed   : Name:='file of '+GetDefinitionStr(def.typedfiledef);
     end;
     GetFileDefStr:=Name;
   end;
@@ -1230,8 +1230,8 @@ end;
   var OK: boolean;
   begin
     OK:=false;
-    if assigned(def.rettype.def) then
-      if UpcaseStr(GetDefinitionStr(def.rettype.def))<>'VOID' then
+    if assigned(def.returndef) then
+      if UpcaseStr(GetDefinitionStr(def.returndef))<>'VOID' then
         OK:=true;
     retdefassigned:=OK;
   end;
@@ -1256,8 +1256,8 @@ end;
          vs_Const : CurName:=CurName+'const ';
          vs_Var   : CurName:=CurName+'var ';
        end;
-       if assigned(dc.vartype.def) then
-         CurName:=CurName+GetDefinitionStr(dc.vartype.def);
+       if assigned(dc.vardef) then
+         CurName:=CurName+GetDefinitionStr(dc.vardef);
        Name:=CurName+Name;
        Inc(Count);
      end;
@@ -1269,7 +1269,7 @@ end;
     Name:=GetAbsProcParmDefStr(def);
     if Name<>'' then Name:='('+Name+')';
     if retdefassigned(def) then
-      Name:='function'+Name+': '+GetDefinitionStr(def.rettype.def)
+      Name:='function'+Name+': '+GetDefinitionStr(def.returndef)
     else
       Name:='procedure'+Name;
     GetAbsProcDefStr:=Name;
@@ -1310,12 +1310,12 @@ end;
       varset   : Name:='varset';
     end;
     Name:=Name+' of ';
-    Name:=Name+GetDefinitionStr(def.elementtype.def);
+    Name:=Name+GetDefinitionStr(def.elementdef);
     GetSetDefStr:=Name;
   end;
   function GetPointerDefStr(def: tpointerdef): string;
   begin
-    GetPointerDefStr:='^'+GetDefinitionStr(def.pointertype.def);
+    GetPointerDefStr:='^'+GetDefinitionStr(def.pointeddef);
   end;
   function GetDefinitionStr(def: tdef): string;
   var Name: string;
@@ -1372,14 +1372,14 @@ end;
     case sym.consttyp of
       constord :
         begin
-          if sym.consttype.def.deftype=enumdef then
-            Name:=sym.consttype.def.typesym.name+'('+IntToStr(sym.value.valueord)+')'
+          if sym.constdef.deftype=enumdef then
+            Name:=sym.constdef.typesym.name+'('+IntToStr(sym.value.valueord)+')'
           else
-            if is_boolean(sym.consttype.def) then
+            if is_boolean(sym.constdef) then
               Name:='Longbool('+IntToStr(sym.value.valueord)+')'
           else
-            if is_char(sym.consttype.def) or
-               is_widechar(sym.consttype.def) then
+            if is_char(sym.constdef) or
+               is_widechar(sym.constdef) then
               Name:=''''+chr(sym.value.valueord)+''''
           else
             Name:=IntToStr(sym.value.valueord);
@@ -1434,18 +1434,18 @@ end;
           paravarsym :
              with tabstractvarsym(sym) do
              begin
-               if assigned(vartype.def) then
-                 if assigned(vartype.def.typesym) then
-                   SetVType(Symbol,vartype.def.typesym.name)
+               if assigned(vardef) then
+                 if assigned(vardef.typesym) then
+                   SetVType(Symbol,vardef.typesym.name)
                  else
-                   SetVType(Symbol,GetDefinitionStr(vartype.def));
-               ProcessDefIfStruct(vartype.def);
-               if assigned(vartype.def) then
-                 if (vartype.def.deftype=pointerdef) and
-                    assigned(tpointerdef(vartype.def).pointertype.def) then
+                   SetVType(Symbol,GetDefinitionStr(vardef));
+               ProcessDefIfStruct(vardef);
+               if assigned(vardef) then
+                 if (vardef.deftype=pointerdef) and
+                    assigned(tpointerdef(vardef).pointeddef) then
                  begin
                    Symbol^.Flags:=(Symbol^.Flags or sfPointer);
-                   Symbol^.RelatedTypeID:=Ptrint(tpointerdef(vartype.def).pointertype.def);
+                   Symbol^.RelatedTypeID:=Ptrint(tpointerdef(vardef).pointeddef);
                  end;
                if typ=fieldvarsym then
                  MemInfo.Addr:=tfieldvarsym(sym).fieldoffset
@@ -1456,9 +1456,9 @@ end;
                    else
                      MemInfo.Addr:=0;
                  end;
-               if assigned(vartype.def) and (vartype.def.deftype=arraydef) then
+               if assigned(vardef) and (vardef.deftype=arraydef) then
                  begin
-                   if tarraydef(vartype.def).highrange<tarraydef(vartype.def).lowrange then
+                   if tarraydef(vardef).highrange<tarraydef(vardef).lowrange then
                      MemInfo.Size:=-1
                    else
                      MemInfo.Size:=getsize;
@@ -1466,15 +1466,15 @@ end;
                else
                  MemInfo.Size:=getsize;
                { this is not completely correct... }
-               MemInfo.PushSize:=paramanager.push_size(varspez,vartype.def,pocall_default);
+               MemInfo.PushSize:=paramanager.push_size(varspez,vardef,pocall_default);
                Symbol^.SetMemInfo(MemInfo);
              end;
           fieldvarsym :
              with tfieldvarsym(sym) do
              begin
-               if assigned(vartype.def) and (vartype.def.deftype=arraydef) then
+               if assigned(vardef) and (vardef.deftype=arraydef) then
                  begin
-                   if tarraydef(vartype.def).highrange<tarraydef(vartype.def).lowrange then
+                   if tarraydef(vardef).highrange<tarraydef(vardef).lowrange then
                      MemInfo.Size:=-1
                    else
                      MemInfo.Size:=getsize;
@@ -1526,45 +1526,45 @@ end;
           typesym :
             begin
             with ttypesym(sym) do
-              if assigned(restype.def) then
+              if assigned(typedef) then
                begin
-                Symbol^.TypeID:=Ptrint(restype.def);
-                case restype.def.deftype of
+                Symbol^.TypeID:=Ptrint(typedef);
+                case typedef.deftype of
                   arraydef :
-                    SetDType(Symbol,GetArrayDefStr(tarraydef(restype.def)));
+                    SetDType(Symbol,GetArrayDefStr(tarraydef(typedef)));
                   enumdef :
-                    SetDType(Symbol,GetEnumDefStr(tenumdef(restype.def)));
+                    SetDType(Symbol,GetEnumDefStr(tenumdef(typedef)));
                   procdef :
-                    SetDType(Symbol,GetProcDefStr(tprocdef(restype.def)));
+                    SetDType(Symbol,GetProcDefStr(tprocdef(typedef)));
                   procvardef :
-                    SetDType(Symbol,GetProcVarDefStr(tprocvardef(restype.def)));
+                    SetDType(Symbol,GetProcVarDefStr(tprocvardef(typedef)));
                   objectdef :
-                    with tobjectdef(restype.def) do
+                    with tobjectdef(typedef) do
                     begin
                       ObjDef:=childof;
                       if ObjDef<>nil then
                         Symbol^.RelatedTypeID:=Ptrint(ObjDef);{TypeNames^.Add(S);}
                       Symbol^.Flags:=(Symbol^.Flags or sfObject);
-                      if tobjectdef(restype.def).objecttype=odt_class then
+                      if tobjectdef(typedef).objecttype=odt_class then
                         Symbol^.Flags:=(Symbol^.Flags or sfClass);
-                      ProcessSymTable(Symbol,Symbol^.Items,tobjectdef(restype.def).symtable);
+                      ProcessSymTable(Symbol,Symbol^.Items,tobjectdef(typedef).symtable);
                     end;
                   recorddef :
                     begin
                       Symbol^.Flags:=(Symbol^.Flags or sfRecord);
-                      ProcessSymTable(Symbol,Symbol^.Items,trecorddef(restype.def).symtable);
+                      ProcessSymTable(Symbol,Symbol^.Items,trecorddef(typedef).symtable);
                     end;
                   pointerdef :
                     begin
                       Symbol^.Flags:=(Symbol^.Flags or sfPointer);
-                      Symbol^.RelatedTypeID:=Ptrint(tpointerdef(restype.def).pointertype.def);{TypeNames^.Add(S);}
-                      SetDType(Symbol,GetPointerDefStr(tpointerdef(restype.def)));
+                      Symbol^.RelatedTypeID:=Ptrint(tpointerdef(typedef).pointeddef);{TypeNames^.Add(S);}
+                      SetDType(Symbol,GetPointerDefStr(tpointerdef(typedef)));
                     end;
 
                   filedef :
-                    SetDType(Symbol,GetFileDefStr(tfiledef(restype.def)));
+                    SetDType(Symbol,GetFileDefStr(tfiledef(typedef)));
                   setdef :
-                    SetDType(Symbol,GetSetDefStr(tsetdef(restype.def)));
+                    SetDType(Symbol,GetSetDefStr(tsetdef(typedef)));
                 end;
                end;
             end;

@@ -33,7 +33,7 @@ interface
        tloadvmtaddrnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
        end;
        tloadvmtaddrnodeclass = class of tloadvmtaddrnode;
 
@@ -46,8 +46,8 @@ interface
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
-          function _getcopy : tnode;override;
+          function pass_typecheck:tnode;override;
+          function dogetcopy : tnode;override;
        end;
        tloadparentfpnodeclass = class of tloadparentfpnode;
 
@@ -61,16 +61,16 @@ interface
           procedure mark_write;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
        end;
        taddrnodeclass = class of taddrnode;
 
        tderefnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           procedure mark_write;override;
        end;
        tderefnodeclass = class of tderefnode;
@@ -83,10 +83,10 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           procedure mark_write;override;
        end;
        tsubscriptnodeclass = class of tsubscriptnode;
@@ -94,7 +94,7 @@ interface
        tvecnode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           procedure mark_write;override;
        end;
        tvecnodeclass = class of tvecnode;
@@ -104,10 +104,10 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
        end;
        twithnodeclass = class of twithnode;
 
@@ -142,18 +142,18 @@ implementation
       end;
 
 
-    function tloadvmtaddrnode.det_resulttype:tnode;
+    function tloadvmtaddrnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resulttypepass(left);
+        typecheckpass(left);
         if codegenerror then
          exit;
 
-        case left.resulttype.def.deftype of
+        case left.resultdef.deftype of
           classrefdef :
-            resulttype:=left.resulttype;
+            resultdef:=left.resultdef;
           objectdef :
-            resulttype.setdef(tclassrefdef.create(left.resulttype));
+            resultdef:=tclassrefdef.create(left.resultdef);
           else
             Message(parser_e_pointer_to_class_expected);
         end;
@@ -217,17 +217,17 @@ implementation
       end;
 
 
-    function tloadparentfpnode._getcopy : tnode;
+    function tloadparentfpnode.dogetcopy : tnode;
       var
          p : tloadparentfpnode;
       begin
-         p:=tloadparentfpnode(inherited _getcopy);
+         p:=tloadparentfpnode(inherited dogetcopy);
          p.parentpd:=parentpd;
-         _getcopy:=p;
+         dogetcopy:=p;
       end;
 
 
-    function tloadparentfpnode.det_resulttype:tnode;
+    function tloadparentfpnode.pass_typecheck:tnode;
 {$ifdef dummy}
       var
         currpi : tprocinfo;
@@ -235,7 +235,7 @@ implementation
 {$endif dummy}
       begin
         result:=nil;
-        resulttype:=voidpointertype;
+        resultdef:=voidpointertype;
 {$ifdef dummy}
         { currently parentfps are never loaded in registers (FK) }
 
@@ -319,26 +319,26 @@ implementation
       end;
 
 
-    function taddrnode._getcopy : tnode;
+    function taddrnode.dogetcopy : tnode;
 
       var
          p : taddrnode;
 
       begin
-         p:=taddrnode(inherited _getcopy);
+         p:=taddrnode(inherited dogetcopy);
          p.getprocvardef:=getprocvardef;
-         _getcopy:=p;
+         dogetcopy:=p;
       end;
 
 
-    function taddrnode.det_resulttype:tnode;
+    function taddrnode.pass_typecheck:tnode;
       var
          hp  : tnode;
          hsym : tfieldvarsym;
          isprocvar : boolean;
       begin
         result:=nil;
-        resulttypepass(left);
+        typecheckpass(left);
         if codegenerror then
          exit;
 
@@ -359,19 +359,19 @@ implementation
 
         { Handle @proc special, also @procvar in tp-mode needs
           special handling }
-        if (left.resulttype.def.deftype=procdef) or
+        if (left.resultdef.deftype=procdef) or
            (
-            (left.resulttype.def.deftype=procvardef) and
+            (left.resultdef.deftype=procvardef) and
             ((m_tp_procvar in aktmodeswitches) or
              (m_mac_procvar in aktmodeswitches))
            ) then
           begin
-            isprocvar:=(left.resulttype.def.deftype=procvardef);
+            isprocvar:=(left.resultdef.deftype=procvardef);
 
             if not isprocvar then
               begin
                 left:=ctypeconvnode.create_proc_to_procvar(left);
-                resulttypepass(left);
+                typecheckpass(left);
               end;
 
             { In tp procvar mode the result is always a voidpointer. Insert
@@ -380,7 +380,7 @@ implementation
             if (m_tp_procvar in aktmodeswitches) or
                (m_mac_procvar in aktmodeswitches) then
               begin
-                if tabstractprocdef(left.resulttype.def).is_addressonly then
+                if tabstractprocdef(left.resultdef).is_addressonly then
                   begin
                     result:=ctypeconvnode.create_internal(left,voidpointertype);
                     include(result.flags,nf_load_procvar);
@@ -393,7 +393,7 @@ implementation
                     if isprocvar then
                       begin
                         { find proc field in methodpointer record }
-                        hsym:=tfieldvarsym(trecorddef(methodpointertype.def).symtable.search('proc'));
+                        hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.search('proc'));
                         if not assigned(hsym) then
                           internalerror(200412041);
                         { Load tmehodpointer(left).proc }
@@ -427,9 +427,9 @@ implementation
                tabsolutevarsym(tloadnode(hp).symtableentry).absseg) then
               begin
                 if not(nf_typedaddr in flags) then
-                  resulttype:=voidfarpointertype
+                  resultdef:=voidfarpointertype
                 else
-                  resulttype.setdef(tpointerdef.createfar(left.resulttype));
+                  resultdef:=tpointerdef.createfar(left.resultdef);
               end
             else
 {$endif i386}
@@ -437,9 +437,9 @@ implementation
                  valid_for_addr(left,true) then
                 begin
                   if not(nf_typedaddr in flags) then
-                    resulttype:=voidpointertype
+                    resultdef:=voidpointertype
                   else
-                    resulttype.setdef(tpointerdef.create(left.resulttype));
+                    resultdef:=tpointerdef.create(left.resultdef);
                 end
             else
               CGMessage(type_e_variable_id_expected);
@@ -487,10 +487,10 @@ implementation
 
       end;
 
-    function tderefnode.det_resulttype:tnode;
+    function tderefnode.pass_typecheck:tnode;
       begin
          result:=nil;
-         resulttypepass(left);
+         typecheckpass(left);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
           exit;
@@ -498,8 +498,8 @@ implementation
          { tp procvar support }
          maybe_call_procvar(left,true);
 
-         if left.resulttype.def.deftype=pointerdef then
-          resulttype:=tpointerdef(left.resulttype.def).pointertype
+         if left.resultdef.deftype=pointerdef then
+          resultdef:=tpointerdef(left.resultdef).pointeddef
          else
           CGMessage(parser_e_invalid_qualifier);
       end;
@@ -567,29 +567,29 @@ implementation
       end;
 
 
-    function tsubscriptnode._getcopy : tnode;
+    function tsubscriptnode.dogetcopy : tnode;
 
       var
          p : tsubscriptnode;
 
       begin
-         p:=tsubscriptnode(inherited _getcopy);
+         p:=tsubscriptnode(inherited dogetcopy);
          p.vs:=vs;
-         _getcopy:=p;
+         dogetcopy:=p;
       end;
 
 
-    function tsubscriptnode.det_resulttype:tnode;
+    function tsubscriptnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resulttypepass(left);
+        typecheckpass(left);
         { tp procvar support }
         maybe_call_procvar(left,true);
-        resulttype:=vs.vartype;
+        resultdef:=vs.vardef;
 
         // don't put records from which we load fields which aren't regable in integer registers
-        if (left.resulttype.def.deftype = recorddef) and
-           not(tstoreddef(resulttype.def).is_intregable) then
+        if (left.resultdef.deftype = recorddef) and
+           not(tstoreddef(resultdef).is_intregable) then
           make_not_regable(left,vr_addr);
       end;
 
@@ -612,7 +612,7 @@ implementation
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
          { classes must be dereferenced implicit }
-         if is_class_or_interface(left.resulttype.def) then
+         if is_class_or_interface(left.resultdef) then
            begin
               if registersint=0 then
                 registersint:=1;
@@ -624,7 +624,7 @@ implementation
                LOC_REGISTER,
                LOC_SUBSETREG:
                  // can happen for function results on win32 and darwin/x86
-                 if (left.resulttype.def.size > sizeof(aint)) then
+                 if (left.resultdef.size > sizeof(aint)) then
                    expectloc:=LOC_REFERENCE
                  else
                    expectloc:=LOC_SUBSETREG;
@@ -658,14 +658,14 @@ implementation
       end;
 
 
-    function tvecnode.det_resulttype:tnode;
+    function tvecnode.pass_typecheck:tnode;
       var
-         htype,elementtype : ttype;
+         htype,elementdef : tdef;
          valid : boolean;
       begin
          result:=nil;
-         resulttypepass(left);
-         resulttypepass(right);
+         typecheckpass(left);
+         typecheckpass(right);
 
          { implicitly convert stringconstant to stringdef,
            see tbs/tb0476.pp for a test }
@@ -682,11 +682,11 @@ implementation
            declared a shortstring or normal array that has
            undefined number of elements. Dynamic array and
            ansi/widestring needs to be valid }
-         valid:=is_dynamic_array(left.resulttype.def) or
-                is_ansistring(left.resulttype.def) or
-                is_widestring(left.resulttype.def) or
+         valid:=is_dynamic_array(left.resultdef) or
+                is_ansistring(left.resultdef) or
+                is_widestring(left.resultdef) or
                 { implicit pointer dereference -> pointer is read }
-                (left.resulttype.def.deftype = pointerdef);
+                (left.resultdef.deftype = pointerdef);
          if valid then
            set_varstate(left,vs_read,[vsf_must_be_valid]);
 {
@@ -702,79 +702,79 @@ implementation
            do not convert enums,booleans,char
            and do not convert range nodes }
          if (right.nodetype<>rangen) and (
-             ((right.resulttype.def.deftype<>enumdef) and
-               not(is_char(right.resulttype.def) or is_widechar(right.resulttype.def)) and
-               not(is_boolean(right.resulttype.def))
+             ((right.resultdef.deftype<>enumdef) and
+               not(is_char(right.resultdef) or is_widechar(right.resultdef)) and
+               not(is_boolean(right.resultdef))
              ) or
-             (left.resulttype.def.deftype <> arraydef) 
+             (left.resultdef.deftype <> arraydef) 
             ) then
            begin
              inserttypeconv(right,sinttype);
            end;
 
-         case left.resulttype.def.deftype of
+         case left.resultdef.deftype of
            arraydef :
              begin
                { check type of the index value }
-               if (compare_defs(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def,right.nodetype)=te_incompatible) then
-                 IncompatibleTypes(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def);
+               if (compare_defs(right.resultdef,tarraydef(left.resultdef).rangedef,right.nodetype)=te_incompatible) then
+                 IncompatibleTypes(right.resultdef,tarraydef(left.resultdef).rangedef);
                if right.nodetype=rangen then
-                 resulttype:=left.resulttype
+                 resultdef:=left.resultdef
                else
-                 resulttype:=Tarraydef(left.resulttype.def).elementtype;
+                 resultdef:=Tarraydef(left.resultdef).elementdef;
              end;
            pointerdef :
              begin
                { are we accessing a pointer[], then convert the pointer to
                  an array first, in FPC this is allowed for all pointers
                  (except voidpointer) in delphi/tp7 it's only allowed for pchars. }
-               if not is_voidpointer(left.resulttype.def) and
+               if not is_voidpointer(left.resultdef) and
                   (
                    (m_fpc in aktmodeswitches) or
-                   is_pchar(left.resulttype.def) or
-                   is_pwidechar(left.resulttype.def)
+                   is_pchar(left.resultdef) or
+                   is_pwidechar(left.resultdef)
                   ) then
                 begin
                   { convert pointer to array }
-                  htype.setdef(tarraydef.create_from_pointer(tpointerdef(left.resulttype.def).pointertype));
+                  htype:=tarraydef.create_from_pointer(tpointerdef(left.resultdef).pointeddef);
                   inserttypeconv(left,htype);
                   if right.nodetype=rangen then
-                    resulttype:=htype
+                    resultdef:=htype
                   else
-                    resulttype:=tarraydef(htype.def).elementtype;
+                    resultdef:=tarraydef(htype).elementdef;
                 end
                else
                 CGMessage(type_e_array_required);
              end;
            stringdef :
              begin
-                case tstringdef(left.resulttype.def).string_typ of
+                case tstringdef(left.resultdef).string_typ of
                   st_widestring :
-                    elementtype:=cwidechartype;
+                    elementdef:=cwidechartype;
                   st_ansistring :
-                    elementtype:=cchartype;
+                    elementdef:=cchartype;
                   st_longstring :
-                    elementtype:=cchartype;
+                    elementdef:=cchartype;
                   st_shortstring :
-                    elementtype:=cchartype;
+                    elementdef:=cchartype;
                 end;
                 if right.nodetype=rangen then
                   begin
-                    htype.setdef(Tarraydef.create_from_pointer(elementtype));
-                    resulttype:=htype;
+                    htype:=Tarraydef.create_from_pointer(elementdef);
+                    resultdef:=htype;
                   end
                 else
                  begin
                    { indexed access to 0 element is only allowed for shortstrings }
                    if (right.nodetype=ordconstn) and
                       (tordconstnode(right).value=0) and
-                      not is_shortstring(left.resulttype.def) then
+                      not is_shortstring(left.resultdef) then
                      CGMessage(cg_e_can_access_element_zero);
-                   resulttype:=elementtype;
+                   resultdef:=elementdef;
                  end;
              end;
            variantdef :
-             resulttype:=cvarianttype;
+             resultdef:=cvarianttype;
            else
              CGMessage(type_e_array_required);
         end;
@@ -799,19 +799,19 @@ implementation
            exit;
 
          if (nf_callunique in flags) and
-            (is_ansistring(left.resulttype.def) or
-             (is_widestring(left.resulttype.def) and not(tf_winlikewidestring in target_info.flags))) then
+            (is_ansistring(left.resultdef) or
+             (is_widestring(left.resultdef) and not(tf_winlikewidestring in target_info.flags))) then
            begin
-             left := ctypeconvnode.create_internal(ccallnode.createintern('fpc_'+tstringdef(left.resulttype.def).stringtypname+'_unique',
+             left := ctypeconvnode.create_internal(ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+'_unique',
                ccallparanode.create(
                  ctypeconvnode.create_internal(left,voidpointertype),nil)),
-               left.resulttype);
+               left.resultdef);
              firstpass(left);
-             { double resulttype passes somwhere else may cause this to be }
+             { double resultdef passes somwhere else may cause this to be }
              { reset though :/                                             }
              exclude(flags,nf_callunique);
            end
-         else if is_widestring(left.resulttype.def) and (tf_winlikewidestring in target_info.flags) then
+         else if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
            exclude(flags,nf_callunique);
 
          { the register calculation is easy if a const index is used }
@@ -832,10 +832,10 @@ implementation
               registersint:=left.registersint;
 
               { for ansi/wide strings, we need at least one register }
-              if is_ansistring(left.resulttype.def) or
-                is_widestring(left.resulttype.def) or
+              if is_ansistring(left.resultdef) or
+                is_widestring(left.resultdef) or
               { ... as well as for dynamic arrays }
-                is_dynamic_array(left.resulttype.def) then
+                is_dynamic_array(left.resultdef) then
                 registersint:=max(registersint,1);
            end
          else
@@ -845,10 +845,10 @@ implementation
               registersint:=max(left.registersint,right.registersint);
 
               { for ansi/wide strings, we need at least one register }
-              if is_ansistring(left.resulttype.def) or
-                is_widestring(left.resulttype.def) or
+              if is_ansistring(left.resultdef) or
+                is_widestring(left.resultdef) or
               { ... as well as for dynamic arrays }
-                is_dynamic_array(left.resulttype.def) then
+                is_dynamic_array(left.resultdef) then
                 registersint:=max(registersint,1);
 
               { need we an extra register when doing the restore ? }
@@ -877,8 +877,8 @@ implementation
 {$ifdef SUPPORT_MMX}
          registersmmx:=max(left.registersmmx,right.registersmmx);
 {$endif SUPPORT_MMX}
-         if (not is_packed_array(left.resulttype.def)) or
-            ((tarraydef(left.resulttype.def).elepackedbitsize mod 8) = 0) then
+         if (not is_packed_array(left.resultdef)) or
+            ((tarraydef(left.resultdef).elepackedbitsize mod 8) = 0) then
            if left.expectloc=LOC_CREFERENCE then
              expectloc:=LOC_CREFERENCE
            else
@@ -920,21 +920,21 @@ implementation
       end;
 
 
-    function twithnode._getcopy : tnode;
+    function twithnode.dogetcopy : tnode;
       var
          p : twithnode;
       begin
-         p:=twithnode(inherited _getcopy);
+         p:=twithnode(inherited dogetcopy);
          result:=p;
       end;
 
 
-    function twithnode.det_resulttype:tnode;
+    function twithnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resulttype:=voidtype;
+        resultdef:=voidtype;
         if assigned(left) then
-          resulttypepass(left);
+          typecheckpass(left);
       end;
 
 
@@ -959,7 +959,7 @@ implementation
     function is_big_untyped_addrnode(p: tnode): boolean;
       begin
         is_big_untyped_addrnode:=(p.nodetype=addrn) and 
-	  not (nf_typedaddr in p.flags) and (taddrnode(p).left.resulttype.def.size > 1);
+	  not (nf_typedaddr in p.flags) and (taddrnode(p).left.resultdef.size > 1);
       end;
 
 begin

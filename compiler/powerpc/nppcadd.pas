@@ -30,7 +30,7 @@ interface
 
     type
        tppcaddnode = class(tgenppcaddnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
          protected
           function use_generic_mul32to64: boolean; override;
          private
@@ -264,10 +264,10 @@ interface
         pass_left_and_right;
 
         cmpop:=false;
-        unsigned:=((left.resulttype.def.deftype=orddef) and
-                   (torddef(left.resulttype.def).typ=u64bit)) or
-                  ((right.resulttype.def.deftype=orddef) and
-                   (torddef(right.resulttype.def).typ=u64bit));
+        unsigned:=((left.resultdef.deftype=orddef) and
+                   (torddef(left.resultdef).typ=u64bit)) or
+                  ((right.resultdef.deftype=orddef) and
+                   (torddef(right.resultdef).typ=u64bit));
         case nodetype of
           addn :
             begin
@@ -295,8 +295,8 @@ interface
           muln:
             begin
               { should be handled in pass_1 (JM) }
-              if not(torddef(left.resulttype.def).typ in [U32bit,s32bit]) or
-                 (torddef(left.resulttype.def).typ <> torddef(right.resulttype.def).typ) then
+              if not(torddef(left.resultdef).typ in [U32bit,s32bit]) or
+                 (torddef(left.resultdef).typ <> torddef(right.resultdef).typ) then
                 internalerror(200109051);
               { handled separately }
               op := OP_NONE;
@@ -306,7 +306,7 @@ interface
         end;
 
         if not cmpop then
-          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
         load_left_right(cmpop,((cs_check_overflow in aktlocalswitches) and
             (nodetype in [addn,subn])) or (nodetype = muln));
@@ -460,7 +460,7 @@ interface
                     begin
                       // const64 - reg64
                       location_force_reg(current_asmdata.CurrAsmList,left.location,
-                        def_cgsize(left.resulttype.def),false);
+                        def_cgsize(left.resultdef),false);
                       cg64.a_op64_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,location.size,
                         right.location.register64,left.location.register64,
                         location.register64);
@@ -472,7 +472,7 @@ interface
           end
         else
           begin
-            if is_signed(resulttype.def) then
+            if is_signed(resultdef) then
               begin
                 case nodetype of
                   addn:
@@ -521,12 +521,12 @@ interface
               begin
                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op2,location.register64.reghi,
                    right.location.register64.reghi,left.location.register64.reghi));
-                if not(is_signed(resulttype.def)) then
+                if not(is_signed(resultdef)) then
                   if nodetype = addn then
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLW,location.register64.reghi,left.location.register64.reghi))
                   else
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLW,left.location.register64.reghi,location.register64.reghi));
-                cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resulttype.def);
+                cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
               end
             else
               begin
@@ -560,7 +560,7 @@ interface
         pass_left_and_right;
 
         cmpop:=false;
-        mmxbase:=mmx_type(left.resulttype.def);
+        mmxbase:=mmx_type(left.resultdef);
         case nodetype of
           addn :
             begin
@@ -735,7 +735,7 @@ interface
                                 pass_2
 *****************************************************************************}
 
-    procedure tppcaddnode.pass_2;
+    procedure tppcaddnode.pass_generate_code;
     { is also being used for xor, and "mul", "sub, or and comparative }
     { operators                                                }
       var
@@ -751,19 +751,19 @@ interface
       begin
          { to make it more readable, string and set (not smallset!) have their
            own procedures }
-         case left.resulttype.def.deftype of
+         case left.resultdef.deftype of
            orddef :
              begin
                { handling boolean expressions }
-               if is_boolean(left.resulttype.def) and
-                  is_boolean(right.resulttype.def) then
+               if is_boolean(left.resultdef) and
+                  is_boolean(right.resultdef) then
                  begin
                    second_addboolean;
                    exit;
                  end
                { 64bit operations }
-               else if is_64bit(resulttype.def) or
-                       is_64bit(left.resulttype.def) then
+               else if is_64bit(resultdef) or
+                       is_64bit(left.resultdef) then
                  begin
                    second_add64bit;
                    exit;
@@ -777,7 +777,7 @@ interface
            setdef :
              begin
                { normalsets are already handled in pass1 }
-               if (tsetdef(left.resulttype.def).settype<>smallset) then
+               if (tsetdef(left.resultdef).settype<>smallset) then
                 internalerror(200109041);
                second_addsmallset;
                exit;
@@ -785,7 +785,7 @@ interface
            arraydef :
              begin
 {$ifdef SUPPORT_MMX}
-               if is_mmx_able_array(left.resulttype.def) then
+               if is_mmx_able_array(left.resultdef) then
                 begin
                   second_addmmx;
                   exit;
@@ -801,8 +801,8 @@ interface
 
          { defaults }
          cmpop:=nodetype in [ltn,lten,gtn,gten,equaln,unequaln];
-         unsigned:=not(is_signed(left.resulttype.def)) or
-                   not(is_signed(right.resulttype.def));
+         unsigned:=not(is_signed(left.resultdef)) or
+                   not(is_signed(right.resultdef));
 
          pass_left_and_right;
 
@@ -815,7 +815,7 @@ interface
 
          { set result location }
          if not cmpop then
-           location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def))
+           location_reset(location,LOC_REGISTER,def_cgsize(resultdef))
           else
            location_reset(location,LOC_FLAGS,OS_NO);
 
@@ -897,7 +897,7 @@ interface
          else
            // overflow checking is on and we have an addn, subn or muln
            begin
-             if is_signed(resulttype.def) then
+             if is_signed(resultdef) then
                begin
                  case nodetype of
                    addn:
@@ -915,7 +915,7 @@ interface
                  end;
                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,
                    left.location.register,right.location.register));
-                 cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resulttype.def);
+                 cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
               end
              else
               begin
@@ -925,7 +925,7 @@ interface
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD,location.register,
                         left.location.register,right.location.register));
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLW,location.register,left.location.register));
-                      cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resulttype.def);
+                      cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
                     end;
                   subn:
                     begin
@@ -934,7 +934,7 @@ interface
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
                         left.location.register,right.location.register));
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLW,left.location.register,location.register));
-                      cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resulttype.def);
+                      cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
                     end;
                   muln:
                     begin

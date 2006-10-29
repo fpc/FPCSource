@@ -83,14 +83,14 @@ implementation
         else
           set_varstate(p,vs_readwritten,[vsf_must_be_valid]);
         if (m_mac in aktmodeswitches) and
-           is_class(p.resulttype.def) then
+           is_class(p.resultdef) then
           begin
-            classh:=tobjectdef(p.resulttype.def);
+            classh:=tobjectdef(p.resultdef);
 
             if is_new then
               begin
                 sym:=search_class_member(classh,'CREATE');
-                p2 := cloadvmtaddrnode.create(ctypenode.create(p.resulttype));;
+                p2 := cloadvmtaddrnode.create(ctypenode.create(p.resultdef));;
               end
             else
               begin
@@ -112,7 +112,7 @@ implementation
             do_member_read(classh,false,sym,p2,again,[]);
 
             { we need the real called method }
-            do_resulttypepass(p2);
+            do_typecheckpass(p2);
 
             if (p2.nodetype=calln) and
                assigned(tcallnode(p2).procdefinition) then
@@ -121,9 +121,9 @@ implementation
                   begin
                     if (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor) then
                       Message(parser_e_expr_have_to_be_constructor_call);
-                    p2.resulttype:=p.resulttype;
+                    p2.resultdef:=p.resultdef;
                     p2:=cassignmentnode.create(p,p2);
-                    resulttypepass(p2);
+                    typecheckpass(p2);
                   end
                 else
                   begin
@@ -148,9 +148,9 @@ implementation
             destructorpos:=akttokenpos;
             consume(_ID);
 
-            if (p.resulttype.def.deftype<>pointerdef) then
+            if (p.resultdef.deftype<>pointerdef) then
               begin
-                 Message1(type_e_pointer_type_expected,p.resulttype.def.typename);
+                 Message1(type_e_pointer_type_expected,p.resultdef.typename);
                  p.free;
                  p:=factor(false);
                  p.free;
@@ -159,7 +159,7 @@ implementation
                  exit;
               end;
             { first parameter must be an object or class }
-            if tpointerdef(p.resulttype.def).pointertype.def.deftype<>objectdef then
+            if tpointerdef(p.resultdef).pointeddef.deftype<>objectdef then
               begin
                  Message(parser_e_pointer_to_class_expected);
                  p.free;
@@ -169,7 +169,7 @@ implementation
                  exit;
               end;
             { check, if the first parameter is a pointer to a _class_ }
-            classh:=tobjectdef(tpointerdef(p.resulttype.def).pointertype.def);
+            classh:=tobjectdef(tpointerdef(p.resultdef).pointeddef);
             if is_class(classh) then
               begin
                  Message(parser_e_no_new_or_dispose_for_classes);
@@ -203,7 +203,7 @@ implementation
                   p2:=cderefnode.create(p.getcopy)
                 else
                   p2:=cderefnode.create(p);
-                do_resulttypepass(p2);
+                do_typecheckpass(p2);
                 if is_new then
                   callflag:=cnf_new_call
                 else
@@ -231,7 +231,7 @@ implementation
                   end;
 
                 { we need the real called method }
-                do_resulttypepass(p2);
+                do_typecheckpass(p2);
 
                 if (p2.nodetype=calln) and
                    assigned(tcallnode(p2).procdefinition) then
@@ -240,7 +240,7 @@ implementation
                      begin
                        if (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor) then
                          Message(parser_e_expr_have_to_be_constructor_call);
-                       p2.resulttype:=p.resulttype;
+                       p2.resultdef:=p.resultdef;
                        p2:=cassignmentnode.create(p,p2);
                      end
                     else
@@ -262,18 +262,18 @@ implementation
           end
         else
           begin
-             if (p.resulttype.def.deftype<>pointerdef) then
+             if (p.resultdef.deftype<>pointerdef) then
                Begin
-                  Message1(type_e_pointer_type_expected,p.resulttype.def.typename);
+                  Message1(type_e_pointer_type_expected,p.resultdef.typename);
                   new_dispose_statement:=cerrornode.create;
                end
              else
                begin
-                  if (tpointerdef(p.resulttype.def).pointertype.def.deftype=objectdef) and
-                     (oo_has_vmt in tobjectdef(tpointerdef(p.resulttype.def).pointertype.def).objectoptions) then
+                  if (tpointerdef(p.resultdef).pointeddef.deftype=objectdef) and
+                     (oo_has_vmt in tobjectdef(tpointerdef(p.resultdef).pointeddef).objectoptions) then
                     Message(parser_w_use_extended_syntax_for_objects);
-                  if (tpointerdef(p.resulttype.def).pointertype.def.deftype=orddef) and
-                     (torddef(tpointerdef(p.resulttype.def).pointertype.def).typ=uvoid) then
+                  if (tpointerdef(p.resultdef).pointeddef.deftype=orddef) and
+                     (torddef(tpointerdef(p.resultdef).pointeddef).typ=uvoid) then
                     begin
                       if (m_tp7 in aktmodeswitches) or
                          (m_delphi in aktmodeswitches) then
@@ -289,18 +289,18 @@ implementation
                   if is_new then
                    begin
                      { create temp for result }
-                     temp := ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent,true);
+                     temp := ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent,true);
                      addstatement(newstatement,temp);
 
                      { create call to fpc_getmem }
                      para := ccallparanode.create(cordconstnode.create
-                         (tpointerdef(p.resulttype.def).pointertype.def.size,s32inttype,true),nil);
+                         (tpointerdef(p.resultdef).pointeddef.size,s32inttype,true),nil);
                      addstatement(newstatement,cassignmentnode.create(
                          ctemprefnode.create(temp),
                          ccallnode.createintern('fpc_getmem',para)));
 
                      { create call to fpc_initialize }
-                     if tpointerdef(p.resulttype.def).pointertype.def.needs_inittable then
+                     if tpointerdef(p.resultdef).pointeddef.needs_inittable then
                        addstatement(newstatement,initialize_data_node(cderefnode.create(ctemprefnode.create(temp))));
 
                      { copy the temp to the destination }
@@ -314,7 +314,7 @@ implementation
                   else
                    begin
                      { create call to fpc_finalize }
-                     if tpointerdef(p.resulttype.def).pointertype.def.needs_inittable then
+                     if tpointerdef(p.resultdef).pointeddef.needs_inittable then
                        addstatement(newstatement,finalize_data_node(cderefnode.create(p.getcopy)));
 
                      { create call to fpc_freemem }
@@ -351,9 +351,9 @@ implementation
            exit;
          end;
 
-        if (p1.resulttype.def.deftype<>pointerdef) then
+        if (p1.resultdef.deftype<>pointerdef) then
          begin
-           Message1(type_e_pointer_type_expected,p1.resulttype.def.typename);
+           Message1(type_e_pointer_type_expected,p1.resultdef.typename);
            consume_all_until(_RKLAMMER);
            consume(_RKLAMMER);
            p1.destroy;
@@ -363,29 +363,29 @@ implementation
 
         if try_to_consume(_RKLAMMER) then
           begin
-            if (tpointerdef(p1.resulttype.def).pointertype.def.deftype=objectdef) and
-               (oo_has_vmt in tobjectdef(tpointerdef(p1.resulttype.def).pointertype.def).objectoptions)  then
+            if (tpointerdef(p1.resultdef).pointeddef.deftype=objectdef) and
+               (oo_has_vmt in tobjectdef(tpointerdef(p1.resultdef).pointeddef).objectoptions)  then
               Message(parser_w_use_extended_syntax_for_objects);
 
             { create statements with call to getmem+initialize }
             newblock:=internalstatements(newstatement);
 
             { create temp for result }
-            temp := ctempcreatenode.create(p1.resulttype,p1.resulttype.def.size,tt_persistent,true);
+            temp := ctempcreatenode.create(p1.resultdef,p1.resultdef.size,tt_persistent,true);
             addstatement(newstatement,temp);
 
             { create call to fpc_getmem }
             para := ccallparanode.create(cordconstnode.create
-                (tpointerdef(p1.resulttype.def).pointertype.def.size,s32inttype,true),nil);
+                (tpointerdef(p1.resultdef).pointeddef.size,s32inttype,true),nil);
             addstatement(newstatement,cassignmentnode.create(
                 ctemprefnode.create(temp),
                 ccallnode.createintern('fpc_getmem',para)));
 
             { create call to fpc_initialize }
-            if tpointerdef(p1.resulttype.def).pointertype.def.needs_inittable then
+            if tpointerdef(p1.resultdef).pointeddef.needs_inittable then
              begin
                para := ccallparanode.create(caddrnode.create_internal(crttinode.create
-                          (tstoreddef(tpointerdef(p1.resulttype.def).pointertype.def),initrtti)),
+                          (tstoreddef(tpointerdef(p1.resultdef).pointeddef),initrtti)),
                        ccallparanode.create(ctemprefnode.create
                           (temp),nil));
                addstatement(newstatement,ccallnode.createintern('fpc_initialize',para));
@@ -404,7 +404,7 @@ implementation
         else
           begin
             consume(_COMMA);
-            if tpointerdef(p1.resulttype.def).pointertype.def.deftype<>objectdef then
+            if tpointerdef(p1.resultdef).pointeddef.deftype<>objectdef then
              begin
                Message(parser_e_pointer_to_class_expected);
                consume_all_until(_RKLAMMER);
@@ -413,11 +413,11 @@ implementation
                new_function:=cerrornode.create;
                exit;
              end;
-            classh:=tobjectdef(tpointerdef(p1.resulttype.def).pointertype.def);
+            classh:=tobjectdef(tpointerdef(p1.resultdef).pointeddef);
             { use the objectdef for loading the VMT }
             p2:=p1;
-            p1:=ctypenode.create(tpointerdef(p1.resulttype.def).pointertype);
-            do_resulttypepass(p1);
+            p1:=ctypenode.create(tpointerdef(p1.resultdef).pointeddef);
+            do_typecheckpass(p1);
             { search the constructor also in the symbol tables of
               the parents }
             afterassignment:=false;
@@ -425,16 +425,16 @@ implementation
             consume(_ID);
             do_member_read(classh,false,srsym,p1,again,[cnf_new_call]);
             { we need to know which procedure is called }
-            do_resulttypepass(p1);
+            do_typecheckpass(p1);
             if not(
                    (p1.nodetype=calln) and
                    assigned(tcallnode(p1).procdefinition) and
                    (tcallnode(p1).procdefinition.proctypeoption=potype_constructor)
                   ) then
               Message(parser_e_expr_have_to_be_constructor_call);
-            { constructors return boolean, update resulttype to return
+            { constructors return boolean, update resultdef to return
               the pointer to the object }
-            p1.resulttype:=p2.resulttype;
+            p1.resultdef:=p2.resultdef;
             p2.free;
             consume(_RKLAMMER);
           end;
@@ -494,8 +494,8 @@ implementation
         set_varstate(destppn,vs_written,[]);
         dec(parsing_para_level);
         { first param must be a string or dynamic array ...}
-        isarray:=is_dynamic_array(destppn.resulttype.def);
-        if not((destppn.resulttype.def.deftype=stringdef) or
+        isarray:=is_dynamic_array(destppn.resultdef);
+        if not((destppn.resultdef.deftype=stringdef) or
                isarray) then
          begin
            CGMessage(type_e_mismatch);
@@ -511,7 +511,7 @@ implementation
            else
             begin
               { check if the amount of dimensions is valid }
-              def := tarraydef(destppn.resulttype.def).elementtype.def;
+              def := tarraydef(destppn.resultdef).elementdef;
               counter:=dims;
               while counter > 1 do
                 begin
@@ -521,7 +521,7 @@ implementation
                       break;
                     end;
                   dec(counter);
-                  def := tarraydef(def).elementtype.def;
+                  def := tarraydef(def).elementdef;
                 end;
             end;
          end;
@@ -533,7 +533,7 @@ implementation
             newblock:=internalstatements(newstatement);
 
             { get temp for array of lengths }
-            temp := ctempcreatenode.create(sinttype,dims*sinttype.def.size,tt_persistent,false);
+            temp := ctempcreatenode.create(sinttype,dims*sinttype.size,tt_persistent,false);
             addstatement(newstatement,temp);
 
             { load array of lengths }
@@ -542,7 +542,7 @@ implementation
             while assigned(ppn.right) do
              begin
                addstatement(newstatement,cassignmentnode.create(
-                   ctemprefnode.create_offset(temp,counter*sinttype.def.size),
+                   ctemprefnode.create_offset(temp,counter*sinttype.size),
                    ppn.left));
                ppn.left:=nil;
                inc(counter);
@@ -557,7 +557,7 @@ implementation
                    ccallparanode.create(cordconstnode.create
                       (counter,s32inttype,true),
                    ccallparanode.create(caddrnode.create_internal
-                      (crttinode.create(tstoreddef(destppn.resulttype.def),initrtti)),
+                      (crttinode.create(tstoreddef(destppn.resultdef),initrtti)),
                    ccallparanode.create(ctypeconvnode.create_internal(destppn,voidpointertype),nil))));
             addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',npara));
             addstatement(newstatement,ctempdeletenode.create(temp));
@@ -569,7 +569,7 @@ implementation
          begin
             { we can reuse the supplied parameters }
             newblock:=ccallnode.createintern(
-               'fpc_'+tstringdef(destppn.resulttype.def).stringtypname+'_setlength',paras);
+               'fpc_'+tstringdef(destppn.resultdef).stringtypname+'_setlength',paras);
          end;
 
         result.free;
@@ -647,11 +647,11 @@ implementation
             end;
            { create call to fpc_finalize_array }
            npara:=ccallparanode.create(cordconstnode.create
-                     (destppn.left.resulttype.def.size,s32inttype,true),
+                     (destppn.left.resultdef.size,s32inttype,true),
                   ccallparanode.create(ctypeconvnode.create
                      (ppn.left,s32inttype),
                   ccallparanode.create(caddrnode.create_internal
-                     (crttinode.create(tstoreddef(destppn.left.resulttype.def),initrtti)),
+                     (crttinode.create(tstoreddef(destppn.left.resultdef),initrtti)),
                   ccallparanode.create(caddrnode.create_internal
                      (destppn.left),nil))));
            newblock:=ccallnode.createintern('fpc_finalize_array',npara);
@@ -701,7 +701,7 @@ implementation
            inc(counter);
            ppn:=tcallparanode(ppn.right);
          end;
-        paradef:=ppn.left.resulttype.def;
+        paradef:=ppn.left.resultdef;
         if is_ansistring(paradef) or
            (is_chararray(paradef) and
             (paradef.size>255)) or
@@ -744,10 +744,10 @@ implementation
             npara:=ccallparanode.create(highppn,
                    ccallparanode.create(lowppn,
                    ccallparanode.create(caddrnode.create_internal
-                      (crttinode.create(tstoreddef(ppn.left.resulttype.def),initrtti)),
+                      (crttinode.create(tstoreddef(ppn.left.resultdef),initrtti)),
                    ccallparanode.create
                       (ctypeconvnode.create_internal(ppn.left,voidpointertype),nil))));
-            copynode:=ccallnode.createinternres('fpc_dynarray_copy',npara,ppn.left.resulttype);
+            copynode:=ccallnode.createinternres('fpc_dynarray_copy',npara,ppn.left.resultdef);
 
             ppn.left:=nil;
             paras.free;

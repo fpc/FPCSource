@@ -39,15 +39,15 @@ interface
 
     { reads a string, file type or a type id and returns a name and }
     { tdef }
-    procedure single_type(var tt:ttype;isforwarddef:boolean);
+    procedure single_type(var def:tdef;isforwarddef:boolean);
 
-    procedure read_named_type(var tt:ttype;const name : stringid;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
-    procedure read_anon_type(var tt : ttype;parseprocvardir:boolean);
+    procedure read_named_type(var def:tdef;const name : stringid;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
+    procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
 
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
-    procedure id_type(var tt : ttype;isforwarddef:boolean);
+    procedure id_type(var def : tdef;isforwarddef:boolean);
 
 
 implementation
@@ -83,12 +83,12 @@ implementation
         generictypelist : TFPObjectList;
       begin
         { retrieve generic def that we are going to replace }
-        genericdef:=tstoreddef(pt1.resulttype.def);
-        pt1.resulttype.reset;
+        genericdef:=tstoreddef(pt1.resultdef);
+        pt1.resultdef:=nil;
         if not(df_generic in genericdef.defoptions) then
           begin
             Comment(V_Error,'Specialization is only supported for generic types');
-            pt1.resulttype:=generrortype;
+            pt1.resultdef:=generrordef;
             { recover }
             consume(_LSHARPBRACKET);
             repeat
@@ -118,7 +118,7 @@ implementation
         while assigned(sym) do
           begin
             if (sym.typ=typesym) and
-               (ttypesym(sym).restype.def.deftype=undefineddef) then
+               (ttypesym(sym).typedef.deftype=undefineddef) then
               begin
                 if not first then
                   begin
@@ -128,7 +128,7 @@ implementation
                 pt2:=factor(false);
                 if pt2.nodetype=typen then
                   begin
-                    generictype:=ttypesym.create(sym.realname,pt2.resulttype);
+                    generictype:=ttypesym.create(sym.realname,pt2.resultdef);
                     generictypelist.add(generictype);
                   end
                 else
@@ -146,7 +146,7 @@ implementation
             if not assigned(genericdef.generictokenbuf) then
               internalerror(200511171);
             current_scanner.startreplaytokens(genericdef.generictokenbuf);
-            read_named_type(pt1.resulttype,name,genericdef,generictypelist,false);
+            read_named_type(pt1.resultdef,name,genericdef,generictypelist,false);
             { Consume the semicolon if it is also recorded }
             try_to_consume(_SEMICOLON);
           end;
@@ -155,7 +155,7 @@ implementation
       end;
 
 
-    procedure id_type(var tt : ttype;isforwarddef:boolean);
+    procedure id_type(var def : tdef;isforwarddef:boolean);
     { reads a type definition }
     { to a appropriating tdef, s gets the name of   }
     { the type to allow name mangling          }
@@ -180,7 +180,7 @@ implementation
             )then
            begin
              consume(_ID);
-             tt.setdef(aktobjectdef);
+             def:=aktobjectdef;
              exit;
            end;
          { Use the special searchsym_type that ignores records,objects and
@@ -195,54 +195,54 @@ implementation
            table as forwarddef are not resolved directly }
          if assigned(srsym) and
             (srsym.typ=typesym) and
-            (ttypesym(srsym).restype.def.deftype=errordef) then
+            (ttypesym(srsym).typedef.deftype=errordef) then
           begin
             Message1(type_e_type_is_not_completly_defined,ttypesym(srsym).realname);
-            tt:=generrortype;
+            def:=generrordef;
             exit;
           end;
          { are we parsing a possible forward def ? }
          if isforwarddef and
             not(is_unit_specific) then
           begin
-            tt.setdef(tforwarddef.create(s,pos));
+            def:=tforwarddef.create(s,pos);
             exit;
           end;
          { unknown sym ? }
          if not assigned(srsym) then
           begin
             Message1(sym_e_id_not_found,sorg);
-            tt:=generrortype;
+            def:=generrordef;
             exit;
           end;
          { type sym ? }
          if (srsym.typ<>typesym) then
           begin
             Message(type_e_type_id_expected);
-            tt:=generrortype;
+            def:=generrordef;
             exit;
           end;
          { Give an error when referring to an errordef }
-         if (ttypesym(srsym).restype.def.deftype=errordef) then
+         if (ttypesym(srsym).typedef.deftype=errordef) then
           begin
             Message(sym_e_error_in_type_def);
-            tt:=generrortype;
+            def:=generrordef;
             exit;
           end;
-        tt.setdef(ttypesym(srsym).restype.def);
+        def:=ttypesym(srsym).typedef;
       end;
 
 
-    procedure single_type(var tt:ttype;isforwarddef:boolean);
+    procedure single_type(var def:tdef;isforwarddef:boolean);
        var
-         t2 : ttype;
+         t2 : tdef;
          again : boolean;
        begin
          repeat
            again:=false;
              case token of
                _STRING:
-                 string_dec(tt);
+                 string_dec(def);
 
                _FILE:
                  begin
@@ -250,10 +250,10 @@ implementation
                     if try_to_consume(_OF) then
                       begin
                          single_type(t2,false);
-                         tt.setdef(tfiledef.createtyped(t2));
+                         def:=tfiledef.createtyped(t2);
                       end
                     else
-                      tt:=cfiletype;
+                      def:=cfiletype;
                  end;
 
                _ID:
@@ -264,13 +264,13 @@ implementation
                        again:=true;
                      end
                    else
-                     id_type(tt,isforwarddef);
+                     id_type(def,isforwarddef);
                  end;
 
                else
                  begin
                    message(type_e_type_id_expected);
-                   tt:=generrortype;
+                   def:=generrordef;
                  end;
             end;
         until not again;
@@ -312,12 +312,11 @@ implementation
 
 
     { reads a type definition and returns a pointer to it }
-    procedure read_named_type(var tt : ttype;const name : stringid;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
+    procedure read_named_type(var def : tdef;const name : stringid;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
       var
         pt : tnode;
-        tt2 : ttype;
+        tt2 : tdef;
         aktenumdef : tenumdef;
-        ap : tarraydef;
         s : stringid;
         l,v : TConstExprInt;
         oldaktpackrecords : longint;
@@ -342,7 +341,7 @@ implementation
               )then
              begin
                consume(_ID);
-               tt.setdef(aktobjectdef);
+               def:=aktobjectdef;
                exit;
              end;
            { Generate a specialization? }
@@ -359,8 +358,8 @@ implementation
                  done when both are integer values, because typecasting
                  between -3200..3200 will result in a signed-unsigned
                  conflict and give a range check error (PFV) }
-               if not(is_integer(pt1.resulttype.def) and is_integer(pt2.resulttype.def)) then
-                 inserttypeconv(pt1,pt2.resulttype);
+               if not(is_integer(pt1.resultdef) and is_integer(pt2.resultdef)) then
+                 inserttypeconv(pt1,pt2.resultdef);
                { both must be evaluated to constants now }
                if (pt1.nodetype=ordconstn) and
                   (pt2.nodetype=ordconstn) then
@@ -373,18 +372,18 @@ implementation
                    else
                      begin
                        { All checks passed, create the new def }
-                       case pt1.resulttype.def.deftype of
+                       case pt1.resultdef.deftype of
                          enumdef :
-                           tt.setdef(tenumdef.create_subrange(tenumdef(pt1.resulttype.def),lv,hv));
+                           def:=tenumdef.create_subrange(tenumdef(pt1.resultdef),lv,hv);
                          orddef :
                            begin
-                             if is_char(pt1.resulttype.def) then
-                               tt.setdef(torddef.create(uchar,lv,hv))
+                             if is_char(pt1.resultdef) then
+                               def:=torddef.create(uchar,lv,hv)
                              else
-                               if is_boolean(pt1.resulttype.def) then
-                                 tt.setdef(torddef.create(bool8bit,lv,hv))
+                               if is_boolean(pt1.resultdef) then
+                                 def:=torddef.create(bool8bit,lv,hv)
                                else
-                                 tt.setdef(torddef.create(range_to_basetype(lv,hv),lv,hv));
+                                 def:=torddef.create(range_to_basetype(lv,hv),lv,hv);
                            end;
                        end;
                      end;
@@ -400,7 +399,7 @@ implementation
                  begin
                    if (block_type=bt_specialize) then
                      generate_specialization(pt1,name);
-                   tt:=ttypenode(pt1).resulttype;
+                   def:=ttypenode(pt1).resultdef;
                  end
                else
                  Message(sym_e_error_in_type_def);
@@ -415,22 +414,22 @@ implementation
           consume(_SET);
           consume(_OF);
           read_anon_type(tt2,true);
-          if assigned(tt2.def) then
+          if assigned(tt2) then
            begin
-             case tt2.def.deftype of
+             case tt2.deftype of
                { don't forget that min can be negativ  PM }
                enumdef :
-                 if tenumdef(tt2.def).min>=0 then
-                  // !! tt.setdef(tsetdef.create(tt2,tenumdef(tt2.def).min,tenumdef(tt2.def).max))
-                  tt.setdef(tsetdef.create(tt2,tenumdef(tt2.def).max))
+                 if tenumdef(tt2).min>=0 then
+                  // !! def:=tsetdef.create(tt2,tenumdef(tt2.def).min,tenumdef(tt2.def).max))
+                  def:=tsetdef.create(tt2,tenumdef(tt2).max)
                  else
                   Message(sym_e_ill_type_decl_set);
                orddef :
                  begin
-                   if (torddef(tt2.def).typ<>uvoid) and
-                      (torddef(tt2.def).low>=0) then
-                     // !! tt.setdef(tsetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
-                     tt.setdef(tsetdef.create(tt2,torddef(tt2.def).high))
+                   if (torddef(tt2).typ<>uvoid) and
+                      (torddef(tt2).low>=0) then
+                     // !! def:=tsetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
+                     def:=tsetdef.create(tt2,torddef(tt2).high)
                    else
                      Message(sym_e_ill_type_decl_set);
                  end;
@@ -439,7 +438,7 @@ implementation
              end;
            end
           else
-           tt:=generrortype;
+           def:=generrordef;
         end;
 
 
@@ -447,24 +446,25 @@ implementation
         var
           lowval,
           highval   : TConstExprInt;
-          arraytype : ttype;
-          ht        : ttype;
+          indexdef  : tdef;
+          hdef      : tdef;
+          arrdef    : tarraydef;
 
-          procedure setdefdecl(const t:ttype);
+          procedure setdefdecl(def:tdef);
           begin
-            case t.def.deftype of
+            case def.deftype of
               enumdef :
                 begin
-                  lowval:=tenumdef(t.def).min;
-                  highval:=tenumdef(t.def).max;
+                  lowval:=tenumdef(def).min;
+                  highval:=tenumdef(def).max;
                   if (m_fpc in aktmodeswitches) and
-                     (tenumdef(t.def).has_jumps) then
+                     (tenumdef(def).has_jumps) then
                    Message(type_e_array_index_enums_with_assign_not_possible);
-                  arraytype:=t;
+                  indexdef:=def;
                 end;
               orddef :
                 begin
-                  if torddef(t.def).typ in [uchar,
+                  if torddef(def).typ in [uchar,
                     u8bit,u16bit,
                     s8bit,s16bit,s32bit,
 {$ifdef cpu64bit}
@@ -473,12 +473,12 @@ implementation
                     bool8bit,bool16bit,bool32bit,bool64bit,
                     uwidechar] then
                     begin
-                       lowval:=torddef(t.def).low;
-                       highval:=torddef(t.def).high;
-                       arraytype:=t;
+                       lowval:=torddef(def).low;
+                       highval:=torddef(def).high;
+                       indexdef:=def;
                     end
                   else
-                    Message1(parser_e_type_cant_be_used_in_array_index,t.def.gettypename);
+                    Message1(parser_e_type_cant_be_used_in_array_index,def.GetTypeName);
                 end;
               else
                 Message(sym_e_error_in_type_def);
@@ -486,30 +486,29 @@ implementation
           end;
 
         begin
+           arrdef:=nil;
            consume(_ARRAY);
            { open array? }
-           if token=_LECKKLAMMER then
+           if try_to_consume(_LECKKLAMMER) then
              begin
-                consume(_LECKKLAMMER);
                 { defaults }
-                arraytype:=generrortype;
+                indexdef:=generrordef;
                 lowval:=low(aint);
                 highval:=high(aint);
-                tt.reset;
                 repeat
                   { read the expression and check it, check apart if the
                     declaration is an enum declaration because that needs to
                     be parsed by readtype (PFV) }
                   if token=_LKLAMMER then
                    begin
-                     read_anon_type(ht,true);
-                     setdefdecl(ht);
+                     read_anon_type(hdef,true);
+                     setdefdecl(hdef);
                    end
                   else
                    begin
                      pt:=expr;
                      if pt.nodetype=typen then
-                      setdefdecl(pt.resulttype)
+                      setdefdecl(pt.resultdef)
                      else
                        begin
                           if (pt.nodetype=rangen) then
@@ -521,8 +520,8 @@ implementation
                                   done when both are integer values, because typecasting
                                   between -3200..3200 will result in a signed-unsigned
                                   conflict and give a range check error (PFV) }
-                                if not(is_integer(trangenode(pt).left.resulttype.def) and is_integer(trangenode(pt).left.resulttype.def)) then
-                                  inserttypeconv(trangenode(pt).left,trangenode(pt).right.resulttype);
+                                if not(is_integer(trangenode(pt).left.resultdef) and is_integer(trangenode(pt).left.resultdef)) then
+                                  inserttypeconv(trangenode(pt).left,trangenode(pt).right.resultdef);
                                 lowval:=tordconstnode(trangenode(pt).left).value;
                                 highval:=tordconstnode(trangenode(pt).right).value;
                                 if highval<lowval then
@@ -537,10 +536,10 @@ implementation
                                     lowval :=0;
                                     highval:=0;
                                   end;
-                                if is_integer(trangenode(pt).left.resulttype.def) then
-                                  range_to_type(lowval,highval,arraytype)
+                                if is_integer(trangenode(pt).left.resultdef) then
+                                  range_to_type(lowval,highval,indexdef)
                                 else
-                                  arraytype:=trangenode(pt).left.resulttype;
+                                  indexdef:=trangenode(pt).left.resultdef;
                               end
                              else
                               Message(type_e_cant_eval_constant_expr);
@@ -551,19 +550,20 @@ implementation
                      pt.free;
                    end;
 
-                { create arraydef }
-                  if not assigned(tt.def) then
-                   begin
-                     ap:=tarraydef.create(lowval,highval,arraytype);
-                     tt.setdef(ap);
-                   end
+                  { if the array is already created add the new arrray
+                    as element of the existing array, otherwise create a new array }
+                  if assigned(arrdef) then
+                    begin
+                      arrdef.elementdef:=tarraydef.create(lowval,highval,indexdef);
+                      arrdef:=tarraydef(arrdef.elementdef);
+                    end
                   else
-                   begin
-                     ap.elementtype.setdef(tarraydef.create(lowval,highval,arraytype));
-                     ap:=tarraydef(ap.elementtype.def);
-                   end;
-                 if is_packed then
-                   include(ap.arrayoptions,ado_IsBitPacked);
+                    begin
+                      arrdef:=tarraydef.create(lowval,highval,indexdef);
+                      def:=arrdef;
+                    end;
+                  if is_packed then
+                    include(arrdef.arrayoptions,ado_IsBitPacked);
 
                   if token=_COMMA then
                     consume(_COMMA)
@@ -576,18 +576,18 @@ implementation
              begin
                 if is_packed then
                   Message(parser_e_packed_dynamic_open_array);
-                ap:=tarraydef.create(0,-1,s32inttype);
-                include(ap.arrayoptions,ado_IsDynamicArray);
-                tt.setdef(ap);
+                arrdef:=tarraydef.create(0,-1,s32inttype);
+                include(arrdef.arrayoptions,ado_IsDynamicArray);
+                def:=arrdef;
              end;
            consume(_OF);
            read_anon_type(tt2,true);
-           { if no error, set element type }
-           if assigned(ap) then
+           { set element type of the last array definition }
+           if assigned(arrdef) then
              begin
-               ap.setelementtype(tt2);
+               arrdef.elementdef:=tt2;
                if is_packed and
-                  tt2.def.needs_inittable then
+                  tt2.needs_inittable then
                  Message(type_e_no_packed_inittable);
              end;
         end;
@@ -601,11 +601,11 @@ implementation
         oldlocalswitches : tlocalswitches;
         bitpacking: boolean;
       begin
-         tt.reset;
+         def:=nil;
          case token of
             _STRING,_FILE:
               begin
-                single_type(tt,false);
+                single_type(def,false);
               end;
            _LKLAMMER:
               begin
@@ -637,12 +637,12 @@ implementation
                         begin
                           { we expect an integer or an enum of the
                             same type }
-                          if is_integer(p.resulttype.def) or
-                             is_char(p.resulttype.def) or
-                             equal_defs(p.resulttype.def,aktenumdef) then
+                          if is_integer(p.resultdef) or
+                             is_char(p.resultdef) or
+                             equal_defs(p.resultdef,aktenumdef) then
                            v:=tordconstnode(p).value
                           else
-                           IncompatibleTypes(p.resulttype.def,s32inttype.def);
+                           IncompatibleTypes(p.resultdef,s32inttype);
                         end
                        else
                         Message(parser_e_illegal_expression);
@@ -664,7 +664,7 @@ implementation
                   tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,l));
                   akttokenpos:=storepos;
                 until not try_to_consume(_COMMA);
-                tt.setdef(aktenumdef);
+                def:=aktenumdef;
                 consume(_RKLAMMER);
               end;
             _ARRAY:
@@ -679,11 +679,11 @@ implementation
               begin
                 consume(_CARET);
                 single_type(tt2,typecanbeforward);
-                tt.setdef(tpointerdef.create(tt2));
+                def:=tpointerdef.create(tt2);
               end;
             _RECORD:
               begin
-                tt.setdef(record_dec);
+                def:=record_dec;
               end;
             _PACKED,
             _BITPACKED:
@@ -705,9 +705,9 @@ implementation
                     else
                       aktpackrecords:=bit_alignment;
                     if token in [_CLASS,_OBJECT] then
-                      tt.setdef(object_dec(name,genericdef,genericlist,nil))
+                      def:=object_dec(name,genericdef,genericlist,nil)
                     else
-                      tt.setdef(record_dec);
+                      def:=record_dec;
                     aktpackrecords:=oldaktpackrecords;
                   end;
               end;
@@ -717,7 +717,7 @@ implementation
             _INTERFACE,
             _OBJECT:
               begin
-                tt.setdef(object_dec(name,genericdef,genericlist,nil));
+                def:=object_dec(name,genericdef,genericlist,nil);
               end;
             _PROCEDURE,
             _FUNCTION:
@@ -730,7 +730,7 @@ implementation
                 if is_func then
                  begin
                    consume(_COLON);
-                   single_type(pd.rettype,false);
+                   single_type(pd.returndef,false);
                  end;
                 if token=_OF then
                   begin
@@ -738,16 +738,16 @@ implementation
                     consume(_OBJECT);
                     include(pd.procoptions,po_methodpointer);
                   end;
-                tt.def:=pd;
+                def:=pd;
                 { possible proc directives }
                 if parseprocvardir then
                   begin
                     if check_proc_directive(true) then
                       begin
-                         newtype:=ttypesym.create('unnamed',tt);
+                         newtype:=ttypesym.create('unnamed',def);
                          parse_var_proc_directives(tsym(newtype));
-                         newtype.restype.def:=nil;
-                         tt.def.typesym:=nil;
+                         newtype.typedef:=nil;
+                         def.typesym:=nil;
                          newtype.free;
                       end;
                     { Add implicit hidden parameters and function result }
@@ -757,14 +757,14 @@ implementation
             else
               expr_type;
          end;
-         if tt.def=nil then
-          tt:=generrortype;
+         if def=nil then
+          def:=generrordef;
       end;
 
 
-    procedure read_anon_type(var tt : ttype;parseprocvardir:boolean);
+    procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
       begin
-        read_named_type(tt,'',nil,nil,parseprocvardir);
+        read_named_type(def,'',nil,nil,parseprocvardir);
       end;
 
 

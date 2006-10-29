@@ -30,7 +30,7 @@ interface
 
     type
       ti386moddivnode = class(tmoddivnode)
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
       end;
 
       ti386shlshrnode = class(tcgshlshrnode)
@@ -72,7 +72,7 @@ implementation
       end;
 
 
-   procedure ti386moddivnode.pass_2;
+   procedure ti386moddivnode.pass_generate_code;
       var
         hreg1,hreg2:Tregister;
         power:longint;
@@ -89,7 +89,7 @@ implementation
         if codegenerror then
           exit;
 
-        if is_64bitint(resulttype.def) then
+        if is_64bitint(resultdef) then
           { should be handled in pass_1 (JM) }
           internalerror(200109052);
         { put numerator in register }
@@ -104,7 +104,7 @@ implementation
                 { for signed numbers, the numerator must be adjusted before the
                   shift instruction, but not wih unsigned numbers! Otherwise,
                   "Cardinal($ffffffff) div 16" overflows! (JM) }
-                if is_signed(left.resulttype.def) Then
+                if is_signed(left.resultdef) Then
                   begin
                     if (aktoptimizecputype <> cpu_386) and
                        not(cs_opt_size in aktoptimizerswitches) then
@@ -143,7 +143,7 @@ implementation
               end
             else
               begin
-                if is_signed(left.resulttype.def) then
+                if is_signed(left.resultdef) then
                   begin
                     e:=tordconstnode(right).value;
                     d:=abs(e);
@@ -318,13 +318,13 @@ implementation
             emit_reg_reg(A_MOV,S_L,hreg1,NR_EAX);
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
             {Sign extension depends on the left type.}
-            if torddef(left.resulttype.def).typ=u32bit then
+            if torddef(left.resultdef).typ=u32bit then
               emit_reg_reg(A_XOR,S_L,NR_EDX,NR_EDX)
             else
               emit_none(A_CDQ,S_NO);
 
             {Division depends on the right type.}
-            if Torddef(right.resulttype.def).typ=u32bit then
+            if Torddef(right.resultdef).typ=u32bit then
               op:=A_DIV
             else
               op:=A_IDIV;

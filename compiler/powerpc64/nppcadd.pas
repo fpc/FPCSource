@@ -30,7 +30,7 @@ uses
 
 type
   tppcaddnode = class(tgenppcaddnode)
-    procedure pass_2; override;
+    procedure pass_generate_code override;
   private
     procedure emit_compare(unsigned: boolean); override;
   end;
@@ -72,7 +72,7 @@ begin
   if (left.location.loc = LOC_CONSTANT) then
     swapleftright;
 
-  opsize := def_cgsize(left.resulttype.def);
+  opsize := def_cgsize(left.resultdef);
 
   {$IFDEF EXTDEBUG}
   current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('tppcaddnode.emit_compare ' + inttostr(ord(opsize)) + ' ' + inttostr(tcgsize2size[opsize]))));
@@ -96,7 +96,7 @@ begin
       opsize := OS_32
     else
       opsize := OS_S32;
-    cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(left.resulttype.def), opsize, 
+    cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(left.resultdef), opsize, 
       left.location.register, left.location.register); 
   end;
 
@@ -137,7 +137,7 @@ end;
                                 pass_2
 *****************************************************************************}
 
-procedure tppcaddnode.pass_2;
+procedure tppcaddnode.pass_generate_code;
 { is also being used for xor, and "mul", "sub, or and comparative }
 { operators                                                }
 var
@@ -153,12 +153,12 @@ var
 begin
   { to make it more readable, string and set (not smallset!) have their
     own procedures }
-  case left.resulttype.def.deftype of
+  case left.resultdef.deftype of
     orddef:
       begin
         { handling boolean expressions }
-        if is_boolean(left.resulttype.def) and
-          is_boolean(right.resulttype.def) then
+        if is_boolean(left.resultdef) and
+          is_boolean(right.resultdef) then
         begin
           second_addboolean;
           exit;
@@ -172,7 +172,7 @@ begin
     setdef:
       begin
         { normalsets are already handled in pass1 }
-        if (tsetdef(left.resulttype.def).settype <> smallset) then
+        if (tsetdef(left.resultdef).settype <> smallset) then
           internalerror(200109041);
         second_addsmallset;
         exit;
@@ -180,7 +180,7 @@ begin
     arraydef:
       begin
 {$IFDEF SUPPORT_MMX}
-        if is_mmx_able_array(left.resulttype.def) then
+        if is_mmx_able_array(left.resultdef) then
         begin
           second_addmmx;
           exit;
@@ -196,8 +196,8 @@ begin
 
   { defaults }
   cmpop := nodetype in [ltn, lten, gtn, gten, equaln, unequaln];
-  unsigned := not (is_signed(left.resulttype.def)) or
-    not (is_signed(right.resulttype.def));
+  unsigned := not (is_signed(left.resultdef)) or
+    not (is_signed(right.resultdef));
 
   pass_left_and_right;
 
@@ -210,7 +210,7 @@ begin
 
   { set result location }
   if not cmpop then
-    location_reset(location, LOC_REGISTER, def_cgsize(resulttype.def))
+    location_reset(location, LOC_REGISTER, def_cgsize(resultdef))
   else
     location_reset(location, LOC_FLAGS, OS_NO);
 
@@ -287,7 +287,7 @@ begin
   else
     // overflow checking is on and we have an addn, subn or muln
   begin
-    if is_signed(resulttype.def) then
+    if is_signed(resultdef) then
     begin
       case nodetype of
         addn:
@@ -305,7 +305,7 @@ begin
       end;
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op, location.register,
         left.location.register, right.location.register));
-      cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resulttype.def);
+      cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resultdef);
     end
     else
     begin
@@ -316,7 +316,7 @@ begin
               left.location.register, right.location.register));
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLD, location.register,
               left.location.register));
-            cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resulttype.def);
+            cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resultdef);
           end;
         subn:
           begin
@@ -324,7 +324,7 @@ begin
               left.location.register, right.location.register));
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLD,
               left.location.register, location.register));
-            cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resulttype.def);
+            cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resultdef);
           end;
         muln:
           begin

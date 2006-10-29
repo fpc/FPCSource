@@ -74,14 +74,14 @@ implementation
         fname: string[19];
       begin
         { converting a 64bit integer to a float requires a helper }
-        if is_64bitint(left.resulttype.def) or
-          is_currency(left.resulttype.def) then
+        if is_64bitint(left.resultdef) or
+          is_currency(left.resultdef) then
           begin
             { hack to avoid double division by 10000, as it's
-              already done by resulttypepass.resulttype_int_to_real }
-            if is_currency(left.resulttype.def) then
-              left.resulttype := s64inttype;
-            if is_signed(left.resulttype.def) then
+              already done by typecheckpass.resultdef_int_to_real }
+            if is_currency(left.resultdef) then
+              left.resultdef := s64inttype;
+            if is_signed(left.resultdef) then
               fname := 'fpc_int64_to_double'
             else
               fname := 'fpc_qword_to_double';
@@ -94,7 +94,7 @@ implementation
         else
           { other integers are supposed to be 32 bit }
           begin
-            if is_signed(left.resulttype.def) then
+            if is_signed(left.resultdef) then
               inserttypeconv(left,s32inttype)
             else
               inserttypeconv(left,u32inttype);
@@ -120,7 +120,7 @@ implementation
           cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F32,left.location.reference,location.register);
           tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
           { Convert value in fpu register from integer to float }
-          case tfloatdef(resulttype.def).typ of
+          case tfloatdef(resultdef).typ of
             s32real:
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FiTOs,location.register,location.register));
             s64real:
@@ -138,8 +138,8 @@ implementation
         l1,l2 : tasmlabel;
 
       begin
-        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-        if is_signed(left.resulttype.def) then
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        if is_signed(left.resultdef) then
           begin
             location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
             loadsigned;
@@ -163,7 +163,7 @@ implementation
             current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(A_CMP,hregister,NR_G0));
             cg.a_jmp_flags(current_asmdata.CurrAsmList,F_GE,l2);
 
-            case tfloatdef(resulttype.def).typ of
+            case tfloatdef(resultdef).typ of
                { converting dword to s64real first and cut off at the end avoids precision loss }
                s32real,
                s64real:
@@ -180,7 +180,7 @@ implementation
                    cg.a_label(current_asmdata.CurrAsmList,l2);
 
                    { cut off if we should convert to single }
-                   if tfloatdef(resulttype.def).typ=s32real then
+                   if tfloatdef(resultdef).typ=s32real then
                      begin
                        hregister:=location.register;
                        location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
@@ -208,10 +208,10 @@ implementation
       var
         op : tasmop;
       begin
-        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
         { Convert value in fpu register from integer to float }
-        op:=conv_op[tfloatdef(resulttype.def).typ,tfloatdef(left.resulttype.def).typ];
+        op:=conv_op[tfloatdef(resultdef).typ,tfloatdef(left.resultdef).typ];
         if op=A_NONE then
           internalerror(200401121);
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
@@ -237,7 +237,7 @@ implementation
         { byte(boolean) or word(wordbool) or longint(longbool) must }
         { be accepted for var parameters                            }
         if (nf_explicit in flags)and
-           (left.resulttype.def.size=resulttype.def.size)and
+           (left.resultdef.size=resultdef.size)and
            (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
           begin
             location_copy(location,left.location);
@@ -245,8 +245,8 @@ implementation
             current_procinfo.CurrFalseLabel:=oldFalseLabel;
             exit;
           end;
-        location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
-        opsize:=def_cgsize(left.resulttype.def);
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        opsize:=def_cgsize(left.resultdef);
         case left.location.loc of
           LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER:
             begin

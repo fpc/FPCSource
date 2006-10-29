@@ -88,7 +88,7 @@ implementation
                 end;
               LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE :
                 begin
-                  location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),true);
+                  location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,0));
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_EQ;
@@ -106,12 +106,12 @@ implementation
     procedure tarmunaryminusnode.second_float;
       begin
         secondpass(left);
-        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
         location:=left.location;
         current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_const(A_RSF,
           location.register,left.location.register,0),
-          cgsize2fpuoppostfix[def_cgsize(resulttype.def)]));
+          cgsize2fpuoppostfix[def_cgsize(resultdef)]));
       end;
 
 

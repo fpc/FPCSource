@@ -31,7 +31,7 @@ interface
 
     type
        tcgsetelementnode = class(tsetelementnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
 
@@ -43,7 +43,7 @@ interface
 
        tcginnode = class(tinnode)
           function pass_1: tnode;override;
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        protected
           {# Routine to test bitnumber in bitnumber register on value
              in value register. The __result register should be set
@@ -67,7 +67,7 @@ interface
             80x86 version, this version does not emit jump tables,
             because of portability problems.
           }
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
 
         protected
           with_sign : boolean;
@@ -108,7 +108,7 @@ implementation
                           TCGSETELEMENTNODE
 *****************************************************************************}
 
-    procedure tcgsetelementnode.pass_2;
+    procedure tcgsetelementnode.pass_generate_code;
        begin
        { load first value in 32bit register }
          secondpass(left);
@@ -232,9 +232,9 @@ implementation
       begin
          { check if we can use smallset operation using btl which is limited
            to 32 bits, the left side may also not contain higher values !! }
-         use_small:=(tsetdef(right.resulttype.def).settype=smallset) and
-                    ((left.resulttype.def.deftype=orddef) and (torddef(left.resulttype.def).high<=32) or
-                     (left.resulttype.def.deftype=enumdef) and (tenumdef(left.resulttype.def).max<=32));
+         use_small:=(tsetdef(right.resultdef).settype=smallset) and
+                    ((left.resultdef.deftype=orddef) and (torddef(left.resultdef).high<=32) or
+                     (left.resultdef.deftype=enumdef) and (tenumdef(left.resultdef).max<=32));
 
          { Can we generate jumps? Possible for all types of sets }
          checkgenjumps:=(right.nodetype=setconstn) and
@@ -254,7 +254,7 @@ implementation
           expectloc := LOC_JUMP;
       end;
 
-    procedure tcginnode.pass_2;
+    procedure tcginnode.pass_generate_code;
        var
          adjustment : aint;
          href : treference;
@@ -268,7 +268,7 @@ implementation
 
        begin
          { We check first if we can generate jumps, this can be done
-           because the resulttype.def is already set in firstpass }
+           because the resultdef is already set in firstpass }
 
          genjumps := checkgenjumps(setparts,numparts,use_small);
 
@@ -364,7 +364,7 @@ implementation
          {*****************************************************************}
           begin
             { location is always LOC_REGISTER }
-            location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 
             { We will now generated code to check the set itself, no jmps,
               handle smallsets separate, because it allows faster checks }
@@ -532,7 +532,7 @@ implementation
            if assigned(t^.less) then
              genitem(t^.less);
            { do we need to test the first value? }
-           if first and (t^._low>get_min_value(left.resulttype.def)) then
+           if first and (t^._low>get_min_value(left.resultdef)) then
              cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(t^._low),hregister,elselabel);
            if t^._low=t^._high then
              begin
@@ -553,7 +553,7 @@ implementation
                 if first then
                   begin
                      { have we to ajust the first value ? }
-                     if (t^._low>get_min_value(left.resulttype.def)) then
+                     if (t^._low>get_min_value(left.resultdef)) then
                        gensub(aint(t^._low));
                   end
                 else
@@ -681,7 +681,7 @@ implementation
       end;
 
 
-    procedure tcgcasenode.pass_2;
+    procedure tcgcasenode.pass_generate_code;
       var
          oldflowcontrol: tflowcontrol;
          i : longint;
@@ -704,7 +704,7 @@ implementation
          for i:=0 to blocks.count-1 do
            current_asmdata.getjumplabel(pcaseblock(blocks[i])^.blocklabel);
 
-         with_sign:=is_signed(left.resulttype.def);
+         with_sign:=is_signed(left.resultdef);
          if with_sign then
            begin
               jmp_gt:=OC_GT;
@@ -730,7 +730,7 @@ implementation
           end;
          secondpass(left);
          { determines the size of the operand }
-         opsize:=def_cgsize(left.resulttype.def);
+         opsize:=def_cgsize(left.resultdef);
          { copy the case expression to a register }
          location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
 {$ifndef cpu64bit}
@@ -777,7 +777,7 @@ implementation
                    max_label:=case_get_max(labels);
                    labelcnt:=case_count_labels(labels);
                    { can we omit the range check of the jump table ? }
-                   getrange(left.resulttype.def,lv,hv);
+                   getrange(left.resultdef,lv,hv);
                    jumptable_no_range:=(lv=min_label) and (hv=max_label);
                    { hack a little bit, because the range can be greater }
                    { than the positive range of a aint            }

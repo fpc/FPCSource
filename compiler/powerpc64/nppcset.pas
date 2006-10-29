@@ -159,7 +159,7 @@ var
     if assigned(t^.less) then
       genitem(t^.less);
     { need we to test the first value }
-    if first and (t^._low > get_min_value(left.resulttype.def)) then begin
+    if first and (t^._low > get_min_value(left.resultdef)) then begin
       cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_INT, jmp_lt, aword(t^._low),
         hregister, elselabel);
     end;
@@ -178,7 +178,7 @@ var
       { ELSE-label                                }
       if first then begin
         { have we to ajust the first value ? }
-        if (t^._low > get_min_value(left.resulttype.def)) then
+        if (t^._low > get_min_value(left.resultdef)) then
           gensub(aint(t^._low));
       end else begin
         { if there is no unused label between the last and the }

@@ -241,7 +241,7 @@ unit nx86add;
 {$endif x86_64}
       begin
         if (right.location.loc in [LOC_CSUBSETREG,LOC_SUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
-          location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resulttype.def),true);
+          location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resultdef),true);
         { left must be a register }
         case right.location.loc of
           LOC_REGISTER,
@@ -445,8 +445,8 @@ unit nx86add;
         pass_left_right;
 
         cmpop:=false;
-        mmxbase:=mmx_type(left.resulttype.def);
-        location_reset(location,LOC_MMXREGISTER,def_cgsize(resulttype.def));
+        mmxbase:=mmx_type(left.resultdef);
+        location_reset(location,LOC_MMXREGISTER,def_cgsize(resultdef));
         case nodetype of
           addn :
             begin
@@ -712,7 +712,7 @@ unit nx86add;
             internalerror(200312231);
         end;
 
-        location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
+        location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
         { we can use only right as left operand if the operation is commutative }
         if (right.location.loc=LOC_MMREGISTER) and (op in [OP_ADD,OP_MUL]) then
           begin
@@ -750,15 +750,15 @@ unit nx86add;
       var
         op : tasmop;
       begin
-        if is_single(left.resulttype.def) then
+        if is_single(left.resultdef) then
           op:=A_COMISS
-        else if is_double(left.resulttype.def) then
+        else if is_double(left.resultdef) then
           op:=A_COMISD
         else
           internalerror(200402222);
         pass_left_right;
 
-        location_reset(location,LOC_FLAGS,def_cgsize(resulttype.def));
+        location_reset(location,LOC_FLAGS,def_cgsize(resultdef));
         { we can use only right as left operand if the operation is commutative }
         if (right.location.loc=LOC_MMREGISTER) then
           begin
@@ -832,21 +832,21 @@ unit nx86add;
             internalerror(200610071);
         end;
 
-        if fits_in_mm_register(left.resulttype.def) then
+        if fits_in_mm_register(left.resultdef) then
           begin
-            location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
+            location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
             { we can use only right as left operand if the operation is commutative }
             if (right.location.loc=LOC_MMREGISTER) and (op in [OP_ADD,OP_MUL]) then
               begin
                 location.register:=right.location.register;
-                cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,op,tfloat2tcgsize[tfloatdef(left.resulttype.def).typ],left.location,location.register,nil);
+                cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,op,tfloat2tcgsize[tfloatdef(left.resultdef).typ],left.location,location.register,nil);
               end
             else
               begin
                 location_force_mmreg(current_asmdata.CurrAsmList,left.location,false);
                 location.register:=left.location.register;
                 cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,op,
-                  tfloat2tcgsize[tfloatdef(tarraydef(left.resulttype.def).elementtype.def).typ],right.location,location.register,nil);
+                  tfloat2tcgsize[tfloatdef(tarraydef(left.resultdef).elementdef).typ],right.location,location.register,nil);
               end;
           end
         else
@@ -861,7 +861,7 @@ unit nx86add;
       var
         op : TAsmOp;
       begin
-        if use_sse(resulttype.def) then
+        if use_sse(resultdef) then
           begin
             second_addfloatsse;
             exit;
@@ -896,7 +896,7 @@ unit nx86add;
         emit_reg_reg(op,S_NO,NR_ST,NR_ST1);
         tcgx86(cg).dec_fpu_stack;
 
-        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location.register:=NR_ST;
       end;
 
@@ -905,7 +905,7 @@ unit nx86add;
       var
         resflags   : tresflags;
       begin
-        if use_sse(left.resulttype.def) or use_sse(right.resulttype.def) then
+        if use_sse(left.resultdef) or use_sse(right.resultdef) then
           begin
             second_cmpfloatsse;
             exit;
@@ -1022,8 +1022,8 @@ unit nx86add;
       begin
          { filter unsigned MUL opcode, which requires special handling }
          if (nodetype=muln) and
-            (not(is_signed(left.resulttype.def)) or
-             not(is_signed(right.resulttype.def))) then
+            (not(is_signed(left.resultdef)) or
+             not(is_signed(right.resultdef))) then
            begin
              second_mul;
              exit;
@@ -1038,9 +1038,9 @@ unit nx86add;
          opsize : tcgsize;
          unsigned : boolean;
       begin
-         unsigned:=not(is_signed(left.resulttype.def)) or
-                   not(is_signed(right.resulttype.def));
-         opsize:=def_cgsize(left.resulttype.def);
+         unsigned:=not(is_signed(left.resultdef)) or
+                   not(is_signed(right.resultdef));
+         opsize:=def_cgsize(left.resultdef);
 
          pass_left_right;
 

@@ -45,7 +45,7 @@ interface
 
        pcaseblock = ^tcaseblock;
        tcaseblock = record
-          { label (only used in pass_2) }
+          { label (only used in pass_generate_code) }
           blocklabel : tasmlabel;
           { instructions }
           statement  : tnode;
@@ -53,21 +53,21 @@ interface
 
        tsetelementnode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
        end;
        tsetelementnodeclass = class of tsetelementnode;
 
        tinnode = class(tbinopnode)
           constructor create(l,r : tnode);virtual;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
        end;
        tinnodeclass = class of tinnode;
 
        trangenode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
        end;
        trangenodeclass = class of trangenode;
@@ -82,9 +82,9 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
           procedure addlabel(blockid:longint;l,h : TConstExprInt);
@@ -128,17 +128,17 @@ implementation
       end;
 
 
-    function tsetelementnode.det_resulttype:tnode;
+    function tsetelementnode.pass_typecheck:tnode;
       begin
          result:=nil;
-         resulttypepass(left);
+         typecheckpass(left);
          if assigned(right) then
-          resulttypepass(right);
+          typecheckpass(right);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
           exit;
 
-         resulttype:=left.resulttype;
+         resultdef:=left.resultdef;
       end;
 
 
@@ -167,7 +167,7 @@ implementation
       end;
 
 
-    function tinnode.det_resulttype:tnode;
+    function tinnode.pass_typecheck:tnode;
 
       var
         t : tnode;
@@ -180,10 +180,10 @@ implementation
           i : longint;
         begin
           new(pcs);
-          case psd.elementtype.def.deftype of
+          case psd.elementdef.deftype of
             enumdef :
               begin
-                pes:=tenumsym(tenumdef(psd.elementtype.def).firstenum);
+                pes:=tenumsym(tenumdef(psd.elementdef).firstenum);
                 while assigned(pes) do
                   begin
                     include(pcs^,pes.value);
@@ -192,7 +192,7 @@ implementation
               end;
             orddef :
               begin
-                for i:=torddef(psd.elementtype.def).low to torddef(psd.elementtype.def).high do
+                for i:=torddef(psd.elementdef).low to torddef(psd.elementdef).high do
                   include(pcs^,i);
               end;
           end;
@@ -201,14 +201,14 @@ implementation
 
       begin
          result:=nil;
-         resulttype:=booltype;
-         resulttypepass(right);
+         resultdef:=booltype;
+         typecheckpass(right);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
          if codegenerror then
           exit;
 
          { Convert array constructor first to set }
-         if is_array_constructor(right.resulttype.def) then
+         if is_array_constructor(right.resultdef) then
           begin
             arrayconstructor_to_set(right);
             firstpass(right);
@@ -216,25 +216,25 @@ implementation
              exit;
           end;
 
-         if right.resulttype.def.deftype<>setdef then
+         if right.resultdef.deftype<>setdef then
            CGMessage(sym_e_set_expected);
 
          if (right.nodetype=typen) then
            begin
              { we need to create a setconstn }
-             pst:=createsetconst(tsetdef(ttypenode(right).resulttype.def));
-             t:=csetconstnode.create(pst,ttypenode(right).resulttype);
+             pst:=createsetconst(tsetdef(ttypenode(right).resultdef));
+             t:=csetconstnode.create(pst,ttypenode(right).resultdef);
              dispose(pst);
              right.free;
              right:=t;
            end;
 
-         resulttypepass(left);
+         typecheckpass(left);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
 
-         if not assigned(left.resulttype.def) then
+         if not assigned(left.resultdef) then
            internalerror(20021126);
 
          if (m_fpc in aktmodeswitches) then
@@ -243,35 +243,35 @@ implementation
                elements with the in operator.
              }
              if  (
-                   (left.resulttype.def.deftype = orddef) and not
-                   (torddef(left.resulttype.def).typ in [s8bit,u8bit,uchar,bool8bit])
+                   (left.resultdef.deftype = orddef) and not
+                   (torddef(left.resultdef).typ in [s8bit,u8bit,uchar,bool8bit])
                  )
                 or
                  (
-                   (left.resulttype.def.deftype = enumdef) and
-                   (tenumdef(left.resulttype.def).maxval > 255)
+                   (left.resultdef.deftype = enumdef) and
+                   (tenumdef(left.resultdef).maxval > 255)
                  )
               then
                  CGMessage(type_h_in_range_check);
 
              { type conversion/check }
-             if assigned(tsetdef(right.resulttype.def).elementtype.def) then
-               inserttypeconv(left,tsetdef(right.resulttype.def).elementtype);
+             if assigned(tsetdef(right.resultdef).elementdef) then
+               inserttypeconv(left,tsetdef(right.resultdef).elementdef);
            end
          else
            begin
              { insert explicit type conversion/check }
-             if assigned(tsetdef(right.resulttype.def).elementtype.def) then
-               inserttypeconv_internal(left,tsetdef(right.resulttype.def).elementtype);
+             if assigned(tsetdef(right.resultdef).elementdef) then
+               inserttypeconv_internal(left,tsetdef(right.resultdef).elementdef);
            end;
 
          { empty set then return false }
-         if not assigned(tsetdef(right.resulttype.def).elementtype.def) or
+         if not assigned(tsetdef(right.resultdef).elementdef) or
             ((right.nodetype = setconstn) and
              (tnormalset(tsetconstnode(right).value_set^) = [])) then
           begin
             t:=cordconstnode.create(0,booltype,false);
-            resulttypepass(t);
+            typecheckpass(t);
             result:=t;
             exit;
           end;
@@ -281,7 +281,7 @@ implementation
           begin
             t:=cordconstnode.create(byte(tordconstnode(left).value in Tsetconstnode(right).value_set^),
                booltype,true);
-            resulttypepass(t);
+            typecheckpass(t);
             result:=t;
             exit;
           end;
@@ -304,7 +304,7 @@ implementation
 
          left_right_max;
 
-         if tsetdef(right.resulttype.def).settype<>smallset then
+         if tsetdef(right.resultdef).settype<>smallset then
            begin
              if registersint < 3 then
                registersint := 3;
@@ -331,18 +331,18 @@ implementation
       end;
 
 
-    function trangenode.det_resulttype : tnode;
+    function trangenode.pass_typecheck : tnode;
       begin
          result:=nil;
-         resulttypepass(left);
-         resulttypepass(right);
+         typecheckpass(left);
+         typecheckpass(right);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
          { both types must be compatible }
-         if compare_defs(left.resulttype.def,right.resulttype.def,left.nodetype)=te_incompatible then
-           IncompatibleTypes(left.resulttype.def,right.resulttype.def);
+         if compare_defs(left.resultdef,right.resultdef,left.nodetype)=te_incompatible then
+           IncompatibleTypes(left.resultdef,right.resultdef);
          { Check if only when its a constant set }
          if (left.nodetype=ordconstn) and (right.nodetype=ordconstn) then
           begin
@@ -351,7 +351,7 @@ implementation
                ((tordconstnode(left).value<0) or (tordconstnode(right).value>=0)) then
               CGMessage(parser_e_upper_lower_than_lower);
           end;
-        resulttype:=left.resulttype;
+        resultdef:=left.resultdef;
       end;
 
 
@@ -562,10 +562,10 @@ implementation
       end;
 
 
-    function tcasenode.det_resulttype : tnode;
+    function tcasenode.pass_typecheck : tnode;
       begin
         result:=nil;
-        resulttype:=voidtype;
+        resultdef:=voidtype;
       end;
 
 
@@ -640,15 +640,15 @@ implementation
       end;
 
 
-    function tcasenode._getcopy : tnode;
+    function tcasenode.dogetcopy : tnode;
 
       var
          n : tcasenode;
          i : longint;
       begin
-         n:=tcasenode(inherited _getcopy);
+         n:=tcasenode(inherited dogetcopy);
          if assigned(elseblock) then
-           n.elseblock:=elseblock._getcopy
+           n.elseblock:=elseblock.dogetcopy
          else
            n.elseblock:=nil;
          if assigned(labels) then
@@ -662,12 +662,12 @@ implementation
                begin
                  if not assigned(blocks[i]) then
                    internalerror(200411302);
-                 n.addblock(i,pcaseblock(blocks[i])^.statement._getcopy);
+                 n.addblock(i,pcaseblock(blocks[i])^.statement.dogetcopy);
                end;
            end
          else
            n.labels:=nil;
-         _getcopy:=n;
+         dogetcopy:=n;
       end;
 
     procedure tcasenode.insertintolist(l : tnodelist);

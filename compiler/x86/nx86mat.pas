@@ -69,9 +69,9 @@ interface
          if codegenerror then
            exit;
 
-         if (left.resulttype.def.deftype=floatdef) then
+         if (left.resultdef.deftype=floatdef) then
            begin
-             if use_sse(left.resulttype.def) then
+             if use_sse(left.resultdef) then
                begin
                  if (registersmm < 1) then
                    registersmm := 1;
@@ -87,7 +87,7 @@ interface
 {$ifdef SUPPORT_MMX}
          else
            if (cs_mmx in aktlocalswitches) and
-              is_mmx_able_array(left.resulttype.def) then
+              is_mmx_able_array(left.resultdef) then
              begin
                registersint:=left.registersint;
                registersfpu:=left.registersfpu;
@@ -132,7 +132,7 @@ interface
             internalerror(200203225);
         end;
         if cs_mmx_saturation in aktlocalswitches then
-          case mmx_type(resulttype.def) of
+          case mmx_type(resultdef) of
              mmxs8bit:
                op:=A_PSUBSB;
              mmxu8bit:
@@ -143,7 +143,7 @@ interface
                op:=A_PSUBUSW;
           end
         else
-          case mmx_type(resulttype.def) of
+          case mmx_type(resultdef) of
              mmxs8bit,mmxu8bit:
                op:=A_PSUBB;
              mmxs16bit,mmxu16bit,mmxfixed16:
@@ -168,17 +168,17 @@ interface
         if expectloc=LOC_MMREGISTER then
           begin
             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
-            location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
+            location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
 
             { make life of register allocator easier }
-            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resulttype.def));
-            cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,def_cgsize(resulttype.def),def_cgsize(resulttype.def),left.location.register,location.register,mms_movescalar);
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+            cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),left.location.register,location.register,mms_movescalar);
 
-            reg:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resulttype.def));
+            reg:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
 
             current_asmdata.getdatalabel(l1);
             current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
-            case def_cgsize(resulttype.def) of
+            case def_cgsize(resultdef) of
               OS_F32:
                 current_asmdata.asmlists[al_typedconsts].concat(tai_const.create_32bit(longint(1 shl 31)));
               OS_F64:
@@ -191,20 +191,20 @@ interface
             end;
 
             reference_reset_symbol(href,l1,0);
-            cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,def_cgsize(resulttype.def),def_cgsize(resulttype.def),href,reg,mms_movescalar);
+            cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),href,reg,mms_movescalar);
 
             cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,reg,location.register,nil);
           end
         else
           begin
-            location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+            location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
             case left.location.loc of
               LOC_REFERENCE,
               LOC_CREFERENCE:
                 begin
                   location.register:=NR_ST;
                   cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                     def_cgsize(left.resulttype.def),
+                     def_cgsize(left.resultdef),
                      left.location.reference,location.register);
                   emit_none(A_FCHS,S_NO);
                 end;
@@ -232,7 +232,7 @@ interface
          hl : tasmlabel;
          opsize : tcgsize;
       begin
-        opsize:=def_cgsize(resulttype.def);
+        opsize:=def_cgsize(resultdef);
 
         if left.expectloc=LOC_JUMP then
          begin

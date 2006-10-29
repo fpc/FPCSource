@@ -30,7 +30,7 @@ interface
     { this procedure reads typed constants }
     { sym is only needed for ansi strings  }
     { the assembler label is in the middle (PM) }
-    procedure readtypedconst(list:tasmlist;const t:ttype;sym : ttypedconstsym;writable : boolean);
+    procedure readtypedconst(list:tasmlist;def:tdef;sym : ttypedconstsym;writable : boolean);
 
 implementation
 
@@ -52,7 +52,7 @@ implementation
 {$maxfpuregisters 0}
 
     { this procedure reads typed constants }
-    procedure readtypedconst(list:tasmlist;const t:ttype;sym : ttypedconstsym;writable : boolean);
+    procedure readtypedconst(list:tasmlist;def:tdef;sym : ttypedconstsym;writable : boolean);
       label
          myexit;
       type
@@ -103,11 +103,11 @@ implementation
          block_type:=bt_const;
          datalist:=tasmlist.create;
 
-         case t.def.deftype of
+         case def.deftype of
             orddef:
               begin
                  p:=comp_expr(true);
-                 case torddef(t.def).typ of
+                 case torddef(def).typ of
                     bool8bit :
                       begin
                          if is_constboolnode(p) then
@@ -158,7 +158,7 @@ implementation
                          if is_constintnode(p) then
                            begin
                               datalist.concat(Tai_const.Create_8bit(byte(tordconstnode(p).value)));
-                              check_range(torddef(t.def));
+                              check_range(torddef(def));
                            end
                          else
                            Message(parser_e_illegal_expression);
@@ -169,7 +169,7 @@ implementation
                          if is_constintnode(p) then
                            begin
                              datalist.concat(Tai_const.Create_16bit(word(tordconstnode(p).value)));
-                             check_range(torddef(t.def));
+                             check_range(torddef(def));
                            end
                          else
                            Message(parser_e_illegal_expression);
@@ -180,8 +180,8 @@ implementation
                          if is_constintnode(p) then
                            begin
                               datalist.concat(Tai_const.Create_32bit(longint(tordconstnode(p).value)));
-                              if torddef(t.def).typ<>u32bit then
-                               check_range(torddef(t.def));
+                              if torddef(def).typ<>u32bit then
+                               check_range(torddef(def));
                            end
                          else
                            Message(parser_e_illegal_expression);
@@ -193,7 +193,7 @@ implementation
                          if is_constintnode(p) then
                            intvalue := tordconstnode(p).value
                          else if is_constrealnode(p) and
-                                 (torddef(t.def).typ=scurrency)
+                                 (torddef(def).typ=scurrency)
                            { allow bootstrapping }
                            then
                              begin
@@ -221,7 +221,7 @@ implementation
               else
                 Message(parser_e_illegal_expression);
 
-              case tfloatdef(t.def).typ of
+              case tfloatdef(def).typ of
                  s32real :
                    datalist.concat(Tai_real_32bit.Create(ts32real(value)));
                  s64real :
@@ -251,12 +251,12 @@ implementation
               p:=comp_expr(true);
               case p.nodetype of
                  loadvmtaddrn:
-                   with Tclassrefdef(p.resulttype.def) do
+                   with Tclassrefdef(p.resultdef) do
                      begin
-                        if not Tobjectdef(pointertype.def).is_related(Tobjectdef(pointertype.def)) then
+                        if not Tobjectdef(pointeddef).is_related(Tobjectdef(tclassrefdef(def).pointeddef)) then
                           message(parser_e_illegal_expression);
                         datalist.concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(
-                          Tobjectdef(pointertype.def).vmt_mangledname)));
+                          Tobjectdef(pointeddef).vmt_mangledname)));
                      end;
                  niln:
                    datalist.concat(Tai_const.Create_sym(nil));
@@ -269,7 +269,7 @@ implementation
               p:=comp_expr(true);
               if (p.nodetype=typeconvn) then
                 with Ttypeconvnode(p) do
-                  if (left.nodetype in [addrn,niln]) and equal_defs(t.def,p.resulttype.def) then
+                  if (left.nodetype in [addrn,niln]) and equal_defs(def,p.resultdef) then
                     begin
                       hp:=left;
                       left:=nil;
@@ -302,7 +302,7 @@ implementation
                 datalist.concat(Tai_const.Create_sym(nil))
               { maybe pchar ? }
               else
-                if is_char(tpointerdef(t.def).pointertype.def) and
+                if is_char(tpointerdef(def).pointeddef) and
                    (p.nodetype<>addrn) then
                   begin
                     current_asmdata.getdatalabel(ll);
@@ -333,7 +333,7 @@ implementation
                 end
               { maybe pwidechar ? }
               else
-                if is_widechar(tpointerdef(t.def).pointertype.def) and
+                if is_widechar(tpointerdef(def).pointeddef) and
                    (p.nodetype<>addrn) then
                   begin
                     current_asmdata.getdatalabel(ll);
@@ -362,7 +362,7 @@ implementation
                    is_procvar_load(p) then
                   begin
                     { insert typeconv }
-                    inserttypeconv(p,t);
+                    inserttypeconv(p,def);
                     hp:=p;
                     while assigned(hp) and (hp.nodetype in [addrn,typeconvn,subscriptn,vecn]) do
                       hp:=tunarynode(hp).left;
@@ -375,7 +375,7 @@ implementation
                              case hp.nodetype of
                                vecn :
                                  begin
-                                   case tvecnode(hp).left.resulttype.def.deftype of
+                                   case tvecnode(hp).left.resultdef.deftype of
                                      stringdef :
                                        begin
                                           { this seems OK for shortstring and ansistrings PM }
@@ -385,10 +385,10 @@ implementation
                                        end;
                                      arraydef :
                                        begin
-                                          if not is_packed_array(tvecnode(hp).left.resulttype.def) then
+                                          if not is_packed_array(tvecnode(hp).left.resultdef) then
                                             begin
-                                              len:=tarraydef(tvecnode(hp).left.resulttype.def).elesize;
-                                              base:=tarraydef(tvecnode(hp).left.resulttype.def).lowrange;
+                                              len:=tarraydef(tvecnode(hp).left.resultdef).elesize;
+                                              base:=tarraydef(tvecnode(hp).left.resultdef).lowrange;
                                             end
                                           else
                                             begin
@@ -456,7 +456,7 @@ implementation
                     if (tinlinenode(p).left.nodetype=typen) then
                       begin
                         datalist.concat(Tai_const.createname(
-                          tobjectdef(tinlinenode(p).left.resulttype.def).vmt_mangledname,0));
+                          tobjectdef(tinlinenode(p).left.resultdef).vmt_mangledname,0));
                       end
                     else
                       Message(parser_e_illegal_expression);
@@ -472,7 +472,7 @@ implementation
                 begin
                    { be sure to convert to the correct result, else
                      it can generate smallset data instead of normalset (PFV) }
-                   inserttypeconv(p,t);
+                   inserttypeconv(p,def);
                    { we only allow const sets }
                    if assigned(tsetconstnode(p).left) then
                      Message(parser_e_illegal_expression)
@@ -484,14 +484,14 @@ implementation
 
                         if source_info.endian = target_info.endian then
                           begin
-                            for l:=0 to p.resulttype.def.size-1 do
+                            for l:=0 to p.resultdef.size-1 do
                               datalist.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[l]));
                           end
                         else
                           begin
                             { store as longint values in swaped format }
                             j:=0;
-                            for l:=0 to ((p.resulttype.def.size-1) div 4) do
+                            for l:=0 to ((p.resultdef.size-1) div 4) do
                               begin
                                 datalist.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+3]));
                                 datalist.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+2]));
@@ -511,17 +511,17 @@ implementation
               p:=comp_expr(true);
               if p.nodetype=ordconstn then
                 begin
-                  if equal_defs(p.resulttype.def,t.def) or
-                     is_subequal(p.resulttype.def,t.def) then
+                  if equal_defs(p.resultdef,def) or
+                     is_subequal(p.resultdef,def) then
                    begin
-                     case longint(p.resulttype.def.size) of
+                     case longint(p.resultdef.size) of
                        1 : datalist.concat(Tai_const.Create_8bit(Byte(tordconstnode(p).value)));
                        2 : datalist.concat(Tai_const.Create_16bit(Word(tordconstnode(p).value)));
                        4 : datalist.concat(Tai_const.Create_32bit(Longint(tordconstnode(p).value)));
                      end;
                    end
                   else
-                   IncompatibleTypes(p.resulttype.def,t.def);
+                   IncompatibleTypes(p.resultdef,def);
                 end
               else
                 Message(parser_e_illegal_expression);
@@ -531,11 +531,11 @@ implementation
            begin
               p:=comp_expr(true);
               { load strval and strlength of the constant tree }
-              if (p.nodetype=stringconstn) or is_widestring(t.def) then
+              if (p.nodetype=stringconstn) or is_widestring(def) then
                 begin
                   { convert to the expected string type so that
                     for widestrings strval is a pcompilerwidestring }
-                  inserttypeconv(p,t);
+                  inserttypeconv(p,def);
                   strlength:=tstringconstnode(p).len;
                   strval:=tstringconstnode(p).value_str;
                 end
@@ -559,13 +559,13 @@ implementation
                 end;
               if strlength>=0 then
                begin
-                 case tstringdef(t.def).string_typ of
+                 case tstringdef(def).string_typ of
                    st_shortstring:
                      begin
-                       if strlength>=t.def.size then
+                       if strlength>=def.size then
                         begin
-                          message2(parser_w_string_too_long,strpas(strval),tostr(t.def.size-1));
-                          strlength:=t.def.size-1;
+                          message2(parser_w_string_too_long,strpas(strval),tostr(def.size-1));
+                          strlength:=def.size-1;
                         end;
                        datalist.concat(Tai_const.Create_8bit(strlength));
                        { this can also handle longer strings }
@@ -574,15 +574,15 @@ implementation
                        ca[strlength]:=#0;
                        datalist.concat(Tai_string.Create_pchar(ca,strlength));
                        { fillup with spaces if size is shorter }
-                       if t.def.size>strlength then
+                       if def.size>strlength then
                         begin
-                          getmem(ca,t.def.size-strlength);
+                          getmem(ca,def.size-strlength);
                           { def.size contains also the leading length, so we }
                           { we have to subtract one                       }
-                          fillchar(ca[0],t.def.size-strlength-1,' ');
-                          ca[t.def.size-strlength-1]:=#0;
+                          fillchar(ca[0],def.size-strlength-1,' ');
+                          ca[def.size-strlength-1]:=#0;
                           { this can also handle longer strings }
-                          datalist.concat(Tai_string.Create_pchar(ca,t.def.size-strlength-1));
+                          datalist.concat(Tai_string.Create_pchar(ca,def.size-strlength-1));
                         end;
                      end;
                    st_ansistring:
@@ -616,11 +616,11 @@ implementation
                             datalist.concat(Tai_const.Create_sym(ll));
                             current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
                             if tf_winlikewidestring in target_info.flags then
-                              current_asmdata.asmlists[al_const].concat(Tai_const.Create_32bit(strlength*cwidechartype.def.size))
+                              current_asmdata.asmlists[al_const].concat(Tai_const.Create_32bit(strlength*cwidechartype.size))
                             else
                               begin
                                 current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(-1));
-                                current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(strlength*cwidechartype.def.size));
+                                current_asmdata.asmlists[al_const].concat(Tai_const.Create_aint(strlength*cwidechartype.size));
                               end;
                             current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll));
                             for i:=0 to strlength-1 do
@@ -640,14 +640,14 @@ implementation
          arraydef:
            begin
               { dynamic array nil }
-               if is_dynamic_array(t.def) then
+               if is_dynamic_array(def) then
                 begin
                   { Only allow nil initialization }
                   consume(_NIL);
                   datalist.concat(Tai_const.Create_sym(nil));
                 end
                { no packed array constants supported }
-               else if is_packed_array(t.def) then
+               else if is_packed_array(def) then
                  begin
                    Message(type_e_no_const_packed_array);
                    consume_all_until(_RKLAMMER);
@@ -655,17 +655,17 @@ implementation
               else
               if try_to_consume(_LKLAMMER) then
                 begin
-                  for l:=tarraydef(t.def).lowrange to tarraydef(t.def).highrange-1 do
+                  for l:=tarraydef(def).lowrange to tarraydef(def).highrange-1 do
                     begin
-                      readtypedconst(datalist,tarraydef(t.def).elementtype,nil,writable);
+                      readtypedconst(datalist,tarraydef(def).elementdef,nil,writable);
                       consume(_COMMA);
                     end;
-                  readtypedconst(datalist,tarraydef(t.def).elementtype,nil,writable);
+                  readtypedconst(datalist,tarraydef(def).elementdef,nil,writable);
                   consume(_RKLAMMER);
                 end
               else
               { if array of char then we allow also a string }
-               if is_char(tarraydef(t.def).elementtype.def) then
+               if is_char(tarraydef(def).elementdef) then
                 begin
                    p:=comp_expr(true);
                    if p.nodetype=stringconstn then
@@ -689,11 +689,11 @@ implementation
                        Message(parser_e_illegal_expression);
                        len:=0;
                      end;
-                   if len>(tarraydef(t.def).highrange-tarraydef(t.def).lowrange+1) then
+                   if len>(tarraydef(def).highrange-tarraydef(def).lowrange+1) then
                      Message(parser_e_string_larger_array);
-                   for i:=tarraydef(t.def).lowrange to tarraydef(t.def).highrange do
+                   for i:=tarraydef(def).lowrange to tarraydef(def).highrange do
                      begin
-                        if i+1-tarraydef(t.def).lowrange<=len then
+                        if i+1-tarraydef(def).lowrange<=len then
                           begin
                              datalist.concat(Tai_const.Create_8bit(byte(ca^)));
                              inc(ca);
@@ -717,7 +717,7 @@ implementation
               if token=_NIL then
                 begin
                    datalist.concat(Tai_const.Create_sym(nil));
-                   if (po_methodpointer in tprocvardef(t.def).procoptions) then
+                   if (po_methodpointer in tprocvardef(def).procoptions) then
                      datalist.concat(Tai_const.Create_sym(nil));
                    consume(_NIL);
                    goto myexit;
@@ -726,10 +726,10 @@ implementation
               { which is a "procedure of object", because this also requires }
               { address of an object/class instance, which is not known at   }
               { compile time (JM)                                            }
-              if (po_methodpointer in tprocvardef(t.def).procoptions) then
+              if (po_methodpointer in tprocvardef(def).procoptions) then
                 Message(parser_e_no_procvarobj_const);
                 { parse the rest too, so we can continue with error checking }
-              getprocvardef:=tprocvardef(t.def);
+              getprocvardef:=tprocvardef(def);
               p:=comp_expr(true);
               getprocvardef:=nil;
               if codegenerror then
@@ -738,7 +738,7 @@ implementation
                  goto myexit;
                end;
               { let type conversion check everything needed }
-              inserttypeconv(p,t);
+              inserttypeconv(p,def);
               if codegenerror then
                begin
                  p.free;
@@ -776,10 +776,10 @@ implementation
          recorddef:
            begin
               { packed record }
-              if is_packed_record_or_object(t.def) then
+              if is_packed_record_or_object(def) then
                 Message(type_e_no_const_packed_record)
               { KAZ }
-              else if (trecorddef(t.def)=rec_tguid) and
+              else if (trecorddef(def)=rec_tguid) and
                  ((token=_CSTRING) or (token=_CCHAR) or (token=_ID)) then
                 begin
                   p:=comp_expr(true);
@@ -811,7 +811,7 @@ implementation
                    consume(_LKLAMMER);
                    sorg:='';
                    aktpos:=0;
-                   srsym := tsym(trecorddef(t.def).symtable.symindex.first);
+                   srsym := tsym(trecorddef(def).symtable.symindex.first);
                    recsym := nil;
                    while token<>_RKLAMMER do
                      begin
@@ -820,7 +820,7 @@ implementation
                         consume(_ID);
                         consume(_COLON);
                         error := false;
-                        recsym := tsym(trecorddef(t.def).symtable.search(s));
+                        recsym := tsym(trecorddef(def).symtable.search(s));
                         if not assigned(recsym) then
                           begin
                             Message1(sym_e_illegal_field,sorg);
@@ -875,10 +875,10 @@ implementation
                                  datalist.concat(Tai_const.Create_8bit(0));
 
                              { new position }
-                             aktpos:=tfieldvarsym(srsym).fieldoffset+tfieldvarsym(srsym).vartype.def.size;
+                             aktpos:=tfieldvarsym(srsym).fieldoffset+tfieldvarsym(srsym).vardef.size;
 
                              { read the data }
-                             readtypedconst(datalist,tfieldvarsym(srsym).vartype,nil,writable);
+                             readtypedconst(datalist,tfieldvarsym(srsym).vardef,nil,writable);
 
                              { keep previous field for checking whether whole }
                              { record was initialized (JM)                    }
@@ -900,7 +900,7 @@ implementation
                      (tfieldvarsym(srsym).fieldoffset > tfieldvarsym(recsym).fieldoffset)) then
                    Message1(parser_w_skipped_fields_after,sorg);
 
-                 for i:=1 to t.def.size-aktpos do
+                 for i:=1 to def.size-aktpos do
                    datalist.concat(Tai_const.Create_8bit(0));
 
                  consume(_RKLAMMER);
@@ -909,7 +909,7 @@ implementation
          { reads a typed object }
          objectdef:
            begin
-              if is_class_or_interface(t.def) then
+              if is_class_or_interface(def) then
                 begin
                   p:=comp_expr(true);
                   if p.nodetype<>niln then
@@ -924,11 +924,11 @@ implementation
                   p.free;
                 end
               { for objects we allow it only if it doesn't contain a vmt }
-              else if (oo_has_vmt in tobjectdef(t.def).objectoptions) and
+              else if (oo_has_vmt in tobjectdef(def).objectoptions) and
                       (m_fpc in aktmodeswitches) then
                  Message(parser_e_type_const_not_possible)
               { packed object }
-              else if is_packed_record_or_object(t.def) then
+              else if is_packed_record_or_object(def) then
                 Message(type_e_no_const_packed_record)
               else
                 begin
@@ -941,7 +941,7 @@ implementation
                         consume(_ID);
                         consume(_COLON);
                         srsym:=nil;
-                        obj:=tobjectdef(t.def);
+                        obj:=tobjectdef(def);
                         symt:=obj.symtable;
                         while (srsym=nil) and assigned(symt) do
                           begin
@@ -967,7 +967,7 @@ implementation
                                  message(parser_e_invalid_record_const);
 
                                { check in VMT needs to be added for TP mode }
-                               with Tobjectdef(t.def) do
+                               with Tobjectdef(def) do
                                  if not(m_fpc in aktmodeswitches) and
                                     (oo_has_vmt in objectoptions) and
                                     (vmt_offset<fieldoffset) then
@@ -985,26 +985,26 @@ implementation
                                    datalist.concat(Tai_const.Create_8bit(0));
 
                                { new position }
-                               aktpos:=fieldoffset+vartype.def.size;
+                               aktpos:=fieldoffset+vardef.size;
 
                                { read the data }
-                               readtypedconst(datalist,vartype,nil,writable);
+                               readtypedconst(datalist,vardef,nil,writable);
 
                                if not try_to_consume(_SEMICOLON) then
                                  break;
                           end;
                      end;
                    if not(m_fpc in aktmodeswitches) and
-                      (oo_has_vmt in tobjectdef(t.def).objectoptions) and
-                      (tobjectdef(t.def).vmt_offset>=aktpos) then
+                      (oo_has_vmt in tobjectdef(def).objectoptions) and
+                      (tobjectdef(def).vmt_offset>=aktpos) then
                      begin
-                       for i:=1 to tobjectdef(t.def).vmt_offset-aktpos do
+                       for i:=1 to tobjectdef(def).vmt_offset-aktpos do
                          datalist.concat(tai_const.create_8bit(0));
-                       datalist.concat(tai_const.createname(tobjectdef(t.def).vmt_mangledname,0));
+                       datalist.concat(tai_const.createname(tobjectdef(def).vmt_mangledname,0));
                        { this is more general }
-                       aktpos:=tobjectdef(t.def).vmt_offset + sizeof(aint);
+                       aktpos:=tobjectdef(def).vmt_offset + sizeof(aint);
                      end;
-                   for i:=1 to t.def.size-aktpos do
+                   for i:=1 to def.size-aktpos do
                      datalist.concat(Tai_const.Create_8bit(0));
                    consume(_RKLAMMER);
                 end;
@@ -1051,7 +1051,7 @@ implementation
              else
                cursectype:=sec_rodata;
              maybe_new_object_file(list);
-             new_section(list,cursectype,lower(sym.mangledname),const_align(t.def.alignment));
+             new_section(list,cursectype,lower(sym.mangledname),const_align(def.alignment));
              if (sym.owner.symtabletype=globalsymtable) or
                 maybe_smartlink_symbol or
                 (assigned(current_procinfo) and

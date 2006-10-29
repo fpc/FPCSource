@@ -214,24 +214,24 @@ begin
   if (p.proctypeoption = potype_constructor) then
     retcgsize := OS_ADDR
   else
-    retcgsize := def_cgsize(p.rettype.def);
+    retcgsize := def_cgsize(p.returndef);
 
   location_reset(p.funcretloc[side], LOC_INVALID, OS_NO);
   p.funcretloc[side].size := retcgsize;
   { void has no location }
-  if is_void(p.rettype.def) then begin
+  if is_void(p.returndef) then begin
     p.funcretloc[side].loc := LOC_VOID;
     exit;
   end;
 
   { Return in FPU register? }
-  if p.rettype.def.deftype = floatdef then begin
+  if p.returndef.deftype = floatdef then begin
     p.funcretloc[side].loc := LOC_FPUREGISTER;
     p.funcretloc[side].register := NR_FPU_RESULT_REG;
     p.funcretloc[side].size := retcgsize;
   end else
     { Return in register? } 
-    if not ret_in_param(p.rettype.def, p.proccalloption) then begin
+    if not ret_in_param(p.returndef, p.proccalloption) then begin
       p.funcretloc[side].loc := LOC_REGISTER;
       p.funcretloc[side].size := retcgsize;
       if side = callerside then
@@ -293,7 +293,7 @@ begin
     parashift := 0;
     hp := tparavarsym(paras[i]);
 
-    paradef := hp.vartype.def;
+    paradef := hp.vardef;
     { Syscall for Morphos can have already a paraloc set; not supported on ppc64 }
     if (vo_has_explicit_paraloc in hp.varoptions) then begin
       internalerror(200412153);
@@ -314,7 +314,7 @@ begin
       push_addr_param(hp.varspez, paradef, p.proccalloption) or
       is_open_array(paradef) or
       is_array_of_const(paradef) then begin
-      paradef := voidpointertype.def;
+      paradef := voidpointertype;
       loc := LOC_REGISTER;
       paracgsize := OS_ADDR;
       paralen := tcgsize2size[OS_ADDR];
@@ -328,11 +328,11 @@ begin
         { if a record has only one field and that field is }
         { non-composite (not array or record), it must be  }
         { passed according to the rules of that type.       }
-        if (trecorddef(hp.vartype.def).symtable.symindex.count = 1) and
-          (not trecorddef(hp.vartype.def).isunion)  and
-          (tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def.deftype in [orddef, enumdef, floatdef])  then begin
+        if (trecorddef(hp.vardef).symtable.symindex.count = 1) and
+          (not trecorddef(hp.vardef).isunion)  and
+          (tabstractvarsym(trecorddef(hp.vardef).symtable.symindex.search(1)).vardef.deftype in [orddef, enumdef, floatdef])  then begin
           paradef :=
-            tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def;
+            tabstractvarsym(trecorddef(hp.vardef).symtable.symindex.search(1)).vardef;
           loc := getparaloc(paradef);
           paracgsize := def_cgsize(paradef);
         end else begin
@@ -465,9 +465,9 @@ begin
       hp.paraloc[callerside].alignment := 8;
       paraloc := hp.paraloc[callerside].add_location;
       paraloc^.loc := LOC_REFERENCE;
-      paraloc^.size := def_cgsize(hp.vartype.def);
+      paraloc^.size := def_cgsize(hp.vardef);
       paraloc^.reference.index := NR_STACK_POINTER_REG;
-      l := push_size(hp.varspez, hp.vartype.def, p.proccalloption);
+      l := push_size(hp.varspez, hp.vardef, p.proccalloption);
       paraloc^.reference.offset := parasize;
       parasize := parasize + l;
     end;

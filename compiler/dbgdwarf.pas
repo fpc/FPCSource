@@ -1158,7 +1158,7 @@ end;
             DW_AT_byte_size,DW_FORM_udata,size,
             DW_AT_stride_size,DW_FORM_udata,elesize
             ]);
-        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementtype.def));
+        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
         if is_dynamic_array(def) then
           begin
             { !!! FIXME !!! }
@@ -1177,7 +1177,7 @@ end;
               DW_AT_lower_bound,DW_FORM_udata,0,
               DW_AT_upper_bound,DW_FORM_udata,0
               ]);
-            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangetype.def));
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangedef));
             finish_entry;
           end
         else
@@ -1188,7 +1188,7 @@ end;
               DW_AT_lower_bound,DW_FORM_sdata,def.lowrange,
               DW_AT_upper_bound,DW_FORM_sdata,def.highrange
               ]);
-            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangetype.def));
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangedef));
             finish_entry;
           end;
         finish_children;
@@ -1216,7 +1216,7 @@ end;
       begin
         append_entry(DW_TAG_pointer_type,false,[]);
         if not(is_voidpointer(def)) then
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.pointertype.def));
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.pointeddef));
         finish_entry;
       end;
 
@@ -1249,7 +1249,7 @@ end;
                 ]);
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(u8inttype.def));
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(u8inttype));
               finish_entry;
 
               { string data entry }
@@ -1270,22 +1270,22 @@ end;
                 DW_AT_byte_size,DW_FORM_udata,def.size,
                 DW_AT_stride_size,DW_FORM_udata,1*8
                 ]);
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(cchartype.def));
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(cchartype));
               finish_entry;
               append_entry(DW_TAG_subrange_type,false,[
                 DW_AT_lower_bound,DW_FORM_udata,0,
                 DW_AT_upper_bound,DW_FORM_udata,slen
                 ]);
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(u8inttype.def));
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(u8inttype));
               finish_entry;
               finish_children;
             end;
           st_longstring:
             begin
             {
-              charst:=def_stab_number(cchartype.def);
-              bytest:=def_stab_number(u8inttype.def);
-              longst:=def_stab_number(u32inttype.def);
+              charst:=def_stab_number(cchartype);
+              bytest:=def_stab_number(u8inttype);
+              longst:=def_stab_number(u32inttype);
               result:=def_stabstr_evaluate(def,'s$1length:$2,0,32;dummy:$6,32,8;st:ar$2;1;$3;$4,40,$5;;',
                           [tostr(def.len+5),longst,tostr(def.len),charst,tostr(def.len*8),bytest]);
             }
@@ -1294,14 +1294,14 @@ end;
            begin
              { looks like a pchar }
              append_entry(DW_TAG_pointer_type,false,[]);
-             append_labelentry_ref(DW_AT_type,def_dwarf_lab(cchartype.def));
+             append_labelentry_ref(DW_AT_type,def_dwarf_lab(cchartype));
              finish_entry;
            end;
          st_widestring:
            begin
              { looks like a pwidechar }
              append_entry(DW_TAG_pointer_type,false,[]);
-             append_labelentry_ref(DW_AT_type,def_dwarf_lab(cwidechartype.def));
+             append_labelentry_ref(DW_AT_type,def_dwarf_lab(cwidechartype));
              finish_entry;
            end;
         end;
@@ -1322,8 +1322,8 @@ end;
             append_entry(DW_TAG_subroutine_type,true,[
               DW_AT_prototyped,DW_FORM_flag,true
             ]);
-          if not(is_void(tprocvardef(def).rettype.def)) then
-            append_labelentry_ref(DW_AT_type,def_dwarf_lab(tprocvardef(def).rettype.def));
+          if not(is_void(tprocvardef(def).returndef)) then
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(tprocvardef(def).returndef));
           finish_entry;
 
           { write parameters }
@@ -1332,7 +1332,7 @@ end;
               append_entry(DW_TAG_formal_parameter,false,[
                 DW_AT_name,DW_FORM_string,symname(tsym(def.paras[i]))+#0
               ]);
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(tparavarsym(def.paras[i]).vartype.def));
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(tparavarsym(def.paras[i]).vardef));
               finish_entry;
             end;
 
@@ -1423,7 +1423,7 @@ end;
           variantdef :
             appenddef_variant(tvariantdef(def));
           classrefdef :
-            appenddef_pointer(tpointerdef(pvmttype.def));
+            appenddef_pointer(tpointerdef(pvmttype));
           setdef :
             appenddef_set(tsetdef(def));
           formaldef :
@@ -1507,8 +1507,8 @@ end;
             { append block data }
             { current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(dwarf_reg(pd.))); }
 
-            if not(is_void(tprocdef(pd).rettype.def)) then
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(tprocdef(pd).rettype.def));
+            if not(is_void(tprocdef(pd).returndef)) then
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(tprocdef(pd).returndef));
 
             { mark end of procedure }
             current_asmdata.getlabel(procendlabel,alt_dbgtype);
@@ -1524,16 +1524,16 @@ end;
                 if tabstractnormalvarsym(pd.funcretsym).localloc.loc=LOC_REFERENCE then
                   begin
 {$warning Need to add gdb support for ret in param register calling}
-                    if paramanager.ret_in_param(pd.rettype.def,pd.proccalloption) then
+                    if paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
                       hs:='X*'
                     else
                       hs:='X';
                     templist.concat(Tai_stab.create(stab_stabs,strpnew(
-                       '"'+pd.procsym.name+':'+hs+def_stab_number(pd.rettype.def)+'",'+
+                       '"'+pd.procsym.name+':'+hs+def_stab_number(pd.returndef)+'",'+
                        tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
                     if (m_result in aktmodeswitches) then
                       templist.concat(Tai_stab.create(stab_stabs,strpnew(
-                         '"RESULT:'+hs+def_stab_number(pd.rettype.def)+'",'+
+                         '"RESULT:'+hs+def_stab_number(pd.returndef)+'",'+
                          tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
                   end;
               end;
@@ -1647,7 +1647,7 @@ end;
             ]);
           { append block data }
           current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vartype.def));
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vardef));
 
           templist.free;
 
@@ -1666,7 +1666,7 @@ end;
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sym.fieldoffset));
 
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vartype.def));
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vardef));
           finish_entry;
         end;
 
@@ -1675,9 +1675,9 @@ end;
           append_entry(DW_TAG_constant,false,[
             DW_AT_name,DW_FORM_string,symname(sym)+#0
             ]);
-          { for string constants, consttype isn't set because they have no real type }
+          { for string constants, constdef isn't set because they have no real type }
           if not(sym.consttyp in [conststring,constresourcestring]) then
-            append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.consttype.def));
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.constdef));
           current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_AT_const_value)));
           case sym.consttyp of
             conststring:
@@ -1730,7 +1730,7 @@ end;
             constreal:
               begin
                 current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
-                case tfloatdef(sym.consttype.def).typ of
+                case tfloatdef(sym.constdef).typ of
                   s32real:
                     begin
                       current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(4));
@@ -1773,7 +1773,7 @@ end;
           { append block data }
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(3));
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.createname(sym.mangledname,0));
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.typedconsttype.def));
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.typedconstdef));
 
           finish_entry;
         end;
@@ -1803,13 +1803,13 @@ end;
           append_entry(DW_TAG_typedef,false,[
             DW_AT_name,DW_FORM_string,symname(sym)+#0
           ]);
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.restype.def));
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.typedef));
           finish_entry;
 
           { Moved fom append sym, do we need this (MWE)
           { For object types write also the symtable entries }
-          if (sym.typ=typesym) and (ttypesym(sym).restype.def.deftype=objectdef) then
-            write_symtable_syms(list,tobjectdef(ttypesym(sym).restype.def).symtable);
+          if (sym.typ=typesym) and (ttypesym(sym).typedef.deftype=objectdef) then
+            write_symtable_syms(list,tobjectdef(ttypesym(sym).typedef).symtable);
           }
         end;
 
@@ -1871,7 +1871,7 @@ end;
             ]);
           { append block data }
           current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vartype.def));
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vardef));
 
           templist.free;
 
@@ -2160,10 +2160,10 @@ end;
         deftowritelist:=TFPObjectList.create(false);
 
         { not exported (FK)
-        filerecdef:=gettypedef('FILEREC');
-        textrecdef:=gettypedef('TEXTREC');
+        filerecdef:=getderefdef('FILEREC');
+        textrecdef:=getderefdef('TEXTREC');
         }
-        vardatadef:=trecorddef(search_system_type('TVARDATA').restype.def);
+        vardatadef:=trecorddef(search_system_type('TVARDATA').typedef);
 
         { write start labels }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_section.create(sec_debug_info,'',0));
@@ -2568,7 +2568,7 @@ end;
             DW_AT_byte_size,DW_FORM_data2,def.size
             ]);
         if tfiledef(def).filetyp=ft_typed then
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(tfiledef(def).typedfiletype.def));
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(tfiledef(def).typedfiledef));
         finish_entry;
       end;
 
@@ -2686,8 +2686,8 @@ end;
           append_entry(DW_TAG_set_type,false,[
             DW_AT_byte_size,DW_FORM_data2,def.size
             ]);
-        if assigned(tsetdef(def).elementtype.def) then
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(tsetdef(def).elementtype.def));
+        if assigned(tsetdef(def).elementdef) then
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(tsetdef(def).elementdef));
         finish_entry;
       end;
 

@@ -32,7 +32,7 @@ interface
 
 
       tm68knotnode = class(tnotnode)
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
       end;
 
       tm68kmoddivnode = class(tcgmoddivnode)
@@ -41,7 +41,7 @@ interface
       end;
 
       tm68kshlshrnode = class(tshlshrnode)
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
          { everything will be handled in pass_2 }
          function first_shlshr64bitint: tnode; override;
       end;
@@ -65,13 +65,13 @@ implementation
                                TM68KNOTNODE
 *****************************************************************************}
 
-    procedure tm68knotnode.pass_2;
+    procedure tm68knotnode.pass_generate_code;
       var
          hl : tasmlabel;
          opsize : tcgsize;
       begin
-         opsize:=def_cgsize(resulttype.def);
-         if is_boolean(resulttype.def) then
+         opsize:=def_cgsize(resultdef);
+         if is_boolean(resultdef) then
           begin
             { the second pass could change the location of left }
             { if it is a register variable, so we've to do      }
@@ -104,7 +104,7 @@ implementation
               LOC_REFERENCE,
               LOC_CREFERENCE :
                 begin
-                  location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(resulttype.def),true);
+                  location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(resultdef),true);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,tcgsize2opsize[opsize],left.location.register));
 //                  location_release(current_asmdata.CurrAsmList,left.location);
                   location_reset(location,LOC_FLAGS,OS_NO);
@@ -114,7 +114,7 @@ implementation
                 internalerror(200203224);
             end;
           end
-         else if is_64bitint(left.resulttype.def) then
+         else if is_64bitint(left.resultdef) then
            begin
               secondpass(left);
               location_copy(location,left.location);
@@ -125,7 +125,7 @@ implementation
          else
           begin
              secondpass(left);
-             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),false);
+             location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
              location_copy(location,left.location);
              if location.loc=LOC_CREGISTER then
               location.register := cg.getintregister(current_asmdata.CurrAsmList,opsize);
@@ -261,7 +261,7 @@ implementation
 
 
 {$WARNING FIX ME!!! shlshrnode needs review}
-    procedure tm68kshlshrnode.pass_2;
+    procedure tm68kshlshrnode.pass_generate_code;
       var
         hregister,resultreg,hregister1,
         hreg64hi,hreg64lo : tregister;
@@ -270,7 +270,7 @@ implementation
       begin
         secondpass(left);
         secondpass(right);
-        if is_64bit(left.resulttype.def) then
+        if is_64bit(left.resultdef) then
           begin
             location_reset(location,LOC_REGISTER,OS_64);
 
@@ -321,7 +321,7 @@ implementation
         else
           begin
             { load left operators in a register }
-            location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),true);
+            location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
             location_copy(location,left.location);
             resultreg := location.register;
             hregister1 := location.register;
@@ -345,7 +345,7 @@ implementation
             else
               begin
                 { load shift count in a register if necessary }
-                location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resulttype.def),true);
+                location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resultdef),true);
                 cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,OS_32,right.location.register,hregister1,resultreg);
               end;
           end;

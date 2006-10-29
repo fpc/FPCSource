@@ -60,12 +60,12 @@ unit optcse;
                   - temp. creation
                   - expression calculation
                   - assignment of expression to temp. }
-                tempnode:=ctempcreatenode.create(nodelist[i].resulttype,nodelist[i].resulttype.def.size,tt_persistent,
-                  nodelist[i].resulttype.def.is_intregable or nodelist[i].resulttype.def.is_fpuregable);
+                tempnode:=ctempcreatenode.create(nodelist[i].resultdef,nodelist[i].resultdef.size,tt_persistent,
+                  nodelist[i].resultdef.is_intregable or nodelist[i].resultdef.is_fpuregable);
                 addstatement(createstatement,tempnode);
                 addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                       caddrnode.create_internal(para.left)));
-                    para.left := ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),para.left.resulttype);
+                    para.left := ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),para.left.resultdef);
                     addstatement(deletestatement,ctempdeletenode.create(tempnode));
 
                 { replace next nodes by loading the temp. reference }

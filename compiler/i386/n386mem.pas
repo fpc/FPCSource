@@ -32,16 +32,16 @@ interface
 
     type
        ti386addrnode = class(tcgaddrnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        ti386derefnode = class(tcgderefnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        ti386vecnode = class(tcgvecnode)
           procedure update_reference_reg_mul(reg:tregister;l:aint);override;
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
 implementation
@@ -58,10 +58,10 @@ implementation
                              TI386ADDRNODE
 *****************************************************************************}
 
-    procedure ti386addrnode.pass_2;
+    procedure ti386addrnode.pass_generate_code;
 
       begin
-        inherited pass_2;
+        inherited pass_generate_code;
         { for use of other segments, not used }
         {if left.location.reference.segment<>NR_NO then
           location.segment:=left.location.reference.segment;}
@@ -72,10 +72,10 @@ implementation
                            TI386DEREFNODE
 *****************************************************************************}
 
-    procedure ti386derefnode.pass_2;
+    procedure ti386derefnode.pass_generate_code;
       begin
-         inherited pass_2;
-         if tpointerdef(left.resulttype.def).is_far then
+         inherited pass_generate_code;
+         if tpointerdef(left.resultdef).is_far then
            location.reference.segment:=NR_FS;
       end;
 
@@ -125,9 +125,9 @@ implementation
        end;
 
 
-    procedure ti386vecnode.pass_2;
+    procedure ti386vecnode.pass_generate_code;
       begin
-        inherited pass_2;
+        inherited pass_generate_code;
         if nf_memseg in flags then
           location.reference.segment:=NR_FS;
       end;

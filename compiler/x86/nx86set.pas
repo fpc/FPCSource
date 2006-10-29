@@ -31,7 +31,7 @@ interface
     type
 
        tx86innode = class(tinnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
           function pass_1 : tnode;override;
        end;
 
@@ -74,7 +74,7 @@ implementation
 
 
 
-    procedure tx86innode.pass_2;
+    procedure tx86innode.pass_generate_code;
        type
          Tsetpart=record
            range : boolean;      {Part is a range.}
@@ -104,7 +104,7 @@ implementation
                 {The expression...
                     if expr in []
                  ...is allways false. It should be optimized away in the
-                 resulttype pass, and thus never occur here. Since we
+                 resultdef pass, and thus never occur here. Since we
                  do generate wrong code for it, do internalerror.}
                 internalerror(2002072301);
              analizeset:=false;
@@ -162,13 +162,13 @@ implementation
 
        begin
          { We check first if we can generate jumps, this can be done
-           because the resulttype.def is already set in firstpass }
+           because the resultdef is already set in firstpass }
 
          { check if we can use smallset operation using btl which is limited
            to 32 bits, the left side may also not contain higher values !! }
-         use_small:=(tsetdef(right.resulttype.def).settype=smallset) and
-                    ((left.resulttype.def.deftype=orddef) and (torddef(left.resulttype.def).high<=32) or
-                     (left.resulttype.def.deftype=enumdef) and (tenumdef(left.resulttype.def).max<=32));
+         use_small:=(tsetdef(right.resultdef).settype=smallset) and
+                    ((left.resultdef.deftype=orddef) and (torddef(left.resultdef).high<=32) or
+                     (left.resultdef.deftype=enumdef) and (tenumdef(left.resultdef).max<=32));
 
          { Can we generate jumps? Possible for all types of sets }
          genjumps:=(right.nodetype=setconstn) and
@@ -197,7 +197,7 @@ implementation
               separately instead of using the SET_IN_BYTE procedure.
               To do: Build in support for LOC_JUMP }
 
-            opsize := def_cgsize(left.resulttype.def);
+            opsize := def_cgsize(left.resultdef);
             { If register is used, use only lower 8 bits }
             if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
              begin

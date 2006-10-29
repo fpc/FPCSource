@@ -36,14 +36,14 @@ interface
        tnothingnode = class(tnode)
           constructor create;virtual;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
        end;
        tnothingnodeclass = class of tnothingnode;
 
        terrornode = class(tnode)
           constructor create;virtual;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           procedure mark_write;override;
        end;
        terrornodeclass = class of terrornode;
@@ -61,9 +61,9 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
        tasmnodeclass = class of tasmnode;
@@ -71,7 +71,7 @@ interface
        tstatementnode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           procedure printnodetree(var t:text);override;
        end;
        tstatementnodeclass = class of tstatementnode;
@@ -80,7 +80,7 @@ interface
           constructor create(l : tnode);virtual;
           destructor destroy; override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
 {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
 {$endif state_tracking}
@@ -97,7 +97,8 @@ interface
          { set to the copy of a tempcreate pnode (if it gets copied) so that the }
          { refs and deletenode can hook to this copy once they get copied too    }
          hookoncopy                 : ptempinfo;
-         restype                    : ttype;
+         typedef                    : tdef;
+         typedefderef               : tderef;
          temptype                   : ttemptype;
          owner                      : ttempcreatenode;
          may_be_in_reg              : boolean;
@@ -118,14 +119,14 @@ interface
           { where the node that receives the temp becomes responsible for       }
           { freeing it. In this last case, you must use only one reference      }
           { to it and *not* generate a ttempdeletenode                          }
-          constructor create(const _restype: ttype; _size: aint; _temptype: ttemptype;allowreg:boolean); virtual;
+          constructor create(_typedef: tdef; _size: aint; _temptype: ttemptype;allowreg:boolean); virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function _getcopy: tnode; override;
+          function dogetcopy: tnode; override;
           function pass_1 : tnode; override;
-          function det_resulttype: tnode; override;
+          function pass_typecheck: tnode; override;
           function docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
         end;
@@ -139,10 +140,10 @@ interface
           constructor create_offset(const temp: ttempcreatenode;aoffset:longint);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function _getcopy: tnode; override;
+          function dogetcopy: tnode; override;
           procedure derefnode;override;
           function pass_1 : tnode; override;
-          function det_resulttype : tnode; override;
+          function pass_typecheck : tnode; override;
           procedure mark_write;override;
           function docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
@@ -162,10 +163,10 @@ interface
           constructor create_normal_temp(const temp: ttempcreatenode);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function _getcopy: tnode; override;
+          function dogetcopy: tnode; override;
           procedure derefnode;override;
           function pass_1: tnode; override;
-          function det_resulttype: tnode; override;
+          function pass_typecheck: tnode; override;
           function docompare(p: tnode): boolean; override;
           destructor destroy; override;
           procedure printnodedata(var t:text);override;
@@ -244,10 +245,10 @@ implementation
       end;
 
 
-    function tnothingnode.det_resulttype:tnode;
+    function tnothingnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resulttype:=voidtype;
+        resultdef:=voidtype;
       end;
 
 
@@ -269,12 +270,12 @@ implementation
       end;
 
 
-    function terrornode.det_resulttype:tnode;
+    function terrornode.pass_typecheck:tnode;
       begin
          result:=nil;
          include(flags,nf_error);
          codegenerror:=true;
-         resulttype:=generrortype;
+         resultdef:=generrordef;
       end;
 
 
@@ -300,28 +301,28 @@ implementation
          inherited create(statementn,l,r);
       end;
 
-    function tstatementnode.det_resulttype:tnode;
+    function tstatementnode.pass_typecheck:tnode;
       begin
          result:=nil;
-         resulttype:=voidtype;
+         resultdef:=voidtype;
 
          { left is the statement itself calln assignn or a complex one }
-         resulttypepass(left);
+         typecheckpass(left);
          if (not (cs_extsyntax in aktmoduleswitches)) and
-            assigned(left.resulttype.def) and
+            assigned(left.resultdef) and
             not((left.nodetype=calln) and
                 { don't complain when funcretrefnode is set, because then the
                   value is already used. And also not for constructors }
                 (assigned(tcallnode(left).funcretnode) or
                  (tcallnode(left).procdefinition.proctypeoption=potype_constructor))) and
-            not(is_void(left.resulttype.def)) then
+            not(is_void(left.resultdef)) then
            CGMessage(parser_e_illegal_expression);
          if codegenerror then
            exit;
 
          { right is the next statement in the list }
          if assigned(right) then
-           resulttypepass(right);
+           typecheckpass(right);
          if codegenerror then
            exit;
       end;
@@ -380,12 +381,12 @@ implementation
         inherited destroy;
       end;
 
-    function tblocknode.det_resulttype:tnode;
+    function tblocknode.pass_typecheck:tnode;
       var
          hp : tstatementnode;
       begin
          result:=nil;
-         resulttype:=voidtype;
+         resultdef:=voidtype;
 
          hp:=tstatementnode(left);
          while assigned(hp) do
@@ -393,21 +394,21 @@ implementation
               if assigned(hp.left) then
                 begin
                    codegenerror:=false;
-                   resulttypepass(hp.left);
+                   typecheckpass(hp.left);
                    if not(codegenerror) and
                       not(cs_extsyntax in aktmoduleswitches) and
                       (hp.left.nodetype=calln) and
-                      not(is_void(hp.left.resulttype.def)) and
+                      not(is_void(hp.left.resultdef)) and
                       not(cnf_return_value_used in tcallnode(hp.left).callnodeflags) and
                       not((tcallnode(hp.left).procdefinition.proctypeoption=potype_constructor) and
                           assigned(tprocdef(tcallnode(hp.left).procdefinition)._class) and
                           is_object(tprocdef(tcallnode(hp.left).procdefinition)._class)) then
                      CGMessagePos(hp.left.fileinfo,parser_e_illegal_expression);
-                   { the resulttype of the block is the last type that is
+                   { the resultdef of the block is the last type that is
                      returned. Normally this is a voidtype. But when the
                      compiler inserts a block of multiple statements then the
                      last entry can return a value }
-                   resulttype:=hp.left.resulttype;
+                   resultdef:=hp.left.resultdef;
                 end;
               hp:=tstatementnode(hp.right);
            end;
@@ -577,11 +578,11 @@ implementation
       end;
 
 
-    function tasmnode._getcopy: tnode;
+    function tasmnode.dogetcopy: tnode;
       var
         n: tasmnode;
       begin
-        n := tasmnode(inherited _getcopy);
+        n := tasmnode(inherited dogetcopy);
         if assigned(p_asm) then
           begin
             n.p_asm:=TAsmList.create;
@@ -593,10 +594,10 @@ implementation
       end;
 
 
-    function tasmnode.det_resulttype:tnode;
+    function tasmnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resulttype:=voidtype;
+        resultdef:=voidtype;
         if not(nf_get_asm_position in flags) then
           include(current_procinfo.flags,pi_has_assembler_block);
       end;
@@ -620,40 +621,40 @@ implementation
                           TEMPCREATENODE
 *****************************************************************************}
 
-    constructor ttempcreatenode.create(const _restype: ttype; _size: aint; _temptype: ttemptype;allowreg:boolean);
+    constructor ttempcreatenode.create(_typedef:tdef; _size: aint; _temptype: ttemptype;allowreg:boolean);
       begin
         inherited create(tempcreaten);
         size := _size;
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
-        tempinfo^.restype := _restype;
+        tempinfo^.typedef := _typedef;
         tempinfo^.temptype := _temptype;
         tempinfo^.owner:=self;
         tempinfo^.may_be_in_reg:=
           allowreg and
           { temp must fit a single register }
-          (tstoreddef(_restype.def).is_fpuregable or
-           (tstoreddef(_restype.def).is_intregable and
+          (tstoreddef(_typedef).is_fpuregable or
+           (tstoreddef(_typedef).is_intregable and
             (_size<=TCGSize2Size[OS_64]))) and
           { size of register operations must be known }
-          (def_cgsize(_restype.def)<>OS_NO) and
+          (def_cgsize(_typedef)<>OS_NO) and
           { no init/final needed }
-          not (_restype.def.needs_inittable) and
-          ((_restype.def.deftype <> pointerdef) or
-           (not tpointerdef(_restype.def).pointertype.def.needs_inittable));
+          not (_typedef.needs_inittable) and
+          ((_typedef.deftype <> pointerdef) or
+           (not tpointerdef(_typedef).pointeddef.needs_inittable));
       end;
 
-    function ttempcreatenode._getcopy: tnode;
+    function ttempcreatenode.dogetcopy: tnode;
       var
         n: ttempcreatenode;
       begin
-        n := ttempcreatenode(inherited _getcopy);
+        n := ttempcreatenode(inherited dogetcopy);
         n.size := size;
 
         new(n.tempinfo);
         fillchar(n.tempinfo^,sizeof(n.tempinfo^),0);
         n.tempinfo^.owner:=n;
-        n.tempinfo^.restype := tempinfo^.restype;
+        n.tempinfo^.typedef := tempinfo^.typedef;
         n.tempinfo^.temptype := tempinfo^.temptype;
 
         { when the tempinfo has already a hookoncopy then it is not
@@ -679,7 +680,7 @@ implementation
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
         tempinfo^.may_be_in_reg:=boolean(ppufile.getbyte);
-        ppufile.gettype(tempinfo^.restype);
+        ppufile.getderef(tempinfo^.typedefderef);
         tempinfo^.temptype := ttemptype(ppufile.getbyte);
         tempinfo^.owner:=self;
       end;
@@ -690,20 +691,20 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putlongint(size);
         ppufile.putbyte(byte(tempinfo^.may_be_in_reg));
-        ppufile.puttype(tempinfo^.restype);
+        ppufile.putderef(tempinfo^.typedefderef);
         ppufile.putbyte(byte(tempinfo^.temptype));
       end;
 
 
     procedure ttempcreatenode.buildderefimpl;
       begin
-        tempinfo^.restype.buildderef;
+        tempinfo^.typedefderef.build(tempinfo^.typedef);
       end;
 
 
     procedure ttempcreatenode.derefimpl;
       begin
-        tempinfo^.restype.resolve;
+        tempinfo^.typedef:=tdef(tempinfo^.typedefderef.resolve);
       end;
 
 
@@ -711,16 +712,16 @@ implementation
       begin
          result := nil;
          expectloc:=LOC_VOID;
-         if (tempinfo^.restype.def.needs_inittable) then
+         if (tempinfo^.typedef.needs_inittable) then
            include(current_procinfo.flags,pi_needs_implicit_finally);
       end;
 
 
-    function ttempcreatenode.det_resulttype: tnode;
+    function ttempcreatenode.pass_typecheck: tnode;
       begin
         result := nil;
-        { a tempcreatenode doesn't have a resulttype, only temprefnodes do }
-        resulttype := voidtype;
+        { a tempcreatenode doesn't have a resultdef, only temprefnodes do }
+        resultdef := voidtype;
       end;
 
 
@@ -730,14 +731,14 @@ implementation
           inherited docompare(p) and
           (ttempcreatenode(p).size = size) and
           (ttempcreatenode(p).tempinfo^.may_be_in_reg = tempinfo^.may_be_in_reg) and
-          equal_defs(ttempcreatenode(p).tempinfo^.restype.def,tempinfo^.restype.def);
+          equal_defs(ttempcreatenode(p).tempinfo^.typedef,tempinfo^.typedef);
       end;
 
 
     procedure ttempcreatenode.printnodedata(var t:text);
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'size = ',size,', temprestype = "',tempinfo^.restype.def.gettypename,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
+        writeln(t,printnodeindention,'size = ',size,', temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
       end;
 
 
@@ -760,11 +761,11 @@ implementation
       end;
 
 
-    function ttemprefnode._getcopy: tnode;
+    function ttemprefnode.dogetcopy: tnode;
       var
         n: ttemprefnode;
       begin
-        n := ttemprefnode(inherited _getcopy);
+        n := ttemprefnode(inherited dogetcopy);
         n.offset := offset;
 
         if assigned(tempinfo^.hookoncopy) then
@@ -824,10 +825,10 @@ implementation
     function ttemprefnode.pass_1 : tnode;
       begin
         expectloc := LOC_REFERENCE;
-        if not tempinfo^.restype.def.needs_inittable and
+        if not tempinfo^.typedef.needs_inittable and
            tempinfo^.may_be_in_reg then
           begin
-            if tempinfo^.restype.def.deftype=floatdef then
+            if tempinfo^.typedef.deftype=floatdef then
               begin
                 if (tempinfo^.temptype = tt_persistent) then
                   expectloc := LOC_CFPUREGISTER
@@ -845,13 +846,13 @@ implementation
         result := nil;
       end;
 
-    function ttemprefnode.det_resulttype: tnode;
+    function ttemprefnode.pass_typecheck: tnode;
       begin
-        { check if the temp is already resulttype passed }
-        if not assigned(tempinfo^.restype.def) then
+        { check if the temp is already resultdef passed }
+        if not assigned(tempinfo^.typedef) then
           internalerror(200108233);
         result := nil;
-        resulttype := tempinfo^.restype;
+        resultdef := tempinfo^.typedef;
       end;
 
     function ttemprefnode.docompare(p: tnode): boolean;
@@ -871,7 +872,7 @@ implementation
     procedure ttemprefnode.printnodedata(var t:text);
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'temprestype = "',tempinfo^.restype.def.gettypename,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
+        writeln(t,printnodeindention,'temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
       end;
 
 
@@ -897,11 +898,11 @@ implementation
       end;
 
 
-    function ttempdeletenode._getcopy: tnode;
+    function ttempdeletenode.dogetcopy: tnode;
       var
         n: ttempdeletenode;
       begin
-        n := ttempdeletenode(inherited _getcopy);
+        n := ttempdeletenode(inherited dogetcopy);
         n.release_to_normal := release_to_normal;
 
         if assigned(tempinfo^.hookoncopy) then
@@ -959,10 +960,10 @@ implementation
          result := nil;
       end;
 
-    function ttempdeletenode.det_resulttype: tnode;
+    function ttempdeletenode.pass_typecheck: tnode;
       begin
         result := nil;
-        resulttype := voidtype;
+        resultdef := voidtype;
       end;
 
     function ttempdeletenode.docompare(p: tnode): boolean;
@@ -980,7 +981,7 @@ implementation
     procedure ttempdeletenode.printnodedata(var t:text);
       begin
         inherited printnodedata(t);
-        writeln(t,printnodeindention,'release_to_normal: ',release_to_normal,', temprestype = "',tempinfo^.restype.def.gettypename,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
+        writeln(t,printnodeindention,'release_to_normal: ',release_to_normal,', temptypedef = "',tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptruint(tempinfo),sizeof(ptruint)*2));
       end;
 
 begin

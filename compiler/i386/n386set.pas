@@ -137,7 +137,7 @@ implementation
              if assigned(t^.less) then
                genitem(t^.less);
              { need we to test the first value }
-             if first and (t^._low>get_min_value(left.resulttype.def)) then
+             if first and (t^._low>get_min_value(left.resultdef)) then
                begin
                  cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_lt,aint(t^._low),hregister,elselabel);
                end;
@@ -161,7 +161,7 @@ implementation
                   if first then
                     begin
                        { have we to ajust the first value ? }
-                       if (t^._low>get_min_value(left.resulttype.def)) then
+                       if (t^._low>get_min_value(left.resultdef)) then
                          cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(t^._low), hregister);
                     end
                   else

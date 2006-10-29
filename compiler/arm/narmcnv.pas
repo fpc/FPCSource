@@ -81,14 +81,14 @@ implementation
             if target_info.system in system_wince then
               begin
                 { converting a 64bit integer to a float requires a helper }
-                if is_64bitint(left.resulttype.def) or
-                  is_currency(left.resulttype.def) then
+                if is_64bitint(left.resultdef) or
+                  is_currency(left.resultdef) then
                   begin
                     { hack to avoid double division by 10000, as it's
-                      already done by resulttypepass.resulttype_int_to_real }
-                    if is_currency(left.resulttype.def) then
-                      left.resulttype := s64inttype;
-                    if is_signed(left.resulttype.def) then
+                      already done by typecheckpass.resultdef_int_to_real }
+                    if is_currency(left.resultdef) then
+                      left.resultdef := s64inttype;
+                    if is_signed(left.resultdef) then
                       fname:='I64TOD'
                     else
                       fname:='UI64TOD';
@@ -96,7 +96,7 @@ implementation
                 else
                   { other integers are supposed to be 32 bit }
                   begin
-                    if is_signed(left.resulttype.def) then
+                    if is_signed(left.resultdef) then
                       fname:='ITOD'
                     else
                       fname:='UTOD';
@@ -111,14 +111,14 @@ implementation
             else
               begin
                 { converting a 64bit integer to a float requires a helper }
-                if is_64bitint(left.resulttype.def) or
-                  is_currency(left.resulttype.def) then
+                if is_64bitint(left.resultdef) or
+                  is_currency(left.resultdef) then
                   begin
                     { hack to avoid double division by 10000, as it's
-                      already done by resulttypepass.resulttype_int_to_real }
-                    if is_currency(left.resulttype.def) then
-                      left.resulttype := s64inttype;
-                    if is_signed(left.resulttype.def) then
+                      already done by typecheckpass.resultdef_int_to_real }
+                    if is_currency(left.resultdef) then
+                      left.resultdef := s64inttype;
+                    if is_signed(left.resultdef) then
                       fname:='int64_to_'
                     else
                       { we can't do better currently }
@@ -127,19 +127,19 @@ implementation
                 else
                   { other integers are supposed to be 32 bit }
                   begin
-                    if is_signed(left.resulttype.def) then
+                    if is_signed(left.resultdef) then
                       fname:='int32_to_'
                     else
                       { we can't do better currently }
                       fname:='int32_to_';
                     firstpass(left);
                   end;
-                if tfloatdef(resulttype.def).typ=s64real then
+                if tfloatdef(resultdef).typ=s64real then
                   fname:=fname+'float64'
                 else
                   fname:=fname+'float32';
                 result:=ctypeconvnode.create_internal(ccallnode.createintern(fname,ccallparanode.create(
-                  left,nil)),resulttype);
+                  left,nil)),resultdef);
                 left:=nil;
                 firstpass(result);
                 exit;
@@ -148,14 +148,14 @@ implementation
         else
           begin
             { converting a 64bit integer to a float requires a helper }
-            if is_64bitint(left.resulttype.def) or
-              is_currency(left.resulttype.def) then
+            if is_64bitint(left.resultdef) or
+              is_currency(left.resultdef) then
               begin
                 { hack to avoid double division by 10000, as it's
-                  already done by resulttypepass.resulttype_int_to_real }
-                if is_currency(left.resulttype.def) then
-                  left.resulttype := s64inttype;
-                if is_signed(left.resulttype.def) then
+                  already done by typecheckpass.resultdef_int_to_real }
+                if is_currency(left.resultdef) then
+                  left.resultdef := s64inttype;
+                if is_signed(left.resultdef) then
                   fname := 'fpc_int64_to_double'
                 else
                   fname := 'fpc_qword_to_double';
@@ -168,7 +168,7 @@ implementation
             else
               { other integers are supposed to be 32 bit }
               begin
-                if is_signed(left.resulttype.def) then
+                if is_signed(left.resultdef) then
                   inserttypeconv(left,s32inttype)
                 else
                   inserttypeconv(left,u32inttype);
@@ -186,11 +186,11 @@ implementation
       var
         instr : taicpu;
       begin
-        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location_force_reg(current_asmdata.CurrAsmList,left.location,OS_32,true);
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
         instr:=taicpu.op_reg_reg(A_FLT,location.register,left.location.register);
-        instr.oppostfix:=cgsize2fpuoppostfix[def_cgsize(resulttype.def)];
+        instr.oppostfix:=cgsize2fpuoppostfix[def_cgsize(resultdef)];
         current_asmdata.CurrAsmList.concat(instr);
       end;
 
@@ -212,7 +212,7 @@ implementation
          { byte(boolean) or word(wordbool) or longint(longbool) must
            be accepted for var parameters                            }
          if (nf_explicit in flags) and
-            (left.resulttype.def.size=resulttype.def.size) and
+            (left.resultdef.size=resultdef.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            begin
               location_copy(location,left.location);
@@ -284,7 +284,7 @@ implementation
               internalerror(200311301);
          end;
          { load flags to register }
-         location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
          location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
          cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,location.register);
          current_procinfo.CurrTrueLabel:=oldTrueLabel;

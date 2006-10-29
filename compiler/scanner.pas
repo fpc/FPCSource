@@ -563,7 +563,7 @@ In case not, the value returned can be arbitrary.
         'BOOLEAN','INTEGER','STRING','SET');
 
       {Subset of types which can be elements in sets.}
-      setElementTypes = [ctetBoolean, ctetInteger, ctetString];
+      setelementdefs = [ctetBoolean, ctetInteger, ctetString];
 
 
     function GetCTETypeName(t: TCTETypeSet): String;
@@ -835,7 +835,7 @@ In case not, the value returned can be arbitrary.
                             typedconstsym :
                               l:=ttypedconstsym(srsym).getsize;
                             typesym:
-                              l:=ttypesym(srsym).restype.def.size;
+                              l:=ttypesym(srsym).typedef.size;
                             else
                               Message(scan_e_error_in_preproc_expr);
                           end;
@@ -933,20 +933,20 @@ In case not, the value returned can be arbitrary.
                                     case consttyp of
                                       constord :
                                         begin
-                                          case consttype.def.deftype of
+                                          case constdef.deftype of
                                             orddef:
                                               begin
-                                                if is_integer(consttype.def) then
+                                                if is_integer(constdef) then
                                                   begin
                                                     read_factor:=tostr(value.valueord);
                                                     factorType:= [ctetInteger];
                                                   end
-                                                else if is_boolean(consttype.def) then
+                                                else if is_boolean(constdef) then
                                                   begin
                                                     read_factor:=tostr(value.valueord);
                                                     factorType:= [ctetBoolean];
                                                   end
-                                                else if is_char(consttype.def) then
+                                                else if is_char(constdef) then
                                                   begin
                                                     read_factor:=chr(value.valueord);
                                                     factorType:= [ctetString];
@@ -1134,7 +1134,7 @@ In case not, the value returned can be arbitrary.
                    if exprType2 <> [ctetSet] then
                      CTEError(exprType2, [ctetSet], 'IN');
                    if exprType = [ctetSet] then
-                     CTEError(exprType, setElementTypes, 'IN');
+                     CTEError(exprType, setelementdefs, 'IN');
 
                   if is_number(hs1) and is_number(hs2) then
                     Message(scan_e_preproc_syntax_error)

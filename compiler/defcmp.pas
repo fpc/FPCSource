@@ -491,13 +491,13 @@ implementation
                          ([m_tp7,m_delphi] * aktmodeswitches = [])) and
                         (is_integer(def_from) or
                          (is_currency(def_from) and
-                          (s64currencytype.def.deftype = floatdef))) then
+                          (s64currencytype.deftype = floatdef))) then
                        begin
                          doconv:=tc_int_2_real;
                          eq:=te_convert_l1;
                        end
                      else if is_currency(def_from)
-                             { and (s64currencytype.def.deftype = orddef)) } then
+                             { and (s64currencytype.deftype = orddef)) } then
                        begin
                          { prefer conversion to orddef in this case, unless    }
                          { the orddef < currency (then it will get convert l3, }
@@ -598,8 +598,8 @@ implementation
                  the extra check for deftyp is needed because equal defs can also return
                  true if the def types are not the same, for example with dynarray to pointer. }
                if is_open_array(def_to) and
-                  (def_from.deftype=tarraydef(def_to).elementtype.def.deftype) and
-                  equal_defs(def_from,tarraydef(def_to).elementtype.def) then
+                  (def_from.deftype=tarraydef(def_to).elementdef.deftype) and
+                  equal_defs(def_from,tarraydef(def_to).elementdef) then
                 begin
                   doconv:=tc_equal;
                   eq:=te_convert_l1;
@@ -628,7 +628,7 @@ implementation
                         { to dynamic array }
                         else if is_dynamic_array(def_to) then
                          begin
-                           if equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
+                           if equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
                              begin
                                { dynamic array -> dynamic array }
                                if is_dynamic_array(def_from) then
@@ -650,15 +650,15 @@ implementation
                             { array constructor -> open array }
                             if is_array_constructor(def_from) then
                              begin
-                               if is_void(tarraydef(def_from).elementtype.def) then
+                               if is_void(tarraydef(def_from).elementdef) then
                                 begin
                                   doconv:=tc_equal;
                                   eq:=te_convert_l1;
                                 end
                                else
                                 begin
-                                  subeq:=compare_defs_ext(tarraydef(def_from).elementtype.def,
-                                                       tarraydef(def_to).elementtype.def,
+                                  subeq:=compare_defs_ext(tarraydef(def_from).elementdef,
+                                                       tarraydef(def_to).elementdef,
                                                        arrayconstructorn,hct,hpd,[cdo_check_operator]);
                                   if (subeq>=te_equal) then
                                     begin
@@ -676,7 +676,7 @@ implementation
                             else
                              { dynamic array -> open array }
                              if is_dynamic_array(def_from) and
-                                equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
+                                equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
                                begin
                                  doconv:=tc_dynarray_2_openarray;
                                  eq:=te_convert_l2;
@@ -684,12 +684,12 @@ implementation
                             else
                              { open array -> open array }
                              if is_open_array(def_from) and
-                                equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
+                                equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
                                eq:=te_equal
                             else
                              { array -> open array }
                              if not(cdo_parameter in cdoptions) and
-                                equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
+                                equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
                                eq:=te_equal;
                           end
                         else
@@ -703,7 +703,7 @@ implementation
                              end
                             else
                              { array of tvarrec -> array of const }
-                             if equal_defs(tarraydef(def_to).elementtype.def,tarraydef(def_from).elementtype.def) then
+                             if equal_defs(tarraydef(def_to).elementdef,tarraydef(def_from).elementdef) then
                               begin
                                 doconv:=tc_equal;
                                 eq:=te_convert_l1;
@@ -724,7 +724,7 @@ implementation
                             { open array -> array }
                             if not(cdo_parameter in cdoptions) and
                                is_open_array(def_from) and
-                               equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
+                               equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) then
                               begin
                                 eq:=te_equal
                               end
@@ -734,8 +734,8 @@ implementation
                                 not(m_delphi in aktmodeswitches) and
                                 (tarraydef(def_from).lowrange=tarraydef(def_to).lowrange) and
                                 (tarraydef(def_from).highrange=tarraydef(def_to).highrange) and
-                                equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) and
-                                equal_defs(tarraydef(def_from).rangetype.def,tarraydef(def_to).rangetype.def) then
+                                equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) and
+                                equal_defs(tarraydef(def_from).rangedef,tarraydef(def_to).rangedef) then
                               begin
                                 eq:=te_equal
                               end;
@@ -753,7 +753,7 @@ implementation
                          end
                         else
                          if is_zero_based_array(def_to) and
-                            equal_defs(tpointerdef(def_from).pointertype.def,tarraydef(def_to).elementtype.def) then
+                            equal_defs(tpointerdef(def_from).pointeddef,tarraydef(def_to).elementdef) then
                           begin
                             doconv:=tc_pointer_2_array;
                             eq:=te_convert_l1;
@@ -763,8 +763,8 @@ implementation
                       begin
                         { string to char array }
                         if (not is_special_array(def_to)) and
-                           (is_char(tarraydef(def_to).elementtype.def)or
-                            is_widechar(tarraydef(def_to).elementtype.def)) then
+                           (is_char(tarraydef(def_to).elementdef)or
+                            is_widechar(tarraydef(def_to).elementdef)) then
                          begin
                            doconv:=tc_string_2_chararray;
                            eq:=te_convert_l1;
@@ -783,7 +783,7 @@ implementation
                       begin
                         { tvarrec -> array of const }
                          if is_array_of_const(def_to) and
-                            equal_defs(def_from,tarraydef(def_to).elementtype.def) then
+                            equal_defs(def_from,tarraydef(def_to).elementdef) then
                           begin
                             doconv:=tc_equal;
                             eq:=te_convert_l1;
@@ -913,7 +913,7 @@ implementation
                       { chararray to pointer }
                       if (is_zero_based_array(def_from) or
                           is_open_array(def_from)) and
-                          equal_defs(tarraydef(def_from).elementtype.def,tpointerdef(def_to).pointertype.def) then
+                          equal_defs(tarraydef(def_from).elementdef,tpointerdef(def_to).pointeddef) then
                         begin
                           doconv:=tc_array_2_pointer;
                           { don't prefer the pchar overload when a constant
@@ -941,24 +941,24 @@ implementation
                      else
                       { the types can be forward type, handle before normal type check !! }
                       if assigned(def_to.typesym) and
-                         (tpointerdef(def_to).pointertype.def.deftype=forwarddef) then
+                         (tpointerdef(def_to).pointeddef.deftype=forwarddef) then
                        begin
                          if (def_from.typesym=def_to.typesym) then
                           eq:=te_equal
                        end
                      else
                       { same types }
-                      if equal_defs(tpointerdef(def_from).pointertype.def,tpointerdef(def_to).pointertype.def) then
+                      if equal_defs(tpointerdef(def_from).pointeddef,tpointerdef(def_to).pointeddef) then
                        begin
                          eq:=te_equal
                        end
                      else
                       { child class pointer can be assigned to anchestor pointers }
                       if (
-                          (tpointerdef(def_from).pointertype.def.deftype=objectdef) and
-                          (tpointerdef(def_to).pointertype.def.deftype=objectdef) and
-                          tobjectdef(tpointerdef(def_from).pointertype.def).is_related(
-                            tobjectdef(tpointerdef(def_to).pointertype.def))
+                          (tpointerdef(def_from).pointeddef.deftype=objectdef) and
+                          (tpointerdef(def_to).pointeddef.deftype=objectdef) and
+                          tobjectdef(tpointerdef(def_from).pointeddef).is_related(
+                            tobjectdef(tpointerdef(def_to).pointeddef))
                          ) then
                        begin
                          doconv:=tc_equal;
@@ -966,7 +966,7 @@ implementation
                        end
                      else
                       { all pointers can be assigned to void-pointer }
-                      if is_void(tpointerdef(def_to).pointertype.def) then
+                      if is_void(tpointerdef(def_to).pointeddef) then
                        begin
                          doconv:=tc_equal;
                          { give pwidechar,pchar a penalty so it prefers
@@ -979,10 +979,10 @@ implementation
                        end
                      else
                       { all pointers can be assigned from void-pointer }
-                      if is_void(tpointerdef(def_from).pointertype.def) or
+                      if is_void(tpointerdef(def_from).pointeddef) or
                       { all pointers can be assigned from void-pointer or formaldef pointer, check
                         tw3777.pp if you change this }
-                        (tpointerdef(def_from).pointertype.def.deftype=formaldef) then
+                        (tpointerdef(def_from).pointeddef.deftype=formaldef) then
                        begin
                          doconv:=tc_equal;
                          { give pwidechar a penalty so it prefers
@@ -997,7 +997,7 @@ implementation
                    begin
                      { procedure variable can be assigned to an void pointer,
                        this not allowed for methodpointers }
-                     if (is_void(tpointerdef(def_to).pointertype.def) or
+                     if (is_void(tpointerdef(def_to).pointeddef) or
                          (m_mac_procvar in aktmodeswitches)) and
                         tprocvardef(def_from).is_addressonly then
                       begin
@@ -1026,8 +1026,8 @@ implementation
                          is_class_or_interface(def_from) or
                          (def_from.deftype=classrefdef)
                         ) and
-                        (tpointerdef(def_to).pointertype.def.deftype=orddef) and
-                        (torddef(tpointerdef(def_to).pointertype.def).typ=uvoid) then
+                        (tpointerdef(def_to).pointeddef.deftype=orddef) and
+                        (torddef(tpointerdef(def_to).pointeddef).typ=uvoid) then
                        begin
                          doconv:=tc_equal;
                          eq:=te_convert_l2;
@@ -1041,11 +1041,11 @@ implementation
                case def_from.deftype of
                  setdef :
                    begin
-                     if assigned(tsetdef(def_from).elementtype.def) and
-                        assigned(tsetdef(def_to).elementtype.def) then
+                     if assigned(tsetdef(def_from).elementdef) and
+                        assigned(tsetdef(def_to).elementdef) then
                       begin
                         { sets with the same element base type are equal }
-                        if is_subequal(tsetdef(def_from).elementtype.def,tsetdef(def_to).elementtype.def) then
+                        if is_subequal(tsetdef(def_from).elementdef,tsetdef(def_to).elementdef) then
                          eq:=te_equal;
                       end
                      else
@@ -1098,7 +1098,7 @@ implementation
                       { for example delphi allows the assignement from pointers }
                       { to procedure variables                                  }
                       if (m_pointer_2_procedure in aktmodeswitches) and
-                         is_void(tpointerdef(def_from).pointertype.def) and
+                         is_void(tpointerdef(def_from).pointeddef) and
                          tprocvardef(def_to).is_addressonly then
                        begin
                          doconv:=tc_equal;
@@ -1185,7 +1185,7 @@ implementation
              begin
                { similar to pointerdef wrt forwards }
                if assigned(def_to.typesym) and
-                  (tclassrefdef(def_to).pointertype.def.deftype=forwarddef) then
+                  (tclassrefdef(def_to).pointeddef.deftype=forwarddef) then
                  begin
                    if (def_from.typesym=def_to.typesym) then
                     eq:=te_equal;
@@ -1194,7 +1194,7 @@ implementation
                 { class reference types }
                 if (def_from.deftype=classrefdef) then
                  begin
-                   if equal_defs(tclassrefdef(def_from).pointertype.def,tclassrefdef(def_to).pointertype.def) then
+                   if equal_defs(tclassrefdef(def_from).pointeddef,tclassrefdef(def_to).pointeddef) then
                     begin
                       eq:=te_equal;
                     end
@@ -1202,8 +1202,8 @@ implementation
                     begin
                       doconv:=tc_equal;
                       if (cdo_explicit in cdoptions) or
-                         tobjectdef(tclassrefdef(def_from).pointertype.def).is_related(
-                           tobjectdef(tclassrefdef(def_to).pointertype.def)) then
+                         tobjectdef(tclassrefdef(def_from).pointeddef).is_related(
+                           tobjectdef(tclassrefdef(def_to).pointeddef)) then
                         eq:=te_convert_l1;
                     end;
                  end
@@ -1231,20 +1231,20 @@ implementation
                    begin
                      if
                         (
-                         (tfiledef(def_from).typedfiletype.def=nil) and
-                         (tfiledef(def_to).typedfiletype.def=nil)
+                         (tfiledef(def_from).typedfiledef=nil) and
+                         (tfiledef(def_to).typedfiledef=nil)
                         ) or
                         (
-                         (tfiledef(def_from).typedfiletype.def<>nil) and
-                         (tfiledef(def_to).typedfiletype.def<>nil) and
-                         equal_defs(tfiledef(def_from).typedfiletype.def,tfiledef(def_to).typedfiletype.def)
+                         (tfiledef(def_from).typedfiledef<>nil) and
+                         (tfiledef(def_to).typedfiledef<>nil) and
+                         equal_defs(tfiledef(def_from).typedfiledef,tfiledef(def_to).typedfiledef)
                         ) or
                         (
                          (tfiledef(def_from).filetyp = ft_typed) and
                          (tfiledef(def_to).filetyp = ft_typed) and
                          (
-                          (tfiledef(def_from).typedfiletype.def = tdef(voidtype.def)) or
-                          (tfiledef(def_to).typedfiletype.def = tdef(voidtype.def))
+                          (tfiledef(def_from).typedfiledef = tdef(voidtype)) or
+                          (tfiledef(def_to).typedfiledef = tdef(voidtype))
                          )
                         ) then
                       begin
@@ -1414,8 +1414,8 @@ implementation
              currpara2:=tparavarsym(para2[i2]);
 
              { Unique types must match exact }
-             if ((df_unique in currpara1.vartype.def.defoptions) or (df_unique in currpara2.vartype.def.defoptions)) and
-                (currpara1.vartype.def<>currpara2.vartype.def) then
+             if ((df_unique in currpara1.vardef.defoptions) or (df_unique in currpara2.vardef.defoptions)) and
+                (currpara1.vardef<>currpara2.vardef) then
                exit;
 
              { Handle hidden parameters separately, because self is
@@ -1432,7 +1432,7 @@ implementation
                  begin
                    if (currpara1.varspez<>currpara2.varspez) then
                     exit;
-                   eq:=compare_defs_ext(currpara1.vartype.def,currpara2.vartype.def,nothingn,
+                   eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
                                         convtype,hpd,cdoptions);
                  end;
               end
@@ -1447,28 +1447,28 @@ implementation
                             (currpara2.varspez in [vs_var,vs_out]))
                           ) then
                          exit;
-                       eq:=compare_defs_ext(currpara1.vartype.def,currpara2.vartype.def,nothingn,
+                       eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
                                             convtype,hpd,cdoptions);
                     end;
                   cp_all :
                     begin
                        if (currpara1.varspez<>currpara2.varspez) then
                          exit;
-                       eq:=compare_defs_ext(currpara1.vartype.def,currpara2.vartype.def,nothingn,
+                       eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
                                             convtype,hpd,cdoptions);
                     end;
                   cp_procvar :
                     begin
                        if (currpara1.varspez<>currpara2.varspez) then
                          exit;
-                       eq:=compare_defs_ext(currpara1.vartype.def,currpara2.vartype.def,nothingn,
+                       eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
                                             convtype,hpd,cdoptions);
                        { Parameters must be at least equal otherwise the are incompatible }
                        if (eq<te_equal) then
                          eq:=te_incompatible;
                     end;
                   else
-                    eq:=compare_defs_ext(currpara1.vartype.def,currpara2.vartype.def,nothingn,
+                    eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
                                          convtype,hpd,cdoptions);
                  end;
                end;
@@ -1527,7 +1527,7 @@ implementation
            exclude(po_comp,po_varargs);
          if (def1.proccalloption=def2.proccalloption) and
             ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) and
-            equal_defs(def1.rettype.def,def2.rettype.def) then
+            equal_defs(def1.returndef,def2.returndef) then
           begin
             { return equal type based on the parameters, but a proc->procvar
               is never exact, so map an exact match of the parameters to

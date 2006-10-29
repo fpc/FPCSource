@@ -211,7 +211,7 @@ type
     constructor create(_list: TAsmList); virtual;
 
     function pass_1(_blockstart: tai): tai;
-    function pass_2: boolean;
+    function pass_generate_code: boolean;
     procedure clear;
 
     function getlabelwithsym(sym: tasmlabel): tai;
@@ -403,18 +403,18 @@ procedure RemoveLastDeallocForFuncRes(asml: TAsmList; p: tai);
   end;
 
 begin
-    case current_procinfo.procdef.rettype.def.deftype of
+    case current_procinfo.procdef.returndef.deftype of
       arraydef,recorddef,pointerdef,
          stringdef,enumdef,procdef,objectdef,errordef,
          filedef,setdef,procvardef,
          classrefdef,forwarddef:
         DoRemoveLastDeallocForFuncRes(asml,RS_EAX);
       orddef:
-        if current_procinfo.procdef.rettype.def.size <> 0 then
+        if current_procinfo.procdef.returndef.size <> 0 then
           begin
             DoRemoveLastDeallocForFuncRes(asml,RS_EAX);
             { for int64/qword }
-            if current_procinfo.procdef.rettype.def.size = 8 then
+            if current_procinfo.procdef.returndef.size = 8 then
               DoRemoveLastDeallocForFuncRes(asml,RS_EDX);
           end;
     end;
@@ -425,18 +425,18 @@ var
   regCounter: TSuperRegister;
 begin
   regs := [];
-  case current_procinfo.procdef.rettype.def.deftype of
+  case current_procinfo.procdef.returndef.deftype of
     arraydef,recorddef,pointerdef,
        stringdef,enumdef,procdef,objectdef,errordef,
        filedef,setdef,procvardef,
        classrefdef,forwarddef:
      regs := [RS_EAX];
     orddef:
-      if current_procinfo.procdef.rettype.def.size <> 0 then
+      if current_procinfo.procdef.returndef.size <> 0 then
         begin
           regs := [RS_EAX];
           { for int64/qword }
-          if current_procinfo.procdef.rettype.def.size = 8 then
+          if current_procinfo.procdef.returndef.size = 8 then
             regs := regs + [RS_EDX];
         end;
   end;
@@ -2772,15 +2772,15 @@ begin
 end;
 
 
-function tdfaobj.pass_2: boolean;
+function tdfaobj.pass_generate_code: boolean;
 begin
   if initdfapass2 then
     begin
       dodfapass2;
-      pass_2 := true
+      pass_generate_code := true
     end
   else
-    pass_2 := false;
+    pass_generate_code := false;
 end;
 
 {$ifopt r+}

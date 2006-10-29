@@ -31,7 +31,7 @@ interface
     type
        tcgaddnode = class(taddnode)
 {          function pass_1: tnode; override;}
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
          protected
           { call secondpass for both left and right }
           procedure pass_left_right;
@@ -106,7 +106,7 @@ interface
           end;
         secondpass(left);
         if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
-          location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(resulttype.def),false);
+          location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(resultdef),false);
         if isjump then
           begin
             current_procinfo.CurrTrueLabel:=otl;
@@ -128,7 +128,7 @@ interface
           end;
         secondpass(right);
         if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
-          location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(resulttype.def),false);
+          location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(resultdef),false);
         if isjump then
           begin
             current_procinfo.CurrTrueLabel:=otl;
@@ -150,7 +150,7 @@ interface
 
     procedure tcgaddnode.set_result_location_reg;
       begin
-        location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
 {$ifdef x86}
         if left.location.loc=LOC_REGISTER then
           begin
@@ -232,10 +232,10 @@ interface
     procedure tcgaddnode.second_opsmallset;
       begin
         { when a setdef is passed, it has to be a smallset }
-        if ((left.resulttype.def.deftype=setdef) and
-            (tsetdef(left.resulttype.def).settype<>smallset)) or
-           ((right.resulttype.def.deftype=setdef) and
-            (tsetdef(right.resulttype.def).settype<>smallset)) then
+        if ((left.resultdef.deftype=setdef) and
+            (tsetdef(left.resultdef).settype<>smallset)) or
+           ((right.resultdef.deftype=setdef) and
+            (tsetdef(right.resultdef).settype<>smallset)) then
           internalerror(200203301);
 
         if nodetype in [equaln,unequaln,gtn,gten,lten,ltn] then
@@ -589,7 +589,7 @@ interface
 
         { emit overflow check if enabled }
         if checkoverflow then
-           cg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,ResultType.Def,ovloc);
+           cg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,resultdef,ovloc);
       end;
 
 
@@ -645,8 +645,8 @@ interface
         set_result_location_reg;
 
         { determine if the comparison will be unsigned }
-        unsigned:=not(is_signed(left.resulttype.def)) or
-                    not(is_signed(right.resulttype.def));
+        unsigned:=not(is_signed(left.resultdef)) or
+                    not(is_signed(right.resultdef));
 
         { assume no overflow checking is require }
         checkoverflow := false;
@@ -722,7 +722,7 @@ interface
 
         { emit overflow check if required }
         if checkoverflow then
-          cg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,ResultType.Def,ovloc);
+          cg.g_overflowcheck_loc(current_asmdata.CurrAsmList,Location,resultdef,ovloc);
       end;
 
 
@@ -733,20 +733,20 @@ interface
 
 
 {*****************************************************************************
-                                pass_2
+                                pass_generate_code;
 *****************************************************************************}
 
-    procedure tcgaddnode.pass_2;
+    procedure tcgaddnode.pass_generate_code;
       begin
-        case left.resulttype.def.deftype of
+        case left.resultdef.deftype of
           orddef :
             begin
               { handling boolean expressions }
-              if is_boolean(left.resulttype.def) and
-                 is_boolean(right.resulttype.def) then
+              if is_boolean(left.resultdef) and
+                 is_boolean(right.resultdef) then
                 second_opboolean
               { 64bit operations }
-              else if is_64bit(left.resulttype.def) then
+              else if is_64bit(left.resultdef) then
                 second_op64bit
               else
                 second_opordinal;
@@ -759,7 +759,7 @@ interface
             begin
               {Normalsets are already handled in pass1 if mmx
                should not be used.}
-              if (tsetdef(left.resulttype.def).settype<>smallset) then
+              if (tsetdef(left.resultdef).settype<>smallset) then
                 begin
 {$ifdef SUPPORT_MMX}
                 {$ifdef i386}
@@ -776,15 +776,15 @@ interface
           arraydef :
             begin
               { support dynarr=nil }
-              if is_dynamic_array(left.resulttype.def) then
+              if is_dynamic_array(left.resultdef) then
                 second_opordinal
               else
                 if (cs_support_vectors in aktglobalswitches) and
-                   is_vector(left.resulttype.def) then
+                   is_vector(left.resultdef) then
                   second_opvector
 {$ifdef SUPPORT_MMX}
               else
-                if is_mmx_able_array(left.resulttype.def) then
+                if is_mmx_able_array(left.resultdef) then
                   second_opmmx
 {$endif SUPPORT_MMX}
               else

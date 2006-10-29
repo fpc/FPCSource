@@ -69,10 +69,10 @@ interface
         op2:=A_NONE;
         mboverflow:=false;
         opsize:=S_L;
-        unsigned:=((left.resulttype.def.deftype=orddef) and
-                   (torddef(left.resulttype.def).typ=u64bit)) or
-                  ((right.resulttype.def.deftype=orddef) and
-                   (torddef(right.resulttype.def).typ=u64bit));
+        unsigned:=((left.resultdef.deftype=orddef) and
+                   (torddef(left.resultdef).typ=u64bit)) or
+                  ((right.resultdef.deftype=orddef) and
+                   (torddef(right.resultdef).typ=u64bit));
         case nodetype of
           addn :
             begin
@@ -261,10 +261,10 @@ interface
 
         pass_left_right;
 
-        unsigned:=((left.resulttype.def.deftype=orddef) and
-                   (torddef(left.resulttype.def).typ=u64bit)) or
-                  ((right.resulttype.def.deftype=orddef) and
-                   (torddef(right.resulttype.def).typ=u64bit));
+        unsigned:=((left.resultdef.deftype=orddef) and
+                   (torddef(left.resultdef).typ=u64bit)) or
+                  ((right.resultdef.deftype=orddef) and
+                   (torddef(right.resultdef).typ=u64bit));
 
         { left and right no register?  }
         { then one must be demanded    }

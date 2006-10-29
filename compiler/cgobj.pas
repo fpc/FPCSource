@@ -2611,7 +2611,7 @@ implementation
 
     procedure tcg.g_rangecheck(list: TAsmList; const l:tlocation;fromdef,todef: tdef);
     { generate range checking code for the value at location p. The type     }
-    { type used is checked against todefs ranges. fromdef (p.resulttype.def) }
+    { type used is checked against todefs ranges. fromdef (p.resultdef) }
     { is the original type used at that location. When both defs are equal   }
     { the check is also insert (needed for succ,pref,inc,dec)                }
       const
@@ -2642,10 +2642,10 @@ implementation
         getrange(todef,lto,hto);
         from_signed := is_signed(fromdef);
         to_signed := is_signed(todef);
-        { check the rangetype of the array, not the array itself }
+        { check the rangedef of the array, not the array itself }
         { (only change now, since getrange needs the arraydef)   }
         if (todef.deftype = arraydef) then
-          todef := tarraydef(todef).rangetype.def;
+          todef := tarraydef(todef).rangedef;
         { no range check if from and to are equal and are both longint/dword }
         { no range check if from and to are equal and are both longint/dword }
         { (if we have a 32bit processor) or int64/qword, since such          }

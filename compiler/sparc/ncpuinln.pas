@@ -100,7 +100,7 @@ implementation
     procedure tsparcinlinenode.second_abs_real;
       begin
         load_fpu_location;
-        case tfloatdef(left.resulttype.def).typ of
+        case tfloatdef(left.resultdef).typ of
           s32real:
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FABSs,left.location.register,location.register));
           s64real:
@@ -116,7 +116,7 @@ implementation
     procedure tsparcinlinenode.second_sqr_real;
       begin
         load_fpu_location;
-        case tfloatdef(left.resulttype.def).typ of
+        case tfloatdef(left.resultdef).typ of
           s32real:
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FMULs,left.location.register,left.location.register,location.register));
           s64real:
@@ -132,7 +132,7 @@ implementation
     procedure tsparcinlinenode.second_sqrt_real;
       begin
         load_fpu_location;
-        case tfloatdef(left.resulttype.def).typ of
+        case tfloatdef(left.resultdef).typ of
           s32real:
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRTs,left.location.register,location.register));
           s64real:

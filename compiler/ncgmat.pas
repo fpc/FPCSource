@@ -51,11 +51,11 @@ interface
          procedure second_integer;virtual;
          procedure second_float;virtual;
       public
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
       end;
 
       tcgmoddivnode = class(tmoddivnode)
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
       protected
          { This routine must do an actual 32-bit division, be it
            signed or unsigned. The result must set into the the
@@ -104,7 +104,7 @@ interface
          procedure second_64bit;virtual;
 {$endif cpu64bit}
          procedure second_integer;virtual;
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
       end;
 
       tcgnotnode = class(tnotnode)
@@ -118,7 +118,7 @@ interface
 {$endif cpu64bit}
          procedure second_integer;virtual;
       public
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
       end;
 
 
@@ -186,27 +186,27 @@ implementation
     procedure tcgunaryminusnode.second_float;
       begin
         secondpass(left);
-        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         case left.location.loc of
           LOC_REFERENCE,
           LOC_CREFERENCE :
             begin
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                 def_cgsize(left.resulttype.def),
+                 def_cgsize(left.resultdef),
                  left.location.reference,location.register);
-              emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
+              emit_float_sign_change(location.register,def_cgsize(left.resultdef));
             end;
           LOC_FPUREGISTER:
             begin
                location.register:=left.location.register;
-               emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
+               emit_float_sign_change(location.register,def_cgsize(left.resultdef));
             end;
           LOC_CFPUREGISTER:
             begin
                location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
                cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,left.location.register,location.register);
-               emit_float_sign_change(location.register,def_cgsize(left.resulttype.def));
+               emit_float_sign_change(location.register,def_cgsize(left.resultdef));
             end;
           else
             internalerror(200306021);
@@ -224,19 +224,19 @@ implementation
       end;
 
 
-    procedure tcgunaryminusnode.pass_2;
+    procedure tcgunaryminusnode.pass_generate_code;
       begin
 {$ifndef cpu64bit}
-         if is_64bit(left.resulttype.def) then
+         if is_64bit(left.resultdef) then
            second_64bit
          else
 {$endif cpu64bit}
 {$ifdef SUPPORT_MMX}
-           if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resulttype.def) then
+           if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resultdef) then
              second_mmx
          else
 {$endif SUPPORT_MMX}
-           if (left.resulttype.def.deftype=floatdef) then
+           if (left.resultdef.deftype=floatdef) then
              second_float
          else
            second_integer;
@@ -259,7 +259,7 @@ implementation
 {$endif cpu64bit}
 
 
-    procedure tcgmoddivnode.pass_2;
+    procedure tcgmoddivnode.pass_generate_code;
       var
          hreg1 : tregister;
          hdenom : tregister;
@@ -277,9 +277,9 @@ implementation
          location_copy(location,left.location);
 
 {$ifndef cpu64bit}
-         if is_64bit(resulttype.def) then
+         if is_64bit(resultdef) then
            begin
-              if is_signed(left.resulttype.def) then
+              if is_signed(left.resultdef) then
                 opsize:=OS_S64
               else
                 opsize:=OS_64;
@@ -290,14 +290,14 @@ implementation
              location_force_reg(current_asmdata.CurrAsmList,location,opsize,false);
              location_copy(location,left.location);
              location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,false);
-             emit64_div_reg_reg(is_signed(left.resulttype.def),
+             emit64_div_reg_reg(is_signed(left.resultdef),
                joinreg64(right.location.register64.reglo,right.location.register64.reghi),
                joinreg64(location.register64.reglo,location.register64.reghi));
            end
          else
 {$endif cpu64bit}
            begin
-              if is_signed(left.resulttype.def) then
+              if is_signed(left.resultdef) then
                 opsize:=OS_SINT
               else
                 opsize:=OS_INT;
@@ -313,7 +313,7 @@ implementation
                   { for signed numbers, the numerator must be adjusted before the
                     shift instruction, but not wih unsigned numbers! Otherwise,
                     "Cardinal($ffffffff) div 16" overflows! (JM) }
-                  If is_signed(left.resulttype.def) Then
+                  If is_signed(left.resultdef) Then
                     Begin
                       current_asmdata.getjumplabel(hl);
                       cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_GT,0,hreg1,hl);
@@ -349,14 +349,14 @@ implementation
                   paraloc1.done;
                   cg.a_label(current_asmdata.CurrAsmList,hl);
                   if nodetype = modn then
-                    emit_mod_reg_reg(is_signed(left.resulttype.def),hdenom,hreg1)
+                    emit_mod_reg_reg(is_signed(left.resultdef),hdenom,hreg1)
                   else
-                    emit_div_reg_reg(is_signed(left.resulttype.def),hdenom,hreg1);
+                    emit_div_reg_reg(is_signed(left.resultdef),hdenom,hreg1);
                 end;
               location_reset(location,LOC_REGISTER,opsize);
               location.register:=hreg1;
            end;
-        cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resulttype.def);
+        cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
       end;
 
 
@@ -387,7 +387,7 @@ implementation
          end;
          { load left operators in a register }
          location_copy(location,left.location);
-         if is_signed(left.resulttype.def) then
+         if is_signed(left.resultdef) then
            opsize:=OS_SINT
          else
            opsize:=OS_INT;
@@ -425,12 +425,12 @@ implementation
       end;
 
 
-    procedure tcgshlshrnode.pass_2;
+    procedure tcgshlshrnode.pass_generate_code;
       begin
          secondpass(left);
          secondpass(right);
 {$ifndef cpu64bit}
-         if is_64bit(left.resulttype.def) then
+         if is_64bit(left.resultdef) then
            second_64bit
          else
 {$endif cpu64bit}
@@ -446,7 +446,7 @@ implementation
     procedure tcgnotnode.second_64bit;
       begin
         secondpass(left);
-        location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),false);
+        location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
         location_copy(location,left.location);
         { perform the NOT operation }
         cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,left.location.register64,location.register64);
@@ -457,23 +457,23 @@ implementation
     procedure tcgnotnode.second_integer;
       begin
         secondpass(left);
-        location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),false);
+        location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
         location_copy(location,left.location);
         { perform the NOT operation }
         cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,location.size,location.register,location.register);
       end;
 
 
-    procedure tcgnotnode.pass_2;
+    procedure tcgnotnode.pass_generate_code;
       begin
-        if is_boolean(resulttype.def) then
+        if is_boolean(resultdef) then
           second_boolean
 {$ifdef SUPPORT_MMX}
-        else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resulttype.def) then
+        else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resultdef) then
           second_mmx
 {$endif SUPPORT_MMX}
 {$ifndef cpu64bit}
-        else if is_64bit(left.resulttype.def) then
+        else if is_64bit(left.resultdef) then
           second_64bit
 {$endif cpu64bit}
         else

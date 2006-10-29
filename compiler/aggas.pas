@@ -398,7 +398,7 @@ implementation
       ch       : char;
       hp       : tai;
       hp1      : tailineinfo;
-      consttype : taiconst_type;
+      constdef : taiconst_type;
       s,t      : string;
       i,pos,l  : longint;
       InlineLevel : longint;
@@ -614,8 +614,8 @@ implementation
 
            ait_const:
              begin
-               consttype:=tai_const(hp).consttype;
-               case consttype of
+               constdef:=tai_const(hp).consttype;
+               case constdef of
 {$ifndef cpu64bit}
                  aitconst_128bit :
                     begin
@@ -699,7 +699,7 @@ implementation
                               (l>line_length) or
                               (hp.next=nil) or
                               (tai(hp.next).typ<>ait_const) or
-                              (tai_const(hp.next).consttype<>consttype) or
+                              (tai_const(hp.next).consttype<>constdef) or
                               assigned(tai_const(hp.next).sym) then
                              break;
                            hp:=tai(hp.next);

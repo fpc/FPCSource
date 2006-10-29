@@ -134,9 +134,9 @@ unit cpupara;
          // nextmmreg:=R_M1;
          stack_offset:=0;
          { pointer for structured results ? }
-         if not is_void(p.rettype.def) then
+         if not is_void(p.returndef) then
            begin
-              if not(ret_in_reg(p.rettype.def)) then
+              if not(ret_in_reg(p.returndef)) then
                 inc(nextintreg);
            end;
 
@@ -248,13 +248,13 @@ unit cpupara;
 
     function talphaparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
       begin
-         case p.rettype.def.deftype of
+         case p.returndef.deftype of
             orddef,
             enumdef:
               begin
                 getfuncretparaloc.loc:=LOC_REGISTER;
                 getfuncretparaloc.register:=R_3;
-                getfuncretparaloc.size:=def_cgsize(p.rettype.def);
+                getfuncretparaloc.size:=def_cgsize(p.returndef);
                 if getfuncretparaloc.size in [OS_S64,OS_64] then
                   getfuncretparaloc.register64.reghi:=R_4;
               end;
@@ -262,7 +262,7 @@ unit cpupara;
               begin
                 getfuncretparaloc.loc:=LOC_FPUREGISTER;
                 getfuncretparaloc.register:=R_F1;
-                getfuncretparaloc.size:=def_cgsize(p.rettype.def);
+                getfuncretparaloc.size:=def_cgsize(p.returndef);
               end;
             pointerdef,
             formaldef,

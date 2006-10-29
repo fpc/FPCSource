@@ -84,7 +84,7 @@ implementation
        { load the FPU into the an fpu register }
        procedure tppcinlinenode.load_fpu_location;
          begin
-           location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+           location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
            secondpass(left);
            location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
            location_copy(location,left.location);

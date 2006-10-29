@@ -67,7 +67,7 @@ interface
           procedure extra_post_call_code;virtual;
           procedure do_syscall;virtual;abstract;
        public
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
 
@@ -123,15 +123,15 @@ implementation
 {$endif i386}
       begin
         { we've nothing to push when the size of the parameter is 0 }
-        if left.resulttype.def.size=0 then
+        if left.resultdef.size=0 then
           exit;
 
         { Move flags and jump in register to make it less complex }
         if left.location.loc in [LOC_FLAGS,LOC_JUMP,LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF] then
-          location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resulttype.def),false);
+          location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
 
         { Handle Floating point types differently }
-        if (left.resulttype.def.deftype=floatdef) and not(cs_fp_emulation in aktmoduleswitches) then
+        if (left.resultdef.deftype=floatdef) and not(cs_fp_emulation in aktmoduleswitches) then
          begin
 {$ifdef i386}
            if tempcgpara.location^.loc<>LOC_REFERENCE then
@@ -153,7 +153,7 @@ implementation
              LOC_MMREGISTER,
              LOC_CMMREGISTER:
                begin
-                 size:=align(tfloatdef(left.resulttype.def).size,tempcgpara.alignment);
+                 size:=align(tfloatdef(left.resultdef).size,tempcgpara.alignment);
                  if tempcgpara.location^.reference.index=NR_STACK_POINTER_REG then
                    begin
                      cg.g_stackpointer_alloc(current_asmdata.CurrAsmList,size);
@@ -166,7 +166,7 @@ implementation
              LOC_REFERENCE,
              LOC_CREFERENCE :
                begin
-                 size:=align(left.resulttype.def.size,tempcgpara.alignment);
+                 size:=align(left.resultdef.size,tempcgpara.alignment);
                  if (not use_fixed_stack) and
                     (tempcgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                    cg.a_param_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara)
@@ -324,7 +324,7 @@ implementation
                begin
 {$ifndef cpu64bit}
                  { use cg64 only for int64, not for 8 byte records }
-                 if is_64bit(left.resulttype.def) then
+                 if is_64bit(left.resultdef) then
                    cg64.a_param64_loc(current_asmdata.CurrAsmList,left.location,tempcgpara)
                  else
 {$endif cpu64bit}
@@ -375,10 +375,10 @@ implementation
 
              { release memory for refcnt out parameters }
              if (parasym.varspez=vs_out) and
-                (left.resulttype.def.needs_inittable) then
+                (left.resultdef.needs_inittable) then
                begin
                  location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false);
-                 cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resulttype.def,href);
+                 cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
                end;
 
              paramanager.createtempparaloc(current_asmdata.CurrAsmList,aktcallnode.procdefinition.proccalloption,parasym,tempcgpara);
@@ -386,7 +386,7 @@ implementation
              { handle varargs first, because parasym is not valid }
              if (cpf_varargs_para in callparaflags) then
                begin
-                 if paramanager.push_addr_param(vs_value,left.resulttype.def,
+                 if paramanager.push_addr_param(vs_value,left.resultdef,
                         aktcallnode.procdefinition.proccalloption) then
                    push_addr_para
                  else
@@ -398,15 +398,15 @@ implementation
                  { don't push a node that already generated a pointer type
                    by address for implicit hidden parameters }
                  if (vo_is_funcret in parasym.varoptions) or
-                    (not(left.resulttype.def.deftype in [pointerdef,classrefdef]) and
-                     paramanager.push_addr_param(parasym.varspez,parasym.vartype.def,
+                    (not(left.resultdef.deftype in [pointerdef,classrefdef]) and
+                     paramanager.push_addr_param(parasym.varspez,parasym.vardef,
                          aktcallnode.procdefinition.proccalloption)) then
                    push_addr_para
                  else
                    push_value_para;
                end
              { formal def }
-             else if (parasym.vartype.def.deftype=formaldef) then
+             else if (parasym.vardef.deftype=formaldef) then
                begin
                   { allow passing of a constant to a const formaldef }
                   if (parasym.varspez=vs_const) and
@@ -421,14 +421,14 @@ implementation
                    by address for implicit hidden parameters }
                  if (not(
                          (vo_is_hidden_para in parasym.varoptions) and
-                         (left.resulttype.def.deftype in [pointerdef,classrefdef])
+                         (left.resultdef.deftype in [pointerdef,classrefdef])
                         ) and
-                     paramanager.push_addr_param(parasym.varspez,parasym.vartype.def,
+                     paramanager.push_addr_param(parasym.varspez,parasym.vardef,
                          aktcallnode.procdefinition.proccalloption)) and
                      { dyn. arrays passed to an array of const must be passed by value, see tests/webtbs/tw4219.pp }
                      not(
-                         is_array_of_const(parasym.vartype.def) and
-                         is_dynamic_array(left.resulttype.def)
+                         is_array_of_const(parasym.vardef) and
+                         is_dynamic_array(left.resultdef)
                         ) then
                    begin
                       { Passing a var parameter to a var parameter, we can
@@ -504,7 +504,7 @@ implementation
         { structured results are easy to handle....
           needed also when result_no_used !! }
         if (procdefinition.proctypeoption<>potype_constructor) and
-           paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
+           paramanager.ret_in_param(resultdef,procdefinition.proccalloption) then
           begin
             { Location should be setup by the funcret para }
             if location.loc<>LOC_REFERENCE then
@@ -512,7 +512,7 @@ implementation
           end
         else
           { ansi/widestrings must be registered, so we can dispose them }
-          if resulttype.def.needs_inittable then
+          if resultdef.needs_inittable then
             begin
               if procdefinition.funcretloc[callerside].loc<>LOC_REGISTER then
                 internalerror(200409261);
@@ -539,10 +539,10 @@ implementation
                   { original funcretnode isn't touched -> make sure it's    }
                   { the same here (not sure if it's necessary)              }
                   tempnode := funcretnode.getcopy;
-                  tempnode.pass_2;
+                  tempnode.pass_generate_code;
                   location := tempnode.location;
                   tempnode.free;
-                  cg.g_decrrefcount(current_asmdata.CurrAsmList,resulttype.def,location.reference);
+                  cg.g_decrrefcount(current_asmdata.CurrAsmList,resultdef,location.reference);
                   cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hregister,location.reference);
                end;
             end
@@ -595,15 +595,15 @@ implementation
                             begin
                               { change register size after the unget because the
                                 getregister was done for the full register
-                                def_cgsize(resulttype.def) is used here because
+                                def_cgsize(resultdef) is used here because
                                 it could be a constructor call }
                               if getsupreg(procdefinition.funcretloc[callerside].register)<first_int_imreg then
                                 cg.ungetcpuregister(current_asmdata.CurrAsmList,procdefinition.funcretloc[callerside].register);
-                              location.register:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resulttype.def));
-                              cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,def_cgsize(resulttype.def),procdefinition.funcretloc[callerside].register,location.register);
+                              location.register:=cg.getintregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
+                              cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,def_cgsize(resultdef),procdefinition.funcretloc[callerside].register,location.register);
                             end;
 {$ifdef arm}
-                          if (resulttype.def.deftype=floatdef) and (aktfputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
+                          if (resultdef.deftype=floatdef) and (aktfputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
                             begin
                               location_force_mem(current_asmdata.CurrAsmList,location);
                             end;
@@ -611,7 +611,7 @@ implementation
                         end
                        else
                         begin
-                          if resulttype.def.size>0 then
+                          if resultdef.size>0 then
                             internalerror(200305131);
                         end;
                      end;
@@ -648,8 +648,8 @@ implementation
           begin
             if location.loc=LOC_REFERENCE then
               begin
-                if resulttype.def.needs_inittable then
-                  cg.g_finalize(current_asmdata.CurrAsmList,resulttype.def,location.reference);
+                if resultdef.needs_inittable then
+                  cg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
                 tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference)
               end;
           end;
@@ -811,7 +811,7 @@ implementation
 
 
 
-    procedure tcgcallnode.pass_2;
+    procedure tcgcallnode.pass_generate_code;
       var
         regs_to_save_int,
         regs_to_save_fpu,
@@ -833,15 +833,15 @@ implementation
          if assigned(methodpointerinit) then
            secondpass(methodpointerinit);
 
-         if resulttype.def.needs_inittable and
-            not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) and
+         if resultdef.needs_inittable and
+            not paramanager.ret_in_param(resultdef,procdefinition.proccalloption) and
             not assigned(funcretnode) then
            begin
-             tg.gettemptyped(current_asmdata.CurrAsmList,resulttype.def,tt_normal,refcountedtemp);
+             tg.gettemptyped(current_asmdata.CurrAsmList,resultdef,tt_normal,refcountedtemp);
              { finalize instead of only decrref,  because if the called }
              { function throws an exception this temp will be decrref'd }
              { again (tw7100)                                           }
-             cg.g_finalize(current_asmdata.CurrAsmList,resulttype.def,refcountedtemp);
+             cg.g_finalize(current_asmdata.CurrAsmList,resultdef,refcountedtemp);
            end;
 
          regs_to_save_int:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
@@ -849,7 +849,7 @@ implementation
          regs_to_save_mm:=paramanager.get_volatile_registers_mm(procdefinition.proccalloption);
 
          { Include Function result registers }
-         if (not is_void(resulttype.def)) then
+         if (not is_void(resultdef)) then
           begin
             case procdefinition.funcretloc[callerside].loc of
               LOC_REGISTER,
@@ -894,8 +894,8 @@ implementation
                  secondpass(methodpointer);
 
                  { Load VMT from self }
-                 if methodpointer.resulttype.def.deftype=objectdef then
-                   gen_load_vmt_register(current_asmdata.CurrAsmList,tobjectdef(methodpointer.resulttype.def),methodpointer.location,vmtreg)
+                 if methodpointer.resultdef.deftype=objectdef then
+                   gen_load_vmt_register(current_asmdata.CurrAsmList,tobjectdef(methodpointer.resultdef),methodpointer.location,vmtreg)
                  else
                    begin
                      { Load VMT value in register }
@@ -1024,7 +1024,7 @@ implementation
             pop_size:=pushedparasize;
             { for Cdecl functions we don't need to pop the funcret when it
               was pushed by para }
-            if paramanager.ret_in_param(procdefinition.rettype.def,procdefinition.proccalloption) then
+            if paramanager.ret_in_param(procdefinition.returndef,procdefinition.proccalloption) then
               dec(pop_size,sizeof(aint));
             { Remove parameters/alignment from the stack }
             pop_parasize(pop_size);
@@ -1032,7 +1032,7 @@ implementation
 
          { Release registers, but not the registers that contain the
            function result }
-         if (not is_void(resulttype.def)) then
+         if (not is_void(resultdef)) then
            begin
              case procdefinition.funcretloc[callerside].loc of
                LOC_REGISTER,
@@ -1081,7 +1081,7 @@ implementation
          cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,regs_to_save_int);
 
          { handle function results }
-         if (not is_void(resulttype.def)) then
+         if (not is_void(resultdef)) then
            handle_return_value
          else
            location_reset(location,LOC_VOID,OS_NO);

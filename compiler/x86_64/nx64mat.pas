@@ -30,11 +30,11 @@ interface
 
     type
       tx8664moddivnode = class(tmoddivnode)
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
       end;
 
       tx8664shlshrnode = class(tshlshrnode)
-         procedure pass_2;override;
+         procedure pass_generate_code;override;
       end;
 
       tx8664unaryminusnode = class(tx86unaryminusnode)
@@ -59,7 +59,7 @@ implementation
                              TX8664MODDIVNODE
 *****************************************************************************}
 
-    procedure tx8664moddivnode.pass_2;
+    procedure tx8664moddivnode.pass_generate_code;
       var
         hreg1,hreg2:Tregister;
         power:longint;
@@ -83,7 +83,7 @@ implementation
             { for signed numbers, the numerator must be adjusted before the
               shift instruction, but not wih unsigned numbers! Otherwise,
               "Cardinal($ffffffff) div 16" overflows! (JM) }
-            if is_signed(left.resulttype.def) Then
+            if is_signed(left.resultdef) Then
               begin
                   { use a sequence without jumps, saw this in
                     comp.compilers (JM) }
@@ -110,13 +110,13 @@ implementation
             emit_reg_reg(A_MOV,S_Q,hreg1,NR_RAX);
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_RDX);
             {Sign extension depends on the left type.}
-            if torddef(left.resulttype.def).typ=u64bit then
+            if torddef(left.resultdef).typ=u64bit then
               emit_reg_reg(A_XOR,S_Q,NR_RDX,NR_RDX)
             else
               emit_none(A_CQO,S_NO);
 
             {Division depends on the right type.}
-            if Torddef(right.resulttype.def).typ=u64bit then
+            if Torddef(right.resultdef).typ=u64bit then
               op:=A_DIV
             else
               op:=A_IDIV;
@@ -149,7 +149,7 @@ implementation
 *****************************************************************************}
 
 
-    procedure tx8664shlshrnode.pass_2;
+    procedure tx8664shlshrnode.pass_generate_code;
       var
         op : Tasmop;
         opsize : tcgsize;
@@ -166,9 +166,9 @@ implementation
 
         { special treatment of 32bit values for backwards compatibility }
         { mul optimizations require to keep the sign (FK) }
-        if left.resulttype.def.size<=4 then
+        if left.resultdef.size<=4 then
           begin
-            if is_signed(left.resulttype.def) then
+            if is_signed(left.resultdef) then
               opsize:=OS_S32
             else
               opsize:=OS_32;
@@ -176,7 +176,7 @@ implementation
           end
         else
           begin
-            if is_signed(left.resulttype.def) then
+            if is_signed(left.resultdef) then
               opsize:=OS_S64
             else
               opsize:=OS_64;

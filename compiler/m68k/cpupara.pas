@@ -188,7 +188,7 @@ unit cpupara;
         if (p.proctypeoption=potype_constructor) then
           retcgsize:=OS_ADDR
         else
-          retcgsize:=def_cgsize(p.rettype.def);
+          retcgsize:=def_cgsize(p.returndef);
 
         location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
 
@@ -202,13 +202,13 @@ unit cpupara;
          end;
 
         { void has no location }
-        if is_void(p.rettype.def) then
+        if is_void(p.returndef) then
           begin
             location_reset(p.funcretloc[side],LOC_VOID,OS_NO);
             exit;
           end;
         { Return in FPU register? }
-        if p.rettype.def.deftype=floatdef then
+        if p.returndef.deftype=floatdef then
           begin
             p.funcretloc[side].loc:=LOC_FPUREGISTER;
             p.funcretloc[side].register:=NR_FPU_RESULT_REG;
@@ -216,7 +216,7 @@ unit cpupara;
           end
         else
          { Return in register? }
-         if not ret_in_param(p.rettype.def,p.proccalloption) then
+         if not ret_in_param(p.returndef,p.proccalloption) then
           begin
             if retcgsize in [OS_64,OS_S64] then
              begin
@@ -288,7 +288,7 @@ unit cpupara;
         for i:=0 to p.paras.count-1 do
           begin
             hp:=tparavarsym(paras[i]);
-	    paradef:=hp.vartype.def;
+	    paradef:=hp.vardef;
 	
 	    { syscall for AmigaOS can have already a paraloc set }
             if (vo_has_explicit_paraloc in hp.varoptions) then
@@ -316,7 +316,7 @@ unit cpupara;
                is_open_array(paradef) or
                is_array_of_const(paradef) then
               begin
-                paradef:=voidpointertype.def;
+                paradef:=voidpointertype;
                 loc:=LOC_REGISTER;
                 paracgsize := OS_ADDR;
                 paralen := tcgsize2size[OS_ADDR];
@@ -489,7 +489,7 @@ unit cpupara;
               p.paraloc[callerside].alignment:=4;
               paraloc:=p.paraloc[callerside].add_location;
               paraloc^.loc:=LOC_REGISTER;
-              paraloc^.size:=def_cgsize(p.vartype.def);
+              paraloc^.size:=def_cgsize(p.vardef);
               { pattern is always uppercase'd }
               if s='D0' then
                 paraloc^.register:=NR_D0

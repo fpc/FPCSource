@@ -37,7 +37,7 @@ interface
 
     type
        tcallnodeflag = (
-         cnf_restypeset,
+         cnf_typedefset,
          cnf_return_value_used,
          cnf_inherited,
          cnf_anon_inherited,
@@ -92,10 +92,10 @@ interface
           { that return their result in a parameter                      }
           property funcretnode: tnode read _funcretnode write setfuncretnode;
 
-          { separately specified resulttype for some compilerprocs (e.g. }
-          { you can't have a function with an "array of char" resulttype }
+          { separately specified resultdef for some compilerprocs (e.g. }
+          { you can't have a function with an "array of char" resultdef }
           { the RTL) (JM)                                                }
-          restype: ttype;
+          typedef: tdef;
           callnodeflags : tcallnodeflags;
 
           { only the processor specific nodes need to override this }
@@ -103,14 +103,14 @@ interface
           constructor create(l:tnode; v : tprocsym;st : tsymtable; mp: tnode; callflags:tcallnodeflags);virtual;
           constructor create_procvar(l,r:tnode);
           constructor createintern(const name: string; params: tnode);
-          constructor createinternres(const name: string; params: tnode; const res: ttype);
+          constructor createinternres(const name: string; params: tnode; res:tdef);
           constructor createinternreturn(const name: string; params: tnode; returnnode : tnode);
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function  _getcopy : tnode;override;
+          function  dogetcopy : tnode;override;
           { Goes through all symbols in a class and subclasses and calls
             verify abstract for each .
           }
@@ -121,7 +121,7 @@ interface
           procedure verifyabstract(p : tnamedindexitem;arg:pointer);
           procedure insertintolist(l : tnodelist);override;
           function  pass_1 : tnode;override;
-          function  det_resulttype:tnode;override;
+          function  pass_typecheck:tnode;override;
        {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
        {$endif state_tracking}
@@ -154,7 +154,7 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           procedure get_paratype;
           procedure insert_typeconv(do_count : boolean);
@@ -229,7 +229,7 @@ type
         hp,
         loadp,
         refp  : tnode;
-        htype : ttype;
+        hdef : tdef;
         ptemp : ttempcreatenode;
         usederef : boolean;
         usevoidpointer : boolean;
@@ -261,26 +261,26 @@ type
                 newdonestatement:=laststatement(aktcallnode.methodpointerdone);
               end;
             { temp create }
-            usederef:=(p.resulttype.def.deftype in [arraydef,recorddef]) or
-                      is_shortstring(p.resulttype.def) or
-                      is_object(p.resulttype.def);
+            usederef:=(p.resultdef.deftype in [arraydef,recorddef]) or
+                      is_shortstring(p.resultdef) or
+                      is_object(p.resultdef);
             { avoid refcount increase }
-            usevoidpointer:=is_interface(p.resulttype.def);
+            usevoidpointer:=is_interface(p.resultdef);
 
             if usederef then
-              htype.setdef(tpointerdef.create(p.resulttype))
+              hdef:=tpointerdef.create(p.resultdef)
             else
-              htype:=p.resulttype;
+              hdef:=p.resultdef;
 
             if usevoidpointer then
               begin
-                ptemp:=ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,true);
+                ptemp:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
                 loadp := ctypeconvnode.create_internal(p,voidpointertype);
-                refp:=ctypeconvnode.create_internal(ctemprefnode.create(ptemp),htype);
+                refp:=ctypeconvnode.create_internal(ctemprefnode.create(ptemp),hdef);
               end
             else
               begin
-                ptemp:=ctempcreatenode.create(htype,htype.def.size,tt_persistent,true);
+                ptemp:=ctempcreatenode.create(hdef,hdef.size,tt_persistent,true);
                 if usederef then
                   begin
                     loadp:=caddrnode.create_internal(p);
@@ -310,13 +310,13 @@ type
             addstatement(newdonestatement,ctempdeletenode.create_normal_temp(ptemp));
             if usevoidpointer then
               addstatement(newdonestatement,ctypeconvnode.create_internal(
-                ctemprefnode.create(ptemp),htype))
+                ctemprefnode.create(ptemp),hdef))
             else
               addstatement(newdonestatement,ctemprefnode.create(ptemp));
-            { call resulttypepass for new nodes }
-            resulttypepass(p);
-            resulttypepass(aktcallnode.methodpointerinit);
-            resulttypepass(aktcallnode.methodpointerdone);
+            { call typecheckpass for new nodes }
+            typecheckpass(p);
+            typecheckpass(aktcallnode.methodpointerinit);
+            typecheckpass(aktcallnode.methodpointerdone);
           end;
       end;
 
@@ -336,7 +336,7 @@ type
         len:=-1;
         loadconst:=true;
         hightree:=nil;
-        case p.resulttype.def.deftype of
+        case p.resultdef.deftype of
           arraydef :
             begin
               if (paradef.deftype<>arraydef) then
@@ -350,7 +350,7 @@ type
                 end
               else
               { handle special case of passing an single array to an array of array }
-              if compare_defs(tarraydef(paradef).elementtype.def,p.resulttype.def,nothingn)>=te_equal then
+              if compare_defs(tarraydef(paradef).elementdef,p.resultdef,nothingn)>=te_equal then
                 len:=0
               else
                 begin
@@ -371,7 +371,7 @@ type
                         Tcallparanode(tinlinenode(temp).left).left:=nil;
                         temp.free;
 
-                        resulttypepass(hightree);
+                        typecheckpass(hightree);
                       end
                   else if (p.nodetype=vecn) and (Tvecnode(p).right.nodetype=rangen) then
                     begin
@@ -383,7 +383,7 @@ type
                         end;
                       {In the procedure the array range is 0..(upper_bound-lower_bound).}
                       hightree:=caddnode.create(subn,r,l);
-                      resulttypepass(gen_high_tree);
+                      typecheckpass(gen_high_tree);
 
                       {Replace the rangnode in the tree by its lower_bound, and
                        dispose the rangenode.}
@@ -395,18 +395,18 @@ type
                           right:=nil;
                         end;
                       temp.free;
-                      {Tree changed from p[l..h] to p[l], recalculate resulttype.}
-                      p.resulttype.def:=nil;
-                      resulttypepass(p);
+                      {Tree changed from p[l..h] to p[l], recalculate resultdef.}
+                      p.resultdef:=nil;
+                      typecheckpass(p);
                     end
                   else
                     begin
                       maybe_load_para_in_temp(p);
                       hightree:=geninlinenode(in_high_x,false,p.getcopy);
-                      resulttypepass(hightree);
+                      typecheckpass(hightree);
                       { only substract low(array) if it's <> 0 }
                       temp:=geninlinenode(in_low_x,false,p.getcopy);
-                      resulttypepass(temp);
+                      typecheckpass(temp);
                       if (temp.nodetype <> ordconstn) or
                          (tordconstnode(temp).value <> 0) then
                         hightree := caddnode.create(subn,hightree,temp)
@@ -508,13 +508,13 @@ type
       end;
 
 
-    function tcallparanode._getcopy : tnode;
+    function tcallparanode.dogetcopy : tnode;
 
       var
          n : tcallparanode;
 
       begin
-         n:=tcallparanode(inherited _getcopy);
+         n:=tcallparanode(inherited dogetcopy);
          n.callparaflags:=callparaflags;
          n.parasym:=parasym;
          result:=n;
@@ -535,19 +535,19 @@ type
           tcallparanode(right).get_paratype;
          old_array_constructor:=allow_array_constructor;
          allow_array_constructor:=true;
-         resulttypepass(left);
+         typecheckpass(left);
          allow_array_constructor:=old_array_constructor;
          if codegenerror then
-          resulttype:=generrortype
+          resultdef:=generrordef
          else
-          resulttype:=left.resulttype;
+          resultdef:=left.resultdef;
          dec(parsing_para_level);
       end;
 
 
     procedure tcallparanode.insert_typeconv(do_count : boolean);
       var
-        oldtype  : ttype;
+        olddef  : tdef;
         hp       : tnode;
 {$ifdef extdebug}
         store_count_ref : boolean;
@@ -562,28 +562,28 @@ type
              count_ref:=true;
            end;
 {$endif def extdebug}
-         { Be sure to have the resulttype }
-         if not assigned(left.resulttype.def) then
-           resulttypepass(left);
+         { Be sure to have the resultdef }
+         if not assigned(left.resultdef) then
+           typecheckpass(left);
 
          if (left.nodetype<>nothingn) then
            begin
              { Convert tp procvars, this is needs to be done
                here to make the change permanent. in the overload
                choosing the changes are only made temporary }
-             if (left.resulttype.def.deftype=procvardef) and
-                (parasym.vartype.def.deftype<>procvardef) then
+             if (left.resultdef.deftype=procvardef) and
+                (parasym.vardef.deftype<>procvardef) then
                begin
                  if maybe_call_procvar(left,true) then
-                   resulttype:=left.resulttype;
+                   resultdef:=left.resultdef;
                end;
 
              { Remove implicitly inserted typecast to pointer for
                @procvar in macpas }
              if (m_mac_procvar in aktmodeswitches) and
-                (parasym.vartype.def.deftype=procvardef) and
+                (parasym.vardef.deftype=procvardef) and
                 (left.nodetype=typeconvn) and
-                is_voidpointer(left.resulttype.def) and
+                is_voidpointer(left.resultdef) and
                 (ttypeconvnode(left).left.nodetype=typeconvn) and
                 (ttypeconvnode(ttypeconvnode(left).left).convtype=tc_proc_2_procvar) then
                begin
@@ -594,7 +594,7 @@ type
                end;
 
              { Handle varargs and hidden paras directly, no typeconvs or }
-             { typechecking needed                                       }
+             { pass_typechecking needed                                       }
              if (cpf_varargs_para in callparaflags) then
                begin
                  { this should only happen vor C varargs                    }
@@ -602,16 +602,16 @@ type
                  { tarrayconstructornode.insert_typeconvs                   }
                  set_varstate(left,vs_read,[vsf_must_be_valid]);
                  insert_varargstypeconv(left,true);
-                 resulttype:=left.resulttype;
+                 resultdef:=left.resultdef;
                  { also update parasym type to get the correct parameter location
                    for the new types }
-                 parasym.vartype:=left.resulttype;
+                 parasym.vardef:=left.resultdef;
                end
              else
               if (vo_is_hidden_para in parasym.varoptions) then
                begin
                  set_varstate(left,vs_read,[vsf_must_be_valid]);
-                 resulttype:=left.resulttype;
+                 resultdef:=left.resultdef;
                end
              else
                begin
@@ -620,15 +620,15 @@ type
                    it here before the arrayconstructor node breaks the tree
                    with its conversions of enum->ord }
                  if (left.nodetype=arrayconstructorn) and
-                    (parasym.vartype.def.deftype=setdef) then
-                   inserttypeconv(left,parasym.vartype);
+                    (parasym.vardef.deftype=setdef) then
+                   inserttypeconv(left,parasym.vardef);
 
                  { set some settings needed for arrayconstructor }
-                 if is_array_constructor(left.resulttype.def) then
+                 if is_array_constructor(left.resultdef) then
                   begin
                     if left.nodetype<>arrayconstructorn then
                       internalerror(200504041);
-                    if is_array_of_const(parasym.vartype.def) then
+                    if is_array_of_const(parasym.vardef) then
                      begin
                        { force variant array }
                        include(left.flags,nf_forcevaria);
@@ -638,32 +638,32 @@ type
                        include(left.flags,nf_novariaallowed);
                        { now that the resultting type is know we can insert the required
                          typeconvs for the array constructor }
-                       if parasym.vartype.def.deftype=arraydef then
-                         tarrayconstructornode(left).force_type(tarraydef(parasym.vartype.def).elementtype);
+                       if parasym.vardef.deftype=arraydef then
+                         tarrayconstructornode(left).force_type(tarraydef(parasym.vardef).elementdef);
                      end;
                   end;
 
                  { check if local proc/func is assigned to procvar }
-                 if left.resulttype.def.deftype=procvardef then
-                   test_local_to_procvar(tprocvardef(left.resulttype.def),parasym.vartype.def);
+                 if left.resultdef.deftype=procvardef then
+                   test_local_to_procvar(tprocvardef(left.resultdef),parasym.vardef);
 
                  { test conversions }
-                 if not(is_shortstring(left.resulttype.def) and
-                        is_shortstring(parasym.vartype.def)) and
-                    (parasym.vartype.def.deftype<>formaldef) then
+                 if not(is_shortstring(left.resultdef) and
+                        is_shortstring(parasym.vardef)) and
+                    (parasym.vardef.deftype<>formaldef) then
                    begin
                       { Process open parameters }
-                      if paramanager.push_high_param(parasym.varspez,parasym.vartype.def,aktcallnode.procdefinition.proccalloption) then
+                      if paramanager.push_high_param(parasym.varspez,parasym.vardef,aktcallnode.procdefinition.proccalloption) then
                        begin
                          { insert type conv but hold the ranges of the array }
-                         oldtype:=left.resulttype;
-                         inserttypeconv(left,parasym.vartype);
-                         left.resulttype:=oldtype;
+                         olddef:=left.resultdef;
+                         inserttypeconv(left,parasym.vardef);
+                         left.resultdef:=olddef;
                        end
                       else
                        begin
-                         check_ranges(left.fileinfo,left,parasym.vartype.def);
-                         inserttypeconv(left,parasym.vartype);
+                         check_ranges(left.fileinfo,left,parasym.vardef);
+                         inserttypeconv(left,parasym.vardef);
                        end;
                       if codegenerror then
                         begin
@@ -674,24 +674,24 @@ type
 
                  { check var strings }
                  if (cs_strict_var_strings in aktlocalswitches) and
-                    is_shortstring(left.resulttype.def) and
-                    is_shortstring(parasym.vartype.def) and
+                    is_shortstring(left.resultdef) and
+                    is_shortstring(parasym.vardef) and
                     (parasym.varspez in [vs_out,vs_var]) and
-                    not(is_open_string(parasym.vartype.def)) and
-                    not(equal_defs(left.resulttype.def,parasym.vartype.def)) then
+                    not(is_open_string(parasym.vardef)) and
+                    not(equal_defs(left.resultdef,parasym.vardef)) then
                    begin
                      aktfilepos:=left.fileinfo;
                      CGMessage(type_e_strict_var_string_violation);
                    end;
 
                  { Handle formal parameters separate }
-                 if (parasym.vartype.def.deftype=formaldef) then
+                 if (parasym.vardef.deftype=formaldef) then
                    begin
                      { load procvar if a procedure is passed }
                      if ((m_tp_procvar in aktmodeswitches) or
                          (m_mac_procvar in aktmodeswitches)) and
                         (left.nodetype=calln) and
-                        (is_void(left.resulttype.def)) then
+                        (is_void(left.resultdef)) then
                        load_procvar_from_calln(left);
 
                      case parasym.varspez of
@@ -724,9 +724,9 @@ type
                  if (
                      not(
                          (vo_is_hidden_para in parasym.varoptions) and
-                         (left.resulttype.def.deftype in [pointerdef,classrefdef])
+                         (left.resultdef.deftype in [pointerdef,classrefdef])
                         ) and
-                     paramanager.push_addr_param(parasym.varspez,parasym.vartype.def,
+                     paramanager.push_addr_param(parasym.varspez,parasym.vardef,
                          aktcallnode.procdefinition.proccalloption) and
                      not(
                          (left.nodetype=loadn) and
@@ -747,7 +747,7 @@ type
                     end;
                   end;
                  { must only be done after typeconv PM }
-                 resulttype:=parasym.vartype;
+                 resultdef:=parasym.vardef;
                end;
             end;
 
@@ -791,7 +791,7 @@ type
 
     procedure tcallparanode.firstcallparan;
       begin
-        if not assigned(left.resulttype.def) then
+        if not assigned(left.resultdef) then
           get_paratype;
         det_registers;
       end;
@@ -863,15 +863,15 @@ type
        end;
 
 
-    constructor tcallnode.createinternres(const name: string; params: tnode; const res: ttype);
+    constructor tcallnode.createinternres(const name: string; params: tnode; res:tdef);
       begin
         createintern(name,params);
-        restype := res;
-        include(callnodeflags,cnf_restypeset);
-        { both the normal and specified resulttype either have to be returned via a }
+        typedef := res;
+        include(callnodeflags,cnf_typedefset);
+        { both the normal and specified resultdef either have to be returned via a }
         { parameter or not, but no mixing (JM)                                      }
-        if paramanager.ret_in_param(restype.def,symtableprocentry.first_procdef.proccalloption) xor
-           paramanager.ret_in_param(symtableprocentry.first_procdef.rettype.def,symtableprocentry.first_procdef.proccalloption) then
+        if paramanager.ret_in_param(typedef,symtableprocentry.first_procdef.proccalloption) xor
+           paramanager.ret_in_param(symtableprocentry.first_procdef.returndef,symtableprocentry.first_procdef.proccalloption) then
           internalerror(200108291);
       end;
 
@@ -880,7 +880,7 @@ type
       begin
         createintern(name,params);
         _funcretnode:=returnnode;
-        if not paramanager.ret_in_param(symtableprocentry.first_procdef.rettype.def,symtableprocentry.first_procdef.proccalloption) then
+        if not paramanager.ret_in_param(symtableprocentry.first_procdef.returndef,symtableprocentry.first_procdef.proccalloption) then
           internalerror(200204247);
       end;
 
@@ -892,14 +892,14 @@ type
         if assigned(_funcretnode) then
           _funcretnode.free;
         _funcretnode := returnnode;
-        { if the resulttype pass hasn't occurred yet, that one will do }
+        { if the resultdef pass hasn't occurred yet, that one will do }
         { everything                                                   }
-        if assigned(resulttype.def) then
+        if assigned(resultdef) then
           begin
             { these are returned as values, but we can optimize their loading }
             { as well                                                         }
-            if is_ansistring(resulttype.def) or
-               is_widestring(resulttype.def) then
+            if is_ansistring(resultdef) or
+               is_widestring(resultdef) then
               exit;
             para := tcallparanode(left);
             while assigned(para) do
@@ -1011,7 +1011,7 @@ type
       end;
 
 
-    function tcallnode._getcopy : tnode;
+    function tcallnode.dogetcopy : tnode;
       var
         n : tcallnode;
         i : integer;
@@ -1023,33 +1023,33 @@ type
           the can reference methodpointer }
         oldleft:=left;
         left:=nil;
-        n:=tcallnode(inherited _getcopy);
+        n:=tcallnode(inherited dogetcopy);
         left:=oldleft;
         n.symtableprocentry:=symtableprocentry;
         n.symtableproc:=symtableproc;
         n.procdefinition:=procdefinition;
-        n.restype := restype;
+        n.typedef := typedef;
         n.callnodeflags := callnodeflags;
         if assigned(methodpointerinit) then
-         n.methodpointerinit:=tblocknode(methodpointerinit._getcopy)
+         n.methodpointerinit:=tblocknode(methodpointerinit.dogetcopy)
         else
          n.methodpointerinit:=nil;
         { methodpointerinit is copied, now references to the temp will also be copied
           correctly. We can now copy the parameters and methodpointer }
         if assigned(left) then
-         n.left:=left._getcopy
+         n.left:=left.dogetcopy
         else
          n.left:=nil;
         if assigned(methodpointer) then
-         n.methodpointer:=methodpointer._getcopy
+         n.methodpointer:=methodpointer.dogetcopy
         else
          n.methodpointer:=nil;
         if assigned(methodpointerdone) then
-         n.methodpointerdone:=tblocknode(methodpointerdone._getcopy)
+         n.methodpointerdone:=tblocknode(methodpointerdone.dogetcopy)
         else
          n.methodpointerdone:=nil;
         if assigned(_funcretnode) then
-         n._funcretnode:=_funcretnode._getcopy
+         n._funcretnode:=_funcretnode.dogetcopy
         else
          n._funcretnode:=nil;
 
@@ -1059,7 +1059,7 @@ type
            for i:=0 to varargsparas.count-1 do
              begin
                hp:=tparavarsym(varargsparas[i]);
-               hpn:=tparavarsym.create(hp.realname,hp.paranr,hp.varspez,hp.vartype,[]);
+               hpn:=tparavarsym.create(hp.realname,hp.paranr,hp.varspez,hp.vardef,[]);
                n.varargsparas.add(hpn);
              end;
          end
@@ -1083,7 +1083,7 @@ type
         oldleft:=tcallparanode(left);
         if oldleft.left.nodetype<>arrayconstructorn then
           begin
-            CGMessage1(type_e_wrong_type_in_array_constructor,oldleft.left.resulttype.def.typename);
+            CGMessage1(type_e_wrong_type_in_array_constructor,oldleft.left.resultdef.typename);
             exit;
           end;
         include(callnodeflags,cnf_uses_varargs);
@@ -1097,8 +1097,8 @@ type
             while assigned(hp) do
               begin
                 left:=ccallparanode.create(hp.left,left);
-                { set callparanode resulttype and flags }
-                left.resulttype:=hp.left.resulttype;
+                { set callparanode resultdef and flags }
+                left.resultdef:=hp.left.resultdef;
                 include(tcallparanode(left).callparaflags,cpf_varargs_para);
                 hp.left:=nil;
                 hp:=tarrayconstructornode(hp.right);
@@ -1154,13 +1154,13 @@ type
         }
         if assigned(methodpointer) then
           begin
-            if (methodpointer.resulttype.def.deftype = objectdef) then
-              objectdf:=tobjectdef(methodpointer.resulttype.def)
+            if (methodpointer.resultdef.deftype = objectdef) then
+              objectdf:=tobjectdef(methodpointer.resultdef)
             else
-              if (methodpointer.resulttype.def.deftype = classrefdef) and
-                 (tclassrefdef(methodpointer.resulttype.def).pointertype.def.deftype = objectdef) and
+              if (methodpointer.resultdef.deftype = classrefdef) and
+                 (tclassrefdef(methodpointer.resultdef).pointeddef.deftype = objectdef) and
                  (methodpointer.nodetype in [typen,loadvmtaddrn]) then
-                objectdf:=tobjectdef(tclassrefdef(methodpointer.resulttype.def).pointertype.def);
+                objectdf:=tobjectdef(tclassrefdef(methodpointer.resultdef).pointeddef);
           end;
         if not assigned(objectdf) then
           exit;
@@ -1211,7 +1211,7 @@ type
         hsym : tfieldvarsym;
       begin
         { find self field in methodpointer record }
-        hsym:=tfieldvarsym(trecorddef(methodpointertype.def).symtable.search('self'));
+        hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.search('self'));
         if not assigned(hsym) then
           internalerror(200305251);
         { Load tmehodpointer(right).self }
@@ -1235,7 +1235,7 @@ type
           if (procdefinition.proctypeoption=potype_constructor) then
             begin
               { push 0 as self when allocation is needed }
-              if (methodpointer.resulttype.def.deftype=classrefdef) or
+              if (methodpointer.resultdef.deftype=classrefdef) or
                  (cnf_new_call in callnodeflags) then
                 selftree:=cpointerconstnode.create(0,voidpointertype)
               else
@@ -1259,7 +1259,7 @@ type
                     need to check for typen, because that will always get the
                     loadvmtaddrnode added }
                   selftree:=methodpointer.getcopy;
-                  if methodpointer.resulttype.def.deftype<>classrefdef then
+                  if methodpointer.resultdef.deftype<>classrefdef then
                     selftree:=cloadvmtaddrnode.create(selftree);
                 end
               else
@@ -1286,9 +1286,9 @@ type
 
         { Handle classes and legacy objects separate to make it
           more maintainable }
-        if (methodpointer.resulttype.def.deftype=classrefdef) then
+        if (methodpointer.resultdef.deftype=classrefdef) then
           begin
-            if not is_class(tclassrefdef(methodpointer.resulttype.def).pointertype.def) then
+            if not is_class(tclassrefdef(methodpointer.resultdef).pointeddef) then
               internalerror(200501041);
 
             { constructor call via classreference => allocate memory }
@@ -1307,7 +1307,7 @@ type
           end
         else
         { Class style objects }
-         if is_class(methodpointer.resulttype.def) then
+         if is_class(methodpointer.resultdef) then
           begin
             { inherited call, no create/destroy }
             if (cnf_inherited in callnodeflags) then
@@ -1361,7 +1361,7 @@ type
           begin
             { constructor with extended syntax called from new }
             if (cnf_new_call in callnodeflags) then
-                vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resulttype))
+                vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resultdef))
             else
               { destructor with extended syntax called from dispose }
               if (cnf_dispose_call in callnodeflags) then
@@ -1390,7 +1390,7 @@ type
                    if (methodpointer.nodetype=typen) then
                      vmttree:=cpointerconstnode.create(0,voidpointertype)
                    else
-                     vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resulttype))
+                     vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resultdef))
                  end
                else
                  vmttree:=cpointerconstnode.create(0,voidpointertype);
@@ -1451,9 +1451,9 @@ type
                  else
                   begin
                     hiddentree:=internalstatements(newstatement);
-                    { need to use resulttype instead of procdefinition.rettype,
+                    { need to use resultdef instead of procdefinition.returndef,
                       because they can be different }
-                    temp:=ctempcreatenode.create(resulttype,resulttype.def.size,tt_persistent,false);
+                    temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
                     addstatement(newstatement,temp);
                     addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
                     addstatement(newstatement,ctemprefnode.create(temp));
@@ -1466,7 +1466,7 @@ type
                      (i=0) then
                     internalerror(200304082);
                   { we need the information of the previous parameter }
-                  hiddentree:=gen_high_tree(pt.left,tparavarsym(procdefinition.paras[i-1]).vartype.def);
+                  hiddentree:=gen_high_tree(pt.left,tparavarsym(procdefinition.paras[i-1]).vardef);
                 end
               else
                if vo_is_self in currpara.varoptions then
@@ -1532,7 +1532,7 @@ type
               begin
                 if cpf_varargs_para in pt.callparaflags then
                   begin
-                    varargspara:=tparavarsym.create('va'+tostr(i),i,vs_value,pt.resulttype,[]);
+                    varargspara:=tparavarsym.create('va'+tostr(i),i,vs_value,pt.resultdef,[]);
                     dec(i);
                     { varargspara is left-right, use insert
                       instead of concat }
@@ -1546,7 +1546,7 @@ type
       end;
 
 
-    function tcallnode.det_resulttype:tnode;
+    function tcallnode.pass_typecheck:tnode;
       var
         candidates : tcallcandidates;
         oldcallnode : tcallnode;
@@ -1585,7 +1585,7 @@ type
 
          if assigned(methodpointer) then
            begin
-             resulttypepass(methodpointer);
+             typecheckpass(methodpointer);
              maybe_load_para_in_temp(methodpointer);
            end;
 
@@ -1593,11 +1593,11 @@ type
          if assigned(right) then
            begin
               set_varstate(right,vs_read,[vsf_must_be_valid]);
-              resulttypepass(right);
+              typecheckpass(right);
               if codegenerror then
                exit;
 
-              procdefinition:=tabstractprocdef(right.resulttype.def);
+              procdefinition:=tabstractprocdef(right.resultdef);
 
               { Compare parameters from right to left }
               paraidx:=procdefinition.Paras.count-1;
@@ -1688,7 +1688,7 @@ type
                               hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc);
                               if assigned(methodpointer) then
                                 tloadnode(hpt).set_mp(get_load_methodpointer);
-                              resulttypepass(hpt);
+                              typecheckpass(hpt);
                               result:=hpt;
                             end
                           else
@@ -1831,15 +1831,15 @@ type
            end;
 
          { ensure that the result type is set }
-         if not(cnf_restypeset in callnodeflags) then
+         if not(cnf_typedefset in callnodeflags) then
           begin
             { constructors return their current class type, not the type where the
               constructor is declared, this can be different because of inheritance }
             if (procdefinition.proctypeoption=potype_constructor) and
                assigned(methodpointer) and
-               assigned(methodpointer.resulttype.def) and
-               (methodpointer.resulttype.def.deftype=classrefdef) then
-              resulttype:=tclassrefdef(methodpointer.resulttype.def).pointertype
+               assigned(methodpointer.resultdef) and
+               (methodpointer.resultdef.deftype=classrefdef) then
+              resultdef:=tclassrefdef(methodpointer.resultdef).pointeddef
             else
             { Member call to a (inherited) constructor from the class, the return
               value is always self, so we change it to voidtype to generate an
@@ -1849,14 +1849,14 @@ type
                  is_class(tprocdef(procdefinition)._class) and
                  assigned(methodpointer) and
                  (nf_is_self in methodpointer.flags) then
-                resulttype:=voidtype
+                resultdef:=voidtype
             else
-              resulttype:=procdefinition.rettype;
+              resultdef:=procdefinition.returndef;
            end
          else
-           resulttype:=restype;
+           resultdef:=typedef;
 
-         {if resulttype.def.needs_inittable then
+         {if resultdef.needs_inittable then
            include(current_procinfo.flags,pi_needs_implicit_finally);}
 
          if assigned(methodpointer) then
@@ -1879,7 +1879,7 @@ type
             { con- and destructors need a pointer to the vmt }
             if (cnf_inherited in callnodeflags) and
                (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) and
-               is_object(methodpointer.resulttype.def) and
+               is_object(methodpointer.resultdef) and
                not(current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) then
              CGMessage(cg_w_member_cd_call_from_method);
 
@@ -1901,10 +1901,10 @@ type
                if (procdefinition.proctypeoption=potype_constructor) or
                   ((hpt.nodetype=loadn) and
                    (
-                    (methodpointer.resulttype.def.deftype=classrefdef) or
+                    (methodpointer.resultdef.deftype=classrefdef) or
                     (
-                     (methodpointer.resulttype.def.deftype=objectdef) and
-                     not(oo_has_virtual in tobjectdef(methodpointer.resulttype.def).objectoptions)
+                     (methodpointer.resultdef.deftype=objectdef) and
+                     not(oo_has_virtual in tobjectdef(methodpointer.resultdef).objectoptions)
                     )
                    )
                   ) then
@@ -1942,7 +1942,7 @@ type
 
          { Change loading of array of const to varargs }
          if assigned(left) and
-            is_array_of_const(tparavarsym(procdefinition.paras[procdefinition.paras.count-1]).vartype.def) and
+            is_array_of_const(tparavarsym(procdefinition.paras[procdefinition.paras.count-1]).vardef) and
             (procdefinition.proccalloption in [pocall_cppdecl,pocall_cdecl]) then
            convert_carg_array_of_const;
 
@@ -2053,7 +2053,7 @@ type
                     begin
                       n.free;
                       n := paras.left.getcopy;
-                      resulttypepass(n);
+                      typecheckpass(n);
                       result := fen_true;
                     end;
                 end;
@@ -2068,7 +2068,7 @@ type
                   temp := tnode(inlinelocals[tloadnode(n).symtableentry.indexnr]).getcopy;
                   n.free;
                   n := temp;
-                  resulttypepass(n);
+                  typecheckpass(n);
                   result := fen_true;
                 end;
             end;
@@ -2106,7 +2106,7 @@ type
           end
         else
           begin
-            tempnode := ctempcreatenode.create(tabstractvarsym(p).vartype,tabstractvarsym(p).vartype.def.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
+            tempnode := ctempcreatenode.create(tabstractvarsym(p).vardef,tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
             addstatement(tempinfo^.createstatement,tempnode);
             if assigned(tlocalvarsym(p).defaultconstsym) then
               begin
@@ -2182,7 +2182,7 @@ type
                   ((tparavarsym(para.parasym).varregable in [vr_none,vr_addr]) and
                    not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE]))  or
                   { we can't assign to formaldef temps }
-                  ((para.parasym.vartype.def.deftype<>formaldef) and
+                  ((para.parasym.vardef.deftype<>formaldef) and
                    (
                     { if paracomplexity > 1, we normally take the address of   }
                     { the parameter expression, store it in a temp and         }
@@ -2206,7 +2206,7 @@ type
                       { variable would be passed by value normally, or if   }
                       { there is such a variable somewhere in an expression }
                        ((para.parasym.varspez = vs_const) and
-                        (not paramanager.push_addr_param(vs_const,para.parasym.vartype.def,procdefinition.proccalloption) or
+                        (not paramanager.push_addr_param(vs_const,para.parasym.vardef,procdefinition.proccalloption) or
                          (paracomplexity > 1)))) and
                      { however, if we pass a global variable, an object field or}
                      { an expression containing a pointer dereference as        }
@@ -2238,7 +2238,7 @@ type
                      ((para.parasym.varstate = vs_readwritten) or
                       { call-by-reference const's may need to be passed by }
                       { reference to function called in the inlined code   }
-                      (paramanager.push_addr_param(vs_const,para.parasym.vartype.def,procdefinition.proccalloption) and
+                      (paramanager.push_addr_param(vs_const,para.parasym.vardef,procdefinition.proccalloption) and
                        (not valid_for_addr(para.left,false) or
                         is_constnode(para.left)))))
                    )
@@ -2276,7 +2276,7 @@ type
                       end;
 {$endif reuse_existing_para_temp}
 
-                    tempnode := ctempcreatenode.create(para.parasym.vartype,para.parasym.vartype.def.size,tt_persistent,tparavarsym(para.parasym).is_regvar(false));
+                    tempnode := ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,tt_persistent,tparavarsym(para.parasym).is_regvar(false));
                     addstatement(createstatement,tempnode);
                     { assign the value of the parameter to the temp, except in case of the function result }
                     { (in that case, para.left is a block containing the creation of a new temp, while we  }
@@ -2304,11 +2304,11 @@ type
                 { temp                                                        }
                 else if (paracomplexity > 1) then
                   begin
-                    tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
+                    tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
                     addstatement(createstatement,tempnode);
                     addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
                       caddrnode.create_internal(para.left)));
-                    para.left := ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),para.left.resulttype);
+                    para.left := ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),para.left.resultdef);
                     addstatement(deletestatement,ctempdeletenode.create(tempnode));
                   end;
               end;
@@ -2482,22 +2482,22 @@ type
            include(current_procinfo.flags,pi_do_call);
 
          { implicit finally needed ? }
-         if resulttype.def.needs_inittable and
-            not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) and
+         if resultdef.needs_inittable and
+            not paramanager.ret_in_param(resultdef,procdefinition.proccalloption) and
             not assigned(funcretnode) then
            include(current_procinfo.flags,pi_needs_implicit_finally);
 
          { get a register for the return value }
-         if (not is_void(resulttype.def)) then
+         if (not is_void(resultdef)) then
            begin
-              if paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
+              if paramanager.ret_in_param(resultdef,procdefinition.proccalloption) then
                begin
                  expectloc:=LOC_REFERENCE;
                end
              else
              { ansi/widestrings must be registered, so we can dispose them }
-              if is_ansistring(resulttype.def) or
-                 is_widestring(resulttype.def) then
+              if is_ansistring(resultdef) or
+                 is_widestring(resultdef) then
                begin
                  expectloc:=LOC_REFERENCE;
                  registersint:=1;
@@ -2506,7 +2506,7 @@ type
              { we have only to handle the result if it is used }
               if (cnf_return_value_used in callnodeflags) then
                begin
-                 case resulttype.def.deftype of
+                 case resultdef.deftype of
                    enumdef,
                    orddef :
                      begin
@@ -2518,7 +2518,7 @@ type
                        else
                         begin
                           expectloc:=LOC_REGISTER;
-                          if is_64bit(resulttype.def) then
+                          if is_64bit(resultdef) then
                             registersint:=2
                           else
                             registersint:=1;
@@ -2533,7 +2533,7 @@ type
                        else
 {$endif cpufpemu}
 {$ifdef m68k}
-                        if (tfloatdef(resulttype.def).typ=s32real) then
+                        if (tfloatdef(resultdef).typ=s32real) then
                          registersint:=1
                        else
 {$endif m68k}
@@ -2544,7 +2544,7 @@ type
                        expectloc:=procdefinition.funcretloc[callerside].loc;
                        if (expectloc = LOC_REGISTER) then
 {$ifndef cpu64bit}
-                         if (resulttype.def.size > sizeof(aint)) then
+                         if (resultdef.size > sizeof(aint)) then
                            registersint:=2
                          else
 {$endif cpu64bit}
@@ -2617,8 +2617,8 @@ type
             begin
                 if left.track_state_pass(exec_known) then
                     begin
-                        left.resulttype.def:=nil;
-                        do_resulttypepass(left);
+                        left.resultdef:=nil;
+                        do_typecheckpass(left);
                     end;
                 value:=aktstate.find_fact(hp.left);
                 if value<>nil then
@@ -2626,7 +2626,7 @@ type
                         track_state_pass:=true;
                         hp.left.destroy;
                         hp.left:=value.getcopy;
-                        do_resulttypepass(hp.left);
+                        do_typecheckpass(hp.left);
                     end;
                 hp:=Tcallparanode(hp.right);
             end;
@@ -2679,9 +2679,9 @@ type
           (symtableprocentry = tcallnode(p).symtableprocentry) and
           (procdefinition = tcallnode(p).procdefinition) and
           (methodpointer.isequal(tcallnode(p).methodpointer)) and
-          (((cnf_restypeset in callnodeflags) and (cnf_restypeset in tcallnode(p).callnodeflags) and
-            (equal_defs(restype.def,tcallnode(p).restype.def))) or
-           (not(cnf_restypeset in callnodeflags) and not(cnf_restypeset in tcallnode(p).callnodeflags)));
+          (((cnf_typedefset in callnodeflags) and (cnf_typedefset in tcallnode(p).callnodeflags) and
+            (equal_defs(typedef,tcallnode(p).typedef))) or
+           (not(cnf_typedefset in callnodeflags) and not(cnf_typedefset in tcallnode(p).callnodeflags)));
       end;
 
 

@@ -31,19 +31,19 @@ uses
 type
   tppcmoddivnode = class(tmoddivnode)
     function pass_1: tnode; override;
-    procedure pass_2; override;
+    procedure pass_generate_code override;
   end;
 
   tppcshlshrnode = class(tshlshrnode)
-    procedure pass_2; override;
+    procedure pass_generate_code override;
   end;
 
   tppcunaryminusnode = class(tunaryminusnode)
-    procedure pass_2; override;
+    procedure pass_generate_code override;
   end;
 
   tppcnotnode = class(tnotnode)
-    procedure pass_2; override;
+    procedure pass_generate_code override;
   end;
 
 implementation
@@ -71,7 +71,7 @@ begin
     include(current_procinfo.flags, pi_do_call);
 end;
 
-procedure tppcmoddivnode.pass_2;
+procedure tppcmoddivnode.pass_generate_code;
 const         { signed   overflow }
   divops: array[boolean, boolean] of tasmop =
     ((A_DIVDU, A_DIVDU_),(A_DIVD, A_DIVDO_));
@@ -101,7 +101,7 @@ var
       { x mod +/-1 is always zero }
       cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 0, resultreg);
     end else if (ispowerof2(tordconstnode(right).value, power)) then begin
-      if (is_signed(right.resulttype.def)) then begin
+      if (is_signed(right.resultdef)) then begin
         tempreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
         maskreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
         modreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
@@ -120,7 +120,7 @@ var
           resultreg);
       end;
     end else begin
-      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resulttype.def)], OS_INT, 
+      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resultdef)], OS_INT, 
         tordconstnode(right).value, numerator, resultreg);
       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tordconstnode(right).value, resultreg, 
         resultreg);
@@ -135,7 +135,7 @@ begin
   location_copy(location,left.location);
 
   { put numerator in register }
-  size:=def_cgsize(left.resulttype.def);
+  size:=def_cgsize(left.resultdef);
   location_force_reg(current_asmdata.CurrAsmList,left.location,
     size,true);
   location_copy(location,left.location);
@@ -153,7 +153,7 @@ begin
   done := false;
   if (cs_opt_level1 in aktoptimizerswitches) and (right.nodetype = ordconstn) then begin
     if (nodetype = divn) then
-      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resulttype.def)], 
+      cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resultdef)], 
         size, tordconstnode(right).value, numerator, resultreg)
     else 
       genOrdConstNodeMod;
@@ -162,7 +162,7 @@ begin
 
   if (not done) then begin
     { load divider in a register if necessary }
-    location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resulttype.def),true);
+    location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resultdef),true);
     if (right.nodetype <> ordconstn) then
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_CMPDI, NR_CR7,
         right.location.register, 0))
@@ -174,7 +174,7 @@ begin
 
     { select the correct opcode according to the sign of the result, whether we need
      overflow checking }
-    op := divops[is_signed(right.resulttype.def), cs_check_overflow in aktlocalswitches];
+    op := divops[is_signed(right.resultdef), cs_check_overflow in aktlocalswitches];
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op, resultreg, numerator,
       divider));
 
@@ -199,15 +199,15 @@ begin
   { unsigned division/module can only overflow in case of division by zero
    (but checking this overflow flag is more convoluted than performing a  
    simple comparison with 0)                                             }
-  if is_signed(right.resulttype.def) then
-    cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resulttype.def);
+  if is_signed(right.resultdef) then
+    cg.g_overflowcheck(current_asmdata.CurrAsmList,location,resultdef);
 end;
 
 {*****************************************************************************
                              TPPCSHLRSHRNODE
 *****************************************************************************}
 
-procedure tppcshlshrnode.pass_2;
+procedure tppcshlshrnode.pass_generate_code;
 
 var
   resultreg, hregister1, hregister2 : tregister;
@@ -222,7 +222,7 @@ begin
 
   { load left operators in a register }
   location_force_reg(current_asmdata.CurrAsmList, left.location,
-    def_cgsize(left.resulttype.def), true);
+    def_cgsize(left.resultdef), true);
   location_copy(location, left.location);
   resultreg := location.register;
   hregister1 := location.register;
@@ -242,15 +242,15 @@ begin
   if (right.nodetype = ordconstn) then begin
     // result types with size < 32 bits have their shift values masked
     // differently... :/
-    shiftval := tordconstnode(right).value and (tcgsize2size[def_cgsize(resulttype.def)] * 8 -1);
-    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, op, def_cgsize(resulttype.def),
+    shiftval := tordconstnode(right).value and (tcgsize2size[def_cgsize(resultdef)] * 8 -1);
+    cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, op, def_cgsize(resultdef),
       shiftval, hregister1, resultreg)
   end else begin
     { load shift count in a register if necessary }
     location_force_reg(current_asmdata.CurrAsmList, right.location,
-      def_cgsize(right.resulttype.def), true);
+      def_cgsize(right.resultdef), true);
     hregister2 := right.location.register;
-    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, op, def_cgsize(resulttype.def), hregister2,
+    cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, op, def_cgsize(resultdef), hregister2,
       hregister1, resultreg);
   end;
 end;
@@ -259,7 +259,7 @@ end;
                           TPPCUNARYMINUSNODE
 *****************************************************************************}
 
-procedure tppcunaryminusnode.pass_2;
+procedure tppcunaryminusnode.pass_generate_code;
 
 var
   src1: tregister;
@@ -286,12 +286,12 @@ begin
         end;
       LOC_REFERENCE, LOC_CREFERENCE:
         begin
-          if (left.resulttype.def.deftype = floatdef) then begin
+          if (left.resultdef.deftype = floatdef) then begin
             src1 := cg.getfpuregister(current_asmdata.CurrAsmList,
-              def_cgsize(left.resulttype.def));
+              def_cgsize(left.resultdef));
             location.register := src1;
             cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-              def_cgsize(left.resulttype.def),
+              def_cgsize(left.resultdef),
               left.location.reference, src1);
           end else begin
             src1 := cg.getintregister(current_asmdata.CurrAsmList, OS_64);
@@ -302,7 +302,7 @@ begin
         end;
     end;
     { choose appropriate operand }
-    if left.resulttype.def.deftype <> floatdef then begin
+    if left.resultdef.deftype <> floatdef then begin
       if not (cs_check_overflow in aktlocalswitches) then
         op := A_NEG
       else
@@ -315,20 +315,20 @@ begin
     { emit operation }
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, location.register, src1));
   end;
-  cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resulttype.def);
+  cg.g_overflowcheck(current_asmdata.CurrAsmList, location, resultdef);
 end;
 
 {*****************************************************************************
                                TPPCNOTNODE
 *****************************************************************************}
 
-procedure tppcnotnode.pass_2;
+procedure tppcnotnode.pass_generate_code;
 
 var
   hl: tasmlabel;
 
 begin
-  if is_boolean(resulttype.def) then
+  if is_boolean(resultdef) then
   begin
     { if the location is LOC_JUMP, we do the secondpass after the
       labels are allocated
@@ -360,7 +360,7 @@ begin
         LOC_SUBSETREF, LOC_CSUBSETREF:
           begin
             location_force_reg(current_asmdata.CurrAsmList, left.location,
-              def_cgsize(left.resulttype.def), true);
+              def_cgsize(left.resultdef), true);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMPDI,
               left.location.register, 0));
             location_reset(location, LOC_FLAGS, OS_NO);
@@ -376,12 +376,12 @@ begin
   begin
     secondpass(left);
     location_force_reg(current_asmdata.CurrAsmList, left.location,
-      def_cgsize(left.resulttype.def), true);
+      def_cgsize(left.resultdef), true);
     location_copy(location, left.location);
     location.loc := LOC_REGISTER;
     location.register := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
     { perform the NOT operation }
-    cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_NOT, def_cgsize(resulttype.def),
+    cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_NOT, def_cgsize(resultdef),
       left.location.register,
       location.register);
   end;

@@ -887,7 +887,7 @@ Unit Rax86int;
                            typedconstsym :
                              l:=ttypedconstsym(sym).getsize;
                            typesym :
-                             l:=ttypesym(sym).restype.def.size;
+                             l:=ttypesym(sym).typedef.size;
                            else
                              Message(asmr_e_wrong_sym_type);
                          end;
@@ -968,7 +968,7 @@ Unit Rax86int;
                            globalvarsym :
                              begin
                                hs:=tglobalvarsym(sym).mangledname;
-                               def:=tglobalvarsym(sym).vartype.def;
+                               def:=tglobalvarsym(sym).vardef;
                              end;
                            localvarsym,
                            paravarsym :
@@ -978,7 +978,7 @@ Unit Rax86int;
                            typedconstsym :
                              begin
                                hs:=ttypedconstsym(sym).mangledname;
-                               def:=ttypedconstsym(sym).typedconsttype.def;
+                               def:=ttypedconstsym(sym).typedconstdef;
                              end;
                            procsym :
                              begin
@@ -989,7 +989,7 @@ Unit Rax86int;
                              end;
                            typesym :
                              begin
-                               if not(ttypesym(sym).restype.def.deftype in [recorddef,objectdef]) then
+                               if not(ttypesym(sym).typedef.deftype in [recorddef,objectdef]) then
                                 Message(asmr_e_wrong_sym_type);
                              end;
                            else

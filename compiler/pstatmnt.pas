@@ -124,16 +124,16 @@ implementation
          consume(_CASE);
          caseexpr:=comp_expr(true);
          { determines result type }
-         do_resulttypepass(caseexpr);
+         do_typecheckpass(caseexpr);
          { variants must be accepted, but first they must be converted to integer }
-         if caseexpr.resulttype.def.deftype=variantdef then
+         if caseexpr.resultdef.deftype=variantdef then
            begin
              caseexpr:=ctypeconvnode.create_internal(caseexpr,sinttype);
-             do_resulttypepass(caseexpr);
+             do_typecheckpass(caseexpr);
            end;
          set_varstate(caseexpr,vs_read,[vsf_must_be_valid]);
          casedeferror:=false;
-         casedef:=caseexpr.resulttype.def;
+         casedef:=caseexpr.resultdef;
          if (not assigned(casedef)) or
             not(is_ordinal(casedef)) then
           begin
@@ -159,13 +159,13 @@ implementation
                     begin
                        trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cwidechartype);
                        trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cwidechartype);
-                       do_resulttypepass(trangenode(p).left);
-                       do_resulttypepass(trangenode(p).right);
+                       do_typecheckpass(trangenode(p).left);
+                       do_typecheckpass(trangenode(p).right);
                     end
                   else
                     begin
                        p:=ctypeconvnode.create(p,cwidechartype);
-                       do_resulttypepass(p);
+                       do_typecheckpass(p);
                     end;
                end;
 
@@ -174,8 +174,8 @@ implementation
              if (p.nodetype=rangen) then
                begin
                   { type checking for case statements }
-                  if is_subequal(casedef, trangenode(p).left.resulttype.def) and
-                     is_subequal(casedef, trangenode(p).right.resulttype.def) then
+                  if is_subequal(casedef, trangenode(p).left.resultdef) and
+                     is_subequal(casedef, trangenode(p).right.resultdef) then
                     begin
                       hl1:=get_ordinal_value(trangenode(p).left);
                       hl2:=get_ordinal_value(trangenode(p).right);
@@ -194,7 +194,7 @@ implementation
              else
                begin
                   { type checking for case statements }
-                  if not is_subequal(casedef, p.resulttype.def) then
+                  if not is_subequal(casedef, p.resultdef) then
                     CGMessage(parser_e_case_mismatch);
                   hl1:=get_ordinal_value(p);
                   if not casedeferror then
@@ -315,9 +315,9 @@ implementation
          loopvarsym:=nil;
 
          { variable must be an ordinal, int64 is not allowed for 32bit targets }
-         if not(is_ordinal(hloopvar.resulttype.def))
+         if not(is_ordinal(hloopvar.resultdef))
 {$ifndef cpu64bit}
-            or is_64bitint(hloopvar.resulttype.def)
+            or is_64bitint(hloopvar.resultdef)
 {$endif cpu64bit}
             then
            MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
@@ -329,8 +329,8 @@ implementation
                 (
                  (m_tp7 in aktmodeswitches) and
                  (hp.nodetype=subscriptn) and
-                 ((tsubscriptnode(hp).left.resulttype.def.deftype=recorddef) or
-                  is_object(tsubscriptnode(hp).left.resulttype.def))
+                 ((tsubscriptnode(hp).left.resultdef.deftype=recorddef) or
+                  is_object(tsubscriptnode(hp).left.resultdef))
                 ) or
                 { constant array index }
                 (
@@ -418,11 +418,11 @@ implementation
            trigger a warning when it is not used yet. This
            needs to be done before the instruction block is
            parsed to have a valid hloopvar }
-         resulttypepass(hfrom);
+         typecheckpass(hfrom);
          set_varstate(hfrom,vs_read,[vsf_must_be_valid]);
-         resulttypepass(hto);
+         typecheckpass(hto);
          set_varstate(hto,vs_read,[vsf_must_be_valid]);
-         resulttypepass(hloopvar);
+         typecheckpass(hloopvar);
          set_varstate(hloopvar,vs_readwritten,[]);
 
          { ... now the instruction block }
@@ -449,7 +449,7 @@ implementation
          valuenode,
          hp,
          refnode  : tnode;
-         htype : ttype;
+         hdef : tdef;
          hasimplicitderef : boolean;
          withsymtablelist : TFPObjectList;
 
@@ -460,20 +460,20 @@ implementation
            pushobjchild(obj.childof);
            { keep the original tobjectdef as owner, because that is used for
              visibility of the symtable }
-           st:=twithsymtable.create(tobjectdef(p.resulttype.def),obj.symtable.symsearch,refnode.getcopy);
+           st:=twithsymtable.create(tobjectdef(p.resultdef),obj.symtable.symsearch,refnode.getcopy);
            symtablestack.push(st);
            withsymtablelist.add(st);
          end;
 
       begin
          p:=comp_expr(true);
-         do_resulttypepass(p);
+         do_typecheckpass(p);
 
          if (p.nodetype=vecn) and
             (nf_memseg in p.flags) then
            CGMessage(parser_e_no_with_for_variable_in_other_segments);
 
-         if (p.resulttype.def.deftype in [objectdef,recorddef]) then
+         if (p.resultdef.deftype in [objectdef,recorddef]) then
           begin
             newblock:=nil;
             valuenode:=nil;
@@ -510,23 +510,23 @@ implementation
                 { when right is a call then load it first in a temp }
                 if p.nodetype=calln then
                   begin
-                    calltempnode:=ctempcreatenode.create(p.resulttype,p.resulttype.def.size,tt_persistent,true);
+                    calltempnode:=ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent,true);
                     addstatement(newstatement,calltempnode);
                     addstatement(newstatement,cassignmentnode.create(
                         ctemprefnode.create(calltempnode),
                         p));
                     p:=ctemprefnode.create(calltempnode);
-                    resulttypepass(p);
+                    typecheckpass(p);
                   end;
                 { classes and interfaces have implicit dereferencing }
-                hasimplicitderef:=is_class_or_interface(p.resulttype.def);
+                hasimplicitderef:=is_class_or_interface(p.resultdef);
                 if hasimplicitderef then
-                  htype:=p.resulttype
+                  hdef:=p.resultdef
                 else
-                  htype.setdef(tpointerdef.create(p.resulttype));
+                  hdef:=tpointerdef.create(p.resultdef);
                 { load address of the value in a temp }
-                tempnode:=ctempcreatenode.create(htype,sizeof(aint),tt_persistent,true);
-                resulttypepass(tempnode);
+                tempnode:=ctempcreatenode.create(hdef,sizeof(aint),tt_persistent,true);
+                typecheckpass(tempnode);
                 valuenode:=p;
                 refnode:=ctemprefnode.create(tempnode);
                 fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);
@@ -542,23 +542,23 @@ implementation
                 addstatement(newstatement,cassignmentnode.create(
                     ctemprefnode.create(tempnode),
                     valuenode));
-                resulttypepass(refnode);
+                typecheckpass(refnode);
               end;
 
             withsymtablelist:=TFPObjectList.create(true);
-            case p.resulttype.def.deftype of
+            case p.resultdef.deftype of
               objectdef :
                 begin
                    { push symtables of all parents in reverse order }
-                   pushobjchild(tobjectdef(p.resulttype.def).childof);
+                   pushobjchild(tobjectdef(p.resultdef).childof);
                    { push object symtable }
-                   st:=twithsymtable.Create(tobjectdef(p.resulttype.def),tobjectdef(p.resulttype.def).symtable.symsearch,refnode);
+                   st:=twithsymtable.Create(tobjectdef(p.resultdef),tobjectdef(p.resultdef).symtable.symsearch,refnode);
                    symtablestack.push(st);
                    withsymtablelist.add(st);
                  end;
               recorddef :
                 begin
-                   st:=twithsymtable.create(trecorddef(p.resulttype.def),trecorddef(p.resulttype.def).symtable.symsearch,refnode);
+                   st:=twithsymtable.create(trecorddef(p.resultdef),trecorddef(p.resultdef).symtable.symsearch,refnode);
                    symtablestack.push(st);
                    withsymtablelist.add(st);
                 end;
@@ -661,7 +661,7 @@ implementation
       var
          p_try_block,p_finally_block,first,last,
          p_default,p_specific,hp : tnode;
-         ot : ttype;
+         ot : tDef;
          sym : tlocalvarsym;
          old_block_type : tblock_type;
          exceptsymtable : tsymtable;
@@ -715,7 +715,7 @@ implementation
               block_type:=bt_except;
               inc(exceptblockcounter);
               aktexceptblock := exceptblockcounter;
-              ot:=generrortype;
+              ot:=generrordef;
               p_specific:=nil;
               if (idtoken=_ON) then
                 { catch specific exceptions }
@@ -735,18 +735,18 @@ implementation
                             begin
                                consume_sym(srsym,srsymtable);
                                if (srsym.typ=typesym) and
-                                  is_class(ttypesym(srsym).restype.def) then
+                                  is_class(ttypesym(srsym).typedef) then
                                  begin
-                                    ot:=ttypesym(srsym).restype;
+                                    ot:=ttypesym(srsym).typedef;
                                     sym:=tlocalvarsym.create(objrealname,vs_value,ot,[]);
                                  end
                                else
                                  begin
-                                    sym:=tlocalvarsym.create(objrealname,vs_value,generrortype,[]);
+                                    sym:=tlocalvarsym.create(objrealname,vs_value,generrordef,[]);
                                     if (srsym.typ=typesym) then
-                                      Message1(type_e_class_type_expected,ttypesym(srsym).restype.def.typename)
+                                      Message1(type_e_class_type_expected,ttypesym(srsym).typedef.typename)
                                     else
-                                      Message1(type_e_class_type_expected,ot.def.typename);
+                                      Message1(type_e_class_type_expected,ot.typename);
                                  end;
                                exceptsymtable:=tstt_exceptsymtable.create;
                                exceptsymtable.insert(sym);
@@ -776,15 +776,15 @@ implementation
                                { check if type is valid, must be done here because
                                  with "e: Exception" the e is not necessary }
                                if (srsym.typ=typesym) and
-                                  is_class(ttypesym(srsym).restype.def) then
-                                 ot:=ttypesym(srsym).restype
+                                  is_class(ttypesym(srsym).typedef) then
+                                 ot:=ttypesym(srsym).typedef
                                else
                                  begin
-                                    ot:=generrortype;
+                                    ot:=generrordef;
                                     if (srsym.typ=typesym) then
-                                      Message1(type_e_class_type_expected,ttypesym(srsym).restype.def.typename)
+                                      Message1(type_e_class_type_expected,ttypesym(srsym).typedef.typename)
                                     else
-                                      Message1(type_e_class_type_expected,ot.def.typename);
+                                      Message1(type_e_class_type_expected,ot.typename);
                                  end;
                                exceptsymtable:=nil;
                             end;
@@ -793,7 +793,7 @@ implementation
                        consume(_ID);
                      consume(_DO);
                      hp:=connode.create(nil,statement);
-                     if ot.def.deftype=errordef then
+                     if ot.deftype=errordef then
                        begin
                           hp.free;
                           hp:=cerrornode.create;
@@ -813,7 +813,7 @@ implementation
                      { that last and hp are errornodes (JM)                            }
                      if last.nodetype = onn then
                        begin
-                         tonnode(last).excepttype:=tobjectdef(ot.def);
+                         tonnode(last).excepttype:=tobjectdef(ot);
                          tonnode(last).exceptsymtable:=exceptsymtable;
                        end;
                      { remove exception symtable }
@@ -1044,8 +1044,8 @@ implementation
                    tlabelnode(p).left:=cnothingnode.create
                  else
                    tlabelnode(p).left:=statement();
-                 { be sure to have left also resulttypepass }
-                 resulttypepass(tlabelnode(p).left);
+                 { be sure to have left also typecheckpass }
+                 typecheckpass(tlabelnode(p).left);
                end
              else
 
@@ -1073,7 +1073,7 @@ implementation
          end;
          if assigned(code) then
            begin
-             resulttypepass(code);
+             typecheckpass(code);
              code.fileinfo:=filepos;
            end;
          statement:=code;
@@ -1136,7 +1136,7 @@ implementation
         locals : longint;
       begin
          { Rename the funcret so that recursive calls are possible }
-         if not is_void(current_procinfo.procdef.rettype.def) then
+         if not is_void(current_procinfo.procdef.returndef) then
            current_procinfo.procdef.localst.rename(current_procinfo.procdef.resultname,'$hiddenresult');
 
          { delphi uses register calling for assembler methods }
@@ -1170,10 +1170,10 @@ implementation
                 (current_procinfo.procdef.owner.symtabletype<>objectsymtable) and
                 (not assigned(current_procinfo.procdef.funcretsym) or
                  (tabstractvarsym(current_procinfo.procdef.funcretsym).refcount<=1)) and
-                not(paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption)) then
+                not(paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption)) then
                begin
                  { Only need to set the framepointer, the locals will
-                   be inserted with the correct reference in tcgasmnode.pass_2 }
+                   be inserted with the correct reference in tcgasmnode.pass_generate_code }
                  current_procinfo.framepointer:=NR_STACK_POINTER_REG;
                end;
            end;
@@ -1184,7 +1184,7 @@ implementation
           register.
         }
         if assigned(current_procinfo.procdef.funcretsym) and
-           (not paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption)) then
+           (not paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption)) then
           tabstractvarsym(current_procinfo.procdef.funcretsym).varstate:=vs_initialised;
 
         { because the END is already read we need to get the

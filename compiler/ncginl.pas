@@ -30,7 +30,7 @@ interface
 
     type
        tcginlinenode = class(tinlinenode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
           procedure second_assert;virtual;
           procedure second_sizeoftypeof;virtual;
           procedure second_length;virtual;
@@ -76,7 +76,7 @@ implementation
 *****************************************************************************}
 
 
-    procedure tcginlinenode.pass_2;
+    procedure tcginlinenode.pass_generate_code;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -250,7 +250,7 @@ implementation
         if left.nodetype=typen then
           begin
             hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0);
+            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tobjectdef(left.resultdef).vmt_mangledname),0);
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
           end
         else
@@ -263,33 +263,33 @@ implementation
               LOC_CREGISTER,
               LOC_REGISTER :
                 begin
-                  if (left.resulttype.def.deftype=classrefdef) or
+                  if (left.resultdef.deftype=classrefdef) or
                      (po_staticmethod in current_procinfo.procdef.procoptions) then
                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.register,hregister)
                   else
                    begin
                      { load VMT pointer }
-                     reference_reset_base(hrefvmt,left.location.register,tobjectdef(left.resulttype.def).vmt_offset);
+                     reference_reset_base(hrefvmt,left.location.register,tobjectdef(left.resultdef).vmt_offset);
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hrefvmt,hregister);
                    end
                 end;
               LOC_REFERENCE,
               LOC_CREFERENCE :
                 begin
-                  if is_class(left.resulttype.def) then
+                  if is_class(left.resultdef) then
                    begin
                      { deref class }
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,hregister);
                      cg.g_maybe_testself(current_asmdata.CurrAsmList,hregister);
                      { load VMT pointer }
-                     reference_reset_base(hrefvmt,hregister,tobjectdef(left.resulttype.def).vmt_offset);
+                     reference_reset_base(hrefvmt,hregister,tobjectdef(left.resultdef).vmt_offset);
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hrefvmt,hregister);
                    end
                   else
                    begin
                      { load VMT pointer, but not for classrefdefs }
-                     if (left.resulttype.def.deftype=objectdef) then
-                       inc(left.location.reference.offset,tobjectdef(left.resulttype.def).vmt_offset);
+                     if (left.resultdef.deftype=objectdef) then
+                       inc(left.location.reference.offset,tobjectdef(left.resultdef).vmt_offset);
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,hregister);
                    end;
                 end;
@@ -320,7 +320,7 @@ implementation
         href : treference;
       begin
         secondpass(left);
-        if is_shortstring(left.resulttype.def) then
+        if is_shortstring(left.resultdef) then
          begin
            location_copy(location,left.location);
            location.size:=OS_8;
@@ -331,7 +331,7 @@ implementation
            location_force_reg(current_asmdata.CurrAsmList,left.location,OS_ADDR,false);
            current_asmdata.getjumplabel(lengthlab);
            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,left.location.register,lengthlab);
-           if is_widestring(left.resulttype.def) and (tf_winlikewidestring in target_info.flags) then
+           if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
              begin
                reference_reset_base(href,left.location.register,-sizeof(dword));
                hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
@@ -343,7 +343,7 @@ implementation
                hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hregister);
              end;
-           if is_widestring(left.resulttype.def) then
+           if is_widestring(left.resultdef) then
              cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,1,hregister);
            cg.a_label(current_asmdata.CurrAsmList,lengthlab);
            location_reset(location,LOC_REGISTER,OS_INT);
@@ -366,7 +366,7 @@ implementation
            cgop:=OP_SUB
         else
            cgop:=OP_ADD;
-        cgsize:=def_cgsize(resulttype.def);
+        cgsize:=def_cgsize(resultdef);
 
         { we need a value in a register }
         location_copy(location,left.location);
@@ -379,7 +379,7 @@ implementation
 {$endif cpu64bit}
           cg.a_op_const_reg(current_asmdata.CurrAsmList,cgop,location.size,1,location.register);
 
-        cg.g_rangecheck(current_asmdata.CurrAsmList,location,resulttype.def,resulttype.def);
+        cg.g_rangecheck(current_asmdata.CurrAsmList,location,resultdef,resultdef);
       end;
 
 
@@ -407,18 +407,18 @@ implementation
             secondpass(tcallparanode(tcallparanode(left).right).left);
           { load first parameter, must be a reference }
           secondpass(tcallparanode(left).left);
-          cgsize:=def_cgsize(tcallparanode(left).left.resulttype.def);
+          cgsize:=def_cgsize(tcallparanode(left).left.resultdef);
           { get addvalue }
-          case tcallparanode(left).left.resulttype.def.deftype of
+          case tcallparanode(left).left.resultdef.deftype of
             orddef,
             enumdef :
                 addvalue:=1;
             pointerdef :
                begin
-                 if is_void(tpointerdef(tcallparanode(left).left.resulttype.def).pointertype.def) then
+                 if is_void(tpointerdef(tcallparanode(left).left.resultdef).pointeddef) then
                    addvalue:=1
                  else
-                   addvalue:=tpointerdef(tcallparanode(left).left.resulttype.def).pointertype.def.size;
+                   addvalue:=tpointerdef(tcallparanode(left).left.resultdef).pointeddef.size;
                end;
            else
                internalerror(10081);
@@ -464,9 +464,9 @@ implementation
                  cg.a_op_reg_loc(current_asmdata.CurrAsmList,addsubop[inlinenumber],
                    hregister,tcallparanode(left).left.location);
              end;
-          cg.g_overflowcheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).resulttype.def);
-          cg.g_rangecheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).left.resulttype.def,
-              tcallparanode(left).left.resulttype.def);
+          cg.g_overflowcheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).resultdef);
+          cg.g_rangecheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).left.resultdef,
+              tcallparanode(left).left.resultdef);
         end;
 
 
@@ -479,7 +479,7 @@ implementation
         begin
           location_reset(location,LOC_REGISTER,OS_ADDR);
           location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-          reference_reset_symbol(href,tstoreddef(left.resulttype.def).get_rtti_label(fullrtti),0);
+          reference_reset_symbol(href,tstoreddef(left.resultdef).get_rtti_label(fullrtti),0);
           cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
         end;
 
@@ -531,13 +531,13 @@ implementation
             begin
               use_small:=
                  { set type }
-                 (tsetdef(tcallparanode(left).left.resulttype.def).settype=smallset)
+                 (tsetdef(tcallparanode(left).left.resultdef).settype=smallset)
                   and
                    { elemenut number between 1 and 32 }
-                  ((tcallparanode(tcallparanode(left).right).left.resulttype.def.deftype=orddef) and
-                   (torddef(tcallparanode(tcallparanode(left).right).left.resulttype.def).high<=32) or
-                   (tcallparanode(tcallparanode(left).right).left.resulttype.def.deftype=enumdef) and
-                   (tenumdef(tcallparanode(tcallparanode(left).right).left.resulttype.def).max<=32));
+                  ((tcallparanode(tcallparanode(left).right).left.resultdef.deftype=orddef) and
+                   (torddef(tcallparanode(tcallparanode(left).right).left.resultdef).high<=32) or
+                   (tcallparanode(tcallparanode(left).right).left.resultdef.deftype=enumdef) and
+                   (tenumdef(tcallparanode(tcallparanode(left).right).left.resultdef).max<=32));
 
               { generate code for the element to set }
               secondpass(tcallparanode(tcallparanode(left).right).left);

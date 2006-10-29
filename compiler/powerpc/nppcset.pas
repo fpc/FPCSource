@@ -144,8 +144,8 @@ implementation
           end;
 
         begin
-           if (get_min_value(left.resulttype.def) >= low(smallint)) and
-              (get_max_value(left.resulttype.def) <= high(word)) then
+           if (get_min_value(left.resultdef) >= low(smallint)) and
+              (get_max_value(left.resultdef) <= high(word)) then
              begin
                genlinearcmplist(hp);
                exit;
@@ -153,7 +153,7 @@ implementation
            if assigned(t^.less) then
              genitem(t^.less);
            { need we to test the first value }
-           if first and (t^._low>get_min_value(left.resulttype.def)) then
+           if first and (t^._low>get_min_value(left.resultdef)) then
              begin
                cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,jmp_lt,aword(t^._low),hregister,elselabel);
              end;
@@ -175,7 +175,7 @@ implementation
                 if first then
                   begin
                      { have we to ajust the first value ? }
-                     if (t^._low>get_min_value(left.resulttype.def)) then
+                     if (t^._low>get_min_value(left.resultdef)) then
                        gensub(longint(t^._low));
                   end
                 else

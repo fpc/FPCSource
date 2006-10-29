@@ -479,7 +479,7 @@ implementation
         { Set the owner of errorsym and errortype to symtable to
           prevent crashes when accessing .owner }
         generrorsym.owner:=systemunit;
-        generrortype.def.owner:=systemunit;
+        generrordef.owner:=systemunit;
 
         { Units only required for main module }
         if not(current_module.is_unit) then

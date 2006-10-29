@@ -339,12 +339,12 @@ implementation
               case sym.typ of
                 typesym :
                   begin
-                     if ttypesym(sym).restype.def.deftype in [recorddef,objectdef] then
+                     if ttypesym(sym).typedef.deftype in [recorddef,objectdef] then
                        begin
-                          if ttypesym(sym).restype.def.deftype=recorddef then
-                            symt:=trecorddef(ttypesym(sym).restype.def).symtable
+                          if ttypesym(sym).typedef.deftype=recorddef then
+                            symt:=trecorddef(ttypesym(sym).typedef).symtable
                           else
-                            symt:=tobjectdef(ttypesym(sym).restype.def).symtable;
+                            symt:=tobjectdef(ttypesym(sym).typedef).symtable;
                           sym:=tstoredsym(symt.search(ss));
                           if sym=nil then
                             sym:=tstoredsym(symt.search(upper(ss)));
@@ -355,9 +355,9 @@ implementation
                 paravarsym,
                 fieldvarsym :
                   begin
-                     if tabstractvarsym(sym).vartype.def.deftype in [recorddef,objectdef] then
+                     if tabstractvarsym(sym).vardef.deftype in [recorddef,objectdef] then
                        begin
-                          symt:=tabstractvarsym(sym).vartype.def.getsymtable(gs_record);
+                          symt:=tabstractvarsym(sym).vardef.getsymtable(gs_record);
                           sym:=tstoredsym(symt.search(ss));
                           if sym=nil then
                             sym:=tstoredsym(symt.search(upper(ss)));
@@ -453,10 +453,10 @@ implementation
               case hp.typ of
                 typesym :
                   begin
-                    if (ttypesym(hp).restype.def.deftype=recorddef) then
-                      writesymtable(trecorddef(ttypesym(hp).restype.def).symtable);
-                    if (ttypesym(hp).restype.def.deftype=objectdef) then
-                      writesymtable(tobjectdef(ttypesym(hp).restype.def).symtable);
+                    if (ttypesym(hp).typedef.deftype=recorddef) then
+                      writesymtable(trecorddef(ttypesym(hp).typedef).symtable);
+                    if (ttypesym(hp).typedef.deftype=objectdef) then
+                      writesymtable(tobjectdef(ttypesym(hp).typedef).symtable);
                   end;
                 procsym :
                     Tprocsym(hp).foreach_procdef_static(@writelocalsymtables,nil);

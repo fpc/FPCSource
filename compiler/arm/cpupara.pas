@@ -235,7 +235,7 @@ unit cpupara;
             { currently only support C-style array of const,
               there should be no location assigned to the vararg array itself }
             if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-               is_array_of_const(hp.vartype.def) then
+               is_array_of_const(hp.vardef) then
               begin
                 paraloc:=hp.paraloc[side].add_location;
                 { hack: the paraloc must be valid, but is not actually used }
@@ -245,11 +245,11 @@ unit cpupara;
                 break;
               end;
 
-            if push_addr_param(hp.varspez,hp.vartype.def,p.proccalloption) then
+            if push_addr_param(hp.varspez,hp.vardef,p.proccalloption) then
               paracgsize:=OS_ADDR
             else
               begin
-                paracgsize:=def_cgSize(hp.vartype.def);
+                paracgsize:=def_cgSize(hp.vardef);
                 if paracgsize=OS_NO then
                   paracgsize:=OS_ADDR;
               end;
@@ -260,12 +260,12 @@ unit cpupara;
 
              if (hp.varspez in [vs_var,vs_out]) then
                begin
-                 paradef:=voidpointertype.def;
+                 paradef:=voidpointertype;
                  loc:=LOC_REGISTER;
                end
              else
                begin
-                 paradef:=hp.vartype.def;
+                 paradef:=hp.vardef;
                  loc:=getparaloc(p.proccalloption,paradef);
                end;
 
@@ -355,7 +355,7 @@ unit cpupara;
                              paraloc^.loc:=LOC_REFERENCE;
                              paraloc^.reference.index:=NR_STACK_POINTER_REG;
                              paraloc^.reference.offset:=stack_offset;
-                             inc(stack_offset,hp.vartype.def.size);
+                             inc(stack_offset,hp.vardef.size);
                           end;
                       end;
                     else
@@ -372,7 +372,7 @@ unit cpupara;
                  dec(paralen,tcgsize2size[paraloc^.size]);
                end;
              { hack to swap doubles in int registers }
-             if is_double(hp.vartype.def) and (paracgsize=OS_64) and
+             if is_double(hp.vardef) and (paracgsize=OS_64) and
                (hp.paraloc[side].location^.loc=LOC_REGISTER) then
                begin
                  paraloc:=hp.paraloc[side].location;
@@ -403,20 +403,20 @@ unit cpupara;
         if (p.proctypeoption=potype_constructor) then
           retcgsize:=OS_ADDR
         else
-          retcgsize:=def_cgsize(p.rettype.def);
+          retcgsize:=def_cgsize(p.returndef);
 
         location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
         p.funcretloc[side].size:=retcgsize;
 
         { void has no location }
-        if is_void(p.rettype.def) then
+        if is_void(p.returndef) then
           begin
             location_reset(p.funcretloc[side],LOC_VOID,OS_NO);
             exit;
           end;
 
         { Return in FPU register? }
-        if p.rettype.def.deftype=floatdef then
+        if p.returndef.deftype=floatdef then
           begin
             if (p.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_softfloat]) or (cs_fp_emulation in aktmoduleswitches) then
               begin
@@ -448,7 +448,7 @@ unit cpupara;
               end;
           end
           { Return in register? }
-        else if not ret_in_param(p.rettype.def,p.proccalloption) then
+        else if not ret_in_param(p.returndef,p.proccalloption) then
           begin
             if retcgsize in [OS_64,OS_S64] then
               begin

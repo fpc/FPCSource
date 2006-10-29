@@ -31,27 +31,27 @@ interface
 
     type
        tcgnothingnode = class(tnothingnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgasmnode = class(tasmnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgstatementnode = class(tstatementnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgblocknode = class(tblocknode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgtempcreatenode = class(ttempcreatenode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
        tcgtemprefnode = class(ttemprefnode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
           { Changes the location of this temp to ref. Useful when assigning }
           { another temp to this one. The current location will be freed.   }
           { Can only be called in pass 2 (since earlier, the temp location  }
@@ -60,7 +60,7 @@ interface
        end;
 
        tcgtempdeletenode = class(ttempdeletenode)
-          procedure pass_2;override;
+          procedure pass_generate_code;override;
        end;
 
   implementation
@@ -80,7 +80,7 @@ interface
                                  TNOTHING
 *****************************************************************************}
 
-    procedure tcgnothingnode.pass_2;
+    procedure tcgnothingnode.pass_generate_code;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -92,7 +92,7 @@ interface
                                TSTATEMENTNODE
 *****************************************************************************}
 
-    procedure tcgstatementnode.pass_2;
+    procedure tcgstatementnode.pass_generate_code;
       var
          hp : tstatementnode;
       begin
@@ -116,7 +116,7 @@ interface
                                TASMNODE
 *****************************************************************************}
 
-    procedure tcgasmnode.pass_2;
+    procedure tcgasmnode.pass_generate_code;
 
       procedure ReLabel(var p:tasmsymbol);
         begin
@@ -320,7 +320,7 @@ interface
                              TBLOCKNODE
 *****************************************************************************}
 
-    procedure tcgblocknode.pass_2;
+    procedure tcgblocknode.pass_generate_code;
       var
         hp : tstatementnode;
         oldexitlabel : tasmlabel;
@@ -363,7 +363,7 @@ interface
                           TTEMPCREATENODE
 *****************************************************************************}
 
-    procedure tcgtempcreatenode.pass_2;
+    procedure tcgtempcreatenode.pass_generate_code;
       begin
         location_reset(location,LOC_VOID,OS_NO);
 
@@ -372,43 +372,43 @@ interface
           internalerror(200108222);
 
         { get a (persistent) temp }
-        if tempinfo^.restype.def.needs_inittable then
+        if tempinfo^.typedef.needs_inittable then
           begin
-            location_reset(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.restype.def));
-            tg.GetTempTyped(current_asmdata.CurrAsmList,tempinfo^.restype.def,tempinfo^.temptype,tempinfo^.location.reference);
+            location_reset(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef));
+            tg.GetTempTyped(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.temptype,tempinfo^.location.reference);
             { the temp could have been used previously either because the memory location was reused or
               because we're in a loop }
-            cg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.restype.def,tempinfo^.location.reference);
+            cg.g_finalize(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.location.reference);
           end
         else if tempinfo^.may_be_in_reg then
           begin
-            if tempinfo^.restype.def.deftype=floatdef then
+            if tempinfo^.typedef.deftype=floatdef then
               begin
 {$ifdef x86}
-                if use_sse(tempinfo^.restype.def) then
+                if use_sse(tempinfo^.typedef) then
                   begin
                     if (tempinfo^.temptype = tt_persistent) then
-                      location_reset(tempinfo^.location,LOC_CMMREGISTER,def_cgsize(tempinfo^.restype.def))
+                      location_reset(tempinfo^.location,LOC_CMMREGISTER,def_cgsize(tempinfo^.typedef))
                     else
-                      location_reset(tempinfo^.location,LOC_MMREGISTER,def_cgsize(tempinfo^.restype.def));
+                      location_reset(tempinfo^.location,LOC_MMREGISTER,def_cgsize(tempinfo^.typedef));
                     tempinfo^.location.register:=cg.getmmregister(current_asmdata.CurrAsmList,tempinfo^.location.size);
                   end
                 else
 {$endif x86}
                   begin
                     if (tempinfo^.temptype = tt_persistent) then
-                      location_reset(tempinfo^.location,LOC_CFPUREGISTER,def_cgsize(tempinfo^.restype.def))
+                      location_reset(tempinfo^.location,LOC_CFPUREGISTER,def_cgsize(tempinfo^.typedef))
                     else
-                      location_reset(tempinfo^.location,LOC_FPUREGISTER,def_cgsize(tempinfo^.restype.def));
+                      location_reset(tempinfo^.location,LOC_FPUREGISTER,def_cgsize(tempinfo^.typedef));
                     tempinfo^.location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,tempinfo^.location.size);
                   end;
               end
             else
               begin
                 if (tempinfo^.temptype = tt_persistent) then
-                  location_reset(tempinfo^.location,LOC_CREGISTER,def_cgsize(tempinfo^.restype.def))
+                  location_reset(tempinfo^.location,LOC_CREGISTER,def_cgsize(tempinfo^.typedef))
                 else
-                  location_reset(tempinfo^.location,LOC_REGISTER,def_cgsize(tempinfo^.restype.def));
+                  location_reset(tempinfo^.location,LOC_REGISTER,def_cgsize(tempinfo^.typedef));
 {$ifndef cpu64bit}
                 if tempinfo^.location.size in [OS_64,OS_S64] then
                   begin
@@ -422,7 +422,7 @@ interface
           end
         else
           begin
-            location_reset(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.restype.def));
+            location_reset(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef));
             tg.GetTemp(current_asmdata.CurrAsmList,size,tempinfo^.temptype,tempinfo^.location.reference);
           end;
         tempinfo^.valid := true;
@@ -433,7 +433,7 @@ interface
                              TTEMPREFNODE
 *****************************************************************************}
 
-    procedure tcgtemprefnode.pass_2;
+    procedure tcgtemprefnode.pass_generate_code;
       begin
         { check if the temp is valid }
         if not tempinfo^.valid then
@@ -475,7 +475,7 @@ interface
                            TTEMPDELETENODE
 *****************************************************************************}
 
-    procedure tcgtempdeletenode.pass_2;
+    procedure tcgtempdeletenode.pass_generate_code;
       begin
         location_reset(location,LOC_VOID,OS_NO);
 

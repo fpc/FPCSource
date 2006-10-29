@@ -146,7 +146,7 @@ implementation
         // initialize de result
         if not cmpop then
           begin
-            location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+            location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
             if left.location.loc = LOC_FPUREGISTER then
               location.register := left.location.register
             else if right.location.loc = LOC_FPUREGISTER then
@@ -197,11 +197,11 @@ implementation
         if nodetype in [equaln,unequaln] then
           current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_CMF,
              left.location.register,right.location.register),
-             cgsize2fpuoppostfix[def_cgsize(resulttype.def)]))
+             cgsize2fpuoppostfix[def_cgsize(resultdef)]))
         else
           current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_CMFE,
              left.location.register,right.location.register),
-             cgsize2fpuoppostfix[def_cgsize(resulttype.def)]));
+             cgsize2fpuoppostfix[def_cgsize(resultdef)]));
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(false);
@@ -288,8 +288,8 @@ implementation
        force_reg_left_right(true, false);
 
        { determine if the comparison will be unsigned }
-       unsigned:=not(is_signed(left.resulttype.def)) or
-                   not(is_signed(right.resulttype.def));
+       unsigned:=not(is_signed(left.resultdef)) or
+                   not(is_signed(right.resultdef));
 
         // get the constant on the right if there is one
         if (left.location.loc = LOC_CONSTANT) then
@@ -358,12 +358,12 @@ implementation
         otl,ofl : tasmlabel;
       begin
 //        writeln('second_cmpboolean');
-        if (torddef(left.resulttype.def).typ=bool8bit) or
-           (torddef(right.resulttype.def).typ=bool8bit) then
+        if (torddef(left.resultdef).typ=bool8bit) or
+           (torddef(right.resultdef).typ=bool8bit) then
          cgsize:=OS_8
         else
-          if (torddef(left.resulttype.def).typ=bool16bit) or
-             (torddef(right.resulttype.def).typ=bool16bit) then
+          if (torddef(left.resultdef).typ=bool16bit) or
+             (torddef(right.resultdef).typ=bool16bit) then
            cgsize:=OS_16
         else
            cgsize:=OS_32;

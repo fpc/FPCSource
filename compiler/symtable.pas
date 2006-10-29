@@ -545,7 +545,7 @@ implementation
         { first deref the interface ttype symbols. This is needs
           to be done before the interface defs are derefed, because
           the interface defs can contain references to the type symbols
-          which then already need to contain a resolved restype field (PFV) }
+          which then already need to contain a resolved typedef field (PFV) }
         hs:=tsym(symindex.first);
         while assigned(hs) do
          begin
@@ -610,10 +610,10 @@ implementation
            only test objects declarations, not type renamings }
          else
           if (tsym(sym).typ=typesym) and
-             assigned(ttypesym(sym).restype.def) and
-             (ttypesym(sym).restype.def.typesym=ttypesym(sym)) and
-             (ttypesym(sym).restype.def.deftype=objectdef) then
-           tobjectdef(ttypesym(sym).restype.def).check_forwards;
+             assigned(ttypesym(sym).typedef) and
+             (ttypesym(sym).typedef.typesym=ttypesym(sym)) and
+             (ttypesym(sym).typedef.deftype=objectdef) then
+           tobjectdef(ttypesym(sym).typedef).check_forwards;
       end;
 
 
@@ -717,9 +717,9 @@ implementation
            Don't test simple object aliases PM
          }
          if (tsym(p).typ=typesym) and
-            (ttypesym(p).restype.def.deftype=objectdef) and
-            (ttypesym(p).restype.def.typesym=tsym(p)) then
-           tobjectdef(ttypesym(p).restype.def).symtable.foreach(@TestPrivate,nil);
+            (ttypesym(p).typedef.deftype=objectdef) and
+            (ttypesym(p).typedef.typesym=tsym(p)) then
+           tobjectdef(ttypesym(p).typedef).symtable.foreach(@TestPrivate,nil);
       end;
 
 
@@ -787,14 +787,14 @@ implementation
            localvarsym,
            paravarsym :
              begin
-               if not(is_class(tabstractvarsym(p).vartype.def)) and
-                  tstoreddef(tabstractvarsym(p).vartype.def).needs_inittable then
+               if not(is_class(tabstractvarsym(p).vardef)) and
+                  tstoreddef(tabstractvarsym(p).vardef).needs_inittable then
                  b_needs_init_final:=true;
              end;
            typedconstsym :
              begin
                if ttypedconstsym(p).is_writable and
-                  tstoreddef(ttypedconstsym(p).typedconsttype.def).needs_inittable then
+                  tstoreddef(ttypedconstsym(p).typedconstdef).needs_inittable then
                  b_needs_init_final:=true;
              end;
          end;
@@ -906,7 +906,7 @@ implementation
         sym.varregable:=vr_none;
         { Calculate field offset }
         l:=sym.getsize;
-        vardef:=sym.vartype.def;
+        vardef:=sym.vardef;
         varalign:=vardef.alignment;
 
         if (usefieldalignment=bit_alignment) then
@@ -1110,7 +1110,7 @@ implementation
                 { update address }
                 tfieldvarsym(ps).fieldoffset:=_datasize;
                 { update alignment of this record }
-                varalign:=tfieldvarsym(ps).vartype.def.alignment;
+                varalign:=tfieldvarsym(ps).vardef.alignment;
                 if varalign=0 then
                   varalign:=size_2_align(tfieldvarsym(ps).getsize);
                 varalignrecord:=used_align(varalign,aktalignment.recordalignmin,fieldalignment);
@@ -2304,7 +2304,7 @@ implementation
        systemunit:=nil;
        { create error syms and def }
        generrorsym:=terrorsym.create;
-       generrortype.setdef(terrordef.create);
+       generrordef:=terrordef.create;
        { macros }
        initialmacrosymtable:=tmacrosymtable.create(false);
        macrosymtablestack:=tsymtablestack.create;
@@ -2325,8 +2325,8 @@ implementation
       begin
         generrorsym.owner:=nil;
         generrorsym.free;
-        generrortype.def.owner:=nil;
-        generrortype.def.free;
+        generrordef.owner:=nil;
+        generrordef.free;
         initialmacrosymtable.free;
         macrosymtablestack.free;
 {$ifdef UNITALIASES}

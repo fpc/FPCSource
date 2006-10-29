@@ -28,9 +28,9 @@ uses node, nopt;
 
 type
   tcgaddsstringcharoptnode = class(taddsstringcharoptnode)
-     function det_resulttype: tnode; override;
+     function pass_typecheck: tnode; override;
      function pass_1: tnode; override;
-     procedure pass_2; override;
+     procedure pass_generate_code; override;
   end;
 
 
@@ -50,18 +50,18 @@ uses
                              TCGADDOPTNODE
 *****************************************************************************}
 
-function tcgaddsstringcharoptnode.det_resulttype: tnode;
+function tcgaddsstringcharoptnode.pass_typecheck: tnode;
 begin
-  det_resulttype := nil;
-  resulttypepass(left);
-  resulttypepass(right);
+  pass_typecheck := nil;
+  typecheckpass(left);
+  typecheckpass(right);
   if codegenerror then
     exit;
   { update the curmaxlen field (before converting to a string!) }
   updatecurmaxlen;
-  if not is_shortstring(left.resulttype.def) then
+  if not is_shortstring(left.resultdef) then
     inserttypeconv(left,cshortstringtype);
-  resulttype:=left.resulttype;
+  resultdef:=left.resultdef;
 end;
 
 
@@ -81,7 +81,7 @@ begin
 end;
 
 
-procedure tcgaddsstringcharoptnode.pass_2;
+procedure tcgaddsstringcharoptnode.pass_generate_code;
 var
   l: tasmlabel;
   href,href2 :  treference;
@@ -90,7 +90,7 @@ var
   len : integer;
 begin
   { first, we have to more or less replicate some code from }
-  { ti386addnode.pass_2                                     }
+  { ti386addnode.pass_generate_code                                     }
   secondpass(left);
   if not(tg.istemp(left.location.reference) and
          (tg.sizeoftemp(current_asmdata.CurrAsmList,left.location.reference) = 256)) then
@@ -99,7 +99,7 @@ begin
        cg.g_copyshortstring(current_asmdata.CurrAsmList,left.location.reference,href,255);
        location_freetemp(current_asmdata.CurrAsmList,left.location);
        { return temp reference }
-       location_reset(left.location,LOC_REFERENCE,def_cgsize(resulttype.def));
+       location_reset(left.location,LOC_REFERENCE,def_cgsize(resultdef));
        left.location.reference:=href;
     end;
   secondpass(right);
@@ -130,7 +130,7 @@ begin
   if tg.istemp(left.location.reference) then
     checklength := curmaxlen = 255
   else
-    checklength := curmaxlen >= tstringdef(left.resulttype.def).len;
+    checklength := curmaxlen >= tstringdef(left.resultdef).len;
   if checklength then
     begin
       { is it already maximal? }
@@ -138,7 +138,7 @@ begin
       if tg.istemp(left.location.reference) then
         len:=255
       else
-        len:=tstringdef(left.resulttype.def).len;
+        len:=tstringdef(left.resultdef).len;
       cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,len,lengthreg,l)
     end;
 

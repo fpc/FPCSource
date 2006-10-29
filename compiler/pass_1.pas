@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    This unit handles the typecheck and node conversion pass
+    This unit handles the pass_typecheck and node conversion pass
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,8 +28,8 @@ interface
     uses
        node;
 
-    procedure resulttypepass(var p : tnode);
-    function  do_resulttypepass(var p : tnode) : boolean;
+    procedure typecheckpass(var p : tnode);
+    function  do_typecheckpass(var p : tnode) : boolean;
 
     procedure firstpass(var p : tnode);
     function  do_firstpass(var p : tnode) : boolean;
@@ -57,14 +57,14 @@ implementation
                             Global procedures
 *****************************************************************************}
 
-    procedure resulttypepass(var p : tnode);
+    procedure typecheckpass(var p : tnode);
       var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
          oldpos    : tfileposinfo;
          hp        : tnode;
       begin
-        if (p.resulttype.def=nil) then
+        if (p.resultdef=nil) then
          begin
            oldcodegenerror:=codegenerror;
            oldpos:=aktfilepos;
@@ -72,13 +72,13 @@ implementation
            codegenerror:=false;
            aktfilepos:=p.fileinfo;
            aktlocalswitches:=p.localswitches;
-           hp:=p.det_resulttype;
+           hp:=p.pass_typecheck;
            { should the node be replaced? }
            if assigned(hp) then
             begin
                p.free;
-               { run resulttypepass }
-               resulttypepass(hp);
+               { run typecheckpass }
+               typecheckpass(hp);
                { switch to new node }
                p:=hp;
             end;
@@ -88,8 +88,8 @@ implementation
             begin
               include(p.flags,nf_error);
               { default to errortype if no type is set yet }
-              if p.resulttype.def=nil then
-               p.resulttype:=generrortype;
+              if p.resultdef=nil then
+               p.resultdef:=generrordef;
             end;
            codegenerror:=codegenerror or oldcodegenerror;
          end
@@ -102,11 +102,11 @@ implementation
       end;
 
 
-    function do_resulttypepass(var p : tnode) : boolean;
+    function do_typecheckpass(var p : tnode) : boolean;
       begin
          codegenerror:=false;
-         resulttypepass(p);
-         do_resulttypepass:=codegenerror;
+         typecheckpass(p);
+         do_typecheckpass:=codegenerror;
       end;
 
 
@@ -130,18 +130,18 @@ implementation
               { checks make always a call }
               if ([cs_check_range,cs_check_overflow,cs_check_stack] * aktlocalswitches <> []) then
                 include(current_procinfo.flags,pi_do_call);
-              { determine the resulttype if not done }
-              if (p.resulttype.def=nil) then
+              { determine the resultdef if not done }
+              if (p.resultdef=nil) then
                begin
                  aktfilepos:=p.fileinfo;
                  aktlocalswitches:=p.localswitches;
-                 hp:=p.det_resulttype;
+                 hp:=p.pass_typecheck;
                  { should the node be replaced? }
                  if assigned(hp) then
                   begin
                      p.free;
-                     { run resulttypepass }
-                     resulttypepass(hp);
+                     { run typecheckpass }
+                     typecheckpass(hp);
                      { switch to new node }
                      p:=hp;
                   end;
@@ -149,8 +149,8 @@ implementation
                   begin
                     include(p.flags,nf_error);
                     { default to errortype if no type is set yet }
-                    if p.resulttype.def=nil then
-                     p.resulttype:=generrortype;
+                    if p.resultdef=nil then
+                     p.resultdef:=generrordef;
                   end;
                  aktlocalswitches:=oldlocalswitches;
                  aktfilepos:=oldpos;

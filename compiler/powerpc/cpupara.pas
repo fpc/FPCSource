@@ -236,19 +236,19 @@ unit cpupara;
         if (p.proctypeoption=potype_constructor) then
           retcgsize:=OS_ADDR
         else
-          retcgsize:=def_cgsize(p.rettype.def);
+          retcgsize:=def_cgsize(p.returndef);
 
         location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
         p.funcretloc[side].size:=retcgsize;
         { void has no location }
-        if is_void(p.rettype.def) then
+        if is_void(p.returndef) then
           begin
             p.funcretloc[side].loc:=LOC_VOID;
             exit;
           end;
 
         { Return in FPU register? }
-        if p.rettype.def.deftype=floatdef then
+        if p.returndef.deftype=floatdef then
           begin
             p.funcretloc[side].loc:=LOC_FPUREGISTER;
             p.funcretloc[side].register:=NR_FPU_RESULT_REG;
@@ -256,7 +256,7 @@ unit cpupara;
           end
         else
          { Return in register? }
-         if not ret_in_param(p.rettype.def,p.proccalloption) then
+         if not ret_in_param(p.returndef,p.proccalloption) then
           begin
 {$ifndef cpu64bit}
             if retcgsize in [OS_64,OS_S64] then
@@ -342,7 +342,7 @@ unit cpupara;
           for i:=0 to paras.count-1 do
             begin
               hp:=tparavarsym(paras[i]);
-              paradef := hp.vartype.def;
+              paradef := hp.vardef;
               { Syscall for Morphos can have already a paraloc set }
               if (vo_has_explicit_paraloc in hp.varoptions) then
                 begin
@@ -368,7 +368,7 @@ unit cpupara;
                  is_open_array(paradef) or
                  is_array_of_const(paradef) then
                 begin
-                  paradef:=voidpointertype.def;
+                  paradef:=voidpointertype;
                   loc:=LOC_REGISTER;
                   paracgsize := OS_ADDR;
                   paralen := tcgsize2size[OS_ADDR];
@@ -387,14 +387,14 @@ unit cpupara;
                       { if a record has only one field and that field is }
                       { non-composite (not array or record), it must be  }
                       { passed according to the rules of that type.       }
-                      if (trecorddef(hp.vartype.def).symtable.symindex.count = 1) and
-                         (not trecorddef(hp.vartype.def).isunion) and
-                         ((tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def.deftype = floatdef) or
+                      if (trecorddef(hp.vardef).symtable.symindex.count = 1) and
+                         (not trecorddef(hp.vardef).isunion) and
+                         ((tabstractvarsym(trecorddef(hp.vardef).symtable.symindex.search(1)).vardef.deftype = floatdef) or
                           ((target_info.system = system_powerpc_darwin) and
-                           (tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def.deftype in [orddef,enumdef]))) then
+                           (tabstractvarsym(trecorddef(hp.vardef).symtable.symindex.search(1)).vardef.deftype in [orddef,enumdef]))) then
                         begin
                           paradef :=
-                           tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def;
+                           tabstractvarsym(trecorddef(hp.vardef).symtable.symindex.search(1)).vardef;
                           paracgsize:=def_cgsize(paradef);
                         end
                       else
@@ -568,9 +568,9 @@ unit cpupara;
                 hp.paraloc[callerside].alignment:=4;
                 paraloc:=hp.paraloc[callerside].add_location;
                 paraloc^.loc:=LOC_REFERENCE;
-                paraloc^.size:=def_cgsize(hp.vartype.def);
+                paraloc^.size:=def_cgsize(hp.vardef);
                 paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                l:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
+                l:=push_size(hp.varspez,hp.vardef,p.proccalloption);
                 paraloc^.reference.offset:=parasize;
                 parasize:=parasize+l;
               end;
@@ -590,7 +590,7 @@ unit cpupara;
         case target_info.system of
           system_powerpc_morphos:
             begin
-              paracgsize:=def_cgsize(p.vartype.def);
+              paracgsize:=def_cgsize(p.vardef);
               p.paraloc[callerside].alignment:=4;
               p.paraloc[callerside].size:=paracgsize;
               p.paraloc[callerside].intsize:=tcgsize2size[paracgsize];

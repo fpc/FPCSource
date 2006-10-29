@@ -165,21 +165,21 @@ implementation
     procedure tarminlinenode.second_abs_real;
       begin
         load_fpu_location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,location.register),get_fpu_postfix(resulttype.def)));
+        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,location.register),get_fpu_postfix(resultdef)));
       end;
 
 
     procedure tarminlinenode.second_sqr_real;
       begin
         load_fpu_location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_MUF,location.register,left.location.register,left.location.register),get_fpu_postfix(resulttype.def)));
+        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_MUF,location.register,left.location.register,left.location.register),get_fpu_postfix(resultdef)));
       end;
 
 
     procedure tarminlinenode.second_sqrt_real;
       begin
         load_fpu_location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SQT,location.register,location.register),get_fpu_postfix(resulttype.def)));
+        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SQT,location.register,location.register),get_fpu_postfix(resultdef)));
       end;
 
 
@@ -187,27 +187,27 @@ implementation
     procedure tarminlinenode.second_arctan_real;
       begin
         load_fpu_location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ATN,location.register,location.register),get_fpu_postfix(resulttype.def)));
+        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ATN,location.register,location.register),get_fpu_postfix(resultdef)));
       end;
 
 
     procedure tarminlinenode.second_ln_real;
       begin
         load_fpu_location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_LGN,location.register,location.register),get_fpu_postfix(resulttype.def)));
+        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_LGN,location.register,location.register),get_fpu_postfix(resultdef)));
       end;
 
     procedure tarminlinenode.second_cos_real;
       begin
         load_fpu_location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_COS,location.register,location.register),get_fpu_postfix(resulttype.def)));
+        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_COS,location.register,location.register),get_fpu_postfix(resultdef)));
       end;
 
 
     procedure tarminlinenode.second_sin_real;
       begin
         load_fpu_location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SIN,location.register,location.register),get_fpu_postfix(resulttype.def)));
+        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SIN,location.register,location.register),get_fpu_postfix(resultdef)));
       end;
     }
 

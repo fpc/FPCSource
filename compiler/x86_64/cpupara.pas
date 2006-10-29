@@ -311,19 +311,19 @@ unit cpupara;
         if (p.proctypeoption=potype_constructor) then
           retcgsize:=OS_ADDR
         else
-          retcgsize:=def_cgsize(p.rettype.def);
+          retcgsize:=def_cgsize(p.returndef);
 
         location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
         { void has no location }
-        if is_void(p.rettype.def) then
+        if is_void(p.returndef) then
           begin
             location_reset(p.funcretloc[side],LOC_VOID,OS_NO);
             exit;
           end;
         { Return in FPU register? }
-        if p.rettype.def.deftype=floatdef then
+        if p.returndef.deftype=floatdef then
           begin
-            case tfloatdef(p.rettype.def).typ of
+            case tfloatdef(p.returndef).typ of
               s32real,s64real:
                 begin
                   p.funcretloc[side].loc:=LOC_MMREGISTER;
@@ -344,7 +344,7 @@ unit cpupara;
           end
         else
          { Return in register? }
-         if not ret_in_param(p.rettype.def,p.proccalloption) then
+         if not ret_in_param(p.returndef,p.proccalloption) then
           begin
             p.funcretloc[side].loc:=LOC_REGISTER;
             p.funcretloc[side].size:=retcgsize;
@@ -381,7 +381,7 @@ unit cpupara;
         for i:=0 to paras.count-1 do
           begin
             hp:=tparavarsym(paras[i]);
-            pushaddr:=push_addr_param(hp.varspez,hp.vartype.def,p.proccalloption);
+            pushaddr:=push_addr_param(hp.varspez,hp.vardef,p.proccalloption);
             if pushaddr then
               begin
                 loc[1]:=LOC_REGISTER;
@@ -391,9 +391,9 @@ unit cpupara;
               end
             else
               begin
-                getvalueparaloc(hp.vartype.def,loc[1],loc[2]);
-                paralen:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
-                paracgsize:=def_cgsize(hp.vartype.def);
+                getvalueparaloc(hp.vardef,loc[1],loc[2]);
+                paralen:=push_size(hp.varspez,hp.vardef,p.proccalloption);
+                paracgsize:=def_cgsize(hp.vardef);
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;

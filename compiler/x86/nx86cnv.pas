@@ -72,11 +72,11 @@ implementation
       begin
          first_real_to_real:=nil;
         { comp isn't a floating type }
-         if (tfloatdef(resulttype.def).typ=s64comp) and
-            (tfloatdef(left.resulttype.def).typ<>s64comp) and
+         if (tfloatdef(resultdef).typ=s64comp) and
+            (tfloatdef(left.resultdef).typ<>s64comp) and
             not (nf_explicit in flags) then
            CGMessage(type_w_convert_real_2_comp);
-         if use_sse(resulttype.def) then
+         if use_sse(resultdef) then
            begin
              if registersmm<1 then
                registersmm:=1;
@@ -110,7 +110,7 @@ implementation
          { byte(boolean) or word(wordbool) or longint(longbool) must }
          { be accepted for var parameters                            }
          if (nf_explicit in flags) and
-            (left.resulttype.def.size=resulttype.def.size) and
+            (left.resultdef.size=resultdef.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            begin
               location_copy(location,left.location);
@@ -178,7 +178,7 @@ implementation
               internalerror(10062);
          end;
          { load flags to register }
-         location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
          location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
          cg.g_flags2reg(current_asmdata.CurrAsmList,location.size,resflags,location.register);
          current_procinfo.CurrTrueLabel:=oldTrueLabel;
@@ -206,30 +206,30 @@ implementation
          op : tasmop;
       begin
 {$ifdef x86_64}
-        if use_sse(resulttype.def) then
+        if use_sse(resultdef) then
           begin
             { We can only directly convert s32bit and s64bit,u64bit values, for other
               values convert first to s64bit }
-            if not(torddef(left.resulttype.def).typ in [s32bit,s64bit,u64bit]) then
+            if not(torddef(left.resultdef).typ in [s32bit,s64bit,u64bit]) then
               begin
                 hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_S64);
                 location_force_reg(current_asmdata.CurrAsmList,left.location,OS_S64,false);
               end;
 
-            if is_double(resulttype.def) then
+            if is_double(resultdef) then
               op:=A_CVTSI2SD
-            else if is_single(resulttype.def) then
+            else if is_single(resultdef) then
               op:=A_CVTSI2SS
             else
               internalerror(200506061);
 
-            location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
-            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resulttype.def));
+            location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
 
             if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
               location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
 
-            case torddef(left.resulttype.def).typ of
+            case torddef(left.resultdef).typ of
               u64bit:
                 begin
                    { unsigned 64 bit ints are harder to handle:
@@ -256,7 +256,7 @@ implementation
                    reference_reset_symbol(href,l1,0);
 
                    { I got these constant from a test program (FK) }
-                   if is_double(resulttype.def) then
+                   if is_double(resultdef) then
                      begin
                        { double (2^64) }
                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
@@ -265,7 +265,7 @@ implementation
                        tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
                        current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ADDSD,S_NO,href,location.register));
                      end
-                   else if is_single(resulttype.def) then
+                   else if is_single(resultdef) then
                      begin
                        { single(2^64) }
                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($5f800000));
@@ -295,8 +295,8 @@ implementation
         else
 {$endif x86_64}
           begin
-            location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
-            if (left.location.loc=LOC_REGISTER) and (torddef(left.resulttype.def).typ=u64bit) then
+            location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+            if (left.location.loc=LOC_REGISTER) and (torddef(left.resultdef).typ=u64bit) then
               begin
 {$ifdef cpu64bit}
                 emit_const_reg(A_BT,S_Q,63,left.location.register);
@@ -313,7 +313,7 @@ implementation
 
             { For u32bit we need to load it as comp and need to
               make it 64bits }
-            if (torddef(left.resulttype.def).typ=u32bit) then
+            if (torddef(left.resultdef).typ=u32bit) then
               begin
                 tg.GetTemp(current_asmdata.CurrAsmList,8,tt_normal,href);
                 location_freetemp(current_asmdata.CurrAsmList,left.location);
@@ -325,7 +325,7 @@ implementation
               end;
 
             { Load from reference to fpu reg }
-            case torddef(left.resulttype.def).typ of
+            case torddef(left.resultdef).typ of
               u32bit,
               scurrency,
               s64bit:
@@ -361,7 +361,7 @@ implementation
                 end
               else
                 begin
-                  if left.resulttype.def.size<4 then
+                  if left.resultdef.size<4 then
                     begin
                       tg.GetTemp(current_asmdata.CurrAsmList,4,tt_normal,href);
                       location_freetemp(current_asmdata.CurrAsmList,left.location);

@@ -99,7 +99,7 @@ implementation
 
      function tx86inlinenode.first_abs_real : tnode;
        begin
-         if use_sse(resulttype.def) then
+         if use_sse(resultdef) then
            begin
              expectloc:=LOC_MMREGISTER;
              registersmm:=max(left.registersmm,1);
@@ -174,7 +174,7 @@ implementation
 
      procedure tx86inlinenode.second_Pi;
        begin
-         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          emit_none(A_FLDPI,S_NO);
          tcgx86(cg).inc_fpu_stack;
          location.register:=NR_FPU_RESULT_REG;
@@ -183,7 +183,7 @@ implementation
      { load the FPU into the an fpu register }
      procedure tx86inlinenode.load_fpu_location;
        begin
-         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
          location.register:=NR_FPU_RESULT_REG;
          secondpass(left);
          case left.location.loc of
@@ -197,7 +197,7 @@ implementation
            LOC_REFERENCE,LOC_CREFERENCE:
              begin
                cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                  def_cgsize(left.resulttype.def),
+                  def_cgsize(left.resultdef),
                   left.location.reference,location.register);
              end;
            LOC_MMREGISTER,LOC_CMMREGISTER:
@@ -223,12 +223,12 @@ implementation
        var
          href : treference;
        begin
-         if use_sse(resulttype.def) then
+         if use_sse(resultdef) then
            begin
              secondpass(left);
              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
              location:=left.location;
-             case tfloatdef(resulttype.def).typ of
+             case tfloatdef(resultdef).typ of
                s32real:
                  reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_SINGLE'),0);
                s64real:
@@ -249,7 +249,7 @@ implementation
      procedure tx86inlinenode.second_sqr_real;
 
        begin
-         if use_sse(resulttype.def) then
+         if use_sse(resultdef) then
            begin
              secondpass(left);
              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
@@ -265,12 +265,12 @@ implementation
 
      procedure tx86inlinenode.second_sqrt_real;
        begin
-         if use_sse(resulttype.def) then
+         if use_sse(resultdef) then
            begin
              secondpass(left);
              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
              location:=left.location;
-             case tfloatdef(resulttype.def).typ of
+             case tfloatdef(resultdef).typ of
                s32real:
                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSS,S_XMM,location.register,location.register));
                s64real:

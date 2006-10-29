@@ -319,17 +319,17 @@ unit cpupara;
         if (p.proctypeoption=potype_constructor) then
           retcgsize:=OS_ADDR
         else
-          retcgsize:=def_cgsize(p.rettype.def);
+          retcgsize:=def_cgsize(p.returndef);
 
         location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
         { void has no location }
-        if is_void(p.rettype.def) then
+        if is_void(p.returndef) then
           begin
             location_reset(p.funcretloc[side],LOC_VOID,OS_NO);
             exit;
           end;
         { Return in FPU register? }
-        if p.rettype.def.deftype=floatdef then
+        if p.returndef.deftype=floatdef then
           begin
             p.funcretloc[side].loc:=LOC_FPUREGISTER;
             p.funcretloc[side].register:=NR_FPU_RESULT_REG;
@@ -337,7 +337,7 @@ unit cpupara;
           end
         else
          { Return in register? }
-         if not ret_in_param(p.rettype.def,p.proccalloption) then
+         if not ret_in_param(p.returndef,p.proccalloption) then
           begin
             if retcgsize in [OS_64,OS_S64] then
              begin
@@ -402,7 +402,7 @@ unit cpupara;
         for i:=0 to paras.count-1 do
           begin
             hp:=tparavarsym(paras[i]);
-            pushaddr:=push_addr_param(hp.varspez,hp.vartype.def,p.proccalloption);
+            pushaddr:=push_addr_param(hp.varspez,hp.vardef,p.proccalloption);
             if pushaddr then
               begin
                 paralen:=sizeof(aint);
@@ -410,7 +410,7 @@ unit cpupara;
               end
             else
               begin
-                paralen:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
+                paralen:=push_size(hp.varspez,hp.vardef,p.proccalloption);
                 { darwin/x86 requires that parameters < sizeof(aint) are sign/ }
                 { zero extended to sizeof(aint)                                }
                 if (target_info.system = system_i386_darwin) and
@@ -422,7 +422,7 @@ unit cpupara;
                     paracgsize:=OS_INT;
                   end
                 else
-                  paracgsize:=def_cgsize(hp.vartype.def);
+                  paracgsize:=def_cgsize(hp.vardef);
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
@@ -509,7 +509,7 @@ unit cpupara;
         for i:=0 to paras.count-1 do
           begin
             hp:=tparavarsym(paras[i]);
-            pushaddr:=push_addr_param(hp.varspez,hp.vartype.def,p.proccalloption);
+            pushaddr:=push_addr_param(hp.varspez,hp.vardef,p.proccalloption);
             if pushaddr then
               begin
                 paralen:=sizeof(aint);
@@ -517,8 +517,8 @@ unit cpupara;
               end
             else
               begin
-                paralen:=push_size(hp.varspez,hp.vartype.def,p.proccalloption);
-                paracgsize:=def_cgsize(hp.vartype.def);
+                paralen:=push_size(hp.varspez,hp.vardef,p.proccalloption);
+                paracgsize:=def_cgsize(hp.vardef);
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
@@ -537,7 +537,7 @@ unit cpupara;
             if (parareg<=high(parasupregs)) and
                (paralen<=sizeof(aint)) and
                (
-                not(hp.vartype.def.deftype in [floatdef,recorddef,arraydef]) or
+                not(hp.vardef.deftype in [floatdef,recorddef,arraydef]) or
                 pushaddr
                ) then
               begin

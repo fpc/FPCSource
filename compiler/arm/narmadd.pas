@@ -151,7 +151,7 @@ interface
               location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
               location_force_fpureg(current_asmdata.CurrAsmList,right.location,(left.location.loc<>LOC_CFPUREGISTER));
 
-              location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+              location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
               if left.location.loc<>LOC_CFPUREGISTER then
                 location.register:=left.location.register
               else
@@ -159,7 +159,7 @@ interface
 
               current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(op,
                  location.register,left.location.register,right.location.register),
-                 cgsize2fpuoppostfix[def_cgsize(resulttype.def)]));
+                 cgsize2fpuoppostfix[def_cgsize(resultdef)]));
 
               location.loc:=LOC_FPUREGISTER;
             end;
@@ -189,11 +189,11 @@ interface
         if nodetype in [equaln,unequaln] then
           current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_CMF,
              left.location.register,right.location.register),
-             cgsize2fpuoppostfix[def_cgsize(resulttype.def)]))
+             cgsize2fpuoppostfix[def_cgsize(resultdef)]))
         else
           current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_CMFE,
              left.location.register,right.location.register),
-             cgsize2fpuoppostfix[def_cgsize(resulttype.def)]));
+             cgsize2fpuoppostfix[def_cgsize(resultdef)]));
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(false);
@@ -249,8 +249,8 @@ interface
         pass_left_right;
         force_reg_left_right(false,false);
 
-        unsigned:=not(is_signed(left.resulttype.def)) or
-                  not(is_signed(right.resulttype.def));
+        unsigned:=not(is_signed(left.resultdef)) or
+                  not(is_signed(right.resultdef));
 
         { operation requiring proper N, Z and C flags ? }
         if unsigned or (nodetype in [equaln,unequaln]) then
@@ -308,9 +308,9 @@ interface
         { handling boolean expressions }
         if not(assigned(result)) and
            (
-             not(is_boolean(left.resulttype.def)) or
-             not(is_boolean(right.resulttype.def)) or
-             is_dynamic_array(left.resulttype.def)
+             not(is_boolean(left.resultdef)) or
+             not(is_boolean(right.resultdef)) or
+             is_dynamic_array(left.resultdef)
            ) then
           expectloc:=LOC_FLAGS;
       end;
@@ -325,8 +325,8 @@ interface
         pass_left_right;
         force_reg_left_right(true,true);
 
-        unsigned:=not(is_signed(left.resulttype.def)) or
-                  not(is_signed(right.resulttype.def));
+        unsigned:=not(is_signed(left.resultdef)) or
+                  not(is_signed(right.resultdef));
 
         if right.location.loc = LOC_CONSTANT then
           begin

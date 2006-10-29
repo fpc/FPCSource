@@ -67,10 +67,10 @@ implementation
 
     function tgenppcaddnode.pass_1: tnode;
       begin
-        resulttypepass(left);
+        typecheckpass(left);
         if (nodetype in [equaln,unequaln]) and
-           (left.resulttype.def.deftype = orddef) and
-           is_64bit(left.resulttype.def) then
+           (left.resultdef.deftype = orddef) and
+           is_64bit(left.resultdef) then
           begin
             result := nil;
             firstpass(left);
@@ -109,14 +109,14 @@ implementation
             LOC_CREGISTER:
               ;
             LOC_REFERENCE,LOC_CREFERENCE:
-              location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resulttype.def),false);
+              location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resultdef),false);
             LOC_CONSTANT:
               begin
                 if load_constants then
-                  location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resulttype.def),false);
+                  location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resultdef),false);
               end;
             else
-              location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resulttype.def),false);
+              location_force_reg(current_asmdata.CurrAsmList,n.location,def_cgsize(n.resultdef),false);
           end;
         end;
 
@@ -127,7 +127,7 @@ implementation
           begin
             location.register := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 {$ifndef cpu64bit}
-            if is_64bit(resulttype.def) then
+            if is_64bit(resultdef) then
               location.register64.reghi := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
 {$endif cpu64bit}
          end;
@@ -136,7 +136,7 @@ implementation
 
     function tgenppcaddnode.getresflags : tresflags;
       begin
-        if (left.resulttype.def.deftype <> floatdef) then
+        if (left.resultdef.deftype <> floatdef) then
           result.cr := RS_CR0
         else
           result.cr := RS_CR1;
@@ -178,12 +178,12 @@ implementation
         firstcomplex(self);
 
         cmpop:=false;
-        if (torddef(left.resulttype.def).typ=bool8bit) or
-           (torddef(right.resulttype.def).typ=bool8bit) then
+        if (torddef(left.resultdef).typ=bool8bit) or
+           (torddef(right.resultdef).typ=bool8bit) then
          cgsize:=OS_8
         else
-          if (torddef(left.resulttype.def).typ=bool16bit) or
-             (torddef(right.resulttype.def).typ=bool16bit) then
+          if (torddef(left.resultdef).typ=bool16bit) or
+             (torddef(right.resultdef).typ=bool16bit) then
            cgsize:=OS_16
         else
            cgsize:=OS_32;
@@ -237,7 +237,7 @@ implementation
 
             { set result location }
             if not cmpop then
-              location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def))
+              location_reset(location,LOC_REGISTER,def_cgsize(resultdef))
              else
               location_reset(location,LOC_FLAGS,OS_NO);
 
@@ -301,7 +301,7 @@ implementation
         pass_left_and_right;
 
         cmpop:=false;
-        singleprec:=tfloatdef(left.resulttype.def).typ=s32real;
+        singleprec:=tfloatdef(left.resultdef).typ=s32real;
         case nodetype of
           addn :
             if singleprec then
@@ -345,7 +345,7 @@ implementation
         // initialize de result
         if not cmpop then
           begin
-            location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+            location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
             location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
           end
         else
@@ -383,10 +383,10 @@ implementation
         pass_left_and_right;
 
         { when a setdef is passed, it has to be a smallset }
-        if ((left.resulttype.def.deftype=setdef) and
-            (tsetdef(left.resulttype.def).settype<>smallset)) or
-           ((right.resulttype.def.deftype=setdef) and
-            (tsetdef(right.resulttype.def).settype<>smallset)) then
+        if ((left.resultdef.deftype=setdef) and
+            (tsetdef(left.resultdef).settype<>smallset)) or
+           ((right.resultdef.deftype=setdef) and
+            (tsetdef(right.resultdef).settype<>smallset)) then
          internalerror(200203301);
 
         opdone := false;
@@ -394,7 +394,7 @@ implementation
 
         { set result location }
         if not cmpop then
-          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def))
+          location_reset(location,LOC_REGISTER,def_cgsize(resultdef))
          else
           location_reset(location,LOC_FLAGS,OS_NO);
 

@@ -117,7 +117,7 @@ unit opttail;
                     paranode:=tcallparanode(usedcallnode.left);
                     while assigned(paranode) do
                       begin
-                        tempnode:=ctempcreatenode.create(paranode.left.resulttype,paranode.left.resulttype.def.size,tt_persistent,true);
+                        tempnode:=ctempcreatenode.create(paranode.left.resultdef,paranode.left.resultdef.size,tt_persistent,true);
                         addstatement(calcstatements,tempnode);
                         addstatement(calcstatements,
                           cassignmentnode.create(
@@ -188,7 +188,7 @@ unit opttail;
           with tparavarsym(p.paras[i]) do
             if (varspez in [vs_out,vs_var]) or
               ((varspez=vs_const) and
-               (paramanager.push_addr_param(varspez,vartype.def,p.proccalloption))) then
+               (paramanager.push_addr_param(varspez,vardef,p.proccalloption))) then
                exit;
         if find_and_replace_tailcalls(n) then
           begin

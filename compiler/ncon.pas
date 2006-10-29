@@ -33,54 +33,57 @@ interface
 
     type
        trealconstnode = class(tnode)
-          restype : ttype;
+          typedef : tdef;
+          typedefderef : tderef;
           value_real : bestreal;
           lab_real : tasmlabel;
-          constructor create(v : bestreal;const t:ttype);virtual;
+          constructor create(v : bestreal;def:tdef);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
           procedure printnodedata(var t:text);override;
        end;
        trealconstnodeclass = class of trealconstnode;
 
        tordconstnode = class(tnode)
-          restype : ttype;
+          typedef : tdef;
+          typedefderef : tderef;
           value : TConstExprInt;
           rangecheck : boolean;
           { create an ordinal constant node of the specified type and value.
             _rangecheck determines if the value of the ordinal should be checked
             against the ranges of the type definition.
           }
-          constructor create(v : tconstexprint;const t:ttype; _rangecheck : boolean);virtual;
+          constructor create(v : tconstexprint;def:tdef; _rangecheck : boolean);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
           procedure printnodedata(var t:text);override;
        end;
        tordconstnodeclass = class of tordconstnode;
 
        tpointerconstnode = class(tnode)
-          restype : ttype;
+          typedef : tdef;
+          typedefderef : tderef;
           value   : TConstPtrUInt;
-          constructor create(v : TConstPtrUInt;const t:ttype);virtual;
+          constructor create(v : TConstPtrUInt;def:tdef);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
        end;
        tpointerconstnodeclass = class of tpointerconstnode;
@@ -106,28 +109,29 @@ interface
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           destructor destroy;override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function getpcharcopy : pchar;
           function docompare(p: tnode) : boolean; override;
-          procedure changestringtype(const newtype:ttype);
+          procedure changestringtype(def:tdef);
        end;
        tstringconstnodeclass = class of tstringconstnode;
 
        tsetconstnode = class(tunarynode)
-          restype : ttype;
+          typedef : tdef;
+          typedefderef : tderef;
           value_set : pconstset;
           lab_set : tasmlabel;
-          constructor create(s : pconstset;const t:ttype);virtual;
+          constructor create(s : pconstset;def:tdef);virtual;
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
        end;
        tsetconstnodeclass = class of tsetconstnode;
@@ -135,7 +139,7 @@ interface
        tnilnode = class(tnode)
           constructor create;virtual;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
        end;
        tnilnodeclass = class of tnilnode;
 
@@ -144,9 +148,9 @@ interface
           constructor create(const g:tguid);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function _getcopy : tnode;override;
+          function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
+          function pass_typecheck:tnode;override;
           function docompare(p: tnode) : boolean; override;
        end;
        tguidconstnodeclass = class of tguidconstnode;
@@ -180,7 +184,7 @@ implementation
 
     function genintconstnode(v : TConstExprInt) : tordconstnode;
       var
-        htype : ttype;
+        htype : tdef;
       begin
          int_to_type(v,htype);
          genintconstnode:=cordconstnode.create(v,htype,true);
@@ -189,9 +193,9 @@ implementation
 
     function genenumnode(v : tenumsym) : tordconstnode;
       var
-        htype : ttype;
+        htype : tdef;
       begin
-         htype.setdef(v.definition);
+         htype:=v.definition;
          genenumnode:=cordconstnode.create(v.value,htype,true);
       end;
 
@@ -235,7 +239,7 @@ implementation
         p1:=nil;
         case p.consttyp of
           constord :
-            p1:=cordconstnode.create(p.value.valueord,p.consttype,true);
+            p1:=cordconstnode.create(p.value.valueord,p.constdef,true);
           conststring :
             begin
               len:=p.value.len;
@@ -247,9 +251,9 @@ implementation
           constreal :
             p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,pbestrealtype^);
           constset :
-            p1:=csetconstnode.create(pconstset(p.value.valueptr),p.consttype);
+            p1:=csetconstnode.create(pconstset(p.value.valueptr),p.constdef);
           constpointer :
-            p1:=cpointerconstnode.create(p.value.valueordptr,p.consttype);
+            p1:=cpointerconstnode.create(p.value.valueordptr,p.constdef);
           constnil :
             p1:=cnilnode.create;
           else
@@ -265,10 +269,10 @@ implementation
     { generic code     }
     { overridden by:   }
     {   i386           }
-    constructor trealconstnode.create(v : bestreal;const t:ttype);
+    constructor trealconstnode.create(v : bestreal;def:tdef);
       begin
          inherited create(realconstn);
-         restype:=t;
+         typedef:=def;
          value_real:=v;
          lab_real:=nil;
       end;
@@ -276,7 +280,7 @@ implementation
     constructor trealconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        ppufile.gettype(restype);
+        ppufile.getderef(typedefderef);
         value_real:=ppufile.getreal;
         lab_real:=tasmlabel(ppufile.getasmsymbol);
       end;
@@ -285,7 +289,7 @@ implementation
     procedure trealconstnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.puttype(restype);
+        ppufile.putderef(typedefderef);
         ppufile.putreal(value_real);
         ppufile.putasmsymbol(lab_real);
       end;
@@ -294,33 +298,33 @@ implementation
     procedure trealconstnode.buildderefimpl;
       begin
         inherited buildderefimpl;
-        restype.buildderef;
+        typedefderef.build(typedef);
       end;
 
 
     procedure trealconstnode.derefimpl;
       begin
         inherited derefimpl;
-        restype.resolve;
+        typedef:=tdef(typedefderef.resolve);
       end;
 
 
-    function trealconstnode._getcopy : tnode;
+    function trealconstnode.dogetcopy : tnode;
 
       var
          n : trealconstnode;
 
       begin
-         n:=trealconstnode(inherited _getcopy);
+         n:=trealconstnode(inherited dogetcopy);
          n.value_real:=value_real;
          n.lab_real:=lab_real;
-         _getcopy:=n;
+         dogetcopy:=n;
       end;
 
-    function trealconstnode.det_resulttype:tnode;
+    function trealconstnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resulttype:=restype;
+        resultdef:=typedef;
       end;
 
     function trealconstnode.pass_1 : tnode;
@@ -353,12 +357,12 @@ implementation
                               TORDCONSTNODE
 *****************************************************************************}
 
-    constructor tordconstnode.create(v : tconstexprint;const t:ttype;_rangecheck : boolean);
+    constructor tordconstnode.create(v : tconstexprint;def:tdef;_rangecheck : boolean);
 
       begin
          inherited create(ordconstn);
          value:=v;
-         restype:=t;
+         typedef:=def;
          rangecheck := _rangecheck;
       end;
 
@@ -366,7 +370,7 @@ implementation
     constructor tordconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        ppufile.gettype(restype);
+        ppufile.getderef(typedefderef);
         value:=ppufile.getexprint;
         { normally, the value is already compiled, so we don't need
           to do once again a range check
@@ -378,7 +382,7 @@ implementation
     procedure tordconstnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.puttype(restype);
+        ppufile.putderef(typedefderef);
         ppufile.putexprint(value);
       end;
 
@@ -386,36 +390,36 @@ implementation
     procedure tordconstnode.buildderefimpl;
       begin
         inherited buildderefimpl;
-        restype.buildderef;
+        typedefderef.build(typedef);
       end;
 
 
     procedure tordconstnode.derefimpl;
       begin
         inherited derefimpl;
-        restype.resolve;
+        typedef:=tdef(typedefderef.resolve);
       end;
 
 
-    function tordconstnode._getcopy : tnode;
+    function tordconstnode.dogetcopy : tnode;
 
       var
          n : tordconstnode;
 
       begin
-         n:=tordconstnode(inherited _getcopy);
+         n:=tordconstnode(inherited dogetcopy);
          n.value:=value;
-         n.restype := restype;
-         _getcopy:=n;
+         n.typedef := typedef;
+         dogetcopy:=n;
       end;
 
-    function tordconstnode.det_resulttype:tnode;
+    function tordconstnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resulttype:=restype;
+        resultdef:=typedef;
         { only do range checking when explicitly asked for it }
         if rangecheck then
-           testrange(resulttype.def,value,false);
+           testrange(resultdef,value,false);
       end;
 
     function tordconstnode.pass_1 : tnode;
@@ -443,19 +447,19 @@ implementation
                             TPOINTERCONSTNODE
 *****************************************************************************}
 
-    constructor tpointerconstnode.create(v : TConstPtrUInt;const t:ttype);
+    constructor tpointerconstnode.create(v : TConstPtrUInt;def:tdef);
 
       begin
          inherited create(pointerconstn);
          value:=v;
-         restype:=t;
+         typedef:=def;
       end;
 
 
     constructor tpointerconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        ppufile.gettype(restype);
+        ppufile.getderef(typedefderef);
         value:=ppufile.getptruint;
       end;
 
@@ -463,7 +467,7 @@ implementation
     procedure tpointerconstnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.puttype(restype);
+        ppufile.putderef(typedefderef);
         ppufile.putptruint(value);
       end;
 
@@ -471,33 +475,33 @@ implementation
     procedure tpointerconstnode.buildderefimpl;
       begin
         inherited buildderefimpl;
-        restype.buildderef;
+        typedefderef.build(typedef);
       end;
 
 
     procedure tpointerconstnode.derefimpl;
       begin
         inherited derefimpl;
-        restype.resolve;
+        typedef:=tdef(typedefderef.resolve);
       end;
 
 
-    function tpointerconstnode._getcopy : tnode;
+    function tpointerconstnode.dogetcopy : tnode;
 
       var
          n : tpointerconstnode;
 
       begin
-         n:=tpointerconstnode(inherited _getcopy);
+         n:=tpointerconstnode(inherited dogetcopy);
          n.value:=value;
-         n.restype := restype;
-         _getcopy:=n;
+         n.typedef := typedef;
+         dogetcopy:=n;
       end;
 
-    function tpointerconstnode.det_resulttype:tnode;
+    function tpointerconstnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resulttype:=restype;
+        resultdef:=typedef;
       end;
 
     function tpointerconstnode.pass_1 : tnode;
@@ -614,13 +618,13 @@ implementation
       end;
 
 
-    function tstringconstnode._getcopy : tnode;
+    function tstringconstnode.dogetcopy : tnode;
 
       var
          n : tstringconstnode;
 
       begin
-         n:=tstringconstnode(inherited _getcopy);
+         n:=tstringconstnode(inherited dogetcopy);
          n.cst_type:=cst_type;
          n.len:=len;
          n.lab_str:=lab_str;
@@ -631,10 +635,10 @@ implementation
            end
          else
            n.value_str:=getpcharcopy;
-         _getcopy:=n;
+         dogetcopy:=n;
       end;
 
-    function tstringconstnode.det_resulttype:tnode;
+    function tstringconstnode.pass_typecheck:tnode;
       var
         l : aint;
       begin
@@ -647,18 +651,18 @@ implementation
                 l:=len-1
               else
                 l:=0;
-              resulttype.setdef(tarraydef.create(0,l,s32inttype));
-              tarraydef(resulttype.def).setelementtype(cchartype);
-              include(tarraydef(resulttype.def).arrayoptions,ado_IsConstString);
+              resultdef:=tarraydef.create(0,l,s32inttype);
+              tarraydef(resultdef).elementdef:=cchartype;
+              include(tarraydef(resultdef).arrayoptions,ado_IsConstString);
             end;
           cst_shortstring :
-            resulttype:=cshortstringtype;
+            resultdef:=cshortstringtype;
           cst_ansistring :
-            resulttype:=cansistringtype;
+            resultdef:=cansistringtype;
           cst_widestring :
-            resulttype:=cwidestringtype;
+            resultdef:=cwidestringtype;
           cst_longstring :
-            resulttype:=clongstringtype;
+            resultdef:=clongstringtype;
         end;
       end;
 
@@ -697,7 +701,7 @@ implementation
       end;
 
 
-    procedure tstringconstnode.changestringtype(const newtype:ttype);
+    procedure tstringconstnode.changestringtype(def:tdef);
       const
         st2cst : array[tstringtype] of tconststringtype = (
           cst_shortstring,cst_longstring,cst_ansistring,cst_widestring
@@ -706,10 +710,10 @@ implementation
         pw : pcompilerwidestring;
         pc : pchar;
       begin
-        if newtype.def.deftype<>stringdef then
+        if def.deftype<>stringdef then
           internalerror(200510011);
         { convert ascii 2 unicode }
-        if (tstringdef(newtype.def).string_typ=st_widestring) and
+        if (tstringdef(def).string_typ=st_widestring) and
            (cst_type<>cst_widestring) then
           begin
             initwidestring(pw);
@@ -720,7 +724,7 @@ implementation
         else
           { convert unicode 2 ascii }
           if (cst_type=cst_widestring) and
-            (tstringdef(newtype.def).string_typ<>st_widestring) then
+            (tstringdef(def).string_typ<>st_widestring) then
             begin
               pw:=pcompilerwidestring(value_str);
               getmem(pc,getlengthwidestring(pw)+1);
@@ -728,8 +732,8 @@ implementation
               donewidestring(pw);
               value_str:=pc;
             end;
-        cst_type:=st2cst[tstringdef(newtype.def).string_typ];
-        resulttype:=newtype;
+        cst_type:=st2cst[tstringdef(def).string_typ];
+        resultdef:=def;
       end;
 
 
@@ -737,11 +741,11 @@ implementation
                              TSETCONSTNODE
 *****************************************************************************}
 
-    constructor tsetconstnode.create(s : pconstset;const t:ttype);
+    constructor tsetconstnode.create(s : pconstset;def:tdef);
 
       begin
          inherited create(setconstn,nil);
-         restype:=t;
+         typedef:=def;
          if assigned(s) then
            begin
               new(value_set);
@@ -762,7 +766,7 @@ implementation
     constructor tsetconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        ppufile.gettype(restype);
+        ppufile.getderef(typedefderef);
         new(value_set);
         ppufile.getdata(value_set^,sizeof(tconstset));
       end;
@@ -771,7 +775,7 @@ implementation
     procedure tsetconstnode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppufile.puttype(restype);
+        ppufile.putderef(typedefderef);
         ppufile.putdata(value_set^,sizeof(tconstset));
       end;
 
@@ -779,24 +783,24 @@ implementation
     procedure tsetconstnode.buildderefimpl;
       begin
         inherited buildderefimpl;
-        restype.buildderef;
+        typedefderef.build(typedef);
       end;
 
 
     procedure tsetconstnode.derefimpl;
       begin
         inherited derefimpl;
-        restype.resolve;
+        typedef:=tdef(typedefderef.resolve);
       end;
 
 
-    function tsetconstnode._getcopy : tnode;
+    function tsetconstnode.dogetcopy : tnode;
 
       var
          n : tsetconstnode;
 
       begin
-         n:=tsetconstnode(inherited _getcopy);
+         n:=tsetconstnode(inherited dogetcopy);
          if assigned(value_set) then
            begin
               new(n.value_set);
@@ -804,21 +808,21 @@ implementation
            end
          else
            n.value_set:=nil;
-         n.restype := restype;
+         n.typedef := typedef;
          n.lab_set:=lab_set;
-         _getcopy:=n;
+         dogetcopy:=n;
       end;
 
-    function tsetconstnode.det_resulttype:tnode;
+    function tsetconstnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resulttype:=restype;
+        resultdef:=typedef;
       end;
 
     function tsetconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         if tsetdef(resulttype.def).settype=smallset then
+         if tsetdef(resultdef).settype=smallset then
           expectloc:=LOC_CONSTANT
          else
           expectloc:=LOC_CREFERENCE;
@@ -842,10 +846,10 @@ implementation
         inherited create(niln);
       end;
 
-    function tnilnode.det_resulttype:tnode;
+    function tnilnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resulttype:=voidpointertype;
+        resultdef:=voidpointertype;
       end;
 
     function tnilnode.pass_1 : tnode;
@@ -879,21 +883,21 @@ implementation
       end;
 
 
-    function tguidconstnode._getcopy : tnode;
+    function tguidconstnode.dogetcopy : tnode;
 
       var
          n : tguidconstnode;
 
       begin
-         n:=tguidconstnode(inherited _getcopy);
+         n:=tguidconstnode(inherited dogetcopy);
          n.value:=value;
-         _getcopy:=n;
+         dogetcopy:=n;
       end;
 
-    function tguidconstnode.det_resulttype:tnode;
+    function tguidconstnode.pass_typecheck:tnode;
       begin
         result:=nil;
-        resulttype.setdef(rec_tguid);
+        resultdef:=rec_tguid;
       end;
 
     function tguidconstnode.pass_1 : tnode;
