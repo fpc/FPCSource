@@ -3399,9 +3399,6 @@ implementation
          aktlocalsymtable:=localst;
 
          inherited ppuwrite(ppufile);
-         oldintfcrc:=ppufile.do_interface_crc;
-         ppufile.do_interface_crc:=false;
-         ppufile.do_interface_crc:=oldintfcrc;
          if po_has_mangledname in procoptions then
           ppufile.putstring(_mangledname^);
          ppufile.putword(extnumber);
