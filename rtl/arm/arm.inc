@@ -233,7 +233,8 @@ end;
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
-  swp r0, r1, [r0]
+  swp r1, r1, [r0]
+  mov r0,r1
 end;
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
