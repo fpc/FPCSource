@@ -36,12 +36,12 @@ Type
     dwReserved0: DWORD;
     dwReserved1: DWORD;
     cFileName: array[0..MAX_PATH-1] of Char;
-    cAlternateFileName: array[0..13] of Char;
+    cAlternateFileName: array[0..15] of Char;
     // The structure should be 320 bytes long...
     pad : system.integer;
   end;
 
-  Searchrec = Packed Record
+  Searchrec = Record
     FindHandle  : THandle;
     WinFindData : TWinFindData;
     ExcludeAttr : longint;
