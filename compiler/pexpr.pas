@@ -1907,7 +1907,7 @@ implementation
                                 if ok then
                                   begin
                                     p2:=comp_expr(true);
-                                  { support SEG:OFS for go32v2 Mem[] }
+                                    { support SEG:OFS for go32v2 Mem[] }
                                     if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
                                        (p1.nodetype=loadn) and
                                        assigned(tloadnode(p1).symtableentry) and
@@ -1922,18 +1922,29 @@ implementation
                                            p3:=caddnode.create(muln,cordconstnode.create($10,s32inttype,false),p2);
                                            p2:=comp_expr(true);
                                            p2:=caddnode.create(addn,p2,p3);
+                                           if try_to_consume(_POINTPOINT) then
+                                             { Support mem[$a000:$0000..$07ff] which returns array [0..$7ff] of memtype.}
+                                             p2:=crangenode.create(p2,caddnode.create(addn,comp_expr(true),p3.getcopy));
                                            p1:=cvecnode.create(p1,p2);
                                            include(tvecnode(p1).flags,nf_memseg);
                                            include(tvecnode(p1).flags,nf_memindex);
                                          end
                                         else
                                          begin
+                                           if try_to_consume(_POINTPOINT) then
+                                             { Support mem[$80000000..$80000002] which returns array [0..2] of memtype.}
+                                             p2:=crangenode.create(p2,comp_expr(true));
                                            p1:=cvecnode.create(p1,p2);
                                            include(tvecnode(p1).flags,nf_memindex);
                                          end;
                                       end
                                     else
-                                      p1:=cvecnode.create(p1,p2);
+                                      begin
+                                        if try_to_consume(_POINTPOINT) then
+                                          { Support arrayvar[0..9] which returns array [0..9] of arraytype.}
+                                          p2:=crangenode.create(p2,comp_expr(true));
+                                        p1:=cvecnode.create(p1,p2);
+                                      end;
                                   end;
                               end;
                             else
@@ -1986,13 +1997,8 @@ implementation
                            consume(_ID);
                          end;
                        variantdef:
-                         begin
-                           { dispatch call }
-                           if token=_ID then
-                             begin
-                               consume(_ID);
-                             end;
-                         end;
+                         { dispatch call }
+                         try_to_consume(_ID);
                        classrefdef:
                          begin
                            if token=_ID then

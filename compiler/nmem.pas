@@ -718,7 +718,10 @@ implementation
                { check type of the index value }
                if (compare_defs(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def,right.nodetype)=te_incompatible) then
                  IncompatibleTypes(right.resulttype.def,tarraydef(left.resulttype.def).rangetype.def);
-               resulttype:=tarraydef(left.resulttype.def).elementtype;
+               if right.nodetype=rangen then
+                 resulttype:=left.resulttype
+               else
+                 resulttype:=Tarraydef(left.resulttype.def).elementtype;
              end;
            pointerdef :
              begin
