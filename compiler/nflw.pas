@@ -1101,7 +1101,7 @@ implementation
 
         if not(assigned(labelnode)) then
           begin
-            if assigned(labelsym.code) then
+            if assigned(labelsym) and assigned(labelsym.code) then
               labelnode:=tlabelnode(labelsym.code)
             else
               internalerror(200506183);
@@ -1117,32 +1117,20 @@ implementation
    function tgotonode._getcopy : tnode;
      var
        p : tgotonode;
-{       i : longint; }
+       i : longint;
      begin
         p:=tgotonode(inherited _getcopy);
-        {
         p.exceptionblock:=exceptionblock;
-        { When we copying, we do an ugly trick to determine if the label used
-          by the current goto node is already copied: if the referinggotonodes
-          contains the current label, it isn't copied yet, so copy also the
-          label node and set the copiedto field to the newly created node.
 
-          If a label to copy is reached the copiedto field is checked. If it's non nil
-          the copiedto field is returned and the copiedto field is reset to nil.
-        }
-        { assume no copying }
-        newlabelnode:=labelnode;
-        for i:=0 to labelnode.copiedto.referingotonodes.count-1 do
+        { force a valid labelnode }
+        if not(assigned(labelnode)) then
           begin
-            { copy labelnode? }
-            if labelnode.copiedto.referinggotonodes[i]=self then
-              begin
-                oldlabelnode.copiedto:=newlabelnode;
-              end;
+            if assigned(labelsym) and assigned(labelsym.code) then
+              labelnode:=tlabelnode(labelsym.code)
+            else
+              internalerror(200610291);
           end;
-        p.labelnode:=newlabelnode;
-        p.labelnode.referinggotonodes.add(self);
-        }
+        p.labelnode:=tlabelnode(labelnode._getcopy);
         result:=p;
      end;
 
@@ -1217,13 +1205,12 @@ implementation
 
 
    function tlabelnode._getcopy : tnode;
-     var
-        p : tlabelnode;
      begin
-        p:=tlabelnode(inherited _getcopy);
-        p.exceptionblock:=exceptionblock;
+        if not(assigned(copiedto)) then
+          copiedto:=tlabelnode(inherited _getcopy);
+        copiedto.exceptionblock:=exceptionblock;
 
-        result:=p;
+        result:=copiedto;
      end;
 
 

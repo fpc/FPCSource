@@ -439,6 +439,7 @@ implementation
     uses
        cutils,verbose,ppu,
        symconst,
+       nutils,nflw,
        defutil;
 
     const
@@ -827,9 +828,18 @@ implementation
       end;
 
 
+    function cleanupcopiedto(var n : tnode;arg : pointer) : foreachnoderesult;
+      begin
+        result:=fen_true;
+        if n.nodetype=labeln then
+          tlabelnode(n).copiedto:=nil;
+      end;
+
+
     function tnode.getcopy : tnode;
       begin
         result:=_getcopy;
+        foreachnodestatic(pm_postprocess,self,@cleanupcopiedto,nil);
       end;
 
 
