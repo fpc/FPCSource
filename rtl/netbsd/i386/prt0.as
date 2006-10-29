@@ -147,49 +147,7 @@ _actualsyscall:
          mov %eax,%ebx
          mov $-1,%eax
          ret
-        .p2align 2,0x90 	
-
-.Lfe1:
-	.size	 ___start,.Lfe1-___start
-	.align 4
-	.type	 _strrchr,@function
-_strrchr:
-	pushl %ebp
-	movl %esp,%ebp
-	subl $8,%esp
-	movl 12(%ebp),%eax
-	movb %al,-1(%ebp)
-	movl $0,-8(%ebp)
-	.align 4
-.L7:
-	movl 8(%ebp),%eax
-	movb (%eax),%dl
-	cmpb -1(%ebp),%dl
-	jne .L10
-	movl 8(%ebp),%eax
-	movl %eax,-8(%ebp)
-.L10:
-	movl 8(%ebp),%eax
-	cmpb $0,(%eax)
-	jne .L9
-	movl -8(%ebp),%edx
-	movl %edx,%eax
-	jmp .L6
-	.align 4
-.L11:
-.L9:
-	incl 8(%ebp)
-	jmp .L7
-	.align 4
-.L8:
-.L6:
-	leave
-	ret
-
-
-.Lfe2:
-	.size	 _strrchr,.Lfe2-_strrchr
-	.comm	environ,4,4
+        .p2align 2,0x90
 
 # This section is needed for NetBSD to recognize a NetBSD binary as such.
 # otherwise it will be startup in Linux emulation mode.

@@ -13,7 +13,7 @@ loaders=prt0 cprt0
 units=$(SYSTEMUNIT) objpas macpas strings syscall baseunix \
       $(LINUXUNIT) unix rtlconsts initc \
       dos crt objects printer matrix \
-      sysutils types classes typinfo math varutils \
+      sysutils types classes typinfo math varutils fmtbcd \
       charset ucomplex getopts heaptrc lineinfo \
       errors sockets terminfo \
       video mouse keyboard  serial variants types sysctl sysconst fpmkunit $(CPU_UNITS)
@@ -193,6 +193,9 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
+
+fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 
 #
 # Mac Pascal Model

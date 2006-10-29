@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       windows messages dynlibs \
       dos objects \
       rtlconsts sysconst sysutils \
-      typinfo types classes \
+      typinfo types classes fmtbcd \
       strutils convutils math dateutils \
       varutils variants \
       matrix ucomplex \
@@ -128,6 +128,9 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 #
 # Other system-independent RTL Units
 #
+
+fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 
 #####################################################################
 # Libs

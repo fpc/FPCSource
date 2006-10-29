@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) unixtype ctypes baseunix strings objpas macpas syscall unixu
       sysutils typinfo math matrix varutils \
       charset ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
-      video mouse keyboard variants types dateutils sysconst \
+      video mouse keyboard variants types dateutils sysconst fmtbcd \
       cthreads classes convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix
 
 rsts=math varutils typinfo variants sysconst rtlconsts stdconvs
@@ -200,6 +200,9 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 
 variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Fi$(INC) $(INC)/variants.pp
+
+fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp

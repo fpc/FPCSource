@@ -11,7 +11,7 @@ units=system objpas macpas strings \
       sysutils classes math typinfo matrix \
       cpu mmx ucomplex getopts heaptrc lineinfo \
       msmouse charset varutils \
-      video mouse keyboard variants vesamode types \
+      video mouse keyboard variants vesamode types fmtbcd \
       sysconst rtlconst dateutil convutil strutils
 rsts=math varutils typinfo classes variants dateutil sysconst
 [require]
@@ -114,6 +114,10 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
         $(COMPILER) -I$(OBJPASDIR) varutils.pp
 variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) sysutils$(PPUEXT) sysconst$(PPUEXT) typinfo$(PPUEXT) rtlconst$(PPUEXT)
         $(COMPILER) -Fi$(INC) $(INC)/variants.pp
+        
+fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
+        
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp

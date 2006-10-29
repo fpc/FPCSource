@@ -10,7 +10,7 @@ loaders=nwplibc nwl_main nwl_dlle
 units=$(SYSTEMUNIT) objpas macpas strings \
       lineinfo winsock heaptrc matrix \
       nwsnut libc dos crt objects sysconst dynlibs \
-      initc sysutils types typinfo classes \
+      initc sysutils types typinfo classes fmtbcd \
       cpu mmx getopts \
       dateutils strutils convutils \
       charset ucomplex variants \
@@ -195,6 +195,9 @@ utf8bidi$(PPUEXT) : $(OBJPASDIR)/utf8bidi.pp freebidi$(PPUEXT)
 
 variants$(PPUEXT) : $(INC)/variants.pp sysutils$(PPUEXT) sysconst$(PPUEXT) varutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Fi$(INC) $(INC)/variants.pp
+
+fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp

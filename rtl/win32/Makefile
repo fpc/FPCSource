@@ -2185,7 +2185,7 @@ variants$(PPUEXT) : $(INC)/variants.pp varutils$(PPUEXT) sysutils$(PPUEXT) sysco
 	$(COMPILER) -Fi$(INC) $(INC)/variants.pp
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
-fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) system$(PPUEXT)
+fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 rtlconsts$(PPUEXT) : objpas$(PPUEXT) $(OBJPASDIR)/rtlconsts.pp
 	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
