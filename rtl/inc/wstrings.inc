@@ -370,8 +370,13 @@ begin
 {$ifdef FPC_WINLIKEWIDESTRING}
   { Decrease the reference count on the old S1 }
   fpc_widestr_decr_ref (S1);
-  S1:=NewWidestring(length(WideString(S2)));
-  move(s2^,s1^,length(WideString(s1))*sizeof(widechar));
+  if S2<>nil then
+    begin
+      S1:=NewWidestring(length(WideString(S2)));
+      move(s2^,s1^,length(WideString(s1))*sizeof(widechar));
+    end
+  else
+    S1:=nil;
 {$else FPC_WINLIKEWIDESTRING}
   If S2<>nil then
     If PWideRec(S2-WideFirstOff)^.Ref>0 then
