@@ -3,28 +3,28 @@
   ------------------------------------------------------------------------------
   This lib is a raw porting of libgba library for gba (you can find it at
   http://www.devkitpro.org).
-  
+
   As this is a direct port from c, I'm pretty sure that something could not work
-  as you expect. I am even more sure that this code could be written better, so 
-  if you think that I have made some mistakes or you have some better 
+  as you expect. I am even more sure that this code could be written better, so
+  if you think that I have made some mistakes or you have some better
   implemented functions, let me know [francky74 (at) gmail (dot) com]
   Enjoy!
 
   Conversion by Legolas (http://itaprogaming.free.fr) for freepascal compiler
   (http://www.freepascal.org)
-  
+
   Copyright (C) 2006  Francesco Lombardi
-  
+
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-  
+
   This library is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
   Lesser General Public License for more details.
-  
+
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
@@ -35,7 +35,7 @@ unit gba_video;
 
 interface
 
-uses 
+uses
   gba_types, gba_regs;
 
 type
@@ -48,7 +48,7 @@ type
     LCDC_VCNT       = (1 shl 5)
   );
   TLCDCIRQ = LCDC_IRQ;
-  
+
   BG_CTRL_BITS = (
     BG_MOSAIC     = BIT6,
     BG_16_COLOR		=	(0 shl 7),
@@ -60,14 +60,14 @@ type
     BG_SIZE_3		=	(3 shl 14)
   );
   TBgCTRLBits = BG_CTRL_BITS;
-  
+
   NAMETABLE  = array [0..31, 0..31] of word;
   TNameTable = NAMETABLE;
   PNameTable = ^TNameTable;
-  
+
   MODE3_LINE = array [0..239] of word;
   TMODE3Line = MODE3_LINE;
-  
+
   MODE5_LINE = array [0..159] of word;
   TMODE5Line = MODE5_LINE;
 
@@ -79,7 +79,7 @@ const
   MODE_3	=	3;
   MODE_4	=	4;
   MODE_5	=	5;
-  
+
   BACKBUFFER	=	BIT4;
   OBJ_1D_MAP	=	BIT6;
   LCDC_OFF	=	BIT7;
@@ -91,7 +91,7 @@ const
   WIN0_ON		=	BIT13;
   WIN1_ON		=	BIT14;
   OBJ_WIN_ON	=	BIT15;
-  
+
   BG0_ENABLE		=	BG0_ON;
   BG1_ENABLE		=	BG1_ON;
   BG2_ENABLE		=	BG2_ON;
@@ -100,10 +100,10 @@ const
   WIN0_ENABLE		=	WIN0_ON;
   WIN1_ENABLE		=	WIN1_ON;
   OBJ_WIN_ENABLE	=	BG0_ON;
-  
+
   BG_ALL_ON		=	BG0_ON or BG1_ON or BG2_ON or BG3_ON;
   BG_ALL_ENABLE	=	BG0_ON or BG1_ON or BG2_ON or BG3_ON;
- 
+
 
 const
   MAP : PNameTable = pointer($06000000);
@@ -145,9 +145,9 @@ procedure WaitForVDraw(); inline;
 procedure VSync(); inline;
 function Flip(): pword;
 
-function RGB(r, g, b: integer): integer;
-function RGB5(r, g, b: integer): integer;
-function RGB8(r, g, b: integer): integer;
+function RGB(const r, g, b: word): word;inline;
+function RGB5(const r, g, b: word): word;inline;
+function RGB8(const r, g, b: word): word;inline;
 
 implementation
 
@@ -216,7 +216,7 @@ function PatRAM8(x, tn: integer): dword; inline;
 begin
   PatRAM8 := (dword($6000000 or (((x) shl 14) + ((tn) shl 6)) ));
 end;
-  
+
 function SprVRAM(tn: integer): dword; inline;
 begin
   SprVRAM := (dword($6000000 or $10000 or ((tn) shl 5)));
@@ -226,7 +226,7 @@ procedure SetMode(mode: dword); inline;
 begin
   REG_DISPCNT^ := (mode);
 end;
- 
+
 procedure Wait(count: dword);
 var
   vline: word;
@@ -266,17 +266,17 @@ begin
   Flip := VideoBuffer;
 end;
 
-function RGB(r, g, b: integer): integer;
+function RGB(const r, g, b: word): word;inline;
 begin
-  RGB := ((r) + (g shl 5) + (b shl 10)); 
+  RGB := ((r) + (g shl 5) + (b shl 10));
 end;
 
-function RGB5(r, g, b: integer): integer;
+function RGB5(const r, g, b: word): word;inline;
 begin
   RGB5 := ((r) or ((g) shl 5) or ((b) shl 10));
 end;
 
-function RGB8(r, g, b: integer): integer;
+function RGB8(const r, g, b: word): word;inline;
 begin
   RGB8 := ( (((b) shr 3) shl 10) or (((g) shr 3) shl 5) or ((r) shr 3) );
 end;
