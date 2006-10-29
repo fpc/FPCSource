@@ -231,6 +231,8 @@ interface
          procedure ppuwrite(ppufile:tcompilerppufile);override;
       end;
 
+       tpropaccesslisttypes=(palt_none,palt_read,palt_write,palt_stored);
+       
        tpropertysym = class(Tstoredsym)
           propoptions   : tpropertyoptions;
           overridenpropsym : tpropertysym;
@@ -240,10 +242,8 @@ interface
           indexdef      : tdef;
           indexdefderef : tderef;
           index,
-          default       : longint;
-          readaccess,
-          writeaccess,
-          storedaccess  : tpropaccesslist;
+          default        : longint;
+          propaccesslist : array[tpropaccesslisttypes] of tpropaccesslist;
           constructor create(const n : string);
           destructor  destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -1067,6 +1067,8 @@ implementation
 ****************************************************************************}
 
     constructor tpropertysym.create(const n : string);
+      var
+        pap : tpropaccesslisttypes;
       begin
          inherited create(propertysym,n);
          propoptions:=[];
@@ -1074,13 +1076,14 @@ implementation
          default:=0;
          propdef:=nil;
          indexdef:=nil;
-         readaccess:=tpropaccesslist.create;
-         writeaccess:=tpropaccesslist.create;
-         storedaccess:=tpropaccesslist.create;
+         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
+           propaccesslist[pap]:=tpropaccesslist.create;
       end;
 
 
     constructor tpropertysym.ppuload(ppufile:tcompilerppufile);
+      var
+        pap : tpropaccesslisttypes;
       begin
          inherited ppuload(propertysym,ppufile);
          ppufile.getsmallset(propoptions);
@@ -1089,17 +1092,17 @@ implementation
          index:=ppufile.getlongint;
          default:=ppufile.getlongint;
          ppufile.getderef(indexdefderef);
-         readaccess:=ppufile.getpropaccesslist;
-         writeaccess:=ppufile.getpropaccesslist;
-         storedaccess:=ppufile.getpropaccesslist;
+         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
+           propaccesslist[pap]:=ppufile.getpropaccesslist;
       end;
 
 
     destructor tpropertysym.destroy;
+      var
+        pap : tpropaccesslisttypes;
       begin
-         readaccess.free;
-         writeaccess.free;
-         storedaccess.free;
+         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
+           propaccesslist[pap].free;
          inherited destroy;
       end;
 
@@ -1111,24 +1114,26 @@ implementation
 
 
     procedure tpropertysym.buildderef;
+      var
+        pap : tpropaccesslisttypes;
       begin
         overridenpropsymderef.build(overridenpropsym);
         propdefderef.build(propdef);
         indexdefderef.build(indexdef);
-        readaccess.buildderef;
-        writeaccess.buildderef;
-        storedaccess.buildderef;
+        for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
+          propaccesslist[pap].buildderef;
       end;
 
 
     procedure tpropertysym.deref;
+      var
+        pap : tpropaccesslisttypes;
       begin
         overridenpropsym:=tpropertysym(overridenpropsymderef.resolve);
         indexdef:=tdef(indexdefderef.resolve);
         propdef:=tdef(propdefderef.resolve);
-        readaccess.resolve;
-        writeaccess.resolve;
-        storedaccess.resolve;
+        for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
+          propaccesslist[pap].resolve;
       end;
 
 
@@ -1139,6 +1144,8 @@ implementation
 
 
     procedure tpropertysym.ppuwrite(ppufile:tcompilerppufile);
+      var
+        pap : tpropaccesslisttypes;
       begin
         inherited ppuwrite(ppufile);
         ppufile.putsmallset(propoptions);
@@ -1147,9 +1154,8 @@ implementation
         ppufile.putlongint(index);
         ppufile.putlongint(default);
         ppufile.putderef(indexdefderef);
-        ppufile.putpropaccesslist(readaccess);
-        ppufile.putpropaccesslist(writeaccess);
-        ppufile.putpropaccesslist(storedaccess);
+        for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
+          ppufile.putpropaccesslist(propaccesslist[pap]);
         ppufile.writeentry(ibpropertysym);
       end;
 

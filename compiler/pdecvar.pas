@@ -392,10 +392,10 @@ implementation
            begin
              if try_to_consume(_READ) then
                begin
-                 p.readaccess.clear;
-                 if parse_symlist(p.readaccess,def) then
+                 p.propaccesslist[palt_read].clear;
+                 if parse_symlist(p.propaccesslist[palt_read],def) then
                   begin
-                    sym:=p.readaccess.firstsym^.sym;
+                    sym:=p.propaccesslist[palt_read].firstsym^.sym;
                     case sym.typ of
                       procsym :
                         begin
@@ -407,8 +407,8 @@ implementation
                           { we ignore hidden stuff here because the property access symbol might have
                             non default calling conventions which might change the hidden stuff;
                             see tw3216.pp (FK) }
-                          p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.paras,p.propdef,[cpo_allowdefaults,cpo_ignorehidden]);
-                          if not assigned(p.readaccess.procdef) then
+                          p.propaccesslist[palt_read].procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.paras,p.propdef,[cpo_allowdefaults,cpo_ignorehidden]);
+                          if not assigned(p.propaccesslist[palt_read].procdef) then
                             Message(parser_e_ill_property_access_sym);
                         end;
                       fieldvarsym :
@@ -435,10 +435,10 @@ implementation
                end;
              if try_to_consume(_WRITE) then
                begin
-                 p.writeaccess.clear;
-                 if parse_symlist(p.writeaccess,def) then
+                 p.propaccesslist[palt_write].clear;
+                 if parse_symlist(p.propaccesslist[palt_write],def) then
                   begin
-                    sym:=p.writeaccess.firstsym^.sym;
+                    sym:=p.propaccesslist[palt_write].firstsym^.sym;
                     case sym.typ of
                       procsym :
                         begin
@@ -451,8 +451,8 @@ implementation
                           { Insert hidden parameters }
                           handle_calling_convention(writeprocdef);
                           { search procdefs matching writeprocdef }
-                          p.writeaccess.procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults]);
-                          if not assigned(p.writeaccess.procdef) then
+                          p.propaccesslist[palt_write].procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults]);
+                          if not assigned(p.propaccesslist[palt_write].procdef) then
                             Message(parser_e_ill_property_access_sym);
                         end;
                       fieldvarsym :
@@ -505,7 +505,7 @@ implementation
              if try_to_consume(_STORED) then
               begin
                 include(p.propoptions,ppo_stored);
-                p.storedaccess.clear;
+                p.propaccesslist[palt_stored].clear;
                 case token of
                   _ID:
                     begin
@@ -515,16 +515,16 @@ implementation
                       { as stored true                    }
                       if idtoken<>_DEFAULT then
                        begin
-                         if parse_symlist(p.storedaccess,def) then
+                         if parse_symlist(p.propaccesslist[palt_stored],def) then
                           begin
-                            sym:=p.storedaccess.firstsym^.sym;
+                            sym:=p.propaccesslist[palt_stored].firstsym^.sym;
                             case sym.typ of
                               procsym :
                                 begin
                                    { Insert hidden parameters }
                                    handle_calling_convention(storedprocdef);
-                                   p.storedaccess.procdef:=Tprocsym(sym).search_procdef_bypara(storedprocdef.paras,storedprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
-                                   if not assigned(p.storedaccess.procdef) then
+                                   p.propaccesslist[palt_stored].procdef:=Tprocsym(sym).search_procdef_bypara(storedprocdef.paras,storedprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
+                                   if not assigned(p.propaccesslist[palt_stored].procdef) then
                                      message(parser_e_ill_property_storage_sym);
                                 end;
                               fieldvarsym :
@@ -633,7 +633,7 @@ implementation
              if intfidx > 0 then
              begin
                interfaces(intfidx).iitype := etFieldValue;
-               interfaces(intfidx).iioffset := tfieldvarsym(p.readaccess.firstsym^.sym).fieldoffset;
+               interfaces(intfidx).iioffset := tfieldvarsym(p.propaccesslist[palt_read].firstsym^.sym).fieldoffset;
              end else
              begin
                writeln('Implements-property used on unimplemented interface');

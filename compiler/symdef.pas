@@ -4828,23 +4828,31 @@ implementation
          proctypesinfo : byte;
          propnameitem  : tpropnamelistitem;
 
-      procedure writeproc(proc : tpropaccesslist; shiftvalue : byte; unsetvalue: byte);
-
+        procedure writeaccessproc(pap:tpropaccesslisttypes; shiftvalue : byte; unsetvalue: byte);
         var
            typvalue : byte;
            hp : ppropaccesslistitem;
            address : longint;
            def : tdef;
+           hpropsym : tpropertysym;
+           propaccesslist : tpropaccesslist;
         begin
-           if not(assigned(proc) and assigned(proc.firstsym))  then
+           hpropsym:=tpropertysym(sym);
+           repeat
+             propaccesslist:=hpropsym.propaccesslist[pap];
+             if not propaccesslist.empty then
+               break;
+             hpropsym:=hpropsym.overridenpropsym;
+           until not assigned(hpropsym);
+           if not(assigned(propaccesslist) and assigned(propaccesslist.firstsym))  then
              begin
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.create(aitconst_ptr,unsetvalue));
                 typvalue:=3;
              end
-           else if proc.firstsym^.sym.typ=fieldvarsym then
+           else if propaccesslist.firstsym^.sym.typ=fieldvarsym then
              begin
                 address:=0;
-                hp:=proc.firstsym;
+                hp:=propaccesslist.firstsym;
                 def:=nil;
                 while assigned(hp) do
                   begin
@@ -4877,18 +4885,18 @@ implementation
            else
              begin
                 { When there was an error then procdef is not assigned }
-                if not assigned(proc.procdef) then
+                if not assigned(propaccesslist.procdef) then
                   exit;
-                if not(po_virtualmethod in tprocdef(proc.procdef).procoptions) then
+                if not(po_virtualmethod in tprocdef(propaccesslist.procdef).procoptions) then
                   begin
-                     current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(tprocdef(proc.procdef).mangledname,0));
+                     current_asmdata.asmlists[al_rtti].concat(Tai_const.createname(tprocdef(propaccesslist.procdef).mangledname,0));
                      typvalue:=1;
                   end
                 else
                   begin
                      { virtual method, write vmt offset }
                      current_asmdata.asmlists[al_rtti].concat(Tai_const.create(aitconst_ptr,
-                       tprocdef(proc.procdef)._class.vmtmethodoffset(tprocdef(proc.procdef).extnumber)));
+                       tprocdef(propaccesslist.procdef)._class.vmtmethodoffset(tprocdef(propaccesslist.procdef).extnumber)));
                      typvalue:=2;
                   end;
              end;
@@ -4904,13 +4912,17 @@ implementation
              else
                proctypesinfo:=0;
              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(tstoreddef(tpropertysym(sym).propdef).get_rtti_label(fullrtti)));
-             writeproc(tpropertysym(sym).readaccess,0,0);
-             writeproc(tpropertysym(sym).writeaccess,2,0);
+             writeaccessproc(palt_read,0,0);
+             writeaccessproc(palt_write,2,0);
              { is it stored ? }
              if not(ppo_stored in tpropertysym(sym).propoptions) then
-               writeproc(nil,4,0) { no, so put a constant zero }
+               begin
+                 { no, so put a constant zero }
+                 current_asmdata.asmlists[al_rtti].concat(Tai_const.create(aitconst_ptr,0));
+                 proctypesinfo:=proctypesinfo or (3 shl 4);
+               end
              else
-               writeproc(tpropertysym(sym).storedaccess,4,1); { maybe; if no procedure put a constant 1 (=true) }
+               writeaccessproc(palt_stored,4,1); { maybe; if no procedure put a constant 1 (=true) }
              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tpropertysym(sym).index));
              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(tpropertysym(sym).default));
              propnameitem:=searchpropnamelist(tpropertysym(sym).name);
