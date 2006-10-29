@@ -1497,6 +1497,7 @@ begin
              write  (space,' DefaultConst : ');
              readderef;
              writeln(space,'       ParaNr : ',getword);
+             writeln(space,'     VarState : ',getbyte);
              if (vo_has_explicit_paraloc in varoptions) then
                begin
                  i:=getbyte;

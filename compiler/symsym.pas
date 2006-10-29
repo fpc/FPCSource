@@ -1553,6 +1553,13 @@ implementation
       begin
          inherited ppuload(paravarsym,ppufile);
          paranr:=ppufile.getword;
+
+         { The var state of parameter symbols is fixed after writing them so
+           we write them to the unit file.
+           This enables constant folding for inline procedures loaded from units
+         }
+         varstate:=tvarstate(ppufile.getbyte);
+
          paraloc[calleeside].init;
          paraloc[callerside].init;
          if vo_has_explicit_paraloc in varoptions then
@@ -1571,6 +1578,12 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putword(paranr);
+
+         { The var state of parameter symbols is fixed after writing them so
+           we write them to the unit file.
+           This enables constant folding for inline procedures loaded from units
+         }
+         ppufile.putbyte(ord(varstate));
          if vo_has_explicit_paraloc in varoptions then
            begin
              paraloc[callerside].check_simple_location;
