@@ -91,6 +91,7 @@ type
     _DIVASN,
     _NOTASN,
     _XORASN,
+    _GENERICSPECIALTOKEN,
     { Normal words -- ATTENTION: These words must be sorted: }
     { first in length order, then in alphabetical order.     }
     _C,
@@ -340,6 +341,7 @@ const
       (str:''              ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:''              ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:''              ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'gen. spec.'    ;special:true ;keyword:m_none;op:NOTOKEN),
     { Normal words -- ATTENTION: These words must be sorted: }
     { first in length order, then in alphabetical order.     }
       (str:'C'             ;special:false;keyword:m_none;op:NOTOKEN),

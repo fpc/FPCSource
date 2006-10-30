@@ -67,6 +67,8 @@ interface
 
        tcompile_time_predicate = function(var valuedescr: String) : Boolean;
 
+       tspecialgenerictoken = (ST_LOADSETTINGS);
+
        tscannerfile = class
        public
           inputfile    : tinputfile;  { current inputfile list }
@@ -86,6 +88,8 @@ interface
           replaysavetoken : ttoken;
           replaytokenbuf,
           recordtokenbuf : tdynamicarray;
+          { last settings we stored }
+          last_settings : tsettings;
 
           comment_level,
           yylexcount     : longint;
@@ -1824,6 +1828,7 @@ In case not, the value returned can be arbitrary.
         if assigned(recordtokenbuf) then
           internalerror(200511173);
         recordtokenbuf:=buf;
+        fillchar(last_settings,sizeof(last_settings),0);
       end;
 
 
@@ -1839,6 +1844,15 @@ In case not, the value returned can be arbitrary.
       begin
         if not assigned(recordtokenbuf) then
           internalerror(200511176);
+        { settings changed? }
+        if CompareByte(current_settings,last_settings,sizeof(current_settings))<>0 then
+          begin
+            { use a special token to record it }
+            recordtokenbuf.write(_GENERICSPECIALTOKEN,1);
+            recordtokenbuf.write(ST_LOADSETTINGS,1);
+            recordtokenbuf.write(current_settings,sizeof(current_settings));
+            last_settings:=current_settings;
+          end;
         recordtokenbuf.write(token,1);
         if token=_ID then
           recordtokenbuf.write(idtoken,1);
@@ -1877,6 +1891,9 @@ In case not, the value returned can be arbitrary.
         dec(inputpointer);
         { install buffer }
         replaytokenbuf:=buf;
+
+        fillchar(last_settings,sizeof(last_settings),0);
+
         { reload next token }
         replaytokenbuf.seek(0);
         replaytoken;
@@ -1886,6 +1903,7 @@ In case not, the value returned can be arbitrary.
     procedure tscannerfile.replaytoken;
       var
         wlen : sizeint;
+        specialtoken : tspecialgenerictoken;
       begin
         if not assigned(replaytokenbuf) then
           internalerror(200511177);
@@ -1898,35 +1916,51 @@ In case not, the value returned can be arbitrary.
             token:=replaysavetoken;
             exit;
           end;
-        { load token from the buffer }
-        replaytokenbuf.read(token,1);
-        if token=_ID then
-          replaytokenbuf.read(idtoken,1);
-        case token of
-          _CWCHAR,
-          _CWSTRING :
-            begin
-              replaytokenbuf.read(wlen,sizeof(SizeInt));
-              setlengthwidestring(patternw,wlen);
-              replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
-              pattern:='';
-            end;
-          _CCHAR,
-          _CSTRING,
-          _INTCONST,
-          _REALNUMBER :
-            begin
-              replaytokenbuf.read(pattern[0],1);
-              replaytokenbuf.read(pattern[1],length(pattern));
-              orgpattern:='';
-            end;
-          _ID :
-            begin
-              replaytokenbuf.read(orgpattern[0],1);
-              replaytokenbuf.read(orgpattern[1],length(orgpattern));
-              pattern:=upper(orgpattern);
-            end;
-        end;
+        repeat
+          { load token from the buffer }
+          replaytokenbuf.read(token,1);
+          if token=_ID then
+            replaytokenbuf.read(idtoken,1);
+          case token of
+            _CWCHAR,
+            _CWSTRING :
+              begin
+                replaytokenbuf.read(wlen,sizeof(SizeInt));
+                setlengthwidestring(patternw,wlen);
+                replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
+                pattern:='';
+              end;
+            _CCHAR,
+            _CSTRING,
+            _INTCONST,
+            _REALNUMBER :
+              begin
+                replaytokenbuf.read(pattern[0],1);
+                replaytokenbuf.read(pattern[1],length(pattern));
+                orgpattern:='';
+              end;
+            _ID :
+              begin
+                replaytokenbuf.read(orgpattern[0],1);
+                replaytokenbuf.read(orgpattern[1],length(orgpattern));
+                pattern:=upper(orgpattern);
+              end;
+            _GENERICSPECIALTOKEN:
+              begin
+                replaytokenbuf.read(specialtoken,1);
+                case specialtoken of
+                  ST_LOADSETTINGS:
+                    begin
+                      replaytokenbuf.read(current_settings,sizeof(current_settings));
+                    end
+                  else
+                    internalerror(2006103010);
+                end;
+                continue;
+              end;
+          end;
+          break;
+        until false;
       end;
 
 

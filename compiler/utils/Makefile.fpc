@@ -34,6 +34,7 @@ ppu$(PPUEXT): ppu.pas
 ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)
 
 ppudump$(EXEEXT): ppudump.pp ppu$(PPUEXT)
+        $(COMPILER) ppudump.pp -Fu../i386 -Fi..
 
 ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
 
@@ -43,7 +44,7 @@ fpcmkcfg$(EXEEXT): fpcmkcfg.pp usubst.pp fpccfg.inc
 
 ifneq ($(DATA2INC),)
 fpccfg.inc: fpc.cft
-        $(DATA2INC) -b -s fpc.cft fpccfg.inc DefaultConfig 
+        $(DATA2INC) -b -s fpc.cft fpccfg.inc DefaultConfig
 endif
 
 #

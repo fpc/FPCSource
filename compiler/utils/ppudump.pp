@@ -24,7 +24,9 @@
 program pppdump;
 uses
   dos,
-  ppu;
+  ppu,
+  globals,
+  tokens;
 
 const
   Version   = 'Version 2.1.1';
@@ -823,7 +825,7 @@ var
   i      : longint;
   first  : boolean;
   tokenbufsize : longint;
-  tokenbuf : pointer;
+  tokenbuf : pbyte;
   defid : longint;
 begin
   defid:=ppufile.getlongint;
@@ -867,6 +869,71 @@ begin
       writeln(space,' Tokenbuffer size : ',tokenbufsize);
       tokenbuf:=allocmem(tokenbufsize);
       ppufile.getdata(tokenbuf^,tokenbufsize);
+      i:=0;
+      write(space,' Tokens: ');
+      while i<tokenbufsize do
+        begin
+          write(arraytokeninfo[ttoken(tokenbuf[i])].str);
+          case ttoken(tokenbuf[i]) of
+            _CWCHAR,
+            _CWSTRING :
+              begin
+                inc(i);
+              {
+                replaytokenbuf.read(wlen,sizeof(SizeInt));
+                setlengthwidestring(patternw,wlen);
+                replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
+                pattern:='';
+              }
+              end;
+            _CCHAR,
+            _CSTRING,
+            _INTCONST,
+            _REALNUMBER :
+              begin
+                inc(i);
+              {
+                replaytokenbuf.read(pattern[0],1);
+                replaytokenbuf.read(pattern[1],length(pattern));
+                orgpattern:='';
+              }
+              end;
+            _ID :
+              begin
+                inc(i);
+              {
+                replaytokenbuf.read(orgpattern[0],1);
+                replaytokenbuf.read(orgpattern[1],length(orgpattern));
+                pattern:=upper(orgpattern);
+              }
+              end;
+            _GENERICSPECIALTOKEN:
+              begin
+                inc(i);
+                inc(i);
+                inc(i,sizeof(tsettings));
+
+              {
+                replaytokenbuf.read(specialtoken,1);
+                case specialtoken of
+                  ST_LOADSETTINGS:
+                    begin
+                      replaytokenbuf.read(current_settings,sizeof(current_settings));
+                    end
+                  else
+                    internalerror(2006103010);
+                end;
+                continue;
+              }
+              end;
+            else
+              inc(i);
+          end;
+
+          if i<tokenbufsize then
+            write(',');
+        end;
+      writeln;
       freemem(tokenbuf);
     end;
   if df_specialization in defoptions then
