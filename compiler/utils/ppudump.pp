@@ -58,6 +58,9 @@ type
   );
   tprocinfoflags=set of tprocinfoflag;
 
+  { copied from scanner.pas }
+  tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
+
   { Copied from systems.pas }
        tsystemcpu=
        (
@@ -873,7 +876,8 @@ begin
       write(space,' Tokens: ');
       while i<tokenbufsize do
         begin
-          write(arraytokeninfo[ttoken(tokenbuf[i])].str);
+          if ttoken(tokenbuf[i])<>_GENERICSPECIALTOKEN then
+            write(arraytokeninfo[ttoken(tokenbuf[i])].str);
           case ttoken(tokenbuf[i]) of
             _CWCHAR,
             _CWSTRING :
@@ -901,6 +905,9 @@ begin
             _ID :
               begin
                 inc(i);
+                inc(i);
+                write(' ',pshortstring(@tokenbuf[i])^);
+                inc(i,tokenbuf[i]+1);
               {
                 replaytokenbuf.read(orgpattern[0],1);
                 replaytokenbuf.read(orgpattern[1],length(orgpattern));
@@ -910,9 +917,32 @@ begin
             _GENERICSPECIALTOKEN:
               begin
                 inc(i);
-                inc(i);
-                inc(i,sizeof(tsettings));
-
+                case tspecialgenerictoken(tokenbuf[i]) of
+                  ST_LOADSETTINGS:
+                    begin
+                      inc(i);
+                      write('Settings');
+                      inc(i,sizeof(tsettings));
+                    end;
+                  ST_LINE:
+                    begin
+                      inc(i);
+                      write('Line: ',pdword(@tokenbuf[i])^);
+                      inc(i,4);
+                    end;
+                  ST_COLUMN:
+                    begin
+                      inc(i);
+                      write('Col: ',pword(@tokenbuf[i])^);
+                      inc(i,2);
+                    end;
+                  ST_FILEINDEX:
+                    begin
+                      inc(i);
+                      write('File: ',pword(@tokenbuf[i])^);
+                      inc(i,2);
+                    end;
+                end;
               {
                 replaytokenbuf.read(specialtoken,1);
                 case specialtoken of

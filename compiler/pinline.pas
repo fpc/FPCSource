@@ -145,7 +145,7 @@ implementation
             { function styled new is handled in factor }
             { destructors have no parameters }
             destructorname:=pattern;
-            destructorpos:=akttokenpos;
+            destructorpos:=current_tokenpos;
             consume(_ID);
 
             if (p.resultdef.deftype<>pointerdef) then
@@ -179,10 +179,10 @@ implementation
                  exit;
               end;
             { search cons-/destructor, also in parent classes }
-            storepos:=akttokenpos;
-            akttokenpos:=destructorpos;
+            storepos:=current_tokenpos;
+            current_tokenpos:=destructorpos;
             sym:=search_class_member(classh,destructorname);
-            akttokenpos:=storepos;
+            current_tokenpos:=storepos;
 
             { the second parameter of new/dispose must be a call }
             { to a cons-/destructor                              }

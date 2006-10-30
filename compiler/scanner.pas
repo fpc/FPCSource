@@ -67,7 +67,7 @@ interface
 
        tcompile_time_predicate = function(var valuedescr: String) : Boolean;
 
-       tspecialgenerictoken = (ST_LOADSETTINGS);
+       tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
 
        tscannerfile = class
        public
@@ -90,6 +90,9 @@ interface
           recordtokenbuf : tdynamicarray;
           { last settings we stored }
           last_settings : tsettings;
+
+          { last filepos we stored }
+          last_filepos : tfileposinfo;
 
           comment_level,
           yylexcount     : longint;
@@ -1829,6 +1832,7 @@ In case not, the value returned can be arbitrary.
           internalerror(200511173);
         recordtokenbuf:=buf;
         fillchar(last_settings,sizeof(last_settings),0);
+        fillchar(last_filepos,sizeof(last_filepos),0);
       end;
 
 
@@ -1853,6 +1857,30 @@ In case not, the value returned can be arbitrary.
             recordtokenbuf.write(current_settings,sizeof(current_settings));
             last_settings:=current_settings;
           end;
+
+        { file pos changes? }
+        if current_tokenpos.line<>last_filepos.line then
+          begin
+            recordtokenbuf.write(_GENERICSPECIALTOKEN,1);
+            recordtokenbuf.write(ST_LINE,1);
+            recordtokenbuf.write(current_tokenpos.line,sizeof(current_tokenpos.line));
+            last_filepos.line:=current_tokenpos.line;
+          end;
+        if current_tokenpos.column<>last_filepos.column then
+          begin
+            recordtokenbuf.write(_GENERICSPECIALTOKEN,1);
+            recordtokenbuf.write(ST_COLUMN,1);
+            recordtokenbuf.write(current_tokenpos.column,sizeof(current_tokenpos.column));
+            last_filepos.column:=current_tokenpos.column;
+          end;
+        if current_tokenpos.fileindex<>last_filepos.fileindex then
+          begin
+            recordtokenbuf.write(_GENERICSPECIALTOKEN,1);
+            recordtokenbuf.write(ST_FILEINDEX,1);
+            recordtokenbuf.write(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
+            last_filepos.fileindex:=current_tokenpos.fileindex;
+          end;
+
         recordtokenbuf.write(token,1);
         if token=_ID then
           recordtokenbuf.write(idtoken,1);
@@ -1891,8 +1919,6 @@ In case not, the value returned can be arbitrary.
         dec(inputpointer);
         { install buffer }
         replaytokenbuf:=buf;
-
-        fillchar(last_settings,sizeof(last_settings),0);
 
         { reload next token }
         replaytokenbuf.seek(0);
@@ -1950,9 +1976,13 @@ In case not, the value returned can be arbitrary.
                 replaytokenbuf.read(specialtoken,1);
                 case specialtoken of
                   ST_LOADSETTINGS:
-                    begin
-                      replaytokenbuf.read(current_settings,sizeof(current_settings));
-                    end
+                    replaytokenbuf.read(current_settings,sizeof(current_settings));
+                  ST_LINE:
+                    replaytokenbuf.read(current_tokenpos.line,sizeof(current_tokenpos.line));
+                  ST_COLUMN:
+                    replaytokenbuf.read(current_tokenpos.column,sizeof(current_tokenpos.column));
+                  ST_FILEINDEX:
+                    replaytokenbuf.read(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
                   else
                     internalerror(2006103010);
                 end;
@@ -2082,11 +2112,11 @@ In case not, the value returned can be arbitrary.
     { load the values of tokenpos and lasttokenpos }
       begin
         lasttokenpos:=inputstart+(inputpointer-inputbuffer);
-        akttokenpos.line:=line_no;
-        akttokenpos.column:=lasttokenpos-lastlinepos;
-        akttokenpos.fileindex:=inputfile.ref_index;
-        akttokenpos.moduleindex:=current_module.unit_index;
-        current_filepos:=akttokenpos;
+        current_tokenpos.line:=line_no;
+        current_tokenpos.column:=lasttokenpos-lastlinepos;
+        current_tokenpos.fileindex:=inputfile.ref_index;
+        current_tokenpos.moduleindex:=current_module.unit_index;
+        current_filepos:=current_tokenpos;
       end;
 
 
@@ -2149,12 +2179,12 @@ In case not, the value returned can be arbitrary.
            { update for status and call the show status routine,
              but don't touch current_filepos ! }
            oldcurrent_filepos:=current_filepos;
-           oldtokenpos:=akttokenpos;
+           oldtokenpos:=current_tokenpos;
            gettokenpos; { update for v_status }
            inc(status.compiledlines);
            ShowStatus;
            current_filepos:=oldcurrent_filepos;
-           akttokenpos:=oldtokenpos;
+           current_tokenpos:=oldtokenpos;
          end;
       end;
 

@@ -1077,7 +1077,7 @@ implementation
          membercall : boolean;
          callflags  : tcallnodeflags;
          propaccesslist : tpropaccesslist;
-      
+
          function getpropaccesslist(pap:tpropaccesslisttypes):boolean;
          var
            hpropsym : tpropertysym;
@@ -1896,7 +1896,7 @@ implementation
                                       int_to_4cc(p1)
                                     else
                                       ok := false;
-                                  end;    
+                                  end;
                                 if ok then
                                   begin
                                     p2:=comp_expr(true);
@@ -2123,7 +2123,7 @@ implementation
       begin
         oldp1:=nil;
         p1:=nil;
-        filepos:=akttokenpos;
+        filepos:=current_tokenpos;
         again:=false;
         if token=_ID then
          begin
@@ -2148,7 +2148,7 @@ implementation
                  if assigned(p1) then
                    p1.fileinfo:=filepos;
                  oldp1:=p1;
-                 filepos:=akttokenpos;
+                 filepos:=current_tokenpos;
                end;
               { handle post fix operators }
               postfixoperators(p1,again);
@@ -2610,7 +2610,7 @@ implementation
              ((token<>_EQUAL) or accept_equal) then
            begin
              oldt:=token;
-             filepos:=akttokenpos;
+             filepos:=current_tokenpos;
              consume(token);
              if pred_level=highest_precedence then
                p2:=factor(false)
@@ -2717,7 +2717,7 @@ implementation
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) then
           do_typecheckpass(p1);
-         filepos:=akttokenpos;
+         filepos:=current_tokenpos;
          if token in [_ASSIGNMENT,_PLUSASN,_MINUSASN,_STARASN,_SLASHASN] then
            afterassignment:=true;
          oldp1:=p1;

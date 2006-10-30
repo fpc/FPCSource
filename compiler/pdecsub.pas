@@ -96,9 +96,9 @@ implementation
            not is_void(pd.returndef) and
            paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
          begin
-           storepos:=akttokenpos;
+           storepos:=current_tokenpos;
            if pd.deftype=procdef then
-            akttokenpos:=tprocdef(pd).fileinfo;
+            current_tokenpos:=tprocdef(pd).fileinfo;
 
            { For left to right add it at the end to be delphi compatible }
            if pd.proccalloption in (pushleftright_pocalls+[pocall_safecall])  then
@@ -112,7 +112,7 @@ implementation
            if pd.deftype=procdef then
             tprocdef(pd).funcretsym:=vs;
 
-           akttokenpos:=storepos;
+           current_tokenpos:=storepos;
          end;
       end;
 
@@ -124,9 +124,9 @@ implementation
       begin
         if pd.parast.symtablelevel>normal_function_level then
           begin
-            storepos:=akttokenpos;
+            storepos:=current_tokenpos;
             if pd.deftype=procdef then
-             akttokenpos:=tprocdef(pd).fileinfo;
+             current_tokenpos:=tprocdef(pd).fileinfo;
 
             { Generate result variable accessing function result, it
               can't be put in a register since it must be accessable
@@ -135,7 +135,7 @@ implementation
             vs.varregable:=vr_none;
             pd.parast.insert(vs);
 
-            akttokenpos:=storepos;
+            current_tokenpos:=storepos;
           end;
       end;
 
@@ -160,8 +160,8 @@ implementation
                 assigned(tprocdef(pd)._class) and
                 (pd.parast.symtablelevel=normal_function_level) then
               begin
-                storepos:=akttokenpos;
-                akttokenpos:=tprocdef(pd).fileinfo;
+                storepos:=current_tokenpos;
+                current_tokenpos:=tprocdef(pd).fileinfo;
 
                 { Generate VMT variable for constructor/destructor }
                 if pd.proctypeoption in [potype_constructor,potype_destructor] then
@@ -188,7 +188,7 @@ implementation
                 vs:=tparavarsym.create('$self',paranr_self,vsp,hdef,[vo_is_self,vo_is_hidden_para]);
                 pd.parast.insert(vs);
 
-                akttokenpos:=storepos;
+                current_tokenpos:=storepos;
               end;
           end;
       end;
@@ -205,8 +205,8 @@ implementation
         if not(pd.proctypeoption in [potype_constructor,potype_destructor]) and
            not is_void(pd.returndef) then
          begin
-           storepos:=akttokenpos;
-           akttokenpos:=pd.fileinfo;
+           storepos:=current_tokenpos;
+           current_tokenpos:=pd.fileinfo;
 
            { We always need a localsymtable }
            if not assigned(pd.localst) then
@@ -243,7 +243,7 @@ implementation
               tlocalsymtable(pd.localst).insert(aliasvs);
             end;
 
-           akttokenpos:=storepos;
+           current_tokenpos:=storepos;
          end;
       end;
 
@@ -632,7 +632,7 @@ implementation
         popclass : boolean;
       begin
         { Save the position where this procedure really starts }
-        procstartfilepos:=akttokenpos;
+        procstartfilepos:=current_tokenpos;
 
         result:=false;
         pd:=nil;
@@ -656,8 +656,8 @@ implementation
            (aclass.implementedinterfaces.count>0) and
            try_to_consume(_POINT) then
          begin
-           storepos:=akttokenpos;
-           akttokenpos:=procstartfilepos;
+           storepos:=current_tokenpos;
+           current_tokenpos:=procstartfilepos;
            { get interface syms}
            searchsym(sp,srsym,srsymtable);
            if not assigned(srsym) then
@@ -665,7 +665,7 @@ implementation
               identifier_not_found(orgsp);
               srsym:=generrorsym;
             end;
-           akttokenpos:=storepos;
+           current_tokenpos:=storepos;
            { qualifier is interface? }
            if (srsym.typ=typesym) and
               (ttypesym(srsym).typedef.deftype=objectdef) then
@@ -693,19 +693,19 @@ implementation
            try_to_consume(_POINT) then
          begin
            { search for object name }
-           storepos:=akttokenpos;
-           akttokenpos:=procstartfilepos;
+           storepos:=current_tokenpos;
+           current_tokenpos:=procstartfilepos;
            searchsym(sp,srsym,srsymtable);
            if not assigned(srsym) then
             begin
               identifier_not_found(orgsp);
               srsym:=generrorsym;
             end;
-           akttokenpos:=storepos;
+           current_tokenpos:=storepos;
            { consume proc name }
            sp:=pattern;
            orgsp:=orgpattern;
-           procstartfilepos:=akttokenpos;
+           procstartfilepos:=current_tokenpos;
            consume(_ID);
            { qualifier is class name ? }
            if (srsym.typ=typesym) and
@@ -748,7 +748,7 @@ implementation
 
            repeat
              searchagain:=false;
-             akttokenpos:=procstartfilepos;
+             current_tokenpos:=procstartfilepos;
 
              srsymtable:=symtablestack.top;
              srsym:=tsym(srsymtable.search(sp));
@@ -795,7 +795,7 @@ implementation
         if not assigned(aprocsym) then
          begin
            { create a new procsym and set the real filepos }
-           akttokenpos:=procstartfilepos;
+           current_tokenpos:=procstartfilepos;
            { for operator we have only one procsym for each overloaded
              operation }
            if (potype=potype_operator) then

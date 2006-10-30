@@ -1640,7 +1640,7 @@ implementation
 
          if (cs_browser in current_settings.moduleswitches) then
            begin
-             newref:=tref.create(sym.lastref,@akttokenpos);
+             newref:=tref.create(sym.lastref,@current_tokenpos);
              { for symbols that are in tables without browser info or syssyms }
              if sym.refcount=0 then
                begin

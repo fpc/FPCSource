@@ -2529,10 +2529,10 @@ implementation
       begin
         if (ado_IsBitPacked in arrayoptions) then
           internalerror(2006080101);
-	if assigned(_elementdef) then  
+	if assigned(_elementdef) then
           result:=_elementdef.size
 	else
-	  result:=0;  
+	  result:=0;
       end;
 
 
@@ -2540,10 +2540,10 @@ implementation
       begin
         if not(ado_IsBitPacked in arrayoptions) then
           internalerror(2006080102);
-	if assigned(_elementdef) then  
+	if assigned(_elementdef) then
           result:=_elementdef.packedbitsize
 	else
-	  result:=0;  
+	  result:=0;
       end;
 
 
@@ -3263,7 +3263,7 @@ implementation
          refcount:=0;
          if (cs_browser in current_settings.moduleswitches) and make_ref then
           begin
-            defref:=tref.create(defref,@akttokenpos);
+            defref:=tref.create(defref,@current_tokenpos);
             inc(refcount);
           end;
          lastref:=defref;

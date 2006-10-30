@@ -311,10 +311,10 @@ implementation
          refs:=0;
          lastwritten:=nil;
          refcount:=0;
-         fileinfo:=akttokenpos;
+         fileinfo:=current_tokenpos;
          if (cs_browser in current_settings.moduleswitches) and make_ref then
           begin
-            defref:=tref.create(defref,@akttokenpos);
+            defref:=tref.create(defref,@current_tokenpos);
             inc(refcount);
           end;
          lastref:=defref;

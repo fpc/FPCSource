@@ -131,7 +131,7 @@ implementation
         else
           begin
             if token=_END then
-              last_endtoken_filepos:=akttokenpos;
+              last_endtoken_filepos:=current_tokenpos;
             current_scanner.readtoken(true);
           end;
       end;
@@ -144,7 +144,7 @@ implementation
          begin
            try_to_consume:=true;
            if token=_END then
-            last_endtoken_filepos:=akttokenpos;
+            last_endtoken_filepos:=current_tokenpos;
            current_scanner.readtoken(true);
          end;
       end;

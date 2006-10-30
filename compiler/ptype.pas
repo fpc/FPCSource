@@ -168,7 +168,7 @@ implementation
       begin
          s:=pattern;
          sorg:=orgpattern;
-         pos:=akttokenpos;
+         pos:=current_tokenpos;
          { use of current parsed object:
             - classes can be used also in classes
             - objects can be parameters }
@@ -617,7 +617,7 @@ implementation
                 aktenumdef:=tenumdef.create;
                 repeat
                   s:=orgpattern;
-                  defpos:=akttokenpos;
+                  defpos:=current_tokenpos;
                   consume(_ID);
                   { only allow assigning of specific numbers under fpc mode }
                   if not(m_tp7 in current_settings.modeswitches) and
@@ -659,10 +659,10 @@ implementation
                   else
                     inc(l);
                   first := false;
-                  storepos:=akttokenpos;
-                  akttokenpos:=defpos;
+                  storepos:=current_tokenpos;
+                  current_tokenpos:=defpos;
                   tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,l));
-                  akttokenpos:=storepos;
+                  current_tokenpos:=storepos;
                 until not try_to_consume(_COMMA);
                 def:=aktenumdef;
                 consume(_RKLAMMER);

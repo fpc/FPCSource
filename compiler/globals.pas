@@ -218,7 +218,7 @@ interface
        RelocSectionSetExplicitly : boolean;
        LinkTypeSetExplicitly : boolean;
 
-       akttokenpos,                  { position of the last token }
+       current_tokenpos,                       { position of the last token }
        current_filepos : tfileposinfo;    { current position }
 
        nwscreenname : string;

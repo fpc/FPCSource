@@ -923,7 +923,7 @@ implementation
          srsymtable : tsymtable;
          s       : stringid;
       begin
-         filepos:=akttokenpos;
+         filepos:=current_tokenpos;
          case token of
            _GOTO :
              begin
@@ -1088,7 +1088,7 @@ implementation
 
       begin
          first:=nil;
-         filepos:=akttokenpos;
+         filepos:=current_tokenpos;
          consume(starttoken);
 
          while not(token in [_END,_FINALIZATION]) do
@@ -1189,7 +1189,7 @@ implementation
 
         { because the END is already read we need to get the
           last_endtoken_filepos here (PFV) }
-        last_endtoken_filepos:=akttokenpos;
+        last_endtoken_filepos:=current_tokenpos;
 
         assembler_block:=p;
       end;

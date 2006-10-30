@@ -303,7 +303,7 @@ implementation
             oldtoken:=token;
             oldidtoken:=idtoken;
             old_block_type:=block_type;
-            oldtokenpos:=akttokenpos;
+            oldtokenpos:=current_tokenpos;
           { save cg }
             oldparse_only:=parse_only;
           { save akt... state }
@@ -445,7 +445,7 @@ implementation
                 orgpattern:=oldorgpattern;
                 token:=oldtoken;
                 idtoken:=oldidtoken;
-                akttokenpos:=oldtokenpos;
+                current_tokenpos:=oldtokenpos;
                 block_type:=old_block_type;
                 { restore cg }
                 parse_only:=oldparse_only;

@@ -84,8 +84,8 @@ implementation
          internalerror(9584582);
         hp:=nil;
         p:=comp_expr(true);
-        storetokenpos:=akttokenpos;
-        akttokenpos:=filepos;
+        storetokenpos:=current_tokenpos;
+        current_tokenpos:=filepos;
         case p.nodetype of
            ordconstn:
              begin
@@ -148,7 +148,7 @@ implementation
            else
              Message(parser_e_illegal_expression);
         end;
-        akttokenpos:=storetokenpos;
+        current_tokenpos:=storetokenpos;
         p.free;
         readconstant:=hp;
       end;
@@ -170,7 +170,7 @@ implementation
          block_type:=bt_const;
          repeat
            orgname:=orgpattern;
-           filepos:=akttokenpos;
+           filepos:=current_tokenpos;
            consume(_ID);
            case token of
 
@@ -201,10 +201,10 @@ implementation
                    block_type:=bt_const;
                    skipequal:=false;
                    { create symbol }
-                   storetokenpos:=akttokenpos;
-                   akttokenpos:=filepos;
+                   storetokenpos:=current_tokenpos;
+                   current_tokenpos:=filepos;
                    sym:=ttypedconstsym.create(orgname,hdef,(cs_typed_const_writable in current_settings.localswitches));
-                   akttokenpos:=storetokenpos;
+                   current_tokenpos:=storetokenpos;
                    symtablestack.top.insert(sym);
                    { procvar can have proc directives, but not type references }
                    if (hdef.deftype=procvardef) and
@@ -312,8 +312,8 @@ implementation
                   begin
                     { try to resolve the forward }
                     { get the correct position for it }
-                    stpos:=akttokenpos;
-                    akttokenpos:=tforwarddef(hpd).forwardpos;
+                    stpos:=current_tokenpos;
+                    current_tokenpos:=tforwarddef(hpd).forwardpos;
                     resolving_forward:=true;
                     make_ref:=false;
                     if not assigned(tforwarddef(hpd).tosymname) then
@@ -321,7 +321,7 @@ implementation
                     searchsym(tforwarddef(hpd).tosymname^,srsym,srsymtable);
                     make_ref:=true;
                     resolving_forward:=false;
-                    akttokenpos:=stpos;
+                    current_tokenpos:=stpos;
                     { we don't need the forwarddef anymore, dispose it }
                     hpd.free;
                     tabstractpointerdef(pd).pointeddef:=nil; { if error occurs }
@@ -407,7 +407,7 @@ implementation
          block_type:=bt_type;
          typecanbeforward:=true;
          repeat
-           defpos:=akttokenpos;
+           defpos:=current_tokenpos;
            istyperenaming:=false;
            generictypelist:=nil;
            generictokenbuf:=nil;
@@ -477,11 +477,11 @@ implementation
                 referencing the type before it's really set it
                 will give an error (PFV) }
               hdef:=generrordef;
-              storetokenpos:=akttokenpos;
+              storetokenpos:=current_tokenpos;
               newtype:=ttypesym.create(orgtypename,hdef);
               symtablestack.top.insert(newtype);
-              akttokenpos:=defpos;
-              akttokenpos:=storetokenpos;
+              current_tokenpos:=defpos;
+              current_tokenpos:=storetokenpos;
               { read the type definition }
               read_named_type(hdef,orgtypename,nil,generictypelist,false);
               { update the definition of the type }
@@ -666,15 +666,15 @@ implementation
          block_type:=bt_const;
          repeat
            orgname:=orgpattern;
-           filepos:=akttokenpos;
+           filepos:=current_tokenpos;
            consume(_ID);
            case token of
              _EQUAL:
                 begin
                    consume(_EQUAL);
                    p:=comp_expr(true);
-                   storetokenpos:=akttokenpos;
-                   akttokenpos:=filepos;
+                   storetokenpos:=current_tokenpos;
+                   current_tokenpos:=filepos;
                    sym:=nil;
                    case p.nodetype of
                       ordconstn:
@@ -699,7 +699,7 @@ implementation
                       else
                         Message(parser_e_illegal_expression);
                    end;
-                   akttokenpos:=storetokenpos;
+                   current_tokenpos:=storetokenpos;
                    { Support hint directives }
                    dummysymoptions:=[];
                    try_consume_hintdirective(dummysymoptions);
