@@ -228,10 +228,14 @@ unit cpupara;
         for i:=0 to paras.count-1 do
           begin
             hp:=tparavarsym(paras[i]);
+            paradef:=hp.vardef;
+
+            hp.paraloc[side].reset;
+
             { currently only support C-style array of const,
               there should be no location assigned to the vararg array itself }
             if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-               is_array_of_const(hp.vardef) then
+               is_array_of_const(paradef) then
               begin
                 paraloc:=hp.paraloc[side].add_location;
                 { hack: the paraloc must be valid, but is not actually used }
@@ -241,32 +245,43 @@ unit cpupara;
                 break;
               end;
 
-            if push_addr_param(hp.varspez,hp.vardef,p.proccalloption) then
-              paracgsize:=OS_ADDR
+            if (hp.varspez in [vs_var,vs_out]) or
+               push_addr_param(hp.varspez,paradef,p.proccalloption) or
+               is_open_array(paradef) or
+               is_array_of_const(paradef) then
+              begin
+                paradef:=voidpointertype;
+                loc:=LOC_REGISTER;
+                paracgsize := OS_ADDR;
+                paralen := tcgsize2size[OS_ADDR];
+              end
             else
               begin
-                paracgsize:=def_cgSize(hp.vardef);
-                if paracgsize=OS_NO then
-                  paracgsize:=OS_ADDR;
+                if not is_special_array(paradef) then
+                  paralen := paradef.size
+                else
+                  paralen := tcgsize2size[def_cgsize(paradef)];
+                loc := getparaloc(p.proccalloption,paradef);
+                if (paradef.deftype in [objectdef,arraydef,recorddef]) and
+                  not is_special_array(paradef) and
+                  (hp.varspez in [vs_value,vs_const]) then
+                  paracgsize := int_cgsize(paralen)
+                else
+                  begin
+                    paracgsize:=def_cgsize(paradef);
+                    { for things like formaldef }
+                    if (paracgsize=OS_NO) then
+                      begin
+                        paracgsize:=OS_ADDR;
+                        paralen := tcgsize2size[OS_ADDR];
+                      end;
+                  end
               end;
 
-             hp.paraloc[side].reset;
              hp.paraloc[side].size:=paracgsize;
              hp.paraloc[side].Alignment:=std_param_align;
-
-             if (hp.varspez in [vs_var,vs_out]) then
-               begin
-                 paradef:=voidpointertype;
-                 loc:=LOC_REGISTER;
-               end
-             else
-               begin
-                 paradef:=hp.vardef;
-                 loc:=getparaloc(p.proccalloption,paradef);
-               end;
-
-             paralen:=tcgsize2size[paracgsize];
              hp.paraloc[side].intsize:=paralen;
+
 {$ifdef EXTDEBUG}
              if paralen=0 then
                internalerror(200410311);
