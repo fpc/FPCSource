@@ -383,7 +383,7 @@ type
                         end;
                       {In the procedure the array range is 0..(upper_bound-lower_bound).}
                       hightree:=caddnode.create(subn,r,l);
-                      typecheckpass(gen_high_tree);
+                      typecheckpass(hightree);
 
                       {Replace the rangnode in the tree by its lower_bound, and
                        dispose the rangenode.}
