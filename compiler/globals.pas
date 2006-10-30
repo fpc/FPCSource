@@ -513,7 +513,7 @@ implementation
       var
         comspec : string;
       begin
-        comspec:=getenv('COMSPEC');
+        comspec:=GetEnvironmentVariable('COMSPEC');
         result := ExecuteProcess(comspec,' /C '+command);
       end;
    {$endif amigashell}

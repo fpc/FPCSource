@@ -1330,10 +1330,10 @@ implementation
       { Remove ReponseFile }
         if (success) and not(cs_link_nolink in current_settings.globalswitches) then
          begin
-           RemoveFile(outputexedir+Info.ResName);
-           RemoveFile('base.$$$');
-           RemoveFile('exp.$$$');
-           RemoveFile('deffile.$$$');
+           DeleteFile(outputexedir+Info.ResName);
+           DeleteFile('base.$$$');
+           DeleteFile('exp.$$$');
+           DeleteFile('deffile.$$$');
          end;
 
         MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -1432,10 +1432,10 @@ implementation
       { Remove ReponseFile }
         if (success) and not(cs_link_nolink in current_settings.globalswitches) then
          begin
-           RemoveFile(outputexedir+Info.ResName);
-           RemoveFile('base.$$$');
-           RemoveFile('exp.$$$');
-           RemoveFile('deffile.$$$');
+           DeleteFile(outputexedir+Info.ResName);
+           DeleteFile('base.$$$');
+           DeleteFile('exp.$$$');
+           DeleteFile('deffile.$$$');
          end;
         MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
       end;

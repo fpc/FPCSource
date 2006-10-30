@@ -92,6 +92,7 @@ interface
 implementation
 
   uses
+    SysUtils,
     cutils,cfileutils,
     verbose,systems,globtype,globals,
     symconst,script,
@@ -524,7 +525,7 @@ begin
 
   { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-    RemoveFile(outputexedir+Info.ResName);
+    DeleteFile(outputexedir+Info.ResName);
 
 { Call nlmconv }
   if success then
@@ -537,8 +538,8 @@ begin
     success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
     if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
-      RemoveFile(outputexedir+'n'+Info.ResName);
-      RemoveFile(outputexedir+tmpLinkFileName);
+      DeleteFile(outputexedir+'n'+Info.ResName);
+      DeleteFile(outputexedir+tmpLinkFileName);
     end;
   end;
 

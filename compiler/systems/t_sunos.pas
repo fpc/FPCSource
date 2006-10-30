@@ -407,7 +407,7 @@ begin
 { Remove ReponseFile }
 {$IFNDEF LinkTest}
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-   RemoveFile(outputexedir+Info.ResName);
+   DeleteFile(outputexedir+Info.ResName);
 {$ENDIF}
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
@@ -444,7 +444,7 @@ begin
 { Remove ReponseFile }
 {$IFNDEF LinkTest}
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-   RemoveFile(outputexedir+Info.ResName);
+   DeleteFile(outputexedir+Info.ResName);
 {$ENDIF}
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;

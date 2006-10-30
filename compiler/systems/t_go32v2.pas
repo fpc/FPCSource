@@ -264,8 +264,8 @@ begin
 { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    begin
-     RemoveFile(outputexedir+Info.ResName);
-     RemoveFile(outputexedir+Info.ScriptName);
+     DeleteFile(outputexedir+Info.ResName);
+     DeleteFile(outputexedir+Info.ScriptName);
    end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

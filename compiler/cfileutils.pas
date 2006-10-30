@@ -28,6 +28,12 @@ unit cfileutils;
 interface
 
     uses
+{$ifdef hasunix}
+      Baseunix,unix,
+{$endif hasunix}
+{$ifdef win32}
+      Windows,
+{$endif win32}
 {$IFNDEF USE_FAKE_SYSUTILS}
       SysUtils,
 {$ELSE}
@@ -88,10 +94,7 @@ interface
     Function  PathExists ( F : String) : Boolean;
     Function  FileExists ( Const F : String) : Boolean;
     function  FileExistsNonCase(const path,fn:string;var foundfile:string):boolean;
-    Function  RemoveFile(const f:string):boolean;
     Function  RemoveDir(d:string):boolean;
-    Function  GetFileTime ( Var F : File) : Longint;
-    {Extracts the path without its filename, from a path.}
     Function  FixPath(s:string;allowdot:boolean):string;
     function  FixFileName(const s:string):string;
     function  TargetFixPath(s:string;allowdot:boolean):string;
@@ -109,9 +112,6 @@ interface
 implementation
 
     uses
-{$ifdef hasunix}
-      Baseunix,unix,
-{$endif}
       Comphook,
       Globals;
 
@@ -432,18 +432,6 @@ implementation
            (((I = 0) and (Length (F) > 1)) or (I <> Length (F) - 1)) then
           Delete (F, Length (F), 1);
         Result:=SysUtils.DirectoryExists(F);
-      end;
-
-
-    Function RemoveFile(const f:string):boolean;
-      var
-        g : file;
-      begin
-        assign(g,f);
-        {$I-}
-         erase(g);
-        {$I+}
-        RemoveFile:=(ioresult=0);
       end;
 
 
@@ -927,23 +915,6 @@ implementation
         end;
        { Return original filename if not found }
        FoundFile:=f;
-     end;
-
-
-   Function GetFileTime ( Var F : File) : Longint;
-     Var
-     {$ifdef hasunix}
-        info: Stat;
-     {$endif}
-       L : longint;
-     begin
-     {$ifdef hasunix}
-      FPFStat (F,Info);
-      L:=Info.st_Mtime;
-     {$else}
-       GetFTime(f,l);
-     {$endif}
-       GetFileTime:=L;
      end;
 
 

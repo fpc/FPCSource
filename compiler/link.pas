@@ -666,7 +666,7 @@ Implementation
       begin
         MakeStaticLibrary:=false;
       { remove the library, to be sure that it is rewritten }
-        RemoveFile(current_module.staticlibfilename^);
+        DeleteFile(current_module.staticlibfilename^);
       { Call AR }
         smartpath:=current_module.outputpath^+FixPath(ChangeFileExt(current_module.asmfilename^,target_info.smartext),false);
         SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
@@ -722,9 +722,9 @@ Implementation
          if not(cs_link_nolink in current_settings.globalswitches) then
           begin
             while not SmartLinkOFiles.Empty do
-              RemoveFile(SmartLinkOFiles.GetFirst);
+              DeleteFile(SmartLinkOFiles.GetFirst);
             if scripted_ar then
-              RemoveFile(scriptfile);
+              DeleteFile(scriptfile);
             RemoveDir(smartpath);
           end
          else

@@ -640,7 +640,7 @@ begin
 
 { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-   RemoveFile(outputexedir+Info.ResName);
+   DeleteFile(outputexedir+Info.ResName);
 
   if (success) then
     success:=PostProcessExecutable(current_module.exefilename^,false);
@@ -693,7 +693,7 @@ begin
 
 { Remove ReponseFile }
   if (success) and not(cs_link_nolink in current_settings.globalswitches) then
-   RemoveFile(outputexedir+Info.ResName);
+   DeleteFile(outputexedir+Info.ResName);
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }
 end;
