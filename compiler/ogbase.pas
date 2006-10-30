@@ -202,8 +202,6 @@ interface
        procedure section_afteralloc(p:TObject;arg:pointer);
        procedure section_afterwrite(p:TObject;arg:pointer);
      protected
-       property StabsSec:TObjSection read FStabsObjSec write FStabsObjSec;
-       property StabStrSec:TObjSection read FStabStrObjSec write FStabStrObjSec;
        property CObjSection:TObjSectionClass read FCObjSection write FCObjSection;
      public
        CurrPass  : byte;
@@ -211,10 +209,10 @@ interface
        constructor create(const n:string);virtual;
        destructor  destroy;override;
        { Sections }
-       function  sectionname(atype:TAsmSectiontype;const aname:string):string;virtual;
+       function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;
        function  sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;virtual;
        function  sectiontype2align(atype:TAsmSectiontype):shortint;virtual;
-       function  createsection(atype:TAsmSectionType;const aname:string):TObjSection;
+       function  createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;
        function  createsection(const aname:string;aalign:shortint;aoptions:TObjSectionOptions):TObjSection;virtual;
        procedure CreateDebugSections;virtual;
        function  findsection(const aname:string):TObjSection;
@@ -229,10 +227,8 @@ interface
        { Allocation }
        procedure alloc(len:aint);
        procedure allocalign(len:shortint);
-       procedure allocstab(p:pchar);
        procedure writebytes(const Data;len:aint);
        procedure writeReloc(Data,len:aint;p:TObjSymbol;Reloctype:TObjRelocationType);virtual;abstract;
-       procedure writestab(offset:aint;ps:TObjSymbol;nidx,nother:byte;ndesc:word;p:pchar);virtual;abstract;
        procedure beforealloc;virtual;
        procedure beforewrite;virtual;
        procedure afteralloc;virtual;
@@ -242,6 +238,8 @@ interface
        property CurrObjSec:TObjSection read FCurrObjSec;
        property ObjSymbolList:TFPHashObjectList read FObjSymbolList;
        property ObjSectionList:TFPHashObjectList read FObjSectionList;
+       property StabsSec:TObjSection read FStabsObjSec write FStabsObjSec;
+       property StabStrSec:TObjSection read FStabStrObjSec write FStabStrObjSec;
      end;
      TObjDataClass = class of TObjData;
 
@@ -770,7 +768,7 @@ implementation
       end;
 
 
-    function TObjData.sectionname(atype:TAsmSectiontype;const aname:string):string;
+    function TObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
         secnames : array[TAsmSectiontype] of string[16] = ('',
           'code',
@@ -787,9 +785,21 @@ implementation
           'fpc',
           'toc'
         );
+      var
+        sep : string[3];
       begin
         if aname<>'' then
-          result:=secnames[atype]+'.'+aname
+          begin
+            case aorder of
+              secorder_begin :
+                sep:='.b_';
+              secorder_end :
+                sep:='.z_';
+              else
+                sep:='.n_';
+            end;
+            result:=secnames[atype]+sep+aname
+          end
         else
           result:=secnames[atype];
       end;
@@ -842,9 +852,9 @@ implementation
       end;
 
 
-    function TObjData.createsection(atype:TAsmSectionType;const aname:string):TObjSection;
+    function TObjData.createsection(atype:TAsmSectionType;const aname:string;aorder:TAsmSectionOrder):TObjSection;
       begin
-        result:=createsection(sectionname(atype,aname),sectiontype2align(atype),sectiontype2options(atype));
+        result:=createsection(sectionname(atype,aname,aorder),sectiontype2align(atype),sectiontype2options(atype));
       end;
 
 
@@ -981,16 +991,6 @@ implementation
       end;
 
 
-    procedure TObjData.allocstab(p:pchar);
-      begin
-        if not(assigned(FStabsObjSec) and assigned(FStabStrObjSec)) then
-          internalerror(200402254);
-        FStabsObjSec.alloc(sizeof(TObjStabEntry));
-        if assigned(p) and (p[0]<>#0) then
-          FStabStrObjSec.alloc(strlen(p)+1);
-      end;
-
-
     procedure TObjData.section_afteralloc(p:TObject;arg:pointer);
       begin
         with TObjSection(p) do
@@ -1033,13 +1033,17 @@ implementation
     procedure TObjData.beforewrite;
       var
         s : string[1];
+        hstab : TObjStabEntry;
       begin
         { create stabs sections if debugging }
         if assigned(StabsSec) then
          begin
-           writestab(0,nil,0,0,0,nil);
+           { Create dummy HdrSym stab, it will be overwritten in AfterWrite }
+           fillchar(hstab,sizeof(hstab),0);
+           StabsSec.Write(hstab,sizeof(hstab));
+           { start of stabstr }
            s:=#0;
-           stabstrsec.write(s[1],length(s));
+           StabStrSec.write(s[1],length(s));
          end;
       end;
 
@@ -1060,9 +1064,10 @@ implementation
           calculated more easily }
         if assigned(StabsSec) then
           begin
-            { header stab }
+            { end of stabstr }
             s:=#0;
-            stabstrsec.write(s[1],length(s));
+            StabStrSec.write(s[1],length(s));
+            { header stab }
             hstab.strpos:=1;
             hstab.ntype:=0;
             hstab.nother:=0;
@@ -1481,7 +1486,6 @@ implementation
         I1 : TObjSection absolute Item1;
         I2 : TObjSection absolute Item2;
       begin
-//writeln(I1.FullName);
         Result:=CompareStr(I1.FullName,I2.FullName);
       end;
 

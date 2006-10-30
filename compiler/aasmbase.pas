@@ -77,6 +77,8 @@ interface
          sec_toc
        );
 
+       TAsmSectionOrder = (secorder_begin,secorder_default,secorder_end);
+
        TAsmSymbol = class(TNamedIndexItem)
        private
          { this need to be incremented with every symbol loading into the

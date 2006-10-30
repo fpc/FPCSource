@@ -140,7 +140,7 @@ interface
         { current processing }
         currlistidx  : byte;
         currlist     : TAsmList;
-        procedure convertstab(p:pchar);
+        procedure WriteStab(p:pchar);
         function  MaybeNextList(var hp:Tai):boolean;
         function  TreePass0(hp:Tai):Tai;
         function  TreePass1(hp:Tai):Tai;
@@ -703,7 +703,7 @@ Implementation
       end;
 
 
-    procedure TInternalAssembler.convertstab(p:pchar);
+    procedure TInternalAssembler.WriteStab(p:pchar);
 
         function consumecomma(var p:pchar):boolean;
         begin
@@ -829,22 +829,26 @@ Implementation
       const
         N_Function = $24; { function or const }
       var
+        stabstrlen,
         ofs,
         nline,
         nidx,
         nother,
         i         : longint;
+        stab      : TObjStabEntry;
         relocsym  : TObjSymbol;
         pstr,
         pcurr,
         pendquote : pchar;
+        oldsec    : TObjSection;
+        reltype   : TObjRelocationType;
       begin
         pcurr:=nil;
         pstr:=nil;
         pendquote:=nil;
 
         { Parse string part }
-        if p[0]='"' then
+        if (p[0]='"') then
           begin
             pstr:=@p[1];
             { Ignore \" inside the string }
@@ -863,7 +867,11 @@ Implementation
 
         { When in pass 1 then only alloc and leave }
         if ObjData.currpass=1 then
-          ObjData.allocstab(pstr)
+          begin
+            ObjData.StabsSec.Alloc(sizeof(TObjStabEntry));
+            if assigned(pstr) and (pstr[0]<>#0) then
+              ObjData.StabStrSec.Alloc(strlen(pstr)+1);
+          end
         else
           begin
             { Stabs format: nidx,nother,nline[,offset] }
@@ -887,7 +895,53 @@ Implementation
             if assigned(relocsym) and
                (relocsym.bind<>AB_LOCAL) then
               ofs:=0;
-            ObjData.writestab(ofs,relocsym,byte(nidx),byte(nother),word(nline),pstr);
+
+            { Generate stab entry }
+            if assigned(pstr) and (pstr[0]<>#0) then
+              begin
+                stabstrlen:=strlen(pstr);
+{$ifdef optimizestabs}
+                StabStrEntry:=nil;
+                if (nidx=N_SourceFile) or (nidx=N_IncludeFile) then
+                  begin
+                    hs:=strpas(pstr);
+                    StabstrEntry:=StabStrDict.Search(hs);
+                    if not assigned(StabstrEntry) then
+                      begin
+                        StabstrEntry:=TStabStrEntry.Create(hs);
+                        StabstrEntry:=StabStrSec.Size;
+                        StabStrDict.Insert(StabstrEntry);
+                        { generate new stab }
+                        StabstrEntry:=nil;
+                      end;
+                  end;
+                if assigned(StabstrEntry) then
+                  stab.strpos:=StabstrEntry.strpos
+                else
+{$endif optimizestabs}
+                  begin
+                    stab.strpos:=ObjData.StabStrSec.Size;
+                    ObjData.StabStrSec.write(pstr^,stabstrlen+1);
+                  end;
+              end
+            else
+              stab.strpos:=0;
+            stab.ntype:=byte(nidx);
+            stab.ndesc:=word(nline);
+            stab.nother:=byte(nother);
+            stab.nvalue:=ofs;
+
+            { Write the stab first without the value field. Then
+              write a the value field with relocation }
+            oldsec:=ObjData.CurrObjSec;
+            ObjData.SetSection(ObjData.StabsSec);
+            ObjData.Writebytes(stab,sizeof(TObjStabEntry)-4);
+            if DLLSource and RelocSection then
+              reltype:=RELOC_RVA
+            else
+              reltype:=RELOC_ABSOLUTE;
+            ObjData.Writereloc(stab.nvalue,4,relocsym,reltype);
+            ObjData.setsection(oldsec);
           end;
         if assigned(pendquote) then
           pendquote^:='"';
@@ -945,7 +999,7 @@ Implementation
                ObjData.alloc(tai_const(hp).size);
              ait_section:
                begin
-                 ObjData.CreateSection(Tai_section(hp).sectype,Tai_section(hp).name^);
+                 ObjData.CreateSection(Tai_section(hp).sectype,Tai_section(hp).name^,Tai_section(hp).secorder);
                  Tai_section(hp).sec:=ObjData.CurrObjSec;
                end;
              ait_symbol :
@@ -1019,7 +1073,7 @@ Implementation
              ait_stab :
                begin
                  if assigned(Tai_stab(hp).str) then
-                   convertstab(Tai_stab(hp).str);
+                   WriteStab(Tai_stab(hp).str);
                end;
              ait_symbol :
                ObjData.SymbolDefine(Tai_symbol(hp).sym);
@@ -1158,7 +1212,7 @@ Implementation
              ait_instruction :
                Taicpu(hp).Pass2(ObjData);
              ait_stab :
-               convertstab(Tai_stab(hp).str);
+               WriteStab(Tai_stab(hp).str);
              ait_function_name,
              ait_force_line : ;
              ait_cutobject :
@@ -1189,7 +1243,7 @@ Implementation
 
         { Pass 0 }
         ObjData.currpass:=0;
-        ObjData.createsection(sec_code,'');
+        ObjData.createsection(sec_code);
         ObjData.beforealloc;
         { start with list 1 }
         currlistidx:=1;
@@ -1209,7 +1263,7 @@ Implementation
         ObjData.currpass:=1;
         ObjData.resetsections;
         ObjData.beforealloc;
-        ObjData.createsection(sec_code,'');
+        ObjData.createsection(sec_code);
         { start with list 1 }
         currlistidx:=1;
         currlist:=list[currlistidx];
@@ -1219,7 +1273,7 @@ Implementation
            hp:=TreePass1(hp);
            MaybeNextList(hp);
          end;
-        ObjData.createsection(sec_code,'');
+        ObjData.createsection(sec_code);
         ObjData.afteralloc;
 
         { leave if errors have occured }
@@ -1230,7 +1284,7 @@ Implementation
         ObjData.currpass:=2;
         ObjData.resetsections;
         ObjData.beforewrite;
-        ObjData.createsection(sec_code,'');
+        ObjData.createsection(sec_code);
         { start with list 1 }
         currlistidx:=1;
         currlist:=list[currlistidx];
@@ -1240,7 +1294,7 @@ Implementation
            hp:=TreePass2(hp);
            MaybeNextList(hp);
          end;
-        ObjData.createsection(sec_code,'');
+        ObjData.createsection(sec_code);
         ObjData.afterwrite;
 
         { don't write the .o file if errors have occured }
@@ -1287,7 +1341,7 @@ Implementation
            ObjData.currpass:=0;
            ObjData.resetsections;
            ObjData.beforealloc;
-           ObjData.createsection(startsectype,'');
+           ObjData.createsection(startsectype);
            TreePass0(hp);
            ObjData.afteralloc;
            { leave if errors have occured }
@@ -1298,7 +1352,7 @@ Implementation
            ObjData.currpass:=1;
            ObjData.resetsections;
            ObjData.beforealloc;
-           ObjData.createsection(startsectype,'');
+           ObjData.createsection(startsectype);
            TreePass1(hp);
            ObjData.afteralloc;
 
@@ -1311,7 +1365,7 @@ Implementation
            ObjOutput.startobjectfile(ObjFileName);
            ObjData.resetsections;
            ObjData.beforewrite;
-           ObjData.createsection(startsectype,'');
+           ObjData.createsection(startsectype);
            hp:=TreePass2(hp);
            ObjData.afterwrite;
 

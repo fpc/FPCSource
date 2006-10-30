@@ -47,8 +47,8 @@ interface
       }
       TGNUAssembler=class(texternalassembler)
       protected
-        function sectionname(atype:TAsmSectiontype;const aname:string):string;virtual;
-        procedure WriteSection(atype:TAsmSectiontype;const aname:string);
+        function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;
+        procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder);
         procedure WriteExtraHeader;virtual;
         procedure WriteInstruction(hp: tai);
        public
@@ -81,7 +81,7 @@ interface
 
 
       TAppleGNUAssembler=class(TGNUAssembler)
-        function sectionname(atype:TAsmSectiontype;const aname:string):string;override;
+        function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
        private
         debugframecount: aint;
        end;
@@ -241,7 +241,7 @@ implementation
         result := target_asm.labelprefix+'$set$'+tostr(setcount);
       end;
 
-    function TGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string):string;
+    function TGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
         secnames : array[TAsmSectiontype] of string[17] = ('',
           '.text',
@@ -282,6 +282,7 @@ implementation
           '.toc'
         );
       var
+        sep     : string[3];
         secname : string;
       begin
         if (cs_create_pic in current_settings.moduleswitches) and
@@ -302,13 +303,23 @@ implementation
            (aname<>'') and
            (atype <> sec_toc) and
            (atype<>sec_bss) then
-          result:=secname+'.'+aname
+          begin
+            case aorder of
+              secorder_begin :
+                sep:='.b_';
+              secorder_end :
+                sep:='.z_';
+              else
+                sep:='.n_';
+            end;
+            result:=secname+sep+aname
+          end
         else
           result:=secname;
       end;
 
 
-    procedure TGNUAssembler.WriteSection(atype:TAsmSectiontype;const aname:string);
+    procedure TGNUAssembler.WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder);
       var
         s : string;
       begin
@@ -325,7 +336,7 @@ implementation
          else
           AsmWrite('.section ');
         end;
-        s:=sectionname(atype,aname);
+        s:=sectionname(atype,aname,aorder);
         AsmWrite(s);
         case atype of
           sec_fpc :
@@ -551,7 +562,7 @@ implementation
            ait_section :
              begin
                if tai_section(hp).sectype<>sec_none then
-                 WriteSection(tai_section(hp).sectype,tai_section(hp).name^)
+                 WriteSection(tai_section(hp).sectype,tai_section(hp).name^,tai_section(hp).secorder)
                else
                  begin
 {$ifdef EXTDEBUG}
@@ -580,7 +591,7 @@ implementation
                        asmwrite(tai_datablock(hp).sym.name);
                        asmwriteln(', '+tostr(tai_datablock(hp).size)+','+tostr(last_align));
                        if not(CurrSecType in [sec_data,sec_none]) then
-                         writesection(CurrSecType,'');
+                         writesection(CurrSecType,'',secorder_default);
                      end
                    else
                      begin
@@ -977,7 +988,7 @@ implementation
                      hp:=tai(hp.next);
                    end;
                   if CurrSecType<>sec_none then
-                    WriteSection(CurrSecType,'');
+                    WriteSection(CurrSecType,'',secorder_default);
                   AsmStartSize:=AsmSize;
 
                   { reset dwarf file index }
@@ -1079,7 +1090,7 @@ implementation
 {                        Apple/GNU Assembler writer                          }
 {****************************************************************************}
 
-    function TAppleGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string):string;
+    function TAppleGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       begin
         if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
           case atype of
@@ -1100,7 +1111,7 @@ implementation
                 exit;
               end;
           end;
-        result := inherited sectionname(atype,aname);
+        result := inherited sectionname(atype,aname,aorder);
       end;
 
 

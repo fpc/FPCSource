@@ -55,10 +55,9 @@ interface
        public
          constructor create(const n:string);override;
          destructor  destroy;override;
-         function  sectionname(atype:TAsmSectiontype;const aname:string):string;override;
+         function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
          procedure CreateDebugSections;override;
          procedure writereloc(data,len:aint;p:TObjSymbol;reltype:TObjRelocationType);override;
-         procedure writestab(offset:aint;ps:TObjSymbol;nidx,nother:byte;ndesc:word;p:pchar);override;
        end;
 
        TElfObjectOutput = class(tObjOutput)
@@ -307,13 +306,6 @@ implementation
           st_value : qword;
           st_size  : qword;
         end;
-        telf64stab=packed record
-          strpos  : longint;
-          ntype   : byte;
-          nother  : byte;
-          ndesc   : word;
-          nvalue  : longint;
-        end;
 
 
 {$ifdef cpu64bit}
@@ -558,14 +550,14 @@ implementation
         inherited create(n);
         CObjSection:=TElfObjSection;
         { we need at least the following sections }
-        createsection(sec_code,'');
-        createsection(sec_data,'');
-        createsection(sec_bss,'');
+        createsection(sec_code);
+        createsection(sec_data);
+        createsection(sec_bss);
         if tf_section_threadvars in target_info.flags then
-          createsection(sec_threadvar,'');
+          createsection(sec_threadvar);
         if (tf_needs_dwarf_cfi in target_info.flags) and
            (af_supports_dwarf in target_asm.flags) then
-             createsection(sec_debug_frame,'');
+             createsection(sec_debug_frame);
       end;
 
 
@@ -575,7 +567,7 @@ implementation
       end;
 
 
-    function TElfObjData.sectionname(atype:TAsmSectiontype;const aname:string):string;
+    function TElfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
         secnames : array[TAsmSectiontype] of string[13] = ('',
 {$ifdef userodata}
@@ -592,10 +584,22 @@ implementation
           'fpc',
           ''
         );
+      var
+        sep : string[3];
       begin
         if (use_smartlink_section and
            (aname<>'')) or (atype=sec_fpc) then
-          result:=secnames[atype]+'.'+aname
+          begin
+            case aorder of
+              secorder_begin :
+                sep:='.b_';
+              secorder_end :
+                sep:='.z_';
+              else
+                sep:='.n_';
+            end;
+            result:=secnames[atype]+sep+aname
+          end
         else
           result:=secnames[atype];
       end;
@@ -605,8 +609,8 @@ implementation
       begin
         if target_dbg.id=dbg_stabs then
           begin
-            stabssec:=createsection(sec_stab,'');
-            stabstrsec:=createsection(sec_stabstr,'');
+            stabssec:=createsection(sec_stab);
+            stabstrsec:=createsection(sec_stabstr);
           end;
       end;
 
@@ -650,33 +654,6 @@ implementation
             end;
          end;
         CurrObjSec.write(data,len);
-      end;
-
-
-    procedure TElfObjData.writestab(offset:aint;ps:TObjSymbol;nidx,nother:byte;ndesc:word;p:pchar);
-      var
-        stab : TObjStabEntry;
-      begin
-        if not assigned(StabsSec) then
-          internalerror(200602271);
-        fillchar(stab,sizeof(TObjStabEntry),0);
-        if assigned(p) and (p[0]<>#0) then
-         begin
-           stab.strpos:=stabstrsec.Size;
-           stabstrsec.write(p^,strlen(p)+1);
-         end;
-        stab.ntype:=nidx;
-        stab.ndesc:=ndesc;
-        stab.nother:=nother;
-        stab.nvalue:=offset;
-        stabssec.write(stab,sizeof(stab));
-        if assigned(ps) then
-	  begin
-	    if ps.bind=AB_LOCAL then
-              stabssec.addsectionreloc(stabssec.Size-4,ps.Objsection,RELOC_ABSOLUTE)
-	    else  
-              stabssec.addsymreloc(stabssec.Size-4,ps,RELOC_ABSOLUTE);
-	  end;      
       end;
 
 

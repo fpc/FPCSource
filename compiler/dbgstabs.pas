@@ -1496,7 +1496,7 @@ implementation
         { emit main source n_sourcefile for start of module }
         current_asmdata.getlabel(hlabel,alt_dbgfile);
         infile:=current_module.sourcefiles.get_file(1);
-        new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',current_module.localsymtable,''),0);
+        new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',current_module.localsymtable,''),0,secorder_begin);
         current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_DATA,0));
         if (infile.path^<>'') then
           current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(infile.path^,false))+'",'+tostr(n_sourcefile)+
@@ -1506,7 +1506,7 @@ implementation
         current_asmdata.asmlists[al_start].concat(tai_label.create(hlabel));
         { emit empty n_sourcefile for end of module }
         current_asmdata.getlabel(hlabel,alt_dbgfile);
-        new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',current_module.localsymtable,''),0);
+        new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',current_module.localsymtable,''),0,secorder_end);
         current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',current_module.localsymtable,''),AT_DATA,0));
         current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stab_stabs,'"",'+tostr(n_sourcefile)+',0,0,'+hlabel.name));
         current_asmdata.asmlists[al_end].concat(tai_label.create(hlabel));

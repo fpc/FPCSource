@@ -353,11 +353,12 @@ interface
 
        { Generates a section / segment directive }
        tai_section = class(tai)
-          sectype : TAsmSectiontype;
+          sectype  : TAsmSectiontype;
+          secorder : TasmSectionorder;
           secalign : byte;
-          name    : pstring;
-          sec     : TObjSection; { used in binary writer }
-          constructor Create(Asectype:TAsmSectiontype;Aname:string;Aalign:byte);
+          name     : pstring;
+          sec      : TObjSection; { used in binary writer }
+          constructor Create(Asectype:TAsmSectiontype;Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
           destructor Destroy;override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -635,7 +636,7 @@ interface
       add_reg_instruction_hook : tadd_reg_instruction_proc;
 
     procedure maybe_new_object_file(list:TAsmList);
-    procedure new_section(list:TAsmList;Asectype:TAsmSectiontype;Aname:string;Aalign:byte);
+    procedure new_section(list:TAsmList;Asectype:TAsmSectiontype;Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
     procedure section_symbol_start(list:TAsmList;const Aname:string;Asymtyp:Tasmsymtype;
                                    Aglobal:boolean;Asectype:TAsmSectiontype;Aalign:byte);
     procedure section_symbol_end(list:TAsmList;const Aname:string);
@@ -666,9 +667,9 @@ implementation
       end;
 
 
-    procedure new_section(list:TAsmList;Asectype:TAsmSectiontype;Aname:string;Aalign:byte);
+    procedure new_section(list:TAsmList;Asectype:TAsmSectiontype;Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
       begin
-        list.concat(tai_section.create(Asectype,Aname,Aalign));
+        list.concat(tai_section.create(Asectype,Aname,Aalign,Asecorder));
         list.concat(cai_align.create(Aalign));
       end;
 
@@ -813,12 +814,13 @@ implementation
                              TAI_SECTION
  ****************************************************************************}
 
-    constructor tai_section.Create(Asectype:TAsmSectiontype;Aname:string;Aalign:byte);
+    constructor tai_section.Create(Asectype:TAsmSectiontype;Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
       begin
         inherited Create;
         typ:=ait_section;
         sectype:=asectype;
         secalign:=Aalign;
+        secorder:=Asecorder;
         name:=stringdup(Aname);
         sec:=nil;
       end;

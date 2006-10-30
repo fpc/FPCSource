@@ -640,7 +640,9 @@ end;
                     include(def.defoptions,df_has_dwarf_dbg_info);
                   end
                 else
-                  current_asmdata.getdatalabel(TAsmLabel(def.dwarf_lab));
+                  { The pointer typecast is needed to prevent a problem with range checking
+                    on when the typecast is changed to 'as' }
+                  current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_lab)));
                 if def.dbg_state=dbg_state_used then
                   deftowritelist.Add(def);
               end;

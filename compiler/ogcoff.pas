@@ -129,9 +129,8 @@ interface
          constructor createcoff(const n:string;awin32:boolean;acObjSection:TObjSectionClass);
          destructor  destroy;override;
          procedure CreateDebugSections;override;
-         function  sectionname(atype:TAsmSectiontype;const aname:string):string;override;
+         function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
          procedure writereloc(data,len:aint;p:TObjSymbol;reloctype:TObjRelocationType);override;
-         procedure writestab(offset:aint;ps:TObjSymbol;nidx,nother:byte;ndesc:word;p:pchar);override;
          procedure afteralloc;override;
        end;
 
@@ -914,9 +913,9 @@ const pemagic : array[0..3] of byte = (
         CObjSection:=ACObjSection;
         win32:=awin32;
         { we need at least the following 3 ObjSections }
-        createsection(sec_code,'');
-        createsection(sec_data,'');
-        createsection(sec_bss,'');
+        createsection(sec_code);
+        createsection(sec_data);
+        createsection(sec_bss);
       end;
 
 
@@ -926,14 +925,25 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    function TCoffObjData.sectionname(atype:TAsmSectiontype;const aname:string):string;
+    function TCoffObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       var
+        sep     : string[3];
         secname : string;
       begin
         secname:=coffsecnames[atype];
         if use_smartlink_section and
            (aname<>'') then
-          result:=secname+'.'+aname
+          begin
+            case aorder of
+              secorder_begin :
+                sep:='.b_';
+              secorder_end :
+                sep:='.z_';
+              else
+                sep:='.n_';
+            end;
+            result:=secname+sep+aname
+          end
         else
           result:=secname;
       end;
@@ -943,8 +953,8 @@ const pemagic : array[0..3] of byte = (
       begin
         if target_dbg.id=dbg_stabs then
           begin
-            stabssec:=createsection(sec_stab,'');
-            stabstrsec:=createsection(sec_stabstr,'');
+            stabssec:=createsection(sec_stab);
+            stabstrsec:=createsection(sec_stabstr);
           end;
       end;
 
@@ -1020,80 +1030,6 @@ const pemagic : array[0..3] of byte = (
               internalerror(200603033);
           end;
         CurrObjSec.write(data,len);
-      end;
-
-
-    procedure TCoffObjData.writestab(offset:aint;ps:TObjSymbol;nidx,nother:byte;ndesc:word;p:pchar);
-      const
-        N_SourceFile = $64;
-        N_IncludeFile = $84;
-      var
-        stab : TObjStabEntry;
-        stabstrlen : longint;
-        curraddr : aint;
-{$ifdef optimizestabs}
-        hs : string;
-{$endif optimizestabs}
-      begin
-        if not assigned(StabsSec) then
-          internalerror(200602256);
-        if assigned(p) and (p[0]<>#0) then
-          begin
-            stabstrlen:=strlen(p);
-{$ifdef optimizestabs}
-            StabStrEntry:=nil;
-            if (nidx=N_SourceFile) or (nidx=N_IncludeFile) then
-              begin
-                hs:=strpas(p);
-                StabstrEntry:=StabStrDict.Search(hs);
-                if not assigned(StabstrEntry) then
-                  begin
-                    StabstrEntry:=TStabStrEntry.Create(hs);
-                    StabstrEntry:=StabStrSec.Size;
-                    StabStrDict.Insert(StabstrEntry);
-                    { generate new stab }
-                    StabstrEntry:=nil;
-                  end;
-              end;
-            if assigned(StabstrEntry) then
-              stab.strpos:=StabstrEntry.strpos
-            else
-{$endif optimizestabs}
-              begin
-                stab.strpos:=StabStrSec.Size;
-                StabStrSec.write(p^,stabstrlen+1);
-              end;
-          end
-        else
-          stab.strpos:=0;
-        stab.ntype:=nidx;
-        stab.ndesc:=ndesc;
-        stab.nother:=nother;
-        stab.nvalue:=offset;
-        StabsSec.write(stab,sizeof(stab));
-        if assigned(ps) then
-         begin
-           { current address }
-           curraddr:=StabsSec.mempos+StabsSec.Size;
-	   if ps.bind=AB_LOCAL then
-	     begin
-               { avoid relocation in the .stab section
-                 because it ends up in the .reloc section instead }
-               if DLLSource and RelocSection then
-                 StabsSec.addsectionreloc(curraddr-4,ps.ObjSection,RELOC_RVA)
-               else
-                 StabsSec.addsectionreloc(curraddr-4,ps.ObjSection,RELOC_ABSOLUTE);
-	     end
-	   else
-	     begin
-               { avoid relocation in the .stab section
-                 because it ends up in the .reloc section instead }
-               if DLLSource and RelocSection then
-                 StabsSec.addsymreloc(curraddr-4,ps,RELOC_RVA)
-               else
-                 StabsSec.addsymreloc(curraddr-4,ps,RELOC_ABSOLUTE);
-	     end;     
-         end;
       end;
 
 
@@ -2388,7 +2324,7 @@ const pemagic : array[0..3] of byte = (
           with internalobjdata do
             begin
               secname:=basedllname+'_i_'+afuncname;
-              textobjsection:=createsection(sectionname(sec_code,secname),sectiontype2align(sec_code),sectiontype2options(sec_code) - [oso_keep]);
+              textobjsection:=createsection(sectionname(sec_code,secname,secorder_default),sectiontype2align(sec_code),sectiontype2options(sec_code) - [oso_keep]);
               idata4objsection:=createsection(sec_idata4, secname);
               idata5objsection:=createsection(sec_idata5, secname);
               idata6objsection:=createsection(sec_idata6, secname);
