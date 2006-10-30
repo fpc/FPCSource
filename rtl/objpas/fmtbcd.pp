@@ -201,11 +201,9 @@ INTERFACE
   {$define myRealtype := extended}
 {$endif}
 
-{$if declared ( comp ) }
-  {$if declared ( int64 ) }
+{$ifdef SUPPORT_COMP}
     {$define comproutines}
-  {$endif}
-{$endif}
+{$endif SUPPORT_COMP}
 
 {$define __low_Fraction := 0 }
 {$define __high_Fraction := ( ( MaxFmtBCDFractionSize DIV 2 ) - 1 ) }
