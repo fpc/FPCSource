@@ -148,7 +148,12 @@ implementation
               if ((dir.attr and faDirectory)<>faDirectory) or
                  (dir.Name<>'.') or
                  (dir.Name<>'..') then
-                DirectoryEntries.Add(Dir.Name,Pointer(Dir.Attr));
+                begin
+                  if not(tf_files_case_sensitive in source_info.flags) then
+                    DirectoryEntries.Add(Lower(Dir.Name),Pointer(Dir.Attr))
+                  else
+                    DirectoryEntries.Add(Dir.Name,Pointer(Dir.Attr));
+                end;
             until findnext(dir) <> 0;
           end;
       end;
@@ -158,7 +163,10 @@ implementation
       var
         Attr : Longint;
       begin
-        Attr:=PtrInt(DirectoryEntries.Find(AName));
+        if not(tf_files_case_sensitive in source_info.flags) then
+          Attr:=PtrInt(DirectoryEntries.Find(Lower(AName)))
+        else
+          Attr:=PtrInt(DirectoryEntries.Find(AName));
         if Attr<>0 then
           Result:=((Attr and faDirectory)=0)
         else
@@ -170,7 +178,10 @@ implementation
       var
         Attr : Longint;
       begin
-        Attr:=PtrInt(DirectoryEntries.Find(AName));
+        if not(tf_files_case_sensitive in source_info.flags) then
+          Attr:=PtrInt(DirectoryEntries.Find(Lower(AName)))
+        else
+          Attr:=PtrInt(DirectoryEntries.Find(AName));
         if Attr<>0 then
           Result:=((Attr and faDirectory)=faDirectory)
         else
