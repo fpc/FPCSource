@@ -122,10 +122,12 @@ unit cpupara;
            arraydef:
              begin
                if not(is_special_array(p)) and
-                 { win64 abi }
-                 ((target_info.system=system_x86_64_win64) and (p.size<=8)) or
-                 { linux abi }
-                 ((target_info.system<>system_x86_64_win64) and (p.size<=16)) then
+                  (
+                   { win64 abi }
+                   ((target_info.system=system_x86_64_win64) and (p.size<=8)) or
+                   { linux abi }
+                   ((target_info.system<>system_x86_64_win64) and (p.size<=16))
+                  ) then
                  loc1:=LOC_REGISTER
                else
                  loc1:=LOC_REFERENCE;
