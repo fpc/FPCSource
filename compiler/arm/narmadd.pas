@@ -243,7 +243,6 @@ interface
     procedure tarmaddnode.second_cmp64bit;
       var
         unsigned : boolean;
-        tmpreg : tregister;
         oldnodetype : tnodetype;
       begin
         pass_left_right;

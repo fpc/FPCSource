@@ -37,6 +37,7 @@ unit cpupara;
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
+          function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
           procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
@@ -173,6 +174,26 @@ unit cpupara;
             result:=(tsetdef(def).settype<>smallset);
           stringdef :
             result:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
+        end;
+      end;
+
+
+    function tarmparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
+      begin
+        case def.deftype of
+          recorddef:
+            { this is how gcc 4.0.4 on linux seems to do it, it doesn't look like being
+              ARM ABI standard compliant
+            }
+            result:=not((trecorddef(def).symtable.symindex.count=1) and
+              not(ret_in_param(tabstractvarsym(trecorddef(def).symtable.symindex.search(1)).vardef,calloption)));
+          {
+          objectdef
+          arraydef:
+            result:=not(def.size in [1,2,4]);
+          }
+          else
+            result:=inherited ret_in_param(def,calloption);
         end;
       end;
 
@@ -413,7 +434,7 @@ unit cpupara;
           retcgsize:=OS_ADDR
         else
           retcgsize:=def_cgsize(p.returndef);
-
+          
         location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
         p.funcretloc[side].size:=retcgsize;
 
@@ -427,7 +448,7 @@ unit cpupara;
         { Return in FPU register? }
         if p.returndef.deftype=floatdef then
           begin
-            if (p.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_softfloat]) or (cs_fp_emulation in aktmoduleswitches) then
+            if (p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in aktmoduleswitches) then
               begin
                 case retcgsize of
                   OS_64,
