@@ -1032,7 +1032,8 @@ unit cgcpu;
               LOC_REFERENCE :
                 begin
                   reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset);
-                  a_load_ref_ref(list,hloc^.size,hloc^.size,href,href2);
+                  { concatcopy should choose the best way to copy the data }
+                  g_concatcopy(list,href,href2,tcgsize2size[size]);
                 end;
               else
                 internalerror(200408241);
