@@ -132,7 +132,7 @@ unit nx86add;
                  if (op=A_ADD) and
                     (right.location.loc=LOC_CONSTANT) and
                     (right.location.value=1) and
-                    not(cs_check_overflow in aktlocalswitches) then
+                    not(cs_check_overflow in current_settings.localswitches) then
                   begin
                     emit_reg(A_INC,TCGSize2Opsize[opsize],left.location.register);
                   end
@@ -140,7 +140,7 @@ unit nx86add;
                  if (op=A_SUB) and
                     (right.location.loc=LOC_CONSTANT) and
                     (right.location.value=1) and
-                    not(cs_check_overflow in aktlocalswitches) then
+                    not(cs_check_overflow in current_settings.localswitches) then
                   begin
                     emit_reg(A_DEC,TCGSize2Opsize[opsize],left.location.register);
                   end
@@ -148,7 +148,7 @@ unit nx86add;
                  if (op=A_IMUL) and
                     (right.location.loc=LOC_CONSTANT) and
                     (ispowerof2(int64(right.location.value),power)) and
-                    not(cs_check_overflow in aktlocalswitches) then
+                    not(cs_check_overflow in current_settings.localswitches) then
                   begin
                     emit_const_reg(A_SHL,TCGSize2Opsize[opsize],power,left.location.register);
                   end
@@ -175,7 +175,7 @@ unit nx86add;
         { is in unsigned VAR!!                                   }
         if mboverflow then
          begin
-           if cs_check_overflow in aktlocalswitches  then
+           if cs_check_overflow in current_settings.localswitches  then
             begin
               current_asmdata.getjumplabel(hl4);
               if unsigned then
@@ -450,7 +450,7 @@ unit nx86add;
         case nodetype of
           addn :
             begin
-              if (cs_mmx_saturation in aktlocalswitches) then
+              if (cs_mmx_saturation in current_settings.localswitches) then
                 begin
                    case mmxbase of
                       mmxs8bit:
@@ -486,7 +486,7 @@ unit nx86add;
             end;
           subn :
             begin
-              if (cs_mmx_saturation in aktlocalswitches) then
+              if (cs_mmx_saturation in current_settings.localswitches) then
                 begin
                    case mmxbase of
                       mmxs8bit:
@@ -915,7 +915,7 @@ unit nx86add;
         left_and_right_must_be_fpureg;
 
 {$ifndef x86_64}
-        if aktcputype<cpu_Pentium2 then
+        if current_settings.cputype<cpu_Pentium2 then
           begin
             emit_none(A_FCOMPP,S_NO);
             tcgx86(cg).dec_fpu_stack;

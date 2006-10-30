@@ -252,8 +252,8 @@ Implementation
 
     Function DoPipe:boolean;
       begin
-        DoPipe:=(cs_asm_pipe in aktglobalswitches) and
-                (([cs_asm_leave,cs_link_on_target] * aktglobalswitches) = []) and
+        DoPipe:=(cs_asm_pipe in current_settings.globalswitches) and
+                (([cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) and
                 ((target_asm.id in [as_gas,as_darwin]));
       end;
 
@@ -336,7 +336,7 @@ Implementation
         UtilExe  : string;
       begin
         asfound:=false;
-        if cs_link_on_target in aktglobalswitches then
+        if cs_link_on_target in current_settings.globalswitches then
          begin
            { If linking on target, don't add any path PM }
            FindAssembler:=utilsprefix+AddExtension(target_asm.asmbin,target_info.exeext);
@@ -352,10 +352,10 @@ Implementation
              asfound:=FindFile(UtilExe,utilsdirectory,LastASBin);
            if not AsFound then
              asfound:=FindExe(UtilExe,LastASBin);
-           if (not asfound) and not(cs_asm_extern in aktglobalswitches) then
+           if (not asfound) and not(cs_asm_extern in current_settings.globalswitches) then
             begin
               Message1(exec_e_assembler_not_found,LastASBin);
-              aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
+              current_settings.globalswitches:=current_settings.globalswitches+[cs_asm_extern];
             end;
            if asfound then
             Message1(exec_t_using_assembler,LastASBin);
@@ -371,7 +371,7 @@ Implementation
 {$ENDIF USE_SYSUTILS}
       begin
         callassembler:=true;
-        if not(cs_asm_extern in aktglobalswitches) then
+        if not(cs_asm_extern in current_settings.globalswitches) then
 {$IFDEF USE_SYSUTILS}
         try
           FlushOutput;
@@ -384,7 +384,7 @@ Implementation
         except on E:EOSError do
           begin
             Message1(exec_e_cant_call_assembler,tostr(E.ErrorCode));
-            aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
+            current_settings.globalswitches:=current_settings.globalswitches+[cs_asm_extern];
             callassembler:=false;
           end
         end
@@ -397,7 +397,7 @@ Implementation
            if (doserror<>0) then
             begin
               Message1(exec_e_cant_call_assembler,tostr(doserror));
-              aktglobalswitches:=aktglobalswitches+[cs_asm_extern];
+              current_settings.globalswitches:=current_settings.globalswitches+[cs_asm_extern];
               callassembler:=false;
             end
            else
@@ -417,9 +417,9 @@ Implementation
       var
         g : file;
       begin
-        if cs_asm_leave in aktglobalswitches then
+        if cs_asm_leave in current_settings.globalswitches then
          exit;
-        if cs_asm_extern in aktglobalswitches then
+        if cs_asm_extern in current_settings.globalswitches then
          AsmRes.AddDeleteCommand(AsmFileName)
         else
          begin
@@ -437,7 +437,7 @@ Implementation
         DoAssemble:=true;
         if DoPipe then
          exit;
-        if not(cs_asm_extern in aktglobalswitches) then
+        if not(cs_asm_extern in current_settings.globalswitches) then
          begin
            if SmartAsm then
             begin
@@ -519,7 +519,7 @@ Implementation
       begin
         if OutCnt>=AsmOutSize-2 then
          AsmFlush;
-        if (cs_link_on_target in aktglobalswitches) then
+        if (cs_link_on_target in current_settings.globalswitches) then
           begin
             OutBuf[OutCnt]:=target_info.newline[1];
             inc(OutCnt);
@@ -550,12 +550,12 @@ Implementation
       begin
         result:=target_asm.asmcmd;
 {$ifdef m68k}
-        if aktcputype = cpu_MC68020 then
+        if current_settings.cputype = cpu_MC68020 then
           result:='-m68020 '+result
         else
           result:='-m68000 '+result;
 {$endif}
-        if (cs_link_on_target in aktglobalswitches) then
+        if (cs_link_on_target in current_settings.globalswitches) then
          begin
            Replace(result,'$ASM',maybequoted(ScriptFixFileName(AsmFileName)));
            Replace(result,'$OBJ',maybequoted(ScriptFixFileName(ObjFileName)));
@@ -1266,7 +1266,7 @@ Implementation
         place: tcutplace;
         ObjWriter : TObjectWriter;
       begin
-        if not(cs_asm_leave in aktglobalswitches) then
+        if not(cs_asm_leave in current_settings.globalswitches) then
           ObjWriter:=TARObjectWriter.create(current_module.staticlibfilename^)
         else
           ObjWriter:=TObjectwriter.create;

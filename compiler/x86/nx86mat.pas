@@ -86,7 +86,7 @@ interface
            end
 {$ifdef SUPPORT_MMX}
          else
-           if (cs_mmx in aktlocalswitches) and
+           if (cs_mmx in current_settings.localswitches) and
               is_mmx_able_array(left.resultdef) then
              begin
                registersint:=left.registersint;
@@ -131,7 +131,7 @@ interface
           else
             internalerror(200203225);
         end;
-        if cs_mmx_saturation in aktlocalswitches then
+        if cs_mmx_saturation in current_settings.localswitches then
           case mmx_type(resultdef) of
              mmxs8bit:
                op:=A_PSUBSB;

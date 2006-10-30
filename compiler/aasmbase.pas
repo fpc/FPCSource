@@ -134,7 +134,7 @@ implementation
 
     function maybe_smartlink_symbol:boolean;
       begin
-        result:=(cs_create_smart in aktmoduleswitches) or
+        result:=(cs_create_smart in current_settings.moduleswitches) or
                 use_smartlink_section;
       end;
 

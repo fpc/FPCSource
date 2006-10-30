@@ -175,14 +175,14 @@ begin
            { place jump in al_procedures }
            current_asmdata.asmlists[al_procedures].concat(tai_align.create(target_info.alignment.procalign));
            current_asmdata.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           if (cs_create_pic in aktmoduleswitches) and
+           if (cs_create_pic in current_settings.moduleswitches) and
              { other targets need to be checked how it works }
              (target_info.system in [system_i386_freebsd]) then
              begin
 {$ifdef x86}
                sym:=current_asmdata.RefAsmSymbol(tprocsym(hp2.sym).first_procdef.mangledname);
                reference_reset_symbol(r,sym,0);
-               if cs_create_pic in aktmoduleswitches then
+               if cs_create_pic in current_settings.moduleswitches then
                  r.refaddr:=addr_pic
                else
                  r.refaddr:=addr_full;
@@ -259,7 +259,7 @@ Begin
   if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
     begin
       if (target_info.system =system_i386_freebsd) and 
-             not (cs_link_no_default_lib_order in  aktglobalswitches) Then   
+             not (cs_link_no_default_lib_order in  current_settings.globalswitches) Then   
         Begin
           LinkLibraryOrder.add('gcc','',15);		
           LinkLibraryOrder.add('c','',50);		     // c and c_p mutual. excl?	
@@ -267,7 +267,7 @@ Begin
           LinkLibraryOrder.add('pthread','',75);	     // pthread and c_r should be mutually exclusive
           LinkLibraryOrder.add('c_r','',76);		 		
           LinkLibraryOrder.add('kvm','',80);		     // must be before ncurses
-          if (cs_link_pthread in aktglobalswitches) Then     // convert libpthread to libc_r.
+          if (cs_link_pthread in current_settings.globalswitches) Then     // convert libpthread to libc_r.
             LinkLibraryAliases.add('pthread','c_r');
         end;
     end
@@ -312,8 +312,8 @@ begin
                 ( 
                   ReorderEntries
                    or
-                  (cs_link_pthread in aktglobalswitches));
-      if cs_profile in aktmoduleswitches then
+                  (cs_link_pthread in current_settings.globalswitches));
+      if cs_profile in current_settings.moduleswitches then
        begin
          prtobj:=gprtobj;
          AddSharedLibrary('c');
@@ -333,7 +333,7 @@ begin
       linklibc := true;
       reorder:=reorderentries;
       if not(isdll) then
-        if not(cs_profile in aktmoduleswitches) then
+        if not(cs_profile in current_settings.moduleswitches) then
           begin
              if librarysearchpath.FindFile('crt1.o',s) then
              prtobj:=s
@@ -452,7 +452,7 @@ begin
              LinkRes.Add('-lc');
        end;
      { when we have -static for the linker the we also need libgcc }
-     if (cs_link_staticflag in aktglobalswitches) then
+     if (cs_link_staticflag in current_settings.globalswitches) then
       LinkRes.Add('-lgcc');
      if linkdynamic and (Info.DynamicLinker<>'') then
       LinkRes.AddFileName(Info.DynamicLinker);
@@ -497,7 +497,7 @@ var
   StaticStr,
   StripStr   : string[40];
 begin
-  if not(cs_link_nolink in aktglobalswitches) then
+  if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
@@ -505,19 +505,19 @@ begin
   StripStr:='';
   DynLinkStr:='';
   GCSectionsStr:='';
-  if (cs_link_staticflag in aktglobalswitches) then
+  if (cs_link_staticflag in current_settings.globalswitches) then
     begin
       if (target_info.system=system_m68k_netbsd) and
-         ((cs_link_on_target in aktglobalswitches) or
+         ((cs_link_on_target in current_settings.globalswitches) or
           (target_info.system=source_info.system)) then
         StaticStr:='-Bstatic'
       else
         StaticStr:='-static';
     end;
-  if (cs_link_strip in aktglobalswitches) then
+  if (cs_link_strip in current_settings.globalswitches) then
     StripStr:='-s';
 
-  if (cs_link_smart in aktglobalswitches) and
+  if (cs_link_smart in current_settings.globalswitches) and
      (tf_smartlink_sections in target_info.flags) then
     if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
       GCSectionsStr:='--gc-sections'
@@ -525,7 +525,7 @@ begin
       // warning: this option only exists for 32 bit under Mac OS X, maybe the default for 64 bit?
       GCSectionsStr:='-dead_strip';
 
-  If (cs_profile in aktmoduleswitches) or
+  If (cs_profile in current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
 
@@ -551,7 +551,7 @@ begin
   success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,LdSupportsNoResponseFile);
 
 { Remove ReponseFile }
-  if (success) and not(cs_link_nolink in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    RemoveFile(outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -568,7 +568,7 @@ var
   success : boolean;
 begin
   MakeSharedLibrary:=false;
-  if not(cs_link_nolink in aktglobalswitches) then
+  if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename^);
 
 { Write used files and libraries }
@@ -598,7 +598,7 @@ begin
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,LdSupportsNoResponseFile);
 
 { Strip the library ? }
-  if success and (cs_link_strip in aktglobalswitches) then
+  if success and (cs_link_strip in current_settings.globalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
      Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
@@ -606,7 +606,7 @@ begin
    end;
 
 { Remove ReponseFile }
-  if (success) and not(cs_link_nolink in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    RemoveFile(outputexedir+Info.ResName);
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }

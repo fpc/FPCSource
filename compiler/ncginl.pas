@@ -168,7 +168,7 @@ implementation
        paraloc3,paraloc4 : tcgpara;
      begin
        { the node should be removed in the firstpass }
-       if not (cs_do_assertion in aktlocalswitches) then
+       if not (cs_do_assertion in current_settings.localswitches) then
           internalerror(7123458);
        paraloc1.init;
        paraloc2.init;

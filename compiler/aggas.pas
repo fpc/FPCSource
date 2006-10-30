@@ -284,7 +284,7 @@ implementation
       var
         secname : string;
       begin
-        if (cs_create_pic in aktmoduleswitches) and
+        if (cs_create_pic in current_settings.moduleswitches) and
            not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
           secname:=secnames_pic[atype]
         else
@@ -422,8 +422,8 @@ implementation
       last_align := 2;
       InlineLevel:=0;
       { lineinfo is only needed for al_procedures (PFV) }
-      do_line:=(cs_asm_source in aktglobalswitches) or
-               ((cs_lineinfo in aktmoduleswitches)
+      do_line:=(cs_asm_source in current_settings.globalswitches) or
+               ((cs_lineinfo in current_settings.moduleswitches)
                  and (p=current_asmdata.asmlists[al_procedures]));
       hp:=tai(p.first);
       while assigned(hp) do
@@ -442,7 +442,7 @@ implementation
                    if assigned(infile) then
                     begin
                       { open only if needed !! }
-                      if (cs_asm_source in aktglobalswitches) then
+                      if (cs_asm_source in current_settings.globalswitches) then
                        infile.open;
                     end;
                    { avoid unnecessary reopens of the same file !! }
@@ -451,7 +451,7 @@ implementation
                    lastfileinfo.line:=-1;
                  end;
               { write source }
-                if (cs_asm_source in aktglobalswitches) and
+                if (cs_asm_source in current_settings.globalswitches) and
                    assigned(infile) then
                  begin
                    if (infile<>lastinfile) then
@@ -489,7 +489,7 @@ implementation
 
            ait_regalloc :
              begin
-               if (cs_asm_regalloc in aktglobalswitches) then
+               if (cs_asm_regalloc in current_settings.globalswitches) then
                  begin
                    AsmWrite(#9+target_asm.comment+'Register ');
                    repeat
@@ -508,7 +508,7 @@ implementation
 
            ait_tempalloc :
              begin
-               if (cs_asm_tempalloc in aktglobalswitches) then
+               if (cs_asm_tempalloc in current_settings.globalswitches) then
                  begin
 {$ifdef EXTDEBUG}
                    if assigned(tai_tempalloc(hp).problem) then
@@ -861,7 +861,7 @@ implementation
            ait_symbol :
              begin
                if (target_info.system = system_powerpc64_linux) and
-                 (tai_symbol(hp).sym.typ = AT_FUNCTION) and (cs_profile in aktmoduleswitches) then
+                 (tai_symbol(hp).sym.typ = AT_FUNCTION) and (cs_profile in current_settings.moduleswitches) then
                  begin
                  AsmWriteLn('.globl _mcount');
                end;
@@ -1063,7 +1063,7 @@ implementation
           AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
         end;
 
-      if (cs_create_smart in aktmoduleswitches) and
+      if (cs_create_smart in current_settings.moduleswitches) and
          (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
         AsmWriteLn(#9'.subsections_via_symbols');
 

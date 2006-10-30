@@ -233,7 +233,7 @@ implementation
            tlocalsymtable(pd.localst).insert(aliasvs);
 
            { insert result also if support is on }
-           if (m_result in aktmodeswitches) then
+           if (m_result in current_settings.modeswitches) then
             begin
               sl:=tpropaccesslist.create;
               sl.addsym(sl_load,pd.funcretsym);
@@ -400,7 +400,7 @@ implementation
         { Delphi/Kylix supports nonsense like }
         { procedure p();                      }
         if try_to_consume(_RKLAMMER) and
-          not(m_tp7 in aktmodeswitches) then
+          not(m_tp7 in current_settings.modeswitches) then
           exit;
         { parsing a proc or procvar ? }
         currparast:=tparasymtable(pd.parast);
@@ -420,25 +420,25 @@ implementation
             if try_to_consume(_CONST) then
               varspez:=vs_const
           else
-            if (m_out in aktmodeswitches) and
+            if (m_out in current_settings.modeswitches) and
                try_to_consume(_OUT) then
               varspez:=vs_out
           else
-            if (m_mac in aktmodeswitches) and
+            if (m_mac in current_settings.modeswitches) and
                try_to_consume(_POINTPOINTPOINT) then
               begin
                 include(pd.procoptions,po_varargs);
                 break;
               end
           else
-            if (m_mac in aktmodeswitches) and
+            if (m_mac in current_settings.modeswitches) and
                try_to_consume(_PROCEDURE) then
               begin
                 parseprocvar:=pv_proc;
                 varspez:=vs_const;
               end
           else
-            if (m_mac in aktmodeswitches) and
+            if (m_mac in current_settings.modeswitches) and
                try_to_consume(_FUNCTION) then
               begin
                 parseprocvar:=pv_func;
@@ -498,7 +498,7 @@ implementation
                 { define range and type of range }
                 hdef:=tarraydef.create(0,-1,s32inttype);
                 { array of const ? }
-                if (token=_CONST) and (m_objpas in aktmodeswitches) then
+                if (token=_CONST) and (m_objpas in current_settings.modeswitches) then
                  begin
                    consume(_CONST);
                    srsym:=search_system_type('TVARREC');
@@ -514,13 +514,13 @@ implementation
               end
              else
               begin
-                if (m_mac in aktmodeswitches) then
+                if (m_mac in current_settings.modeswitches) then
                   try_to_consume(_UNIV); {currently does nothing}
                 single_type(hdef,false);
 
                 { open string ? }
                 if (varspez in [vs_out,vs_var]) and
-                   (cs_openstring in aktmoduleswitches) and
+                   (cs_openstring in current_settings.moduleswitches) and
                    is_shortstring(hdef) then
                   hdef:=openshortstringtype;
 
@@ -543,7 +543,7 @@ implementation
                   locationstr:='';
 
                 { default parameter }
-                if (m_default_para in aktmodeswitches) then
+                if (m_default_para in current_settings.modeswitches) then
                  begin
                    if try_to_consume(_EQUAL) then
                     begin
@@ -719,7 +719,7 @@ implementation
                  if aprocsym.typ<>procsym then
                   begin
                     {  we use a different error message for tp7 so it looks more compatible }
-                    if (m_fpc in aktmodeswitches) then
+                    if (m_fpc in current_settings.modeswitches) then
                       Message1(parser_e_overloaded_no_procedure,aprocsym.realname)
                     else
                       Message(parser_e_methode_id_expected);
@@ -778,7 +778,7 @@ implementation
                      else
                       begin
                         {  we use a different error message for tp7 so it looks more compatible }
-                        if (m_fpc in aktmodeswitches) then
+                        if (m_fpc in current_settings.modeswitches) then
                          Message1(parser_e_overloaded_no_procedure,srsym.realname)
                         else
                          DuplicateSym(nil,srsym);
@@ -965,7 +965,7 @@ implementation
                               parse_only and
                               not(is_interface(pd._class))
                              ) or
-                             (m_repeat_forward in aktmodeswitches) then
+                             (m_repeat_forward in current_settings.modeswitches) then
                           begin
                             consume(_COLON);
                             consume_all_until(_SEMICOLON);
@@ -1048,7 +1048,7 @@ implementation
                     Message(parser_e_no_local_operator);
                   if token<>_ID then
                     begin
-                       if not(m_result in aktmodeswitches) then
+                       if not(m_result in current_settings.modeswitches) then
                          consume(_ID);
                     end
                   else
@@ -1258,7 +1258,7 @@ end;
 
 procedure pd_static(pd:tabstractprocdef);
 begin
-  if (cs_static_keyword in aktmoduleswitches) then
+  if (cs_static_keyword in current_settings.moduleswitches) then
     begin
       if pd.deftype=procdef then
         include(tprocdef(pd).procsym.symoptions,sp_static);
@@ -1960,7 +1960,7 @@ const
         found:=false;
 
       { Hint directive? Then exit immediatly }
-        if (m_hintdirective in aktmodeswitches) then
+        if (m_hintdirective in current_settings.modeswitches) then
          begin
            case idtoken of
              _LIBRARY,
@@ -1974,7 +1974,7 @@ const
         { C directive is MAC only, because it breaks too much existing code
           on other platforms (PFV) }
         if (idtoken=_C) and
-           not(m_mac in aktmodeswitches) then
+           not(m_mac in current_settings.modeswitches) then
           exit;
 
       { retrieve data for directive if found }
@@ -1997,7 +1997,7 @@ const
          end;
 
         { static needs a special treatment }
-        if (idtoken=_STATIC) and not (cs_static_keyword in aktmoduleswitches) then
+        if (idtoken=_STATIC) and not (cs_static_keyword in current_settings.moduleswitches) then
           exit;
 
         { check if method and directive not for object, like public.
@@ -2153,7 +2153,7 @@ const
               else
                 begin
                   {In MacPas a single "external" has the same effect as "external name 'xxx'" }
-                  if (m_mac in aktmodeswitches) then
+                  if (m_mac in current_settings.modeswitches) then
                     result:=tprocdef(pd).procsym.realname;
                 end;
             end;
@@ -2217,7 +2217,7 @@ const
       begin
         { set the default calling convention if none provided }
         if not(po_hascallingconvention in pd.procoptions) then
-          pd.proccalloption:=aktdefproccall
+          pd.proccalloption:=current_settings.defproccall
         else
           begin
             if pd.proccalloption=pocall_none then
@@ -2241,11 +2241,11 @@ const
 
         { Inlining is enabled and supported? }
         if (po_inline in pd.procoptions) and
-           not(cs_do_inline in aktlocalswitches) then
+           not(cs_do_inline in current_settings.localswitches) then
           begin
             { Give an error if inline is not supported by the compiler mode,
               otherwise only give a warning that this procedure will not be inlined }
-            if not(m_default_inline in aktmodeswitches) then
+            if not(m_default_inline in current_settings.modeswitches) then
               Message(parser_e_proc_inline_not_supported)
             else
               Message(parser_w_inlining_disabled);
@@ -2309,7 +2309,7 @@ const
       var
         res : boolean;
       begin
-        if (m_mac in aktmodeswitches) and (cs_externally_visible in aktlocalswitches) then
+        if (m_mac in current_settings.modeswitches) and (cs_externally_visible in current_settings.localswitches) then
           begin
             tprocdef(pd).aliasnames.insert(tprocdef(pd).procsym.realname);
             include(pd.procoptions,po_public);
@@ -2425,7 +2425,7 @@ const
              But for an overload declared function this is not allowed }
            if { check if empty implementation arguments match is allowed }
               (
-               not(m_repeat_forward in aktmodeswitches) and
+               not(m_repeat_forward in current_settings.modeswitches) and
                not(pd.forwarddef) and
                (pd.maxparacount=0) and
                not(po_overload in hd.procoptions)
@@ -2455,12 +2455,12 @@ const
                      also the parameters must match also with the type }
                    if (hd.proctypeoption<>pd.proctypeoption) or
                       (
-                       (m_repeat_forward in aktmodeswitches) and
+                       (m_repeat_forward in current_settings.modeswitches) and
                        (not((pd.maxparacount=0) or
                             (compare_paras(pd.paras,hd.paras,cp_all,[cpo_comparedefaultvalue])>=te_equal)))
                       ) or
                       (
-                       ((m_repeat_forward in aktmodeswitches) or
+                       ((m_repeat_forward in current_settings.modeswitches) or
                         not(is_void(pd.returndef))) and
                        (not equal_defs(hd.returndef,pd.returndef))) then
                      begin
@@ -2491,7 +2491,7 @@ const
                         convention in the interface or implementation if
                         there was no convention specified in the other
                         part }
-                      if (m_delphi in aktmodeswitches) then
+                      if (m_delphi in current_settings.modeswitches) then
                        begin
                          if not(po_hascallingconvention in pd.procoptions) then
                           pd.proccalloption:=hd.proccalloption
@@ -2517,7 +2517,7 @@ const
 
                    { Check procedure options, Delphi requires that class is
                      repeated in the implementation for class methods }
-                   if (m_fpc in aktmodeswitches) then
+                   if (m_fpc in current_settings.modeswitches) then
                      po_comp:=[po_classmethod,po_varargs,po_methodpointer,po_interrupt]
                    else
                      po_comp:=[po_classmethod,po_methodpointer];
@@ -2535,7 +2535,7 @@ const
                      MessagePos(pd.fileinfo,parser_e_proc_already_external);
 
                    { Check parameters }
-                   if (m_repeat_forward in aktmodeswitches) or
+                   if (m_repeat_forward in current_settings.modeswitches) or
                       (pd.minparacount>0) then
                     begin
                       { If mangled names are equal then they have the same amount of arguments }
@@ -2640,7 +2640,7 @@ const
              end;
 
            { check for allowing overload directive }
-           if not(m_fpc in aktmodeswitches) then
+           if not(m_fpc in current_settings.modeswitches) then
             begin
               { overload directive turns on overloading }
               if ((po_overload in pd.procoptions) or

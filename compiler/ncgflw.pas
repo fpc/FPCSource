@@ -107,7 +107,7 @@ implementation
 
     procedure tcgwhilerepeatnode.sync_regvars(checkusedregvars: boolean);
       begin
-         if (cs_opt_regvar in aktoptimizerswitches) and
+         if (cs_opt_regvar in current_settings.optimizerswitches) and
             not(pi_has_goto in current_procinfo.flags) then
            begin
              if checkusedregvars then
@@ -159,9 +159,9 @@ implementation
          if lnf_testatbegin in loopflags then
            cg.a_jmp_always(current_asmdata.CurrAsmList,lcont);
 
-         if not(cs_opt_size in aktoptimizerswitches) then
+         if not(cs_opt_size in current_settings.optimizerswitches) then
             { align loop target }
-            current_asmdata.CurrAsmList.concat(Tai_align.Create(aktalignment.loopalign));
+            current_asmdata.CurrAsmList.concat(Tai_align.Create(current_settings.alignment.loopalign));
 
          cg.a_label(current_asmdata.CurrAsmList,lloop);
 
@@ -239,7 +239,7 @@ implementation
 (*
          { save regvars loaded in the beginning so that we can restore them }
          { when processing the else-block                                   }
-         if cs_opt_regvar in aktoptimizerswitches then
+         if cs_opt_regvar in current_settings.optimizerswitches then
            begin
              org_list := current_asmdata.CurrAsmList;
              current_asmdata.CurrAsmList := TAsmList.create;
@@ -248,7 +248,7 @@ implementation
          maketojumpbool(current_asmdata.CurrAsmList,left,lr_dont_load_regvars);
 
 (*
-         if cs_opt_regvar in aktoptimizerswitches then
+         if cs_opt_regvar in current_settings.optimizerswitches then
            begin
              org_regvar_loaded_int := rg.regvar_loaded_int;
              org_regvar_loaded_other := rg.regvar_loaded_other;
@@ -264,7 +264,7 @@ implementation
          { save current asmlist (previous instructions + then-block) and }
          { loaded regvar state and create new clean ones                 }
 {
-         if cs_opt_regvar in aktoptimizerswitches then
+         if cs_opt_regvar in current_settings.optimizerswitches then
            begin
              then_regvar_loaded_int := rg.regvar_loaded_int;
              then_regvar_loaded_other := rg.regvar_loaded_other;
@@ -282,7 +282,7 @@ implementation
                    current_asmdata.getjumplabel(hl);
                    { do go back to if line !! }
 (*
-                   if not(cs_opt_regvar in aktoptimizerswitches) then
+                   if not(cs_opt_regvar in current_settings.optimizerswitches) then
 *)
                      aktfilepos:=current_asmdata.CurrAsmList.getlasttaifilepos^
 (*
@@ -297,7 +297,7 @@ implementation
 (*
               { save current asmlist (previous instructions + else-block) }
               { and loaded regvar state and create a new clean list       }
-              if cs_opt_regvar in aktoptimizerswitches then
+              if cs_opt_regvar in current_settings.optimizerswitches then
                 begin
 {                  else_regvar_loaded_int := rg.regvar_loaded_int;
                   else_regvar_loaded_other := rg.regvar_loaded_other;}
@@ -311,7 +311,7 @@ implementation
          else
            begin
 (*
-              if cs_opt_regvar in aktoptimizerswitches then
+              if cs_opt_regvar in current_settings.optimizerswitches then
                 begin
 {                  else_regvar_loaded_int := rg.regvar_loaded_int;
                   else_regvar_loaded_other := rg.regvar_loaded_other;}
@@ -327,7 +327,7 @@ implementation
            end;
 
 (*
-         if cs_opt_regvar in aktoptimizerswitches then
+         if cs_opt_regvar in current_settings.optimizerswitches then
            begin
              { add loads of regvars at the end of the then- and else-blocks  }
              { so that at the end of both blocks the same regvars are loaded }
@@ -373,7 +373,7 @@ implementation
 
     procedure tcgfornode.sync_regvars(checkusedregvars: boolean);
       begin
-         if (cs_opt_regvar in aktoptimizerswitches) and
+         if (cs_opt_regvar in current_settings.optimizerswitches) and
             not(pi_has_goto in current_procinfo.flags) then
            begin
              if checkusedregvars then
@@ -517,8 +517,8 @@ implementation
            cg.a_jmp_always(current_asmdata.CurrAsmList,tcglabelnode(entrylabel).getasmlabel);
 
          { align loop target }
-         if not(cs_opt_size in aktoptimizerswitches) then
-            current_asmdata.CurrAsmList.concat(Tai_align.Create(aktalignment.loopalign));
+         if not(cs_opt_size in current_settings.optimizerswitches) then
+            current_asmdata.CurrAsmList.concat(Tai_align.Create(current_settings.alignment.loopalign));
          cg.a_label(current_asmdata.CurrAsmList,l3);
 
          {If the loopvar doesn't mind on exit, we avoid the loopvar inc/dec

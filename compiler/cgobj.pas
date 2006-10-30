@@ -1798,7 +1798,7 @@ implementation
               { division by 1 returns result }
               if a = 1 then
                 op:=OP_NONE
-              else if ispowerof2(int64(a), powerval) and not(cs_check_overflow in aktlocalswitches) then
+              else if ispowerof2(int64(a), powerval) and not(cs_check_overflow in current_settings.localswitches) then
                 begin
                   a := powerval;
                   op:= OP_SHR;
@@ -1816,7 +1816,7 @@ implementation
                else
                  if a=0 then
                    op:=OP_MOVE
-               else if ispowerof2(int64(a), powerval) and not(cs_check_overflow in aktlocalswitches)  then
+               else if ispowerof2(int64(a), powerval) and not(cs_check_overflow in current_settings.localswitches)  then
                  begin
                    a := powerval;
                    op:= OP_SHL;
@@ -2625,7 +2625,7 @@ implementation
         from_signed, to_signed: boolean;
       begin
         { range checking on and range checkable value? }
-        if not(cs_check_range in aktlocalswitches) or
+        if not(cs_check_range in current_settings.localswitches) or
            not(fromdef.deftype in [orddef,enumdef]) then
           exit;
 {$ifndef cpu64bit}
@@ -2811,8 +2811,8 @@ implementation
         OKLabel : tasmlabel;
         cgpara1 : TCGPara;
       begin
-        if (cs_check_object in aktlocalswitches) or
-           (cs_check_range in aktlocalswitches) then
+        if (cs_check_object in current_settings.localswitches) or
+           (cs_check_range in current_settings.localswitches) then
          begin
            current_asmdata.getjumplabel(oklabel);
            a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,reg,oklabel);
@@ -2837,7 +2837,7 @@ implementation
         cgpara2.init;
         paramanager.getintparaloc(pocall_default,1,cgpara1);
         paramanager.getintparaloc(pocall_default,2,cgpara2);
-        if (cs_check_object in aktlocalswitches) then
+        if (cs_check_object in current_settings.localswitches) then
          begin
            reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname),0);
            paramanager.allocparaloc(list,cgpara2);
@@ -2851,7 +2851,7 @@ implementation
            deallocallcpuregisters(list);
          end
         else
-         if (cs_check_range in aktlocalswitches) then
+         if (cs_check_range in current_settings.localswitches) then
           begin
             paramanager.allocparaloc(list,cgpara1);
             a_param_reg(list,OS_ADDR,reg,cgpara1);

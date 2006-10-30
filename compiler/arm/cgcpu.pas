@@ -1567,7 +1567,7 @@ unit cgcpu;
         helpsize:=12+maxtmpreg*4;//52 with maxtmpreg=10
         dstref:=dest;
         srcref:=source;
-        if cs_opt_size in aktoptimizerswitches then
+        if cs_opt_size in current_settings.optimizerswitches then
           helpsize:=8;
         if (len<=helpsize) and aligned then
           begin
@@ -1674,7 +1674,7 @@ unit cgcpu;
 
                 countreg:=getintregister(list,OS_32);
 
-//            if cs_opt_size in aktoptimizerswitches  then
+//            if cs_opt_size in current_settings.optimizerswitches  then
                 { roozbeh : it seems loading 1 byte is faster becouse of caching/fetching(?) }
                 {if aligned then
                 genloop(len,4)
@@ -1715,7 +1715,7 @@ unit cgcpu;
         ai:TAiCpu;
         hflags : tresflags;
       begin
-        if not(cs_check_overflow in aktlocalswitches) then
+        if not(cs_check_overflow in current_settings.localswitches) then
           exit;
         current_asmdata.getjumplabel(hl);
         case ovloc.loc of
@@ -1813,7 +1813,7 @@ unit cgcpu;
 
         make_global:=false;
         if (not current_module.is_unit) or
-           (cs_create_smart in aktmoduleswitches) or
+           (cs_create_smart in current_settings.moduleswitches) or
            (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
           make_global:=true;
 

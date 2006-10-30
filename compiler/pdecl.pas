@@ -203,7 +203,7 @@ implementation
                    { create symbol }
                    storetokenpos:=akttokenpos;
                    akttokenpos:=filepos;
-                   sym:=ttypedconstsym.create(orgname,hdef,(cs_typed_const_writable in aktlocalswitches));
+                   sym:=ttypedconstsym.create(orgname,hdef,(cs_typed_const_writable in current_settings.localswitches));
                    akttokenpos:=storetokenpos;
                    symtablestack.top.insert(sym);
                    { procvar can have proc directives, but not type references }
@@ -234,11 +234,11 @@ implementation
                     begin
                       { get init value }
                       consume(_EQUAL);
-                      if (cs_typed_const_writable in aktlocalswitches) then
+                      if (cs_typed_const_writable in current_settings.localswitches) then
                         tclist:=current_asmdata.asmlists[al_rotypedconsts]
                       else
                         tclist:=current_asmdata.asmlists[al_typedconsts];
-                      readtypedconst(tclist,hdef,ttypedconstsym(sym),(cs_typed_const_writable in aktlocalswitches));
+                      readtypedconst(tclist,hdef,ttypedconstsym(sym),(cs_typed_const_writable in current_settings.localswitches));
                       consume(_SEMICOLON);
                     end;
                 end;
@@ -255,7 +255,7 @@ implementation
     procedure label_dec;
       begin
          consume(_LABEL);
-         if not(cs_support_goto in aktmoduleswitches) then
+         if not(cs_support_goto in current_settings.moduleswitches) then
            Message(sym_e_goto_and_label_not_supported);
          repeat
            if not(token in [_ID,_INTCONST]) then
@@ -349,7 +349,7 @@ implementation
                trecorddef(pd).symtable.foreach_static(@resolve_type_forward,nil);
              objectdef :
                begin
-                 if not(m_fpc in aktmodeswitches) and
+                 if not(m_fpc in current_settings.modeswitches) and
                     (oo_is_forward in tobjectdef(pd).objectoptions) then
                   begin
                     { only give an error as the implementation may follow in an
@@ -434,7 +434,7 @@ implementation
 
            { MacPas object model is more like Delphi's than like TP's, but }
            { uses the object keyword instead of class                      }
-           if (m_mac in aktmodeswitches) and
+           if (m_mac in current_settings.modeswitches) and
               (token = _OBJECT) then
              token := _CLASS;
 
@@ -499,7 +499,7 @@ implementation
                 end;
               newtype.typedef:=hdef;
               { KAZ: handle TGUID declaration in system unit }
-              if (cs_compilesystem in aktmoduleswitches) and not assigned(rec_tguid) and
+              if (cs_compilesystem in current_settings.moduleswitches) and not assigned(rec_tguid) and
                  (typename='TGUID') and { name: TGUID and size=16 bytes that is 128 bits }
                  assigned(hdef) and (hdef.deftype=recorddef) and (hdef.size=16) then
                 rec_tguid:=trecorddef(hdef);

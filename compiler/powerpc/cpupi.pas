@@ -106,13 +106,13 @@ unit cpupi;
       begin
          if not(po_assembler in procdef.procoptions) then
            begin
-             if cs_asm_source in aktglobalswitches then
+             if cs_asm_source in current_settings.globalswitches then
                aktproccode.insert(Tai_comment.Create(strpnew('Parameter copies start at: r1+'+tostr(procdef.parast.address_fixup))));
 
-             if cs_asm_source in aktglobalswitches then
+             if cs_asm_source in current_settings.globalswitches then
                aktproccode.insert(Tai_comment.Create(strpnew('Locals start at: r1+'+tostr(procdef.localst.address_fixup))));
              firsttemp_offset:=align(procdef.localst.address_fixup+procdef.localst.datasize,16);
-             if cs_asm_source in aktglobalswitches then
+             if cs_asm_source in current_settings.globalswitches then
                aktproccode.insert(Tai_comment.Create(strpnew('Temp. space start: r1+'+tostr(firsttemp_offset))));
 
              //!!!! tg.setfirsttemp(firsttemp_offset);

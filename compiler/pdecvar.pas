@@ -260,7 +260,7 @@ implementation
          if try_to_consume(_LECKKLAMMER) then
            begin
               if (sp_published in current_object_option) and
-                not (m_delphi in aktmodeswitches) then
+                not (m_delphi in current_settings.modeswitches) then
                 Message(parser_e_cant_publish_that_property);
               { create a list of the parameters }
               symtablestack.push(readprocdef.parast);
@@ -271,7 +271,7 @@ implementation
                   varspez:=vs_var
                 else if try_to_consume(_CONST) then
                   varspez:=vs_const
-                else if (m_out in aktmodeswitches) and try_to_consume(_OUT) then
+                else if (m_out in current_settings.modeswitches) and try_to_consume(_OUT) then
                   varspez:=vs_out
                 else
                   varspez:=vs_value;
@@ -763,7 +763,7 @@ implementation
              until not try_to_consume(_COMMA);
              consume(_COLON);
 
-             if (m_gpc in aktmodeswitches) and
+             if (m_gpc in current_settings.modeswitches) and
                 (token=_ID) and
                 (orgpattern='__asmname__') then
                begin
@@ -833,8 +833,8 @@ implementation
                                                  system_i386_wdosx,system_i386_win32,
                                                  system_arm_wince,system_i386_wince,
                                                  system_arm_gba]) or
-                         (m_objfpc in aktmodeswitches) or
-                         (m_delphi in aktmodeswitches)) then
+                         (m_objfpc in current_settings.modeswitches) or
+                         (m_delphi in current_settings.modeswitches)) then
                  begin
                    abssym:=tabsolutevarsym.create(vs.realname,hdef);
                    abssym.fileinfo:=vs.fileinfo;
@@ -899,7 +899,7 @@ implementation
 
              { Handling of Delphi typed const = initialized vars }
              if (token=_EQUAL) and
-                not(m_tp7 in aktmodeswitches) and
+                not(m_tp7 in current_settings.modeswitches) and
                 (symtablestack.top.symtabletype<>parasymtable) then
                begin
                  { Add calling convention for procvar }
@@ -930,7 +930,7 @@ implementation
                  handle_calling_convention(tprocvardef(hdef));
                  { Handling of Delphi typed const = initialized vars }
                  if (token=_EQUAL) and
-                    not(m_tp7 in aktmodeswitches) and
+                    not(m_tp7 in current_settings.modeswitches) and
                     (symtablestack.top.symtabletype<>parasymtable) then
                    begin
                      read_default_value(sc,hdef,vd_threadvar in options);
@@ -945,12 +945,12 @@ implementation
               begin
                 if (
                      (token=_ID) and
-                     (m_cvar_support in aktmodeswitches) and
+                     (m_cvar_support in current_settings.modeswitches) and
                      (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR])
                    ) or
                    (
-                     (m_mac in aktmodeswitches) and
-                     ((cs_external_var in aktlocalswitches) or (cs_externally_visible in aktlocalswitches))
+                     (m_mac in current_settings.modeswitches) and
+                     ((cs_external_var in current_settings.localswitches) or (cs_externally_visible in current_settings.localswitches))
                    ) then
                  begin
                    { only allowed for one var }
@@ -981,15 +981,15 @@ implementation
                       semicolonatend:= true;
                     end;
                    { macpas specific handling due to some switches}
-                   if (m_mac in aktmodeswitches) then
+                   if (m_mac in current_settings.modeswitches) then
                      begin
-                       if (cs_external_var in aktlocalswitches) then
+                       if (cs_external_var in current_settings.localswitches) then
                          begin {The effect of this is the same as if cvar; external; has been given as directives.}
                            is_cdecl:=true;
                            C_name:=target_info.Cprefix+sorg;
                            extern_var:=true;
                          end
-                       else if (cs_externally_visible in aktlocalswitches) then
+                       else if (cs_externally_visible in current_settings.localswitches) then
                          begin {The effect of this is the same as if cvar has been given as directives.}
                            is_cdecl:=true;
                            C_name:=target_info.Cprefix+sorg;
@@ -1231,7 +1231,7 @@ implementation
 
              { Check for STATIC directive }
              if (vd_object in options) and
-                (cs_static_keyword in aktmoduleswitches) and
+                (cs_static_keyword in current_settings.moduleswitches) and
                 (try_to_consume(_STATIC)) then
                begin
                  include(current_object_option,sp_static);
@@ -1317,7 +1317,7 @@ implementation
                 Message(type_e_ordinal_expr_expected);
               consume(_OF);
 
-              UnionSymtable:=trecordsymtable.create(aktpackrecords);
+              UnionSymtable:=trecordsymtable.create(current_settings.packrecords);
               UnionDef:=trecorddef.create(unionsymtable);
               uniondef.isunion:=true;
               startvarrecsize:=UnionSymtable.datasize;
@@ -1374,9 +1374,9 @@ implementation
 {$endif powerpc}
               { Align the offset where the union symtable is added }
               if (recst.usefieldalignment=-1) then
-                usedalign:=used_align(unionsymtable.recordalignment,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
+                usedalign:=used_align(unionsymtable.recordalignment,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign)
               else
-                usedalign:=used_align(unionsymtable.recordalignment,aktalignment.recordalignmin,aktalignment.recordalignmax);
+                usedalign:=used_align(unionsymtable.recordalignment,current_settings.alignment.recordalignmin,current_settings.alignment.recordalignmax);
 
               offset:=align(recst.datasize,usedalign);
               recst.datasize:=offset+unionsymtable.datasize;

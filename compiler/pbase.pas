@@ -106,7 +106,7 @@ implementation
          Message1(sym_e_id_not_found,s);
          { show a fatal that you need -S2 or -Sd, but only
            if we just parsed the a token that has m_class }
-         if not(m_class in aktmodeswitches) and
+         if not(m_class in current_settings.modeswitches) and
             (Upper(s)=pattern) and
             (tokeninfo^[idtoken].keyword=m_class) then
            Message(parser_f_need_objfpc_or_delphi_mode);
@@ -266,7 +266,7 @@ implementation
     function try_consume_hintdirective(var symopt:tsymoptions):boolean;
       begin
         try_consume_hintdirective:=false;
-        if not(m_hintdirective in aktmodeswitches) then
+        if not(m_hintdirective in current_settings.modeswitches) then
          exit;
         repeat
           case idtoken of

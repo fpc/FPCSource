@@ -89,15 +89,15 @@ implementation
 
         { Start and end module debuginfo, at least required for stabs
           to insert n_sourcefile lines }
-        if (cs_debuginfo in aktmoduleswitches) or
-           (cs_use_lineinfo in aktglobalswitches) then
+        if (cs_debuginfo in current_settings.moduleswitches) or
+           (cs_use_lineinfo in current_settings.globalswitches) then
           debuginfo.insertmoduleinfo;
 
         { create the .s file and assemble it }
         GenerateAsm(false);
 
         { Also create a smartlinked version ? }
-        if (cs_create_smart in aktmoduleswitches) and
+        if (cs_create_smart in current_settings.moduleswitches) and
            (not use_smartlink_section) then
          begin
            GenerateAsm(true);
@@ -116,7 +116,7 @@ implementation
         current_module.linkunitofiles.add(current_module.objfilename^,link_static);
         current_module.flags:=current_module.flags or uf_static_linked;
 
-        if (cs_create_smart in aktmoduleswitches) and
+        if (cs_create_smart in current_settings.moduleswitches) and
            not use_smartlink_section then
          begin
            current_module.linkunitstaticlibs.add(current_module.staticlibfilename^,link_smart);
@@ -128,7 +128,7 @@ implementation
     procedure create_dwarf;
       begin
         { Dwarf conflicts with smartlinking in separate .a files }
-        if (cs_create_smart in aktmoduleswitches) and
+        if (cs_create_smart in current_settings.moduleswitches) and
            not use_smartlink_section then
           exit;
         { Call frame information }
@@ -416,7 +416,7 @@ implementation
         hp.adddependency(current_module);
         { add to symtable stack }
         symtablestack.push(hp.globalsymtable);
-        if (m_mac in aktmodeswitches) and
+        if (m_mac in current_settings.modeswitches) and
            assigned(hp.globalmacrosymtable) then
           macrosymtablestack.push(hp.globalmacrosymtable);
         { insert unitsym }
@@ -461,7 +461,7 @@ implementation
         macrosymtablestack.push(initialmacrosymtable);
 
         { are we compiling the system unit? }
-        if (cs_compilesystem in aktmoduleswitches) then
+        if (cs_compilesystem in current_settings.moduleswitches) then
          begin
            systemunit:=tglobalsymtable(current_module.localsymtable);
            { create system defines }
@@ -485,33 +485,33 @@ implementation
         if not(current_module.is_unit) then
          begin
            { Heaptrc unit, load heaptrace before any other units especially objpas }
-           if (cs_use_heaptrc in aktglobalswitches) then
+           if (cs_use_heaptrc in current_settings.globalswitches) then
              AddUnit('HeapTrc');
            { Lineinfo unit }
-           if (cs_use_lineinfo in aktglobalswitches) then
+           if (cs_use_lineinfo in current_settings.globalswitches) then
              AddUnit('LineInfo');
            { Lineinfo unit }
-           if (cs_gdb_valgrind in aktglobalswitches) then
+           if (cs_gdb_valgrind in current_settings.globalswitches) then
              AddUnit('CMem');
 {$ifdef cpufpemu}
            { Floating point emulation unit?
              softfpu must be in the system unit anyways (FK)
-           if (cs_fp_emulation in aktmoduleswitches) and not(target_info.system in system_wince) then
+           if (cs_fp_emulation in current_settings.moduleswitches) and not(target_info.system in system_wince) then
              AddUnit('SoftFpu');
            }
 {$endif cpufpemu}
          end;
         { Objpas unit? }
-        if m_objpas in aktmodeswitches then
+        if m_objpas in current_settings.modeswitches then
           AddUnit('ObjPas');
         { Macpas unit? }
-        if m_mac in aktmodeswitches then
+        if m_mac in current_settings.modeswitches then
           AddUnit('MacPas');
         { Profile unit? Needed for go32v2 only }
-        if (cs_profile in aktmoduleswitches) and
+        if (cs_profile in current_settings.moduleswitches) and
            (target_info.system in [system_i386_go32v2,system_i386_watcom]) then
           AddUnit('Profile');
-        if (cs_load_fpcylix_unit in aktglobalswitches) then
+        if (cs_load_fpcylix_unit in current_settings.globalswitches) then
           begin
             AddUnit('FPCylix');
             AddUnit('DynLibs');
@@ -548,7 +548,7 @@ implementation
            consume(_ID);
            { support "<unit> in '<file>'" construct, but not for tp7 }
            fn:='';
-           if not(m_tp7 in aktmodeswitches) and
+           if not(m_tp7 in current_settings.modeswitches) and
               try_to_consume(_OP_IN) then
              fn:=FixFileName(get_stringconst);
            { Give a warning if objpas is loaded }
@@ -614,7 +614,7 @@ implementation
                pu.unitsym.module:=pu.u;
                { add to symtable stack }
                symtablestack.push(pu.u.globalsymtable);
-               if (m_mac in aktmodeswitches) and
+               if (m_mac in current_settings.modeswitches) and
                   assigned(pu.u.globalmacrosymtable) then
                  macrosymtablestack.push(pu.u.globalmacrosymtable);
              end;
@@ -697,10 +697,10 @@ implementation
     procedure setupglobalswitches;
       begin
         { can't have local browser when no global browser }
-        if (cs_local_browser in aktmoduleswitches) and
-           not(cs_browser in aktmoduleswitches) then
-          exclude(aktmoduleswitches,cs_local_browser);
-        if (cs_create_pic in aktmoduleswitches) then
+        if (cs_local_browser in current_settings.moduleswitches) and
+           not(cs_browser in current_settings.moduleswitches) then
+          exclude(current_settings.moduleswitches,cs_local_browser);
+        if (cs_create_pic in current_settings.moduleswitches) then
           begin
             def_system_macro('FPC_PIC');
             def_system_macro('PIC');
@@ -829,7 +829,7 @@ implementation
          globalvarsym : tglobalvarsym;
 {$endif i386}
       begin
-         if m_mac in aktmodeswitches then
+         if m_mac in current_settings.modeswitches then
            current_module.mode_switch_allowed:= false;
 
          consume(_UNIT);
@@ -852,7 +852,7 @@ implementation
              new(s2);
              s2^:=upper(SplitName(main_file.name^));
              unitname8:=copy(current_module.modulename^,1,8);
-             if (cs_check_unit_name in aktglobalswitches) and
+             if (cs_check_unit_name in current_settings.globalswitches) and
                 (
                  not(
                      (current_module.modulename^=s2^) or
@@ -869,7 +869,7 @@ implementation
                 ) then
               Message1(unit_e_illegal_unit_name,current_module.realmodulename^);
              if (current_module.modulename^='SYSTEM') then
-              include(aktmoduleswitches,cs_compilesystem);
+              include(current_settings.moduleswitches,cs_compilesystem);
              dispose(s2);
              dispose(s1);
           end;
@@ -893,11 +893,11 @@ implementation
 
          { maybe turn off m_objpas if we are compiling objpas }
          if (current_module.modulename^='OBJPAS') then
-           exclude(aktmodeswitches,m_objpas);
+           exclude(current_settings.modeswitches,m_objpas);
 
          { maybe turn off m_mac if we are compiling macpas }
          if (current_module.modulename^='MACPAS') then
-           exclude(aktmodeswitches,m_mac);
+           exclude(current_settings.modeswitches,m_mac);
 
          parse_only:=true;
 
@@ -916,7 +916,7 @@ implementation
          make_ref:=true;
 
          { insert qualifier for the system unit (allows system.writeln) }
-         if not(cs_compilesystem in aktmoduleswitches) and
+         if not(cs_compilesystem in current_settings.moduleswitches) and
             (token=_USES) then
            begin
              loadunits;
@@ -944,7 +944,7 @@ implementation
          { Export macros defined in the interface for macpas. The macros
            are put in the globalmacrosymtable that will only be used by other
            units. The current unit continues to use the localmacrosymtable }
-         if (m_mac in aktmodeswitches) then
+         if (m_mac in current_settings.modeswitches) then
           begin
             current_module.globalmacrosymtable:=tmacrosymtable.create(true);
             current_module.localmacrosymtable.foreach_static(@copy_macro,nil);
@@ -959,7 +959,7 @@ implementation
           end;
 
          { Our interface is compiled, generate CRC and switch to implementation }
-         if not(cs_compilesystem in aktmoduleswitches) and
+         if not(cs_compilesystem in current_settings.moduleswitches) and
             (Errorcount=0) then
            tppumodule(current_module).getppucrc;
          current_module.in_interface:=false;
@@ -970,7 +970,7 @@ implementation
          reload_flagged_units;
 
          { Parse the implementation section }
-         if (m_mac in aktmodeswitches) and try_to_consume(_END) then
+         if (m_mac in current_settings.modeswitches) and try_to_consume(_END) then
            has_impl:= false
          else
            has_impl:= true;
@@ -981,7 +981,7 @@ implementation
          current_module.localsymtable:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
 
 {$ifdef i386}
-         if cs_create_pic in aktmoduleswitches then
+         if cs_create_pic in current_settings.moduleswitches then
            begin
              { insert symbol for got access in assembler code}
              globalvarsym:=tglobalvarsym.create('_GLOBAL_OFFSET_TABLE_',vs_value,voidpointertype,[vo_is_external,vo_is_C_var]);
@@ -1097,7 +1097,7 @@ implementation
          maybeloadvariantsunit;
 
          { generate debuginfo }
-         if (cs_debuginfo in aktmoduleswitches) then
+         if (cs_debuginfo in current_settings.moduleswitches) then
            debuginfo.inserttypeinfo;
 
          { generate wrappers for interfaces }
@@ -1144,11 +1144,11 @@ implementation
          if (Errorcount=0) then
            tppumodule(current_module).writeppu;
 
-         if not(cs_compilesystem in aktmoduleswitches) then
+         if not(cs_compilesystem in current_settings.moduleswitches) then
            if store_interface_crc<>current_module.interface_crc then
              Message1(unit_u_interface_crc_changed,current_module.ppufilename^);
 {$ifdef EXTDEBUG}
-         if not(cs_compilesystem in aktmoduleswitches) then
+         if not(cs_compilesystem in current_settings.moduleswitches) then
            if (store_crc<>current_module.crc) and simplify_ppu then
              Message1(unit_u_implementation_crc_changed,current_module.ppufilename^);
 {$endif EXTDEBUG}
@@ -1197,13 +1197,13 @@ implementation
             (target_info.system in [system_i386_win32,system_i386_wdosx]) and
             (target_info.assem<>as_i386_pecoff) then
            begin
-              include(aktglobalswitches,cs_link_strip);
+              include(current_settings.globalswitches,cs_link_strip);
               { Warning stabs info does not work with reloc section !! }
-              if cs_debuginfo in aktmoduleswitches then
+              if cs_debuginfo in current_settings.moduleswitches then
                 begin
                   Message1(parser_w_parser_reloc_no_debug,current_module.mainsource^);
                   Message(parser_w_parser_win32_debug_needs_WN);
-                  exclude(aktmoduleswitches,cs_debuginfo);
+                  exclude(current_settings.moduleswitches,cs_debuginfo);
                 end;
            end;
 
@@ -1225,7 +1225,7 @@ implementation
               exportlib.preparelib(orgpattern);
 
               if tf_library_needs_pic in target_info.flags then
-                include(aktmoduleswitches,cs_create_pic);
+                include(current_settings.moduleswitches,cs_create_pic);
 
               consume(_ID);
               consume(_SEMICOLON);
@@ -1402,7 +1402,7 @@ implementation
 {$endif arm}
 
          { generate debuginfo }
-         if (cs_debuginfo in aktmoduleswitches) then
+         if (cs_debuginfo in current_settings.moduleswitches) then
            debuginfo.inserttypeinfo;
 
          InsertThreadvars;
@@ -1421,7 +1421,7 @@ implementation
            exportlib.generatelib;
 
          { Reference all DEBUGINFO sections from the main .text section }
-         if (cs_debuginfo in aktmoduleswitches) then
+         if (cs_debuginfo in current_settings.moduleswitches) then
            debuginfo.referencesections(current_asmdata.asmlists[al_procedures]);
 
          { Resource strings }
@@ -1462,7 +1462,7 @@ implementation
              if (compile_level=1) then
                begin
                  { write .def file }
-                 if (cs_link_deffile in aktglobalswitches) then
+                 if (cs_link_deffile in current_settings.globalswitches) then
                   deffile.writefile;
                  { insert all .o files from all loaded units and
                    unload the units, we don't need them anymore.

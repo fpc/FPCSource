@@ -152,7 +152,7 @@ implementation
             ref.base:=ref.index;
             ref.index:=NR_NO;
           end;
-        if (cs_create_pic in aktmoduleswitches) and
+        if (cs_create_pic in current_settings.moduleswitches) and
           assigned(ref.symbol) then
           begin
             tmpreg:=GetIntRegister(list,OS_INT);
@@ -264,7 +264,7 @@ implementation
       begin
         inherited init_register_allocators;
 
-        if (cs_create_pic in aktmoduleswitches) and
+        if (cs_create_pic in current_settings.moduleswitches) and
           (pi_needs_got in current_procinfo.flags) then
           begin
             current_procinfo.got:=NR_L7;
@@ -589,7 +589,7 @@ implementation
         if (href.base=NR_NO) and (href.index<>NR_NO) then
           internalerror(200306171);
 
-        if (cs_create_pic in aktmoduleswitches) and
+        if (cs_create_pic in current_settings.moduleswitches) and
           assigned(href.symbol) then
           begin
             tmpreg:=GetIntRegister(list,OS_ADDR);
@@ -956,7 +956,7 @@ implementation
         ai:TAiCpu;
         hflags : tresflags;
       begin
-        if not(cs_check_overflow in aktlocalswitches) then
+        if not(cs_check_overflow in current_settings.localswitches) then
           exit;
         current_asmdata.getjumplabel(hl);
         case ovloc.loc of
@@ -1011,7 +1011,7 @@ implementation
           end
         else
           list.concat(Taicpu.Op_reg_const_reg(A_SAVE,NR_STACK_POINTER_REG,-LocalSize,NR_STACK_POINTER_REG));
-        if (cs_create_pic in aktmoduleswitches) and
+        if (cs_create_pic in current_settings.moduleswitches) and
           (pi_needs_got in current_procinfo.flags) then
           begin
             current_procinfo.got:=NR_L7;

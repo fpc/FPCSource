@@ -104,8 +104,8 @@ begin
   undef_system_macro('FPC_LINK_SMART');
   def_system_macro('FPC_LINK_STATIC');
   undef_system_macro('FPC_LINK_DYNAMIC');
-  initglobalswitches:=initglobalswitches+[cs_link_static];
-  initglobalswitches:=initglobalswitches-[cs_link_shared,cs_link_smart];
+  init_settings.globalswitches:=init_settings.globalswitches+[cs_link_static];
+  init_settings.globalswitches:=init_settings.globalswitches-[cs_link_shared,cs_link_smart];
 end;
 
 {****************************************************************************
@@ -409,29 +409,29 @@ begin
 
            'a' :
              begin
-               include(initglobalswitches,cs_asm_leave);
+               include(init_settings.globalswitches,cs_asm_leave);
                j:=1;
                while j<=length(more) do
                 begin
                   case more[j] of
                     'l' :
-                      include(initglobalswitches,cs_asm_source);
+                      include(init_settings.globalswitches,cs_asm_source);
                     'r' :
-                      include(initglobalswitches,cs_asm_regalloc);
+                      include(init_settings.globalswitches,cs_asm_regalloc);
                     't' :
-                      include(initglobalswitches,cs_asm_tempalloc);
+                      include(init_settings.globalswitches,cs_asm_tempalloc);
                     'n' :
-                      include(initglobalswitches,cs_asm_nodes);
+                      include(init_settings.globalswitches,cs_asm_nodes);
                     'p' :
                       begin
-                        exclude(initglobalswitches,cs_asm_leave);
+                        exclude(init_settings.globalswitches,cs_asm_leave);
                         if UnsetBool(More, 0) then
-                          exclude(initglobalswitches,cs_asm_pipe)
+                          exclude(init_settings.globalswitches,cs_asm_pipe)
                         else
-                          include(initglobalswitches,cs_asm_pipe);
+                          include(init_settings.globalswitches,cs_asm_pipe);
                       end;
                     '-' :
-                      initglobalswitches:=initglobalswitches -
+                      init_settings.globalswitches:=init_settings.globalswitches -
                           [cs_asm_leave, cs_asm_source,cs_asm_regalloc, cs_asm_tempalloc,
                            cs_asm_nodes, cs_asm_pipe];
                     else
@@ -453,25 +453,25 @@ begin
 {$ifdef supportbrowser}
                if UnsetBool(More,0) then
                 begin
-                  exclude(initmoduleswitches,cs_browser);
-                  exclude(initmoduleswitches,cs_local_browser);
+                  exclude(init_settings.moduleswitches,cs_browser);
+                  exclude(init_settings.moduleswitches,cs_local_browser);
 {$ifdef BrowserLog}
-                  exclude(initglobalswitches,cs_browser_log);
+                  exclude(init_settings.globalswitches,cs_browser_log);
 {$endif}
                 end
                else
                 begin
-                  include(initmoduleswitches,cs_browser);
+                  include(init_settings.moduleswitches,cs_browser);
 {$ifdef BrowserLog}
-                  include(initglobalswitches,cs_browser_log);
+                  include(init_settings.globalswitches,cs_browser_log);
 {$endif}
                 end;
                if More<>'' then
                  if (More='l') or (More='l+') then
-                   include(initmoduleswitches,cs_local_browser)
+                   include(init_settings.moduleswitches,cs_local_browser)
                  else
                   if More='l-' then
-                   exclude(initmoduleswitches,cs_local_browser)
+                   exclude(init_settings.moduleswitches,cs_local_browser)
                  else
 {$ifdef BrowserLog}
                    browserlog.elements_to_list.insert(more);
@@ -492,7 +492,7 @@ begin
                   case more[j] of
                     'c' :
                        begin
-                         if not SetAktProcCall(upper(copy(more,j+1,length(more)-j)),initdefproccall) then
+                         if not SetAktProcCall(upper(copy(more,j+1,length(more)-j)),init_settings.defproccall) then
                           IllegalPara(opt);
                          break;
                        end;
@@ -500,20 +500,20 @@ begin
                     'e' :
                        begin
                          If UnsetBool(More, j) then
-                           exclude(initmoduleswitches,cs_fp_emulation)
+                           exclude(init_settings.moduleswitches,cs_fp_emulation)
                          Else
-                           include(initmoduleswitches,cs_fp_emulation);
+                           include(init_settings.moduleswitches,cs_fp_emulation);
                        end;
 {$endif cpufpemu}
                    'f' :
                      begin
                        s:=upper(copy(more,j+1,length(more)-j));
-                       if not(SetFpuType(s,initfputype)) then
+                       if not(SetFpuType(s,init_settings.fputype)) then
                          IllegalPara(opt);
                        break;
                      end;
                     'g' :
-                      include(initmoduleswitches,cs_create_pic);
+                      include(init_settings.moduleswitches,cs_create_pic);
                     'h' :
                       begin
                          val(copy(more,j+1,length(more)-j),heapsize,code);
@@ -523,41 +523,41 @@ begin
                       end;
                     'i' :
                       If UnsetBool(More, j) then
-                        exclude(initlocalswitches,cs_check_io)
+                        exclude(init_settings.localswitches,cs_check_io)
                       else
-                        include(initlocalswitches,cs_check_io);
+                        include(init_settings.localswitches,cs_check_io);
                     'n' :
                       If UnsetBool(More, j) then
-                        exclude(initglobalswitches,cs_link_nolink)
+                        exclude(init_settings.globalswitches,cs_link_nolink)
                       Else
-                        include(initglobalswitches,cs_link_nolink);
+                        include(init_settings.globalswitches,cs_link_nolink);
                     'o' :
                       If UnsetBool(More, j) then
-                        exclude(initlocalswitches,cs_check_overflow)
+                        exclude(init_settings.localswitches,cs_check_overflow)
                       Else
-                        include(initlocalswitches,cs_check_overflow);
+                        include(init_settings.localswitches,cs_check_overflow);
                     'p' :
                       begin
                         s:=upper(copy(more,j+1,length(more)-j));
-                        if not(Setcputype(s,initcputype)) then
+                        if not(Setcputype(s,init_settings.cputype)) then
                           IllegalPara(opt);
                         break;
                       end;
                     'r' :
                       If UnsetBool(More, j) then
-                        exclude(initlocalswitches,cs_check_range)
+                        exclude(init_settings.localswitches,cs_check_range)
                       Else
-                        include(initlocalswitches,cs_check_range);
+                        include(init_settings.localswitches,cs_check_range);
                     'R' :
                       If UnsetBool(More, j) then
                         begin
-                          exclude(initlocalswitches,cs_check_range);
-                          exclude(initlocalswitches,cs_check_object);
+                          exclude(init_settings.localswitches,cs_check_range);
+                          exclude(init_settings.localswitches,cs_check_object);
                         end
                       Else
                         begin
-                          include(initlocalswitches,cs_check_range);
-                          include(initlocalswitches,cs_check_object);
+                          include(init_settings.localswitches,cs_check_range);
+                          include(init_settings.localswitches,cs_check_object);
                         end;
                     's' :
                       begin
@@ -568,19 +568,19 @@ begin
                       end;
                     't' :
                        If UnsetBool(More, j) then
-                         exclude(initlocalswitches,cs_check_stack)
+                         exclude(init_settings.localswitches,cs_check_stack)
                        Else
-                         include(initlocalswitches,cs_check_stack);
+                         include(init_settings.localswitches,cs_check_stack);
                     'D' :
                        If UnsetBool(More, j) then
-                         exclude(initmoduleswitches,cs_create_dynamic)
+                         exclude(init_settings.moduleswitches,cs_create_dynamic)
                        Else
-                         include(initmoduleswitches,cs_create_dynamic);
+                         include(init_settings.moduleswitches,cs_create_dynamic);
                     'X' :
                        If UnsetBool(More, j) then
-                         exclude(initmoduleswitches,cs_create_smart)
+                         exclude(init_settings.moduleswitches,cs_create_smart)
                        Else
-                         include(initmoduleswitches,cs_create_smart);
+                         include(init_settings.moduleswitches,cs_create_smart);
                     else
                        IllegalPara(opt);
                   end;
@@ -599,7 +599,7 @@ begin
                end;
            'D' :
              begin
-               include(initglobalswitches,cs_link_deffile);
+               include(init_settings.globalswitches,cs_link_deffile);
                j:=1;
                while j<=length(more) do
                 begin
@@ -643,7 +643,7 @@ begin
                       usewindowapi:=true;
                     '-' :
                       begin
-                        exclude(initglobalswitches,cs_link_deffile);
+                        exclude(init_settings.globalswitches,cs_link_deffile);
                         usewindowapi:=false;
                       end;
                     else
@@ -659,9 +659,9 @@ begin
            'E' :
              begin
                if UnsetBool(More, 0) then
-                 exclude(initglobalswitches,cs_link_nolink)
+                 exclude(init_settings.globalswitches,cs_link_nolink)
                else
-                 include(initglobalswitches,cs_link_nolink);
+                 include(init_settings.globalswitches,cs_link_nolink);
              end;
 
            'F' :
@@ -675,11 +675,11 @@ begin
                  'c' :
                    begin
                      if (upper(more)='UTF8') or (upper(more)='UTF-8') then
-                        initsourcecodepage:='utf8'
+                        init_settings.sourcecodepage:='utf8'
                      else if not(cpavailable(more)) then
                        Message1(option_code_page_not_available,more)
                      else
-                       initsourcecodepage:=more;
+                       init_settings.sourcecodepage:=more;
                    end;
                  'D' :
                    utilsdirectory:=FixPath(More,true);
@@ -737,15 +737,15 @@ begin
              begin
                if UnsetBool(More, 0) then
                 begin
-                  exclude(initmoduleswitches,cs_debuginfo);
-                  exclude(initglobalswitches,cs_use_heaptrc);
-                  exclude(initglobalswitches,cs_use_lineinfo);
-                  exclude(initlocalswitches,cs_checkpointer);
+                  exclude(init_settings.moduleswitches,cs_debuginfo);
+                  exclude(init_settings.globalswitches,cs_use_heaptrc);
+                  exclude(init_settings.globalswitches,cs_use_lineinfo);
+                  exclude(init_settings.localswitches,cs_checkpointer);
                   localvartrashing := -1;
                 end
                else
                 begin
-                  include(initmoduleswitches,cs_debuginfo);
+                  include(init_settings.moduleswitches,cs_debuginfo);
                 end;
                if not RelocSectionSetExplicitly then
                  RelocSection:=false;
@@ -756,9 +756,9 @@ begin
                      'c' :
                        begin
                          if UnsetBool(More, j) then
-                           exclude(initlocalswitches,cs_checkpointer)
+                           exclude(init_settings.localswitches,cs_checkpointer)
                          else
-                           include(initlocalswitches,cs_checkpointer);
+                           include(init_settings.localswitches,cs_checkpointer);
                        end;
                      'd' :
                        begin
@@ -767,16 +767,16 @@ begin
                      'h' :
                        begin
                          if UnsetBool(More, j) then
-                           exclude(initglobalswitches,cs_use_heaptrc)
+                           exclude(init_settings.globalswitches,cs_use_heaptrc)
                          else
-                           include(initglobalswitches,cs_use_heaptrc);
+                           include(init_settings.globalswitches,cs_use_heaptrc);
                        end;
                      'l' :
                        begin
                          if UnsetBool(More, j) then
-                           exclude(initglobalswitches,cs_use_lineinfo)
+                           exclude(init_settings.globalswitches,cs_use_lineinfo)
                          else
-                           include(initglobalswitches,cs_use_lineinfo);
+                           include(init_settings.globalswitches,cs_use_lineinfo);
                        end;
                      's' :
                        begin
@@ -792,9 +792,9 @@ begin
                      'v' :
                        begin
                          if UnsetBool(More, j) then
-                           exclude(initglobalswitches,cs_gdb_valgrind)
+                           exclude(init_settings.globalswitches,cs_gdb_valgrind)
                          else
-                           include(initglobalswitches,cs_gdb_valgrind);
+                           include(init_settings.globalswitches,cs_gdb_valgrind);
                        end;
                      'w' :
                        begin
@@ -894,11 +894,11 @@ begin
                 begin
                   case more[j] of
                     '1' :
-                      initoptimizerswitches:=initoptimizerswitches+level1optimizerswitches;
+                      init_settings.optimizerswitches:=init_settings.optimizerswitches+level1optimizerswitches;
                     '2' :
-                      initoptimizerswitches:=initoptimizerswitches+level2optimizerswitches;
+                      init_settings.optimizerswitches:=init_settings.optimizerswitches+level2optimizerswitches;
                     '3' :
-                      initoptimizerswitches:=initoptimizerswitches+level3optimizerswitches;
+                      init_settings.optimizerswitches:=init_settings.optimizerswitches+level3optimizerswitches;
                     'a' :
                       begin
                         if not(UpdateAlignmentStr(Copy(Opt,j+3,255),ParaAlignment)) then
@@ -906,10 +906,10 @@ begin
                         break;
                       end;
                     's' :
-                      include(initoptimizerswitches,cs_opt_size);
+                      include(init_settings.optimizerswitches,cs_opt_size);
                     'p' :
                       begin
-                        if not Setcputype(copy(more,j+1,length(more)),initoptimizecputype) then
+                        if not Setcputype(copy(more,j+1,length(more)),init_settings.optimizecputype) then
                           begin
                             { Give warning for old i386 switches }
                             if (Length(More)-j=1) and
@@ -922,13 +922,13 @@ begin
                       end;
                     'o' :
                       begin
-                        if not UpdateOptimizerStr(copy(more,j+1,length(more)),initoptimizerswitches) then
+                        if not UpdateOptimizerStr(copy(more,j+1,length(more)),init_settings.optimizerswitches) then
                          IllegalPara(opt);
                         break;
                       end;
                     '-' :
                       begin
-                        initoptimizerswitches:=[];
+                        init_settings.optimizerswitches:=[];
                         FillChar(ParaAlignment,sizeof(ParaAlignment),0);
                       end;
                     { Obsolete switches }
@@ -951,7 +951,7 @@ begin
              begin
                if UnsetBool(More, 0) then
                  begin
-                   initmoduleswitches:=initmoduleswitches-[cs_profile];
+                   init_settings.moduleswitches:=init_settings.moduleswitches-[cs_profile];
                    undef_system_macro('FPC_PROFILE');
                  end
                else
@@ -961,12 +961,12 @@ begin
                  case more[1] of
                   'g' : if UnsetBool(more, 1) then
                          begin
-                           exclude(initmoduleswitches,cs_profile);
+                           exclude(init_settings.moduleswitches,cs_profile);
                            undef_system_macro('FPC_PROFILE');
                          end
                         else
                          begin
-                           include(initmoduleswitches,cs_profile);
+                           include(init_settings.moduleswitches,cs_profile);
                            def_system_macro('FPC_PROFILE');
                         end;
                  else
@@ -978,7 +978,7 @@ begin
 
            'R' :
              begin
-               if not SetAsmReadMode(More,initasmmode) then
+               if not SetAsmReadMode(More,init_settings.asmmode) then
                  IllegalPara(opt);
              end;
 
@@ -986,19 +986,19 @@ begin
              begin
                if UnsetBool(More, 0) then
                  begin
-                   initglobalswitches:=initglobalswitches-[cs_asm_extern,cs_link_extern,cs_link_nolink];
+                   init_settings.globalswitches:=init_settings.globalswitches-[cs_asm_extern,cs_link_extern,cs_link_nolink];
                    if more<>'' then
                      IllegalPara(opt);
                  end
                else
                  begin
-                   initglobalswitches:=initglobalswitches+[cs_asm_extern,cs_link_extern,cs_link_nolink];
+                   init_settings.globalswitches:=init_settings.globalswitches+[cs_asm_extern,cs_link_extern,cs_link_nolink];
                    if more='h' then
-                     initglobalswitches:=initglobalswitches-[cs_link_on_target]
+                     init_settings.globalswitches:=init_settings.globalswitches-[cs_link_on_target]
                    else if more='t' then
-                     initglobalswitches:=initglobalswitches+[cs_link_on_target]
+                     init_settings.globalswitches:=init_settings.globalswitches+[cs_link_on_target]
                    else if more='r' then
-                     initglobalswitches:=initglobalswitches+[cs_asm_leave,cs_no_regalloc]
+                     init_settings.globalswitches:=init_settings.globalswitches+[cs_asm_leave,cs_no_regalloc]
                    else if more<>'' then
                      IllegalPara(opt);
                  end;
@@ -1009,9 +1009,9 @@ begin
                if more[1]='I' then
                  begin
                    if upper(more)='ICOM' then
-                     initinterfacetype:=it_interfacecom
+                     init_settings.interfacetype:=it_interfacecom
                    else if upper(more)='ICORBA' then
-                     initinterfacetype:=it_interfacecorba
+                     init_settings.interfacetype:=it_interfacecorba
                    else
                      IllegalPara(opt);
                  end
@@ -1024,9 +1024,9 @@ begin
                        '2' : //an alternative to -Mobjfpc
                          SetCompileMode('OBJFPC',true);
                        'a' :
-                         include(initlocalswitches,cs_do_assertion);
+                         include(init_settings.localswitches,cs_do_assertion);
                        'c' :
-                         include(initmoduleswitches,cs_support_c_operators);
+                         include(init_settings.moduleswitches,cs_support_c_operators);
                        'd' : //an alternative to -Mdelphi
                          SetCompileMode('DELPHI',true);
                        'e' :
@@ -1035,32 +1035,32 @@ begin
                            break;
                          end;
                        'g' :
-                         include(initmoduleswitches,cs_support_goto);
+                         include(init_settings.moduleswitches,cs_support_goto);
                        'h' :
-                         include(initlocalswitches,cs_ansistrings);
+                         include(init_settings.localswitches,cs_ansistrings);
                        'i' :
-                         include(initlocalswitches,cs_do_inline);
+                         include(init_settings.localswitches,cs_do_inline);
                        'k' :
-                         include(initglobalswitches,cs_load_fpcylix_unit);
+                         include(init_settings.globalswitches,cs_load_fpcylix_unit);
                        'm' :
-                         include(initmoduleswitches,cs_support_macro);
+                         include(init_settings.moduleswitches,cs_support_macro);
                        'o' : //an alternative to -Mtp
                          SetCompileMode('TP',true);
                        'p' : //an alternative to -Mgpc
                          SetCompileMode('GPC',true);
                        's' :
-                         include(initglobalswitches,cs_constructor_name);
+                         include(init_settings.globalswitches,cs_constructor_name);
                        't' :
-                         include(initmoduleswitches,cs_static_keyword);
+                         include(init_settings.moduleswitches,cs_static_keyword);
                        'v' :
-                         include(initglobalswitches,cs_support_vectors);
+                         include(init_settings.globalswitches,cs_support_vectors);
                        'x' :
-                         include(initglobalswitches,cs_support_exceptions);
+                         include(init_settings.globalswitches,cs_support_exceptions);
                        '-' :
                          begin
-                           initglobalswitches:=initglobalswitches - [cs_constructor_name,cs_support_exceptions];
-                           initlocalswitches:=InitLocalswitches - [cs_do_assertion, cs_do_inline, cs_ansistrings];
-                           initmoduleswitches:=initmoduleswitches - [cs_support_c_operators, cs_support_goto,
+                           init_settings.globalswitches:=init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions];
+                           init_settings.localswitches:=init_settings.localswitches - [cs_do_assertion, cs_do_inline, cs_ansistrings];
+                           init_settings.moduleswitches:=init_settings.moduleswitches - [cs_support_c_operators, cs_support_goto,
                                                                      cs_support_macro,
                                                                      cs_static_keyword];
                          end;
@@ -1110,7 +1110,7 @@ begin
                        end;
 {$endif UNITALIASES}
                     'n' :
-                      exclude(initglobalswitches,cs_check_unit_name);
+                      exclude(init_settings.globalswitches,cs_check_unit_name);
                     'p' :
                        begin
                          Message2(option_obsolete_switch_use_new,'-Up','-Fu');
@@ -1119,11 +1119,11 @@ begin
                     'r' :
                       do_release:=true;
                     's' :
-                      include(initmoduleswitches,cs_compilesystem);
+                      include(init_settings.moduleswitches,cs_compilesystem);
                     '-' :
                       begin
-                        exclude(initmoduleswitches,cs_compilesystem);
-                        exclude(initglobalswitches,cs_check_unit_name);
+                        exclude(init_settings.moduleswitches,cs_compilesystem);
+                        exclude(init_settings.globalswitches,cs_check_unit_name);
                       end;
                     else
                       IllegalPara(opt);
@@ -1238,25 +1238,25 @@ begin
                     'e' :
                       begin
                         If UnsetBool(More, j) then
-                          exclude(initglobalswitches,cs_link_extern)
+                          exclude(init_settings.globalswitches,cs_link_extern)
                         else
-                          include(initglobalswitches,cs_link_extern);
+                          include(init_settings.globalswitches,cs_link_extern);
                       end;
                     'f' :
-                      include(initglobalswitches,cs_link_pthread);
+                      include(init_settings.globalswitches,cs_link_pthread);
                     'i' :
                       begin
                         If UnsetBool(More, j) then
-                          include(initglobalswitches,cs_link_extern)
+                          include(init_settings.globalswitches,cs_link_extern)
                         else
-                          exclude(initglobalswitches,cs_link_extern);
+                          exclude(init_settings.globalswitches,cs_link_extern);
                       end;
                     'm' :
                       begin
                         If UnsetBool(More, j) then
-                          exclude(initglobalswitches,cs_link_map)
+                          exclude(init_settings.globalswitches,cs_link_map)
                         else
-                          include(initglobalswitches,cs_link_map);
+                          include(init_settings.globalswitches,cs_link_map);
                       end;
                     'p' : ; { Ignore used by fpc.pp }
                     'r' :
@@ -1268,27 +1268,27 @@ begin
                     's' :
                       begin
                         If UnsetBool(More, j) then
-                          exclude(initglobalswitches,cs_link_strip)
+                          exclude(init_settings.globalswitches,cs_link_strip)
                         else
-                          include(initglobalswitches,cs_link_strip);
+                          include(init_settings.globalswitches,cs_link_strip);
                       end;
                     't' :
-                      include(initglobalswitches,cs_link_staticflag);
+                      include(init_settings.globalswitches,cs_link_staticflag);
                     'v' :
                       begin
                         If UnsetBool(More, j) then
-                          exclude(initglobalswitches,cs_link_opt_vtable)
+                          exclude(init_settings.globalswitches,cs_link_opt_vtable)
                         else
-                          include(initglobalswitches,cs_link_opt_vtable);
+                          include(init_settings.globalswitches,cs_link_opt_vtable);
                       end;
                     'D' :
                       begin
                         def_system_macro('FPC_LINK_DYNAMIC');
                         undef_system_macro('FPC_LINK_SMART');
                         undef_system_macro('FPC_LINK_STATIC');
-                        exclude(initglobalswitches,cs_link_static);
-                        exclude(initglobalswitches,cs_link_smart);
-                        include(initglobalswitches,cs_link_shared);
+                        exclude(init_settings.globalswitches,cs_link_static);
+                        exclude(init_settings.globalswitches,cs_link_smart);
+                        include(init_settings.globalswitches,cs_link_shared);
                         LinkTypeSetExplicitly:=true;
                       end;
                     'M' :
@@ -1319,7 +1319,7 @@ begin
                                         if not LinkLibraryOrder.AddWeight(s) Then
                                            IllegalPara(opt);
                                        end;
-                                 'D' : include(initglobalswitches,cs_link_no_default_lib_order)
+                                 'D' : include(init_settings.globalswitches,cs_link_no_default_lib_order)
                                 else
                                   IllegalPara(opt);
                                  end; {case}
@@ -1331,9 +1331,9 @@ begin
                         def_system_macro('FPC_LINK_STATIC');
                         undef_system_macro('FPC_LINK_SMART');
                         undef_system_macro('FPC_LINK_DYNAMIC');
-                        include(initglobalswitches,cs_link_static);
-                        exclude(initglobalswitches,cs_link_smart);
-                        exclude(initglobalswitches,cs_link_shared);
+                        include(init_settings.globalswitches,cs_link_static);
+                        exclude(init_settings.globalswitches,cs_link_smart);
+                        exclude(init_settings.globalswitches,cs_link_shared);
                         LinkTypeSetExplicitly:=true;
                       end;
                     'X' :
@@ -1341,16 +1341,16 @@ begin
                         def_system_macro('FPC_LINK_SMART');
                         undef_system_macro('FPC_LINK_STATIC');
                         undef_system_macro('FPC_LINK_DYNAMIC');
-                        exclude(initglobalswitches,cs_link_static);
-                        include(initglobalswitches,cs_link_smart);
-                        exclude(initglobalswitches,cs_link_shared);
+                        exclude(init_settings.globalswitches,cs_link_static);
+                        include(init_settings.globalswitches,cs_link_smart);
+                        exclude(init_settings.globalswitches,cs_link_shared);
                         LinkTypeSetExplicitly:=true;
                       end;
                     '-' :
                       begin
-                        exclude(initglobalswitches,cs_link_staticflag);
-                        exclude(initglobalswitches,cs_link_strip);
-                        exclude(initglobalswitches,cs_link_map);
+                        exclude(init_settings.globalswitches,cs_link_staticflag);
+                        exclude(init_settings.globalswitches,cs_link_strip);
+                        exclude(init_settings.globalswitches,cs_link_map);
                         set_default_link_type;
                       end;
                     else
@@ -2109,7 +2109,7 @@ begin
   end;
 
   { CPU Define }
-  def_system_macro('CPU'+Cputypestr[initcputype]);
+  def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
 
 { Check file to compile }
   if param_file='' then
@@ -2133,7 +2133,7 @@ begin
       inputextension:=sourceext
      else if FileExists(inputdir+inputfile+pasext) then
        inputextension:=pasext
-     else if ((m_mac in aktmodeswitches) or
+     else if ((m_mac in current_settings.modeswitches) or
               (tf_p_ext_support in target_info.flags))
              and FileExists(inputdir+inputfile+pext) then
        inputextension:=pext;
@@ -2210,7 +2210,7 @@ begin
     Do not add it when linking on the target because then we can maybe already find
     .o files that are not for the target }
   if (ExePath<>GetCurrentDir) and
-     not(cs_link_on_target in initglobalswitches) then
+     not(cs_link_on_target in init_settings.globalswitches) then
    UnitSearchPath.AddPath(ExePath,false);
   { Add unit dir to the object and library path }
   objectsearchpath.AddList(unitsearchpath,false);
@@ -2232,7 +2232,7 @@ begin
     end;
 
   { switch assembler if it's binary and we got -a on the cmdline }
-  if (cs_asm_leave in initglobalswitches) and
+  if (cs_asm_leave in init_settings.globalswitches) and
      (af_outputbinary in target_asm.flags) then
    begin
      Message(option_switch_bin_to_src_assembler);
@@ -2241,19 +2241,19 @@ begin
 
   { Force use of external linker if there is no
     internal linker or the linking is skipped }
-  if not(cs_link_extern in initglobalswitches) and
+  if not(cs_link_extern in init_settings.globalswitches) and
      (not assigned(target_info.link) or
-      (cs_link_nolink in initglobalswitches)) then
-    include(initglobalswitches,cs_link_extern);
+      (cs_link_nolink in init_settings.globalswitches)) then
+    include(init_settings.globalswitches,cs_link_extern);
 
   { turn off stripping if compiling with debuginfo or profile }
-  if (cs_debuginfo in initmoduleswitches) or
-     (cs_profile in initmoduleswitches) then
-    exclude(initglobalswitches,cs_link_strip);
+  if (cs_debuginfo in init_settings.moduleswitches) or
+     (cs_profile in init_settings.moduleswitches) then
+    exclude(init_settings.globalswitches,cs_link_strip);
 
   { force fpu emulation on arm/wince and arm/gba }
   if target_info.system in [system_arm_wince,system_arm_gba] then
-    include(initmoduleswitches,cs_fp_emulation);
+    include(init_settings.moduleswitches,cs_fp_emulation);
 
   { Section smartlinking conflicts with import sections on Windows }
   if GenerateImportSection and
@@ -2262,7 +2262,7 @@ begin
 
 {$ifdef x86_64}
   {$warning HACK: turn off smartlinking}
-  exclude(initmoduleswitches,cs_create_smart);
+  exclude(init_settings.moduleswitches,cs_create_smart);
 {$endif}
 
   if not LinkTypeSetExplicitly then
@@ -2272,15 +2272,15 @@ begin
     1. load the defaults for the target
     2. override with generic optimizer setting (little size)
     3. override with the user specified -Oa }
-  UpdateAlignment(initalignment,target_info.alignment);
-  if (cs_opt_size in aktoptimizerswitches) then
+  UpdateAlignment(init_settings.alignment,target_info.alignment);
+  if (cs_opt_size in current_settings.optimizerswitches) then
    begin
-     initalignment.procalign:=1;
-     initalignment.jumpalign:=1;
-     initalignment.loopalign:=1;
+     init_settings.alignment.procalign:=1;
+     init_settings.alignment.jumpalign:=1;
+     init_settings.alignment.loopalign:=1;
    end;
 
-  UpdateAlignment(initalignment,option.paraalignment);
+  UpdateAlignment(init_settings.alignment,option.paraalignment);
 
   set_system_macro('FPC_VERSION',version_nr);
   set_system_macro('FPC_RELEASE',release_nr);

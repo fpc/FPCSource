@@ -212,7 +212,7 @@ implementation
         { Normal types }
         (* we use the same types as without emulator, the only
           difference is that direct calls to the emulator are generated
-        if (cs_fp_emulation in aktmoduleswitches) then
+        if (cs_fp_emulation in current_settings.moduleswitches) then
           begin
             addtype('Single',s32floattype);
             { extended size is the best real type for the target }
@@ -301,7 +301,7 @@ implementation
         addtype('$s80real',s80floattype);
         addtype('$s64currency',s64currencytype);
         { Add a type for virtual method tables }
-        hrecst:=trecordsymtable.create(aktpackrecords);
+        hrecst:=trecordsymtable.create(current_settings.packrecords);
         vmttype:=trecorddef.create(hrecst);
         pvmttype:=tpointerdef.create(vmttype);
         hrecst.insertfield(tfieldvarsym.create('$parent',vs_value,pvmttype,[]));

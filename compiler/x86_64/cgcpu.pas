@@ -95,7 +95,7 @@ unit cgcpu;
         stacksize : longint;
       begin
         { Release PIC register }
-        if cs_create_pic in aktmoduleswitches then
+        if cs_create_pic in current_settings.moduleswitches then
           list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG,nil));
 
         { remove stackframe }
@@ -172,7 +172,7 @@ unit cgcpu;
           begin
             sym:=current_asmdata.RefAsmSymbol(procdef.mangledname);
             reference_reset_symbol(r,sym,0);
-            if cs_create_pic in aktmoduleswitches then
+            if cs_create_pic in current_settings.moduleswitches then
               r.refaddr:=addr_pic
             else
               r.refaddr:=addr_full;

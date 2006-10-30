@@ -91,7 +91,7 @@ implementation
               if ((tordconstnode(p).value>def.high) or
                   (tordconstnode(p).value<def.low)) then
                 begin
-                   if (cs_check_range in aktlocalswitches) then
+                   if (cs_check_range in current_settings.localswitches) then
                      Message(parser_e_range_check_error)
                    else
                      Message(parser_w_range_check_error);
@@ -226,7 +226,7 @@ implementation
                    datalist.concat(Tai_real_32bit.Create(ts32real(value)));
                  s64real :
 {$ifdef ARM}
-                   if aktfputype in [fpu_fpa,fpu_fpa10,fpu_fpa11] then
+                   if current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11] then
                      datalist.concat(Tai_real_64bit.Create_hiloswapped(ts64real(value)))
                    else
 {$endif ARM}
@@ -318,7 +318,7 @@ implementation
                       begin
                         len:=tstringconstnode(p).len;
                         { For tp7 the maximum lentgh can be 255 }
-                        if (m_tp7 in aktmodeswitches) and
+                        if (m_tp7 in current_settings.modeswitches) and
                            (len>255) then
                          len:=255;
                         getmem(ca,len+2);
@@ -672,7 +672,7 @@ implementation
                     begin
                       len:=tstringconstnode(p).len;
                       { For tp7 the maximum lentgh can be 255 }
-                      if (m_tp7 in aktmodeswitches) and
+                      if (m_tp7 in current_settings.modeswitches) and
                          (len>255) then
                        len:=255;
                       ca:=tstringconstnode(p).value_str;
@@ -852,7 +852,7 @@ implementation
                                 error := true;
                               end
                             { Delphi allows you to skip fields }
-                            else if (m_delphi in aktmodeswitches) then
+                            else if (m_delphi in current_settings.modeswitches) then
                               begin
                                 Message1(parser_w_skipped_fields_before,sorg);
                                 srsym := recsym;
@@ -925,7 +925,7 @@ implementation
                 end
               { for objects we allow it only if it doesn't contain a vmt }
               else if (oo_has_vmt in tobjectdef(def).objectoptions) and
-                      (m_fpc in aktmodeswitches) then
+                      (m_fpc in current_settings.modeswitches) then
                  Message(parser_e_type_const_not_possible)
               { packed object }
               else if is_packed_record_or_object(def) then
@@ -968,7 +968,7 @@ implementation
 
                                { check in VMT needs to be added for TP mode }
                                with Tobjectdef(def) do
-                                 if not(m_fpc in aktmodeswitches) and
+                                 if not(m_fpc in current_settings.modeswitches) and
                                     (oo_has_vmt in objectoptions) and
                                     (vmt_offset<fieldoffset) then
                                    begin
@@ -994,7 +994,7 @@ implementation
                                  break;
                           end;
                      end;
-                   if not(m_fpc in aktmodeswitches) and
+                   if not(m_fpc in current_settings.modeswitches) and
                       (oo_has_vmt in tobjectdef(def).objectoptions) and
                       (tobjectdef(def).vmt_offset>=aktpos) then
                      begin

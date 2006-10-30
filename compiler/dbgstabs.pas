@@ -518,7 +518,7 @@ implementation
 
         function orddef_stabstr(def:torddef):pchar;
           begin
-            if cs_gdb_valgrind in aktglobalswitches then
+            if cs_gdb_valgrind in current_settings.globalswitches then
               begin
                 case def.typ of
                   uvoid :
@@ -615,7 +615,7 @@ implementation
              begin
                if (def.owner.symtabletype = objectsymtable) then
                  obj := def.owner.name^+'__'+def.procsym.name;
-               if not(cs_gdb_valgrind in aktglobalswitches) and
+               if not(cs_gdb_valgrind in current_settings.globalswitches) and
                   (def.owner.symtabletype=localsymtable) and
                   assigned(def.owner.defowner) and
                   assigned(tprocdef(def.owner.defowner).procsym) then
@@ -967,7 +967,7 @@ implementation
                     templist.concat(Tai_stab.create(stab_stabs,strpnew(
                        '"'+pd.procsym.name+':'+hs+def_stab_number(pd.returndef)+'",'+
                        tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
-                    if (m_result in aktmodeswitches) then
+                    if (m_result in current_settings.modeswitches) then
                       templist.concat(Tai_stab.create(stab_stabs,strpnew(
                          '"RESULT:'+hs+def_stab_number(pd.returndef)+'",'+
                          tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
@@ -1243,7 +1243,7 @@ implementation
               the N_Func for the function itself.
               Valgrind does not support constants }
             if (sym.owner.symtabletype=parasymtable) or
-               (cs_gdb_valgrind in aktglobalswitches) then
+               (cs_gdb_valgrind in current_settings.globalswitches) then
               exit;
             case sym.consttyp of
               conststring:

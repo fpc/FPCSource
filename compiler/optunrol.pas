@@ -61,7 +61,7 @@ unit optunrol;
       begin
 {$ifdef i386}
         { multiply by 2 for CPUs with a long pipeline }
-        if aktcputype in [cpu_Pentium4] then
+        if current_settings.cputype in [cpu_Pentium4] then
           number_unrolls:=60 div countnodes(node)
         else
 {$endif i386}
@@ -80,7 +80,7 @@ unit optunrol;
         unrollblock : tblocknode;
       begin
         result:=nil;
-        if (cs_opt_size in aktoptimizerswitches) then
+        if (cs_opt_size in current_settings.optimizerswitches) then
           exit;
         if not(node.nodetype in [forn]) then
           exit;

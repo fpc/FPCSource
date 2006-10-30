@@ -290,7 +290,7 @@ uses
         { symbols }
         nsyms:=0;
         sympos:=0;
-        if not(cs_link_strip in aktglobalswitches) then
+        if not(cs_link_strip in current_settings.globalswitches) then
          begin
            sympos:=datapos;
            objdata:=TObjData(objdatalist.first);

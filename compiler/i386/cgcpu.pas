@@ -81,7 +81,7 @@ unit cgcpu;
     procedure tcg386.init_register_allocators;
       begin
         inherited init_register_allocators;
-        if cs_create_pic in aktmoduleswitches then
+        if cs_create_pic in current_settings.moduleswitches then
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP])
         else
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
@@ -246,7 +246,7 @@ unit cgcpu;
         stacksize : longint;
       begin
         { Release PIC register }
-        if cs_create_pic in aktmoduleswitches then
+        if cs_create_pic in current_settings.moduleswitches then
           list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG,nil));
 
         { MMX needs to call EMMS }
@@ -581,7 +581,7 @@ unit cgcpu;
 
         make_global:=false;
         if (not current_module.is_unit) or
-           (cs_create_smart in aktmoduleswitches) or
+           (cs_create_smart in current_settings.moduleswitches) or
            (af_smartlink_sections in target_asm.flags) or
            (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
           make_global:=true;

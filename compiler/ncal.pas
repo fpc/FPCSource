@@ -580,7 +580,7 @@ type
 
              { Remove implicitly inserted typecast to pointer for
                @procvar in macpas }
-             if (m_mac_procvar in aktmodeswitches) and
+             if (m_mac_procvar in current_settings.modeswitches) and
                 (parasym.vardef.deftype=procvardef) and
                 (left.nodetype=typeconvn) and
                 is_voidpointer(left.resultdef) and
@@ -673,7 +673,7 @@ type
                    end;
 
                  { check var strings }
-                 if (cs_strict_var_strings in aktlocalswitches) and
+                 if (cs_strict_var_strings in current_settings.localswitches) and
                     is_shortstring(left.resultdef) and
                     is_shortstring(parasym.vardef) and
                     (parasym.varspez in [vs_out,vs_var]) and
@@ -688,8 +688,8 @@ type
                  if (parasym.vardef.deftype=formaldef) then
                    begin
                      { load procvar if a procedure is passed }
-                     if ((m_tp_procvar in aktmodeswitches) or
-                         (m_mac_procvar in aktmodeswitches)) and
+                     if ((m_tp_procvar in current_settings.modeswitches) or
+                         (m_mac_procvar in current_settings.modeswitches)) and
                         (left.nodetype=calln) and
                         (is_void(left.resultdef)) then
                        load_procvar_from_calln(left);
@@ -854,7 +854,7 @@ type
        begin
          srsym := tsym(systemunit.search(name));
          if not assigned(srsym) and
-            (cs_compilesystem in aktmoduleswitches) then
+            (cs_compilesystem in current_settings.moduleswitches) then
            srsym := tsym(systemunit.search(upper(name)));
          if not assigned(srsym) or
             (srsym.typ<>procsym) then
@@ -1654,7 +1654,7 @@ type
                 begin
                    candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,(nf_isproperty in flags),
                      { ignore possible private in delphi mode for anon. inherited (FK) }
-                     (m_delphi in aktmodeswitches) and (cnf_anon_inherited in callnodeflags));
+                     (m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags));
 
                    { no procedures found? then there is something wrong
                      with the parameter size or the procedures are
@@ -1668,7 +1668,7 @@ type
                         this inherited by inserting a nothingn. Only
                         do this ugly hack in Delphi mode as it looks more
                         like a bug. It's also not documented }
-                      if (m_delphi in aktmodeswitches) and
+                      if (m_delphi in current_settings.modeswitches) and
                          (cnf_anon_inherited in callnodeflags) and
                          (symtableprocentry.owner.symtabletype=objectsymtable) and
                          (po_overload in symtableprocentry.first_procdef.procoptions) and
@@ -1680,8 +1680,8 @@ type
                             there are no parameters specified }
                           if not(assigned(left)) and
                              not(cnf_inherited in callnodeflags) and
-                             ((m_tp_procvar in aktmodeswitches) or
-                              (m_mac_procvar in aktmodeswitches)) and
+                             ((m_tp_procvar in current_settings.modeswitches) or
+                              (m_mac_procvar in current_settings.modeswitches)) and
                              (not assigned(methodpointer) or
                               (methodpointer.nodetype <> typen)) then
                             begin
@@ -2453,7 +2453,7 @@ type
            begin
              tcallparanode(left).det_registers;
 
-             if cs_opt_level1 in aktoptimizerswitches then
+             if cs_opt_level1 in current_settings.optimizerswitches then
                begin
                  { check for stacked parameters }
                  check_stack_parameters;
@@ -2528,7 +2528,7 @@ type
                      begin
                        expectloc:=LOC_FPUREGISTER;
 {$ifdef cpufpemu}
-                       if (cs_fp_emulation in aktmoduleswitches) then
+                       if (cs_fp_emulation in current_settings.moduleswitches) then
                          registersint:=1
                        else
 {$endif cpufpemu}

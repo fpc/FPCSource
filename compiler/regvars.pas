@@ -145,7 +145,7 @@ implementation
       { max. optimizations     }
       { only if no asm is used }
       { and no try statement   }
-      if (cs_opt_regvar in aktoptimizerswitches) and
+      if (cs_opt_regvar in current_settings.optimizerswitches) and
         { we have to store regvars back to memory in this case (the nested }
         { procedures can access the variables of the parent)               }
         (tcgprocinfo(current_procinfo).nestedprocs.count = 0) and
@@ -229,7 +229,7 @@ implementation
                 { in non leaf procedures we must be very careful }
                 { with assigning registers                       }
 {$ifdef i386}
-                if aktmaxfpuregisters=-1 then
+                if current_settings.maxfpuregisters=-1 then
                   begin
                    if (pi_do_call in current_procinfo.flags) then
                      begin
@@ -246,7 +246,7 @@ implementation
                   end
                 else
                   begin
-                    for i:=aktmaxfpuregisters+1 to maxfpuvarregs do
+                    for i:=current_settings.maxfpuregisters+1 to maxfpuvarregs do
                       regvarinfo^.fpuregvars[i]:=nil;
                   end;
 {$endif i386}
@@ -455,7 +455,7 @@ implementation
       i: longint;
       regvarinfo: pregvarinfo;
     begin
-      if (cs_opt_regvar in aktoptimizerswitches) and
+      if (cs_opt_regvar in current_settings.optimizerswitches) and
          not(pi_has_assembler_block in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
         begin
@@ -479,7 +479,7 @@ implementation
             end;
 {$ifdef i386}
           if assigned(p) then
-            if cs_asm_source in aktglobalswitches then
+            if cs_asm_source in current_settings.globalswitches then
               asml.insert(tai_comment.Create(strpnew(tostr(p.registersfpu)+
               ' registers on FPU stack used by temp. expressions')));
 {$endif i386}
@@ -488,7 +488,7 @@ implementation
             begin
                if assigned(regvarinfo^.fpuregvars[i]) then
                  begin
-                    if cs_asm_source in aktglobalswitches then
+                    if cs_asm_source in current_settings.globalswitches then
                       asml.insert(tai_comment.Create(strpnew(regvarinfo^.fpuregvars[i].name+
                         ' with weight '+tostr(regvarinfo^.fpuregvars[i].refs)+' assigned to register '+
                         std_regname(regvarinfo^.fpuregvars[i].localloc.register))));
@@ -497,7 +497,7 @@ implementation
                         tostr(regvarinfo^.fpuregvars[i].refs),regvarinfo^.fpuregvars[i].name);
                  end;
             end;
-          if cs_asm_source in aktglobalswitches then
+          if cs_asm_source in current_settings.globalswitches then
             asml.insert(tai_comment.Create(strpnew('Register variable assignment:')));
 }
         end;
@@ -554,7 +554,7 @@ implementation
       { can happen when inlining assembler procedures (JM) }
       if not assigned(current_procinfo.procdef.regvarinfo) then
         exit;
-      if (cs_opt_regvar in aktoptimizerswitches) and
+      if (cs_opt_regvar in current_settings.optimizerswitches) and
          not(pi_has_assembler_block in current_procinfo.flags) and
          not(pi_uses_exceptions in current_procinfo.flags) then
         with pregvarinfo(current_procinfo.procdef.regvarinfo)^ do
@@ -610,7 +610,7 @@ implementation
                 begin
                   cg.rg[R_INTREGISTER].translate_register(tvarsym(regvars[i]).localloc.register);
                   r:=tvarsym(regvars[i]).localloc.register;
-                  if cs_asm_source in aktglobalswitches then
+                  if cs_asm_source in current_settings.globalswitches then
                    list.insert(tai_comment.Create(strpnew(tvarsym(regvars[i]).name+
                     ' with weight '+tostr(tvarsym(regvars[i]).refs)+' assigned to register '+
                     std_regname(r))));
@@ -622,7 +622,7 @@ implementation
                 begin
                   cg.rg[R_FPUREGISTER].translate_register(tvarsym(regvars[i]).localloc.register);
                   r:=tvarsym(fpuregvars[i]).localloc.register;
-                  if cs_asm_source in aktglobalswitches then
+                  if cs_asm_source in current_settings.globalswitches then
                    list.insert(tai_comment.Create(strpnew(tvarsym(fpuregvars[i]).name+
                     ' with weight '+tostr(tvarsym(fpuregvars[i]).refs)+' assigned to register '+
                     std_regname(r))));

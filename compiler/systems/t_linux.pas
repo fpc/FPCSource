@@ -160,14 +160,14 @@ begin
            { place jump in al_procedures }
            current_asmdata.asmlists[al_procedures].concat(tai_align.create(target_info.alignment.procalign));
            current_asmdata.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           if (cs_create_pic in aktmoduleswitches) and
+           if (cs_create_pic in current_settings.moduleswitches) and
              { other targets need to be checked how it works }
              (target_info.system in [system_x86_64_linux,system_i386_linux]) then
              begin
 {$ifdef x86}
                sym:=current_asmdata.RefAsmSymbol(tprocsym(hp2.sym).first_procdef.mangledname);
                reference_reset_symbol(r,sym,0);
-               if cs_create_pic in aktmoduleswitches then
+               if cs_create_pic in current_settings.moduleswitches then
                  r.refaddr:=addr_pic
                else
                  r.refaddr:=addr_full;
@@ -300,7 +300,7 @@ procedure TLinkerLinux.LoadPredefinedLibraryOrder;
 // put your linkorder/linkalias overrides here.
 // Note: assumes only called when reordering/aliasing is used.
 Begin
-   if not (cs_link_no_default_lib_order in  aktglobalswitches) Then
+   if not (cs_link_no_default_lib_order in  current_settings.globalswitches) Then
         Begin
           LinkLibraryOrder.add('gcc','',15);
           LinkLibraryOrder.add('c','',100);                 
@@ -353,7 +353,7 @@ begin
          gprtobj:='gprt0';
      end;
    end;
-  if cs_profile in aktmoduleswitches then
+  if cs_profile in current_settings.moduleswitches then
    begin
      prtobj:=gprtobj;
      if not(libctype in [glibc2,glibc21]) then
@@ -449,7 +449,7 @@ begin
          if linklibc and not reorder then
           Add('-lc');
          { when we have -static for the linker the we also need libgcc }
-         if (cs_link_staticflag in aktglobalswitches) then
+         if (cs_link_staticflag in current_settings.globalswitches) then
           Add('-lgcc');
          Add(')');
        end;
@@ -592,7 +592,7 @@ var
   StaticStr,
   StripStr   : string[40];
 begin
-  if not(cs_link_nolink in aktglobalswitches) then
+  if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
@@ -600,15 +600,15 @@ begin
   StripStr:='';
   GCSectionsStr:='';
   DynLinkStr:='';
-  if (cs_link_staticflag in aktglobalswitches) then
+  if (cs_link_staticflag in current_settings.globalswitches) then
    StaticStr:='-static';
-  if (cs_link_strip in aktglobalswitches) then
+  if (cs_link_strip in current_settings.globalswitches) then
    StripStr:='-s';
-  if (cs_link_map in aktglobalswitches) then
+  if (cs_link_map in current_settings.globalswitches) then
    StripStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
   if use_smartlink_section then
    GCSectionsStr:='--gc-sections';
-  If (cs_profile in aktmoduleswitches) or
+  If (cs_profile in current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    begin
      DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
@@ -638,7 +638,7 @@ begin
   success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
 
 { Remove ReponseFile }
-  if (success) and not(cs_link_nolink in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    RemoveFile(outputexedir+Info.ResName);
 
   if (success) then
@@ -659,7 +659,7 @@ var
   success : boolean;
 begin
   MakeSharedLibrary:=false;
-  if not(cs_link_nolink in aktglobalswitches) then
+  if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename^);
 
 { Write used files and libraries }
@@ -681,7 +681,7 @@ begin
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
 
 { Strip the library ? }
-  if success and (cs_link_strip in aktglobalswitches) then
+  if success and (cs_link_strip in current_settings.globalswitches) then
    begin
      { only remove non global symbols and debugging info for a library }
      Info.DllCmd[2]:='strip --discard-all --strip-debug $EXE';
@@ -691,7 +691,7 @@ begin
    end;
 
 { Remove ReponseFile }
-  if (success) and not(cs_link_nolink in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    RemoveFile(outputexedir+Info.ResName);
 
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }

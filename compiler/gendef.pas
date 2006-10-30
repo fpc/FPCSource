@@ -69,7 +69,7 @@ end;
 destructor tdeffile.destroy;
 begin
   if WrittenOnDisk and
-     not(cs_link_nolink in aktglobalswitches) then
+     not(cs_link_nolink in current_settings.globalswitches) then
    RemoveFile(FName);
   importlist.Free;
   exportlist.Free;

@@ -151,7 +151,7 @@ begin
     resultreg := cg.getintregister(current_asmdata.CurrAsmList,size);
   end;
   done := false;
-  if (cs_opt_level1 in aktoptimizerswitches) and (right.nodetype = ordconstn) then begin
+  if (cs_opt_level1 in current_settings.optimizerswitches) and (right.nodetype = ordconstn) then begin
     if (nodetype = divn) then
       cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, divCgOps[is_signed(right.resultdef)], 
         size, tordconstnode(right).value, numerator, resultreg)
@@ -174,7 +174,7 @@ begin
 
     { select the correct opcode according to the sign of the result, whether we need
      overflow checking }
-    op := divops[is_signed(right.resultdef), cs_check_overflow in aktlocalswitches];
+    op := divops[is_signed(right.resultdef), cs_check_overflow in current_settings.localswitches];
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op, resultreg, numerator,
       divider));
 
@@ -303,7 +303,7 @@ begin
     end;
     { choose appropriate operand }
     if left.resultdef.deftype <> floatdef then begin
-      if not (cs_check_overflow in aktlocalswitches) then
+      if not (cs_check_overflow in current_settings.localswitches) then
         op := A_NEG
       else
         op := A_NEGO_;

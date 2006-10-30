@@ -124,7 +124,7 @@ interface
       var
         op : TAsmOp;
       begin
-        case aktfputype of
+        case current_settings.fputype of
           fpu_fpa,
           fpu_fpa10,
           fpu_fpa11:

@@ -232,7 +232,7 @@ implementation
          else
 {$endif cpu64bit}
 {$ifdef SUPPORT_MMX}
-           if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resultdef) then
+           if (cs_mmx in current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
              second_mmx
          else
 {$endif SUPPORT_MMX}
@@ -469,7 +469,7 @@ implementation
         if is_boolean(resultdef) then
           second_boolean
 {$ifdef SUPPORT_MMX}
-        else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resultdef) then
+        else if (cs_mmx in current_settings.localswitches) and is_mmx_able_array(left.resultdef) then
           second_mmx
 {$endif SUPPORT_MMX}
 {$ifndef cpu64bit}

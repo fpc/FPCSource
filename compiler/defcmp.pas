@@ -288,7 +288,7 @@ implementation
                    end;
                  arraydef :
                    begin
-                     if (m_mac in aktmodeswitches) and
+                     if (m_mac in current_settings.modeswitches) and
                         (fromtreetype=stringconstn) then
                        begin
                          eq:=te_convert_l3;
@@ -370,7 +370,7 @@ implementation
                         doconv:=tc_char_2_string;
                         eq:=te_convert_l1;
                       end;
-                     if (m_mac in aktmodeswitches) and
+                     if (m_mac in current_settings.modeswitches) and
                         is_integer(def_from) and
                         (def_from.size = 4) then
                        begin
@@ -388,10 +388,10 @@ implementation
                           begin
                             doconv:=tc_string_2_string;
                             { prefered string type depends on the $H switch }
-                            if not(cs_ansistrings in aktlocalswitches) and
+                            if not(cs_ansistrings in current_settings.localswitches) and
                                (tstringdef(def_to).string_typ=st_shortstring) then
                               eq:=te_equal
-                            else if (cs_ansistrings in aktlocalswitches) and
+                            else if (cs_ansistrings in current_settings.localswitches) and
                                (tstringdef(def_to).string_typ=st_ansistring) then
                               eq:=te_equal
                             else if tstringdef(def_to).string_typ=st_widestring then
@@ -453,7 +453,7 @@ implementation
                    begin
                    { pchar can be assigned to short/ansistrings,
                      but not in tp7 compatible mode }
-                     if not(m_tp7 in aktmodeswitches) then
+                     if not(m_tp7 in current_settings.modeswitches) then
                        begin
                           if is_pchar(def_from) then
                            begin
@@ -461,9 +461,9 @@ implementation
                              { prefer ansistrings because pchars can overflow shortstrings, }
                              { but only if ansistrings are the default (JM)                 }
                              if (is_shortstring(def_to) and
-                                 not(cs_ansistrings in aktlocalswitches)) or
+                                 not(cs_ansistrings in current_settings.localswitches)) or
                                 (is_ansistring(def_to) and
-                                 (cs_ansistrings in aktlocalswitches)) then
+                                 (cs_ansistrings in current_settings.localswitches)) then
                                eq:=te_convert_l1
                              else
                                eq:=te_convert_l2;
@@ -488,7 +488,7 @@ implementation
                    begin { ordinal to real }
                      { only for implicit and internal typecasts in tp/delphi }
                      if (([cdo_explicit,cdo_internal] * cdoptions <> [cdo_explicit]) or
-                         ([m_tp7,m_delphi] * aktmodeswitches = [])) and
+                         ([m_tp7,m_delphi] * current_settings.modeswitches = [])) and
                         (is_integer(def_from) or
                          (is_currency(def_from) and
                           (s64currencytype.deftype = floatdef))) then
@@ -514,7 +514,7 @@ implementation
                        begin
                          if (fromtreetype=realconstn) or
                             not((cdo_explicit in cdoptions) and
-                                (m_delphi in aktmodeswitches)) then
+                                (m_delphi in current_settings.modeswitches)) then
                            begin
                              doconv:=tc_real_2_real;
                              { do we loose precision? }
@@ -582,7 +582,7 @@ implementation
                    begin
                      { ugly, but delphi allows it }
                      if (cdo_explicit in cdoptions) and
-                       (m_delphi in aktmodeswitches) and
+                       (m_delphi in current_settings.modeswitches) and
                        (eq=te_incompatible) then
                        begin
                          doconv:=tc_int_2_int;
@@ -634,7 +634,7 @@ implementation
                                if is_dynamic_array(def_from) then
                                  eq:=te_equal
                                { fpc modes only: array -> dyn. array }
-                               else if (aktmodeswitches*[m_objfpc,m_fpc]<>[]) and
+                               else if (current_settings.modeswitches*[m_objfpc,m_fpc]<>[]) and
                                  not(is_special_array(def_from)) and
                                  is_zero_based_array(def_from) then
                                  begin
@@ -730,8 +730,8 @@ implementation
                               end
                             else
                             { array -> array }
-                             if not(m_tp7 in aktmodeswitches) and
-                                not(m_delphi in aktmodeswitches) and
+                             if not(m_tp7 in current_settings.modeswitches) and
+                                not(m_delphi in current_settings.modeswitches) and
                                 (tarraydef(def_from).lowrange=tarraydef(def_to).lowrange) and
                                 (tarraydef(def_from).highrange=tarraydef(def_to).highrange) and
                                 equal_defs(tarraydef(def_from).elementdef,tarraydef(def_to).elementdef) and
@@ -876,7 +876,7 @@ implementation
                            eq:=te_convert_l1;
                          end
                         else
-                         if (m_delphi in aktmodeswitches) and is_integer(def_from) then
+                         if (m_delphi in current_settings.modeswitches) and is_integer(def_from) then
                           begin
                             doconv:=tc_cord_2_pointer;
                             eq:=te_convert_l2;
@@ -889,7 +889,7 @@ implementation
                         not is_void(def_from) and
                         (
                          (
-                          (m_delphi in aktmodeswitches) and
+                          (m_delphi in current_settings.modeswitches) and
                           (cdo_explicit in cdoptions)
                          ) or
                          (cdo_internal in cdoptions)
@@ -925,7 +925,7 @@ implementation
                         end
                      else
                        { dynamic array to pointer, delphi only }
-                       if (m_delphi in aktmodeswitches) and
+                       if (m_delphi in current_settings.modeswitches) and
                           is_dynamic_array(def_from) then
                         begin
                           eq:=te_equal;
@@ -998,7 +998,7 @@ implementation
                      { procedure variable can be assigned to an void pointer,
                        this not allowed for methodpointers }
                      if (is_void(tpointerdef(def_to).pointeddef) or
-                         (m_mac_procvar in aktmodeswitches)) and
+                         (m_mac_procvar in current_settings.modeswitches)) and
                         tprocvardef(def_from).is_addressonly then
                       begin
                         doconv:=tc_equal;
@@ -1009,7 +1009,7 @@ implementation
                    begin
                      { procedure variable can be assigned to an void pointer,
                        this not allowed for methodpointers }
-                     if (m_mac_procvar in aktmodeswitches) and
+                     if (m_mac_procvar in current_settings.modeswitches) and
                         tprocdef(def_from).is_addressonly then
                       begin
                         doconv:=tc_proc_2_procvar;
@@ -1070,8 +1070,8 @@ implementation
                  procdef :
                    begin
                      { proc -> procvar }
-                     if (m_tp_procvar in aktmodeswitches) or
-                        (m_mac_procvar in aktmodeswitches) then
+                     if (m_tp_procvar in current_settings.modeswitches) or
+                        (m_mac_procvar in current_settings.modeswitches) then
                       begin
                         subeq:=proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to));
                         if subeq>te_incompatible then
@@ -1097,7 +1097,7 @@ implementation
                      else
                       { for example delphi allows the assignement from pointers }
                       { to procedure variables                                  }
-                      if (m_pointer_2_procedure in aktmodeswitches) and
+                      if (m_pointer_2_procedure in current_settings.modeswitches) and
                          is_void(tpointerdef(def_from).pointeddef) and
                          tprocvardef(def_to).is_addressonly then
                        begin
@@ -1122,7 +1122,7 @@ implementation
                 if is_class_or_interface(def_to) then
                  begin
                    { void pointer also for delphi mode }
-                   if (m_delphi in aktmodeswitches) and
+                   if (m_delphi in current_settings.modeswitches) and
                       is_voidpointer(def_from) then
                     begin
                       doconv:=tc_equal;
@@ -1172,7 +1172,7 @@ implementation
                    { ugly, but delphi allows it }
                    else if (eq=te_incompatible) and
                      (def_from.deftype=orddef) and
-                     (m_delphi in aktmodeswitches) and
+                     (m_delphi in current_settings.modeswitches) and
                      (cdo_explicit in cdoptions) then
                      begin
                        doconv:=tc_int_2_int;
@@ -1523,7 +1523,7 @@ implementation
          { check return value and options, methodpointer is already checked }
          po_comp:=[po_staticmethod,po_interrupt,
                    po_iocheck,po_varargs];
-         if (m_delphi in aktmodeswitches) then
+         if (m_delphi in current_settings.modeswitches) then
            exclude(po_comp,po_varargs);
          if (def1.proccalloption=def2.proccalloption) and
             ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) and

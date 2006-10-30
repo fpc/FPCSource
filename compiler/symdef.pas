@@ -1203,7 +1203,7 @@ implementation
 {$ifdef x86}
        result:=use_sse(self);
 {$else x86}
-       result:=(deftype=floatdef) and not(cs_fp_emulation in aktmoduleswitches);
+       result:=(deftype=floatdef) and not(cs_fp_emulation in current_settings.moduleswitches);
 {$endif x86}
      end;
 
@@ -1471,13 +1471,13 @@ implementation
 
     procedure tenumdef.calcsavesize;
       begin
-        if (aktpackenum=8) or (min<low(longint)) or (int64(max)>high(cardinal)) then
+        if (current_settings.packenum=8) or (min<low(longint)) or (int64(max)>high(cardinal)) then
          savesize:=8
         else
-         if (aktpackenum=4) or (min<low(smallint)) or (max>high(word)) then
+         if (current_settings.packenum=4) or (min<low(smallint)) or (max>high(word)) then
           savesize:=4
         else
-         if (aktpackenum=2) or (min<low(shortint)) or (max>high(byte)) then
+         if (current_settings.packenum=2) or (min<low(shortint)) or (max>high(byte)) then
           savesize:=2
         else
          savesize:=1;
@@ -2309,22 +2309,22 @@ implementation
          if high<32 then
            begin
              settype:=smallset;
-             if aktsetalloc=0 then      { $PACKSET Fixed?}
+             if current_settings.setalloc=0 then      { $PACKSET Fixed?}
                savesize:=Sizeof(longint)
              else                       {No, use $PACKSET VALUE for rounding}
-               savesize:=aktsetalloc*((high+aktsetalloc*8-1) DIV (aktsetalloc*8));
+               savesize:=current_settings.setalloc*((high+current_settings.setalloc*8-1) DIV (current_settings.setalloc*8));
            end
          else
           if high<256 then
             begin
               settype:=normset;
-              if aktsetalloc=0 then      { $PACKSET Fixed?}
+              if current_settings.setalloc=0 then      { $PACKSET Fixed?}
                 savesize:=32
               else                       {No, use $PACKSET VALUE for rounding}
-                savesize:=aktsetalloc*((high+aktsetalloc*8-1) DIV (aktsetalloc*8));
+                savesize:=current_settings.setalloc*((high+current_settings.setalloc*8-1) DIV (current_settings.setalloc*8));
             end
           else
-            savesize:=aktsetalloc*((high+aktsetalloc*8-1) DIV (aktsetalloc*8));
+            savesize:=current_settings.setalloc*((high+current_settings.setalloc*8-1) DIV (current_settings.setalloc*8));
       end;
 
 
@@ -3261,7 +3261,7 @@ implementation
          defref:=nil;
          lastwritten:=nil;
          refcount:=0;
-         if (cs_browser in aktmoduleswitches) and make_ref then
+         if (cs_browser in current_settings.moduleswitches) and make_ref then
           begin
             defref:=tref.create(defref,@akttokenpos);
             inc(refcount);
@@ -3341,7 +3341,7 @@ implementation
          if (po_has_inlininginfo in procoptions) then
            inlininginfo^.code:=ppuloadnodetree(ppufile);
          { default values for no persistent data }
-         if (cs_link_deffile in aktglobalswitches) and
+         if (cs_link_deffile in current_settings.globalswitches) and
             (tf_need_export in target_info.flags) and
             (po_exports in procoptions) then
            deffile.AddExport(mangledname);
@@ -4027,7 +4027,7 @@ implementation
         { Exception: interface definitions in mode macpas, since in that }
         {   case no reference to the old name can exist yet (JM)         }
         if assigned(_mangledname) then
-          if ((m_mac in aktmodeswitches) and
+          if ((m_mac in current_settings.modeswitches) and
               (interfacedef)) then
             stringdispose(_mangledname)
           else
@@ -4367,7 +4367,7 @@ implementation
         objecttype:=ot;
         objectoptions:=[];
         childof:=nil;
-        symtable:=tobjectsymtable.create(n,aktpackrecords);
+        symtable:=tobjectsymtable.create(n,current_settings.packrecords);
         { create space for vmt !! }
         vmt_offset:=0;
         symtable.defowner:=self;
@@ -5661,8 +5661,8 @@ implementation
 {$ifdef x86}
     function use_sse(def : tdef) : boolean;
       begin
-        use_sse:=(is_single(def) and (aktfputype in sse_singlescalar)) or
-          (is_double(def) and (aktfputype in sse_doublescalar));
+        use_sse:=(is_single(def) and (current_settings.fputype in sse_singlescalar)) or
+          (is_double(def) and (current_settings.fputype in sse_doublescalar));
       end;
 {$endif x86}
 

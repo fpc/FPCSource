@@ -281,7 +281,7 @@ implementation
         result:=false;
         if (p1.resultdef.deftype<>procvardef) or
            (tponly and
-            not(m_tp_procvar in aktmodeswitches)) then
+            not(m_tp_procvar in current_settings.modeswitches)) then
           exit;
         { ignore vecn,subscriptn }
         hp:=p1;

@@ -61,7 +61,7 @@ implementation
         { In case we are in emulation mode, we must
           always call the helpers
         }
-        if (cs_fp_emulation in aktmoduleswitches) then
+        if (cs_fp_emulation in current_settings.moduleswitches) then
           begin
             result := inherited first_int_to_real;
             exit;

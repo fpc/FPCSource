@@ -1181,8 +1181,8 @@ implementation
         function handle_ln_const(r : bestreal) : tnode;
           begin
             if r<=0.0 then
-              if (cs_check_range in aktlocalswitches) or
-                 (cs_check_overflow in aktlocalswitches) then
+              if (cs_check_range in current_settings.localswitches) or
+                 (cs_check_overflow in current_settings.localswitches) then
                  begin
                    result:=crealconstnode.create(0,pbestrealtype^);
                    CGMessage(type_e_wrong_math_argument)
@@ -1202,8 +1202,8 @@ implementation
         function handle_sqrt_const(r : bestreal) : tnode;
           begin
             if r<0.0 then
-              if (cs_check_range in aktlocalswitches) or
-                 (cs_check_overflow in aktlocalswitches) then
+              if (cs_check_range in current_settings.localswitches) or
+                 (cs_check_overflow in current_settings.localswitches) then
                  begin
                    result:=crealconstnode.create(0,pbestrealtype^);
                    CGMessage(type_e_wrong_math_argument)
@@ -1384,8 +1384,8 @@ implementation
                 begin
                   { give warning for incompatibility with tp and delphi }
                   if (inlinenumber in [in_lo_long,in_hi_long,in_lo_qword,in_hi_qword]) and
-                     ((m_tp7 in aktmodeswitches) or
-                      (m_delphi in aktmodeswitches)) then
+                     ((m_tp7 in current_settings.modeswitches) or
+                      (m_delphi in current_settings.modeswitches)) then
                     CGMessage(type_w_maybe_wrong_hi_lo);
                   { constant folding }
                   if left.nodetype=ordconstn then
@@ -1536,7 +1536,7 @@ implementation
                        end;
                      pointerdef :
                        begin
-                         if m_mac in aktmodeswitches then
+                         if m_mac in current_settings.modeswitches then
                            begin
                              hp:=ctypeconvnode.create_internal(left,ptrinttype);
                              left:=nil;
@@ -1722,7 +1722,7 @@ implementation
                      begin
                        if (resultdef.deftype=enumdef) and
                           (tenumdef(resultdef).has_jumps) and
-                          not(m_delphi in aktmodeswitches) then
+                          not(m_delphi in current_settings.modeswitches) then
                          CGMessage(type_e_succ_and_pred_enums_with_assign_not_possible);
                      end;
 
@@ -1939,8 +1939,8 @@ implementation
                     begin
                       result:=crealconstnode.create(exp(getconstrealvalue),pbestrealtype^);
                       if (trealconstnode(result).value_real=MathInf.Value) and
-                         ((cs_check_range in aktlocalswitches) or
-                          (cs_check_overflow in aktlocalswitches)) then
+                         ((cs_check_range in current_settings.localswitches) or
+                          (cs_check_overflow in current_settings.localswitches)) then
                         begin
                           result:=crealconstnode.create(0,pbestrealtype^);
                           CGMessage(parser_e_range_check_error);
@@ -2158,7 +2158,7 @@ implementation
 
                   { We've checked the whole statement for correctness, now we
                     can remove it if assertions are off }
-                  if not(cs_do_assertion in aktlocalswitches) then
+                  if not(cs_do_assertion in current_settings.localswitches) then
                     begin
                       { we need a valid node, so insert a nothingn }
                       result:=cnothingnode.create;
@@ -2318,7 +2318,7 @@ implementation
                      not(is_char(left.resultdef)) and
                      not(is_boolean(left.resultdef))) or
                     (left.resultdef.deftype = pointerdef)) and
-                   (aktlocalswitches * [cs_check_overflow,cs_check_range] <> [])
+                   (current_settings.localswitches * [cs_check_overflow,cs_check_range] <> [])
                   ) then
                  { convert to simple add (JM) }
                  begin
@@ -2347,7 +2347,7 @@ implementation
                      trigger an overflow. For uint32 it works because then the operation is done
                      in 64bit }
                    if (tcallparanode(left).left.resultdef.deftype=pointerdef) then
-                     exclude(aktlocalswitches,cs_check_overflow);
+                     exclude(current_settings.localswitches,cs_check_overflow);
                    { make sure we don't call functions part of the left node twice (and generally }
                    { optimize the code generation)                                                }
                    if node_complexity(tcallparanode(left).left) > 1 then

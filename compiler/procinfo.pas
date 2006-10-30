@@ -176,7 +176,7 @@ implementation
 
     function tprocinfo.calc_stackframe_size:longint;
       begin
-        result:=Align(tg.direction*tg.lasttemp,aktalignment.localalignmin);
+        result:=Align(tg.direction*tg.lasttemp,current_settings.alignment.localalignmin);
       end;
 
 

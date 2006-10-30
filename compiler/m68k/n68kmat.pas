@@ -145,7 +145,7 @@ implementation
      paraloc1 : tcgpara;
    begin
      { no RTL call, so inline a zero denominator verification }
-     if aktcputype <> cpu_MC68000 then
+     if current_settings.cputype <> cpu_MC68000 then
        begin
          { verify if denominator is zero }
          current_asmdata.getjumplabel(continuelabel);
@@ -193,7 +193,7 @@ implementation
     begin
 //     writeln('emit mod reg reg');
      { no RTL call, so inline a zero denominator verification }
-     if aktcputype <> cpu_MC68000 then
+     if current_settings.cputype <> cpu_MC68000 then
        begin
          { verify if denominator is zero }
          current_asmdata.getjumplabel(continuelabel);

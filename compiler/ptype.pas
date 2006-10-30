@@ -285,7 +285,7 @@ implementation
          old_object_option : tsymoptions;
       begin
          { create recdef }
-         recst:=trecordsymtable.create(aktpackrecords);
+         recst:=trecordsymtable.create(current_settings.packrecords);
          record_dec:=trecorddef.create(recst);
          { insert in symtablestack }
          symtablestack.push(recst);
@@ -295,7 +295,7 @@ implementation
          current_object_option:=[sp_public];
          storetypecanbeforward:=typecanbeforward;
          { for tp7 don't allow forward types }
-         if m_tp7 in aktmodeswitches then
+         if m_tp7 in current_settings.modeswitches then
            typecanbeforward:=false;
          read_record_fields([vd_record]);
          consume(_END);
@@ -319,7 +319,7 @@ implementation
         aktenumdef : tenumdef;
         s : stringid;
         l,v : TConstExprInt;
-        oldaktpackrecords : longint;
+        oldpackrecords : longint;
         defpos,storepos : tfileposinfo;
 
         procedure expr_type;
@@ -457,7 +457,7 @@ implementation
                 begin
                   lowval:=tenumdef(def).min;
                   highval:=tenumdef(def).max;
-                  if (m_fpc in aktmodeswitches) and
+                  if (m_fpc in current_settings.modeswitches) and
                      (tenumdef(def).has_jumps) then
                    Message(type_e_array_index_enums_with_assign_not_possible);
                   indexdef:=def;
@@ -620,19 +620,19 @@ implementation
                   defpos:=akttokenpos;
                   consume(_ID);
                   { only allow assigning of specific numbers under fpc mode }
-                  if not(m_tp7 in aktmodeswitches) and
+                  if not(m_tp7 in current_settings.modeswitches) and
                      (
                       { in fpc mode also allow := to be compatible
                         with previous 1.0.x versions }
-                      ((m_fpc in aktmodeswitches) and
+                      ((m_fpc in current_settings.modeswitches) and
                        try_to_consume(_ASSIGNMENT)) or
                       try_to_consume(_EQUAL)
                      ) then
                     begin
-                       oldlocalswitches:=aktlocalswitches;
-                       include(aktlocalswitches,cs_allow_enum_calc);
+                       oldlocalswitches:=current_settings.localswitches;
+                       include(current_settings.localswitches,cs_allow_enum_calc);
                        p:=comp_expr(true);
-                       aktlocalswitches:=oldlocalswitches;
+                       current_settings.localswitches:=oldlocalswitches;
                        if (p.nodetype=ordconstn) then
                         begin
                           { we expect an integer or an enum of the
@@ -689,7 +689,7 @@ implementation
             _BITPACKED:
               begin
                 bitpacking :=
-                  (cs_bitpacking in aktlocalswitches) or
+                  (cs_bitpacking in current_settings.localswitches) or
                   (token = _BITPACKED);
                 consume(token);
                 if token=_ARRAY then
@@ -698,17 +698,17 @@ implementation
                   set_dec
                 else
                   begin
-                    oldaktpackrecords:=aktpackrecords;
+                    oldpackrecords:=current_settings.packrecords;
                     if (not bitpacking) or
                        (token in [_CLASS,_OBJECT]) then
-                      aktpackrecords:=1
+                      current_settings.packrecords:=1
                     else
-                      aktpackrecords:=bit_alignment;
+                      current_settings.packrecords:=bit_alignment;
                     if token in [_CLASS,_OBJECT] then
                       def:=object_dec(name,genericdef,genericlist,nil)
                     else
                       def:=record_dec;
-                    aktpackrecords:=oldaktpackrecords;
+                    current_settings.packrecords:=oldpackrecords;
                   end;
               end;
             _DISPINTERFACE,

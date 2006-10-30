@@ -91,8 +91,8 @@ implementation
         { but the registers must be different!        }
         else
           if (pop_size=8) and
-             not(cs_opt_size in aktoptimizerswitches) and
-             (aktoptimizecputype=cpu_Pentium) then
+             not(cs_opt_size in current_settings.optimizerswitches) and
+             (current_settings.optimizecputype=cpu_Pentium) then
             begin
                hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_POP,S_L,hreg));

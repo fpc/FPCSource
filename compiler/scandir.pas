@@ -79,9 +79,9 @@ implementation
         if (sw<>cs_modulenone) and (state in ['-','+']) then
          begin
            if state='-' then
-            exclude(aktmoduleswitches,sw)
+            exclude(current_settings.moduleswitches,sw)
            else
-            include(aktmoduleswitches,sw);
+            include(current_settings.moduleswitches,sw);
          end;
       end;
 
@@ -94,11 +94,11 @@ implementation
         if (sw<>cs_localnone) and (state in ['-','+']) then
          begin
            if not localswitcheschanged then
-             nextaktlocalswitches:=aktlocalswitches;
+             nextlocalswitches:=current_settings.localswitches;
            if state='-' then
-            exclude(nextaktlocalswitches,sw)
+            exclude(nextlocalswitches,sw)
            else
-            include(nextaktlocalswitches,sw);
+            include(nextlocalswitches,sw);
            localswitcheschanged:=true;
          end;
       end;
@@ -111,18 +111,18 @@ implementation
         if (sw<>cs_localnone) and (state in ['-','+','*']) then
          begin
            if not localswitcheschanged then
-             nextaktlocalswitches:=aktlocalswitches;
+             nextlocalswitches:=current_settings.localswitches;
            if state='-' then
-            exclude(nextaktlocalswitches,sw)
+            exclude(nextlocalswitches,sw)
            else
             if state='+' then
-             include(nextaktlocalswitches,sw)
+             include(nextlocalswitches,sw)
             else
              begin
-              if sw in initlocalswitches then
-               include(nextaktlocalswitches,sw)
+              if sw in init_settings.localswitches then
+               include(nextlocalswitches,sw)
               else
-               exclude(nextaktlocalswitches,sw);
+               exclude(nextlocalswitches,sw);
              end;
            localswitcheschanged:=true;
          end;
@@ -149,18 +149,18 @@ implementation
            { Support also the ON and OFF as switch }
            hs:=current_scanner.readid;
            if (hs='ON') then
-            aktpackrecords:=4
+            current_settings.packrecords:=4
            else if (hs='OFF') then
-             aktpackrecords:=1
-           else if m_mac in aktmodeswitches then
+             current_settings.packrecords:=1
+           else if m_mac in current_settings.modeswitches then
              begin
                { Support switches used in Apples Universal Interfaces}
                if (hs='MAC68K') then
-                 aktpackrecords:=2
+                 current_settings.packrecords:=2
                else if (hs='POWER') then
-                 aktpackrecords:=4
+                 current_settings.packrecords:=4
                else if (hs='RESET') then
-                 aktpackrecords:=0
+                 current_settings.packrecords:=0
                else
                  Message1(scan_e_illegal_pack_records,hs);
              end
@@ -170,12 +170,12 @@ implementation
         else
          begin
            case current_scanner.readval of
-             1 : aktpackrecords:=1;
-             2 : aktpackrecords:=2;
-             4 : aktpackrecords:=4;
-             8 : aktpackrecords:=8;
-            16 : aktpackrecords:=16;
-            32 : aktpackrecords:=32;
+             1 : current_settings.packrecords:=1;
+             2 : current_settings.packrecords:=2;
+             4 : current_settings.packrecords:=4;
+             8 : current_settings.packrecords:=8;
+            16 : current_settings.packrecords:=16;
+            32 : current_settings.packrecords:=32;
            else
             Message1(scan_e_illegal_pack_records,hs);
            end;
@@ -184,22 +184,22 @@ implementation
 
     procedure dir_a1;
       begin
-        aktpackrecords:=1;
+        current_settings.packrecords:=1;
       end;
 
     procedure dir_a2;
       begin
-        aktpackrecords:=2;
+        current_settings.packrecords:=2;
       end;
 
     procedure dir_a4;
       begin
-        aktpackrecords:=4;
+        current_settings.packrecords:=4;
       end;
 
     procedure dir_a8;
       begin
-        aktpackrecords:=8;
+        current_settings.packrecords:=8;
       end;
 
     procedure dir_asmmode;
@@ -211,9 +211,9 @@ implementation
         If Inside_asm_statement then
           Message1(scan_w_no_asm_reader_switch_inside_asm,s);
         if s='DEFAULT' then
-         aktasmmode:=initasmmode
+         current_settings.asmmode:=init_settings.asmmode
         else
-         if not SetAsmReadMode(s,aktasmmode) then
+         if not SetAsmReadMode(s,current_settings.asmmode) then
            Message1(scan_e_illegal_asmmode_specifier,s);
       end;
 
@@ -246,7 +246,7 @@ implementation
         if not (target_info.system in system_all_windows + [system_i386_os2,
                                        system_i386_emx, system_powerpc_macos]) then
           begin
-            if m_delphi in aktmodeswitches then
+            if m_delphi in current_settings.modeswitches then
               Message(scan_n_app_type_not_support)
             else
               Message(scan_w_app_type_not_support);
@@ -283,7 +283,7 @@ implementation
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
-        if not SetAktProcCall(hs,aktdefproccall) then
+        if not SetAktProcCall(hs,current_settings.defproccall) then
           begin
             if (hs <> '') then
               Message1(parser_w_unknown_proc_directive_ignored,hs)
@@ -377,10 +377,10 @@ implementation
     procedure dir_fputype;
       begin
         current_scanner.skipspace;
-        { current_scanner.undef_macro('FPU'+fputypestr[aktfputype]); }
-        if not(SetFPUType(upper(current_scanner.readcomment),aktfputype)) then
+        { current_scanner.undef_macro('FPU'+fputypestr[current_settings.fputype]); }
+        if not(SetFPUType(upper(current_scanner.readcomment),current_settings.fputype)) then
           comment(V_Error,'Illegal FPU type');
-        { current_scanner.def_macro('FPU'+fputypestr[aktfputype]); }
+        { current_scanner.def_macro('FPU'+fputypestr[current_settings.fputype]); }
      end;
 
     procedure dir_goto;
@@ -441,11 +441,11 @@ implementation
         current_scanner.skipspace;
         hs:=current_scanner.readid;
         if (hs='CORBA') then
-          aktinterfacetype:=it_interfacecorba
+          current_settings.interfacetype:=it_interfacecorba
         else if (hs='COM') then
-          aktinterfacetype:=it_interfacecom
+          current_settings.interfacetype:=it_interfacecom
         else if (hs='DEFAULT') then
-          aktinterfacetype:=initinterfacetype
+          current_settings.interfacetype:=init_settings.interfacetype
         else
           Message(scan_e_invalid_interface_type);
       end;
@@ -582,7 +582,7 @@ implementation
            begin
               hs:=current_scanner.readid;
               if (hs='NORMAL') or (hs='DEFAULT') then
-                aktmaxfpuregisters:=-1
+                current_settings.maxfpuregisters:=-1
               else
                 Message(scan_e_invalid_maxfpureg_value);
            end
@@ -591,7 +591,7 @@ implementation
               l:=current_scanner.readval;
               case l of
                  0..8:
-                   aktmaxfpuregisters:=l;
+                   current_settings.maxfpuregisters:=l;
                  else
                    Message(scan_e_invalid_maxfpureg_value);
               end;
@@ -691,7 +691,7 @@ implementation
           current_scanner.skipspace;
           current_scanner.readstring;
           if not current_module.mode_switch_allowed and
-              not ((m_mac in aktmodeswitches) and (pattern='MACPAS')) then
+              not ((m_mac in current_settings.modeswitches) and (pattern='MACPAS')) then
             Message1(scan_e_mode_switch_not_allowed,pattern)
           else if not SetCompileMode(pattern,false) then
             Message1(scan_w_illegal_switch,pattern)
@@ -738,14 +738,14 @@ implementation
         { Support also the ON and OFF as switch }
         hs:=current_scanner.readid;
         if (hs='ON') then
-          aktoptimizerswitches:=level2optimizerswitches
+          current_settings.optimizerswitches:=level2optimizerswitches
         else if (hs='OFF') then
-          aktoptimizerswitches:=[]
+          current_settings.optimizerswitches:=[]
         else if (hs='DEFAULT') then
-          aktoptimizerswitches:=initoptimizerswitches
+          current_settings.optimizerswitches:=init_settings.optimizerswitches
         else
           begin
-            if not UpdateOptimizerStr(hs,aktoptimizerswitches) then
+            if not UpdateOptimizerStr(hs,current_settings.optimizerswitches) then
               Message1(scan_e_illegal_optimization_specifier,hs);
           end;
       end;
@@ -764,16 +764,16 @@ implementation
          begin
            hs:=current_scanner.readid;
            if (hs='NORMAL') or (hs='DEFAULT') then
-            aktpackenum:=4
+            current_settings.packenum:=4
            else
             Message1(scan_e_illegal_pack_enum, hs);
          end
         else
          begin
            case current_scanner.readval of
-            1 : aktpackenum:=1;
-            2 : aktpackenum:=2;
-            4 : aktpackenum:=4;
+            1 : current_settings.packenum:=1;
+            2 : current_settings.packenum:=2;
+            4 : current_settings.packenum:=4;
            else
             Message1(scan_e_illegal_pack_enum, pattern);
            end;
@@ -790,22 +790,22 @@ implementation
            hs:=current_scanner.readid;
            { C has the special recordalignmax of C_alignment }
            if (hs='C') then
-            aktpackrecords:=C_alignment
+            current_settings.packrecords:=C_alignment
            else
             if (hs='NORMAL') or (hs='DEFAULT') then
-             aktpackrecords:=0
+             current_settings.packrecords:=0
            else
             Message1(scan_e_illegal_pack_records,hs);
          end
         else
          begin
            case current_scanner.readval of
-             1 : aktpackrecords:=1;
-             2 : aktpackrecords:=2;
-             4 : aktpackrecords:=4;
-             8 : aktpackrecords:=8;
-            16 : aktpackrecords:=16;
-            32 : aktpackrecords:=32;
+             1 : current_settings.packrecords:=1;
+             2 : current_settings.packrecords:=2;
+             4 : current_settings.packrecords:=4;
+             8 : current_settings.packrecords:=8;
+            16 : current_settings.packrecords:=16;
+            32 : current_settings.packrecords:=32;
            else
             Message1(scan_e_illegal_pack_records,pattern);
            end;
@@ -822,17 +822,17 @@ implementation
          begin
            hs:=current_scanner.readid;
            if (hs='FIXED') or ((hs='DEFAULT') OR (hs='NORMAL')) then
-            aktsetalloc:=0               {Fixed mode, sets are 4 or 32 bytes}
+            current_settings.setalloc:=0               {Fixed mode, sets are 4 or 32 bytes}
            else
             Message(scan_e_only_packset);
          end
         else
          begin
            case current_scanner.readval of
-            1 : aktsetalloc:=1;
-            2 : aktsetalloc:=2;
-            4 : aktsetalloc:=4;
-            8 : aktsetalloc:=8;
+            1 : current_settings.setalloc:=1;
+            2 : current_settings.setalloc:=2;
+            4 : current_settings.setalloc:=4;
+            8 : current_settings.setalloc:=8;
            else
             Message(scan_e_only_packset);
            end;
@@ -852,10 +852,10 @@ implementation
         Message(scan_e_too_many_pop);
 
       if not localswitcheschanged then
-        nextaktlocalswitches:=aktlocalswitches;
+        nextlocalswitches:=current_settings.localswitches;
 
       Dec(localswitchesstackpos);
-      nextaktlocalswitches:= localswitchesstack[localswitchesstackpos];
+      nextlocalswitches:= localswitchesstack[localswitchesstackpos];
 
       localswitcheschanged:=true;
     end;
@@ -864,7 +864,7 @@ implementation
       begin
         do_moduleswitch(cs_profile);
         { defined/undefine FPC_PROFILE }
-        if cs_profile in aktmoduleswitches then
+        if cs_profile in current_settings.moduleswitches then
           def_system_macro('FPC_PROFILE')
         else
           undef_system_macro('FPC_PROFILE');
@@ -878,11 +878,11 @@ implementation
 
       if localswitcheschanged then
         begin
-          aktlocalswitches:=nextaktlocalswitches;
+          current_settings.localswitches:=nextlocalswitches;
           localswitcheschanged:=false;
         end;
 
-      localswitchesstack[localswitchesstackpos]:= aktlocalswitches;
+      localswitchesstack[localswitchesstackpos]:= current_settings.localswitches;
       Inc(localswitchesstackpos);
     end;
 
@@ -1140,17 +1140,17 @@ implementation
 
     procedure dir_z1;
       begin
-        aktpackenum:=1;
+        current_settings.packenum:=1;
       end;
 
     procedure dir_z2;
       begin
-        aktpackenum:=2;
+        current_settings.packenum:=2;
       end;
 
     procedure dir_z4;
       begin
-        aktpackenum:=4;
+        current_settings.packenum:=4;
       end;
 
     procedure dir_externalsym;
@@ -1175,7 +1175,7 @@ implementation
       begin
         current_scanner.skipspace;
         s:=current_scanner.readcomment;
-        UpdateAlignmentStr(s,aktalignment);
+        UpdateAlignmentStr(s,current_settings.alignment);
       end;
 
     procedure dir_codepage;
@@ -1189,11 +1189,11 @@ implementation
              current_scanner.skipspace;
              s:=current_scanner.readcomment;
              if (upper(s)='UTF8') or (upper(s)='UTF-8') then
-               aktsourcecodepage:='utf8'
+               current_settings.sourcecodepage:='utf8'
              else if not(cpavailable(s)) then
                Message1(option_code_page_not_available,s)
              else
-               aktsourcecodepage:=s;
+               current_settings.sourcecodepage:=s;
           end;
       end;
 

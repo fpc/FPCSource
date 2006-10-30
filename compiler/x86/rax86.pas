@@ -169,7 +169,7 @@ end;
 
 Procedure FWaitWarning;
 begin
-  if (target_info.system=system_i386_GO32V2) and (cs_fp_emulation in aktmoduleswitches) then
+  if (target_info.system=system_i386_GO32V2) and (cs_fp_emulation in current_settings.moduleswitches) then
    Message(asmr_w_fwait_emu_prob);
 end;
 
@@ -274,7 +274,7 @@ begin
                           tx86operand(operands[i]).opsize:=opsize
                         else
                          begin
-                           if (m_delphi in aktmodeswitches) then
+                           if (m_delphi in current_settings.modeswitches) then
                              Message(asmr_w_unable_to_determine_reference_size_using_dword)
                            else
                              Message(asmr_e_unable_to_determine_reference_size);
@@ -340,7 +340,7 @@ begin
               if tx86operand(operands[1]).opsize=S_NO then
                 begin
                   tx86operand(operands[1]).opsize:=S_B;
-                  if (m_delphi in aktmodeswitches) then
+                  if (m_delphi in current_settings.modeswitches) then
                     Message(asmr_w_unable_to_determine_reference_size_using_byte)
                   else
                     Message(asmr_e_unable_to_determine_reference_size);
@@ -429,8 +429,8 @@ begin
   if sizeerr then
    begin
      { if range checks are on then generate an error }
-     if (cs_compilesystem in aktmoduleswitches) or
-        not (cs_check_range in aktlocalswitches) then
+     if (cs_compilesystem in current_settings.moduleswitches) or
+        not (cs_check_range in current_settings.localswitches) then
        Message(asmr_w_size_suffix_and_dest_dont_match)
      else
        Message(asmr_e_size_suffix_and_dest_dont_match);

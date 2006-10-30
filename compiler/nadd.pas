@@ -208,8 +208,8 @@ implementation
             ((rt = realconstn) and
              (trealconstnode(right).value_real = 0.0))) then
           begin
-            if (cs_check_range in aktlocalswitches) or
-               (cs_check_overflow in aktlocalswitches) then
+            if (cs_check_range in current_settings.localswitches) or
+               (cs_check_overflow in current_settings.localswitches) then
                begin
                  result:=crealconstnode.create(1,pbestrealtype^);
                  Message(parser_e_division_by_zero);
@@ -250,7 +250,7 @@ implementation
              { of the same  type (JM)                                    }
              if (lt = pointerconstn) and (rt = pointerconstn) then
               begin
-                if not(cs_extsyntax in aktmoduleswitches) and
+                if not(cs_extsyntax in current_settings.moduleswitches) and
                    not(nodetype in [equaln,unequaln]) then
                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename)
                 else
@@ -729,7 +729,7 @@ implementation
          { Kylix allows enum+ordconstn in an enum declaration (blocktype
            is bt_type), we need to do the conversion here before the
            constant folding }
-         if (m_delphi in aktmodeswitches) and
+         if (m_delphi in current_settings.modeswitches) and
             (blocktype=bt_type) then
           begin
             if (left.resultdef.deftype=enumdef) and
@@ -790,7 +790,7 @@ implementation
          else if (ld.deftype=orddef) and (rd.deftype=orddef) then
            begin
              { optimize multiplacation by a power of 2 }
-             if not(cs_check_overflow in aktlocalswitches) and
+             if not(cs_check_overflow in current_settings.localswitches) and
                 (nodetype = muln) and
                 (((left.nodetype = ordconstn) and
                   ispowerof2(tordconstnode(left).value,i)) or
@@ -857,7 +857,7 @@ implementation
                   unequaln,
                   equaln:
                     begin
-                      if not(cs_full_boolean_eval in aktlocalswitches) or
+                      if not(cs_full_boolean_eval in current_settings.localswitches) or
                          (nf_short_bool in flags) then
                        begin
                          { Remove any compares with constants }
@@ -1166,7 +1166,7 @@ implementation
                  end;
                ltn,lten,gtn,gten:
                  begin
-                    if (cs_extsyntax in aktmoduleswitches) then
+                    if (cs_extsyntax in current_settings.moduleswitches) then
                      begin
                        if is_voidpointer(right.resultdef) then
                         inserttypeconv(right,left.resultdef)
@@ -1180,7 +1180,7 @@ implementation
                  end;
                subn:
                  begin
-                    if (cs_extsyntax in aktmoduleswitches) then
+                    if (cs_extsyntax in current_settings.moduleswitches) then
                       begin
                         if is_voidpointer(right.resultdef) then
                         begin
@@ -1232,7 +1232,7 @@ implementation
                   strtype:= st_widestring
                 else
                   if is_ansistring(rd) or is_ansistring(ld) or
-                     ((cs_ansistrings in aktlocalswitches) and
+                     ((cs_ansistrings in current_settings.localswitches) and
                      //todo: Move some of this to longstring's then they are implemented?
                       (
                        is_pchar(rd) or (is_chararray(rd) and (rd.size > 255)) or is_open_chararray(rd) or
@@ -1385,7 +1385,7 @@ implementation
 {$ifdef SUPPORT_MMX}
        { mmx support, this must be before the zero based array
          check }
-         else if (cs_mmx in aktlocalswitches) and
+         else if (cs_mmx in current_settings.localswitches) and
                  is_mmx_able_array(ld) and
                  is_mmx_able_array(rd) and
                  equal_defs(ld,rd) then
@@ -1404,7 +1404,7 @@ implementation
 {$endif SUPPORT_MMX}
          { vector support, this must be before the zero based array
            check }
-         else if (cs_support_vectors in aktglobalswitches) and
+         else if (cs_support_vectors in current_settings.globalswitches) and
                  is_vector(ld) and
                  is_vector(rd) and
                  equal_defs(ld,rd) then
@@ -1430,8 +1430,8 @@ implementation
             inserttypeconv(left,sinttype);
             if nodetype=addn then
               begin
-                if not(cs_extsyntax in aktmoduleswitches) or
-                   (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
+                if not(cs_extsyntax in current_settings.moduleswitches) or
+                   (not(is_pchar(ld)) and not(m_add_pointer in current_settings.modeswitches)) then
                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                 if (rd.deftype=pointerdef) and
                    (tpointerdef(rd).pointeddef.size>1) then
@@ -1459,8 +1459,8 @@ implementation
              inserttypeconv(right,sinttype);
              if nodetype in [addn,subn] then
                begin
-                 if not(cs_extsyntax in aktmoduleswitches) or
-                    (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
+                 if not(cs_extsyntax in current_settings.moduleswitches) or
+                    (not(is_pchar(ld)) and not(m_add_pointer in current_settings.modeswitches)) then
                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                  if (ld.deftype=pointerdef) then
                  begin
@@ -2062,7 +2062,7 @@ implementation
           end;
 
         { can we use a shift instead of a mul? }
-        if not (cs_check_overflow in aktlocalswitches) and
+        if not (cs_check_overflow in current_settings.localswitches) and
            (right.nodetype = ordconstn) and
            ispowerof2(tordconstnode(right).value,power) then
           begin
@@ -2089,7 +2089,7 @@ implementation
 
         { otherwise, create the parameters for the helper }
         right := ccallparanode.create(
-          cordconstnode.create(ord(cs_check_overflow in aktlocalswitches),booltype,true),
+          cordconstnode.create(ord(cs_check_overflow in current_settings.localswitches),booltype,true),
           ccallparanode.create(right,ccallparanode.create(left,nil)));
         left := nil;
         { only qword needs the unsigned code, the
@@ -2115,7 +2115,7 @@ implementation
         { In non-emulation mode, real opcodes are
           emitted for floating point values.
         }
-        if not (cs_fp_emulation in aktmoduleswitches) then
+        if not (cs_fp_emulation in current_settings.moduleswitches) then
           exit;
 
         if not(target_info.system in system_wince) then
@@ -2269,7 +2269,7 @@ implementation
          if nodetype=slashn then
            begin
 {$ifdef cpufpemu}
-             if (aktfputype=fpu_soft) or (cs_fp_emulation in aktmoduleswitches) then
+             if (current_settings.fputype=fpu_soft) or (cs_fp_emulation in current_settings.moduleswitches) then
                begin
                  result:=first_addfloat;
                  if assigned(result) then
@@ -2302,7 +2302,7 @@ implementation
            { 2 booleans ? }
              if is_boolean(ld) and is_boolean(rd) then
               begin
-                if (not(cs_full_boolean_eval in aktlocalswitches) or
+                if (not(cs_full_boolean_eval in current_settings.localswitches) or
                     (nf_short_bool in flags)) and
                    (nodetype in [andn,orn]) then
                  begin
@@ -2392,7 +2392,7 @@ implementation
              else
 {$ifdef MMXSET}
 {$ifdef i386}
-               if cs_mmx in aktlocalswitches then
+               if cs_mmx in current_settings.localswitches then
                  begin
                    expectloc:=LOC_MMXREGISTER;
                    calcregisters(self,0,0,4);
@@ -2478,7 +2478,7 @@ implementation
          else if (rd.deftype=floatdef) or (ld.deftype=floatdef) then
             begin
 {$ifdef cpufpemu}
-             if (aktfputype=fpu_soft) or (cs_fp_emulation in aktmoduleswitches) then
+             if (current_settings.fputype=fpu_soft) or (cs_fp_emulation in current_settings.moduleswitches) then
                begin
                  result:=first_addfloat;
                  if assigned(result) then
@@ -2534,7 +2534,7 @@ implementation
 {$ifdef SUPPORT_MMX}
        { mmx support, this must be before the zero based array
          check }
-         else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(ld) and
+         else if (cs_mmx in current_settings.localswitches) and is_mmx_able_array(ld) and
                  is_mmx_able_array(rd) then
             begin
               expectloc:=LOC_MMXREGISTER;
@@ -2563,7 +2563,7 @@ implementation
            end
 
 {$ifdef SUPPORT_MMX}
-         else if (cs_mmx in aktlocalswitches) and
+         else if (cs_mmx in current_settings.localswitches) and
                  is_mmx_able_array(ld) and
                  is_mmx_able_array(rd) then
             begin

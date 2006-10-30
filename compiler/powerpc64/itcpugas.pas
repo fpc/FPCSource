@@ -146,7 +146,7 @@ var
 begin
   p := findreg_by_number(r);
   if p <> 0 then
-    if (cs_create_smart in aktmoduleswitches) and
+    if (cs_create_smart in current_settings.moduleswitches) and
       (target_info.system <> system_powerpc_darwin) then
       result := gas_regname_short_table[p]
     else

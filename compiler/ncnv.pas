@@ -447,7 +447,7 @@ implementation
                               begin
                                 { for constant set elements, delphi allows the usage of elements of enumerations which
                                   have value>255 if there is no element with a value > 255 used }
-                                if (m_delphi in aktmodeswitches) and (p2.resultdef.deftype=enumdef) then
+                                if (m_delphi in current_settings.modeswitches) and (p2.resultdef.deftype=enumdef) then
                                   begin
                                     if tordconstnode(p2).value>constsethi then
                                       constsethi:=tordconstnode(p2).value;
@@ -602,7 +602,7 @@ implementation
         newblock: tblocknode;
         newstatement: tstatementnode;
       begin
-         if (m_mac in aktmodeswitches) and
+         if (m_mac in current_settings.modeswitches) and
             is_integer(p.resultdef) and
             (p.resultdef.size = 4) then
            begin
@@ -1138,7 +1138,7 @@ implementation
 
     function ttypeconvnode.typecheck_int_to_string : tnode;
        begin
-         if (m_mac in aktmodeswitches) and
+         if (m_mac in current_settings.modeswitches) and
             is_integer(left.resultdef) and
             (left.resultdef.size = 4) then
            begin
@@ -1649,8 +1649,8 @@ implementation
                      (tcallnode(left).para_count=0) and
                      (resultdef.deftype=procvardef) and
                      (
-                      (m_tp_procvar in aktmodeswitches) or
-                      (m_mac_procvar in aktmodeswitches)
+                      (m_tp_procvar in current_settings.modeswitches) or
+                      (m_mac_procvar in current_settings.modeswitches)
                      ) then
                    begin
                      if assigned(tcallnode(left).right) then
@@ -1745,7 +1745,7 @@ implementation
                            end;
 
                          { Add runtime check? }
-                         if (cs_check_object in aktlocalswitches) then
+                         if (cs_check_object in current_settings.localswitches) then
                            begin
                              { we can translate the typeconvnode to 'as' when
                                typecasting to a class or interface }
@@ -2062,7 +2062,7 @@ implementation
     function ttypeconvnode.first_real_to_real : tnode;
       begin
 {$ifdef cpufpemu}
-        if cs_fp_emulation in aktmoduleswitches then
+        if cs_fp_emulation in current_settings.moduleswitches then
           begin
             if target_info.system in system_wince then
               begin
@@ -2499,7 +2499,7 @@ implementation
                  (convtype=tc_int_2_int) and
                  (
                   (resultdef.size=left.resultdef.size) or
-                  ((m_tp7 in aktmodeswitches) and
+                  ((m_tp7 in current_settings.modeswitches) and
                    (resultdef.size<left.resultdef.size))
                  )
                 ) or

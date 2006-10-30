@@ -344,10 +344,10 @@ implementation
             end;
           LOC_CREFERENCE,LOC_REFERENCE:
             begin
-              if not(cs_opt_regvar in aktoptimizerswitches) or
+              if not(cs_opt_regvar in current_settings.optimizerswitches) or
                  (getsupreg(t.reference.base) in cg.rgint.usableregs) then
                 exclude(regs,getsupreg(t.reference.base));
-              if not(cs_opt_regvar in aktoptimizerswitches) or
+              if not(cs_opt_regvar in current_settings.optimizerswitches) or
                  (getsupreg(t.reference.index) in cg.rgint.usableregs) then
                 exclude(regs,getsupreg(t.reference.index));
             end;
@@ -1860,7 +1860,7 @@ implementation
           therefore if the context must be saved, do it before
           the actual call to the profile code
         }
-        if (cs_profile in aktmoduleswitches) and
+        if (cs_profile in current_settings.moduleswitches) and
            not(po_assembler in current_procinfo.procdef.procoptions) then
           begin
             { non-win32 can call mcout even in main }
@@ -1925,7 +1925,7 @@ implementation
           hs:=current_procinfo.procdef.aliasnames.getfirst;
           if hs='' then
             break;
-          if (cs_profile in aktmoduleswitches) or
+          if (cs_profile in current_settings.moduleswitches) or
              (po_global in current_procinfo.procdef.procoptions) then
             list.concat(Tai_symbol.createname_global(hs,AT_FUNCTION,0))
           else
@@ -1983,7 +1983,7 @@ implementation
         current_asmdata.asmcfi.start_frame(list);
 
         { All temps are know, write offsets used for information }
-        if (cs_asm_source in aktglobalswitches) then
+        if (cs_asm_source in current_settings.globalswitches) then
           begin
             if tg.direction>0 then
               begin
@@ -2091,7 +2091,7 @@ implementation
           to the cg }
 {$ifdef i386}
         { allocate PIC register }
-        if (cs_create_pic in aktmoduleswitches) and
+        if (cs_create_pic in current_settings.moduleswitches) and
            (tf_pic_uses_got in target_info.flags) and
            (pi_needs_got in current_procinfo.flags) and
            not(po_kylixlocal in current_procinfo.procdef.procoptions) then
@@ -2117,8 +2117,8 @@ implementation
       begin
         { add the procedure to the al_procedures }
         maybe_new_object_file(list);
-        new_section(list,sec_code,lower(pd.mangledname),aktalignment.procalign);
-        list.concat(Tai_align.create(aktalignment.procalign));
+        new_section(list,sec_code,lower(pd.mangledname),current_settings.alignment.procalign);
+        list.concat(Tai_align.create(current_settings.alignment.procalign));
         if (po_global in pd.procoptions) then
           list.concat(Tai_symbol.createname_global(pd.mangledname,AT_FUNCTION,0))
         else
@@ -2131,7 +2131,7 @@ implementation
 
 
         { create pic'ed? }
-        if cs_create_pic in aktmoduleswitches then
+        if cs_create_pic in current_settings.moduleswitches then
           begin
             { it could be that we're called from a procedure not having the
               got loaded
@@ -2303,7 +2303,7 @@ implementation
                             end;
                           end;
                       end;
-                    if cs_asm_source in aktglobalswitches then
+                    if cs_asm_source in current_settings.globalswitches then
                       begin
                         case initialloc.loc of
                           LOC_REFERENCE :
@@ -2367,7 +2367,7 @@ implementation
               add_regvars(rv^,tabstractnormalvarsym(tloadnode(n).symtableentry).localloc);
           vecn:
             { range checks sometimes need the high parameter }
-            if (cs_check_range in aktlocalswitches) and
+            if (cs_check_range in current_settings.localswitches) and
                (is_open_array(tvecnode(n).left.resultdef) or
                 is_array_of_const(tvecnode(n).left.resultdef)) and
                not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
@@ -2819,10 +2819,10 @@ implementation
     function getprocalign : shortint;
       begin
         { gprof uses 16 byte granularity }
-        if (cs_profile in aktmoduleswitches) then
+        if (cs_profile in current_settings.moduleswitches) then
           result:=16
         else
-         result:=aktalignment.procalign;
+         result:=current_settings.alignment.procalign;
       end;
 
 

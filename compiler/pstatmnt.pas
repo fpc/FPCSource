@@ -327,7 +327,7 @@ implementation
                (
                 { record/object fields are allowed in tp7 mode only }
                 (
-                 (m_tp7 in aktmodeswitches) and
+                 (m_tp7 in current_settings.modeswitches) and
                  (hp.nodetype=subscriptn) and
                  ((tsubscriptnode(hp).left.resultdef.deftype=recorddef) or
                   is_object(tsubscriptnode(hp).left.resultdef))
@@ -371,7 +371,7 @@ implementation
                          ) then
                      begin
                        { Assigning for-loop variable is only allowed in tp7 and macpas }
-                       if ([m_tp7,m_mac] * aktmodeswitches = []) then
+                       if ([m_tp7,m_mac] * current_settings.modeswitches = []) then
                          begin
                            if not assigned(loopvarsym) then
                              loopvarsym:=tabstractvarsym(tloadnode(hp).symtableentry);
@@ -384,7 +384,7 @@ implementation
                typedconstsym :
                  begin
                    { Bad programming, only allowed in tp7 mode }
-                   if not(m_tp7 in aktmodeswitches) then
+                   if not(m_tp7 in current_settings.modeswitches) then
                      MessagePos(hp.fileinfo,type_e_illegal_count_var);
                  end;
                else
@@ -856,9 +856,9 @@ implementation
         asmreader : tbaseasmreader;
       begin
          Inside_asm_statement:=true;
-         if assigned(asmmodeinfos[aktasmmode]) then
+         if assigned(asmmodeinfos[current_settings.asmmode]) then
            begin
-             asmreader:=asmmodeinfos[aktasmmode]^.casmreader.create;
+             asmreader:=asmmodeinfos[current_settings.asmmode]^.casmreader.create;
              asmstat:=casmnode.create(asmreader.assemble as TAsmList);
              asmreader.free;
            end
@@ -927,7 +927,7 @@ implementation
          case token of
            _GOTO :
              begin
-                if not(cs_support_goto in aktmoduleswitches)then
+                if not(cs_support_goto in current_settings.moduleswitches)then
                  Message(sym_e_goto_and_label_not_supported);
                 consume(_GOTO);
                 if (token<>_INTCONST) and (token<>_ID) then
@@ -1140,7 +1140,7 @@ implementation
            current_procinfo.procdef.localst.rename(current_procinfo.procdef.resultname,'$hiddenresult');
 
          { delphi uses register calling for assembler methods }
-         if (m_delphi in aktmodeswitches) and
+         if (m_delphi in current_settings.modeswitches) and
             (po_assembler in current_procinfo.procdef.procoptions) and
             not(po_hascallingconvention in current_procinfo.procdef.procoptions) then
            current_procinfo.procdef.proccalloption:=pocall_register;

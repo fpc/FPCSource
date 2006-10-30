@@ -443,13 +443,13 @@ var
   ES: ExtStr;
   OutName: PathStr;
 begin
-  if not(cs_link_nolink in aktglobalswitches) then
+  if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
   FSplit (current_module.exefilename^, DS, NS, ES);
   OutName := DS + NS + '.out';
-  if (cs_link_strip in aktglobalswitches) then
+  if (cs_link_strip in current_settings.globalswitches) then
    StripStr := '-s'
   else
    StripStr := '';
@@ -497,7 +497,7 @@ begin
    end;
 
 { Remove ReponseFile }
-  if (success) and not(cs_link_nolink in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    RemoveFile(outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

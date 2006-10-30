@@ -653,7 +653,7 @@ implementation
          location.loc:=LOC_INVALID;
          { save local info }
          fileinfo:=aktfilepos;
-         localswitches:=aktlocalswitches;
+         localswitches:=current_settings.localswitches;
          resultdef:=nil;
          registersint:=0;
          registersfpu:=0;

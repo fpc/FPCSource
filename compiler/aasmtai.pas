@@ -660,7 +660,7 @@ implementation
 
     procedure maybe_new_object_file(list:TAsmList);
       begin
-        if (cs_create_smart in aktmoduleswitches) and
+        if (cs_create_smart in current_settings.moduleswitches) and
            (not use_smartlink_section) then
           list.concat(tai_cutobject.create);
       end;
@@ -779,7 +779,7 @@ implementation
      begin
        inherited create;
        if not(inlining_procedure and
-              (cs_gdb_valgrind in aktglobalswitches)) then
+              (cs_gdb_valgrind in current_settings.globalswitches)) then
          fileinfo:=aktfilepos;
      end;
 
@@ -2079,7 +2079,7 @@ implementation
               segprefix:=ref^.segment;
 {$endif}
 {$ifdef extdebug}
-            if (cs_create_pic in aktmoduleswitches) and
+            if (cs_create_pic in current_settings.moduleswitches) and
               assigned(r.symbol) and
               (r.refaddr=addr_no) then
               internalerror(200502052);

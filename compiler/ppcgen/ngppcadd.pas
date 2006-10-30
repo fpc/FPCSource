@@ -188,7 +188,7 @@ implementation
         else
            cgsize:=OS_32;
 
-        if ((cs_full_boolean_eval in aktlocalswitches) and
+        if ((cs_full_boolean_eval in current_settings.localswitches) and
             not(nf_short_bool in flags)) or
            (nodetype in [unequaln,ltn,lten,gtn,gten,equaln,xorn]) then
           begin

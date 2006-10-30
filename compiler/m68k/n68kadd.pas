@@ -368,7 +368,7 @@ implementation
         else
            cgsize:=OS_32;
 
-        if (cs_full_boolean_eval in aktlocalswitches) or
+        if (cs_full_boolean_eval in current_settings.localswitches) or
            (nodetype in [unequaln,ltn,lten,gtn,gten,equaln,xorn]) then
           begin
             if left.nodetype in [ordconstn,realconstn] then

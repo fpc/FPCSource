@@ -616,7 +616,7 @@ var
   tmpref: treference;
   tempreg : TRegister;
 begin
-  if (not (cs_opt_size in aktoptimizerswitches)) then begin
+  if (not (cs_opt_size in current_settings.optimizerswitches)) then begin
     tempreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
     { load actual function entry (reg contains the reference to the function descriptor)
     into tempreg }
@@ -756,7 +756,7 @@ begin
     internalerror(2002090902);
   { if PIC or basic optimizations are enabled, and the number of instructions which would be
    required to load the value is greater than 2, store (and later load) the value from there }
-  if (((cs_opt_peephole in aktoptimizerswitches) or (cs_create_pic in aktmoduleswitches)) and
+  if (((cs_opt_peephole in current_settings.optimizerswitches) or (cs_create_pic in current_settings.moduleswitches)) and
     (getInstructionLength(a) > 2)) then
     loadConstantPIC(list, size, a, reg)
   else
@@ -1049,7 +1049,7 @@ var
       cg.a_load_reg_reg(current_asmdata.CurrAsmList, OS_INT, OS_INT, src, dst);
     end else if (a = -1) and (signed) then begin
       { note: only in the signed case possible..., may overflow }
-      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(negops[cs_check_overflow in aktlocalswitches], dst, src));
+      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(negops[cs_check_overflow in current_settings.localswitches], dst, src));
     end else if (ispowerof2(a, power, isNegPower)) then begin
       if (signed) then begin
         { From "The PowerPC Compiler Writer's Guide", pg. 52ff          }
@@ -1127,7 +1127,7 @@ begin
   useReg := false;
   case (op) of
     OP_DIV, OP_IDIV:
-      if (cs_opt_level1 in aktoptimizerswitches) then
+      if (cs_opt_level1 in current_settings.optimizerswitches) then
         do_constant_div(list, size, a, src, dst, op = OP_IDIV)
       else
         usereg := true;
@@ -1504,7 +1504,7 @@ var
     { there are two ways to do this: manually, by generating a few "std" instructions,
      or via the restore helper functions. The latter are selected by the -Og switch,
      i.e. "optimize for size" }
-    if (cs_opt_size in aktoptimizerswitches) then begin
+    if (cs_opt_size in current_settings.optimizerswitches) then begin
       mayNeedLRStore := false;
       if ((fprcount > 0) and (gprcount > 0)) then begin
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
@@ -1538,7 +1538,7 @@ var
     end;
 
     { we may need to store R0 (=LR) ourselves }
-    if ((cs_profile in initmoduleswitches) or (mayNeedLRStore)) and (needslinkreg) then begin
+    if ((cs_profile in init_settings.moduleswitches) or (mayNeedLRStore)) and (needslinkreg) then begin
       reference_reset_base(href, NR_STACK_POINTER_REG, LA_LR_ELF);
       list.concat(taicpu.op_reg_ref(A_STD, NR_R0, href));
     end;
@@ -1557,9 +1557,9 @@ begin
   { determine whether we need to save the link register }
   needslinkreg :=
     ((not (po_assembler in current_procinfo.procdef.procoptions)) and 
-      ((pi_do_call in current_procinfo.flags) or (cs_profile in initmoduleswitches))) or
-    ((cs_opt_size in aktoptimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
-    ([cs_lineinfo, cs_debuginfo] * aktmoduleswitches <> []);
+      ((pi_do_call in current_procinfo.flags) or (cs_profile in init_settings.moduleswitches))) or
+    ((cs_opt_size in current_settings.optimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
+    ([cs_lineinfo, cs_debuginfo] * current_settings.moduleswitches <> []);
 
   a_reg_alloc(list, NR_STACK_POINTER_REG);
   a_reg_alloc(list, NR_R0);
@@ -1639,7 +1639,7 @@ var
     { there are two ways to do this: manually, by generating a few "ld" instructions,
      or via the restore helper functions. The latter are selected by the -Og switch,
      i.e. "optimize for size" }
-    if (cs_opt_size in aktoptimizerswitches) then begin
+    if (cs_opt_size in current_settings.optimizerswitches) then begin
       needsExitCode := false;
       if ((fprcount > 0) and (gprcount > 0)) then begin
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
@@ -1696,9 +1696,9 @@ begin
   { determine whether we need to restore the link register }
   needslinkreg :=
     ((not (po_assembler in current_procinfo.procdef.procoptions)) and 
-      ((pi_do_call in current_procinfo.flags) or (cs_profile in initmoduleswitches))) or
-    ((cs_opt_size in aktoptimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
-    ([cs_lineinfo, cs_debuginfo] * aktmoduleswitches <> []);
+      ((pi_do_call in current_procinfo.flags) or (cs_profile in init_settings.moduleswitches))) or
+    ((cs_opt_size in current_settings.optimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
+    ([cs_lineinfo, cs_debuginfo] * current_settings.moduleswitches <> []);
 
   { calculate stack frame }
   localsize := tppcprocinfo(current_procinfo).calc_stackframe_size(
@@ -1973,7 +1973,7 @@ var
   hl: tasmlabel;
   flags : TResFlags;
 begin
-  if not (cs_check_overflow in aktlocalswitches) then
+  if not (cs_check_overflow in current_settings.localswitches) then
     exit;
   current_asmdata.getjumplabel(hl);
   if not ((def.deftype = pointerdef) or
@@ -2051,7 +2051,7 @@ begin
 
   make_global := false;
   if (not current_module.is_unit) or
-    (cs_create_smart in aktmoduleswitches) or
+    (cs_create_smart in current_settings.moduleswitches) or
     (procdef.owner.defowner.owner.symtabletype = globalsymtable) then
     make_global := true;
 
@@ -2148,7 +2148,7 @@ begin
 
   { if we have to create PIC, add the symbol to the TOC/GOT }
   {$WARNING Hack for avoiding too long manglednames enabled!!}
-  if (cs_create_pic in aktmoduleswitches) and (assigned(ref.symbol) and
+  if (cs_create_pic in current_settings.moduleswitches) and (assigned(ref.symbol) and
     (length(ref.symbol.name) < MAX_GOT_SYMBOL_NAME_LENGTH_HACK)) then begin
     tmpreg := load_got_symbol(list, ref.symbol.name);
     if (ref.base = NR_NO) then

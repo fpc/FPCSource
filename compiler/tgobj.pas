@@ -290,17 +290,17 @@ implementation
                            ((not bestatend and
                              (direction=-1)) or
                             (bestatend and
-                             isbetteralignedthan(abs(bestslot^.pos+hp^.size-size),abs(hp^.pos+hp^.size-size),aktalignment.localalignmax)));
+                             isbetteralignedthan(abs(bestslot^.pos+hp^.size-size),abs(hp^.pos+hp^.size-size),current_settings.alignment.localalignmax)));
                          fitatbegin:=fitatbegin and
                            (not bestatend or
                             (direction=1)) and
-                           isbetteralignedthan(abs(hp^.pos+size),abs(bestslot^.pos+size),aktalignment.localalignmax);
+                           isbetteralignedthan(abs(hp^.pos+size),abs(bestslot^.pos+size),current_settings.alignment.localalignmax);
                        end;
                      if fitatend and
                         fitatbegin then
-                       if isbetteralignedthan(abs(hp^.pos+hp^.size-size),abs(hp^.pos+size),aktalignment.localalignmax) then
+                       if isbetteralignedthan(abs(hp^.pos+hp^.size-size),abs(hp^.pos+size),current_settings.alignment.localalignmax) then
                          fitatbegin:=false
-                       else if isbetteralignedthan(abs(hp^.pos+size),abs(hp^.pos+hp^.size-size),aktalignment.localalignmax) then
+                       else if isbetteralignedthan(abs(hp^.pos+size),abs(hp^.pos+hp^.size-size),current_settings.alignment.localalignmax) then
                          fitatend:=false
                        else if (direction=1) then
                          fitatend:=false
@@ -498,7 +498,7 @@ implementation
         varalign : shortint;
       begin
         varalign:=size_2_align(size);
-        varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
+        varalign:=used_align(varalign,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
         { can't use reference_reset_base, because that will let tgobj depend
           on cgobj (PFV) }
         fillchar(ref,sizeof(ref),0);
@@ -512,7 +512,7 @@ implementation
         varalign : shortint;
       begin
         varalign:=def.alignment;
-        varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
+        varalign:=used_align(varalign,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
         { can't use reference_reset_base, because that will let tgobj depend
           on cgobj (PFV) }
         fillchar(ref,sizeof(ref),0);
@@ -624,7 +624,7 @@ implementation
 
     procedure ttgobj.getlocal(list: TAsmList; size : longint; alignment : shortint; def:tdef;var ref : treference);
       begin
-        alignment:=used_align(alignment,aktalignment.localalignmin,aktalignment.localalignmax);
+        alignment:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
         { can't use reference_reset_base, because that will let tgobj depend
           on cgobj (PFV) }
         fillchar(ref,sizeof(ref),0);

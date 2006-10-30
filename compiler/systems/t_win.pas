@@ -473,7 +473,7 @@ implementation
                   {$endif ARM}
                     { add jump field to al_imports }
                     new_section(current_asmdata.asmlists[al_imports],sec_idata5,'',0);
-                    if (cs_debuginfo in aktmoduleswitches) then
+                    if (cs_debuginfo in current_settings.moduleswitches) then
                       begin
                         if ImportSymbol.Name<>'' then
                           begin
@@ -1036,7 +1036,7 @@ implementation
         WriteResponseFile:=False;
         linklibcygwin:=(SharedLibFiles.Find('cygwin')<>nil);
 
-        if (cs_profile in aktmoduleswitches) then
+        if (cs_profile in current_settings.moduleswitches) then
           begin
             SharedLibFiles.Concat('gmon');
             SharedLibFiles.Concat('c');
@@ -1249,7 +1249,7 @@ implementation
         EntryStr,
         ImageBaseStr : string[40];
       begin
-        if not(cs_link_nolink in aktglobalswitches) then
+        if not(cs_link_nolink in current_settings.globalswitches) then
          Message1(exec_i_linking,current_module.exefilename^);
 
         { Create some replacements }
@@ -1278,9 +1278,9 @@ implementation
           EntryStr:='--entry=_mainCRTStartup';
         if assigned(DLLImageBase) then
           ImageBaseStr:='--image-base=0x'+DLLImageBase^;
-        if (cs_link_strip in aktglobalswitches) then
+        if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
-        if (cs_link_map in aktglobalswitches) then
+        if (cs_link_map in current_settings.globalswitches) then
           MapStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
 
       { Write used files and libraries }
@@ -1326,7 +1326,7 @@ implementation
          success:=PostProcessExecutable(current_module.exefilename^,false);
 
       { Remove ReponseFile }
-        if (success) and not(cs_link_nolink in aktglobalswitches) then
+        if (success) and not(cs_link_nolink in current_settings.globalswitches) then
          begin
            RemoveFile(outputexedir+Info.ResName);
            RemoveFile('base.$$$');
@@ -1355,7 +1355,7 @@ implementation
         ImageBaseStr : string[40];
       begin
         MakeSharedLibrary:=false;
-        if not(cs_link_nolink in aktglobalswitches) then
+        if not(cs_link_nolink in current_settings.globalswitches) then
          Message1(exec_i_linking,current_module.sharedlibfilename^);
 
       { Create some replacements }
@@ -1380,9 +1380,9 @@ implementation
           EntryStr:='--entry _DLLMainCRTStartup';
         if assigned(DLLImageBase) then
           ImageBaseStr:='--image-base=0x'+DLLImageBase^;
-        if (cs_link_strip in aktglobalswitches) then
+        if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
-        if (cs_link_map in aktglobalswitches) then
+        if (cs_link_map in current_settings.globalswitches) then
           MapStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
 
       { Write used files and libraries }
@@ -1428,7 +1428,7 @@ implementation
          success:=PostProcessExecutable(current_module.sharedlibfilename^,true);
 
       { Remove ReponseFile }
-        if (success) and not(cs_link_nolink in aktglobalswitches) then
+        if (success) and not(cs_link_nolink in current_settings.globalswitches) then
          begin
            RemoveFile(outputexedir+Info.ResName);
            RemoveFile('base.$$$');
@@ -1483,7 +1483,7 @@ implementation
       begin
         postprocessexecutable:=false;
         { when -s is used or it's a dll then quit }
-        if (cs_link_nolink in aktglobalswitches) then
+        if (cs_link_nolink in current_settings.globalswitches) then
          begin
            case apptype of
              app_native :

@@ -72,7 +72,7 @@ unit cpupi;
          r : byte;
          floatsavesize : aword;
       begin
-        maxpushedparasize:=align(maxpushedparasize,max(aktalignment.localalignmin,4));
+        maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
         firstfloatreg:=RS_NO;
         { save floating point registers? }
         for r:=RS_F0 to RS_F7 do
@@ -86,8 +86,8 @@ unit cpupi;
           floatsavesize:=(lastfloatreg-firstfloatreg+1)*12
         else
           floatsavesize:=0;
-        floatsavesize:=align(floatsavesize,max(aktalignment.localalignmin,4));
-        result:=Align(tg.direction*tg.lasttemp,max(aktalignment.localalignmin,4))+maxpushedparasize+floatsavesize;
+        floatsavesize:=align(floatsavesize,max(current_settings.alignment.localalignmin,4));
+        result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize+floatsavesize;
         floatregstart:=-result+maxpushedparasize;
       end;
 

@@ -94,7 +94,7 @@ implementation
         lastlabel:=nil;
         realait:=floattype2ait[tfloatdef(resultdef).typ];
 {$ifdef ARM}
-        hiloswapped:=aktfputype in [fpu_fpa,fpu_fpa10,fpu_fpa11];
+        hiloswapped:=current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11];
 {$endif ARM}
         { const already used ? }
         if not assigned(lab_real) then
@@ -146,8 +146,8 @@ implementation
                       begin
                         current_asmdata.asmlists[al_typedconsts].concat(Tai_real_32bit.Create(ts32real(value_real)));
                         { range checking? }
-                        if ((cs_check_range in aktlocalswitches) or
-                          (cs_check_overflow in aktlocalswitches)) and
+                        if ((cs_check_range in current_settings.localswitches) or
+                          (cs_check_overflow in current_settings.localswitches)) and
                           (tai_real_32bit(current_asmdata.asmlists[al_typedconsts].last).value=MathInf.Value) then
                           Message(parser_e_range_check_error);
                       end;
@@ -162,8 +162,8 @@ implementation
                           current_asmdata.asmlists[al_typedconsts].concat(Tai_real_64bit.Create(ts64real(value_real)));
 
                         { range checking? }
-                        if ((cs_check_range in aktlocalswitches) or
-                          (cs_check_overflow in aktlocalswitches)) and
+                        if ((cs_check_range in current_settings.localswitches) or
+                          (cs_check_overflow in current_settings.localswitches)) and
                           (tai_real_64bit(current_asmdata.asmlists[al_typedconsts].last).value=MathInf.Value) then
                           Message(parser_e_range_check_error);
                      end;
@@ -173,8 +173,8 @@ implementation
                         current_asmdata.asmlists[al_typedconsts].concat(Tai_real_80bit.Create(value_real));
 
                         { range checking? }
-                        if ((cs_check_range in aktlocalswitches) or
-                          (cs_check_overflow in aktlocalswitches)) and
+                        if ((cs_check_range in current_settings.localswitches) or
+                          (cs_check_overflow in current_settings.localswitches)) and
                           (tai_real_80bit(current_asmdata.asmlists[al_typedconsts].last).value=MathInf.Value) then
                           Message(parser_e_range_check_error);
                       end;
@@ -184,8 +184,8 @@ implementation
                         current_asmdata.asmlists[al_typedconsts].concat(Tai_real_128bit.Create(value_real));
 
                         { range checking? }
-                        if ((cs_check_range in aktlocalswitches) or
-                          (cs_check_overflow in aktlocalswitches)) and
+                        if ((cs_check_range in current_settings.localswitches) or
+                          (cs_check_overflow in current_settings.localswitches)) and
                           (tai_real_128bit(current_asmdata.asmlists[al_typedconsts].last).value=MathInf.Value) then
                           Message(parser_e_range_check_error);
                       end;

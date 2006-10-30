@@ -497,7 +497,7 @@ implementation
          old_t_times:=cg.t_times;
 
          { calc register weight }
-         if not(cs_opt_size in aktoptimizerswitches) then
+         if not(cs_opt_size in current_settings.optimizerswitches) then
            cg.t_times:=cg.t_times*8;
 
          firstpass(left);
@@ -530,7 +530,7 @@ implementation
 {$ifdef prefetchnext}
          { do at the end so all complex typeconversions are already }
          { converted to calln's                                     }
-         if (cs_opt_level1 in aktoptimizerswitches) and
+         if (cs_opt_level1 in current_settings.optimizerswitches) and
             (lnf_testatbegin in loopflags) then
            begin
              { get first component of the while check }
@@ -734,7 +734,7 @@ implementation
 {$endif SUPPORT_MMX}
 
          { determines registers weigths }
-         if not(cs_opt_size in aktoptimizerswitches) then
+         if not(cs_opt_size in current_settings.optimizerswitches) then
            cg.t_times:=cg.t_times div 2;
          if cg.t_times=0 then
            cg.t_times:=1;
@@ -818,7 +818,7 @@ implementation
          resultdef:=voidtype;
 
          { loop unrolling }
-         if cs_opt_loopunroll in aktoptimizerswitches then
+         if cs_opt_loopunroll in current_settings.optimizerswitches then
            begin
              unrollres:=unroll_loop(self);
              if assigned(unrollres) then
@@ -903,7 +903,7 @@ implementation
           begin
             { Calc register weight }
             old_t_times:=cg.t_times;
-            if not(cs_opt_size in aktoptimizerswitches) then
+            if not(cs_opt_size in current_settings.optimizerswitches) then
               cg.t_times:=cg.t_times*8;
             firstpass(t2);
             if codegenerror then

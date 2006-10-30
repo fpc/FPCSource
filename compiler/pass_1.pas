@@ -68,10 +68,10 @@ implementation
          begin
            oldcodegenerror:=codegenerror;
            oldpos:=aktfilepos;
-           oldlocalswitches:=aktlocalswitches;
+           oldlocalswitches:=current_settings.localswitches;
            codegenerror:=false;
            aktfilepos:=p.fileinfo;
-           aktlocalswitches:=p.localswitches;
+           current_settings.localswitches:=p.localswitches;
            hp:=p.pass_typecheck;
            { should the node be replaced? }
            if assigned(hp) then
@@ -82,7 +82,7 @@ implementation
                { switch to new node }
                p:=hp;
             end;
-           aktlocalswitches:=oldlocalswitches;
+           current_settings.localswitches:=oldlocalswitches;
            aktfilepos:=oldpos;
            if codegenerror then
             begin
@@ -123,18 +123,18 @@ implementation
            begin
               oldcodegenerror:=codegenerror;
               oldpos:=aktfilepos;
-              oldlocalswitches:=aktlocalswitches;
+              oldlocalswitches:=current_settings.localswitches;
               codegenerror:=false;
               aktfilepos:=p.fileinfo;
-              aktlocalswitches:=p.localswitches;
+              current_settings.localswitches:=p.localswitches;
               { checks make always a call }
-              if ([cs_check_range,cs_check_overflow,cs_check_stack] * aktlocalswitches <> []) then
+              if ([cs_check_range,cs_check_overflow,cs_check_stack] * current_settings.localswitches <> []) then
                 include(current_procinfo.flags,pi_do_call);
               { determine the resultdef if not done }
               if (p.resultdef=nil) then
                begin
                  aktfilepos:=p.fileinfo;
-                 aktlocalswitches:=p.localswitches;
+                 current_settings.localswitches:=p.localswitches;
                  hp:=p.pass_typecheck;
                  { should the node be replaced? }
                  if assigned(hp) then
@@ -152,7 +152,7 @@ implementation
                     if p.resultdef=nil then
                      p.resultdef:=generrordef;
                   end;
-                 aktlocalswitches:=oldlocalswitches;
+                 current_settings.localswitches:=oldlocalswitches;
                  aktfilepos:=oldpos;
                  codegenerror:=codegenerror or oldcodegenerror;
                end;
@@ -160,7 +160,7 @@ implementation
                begin
                  { first pass }
                  aktfilepos:=p.fileinfo;
-                 aktlocalswitches:=p.localswitches;
+                 current_settings.localswitches:=p.localswitches;
                  hp:=p.pass_1;
                  { should the node be replaced? }
                  if assigned(hp) then
@@ -183,7 +183,7 @@ implementation
                end;
               include(p.flags,nf_pass1_done);
               codegenerror:=codegenerror or oldcodegenerror;
-              aktlocalswitches:=oldlocalswitches;
+              current_settings.localswitches:=oldlocalswitches;
               aktfilepos:=oldpos;
            end
          else

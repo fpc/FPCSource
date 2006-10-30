@@ -429,7 +429,7 @@ implementation
       var
         hp : tsym;
       begin
-        if cs_browser in aktmoduleswitches then
+        if cs_browser in current_settings.moduleswitches then
          begin
            if assigned(p.name) then
              Browserlog.AddLog('---Symtable '+p.name^)
@@ -485,7 +485,7 @@ implementation
             p:=tstoredsymtable(hp.globalsymtable);
             if assigned(p) then
               writesymtable(p);
-            if cs_local_browser in aktmoduleswitches then
+            if cs_local_browser in current_settings.moduleswitches then
               begin
                  p:=tstoredsymtable(hp.localsymtable);
                  if assigned(p) then

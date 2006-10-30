@@ -367,7 +367,7 @@ implementation
       begin
         result := nil;
         { divide/mod a number by a constant which is a power of 2? }
-        if (cs_opt_peephole in aktoptimizerswitches) and
+        if (cs_opt_peephole in current_settings.optimizerswitches) and
            (right.nodetype = ordconstn) and
 {           ((nodetype = divn) or
             not is_signed(resultdef)) and}
@@ -380,7 +380,7 @@ implementation
                 if is_signed(resultdef) then
                   begin
                     if is_64bitint(left.resultdef) then
-                      if not (cs_opt_size in aktoptimizerswitches) then
+                      if not (cs_opt_size in current_settings.optimizerswitches) then
                         shiftval := 63
                       else
                         { the shift code is a lot bigger than the call to }
@@ -622,12 +622,12 @@ implementation
            begin
            end
 {$ifdef SUPPORT_MMX}
-         else if (cs_mmx in aktlocalswitches) and
+         else if (cs_mmx in current_settings.localswitches) and
            is_mmx_able_array(left.resultdef) then
              begin
                { if saturation is on, left.resultdef isn't
                  "mmx able" (FK)
-               if (cs_mmx_saturation in aktlocalswitches^) and
+               if (cs_mmx_saturation in current_settings.localswitches^) and
                  (torddef(tarraydef(resultdef).definition).typ in
                  [s32bit,u32bit]) then
                  CGMessage(type_e_mismatch);
@@ -671,7 +671,7 @@ implementation
         if codegenerror then
           exit;
 
-        if (cs_fp_emulation in aktmoduleswitches) and (left.resultdef.deftype=floatdef) then
+        if (cs_fp_emulation in current_settings.moduleswitches) and (left.resultdef.deftype=floatdef) then
           begin
             if not(target_info.system in system_wince) then
               begin
@@ -730,7 +730,7 @@ implementation
                 expectloc:=LOC_FPUREGISTER;
               end
 {$ifdef SUPPORT_MMX}
-             else if (cs_mmx in aktlocalswitches) and
+             else if (cs_mmx in current_settings.localswitches) and
                is_mmx_able_array(left.resultdef) then
                  begin
                    if (left.expectloc<>LOC_MMXREGISTER) and
@@ -864,7 +864,7 @@ implementation
            end
          else
 {$ifdef SUPPORT_MMX}
-           if (cs_mmx in aktlocalswitches) and
+           if (cs_mmx in current_settings.localswitches) and
              is_mmx_able_array(left.resultdef) then
              begin
              end
@@ -923,7 +923,7 @@ implementation
            end
          else
 {$ifdef SUPPORT_MMX}
-           if (cs_mmx in aktlocalswitches) and
+           if (cs_mmx in current_settings.localswitches) and
              is_mmx_able_array(left.resultdef) then
              begin
                if (left.expectloc<>LOC_MMXREGISTER) and

@@ -114,7 +114,7 @@ implementation
              { Lots of comparisions take a lot of time, so do not allow
                too much comparisions. 8 comparisions are, however, still
                smalller than emitting the set }
-             if cs_opt_size in aktoptimizerswitches then
+             if cs_opt_size in current_settings.optimizerswitches then
                maxcompares:=8
              else
                maxcompares:=5;
@@ -406,7 +406,7 @@ implementation
                   else
                     begin
 {$ifdef CORRECT_SET_IN_FPC}
-                          if m_tp in aktmodeswitches then
+                          if m_tp in current_settings.modeswitches then
                             begin
                               {***WARNING only correct if
                                 reference is 32 bits (PM) *****}

@@ -950,7 +950,7 @@ implementation
               Message1(sym_w_wrong_C_pack,vardef.typename);
             if varalign=0 then
               varalign:=l;
-            if (fieldalignment<aktalignment.maxCrecordalign) then
+            if (fieldalignment<current_settings.alignment.maxCrecordalign) then
             begin
               if (varalign>16) and (fieldalignment<32) then
                 fieldalignment:=32
@@ -966,12 +966,12 @@ implementation
               else if (varalign>1) and (fieldalignment<2) then
                 fieldalignment:=2;
             end;
-            fieldalignment:=min(fieldalignment,aktalignment.maxCrecordalign);
+            fieldalignment:=min(fieldalignment,current_settings.alignment.maxCrecordalign);
           end;
         if varalign=0 then
           varalign:=size_2_align(l);
         if (usefieldalignment<> bit_alignment) then
-          varalignfield:=used_align(varalign,aktalignment.recordalignmin,fieldalignment);
+          varalignfield:=used_align(varalign,current_settings.alignment.recordalignmin,fieldalignment);
 
         sym.fieldoffset:=align(_datasize,varalignfield);
         if (int64(l)+sym.fieldoffset)>high(aint) then
@@ -983,14 +983,14 @@ implementation
           _datasize:=sym.fieldoffset+l;
         { Calc alignment needed for this record }
         if (usefieldalignment=C_alignment) then
-          varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
+          varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign)
         else
           if (usefieldalignment=0) then
-            varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.recordalignmax)
+            varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,current_settings.alignment.recordalignmax)
         else
           begin
             { packrecords is set explicitly, ignore recordalignmax limit }
-            varalignrecord:=used_align(varalign,aktalignment.recordalignmin,usefieldalignment);
+            varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,usefieldalignment);
           end;
         recordalignment:=max(recordalignment,varalignrecord);
       end;
@@ -1113,7 +1113,7 @@ implementation
                 varalign:=tfieldvarsym(ps).vardef.alignment;
                 if varalign=0 then
                   varalign:=size_2_align(tfieldvarsym(ps).getsize);
-                varalignrecord:=used_align(varalign,aktalignment.recordalignmin,fieldalignment);
+                varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,fieldalignment);
                 recordalignment:=max(recordalignment,varalignrecord);
               end;
 
@@ -1159,7 +1159,7 @@ implementation
          if not assigned(defowner) then
            internalerror(200602061);
 
-         if (m_duplicate_names in aktmodeswitches) and
+         if (m_duplicate_names in current_settings.modeswitches) and
             (sym.typ in [paravarsym,localvarsym]) then
            exit;
 
@@ -1167,7 +1167,7 @@ implementation
            also in inherited classes }
          if (sym.typ in [fieldvarsym,paravarsym,localvarsym]) and
             (
-             not(m_delphi in aktmodeswitches) or
+             not(m_delphi in current_settings.modeswitches) or
              is_object(tdef(defowner))
             ) then
            begin
@@ -1235,10 +1235,10 @@ implementation
           begin
             { a local and the function can have the same
               name in TP and Delphi, but RESULT not }
-            if (m_duplicate_names in aktmodeswitches) and
+            if (m_duplicate_names in current_settings.modeswitches) and
                (hsym.typ in [absolutevarsym,localvarsym]) and
                (vo_is_funcret in tabstractvarsym(hsym).varoptions) and
-               not((m_result in aktmodeswitches) and
+               not((m_result in current_settings.modeswitches) and
                    (vo_is_result in tabstractvarsym(hsym).varoptions)) then
               HideSym(hsym)
             else
@@ -1255,10 +1255,10 @@ implementation
           begin
             { a local and the function can have the same
               name in TP and Delphi, but RESULT not }
-            if (m_duplicate_names in aktmodeswitches) and
+            if (m_duplicate_names in current_settings.modeswitches) and
                (sym.typ in [absolutevarsym,localvarsym]) and
                (vo_is_funcret in tabstractvarsym(sym).varoptions) and
-               not((m_result in aktmodeswitches) and
+               not((m_result in current_settings.modeswitches) and
                    (vo_is_result in tabstractvarsym(sym).varoptions)) then
               HideSym(sym)
             else
@@ -1268,7 +1268,7 @@ implementation
         { check objectsymtable, skip this for funcret sym because
           that will always be positive because it has the same name
           as the procsym }
-        if not(m_duplicate_names in aktmodeswitches) and
+        if not(m_duplicate_names in current_settings.modeswitches) and
            not is_funcret_sym(sym) and
            (defowner.deftype=procdef) and
            assigned(tprocdef(defowner)._class) and
@@ -1294,7 +1294,7 @@ implementation
         result:=inherited checkduplicate(sym);
         if result then
           exit;
-        if not(m_duplicate_names in aktmodeswitches) and
+        if not(m_duplicate_names in current_settings.modeswitches) and
            (defowner.deftype=procdef) and
            assigned(tprocdef(defowner)._class) and
            (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) then
@@ -1374,7 +1374,7 @@ implementation
             { Delphi you can have a symbol with the same name as the
               unit, the unit can then not be accessed anymore using
               <unit>.<id>, so we can hide the symbol }
-            if (m_duplicate_names in aktmodeswitches) and
+            if (m_duplicate_names in current_settings.modeswitches) and
                (hsym.typ=symconst.unitsym) then
               HideSym(hsym)
             else
@@ -1440,7 +1440,7 @@ implementation
             { Delphi you can have a symbol with the same name as the
               unit, the unit can then not be accessed anymore using
               <unit>.<id>, so we can hide the symbol }
-            if (m_duplicate_names in aktmodeswitches) and
+            if (m_duplicate_names in current_settings.modeswitches) and
                (hsym.typ=symconst.unitsym) then
               HideSym(hsym)
             else
@@ -1638,7 +1638,7 @@ implementation
              end;
          inc(sym.refs);
 
-         if (cs_browser in aktmoduleswitches) then
+         if (cs_browser in current_settings.moduleswitches) then
            begin
              newref:=tref.create(sym.lastref,@akttokenpos);
              { for symbols that are in tables without browser info or syssyms }

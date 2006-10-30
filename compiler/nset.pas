@@ -237,7 +237,7 @@ implementation
          if not assigned(left.resultdef) then
            internalerror(20021126);
 
-         if (m_fpc in aktmodeswitches) then
+         if (m_fpc in current_settings.modeswitches) then
            begin
              { insert a hint that a range check error might occur on non-byte
                elements with the in operator.
@@ -593,7 +593,7 @@ implementation
 
          { estimates the repeat of each instruction }
          old_t_times:=cg.t_times;
-         if not(cs_opt_size in aktoptimizerswitches) then
+         if not(cs_opt_size in current_settings.optimizerswitches) then
            begin
               cg.t_times:=cg.t_times div case_count_labels(labels);
               if cg.t_times<1 then

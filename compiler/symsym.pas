@@ -650,7 +650,7 @@ implementation
            begin
               if (p^.def.owner=owner) and (p^.def.forwarddef) then
                 begin
-                   if (m_mac in aktmodeswitches) and (p^.def.interfacedef) then
+                   if (m_mac in current_settings.modeswitches) and (p^.def.interfacedef) then
                      import_implict_external(p^.def)
                    else
                      begin
@@ -1249,7 +1249,7 @@ implementation
                registers is not valid anymore)
            - it has a local copy
            - the value needs to be in memory (i.e. reference counted) }
-        result:=(cs_opt_regvar in aktoptimizerswitches) and
+        result:=(cs_opt_regvar in current_settings.optimizerswitches) and
                 not(pi_has_assembler_block in current_procinfo.flags) and
                 not(pi_uses_exceptions in current_procinfo.flags) and
                 not(vo_has_local_copy in varoptions) and
@@ -1327,7 +1327,7 @@ implementation
            (owner.symtabletype in [localsymtable,parasymtable]) or
            (
             (owner.symtabletype=staticsymtable) and
-            not(cs_create_pic in aktmoduleswitches)
+            not(cs_create_pic in current_settings.moduleswitches)
            ) then
           begin
             if tstoreddef(vardef).is_intregable then

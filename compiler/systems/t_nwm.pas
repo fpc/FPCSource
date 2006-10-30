@@ -356,7 +356,7 @@ begin
   NLMConvLinkFile.Add ('EXIT _Stop');                             { nwpre.as }
   NLMConvLinkFile.Add ('CHECK FPC_NW_CHECKFUNCTION');            { system.pp }
 
-  if not (cs_link_strip in aktglobalswitches) then
+  if not (cs_link_strip in current_settings.globalswitches) then
   begin
     NLMConvLinkFile.Add ('DEBUG');
     Comment(V_Debug,'DEBUG');
@@ -499,13 +499,13 @@ var
   success  : boolean;
   StripStr : string[2];
 begin
-  if not(cs_link_nolink in aktglobalswitches) then
+  if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
   StripStr:='';
 
-  if (cs_link_strip in aktglobalswitches) then
+  if (cs_link_strip in current_settings.globalswitches) then
    StripStr:='-s';
 
 { Write used files and libraries and create Headerfile for
@@ -523,7 +523,7 @@ begin
   success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
 
   { Remove ReponseFile }
-  if (success) and not(cs_link_nolink in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     RemoveFile(outputexedir+Info.ResName);
 
 { Call nlmconv }
@@ -535,7 +535,7 @@ begin
     Replace(cmdstr,'$RES',maybequoted(outputexedir+'n'+Info.ResName));
     Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
     success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
-    if (success) and not(cs_link_nolink in aktglobalswitches) then
+    if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     begin
       RemoveFile(outputexedir+'n'+Info.ResName);
       RemoveFile(outputexedir+tmpLinkFileName);

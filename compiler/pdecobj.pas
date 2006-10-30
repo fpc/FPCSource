@@ -74,7 +74,7 @@ implementation
                consume(_SEMICOLON);
                exit;
              end;
-           if (cs_constructor_name in aktglobalswitches) and
+           if (cs_constructor_name in current_settings.globalswitches) and
               (pd.procsym.name<>'INIT') then
              Message(parser_e_constructorname_must_be_init);
            consume(_SEMICOLON);
@@ -99,7 +99,7 @@ implementation
         begin
            { check for a class }
            if not((is_class_or_interface_or_dispinterface(aktobjectdef)) or
-              (not(m_tp7 in aktmodeswitches) and (is_object(aktobjectdef)))) then
+              (not(m_tp7 in current_settings.modeswitches) and (is_object(aktobjectdef)))) then
              Message(parser_e_syntax_error);
            consume(_PROPERTY);
            p:=read_property_dec(aktobjectdef);
@@ -132,11 +132,11 @@ implementation
                consume(_SEMICOLON);
                exit;
              end;
-           if (cs_constructor_name in aktglobalswitches) and
+           if (cs_constructor_name in current_settings.globalswitches) and
               (pd.procsym.name<>'DONE') then
              Message(parser_e_destructorname_must_be_done);
            if not(pd.maxparacount=0) and
-              (m_fpc in aktmodeswitches) then
+              (m_fpc in current_settings.modeswitches) then
              Message(parser_e_no_paras_for_destructor);
            consume(_SEMICOLON);
            include(aktobjectdef.objectoptions,oo_has_destructor);
@@ -153,7 +153,7 @@ implementation
              begin
                 aktobjectdef.objecttype:=classtype;
                 { set published flag in $M+ mode or it is inherited }
-                if (cs_generate_rtti in aktlocalswitches) or
+                if (cs_generate_rtti in current_settings.localswitches) or
                     (assigned(aktobjectdef.childof) and
                      (oo_can_have_published in aktobjectdef.childof.objectoptions)) then
                   include(aktobjectdef.objectoptions,oo_can_have_published);
@@ -209,7 +209,7 @@ implementation
                 begin
                    { need extra check here since interface is a keyword
                      in all pascal modes }
-                   if not(m_class in aktmodeswitches) then
+                   if not(m_class in current_settings.modeswitches) then
                      Message(parser_f_need_objfpc_or_delphi_mode);
                    classtype:=odt_dispinterface;
                    consume(_DISPINTERFACE);
@@ -231,9 +231,9 @@ implementation
                 begin
                    { need extra check here since interface is a keyword
                      in all pascal modes }
-                   if not(m_class in aktmodeswitches) then
+                   if not(m_class in current_settings.modeswitches) then
                      Message(parser_f_need_objfpc_or_delphi_mode);
-                   if aktinterfacetype=it_interfacecom then
+                   if current_settings.interfacetype=it_interfacecom then
                      classtype:=odt_interfacecom
                    else {it_interfacecorba}
                      classtype:=odt_interfacecorba;
@@ -245,11 +245,11 @@ implementation
                        if n='' then
                          Message(parser_f_no_anonym_objects);
                        aktobjectdef:=tobjectdef.create(classtype,n,nil);
-                       if (cs_compilesystem in aktmoduleswitches) and
+                       if (cs_compilesystem in current_settings.moduleswitches) and
                           (classtype=odt_interfacecom) and (upper(n)='IUNKNOWN') then
                          interface_iunknown:=aktobjectdef;
                        include(aktobjectdef.objectoptions,oo_is_forward);
-                       if (cs_generate_rtti in aktlocalswitches) and
+                       if (cs_generate_rtti in current_settings.localswitches) and
                           (classtype=odt_interfacecom) then
                          include(aktobjectdef.objectoptions,oo_can_have_published);
                        object_dec:=aktobjectdef;
@@ -269,7 +269,7 @@ implementation
                         the blocktype is bt_type so the check for typecanbeforward
                         is also necessary (PFV) }
                       (((block_type=bt_type) and typecanbeforward) or
-                       not(m_delphi in aktmodeswitches)) then
+                       not(m_delphi in current_settings.modeswitches)) then
                      begin
                         { a hack, but it's easy to handle }
                         { class reference type }
@@ -299,11 +299,11 @@ implementation
                         if n='' then
                           Message(parser_f_no_anonym_objects);
                         aktobjectdef:=tobjectdef.create(odt_class,n,nil);
-                        if (cs_compilesystem in aktmoduleswitches) and (upper(n)='TOBJECT') then
+                        if (cs_compilesystem in current_settings.moduleswitches) and (upper(n)='TOBJECT') then
                           class_tobject:=aktobjectdef;
                         aktobjectdef.objecttype:=odt_class;
                         include(aktobjectdef.objectoptions,oo_is_forward);
-                        if (cs_generate_rtti in aktlocalswitches) then
+                        if (cs_generate_rtti in current_settings.localswitches) then
                           include(aktobjectdef.objectoptions,oo_can_have_published);
                         { all classes must have a vmt !!  at offset zero }
                         if not(oo_has_vmt in aktobjectdef.objectoptions) then
@@ -514,7 +514,7 @@ implementation
 
          storetypecanbeforward:=typecanbeforward;
          { for tp7 don't allow forward types }
-         if (m_tp7 in aktmodeswitches) then
+         if (m_tp7 in current_settings.modeswitches) then
            typecanbeforward:=false;
 
          if not(readobjecttype) then
@@ -683,7 +683,7 @@ implementation
                        { all Macintosh Object Pascal methods are virtual.  }
                        { this can't be a class method, because macpas mode }
                        { has no m_class                                    }
-                       if (m_mac in aktmodeswitches) then
+                       if (m_mac in current_settings.modeswitches) then
                          include(pd.procoptions,po_virtualmethod);
 
                        handle_calling_convention(pd);

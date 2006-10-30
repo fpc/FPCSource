@@ -711,7 +711,7 @@ implementation
                    l:=0; }
                    if not explicit then
                     begin
-                      if (cs_check_range in aktlocalswitches) then
+                      if (cs_check_range in current_settings.localswitches) then
                         Message(parser_e_range_check_error)
                       else
                         Message(parser_w_range_check_error);
@@ -729,8 +729,8 @@ implementation
                       if ((def.deftype=enumdef) and
                           { delphi allows range check errors in
                            enumeration type casts FK }
-                          not(m_delphi in aktmodeswitches)) or
-                         (cs_check_range in aktlocalswitches) then
+                          not(m_delphi in current_settings.modeswitches)) or
+                         (cs_check_range in current_settings.localswitches) then
                         Message(parser_e_range_check_error)
                       else
                         Message(parser_w_range_check_error);
@@ -853,7 +853,7 @@ implementation
     function is_mmx_able_array(p : tdef) : boolean;
       begin
 {$ifdef SUPPORT_MMX}
-         if (cs_mmx_saturation in aktlocalswitches) then
+         if (cs_mmx_saturation in current_settings.localswitches) then
            begin
               is_mmx_able_array:=(p.deftype=arraydef) and
                 not(is_special_array(p)) and
@@ -967,7 +967,7 @@ implementation
                 result:=int_cgsize(def.size);
             end;
           floatdef:
-            if cs_fp_emulation in aktmoduleswitches then
+            if cs_fp_emulation in current_settings.moduleswitches then
               result:=int_cgsize(def.size)
             else
               result:=tfloat2tcgsize[tfloatdef(def).typ];

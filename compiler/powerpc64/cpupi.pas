@@ -73,7 +73,7 @@ begin
     { the ABI specification says that it is required to always allocate space for 8 * 8 bytes
       for registers R3-R10 and stack header if there's a stack frame, but GCC doesn't do that,
       so we don't that too. Uncomment the next three lines if this is required }
-    if (cs_profile in initmoduleswitches) and (ofs < 112) then begin
+    if (cs_profile in init_settings.moduleswitches) and (ofs < 112) then begin
       ofs := 112;
     end;
     tg.setfirsttemp(ofs);
@@ -100,7 +100,7 @@ begin
         numfpr * tcgsize2size[OS_FLOAT], ELF_STACK_ALIGN);
 
     if (pi_do_call in flags) or (tg.lasttemp <> tg.firsttemp) or
-      (result > RED_ZONE_SIZE) {or (cs_profile in initmoduleswitches)} then begin
+      (result > RED_ZONE_SIZE) {or (cs_profile in init_settings.moduleswitches)} then begin
       result := align(result + tg.lasttemp, ELF_STACK_ALIGN);
     end;
   end else

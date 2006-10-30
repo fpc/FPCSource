@@ -72,7 +72,7 @@ unit cpupi;
         { align to 4 bytes at least
           otherwise all those subl $2,%esp are meaningless PM }
         if (target_info.system <> system_i386_darwin) then
-          result:=Align(tg.direction*tg.lasttemp,min(aktalignment.localalignmin,4))
+          result:=Align(tg.direction*tg.lasttemp,min(current_settings.alignment.localalignmin,4))
         else
           result:=tg.direction*tg.lasttemp+maxpushedparasize;
       end;

@@ -121,7 +121,7 @@ begin
    end;
 
 { Select switch table }
-  if m_mac in aktmodeswitches  then
+  if m_mac in current_settings.modeswitches  then
     switchTablePtr:= @macSwitchTable
   else
     switchTablePtr:= @turboSwitchTable;
@@ -132,15 +132,15 @@ begin
      case typesw of
        alignsw:
          if state='+' then
-           aktpackrecords:=4
+           current_settings.packrecords:=4
          else
-           aktpackrecords:=1;
+           current_settings.packrecords:=1;
        optimizersw :
          begin
            if state='+' then
-             aktoptimizerswitches:=level2optimizerswitches
+             current_settings.optimizerswitches:=level2optimizerswitches
            else
-             aktoptimizerswitches:=[];
+             current_settings.optimizerswitches:=[];
          end;
        ignoredsw :
          Message1(scan_n_ignored_switch,'$'+switch);
@@ -151,11 +151,11 @@ begin
        localsw :
          begin
            if not localswitcheschanged then
-             nextaktlocalswitches:=aktlocalswitches;
+             nextlocalswitches:=current_settings.localswitches;
            if state='+' then
-            include(nextaktlocalswitches,tlocalswitch(setsw))
+            include(nextlocalswitches,tlocalswitch(setsw))
            else
-            exclude(nextaktlocalswitches,tlocalswitch(setsw));
+            exclude(nextlocalswitches,tlocalswitch(setsw));
            localswitcheschanged:=true;
          end;
        modulesw :
@@ -163,14 +163,14 @@ begin
            if current_module.in_global then
             begin
               if state='+' then
-                include(aktmoduleswitches,tmoduleswitch(setsw))
+                include(current_settings.moduleswitches,tmoduleswitch(setsw))
               else
                 begin
                   { Turning off debuginfo when lineinfo is requested
                     is not possible }
-                  if not((cs_use_lineinfo in aktglobalswitches) and
+                  if not((cs_use_lineinfo in current_settings.globalswitches) and
                          (tmoduleswitch(setsw)=cs_debuginfo)) then
-                    exclude(aktmoduleswitches,tmoduleswitch(setsw));
+                    exclude(current_settings.moduleswitches,tmoduleswitch(setsw));
                 end;
             end
            else
@@ -181,9 +181,9 @@ begin
            if current_module.in_global and (current_module=main_module) then
             begin
               if state='+' then
-               include(aktglobalswitches,tglobalswitch(setsw))
+               include(current_settings.globalswitches,tglobalswitch(setsw))
               else
-               exclude(aktglobalswitches,tglobalswitch(setsw));
+               exclude(current_settings.globalswitches,tglobalswitch(setsw));
             end
            else
             Message(scan_w_switch_is_global);
@@ -210,7 +210,7 @@ begin
    end;
 
 { Select switch table }
-  if m_mac in aktmodeswitches then
+  if m_mac in current_settings.modeswitches then
     switchTablePtr:= @macSwitchTable
   else
     switchTablePtr:= @turboSwitchTable;
@@ -219,9 +219,9 @@ begin
    with switchTablePtr^[switch] do
    begin
      case typesw of
-      localsw : found:=(tlocalswitch(setsw) in aktlocalswitches);
-     modulesw : found:=(tmoduleswitch(setsw) in aktmoduleswitches);
-     globalsw : found:=(tglobalswitch(setsw) in aktglobalswitches);
+      localsw : found:=(tlocalswitch(setsw) in current_settings.localswitches);
+     modulesw : found:=(tmoduleswitch(setsw) in current_settings.moduleswitches);
+     globalsw : found:=(tglobalswitch(setsw) in current_settings.globalswitches);
      else
       found:=false;
      end;

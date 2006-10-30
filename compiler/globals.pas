@@ -113,6 +113,32 @@ interface
          fileindex : word;
          { moduleindex : word; }
        end;
+       
+       tcodepagestring = string[20];
+
+       tsettings = record
+         globalswitches  : tglobalswitches;
+         moduleswitches  : tmoduleswitches;
+         localswitches   : tlocalswitches;
+         modeswitches    : tmodeswitches;
+         optimizerswitches : toptimizerswitches;
+         { 0: old behaviour for sets <=256 elements
+           >0: round to this size }
+         setalloc,
+         packenum        : shortint;
+         alignment       : talignmentinfo;
+         cputype,
+         optimizecputype : tcputype;
+         fputype         : tfputype;
+         asmmode         : tasmmode;
+         interfacetype   : tinterfacetypes;
+         defproccall     : tproccalloption;
+         sourcecodepage  : tcodepagestring;
+
+         packrecords     : shortint;
+         maxfpuregisters : byte;
+       end;
+
 
        TSearchPathList = class(TStringList)
          procedure AddPath(s:string;addfirst:boolean);overload;
@@ -120,8 +146,6 @@ interface
          procedure AddList(list:TSearchPathList;addfirst:boolean);
          function  FindFile(const f : string;var foundfile:string):boolean;
        end;
-
-       tcodepagestring = string[20];
 
     var
        { specified inputfile }
@@ -216,46 +240,11 @@ interface
        LinkLibraryAliases : TLinkStrMap;
        LinkLibraryOrder   : TLinkStrMap;
 
-
-     { commandline values }
-       initglobalswitches : tglobalswitches;
-       initmoduleswitches : tmoduleswitches;
-       initlocalswitches  : tlocalswitches;
-       initmodeswitches   : tmodeswitches;
-       initoptimizerswitches : toptimizerswitches;
-       { 0: old behaviour for sets <=256 elements
-         >0: round to this size }
-       initsetalloc,
-       initpackenum       : shortint;
-       initalignment      : talignmentinfo;
-       initcputype,
-       initoptimizecputype : tcputype;
-       initfputype        : tfputype;
-       initasmmode        : tasmmode;
-       initinterfacetype  : tinterfacetypes;
-       initdefproccall    : tproccalloption;
-       initsourcecodepage : tcodepagestring;
-
-     { current state values }
-       aktglobalswitches  : tglobalswitches;
-       aktmoduleswitches  : tmoduleswitches;
-       aktlocalswitches   : tlocalswitches;
-       aktoptimizerswitches : toptimizerswitches;
-       nextaktlocalswitches : tlocalswitches;
+       init_settings,
+       current_settings   : tsettings;
+       
+       nextlocalswitches : tlocalswitches;
        localswitcheschanged : boolean;
-       aktmodeswitches    : tmodeswitches;
-       aktsetalloc,
-       aktpackrecords,
-       aktpackenum        : shortint;
-       aktmaxfpuregisters : longint;
-       aktalignment       : talignmentinfo;
-       aktcputype,
-       aktoptimizecputype      : tcputype;
-       aktfputype         : tfputype;
-       aktasmmode         : tasmmode;
-       aktinterfacetype   : tinterfacetypes;
-       aktdefproccall     : tproccalloption;
-       aktsourcecodepage  : tcodepagestring;
 
      { Memory sizes }
        heapsize,
@@ -2101,14 +2090,14 @@ end;
     function var_align(siz: shortint): shortint;
       begin
         siz := size_2_align(siz);
-        var_align := used_align(siz,aktalignment.varalignmin,aktalignment.varalignmax);
+        var_align := used_align(siz,current_settings.alignment.varalignmin,current_settings.alignment.varalignmax);
       end;
 
 
     function const_align(siz: shortint): shortint;
       begin
         siz := size_2_align(siz);
-        const_align := used_align(siz,aktalignment.constalignmin,aktalignment.constalignmax);
+        const_align := used_align(siz,current_settings.alignment.constalignmin,current_settings.alignment.constalignmax);
       end;
 
 
@@ -2251,55 +2240,55 @@ end;
         apptype:=app_cui;
 
         { Init values }
-        initmodeswitches:=fpcmodeswitches;
-        initlocalswitches:=[cs_check_io,cs_typed_const_writable];
-        initmoduleswitches:=[cs_extsyntax,cs_implicit_exceptions];
-        initglobalswitches:=[cs_check_unit_name,cs_link_static];
-        initoptimizerswitches:=[];
-        initsourcecodepage:='8859-1';
-        initpackenum:=4;
-        initsetalloc:=0;
-        fillchar(initalignment,sizeof(talignmentinfo),0);
+        init_settings.modeswitches:=fpcmodeswitches;
+        init_settings.localswitches:=[cs_check_io,cs_typed_const_writable];
+        init_settings.moduleswitches:=[cs_extsyntax,cs_implicit_exceptions];
+        init_settings.globalswitches:=[cs_check_unit_name,cs_link_static];
+        init_settings.optimizerswitches:=[];
+        init_settings.sourcecodepage:='8859-1';
+        init_settings.packenum:=4;
+        init_settings.setalloc:=0;
+        fillchar(init_settings.alignment,sizeof(talignmentinfo),0);
         { might be overridden later }
-        initasmmode:=asmmode_standard;
-        initcputype:=cpu_none;
-        initoptimizecputype:=cpu_none;
-        initfputype:=fpu_none;
-        initinterfacetype:=it_interfacecom;
-        initdefproccall:=pocall_default;
+        init_settings.asmmode:=asmmode_standard;
+        init_settings.cputype:=cpu_none;
+        init_settings.optimizecputype:=cpu_none;
+        init_settings.fputype:=fpu_none;
+        init_settings.interfacetype:=it_interfacecom;
+        init_settings.defproccall:=pocall_default;
 
         { Target specific defaults, these can override previous default options }
 {$ifdef i386}
-        initcputype:=cpu_Pentium;
-        initoptimizecputype:=cpu_Pentium3;
-        initfputype:=fpu_x87;
+        init_settings.cputype:=cpu_Pentium;
+        init_settings.optimizecputype:=cpu_Pentium3;
+        init_settings.fputype:=fpu_x87;
 {$endif i386}
 {$ifdef m68k}
-        initcputype:=cpu_MC68020;
-        initfputype:=fpu_soft;
+        init_settings.cputype:=cpu_MC68020;
+        init_settings.fputype:=fpu_soft;
 {$endif m68k}
 {$ifdef powerpc}
-        initcputype:=cpu_PPC604;
-        initfputype:=fpu_standard;
+        init_settings.cputype:=cpu_PPC604;
+        init_settings.fputype:=fpu_standard;
 {$endif powerpc}
 {$ifdef POWERPC64}
-        initcputype:=cpu_PPC970;
-        initfputype:=fpu_standard;
+        init_settings.cputype:=cpu_PPC970;
+        init_settings.fputype:=fpu_standard;
 {$endif POWERPC64}
 {$ifdef sparc}
-        initcputype:=cpu_SPARC_V8;
-        initfputype:=fpu_hard;
+        init_settings.cputype:=cpu_SPARC_V8;
+        init_settings.fputype:=fpu_hard;
 {$endif sparc}
 {$ifdef arm}
-        initcputype:=cpu_armv3;
-        initfputype:=fpu_fpa;
+        init_settings.cputype:=cpu_armv3;
+        init_settings.fputype:=fpu_fpa;
 {$endif arm}
 {$ifdef x86_64}
-        initcputype:=cpu_athlon64;
-        initfputype:=fpu_sse64;
+        init_settings.cputype:=cpu_athlon64;
+        init_settings.fputype:=fpu_sse64;
 {$endif x86_64}
-        if initoptimizecputype=cpu_none then
-          initoptimizecputype:=initcputype;
+        if init_settings.optimizecputype=cpu_none then
+          init_settings.optimizecputype:=init_settings.cputype;
 
         LinkLibraryAliases :=TLinkStrMap.Create;
         LinkLibraryOrder   :=TLinkStrMap.Create;

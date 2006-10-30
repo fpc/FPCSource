@@ -242,148 +242,148 @@ implementation
             low:=mid;
          end;
         is_keyword:=(pattern=tokeninfo^[ttoken(high)].str) and
-                    (tokeninfo^[ttoken(high)].keyword in aktmodeswitches);
+                    (tokeninfo^[ttoken(high)].keyword in current_settings.modeswitches);
       end;
 
 
     Function SetCompileMode(const s:string; changeInit: boolean):boolean;
       var
         b : boolean;
-        oldaktmodeswitches : tmodeswitches;
+        oldmodeswitches : tmodeswitches;
       begin
-        oldaktmodeswitches:=aktmodeswitches;
+        oldmodeswitches:=current_settings.modeswitches;
 
         b:=true;
         if s='DEFAULT' then
-          aktmodeswitches:=initmodeswitches
+          current_settings.modeswitches:=fpcmodeswitches
         else
          if s='DELPHI' then
-          aktmodeswitches:=delphimodeswitches
+          current_settings.modeswitches:=delphimodeswitches
         else
          if s='TP' then
-          aktmodeswitches:=tpmodeswitches
+          current_settings.modeswitches:=tpmodeswitches
         else
          if s='FPC' then begin
-          aktmodeswitches:=fpcmodeswitches;
+          current_settings.modeswitches:=fpcmodeswitches;
           { TODO: enable this for 2.3/2.9 }
-          //  include(aktlocalswitches, cs_typed_addresses);
+          //  include(current_settings.localswitches, cs_typed_addresses);
         end else
          if s='OBJFPC' then begin
-          aktmodeswitches:=objfpcmodeswitches;
+          current_settings.modeswitches:=objfpcmodeswitches;
           { TODO: enable this for 2.3/2.9 }
-          //  include(aktlocalswitches, cs_typed_addresses);
+          //  include(current_settings.localswitches, cs_typed_addresses);
         end else
          if s='GPC' then
-          aktmodeswitches:=gpcmodeswitches
+          current_settings.modeswitches:=gpcmodeswitches
         else
          if s='MACPAS' then
-          aktmodeswitches:=macmodeswitches
+          current_settings.modeswitches:=macmodeswitches
         else
          b:=false;
 
         if b and changeInit then
-          initmodeswitches := aktmodeswitches;
+          init_settings.modeswitches := current_settings.modeswitches;
 
         if b then
          begin
            { resolve all postponed switch changes }
            if localswitcheschanged then
              begin
-               aktlocalswitches:=nextaktlocalswitches;
+               current_settings.localswitches:=nextlocalswitches;
                localswitcheschanged:=false;
              end;
 
            { turn ansistrings on by default ? }
-           if (m_default_ansistring in aktmodeswitches) then
+           if (m_default_ansistring in current_settings.modeswitches) then
             begin
-              include(aktlocalswitches,cs_ansistrings);
+              include(current_settings.localswitches,cs_ansistrings);
               if changeinit then
-               include(initlocalswitches,cs_ansistrings);
+               include(init_settings.localswitches,cs_ansistrings);
             end
            else
             begin
-              exclude(aktlocalswitches,cs_ansistrings);
+              exclude(current_settings.localswitches,cs_ansistrings);
               if changeinit then
-               exclude(initlocalswitches,cs_ansistrings);
+               exclude(init_settings.localswitches,cs_ansistrings);
             end;
 
            { turn inline on by default ? }
-           if (m_default_inline in aktmodeswitches) then
+           if (m_default_inline in current_settings.modeswitches) then
             begin
-              include(aktlocalswitches,cs_do_inline);
+              include(current_settings.localswitches,cs_do_inline);
               if changeinit then
-               include(initlocalswitches,cs_do_inline);
+               include(init_settings.localswitches,cs_do_inline);
             end
            else
             begin
-              exclude(aktlocalswitches,cs_ansistrings);
+              exclude(current_settings.localswitches,cs_ansistrings);
               if changeinit then
-               exclude(initlocalswitches,cs_ansistrings);
+               exclude(init_settings.localswitches,cs_ansistrings);
             end;
 
            { turn on bitpacking for mode macpas }
-           if (m_mac in aktmodeswitches) then
+           if (m_mac in current_settings.modeswitches) then
              begin
-               include(aktlocalswitches,cs_bitpacking);
+               include(current_settings.localswitches,cs_bitpacking);
                if changeinit then
-                 include(initlocalswitches,cs_bitpacking);
+                 include(init_settings.localswitches,cs_bitpacking);
              end;
 
            { support goto/label by default in delphi/tp7/mac modes }
-           if ([m_delphi,m_tp7,m_mac] * aktmodeswitches <> []) then
+           if ([m_delphi,m_tp7,m_mac] * current_settings.modeswitches <> []) then
              begin
-               include(aktmoduleswitches,cs_support_goto);
+               include(current_settings.moduleswitches,cs_support_goto);
                if changeinit then
-                 include(initmoduleswitches,cs_support_goto);
+                 include(init_settings.moduleswitches,cs_support_goto);
              end;
 
            { Default enum packing for delphi/tp7 }
-           if (m_tp7 in aktmodeswitches) or
-              (m_delphi in aktmodeswitches) then
-             aktpackenum:=1
-           else if (m_mac in aktmodeswitches) then
+           if (m_tp7 in current_settings.modeswitches) or
+              (m_delphi in current_settings.modeswitches) then
+             current_settings.packenum:=1
+           else if (m_mac in current_settings.modeswitches) then
              { compatible with Metrowerks Pascal }
-             aktpackenum:=2
+             current_settings.packenum:=2
            else
-             aktpackenum:=4;
+             current_settings.packenum:=4;
            if changeinit then
-             initpackenum:=aktpackenum;
+             init_settings.packenum:=current_settings.packenum;
 {$ifdef i386}
            { Default to intel assembler for delphi/tp7 on i386 }
-           if (m_delphi in aktmodeswitches) or
-              (m_tp7 in aktmodeswitches) then
-             aktasmmode:=asmmode_i386_intel;
+           if (m_delphi in current_settings.modeswitches) or
+              (m_tp7 in current_settings.modeswitches) then
+             current_settings.asmmode:=asmmode_i386_intel;
            if changeinit then
-             initasmmode:=aktasmmode;
+             init_settings.asmmode:=current_settings.asmmode;
 {$endif i386}
 
            { Exception support explicitly turned on (mainly for macpas, to }
            { compensate for lack of interprocedural goto support)          }
-           if (cs_support_exceptions in aktglobalswitches) then
-             include(aktmodeswitches,m_except);
+           if (cs_support_exceptions in current_settings.globalswitches) then
+             include(current_settings.modeswitches,m_except);
 
             { Undefine old symbol }
-            if (m_delphi in oldaktmodeswitches) then
+            if (m_delphi in oldmodeswitches) then
               undef_system_macro('FPC_DELPHI')
-            else if (m_tp7 in oldaktmodeswitches) then
+            else if (m_tp7 in oldmodeswitches) then
               undef_system_macro('FPC_TP')
-            else if (m_objfpc in oldaktmodeswitches) then
+            else if (m_objfpc in oldmodeswitches) then
               undef_system_macro('FPC_OBJFPC')
-            else if (m_gpc in oldaktmodeswitches) then
+            else if (m_gpc in oldmodeswitches) then
               undef_system_macro('FPC_GPC')
-            else if (m_mac in oldaktmodeswitches) then
+            else if (m_mac in oldmodeswitches) then
               undef_system_macro('FPC_MACPAS');
 
             { define new symbol in delphi,objfpc,tp,gpc,macpas mode }
-            if (m_delphi in aktmodeswitches) then
+            if (m_delphi in current_settings.modeswitches) then
               def_system_macro('FPC_DELPHI')
-            else if (m_tp7 in aktmodeswitches) then
+            else if (m_tp7 in current_settings.modeswitches) then
               def_system_macro('FPC_TP')
-            else if (m_objfpc in aktmodeswitches) then
+            else if (m_objfpc in current_settings.modeswitches) then
               def_system_macro('FPC_OBJFPC')
-            else if (m_gpc in aktmodeswitches) then
+            else if (m_gpc in current_settings.modeswitches) then
               def_system_macro('FPC_GPC')
-            else if (m_mac in aktmodeswitches) then
+            else if (m_mac in current_settings.modeswitches) then
               def_system_macro('FPC_MACPAS');
          end;
 
@@ -672,17 +672,17 @@ In case not, the value returned can be arbitrary.
               else
                 macroType := [ctetInteger];
             end
-          else if assigned(mac) and (m_mac in aktmodeswitches) and (result='FALSE') then
+          else if assigned(mac) and (m_mac in current_settings.modeswitches) and (result='FALSE') then
             begin
               result:= '0';
               macroType:= [ctetBoolean];
             end
-          else if assigned(mac) and (m_mac in aktmodeswitches) and (result='TRUE') then
+          else if assigned(mac) and (m_mac in current_settings.modeswitches) and (result='TRUE') then
             begin
               result:= '1';
               macroType:= [ctetBoolean];
             end
-          else if (m_mac in aktmodeswitches) and
+          else if (m_mac in current_settings.modeswitches) and
                   (not assigned(mac) or not mac.defined) and
                   (macrocount = 1) then
             begin
@@ -720,7 +720,7 @@ In case not, the value returned can be arbitrary.
                         current_scanner.skipspace;
                         hasKlammer:= true;
                       end
-                    else if (m_mac in aktmodeswitches) then
+                    else if (m_mac in current_settings.modeswitches) then
                       hasKlammer:= false
                     else
                       Message(scan_e_error_in_preproc_expr);
@@ -750,7 +750,7 @@ In case not, the value returned can be arbitrary.
                         Message(scan_e_error_in_preproc_expr);
                   end
                 else
-                if (m_mac in aktmodeswitches) and (current_scanner.preproc_pattern='UNDEFINED') then
+                if (m_mac in current_settings.modeswitches) and (current_scanner.preproc_pattern='UNDEFINED') then
                   begin
                     factorType:= [ctetBoolean];
                     preproc_consume(_ID);
@@ -774,7 +774,7 @@ In case not, the value returned can be arbitrary.
                       Message(scan_e_error_in_preproc_expr);
                   end
                 else
-                if (m_mac in aktmodeswitches) and (current_scanner.preproc_pattern='OPTION') then
+                if (m_mac in current_settings.modeswitches) and (current_scanner.preproc_pattern='OPTION') then
                   begin
                     factorType:= [ctetBoolean];
                     preproc_consume(_ID);
@@ -903,14 +903,14 @@ In case not, the value returned can be arbitrary.
                       read_factor:='0'; {Just to have something}
                   end
                 else
-                if (m_mac in aktmodeswitches) and (current_scanner.preproc_pattern='TRUE') then
+                if (m_mac in current_settings.modeswitches) and (current_scanner.preproc_pattern='TRUE') then
                   begin
                     factorType:= [ctetBoolean];
                     preproc_consume(_ID);
                     read_factor:='1';
                   end
                 else
-                if (m_mac in aktmodeswitches) and (current_scanner.preproc_pattern='FALSE') then
+                if (m_mac in current_settings.modeswitches) and (current_scanner.preproc_pattern='FALSE') then
                   begin
                     factorType:= [ctetBoolean];
                     preproc_consume(_ID);
@@ -922,7 +922,7 @@ In case not, the value returned can be arbitrary.
 
                     { Default is to return the original symbol }
                     read_factor:=hs;
-                    if eval and (m_delphi in aktmodeswitches) and (ctetString in factorType) then
+                    if eval and (m_delphi in current_settings.modeswitches) and (ctetString in factorType) then
                       if searchsym(current_scanner.preproc_pattern,srsym,srsymtable) then
                         begin
                           case srsym.typ of
@@ -1256,7 +1256,7 @@ In case not, the value returned can be arbitrary.
              end;
           end;
         mac.is_used:=true;
-        if (cs_support_macro in aktmoduleswitches) then
+        if (cs_support_macro in current_settings.moduleswitches) then
           begin
              current_scanner.skipspace;
 
@@ -1980,11 +1980,11 @@ In case not, the value returned can be arbitrary.
                      begin
                        inc(inputpointer,3);
                        message(scan_c_switching_to_utf8);
-                       aktsourcecodepage:='utf8';
+                       current_settings.sourcecodepage:='utf8';
                      end;
 
                    line_no:=1;
-                   if cs_asm_source in aktglobalswitches then
+                   if cs_asm_source in current_settings.globalswitches then
                      inputfile.setline(line_no,bufstart);
                  end;
               end
@@ -2059,7 +2059,7 @@ In case not, the value returned can be arbitrary.
       var
          oldaktfilepos : tfileposinfo;
       begin
-         if (m_nested_comment in aktmodeswitches) then
+         if (m_nested_comment in current_settings.modeswitches) then
            inc(comment_level)
          else
            comment_level:=1;
@@ -2075,7 +2075,7 @@ In case not, the value returned can be arbitrary.
 
     procedure tscannerfile.dec_comment_level;
       begin
-         if (m_nested_comment in aktmodeswitches) then
+         if (m_nested_comment in current_settings.modeswitches) then
            dec(comment_level)
          else
            comment_level:=0;
@@ -2109,7 +2109,7 @@ In case not, the value returned can be arbitrary.
            lastlinepos:=bufstart+(inputpointer-inputbuffer);
            inc(line_no);
            { update linebuffer }
-           if cs_asm_source in aktglobalswitches then
+           if cs_asm_source in current_settings.globalswitches then
              inputfile.setline(line_no,lastlinepos);
            { update for status and call the show status routine,
              but don't touch aktfilepos ! }
@@ -2270,7 +2270,7 @@ In case not, the value returned can be arbitrary.
              Message(scan_c_skipping_until);
              repeat
                current_scanner.skipuntildirective;
-               if not (m_mac in aktmodeswitches) then
+               if not (m_mac in current_settings.modeswitches) then
                  p:=tdirectiveitem(turbo_scannerdirectives.search(current_scanner.readid))
                else
                  p:=tdirectiveitem(mac_scannerdirectives.search(current_scanner.readid));
@@ -2328,7 +2328,7 @@ In case not, the value returned can be arbitrary.
                hs:=current_scanner.readid;
                if (hs='') then
                 begin
-                  if (c='$') and (m_fpc in aktmodeswitches) then
+                  if (c='$') and (m_fpc in current_settings.modeswitches) then
                    begin
                      current_scanner.readchar;  { skip $ }
                      hs:=current_scanner.readid;
@@ -2345,7 +2345,7 @@ In case not, the value returned can be arbitrary.
       { directives may follow switches after a , }
          if hs<>'' then
           begin
-            if not (m_mac in aktmodeswitches) then
+            if not (m_mac in current_settings.modeswitches) then
               t:=tdirectiveitem(turbo_scannerdirectives.search(hs))
             else
               t:=tdirectiveitem(mac_scannerdirectives.search(hs));
@@ -2981,7 +2981,7 @@ In case not, the value returned can be arbitrary.
       begin
         if localswitcheschanged then
           begin
-            aktlocalswitches:=nextaktlocalswitches;
+            current_settings.localswitches:=nextlocalswitches;
             localswitcheschanged:=false;
           end;
 
@@ -3061,7 +3061,7 @@ In case not, the value returned can be arbitrary.
               with tokeninfo^[ttoken(high)] do
                 if pattern=str then
                   begin
-                    if keyword in aktmodeswitches then
+                    if keyword in current_settings.modeswitches then
                       if op=NOTOKEN then
                         token:=ttoken(high)
                       else
@@ -3073,7 +3073,7 @@ In case not, the value returned can be arbitrary.
            if token=_ID then
             begin
             { this takes some time ... }
-              if (cs_support_macro in aktmoduleswitches) then
+              if (cs_support_macro in current_settings.moduleswitches) then
                begin
                  mac:=tmacro(search_macro(pattern));
                  if assigned(mac) and (not mac.is_compiler_var) and (assigned(mac.buftext)) then
@@ -3114,7 +3114,7 @@ In case not, the value returned can be arbitrary.
 
              '%' :
                begin
-                 if not(m_fpc in aktmodeswitches) then
+                 if not(m_fpc in current_settings.modeswitches) then
                   Illegal_Char(c)
                  else
                   begin
@@ -3126,13 +3126,13 @@ In case not, the value returned can be arbitrary.
 
              '&' :
                begin
-                 if m_fpc in aktmodeswitches then
+                 if m_fpc in current_settings.modeswitches then
                   begin
                     readnumber;
                     token:=_INTCONST;
                     goto exit_label;
                   end
-                 else if m_mac in aktmodeswitches then
+                 else if m_mac in current_settings.modeswitches then
                   begin
                     readchar;
                     token:=_AMPERSAND;
@@ -3254,7 +3254,7 @@ In case not, the value returned can be arbitrary.
              '+' :
                begin
                  readchar;
-                 if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
+                 if (c='=') and (cs_support_c_operators in current_settings.moduleswitches) then
                   begin
                     readchar;
                     token:=_PLUSASN;
@@ -3267,7 +3267,7 @@ In case not, the value returned can be arbitrary.
              '-' :
                begin
                  readchar;
-                 if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
+                 if (c='=') and (cs_support_c_operators in current_settings.moduleswitches) then
                   begin
                     readchar;
                     token:=_MINUSASN;
@@ -3293,7 +3293,7 @@ In case not, the value returned can be arbitrary.
              '*' :
                begin
                  readchar;
-                 if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
+                 if (c='=') and (cs_support_c_operators in current_settings.moduleswitches) then
                   begin
                     readchar;
                     token:=_STARASN;
@@ -3315,7 +3315,7 @@ In case not, the value returned can be arbitrary.
                  case c of
                    '=' :
                      begin
-                       if (cs_support_c_operators in aktmoduleswitches) then
+                       if (cs_support_c_operators in current_settings.moduleswitches) then
                         begin
                           readchar;
                           token:=_SLASHASN;
@@ -3334,7 +3334,7 @@ In case not, the value returned can be arbitrary.
                end;
 
              '|' :
-               if m_mac in aktmodeswitches then
+               if m_mac in current_settings.modeswitches then
                 begin
                   readchar;
                   token:=_PIPE;
@@ -3501,7 +3501,7 @@ In case not, the value returned can be arbitrary.
                                end;
                            end;
                            { interpret as utf-8 string? }
-                           if (ord(c)>=$80) and (aktsourcecodepage='utf8') then
+                           if (ord(c)>=$80) and (current_settings.sourcecodepage='utf8') then
                              begin
                                { convert existing string to an utf-8 string }
                                if not iswidestring then
@@ -3545,7 +3545,7 @@ In case not, the value returned can be arbitrary.
                              end
                            else if iswidestring then
                              begin
-                               if aktsourcecodepage='utf8' then
+                               if current_settings.sourcecodepage='utf8' then
                                  concatwidestringchar(patternw,ord(c))
                                else
                                  concatwidestringchar(patternw,asciichar2unicode(c))

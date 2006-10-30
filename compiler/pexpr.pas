@@ -133,7 +133,7 @@ implementation
            end
           else
             begin
-               if cs_ansistrings in aktlocalswitches then
+               if cs_ansistrings in current_settings.localswitches then
                  def:=cansistringtype
                else
                  def:=cshortstringtype;
@@ -363,7 +363,7 @@ implementation
             begin
               if try_to_consume(_LKLAMMER) then
                 begin
-                  if not (m_mac in aktmodeswitches) then
+                  if not (m_mac in current_settings.modeswitches) then
                     begin
                       if not(try_to_consume(_RKLAMMER)) then
                         begin
@@ -404,7 +404,7 @@ implementation
 
           in_break :
             begin
-              if not (m_mac in aktmodeswitches) then
+              if not (m_mac in current_settings.modeswitches) then
                statement_syssym:=cbreaknode.create
               else
                 begin
@@ -415,7 +415,7 @@ implementation
 
           in_continue :
             begin
-              if not (m_mac in aktmodeswitches) then
+              if not (m_mac in current_settings.modeswitches) then
                 statement_syssym:=ccontinuenode.create
               else
                 begin
@@ -426,7 +426,7 @@ implementation
 
           in_leave :
             begin
-              if m_mac in aktmodeswitches then
+              if m_mac in current_settings.modeswitches then
                 statement_syssym:=cbreaknode.create
               else
                 begin
@@ -437,7 +437,7 @@ implementation
 
           in_cycle :
             begin
-              if m_mac in aktmodeswitches then
+              if m_mac in current_settings.modeswitches then
                 statement_syssym:=ccontinuenode.create
               else
                 begin
@@ -614,7 +614,7 @@ implementation
               in_args:=true;
               p1:=comp_expr(true);
               p1:=caddrnode.create(p1);
-              if cs_typed_addresses in aktlocalswitches then
+              if cs_typed_addresses in current_settings.localswitches then
                 include(p1.flags,nf_typedaddr);
               consume(_RKLAMMER);
               statement_syssym:=p1;
@@ -938,8 +938,8 @@ implementation
                getaddr:=true;
              end
             else
-             if (m_tp_procvar in aktmodeswitches) or
-                (m_mac_procvar in aktmodeswitches) then
+             if (m_tp_procvar in current_settings.modeswitches) or
+                (m_mac_procvar in current_settings.modeswitches) then
               begin
                 aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef);
                 if assigned(aprocdef) then
@@ -1038,8 +1038,8 @@ implementation
       begin
         if not assigned(pv) then
          internalerror(200301121);
-        if (m_tp_procvar in aktmodeswitches) or
-           (m_mac_procvar in aktmodeswitches) then
+        if (m_tp_procvar in current_settings.modeswitches) or
+           (m_mac_procvar in current_settings.modeswitches) then
          begin
            hp:=p2;
            hpp:=@p2;
@@ -1317,8 +1317,8 @@ implementation
                (token=_LKLAMMER) or
                (
                 (
-                 (m_tp7 in aktmodeswitches) or
-                 (m_delphi in aktmodeswitches)
+                 (m_tp7 in current_settings.modeswitches) or
+                 (m_delphi in current_settings.modeswitches)
                 ) and
                 (afterassignment or in_args) and
                 not(vo_is_result in tabstractvarsym(srsym).varoptions)
@@ -1413,7 +1413,7 @@ implementation
                      begin
                        { We need to know if this unit uses Variants }
                        if (hdef=cvarianttype) and
-                          not(cs_compilesystem in aktmoduleswitches) then
+                          not(cs_compilesystem in current_settings.moduleswitches) then
                          current_module.flags:=current_module.flags or uf_uses_variants;
                        if (block_type<>bt_specialize) and
                           try_to_consume(_LKLAMMER) then
@@ -1529,7 +1529,7 @@ implementation
                       conststring :
                         begin
                           len:=tconstsym(srsym).value.len;
-                          if not(cs_ansistrings in aktlocalswitches) and (len>255) then
+                          if not(cs_ansistrings in current_settings.localswitches) and (len>255) then
                            len:=255;
                           getmem(pc,len+1);
                           move(pchar(tconstsym(srsym).value.valueptr)^,pc^,len);
@@ -1807,8 +1807,8 @@ implementation
 
                     { support tp/mac procvar^ if the procvar returns a
                       pointer type }
-                    if ((m_tp_procvar in aktmodeswitches) or
-                        (m_mac_procvar in aktmodeswitches)) and
+                    if ((m_tp_procvar in current_settings.modeswitches) or
+                        (m_mac_procvar in current_settings.modeswitches)) and
                        (p1.resultdef.deftype=procvardef) and
                        (tprocvardef(p1.resultdef).returndef.deftype=pointerdef) then
                       begin
@@ -1859,7 +1859,7 @@ implementation
                               begin
                                  { support delphi autoderef }
                                  if (tpointerdef(p1.resultdef).pointeddef.deftype=arraydef) and
-                                    (m_autoderef in aktmodeswitches) then
+                                    (m_autoderef in current_settings.modeswitches) then
                                    p1:=cderefnode.create(p1);
                                  p2:=comp_expr(true);
                                  { Support Pbytevar[0..9] which returns array [0..9].}
@@ -1890,7 +1890,7 @@ implementation
                                 { the macpas unit                              }
                                 if (p1.resultdef.deftype = orddef) then
                                   begin
-                                    if (m_mac in aktmodeswitches) and
+                                    if (m_mac in current_settings.modeswitches) and
                                        is_integer(p1.resultdef) and
                                        (p1.resultdef.size = 4) then
                                       int_to_4cc(p1)
@@ -1963,7 +1963,7 @@ implementation
                   begin
                     consume(_POINT);
                     if (p1.resultdef.deftype=pointerdef) and
-                       (m_autoderef in aktmodeswitches) then
+                       (m_autoderef in current_settings.modeswitches) then
                       begin
                         p1:=cderefnode.create(p1);
                         do_typecheckpass(p1);
@@ -2445,7 +2445,7 @@ implementation
                 end;
                got_addrn:=false;
                p1:=caddrnode.create(p1);
-               if cs_typed_addresses in aktlocalswitches then
+               if cs_typed_addresses in current_settings.localswitches then
                  include(p1.flags,nf_typedaddr);
                { Store the procvar that we are expecting, the
                  addrn will use the information to find the correct

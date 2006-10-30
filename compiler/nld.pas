@@ -351,7 +351,7 @@ implementation
 {$ifdef SUPPORT_MMX}
          registersmmx:=0;
 {$endif SUPPORT_MMX}
-         if (cs_create_pic in aktmoduleswitches) and
+         if (cs_create_pic in current_settings.moduleswitches) and
            not(symtableentry.typ in [paravarsym,localvarsym]) then
            include(current_procinfo.flags,pi_needs_got);
 
@@ -747,7 +747,7 @@ implementation
          if codegenerror then
            exit;
 
-         if (cs_opt_level1 in aktoptimizerswitches) and
+         if (cs_opt_level1 in current_settings.optimizerswitches) and
             (right.nodetype = calln) and
             (right.resultdef=left.resultdef) and
             { left must be a temp, since otherwise as soon as you modify the }
@@ -786,7 +786,7 @@ implementation
                  (tstringconstnode(right).len<>0) then
                begin
 {$ifdef old_append_str}
-                 if (cs_opt_level1 in aktoptimizerswitches) and
+                 if (cs_opt_level1 in current_settings.optimizerswitches) and
                     (right.nodetype in [calln,blockn]) and
                     (left.nodetype = temprefn) and
                     is_shortstring(right.resultdef) and

@@ -162,12 +162,12 @@ var
   StripStr : string[40];
   i : longint;
 begin
-  if not(cs_link_nolink in aktglobalswitches) then
+  if not(cs_link_nolink in current_settings.globalswitches) then
     Message1(exec_i_linking,current_module.exefilename^);
 
   { Create some replacements }
   StripStr:='';
-  if (cs_link_strip in aktglobalswitches) then
+  if (cs_link_strip in current_settings.globalswitches) then
    StripStr:='-s';
 
   { Write used files and libraries }
@@ -194,7 +194,7 @@ begin
    end;
 
   { Remove ReponseFile }
-  if (success) and not(cs_link_nolink in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    RemoveFile(outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

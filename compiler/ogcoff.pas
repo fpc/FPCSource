@@ -1736,7 +1736,7 @@ const pemagic : array[0..3] of byte = (
         with TCoffObjSection(p) do
           begin
             { Skip debug sections }
-            if (cs_link_strip in aktglobalswitches) and
+            if (cs_link_strip in current_settings.globalswitches) and
                (oso_debug in secoptions) then
               exit;
 
@@ -1758,7 +1758,7 @@ const pemagic : array[0..3] of byte = (
         with TCoffObjSection(p) do
           begin
             { Skip debug sections }
-            if (cs_link_strip in aktglobalswitches) and
+            if (cs_link_strip in current_settings.globalswitches) and
                (oso_debug in secoptions) then
               exit;
 
@@ -2097,7 +2097,7 @@ const pemagic : array[0..3] of byte = (
       begin
         nsyms:=0;
         sympos:=0;
-        if not(cs_link_strip in aktglobalswitches) then
+        if not(cs_link_strip in current_settings.globalswitches) then
          begin
            nsyms:=ExeSymbolList.Count;
            sympos:=CurrDataPos;
@@ -2166,7 +2166,7 @@ const pemagic : array[0..3] of byte = (
               header.flag:=header.flag or PE_FILE_RELOCS_STRIPPED;
             if FindExeSection('.stab')=nil then
               header.flag:=header.flag or PE_FILE_DEBUG_STRIPPED;
-            if (cs_link_strip in aktglobalswitches) then
+            if (cs_link_strip in current_settings.globalswitches) then
               header.flag:=header.flag or PE_FILE_LOCAL_SYMS_STRIPPED;
           end
         else
@@ -2245,7 +2245,7 @@ const pemagic : array[0..3] of byte = (
         { Section data }
         ExeSections.ForEachCall(@ExeSections_write_data,nil);
         { Optional ObjSymbols }
-        if not(cs_link_strip in aktglobalswitches) then
+        if not(cs_link_strip in current_settings.globalswitches) then
          begin
            if SymPos<>FWriter.Size then
              internalerror(200602252);

@@ -376,7 +376,7 @@ unit cgx86;
                   end;
                end;
           end;
-        if (cs_create_pic in aktmoduleswitches) and
+        if (cs_create_pic in current_settings.moduleswitches) and
          assigned(ref.symbol) then
           begin
             reference_reset_symbol(href,ref.symbol,0);
@@ -401,7 +401,7 @@ unit cgx86;
               end;
           end;
 {$else x86_64}
-        if (cs_create_pic in aktmoduleswitches) and
+        if (cs_create_pic in current_settings.moduleswitches) and
           assigned(ref.symbol) then
           begin
             reference_reset_symbol(href,ref.symbol,0);
@@ -517,7 +517,7 @@ unit cgx86;
          list.concat(Taicpu.Op_ref(op,s,tmpref));
          { storing non extended floats can cause a floating point overflow }
          if (t<>OS_F80) and
-            (cs_fpu_fwait in aktlocalswitches) then
+            (cs_fpu_fwait in current_settings.localswitches) then
            list.concat(Taicpu.Op_none(A_FWAIT,S_NO));
          dec_fpu_stack;
       end;
@@ -580,7 +580,7 @@ unit cgx86;
           begin
             sym:=current_asmdata.RefAsmSymbol(s);
             reference_reset_symbol(r,sym,0);
-            if cs_create_pic in aktmoduleswitches then
+            if cs_create_pic in current_settings.moduleswitches then
               begin
 {$ifdef i386}
                 include(current_procinfo.flags,pi_needs_got);
@@ -768,7 +768,7 @@ unit cgx86;
               begin
                 if assigned(ref.symbol) then
                   begin
-                    if (cs_create_pic in aktmoduleswitches) then
+                    if (cs_create_pic in current_settings.moduleswitches) then
                       begin
 {$ifdef x86_64}
                         reference_reset_symbol(tmpref,ref.symbol,0);
@@ -1115,7 +1115,7 @@ unit cgx86;
             end;
           OP_MUL,OP_IMUL:
             begin
-              if not(cs_check_overflow in aktlocalswitches) and
+              if not(cs_check_overflow in current_settings.localswitches) and
                  ispowerof2(int64(a),power) then
                 begin
                   list.concat(taicpu.op_const_reg(A_SHL,TCgSize2OpSize[size],power,reg));
@@ -1129,7 +1129,7 @@ unit cgx86;
                 internalerror(200109225);
             end;
           OP_ADD, OP_AND, OP_OR, OP_SUB, OP_XOR:
-            if not(cs_check_overflow in aktlocalswitches) and
+            if not(cs_check_overflow in current_settings.localswitches) and
                (a = 1) and
                (op in [OP_ADD,OP_SUB]) then
               if op = OP_ADD then
@@ -1228,7 +1228,7 @@ unit cgx86;
             End;
           OP_MUL,OP_IMUL:
             begin
-              if not(cs_check_overflow in aktlocalswitches) and
+              if not(cs_check_overflow in current_settings.localswitches) and
                  ispowerof2(int64(a),power) then
                 begin
                   list.concat(taicpu.op_const_ref(A_SHL,TCgSize2OpSize[size],
@@ -1244,7 +1244,7 @@ unit cgx86;
                 internalerror(200109232);
             end;
           OP_ADD, OP_AND, OP_OR, OP_SUB, OP_XOR:
-            if not(cs_check_overflow in aktlocalswitches) and
+            if not(cs_check_overflow in current_settings.localswitches) and
                (a = 1) and
                (op in [OP_ADD,OP_SUB]) then
               if op = OP_ADD then
@@ -1552,15 +1552,15 @@ unit cgx86;
     begin
       cm:=copy_move;
       helpsize:=12;
-      if cs_opt_size in aktoptimizerswitches then
+      if cs_opt_size in current_settings.optimizerswitches then
         helpsize:=8;
-      if (cs_mmx in aktlocalswitches) and
+      if (cs_mmx in current_settings.localswitches) and
          not(pi_uses_fpu in current_procinfo.flags) and
          ((len=8) or (len=16) or (len=24) or (len=32)) then
         cm:=copy_mmx;
       if (len>helpsize) then
         cm:=copy_string;
-      if (cs_opt_size in aktoptimizerswitches) and
+      if (cs_opt_size in current_settings.optimizerswitches) and
          not((len<=16) and (cm=copy_mmx)) then
         cm:=copy_string;
       case cm of
@@ -1647,7 +1647,7 @@ unit cgx86;
 {$ifdef i386}
             list.concat(Taicpu.op_none(A_CLD,S_NO));
 {$endif i386}
-            if cs_opt_size in aktoptimizerswitches  then
+            if cs_opt_size in current_settings.optimizerswitches  then
               begin
                 a_load_const_reg(list,OS_INT,len,REGCX);
                 list.concat(Taicpu.op_none(A_REP,S_NO));
@@ -1916,7 +1916,7 @@ unit cgx86;
          ai : taicpu;
          cond : TAsmCond;
       begin
-         if not(cs_check_overflow in aktlocalswitches) then
+         if not(cs_check_overflow in current_settings.localswitches) then
           exit;
          current_asmdata.getjumplabel(hl);
          if not ((def.deftype=pointerdef) or

@@ -71,7 +71,7 @@ implementation
 
     function tx86_64procinfo.calc_stackframe_size:longint;
       begin
-        maxpushedparasize:=align(maxpushedparasize,max(aktalignment.localalignmin,16));
+        maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,16));
         { RSP should be aligned on 16 bytes }
         result:=Align(tg.direction*tg.lasttemp+maxpushedparasize,16);
         if target_info.system=system_x86_64_win64 then

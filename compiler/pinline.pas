@@ -82,7 +82,7 @@ implementation
           set_varstate(p,vs_written,[])
         else
           set_varstate(p,vs_readwritten,[vsf_must_be_valid]);
-        if (m_mac in aktmodeswitches) and
+        if (m_mac in current_settings.modeswitches) and
            is_class(p.resultdef) then
           begin
             classh:=tobjectdef(p.resultdef);
@@ -138,7 +138,7 @@ implementation
             new_dispose_statement := p2;
           end
         { constructor,destructor specified }
-        else if not(m_mac in aktmodeswitches) and
+        else if not(m_mac in current_settings.modeswitches) and
                 try_to_consume(_COMMA) then
           begin
             { extended syntax of new and dispose }
@@ -212,7 +212,7 @@ implementation
                   do_member_read(classh,false,sym,p2,again,[callflag])
                 else
                   begin
-                    if not(m_fpc in aktmodeswitches) then
+                    if not(m_fpc in current_settings.modeswitches) then
                       do_member_read(classh,false,sym,p2,again,[callflag])
                     else
                       begin
@@ -275,8 +275,8 @@ implementation
                   if (tpointerdef(p.resultdef).pointeddef.deftype=orddef) and
                      (torddef(tpointerdef(p.resultdef).pointeddef).typ=uvoid) then
                     begin
-                      if (m_tp7 in aktmodeswitches) or
-                         (m_delphi in aktmodeswitches) then
+                      if (m_tp7 in current_settings.modeswitches) or
+                         (m_delphi in current_settings.modeswitches) then
                        Message(parser_w_no_new_dispose_on_void_pointers)
                       else
                        Message(parser_e_no_new_dispose_on_void_pointers);
@@ -705,7 +705,7 @@ implementation
         if is_ansistring(paradef) or
            (is_chararray(paradef) and
             (paradef.size>255)) or
-           ((cs_ansistrings in aktlocalswitches) and
+           ((cs_ansistrings in current_settings.localswitches) and
             is_pchar(paradef)) then
           copynode:=ccallnode.createintern('fpc_ansistr_copy',paras)
         else

@@ -154,7 +154,7 @@ Implementation
          so there is no object files to look for at
          the host. Look for the corresponding assembler file instead,
          because it will be assembled to object file on the target.}
-        if isunit and (cs_link_on_target in aktglobalswitches) then
+        if isunit and (cs_link_on_target in current_settings.globalswitches) then
           s:= ForceExtension(s,target_info.asmext);
 
         { when it does not belong to the unit then check if
@@ -194,13 +194,13 @@ Implementation
          found:=current_module.localobjectsearchpath.FindFile(s,foundfile);
         if (not found) then
          found:=objectsearchpath.FindFile(s,foundfile);
-        if not(cs_link_on_target in aktglobalswitches) and (not found) then
+        if not(cs_link_on_target in current_settings.globalswitches) and (not found) then
          found:=FindFile(s,exepath,foundfile);
-        if not(cs_link_nolink in aktglobalswitches) and (not found) then
+        if not(cs_link_nolink in current_settings.globalswitches) and (not found) then
          Message1(exec_w_objfile_not_found,s);
 
         {Restore file extension}
-        if isunit and (cs_link_on_target in aktglobalswitches) then
+        if isunit and (cs_link_on_target in current_settings.globalswitches) then
           foundfile:= ForceExtension(foundfile,target_info.objext);
 
         findobjectfile:=ScriptFixFileName(foundfile);
@@ -278,7 +278,7 @@ Implementation
          found:=current_module.locallibrarysearchpath.FindFile(s,foundfile);
         if (not found) then
          found:=librarysearchpath.FindFile(s,foundfile);
-        if not(cs_link_on_target in aktglobalswitches) and (not found) then
+        if not(cs_link_on_target in current_settings.globalswitches) and (not found) then
          found:=FindFile(s,exepath,foundfile);
         foundfile:=ScriptFixFileName(foundfile);
         findlibraryfile:=found;
@@ -325,7 +325,7 @@ Implementation
               { create mask which unit files need linking }
               mask:=link_always;
               { static linking ? }
-              if (cs_link_static in aktglobalswitches) then
+              if (cs_link_static in current_settings.globalswitches) then
                begin
                  if (flags and uf_static_linked)=0 then
                   begin
@@ -342,7 +342,7 @@ Implementation
                    mask:=mask or link_static;
                end;
               { smart linking ? }
-              if (cs_link_smart in aktglobalswitches) then
+              if (cs_link_smart in current_settings.globalswitches) then
                begin
                  if (flags and uf_smart_linked)=0 then
                   begin
@@ -359,7 +359,7 @@ Implementation
                   mask:=mask or link_smart;
                end;
               { shared linking }
-              if (cs_link_shared in aktglobalswitches) then
+              if (cs_link_shared in current_settings.globalswitches) then
                begin
                  if (flags and uf_shared_linked)=0 then
                   begin
@@ -439,7 +439,7 @@ Implementation
         if s='' then
           exit;
         found:=FindLibraryFile(s,target_info.staticlibprefix,target_info.staticlibext,ns);
-        if not(cs_link_nolink in aktglobalswitches) and (not found) then
+        if not(cs_link_nolink in current_settings.globalswitches) and (not found) then
           Message1(exec_w_libfile_not_found,s);
         StaticLibFiles.Concat(ns);
       end;
@@ -468,7 +468,7 @@ Implementation
         if s='' then
          exit;
         found:=FindLibraryFile(s,target_info.staticclibprefix,target_info.staticclibext,ns);
-        if not(cs_link_nolink in aktglobalswitches) and (not found) then
+        if not(cs_link_nolink in current_settings.globalswitches) and (not found) then
          Message1(exec_w_libfile_not_found,s);
         StaticLibFiles.Concat(ns);
       end;
@@ -548,7 +548,7 @@ Implementation
         inherited Create;
         { set generic defaults }
         FillChar(Info,sizeof(Info),0);
-        if cs_link_on_target in aktglobalswitches then
+        if cs_link_on_target in current_settings.globalswitches then
           begin
             Info.ResName:=outputexedir+inputfile+'_link.res';
             Info.ScriptName:=outputexedir+inputfile+'_script.res';
@@ -588,7 +588,7 @@ Implementation
         FoundBin : string;
         UtilExe  : string;
       begin
-        if cs_link_on_target in aktglobalswitches then
+        if cs_link_on_target in current_settings.globalswitches then
           begin
             { If linking on target, don't add any path PM }
             FindUtil:=AddExtension(s,target_info.exeext);
@@ -601,10 +601,10 @@ Implementation
          Found:=FindFile(utilexe,utilsdirectory,Foundbin);
         if (not Found) then
          Found:=FindExe(utilexe,Foundbin);
-        if (not Found) and not(cs_link_nolink in aktglobalswitches) then
+        if (not Found) and not(cs_link_nolink in current_settings.globalswitches) then
          begin
            Message1(exec_e_util_not_found,utilexe);
-           aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
+           current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
          end;
         if (FoundBin<>'') then
          Message1(exec_t_using_util,FoundBin);
@@ -617,7 +617,7 @@ Implementation
         exitcode: longint;
       begin
         DoExec:=true;
-        if not(cs_link_nolink in aktglobalswitches) then
+        if not(cs_link_nolink in current_settings.globalswitches) then
          begin
            FlushOutput;
            if useshell then
@@ -628,13 +628,13 @@ Implementation
              if ExecuteProcess(command,para) <> 0
              then begin
                Message(exec_e_error_while_linking);
-               aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
+               current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
                DoExec:=false;
              end;
            except on E:EOSError do
              begin
                Message(exec_e_cant_call_linker);
-               aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
+               current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
                DoExec:=false;
              end;
            end
@@ -649,20 +649,20 @@ Implementation
            if (doserror<>0) then
             begin
                Message(exec_e_cant_call_linker);
-               aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
+               current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
                DoExec:=false;
             end
            else
             if (exitcode<>0) then
              begin
               Message(exec_e_error_while_linking);
-              aktglobalswitches:=aktglobalswitches+[cs_link_nolink];
+              current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
               DoExec:=false;
              end;
          end;
       {$ENDIF USE_SYSUTILS}
       { Update asmres when externmode is set }
-        if cs_link_nolink in aktglobalswitches then
+        if cs_link_nolink in current_settings.globalswitches then
          begin
            if showinfo then
              begin
@@ -750,8 +750,8 @@ Implementation
           end;
 
         { Clean up }
-        if not(cs_asm_leave in aktglobalswitches) then
-         if not(cs_link_nolink in aktglobalswitches) then
+        if not(cs_asm_leave in current_settings.globalswitches) then
+         if not(cs_link_nolink in current_settings.globalswitches) then
           begin
             while not SmartLinkOFiles.Empty do
               RemoveFile(SmartLinkOFiles.GetFirst);
@@ -982,7 +982,7 @@ Implementation
 
         exeoutput:=CExeOutput.Create;
 
-        if (cs_link_map in aktglobalswitches) then
+        if (cs_link_map in current_settings.globalswitches) then
           exemap:=texemap.create(current_module.mapfilename^);
 
         PrintLinkerScript;
@@ -1063,7 +1063,7 @@ Implementation
       var
         lk : TlinkerClass;
       begin
-        if (cs_link_extern in aktglobalswitches) and
+        if (cs_link_extern in current_settings.globalswitches) and
            assigned(target_info.linkextern) then
           begin
             lk:=TlinkerClass(target_info.linkextern);

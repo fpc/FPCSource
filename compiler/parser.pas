@@ -81,9 +81,9 @@ implementation
          usedunits:=TLinkedList.Create;
 
          { global switches }
-         aktglobalswitches:=initglobalswitches;
+         current_settings.globalswitches:=init_settings.globalswitches;
 
-         aktsourcecodepage:=initsourcecodepage;
+         current_settings.sourcecodepage:=init_settings.sourcecodepage;
 
          { initialize scanner }
          InitScanner;
@@ -104,7 +104,7 @@ implementation
            stacksize:=target_info.stacksize;
 
          { open assembler response }
-         if cs_link_on_target in aktglobalswitches then
+         if cs_link_on_target in current_settings.globalswitches then
            GenerateAsmRes(outputexedir+inputfile+'_ppas')
          else
            GenerateAsmRes(outputexedir+'ppas');
@@ -273,23 +273,10 @@ implementation
         { cg }
           oldparse_only  : boolean;
         { akt.. things }
-          oldaktlocalswitches  : tlocalswitches;
-          oldaktmoduleswitches : tmoduleswitches;
           oldaktfilepos      : tfileposinfo;
-          oldaktpackrecords,
-          oldaktpackenum       : shortint;
-          oldaktmaxfpuregisters : longint;
-          oldaktalignment    : talignmentinfo;
-          oldaktoptimizecputype,
-          oldaktcputype      : tcputype;
-          oldaktfputype      : tfputype;
-          oldaktasmmode      : tasmmode;
-          oldaktinterfacetype: tinterfacetypes;
-          oldaktmodeswitches : tmodeswitches;
-          oldaktoptimizerswitches : toptimizerswitches;
           old_compiled_module : tmodule;
           oldcurrent_procinfo : tprocinfo;
-          oldaktdefproccall : tproccalloption;
+          old_settings : tsettings;
           oldsourcecodepage : tcodepagestring;
         end;
 
@@ -309,7 +296,6 @@ implementation
             oldsymtablestack:=symtablestack;
             oldmacrosymtablestack:=macrosymtablestack;
             oldcurrent_procinfo:=current_procinfo;
-            oldaktdefproccall:=aktdefproccall;
           { save scanner state }
             oldc:=c;
             oldpattern:=pattern;
@@ -318,30 +304,17 @@ implementation
             oldidtoken:=idtoken;
             old_block_type:=block_type;
             oldtokenpos:=akttokenpos;
-            oldsourcecodepage:=aktsourcecodepage;
           { save cg }
             oldparse_only:=parse_only;
           { save akt... state }
           { handle the postponed case first }
            if localswitcheschanged then
              begin
-               aktlocalswitches:=nextaktlocalswitches;
+               current_settings.localswitches:=nextlocalswitches;
                localswitcheschanged:=false;
              end;
-            oldaktlocalswitches:=aktlocalswitches;
-            oldaktmoduleswitches:=aktmoduleswitches;
-            oldaktalignment:=aktalignment;
-            oldaktpackenum:=aktpackenum;
-            oldaktpackrecords:=aktpackrecords;
-            oldaktfputype:=aktfputype;
-            oldaktmaxfpuregisters:=aktmaxfpuregisters;
-            oldaktcputype:=aktcputype;
-            oldaktoptimizecputype:=aktoptimizecputype;
-            oldaktasmmode:=aktasmmode;
-            oldaktinterfacetype:=aktinterfacetype;
             oldaktfilepos:=aktfilepos;
-            oldaktmodeswitches:=aktmodeswitches;
-            oldaktoptimizerswitches:=aktoptimizerswitches;
+            old_settings:=current_settings;
           end;
        { reset parser, a previous fatal error could have left these variables in an unreliable state, this is
          important for the IDE }
@@ -357,10 +330,10 @@ implementation
          symtablestack:=tsymtablestack.create;
          macrosymtablestack:=tsymtablestack.create;
          systemunit:=nil;
-         aktdefproccall:=initdefproccall;
+         current_settings.defproccall:=init_settings.defproccall;
          aktexceptblock:=0;
          exceptblockcounter:=0;
-         aktmaxfpuregisters:=-1;
+         current_settings.maxfpuregisters:=-1;
        { reset the unit or create a new program }
          { a unit compiled at command line must be inside the loaded_unit list }
          if (compile_level=1) then
@@ -382,19 +355,7 @@ implementation
          Fillchar(aktfilepos,0,sizeof(aktfilepos));
 
          { Load current state from the init values }
-         aktlocalswitches:=initlocalswitches;
-         aktmoduleswitches:=initmoduleswitches;
-         aktmodeswitches:=initmodeswitches;
-         aktoptimizerswitches:=initoptimizerswitches;
-         aktsetalloc:=initsetalloc;
-         aktalignment:=initalignment;
-         aktfputype:=initfputype;
-         aktpackenum:=initpackenum;
-         aktpackrecords:=0;
-         aktcputype:=initcputype;
-         aktoptimizecputype:=initoptimizecputype;
-         aktasmmode:=initasmmode;
-         aktinterfacetype:=initinterfacetype;
+         current_settings:=init_settings;
 
          { load current asmdata from current_module }
          current_asmdata:=TAsmData(current_module.asmdata);
@@ -503,23 +464,9 @@ implementation
                 { restore symtable state }
                 symtablestack:=oldsymtablestack;
                 macrosymtablestack:=oldmacrosymtablestack;
-                aktdefproccall:=oldaktdefproccall;
                 current_procinfo:=oldcurrent_procinfo;
-                aktsourcecodepage:=oldsourcecodepage;
-                aktlocalswitches:=oldaktlocalswitches;
-                aktmoduleswitches:=oldaktmoduleswitches;
-                aktalignment:=oldaktalignment;
-                aktpackenum:=oldaktpackenum;
-                aktpackrecords:=oldaktpackrecords;
-                aktmaxfpuregisters:=oldaktmaxfpuregisters;
-                aktcputype:=oldaktcputype;
-                aktoptimizecputype:=oldaktoptimizecputype;
-                aktfputype:=oldaktfputype;
-                aktasmmode:=oldaktasmmode;
-                aktinterfacetype:=oldaktinterfacetype;
                 aktfilepos:=oldaktfilepos;
-                aktmodeswitches:=oldaktmodeswitches;
-                aktoptimizerswitches:=oldaktoptimizerswitches;
+                current_settings:=old_settings;
                 aktexceptblock:=0;
                 exceptblockcounter:=0;
               end;
@@ -540,8 +487,8 @@ implementation
                 begin
 {$ifdef BrowserLog}
                   { Write Browser Log }
-                  if (cs_browser_log in aktglobalswitches) and
-                      (cs_browser in aktmoduleswitches) then
+                  if (cs_browser_log in current_settings.globalswitches) and
+                      (cs_browser in current_settings.moduleswitches) then
                     begin
                       if browserlog.elements_to_list.empty then
                       begin

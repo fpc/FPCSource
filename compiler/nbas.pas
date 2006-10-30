@@ -308,7 +308,7 @@ implementation
 
          { left is the statement itself calln assignn or a complex one }
          typecheckpass(left);
-         if (not (cs_extsyntax in aktmoduleswitches)) and
+         if (not (cs_extsyntax in current_settings.moduleswitches)) and
             assigned(left.resultdef) and
             not((left.nodetype=calln) and
                 { don't complain when funcretrefnode is set, because then the
@@ -396,7 +396,7 @@ implementation
                    codegenerror:=false;
                    typecheckpass(hp.left);
                    if not(codegenerror) and
-                      not(cs_extsyntax in aktmoduleswitches) and
+                      not(cs_extsyntax in current_settings.moduleswitches) and
                       (hp.left.nodetype=calln) and
                       not(is_void(hp.left.resultdef)) and
                       not(cnf_return_value_used in tcallnode(hp.left).callnodeflags) and

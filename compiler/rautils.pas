@@ -679,7 +679,7 @@ begin
   with current_procinfo.procdef do
     if (not is_void(returndef)) then
       begin
-        if (m_tp7 in aktmodeswitches) and
+        if (m_tp7 in current_settings.modeswitches) and
           (not paramanager.ret_in_param(returndef,proccalloption)) then
           begin
             message(asmr_e_cannot_use_RESULT_here);
@@ -1518,7 +1518,7 @@ end;
           s32real : p.concat(Tai_real_32bit.Create(value));
           s64real :
 {$ifdef ARM}
-           if aktfputype in [fpu_fpa,fpu_fpa10,fpu_fpa11] then
+           if current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11] then
              p.concat(Tai_real_64bit.Create_hiloswapped(value))
            else
 {$endif ARM}

@@ -139,7 +139,7 @@ implementation
              current_asmdata.CurrAsmList.concat(taicpu.op_none(A_NOP));
 
              op := divops[is_signed(right.resultdef),
-                          cs_check_overflow in aktlocalswitches];
+                          cs_check_overflow in current_settings.localswitches];
              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,numerator,divider,resultreg));
 
              if (nodetype = modn) then

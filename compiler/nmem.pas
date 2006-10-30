@@ -362,8 +362,8 @@ implementation
         if (left.resultdef.deftype=procdef) or
            (
             (left.resultdef.deftype=procvardef) and
-            ((m_tp_procvar in aktmodeswitches) or
-             (m_mac_procvar in aktmodeswitches))
+            ((m_tp_procvar in current_settings.modeswitches) or
+             (m_mac_procvar in current_settings.modeswitches))
            ) then
           begin
             isprocvar:=(left.resultdef.deftype=procvardef);
@@ -377,8 +377,8 @@ implementation
             { In tp procvar mode the result is always a voidpointer. Insert
               a typeconversion to voidpointer. For methodpointers we need
               to load the proc field }
-            if (m_tp_procvar in aktmodeswitches) or
-               (m_mac_procvar in aktmodeswitches) then
+            if (m_tp_procvar in current_settings.modeswitches) or
+               (m_mac_procvar in current_settings.modeswitches) then
               begin
                 if tabstractprocdef(left.resultdef).is_addressonly then
                   begin
@@ -730,7 +730,7 @@ implementation
                  (except voidpointer) in delphi/tp7 it's only allowed for pchars. }
                if not is_voidpointer(left.resultdef) and
                   (
-                   (m_fpc in aktmodeswitches) or
+                   (m_fpc in current_settings.modeswitches) or
                    is_pchar(left.resultdef) or
                    is_pwidechar(left.resultdef)
                   ) then

@@ -391,8 +391,8 @@ implementation
       if not assigned(p) then
        exit;
       { lineinfo is only needed for al_procedures (PFV) }
-      do_line:=((cs_asm_source in aktglobalswitches) or
-                (cs_lineinfo in aktmoduleswitches))
+      do_line:=((cs_asm_source in current_settings.globalswitches) or
+                (cs_lineinfo in current_settings.moduleswitches))
                  and (p=current_asmdata.asmlists[al_procedures]);
       InlineLevel:=0;
       DoNotSplitLine:=false;
@@ -410,7 +410,7 @@ implementation
                 if assigned(infile) then
                  begin
                    { open only if needed !! }
-                   if (cs_asm_source in aktglobalswitches) then
+                   if (cs_asm_source in current_settings.globalswitches) then
                     infile.open;
                  end;
                 { avoid unnecessary reopens of the same file !! }
@@ -419,7 +419,7 @@ implementation
                 lastfileinfo.line:=-1;
               end;
            { write source }
-             if (cs_asm_source in aktglobalswitches) and
+             if (cs_asm_source in current_settings.globalswitches) and
                 assigned(infile) then
               begin
                 if (infile<>lastinfile) then
@@ -455,14 +455,14 @@ implementation
 
            ait_regalloc :
              begin
-               if (cs_asm_regalloc in aktglobalswitches) then
+               if (cs_asm_regalloc in current_settings.globalswitches) then
                  AsmWriteLn(target_asm.comment+'Register '+masm_regname(tai_regalloc(hp).reg)+
                    regallocstr[tai_regalloc(hp).ratype]);
              end;
 
            ait_tempalloc :
              begin
-               if (cs_asm_tempalloc in aktglobalswitches) then
+               if (cs_asm_tempalloc in current_settings.globalswitches) then
                  begin
 {$ifdef EXTDEBUG}
                    if assigned(tai_tempalloc(hp).problem) then
@@ -851,7 +851,7 @@ implementation
       { masm does not seem to recognize specific extensions and uses .obj allways PM }
       if (target_asm.id in [as_i386_masm,as_i386_wasm]) then
         begin
-          if not(cs_asm_extern in aktglobalswitches) then
+          if not(cs_asm_extern in current_settings.globalswitches) then
             begin
               if Not FileExists(objfilename) and
                  FileExists(ForceExtension(objfilename,'.obj')) then

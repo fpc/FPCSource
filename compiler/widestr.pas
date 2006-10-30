@@ -154,9 +154,9 @@ unit widestr;
       var
          m : punicodemap;
       begin
-         if (aktsourcecodepage <> 'utf8') then
+         if (current_settings.sourcecodepage <> 'utf8') then
            begin
-             m:=getmap(aktsourcecodepage);
+             m:=getmap(current_settings.sourcecodepage);
              asciichar2unicode:=getunicode(c,m);
            end
          else
@@ -177,12 +177,12 @@ unit widestr;
          i      : SizeInt;
          m      : punicodemap;
       begin
-         m:=getmap(aktsourcecodepage);
+         m:=getmap(current_settings.sourcecodepage);
          setlengthwidestring(r,l);
          source:=p;
          r^.len:=l;
          dest:=tcompilerwidecharptr(r^.data);
-         if (aktsourcecodepage <> 'utf8') then
+         if (current_settings.sourcecodepage <> 'utf8') then
            begin
              for i:=1 to l do
                 begin
@@ -209,7 +209,7 @@ unit widestr;
          i : longint;
 
       begin
-         m:=getmap(aktsourcecodepage);
+         m:=getmap(current_settings.sourcecodepage);
          { should be a very good estimation :) }
          setlengthwidestring(r,length(s));
          // !!!! MBCS

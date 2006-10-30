@@ -167,7 +167,7 @@ implementation
 
          { do we have an assembler block without the po_assembler?
            we should allow this for Delphi compatibility (PFV) }
-         if (token=_ASM) and (m_delphi in aktmodeswitches) then
+         if (token=_ASM) and (m_delphi in current_settings.modeswitches) then
           include(current_procinfo.procdef.procoptions,po_assembler);
 
          { Handle assembler block different }
@@ -554,7 +554,7 @@ implementation
           depending on the implicit finally we need to add
           an try...finally...end wrapper }
         newblock:=internalstatements(newstatement);
-        if (cs_implicit_exceptions in aktmoduleswitches) and
+        if (cs_implicit_exceptions in current_settings.moduleswitches) and
            (pi_needs_implicit_finally in flags) and
            { but it's useless in init/final code of units }
            not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
@@ -614,9 +614,9 @@ implementation
             (tabstractnormalvarsym(p).localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,
               LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
            begin
-             if not(cs_no_regalloc in aktglobalswitches) then
+             if not(cs_no_regalloc in current_settings.globalswitches) then
                cg.translate_register(tabstractnormalvarsym(p).localloc.register);
-             if cs_asm_source in aktglobalswitches then
+             if cs_asm_source in current_settings.globalswitches then
                TAsmList(list).concat(Tai_comment.Create(strpnew('Var '+tabstractnormalvarsym(p).realname+' located in register '+
                  std_regname(tabstractnormalvarsym(p).localloc.register))))
            end;
@@ -667,7 +667,7 @@ implementation
     procedure tcgprocinfo.generate_code;
       var
         oldprocinfo : tprocinfo;
-        oldaktmaxfpuregisters : longint;
+        oldmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
         templist : TAsmList;
         headertai : tai;
@@ -692,7 +692,7 @@ implementation
 
         oldprocinfo:=current_procinfo;
         oldfilepos:=aktfilepos;
-        oldaktmaxfpuregisters:=aktmaxfpuregisters;
+        oldmaxfpuregisters:=current_settings.maxfpuregisters;
 
         current_procinfo:=self;
         aktfilepos:=entrypos;
@@ -703,7 +703,7 @@ implementation
         add_to_symtablestack;
 
         { when size optimization only count occurrence }
-        if cs_opt_size in aktoptimizerswitches then
+        if cs_opt_size in current_settings.optimizerswitches then
           cg.t_times:=1
         else
           { reference for repetition is 100 }
@@ -731,7 +731,7 @@ implementation
         { do this before adding the entry code else the tail recursion recognition won't work,
           if this causes troubles, it must be if'ed
         }
-        if (cs_opt_tailrecursion in aktoptimizerswitches) and
+        if (cs_opt_tailrecursion in current_settings.optimizerswitches) and
           (pi_is_recursive in flags) then
           do_opttail(code,procdef);
 
@@ -756,7 +756,7 @@ implementation
                 * open arrays
               - no inline assembler
             }
-            if (cs_opt_stackframe in aktoptimizerswitches) and
+            if (cs_opt_stackframe in current_settings.optimizerswitches) and
                not(po_assembler in procdef.procoptions) and
                ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
                        pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter])=[]) then
@@ -827,7 +827,7 @@ implementation
             { first generate entry and initialize code with the correct
               position and switches }
             aktfilepos:=entrypos;
-            aktlocalswitches:=entryswitches;
+            current_settings.localswitches:=entryswitches;
 
             cg.set_regalloc_extend_backwards(true);
 
@@ -839,7 +839,7 @@ implementation
             { now generate finalize and exit code with the correct position
               and switches }
             aktfilepos:=exitpos;
-            aktlocalswitches:=exitswitches;
+            current_settings.localswitches:=exitswitches;
 
             cg.set_regalloc_extend_backwards(false);
 
@@ -950,16 +950,16 @@ implementation
 
             { check if the implicit finally has been generated. The flag
               should already be set in pass1 }
-            if (cs_implicit_exceptions in aktmoduleswitches) and
+            if (cs_implicit_exceptions in current_settings.moduleswitches) and
                not(procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) and
                (pi_needs_implicit_finally in flags) and
                not(pi_has_implicit_finally in flags) then
              internalerror(200405231);
 
 {$ifndef NoOpt}
-            if not(cs_no_regalloc in aktglobalswitches) then
+            if not(cs_no_regalloc in current_settings.globalswitches) then
               begin
-                if (cs_opt_level1 in aktoptimizerswitches) and
+                if (cs_opt_level1 in current_settings.optimizerswitches) and
                    { do not optimize pure assembler procedures }
                    not(pi_is_assembler in flags)  then
                   optimize(aktproccode);
@@ -987,8 +987,8 @@ implementation
             fixup_jmps(aktproccode);
 {$endif POWERPC64}
             { insert line debuginfo }
-            if (cs_debuginfo in aktmoduleswitches) or
-               (cs_use_lineinfo in aktglobalswitches) then
+            if (cs_debuginfo in current_settings.moduleswitches) or
+               (cs_use_lineinfo in current_settings.globalswitches) then
               debuginfo.insertlineinfo(aktproccode);
 
             { add the procedure to the al_procedures }
@@ -1014,7 +1014,7 @@ implementation
 
         { restore }
         templist.free;
-        aktmaxfpuregisters:=oldaktmaxfpuregisters;
+        current_settings.maxfpuregisters:=oldmaxfpuregisters;
         aktfilepos:=oldfilepos;
         current_procinfo:=oldprocinfo;
       end;
@@ -1154,7 +1154,7 @@ implementation
 
          { save entry info }
          entrypos:=aktfilepos;
-         entryswitches:=aktlocalswitches;
+         entryswitches:=current_settings.localswitches;
 
          if (df_generic in procdef.defoptions) then
            begin
@@ -1182,7 +1182,7 @@ implementation
            end;
 
          { save exit info }
-         exitswitches:=aktlocalswitches;
+         exitswitches:=current_settings.localswitches;
          exitpos:=last_endtoken_filepos;
 
          { the procedure is now defined }
@@ -1313,7 +1313,7 @@ implementation
            (target_info.system in [system_i386_os2,system_i386_emx]) then
           begin
             pd.aliasnames.insert(pd.procsym.realname);
-            if cs_link_deffile in aktglobalswitches then
+            if cs_link_deffile in current_settings.globalswitches then
               deffile.AddExport(pd.mangledname);
           end;
 
@@ -1443,7 +1443,7 @@ implementation
                 taking addresses of static procedures goes wrong
                 if they aren't global when pic is used (FK)
               }
-              (cs_create_pic in aktmoduleswitches) then
+              (cs_create_pic in current_settings.moduleswitches) then
               include(pd.procoptions,po_global);
             pd.forwarddef:=false;
           end;
@@ -1534,7 +1534,7 @@ implementation
          if not(po_external in pd.procoptions) then
            begin
              if (po_global in pd.procoptions) or
-                (cs_profile in aktmoduleswitches) then
+                (cs_profile in current_settings.moduleswitches) then
                current_asmdata.DefineAsmSymbol(pd.mangledname,AB_GLOBAL,AT_FUNCTION)
              else
                current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
@@ -1604,14 +1604,14 @@ implementation
                       begin
                         { m_class is needed, because the resourcestring
                           loading is in the ObjPas unit }
-                        if (m_class in aktmodeswitches) then
+                        if (m_class in current_settings.modeswitches) then
                           resourcestring_dec
                         else
                           break;
                       end;
                     _PROPERTY:
                       begin
-                        if (m_fpc in aktmodeswitches) then
+                        if (m_fpc in current_settings.modeswitches) then
                           property_dec
                         else
                           break;
@@ -1625,7 +1625,7 @@ implementation
 
          { check for incomplete class definitions, this is only required
            for fpc modes }
-         if (m_fpc in aktmodeswitches) then
+         if (m_fpc in current_settings.modeswitches) then
            current_procinfo.procdef.localst.foreach_static(@check_forward_class,nil);
       end;
 
@@ -1653,7 +1653,7 @@ implementation
                      resourcestring_dec;
                    _PROPERTY:
                      begin
-                       if (m_fpc in aktmodeswitches) then
+                       if (m_fpc in current_settings.modeswitches) then
                          property_dec
                        else
                          break;
@@ -1666,7 +1666,7 @@ implementation
          until false;
          { check for incomplete class definitions, this is only required
            for fpc modes }
-         if (m_fpc in aktmodeswitches) then
+         if (m_fpc in current_settings.modeswitches) then
           symtablestack.top.foreach_static(@check_forward_class,nil);
       end;
 

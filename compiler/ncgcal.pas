@@ -131,7 +131,7 @@ implementation
           location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
 
         { Handle Floating point types differently }
-        if (left.resultdef.deftype=floatdef) and not(cs_fp_emulation in aktmoduleswitches) then
+        if (left.resultdef.deftype=floatdef) and not(cs_fp_emulation in current_settings.moduleswitches) then
          begin
 {$ifdef i386}
            if tempcgpara.location^.loc<>LOC_REFERENCE then
@@ -603,7 +603,7 @@ implementation
                               cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,def_cgsize(resultdef),procdefinition.funcretloc[callerside].register,location.register);
                             end;
 {$ifdef arm}
-                          if (resultdef.deftype=floatdef) and (aktfputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
+                          if (resultdef.deftype=floatdef) and (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
                             begin
                               location_force_mem(current_asmdata.CurrAsmList,location);
                             end;
@@ -1087,7 +1087,7 @@ implementation
            location_reset(location,LOC_VOID,OS_NO);
 
          { perhaps i/o check ? }
-         if (cs_check_io in aktlocalswitches) and
+         if (cs_check_io in current_settings.localswitches) and
             (po_iocheck in procdefinition.procoptions) and
             not(po_iocheck in current_procinfo.procdef.procoptions) and
             { no IO check for methods and procedure variables }

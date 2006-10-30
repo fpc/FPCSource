@@ -85,7 +85,7 @@ implementation
 
     function tarminlinenode.first_abs_real : tnode;
       begin
-        if cs_fp_emulation in aktmoduleswitches then
+        if cs_fp_emulation in current_settings.moduleswitches then
           result:=inherited first_abs_real
         else
           begin
@@ -99,7 +99,7 @@ implementation
 
     function tarminlinenode.first_sqr_real : tnode;
       begin
-        if cs_fp_emulation in aktmoduleswitches then
+        if cs_fp_emulation in current_settings.moduleswitches then
           result:=inherited first_sqr_real
         else
           begin
@@ -113,7 +113,7 @@ implementation
 
     function tarminlinenode.first_sqrt_real : tnode;
       begin
-        if cs_fp_emulation in aktmoduleswitches then
+        if cs_fp_emulation in current_settings.moduleswitches then
           result:=inherited first_sqrt_real
         else
           begin

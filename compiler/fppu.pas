@@ -230,7 +230,7 @@ uses
        { check if floating point emulation is on?}
        { fpu emulation isn't unit levelwise
         if ((ppufile.header.flags and uf_fpu_emulation)<>0) and
-            (cs_fp_emulation in aktmoduleswitches) then
+            (cs_fp_emulation in current_settings.moduleswitches) then
          begin
            ppufile.free;
            ppufile:=nil;
@@ -302,7 +302,7 @@ uses
               { Check for .pas }
               Found:=UnitExists(pasext,hs);
             end;
-           if not Found and (m_mac in aktmodeswitches) then
+           if not Found and (m_mac in current_settings.modeswitches) then
             begin
               { Check for .p, if mode is macpas}
               Found:=UnitExists(pext,hs);
@@ -384,7 +384,7 @@ uses
                Message1(unit_t_unitsearch,AddExtension(sourcefn^,pasext));
                fnd:=FindFile(AddExtension(sourcefn^,pasext),'',hs);
              end;
-            if not fnd and ((m_mac in aktmodeswitches) or (tf_p_ext_support in target_info.flags)) then
+            if not fnd and ((m_mac in current_settings.modeswitches) or (tf_p_ext_support in target_info.flags)) then
              begin
                Message1(unit_t_unitsearch,AddExtension(sourcefn^,pext));
                fnd:=FindFile(AddExtension(sourcefn^,pext),'',hs);
@@ -888,7 +888,7 @@ uses
              ibmodulename :
                begin
                  newmodulename:=ppufile.getstring;
-                 if (cs_check_unit_name in aktglobalswitches) and
+                 if (cs_check_unit_name in current_settings.globalswitches) and
                     (upper(newmodulename)<>modulename^) then
                    Message2(unit_f_unit_name_error,realmodulename^,newmodulename);
                  stringdispose(modulename);
@@ -982,16 +982,16 @@ uses
          Message1(unit_u_ppu_write,realmodulename^);
 
          { create unit flags }
-         if cs_browser in aktmoduleswitches then
+         if cs_browser in current_settings.moduleswitches then
           flags:=flags or uf_has_browser;
-         if cs_local_browser in aktmoduleswitches then
+         if cs_local_browser in current_settings.moduleswitches then
           flags:=flags or uf_local_browser;
          if do_release then
           flags:=flags or uf_release;
          if assigned(localsymtable) then
            flags:=flags or uf_local_symtable;
 {$ifdef cpufpemu}
-         if (cs_fp_emulation in aktmoduleswitches) then
+         if (cs_fp_emulation in current_settings.moduleswitches) then
            flags:=flags or uf_fpu_emulation;
 {$endif cpufpemu}
 {$ifdef Test_Double_checksum_write}
@@ -1032,7 +1032,7 @@ uses
 
          { generate implementation deref data, the interface deref data is
            already generated when calculating the interface crc }
-         if (cs_compilesystem in aktmoduleswitches) then
+         if (cs_compilesystem in current_settings.moduleswitches) then
            begin
              tstoredsymtable(globalsymtable).buildderef;
              derefdataintflen:=derefdata.size;

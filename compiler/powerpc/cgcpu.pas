@@ -1132,7 +1132,7 @@ const
           begin
             { save link register? }
             if (pi_do_call in current_procinfo.flags) or
-               ([cs_lineinfo,cs_debuginfo] * aktmoduleswitches <> []) then
+               ([cs_lineinfo,cs_debuginfo] * current_settings.moduleswitches <> []) then
               begin
                 a_reg_alloc(list,NR_R0);
                 { save return address... }
@@ -1178,7 +1178,7 @@ const
         if usesfpr then
           begin
 {            save floating-point registers
-             if (cs_create_pic in aktmoduleswitches) and not(usesgpr) then
+             if (cs_create_pic in current_settings.moduleswitches) and not(usesgpr) then
                begin
                   a_call_name(current_asmdata.RefAsmSymbol('_savefpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+'_g'));
                   gotgot:=true;
@@ -1204,7 +1204,7 @@ const
         if usesgpr then
           begin
              {
-             if cs_create_pic in aktmoduleswitches then
+             if cs_create_pic in current_settings.moduleswitches then
                begin
                   a_call_name(current_asmdata.RefAsmSymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)+'_g'));
                   gotgot:=true;
@@ -1213,7 +1213,7 @@ const
                a_call_name(current_asmdata.RefAsmSymbol('_savegpr_'+tostr(ord(firstreggpr)-ord(R_14)+14)))
              }
             if (firstregint <= RS_R22) or
-               ((cs_opt_size in aktoptimizerswitches) and
+               ((cs_opt_size in current_settings.optimizerswitches) and
                { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
                 (firstregint <= RS_R29)) then
               begin
@@ -1346,7 +1346,7 @@ const
         if (usesgpr) then
           begin
             if (firstregint <= RS_R22) or
-               ((cs_opt_size in aktoptimizerswitches) and
+               ((cs_opt_size in current_settings.optimizerswitches) and
                 { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
                 (firstregint <= RS_R29)) then
               begin
@@ -1987,7 +1987,7 @@ const
       var
          hl : tasmlabel;
       begin
-         if not(cs_check_overflow in aktlocalswitches) then
+         if not(cs_check_overflow in current_settings.localswitches) then
           exit;
          current_asmdata.getjumplabel(hl);
          if not ((def.deftype=pointerdef) or
@@ -2049,7 +2049,7 @@ const
 
         make_global:=false;
         if (not current_module.is_unit) or
-           (cs_create_smart in aktmoduleswitches) or
+           (cs_create_smart in current_settings.moduleswitches) or
            (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
           make_global:=true;
 

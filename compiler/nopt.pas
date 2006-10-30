@@ -244,7 +244,7 @@ end;
 function canbeaddsstringcharoptnode(p: taddnode): boolean;
 begin
   canbeaddsstringcharoptnode :=
-    (cs_opt_level1 in aktoptimizerswitches) and
+    (cs_opt_level1 in current_settings.optimizerswitches) and
 
 {   the shortstring will be gotten through conversion if necessary (JM)
     is_shortstring(p.left.resultdef) and }
@@ -266,7 +266,7 @@ end;
 function canbeaddsstringcsstringoptnode(p: taddnode): boolean;
 begin
   canbeaddsstringcsstringoptnode :=
-    (cs_opt_level1 in aktoptimizerswitches) and
+    (cs_opt_level1 in current_settings.optimizerswitches) and
 
 {   the shortstring will be gotten through conversion if necessary (JM)
     is_shortstring(p.left.resultdef) and }

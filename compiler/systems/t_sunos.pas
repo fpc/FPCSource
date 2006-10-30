@@ -181,9 +181,9 @@ begin
   if NOT Dontlinkstdlibpath Then
    LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib;/opt/sfw/lib',true);
 {$ifdef  LinkTest}
-     if (cs_link_staticflag in aktglobalswitches) then  WriteLN('ForceLinkStaticFlag');
-     if (cs_link_static in aktglobalswitches) then  WriteLN('LinkStatic-Flag');
-     if (cs_link_shared in aktglobalswitches) then  WriteLN('LinkSynamicFlag');
+     if (cs_link_staticflag in current_settings.globalswitches) then  WriteLN('ForceLinkStaticFlag');
+     if (cs_link_static in current_settings.globalswitches) then  WriteLN('LinkStatic-Flag');
+     if (cs_link_shared in current_settings.globalswitches) then  WriteLN('LinkSynamicFlag');
 {$EndIf}
 end;
 
@@ -245,7 +245,7 @@ begin
   prtobj:='prt0';
   cprtobj:='cprt0';
   gprtobj:='gprt0';
-  if cs_profile in aktmoduleswitches then
+  if cs_profile in current_settings.moduleswitches then
    begin
      prtobj:=gprtobj;
      if not glibc2 then
@@ -339,7 +339,7 @@ begin
      if linklibc then
       LinkRes.Add('-lc');
      { when we have -static for the linker the we also need libgcc }
-     if (cs_link_staticflag in aktglobalswitches) then begin
+     if (cs_link_staticflag in current_settings.globalswitches) then begin
       LinkRes.Add('-lgcc');
      end;
      if linkdynamic and (Info.DynamicLinker<>'') then { gld has a default, DynamicLinker is not set in solaris }
@@ -375,18 +375,18 @@ var
   StaticStr,
   StripStr   : string[40];
 begin
-  if not(cs_link_nolink in aktglobalswitches) then
+  if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
   StaticStr:='';
   StripStr:='';
   DynLinkStr:='';
-  if (cs_link_staticflag in aktglobalswitches) then
+  if (cs_link_staticflag in current_settings.globalswitches) then
     StaticStr:='-Bstatic';
-  if (cs_link_strip in aktglobalswitches) then
+  if (cs_link_strip in current_settings.globalswitches) then
    StripStr:='-s';
-  If (cs_profile in aktmoduleswitches) or
+  If (cs_profile in current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
   { solaris sets DynamicLinker, but gld will (hopefully) defaults to -Bdynamic and add the default-linker }
@@ -405,7 +405,7 @@ begin
 
 { Remove ReponseFile }
 {$IFNDEF LinkTest}
-  if (success) and not(cs_link_nolink in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    RemoveFile(outputexedir+Info.ResName);
 {$ENDIF}
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -419,7 +419,7 @@ var
   success : boolean;
 begin
   MakeSharedLibrary:=false;
-  if not(cs_link_nolink in aktglobalswitches) then
+  if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename^);
 
 { Write used files and libraries }
@@ -433,7 +433,7 @@ begin
   success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
 
 { Strip the library ? }
-  if success and (cs_link_strip in aktglobalswitches) then
+  if success and (cs_link_strip in current_settings.globalswitches) then
    begin
      SplitBinCmd(Info.DllCmd[2],binstr,cmdstr);
      Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
@@ -442,7 +442,7 @@ begin
 
 { Remove ReponseFile }
 {$IFNDEF LinkTest}
-  if (success) and not(cs_link_nolink in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
    RemoveFile(outputexedir+Info.ResName);
 {$ENDIF}
   MakeSharedLibrary:=success;   { otherwise a recursive call to link method }

@@ -76,7 +76,7 @@ implementation
       var
         fname: string[19];
       begin
-        if cs_fp_emulation in aktmoduleswitches then
+        if cs_fp_emulation in current_settings.moduleswitches then
           begin
             if target_info.system in system_wince then
               begin

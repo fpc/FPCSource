@@ -1503,7 +1503,7 @@ end;
               with tprocsym(sym) do
               if assigned(first_procdef) then
               begin
-                if cs_local_browser in aktmoduleswitches then
+                if cs_local_browser in current_settings.moduleswitches then
                   ProcessSymTable(Symbol,Symbol^.Items,first_procdef.parast);
                 if assigned(first_procdef.parast) then
                   begin
@@ -1515,7 +1515,7 @@ end;
                   begin
                     Symbol^.Params:=TypeNames^.Add('...');
                   end;
-                if cs_local_browser in aktmoduleswitches then
+                if cs_local_browser in current_settings.moduleswitches then
                  begin
                    if assigned(first_procdef.localst) and
                      (first_procdef.localst.symtabletype<>staticsymtable) then
@@ -1618,10 +1618,10 @@ var
   pif: tinputfile;
 begin
   DisposeBrowserCol;
-  if (cs_browser in aktmoduleswitches) then
+  if (cs_browser in current_settings.moduleswitches) then
     NewBrowserCol;
   hp:=tmodule(loaded_units.first);
-  if (cs_browser in aktmoduleswitches) then
+  if (cs_browser in current_settings.moduleswitches) then
    while assigned(hp) do
     begin
        t:=tsymtable(hp.globalsymtable);
@@ -1645,7 +1645,7 @@ begin
 
            Modules^.Insert(UnitS);
            ProcessSymTable(UnitS,UnitS^.Items,T);
-           if cs_local_browser in aktmoduleswitches then
+           if cs_local_browser in current_settings.moduleswitches then
              begin
                 t:=tsymtable(hp.localsymtable);
                 if assigned(t) then
@@ -1656,7 +1656,7 @@ begin
     end;
 
   hp:=tmodule(loaded_units.first);
-  if (cs_browser in aktmoduleswitches) then
+  if (cs_browser in current_settings.moduleswitches) then
    while assigned(hp) do
     begin
        t:=tsymtable(hp.globalsymtable);
@@ -1683,7 +1683,7 @@ begin
        hp:=tmodule(hp.next);
     end;
 
-  if (cs_browser in aktmoduleswitches) then
+  if (cs_browser in current_settings.moduleswitches) then
     BuildObjectInfo;
   { can allways be done
     needed to know when recompilation of sources is necessary }

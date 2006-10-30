@@ -531,7 +531,7 @@ implementation
               MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
 
             { check that all methods have overload directive }
-            if not(m_fpc in aktmodeswitches) then
+            if not(m_fpc in current_settings.modeswitches) then
               begin
                 procdefcoll:=vmtentry^.firstprocdef;
                 while assigned(procdefcoll) do
@@ -712,7 +712,7 @@ implementation
                                          (tobjectdef(pd.returndef).is_related(
                                              tobjectdef(procdefcoll^.data.returndef)))) then
                                        begin
-                                         if not((m_delphi in aktmodeswitches) and
+                                         if not((m_delphi in current_settings.modeswitches) and
                                                 is_interface(_class)) then
                                            Message2(parser_e_overridden_methods_not_same_ret,pd.fullprocname(false),
                                                     procdefcoll^.data.fullprocname(false))

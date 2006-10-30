@@ -107,7 +107,7 @@ begin
   while assigned(HPath) do
    begin
     s:=HPath.Str;
-    if (cs_link_on_target in aktglobalswitches) then
+    if (cs_link_on_target in current_settings.globalswitches) then
      s:=ScriptFixFileName(s);
     LinkRes.Add('-L'+s);
     HPath:=TStringListItem(HPath.Next);
@@ -146,7 +146,7 @@ begin
      end;
    end;
   
-  if (cs_link_on_target in aktglobalswitches) then 
+  if (cs_link_on_target in current_settings.globalswitches) then 
    begin
     LinkRes.Add(')');
 
@@ -200,7 +200,7 @@ var
   StripStr: string[40];
 begin
   StripStr:='';
-  if (cs_link_strip in aktglobalswitches) then StripStr:='-s';
+  if (cs_link_strip in current_settings.globalswitches) then StripStr:='-s';
 
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
@@ -215,7 +215,7 @@ function TLinkerAmiga.MakeExecutable:boolean;
 var
   success : boolean;
 begin
-  if not(cs_link_nolink in aktglobalswitches) then
+  if not(cs_link_nolink in current_settings.globalswitches) then
     Message1(exec_i_linking,current_module.exefilename^);
 
   { Write used files and libraries }
@@ -227,7 +227,7 @@ begin
   end;
 
   { Remove ReponseFile }
-  if (success) and not(cs_link_nolink in aktglobalswitches) then
+  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
     RemoveFile(outputexedir+Info.ResName);
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }

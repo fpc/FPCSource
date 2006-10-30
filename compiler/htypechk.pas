@@ -230,9 +230,9 @@ implementation
             arraydef :
               begin
                 { not vector/mmx }
-                if ((cs_mmx in aktlocalswitches) and
+                if ((cs_mmx in current_settings.localswitches) and
                    is_mmx_able_array(ld)) or
-                   ((cs_support_vectors in aktglobalswitches) and
+                   ((cs_support_vectors in current_settings.globalswitches) and
                    is_vector(ld)) then
                  begin
                    allowed:=false;
@@ -326,7 +326,7 @@ implementation
                 exit;
 
 {$ifdef SUPPORT_MMX}
-              if (cs_mmx in aktlocalswitches) and
+              if (cs_mmx in current_settings.localswitches) and
                  is_mmx_able_array(ld) then
                 exit;
 {$endif SUPPORT_MMX}
@@ -340,7 +340,7 @@ implementation
                 exit;
 
 {$ifdef SUPPORT_MMX}
-              if (cs_mmx in aktlocalswitches) and
+              if (cs_mmx in current_settings.localswitches) and
                  is_mmx_able_array(ld) then
                 exit;
 {$endif SUPPORT_MMX}
@@ -742,8 +742,8 @@ implementation
       begin
         result:=false;
         { remove voidpointer typecast for tp procvars }
-        if ((m_tp_procvar in aktmodeswitches) or
-            (m_mac_procvar in aktmodeswitches)) and
+        if ((m_tp_procvar in current_settings.modeswitches) or
+            (m_mac_procvar in current_settings.modeswitches)) and
            (p.nodetype=typeconvn) and
            is_voidpointer(p.resultdef) then
           p:=tunarynode(p).left;
@@ -1030,7 +1030,7 @@ implementation
                   begin
                     { in TP it is allowed to typecast to smaller types. But the variable can't
                       be in a register }
-                    if (m_tp7 in aktmodeswitches) or
+                    if (m_tp7 in current_settings.modeswitches) or
                        (todef.size<fromdef.size) then
                       make_not_regable(hp,vr_addr)
                     else
@@ -1080,7 +1080,7 @@ implementation
                    end;
                  gotvec:=true;
                  { accesses to dyn. arrays override read only access in delphi }
-                 if (m_delphi in aktmodeswitches) and is_dynamic_array(tunarynode(hp).left.resultdef) then
+                 if (m_delphi in current_settings.modeswitches) and is_dynamic_array(tunarynode(hp).left.resultdef) then
                    gotdynarray:=true;
                  hp:=tunarynode(hp).left;
                end;
@@ -1144,7 +1144,7 @@ implementation
                  else
                  { Temp strings are stored in memory, for compatibility with
                    delphi only }
-                   if (m_delphi in aktmodeswitches) and
+                   if (m_delphi in current_settings.modeswitches) and
                       ((valid_addr in opts) or
                        (valid_const in opts)) and
                       (hp.resultdef.deftype=stringdef) then
@@ -1209,7 +1209,7 @@ implementation
                  else
                  { Temp strings are stored in memory, for compatibility with
                    delphi only }
-                   if (m_delphi in aktmodeswitches) and
+                   if (m_delphi in current_settings.modeswitches) and
                       (valid_addr in opts) and
                       (hp.resultdef.deftype=stringdef) then
                      result:=true
@@ -1375,7 +1375,7 @@ implementation
             begin
               { allows conversion from word to integer and
                 byte to shortint, but only for TP7 compatibility }
-              if (m_tp7 in aktmodeswitches) and
+              if (m_tp7 in current_settings.modeswitches) and
                  (def_from.deftype=orddef) and
                  (def_from.size=def_to.size) then
                 eq:=te_convert_l1;
@@ -1413,7 +1413,7 @@ implementation
               { if they are objects              }
               if (def_from.deftype=objectdef) and
                  (
-                  not(m_delphi in aktmodeswitches) or
+                  not(m_delphi in current_settings.modeswitches) or
                   (
                    (tobjectdef(def_from).objecttype=odt_object) and
                    (tobjectdef(def_to).objecttype=odt_object)
@@ -1477,13 +1477,13 @@ implementation
           procvardef :
             begin
               { in tp7 mode proc -> procvar is allowed }
-              if ((m_tp_procvar in aktmodeswitches) or
-                  (m_mac_procvar in aktmodeswitches)) and
+              if ((m_tp_procvar in current_settings.modeswitches) or
+                  (m_mac_procvar in current_settings.modeswitches)) and
                  (p.left.nodetype=calln) and
                  (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def_to))>=te_equal) then
                 eq:=te_equal
               else
-                if (m_mac_procvar in aktmodeswitches) and
+                if (m_mac_procvar in current_settings.modeswitches) and
                    is_procvar_load(p.left) then
                   eq:=te_convert_l2;
             end;
@@ -1494,7 +1494,7 @@ implementation
     function allowenumop(nt:tnodetype):boolean;
       begin
         result:=(nt in [equaln,unequaln,ltn,lten,gtn,gten]) or
-                ((cs_allow_enum_calc in aktlocalswitches) and
+                ((cs_allow_enum_calc in current_settings.localswitches) and
                  (nt in [addn,subn]));
       end;
 
@@ -2319,7 +2319,7 @@ implementation
          begin
            if (destdef.size < source.resultdef.size) then
              begin
-               if (cs_check_range in aktlocalswitches) then
+               if (cs_check_range in current_settings.localswitches) then
                  MessagePos(location,type_w_smaller_possible_range_check)
                else
                  MessagePos(location,type_h_smaller_possible_range_check);

@@ -1531,7 +1531,7 @@ end;
                     templist.concat(Tai_stab.create(stab_stabs,strpnew(
                        '"'+pd.procsym.name+':'+hs+def_stab_number(pd.returndef)+'",'+
                        tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
-                    if (m_result in aktmodeswitches) then
+                    if (m_result in current_settings.modeswitches) then
                       templist.concat(Tai_stab.create(stab_stabs,strpnew(
                          '"RESULT:'+hs+def_stab_number(pd.returndef)+'",'+
                          tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));

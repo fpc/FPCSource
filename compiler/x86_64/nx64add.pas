@@ -66,7 +66,7 @@ interface
       { Also allocate RDX, since it is also modified by a mul (JM). }
       cg.getcpuregister(current_asmdata.CurrAsmList,NR_RDX);
       emit_reg(A_MUL,S_Q,r);
-      if cs_check_overflow in aktlocalswitches  then
+      if cs_check_overflow in current_settings.localswitches  then
        begin
          current_asmdata.getjumplabel(hl4);
          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
