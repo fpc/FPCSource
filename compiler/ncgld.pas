@@ -297,13 +297,6 @@ implementation
                     internalerror(200312011);
                   if assigned(left) then
                     begin
-                      {
-                        THIS IS A TERRIBLE HACK!!!!!! WHICH WILL NOT WORK
-                        ON 64-BIT SYSTEMS: SINCE PROCSYM FOR METHODS
-                        CONSISTS OF TWO OS_ADDR, so you cannot set it
-                        to OS_64 - how to solve?? Carl
-                        Solved. Florian
-                      }
                       if (sizeof(aint) = 4) then
                          location_reset(location,LOC_CREFERENCE,OS_64)
                       else if (sizeof(aint) = 8) then
@@ -314,6 +307,8 @@ implementation
                       secondpass(left);
 
                       { load class instance address }
+                      if left.location.loc=LOC_CONSTANT then
+                        location_force_reg(current_asmdata.CurrAsmList,left.location,OS_ADDR,false);
                       case left.location.loc of
                          LOC_CREGISTER,
                          LOC_REGISTER:
@@ -334,7 +329,7 @@ implementation
                               location_freetemp(current_asmdata.CurrAsmList,left.location);
                            end;
                          else
-                           internalerror(26019);
+                           internalerror(200610311);
                       end;
 
                       { store the class instance address }
