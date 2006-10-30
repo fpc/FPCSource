@@ -625,8 +625,8 @@ implementation
         addconst(slt,v,nil);
         lastsym^.valuedefderef:=d;
       end;
-      
-      
+
+
     procedure tpropaccesslist.addtypederef(slt:tsltype;d:tderef);
       begin
         addtype(slt,nil);
@@ -879,6 +879,7 @@ implementation
          2 : p.column:=(getbyte shl 16) or getword;
          3 : p.column:=getlongint;
         end;
+        p.moduleindex:=current_module.unit_index;
       end;
 
 

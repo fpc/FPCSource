@@ -111,7 +111,7 @@ interface
          line      : longint;
          column    : word;
          fileindex : word;
-         { moduleindex : word; }
+         moduleindex : word;
        end;
 
        tcodepagestring = string[20];

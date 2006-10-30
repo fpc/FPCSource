@@ -195,6 +195,7 @@ interface
        SmartLinkOFiles   : TStringList; { List of .o files which are generated,
                                           used to delete them after linking }
 
+    function get_module(moduleindex : longint) : tmodule;
     function get_source_file(moduleindex,fileindex : longint) : tinputfile;
     procedure addloadedunit(hp:tmodule);
 
@@ -217,13 +218,28 @@ implementation
                              Global Functions
 *****************************************************************************}
 
+    function get_module(moduleindex : longint) : tmodule;
+      var
+         hp : tmodule;
+      begin
+         result:=nil;
+         if moduleindex=0 then
+           exit;
+         result:=current_module;
+         if not(assigned(loaded_units)) then
+           exit;
+         hp:=tmodule(loaded_units.first);
+         while assigned(hp) and (hp.unit_index<>moduleindex) do
+           hp:=tmodule(hp.next);
+         result:=hp;
+      end;
+
+
     function get_source_file(moduleindex,fileindex : longint) : tinputfile;
       var
          hp : tmodule;
       begin
-         hp:=tmodule(loaded_units.first);
-         while assigned(hp) and (hp.unit_index<>moduleindex) do
-           hp:=tmodule(hp.next);
+         hp:=get_module(moduleindex);
          if assigned(hp) then
           get_source_file:=hp.sourcefiles.get_file(fileindex)
          else
@@ -585,7 +601,7 @@ implementation
             localmacrosymtable.free;
             localmacrosymtable:=nil;
           end;
-        deflist.free;  
+        deflist.free;
         deflist:=TFPObjectList.Create(false);
         symlist.free;
         symlist:=TFPObjectList.Create(false);

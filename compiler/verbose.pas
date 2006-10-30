@@ -118,7 +118,7 @@ interface
 implementation
 
     uses
-      comphook;
+      comphook,fmodule;
 
 var
   compiling_module : tmodulebase;
@@ -362,23 +362,28 @@ var
       end;
 
 
-      var
-        lastfileidx,
-        lastmoduleidx : longint;
+    var
+      lastfileidx,
+      lastmoduleidx : longint;
+
+
     Procedure UpdateStatus;
+      var
+        module : tmodulebase;
       begin
       { fix status }
         status.currentline:=aktfilepos.line;
         status.currentcolumn:=aktfilepos.column;
-        if assigned(compiling_module) and
-           assigned(compiling_module.sourcefiles) and
-           ((compiling_module.unit_index<>lastmoduleidx) or
+        module:=get_module(aktfilepos.moduleindex);
+        if assigned(module) and
+           assigned(module.sourcefiles) and
+           ((module.unit_index<>lastmoduleidx) or
             (aktfilepos.fileindex<>lastfileidx)) then
          begin
            { update status record }
-           status.currentmodule:=compiling_module.modulename^;
-           status.currentsource:=compiling_module.sourcefiles.get_file_name(aktfilepos.fileindex);
-           status.currentsourcepath:=compiling_module.sourcefiles.get_file_path(aktfilepos.fileindex);
+           status.currentmodule:=module.modulename^;
+           status.currentsource:=module.sourcefiles.get_file_name(aktfilepos.fileindex);
+           status.currentsourcepath:=module.sourcefiles.get_file_path(aktfilepos.fileindex);
            { update lastfileidx only if name known PM }
            if status.currentsource<>'' then
              lastfileidx:=aktfilepos.fileindex
@@ -386,7 +391,7 @@ var
              lastfileidx:=0;
            lastmoduleidx:=compiling_module.unit_index;
          end;
-        if assigned(compiling_module) then
+        if assigned(module) then
           status.compiling_current:=(compiling_module.state in [ms_compile,ms_second_compile]);
       end;
 

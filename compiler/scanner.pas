@@ -2085,6 +2085,7 @@ In case not, the value returned can be arbitrary.
         akttokenpos.line:=line_no;
         akttokenpos.column:=lasttokenpos-lastlinepos;
         akttokenpos.fileindex:=inputfile.ref_index;
+        akttokenpos.moduleindex:=current_module.unit_index;
         aktfilepos:=akttokenpos;
       end;
 
