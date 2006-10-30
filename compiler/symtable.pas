@@ -252,7 +252,7 @@ interface
     type
        punit_alias = ^tunit_alias;
        tunit_alias = object(TNamedIndexItem)
-          newname : pstring;
+          newname : pshortstring;
           constructor init(const n:string);
           destructor  done;virtual;
        end;

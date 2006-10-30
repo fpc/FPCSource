@@ -148,7 +148,7 @@ interface
      private
        FData       : TDynamicArray;
        FSecOptions : TObjSectionOptions;
-       FCachedFullName : pstring;
+       FCachedFullName : pshortstring;
        procedure SetSecOptions(Aoptions:TObjSectionOptions);
      public
        ObjData    : TObjData;
@@ -452,6 +452,7 @@ interface
 implementation
 
     uses
+      SysUtils,
       globals,verbose,fmodule,ogmap;
 
     const
@@ -726,7 +727,7 @@ implementation
     constructor TObjData.create(const n:string);
       begin
         inherited create;
-        FName:=SplitFileName(n);
+        FName:=ExtractFileName(n);
         FObjSectionList:=TFPHashObjectList.Create(true);
         FStabsObjSec:=nil;
         FStabStrObjSec:=nil;

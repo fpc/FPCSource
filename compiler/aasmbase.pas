@@ -123,7 +123,7 @@ interface
 implementation
 
     uses
-      strings,
+      SysUtils,
       verbose;
 
 

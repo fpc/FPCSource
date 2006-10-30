@@ -31,11 +31,7 @@ unit impdef;
 interface
 
    uses
-   {$IFDEF USE_SYSUTILS}
-     SysUtils,
-   {$ELSE USE_SYSUTILS}
-     Dos;
-   {$ENDIF USE_SYSUTILS}
+     SysUtils;
 
    var
      as_name,
@@ -174,11 +170,7 @@ procedure CreateTempDir(const s:string);
 procedure call_as(const name:string);
  begin
   FlushOutput;
-{$IFDEF USE_SYSUTILS}
   ExecuteProcess(as_name,'-o '+name+'o '+name);
-{$ELSE USE_SYSUTILS}
-  exec(as_name,'-o '+name+'o '+name);
-{$ENDIF USE_SYSUTILS}
  end;
 procedure call_ar;
  var
@@ -194,11 +186,7 @@ procedure call_ar;
   If DOSError=0 then
    erase(f);
   FlushOutput;
-{$IFDEF USE_SYSUTILS}
   ExecuteProcess(ar_name,'rs '+impname+' '+path+dirsep+'*.swo');
-{$ELSE USE_SYSUTILS}
-  exec(ar_name,'rs '+impname+' '+path+dirsep+'*.swo');
-{$ENDIF USE_SYSUTILS}
   cleardir(path,'*.sw');
   cleardir(path,'*.swo');
   {$i-}

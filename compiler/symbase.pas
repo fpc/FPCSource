@@ -92,8 +92,8 @@ interface
           procedure dumpsym(p : TNamedIndexItem;arg:pointer);
 {$endif EXTDEBUG}
        public
-          name      : pstring;
-          realname  : pstring;
+          name      : pshortstring;
+          realname  : pshortstring;
           symindex,
           defindex  : TIndexArray;
           symsearch : Tdictionary;

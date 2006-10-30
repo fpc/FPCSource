@@ -105,12 +105,12 @@ implementation
 
          { open assembler response }
          if cs_link_on_target in current_settings.globalswitches then
-           GenerateAsmRes(outputexedir+inputfile+'_ppas')
+           GenerateAsmRes(outputexedir+ChangeFileExt(inputfilename,'_ppas'))
          else
            GenerateAsmRes(outputexedir+'ppas');
 
          { open deffile }
-         DefFile:=TDefFile.Create(outputexedir+inputfile+target_info.defext);
+         DefFile:=TDefFile.Create(outputexedir+ChangeFileExt(inputfilename,target_info.defext));
 
          { list of generated .o files, so the linker can remove them }
          SmartLinkOFiles:=TStringList.Create;

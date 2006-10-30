@@ -101,7 +101,7 @@ interface
 implementation
 
       uses
-        strings,
+        SysUtils,
         verbose,
         cutils,globals,fmodule;
 
@@ -989,7 +989,7 @@ implementation
            shstrtabsect:=TElfObjSection.create_ext(ObjSectionList,'.shstrtab',SHT_STRTAB,0,0,0,1,0);
            { insert the empty and filename as first in strtab }
            strtabsect.writestr(#0);
-           strtabsect.writestr(SplitFileName(current_module.mainsource^)+#0);
+           strtabsect.writestr(ExtractFileName(current_module.mainsource^)+#0);
            { calc amount of sections we have }
            nsections:=1;
            { also create the index in the section header table }

@@ -104,7 +104,7 @@ interface
       tsym = class(tsymentry)
       protected
       public
-         _realname  : pstring;
+         _realname  : pshortstring;
          fileinfo   : tfileposinfo;
          symoptions : tsymoptions;
          refs          : longint;

@@ -31,7 +31,8 @@ interface
 implementation
 
     uses
-      cutils,
+      SysUtils,
+      cutils,cfileutils,
       globtype,globals,systems,widestr,cpuinfo,
       verbose,comphook,ppu,
       scanner,switches,
@@ -483,7 +484,7 @@ implementation
           end
         else
           s:= trimspace(current_scanner.readcomment);
-        s:=AddExtension(FixFileName(s),target_info.objext);
+        s:=ChangeFileExt(FixFileName(s),target_info.objext);
         current_module.linkotherofiles.add(s,link_always);
       end;
 
@@ -539,7 +540,7 @@ implementation
         linkmode:=lm_shared;
         if linkModeStr='' then
          begin
-           libext:=SplitExtension(libname);
+           libext:=ExtractFileExt(libname);
            if libext=target_info.staticClibext then
              linkMode:=lm_static;
          end
@@ -915,9 +916,9 @@ implementation
           if Assigned(Current_Module) then
             begin
               delete(S,1,1);
-              insert(SplitName(current_module.mainsource^),S,1);
+              insert(ExtractFileName(current_module.mainsource^),S,1);
             end;
-        s:=AddExtension(FixFileName(s),target_info.resext);
+        s:=ChangeFileExt(FixFileName(s),target_info.resext);
         if target_info.res<>res_none then
           begin
           current_module.flags:=current_module.flags or uf_has_resourcefiles;

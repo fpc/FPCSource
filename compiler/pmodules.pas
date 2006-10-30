@@ -32,8 +32,9 @@ interface
 implementation
 
     uses
+       SysUtils,
        globtype,version,systems,tokens,
-       cutils,cclasses,comphook,
+       cutils,cfileutils,cclasses,comphook,
        globals,verbose,fmodule,finput,fppu,
        symconst,symbase,symtype,symdef,symsym,symtable,
        aasmtai,aasmdata,aasmcpu,aasmbase,
@@ -850,7 +851,7 @@ implementation
 
              { check for system unit }
              new(s2);
-             s2^:=upper(SplitName(main_file.name^));
+             s2^:=upper(ChangeFileExt(ExtractFileName(main_file.name^),''));
              unitname8:=copy(current_module.modulename^,1,8);
              if (cs_check_unit_name in current_settings.globalswitches) and
                 (

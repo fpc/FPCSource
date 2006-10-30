@@ -28,18 +28,11 @@ interface
        maxidlen = 127;
 
     type
-{TCmdStr is used to pass command line parameters to an external program to be
-executed from the FPC application. In some circomstances, this can be more
-than 255 characters. That's why using Ansi Strings}
-{$IFDEF USE_SYSUTILS}
+       { TCmdStr is used to pass command line parameters to an external program to be
+         executed from the FPC application. In some circomstances, this can be more
+         than 255 characters. That's why using Ansi Strings}
        TCmdStr = AnsiString;
-       PathStr = String;
-       DirStr = String;
-       NameStr = String;
-       ExtStr = String;
-{$ELSE USE_SYSUTILS}
-       TCmdStr = String;
-{$ENDIF USE_SYSUTILS}
+       TPathStr = ShortString;
 
        { Natural integer register type and size for the target machine }
 {$ifdef cpu64bit}

@@ -62,7 +62,7 @@ interface
 implementation
 
     uses
-       strings,
+       SysUtils,
        { common }
        cutils,cclasses,
        { global }
@@ -1508,7 +1508,7 @@ begin
       if not(token=_SEMICOLON) and not(idtoken=_NAME) then
         begin
           { Always add library prefix and suffix to create an uniform name }
-          hs:=AddExtension(get_stringconst,target_info.sharedlibext);
+          hs:=ChangeFileExt(get_stringconst,target_info.sharedlibext);
           if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
             hs:=target_info.sharedlibprefix+hs;
           import_dll:=stringdup(hs);
@@ -2129,7 +2129,7 @@ const
                           result:=maybe_cprefix(pd.import_name^);
                       end
                     else
-                      result:=splitfilename(pd.import_dll^)+'_index_'+tostr(pd.import_nr);
+                      result:=ExtractFileName(pd.import_dll^)+'_index_'+tostr(pd.import_nr);
                 end;
               end
             else

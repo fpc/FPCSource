@@ -30,9 +30,11 @@ interface
 implementation
 
     uses
-       link,
-       cutils,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_go32v2,ogcoff;
+       SysUtils,
+       cutils,cfileutils,cclasses,
+       globtype,globals,systems,verbose,script,
+       fmodule,i_go32v2,
+       link,ogcoff;
 
     type
       TInternalLinkerGo32v2=class(TInternallinker)

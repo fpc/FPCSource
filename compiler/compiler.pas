@@ -36,17 +36,13 @@ uses
 {$ifdef BrowserLog}
   browlog,
 {$endif BrowserLog}
-{$IFDEF USE_SYSUTILS}
-{$ELSE USE_SYSUTILS}
-  dos,
-{$ENDIF USE_SYSUTILS}
 {$IFNDEF USE_FAKE_SYSUTILS}
   sysutils,
 {$ELSE}
   fksysutl,
 {$ENDIF}
   verbose,comphook,systems,
-  cutils,cclasses,globals,options,fmodule,parser,symtable,
+  cutils,cfileutils,cclasses,globals,options,fmodule,parser,symtable,
   assemble,link,dbgbase,import,export,tokens,pass_1
   { cpu parameter handling }
   ,cpupara
@@ -163,6 +159,7 @@ begin
   CompilerInited:=false;
   DoneSymtable;
   DoneGlobals;
+  DoneFileUtils;
   donetokens;
 end;
 
@@ -173,6 +170,8 @@ begin
    DoneCompiler;
 { inits which need to be done before the arguments are parsed }
   InitSystems;
+  { fileutils depends on source_info so it must be after systems }
+  InitFileUtils;
   { globals depends on source_info so it must be after systems }
   InitGlobals;
   { verbose depends on exe_path and must be after globals }
@@ -222,19 +221,10 @@ function Compile(const cmd:string):longint;
 
   function getrealtime : real;
   var
-{$IFDEF USE_SYSUTILS}
     h,m,s,s1000 : word;
-{$ELSE USE_SYSUTILS}
-    h,m,s,s100 : word;
-{$ENDIF USE_SYSUTILS}
   begin
-{$IFDEF USE_SYSUTILS}
     DecodeTime(Time,h,m,s,s1000);
-    getrealtime:=h*3600.0+m*60.0+s+s1000/1000.0;
-{$ELSE USE_SYSUTILS}
-    gettime(h,m,s,s100);
-    getrealtime:=h*3600.0+m*60.0+s+s100/100.0;
-{$ENDIF USE_SYSUTILS}
+    result:=h*3600.0+m*60.0+s+s1000/1000.0;
   end;
 
 var
@@ -265,10 +255,10 @@ begin
        { Compile the program }
   {$ifdef PREPROCWRITE}
        if parapreprocess then
-        parser.preprocess(inputdir+inputfile+inputextension)
+        parser.preprocess(inputfilepath+inputfilename)
        else
   {$endif PREPROCWRITE}
-        parser.compile(inputdir+inputfile+inputextension);
+        parser.compile(inputfilepath+inputfilename);
 
        { Show statistics }
        if status.errorcount=0 then

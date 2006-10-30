@@ -315,17 +315,11 @@ interface
 implementation
 
     uses
-      version,
-      cutils,
-      globtype,
-      globals,
-      verbose,
-      systems,
-      cpubase,
-      cgbase,
+      cutils,cfileutils,
+      version,globtype,globals,verbose,systems,
+      cpubase,cgbase,
       fmodule,
-      defutil,
-      symconst,symtable
+      defutil,symconst,symtable
       ;
 
     const
@@ -2281,7 +2275,7 @@ end;
       var
         currfileinfo,
         lastfileinfo : tfileposinfo;
-        currfuncname : pstring;
+        currfuncname : pshortstring;
         currsectype  : TAsmSectiontype;
         hlabel       : tasmlabel;
         hp : tai;

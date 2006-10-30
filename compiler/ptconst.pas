@@ -35,7 +35,7 @@ interface
 implementation
 
     uses
-       strings,
+       SysUtils,
        globtype,systems,tokens,verbose,
        cutils,globals,widestr,scanner,
        symconst,symbase,symdef,symtable,

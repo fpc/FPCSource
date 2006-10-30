@@ -122,15 +122,10 @@ interface
 Implementation
 
     uses
-    {$IFDEF USE_SYSUTILS}
       SysUtils,
-    {$ELSE USE_SYSUTILS}
-      dos,
-    {$ENDIF USE_SYSUTILS}
-      cutils,
+      cutils,cfileutils,
       script,globals,verbose,comphook,ppu,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-//      symbase,symdef,symtype,symconst,
       owbase,owar,ogmap;
 
     type
@@ -155,7 +150,7 @@ Implementation
          the host. Look for the corresponding assembler file instead,
          because it will be assembled to object file on the target.}
         if isunit and (cs_link_on_target in current_settings.globalswitches) then
-          s:= ForceExtension(s,target_info.asmext);
+          s:=ChangeFileExt(s,target_info.asmext);
 
         { when it does not belong to the unit then check if
           the specified file exists without searching any paths }
@@ -201,7 +196,7 @@ Implementation
 
         {Restore file extension}
         if isunit and (cs_link_on_target in current_settings.globalswitches) then
-          foundfile:= ForceExtension(foundfile,target_info.objext);
+          foundfile:= ChangeFileExt(foundfile,target_info.objext);
 
         findobjectfile:=ScriptFixFileName(foundfile);
       end;
@@ -223,11 +218,7 @@ Implementation
          Found:=librarysearchpath.FindFile(s,founddll);
         if (not found) then
          begin
-           {$IFDEF USE_SYSUTILS}
            sysdir:=FixPath(GetEnvironmentVariable('windir'),false);
-           {$ELSE USE_SYSUTILS}
-           sysdir:=FixPath(GetEnv('windir'),false);
-           {$ENDIF USE_SYSUTILS}
            Found:=FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,founddll);
          end;
         if (not found) then
@@ -250,8 +241,8 @@ Implementation
         if s='' then
          exit;
         { split path from filename }
-        paths:=SplitPath(s);
-        s:=SplitFileName(s);
+        paths:=ExtractFilePath(s);
+        s:=ExtractFileName(s);
         { add prefix 'lib' }
         if (prefix<>'') and (Copy(s,1,length(prefix))<>prefix) then
          s:=prefix+s;
@@ -550,8 +541,8 @@ Implementation
         FillChar(Info,sizeof(Info),0);
         if cs_link_on_target in current_settings.globalswitches then
           begin
-            Info.ResName:=outputexedir+inputfile+'_link.res';
-            Info.ScriptName:=outputexedir+inputfile+'_script.res';
+            Info.ResName:=outputexedir+ChangeFileExt(inputfilename,'_link.res');
+            Info.ScriptName:=outputexedir+ChangeFileExt(inputfilename,'_script.res');
           end
         else
           begin
@@ -591,10 +582,10 @@ Implementation
         if cs_link_on_target in current_settings.globalswitches then
           begin
             { If linking on target, don't add any path PM }
-            FindUtil:=AddExtension(s,target_info.exeext);
+            FindUtil:=ChangeFileExt(s,target_info.exeext);
             exit;
           end;
-        UtilExe:=AddExtension(s,source_info.exeext);
+        UtilExe:=ChangeFileExt(s,source_info.exeext);
         FoundBin:='';
         Found:=false;
         if utilsdirectory<>'' then
@@ -623,7 +614,6 @@ Implementation
            if useshell then
              exitcode := shell(maybequoted(command)+' '+para)
            else
-      {$IFDEF USE_SYSUTILS}
            try
              if ExecuteProcess(command,para) <> 0
              then begin
@@ -639,28 +629,6 @@ Implementation
              end;
            end
          end;
-      {$ELSE USE_SYSUTILS}
-             begin
-               swapvectors;
-               exec(command,para);
-               swapvectors;
-               exitcode := dosexitcode;
-             end;
-           if (doserror<>0) then
-            begin
-               Message(exec_e_cant_call_linker);
-               current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
-               DoExec:=false;
-            end
-           else
-            if (exitcode<>0) then
-             begin
-              Message(exec_e_error_while_linking);
-              current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
-              DoExec:=false;
-             end;
-         end;
-      {$ENDIF USE_SYSUTILS}
       { Update asmres when externmode is set }
         if cs_link_nolink in current_settings.globalswitches then
          begin
@@ -700,7 +668,7 @@ Implementation
       { remove the library, to be sure that it is rewritten }
         RemoveFile(current_module.staticlibfilename^);
       { Call AR }
-        smartpath:=current_module.outputpath^+FixPath(current_module.newfilename^+target_info.smartext,false);
+        smartpath:=current_module.outputpath^+FixPath(ChangeFileExt(current_module.asmfilename^,target_info.smartext),false);
         SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
         binstr := FindUtil(utilsprefix + binstr);
 
@@ -848,7 +816,7 @@ Implementation
       begin
 {$warning TODO Cleanup ignoring of   FPC generated libimp*.a files}
         { Don't load import libraries }
-        if copy(splitfilename(para),1,6)='libimp' then
+        if copy(ExtractFileName(para),1,6)='libimp' then
           exit;
         Comment(V_Tried,'Opening library '+para);
         objreader:=TArObjectreader.create(para);

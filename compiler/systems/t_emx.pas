@@ -37,9 +37,8 @@ interface
 implementation
 
   uses
-     strings,
-     dos,
-     cutils,cclasses,
+     sysutils,
+     cutils,cfileutils,cclasses,
      globtype,comphook,systems,symconst,symsym,symdef,
      globals,verbose,fmodule,script,ogbase,
      import,link,i_emx,ppu;
@@ -131,21 +130,40 @@ var aout_str_size:longint;
 
     out_file:file;
 
+
+procedure PackTime (var T: TSystemTime; var P: longint);
+
+var zs:longint;
+
+begin
+    p:=-1980;
+    p:=p+t.year and 127;
+    p:=p shl 4;
+    p:=p+t.month;
+    p:=p shl 5;
+    p:=p+t.day;
+    p:=p shl 16;
+    zs:=t.hour;
+    zs:=zs shl 6;
+    zs:=zs+t.minute;
+    zs:=zs shl 5;
+    zs:=zs+t.second div 2;
+    p:=p+(zs and $ffff);
+end;
+
+
 procedure write_ar(const name:string;size:longint);
 
-var ar:ar_hdr;
-    time:datetime;
+var ar:ar_hdr;        {PackTime is platform independent}
+    time:TSystemTime;
     dummy:word;
     numtime:longint;
     tmp:string[19];
-
-
 begin
     ar_member_size:=size;
     fillchar(ar.ar_name,sizeof(ar.ar_name),' ');
     move(name[1],ar.ar_name,length(name));
-    getdate(time.year,time.month,time.day,dummy);
-    gettime(time.hour,time.min,time.sec,dummy);
+    GetLocalTime(time);
     packtime(time,numtime);
     str(numtime,tmp);
     fillchar(ar.ar_date,sizeof(ar.ar_date),' ');
@@ -438,17 +456,14 @@ var
   AppTypeStr,
   StripStr: string[40];
   RsrcStr : string;
-  DS: DirStr;
-  NS: NameStr;
-  ES: ExtStr;
-  OutName: PathStr;
+  DS,NS,ES : string;
+  OutName: string;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
-  FSplit (current_module.exefilename^, DS, NS, ES);
-  OutName := DS + NS + '.out';
+  OutName := ChangeFileExt(current_module.exefilename^,'.out');
   if (cs_link_strip in current_settings.globalswitches) then
    StripStr := '-s'
   else

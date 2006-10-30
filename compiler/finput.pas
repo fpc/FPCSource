@@ -37,7 +37,7 @@ interface
        plongintarr = ^tlongintarr;
 
        tinputfile = class
-         path,name : pstring;       { path and filename }
+         path,name : pshortstring;       { path and filename }
          next      : tinputfile;    { next file for reading }
 
          is_macro,
@@ -144,58 +144,55 @@ interface
           modulename,               { name of the module in uppercase }
           realmodulename,           { name of the module in the orignal case }
           objfilename,              { fullname of the objectfile }
-          newfilename,              { fullname of the assemblerfile }
+          asmfilename,              { fullname of the assemblerfile }
           ppufilename,              { fullname of the ppufile }
           importlibfilename,        { fullname of the import libraryfile }
           staticlibfilename,        { fullname of the static libraryfile }
           sharedlibfilename,        { fullname of the shared libraryfile }
           mapfilename,              { fullname of the mapfile }
           exefilename,              { fullname of the exefile }
-          mainsource   : pstring;   { name of the main sourcefile }
+          mainsource   : pshortstring;   { name of the main sourcefile }
           constructor create(const s:string);
           destructor destroy;override;
           procedure setfilename(const fn:string;allowoutput:boolean);
-          function get_asmfilename : string;
        end;
+
+
+     Function GetNamedFileTime (Const F : String) : Longint;
 
 
 implementation
 
 uses
-{$IFDEF USE_SYSUTILS}
   SysUtils,
-  GlobType,
-{$ELSE USE_SYSUTILS}
-  dos,
-{$ENDIF USE_SYSUTILS}
+  GlobType,Comphook,
 {$ifdef heaptrc}
   fmodule,
   ppheap,
 {$endif heaptrc}
-  globals,systems
+  CFileUtils,
+  Globals,Systems
   ;
+
+
+{****************************************************************************
+                                  Utils
+ ****************************************************************************}
+
+   Function GetNamedFileTime (Const F : String) : Longint;
+     begin
+       GetNamedFileTime:=do_getnamedfiletime(F);
+     end;
+
 
 {****************************************************************************
                                   TINPUTFILE
  ****************************************************************************}
 
     constructor tinputfile.create(const fn:string);
-{$IFDEF USE_SYSUTILS}
-{$ELSE USE_SYSUTILS}
-      var
-        p:dirstr;
-        n:namestr;
-        e:extstr;
-{$ENDIF USE_SYSUTILS}
       begin
-{$IFDEF USE_SYSUTILS}
-        name:=stringdup(SplitFileName(fn));
-        path:=stringdup(SplitPath(fn));
-{$ELSE USE_SYSUTILS}
-        FSplit(fn,p,n,e);
-        name:=stringdup(n+e);
-        path:=stringdup(p);
-{$ENDIF USE_SYSUTILS}
+        name:=stringdup(ExtractFileName(fn));
+        path:=stringdup(ExtractFilePath(fn));
         next:=nil;
         filetime:=-1;
       { file info }
@@ -621,15 +618,13 @@ uses
 
     procedure tmodulebase.setfilename(const fn:string;allowoutput:boolean);
       var
-        p : dirstr;
-        n : NameStr;
-        e : ExtStr;
+        p,n,e,
+        extension,
         prefix,
-        suffix,
-        extension : NameStr;
+        suffix : string;
       begin
          stringdispose(objfilename);
-         stringdispose(newfilename);
+         stringdispose(asmfilename);
          stringdispose(ppufilename);
          stringdispose(importlibfilename);
          stringdispose(staticlibfilename);
@@ -642,28 +637,22 @@ uses
          { Create names }
          paramfn := stringdup(fn);
          paramallowoutput := allowoutput;
-{$IFDEF USE_SYSUTILS}
-         p := SplitPath(fn);
-         n := SplitName(fn);
-         e := SplitExtension(fn);
-{$ELSE USE_SYSUTILS}
-         fsplit(fn,p,n,e);
-{$ENDIF USE_SYSUTILS}
-         n:=FixFileName(n);
+         p := FixPath(ExtractFilePath(fn),false);
+         n := FixFileName(ChangeFileExt(ExtractFileName(fn),''));
+         e := ExtractFileExt(fn);
          { set path }
-         path:=stringdup(FixPath(p,false));
+         path:=stringdup(p);
          { obj,asm,ppu names }
-         p:=path^;
          if AllowOutput then
-          begin
-            if (OutputUnitDir<>'') then
-             p:=OutputUnitDir
-            else
-             if (OutputExeDir<>'') then
-              p:=OutputExeDir;
-          end;
+           begin
+             if (OutputUnitDir<>'') then
+               p:=OutputUnitDir
+             else
+               if (OutputExeDir<>'') then
+                 p:=OutputExeDir;
+           end;
          outputpath:=stringdup(p);
-         newfilename := stringdup(n);
+         asmfilename:=stringdup(p+n+target_info.asmext);
          objfilename:=stringdup(p+n+target_info.objext);
          ppufilename:=stringdup(p+n+target_info.unitext);
          { lib and exe could be loaded with a file specified with -o }
@@ -672,26 +661,30 @@ uses
          extension := target_info.sharedlibext;
 
          if AllowOutput and (compile_level=1) then
-         begin
-           if OutputFile <> '' then n:=OutputFile;
-           if Assigned(OutputPrefix) then prefix := OutputPrefix^;
-           if Assigned(OutputSuffix) then suffix := OutputSuffix^;
-           if OutputExtension <> '' then extension := OutputExtension;
-         end;
+           begin
+             if OutputFileName <> '' then
+               n:=OutputFileName;
+             if Assigned(OutputPrefix) then
+               prefix := OutputPrefix^;
+             if Assigned(OutputSuffix) then
+               suffix := OutputSuffix^;
+             if ExtractFileExt(OutputFileName) <> '' then
+               extension := ExtractFileExt(OutputFileName);
+           end;
 
          importlibfilename:=stringdup(p+target_info.staticClibprefix+'imp'+n+target_info.staticlibext);
          staticlibfilename:=stringdup(p+target_info.staticlibprefix+n+target_info.staticlibext);
 
          { output dir of exe can be specified separatly }
          if AllowOutput and (OutputExeDir<>'') then
-          p:=OutputExeDir
+           p:=OutputExeDir
          else
-          p:=path^;
+           p:=path^;
          sharedlibfilename:=stringdup(p+prefix+n+suffix+extension);
 
          { don't use extension alone to check, it can be empty !! }
-         if (OutputFile<>'') or (OutputExtension<>'') then
-           exefilename:=stringdup(p+n+OutputExtension)
+         if (OutputFileName<>'')then
+           exefilename:=stringdup(p+OutputFileName)
          else
            exefilename:=stringdup(p+n+target_info.exeext);
          mapfilename:=stringdup(p+n+'.map');
@@ -705,7 +698,7 @@ uses
         mainsource:=nil;
         ppufilename:=nil;
         objfilename:=nil;
-        newfilename:=nil;
+        asmfilename:=nil;
         importlibfilename:=nil;
         staticlibfilename:=nil;
         sharedlibfilename:=nil;
@@ -724,18 +717,13 @@ uses
       end;
 
 
-    function tmodulebase.get_asmfilename : string;
-     begin
-         get_asmfilename:=outputpath^+newfilename^+target_info.asmext;
-     end;
-
     destructor tmodulebase.destroy;
       begin
         if assigned(sourcefiles) then
          sourcefiles.free;
         sourcefiles:=nil;
         stringdispose(objfilename);
-        stringdispose(newfilename);
+        stringdispose(asmfilename);
         stringdispose(ppufilename);
         stringdispose(importlibfilename);
         stringdispose(staticlibfilename);

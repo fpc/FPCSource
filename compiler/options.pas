@@ -26,7 +26,8 @@ unit options;
 interface
 
 uses
-  CClasses,globtype,globals,verbose,systems,cpuinfo;
+  CClasses,CFileUtils,
+  globtype,globals,verbose,systems,cpuinfo;
 
 Type
   TOption=class
@@ -69,11 +70,7 @@ implementation
 
 uses
   widestr,
-{$IFDEF USE_SYSUTILS}
   SysUtils,
-{$ELSE USE_SYSUTILS}
-  dos,
-{$ENDIF USE_SYSUTILS}
   version,
   cutils,cmsgs,
   comphook,
@@ -376,9 +373,8 @@ var
   more : string;
   major,minor : longint;
   error : integer;
-  j,l  : longint;
-  d    : DirStr;
-  s    : string;
+  j,l   : longint;
+  d,s   : string;
 begin
   if opt='' then
    exit;
@@ -873,15 +869,10 @@ begin
                if More<>'' then
                  begin
                    DefaultReplacements(More);
-{$IFDEF USE_SYSUTILS}
-                   D:=SplitPath(More);
-                   OutputFile:=SplitFileName(More);
-                   OutputExtension:=SplitExtension(More);
-{$ELSE USE_SYSUTILS}
-                   FSplit(More,D,OutputFile,OutputExtension);
-{$ENDIF USE_SYSUTILS}
+                   D:=ExtractFilePath(More);
                    if (D<>'') then
                      OutputExeDir:=FixPath(D,True);
+                   OutputFileName:=ExtractFileName(More);
                  end
                else
                  IllegalPara(opt);
@@ -1422,20 +1413,16 @@ begin
   If FileLevel>MaxLevel then
    Message(option_too_many_cfg_files);
 { Maybe It's Directory ?}   //Jaro Change:
-  if DirectoryExists(filename) then
+  if PathExists(filename) then
     begin
        Message1(option_config_is_dir,filename);
        exit;
     end;
 { open file }
   Message1(option_using_file,filename);
-{$ifdef USE_SYSUTILS}
   assign(f,ExpandFileName(filename));
-{$else USE_SYSUTILS}
-  assign(f,FExpand(filename));
-{$endif USE_SYsUTILS}
   {$I-}
-  reset(f);
+   reset(f);
   {$I+}
   if ioresult<>0 then
    begin
@@ -1815,19 +1802,16 @@ function check_configfile(const fn:string;var foundfn:string):boolean;
   end;
 
 var
-  configpath : pathstr;
+  hs,
+  configpath : string;
 begin
   foundfn:=fn;
   check_configfile:=true;
   { retrieve configpath }
-{$IFDEF USE_SYSUTILS}
   configpath:=FixPath(GetEnvironmentVariable('PPC_CONFIG_PATH'),false);
-{$ELSE USE_SYSUTILS}
-  configpath:=FixPath(dos.getenv('PPC_CONFIG_PATH'),false);
-{$ENDIF USE_SYSUTILS}
 {$ifdef Unix}
   if configpath='' then
-   configpath:=CleanPath(FixPath(exepath+'../etc/',false));
+   configpath:=ExpandFileName(FixPath(exepath+'../etc/',false));
 {$endif}
   {
     Order to read configuration file :
@@ -1839,13 +1823,9 @@ begin
   if not FileExists(fn) then
    begin
 {$ifdef Unix}
-{$IFDEF USE_SYSUTILS}
-     if (GetEnvironmentVariable('HOME')<>'') and CfgFileExists(FixPath(GetEnvironmentVariable('HOME'),false)+'.'+fn) then
-      foundfn:=FixPath(GetEnvironmentVariable('HOME'),false)+'.'+fn
-{$ELSE USE_SYSUTILS}
-     if (dos.getenv('HOME')<>'') and CfgFileExists(FixPath(dos.getenv('HOME'),false)+'.'+fn) then
-      foundfn:=FixPath(dos.getenv('HOME'),false)+'.'+fn
-{$ENDIF USE_SYSUTILS}
+     hs:=GetEnvironmentVariable('HOME');
+     if (hs<>'') and CfgFileExists(FixPath(hs,false)+'.'+fn) then
+      foundfn:=FixPath(hs,false)+'.'+fn
      else
 {$endif}
       if CfgFileExists(configpath+fn) then
@@ -1871,11 +1851,7 @@ begin
   disable_configfile:=false;
 
 { get default messagefile }
-{$IFDEF USE_SYSUTILS}
   msgfilename:=GetEnvironmentVariable('PPC_ERROR_FILE');
-{$ELSE USE_SYSUTILS}
-  msgfilename:=dos.getenv('PPC_ERROR_FILE');
-{$ENDIF USE_SYSUTILS}
 
 { default configfile can be specified on the commandline,
    remove it first }
@@ -2119,25 +2095,20 @@ begin
    end;
 {$ifndef Unix}
   param_file:=FixFileName(param_file);
-{$endif}
-{$IFDEF USE_SYSUTILS}
-  inputdir := SplitPath(param_file);
-  inputfile := SplitName(param_file);
-  inputextension := SplitExtension(param_file);
-{$ELSE USE_SYSUTILS}
-  fsplit(param_file,inputdir,inputfile,inputextension);
-{$ENDIF USE_SYSUTILS}
-  if inputextension='' then
-   begin
-     if FileExists(inputdir+inputfile+sourceext) then
-      inputextension:=sourceext
-     else if FileExists(inputdir+inputfile+pasext) then
-       inputextension:=pasext
-     else if ((m_mac in current_settings.modeswitches) or
+{$endif not unix}
+  inputfilepath:=ExtractFilePath(param_file);
+  inputfilename:=ExtractFileName(param_file);
+  if ExtractFileExt(inputfilename)='' then
+    begin
+      if FileExists(inputfilepath+ChangeFileExt(inputfilename,sourceext)) then
+        inputfilename:=ChangeFileExt(inputfilename,sourceext)
+      else if FileExists(inputfilepath+ChangeFileExt(inputfilename,pasext)) then
+        inputfilename:=ChangeFileExt(inputfilename,pasext)
+      else if ((m_mac in current_settings.modeswitches) or
               (tf_p_ext_support in target_info.flags))
-             and FileExists(inputdir+inputfile+pext) then
-       inputextension:=pext;
-   end;
+             and FileExists(inputfilepath+ChangeFileExt(inputfilename,pext)) then
+        inputfilename:=ChangeFileExt(inputfilename,pext);
+    end;
 
   { Check output dir }
   if (OutputExeDir<>'') and
@@ -2154,44 +2125,30 @@ begin
   LibrarySearchPath.AddList(option.ParaLibraryPath,true);
 
   { add unit environment and exepath to the unit search path }
-  if inputdir<>'' then
-   Unitsearchpath.AddPath(inputdir,true);
+  if inputfilepath<>'' then
+   Unitsearchpath.AddPath(inputfilepath,true);
   if not disable_configfile then
-   begin
-{$IFDEF USE_SYSUTILS}
-     UnitSearchPath.AddPath(GetEnvironmentVariable(target_info.unit_env),false);
-{$ELSE USE_SYSUTILS}
-     UnitSearchPath.AddPath(dos.getenv(target_info.unit_env),false);
-{$ENDIF USE_SYSUTILS}
-   end;
+    UnitSearchPath.AddPath(GetEnvironmentVariable(target_info.unit_env),false);
 
 {$ifdef Unix}
-{$IFDEF USE_SYSUTILS}
   fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'),false);
-{$ELSE USE_SYSUTILS}
-  fpcdir:=FixPath(getenv('FPCDIR'),false);
-{$ENDIF USE_SYSUTILS}
   if fpcdir='' then
-   begin
-     if PathExists('/usr/local/lib/fpc/'+version_string) then
-       fpcdir:='/usr/local/lib/fpc/'+version_string+'/'
-     else
-       fpcdir:='/usr/lib/fpc/'+version_string+'/';
-   end;
-{$else}
-{$IFDEF USE_SYSUTILS}
+    begin
+      if PathExists('/usr/local/lib/fpc/'+version_string) then
+        fpcdir:='/usr/local/lib/fpc/'+version_string+'/'
+      else
+        fpcdir:='/usr/lib/fpc/'+version_string+'/';
+    end;
+{$else unix}
   fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'),false);
-{$ELSE USE_SYSUTILS}
-  fpcdir:=FixPath(getenv('FPCDIR'),false);
-{$ENDIF USE_SYSUTILS}
   if fpcdir='' then
-   begin
-     fpcdir:=ExePath+'../';
-     if not(PathExists(fpcdir+'/units')) and
-        not(PathExists(fpcdir+'/rtl')) then
-      fpcdir:=fpcdir+'../';
-   end;
-{$endif}
+    begin
+      fpcdir:=ExePath+'../';
+      if not(PathExists(fpcdir+'/units')) and
+         not(PathExists(fpcdir+'/rtl')) then
+        fpcdir:=fpcdir+'../';
+    end;
+{$endif unix}
   { first try development RTL, else use the default installation path }
   if not disable_configfile then
     begin

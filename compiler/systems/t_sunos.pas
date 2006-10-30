@@ -34,7 +34,8 @@ interface
 implementation
 
   uses
-    cutils,cclasses,
+    sysutils,
+    cutils,cfileutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,

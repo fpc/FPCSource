@@ -76,6 +76,7 @@ type
 implementation
 
 uses
+   SysUtils,
    verbose, globals;
 
 const
@@ -130,7 +131,7 @@ begin
   f.free;
 { Remove if size is 0 }
   if size=0 then
-   RemoveFile(fn);
+   DeleteFile(fn);
   opened:=false;
   fsize:=0;
   fobjsize:=0;

@@ -62,8 +62,8 @@ function GetMsgLine(var p:pchar):string;
 implementation
 
 uses
-  cutils,
-  strings;
+  SysUtils,
+  cutils;
 
 
 function MsgReplace(const s:string;const args:array of string):string;

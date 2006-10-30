@@ -211,7 +211,7 @@ Function SearchIConstant(const s:string; var l:aint): boolean;
 Implementation
 
 uses
-  strings,
+  SysUtils,
   defutil,systems,verbose,globals,
   symtable,paramgr,
   aasmcpu,

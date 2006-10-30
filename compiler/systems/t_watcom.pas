@@ -31,7 +31,8 @@ implementation
 
     uses
        link,
-       cclasses,cutils,strings,globtype,globals,
+       SysUtils,
+       cclasses,cutils,cfileutils,globtype,globals,
        systems,verbose,script,fmodule,i_watcom;
 
 

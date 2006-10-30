@@ -31,6 +31,7 @@ interface
 implementation
 
 uses
+   SysUtils,
    cclasses,
    cutils,globtype,globals,systems,
    symconst,symtype,symdef,symsym,
@@ -235,8 +236,8 @@ uses
         end;
 
       begin
-        ResFileName:=ForceExtension(current_module.ppufilename^,'.rst');
-        message1 (general_i_writingresourcefile,SplitFileName(ResFileName));
+        ResFileName:=ChangeFileExt(current_module.ppufilename^,'.rst');
+        message1 (general_i_writingresourcefile,ExtractFileName(ResFileName));
         Assign(F,ResFileName);
         {$i-}
         Rewrite(f);

@@ -56,8 +56,8 @@ interface
 implementation
 
   uses
-    dos,
-    cutils,cclasses,
+    SysUtils,
+    cutils,cfileutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,i_beos,ogbase;
@@ -172,7 +172,7 @@ var
   i : integer;
 begin
   Inherited Create;
-  s:=GetEnv('BELIBRARIES');
+  s:=GetEnvironmentVariable('BELIBRARIES');
   { convert to correct format in case under unix system }
   for i:=1 to length(s) do
     if s[i] = ':' then

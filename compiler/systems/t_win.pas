@@ -24,8 +24,8 @@ unit t_win;
 {$i fpcdefs.inc}
 
 interface
+
     uses
-       dos,
        cutils,cclasses,
        aasmbase,aasmtai,aasmdata,aasmcpu,fmodule,globtype,globals,systems,verbose,
        symconst,symdef,symsym,
@@ -89,6 +89,8 @@ interface
 implementation
 
   uses
+    SysUtils,
+    cfileutils,
     cpuinfo,cgutils,dbgbase,
     owar,ogbase,ogcoff;
 
@@ -165,7 +167,7 @@ implementation
           idata4objsection:=objdata.createsection(sec_idata4,'');
           idata5objsection:=objdata.createsection(sec_idata5,'');
           emptyint:=0;
-          basedllname:=splitfilename(dllname);
+          basedllname:=ExtractFileName(dllname);
           { idata4 }
           objdata.SetSection(idata4objsection);
           idata4label:=objdata.SymbolDefine(asmprefix+'_names_'+basedllname,AB_GLOBAL,AT_DATA);
@@ -456,7 +458,7 @@ implementation
                     if ImportSymbol.Name <> '' then
                       current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.Name,AT_FUNCTION,0))
                     else
-                      current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(splitfilename(ImportLibrary.Name)+'_index_'+tostr(ImportSymbol.ordnr),AT_FUNCTION,0));
+                      current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ExtractFileName(ImportLibrary.Name)+'_index_'+tostr(ImportSymbol.ordnr),AT_FUNCTION,0));
                     current_asmdata.asmlists[al_imports].concat(tai_function_name.create(''));
                   {$ifdef ARM}
                     reference_reset_symbol(href,l5,0);
@@ -1281,7 +1283,7 @@ implementation
         if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in current_settings.globalswitches) then
-          MapStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
+          MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
 
       { Write used files and libraries }
         WriteResponseFile(false);
@@ -1383,7 +1385,7 @@ implementation
         if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in current_settings.globalswitches) then
-          MapStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
+          MapStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
 
       { Write used files and libraries }
         WriteResponseFile(true);
@@ -1650,7 +1652,7 @@ implementation
         if FindLibraryFile(binname,target_info.staticClibprefix,target_info.staticClibext,hs) then
           exit;
         { check if we can find the dll }
-        hs:=AddExtension(binname,target_info.sharedlibext);
+        hs:=ChangeFileExt(binname,target_info.sharedlibext);
         if not FindDll(hs,dllname) then
           exit;
         importfound:=false;

@@ -277,8 +277,9 @@ implementation
 
     uses
 {$ifdef win32}
-       windows,
+       Windows,
 {$endif win32}
+       SysUtils,
        cutils,verbose,globals,
        fmodule,aasmtai,aasmdata,
        ogmap,
@@ -1224,7 +1225,7 @@ const pemagic : array[0..3] of byte = (
            { The `.file' record, and the file name auxiliary record }
            write_symbol('.file', 0, -2, COFF_SYM_FILE, 1);
            fillchar(filename,sizeof(filename),0);
-           filename:=SplitFileName(current_module.mainsource^);
+           filename:=ExtractFileName(current_module.mainsource^);
            inc(symidx);
            FCoffSyms.write(filename[1],sizeof(filename)-1);
            { Sections }
@@ -2239,7 +2240,7 @@ const pemagic : array[0..3] of byte = (
               exemap.Add('Importing from DLL '+dllname);
             end;
           emptyint:=0;
-          basedllname:=splitfilename(dllname);
+          basedllname:=ExtractFileName(dllname);
           idata2objsection:=internalobjdata.createsection(sec_idata2,basedllname);
           idata2label:=internalobjdata.SymbolDefine('__imp_dir_'+basedllname,AB_LOCAL,AT_DATA);
           idata4objsection:=internalobjdata.createsection(sec_idata4,basedllname);

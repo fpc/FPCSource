@@ -32,12 +32,7 @@ interface
 
 
     uses
-{$IFDEF USE_SYSUTILS}
-      sysutils,
-{$ELSE USE_SYSUTILS}
-      strings,
-      dos,
-{$ENDIF USE_SYSUTILS}
+      SysUtils,
       systems,globtype,globals,aasmbase,aasmtai,aasmdata,ogbase;
 
     const
@@ -50,9 +45,8 @@ interface
       TAssembler=class(TAbstractAssembler)
       public
       {filenames}
-        path     : pathstr;
-        fname, name: namestr;  (* name for modulename given in source, fname
-                                  for base file name w/o path and extension  *)
+        path        : string;
+        name        : string;
         AsmFileName,         { current .s and .o file }
         ObjFileName,
         ppufilename  : string;
@@ -171,16 +165,13 @@ Implementation
 
     uses
 {$ifdef hasunix}
-  {$ifdef havelinuxrtl10}
-      linux,
-  {$else}
       unix,
-  {$endif}
 {$endif}
-      cutils,script,fmodule,verbose,
+      cutils,cfileutils,
 {$ifdef memdebug}
       cclasses,
 {$endif memdebug}
+      script,fmodule,verbose,
 {$ifdef m68k}
       cpuinfo,
 {$endif m68k}
@@ -199,10 +190,9 @@ Implementation
     Constructor TAssembler.Create(smart:boolean);
       begin
       { load start values }
-        AsmFileName:=current_module.get_AsmFilename;
+        AsmFileName:=current_module.AsmFilename^;
         ObjFileName:=current_module.ObjFileName^;
         name:=Lower(current_module.modulename^);
-        fname:=current_module.newfilename^;
         path:=current_module.outputpath^;
         asmprefix := current_module.asmprefix^;
         if not assigned(current_module.outputpath) then
@@ -263,7 +253,7 @@ Implementation
         inherited Create(smart);
         if SmartAsm then
          begin
-           path:=FixPath(path+FixFileName(fname)+target_info.smartext,false);
+           path:=FixPath(path+ChangeFileExt(AsmFileName,target_info.smartext),false);
            CreateSmartLinkPath(path);
          end;
         Outcnt:=0;
@@ -271,47 +261,29 @@ Implementation
 
 
     procedure TExternalAssembler.CreateSmartLinkPath(const s:string);
+
+        procedure DeleteFilesWithExt(const AExt:string);
+        var
+          dir : TSearchRec;
+        begin
+          if findfirst(s+source_info.dirsep+'*'+AExt,faAnyFile,dir) = 0 then
+            begin
+              repeat
+                DeleteFile(s+source_info.dirsep+dir.name);
+              until findnext(dir) <> 0;
+            end;
+          findclose(dir);
+        end;
+
       var
-{$IFDEF USE_SYSUTILS}
         dir : TSearchRec;
-{$ELSE USE_SYSUTILS}
-        dir : searchrec;
-{$ENDIF USE_SYSUTILS}
         hs  : string;
       begin
         if PathExists(s) then
          begin
            { the path exists, now we clean only all the .o and .s files }
-           { .o files }
-{$IFDEF USE_SYSUTILS}
-           if findfirst(s+source_info.dirsep+'*'+target_info.objext,faAnyFile,dir) = 0
-           then repeat
-              RemoveFile(s+source_info.dirsep+dir.name);
-           until findnext(dir) <> 0;
-{$ELSE USE_SYSUTILS}
-           findfirst(s+source_info.dirsep+'*'+target_info.objext,anyfile,dir);
-           while (doserror=0) do
-            begin
-              RemoveFile(s+source_info.dirsep+dir.name);
-              findnext(dir);
-            end;
-{$ENDIF USE_SYSUTILS}
-           findclose(dir);
-           { .s files }
-{$IFDEF USE_SYSUTILS}
-           if findfirst(s+source_info.dirsep+'*'+target_info.asmext,faAnyFile,dir) = 0
-           then repeat
-             RemoveFile(s+source_info.dirsep+dir.name);
-           until findnext(dir) <> 0;
-{$ELSE USE_SYSUTILS}
-           findfirst(s+source_info.dirsep+'*'+target_info.asmext,anyfile,dir);
-           while (doserror=0) do
-            begin
-              RemoveFile(s+source_info.dirsep+dir.name);
-              findnext(dir);
-            end;
-{$ENDIF USE_SYSUTILS}
-           findclose(dir);
+           DeleteFilesWithExt(target_info.objext);
+           DeleteFilesWithExt(target_info.asmext);
          end
         else
          begin
@@ -329,7 +301,7 @@ Implementation
     const
       lastas  : byte=255;
     var
-      LastASBin : pathstr;
+      LastASBin : string;
     Function TExternalAssembler.FindAssembler:string;
       var
         asfound : boolean;
@@ -339,11 +311,11 @@ Implementation
         if cs_link_on_target in current_settings.globalswitches then
          begin
            { If linking on target, don't add any path PM }
-           FindAssembler:=utilsprefix+AddExtension(target_asm.asmbin,target_info.exeext);
+           FindAssembler:=utilsprefix+ChangeFileExt(target_asm.asmbin,target_info.exeext);
            exit;
          end
         else
-         UtilExe:=utilsprefix+AddExtension(target_asm.asmbin,source_info.exeext);
+         UtilExe:=utilsprefix+ChangeFileExt(target_asm.asmbin,source_info.exeext);
         if lastas<>ord(target_asm.id) then
          begin
            lastas:=ord(target_asm.id);
@@ -365,51 +337,30 @@ Implementation
 
 
     Function TExternalAssembler.CallAssembler(const command:string; const para:TCmdStr):Boolean;
-{$IFDEF USE_SYSUTILS}
       var
-        DosExitCode:Integer;
-{$ENDIF USE_SYSUTILS}
+        DosExitCode : Integer;
       begin
-        callassembler:=true;
-        if not(cs_asm_extern in current_settings.globalswitches) then
-{$IFDEF USE_SYSUTILS}
+        result:=true;
+        if (cs_asm_extern in current_settings.globalswitches) then
+          begin
+            AsmRes.AddAsmCommand(command,para,name);
+            exit;
+          end;
         try
           FlushOutput;
           DosExitCode := ExecuteProcess(command,para);
           if DosExitCode <>0
           then begin
             Message1(exec_e_error_while_assembling,tostr(dosexitcode));
-            callassembler:=false;
+            result:=false;
           end;
         except on E:EOSError do
           begin
             Message1(exec_e_cant_call_assembler,tostr(E.ErrorCode));
             current_settings.globalswitches:=current_settings.globalswitches+[cs_asm_extern];
-            callassembler:=false;
-          end
-        end
-{$ELSE USE_SYSUTILS}
-         begin
-           FlushOutput;
-           swapvectors;
-           exec(maybequoted(command),para);
-           swapvectors;
-           if (doserror<>0) then
-            begin
-              Message1(exec_e_cant_call_assembler,tostr(doserror));
-              current_settings.globalswitches:=current_settings.globalswitches+[cs_asm_extern];
-              callassembler:=false;
-            end
-           else
-            if (dosexitcode<>0) then
-             begin
-              Message1(exec_e_error_while_assembling,tostr(dosexitcode));
-              callassembler:=false;
-             end;
-         end
-{$ENDIF USE_SYSUTILS}
-        else
-         AsmRes.AddAsmCommand(command,para,name);
+            result:=false;
+          end;
+        end;
       end;
 
 
@@ -632,18 +583,10 @@ Implementation
               {$I+}
               if ioresult=0 then
                begin
-{$IFDEF USE_SYSUTILS}
                  FileAge := FileGetDate(GetFileHandle(f));
-{$ELSE USE_SYSUTILS}
-                 GetFTime(f, FileAge);
-{$ENDIF USE_SYSUTILS}
                  close(f);
                  reset(outfile,1);
-{$IFDEF USE_SYSUTILS}
                  FileSetDate(GetFileHandle(outFile),FileAge);
-{$ELSE USE_SYSUTILS}
-                 SetFTime(f, FileAge);
-{$ENDIF USE_SYSUTILS}
                end;
             end;
            close(outfile);

@@ -205,8 +205,8 @@ interface
 implementation
 
     uses
-      dos,
-      cutils,
+      SysUtils,
+      cutils,cfileutils,
       systems,
       switches,
       symbase,symtable,symtype,symsym,symconst,symdef,defutil,
@@ -517,7 +517,9 @@ implementation
         if c <> '''' then
           Message2(scan_f_syn_expected, '''', c);
         s := current_scanner.readquotedstring;
-        outputextension := '.'+s;
+        if OutputFileName='' then
+          OutputFileName:=InputFileName;
+        OutputFileName:=ChangeFileExt(OutputFileName,'.'+s);
         with current_module do
           setfilename(paramfn^, paramallowoutput);
       end;
@@ -1454,13 +1456,12 @@ In case not, the value returned can be arbitrary.
 
     procedure dir_include;
 
-        function findincludefile(const path,name,ext:string;var foundfile:string):boolean;
+        function findincludefile(const path,name:string;var foundfile:string):boolean;
         var
           found  : boolean;
           hpath  : string;
-
         begin
-         (* look for the include file
+          (* look for the include file
            If path was specified as part of {$I } then
             1. specified path (expanded with path of inputfile if relative)
            else
@@ -1476,28 +1477,26 @@ In case not, the value returned can be arbitrary.
                  hpath:=current_scanner.inputfile.path^+path
                else
                  hpath:=path;
-               found:=FindFile(name+ext, hpath,foundfile);
+               found:=FindFile(name, hpath,foundfile);
              end
            else
              begin
                hpath:=current_scanner.inputfile.path^+';'+CurDirRelPath(source_info);
-               found:=FindFile(name+ext, hpath,foundfile);
+               found:=FindFile(name, hpath,foundfile);
                if not found then
-                 found:=current_module.localincludesearchpath.FindFile(name+ext,foundfile);
+                 found:=current_module.localincludesearchpath.FindFile(name,foundfile);
                if not found  then
-                 found:=includesearchpath.FindFile(name+ext,foundfile);
+                 found:=includesearchpath.FindFile(name,foundfile);
              end;
-           findincludefile:=found;
+           result:=found;
         end;
 
-
       var
+        path,
+        name,
         args,
         foundfile,
-        hs    : string;
-        path  : dirstr;
-        name  : namestr;
-        ext   : extstr;
+        hs    : tpathstr;
         hp    : tinputfile;
         found : boolean;
       begin
@@ -1544,7 +1543,7 @@ In case not, the value returned can be arbitrary.
             if hs='FPCTARGETOS' then
              hs:=target_info.shortname
            else
-             hs:=getenv(hs);
+             hs:=GetEnvironmentVariable(hs);
            if hs='' then
             Message1(scan_w_include_env_not_found,path);
            { make it a stringconst }
@@ -1555,18 +1554,19 @@ In case not, the value returned can be arbitrary.
         else
          begin
            hs:=FixFileName(hs);
-           fsplit(hs,path,name,ext);
+           path:=ExtractFilePath(hs);
+           name:=ExtractFileName(hs);
            { try to find the file }
-           found:=findincludefile(path,name,ext,foundfile);
-           if (ext='') then
+           found:=findincludefile(path,name,foundfile);
+           if (ExtractFileExt(name)='') then
             begin
               { try default extensions .inc , .pp and .pas }
               if (not found) then
-               found:=findincludefile(path,name,'.inc',foundfile);
+               found:=findincludefile(path,ChangeFileExt(name,'.inc'),foundfile);
               if (not found) then
-               found:=findincludefile(path,name,sourceext,foundfile);
+               found:=findincludefile(path,ChangeFileExt(name,sourceext),foundfile);
               if (not found) then
-               found:=findincludefile(path,name,pasext,foundfile);
+               found:=findincludefile(path,ChangeFileExt(name,pasext),foundfile);
             end;
            if current_scanner.inputfilecount<max_include_nesting then
              begin

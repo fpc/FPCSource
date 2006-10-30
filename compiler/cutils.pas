@@ -31,7 +31,7 @@ interface
 
 
     type
-       pstring = ^string;
+       pshortstring = ^string;
        Tcharset=set of char;
 
     var
@@ -99,19 +99,18 @@ interface
 
     { releases the string p and assignes nil to p }
     { if p=nil then freemem isn't called          }
-    procedure stringdispose(var p : pstring);{$ifdef USEINLINE}inline;{$endif}
+    procedure stringdispose(var p : pshortstring);{$ifdef USEINLINE}inline;{$endif}
 
 
     { allocates mem for a copy of s, copies s to this mem and returns }
     { a pointer to this mem                                           }
-    function stringdup(const s : string) : pstring;{$ifdef USEINLINE}inline;{$endif}
+    function stringdup(const s : string) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
 
     {# Allocates memory for the string @var(s) and copies s as zero
        terminated string to that allocated memory and returns a pointer
        to that mem
     }
     function  strpnew(const s : string) : pchar;
-    procedure strdispose(var p : pchar);
 
     {# makes the character @var(c) lowercase, with spanish, french and german
        character set
@@ -120,10 +119,10 @@ interface
 
     { makes zero terminated string to a pascal string }
     { the data in p is modified and p is returned     }
-    function pchar2pstring(p : pchar) : pstring;
+    function pchar2pshortstring(p : pchar) : pshortstring;
 
-    { ambivalent to pchar2pstring }
-    function pstring2pchar(p : pstring) : pchar;
+    { ambivalent to pchar2pshortstring }
+    function pshortstring2pchar(p : pshortstring) : pchar;
 
     { Speed/Hash value }
     Function GetSpeedValue(Const s:String):cardinal;
@@ -140,10 +139,8 @@ interface
 
 implementation
 
-uses
-  strings
-  ;
-
+    uses
+      SysUtils;
 
     var
       uppertbl,
@@ -721,7 +718,7 @@ uses
 
 
     function nextpowerof2(value : int64; out power: longint) : int64;
-    { 
+    {
       returns the power of 2 >= value
     }
       var
@@ -866,7 +863,7 @@ uses
     end;
 
 
-    function pchar2pstring(p : pchar) : pstring;
+    function pchar2pshortstring(p : pchar) : pshortstring;
       var
          w,i : longint;
       begin
@@ -874,11 +871,11 @@ uses
          for i:=w-1 downto 0 do
            p[i+1]:=p[i];
          p[0]:=chr(w);
-         pchar2pstring:=pstring(p);
+         pchar2pshortstring:=pshortstring(p);
       end;
 
 
-    function pstring2pchar(p : pstring) : pchar;
+    function pshortstring2pchar(p : pshortstring) : pchar;
       var
          w,i : longint;
       begin
@@ -886,7 +883,7 @@ uses
          for i:=1 to w do
            p^[i-1]:=p^[i];
          p^[w]:=#0;
-         pstring2pchar:=pchar(p);
+         pshortstring2pchar:=pchar(p);
       end;
 
 
@@ -914,22 +911,13 @@ uses
          p : pchar;
       begin
          getmem(p,length(s)+1);
-         strpcopy(p,s);
-         strpnew:=p;
+         move(s[1],p^,length(s));
+         p[length(s)]:=#0;
+         result:=p;
       end;
 
 
-    procedure strdispose(var p : pchar);
-      begin
-        if assigned(p) then
-         begin
-           freemem(p);
-           p:=nil;
-         end;
-      end;
-
-
-    procedure stringdispose(var p : pstring);{$ifdef USEINLINE}inline;{$endif}
+    procedure stringdispose(var p : pshortstring);{$ifdef USEINLINE}inline;{$endif}
       begin
          if assigned(p) then
            begin
@@ -939,7 +927,7 @@ uses
       end;
 
 
-    function stringdup(const s : string) : pstring;{$ifdef USEINLINE}inline;{$endif}
+    function stringdup(const s : string) : pshortstring;{$ifdef USEINLINE}inline;{$endif}
       begin
          getmem(result,length(s)+1);
          result^:=s;

@@ -29,11 +29,6 @@ unit aggas;
 interface
 
     uses
-{$IFDEF USE_SYSUTILS}
-      SysUtils,
-{$ELSE USE_SYSUTILS}
-      dos,
-{$ENDIF USE_SYSUTILS}
       cclasses,
       globtype,globals,
       aasmbase,aasmtai,aasmdata,aasmcpu,
@@ -90,7 +85,8 @@ interface
 implementation
 
     uses
-      cutils,systems,
+      SysUtils,
+      cutils,cfileutils,systems,
       fmodule,finput,verbose,
       itcpugas,cpubase
       ;
@@ -1031,9 +1027,7 @@ implementation
 
     procedure TGNUAssembler.WriteAsmList;
     var
-      p:dirstr;
-      n:namestr;
-      e:extstr;
+      n : string;
       hal : tasmlisttype;
     begin
 {$ifdef EXTDEBUG}
@@ -1046,23 +1040,10 @@ implementation
       LastInfile:=nil;
 
       if assigned(current_module.mainsource) then
-{$IFDEF USE_SYSUTILS}
-      begin
-       p := SplitPath(current_module.mainsource^);
-       n := SplitName(current_module.mainsource^);
-       e := SplitExtension(current_module.mainsource^);
-      end
-{$ELSE USE_SYSUTILS}
-       fsplit(current_module.mainsource^,p,n,e)
-{$ENDIF USE_SYSUTILS}
+        n:=ExtractFileName(current_module.mainsource^)
       else
-       begin
-         p:=inputdir;
-         n:=inputfile;
-         e:=inputextension;
-       end;
-    { to get symify to work }
-      AsmWriteLn(#9'.file "'+FixFileName(n+e)+'"');
+        n:=InputFileName;
+      AsmWriteLn(#9'.file "'+FixFileName(n)+'"');
       WriteExtraHeader;
       AsmStartSize:=AsmSize;
       symendcount:=0;

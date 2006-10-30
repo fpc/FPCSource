@@ -235,7 +235,7 @@ type
   TFPHashObject = class
   private
     FOwner : TFPHashObjectList;
-    FCachedStr : pstring;
+    FCachedStr : pshortstring;
     FStrIndex  : Integer;
   protected
     function GetName:string;
@@ -348,7 +348,7 @@ type
 
        { string containerItem }
        TStringListItem = class(TLinkedListItem)
-          FPStr : PString;
+          FPStr : pshortstring;
        public
           constructor Create(const s:string);
           destructor  Destroy;override;
@@ -406,7 +406,7 @@ type
          FLeft,
          FRight      : TNamedIndexItem;
          FSpeedValue : cardinal;
-         FName       : Pstring;
+         FName       : pshortstring;
        protected
          function  GetName:string;virtual;
          procedure SetName(const n:string);virtual;
@@ -3487,5 +3487,127 @@ begin
     end;
 end;
 
+{****************************************************************************
+                           TDirectoryCache
+****************************************************************************}
+
+type
+      TCachedDirectory = class(TFPHashObject)
+      private
+        FDirectoryEntries : TFPHashList;
+      public
+        constructor Create(AList:TFPHashObjectList;const AName:string);
+        destructor  destroy;override;
+        procedure Reload;
+        function FileExists(const AName:string):boolean;
+        function DirectoryExists(const AName:string):boolean;
+        property DirectoryEntries:TFPHashList read FDirectoryEntries;
+      end;
+
+      TDirectoryCache = class
+      private
+        FDirectories : TFPHashObjectList;
+        function GetDirectory(const ADir:string):TCachedDirectory;
+      public
+        constructor Create;
+        destructor  destroy;override;
+        function FileExists(const AName:string):boolean;
+        function DirectoryExists(const AName:string):boolean;
+      end;
+
+
+    constructor TCachedDirectory.create(AList:TFPHashObjectList;const AName:string);
+      begin
+        inherited create(AList,AName);
+        FDirectoryEntries:=TFPHashList.Create;
+      end;
+
+
+    destructor TCachedDirectory.destroy;
+      begin
+        FDirectoryEntries.Free;
+        inherited destroy;
+      end;
+
+
+    procedure TCachedDirectory.Reload;
+      var
+        dir  : TSearchRec;
+        Attr : PtrInt;
+      begin
+        DirectoryEntries.Clear;
+        if findfirst(IncludeTrailingPathDelimiter(Name)+'*',faAnyFile or faDirectory,dir) = 0 then
+          begin
+            repeat
+              if ((dir.attr and faDirectory)<>0) then
+                Attr:=2
+              else
+                Attr:=1;
+              DirectoryEntries.Add(Dir.Name,Pointer(Attr));
+            until findnext(dir) <> 0;
+          end;
+      end;
+
+
+    function TCachedDirectory.FileExists(const AName:string):boolean;
+      begin
+        Result:=(PtrInt(DirectoryEntries.Find(AName))=1);
+      end;
+
+
+    function TCachedDirectory.DirectoryExists(const AName:string):boolean;
+      begin
+        Result:=(PtrInt(DirectoryEntries.Find(AName))=2);
+      end;
+
+
+    constructor TDirectoryCache.create;
+      begin
+        inherited create;
+        FDirectories:=TFPHashObjectList.Create(false);
+      end;
+
+
+    destructor TDirectoryCache.destroy;
+      begin
+        FDirectories.Free;
+        inherited destroy;
+      end;
+
+
+    function TDirectoryCache.GetDirectory(const ADir:string):TCachedDirectory;
+      var
+        CachedDir : TCachedDirectory;
+      begin
+        CachedDir:=TCachedDirectory(FDirectories.Find(ADir));
+        if not assigned(CachedDir) then
+          begin
+            CachedDir:=TCachedDirectory.Create(FDirectories,ADir);
+            CachedDir.Reload;
+          end;
+        Result:=CachedDir;
+      end;
+
+
+    function TDirectoryCache.FileExists(const AName:string):boolean;
+      var
+        CachedDir : TCachedDirectory;
+      begin
+        Result:=false;
+        CachedDir:=GetDirectory(ExtractFileDir(AName));
+        if assigned(CachedDir) then
+          Result:=CachedDir.FileExists(ExtractFileName(AName));
+      end;
+
+
+    function TDirectoryCache.DirectoryExists(const AName:string):boolean;
+      var
+        CachedDir : TCachedDirectory;
+      begin
+        Result:=false;
+        CachedDir:=GetDirectory(ExtractFilePath(AName));
+        if assigned(CachedDir) then
+          Result:=CachedDir.DirectoryExists(ExtractFileName(AName));
+      end;
 
 end.

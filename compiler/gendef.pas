@@ -50,6 +50,7 @@ var
 implementation
 
 uses
+  SysUtils,
   systems,cutils,globtype,globals;
 
 {******************************************************************************
@@ -70,7 +71,7 @@ destructor tdeffile.destroy;
 begin
   if WrittenOnDisk and
      not(cs_link_nolink in current_settings.globalswitches) then
-   RemoveFile(FName);
+    DeleteFile(FName);
   importlist.Free;
   exportlist.Free;
 end;
@@ -114,7 +115,7 @@ begin
   case target_info.system of
     system_i386_Os2, system_i386_emx:
       begin
-        write(t,'NAME '+inputfile);
+        write(t,'NAME '+ChangeFileExt(inputfilename,''));
         if usewindowapi then
           write(t,' WINDOWAPI');
         writeln(t,'');

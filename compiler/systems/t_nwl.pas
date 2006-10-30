@@ -98,7 +98,8 @@ implementation
 {$endif}
 
   uses
-    cutils,
+    SysUtils,
+    cutils,cfileutils,
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
@@ -549,7 +550,7 @@ begin
 
 { if we have a xdc file, dont touch it, otherwise create a new
   one and remove it after nlmconv }
-  xdcname := ForceExtension(current_module.exefilename^,'.xdc');
+  xdcname := ChangeFileExt(current_module.exefilename^,'.xdc');
   xdcpresent := FileExists (xdcname);
   if not xdcpresent then
   begin

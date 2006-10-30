@@ -49,6 +49,7 @@ interface
 implementation
 
     uses
+      SysUtils,
       cutils,globtype,globals,systems,cclasses,
       verbose,finput,fmodule,script,cpuinfo,
       itx86int,
@@ -845,23 +846,22 @@ implementation
 
 
     function tx86intelassembler.DoAssemble : boolean;
-    var f : file;
+    var
+      masmobjfn : string;
     begin
       DoAssemble:=Inherited DoAssemble;
       { masm does not seem to recognize specific extensions and uses .obj allways PM }
       if (target_asm.id in [as_i386_masm,as_i386_wasm]) then
         begin
+          masmobjfn:=ChangeFileExt(objfilename,'.obj');
           if not(cs_asm_extern in current_settings.globalswitches) then
             begin
               if Not FileExists(objfilename) and
-                 FileExists(ForceExtension(objfilename,'.obj')) then
-                begin
-                  Assign(F,ForceExtension(objfilename,'.obj'));
-                  Rename(F,objfilename);
-                end;
+                 FileExists(masmobjfn) then
+                RenameFile(masmobjfn,objfilename);
             end
           else
-            AsmRes.AddAsmCommand('mv',ForceExtension(objfilename,'.obj')+' '+objfilename,objfilename);
+            AsmRes.AddAsmCommand('mv',masmobjfn+' '+objfilename,objfilename);
         end;
     end;
 

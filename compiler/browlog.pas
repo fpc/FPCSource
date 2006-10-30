@@ -71,7 +71,7 @@ var
 implementation
 
   uses
-    cutils,comphook,
+    cutils,cfileutils,comphook,
     globals,systems,
     ppu;
 

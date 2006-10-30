@@ -155,9 +155,6 @@ const
 implementation
 
   uses
-{$IFNDEF USE_SYSUTILS}
-   dos,
-{$ENDIF USE_SYSUTILS}
    cutils, systems
    ;
 
@@ -383,23 +380,12 @@ end;
 
 Function def_GetNamedFileTime (Const F : String) : Longint;
 var
-{$IFDEF USE_SYSUTILS}
   fh : THandle;
-{$ELSE USE_SYSUTILS}
-  info : SearchRec;
-{$ENDIF USE_SYSUTILS}
 begin
   Result := -1;
-{$IFDEF USE_SYSUTILS}
   fh := FileOpen(f, faArchive+faReadOnly+faHidden);
   Result := FileGetDate(fh);
   FileClose(fh);
-{$ELSE USE_SYSUTILS}
-  FindFirst (F,archive+readonly+hidden,info);
-  if DosError=0 then
-    Result := info.time;
-  FindClose(info);
-{$ENDIF USE_SYSUTILS}
 end;
 
 end.

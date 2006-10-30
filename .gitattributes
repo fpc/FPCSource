@@ -78,6 +78,7 @@ compiler/bsdcompile -text
 compiler/catch.pas svneol=native#text/plain
 compiler/cclasses.pas svneol=native#text/plain
 compiler/cfidwarf.pas svneol=native#text/plain
+compiler/cfileutils.pas svneol=native#text/plain
 compiler/cg64f32.pas svneol=native#text/plain
 compiler/cgbase.pas svneol=native#text/plain
 compiler/cgobj.pas svneol=native#text/plain

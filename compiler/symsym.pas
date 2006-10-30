@@ -200,7 +200,7 @@ interface
 
       tglobalvarsym = class(tabstractnormalvarsym)
       private
-          _mangledname : pstring;
+          _mangledname : pshortstring;
       public
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor create_dll(const n : string;vsp:tvarspez;def:tdef);
@@ -218,7 +218,7 @@ interface
 {$ifdef i386}
          absseg  : boolean;
 {$endif i386}
-         asmname : pstring;
+         asmname : pshortstring;
          addroffset : aint;
          ref     : tpropaccesslist;
          constructor create(const n : string;def:tdef);
@@ -256,7 +256,7 @@ interface
 
        ttypedconstsym = class(tstoredsym)
        private
-          _mangledname : pstring;
+          _mangledname : pshortstring;
        public
           typedconstdef  : tdef;
           typedconstdefderef : tderef;
@@ -347,7 +347,7 @@ interface
        { compiler generated symbol to point to rtti and init/finalize tables }
        trttisym = class(tstoredsym)
        private
-          _mangledname : pstring;
+          _mangledname : pshortstring;
        public
           lab     : tasmsymbol;
           rttityp : trttitype;

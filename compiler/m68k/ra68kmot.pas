@@ -79,7 +79,7 @@ unit ra68kmot;
          procedure GetToken;
          function consume(t : tasmtoken):boolean;
          function findopcode(s: string; var opsize: topsize): tasmop;
-         Function BuildExpression(allow_symbol : boolean; asmsym : pstring) : longint;
+         Function BuildExpression(allow_symbol : boolean; asmsym : pshortstring) : longint;
          Procedure BuildConstant(maxvalue: longint);
          Procedure BuildRealConstant(typ : tfloattype);
          Procedure BuildScaling(const oper:tm68koperand);
@@ -577,7 +577,7 @@ const
 
 
 
-    Function tm68kmotreader.BuildExpression(allow_symbol : boolean; asmsym : pstring) : longint;
+    Function tm68kmotreader.BuildExpression(allow_symbol : boolean; asmsym : pshortstring) : longint;
   {*********************************************************************}
   { FUNCTION BuildExpression: longint                                   }
   {  Description: This routine calculates a constant expression to      }

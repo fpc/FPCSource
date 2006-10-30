@@ -42,7 +42,7 @@ unit fmodule;
 interface
 
     uses
-       cutils,cclasses,
+       cutils,cclasses,cfileutils,
        globals,finput,ogbase,
        symbase,symsym,aasmbase,aasmtai,aasmdata;
 
@@ -57,7 +57,7 @@ interface
 
       tlinkcontaineritem=class(tlinkedlistitem)
       public
-         data : pstring;
+         data : pshortstring;
          needlink : cardinal;
          constructor Create(const s:string;m:cardinal);
          destructor Destroy;override;
@@ -85,7 +85,7 @@ interface
       tderefmaprec = record
         u           : tmodule;
         { modulename, used during ppu load }
-        modulename  : pstring;
+        modulename  : pshortstring;
       end;
       pderefmap = ^tderefmaprec;
 
@@ -132,7 +132,7 @@ interface
         scanner       : TObject;  { scanner object used }
         procinfo      : TObject;  { current procedure being compiled }
         asmdata       : TObject;  { Assembler data }
-        asmprefix     : pstring;  { prefix for the smartlink asmfiles }
+        asmprefix     : pshortstring;  { prefix for the smartlink asmfiles }
         loaded_from   : tmodule;
         _exports      : tlinkedlist;
         dllscannerinputlist : TFPHashList;
@@ -203,12 +203,8 @@ interface
 implementation
 
     uses
-    {$IFDEF USE_SYSUTILS}
       SysUtils,
       GlobType,
-    {$ELSE USE_SYSUTILS}
-      dos,
-    {$ENDIF USE_SYSUTILS}
       verbose,systems,
       scanner,ppu,
       procinfo;
@@ -378,17 +374,10 @@ implementation
 
     constructor tmodule.create(LoadedFrom:TModule;const s:string;_is_unit:boolean);
       var
-        p : dirstr;
-        n : namestr;
-        e : extstr;
+        p,n : string;
       begin
-    {$IFDEF USE_SYSUTILS}
-        p := SplitPath(s);
-        n := SplitName(s);
-        e := SplitExtension(s);
-    {$ELSE USE_SYSUTILS}
-        FSplit(s,p,n,e);
-    {$ENDIF USE_SYSUTILS}
+        p:=ExtractFilePath(s);
+        n:=ChangeFileExt(ExtractFileName(s),'');
         { Programs have the name 'Program' to don't conflict with dup id's }
         if _is_unit then
          inherited create(n)
@@ -401,7 +390,7 @@ implementation
 {$else}
         asmprefix:=stringdup(FixFileName(n));
 {$endif}
-        setfilename(p+n,true);
+        setfilename(s,true);
         localunitsearchpath:=TSearchPathList.Create;
         localobjectsearchpath:=TSearchPathList.Create;
         localincludesearchpath:=TSearchPathList.Create;
@@ -511,7 +500,7 @@ implementation
         linkothersharedlibs.Free;
         FImportLibraryList.Free;
         stringdispose(objfilename);
-        stringdispose(newfilename);
+        stringdispose(asmfilename);
         stringdispose(ppufilename);
         stringdispose(importlibfilename);
         stringdispose(staticlibfilename);

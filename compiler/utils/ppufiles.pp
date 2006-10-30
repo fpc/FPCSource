@@ -62,7 +62,7 @@ begin
 end;
 
 
-Function AddExtension(Const HStr,ext:String):String;
+Function ChangeFileExt(Const HStr,ext:String):String;
 {
   Return a filename which will have extension ext added if no
   extension is found
@@ -74,9 +74,9 @@ begin
   while (j>0) and (Hstr[j]<>'.') do
    dec(j);
   if j=0 then
-   AddExtension:=Hstr+'.'+Ext
+   ChangeFileExt:=Hstr+'.'+Ext
   else
-   AddExtension:=HStr;
+   ChangeFileExt:=HStr;
 end;
 
 
@@ -224,7 +224,7 @@ begin
   parafile:=i;
   for i:=parafile to ParamCount do
    begin
-     InFile:=AddExtension(ParamStr(i),PPUExt);
+     InFile:=ChangeFileExt(ParamStr(i),PPUExt);
      FindFirst(InFile,$20,Dir);
      while (DosError=0) do
       begin

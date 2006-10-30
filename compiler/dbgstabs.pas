@@ -65,7 +65,7 @@ interface
 implementation
 
     uses
-      strings,cutils,
+      SysUtils,cutils,cfileutils,
       systems,globals,globtype,verbose,
       symconst,defutil,
       cpuinfo,cpubase,cgbase,paramgr,
@@ -132,7 +132,7 @@ implementation
     var i,j:byte;
         varname:string[63];
         varno,varcounter:byte;
-        varvalues:array[0..9] of Pstring;
+        varvalues:array[0..9] of pshortstring;
         {1 kb of parameters is the limit. 256 extra bytes are allocated to
          ensure buffer integrity.}
         varvaluedata:array[0..maxdata+256] of char;
@@ -166,12 +166,12 @@ implementation
                    s[i]:=char(varcounter);
                    inc(i);
                  until s[i]='}';
-                 varvalues[varcounter]:=Pstring(varptr);
+                 varvalues[varcounter]:=pshortstring(varptr);
                  if varptr>@varvaluedata[maxdata] then
                    internalerrorproc(200411152);
-                 Pstring(varptr)^:=get_var_value(varname,get_var_value_arg);
-                 inc(len,length(Pstring(varptr)^));
-                 inc(varptr,length(Pstring(varptr)^)+1);
+                 pshortstring(varptr)^:=get_var_value(varname,get_var_value_arg);
+                 inc(len,length(pshortstring(varptr)^));
+                 inc(varptr,length(pshortstring(varptr)^)+1);
                  inc(varcounter);
                end
              else if s[i+1] in ['1'..'9'] then
@@ -341,7 +341,7 @@ implementation
               end;
             strcopy(state^.stabstring+state^.stabsize,newrec);
             inc(state^.stabsize,strlen(newrec));
-            strdispose(newrec);
+            freemem(newrec);
             {This should be used for case !!}
             inc(state^.recoffset,Tfieldvarsym(p).vardef.size);
           end;
@@ -431,7 +431,7 @@ implementation
                 reallocmem(state^.stabstring,state^.staballoc);
              end;
            strcopy(state^.stabstring+olds,newrec);
-           strdispose(newrec);
+           freemem(newrec);
            {This should be used for case !!
            RecOffset := RecOffset + pd.size;}
          end;
@@ -629,8 +629,9 @@ implementation
                   tostr(def.fileinfo.line)
                   +',');
             strpcopy(strend(p),stabsstr);
-            result:=strnew(p);
-            freemem(p,length(stabsstr)+255);
+            getmem(result,strlen(p)+1);
+            move(p^,result^,strlen(p)+1);
+            freemem(p);
           end;
 
         function recorddef_stabstr(def:trecorddef):pchar;
@@ -783,8 +784,8 @@ implementation
             su:=def_stabstr_evaluate(def,'",${N_LSYM},0,0,0',[]);
             strcopy(strecopy(strend(st),ss),su);
             reallocmem(st,strlen(st)+1);
-            strdispose(ss);
-            strdispose(su);
+            freemem(ss);
+            freemem(su);
             { add to list }
             list.concat(Tai_stab.create(stab_stabs,st));
           end;
@@ -942,7 +943,7 @@ implementation
         templist : TAsmList;
         stabsendlabel : tasmlabel;
         mangled_length : longint;
-        p : pchar;
+        p,p1 : pchar;
         hs : string;
       begin
         if assigned(pd.procstarttai) then
@@ -984,7 +985,9 @@ implementation
                 {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
                 strpcopy(strend(p),pd.mangledname);
               end;
-            templist.concat(Tai_stab.Create(stab_stabn,strnew(p)));
+            getmem(p1,strlen(p)+1);
+            move(p^,p1^,strlen(p)+1);
+            templist.concat(Tai_stab.Create(stab_stabn,p1));
             strpcopy(p,tostr(N_RBRAC)+',0,0,'+stabsendlabel.name);
             if (tf_use_function_relative_addresses in target_info.flags) then
               begin
@@ -992,7 +995,9 @@ implementation
                 {$IFDEF POWERPC64}strpcopy(strend(p), '.');{$ENDIF POWERPC64}
                 strpcopy(strend(p),pd.mangledname);
               end;
-            templist.concat(Tai_stab.Create(stab_stabn,strnew(p)));
+            getmem(p1,strlen(p)+1);
+            move(p^,p1^,strlen(p)+1);
+            templist.concat(Tai_stab.Create(stab_stabn,p1));
             freemem(p,2*mangled_length+50);
             current_asmdata.asmlists[al_procedures].insertlistafter(pd.procendtai,templist);
 
@@ -1421,7 +1426,7 @@ implementation
       var
         currfileinfo,
         lastfileinfo : tfileposinfo;
-        currfuncname : pstring;
+        currfuncname : pshortstring;
         currsectype  : TAsmSectiontype;
         hlabel       : tasmlabel;
         hp : tai;

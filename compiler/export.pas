@@ -41,7 +41,7 @@ type
    texported_item = class(TLinkedListItem)
       sym : tsym;
       index : longint;
-      name : pstring;
+      name : pshortstring;
       options : word;
       is_var : boolean;
       constructor create;

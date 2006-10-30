@@ -87,12 +87,12 @@ end;
 
 
 
-Function AddExtension(Const HStr,ext:String):String;
+Function ChangeFileExt(Const HStr,ext:String):String;
 begin
   if (Ext<>'') and (SplitExtension(HStr)='') then
-   AddExtension:=Hstr+'.'+Ext
+   ChangeFileExt:=Hstr+'.'+Ext
   else
-   AddExtension:=Hstr;
+   ChangeFileExt:=Hstr;
 end;
 
 
@@ -185,13 +185,13 @@ var
 begin
 {Create New FileName}
   if SplitExtension(nfn)='*' then
-   nfn:=AddExtension(SplitPath(nfn)+SplitName(nfn),SplitExtension(fn));
+   nfn:=ChangeFileExt(SplitPath(nfn)+SplitName(nfn),SplitExtension(fn));
   if SplitName(nfn)='*' then
    begin
      if SplitPath(nfn)='' then
-      nfn:=AddExtension(SplitPath(fn)+SplitName(fn),SplitExtension(nfn))
+      nfn:=ChangeFileExt(SplitPath(fn)+SplitName(fn),SplitExtension(nfn))
      else
-      nfn:=AddExtension(SplitPath(nfn)+SplitName(fn),SplitExtension(nfn));
+      nfn:=ChangeFileExt(SplitPath(nfn)+SplitName(fn),SplitExtension(nfn));
    end;
 {Done?}
   if FileDone(nfn) then
@@ -320,7 +320,7 @@ begin
         ch:=para[2];
         delete(para,1,2);
         case ch of
-         'O' : OutFile:=AddExtension(Para,OutputExt);
+         'O' : OutFile:=ChangeFileExt(Para,OutputExt);
          'D' : DosEol:=true;
          'T' : Val(Para,TabSize,j);
          'V' : verbose:=true;
@@ -356,7 +356,7 @@ begin
    end;
   for i:=ParaFile to ParamCount do
    begin
-     InFile:=AddExtension(ParamStr(i),InputExt);
+     InFile:=ChangeFileExt(ParamStr(i),InputExt);
      FindFirst(InFile,$20,Dir);
      while (DosError=0) do
       begin

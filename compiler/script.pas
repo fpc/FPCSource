@@ -104,7 +104,8 @@ uses
 {$ifdef hasUnix}
   BaseUnix,
 {$endif}
-  cutils,
+  SysUtils,
+  cutils,cfileutils,
   globtype,globals,systems,verbose;
 
 
@@ -136,9 +137,9 @@ constructor TScript.CreateExec(const s:string);
 begin
   fn:=FixFileName(s);
   if cs_link_on_target in current_settings.globalswitches then
-    fn:=AddExtension(fn,target_info.scriptext)
+    fn:=ChangeFileExt(fn,target_info.scriptext)
   else
-    fn:=AddExtension(fn,source_info.scriptext);
+    fn:=ChangeFileExt(fn,source_info.scriptext);
   executable:=true;
   data:=TStringList.Create;
 end;

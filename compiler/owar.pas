@@ -86,11 +86,11 @@ type
 implementation
 
     uses
+      SysUtils,
       cstreams,
       systems,
       globals,
-      verbose,
-      dos;
+      verbose;
 
     const
       symrelocbufsize = 4096;
@@ -115,7 +115,7 @@ implementation
         D0=1461;
         D1=146097;
         D2=1721119;
-    Function Gregorian2Julian(DT:DateTime):LongInt;
+    Function Gregorian2Julian(DT:TSystemTime):LongInt;
       Var
         Century,XYear,Month : LongInt;
       Begin
@@ -132,9 +132,9 @@ implementation
       End;
 
 
-    function DT2Unix(DT:DateTime):LongInt;
+    function DT2Unix(DT:TSystemTime):LongInt;
       Begin
-        DT2Unix:=(Gregorian2Julian(DT)-C1970)*86400+(LongInt(DT.Hour)*3600)+(DT.Min*60)+DT.Sec;
+        DT2Unix:=(Gregorian2Julian(DT)-C1970)*86400+(LongInt(DT.Hour)*3600)+(DT.Minute*60)+DT.Second;
       end;
 
 
@@ -159,8 +159,7 @@ implementation
 
     constructor tarobjectwriter.create(const Aarfn:string);
       var
-        time  : datetime;
-        dummy : word;
+        time  : TSystemTime;
       begin
         arfn:=Aarfn;
         ardata:=TDynamicArray.Create(arbufsize);
@@ -168,8 +167,7 @@ implementation
         symstr:=TDynamicArray.Create(symstrbufsize);
         lfnstr:=TDynamicArray.Create(lfnstrbufsize);
         { create timestamp }
-        getdate(time.year,time.month,time.day,dummy);
-        gettime(time.hour,time.min,time.sec,dummy);
+        GetLocalTime(time);
         Str(DT2Unix(time),timestamp);
       end;
 
@@ -195,7 +193,7 @@ implementation
         { win32 will change names starting with .\ to ./ when using lfn, corrupting
           the sort order required for the idata sections. To prevent this strip
           always the path from the filename. (PFV) }
-        hfn:=SplitFileName(fn);
+        hfn:=ExtractFileName(fn);
         if hfn='' then
           hfn:=fn;
         fn:=hfn+'/';

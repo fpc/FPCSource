@@ -488,8 +488,8 @@ implementation
                           not(is_char(hdef)) then
                           CGMessage(type_e_typeconflict_in_set)
                         else
-                         for l:=1 to length(pstring(tstringconstnode(p2).value_str)^) do
-                          do_set(ord(pstring(tstringconstnode(p2).value_str)^[l]));
+                         for l:=1 to length(pshortstring(tstringconstnode(p2).value_str)^) do
+                          do_set(ord(pshortstring(tstringconstnode(p2).value_str)^[l]));
                         if hdef=nil then
                          hdef:=cchartype;
                         p2.free;

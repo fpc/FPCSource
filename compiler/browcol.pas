@@ -24,8 +24,15 @@
   {$N+,E+}
 {$endif}
 unit browcol;
+
+{$i fpcdefs.inc}
+{$H-}
+
 interface
+
 uses
+  SysUtils,
+  CUtils,
   objects,
   cclasses,
   symconst,symtable;
@@ -218,7 +225,7 @@ type
       UsedUnits  : PSymbolCollection;
       DependentUnits: PSymbolCollection;
       MainSource: PString;
-      SourceFiles: PStringCollection;
+      SourceFiles: pstringCollection;
       constructor Init(const AName, AMainSource: string);
       procedure   SetLoadedFrom(const AModuleName: string);
       procedure   AddUsedUnit(P: PSymbol);
@@ -254,16 +261,10 @@ procedure RegisterSymbols;
 implementation
 
 uses
-{$IFDEF USE_SYSUTILS}
-  SysUtils,
-{$ELSE USE_SYSUTILS}
-  Dos,
-{$ENDIF USE_SYSUTILS}
+  globtype,globals,comphook,
 {$ifdef DEBUG}
   verbose,
 {$endif DEBUG}
-  CUtils,
-  globtype,globals,comphook,
   finput,fmodule,
   cpuinfo,cgbase,aasmbase,aasmtai,aasmdata,paramgr,
   symsym,symdef,symtype,symbase,defutil;
@@ -1841,7 +1842,7 @@ end;
 procedure BuildSourceList;
 var m: tmodule;
     s: tinputfile;
-    p: cutils.pstring;
+    p: pstring;
     ppu,obj: string;
     source: string;
 begin
@@ -1856,12 +1857,12 @@ begin
     m:=tmodule(loaded_units.first);
     while assigned(m) do
     begin
-      obj:=fexpand(m.objfilename^);
+      obj:=ExpandFileName(m.objfilename^);
       ppu:=''; source:='';
       if m.is_unit then
-        ppu:=fexpand(m.ppufilename^);
+        ppu:=ExpandFileName(m.ppufilename^);
       if (m.is_unit=false) and (m.islibrary=false) then
-        ppu:=fexpand(m.exefilename^);
+        ppu:=ExpandFileName(m.exefilename^);
       if assigned(m.sourcefiles) then
         begin
           s:=m.sourcefiles.files;
@@ -1874,7 +1875,7 @@ begin
             p:=s.name;
             if assigned(p) then
               source:=source+p^;
-            source:=fexpand(source);
+            source:=ExpandFileName(source);
 
             sourcefiles^.Insert(New(PSourceFile, Init(source,obj,ppu)));
             s:=s.ref_next;

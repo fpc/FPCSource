@@ -26,7 +26,7 @@ interface
 
     uses
        { common }
-       cutils,cclasses,
+       cclasses,
        { global }
        globtype,globals,tokens,
        { symtable }
@@ -135,7 +135,7 @@ interface
        end;
 
        tforwarddef = class(tstoreddef)
-          tosymname : pstring;
+          tosymname : pshortstring;
           forwardpos : tfileposinfo;
           constructor create(const s:string;const pos : tfileposinfo);
           destructor destroy;override;
@@ -239,7 +239,7 @@ interface
           childof  : tobjectdef;
           childofderef  : tderef;
           objname,
-          objrealname   : pstring;
+          objrealname   : pshortstring;
           objectoptions : tobjectoptions;
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
@@ -247,7 +247,7 @@ interface
           writing_class_record_dbginfo : boolean;
           objecttype : tobjectdeftype;
           iidguid: pguid;
-          iidstr: pstring;
+          iidstr: pshortstring;
           iitype: tinterfaceentrytype;
           iioffset: longint;
           lastvtableindex: longint;
@@ -448,7 +448,7 @@ interface
 
        tmessageinf = record
          case integer of
-           0 : (str : pstring);
+           0 : (str : pshortstring);
            1 : (i : longint);
        end;
 
@@ -476,7 +476,7 @@ interface
 
        tprocdef = class(tabstractprocdef)
        private
-          _mangledname : pstring;
+          _mangledname : pshortstring;
        public
           extnumber      : word;
           messageinf : tmessageinf;
@@ -520,7 +520,7 @@ interface
           hasforward : boolean;
           { import info }
           import_dll,
-          import_name : pstring;
+          import_name : pshortstring;
           import_nr   : word;
           { info for inlining the subroutine, if this pointer is nil,
             the procedure can't be inlined }
@@ -760,7 +760,8 @@ interface
 implementation
 
     uses
-      strings,
+      SysUtils,
+      cutils,
       { global }
       verbose,
       { target }
@@ -5203,7 +5204,7 @@ implementation
     type
       tnamemap = class(TNamedIndexItem)
         listnext : TNamedIndexItem;
-        newname: pstring;
+        newname: pshortstring;
         constructor create(const aname, anewname: string);
         destructor  destroy; override;
       end;

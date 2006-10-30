@@ -43,6 +43,7 @@ interface
 implementation
 
     uses
+       SysUtils,
        { common }
        cutils,cclasses,
        { global }
@@ -1015,7 +1016,7 @@ implementation
                       if (extern_var) and (idtoken<>_NAME) then
                        begin
                          is_dll:=true;
-                         dll_name:=AddExtension(get_stringconst,target_info.sharedlibext);
+                         dll_name:=ChangeFileExt(get_stringconst,target_info.sharedlibext);
                        end;
                       if try_to_consume(_NAME) then
                         C_name:=get_stringconst

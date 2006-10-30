@@ -52,7 +52,7 @@ interface
       pvmtentry = ^tvmtentry;
       tvmtentry = record
          speedvalue   : cardinal;
-         name         : pstring;
+         name         : pshortstring;
          firstprocdef : pprocdefcoll;
          next         : pvmtentry;
       end;
@@ -127,7 +127,7 @@ interface
 implementation
 
     uses
-       strings,
+       SysUtils,
        globals,verbose,systems,
        symtable,symconst,symtype,defcmp,defutil,
        dbgbase

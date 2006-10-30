@@ -322,7 +322,7 @@ interface
        end;
 
        tai_directive = class(tailineinfo)
-          name : pstring;
+          name : pshortstring;
           directive : TAsmDirective;
           constructor Create(_directive:TAsmDirective;const _name:string);
           destructor Destroy;override;
@@ -356,7 +356,7 @@ interface
           sectype  : TAsmSectiontype;
           secorder : TasmSectionorder;
           secalign : byte;
-          name     : pstring;
+          name     : pshortstring;
           sec      : TObjSection; { used in binary writer }
           constructor Create(Asectype:TAsmSectiontype;Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
           destructor Destroy;override;
@@ -475,7 +475,7 @@ interface
        end;
 
        tai_function_name = class(tai)
-          funcname : pstring;
+          funcname : pshortstring;
           constructor create(const s:string);
           destructor destroy;override;
        end;
@@ -501,7 +501,7 @@ interface
        tai_tempalloc = class(tai)
           allocation : boolean;
 {$ifdef EXTDEBUG}
-          problem : pstring;
+          problem : pshortstring;
 {$endif EXTDEBUG}
           temppos,
           tempsize   : longint;
@@ -648,7 +648,7 @@ interface
 implementation
 
     uses
-      strings,
+      SysUtils,
       verbose;
 
     const
@@ -1584,7 +1584,7 @@ implementation
     destructor tai_comment.destroy;
 
       begin
-         strdispose(str);
+         freemem(str);
          inherited Destroy;
       end;
 
@@ -1641,7 +1641,7 @@ implementation
 
     destructor tai_stab.destroy;
       begin
-         strdispose(str);
+         freemem(str);
          inherited destroy;
       end;
 
@@ -1890,13 +1890,15 @@ implementation
       begin
         inherited Create;
         typ:=ait_file;
-        str:=strpnew(_str);
+        getmem(str,length(_str)+1);
+        move(_str[1],str^,length(_str));
+        str[length(_str)]:=#0;
       end;
 
 
     destructor tai_file.destroy;
       begin
-         strdispose(str);
+         freemem(str);
          inherited Destroy;
       end;
 

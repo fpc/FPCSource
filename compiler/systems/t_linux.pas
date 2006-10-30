@@ -59,10 +59,11 @@ interface
 implementation
 
   uses
-    cutils,cclasses,
+    SysUtils,
+    cutils,cfileutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
-    fmodule,dos,
+    fmodule,
     aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,
     cgbase,cgobj,cgutils,ogbase,
     i_linux
@@ -303,10 +304,10 @@ Begin
    if not (cs_link_no_default_lib_order in  current_settings.globalswitches) Then
         Begin
           LinkLibraryOrder.add('gcc','',15);
-          LinkLibraryOrder.add('c','',100);                 
+          LinkLibraryOrder.add('c','',100);
           LinkLibraryOrder.add('gmon','',120);
-          LinkLibraryOrder.add('dl','',140);             
-          LinkLibraryOrder.add('pthread','',160);             
+          LinkLibraryOrder.add('dl','',140);
+          LinkLibraryOrder.add('pthread','',160);
          end;
 End;
 
@@ -422,13 +423,13 @@ begin
       if reorder Then
         ExpandAndApplyOrder(SharedLibFiles);
       // after this point addition of shared libs not allowed.
-      
+
       { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
         here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
-          
+
       if not SharedLibFiles.Empty then
        begin
-                      
+
          Add('INPUT(');
          While not SharedLibFiles.Empty do
           begin
@@ -605,7 +606,7 @@ begin
   if (cs_link_strip in current_settings.globalswitches) then
    StripStr:='-s';
   if (cs_link_map in current_settings.globalswitches) then
-   StripStr:='-Map '+maybequoted(ForceExtension(current_module.exefilename^,'.map'));
+   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
   if use_smartlink_section then
    GCSectionsStr:='--gc-sections';
   If (cs_profile in current_settings.moduleswitches) or
@@ -668,7 +669,7 @@ begin
  { Create some replacements }
   InitStr:='-init FPC_LIB_START';
   FiniStr:='-fini FPC_LIB_EXIT';
-  SoNameStr:='-soname '+SplitFileName(current_module.sharedlibfilename^);
+  SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename^);
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);

@@ -31,12 +31,8 @@ interface
 implementation
 
   uses
-    cutils,cclasses,
-{$ifdef USE_SYSUTILS}
     sysutils,
-{$else USE_SYSUTILS}
-    dos,
-{$endif USE_SYSUTILS}
+    cutils,cfileutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
@@ -253,19 +249,19 @@ begin
 end;
 
 procedure TLinkerBSD.LoadPredefinedLibraryOrder;
-// put your linkorder/linkalias overrides here. 
+// put your linkorder/linkalias overrides here.
 // Note: assumes only called when reordering/aliasing is used.
 Begin
   if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
     begin
-      if (target_info.system =system_i386_freebsd) and 
-             not (cs_link_no_default_lib_order in  current_settings.globalswitches) Then   
+      if (target_info.system =system_i386_freebsd) and
+         not (cs_link_no_default_lib_order in  current_settings.globalswitches) Then
         Begin
-          LinkLibraryOrder.add('gcc','',15);		
-          LinkLibraryOrder.add('c','',50);		     // c and c_p mutual. excl?	
-          LinkLibraryOrder.add('c_p','',55);			
+          LinkLibraryOrder.add('gcc','',15);
+          LinkLibraryOrder.add('c','',50);		     // c and c_p mutual. excl?
+          LinkLibraryOrder.add('c_p','',55);
           LinkLibraryOrder.add('pthread','',75);	     // pthread and c_r should be mutually exclusive
-          LinkLibraryOrder.add('c_r','',76);		 		
+          LinkLibraryOrder.add('c_r','',76);
           LinkLibraryOrder.add('kvm','',80);		     // must be before ncurses
           if (cs_link_pthread in current_settings.globalswitches) Then     // convert libpthread to libc_r.
             LinkLibraryAliases.add('pthread','c_r');
@@ -273,7 +269,7 @@ Begin
     end
 else
     begin
-          LinkLibraryOrder.add('gcc','',15);		
+          LinkLibraryOrder.add('gcc','',15);
           LinkLibraryOrder.add('c','',50);
    end;
 End;
@@ -292,7 +288,7 @@ Var
   Fl1,Fl2      : Boolean;
   IsDarwin     : Boolean;
   ReOrder      : Boolean;
-  
+
 begin
   WriteResponseFile:=False;
   ReOrder:=False;
@@ -309,7 +305,7 @@ begin
       // Only reorder for now if -XL or -XO params are given
       // or when -Xf.
       reorder:= linklibc and
-                ( 
+                (
                   ReorderEntries
                    or
                   (cs_link_pthread in current_settings.globalswitches));
@@ -325,7 +321,7 @@ begin
          if linklibc then
           prtobj:=cprtobj;
        end;
-      // after this point addition of shared libs not allowed.  
+      // after this point addition of shared libs not allowed.
     end
   else
     begin
@@ -576,18 +572,14 @@ begin
 
   InitStr:='-init FPC_LIB_START';
   FiniStr:='-fini FPC_LIB_EXIT';
-  SoNameStr:='-soname '+SplitFileName(current_module.sharedlibfilename^);
+  SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename^);
 
 { Call linker }
   SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
 {$ifndef darwin}
   Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
 {$else darwin}
-{$ifdef USE_SYSUTILS}
   Replace(cmdstr,'$EXE',maybequoted(ExpandFileName(current_module.sharedlibfilename^)));
-{$else USE_SYSUTILS}
-  Replace(cmdstr,'$EXE',maybequoted(FExpand(current_module.sharedlibfilename^)));
-{$endif USE_SYSUTILS}
 {$endif darwin}
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));

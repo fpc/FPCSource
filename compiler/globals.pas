@@ -40,12 +40,7 @@ interface
 {$ENDIF}
 
       { comphook pulls in sysutils anyways }
-{$IFDEF USE_SYSUTILS}
-{$ELSE USE_SYSUTILS}
-      strings,
-      dos,
-{$ENDIF USE_SYSUTILS}
-      cutils,cclasses,
+      cutils,cclasses,cfileutils,
       cpuinfo,
       globtype,version,systems;
 
@@ -139,27 +134,17 @@ interface
          maxfpuregisters : shortint;
        end;
 
-
-       TSearchPathList = class(TStringList)
-         procedure AddPath(s:string;addfirst:boolean);overload;
-         procedure AddPath(SrcPath,s:string;addfirst:boolean);overload;
-         procedure AddList(list:TSearchPathList;addfirst:boolean);
-         function  FindFile(const f : string;var foundfile:string):boolean;
-       end;
-
     var
        { specified inputfile }
-       inputdir          : dirstr;
-       inputfile         : namestr;
-       inputextension    : extstr;
+       inputfilepath     : string;
+       inputfilename     : string;
        { specified outputfile with -o parameter }
-       outputfile        : namestr;
-       outputprefix      : pstring;
-       outputsuffix      : pstring;
-       outputextension   : namestr;
+       outputfilename    : string;
+       outputprefix      : pshortstring;
+       outputsuffix      : pshortstring;
        { specified with -FE or -FU }
-       outputexedir      : dirstr;
-       outputunitdir     : dirstr;
+       outputexedir      : TPathStr;
+       outputunitdir     : TPathStr;
 
        { things specified with parameters }
        paratarget        : tsystem;
@@ -174,19 +159,19 @@ interface
        {  typical cross compiling params}
 
        { directory where the utils can be found (options -FD) }
-       utilsdirectory : dirstr;
+       utilsdirectory : TPathStr;
        { targetname specific prefix used by these utils (options -XP<path>) }
-       utilsprefix    : dirstr;
+       utilsprefix    : TPathStr;
        cshared        : boolean;        { pass --shared to ld to link C libs shared}
        Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
-       rlinkpath      : dirstr;         { rpath-link linkdir override}
+       rlinkpath      : TPathStr;         { rpath-link linkdir override}
 
        { some flags for global compiler switches }
        do_build,
        do_release,
        do_make       : boolean;
        { path for searching units, different paths can be seperated by ; }
-       exepath            : dirstr;  { Path to ppc }
+       exepath            : TPathStr;  { Path to ppc }
        librarysearchpath,
        unitsearchpath,
        objectsearchpath,
@@ -260,7 +245,7 @@ interface
 
     const
        DLLsource : boolean = false;
-       DLLImageBase : pstring = nil;
+       DLLImageBase : pshortstring = nil;
 
        { used to set all registers used for each global function
          this should dramatically decrease the number of
@@ -306,37 +291,6 @@ interface
     function filetimestring( t : longint) : string;
 
     procedure DefaultReplacements(var s:string);
-    {Gives the absolute path to the current directory}
-    function  GetCurrentDir:string;
-    {Gives the relative path to the current directory,
-     with a trailing dir separator. E. g. on unix ./ }
-    function CurDirRelPath(systeminfo: tsysteminfo): string;
-    function  path_absolute(const s : string) : boolean;
-    Function  PathExists ( F : String) : Boolean;
-    Function  FileExists ( Const F : String) : Boolean;
-    Function  DirectoryExists ( Const F : String) : Boolean;
-    function  FileExistsNonCase(const path,fn:string;var foundfile:string):boolean;
-    Function  RemoveFile(const f:string):boolean;
-    Function  RemoveDir(d:string):boolean;
-    Function  GetFileTime ( Var F : File) : Longint;
-    Function  GetNamedFileTime ( Const F : String) : Longint;
-    {Extracts the path without its filename, from a path.}
-    Function  SplitPath(const s:string):string;
-    Function  SplitFileName(const s:string):string;
-    Function  SplitName(const s:string):string;
-    Function  SplitExtension(Const HStr:String):String;
-    Function  AddExtension(Const HStr,ext:String):String;
-    Function  ForceExtension(Const HStr,ext:String):String;
-    Function  FixPath(s:string;allowdot:boolean):string;
-    function  FixFileName(const s:string):string;
-    function  TargetFixPath(s:string;allowdot:boolean):string;
-    function  TargetFixFileName(const s:string):string;
-    procedure SplitBinCmd(const s:string;var bstr: String;var cstr:TCmdStr);
-    function  FindFile(const f : string;path : string;var foundfile:string):boolean;
-    function  FindFilePchar(const f : string;path : pchar;var foundfile:string):boolean;
-    function  FindExe(const bin:string;var foundfile:string):boolean;
-    function  GetShortName(const n:string):string;
-    function  cleanpath(const s:string):String;
 
     function Shell(const command:string): longint;
     function  GetEnvPChar(const envname:string):pchar;
@@ -377,13 +331,6 @@ implementation
     procedure abstract;
       begin
         do_internalerror(255);
-      end;
-
-
-    procedure WarnNonExistingPath(const path : string);
-      begin
-        if assigned(do_comment) then
-          do_comment(V_Tried,'Path "'+path+'" not found');
       end;
 
 
@@ -429,11 +376,7 @@ implementation
       var
         hour,min,sec,hsec : word;
       begin
-{$IFDEF USE_SYSUTILS}
         DecodeTime(Time,hour,min,sec,hsec);
-{$ELSE USE_SYSUTILS}
-        dos.gettime(hour,min,sec,hsec);
-{$ENDIF USE_SYSUTILS}
         gettimestr:=L0(Hour)+':'+L0(min)+':'+L0(sec);
       end;
 
@@ -443,17 +386,9 @@ implementation
      get the current date in a string YY/MM/DD
    }
       var
-{$IFDEF USE_SYSUTILS}
         Year,Month,Day: Word;
-{$ELSE USE_SYSUTILS}
-        Year,Month,Day,Wday : Word;
-{$ENDIF USE_SYSUTILS}
       begin
-{$IFDEF USE_SYSUTILS}
         DecodeDate(Date,year,month,day);
-{$ELSE USE_SYSUTILS}
-        dos.getdate(year,month,day,wday);
-{$ENDIF USE_SYSUTILS}
         getdatestr:=L0(Year)+'/'+L0(Month)+'/'+L0(Day);
       end;
 
@@ -463,12 +398,8 @@ implementation
      convert dos datetime t to a string YY/MM/DD HH:MM:SS
    }
      var
-{$IFDEF USE_SYSUTILS}
        DT : TDateTime;
        hsec : word;
-{$ELSE USE_SYSUTILS}
-       DT : DateTime;
-{$ENDIF USE_SYSUTILS}
        Year,Month,Day: Word;
        hour,min,sec : word;
      begin
@@ -477,19 +408,9 @@ implementation
           Result := 'Not Found';
           exit;
         end;
-{$IFDEF USE_SYSUTILS}
        DT := FileDateToDateTime(t);
        DecodeTime(DT,hour,min,sec,hsec);
        DecodeDate(DT,year,month,day);
-{$ELSE USE_SYSUTILS}
-       unpacktime(t,DT);
-       year := DT.year;
-       month := DT.month;
-       day := DT.day;
-       hour := DT.hour;
-       min := DT.min;
-       sec := DT.sec;
-{$ENDIF USE_SYSUTILS}
        Result := L0(Year)+'/'+L0(Month)+'/'+L0(Day)+' '+L0(Hour)+':'+L0(min)+':'+L0(sec);
      end;
 
@@ -513,943 +434,6 @@ implementation
        end;
 
 
-{****************************************************************************
-                               File Handling
-****************************************************************************}
-
-     var
-       CachedCurrentDir : string;
-
-   {Gives the absolute path to the current directory}
-   function GetCurrentDir:string;
-     begin
-       if CachedCurrentDir='' then
-         begin
-           GetDir(0,CachedCurrentDir);
-           CachedCurrentDir:=FixPath(CachedCurrentDir,false);
-         end;
-       result:=CachedCurrentDir;
-     end;
-
-   {Gives the relative path to the current directory,
-    with a trailing dir separator. E. g. on unix ./ }
-   function CurDirRelPath(systeminfo: tsysteminfo): string;
-
-   begin
-     if systeminfo.system <> system_powerpc_macos then
-       CurDirRelPath:= '.'+systeminfo.DirSep
-     else
-       CurDirRelPath:= ':'
-   end;
-
-
-   function path_absolute(const s : string) : boolean;
-   {
-     is path s an absolute path?
-   }
-     begin
-        path_absolute:=false;
-{$ifdef unix}
-        if (length(s)>0) and (s[1]='/') then
-          path_absolute:=true;
-{$else unix}
-{$ifdef amiga}
-        if ((length(s)>0) and ((s[1]='\') or (s[1]='/'))) or (Pos(':',s) = length(s)) then
-          path_absolute:=true;
-{$else}
-{$ifdef macos}
-        if IsMacFullPath(s) then
-          path_absolute:=true;
-{$else}
-        if ((length(s)>0) and ((s[1]='\') or (s[1]='/'))) or
-           ((length(s)>2) and (s[2]=':') and ((s[3]='\') or (s[3]='/'))) then
-          path_absolute:=true;
-{$endif macos}
-{$endif amiga}
-{$endif unix}
-     end;
-
-    Function FileExists ( Const F : String) : Boolean;
-{$IFDEF USE_SYSUTILS}
-{$ELSE USE_SYSUTILS}
-      var
-         Info : SearchRec;
-{$ENDIF USE_SYSUTILS}
-      begin
-{$IFDEF USE_SYSUTILS}
-        Result:=SysUtils.FileExists(f);
-{$ELSE USE_SYSUTILS}
-        findfirst(F,readonly+archive+hidden,info);
-        result:=(doserror=0);
-        findclose(Info);
-{$ENDIF USE_SYSUTILS}
-        if assigned(do_comment) then
-         begin
-           if Result then
-             do_comment(V_Tried,'Searching file '+F+'... found')
-           else
-             do_comment(V_Tried,'Searching file '+F+'... not found');
-         end;
-      end;
-
-
-    Function DirectoryExists ( Const F : String) : Boolean;
-      begin
-{$IFNDEF USE_FAKE_SYSUTILS}
-        Result:=SysUtils.DirectoryExists(f);
-{$ELSE}
-        Result:=fksysutl.DirectoryExists(f);
-{$ENDIF}
-      end;
-
-
-    function FileExistsNonCase(const path,fn:string;var foundfile:string):boolean;
-      var
-        fn2 : string;
-      begin
-        result:=false;
-        if tf_files_case_sensitive in source_info.flags then
-          begin
-            {
-              Search order for case sensitive systems:
-               1. NormalCase
-               2. lowercase
-               3. UPPERCASE
-            }
-            FoundFile:=path+fn;
-            If FileExists(FoundFile) then
-             begin
-               result:=true;
-               exit;
-             end;
-            fn2:=Lower(fn);
-            if fn2<>fn then
-              begin
-                FoundFile:=path+fn2;
-                If FileExists(FoundFile) then
-                 begin
-                   result:=true;
-                   exit;
-                 end;
-              end;
-            fn2:=Upper(fn);
-            if fn2<>fn then
-              begin
-                FoundFile:=path+fn2;
-                If FileExists(FoundFile) then
-                 begin
-                   result:=true;
-                   exit;
-                 end;
-              end;
-          end
-        else
-          if tf_files_case_aware in source_info.flags then
-            begin
-              {
-                Search order for case aware systems:
-                 1. NormalCase
-              }
-              FoundFile:=path+fn;
-              If FileExists(FoundFile) then
-               begin
-                 result:=true;
-                 exit;
-               end;
-           end
-        else
-          begin
-            { None case sensitive only lowercase }
-            FoundFile:=path+Lower(fn);
-            If FileExists(FoundFile) then
-             begin
-               result:=true;
-               exit;
-             end;
-          end;
-        { Set foundfile to something usefull }
-        FoundFile:=fn;
-      end;
-
-
-    Function PathExists ( F : String) : Boolean;
-      Var
-{$IFDEF USE_SYSUTILS}
-{$ELSE USE_SYSUTILS}
-        FF : file;
-{$ENDIF USE_SYSUTILS}
-        A: word;
-        I: longint;
-      begin
-        if F = '' then
-          begin
-            PathExists := true;
-            exit;
-          end;
-{$ifdef USE_SYSUTILS}
-        F := ExpandFileName(F);
-{$else USE_SYSUTILS}
-        F := FExpand (F);
-{$endif USE_SYSUTILS}
-        I := Pos (DriveSeparator, F);
-        if (F [Length (F)] = DirectorySeparator)
-                  and (((I = 0) and (Length (F) > 1)) or (I <> Length (F) - 1))
-          then
-            Delete (F, Length (F), 1);
-{$IFDEF USE_SYSUTILS}
-        I := FileGetAttr(F);
-        PathExists := (I <> -1) and (I and faDirectory = faDirectory);
-{$ELSE USE_SYSUTILS}
-        Assign (FF, FExpand (F));
-        GetFAttr (FF, A);
-        PathExists := (DosError = 0) and (A and Directory = Directory);
-{$ENDIF USE_SYSUTILS}
-      end;
-
-
-    Function RemoveFile(const f:string):boolean;
-      var
-        g : file;
-      begin
-        assign(g,f);
-        {$I-}
-         erase(g);
-        {$I+}
-        RemoveFile:=(ioresult=0);
-      end;
-
-
-    Function RemoveDir(d:string):boolean;
-      begin
-        if d[length(d)]=source_info.DirSep then
-         Delete(d,length(d),1);
-        {$I-}
-         rmdir(d);
-        {$I+}
-        RemoveDir:=(ioresult=0);
-      end;
-
-
-    Function SplitPath(const s:string):string;
-      var
-        i : longint;
-      begin
-        i:=Length(s);
-{$ifdef macos}
-        while (i>0) and not(s[i] in [':']) do
-         dec(i);
-{$else macos}
-        while (i>0) and not(s[i] in ['/','\']) do
-         dec(i);
-{$endif macos}
-        SplitPath:=Copy(s,1,i);
-      end;
-
-
-    Function SplitFileName(const s:string):string;
-{$IFDEF USE_SYSUTILS}
-{$ELSE USE_SYSUTILS}
-      var
-        p : dirstr;
-        n : namestr;
-        e : extstr;
-{$ENDIF USE_SYSUTILS}
-      begin
-{$IFDEF USE_SYSUTILS}
-        SplitFileName:=ExtractFileName(s);
-{$ELSE USE_SYSUTILS}
-        FSplit(s,p,n,e);
-        SplitFileName:=n+e;
-{$ENDIF USE_SYSUTILS}
-      end;
-
-
-    Function SplitName(const s:string):string;
-      var
-        i,j : longint;
-      begin
-        i:=Length(s);
-        j:=Length(s);
-        while (i>0) and not(s[i] in ['/','\']) do
-         dec(i);
-        while (j>0) and (s[j]<>'.') do
-         dec(j);
-        if j<=i then
-         j:=255;
-        SplitName:=Copy(s,i+1,j-(i+1));
-      end;
-
-
-    Function SplitExtension(Const HStr:String):String;
-      var
-        j : longint;
-      begin
-        j:=length(Hstr);
-        while (j>0) and (Hstr[j]<>'.') do
-         begin
-           if hstr[j]=source_info.DirSep then
-            j:=0
-           else
-            dec(j);
-         end;
-        if j=0 then
-         j:=254;
-        SplitExtension:=Copy(Hstr,j,255);
-      end;
-
-
-    Function AddExtension(Const HStr,ext:String):String;
-      begin
-        if (Ext<>'') and (SplitExtension(HStr)='') then
-         AddExtension:=Hstr+Ext
-        else
-         AddExtension:=Hstr;
-      end;
-
-
-    Function ForceExtension(Const HStr,ext:String):String;
-      var
-        j : longint;
-      begin
-        j:=length(Hstr);
-        while (j>0) and (Hstr[j]<>'.') do
-         dec(j);
-        if j=0 then
-         j:=255;
-        ForceExtension:=Copy(Hstr,1,j-1)+Ext;
-      end;
-
-
-    Function FixPath(s:string;allowdot:boolean):string;
-      var
-        i : longint;
-      begin
-        { Fix separator }
-        for i:=1 to length(s) do
-         if s[i] in ['/','\'] then
-          s[i]:=source_info.DirSep;
-        { Fix ending / }
-        if (length(s)>0) and (s[length(s)]<>source_info.DirSep) and
-           (s[length(s)]<>':') then
-         s:=s+source_info.DirSep;
-        { Remove ./ }
-        if (not allowdot) and (s='.'+source_info.DirSep) then
-         s:='';
-        { return }
-        if (tf_files_case_aware in source_info.flags) or
-           (tf_files_case_sensitive in source_info.flags) then
-         FixPath:=s
-        else
-         FixPath:=Lower(s);
-      end;
-
-  {Actually the version in macutils.pp could be used,
-   but that would not work for crosscompiling, so this is a slightly modified
-   version of it.}
-  function TranslatePathToMac (const path: string; mpw: Boolean): string;
-
-    function GetVolumeIdentifier: string;
-
-    begin
-      GetVolumeIdentifier := '{Boot}'
-      (*
-      if mpw then
-        GetVolumeIdentifier := '{Boot}'
-      else
-        GetVolumeIdentifier := macosBootVolumeName;
-      *)
-    end;
-
-    var
-      slashPos, oldpos, newpos, oldlen, maxpos: Longint;
-
-  begin
-    oldpos := 1;
-    slashPos := Pos('/', path);
-    if (slashPos <> 0) then   {its a unix path}
-      begin
-        if slashPos = 1 then
-          begin      {its a full path}
-            oldpos := 2;
-            TranslatePathToMac := GetVolumeIdentifier;
-          end
-        else     {its a partial path}
-          TranslatePathToMac := ':';
-      end
-    else
-      begin
-        slashPos := Pos('\', path);
-        if (slashPos <> 0) then   {its a dos path}
-          begin
-            if slashPos = 1 then
-              begin      {its a full path, without drive letter}
-                oldpos := 2;
-                TranslatePathToMac := GetVolumeIdentifier;
-              end
-            else if (Length(path) >= 2) and (path[2] = ':') then {its a full path, with drive letter}
-              begin
-                oldpos := 4;
-                TranslatePathToMac := GetVolumeIdentifier;
-              end
-            else     {its a partial path}
-              TranslatePathToMac := ':';
-          end;
-      end;
-
-    if (slashPos <> 0) then   {its a unix or dos path}
-      begin
-        {Translate "/../" to "::" , "/./" to ":" and "/" to ":" }
-        newpos := Length(TranslatePathToMac);
-        oldlen := Length(path);
-        SetLength(TranslatePathToMac, newpos + oldlen);  {It will be no longer than what is already}
-                                                                        {prepended plus length of path.}
-        maxpos := Length(TranslatePathToMac);          {Get real maxpos, can be short if String is ShortString}
-
-        {There is never a slash in the beginning, because either it was an absolute path, and then the}
-        {drive and slash was removed, or it was a relative path without a preceding slash.}
-        while oldpos <= oldlen do
-          begin
-            {Check if special dirs, ./ or ../ }
-            if path[oldPos] = '.' then
-              if (oldpos + 1 <= oldlen) and (path[oldPos + 1] = '.') then
-                begin
-                  if (oldpos + 2 > oldlen) or (path[oldPos + 2] in ['/', '\']) then
-                    begin
-                      {It is "../" or ".."  translates to ":" }
-                      if newPos = maxPos then
-                        begin {Shouldn't actually happen, but..}
-                          Exit('');
-                        end;
-                      newPos := newPos + 1;
-                      TranslatePathToMac[newPos] := ':';
-                      oldPos := oldPos + 3;
-                      continue;  {Start over again}
-                    end;
-                end
-              else if (oldpos + 1 > oldlen) or (path[oldPos + 1] in ['/', '\']) then
-                begin
-                  {It is "./" or "."  ignor it }
-                  oldPos := oldPos + 2;
-                  continue;  {Start over again}
-                end;
-
-            {Collect file or dir name}
-            while (oldpos <= oldlen) and not (path[oldPos] in ['/', '\']) do
-              begin
-                if newPos = maxPos then
-                  begin {Shouldn't actually happen, but..}
-                    Exit('');
-                  end;
-                newPos := newPos + 1;
-                TranslatePathToMac[newPos] := path[oldPos];
-                oldPos := oldPos + 1;
-              end;
-
-            {When we come here there is either a slash or we are at the end.}
-            if (oldpos <= oldlen) then
-              begin
-                if newPos = maxPos then
-                  begin {Shouldn't actually happen, but..}
-                    Exit('');
-                  end;
-                newPos := newPos + 1;
-                TranslatePathToMac[newPos] := ':';
-                oldPos := oldPos + 1;
-              end;
-          end;
-
-        SetLength(TranslatePathToMac, newpos);
-      end
-    else if (path = '.') then
-      TranslatePathToMac := ':'
-    else if (path = '..') then
-      TranslatePathToMac := '::'
-    else
-      TranslatePathToMac := path;  {its a mac path}
-  end;
-
-
-   function FixFileName(const s:string):string;
-     var
-       i      : longint;
-     begin
-       if source_info.system = system_powerpc_MACOS then
-         FixFileName:= TranslatePathToMac(s, true)
-       else
-        if (tf_files_case_aware in source_info.flags) or
-           (tf_files_case_sensitive in source_info.flags) then
-        begin
-          for i:=1 to length(s) do
-           begin
-             case s[i] of
-               '/','\' :
-                 FixFileName[i]:=source_info.dirsep;
-               else
-                 FixFileName[i]:=s[i];
-             end;
-           end;
-          FixFileName[0]:=s[0];
-        end
-       else
-        begin
-          for i:=1 to length(s) do
-           begin
-             case s[i] of
-               '/','\' :
-                  FixFileName[i]:=source_info.dirsep;
-               'A'..'Z' :
-                  FixFileName[i]:=char(byte(s[i])+32);
-                else
-                  FixFileName[i]:=s[i];
-             end;
-           end;
-          FixFileName[0]:=s[0];
-        end;
-     end;
-
-
-    Function TargetFixPath(s:string;allowdot:boolean):string;
-      var
-        i : longint;
-      begin
-        { Fix separator }
-        for i:=1 to length(s) do
-         if s[i] in ['/','\'] then
-          s[i]:=target_info.DirSep;
-        { Fix ending / }
-        if (length(s)>0) and (s[length(s)]<>target_info.DirSep) and
-           (s[length(s)]<>':') then
-         s:=s+target_info.DirSep;
-        { Remove ./ }
-        if (not allowdot) and (s='.'+target_info.DirSep) then
-         s:='';
-        { return }
-        if (tf_files_case_aware in target_info.flags) or
-           (tf_files_case_sensitive in target_info.flags) then
-         TargetFixPath:=s
-        else
-         TargetFixPath:=Lower(s);
-      end;
-
-
-   function TargetFixFileName(const s:string):string;
-     var
-       i : longint;
-     begin
-       if target_info.system = system_powerpc_MACOS then
-         TargetFixFileName:= TranslatePathToMac(s, true)
-       else
-        if (tf_files_case_aware in target_info.flags) or
-           (tf_files_case_sensitive in target_info.flags) then
-         begin
-           for i:=1 to length(s) do
-           begin
-             case s[i] of
-               '/','\' :
-                 TargetFixFileName[i]:=target_info.dirsep;
-               else
-                 TargetFixFileName[i]:=s[i];
-             end;
-           end;
-           TargetFixFileName[0]:=s[0];
-         end
-       else
-         begin
-           for i:=1 to length(s) do
-           begin
-             case s[i] of
-               '/','\' :
-                  TargetFixFileName[i]:=target_info.dirsep;
-               'A'..'Z' :
-                  TargetFixFileName[i]:=char(byte(s[i])+32);
-                else
-                  TargetFixFileName[i]:=s[i];
-             end;
-           end;
-           TargetFixFileName[0]:=s[0];
-         end;
-     end;
-
-
-   procedure SplitBinCmd(const s:string;var bstr:String;var cstr:TCmdStr);
-     var
-       i : longint;
-     begin
-       i:=pos(' ',s);
-       if i>0 then
-        begin
-          bstr:=Copy(s,1,i-1);
-          cstr:=Copy(s,i+1,length(s)-i);
-        end
-       else
-        begin
-          bstr:=s;
-          cstr:='';
-        end;
-     end;
-
-  procedure TSearchPathList.AddPath(s:string;addfirst:boolean);
-    begin
-      AddPath('',s,AddFirst);
-    end;
-
-   procedure TSearchPathList.AddPath(SrcPath,s:string;addfirst:boolean);
-     var
-       staridx,
-       j        : longint;
-       prefix,
-       suffix,
-       CurrentDir,
-       currPath : string;
-       subdirfound : boolean;
-{$IFDEF USE_SYSUTILS}
-       dir      : TSearchRec;
-{$ELSE USE_SYSUTILS}
-       dir      : searchrec;
-{$ENDIF USE_SYSUTILS}
-       hp       : TStringListItem;
-
-       procedure AddCurrPath;
-       begin
-         if addfirst then
-          begin
-            Remove(currPath);
-            Insert(currPath);
-          end
-         else
-          begin
-            { Check if already in path, then we don't add it }
-            hp:=Find(currPath);
-            if not assigned(hp) then
-             Concat(currPath);
-          end;
-       end;
-
-     begin
-       if s='' then
-        exit;
-     { Support default macro's }
-       DefaultReplacements(s);
-     { get current dir }
-       CurrentDir:=GetCurrentDir;
-       repeat
-         { get currpath }
-         if addfirst then
-          begin
-            j:=length(s);
-            while (j>0) and (s[j]<>';') do
-             dec(j);
-            currPath:= TrimSpace(Copy(s,j+1,length(s)-j));
-            DePascalQuote(currPath);
-            currPath:=FixPath(currPath,false);
-            if j=0 then
-             s:=''
-            else
-             System.Delete(s,j,length(s)-j+1);
-          end
-         else
-          begin
-            j:=Pos(';',s);
-            if j=0 then
-             j:=255;
-            currPath:= TrimSpace(Copy(s,1,j-1));
-            DePascalQuote(currPath);
-            currPath:=SrcPath+FixPath(currPath,false);
-            System.Delete(s,1,j);
-          end;
-
-         { fix pathname }
-         if currPath='' then
-           currPath:= CurDirRelPath(source_info)
-         else
-          begin
-{$ifdef USE_SYSUTILS}
-            currPath:=FixPath(ExpandFileName(currpath),false);
-{$else USE_SYSUTILS}
-            currPath:=FixPath(FExpand(currPath),false);
-{$endif USE_SYSUTILS}
-            if (CurrentDir<>'') and (Copy(currPath,1,length(CurrentDir))=CurrentDir) then
-             begin
-{$ifdef AMIGA}
-               currPath:= CurrentDir+Copy(currPath,length(CurrentDir)+1,255);
-{$else}
-               currPath:= CurDirRelPath(source_info)+Copy(currPath,length(CurrentDir)+1,255);
-{$endif}
-             end;
-          end;
-         { wildcard adding ? }
-         staridx:=pos('*',currpath);
-         if staridx>0 then
-          begin
-            prefix:=SplitPath(Copy(currpath,1,staridx));
-            suffix:=Copy(currpath,staridx+1,length(currpath));
-            subdirfound:=false;
-{$IFDEF USE_SYSUTILS}
-            if findfirst(prefix+'*',faDirectory,dir) = 0 then
-              begin
-                repeat
-                  if (dir.name<>'.') and
-                      (dir.name<>'..') and
-                      ((dir.attr and faDirectory)<>0) then
-                    begin
-                      subdirfound:=true;
-                      currpath:=prefix+dir.name+suffix;
-                      if (suffix='') or PathExists(currpath) then
-                        begin
-                          hp:=Find(currPath);
-                          if not assigned(hp) then
-                            AddCurrPath;
-                        end;
-                    end;
-                until findnext(dir) <> 0;
-              end;
-{$ELSE USE_SYSUTILS}
-            findfirst(prefix+'*',directory,dir);
-            while doserror=0 do
-             begin
-               if (dir.name<>'.') and
-                  (dir.name<>'..') and
-                  ((dir.attr and directory)<>0) then
-                begin
-                  subdirfound:=true;
-                  currpath:=prefix+dir.name+suffix;
-                  if (suffix='') or PathExists(currpath) then
-                    begin
-                      hp:=Find(currPath);
-                      if not assigned(hp) then
-                        AddCurrPath;
-                    end;
-                end;
-               findnext(dir);
-             end;
-{$ENDIF USE_SYSUTILS}
-            FindClose(dir);
-            if not subdirfound then
-              WarnNonExistingPath(currpath);
-          end
-         else
-          begin
-            if PathExists(currpath) then
-             AddCurrPath
-            else
-             WarnNonExistingPath(currpath);
-          end;
-       until (s='');
-     end;
-
-
-   procedure TSearchPathList.AddList(list:TSearchPathList;addfirst:boolean);
-     var
-       s : string;
-       hl : TSearchPathList;
-       hp,hp2 : TStringListItem;
-     begin
-       if list.empty then
-        exit;
-       { create temp and reverse the list }
-       if addfirst then
-        begin
-          hl:=TSearchPathList.Create;
-          hp:=TStringListItem(list.first);
-          while assigned(hp) do
-           begin
-             hl.insert(hp.Str);
-             hp:=TStringListItem(hp.next);
-           end;
-          while not hl.empty do
-           begin
-             s:=hl.GetFirst;
-             Remove(s);
-             Insert(s);
-           end;
-          hl.Free;
-        end
-       else
-        begin
-          hp:=TStringListItem(list.first);
-          while assigned(hp) do
-           begin
-             hp2:=Find(hp.Str);
-             { Check if already in path, then we don't add it }
-             if not assigned(hp2) then
-              Concat(hp.Str);
-             hp:=TStringListItem(hp.next);
-           end;
-        end;
-     end;
-
-
-   function TSearchPathList.FindFile(const f : string;var foundfile:string):boolean;
-     Var
-       p : TStringListItem;
-     begin
-       FindFile:=false;
-       p:=TStringListItem(first);
-       while assigned(p) do
-        begin
-          result:=FileExistsNonCase(p.Str,f,FoundFile);
-          if result then
-            exit;
-          p:=TStringListItem(p.next);
-        end;
-       { Return original filename if not found }
-       FoundFile:=f;
-     end;
-
-
-   Function GetFileTime ( Var F : File) : Longint;
-     Var
-     {$ifdef hasunix}
-        info: Stat;
-     {$endif}
-       L : longint;
-     begin
-     {$ifdef hasunix}
-      FPFStat (F,Info);
-      L:=Info.st_Mtime;
-     {$else}
-       GetFTime(f,l);
-     {$endif}
-       GetFileTime:=L;
-     end;
-
-
-   Function GetNamedFileTime (Const F : String) : Longint;
-     begin
-       GetNamedFileTime:=do_getnamedfiletime(F);
-     end;
-
-
-   function FindFile(const f : string;path : string;var foundfile:string):boolean;
-      Var
-        singlepathstring : string;
-        i : longint;
-     begin
-{$ifdef Unix}
-       for i:=1 to length(path) do
-        if path[i]=':' then
-         path[i]:=';';
-{$endif Unix}
-       FindFile:=false;
-       repeat
-          i:=pos(';',path);
-          if i=0 then
-           i:=256;
-          singlepathstring:=FixPath(copy(path,1,i-1),false);
-          delete(path,1,i);
-          result:=FileExistsNonCase(singlepathstring,f,FoundFile);
-          if result then
-            exit;
-       until path='';
-       FoundFile:=f;
-     end;
-
-
-   function FindFilePchar(const f : string;path : pchar;var foundfile:string):boolean;
-      Var
-        singlepathstring : string;
-        startpc,pc : pchar;
-        sepch : char;
-     begin
-       FindFilePchar:=false;
-       if Assigned (Path) then
-        begin
-{$ifdef Unix}
-          sepch:=':';
-{$else}
-{$ifdef macos}
-          sepch:=',';
-{$else}
-          sepch:=';';
-{$endif macos}
-{$endif Unix}
-          pc:=path;
-          repeat
-             startpc:=pc;
-             while (pc^<>sepch) and (pc^<>';') and (pc^<>#0) do
-              inc(pc);
-             move(startpc^,singlepathstring[1],pc-startpc);
-             singlepathstring[0]:=char(longint(pc-startpc));
-             singlepathstring:=FixPath(singlepathstring,false);
-             result:=FileExistsNonCase(singlepathstring,f,FoundFile);
-             if result then
-               exit;
-             if (pc^=#0) then
-               break;
-             inc(pc);
-          until false;
-        end;
-       foundfile:=f;
-     end;
-
-
-   function  FindExe(const bin:string;var foundfile:string):boolean;
-     var
-       p : pchar;
-       found : boolean;
-     begin
-       found:=FindFile(FixFileName(AddExtension(bin,source_info.exeext)),'.;'+exepath,foundfile);
-       if not found then
-        begin
-{$ifdef macos}
-          p:=GetEnvPchar('Commands');
-{$else}
-          p:=GetEnvPchar('PATH');
-{$endif}
-          found:=FindFilePChar(FixFileName(AddExtension(bin,source_info.exeext)),p,foundfile);
-          FreeEnvPChar(p);
-        end;
-       FindExe:=found;
-     end;
-
-
-    function GetShortName(const n:string):string;
-{$ifdef win32}
-      var
-        hs,hs2 : string;
-        i : longint;
-{$endif}
-{$ifdef go32v2}
-      var
-        hs : string;
-{$endif}
-{$ifdef watcom}
-      var
-        hs : string;
-{$endif}
-      begin
-        GetShortName:=n;
-{$ifdef win32}
-        hs:=n+#0;
-        i:=Windows.GetShortPathName(@hs[1],@hs2[1],high(hs2));
-        if (i>0) and (i<=high(hs2)) then
-          begin
-            hs2[0]:=chr(strlen(@hs2[1]));
-            GetShortName:=hs2;
-          end;
-{$endif}
-{$ifdef go32v2}
-        hs:=n;
-        if Dos.GetShortName(hs) then
-         GetShortName:=hs;
-{$endif}
-{$ifdef watcom}
-        hs:=n;
-        if Dos.GetShortName(hs) then
-         GetShortName:=hs;
-{$endif}
-      end;
-
-
-function  CleanPath(const s:string):String;
-{ Wrapper that encapsulate fexpand/expandfilename}
-begin
-{$IFDEF USE_SYSUTILS}
- cleanpath:=ExpandFileName(s);
-{$else}
- cleanpath:=fexpand(s);
-{$endif}
-end;
  {****************************************************************************
                                OS Dependent things
  ****************************************************************************}
@@ -1504,60 +488,42 @@ end;
       begin
       {$ifndef hasunix}
        {$ifndef os2}
-        StrDispose(p);
+        freemem(p);
        {$endif}
       {$endif}
       end;
 
-{$IFDEF MORPHOS}
-{$DEFINE AMIGASHELL}
-{$ENDIF}
-{$IFDEF AMIGA}
-{$DEFINE AMIGASHELL}
-{$ENDIF}
+{$if defined(MORPHOS) or defined(AMIGA)}
+  {$define AMIGASHELL}
+{$endif}
 
     function Shell(const command:string): longint;
       { This is already defined in the linux.ppu for linux, need for the *
         expansion under linux }
-      {$ifdef hasunix}
+{$ifdef hasunix}
       begin
         result := Unix.Shell(command);
       end;
-      {$else}
-      {$ifdef amigashell}
+{$else hasunix}
+  {$ifdef amigashell}
       begin
-{$IFDEF USE_SYSUTILS}
         result := ExecuteProcess('',command);
-{$ELSE USE_SYSUTILS}
-        exec('',command);
-        if (doserror <> 0) then
-          result := doserror
-        else
-          result := dosexitcode;
       end;
-{$ENDIF USE_SYSUTILS}
-      {$else}
+  {$else amigashell}
       var
         comspec : string;
       begin
         comspec:=getenv('COMSPEC');
-{$IFDEF USE_SYSUTILS}
         result := ExecuteProcess(comspec,' /C '+command);
-{$ELSE USE_SYSUTILS}
-        Exec(comspec,' /C '+command);
-        if (doserror <> 0) then
-          result := doserror
-        else
-          result := dosexitcode;
       end;
-{$ENDIF USE_SYSUTILS}
-      {$endif}
-      {$endif}
+   {$endif amigashell}
+{$endif hasunix}
 
 {$UNDEF AMIGASHELL}
 
 {$ifdef CPUI386}
-{$asmmode att}
+  {$asmmode att}
+
   {$define HASSETFPUEXCEPTIONMASK}
       { later, this should be replaced by the math unit }
       const
@@ -2117,35 +1083,23 @@ end;
 
    procedure get_exepath;
      var
-       hs1 : namestr;
-       hs2 : extstr;
-{$IFDEF USE_SYSUTILS}
        exeName:String;
-{$ENDIF USE_SYSUTILS}
 {$ifdef need_path_search}
+       hs1 : TPathStr;
        p   : pchar;
 {$endif need_path_search}
      begin
-{$IFDEF USE_SYSUTILS}
        exepath:=GetEnvironmentVariable('PPC_EXEC_PATH');
-{$ELSE USE_SYSUTILS}
-       exepath:=dos.getenv('PPC_EXEC_PATH');
-{$ENDIF USE_SYSUTILS}
        if exepath='' then
-{$IFDEF USE_SYSUTILS}
-        exeName := FixFileName(system.paramstr(0));
-        exepath := ExtractFilePath(exeName);
-        hs1 := ExtractFileName(exeName);
-        hs2 := ExtractFileExt(exeName);
-{$ELSE USE_SYSUTILS}
-        fsplit(FixFileName(system.paramstr(0)),exepath,hs1,hs2);
-{$ENDIF USE_SYSUTILS}
+         begin
+           exeName := FixFileName(system.paramstr(0));
+           exepath := ExtractFilePath(exeName);
+         end;
 {$ifdef need_path_search}
        if exepath='' then
         begin
-          if pos(source_info.exeext,hs1) <>
-               (length(hs1) - length(source_info.exeext)+1) then
-            hs1 := hs1 + source_info.exeext;
+          hs1 := ExtractFileName(exeName);
+          ChangeFileExt(hs1,source_info.exeext);
 {$ifdef macos}
           p:=GetEnvPchar('Commands');
 {$else macos}
@@ -2153,7 +1107,7 @@ end;
 {$endif macos}
           FindFilePChar(hs1,p,exepath);
           FreeEnvPChar(p);
-          exepath:=SplitPath(exepath);
+          exepath:=ExtractFilePath(exepath);
         end;
 {$endif need_path_search}
        exepath:=FixPath(exepath,false);
@@ -2190,10 +1144,9 @@ end;
         paratargetdbg:=dbg_none;
 
         { Output }
-        OutputFile:='';
+        OutputFileName:='';
         OutputPrefix:=Nil;
         OutputSuffix:=Nil;
-        OutputExtension:='';
 
         OutputExeDir:='';
         OutputUnitDir:='';

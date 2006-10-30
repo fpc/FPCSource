@@ -92,7 +92,7 @@ interface
 implementation
 
   uses
-    cutils,
+    cutils,cfileutils,
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,

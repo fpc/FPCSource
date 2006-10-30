@@ -42,7 +42,7 @@ interface
     type
        tppumodule = class(tmodule)
           ppufile    : tcompilerppufile; { the PPU file }
-          sourcefn   : pstring; { Source specified with "uses .. in '..'" }
+          sourcefn   : pshortstring; { Source specified with "uses .. in '..'" }
           comments   : tstringlist;
 {$ifdef Test_Double_checksum}
           crc_array  : pointer;
@@ -92,6 +92,8 @@ interface
 implementation
 
 uses
+  SysUtils,
+  cfileutils,
   verbose,systems,version,
   symtable, symsym,
   scanner,
@@ -377,17 +379,17 @@ uses
           begin
             { the full filename is specified so we can't use here the
               searchpath (PFV) }
-            Message1(unit_t_unitsearch,AddExtension(sourcefn^,sourceext));
-            fnd:=FindFile(AddExtension(sourcefn^,sourceext),'',hs);
+            Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,sourceext));
+            fnd:=FindFile(ChangeFileExt(sourcefn^,sourceext),'',hs);
             if not fnd then
              begin
-               Message1(unit_t_unitsearch,AddExtension(sourcefn^,pasext));
-               fnd:=FindFile(AddExtension(sourcefn^,pasext),'',hs);
+               Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,pasext));
+               fnd:=FindFile(ChangeFileExt(sourcefn^,pasext),'',hs);
              end;
             if not fnd and ((m_mac in current_settings.modeswitches) or (tf_p_ext_support in target_info.flags)) then
              begin
-               Message1(unit_t_unitsearch,AddExtension(sourcefn^,pext));
-               fnd:=FindFile(AddExtension(sourcefn^,pext),'',hs);
+               Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,pext));
+               fnd:=FindFile(ChangeFileExt(sourcefn^,pext),'',hs);
              end;
             if fnd then
              begin
@@ -525,7 +527,7 @@ uses
          begin
            s:=p.get(mask);
            if strippath then
-            ppufile.putstring(SplitFileName(s))
+            ppufile.putstring(ExtractFileName(s))
            else
             ppufile.putstring(s);
            ppufile.putlongint(mask);
@@ -743,7 +745,7 @@ uses
               if Source_Time<>-1 then
                 begin
                   if is_main then
-                    main_dir:=splitpath(hs);
+                    main_dir:=ExtractFilePath(hs);
                   temp:=' time '+filetimestring(source_time);
                   if (orgfiletime<>-1) and
                      (source_time<>orgfiletime) then

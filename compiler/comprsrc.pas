@@ -42,12 +42,9 @@ procedure CompileResourceFiles;
 implementation
 
 uses
-{$IFDEF USE_SYSUTILS}
   SysUtils,
-{$ELSE USE_SYSUTILS}
-  dos,
-{$ENDIF USE_SYSUTILS}
-  Systems,cutils,Globtype,Globals,Verbose,Fmodule,
+  Systems,cutils,cfileutils,
+  Globtype,Globals,Verbose,Fmodule,
   Script;
 
 {****************************************************************************
@@ -68,12 +65,8 @@ end;
 procedure tresourcefile.compile;
 var
   respath,
-  srcfilepath : dirstr;
-  n       : namestr;
-{$IFDEF USE_SYSUTILS}
-{$ELSE USE_SYSUTILS}
-  e       : extstr;
-{$ENDIF USE_SYSUTILS}
+  srcfilepath,
+  n,
   s,
   resobj,
   resbin   : string;
@@ -87,24 +80,16 @@ begin
   if not resfound then
     resfound:=FindExe(utilsprefix+target_res.resbin,resbin);
   { get also the path to be searched for the windres.h }
-{$IFDEF USE_SYSUTILS}
-  respath := SplitPath(resbin);
-{$ELSE USE_SYSUTILS}
-  fsplit(resbin,respath,n,e);
-{$ENDIF USE_SYSUTILS}
+  respath:=ExtractFilePath(resbin);
   if (not resfound) and not(cs_link_nolink in current_settings.globalswitches) then
    begin
      Message(exec_e_res_not_found);
      current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
    end;
-{$IFDEF USE_SYSUTILS}
-  srcfilepath := SplitPath(current_module.mainsource^);
-{$ELSE USE_SYSUTILS}
-  fsplit(current_module.mainsource^,srcfilepath,n,e);
-{$ENDIF USE_SYSUTILS}
+  srcfilepath:=ExtractFilePath(current_module.mainsource^);
   if not path_absolute(fname) then
     fname:=srcfilepath+fname;
-  resobj:=ForceExtension(fname,target_info.resobjext);
+  resobj:=ChangeFileExt(fname,target_info.resobjext);
   s:=target_res.rescmd;
   ObjUsed:=(pos('$OBJ',s)>0);
   Replace(s,'$OBJ',maybequoted(resobj));
@@ -122,7 +107,6 @@ begin
      Message1(exec_i_compilingresource,fname);
      Message2(exec_d_resbin_params,resbin,s);
      FlushOutput;
-{$IFDEF USE_SYSUTILS}
      try
        if ExecuteProcess(resbin,s) <> 0 then
        begin
@@ -136,22 +120,6 @@ begin
          current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
        end
      end;
-{$ELSE USE_SYSUTILS}
-     swapvectors;
-     exec(resbin,s);
-     swapvectors;
-     if (doserror<>0) then
-      begin
-        Message(exec_e_cant_call_linker);
-        current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
-      end
-     else
-      if (dosexitcode<>0) then
-       begin
-         Message(exec_e_error_while_linking);
-         current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
-       end;
-{$ENDIF USE_SYSUTILS}
     end;
   { Update asmres when externmode is set }
   if cs_link_nolink in current_settings.globalswitches then
