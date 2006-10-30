@@ -1361,6 +1361,7 @@ implementation
                 right:=csubscriptnode.create(
                            hsym,
                            ctypeconvnode.create_internal(right,methodpointertype));
+                typecheckpass(right);
                end;
             if (ld.deftype=procvardef) and
                (not tprocvardef(ld).is_addressonly) then
@@ -1368,6 +1369,7 @@ implementation
                 left:=csubscriptnode.create(
                           hsym,
                           ctypeconvnode.create_internal(left,methodpointertype));
+                typecheckpass(left);
               end;
           end
 
@@ -1436,6 +1438,7 @@ implementation
                    begin
                      left:=caddnode.create(muln,left,
                        cordconstnode.create(tpointerdef(rd).pointeddef.size,sinttype,true));
+                     typecheckpass(left);
                    end;
               end
             else
@@ -1467,6 +1470,7 @@ implementation
                    begin
                      right:=caddnode.create(muln,right,
                        cordconstnode.create(tpointerdef(ld).pointeddef.size,sinttype,true));
+                     typecheckpass(right);
                    end
                  end else
                    if is_zero_based_array(ld) and
@@ -1474,6 +1478,7 @@ implementation
                      begin
                        right:=caddnode.create(muln,right,
                          cordconstnode.create(tarraydef(ld).elementdef.size,sinttype,true));
+                       typecheckpass(right);
                      end;
                end
              else
@@ -1501,9 +1506,11 @@ implementation
                     right:=csubscriptnode.create(
                                  hsym,
                                  ctypeconvnode.create_internal(right,methodpointertype));
+                    typecheckpass(right);
                     left:=csubscriptnode.create(
                                  hsym,
                                  ctypeconvnode.create_internal(left,methodpointertype));
+                     typecheckpass(left);
                   end;
               end
             else
