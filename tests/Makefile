@@ -1503,7 +1503,7 @@ $(TEST_OUTPUTDIR)/dbdigest.cfg:
 	$(ECHOREDIR) "Comment=$(TEST_OPT)" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 ifndef inWinNT
 $(TEST_OUTPUTDIR)/tar.lst:
-	cd $(TEST_OUTPUTDIR) && $(PREPUP) > tar.lst
+	cd $(TEST_OUTPUTDIR) && find . -name '*.log' -or -name '*.elg' > tar.lst
 	$(ECHOREDIR) "log" >> $(TEST_OUTPUTDIR)/tar.lst
 	$(ECHOREDIR) "dbdigest.cfg" >> $(TEST_OUTPUTDIR)/tar.lst
 $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/tar.lst $(TEST_OUTPUTDIR)/dbdigest.cfg
