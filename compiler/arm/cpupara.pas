@@ -120,12 +120,9 @@ unit cpupara;
             classrefdef:
               getparaloc:=LOC_REGISTER;
             recorddef:
-              getparaloc:=LOC_REFERENCE;
+              getparaloc:=LOC_REGISTER;
             objectdef:
-              if is_object(p) then
-                getparaloc:=LOC_REFERENCE
-              else
-                getparaloc:=LOC_REGISTER;
+              getparaloc:=LOC_REGISTER;
             stringdef:
               if is_shortstring(p) or is_longstring(p) then
                 getparaloc:=LOC_REFERENCE
@@ -143,7 +140,7 @@ unit cpupara;
               else
                 getparaloc:=LOC_REFERENCE;
             variantdef:
-              getparaloc:=LOC_REFERENCE;
+              getparaloc:=LOC_REGISTER;
             { avoid problems with errornous definitions }
             errordef:
               getparaloc:=LOC_REGISTER;
@@ -162,17 +159,16 @@ unit cpupara;
             exit;
           end;
         case def.deftype of
+          objectdef,
           variantdef,
           formaldef,
           recorddef:
-            result:=true;
+            result:=varspez=vs_const;
           arraydef:
             result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
                              is_open_array(def) or
                              is_array_of_const(def) or
                              is_array_constructor(def);
-          objectdef :
-            result:=is_object(def);
           setdef :
             result:=(tsetdef(def).settype<>smallset);
           stringdef :
@@ -278,11 +274,11 @@ unit cpupara;
              while paralen>0 do
                begin
                  paraloc:=hp.paraloc[side].add_location;
-                 { for things like formaldef }
-                 if paracgsize=OS_NO then
-                   paraloc^.size:=OS_ADDR
-                 else if paracgsize in [OS_64,OS_S64] then
-                   paraloc^.size:=OS_32
+
+                 if (paradef.deftype <> orddef) then
+                   paracgsize := int_cgsize(paralen);
+                 if (paracgsize in [OS_NO,OS_64,OS_S64]) then
+                   paraloc^.size := OS_32
                  else if (loc=LOC_REGISTER) and (paracgsize in [OS_F32,OS_F64,OS_F80]) then
                    case paracgsize of
                      OS_F32:
