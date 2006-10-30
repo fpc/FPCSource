@@ -273,7 +273,7 @@ implementation
         { cg }
           oldparse_only  : boolean;
         { akt.. things }
-          oldaktfilepos      : tfileposinfo;
+          oldcurrent_filepos      : tfileposinfo;
           old_compiled_module : tmodule;
           oldcurrent_procinfo : tprocinfo;
           old_settings : tsettings;
@@ -313,7 +313,7 @@ implementation
                current_settings.localswitches:=nextlocalswitches;
                localswitcheschanged:=false;
              end;
-            oldaktfilepos:=aktfilepos;
+            oldcurrent_filepos:=current_filepos;
             old_settings:=current_settings;
           end;
        { reset parser, a previous fatal error could have left these variables in an unreliable state, this is
@@ -352,7 +352,7 @@ implementation
          { Set the module to use for verbose }
          compiled_module:=current_module;
          SetCompileModule(current_module);
-         Fillchar(aktfilepos,0,sizeof(aktfilepos));
+         Fillchar(current_filepos,0,sizeof(current_filepos));
 
          { Load current state from the init values }
          current_settings:=init_settings;
@@ -465,7 +465,7 @@ implementation
                 symtablestack:=oldsymtablestack;
                 macrosymtablestack:=oldmacrosymtablestack;
                 current_procinfo:=oldcurrent_procinfo;
-                aktfilepos:=oldaktfilepos;
+                current_filepos:=oldcurrent_filepos;
                 current_settings:=old_settings;
                 aktexceptblock:=0;
                 exceptblockcounter:=0;

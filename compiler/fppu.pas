@@ -1369,7 +1369,7 @@ uses
         second_time:=false;
         current_module:=self;
         SetCompileModule(current_module);
-        Fillchar(aktfilepos,0,sizeof(aktfilepos));
+        Fillchar(current_filepos,0,sizeof(current_filepos));
 
         { A force reload }
         if do_reload then
@@ -1528,7 +1528,7 @@ uses
               current_scanner.gettokenpos
             end
            else
-            fillchar(aktfilepos,sizeof(aktfilepos),0);
+            fillchar(current_filepos,sizeof(current_filepos),0);
          end;
 
         { we are back, restore current_module }

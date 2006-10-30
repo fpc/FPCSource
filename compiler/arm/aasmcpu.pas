@@ -966,7 +966,7 @@ implementation
         if (Insentry=nil) and (InsSize=-1) then
           exit;
         { set the file postion }
-        aktfilepos:=fileinfo;
+        current_filepos:=fileinfo;
 
         { tranlate LDR+postfix to complete opcode }
         if (opcode=A_LDR) and (oppostfix<>PF_None) then
@@ -1009,7 +1009,7 @@ implementation
         { error in pass1 ? }
         if insentry=nil then
          exit;
-        aktfilepos:=fileinfo;
+        current_filepos:=fileinfo;
         { Generate the instruction }
         GenCode(objdata);
       end;
@@ -1375,7 +1375,7 @@ implementation
            { create the .ot fields }
            create_ot(objdata);
            { set the file postion }
-           aktfilepos:=fileinfo;
+           current_filepos:=fileinfo;
          end
         else
          begin

@@ -219,7 +219,7 @@ interface
        LinkTypeSetExplicitly : boolean;
 
        akttokenpos,                  { position of the last token }
-       aktfilepos : tfileposinfo;    { current position }
+       current_filepos : tfileposinfo;    { current position }
 
        nwscreenname : string;
        nwthreadname : string;

@@ -781,7 +781,7 @@ implementation
        inherited create;
        if not(inlining_procedure and
               (cs_gdb_valgrind in current_settings.globalswitches)) then
-         fileinfo:=aktfilepos;
+         fileinfo:=current_filepos;
      end;
 
 

@@ -442,7 +442,7 @@ implementation
          if not(hp.typ in SkipLineInfo) then
           begin
             hp1 := hp as tailineinfo;
-            aktfilepos:=hp1.fileinfo;
+            current_filepos:=hp1.fileinfo;
              { no line info for inlined code }
              if do_line and (inlinelevel=0) then
               begin

@@ -67,10 +67,10 @@ implementation
         if (p.resultdef=nil) then
          begin
            oldcodegenerror:=codegenerror;
-           oldpos:=aktfilepos;
+           oldpos:=current_filepos;
            oldlocalswitches:=current_settings.localswitches;
            codegenerror:=false;
-           aktfilepos:=p.fileinfo;
+           current_filepos:=p.fileinfo;
            current_settings.localswitches:=p.localswitches;
            hp:=p.pass_typecheck;
            { should the node be replaced? }
@@ -83,7 +83,7 @@ implementation
                p:=hp;
             end;
            current_settings.localswitches:=oldlocalswitches;
-           aktfilepos:=oldpos;
+           current_filepos:=oldpos;
            if codegenerror then
             begin
               include(p.flags,nf_error);
@@ -122,10 +122,10 @@ implementation
          if not(nf_error in p.flags) then
            begin
               oldcodegenerror:=codegenerror;
-              oldpos:=aktfilepos;
+              oldpos:=current_filepos;
               oldlocalswitches:=current_settings.localswitches;
               codegenerror:=false;
-              aktfilepos:=p.fileinfo;
+              current_filepos:=p.fileinfo;
               current_settings.localswitches:=p.localswitches;
               { checks make always a call }
               if ([cs_check_range,cs_check_overflow,cs_check_stack] * current_settings.localswitches <> []) then
@@ -133,7 +133,7 @@ implementation
               { determine the resultdef if not done }
               if (p.resultdef=nil) then
                begin
-                 aktfilepos:=p.fileinfo;
+                 current_filepos:=p.fileinfo;
                  current_settings.localswitches:=p.localswitches;
                  hp:=p.pass_typecheck;
                  { should the node be replaced? }
@@ -153,13 +153,13 @@ implementation
                      p.resultdef:=generrordef;
                   end;
                  current_settings.localswitches:=oldlocalswitches;
-                 aktfilepos:=oldpos;
+                 current_filepos:=oldpos;
                  codegenerror:=codegenerror or oldcodegenerror;
                end;
               if not(nf_error in p.flags) then
                begin
                  { first pass }
-                 aktfilepos:=p.fileinfo;
+                 current_filepos:=p.fileinfo;
                  current_settings.localswitches:=p.localswitches;
                  hp:=p.pass_1;
                  { should the node be replaced? }
@@ -184,7 +184,7 @@ implementation
               include(p.flags,nf_pass1_done);
               codegenerror:=codegenerror or oldcodegenerror;
               current_settings.localswitches:=oldlocalswitches;
-              aktfilepos:=oldpos;
+              current_filepos:=oldpos;
            end
          else
            codegenerror:=true;

@@ -1268,7 +1268,7 @@ implementation
            { create the .ot fields }
            create_ot(objdata);
            { set the file postion }
-           aktfilepos:=fileinfo;
+           current_filepos:=fileinfo;
          end
         else
          begin
@@ -1310,7 +1310,7 @@ implementation
         if (Insentry=nil) and (InsSize=-1) then
           exit;
         { set the file postion }
-        aktfilepos:=fileinfo;
+        current_filepos:=fileinfo;
         { Get InsEntry }
         if FindInsEntry(ObjData) then
          begin
@@ -1355,7 +1355,7 @@ implementation
         { error in pass1 ? }
         if insentry=nil then
          exit;
-        aktfilepos:=fileinfo;
+        current_filepos:=fileinfo;
         { Segment override }
         if (segprefix<>NR_NO) then
          begin

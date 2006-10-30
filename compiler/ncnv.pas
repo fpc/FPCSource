@@ -402,7 +402,7 @@ implementation
                          }
                          if assigned(hdef) and not(equal_defs(hdef,p3.resultdef)) then
                            begin
-                              aktfilepos:=p3.fileinfo;
+                              current_filepos:=p3.fileinfo;
                               CGMessage(type_e_typeconflict_in_set);
                            end
                          else

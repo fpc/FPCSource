@@ -1521,10 +1521,10 @@ In case not, the value returned can be arbitrary.
              hs:=getdatestr
            else
             if hs='FILE' then
-             hs:=current_module.sourcefiles.get_file_name(aktfilepos.fileindex)
+             hs:=current_module.sourcefiles.get_file_name(current_filepos.fileindex)
            else
             if hs='LINE' then
-             hs:=tostr(aktfilepos.line)
+             hs:=tostr(current_filepos.line)
            else
             if hs='FPCVERSION' then
              hs:=version_string
@@ -1980,7 +1980,7 @@ In case not, the value returned can be arbitrary.
         with inputfile do
          begin
            { when nothing more to read then leave immediatly, so we
-             don't change the aktfilepos and leave it point to the last
+             don't change the current_filepos and leave it point to the last
              char }
            if (c=#26) and (not assigned(next)) then
             exit;
@@ -2024,7 +2024,7 @@ In case not, the value returned can be arbitrary.
               end
              else
               begin
-              { load eof position in tokenpos/aktfilepos }
+              { load eof position in tokenpos/current_filepos }
                 gettokenpos;
               { close file }
                 closeinputfile;
@@ -2086,13 +2086,13 @@ In case not, the value returned can be arbitrary.
         akttokenpos.column:=lasttokenpos-lastlinepos;
         akttokenpos.fileindex:=inputfile.ref_index;
         akttokenpos.moduleindex:=current_module.unit_index;
-        aktfilepos:=akttokenpos;
+        current_filepos:=akttokenpos;
       end;
 
 
     procedure tscannerfile.inc_comment_level;
       var
-         oldaktfilepos : tfileposinfo;
+         oldcurrent_filepos : tfileposinfo;
       begin
          if (m_nested_comment in current_settings.modeswitches) then
            inc(comment_level)
@@ -2100,10 +2100,10 @@ In case not, the value returned can be arbitrary.
            comment_level:=1;
          if (comment_level>1) then
           begin
-             oldaktfilepos:=aktfilepos;
+             oldcurrent_filepos:=current_filepos;
              gettokenpos; { update for warning }
              Message1(scan_w_comment_level,tostr(comment_level));
-             aktfilepos:=oldaktfilepos;
+             current_filepos:=oldcurrent_filepos;
           end;
       end;
 
@@ -2121,7 +2121,7 @@ In case not, the value returned can be arbitrary.
       var
          cur : char;
          oldtokenpos,
-         oldaktfilepos : tfileposinfo;
+         oldcurrent_filepos : tfileposinfo;
       begin
         with inputfile do
          begin
@@ -2147,13 +2147,13 @@ In case not, the value returned can be arbitrary.
            if cs_asm_source in current_settings.globalswitches then
              inputfile.setline(line_no,lastlinepos);
            { update for status and call the show status routine,
-             but don't touch aktfilepos ! }
-           oldaktfilepos:=aktfilepos;
+             but don't touch current_filepos ! }
+           oldcurrent_filepos:=current_filepos;
            oldtokenpos:=akttokenpos;
            gettokenpos; { update for v_status }
            inc(status.compiledlines);
            ShowStatus;
-           aktfilepos:=oldaktfilepos;
+           current_filepos:=oldcurrent_filepos;
            akttokenpos:=oldtokenpos;
          end;
       end;
@@ -2290,9 +2290,9 @@ In case not, the value returned can be arbitrary.
 
     procedure tscannerfile.handleconditional(p:tdirectiveitem);
       var
-        oldaktfilepos : tfileposinfo;
+        oldcurrent_filepos : tfileposinfo;
       begin
-        oldaktfilepos:=aktfilepos;
+        oldcurrent_filepos:=current_filepos;
         repeat
           current_scanner.gettokenpos;
           p.proc();
@@ -2314,7 +2314,7 @@ In case not, the value returned can be arbitrary.
              Message1(scan_d_handling_switch,'$'+p.name);
            end;
         until false;
-        aktfilepos:=oldaktfilepos;
+        current_filepos:=oldcurrent_filepos;
       end;
 
 

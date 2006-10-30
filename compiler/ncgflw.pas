@@ -284,10 +284,10 @@ implementation
 (*
                    if not(cs_opt_regvar in current_settings.optimizerswitches) then
 *)
-                     aktfilepos:=current_asmdata.CurrAsmList.getlasttaifilepos^
+                     current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^
 (*
                    else
-                     aktfilepos:=then_list.getlasttaifilepos^
+                     current_filepos:=then_list.getlasttaifilepos^
 *)
                    ;
                    cg.a_jmp_always(current_asmdata.CurrAsmList,hl);

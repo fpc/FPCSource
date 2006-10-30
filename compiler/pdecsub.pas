@@ -725,7 +725,7 @@ implementation
                       Message(parser_e_methode_id_expected);
                     { rename the name to an unique name to avoid an
                       error when inserting the symbol in the symtable }
-                    orgsp:=orgsp+'$'+tostr(aktfilepos.line);
+                    orgsp:=orgsp+'$'+tostr(current_filepos.line);
                     aprocsym:=nil;
                   end;
                end
@@ -784,7 +784,7 @@ implementation
                          DuplicateSym(nil,srsym);
                         { rename the name to an unique name to avoid an
                           error when inserting the symbol in the symtable }
-                        orgsp:=orgsp+'$'+tostr(aktfilepos.line);
+                        orgsp:=orgsp+'$'+tostr(current_filepos.line);
                       end;
                    end;
               end;

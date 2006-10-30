@@ -159,9 +159,9 @@ implementation
           begin
             oldcodegenerror:=codegenerror;
             oldlocalswitches:=current_settings.localswitches;
-            oldpos:=aktfilepos;
+            oldpos:=current_filepos;
             if not inlining_procedure then
-              aktfilepos:=p.fileinfo;
+              current_filepos:=p.fileinfo;
             current_settings.localswitches:=p.localswitches;
             codegenerror:=false;
 {$ifdef EXTDEBUG}
@@ -186,7 +186,7 @@ implementation
               include(p.flags,nf_error);
             codegenerror:=codegenerror or oldcodegenerror;
             current_settings.localswitches:=oldlocalswitches;
-            aktfilepos:=oldpos;
+            current_filepos:=oldpos;
           end
          else
            codegenerror:=true;

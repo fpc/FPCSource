@@ -680,7 +680,7 @@ type
                     not(is_open_string(parasym.vardef)) and
                     not(equal_defs(left.resultdef,parasym.vardef)) then
                    begin
-                     aktfilepos:=left.fileinfo;
+                     current_filepos:=left.fileinfo;
                      CGMessage(type_e_strict_var_string_violation);
                    end;
 
@@ -1641,7 +1641,7 @@ type
                   not assigned(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym)) then
                 begin
                    if assigned(pt) then
-                     aktfilepos:=pt.fileinfo;
+                     current_filepos:=pt.fileinfo;
                    CGMessage(parser_e_wrong_parameter_size);
                    goto errorexit;
                 end;
@@ -1694,7 +1694,7 @@ type
                           else
                             begin
                               if assigned(left) then
-                               aktfilepos:=left.fileinfo;
+                               current_filepos:=left.fileinfo;
                               CGMessage(parser_e_wrong_parameter_size);
                               symtableprocentry.write_parameter_lists(nil);
                             end;

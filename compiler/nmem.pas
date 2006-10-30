@@ -352,7 +352,7 @@ implementation
                (left.nodetype in [stringconstn])
               ) then
          begin
-           aktfilepos:=left.fileinfo;
+           current_filepos:=left.fileinfo;
            CGMessage(type_e_no_addr_of_constant);
            exit;
          end;

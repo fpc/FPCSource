@@ -845,7 +845,7 @@ implementation
               cg.a_label(current_asmdata.CurrAsmList,pcaseblock(blocks[i])^.blocklabel);
               secondpass(pcaseblock(blocks[i])^.statement);
               { don't come back to case line }
-              aktfilepos:=current_asmdata.CurrAsmList.getlasttaifilepos^;
+              current_filepos:=current_asmdata.CurrAsmList.getlasttaifilepos^;
 {$ifdef OLDREGVARS}
               load_all_regvars(current_asmdata.CurrAsmList);
 {$endif OLDREGVARS}

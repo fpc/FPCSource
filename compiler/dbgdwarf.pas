@@ -2149,8 +2149,8 @@ end;
         i : longint;
         def: tdef;
       begin
-        storefilepos:=aktfilepos;
-        aktfilepos:=current_module.mainfilepos;
+        storefilepos:=current_filepos;
+        current_filepos:=current_module.mainfilepos;
 
         currabbrevnumber:=0;
         writing_def_dwarf:=false;
@@ -2263,7 +2263,7 @@ end;
         deftowritelist.free;
         deftowritelist:=nil;
 
-        aktfilepos:=storefilepos;
+        current_filepos:=storefilepos;
       end;
 
 

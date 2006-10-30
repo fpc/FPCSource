@@ -1641,7 +1641,7 @@ unit rgobj;
               ait_instruction:
                 with Taicpu(p) do
                   begin
-                    aktfilepos:=fileinfo;
+                    current_filepos:=fileinfo;
                     for i:=0 to ops-1 do
                       with oper[i]^ do
                         case typ of
@@ -1686,7 +1686,7 @@ unit rgobj;
             end;
             p:=Tai(p.next);
           end;
-        aktfilepos:=current_procinfo.exitpos;
+        current_filepos:=current_procinfo.exitpos;
       end;
 
 
@@ -1763,14 +1763,14 @@ unit rgobj;
               ait_instruction:
                 with Taicpu(p) do
                   begin
-                    aktfilepos:=fileinfo;
+                    current_filepos:=fileinfo;
                     if instr_spill_register(list,taicpu(p),regs_to_spill_set,spill_temps^) then
                       spill_registers:=true;
                   end;
             end;
             p:=Tai(p.next);
           end;
-        aktfilepos:=current_procinfo.exitpos;
+        current_filepos:=current_procinfo.exitpos;
         {Safe: this procedure is only called if there are spilled nodes.}
         with spillednodes do
           for i:=0 to length-1 do

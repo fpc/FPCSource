@@ -1380,12 +1380,12 @@ implementation
                       objectsymtable :
                         begin
                           p1:=csubscriptnode.create(srsym,load_self_node);
-                          node_tree_set_filepos(p1,aktfilepos);
+                          node_tree_set_filepos(p1,current_filepos);
                         end;
                       withsymtable :
                         begin
                           p1:=csubscriptnode.create(srsym,tnode(twithsymtable(srsymtable).withrefnode).getcopy);
-                          node_tree_set_filepos(p1,aktfilepos);
+                          node_tree_set_filepos(p1,current_filepos);
                         end;
                       else
                         p1:=cloadnode.create(srsym,srsymtable);

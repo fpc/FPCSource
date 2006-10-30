@@ -372,21 +372,22 @@ var
         module : tmodulebase;
       begin
       { fix status }
-        status.currentline:=aktfilepos.line;
-        status.currentcolumn:=aktfilepos.column;
-        module:=get_module(aktfilepos.moduleindex);
+        status.currentline:=current_filepos.line;
+        status.currentcolumn:=current_filepos.column;
+        module:=get_module(current_filepos.moduleindex);
         if assigned(module) and
            assigned(module.sourcefiles) and
            ((module.unit_index<>lastmoduleidx) or
-            (aktfilepos.fileindex<>lastfileidx)) then
+            (current_filepos.fileindex<>lastfileidx)) then
          begin
            { update status record }
            status.currentmodule:=module.modulename^;
-           status.currentsource:=module.sourcefiles.get_file_name(aktfilepos.fileindex);
-           status.currentsourcepath:=module.sourcefiles.get_file_path(aktfilepos.fileindex);
+           status.currentsource:=module.sourcefiles.get_file_name(current_filepos.fileindex);
+           status.currentsourcepath:=module.sourcefiles.get_file_path(current_filepos.fileindex);
+           
            { update lastfileidx only if name known PM }
            if status.currentsource<>'' then
-             lastfileidx:=aktfilepos.fileindex
+             lastfileidx:=current_filepos.fileindex
            else
              lastfileidx:=0;
            lastmoduleidx:=compiling_module.unit_index;
@@ -649,11 +650,11 @@ var
       var
         oldpos : tfileposinfo;
       begin
-        oldpos:=aktfilepos;
-        aktfilepos:=pos;
+        oldpos:=current_filepos;
+        current_filepos:=pos;
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[]),w,onqueue);
-        aktfilepos:=oldpos;
+        current_filepos:=oldpos;
       end;
 
 
@@ -661,11 +662,11 @@ var
       var
         oldpos : tfileposinfo;
       begin
-        oldpos:=aktfilepos;
-        aktfilepos:=pos;
+        oldpos:=current_filepos;
+        current_filepos:=pos;
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[s1]),w,onqueue);
-        aktfilepos:=oldpos;
+        current_filepos:=oldpos;
       end;
 
 
@@ -673,11 +674,11 @@ var
       var
         oldpos : tfileposinfo;
       begin
-        oldpos:=aktfilepos;
-        aktfilepos:=pos;
+        oldpos:=current_filepos;
+        current_filepos:=pos;
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[s1,s2]),w,onqueue);
-        aktfilepos:=oldpos;
+        current_filepos:=oldpos;
       end;
 
 
@@ -685,11 +686,11 @@ var
       var
         oldpos : tfileposinfo;
       begin
-        oldpos:=aktfilepos;
-        aktfilepos:=pos;
+        oldpos:=current_filepos;
+        current_filepos:=pos;
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[s1,s2,s3]),w,onqueue);
-        aktfilepos:=oldpos;
+        current_filepos:=oldpos;
       end;
 
 
@@ -697,11 +698,11 @@ var
       var
         oldpos : tfileposinfo;
       begin
-        oldpos:=aktfilepos;
-        aktfilepos:=pos;
+        oldpos:=current_filepos;
+        current_filepos:=pos;
         MaybeLoadMessageFile;
         Msg2Comment(msg^.Get(w,[s1,s2,s3,s4]),w,onqueue);
-        aktfilepos:=oldpos;
+        current_filepos:=oldpos;
       end;
 
 

@@ -554,8 +554,8 @@ implementation
            if (hdef.typesym=newtype) then
             begin
               { file position }
-              oldfilepos:=aktfilepos;
-              aktfilepos:=newtype.fileinfo;
+              oldfilepos:=current_filepos;
+              current_filepos:=newtype.fileinfo;
 
               { generate persistent init/final tables when it's declared in the interface so it can
                 be reused in other used }
@@ -595,7 +595,7 @@ implementation
                   generate_rtti(newtype);
                 end;
 
-              aktfilepos:=oldfilepos;
+              current_filepos:=oldfilepos;
             end;
          until token<>_ID;
          typecanbeforward:=false;

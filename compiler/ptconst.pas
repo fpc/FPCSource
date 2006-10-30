@@ -1043,8 +1043,8 @@ implementation
            elements sym=nil and we should skip this }
          if assigned(sym) then
            begin
-             storefilepos:=aktfilepos;
-             aktfilepos:=sym.fileinfo;
+             storefilepos:=current_filepos;
+             current_filepos:=sym.fileinfo;
              { insert cut for smartlinking or alignment }
              if writable then
                cursectype:=sec_data
@@ -1062,7 +1062,7 @@ implementation
                list.concat(Tai_symbol.Createname(sym.mangledname,AT_DATA,0));
              list.concatlist(datalist);
              list.concat(tai_symbol_end.Createname(sym.mangledname));
-             aktfilepos:=storefilepos;
+             current_filepos:=storefilepos;
            end
          else
            list.concatlist(datalist);

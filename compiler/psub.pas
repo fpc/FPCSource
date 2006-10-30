@@ -536,16 +536,16 @@ implementation
         newstatement : tstatementnode;
         oldfilepos   : tfileposinfo;
       begin
-        oldfilepos:=aktfilepos;
+        oldfilepos:=current_filepos;
         { Generate code/locations used at start of proc }
-        aktfilepos:=entrypos;
+        current_filepos:=entrypos;
         entry_asmnode:=casmnode.create_get_position;
         loadpara_asmnode:=casmnode.create_get_position;
         stackcheck_asmnode:=casmnode.create_get_position;
         init_asmnode:=casmnode.create_get_position;
         bodyentrycode:=generate_bodyentry_block;
         { Generate code/locations used at end of proc }
-        aktfilepos:=exitpos;
+        current_filepos:=exitpos;
         exitlabel_asmnode:=casmnode.create_get_position;
         final_asmnode:=casmnode.create_get_position;
         bodyexitcode:=generate_bodyexit_block;
@@ -561,7 +561,7 @@ implementation
           begin
             { Generate special exception block only needed when
               implicit finaly is used }
-            aktfilepos:=exitpos;
+            current_filepos:=exitpos;
             exceptcode:=generate_except_block;
             { Generate code that will be in the try...finally }
             finalcode:=internalstatements(codestatement);
@@ -573,7 +573,7 @@ implementation
             addstatement(newstatement,entry_asmnode);
             addstatement(newstatement,init_asmnode);
             addstatement(newstatement,bodyentrycode);
-            aktfilepos:=entrypos;
+            current_filepos:=entrypos;
             addstatement(newstatement,ctryfinallynode.create_implicit(
                code,
                finalcode,
@@ -596,7 +596,7 @@ implementation
           end;
         do_firstpass(newblock);
         code:=newblock;
-        aktfilepos:=oldfilepos;
+        current_filepos:=oldfilepos;
       end;
 
 
@@ -691,11 +691,11 @@ implementation
           internalerror(200309201);
 
         oldprocinfo:=current_procinfo;
-        oldfilepos:=aktfilepos;
+        oldfilepos:=current_filepos;
         oldmaxfpuregisters:=current_settings.maxfpuregisters;
 
         current_procinfo:=self;
-        aktfilepos:=entrypos;
+        current_filepos:=entrypos;
 
         templist:=TAsmList.create;
 
@@ -784,7 +784,7 @@ implementation
             generate_parameter_info;
 
             { Allocate space in temp/registers for parast and localst }
-            aktfilepos:=entrypos;
+            current_filepos:=entrypos;
             gen_alloc_symtable(aktproccode,procdef.parast);
             gen_alloc_symtable(aktproccode,procdef.localst);
 
@@ -799,7 +799,7 @@ implementation
 {$ifdef oldregvars}
             assign_regvars(code);
 {$endif oldreg}
-            aktfilepos:=entrypos;
+            current_filepos:=entrypos;
             { record which registers are allocated here, since all code }
             { allocating registers comes after it                       }
             cg.set_regalloc_extend_backwards(true);
@@ -826,7 +826,7 @@ implementation
 
             { first generate entry and initialize code with the correct
               position and switches }
-            aktfilepos:=entrypos;
+            current_filepos:=entrypos;
             current_settings.localswitches:=entryswitches;
 
             cg.set_regalloc_extend_backwards(true);
@@ -838,7 +838,7 @@ implementation
 
             { now generate finalize and exit code with the correct position
               and switches }
-            aktfilepos:=exitpos;
+            current_filepos:=exitpos;
             current_settings.localswitches:=exitswitches;
 
             cg.set_regalloc_extend_backwards(false);
@@ -875,7 +875,7 @@ implementation
 {$endif OLDREGVARS}
 
             { generate symbol and save end of header position }
-            aktfilepos:=entrypos;
+            current_filepos:=entrypos;
             gen_proc_symbol(templist);
             headertai:=tai(templist.last);
             { insert symbol }
@@ -883,7 +883,7 @@ implementation
 
             { Free space in temp/registers for parast and localst, must be
               done after gen_entry_code }
-            aktfilepos:=exitpos;
+            current_filepos:=exitpos;
             gen_free_symtable(aktproccode,procdef.localst);
             gen_free_symtable(aktproccode,procdef.parast);
 
@@ -899,14 +899,14 @@ implementation
                not(po_assembler in procdef.procoptions) and
                (procdef.proctypeoption<>potype_proginit) then
               begin
-                aktfilepos:=entrypos;
+                current_filepos:=entrypos;
                 gen_stack_check_call(templist);
                 aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
               end;
 
             { load got if necessary }
             cg.set_regalloc_extend_backwards(true);
-            aktfilepos:=entrypos;
+            current_filepos:=entrypos;
             gen_got_load(templist);
             aktproccode.insertlistafter(headertai,templist);
 
@@ -924,10 +924,10 @@ implementation
             current_procinfo.procdef.localst.foreach_static(@translate_registers,templist);
 
             { Add save and restore of used registers }
-            aktfilepos:=entrypos;
+            current_filepos:=entrypos;
             gen_save_used_regs(templist);
             aktproccode.insertlistafter(headertai,templist);
-            aktfilepos:=exitpos;
+            current_filepos:=exitpos;
             gen_restore_used_regs(aktproccode);
             { We know the size of the stack, now we can generate the
               parameter that is passed to the stack checking code }
@@ -935,16 +935,16 @@ implementation
                not(po_assembler in procdef.procoptions) and
                (procdef.proctypeoption<>potype_proginit) then
               begin
-                aktfilepos:=entrypos;
+                current_filepos:=entrypos;
                 gen_stack_check_size_para(templist);
                 aktproccode.insertlistafter(stackcheck_asmnode.currenttai,templist)
               end;
             { Add entry code (stack allocation) after header }
-            aktfilepos:=entrypos;
+            current_filepos:=entrypos;
             gen_proc_entry_code(templist);
             aktproccode.insertlistafter(headertai,templist);
             { Add exit code at the end }
-            aktfilepos:=exitpos;
+            current_filepos:=exitpos;
             gen_proc_exit_code(templist);
             aktproccode.concatlist(templist);
 
@@ -977,7 +977,7 @@ implementation
               insertpcrelativedata will be wrong, further the pc indirect data is part of the procedure
               so it should be inserted before the end symbol (FK)
             }
-            aktfilepos:=exitpos;
+            current_filepos:=exitpos;
             gen_proc_symbol_end(templist);
             aktproccode.concatlist(templist);
 {$ifdef POWERPC}
@@ -1015,7 +1015,7 @@ implementation
         { restore }
         templist.free;
         current_settings.maxfpuregisters:=oldmaxfpuregisters;
-        aktfilepos:=oldfilepos;
+        current_filepos:=oldfilepos;
         current_procinfo:=oldprocinfo;
       end;
 
@@ -1153,7 +1153,7 @@ implementation
          add_to_symtablestack;
 
          { save entry info }
-         entrypos:=aktfilepos;
+         entrypos:=current_filepos;
          entryswitches:=current_settings.localswitches;
 
          if (df_generic in procdef.defoptions) then
@@ -1679,7 +1679,7 @@ implementation
     procedure specialize_objectdefs(p:tnamedindexitem;arg:pointer);
       var
         hp : tdef;
-        oldaktfilepos : tfileposinfo;
+        oldcurrent_filepos : tfileposinfo;
       begin
         if not((tsym(p).typ=typesym) and
                (ttypesym(p).typedef.deftype=objectdef) and
@@ -1699,12 +1699,12 @@ implementation
                       assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf)
                      ) then
                  internalerror(200512111);
-               oldaktfilepos:=aktfilepos;
-               aktfilepos:=tprocdef(tprocdef(hp).genericdef).fileinfo;
-               akttokenpos:=aktfilepos;
+               oldcurrent_filepos:=current_filepos;
+               current_filepos:=tprocdef(tprocdef(hp).genericdef).fileinfo;
+               akttokenpos:=current_filepos;
                current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf);
                read_proc_body(nil,tprocdef(hp));
-               aktfilepos:=oldaktfilepos;
+               current_filepos:=oldcurrent_filepos;
              end;
            hp:=tdef(hp.indexnext);
          end;

@@ -408,7 +408,7 @@ interface
          if not(hp.typ in SkipLineInfo) then
            begin
              hp1:=hp as tailineinfo;
-             aktfilepos:=hp1.fileinfo;
+             current_filepos:=hp1.fileinfo;
              if do_line then
               begin
               { load infile }

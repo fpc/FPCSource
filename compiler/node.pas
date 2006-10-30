@@ -652,7 +652,7 @@ implementation
          { updated by secondpass }
          location.loc:=LOC_INVALID;
          { save local info }
-         fileinfo:=aktfilepos;
+         fileinfo:=current_filepos;
          localswitches:=current_settings.localswitches;
          resultdef:=nil;
          registersint:=0;

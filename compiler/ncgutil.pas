@@ -273,8 +273,8 @@ implementation
       begin
          if nf_error in p.flags then
            exit;
-         storepos:=aktfilepos;
-         aktfilepos:=p.fileinfo;
+         storepos:=current_filepos;
+         current_filepos:=p.fileinfo;
          if is_boolean(p.resultdef) then
            begin
 {$ifdef OLDREGVARS}
@@ -324,7 +324,7 @@ implementation
            end
          else
            internalerror(200112305);
-         aktfilepos:=storepos;
+         current_filepos:=storepos;
       end;
 
 
@@ -2159,8 +2159,8 @@ implementation
         list : TAsmList;
         sectype : TAsmSectiontype;
       begin
-        storefilepos:=aktfilepos;
-        aktfilepos:=sym.fileinfo;
+        storefilepos:=current_filepos;
+        current_filepos:=sym.fileinfo;
         l:=sym.getsize;
         if tf_section_threadvars in target_info.flags then
           begin
@@ -2195,7 +2195,7 @@ implementation
           list.concat(Tai_datablock.create_global(sym.mangledname,l))
         else
           list.concat(Tai_datablock.create(sym.mangledname,l));
-        aktfilepos:=storefilepos;
+        current_filepos:=storefilepos;
       end;
 
 

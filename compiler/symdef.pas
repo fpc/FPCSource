@@ -913,7 +913,7 @@ implementation
          inherited create(dt);
          savesize := 0;
 {$ifdef EXTDEBUG}
-         fileinfo := aktfilepos;
+         fileinfo := current_filepos;
 {$endif}
          fillchar(localrttilab,sizeof(localrttilab),0);
          generictokenbuf:=nil;
@@ -3253,7 +3253,7 @@ implementation
       begin
          inherited create(procdef,level);
          _mangledname:=nil;
-         fileinfo:=aktfilepos;
+         fileinfo:=current_filepos;
          extnumber:=$ffff;
          aliasnames:=tstringlist.create;
          funcretsym:=nil;
