@@ -275,11 +275,7 @@ unit cpupara;
                begin
                  paraloc:=hp.paraloc[side].add_location;
 
-                 if (paradef.deftype <> orddef) then
-                   paracgsize := int_cgsize(paralen);
-                 if (paracgsize in [OS_NO,OS_64,OS_S64]) then
-                   paraloc^.size := OS_32
-                 else if (loc=LOC_REGISTER) and (paracgsize in [OS_F32,OS_F64,OS_F80]) then
+                 if (loc=LOC_REGISTER) and (paracgsize in [OS_F32,OS_F64,OS_F80]) then
                    case paracgsize of
                      OS_F32:
                        paraloc^.size:=OS_32;
@@ -288,6 +284,8 @@ unit cpupara;
                      else
                        internalerror(2005082901);
                    end
+                 else if (paracgsize in [OS_NO,OS_64,OS_S64]) then
+                   paraloc^.size := OS_32
                  else
                    paraloc^.size:=paracgsize;
                  case loc of
