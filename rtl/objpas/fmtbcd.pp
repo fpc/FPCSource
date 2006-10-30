@@ -3687,7 +3687,7 @@ procedure TFMTBcdFactory.BinaryOp(var Left: TVarData; const Right: TVarData; con
   end;
 
 {$if declared ( myMinIntBCD ) }
-
+(*
   {$if sizeof ( integer ) = 2 }
     {$ifdef BCDgr4 }
 
@@ -3697,12 +3697,14 @@ procedure TFMTBcdFactory.BinaryOp(var Left: TVarData; const Right: TVarData; con
     {$endif}
   {$else}
     {$if sizeof ( integer ) = 4 }
+*)
       {$ifdef BCDgr9 }
 
   const
     myMinIntBCDValue : packed array [ 1..10 ] of Char = #$21#$47#$48#$36#$48;
 
       {$endif}
+(*
     {$else}
       {$if sizeof ( integer ) = 8 }
         {$ifdef BCDgr18 }
@@ -3716,6 +3718,7 @@ procedure TFMTBcdFactory.BinaryOp(var Left: TVarData; const Right: TVarData; con
       {$endif}
     {$endif}
   {$endif}
+*)
 {$endif}
 
 initialization
