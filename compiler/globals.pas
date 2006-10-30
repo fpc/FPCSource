@@ -113,7 +113,7 @@ interface
          fileindex : word;
          { moduleindex : word; }
        end;
-       
+
        tcodepagestring = string[20];
 
        tsettings = record
@@ -136,7 +136,7 @@ interface
          sourcecodepage  : tcodepagestring;
 
          packrecords     : shortint;
-         maxfpuregisters : byte;
+         maxfpuregisters : shortint;
        end;
 
 
@@ -242,7 +242,7 @@ interface
 
        init_settings,
        current_settings   : tsettings;
-       
+
        nextlocalswitches : tlocalswitches;
        localswitcheschanged : boolean;
 
