@@ -153,9 +153,9 @@ implementation
                  (dir.Name<>'..') then
                 begin
                   if not(tf_files_case_sensitive in source_info.flags) then
-                    DirectoryEntries.Add(Lower(Dir.Name),Pointer(Dir.Attr))
+                    DirectoryEntries.Add(Lower(Dir.Name),Pointer(Ptrint(Dir.Attr)))
                   else
-                    DirectoryEntries.Add(Dir.Name,Pointer(Dir.Attr));
+                    DirectoryEntries.Add(Dir.Name,Pointer(Ptrint(Dir.Attr)));
                 end;
             until findnext(dir) <> 0;
           end;
