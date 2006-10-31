@@ -495,12 +495,12 @@ operator :=(const source : variant) dest : tdatetime;{$ifdef SYSTEMINLINE}inline
     dest:=variantmanager.vartotdatetime(source);
   end;
 
-
+{$ifndef FPC_HASINTERNALOLEVARIANT2VARIANTCAST}
 operator :=(const source : olevariant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     tvardata(result):=tvardata(source);
   end;
-
+{$endif FPC_HASINTERNALOLEVARIANT2VARIANTCAST}
 
 operator :=(const source : variant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin

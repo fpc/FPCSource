@@ -827,6 +827,17 @@ implementation
                                eq:=te_convert_l1;
                             end;
                        end;
+                     variantdef :
+                       begin
+                         { doing this in the compiler avoids a lot of unncessary
+                           copying }
+                         if (tvariantdef(def_from).varianttype=vt_olevariant) and
+                           (tvariantdef(def_to).varianttype=vt_normalvariant) then
+                           begin
+                             doconv:=tc_equal;
+                             eq:=te_convert_l1;
+                           end;
+                       end;
                    end;
                  end;
              end;

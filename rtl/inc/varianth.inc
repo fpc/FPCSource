@@ -303,7 +303,11 @@ operator :=(const source : variant) dest : comp;{$ifdef SYSTEMINLINE}inline;{$en
 operator :=(const source : variant) dest : real;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif VER2_0}
 
+{ done by the compiler now }
+{$ifndef FPC_HASINTERNALOLEVARIANT2VARIANTCAST}
 operator :=(const source : olevariant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HASINTERNALOLEVARIANT2VARIANTCAST}
+
 operator :=(const source : variant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Misc. }

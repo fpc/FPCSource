@@ -1898,6 +1898,7 @@ begin
   def_system_macro('PARAOUTFILE');
   def_system_macro('RESSTRSECTIONS');
   def_system_macro('FPC_HASFIXED64BITVARIANT');
+  def_system_macro('FPC_HASINTERNALOLEVARIANT2VARIANTCAST');
 {$ifdef x86}
 {  def_system_macro('INTERNAL_BACKTRACE');}
 {$endif}
