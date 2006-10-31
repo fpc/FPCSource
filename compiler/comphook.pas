@@ -379,13 +379,8 @@ end;
 
 
 Function def_GetNamedFileTime (Const F : String) : Longint;
-var
-  fh : THandle;
 begin
-  Result := -1;
-  fh := FileOpen(f, faArchive+faReadOnly+faHidden);
-  Result := FileGetDate(fh);
-  FileClose(fh);
+  Result:=FileAge(F);
 end;
 
 end.
