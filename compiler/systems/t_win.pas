@@ -922,7 +922,7 @@ implementation
             Concat('HEADER');
             Concat('EXESECTION .text');
             if target_info.system=system_arm_wince then
-              Concat('  OBJSECTION .pdata.FPC_EH_PROLOG');
+              Concat('  OBJSECTION .pdata.n_FPC_EH_PROLOG');
             Concat('  OBJSECTION .text*');
             Concat('  SYMBOL ___CTOR_LIST__');
             Concat('  SYMBOL __CTOR_LIST__');
@@ -1122,7 +1122,7 @@ implementation
             Add('  .text  __image_base__ + ( __section_alignment__ < 0x1000 ? . : __section_alignment__ ) :');
             Add('  {');
 {$ifdef arm}
-            Add('    *(.pdata.FPC_EH_PROLOG)');
+            Add('    *(.pdata.n_FPC_EH_PROLOG)');
 {$endif arm}
             Add('    *(.init)');
             add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
