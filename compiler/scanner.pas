@@ -1946,7 +1946,9 @@ In case not, the value returned can be arbitrary.
           { load token from the buffer }
           replaytokenbuf.read(token,1);
           if token=_ID then
-            replaytokenbuf.read(idtoken,1);
+            replaytokenbuf.read(idtoken,1)
+          else
+            idtoken:=_NOID;
           case token of
             _CWCHAR,
             _CWSTRING :
@@ -1978,11 +1980,20 @@ In case not, the value returned can be arbitrary.
                   ST_LOADSETTINGS:
                     replaytokenbuf.read(current_settings,sizeof(current_settings));
                   ST_LINE:
-                    replaytokenbuf.read(current_tokenpos.line,sizeof(current_tokenpos.line));
+                    begin
+                      replaytokenbuf.read(current_tokenpos.line,sizeof(current_tokenpos.line));
+                      current_filepos:=current_tokenpos;
+                    end;
                   ST_COLUMN:
-                    replaytokenbuf.read(current_tokenpos.column,sizeof(current_tokenpos.column));
+                    begin
+                      replaytokenbuf.read(current_tokenpos.column,sizeof(current_tokenpos.column));
+                      current_filepos:=current_tokenpos;
+                    end;
                   ST_FILEINDEX:
-                    replaytokenbuf.read(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
+                    begin
+                      replaytokenbuf.read(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
+                      current_filepos:=current_tokenpos;
+                    end;
                   else
                     internalerror(2006103010);
                 end;

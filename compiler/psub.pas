@@ -1693,18 +1693,19 @@ implementation
          begin
            if hp.deftype=procdef then
              begin
-               if not(
-                      assigned(tprocdef(hp).genericdef) and
-                      (tprocdef(hp).genericdef.deftype=procdef) and
-                      assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf)
-                     ) then
-                 internalerror(200512111);
-               oldcurrent_filepos:=current_filepos;
-               current_filepos:=tprocdef(tprocdef(hp).genericdef).fileinfo;
-               current_tokenpos:=current_filepos;
-               current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf);
-               read_proc_body(nil,tprocdef(hp));
-               current_filepos:=oldcurrent_filepos;
+               if assigned(tprocdef(hp).genericdef) and
+                 (tprocdef(hp).genericdef.deftype=procdef) and
+                 assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf) then
+                 begin
+                   oldcurrent_filepos:=current_filepos;
+                   current_filepos:=tprocdef(tprocdef(hp).genericdef).fileinfo;
+                   current_tokenpos:=current_filepos;
+                   current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf);
+                   read_proc_body(nil,tprocdef(hp));
+                   current_filepos:=oldcurrent_filepos;
+                 end
+               else
+                 MessagePos1(tprocdef(tprocdef(hp).genericdef).fileinfo,sym_e_forward_not_resolved,tprocdef(tprocdef(hp).genericdef).fullprocname(false));
              end;
            hp:=tdef(hp.indexnext);
          end;
