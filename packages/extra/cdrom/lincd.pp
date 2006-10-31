@@ -1152,15 +1152,15 @@ begin
   Result:=False;
   If fpstat(device,info)<>0 then
     exit;
-  if not (fpS_ISCHR(info.mode) or
-     fpS_ISBLK(info.mode)) then
+  if not (fpS_ISCHR(info.st_mode) or
+     fpS_ISBLK(info.st_mode)) then
     exit;
   S:=fpReadLink(Device);
   If (S<>'') then
     Device:=S;
   If fpStat(Device,info)<>0 then
     exit;
-  DeviceMajor:=info.rdev shr 8;
+  DeviceMajor:=info.st_rdev shr 8;
   If DeviceMajor in [IDE0_MAJOR,IDE1_MAJOR,IDE2_MAJOR,IDE3_MAJOR] then
       Result:=TestCDRomIOCTL(Device)
   else
