@@ -29,6 +29,9 @@ interface
 {$ifdef win32}
       windows,
 {$endif}
+{$ifdef os2}
+      dos,
+{$endif os2}
 {$ifdef hasunix}
       Baseunix,unix,
 {$endif}
@@ -479,7 +482,7 @@ implementation
       {$ifdef GETENVOK}
         {$undef GETENVOK}
       {$else}
-        GetEnvPchar:=StrPNew(Dos.Getenv(envname));
+        GetEnvPchar:=StrPNew(GetEnvironmentVariable(envname));
       {$endif}
       end;
 

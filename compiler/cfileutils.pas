@@ -34,6 +34,9 @@ interface
 {$ifdef win32}
       Windows,
 {$endif win32}
+{$if defined(go32v2) or defined(watcom)}
+      Dos,
+{$endif}
 {$IFNDEF USE_FAKE_SYSUTILS}
       SysUtils,
 {$ELSE}
@@ -1037,12 +1040,7 @@ implementation
             GetShortName:=hs2;
           end;
 {$endif}
-{$ifdef go32v2}
-        hs:=n;
-        if Dos.GetShortName(hs) then
-         GetShortName:=hs;
-{$endif}
-{$ifdef watcom}
+{$if defined(go32v2) or defined(watcom)}
         hs:=n;
         if Dos.GetShortName(hs) then
          GetShortName:=hs;
