@@ -340,20 +340,20 @@ function fpRead(handle : longint;var bufptr;size : dword) : dword;
        SocketError:=0;
   end;
 {$else}
-{ mimic the linux fdWrite/fdRead calls for the file/text socket wrapper }
-function fdWrite(handle : longint;Const bufptr;size : dword) : dword;
+{ mimic the linux fpWrite/fpRead calls for the file/text socket wrapper }
+function fpWrite(handle : longint;Const bufptr;size : dword) : dword;
 begin
-  fdWrite := dword(WinSock.send(handle, bufptr, size, 0));
-  if fdWrite = dword(SOCKET_ERROR) then
+  fpWrite := dword(WinSock.send(handle, bufptr, size, 0));
+  if fpWrite = dword(SOCKET_ERROR) then
   begin
     SocketError := WSAGetLastError;
-    fdWrite := 0;
+    fpWrite := 0;
   end
   else
     SocketError := 0;
 end;
 
-function fdRead(handle : longint;var bufptr;size : dword) : dword;
+function fpRead(handle : longint;var bufptr;size : dword) : dword;
   var
      d : dword;
 
@@ -361,18 +361,18 @@ function fdRead(handle : longint;var bufptr;size : dword) : dword;
      if ioctlsocket(handle,FIONREAD,@d) = SOCKET_ERROR then
        begin
          SocketError:=WSAGetLastError;
-         fdRead:=0;
+         fpRead:=0;
          exit;
        end;
      if d>0 then
        begin
          if size>d then
            size:=d;
-         fdRead := dword(WinSock.recv(handle, bufptr, size, 0));
-         if fdRead = dword(SOCKET_ERROR) then
+         fpRead := dword(WinSock.recv(handle, bufptr, size, 0));
+         if fpRead = dword(SOCKET_ERROR) then
          begin
            SocketError:= WSAGetLastError;
-           fdRead := 0;
+           fpRead := 0;
          end else
            SocketError:=0;
        end

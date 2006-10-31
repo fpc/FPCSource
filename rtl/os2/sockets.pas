@@ -240,20 +240,20 @@ begin
   SocketPair:=-1;
 end;
 
-{ mimic the linux fdWrite/fdRead calls for the file/text socket wrapper }
-function fdWrite(handle : longint;Const bufptr;size : dword) : dword;
+{ mimic the linux fpWrite/fpRead calls for the file/text socket wrapper }
+function fpWrite(handle : longint;Const bufptr;size : dword) : dword;
 begin
-  fdWrite := dword(fpsend(handle, @bufptr, size, 0));
-  if fdWrite = dword(-1) then
+  fpWrite := dword(fpsend(handle, @bufptr, size, 0));
+  if fpWrite = dword(-1) then
   begin
     SocketError := so32dll.sock_errno;
-    fdWrite := 0;
+    fpWrite := 0;
   end
   else
     SocketError := 0;
 end;
 
-function fdRead(handle : longint;var bufptr;size : dword) : dword;
+function fpRead(handle : longint;var bufptr;size : dword) : dword;
 var
   d : dword;
 begin
@@ -261,16 +261,16 @@ begin
   if d=dword(-1) then
   begin
     SocketError:=so32dll.sock_errno;
-    fdRead:=0;
+    fpRead:=0;
   end else
   begin
     if size>d then
       size:=d;
-    fdRead := dword(so32dll.recv(handle, bufptr, size, 0));
-    if fdRead = dword(-1) then
+    fpRead := dword(so32dll.recv(handle, bufptr, size, 0));
+    if fpRead = dword(-1) then
     begin
       SocketError:= so32dll.sock_errno;
-      fdRead := 0;
+      fpRead := 0;
     end else
       SocketError:=0;
   end;

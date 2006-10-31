@@ -33,7 +33,7 @@ fpcdir=../..
 target=win32
 
 [compiler]
-includedir=$(INC) $(PROCINC)
+includedir=$(INC) $(PROCINC) $(WINDIR)
 sourcedir=$(INC) $(PROCINC) $(COMMON) $(WINDIR)
 
 
