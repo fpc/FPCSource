@@ -14,50 +14,27 @@
 
 {$ifndef FPC_USE_LIBC} // kernel record
 
-  stat = packed record
-     case byte of
-      0: (
-    st_dev : qword;
-    st_ino : qword;
-    st_nlink : qword;
-
-    st_mode : dword;
-    st_uid : dword;
-    st_gid : dword;
-    __pad0 : dword;
-    st_rdev : qword;
-    st_size : int64;
-    st_blksize : int64;
-    st_blocks : int64;      { Number 512-byte blocks allocated. }
-
-    st_atime : qword;
-    __reserved0 : qword;    { reserved for atime.nanoseconds }
-    st_mtime : qword;
-    __reserved1 : qword;    { reserved for atime.nanoseconds }
-    st_ctime : qword;
-    __reserved2 : qword;    { reserved for atime.nanoseconds }
-    __unused : array[0..2] of int64;
-         );
-      1: (
-          dev,
-          ino,
-          nlink : qword;
-          mode,
-          uid,
-          gid           : dword;
-          pad1_dummy : dword;
-          rdev          : qword;
-          size,
-          blksize,
-          blocks    : int64;
-          atime,
-          unused1_dummy,
-          mtime,
-          unused2_dummy,
-          ctime,
-          unused3_dummy,
-          unused4_dummy,
-          unused5_dummy : qword;)
+  Stat = packed record  // No unix typing because of differences
+    st_dev    : culong;
+    st_ino    : culong;
+    st_nlink  : cuint;
+    st_mode   : cuint;
+    st_uid    : cuint;
+    st_gid    : cuint;
+    __pad0    : cuint;
+    st_rdev   : culonglong;
+    __pad2    : cushort;
+    st_size   : clong;
+    st_blksize: clong;
+    st_blocks : clong;
+    st_atime  : culong;
+    st_atime_nsec : culong;
+    st_mtime  : culong;
+    st_mtime_nsec : culong;
+    st_ctime  : culong;
+    st_ctime_nsec : culong;
+    __unused4 : cuint;
+    __unused5 : cuint;
   end;
 
 {$else}

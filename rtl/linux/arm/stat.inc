@@ -12,47 +12,25 @@
 
  **********************************************************************}
 
-  Stat = packed Record  // No unix typing because of differences
-    case byte of
-      0: (st_dev,
-          __pad1    : word;
-          st_ino    : cardinal;
-          st_mode,
-          nlink,
-          uid,
-          gid,
-          rdev,
-          __pad2    : word;
-          st_size,
-          st_blksize,
-          st_blocks,
-          st_atime,
-          __unused1,
-          st_mtime,
-          __unused2,
-          st_ctime,
-          __unused3,
-          __unused4,
-          __unused5  : cardinal;);
-      1: (dev,
-          __pad3    : word;
-          ino       : cardinal;
-          mode,
-          nlink_dummy,
-          uid_dummy,
-          gid_dummy,
-          rdev_dummy,
-          __pad4     : word;
-          size,
-          blksize,
-          blocks,
-          atime,
-          __unused1_dummy,
-          mtime,
-          __unused2_dummy,
-          ctime,
-          __unused3_dummy,
-          __unused4_dummy,
-          __unused5_dummy  : cardinal;);
+  Stat = packed record  // No unix typing because of differences
+    st_dev    : culonglong;
+    __pad0    : array[0..3] of cuchar;
+    __st_ino  : culong;
+    st_mode   : cuint;
+    st_nlink  : cuint;
+    st_uid    : culong;
+    st_gid    : culong;
+    st_rdev   : culonglong;
+    __pad3    : array[0..3] of cuchar;
+    st_size   : culonglong;
+    st_blksize: culong;
+    st_blocks : culonglong;
+    st_atime  : culong;
+    st_atime_nsec : culong;
+    st_mtime  : culong;
+    st_mtime_nsec : culong;
+    st_ctime  : culong;
+    st_ctime_nsec : culong;
+    st_ino    : culonglong;
   end;
 

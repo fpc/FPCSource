@@ -83,58 +83,7 @@ const
 
 type
 
-{$ifdef FPC_USE_LIBC}
-
 {$i stat.inc}
-
-{$else}
-
-{$if defined(CPUPOWERPC) or defined(CPUPOWERPC64) or defined(CPUSPARC) or defined(CPUSPARC64)}
-  {$define CLEAN_STAT64}
-{$endif}
-
-  { file characteristics services }
-  { this record is incorrect for alpha, frv, h8300, mips, parisc, v850, xtensa }
-   stat    = record
-        st_dev        : dev_t;             // inode's device        
-{$ifdef CLEAN_STAT64}
-        st_ino        : ino64_t;
-{$else}        
-        pad1          : array[0..3] of byte;
-        __st_ino      : ino_t;             // inode's number
-{$endif}        
-        st_mode       : mode_t;            // inode protection mode
-        st_nlink      : nlink_t;           // number of hard links
-        st_uid        : uid_t;             // user ID of the file's owner
-        st_gid        : gid_t;             // group ID of the file's group
-        st_rdev       : dev_t;             // device type
-{$ifdef CPUSPARC}
-        pad2          : array[0..7] of byte;
-{$else}
-{$ifdef CLEAN_STAT64}        
-        pad2          : cushort;
-{$else}
-        pad2          : array[0..3] of byte;
-{$endif}        
-{$endif}        
-        st_size       : off64_t;           // file size, in bytes
-        st_blksize    : blksize_t;         // optimal blocksize for I/O
-        st_blocks     : blkcnt64_t;        // blocks allocated for file
-        st_atime      : time_t;            // time of last access
-        st_atime_nsec : culong;
-        st_mtime      : time_t;            // time of last data modification
-        st_mtime_nsec : culong;
-        st_ctime      : time_t;            // time of last file status change
-        st_ctime_nsec : culong;
-{$ifdef CLEAN_STAT64}
-        pad4          : cuint;
-        pad5          : cuint;
-{$else}
-        st_ino        : ino64_t;
-{$endif}        
-   end;
-
-{$endif}
 
   TStat      = Stat;
   PStat      = ^Stat;

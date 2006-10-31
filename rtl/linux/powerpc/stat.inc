@@ -24,46 +24,27 @@
 {$PACKRECORDS C}
 
 {$IFNDEF FPC_USE_LIBC}
-  stat = record
-    case byte of
-      0: (
-        st_dev     : cULong;   { actually dev_t, but this one is defined wrongly }
-        st_ino     : ino_t;
-        st_mode    : mode_t;
-        st_nlink   : nlink_t;
-        st_uid     : uid_t;
-        st_gid     : gid_t;
-        st_rdev    : cULong;   { actually dev_t, but this one is defined wrongly }
-        st_size    : off_t;
-        st_blksize : cULong;
-        st_blocks  : cULong;
-        st_atime,
-        __unused1,
-        st_mtime,
-        __unused2,
-        st_ctime,
-        __unused3,
-        __unused4,
-        __unused5  : cULong);
-      1: (
-        dev    : cULong;
-        ino    : ino_t;
-        mode   : mode_t;
-        nlink  : nlink_t;
-        uid    : uid_t;
-        gid    : gid_t;
-        rdev   : cULong;
-        size   : off_t;
-        blksize,
-        blocks,
-        atime,
-        __unused1_dummy,
-        mtime,
-        __unused2_dummy,
-        ctime,
-        __unused3_dummy,
-        __unused4_dummy,
-        __unused5_dummy  : cULong);
+
+  Stat = packed record  // No unix typing because of differences
+    st_dev    : culonglong;
+    st_ino    : culonglong;
+    st_mode   : cuint;
+    st_nlink  : cuint;
+    st_uid    : cuint;
+    st_gid    : cuint;
+    st_rdev   : culonglong;
+    __pad2    : cushort;
+    st_size   : clonglong;
+    st_blksize: cint;
+    st_blocks : clonglong;
+    st_atime  : cint;
+    st_atime_nsec : cuint;
+    st_mtime  : cint;
+    st_mtime_nsec : cuint;
+    st_ctime  : cint;
+    st_ctime_nsec : cuint;
+    __unused4 : cuint;
+    __unused5 : cuint;
   end;
 
 {$ELSE FPC_USE_LIBC}
