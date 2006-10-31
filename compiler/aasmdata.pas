@@ -133,10 +133,10 @@ interface
         function  RefAsmSymbol(const s : string) : tasmsymbol;
         function  getasmsymbol(const s : string) : tasmsymbol;
         { create new assembler label }
-        procedure getlabel(var l : tasmlabel;alt:tasmlabeltype);
-        procedure getjumplabel(var l : tasmlabel);
-        procedure getaddrlabel(var l : tasmlabel);
-        procedure getdatalabel(var l : tasmlabel);
+        procedure getlabel(out l : tasmlabel;alt:tasmlabeltype);
+        procedure getjumplabel(out l : tasmlabel);
+        procedure getaddrlabel(out l : tasmlabel);
+        procedure getdatalabel(out l : tasmlabel);
         { generate an alternative (duplicate) symbol }
         procedure GenerateAltSymbol(p:tasmsymbol);
         procedure ResetAltSymbols;
@@ -386,7 +386,7 @@ implementation
       end;
 
 
-    procedure TAsmData.getlabel(var l : tasmlabel;alt:tasmlabeltype);
+    procedure TAsmData.getlabel(out l : tasmlabel;alt:tasmlabeltype);
       begin
         l:=tasmlabel.createlocal(FNextLabelNr[alt],alt);
         inc(FNextLabelNr[alt]);
@@ -394,7 +394,7 @@ implementation
       end;
 
 
-    procedure TAsmData.getjumplabel(var l : tasmlabel);
+    procedure TAsmData.getjumplabel(out l : tasmlabel);
       begin
         l:=tasmlabel.createlocal(FNextLabelNr[alt_jump],alt_jump);
         inc(FNextLabelNr[alt_jump]);
@@ -402,7 +402,7 @@ implementation
       end;
 
 
-    procedure TAsmData.getdatalabel(var l : tasmlabel);
+    procedure TAsmData.getdatalabel(out l : tasmlabel);
       begin
         l:=tasmlabel.createglobal(name,FNextLabelNr[alt_data],alt_data);
         inc(FNextLabelNr[alt_data]);
@@ -410,7 +410,7 @@ implementation
       end;
 
 
-    procedure TAsmData.getaddrlabel(var l : tasmlabel);
+    procedure TAsmData.getaddrlabel(out l : tasmlabel);
       begin
         l:=tasmlabel.createlocal(FNextLabelNr[alt_addr],alt_addr);
         inc(FNextLabelNr[alt_addr]);

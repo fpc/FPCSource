@@ -166,7 +166,7 @@ implementation
          subeq,eq : tequaltype;
          hd1,hd2 : tdef;
          hct : tconverttype;
-         hd3 : tobjectdef;
+         hobjdef : tobjectdef;
          hpd : tprocdef;
       begin
          eq:=te_incompatible;
@@ -1149,21 +1149,21 @@ implementation
                      end
                    { classes can be assigned to interfaces }
                    else if is_interface(def_to) and
-                     is_class(def_from) and
-                     assigned(tobjectdef(def_from).implementedinterfaces) then
+                           is_class(def_from) and
+                           assigned(tobjectdef(def_from).ImplementedInterfaces) then
                      begin
                         { we've to search in parent classes as well }
-                        hd3:=tobjectdef(def_from);
-                        while assigned(hd3) do
+                        hobjdef:=tobjectdef(def_from);
+                        while assigned(hobjdef) do
                           begin
-                             if hd3.implementedinterfaces.searchintf(def_to)<>-1 then
+                             if hobjdef.find_implemented_interface(tobjectdef(def_to))<>nil then
                                begin
                                   doconv:=tc_class_2_intf;
                                   { don't prefer this over objectdef->objectdef }
                                   eq:=te_convert_l2;
                                   break;
                                end;
-                             hd3:=hd3.childof;
+                             hobjdef:=hobjdef.childof;
                           end;
                      end
                    { Interface 2 GUID handling }

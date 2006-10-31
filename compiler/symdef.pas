@@ -213,19 +213,29 @@ interface
 
        tprocdef = class;
        tobjectdef = class;
-       timplementedinterfaces = class;
 
-       timplintfentry = class(TNamedIndexItem)
-         intf         : tobjectdef;
-         intfderef    : tderef;
-         ioffset      : longint;
-         implindex    : longint;
-         namemappings : tdictionary;
-         procdefs     : TIndexArray;
+       { TImplementedInterface }
+
+       TImplementedInterface = class
+         IntfDef      : tobjectdef;
+         IntfDefDeref : tderef;
+         IOffset      : longint;
+         VtblImplIntf   : TImplementedInterface;
+         NameMappings : TFPHashList;
+         ProcDefs     : TFPObjectList;
          constructor create(aintf: tobjectdef);
          constructor create_deref(d:tderef);
          destructor  destroy; override;
+         function  getcopy:TImplementedInterface;
+         procedure buildderef;
+         procedure deref;
+         procedure AddMapping(const origname, newname: string);
+         function  GetMapping(const origname: string):string;
+         procedure AddImplProc(pd:tprocdef);
+         function  IsImplMergePossible(MergingIntf:TImplementedInterface;out weight: longint): boolean;
        end;
+       
+       { tobjectdef }
 
        tobjectdef = class(tabstractrecorddef)
        private
@@ -236,23 +246,23 @@ interface
           procedure count_published_fields(sym:tnamedindexitem;arg:pointer);
           procedure writefields(sym:tnamedindexitem;arg:pointer);
        public
-          childof  : tobjectdef;
-          childofderef  : tderef;
+          childof        : tobjectdef;
+          childofderef   : tderef;
           objname,
-          objrealname   : pshortstring;
-          objectoptions : tobjectoptions;
+          objrealname    : pshortstring;
+          objectoptions  : tobjectoptions;
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
-          vmt_offset : longint;
+          vmt_offset     : longint;
           writing_class_record_dbginfo : boolean;
-          objecttype : tobjectdeftype;
-          iidguid: pguid;
-          iidstr: pshortstring;
-          iitype: tinterfaceentrytype;
-          iioffset: longint;
+          objecttype     : tobjectdeftype;
+          iidguid        : pguid;
+          iidstr         : pshortstring;
+          iitype         : tinterfaceentrytype;
+          iioffset       : longint;
           lastvtableindex: longint;
           { store implemented interfaces defs and name mappings }
-          implementedinterfaces: timplementedinterfaces;
+          ImplementedInterfaces : TFPObjectList;
           constructor create(ot : tobjectdeftype;const n : string;c : tobjectdef);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -266,6 +276,7 @@ interface
           function  alignment:shortint;override;
           function  vmtmethodoffset(index:longint):longint;
           function  members_need_inittable : boolean;
+          function  find_implemented_interface(aintfdef:tobjectdef):TImplementedInterface;
           { this should be called when this class implements an interface }
           procedure prepareguid;
           function  is_publishable : boolean;override;
@@ -282,41 +293,6 @@ interface
           procedure write_rtti_data(rt:trttitype);override;
           function generate_field_table : tasmlabel;
        end;
-
-       timplementedinterfaces = class
-          constructor create;
-          destructor  destroy; override;
-
-          function  count: longint;
-          function  interfaces(intfindex: longint): tobjectdef;
-          function  interfacesderef(intfindex: longint): tderef;
-          function  ioffsets(intfindex: longint): longint;
-          procedure setioffsets(intfindex,iofs:longint);
-          function  implindex(intfindex:longint):longint;
-          procedure setimplindex(intfindex,implidx:longint);
-          function  searchintf(def: tdef): longint;
-          procedure addintf(def: tdef);
-
-          procedure buildderef;
-          procedure deref;
-          { add interface reference loaded from ppu }
-          procedure addintf_deref(const d:tderef;iofs:longint);
-          procedure addintf_ioffset(d:tdef;iofs:longint);
-
-          procedure clearmappings;
-          procedure addmappings(intfindex: longint; const origname, newname: string);
-          function  getmappings(intfindex: longint; const origname: string; var nextexist: pointer): string;
-
-          procedure addimplproc(intfindex: longint; procdef: tprocdef);
-          function  implproccount(intfindex: longint): longint;
-          function  implprocs(intfindex: longint; procindex: longint): tprocdef;
-          function  isimplmergepossible(intfindex, remainindex: longint; var weight: longint): boolean;
-
-       private
-          finterfaces: tindexarray;
-          procedure checkindex(intfindex: longint);
-       end;
-
 
        tclassrefdef = class(tabstractpointerdef)
           constructor create(def:tdef);
@@ -4380,9 +4356,9 @@ implementation
           prepareguid;
         { setup implemented interfaces }
         if objecttype in [odt_class,odt_interfacecorba] then
-          implementedinterfaces:=timplementedinterfaces.create
+          ImplementedInterfaces:=TFPObjectList.Create(true)
         else
-          implementedinterfaces:=nil;
+          ImplementedInterfaces:=nil;
         writing_class_record_dbginfo:=false;
         iitype := etStandard;
      end;
@@ -4390,8 +4366,10 @@ implementation
 
     constructor tobjectdef.ppuload(ppufile:tcompilerppufile);
       var
-         i,implintfcount: longint;
+         i,
+         implintfcount : longint;
          d : tderef;
+         ImplIntf : TImplementedInterface;
       begin
          inherited ppuload(objectdef,ppufile);
          objecttype:=tobjectdeftype(ppufile.getbyte);
@@ -4418,16 +4396,18 @@ implementation
          { load implemented interfaces }
          if objecttype in [odt_class,odt_interfacecorba] then
            begin
-             implementedinterfaces:=timplementedinterfaces.create;
+             ImplementedInterfaces:=TFPObjectList.Create(true);
              implintfcount:=ppufile.getlongint;
-             for i:=1 to implintfcount do
+             for i:=0 to implintfcount-1 do
                begin
-                  ppufile.getderef(d);
-                  implementedinterfaces.addintf_deref(d,ppufile.getlongint);
+                 ppufile.getderef(d);
+                 ImplIntf:=TImplementedInterface.Create_deref(d);
+                 ImplIntf.IOffset:=ppufile.getlongint;
+                 ImplementedInterfaces.Add(ImplIntf);
                end;
            end
          else
-           implementedinterfaces:=nil;
+           ImplementedInterfaces:=nil;
 
          tobjectsymtable(symtable).ppuload(ppufile);
 
@@ -4455,8 +4435,8 @@ implementation
          stringdispose(objrealname);
          if assigned(iidstr) then
            stringdispose(iidstr);
-         if assigned(implementedinterfaces) then
-           implementedinterfaces.free;
+         if assigned(ImplementedInterfaces) then
+           ImplementedInterfaces.free;
          if assigned(iidguid) then
            dispose(iidguid);
          inherited destroy;
@@ -4465,8 +4445,7 @@ implementation
 
     function tobjectdef.getcopy : tstoreddef;
       var
-        i,
-        implintfcount : longint;
+        i : longint;
       begin
         result:=tobjectdef.create(objecttype,objname^,childof);
         tobjectdef(result).symtable:=symtable.getcopy;
@@ -4484,22 +4463,18 @@ implementation
         if assigned(iidstr) then
           tobjectdef(result).iidstr:=stringdup(iidstr^);
         tobjectdef(result).lastvtableindex:=lastvtableindex;
-        if assigned(implementedinterfaces) then
+        if assigned(ImplementedInterfaces) then
           begin
-            implintfcount:=implementedinterfaces.count;
-            for i:=1 to implintfcount do
-              begin
-                tobjectdef(result).implementedinterfaces.addintf_ioffset(implementedinterfaces.interfaces(i),
-                    implementedinterfaces.ioffsets(i));
-              end;
+            for i:=0 to ImplementedInterfaces.count-1 do
+              tobjectdef(result).ImplementedInterfaces.Add(TImplementedInterface(ImplementedInterfaces[i]).Getcopy);
           end;
       end;
 
 
     procedure tobjectdef.ppuwrite(ppufile:tcompilerppufile);
       var
-         implintfcount : longint;
          i : longint;
+         ImplIntf : TImplementedInterface;
       begin
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(objecttype));
@@ -4519,13 +4494,13 @@ implementation
 
          if objecttype in [odt_class,odt_interfacecorba] then
            begin
-              implintfcount:=implementedinterfaces.count;
-              ppufile.putlongint(implintfcount);
-              for i:=1 to implintfcount do
-                begin
-                   ppufile.putderef(implementedinterfaces.interfacesderef(i));
-                   ppufile.putlongint(implementedinterfaces.ioffsets(i));
-                end;
+             ppufile.putlongint(ImplementedInterfaces.Count);
+             for i:=0 to ImplementedInterfaces.Count-1 do
+               begin
+                 ImplIntf:=TImplementedInterface(ImplementedInterfaces[i]);
+                 ppufile.putderef(ImplIntf.intfdefderef);
+                 ppufile.putlongint(ImplIntf.Ioffset);
+               end;
            end;
 
          ppufile.writeentry(ibobjectdef);
@@ -4549,6 +4524,7 @@ implementation
 
     procedure tobjectdef.buildderef;
       var
+         i : longint;
          oldrecsyms : tsymtable;
       begin
          inherited buildderef;
@@ -4558,12 +4534,16 @@ implementation
          tstoredsymtable(symtable).buildderef;
          aktrecordsymtable:=oldrecsyms;
          if objecttype in [odt_class,odt_interfacecorba] then
-           implementedinterfaces.buildderef;
+           begin
+             for i:=0 to ImplementedInterfaces.count-1 do
+               TImplementedInterface(ImplementedInterfaces[i]).buildderef;
+           end;
       end;
 
 
     procedure tobjectdef.deref;
       var
+         i : longint;
          oldrecsyms : tsymtable;
       begin
          inherited deref;
@@ -4573,7 +4553,10 @@ implementation
          tstoredsymtable(symtable).deref;
          aktrecordsymtable:=oldrecsyms;
          if objecttype in [odt_class,odt_interfacecorba] then
-           implementedinterfaces.deref;
+           begin
+             for i:=0 to ImplementedInterfaces.count-1 do
+               TImplementedInterface(ImplementedInterfaces[i]).deref;
+           end;
       end;
 
 
@@ -4793,6 +4776,26 @@ implementation
     function tobjectdef.members_need_inittable : boolean;
       begin
         members_need_inittable:=tobjectsymtable(symtable).needs_init_final;
+      end;
+
+
+    function tobjectdef.find_implemented_interface(aintfdef:tobjectdef):TImplementedInterface;
+      var
+        ImplIntf : TImplementedInterface;
+        i : longint;
+      begin
+        result:=nil;
+        if not assigned(ImplementedInterfaces) then
+          exit;
+        for i:=0 to ImplementedInterfaces.Count-1 do
+          begin
+            ImplIntf:=TImplementedInterface(ImplementedInterfaces[i]);
+            if ImplIntf.intfdef=aintfdef then
+              begin
+                result:=ImplIntf;
+                exit;
+              end;
+          end;
       end;
 
 
@@ -5199,301 +5202,133 @@ implementation
 
 
 {****************************************************************************
-                             TIMPLEMENTEDINTERFACES
+                             TImplementedInterface
 ****************************************************************************}
-    type
-      tnamemap = class(TNamedIndexItem)
-        listnext : TNamedIndexItem;
-        newname: pshortstring;
-        constructor create(const aname, anewname: string);
-        destructor  destroy; override;
-      end;
 
-    constructor tnamemap.create(const aname, anewname: string);
-      begin
-        inherited createname(aname);
-        newname:=stringdup(anewname);
-      end;
-
-    destructor  tnamemap.destroy;
-      begin
-        stringdispose(newname);
-        inherited destroy;
-      end;
-
-
-    type
-      tprocdefstore = class(TNamedIndexItem)
-        procdef: tprocdef;
-        constructor create(aprocdef: tprocdef);
-      end;
-
-    constructor tprocdefstore.create(aprocdef: tprocdef);
+    constructor TImplementedInterface.create(aintf: tobjectdef);
       begin
         inherited create;
-        procdef:=aprocdef;
-      end;
-
-
-    constructor timplintfentry.create(aintf: tobjectdef);
-      begin
-        inherited create;
-        intf:=aintf;
+        intfdef:=aintf;
         ioffset:=-1;
-        namemappings:=nil;
+        NameMappings:=nil;
         procdefs:=nil;
       end;
 
 
-    constructor timplintfentry.create_deref(d:tderef);
+    constructor TImplementedInterface.create_deref(d:tderef);
       begin
         inherited create;
-        intf:=nil;
-        intfderef:=d;
+        intfdef:=nil;
+        intfdefderef:=d;
         ioffset:=-1;
-        namemappings:=nil;
+        NameMappings:=nil;
         procdefs:=nil;
       end;
 
 
-    destructor  timplintfentry.destroy;
+    destructor  TImplementedInterface.destroy;
+      var
+        i : longint;
+        mappedname : pshortstring;
       begin
-        if assigned(namemappings) then
-          namemappings.free;
+        if assigned(NameMappings) then
+          begin
+            for i:=0 to NameMappings.Count-1 do
+              begin
+                mappedname:=pshortstring(NameMappings[i]);
+                stringdispose(mappedname);
+              end;
+            NameMappings.free;
+          end;
         if assigned(procdefs) then
           procdefs.free;
         inherited destroy;
       end;
 
 
-    constructor timplementedinterfaces.create;
+    procedure TImplementedInterface.buildderef;
       begin
-        finterfaces:=tindexarray.create(1);
-      end;
-
-    destructor  timplementedinterfaces.destroy;
-      begin
-        finterfaces.destroy;
-      end;
-
-    function  timplementedinterfaces.count: longint;
-      begin
-        count:=finterfaces.count;
-      end;
-
-    procedure timplementedinterfaces.checkindex(intfindex: longint);
-      begin
-        if (intfindex<1) or (intfindex>count) then
-          InternalError(200006123);
-      end;
-
-    function  timplementedinterfaces.interfaces(intfindex: longint): tobjectdef;
-      begin
-        checkindex(intfindex);
-        interfaces:=timplintfentry(finterfaces.search(intfindex)).intf;
-      end;
-
-    function  timplementedinterfaces.interfacesderef(intfindex: longint): tderef;
-      begin
-        checkindex(intfindex);
-        interfacesderef:=timplintfentry(finterfaces.search(intfindex)).intfderef;
-      end;
-
-    function  timplementedinterfaces.ioffsets(intfindex: longint): longint;
-      begin
-        checkindex(intfindex);
-        ioffsets:=timplintfentry(finterfaces.search(intfindex)).ioffset;
-      end;
-
-    procedure timplementedinterfaces.setioffsets(intfindex,iofs:longint);
-      begin
-        checkindex(intfindex);
-        timplintfentry(finterfaces.search(intfindex)).ioffset:=iofs;
-      end;
-
-    function timplementedinterfaces.implindex(intfindex:longint):longint;
-      begin
-        checkindex(intfindex);
-        result:=timplintfentry(finterfaces.search(intfindex)).implindex;
-      end;
-
-    procedure timplementedinterfaces.setimplindex(intfindex,implidx:longint);
-      begin
-        checkindex(intfindex);
-        timplintfentry(finterfaces.search(intfindex)).implindex:=implidx;
-      end;
-
-    function  timplementedinterfaces.searchintf(def: tdef): longint;
-      begin
-        for result := 1 to count do
-          if tdef(interfaces(result)) = def then
-            exit;
-        result := -1;
+        intfdefderef.build(intfdef);
       end;
 
 
-    procedure timplementedinterfaces.buildderef;
+    procedure TImplementedInterface.deref;
+      begin
+        intfdef:=tobjectdef(intfdefderef.resolve);
+      end;
+
+
+    procedure TImplementedInterface.AddMapping(const origname,newname: string);
+      begin
+        if not assigned(NameMappings) then
+          NameMappings:=TFPHashList.Create;
+        NameMappings.Add(origname,stringdup(newname));
+      end;
+
+
+    function TImplementedInterface.GetMapping(const origname: string):string;
       var
-        i: longint;
+        mappedname : pshortstring;
       begin
-        for i:=1 to count do
-          with timplintfentry(finterfaces.search(i)) do
-            intfderef.build(intf);
+        result:='';
+        if not assigned(NameMappings) then
+          exit;
+        mappedname:=PShortstring(NameMappings.Find(origname));
+        if assigned(mappedname) then
+          result:=mappedname^;
       end;
 
 
-    procedure timplementedinterfaces.deref;
+    procedure TImplementedInterface.AddImplProc(pd:tprocdef);
       var
-        i: longint;
-      begin
-        for i:=1 to count do
-          with timplintfentry(finterfaces.search(i)) do
-            intf:=tobjectdef(intfderef.resolve);
-      end;
-
-    procedure timplementedinterfaces.addintf_deref(const d:tderef;iofs:longint);
-      var
-        hintf : timplintfentry;
-      begin
-        hintf:=timplintfentry.create_deref(d);
-        hintf.ioffset:=iofs;
-        finterfaces.insert(hintf);
-      end;
-
-    procedure timplementedinterfaces.addintf_ioffset(d:tdef;iofs:longint);
-      var
-        hintf : timplintfentry;
-      begin
-        hintf:=timplintfentry.create(tobjectdef(d));
-        hintf.ioffset:=iofs;
-        finterfaces.insert(hintf);
-      end;
-
-    procedure timplementedinterfaces.addintf(def: tdef);
-      begin
-        if not assigned(def) or (searchintf(def)<>-1) or (def.deftype<>objectdef) or
-           not (tobjectdef(def).objecttype in [odt_interfacecom,odt_interfacecorba]) then
-          internalerror(200006124);
-        finterfaces.insert(timplintfentry.create(tobjectdef(def)));
-      end;
-
-    procedure timplementedinterfaces.clearmappings;
-      var
-        i: longint;
-      begin
-        for i:=1 to count do
-          with timplintfentry(finterfaces.search(i)) do
-            begin
-              if assigned(namemappings) then
-                namemappings.free;
-              namemappings:=nil;
-            end;
-      end;
-
-    procedure timplementedinterfaces.addmappings(intfindex: longint; const origname, newname: string);
-      begin
-        checkindex(intfindex);
-        with timplintfentry(finterfaces.search(intfindex)) do
-          begin
-            if not assigned(namemappings) then
-              namemappings:=tdictionary.create;
-            namemappings.insert(tnamemap.create(origname,newname));
-          end;
-      end;
-
-    function  timplementedinterfaces.getmappings(intfindex: longint; const origname: string; var nextexist: pointer): string;
-      begin
-        checkindex(intfindex);
-        if not assigned(nextexist) then
-          with timplintfentry(finterfaces.search(intfindex)) do
-            begin
-              if assigned(namemappings) then
-                nextexist:=namemappings.search(origname)
-              else
-                nextexist:=nil;
-            end;
-        if assigned(nextexist) then
-          begin
-            getmappings:=tnamemap(nextexist).newname^;
-            nextexist:=tnamemap(nextexist).listnext;
-          end
-        else
-          getmappings:='';
-      end;
-
-    procedure timplementedinterfaces.addimplproc(intfindex: longint; procdef: tprocdef);
-      var
+        i : longint;
         found : boolean;
-        i     : longint;
       begin
-        checkindex(intfindex);
-        with timplintfentry(finterfaces.search(intfindex)) do
-          begin
-            if not assigned(procdefs) then
-              procdefs:=tindexarray.create(4);
-            { No duplicate entries of the same procdef }
-            found:=false;
-            for i:=1 to procdefs.count do
-              if tprocdefstore(procdefs.search(i)).procdef=procdef then
-                begin
-                  found:=true;
-                  break;
-                end;
-            if not found then
-              procdefs.insert(tprocdefstore.create(procdef));
-          end;
+        if not assigned(procdefs) then
+          procdefs:=TFPObjectList.Create(false);
+        { No duplicate entries of the same procdef }
+        found:=false;
+        for i:=0 to procdefs.count-1 do
+          if tprocdef(procdefs[i])=pd then
+            begin
+              found:=true;
+              break;
+            end;
+        if not found then
+          procdefs.Add(pd);
       end;
 
-    function  timplementedinterfaces.implproccount(intfindex: longint): longint;
-      begin
-        checkindex(intfindex);
-        with timplintfentry(finterfaces.search(intfindex)) do
-          if assigned(procdefs) then
-            implproccount:=procdefs.count
-          else
-            implproccount:=0;
-      end;
 
-    function  timplementedinterfaces.implprocs(intfindex: longint; procindex: longint): tprocdef;
-      begin
-        checkindex(intfindex);
-        with timplintfentry(finterfaces.search(intfindex)) do
-          if assigned(procdefs) then
-            implprocs:=tprocdefstore(procdefs.search(procindex)).procdef
-          else
-            internalerror(200006131);
-      end;
-
-    function  timplementedinterfaces.isimplmergepossible(intfindex, remainindex: longint; var weight: longint): boolean;
+    function TImplementedInterface.IsImplMergePossible(MergingIntf:TImplementedInterface;out weight: longint): boolean;
       var
-        possible: boolean;
-        i: longint;
-        iiep1: TIndexArray;
-        iiep2: TIndexArray;
+        i : longint;
       begin
-        checkindex(intfindex);
-        checkindex(remainindex);
-        iiep1:=timplintfentry(finterfaces.search(intfindex)).procdefs;
-        iiep2:=timplintfentry(finterfaces.search(remainindex)).procdefs;
-        if not assigned(iiep1) then { empty interface is mergeable :-) }
+        result:=false;
+        weight:=0;
+        { empty interface is mergeable }
+        if ProcDefs.Count=0 then
           begin
-            possible:=true;
-            weight:=0;
-          end
-        else
-          begin
-            possible:=assigned(iiep2) and (iiep1.count<=iiep2.count);
-            i:=1;
-            while (possible) and (i<=iiep1.count) do
-              begin
-                possible:=
-                  (tprocdefstore(iiep1.search(i)).procdef=tprocdefstore(iiep2.search(i)).procdef);
-                inc(i);
-              end;
-            if possible then
-              weight:=iiep1.count;
+            result:=true;
+            exit;
           end;
-        isimplmergepossible:=possible;
+        { The interface to merge must at least the number of
+          procedures of this interface }
+        if MergingIntf.ProcDefs.Count<ProcDefs.Count then
+          exit;
+        for i:=0 to ProcDefs.Count-1 do
+          begin
+            if MergingIntf.ProcDefs[i]<>ProcDefs[i] then
+              exit;
+          end;
+        weight:=ProcDefs.Count;
+        result:=true;
+      end;
+
+
+    function TImplementedInterface.getcopy:TImplementedInterface;
+      begin
+        Result:=TImplementedInterface.Create(nil);
+        Move(pointer(self)^,pointer(result)^,InstanceSize);
       end;
 
 

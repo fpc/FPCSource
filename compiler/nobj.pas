@@ -95,14 +95,14 @@ interface
         procedure writevirtualmethods(List:TAsmList);
       private
         { interface tables }
-        function  gintfgetvtbllabelname(intfindex: integer): string;
-        procedure gintfcreatevtbl(intfindex: integer; rawdata: TAsmList);
-        procedure gintfgenentry(intfindex, contintfindex: integer; rawdata: TAsmList);
-        procedure gintfoptimizevtbls;
-        procedure gintfwritedata;
-        function  gintfgetcprocdef(proc: tprocdef;const name: string): tprocdef;
-        procedure gintfdoonintf(intf: tobjectdef; intfindex: longint);
-        procedure gintfwalkdowninterface(intf: tobjectdef; intfindex: longint);
+        function  intf_get_vtbl_name(AImplIntf:TImplementedInterface): string;
+        procedure intf_create_vtbl(rawdata: TAsmList;AImplIntf:TImplementedInterface);
+        procedure intf_gen_intf_ref(rawdata: TAsmList;AImplIntf:TImplementedInterface);
+        procedure intf_optimize_vtbls;
+        procedure intf_write_data;
+        function  intf_search_procdef_by_name(proc: tprocdef;const name: string): tprocdef;
+        procedure intf_get_procdefs(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
+        procedure intf_get_procdefs_recursive(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
       public
         constructor create(c:tobjectdef);
         destructor destroy;override;
@@ -129,7 +129,7 @@ implementation
     uses
        SysUtils,
        globals,verbose,systems,
-       symtable,symconst,symtype,defcmp,defutil,
+       symtable,symconst,symtype,defcmp,
        dbgbase
        ;
 
@@ -256,7 +256,7 @@ implementation
     procedure tclassheader.writenames(p : pprocdeftree);
       var
         ca : pchar;
-        len : longint;
+        len : byte;
       begin
          current_asmdata.getdatalabel(p^.nl);
          if assigned(p^.l) then
@@ -290,7 +290,6 @@ implementation
 
     function tclassheader.genstrmsgtab : tasmlabel;
       var
-         r : tasmlabel;
          count : aint;
       begin
          root:=nil;
@@ -303,10 +302,9 @@ implementation
            writenames(root);
 
          { now start writing of the message string table }
-         current_asmdata.getdatalabel(r);
+         current_asmdata.getdatalabel(result);
          current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_label.Create(r));
-         genstrmsgtab:=r;
+         current_asmdata.asmlists[al_globals].concat(Tai_label.Create(result));
          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(count));
          if assigned(root) then
            begin
@@ -859,60 +857,58 @@ implementation
            Interface tables
 **************************************}
 
-    function  tclassheader.gintfgetvtbllabelname(intfindex: integer): string;
+    function  tclassheader.intf_get_vtbl_name(AImplIntf:TImplementedInterface): string;
       begin
-        gintfgetvtbllabelname:=make_mangledname('VTBL',_class.owner,_class.objname^+
-                               '_$_'+_class.implementedinterfaces.interfaces(intfindex).objname^);
+        result:=make_mangledname('VTBL',_class.owner,_class.objname^+'_$_'+AImplIntf.IntfDef.objname^);
       end;
 
 
-    procedure tclassheader.gintfcreatevtbl(intfindex: integer; rawdata: TAsmList);
+    procedure tclassheader.intf_create_vtbl(rawdata: TAsmList;AImplIntf:TImplementedInterface);
       var
-        implintf: timplementedinterfaces;
-        curintf: tobjectdef;
-        proccount: integer;
-        tmps: string;
-        i: longint;
+        pd : tprocdef;
+        vtblstr,
+        hs : string;
+        i  : longint;
       begin
-        implintf:=_class.implementedinterfaces;
-        curintf:=implintf.interfaces(intfindex);
-
-        section_symbol_start(rawdata,gintfgetvtbllabelname(intfindex),AT_DATA,true,sec_data,const_align(sizeof(aint)));
-        proccount:=implintf.implproccount(intfindex);
-        for i:=1 to proccount do
+        vtblstr:=intf_get_vtbl_name(AImplIntf);
+        section_symbol_start(rawdata,vtblstr,AT_DATA,true,sec_data,const_align(sizeof(aint)));
+        if assigned(AImplIntf.procdefs) then
           begin
-            tmps:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+curintf.objname^+'_$_'+
-              tostr(i)+'_$_'+
-              implintf.implprocs(intfindex,i).mangledname);
-            { create reference }
-            rawdata.concat(Tai_const.Createname(tmps,0));
-          end;
-        section_symbol_end(rawdata,gintfgetvtbllabelname(intfindex));
+            for i:=0 to AImplIntf.procdefs.count-1 do
+              begin
+                pd:=tprocdef(AImplIntf.procdefs[i]);
+                hs:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+AImplIntf.IntfDef.objname^+'_$_'+
+                                     tostr(i)+'_$_'+pd.mangledname);
+                { create reference }
+                rawdata.concat(Tai_const.Createname(hs,0));
+              end;
+           end;
+        section_symbol_end(rawdata,vtblstr);
       end;
 
 
-    procedure tclassheader.gintfgenentry(intfindex, contintfindex: integer; rawdata: TAsmList);
+    procedure tclassheader.intf_gen_intf_ref(rawdata: TAsmList;AImplIntf:TImplementedInterface);
       var
-        implintf: timplementedinterfaces;
-        curintf: tobjectdef;
-        tmplabel: tasmlabel;
+        iidlabel,
+        guidlabel : tasmlabel;
         i: longint;
       begin
-        implintf:=_class.implementedinterfaces;
-        curintf:=implintf.interfaces(intfindex);
         { GUID }
-        if curintf.objecttype in [odt_interfacecom] then
+        if AImplIntf.IntfDef.objecttype in [odt_interfacecom] then
           begin
             { label for GUID }
-            current_asmdata.getdatalabel(tmplabel);
+            current_asmdata.getdatalabel(guidlabel);
             rawdata.concat(cai_align.create(const_align(sizeof(aint))));
-            rawdata.concat(Tai_label.Create(tmplabel));
-            rawdata.concat(Tai_const.Create_32bit(longint(curintf.iidguid^.D1)));
-            rawdata.concat(Tai_const.Create_16bit(curintf.iidguid^.D2));
-            rawdata.concat(Tai_const.Create_16bit(curintf.iidguid^.D3));
-            for i:=Low(curintf.iidguid^.D4) to High(curintf.iidguid^.D4) do
-              rawdata.concat(Tai_const.Create_8bit(curintf.iidguid^.D4[i]));
-            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(tmplabel));
+            rawdata.concat(Tai_label.Create(guidlabel));
+            with AImplIntf.IntfDef.iidguid^ do
+              begin
+                rawdata.concat(Tai_const.Create_32bit(longint(D1)));
+                rawdata.concat(Tai_const.Create_16bit(D2));
+                rawdata.concat(Tai_const.Create_16bit(D3));
+                for i:=Low(D4) to High(D4) do
+                  rawdata.concat(Tai_const.Create_8bit(D4[i]));
+              end;
+            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(guidlabel));
           end
         else
           begin
@@ -920,73 +916,77 @@ implementation
             current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
           end;
         { VTable }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(gintfgetvtbllabelname(contintfindex),0));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(intf_get_vtbl_name(AImplIntf.VtblImplIntf),0));
         { IOffset field }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(implintf.ioffsets(contintfindex)));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(AImplIntf.VtblImplIntf.ioffset));
         { IIDStr }
-        current_asmdata.getdatalabel(tmplabel);
+        current_asmdata.getdatalabel(iidlabel);
         rawdata.concat(cai_align.create(const_align(sizeof(aint))));
-        rawdata.concat(Tai_label.Create(tmplabel));
-        rawdata.concat(Tai_const.Create_8bit(length(curintf.iidstr^)));
-        if curintf.objecttype=odt_interfacecom then
-          rawdata.concat(Tai_string.Create(upper(curintf.iidstr^)))
+        rawdata.concat(Tai_label.Create(iidlabel));
+        rawdata.concat(Tai_const.Create_8bit(length(AImplIntf.IntfDef.iidstr^)));
+        if AImplIntf.IntfDef.objecttype=odt_interfacecom then
+          rawdata.concat(Tai_string.Create(upper(AImplIntf.IntfDef.iidstr^)))
         else
-          rawdata.concat(Tai_string.Create(curintf.iidstr^));
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(tmplabel));
+          rawdata.concat(Tai_string.Create(AImplIntf.IntfDef.iidstr^));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(iidlabel));
         { EntryType }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(integer(curintf.iitype)));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(aint(AImplIntf.IntfDef.iitype)));
         { EntryOffset }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(integer(curintf.iioffset)));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(aint(AImplIntf.IntfDef.iioffset)));
       end;
 
 
-    procedure tclassheader.gintfoptimizevtbls;
+    procedure tclassheader.intf_optimize_vtbls;
       type
         tcompintfentry = record
           weight: longint;
           compintf: longint;
         end;
         { Max 1000 interface in the class header interfaces it's enough imho }
-        tcompintfs = array[1..1000] of tcompintfentry;
+        tcompintfs = array[0..1000] of tcompintfentry;
         pcompintfs = ^tcompintfs;
-        tequals    = array[1..1000] of longint;
+        tequals    = array[0..1000] of longint;
         pequals    = ^tequals;
-        timpls    = array[1..1000] of longint;
+        timpls    = array[0..1000] of longint;
         pimpls    = ^timpls;
       var
-        max: longint;
         equals: pequals;
         compats: pcompintfs;
         impls: pimpls;
+        ImplIntfCount,
         w,i,j,k: longint;
+        ImplIntfI,
+        ImplIntfJ  : TImplementedInterface;
         cij: boolean;
         cji: boolean;
       begin
-        max:=_class.implementedinterfaces.count;
-        if max>High(tequals) then
+        ImplIntfCount:=_class.ImplementedInterfaces.count;
+        if ImplIntfCount>=High(tequals) then
           Internalerror(200006135);
-        getmem(compats,sizeof(tcompintfentry)*max);
-        getmem(equals,sizeof(longint)*max);
-        getmem(impls,sizeof(longint)*max);
-        fillchar(compats^,sizeof(tcompintfentry)*max,0);
-        fillchar(equals^,sizeof(longint)*max,0);
-        fillchar(impls^,sizeof(longint)*max,0);
+        getmem(compats,sizeof(tcompintfentry)*ImplIntfCount);
+        getmem(equals,sizeof(longint)*ImplIntfCount);
+        getmem(impls,sizeof(longint)*ImplIntfCount);
+        filldword(compats^,(sizeof(tcompintfentry) div sizeof(dword))*ImplIntfCount,dword(-1));
+        filldword(equals^,ImplIntfCount,dword(-1));
+        filldword(impls^,ImplIntfCount,dword(-1));
         { ismergepossible is a containing relation
           meaning of ismergepossible(a,b,w) =
           if implementorfunction map of a is contained implementorfunction map of b
           imp(a,b) and imp(b,c) => imp(a,c) ; imp(a,b) and imp(b,a) => a == b
         }
         { the order is very important for correct allocation }
-        for i:=1 to max do
+        for i:=0 to ImplIntfCount-1 do
           begin
-            for j:=i+1 to max do
+            for j:=i+1 to ImplIntfCount-1 do
               begin
-                cij:=_class.implementedinterfaces.isimplmergepossible(i,j,w);
-                cji:=_class.implementedinterfaces.isimplmergepossible(j,i,w);
+                ImplIntfI:=TImplementedInterface(_class.ImplementedInterfaces[i]);
+                ImplIntfJ:=TImplementedInterface(_class.ImplementedInterfaces[j]);
+                cij:=ImplIntfI.IsImplMergePossible(ImplIntfJ,w);
+                cji:=ImplIntfJ.IsImplMergePossible(ImplIntfI,w);
                 if cij and cji then { i equal j }
                   begin
                     { get minimum index of equal }
-                    if equals^[j]=0 then
+                    if equals^[j]=-1 then
                       equals^[j]:=i;
                   end
                 else if cij then
@@ -1010,7 +1010,7 @@ implementation
               end;
           end;
         { Reset, no replacements by default }
-        for i:=1 to max do
+        for i:=0 to ImplIntfCount-1 do
           impls^[i]:=i;
         { Replace vtbls when equal or compat, repeat
           until there are no replacements possible anymore. This is
@@ -1020,64 +1020,70 @@ implementation
         }
         repeat
           k:=0;
-          for i:=1 to max do
+          for i:=0 to ImplIntfCount-1 do
             begin
-              if compats^[impls^[i]].compintf<>0 then
+              if compats^[impls^[i]].compintf<>-1 then
                 impls^[i]:=compats^[impls^[i]].compintf
-              else if equals^[impls^[i]]<>0 then
+              else if equals^[impls^[i]]<>-1 then
                 impls^[i]:=equals^[impls^[i]]
               else
                 inc(k);
             end;
-        until k=max;
-        { Update the implindex }
-        for i:=1 to max do
-          _class.implementedinterfaces.setimplindex(i,impls^[i]);
+        until k=ImplIntfCount;
+        { Update the VtblImplIntf }
+        for i:=0 to ImplIntfCount-1 do
+          begin
+            ImplIntfI:=TImplementedInterface(_class.ImplementedInterfaces[i]);
+            ImplIntfI.VtblImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[impls^[i]]);
+          end;
         freemem(compats);
         freemem(equals);
         freemem(impls);
       end;
 
 
-    procedure tclassheader.gintfwritedata;
+    procedure tclassheader.intf_write_data;
       var
-        rawdata: TAsmList;
-        max,i,j : smallint;
+        rawdata  : TAsmList;
+        i        : longint;
+        ImplIntf : TImplementedInterface;
       begin
-        max:=_class.implementedinterfaces.count;
-
         rawdata:=TAsmList.Create;
         { Two pass, one for allocation and vtbl creation }
-        for i:=1 to max do
+        for i:=0 to _class.ImplementedInterfaces.count-1 do
           begin
-            if _class.implementedinterfaces.implindex(i)=i then { if implement itself }
+            ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
+            { if it implements itself }
+            if ImplIntf.VtblImplIntf=ImplIntf then
               begin
                 { allocate a pointer in the object memory }
                 with tobjectsymtable(_class.symtable) do
                   begin
                     datasize:=align(datasize,sizeof(aint));
-                    _class.implementedinterfaces.setioffsets(i,datasize);
+                    ImplIntf.Ioffset:=datasize;
                     inc(datasize,sizeof(aint));
                   end;
                 { write vtbl }
-                gintfcreatevtbl(i,rawdata);
+                intf_create_vtbl(rawdata,ImplIntf);
               end;
           end;
         { second pass: for fill interfacetable and remained ioffsets }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(max));
-        for i:=1 to max do
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(_class.ImplementedInterfaces.count));
+        for i:=0 to _class.ImplementedInterfaces.count-1 do
           begin
-            j:=_class.implementedinterfaces.implindex(i);
-            if j<>i then
-              _class.implementedinterfaces.setioffsets(i,_class.implementedinterfaces.ioffsets(j));
-            gintfgenentry(i,j,rawdata);
+            ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
+            { Update ioffset of current interface with the ioffset from
+              the interface that is reused to implements this interface }
+            if ImplIntf.VtblImplIntf<>ImplIntf then
+              ImplIntf.Ioffset:=ImplIntf.VtblImplIntf.Ioffset;
+            intf_gen_intf_ref(rawdata,ImplIntf);
           end;
         current_asmdata.asmlists[al_globals].concatlist(rawdata);
         rawdata.free;
       end;
 
 
-    function tclassheader.gintfgetcprocdef(proc: tprocdef;const name: string): tprocdef;
+    function tclassheader.intf_search_procdef_by_name(proc: tprocdef;const name: string): tprocdef;
       const
         po_comp = [po_classmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgstr,po_msgint,
                    po_exports,po_varargs,po_explicitparaloc,po_nostackframe];
@@ -1086,7 +1092,7 @@ implementation
         implprocdef : Tprocdef;
         i: cardinal;
       begin
-        gintfgetcprocdef:=nil;
+        result:=nil;
 
         sym:=tsym(search_class_member(_class,name));
         if assigned(sym) and
@@ -1108,7 +1114,7 @@ implementation
                    (proc.proctypeoption=implprocdef.proctypeoption) and
                    ((proc.procoptions*po_comp)=((implprocdef.procoptions+[po_virtualmethod])*po_comp)) then
                   begin
-                    gintfgetcprocdef:=implprocdef;
+                    result:=implprocdef;
                     exit;
                   end;
               end;
@@ -1116,35 +1122,35 @@ implementation
       end;
 
 
-    procedure tclassheader.gintfdoonintf(intf: tobjectdef; intfindex: longint);
+    procedure tclassheader.intf_get_procdefs(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
       var
         def: tdef;
         hs,
         prefix,
         mappedname: string;
-        nextexist: pointer;
         implprocdef: tprocdef;
       begin
-        prefix:=_class.implementedinterfaces.interfaces(intfindex).symtable.name^+'.';
-        def:=tdef(intf.symtable.defindex.first);
+        prefix:=ImplIntf.IntfDef.symtable.name^+'.';
+        def:=tdef(IntfDef.symtable.defindex.first);
         while assigned(def) do
           begin
             if def.deftype=procdef then
               begin
+                { Find implementing procdef
+                   1. Check for mapped name
+                   2. Use symbol name }
                 implprocdef:=nil;
-                nextexist:=nil;
-                repeat
-                  hs:=prefix+tprocdef(def).procsym.name;
-                  mappedname:=_class.implementedinterfaces.getmappings(intfindex,hs,nextexist);
-                  if mappedname<>'' then
-                    implprocdef:=gintfgetcprocdef(tprocdef(def),mappedname);
-                until assigned(implprocdef) or not assigned(nextexist);
+                hs:=prefix+tprocdef(def).procsym.name;
+                mappedname:=ImplIntf.GetMapping(hs);
+                if mappedname<>'' then
+                  implprocdef:=intf_search_procdef_by_name(tprocdef(def),mappedname);
                 if not assigned(implprocdef) then
-                  implprocdef:=gintfgetcprocdef(tprocdef(def),tprocdef(def).procsym.name);
+                  implprocdef:=intf_search_procdef_by_name(tprocdef(def),tprocdef(def).procsym.name);
+                { Add procdef to the implemented interface }
                 if assigned(implprocdef) then
-                  _class.implementedinterfaces.addimplproc(intfindex,implprocdef)
+                  ImplIntf.AddImplProc(implprocdef)
                 else
-                  if _class.implementedinterfaces.interfaces(intfindex).iitype = etStandard then
+                  if ImplIntf.IntfDef.iitype = etStandard then
                     Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
               end;
             def:=tdef(def.indexnext);
@@ -1152,33 +1158,33 @@ implementation
       end;
 
 
-    procedure tclassheader.gintfwalkdowninterface(intf: tobjectdef; intfindex: longint);
+    procedure tclassheader.intf_get_procdefs_recursive(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
       begin
-        if assigned(intf.childof) then
-          gintfwalkdowninterface(intf.childof,intfindex);
-        gintfdoonintf(intf,intfindex);
+        if assigned(IntfDef.childof) then
+          intf_get_procdefs_recursive(ImplIntf,IntfDef.childof);
+        intf_get_procdefs(ImplIntf,IntfDef);
       end;
 
 
     function tclassheader.genintftable: tasmlabel;
       var
-        intfindex: longint;
-        curintf: tobjectdef;
-        intftable: tasmlabel;
+        ImplIntf  : TImplementedInterface;
+        intftable : tasmlabel;
+        i : longint;
       begin
-        { 1. step collect implementor functions into the implementedinterfaces.implprocs }
-        for intfindex:=1 to _class.implementedinterfaces.count do
+        { 1. step collect implementor functions into the tImplementedInterface.procdefs }
+        for i:=0 to _class.ImplementedInterfaces.count-1 do
           begin
-            curintf:=_class.implementedinterfaces.interfaces(intfindex);
-            gintfwalkdowninterface(curintf,intfindex);
+            ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
+            intf_get_procdefs_recursive(ImplIntf,ImplIntf.IntfDef);
           end;
         { 2. Optimize interface tables to reuse wrappers }
-        gintfoptimizevtbls;
+        intf_optimize_vtbls;
         { 3. Calculate offsets in object map and Write interface tables }
         current_asmdata.getdatalabel(intftable);
         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
         current_asmdata.asmlists[al_globals].concat(Tai_label.Create(intftable));
-        gintfwritedata;
+        intf_write_data;
         genintftable:=intftable;
       end;
 
@@ -1283,7 +1289,7 @@ implementation
             new_section(current_asmdata.asmlists[al_globals],sec_rodata,classnamelabel.name,const_align(sizeof(aint)));
 
             { interface table }
-            if _class.implementedinterfaces.count>0 then
+            if _class.ImplementedInterfaces.count>0 then
               interfacetable:=genintftable;
 
             methodnametable:=genpublishedmethodstable;
@@ -1355,7 +1361,7 @@ implementation
             { auto table }
             current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
             { interface table }
-            if _class.implementedinterfaces.count>0 then
+            if _class.ImplementedInterfaces.count>0 then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(interfacetable))
             else
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));

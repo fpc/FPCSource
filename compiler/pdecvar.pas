@@ -222,7 +222,8 @@ implementation
          sc : TFPObjectList;
          paranr : word;
          i      : longint;
-         intfidx: longint;
+         ImplIntf     : TImplementedInterface;
+         found        : boolean;
          hreadparavs,
          hparavs      : tparavarsym;
          storedprocdef,
@@ -609,38 +610,33 @@ implementation
            end;
          { Parse possible "implements" keyword }
          if try_to_consume(_IMPLEMENTS) then
-         begin
-           consume(_ID);
-           {$message warn unlocalized string}
-           if not is_interface(p.propdef) then
            begin
-             writeln('Implements property must have interface type');
-             Message1(sym_e_illegal_field, pattern);
-           end;
-           if pattern <> p.propdef.mangledparaname() then
-           begin
-             writeln('Implements-property must implement interface of correct type');
-             Message1(sym_e_illegal_field, pattern);
-           end;
-           intfidx := 0;
-           with aclass.implementedinterfaces do
-           begin
-             for i := 1 to count do
-               if interfaces(i).objname^ = pattern then
+             consume(_ID);
+             if not is_interface(p.propdef) then
                begin
-                 intfidx := i;
-                 break;
+                 Comment(V_Error,'Implements property must have interface type');
                end;
-             if intfidx > 0 then
-             begin
-               interfaces(intfidx).iitype := etFieldValue;
-               interfaces(intfidx).iioffset := tfieldvarsym(p.propaccesslist[palt_read].firstsym^.sym).fieldoffset;
-             end else
-             begin
-               writeln('Implements-property used on unimplemented interface');
-               Message1(sym_e_illegal_field, pattern);
-             end;
-           end;
+             if pattern <> p.propdef.mangledparaname() then
+               begin
+                 Comment(V_Error,'Implements-property must implement interface of correct type');
+               end;
+             found:=false;
+             for i:=0 to aclass.ImplementedInterfaces.Count-1 do
+               begin
+                 ImplIntf:=TImplementedInterface(aclass.ImplementedInterfaces[i]);
+                 if ImplIntf.IntfDef.Objname^=pattern then
+                   begin
+                     found:=true;
+                     break;
+                   end;
+               end;
+             if found then
+               begin
+                 ImplIntf.IntfDef.iitype := etFieldValue;
+                 ImplIntf.IntfDef.iioffset := tfieldvarsym(p.propaccesslist[palt_read].firstsym^.sym).fieldoffset;
+               end
+             else
+               Comment(V_Error,'Implements-property used on unimplemented interface');
          end;
 
          { remove temporary procvardefs }

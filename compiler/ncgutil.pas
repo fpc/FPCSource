@@ -2722,25 +2722,26 @@ implementation
 
     procedure gen_intf_wrapper(list:TAsmList;_class:tobjectdef);
       var
-        i,j,
-        proccount : longint;
+        i,j  : longint;
         tmps : string;
+        pd   : TProcdef;
+        ImplIntf : TImplementedInterface;
       begin
-        for i:=1 to _class.implementedinterfaces.count do
+        for i:=0 to _class.ImplementedInterfaces.count-1 do
           begin
-            { only if implemented by this class }
-            if _class.implementedinterfaces.implindex(i)=i then
+            ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
+            if (ImplIntf=ImplIntf.VtblImplIntf) and
+               assigned(ImplIntf.ProcDefs) then
               begin
-                proccount:=_class.implementedinterfaces.implproccount(i);
-                for j:=1 to proccount do
+                for j:=0 to ImplIntf.ProcDefs.Count-1 do
                   begin
+                    pd:=TProcdef(ImplIntf.ProcDefs[j]);
                     tmps:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+
-                      _class.implementedinterfaces.interfaces(i).objname^+'_$_'+
-                      tostr(j)+'_$_'+_class.implementedinterfaces.implprocs(i,j).mangledname);
+                      ImplIntf.IntfDef.objname^+'_$_'+tostr(j)+'_$_'+pd.mangledname);
                     { create wrapper code }
-                    new_section(list,sec_code,lower(tmps),0);
+                    new_section(list,sec_code,tmps,0);
                     cg.init_register_allocators;
-                    cg.g_intf_wrapper(list,_class.implementedinterfaces.implprocs(i,j),tmps,_class.implementedinterfaces.ioffsets(i));
+                    cg.g_intf_wrapper(list,pd,tmps,ImplIntf.ioffset);
                     cg.done_register_allocators;
                   end;
               end;

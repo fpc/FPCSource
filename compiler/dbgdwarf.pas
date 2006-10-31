@@ -2658,11 +2658,11 @@ end;
         end;
 
         { add implemented interfaces }
-        if assigned(def.implementedinterfaces) then
-          for n := 1 to def.implementedinterfaces.count do
+        if assigned(def.ImplementedInterfaces) then
+          for n := 0 to def.ImplementedInterfaces.count-1 do
             begin
               append_entry(DW_TAG_inheritance,false,[]);
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.implementedinterfaces.interfaces(n)));
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(TImplementedInterface(def.ImplementedInterfaces[n]).IntfDef));
               finish_entry;
             end;
 

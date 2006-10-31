@@ -271,8 +271,8 @@ implementation
                       (((block_type=bt_type) and typecanbeforward) or
                        not(m_delphi in current_settings.modeswitches)) then
                      begin
-                        { a hack, but it's easy to handle }
-                        { class reference type }
+                        { a hack, but it's easy to handle
+                          class reference type }
                         consume(_OF);
                         single_type(hdef,typecanbeforward);
 
@@ -322,28 +322,27 @@ implementation
            end;
         end;
 
-      procedure handleimplementedinterface(implintf : tobjectdef);
+      procedure handleImplementedInterface(intfdef : tobjectdef);
 
         begin
-            if not is_interface(implintf) then
+            if not is_interface(intfdef) then
               begin
-                 Message1(type_e_interface_type_expected,implintf.typename);
+                 Message1(type_e_interface_type_expected,intfdef.typename);
                  exit;
               end;
-            if aktobjectdef.implementedinterfaces.searchintf(implintf)<>-1 then
-              Message1(sym_e_duplicate_id,implintf.name)
+            if aktobjectdef.find_implemented_interface(intfdef)<>nil then
+              Message1(sym_e_duplicate_id,intfdef.name)
             else
               begin
-                 { allocate and prepare the GUID only if the class
-                   implements some interfaces.
-                 }
-                 if aktobjectdef.implementedinterfaces.count = 0 then
-                   aktobjectdef.prepareguid;
-                 aktobjectdef.implementedinterfaces.addintf(implintf);
+                { allocate and prepare the GUID only if the class
+                  implements some interfaces. }
+                if aktobjectdef.ImplementedInterfaces.count = 0 then
+                  aktobjectdef.prepareguid;
+                aktobjectdef.ImplementedInterfaces.Add(TImplementedInterface.Create(intfdef));
               end;
         end;
 
-      procedure readimplementedinterfaces;
+      procedure readImplementedInterfaces;
         var
           hdef : tdef;
         begin
@@ -355,7 +354,7 @@ implementation
                     Message1(type_e_interface_type_expected,hdef.typename);
                     continue;
                  end;
-               handleimplementedinterface(tobjectdef(hdef));
+               handleImplementedInterface(tobjectdef(hdef));
             end;
         end;
 
@@ -473,8 +472,8 @@ implementation
               if aktobjectdef.objecttype=odt_class then
                 begin
                   if assigned(intfchildof) then
-                    handleimplementedinterface(intfchildof);
-                  readimplementedinterfaces;
+                    handleImplementedInterface(intfchildof);
+                  readImplementedInterfaces;
                 end;
               consume(_RKLAMMER);
             end;

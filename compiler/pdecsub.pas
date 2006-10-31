@@ -630,6 +630,7 @@ implementation
         st : tsymtable;
         aprocsym : tprocsym;
         popclass : boolean;
+        ImplIntf : TImplementedInterface;
       begin
         { Save the position where this procedure really starts }
         procstartfilepos:=current_tokenpos;
@@ -652,8 +653,8 @@ implementation
 
         { examine interface map: function/procedure iname.functionname=locfuncname }
         if assigned(aclass) and
-           assigned(aclass.implementedinterfaces) and
-           (aclass.implementedinterfaces.count>0) and
+           assigned(aclass.ImplementedInterfaces) and
+           (aclass.ImplementedInterfaces.count>0) and
            try_to_consume(_POINT) then
          begin
            storepos:=current_tokenpos;
@@ -667,20 +668,19 @@ implementation
             end;
            current_tokenpos:=storepos;
            { qualifier is interface? }
+           ImplIntf:=nil;
            if (srsym.typ=typesym) and
               (ttypesym(srsym).typedef.deftype=objectdef) then
-             i:=aclass.implementedinterfaces.searchintf(ttypesym(srsym).typedef)
-           else
-             i:=-1;
-           if (i=-1) then
+             ImplIntf:=aclass.find_implemented_interface(tobjectdef(ttypesym(srsym).typedef));
+           if ImplIntf=nil then
              Message(parser_e_interface_id_expected);
            consume(_ID);
            { Create unique name <interface>.<method> }
            hs:=sp+'.'+pattern;
            consume(_EQUAL);
-           if (i<>-1) and
+           if assigned(ImplIntf) and
               (token=_ID) then
-             aclass.implementedinterfaces.addmappings(i,hs,pattern);
+             ImplIntf.AddMapping(hs,pattern);
            consume(_ID);
            result:=true;
            exit;

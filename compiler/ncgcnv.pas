@@ -448,6 +448,7 @@ interface
       var
          l1 : tasmlabel;
          hd : tobjectdef;
+         ImplIntf : TImplementedInterface;
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
          case left.location.loc of
@@ -473,14 +474,13 @@ interface
          hd:=tobjectdef(left.resultdef);
          while assigned(hd) do
            begin
-              if hd.implementedinterfaces.searchintf(resultdef)<>-1 then
-                begin
-                   cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,
-                     hd.implementedinterfaces.ioffsets(
-                       hd.implementedinterfaces.searchintf(resultdef)),location.register);
-                   break;
-                end;
-              hd:=hd.childof;
+             ImplIntf:=hd.find_implemented_interface(tobjectdef(resultdef));
+             if assigned(ImplIntf) then
+               begin
+                 cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,ImplIntf.ioffset,location.register);
+                 break;
+               end;
+             hd:=hd.childof;
            end;
          if hd=nil then
            internalerror(2002081301);

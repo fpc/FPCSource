@@ -2766,9 +2766,8 @@ implementation
             { left is a class }
             if is_class(left.resultdef) then
              begin
-               { the operands must be related }
-               if not(assigned(tobjectdef(left.resultdef).implementedinterfaces) and
-                      (tobjectdef(left.resultdef).implementedinterfaces.searchintf(right.resultdef)<>-1)) then
+               { the class must implement the interface }
+               if tobjectdef(left.resultdef).find_implemented_interface(tobjectdef(right.resultdef))=nil then
                  CGMessage2(type_e_classes_not_related,
                     FullTypeName(left.resultdef,right.resultdef),
                     FullTypeName(right.resultdef,left.resultdef))
