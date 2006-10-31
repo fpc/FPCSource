@@ -43,9 +43,13 @@ end;
 
 function Fplseek(fd : cint; offset : off64_t; whence : cint): off64_t; [public, alias : 'FPC_SYSC_LSEEK'];
 begin
+{$ifdef CPU64}
+  result:=do_syscall(syscall_nr_lseek,tsysparam(fd),tsysparam(offset),tsysparam(whence));
+{$else}
   if do_syscall(syscall_nr__llseek,tsysparam(fd),tsysparam(offset shr 32),tsysparam(offset),
       tsysparam(@result), tsysparam(whence)) = -1 then
     result:=off64_t(-1);
+{$endif}    
 end;
 
 function Fpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_READ'];
