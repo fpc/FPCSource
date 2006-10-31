@@ -2134,7 +2134,7 @@ begin
   fpcdir:=FixPath(GetEnvironmentVariable('FPCDIR'),false);
   if fpcdir='' then
     begin
-      if PathExists('/usr/local/lib/fpc/'+version_string) then
+      if PathExists('/usr/local/lib/fpc/'+version_string,true) then
         fpcdir:='/usr/local/lib/fpc/'+version_string+'/'
       else
         fpcdir:='/usr/lib/fpc/'+version_string+'/';

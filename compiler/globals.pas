@@ -1108,7 +1108,7 @@ implementation
 {$else macos}
           p:=GetEnvPchar('PATH');
 {$endif macos}
-          FindFilePChar(hs1,p,exepath);
+          FindFilePChar(hs1,p,false,exepath);
           FreeEnvPChar(p);
           exepath:=ExtractFilePath(exepath);
         end;
