@@ -82,10 +82,12 @@ const
   _STAT_VER = _STAT_VER_LINUX;
 
 type
+
+{$ifdef FPC_USE_LIBC}
+
 {$i stat.inc}
 
-  TStat      = Stat;
-  PStat      = ^Stat;
+{$else}
 
 {$if defined(CPUPOWERPC) or defined(CPUPOWERPC64) or defined(CPUSPARC) or defined(CPUSPARC64)}
   {$define CLEAN_STAT64}
@@ -93,7 +95,7 @@ type
 
   { file characteristics services }
   { this record is incorrect for alpha, frv, h8300, mips, parisc, v850, xtensa }
-   stat64    = record
+   stat    = record
         st_dev        : dev_t;             // inode's device        
 {$ifdef CLEAN_STAT64}
         st_ino        : ino64_t;
@@ -131,6 +133,11 @@ type
         st_ino        : ino64_t;
 {$endif}        
    end;
+
+{$endif}
+
+  TStat      = Stat;
+  PStat      = ^Stat;
 
   { directory services }
 

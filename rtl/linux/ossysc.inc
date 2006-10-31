@@ -43,7 +43,7 @@ end;
 
 function Fplseek(fd : cint; offset : off64_t; whence : cint): off64_t; [public, alias : 'FPC_SYSC_LSEEK'];
 begin
-{$ifdef CPU64}
+{$if defined(cpu64) and not defined(cpupowerpc64)}
   result:=do_syscall(syscall_nr_lseek,tsysparam(fd),tsysparam(offset),tsysparam(whence));
 {$else}
   if do_syscall(syscall_nr__llseek,tsysparam(fd),tsysparam(offset shr 32),tsysparam(offset),
@@ -91,15 +91,12 @@ end;
 function Fpstat(path: pchar; var buf: stat):cint; [public, alias : 'FPC_SYSC_STAT'];
 
 begin
- Fpstat:=do_syscall(syscall_nr_stat,TSysParam(path),TSysParam(@buf));
+{$if defined(cpu64) and not defined(cpupowerpc64)}
+  Fpstat:=do_syscall(syscall_nr_stat,TSysParam(path),TSysParam(@buf));
+{$else}
+  Fpstat:=do_syscall(syscall_nr_stat64,TSysParam(path),TSysParam(@buf));
+{$endif}  
 end;
-
-function Fpstat64(path: pchar; var buf: stat64):cint; [public, alias : 'FPC_SYSC_STAT64'];
-
-begin
- Fpstat64:=do_syscall(syscall_nr_stat64,TSysParam(path),TSysParam(@buf));
-end;
-
 
 {*****************************************************************************
                --- Directory:Directory related calls ---
