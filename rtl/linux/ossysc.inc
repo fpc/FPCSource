@@ -305,7 +305,11 @@ end;
 function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
 
 begin
+{$if defined(cpu64) and not defined(cpupowerpc64)}
   FpFStat:=do_SysCall(syscall_nr_fstat,TSysParam(fd),TSysParam(@sb));
+{$else}
+  FpFStat:=do_SysCall(syscall_nr_fstat64,TSysParam(fd),TSysParam(@sb));
+{$endif}
 end;
 
 
