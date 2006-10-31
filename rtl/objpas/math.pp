@@ -172,6 +172,7 @@ function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;
 
 
 procedure DivMod(Dividend: Integer; Divisor: Word;  var Result, Remainder: Word);
+procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);
 
 
 // Sign functions
@@ -2067,13 +2068,23 @@ end;
 // Some CPUs probably allow a faster way of doing this in a single operation...
 // There weshould define CPUDIVMOD in the header mathuh.inc and implement it using asm.
 {$ifndef CPUDIVMOD}
-procedure DivMod(Dividend: Integer; Divisor: Word;  var Result, Remainder: Word);
+procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: Word);
 
 begin
   Result:=Dividend Div Divisor;
   Remainder:=Dividend Mod Divisor;
 end;
 {$endif}
+
+
+procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);
+var
+  UnsignedResult: Word absolute Result;
+  UnsignedRemainder: Word absolute Remainder;
+begin
+  DivMod(Dividend, Divisor, UnsignedResult, UnsignedRemainder);
+end;
+
 
 function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer;
 begin
