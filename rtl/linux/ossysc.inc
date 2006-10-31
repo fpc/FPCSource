@@ -32,7 +32,7 @@ End;
 function Fpopen(path: pchar; flags : cint; mode: mode_t):cint; [public, alias : 'FPC_SYSC_OPEN'];
 
 Begin
- Fpopen:=do_syscall(syscall_nr_open,TSysParam(path),TSysParam(flags),TSysParam(mode));
+ Fpopen:=do_syscall(syscall_nr_open,TSysParam(path),TSysParam(flags or O_LARGEFILE),TSysParam(mode));
 End;
 
 function Fpclose(fd : cint): cint; [public, alias : 'FPC_SYSC_CLOSE'];
@@ -41,13 +41,11 @@ begin
  Fpclose:=do_syscall(syscall_nr_close,fd);
 end;
 
-function Fplseek(fd : cint; offset : off_t; whence : cint): off_t; [public, alias : 'FPC_SYSC_LSEEK'];
-{
-Must be adapted/overloaded for 64-bit support, but that is a different call under
-Linux?
-}
+function Fplseek(fd : cint; offset : off64_t; whence : cint): off64_t; [public, alias : 'FPC_SYSC_LSEEK'];
 begin
-  Fplseek:=do_syscall(syscall_nr_lseek,tsysparam(fd),tsysparam(offset),tsysparam(whence));
+  if do_syscall(syscall_nr__llseek,tsysparam(fd),tsysparam(offset shr 32),tsysparam(offset),
+      tsysparam(@result), tsysparam(whence)) = -1 then
+    result:=off64_t(-1);
 end;
 
 function Fpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; [public, alias : 'FPC_SYSC_READ'];
@@ -86,10 +84,16 @@ begin
   Fprename:=do_syscall(syscall_nr_rename,TSysParam(old),TSysParam(newpath));
 end;
 
-function Fpstat(path: pchar; var buf : stat):cint; [public, alias : 'FPC_SYSC_STAT'];
+function Fpstat(path: pchar; var buf: stat):cint; [public, alias : 'FPC_SYSC_STAT'];
 
 begin
  Fpstat:=do_syscall(syscall_nr_stat,TSysParam(path),TSysParam(@buf));
+end;
+
+function Fpstat64(path: pchar; var buf: stat64):cint; [public, alias : 'FPC_SYSC_STAT64'];
+
+begin
+ Fpstat64:=do_syscall(syscall_nr_stat64,TSysParam(path),TSysParam(@buf));
 end;
 
 
@@ -139,7 +143,7 @@ begin
   new(ptr);
   if ptr=nil then
    exit;
-  getmem(ptr^.dd_buf,sizeof(dirent));
+  new(ptr^.dd_buf);
   if ptr^.dd_buf=nil then
    exit;
   ptr^.dd_fd:=fd;
@@ -154,7 +158,7 @@ function Fpclosedir(dirp : pdir): cint; [public, alias : 'FPC_SYSC_CLOSEDIR'];
 
 begin
   Fpclosedir:=Fpclose(dirp^.dd_fd);
-  freemem(dirp^.dd_buf,sizeof(dirent));
+  dispose(dirp^.dd_buf);
   dispose(dirp);
 end;
 
@@ -165,7 +169,7 @@ begin
   repeat
     if dirp^.dd_nextoff >= dirp^.dd_size then
       begin
-        bytes := do_SysCall(SysCall_nr_getdents,TSysParam(dirp^.dd_fd),TSysParam(dirp^.dd_buf),TSysParam(dirp^.dd_max));
+        bytes := do_SysCall(SysCall_nr_getdents64,TSysParam(dirp^.dd_fd),TSysParam(dirp^.dd_buf),TSysParam(dirp^.dd_max));
         if bytes <= 0 then
           begin
             fpreaddir := nil;

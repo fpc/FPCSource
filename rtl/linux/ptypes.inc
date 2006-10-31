@@ -53,6 +53,10 @@ Type
     TIno     = ino_t;
     pIno     = ^ino_t;
 
+    ino64_t  = cuint64;
+    TIno64   = ino64_t;
+    pIno64   = ^ino64_t;
+
     mode_t   = cuint32;         { used for file attributes     }
     TMode    = mode_t;
     pMode    = ^mode_t;
@@ -64,14 +68,14 @@ Type
 {$ifdef cpu64}
     off_t    = cint64;          { used for file sizes          }
 {$else}
-   {$ifdef 64BitFS}
-    off_t    = cint64;
-   {$else}
     off_t    = cint;
-   {$endif}
 {$endif}
+    off64_t  = cint64;
+
     TOff     = off_t;
     pOff     = ^off_t;
+    toff64   = off64_t;
+    poff64   = ^off64_t;
 
     pid_t    = cint32;          { used as process identifier   }
     TPid     = pid_t;

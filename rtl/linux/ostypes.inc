@@ -48,17 +48,12 @@ CONST
 TYPE
    Blksize_t  = cuint;
    Blkcnt_t   = cuint;
-   Ino64_t    = cint64;
-   Off64_t    = cint64;
+   Blkcnt64_t = cuint64;
 
    TBlkSize   = BlkSize_t;
    PBlkSize   = ^BlkSize_t;
    TBlkCnt    = Blkcnt_t;
    PBlkCnt    = ^Blkcnt_t;
-   TIno64     = Ino64_t;
-   PIno64     = ^Ino64_t;
-   TOff64     = Off64_t;
-   POff64     = ^Off64_t;
 
    { system information services }
    UtsName   = Record
@@ -92,67 +87,62 @@ type
   TStat      = Stat;
   PStat      = ^Stat;
 
+{$if defined(CPUPOWERPC) or defined(CPUPOWERPC64) or defined(CPUSPARC) or defined(CPUSPARC64)}
+  {$define CLEAN_STAT64}
+{$endif}
 
-{$ifdef notused} // 64-bit support needs some work still :-)
   { file characteristics services }
+  { this record is incorrect for alpha, frv, h8300, mips, parisc, v850, xtensa }
    stat64    = record
-        st_dev        : dev_t;             // inode's device
-        pad1          : cushort;
-        {$ifdef 64bitfs}                   // ??
-        __st_ino      : ino_t;
-        {$else}
-        st_ino        : ino_t;             // inode's number
-        {$endif}
+        st_dev        : dev_t;             // inode's device        
+{$ifdef CLEAN_STAT64}
+        st_ino        : ino64_t;
+{$else}        
+        pad1          : array[0..3] of byte;
+        __st_ino      : ino_t;             // inode's number
+{$endif}        
         st_mode       : mode_t;            // inode protection mode
         st_nlink      : nlink_t;           // number of hard links
         st_uid        : uid_t;             // user ID of the file's owner
         st_gid        : gid_t;             // group ID of the file's group
         st_rdev       : dev_t;             // device type
+{$ifdef CPUSPARC}
+        pad2          : array[0..7] of byte;
+{$else}
+{$ifdef CLEAN_STAT64}        
         pad2          : cushort;
-        {$ifdef 64bitfs}
-        st_size       : off64_t;            // file size, in bytes
-        {$else}
-        st_size       : off_t;             // file size, in bytes
-        {$endif}
-        st_blksize    : blksize_t;           // optimal blocksize for I/O
-        {$ifdef 64bitfs}
-        st_blocks     : blkcnt64_t;            // blocks allocated for file
-        {$else}
-        st_blocks     : blkcnt_t;            // blocks allocated for file
-        {$endif}
+{$else}
+        pad2          : array[0..3] of byte;
+{$endif}        
+{$endif}        
+        st_size       : off64_t;           // file size, in bytes
+        st_blksize    : blksize_t;         // optimal blocksize for I/O
+        st_blocks     : blkcnt64_t;        // blocks allocated for file
         st_atime      : time_t;            // time of last access
-        unused1       : culong;
+        st_atime_nsec : culong;
         st_mtime      : time_t;            // time of last data modification
-        unused2       : culong;
+        st_mtime_nsec : culong;
         st_ctime      : time_t;            // time of last file status change
-        unused3       : culong;
-        {$ifdef 64bitfs}
-        st_ino        : ino64_t
-        {$else}
-        unused4       : culong;
-        unused5       : culong;
-        {$endif}
+        st_ctime_nsec : culong;
+{$ifdef CLEAN_STAT64}
+        pad4          : cuint;
+        pad5          : cuint;
+{$else}
+        st_ino        : ino64_t;
+{$endif}        
    end;
-{$endif}
 
   { directory services }
 
-  Dirent     = packed record
-               {$ifndef 64bitfs}
-                d_fileno      : ino_t;                          // file number of entry
-                d_off         : off_t;
-                {$else}
+  Dirent   = packed record
                 d_fileno      : ino64_t;                        // file number of entry
                 d_off         : off64_t;
-               {$endif}
                 d_reclen      : cushort;                        // length of string in d_name
-               {$ifdef Uselibc} // Libc different from kernel record!
                 d_type        : cuchar;                         // file type, see below
-               {$endif}
                 d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
                end;
-  TDirent    = Dirent;
-  pDirent    = ^Dirent;
+  TDirent  = Dirent;
+  pDirent  = ^Dirent;
 
 {$ifdef oldreaddir}
            { Still old one. This is a userland struct}
@@ -169,7 +159,6 @@ type
                end;
 {$else}
         // new libc one. NOTE that off_t must be real, so 64-bit ifdef
-        // 64bitsfs
    Dir       = Record   // packing doesn't matter. This is a userland struct.
                 fd      : cint;
                 data    : pchar;
@@ -195,13 +184,8 @@ type
    FLock     = Record
                 l_type  : cshort;       { lock type: read/write, etc. }
                 l_whence: cshort;       { type of l_start }
-                {$ifdef 64bitfs}
                 l_start : off64_t;      { starting offset }
                 l_len   : off64_t;      { len = 0 means until end of file }
-                {$else}
-                l_start : off_t;        { starting offset }
-                l_len   : off_t;        { len = 0 means until end of file }
-                {$endif}
                 l_pid   : pid_t;        { lock owner }
                End;
 

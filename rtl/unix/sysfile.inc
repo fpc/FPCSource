@@ -99,7 +99,7 @@ Begin
    InOutRes:=0;
 End;
 
-function Do_FilePos(Handle: thandle):longint;
+function Do_FilePos(Handle: thandle):Int64;
 Begin
   do_FilePos:=Fplseek(Handle, 0, SEEK_CUR);
   If Do_FilePos<0 Then
@@ -108,7 +108,7 @@ Begin
    InOutRes:=0;
 End;
 
-Procedure Do_Seek(Handle:thandle;Pos:Longint);
+Procedure Do_Seek(Handle:thandle;Pos:Int64);
 Begin
   If Fplseek(Handle, pos, SEEK_SET)<0 Then
    Errno2Inoutres
@@ -116,7 +116,7 @@ Begin
    InOutRes:=0;
 End;
 
-Function Do_SeekEnd(Handle:thandle): Longint;
+Function Do_SeekEnd(Handle:thandle):Int64;
 begin
   Do_SeekEnd:=Fplseek(Handle,0,SEEK_END);
   If Do_SeekEnd<0 Then
@@ -125,7 +125,7 @@ begin
    InOutRes:=0;
 end;
 
-Function Do_FileSize(Handle:thandle): Longint;
+Function Do_FileSize(Handle:thandle):Int64;
 var
   Info : Stat;
   Ret  : Longint;
