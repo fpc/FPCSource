@@ -34,7 +34,7 @@ ppu$(PPUEXT): ppu.pas
 ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)
 
 ppudump$(EXEEXT): ppudump.pp ppu$(PPUEXT)
-        $(COMPILER) ppudump.pp -Fu../i386 -Fi..
+        $(COMPILER) ppudump.pp -Fu../$(CPU_TARGET) -Fi..
 
 ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
 
