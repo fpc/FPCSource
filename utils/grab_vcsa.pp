@@ -110,21 +110,21 @@ begin
           tty:='/dev/tty'+s;
           if fpstat(tty,ttystat)<>0 then
             halt(result_stat_error);
-          if ttystat.uid<>fpgetuid then
+          if ttystat.st_uid<>fpgetuid then
             halt(result_not_owner_error);
           vcs:='/dev/vcs'+s;
           vcsa:='/dev/vcsa'+s;
           
           {Change owner and group to that of /dev/tty??.}
-          if fpchown(vcs,ttystat.uid,ttystat.gid)<>0 then
+          if fpchown(vcs,ttystat.st_uid,ttystat.st_gid)<>0 then
             halt(result_chown_error);
-          if fpchown(vcsa,ttystat.uid,ttystat.gid)<>0 then
+          if fpchown(vcsa,ttystat.st_uid,ttystat.st_gid)<>0 then
             halt(result_chown_error);
 
           {Change permissions to that of /dev/tty??.}
-          if fpchmod(vcs,ttystat.mode)<>0 then
+          if fpchmod(vcs,ttystat.st_mode)<>0 then
             halt(result_chmod_error);
-          if fpchmod(vcsa,ttystat.mode)<>0 then
+          if fpchmod(vcsa,ttystat.st_mode)<>0 then
             halt(result_chmod_error);
           exitcode:=result_success;
         end;
