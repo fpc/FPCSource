@@ -1916,7 +1916,8 @@ In case not, the value returned can be arbitrary.
         if token in [_CWCHAR,_CWSTRING,_CCHAR,_CSTRING,_INTCONST,_REALNUMBER,_ID] then
           internalerror(200511178);
         replaysavetoken:=token;
-        dec(inputpointer);
+        if assigned(inputpointer) then
+          dec(inputpointer);
         { install buffer }
         replaytokenbuf:=buf;
 
@@ -1937,8 +1938,11 @@ In case not, the value returned can be arbitrary.
         if replaytokenbuf.pos>=replaytokenbuf.size then
           begin
             replaytokenbuf:=nil;
-            c:=inputpointer^;
-            inc(inputpointer);
+            if assigned(inputpointer) then
+              begin
+                c:=inputpointer^;
+                inc(inputpointer);
+              end;
             token:=replaysavetoken;
             exit;
           end;
