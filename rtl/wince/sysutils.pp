@@ -290,7 +290,7 @@ begin
   WinToDosTime(F.FindData.ftLastWriteTime,F.Time);
   f.size:=F.FindData.NFileSizeLow;
   f.attr:=F.FindData.dwFileAttributes;
-  PWideCharToString(@F.FindData.cFileName, f.Name);
+  PWideCharToString(@F.FindData.cFileName[0], f.Name);
   Result:=0;
 end;
 
@@ -631,7 +631,7 @@ begin
          nil,
          ErrorCode,
          0,
-         @MsgBuffer,                 { This function allocs the memory }
+         PWideChar(@MsgBuffer),    { This function allocs the memory (in this case you pass a PPwidechar)}
          0,
          nil);
   while (len > 0) and (MsgBuffer[len - 1] <= #32) do
@@ -737,7 +737,7 @@ begin
   WinCEMajorVersion:=versionInfo.dwMajorVersion;
   WinCEMinorVersion:=versionInfo.dwMinorVersion;
   WinCEBuildNumber:=versionInfo.dwBuildNumber;
-  i:=WideToAnsiBuf(@versioninfo.szCSDVersion, -1, @WinCECSDVersion[1], SizeOf(WinCECSDVersion) - 1);
+  i:=WideToAnsiBuf(@versioninfo.szCSDVersion[0], -1, @WinCECSDVersion[1], SizeOf(WinCECSDVersion) - 1);
   if i <> 0 then
     WinCECSDVersion[0]:=chr(i - 1);
 end;

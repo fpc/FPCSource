@@ -284,7 +284,7 @@ end;
 
 Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
 begin
-  SocketPair:=fpsocketpair(domain,sockettype,protocol,@pair);
+  SocketPair:=fpsocketpair(domain,sockettype,protocol,@pair[1]);
 end;
 
 { mimic the linux fpWrite/fpRead calls for the file/text socket wrapper }

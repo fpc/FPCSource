@@ -256,7 +256,7 @@
      SIZE_T = Cardinal;        //+winnt
 {$ifdef UNICODE}
      TBYTE = word;
-     TCHAR = word;
+     TCHAR = widechar;
      BCHAR = word;
 {$else}
      TBYTE = byte;
@@ -265,7 +265,7 @@
 {$endif}
 
      UCHAR = byte;          //windef
-     WCHAR = WideChar;      //winnt
+//     WCHAR = WideChar;      //winnt
 
      UINT   = Cardinal;     //windef
      ULONG  = Cardinal;     //windef

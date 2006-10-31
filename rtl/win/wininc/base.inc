@@ -243,7 +243,7 @@
 
 {$ifdef UNICODE}
      TBYTE = word;
-     TCHAR = word;
+     TCHAR = widechar;
      BCHAR = word;
 {$else}
      TBYTE = byte;
@@ -252,7 +252,7 @@
 {$endif}
 
      UCHAR = byte;
-     WCHAR = WideChar;
+//     WCHAR = WideChar;
 
      UINT   = cardinal;
      ULONG  = cardinal;

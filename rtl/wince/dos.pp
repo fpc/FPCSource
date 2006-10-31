@@ -256,7 +256,7 @@ begin
       repeat
         if fd.dwFileAttributes and dev_attr = dev_attr then begin
           len:=0;
-          while fd.cFileName[len] <> 0 do
+          while fd.cFileName[len] <> #0 do
             Inc(len);
           len:=(len + 2)*SizeOf(WideChar);
           GetMem(DriveNames[i], len);
