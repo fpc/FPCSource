@@ -8,26 +8,27 @@ dirs_linux=unzip zlib fftw \
            utmp bfd gdbm ncurses tcl cdrom \
            imlib gnome1 fpgtk newt uuid \
            ldap openal mad oggvorbis a52 \
-           modplug dts
+           modplug dts openssl
 dirs_i386_linux=unixutil
 dirs_netbsd=unzip zlib \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \
             utmp bfd gdbm ncurses fpgtk \
-            tcl imlib gnome1
+            tcl imlib gnome1 openssl
 dirs_freebsd=unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm ncurses fpgtk \
-             tcl imlib gnome1
+             tcl imlib gnome1 openssl
 dirs_openbsd=unzip zlib \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm ncurses fpgtk \
-             tcl imlib gnome1
+             tcl imlib gnome1 openssl
 dirs_win32=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw \
-             mad openal oggvorbis a52 libpng
-dirs_win64=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw
+             mad openal oggvorbis a52 libpng openssl
+dirs_win64=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw \
+             openssl
 dirs_wince=unzip zlib tcl fftw
 dirs_os2=os2units \
          rexx \
@@ -46,17 +47,18 @@ dirs_emx=os2units \
 dirs_go32v2=unzip
 dirs_amiga=amunits
 dirs_palmos=palmunits
-dirs_netware=unzip zlib
-dirs_netwlibc=unzip zlib
+dirs_netware=unzip zlib openssl
+dirs_netwlibc=unzip zlib openssl
 dirs_darwin= unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 \
-             univint
+             univint openssl
 dirs_solaris= unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms svgalib ggi libpng libgd \
-             utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
+             utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 \
+             openssl
 
 [install]
 fpcpackage=y

@@ -107,3 +107,6 @@
 
 { palmunits } 
 {$i palmunits/fpmake.inc}
+
+{ openssl }
+{$i openssl/fpmake.inc}
