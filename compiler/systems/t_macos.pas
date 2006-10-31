@@ -45,7 +45,12 @@ interface
 implementation
 
     uses
-       cutils,cclasses,
+       cutils,cclasses,cfileutils,
+{$IFNDEF USE_FAKE_SYSUTILS}
+      SysUtils,
+{$ELSE}
+      fksysutl,
+{$ENDIF}
        globtype,globals,systems,verbose,script,fmodule,i_macos,
        ogbase,
        symconst;
