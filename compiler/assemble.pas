@@ -279,7 +279,7 @@ Implementation
         dir : TSearchRec;
         hs  : string;
       begin
-        if PathExists(s) then
+        if PathExists(s,false) then
          begin
            { the path exists, now we clean only all the .o and .s files }
            DeleteFilesWithExt(target_info.objext);
@@ -321,9 +321,9 @@ Implementation
            lastas:=ord(target_asm.id);
            { is an assembler passed ? }
            if utilsdirectory<>'' then
-             asfound:=FindFile(UtilExe,utilsdirectory,LastASBin);
+             asfound:=FindFile(UtilExe,utilsdirectory,false,LastASBin);
            if not AsFound then
-             asfound:=FindExe(UtilExe,LastASBin);
+             asfound:=FindExe(UtilExe,false,LastASBin);
            if (not asfound) and not(cs_asm_extern in current_settings.globalswitches) then
             begin
               Message1(exec_e_assembler_not_found,LastASBin);

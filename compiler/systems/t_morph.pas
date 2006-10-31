@@ -30,14 +30,9 @@ interface
 implementation
 
     uses
-       link,
-       cutils,cclasses,cfileutils,
-{$IFNDEF USE_FAKE_SYSUTILS}
-      SysUtils,
-{$ELSE}
-      fksysutl,
-{$ENDIF}
-       globtype,globals,systems,verbose,script,fmodule,i_morph;
+       SysUtils,
+       cutils,cfileutils,cclasses,
+       globtype,globals,systems,verbose,script,fmodule,i_morph,link;
 
     type
        PlinkerMorphOS=^TlinkerMorphOS;
@@ -142,7 +137,7 @@ begin
   if not StaticLibFiles.Empty then
    begin
     { vlink doesn't need, and doesn't support GROUP }
-    if (cs_link_on_target in current_settings.globalswitches) then 
+    if (cs_link_on_target in current_settings.globalswitches) then
      begin
       LinkRes.Add(')');
       LinkRes.Add('GROUP(');
@@ -153,8 +148,8 @@ begin
       LinkRes.AddFileName(PathConv(maybequoted(s)));
      end;
    end;
-  
-  if (cs_link_on_target in current_settings.globalswitches) then 
+
+  if (cs_link_on_target in current_settings.globalswitches) then
    begin
     LinkRes.Add(')');
 
@@ -191,7 +186,7 @@ begin
       S:=SharedLibFiles.GetFirst;
       LinkRes.Add('lib'+s+target_info.staticlibext);
      end;
-    LinkRes.Add(')');    
+    LinkRes.Add(')');
    end;
 
 

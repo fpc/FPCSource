@@ -404,7 +404,7 @@ begin
            if i>0 then
              Delete(S,i,255);
            S := S + '.imp'; S2 := '';
-           librarysearchpath.FindFile(S,S2);
+           librarysearchpath.FindFile(S,false,S2);
            {$ifdef netware}
            Comment(V_Debug,'IMPORT @'+s2);
            s2 := FExpand (S2);
@@ -439,7 +439,7 @@ begin
            begin  // special, with ! only the imp will be included but no module is autoloaded, needed i.e. for netware.imp inlcuded in libc ndk
              delete (s,1,1);
              S := S + '.imp';
-             librarysearchpath.FindFile(S,S3);
+             librarysearchpath.FindFile(S,false,S3);
              {$ifdef netware}
              Comment(V_Debug,'IMPORT @'+S3);
              S3 := FExpand (S3);
@@ -449,7 +449,7 @@ begin
            end else
            begin
              S := S + '.imp';
-             librarysearchpath.FindFile(S,S3);
+             librarysearchpath.FindFile(S,false,S3);
              {$ifdef netware}
              Comment(V_Debug,'IMPORT @'+S3);
              S3 := FExpand (S3);
@@ -551,7 +551,7 @@ begin
 { if we have a xdc file, dont touch it, otherwise create a new
   one and remove it after nlmconv }
   xdcname := ChangeFileExt(current_module.exefilename^,'.xdc');
-  xdcpresent := FileExists (xdcname);
+  xdcpresent := FileExists (xdcname,false);
   if not xdcpresent then
   begin
     assign (f,xdcname);

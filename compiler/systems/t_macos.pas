@@ -45,12 +45,8 @@ interface
 implementation
 
     uses
-       cutils,cclasses,cfileutils,
-{$IFNDEF USE_FAKE_SYSUTILS}
-      SysUtils,
-{$ELSE}
-      fksysutl,
-{$ENDIF}
+       SysUtils,
+       cutils,cfileutils,cclasses,
        globtype,globals,systems,verbose,script,fmodule,i_macos,
        ogbase,
        symconst;
@@ -193,9 +189,6 @@ var
   DynLinkStr : string[60];
   StaticStr,
   StripStr   : string[40];
-
-  s: string;
-
 begin
   //TODO Only external link in MPW is possible, otherwise yell.
 

@@ -331,7 +331,7 @@ begin
       if not(isdll) then
         if not(cs_profile in current_settings.moduleswitches) then
           begin
-             if librarysearchpath.FindFile('crt1.o',s) then
+             if librarysearchpath.FindFile('crt1.o',false,s) then
              prtobj:=s
             else
              prtobj:='/usr/lib/crt1.o';
@@ -386,9 +386,9 @@ begin
   if linklibc and
      not IsDarwin Then
    begin
-     if librarysearchpath.FindFile('crtbegin.o',s) then
+     if librarysearchpath.FindFile('crtbegin.o',false,s) then
       LinkRes.AddFileName(s);
-     if librarysearchpath.FindFile('crti.o',s) then
+     if librarysearchpath.FindFile('crti.o',false,s) then
       LinkRes.AddFileName(s);
    end;
   { main objectfiles }
@@ -459,8 +459,8 @@ begin
   if linklibc and
      not IsDarwin Then
    begin
-     Fl1:=librarysearchpath.FindFile('crtend.o',s1);
-     Fl2:=librarysearchpath.FindFile('crtn.o',s2);
+     Fl1:=librarysearchpath.FindFile('crtend.o',false,s1);
+     Fl2:=librarysearchpath.FindFile('crtn.o',false,s2);
      if Fl1 or Fl2 then
       begin
         LinkRes.Add('INPUT(');

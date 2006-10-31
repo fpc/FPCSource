@@ -26,15 +26,8 @@ unit t_amiga;
 
 interface
 
-uses
-  link,
-  cutils,cclasses,cfileutils,
-{$IFNDEF USE_FAKE_SYSUTILS}
-      SysUtils,
-{$ELSE}
-      fksysutl,
-{$ENDIF}
-  globtype,globals,systems,verbose,script,fmodule,i_amiga;
+    uses
+      link;
 
 
 type
@@ -49,11 +42,16 @@ type
     public
       constructor Create; override;
       procedure SetDefaultInfo; override;
-      function  MakeExecutable: boolean; override;      
+      function  MakeExecutable: boolean; override;
   end;
 
 
 implementation
+
+    uses
+       SysUtils,
+       cutils,cfileutils,cclasses,
+       globtype,globals,systems,verbose,script,fmodule,i_amiga;
 
 {$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}
 { * PathConv is implemented in the system unit! * }
@@ -150,8 +148,8 @@ begin
       LinkRes.AddFileName(PathConv(maybequoted(s)));
      end;
    end;
-  
-  if (cs_link_on_target in current_settings.globalswitches) then 
+
+  if (cs_link_on_target in current_settings.globalswitches) then
    begin
     LinkRes.Add(')');
 
@@ -188,7 +186,7 @@ begin
       S:=SharedLibFiles.GetFirst;
       LinkRes.Add('lib'+s+target_info.staticlibext);
      end;
-    LinkRes.Add(')');    
+    LinkRes.Add(')');
    end;
 
 { Write and Close response }
@@ -225,7 +223,7 @@ begin
 
   { Write used files and libraries }
   WriteResponseFile(false);
-  
+
   case (target_info.system) of
     system_m68k_amiga:      begin end;
     system_powerpc_amiga:   success:=MakeAmigaPPCExe;

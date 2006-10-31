@@ -156,7 +156,7 @@ Implementation
           the specified file exists without searching any paths }
         if not isunit then
          begin
-           if FileExists(FixFileName(s)) then
+           if FileExists(FixFileName(s),false) then
             begin
               foundfile:=ScriptFixFileName(s);
               found:=true;
@@ -172,25 +172,26 @@ Implementation
            5. unit search path
            6. local object path
            7. global object path
-           8. exepath (not when linking on target) }
+           8. exepath (not when linking on target)
+          for all finds don't use the directory caching }
         found:=false;
         if isunit and (OutputUnitDir<>'') then
-          found:=FindFile(s,OutPutUnitDir,foundfile)
+          found:=FindFile(s,OutPutUnitDir,false,foundfile)
         else
           if OutputExeDir<>'' then
-            found:=FindFile(s,OutPutExeDir,foundfile);
+            found:=FindFile(s,OutPutExeDir,false,foundfile);
         if (not found) and (unitpath<>'') then
-         found:=FindFile(s,unitpath,foundfile);
+         found:=FindFile(s,unitpath,false,foundfile);
         if (not found) then
-         found:=FindFile(s, CurDirRelPath(source_info), foundfile);
+         found:=FindFile(s, CurDirRelPath(source_info),false,foundfile);
         if (not found) then
-         found:=UnitSearchPath.FindFile(s,foundfile);
+         found:=UnitSearchPath.FindFile(s,false,foundfile);
         if (not found) then
-         found:=current_module.localobjectsearchpath.FindFile(s,foundfile);
+         found:=current_module.localobjectsearchpath.FindFile(s,false,foundfile);
         if (not found) then
-         found:=objectsearchpath.FindFile(s,foundfile);
+         found:=objectsearchpath.FindFile(s,false,foundfile);
         if not(cs_link_on_target in current_settings.globalswitches) and (not found) then
-         found:=FindFile(s,exepath,foundfile);
+         found:=FindFile(s,exepath,false,foundfile);
         if not(cs_link_nolink in current_settings.globalswitches) and (not found) then
          Message1(exec_w_objfile_not_found,s);
 
@@ -213,13 +214,13 @@ Implementation
           1. Current dir
           2. Library Path
           3. windir,windir/system,windir/system32 }
-        Found:=FindFile(s,'.'+source_info.DirSep,founddll);
+        Found:=FindFile(s,'.'+source_info.DirSep,false,founddll);
         if (not found) then
-         Found:=librarysearchpath.FindFile(s,founddll);
+         Found:=librarysearchpath.FindFile(s,false,founddll);
         if (not found) then
          begin
            sysdir:=FixPath(GetEnvironmentVariable('windir'),false);
-           Found:=FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,founddll);
+           Found:=FindFile(s,sysdir+';'+sysdir+'system'+source_info.DirSep+';'+sysdir+'system32'+source_info.DirSep,false,founddll);
          end;
         if (not found) then
          begin
@@ -251,7 +252,7 @@ Implementation
          s:=s+ext;
         { readd the split path }
         s:=paths+s;
-        if FileExists(s) then
+        if FileExists(s,false) then
          begin
            foundfile:=ScriptFixFileName(s);
            FindLibraryFile:=true;
@@ -261,16 +262,17 @@ Implementation
            1. cwd
            2. local libary dir
            3. global libary dir
-           4. exe path of the compiler (not when linking on target) }
-        found:=FindFile(s, CurDirRelPath(source_info), foundfile);
+           4. exe path of the compiler (not when linking on target)
+          for all searches don't use the directory cache }
+        found:=FindFile(s, CurDirRelPath(source_info), false,foundfile);
         if (not found) and (current_module.outputpath^<>'') then
-         found:=FindFile(s,current_module.outputpath^,foundfile);
+         found:=FindFile(s,current_module.outputpath^,false,foundfile);
         if (not found) then
-         found:=current_module.locallibrarysearchpath.FindFile(s,foundfile);
+         found:=current_module.locallibrarysearchpath.FindFile(s,false,foundfile);
         if (not found) then
-         found:=librarysearchpath.FindFile(s,foundfile);
+         found:=librarysearchpath.FindFile(s,false,foundfile);
         if not(cs_link_on_target in current_settings.globalswitches) and (not found) then
-         found:=FindFile(s,exepath,foundfile);
+         found:=FindFile(s,exepath,false,foundfile);
         foundfile:=ScriptFixFileName(foundfile);
         findlibraryfile:=found;
       end;
@@ -589,9 +591,9 @@ Implementation
         FoundBin:='';
         Found:=false;
         if utilsdirectory<>'' then
-         Found:=FindFile(utilexe,utilsdirectory,Foundbin);
+         Found:=FindFile(utilexe,utilsdirectory,false,Foundbin);
         if (not Found) then
-         Found:=FindExe(utilexe,Foundbin);
+         Found:=FindExe(utilexe,false,Foundbin);
         if (not Found) and not(cs_link_nolink in current_settings.globalswitches) then
          begin
            Message1(exec_e_util_not_found,utilexe);

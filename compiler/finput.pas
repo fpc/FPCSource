@@ -450,7 +450,7 @@ uses
       begin
         { Check if file exists, this will also check if it is
           a real file and not a directory }
-        if not fileexists(filename) then
+        if not fileexists(filename,false) then
           begin
             result:=false;
             exit;

@@ -266,7 +266,7 @@ uses
          Function UnitExists(const ext:string;var foundfile:string):boolean;
          begin
            Message1(unit_t_unitsearch,Singlepathstring+filename+ext);
-           UnitExists:=FindFile(FileName+ext,Singlepathstring,foundfile);
+           UnitExists:=FindFile(FileName+ext,Singlepathstring,true,foundfile);
          end;
 
          Function PPUSearchPath(const s:string):boolean;
@@ -380,16 +380,16 @@ uses
             { the full filename is specified so we can't use here the
               searchpath (PFV) }
             Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,sourceext));
-            fnd:=FindFile(ChangeFileExt(sourcefn^,sourceext),'',hs);
+            fnd:=FindFile(ChangeFileExt(sourcefn^,sourceext),'',true,hs);
             if not fnd then
              begin
                Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,pasext));
-               fnd:=FindFile(ChangeFileExt(sourcefn^,pasext),'',hs);
+               fnd:=FindFile(ChangeFileExt(sourcefn^,pasext),'',true,hs);
              end;
             if not fnd and ((m_mac in current_settings.modeswitches) or (tf_p_ext_support in target_info.flags)) then
              begin
                Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,pext));
-               fnd:=FindFile(ChangeFileExt(sourcefn^,pext),'',hs);
+               fnd:=FindFile(ChangeFileExt(sourcefn^,pext),'',true,hs);
              end;
             if fnd then
              begin
@@ -732,9 +732,9 @@ uses
               if (Source_Time=-1) then
                 begin
                   if is_main then
-                    found:=unitsearchpath.FindFile(hs,temp_dir)
+                    found:=unitsearchpath.FindFile(hs,true,temp_dir)
                   else
-                    found:=includesearchpath.FindFile(hs,temp_dir);
+                    found:=includesearchpath.FindFile(hs,true,temp_dir);
                   if found then
                    begin
                      Source_Time:=GetNamedFileTime(temp_dir);

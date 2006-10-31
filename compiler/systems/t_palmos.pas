@@ -43,7 +43,8 @@ interface
 implementation
 
     uses
-       cutils,cclasses,
+       SysUtils,
+       cutils,cfileutils,cclasses,
        globtype,globals,systems,verbose,script,fmodule,i_palmos;
 
 {****************************************************************************
@@ -156,8 +157,8 @@ end;
 
 function TLinkerPalmOS.MakeExecutable:boolean;
 var
-  binstr,
-  cmdstr  : string;
+  binstr  : TPathStr;
+  cmdstr  : TCmdStr;
   success : boolean;
   StripStr : string[40];
   i : longint;

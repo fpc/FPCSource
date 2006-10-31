@@ -1413,7 +1413,7 @@ begin
   If FileLevel>MaxLevel then
    Message(option_too_many_cfg_files);
 { Maybe It's Directory ?}   //Jaro Change:
-  if PathExists(filename) then
+  if PathExists(filename,false) then
     begin
        Message1(option_config_is_dir,filename);
        exit;
@@ -2112,7 +2112,7 @@ begin
 
   { Check output dir }
   if (OutputExeDir<>'') and
-     not PathExists(OutputExeDir) then
+     not PathExists(OutputExeDir,false) then
     begin
       Message1(general_e_path_does_not_exist,OutputExeDir);
       StopOptions(1);
@@ -2144,15 +2144,15 @@ begin
   if fpcdir='' then
     begin
       fpcdir:=ExePath+'../';
-      if not(PathExists(fpcdir+'/units')) and
-         not(PathExists(fpcdir+'/rtl')) then
+      if not(PathExists(fpcdir+'/units',true)) and
+         not(PathExists(fpcdir+'/rtl',true)) then
         fpcdir:=fpcdir+'../';
     end;
 {$endif unix}
   { first try development RTL, else use the default installation path }
   if not disable_configfile then
     begin
-      if PathExists(FpcDir+'rtl') then
+      if PathExists(FpcDir+'rtl',true) then
         if tf_use_8_3 in Source_Info.Flags then
           UnitSearchPath.AddPath(FpcDir+'rtl/'+target_os_string,false)
         else

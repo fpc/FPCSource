@@ -1477,16 +1477,16 @@ In case not, the value returned can be arbitrary.
                  hpath:=current_scanner.inputfile.path^+path
                else
                  hpath:=path;
-               found:=FindFile(name, hpath,foundfile);
+               found:=FindFile(name, hpath,true,foundfile);
              end
            else
              begin
                hpath:=current_scanner.inputfile.path^+';'+CurDirRelPath(source_info);
-               found:=FindFile(name, hpath,foundfile);
+               found:=FindFile(name, hpath,true,foundfile);
                if not found then
-                 found:=current_module.localincludesearchpath.FindFile(name,foundfile);
+                 found:=current_module.localincludesearchpath.FindFile(name,true,foundfile);
                if not found  then
-                 found:=includesearchpath.FindFile(name,foundfile);
+                 found:=includesearchpath.FindFile(name,true,foundfile);
              end;
            result:=found;
         end;

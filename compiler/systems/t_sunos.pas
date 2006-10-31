@@ -291,7 +291,7 @@ begin
    begin
 {     if librarysearchpath.FindFile('crtbegin.o',s) then
       LinkRes.AddFileName(s);}
-     if librarysearchpath.FindFile('crti.o',s) then
+     if librarysearchpath.FindFile('crti.o',false,s) then
       LinkRes.AddFileName(s);
    end;
   { main objectfiles }
@@ -351,7 +351,7 @@ begin
   if linklibc then {needed in solaris ? }
    begin
      if {librarysearchpath.FindFile('crtend.o',s1) or}
-        librarysearchpath.FindFile('crtn.o',s2) then
+        librarysearchpath.FindFile('crtn.o',false,s2) then
       begin
         LinkRes.Add('INPUT(');
 {        LinkRes.AddFileName(s1);}

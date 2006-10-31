@@ -85,7 +85,7 @@ interface
         procedure AddPath(s:string;addfirst:boolean);overload;
         procedure AddPath(SrcPath,s:string;addfirst:boolean);overload;
         procedure AddList(list:TSearchPathList;addfirst:boolean);
-        function  FindFile(const f : string;var foundfile:string):boolean;
+        function  FindFile(const f : string;allowcache:boolean;var foundfile:string):boolean;
       end;
 
     {Gives the absolute path to the current directory}
@@ -94,18 +94,18 @@ interface
      with a trailing dir separator. E. g. on unix ./ }
     function CurDirRelPath(systeminfo: tsysteminfo): string;
     function  path_absolute(const s : string) : boolean;
-    Function  PathExists ( F : String) : Boolean;
-    Function  FileExists ( Const F : String) : Boolean;
-    function  FileExistsNonCase(const path,fn:string;var foundfile:string):boolean;
+    Function  PathExists (const F : String;allowcache:boolean) : Boolean;
+    Function  FileExists (const F : String;allowcache:boolean) : Boolean;
+    function  FileExistsNonCase(const path,fn:string;allowcache:boolean;var foundfile:string):boolean;
     Function  RemoveDir(d:string):boolean;
     Function  FixPath(s:string;allowdot:boolean):string;
     function  FixFileName(const s:string):string;
     function  TargetFixPath(s:string;allowdot:boolean):string;
     function  TargetFixFileName(const s:string):string;
     procedure SplitBinCmd(const s:string;var bstr: String;var cstr:TCmdStr);
-    function  FindFile(const f : string;path : string;var foundfile:string):boolean;
-    function  FindFilePchar(const f : string;path : pchar;var foundfile:string):boolean;
-    function  FindExe(const bin:string;var foundfile:string):boolean;
+    function  FindFile(const f : string;path : string;allowcache:boolean;var foundfile:string):boolean;
+    function  FindFilePchar(const f : string;path : pchar;allowcache:boolean;var foundfile:string):boolean;
+    function  FindExe(const bin:string;allowcache:boolean;var foundfile:string):boolean;
     function  GetShortName(const n:string):string;
 
     procedure InitFileUtils;
@@ -233,14 +233,10 @@ implementation
       var
         CachedDir : TCachedDirectory;
       begin
-{$ifdef usedircache}
         Result:=false;
         CachedDir:=GetDirectory(ExtractFileDir(AName));
         if assigned(CachedDir) then
           Result:=CachedDir.FileExists(ExtractFileName(AName));
-{$else usedircache}
-        Result:=SysUtils.FileExists(AName);
-{$endif usedircache}
       end;
 
 
@@ -248,14 +244,10 @@ implementation
       var
         CachedDir : TCachedDirectory;
       begin
-{$ifdef usedircache}
         Result:=false;
         CachedDir:=GetDirectory(ExtractFilePath(AName));
         if assigned(CachedDir) then
           Result:=CachedDir.DirectoryExists(ExtractFileName(AName));
-{$else usedircache}
-        Result:=SysUtils.DirectoryExists(AName);
-{$endif usedircache}
       end;
 
 
@@ -349,9 +341,14 @@ implementation
 {$endif unix}
      end;
 
-    Function FileExists ( Const F : String) : Boolean;
+    Function FileExists ( Const F : String;allowcache:boolean) : Boolean;
       begin
-        Result:={$ifdef usedircache}DirCache.{$else}SysUtils.{$endif}FileExists(F);
+{$ifdef usedircache}
+        if allowcache then
+          Result:=DirCache.FileExists(F)
+        else
+{$endif usedircache}
+          Result:=SysUtils.FileExists(F);
         if assigned(do_comment) then
          begin
            if Result then
@@ -362,7 +359,7 @@ implementation
       end;
 
 
-    function FileExistsNonCase(const path,fn:string;var foundfile:string):boolean;
+    function FileExistsNonCase(const path,fn:string;allowcache:boolean;var foundfile:string):boolean;
       var
         fn2 : string;
       begin
@@ -376,7 +373,7 @@ implementation
                3. UPPERCASE
             }
             FoundFile:=path+fn;
-            If FileExists(FoundFile) then
+            If FileExists(FoundFile,allowcache) then
              begin
                result:=true;
                exit;
@@ -385,7 +382,7 @@ implementation
             if fn2<>fn then
               begin
                 FoundFile:=path+fn2;
-                If FileExists(FoundFile) then
+                If FileExists(FoundFile,allowcache) then
                  begin
                    result:=true;
                    exit;
@@ -395,7 +392,7 @@ implementation
             if fn2<>fn then
               begin
                 FoundFile:=path+fn2;
-                If FileExists(FoundFile) then
+                If FileExists(FoundFile,allowcache) then
                  begin
                    result:=true;
                    exit;
@@ -410,7 +407,7 @@ implementation
                  1. NormalCase
               }
               FoundFile:=path+fn;
-              If FileExists(FoundFile) then
+              If FileExists(FoundFile,allowcache) then
                begin
                  result:=true;
                  exit;
@@ -420,7 +417,7 @@ implementation
           begin
             { None case sensitive only lowercase }
             FoundFile:=path+Lower(fn);
-            If FileExists(FoundFile) then
+            If FileExists(FoundFile,allowcache) then
              begin
                result:=true;
                exit;
@@ -431,21 +428,27 @@ implementation
       end;
 
 
-    Function PathExists ( F : String) : Boolean;
+    Function PathExists (const F : String;allowcache:boolean) : Boolean;
       Var
-        I: longint;
+        i: longint;
+        hs : string;
       begin
         if F = '' then
           begin
             result := true;
             exit;
           end;
-        F := ExpandFileName(F);
-        I := Pos (DriveSeparator, F);
-        if (F [Length (F)] = DirectorySeparator) and
-           (((I = 0) and (Length (F) > 1)) or (I <> Length (F) - 1)) then
-          Delete (F, Length (F), 1);
-        Result:=SysUtils.DirectoryExists(F);
+        hs := ExpandFileName(F);
+        I := Pos (DriveSeparator, hs);
+        if (hs [Length (hs)] = DirectorySeparator) and
+           (((I = 0) and (Length (hs) > 1)) or (I <> Length (hs) - 1)) then
+          Delete (hs, Length (hs), 1);
+{$ifdef usedircache}
+        if allowcache then
+          Result:=DirCache.DirectoryExists(hs)
+        else
+{$endif usedircache}
+          Result:=SysUtils.DirectoryExists(hs);
       end;
 
 
@@ -828,7 +831,7 @@ implementation
                     begin
                       subdirfound:=true;
                       currpath:=prefix+dir.name+suffix;
-                      if (suffix='') or PathExists(currpath) then
+                      if (suffix='') or PathExists(currpath,true) then
                         begin
                           hp:=Find(currPath);
                           if not assigned(hp) then
@@ -848,7 +851,7 @@ implementation
                     begin
                       subdirfound:=true;
                       currpath:=prefix+dir.name+suffix;
-                      if (suffix='') or PathExists(currpath) then
+                      if (suffix='') or PathExists(currpath,false) then
                         begin
                           hp:=Find(currPath);
                           if not assigned(hp) then
@@ -864,7 +867,7 @@ implementation
           end
          else
           begin
-            if PathExists(currpath) then
+            if PathExists(currpath,true) then
              AddCurrPath
             else
              WarnNonExistingPath(currpath);
@@ -914,7 +917,7 @@ implementation
      end;
 
 
-   function TSearchPathList.FindFile(const f : string;var foundfile:string):boolean;
+   function TSearchPathList.FindFile(const f : string;allowcache:boolean;var foundfile:string):boolean;
      Var
        p : TStringListItem;
      begin
@@ -922,7 +925,7 @@ implementation
        p:=TStringListItem(first);
        while assigned(p) do
         begin
-          result:=FileExistsNonCase(p.Str,f,FoundFile);
+          result:=FileExistsNonCase(p.Str,f,allowcache,FoundFile);
           if result then
             exit;
           p:=TStringListItem(p.next);
@@ -932,7 +935,7 @@ implementation
      end;
 
 
-   function FindFile(const f : string;path : string;var foundfile:string):boolean;
+   function FindFile(const f : string;path : string;allowcache:boolean;var foundfile:string):boolean;
       Var
         singlepathstring : string;
         i : longint;
@@ -949,7 +952,7 @@ implementation
            i:=256;
           singlepathstring:=FixPath(copy(path,1,i-1),false);
           delete(path,1,i);
-          result:=FileExistsNonCase(singlepathstring,f,FoundFile);
+          result:=FileExistsNonCase(singlepathstring,f,allowcache,FoundFile);
           if result then
             exit;
        until path='';
@@ -957,7 +960,7 @@ implementation
      end;
 
 
-   function FindFilePchar(const f : string;path : pchar;var foundfile:string):boolean;
+   function FindFilePchar(const f : string;path : pchar;allowcache:boolean;var foundfile:string):boolean;
       Var
         singlepathstring : string;
         startpc,pc : pchar;
@@ -983,7 +986,7 @@ implementation
              move(startpc^,singlepathstring[1],pc-startpc);
              singlepathstring[0]:=char(longint(pc-startpc));
              singlepathstring:=FixPath(singlepathstring,false);
-             result:=FileExistsNonCase(singlepathstring,f,FoundFile);
+             result:=FileExistsNonCase(singlepathstring,f,allowcache,FoundFile);
              if result then
                exit;
              if (pc^=#0) then
@@ -995,12 +998,12 @@ implementation
      end;
 
 
-   function  FindExe(const bin:string;var foundfile:string):boolean;
+   function  FindExe(const bin:string;allowcache:boolean;var foundfile:string):boolean;
      var
        p : pchar;
        found : boolean;
      begin
-       found:=FindFile(FixFileName(ChangeFileExt(bin,source_info.exeext)),'.;'+exepath,foundfile);
+       found:=FindFile(FixFileName(ChangeFileExt(bin,source_info.exeext)),'.;'+exepath,allowcache,foundfile);
        if not found then
         begin
 {$ifdef macos}
@@ -1008,7 +1011,7 @@ implementation
 {$else}
           p:=GetEnvPchar('PATH');
 {$endif}
-          found:=FindFilePChar(FixFileName(ChangeFileExt(bin,source_info.exeext)),p,foundfile);
+          found:=FindFilePChar(FixFileName(ChangeFileExt(bin,source_info.exeext)),p,allowcache,foundfile);
           FreeEnvPChar(p);
         end;
        FindExe:=found;
@@ -1021,11 +1024,7 @@ implementation
         hs,hs2 : string;
         i : longint;
 {$endif}
-{$ifdef go32v2}
-      var
-        hs : string;
-{$endif}
-{$ifdef watcom}
+{$if defined(go32v2) or defined(watcom)}
       var
         hs : string;
 {$endif}

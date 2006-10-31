@@ -30,9 +30,9 @@ interface
 implementation
 
     uses
-       link,
-       cutils,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_gba;
+       SysUtils,
+       cutils,cfileutils,cclasses,
+       globtype,globals,systems,verbose,script,fmodule,i_gba,link;
 
     type
        TlinkerGBA=class(texternallinker)
@@ -521,7 +521,7 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if not(cs_link_on_target in current_settings.globalswitches) then
    begin
-    Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ForceExtension(current_module.exefilename^,'.elf')))));
+    Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,'.elf')))));
     Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
@@ -530,7 +530,7 @@ begin
    end
   else
    begin
-    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ForceExtension(current_module.exefilename^,'.elf'))));
+    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,'.elf'))));
     Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
     Replace(cmdstr,'$STATIC',StaticStr);
     Replace(cmdstr,'$STRIP',StripStr);
@@ -547,7 +547,7 @@ begin
   if success then
     begin
       success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
-        ForceExtension(current_module.exefilename^,'.elf')+' '+
+        ChangeFileExt(current_module.exefilename^,'.elf')+' '+
         current_module.exefilename^,true,false);
     end;
 

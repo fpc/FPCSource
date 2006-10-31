@@ -76,9 +76,9 @@ begin
   resbin:='';
   resfound:=false;
   if utilsdirectory<>'' then
-    resfound:=FindFile(utilsprefix+target_res.resbin+source_info.exeext,utilsdirectory,resbin);
+    resfound:=FindFile(utilsprefix+target_res.resbin+source_info.exeext,utilsdirectory,false,resbin);
   if not resfound then
-    resfound:=FindExe(utilsprefix+target_res.resbin,resbin);
+    resfound:=FindExe(utilsprefix+target_res.resbin,false,resbin);
   { get also the path to be searched for the windres.h }
   respath:=ExtractFilePath(resbin);
   if (not resfound) and not(cs_link_nolink in current_settings.globalswitches) then

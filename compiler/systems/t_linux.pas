@@ -223,7 +223,7 @@ const
 
 {$ifdef m68k}
 var
-  St : SearchRec;
+  St : TSearchRec;
 {$endif m68k}
 begin
   with Info do
@@ -233,40 +233,36 @@ begin
      DllCmd[2]:='strip --strip-unneeded $EXE';
 {$ifdef m68k}
      libctype:=glibc2;
-     FindFirst('/lib/ld*',AnyFile,st);
-     while DosError=0 do
-      begin
-        if copy(st.name,1,5)='ld-2.' then
-         begin
-           DynamicLinker:='/lib/'+St.name;
-           if st.name[6]<>'0' then
-             libctype:=glibc21;
-           break;
-         end;
-         FindNext(St);
-      end;
+     if FindFirst('/lib/ld*',faAnyFile+faSymLink,st)<>0 then
+       begin
+         repeat
+            if copy(st.name,1,5)='ld-2.' then
+             begin
+               DynamicLinker:='/lib/'+St.name;
+               if st.name[6]<>'0' then
+                 libctype:=glibc21;
+               break;
+             end;
+         until FindNext(St)<>0;
+       end;
      FindClose(St);
 {$endif m68k}
 
 {$ifdef i386}
-     { first try glibc2 }
-     DynamicLinker:='/lib/ld-linux.so.2';
-     if FileExists(DynamicLinker) then
-       { Check for 2.0 files, else use the glibc 2.1 stub }
-       if FileExists('/lib/ld-2.0.*') then
-         libctype:=glibc2
-       else
-         libctype:=glibc21
-     else
-       if fileexists('/lib/ld-uClibc.so.0') then
-         begin
-           libctype:=uclibc;
-           dynamiclinker:='/lib/ld-uClibc.so.0';
-         end
-       else if fileexists('/lib/ld-linux.so.1') then
-         DynamicLinker:='/lib/ld-linux.so.1'
-       else
-         libctype:=glibc21;
+     { default is glibc 2.1+ compatible }
+     libctype:=glibc21;
+     if FileExists('/lib/ld-linux.so.2',false) then
+       DynamicLinker:='/lib/ld-linux.so.2'
+     else if fileexists('/lib/ld-uClibc.so.0',false) then
+       begin
+         dynamiclinker:='/lib/ld-uClibc.so.0';
+         libctype:=uclibc;
+       end
+     else if fileexists('/lib/ld-linux.so.1',false) then
+       begin
+         DynamicLinker:='/lib/ld-linux.so.1';
+         libctype:=glibc2;
+       end;
 {$endif i386}
 
 {$ifdef x86_64}
@@ -393,9 +389,9 @@ begin
       { try to add crti and crtbegin if linking to C }
       if linklibc then
        begin
-         if librarysearchpath.FindFile('crtbegin.o',s) then
+         if librarysearchpath.FindFile('crtbegin.o',false,s) then
           AddFileName(s);
-         if librarysearchpath.FindFile('crti.o',s) then
+         if librarysearchpath.FindFile('crti.o',false,s) then
           AddFileName(s);
        end;
       { main objectfiles }
@@ -458,8 +454,8 @@ begin
       { objects which must be at the end }
       if linklibc and (libctype<>uclibc) then
        begin
-         found1:=librarysearchpath.FindFile('crtend.o',s1);
-         found2:=librarysearchpath.FindFile('crtn.o',s2);
+         found1:=librarysearchpath.FindFile('crtend.o',false,s1);
+         found2:=librarysearchpath.FindFile('crtn.o',false,s2);
          if found1 or found2 then
           begin
             Add('INPUT(');
