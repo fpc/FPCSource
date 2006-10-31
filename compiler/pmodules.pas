@@ -225,7 +225,7 @@ implementation
 {$ifdef arm}
     procedure InsertPData;
       begin
-        new_section(current_asmdata.asmlists[al_globals],sec_pdata,'FPC_EH_PROLOG',sizeof(aint));
+        new_section(current_asmdata.asmlists[al_globals],sec_code,'FPC_EH_PROLOG',sizeof(aint),secorder_begin);
         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname('_ARM_ExceptionHandler', 0));
         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(0));
         current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('FPC_EH_CODE_START',AT_DATA,0));
