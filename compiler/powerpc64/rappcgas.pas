@@ -609,7 +609,6 @@ end;
 
 function tppcattreader.is_asmopcode(const s: string): boolean;
 var
-  str2opentry: tstr2opentry;
   cond: tasmcondflag;
   hs: string;
 
@@ -634,12 +633,11 @@ begin
     dec(ord(hs[0]));
     actcondition.dirhint := DH_Plus;
   end;
-  str2opentry := tstr2opentry(iasmops.search(hs));
-  if assigned(str2opentry) then
+  actopcode := tasmop(ptrint(iasmops.Find(hs)));
+  if actopcode <> A_NONE then
   begin
     if actcondition.dirhint <> DH_None then
       message1(asmr_e_unknown_opcode, actasmpattern);
-    actopcode := str2opentry.op;
     actasmtoken := AS_OPCODE;
     is_asmopcode := true;
     exit;
