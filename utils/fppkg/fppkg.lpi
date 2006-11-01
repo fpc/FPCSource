@@ -1,0 +1,267 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <PathDelim Value="/"/>
+    <Version Value="5"/>
+    <General>
+      <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <TargetFileExt Value=""/>
+      <ActiveEditorIndexAtStart Value="3"/>
+    </General>
+    <VersionInfo>
+      <ProjectVersion Value=""/>
+      <Language Value=""/>
+      <CharSet Value=""/>
+    </VersionInfo>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <Units Count="11">
+      <Unit0>
+        <Filename Value="fppkg.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fppkg"/>
+        <CursorPos X="1" Y="13"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="0"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="pkgropts.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="fpmkcnst.inc"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="fpmktype.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpmktype"/>
+        <CursorPos X="3" Y="41"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="2"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="fpmkunit.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="fprepos.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="fpxmlrep.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="pkghandler.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="pkghandler"/>
+        <CursorPos X="18" Y="41"/>
+        <TopLine Value="16"/>
+        <EditorIndex Value="5"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="pkgmkconv.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="pkgmkconv"/>
+        <CursorPos X="20" Y="7"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="4"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="pkgdownload.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="pkgdownload"/>
+        <CursorPos X="1" Y="94"/>
+        <TopLine Value="59"/>
+        <EditorIndex Value="3"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="pkgmessages.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="pkgmessages"/>
+        <CursorPos X="1" Y="18"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit10>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="pkgmkconv.pp"/>
+        <Caret Line="614" Column="12" TopLine="591"/>
+      </Position1>
+      <Position2>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="7" Column="37" TopLine="1"/>
+      </Position2>
+      <Position3>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="75" Column="34" TopLine="52"/>
+      </Position3>
+      <Position4>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="61" Column="19" TopLine="52"/>
+      </Position4>
+      <Position5>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="44" Column="31" TopLine="1"/>
+      </Position5>
+      <Position6>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="239" Column="23" TopLine="216"/>
+      </Position6>
+      <Position7>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="282" Column="29" TopLine="243"/>
+      </Position7>
+      <Position8>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="14" Column="3" TopLine="1"/>
+      </Position8>
+      <Position9>
+        <Filename Value="pkghandler.pp"/>
+        <Caret Line="50" Column="1" TopLine="1"/>
+      </Position9>
+      <Position10>
+        <Filename Value="pkghandler.pp"/>
+        <Caret Line="42" Column="62" TopLine="18"/>
+      </Position10>
+      <Position11>
+        <Filename Value="pkghandler.pp"/>
+        <Caret Line="47" Column="24" TopLine="24"/>
+      </Position11>
+      <Position12>
+        <Filename Value="pkghandler.pp"/>
+        <Caret Line="45" Column="73" TopLine="24"/>
+      </Position12>
+      <Position13>
+        <Filename Value="pkgmkconv.pp"/>
+        <Caret Line="49" Column="14" TopLine="16"/>
+      </Position13>
+      <Position14>
+        <Filename Value="pkgmkconv.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position14>
+      <Position15>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="30" Column="9" TopLine="4"/>
+      </Position15>
+      <Position16>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="36" Column="26" TopLine="13"/>
+      </Position16>
+      <Position17>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="26" Column="19" TopLine="3"/>
+      </Position17>
+      <Position18>
+        <Filename Value="pkghandler.pp"/>
+        <Caret Line="19" Column="26" TopLine="12"/>
+      </Position18>
+      <Position19>
+        <Filename Value="pkghandler.pp"/>
+        <Caret Line="56" Column="5" TopLine="12"/>
+      </Position19>
+      <Position20>
+        <Filename Value="pkghandler.pp"/>
+        <Caret Line="62" Column="11" TopLine="39"/>
+      </Position20>
+      <Position21>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="22" Column="1" TopLine="1"/>
+      </Position21>
+      <Position22>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="53" Column="1" TopLine="19"/>
+      </Position22>
+      <Position23>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="49" Column="5" TopLine="1"/>
+      </Position23>
+      <Position24>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="10" Column="1" TopLine="1"/>
+      </Position24>
+      <Position25>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="55" Column="28" TopLine="32"/>
+      </Position25>
+      <Position26>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="59" Column="1" TopLine="32"/>
+      </Position26>
+      <Position27>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="73" Column="46" TopLine="50"/>
+      </Position27>
+      <Position28>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="75" Column="19" TopLine="52"/>
+      </Position28>
+      <Position29>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="93" Column="7" TopLine="59"/>
+      </Position29>
+      <Position30>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="94" Column="11" TopLine="59"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="5"/>
+    <CodeGeneration>
+      <Generate Value="Faster"/>
+    </CodeGeneration>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="2">
+      <Item1>
+        <Name Value="ECodetoolError"/>
+      </Item1>
+      <Item2>
+        <Name Value="EFOpenError"/>
+      </Item2>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
