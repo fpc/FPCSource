@@ -858,11 +858,11 @@ implementation
               statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil)));
               consume(_RKLAMMER);
             end;
-(*
           in_get_frame:
             begin
               statement_syssym:=geninlinenode(l,false,nil);
             end;
+(*
           in_get_caller_frame:
             begin
               if try_to_consume(_LKLAMMER) then

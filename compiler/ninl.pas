@@ -2533,6 +2533,7 @@ implementation
             end;
          in_get_frame:
             begin
+              include(current_procinfo.flags,pi_needs_stackframe);
               expectloc:=LOC_CREGISTER;
             end;
          in_get_caller_frame:

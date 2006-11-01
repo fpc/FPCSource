@@ -300,7 +300,9 @@ interface
          { set if the procedure has at least one got }
          pi_has_goto,
          { calls itself recursive }
-         pi_is_recursive
+         pi_is_recursive,
+         { stack frame optimization not possible (only on x86 probably) }
+         pi_needs_stackframe
        );
        tprocinfoflags=set of tprocinfoflag;
 

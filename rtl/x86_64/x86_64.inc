@@ -41,6 +41,7 @@ function get_frame:pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movq    %rbp,%rax
 end ['RAX'];
+{$ENDIF not INTERNAL_BACKTRACE}
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
@@ -75,7 +76,7 @@ asm
 {$endif win64}
 .Lg_a_null:
 end ['RAX'];
-{$ENDIF}
+
 (*
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;

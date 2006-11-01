@@ -2235,6 +2235,11 @@ implementation
     function ttypeconvnode.first_proc_to_procvar : tnode;
       begin
          first_proc_to_procvar:=nil;
+         { if we take the address of a nested function, it'll  }
+         { probably be used in a foreach() construct and then  }
+         { the parent needs a stackframe                       }
+         if (tprocdef(left.resultdef).parast.symtablelevel>=normal_function_level) then
+           include(current_procinfo.flags,pi_needs_stackframe);
          if tabstractprocdef(resultdef).is_addressonly then
           begin
             registersint:=left.registersint;

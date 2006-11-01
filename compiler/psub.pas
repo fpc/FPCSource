@@ -759,7 +759,8 @@ implementation
             if (cs_opt_stackframe in current_settings.optimizerswitches) and
                not(po_assembler in procdef.procoptions) and
                ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
-                       pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter])=[]) then
+                       pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter,
+                       pi_needs_stackframe])=[]) then
                begin
                  { we need the parameter info here to determine if the procedure gets
                    parameters on the stack

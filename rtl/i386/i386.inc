@@ -958,6 +958,7 @@ function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$
 asm
         movl    %ebp,%eax
 end ['EAX'];
+{$ENDIF not INTERNAL_BACKTRACE}
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
@@ -984,7 +985,6 @@ asm
         movl    (%eax),%eax
 .Lgnf_null:
 end ['EAX'];
-{$ENDIF}
 
 {****************************************************************************
                                  Math
