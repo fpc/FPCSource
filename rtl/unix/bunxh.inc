@@ -85,7 +85,11 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpPWrite     (fd : cInt; buf:pChar; nbytes : TSize; offset:Toff): TSSize;
     function  FpWriteV	   (fd: cint; const iov : piovec; iovcnt : cint):TSSize; 
 
+{$ifndef linux}
     Function  FpLseek      (fd : cInt; offset : TOff; whence : cInt): TOff; external name 'FPC_SYSC_LSEEK';
+{$else linux}
+    Function  FpLseek      (fd : cInt; offset : TOff64; whence : cInt): TOff64; external name 'FPC_SYSC_LSEEK';
+{$endif linux}
     Function  FpTime       (var tloc : TTime): TTime; external name 'FPC_SYSC_TIME';
     Function  FpFtruncate  (fd : cInt; flength : TOff): cInt;  external name 'FPC_SYSC_FTRUNCATE';
     Function  FPSigaction  (sig: cInt; act : pSigActionRec; oact : pSigActionRec): cint;  external name 'FPC_SYSC_SIGACTION';
