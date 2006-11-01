@@ -26,7 +26,7 @@ interface
 
 type
   LongDouble = ValReal;
-  FPC_Internal_Four_Char_Array = array[1..4] of Char;
+  FourCharArray = packed array[1..4] of char;
 
 {FourCharCode coercion
 This routine coreces string literals to a FourCharCode.}
@@ -34,10 +34,6 @@ function FCC(const literal: string): LongWord; {$ifdef systeminline}inline;{$end
 
 {Same as FCC, to be compatible with GPC}
 function FOUR_CHAR_CODE(const literal: string): LongWord; {$ifdef systeminline}inline;{$endif}
-
-{This makes casts from ShortString to FourCharCode automatically,
- to emulate the behaviour of mac pascal compilers}
-operator := (const s: ShortString) res: LongWord; {$ifdef systeminline}inline;{$endif}
 
 { Same as the "is" operator }
 Function Member (Instance : TObject; AClass : TClass) : boolean; {$ifdef systeminline}inline;{$endif}
@@ -93,17 +89,20 @@ implementation
 
 function FCC(const literal: string): LongWord; {$ifdef systeminline}inline;{$endif}
 begin
+{$ifdef FPC_LITTLE_ENDIAN}
+  FCC := (ord(literal[1]) shl 24) or (ord(literal[2]) shl 16) or ord(literal[3] shl 8) or ord(literal[4]);
+{$else FPC_LITTLE_ENDIAN}
   FCC := PLongWord(@literal[1])^;
+{$endif FPC_LITTLE_ENDIAN}
 end;
 
 function FOUR_CHAR_CODE(const literal: string): LongWord; {$ifdef systeminline}inline;{$endif}
 begin
+{$ifdef FPC_LITTLE_ENDIAN}
+  FOUR_CHAR_CODE := (ord(literal[1]) shl 24) or (ord(literal[2]) shl 16) or ord(literal[3] shl 8) or ord(literal[4]);
+{$else FPC_LITTLE_ENDIAN}
   FOUR_CHAR_CODE := PLongWord(@literal[1])^;
-end;
-
-operator := (const s: ShortString) res: LongWord; {$ifdef systeminline}inline;{$endif}
-begin
-  res := PLongWord(@s[1])^;
+{$endif FPC_LITTLE_ENDIAN}
 end;
 
 Function Member (Instance : TObject; AClass : TClass) : boolean; {$ifdef systeminline}inline;{$endif}

@@ -63,7 +63,6 @@ interface
           function typecheck_char_to_string : tnode;
           function typecheck_char_to_chararray : tnode;
           function typecheck_int_to_real : tnode;
-          function typecheck_int_to_string : tnode;
           function typecheck_real_to_real : tnode;
           function typecheck_real_to_currency : tnode;
           function typecheck_cchar_to_pchar : tnode;
@@ -206,7 +205,6 @@ interface
     procedure inserttypeconv_internal(var p:tnode;def:tdef);
     procedure arrayconstructor_to_set(var p : tnode);
     procedure insert_varargstypeconv(var p : tnode; iscvarargs: boolean);
-    procedure int_to_4cc(var p: tnode);
 
 
 implementation
@@ -593,74 +591,6 @@ implementation
         typecheckpass(p);
       end;
 
-
-    procedure int_to_4cc(var p: tnode);
-      var
-        srsym: tsym;
-        srsymtable: tsymtable;
-        inttemp, chararrtemp: ttempcreatenode;
-        newblock: tblocknode;
-        newstatement: tstatementnode;
-      begin
-         if (m_mac in current_settings.modeswitches) and
-            is_integer(p.resultdef) and
-            (p.resultdef.size = 4) then
-           begin
-             if not searchsym_type('FPC_INTERNAL_FOUR_CHAR_ARRAY',srsym,srsymtable) then
-               internalerror(2006101802);
-             if (target_info.endian = endian_big) then
-               inserttypeconv_internal(p,ttypesym(srsym).typedef)
-             else
-               begin
-                 newblock := internalstatements(newstatement);
-                 inttemp := ctempcreatenode.create(p.resultdef,4,tt_persistent,true);
-                 chararrtemp := ctempcreatenode.create(ttypesym(srsym).typedef,4,tt_persistent,true);
-                 addstatement(newstatement,inttemp);
-                 addstatement(newstatement,cassignmentnode.create(
-                   ctemprefnode.create(inttemp),p));
-                 addstatement(newstatement,chararrtemp);
-
-                 addstatement(newstatement,cassignmentnode.create(
-                   cvecnode.create(ctemprefnode.create(chararrtemp),
-                     cordconstnode.create(1,u32inttype,false)),
-                   ctypeconvnode.create_explicit(
-                     cshlshrnode.create(shrn,ctemprefnode.create(inttemp),
-                       cordconstnode.create(24,s32inttype,false)),
-                     cchartype)));
-
-                 addstatement(newstatement,cassignmentnode.create(
-                   cvecnode.create(ctemprefnode.create(chararrtemp),
-                     cordconstnode.create(2,u32inttype,false)),
-                   ctypeconvnode.create_explicit(
-                     cshlshrnode.create(shrn,ctemprefnode.create(inttemp),
-                       cordconstnode.create(16,s32inttype,false)),
-                     cchartype)));
-
-                 addstatement(newstatement,cassignmentnode.create(
-                   cvecnode.create(ctemprefnode.create(chararrtemp),
-                     cordconstnode.create(3,u32inttype,false)),
-                   ctypeconvnode.create_explicit(
-                     cshlshrnode.create(shrn,ctemprefnode.create(inttemp),
-                       cordconstnode.create(8,s32inttype,false)),
-                     cchartype)));
-
-                 addstatement(newstatement,cassignmentnode.create(
-                   cvecnode.create(ctemprefnode.create(chararrtemp),
-                     cordconstnode.create(4,u32inttype,false)),
-                   ctypeconvnode.create_explicit(
-                     ctemprefnode.create(inttemp),cchartype)));
-
-                 addstatement(newstatement,ctempdeletenode.create(inttemp));
-                 addstatement(newstatement,ctempdeletenode.create_normal_temp(chararrtemp));
-                 addstatement(newstatement,ctemprefnode.create(chararrtemp));
-                 p := newblock;
-                 typecheckpass(p);
-               end;
-           end
-         else
-           internalerror(2006101803);
-      end;
-
 {*****************************************************************************
                            TTYPECONVNODE
 *****************************************************************************}
@@ -764,7 +694,6 @@ implementation
           'tc_pointer_2_array',
           'tc_int_2_int',
           'tc_int_2_bool',
-          'tc_int_2_string',
           'tc_bool_2_bool',
           'tc_bool_2_int',
           'tc_real_2_real',
@@ -1136,21 +1065,6 @@ implementation
       end;
 
 
-    function ttypeconvnode.typecheck_int_to_string : tnode;
-       begin
-         if (m_mac in current_settings.modeswitches) and
-            is_integer(left.resultdef) and
-            (left.resultdef.size = 4) then
-           begin
-             int_to_4cc(left);
-             inserttypeconv(left,resultdef);
-             result := left;
-             left := nil;
-           end
-         else
-           internalerror(2006101803);
-       end;
-
     function ttypeconvnode.typecheck_real_to_real : tnode;
       begin
          result:=nil;
@@ -1476,7 +1390,6 @@ implementation
           { pointer_2_array } nil,
           { int_2_int } @ttypeconvnode.typecheck_int_to_int,
           { int_2_bool } nil,
-          { int_2_string } @ttypeconvnode.typecheck_int_to_string,
           { bool_2_bool } nil,
           { bool_2_int } nil,
           { real_2_real } @ttypeconvnode.typecheck_real_to_real,
@@ -2428,7 +2341,6 @@ implementation
            @ttypeconvnode._first_pointer_to_array,
            @ttypeconvnode._first_int_to_int,
            @ttypeconvnode._first_int_to_bool,
-           nil, { removed in typecheck_int_to_string }
            @ttypeconvnode._first_bool_to_bool,
            @ttypeconvnode._first_bool_to_int,
            @ttypeconvnode._first_real_to_real,
@@ -2673,7 +2585,6 @@ implementation
            @ttypeconvnode._second_pointer_to_array,
            @ttypeconvnode._second_int_to_int,
            @ttypeconvnode._second_int_to_bool,
-           @ttypeconvnode._second_nothing, { int_to_string, handled in resultdef pass }
            @ttypeconvnode._second_bool_to_bool,
            @ttypeconvnode._second_bool_to_int,
            @ttypeconvnode._second_real_to_real,

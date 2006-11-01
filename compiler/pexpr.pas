@@ -1783,7 +1783,6 @@ implementation
           srsym  : tsym;
           srsymtable : tsymtable;
           classh     : tobjectdef;
-          ok: boolean;
 
         label
           skipreckklammercheck;
@@ -1853,7 +1852,6 @@ implementation
                       begin
                         consume(_LECKKLAMMER);
                         repeat
-                          ok := true;
                           case p1.resultdef.deftype of
                             pointerdef:
                               begin
@@ -1881,76 +1879,57 @@ implementation
                                   p2:=crangenode.create(p2,comp_expr(true));
                                 p1:=cvecnode.create(p1,p2);
                               end;
-                            arraydef,
-                            orddef :
+                            arraydef:
                               begin
-                                { in MacPas mode, you can treat a 32bit int as }
-                                { an array[1..4] of char. The                  }
-                                { FPC_Internal_Four_Char_Array is defined in   }
-                                { the macpas unit                              }
-                                if (p1.resultdef.deftype = orddef) then
+                                p2:=comp_expr(true);
+                                { support SEG:OFS for go32v2 Mem[] }
+                                if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
+                                   (p1.nodetype=loadn) and
+                                   assigned(tloadnode(p1).symtableentry) and
+                                   assigned(tloadnode(p1).symtableentry.owner.name) and
+                                   (tloadnode(p1).symtableentry.owner.name^='SYSTEM') and
+                                   ((tloadnode(p1).symtableentry.name='MEM') or
+                                    (tloadnode(p1).symtableentry.name='MEMW') or
+                                    (tloadnode(p1).symtableentry.name='MEML')) then
                                   begin
-                                    if (m_mac in current_settings.modeswitches) and
-                                       is_integer(p1.resultdef) and
-                                       (p1.resultdef.size = 4) then
-                                      int_to_4cc(p1)
+                                    if try_to_consume(_COLON) then
+                                     begin
+                                       p3:=caddnode.create(muln,cordconstnode.create($10,s32inttype,false),p2);
+                                       p2:=comp_expr(true);
+                                       p2:=caddnode.create(addn,p2,p3);
+                                       if try_to_consume(_POINTPOINT) then
+                                         { Support mem[$a000:$0000..$07ff] which returns array [0..$7ff] of memtype.}
+                                         p2:=crangenode.create(p2,caddnode.create(addn,comp_expr(true),p3.getcopy));
+                                       p1:=cvecnode.create(p1,p2);
+                                       include(tvecnode(p1).flags,nf_memseg);
+                                       include(tvecnode(p1).flags,nf_memindex);
+                                     end
                                     else
-                                      ok := false;
-                                  end;
-                                if ok then
+                                     begin
+                                       if try_to_consume(_POINTPOINT) then
+                                         { Support mem[$80000000..$80000002] which returns array [0..2] of memtype.}
+                                         p2:=crangenode.create(p2,comp_expr(true));
+                                       p1:=cvecnode.create(p1,p2);
+                                       include(tvecnode(p1).flags,nf_memindex);
+                                     end;
+                                  end
+                                else
                                   begin
-                                    p2:=comp_expr(true);
-                                    { support SEG:OFS for go32v2 Mem[] }
-                                    if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
-                                       (p1.nodetype=loadn) and
-                                       assigned(tloadnode(p1).symtableentry) and
-                                       assigned(tloadnode(p1).symtableentry.owner.name) and
-                                       (tloadnode(p1).symtableentry.owner.name^='SYSTEM') and
-                                       ((tloadnode(p1).symtableentry.name='MEM') or
-                                        (tloadnode(p1).symtableentry.name='MEMW') or
-                                        (tloadnode(p1).symtableentry.name='MEML')) then
-                                      begin
-                                        if try_to_consume(_COLON) then
-                                         begin
-                                           p3:=caddnode.create(muln,cordconstnode.create($10,s32inttype,false),p2);
-                                           p2:=comp_expr(true);
-                                           p2:=caddnode.create(addn,p2,p3);
-                                           if try_to_consume(_POINTPOINT) then
-                                             { Support mem[$a000:$0000..$07ff] which returns array [0..$7ff] of memtype.}
-                                             p2:=crangenode.create(p2,caddnode.create(addn,comp_expr(true),p3.getcopy));
-                                           p1:=cvecnode.create(p1,p2);
-                                           include(tvecnode(p1).flags,nf_memseg);
-                                           include(tvecnode(p1).flags,nf_memindex);
-                                         end
-                                        else
-                                         begin
-                                           if try_to_consume(_POINTPOINT) then
-                                             { Support mem[$80000000..$80000002] which returns array [0..2] of memtype.}
-                                             p2:=crangenode.create(p2,comp_expr(true));
-                                           p1:=cvecnode.create(p1,p2);
-                                           include(tvecnode(p1).flags,nf_memindex);
-                                         end;
-                                      end
-                                    else
-                                      begin
-                                        if try_to_consume(_POINTPOINT) then
-                                          { Support arrayvar[0..9] which returns array [0..9] of arraytype.}
-                                          p2:=crangenode.create(p2,comp_expr(true));
-                                        p1:=cvecnode.create(p1,p2);
-                                      end;
+                                    if try_to_consume(_POINTPOINT) then
+                                      { Support arrayvar[0..9] which returns array [0..9] of arraytype.}
+                                      p2:=crangenode.create(p2,comp_expr(true));
+                                    p1:=cvecnode.create(p1,p2);
                                   end;
                               end;
                             else
-                              ok := false;
+                              begin
+                                Message(parser_e_invalid_qualifier);
+                                p1.destroy;
+                                p1:=cerrornode.create;
+                                comp_expr(true);
+                                again:=false;
+                              end;
                           end;
-                          if not ok then
-                            begin
-                              Message(parser_e_invalid_qualifier);
-                              p1.destroy;
-                              p1:=cerrornode.create;
-                              comp_expr(true);
-                              again:=false;
-                            end;
                           do_typecheckpass(p1);
                         until not try_to_consume(_COMMA);
                         consume(_RECKKLAMMER);
