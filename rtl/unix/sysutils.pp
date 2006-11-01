@@ -222,14 +222,12 @@ end;
 Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
 
 begin
-  FileSeek:=fplSeek (Handle,FOffset,Origin);
+  result:=longint(FileSeek(Handle,int64(FOffset),Origin));
 end;
 
 
-Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
-
+Function FileSeek (Handle : Longint; FOffset : Int64; Origin : Longint) : Int64;
 begin
-  {$warning need to add 64bit call }
   FileSeek:=fplSeek (Handle,FOffset,Origin);
 end;
 

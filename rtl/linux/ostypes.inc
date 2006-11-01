@@ -92,7 +92,7 @@ type
 
   Dirent   = packed record
                 d_fileno      : ino64_t;                        // file number of entry
-                d_off         : off64_t;
+                d_off         : off_t;
                 d_reclen      : cushort;                        // length of string in d_name
                 d_type        : cuchar;                         // file type, see below
                 d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
@@ -140,8 +140,8 @@ type
    FLock     = Record
                 l_type  : cshort;       { lock type: read/write, etc. }
                 l_whence: cshort;       { type of l_start }
-                l_start : off64_t;      { starting offset }
-                l_len   : off64_t;      { len = 0 means until end of file }
+                l_start : off_t;        { starting offset }
+                l_len   : off_t;        { len = 0 means until end of file }
                 l_pid   : pid_t;        { lock owner }
                End;
 

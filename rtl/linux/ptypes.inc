@@ -20,7 +20,7 @@
 {***********************************************************************}
 
 { Introduced defines
-    - 64bitfs   (should be on if libc switches to a 64-bit system.
+    - fs64bit   (should be on if libc switches to a 64-bit system.
 
 All three tested systems (PPC,Alpha,2x i386) gave the same POSIX limits,
 and all three 32-bit systems returned completely identical types too
@@ -65,17 +65,13 @@ Type
     TnLink   = nlink_t;
     pnLink   = ^nlink_t;
 
-{$ifdef cpu64}
+{$if not defined(FPC_USE_LIBC) or defined(fs64bit)}
     off_t    = cint64;          { used for file sizes          }
 {$else}
     off_t    = cint;
 {$endif}
-    off64_t  = cint64;
-
     TOff     = off_t;
     pOff     = ^off_t;
-    toff64   = off64_t;
-    poff64   = ^off64_t;
 
     pid_t    = cint32;          { used as process identifier   }
     TPid     = pid_t;

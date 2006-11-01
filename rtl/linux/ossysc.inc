@@ -41,14 +41,14 @@ begin
  Fpclose:=do_syscall(syscall_nr_close,fd);
 end;
 
-function Fplseek(fd : cint; offset : off64_t; whence : cint): off64_t; [public, alias : 'FPC_SYSC_LSEEK'];
+function Fplseek(fd : cint; offset : off_t; whence : cint): off_t; [public, alias : 'FPC_SYSC_LSEEK'];
 begin
 {$if defined(cpu64) and not defined(cpupowerpc64)}
   result:=do_syscall(syscall_nr_lseek,tsysparam(fd),tsysparam(offset),tsysparam(whence));
 {$else}
-  if do_syscall(syscall_nr__llseek,tsysparam(fd),tsysparam(offset shr 32),tsysparam(offset),
+  if do_syscall(syscall_nr__llseek,tsysparam(fd),tsysparam(hi(offset)),tsysparam(lo(offset)),
       tsysparam(@result), tsysparam(whence)) = -1 then
-    result:=off64_t(-1);
+    result:=off_t(-1);
 {$endif}    
 end;
 
@@ -65,13 +65,13 @@ begin
 end;
 {
 function Fppread(fd: cint; buf: pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PREAD'];
-
+   !! check 64 bit off_t sycall 
 begin
   Fpread:=do_syscall(syscall_nr_pread,Fd,TSysParam(buf),nbytes,offset);
 end;
 
 function Fppwrite(fd: cint;buf:pchar; nbytes : size_t; offset:Toff): ssize_t; [public, alias : 'FPC_SYSC_PWRITE'];
-
+   !! check 64 bit off_t sycall 
 begin
  Fpwrite:=do_syscall(syscall_nr_pwrite,Fd,TSysParam(buf),nbytes,offset);
 end;
@@ -299,7 +299,12 @@ function Fpftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SY
 doesn't have the returnvalue 64-bit problem)}
 
 begin
+{$if defined(cpu64) and not defined(cpupowerpc64)}
  Fpftruncate:=Do_syscall(syscall_nr_ftruncate,TSysParam(fd),TSysParam(flength));
+{$else}
+ Fpftruncate:=Do_syscall(syscall_nr_ftruncate64,TSysParam(fd),TSysParam(lo(flength)),
+  TSysParam(hi(flength)));
+{$endif} 
 end;
 
 function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
@@ -482,8 +487,9 @@ begin
 end;
 {$else OLDMMAP}
 begin
+  {$message warning need mmap64 syscall, hi(off) not used}
   Fpmmap:= pointer(do_syscall(syscall_nr_mmap,TSysParam(adr),TSysParam(len),
-    TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(off)));
+    TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(lo(off))));
 end;
 {$endif OLDMMAP}
 
