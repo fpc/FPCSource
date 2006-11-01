@@ -6361,6 +6361,7 @@ tests/test/tgeneric4.pp svneol=native#text/plain
 tests/test/tgeneric5.pp svneol=native#text/plain
 tests/test/tgeneric6.pp svneol=native#text/plain
 tests/test/tgeneric7.pp svneol=native#text/plain
+tests/test/tgeneric8.pp svneol=native#text/plain
 tests/test/tgoto.pp svneol=native#text/plain
 tests/test/theap.pp svneol=native#text/plain
 tests/test/thintdir.pp svneol=native#text/plain

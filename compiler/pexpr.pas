@@ -1260,7 +1260,7 @@ implementation
               if assigned(p1) then
                begin
                  if not assigned(p1.resultdef) then
-                  do_typecheckpass(p1);
+                   do_typecheckpass(p1);
                  isclassref:=(p1.resultdef.deftype=classrefdef);
                end
               else
@@ -1307,6 +1307,10 @@ implementation
                       if isclassref then
                         Message(parser_e_only_class_methods_via_class_ref);
                       handle_propertysym(tpropertysym(sym),sym.owner,p1);
+                   end;
+                 typesym:
+                   begin
+                     p1:=ctypenode.create(ttypesym(sym).typedef);
                    end;
                  else internalerror(16);
               end;
