@@ -10,7 +10,10 @@ var
   c:Single;
   temp_float:double;
   temp_int:Integer;
+  notcaught: integer;
 begin
+ notcaught := 2;
+ SetExceptionMask(GetExceptionMask - [exOverflow,exUnderflow,exPrecision]);
  try
   { cosh(800) =~ 1.36E+0347, this will fit in Extended but will
     not fit in Single or Double.
@@ -21,7 +24,7 @@ begin
   on E:Exception do
     begin
       Writeln('Line "c:=..." raised ' +E.ClassName+ ': ' +E.Message);
-      halt(0);
+      dec(notcaught);
     end;
  end;
 
@@ -36,7 +39,10 @@ begin
   temp_int:=Round(temp_float);
  except
   on E:Exception do
-   Writeln('Line "temp_int:=..." raised ' +E.ClassName+ ': ' +E.Message);
+   begin
+     Writeln('Line "temp_int:=..." raised ' +E.ClassName+ ': ' +E.Message);
+     dec(notcaught);
+   end;
  end;
- halt(1);
+ halt(notcaught);
 end.
