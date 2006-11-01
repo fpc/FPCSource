@@ -9,65 +9,11 @@
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
       </Flags>
-      <MainUnit Value="0"/>
-      <ActiveEditorIndexAtStart Value="0"/>
       <IconPath Value="./"/>
       <TargetFileExt Value=".exe"/>
       <Title Value="pp"/>
+      <ActiveEditorIndexAtStart Value="0"/>
     </General>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
-    <Units Count="7">
-      <Unit0>
-        <CursorPos X="1" Y="208"/>
-        <EditorIndex Value="0"/>
-        <Filename Value="pp.pas"/>
-        <IsPartOfProject Value="True"/>
-        <Loaded Value="True"/>
-        <TopLine Value="171"/>
-        <UnitName Value="pp"/>
-        <UsageCount Value="23"/>
-      </Unit0>
-      <Unit1>
-        <CursorPos X="1" Y="1"/>
-        <Filename Value="cstreams.pas"/>
-        <TopLine Value="1"/>
-        <UnitName Value="cstreams"/>
-        <UsageCount Value="10"/>
-      </Unit1>
-      <Unit2>
-        <CursorPos X="5" Y="1548"/>
-        <Filename Value="globals.pas"/>
-        <TopLine Value="1544"/>
-        <UnitName Value="globals"/>
-        <UsageCount Value="10"/>
-      </Unit2>
-      <Unit3>
-        <CursorPos X="1" Y="1"/>
-        <Filename Value="fpcdefs.inc"/>
-        <TopLine Value="1"/>
-        <UsageCount Value="10"/>
-      </Unit3>
-      <Unit4>
-        <CursorPos X="5" Y="32"/>
-        <Filename Value="x86\cpubase.pas"/>
-        <TopLine Value="13"/>
-        <UsageCount Value="10"/>
-      </Unit4>
-      <Unit5>
-        <CursorPos X="1" Y="140"/>
-        <Filename Value="options.pas"/>
-        <TopLine Value="121"/>
-        <UnitName Value="options"/>
-        <UsageCount Value="10"/>
-      </Unit5>
-      <Unit6>
-        <CursorPos X="28" Y="292"/>
-        <Filename Value="compiler.pas"/>
-        <TopLine Value="290"/>
-        <UnitName Value="compiler"/>
-        <UsageCount Value="10"/>
-      </Unit6>
-    </Units>
     <PublishOptions>
       <Version Value="2"/>
       <DestinationDirectory Value="c:\temp/publishedproject/"/>
@@ -80,6 +26,18 @@
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
+    <Units Count="1">
+      <Unit0>
+        <Filename Value="pp.pas"/>
+        <UnitName Value="pp"/>
+        <CursorPos X="1" Y="1"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="0"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit0>
+    </Units>
+    <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="5"/>
@@ -108,6 +66,11 @@
       </Debugging>
     </Linking>
     <Other>
+      <Verbosity>
+        <ShowWarn Value="False"/>
+        <ShowNotes Value="False"/>
+        <ShowHints Value="False"/>
+      </Verbosity>
       <ConfigFile>
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
