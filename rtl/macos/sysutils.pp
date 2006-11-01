@@ -136,7 +136,7 @@ begin
 end;
 
 
-Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
+Function FileSeek (Handle : Longint; FOffset: Int64; Origin : Longint) : Int64;
 
 begin
   (* TODO fix

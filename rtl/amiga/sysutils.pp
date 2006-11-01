@@ -157,7 +157,7 @@ begin
   FileSeek:=dosSeek(Handle, FOffset, seekMode);
 end;
 
-function FileSeek(Handle: LongInt; FOffset, Origin: Int64): Int64;
+function FileSeek(Handle: LongInt; FOffset: Int64; Origin: Longint): Int64;
 begin
   {$WARNING Need to add 64bit call }
   FileSeek:=FileSeek(Handle,LongInt(FOffset),LongInt(Origin));

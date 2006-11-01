@@ -91,7 +91,7 @@ begin
   result := -1;
 end;
 
-function FileSeek(Handle: LongInt; FOffset, Origin: Int64): Int64;
+function FileSeek(Handle: LongInt; FOffset: Int64; Origin: Longint): Int64;
 begin
   result := -1;
 end;

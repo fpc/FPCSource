@@ -71,7 +71,7 @@ Function FileSeek (Handle,FOffset,Origin : longint) : longint;
 begin
 end;
 
-Function FileSeek (Handle:longint;FOffset,Origin : int64) : int64;
+Function FileSeek (Handle:longint;FOffset: Int64; Origin: Longint) : int64;
 begin
 end;
 

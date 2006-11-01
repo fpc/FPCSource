@@ -132,7 +132,7 @@ begin
 end;
 
 
-Function FileSeek (Handle : THandle; FOffset,Origin : Int64) : Int64;
+Function FileSeek (Handle : THandle; FOffset: Int64; Origin: Longint) : Int64;
 begin
   {$warning need to add 64bit FileSeek }
   FileSeek:=FileSeek(Handle,Longint(FOffset),Longint(Origin));

@@ -197,7 +197,7 @@ begin
 end;
 
 
-Function FileSeek (Handle : THandle; FOffset,Origin : Int64) : Int64;
+Function FileSeek (Handle : THandle; FOffset: Int64; Origin: Longint) : Int64;
 begin
   Result := SetFilePointer(Handle, longint(FOffset), nil, longint(Origin));
 end;

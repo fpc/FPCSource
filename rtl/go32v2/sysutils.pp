@@ -221,7 +221,7 @@ begin
 end;
 
 
-Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
+Function FileSeek (Handle : Longint; FOffset: Int64; Origin: Integer) : Int64;
 begin
   {$warning need to add 64bit call }
   FileSeek:=FileSeek(Handle,Longint(FOffset),Longint(Origin));

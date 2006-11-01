@@ -494,7 +494,7 @@ asm
  pop ebx
 end {['eax', 'ebx', 'edx']};
 
-function FileSeek (Handle: longint; FOffset, Origin: Int64): Int64;
+function FileSeek (Handle: longint; FOffset: Int64; Origin: longint): Int64;
 begin
   {$warning need to add 64bit call }
   Result:=FileSeek(Handle,Longint(Foffset),Longint(Origin));
