@@ -916,7 +916,7 @@ implementation
           if Assigned(Current_Module) then
             begin
               delete(S,1,1);
-              insert(ExtractFileName(current_module.mainsource^),S,1);
+              insert(ExtractFileName(ChangeFileExt(current_module.mainsource^,'')),S,1 );
             end;
         s:=ChangeFileExt(FixFileName(s),target_info.resext);
         if target_info.res<>res_none then
