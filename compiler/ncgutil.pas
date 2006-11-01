@@ -987,8 +987,17 @@ implementation
 {$endif}
              LOC_REFERENCE :
                begin
-                 trash_reference(list,tabstractnormalvarsym(p).initialloc.reference,
-                   tlocalvarsym(p).getsize);
+                   if ((tsym(p).typ=localvarsym) and
+                       not(vo_is_funcret in tabstractvarsym(p).varoptions)) or
+                      not is_shortstring(tabstractnormalvarsym(p).vardef) then
+                     trash_reference(list,tabstractnormalvarsym(p).initialloc.reference,
+                       tlocalvarsym(p).getsize)
+                   else
+                     { may be an open string, even if is_open_string() returns }
+                     { false for some helpers in the system unit               }
+                     { an open string has at least size 2                      }
+                     trash_reference(list,tabstractnormalvarsym(p).initialloc.reference,
+                       2);
                end;
              LOC_CMMREGISTER :
                ;
@@ -1196,7 +1205,13 @@ implementation
                      tmpreg:=cg.getaddressregister(list);
                      cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).initialloc,tmpreg);
                      reference_reset_base(href,tmpreg,0);
-                     trash_reference(list,href,tparavarsym(p).vardef.size);
+                     { may be an open string, even if is_open_string() returns }
+                     { false for some helpers in the system unit               }
+                     if not is_shortstring(tparavarsym(p).vardef) then
+                       trash_reference(list,href,tparavarsym(p).vardef.size)
+                     else
+                       { an open string has at least size 2 }
+                       trash_reference(list,href,2);
                    end
            end;
          end;
