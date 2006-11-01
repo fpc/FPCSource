@@ -614,22 +614,23 @@ Implementation
          begin
            FlushOutput;
            if useshell then
-             exitcode := shell(maybequoted(command)+' '+para)
+             exitcode:=shell(maybequoted(command)+' '+para)
            else
-           try
-             if ExecuteProcess(command,para) <> 0
-             then begin
+             try
+               exitcode:=ExecuteProcess(command,para);
+             except on E:EOSError do
+               begin
+                 Message(exec_e_cant_call_linker);
+                 current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
+                 DoExec:=false;
+               end;
+             end;
+           if (exitcode<>0) then
+             begin
                Message(exec_e_error_while_linking);
                current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
                DoExec:=false;
              end;
-           except on E:EOSError do
-             begin
-               Message(exec_e_cant_call_linker);
-               current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
-               DoExec:=false;
-             end;
-           end
          end;
       { Update asmres when externmode is set }
         if cs_link_nolink in current_settings.globalswitches then
