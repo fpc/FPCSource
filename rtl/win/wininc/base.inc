@@ -252,7 +252,7 @@
 {$endif}
 
      UCHAR = byte;
-//     WCHAR = WideChar;
+     WCHAR = WideChar;
 
      UINT   = cardinal;
      ULONG  = cardinal;
