@@ -1123,7 +1123,7 @@ interface
     var
       currentasmlist : TExternalAssembler;
 
-    procedure writeexternal(p:tnamedindexitem;arg:pointer);
+    procedure writeexternal(p:tasmsymbol);
 
       var
         s:string;
@@ -1202,10 +1202,16 @@ interface
       end;
 
     procedure TPPCMPWAssembler.WriteExternals;
+      var
+        i : longint;
       begin
         currentasmlist:=self;
-        current_asmdata.asmsymboldict.foreach_static(@writeexternal,nil);
-      end;
+//        current_asmdata.asmsymboldict.foreach_static(@writeexternal,nil);
+        for i:=0 to current_asmdata.AsmSymbolDict.Count-1 do
+          begin
+            writeexternal(tasmsymbol(current_asmdata.AsmSymbolDict[i]));
+          end;
+     end;
 
 
     function TPPCMPWAssembler.DoAssemble : boolean;
