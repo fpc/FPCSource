@@ -773,19 +773,17 @@ interface
     end;
 
 
-    var
-      currentasmlist : TExternalAssembler;
-
-    procedure writeexternal(p:tnamedindexitem;arg:pointer);
-      begin
-        if tasmsymbol(p).bind=AB_EXTERNAL then
-         currentasmlist.AsmWriteln('EXTERN'#9+p.name);
-      end;
-
     procedure T386NasmAssembler.WriteExternals;
+      var
+        sym : TAsmSymbol;
+        i   : longint;
       begin
-        currentasmlist:=self;
-        current_asmdata.AsmSymbolDict.foreach_static(@writeexternal,nil);
+        for i:=0 to current_asmdata.AsmSymbolDict.Count-1 do
+          begin
+            sym:=TAsmSymbol(current_asmdata.AsmSymbolDict[i]);
+            if sym.bind=AB_EXTERNAL then
+              AsmWriteln('EXTERN'#9+sym.name);
+          end;
       end;
 
 

@@ -238,7 +238,7 @@ type
     FCachedStr : pshortstring;
     FStrIndex  : Integer;
   protected
-    function GetName:string;
+    function GetName:string;virtual;
   public
     constructor Create(HashObjectList:TFPHashObjectList;const s:string);
     property Name:string read GetName;
@@ -734,15 +734,24 @@ end;
 
 function TFPList.Expand: TFPList; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
 var
+  Power,
   IncSize : Longint;
 begin
-  if FCount < FCapacity then exit;
-  IncSize := 4;
-  if FCapacity > 3 then IncSize := IncSize + 4;
-  if FCapacity > 8 then IncSize := IncSize+8;
-  if FCapacity > 127 then Inc(IncSize, FCapacity shr 2);
-  SetCapacity(FCapacity + IncSize);
   Result := Self;
+  if FCount < FCapacity then
+    exit;
+  nextpowerof2(FCapacity,Power);
+  if Power>=7 then
+    IncSize:=FCapacity shr (Power-6)
+  else if Power>=4 then
+    IncSize:=FCapacity shr (Power-3)
+  else if FCapacity > 8 then
+    IncSize:=16
+  else if FCapacity > 3 then
+    IncSize:=8
+  else
+    IncSize:=4;
+  SetCapacity(FCapacity + IncSize);
 end;
 
 function TFPList.First: Pointer;
@@ -1326,18 +1335,23 @@ end;
 
 function TFPHashList.Expand: TFPHashList;
 var
+  Power,
   IncSize : Longint;
 begin
   Result := Self;
   if FCount < FCapacity then
     exit;
-  IncSize := 4;
-  if FCapacity > 127 then
-    Inc(IncSize, FCapacity shr 2)
+  nextpowerof2(FCapacity,Power);
+  if Power>=7 then
+    IncSize:=FCapacity shr (Power-6)
+  else if Power>=4 then
+    IncSize:=FCapacity shr (Power-3)
   else if FCapacity > 8 then
-    inc(IncSize,8)
+    IncSize:=16
   else if FCapacity > 3 then
-    inc(IncSize,4);
+    IncSize:=8
+  else
+    IncSize:=4;
   SetCapacity(FCapacity + IncSize);
   { Maybe expand hash also }
   if FCount>FHashCapacity*MaxItemsPerHash then
@@ -1346,14 +1360,17 @@ end;
 
 procedure TFPHashList.StrExpand(MinIncSize:Integer);
 var
+  Power,
   IncSize : Longint;
 begin
   if FStrCount+MinIncSize < FStrCapacity then
     exit;
-  IncSize := 64+MinIncSize;
-  if FStrCapacity > 255 then
-    Inc(IncSize, FStrCapacity shr 2);
-  SetStrCapacity(FStrCapacity + IncSize);
+  nextpowerof2(FCapacity,Power);
+  if Power>=7 then
+    IncSize:=FCapacity shr (Power-6)
+  else
+    IncSize:=64;
+  SetStrCapacity(FStrCapacity + IncSize + MinIncSize);
 end;
 
 function TFPHashList.IndexOf(Item: Pointer): Integer;

@@ -818,30 +818,28 @@ implementation
        end;
     end;
 
-    var
-      currentasmlist : TExternalAssembler;
 
-    procedure writeexternal(p:tnamedindexitem;arg:pointer);
+    procedure tx86intelassembler.WriteExternals;
+      var
+        sym : TAsmSymbol;
+        i   : longint;
       begin
-        if tasmsymbol(p).bind=AB_EXTERNAL then
+        for i:=0 to current_asmdata.AsmSymbolDict.Count-1 do
           begin
-            case target_asm.id of
-              as_i386_masm,as_i386_wasm:
-                currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name
-                  +': NEAR');
-              as_x86_64_masm:
-                currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name
-                  +': PROC');
-              else
-                currentasmlist.AsmWriteln(#9'EXTRN'#9+p.name);
-            end;
+            sym:=TAsmSymbol(current_asmdata.AsmSymbolDict[i]);
+            if sym.bind=AB_EXTERNAL then
+              begin
+                case target_asm.id of
+                  as_i386_masm,
+                  as_i386_wasm :
+                    AsmWriteln(#9'EXTRN'#9+sym.name+': NEAR');
+                  as_x86_64_masm :
+                    AsmWriteln(#9'EXTRN'#9+sym.name+': PROC');
+                  else
+                    AsmWriteln(#9'EXTRN'#9+sym.name);
+                end;
+              end;
           end;
-      end;
-
-    procedure tx86IntelAssembler.WriteExternals;
-      begin
-        currentasmlist:=self;
-        current_asmdata.AsmSymbolDict.foreach_static(@writeexternal,nil);
       end;
 
 

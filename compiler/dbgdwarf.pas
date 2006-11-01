@@ -1987,7 +1987,7 @@ end;
         current_asmdata.getlabel(lbl,alt_dbgfile);
         { currently we create only 32 bit dwarf }
         linelist.concat(tai_const.create_rel_sym(aitconst_32bit,
-          lbl,tasmsymbol.create('.Ledebug_line0',AB_COMMON,AT_DATA)));
+          lbl,current_asmdata.RefAsmSymbol('.Ledebug_line0')));
 
         linelist.concat(tai_label.create(lbl));
 
@@ -1998,7 +1998,7 @@ end;
         current_asmdata.getlabel(lbl,alt_dbgfile);
         { currently we create only 32 bit dwarf }
         linelist.concat(tai_const.create_rel_sym(aitconst_32bit,
-          lbl,tasmsymbol.create('.Lehdebug_line0',AB_COMMON,AT_DATA)));
+          lbl,current_asmdata.RefAsmSymbol('.Lehdebug_line0')));
 
         linelist.concat(tai_label.create(lbl));
 
@@ -2173,7 +2173,7 @@ end;
         { size }
         { currently we create only 32 bit dwarf }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(aitconst_32bit,
-          lenstartlabel,tasmsymbol.create('.Ledebug_info0',AB_COMMON,AT_DATA)));
+          lenstartlabel,current_asmdata.RefAsmSymbol('.Ledebug_info0')));
 
         current_asmdata.asmlists[al_dwarf_info].concat(tai_label.create(lenstartlabel));
         { version }

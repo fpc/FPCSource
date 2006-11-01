@@ -131,12 +131,12 @@ uses
         function WriteValueString(p:pchar;len:longint):TasmLabel;
         var
           s : pchar;
-          reference: TAsmLabel;
+          referencelab: TAsmLabel;
         begin
           if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
             begin
-              current_asmdata.getdatalabel(reference);
-              current_asmdata.asmlists[al_const].concat(tai_label.create(reference));
+              current_asmdata.getdatalabel(referencelab);
+              current_asmdata.asmlists[al_const].concat(tai_label.create(referencelab));
             end;
           current_asmdata.getdatalabel(result);
           current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(aint))));
@@ -144,7 +144,7 @@ uses
           current_asmdata.asmlists[al_const].concat(tai_const.create_aint(len));
           current_asmdata.asmlists[al_const].concat(tai_label.create(result));
           if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
-             current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,reference.getname));
+             current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,referencelab.name));
           getmem(s,len+1);
           move(p^,s^,len);
           s[len]:=#0;

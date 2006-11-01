@@ -113,10 +113,10 @@ interface
       TAsmData = class
       private
         { Symbols }
-        FAsmSymbolDict : TDictionary;
+        FAsmSymbolDict : TFPHashObjectList;
         FAltSymbolList : TFPObjectList;
         FNextAltNr     : longint;
-        FNextLabelNr   : array[Tasmlabeltype] of longint;
+        FNextLabelNr   : array[TAsmLabeltype] of longint;
         { Call Frame Information for stack unwinding}
         FAsmCFI        : TAsmCFI;
       public
@@ -129,18 +129,18 @@ interface
         constructor create(const n:string);
         destructor  destroy;override;
         { asmsymbol }
-        function  DefineAsmSymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : tasmsymbol;
-        function  RefAsmSymbol(const s : string) : tasmsymbol;
-        function  getasmsymbol(const s : string) : tasmsymbol;
+        function  DefineAsmSymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
+        function  RefAsmSymbol(const s : string) : TAsmSymbol;
+        function  GetAsmSymbol(const s : string) : TAsmSymbol;
         { create new assembler label }
-        procedure getlabel(out l : tasmlabel;alt:tasmlabeltype);
-        procedure getjumplabel(out l : tasmlabel);
-        procedure getaddrlabel(out l : tasmlabel);
-        procedure getdatalabel(out l : tasmlabel);
+        procedure getlabel(out l : TAsmLabel;alt:TAsmLabeltype);
+        procedure getjumplabel(out l : TAsmLabel);
+        procedure getaddrlabel(out l : TAsmLabel);
+        procedure getdatalabel(out l : TAsmLabel);
         { generate an alternative (duplicate) symbol }
-        procedure GenerateAltSymbol(p:tasmsymbol);
+        procedure GenerateAltSymbol(p:TAsmSymbol);
         procedure ResetAltSymbols;
-        property AsmSymbolDict:TDictionary read FAsmSymbolDict;
+        property AsmSymbolDict:TFPHashObjectList read FAsmSymbolDict;
         property AsmCFI:TAsmCFI read FAsmCFI;
       end;
 
@@ -264,8 +264,7 @@ implementation
         realname:=n;
         name:=upper(n);
         { symbols }
-        FAsmSymbolDict:=TDictionary.create;
-        FAsmSymbolDict.usehash;
+        FAsmSymbolDict:=TFPHashObjectList.create(true);
         FAltSymbolList:=TFPObjectList.Create(false);
         { labels }
         FNextAltNr:=1;
@@ -316,11 +315,11 @@ implementation
       end;
 
 
-    function TAsmData.DefineAsmSymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : tasmsymbol;
+    function TAsmData.DefineAsmSymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
       var
-        hp : tasmsymbol;
+        hp : TAsmSymbol;
       begin
-        hp:=tasmsymbol(FAsmSymbolDict.search(s));
+        hp:=TAsmSymbol(FAsmSymbolDict.Find(s));
         if assigned(hp) then
          begin
            { Redefine is allowed, but the types must be the same. The redefine
@@ -337,40 +336,31 @@ implementation
         else
          begin
            { Not found, insert it. }
-           hp:=tasmsymbol.create(s,_bind,_typ);
-           FAsmSymbolDict.insert(hp);
+           hp:=TAsmSymbol.create(AsmSymbolDict,s,_bind,_typ);
          end;
         result:=hp;
       end;
 
 
-    function TAsmData.RefAsmSymbol(const s : string) : tasmsymbol;
-      var
-        hp : tasmsymbol;
+    function TAsmData.RefAsmSymbol(const s : string) : TAsmSymbol;
       begin
-        hp:=tasmsymbol(FAsmSymbolDict.search(s));
-        if not assigned(hp) then
-         begin
-           { Not found, insert it. }
-           hp:=tasmsymbol.create(s,AB_EXTERNAL,AT_NONE);
-           FAsmSymbolDict.insert(hp);
-         end;
-        result:=hp;
+        result:=TAsmSymbol(FAsmSymbolDict.Find(s));
+        if not assigned(result) then
+          result:=TAsmSymbol.create(AsmSymbolDict,s,AB_EXTERNAL,AT_NONE);
       end;
 
 
-    function TAsmData.getasmsymbol(const s : string) : tasmsymbol;
+    function TAsmData.GetAsmSymbol(const s : string) : TAsmSymbol;
       begin
-        getasmsymbol:=tasmsymbol(FAsmSymbolDict.search(s));
+        result:=TAsmSymbol(FAsmSymbolDict.Find(s));
       end;
 
 
-    procedure TAsmData.GenerateAltSymbol(p:tasmsymbol);
+    procedure TAsmData.GenerateAltSymbol(p:TAsmSymbol);
       begin
         if not assigned(p.altsymbol) then
          begin
-           p.altsymbol:=p.getaltcopy(FNextAltNr);
-           FAsmSymbolDict.insert(p.altsymbol);
+           p.altsymbol:=p.getaltcopy(AsmSymbolDict,FNextAltNr);
            FAltSymbolList.Add(p);
          end;
       end;
@@ -381,40 +371,36 @@ implementation
         i  : longint;
       begin
         for i:=0 to FAltSymbolList.Count-1 do
-          tasmsymbol(FAltSymbolList[i]).altsymbol:=nil;
+          TAsmSymbol(FAltSymbolList[i]).altsymbol:=nil;
         FAltSymbolList.Clear;
       end;
 
 
-    procedure TAsmData.getlabel(out l : tasmlabel;alt:tasmlabeltype);
+    procedure TAsmData.getlabel(out l : TAsmLabel;alt:TAsmLabeltype);
       begin
-        l:=tasmlabel.createlocal(FNextLabelNr[alt],alt);
+        l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt],alt);
         inc(FNextLabelNr[alt]);
-        FAsmSymbolDict.insert(l);
       end;
 
 
-    procedure TAsmData.getjumplabel(out l : tasmlabel);
+    procedure TAsmData.getjumplabel(out l : TAsmLabel);
       begin
-        l:=tasmlabel.createlocal(FNextLabelNr[alt_jump],alt_jump);
+        l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt_jump],alt_jump);
         inc(FNextLabelNr[alt_jump]);
-        FAsmSymbolDict.insert(l);
       end;
 
 
-    procedure TAsmData.getdatalabel(out l : tasmlabel);
+    procedure TAsmData.getdatalabel(out l : TAsmLabel);
       begin
-        l:=tasmlabel.createglobal(name,FNextLabelNr[alt_data],alt_data);
+        l:=TAsmLabel.createglobal(AsmSymbolDict,name,FNextLabelNr[alt_data],alt_data);
         inc(FNextLabelNr[alt_data]);
-        FAsmSymbolDict.insert(l);
       end;
 
 
-    procedure TAsmData.getaddrlabel(out l : tasmlabel);
+    procedure TAsmData.getaddrlabel(out l : TAsmLabel);
       begin
-        l:=tasmlabel.createlocal(FNextLabelNr[alt_addr],alt_addr);
+        l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt_addr],alt_addr);
         inc(FNextLabelNr[alt_addr]);
-        FAsmSymbolDict.insert(l);
       end;
 
 begin

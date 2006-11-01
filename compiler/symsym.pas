@@ -497,7 +497,7 @@ implementation
            defined:=true;
            current_asmdata.getjumplabel(asmblocklabel);
          end;
-       result:=asmblocklabel.getname;
+       result:=asmblocklabel.name;
      end;
 
 {****************************************************************************

@@ -47,7 +47,7 @@ interface
        TAsmLabelType = (alt_jump,alt_addr,alt_data,alt_dbgline,alt_dbgfile,alt_dbgtype,alt_dbgframe);
 
     const
-       asmlabeltypeprefix : array[tasmlabeltype] of char = ('j','a','d','l','f','t','c');
+       asmlabeltypeprefix : array[TAsmLabeltype] of char = ('j','a','d','l','f','t','c');
 
     type
        TAsmSectiontype=(sec_none,
@@ -79,7 +79,7 @@ interface
 
        TAsmSectionOrder = (secorder_begin,secorder_default,secorder_end);
 
-       TAsmSymbol = class(TNamedIndexItem)
+       TAsmSymbol = class(TFPHashObject)
        private
          { this need to be incremented with every symbol loading into the
            TAsmList with loadsym/loadref/const_symbol (PFV) }
@@ -92,8 +92,8 @@ interface
          altsymbol  : TAsmSymbol;
          { Cached objsymbol }
          cachedobjsymbol : TObject;
-         constructor create(const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
-         function getaltcopy(altnr: longint): tasmsymbol; virtual;
+         constructor Create(AList:TFPHashObjectList;const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
+         function getaltcopy(AList:TFPHashObjectList;altnr: longint): TAsmSymbol; virtual;
          function  is_used:boolean;
          procedure increfs;
          procedure decrefs;
@@ -102,13 +102,15 @@ interface
        TAsmSymbolClass = class of TAsmSymbol;
 
        TAsmLabel = class(TAsmSymbol)
+       protected
+         function getname:string;override;
+       public
          labelnr   : longint;
          labeltype : TAsmLabelType;
          is_set    : boolean;
-         constructor createlocal(nr:longint;ltyp:TAsmLabelType);
-         constructor createglobal(const modulename:string;nr:longint;ltyp:TAsmLabelType);
-         function getaltcopy(altnr: longint): tasmsymbol; override;
-         function getname:string;override;
+         constructor Createlocal(AList:TFPHashObjectList;nr:longint;ltyp:TAsmLabelType);
+         constructor Createglobal(AList:TFPHashObjectList;const modulename:string;nr:longint;ltyp:TAsmLabelType);
+         function getaltcopy(AList:TFPHashObjectList;altnr: longint): TAsmSymbol; override;
        end;
 
     function  use_smartlink_section:boolean;
@@ -136,7 +138,7 @@ implementation
 
     function maybe_smartlink_symbol:boolean;
       begin
-        result:=(cs_create_smart in current_settings.moduleswitches) or
+        result:=(cs_Create_smart in current_settings.moduleswitches) or
                 use_smartlink_section;
       end;
 
@@ -248,9 +250,9 @@ implementation
                                  TAsmSymbol
 *****************************************************************************}
 
-    constructor tasmsymbol.create(const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
+    constructor TAsmSymbol.Create(AList:TFPHashObjectList;const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
       begin;
-        inherited createname(s);
+        inherited Create(AList,s);
         bind:=_bind;
         typ:=_typ;
         { used to remove unused labels from the al_procedures }
@@ -258,28 +260,25 @@ implementation
       end;
 
 
-    function tasmsymbol.getaltcopy(altnr: longint): tasmsymbol;
+    function TAsmSymbol.getaltcopy(AList:TFPHashObjectList;altnr: longint): TAsmSymbol;
       begin
-        result := TAsmSymbol(TAsmSymbolClass(classtype).createname(name+'_'+tostr(altnr)));
-        result.bind:=bind;
-        result.typ:=typ;
-        result.refs:=0;
+        result := TAsmSymbol(TAsmSymbolClass(classtype).Create(AList,name+'_'+tostr(altnr),bind,typ));
       end;
 
 
-    function tasmsymbol.is_used:boolean;
+    function TAsmSymbol.is_used:boolean;
       begin
         is_used:=(refs>0);
       end;
 
 
-    procedure tasmsymbol.increfs;
+    procedure TAsmSymbol.increfs;
       begin
         inc(refs);
       end;
 
 
-    procedure tasmsymbol.decrefs;
+    procedure TAsmSymbol.decrefs;
       begin
         dec(refs);
         if refs<0 then
@@ -287,7 +286,7 @@ implementation
       end;
 
 
-    function tasmsymbol.getrefs: longint;
+    function TAsmSymbol.getrefs: longint;
       begin
         getrefs := refs;
       end;
@@ -297,18 +296,18 @@ implementation
                                  TAsmLabel
 *****************************************************************************}
 
-    constructor tasmlabel.createlocal(nr:longint;ltyp:TAsmLabelType);
+    constructor TAsmLabel.Createlocal(AList:TFPHashObjectList;nr:longint;ltyp:TAsmLabelType);
       begin
-        inherited create(target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,AT_LABEL);
+        inherited Create(AList,target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,AT_LABEL);
         labelnr:=nr;
         labeltype:=ltyp;
         is_set:=false;
       end;
 
 
-    constructor tasmlabel.createglobal(const modulename:string;nr:longint;ltyp:TAsmLabelType);
+    constructor TAsmLabel.Createglobal(AList:TFPHashObjectList;const modulename:string;nr:longint;ltyp:TAsmLabelType);
       begin
-        inherited create('_$'+modulename+'$_L'+asmlabeltypeprefix[ltyp]+tostr(nr),AB_GLOBAL,AT_DATA);
+        inherited Create(AList,'_$'+modulename+'$_L'+asmlabeltypeprefix[ltyp]+tostr(nr),AB_GLOBAL,AT_DATA);
         labelnr:=nr;
         labeltype:=ltyp;
         is_set:=false;
@@ -317,12 +316,12 @@ implementation
       end;
 
 
-    function tasmlabel.getaltcopy(altnr: longint): tasmsymbol;
+    function TAsmLabel.getaltcopy(AList:TFPHashObjectList;altnr: longint): TAsmSymbol;
       begin;
-        result := inherited getaltcopy(altnr);
-        tasmlabel(result).labelnr:=labelnr;
-        tasmlabel(result).labeltype:=labeltype;
-        tasmlabel(result).is_set:=false;
+        result := inherited getaltcopy(AList,altnr);
+        TAsmLabel(result).labelnr:=labelnr;
+        TAsmLabel(result).labeltype:=labeltype;
+        TAsmLabel(result).is_set:=false;
         case bind of
           AB_GLOBAL:
             result.increfs;
@@ -334,7 +333,7 @@ implementation
       end;
 
 
-    function tasmlabel.getname:string;
+    function TAsmLabel.getname:string;
       begin
         getname:=inherited getname;
         increfs;
