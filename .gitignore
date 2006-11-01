@@ -2092,7 +2092,11 @@ rtl/x86_64/*.s
 rtl/x86_64/fpcmade.*
 rtl/x86_64/units
 tests/*.bak
+tests/*.bat
+tests/*.cfg
+tests/*.dsk
 tests/*.exe
+tests/*.ini
 tests/*.o
 tests/*.ppu
 tests/*.s
