@@ -22,10 +22,19 @@ packages_emx=netdb
 
 # clean package units
 [clean]
-units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil pthreads streamio blowfish 
+units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil pthreads streamio blowfish
 
 [target]
-dirs=xml image db shedit passrc net fpcunit web
+dirs=xml image db shedit passrc net fpcunit
+dirs_freebsd=web
+dirs_darwin=web
+dirs_solaris=web
+dirs_netbsd=web
+dirs_openbsd=web
+dirs_linux=web
+dirs_win32=web
+dirs_win64=web
+dirs_wince=web
 units=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
       iostream zstream cachecls avl_tree htmldefs xmlreg registry \
       eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream \
