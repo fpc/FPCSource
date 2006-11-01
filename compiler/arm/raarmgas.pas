@@ -656,7 +656,6 @@ Unit raarmgas;
           PF_B,PF_D,PF_E,PF_P,PF_T,PF_H,PF_S);
 
       var
-        str2opentry: tstr2opentry;
         len,
         j,
         sufidx : longint;
@@ -689,19 +688,19 @@ Unit raarmgas;
               end;
           end;
         maxlen:=max(length(hs),5);
+        actopcode:=A_NONE;
         for j:=maxlen downto 1 do
           begin
-            str2opentry:=tstr2opentry(iasmops.search(copy(hs,1,j)));
-            if assigned(str2opentry) then
+            actopcode:=tasmop(PtrInt(iasmops.Find(copy(hs,1,j))));
+            if actopcode<>A_NONE then
               begin
-                actopcode:=str2opentry.op;
                 actasmtoken:=AS_OPCODE;
                 { strip op code }
                 delete(hs,1,j);
                 break;
-             end;
+              end;
           end;
-        if not(assigned(str2opentry)) then
+        if actopcode=A_NONE then
           exit;
         { search for condition, conditions are always 2 chars }
         if length(hs)>1 then

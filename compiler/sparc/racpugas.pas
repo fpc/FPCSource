@@ -571,7 +571,6 @@ Interface
 
     function TSparcReader.is_asmopcode(const s: string):boolean;
       var
-        str2opEntry: tstr2opEntry;
         cond:TAsmCond;
       Begin
         { making s a value parameter would break other assembler readers }
@@ -582,16 +581,18 @@ Interface
         { clear condition }
         fillchar(actcondition,sizeof(actcondition),0);
 
-        str2opentry:=tstr2opentry(iasmops.search(s));
-        if assigned(str2opentry) then
-          begin
-            actopcode:=str2opentry.op;
-            actasmtoken:=AS_OPCODE;
-            is_asmopcode:=true;
-          end
+         { Search opcodes }
+         actopcode:=tasmop(PtrInt(iasmops.Find(s)));
+         if actopcode<>A_NONE then
+           begin
+             actasmtoken:=AS_OPCODE;
+             result:=TRUE;
+             exit;
+           end;
+           
         { not found, check branch instructions }
-        else if (Upcase(s[1])='B') or
-                ((Upcase(s[1])='F') and (Upcase(s[2])='B')) then
+        if (Upcase(s[1])='B') or
+           ((Upcase(s[1])='F') and (Upcase(s[2])='B')) then
           begin
             { we can search here without an extra table which is sorted by string length
               because we take the whole remaining string without the leading B }

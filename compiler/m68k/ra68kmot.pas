@@ -145,17 +145,11 @@ const
       { creates uppercased symbol tables for speed access }
       var
         i : tasmop;
-        str2opentry: tstr2opentry;
       Begin
         { opcodes }
-        iasmops:=TDictionary.Create;
-        iasmops.delete_doubles:=true;
+        iasmops:=TFPHashList.create;
         for i:=firstop to lastop do
-          begin
-            str2opentry:=tstr2opentry.createname(upper(gas_op2str[i]));
-            str2opentry.op:=i;
-            iasmops.insert(str2opentry);
-          end;
+          iasmops.Add(upper(gas_op2str[i]),Pointer(PtrInt(i)));
       end;
 
 
@@ -165,7 +159,6 @@ const
 
     function tm68kmotreader.is_asmopcode(const s: string):boolean;
       var
-        str2opentry: tstr2opentry;
         hs : string;
         j : byte;
       begin
@@ -177,12 +170,12 @@ const
         else
           hs:=s;
 
-        str2opentry:=tstr2opentry(iasmops.search(hs));
-        if assigned(str2opentry) then
+        { Search opcodes }
+        actopcode:=tasmop(PtrInt(iasmops.Find(hs)));
+        if actopcode<>A_NONE then
           begin
-            actopcode:=str2opentry.op;
             actasmtoken:=AS_OPCODE;
-            is_asmopcode:=true;
+            result:=TRUE;
             exit;
           end;
       end;
