@@ -320,6 +320,7 @@ implementation
          important for the IDE }
          afterassignment:=false;
          in_args:=false;
+         named_args_allowed:=false;
          got_addrn:=false;
          getprocvardef:=nil;
 

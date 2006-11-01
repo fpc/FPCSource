@@ -460,7 +460,7 @@ implementation
         result := cerrornode.create;
 
         consume(_LKLAMMER);
-        paras:=parse_paras(false,_RKLAMMER);
+        paras:=parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
@@ -587,7 +587,7 @@ implementation
         result := cerrornode.create;
 
         consume(_LKLAMMER);
-        paras:=parse_paras(false,_RKLAMMER);
+        paras:=parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
@@ -625,7 +625,7 @@ implementation
         result := cerrornode.create;
 
         consume(_LKLAMMER);
-        paras:=parse_paras(false,_RKLAMMER);
+        paras:=parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
@@ -684,7 +684,7 @@ implementation
         result := cerrornode.create;
 
         consume(_LKLAMMER);
-        paras:=parse_paras(false,_RKLAMMER);
+        paras:=parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin

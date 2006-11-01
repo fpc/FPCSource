@@ -41,6 +41,9 @@ interface
 
        { true, if we are parsing arguments }
        in_args : boolean = false;
+       
+       { true, if we are parsing arguments allowing named parameters }
+       named_args_allowed : boolean = false;
 
        { true, if we got an @ to get the address }
        got_addrn  : boolean = false;
@@ -57,6 +60,9 @@ interface
 
        { true, if we should ignore an equal in const x : 1..2=2 }
        ignore_equal : boolean;
+       
+       { true, if we found a name for a named arg }
+       found_arg_name : boolean;
 
 
     procedure identifier_not_found(const s:string);
@@ -175,8 +181,8 @@ implementation
     { check if a symbol contains the hint directive, and if so gives out a hint
       if required.
 
-      If this code is changed, it's like that consume_sym_orgid must be changed
-      as well (FK)
+      If this code is changed, it's likly that consume_sym_orgid and factor_read_id
+      must be changed as well (FK)
     }
     function consume_sym(var srsym:tsym;var srsymtable:tsymtable):boolean;
       begin

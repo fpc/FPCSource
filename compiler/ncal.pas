@@ -145,6 +145,7 @@ interface
 
        tcallparanode = class(tbinarynode)
        public
+          named : tnode;
           callparaflags : tcallparaflags;
           parasym       : tparavarsym;
           used_by_callnode : boolean;
@@ -167,6 +168,7 @@ interface
        tcallparanodeclass = class of tcallparanode;
 
     function reverseparameters(p: tcallparanode): tcallparanode;
+    function translate_vardisp_call(p1,p2 : tnode) : tnode;
 
     var
       ccallnode : tcallnodeclass;
@@ -215,6 +217,27 @@ type
              hp1:=hp2;
           end;
         reverseparameters:=hp1;
+      end;
+
+
+    function translate_vardisp_call(p1,p2 : tnode) : tnode;
+      var
+        statements : tstatementnode;
+        result_data : ttempcreatenode;
+      begin
+        result:=internalstatements(statements);
+
+        { get temp for the result }
+        result_data:=ctempcreatenode.create(colevarianttype,colevarianttype.size,tt_persistent,true);
+        addstatement(statements,result_data);
+
+        { build parameters }
+
+        { first, count parameters }
+
+        { clean up }
+        addstatement(statements,ctempdeletenode.create_normal_temp(result_data));
+        addstatement(statements,ctemprefnode.create(result_data));
       end;
 
 

@@ -45,7 +45,7 @@ interface
 
     function node_to_propaccesslist(p1:tnode):tpropaccesslist;
 
-    function parse_paras(__colon : boolean;end_of_paras : ttoken) : tnode;
+    function parse_paras(__colon,__namedpara : boolean;end_of_paras : ttoken) : tnode;
 
     { the ID token has to be consumed before calling this function }
     procedure do_member_read(classh:tobjectdef;getaddr : boolean;sym : tsym;var p1 : tnode;var again : boolean;callflags:tcallnodeflags);
@@ -240,10 +240,11 @@ implementation
       end;
 
 
-    function parse_paras(__colon : boolean;end_of_paras : ttoken) : tnode;
+    function parse_paras(__colon,__namedpara : boolean;end_of_paras : ttoken) : tnode;
       var
-         p1,p2 : tnode;
-         prev_in_args : boolean;
+         p1,p2,argname : tnode;
+         prev_in_args,
+         old_named_args_allowed,
          old_allow_array_constructor : boolean;
       begin
          if token=end_of_paras then
@@ -254,14 +255,42 @@ implementation
          { save old values }
          prev_in_args:=in_args;
          old_allow_array_constructor:=allow_array_constructor;
+         old_named_args_allowed:=named_args_allowed;
          { set para parsing values }
          in_args:=true;
+         named_args_allowed:=false;
          inc(parsing_para_level);
          allow_array_constructor:=true;
          p2:=nil;
          repeat
-           p1:=comp_expr(true);
-           p2:=ccallparanode.create(p1,p2);
+           if __namedpara then
+             begin
+               if token=_COMMA then
+                 begin
+                   { empty parameter }
+                   p2:=ccallparanode.create(nil,p2);
+                   consume(_COMMA);
+                 end
+               else
+                 begin
+                   named_args_allowed:=true;
+                   p1:=comp_expr(true);
+                   named_args_allowed:=false;
+                   if found_arg_name then
+                     begin
+                       argname:=p1;
+                       p1:=comp_expr(true);
+                       p2:=ccallparanode.create(p1,p2);
+                       tcallparanode(p2).named:=argname;
+                     end;
+                   found_arg_name:=false;
+                 end;
+             end
+           else
+             begin
+               p1:=comp_expr(true);
+               p2:=ccallparanode.create(p1,p2);
+             end;
            { it's for the str(l:5,s); }
            if __colon and (token=_COLON) then
              begin
@@ -280,6 +309,7 @@ implementation
          allow_array_constructor:=old_allow_array_constructor;
          dec(parsing_para_level);
          in_args:=prev_in_args;
+         named_args_allowed:=old_named_args_allowed;
          parse_paras:=p2;
       end;
 
@@ -756,7 +786,7 @@ implementation
             begin
               if try_to_consume(_LKLAMMER) then
                begin
-                 paras:=parse_paras(false,_RKLAMMER);
+                 paras:=parse_paras(false,false,_RKLAMMER);
                  consume(_RKLAMMER);
                end
               else
@@ -785,7 +815,7 @@ implementation
             begin
               if try_to_consume(_LKLAMMER) then
                begin
-                 paras:=parse_paras(true,_RKLAMMER);
+                 paras:=parse_paras(true,false,_RKLAMMER);
                  consume(_RKLAMMER);
                end
               else
@@ -797,7 +827,7 @@ implementation
           in_str_x_string :
             begin
               consume(_LKLAMMER);
-              paras:=parse_paras(true,_RKLAMMER);
+              paras:=parse_paras(true,false,_RKLAMMER);
               consume(_RKLAMMER);
               p1 := geninlinenode(l,false,paras);
               statement_syssym := p1;
@@ -1008,7 +1038,7 @@ implementation
               begin
                 if try_to_consume(_LKLAMMER) then
                  begin
-                   para:=parse_paras(false,_RKLAMMER);
+                   para:=parse_paras(false,false,_RKLAMMER);
                    consume(_RKLAMMER);
                  end;
               end;
@@ -1104,7 +1134,7 @@ implementation
            begin
              if try_to_consume(_LECKKLAMMER) then
                begin
-                 paras:=parse_paras(false,_RECKKLAMMER);
+                 paras:=parse_paras(false,false,_RECKKLAMMER);
                  consume(_RECKKLAMMER);
                end;
            end;
@@ -1301,14 +1331,54 @@ implementation
            pc    : pchar;
            len   : longint;
            srsym : tsym;
+           unit_found,
            possible_error : boolean;
            srsymtable : tsymtable;
            hdef  : tdef;
            static_name : string;
+           storedpattern : string;
          begin
            { allow post fix operators }
            again:=true;
-           consume_sym(srsym,srsymtable);
+
+           { first check for identifier }
+           if token<>_ID then
+             begin
+               srsym:=generrorsym;
+               srsymtable:=nil;
+               consume(_ID);
+             end
+           else
+             begin
+               searchsym(pattern,srsym,srsymtable);
+
+               { handle unit specification like System.Writeln }
+               unit_found:=try_consume_unitsym(srsym,srsymtable);
+               storedpattern:=pattern;
+               consume(_ID);
+
+               { named parameter support }
+               found_arg_name:=false;
+
+               if not(unit_found) and
+                  named_args_allowed and
+                  (token=_ASSIGNMENT) then
+                  begin
+                    found_arg_name:=true;
+                    p1:=cstringconstnode.createstr(storedpattern);
+                    consume(_ASSIGNMENT);
+                    exit;
+                  end;
+               { if nothing found give error and return errorsym }
+               if assigned(srsym) then
+                 check_hints(srsym,srsym.symoptions)
+               else
+                 begin
+                   identifier_not_found(orgpattern);
+                   srsym:=generrorsym;
+                   srsymtable:=nil;
+                 end;
+             end;
 
            { Access to funcret or need to call the function? }
            if (srsym.typ in [absolutevarsym,localvarsym,paravarsym]) and
@@ -1616,7 +1686,7 @@ implementation
                     p1:=cerrornode.create;
                     if try_to_consume(_LKLAMMER) then
                      begin
-                       parse_paras(false,_RKLAMMER);
+                       parse_paras(false,false,_RKLAMMER);
                        consume(_RKLAMMER);
                      end;
                   end;
@@ -1783,7 +1853,6 @@ implementation
           srsym  : tsym;
           srsymtable : tsymtable;
           classh     : tobjectdef;
-
         label
           skipreckklammercheck;
         begin
@@ -1969,8 +2038,23 @@ implementation
                            consume(_ID);
                          end;
                        variantdef:
-                         { dispatch call }
-                         try_to_consume(_ID);
+                         begin
+                           { dispatch call? }
+                           if token=_ID then
+                             begin
+                               consume(_ID);
+                               if try_to_consume(_LKLAMMER) then
+                                 begin
+                                   p2:=parse_paras(false,true,_RKLAMMER);
+                                   consume(_RKLAMMER);
+                                   p1:=translate_vardisp_call(p1,p2);
+                                 end
+                               else
+                                 p2:=nil;
+                             end
+                           else { Error }
+                             Consume(_ID);
+                          end;
                        classrefdef:
                          begin
                            if token=_ID then
@@ -2052,7 +2136,7 @@ implementation
                          begin
                            if try_to_consume(_LKLAMMER) then
                              begin
-                               p2:=parse_paras(false,_RKLAMMER);
+                               p2:=parse_paras(false,false,_RKLAMMER);
                                consume(_RKLAMMER);
                                p1:=ccallnode.create_procvar(p2,p1);
                                { proc():= is never possible }
