@@ -28,12 +28,12 @@ begin
           FPE_FLTDIV : Res:=200;  { floating point divide by zero }
           FPE_FLTOVF : Res:=205;  { floating point overflow }
           FPE_FLTUND : Res:=206;  { floating point underflow }
-          FPE_FLTRES : Res:=208;  { floating point inexact result }
+          FPE_FLTRES,             { floating point inexact result }
           FPE_FLTINV : Res:=207;  { invalid floating point operation }
           Else
             Res:=207; { coprocessor error }
         end;
-        { the following is true on ppc, hopefully not on x86 as well }
+        { the following is true on ppc, but fortunately not on x86 }
         { FPU exceptions are completely disabled by the kernel if one occurred, it  }
         { seems this is necessary to be able to return to user mode. They can be    }
         { enabled by executing a sigreturn, however then the exception is triggered }
@@ -52,15 +52,5 @@ begin
 
   if (res <> 0) then
     HandleErrorAddrFrame(res,pointer(sigcontext.ts.eip),pointer(sigcontext.ts.ebp));
-(*
-  { return to trampoline }
-  if res <> 0 then
-    begin
-      SigContext.uc_mcontext^.ss.r3 := res;
-      SigContext.uc_mcontext^.ss.r4 := SigContext.uc_mcontext^.ss.srr0;
-      SigContext.uc_mcontext^.ss.r5 := SigContext.uc_mcontext^.ss.r1;
-      pointer(SigContext.uc_mcontext^.ss.srr0) := @HandleErrorAddrFrame;
-    end;
-*)
 end;
 
