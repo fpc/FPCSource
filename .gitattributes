@@ -6319,6 +6319,7 @@ tests/test/tclass6.pp svneol=native#text/plain
 tests/test/tclass7.pp svneol=native#text/plain
 tests/test/tclass8.pp svneol=native#text/plain
 tests/test/tclrprop.pp svneol=native#text/plain
+tests/test/tendian1.pp svneol=native#text/plain
 tests/test/tenum1.pp svneol=native#text/plain
 tests/test/testcmem.pp svneol=native#text/plain
 tests/test/testda1.pp svneol=native#text/plain
