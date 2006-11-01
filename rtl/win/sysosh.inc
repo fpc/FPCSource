@@ -57,3 +57,7 @@ const
   KernelDLL = 'kernel32';
   ApiSuffix = 'A';
 {$endif WINCE}
+
+  function OleStrToString(source: PWideChar) : ansistring;inline;
+  procedure OleStrToStrVar(source : PWideChar;var dest : ansistring);inline;
+  function StringToOleStr(const source : ansistring) : PWideChar;inline;

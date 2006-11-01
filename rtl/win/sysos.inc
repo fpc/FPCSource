@@ -302,3 +302,22 @@ threadvar
      end;
      errno:=0;
    end;
+
+
+  function OleStrToString(source: PWideChar) : ansistring;inline;
+    begin
+      OleStrToStrVar(source,result);
+    end;
+
+
+  procedure OleStrToStrVar(source : PWideChar;var dest : ansistring);inline;
+    begin
+      WideCharLenToStrVar(source,length(WideString(pointer(source))),dest);
+    end;
+
+
+  function StringToOleStr(const source : ansistring) : PWideChar;inline;
+    begin
+      result:=nil;
+      widestringmanager.Ansi2WideMoveProc(pchar(pointer(source)),widestring(pointer(result)),length(source));
+    end;
