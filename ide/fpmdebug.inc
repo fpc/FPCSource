@@ -94,6 +94,7 @@ begin
   { closing the user screen on mouse events makes copy paste impossible }
   repeat
     repeat
+      GiveUpTimeSlice;
       Drivers.GetKeyEvent(Event);
     until Event.What=evKeyboard;
     Clear:=true;
@@ -114,7 +115,7 @@ begin
       ClearEvent(Event);
   until Event.what=evKeyboard;
   while (Keyboard.PollKeyEvent<>0) do
-          Keyboard.GetKeyEvent;
+    Keyboard.GetKeyEvent;
   DoneKeyboard;
 
   ShowIDEScreen;
