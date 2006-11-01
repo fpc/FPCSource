@@ -9,7 +9,7 @@ type
          next : PListItem;
        end;
      var
-       first : PListItem;
+       first,last : PListItem;
      procedure Add(item: _T);
    end;
 
@@ -20,6 +20,7 @@ begin
   new(newitem);
   newitem^.data:=item;
   newitem^.next:=first;
+  first:=newitem;
 end;
 
 type
@@ -35,17 +36,17 @@ begin
   ilist.Add(someInt);
   ilist.Add(someInt+1);
   writeln(ilist.first^.data);
-  if ilist.first^.data<>10 then
+  if ilist.first^.data<>11 then
     halt(1);
   writeln(ilist.first^.next^.data);
-  if ilist.first^.data<>11 then
+  if ilist.first^.next^.data<>10 then
     halt(1);
 
   slist := TMyStringList.Create;
   slist.Add('Test1');
   slist.Add('Test2');
   writeln(slist.first^.data);
-  if slist.first^.data<>'Test1' then
+  if slist.first^.data<>'Test2' then
     halt(1);
   writeln('ok');
 end.
