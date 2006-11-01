@@ -731,7 +731,6 @@ Implementation
           S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO
         );
       var
-        str2opentry: tstr2opentry;
         cond : string[4];
         cnd  : tasmcond;
         len,
@@ -750,22 +749,22 @@ Implementation
            len:=length(s)-length(att_sizesuffixstr[sufidx]);
            if copy(s,len+1,length(att_sizesuffixstr[sufidx]))=att_sizesuffixstr[sufidx] then
             begin
-              { here we search the entire table... }
-              str2opentry:=nil;
-              if {(length(s)>0) and} (len>0) then
-                str2opentry:=tstr2opentry(iasmops.search(copy(s,1,len)));
-              if assigned(str2opentry) then
+              { Search opcodes }
+              if len>0 then
                 begin
-                  actopcode:=str2opentry.op;
-                  if gas_needsuffix[actopcode]=attsufFPU then
-                   actopsize:=att_sizefpusuffix[sufidx]
-                  else if gas_needsuffix[actopcode]=attsufFPUint then
-                   actopsize:=att_sizefpuintsuffix[sufidx]
-                  else
-                   actopsize:=att_sizesuffix[sufidx];
-                  actasmtoken:=AS_OPCODE;
-                  is_asmopcode:=TRUE;
-                  exit;
+                  actopcode:=tasmop(PtrInt(iasmops.Find(copy(s,1,len))));
+                  if actopcode<>A_NONE then
+                    begin
+                      if gas_needsuffix[actopcode]=attsufFPU then
+                       actopsize:=att_sizefpusuffix[sufidx]
+                      else if gas_needsuffix[actopcode]=attsufFPUint then
+                       actopsize:=att_sizefpuintsuffix[sufidx]
+                      else
+                       actopsize:=att_sizesuffix[sufidx];
+                      actasmtoken:=AS_OPCODE;
+                      is_asmopcode:=TRUE;
+                      exit;
+                    end;
                 end;
               { not found, check condition opcodes }
               j:=0;

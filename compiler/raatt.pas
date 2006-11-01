@@ -122,20 +122,12 @@ unit raatt;
 
 
     procedure tattreader.SetupTables;
-      { creates uppercased symbol tables for speed access }
       var
         i : tasmop;
-        str2opentry: tstr2opentry;
       Begin
-        { opcodes }
-        iasmops:=TDictionary.Create;
-        iasmops.delete_doubles:=true;
+        iasmops:=TFPHashList.create;
         for i:=firstop to lastop do
-          begin
-            str2opentry:=tstr2opentry.createname(upper(gas_op2str[i]));
-            str2opentry.op:=i;
-            iasmops.insert(str2opentry);
-          end;
+          iasmops.Add(upper(gas_op2str[i]),Pointer(PtrInt(i)));
       end;
 
 

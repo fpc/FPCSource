@@ -43,7 +43,7 @@ unit rasm;
          actopcode      : tasmop;
          actasmregister : tregister;
          actcondition   : tasmcond;
-         iasmops        : tdictionary;
+         iasmops        : TFPHashList;
          constructor create;override;
          destructor destroy;override;
        end;

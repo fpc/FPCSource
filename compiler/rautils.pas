@@ -40,15 +40,15 @@ Const
 
 Type
   { Each local label has this structure associated with it }
-  TLocalLabel = class(TNamedIndexItem)
+  TLocalLabel = class(TFPHashObject)
     Emitted : boolean;
-    constructor Create(const n:string);
+    constructor Create(AList:TFPHashObjectList;const n:string);
     function  Gettasmlabel:tasmlabel;
   private
     lab : tasmlabel;
   end;
 
-  TLocalLabelList = class(TDictionary)
+  TLocalLabelList = class(TFPHashObjectList)
     procedure CheckEmitted;
   end;
 
@@ -120,10 +120,6 @@ type
       and concats it to the passed list, the newly created item is returned }
     function ConcatInstruction(p:TAsmList) : tai;virtual;
     Procedure Swapoperands;
-  end;
-
-  tstr2opentry = class(Tnamedindexitem)
-    op: TAsmOp;
   end;
 
   {---------------------------------------------------------------------}
@@ -1094,9 +1090,9 @@ end;
                                  TLocalLabel
 ***************************************************************************}
 
-constructor TLocalLabel.create(const n:string);
+constructor TLocalLabel.create(AList:TFPHashObjectList;const n:string);
 begin
-  inherited CreateName(n);
+  inherited Create(AList,n);
   lab:=nil;
   emitted:=false;
 end;
@@ -1118,15 +1114,17 @@ end;
                              TLocalLabelList
 ***************************************************************************}
 
-procedure LocalLabelEmitted(p:tnamedindexitem;arg:pointer);
-begin
-  if not TLocalLabel(p).emitted  then
-   Message1(asmr_e_unknown_label_identifier,p.name);
-end;
-
 procedure TLocalLabelList.CheckEmitted;
+var
+  i : longint;
+  lab : TLocalLabel;
 begin
-  ForEach_Static(@LocalLabelEmitted,nil)
+  for i:=0 to LocalLabelList.Count-1 do
+    begin
+      lab:=TLocalLabel(LocalLabelList[i]);
+      if not lab.emitted then
+        Message1(asmr_e_unknown_label_identifier,lab.name);
+    end;
 end;
 
 
@@ -1136,12 +1134,9 @@ var
 Begin
   CreateLocalLabel:=true;
 { Check if it already is defined }
-  lab:=TLocalLabel(LocalLabellist.Search(s));
+  lab:=TLocalLabel(LocalLabellist.Find(s));
   if not assigned(lab) then
-   begin
-     lab:=TLocalLabel.Create(s);
-     LocalLabellist.Insert(lab);
-   end;
+    lab:=TLocalLabel.Create(LocalLabellist,s);
 { set emitted flag and check for dup syms }
   if emit then
    begin

@@ -214,7 +214,7 @@ interface
         textrecdef : tdef;
         }
 
-        dirlist: Tdictionary;
+        dirlist: TFPHashObjectList;
         filesequence: Integer;
         loclist: tdynamicarray;
         asmline: TAsmList;
@@ -533,22 +533,24 @@ implementation
     type
       { TDirIndexItem }
 
-      TDirIndexItem = class(TNamedIndexItem)
+      TDirIndexItem = class(TFPHashObject)
       private
-        FFiles: TDictionary;
+        FFiles: TFPHashObjectList;
       public
-        constructor Create(const AName: String; AIndex: Integer);
+        IndexNr : Integer;
+        constructor Create(AList:TFPHashObjectList;const AName: String; AIndex: Integer);
         destructor  Destroy;override;
-        property Files: TDictionary read FFiles;
+        property Files: TFPHashObjectList read FFiles;
       end;
 
       { TFileIndexItem }
 
-      TFileIndexItem = class(TNamedIndexItem)
+      TFileIndexItem = class(TFPHashObject)
       private
         FDirIndex: Integer;
       public
-        constructor Create(const AName: String; ADirIndex, AIndex: Integer);
+        IndexNr : Integer;
+        constructor Create(AList:TFPHashObjectList;const AName: String; ADirIndex, AIndex: Integer);
         property DirIndex: Integer read FDirIndex;
       end;
 
@@ -556,46 +558,45 @@ implementation
 {****************************************************************************
                               procs
 ****************************************************************************}
-procedure AddNamedIndexToList(p:TNamedIndexItem; arg:pointer);
-begin
-  TFPList(Arg).Add(p);
-end;
 
-function DirListSortCompare(AItem1, AItem2: Pointer): Integer;
-begin
-  Result := TDirIndexItem(AItem1).IndexNr - TDirIndexItem(AItem2).IndexNr;
-end;
+    function DirListSortCompare(AItem1, AItem2: Pointer): Integer;
+      begin
+        Result := TDirIndexItem(AItem1).IndexNr - TDirIndexItem(AItem2).IndexNr;
+      end;
 
-function FileListSortCompare(AItem1, AItem2: Pointer): Integer;
-begin
-  Result := TFileIndexItem(AItem1).IndexNr - TFileIndexItem(AItem2).IndexNr;
-end;
+
+    function FileListSortCompare(AItem1, AItem2: Pointer): Integer;
+      begin
+        Result := TFileIndexItem(AItem1).IndexNr - TFileIndexItem(AItem2).IndexNr;
+      end;
+
 
 {****************************************************************************
                               TDirIndexItem
 ****************************************************************************}
 
-    constructor TDirIndexItem.Create(const AName: String; AIndex: Integer);
-    begin
-      inherited CreateName(AName);
-      FFiles := TDictionary.Create;
-      IndexNr := AIndex;
-    end;
+    constructor TDirIndexItem.Create(AList:TFPHashObjectList;const AName: String; AIndex: Integer);
+      begin
+        inherited Create(AList,AName);
+        FFiles := TFPHashObjectList.Create;
+        IndexNr := AIndex;
+      end;
+
 
     destructor TDirIndexItem.Destroy;
-    begin
-      FFiles.Free;
-      FFiles := nil;
-      inherited Destroy;
-    end;
+      begin
+        FFiles.Free;
+        inherited Destroy;
+      end;
+
 
 {****************************************************************************
                               TFileIndexItem
 ****************************************************************************}
 
-    constructor TFileIndexItem.Create(const AName: String; ADirIndex, AIndex: Integer);
+    constructor TFileIndexItem.Create(AList:TFPHashObjectList;const AName: String; ADirIndex, AIndex: Integer);
     begin
-      inherited CreateName(Aname);
+      inherited Create(AList,Aname);
       FDirIndex := ADirIndex;
       IndexNr := AIndex;
     end;
@@ -649,9 +650,9 @@ end;
       begin
         inherited Create;
         isdwarf64 := target_cpu in [cpu_iA64,cpu_x86_64,cpu_powerpc64];
-        dirlist := tdictionary.Create;
+        dirlist := TFPHashObjectList.Create;
         { add current dir as first item (index=0) }
-        dirlist.insert(TDirIndexItem.Create('.', 0));
+        TDirIndexItem.Create(dirlist,'.', 0);
         asmline := TAsmList.create;
         loclist := tdynamicarray.Create(4096);
       end;
@@ -689,22 +690,17 @@ end;
         else
           dirname := afile.path^;
 
-        diritem := TDirIndexItem(dirlist.search(dirname));
+        diritem := TDirIndexItem(dirlist.Find(dirname));
         if diritem = nil then
-          begin
-            diritem := TDirIndexItem.Create(dirname, dirlist.Count);
-            diritem := TDirIndexItem(dirlist.insert(diritem));
-          end;
+          diritem := TDirIndexItem.Create(dirlist,dirname, dirlist.Count);
         diridx := diritem.IndexNr;
 
-        fileitem := TFileIndexItem(diritem.files.search(afile.name^));
+        fileitem := TFileIndexItem(diritem.files.Find(afile.name^));
         if fileitem = nil then
           begin
             Inc(filesequence);
-            fileitem := TFileIndexItem.Create(afile.name^, diridx, filesequence);
-            fileitem := TFileIndexItem(diritem.files.insert(fileitem));
+            fileitem := TFileIndexItem.Create(diritem.files,afile.name^, diridx, filesequence);
           end;
-
         Result := fileitem.IndexNr;
       end;
 
@@ -1944,11 +1940,11 @@ end;
       var
         templist: TAsmList;
         linelist: TAsmList;
-        lbl: tasmlabel;
-        n: Integer;
-        ditem: TDirIndexItem;
-        fitem: TFileIndexItem;
-        dlist, flist: TFPList;
+        lbl   : tasmlabel;
+        n,m   : Integer;
+        ditem : TDirIndexItem;
+        fitem : TFileIndexItem;
+        flist : TFPList;
       begin
         { insert .Ltext0 label }
         templist:=TAsmList.create;
@@ -2045,47 +2041,42 @@ end;
           { DW_LNS_set_isa }
         linelist.concat(tai_const.create_8bit(1));
 
-        { generate directory and filelist}
-        dlist := TFPList.Create;
-        flist := TFPList.Create;
+        { Create single list of filenames sorted in IndexNr }
+        flist:=TFPList.Create;
+        for n := 0 to dirlist.Count - 1 do
+          begin
+            ditem := TDirIndexItem(dirlist[n]);
+            for m := 0 to ditem.Files.Count - 1 do
+              flist.Add(ditem.Files[m]);
+          end;
+        flist.Sort(@FileListSortCompare);
 
-        dirlist.foreach_static(@AddNamedIndexToList, dlist);
-        dlist.Sort(@DirListSortCompare);
         { include_directories }
         linelist.concat(tai_comment.Create(strpnew('include_directories')));
-          { list }
-        for n := 0 to dlist.Count - 1 do
-        begin
-          ditem := TDirIndexItem(dlist[n]);
-          ditem.Files.foreach_static(@AddNamedIndexToList, flist);
-          if ditem.Name = '.' then Continue;
-
-          linelist.concat(tai_string.create(ditem.Name+#0));
-        end;
-          { end of list }
+        for n := 0 to dirlist.Count - 1 do
+          begin
+            ditem := TDirIndexItem(dirlist[n]);
+            if ditem.Name = '.' then
+              Continue;
+            linelist.concat(tai_string.create(ditem.Name+#0));
+          end;
         linelist.concat(tai_const.create_8bit(0));
 
         { file_names }
         linelist.concat(tai_comment.Create(strpnew('file_names')));
-          { list }
-        flist.Sort(@FileListSortCompare);
         for n := 0 to flist.Count - 1 do
-        begin
-          fitem := TFileIndexItem(flist[n]);
-          { file name }
-          linelist.concat(tai_string.create(fitem.Name+#0));
-          { directory index }
-          linelist.concat(tai_const.create_uleb128bit(fitem.DirIndex));
-          { last modification }
-          linelist.concat(tai_const.create_uleb128bit(0));
-          { file length }
-          linelist.concat(tai_const.create_uleb128bit(0));
-        end;
-          { end of list }
+          begin
+            fitem := TFileIndexItem(flist[n]);
+            { file name }
+            linelist.concat(tai_string.create(fitem.Name+#0));
+            { directory index }
+            linelist.concat(tai_const.create_uleb128bit(fitem.DirIndex));
+            { last modification }
+            linelist.concat(tai_const.create_uleb128bit(0));
+            { file length }
+            linelist.concat(tai_const.create_uleb128bit(0));
+          end;
         linelist.concat(tai_const.create_8bit(0));
-
-        dlist.free;
-        flist.free;
 
         { end of debug line header }
         linelist.concat(tai_symbol.createname('.Lehdebug_line0',AT_DATA,0));

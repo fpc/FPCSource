@@ -135,19 +135,11 @@ Unit Rax86int;
     constructor tx86intreader.create;
       var
         i : tasmop;
-        str2opentry: tstr2opentry;
       Begin
         inherited create;
-        { opcodes }
-        { creates uppercased symbol tables for speed access }
-        iasmops:=tdictionary.create;
-        iasmops.delete_doubles:=true;
+        iasmops:=TFPHashList.create;
         for i:=firstop to lastop do
-          begin
-            str2opentry:=tstr2opentry.createname(upper(std_op2str[i]));
-            str2opentry.op:=i;
-            iasmops.insert(str2opentry);
-          end;
+          iasmops.Add(upper(std_op2str[i]),Pointer(PtrInt(i)));
       end;
 
 
@@ -158,7 +150,6 @@ Unit Rax86int;
 
      function tx86intreader.is_asmopcode(const s: string):boolean;
        var
-         str2opentry: tstr2opentry;
          cond : string[4];
          cnd : tasmcond;
          j: longint;
@@ -169,14 +160,15 @@ Unit Rax86int;
          actcondition:=C_None;
          actopsize:=S_NO;
 
-         str2opentry:=tstr2opentry(iasmops.search(s));
-         if assigned(str2opentry) then
+         { Search opcodes }
+         actopcode:=tasmop(PtrInt(iasmops.Find(s)));
+         if actopcode<>A_NONE then
            begin
-             actopcode:=str2opentry.op;
              actasmtoken:=AS_OPCODE;
-             is_asmopcode:=TRUE;
+             result:=TRUE;
              exit;
            end;
+           
          { not found yet, check condition opcodes }
          j:=0;
          while (j<CondAsmOps) do
