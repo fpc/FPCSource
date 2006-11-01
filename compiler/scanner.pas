@@ -57,12 +57,12 @@ interface
 
        tdirectiveproc=procedure;
 
-       tdirectiveitem = class(TNamedIndexItem)
+       tdirectiveitem = class(TFPHashObject)
        public
           is_conditional : boolean;
           proc : tdirectiveproc;
-          constructor Create(const n:string;p:tdirectiveproc);
-          constructor CreateCond(const n:string;p:tdirectiveproc);
+          constructor Create(AList:TFPHashObjectList;const n:string;p:tdirectiveproc);
+          constructor CreateCond(AList:TFPHashObjectList;const n:string;p:tdirectiveproc);
        end;
 
        tcompile_time_predicate = function(var valuedescr: String) : Boolean;
@@ -214,8 +214,8 @@ implementation
 
     var
       { dictionaries with the supported directives }
-      turbo_scannerdirectives : tdictionary;     { for other modes }
-      mac_scannerdirectives : tdictionary;       { for mode mac }
+      turbo_scannerdirectives : TFPHashObjectList;     { for other modes }
+      mac_scannerdirectives   : TFPHashObjectList;     { for mode mac }
 
 
 {*****************************************************************************
@@ -1660,17 +1660,17 @@ In case not, the value returned can be arbitrary.
                               TDirectiveItem
 *****************************************************************************}
 
-    constructor TDirectiveItem.Create(const n:string;p:tdirectiveproc);
+    constructor TDirectiveItem.Create(AList:TFPHashObjectList;const n:string;p:tdirectiveproc);
       begin
-        inherited CreateName(n);
+        inherited Create(AList,n);
         is_conditional:=false;
         proc:=p;
       end;
 
 
-    constructor TDirectiveItem.CreateCond(const n:string;p:tdirectiveproc);
+    constructor TDirectiveItem.CreateCond(AList:TFPHashObjectList;const n:string;p:tdirectiveproc);
       begin
-        inherited CreateName(n);
+        inherited Create(AList,n);
         is_conditional:=true;
         proc:=p;
       end;
@@ -2351,9 +2351,9 @@ In case not, the value returned can be arbitrary.
              repeat
                current_scanner.skipuntildirective;
                if not (m_mac in current_settings.modeswitches) then
-                 p:=tdirectiveitem(turbo_scannerdirectives.search(current_scanner.readid))
+                 p:=tdirectiveitem(turbo_scannerdirectives.Find(current_scanner.readid))
                else
-                 p:=tdirectiveitem(mac_scannerdirectives.search(current_scanner.readid));
+                 p:=tdirectiveitem(mac_scannerdirectives.Find(current_scanner.readid));
              until assigned(p) and (p.is_conditional);
              current_scanner.gettokenpos;
              Message1(scan_d_handling_switch,'$'+p.name);
@@ -2426,9 +2426,9 @@ In case not, the value returned can be arbitrary.
          if hs<>'' then
           begin
             if not (m_mac in current_settings.modeswitches) then
-              t:=tdirectiveitem(turbo_scannerdirectives.search(hs))
+              t:=tdirectiveitem(turbo_scannerdirectives.Find(hs))
             else
-              t:=tdirectiveitem(mac_scannerdirectives.search(hs));
+              t:=tdirectiveitem(mac_scannerdirectives.Find(hs));
 
             if assigned(t) then
              begin
@@ -3993,17 +3993,17 @@ exit_label:
     procedure AddDirective(const s:string; dm: tdirectivemode; p:tdirectiveproc);
       begin
         if dm in [directive_all, directive_turbo] then
-          turbo_scannerdirectives.insert(tdirectiveitem.create(s,p));
+          tdirectiveitem.create(turbo_scannerdirectives,s,p);
         if dm in [directive_all, directive_mac] then
-          mac_scannerdirectives.insert(tdirectiveitem.create(s,p));
+          tdirectiveitem.create(mac_scannerdirectives,s,p);
       end;
 
     procedure AddConditional(const s:string; dm: tdirectivemode; p:tdirectiveproc);
       begin
         if dm in [directive_all, directive_turbo] then
-          turbo_scannerdirectives.insert(tdirectiveitem.createcond(s,p));
+          tdirectiveitem.createcond(turbo_scannerdirectives,s,p);
         if dm in [directive_all, directive_mac] then
-          mac_scannerdirectives.insert(tdirectiveitem.createcond(s,p));
+          tdirectiveitem.createcond(mac_scannerdirectives,s,p);
       end;
 
 {*****************************************************************************
@@ -4013,8 +4013,8 @@ exit_label:
     procedure InitScanner;
       begin
         InitWideString(patternw);
-        turbo_scannerdirectives:=TDictionary.Create;
-        mac_scannerdirectives:=TDictionary.Create;
+        turbo_scannerdirectives:=TFPHashObjectList.Create;
+        mac_scannerdirectives:=TFPHashObjectList.Create;
 
         { Common directives and conditionals }
         AddDirective('I',directive_all, @dir_include);
