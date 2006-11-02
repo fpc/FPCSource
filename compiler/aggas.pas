@@ -394,7 +394,7 @@ implementation
         needsObject :=
             (
               assigned(hp.next) and
-               (tai_symbol(hp.next).typ in [ait_const,ait_datablock,
+               (tai(hp.next).typ in [ait_const,ait_datablock,
                 ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit])
             ) or
             (hp.sym.typ=AT_DATA);
