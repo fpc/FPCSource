@@ -30,10 +30,18 @@ interface
   {$define GDB_V6}
 {$endif def GDB_V603}
 
+{ 6.4.x }
 {$ifdef GDB_V604}
   {$define GDB_V6}
+  {$define GDB_NEEDS_NO_ERROR_INIT}
 {$endif def GDB_V604}
 
+{ 6.5.x }
+{$ifdef GDB_V605}
+  {$define GDB_V6}
+  {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_NEEDS_NO_ERROR_INIT}
+{$endif def GDB_V605}
 
 {$ifdef GDB_V6}
   {$define GDB_HAS_SYSROOT}
@@ -1049,10 +1057,12 @@ var
   tui_version : longint;cvar;public;
 
 { Whether xdb commands will be handled }
+{$ifndef GDB_HAS_DB_COMMANDS}
   xdb_commands : longint;cvar;public;
 
 { Whether dbx commands will be handled }
   dbx_commands : longint;cvar;public;
+{$endif GDB_HAS_DB_COMMANDS}
 
 var
   gdb_stdout : pui_file;cvar;public;
@@ -2364,10 +2374,10 @@ end;
 var
   version : array[0..0] of char;cvar;external;
 
-{$ifndef GDB_V604}
-// doesn't seem to exist anymore. Seems to work fine without
+{$ifndef GDB_NEEDS_NO_ERROR_INIT}
+{ doesn't seem to exist anymore. Seems to work fine without }
 procedure error_init;cdecl;external;
-{$endif}
+{$endif GDB_NEEDS_NO_ERROR_INIT}
 
 function  GDBVersion : string;
 begin
@@ -2421,9 +2431,9 @@ begin
   gdb_stdtarg:=gdb_stderr;
   set_ui_file_write(gdb_stdout,@gdbint_ui_file_write);
   set_ui_file_write(gdb_stderr,@gdbint_ui_file_write);
-{$ifndef GDB_V604}
+{$ifndef GDB_NEEDS_NO_ERROR_INIT}
   error_init;
-{$endif}
+{$endif GDB_NEEDS_NO_ERROR_INIT}
 {$ifdef GDB_V6}
 //  gdb_stdtargin := gdb_stdin;
   gdb_stdtargerr := gdb_stderr;
