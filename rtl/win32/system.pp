@@ -108,7 +108,7 @@ const
 implementation
 
 var
-  SysInstance : Longint;public;
+  SysInstance : Longint;public name '_FPC_SysInstance';
 
 {$ifdef i386}
 {$define HAS_RESOURCES}
@@ -390,7 +390,7 @@ Var
 Const
      DLLExitOK : boolean = true;
 
-function Dll_entry : longbool;
+function Dll_entry : longbool; [public,alias:'_FPC_DLL_Entry'];
 var
   res : longbool;
 
@@ -446,43 +446,6 @@ begin
     DLLExitOK:=ExitCode=0;
     LongJmp(DLLBuf,1);
 end;
-
-{$ifndef VER2_0}
-
-procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
-begin
-  IsConsole:=true;
-  Exe_entry;
-end;
-
-
-procedure _FPC_WinMainCRTStartup;stdcall;public name '_WinMainCRTStartup';
-begin
-  IsConsole:=false;
-  Exe_entry;
-end;
-
-
-procedure _FPC_DLLMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLMainCRTStartup';
-begin
-  IsConsole:=true;
-  sysinstance:=_hinstance;
-  dllreason:=_dllreason;
-  dllparam:=_dllparam;
-  DLL_Entry;
-end;
-
-
-procedure _FPC_DLLWinMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLWinMainCRTStartup';
-begin
-  IsConsole:=false;
-  sysinstance:=_hinstance;
-  dllreason:=_dllreason;
-  dllparam:=_dllparam;
-  DLL_Entry;
-end;
-
-{$endif VER2_0}
 
 
 function GetCurrentProcess : dword;

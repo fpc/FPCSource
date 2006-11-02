@@ -64,6 +64,7 @@ interface
       TInternalLinkerWin = class(tinternallinker)
         constructor create;override;
         procedure DefaultLinkScript;override;
+        procedure InitSysInitUnitName;override;
       end;
 
       TExternalLinkerWin=class(texternallinker)
@@ -75,6 +76,7 @@ interface
          Procedure SetDefaultInfo;override;
          function  MakeExecutable:boolean;override;
          function  MakeSharedLibrary:boolean;override;
+         procedure InitSysInitUnitName;override;
       end;
 
       TDLLScannerWin=class(tDLLScanner)
@@ -109,6 +111,18 @@ implementation
           resbin : 'windres';
           rescmd : '--include $INC -O coff -o $OBJ $RES'
         );
+
+
+  Procedure GlobalInitSysInitUnitName(Linker : TLinker);
+    begin
+      if cs_profile in current_settings.moduleswitches then
+        linker.sysinitunit:='sysinitgprof'
+      else if (Linker.SharedLibFiles.Find('cygwin')<>nil) then
+        linker.sysinitunit:='sysinitcyg'
+      else
+        linker.sysinitunit:='sysinitpas'
+    end;
+
 
 {*****************************************************************************
                              TImportLibWin
@@ -987,6 +1001,12 @@ implementation
       end;
 
 
+    procedure TInternalLinkerWin.InitSysInitUnitName;
+      begin
+        if target_info.system=system_i386_win32 then
+          GlobalInitSysInitUnitName(self);
+      end;
+
 
 {****************************************************************************
                               TExternalLinkerWin
@@ -1611,6 +1631,13 @@ implementation
         {$I+}
         if ioresult<>0 then;
         postprocessexecutable:=true;
+      end;
+
+
+    procedure TExternalLinkerWin.InitSysInitUnitName;
+      begin
+        if target_info.system=system_i386_win32 then
+          GlobalInitSysInitUnitName(self);
       end;
 
 

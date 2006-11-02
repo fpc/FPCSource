@@ -376,6 +376,7 @@ begin
        sysinitunit:=csysinitunit;
       end;
    end;
+  sysinitunit:='si_'+sysinitunit;
 end;
 
 Function TLinkerLinux.WriteResponseFile(isdll:boolean) : Boolean;
@@ -416,7 +417,7 @@ begin
 
       StartSection('INPUT(');
       { add objectfiles, start with prt0 always }
-      if not (target_info.system in internal_sysinit_systems) and (prtobj<>'') then
+      if not (target_info.system in systems_internal_sysinit) and (prtobj<>'') then
        AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
       { try to add crti and crtbegin if linking to C }
       if linklibc then

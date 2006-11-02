@@ -1396,10 +1396,10 @@ implementation
          maybeloadvariantsunit;
 
          linker.initsysinitunitname;
-         if target_info.system in internal_sysinit_systems then
+         if target_info.system in systems_internal_sysinit then
          begin
            { add start/halt unit }
-           AddUnit('si_'+linker.sysinitunit);
+           AddUnit(linker.sysinitunit);
          end;
 
 {$ifdef arm}
