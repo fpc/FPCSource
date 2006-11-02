@@ -10,7 +10,7 @@ uses
 {$define TEST_EXTENDED}
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-{$if defined(win32) or defined(wince)}
+{$ifdef WINDOWS}
 const
 {$ifdef wince}
   CrtLib = 'coredll.dll';

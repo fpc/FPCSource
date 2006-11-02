@@ -4,9 +4,14 @@ unit uprintf3;
 
 interface
 
+{$if defined(darwin) or defined(macos)}
 {$calling mwpascal}
+{$else}
+{$calling cdecl}
+{$endif}
 
-{$if defined(win32) or defined(wince)}
+
+{$ifdef WINDOWS}
 const
 {$ifdef wince}
   CrtLib = 'coredll.dll';
@@ -15,7 +20,7 @@ const
 {$endif}
 
 procedure printf(const formatstr : pchar; ...); external CrtLib name 'printf';
-procedure sprintf(p : pchar;const formatstr : pchar; ...); external CrtLib name 'printf';
+procedure sprintf(p : pchar;const formatstr : pchar; ...); external CrtLib name 'sprintf';
 const
   int64prefix='I64';
 {$else}
