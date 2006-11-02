@@ -47,6 +47,7 @@ interface
       public
          HasResources,
          HasExports      : boolean;
+         SysInitUnit     : string[20];
          ObjectFiles,
          SharedLibFiles,
          StaticLibFiles  : TStringList;
@@ -59,6 +60,7 @@ interface
          Procedure AddStaticCLibrary(const S : String);
          Procedure AddSharedCLibrary(S : String);
          procedure AddImportSymbol(const libname,symname:string;OrdNr: longint;isvar:boolean);virtual;
+         Procedure InitSysInitUnitName;virtual;
          Function  MakeExecutable:boolean;virtual;
          Function  MakeSharedLibrary:boolean;virtual;
          Function  MakeStaticLibrary:boolean;virtual;
@@ -471,6 +473,10 @@ Implementation
       begin
       end;
 
+
+    procedure TLinker.InitSysInitUnitName;
+      begin
+      end;
 
     function TLinker.MakeExecutable:boolean;
       begin

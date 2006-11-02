@@ -87,8 +87,11 @@ type
   end;
 
   TLinkRes = Class (TScript)
+    section: string[30];
     procedure Add(const s:string);
     procedure AddFileName(const s:string);
+    procedure EndSection(const s:string);
+    procedure StartSection(const s:string);
   end;
 
 var
@@ -495,6 +498,11 @@ end;
 
 procedure TLinkRes.AddFileName(const s:string);
 begin
+  if section<>'' then
+   begin
+    inherited Add(section);
+    section:='';
+   end;
   if s<>'' then
    begin
      if not(s[1] in ['a'..'z','A'..'Z','/','\','.','"']) then
@@ -507,6 +515,19 @@ begin
      else
       inherited Add(s);
    end;
+end;
+
+procedure TLinkRes.EndSection(const s:string);
+begin
+  { only terminate if we started the section }
+  if section='' then
+    inherited Add(s);
+  section:='';
+end;
+
+procedure TLinkRes.StartSection(const s:string);
+begin
+  section:=s;
 end;
 
 end.

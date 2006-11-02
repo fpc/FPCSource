@@ -342,7 +342,7 @@ const
   InitProc : Pointer = nil;
 
 var
-  ExitCode    : Word; public name 'operatingsystem_result';
+  ExitCode    : Word; {$ifdef VER2_0} public name 'operatingsystem_result'; {$endif}
   RandSeed    : Cardinal;
   { Delphi compatibility }
   IsLibrary : boolean = false;

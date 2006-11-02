@@ -16,6 +16,7 @@ units=$(SYSTEMUNIT) unixtype ctypes baseunix strings objpas macpas syscall unixu
       errors sockets gpm ipc serial terminfo dl dynlibs \
       video mouse keyboard variants types dateutils sysconst fmtbcd \
       cthreads classes convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix
+units_i386_linux=si_prc si_c21g si_c21 si_c si_dll
 
 rsts=math varutils typinfo variants sysconst rtlconsts stdconvs
 

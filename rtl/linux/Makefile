@@ -251,7 +251,7 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) unixtype ctypes baseunix strings objpas macpas syscall unixutil heaptrc lineinfo termio unix linux initc cmem $(CPU_UNITS) crt printer linuxvcs sysutils typinfo math matrix varutils charset ucomplex getopts errors sockets gpm ipc serial terminfo dl dynlibs video mouse keyboard variants types dateutils sysconst fmtbcd cthreads classes convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) unixtype ctypes baseunix strings objpas macpas syscall unixutil heaptrc lineinfo termio unix linux initc cmem $(CPU_UNITS) crt printer linuxvcs sysutils typinfo math matrix varutils charset ucomplex getopts errors sockets gpm ipc serial terminfo dl dynlibs video mouse keyboard variants types dateutils sysconst fmtbcd cthreads classes convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix   si_prc si_c21g si_c21 si_c si_dll
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_UNITS+=$(SYSTEMUNIT) unixtype ctypes baseunix strings objpas macpas syscall unixutil heaptrc lineinfo termio unix linux initc cmem $(CPU_UNITS) crt printer linuxvcs sysutils typinfo math matrix varutils charset ucomplex getopts errors sockets gpm ipc serial terminfo dl dynlibs video mouse keyboard variants types dateutils sysconst fmtbcd cthreads classes convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix

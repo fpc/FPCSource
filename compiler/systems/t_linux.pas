@@ -45,10 +45,17 @@ interface
     tlinkerlinux=class(texternallinker)
     private
       libctype:(libc5,glibc2,glibc21,uclibc);
+{$ifdef has_internal_sysinit}      
+      reorder : boolean;
+      linklibc: boolean;
+{$endif}      
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
       constructor Create;override;
       procedure SetDefaultInfo;override;
+{$ifdef has_internal_sysinit}      
+      procedure InitSysInitUnitName;override;
+{$endif}      
       function  MakeExecutable:boolean;override;
       function  MakeSharedLibrary:boolean;override;
       function  postprocessexecutable(const fn : string;isdll:boolean):boolean;
@@ -307,22 +314,80 @@ Begin
          end;
 End;
 
+{$ifdef has_internal_sysinit}      
+
+Procedure TLinkerLinux.InitSysInitUnitName;
+var
+  csysinitunit,
+  gsysinitunit : string[20];
+  hp           : tmodule;
+begin
+  hp:=tmodule(loaded_units.first);
+  while assigned(hp) do
+   begin
+     linklibc := hp.linkunitsharedlibs.find('c');
+     if linklibc then break;
+     hp:=tmodule(hp.next);
+   end;
+  reorder := linklibc and ReOrderEntries;
+  if islibrary then
+   begin
+     sysinitunit:='dll';
+     csysinitunit:='dll';
+     gsysinitunit:='dll';
+   end
+  else
+   begin
+     sysinitunit:='prc';
+     case libctype of
+       glibc21:
+         begin
+           csysinitunit:='c21';
+           gsysinitunit:='c21g';
+         end;
+       uclibc:
+         begin
+           csysinitunit:='uc';
+           gsysinitunit:='ucg';
+         end
+       else
+         csysinitunit:='c';
+         gsysinitunit:='g';
+     end;
+   end;
+  if cs_profile in current_settings.moduleswitches then
+   begin
+     sysinitunit:=gsysinitunit;
+     linklibc:=true;
+   end
+  else
+   begin
+     if linklibc then
+      sysinitunit:=csysinitunit;
+   end;
+end;
+
+{$endif}
+
 Function TLinkerLinux.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres      : TLinkRes;
   i            : longint;
+{$ifndef has_internal_sysinit}  
   cprtobj,
   gprtobj,
   prtobj       : string[80];
+  reorder,
+  linklibc     : boolean;
+{$endif}
   HPath        : TStringListItem;
   s,s1,s2      : string;
   found1,
-  found2,
-  Reorder,
-  linklibc     : boolean;
+  found2       : boolean;
 begin
   result:=False;
 { set special options for some targets }
+{$ifndef has_internal_sysinit}
   linklibc:=(SharedLibFiles.Find('c')<>nil);
   reorder := linklibc and ReOrderEntries;
   if isdll then
@@ -350,9 +415,12 @@ begin
          gprtobj:='gprt0';
      end;
    end;
+{$endif}   
   if cs_profile in current_settings.moduleswitches then
    begin
+{$ifndef has_internal_sysinit}
      prtobj:=gprtobj;
+{$endif}     
      if not(libctype in [glibc2,glibc21]) then
        AddSharedLibrary('gmon');
      AddSharedLibrary('c');
@@ -360,8 +428,10 @@ begin
    end
   else
    begin
+{$ifndef has_internal_sysinit}   
      if linklibc then
       prtobj:=cprtobj;
+{$endif}     
    end;
 
   { Open link.res file }
@@ -382,10 +452,12 @@ begin
          HPath:=TStringListItem(HPath.Next);
        end;
 
-      Add('INPUT(');
+      StartSection('INPUT(');
+{$ifndef has_internal_sysinit}
       { add objectfiles, start with prt0 always }
       if prtobj<>'' then
        AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
+{$endif}
       { try to add crti and crtbegin if linking to C }
       if linklibc then
        begin
@@ -401,7 +473,7 @@ begin
          if s<>'' then
           AddFileName(maybequoted(s));
        end;
-      Add(')');
+      EndSection(')');
 
       { Write staticlibraries }
       if not StaticLibFiles.Empty then
