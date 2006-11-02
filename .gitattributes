@@ -4541,6 +4541,12 @@ rtl/linux/i386/dllprt0.as -text
 rtl/linux/i386/gprt0.as -text
 rtl/linux/i386/gprt21.as -text
 rtl/linux/i386/prt0.as -text
+rtl/linux/i386/si_c.inc svneol=native#text/plain
+rtl/linux/i386/si_c21.inc svneol=native#text/plain
+rtl/linux/i386/si_c21g.inc svneol=native#text/plain
+rtl/linux/i386/si_dll.inc svneol=native#text/plain
+rtl/linux/i386/si_g.inc svneol=native#text/plain
+rtl/linux/i386/si_prc.inc svneol=native#text/plain
 rtl/linux/i386/sighnd.inc svneol=native#text/plain
 rtl/linux/i386/sighndh.inc svneol=native#text/plain
 rtl/linux/i386/stat.inc svneol=native#text/plain
@@ -4590,6 +4596,13 @@ rtl/linux/powerpc64/syscallh.inc svneol=native#text/plain
 rtl/linux/powerpc64/sysnr.inc svneol=native#text/plain
 rtl/linux/pthread.inc svneol=native#text/plain
 rtl/linux/ptypes.inc svneol=native#text/plain
+rtl/linux/si_c.pp svneol=native#text/plain
+rtl/linux/si_c21.pp svneol=native#text/plain
+rtl/linux/si_c21g.pp svneol=native#text/plain
+rtl/linux/si_dll.pp svneol=native#text/plain
+rtl/linux/si_g.pp svneol=native#text/plain
+rtl/linux/si_intf.inc svneol=native#text/plain
+rtl/linux/si_prc.pp svneol=native#text/plain
 rtl/linux/signal.inc svneol=native#text/plain
 rtl/linux/sparc/bsyscall.inc svneol=native#text/plain
 rtl/linux/sparc/cprt0.as -text
