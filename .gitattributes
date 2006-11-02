@@ -4603,7 +4603,6 @@ rtl/linux/sparc/syscall.inc svneol=native#text/plain
 rtl/linux/sparc/syscallh.inc svneol=native#text/plain
 rtl/linux/sparc/sysnr.inc svneol=native#text/plain
 rtl/linux/suuid.inc svneol=native#text/plain
-rtl/linux/syslinux.pp svneol=native#text/plain
 rtl/linux/sysos.inc svneol=native#text/plain
 rtl/linux/sysosh.inc svneol=native#text/plain
 rtl/linux/system.pp svneol=native#text/plain
