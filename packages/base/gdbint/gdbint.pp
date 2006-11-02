@@ -2479,5 +2479,7 @@ begin
   gdb_sysrootc := #0;
   gdb_sysroot := @gdb_sysrootc;
 {$endif}
+  gdb_stderr:=nil;
+  gdb_stdout:=nil;
   InitLibGDB;
 end.
