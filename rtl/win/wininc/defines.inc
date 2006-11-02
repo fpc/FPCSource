@@ -5390,6 +5390,16 @@ Const
   DECLARE_HANDLE(HANDLE);
   #endif
    *)
+   
+   
+  const
+     EXCEPTION_READ_FAULT    = 0; // Access violation was caused by a read
+     EXCEPTION_WRITE_FAULT   = 1; // Access violation was caused by a write
+     {$ifdef cpuia64}
+     EXCEPTION_EXECUTE_FAULT = 2; // Access violation was caused by an instruction fetch
+     {$else}
+     EXCEPTION_EXECUTE_FAULT = 8;
+     {$endif}
 
 {$ifdef cpupowerpc32}
   { ppc  }
