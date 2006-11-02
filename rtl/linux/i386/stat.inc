@@ -41,50 +41,26 @@
 {$packrecords C}
   Stat =  Record  // No unix typing because of differences
                               // kernel <->libc
-    case byte of
-      0: (st_dev     : int64;
-          pad1       : word;
-          st_ino     : longint;
-          st_mode,
-          st_nlink,
-          st_uid,
-          st_gid        : longint;
-          st_rdev       : int64;
-          pad2          : word;
-          st_size,
-          st_blksize,
-          st_blocks,
-          st_atime,
-          unused1,
-          st_mtime,
-          unused2,
-          st_ctime,
-          unused3,
-          unused4,
-          unused5   : longint;);
-      1: (
-          dev        : int64;
-          pad1_dummy : word;
-          ino        : longint;
-          mode,
-          nlink,
-          uid,
-          gid        : longint;
-          rdev       : int64;
-          pad2_dummy : word;
-          size,
-          blksize,
-          blocks,
-          atime,
-          unused1_dummy,
-          mtime,
-          unused2_dummy,
-          ctime,
-          unused3_dummy,
-          unused4_dummy,
-          unused5_dummy   : longint;
-
-         );
+    st_dev     : int64;
+    pad1       : word;
+    st_ino     : longint;
+    st_mode,
+    st_nlink,
+    st_uid,
+    st_gid        : longint;
+    st_rdev       : int64;
+    pad2          : word;
+    st_size,
+    st_blksize,
+    st_blocks,
+    st_atime,
+    unused1,
+    st_mtime,
+    unused2,
+    st_ctime,
+    unused3,
+    unused4,
+    unused5   : longint;
   end;
 
 
