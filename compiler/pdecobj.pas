@@ -569,11 +569,15 @@ implementation
               case token of
                 _TYPE :
                   begin
-                    consume(_TYPE);
-                    current_blocktype:=bt_type;
+                    if ([df_generic,df_specialization]*aktobjectdef.defoptions)=[] then
+                      Message(parser_e_type_and_var_only_in_generics);
+                     consume(_TYPE);
+                     current_blocktype:=bt_type;
                   end;
                 _VAR :
                   begin
+                    if ([df_generic,df_specialization]*aktobjectdef.defoptions)=[] then
+                      Message(parser_e_type_and_var_only_in_generics);
                     consume(_VAR);
                     current_blocktype:=bt_general;
                   end;

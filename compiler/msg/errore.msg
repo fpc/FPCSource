@@ -1090,6 +1090,9 @@ parser_e_packed_element_no_loop=03223_E_Bit packed array elements and record fie
 % If you declare an array or record as \var{packed} in Mac Pascal mode (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. For performance reasons, they cannot be
 % used as loop variables.
+parser_e_type_and_var_only_in_generics=03224_E_VAR and TYPE are allowed only in generics
+% The usage of VAR and TYPE to declare new types inside an object is allowed only inside
+% generics.
 % \end{description}
 #
 # Type Checking
