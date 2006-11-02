@@ -1793,6 +1793,7 @@ In case not, the value returned can be arbitrary.
 
     procedure tscannerfile.restoreinputfile;
       begin
+        inputbuffer:=inputfile.buf;
         inputpointer:=inputfile.saveinputpointer;
         lastlinepos:=inputfile.savelastlinepos;
         line_no:=inputfile.saveline_no;
