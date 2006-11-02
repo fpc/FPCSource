@@ -6,11 +6,17 @@
 uses
   strings;
 
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+{$define TEST_EXTENDED}
+{$endif FPC_HAS_TYPE_EXTENDED}
+
 {$if defined(win32) or defined(wince)}
 const
 {$ifdef wince}
   CrtLib = 'coredll.dll';
 {$else}
+  { the msvcrt.dll doesn't support extended because MS-C doesn't }
+  {$undef TEST_EXTENDED}
   CrtLib = 'msvcrt.dll';
 {$endif}
 
@@ -97,7 +103,7 @@ begin
       has_errors:=true;
     end;
 
-{$ifdef FPC_HAS_TYPE_EXTENDED}
+{$ifdef TEST_EXTENDED}
   printf('Text containing long double: %Lf'+lineending,[e]);
   sprintf(p,'Text containing long double: %Lf'+lineending,[e]);
   if strpos(p,'long double: 74.7')=nil then
@@ -105,7 +111,7 @@ begin
       writeln('The output of sprintf for long double is wrong:',p);
       has_errors:=true;
     end;
-{$endif FPC_HAS_TYPE_EXTENDED}
+{$endif TEST_EXTENDED}
 
   Writeln('Testing with combined pchar argument');
   printf('Text containing "%s" and "%s" text'+lineending,[s,s2]);
@@ -154,7 +160,7 @@ begin
       has_errors:=true;
     end;
 
-{$ifdef FPC_HAS_TYPE_EXTENDED}
+{$ifdef TEST_EXTENDED}
   printf('Text containing long double: %Lf"%s"'+lineending,[e,s2]);
   sprintf(p,'Text containing long double: %Lf"%s"'+lineending,[e,s2]);
   if (strpos(p,'long double: 74.7')=nil) or
@@ -163,7 +169,7 @@ begin
       writeln('The output of sprintf for long double is wrong:',p);
       has_errors:=true;
     end;
-{$endif FPC_HAS_TYPE_EXTENDED}
+{$endif TEST_EXTENDED}
 
   if has_errors then
     halt(1);
