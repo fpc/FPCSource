@@ -1007,7 +1007,7 @@ implementation
          location_reset(location,LOC_VOID,OS_NO);
 
          oldflowcontrol:=flowcontrol;
-         flowcontrol:=[];
+         flowcontrol:=[fc_inflowcontrol];
          { this can be called recursivly }
          oldBreakLabel:=nil;
          oldContinueLabel:=nil;
@@ -1049,7 +1049,7 @@ implementation
             current_procinfo.CurrBreakLabel:=breaktrylabel;
           end;
 
-         flowcontrol:=[];
+         flowcontrol:=[fc_inflowcontrol];
          secondpass(left);
          tryflowcontrol:=flowcontrol;
          if codegenerror then
@@ -1070,7 +1070,7 @@ implementation
             current_procinfo.CurrBreakLabel:=breakexceptlabel;
           end;
 
-         flowcontrol:=[];
+         flowcontrol:=[fc_inflowcontrol];
          { on statements }
          if assigned(right) then
            secondpass(right);
@@ -1223,8 +1223,8 @@ implementation
           end;
 
          { return all used control flow statements }
-         flowcontrol:=oldflowcontrol+exceptflowcontrol+
-           tryflowcontrol;
+         flowcontrol:=oldflowcontrol+(exceptflowcontrol +
+           tryflowcontrol - [fc_inflowcontrol]);
       end;
 
 
@@ -1249,7 +1249,7 @@ implementation
          location_reset(location,LOC_VOID,OS_NO);
 
          oldflowcontrol:=flowcontrol;
-         flowcontrol:=[];
+         flowcontrol:=[fc_inflowcontrol];
          current_asmdata.getjumplabel(nextonlabel);
 
          { send the vmt parameter }
@@ -1372,7 +1372,7 @@ implementation
 
          unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
          cg.a_label(current_asmdata.CurrAsmList,nextonlabel);
-         flowcontrol:=oldflowcontrol+flowcontrol;
+         flowcontrol:=oldflowcontrol+(flowcontrol-[fc_inflowcontrol]);
          paraloc1.done;
 
          { next on node }
@@ -1403,7 +1403,7 @@ implementation
 
          { check if child nodes do a break/continue/exit }
          oldflowcontrol:=flowcontrol;
-         flowcontrol:=[];
+         flowcontrol:=[fc_inflowcontrol];
          current_asmdata.getjumplabel(finallylabel);
          current_asmdata.getjumplabel(endfinallylabel);
          current_asmdata.getjumplabel(reraiselabel);
@@ -1452,9 +1452,9 @@ implementation
          free_exception(current_asmdata.CurrAsmList,excepttemps,1,finallylabel,true);
 
          { finally code }
-         flowcontrol:=[];
+         flowcontrol:=[fc_inflowcontrol];
          secondpass(right);
-         if flowcontrol<>[] then
+         if flowcontrol<>[fc_inflowcontrol] then
            CGMessage(cg_e_control_flow_outside_finally);
          if codegenerror then
            exit;
@@ -1465,9 +1465,9 @@ implementation
            begin
              cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,endfinallylabel);
              { finally code only needed to be executed on exception }
-             flowcontrol:=[];
+             flowcontrol:=[fc_inflowcontrol];
              secondpass(t1);
-             if flowcontrol<>[] then
+             if flowcontrol<>[fc_inflowcontrol] then
                CGMessage(cg_e_control_flow_outside_finally);
              if codegenerror then
                exit;
@@ -1533,7 +1533,7 @@ implementation
             current_procinfo.CurrContinueLabel:=oldContinueLabel;
             current_procinfo.CurrBreakLabel:=oldBreakLabel;
           end;
-         flowcontrol:=oldflowcontrol+tryflowcontrol;
+         flowcontrol:=oldflowcontrol+(tryflowcontrol-[fc_inflowcontrol]);
       end;
 
 
