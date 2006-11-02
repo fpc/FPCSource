@@ -4,12 +4,7 @@ unit uprintf3;
 
 interface
 
-{$if defined(darwin) or defined(macos)}
 {$calling mwpascal}
-{$else}
-{$calling cdecl}
-{$endif}
-
 
 {$ifdef WINDOWS}
 const
