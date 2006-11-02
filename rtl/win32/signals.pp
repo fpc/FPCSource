@@ -175,7 +175,6 @@ var
   _SS : cardinal;
 
 const
-  fpucw : word = $1332;
   Exception_handler_installed : boolean = false;
   MAX_Level = 16;
   except_level : byte = 0;
@@ -205,10 +204,7 @@ var
 
       sigtype:=except_signal[except_level];
       if reset_fpu[except_level] then
-        asm
-          fninit
-          fldcw   fpucw
-        end;
+        SysResetFPU;
       if assigned(System_exception_frame) then
         { get the handler in front again }
         asm

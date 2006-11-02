@@ -1180,7 +1180,9 @@ const
   FPU_StackOverflow = $40;
   FPU_ExceptionMask = $ff;
 
+  { use Default8087CW instead
   fpucw : word = $1300 or FPU_StackUnderflow or FPU_Underflow or FPU_Denormal;
+  }
 
   MM_MaskInvalidOp = %0000000010000000;
   MM_MaskDenorm    = %0000000100000000;
@@ -1196,7 +1198,7 @@ Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     asm
       fninit
-      fldcw   fpucw
+      fldcw   Default8087CW
       fwait
     end;
     if has_sse_support then
