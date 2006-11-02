@@ -14,27 +14,28 @@
 
 {$ifndef FPC_USE_LIBC} // kernel record
 
-  Stat = packed record  // No unix typing because of differences
+  stat = packed record  // No unix typing because of differences
     st_dev    : culong;
     st_ino    : culong;
-    st_nlink  : cuint;
+    st_nlink  : culong;
+
     st_mode   : cuint;
     st_uid    : cuint;
     st_gid    : cuint;
     __pad0    : cuint;
-    st_rdev   : culonglong;
-    __pad2    : cushort;
+    st_rdev   : culong;
     st_size   : clong;
     st_blksize: clong;
     st_blocks : clong;
+
     st_atime  : culong;
     st_atime_nsec : culong;
     st_mtime  : culong;
     st_mtime_nsec : culong;
     st_ctime  : culong;
     st_ctime_nsec : culong;
-    __unused4 : cuint;
-    __unused5 : cuint;
+
+    __unused  : array[0..2] of clong;
   end;
 
 {$else}
