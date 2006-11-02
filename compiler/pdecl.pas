@@ -540,6 +540,9 @@ implementation
               end;
             end;
 
+           if isgeneric and not(hdef.deftype in [objectdef,recorddef]) then
+             message(parser_e_cant_create_generics_of_this_type);
+
            { Stop recording a generic template }
            if assigned(generictypelist) then
              begin
