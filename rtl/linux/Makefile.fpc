@@ -56,7 +56,7 @@ UNITPREFIX=rtl
 
 ifeq ($(CPU_TARGET),i386)
 CRT21=cprt21 gprt21
-CPU_UNITS=x86 ports cpu mmx oldlinux
+CPU_UNITS=x86 ports cpu mmx 
 else
 CPU_UNITS=
 endif
