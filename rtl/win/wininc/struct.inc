@@ -1790,6 +1790,53 @@
      _EXCEPTION_DEBUG_INFO = EXCEPTION_DEBUG_INFO;
      TEXCEPTIONDEBUGINFO = EXCEPTION_DEBUG_INFO;
      PEXCEPTIONDEBUGINFO = ^EXCEPTION_DEBUG_INFO;
+     
+     { Explicit forms to debug targets running on a different architecture (32-bit versus 64-bit)}
+     
+     EXCEPTION_RECORD32 = record
+          ExceptionCode : DWORD;
+          ExceptionFlags : DWORD;
+          ExceptionRecord : DWORD;
+          ExceptionAddress : DWORD;
+          NumberParameters : DWORD;
+          ExceptionInformation : array[0..(EXCEPTION_MAXIMUM_PARAMETERS)-1] of DWORD;
+       end;
+     PEXCEPTION_RECORD32 = ^EXCEPTION_RECORD32;
+     _EXCEPTION_RECORD32 = EXCEPTION_RECORD32;
+     TExceptionRecord32 = EXCEPTION_RECORD32;
+     PExceptionRecord32 = ^EXCEPTION_RECORD32;
+
+     EXCEPTION_DEBUG_INFO32 = record
+          ExceptionRecord : EXCEPTION_RECORD32;
+          dwFirstChance : DWORD;
+       end;
+     PEXCEPTION_DEBUG_INFO32 = ^EXCEPTION_DEBUG_INFO32;
+     _EXCEPTION_DEBUG_INFO32 = EXCEPTION_DEBUG_INFO32;
+     TExceptionDebugInfo32 = EXCEPTION_DEBUG_INFO32;
+     PExceptionDebugInfo32 = ^EXCEPTION_DEBUG_INFO32;
+
+     EXCEPTION_RECORD64 = record
+          ExceptionCode : DWORD;
+          ExceptionFlags : DWORD;
+          ExceptionRecord : DWORD64;
+          ExceptionAddress : DWORD64;
+          NumberParameters : DWORD;
+          __unusedAlignment : DWORD;
+          ExceptionInformation : array[0..(EXCEPTION_MAXIMUM_PARAMETERS)-1] of DWORD64;
+       end;
+     PEXCEPTION_RECORD64 = ^EXCEPTION_RECORD64;
+     _EXCEPTION_RECORD64 = EXCEPTION_RECORD64;
+     TExceptionRecord64 = EXCEPTION_RECORD64;
+     PExceptionRecord64 = ^EXCEPTION_RECORD64;
+
+     EXCEPTION_DEBUG_INFO64 = record
+          ExceptionRecord : EXCEPTION_RECORD64;
+          dwFirstChance : DWORD;
+       end;
+     PEXCEPTION_DEBUG_INFO64 = ^EXCEPTION_DEBUG_INFO64;
+     _EXCEPTION_DEBUG_INFO64 = EXCEPTION_DEBUG_INFO64;
+     TExceptionDebugInfo64 = EXCEPTION_DEBUG_INFO64;
+     PExceptionDebugInfo64 = ^EXCEPTION_DEBUG_INFO64;
 
      EXIT_PROCESS_DEBUG_INFO = record
           dwExitCode : DWORD;
