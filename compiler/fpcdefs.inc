@@ -45,9 +45,6 @@
   {$define SUPPORT_MMX}
   {$define cpumm}
   {$define fewintregisters}
-  {$ifdef linux}
-    {$define has_internal_sysinit}
-  {$endif}
 {$endif i386}
 
 {$ifdef x86_64}

@@ -1395,12 +1395,12 @@ implementation
          { do we need to add the variants unit? }
          maybeloadvariantsunit;
 
-{$ifdef has_internal_sysinit}
          linker.initsysinitunitname;
-
-         { add start/halt unit }
-         AddUnit('si_'+linker.sysinitunit);
-{$endif}         
+         if target_info.system in internal_sysinit_systems then
+         begin
+           { add start/halt unit }
+           AddUnit('si_'+linker.sysinitunit);
+         end;
 
 {$ifdef arm}
          { Insert .pdata section for arm-wince.

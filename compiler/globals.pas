@@ -68,6 +68,8 @@ interface
        macmodeswitches : tmodeswitches=
          [m_mac,m_all,m_result,m_cvar_support,m_mac_procvar];
 
+       internal_sysinit_systems = [system_i386_linux];
+
        { maximum nesting of routines }
        maxnesting = 32;
 
