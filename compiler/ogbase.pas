@@ -456,7 +456,7 @@ implementation
       globals,verbose,fmodule,ogmap;
 
     const
-      sectionDatagrowsize = 256-sizeof(ptrint);
+      SectionDataMaxGrow = 4096;
 
 {$ifdef MEMDEBUG}
     var
@@ -593,7 +593,7 @@ implementation
         FSecOptions:=FSecOptions+AOptions;
         if (oso_Data in secoptions) and
            not assigned(FData) then
-          FData:=TDynamicArray.Create(sectionDatagrowsize);
+          FData:=TDynamicArray.Create(SectionDataMaxGrow);
       end;
 
 

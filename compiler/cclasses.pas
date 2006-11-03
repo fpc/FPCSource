@@ -77,24 +77,24 @@ type
     FCount: Integer;
     FCapacity: Integer;
   protected
-    function Get(Index: Integer): Pointer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
-    procedure Put(Index: Integer; Item: Pointer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
-    procedure SetCapacity(NewCapacity: Integer);
+    function Get(Index: Integer): Pointer; inline;
+    procedure Put(Index: Integer; Item: Pointer); inline;
+    procedure SetCapacity(NewCapacity: Integer); inline;
     procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index : Integer);
   public
     destructor Destroy; override;
-    function Add(Item: Pointer): Integer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    function Add(Item: Pointer): Integer;
     procedure Clear;
-    procedure Delete(Index: Integer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    procedure Delete(Index: Integer);
     class procedure Error(const Msg: string; Data: PtrInt);
     procedure Exchange(Index1, Index2: Integer);
-    function Expand: TFPList; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+    function Expand: TFPList;
     function Extract(item: Pointer): Pointer;
-    function First: Pointer;
+    function First: Pointer; inline;
     function IndexOf(Item: Pointer): Integer;
-    procedure Insert(Index: Integer; Item: Pointer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
-    function Last: Pointer;
+    procedure Insert(Index: Integer; Item: Pointer);
+    function Last: Pointer; inline;
     procedure Move(CurIndex, NewIndex: Integer);
     procedure Assign(Obj:TFPList);
     function Remove(Item: Pointer): Integer;
@@ -120,35 +120,35 @@ type
   private
     FFreeObjects : Boolean;
     FList: TFPList;
-    function GetCount: integer;
-    procedure SetCount(const AValue: integer);
+    function GetCount: integer; inline;
+    procedure SetCount(const AValue: integer); inline;
   protected
-    function GetItem(Index: Integer): TObject; {$ifdef CLASSESINLINE}inline;{$endif}
-    procedure SetItem(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
-    procedure SetCapacity(NewCapacity: Integer);
-    function GetCapacity: integer;
+    function GetItem(Index: Integer): TObject; inline;
+    procedure SetItem(Index: Integer; AObject: TObject); inline;
+    procedure SetCapacity(NewCapacity: Integer); inline;
+    function GetCapacity: integer; inline;
   public
     constructor Create;
     constructor Create(FreeObjects : Boolean);
     destructor Destroy; override;
     procedure Clear;
-    function Add(AObject: TObject): Integer; {$ifdef CLASSESINLINE}inline;{$endif}
-    procedure Delete(Index: Integer); {$ifdef CLASSESINLINE}inline;{$endif}
-    procedure Exchange(Index1, Index2: Integer);
-    function Expand: TFPObjectList;
-    function Extract(Item: TObject): TObject;
+    function Add(AObject: TObject): Integer; inline;
+    procedure Delete(Index: Integer); inline;
+    procedure Exchange(Index1, Index2: Integer); inline;
+    function Expand: TFPObjectList;inline;
+    function Extract(Item: TObject): TObject; inline;
     function Remove(AObject: TObject): Integer;
-    function IndexOf(AObject: TObject): Integer;
+    function IndexOf(AObject: TObject): Integer; inline;
     function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
-    procedure Insert(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
-    function First: TObject;
-    function Last: TObject;
-    procedure Move(CurIndex, NewIndex: Integer);
-    procedure Assign(Obj:TFPObjectList);
-    procedure Pack;
-    procedure Sort(Compare: TListSortCompare);
-    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer);
-    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+    procedure Insert(Index: Integer; AObject: TObject); inline;
+    function First: TObject; inline;
+    function Last: TObject; inline;
+    procedure Move(CurIndex, NewIndex: Integer); inline;
+    procedure Assign(Obj:TFPObjectList); inline;
+    procedure Pack; inline;
+    procedure Sort(Compare: TListSortCompare); inline;
+    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); inline;
+    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer); inline;
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
@@ -192,7 +192,7 @@ type
     FStrCapacity : Integer;
     function InternalFind(AHash:LongWord;const AName:string;out PrevIndex:Integer):Integer;
   protected
-    function Get(Index: Integer): Pointer;
+    function Get(Index: Integer): Pointer; inline;
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index : Integer);
@@ -207,8 +207,8 @@ type
     destructor Destroy; override;
     function Add(const AName:string;Item: Pointer): Integer;
     procedure Clear;
-    function NameOfIndex(Index: Integer): String;
-    function HashOfIndex(Index: Integer): LongWord;
+    function NameOfIndex(Index: Integer): String; inline;
+    function HashOfIndex(Index: Integer): LongWord; inline;
     procedure Delete(Index: Integer);
     class procedure Error(const Msg: string; Data: PtrInt);
     function Expand: TFPHashList;
@@ -250,8 +250,8 @@ type
   public
     constructor CreateNotOwned;
     constructor Create(HashObjectList:TFPHashObjectList;const s:string);
-    procedure ChangeOwner(HashObjectList:TFPHashObjectList);
-    procedure ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:string);
+    procedure ChangeOwner(HashObjectList:TFPHashObjectList); inline;
+    procedure ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:string); inline;
     procedure Rename(const ANewName:string);
     property Name:string read GetName;
     property Hash:Longword read GetHash;
@@ -261,32 +261,32 @@ type
   private
     FFreeObjects : Boolean;
     FHashList: TFPHashList;
-    function GetCount: integer;
-    procedure SetCount(const AValue: integer);
+    function GetCount: integer; inline;
+    procedure SetCount(const AValue: integer); inline;
   protected
-    function GetItem(Index: Integer): TObject;
-    procedure SetCapacity(NewCapacity: Integer);
-    function GetCapacity: integer;
+    function GetItem(Index: Integer): TObject; inline;
+    procedure SetCapacity(NewCapacity: Integer); inline;
+    function GetCapacity: integer; inline;
   public
     constructor Create(FreeObjects : boolean = True);
     destructor Destroy; override;
     procedure Clear;
-    function Add(const AName:string;AObject: TObject): Integer;
-    function NameOfIndex(Index: Integer): String;
-    function HashOfIndex(Index: Integer): LongWord;
+    function Add(const AName:string;AObject: TObject): Integer; inline;
+    function NameOfIndex(Index: Integer): String; inline;
+    function HashOfIndex(Index: Integer): LongWord; inline;
     procedure Delete(Index: Integer);
-    function Expand: TFPHashObjectList;
-    function Extract(Item: TObject): TObject;
+    function Expand: TFPHashObjectList; inline;
+    function Extract(Item: TObject): TObject; inline;
     function Remove(AObject: TObject): Integer;
-    function IndexOf(AObject: TObject): Integer;
-    function Find(const s:string): TObject;
+    function IndexOf(AObject: TObject): Integer; inline;
+    function Find(const s:string): TObject; inline;
     function FindWithHash(const AName:string;AHash:LongWord): Pointer;
-    function Rename(const AOldName,ANewName:string): Integer;
+    function Rename(const AOldName,ANewName:string): Integer; inline;
     function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
-    procedure Pack;
-    procedure ShowStatistics;
-    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer);
-    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer);
+    procedure Pack; inline;
+    procedure ShowStatistics; inline;
+    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); inline;
+    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer); inline;
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
@@ -321,7 +321,7 @@ type
           constructor Create;
           destructor  Destroy;override;
           { true when the List is empty }
-          function  Empty:boolean;
+          function  Empty:boolean; inline;
           { deletes all Items }
           procedure Clear;
           { inserts an Item }
@@ -369,7 +369,7 @@ type
           constructor Create(const s:string);
           destructor  Destroy;override;
           function GetCopy:TLinkedListItem;override;
-          function Str:string;
+          function Str:string; inline;
        end;
 
        { string container }
@@ -394,9 +394,9 @@ type
           { true if string is in the container }
           function Find(const s:string):TStringListItem;
           { inserts an item }
-          procedure InsertItem(item:TStringListItem);
+          procedure InsertItem(item:TStringListItem); inline;
           { concats an item }
-          procedure ConcatItem(item:TStringListItem);
+          procedure ConcatItem(item:TStringListItem); inline;
           property Doubles:boolean read FDoubles write FDoubles;
           procedure readstream(f:TCStream);
           procedure writestream(f:TCStream);
@@ -407,24 +407,29 @@ type
               DynamicArray
 ********************************************}
 
-     const
-       dynamicblockbasesize = 12;
-
      type
+       { can't use sizeof(integer) because it crashes gdb }
+       tdynamicblockdata=array[0..1024*1024-1] of byte;
+       
        pdynamicblock = ^tdynamicblock;
        tdynamicblock = record
          pos,
+         size,
          used : integer;
          Next : pdynamicblock;
-         { can't use sizeof(integer) because it crashes gdb }
-         data : array[0..1024*1024] of byte;
+         data : tdynamicblockdata;
        end;
 
+     const
+       dynamicblockbasesize = sizeof(tdynamicblock)-sizeof(tdynamicblockdata);
+
+     type
        tdynamicarray = class
        private
          FPosn       : integer;
          FPosnblock  : pdynamicblock;
-         FBlocksize  : integer;
+         FCurrBlocksize,
+         FMaxBlocksize  : integer;
          FFirstblock,
          FLastblock  : pdynamicblock;
          procedure grow;
@@ -437,10 +442,10 @@ type
          procedure seek(i:integer);
          function  read(var d;len:integer):integer;
          procedure write(const d;len:integer);
-         procedure writestr(const s:string);
+         procedure writestr(const s:string); inline;
          procedure readstream(f:TCStream;maxlen:longint);
          procedure writestream(f:TCStream);
-         property  BlockSize : integer read FBlocksize;
+         property  CurrBlockSize : integer read FCurrBlocksize;
          property  FirstBlock : PDynamicBlock read FFirstBlock;
          property  Pos : integer read FPosn;
        end;
@@ -517,14 +522,14 @@ begin
   Error(SListIndexError, Index);
 end;
 
-function TFPList.Get(Index: Integer): Pointer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+function TFPList.Get(Index: Integer): Pointer;
 begin
   If (Index < 0) or (Index >= FCount) then
     RaiseIndexError(Index);
   Result:=FList^[Index];
 end;
 
-procedure TFPList.Put(Index: Integer; Item: Pointer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+procedure TFPList.Put(Index: Integer; Item: Pointer);
 begin
   if (Index < 0) or (Index >= FCount) then
     RaiseIndexError(Index);
@@ -575,7 +580,7 @@ begin
   inherited Destroy;
 end;
 
-function TFPList.Add(Item: Pointer): Integer; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+function TFPList.Add(Item: Pointer): Integer;
 begin
   if FCount = FCapacity then
     Self.Expand;
@@ -594,7 +599,7 @@ begin
   end;
 end;
 
-procedure TFPList.Delete(Index: Integer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+procedure TFPList.Delete(Index: Integer);
 begin
   If (Index<0) or (Index>=FCount) then
     Error (SListIndexError, Index);
@@ -626,25 +631,20 @@ begin
   FList^[Index2] := Temp;
 end;
 
-function TFPList.Expand: TFPList; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+function TFPList.Expand: TFPList;
 var
-  Power,
   IncSize : Longint;
 begin
   Result := Self;
   if FCount < FCapacity then
     exit;
-  nextpowerof2(FCapacity,Power);
-  if Power>=7 then
-    IncSize:=FCapacity shr (Power-6)
-  else if Power>=4 then
-    IncSize:=FCapacity shr (Power-3)
-  else if FCapacity > 8 then
-    IncSize:=16
-  else if FCapacity > 3 then
-    IncSize:=8
-  else
-    IncSize:=4;
+  IncSize := sizeof(ptrint)*2;
+  if FCapacity > 127 then
+    Inc(IncSize, FCapacity shr 2)
+  else if FCapacity > sizeof(ptrint)*4 then
+    Inc(IncSize, FCapacity shr 1)
+  else if FCapacity >= sizeof(ptrint) then
+    inc(IncSize,sizeof(ptrint));
   SetCapacity(FCapacity + IncSize);
 end;
 
@@ -657,13 +657,24 @@ begin
 end;
 
 function TFPList.IndexOf(Item: Pointer): Integer;
+var
+  psrc  : PPointer;
+  Index : Integer;
 begin
-  Result := 0;
-  while(Result < FCount) and (Flist^[Result] <> Item) do Result := Result + 1;
-  If Result = FCount  then Result := -1;
+  Result:=-1;
+  psrc:=@FList^[0];
+  For Index:=0 To FCount-1 Do
+    begin
+      if psrc^=Item then
+        begin
+          Result:=Index;
+          exit;
+        end;
+      inc(psrc);
+    end;
 end;
 
-procedure TFPList.Insert(Index: Integer; Item: Pointer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
+procedure TFPList.Insert(Index: Integer; Item: Pointer);
 begin
   if (Index < 0) or (Index > FCount )then
     Error(SlistIndexError, Index);
@@ -852,19 +863,19 @@ begin
     FList.Count := AValue;
 end;
 
-function TFPObjectList.GetItem(Index: Integer): TObject; {$ifdef CLASSESINLINE}inline;{$endif}
+function TFPObjectList.GetItem(Index: Integer): TObject; inline;
 begin
   Result := TObject(FList[Index]);
 end;
 
-procedure TFPObjectList.SetItem(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
+procedure TFPObjectList.SetItem(Index: Integer; AObject: TObject); inline;
 begin
   if OwnsObjects then
     TObject(FList[Index]).Free;
   FList[index] := AObject;
 end;
 
-procedure TFPObjectList.SetCapacity(NewCapacity: Integer);
+procedure TFPObjectList.SetCapacity(NewCapacity: Integer);inline;
 begin
   FList.Capacity := NewCapacity;
 end;
@@ -874,19 +885,19 @@ begin
   Result := FList.Capacity;
 end;
 
-function TFPObjectList.Add(AObject: TObject): Integer; {$ifdef CLASSESINLINE}inline;{$endif}
+function TFPObjectList.Add(AObject: TObject): Integer; inline;
 begin
   Result := FList.Add(AObject);
 end;
 
-procedure TFPObjectList.Delete(Index: Integer); {$ifdef CLASSESINLINE}inline;{$endif}
+procedure TFPObjectList.Delete(Index: Integer); inline;
 begin
   if OwnsObjects then
     TObject(FList[Index]).Free;
   FList.Delete(Index);
 end;
 
-procedure TFPObjectList.Exchange(Index1, Index2: Integer);
+procedure TFPObjectList.Exchange(Index1, Index2: Integer);inline;
 begin
   FList.Exchange(Index1, Index2);
 end;
@@ -938,7 +949,7 @@ begin
         Inc(I);
 end;
 
-procedure TFPObjectList.Insert(Index: Integer; AObject: TObject); {$ifdef CLASSESINLINE}inline;{$endif}
+procedure TFPObjectList.Insert(Index: Integer; AObject: TObject);
 begin
   FList.Insert(Index, Pointer(AObject));
 end;
@@ -1237,23 +1248,18 @@ end;
 
 function TFPHashList.Expand: TFPHashList;
 var
-  Power,
   IncSize : Longint;
 begin
   Result := Self;
   if FCount < FCapacity then
     exit;
-  nextpowerof2(FCapacity,Power);
-  if Power>=7 then
-    IncSize:=FCapacity shr (Power-6)
-  else if Power>=4 then
-    IncSize:=FCapacity shr (Power-3)
-  else if FCapacity > 8 then
-    IncSize:=16
-  else if FCapacity > 3 then
-    IncSize:=8
-  else
-    IncSize:=4;
+  IncSize := sizeof(ptrint)*2;
+  if FCapacity > 127 then
+    Inc(IncSize, FCapacity shr 2)
+  else if FCapacity > sizeof(ptrint)*3 then
+    Inc(IncSize, FCapacity shr 1)
+  else if FCapacity >= sizeof(ptrint) then
+    inc(IncSize,sizeof(ptrint));
   SetCapacity(FCapacity + IncSize);
   { Maybe expand hash also }
   if FCount>FHashCapacity*MaxItemsPerHash then
@@ -1262,26 +1268,32 @@ end;
 
 procedure TFPHashList.StrExpand(MinIncSize:Integer);
 var
-  Power,
   IncSize : Longint;
 begin
   if FStrCount+MinIncSize < FStrCapacity then
     exit;
-  nextpowerof2(FCapacity,Power);
-  if Power>=7 then
-    IncSize:=FCapacity shr (Power-6)
-  else
-    IncSize:=64;
+  IncSize := 64;
+  if FStrCapacity > 255 then
+    Inc(IncSize, FStrCapacity shr 2);
   SetStrCapacity(FStrCapacity + IncSize + MinIncSize);
 end;
 
 function TFPHashList.IndexOf(Item: Pointer): Integer;
+var
+  psrc  : PHashItem;
+  Index : integer;
 begin
-  Result := 0;
-  while(Result < FCount) and (FHashList^[Result].Data <> Item) do
-    inc(Result);
-  If Result = FCount then
-    Result := -1;
+  Result:=-1;
+  psrc:=@FHashList^[0];
+  For Index:=0 To FCount-1 Do
+    begin
+      if psrc^.Data=Item then
+        begin
+          Result:=Index;
+          exit;
+        end;
+      inc(psrc);
+    end;
 end;
 
 function TFPHashList.Remove(Item: Pointer): Integer;
@@ -2311,7 +2323,8 @@ end;
         FPosnblock:=nil;
         FFirstblock:=nil;
         FLastblock:=nil;
-        Fblocksize:=Ablocksize;
+        FCurrBlockSize:=0;
+        FMaxBlockSize:=Ablocksize;
         grow;
       end;
 
@@ -2358,9 +2371,23 @@ end;
 
     procedure tdynamicarray.grow;
       var
-        nblock : pdynamicblock;
+        nblock  : pdynamicblock;
+        OptBlockSize,
+        IncSize : integer;
       begin
-        Getmem(nblock,blocksize+dynamicblockbasesize);
+        if CurrBlockSize<FMaxBlocksize then
+          begin
+            IncSize := sizeof(ptrint)*8;
+            if FCurrBlockSize > 255 then
+              Inc(IncSize, FCurrBlockSize shr 2);
+            inc(FCurrBlockSize,IncSize);
+          end;
+        if CurrBlockSize>FMaxBlocksize then
+          FCurrBlockSize:=FMaxBlocksize;
+        { Calculate the most optimal size so there is no alignment overhead
+          lost in the heap manager }
+        OptBlockSize:=cutils.Align(CurrBlockSize+dynamicblockbasesize,16)-dynamicblockbasesize-sizeof(ptrint);
+        Getmem(nblock,OptBlockSize+dynamicblockbasesize);
         if not assigned(FFirstblock) then
          begin
            FFirstblock:=nblock;
@@ -2370,11 +2397,12 @@ end;
         else
          begin
            FLastblock^.Next:=nblock;
-           nblock^.pos:=FLastblock^.pos+FLastblock^.used;
+           nblock^.pos:=FLastblock^.pos+FLastblock^.size;
          end;
         nblock^.used:=0;
+        nblock^.size:=OptBlockSize;
         nblock^.Next:=nil;
-        fillchar(nblock^.data,blocksize,0);
+        fillchar(nblock^.data,nblock^.size,0);
         FLastblock:=nblock;
       end;
 
@@ -2387,10 +2415,10 @@ end;
         if j<>0 then
          begin
            j:=i-j;
-           if FPosnblock^.used+j>blocksize then
+           if FPosnblock^.used+j>FPosnblock^.size then
             begin
-              dec(j,blocksize-FPosnblock^.used);
-              FPosnblock^.used:=blocksize;
+              dec(j,FPosnblock^.size-FPosnblock^.used);
+              FPosnblock^.used:=FPosnblock^.size;
               grow;
               FPosnblock:=FLastblock;
             end;
@@ -2402,7 +2430,7 @@ end;
 
     procedure tdynamicarray.seek(i:integer);
       begin
-        if (i<FPosnblock^.pos) or (i>=FPosnblock^.pos+blocksize) then
+        if (i<FPosnblock^.pos) or (i>=FPosnblock^.pos+FPosnblock^.size) then
          begin
            { set FPosnblock correct if the size is bigger then
              the current block }
@@ -2410,7 +2438,7 @@ end;
             FPosnblock:=FFirstblock;
            while assigned(FPosnblock) do
             begin
-              if FPosnblock^.pos+blocksize>i then
+              if FPosnblock^.pos+FPosnblock^.size>i then
                break;
               FPosnblock:=FPosnblock^.Next;
             end;
@@ -2419,15 +2447,15 @@ end;
             begin
               repeat
                 { the current FLastblock is now also fully used }
-                FLastblock^.used:=blocksize;
+                FLastblock^.used:=FLastblock^.size;
                 grow;
                 FPosnblock:=FLastblock;
-              until FPosnblock^.pos+blocksize>=i;
+              until FPosnblock^.pos+FPosnblock^.size>=i;
             end;
          end;
         FPosn:=i;
-        if FPosn mod blocksize>FPosnblock^.used then
-         FPosnblock^.used:=FPosn mod blocksize;
+        if FPosn-FPosnblock^.pos>FPosnblock^.used then
+         FPosnblock^.used:=FPosn-FPosnblock^.pos;
       end;
 
 
@@ -2439,15 +2467,15 @@ end;
         p:=pchar(@d);
         while (len>0) do
          begin
-           i:=FPosn mod blocksize;
-           if i+len>=blocksize then
+           i:=FPosn-FPosnblock^.pos;
+           if i+len>=FPosnblock^.size then
             begin
-              j:=blocksize-i;
+              j:=FPosnblock^.size-i;
               move(p^,FPosnblock^.data[i],j);
               inc(p,j);
               inc(FPosn,j);
               dec(len,j);
-              FPosnblock^.used:=blocksize;
+              FPosnblock^.used:=FPosnblock^.size;
               if assigned(FPosnblock^.Next) then
                FPosnblock:=FPosnblock^.Next
               else
@@ -2461,7 +2489,7 @@ end;
               move(p^,FPosnblock^.data[i],len);
               inc(p,len);
               inc(FPosn,len);
-              i:=FPosn mod blocksize;
+              i:=FPosn-FPosnblock^.pos;
               if i>FPosnblock^.used then
                FPosnblock^.used:=i;
               len:=0;
@@ -2485,7 +2513,7 @@ end;
         p:=pchar(@d);
         while (len>0) do
          begin
-           i:=FPosn mod blocksize;
+           i:=FPosn-FPosnblock^.pos;
            if i+len>=FPosnblock^.used then
             begin
               j:=FPosnblock^.used-i;
@@ -2519,13 +2547,13 @@ end;
         if maxlen=-1 then
          maxlen:=maxlongint;
         repeat
-          left:=blocksize-FPosnblock^.used;
+          left:=FPosnblock^.size-FPosnblock^.used;
           if left>maxlen then
            left:=maxlen;
           i:=f.Read(FPosnblock^.data[FPosnblock^.used],left);
           dec(maxlen,i);
           inc(FPosnblock^.used,i);
-          if FPosnblock^.used=blocksize then
+          if FPosnblock^.used=FPosnblock^.size then
            begin
              if assigned(FPosnblock^.Next) then
               FPosnblock:=FPosnblock^.Next

@@ -465,8 +465,8 @@ implementation
        end;
 
      const
-       symbolresize = 200*sizeof(coffsymbol);
-       strsresize   = 8192;
+       SymbolMaxGrow = 200*sizeof(coffsymbol);
+       StrsMaxGrow   = 8192;
 
        coffsecnames : array[TAsmSectiontype] of string[17] = ('',
           '.text','.data','.data','.bss','.tls',
@@ -1345,8 +1345,8 @@ const pemagic : array[0..3] of byte = (
         header   : tcoffheader;
       begin
         result:=false;
-        FCoffSyms:=TDynamicArray.Create(symbolresize);
-        FCoffStrs:=TDynamicArray.Create(strsresize);
+        FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);
+        FCoffStrs:=TDynamicArray.Create(StrsMaxGrow);
         with TCoffObjData(data) do
          begin
            { Create Symbol Table }
@@ -1725,8 +1725,8 @@ const pemagic : array[0..3] of byte = (
         FReader:=AReader;
         InputFileName:=AReader.FileName;
         result:=false;
-        FCoffSyms:=TDynamicArray.Create(symbolresize);
-        FCoffStrs:=TDynamicArray.Create(strsresize);
+        FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);
+        FCoffStrs:=TDynamicArray.Create(StrsMaxGrow);
         with TCoffObjData(objdata) do
          begin
            { Read COFF header }
@@ -2067,8 +2067,8 @@ const pemagic : array[0..3] of byte = (
 
       begin
         result:=false;
-        FCoffSyms:=TDynamicArray.Create(symbolresize);
-        FCoffStrs:=TDynamicArray.Create(strsresize);
+        FCoffSyms:=TDynamicArray.Create(SymbolMaxGrow);
+        FCoffStrs:=TDynamicArray.Create(StrsMaxGrow);
         textExeSec:=FindExeSection('.text');
         dataExeSec:=FindExeSection('.data');
         bssExeSec:=FindExeSection('.bss');
