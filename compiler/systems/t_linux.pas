@@ -322,7 +322,7 @@ begin
   hp:=tmodule(loaded_units.first);
   while assigned(hp) do
    begin
-     linklibc := hp.linkunitsharedlibs.find('c');
+     linklibc := hp.linkothersharedlibs.find('c');
      if linklibc then break;
      hp:=tmodule(hp.next);
    end;

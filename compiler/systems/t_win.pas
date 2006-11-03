@@ -114,13 +114,24 @@ implementation
 
 
   Procedure GlobalInitSysInitUnitName(Linker : TLinker);
+    var
+      hp           : tmodule;
+      linkcygwin : boolean;
     begin
+      hp:=tmodule(loaded_units.first);
+      while assigned(hp) do
+       begin
+         linkcygwin := hp.linkothersharedlibs.find('cygwin') or hp.linkotherstaticlibs.find('cygwin');
+         if linkcygwin then
+           break;
+         hp:=tmodule(hp.next);
+       end;
       if cs_profile in current_settings.moduleswitches then
         linker.sysinitunit:='sysinitgprof'
-      else if (Linker.SharedLibFiles.Find('cygwin')<>nil) then
+      else if linkcygwin or (Linker.SharedLibFiles.Find('cygwin')<>nil) or (Linker.StaticLibFiles.Find('cygwin')<>nil) then
         linker.sysinitunit:='sysinitcyg'
       else
-        linker.sysinitunit:='sysinitpas'
+        linker.sysinitunit:='sysinitpas';
     end;
 
 
@@ -1051,10 +1062,8 @@ implementation
         HPath   : TStringListItem;
         s,s2    : string;
         i       : integer;
-        linklibcygwin : boolean;
       begin
         WriteResponseFile:=False;
-        linklibcygwin:=(SharedLibFiles.Find('cygwin')<>nil);
 
         if (cs_profile in current_settings.moduleswitches) then
           begin

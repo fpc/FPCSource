@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=system sysinitpas \
+units=system sysinitpas sysinitcyg \
       ctypes objpas macpas strings \
       lineinfo heaptrc matrix \
       windows winsock winsock2 initc cmem dynlibs signals \
