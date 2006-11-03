@@ -1340,6 +1340,7 @@ implementation
            srsymtable : TSymtable;
            hdef  : tdef;
            static_name : string;
+           orgstoredpattern,
            storedpattern : string;
          begin
            { allow post fix operators }
@@ -1359,6 +1360,7 @@ implementation
                { handle unit specification like System.Writeln }
                unit_found:=try_consume_unitsym(srsym,srsymtable);
                storedpattern:=pattern;
+               orgstoredpattern:=orgpattern;
                consume(_ID);
 
                { named parameter support }
@@ -1378,7 +1380,7 @@ implementation
                  check_hints(srsym,srsym.symoptions)
                else
                  begin
-                   identifier_not_found(orgpattern);
+                   identifier_not_found(orgstoredpattern);
                    srsym:=generrorsym;
                    srsymtable:=nil;
                  end;
