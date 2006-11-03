@@ -92,18 +92,20 @@ type
 {$endif CPU64}
   end;
 
+  { make sure size field is in the same position for every memchunk variant }
+
   pmemchunk_fixed  = ^tmemchunk_fixed;
   tmemchunk_fixed = record
-    size   : ptrint;
     poc    : poschunk;
+    size   : ptrint;
     next_fixed,
     prev_fixed : pmemchunk_fixed;
   end;
 
   pmemchunk_var  = ^tmemchunk_var;
   tmemchunk_var = record
-    size     : ptrint;
     prevsize : ptrint;
+    size     : ptrint;
     next_var,
     prev_var  : pmemchunk_var;
   end;
@@ -115,8 +117,8 @@ type
     Alignment is 8 bytes for 32bit machines. This required
     for x86 MMX/SSE and for sparc Double values }
   tmemchunk_fixed_hdr = record
+    poc      : poschunk;
     size     : ptrint;
-    poschunk : pointer;
   end;
   tmemchunk_var_hdr = record
     prevsize,
