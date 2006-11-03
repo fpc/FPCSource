@@ -45,8 +45,8 @@ interface
          function pass_typecheck:tnode;override;
          function docompare(p: tnode) : boolean; override;
          procedure printnodedata(var t:text);override;
-         procedure append(const d;len : aint);inline;
-         procedure align(value : word);inline;
+         procedure append(const d;len : aint);
+         procedure align(value : word);
        end;
        tdataconstnodeclass = class of tdataconstnode;
 
@@ -404,7 +404,7 @@ implementation
     function tdataconstnode.docompare(p: tnode) : boolean;
       var
         b1,b2 : byte;
-        I : aint;
+        I : longint;
       begin
         docompare :=
           inherited docompare(p) and (data.size=tdataconstnode(p).data.size);
@@ -428,7 +428,7 @@ implementation
 
     procedure tdataconstnode.printnodedata(var t:text);
       var
-        i : aint;
+        i : longint;
         b : byte;
       begin
         inherited printnodedata(t);
@@ -445,7 +445,7 @@ implementation
       end;
 
 
-    procedure tdataconstnode.append(const d;len : aint);inline;
+    procedure tdataconstnode.append(const d;len : aint);
       begin
         data.seek(data.size);
         data.write(data,len);

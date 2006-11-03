@@ -82,7 +82,7 @@ implementation
     procedure tcgdataconstnode.pass_generate_code;
       var
         l : tasmlabel;
-        i : aint;
+        i : longint;
         b : byte;
       begin
         location_reset(location,LOC_CREFERENCE,OS_NO);
