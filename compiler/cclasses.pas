@@ -23,6 +23,10 @@ unit cclasses;
 
 {$i fpcdefs.inc}
 
+{$ifndef VER2_0}
+  {$define CCLASSESINLINE}
+{$endif}
+
 interface
 
     uses
@@ -77,9 +81,9 @@ type
     FCount: Integer;
     FCapacity: Integer;
   protected
-    function Get(Index: Integer): Pointer; inline;
-    procedure Put(Index: Integer; Item: Pointer); inline;
-    procedure SetCapacity(NewCapacity: Integer); inline;
+    function Get(Index: Integer): Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Put(Index: Integer; Item: Pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetCapacity(NewCapacity: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index : Integer);
   public
@@ -91,10 +95,10 @@ type
     procedure Exchange(Index1, Index2: Integer);
     function Expand: TFPList;
     function Extract(item: Pointer): Pointer;
-    function First: Pointer; inline;
+    function First: Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function IndexOf(Item: Pointer): Integer;
     procedure Insert(Index: Integer; Item: Pointer);
-    function Last: Pointer; inline;
+    function Last: Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Move(CurIndex, NewIndex: Integer);
     procedure Assign(Obj:TFPList);
     function Remove(Item: Pointer): Integer;
@@ -120,35 +124,35 @@ type
   private
     FFreeObjects : Boolean;
     FList: TFPList;
-    function GetCount: integer; inline;
-    procedure SetCount(const AValue: integer); inline;
+    function GetCount: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetCount(const AValue: integer); {$ifdef CCLASSESINLINE}inline;{$endif}
   protected
-    function GetItem(Index: Integer): TObject; inline;
-    procedure SetItem(Index: Integer; AObject: TObject); inline;
-    procedure SetCapacity(NewCapacity: Integer); inline;
-    function GetCapacity: integer; inline;
+    function GetItem(Index: Integer): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetItem(Index: Integer; AObject: TObject); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetCapacity(NewCapacity: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    function GetCapacity: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
   public
     constructor Create;
     constructor Create(FreeObjects : Boolean);
     destructor Destroy; override;
     procedure Clear;
-    function Add(AObject: TObject): Integer; inline;
-    procedure Delete(Index: Integer); inline;
-    procedure Exchange(Index1, Index2: Integer); inline;
-    function Expand: TFPObjectList;inline;
-    function Extract(Item: TObject): TObject; inline;
+    function Add(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Delete(Index: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Exchange(Index1, Index2: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Expand: TFPObjectList;{$ifdef CCLASSESINLINE}inline;{$endif}
+    function Extract(Item: TObject): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Remove(AObject: TObject): Integer;
-    function IndexOf(AObject: TObject): Integer; inline;
+    function IndexOf(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
-    procedure Insert(Index: Integer; AObject: TObject); inline;
-    function First: TObject; inline;
-    function Last: TObject; inline;
-    procedure Move(CurIndex, NewIndex: Integer); inline;
-    procedure Assign(Obj:TFPObjectList); inline;
-    procedure Pack; inline;
-    procedure Sort(Compare: TListSortCompare); inline;
-    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); inline;
-    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer); inline;
+    procedure Insert(Index: Integer; AObject: TObject); {$ifdef CCLASSESINLINE}inline;{$endif}
+    function First: TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Last: TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Move(CurIndex, NewIndex: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Assign(Obj:TFPObjectList); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Pack; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Sort(Compare: TListSortCompare); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
@@ -192,7 +196,7 @@ type
     FStrCapacity : Integer;
     function InternalFind(AHash:LongWord;const AName:string;out PrevIndex:Integer):Integer;
   protected
-    function Get(Index: Integer): Pointer; inline;
+    function Get(Index: Integer): Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index : Integer);
@@ -207,8 +211,8 @@ type
     destructor Destroy; override;
     function Add(const AName:string;Item: Pointer): Integer;
     procedure Clear;
-    function NameOfIndex(Index: Integer): String; inline;
-    function HashOfIndex(Index: Integer): LongWord; inline;
+    function NameOfIndex(Index: Integer): String; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Delete(Index: Integer);
     class procedure Error(const Msg: string; Data: PtrInt);
     function Expand: TFPHashList;
@@ -250,8 +254,8 @@ type
   public
     constructor CreateNotOwned;
     constructor Create(HashObjectList:TFPHashObjectList;const s:string);
-    procedure ChangeOwner(HashObjectList:TFPHashObjectList); inline;
-    procedure ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:string); inline;
+    procedure ChangeOwner(HashObjectList:TFPHashObjectList); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:string); {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Rename(const ANewName:string);
     property Name:string read GetName;
     property Hash:Longword read GetHash;
@@ -261,32 +265,32 @@ type
   private
     FFreeObjects : Boolean;
     FHashList: TFPHashList;
-    function GetCount: integer; inline;
-    procedure SetCount(const AValue: integer); inline;
+    function GetCount: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetCount(const AValue: integer); {$ifdef CCLASSESINLINE}inline;{$endif}
   protected
-    function GetItem(Index: Integer): TObject; inline;
-    procedure SetCapacity(NewCapacity: Integer); inline;
-    function GetCapacity: integer; inline;
+    function GetItem(Index: Integer): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetCapacity(NewCapacity: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    function GetCapacity: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
   public
     constructor Create(FreeObjects : boolean = True);
     destructor Destroy; override;
     procedure Clear;
-    function Add(const AName:string;AObject: TObject): Integer; inline;
-    function NameOfIndex(Index: Integer): String; inline;
-    function HashOfIndex(Index: Integer): LongWord; inline;
+    function Add(const AName:string;AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function NameOfIndex(Index: Integer): String; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Delete(Index: Integer);
-    function Expand: TFPHashObjectList; inline;
-    function Extract(Item: TObject): TObject; inline;
+    function Expand: TFPHashObjectList; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Extract(Item: TObject): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Remove(AObject: TObject): Integer;
-    function IndexOf(AObject: TObject): Integer; inline;
-    function Find(const s:string): TObject; inline;
+    function IndexOf(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Find(const s:string): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindWithHash(const AName:string;AHash:LongWord): Pointer;
-    function Rename(const AOldName,ANewName:string): Integer; inline;
+    function Rename(const AOldName,ANewName:string): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
-    procedure Pack; inline;
-    procedure ShowStatistics; inline;
-    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); inline;
-    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer); inline;
+    procedure Pack; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure ShowStatistics; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure ForEachCall(proc2call:TObjectListStaticCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
@@ -321,7 +325,7 @@ type
           constructor Create;
           destructor  Destroy;override;
           { true when the List is empty }
-          function  Empty:boolean; inline;
+          function  Empty:boolean; {$ifdef CCLASSESINLINE}inline;{$endif}
           { deletes all Items }
           procedure Clear;
           { inserts an Item }
@@ -369,7 +373,7 @@ type
           constructor Create(const s:string);
           destructor  Destroy;override;
           function GetCopy:TLinkedListItem;override;
-          function Str:string; inline;
+          function Str:string; {$ifdef CCLASSESINLINE}inline;{$endif}
        end;
 
        { string container }
@@ -394,9 +398,9 @@ type
           { true if string is in the container }
           function Find(const s:string):TStringListItem;
           { inserts an item }
-          procedure InsertItem(item:TStringListItem); inline;
+          procedure InsertItem(item:TStringListItem); {$ifdef CCLASSESINLINE}inline;{$endif}
           { concats an item }
-          procedure ConcatItem(item:TStringListItem); inline;
+          procedure ConcatItem(item:TStringListItem); {$ifdef CCLASSESINLINE}inline;{$endif}
           property Doubles:boolean read FDoubles write FDoubles;
           procedure readstream(f:TCStream);
           procedure writestream(f:TCStream);
@@ -442,7 +446,7 @@ type
          procedure seek(i:integer);
          function  read(var d;len:integer):integer;
          procedure write(const d;len:integer);
-         procedure writestr(const s:string); inline;
+         procedure writestr(const s:string); {$ifdef CCLASSESINLINE}inline;{$endif}
          procedure readstream(f:TCStream;maxlen:longint);
          procedure writestream(f:TCStream);
          property  CurrBlockSize : integer read FCurrBlocksize;
@@ -863,19 +867,19 @@ begin
     FList.Count := AValue;
 end;
 
-function TFPObjectList.GetItem(Index: Integer): TObject; inline;
+function TFPObjectList.GetItem(Index: Integer): TObject;
 begin
   Result := TObject(FList[Index]);
 end;
 
-procedure TFPObjectList.SetItem(Index: Integer; AObject: TObject); inline;
+procedure TFPObjectList.SetItem(Index: Integer; AObject: TObject);
 begin
   if OwnsObjects then
     TObject(FList[Index]).Free;
   FList[index] := AObject;
 end;
 
-procedure TFPObjectList.SetCapacity(NewCapacity: Integer);inline;
+procedure TFPObjectList.SetCapacity(NewCapacity: Integer);
 begin
   FList.Capacity := NewCapacity;
 end;
@@ -885,19 +889,19 @@ begin
   Result := FList.Capacity;
 end;
 
-function TFPObjectList.Add(AObject: TObject): Integer; inline;
+function TFPObjectList.Add(AObject: TObject): Integer;
 begin
   Result := FList.Add(AObject);
 end;
 
-procedure TFPObjectList.Delete(Index: Integer); inline;
+procedure TFPObjectList.Delete(Index: Integer);
 begin
   if OwnsObjects then
     TObject(FList[Index]).Free;
   FList.Delete(Index);
 end;
 
-procedure TFPObjectList.Exchange(Index1, Index2: Integer);inline;
+procedure TFPObjectList.Exchange(Index1, Index2: Integer);
 begin
   FList.Exchange(Index1, Index2);
 end;
