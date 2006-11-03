@@ -1357,6 +1357,9 @@ type_e_cant_take_address_of_local_subroutine=04076_E_Can't take address of a sub
 % The address of a subroutine marked as local can't be taken.
 type_e_cant_export_local=04077_E_Can't export subroutine marked as local from a unit
 % A subroutine marked as local can't be export from a unit.
+type_e_not_automatable=04078_E_Type is not automatable: "$1"
+% Only byte, integer, longint, smallint, currency, single, double, ansistring,
+% widestring, tdatetime, variant, olevariant, wordbool and all interfaces are automatable.
 #
 # Symtable
 #

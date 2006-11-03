@@ -1002,6 +1002,8 @@ implementation
             result:=tstringdef(p).stringtype in [st_ansistring,st_widestring];
           variantdef:
             result:=true;
+          arraydef:
+            result:=(ado_IsConstString in tarraydef(p).arrayoptions);
         end;
       end;
 

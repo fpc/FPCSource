@@ -209,6 +209,7 @@ function fpc_variant_to_interface(const v : variant) : iinterface;compilerproc;
 function fpc_interface_to_variant(const i : iinterface) : variant;compilerproc;
 procedure fpc_vararray_get(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
 procedure fpc_vararray_put(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
+procedure fpc_dispinvoke_variant(dest : pvardata;const source : tvardata;  calldesc : pcalldesc;params : pointer);compilerproc;
 
 Procedure fpc_Read_End(var f:Text); compilerproc;
 Procedure fpc_ReadLn_End(var f : Text); compilerproc;

@@ -143,6 +143,13 @@ function fpc_interface_to_variant(const i : iinterface) : variant;compilerproc;
   end;
 
 
+procedure fpc_dispinvoke_variant(dest : pvardata;const source : tvardata; 
+  calldesc : pcalldesc;params : pointer);
+  begin
+  	variantmanager.dispinvoke(dest,source,calldesc,params);
+  end;
+       
+
 { ---------------------------------------------------------------------
     Overloaded operators.
   ---------------------------------------------------------------------}

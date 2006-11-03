@@ -143,9 +143,8 @@ interface
        );
        tcallparaflags = set of tcallparaflag;
 
-       tcallparanode = class(tbinarynode)
+       tcallparanode = class(ttertiarynode)
        public
-          named : tnode;
           callparaflags : tcallparaflags;
           parasym       : tparavarsym;
           used_by_callnode : boolean;
@@ -164,6 +163,10 @@ interface
           procedure secondcallparan;virtual;abstract;
           function docompare(p: tnode): boolean; override;
           procedure printnodetree(var t:text);override;
+
+          property value : tnode read left write left;
+          property nextpara : tnode read right write right;
+          property parametername : tnode read third write third;
        end;
        tcallparanodeclass = class of tcallparanode;
 
@@ -191,7 +194,7 @@ implementation
       cgbase
       ;
 
-type
+    type
      tobjectinfoitem = class(tlinkedlistitem)
        objinfo : tobjectdef;
        constructor create(def : tobjectdef);
@@ -221,19 +224,144 @@ type
 
 
     function translate_vardisp_call(p1,p2 : tnode) : tnode;
+      const
+        DISPATCH_METHOD = $1;
+        DISPATCH_PROPERTYGET = $2;
+        DISPATCH_PROPERTYPUT = $4;
+        DISPATCH_PROPERTYPUTREF = $8;
+        DISPATCH_CONSTRUCT = $4000;
       var
         statements : tstatementnode;
-        result_data : ttempcreatenode;
+        result_data,
+        params : ttempcreatenode;
+        paramssize : longint;
+        calldescnode : tdataconstnode;
+        para : tcallparanode;
+        currargpos,
+        namedparacount,
+        paracount : longint;
+        vardatadef,
+        pvardatadef : tdef;
+
+        calldesc : packed record
+            calltype,argcount,namedargcount : byte;
+            argtypes : array[0..255] of byte;
+        end;
+        names : ansistring;
+
+      procedure increase_paramssize;
+        begin
+          case para.value.resultdef.typ of
+            variantdef:
+              inc(paramssize,para.value.resultdef.size);
+            else
+              inc(paramssize,sizeof(voidpointertype.size ));
+          end;
+        end;
+
       begin
         result:=internalstatements(statements);
+        fillchar(calldesc,sizeof(calldesc),0);
 
         { get temp for the result }
         result_data:=ctempcreatenode.create(colevarianttype,colevarianttype.size,tt_persistent,true);
         addstatement(statements,result_data);
 
         { build parameters }
+        { first, count and check parameters }
+        para:=tcallparanode(p2);
+        paracount:=0;
+        namedparacount:=0;
+        paramssize:=0;
+        while assigned(para) do
+          begin
+            inc(paracount);
+            typecheckpass(para.value);
 
-        { first, count parameters }
+            { insert some extra casts }
+            if is_constintnode(para.value) and not(is_64bitint(para.value.resultdef)) then
+              begin
+                para.value:=ctypeconvnode.create_internal(para.value,s32inttype);
+                typecheckpass(para.value);
+              end
+            else if para.value.nodetype=stringconstn then
+              begin
+                para.value:=ctypeconvnode.create_internal(para.value,cwidestringtype);
+                typecheckpass(para.value);
+              end;
+
+            if assigned(para.parametername) then
+              begin
+                typecheckpass(para.value);
+                inc(namedparacount);
+              end;
+
+            if para.value.nodetype<>nothingn then
+              if not is_automatable(para.value.resultdef) then
+                CGMessagePos1(para.value.fileinfo,type_e_not_automatable,para.value.resultdef.typename);
+
+            { we've to know the parameter size to allocate the temp. space }
+            increase_paramssize;
+
+            para:=tcallparanode(para.nextpara);
+          end;
+
+        calldesc.calltype:=DISPATCH_METHOD;
+        calldesc.argcount:=paracount;
+
+        { allocate space }
+        params:=ctempcreatenode.create(voidtype,paramssize,tt_persistent,true);
+        addstatement(statements,params);
+
+        calldescnode:=cdataconstnode.create;
+
+        { build up parameters and description }
+        para:=tcallparanode(p2);
+        currargpos:=0;
+        while assigned(para) do
+          begin
+            if assigned(para.parametername) then
+              begin
+                if para.parametername.nodetype=stringconstn then
+                  names:=names+tstringconstnode(para.parametername).value_str+#0
+                else
+                  internalerror(200611041);
+              end;
+            { assign the argument/parameter to the temporary location }
+            if para.value.nodetype<>nothingn then
+              addstatement(statements,cassignmentnode.create(
+                ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
+                  caddrnode.create(ctemprefnode.create(params)),
+                  cordconstnode.create(paramssize,ptrinttype,false)
+                )),para.value.resultdef),
+                para.value));
+
+            increase_paramssize;
+
+            para.value:=nil;
+            inc(currargpos);
+            para:=tcallparanode(para.nextpara);
+          end;
+
+        { old argument list skeleton isn't needed anymore }
+        p2.free;
+
+        calldescnode.append(calldesc,4+calldesc.argcount);
+        calldescnode.append(pointer(names)^,length(names));
+
+        { actual call }
+        vardatadef:=trecorddef(search_system_type('TVARDATA').typedef);
+        pvardatadef:=trecorddef(search_system_type('PVARDATA').typedef);
+
+        addstatement(statements,ccallnode.createintern('fpc_dispinvoke_variant',
+          { parameters are passed always reverted, i.e. the last comes first }
+          ccallparanode.create(caddrnode.create(ctemprefnode.create(params)),
+          ccallparanode.create(calldescnode,
+          ccallparanode.create(ctypeconvnode.create_internal(p1,vardatadef),
+          ccallparanode.create(ctypeconvnode.create_internal(caddrnode.create(
+              ctemprefnode.create(result_data)
+            ),pvardatadef),nil)))))
+        );
 
         { clean up }
         addstatement(statements,ctempdeletenode.create_normal_temp(result_data));
@@ -499,7 +627,7 @@ type
     constructor tcallparanode.create(expr,next : tnode);
 
       begin
-         inherited create(callparan,expr,next);
+         inherited create(callparan,expr,next,nil);
          if not assigned(expr) then
            internalerror(200305091);
          expr.fileinfo:=fileinfo;

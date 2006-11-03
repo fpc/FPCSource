@@ -401,6 +401,24 @@ interface
           procedure printnodelist(var t:text);
        end;
 
+       ptertiarynode = ^ttertiarynode;
+       ttertiarynode = class(tbinarynode)
+          third : tnode;
+          constructor create(_t:tnodetype;l,r,t : tnode);
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          destructor destroy;override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderefimpl;override;
+          procedure derefimpl;override;
+          procedure derefnode;override;
+          procedure concattolist(l : tlinkedlist);override;
+          function ischild(p : tnode) : boolean;override;
+          function docompare(p : tnode) : boolean;override;
+          function dogetcopy : tnode;override;
+          procedure insertintolist(l : tnodelist);override;
+          procedure printnodedata(var t:text);override;
+       end;
+
        tbinopnode = class(tbinarynode)
           constructor create(t:tnodetype;l,r : tnode);virtual;
           function docompare(p : tnode) : boolean;override;
@@ -1159,7 +1177,110 @@ implementation
 
 
 {****************************************************************************
-                            TBINOPYNODE
+                                 TTERTIARYNODE
+ ****************************************************************************}
+
+    constructor ttertiarynode.create(_t:tnodetype;l,r,t : tnode);
+      begin
+         inherited create(_t,l,r);
+         third:=t;
+      end;
+
+
+    constructor ttertiarynode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        third:=ppuloadnode(ppufile);
+      end;
+
+
+    destructor ttertiarynode.destroy;
+      begin
+        third.free;
+        inherited destroy;
+      end;
+
+
+    procedure ttertiarynode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppuwritenode(ppufile,third);
+      end;
+
+
+    procedure ttertiarynode.buildderefimpl;
+      begin
+        inherited buildderefimpl;
+        if assigned(third) then
+          third.buildderefimpl;
+      end;
+
+
+    procedure ttertiarynode.derefimpl;
+      begin
+        inherited derefimpl;
+        if assigned(third) then
+          third.derefimpl;
+      end;
+
+
+    procedure ttertiarynode.derefnode;
+      begin
+        inherited derefnode;
+        if assigned(third) then
+          third.derefnode;
+      end;
+
+
+    function ttertiarynode.docompare(p : tnode) : boolean;
+      begin
+         docompare:=(inherited docompare(p) and
+           ((third=nil) or third.isequal(ttertiarynode(p).third))
+         );
+      end;
+
+
+    function ttertiarynode.dogetcopy : tnode;
+      var
+         p : ttertiarynode;
+      begin
+         p:=ttertiarynode(inherited dogetcopy);
+         if assigned(third) then
+           p.third:=third.dogetcopy
+         else
+           p.third:=nil;
+         result:=p;
+      end;
+
+
+    procedure ttertiarynode.insertintolist(l : tnodelist);
+      begin
+      end;
+
+
+    procedure ttertiarynode.printnodedata(var t:text);
+      begin
+         inherited printnodedata(t);
+         printnode(t,third);
+      end;
+
+
+    procedure ttertiarynode.concattolist(l : tlinkedlist);
+      begin
+         third.parent:=self;
+         third.concattolist(l);
+         inherited concattolist(l);
+      end;
+
+
+    function ttertiarynode.ischild(p : tnode) : boolean;
+      begin
+         ischild:=p=third;
+      end;
+
+
+{****************************************************************************
+                            TBINOPNODE
  ****************************************************************************}
 
     constructor tbinopnode.create(t:tnodetype;l,r : tnode);

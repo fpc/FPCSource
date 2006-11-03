@@ -448,7 +448,7 @@ implementation
     procedure tdataconstnode.append(const d;len : aint);
       begin
         data.seek(data.size);
-        data.write(data,len);
+        data.write(d,len);
       end;
 
 

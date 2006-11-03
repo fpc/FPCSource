@@ -268,8 +268,7 @@ implementation
                if token=_COMMA then
                  begin
                    { empty parameter }
-                   p2:=ccallparanode.create(nil,p2);
-                   consume(_COMMA);
+                   p2:=ccallparanode.create(cnothingnode.create,p2);
                  end
                else
                  begin
@@ -281,8 +280,10 @@ implementation
                        argname:=p1;
                        p1:=comp_expr(true);
                        p2:=ccallparanode.create(p1,p2);
-                       tcallparanode(p2).named:=argname;
-                     end;
+                       tcallparanode(p2).parametername:=argname;
+                     end
+                   else
+                     p2:=ccallparanode.create(p1,p2);
                    found_arg_name:=false;
                  end;
              end

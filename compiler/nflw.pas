@@ -162,18 +162,12 @@ interface
        end;
        tlabelnodeclass = class of tlabelnode;
 
-       traisenode = class(tbinarynode)
-          frametree : tnode;
+       traisenode = class(ttertiarynode)
           constructor create(l,taddr,tframe:tnode);virtual;
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderefimpl;override;
-          procedure derefimpl;override;
-          function dogetcopy : tnode;override;
-          procedure insertintolist(l : tnodelist);override;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
-          function docompare(p: tnode): boolean; override;
+
+          property frametree : tnode read third write third;
        end;
        traisenodeclass = class of traisenode;
 
@@ -1226,56 +1220,7 @@ implementation
 
     constructor traisenode.create(l,taddr,tframe:tnode);
       begin
-         inherited create(raisen,l,taddr);
-         frametree:=tframe;
-      end;
-
-
-    constructor traisenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-        frametree:=ppuloadnode(ppufile);
-      end;
-
-
-    procedure traisenode.ppuwrite(ppufile:tcompilerppufile);
-      begin
-        inherited ppuwrite(ppufile);
-        ppuwritenode(ppufile,frametree);
-      end;
-
-
-    procedure traisenode.buildderefimpl;
-      begin
-        inherited buildderefimpl;
-        if assigned(frametree) then
-          frametree.buildderefimpl;
-      end;
-
-
-    procedure traisenode.derefimpl;
-      begin
-        inherited derefimpl;
-        if assigned(frametree) then
-          frametree.derefimpl;
-      end;
-
-
-    function traisenode.dogetcopy : tnode;
-      var
-         n : traisenode;
-      begin
-         n:=traisenode(inherited dogetcopy);
-         if assigned(frametree) then
-           n.frametree:=frametree.dogetcopy
-         else
-           n.frametree:=nil;
-         dogetcopy:=n;
-      end;
-
-
-    procedure traisenode.insertintolist(l : tnodelist);
-      begin
+         inherited create(raisen,l,taddr,tframe);
       end;
 
 
@@ -1329,12 +1274,6 @@ implementation
                end;
               left_right_max;
            end;
-      end;
-
-
-    function traisenode.docompare(p: tnode): boolean;
-      begin
-        docompare := false;
       end;
 
 
