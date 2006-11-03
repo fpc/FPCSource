@@ -109,7 +109,7 @@ unit rgobj;
         tempreg : tregister;
         regread,regwritten, mustbespilled: boolean;
       end;
-      tspillregsinfo = array[0..2] of tspillreginfo;
+      tspillregsinfo = array[0..3] of tspillreginfo;
 
       Tspill_temp_list=array[tsuperregister] of Treference;
 
