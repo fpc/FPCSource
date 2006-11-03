@@ -42,12 +42,8 @@ type
     { left to right), this allows to move the parameter to    }
     { register, if the cpu supports register calling          }
     { conventions                                             }
-    procedure a_param_const(list: TAsmList; size: tcgsize; a: aint; const
-      paraloc: tcgpara); override;
     procedure a_param_ref(list: TAsmList; size: tcgsize; const r: treference;
       const paraloc: tcgpara); override;
-    procedure a_paramaddr_ref(list: TAsmList; const r: treference; const
-      paraloc: tcgpara); override;
 
     procedure a_call_name(list: TAsmList; const s: string); override;
     procedure a_call_reg(list: TAsmList; reg: tregister); override;
@@ -65,10 +61,6 @@ type
     { move instructions }
     procedure a_load_const_reg(list: TAsmList; size: tcgsize; a: aint; reg:
       tregister); override;
-    { stores the contents of register reg to the memory location described by
-    ref }
-    procedure a_load_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg:
-      tregister; const ref: treference); override;
     { loads the memory pointed to by ref into register reg }
     procedure a_load_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const
       Ref: treference; reg: tregister); override;
@@ -133,7 +125,7 @@ type
     { offset or symbol, in which case the base will have been changed }
     { to a tempreg (which has to be freed by the caller) containing   }
     { the sum of part of the original reference                       }
-    function fixref(list: TAsmList; var ref: treference; const size : TCgsize): boolean;
+    function fixref(list: TAsmList; var ref: treference): boolean; override;
 
     function load_got_symbol(list : TAsmList; symbol : string) : tregister;
 
@@ -143,7 +135,7 @@ type
 
     { contains the common code of a_load_reg_ref and a_load_ref_reg }
     procedure a_load_store(list: TAsmList; op: tasmop; reg: tregister;
-      ref: treference);
+      ref: treference); override;
 
     { creates the correct branch instruction for a given combination }
     { of asmcondflags and destination addressing mode                }
@@ -432,27 +424,6 @@ begin
   inherited done_register_allocators;
 end;
 
-procedure tcgppc.a_param_const(list: TAsmList; size: tcgsize; a: aint; const
-  paraloc: tcgpara);
-var
-  ref: treference;
-begin
-  paraloc.check_simple_location;
-  case paraloc.location^.loc of
-    LOC_REGISTER, LOC_CREGISTER:
-      a_load_const_reg(list, size, a, paraloc.location^.register);
-    LOC_REFERENCE:
-      begin
-        reference_reset(ref);
-        ref.base := paraloc.location^.reference.index;
-        ref.offset := paraloc.location^.reference.offset;
-        a_load_const_ref(list, size, a, ref);
-      end;
-  else
-    internalerror(2002081101);
-  end;
-end;
-
 procedure tcgppc.a_param_ref(list: TAsmList; size: tcgsize; const r:
   treference; const paraloc: tcgpara);
 
@@ -564,37 +535,19 @@ begin
   end;
 end;
 
-procedure tcgppc.a_paramaddr_ref(list: TAsmList; const r: treference; const
-  paraloc: tcgpara);
-var
-  ref: treference;
-  tmpreg: tregister;
-
-begin
-  paraloc.check_simple_location;
-  case paraloc.location^.loc of
-    LOC_REGISTER, LOC_CREGISTER:
-      a_loadaddr_ref_reg(list, r, paraloc.location^.register);
-    LOC_REFERENCE:
-      begin
-        reference_reset(ref);
-        ref.base := paraloc.location^.reference.index;
-        ref.offset := paraloc.location^.reference.offset;
-        tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-        a_loadaddr_ref_reg(list, r, tmpreg);
-        a_load_reg_ref(list, OS_ADDR, OS_ADDR, tmpreg, ref);
-      end;
-  else
-    internalerror(2002080701);
-  end;
-end;
-
 { calling a procedure by name }
 
 procedure tcgppc.a_call_name(list: TAsmList; const s: string);
 begin
-    a_call_name_direct(list, s, true, true);
+    if (target_info.system <> system_powerpc64_darwin) then
+      a_call_name_direct(list, s, true, true)
+    else
+      begin
+        list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s)));
+        include(current_procinfo.flags,pi_do_call);
+      end;
 end;
+
 
 procedure tcgppc.a_call_name_direct(list: TAsmList; s: string; prependDot : boolean; addNOP : boolean; includeCall : boolean);
 begin
@@ -616,7 +569,9 @@ var
   tmpref: treference;
   tempreg : TRegister;
 begin
-  if (not (cs_opt_size in current_settings.optimizerswitches)) then begin
+  if (target_info.system = system_powerpc64_darwin) then
+    inherited a_call_reg(list,reg)
+  else if (not (cs_opt_size in current_settings.optimizerswitches)) then begin
     tempreg := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
     { load actual function entry (reg contains the reference to the function descriptor)
     into tempreg }
@@ -763,34 +718,6 @@ begin
     loadConstantNormal(list, size, a, reg);
 end;
 
-procedure tcgppc.a_load_reg_ref(list: TAsmList; fromsize, tosize: TCGSize;
-  reg: tregister; const ref: treference);
-
-const
-  StoreInstr: array[OS_8..OS_64, boolean, boolean] of TAsmOp =
-  { indexed? updating?}
-  (((A_STB, A_STBU), (A_STBX, A_STBUX)),
-    ((A_STH, A_STHU), (A_STHX, A_STHUX)),
-    ((A_STW, A_STWU), (A_STWX, A_STWUX)),
-    ((A_STD, A_STDU), (A_STDX, A_STDUX))
-    );
-var
-  op: TAsmOp;
-  ref2: TReference;
-begin
-  if not (fromsize in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
-    internalerror(2002090903);
-  if not (tosize in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
-    internalerror(2002090905);
-
-  ref2 := ref;
-  fixref(list, ref2, tosize);
-  if tosize in [OS_S8..OS_S64] then
-    { storing is the same for signed and unsigned values }
-    tosize := tcgsize(ord(tosize) - (ord(OS_S8) - ord(OS_8)));
-  op := storeinstr[tcgsize2unsigned[tosize], ref2.index <> NR_NO, false];
-  a_load_store(list, op, reg, ref2);
-end;
 
 procedure tcgppc.a_load_ref_reg(list: TAsmList; fromsize, tosize: tcgsize;
   const ref: treference; reg: tregister);
@@ -823,7 +750,7 @@ begin
   if not (fromsize in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
     internalerror(2002090904);
   ref2 := ref;
-  fixref(list, ref2, tosize);
+  fixref(list, ref2);
   { the caller is expected to have adjusted the reference already
    in this case }
   if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
@@ -956,7 +883,7 @@ begin
     internalerror(200201121);
   end;
   ref2 := ref;
-  fixref(list, ref2, size);
+  fixref(list, ref2);
   op := fpuloadinstr[size, ref2.index <> NR_NO, false];
   a_load_store(list, op, reg, ref2);
 end;
@@ -976,7 +903,7 @@ begin
   if not (size in [OS_F32, OS_F64]) then
     internalerror(200201122);
   ref2 := ref;
-  fixref(list, ref2, size);
+  fixref(list, ref2);
   op := fpustoreinstr[size, ref2.index <> NR_NO, false];
   a_load_store(list, op, reg, ref2);
 end;
@@ -1748,7 +1675,7 @@ var
 
 begin
   ref2 := ref;
-  fixref(list, ref2, OS_64);
+  fixref(list, ref2);
   { load a symbol }
   if (assigned(ref2.symbol) or (hasLargeOffset(ref2))) then begin
     { add the symbol's value to the base of the reference, and if the }
@@ -2130,7 +2057,7 @@ begin
 end;
 
 
-function tcgppc.fixref(list: TAsmList; var ref: treference; const size : TCgsize): boolean;
+function tcgppc.fixref(list: TAsmList; var ref: treference): boolean;
   { symbol names must not be larger than this to be able to make a GOT reference out of them,
    otherwise they get truncated by the compiler resulting in failing of the assembling stage }
 const

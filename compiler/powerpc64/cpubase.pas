@@ -246,7 +246,7 @@ type
 *****************************************************************************}
 
 const
-  symaddr2str: array[trefaddr] of string[9] = ('', '', '', '@l', '@h', '@higher', '@highest', '@ha', '@highera', '@highesta');
+  symaddr2str: array[trefaddr] of string[9] = ('', '', 'ha16','lo16','', '@l', '@h', '@higher', '@highest', '@ha', '@highera', '@highesta');
 
 const
   { MacOS only. Whether the direct data area (TOC) directly contain
@@ -272,6 +272,7 @@ const
   OS_ADDR = OS_64;
   {# the natural int size for a processor,             }
   OS_INT = OS_64;
+  OS_SINT = OS_S64;
   {# the maximum float size for a processor,           }
   OS_FLOAT = OS_F64;
   {# the size of a vector register for a processor     }

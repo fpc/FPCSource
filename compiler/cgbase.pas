@@ -64,10 +64,11 @@ interface
        trefaddr = (
          addr_no,
          addr_full,
-         {$IFNDEF POWERPC64}
+         {IFNDEF POWERPC64}
+         // these are also available for ppc64 on Mac OS X
          addr_hi,
          addr_lo,
-         {$ENDIF}
+         {ENDIF}
          addr_pic
          {$IFDEF POWERPC64}
          ,

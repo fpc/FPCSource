@@ -82,7 +82,7 @@ end;
 {****************************************************************************}
 
 const
-  refaddr2str: array[trefaddr] of string[9] = ('', '', '', '@l', '@h', '@higher', '@highest', '@ha', '@highera', '@highesta');
+  refaddr2str: array[trefaddr] of string[9] = ('', '', 'ha16','lo16','', '@l', '@h', '@higher', '@highest', '@ha', '@highera', '@highesta');
 
 function getreferencestring(var ref: treference): string;
 var
