@@ -3280,6 +3280,9 @@ type
   type
     TDispID = DISPID;
 
+    TDispIDList = array[0..65535] of TDispID;
+    PDispIDList = ^TDispIDList;
+
   function SetErrorInfo(dwReserved:ULONG;errinfo:IErrorInfo):HResult;stdcall; external 'ole32.dll' name 'SetErrorInfo';
   function GetErrorInfo(dwReserved:ULONG;out errinfo:IErrorInfo):HResult;stdcall; external 'ole32.dll' name 'GetErrorInfo';
   function CreateErrorInfo(out errinfo:ICreateErrorInfo):HResult;stdcall; external 'ole32.dll' name 'CreateErrorInfo';
