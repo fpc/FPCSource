@@ -7791,6 +7791,7 @@ utils/fppkg/pkghandler.pp svneol=native#text/plain
 utils/fppkg/pkgmessages.pp svneol=native#text/plain
 utils/fppkg/pkgmkconv.pp svneol=native#text/plain
 utils/fppkg/pkgropts.pp svneol=native#text/plain
+utils/fppkg/pkgsynapse.pp svneol=native#text/plain
 utils/fppkg/pkgwget.pp svneol=native#text/plain
 utils/fppkg/rep2xml.lpi svneol=native#text/plain
 utils/fppkg/rep2xml.lpr svneol=native#text/plain
