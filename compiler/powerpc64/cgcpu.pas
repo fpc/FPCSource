@@ -68,7 +68,6 @@ type
       reg2: tregister); override;
 
     procedure a_load_subsetreg_reg(list : TAsmList; subsetsize, tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister); override;
-    procedure a_load_reg_subsetreg(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister); override;
     procedure a_load_const_subsetreg(list: TAsmlist; subsetsize: tcgsize; a: aint; const sreg: tsubsetregister); override;
 
     { fpu move instructions }
@@ -116,6 +115,8 @@ type
     procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const
       labelname: string; ioffset: longint); override;
   private
+
+    procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
 
     procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
 
@@ -823,7 +824,7 @@ begin
   end;
 end;
 
-procedure tcgppc.a_load_reg_subsetreg(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister);
+procedure tcgppc.a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt);
 begin
   {$ifdef extdebug}
   list.concat(tai_comment.create(strpnew('a_load_reg_subsetreg fromsize = ' + cgsize2string(fromsize) + ' subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + IntToStr(sreg.startbit))));

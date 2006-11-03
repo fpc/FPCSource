@@ -63,7 +63,6 @@ unit cgcpu;
 
         procedure a_load_subsetreg_reg(list : TAsmList; subsetsize: tcgsize;
           tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister); override;
-        procedure a_load_reg_subsetreg(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister); override;
        procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tcgsize; const fromsreg, tosreg: tsubsetregister); override;
 
         { fpu move instructions }
@@ -100,6 +99,8 @@ unit cgcpu;
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
+      protected
+       procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
       private
 
         (* NOT IN USE: *)
@@ -443,7 +444,7 @@ const
        end;
 
 
-     procedure tcgppc.a_load_reg_subsetreg(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister);
+     procedure tcgppc.a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt);
 
        begin
          if (sreg.bitlen <> sizeof(aint) * 8) then
