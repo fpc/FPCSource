@@ -104,11 +104,12 @@ interface
           temprefn,         { references to temps }
           tempdeleten,      { for temps in the result/firstpass }
           addoptn,          { added for optimizations where we cannot suppress }
-          nothingn,         {NOP, Do nothing}
-          loadvmtaddrn,         {Load the address of the VMT of a class/object}
-          guidconstn,       {A GUID COM Interface constant }
-          rttin,             {Rtti information so they can be accessed in result/firstpass}
-          loadparentfpn  { Load the framepointer of the parent for nested procedures }
+          nothingn,         { NOP, Do nothing}
+          loadvmtaddrn,     { Load the address of the VMT of a class/object}
+          guidconstn,       { A GUID COM Interface constant }
+          rttin,            { Rtti information so they can be accessed in result/firstpass}
+          loadparentfpn,    { Load the framepointer of the parent for nested procedures }
+          dataconstn        { node storing some binary data }
        );
 
        tnodetypeset = set of tnodetype;
@@ -189,7 +190,8 @@ interface
           'loadvmtaddrn',
           'guidconstn',
           'rttin',
-          'loadparentfpn');
+          'loadparentfpn',
+          'dataconstn');
 
     type
        { all boolean field of ttree are now collected in flags }

@@ -27,11 +27,29 @@ interface
 
     uses
       globtype,widestr,
+      cclasses,
       node,
       aasmbase,aasmtai,aasmdata,cpuinfo,globals,
       symconst,symtype,symdef,symsym;
 
     type
+       tdataconstnode = class(tnode)
+         data : tdynamicarray;
+         maxalign : word;
+         constructor create;virtual;
+         constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+         destructor destroy;override;
+         procedure ppuwrite(ppufile:tcompilerppufile);override;
+         function dogetcopy : tnode;override;
+         function pass_1 : tnode;override;
+         function pass_typecheck:tnode;override;
+         function docompare(p: tnode) : boolean; override;
+         procedure printnodedata(var t:text);override;
+         procedure append(const d;len : aint);inline;
+         procedure align(value : word);inline;
+       end;
+       tdataconstnodeclass = class of tdataconstnode;
+
        trealconstnode = class(tnode)
           typedef : tdef;
           typedefderef : tderef;
@@ -156,6 +174,7 @@ interface
        tguidconstnodeclass = class of tguidconstnode;
 
     var
+       cdataconstnode : tdataconstnodeclass;
        crealconstnode : trealconstnodeclass;
        cordconstnode : tordconstnodeclass;
        cpointerconstnode : tpointerconstnodeclass;
@@ -262,6 +281,184 @@ implementation
         genconstsymtree:=p1;
       end;
 
+
+{*****************************************************************************
+                             TDATACONSTNODE
+*****************************************************************************}
+
+    constructor tdataconstnode.create;
+      begin
+         inherited create(dataconstn);
+         data:=tdynamicarray.create(128);
+      end;
+
+
+    constructor tdataconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      var
+        len : aint;
+        buf : array[0..255] of byte;
+      begin
+        inherited ppuload(t,ppufile);
+        len:=ppufile.getaint;
+        if len<4096 then
+          data:=tdynamicarray.create(len)
+        else
+          data:=tdynamicarray.create(4096);
+        while len>0 do
+          begin
+            if len>sizeof(buf) then
+              begin
+                ppufile.getdata(buf,sizeof(buf));
+                data.write(buf,sizeof(buf));
+                dec(len,sizeof(buf));
+              end
+            else
+              begin
+                ppufile.getdata(buf,len);
+                data.write(buf,len);
+                len:=0;
+              end;
+          end;
+      end;
+
+
+    destructor tdataconstnode.destroy;
+      begin
+        data.free;
+        inherited destroy;
+      end;
+
+
+    procedure tdataconstnode.ppuwrite(ppufile:tcompilerppufile);
+      var
+        len : aint;
+        buf : array[0..255] of byte;
+      begin
+        inherited ppuwrite(ppufile);
+        len:=data.size;
+        ppufile.putaint(len);
+        data.seek(0);
+        while len>0 do
+          begin
+            if len>sizeof(buf) then
+              begin
+                data.read(buf,sizeof(buf));
+                ppufile.putdata(buf,sizeof(buf));
+                dec(len,sizeof(buf));
+              end
+            else
+              begin
+                data.read(buf,len);
+                ppufile.putdata(buf,len);
+                len:=0;
+              end;
+          end;
+      end;
+
+
+    function tdataconstnode.dogetcopy : tnode;
+      var
+        n : tdataconstnode;
+        len : aint;
+        buf : array[0..255] of byte;
+      begin
+        n:=tdataconstnode(inherited dogetcopy);
+        len:=data.size;
+        if len<4096 then
+          n.data:=tdynamicarray.create(len)
+        else
+          n.data:=tdynamicarray.create(4096);
+        data.seek(0);
+        while len>0 do
+          begin
+            if len>sizeof(buf) then
+              begin
+                data.read(buf,sizeof(buf));
+                n.data.write(buf,sizeof(buf));
+                dec(len,sizeof(buf));
+              end
+            else
+              begin
+                data.read(buf,len);
+                n.data.write(buf,len);
+                len:=0;
+              end;
+          end;
+      end;
+
+
+    function tdataconstnode.pass_1 : tnode;
+      begin
+        result:=nil;
+        expectloc:=LOC_CREFERENCE;
+      end;
+
+
+    function tdataconstnode.pass_typecheck:tnode;
+      begin
+        result:=nil;
+        resultdef:=voidpointertype;
+      end;
+
+
+    function tdataconstnode.docompare(p: tnode) : boolean;
+      var
+        b1,b2 : byte;
+        I : aint;
+      begin
+        docompare :=
+          inherited docompare(p) and (data.size=tdataconstnode(p).data.size);
+        if docompare then
+          begin
+            data.seek(0);
+            tdataconstnode(p).data.seek(0);
+            for i:=0 to data.size-1 do
+              begin
+                data.read(b1,1);
+                tdataconstnode(p).data.read(b2,1);
+                if b1<>b2 then
+                  begin
+                    docompare:=false;
+                    exit;
+                  end;
+              end;
+          end;
+      end;
+
+
+    procedure tdataconstnode.printnodedata(var t:text);
+      var
+        i : aint;
+        b : byte;
+      begin
+        inherited printnodedata(t);
+        write(t,printnodeindention,'data size = ',data.size,' data = ');
+        data.seek(0);
+        for i:=0 to data.size-1 do
+          begin
+            data.read(b,1);
+            if i=data.size-1 then
+              writeln(t,b)
+            else
+              write(t,b,',');
+          end;
+      end;
+
+
+    procedure tdataconstnode.append(const d;len : aint);inline;
+      begin
+        data.seek(data.size);
+        data.write(data,len);
+      end;
+
+
+    procedure tdataconstnode.align(value : word);
+      begin
+        if value>maxalign then
+          maxalign:=value;
+        data.align(value);
+      end;
+
 {*****************************************************************************
                              TREALCONSTNODE
 *****************************************************************************}
@@ -310,10 +507,8 @@ implementation
 
 
     function trealconstnode.dogetcopy : tnode;
-
       var
          n : trealconstnode;
-
       begin
          n:=trealconstnode(inherited dogetcopy);
          n.value_real:=value_real;
