@@ -22,6 +22,10 @@ create a manifest file (in XML) to import in a repository.
 All packager functionality will be implemented in units so
 these units can be used in command-line and GUI package managers.
 
+All packager command handling is implemented in descendents fom 
+TPackageHandler (pkghandler.pp). All messages emitted by these
+handlers are in pkgmessages. 
+
 Units:
 -----
 
@@ -43,6 +47,25 @@ rep2xml
   test program for the fprepos unit.
 reptest
   creates some test packages for use in the rep2xml test program.
+fppkg
+  the package manager application
+fpmkconv
+  Makefile.fpc to fpmake converter.
+pkgmessages
+  the messages used in pkghandler and below.
+pkghandler
+  the base for all fppkg command handlers
+pkgdownload
+  a base implementation for download functionality in fppkg
+pkgwget
+  a downloader based on spawning wget.
+pkgsynapse
+  a downloader based on Synapse. Do not put in makefile, as Synapse is
+  not distributed by default with FPC.
+pkgocurl
+  a downloader based on CurlPas (object version). Do not put in makefile,
+  as CurlPas is not distributed with FPC.
+ 
 
 Options supported in packager config file:
 ------------------------------------------

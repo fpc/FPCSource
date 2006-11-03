@@ -17,7 +17,10 @@ Resourcestring
   SErrUnknownProtocol        = 'Unknown download protocol: "%s"';
   SErrNoSuchFile             = 'File "%s" does not exist.';
   SErrWGetDownloadFailed     = 'Download failed: wget reported exit status %d.';
-    
+  SErrHTTPGetFailed          = 'HTTP Download failed.';
+  SErrLoginFailed            = 'FTP LOGIN command failed.';
+  SErrCWDFailed              = 'FTP CWD "%s" command failed.';  
+  SErrGETFailed              = 'FTP GET "%s" command failed.';
   SLogGeneratingFPMake       = 'Generating fpmake.pp';
   SLogCompilingFPMake        = 'Compiling fpmake.pp: ';
   SLogRunningFPMake          = 'Running fpmake';

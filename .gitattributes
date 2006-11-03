@@ -7790,6 +7790,7 @@ utils/fppkg/pkgdownload.pp svneol=native#text/plain
 utils/fppkg/pkghandler.pp svneol=native#text/plain
 utils/fppkg/pkgmessages.pp svneol=native#text/plain
 utils/fppkg/pkgmkconv.pp svneol=native#text/plain
+utils/fppkg/pkgocurl.pp svneol=native#text/plain
 utils/fppkg/pkgropts.pp svneol=native#text/plain
 utils/fppkg/pkgsynapse.pp svneol=native#text/plain
 utils/fppkg/pkgwget.pp svneol=native#text/plain
