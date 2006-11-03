@@ -89,7 +89,7 @@ implementation
         case p.nodetype of
            ordconstn:
              begin
-               if p.resultdef.deftype=pointerdef then
+               if p.resultdef.typ=pointerdef then
                  hp:=tconstsym.create_ordptr(orgname,constpointer,tordconstnode(p).value,p.resultdef)
                else
                  hp:=tconstsym.create_ord(orgname,constord,tordconstnode(p).value,p.resultdef);
@@ -156,7 +156,7 @@ implementation
 
     procedure const_dec;
       var
-         orgname : stringid;
+         orgname : TIDString;
          hdef : tdef;
          sym : tsym;
          dummysymoptions : tsymoptions;
@@ -207,7 +207,7 @@ implementation
                    current_tokenpos:=storetokenpos;
                    symtablestack.top.insert(sym);
                    { procvar can have proc directives, but not type references }
-                   if (hdef.deftype=procvardef) and
+                   if (hdef.typ=procvardef) and
                       (hdef.typesym=nil) then
                     begin
                       { support p : procedure;stdcall=nil; }
@@ -275,13 +275,13 @@ implementation
 
 
     { search in symtablestack used, but not defined type }
-    procedure resolve_type_forward(p : tnamedindexitem;arg:pointer);
+    procedure resolve_type_forward(p:TObject;arg:pointer);
       var
         hpd,pd : tdef;
         stpos  : tfileposinfo;
         again  : boolean;
         srsym  : tsym;
-        srsymtable : tsymtable;
+        srsymtable : TSymtable;
 
       begin
          { Check only typesyms or record/object fields }
@@ -295,7 +295,7 @@ implementation
          end;
          repeat
            again:=false;
-           case pd.deftype of
+           case pd.typ of
              arraydef :
                begin
                  { elementdef could also be defined using a forwarddef }
@@ -308,7 +308,7 @@ implementation
                  { classrefdef inherits from pointerdef }
                  hpd:=tabstractpointerdef(pd).pointeddef;
                  { still a forward def ? }
-                 if hpd.deftype=forwarddef then
+                 if hpd.typ=forwarddef then
                   begin
                     { try to resolve the forward }
                     { get the correct position for it }
@@ -333,7 +333,7 @@ implementation
                        { avoid wrong unused warnings web bug 801 PM }
                        inc(ttypesym(srsym).refs);
                        { we need a class type for classrefdef }
-                       if (pd.deftype=classrefdef) and
+                       if (pd.typ=classrefdef) and
                           not(is_class(ttypesym(srsym).typedef)) then
                          Message1(type_e_class_type_expected,ttypesym(srsym).typedef.typename);
                      end
@@ -346,7 +346,7 @@ implementation
                   end;
                end;
              recorddef :
-               trecorddef(pd).symtable.foreach_static(@resolve_type_forward,nil);
+               trecorddef(pd).symtable.SymList.ForEachCall(@resolve_type_forward,nil);
              objectdef :
                begin
                  if not(m_fpc in current_settings.modeswitches) and
@@ -361,8 +361,8 @@ implementation
                     { Check all fields of the object declaration, but don't
                       check objectdefs in objects/records, because these
                       can't exist (anonymous objects aren't allowed) }
-                    if not(tsym(p).owner.symtabletype in [objectsymtable,recordsymtable]) then
-                     tobjectdef(pd).symtable.foreach_static(@resolve_type_forward,nil);
+                    if not(tsym(p).owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+                     tobjectdef(pd).symtable.SymList.ForEachCall(@resolve_type_forward,nil);
                   end;
                end;
           end;
@@ -388,10 +388,10 @@ implementation
         end;
 
       var
-         typename,orgtypename : stringid;
+         typename,orgtypename : TIDString;
          newtype  : ttypesym;
          sym      : tsym;
-         srsymtable : tsymtable;
+         srsymtable : TSymtable;
          hdef     : tdef;
          oldfilepos,
          defpos,storetokenpos : tfileposinfo;
@@ -501,12 +501,12 @@ implementation
               { KAZ: handle TGUID declaration in system unit }
               if (cs_compilesystem in current_settings.moduleswitches) and not assigned(rec_tguid) and
                  (typename='TGUID') and { name: TGUID and size=16 bytes that is 128 bits }
-                 assigned(hdef) and (hdef.deftype=recorddef) and (hdef.size=16) then
+                 assigned(hdef) and (hdef.typ=recorddef) and (hdef.size=16) then
                 rec_tguid:=trecorddef(hdef);
             end;
            if assigned(hdef) then
             begin
-              case hdef.deftype of
+              case hdef.typ of
                 pointerdef :
                   begin
                     consume(_SEMICOLON);
@@ -540,7 +540,7 @@ implementation
               end;
             end;
 
-           if isgeneric and not(hdef.deftype in [objectdef,recorddef]) then
+           if isgeneric and not(hdef.typ in [objectdef,recorddef]) then
              message(parser_e_cant_create_generics_of_this_type);
 
            { Stop recording a generic template }
@@ -572,7 +572,7 @@ implementation
                 This need to be done after the rtti has been written, because
                 it can contain a reference to that data (PFV)
                 This is not for forward classes }
-              if (hdef.deftype=objectdef) and
+              if (hdef.typ=objectdef) and
                  (hdef.owner.symtabletype in [staticsymtable,globalsymtable]) then
                 with Tobjectdef(hdef) do
                   begin
@@ -602,7 +602,7 @@ implementation
             end;
          until token<>_ID;
          typecanbeforward:=false;
-         symtablestack.top.foreach_static(@resolve_type_forward,nil);
+         symtablestack.top.SymList.ForEachCall(@resolve_type_forward,nil);
          block_type:=old_block_type;
       end;
 
@@ -654,7 +654,7 @@ implementation
 
     procedure resourcestring_dec;
       var
-         orgname : stringid;
+         orgname : TIDString;
          p : tnode;
          dummysymoptions : tsymoptions;
          storetokenpos,filepos : tfileposinfo;

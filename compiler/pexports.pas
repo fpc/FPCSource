@@ -58,7 +58,7 @@ implementation
         InternalProcName : string;
         pt               : tnode;
         srsym            : tsym;
-        srsymtable : tsymtable;
+        srsymtable : TSymtable;
 
         function IsGreater(hp1,hp2:texported_item):boolean;
         var

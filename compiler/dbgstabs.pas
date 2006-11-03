@@ -40,14 +40,14 @@ interface
         { tsym writing }
         function  sym_var_value(const s:string;arg:pointer):string;
         function  sym_stabstr_evaluate(sym:tsym;const s:string;const vars:array of string):Pchar;
-        procedure write_symtable_syms(list:TAsmList;st:tsymtable);
+        procedure write_symtable_syms(list:TAsmList;st:TSymtable);
         { tdef writing }
         function  def_stab_number(def:tdef):string;
         function  def_stab_classnumber(def:tobjectdef):string;
         function  def_var_value(const s:string;arg:pointer):string;
         function  def_stabstr_evaluate(def:tdef;const s:string;const vars:array of string):Pchar;
-        procedure field_add_stabstr(p:Tnamedindexitem;arg:pointer);
-        procedure method_add_stabstr(p:Tnamedindexitem;arg:pointer);
+        procedure field_add_stabstr(p:TObject;arg:pointer);
+        procedure method_add_stabstr(p:TObject;arg:pointer);
         function  def_stabstr(def:tdef):pchar;
         procedure write_def_stabstr(list:TAsmList;def:tdef);
         procedure write_procdef(list:TAsmList;pd:tprocdef);
@@ -58,7 +58,7 @@ interface
         procedure insertlineinfo(list:TAsmList);override;
         procedure referencesections(list:TAsmList);override;
         procedure insertdef(list:TAsmList;def:tdef);override;
-        procedure write_symtable_defs(list:TAsmList;st:tsymtable);override;
+        procedure write_symtable_defs(list:TAsmList;st:TSymtable);override;
       end;
 
 
@@ -245,7 +245,7 @@ implementation
       begin
         { procdefs only need a number, mark them as already written
           so they won't be written implicitly }
-        if (def.deftype=procdef) then
+        if (def.typ=procdef) then
           def.dbg_state:=dbg_state_written;
         { Stab must already be written, or we must be busy writing it }
         if writing_def_stabs and
@@ -309,7 +309,7 @@ implementation
       end;
 
 
-    procedure TDebugInfoStabs.field_add_stabstr(p:Tnamedindexitem;arg:pointer);
+    procedure TDebugInfoStabs.field_add_stabstr(p:TObject;arg:pointer);
       var
         newrec  : Pchar;
         spec    : string[3];
@@ -331,7 +331,7 @@ implementation
             { open arrays made overflows !! }
             if varsize>$fffffff then
               varsize:=$fffffff;
-            newrec:=def_stabstr_evaluate(nil,'$1:$2,$3,$4;',[p.name,
+            newrec:=def_stabstr_evaluate(nil,'$1:$2,$3,$4;',[tfieldvarsym(p).name,
                                      spec+def_stab_number(tfieldvarsym(p).vardef),
                                      tostr(tfieldvarsym(p).fieldoffset*8),tostr(varsize*8)]);
             if state^.stabsize+strlen(newrec)>=state^.staballoc-256 then
@@ -348,7 +348,7 @@ implementation
       end;
 
 
-    procedure TDebugInfoStabs.method_add_stabstr(p:Tnamedindexitem;arg:pointer);
+    procedure TDebugInfoStabs.method_add_stabstr(p:TObject;arg:pointer);
       var virtualind,argnames : string;
           newrec : pchar;
           pd     : tprocdef;
@@ -387,7 +387,7 @@ implementation
             for i:=0 to pd.paras.count-1 do
               begin
                 parasym:=tparavarsym(pd.paras[i]);
-                if Parasym.vardef.deftype = formaldef then
+                if Parasym.vardef.typ = formaldef then
                   begin
                     case Parasym.varspez of
                       vs_var :
@@ -419,7 +419,7 @@ implementation
              sp:='1'
            else
              sp:='2';
-           newrec:=def_stabstr_evaluate(nil,'$1::$2=##$3;:$4;$5A$6;',[p.name,def_stab_number(pd),
+           newrec:=def_stabstr_evaluate(nil,'$1::$2=##$3;:$4;$5A$6;',[tsym(p).name,def_stab_number(pd),
                                     def_stab_number(pd.returndef),argnames,sp,
                                     virtualind]);
            { get spare place for a string at the end }
@@ -445,7 +445,7 @@ implementation
             slen : aint;
             bytest,charst,longst : string;
           begin
-            case def.string_typ of
+            case def.stringtype of
               st_shortstring:
                 begin
                   { fix length of openshortstring }
@@ -520,7 +520,7 @@ implementation
           begin
             if cs_gdb_valgrind in current_settings.globalswitches then
               begin
-                case def.typ of
+                case def.ordtype of
                   uvoid :
                     result:=strpnew(def_stab_number(def));
                   bool8bit,
@@ -538,7 +538,7 @@ implementation
               end
             else
               begin
-                case def.typ of
+                case def.ordtype of
                   uvoid :
                     result:=strpnew(def_stab_number(def));
                   uchar :
@@ -567,7 +567,7 @@ implementation
 
         function floatdef_stabstr(def:tfloatdef):Pchar;
           begin
-            case def.typ of
+            case def.floattype of
               s32real,
               s64real,
               s80real:
@@ -613,7 +613,7 @@ implementation
               RType := 'f';
             if assigned(def.owner) then
              begin
-               if (def.owner.symtabletype = objectsymtable) then
+               if (def.owner.symtabletype = objecTSymtable) then
                  obj := def.owner.name^+'__'+def.procsym.name;
                if not(cs_gdb_valgrind in current_settings.globalswitches) and
                   (def.owner.symtabletype=localsymtable) and
@@ -643,7 +643,7 @@ implementation
             strpcopy(state.stabstring,'s'+tostr(def.size));
             state.recoffset:=0;
             state.stabsize:=strlen(state.stabstring);
-            def.symtable.foreach(@field_add_stabstr,@state);
+            def.symtable.SymList.ForEachCall(@field_add_stabstr,@state);
             state.stabstring[state.stabsize]:=';';
             state.stabstring[state.stabsize+1]:=#0;
             reallocmem(state.stabstring,state.stabsize+2);
@@ -666,7 +666,7 @@ implementation
 
             state.staballoc:=memsizeinc;
             getmem(state.stabstring,state.staballoc);
-            strpcopy(state.stabstring,'s'+tostr(tobjectsymtable(def.symtable).datasize));
+            strpcopy(state.stabstring,'s'+tostr(tobjecTSymtable(def.symtable).datasize));
             if assigned(def.childof) then
               begin
                 {only one ancestor not virtual, public, at base offset 0 }
@@ -676,7 +676,7 @@ implementation
             {virtual table to implement yet}
             state.recoffset:=0;
             state.stabsize:=strlen(state.stabstring);
-            def.symtable.foreach(@field_add_stabstr,@state);
+            def.symtable.symList.ForEachCall(@field_add_stabstr,@state);
             if (oo_has_vmt in def.objectoptions) then
               if not assigned(def.childof) or not(oo_has_vmt in def.childof.objectoptions) then
                  begin
@@ -684,7 +684,7 @@ implementation
                     strpcopy(state.stabstring+state.stabsize,ts);
                     inc(state.stabsize,length(ts));
                  end;
-            def.symtable.foreach(@method_add_stabstr,@state);
+            def.symtable.symList.ForEachCall(@method_add_stabstr,@state);
             if (oo_has_vmt in def.objectoptions) then
               begin
                  anc := def;
@@ -703,7 +703,7 @@ implementation
 
       begin
         result:=nil;
-        case def.deftype of
+        case def.typ of
           stringdef :
             result:=stringdef_stabstr(tstringdef(def));
           enumdef :
@@ -758,7 +758,7 @@ implementation
         ss,st,su : pchar;
       begin
         { procdefs require a different stabs style without type prefix }
-        if def.deftype=procdef then
+        if def.typ=procdef then
           begin
             st:=def_stabstr(def);
             { add to list }
@@ -767,7 +767,7 @@ implementation
         else
           begin
             { type prefix }
-            if def.deftype in tagtypes then
+            if def.typ in tagtypes then
               stabchar := 'Tt'
             else
               stabchar := 't';
@@ -808,10 +808,10 @@ implementation
         { to avoid infinite loops }
         def.dbg_state := dbg_state_writing;
         { write dependencies first }
-        case def.deftype of
+        case def.typ of
           stringdef :
             begin
-              if tstringdef(def).string_typ=st_widestring then
+              if tstringdef(def).stringtype=st_widestring then
                 insertdef(list,cwidechartype)
               else
                 begin
@@ -845,7 +845,7 @@ implementation
               insertdef(list,tarraydef(def).elementdef);
             end;
           recorddef :
-            trecorddef(def).symtable.foreach(@field_write_defs,list);
+            trecorddef(def).symtable.symList.ForEachCall(@field_write_defs,list);
           enumdef :
             if assigned(tenumdef(def).basedef) then
               insertdef(list,tenumdef(def).basedef);
@@ -859,12 +859,12 @@ implementation
                   anc:=anc.childof;
                   insertdef(list,anc);
                 end;
-              tobjectdef(def).symtable.foreach(@field_write_defs,list);
-              tobjectdef(def).symtable.foreach(@method_write_defs,list);
+              tobjectdef(def).symtable.symList.ForEachCall(@field_write_defs,list);
+              tobjectdef(def).symtable.symList.ForEachCall(@method_write_defs,list);
             end;
         end;
 
-        case def.deftype of
+        case def.typ of
           objectdef :
             begin
               { classes require special code to write the record and the invisible pointer }
@@ -886,7 +886,7 @@ implementation
               if (oo_has_vmt in tobjectdef(def).objectoptions) and
                  assigned(def.owner) and
                  assigned(def.owner.name) then
-                list.concat(Tai_stab.create(stab_stabs,strpnew('"vmt_'+def.owner.name^+tobjectdef(def).name+':S'+
+                list.concat(Tai_stab.create(stab_stabs,strpnew('"vmt_'+def.owner.name^+tobjectdef(def).objname^+':S'+
                        def_stab_number(vmttype)+'",'+tostr(N_STSYM)+',0,0,'+tobjectdef(def).vmt_mangledname)));
             end;
           procdef :
@@ -901,18 +901,19 @@ implementation
       end;
 
 
-    procedure TDebugInfoStabs.write_symtable_defs(list:TAsmList;st:tsymtable);
+    procedure TDebugInfoStabs.write_symtable_defs(list:TAsmList;st:TSymtable);
 
-       procedure dowritestabs(list:TAsmList;st:tsymtable);
+       procedure dowritestabs(list:TAsmList;st:TSymtable);
          var
-           p : tdef;
+           def : tdef;
+           i   : longint;
          begin
-           p:=tdef(st.defindex.first);
-           while assigned(p) do
+           for i:=0 to st.DefList.Count-1 do
              begin
-               if (p.dbg_state=dbg_state_used) then
-                 insertdef(list,p);
-               p:=tdef(p.indexnext);
+               def:=tdef(st.DefList[i]);
+               if not(df_deleted in def.defoptions) and
+                  (def.dbg_state=dbg_state_used) then
+                 insertdef(list,def);
              end;
          end;
 
@@ -1080,7 +1081,7 @@ implementation
         function fieldvarsym_stabstr(sym:tfieldvarsym):Pchar;
           begin
             result:=nil;
-            if (sym.owner.symtabletype=objectsymtable) and
+            if (sym.owner.symtabletype=objecTSymtable) and
                (sp_static in sym.symoptions) then
               result:=sym_stabstr_evaluate(sym,'"${ownername}__${name}:S$1",${N_LCSYM},0,${line},${mangledname}',
                   [def_stab_number(sym.vardef)]);
@@ -1283,7 +1284,7 @@ implementation
             result:=nil;
             if not assigned(sym.typedef) then
               internalerror(200509262);
-            if sym.typedef.deftype in tagtypes then
+            if sym.typedef.typ in tagtypes then
               stabchar:='Tt'
             else
               stabchar:='t';
@@ -1327,15 +1328,16 @@ implementation
         if stabstr<>nil then
           list.concat(Tai_stab.create(stab_stabs,stabstr));
         { For object types write also the symtable entries }
-        if (sym.typ=typesym) and (ttypesym(sym).typedef.deftype=objectdef) then
+        if (sym.typ=typesym) and (ttypesym(sym).typedef.typ=objectdef) then
           write_symtable_syms(list,tobjectdef(ttypesym(sym).typedef).symtable);
         sym.isdbgwritten:=true;
       end;
 
 
-    procedure TDebugInfoStabs.write_symtable_syms(list:TAsmList;st:tsymtable);
+    procedure TDebugInfoStabs.write_symtable_syms(list:TAsmList;st:TSymtable);
       var
-        p : tsym;
+        sym : tsym;
+        i   : longint;
       begin
         case st.symtabletype of
           staticsymtable :
@@ -1343,12 +1345,12 @@ implementation
           globalsymtable :
             list.concat(tai_comment.Create(strpnew('Syms - Begin unit '+st.name^+' has index '+tostr(st.moduleid))));
         end;
-        p:=tsym(st.symindex.first);
-        while assigned(p) do
+        for i:=0 to st.SymList.Count-1 do
           begin
-            if (not p.isdbgwritten) then
-              insertsym(list,p);
-            p:=tsym(p.indexnext);
+            sym:=tsym(st.SymList[i]);
+            if not(sp_hidden in sym.symoptions) and
+               (not sym.isdbgwritten) then
+              insertsym(list,sym);
           end;
         case st.symtabletype of
           staticsymtable :

@@ -49,7 +49,7 @@ interface
           typ     : preproctyp;
           accept  : boolean;
           next    : tpreprocstack;
-          name    : stringid;
+          name    : TIDString;
           line_nb : longint;
           owner   : tscannerfile;
           constructor Create(atyp:preproctyp;a:boolean;n:tpreprocstack);
@@ -709,7 +709,7 @@ In case not, the value returned can be arbitrary.
            hs : string;
            mac: tmacro;
            srsym : tsym;
-           srsymtable : tsymtable;
+           srsymtable : TSymtable;
            l : longint;
            w : integer;
            hasKlammer: Boolean;
@@ -942,7 +942,7 @@ In case not, the value returned can be arbitrary.
                                     case consttyp of
                                       constord :
                                         begin
-                                          case constdef.deftype of
+                                          case constdef.typ of
                                             orddef:
                                               begin
                                                 if is_integer(constdef) then
@@ -1249,12 +1249,10 @@ In case not, the value returned can be arbitrary.
           begin
             mac:=tmacro.create(hs);
             mac.defined:=true;
-            Message1(parser_c_macro_defined,mac.name);
             current_module.localmacrosymtable.insert(mac);
           end
         else
           begin
-            Message1(parser_c_macro_defined,mac.name);
             mac.defined:=true;
             mac.is_compiler_var:=false;
           { delete old definition }
@@ -1264,6 +1262,7 @@ In case not, the value returned can be arbitrary.
                mac.buftext:=nil;
              end;
           end;
+        Message1(parser_c_macro_defined,mac.name);
         mac.is_used:=true;
         if (cs_support_macro in current_settings.moduleswitches) then
           begin
@@ -1362,7 +1361,6 @@ In case not, the value returned can be arbitrary.
             mac:=tmacro.create(hs);
             mac.defined:=true;
             mac.is_compiler_var:=true;
-            Message1(parser_c_macro_defined,mac.name);
             current_module.localmacrosymtable.insert(mac);
           end
         else
@@ -1376,6 +1374,7 @@ In case not, the value returned can be arbitrary.
                mac.buftext:=nil;
              end;
           end;
+        Message1(parser_c_macro_defined,mac.name);
         mac.is_used:=true;
 
         { key words are never substituted }
@@ -1435,13 +1434,11 @@ In case not, the value returned can be arbitrary.
            (mac.owner <> current_module.localmacrosymtable) then
           begin
              mac:=tmacro.create(hs);
-             Message1(parser_c_macro_undefined,mac.name);
              mac.defined:=false;
              current_module.localmacrosymtable.insert(mac);
           end
         else
           begin
-             Message1(parser_c_macro_undefined,mac.name);
              mac.defined:=false;
              mac.is_compiler_var:=false;
              { delete old definition }
@@ -1451,6 +1448,7 @@ In case not, the value returned can be arbitrary.
                   mac.buftext:=nil;
                end;
           end;
+        Message1(parser_c_macro_undefined,mac.name);
         mac.is_used:=true;
       end;
 

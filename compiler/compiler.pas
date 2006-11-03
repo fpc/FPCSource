@@ -33,9 +33,6 @@ uses
 {$ifdef WATCOM}
     emu387,
 {$endif WATCOM}
-{$ifdef BrowserLog}
-  browlog,
-{$endif BrowserLog}
 {$IFNDEF USE_FAKE_SYSUTILS}
   sysutils,
 {$ELSE}
@@ -138,12 +135,6 @@ begin
   if not CompilerInited then
    exit;
 { Free compiler if args are read }
-{$ifdef BrowserLog}
-  DoneBrowserLog;
-{$endif BrowserLog}
-{$ifdef BrowserCol}
-  do_doneSymbolInfo;
-{$endif BrowserCol}
   if CompilerInitedAfterArgs then
    begin
      CompilerInitedAfterArgs:=false;
@@ -176,14 +167,8 @@ begin
   InitGlobals;
   { verbose depends on exe_path and must be after globals }
   InitVerbose;
-{$ifdef BrowserLog}
-  InitBrowserLog;
-{$endif BrowserLog}
-{$ifdef BrowserCol}
-  do_initSymbolInfo;
-{$endif BrowserCol}
   inittokens;
-  InitSymtable; {Must come before read_arguments, to enable macrosymstack}
+  IniTSymtable; {Must come before read_arguments, to enable macrosymstack}
   CompilerInited:=true;
 { this is needed here for the IDE
   in case of compilation failure

@@ -137,14 +137,14 @@ implementation
     { true if uses a parameter as return value }
     function tparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
-         ret_in_param:=((def.deftype=arraydef) and not(is_dynamic_array(def))) or
-           (def.deftype=recorddef) or
-           ((def.deftype=stringdef) and (tstringdef(def).string_typ in [st_shortstring,st_longstring])) or
-           ((def.deftype=procvardef) and (po_methodpointer in tprocvardef(def).procoptions)) or
+         ret_in_param:=((def.typ=arraydef) and not(is_dynamic_array(def))) or
+           (def.typ=recorddef) or
+           ((def.typ=stringdef) and (tstringdef(def).stringtype in [st_shortstring,st_longstring])) or
+           ((def.typ=procvardef) and (po_methodpointer in tprocvardef(def).procoptions)) or
            { interfaces are also passed by reference to be compatible with delphi and COM }
-           ((def.deftype=objectdef) and (is_object(def) or is_interface(def))) or
-           (def.deftype=variantdef) or
-           ((def.deftype=setdef) and (tsetdef(def).settype<>smallset));
+           ((def.typ=objectdef) and (is_object(def) or is_interface(def))) or
+           (def.typ=variantdef) or
+           ((def.typ=setdef) and (tsetdef(def).settype<>smallset));
       end;
 
 

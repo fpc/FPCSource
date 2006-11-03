@@ -221,7 +221,7 @@ implementation
            location.register,tmpfpureg));
 
          { work around bug in some PowerPC processors }
-         if (tfloatdef(resultdef).typ = s32real) then
+         if (tfloatdef(resultdef).floattype = s32real) then
            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FRSP,location.register,
              location.register));
        end;
@@ -232,8 +232,8 @@ implementation
           inherited second_real_to_real;
           { work around bug in some powerpc processors where doubles aren't }
           { properly converted to singles                                   }
-          if (tfloatdef(left.resultdef).typ = s64real) and
-             (tfloatdef(resultdef).typ = s32real) then
+          if (tfloatdef(left.resultdef).floattype = s64real) and
+             (tfloatdef(resultdef).floattype = s32real) then
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FRSP,location.register,
               location.register));
        end;

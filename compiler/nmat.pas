@@ -132,14 +132,14 @@ implementation
 
             case nodetype of
               modn:
-                if (torddef(ld).typ <> u64bit) or
-                   (torddef(rd).typ <> u64bit) then
+                if (torddef(ld).ordtype <> u64bit) or
+                   (torddef(rd).ordtype <> u64bit) then
                   t:=genintconstnode(lv mod rv)
                 else
                   t:=genintconstnode(int64(qword(lv) mod qword(rv)));
               divn:
-                if (torddef(ld).typ <> u64bit) or
-                   (torddef(rd).typ <> u64bit) then
+                if (torddef(ld).ordtype <> u64bit) or
+                   (torddef(rd).ordtype <> u64bit) then
                   t:=genintconstnode(lv div rv)
                 else
                   t:=genintconstnode(int64(qword(lv) div qword(rv)));
@@ -177,9 +177,9 @@ implementation
            end;
 
          { we need 2 orddefs always }
-         if (left.resultdef.deftype<>orddef) then
+         if (left.resultdef.typ<>orddef) then
            inserttypeconv(right,sinttype);
-         if (right.resultdef.deftype<>orddef) then
+         if (right.resultdef.typ<>orddef) then
            inserttypeconv(right,sinttype);
          if codegenerror then
            exit;
@@ -204,14 +204,14 @@ implementation
          { Do the same for qwords and positive constants as well, otherwise things like   }
          { "qword mod 10" are evaluated with int64 as result, which is wrong if the       }
          { "qword" was > high(int64) (JM)                                                 }
-         if (rd.typ in [u32bit,u64bit]) and
+         if (rd.ordtype in [u32bit,u64bit]) and
             is_constintnode(left) and
             (tordconstnode(left).value >= 0) then
            begin
              inserttypeconv(left,right.resultdef);
              ld:=torddef(left.resultdef);
            end;
-         if (ld.typ in [u32bit,u64bit]) and
+         if (ld.ordtype in [u32bit,u64bit]) and
             is_constintnode(right) and
             (tordconstnode(right).value >= 0) then
           begin
@@ -221,12 +221,12 @@ implementation
 
          { when there is one currency value, everything is done
            using currency }
-         if (ld.typ=scurrency) or
-            (rd.typ=scurrency) then
+         if (ld.ordtype=scurrency) or
+            (rd.ordtype=scurrency) then
            begin
-             if (ld.typ<>scurrency) then
+             if (ld.ordtype<>scurrency) then
               inserttypeconv(left,s64currencytype);
-             if (rd.typ<>scurrency) then
+             if (rd.ordtype<>scurrency) then
               inserttypeconv(right,s64currencytype);
              resultdef:=left.resultdef;
            end
@@ -239,31 +239,31 @@ implementation
            begin
              if is_signed(rd) or is_signed(ld) then
                begin
-                  if (ld.typ<>s64bit) then
+                  if (ld.ordtype<>s64bit) then
                     inserttypeconv(left,s64inttype);
-                  if (rd.typ<>s64bit) then
+                  if (rd.ordtype<>s64bit) then
                     inserttypeconv(right,s64inttype);
                end
              else
                begin
-                  if (ld.typ<>u64bit) then
+                  if (ld.ordtype<>u64bit) then
                     inserttypeconv(left,u64inttype);
-                  if (rd.typ<>u64bit) then
+                  if (rd.ordtype<>u64bit) then
                     inserttypeconv(right,u64inttype);
                end;
              resultdef:=left.resultdef;
            end
          else
           { when mixing cardinals and signed numbers, convert everythign to 64bit (JM) }
-          if ((rd.typ = u32bit) and
+          if ((rd.ordtype = u32bit) and
               is_signed(ld)) or
-             ((ld.typ = u32bit) and
+             ((ld.ordtype = u32bit) and
               is_signed(rd)) then
            begin
               CGMessage(type_w_mixed_signed_unsigned);
-              if (ld.typ<>s64bit) then
+              if (ld.ordtype<>s64bit) then
                 inserttypeconv(left,s64inttype);
-              if (rd.typ<>s64bit) then
+              if (rd.ordtype<>s64bit) then
                 inserttypeconv(right,s64inttype);
               resultdef:=left.resultdef;
            end
@@ -271,9 +271,9 @@ implementation
 {$endif cpu64bit}
            begin
               { Make everything always default singed int }
-              if not(rd.typ in [torddef(sinttype).typ,torddef(uinttype).typ]) then
+              if not(rd.ordtype in [torddef(sinttype).ordtype,torddef(uinttype).ordtype]) then
                 inserttypeconv(right,sinttype);
-              if not(ld.typ in [torddef(sinttype).typ,torddef(uinttype).typ]) then
+              if not(ld.ordtype in [torddef(sinttype).ordtype,torddef(uinttype).ordtype]) then
                 inserttypeconv(left,sinttype);
               resultdef:=right.resultdef;
            end;
@@ -433,8 +433,8 @@ implementation
 
 {$ifndef cpu64bit}
          { 64bit }
-         if (left.resultdef.deftype=orddef) and
-            (right.resultdef.deftype=orddef) and
+         if (left.resultdef.typ=orddef) and
+            (right.resultdef.typ=orddef) and
             (is_64bitint(left.resultdef) or is_64bitint(right.resultdef)) then
            begin
              result := first_moddiv64bitint;
@@ -511,7 +511,7 @@ implementation
            32 bit for backwards compatibility. That way 'shl 33' is
            the same as 'shl 1'. It's ugly but compatible with delphi/tp/gcc }
          if (not is_64bit(left.resultdef)) and
-            (torddef(left.resultdef).typ<>u32bit) then
+            (torddef(left.resultdef).ordtype<>u32bit) then
            inserttypeconv(left,s32inttype);
 
          inserttypeconv(right,sinttype);
@@ -618,7 +618,7 @@ implementation
            exit;
 
          resultdef:=left.resultdef;
-         if (left.resultdef.deftype=floatdef) then
+         if (left.resultdef.typ=floatdef) then
            begin
            end
 {$ifdef SUPPORT_MMX}
@@ -639,7 +639,7 @@ implementation
            begin
            end
 {$endif cpu64bit}
-         else if (left.resultdef.deftype=orddef) then
+         else if (left.resultdef.typ=orddef) then
            begin
               inserttypeconv(left,sinttype);
               resultdef:=left.resultdef;
@@ -671,11 +671,11 @@ implementation
         if codegenerror then
           exit;
 
-        if (cs_fp_emulation in current_settings.moduleswitches) and (left.resultdef.deftype=floatdef) then
+        if (cs_fp_emulation in current_settings.moduleswitches) and (left.resultdef.typ=floatdef) then
           begin
             if not(target_info.system in system_wince) then
               begin
-                case tfloatdef(resultdef).typ of
+                case tfloatdef(resultdef).floattype of
                   s32real:
                     begin
                       procname:='float32_sub';
@@ -698,7 +698,7 @@ implementation
               end
             else
               begin
-                case tfloatdef(resultdef).typ of
+                case tfloatdef(resultdef).floattype of
                   s32real:
                     procname:='NEGS';
                   s64real:
@@ -722,7 +722,7 @@ implementation
             registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
 
-            if (left.resultdef.deftype=floatdef) then
+            if (left.resultdef.typ=floatdef) then
               begin
                 if (left.expectloc<>LOC_REGISTER) and
                   (registersfpu<1) then
@@ -747,7 +747,7 @@ implementation
                   expectloc:=LOC_REGISTER;
                end
 {$endif cpu64bit}
-             else if (left.resultdef.deftype=orddef) then
+             else if (left.resultdef.typ=orddef) then
                begin
                   if (left.expectloc<>LOC_REGISTER) and
                      (registersint<1) then
@@ -794,7 +794,7 @@ implementation
            { Not of boolean expression. Turn around the operator and remove
              the not. This is not allowed for sets with the gten/lten,
              because there is no ltn/gtn support }
-           if (taddnode(left).left.resultdef.deftype<>setdef) or
+           if (taddnode(left).left.resultdef.typ<>setdef) or
               (left.nodetype in [equaln,unequaln]) then
             begin
               result:=left;
@@ -809,7 +809,7 @@ implementation
           begin
              v:=tordconstnode(left).value;
              def:=left.resultdef;
-             case torddef(left.resultdef).typ of
+             case torddef(left.resultdef).ordtype of
                bool8bit,
                bool16bit,
                bool32bit,

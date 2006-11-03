@@ -69,7 +69,7 @@ interface
          if codegenerror then
            exit;
 
-         if (left.resultdef.deftype=floatdef) then
+         if (left.resultdef.typ=floatdef) then
            begin
              if use_sse(left.resultdef) then
                begin

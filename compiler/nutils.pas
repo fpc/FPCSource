@@ -279,7 +279,7 @@ implementation
         hp : tnode;
       begin
         result:=false;
-        if (p1.resultdef.deftype<>procvardef) or
+        if (p1.resultdef.typ<>procvardef) or
            (tponly and
             not(m_tp_procvar in current_settings.modeswitches)) then
           exit;
@@ -309,7 +309,7 @@ implementation
 
     function get_high_value_sym(vs: tparavarsym):tsym;
       begin
-        result := tsym(vs.owner.search('high'+vs.name));
+        result := tsym(vs.owner.Find('high'+vs.name));
       end;
 
 
@@ -332,7 +332,7 @@ implementation
     function load_self_node:tnode;
       var
         srsym : tsym;
-        srsymtable : tsymtable;
+        srsymtable : TSymtable;
       begin
         result:=nil;
         searchsym('self',srsym,srsymtable);
@@ -353,7 +353,7 @@ implementation
     function load_result_node:tnode;
       var
         srsym : tsym;
-        srsymtable : tsymtable;
+        srsymtable : TSymtable;
       begin
         result:=nil;
         searchsym('result',srsym,srsymtable);
@@ -371,7 +371,7 @@ implementation
     function load_self_pointer_node:tnode;
       var
         srsym : tsym;
-        srsymtable : tsymtable;
+        srsymtable : TSymtable;
       begin
         result:=nil;
         searchsym('self',srsym,srsymtable);
@@ -392,7 +392,7 @@ implementation
     function load_vmt_pointer_node:tnode;
       var
         srsym : tsym;
-        srsymtable : tsymtable;
+        srsymtable : TSymtable;
       begin
         result:=nil;
         searchsym('vmt',srsym,srsymtable);

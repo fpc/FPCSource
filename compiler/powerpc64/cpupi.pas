@@ -79,7 +79,7 @@ begin
     tg.setfirsttemp(ofs);
   end else begin
     locals := 0;
-    current_procinfo.procdef.localst.foreach_static(@count_locals, @locals);
+    current_procinfo.procdef.localst.SymList.ForEachCall(@count_locals, @locals);
     if locals <> 0 then
       { at 0(r1), the previous value of r1 will be stored }
       tg.setfirsttemp(8);

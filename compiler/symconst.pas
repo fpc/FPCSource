@@ -115,18 +115,7 @@ type
 
   { Deref entry options }
   tdereftype = (deref_nil,
-    deref_sym,
-    deref_def,
-    deref_aktrecord,
-    deref_aktstatic,
-    deref_aktglobal,
-    deref_aktlocal,
-    deref_aktpara,
     deref_unit,
-    deref_record,
-    deref_local,
-    deref_para,
-    deref_parent_object,
     deref_symid,
     deref_defid
   );
@@ -146,7 +135,8 @@ type
     sp_internal,  { internal symbol, not reported as unused }
     sp_strictprivate,
     sp_strictprotected,
-    sp_implicitrename
+    sp_implicitrename,
+    sp_hidden
   );
   tsymoptions=set of tsymoption;
 
@@ -163,7 +153,9 @@ type
     { type is a generic }
     df_generic,
     { type is a specialization of a generic type }
-    df_specialization
+    df_specialization,
+    { type is deleted does not to be stored in ppu }
+    df_deleted
   );
   tdefoptions=set of tdefoption;
 
@@ -178,7 +170,7 @@ type
   );
 
   { base types for orddef }
-  tbasetype = (
+  tordtype = (
     uvoid,
     u8bit,u16bit,u32bit,u64bit,
     s8bit,s16bit,s32bit,s64bit,
@@ -279,7 +271,7 @@ type
   tprocoptions=set of tprocoption;
 
   { options for objects and classes }
-  tobjectdeftype = (odt_none,
+  tobjecttyp = (odt_none,
     odt_class,
     odt_object,
     odt_interfacecom,
@@ -372,26 +364,30 @@ type
   );
 
   { types of the symtables }
-  tsymtabletype = (abstractsymtable,
+  TSymtabletype = (abstracTSymtable,
     globalsymtable,staticsymtable,
-    objectsymtable,recordsymtable,
+    ObjectSymtable,recordsymtable,
     localsymtable,parasymtable,
-    withsymtable,stt_exceptsymtable,
+    withsymtable,stt_excepTSymtable,
     exportedmacrosymtable, localmacrosymtable
   );
 
 
   { definition contains the informations about a type }
-  tdeftype = (abstractdef,arraydef,recorddef,pointerdef,orddef,
-              stringdef,enumdef,procdef,objectdef,errordef,
-              filedef,formaldef,setdef,procvardef,floatdef,
-              classrefdef,forwarddef,variantdef,undefineddef);
+  tdeftyp = (abstractdef,
+    arraydef,recorddef,pointerdef,orddef,
+    stringdef,enumdef,procdef,objectdef,errordef,
+    filedef,formaldef,setdef,procvardef,floatdef,
+    classrefdef,forwarddef,variantdef,undefineddef
+  );
 
   { possible types for symtable entries }
-  tsymtyp = (abstractsym,globalvarsym,localvarsym,paravarsym,fieldvarsym,
-             typesym,procsym,unitsym,constsym,enumsym,typedconstsym,
-             errorsym,syssym,labelsym,absolutevarsym,propertysym,
-             macrosym,rttisym);
+  tsymtyp = (abstractsym,
+    globalvarsym,localvarsym,paravarsym,fieldvarsym,
+    typesym,procsym,unitsym,constsym,enumsym,typedconstsym,
+    errorsym,syssym,labelsym,absolutevarsym,propertysym,
+    macrosym,rttisym
+  );
 
   { State of the variable, if it's declared, assigned or used }
   tvarstate=(vs_none,
@@ -449,7 +445,7 @@ const
        'macrosym','rttisym'
      );
 
-     DefTypeName : array[tdeftype] of string[12] = (
+     typName : array[tdeftyp] of string[12] = (
        'abstractdef','arraydef','recorddef','pointerdef','orddef',
        'stringdef','enumdef','procdef','objectdef','errordef',
        'filedef','formaldef','setdef','procvardef','floatdef',

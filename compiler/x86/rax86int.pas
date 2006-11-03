@@ -168,7 +168,7 @@ Unit Rax86int;
              result:=TRUE;
              exit;
            end;
-           
+
          { not found yet, check condition opcodes }
          j:=0;
          while (j<CondAsmOps) do
@@ -247,7 +247,7 @@ Unit Rax86int;
         len : longint;
         forcelabel : boolean;
         srsym : tsym;
-        srsymtable : tsymtable;
+        srsymtable : TSymtable;
       begin
         { save old token and reset new token }
         prevasmtoken:=actasmtoken;
@@ -745,7 +745,7 @@ Unit Rax86int;
         hssymtyp : Tasmsymtype;
         def : tdef;
         sym : tsym;
-        srsymtable : tsymtable;
+        srsymtable : TSymtable;
       Begin
         { reset }
         value:=0;
@@ -981,7 +981,7 @@ Unit Rax86int;
                              end;
                            typesym :
                              begin
-                               if not(ttypesym(sym).typedef.deftype in [recorddef,objectdef]) then
+                               if not(ttypesym(sym).typedef.typ in [recorddef,objectdef]) then
                                 Message(asmr_e_wrong_sym_type);
                              end;
                            else
@@ -1029,7 +1029,7 @@ Unit Rax86int;
                     end;
                    if (actasmtoken=AS_LBRACKET) and
                       assigned(def) and
-                      (def.deftype=arraydef) then
+                      (def.typ=arraydef) then
                      begin
                        consume(AS_LBRACKET);
                        l:=BuildConstExpression;

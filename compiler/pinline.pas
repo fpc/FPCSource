@@ -68,7 +68,7 @@ implementation
         para         : tcallparanode;
         p,p2     : tnode;
         again    : boolean; { dummy for do_proc_call }
-        destructorname : stringid;
+        destructorname : TIDString;
         sym      : tsym;
         classh   : tobjectdef;
         callflag : tcallnodeflag;
@@ -148,7 +148,7 @@ implementation
             destructorpos:=current_tokenpos;
             consume(_ID);
 
-            if (p.resultdef.deftype<>pointerdef) then
+            if (p.resultdef.typ<>pointerdef) then
               begin
                  Message1(type_e_pointer_type_expected,p.resultdef.typename);
                  p.free;
@@ -159,7 +159,7 @@ implementation
                  exit;
               end;
             { first parameter must be an object or class }
-            if tpointerdef(p.resultdef).pointeddef.deftype<>objectdef then
+            if tpointerdef(p.resultdef).pointeddef.typ<>objectdef then
               begin
                  Message(parser_e_pointer_to_class_expected);
                  p.free;
@@ -262,18 +262,18 @@ implementation
           end
         else
           begin
-             if (p.resultdef.deftype<>pointerdef) then
+             if (p.resultdef.typ<>pointerdef) then
                Begin
                   Message1(type_e_pointer_type_expected,p.resultdef.typename);
                   new_dispose_statement:=cerrornode.create;
                end
              else
                begin
-                  if (tpointerdef(p.resultdef).pointeddef.deftype=objectdef) and
+                  if (tpointerdef(p.resultdef).pointeddef.typ=objectdef) and
                      (oo_has_vmt in tobjectdef(tpointerdef(p.resultdef).pointeddef).objectoptions) then
                     Message(parser_w_use_extended_syntax_for_objects);
-                  if (tpointerdef(p.resultdef).pointeddef.deftype=orddef) and
-                     (torddef(tpointerdef(p.resultdef).pointeddef).typ=uvoid) then
+                  if (tpointerdef(p.resultdef).pointeddef.typ=orddef) and
+                     (torddef(tpointerdef(p.resultdef).pointeddef).ordtype=uvoid) then
                     begin
                       if (m_tp7 in current_settings.modeswitches) or
                          (m_delphi in current_settings.modeswitches) then
@@ -336,7 +336,7 @@ implementation
         p1,p2  : tnode;
         classh : tobjectdef;
         srsym    : tsym;
-        srsymtable : tsymtable;
+        srsymtable : TSymtable;
         again  : boolean; { dummy for do_proc_call }
       begin
         consume(_LKLAMMER);
@@ -351,7 +351,7 @@ implementation
            exit;
          end;
 
-        if (p1.resultdef.deftype<>pointerdef) then
+        if (p1.resultdef.typ<>pointerdef) then
          begin
            Message1(type_e_pointer_type_expected,p1.resultdef.typename);
            consume_all_until(_RKLAMMER);
@@ -363,7 +363,7 @@ implementation
 
         if try_to_consume(_RKLAMMER) then
           begin
-            if (tpointerdef(p1.resultdef).pointeddef.deftype=objectdef) and
+            if (tpointerdef(p1.resultdef).pointeddef.typ=objectdef) and
                (oo_has_vmt in tobjectdef(tpointerdef(p1.resultdef).pointeddef).objectoptions)  then
               Message(parser_w_use_extended_syntax_for_objects);
 
@@ -404,7 +404,7 @@ implementation
         else
           begin
             consume(_COMMA);
-            if tpointerdef(p1.resultdef).pointeddef.deftype<>objectdef then
+            if tpointerdef(p1.resultdef).pointeddef.typ<>objectdef then
              begin
                Message(parser_e_pointer_to_class_expected);
                consume_all_until(_RKLAMMER);
@@ -495,7 +495,7 @@ implementation
         dec(parsing_para_level);
         { first param must be a string or dynamic array ...}
         isarray:=is_dynamic_array(destppn.resultdef);
-        if not((destppn.resultdef.deftype=stringdef) or
+        if not((destppn.resultdef.typ=stringdef) or
                isarray) then
          begin
            CGMessage(type_e_mismatch);

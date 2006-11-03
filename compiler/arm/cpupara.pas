@@ -104,7 +104,7 @@ unit cpupara;
          { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
            if push_addr_param for the def is true
          }
-         case p.deftype of
+         case p.typ of
             orddef:
               getparaloc:=LOC_REGISTER;
             floatdef:
@@ -159,7 +159,7 @@ unit cpupara;
             result:=true;
             exit;
           end;
-        case def.deftype of
+        case def.typ of
           objectdef,
           variantdef,
           formaldef,
@@ -173,20 +173,20 @@ unit cpupara;
           setdef :
             result:=(tsetdef(def).settype<>smallset);
           stringdef :
-            result:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
+            result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
         end;
       end;
 
 
     function tarmparamanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
-        case def.deftype of
+        case def.typ of
           recorddef:
             { this is how gcc 4.0.4 on linux seems to do it, it doesn't look like being
               ARM ABI standard compliant
             }
-            result:=not((trecorddef(def).symtable.symindex.count=1) and
-              not(ret_in_param(tabstractvarsym(trecorddef(def).symtable.symindex.search(1)).vardef,calloption)));
+            result:=not((trecorddef(def).symtable.SymList.count=1) and
+              not(ret_in_param(tabstractvarsym(trecorddef(def).symtable.SymList[0]).vardef,calloption)));
           {
           objectdef
           arraydef:
@@ -283,7 +283,7 @@ unit cpupara;
                 else
                   paralen := tcgsize2size[def_cgsize(paradef)];
                 loc := getparaloc(p.proccalloption,paradef);
-                if (paradef.deftype in [objectdef,arraydef,recorddef]) and
+                if (paradef.typ in [objectdef,arraydef,recorddef]) and
                   not is_special_array(paradef) and
                   (hp.varspez in [vs_value,vs_const]) then
                   paracgsize := int_cgsize(paralen)
@@ -434,7 +434,7 @@ unit cpupara;
           retcgsize:=OS_ADDR
         else
           retcgsize:=def_cgsize(p.returndef);
-          
+
         location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
         p.funcretloc[side].size:=retcgsize;
 
@@ -446,7 +446,7 @@ unit cpupara;
           end;
 
         { Return in FPU register? }
-        if p.returndef.deftype=floatdef then
+        if p.returndef.typ=floatdef then
           begin
             if (p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches) then
               begin

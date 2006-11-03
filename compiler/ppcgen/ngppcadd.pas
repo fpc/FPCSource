@@ -69,7 +69,7 @@ implementation
       begin
         typecheckpass(left);
         if (nodetype in [equaln,unequaln]) and
-           (left.resultdef.deftype = orddef) and
+           (left.resultdef.typ = orddef) and
            is_64bit(left.resultdef) then
           begin
             result := nil;
@@ -136,7 +136,7 @@ implementation
 
     function tgenppcaddnode.getresflags : tresflags;
       begin
-        if (left.resultdef.deftype <> floatdef) then
+        if (left.resultdef.typ <> floatdef) then
           result.cr := RS_CR0
         else
           result.cr := RS_CR1;
@@ -178,12 +178,12 @@ implementation
         firstcomplex(self);
 
         cmpop:=false;
-        if (torddef(left.resultdef).typ=bool8bit) or
-           (torddef(right.resultdef).typ=bool8bit) then
+        if (torddef(left.resultdef).ordtype=bool8bit) or
+           (torddef(right.resultdef).ordtype=bool8bit) then
          cgsize:=OS_8
         else
-          if (torddef(left.resultdef).typ=bool16bit) or
-             (torddef(right.resultdef).typ=bool16bit) then
+          if (torddef(left.resultdef).ordtype=bool16bit) or
+             (torddef(right.resultdef).ordtype=bool16bit) then
            cgsize:=OS_16
         else
            cgsize:=OS_32;
@@ -301,7 +301,7 @@ implementation
         pass_left_and_right;
 
         cmpop:=false;
-        singleprec:=tfloatdef(left.resultdef).typ=s32real;
+        singleprec:=tfloatdef(left.resultdef).floattype=s32real;
         case nodetype of
           addn :
             if singleprec then
@@ -383,9 +383,9 @@ implementation
         pass_left_and_right;
 
         { when a setdef is passed, it has to be a smallset }
-        if ((left.resultdef.deftype=setdef) and
+        if ((left.resultdef.typ=setdef) and
             (tsetdef(left.resultdef).settype<>smallset)) or
-           ((right.resultdef.deftype=setdef) and
+           ((right.resultdef.typ=setdef) and
             (tsetdef(right.resultdef).settype<>smallset)) then
          internalerror(200203301);
 

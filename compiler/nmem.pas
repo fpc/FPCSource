@@ -149,7 +149,7 @@ implementation
         if codegenerror then
          exit;
 
-        case left.resultdef.deftype of
+        case left.resultdef.typ of
           classrefdef :
             resultdef:=left.resultdef;
           objectdef :
@@ -248,7 +248,7 @@ implementation
                 currpi:=currpi.parent;
                 if not assigned(currpi) then
                   internalerror(2005040602);
-                hsym:=tparavarsym(currpi.procdef.parast.search('parentfp'));
+                hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
                 if not assigned(hsym) then
                   internalerror(2005040601);
                 hsym.varregable:=vr_none;
@@ -359,14 +359,14 @@ implementation
 
         { Handle @proc special, also @procvar in tp-mode needs
           special handling }
-        if (left.resultdef.deftype=procdef) or
+        if (left.resultdef.typ=procdef) or
            (
-            (left.resultdef.deftype=procvardef) and
+            (left.resultdef.typ=procvardef) and
             ((m_tp_procvar in current_settings.modeswitches) or
              (m_mac_procvar in current_settings.modeswitches))
            ) then
           begin
-            isprocvar:=(left.resultdef.deftype=procvardef);
+            isprocvar:=(left.resultdef.typ=procvardef);
 
             if not isprocvar then
               begin
@@ -393,7 +393,7 @@ implementation
                     if isprocvar then
                       begin
                         { find proc field in methodpointer record }
-                        hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.search('proc'));
+                        hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.Find('proc'));
                         if not assigned(hsym) then
                           internalerror(200412041);
                         { Load tmehodpointer(left).proc }
@@ -498,7 +498,7 @@ implementation
          { tp procvar support }
          maybe_call_procvar(left,true);
 
-         if left.resultdef.deftype=pointerdef then
+         if left.resultdef.typ=pointerdef then
           resultdef:=tpointerdef(left.resultdef).pointeddef
          else
           CGMessage(parser_e_invalid_qualifier);
@@ -588,7 +588,7 @@ implementation
         resultdef:=vs.vardef;
 
         // don't put records from which we load fields which aren't regable in integer registers
-        if (left.resultdef.deftype = recorddef) and
+        if (left.resultdef.typ = recorddef) and
            not(tstoreddef(resultdef).is_intregable) then
           make_not_regable(left,vr_addr);
       end;
@@ -686,7 +686,7 @@ implementation
                 is_ansistring(left.resultdef) or
                 is_widestring(left.resultdef) or
                 { implicit pointer dereference -> pointer is read }
-                (left.resultdef.deftype = pointerdef);
+                (left.resultdef.typ = pointerdef);
          if valid then
            set_varstate(left,vs_read,[vsf_must_be_valid]);
 {
@@ -702,17 +702,17 @@ implementation
            do not convert enums,booleans,char
            and do not convert range nodes }
          if (right.nodetype<>rangen) and (
-             ((right.resultdef.deftype<>enumdef) and
+             ((right.resultdef.typ<>enumdef) and
                not(is_char(right.resultdef) or is_widechar(right.resultdef)) and
                not(is_boolean(right.resultdef))
              ) or
-             (left.resultdef.deftype <> arraydef) 
+             (left.resultdef.typ <> arraydef) 
             ) then
            begin
              inserttypeconv(right,sinttype);
            end;
 
-         case left.resultdef.deftype of
+         case left.resultdef.typ of
            arraydef :
              begin
                { check type of the index value }
@@ -748,7 +748,7 @@ implementation
              end;
            stringdef :
              begin
-                case tstringdef(left.resultdef).string_typ of
+                case tstringdef(left.resultdef).stringtype of
                   st_widestring :
                     elementdef:=cwidechartype;
                   st_ansistring :

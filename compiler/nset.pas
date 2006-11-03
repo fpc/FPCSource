@@ -180,7 +180,7 @@ implementation
           i : longint;
         begin
           new(pcs);
-          case psd.elementdef.deftype of
+          case psd.elementdef.typ of
             enumdef :
               begin
                 pes:=tenumsym(tenumdef(psd.elementdef).firstenum);
@@ -216,7 +216,7 @@ implementation
              exit;
           end;
 
-         if right.resultdef.deftype<>setdef then
+         if right.resultdef.typ<>setdef then
            CGMessage(sym_e_set_expected);
 
          if (right.nodetype=typen) then
@@ -243,12 +243,12 @@ implementation
                elements with the in operator.
              }
              if  (
-                   (left.resultdef.deftype = orddef) and not
-                   (torddef(left.resultdef).typ in [s8bit,u8bit,uchar,bool8bit])
+                   (left.resultdef.typ = orddef) and not
+                   (torddef(left.resultdef).ordtype in [s8bit,u8bit,uchar,bool8bit])
                  )
                 or
                  (
-                   (left.resultdef.deftype = enumdef) and
+                   (left.resultdef.typ = enumdef) and
                    (tenumdef(left.resultdef).maxval > 255)
                  )
               then

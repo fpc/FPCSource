@@ -153,7 +153,7 @@ var
 begin
   { to make it more readable, string and set (not smallset!) have their
     own procedures }
-  case left.resultdef.deftype of
+  case left.resultdef.typ of
     orddef:
       begin
         { handling boolean expressions }

@@ -55,7 +55,7 @@ uses
       Tresourcestrings=class
       private
         List : TLinkedList;
-        procedure ConstSym_Register(p:tnamedindexitem;arg:pointer);
+        procedure ConstSym_Register(p:TObject;arg:pointer);
       public
         constructor Create;
         destructor  Destroy;override;
@@ -295,7 +295,7 @@ uses
       end;
 
 
-    procedure Tresourcestrings.ConstSym_Register(p:tnamedindexitem;arg:pointer);
+    procedure Tresourcestrings.ConstSym_Register(p:TObject;arg:pointer);
       begin
         if (tsym(p).typ=constsym) and
            (tconstsym(p).consttyp=constresourcestring) then
@@ -306,8 +306,8 @@ uses
     procedure Tresourcestrings.RegisterResourceStrings;
       begin
         if assigned(current_module.globalsymtable) then
-          current_module.globalsymtable.foreach(@ConstSym_Register,nil);
-        current_module.localsymtable.foreach(@ConstSym_Register,nil);
+          current_module.globalsymtable.SymList.ForEachCall(@ConstSym_Register,nil);
+        current_module.localsymtable.SymList.ForEachCall(@ConstSym_Register,nil);
       end;
 
 

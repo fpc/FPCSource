@@ -88,6 +88,7 @@ interface
         function  FindFile(const f : string;allowcache:boolean;var foundfile:string):boolean;
       end;
 
+    function  bstoslash(const s : string) : string;
     {Gives the absolute path to the current directory}
     function  GetCurrentDir:string;
     {Gives the relative path to the current directory,
@@ -288,10 +289,19 @@ implementation
                                    Utils
 ****************************************************************************}
 
-    procedure WarnNonExistingPath(const path : string);
+    function bstoslash(const s : string) : string;
+    {
+      return string s with all \ changed into /
+    }
+      var
+         i : longint;
       begin
-        if assigned(do_comment) then
-          do_comment(V_Tried,'Path "'+path+'" not found');
+        for i:=1to length(s) do
+         if s[i]='\' then
+          bstoslash[i]:='/'
+         else
+          bstoslash[i]:=s[i];
+         bstoslash[0]:=s[0];
       end;
 
 
@@ -731,10 +741,12 @@ implementation
         end;
      end;
 
-  procedure TSearchPathList.AddPath(s:string;addfirst:boolean);
-    begin
-      AddPath('',s,AddFirst);
-    end;
+
+    procedure TSearchPathList.AddPath(s:string;addfirst:boolean);
+      begin
+        AddPath('',s,AddFirst);
+      end;
+
 
    procedure TSearchPathList.AddPath(SrcPath,s:string;addfirst:boolean);
      var
@@ -751,6 +763,12 @@ implementation
        dir      : TSearchRec;
 {$endif usedircache}
        hp       : TStringListItem;
+
+       procedure WarnNonExistingPath(const path : string);
+       begin
+         if assigned(do_comment) then
+           do_comment(V_Tried,'Path "'+path+'" not found');
+       end;
 
        procedure AddCurrPath;
        begin

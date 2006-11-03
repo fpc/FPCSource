@@ -1919,9 +1919,9 @@ unit cgx86;
          if not(cs_check_overflow in current_settings.localswitches) then
           exit;
          current_asmdata.getjumplabel(hl);
-         if not ((def.deftype=pointerdef) or
-                ((def.deftype=orddef) and
-                 (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,
+         if not ((def.typ=pointerdef) or
+                ((def.typ=orddef) and
+                 (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
                                        bool8bit,bool16bit,bool32bit,bool64bit]))) then
            cond:=C_NO
          else

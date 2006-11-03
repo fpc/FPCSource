@@ -331,7 +331,7 @@ begin
     header.os_type:=1;          {OS/2}
     {Set the initial EIP.}
     header.eip_object:=code_object;
-    hsym:=tasmsymbol(globalsyms.search('start'));
+    hsym:=tasmsymbol(globalsyms.Find('start'));
     if not assigned(hsym) then
     begin
         comment(V_Error,'Entrypoint "start" not defined');

@@ -73,7 +73,6 @@ compiler/arm/rarmsup.inc svneol=native#text/plain
 compiler/arm/rgcpu.pas svneol=native#text/plain
 compiler/assemble.pas svneol=native#text/plain
 compiler/browcol.pas svneol=native#text/plain
-compiler/browlog.pas svneol=native#text/plain
 compiler/bsdcompile -text
 compiler/catch.pas svneol=native#text/plain
 compiler/cclasses.pas svneol=native#text/plain

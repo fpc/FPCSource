@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=67;
+  CurrentPPUVersion=68;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -60,7 +60,7 @@ const
   ibendsyms           = 251;
   ibendinterface      = 252;
   ibendimplementation = 253;
-  ibendbrowser        = 254;
+//  ibendbrowser        = 254;
   ibend               = 255;
   {general}
   ibmodulename           = 1;
@@ -76,8 +76,8 @@ const
   ibImportSymbols        = 11;
   ibsymref               = 12;
   ibdefref               = 13;
-  ibendsymtablebrowser   = 14;
-  ibbeginsymtablebrowser = 15;
+//  ibendsymtablebrowser   = 14;
+//  ibbeginsymtablebrowser = 15;
 {$IFDEF MACRO_DIFF_HINT}
   ibusedmacros           = 16;
 {$ENDIF}
@@ -94,7 +94,7 @@ const
   ibabsolutevarsym = 26;
   ibpropertysym    = 27;
   ibfieldvarsym    = 28;
-  ibunitsym        = 29;  { needed for browser }
+  ibunitsym        = 29;
   iblabelsym       = 30;
   ibsyssym         = 31;
   ibrttisym        = 32;
@@ -129,12 +129,12 @@ const
   uf_init          = $1;
   uf_finalize      = $2;
   uf_big_endian    = $4;
-  uf_has_browser   = $10;
+//  uf_has_browser   = $10;
   uf_in_library    = $20;     { is the file in another file than <ppufile>.* ? }
   uf_smart_linked  = $40;     { the ppu can be smartlinked }
   uf_static_linked = $80;     { the ppu can be linked static }
   uf_shared_linked = $100;    { the ppu can be linked shared }
-  uf_local_browser = $200;
+//  uf_local_browser = $200;
   uf_no_link       = $400;    { unit has no .o generated, but can still have
                                 external linking! }
   uf_has_resourcestrings = $800;    { unit has resource string section }

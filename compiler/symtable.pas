@@ -43,32 +43,29 @@ interface
 ****************************************************************************}
 
     type
-       tstoredsymtable = class(tsymtable)
+       tstoredsymtable = class(TSymtable)
        private
           b_needs_init_final : boolean;
-          procedure _needs_init_final(p : tnamedindexitem;arg:pointer);
-          procedure check_forward(sym : TNamedIndexItem;arg:pointer);
-          procedure labeldefined(p : TNamedIndexItem;arg:pointer);
-          procedure varsymbolused(p : TNamedIndexItem;arg:pointer);
-          procedure TestPrivate(p : TNamedIndexItem;arg:pointer);
-          procedure objectprivatesymbolused(p : TNamedIndexItem;arg:pointer);
-          procedure unchain_overloads(p : TNamedIndexItem;arg:pointer);
+          procedure _needs_init_final(sym:TObject;arg:pointer);
+          procedure check_forward(sym:TObject;arg:pointer);
+          procedure labeldefined(sym:TObject;arg:pointer);
+          procedure varsymbolused(sym:TObject;arg:pointer);
+          procedure TestPrivate(sym:TObject;arg:pointer);
+          procedure objectprivatesymbolused(sym:TObject;arg:pointer);
+          procedure unchain_overloads(sym:TObject;arg:pointer);
           procedure loaddefs(ppufile:tcompilerppufile);
           procedure loadsyms(ppufile:tcompilerppufile);
-          procedure reset_def(def:Tnamedindexitem;arg:pointer);
           procedure writedefs(ppufile:tcompilerppufile);
           procedure writesyms(ppufile:tcompilerppufile);
        public
           { load/write }
           procedure ppuload(ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
-          procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
-          procedure write_references(ppufile:tcompilerppufile;locals:boolean);virtual;
           procedure buildderef;virtual;
           procedure buildderefimpl;virtual;
           procedure deref;virtual;
           procedure derefimpl;virtual;
-          function  checkduplicate(sym : tsymentry):boolean;override;
+          function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
           procedure reset_all_defs;virtual;
           procedure allsymbolsused;
           procedure allprivatesused;
@@ -76,7 +73,7 @@ interface
           procedure checklabels;
           function  needs_init_final : boolean;
           procedure unchain_overloaded;
-          procedure testfordefaultproperty(p : TNamedIndexItem;arg:pointer);
+          procedure testfordefaultproperty(sym:TObject;arg:pointer);
        end;
 
        tabstractrecordsymtable = class(tstoredsymtable)
@@ -88,12 +85,10 @@ interface
           constructor create(const n:string;usealign:shortint);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
-          procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure addfield(sym:tfieldvarsym);
           procedure insertfield(sym:tfieldvarsym);
           procedure addalignmentpadding;
-          procedure insertdef(def:tdefentry);override;
+          procedure insertdef(def:TDefEntry);override;
           function is_packed: boolean;
         protected
           procedure setdatasize(val: aint);
@@ -112,10 +107,10 @@ interface
           procedure insertunionst(unionst : trecordsymtable;offset : longint);
        end;
 
-       tobjectsymtable = class(tabstractrecordsymtable)
+       tObjectSymtable = class(tabstractrecordsymtable)
        public
-          constructor create(const n:string;usealign:shortint);
-          function  checkduplicate(sym : tsymentry):boolean;override;
+          constructor create(adefowner:tdef;const n:string;usealign:shortint);
+          function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
 
        tabstractlocalsymtable = class(tstoredsymtable)
@@ -125,52 +120,48 @@ interface
 
        tlocalsymtable = class(tabstractlocalsymtable)
        public
-          constructor create(level:byte);
-          function  checkduplicate(sym : tsymentry):boolean;override;
+          constructor create(adefowner:tdef;level:byte);
+          function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
 
        tparasymtable = class(tabstractlocalsymtable)
        public
-          constructor create(level:byte);
-          function  checkduplicate(sym : tsymentry):boolean;override;
+          constructor create(adefowner:tdef;level:byte);
+          function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
 
-       tabstractunitsymtable = class(tstoredsymtable)
+       tabstractuniTSymtable = class(tstoredsymtable)
        public
           constructor create(const n : string;id:word);
           function iscurrentunit:boolean;override;
        end;
 
-       tglobalsymtable = class(tabstractunitsymtable)
+       tglobalsymtable = class(tabstractuniTSymtable)
        public
           unittypecount : word;
           constructor create(const n : string;id:word);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
-          procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
-          function  checkduplicate(sym : tsymentry):boolean;override;
+          function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
 
-       tstaticsymtable = class(tabstractunitsymtable)
+       tstaticsymtable = class(tabstractuniTSymtable)
        public
           constructor create(const n : string;id:word);
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
-          procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
-          function  checkduplicate(sym : tsymentry):boolean;override;
+          function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
 
-       twithsymtable = class(tsymtable)
+       twithsymtable = class(TSymtable)
           withrefnode : tobject; { tnode }
-          constructor create(aowner:tdef;asymsearch:TDictionary;refnode:tobject{tnode});
+          constructor create(aowner:tdef;ASymList:TFPHashObjectList;refnode:tobject{tnode});
           destructor  destroy;override;
           procedure clear;override;
-          procedure insertdef(def:tdefentry);override;
+          procedure insertdef(def:TDefEntry);override;
         end;
 
-       tstt_exceptsymtable = class(tsymtable)
+       tstt_excepTSymtable = class(TSymtable)
        public
           constructor create;
        end;
@@ -180,27 +171,8 @@ interface
           constructor create(exported: boolean);
        end;
 
-       psymtablestackitem = ^tsymtablestackitem;
-       tsymtablestackitem = record
-         symtable : tsymtable;
-         next     : psymtablestackitem;
-       end;
-
-       tsymtablestack = class
-         stack : psymtablestackitem;
-         constructor create;
-         destructor destroy;override;
-         procedure clear;
-         procedure push(st:tsymtable);
-         procedure pop(st:tsymtable);
-         function  top:tsymtable;
-       end;
-
-
     var
        systemunit     : tglobalsymtable; { pointer to the system unit }
-       macrosymtablestack,
-       symtablestack  : tsymtablestack;
 
 
 {****************************************************************************
@@ -208,21 +180,21 @@ interface
 ****************************************************************************}
 
 {*** Misc ***}
-    function  findunitsymtable(st:tsymtable):tsymtable;
+    function  finduniTSymtable(st:TSymtable):TSymtable;
     function  FullTypeName(def,otherdef:tdef):string;
     procedure incompatibletypes(def1,def2:tdef);
-    procedure hidesym(sym:tsymentry);
-    procedure duplicatesym(dupsym,sym:tsymentry);
+    procedure hidesym(sym:TSymEntry);
+    procedure duplicatesym(var hashedid:THashedIDString;dupsym,origsym:TSymEntry);
 
 {*** Search ***}
     procedure addsymref(sym:tsym);
-    function  searchsym(const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
-    function  searchsym_type(const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
-    function  searchsym_in_module(pm:pointer;const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
-    function  searchsym_in_class(classh,contextclassh:tobjectdef;const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
-    function  searchsym_in_class_by_msgint(classh:tobjectdef;i:longint;out srdef : tdef;out srsym:tsym;out srsymtable:tsymtable):boolean;
-    function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:tsymtable):boolean;
-    function  search_system_type(const s: stringid): ttypesym;
+    function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+    function  searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+    function  searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+    function  searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+    function  searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
+    function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:TSymtable):boolean;
+    function  search_system_type(const s: TIDString): ttypesym;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
     {Looks for macro s (must be given in upper case) in the macrosymbolstack, }
@@ -264,7 +236,7 @@ interface
 {$endif UNITALIASES}
 
 {*** Init / Done ***}
-    procedure InitSymtable;
+    procedure IniTSymtable;
     procedure DoneSymtable;
 
     const
@@ -296,6 +268,10 @@ implementation
       ;
 
 
+    var
+      dupnr : longint; { unique number for duplicate symbols }
+
+
 {*****************************************************************************
                              TStoredSymtable
 *****************************************************************************}
@@ -322,43 +298,41 @@ implementation
 
     procedure tstoredsymtable.loaddefs(ppufile:tcompilerppufile);
       var
-        hp : tdef;
-        b  : byte;
+        def : tdef;
+        b   : byte;
       begin
-      { load start of definition section, which holds the amount of defs }
+         { load start of definition section, which holds the amount of defs }
          if ppufile.readentry<>ibstartdefs then
-          Message(unit_f_ppu_read_error);
-         ppufile.getlongint;
-      { read definitions }
+           Message(unit_f_ppu_read_error);
+         { read definitions }
          repeat
            b:=ppufile.readentry;
            case b of
-              ibpointerdef : hp:=tpointerdef.ppuload(ppufile);
-                ibarraydef : hp:=tarraydef.ppuload(ppufile);
-                  iborddef : hp:=torddef.ppuload(ppufile);
-                ibfloatdef : hp:=tfloatdef.ppuload(ppufile);
-                 ibprocdef : hp:=tprocdef.ppuload(ppufile);
-          ibshortstringdef : hp:=tstringdef.loadshort(ppufile);
-           iblongstringdef : hp:=tstringdef.loadlong(ppufile);
-           ibansistringdef : hp:=tstringdef.loadansi(ppufile);
-           ibwidestringdef : hp:=tstringdef.loadwide(ppufile);
-               ibrecorddef : hp:=trecorddef.ppuload(ppufile);
-               ibobjectdef : hp:=tobjectdef.ppuload(ppufile);
-                 ibenumdef : hp:=tenumdef.ppuload(ppufile);
-                  ibsetdef : hp:=tsetdef.ppuload(ppufile);
-              ibprocvardef : hp:=tprocvardef.ppuload(ppufile);
-                 ibfiledef : hp:=tfiledef.ppuload(ppufile);
-             ibclassrefdef : hp:=tclassrefdef.ppuload(ppufile);
-               ibformaldef : hp:=tformaldef.ppuload(ppufile);
-              ibvariantdef : hp:=tvariantdef.ppuload(ppufile);
-            ibundefineddef : hp:=tundefineddef.ppuload(ppufile);
+              ibpointerdef : def:=tpointerdef.ppuload(ppufile);
+                ibarraydef : def:=tarraydef.ppuload(ppufile);
+                  iborddef : def:=torddef.ppuload(ppufile);
+                ibfloatdef : def:=tfloatdef.ppuload(ppufile);
+                 ibprocdef : def:=tprocdef.ppuload(ppufile);
+          ibshortstringdef : def:=tstringdef.loadshort(ppufile);
+           iblongstringdef : def:=tstringdef.loadlong(ppufile);
+           ibansistringdef : def:=tstringdef.loadansi(ppufile);
+           ibwidestringdef : def:=tstringdef.loadwide(ppufile);
+               ibrecorddef : def:=trecorddef.ppuload(ppufile);
+               ibobjectdef : def:=tobjectdef.ppuload(ppufile);
+                 ibenumdef : def:=tenumdef.ppuload(ppufile);
+                  ibsetdef : def:=tsetdef.ppuload(ppufile);
+              ibprocvardef : def:=tprocvardef.ppuload(ppufile);
+                 ibfiledef : def:=tfiledef.ppuload(ppufile);
+             ibclassrefdef : def:=tclassrefdef.ppuload(ppufile);
+               ibformaldef : def:=tformaldef.ppuload(ppufile);
+              ibvariantdef : def:=tvariantdef.ppuload(ppufile);
+            ibundefineddef : def:=tundefineddef.ppuload(ppufile);
                  ibenddefs : break;
                      ibend : Message(unit_f_ppu_read_error);
            else
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
-           hp.owner:=self;
-           defindex.insert(hp);
+           InsertDef(def);
          until false;
       end;
 
@@ -371,8 +345,6 @@ implementation
       { load start of definition section, which holds the amount of defs }
          if ppufile.readentry<>ibstartsyms then
           Message(unit_f_ppu_read_error);
-         { skip amount of symbols, not used currently }
-         ppufile.getlongint;
          { now read the symbols }
          repeat
            b:=ppufile.readentry;
@@ -398,200 +370,144 @@ implementation
            else
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
-           sym.owner:=self;
-           symindex.insert(sym);
-           symsearch.insert(sym);
+           Insert(sym);
          until false;
       end;
 
 
     procedure tstoredsymtable.writedefs(ppufile:tcompilerppufile);
       var
-         pd : tstoreddef;
+        i   : longint;
+        def : tstoreddef;
       begin
-         { each definition get a number, write then the amount of defs to the
-           ibstartdef entry }
-         ppufile.putlongint(defindex.count);
-         ppufile.writeentry(ibstartdefs);
-         { now write the definition }
-         pd:=tstoreddef(defindex.first);
-         while assigned(pd) do
-           begin
-              pd.ppuwrite(ppufile);
-              pd:=tstoreddef(pd.indexnext);
-           end;
-         { write end of definitions }
-         ppufile.writeentry(ibenddefs);
+        { each definition get a number, write then the amount of defs to the
+          ibstartdef entry }
+        ppufile.putlongint(DefList.count);
+        ppufile.writeentry(ibstartdefs);
+        { now write the definition }
+        for i:=0 to DefList.Count-1 do
+          begin
+            def:=tstoreddef(DefList[i]);
+            if not(df_deleted in def.defoptions) then
+              def.ppuwrite(ppufile);
+          end;
+        { write end of definitions }
+        ppufile.writeentry(ibenddefs);
       end;
 
 
     procedure tstoredsymtable.writesyms(ppufile:tcompilerppufile);
       var
-        pd : Tstoredsym;
+        i   : longint;
+        sym : Tstoredsym;
       begin
-         { each definition get a number, write then the amount of syms and the
-           datasize to the ibsymdef entry }
-         ppufile.putlongint(symindex.count);
-         ppufile.writeentry(ibstartsyms);
-         { foreach is used to write all symbols }
-         pd:=Tstoredsym(symindex.first);
-         while assigned(pd) do
-           begin
-              pd.ppuwrite(ppufile);
-              pd:=Tstoredsym(pd.indexnext);
-           end;
-         { end of symbols }
-         ppufile.writeentry(ibendsyms);
-      end;
-
-
-    procedure tstoredsymtable.load_references(ppufile:tcompilerppufile;locals:boolean);
-      var
-        b     : byte;
-        d     : tderef;
-        sym   : Tsym;
-        prdef : tstoreddef;
-      begin
-         b:=ppufile.readentry;
-         if b <> ibbeginsymtablebrowser then
-           Message1(unit_f_ppu_invalid_entry,tostr(b));
-         repeat
-           b:=ppufile.readentry;
-           case b of
-             ibsymref :
-               begin
-                 ppufile.getderef(d);
-                 sym:=Tsym(d.resolve);
-                 if assigned(sym) then
-                   sym.load_references(ppufile,locals);
-               end;
-             ibdefref :
-               begin
-                 ppufile.getderef(d);
-                 prdef:=tstoreddef(d.resolve);
-                 if assigned(prdef) then
-                   begin
-                     if prdef.deftype<>procdef then
-                       Message(unit_f_ppu_read_error);
-                     tprocdef(prdef).load_references(ppufile,locals);
-                   end;
-               end;
-             ibendsymtablebrowser :
-               break;
-             else
-               Message1(unit_f_ppu_invalid_entry,tostr(b));
-           end;
-         until false;
-      end;
-
-
-    procedure tstoredsymtable.write_references(ppufile:tcompilerppufile;locals:boolean);
-      var
-        pd : Tsym;
-      begin
-         ppufile.writeentry(ibbeginsymtablebrowser);
-         { write all symbols }
-         pd:=Tsym(symindex.first);
-         while assigned(pd) do
-           begin
-              pd.write_references(ppufile,locals);
-              pd:=Tsym(pd.indexnext);
-           end;
-         ppufile.writeentry(ibendsymtablebrowser);
+        { each definition get a number, write then the amount of syms and the
+          datasize to the ibsymdef entry }
+        ppufile.putlongint(SymList.count);
+        ppufile.writeentry(ibstartsyms);
+        { foreach is used to write all symbols }
+        for i:=0 to SymList.Count-1 do
+          begin
+            sym:=tstoredsym(SymList[i]);
+            sym.ppuwrite(ppufile);
+          end;
+        { end of symbols }
+        ppufile.writeentry(ibendsyms);
       end;
 
 
     procedure tstoredsymtable.buildderef;
       var
-        hp : tdef;
-        hs : tsym;
+        i   : longint;
+        def : tstoreddef;
+        sym : tstoredsym;
       begin
         { interface definitions }
-        hp:=tdef(defindex.first);
-        while assigned(hp) do
-         begin
-           hp.buildderef;
-           hp:=tdef(hp.indexnext);
-         end;
+        for i:=0 to DefList.Count-1 do
+          begin
+            def:=tstoreddef(DefList[i]);
+            if not(df_deleted in def.defoptions) then
+              def.buildderef;
+          end;
         { interface symbols }
-        hs:=tsym(symindex.first);
-        while assigned(hs) do
-         begin
-           hs.buildderef;
-           hs:=tsym(hs.indexnext);
-         end;
+        for i:=0 to SymList.Count-1 do
+          begin
+            sym:=tstoredsym(SymList[i]);
+            sym.buildderef;
+          end;
       end;
 
 
     procedure tstoredsymtable.buildderefimpl;
       var
-        hp : tdef;
+        i   : longint;
+        def : tstoreddef;
       begin
-        { definitions }
-        hp:=tdef(defindex.first);
-        while assigned(hp) do
-         begin
-           hp.buildderefimpl;
-           hp:=tdef(hp.indexnext);
-         end;
+        { implementation definitions }
+        for i:=0 to DefList.Count-1 do
+          begin
+            def:=tstoreddef(DefList[i]);
+            if not(df_deleted in def.defoptions) then
+              def.buildderefimpl;
+          end;
       end;
 
 
     procedure tstoredsymtable.deref;
       var
-        hp : tdef;
-        hs : tsym;
+        i   : longint;
+        def : tstoreddef;
+        sym : tstoredsym;
       begin
         { first deref the interface ttype symbols. This is needs
           to be done before the interface defs are derefed, because
           the interface defs can contain references to the type symbols
           which then already need to contain a resolved typedef field (PFV) }
-        hs:=tsym(symindex.first);
-        while assigned(hs) do
-         begin
-           if hs.typ=typesym then
-             hs.deref;
-           hs:=tsym(hs.indexnext);
-         end;
-        { deref the interface definitions }
-        hp:=tdef(defindex.first);
-        while assigned(hp) do
-         begin
-           hp.deref;
-           hp:=tdef(hp.indexnext);
-         end;
-        { deref the interface symbols }
-        hs:=tsym(symindex.first);
-        while assigned(hs) do
-         begin
-           if hs.typ<>typesym then
-             hs.deref;
-           hs:=tsym(hs.indexnext);
-         end;
+        for i:=0 to SymList.Count-1 do
+          begin
+            sym:=tstoredsym(SymList[i]);
+            if sym.typ=typesym then
+              sym.deref;
+          end;
+        { interface definitions }
+        for i:=0 to DefList.Count-1 do
+          begin
+            def:=tstoreddef(DefList[i]);
+            if not(df_deleted in def.defoptions) then
+              def.deref;
+          end;
+        { interface symbols }
+        for i:=0 to SymList.Count-1 do
+          begin
+            sym:=tstoredsym(SymList[i]);
+            if sym.typ<>typesym then
+              sym.deref;
+          end;
       end;
 
 
     procedure tstoredsymtable.derefimpl;
       var
-        hp : tdef;
+        i   : longint;
+        def : tstoreddef;
       begin
-        { definitions }
-        hp:=tdef(defindex.first);
-        while assigned(hp) do
-         begin
-           hp.derefimpl;
-           hp:=tdef(hp.indexnext);
-         end;
+        { implementation definitions }
+        for i:=0 to DefList.Count-1 do
+          begin
+            def:=tstoreddef(DefList[i]);
+            if not(df_deleted in def.defoptions) then
+              def.derefimpl;
+          end;
       end;
 
 
-    function tstoredsymtable.checkduplicate(sym:tsymentry):boolean;
+    function tstoredsymtable.checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;
       var
         hsym : tsym;
       begin
-        hsym:=tsym(speedsearch(sym.name,sym.speedvalue));
+        hsym:=tsym(FindWithHash(hashedid));
         if assigned(hsym) then
-          DuplicateSym(sym,hsym);
+          DuplicateSym(hashedid,sym,hsym);
         result:=assigned(hsym);
       end;
 
@@ -600,7 +516,7 @@ implementation
              Callbacks
 **************************************}
 
-    procedure TStoredSymtable.check_forward(sym : TNamedIndexItem;arg:pointer);
+    procedure TStoredSymtable.check_forward(sym:TObject;arg:pointer);
       begin
          if tsym(sym).typ=procsym then
            tprocsym(sym).check_forward
@@ -612,29 +528,29 @@ implementation
           if (tsym(sym).typ=typesym) and
              assigned(ttypesym(sym).typedef) and
              (ttypesym(sym).typedef.typesym=ttypesym(sym)) and
-             (ttypesym(sym).typedef.deftype=objectdef) then
+             (ttypesym(sym).typedef.typ=objectdef) then
            tobjectdef(ttypesym(sym).typedef).check_forwards;
       end;
 
 
-    procedure TStoredSymtable.labeldefined(p : TNamedIndexItem;arg:pointer);
+    procedure TStoredSymtable.labeldefined(sym:TObject;arg:pointer);
       begin
-        if (tsym(p).typ=labelsym) and
-           not(tlabelsym(p).defined) then
+        if (tsym(sym).typ=labelsym) and
+           not(tlabelsym(sym).defined) then
          begin
-           if tlabelsym(p).used then
-            Message1(sym_e_label_used_and_not_defined,tlabelsym(p).realname)
+           if tlabelsym(sym).used then
+            Message1(sym_e_label_used_and_not_defined,tlabelsym(sym).realname)
            else
-            Message1(sym_w_label_not_defined,tlabelsym(p).realname);
+            Message1(sym_w_label_not_defined,tlabelsym(sym).realname);
          end;
       end;
 
 
-    procedure TStoredSymtable.varsymbolused(p : TNamedIndexItem;arg:pointer);
+    procedure TStoredSymtable.varsymbolused(sym:TObject;arg:pointer);
       begin
-         if (tsym(p).typ in [globalvarsym,localvarsym,paravarsym,fieldvarsym]) and
-            ((tsym(p).owner.symtabletype in
-             [parasymtable,localsymtable,objectsymtable,staticsymtable])) then
+         if (tsym(sym).typ in [globalvarsym,localvarsym,paravarsym,fieldvarsym]) and
+            ((tsym(sym).owner.symtabletype in
+             [parasymtable,localsymtable,ObjectSymtable,staticsymtable])) then
           begin
            { unused symbol should be reported only if no }
            { error is reported                     }
@@ -642,97 +558,91 @@ implementation
            { also don't count the value parameters which have local copies }
            { also don't claim for high param of open parameters (PM) }
            if (Errorcount<>0) or
-              ([vo_is_hidden_para,vo_is_funcret] * tabstractvarsym(p).varoptions = [vo_is_hidden_para]) then
+              ([vo_is_hidden_para,vo_is_funcret] * tabstractvarsym(sym).varoptions = [vo_is_hidden_para]) then
              exit;
-           if (tstoredsym(p).refs=0) then
+           if (tstoredsym(sym).refs=0) then
              begin
-                if (vo_is_funcret in tabstractvarsym(p).varoptions) then
+                if (vo_is_funcret in tabstractvarsym(sym).varoptions) then
                   begin
                     { don't warn about the result of constructors }
-                    if (tsym(p).owner.symtabletype<>localsymtable) or
-                       (tprocdef(tsym(p).owner.defowner).proctypeoption<>potype_constructor) then
-                      MessagePos(tsym(p).fileinfo,sym_w_function_result_not_set)
+                    if (tsym(sym).owner.symtabletype<>localsymtable) or
+                       (tprocdef(tsym(sym).owner.defowner).proctypeoption<>potype_constructor) then
+                      MessagePos(tsym(sym).fileinfo,sym_w_function_result_not_set)
                   end
-                else if (tsym(p).owner.symtabletype=parasymtable) then
-                  MessagePos1(tsym(p).fileinfo,sym_h_para_identifier_not_used,tsym(p).realname)
-                else if (tsym(p).owner.symtabletype=objectsymtable) then
-                  MessagePos2(tsym(p).fileinfo,sym_n_private_identifier_not_used,tsym(p).owner.realname^,tsym(p).realname)
+                else if (tsym(sym).owner.symtabletype=parasymtable) then
+                  MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_not_used,tsym(sym).realname)
+                else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
+                  MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_not_used,tsym(sym).owner.realname^,tsym(sym).realname)
                 else
-                  MessagePos1(tsym(p).fileinfo,sym_n_local_identifier_not_used,tsym(p).realname);
+                  MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_not_used,tsym(sym).realname);
              end
-           else if tabstractvarsym(p).varstate in [vs_written,vs_initialised] then
+           else if tabstractvarsym(sym).varstate in [vs_written,vs_initialised] then
              begin
-                if (tsym(p).owner.symtabletype=parasymtable) then
+                if (tsym(sym).owner.symtabletype=parasymtable) then
                   begin
-                    if not(tabstractvarsym(p).varspez in [vs_var,vs_out]) and
-                       not(vo_is_funcret in tabstractvarsym(p).varoptions) then
-                      MessagePos1(tsym(p).fileinfo,sym_h_para_identifier_only_set,tsym(p).realname)
+                    if not(tabstractvarsym(sym).varspez in [vs_var,vs_out]) and
+                       not(vo_is_funcret in tabstractvarsym(sym).varoptions) then
+                      MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_only_set,tsym(sym).realname)
                   end
-                else if (tsym(p).owner.symtabletype=objectsymtable) then
-                  MessagePos2(tsym(p).fileinfo,sym_n_private_identifier_only_set,tsym(p).owner.realname^,tsym(p).realname)
-                else if not(vo_is_exported in tabstractvarsym(p).varoptions) and
-                        not(vo_is_funcret in tabstractvarsym(p).varoptions) then
-                  MessagePos1(tsym(p).fileinfo,sym_n_local_identifier_only_set,tsym(p).realname);
+                else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
+                  MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_only_set,tsym(sym).owner.realname^,tsym(sym).realname)
+                else if not(vo_is_exported in tabstractvarsym(sym).varoptions) and
+                        not(vo_is_funcret in tabstractvarsym(sym).varoptions) then
+                  MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_only_set,tsym(sym).realname);
              end
-           else if (tabstractvarsym(p).varstate = vs_read_not_warned) and
-                   ([vo_is_exported,vo_is_external] * tabstractvarsym(p).varoptions = []) then
-             MessagePos1(tsym(p).fileinfo,sym_w_identifier_only_read,tsym(p).realname)
+           else if (tabstractvarsym(sym).varstate = vs_read_not_warned) and
+                   ([vo_is_exported,vo_is_external] * tabstractvarsym(sym).varoptions = []) then
+             MessagePos1(tsym(sym).fileinfo,sym_w_identifier_only_read,tsym(sym).realname)
          end
-      else if ((tsym(p).owner.symtabletype in
-              [objectsymtable,parasymtable,localsymtable,staticsymtable])) then
+      else if ((tsym(sym).owner.symtabletype in
+              [ObjectSymtable,parasymtable,localsymtable,staticsymtable])) then
           begin
            if (Errorcount<>0) or
-              (sp_internal in tsym(p).symoptions) then
+              (sp_internal in tsym(sym).symoptions) then
              exit;
            { do not claim for inherited private fields !! }
-           if (Tsym(p).refs=0) and (tsym(p).owner.symtabletype=objectsymtable) then
-             MessagePos2(tsym(p).fileinfo,sym_n_private_method_not_used,tsym(p).owner.realname^,tsym(p).realname)
+           if (Tsym(sym).refs=0) and (tsym(sym).owner.symtabletype=ObjectSymtable) then
+             MessagePos2(tsym(sym).fileinfo,sym_n_private_method_not_used,tsym(sym).owner.realname^,tsym(sym).realname)
            { units references are problematic }
            else
             begin
-              if (Tsym(p).refs=0) and
-                 not(tsym(p).typ in [enumsym,unitsym]) and
-                 not(is_funcret_sym(tsym(p))) and
+              if (Tsym(sym).refs=0) and
+                 not(tsym(sym).typ in [enumsym,unitsym]) and
+                 not(is_funcret_sym(tsym(sym))) and
                  (
-                  (tsym(p).typ<>procsym) or
-                  ((tsym(p).owner.symtabletype=staticsymtable) and
+                  (tsym(sym).typ<>procsym) or
+                  ((tsym(sym).owner.symtabletype=staticsymtable) and
                    not current_module.is_unit)
                  ) then
-                MessagePos2(tsym(p).fileinfo,sym_h_local_symbol_not_used,SymTypeName[tsym(p).typ],tsym(p).realname);
+                MessagePos2(tsym(sym).fileinfo,sym_h_local_symbol_not_used,SymTypeName[tsym(sym).typ],tsym(sym).realname);
             end;
           end;
       end;
 
 
-    procedure TStoredSymtable.TestPrivate(p : TNamedIndexItem;arg:pointer);
+    procedure TStoredSymtable.TestPrivate(sym:TObject;arg:pointer);
       begin
-        if sp_private in tsym(p).symoptions then
-          varsymbolused(p,arg);
+        if sp_private in tsym(sym).symoptions then
+          varsymbolused(sym,arg);
       end;
 
 
-    procedure TStoredSymtable.objectprivatesymbolused(p : TNamedIndexItem;arg:pointer);
+    procedure TStoredSymtable.objectprivatesymbolused(sym:TObject;arg:pointer);
       begin
          {
            Don't test simple object aliases PM
          }
-         if (tsym(p).typ=typesym) and
-            (ttypesym(p).typedef.deftype=objectdef) and
-            (ttypesym(p).typedef.typesym=tsym(p)) then
-           tobjectdef(ttypesym(p).typedef).symtable.foreach(@TestPrivate,nil);
+         if (tsym(sym).typ=typesym) and
+            (ttypesym(sym).typedef.typ=objectdef) and
+            (ttypesym(sym).typedef.typesym=tsym(sym)) then
+           tobjectdef(ttypesym(sym).typedef).symtable.SymList.ForEachCall(@TestPrivate,nil);
       end;
 
 
-    procedure tstoredsymtable.unchain_overloads(p : TNamedIndexItem;arg:pointer);
+    procedure tstoredsymtable.unchain_overloads(sym:TObject;arg:pointer);
       begin
-         if tsym(p).typ=procsym then
-           tprocsym(p).unchain_overload;
-      end;
-
-
-    procedure Tstoredsymtable.reset_def(def:Tnamedindexitem;arg:pointer);
-      begin
-        Tstoreddef(def).reset;
+         if tsym(sym).typ=procsym then
+           tprocsym(sym).unchain_overload;
       end;
 
 
@@ -741,60 +651,68 @@ implementation
 ***********************************************}
 
     procedure Tstoredsymtable.reset_all_defs;
+      var
+        i   : longint;
+        def : tstoreddef;
       begin
-        defindex.foreach(@reset_def,nil);
+        for i:=0 to DefList.Count-1 do
+          begin
+            def:=tstoreddef(DefList[i]);
+            if not(df_deleted in def.defoptions) then
+              def.reset;
+          end;
       end;
 
 
     { checks, if all procsyms and methods are defined }
     procedure tstoredsymtable.check_forwards;
       begin
-         foreach(@check_forward,nil);
+         SymList.ForEachCall(@check_forward,nil);
       end;
 
 
     procedure tstoredsymtable.checklabels;
       begin
-         foreach(@labeldefined,nil);
+         SymList.ForEachCall(@labeldefined,nil);
       end;
 
 
     procedure tstoredsymtable.allsymbolsused;
       begin
-         foreach(@varsymbolused,nil);
+         SymList.ForEachCall(@varsymbolused,nil);
       end;
 
 
     procedure tstoredsymtable.allprivatesused;
       begin
-         foreach(@objectprivatesymbolused,nil);
+         SymList.ForEachCall(@objectprivatesymbolused,nil);
       end;
 
 
     procedure tstoredsymtable.unchain_overloaded;
       begin
-         foreach(@unchain_overloads,nil);
+         SymList.ForEachCall(@unchain_overloads,nil);
       end;
 
 
-    procedure TStoredSymtable._needs_init_final(p : tnamedindexitem;arg:pointer);
+    procedure TStoredSymtable._needs_init_final(sym:TObject;arg:pointer);
       begin
          if b_needs_init_final then
           exit;
-         case tsym(p).typ of
+         case tsym(sym).typ of
            fieldvarsym,
            globalvarsym,
            localvarsym,
            paravarsym :
              begin
-               if not(is_class(tabstractvarsym(p).vardef)) and
-                  tstoreddef(tabstractvarsym(p).vardef).needs_inittable then
+               if not(is_class(tabstractvarsym(sym).vardef)) and
+                  tstoreddef(tabstractvarsym(sym).vardef).needs_inittable then
                  b_needs_init_final:=true;
              end;
            typedconstsym :
              begin
-               if ttypedconstsym(p).is_writable and
-                  tstoreddef(ttypedconstsym(p).typedconstdef).needs_inittable then
+               if ttypedconstsym(sym).is_writable and
+                  tstoreddef(ttypedconstsym(sym).typedconstdef).needs_inittable then
                  b_needs_init_final:=true;
              end;
          end;
@@ -805,7 +723,7 @@ implementation
     function tstoredsymtable.needs_init_final : boolean;
       begin
          b_needs_init_final:=false;
-         foreach(@_needs_init_final,nil);
+         SymList.ForEachCall(@_needs_init_final,nil);
          needs_init_final:=b_needs_init_final;
       end;
 
@@ -835,58 +753,21 @@ implementation
 
 
     procedure tabstractrecordsymtable.ppuload(ppufile:tcompilerppufile);
-      var
-        storesymtable : tsymtable;
       begin
-        storesymtable:=aktrecordsymtable;
-        aktrecordsymtable:=self;
-
         inherited ppuload(ppufile);
-
-        aktrecordsymtable:=storesymtable;
       end;
 
 
     procedure tabstractrecordsymtable.ppuwrite(ppufile:tcompilerppufile);
       var
         oldtyp : byte;
-        storesymtable : tsymtable;
       begin
-         storesymtable:=aktrecordsymtable;
-         aktrecordsymtable:=self;
          oldtyp:=ppufile.entrytyp;
          ppufile.entrytyp:=subentryid;
 
          inherited ppuwrite(ppufile);
 
          ppufile.entrytyp:=oldtyp;
-         aktrecordsymtable:=storesymtable;
-      end;
-
-
-    procedure tabstractrecordsymtable.load_references(ppufile:tcompilerppufile;locals:boolean);
-      var
-        storesymtable : tsymtable;
-      begin
-        storesymtable:=aktrecordsymtable;
-        aktrecordsymtable:=self;
-
-        inherited load_references(ppufile,locals);
-
-        aktrecordsymtable:=storesymtable;
-      end;
-
-
-    procedure tabstractrecordsymtable.write_references(ppufile:tcompilerppufile;locals:boolean);
-      var
-        storesymtable : tsymtable;
-      begin
-        storesymtable:=aktrecordsymtable;
-        aktrecordsymtable:=self;
-
-        inherited write_references(ppufile,locals);
-
-        aktrecordsymtable:=storesymtable;
       end;
 
 
@@ -946,7 +827,7 @@ implementation
           begin
             if (varalign>4) and
               ((varalign mod 4)<>0) and
-              (vardef.deftype=arraydef) then
+              (vardef.typ=arraydef) then
               Message1(sym_w_wrong_C_pack,vardef.typename);
             if varalign=0 then
               varalign:=l;
@@ -1018,11 +899,11 @@ implementation
       end;
 
 
-    procedure tabstractrecordsymtable.insertdef(def:tdefentry);
+    procedure tabstractrecordsymtable.insertdef(def:TDefEntry);
       begin
         { Enums must also be available outside the record scope,
           insert in the owner of this symtable }
-        if def.deftype=enumdef then
+        if def.typ=enumdef then
           defowner.owner.insertdef(def)
         else
           inherited insertdef(def);
@@ -1059,34 +940,39 @@ implementation
       the complete size (see code in pdecl unit) PM }
     procedure trecordsymtable.insertunionst(unionst : trecordsymtable;offset : longint);
       var
-        ps,nps : tsym;
-        pd,npd : tdef;
+        sym : tsym;
+        def : tdef;
+        i,
         varalignrecord,varalign,
         storesize,storealign : longint;
       begin
-        { copy symbols }
         storesize:=_datasize;
         storealign:=fieldalignment;
         _datasize:=offset;
         databitsize:=offset*8;
-        ps:=tsym(unionst.symindex.first);
-        while assigned(ps) do
+
+        { We move the ownership of the defs and symbols to the new recordsymtable.
+          The old unionsymtable keeps the references, but doesn't own the
+          objects anymore }
+        unionst.DefList.OwnsObjects:=false;
+        unionst.SymList.OwnsObjects:=false;
+
+        { copy symbols }
+        for i:=0 to unionst.SymList.Count-1 do
           begin
-            if ps.typ<>fieldvarsym then
+            sym:=TSym(unionst.SymList[i]);
+            if sym.typ<>fieldvarsym then
               internalerror(200601272);
-            nps:=tsym(ps.indexnext);
-            { remove from current symtable }
-            unionst.symindex.deleteindex(ps);
-            ps.left:=nil;
-            ps.right:=nil;
-            { add to this record }
-            ps.owner:=self;
+            { add to this record symtable }
+//            unionst.SymList.List.List^[i].Data:=nil;
+            sym.ChangeOwner(self);
+            { retrieve size }
             if (usefieldalignment=bit_alignment) then
               begin
                 { bit packed records are limited to high(aint) bits }
                 { instead of bytes to avoid double precision        }
                 { arithmetic in offset calculations                 }
-                if (databitsize)>high(aint) then
+                if databitsize>high(aint) then
                   begin
                     Message(sym_e_segment_too_large);
                     _datasize:=high(aint);
@@ -1094,46 +980,35 @@ implementation
                   end
                 else
                   begin
-                    databitsize:=tfieldvarsym(ps).fieldoffset+offset*8;
+                    databitsize:=tfieldvarsym(sym).fieldoffset+offset*8;
                     _datasize:=(databitsize+7) div 8;
                   end;
-                tfieldvarsym(ps).fieldoffset:=databitsize;
+                tfieldvarsym(sym).fieldoffset:=databitsize;
               end
             else
               begin
-                _datasize:=tfieldvarsym(ps).fieldoffset+offset;
+                _datasize:=tfieldvarsym(sym).fieldoffset+offset;
                 if _datasize>high(aint) then
                   begin
                     Message(sym_e_segment_too_large);
                     _datasize:=high(aint);
                   end;
                 { update address }
-                tfieldvarsym(ps).fieldoffset:=_datasize;
+                tfieldvarsym(sym).fieldoffset:=_datasize;
                 { update alignment of this record }
-                varalign:=tfieldvarsym(ps).vardef.alignment;
+                varalign:=tfieldvarsym(sym).vardef.alignment;
                 if varalign=0 then
-                  varalign:=size_2_align(tfieldvarsym(ps).getsize);
+                  varalign:=size_2_align(tfieldvarsym(sym).getsize);
                 varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,fieldalignment);
                 recordalignment:=max(recordalignment,varalignrecord);
               end;
-
-            symindex.insert(ps);
-            symsearch.insert(ps);
-
-            { next }
-            ps:=nps;
           end;
-        { copy defs }
-        pd:=tdef(unionst.defindex.first);
-        while assigned(pd) do
+        { Register defs in the new record symtable }
+        for i:=0 to unionst.DefList.Count-1 do
           begin
-            npd:=tdef(pd.indexnext);
-            unionst.defindex.deleteindex(pd);
-            pd.left:=nil;
-            pd.right:=nil;
-            pd.owner:=self;
-            defindex.insert(pd);
-            pd:=npd;
+            def:=TDef(unionst.DefList[i]);
+//            unionst.DefList.List[i]:=nil;
+            def.ChangeOwner(self);
           end;
         _datasize:=storesize;
         fieldalignment:=storealign;
@@ -1144,14 +1019,15 @@ implementation
                               TObjectSymtable
 ****************************************************************************}
 
-    constructor tobjectsymtable.create(const n:string;usealign:shortint);
+    constructor tObjectSymtable.create(adefowner:tdef;const n:string;usealign:shortint);
       begin
         inherited create(n,usealign);
-        symtabletype:=objectsymtable;
+        symtabletype:=ObjectSymtable;
+        defowner:=adefowner;
       end;
 
 
-    function tobjectsymtable.checkduplicate(sym:tsymentry):boolean;
+    function tObjectSymtable.checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;
       var
          hsym : tsym;
       begin
@@ -1176,13 +1052,13 @@ implementation
               if assigned(hsym) and
                  tsym(hsym).is_visible_for_object(tobjectdef(defowner),tobjectdef(defowner)) then
                 begin
-                  DuplicateSym(sym,hsym);
+                  DuplicateSym(hashedid,sym,hsym);
                   result:=true;
                 end;
            end
          else
            begin
-             result:=inherited checkduplicate(sym);
+             result:=inherited checkduplicate(hashedid,sym);
              if result then
                exit;
            end;
@@ -1213,24 +1089,25 @@ implementation
                               TLocalSymtable
 ****************************************************************************}
 
-    constructor tlocalsymtable.create(level:byte);
+    constructor tlocalsymtable.create(adefowner:tdef;level:byte);
       begin
         inherited create('');
+        defowner:=adefowner;
         symtabletype:=localsymtable;
         symtablelevel:=level;
       end;
 
 
-    function tlocalsymtable.checkduplicate(sym:tsymentry):boolean;
+    function tlocalsymtable.checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;
       var
         hsym : tsym;
       begin
         if not assigned(defowner) or
-           (defowner.deftype<>procdef) then
+           (defowner.typ<>procdef) then
           internalerror(200602042);
 
         result:=false;
-        hsym:=tsym(speedsearch(sym.name,sym.speedvalue));
+        hsym:=tsym(FindWithHash(hashedid));
         if assigned(hsym) then
           begin
             { a local and the function can have the same
@@ -1242,7 +1119,7 @@ implementation
                    (vo_is_result in tabstractvarsym(hsym).varoptions)) then
               HideSym(hsym)
             else
-              DuplicateSym(sym,hsym);
+              DuplicateSym(hashedid,sym,hsym);
             result:=true;
             exit;
           end;
@@ -1250,7 +1127,7 @@ implementation
         { check also parasymtable, this needs to be done here becuase
           of the special situation with the funcret sym that needs to be
           hidden for tp and delphi modes }
-        hsym:=tsym(tabstractprocdef(defowner).parast.speedsearch(sym.name,sym.speedvalue));
+        hsym:=tsym(tabstractprocdef(defowner).parast.FindWithHash(hashedid));
         if assigned(hsym) then
           begin
             { a local and the function can have the same
@@ -1262,18 +1139,18 @@ implementation
                    (vo_is_result in tabstractvarsym(sym).varoptions)) then
               HideSym(sym)
             else
-              DuplicateSym(sym,hsym);
+              DuplicateSym(hashedid,sym,hsym);
           end;
 
-        { check objectsymtable, skip this for funcret sym because
+        { check ObjectSymtable, skip this for funcret sym because
           that will always be positive because it has the same name
           as the procsym }
         if not(m_duplicate_names in current_settings.modeswitches) and
            not is_funcret_sym(sym) and
-           (defowner.deftype=procdef) and
+           (defowner.typ=procdef) and
            assigned(tprocdef(defowner)._class) and
            (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) then
-          result:=tprocdef(defowner)._class.symtable.checkduplicate(sym);
+          result:=tprocdef(defowner)._class.symtable.checkduplicate(hashedid,sym);
       end;
 
 
@@ -1281,40 +1158,40 @@ implementation
                               TParaSymtable
 ****************************************************************************}
 
-    constructor tparasymtable.create(level:byte);
+    constructor tparasymtable.create(adefowner:tdef;level:byte);
       begin
         inherited create('');
+        defowner:=adefowner;
         symtabletype:=parasymtable;
         symtablelevel:=level;
       end;
 
 
-    function tparasymtable.checkduplicate(sym:tsymentry):boolean;
+    function tparasymtable.checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;
       begin
-        result:=inherited checkduplicate(sym);
+        result:=inherited checkduplicate(hashedid,sym);
         if result then
           exit;
         if not(m_duplicate_names in current_settings.modeswitches) and
-           (defowner.deftype=procdef) and
+           (defowner.typ=procdef) and
            assigned(tprocdef(defowner)._class) and
            (tprocdef(defowner).owner.defowner=tprocdef(defowner)._class) then
-          result:=tprocdef(defowner)._class.symtable.checkduplicate(sym);
+          result:=tprocdef(defowner)._class.symtable.checkduplicate(hashedid,sym);
       end;
 
 
 {****************************************************************************
-                         TAbstractUnitSymtable
+                         TAbstractUniTSymtable
 ****************************************************************************}
 
-    constructor tabstractunitsymtable.create(const n : string;id:word);
+    constructor tabstractuniTSymtable.create(const n : string;id:word);
       begin
         inherited create(n);
         moduleid:=id;
-        symsearch.usehash;
       end;
 
 
-    function tabstractunitsymtable.iscurrentunit:boolean;
+    function tabstractuniTSymtable.iscurrentunit:boolean;
       begin
         result:=assigned(current_module) and
                 (
@@ -1351,24 +1228,12 @@ implementation
       end;
 
 
-    procedure tstaticsymtable.load_references(ppufile:tcompilerppufile;locals:boolean);
-      begin
-        inherited load_references(ppufile,locals);
-      end;
-
-
-    procedure tstaticsymtable.write_references(ppufile:tcompilerppufile;locals:boolean);
-      begin
-        inherited write_references(ppufile,locals);
-      end;
-
-
-    function tstaticsymtable.checkduplicate(sym:tsymentry):boolean;
+    function tstaticsymtable.checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;
       var
         hsym : tsym;
       begin
         result:=false;
-        hsym:=tsym(speedsearch(sym.name,sym.speedvalue));
+        hsym:=tsym(FindWithHash(hashedid));
         if assigned(hsym) then
           begin
             { Delphi you can have a symbol with the same name as the
@@ -1378,14 +1243,14 @@ implementation
                (hsym.typ=symconst.unitsym) then
               HideSym(hsym)
             else
-              DuplicateSym(sym,hsym);
+              DuplicateSym(hashedid,sym,hsym);
             result:=true;
             exit;
           end;
 
         if (current_module.localsymtable=self) and
            assigned(current_module.globalsymtable) then
-          result:=tglobalsymtable(current_module.globalsymtable).checkduplicate(sym);
+          result:=tglobalsymtable(current_module.globalsymtable).checkduplicate(hashedid,sym);
       end;
 
 
@@ -1417,24 +1282,12 @@ implementation
       end;
 
 
-    procedure tglobalsymtable.load_references(ppufile:tcompilerppufile;locals:boolean);
-      begin
-        inherited load_references(ppufile,locals);
-      end;
-
-
-    procedure tglobalsymtable.write_references(ppufile:tcompilerppufile;locals:boolean);
-      begin
-        inherited write_references(ppufile,locals);
-      end;
-
-
-    function tglobalsymtable.checkduplicate(sym:tsymentry):boolean;
+    function tglobalsymtable.checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;
       var
         hsym : tsym;
       begin
         result:=false;
-        hsym:=tsym(speedsearch(sym.name,sym.speedvalue));
+        hsym:=tsym(FindWithHash(hashedid));
         if assigned(hsym) then
           begin
             { Delphi you can have a symbol with the same name as the
@@ -1444,7 +1297,7 @@ implementation
                (hsym.typ=symconst.unitsym) then
               HideSym(hsym)
             else
-              DuplicateSym(sym,hsym);
+              DuplicateSym(hashedid,sym,hsym);
             result:=true;
             exit;
           end;
@@ -1455,15 +1308,14 @@ implementation
                               TWITHSYMTABLE
 ****************************************************************************}
 
-    constructor twithsymtable.create(aowner:tdef;asymsearch:TDictionary;refnode:tobject{tnode});
+    constructor twithsymtable.create(aowner:tdef;ASymList:TFPHashObjectList;refnode:tobject{tnode});
       begin
          inherited create('');
          symtabletype:=withsymtable;
          withrefnode:=refnode;
-         { we don't need the symsearch }
-         symsearch.free;
-         { set the defaults }
-         symsearch:=asymsearch;
+         { Replace SymList with the passed symlist }
+         SymList.free;
+         SymList:=ASymList;
          defowner:=aowner;
       end;
 
@@ -1471,7 +1323,8 @@ implementation
     destructor twithsymtable.destroy;
       begin
         withrefnode.free;
-        symsearch:=nil;
+        { Disable SymList because we don't Own it }
+        SymList:=nil;
         inherited destroy;
       end;
 
@@ -1483,7 +1336,7 @@ implementation
       end;
 
 
-    procedure twithsymtable.insertdef(def:tdefentry);
+    procedure twithsymtable.insertdef(def:TDefEntry);
       begin
         { Definitions can't be registered in the withsymtable
           because the withsymtable is removed after the with block.
@@ -1492,15 +1345,14 @@ implementation
         internalerror(200602046);
       end;
 
-
 {****************************************************************************
                           TSTT_ExceptionSymtable
 ****************************************************************************}
 
-    constructor tstt_exceptsymtable.create;
+    constructor tstt_excepTSymtable.create;
       begin
         inherited create('');
-        symtabletype:=stt_exceptsymtable;
+        symtabletype:=stt_excepTSymtable;
       end;
 
 
@@ -1523,7 +1375,7 @@ implementation
                              Helper Routines
 *****************************************************************************}
 
-    function findunitsymtable(st:tsymtable):tsymtable;
+    function finduniTSymtable(st:TSymtable):TSymtable;
       begin
         result:=nil;
         repeat
@@ -1541,7 +1393,7 @@ implementation
             recordsymtable,
             localsymtable,
             parasymtable,
-            objectsymtable :
+            ObjectSymtable :
               st:=st.defowner.owner;
             else
               internalerror(200602035);
@@ -1570,53 +1422,42 @@ implementation
     procedure incompatibletypes(def1,def2:tdef);
       begin
         { When there is an errordef there is already an error message show }
-        if (def2.deftype=errordef) or
-           (def1.deftype=errordef) then
+        if (def2.typ=errordef) or
+           (def1.typ=errordef) then
           exit;
         CGMessage2(type_e_incompatible_types,FullTypeName(def1,def2),FullTypeName(def2,def1));
       end;
 
 
-    procedure hidesym(sym:tsymentry);
-      var
-        s : string;
+    procedure hidesym(sym:TSymEntry);
       begin
-        if assigned(sym.owner) then
-          sym.owner.rename(sym.name,'hidden'+sym.name)
-        else
-          sym.name:='hidden'+sym.name;
-        s:='hidden'+tsym(sym).realname;
-        stringdispose(tsym(sym)._realname);
-        tsym(sym)._realname:=stringdup(s);
+        sym.realname:='$hidden'+sym.name;
+        include(tsym(sym).symoptions,sp_hidden);
       end;
 
 
+    procedure duplicatesym(var hashedid:THashedIDString;dupsym,origsym:TSymEntry);
       var
-        dupnr : longint; { unique number for duplicate symbols }
-
-    procedure duplicatesym(dupsym,sym:tsymentry);
-      var
-        st : tsymtable;
+        st : TSymtable;
       begin
-        Message1(sym_e_duplicate_id,tsym(sym).realname);
-        st:=findunitsymtable(sym.owner);
-        with tsym(sym).fileinfo do
+        Message1(sym_e_duplicate_id,tsym(origsym).realname);
+        { Write hint where the original symbol was found }
+        st:=finduniTSymtable(origsym.owner);
+        with tsym(origsym).fileinfo do
           begin
             if assigned(st) and
                (st.symtabletype=globalsymtable) and
-               (not st.iscurrentunit) then
-              Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line))
-            else
-              Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line));
+               st.iscurrentunit then
+              Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line))
+            else if assigned(st.name) then
+              Message2(sym_h_duplicate_id_where,'unit '+st.name^,tostr(line));
           end;
         { Rename duplicate sym to an unreachable name, but it can be
           inserted in the symtable without errors }
+        inc(dupnr);
+        hashedid.id:='dup'+tostr(dupnr)+hashedid.id;
         if assigned(dupsym) then
-          begin
-            inc(dupnr);
-            dupsym.name:='dup'+tostr(dupnr)+dupsym.name;
-            include(tsym(dupsym).symoptions,sp_implicitrename);
-          end;
+          include(tsym(dupsym).symoptions,sp_implicitrename);
       end;
 
 
@@ -1625,9 +1466,9 @@ implementation
 *****************************************************************************}
 
      procedure addsymref(sym:tsym);
-       var
-         newref : tref;
        begin
+         { symbol uses count }
+         inc(sym.refs);
          { unit uses count }
          if assigned(current_module) and
             (sym.owner.symtabletype=globalsymtable) then
@@ -1636,46 +1477,23 @@ implementation
                  internalerror(200501152);
                inc(current_module.unitmap[tglobalsymtable(sym.owner).moduleid].refs);
              end;
-         inc(sym.refs);
-
-         if (cs_browser in current_settings.moduleswitches) then
-           begin
-             newref:=tref.create(sym.lastref,@current_tokenpos);
-             { for symbols that are in tables without browser info or syssyms }
-             if sym.refcount=0 then
-               begin
-                 sym.defref:=newref;
-                 sym.lastref:=newref;
-               end
-             else
-               if resolving_forward and assigned(sym.defref) then
-                 { put it as second reference }
-                  begin
-                    newref.nextref:=sym.defref.nextref;
-                    sym.defref.nextref:=newref;
-                    sym.lastref.nextref:=nil;
-                  end
-                else
-                  sym.lastref:=newref;
-                inc(sym.refcount);
-           end;
        end;
 
 
-    function  searchsym(const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
+    function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
-        speedvalue : cardinal;
+        hashedid   : THashedIDString;
         topclass   : tobjectdef;
         context    : tobjectdef;
         stackitem  : psymtablestackitem;
       begin
         result:=false;
-        speedvalue:=getspeedvalue(s);
+        hashedid.id:=s;
         stackitem:=symtablestack.stack;
         while assigned(stackitem) do
           begin
             srsymtable:=stackitem^.symtable;
-            srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
+            srsym:=tsym(srsymtable.FindWithHash(hashedid));
             if assigned(srsym) then
               begin
                 topclass:=nil;
@@ -1683,7 +1501,7 @@ implementation
                   defined in this unit }
                 if (srsymtable.symtabletype=withsymtable) and
                    assigned(srsymtable.defowner) and
-                   (srsymtable.defowner.deftype=objectdef) and
+                   (srsymtable.defowner.typ=objectdef) and
                    (srsymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
                    (srsymtable.defowner.owner.iscurrentunit) then
                   topclass:=tobjectdef(srsymtable.defowner)
@@ -1716,13 +1534,13 @@ implementation
       end;
 
 
-    function searchsym_type(const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
+    function searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
-        speedvalue : cardinal;
-        stackitem  : psymtablestackitem;
+        hashedid  : THashedIDString;
+        stackitem : psymtablestackitem;
       begin
         result:=false;
-        speedvalue:=getspeedvalue(s);
+        hashedid.id:=s;
         stackitem:=symtablestack.stack;
         while assigned(stackitem) do
           begin
@@ -1735,14 +1553,14 @@ implementation
               that have the parameterized types inserted in the symtable.
             }
             srsymtable:=stackitem^.symtable;
-            if not(srsymtable.symtabletype in [recordsymtable,objectsymtable,parasymtable]) or
+            if not(srsymtable.symtabletype in [recordsymtable,ObjectSymtable,parasymtable]) or
                (assigned(srsymtable.defowner) and
                 (
                  (df_generic in tdef(srsymtable.defowner).defoptions) or
                  (df_specialization in tdef(srsymtable.defowner).defoptions))
                 ) then
               begin
-                srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
+                srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) and
                    not(srsym.typ in [fieldvarsym,paravarsym]) and
                    (not assigned(current_procinfo) or
@@ -1767,7 +1585,7 @@ implementation
       end;
 
 
-    function searchsym_in_module(pm:pointer;const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
+    function searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
         pmod : tmodule;
       begin
@@ -1775,7 +1593,7 @@ implementation
         result:=false;
         if assigned(pmod.globalsymtable) then
           begin
-            srsym:=tsym(pmod.globalsymtable.search(s));
+            srsym:=tsym(pmod.globalsymtable.Find(s));
             if assigned(srsym) then
               begin
                 srsymtable:=pmod.globalsymtable;
@@ -1789,7 +1607,7 @@ implementation
         if (pmod=current_module) and
            assigned(pmod.localsymtable) then
           begin
-            srsym:=tsym(pmod.localsymtable.search(s));
+            srsym:=tsym(pmod.localsymtable.Find(s));
             if assigned(srsym) then
               begin
                 srsymtable:=pmod.localsymtable;
@@ -1803,13 +1621,13 @@ implementation
       end;
 
 
-    function searchsym_in_class(classh,contextclassh:tobjectdef;const s : stringid;out srsym:tsym;out srsymtable:tsymtable):boolean;
+    function searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
-        speedvalue : cardinal;
+        hashedid      : THashedIDString;
         currentclassh : tobjectdef;
       begin
         result:=false;
-        speedvalue:=getspeedvalue(s);
+        hashedid.id:=s;
         if assigned(current_procinfo.procdef) then
           currentclassh:=current_procinfo.procdef._class
         else
@@ -1817,7 +1635,7 @@ implementation
         while assigned(classh) do
           begin
             srsymtable:=classh.symtable;
-            srsym:=tsym(srsymtable.speedsearch(s,speedvalue));
+            srsym:=tsym(srsymtable.FindWithHash(hashedid));
             if assigned(srsym) and
                tsym(srsym).is_visible_for_object(contextclassh,currentclassh) then
               begin
@@ -1831,22 +1649,23 @@ implementation
       end;
 
 
-    function searchsym_in_class_by_msgint(classh:tobjectdef;i:longint;out srdef : tdef;out srsym:tsym;out srsymtable:tsymtable):boolean;
+    function searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
-        def        : tdef;
+        def : tdef;
+        i   : longint;
       begin
         result:=false;
         def:=nil;
         while assigned(classh) do
           begin
-            def:=tdef(classh.symtable.defindex.first);
-            while assigned(def) do
+            for i:=0 to classh.symtable.DefList.Count-1 do
               begin
+                def:=tstoreddef(classh.symtable.DefList[i]);
                 { Find also all hidden private methods to
                   be compatible with delphi, see tw6203 (PFV) }
-                if (def.deftype=procdef) and
+                if (def.typ=procdef) and
                    (po_msgint in tprocdef(def).procoptions) and
-                   (tprocdef(def).messageinf.i=i) then
+                   (tprocdef(def).messageinf.i=msgid) then
                   begin
                     srdef:=def;
                     srsym:=tprocdef(def).procsym;
@@ -1854,7 +1673,6 @@ implementation
                     result:=true;
                     exit;
                   end;
-                def:=tdef(def.indexnext);
               end;
             classh:=classh.childof;
           end;
@@ -1863,20 +1681,21 @@ implementation
       end;
 
 
-    function searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:tsymtable):boolean;
+    function searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
-        def        : tdef;
+        def : tdef;
+        i   : longint;
       begin
         result:=false;
         def:=nil;
         while assigned(classh) do
           begin
-            def:=tdef(classh.symtable.defindex.first);
-            while assigned(def) do
+            for i:=0 to classh.symtable.DefList.Count-1 do
               begin
+                def:=tstoreddef(classh.symtable.DefList[i]);
                 { Find also all hidden private methods to
                   be compatible with delphi, see tw6203 (PFV) }
-                if (def.deftype=procdef) and
+                if (def.typ=procdef) and
                    (po_msgstr in tprocdef(def).procoptions) and
                    (tprocdef(def).messageinf.str^=s) then
                   begin
@@ -1885,7 +1704,6 @@ implementation
                     result:=true;
                     exit;
                   end;
-                def:=tdef(def.indexnext);
               end;
             classh:=classh.childof;
           end;
@@ -1897,27 +1715,27 @@ implementation
     function search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
       var
         sym : Tprocsym;
-        speedvalue : cardinal;
+        hashedid : THashedIDString;
         curreq,
         besteq : tequaltype;
         currpd,
         bestpd : tprocdef;
         stackitem : psymtablestackitem;
       begin
-        speedvalue:=getspeedvalue('assign');
+        hashedid.id:='assign';
         besteq:=te_incompatible;
         bestpd:=nil;
         stackitem:=symtablestack.stack;
         while assigned(stackitem) do
           begin
-            sym:=Tprocsym(stackitem^.symtable.speedsearch('assign',speedvalue));
+            sym:=Tprocsym(stackitem^.symtable.FindWithHash(hashedid));
             if sym<>nil then
               begin
                 if sym.typ<>procsym then
                   internalerror(200402031);
                 { if the source type is an alias then this is only the second choice,
                   if you mess with this code, check tw4093 }
-                currpd:=sym.search_procdef_assignment_operator(from_def,to_def,curreq);
+                currpd:=sym.find_procdef_assignment_operator(from_def,to_def,curreq);
                 if curreq>besteq then
                   begin
                     besteq:=curreq;
@@ -1932,11 +1750,11 @@ implementation
       end;
 
 
-    function search_system_type(const s: stringid): ttypesym;
+    function search_system_type(const s: TIDString): ttypesym;
       var
         sym : tsym;
       begin
-        sym:=tsym(systemunit.search(s));
+        sym:=tsym(systemunit.Find(s));
         if not assigned(sym) or
            (sym.typ<>typesym) then
           internalerror(200501251);
@@ -1947,13 +1765,13 @@ implementation
     function search_class_member(pd : tobjectdef;const s : string):tsym;
     { searches n in symtable of pd and all anchestors }
       var
-        speedvalue : cardinal;
+        hashedid : THashedIDString;
         srsym      : tsym;
       begin
-        speedvalue:=getspeedvalue(s);
+        hashedid.id:=s;
         while assigned(pd) do
          begin
-           srsym:=tsym(pd.symtable.speedsearch(s,speedvalue));
+           srsym:=tsym(pd.symtable.FindWithHash(hashedid));
            if assigned(srsym) then
             begin
               search_class_member:=srsym;
@@ -1968,16 +1786,16 @@ implementation
     function search_macro(const s : string):tsym;
       var
         stackitem  : psymtablestackitem;
-        speedvalue : cardinal;
+        hashedid   : THashedIDString;
         srsym      : tsym;
       begin
-        speedvalue:= getspeedvalue(s);
+        hashedid.id:=s;
 
         { First search the localmacrosymtable before searching the
           global macrosymtables from the units }
         if assigned(current_module) then
           begin
-            srsym:=tsym(current_module.localmacrosymtable.speedsearch(s,speedvalue));
+            srsym:=tsym(current_module.localmacrosymtable.FindWithHash(hashedid));
             if assigned(srsym) then
               begin
                 result:= srsym;
@@ -1988,7 +1806,7 @@ implementation
         stackitem:=macrosymtablestack.stack;
         while assigned(stackitem) do
           begin
-            srsym:=tsym(stackitem^.symtable.speedsearch(s,speedvalue));
+            srsym:=tsym(stackitem^.symtable.FindWithHash(hashedid));
             if assigned(srsym) then
               begin
                 result:= srsym;
@@ -2007,26 +1825,24 @@ implementation
     procedure search_class_overloads(aprocsym : tprocsym);
     { searches n in symtable of pd and all anchestors }
       var
-        speedvalue : cardinal;
-        srsym      : tprocsym;
-        s          : string;
-        objdef     : tobjectdef;
+        hashedid : THashedIDString;
+        srsym    : tprocsym;
+        objdef   : tobjectdef;
       begin
         if aprocsym.overloadchecked then
          exit;
         aprocsym.overloadchecked:=true;
-        if (aprocsym.owner.symtabletype<>objectsymtable) then
+        if (aprocsym.owner.symtabletype<>ObjectSymtable) then
          internalerror(200111021);
         objdef:=tobjectdef(aprocsym.owner.defowner);
         { we start in the parent }
         if not assigned(objdef.childof) then
          exit;
         objdef:=objdef.childof;
-        s:=aprocsym.name;
-        speedvalue:=getspeedvalue(s);
+        hashedid.id:=aprocsym.name;
         while assigned(objdef) do
          begin
-           srsym:=tprocsym(objdef.symtable.speedsearch(s,speedvalue));
+           srsym:=tprocsym(objdef.symtable.FindWithHash(hashedid));
            if assigned(srsym) then
             begin
               if (srsym.typ<>procsym) then
@@ -2046,11 +1862,11 @@ implementation
       end;
 
 
-   procedure tstoredsymtable.testfordefaultproperty(p : TNamedIndexItem;arg:pointer);
+   procedure tstoredsymtable.testfordefaultproperty(sym:TObject;arg:pointer);
      begin
-        if (tsym(p).typ=propertysym) and
-           (ppo_defaultproperty in tpropertysym(p).propoptions) then
-          ppointer(arg)^:=p;
+        if (tsym(sym).typ=propertysym) and
+           (ppo_defaultproperty in tpropertysym(sym).propoptions) then
+          ppointer(arg)^:=sym;
      end;
 
 
@@ -2062,7 +1878,7 @@ implementation
         _defaultprop:=nil;
         while assigned(pd) do
           begin
-             pd.symtable.foreach(@tstoredsymtable(pd.symtable).testfordefaultproperty,@_defaultprop);
+             pd.symtable.SymList.ForEachCall(@tstoredsymtable(pd.symtable).testfordefaultproperty,@_defaultprop);
              if assigned(_defaultprop) then
                break;
              pd:=pd.childof;
@@ -2222,7 +2038,7 @@ implementation
       var
         p : punit_alias;
       begin
-        p:=punit_alias(unitaliases^.search(Upper(n)));
+        p:=punit_alias(unitaliases^.Find(Upper(n)));
         if assigned(p) then
          getunitalias:=punit_alias(p).newname^
         else
@@ -2232,72 +2048,10 @@ implementation
 
 
 {****************************************************************************
-                            Symtable Stack
-****************************************************************************}
-
-    constructor tsymtablestack.create;
-      begin
-        stack:=nil;
-      end;
-
-
-    destructor tsymtablestack.destroy;
-      begin
-        clear;
-      end;
-
-
-    procedure tsymtablestack.clear;
-      var
-        hp : psymtablestackitem;
-      begin
-        while assigned(stack) do
-          begin
-            hp:=stack;
-            stack:=hp^.next;
-            dispose(hp);
-          end;
-      end;
-
-
-    procedure tsymtablestack.push(st:tsymtable);
-      var
-        hp : psymtablestackitem;
-      begin
-        new(hp);
-        hp^.symtable:=st;
-        hp^.next:=stack;
-        stack:=hp;
-      end;
-
-
-    procedure tsymtablestack.pop(st:tsymtable);
-      var
-        hp : psymtablestackitem;
-      begin
-        if not assigned(stack) then
-          internalerror(200601231);
-        if stack^.symtable<>st then
-          internalerror(200601232);
-        hp:=stack;
-        stack:=hp^.next;
-        dispose(hp);
-      end;
-
-
-    function tsymtablestack.top:tsymtable;
-      begin
-        if not assigned(stack) then
-          internalerror(200601233);
-        result:=stack^.symtable;
-      end;
-
-
-{****************************************************************************
                            Init/Done Symtable
 ****************************************************************************}
 
-   procedure InitSymtable;
+   procedure IniTSymtable;
      begin
        { Reset symbolstack }
        symtablestack:=nil;
@@ -2307,11 +2061,11 @@ implementation
        generrordef:=terrordef.create;
        { macros }
        initialmacrosymtable:=tmacrosymtable.create(false);
-       macrosymtablestack:=tsymtablestack.create;
+       macrosymtablestack:=TSymtablestack.create;
        macrosymtablestack.push(initialmacrosymtable);
 {$ifdef UNITALIASES}
        { unit aliases }
-       unitaliases:=tdictionary.create;
+       unitaliases:=TFPHashObjectList.create;
 {$endif}
        { set some global vars to nil, might be important for the ide }
        class_tobject:=nil;

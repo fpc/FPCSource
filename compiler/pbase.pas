@@ -86,10 +86,10 @@ interface
     { reads a list of identifiers into a string list }
     { consume a symbol, if not found give an error and
       and return an errorsym }
-    function consume_sym(var srsym:tsym;var srsymtable:tsymtable):boolean;
-    function consume_sym_orgid(var srsym:tsym;var srsymtable:tsymtable;var s : string):boolean;
+    function consume_sym(var srsym:tsym;var srsymtable:TSymtable):boolean;
+    function consume_sym_orgid(var srsym:tsym;var srsymtable:TSymtable;var s : string):boolean;
 
-    function try_consume_unitsym(var srsym:tsym;var srsymtable:tsymtable):boolean;
+    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable):boolean;
 
     function try_consume_hintdirective(var symopt:tsymoptions):boolean;
 
@@ -184,7 +184,7 @@ implementation
       If this code is changed, it's likly that consume_sym_orgid and factor_read_id
       must be changed as well (FK)
     }
-    function consume_sym(var srsym:tsym;var srsymtable:tsymtable):boolean;
+    function consume_sym(var srsym:tsym;var srsymtable:TSymtable):boolean;
       begin
         { first check for identifier }
         if token<>_ID then
@@ -215,7 +215,7 @@ implementation
     { check if a symbol contains the hint directive, and if so gives out a hint
       if required and returns the id with it's original casing
     }
-    function consume_sym_orgid(var srsym:tsym;var srsymtable:tsymtable;var s : string):boolean;
+    function consume_sym_orgid(var srsym:tsym;var srsymtable:TSymtable;var s : string):boolean;
       begin
         { first check for identifier }
         if token<>_ID then
@@ -243,7 +243,7 @@ implementation
         result:=assigned(srsym);
       end;
 
-    function try_consume_unitsym(var srsym:tsym;var srsymtable:tsymtable):boolean;
+    function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable):boolean;
       begin
         result:=false;
         if assigned(srsym) and

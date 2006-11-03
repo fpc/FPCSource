@@ -710,10 +710,10 @@ implementation
         pw : pcompilerwidestring;
         pc : pchar;
       begin
-        if def.deftype<>stringdef then
+        if def.typ<>stringdef then
           internalerror(200510011);
         { convert ascii 2 unicode }
-        if (tstringdef(def).string_typ=st_widestring) and
+        if (tstringdef(def).stringtype=st_widestring) and
            (cst_type<>cst_widestring) then
           begin
             initwidestring(pw);
@@ -724,7 +724,7 @@ implementation
         else
           { convert unicode 2 ascii }
           if (cst_type=cst_widestring) and
-            (tstringdef(def).string_typ<>st_widestring) then
+            (tstringdef(def).stringtype<>st_widestring) then
             begin
               pw:=pcompilerwidestring(value_str);
               getmem(pc,getlengthwidestring(pw)+1);
@@ -732,7 +732,7 @@ implementation
               donewidestring(pw);
               value_str:=pc;
             end;
-        cst_type:=st2cst[tstringdef(def).string_typ];
+        cst_type:=st2cst[tstringdef(def).stringtype];
         resultdef:=def;
       end;
 

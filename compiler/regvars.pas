@@ -187,11 +187,11 @@ implementation
                       if paramanager.push_addr_param(tvarsym(regvarinfo^.regvars[i]).varspez,tvarsym(regvarinfo^.regvars[i]).vardef,current_procinfo.procdef.proccalloption) then
                         siz:=OS_32
                       else
-                       if (tvarsym(regvarinfo^.regvars[i]).vardef.deftype in [orddef,enumdef]) and
+                       if (tvarsym(regvarinfo^.regvars[i]).vardef.typ in [orddef,enumdef]) and
                           (tvarsym(regvarinfo^.regvars[i]).vardef.size=1) then
                         siz:=OS_8
                       else
-                       if (tvarsym(regvarinfo^.regvars[i]).vardef.deftype in [orddef,enumdef]) and
+                       if (tvarsym(regvarinfo^.regvars[i]).vardef.typ in [orddef,enumdef]) and
                           (tvarsym(regvarinfo^.regvars[i]).vardef.size=2) then
                         siz:=OS_16
                       else

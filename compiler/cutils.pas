@@ -124,9 +124,6 @@ interface
     { ambivalent to pchar2pshortstring }
     function pshortstring2pchar(p : pshortstring) : pchar;
 
-    { Speed/Hash value }
-    Function GetSpeedValue(Const s:String):cardinal;
-
     { Ansistring (pchar+length) support }
     procedure ansistringdispose(var p : pchar;length : longint);
     function compareansistrings(p1,p2 : pchar;length1,length2 : longint) : longint;
@@ -960,43 +957,6 @@ implementation
 
 
 {*****************************************************************************
-                               GetSpeedValue
-*****************************************************************************}
-
-    var
-      Crc32Tbl : array[0..255] of cardinal;
-
-    procedure MakeCRC32Tbl;
-      var
-        crc : cardinal;
-        i,n : integer;
-      begin
-        for i:=0 to 255 do
-         begin
-           crc:=i;
-           for n:=1 to 8 do
-            if odd(longint(crc)) then
-             crc:=cardinal(crc shr 1) xor cardinal($edb88320)
-            else
-             crc:=cardinal(crc shr 1);
-           Crc32Tbl[i]:=crc;
-         end;
-      end;
-
-
-    Function GetSpeedValue(Const s:String):cardinal;
-      var
-        i : integer;
-        InitCrc : cardinal;
-      begin
-        InitCrc:=cardinal($ffffffff);
-        for i:=1 to Length(s) do
-         InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(s[i])] xor (InitCrc shr 8);
-        GetSpeedValue:=InitCrc;
-      end;
-
-
-{*****************************************************************************
                                Ansistring (PChar+Length)
 *****************************************************************************}
 
@@ -1193,6 +1153,5 @@ implementation
 
 initialization
   internalerrorproc:=@defaulterror;
-  makecrc32tbl;
   initupperlower;
 end.

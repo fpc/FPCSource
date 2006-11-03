@@ -1,4 +1,4 @@
-{
+    {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the code generator for the PowerPC
@@ -1990,9 +1990,9 @@ const
          if not(cs_check_overflow in current_settings.localswitches) then
           exit;
          current_asmdata.getjumplabel(hl);
-         if not ((def.deftype=pointerdef) or
-                ((def.deftype=orddef) and
-                 (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,
+         if not ((def.typ=pointerdef) or
+                ((def.typ=orddef) and
+                 (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
                                                   bool8bit,bool16bit,bool32bit,bool64bit]))) then
            begin
              list.concat(taicpu.op_reg(A_MCRXR,NR_CR7));
@@ -2044,7 +2044,7 @@ const
            (procdef.procoptions*[po_classmethod, po_staticmethod,
              po_methodpointer, po_interrupt, po_iocheck]<>[]) then
           Internalerror(200006138);
-        if procdef.owner.symtabletype<>objectsymtable then
+        if procdef.owner.symtabletype<>ObjectSymtable then
           Internalerror(200109191);
 
         make_global:=false;

@@ -41,7 +41,7 @@ Unit aoptda;
         Procedure DoDFA;
 
         { handles the processor dependent dataflow analizing               }
-        Procedure CpuDFA(p: PInstr); Virtual;
+        Procedure CpuDFA(p: PInstr); Virtual; Abstract;
 
         { How many instructions are between the current instruction and the }
         { last one that modified the register                               }
@@ -50,7 +50,7 @@ Unit aoptda;
         { convert a TInsChange value into the corresponding register }
         //!!!!!!!!!! Function TCh2Reg(Ch: TInsChange): TRegister; Virtual;
         { returns whether the instruction P reads from register Reg }
-        Function RegReadByInstr(Reg: TRegister; p: tai): Boolean; Virtual;
+        Function RegReadByInstr(Reg: TRegister; p: tai): Boolean; Virtual; Abstract;
       End;
 
   Implementation
@@ -159,25 +159,5 @@ Unit aoptda;
         End;
     }
     End;
-
-    Procedure TAoptDFA.CpuDFA(p: PInstr);
-    Begin
-      Abstract;
-    End;
-
-  {!!!!!!!
-    Function TAOptDFA.TCh2Reg(Ch: TInsChange): TRegister;
-    Begin
-      TCh2Reg:=R_NO;
-      Abstract;
-    End;
-  }
-
-    Function TAOptDFA.RegReadByInstr(Reg: TRegister; p: tai): Boolean;
-    Begin
-      RegReadByInstr:=false;
-      Abstract;
-    End;
-
 
 End.

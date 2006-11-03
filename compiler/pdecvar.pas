@@ -73,8 +73,8 @@ implementation
           var
             idx : longint;
             sym : tsym;
-            srsymtable : tsymtable;
-            st  : tsymtable;
+            srsymtable : TSymtable;
+            st  : TSymtable;
             p   : tnode;
           begin
             result:=true;
@@ -126,10 +126,10 @@ implementation
                        consume(_POINT);
                        if assigned(def) then
                         begin
-                          st:=def.getsymtable(gs_record);
+                          st:=def.GetSymtable(gs_record);
                           if assigned(st) then
                            begin
-                             sym:=tsym(st.search(pattern));
+                             sym:=tsym(st.Find(pattern));
                              if assigned(sym) then
                               begin
                                 pl.addsym(sl_subscript,sym);
@@ -166,7 +166,7 @@ implementation
                      begin
                        consume(_LECKKLAMMER);
                        repeat
-                         if def.deftype=arraydef then
+                         if def.typ=arraydef then
                           begin
                             idx:=0;
                             p:=comp_expr(true);
@@ -409,7 +409,7 @@ implementation
                           { we ignore hidden stuff here because the property access symbol might have
                             non default calling conventions which might change the hidden stuff;
                             see tw3216.pp (FK) }
-                          p.propaccesslist[palt_read].procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.paras,p.propdef,[cpo_allowdefaults,cpo_ignorehidden]);
+                          p.propaccesslist[palt_read].procdef:=Tprocsym(sym).Find_procdef_bypara(readprocdef.paras,p.propdef,[cpo_allowdefaults,cpo_ignorehidden]);
                           if not assigned(p.propaccesslist[palt_read].procdef) then
                             Message(parser_e_ill_property_access_sym);
                         end;
@@ -453,7 +453,7 @@ implementation
                           { Insert hidden parameters }
                           handle_calling_convention(writeprocdef);
                           { search procdefs matching writeprocdef }
-                          p.propaccesslist[palt_write].procdef:=Tprocsym(sym).search_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults]);
+                          p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults]);
                           if not assigned(p.propaccesslist[palt_write].procdef) then
                             Message(parser_e_ill_property_access_sym);
                         end;
@@ -525,7 +525,7 @@ implementation
                                 begin
                                    { Insert hidden parameters }
                                    handle_calling_convention(storedprocdef);
-                                   p.propaccesslist[palt_stored].procdef:=Tprocsym(sym).search_procdef_bypara(storedprocdef.paras,storedprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
+                                   p.propaccesslist[palt_stored].procdef:=Tprocsym(sym).Find_procdef_bypara(storedprocdef.paras,storedprocdef.returndef,[cpo_allowdefaults,cpo_ignorehidden]);
                                    if not assigned(p.propaccesslist[palt_stored].procdef) then
                                      message(parser_e_ill_property_storage_sym);
                                 end;
@@ -564,10 +564,10 @@ implementation
 {$endif cpu64bit}
                      is_class(p.propdef) or
                      is_single(p.propdef) or
-                     (p.propdef.deftype in [classrefdef,pointerdef]) or
-                     ((p.propdef.deftype=setdef) and
+                     (p.propdef.typ in [classrefdef,pointerdef]) or
+                     ((p.propdef.typ=setdef) and
                       (tsetdef(p.propdef).settype=smallset))) or
-                     ((p.propdef.deftype=arraydef) and
+                     ((p.propdef.typ=arraydef) and
                       (ppo_indexed in p.propoptions)) or
                  (ppo_hasparameters in p.propoptions) then
                 begin
@@ -581,7 +581,7 @@ implementation
                   { Get the result of the default, the firstpass is
                     needed to support values like -1 }
                   pt:=comp_expr(true);
-                  if (p.propdef.deftype=setdef) and
+                  if (p.propdef.typ=setdef) and
                      (pt.nodetype=arrayconstructorn) then
                     begin
                       arrayconstructor_to_set(pt);
@@ -652,7 +652,7 @@ implementation
        begin
          result:=false;
          { Process procvar directives before = and ; }
-         if (def.deftype=procvardef) and
+         if (def.typ=procvardef) and
             (def.typesym=nil) and
             check_proc_directive(true) then
            begin
@@ -696,8 +696,8 @@ implementation
             begin
               tcsym:=ttypedconstsym.create(vs.realname,def,true);
               tcsym.fileinfo:=vs.fileinfo;
-              symtablestack.top.replace(vs,tcsym);
-              vs.free;
+              Hidesym(vs);
+              vs.owner.Insert(tcsym);
               consume(_EQUAL);
               readtypedconst(current_asmdata.asmlists[al_typedconsts],def,tcsym,true);
             end;
@@ -821,8 +821,8 @@ implementation
                    abssym.abstyp:=toasm;
                    abssym.asmname:=stringdup(hs);
                    { replace the varsym }
-                   symtablestack.top.replace(vs,abssym);
-                   vs.free;
+                   Hidesym(vs);
+                   vs.owner.insert(abssym);
                  end
                 { address }
                 else if is_constintnode(pt) and
@@ -853,8 +853,8 @@ implementation
                          Message(type_e_ordinal_expr_expected);
                     end;
 {$endif i386}
-                   symtablestack.top.replace(vs,abssym);
-                   vs.free;
+                   HideSym(vs);
+                   vs.owner.Insert(abssym);
                  end
                 { variable }
                 else
@@ -873,8 +873,8 @@ implementation
                        abssym.fileinfo:=vs.fileinfo;
                        abssym.abstyp:=tovar;
                        abssym.ref:=node_to_propaccesslist(pt);
-                       symtablestack.top.replace(vs,abssym);
-                       vs.free;
+                       Hidesym(vs);
+                       vs.owner.insert(abssym);
                      end
                     else
                      Message(parser_e_absolute_only_to_var_or_const);
@@ -900,7 +900,7 @@ implementation
                 (symtablestack.top.symtabletype<>parasymtable) then
                begin
                  { Add calling convention for procvar }
-                 if (hdef.deftype=procvardef) and
+                 if (hdef.typ=procvardef) and
                     (hdef.typesym=nil) then
                    handle_calling_convention(tprocvardef(hdef));
                  read_default_value(sc,hdef,vd_threadvar in options);
@@ -918,7 +918,7 @@ implementation
 
              { Support calling convention for procvars after semicolon }
              if not(hasdefaultvalue) and
-                (hdef.deftype=procvardef) and
+                (hdef.typ=procvardef) and
                 (hdef.typesym=nil) then
                begin
                  { Parse procvar directives after ; }
@@ -1113,12 +1113,12 @@ implementation
          hstaticvs : tglobalvarsym;
          vs    : tabstractvarsym;
          srsym : tsym;
-         srsymtable : tsymtable;
+         srsymtable : TSymtable;
          recst : tabstractrecordsymtable;
          unionsymtable : trecordsymtable;
          offset : longint;
          uniondef : trecorddef;
-         unionsym : tfieldvarsym;
+//         unionsym : tfieldvarsym;
          hintsymoptions : tsymoptions;
          semicoloneaten: boolean;
 {$ifdef powerpc}
@@ -1188,9 +1188,9 @@ implementation
                 (trecordsymtable(symtablestack.top).usefieldalignment = -1) then
                begin
                  tempdef := hdef;
-                 while tempdef.deftype = arraydef do
+                 while tempdef.typ = arraydef do
                    tempdef := tarraydef(tempdef).elementdef;
-                 if tempdef.deftype <> recorddef then
+                 if tempdef.typ <> recorddef then
                    maxpadalign := tempdef.alignment
                  else
                    maxpadalign := trecorddef(tempdef).padalignment;
@@ -1222,7 +1222,7 @@ implementation
              maybe_parse_proc_directives(hdef);
 
              { Add calling convention for procvar }
-             if (hdef.deftype=procvardef) and
+             if (hdef.typ=procvardef) and
                 (hdef.typesym=nil) then
                handle_calling_convention(tprocvardef(hdef));
 
@@ -1359,7 +1359,7 @@ implementation
               { at last set the record size to that of the biggest variant }
               unionsymtable.datasize:=maxsize;
               unionsymtable.fieldalignment:=maxalignment;
-              UnionSym:=tfieldvarsym.create('$case',vs_value,uniondef,[]);
+//              UnionSym:=tfieldvarsym.create('$case',vs_value,uniondef,[]);
               unionsymtable.addalignmentpadding;
 {$ifdef powerpc}
               { parent inherits the alignment padding if the variant is the first "field" of the parent record/variant }
@@ -1382,7 +1382,7 @@ implementation
                 recst.fieldalignment:=unionsymtable.recordalignment;
 
               trecordsymtable(recst).insertunionst(Unionsymtable,offset);
-              unionsym.free;
+//              unionsym.free;
               uniondef.free;
            end;
          block_type:=old_block_type;

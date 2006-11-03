@@ -28,14 +28,14 @@ interface
     uses
        symbase,symtype,symsym,cclasses;
 
-    function is_funcret_sym(p:tsymentry):boolean;
+    function is_funcret_sym(p:TSymEntry):boolean;
 
     { returns true, if sym needs an entry in the proplist of a class rtti }
     function needs_prop_entry(sym : tsym) : boolean;
 
     function equal_constsym(sym1,sym2:tconstsym):boolean;
 
-    procedure count_locals(p:tnamedindexitem;arg:pointer);
+    procedure count_locals(sym:TObject;arg:pointer);
 
 implementation
 
@@ -44,7 +44,7 @@ implementation
        symconst,widestr;
 
 
-    function is_funcret_sym(p:tsymentry):boolean;
+    function is_funcret_sym(p:TSymEntry):boolean;
       begin
         is_funcret_sym:=(p.typ in [absolutevarsym,localvarsym,paravarsym]) and
                         (vo_is_funcret in tabstractvarsym(p).varoptions);
@@ -105,13 +105,13 @@ implementation
       end;
 
 
-    procedure count_locals(p:tnamedindexitem;arg:pointer);
+    procedure count_locals(sym:TObject;arg:pointer);
       begin
         { Count only varsyms, but ignore the funcretsym }
-        if (tsym(p).typ in [localvarsym,paravarsym]) and
-           (tsym(p)<>current_procinfo.procdef.funcretsym) and
-           (not(vo_is_parentfp in tabstractvarsym(p).varoptions) or
-            (tstoredsym(p).refs>0)) then
+        if (tsym(sym).typ in [localvarsym,paravarsym]) and
+           (tsym(sym)<>current_procinfo.procdef.funcretsym) and
+           (not(vo_is_parentfp in tabstractvarsym(sym).varoptions) or
+            (tstoredsym(sym).refs>0)) then
           inc(plongint(arg)^);
       end;
 

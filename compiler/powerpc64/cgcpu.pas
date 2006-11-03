@@ -1273,7 +1273,7 @@ begin
       opsize := OS_S32
     else
       opsize := OS_32;
-    a_load_reg_reg(current_asmdata.CurrAsmList, size, opsize, reg, reg); 
+    a_load_reg_reg(current_asmdata.CurrAsmList, size, opsize, reg, reg);
   end;
 
   { can we use immediate compares? }
@@ -1305,7 +1305,7 @@ begin
   {$note Commented out below check because of compiler weirdness}
   {
   if (not (size in [OS_32, OS_S32, OS_64, OS_S64])) then
-    internalerror(200606041); 
+    internalerror(200606041);
   }
 
   if cmp_op in [OC_GT, OC_LT, OC_GTE, OC_LTE] then
@@ -1443,7 +1443,7 @@ begin
       a_load_reg_ref(list, OS_INT, para.paraloc[calleeside].Location^.size,
         para.paraloc[calleeside].Location^.register, para.localloc.reference);
     LOC_FPUREGISTER, LOC_CFPUREGISTER:
-      a_loadfpu_reg_ref(list, para.paraloc[calleeside].Location^.size, 
+      a_loadfpu_reg_ref(list, para.paraloc[calleeside].Location^.size,
         para.paraloc[calleeside].Location^.register, para.localloc.reference);
     LOC_MMREGISTER, LOC_CMMREGISTER:
       { not supported }
@@ -1455,10 +1455,10 @@ procedure tcgppc.profilecode_restorepara(para : tparavarsym; list : TAsmList);
 begin
   case (para.paraloc[calleeside].Location^.loc) of
     LOC_REGISTER, LOC_CREGISTER:
-      a_load_ref_reg(list, para.paraloc[calleeside].Location^.size, OS_INT, 
+      a_load_ref_reg(list, para.paraloc[calleeside].Location^.size, OS_INT,
         para.localloc.reference, para.paraloc[calleeside].Location^.register);
     LOC_FPUREGISTER, LOC_CFPUREGISTER:
-      a_loadfpu_ref_reg(list, para.paraloc[calleeside].Location^.size, 
+      a_loadfpu_ref_reg(list, para.paraloc[calleeside].Location^.size,
         para.localloc.reference, para.paraloc[calleeside].Location^.register);
     LOC_MMREGISTER, LOC_CMMREGISTER:
       { not supported }
@@ -1556,7 +1556,7 @@ begin
 
   { determine whether we need to save the link register }
   needslinkreg :=
-    ((not (po_assembler in current_procinfo.procdef.procoptions)) and 
+    ((not (po_assembler in current_procinfo.procdef.procoptions)) and
       ((pi_do_call in current_procinfo.flags) or (cs_profile in init_settings.moduleswitches))) or
     ((cs_opt_size in current_settings.optimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
     ([cs_lineinfo, cs_debuginfo] * current_settings.moduleswitches <> []);
@@ -1695,7 +1695,7 @@ begin
 
   { determine whether we need to restore the link register }
   needslinkreg :=
-    ((not (po_assembler in current_procinfo.procdef.procoptions)) and 
+    ((not (po_assembler in current_procinfo.procdef.procoptions)) and
       ((pi_do_call in current_procinfo.flags) or (cs_profile in init_settings.moduleswitches))) or
     ((cs_opt_size in current_settings.optimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
     ([cs_lineinfo, cs_debuginfo] * current_settings.moduleswitches <> []);
@@ -1976,9 +1976,9 @@ begin
   if not (cs_check_overflow in current_settings.localswitches) then
     exit;
   current_asmdata.getjumplabel(hl);
-  if not ((def.deftype = pointerdef) or
-    ((def.deftype = orddef) and
-    (torddef(def).typ in [u64bit, u16bit, u32bit, u8bit, uchar,
+  if not ((def.typ = pointerdef) or
+    ((def.typ = orddef) and
+    (torddef(def).ordtype in [u64bit, u16bit, u32bit, u8bit, uchar,
     bool8bit, bool16bit, bool32bit]))) then
   begin
     { ... instructions setting overflow flag ...
@@ -2046,7 +2046,7 @@ begin
     (procdef.procoptions * [po_classmethod, po_staticmethod,
     po_methodpointer, po_interrupt, po_iocheck] <> []) then
     Internalerror(200006138);
-  if procdef.owner.symtabletype <> objectsymtable then
+  if procdef.owner.symtabletype <> ObjectSymtable then
     Internalerror(200109191);
 
   make_global := false;

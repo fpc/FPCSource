@@ -105,7 +105,7 @@ unit cpupara;
                   exit;
                 end
               else
-                case def.deftype of
+                case def.typ of
                   recorddef :
                     begin
                       { Win32 GCC returns small records in the FUNCTION_RETURN_REG.
@@ -122,7 +122,7 @@ unit cpupara;
             end;
           system_i386_darwin :
             begin
-              case def.deftype of
+              case def.typ of
                 recorddef :
                   begin
                     size := def.size;
@@ -152,7 +152,7 @@ unit cpupara;
             exit;
           end;
         { Only vs_const, vs_value here }
-        case def.deftype of
+        case def.typ of
           variantdef :
             begin
               { variants are small enough to be passed by value except if
@@ -216,7 +216,7 @@ unit cpupara;
           objectdef :
             result:=is_object(def);
           stringdef :
-            result:= (tstringdef(def).string_typ in [st_shortstring,st_longstring]);
+            result:= (tstringdef(def).stringtype in [st_shortstring,st_longstring]);
           procvardef :
             result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (po_methodpointer in tprocvardef(def).procoptions);
           setdef :
@@ -329,7 +329,7 @@ unit cpupara;
             exit;
           end;
         { Return in FPU register? }
-        if p.returndef.deftype=floatdef then
+        if p.returndef.typ=floatdef then
           begin
             p.funcretloc[side].loc:=LOC_FPUREGISTER;
             p.funcretloc[side].register:=NR_FPU_RESULT_REG;
@@ -537,7 +537,7 @@ unit cpupara;
             if (parareg<=high(parasupregs)) and
                (paralen<=sizeof(aint)) and
                (
-                not(hp.vardef.deftype in [floatdef,recorddef,arraydef]) or
+                not(hp.vardef.typ in [floatdef,recorddef,arraydef]) or
                 pushaddr
                ) then
               begin

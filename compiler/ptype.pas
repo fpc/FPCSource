@@ -41,7 +41,7 @@ interface
     { tdef }
     procedure single_type(var def:tdef;isforwarddef:boolean);
 
-    procedure read_named_type(var def:tdef;const name : stringid;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
+    procedure read_named_type(var def:tdef;const name : TIDString;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
 
     { reads a type definition }
@@ -73,10 +73,11 @@ implementation
 
     procedure generate_specialization(var pt1:tnode;const name:string);
       var
-        st  : tsymtable;
+        st  : TSymtable;
         pt2 : tnode;
         first,
         err : boolean;
+        i   : longint;
         sym : tsym;
         genericdef : tstoreddef;
         generictype : ttypesym;
@@ -105,20 +106,20 @@ implementation
         err:=false;
         first:=true;
         generictypelist:=TFPObjectList.create(false);
-        case genericdef.deftype of
+        case genericdef.typ of
           procdef :
-            st:=genericdef.getsymtable(gs_para);
+            st:=genericdef.GetSymtable(gs_para);
           objectdef,
           recorddef :
-            st:=genericdef.getsymtable(gs_record);
+            st:=genericdef.GetSymtable(gs_record);
         end;
         if not assigned(st) then
           internalerror(200511182);
-        sym:=tsym(st.symindex.first);
-        while assigned(sym) do
+        for i:=0 to st.SymList.Count-1 do
           begin
+            sym:=tsym(st.SymList[i]);
             if (sym.typ=typesym) and
-               (ttypesym(sym).typedef.deftype=undefineddef) then
+               (ttypesym(sym).typedef.typ=undefineddef) then
               begin
                 if not first then
                   begin
@@ -138,7 +139,6 @@ implementation
                   end;
                 pt2.free;
               end;
-            sym:=tsym(sym.indexnext);
           end;
         { Reparse the original type definition }
         if not err then
@@ -163,8 +163,8 @@ implementation
         is_unit_specific : boolean;
         pos : tfileposinfo;
         srsym : tsym;
-        srsymtable : tsymtable;
-        s,sorg : stringid;
+        srsymtable : TSymtable;
+        s,sorg : TIDString;
       begin
          s:=pattern;
          sorg:=orgpattern;
@@ -195,7 +195,7 @@ implementation
            table as forwarddef are not resolved directly }
          if assigned(srsym) and
             (srsym.typ=typesym) and
-            (ttypesym(srsym).typedef.deftype=errordef) then
+            (ttypesym(srsym).typedef.typ=errordef) then
           begin
             Message1(type_e_type_is_not_completly_defined,ttypesym(srsym).realname);
             def:=generrordef;
@@ -223,7 +223,7 @@ implementation
             exit;
           end;
          { Give an error when referring to an errordef }
-         if (ttypesym(srsym).typedef.deftype=errordef) then
+         if (ttypesym(srsym).typedef.typ=errordef) then
           begin
             Message(sym_e_error_in_type_def);
             def:=generrordef;
@@ -312,12 +312,12 @@ implementation
 
 
     { reads a type definition and returns a pointer to it }
-    procedure read_named_type(var def : tdef;const name : stringid;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
+    procedure read_named_type(var def : tdef;const name : TIDString;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
       var
         pt : tnode;
         tt2 : tdef;
         aktenumdef : tenumdef;
-        s : stringid;
+        s : TIDString;
         l,v : TConstExprInt;
         oldpackrecords : longint;
         defpos,storepos : tfileposinfo;
@@ -372,7 +372,7 @@ implementation
                    else
                      begin
                        { All checks passed, create the new def }
-                       case pt1.resultdef.deftype of
+                       case pt1.resultdef.typ of
                          enumdef :
                            def:=tenumdef.create_subrange(tenumdef(pt1.resultdef),lv,hv);
                          orddef :
@@ -416,7 +416,7 @@ implementation
           read_anon_type(tt2,true);
           if assigned(tt2) then
            begin
-             case tt2.deftype of
+             case tt2.typ of
                { don't forget that min can be negativ  PM }
                enumdef :
                  if tenumdef(tt2).min>=0 then
@@ -426,7 +426,7 @@ implementation
                   Message(sym_e_ill_type_decl_set);
                orddef :
                  begin
-                   if (torddef(tt2).typ<>uvoid) and
+                   if (torddef(tt2).ordtype<>uvoid) and
                       (torddef(tt2).low>=0) then
                      // !! def:=tsetdef.create(tt2,torddef(tt2.def).low,torddef(tt2.def).high))
                      def:=tsetdef.create(tt2,torddef(tt2).high)
@@ -452,7 +452,7 @@ implementation
 
           procedure setdefdecl(def:tdef);
           begin
-            case def.deftype of
+            case def.typ of
               enumdef :
                 begin
                   lowval:=tenumdef(def).min;
@@ -464,7 +464,7 @@ implementation
                 end;
               orddef :
                 begin
-                  if torddef(def).typ in [uchar,
+                  if torddef(def).ordtype in [uchar,
                     u8bit,u16bit,
                     s8bit,s16bit,s32bit,
 {$ifdef cpu64bit}

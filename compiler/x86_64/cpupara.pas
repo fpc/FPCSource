@@ -69,7 +69,7 @@ unit cpupara;
       begin
         loc1:=LOC_INVALID;
         loc2:=LOC_INVALID;
-        case p.deftype of
+        case p.typ of
            orddef:
              begin
                loc1:=LOC_REGISTER;
@@ -77,7 +77,7 @@ unit cpupara;
              end;
            floatdef:
              begin
-               case tfloatdef(p).typ of
+               case tfloatdef(p).floattype of
                   s80real:
                     loc1:=LOC_REFERENCE;
                   s32real,
@@ -211,7 +211,7 @@ unit cpupara;
             exit;
           end;
         { Only vs_const, vs_value here }
-        case def.deftype of
+        case def.typ of
           variantdef,
           formaldef :
             result:=true;
@@ -230,7 +230,7 @@ unit cpupara;
           objectdef :
             result:=is_object(def);
           stringdef :
-            result:=(tstringdef(def).string_typ in [st_shortstring,st_longstring]);
+            result:=(tstringdef(def).stringtype in [st_shortstring,st_longstring]);
           procvardef :
             result:=(po_methodpointer in tprocvardef(def).procoptions);
           setdef :
@@ -323,9 +323,9 @@ unit cpupara;
             exit;
           end;
         { Return in FPU register? }
-        if p.returndef.deftype=floatdef then
+        if p.returndef.typ=floatdef then
           begin
-            case tfloatdef(p.returndef).typ of
+            case tfloatdef(p.returndef).floattype of
               s32real,s64real:
                 begin
                   p.funcretloc[side].loc:=LOC_MMREGISTER;

@@ -194,7 +194,7 @@ interface
        ttryfinallynodeclass = class of ttryfinallynode;
 
        tonnode = class(tbinarynode)
-          exceptsymtable : tsymtable;
+          excepTSymtable : TSymtable;
           excepttype : tobjectdef;
           constructor create(l,r:tnode);virtual;
           destructor destroy;override;
@@ -389,7 +389,7 @@ implementation
 
          if not is_boolean(left.resultdef) then
            begin
-             if left.resultdef.deftype=variantdef then
+             if left.resultdef.typ=variantdef then
                inserttypeconv(left,booltype)
              else
                CGMessage1(type_e_boolean_expr_expected,left.resultdef.typename);
@@ -686,7 +686,7 @@ implementation
 
          if not is_boolean(left.resultdef) then
            begin
-             if left.resultdef.deftype=variantdef then
+             if left.resultdef.typ=variantdef then
                inserttypeconv(left,booltype)
              else
                Message1(type_e_boolean_expr_expected,left.resultdef.typename);
@@ -1461,7 +1461,7 @@ implementation
     constructor tonnode.create(l,r:tnode);
       begin
          inherited create(onn,l,r);
-         exceptsymtable:=nil;
+         excepTSymtable:=nil;
          excepttype:=nil;
       end;
 
@@ -1469,8 +1469,8 @@ implementation
     destructor tonnode.destroy;
       begin
         { copied nodes don't need to release the symtable }
-        if assigned(exceptsymtable) then
-         exceptsymtable.free;
+        if assigned(excepTSymtable) then
+         excepTSymtable.free;
         inherited destroy;
       end;
 
@@ -1478,7 +1478,7 @@ implementation
     constructor tonnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        exceptsymtable:=nil;
+        excepTSymtable:=nil;
         excepttype:=nil;
       end;
 
@@ -1488,7 +1488,7 @@ implementation
          n : tonnode;
       begin
          n:=tonnode(inherited dogetcopy);
-         n.exceptsymtable:=exceptsymtable.getcopy;
+         n.excepTSymtable:=excepTSymtable.getcopy;
          n.excepttype:=excepttype;
          result:=n;
       end;

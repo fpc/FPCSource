@@ -89,7 +89,7 @@ interface
     procedure gen_load_return_value(list:TAsmList);
 
     procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
-    procedure gen_intf_wrappers(list:TAsmList;st:tsymtable);
+    procedure gen_intf_wrappers(list:TAsmList;st:TSymtable);
     procedure gen_load_vmt_register(list:TAsmList;objdef:tobjectdef;selfloc:tlocation;var vmtreg:tregister);
 
     procedure get_used_regvars(n: tnode; var rv: tusedregvars);
@@ -140,8 +140,8 @@ interface
 
     procedure insertbssdata(sym : tglobalvarsym);
 
-    procedure gen_alloc_symtable(list:TAsmList;st:tsymtable);
-    procedure gen_free_symtable(list:TAsmList;st:tsymtable);
+    procedure gen_alloc_symtable(list:TAsmList;st:TSymtable);
+    procedure gen_free_symtable(list:TAsmList;st:TSymtable);
 
     { rtti and init/final }
     procedure generate_rtti(p:Ttypesym);
@@ -850,7 +850,7 @@ implementation
                             Init/Finalize Code
 ****************************************************************************}
 
-    procedure copyvalueparas(p : tnamedindexitem;arg:pointer);
+    procedure copyvalueparas(p:TObject;arg:pointer);
       var
         href : treference;
         hreg : tregister;
@@ -872,7 +872,7 @@ implementation
                 a local copy }
               if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
                 begin
-                  hsym:=tparavarsym(tsym(p).owner.search('high'+p.name));
+                  hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
                   if not assigned(hsym) then
                     internalerror(200306061);
                   hreg:=cg.getaddressregister(list);
@@ -962,7 +962,7 @@ implementation
 
 
     { trash contents of local variables or parameters (function result) }
-    procedure trash_variable(p : tnamedindexitem;arg:pointer);
+    procedure trash_variable(p:TObject;arg:pointer);
       var
         trashintval: aint;
         list: TAsmList absolute arg;
@@ -1011,7 +1011,7 @@ implementation
 
 
     { initializes the regvars from staticsymtable with 0 }
-    procedure initialize_regvars(p : tnamedindexitem;arg:pointer);
+    procedure initialize_regvars(p:TObject;arg:pointer);
       begin
         if (tsym(p).typ=globalvarsym) then
          begin
@@ -1043,7 +1043,7 @@ implementation
 
 
     { generates the code for initialisation of local data }
-    procedure initialize_data(p : tnamedindexitem;arg:pointer);
+    procedure initialize_data(p:TObject;arg:pointer);
       var
         OldAsmList : TAsmList;
         hp : tnode;
@@ -1082,7 +1082,7 @@ implementation
 
 
     { generates the code for finalisation of local variables }
-    procedure finalize_local_vars(p : tnamedindexitem;arg:pointer);
+    procedure finalize_local_vars(p:TObject;arg:pointer);
       begin
         if (tsym(p).typ=localvarsym) and
            (tlocalvarsym(p).refs>0) and
@@ -1095,7 +1095,7 @@ implementation
 
 
     { generates the code for finalisation of local typedconsts }
-    procedure finalize_local_typedconst(p : tnamedindexitem;arg:pointer);
+    procedure finalize_local_typedconst(p:TObject;arg:pointer);
       var
         i : longint;
         pd : tprocdef;
@@ -1115,7 +1115,7 @@ implementation
                   if assigned(pd.localst) and
                      (pd.procsym=tprocsym(p)) and
                      (pd.localst.symtabletype<>staticsymtable) then
-                    pd.localst.foreach_static(@finalize_local_typedconst,arg);
+                    pd.localst.SymList.ForEachCall(@finalize_local_typedconst,arg);
                 end;
             end;
         end;
@@ -1124,7 +1124,7 @@ implementation
 
     { generates the code for finalization of static symtable and
       all local (static) typedconsts }
-    procedure finalize_static_data(p : tnamedindexitem;arg:pointer);
+    procedure finalize_static_data(p:TObject;arg:pointer);
       var
         i : longint;
         pd : tprocdef;
@@ -1153,7 +1153,7 @@ implementation
                   if assigned(pd.localst) and
                      (pd.procsym=tprocsym(p)) and
                      (pd.localst.symtabletype<>staticsymtable) then
-                    pd.localst.foreach_static(@finalize_local_typedconst,arg);
+                    pd.localst.SymList.ForEachCall(@finalize_local_typedconst,arg);
                 end;
             end;
         end;
@@ -1162,7 +1162,7 @@ implementation
 
     { generates the code for incrementing the reference count of parameters and
       initialize out parameters }
-    procedure init_paras(p : tnamedindexitem;arg:pointer);
+    procedure init_paras(p:TObject;arg:pointer);
       var
         href : treference;
         tmpreg : tregister;
@@ -1219,7 +1219,7 @@ implementation
 
 
     { generates the code for decrementing the reference count of parameters }
-    procedure final_paras(p : tnamedindexitem;arg:pointer);
+    procedure final_paras(p:TObject;arg:pointer);
       var
         list : TAsmList;
         href : treference;
@@ -1314,7 +1314,7 @@ implementation
 
         { constructors return self }
         if (current_procinfo.procdef.proctypeoption=potype_constructor) then
-          ressym:=tabstractnormalvarsym(current_procinfo.procdef.parast.search('self'))
+          ressym:=tabstractnormalvarsym(current_procinfo.procdef.parast.Find('self'))
         else
           ressym:=tabstractnormalvarsym(current_procinfo.procdef.funcretsym);
         if (ressym.refs>0) then
@@ -1771,7 +1771,7 @@ implementation
         { generate copies of call by value parameters, must be done before
           the initialization and body is parsed because the refcounts are
           incremented using the local copies }
-        current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas,list);
+        current_procinfo.procdef.parast.SymList.ForEachCall(@copyvalueparas,list);
 {$ifdef powerpc}
         { unget the register that contains the stack pointer before the procedure entry, }
         { which is used to access the parameters in their original callee-side location  }
@@ -1796,23 +1796,23 @@ implementation
                 { this is also used for initialization of variables in a
                   program which does not have a globalsymtable }
                 if assigned(current_module.globalsymtable) then
-                  tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}initialize_data,list);
-                tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}initialize_data,list);
-                tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}initialize_regvars,list);
+                  TSymtable(current_module.globalsymtable).SymList.ForEachCall(@initialize_data,list);
+                TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_data,list);
+                TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
              end;
            { units have seperate code for initilization and finalization }
            potype_unitfinalize: ;
            { program init/final is generated in separate procedure }
            potype_proginit:
              begin
-               tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}initialize_regvars,list);
+               TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
              end;
            else
              begin
                if (localvartrashing <> -1) and
                   not(po_assembler in current_procinfo.procdef.procoptions) then
-                 current_procinfo.procdef.localst.foreach_static({$ifndef TP}@{$endif}trash_variable,list);
-               current_procinfo.procdef.localst.foreach_static({$ifndef TP}@{$endif}initialize_data,list);
+                 current_procinfo.procdef.localst.SymList.ForEachCall(@trash_variable,list);
+               current_procinfo.procdef.localst.SymList.ForEachCall(@initialize_data,list);
              end;
         end;
 
@@ -1821,7 +1821,7 @@ implementation
 
         { initialize ansi/widesstring para's }
         if not(po_assembler in current_procinfo.procdef.procoptions) then
-          current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
+          current_procinfo.procdef.parast.SymList.ForEachCall(@init_paras,list);
 
 {$ifdef OLDREGVARS}
         load_regvars(list,nil);
@@ -1845,21 +1845,21 @@ implementation
                 { this is also used for initialization of variables in a
                   program which does not have a globalsymtable }
                 if assigned(current_module.globalsymtable) then
-                  tsymtable(current_module.globalsymtable).foreach_static({$ifndef TP}@{$endif}finalize_static_data,list);
-                tsymtable(current_module.localsymtable).foreach_static({$ifndef TP}@{$endif}finalize_static_data,list);
+                  TSymtable(current_module.globalsymtable).SymList.ForEachCall(@finalize_static_data,list);
+                TSymtable(current_module.localsymtable).SymList.ForEachCall(@finalize_static_data,list);
              end;
            { units/progs have separate code for initialization and finalization }
            potype_unitinit: ;
            { program init/final is generated in separate procedure }
            potype_proginit: ;
            else
-             current_procinfo.procdef.localst.foreach_static({$ifndef TP}@{$endif}finalize_local_vars,list);
+             current_procinfo.procdef.localst.SymList.ForEachCall(@finalize_local_vars,list);
         end;
 
         { finalize paras data }
         if assigned(current_procinfo.procdef.parast) and
            not(po_assembler in current_procinfo.procdef.procoptions) then
-          current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}final_paras,list);
+          current_procinfo.procdef.parast.SymList.ForEachCall(@final_paras,list);
       end;
 
 
@@ -2242,15 +2242,16 @@ implementation
       end;
 
 
-    procedure gen_alloc_symtable(list:TAsmList;st:tsymtable);
+    procedure gen_alloc_symtable(list:TAsmList;st:TSymtable);
       var
+        i       : longint;
         sym     : tsym;
         isaddr  : boolean;
         cgsize  : tcgsize;
       begin
-        sym:=tsym(st.symindex.first);
-        while assigned(sym) do
+        for i:=0 to st.SymList.Count-1 do
           begin
+            sym:=tsym(st.SymList[i]);
             if (sym.typ in [globalvarsym,localvarsym,paravarsym]) then
               begin
                 with tabstractnormalvarsym(sym) do
@@ -2302,7 +2303,7 @@ implementation
                                     end;
                                 end;
                               localsymtable,
-                              stt_exceptsymtable :
+                              stt_excepTSymtable :
                                 begin
                                   tg.GetLocal(list,getsize,vardef,initialloc.reference);
                                 end;
@@ -2332,7 +2333,6 @@ implementation
                     localloc:=initialloc;
                   end;
               end;
-            sym:=tsym(sym.indexnext);
           end;
       end;
 
@@ -2570,7 +2570,7 @@ implementation
            assigned(current_procinfo.procdef.funcretsym) and
            (tabstractvarsym(current_procinfo.procdef.funcretsym).refs <> 0) then
           if (current_procinfo.procdef.proctypeoption=potype_constructor) then
-            rr.ressym:=tsym(current_procinfo.procdef.parast.search('self'))
+            rr.ressym:=tsym(current_procinfo.procdef.parast.Find('self'))
          else
             rr.ressym:=current_procinfo.procdef.funcretsym;
 
@@ -2613,13 +2613,14 @@ implementation
       end;
 
 
-    procedure gen_free_symtable(list:TAsmList;st:tsymtable);
+    procedure gen_free_symtable(list:TAsmList;st:TSymtable);
       var
+        i   : longint;
         sym : tsym;
       begin
-        sym:=tsym(st.symindex.first);
-        while assigned(sym) do
+        for i:=0 to st.SymList.Count-1 do
           begin
+            sym:=tsym(st.SymList[i]);
             if (sym.typ in [globalvarsym,localvarsym,paravarsym]) then
               begin
                 with tabstractnormalvarsym(sym) do
@@ -2648,14 +2649,13 @@ implementation
                           case st.symtabletype of
                             localsymtable,
                             parasymtable,
-                            stt_exceptsymtable :
+                            stt_excepTSymtable :
                               tg.Ungetlocal(list,localloc.reference);
                           end;
                         end;
                     end;
                   end;
               end;
-            sym:=tsym(sym.indexnext);
           end;
       end;
 
@@ -2669,7 +2669,7 @@ implementation
         { rtti can only be generated for classes that are always typesyms }
         def:=tstoreddef(ttypesym(p).typedef);
         { there is an error, skip rtti info }
-        if (def.deftype=errordef) or (Errorcount>0) then
+        if (def.typ=errordef) or (Errorcount>0) then
           exit;
         { only create rtti once for each definition }
         if not(df_has_rttitable in def.defoptions) then
@@ -2764,16 +2764,16 @@ implementation
       end;
 
 
-    procedure gen_intf_wrappers(list:TAsmList;st:tsymtable);
+    procedure gen_intf_wrappers(list:TAsmList;st:TSymtable);
       var
-        def : tstoreddef;
+        i   : longint;
+        def : tdef;
       begin
-        def:=tstoreddef(st.defindex.first);
-        while assigned(def) do
+        for i:=0 to st.DefList.Count-1 do
           begin
+            def:=tdef(st.DefList[i]);
             if is_class(def) then
               gen_intf_wrapper(list,tobjectdef(def));
-            def:=tstoreddef(def.indexnext);
           end;
       end;
 

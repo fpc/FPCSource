@@ -126,7 +126,7 @@ implementation
          { determines result type }
          do_typecheckpass(caseexpr);
          { variants must be accepted, but first they must be converted to integer }
-         if caseexpr.resultdef.deftype=variantdef then
+         if caseexpr.resultdef.typ=variantdef then
            begin
              caseexpr:=ctypeconvnode.create_internal(caseexpr,sinttype);
              do_typecheckpass(caseexpr);
@@ -329,7 +329,7 @@ implementation
                 (
                  (m_tp7 in current_settings.modeswitches) and
                  (hp.nodetype=subscriptn) and
-                 ((tsubscriptnode(hp).left.resultdef.deftype=recorddef) or
+                 ((tsubscriptnode(hp).left.resultdef.typ=recorddef) or
                   is_object(tsubscriptnode(hp).left.resultdef))
                 ) or
                 { constant array index }
@@ -441,7 +441,7 @@ implementation
       var
          p   : tnode;
          i   : longint;
-         st  : tsymtable;
+         st  : TSymtable;
          newblock : tblocknode;
          newstatement : tstatementnode;
          calltempnode,
@@ -460,7 +460,7 @@ implementation
            pushobjchild(obj.childof);
            { keep the original tobjectdef as owner, because that is used for
              visibility of the symtable }
-           st:=twithsymtable.create(tobjectdef(p.resultdef),obj.symtable.symsearch,refnode.getcopy);
+           st:=twithsymtable.create(tobjectdef(p.resultdef),obj.symtable.SymList,refnode.getcopy);
            symtablestack.push(st);
            withsymtablelist.add(st);
          end;
@@ -473,7 +473,7 @@ implementation
             (nf_memseg in p.flags) then
            CGMessage(parser_e_no_with_for_variable_in_other_segments);
 
-         if (p.resultdef.deftype in [objectdef,recorddef]) then
+         if (p.resultdef.typ in [objectdef,recorddef]) then
           begin
             newblock:=nil;
             valuenode:=nil;
@@ -546,19 +546,19 @@ implementation
               end;
 
             withsymtablelist:=TFPObjectList.create(true);
-            case p.resultdef.deftype of
+            case p.resultdef.typ of
               objectdef :
                 begin
                    { push symtables of all parents in reverse order }
                    pushobjchild(tobjectdef(p.resultdef).childof);
                    { push object symtable }
-                   st:=twithsymtable.Create(tobjectdef(p.resultdef),tobjectdef(p.resultdef).symtable.symsearch,refnode);
+                   st:=twithsymtable.Create(tobjectdef(p.resultdef),tobjectdef(p.resultdef).symtable.SymList,refnode);
                    symtablestack.push(st);
                    withsymtablelist.add(st);
                  end;
               recorddef :
                 begin
-                   st:=twithsymtable.create(trecorddef(p.resultdef),trecorddef(p.resultdef).symtable.symsearch,refnode);
+                   st:=twithsymtable.create(trecorddef(p.resultdef),trecorddef(p.resultdef).symtable.SymList,refnode);
                    symtablestack.push(st);
                    withsymtablelist.add(st);
                 end;
@@ -579,7 +579,7 @@ implementation
 
             { remove symtables in reverse order from the stack }
             for i:=withsymtablelist.count-1 downto 0 do
-              symtablestack.pop(tsymtable(withsymtablelist[i]));
+              symtablestack.pop(TSymtable(withsymtablelist[i]));
             withsymtablelist.free;
 
 //            p:=cwithnode.create(right,twithsymtable(withsymtable),levelcount,refnode);
@@ -664,10 +664,10 @@ implementation
          ot : tDef;
          sym : tlocalvarsym;
          old_block_type : tblock_type;
-         exceptsymtable : tsymtable;
-         objname,objrealname : stringid;
+         excepTSymtable : TSymtable;
+         objname,objrealname : TIDString;
          srsym : tsym;
-         srsymtable : tsymtable;
+         srsymtable : TSymtable;
          oldaktexceptblock: integer;
 
       begin
@@ -748,9 +748,9 @@ implementation
                                     else
                                       Message1(type_e_class_type_expected,ot.typename);
                                  end;
-                               exceptsymtable:=tstt_exceptsymtable.create;
-                               exceptsymtable.insert(sym);
-                               symtablestack.push(exceptsymtable);
+                               excepTSymtable:=tstt_excepTSymtable.create;
+                               excepTSymtable.insert(sym);
+                               symtablestack.push(excepTSymtable);
                             end
                           else
                             begin
@@ -786,14 +786,14 @@ implementation
                                     else
                                       Message1(type_e_class_type_expected,ot.typename);
                                  end;
-                               exceptsymtable:=nil;
+                               excepTSymtable:=nil;
                             end;
                        end
                      else
                        consume(_ID);
                      consume(_DO);
                      hp:=connode.create(nil,statement);
-                     if ot.deftype=errordef then
+                     if ot.typ=errordef then
                        begin
                           hp.free;
                           hp:=cerrornode.create;
@@ -814,14 +814,14 @@ implementation
                      if last.nodetype = onn then
                        begin
                          tonnode(last).excepttype:=tobjectdef(ot);
-                         tonnode(last).exceptsymtable:=exceptsymtable;
+                         tonnode(last).excepTSymtable:=excepTSymtable;
                        end;
                      { remove exception symtable }
-                     if assigned(exceptsymtable) then
+                     if assigned(excepTSymtable) then
                        begin
-                         symtablestack.pop(exceptsymtable);
+                         symtablestack.pop(excepTSymtable);
                          if last.nodetype <> onn then
-                           exceptsymtable.free;
+                           excepTSymtable.free;
                        end;
                      if not try_to_consume(_SEMICOLON) then
                         break;
@@ -920,8 +920,8 @@ implementation
          code    : tnode;
          filepos : tfileposinfo;
          srsym   : tsym;
-         srsymtable : tsymtable;
-         s       : stringid;
+         srsymtable : TSymtable;
+         s       : TIDString;
       begin
          filepos:=current_tokenpos;
          case token of
@@ -1134,10 +1134,15 @@ implementation
       var
         p : tnode;
         locals : longint;
+        srsym : tsym;
       begin
          { Rename the funcret so that recursive calls are possible }
          if not is_void(current_procinfo.procdef.returndef) then
-           current_procinfo.procdef.localst.rename(current_procinfo.procdef.resultname,'$hiddenresult');
+           begin
+             srsym:=TSym(current_procinfo.procdef.localst.Find(current_procinfo.procdef.procsym.name));
+             if assigned(srsym) then
+               srsym.realname:='$hiddenresult';
+           end;
 
          { delphi uses register calling for assembler methods }
          if (m_delphi in current_settings.modeswitches) and
@@ -1164,12 +1169,12 @@ implementation
                  (vm, i386, vm only currently)
              }
              locals:=0;
-             current_procinfo.procdef.localst.foreach_static(@count_locals,@locals);
-             current_procinfo.procdef.parast.foreach_static(@count_locals,@locals);
+             current_procinfo.procdef.localst.SymList.ForEachCall(@count_locals,@locals);
+             current_procinfo.procdef.parast.SymList.ForEachCall(@count_locals,@locals);
              if (locals=0) and
-                (current_procinfo.procdef.owner.symtabletype<>objectsymtable) and
+                (current_procinfo.procdef.owner.symtabletype<>ObjectSymtable) and
                 (not assigned(current_procinfo.procdef.funcretsym) or
-                 (tabstractvarsym(current_procinfo.procdef.funcretsym).refcount<=1)) and
+                 (tabstractvarsym(current_procinfo.procdef.funcretsym).refs<=1)) and
                 not(paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption)) then
                begin
                  { Only need to set the framepointer, the locals will

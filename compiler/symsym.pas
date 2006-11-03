@@ -107,16 +107,12 @@ interface
           procedure concat_procdefs_to(s:Tprocsym);
           procedure foreach_procdef_static(proc2call:Tprocdefcallback;arg:pointer);
           function first_procdef:Tprocdef;
-          function last_procdef:Tprocdef;
-          function search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
-          function search_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
-          function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
-          function search_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
-          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
+          function find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
+          function find_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
+          function find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
+          function find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
           { currobjdef is the object def to assume, this is necessary for protected and
-            private,
-            context is the object def we're really in, this is for the strict stuff
-          }
+            private, context is the object def we're really in, this is for the strict stuff }
           function is_visible_for_object(currobjdef:tdef;context:tdef):boolean;override;
        end;
 
@@ -128,9 +124,6 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          function  getderefdef:tdef;override;
-          procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
-          function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
        end;
 
        tabstractvarsym = class(tstoredsym)
@@ -232,7 +225,7 @@ interface
       end;
 
        tpropaccesslisttypes=(palt_none,palt_read,palt_write,palt_stored);
-       
+
        tpropertysym = class(Tstoredsym)
           propoptions   : tpropertyoptions;
           overridenpropsym : tpropertysym;
@@ -249,7 +242,6 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           function  getsize : longint;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function  getderefdef:tdef;override;
           procedure buildderef;override;
           procedure deref;override;
        end;
@@ -397,43 +389,25 @@ implementation
            begin
              current_module.symlist.Add(self);
              SymId:=current_module.symlist.Count-1;
-           end;  
+           end;
       end;
 
 
     constructor tstoredsym.ppuload(st:tsymtyp;ppufile:tcompilerppufile);
-      var
-        nr : word;
-        s  : string;
       begin
          SymId:=ppufile.getlongint;
+         inherited Create(st,ppufile.getstring);
+         { Register symbol }
          current_module.symlist[SymId]:=self;
-         nr:=ppufile.getword;
-         s:=ppufile.getstring;
-         if s[1]='$' then
-          inherited createname(copy(s,2,255))
-         else
-          inherited createname(upper(s));
-         _realname:=stringdup(s);
-         typ:=st;
-         { force the correct indexnr. must be after create! }
-         indexnr:=nr;
          ppufile.getposinfo(fileinfo);
          ppufile.getsmallset(symoptions);
-         lastref:=nil;
-         defref:=nil;
-         refs:=0;
-         lastwritten:=nil;
-         refcount:=0;
-         isdbgwritten := false;
       end;
 
 
     procedure tstoredsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          ppufile.putlongint(SymId);
-         ppufile.putword(indexnr);
-         ppufile.putstring(_realname^);
+         ppufile.putstring(realname);
          ppufile.putposinfo(fileinfo);
          ppufile.putsmallset(symoptions);
       end;
@@ -441,17 +415,6 @@ implementation
 
     destructor tstoredsym.destroy;
       begin
-        if assigned(defref) then
-         begin
-{$ifdef MEMDEBUG}
-           membrowser.start;
-{$endif MEMDEBUG}
-           defref.freechain;
-           defref.free;
-{$ifdef MEMDEBUG}
-           membrowser.stop;
-{$endif MEMDEBUG}
-         end;
         inherited destroy;
       end;
 
@@ -773,7 +736,7 @@ implementation
         pd:=pdlistfirst;
         while assigned(pd) do
           begin
-            if Aprocsym.search_procdef_bypara(pd^.def.paras,nil,cpoptions)=nil then
+            if Aprocsym.find_procdef_bypara(pd^.def.paras,nil,cpoptions)=nil then
               Aprocsym.addprocdef(pd^.def);
             pd:=pd^.next;
           end;
@@ -802,15 +765,6 @@ implementation
       end;
 
 
-    function Tprocsym.last_procdef:Tprocdef;
-      begin
-        if assigned(pdlistlast) then
-          last_procdef:=pdlistlast^.def
-        else
-          last_procdef:=nil;
-      end;
-
-
     procedure Tprocsym.foreach_procdef_static(proc2call:Tprocdefcallback;arg:pointer);
       var
         p : pprocdeflist;
@@ -824,17 +778,17 @@ implementation
       end;
 
 
-    function Tprocsym.search_procdef_bytype(pt:Tproctypeoption):Tprocdef;
+    function Tprocsym.Find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
       var
         p : pprocdeflist;
       begin
-        search_procdef_bytype:=nil;
+        result:=nil;
         p:=pdlistfirst;
         while p<>nil do
          begin
            if p^.def.proctypeoption=pt then
             begin
-              search_procdef_bytype:=p^.def;
+              result:=p^.def;
               break;
             end;
            p:=p^.next;
@@ -842,13 +796,13 @@ implementation
       end;
 
 
-    function Tprocsym.search_procdef_bypara(para:TFPObjectList;retdef:tdef;
+    function Tprocsym.Find_procdef_bypara(para:TFPObjectList;retdef:tdef;
                                             cpoptions:tcompare_paras_options):Tprocdef;
       var
         pd : pprocdeflist;
         eq : tequaltype;
       begin
-        search_procdef_bypara:=nil;
+        result:=nil;
         pd:=pdlistfirst;
         while assigned(pd) do
          begin
@@ -863,7 +817,7 @@ implementation
               if (eq>=te_equal) or
                  ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
                 begin
-                  search_procdef_bypara:=pd^.def;
+                  result:=pd^.def;
                   break;
                 end;
             end;
@@ -871,7 +825,7 @@ implementation
          end;
       end;
 
-    function Tprocsym.search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
+    function Tprocsym.Find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
       var
         pd : pprocdeflist;
         eq,besteq : tequaltype;
@@ -880,7 +834,7 @@ implementation
         { This function will return the pprocdef of pprocsym that
           is the best match for procvardef. When there are multiple
           matches it returns nil.}
-        search_procdef_byprocvardef:=nil;
+        result:=nil;
         bestpd:=nil;
         besteq:=te_incompatible;
         pd:=pdlistfirst;
@@ -901,11 +855,11 @@ implementation
             end;
            pd:=pd^.next;
          end;
-        search_procdef_byprocvardef:=bestpd;
+        result:=bestpd;
       end;
 
 
-    function Tprocsym.search_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
+    function Tprocsym.Find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
       var
         convtyp : tconverttype;
         pd      : pprocdeflist;
@@ -965,24 +919,6 @@ implementation
             pd:=pd^.next;
           end;
         result:=bestpd;
-      end;
-
-
-    function tprocsym.write_references(ppufile:tcompilerppufile;locals:boolean) : boolean;
-      var
-        p : pprocdeflist;
-      begin
-         write_references:=false;
-         if not inherited write_references(ppufile,locals) then
-           exit;
-         write_references:=true;
-         p:=pdlistfirst;
-         while assigned(p) do
-           begin
-              if p^.def.owner=owner then
-                p^.def.write_references(ppufile,locals);
-              p:=p^.next;
-           end;
       end;
 
 
@@ -1107,12 +1043,6 @@ implementation
       end;
 
 
-    function tpropertysym.getderefdef:tdef;
-      begin
-        result:=propdef;
-      end;
-
-
     procedure tpropertysym.buildderef;
       var
         pap : tpropaccesslisttypes;
@@ -1223,7 +1153,7 @@ implementation
     function tabstractvarsym.getsize : longint;
       begin
         if assigned(vardef) and
-           ((vardef.deftype<>arraydef) or
+           ((vardef.typ<>arraydef) or
             is_dynamic_array(vardef) or
             (tarraydef(vardef).highrange>=tarraydef(vardef).lowrange)) then
           result:=vardef.size
@@ -1258,7 +1188,7 @@ implementation
                  (not refpara and
                   not(varregable in [vr_none,vr_addr])))
 {$if not defined(powerpc) and not defined(powerpc64)}
-                and ((vardef.deftype <> recorddef) or
+                and ((vardef.typ <> recorddef) or
                      (varregable = vr_addr) or
                      not(varstate in [vs_written,vs_readwritten]));
 {$endif}
@@ -1381,7 +1311,7 @@ implementation
     function tfieldvarsym.mangledname:string;
       var
         srsym : tsym;
-        srsymtable : tsymtable;
+        srsymtable : TSymtable;
       begin
         if sp_static in symoptions then
           begin
@@ -2114,7 +2044,7 @@ implementation
          typedef:=def;
         { register the typesym for the definition }
         if assigned(typedef) and
-           (typedef.deftype<>errordef) and
+           (typedef.typ<>errordef) and
            not(assigned(typedef.typesym)) then
          typedef.typesym:=self;
       end;
@@ -2124,12 +2054,6 @@ implementation
       begin
          inherited ppuload(typesym,ppufile);
          ppufile.getderef(typedefderef);
-      end;
-
-
-    function  ttypesym.getderefdef:tdef;
-      begin
-        result:=typedef;
       end;
 
 
@@ -2150,41 +2074,6 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.putderef(typedefderef);
          ppufile.writeentry(ibtypesym);
-      end;
-
-
-    procedure ttypesym.load_references(ppufile:tcompilerppufile;locals:boolean);
-      begin
-         inherited load_references(ppufile,locals);
-         if (typedef.deftype=recorddef) then
-           tstoredsymtable(trecorddef(typedef).symtable).load_references(ppufile,locals);
-         if (typedef.deftype=objectdef) then
-           tstoredsymtable(tobjectdef(typedef).symtable).load_references(ppufile,locals);
-      end;
-
-
-    function ttypesym.write_references(ppufile:tcompilerppufile;locals:boolean):boolean;
-      var
-        d : tderef;
-      begin
-        d.reset;
-        if not inherited write_references(ppufile,locals) then
-         begin
-         { write address of this symbol if record or object
-           even if no real refs are there
-           because we need it for the symtable }
-           if (typedef.deftype in [recorddef,objectdef]) then
-            begin
-              d.build(self);
-              ppufile.putderef(d);
-              ppufile.writeentry(ibsymref);
-            end;
-         end;
-        write_references:=true;
-        if (typedef.deftype=recorddef) then
-           tstoredsymtable(trecorddef(typedef).symtable).write_references(ppufile,locals);
-        if (typedef.deftype=objectdef) then
-           tstoredsymtable(tobjectdef(typedef).symtable).write_references(ppufile,locals);
       end;
 
 
@@ -2235,7 +2124,6 @@ implementation
     constructor tmacro.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(macrosym,ppufile);
-         name:=ppufile.getstring;
          defined:=boolean(ppufile.getbyte);
          is_compiler_var:=boolean(ppufile.getbyte);
          is_used:=false;
@@ -2259,7 +2147,6 @@ implementation
     procedure tmacro.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.putstring(name);
          ppufile.putbyte(byte(defined));
          ppufile.putbyte(byte(is_compiler_var));
          ppufile.putlongint(buflen);

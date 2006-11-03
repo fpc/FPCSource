@@ -587,7 +587,7 @@ const
   var expr: string;
       hs, tempstr: string;
       sym : tsym;
-      srsymtable : tsymtable;
+      srsymtable : TSymtable;
       hl : tasmlabel;
       l : longint;
       errorflag: boolean;
@@ -703,7 +703,7 @@ const
                                end;
                              typesym :
                                begin
-                                 if not(ttypesym(sym).typedef.deftype in [recorddef,objectdef]) then
+                                 if not(ttypesym(sym).typedef.typ in [recorddef,objectdef]) then
                                       Message(asmr_e_wrong_sym_type);
                                end;
                              else

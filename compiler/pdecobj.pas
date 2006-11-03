@@ -30,7 +30,7 @@ interface
       globtype,symtype,symdef;
 
     { parses a object declaration }
-    function object_dec(const n : stringid;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tdef;
+    function object_dec(const n : TIDString;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tdef;
 
 implementation
 
@@ -50,11 +50,11 @@ implementation
       current_procinfo = 'error';
 
 
-    function object_dec(const n : stringid;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tdef;
+    function object_dec(const n : TIDString;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tdef;
     { this function parses an object or class declaration }
       var
          there_is_a_destructor : boolean;
-         classtype : tobjectdeftype;
+         classtype : tobjecttyp;
          pcrd      : tclassrefdef;
          hdef      : tdef;
          old_object_option : tsymoptions;
@@ -169,22 +169,20 @@ implementation
       procedure setinterfacemethodoptions;
 
         var
-          i: longint;
-          defs: TIndexArray;
-          pd: tdef;
+          i   : longint;
+          def : tdef;
         begin
           include(aktobjectdef.objectoptions,oo_has_virtual);
-          defs:=aktobjectdef.symtable.defindex;
-          for i:=1 to defs.count do
+          for i:=0 to aktobjectdef.symtable.DefList.count-1 do
             begin
-              pd:=tdef(defs.search(i));
-              if assigned(pd) and
-                 (pd.deftype=procdef) then
+              def:=tdef(aktobjectdef.symtable.DefList[i]);
+              if assigned(def) and
+                 (def.typ=procdef) then
                 begin
-                  tprocdef(pd).extnumber:=aktobjectdef.lastvtableindex;
+                  tprocdef(def).extnumber:=aktobjectdef.lastvtableindex;
                   inc(aktobjectdef.lastvtableindex);
-                  include(tprocdef(pd).procoptions,po_virtualmethod);
-                  tprocdef(pd).forwarddef:=false;
+                  include(tprocdef(def).procoptions,po_virtualmethod);
+                  tprocdef(def).forwarddef:=false;
                 end;
             end;
         end;
@@ -277,7 +275,7 @@ implementation
                         single_type(hdef,typecanbeforward);
 
                         { accept hp1, if is a forward def or a class }
-                        if (hdef.deftype=forwarddef) or
+                        if (hdef.typ=forwarddef) or
                            is_class(hdef) then
                           begin
                              pcrd:=tclassrefdef.create(hdef);
@@ -331,7 +329,7 @@ implementation
                  exit;
               end;
             if aktobjectdef.find_implemented_interface(intfdef)<>nil then
-              Message1(sym_e_duplicate_id,intfdef.name)
+              Message1(sym_e_duplicate_id,intfdef.objname^)
             else
               begin
                 { allocate and prepare the GUID only if the class
@@ -349,7 +347,7 @@ implementation
           while try_to_consume(_COMMA) do
             begin
                id_type(hdef,false);
-               if (hdef.deftype<>objectdef) then
+               if (hdef.typ<>objectdef) then
                  begin
                     Message1(type_e_interface_type_expected,hdef.typename);
                     continue;
@@ -397,7 +395,7 @@ implementation
             begin
               id_type(hdef,false);
               if (not assigned(hdef)) or
-                 (hdef.deftype<>objectdef) then
+                 (hdef.typ<>objectdef) then
                 begin
                   if assigned(hdef) then
                     Message1(type_e_class_type_expected,hdef.typename);
@@ -552,7 +550,7 @@ implementation
              for i:=0 to genericlist.count-1 do
                begin
                  generictype:=ttypesym(genericlist[i]);
-                 if generictype.typedef.deftype=undefineddef then
+                 if generictype.typedef.typ=undefineddef then
                    include(aktobjectdef.defoptions,df_generic)
                  else
                    include(aktobjectdef.defoptions,df_specialization);

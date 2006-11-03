@@ -264,10 +264,10 @@ interface
         pass_left_and_right;
 
         cmpop:=false;
-        unsigned:=((left.resultdef.deftype=orddef) and
-                   (torddef(left.resultdef).typ=u64bit)) or
-                  ((right.resultdef.deftype=orddef) and
-                   (torddef(right.resultdef).typ=u64bit));
+        unsigned:=((left.resultdef.typ=orddef) and
+                   (torddef(left.resultdef).ordtype=u64bit)) or
+                  ((right.resultdef.typ=orddef) and
+                   (torddef(right.resultdef).ordtype=u64bit));
         case nodetype of
           addn :
             begin
@@ -295,7 +295,7 @@ interface
           muln:
             begin
               { should be handled in pass_1 (JM) }
-              if not(torddef(left.resultdef).typ in [U32bit,s32bit]) or
+              if not(torddef(left.resultdef).ordtype in [U32bit,s32bit]) or
                  (torddef(left.resultdef).typ <> torddef(right.resultdef).typ) then
                 internalerror(200109051);
               { handled separately }
@@ -751,7 +751,7 @@ interface
       begin
          { to make it more readable, string and set (not smallset!) have their
            own procedures }
-         case left.resultdef.deftype of
+         case left.resultdef.typ of
            orddef :
              begin
                { handling boolean expressions }

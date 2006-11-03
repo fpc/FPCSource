@@ -1244,6 +1244,7 @@ implementation
          exceptref,
          href2: treference;
          paraloc1 : tcgpara;
+         exceptvarsym : tlocalvarsym;
       begin
          paraloc1.init;
          location_reset(location,LOC_VOID,OS_NO);
@@ -1265,14 +1266,18 @@ implementation
          { is it this catch? No. go to next onlabel }
          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,NR_FUNCTION_RESULT_REG,nextonlabel);
 
-         { what a hack ! }
-         if assigned(exceptsymtable) then
+         { Retrieve exception variable }
+         if assigned(excepTSymtable) then
+           exceptvarsym:=tlocalvarsym(excepTSymtable.SymList[0])
+         else
+           exceptvarsym:=nil;
+
+         if assigned(exceptvarsym) then
            begin
-             tlocalvarsym(exceptsymtable.symindex.first).localloc.loc:=LOC_REFERENCE;
-             tlocalvarsym(exceptsymtable.symindex.first).localloc.size:=OS_ADDR;
-             tg.GetLocal(current_asmdata.CurrAsmList,sizeof(aint),voidpointertype,
-                tlocalvarsym(exceptsymtable.symindex.first).localloc.reference);
-             cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,tlocalvarsym(exceptsymtable.symindex.first).localloc.reference);
+             exceptvarsym.localloc.loc:=LOC_REFERENCE;
+             exceptvarsym.localloc.size:=OS_ADDR;
+             tg.GetLocal(current_asmdata.CurrAsmList,sizeof(aint),voidpointertype,exceptvarsym.localloc.reference);
+             cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptvarsym.localloc.reference);
            end
          else
            begin
@@ -1329,10 +1334,10 @@ implementation
          cg.a_label(current_asmdata.CurrAsmList,doobjectdestroy);
          cleanupobjectstack;
          { clear some stuff }
-         if assigned(exceptsymtable) then
+         if assigned(exceptvarsym) then
            begin
-             tg.UngetLocal(current_asmdata.CurrAsmList,tlocalvarsym(exceptsymtable.symindex.first).localloc.reference);
-             tlocalvarsym(exceptsymtable.symindex.first).localloc.loc:=LOC_INVALID;
+             tg.UngetLocal(current_asmdata.CurrAsmList,exceptvarsym.localloc.reference);
+             exceptvarsym.localloc.loc:=LOC_INVALID;
            end
          else
            tg.Ungettemp(current_asmdata.CurrAsmList,exceptref);

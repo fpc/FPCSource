@@ -136,7 +136,7 @@ unit cgcpu;
            (procdef.procoptions*[po_classmethod, po_staticmethod,
              po_methodpointer, po_interrupt, po_iocheck]<>[]) then
           Internalerror(200006138);
-        if procdef.owner.symtabletype<>objectsymtable then
+        if procdef.owner.symtabletype<>ObjectSymtable then
           Internalerror(200109191);
 
         make_global:=false;

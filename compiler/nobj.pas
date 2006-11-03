@@ -51,7 +51,7 @@ interface
 
       pvmtentry = ^tvmtentry;
       tvmtentry = record
-         speedvalue   : cardinal;
+         hash         : longword;
          name         : pshortstring;
          firstprocdef : pprocdefcoll;
          next         : pvmtentry;
@@ -64,8 +64,8 @@ interface
         { message tables }
         root : pprocdeftree;
         procedure disposeprocdeftree(p : pprocdeftree);
-        procedure insertmsgint(p : tnamedindexitem;arg:pointer);
-        procedure insertmsgstr(p : tnamedindexitem;arg:pointer);
+        procedure insertmsgint(p:TObject;arg:pointer);
+        procedure insertmsgstr(p:TObject;arg:pointer);
         procedure insertint(p : pprocdeftree;var at : pprocdeftree;var count:longint);
         procedure insertstr(p : pprocdeftree;var at : pprocdeftree;var count:longint);
         procedure writenames(p : pprocdeftree);
@@ -74,14 +74,14 @@ interface
 {$ifdef WITHDMT}
       private
         { dmt }
-        procedure insertdmtentry(p : tnamedindexitem;arg:pointer);
+        procedure insertdmtentry(p:TObject;arg:pointer);
         procedure writedmtindexentry(p : pprocdeftree);
         procedure writedmtaddressentry(p : pprocdeftree);
 {$endif}
       private
         { published methods }
-        procedure do_count_published_methods(p : tnamedindexitem;arg:pointer);
-        procedure do_gen_published_methods(p : tnamedindexitem;arg:pointer);
+        procedure do_count_published_methods(p:TObject;arg:pointer);
+        procedure do_gen_published_methods(p:TObject;arg:pointer);
       private
         { vmt }
         firstvmtentry      : pvmtentry;
@@ -90,7 +90,7 @@ interface
         has_virtual_method : boolean;
         procedure newdefentry(vmtentry:pvmtentry;pd:tprocdef;is_visible:boolean);
         function  newvmtentry(sym:tprocsym):pvmtentry;
-        procedure eachsym(sym : tnamedindexitem;arg:pointer);
+        procedure eachsym(sym : TObject;arg:pointer);
         procedure disposevmttree;
         procedure writevirtualmethods(List:TAsmList);
       private
@@ -207,7 +207,7 @@ implementation
            end;
       end;
 
-    procedure tclassheader.insertmsgint(p : tnamedindexitem;arg:pointer);
+    procedure tclassheader.insertmsgint(p:TObject;arg:pointer);
 
       var
          i  : cardinal;
@@ -230,7 +230,7 @@ implementation
               end;
       end;
 
-    procedure tclassheader.insertmsgstr(p : tnamedindexitem;arg:pointer);
+    procedure tclassheader.insertmsgstr(p:TObject;arg:pointer);
 
       var
          i  : cardinal;
@@ -295,7 +295,7 @@ implementation
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class.symtable.foreach(@insertmsgstr,@count);
+         _class.symtable.SymList.ForEachCall(@insertmsgstr,@count);
 
          { write all names }
          if assigned(root) then
@@ -336,7 +336,7 @@ implementation
          root:=nil;
          count:=0;
          { insert all message handlers into a tree, sorted by name }
-         _class.symtable.foreach(@insertmsgint,@count);
+         _class.symtable.SymList.ForEachCall(@insertmsgint,@count);
 
          { now start writing of the message string table }
          current_asmdata.getdatalabel(r);
@@ -357,7 +357,7 @@ implementation
               DMT
 **************************************}
 
-    procedure tclassheader.insertdmtentry(p : tnamedindexitem;arg:pointer);
+    procedure tclassheader.insertdmtentry(p:TObject;arg:pointer);
 
       var
          hp : tprocdef;
@@ -412,7 +412,7 @@ implementation
          count:=0;
          gendmt:=nil;
          { insert all message handlers into a tree, sorted by number }
-         _class.symtable.foreach(insertdmtentry);
+         _class.symtable.SymList.ForEachCall(insertdmtentry);
 
          if count>0 then
            begin
@@ -440,7 +440,7 @@ implementation
         Published Methods
 **************************************}
 
-    procedure tclassheader.do_count_published_methods(p : tnamedindexitem;arg:pointer);
+    procedure tclassheader.do_count_published_methods(p:TObject;arg:pointer);
       var
         i : longint;
         pd : tprocdef;
@@ -458,7 +458,7 @@ implementation
       end;
 
 
-    procedure tclassheader.do_gen_published_methods(p : tnamedindexitem;arg:pointer);
+    procedure tclassheader.do_gen_published_methods(p:TObject;arg:pointer);
       var
         i  : longint;
         l  : tasmlabel;
@@ -498,14 +498,14 @@ implementation
 
       begin
          count:=0;
-         _class.symtable.foreach(@do_count_published_methods,@count);
+         _class.symtable.SymList.ForEachCall(@do_count_published_methods,@count);
          if count>0 then
            begin
               current_asmdata.getdatalabel(l);
               current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
               current_asmdata.asmlists[al_globals].concat(Tai_label.Create(l));
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(count));
-              _class.symtable.foreach(@do_gen_published_methods,nil);
+              _class.symtable.SymList.ForEachCall(@do_gen_published_methods,nil);
               genpublishedmethodstable:=l;
            end
          else
@@ -572,7 +572,7 @@ implementation
       begin
         { generate new vmtentry }
         new(result);
-        result^.speedvalue:=sym.speedvalue;
+        result^.Hash:=sym.Hash;
         result^.name:=stringdup(sym.name);
         result^.next:=firstvmtentry;
         result^.firstprocdef:=nil;
@@ -580,7 +580,7 @@ implementation
       end;
 
 
-    procedure tclassheader.eachsym(sym : tnamedindexitem;arg:pointer);
+    procedure tclassheader.eachsym(sym : TObject;arg:pointer);
       const
         po_comp = [po_classmethod,po_virtualmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgstr,po_msgint,
                    po_exports,po_varargs,po_explicitparaloc,po_nostackframe];
@@ -601,15 +601,15 @@ implementation
           exit;
 
         { check the current list of symbols }
-        _name:=sym.name;
-        _speed:=sym.speedvalue;
+        _name:=TSym(sym).name;
+        _speed:=TSym(sym).Hash;
         vmtentry:=firstvmtentry;
         while assigned(vmtentry) do
          begin
            { does the symbol already exist in the list? First
              compare speedvalue before doing the string compare to
              speed it up a little }
-           if (_speed=vmtentry^.speedvalue) and
+           if (_speed=vmtentry^.Hash) and
               (_name=vmtentry^.name^) then
             begin
               hasoverloads:=(Tprocsym(sym).procdef_count>1);
@@ -703,8 +703,8 @@ implementation
 
                                      { error, if the return types aren't equal }
                                      if not(equal_defs(procdefcoll^.data.returndef,pd.returndef)) and
-                                        not((procdefcoll^.data.returndef.deftype=objectdef) and
-                                         (pd.returndef.deftype=objectdef) and
+                                        not((procdefcoll^.data.returndef.typ=objectdef) and
+                                         (pd.returndef.typ=objectdef) and
                                          is_class_or_interface(procdefcoll^.data.returndef) and
                                          is_class_or_interface(pd.returndef) and
                                          (tobjectdef(pd.returndef).is_related(
@@ -833,7 +833,7 @@ implementation
              do_genvmt(p.childof);
 
            { walk through all public syms }
-           p.symtable.foreach(@eachsym,nil);
+           p.symtable.SymList.ForEachCall(@eachsym,nil);
         end;
 
       begin
@@ -1057,7 +1057,7 @@ implementation
             if ImplIntf.VtblImplIntf=ImplIntf then
               begin
                 { allocate a pointer in the object memory }
-                with tobjectsymtable(_class.symtable) do
+                with tObjectSymtable(_class.symtable) do
                   begin
                     datasize:=align(datasize,sizeof(aint));
                     ImplIntf.Ioffset:=datasize;
@@ -1103,7 +1103,7 @@ implementation
               for class entries as the tree keeps always the same }
             if (not tprocsym(sym).overloadchecked) and
                (po_overload in tprocsym(sym).first_procdef.procoptions) and
-               (tprocsym(sym).owner.symtabletype=objectsymtable) then
+               (tprocsym(sym).owner.symtabletype=ObjectSymtable) then
              search_class_overloads(tprocsym(sym));
 
             for i:=1 to tprocsym(sym).procdef_count do
@@ -1124,17 +1124,18 @@ implementation
 
     procedure tclassheader.intf_get_procdefs(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
       var
-        def: tdef;
+        i   : longint;
+        def : tdef;
         hs,
         prefix,
         mappedname: string;
         implprocdef: tprocdef;
       begin
         prefix:=ImplIntf.IntfDef.symtable.name^+'.';
-        def:=tdef(IntfDef.symtable.defindex.first);
-        while assigned(def) do
+        for i:=0 to IntfDef.symtable.DefList.Count-1 do
           begin
-            if def.deftype=procdef then
+            def:=tdef(IntfDef.symtable.DefList[i]);
+            if def.typ=procdef then
               begin
                 { Find implementing procdef
                    1. Check for mapped name
@@ -1153,7 +1154,6 @@ implementation
                   if ImplIntf.IntfDef.iitype = etStandard then
                     Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
               end;
-            def:=tdef(def.indexnext);
           end;
       end;
 
@@ -1313,8 +1313,8 @@ implementation
 
          { determine the size with symtable.datasize, because }
          { size gives back 4 for classes                    }
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Create(aitconst_ptr,tobjectsymtable(_class.symtable).datasize));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Create(aitconst_ptr,-int64(tobjectsymtable(_class.symtable).datasize)));
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Create(aitconst_ptr,tObjectSymtable(_class.symtable).datasize));
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Create(aitconst_ptr,-int64(tObjectSymtable(_class.symtable).datasize)));
 {$ifdef WITHDMT}
          if _class.classtype=ct_object then
            begin

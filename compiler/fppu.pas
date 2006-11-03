@@ -62,7 +62,6 @@ interface
           function  search_unit(onlysource,shortname:boolean):boolean;
           procedure load_interface;
           procedure load_implementation;
-          procedure load_symtable_refs;
           procedure load_usedunits;
           procedure printcomments;
           procedure queuecomment(s:string;v,w:longint);
@@ -86,7 +85,7 @@ interface
        end;
 
     procedure reload_flagged_units;
-    function registerunit(callermodule:tmodule;const s : stringid;const fn:string) : tppumodule;
+    function registerunit(callermodule:tmodule;const s : TIDString;const fn:string) : tppumodule;
 
 
 implementation
@@ -659,7 +658,7 @@ uses
            hs:=ppufile.getstring;
            was_initial:=boolean(ppufile.getbyte);
            was_used:=boolean(ppufile.getbyte);
-           mac:=tmacro(initialmacrosymtable.search(hs));
+           mac:=tmacro(initialmacrosymtable.Find(hs));
            if assigned(mac) then
              begin
 {$ifndef EXTDEBUG}
@@ -958,25 +957,6 @@ uses
       end;
 
 
-    procedure tppumodule.load_symtable_refs;
-      var
-         b : byte;
-         i : longint;
-      begin
-        if (flags and uf_has_browser)<>0 then
-          begin
-            tstoredsymtable(globalsymtable).load_references(ppufile,true);
-            for i:=0 to unitmapsize-1 do
-              tstoredsymtable(globalsymtable).load_references(ppufile,false);
-            b:=ppufile.readentry;
-            if b<>ibendbrowser then
-             Message1(unit_f_ppu_invalid_entry,tostr(b));
-          end;
-        if ((flags and uf_local_browser)<>0) then
-          tstaticsymtable(localsymtable).load_references(ppufile,true);
-      end;
-
-
     procedure tppumodule.writeppu;
       var
         pu : tused_unit;
@@ -984,10 +964,6 @@ uses
          Message1(unit_u_ppu_write,realmodulename^);
 
          { create unit flags }
-         if cs_browser in current_settings.moduleswitches then
-          flags:=flags or uf_has_browser;
-         if cs_local_browser in current_settings.moduleswitches then
-          flags:=flags or uf_local_browser;
          if do_release then
           flags:=flags or uf_release;
          if assigned(localsymtable) then
@@ -1053,7 +1029,7 @@ uses
          { write the symtable entries }
          tstoredsymtable(globalsymtable).ppuwrite(ppufile);
 
-         if assigned(globalmacrosymtable) and (globalmacrosymtable.symindex.count > 0) then
+         if assigned(globalmacrosymtable) and (globalmacrosymtable.SymList.count > 0) then
            begin
              ppufile.putbyte(byte(true));
              ppufile.writeentry(ibexportedmacros);
@@ -1078,25 +1054,6 @@ uses
            needed for local debugging of unit functions }
          if (flags and uf_local_symtable)<>0 then
            tstoredsymtable(localsymtable).ppuwrite(ppufile);
-
-         { write all browser section }
-         if (flags and uf_has_browser)<>0 then
-          begin
-            tstoredsymtable(globalsymtable).write_references(ppufile,true);
-            pu:=tused_unit(used_units.first);
-            while assigned(pu) do
-             begin
-               tstoredsymtable(pu.u.globalsymtable).write_references(ppufile,false);
-               pu:=tused_unit(pu.next);
-             end;
-            ppufile.writeentry(ibendbrowser);
-          end;
-         if ((flags and uf_local_browser)<>0) then
-           begin
-             if not assigned(localsymtable) then
-               internalerror(200408271);
-             tstaticsymtable(localsymtable).write_references(ppufile,true);
-           end;
 
          { the last entry ibend is written automaticly }
 
@@ -1160,7 +1117,7 @@ uses
          { write the symtable entries }
          tstoredsymtable(globalsymtable).ppuwrite(ppufile);
 
-         if assigned(globalmacrosymtable) and (globalmacrosymtable.symindex.count > 0) then
+         if assigned(globalmacrosymtable) and (globalmacrosymtable.SymList.count > 0) then
            begin
              ppufile.putbyte(byte(true));
              ppufile.writeentry(ibexportedmacros);
@@ -1308,14 +1265,6 @@ uses
         tstoredsymtable(globalsymtable).derefimpl;
         if assigned(localsymtable) then
           tstoredsymtable(localsymtable).derefimpl;
-
-        { load browser info if stored }
-        if ((flags and uf_has_browser)<>0) and load_refs then
-         begin
-           if current_module<>self then
-            internalerror(200208188);
-           load_symtable_refs;
-         end;
       end;
 
 
@@ -1544,9 +1493,9 @@ uses
 *****************************************************************************}
 
 
-    function registerunit(callermodule:tmodule;const s : stringid;const fn:string) : tppumodule;
+    function registerunit(callermodule:tmodule;const s : TIDString;const fn:string) : tppumodule;
       var
-        ups   : stringid;
+        ups   : TIDString;
         hp    : tppumodule;
         hp2   : tmodule;
       begin

@@ -134,7 +134,7 @@ implementation
                       fname:='int32_to_';
                     firstpass(left);
                   end;
-                if tfloatdef(resultdef).typ=s64real then
+                if tfloatdef(resultdef).floattype=s64real then
                   fname:=fname+'float64'
                 else
                   fname:=fname+'float32';

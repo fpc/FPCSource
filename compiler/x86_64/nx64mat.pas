@@ -110,13 +110,13 @@ implementation
             emit_reg_reg(A_MOV,S_Q,hreg1,NR_RAX);
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_RDX);
             {Sign extension depends on the left type.}
-            if torddef(left.resultdef).typ=u64bit then
+            if torddef(left.resultdef).ordtype=u64bit then
               emit_reg_reg(A_XOR,S_Q,NR_RDX,NR_RDX)
             else
               emit_none(A_CQO,S_NO);
 
             {Division depends on the right type.}
-            if Torddef(right.resultdef).typ=u64bit then
+            if Torddef(right.resultdef).ordtype=u64bit then
               op:=A_DIV
             else
               op:=A_IDIV;

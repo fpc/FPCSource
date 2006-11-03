@@ -71,11 +71,12 @@ implementation
          c         : char;
          ca        : pchar;
          tmpguid   : tguid;
+         symidx,
          aktpos    : longint;
          obj       : tobjectdef;
          recsym,
          srsym     : tsym;
-         symt      : tsymtable;
+         symt      : TSymtable;
          value     : bestreal;
          intvalue  : tconstexprint;
          strval    : pchar;
@@ -103,11 +104,11 @@ implementation
          block_type:=bt_const;
          datalist:=tasmlist.create;
 
-         case def.deftype of
+         case def.typ of
             orddef:
               begin
                  p:=comp_expr(true);
-                 case torddef(def).typ of
+                 case torddef(def).ordtype of
                     bool8bit :
                       begin
                          if is_constboolnode(p) then
@@ -180,7 +181,7 @@ implementation
                          if is_constintnode(p) then
                            begin
                               datalist.concat(Tai_const.Create_32bit(longint(tordconstnode(p).value)));
-                              if torddef(def).typ<>u32bit then
+                              if torddef(def).ordtype<>u32bit then
                                check_range(torddef(def));
                            end
                          else
@@ -193,7 +194,7 @@ implementation
                          if is_constintnode(p) then
                            intvalue := tordconstnode(p).value
                          else if is_constrealnode(p) and
-                                 (torddef(def).typ=scurrency)
+                                 (torddef(def).ordtype=scurrency)
                            { allow bootstrapping }
                            then
                              begin
@@ -221,7 +222,7 @@ implementation
               else
                 Message(parser_e_illegal_expression);
 
-              case tfloatdef(def).typ of
+              case tfloatdef(def).floattype of
                  s32real :
                    datalist.concat(Tai_real_32bit.Create(ts32real(value)));
                  s64real :
@@ -375,7 +376,7 @@ implementation
                              case hp.nodetype of
                                vecn :
                                  begin
-                                   case tvecnode(hp).left.resultdef.deftype of
+                                   case tvecnode(hp).left.resultdef.typ of
                                      stringdef :
                                        begin
                                           { this seems OK for shortstring and ansistrings PM }
@@ -559,7 +560,7 @@ implementation
                 end;
               if strlength>=0 then
                begin
-                 case tstringdef(def).string_typ of
+                 case tstringdef(def).stringtype of
                    st_shortstring:
                      begin
                        if strlength>=def.size then
@@ -811,7 +812,8 @@ implementation
                    consume(_LKLAMMER);
                    sorg:='';
                    aktpos:=0;
-                   srsym := tsym(trecorddef(def).symtable.symindex.first);
+                   symidx:=0;
+                   srsym:=tsym(trecorddef(def).symtable.SymList[symidx]);
                    recsym := nil;
                    while token<>_RKLAMMER do
                      begin
@@ -820,7 +822,7 @@ implementation
                         consume(_ID);
                         consume(_COLON);
                         error := false;
-                        recsym := tsym(trecorddef(def).symtable.search(s));
+                        recsym := tsym(trecorddef(def).symtable.Find(s));
                         if not assigned(recsym) then
                           begin
                             Message1(sym_e_illegal_field,sorg);
@@ -884,7 +886,11 @@ implementation
                              { record was initialized (JM)                    }
                              recsym := srsym;
                              { goto next field }
-                             srsym := tsym(srsym.indexnext);
+                             inc(symidx);
+                             if symidx<trecorddef(def).symtable.SymList.Count then
+                               srsym:=tsym(trecorddef(def).symtable.SymList[symidx])
+                             else
+                               srsym:=nil;
 
                              if token=_SEMICOLON then
                                consume(_SEMICOLON)
@@ -945,7 +951,7 @@ implementation
                         symt:=obj.symtable;
                         while (srsym=nil) and assigned(symt) do
                           begin
-                             srsym:=tsym(symt.search(s));
+                             srsym:=tsym(symt.Find(s));
                              if assigned(obj) then
                                obj:=obj.childof;
                              if assigned(obj) then

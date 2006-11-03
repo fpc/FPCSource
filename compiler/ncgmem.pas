@@ -136,7 +136,7 @@ implementation
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
             { load framepointer of current proc }
-            hsym:=tparavarsym(currpi.procdef.parast.search('parentfp'));
+            hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
             if not assigned(hsym) then
               internalerror(200309281);
             cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,hsym.localloc,location.register);
@@ -146,7 +146,7 @@ implementation
                 currpi:=currpi.parent;
                 if not assigned(currpi) then
                   internalerror(200311201);
-                hsym:=tparavarsym(currpi.procdef.parast.search('parentfp'));
+                hsym:=tparavarsym(currpi.procdef.parast.Find('parentfp'));
                 if not assigned(hsym) then
                   internalerror(200309282);
 
@@ -369,7 +369,7 @@ implementation
                  inc(location.reference.offset,vs.fieldoffset);
 {$ifdef SUPPORT_UNALIGNED}
                  { packed? }
-                 if (vs.owner.defowner.deftype in [recorddef,objectdef]) and
+                 if (vs.owner.defowner.typ in [recorddef,objectdef]) and
                    (tabstractrecordsymtable(vs.owner).usefieldalignment=1) then
                    location.reference.alignment:=1;
 {$endif SUPPORT_UNALIGNED}
@@ -431,7 +431,7 @@ implementation
           get_mul_size:=1
          else
           begin
-            if (left.resultdef.deftype=arraydef) then
+            if (left.resultdef.typ=arraydef) then
              if not is_packed_array(left.resultdef) then
               get_mul_size:=tarraydef(left.resultdef).elesize
              else
@@ -691,7 +691,7 @@ implementation
            internalerror(200411013);
 
          { offset can only differ from 0 if arraydef }
-         if (left.resultdef.deftype=arraydef) and
+         if (left.resultdef.typ=arraydef) and
             not(is_dynamic_array(left.resultdef)) and
             (not(is_packed_array(left.resultdef)) or
              ((mulsize mod 8 = 0) and
@@ -701,7 +701,7 @@ implementation
          if right.nodetype=ordconstn then
            begin
               { offset can only differ from 0 if arraydef }
-              case left.resultdef.deftype of
+              case left.resultdef.typ of
                 arraydef :
                   begin
                      if not(is_open_array(left.resultdef)) and
@@ -731,7 +731,7 @@ implementation
                   begin
                     if (cs_check_range in current_settings.localswitches) then
                      begin
-                       case tstringdef(left.resultdef).string_typ of
+                       case tstringdef(left.resultdef).stringtype of
                          { it's the same for ansi- and wide strings }
                          st_widestring,
                          st_ansistring:
@@ -805,7 +805,7 @@ implementation
                  { need that fancy code (it would be }
                  { buggy)                            }
                  not(cs_check_range in current_settings.localswitches) and
-                 (left.resultdef.deftype=arraydef) and
+                 (left.resultdef.typ=arraydef) and
                  not is_packed_array(left.resultdef) then
                 begin
                    extraoffset:=0;
@@ -886,20 +886,20 @@ implementation
               { only range check now, we can't range check loc_flags/loc_jump }
               if cs_check_range in current_settings.localswitches then
                begin
-                 if left.resultdef.deftype=arraydef then
+                 if left.resultdef.typ=arraydef then
                    rangecheck_array;
                end;
 
             { produce possible range check code: }
               if cs_check_range in current_settings.localswitches then
                begin
-                 if left.resultdef.deftype=arraydef then
+                 if left.resultdef.typ=arraydef then
                    begin
                      { done defore (PM) }
                    end
-                 else if (left.resultdef.deftype=stringdef) then
+                 else if (left.resultdef.typ=stringdef) then
                    begin
-                      case tstringdef(left.resultdef).string_typ of
+                      case tstringdef(left.resultdef).stringtype of
                          { it's the same for ansi- and wide strings }
                          st_widestring,
                          st_ansistring:

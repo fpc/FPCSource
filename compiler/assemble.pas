@@ -848,7 +848,7 @@ Implementation
                 if (nidx=N_SourceFile) or (nidx=N_IncludeFile) then
                   begin
                     hs:=strpas(pstr);
-                    StabstrEntry:=StabStrDict.Search(hs);
+                    StabstrEntry:=StabStrDict.Find(hs);
                     if not assigned(StabstrEntry) then
                       begin
                         StabstrEntry:=TStabStrEntry.Create(hs);

@@ -594,7 +594,7 @@ end;
                   end;
                 LOC_REFERENCE,LOC_CREFERENCE:
                   begin
-                     if (left.resultdef.deftype=floatdef) then
+                     if (left.resultdef.typ=floatdef) then
                        begin
                           src1 := cg.getfpuregister(current_asmdata.CurrAsmList,def_cgsize(left.resultdef));
                           location.register := src1;
@@ -612,7 +612,7 @@ end;
                   end;
               end;
               { choose appropriate operand }
-              if left.resultdef.deftype <> floatdef then
+              if left.resultdef.typ <> floatdef then
                 begin
                   if not(cs_check_overflow in current_settings.localswitches) then
                     op := A_NEG

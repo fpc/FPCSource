@@ -382,7 +382,7 @@ interface
           end
         else if tempinfo^.may_be_in_reg then
           begin
-            if tempinfo^.typedef.deftype=floatdef then
+            if tempinfo^.typedef.typ=floatdef then
               begin
 {$ifdef x86}
                 if use_sse(tempinfo^.typedef) then

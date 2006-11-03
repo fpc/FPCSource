@@ -117,7 +117,7 @@ unit cpupara;
          { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
            if push_addr_param for the def is true
          }
-         case p.deftype of
+         case p.typ of
             orddef:
               result:=LOC_REGISTER;
             floatdef:
@@ -181,7 +181,7 @@ unit cpupara;
             result:=true;
             exit;
           end;
-        case def.deftype of
+        case def.typ of
           variantdef,
           formaldef :
             result:=true;
@@ -205,7 +205,7 @@ unit cpupara;
           setdef :
             result:=(tsetdef(def).settype<>smallset);
           stringdef :
-            result:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
+            result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
           procvardef :
             result:=po_methodpointer in tprocvardef(def).procoptions;
         end;
@@ -248,7 +248,7 @@ unit cpupara;
           end;
 
         { Return in FPU register? }
-        if p.returndef.deftype=floatdef then
+        if p.returndef.typ=floatdef then
           begin
             p.funcretloc[side].loc:=LOC_FPUREGISTER;
             p.funcretloc[side].register:=NR_FPU_RESULT_REG;
@@ -381,20 +381,20 @@ unit cpupara;
                     paralen := tcgsize2size[def_cgsize(paradef)];
                   loc := getparaloc(paradef);
                   if (target_info.abi = abi_powerpc_aix) and
-                     (paradef.deftype = recorddef) and
+                     (paradef.typ = recorddef) and
                      (hp.varspez in [vs_value,vs_const]) then
                     begin
                       { if a record has only one field and that field is }
                       { non-composite (not array or record), it must be  }
                       { passed according to the rules of that type.       }
-                      if (trecorddef(hp.vardef).symtable.symindex.count = 1) and
+                      if (trecorddef(hp.vardef).symtable.SymList.count = 1) and
                          (not trecorddef(hp.vardef).isunion) and
-                         ((tabstractvarsym(trecorddef(hp.vardef).symtable.symindex.search(1)).vardef.deftype = floatdef) or
+                         ((tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef.typ = floatdef) or
                           ((target_info.system = system_powerpc_darwin) and
-                           (tabstractvarsym(trecorddef(hp.vardef).symtable.symindex.search(1)).vardef.deftype in [orddef,enumdef]))) then
+                           (tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef.typ in [orddef,enumdef]))) then
                         begin
                           paradef :=
-                           tabstractvarsym(trecorddef(hp.vardef).symtable.symindex.search(1)).vardef;
+                           tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef;
                           paracgsize:=def_cgsize(paradef);
                         end
                       else
@@ -416,7 +416,7 @@ unit cpupara;
 
               if varargsparas and
                  (target_info.abi = abi_powerpc_aix) and
-                 (paradef.deftype = floatdef) then
+                 (paradef.typ = floatdef) then
                 begin
                   loc := LOC_REGISTER;
                   if paracgsize = OS_F64 then
@@ -429,7 +429,7 @@ unit cpupara;
               hp.paraloc[side].size:=paracgsize;
               hp.paraloc[side].intsize:=paralen;
               if (target_info.abi = abi_powerpc_aix) and
-                 (paradef.deftype in [recorddef,arraydef]) then
+                 (paradef.typ in [recorddef,arraydef]) then
                 hp.paraloc[side].composite:=true;
 {$ifndef cpu64bit}
               if (target_info.abi=abi_powerpc_sysv) and
@@ -438,7 +438,7 @@ unit cpupara;
                 inc(nextintreg);
 {$endif not cpu64bit}
               if (paralen = 0) then
-                if (paradef.deftype = recorddef) then
+                if (paradef.typ = recorddef) then
                   begin
                     paraloc:=hp.paraloc[side].add_location;
                     paraloc^.loc := LOC_VOID;
@@ -454,7 +454,7 @@ unit cpupara;
                     begin
                       paraloc^.loc := loc;
                       { make sure we don't lose whether or not the type is signed }
-                      if (paradef.deftype <> orddef) then
+                      if (paradef.typ <> orddef) then
                         paracgsize := int_cgsize(paralen);
                       if (paracgsize in [OS_NO,OS_64,OS_S64]) then
                         paraloc^.size := OS_INT

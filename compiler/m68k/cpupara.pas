@@ -88,7 +88,7 @@ unit cpupara;
          { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
            if push_addr_param for the def is true
          }
-         case p.deftype of
+         case p.typ of
             orddef:
               result:=LOC_REGISTER;
             floatdef:
@@ -151,7 +151,7 @@ unit cpupara;
             result:=true;
             exit;
           end;
-        case def.deftype of
+        case def.typ of
           variantdef,
           formaldef :
             result:=true;
@@ -167,7 +167,7 @@ unit cpupara;
           setdef :
             result:=(tsetdef(def).settype<>smallset);
           stringdef :
-            result:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
+            result:=tstringdef(def).stringtype in [st_shortstring,st_longstring];
           procvardef :
             result:=po_methodpointer in tprocvardef(def).procoptions;
         end;
@@ -208,7 +208,7 @@ unit cpupara;
             exit;
           end;
         { Return in FPU register? }
-        if p.returndef.deftype=floatdef then
+        if p.returndef.typ=floatdef then
           begin
             p.funcretloc[side].loc:=LOC_FPUREGISTER;
             p.funcretloc[side].register:=NR_FPU_RESULT_REG;
@@ -342,7 +342,7 @@ unit cpupara;
             hp.paraloc[side].intsize:=paralen;
 
             if (paralen = 0) then
-              if (paradef.deftype = recorddef) then
+              if (paradef.typ = recorddef) then
                 begin
                   paraloc:=hp.paraloc[side].add_location;
                   paraloc^.loc := LOC_VOID;
@@ -361,7 +361,7 @@ unit cpupara;
 		    //writeln('loc register');
                     paraloc^.loc := loc;
                     { make sure we don't lose whether or not the type is signed }
-                    if (paradef.deftype <> orddef) then
+                    if (paradef.typ <> orddef) then
                       paracgsize := int_cgsize(paralen);
                     if (paracgsize in [OS_NO,OS_64,OS_S64]) then
                       paraloc^.size := OS_INT

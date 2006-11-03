@@ -131,7 +131,7 @@ implementation
           location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
 
         { Handle Floating point types differently }
-        if (left.resultdef.deftype=floatdef) and not(cs_fp_emulation in current_settings.moduleswitches) then
+        if (left.resultdef.typ=floatdef) and not(cs_fp_emulation in current_settings.moduleswitches) then
          begin
 {$ifdef i386}
            if tempcgpara.location^.loc<>LOC_REFERENCE then
@@ -398,7 +398,7 @@ implementation
                  { don't push a node that already generated a pointer type
                    by address for implicit hidden parameters }
                  if (vo_is_funcret in parasym.varoptions) or
-                    (not(left.resultdef.deftype in [pointerdef,classrefdef]) and
+                    (not(left.resultdef.typ in [pointerdef,classrefdef]) and
                      paramanager.push_addr_param(parasym.varspez,parasym.vardef,
                          aktcallnode.procdefinition.proccalloption)) then
                    push_addr_para
@@ -406,7 +406,7 @@ implementation
                    push_value_para;
                end
              { formal def }
-             else if (parasym.vardef.deftype=formaldef) then
+             else if (parasym.vardef.typ=formaldef) then
                begin
                   { allow passing of a constant to a const formaldef }
                   if (parasym.varspez=vs_const) and
@@ -421,7 +421,7 @@ implementation
                    by address for implicit hidden parameters }
                  if (not(
                          (vo_is_hidden_para in parasym.varoptions) and
-                         (left.resultdef.deftype in [pointerdef,classrefdef])
+                         (left.resultdef.typ in [pointerdef,classrefdef])
                         ) and
                      paramanager.push_addr_param(parasym.varspez,parasym.vardef,
                          aktcallnode.procdefinition.proccalloption)) and
@@ -603,7 +603,7 @@ implementation
                               cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,def_cgsize(resultdef),procdefinition.funcretloc[callerside].register,location.register);
                             end;
 {$ifdef arm}
-                          if (resultdef.deftype=floatdef) and (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
+                          if (resultdef.typ=floatdef) and (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
                             begin
                               location_force_mem(current_asmdata.CurrAsmList,location);
                             end;
@@ -894,7 +894,7 @@ implementation
                  secondpass(methodpointer);
 
                  { Load VMT from self }
-                 if methodpointer.resultdef.deftype=objectdef then
+                 if methodpointer.resultdef.typ=objectdef then
                    gen_load_vmt_register(current_asmdata.CurrAsmList,tobjectdef(methodpointer.resultdef),methodpointer.location,vmtreg)
                  else
                    begin

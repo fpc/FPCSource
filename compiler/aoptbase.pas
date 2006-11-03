@@ -76,16 +76,16 @@ unit aoptbase;
         Function RegsSameSize(Reg1, Reg2: TRegister): Boolean; Virtual;
         { returns whether P is a load instruction (load contents from a }
         { memory location or (register) variable into a register)       }
-        Function IsLoadMemReg(p: tai): Boolean; Virtual;
+        Function IsLoadMemReg(p: tai): Boolean; Virtual; Abstract;
         { returns whether P is a load constant instruction (load a constant }
         { into a register)                                                  }
-        Function IsLoadConstReg(p: tai): Boolean; Virtual;
+        Function IsLoadConstReg(p: tai): Boolean; Virtual; Abstract;
         { returns whether P is a store instruction (store contents from a }
         { register to a memory location or to a (register) variable)      }
-        Function IsStoreRegMem(p: tai): Boolean; Virtual;
+        Function IsStoreRegMem(p: tai): Boolean; Virtual; Abstract;
 
         { create a paicpu Object that loads the contents of reg1 into reg2 }
-        Function a_load_reg_reg(reg1, reg2: TRegister): taicpu; Virtual;
+        Function a_load_reg_reg(reg1, reg2: TRegister): taicpu; Virtual; Abstract;
 
     end;
 
@@ -232,26 +232,6 @@ unit aoptbase;
   Function TAOptBase.RegsSameSize(Reg1, Reg2: TRegister): Boolean;
   Begin
     RegsSameSize := True
-  End;
-
-  Function TAOptBase.IsLoadMemReg(p: tai): Boolean;
-  Begin
-    Abstract
-  End;
-
-  Function TAOptBase.IsLoadConstReg(p: tai): Boolean;
-  Begin
-    Abstract
-  End;
-
-  Function TAOptBase.IsStoreRegMem(p: tai): Boolean;
-  Begin
-    Abstract
-  End;
-
-  Function TAoptBase.a_load_reg_reg(reg1, reg2: TRegister): taicpu;
-  Begin
-    Abstract
   End;
 
 end.

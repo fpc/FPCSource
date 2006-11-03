@@ -167,8 +167,8 @@ implementation
          { check if we can use smallset operation using btl which is limited
            to 32 bits, the left side may also not contain higher values !! }
          use_small:=(tsetdef(right.resultdef).settype=smallset) and
-                    ((left.resultdef.deftype=orddef) and (torddef(left.resultdef).high<=32) or
-                     (left.resultdef.deftype=enumdef) and (tenumdef(left.resultdef).max<=32));
+                    ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high<=32) or
+                     (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<=32));
 
          { Can we generate jumps? Possible for all types of sets }
          genjumps:=(right.nodetype=setconstn) and

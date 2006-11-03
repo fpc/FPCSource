@@ -104,7 +104,7 @@ interface
          cs_support_goto,cs_support_macro,
          cs_support_c_operators,cs_static_keyword,
          { generation }
-         cs_profile,cs_debuginfo,cs_browser,cs_local_browser,cs_compilesystem,
+         cs_profile,cs_debuginfo,cs_compilesystem,
          cs_lineinfo,cs_implicit_exceptions,
          { linking }
          cs_create_smart,cs_create_dynamic,cs_create_pic
@@ -121,8 +121,6 @@ interface
          cs_load_gpc_unit,
          cs_load_fpcylix_unit,
          cs_support_vectors,
-         { browser }
-         cs_browser_log,
          { debuginfo }
          cs_use_heaptrc,cs_use_lineinfo,
          cs_gdb_valgrind,cs_no_regalloc,
@@ -307,7 +305,7 @@ interface
        tprocinfoflags=set of tprocinfoflag;
 
     type
-       stringid = string[maxidlen];
+       TIDString = string[maxidlen];
 
        tnormalset = set of byte; { 256 elements set }
        pnormalset = ^tnormalset;

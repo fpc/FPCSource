@@ -1156,7 +1156,6 @@ end;
 
   procedure ProcessSymTable(OwnerSym: PSymbol; var Owner: PSymbolCollection; Table: TSymTable);
   var J: longint;
-      Ref: TRef;
       Sym: TSym;
       Symbol: PSymbol;
       Reference: PReference;
@@ -1211,7 +1210,7 @@ end;
   var Name: string;
   begin
     Name:='';
-    case def.string_typ of
+    case def.stringtype of
       st_shortstring :
         if def.len=255 then
           Name:='shortstring'
@@ -1327,7 +1326,7 @@ end;
       if assigned(def.typesym) then
         Name:=def.typesym.name;
       if Name='' then
-      case def.deftype of
+      case def.typ of
         arraydef :
           Name:=GetArrayDefStr(tarraydef(def));
         stringdef :
@@ -1373,7 +1372,7 @@ end;
     case sym.consttyp of
       constord :
         begin
-          if sym.constdef.deftype=enumdef then
+          if sym.constdef.typ=enumdef then
             Name:=sym.constdef.typesym.name+'('+IntToStr(sym.value.valueord)+')'
           else
             if is_boolean(sym.constdef) then
@@ -1402,7 +1401,7 @@ end;
       only usefull for unamed types PM }
     if assigned(definition) and not assigned(definition.typesym) then
     begin
-      case definition.deftype of
+      case definition.typ of
         recorddef :
           if trecorddef(definition).symtable<>Table then
             ProcessSymTable(Symbol,Symbol^.Items,trecorddef(definition).symtable);
@@ -1420,14 +1419,15 @@ end;
   end;
   var MemInfo: TSymbolMemInfo;
       ObjDef: tobjectdef;
+      symidx : longint;
   begin
     if not Assigned(Table) then
      Exit;
     if Owner=nil then
      Owner:=New(PSortedSymbolCollection, Init(10,50));
-    sym:=tsym(Table.symindex.first);
-    while assigned(sym) do
+    for symidx:=0 to Table.SymList.Count-1 do
       begin
+        sym:=tsym(Table.SymList[symidx]);
         New(Symbol, Init(Sym.Name,Sym.Typ,'',nil));
         case Sym.Typ of
           globalvarsym,
@@ -1442,7 +1442,7 @@ end;
                    SetVType(Symbol,GetDefinitionStr(vardef));
                ProcessDefIfStruct(vardef);
                if assigned(vardef) then
-                 if (vardef.deftype=pointerdef) and
+                 if (vardef.typ=pointerdef) and
                     assigned(tpointerdef(vardef).pointeddef) then
                  begin
                    Symbol^.Flags:=(Symbol^.Flags or sfPointer);
@@ -1457,7 +1457,7 @@ end;
                    else
                      MemInfo.Addr:=0;
                  end;
-               if assigned(vardef) and (vardef.deftype=arraydef) then
+               if assigned(vardef) and (vardef.typ=arraydef) then
                  begin
                    if tarraydef(vardef).highrange<tarraydef(vardef).lowrange then
                      MemInfo.Size:=-1
@@ -1473,7 +1473,7 @@ end;
           fieldvarsym :
              with tfieldvarsym(sym) do
              begin
-               if assigned(vardef) and (vardef.deftype=arraydef) then
+               if assigned(vardef) and (vardef.typ=arraydef) then
                  begin
                    if tarraydef(vardef).highrange<tarraydef(vardef).lowrange then
                      MemInfo.Size:=-1
@@ -1504,8 +1504,7 @@ end;
               with tprocsym(sym) do
               if assigned(first_procdef) then
               begin
-                if cs_local_browser in current_settings.moduleswitches then
-                  ProcessSymTable(Symbol,Symbol^.Items,first_procdef.parast);
+                ProcessSymTable(Symbol,Symbol^.Items,first_procdef.parast);
                 if assigned(first_procdef.parast) then
                   begin
                     Symbol^.Params:=TypeNames^.Add(GetAbsProcParmDefStr(first_procdef));
@@ -1516,7 +1515,7 @@ end;
                   begin
                     Symbol^.Params:=TypeNames^.Add('...');
                   end;
-                if cs_local_browser in current_settings.moduleswitches then
+//                if cs_local_browser in current_settings.moduleswitches then
                  begin
                    if assigned(first_procdef.localst) and
                      (first_procdef.localst.symtabletype<>staticsymtable) then
@@ -1530,7 +1529,7 @@ end;
               if assigned(typedef) then
                begin
                 Symbol^.TypeID:=Ptrint(typedef);
-                case typedef.deftype of
+                case typedef.typ of
                   arraydef :
                     SetDType(Symbol,GetArrayDefStr(tarraydef(typedef)));
                   enumdef :
@@ -1570,6 +1569,7 @@ end;
                end;
             end;
         end;
+{$ifdef use_refs}
         Ref:=tstoredsym(sym).defref;
         while Assigned(Symbol) and assigned(Ref) do
           begin
@@ -1582,6 +1582,7 @@ end;
               end;
             Ref:=Ref.nextref;
           end;
+{$endif use_refs}
         if Assigned(Symbol) then
           begin
             if not Owner^.Search(Symbol,J) then
@@ -1592,7 +1593,6 @@ end;
                 Symbol:=nil;
               end;
           end;
-        sym:=tsym(sym.indexnext);
       end;
   end;
 
@@ -1619,10 +1619,10 @@ var
   pif: tinputfile;
 begin
   DisposeBrowserCol;
-  if (cs_browser in current_settings.moduleswitches) then
+//  if (cs_browser in current_settings.moduleswitches) then
     NewBrowserCol;
   hp:=tmodule(loaded_units.first);
-  if (cs_browser in current_settings.moduleswitches) then
+//  if (cs_browser in current_settings.moduleswitches) then
    while assigned(hp) do
     begin
        t:=tsymtable(hp.globalsymtable);
@@ -1646,7 +1646,7 @@ begin
 
            Modules^.Insert(UnitS);
            ProcessSymTable(UnitS,UnitS^.Items,T);
-           if cs_local_browser in current_settings.moduleswitches then
+//           if cs_local_browser in current_settings.moduleswitches then
              begin
                 t:=tsymtable(hp.localsymtable);
                 if assigned(t) then
@@ -1657,7 +1657,7 @@ begin
     end;
 
   hp:=tmodule(loaded_units.first);
-  if (cs_browser in current_settings.moduleswitches) then
+//  if (cs_browser in current_settings.moduleswitches) then
    while assigned(hp) do
     begin
        t:=tsymtable(hp.globalsymtable);
@@ -1684,7 +1684,7 @@ begin
        hp:=tmodule(hp.next);
     end;
 
-  if (cs_browser in current_settings.moduleswitches) then
+  //if (cs_browser in current_settings.moduleswitches) then
     BuildObjectInfo;
   { can allways be done
     needed to know when recompilation of sources is necessary }

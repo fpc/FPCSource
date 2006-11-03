@@ -179,7 +179,7 @@ implementation
         ltvTables.free;
       end;
 
-    procedure AddToThreadvarList(p:tnamedindexitem;arg:pointer);
+    procedure AddToThreadvarList(p:TObject;arg:pointer);
       var
         ltvTable : TAsmList;
       begin
@@ -204,8 +204,8 @@ implementation
            exit;
          ltvTable:=TAsmList.create;
          if assigned(current_module.globalsymtable) then
-           current_module.globalsymtable.foreach_static(@AddToThreadvarList,ltvTable);
-         current_module.localsymtable.foreach_static(@AddToThreadvarList,ltvTable);
+           current_module.globalsymtable.SymList.ForEachCall(@AddToThreadvarList,ltvTable);
+         current_module.localsymtable.SymList.ForEachCall(@AddToThreadvarList,ltvTable);
          if ltvTable.first<>nil then
           begin
             s:=make_mangledname('THREADVARLIST',current_module.localsymtable,'');
@@ -468,6 +468,10 @@ implementation
            { create system defines }
            create_intern_symbols;
            create_intern_types;
+           { Set the owner of errorsym and errortype to symtable to
+             prevent crashes when accessing .owner }
+           generrorsym.owner:=systemunit;
+           generrordef.owner:=systemunit;
            exit;
          end;
 
@@ -536,7 +540,7 @@ implementation
 
     procedure loadunits;
       var
-         s,sorg  : stringid;
+         s,sorg  : TIDString;
          fn      : string;
          pu      : tused_unit;
          hp2     : tmodule;
@@ -662,28 +666,27 @@ implementation
        end;
 
 
-    procedure free_localsymtables(st:tsymtable);
+    procedure free_localsymtables(st:TSymtable);
       var
+        i   : longint;
         def : tstoreddef;
         pd  : tprocdef;
       begin
-        def:=tstoreddef(st.defindex.first);
-        while assigned(def) do
+        for i:=0 to st.DefList.Count-1 do
           begin
-            if def.deftype=procdef then
+            def:=tstoreddef(st.DefList[i]);
+            if def.typ=procdef then
               begin
                 pd:=tprocdef(def);
                 if assigned(pd.localst) and
                    (pd.localst.symtabletype<>staticsymtable) and
-                   not((po_inline in pd.procoptions) or
-                       ((current_module.flags and uf_local_browser)<>0)) then
+                   not(po_inline in pd.procoptions) then
                   begin
                     free_localsymtables(pd.localst);
                     pd.localst.free;
                     pd.localst:=nil;
                   end;
               end;
-             def:=tstoreddef(def.indexnext);
           end;
       end;
 
@@ -697,10 +700,6 @@ implementation
 
     procedure setupglobalswitches;
       begin
-        { can't have local browser when no global browser }
-        if (cs_local_browser in current_settings.moduleswitches) and
-           not(cs_browser in current_settings.moduleswitches) then
-          exclude(current_settings.moduleswitches,cs_local_browser);
         if (cs_create_pic in current_settings.moduleswitches) then
           begin
             def_system_macro('FPC_PIC');
@@ -709,7 +708,7 @@ implementation
       end;
 
 
-    function create_main_proc(const name:string;potype:tproctypeoption;st:tsymtable):tprocdef;
+    function create_main_proc(const name:string;potype:tproctypeoption;st:TSymtable):tprocdef;
       var
         ps  : tprocsym;
         pd  : tprocdef;
@@ -764,7 +763,7 @@ implementation
       end;
 
 
-    procedure gen_implicit_initfinal(flag:word;st:tsymtable);
+    procedure gen_implicit_initfinal(flag:word;st:TSymtable);
       var
         pd : tprocdef;
       begin
@@ -791,7 +790,7 @@ implementation
       end;
 
 
-    procedure copy_macro(p:TNamedIndexItem; arg:pointer);
+    procedure copy_macro(p:TObject; arg:pointer);
       begin
         current_module.globalmacrosymtable.insert(tmacro(p).getcopy);
       end;
@@ -948,7 +947,7 @@ implementation
          if (m_mac in current_settings.modeswitches) then
           begin
             current_module.globalmacrosymtable:=tmacrosymtable.create(true);
-            current_module.localmacrosymtable.foreach_static(@copy_macro,nil);
+            current_module.localmacrosymtable.SymList.ForEachCall(@copy_macro,nil);
           end;
 
          { leave when we got an error }

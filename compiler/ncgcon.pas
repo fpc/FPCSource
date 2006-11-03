@@ -92,7 +92,7 @@ implementation
       begin
         location_reset(location,LOC_CREFERENCE,def_cgsize(resultdef));
         lastlabel:=nil;
-        realait:=floattype2ait[tfloatdef(resultdef).typ];
+        realait:=floattype2ait[tfloatdef(resultdef).floattype];
 {$ifdef ARM}
         hiloswapped:=current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11];
 {$endif ARM}

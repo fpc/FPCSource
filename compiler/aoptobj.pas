@@ -210,11 +210,7 @@ Unit AoptObj;
         PaiObj: Tai;
       End;
 
-    {$ifndef TP}
       TLabelTable = Array[0..2500000] Of TLabelTableItem;
-    {$else TP}
-      TLabelTable = Array[0..(65520 div sizeof(TLabelTableItem))] Of TLabelTableItem;
-    {$endif TP}
       PLabelTable = ^TLabelTable;
       PLabelInfo = ^TLabelInfo;
       TLabelInfo = Record

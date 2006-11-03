@@ -108,7 +108,7 @@ begin
   { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
     if push_addr_param for the def is true
   }
-  case p.deftype of
+  case p.typ of
     orddef:
       result := LOC_REGISTER;
     floatdef:
@@ -167,7 +167,7 @@ begin
     result := true;
     exit;
   end;
-  case def.deftype of
+  case def.typ of
     variantdef,
     formaldef:
       result := true;
@@ -189,7 +189,7 @@ begin
     setdef:
       result := (tsetdef(def).settype <> smallset);
     stringdef:
-      result := tstringdef(def).string_typ in [st_shortstring, st_longstring];
+      result := tstringdef(def).stringtype in [st_shortstring, st_longstring];
     procvardef:
       result := po_methodpointer in tprocvardef(def).procoptions;
   end;
@@ -225,7 +225,7 @@ begin
   end;
 
   { Return in FPU register? }
-  if p.returndef.deftype = floatdef then begin
+  if p.returndef.typ = floatdef then begin
     p.funcretloc[side].loc := LOC_FPUREGISTER;
     p.funcretloc[side].register := NR_FPU_RESULT_REG;
     p.funcretloc[side].size := retcgsize;
@@ -323,16 +323,16 @@ begin
         paralen := paradef.size
       else
         paralen := tcgsize2size[def_cgsize(paradef)];
-      if (paradef.deftype = recorddef) and
+      if (paradef.typ = recorddef) and
         (hp.varspez in [vs_value, vs_const]) then begin
         { if a record has only one field and that field is }
         { non-composite (not array or record), it must be  }
         { passed according to the rules of that type.       }
-        if (trecorddef(hp.vardef).symtable.symindex.count = 1) and
+        if (trecorddef(hp.vardef).symtable.SymList.count = 1) and
           (not trecorddef(hp.vardef).isunion)  and
-          (tabstractvarsym(trecorddef(hp.vardef).symtable.symindex.search(1)).vardef.deftype in [orddef, enumdef, floatdef])  then begin
+          (tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef.typ in [orddef, enumdef, floatdef])  then begin
           paradef :=
-            tabstractvarsym(trecorddef(hp.vardef).symtable.symindex.search(1)).vardef;
+            tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef;
           loc := getparaloc(paradef);
           paracgsize := def_cgsize(paradef);
         end else begin
@@ -355,7 +355,7 @@ begin
     { patch FPU values into integer registers if we currently have
      to pass them as vararg parameters     
     }
-    if (isVararg) and (paradef.deftype = floatdef) then begin
+    if (isVararg) and (paradef.typ = floatdef) then begin
       loc := LOC_REGISTER;
       if paracgsize = OS_F64 then
         paracgsize := OS_64
@@ -367,7 +367,7 @@ begin
     hp.paraloc[side].size := paracgsize;
     hp.paraloc[side].intsize := paralen;
     if (paralen = 0) then
-      if (paradef.deftype = recorddef) then begin
+      if (paradef.typ = recorddef) then begin
         paraloc := hp.paraloc[side].add_location;
         paraloc^.loc := LOC_VOID;
       end else
@@ -381,7 +381,7 @@ begin
         paraloc^.shiftval := parashift;
 
         { make sure we don't lose whether or not the type is signed }
-        if (paracgsize <> OS_NO) and (paradef.deftype <> orddef) then
+        if (paracgsize <> OS_NO) and (paradef.typ <> orddef) then
           paracgsize := int_cgsize(paralen);
         if (paracgsize = OS_NO) then
           paraloc^.size := OS_INT

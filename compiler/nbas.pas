@@ -640,7 +640,7 @@ implementation
           (def_cgsize(_typedef)<>OS_NO) and
           { no init/final needed }
           not (_typedef.needs_inittable) and
-          ((_typedef.deftype <> pointerdef) or
+          ((_typedef.typ <> pointerdef) or
            (not tpointerdef(_typedef).pointeddef.needs_inittable));
       end;
 
@@ -828,7 +828,7 @@ implementation
         if not tempinfo^.typedef.needs_inittable and
            tempinfo^.may_be_in_reg then
           begin
-            if tempinfo^.typedef.deftype=floatdef then
+            if tempinfo^.typedef.typ=floatdef then
               begin
                 if (tempinfo^.temptype = tt_persistent) then
                   expectloc := LOC_CFPUREGISTER

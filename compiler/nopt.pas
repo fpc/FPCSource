@@ -290,7 +290,7 @@ var
   i  : longint;
 begin
   result:=false;
-  if p.resultdef.deftype<>stringdef then
+  if p.resultdef.typ<>stringdef then
     exit;
   i:=0;
   hp:=p;

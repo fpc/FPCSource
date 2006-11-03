@@ -358,12 +358,12 @@ implementation
         otl,ofl : tasmlabel;
       begin
 //        writeln('second_cmpboolean');
-        if (torddef(left.resultdef).typ=bool8bit) or
-           (torddef(right.resultdef).typ=bool8bit) then
+        if (torddef(left.resultdef).ordtype=bool8bit) or
+           (torddef(right.resultdef).ordtype=bool8bit) then
          cgsize:=OS_8
         else
-          if (torddef(left.resultdef).typ=bool16bit) or
-             (torddef(right.resultdef).typ=bool16bit) then
+          if (torddef(left.resultdef).ordtype=bool16bit) or
+             (torddef(right.resultdef).ordtype=bool16bit) then
            cgsize:=OS_16
         else
            cgsize:=OS_32;

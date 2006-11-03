@@ -182,7 +182,7 @@ Function EscapeToPascal(const s:string): string;
                      Symbol helper routines
 ---------------------------------------------------------------------}
 
-procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:tsymtable);
+procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:TSymtable);
 Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint):boolean;
 Function SearchType(const hs:string;var size:aint): Boolean;
 Function SearchRecordType(const s:string): boolean;
@@ -710,20 +710,20 @@ end;
 
 Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
 
-  function symtable_has_localvarsyms(st:tsymtable):boolean;
+  function symtable_has_localvarsyms(st:TSymtable):boolean;
   var
     sym : tsym;
+    i   : longint;
   begin
     result:=false;
-    sym:=tsym(st.symindex.first);
-    while assigned(sym) do
+    for i:=0 to st.SymList.Count-1 do
       begin
+        sym:=tsym(st.SymList[i]);
         if sym.typ=localvarsym then
           begin
             result:=true;
             exit;
           end;
-        sym:=tsym(sym.indexnext);
       end;
   end;
 
@@ -753,7 +753,7 @@ Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
 { if not found returns FALSE.                               }
 var
   sym : tsym;
-  srsymtable : tsymtable;
+  srsymtable : TSymtable;
   harrdef : tarraydef;
   indexreg : tregister;
   l : aint;
@@ -841,7 +841,7 @@ Begin
                 SetSize(sizeof(aint),false);
             end;
         end;
-        case tabstractvarsym(sym).vardef.deftype of
+        case tabstractvarsym(sym).vardef.typ of
           orddef,
           enumdef,
           pointerdef,
@@ -855,7 +855,7 @@ Begin
                 multiple indexes }
               harrdef:=tarraydef(tabstractvarsym(sym).vardef);
               while assigned(harrdef.elementdef) and
-                    (harrdef.elementdef.deftype=arraydef) do
+                    (harrdef.elementdef.typ=arraydef) do
                harrdef:=tarraydef(harrdef.elementdef);
               SetSize(harrdef.elesize,false);
             end;
@@ -869,7 +869,7 @@ Begin
       begin
         initref;
         opr.ref.symbol:=current_asmdata.RefAsmSymbol(ttypedconstsym(sym).mangledname);
-        case ttypedconstsym(sym).typedconstdef.deftype of
+        case ttypedconstsym(sym).typedconstdef.typ of
           orddef,
           enumdef,
           pointerdef,
@@ -881,7 +881,7 @@ Begin
                 multiple indexes }
               harrdef:=tarraydef(ttypedconstsym(sym).typedconstdef);
               while assigned(harrdef.elementdef) and
-                    (harrdef.elementdef.deftype=arraydef) do
+                    (harrdef.elementdef.typ=arraydef) do
                harrdef:=tarraydef(harrdef.elementdef);
               if not is_packed_array(harrdef) then
                 SetSize(harrdef.elesize,false)
@@ -908,7 +908,7 @@ Begin
       end;
     typesym :
       begin
-        if ttypesym(sym).typedef.deftype in [recorddef,objectdef] then
+        if ttypesym(sym).typedef.typ in [recorddef,objectdef] then
          begin
            setconst(0);
            SetupVar:=TRUE;
@@ -1155,7 +1155,7 @@ end;
                       Symbol table helper routines
 ****************************************************************************}
 
-procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:tsymtable);
+procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:TSymtable);
 var
   i : integer;
 begin
@@ -1185,7 +1185,7 @@ end;
 Function SearchType(const hs:string;var size:aint): Boolean;
 var
   srsym : tsym;
-  srsymtable : tsymtable;
+  srsymtable : TSymtable;
 begin
   result:=false;
   size:=0;
@@ -1203,7 +1203,7 @@ end;
 Function SearchRecordType(const s:string): boolean;
 var
   srsym : tsym;
-  srsymtable : tsymtable;
+  srsymtable : TSymtable;
 Begin
   SearchRecordType:=false;
 { Check the constants in symtable }
@@ -1213,7 +1213,7 @@ Begin
      case srsym.typ of
        typesym :
          begin
-           if ttypesym(srsym).typedef.deftype in [recorddef,objectdef] then
+           if ttypesym(srsym).typedef.typ in [recorddef,objectdef] then
             begin
               SearchRecordType:=true;
               exit;
@@ -1235,7 +1235,7 @@ Function SearchIConstant(const s:string; var l:aint): boolean;
 {**********************************************************************}
 var
   srsym : tsym;
-  srsymtable : tsymtable;
+  srsymtable : TSymtable;
 Begin
   SearchIConstant:=false;
 { check for TRUE or FALSE reserved words first }
@@ -1282,10 +1282,10 @@ Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint):boolean;
 { returns FALSE if not found.                                  }
 { used when base is a variable or a typed constant name.       }
 var
-  st   : tsymtable;
+  st   : TSymtable;
   harrdef : tarraydef;
   sym  : tsym;
-  srsymtable : tsymtable;
+  srsymtable : TSymtable;
   i    : longint;
   base : string;
 Begin
@@ -1309,11 +1309,11 @@ Begin
          globalvarsym,
          localvarsym,
          paravarsym :
-           st:=Tabstractvarsym(sym).vardef.getsymtable(gs_record);
+           st:=Tabstractvarsym(sym).vardef.GetSymtable(gs_record);
          typesym :
-           st:=Ttypesym(sym).typedef.getsymtable(gs_record);
+           st:=Ttypesym(sym).typedef.GetSymtable(gs_record);
          typedconstsym :
-           st:=Ttypedconstsym(sym).typedconstdef.getsymtable(gs_record);
+           st:=Ttypedconstsym(sym).typedconstdef.GetSymtable(gs_record);
        end
      else
        s:='';
@@ -1327,10 +1327,10 @@ Begin
       i:=255;
      base:=Copy(s,1,i-1);
      delete(s,1,i);
-     if st.symtabletype=objectsymtable then
+     if st.symtabletype=ObjectSymtable then
        sym:=search_class_member(tobjectdef(st.defowner),base)
      else
-       sym:=tsym(st.search(base));
+       sym:=tsym(st.Find(base));
      if not assigned(sym) then
       begin
         GetRecordOffsetSize:=false;
@@ -1343,14 +1343,14 @@ Begin
            begin
              inc(Offset,fieldoffset);
              size:=getsize;
-             case vardef.deftype of
+             case vardef.typ of
                arraydef :
                  begin
                    { for arrays try to get the element size, take care of
                      multiple indexes }
                    harrdef:=tarraydef(vardef);
                    while assigned(harrdef.elementdef) and
-                         (harrdef.elementdef.deftype=arraydef) do
+                         (harrdef.elementdef.typ=arraydef) do
                     harrdef:=tarraydef(harrdef.elementdef);
                    if not is_packed_array(harrdef) then
                      size:=harrdef.elesize
@@ -1386,7 +1386,7 @@ end;
 Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
 var
   sym : tsym;
-  srsymtable : tsymtable;
+  srsymtable : TSymtable;
   hs  : string;
 Begin
   hl:=nil;

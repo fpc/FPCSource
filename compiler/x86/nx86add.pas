@@ -839,14 +839,14 @@ unit nx86add;
             if (right.location.loc=LOC_MMREGISTER) and (op in [OP_ADD,OP_MUL]) then
               begin
                 location.register:=right.location.register;
-                cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,op,tfloat2tcgsize[tfloatdef(left.resultdef).typ],left.location,location.register,nil);
+                cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,op,tfloat2tcgsize[tfloatdef(left.resultdef).floattype],left.location,location.register,nil);
               end
             else
               begin
                 location_force_mmreg(current_asmdata.CurrAsmList,left.location,false);
                 location.register:=left.location.register;
                 cg.a_opmm_loc_reg(current_asmdata.CurrAsmList,op,
-                  tfloat2tcgsize[tfloatdef(tarraydef(left.resultdef).elementdef).typ],right.location,location.register,nil);
+                  tfloat2tcgsize[tfloatdef(tarraydef(left.resultdef).elementdef).floattype],right.location,location.register,nil);
               end;
           end
         else

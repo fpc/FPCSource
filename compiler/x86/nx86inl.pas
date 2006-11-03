@@ -228,7 +228,7 @@ implementation
              secondpass(left);
              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
              location:=left.location;
-             case tfloatdef(resultdef).typ of
+             case tfloatdef(resultdef).floattype of
                s32real:
                  reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_SINGLE'),0);
                s64real:
@@ -270,7 +270,7 @@ implementation
              secondpass(left);
              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
              location:=left.location;
-             case tfloatdef(resultdef).typ of
+             case tfloatdef(resultdef).floattype of
                s32real:
                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_SQRTSS,S_XMM,location.register,location.register));
                s64real:

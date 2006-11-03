@@ -801,7 +801,7 @@ unit cg64f32;
               { also not if the fromdef is unsigned and < 64bit, since that will }
               { always fit in a 64bit int (todef is 64bit)                       }
               (from_signed or
-               (torddef(fromdef).typ = u64bit)) then
+               (torddef(fromdef).ordtype = u64bit)) then
              begin
                { in all cases, there is only a problem if the higest bit is set }
                if l.loc in [LOC_REGISTER,LOC_CREGISTER] then

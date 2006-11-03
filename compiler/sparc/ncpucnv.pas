@@ -120,7 +120,7 @@ implementation
           cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F32,left.location.reference,location.register);
           tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
           { Convert value in fpu register from integer to float }
-          case tfloatdef(resultdef).typ of
+          case tfloatdef(resultdef).floattype of
             s32real:
                current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FiTOs,location.register,location.register));
             s64real:
@@ -163,7 +163,7 @@ implementation
             current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg(A_CMP,hregister,NR_G0));
             cg.a_jmp_flags(current_asmdata.CurrAsmList,F_GE,l2);
 
-            case tfloatdef(resultdef).typ of
+            case tfloatdef(resultdef).floattype of
                { converting dword to s64real first and cut off at the end avoids precision loss }
                s32real,
                s64real:
@@ -180,7 +180,7 @@ implementation
                    cg.a_label(current_asmdata.CurrAsmList,l2);
 
                    { cut off if we should convert to single }
-                   if tfloatdef(resultdef).typ=s32real then
+                   if tfloatdef(resultdef).floattype=s32real then
                      begin
                        hregister:=location.register;
                        location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
@@ -211,7 +211,7 @@ implementation
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
         { Convert value in fpu register from integer to float }
-        op:=conv_op[tfloatdef(resultdef).typ,tfloatdef(left.resultdef).typ];
+        op:=conv_op[tfloatdef(resultdef).floattype,tfloatdef(left.resultdef).floattype];
         if op=A_NONE then
           internalerror(200401121);
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);

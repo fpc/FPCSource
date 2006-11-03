@@ -108,22 +108,22 @@ implementation
         floatweight : array[tfloattype] of byte =
           (2,3,4,0,1,5);
       begin
-        if t1.deftype=floatdef then
+        if t1.typ=floatdef then
           begin
             result:=t1;
-            if t2.deftype=floatdef then
+            if t2.typ=floatdef then
               begin
                 { when a comp or currency is used, use always the
                   best float type to calculate the result }
-                if (tfloatdef(t2).typ in [s64comp,s64currency]) or
-                  (tfloatdef(t2).typ in [s64comp,s64currency]) then
+                if (tfloatdef(t2).floattype in [s64comp,s64currency]) or
+                  (tfloatdef(t2).floattype in [s64comp,s64currency]) then
                   result:=pbestrealtype^
                 else
-                  if floatweight[tfloatdef(t2).typ]>floatweight[tfloatdef(t1).typ] then
+                  if floatweight[tfloatdef(t2).floattype]>floatweight[tfloatdef(t1).floattype] then
                     result:=t2;
               end;
           end
-        else if t2.deftype=floatdef then
+        else if t2.typ=floatdef then
           result:=t2
         else internalerror(200508061);
       end;
@@ -155,20 +155,20 @@ implementation
           need to be done before the constant folding so constant
           operation on a float and int are also handled }
         resultrealdef:=pbestrealtype^;
-        if (right.resultdef.deftype=floatdef) or (left.resultdef.deftype=floatdef) then
+        if (right.resultdef.typ=floatdef) or (left.resultdef.typ=floatdef) then
          begin
            { when both floattypes are already equal then use that
              floattype for results }
-           if (right.resultdef.deftype=floatdef) and
-              (left.resultdef.deftype=floatdef) and
-              (tfloatdef(left.resultdef).typ=tfloatdef(right.resultdef).typ) then
+           if (right.resultdef.typ=floatdef) and
+              (left.resultdef.typ=floatdef) and
+              (tfloatdef(left.resultdef).floattype=tfloatdef(right.resultdef).floattype) then
              resultrealdef:=left.resultdef
            { when there is a currency type then use currency, but
              only when currency is defined as float }
            else
             if (is_currency(right.resultdef) or
                 is_currency(left.resultdef)) and
-               ((s64currencytype.deftype = floatdef) or
+               ((s64currencytype.typ = floatdef) or
                 (nodetype <> slashn)) then
              begin
                resultrealdef:=s64currencytype;
@@ -263,7 +263,7 @@ implementation
                   else if not(equal_defs(ld,rd)) then
                     IncompatibleTypes(ld,rd);
                end
-             else if (ld.deftype=enumdef) and (rd.deftype=enumdef) then
+             else if (ld.typ=enumdef) and (rd.typ=enumdef) then
               begin
                 if not(equal_defs(ld,rd)) then
                   inserttypeconv(right,left.resultdef);
@@ -310,7 +310,7 @@ implementation
                        if is_integer(ld) then
                          t := genintconstnode(lv+rv)
                      else
-                       t := cordconstnode.create(lv+rv,left.resultdef,(ld.deftype<>enumdef));
+                       t := cordconstnode.create(lv+rv,left.resultdef,(ld.typ<>enumdef));
                    except
                      on E:EIntOverflow do
                        begin
@@ -344,7 +344,7 @@ implementation
                          if is_integer(ld) then
                            t:=genintconstnode(lv-rv)
                          else
-                           t:=cordconstnode.create(lv-rv,left.resultdef,(ld.deftype<>enumdef));
+                           t:=cordconstnode.create(lv-rv,left.resultdef,(ld.typ<>enumdef));
                        end;
                    except
                      on E:EIntOverflow do
@@ -366,8 +366,8 @@ implementation
                      {$Q+}
                    {$endif}
                    try
-                     if (torddef(ld).typ <> u64bit) or
-                        (torddef(rd).typ <> u64bit) then
+                     if (torddef(ld).ordtype <> u64bit) or
+                        (torddef(rd).ordtype <> u64bit) then
                        t:=genintconstnode(lv*rv)
                      else
                        t:=genintconstnode(int64(qword(lv)*qword(rv)));
@@ -732,16 +732,16 @@ implementation
          if (m_delphi in current_settings.modeswitches) and
             (blocktype=bt_type) then
           begin
-            if (left.resultdef.deftype=enumdef) and
-               (right.resultdef.deftype=orddef) then
+            if (left.resultdef.typ=enumdef) and
+               (right.resultdef.typ=orddef) then
              begin
                { insert explicit typecast to default signed int }
                left:=ctypeconvnode.create_internal(left,sinttype);
                typecheckpass(left);
              end
             else
-             if (left.resultdef.deftype=orddef) and
-                (right.resultdef.deftype=enumdef) then
+             if (left.resultdef.typ=orddef) and
+                (right.resultdef.typ=enumdef) then
               begin
                 { insert explicit typecast to default signed int }
                 right:=ctypeconvnode.create_internal(right,sinttype);
@@ -768,7 +768,7 @@ implementation
               { However, since this is already a division, both divisions by     }
               { 10000 are eliminated when we divide the results -> we can skip   }
               { them.                                                            }
-              if s64currencytype.deftype = floatdef then
+              if s64currencytype.typ = floatdef then
                 begin
                   { there's no s64comptype or so, how do we avoid the type conversion?
                   left.resultdef := s64comptype;
@@ -779,15 +779,15 @@ implementation
                   left.resultdef := s64inttype;
                   right.resultdef := s64inttype;
                 end
-            else if (left.resultdef.deftype <> floatdef) and
-               (right.resultdef.deftype <> floatdef) then
+            else if (left.resultdef.typ <> floatdef) and
+               (right.resultdef.typ <> floatdef) then
               CGMessage(type_h_use_div_for_int);
             inserttypeconv(right,resultrealdef);
             inserttypeconv(left,resultrealdef);
           end
 
          { if both are orddefs then check sub types }
-         else if (ld.deftype=orddef) and (rd.deftype=orddef) then
+         else if (ld.typ=orddef) and (rd.typ=orddef) then
            begin
              { optimize multiplacation by a power of 2 }
              if not(cs_check_overflow in current_settings.localswitches) and
@@ -927,24 +927,24 @@ implementation
                  if nodetype=addn then
                    begin
                      inserttypeconv(left,cwidestringtype);
-                     if (torddef(rd).typ<>uwidechar) then
+                     if (torddef(rd).ordtype<>uwidechar) then
                        inserttypeconv(right,cwidechartype);
                      resultdef:=cwidestringtype;
                    end
                  else
                    begin
-                     if (torddef(ld).typ<>uwidechar) then
+                     if (torddef(ld).ordtype<>uwidechar) then
                        inserttypeconv(left,cwidechartype);
-                     if (torddef(rd).typ<>uwidechar) then
+                     if (torddef(rd).ordtype<>uwidechar) then
                        inserttypeconv(right,cwidechartype);
                    end;
                end
              { is there a currency type ? }
-             else if ((torddef(rd).typ=scurrency) or (torddef(ld).typ=scurrency)) then
+             else if ((torddef(rd).ordtype=scurrency) or (torddef(ld).ordtype=scurrency)) then
                begin
-                  if (torddef(ld).typ<>scurrency) then
+                  if (torddef(ld).ordtype<>scurrency) then
                    inserttypeconv(left,s64currencytype);
-                  if (torddef(rd).typ<>scurrency) then
+                  if (torddef(rd).ordtype<>scurrency) then
                    inserttypeconv(right,s64currencytype);
                end
              { and,or,xor work on bit patterns and don't care
@@ -962,32 +962,32 @@ implementation
                    inserttypeconv_internal(right,left.resultdef);
                end
              { is there a signed 64 bit type ? }
-             else if ((torddef(rd).typ=s64bit) or (torddef(ld).typ=s64bit)) then
+             else if ((torddef(rd).ordtype=s64bit) or (torddef(ld).ordtype=s64bit)) then
                begin
-                  if (torddef(ld).typ<>s64bit) then
+                  if (torddef(ld).ordtype<>s64bit) then
                    inserttypeconv(left,s64inttype);
-                  if (torddef(rd).typ<>s64bit) then
+                  if (torddef(rd).ordtype<>s64bit) then
                    inserttypeconv(right,s64inttype);
                end
              { is there a unsigned 64 bit type ? }
-             else if ((torddef(rd).typ=u64bit) or (torddef(ld).typ=u64bit)) then
+             else if ((torddef(rd).ordtype=u64bit) or (torddef(ld).ordtype=u64bit)) then
                begin
-                  if (torddef(ld).typ<>u64bit) then
+                  if (torddef(ld).ordtype<>u64bit) then
                    inserttypeconv(left,u64inttype);
-                  if (torddef(rd).typ<>u64bit) then
+                  if (torddef(rd).ordtype<>u64bit) then
                    inserttypeconv(right,u64inttype);
                end
              { 64 bit cpus do calculations always in 64 bit }
 {$ifndef cpu64bit}
              { is there a cardinal? }
-             else if ((torddef(rd).typ=u32bit) or (torddef(ld).typ=u32bit)) then
+             else if ((torddef(rd).ordtype=u32bit) or (torddef(ld).ordtype=u32bit)) then
                begin
                  { convert positive constants to u32bit }
-                 if (torddef(ld).typ<>u32bit) and
+                 if (torddef(ld).ordtype<>u32bit) and
                     is_constintnode(left) and
                     (tordconstnode(left).value >= 0) then
                    inserttypeconv(left,u32inttype);
-                 if (torddef(rd).typ<>u32bit) and
+                 if (torddef(rd).ordtype<>u32bit) and
                     is_constintnode(right) and
                     (tordconstnode(right).value >= 0) then
                    inserttypeconv(right,u32inttype);
@@ -1003,9 +1003,9 @@ implementation
                    end
                  else
                    begin
-                     if (torddef(left.resultdef).typ<>u32bit) then
+                     if (torddef(left.resultdef).ordtype<>u32bit) then
                        inserttypeconv(left,u32inttype);
-                     if (torddef(right.resultdef).typ<>u32bit) then
+                     if (torddef(right.resultdef).ordtype<>u32bit) then
                        inserttypeconv(right,u32inttype);
                    end;
                end
@@ -1065,7 +1065,7 @@ implementation
            end
 
          { if both are floatdefs, conversion is already done before constant folding }
-         else if (ld.deftype=floatdef) then
+         else if (ld.typ=floatdef) then
            begin
              if not(nodetype in [addn,subn,muln,slashn,equaln,unequaln,ltn,lten,gtn,gten]) then
                CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
@@ -1073,10 +1073,10 @@ implementation
 
          { left side a setdef, must be before string processing,
            else array constructor can be seen as array of char (PFV) }
-         else if (ld.deftype=setdef) then
+         else if (ld.typ=setdef) then
           begin
             { trying to add a set element? }
-            if (nodetype=addn) and (rd.deftype<>setdef) then
+            if (nodetype=addn) and (rd.typ<>setdef) then
              begin
                if (rt=setelementn) then
                 begin
@@ -1091,7 +1091,7 @@ implementation
                if not(nodetype in [addn,subn,symdifn,muln,equaln,unequaln,lten,gten]) then
                 CGMessage(type_e_set_operation_unknown);
                { right def must be a also be set }
-               if (rd.deftype<>setdef) or not(equal_defs(rd,ld)) then
+               if (rd.typ<>setdef) or not(equal_defs(rd,ld)) then
                 CGMessage(type_e_set_element_are_not_comp);
              end;
 
@@ -1108,7 +1108,7 @@ implementation
 
             { if the right side is also a setdef then the settype must
               be the same as the left setdef }
-            if (rd.deftype=setdef) and
+            if (rd.typ=setdef) and
                (tsetdef(ld).settype<>tsetdef(rd).settype) then
              begin
                { when right is a normset we need to typecast both
@@ -1121,7 +1121,7 @@ implementation
           end
          { pointer comparision and subtraction }
          else if (
-                  (rd.deftype=pointerdef) and (ld.deftype=pointerdef)
+                  (rd.typ=pointerdef) and (ld.typ=pointerdef)
                  ) or
                  { compare/add pchar to variable (not stringconst) char arrays
                    by addresses like BP/Delphi }
@@ -1216,8 +1216,8 @@ implementation
            care of chararray+chararray and chararray+char.
            Note: Must be done after pointerdef+pointerdef has been checked, else
            pchar is converted to string }
-         else if (rd.deftype=stringdef) or
-                 (ld.deftype=stringdef) or
+         else if (rd.typ=stringdef) or
+                 (ld.typ=stringdef) or
                  ((is_pchar(rd) or is_chararray(rd) or is_char(rd) or is_open_chararray(rd) or
                    is_pwidechar(rd) or is_widechararray(rd) or is_widechar(rd) or is_open_widechararray(rd)) and
                   (is_pchar(ld) or is_chararray(ld) or is_char(ld) or is_open_chararray(ld) or
@@ -1313,7 +1313,7 @@ implementation
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
-         else if (rd.deftype=classrefdef) and (ld.deftype=classrefdef) then
+         else if (rd.typ=classrefdef) and (ld.typ=classrefdef) then
           begin
             if (nodetype in [equaln,unequaln]) then
               begin
@@ -1328,7 +1328,7 @@ implementation
           end
 
          { allows comperasion with nil pointer }
-         else if is_class_or_interface(rd) or (rd.deftype=classrefdef) then
+         else if is_class_or_interface(rd) or (rd.typ=classrefdef) then
           begin
             if (nodetype in [equaln,unequaln]) then
               inserttypeconv(left,right.resultdef)
@@ -1336,7 +1336,7 @@ implementation
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
-         else if is_class_or_interface(ld) or (ld.deftype=classrefdef) then
+         else if is_class_or_interface(ld) or (ld.typ=classrefdef) then
           begin
             if (nodetype in [equaln,unequaln]) then
               inserttypeconv(right,left.resultdef)
@@ -1345,17 +1345,17 @@ implementation
           end
 
        { support procvar=nil,procvar<>nil }
-         else if ((ld.deftype=procvardef) and (rt=niln)) or
-                 ((rd.deftype=procvardef) and (lt=niln)) then
+         else if ((ld.typ=procvardef) and (rt=niln)) or
+                 ((rd.typ=procvardef) and (lt=niln)) then
           begin
             if not(nodetype in [equaln,unequaln]) then
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
             { find proc field in methodpointer record }
-            hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.search('proc'));
+            hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.Find('proc'));
             if not assigned(hsym) then
               internalerror(200412043);
             { For methodpointers compare only tmethodpointer.proc }
-            if (rd.deftype=procvardef) and
+            if (rd.typ=procvardef) and
                (not tprocvardef(rd).is_addressonly) then
               begin
                 right:=csubscriptnode.create(
@@ -1363,7 +1363,7 @@ implementation
                            ctypeconvnode.create_internal(right,methodpointertype));
                 typecheckpass(right);
                end;
-            if (ld.deftype=procvardef) and
+            if (ld.typ=procvardef) and
                (not tprocvardef(ld).is_addressonly) then
               begin
                 left:=csubscriptnode.create(
@@ -1417,7 +1417,7 @@ implementation
 
          { this is a little bit dangerous, also the left type }
          { pointer to should be checked! This broke the mmx support      }
-         else if (rd.deftype=pointerdef) or
+         else if (rd.typ=pointerdef) or
                  (is_zero_based_array(rd) and (rt<>stringconstn)) then
           begin
             if is_zero_based_array(rd) then
@@ -1433,7 +1433,7 @@ implementation
                 if not(cs_extsyntax in current_settings.moduleswitches) or
                    (not(is_pchar(ld)) and not(m_add_pointer in current_settings.modeswitches)) then
                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
-                if (rd.deftype=pointerdef) and
+                if (rd.typ=pointerdef) and
                    (tpointerdef(rd).pointeddef.size>1) then
                    begin
                      left:=caddnode.create(muln,left,
@@ -1445,7 +1445,7 @@ implementation
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
-         else if (ld.deftype=pointerdef) or
+         else if (ld.typ=pointerdef) or
                  (is_zero_based_array(ld) and (lt<>stringconstn)) then
            begin
              if is_zero_based_array(ld) then
@@ -1462,7 +1462,7 @@ implementation
                  if not(cs_extsyntax in current_settings.moduleswitches) or
                     (not(is_pchar(ld)) and not(m_add_pointer in current_settings.modeswitches)) then
                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
-                 if (ld.deftype=pointerdef) then
+                 if (ld.typ=pointerdef) then
                  begin
                    if is_big_untyped_addrnode(left) then
                      CGMessage1(type_w_untyped_arithmetic_unportable,node2opstr(nodetype));
@@ -1485,8 +1485,8 @@ implementation
                CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
            end
 
-         else if (rd.deftype=procvardef) and
-                 (ld.deftype=procvardef) and
+         else if (rd.typ=procvardef) and
+                 (ld.typ=procvardef) and
                  equal_defs(rd,ld) then
           begin
             if (nodetype in [equaln,unequaln]) then
@@ -1499,7 +1499,7 @@ implementation
                 else
                   begin
                     { find proc field in methodpointer record }
-                    hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.search('proc'));
+                    hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.Find('proc'));
                     if not assigned(hsym) then
                       internalerror(200412043);
                     { Compare tmehodpointer(left).proc }
@@ -1518,7 +1518,7 @@ implementation
           end
 
          { enums }
-         else if (ld.deftype=enumdef) and (rd.deftype=enumdef) then
+         else if (ld.typ=enumdef) and (rd.typ=enumdef) then
           begin
             if allowenumop(nodetype) then
               inserttypeconv(right,left.resultdef)
@@ -1570,7 +1570,7 @@ implementation
                 end;
               muln :
                 begin
-                  if s64currencytype.deftype=floatdef then
+                  if s64currencytype.typ=floatdef then
                     hp:=caddnode.create(slashn,getcopy,crealconstnode.create(10000.0,s64currencytype))
                   else
                     hp:=cmoddivnode.create(divn,getcopy,cordconstnode.create(10000,s64currencytype,false));
@@ -1987,7 +1987,7 @@ implementation
 
       function canbe32bitint(v: tconstexprint; fromdef: torddef; todefsigned: boolean): boolean;
         begin
-          if (fromdef.typ <> u64bit) then
+          if (fromdef.ordtype <> u64bit) then
             result :=
              ((v >= 0) or
               todefsigned) and
@@ -2005,12 +2005,12 @@ implementation
         result := false;
         if ((left.nodetype = typeconvn) and
             is_integer(ttypeconvnode(left).left.resultdef) and
-            (not(torddef(ttypeconvnode(left).left.resultdef).typ in [u64bit,s64bit]))  and
+            (not(torddef(ttypeconvnode(left).left.resultdef).ordtype in [u64bit,s64bit]))  and
            (((right.nodetype = ordconstn) and
              canbe32bitint(tordconstnode(right).value,torddef(right.resultdef),is_signed(left.resultdef))) or
             ((right.nodetype = typeconvn) and
              is_integer(ttypeconvnode(right).left.resultdef) and
-             not(torddef(ttypeconvnode(right).left.resultdef).typ in [u64bit,s64bit])) and
+             not(torddef(ttypeconvnode(right).left.resultdef).ordtype in [u64bit,s64bit])) and
              (is_signed(ttypeconvnode(left).left.resultdef) =
               is_signed(ttypeconvnode(right).left.resultdef)))) then
           begin
@@ -2120,7 +2120,7 @@ implementation
 
         if not(target_info.system in system_wince) then
           begin
-            case tfloatdef(left.resultdef).typ of
+            case tfloatdef(left.resultdef).floattype of
               s32real:
                 begin
                   fdef:=search_system_type('FLOAT32REC').typedef;
@@ -2198,7 +2198,7 @@ implementation
               else
                 CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),left.resultdef.typename,right.resultdef.typename);
             end;
-            case tfloatdef(left.resultdef).typ of
+            case tfloatdef(left.resultdef).floattype of
               s32real:
                 procname:=procname+'S';
               s64real:
@@ -2297,7 +2297,7 @@ implementation
            end
 
          { if both are orddefs then check sub types }
-         else if (ld.deftype=orddef) and (rd.deftype=orddef) then
+         else if (ld.typ=orddef) and (rd.typ=orddef) then
            begin
            { 2 booleans ? }
              if is_boolean(ld) and is_boolean(rd) then
@@ -2338,7 +2338,7 @@ implementation
                end
 {$ifndef cpu64bit}
               { is there a 64 bit type ? }
-             else if (torddef(ld).typ in [s64bit,u64bit,scurrency]) then
+             else if (torddef(ld).ordtype in [s64bit,u64bit,scurrency]) then
                begin
                  result := first_add64bitint;
                  if assigned(result) then
@@ -2351,7 +2351,7 @@ implementation
                end
 {$endif cpu64bit}
              { is there a cardinal? }
-             else if (torddef(ld).typ=u32bit) then
+             else if (torddef(ld).ordtype=u32bit) then
                begin
                   if nodetype in [addn,subn,muln,andn,orn,xorn] then
                     expectloc:=LOC_REGISTER
@@ -2375,7 +2375,7 @@ implementation
 
          { left side a setdef, must be before string processing,
            else array constructor can be seen as array of char (PFV) }
-         else if (ld.deftype=setdef) then
+         else if (ld.typ=setdef) then
            begin
              if tsetdef(ld).settype=smallset then
                begin
@@ -2422,7 +2422,7 @@ implementation
            end
 
          { is one of the operands a string }
-         else if (ld.deftype=stringdef) then
+         else if (ld.typ=stringdef) then
             begin
               if is_widestring(ld) then
                 begin
@@ -2475,7 +2475,7 @@ implementation
            end
 
          { is one a real float ? }
-         else if (rd.deftype=floatdef) or (ld.deftype=floatdef) then
+         else if (rd.typ=floatdef) or (ld.typ=floatdef) then
             begin
 {$ifdef cpufpemu}
              if (current_settings.fputype=fpu_soft) or (cs_fp_emulation in current_settings.moduleswitches) then
@@ -2502,7 +2502,7 @@ implementation
             end
 
          { pointer comperation and subtraction }
-         else if (ld.deftype=pointerdef) then
+         else if (ld.typ=pointerdef) then
             begin
               if nodetype in [addn,subn,muln,andn,orn,xorn] then
                 expectloc:=LOC_REGISTER
@@ -2517,15 +2517,15 @@ implementation
               calcregisters(self,1,0,0);
             end
 
-         else if (ld.deftype=classrefdef) then
+         else if (ld.typ=classrefdef) then
             begin
               expectloc:=LOC_FLAGS;
               calcregisters(self,1,0,0);
             end
 
          { support procvar=nil,procvar<>nil }
-         else if ((ld.deftype=procvardef) and (rt=niln)) or
-                 ((rd.deftype=procvardef) and (lt=niln)) then
+         else if ((ld.typ=procvardef) and (rt=niln)) or
+                 ((rd.typ=procvardef) and (lt=niln)) then
             begin
               expectloc:=LOC_FLAGS;
               calcregisters(self,1,0,0);
@@ -2542,21 +2542,21 @@ implementation
             end
 {$endif SUPPORT_MMX}
 
-         else if (rd.deftype=pointerdef) or (ld.deftype=pointerdef) then
+         else if (rd.typ=pointerdef) or (ld.typ=pointerdef) then
             begin
               expectloc:=LOC_REGISTER;
               calcregisters(self,1,0,0);
             end
 
-         else  if (rd.deftype=procvardef) and
-                  (ld.deftype=procvardef) and
+         else  if (rd.typ=procvardef) and
+                  (ld.typ=procvardef) and
                   equal_defs(rd,ld) then
            begin
              expectloc:=LOC_FLAGS;
              calcregisters(self,1,0,0);
            end
 
-         else if (ld.deftype=enumdef) then
+         else if (ld.typ=enumdef) then
            begin
               expectloc:=LOC_FLAGS;
               calcregisters(self,1,0,0);

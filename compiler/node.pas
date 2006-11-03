@@ -634,7 +634,7 @@ implementation
 
     function is_constenumnode(p : tnode) : boolean;
       begin
-         is_constenumnode:=(p.nodetype=ordconstn) and (p.resultdef.deftype=enumdef);
+         is_constenumnode:=(p.nodetype=ordconstn) and (p.resultdef.typ=enumdef);
       end;
 
 {****************************************************************************

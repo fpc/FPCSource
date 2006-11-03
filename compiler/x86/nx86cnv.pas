@@ -72,8 +72,8 @@ implementation
       begin
          first_real_to_real:=nil;
         { comp isn't a floating type }
-         if (tfloatdef(resultdef).typ=s64comp) and
-            (tfloatdef(left.resultdef).typ<>s64comp) and
+         if (tfloatdef(resultdef).floattype=s64comp) and
+            (tfloatdef(left.resultdef).floattype<>s64comp) and
             not (nf_explicit in flags) then
            CGMessage(type_w_convert_real_2_comp);
          if use_sse(resultdef) then
@@ -210,7 +210,7 @@ implementation
           begin
             { We can only directly convert s32bit and s64bit,u64bit values, for other
               values convert first to s64bit }
-            if not(torddef(left.resultdef).typ in [s32bit,s64bit,u64bit]) then
+            if not(torddef(left.resultdef).ordtype in [s32bit,s64bit,u64bit]) then
               begin
                 hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_S64);
                 location_force_reg(current_asmdata.CurrAsmList,left.location,OS_S64,false);
@@ -229,7 +229,7 @@ implementation
             if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
               location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
 
-            case torddef(left.resultdef).typ of
+            case torddef(left.resultdef).ordtype of
               u64bit:
                 begin
                    { unsigned 64 bit ints are harder to handle:
@@ -296,7 +296,7 @@ implementation
 {$endif x86_64}
           begin
             location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-            if (left.location.loc=LOC_REGISTER) and (torddef(left.resultdef).typ=u64bit) then
+            if (left.location.loc=LOC_REGISTER) and (torddef(left.resultdef).ordtype=u64bit) then
               begin
 {$ifdef cpu64bit}
                 emit_const_reg(A_BT,S_Q,63,left.location.register);
@@ -313,7 +313,7 @@ implementation
 
             { For u32bit we need to load it as comp and need to
               make it 64bits }
-            if (torddef(left.resultdef).typ=u32bit) then
+            if (torddef(left.resultdef).ordtype=u32bit) then
               begin
                 tg.GetTemp(current_asmdata.CurrAsmList,8,tt_normal,href);
                 location_freetemp(current_asmdata.CurrAsmList,left.location);
@@ -325,7 +325,7 @@ implementation
               end;
 
             { Load from reference to fpu reg }
-            case torddef(left.resultdef).typ of
+            case torddef(left.resultdef).ordtype of
               u32bit,
               scurrency,
               s64bit:

@@ -41,7 +41,7 @@ interface
 
     procedure string_dec(var def: tdef);
 
-    procedure propaccesslist_to_node(var p1:tnode;st:tsymtable;pl:tpropaccesslist);
+    procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
 
     function node_to_propaccesslist(p1:tnode):tpropaccesslist;
 
@@ -142,7 +142,7 @@ implementation
 
 
 
-    procedure propaccesslist_to_node(var p1:tnode;st:tsymtable;pl:tpropaccesslist);
+    procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
       var
         plist : ppropaccesslistitem;
       begin
@@ -163,7 +163,7 @@ implementation
                     case st.symtabletype of
                       withsymtable :
                         p1:=tnode(twithsymtable(st).withrefnode).getcopy;
-                      objectsymtable :
+                      ObjectSymtable :
                         p1:=load_self_node;
                     end;
                   end;
@@ -486,11 +486,11 @@ implementation
                 ttypenode(p1).allowed:=true;
               { Allow classrefdef, which is required for
                 Typeof(self) in static class methods }
-              if (p1.resultdef.deftype = objectdef) or
+              if (p1.resultdef.typ = objectdef) or
                  (assigned(current_procinfo) and
                   ((po_classmethod in current_procinfo.procdef.procoptions) or
                    (po_staticmethod in current_procinfo.procdef.procoptions)) and
-                  (p1.resultdef.deftype=classrefdef)) then
+                  (p1.resultdef.typ=classrefdef)) then
                statement_syssym:=geninlinenode(in_typeof_x,false,p1)
               else
                begin
@@ -598,7 +598,7 @@ implementation
                 end;
               if not codegenerror then
                begin
-                 case p1.resultdef.deftype of
+                 case p1.resultdef.typ of
                    procdef, { procvar }
                    pointerdef,
                    procvardef,
@@ -769,7 +769,7 @@ implementation
                   begin
                     { Force string type if it isn't yet }
                     if not(
-                           (p1.resultdef.deftype=stringdef) or
+                           (p1.resultdef.typ=stringdef) or
                            is_chararray(p1.resultdef) or
                            is_char(p1.resultdef)
                           ) then
@@ -916,7 +916,7 @@ implementation
       end;
 
 
-    function maybe_load_methodpointer(st:tsymtable;var p1:tnode):boolean;
+    function maybe_load_methodpointer(st:TSymtable;var p1:tnode):boolean;
       begin
         maybe_load_methodpointer:=false;
         if not assigned(p1) then
@@ -924,10 +924,10 @@ implementation
            case st.symtabletype of
              withsymtable :
                begin
-                 if (st.defowner.deftype=objectdef) then
+                 if (st.defowner.typ=objectdef) then
                    p1:=tnode(twithsymtable(st).withrefnode).getcopy;
                end;
-             objectsymtable :
+             ObjectSymtable :
                begin
                  p1:=load_self_node;
                  { We are calling a member }
@@ -939,7 +939,7 @@ implementation
 
 
     { reads the parameter for a subroutine call }
-    procedure do_proc_call(sym:tsym;st:tsymtable;obj:tobjectdef;getaddr:boolean;var again : boolean;var p1:tnode;callflags:tcallnodeflags);
+    procedure do_proc_call(sym:tsym;st:TSymtable;obj:tobjectdef;getaddr:boolean;var again : boolean;var p1:tnode;callflags:tcallnodeflags);
       var
          membercall,
          prevafterassn : boolean;
@@ -964,14 +964,14 @@ implementation
             if (block_type=bt_const) or
                getaddr then
              begin
-               aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef);
+               aprocdef:=Tprocsym(sym).Find_procdef_byprocvardef(getprocvardef);
                getaddr:=true;
              end
             else
              if (m_tp_procvar in current_settings.modeswitches) or
                 (m_mac_procvar in current_settings.modeswitches) then
               begin
-                aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef);
+                aprocdef:=Tprocsym(sym).Find_procdef_byprocvardef(getprocvardef);
                 if assigned(aprocdef) then
                  getaddr:=true;
               end;
@@ -984,7 +984,7 @@ implementation
                aprocdef is already loaded above so we can reuse it }
              if not assigned(aprocdef) and
                 assigned(getprocvardef) then
-               aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef);
+               aprocdef:=Tprocsym(sym).Find_procdef_byprocvardef(getprocvardef);
 
              { generate a methodcallnode or proccallnode }
              { we shouldn't convert things like @tcollection.load }
@@ -1049,7 +1049,7 @@ implementation
                include(callflags,cnf_member_call);
              if assigned(obj) then
                begin
-                 if (st.symtabletype<>objectsymtable) then
+                 if (st.symtabletype<>ObjectSymtable) then
                    internalerror(200310031);
                  p1:=ccallnode.create(para,tprocsym(sym),obj.symtable,p1,callflags);
                end
@@ -1084,7 +1084,7 @@ implementation
               { a procvar can't have parameters! }
               not assigned(tcallnode(hp).left) then
             begin
-              currprocdef:=tcallnode(hp).symtableprocentry.search_procdef_byprocvardef(pv);
+              currprocdef:=tcallnode(hp).symtableprocentry.Find_procdef_byprocvardef(pv);
               if assigned(currprocdef) then
                begin
                  hp2:=cloadnode.create_procvar(tprocsym(tcallnode(hp).symtableprocentry),currprocdef,tcallnode(hp).symtableproc);
@@ -1100,7 +1100,7 @@ implementation
 
 
     { the following procedure handles the access to a property symbol }
-    procedure handle_propertysym(propsym : tpropertysym;st : tsymtable;var p1 : tnode);
+    procedure handle_propertysym(propsym : tpropertysym;st : TSymtable;var p1 : tnode);
       var
          paras : tnode;
          p2    : tnode;
@@ -1163,7 +1163,7 @@ implementation
                          paras:=nil;
                          consume(_ASSIGNMENT);
                          { read the expression }
-                         if propsym.propdef.deftype=procvardef then
+                         if propsym.propdef.typ=procvardef then
                            getprocvardef:=tprocvardef(propsym.propdef);
                          p2:=comp_expr(true);
                          if assigned(getprocvardef) then
@@ -1243,7 +1243,7 @@ implementation
       var
          static_name : string;
          isclassref  : boolean;
-         srsymtable  : tsymtable;
+         srsymtable  : TSymtable;
       begin
          if sym=nil then
            begin
@@ -1261,7 +1261,7 @@ implementation
                begin
                  if not assigned(p1.resultdef) then
                    do_typecheckpass(p1);
-                 isclassref:=(p1.resultdef.deftype=classrefdef);
+                 isclassref:=(p1.resultdef.typ=classrefdef);
                end
               else
                isclassref:=false;
@@ -1337,7 +1337,7 @@ implementation
            srsym : tsym;
            unit_found,
            possible_error : boolean;
-           srsymtable : tsymtable;
+           srsymtable : TSymtable;
            hdef  : tdef;
            static_name : string;
            storedpattern : string;
@@ -1401,7 +1401,7 @@ implementation
             begin
               hdef:=tdef(srsym.owner.defowner);
               if assigned(hdef) and
-                 (hdef.deftype=procdef) then
+                 (hdef.typ=procdef) then
                 srsym:=tprocdef(hdef).procsym
               else
                 begin
@@ -1442,16 +1442,16 @@ implementation
                      begin
                        { are we in a class method, we check here the
                          srsymtable, because a field in another object
-                         also has objectsymtable. And withsymtable is
+                         also has ObjectSymtable. And withsymtable is
                          not possible for self in class methods (PFV) }
-                       if (srsymtable.symtabletype=objectsymtable) and
+                       if (srsymtable.symtabletype=ObjectSymtable) and
                           assigned(current_procinfo) and
                           (po_classmethod in current_procinfo.procdef.procoptions) then
                          Message(parser_e_only_class_methods);
                      end;
 
                     case srsymtable.symtabletype of
-                      objectsymtable :
+                      ObjectSymtable :
                         begin
                           p1:=csubscriptnode.create(srsym,load_self_node);
                           node_tree_set_filepos(p1,current_filepos);
@@ -1637,7 +1637,7 @@ implementation
                   begin
                     { are we in a class method ? }
                     possible_error:=(srsymtable.symtabletype<>withsymtable) and
-                                    (srsym.owner.symtabletype=objectsymtable) and
+                                    (srsym.owner.symtabletype=ObjectSymtable) and
                                     not(is_interface(tdef(srsym.owner.defowner))) and
                                     assigned(current_procinfo) and
                                     (po_classmethod in current_procinfo.procdef.procoptions);
@@ -1660,7 +1660,7 @@ implementation
                   begin
                     { access to property in a method }
                     { are we in a class method ? }
-                    if (srsymtable.symtabletype=objectsymtable) and
+                    if (srsymtable.symtabletype=ObjectSymtable) and
                        assigned(current_procinfo) and
                        (po_classmethod in current_procinfo.procdef.procoptions) then
                      Message(parser_e_only_class_methods);
@@ -1855,7 +1855,7 @@ implementation
           protsym  : tpropertysym;
           p2,p3  : tnode;
           srsym  : tsym;
-          srsymtable : tsymtable;
+          srsymtable : TSymtable;
           classh     : tobjectdef;
         label
           skipreckklammercheck;
@@ -1881,14 +1881,14 @@ implementation
                       pointer type }
                     if ((m_tp_procvar in current_settings.modeswitches) or
                         (m_mac_procvar in current_settings.modeswitches)) and
-                       (p1.resultdef.deftype=procvardef) and
-                       (tprocvardef(p1.resultdef).returndef.deftype=pointerdef) then
+                       (p1.resultdef.typ=procvardef) and
+                       (tprocvardef(p1.resultdef).returndef.typ=pointerdef) then
                       begin
                         p1:=ccallnode.create_procvar(nil,p1);
                         typecheckpass(p1);
                       end;
 
-                    if (p1.resultdef.deftype<>pointerdef) then
+                    if (p1.resultdef.typ<>pointerdef) then
                       begin
                          { ^ as binary operator is a problem!!!! (FK) }
                          again:=false;
@@ -1925,11 +1925,11 @@ implementation
                       begin
                         consume(_LECKKLAMMER);
                         repeat
-                          case p1.resultdef.deftype of
+                          case p1.resultdef.typ of
                             pointerdef:
                               begin
                                  { support delphi autoderef }
-                                 if (tpointerdef(p1.resultdef).pointeddef.deftype=arraydef) and
+                                 if (tpointerdef(p1.resultdef).pointeddef.typ=arraydef) and
                                     (m_autoderef in current_settings.modeswitches) then
                                    p1:=cderefnode.create(p1);
                                  p2:=comp_expr(true);
@@ -2014,18 +2014,18 @@ implementation
                _POINT :
                   begin
                     consume(_POINT);
-                    if (p1.resultdef.deftype=pointerdef) and
+                    if (p1.resultdef.typ=pointerdef) and
                        (m_autoderef in current_settings.modeswitches) then
                       begin
                         p1:=cderefnode.create(p1);
                         do_typecheckpass(p1);
                       end;
-                    case p1.resultdef.deftype of
+                    case p1.resultdef.typ of
                       recorddef:
                         begin
                           if token=_ID then
                             begin
-                              srsym:=tsym(trecorddef(p1.resultdef).symtable.search(pattern));
+                              srsym:=tsym(trecorddef(p1.resultdef).symtable.Find(pattern));
                               if assigned(srsym) and
                                  (srsym.typ=fieldvarsym) then
                                 begin
@@ -2113,7 +2113,7 @@ implementation
                        pointerdef:
                          begin
                            Message(parser_e_invalid_qualifier);
-                           if tpointerdef(p1.resultdef).pointeddef.deftype in [recorddef,objectdef,classrefdef] then
+                           if tpointerdef(p1.resultdef).pointeddef.typ in [recorddef,objectdef,classrefdef] then
                              Message(parser_h_maybe_deref_caret_missing);
                          end;
                        else
@@ -2131,7 +2131,7 @@ implementation
                  begin
                    { is this a procedure variable ? }
                    if assigned(p1.resultdef) and
-                      (p1.resultdef.deftype=procvardef) then
+                      (p1.resultdef.typ=procvardef) then
                      begin
                        if assigned(getprocvardef) and
                           equal_defs(p1.resultdef,getprocvardef) then
@@ -2180,7 +2180,7 @@ implementation
          code       : integer;
          again      : boolean;
          srsym      : tsym;
-         srsymtable : tsymtable;
+         srsymtable : TSymtable;
          pd         : tprocdef;
          hclassdef     : tobjectdef;
          d          : bestreal;
@@ -2798,7 +2798,7 @@ implementation
            _ASSIGNMENT :
              begin
                 consume(_ASSIGNMENT);
-                if (p1.resultdef.deftype=procvardef) then
+                if (p1.resultdef.typ=procvardef) then
                   getprocvardef:=tprocvardef(p1.resultdef);
                 p2:=sub_expr(opcompare,true);
                 if assigned(getprocvardef) then

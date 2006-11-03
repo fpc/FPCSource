@@ -178,7 +178,7 @@ unit raatt;
       var
         len : longint;
         srsym : tsym;
-        srsymtable : tsymtable;
+        srsymtable : TSymtable;
       begin
         { save old token and reset new token }
         prevasmtoken:=actasmtoken;
@@ -1203,7 +1203,7 @@ unit raatt;
         errorflag : boolean;
         prevtok : tasmtoken;
         sym : tsym;
-        srsymtable : tsymtable;
+        srsymtable : TSymtable;
         hl  : tasmlabel;
       Begin
         asmsym:='';
@@ -1418,7 +1418,7 @@ unit raatt;
                                end;
                            typesym :
                              begin
-                               if not(ttypesym(sym).typedef.deftype in [recorddef,objectdef]) then
+                               if not(ttypesym(sym).typedef.typ in [recorddef,objectdef]) then
                                 Message(asmr_e_wrong_sym_type);
                              end;
                            else

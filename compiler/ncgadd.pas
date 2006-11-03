@@ -232,9 +232,9 @@ interface
     procedure tcgaddnode.second_opsmallset;
       begin
         { when a setdef is passed, it has to be a smallset }
-        if ((left.resultdef.deftype=setdef) and
+        if ((left.resultdef.typ=setdef) and
             (tsetdef(left.resultdef).settype<>smallset)) or
-           ((right.resultdef.deftype=setdef) and
+           ((right.resultdef.typ=setdef) and
             (tsetdef(right.resultdef).settype<>smallset)) then
           internalerror(200203301);
 
@@ -738,7 +738,7 @@ interface
 
     procedure tcgaddnode.pass_generate_code;
       begin
-        case left.resultdef.deftype of
+        case left.resultdef.typ of
           orddef :
             begin
               { handling boolean expressions }

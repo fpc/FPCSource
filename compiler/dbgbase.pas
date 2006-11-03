@@ -43,11 +43,11 @@ interface
         procedure insertlineinfo(list:TAsmList);virtual;
         procedure referencesections(list:TAsmList);virtual;
         procedure insertdef(list:TAsmList;def:tdef);virtual;abstract;
-        procedure write_symtable_defs(list:TAsmList;st:tsymtable);virtual;abstract;
+        procedure write_symtable_defs(list:TAsmList;st:TSymtable);virtual;abstract;
 
         procedure write_used_unit_type_info(list:TAsmList;hp:tmodule);
-        procedure field_write_defs(p:Tnamedindexitem;arg:pointer);
-        procedure method_write_defs(p :tnamedindexitem;arg:pointer);
+        procedure field_write_defs(p:TObject;arg:pointer);
+        procedure method_write_defs(p:TObject;arg:pointer);
       end;
       TDebugInfoClass=class of TDebugInfo;
 
@@ -104,7 +104,7 @@ implementation
       end;
 
 
-    procedure TDebugInfo.field_write_defs(p:Tnamedindexitem;arg:pointer);
+    procedure TDebugInfo.field_write_defs(p:TObject;arg:pointer);
       begin
         if (Tsym(p).typ=fieldvarsym) and
            not(sp_static in Tsym(p).symoptions) then
@@ -112,7 +112,7 @@ implementation
       end;
 
 
-    procedure TDebugInfo.method_write_defs(p :tnamedindexitem;arg:pointer);
+    procedure TDebugInfo.method_write_defs(p:TObject;arg:pointer);
       var
         pd : tprocdef;
       begin

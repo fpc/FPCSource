@@ -318,13 +318,13 @@ implementation
             emit_reg_reg(A_MOV,S_L,hreg1,NR_EAX);
             cg.getcpuregister(current_asmdata.CurrAsmList,NR_EDX);
             {Sign extension depends on the left type.}
-            if torddef(left.resultdef).typ=u32bit then
+            if torddef(left.resultdef).ordtype=u32bit then
               emit_reg_reg(A_XOR,S_L,NR_EDX,NR_EDX)
             else
               emit_none(A_CDQ,S_NO);
 
             {Division depends on the right type.}
-            if Torddef(right.resultdef).typ=u32bit then
+            if Torddef(right.resultdef).ordtype=u32bit then
               op:=A_DIV
             else
               op:=A_IDIV;

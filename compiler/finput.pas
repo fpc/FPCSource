@@ -56,7 +56,7 @@ interface
          linebuf    : plongintarr;  { line buffer to retrieve lines }
          maxlinebuf : longint;
 
-         ref_index  : longint;      { to handle the browser refs }
+         ref_index  : longint;
          ref_next   : tinputfile;
 
          constructor create(const fn:string);

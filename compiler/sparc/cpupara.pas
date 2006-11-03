@@ -116,7 +116,7 @@ implementation
             result:=true;
             exit;
           end;
-        case def.deftype of
+        case def.typ of
           arraydef:
             result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
                              is_open_array(def) or
@@ -129,7 +129,7 @@ implementation
           objectdef :
             result:=is_object(def);
           stringdef :
-            result:=(tstringdef(def).string_typ in [st_shortstring,st_longstring]);
+            result:=(tstringdef(def).stringtype in [st_shortstring,st_longstring]);
           procvardef :
             result:=(po_methodpointer in tprocvardef(def).procoptions);
           setdef :
@@ -158,7 +158,7 @@ implementation
           end;
 
         { Return in FPU register? }
-        if p.returndef.deftype=floatdef then
+        if p.returndef.typ=floatdef then
           begin
             p.funcretloc[side].loc:=LOC_FPUREGISTER;
             p.funcretloc[side].register:=NR_FPU_RESULT_REG;

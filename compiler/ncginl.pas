@@ -263,7 +263,7 @@ implementation
               LOC_CREGISTER,
               LOC_REGISTER :
                 begin
-                  if (left.resultdef.deftype=classrefdef) or
+                  if (left.resultdef.typ=classrefdef) or
                      (po_staticmethod in current_procinfo.procdef.procoptions) then
                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.register,hregister)
                   else
@@ -288,7 +288,7 @@ implementation
                   else
                    begin
                      { load VMT pointer, but not for classrefdefs }
-                     if (left.resultdef.deftype=objectdef) then
+                     if (left.resultdef.typ=objectdef) then
                        inc(left.location.reference.offset,tobjectdef(left.resultdef).vmt_offset);
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,hregister);
                    end;
@@ -409,7 +409,7 @@ implementation
           secondpass(tcallparanode(left).left);
           cgsize:=def_cgsize(tcallparanode(left).left.resultdef);
           { get addvalue }
-          case tcallparanode(left).left.resultdef.deftype of
+          case tcallparanode(left).left.resultdef.typ of
             orddef,
             enumdef :
                 addvalue:=1;
@@ -534,9 +534,9 @@ implementation
                  (tsetdef(tcallparanode(left).left.resultdef).settype=smallset)
                   and
                    { elemenut number between 1 and 32 }
-                  ((tcallparanode(tcallparanode(left).right).left.resultdef.deftype=orddef) and
+                  ((tcallparanode(tcallparanode(left).right).left.resultdef.typ=orddef) and
                    (torddef(tcallparanode(tcallparanode(left).right).left.resultdef).high<=32) or
-                   (tcallparanode(tcallparanode(left).right).left.resultdef.deftype=enumdef) and
+                   (tcallparanode(tcallparanode(left).right).left.resultdef.typ=enumdef) and
                    (tenumdef(tcallparanode(tcallparanode(left).right).left.resultdef).max<=32));
 
               { generate code for the element to set }

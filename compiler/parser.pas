@@ -47,12 +47,6 @@ implementation
       aasmbase,aasmtai,aasmdata,
       cgbase,
       script,gendef,
-{$ifdef BrowserCol}
-      browcol,
-{$endif BrowserCol}
-{$ifdef BrowserLog}
-      browlog,
-{$endif BrowserLog}
       comphook,
       scanner,scandir,
       pbase,ptype,psystem,pmodules,psub,
@@ -268,7 +262,7 @@ implementation
           old_block_type : tblock_type;
         { symtable }
           oldsymtablestack,
-          oldmacrosymtablestack : tsymtablestack;
+          oldmacrosymtablestack : TSymtablestack;
           oldaktprocsym    : tprocsym;
         { cg }
           oldparse_only  : boolean;
@@ -328,8 +322,8 @@ implementation
          Message1(parser_i_compiling,filename);
 
        { reset symtable }
-         symtablestack:=tsymtablestack.create;
-         macrosymtablestack:=tsymtablestack.create;
+         symtablestack:=TSymtablestack.create;
+         macrosymtablestack:=TSymtablestack.create;
          systemunit:=nil;
          current_settings.defproccall:=init_settings.defproccall;
          aktexceptblock:=0;
@@ -481,28 +475,6 @@ implementation
                 begin
                   Message1(exec_i_closing_script,AsmRes.Fn);
                   AsmRes.WriteToDisk;
-                end;
-
-                { do not create browsers on errors !! }
-                if status.errorcount=0 then
-                begin
-{$ifdef BrowserLog}
-                  { Write Browser Log }
-                  if (cs_browser_log in current_settings.globalswitches) and
-                      (cs_browser in current_settings.moduleswitches) then
-                    begin
-                      if browserlog.elements_to_list.empty then
-                      begin
-                        Message1(parser_i_writing_browser_log,browserlog.Fname);
-                        WriteBrowserLog;
-                      end
-                      else
-                      browserlog.list_elements;
-                    end;
-{$endif BrowserLog}
-                  { Write Browser Collections, also used by the TextMode IDE to
-                    retrieve a list of sourcefiles }
-                  do_extractsymbolinfo();
                 end;
               end;
 

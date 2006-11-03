@@ -260,7 +260,7 @@ interface
     procedure tcgtypeconvnode.second_char_to_string;
       begin
          location_reset(location,LOC_REFERENCE,OS_NO);
-         case tstringdef(resultdef).string_typ of
+         case tstringdef(resultdef).stringtype of
            st_shortstring :
              begin
                tg.GetTemp(current_asmdata.CurrAsmList,256,tt_normal,location.reference);
@@ -509,12 +509,12 @@ interface
           or the other way round, move to memory first to prevent
           invalid LOC_FPUREGISTER locations }
         if (
-            (resultdef.deftype=floatdef) and
+            (resultdef.typ=floatdef) and
             (location.loc=LOC_CONSTANT)
            ) or
            (
-            (left.resultdef.deftype=floatdef) xor
-            (resultdef.deftype=floatdef)
+            (left.resultdef.typ=floatdef) xor
+            (resultdef.typ=floatdef)
            ) then
           location_force_mem(current_asmdata.CurrAsmList,location);
 
@@ -548,8 +548,8 @@ interface
 {$ifdef TESTOBJEXT2}
          { Check explicit conversions to objects pointers !! }
          if p^.explizit and
-            (p^.resultdef.deftype=pointerdef) and
-            (tpointerdef(p^.resultdef).definition.deftype=objectdef) and not
+            (p^.resultdef.typ=pointerdef) and
+            (tpointerdef(p^.resultdef).definition.typ=objectdef) and not
             (tobjectdef(tpointerdef(p^.resultdef).definition).isclass) and
             ((tobjectdef(tpointerdef(p^.resultdef).definition).options and oo_hasvmt)<>0) and
             (cs_check_range in current_settings.localswitches) then

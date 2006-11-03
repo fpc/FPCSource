@@ -75,9 +75,6 @@ uses
   cutils,cmsgs,
   comphook,
   symtable,scanner,rabase
-{$ifdef BrowserLog}
-  ,browlog
-{$endif BrowserLog}
   ;
 
 const
@@ -446,35 +443,7 @@ begin
 
            'b' :
              begin
-{$ifdef supportbrowser}
-               if UnsetBool(More,0) then
-                begin
-                  exclude(init_settings.moduleswitches,cs_browser);
-                  exclude(init_settings.moduleswitches,cs_local_browser);
-{$ifdef BrowserLog}
-                  exclude(init_settings.globalswitches,cs_browser_log);
-{$endif}
-                end
-               else
-                begin
-                  include(init_settings.moduleswitches,cs_browser);
-{$ifdef BrowserLog}
-                  include(init_settings.globalswitches,cs_browser_log);
-{$endif}
-                end;
-               if More<>'' then
-                 if (More='l') or (More='l+') then
-                   include(init_settings.moduleswitches,cs_local_browser)
-                 else
-                  if More='l-' then
-                   exclude(init_settings.moduleswitches,cs_local_browser)
-                 else
-{$ifdef BrowserLog}
-                   browserlog.elements_to_list.insert(more);
-{$else}
-                   IllegalPara(opt);
-{$endif}
-{$endif supportbrowser}
+               Message1(option_obsolete_switch,'-b');
              end;
 
            'B' :

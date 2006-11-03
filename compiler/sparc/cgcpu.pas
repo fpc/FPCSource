@@ -962,9 +962,9 @@ implementation
         case ovloc.loc of
           LOC_VOID:
             begin
-              if not((def.deftype=pointerdef) or
-                    ((def.deftype=orddef) and
-                     (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit]))) then
+              if not((def.typ=pointerdef) or
+                    ((def.typ=orddef) and
+                     (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit]))) then
                 begin
                   ai:=TAiCpu.Op_sym(A_Bxx,hl);
                   ai.SetCondition(C_NO);
@@ -1272,7 +1272,7 @@ implementation
            (procdef.procoptions*[po_classmethod, po_staticmethod,
              po_methodpointer, po_interrupt, po_iocheck]<>[]) then
           Internalerror(200006138);
-        if procdef.owner.symtabletype<>objectsymtable then
+        if procdef.owner.symtabletype<>ObjectSymtable then
           Internalerror(200109191);
 
         make_global:=false;

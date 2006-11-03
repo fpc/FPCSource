@@ -2626,7 +2626,7 @@ implementation
       begin
         { range checking on and range checkable value? }
         if not(cs_check_range in current_settings.localswitches) or
-           not(fromdef.deftype in [orddef,enumdef]) then
+           not(fromdef.typ in [orddef,enumdef]) then
           exit;
 {$ifndef cpu64bit}
         { handle 64bit rangechecks separate for 32bit processors }
@@ -2644,7 +2644,7 @@ implementation
         to_signed := is_signed(todef);
         { check the rangedef of the array, not the array itself }
         { (only change now, since getrange needs the arraydef)   }
-        if (todef.deftype = arraydef) then
+        if (todef.typ = arraydef) then
           todef := tarraydef(todef).rangedef;
         { no range check if from and to are equal and are both longint/dword }
         { no range check if from and to are equal and are both longint/dword }
@@ -2654,24 +2654,24 @@ implementation
         { have to be changed once we introduce 64bit subrange types          }
 {$ifdef cpu64bit}
         if (fromdef = todef) and
-           (fromdef.deftype=orddef) and
-           (((((torddef(fromdef).typ = s64bit) and
+           (fromdef.typ=orddef) and
+           (((((torddef(fromdef).ordtype = s64bit) and
                (lfrom = low(int64)) and
                (hfrom = high(int64))) or
-              ((torddef(fromdef).typ = u64bit) and
+              ((torddef(fromdef).ordtype = u64bit) and
                (lfrom = low(qword)) and
                (hfrom = high(qword))) or
-              ((torddef(fromdef).typ = scurrency) and
+              ((torddef(fromdef).ordtype = scurrency) and
                (lfrom = low(int64)) and
                (hfrom = high(int64)))))) then
           exit;
 {$else cpu64bit}
         if (fromdef = todef) and
-           (fromdef.deftype=orddef) and
-           (((((torddef(fromdef).typ = s32bit) and
+           (fromdef.typ=orddef) and
+           (((((torddef(fromdef).ordtype = s32bit) and
                (lfrom = low(longint)) and
                (hfrom = high(longint))) or
-              ((torddef(fromdef).typ = u32bit) and
+              ((torddef(fromdef).ordtype = u32bit) and
                (lfrom = low(cardinal)) and
                (hfrom = high(cardinal)))))) then
           exit;
@@ -3041,7 +3041,7 @@ implementation
             procdef.requiredargarea:=paramanager.create_paraloc_info(procdef,callerside);
             procdef.has_paraloc_info:=true;
           end;
-        hsym:=tsym(procdef.parast.search('self'));
+        hsym:=tsym(procdef.parast.Find('self'));
         if not(assigned(hsym) and
                (hsym.typ=paravarsym)) then
           internalerror(200305251);

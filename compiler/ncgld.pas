@@ -80,7 +80,7 @@ implementation
     procedure tcgloadnode.pass_generate_code;
       var
         hregister : tregister;
-        symtabletype : tsymtabletype;
+        symtabletype : TSymtabletype;
         href : treference;
         newsize : tcgsize;
         endrelocatelab,
@@ -238,7 +238,7 @@ implementation
 {$endif OLDREGVARS}
                          begin
                            case symtabletype of
-                              stt_exceptsymtable,
+                              stt_excepTSymtable,
                               localsymtable,
                               parasymtable :
                                 location:=tabstractnormalvarsym(symtableentry).localloc;
@@ -636,7 +636,7 @@ implementation
               LOC_MMREGISTER,
               LOC_CMMREGISTER:
                 begin
-                  if left.resultdef.deftype=arraydef then
+                  if left.resultdef.typ=arraydef then
                     begin
                     end
                   else
@@ -661,15 +661,15 @@ implementation
               LOC_FPUREGISTER,
               LOC_CFPUREGISTER :
                 begin
-                  if (left.resultdef.deftype=floatdef) then
-                   fputyp:=tfloatdef(left.resultdef).typ
+                  if (left.resultdef.typ=floatdef) then
+                   fputyp:=tfloatdef(left.resultdef).floattype
                   else
-                   if (right.resultdef.deftype=floatdef) then
-                    fputyp:=tfloatdef(right.resultdef).typ
+                   if (right.resultdef.typ=floatdef) then
+                    fputyp:=tfloatdef(right.resultdef).floattype
                   else
                    if (right.nodetype=typeconvn) and
-                      (ttypeconvnode(right).left.resultdef.deftype=floatdef) then
-                    fputyp:=tfloatdef(ttypeconvnode(right).left.resultdef).typ
+                      (ttypeconvnode(right).left.resultdef.typ=floatdef) then
+                    fputyp:=tfloatdef(ttypeconvnode(right).left.resultdef).floattype
                   else
                     fputyp:=s32real;
                   { we can't do direct moves between fpu and mm registers }
@@ -817,13 +817,13 @@ implementation
                  vtype:=$ff;
                  vaddr:=false;
                  lt:=hp.left.resultdef;
-                 case lt.deftype of
+                 case lt.typ of
                    enumdef,
                    orddef :
                      begin
                        if is_64bit(lt) then
                          begin
-                            case torddef(lt).typ of
+                            case torddef(lt).ordtype of
                               scurrency:
                                 vtype:=vtCurrency;
                               s64bit:
@@ -834,16 +834,16 @@ implementation
                             freetemp:=false;
                             vaddr:=true;
                          end
-                       else if (lt.deftype=enumdef) or
+                       else if (lt.typ=enumdef) or
                          is_integer(lt) then
                          vtype:=vtInteger
                        else
                          if is_boolean(lt) then
                            vtype:=vtBoolean
                          else
-                           if (lt.deftype=orddef) then
+                           if (lt.typ=orddef) then
                              begin
-                               case torddef(lt).typ of
+                               case torddef(lt).ordtype of
                                  uchar:
                                    vtype:=vtChar;
                                  uwidechar:

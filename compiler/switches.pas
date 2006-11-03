@@ -59,7 +59,7 @@ const
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
    {J} (typesw:localsw; setsw:ord(cs_typed_const_writable)),
    {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
-   {L} (typesw:modulesw; setsw:ord(cs_local_browser)),
+   {L} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
    {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {O} (typesw:optimizersw; setsw:ord(cs_opt_none)),
@@ -72,7 +72,7 @@ const
    {V} (typesw:localsw; setsw:ord(cs_strict_var_strings)),
    {W} (typesw:localsw; setsw:ord(cs_generate_stackframes)),
    {X} (typesw:modulesw; setsw:ord(cs_extsyntax)),
-   {Y} (typesw:modulesw; setsw:ord(cs_browser)),
+   {Y} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {Z} (typesw:illegalsw; setsw:ord(cs_localnone))
     );
 
@@ -89,7 +89,7 @@ const
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
    {J} (typesw:localsw; setsw:ord(cs_external_var)),
    {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
-   {L} (typesw:modulesw; setsw:ord(cs_local_browser)),
+   {L} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
    {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {O} (typesw:optimizersw; setsw:ord(cs_opt_none)),
@@ -102,7 +102,7 @@ const
    {V} (typesw:localsw; setsw:ord(cs_strict_var_strings)),
    {W} (typesw:localsw; setsw:ord(cs_generate_stackframes)),
    {X} (typesw:modulesw; setsw:ord(cs_extsyntax)),
-   {Y} (typesw:modulesw; setsw:ord(cs_browser)),
+   {Y} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {Z} (typesw:localsw; setsw:ord(cs_externally_visible))
     );
 

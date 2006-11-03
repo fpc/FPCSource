@@ -40,9 +40,9 @@ interface
        public
           symtableentry : tsym;
           symtableentryderef : tderef;
-          symtable : tsymtable;
-          constructor create(v : tsym;st : tsymtable);virtual;
-          constructor create_procvar(v : tsym;d:tprocdef;st : tsymtable);virtual;
+          symtable : TSymtable;
+          constructor create(v : tsym;st : TSymtable);virtual;
+          constructor create_procvar(v : tsym;d:tprocdef;st : TSymtable);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -155,7 +155,7 @@ implementation
                              TLOADNODE
 *****************************************************************************}
 
-    constructor tloadnode.create(v : tsym;st : tsymtable);
+    constructor tloadnode.create(v : tsym;st : TSymtable);
       begin
          inherited create(loadn,nil);
          if not assigned(v) then
@@ -166,7 +166,7 @@ implementation
       end;
 
 
-    constructor tloadnode.create_procvar(v : tsym;d:tprocdef;st : tsymtable);
+    constructor tloadnode.create_procvar(v : tsym;d:tprocdef;st : TSymtable);
       begin
          inherited create(loadn,nil);
          if not assigned(v) then
@@ -590,11 +590,11 @@ implementation
 
         { tp procvar support, when we don't expect a procvar
           then we need to call the procvar }
-        if (left.resultdef.deftype<>procvardef) then
+        if (left.resultdef.typ<>procvardef) then
           maybe_call_procvar(right,true);
 
         { assignments to formaldefs and open arrays aren't allowed }
-        if (left.resultdef.deftype=formaldef) or
+        if (left.resultdef.typ=formaldef) or
            is_open_array(left.resultdef) then
           CGMessage(type_e_operator_not_allowed);
 
@@ -621,9 +621,9 @@ implementation
              secondpass and except for ansi/wide string that can
              be converted immediatly }
            if not(is_char(right.resultdef) or
-                  (right.resultdef.deftype=stringdef)) then
+                  (right.resultdef.typ=stringdef)) then
              inserttypeconv(right,left.resultdef);
-           if right.resultdef.deftype=stringdef then
+           if right.resultdef.typ=stringdef then
             begin
               useshelper:=true;
               { convert constant strings to shortstrings. But
@@ -684,7 +684,7 @@ implementation
 
         { call helpers for variant, they can contain non ref. counted types like
           vararrays which must be really copied }
-        if left.resultdef.deftype=variantdef then
+        if left.resultdef.typ=variantdef then
          begin
            hp:=ccallparanode.create(ctypeconvnode.create_internal(
                  caddrnode.create_internal(right),voidpointertype),
@@ -710,7 +710,7 @@ implementation
          end;
 
         { check if local proc/func is assigned to procvar }
-        if right.resultdef.deftype=procvardef then
+        if right.resultdef.typ=procvardef then
           test_local_to_procvar(tprocvardef(right.resultdef),left.resultdef);
       end;
 
@@ -780,7 +780,7 @@ implementation
 
         if (is_shortstring(left.resultdef)) then
           begin
-           if right.resultdef.deftype=stringdef then
+           if right.resultdef.typ=stringdef then
             begin
               if (right.nodetype<>stringconstn) or
                  (tstringconstnode(right).len<>0) then
@@ -1109,7 +1109,7 @@ implementation
         result:=nil;
         resultdef:=typedef;
         { check if it's valid }
-        if typedef.deftype = errordef then
+        if typedef.typ = errordef then
           CGMessage(parser_e_illegal_expression);
       end;
 

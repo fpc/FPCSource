@@ -139,9 +139,9 @@ unit cgcpu;
 
     function get_fpu_postfix(def : tdef) : toppostfix;
       begin
-        if def.deftype=floatdef then
+        if def.typ=floatdef then
           begin
-            case tfloatdef(def).typ of
+            case tfloatdef(def).floattype of
               s32real:
                 result:=PF_S;
               s64real:
@@ -1724,9 +1724,9 @@ unit cgcpu;
               ai:=taicpu.op_sym(A_B,hl);
               ai.is_jmp:=true;
 
-              if not((def.deftype=pointerdef) or
-                    ((def.deftype=orddef) and
-                     (torddef(def).typ in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit]))) then
+              if not((def.typ=pointerdef) or
+                    ((def.typ=orddef) and
+                     (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,bool8bit,bool16bit,bool32bit]))) then
                  ai.SetCondition(C_VC)
               else
                 if TAiCpu(List.Last).opcode in [A_RSB,A_RSC,A_SBC,A_SUB] then
@@ -1808,7 +1808,7 @@ unit cgcpu;
            (procdef.procoptions*[po_classmethod, po_staticmethod,
              po_methodpointer, po_interrupt, po_iocheck]<>[]) then
           Internalerror(200006138);
-        if procdef.owner.symtabletype<>objectsymtable then
+        if procdef.owner.symtabletype<>ObjectSymtable then
           Internalerror(200109191);
 
         make_global:=false;

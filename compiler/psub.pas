@@ -118,7 +118,7 @@ implementation
                       PROCEDURE/FUNCTION BODY PARSING
 ****************************************************************************}
 
-    procedure initializevars(p:tnamedindexitem;arg:pointer);
+    procedure initializevars(p:TObject;arg:pointer);
       var
         b : tblocknode;
       begin
@@ -139,7 +139,7 @@ implementation
       end;
 
 
-    procedure check_finalize_paras(p : tnamedindexitem;arg:pointer);
+    procedure check_finalize_paras(p:TObject;arg:pointer);
       begin
         if (tsym(p).typ=paravarsym) and
            (tparavarsym(p).varspez=vs_value) and
@@ -149,7 +149,7 @@ implementation
       end;
 
 
-    procedure check_finalize_locals(p : tnamedindexitem;arg:pointer);
+    procedure check_finalize_locals(p:TObject;arg:pointer);
       begin
         if (tsym(p).typ=localvarsym) and
            (tlocalvarsym(p).refs>0) and
@@ -231,7 +231,7 @@ implementation
             begin
                block:=statement_block(_BEGIN);
                if current_procinfo.procdef.localst.symtabletype=localsymtable then
-                 current_procinfo.procdef.localst.foreach_static(@initializevars,block);
+                 current_procinfo.procdef.localst.SymList.ForEachCall(@initializevars,block);
             end;
       end;
 
@@ -459,7 +459,7 @@ implementation
         if assigned(current_procinfo.procdef._class) and
            (current_procinfo.procdef.proctypeoption=potype_constructor) then
           begin
-            pd:=current_procinfo.procdef._class.searchdestructor;
+            pd:=current_procinfo.procdef._class.Finddestructor;
             if assigned(pd) then
               begin
                 { if vmt<>0 then call destructor }
@@ -600,7 +600,7 @@ implementation
       end;
 
 
-    procedure clearrefs(p : tnamedindexitem;arg:pointer);
+    procedure clearrefs(p:TObject;arg:pointer);
       begin
          if (tsym(p).typ in [localvarsym,paravarsym,globalvarsym]) then
            if tabstractvarsym(p).refs>1 then
@@ -608,7 +608,7 @@ implementation
       end;
 
 
-    procedure translate_registers(p : tnamedindexitem;list:pointer);
+    procedure translate_registers(p:TObject;list:pointer);
       begin
          if (tsym(p).typ in [localvarsym,paravarsym,globalvarsym]) and
             (tabstractnormalvarsym(p).localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,
@@ -623,7 +623,7 @@ implementation
       end;
 
 
-    procedure check_for_stack(p : tnamedindexitem;arg:pointer);
+    procedure check_for_stack(p:TObject;arg:pointer);
       begin
          if tsym(p).typ=paravarsym then
            begin
@@ -642,7 +642,7 @@ implementation
     function tcgprocinfo.stack_tainting_parameter : boolean;
       begin
         result:=false;
-        procdef.parast.foreach_static(@check_for_stack,@result);
+        procdef.parast.SymList.ForEachCall(@check_for_stack,@result);
       end;
 
 
@@ -710,8 +710,8 @@ implementation
           cg.t_times:=100;
 
         { clear register count }
-        procdef.localst.foreach_static(@clearrefs,nil);
-        procdef.parast.foreach_static(@clearrefs,nil);
+        procdef.localst.SymList.ForEachCall(@clearrefs,nil);
+        procdef.parast.SymList.ForEachCall(@clearrefs,nil);
 
         { there's always a call to FPC_INITIALIZEUNITS/FPC_DO_EXIT in the main program }
         if (procdef.localst.symtablelevel=main_program_level) and
@@ -719,8 +719,8 @@ implementation
           include(flags,pi_do_call);
 
         { set implicit_finally flag when there are locals/paras to be finalized }
-        procdef.parast.foreach_static(@check_finalize_paras,nil);
-        procdef.localst.foreach_static(@check_finalize_locals,nil);
+        procdef.parast.SymList.ForEachCall(@check_finalize_paras,nil);
+        procdef.localst.SymList.ForEachCall(@check_finalize_locals,nil);
 
         { firstpass everything }
         flowcontrol:=[];
@@ -921,8 +921,8 @@ implementation
               this is necessary for debuginfo and verbose assembler output
               when SSA will be implented, this will be more complicated because we've to
               maintain location lists }
-            current_procinfo.procdef.parast.foreach_static(@translate_registers,templist);
-            current_procinfo.procdef.localst.foreach_static(@translate_registers,templist);
+            current_procinfo.procdef.parast.SymList.ForEachCall(@translate_registers,templist);
+            current_procinfo.procdef.localst.SymList.ForEachCall(@translate_registers,templist);
 
             { Add save and restore of used registers }
             current_filepos:=entrypos;
@@ -1107,7 +1107,7 @@ implementation
             { re-basing of the index, i.e. if you pass an array[1..10] as open array, }
             { you have to add 1 to all index operations if you directly inline it     }
             if ((currpara.varspez in [vs_out,vs_var,vs_const]) and
-                (currpara.vardef.deftype=formaldef)) or
+                (currpara.vardef.typ=formaldef)) or
                is_special_array(currpara.vardef)  then
               exit;
           end;
@@ -1119,7 +1119,7 @@ implementation
       var
          oldprocinfo : tprocinfo;
          oldblock_type : tblock_type;
-         st : tsymtable;
+         st : TSymtable;
       begin
          oldprocinfo:=current_procinfo;
          oldblock_type:=block_type;
@@ -1146,10 +1146,6 @@ implementation
          { allocate the symbol for this procedure }
          alloc_proc_symbol(procdef);
 
-         { create a local symbol table for this routine }
-         if not assigned(procdef.localst) then
-           procdef.insert_localst;
-
          { add parast/localst to symtablestack }
          add_to_symtablestack;
 
@@ -1175,7 +1171,7 @@ implementation
              { Give a warning for accesses in the static symtable that aren't visible
                outside the current unit }
              st:=procdef.owner;
-             while (st.symtabletype=objectsymtable) do
+             while (st.symtabletype=ObjectSymtable) do
                st:=st.defowner.owner;
              if (pi_uses_static_symtable in flags) and
                 (st.symtabletype<>staticsymtable) then
@@ -1259,7 +1255,7 @@ implementation
 ****************************************************************************}
 
 
-    procedure check_init_paras(p:tnamedindexitem;arg:pointer);
+    procedure check_init_paras(p:TObject;arg:pointer);
       begin
         if tsym(p).typ<>paravarsym then
          exit;
@@ -1324,7 +1320,7 @@ implementation
         { check if there are para's which require initing -> set }
         { pi_do_call (if not yet set)                            }
         if not(pi_do_call in current_procinfo.flags) then
-          pd.parast.foreach_static(@check_init_paras,nil);
+          pd.parast.SymList.ForEachCall(@check_init_paras,nil);
 
         { set _FAIL as keyword if constructor }
         if (pd.proctypeoption=potype_constructor) then
@@ -1550,10 +1546,10 @@ implementation
 ****************************************************************************}
 
     { search in symtablestack for not complete classes }
-    procedure check_forward_class(p : tnamedindexitem;arg:pointer);
+    procedure check_forward_class(p:TObject;arg:pointer);
       begin
         if (tsym(p).typ=typesym) and
-           (ttypesym(p).typedef.deftype=objectdef) and
+           (ttypesym(p).typedef.typ=objectdef) and
            (oo_is_forward in tobjectdef(ttypesym(p).typedef).objectoptions) then
           MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
       end;
@@ -1627,7 +1623,7 @@ implementation
          { check for incomplete class definitions, this is only required
            for fpc modes }
          if (m_fpc in current_settings.modeswitches) then
-           current_procinfo.procdef.localst.foreach_static(@check_forward_class,nil);
+           current_procinfo.procdef.localst.SymList.ForEachCall(@check_forward_class,nil);
       end;
 
 
@@ -1668,7 +1664,7 @@ implementation
          { check for incomplete class definitions, this is only required
            for fpc modes }
          if (m_fpc in current_settings.modeswitches) then
-          symtablestack.top.foreach_static(@check_forward_class,nil);
+          symtablestack.top.SymList.ForEachCall(@check_forward_class,nil);
       end;
 
 
@@ -1677,25 +1673,26 @@ implementation
 ****************************************************************************}
 
 
-    procedure specialize_objectdefs(p:tnamedindexitem;arg:pointer);
+    procedure specialize_objectdefs(p:TObject;arg:pointer);
       var
+        i  : longint;
         hp : tdef;
         oldcurrent_filepos : tfileposinfo;
       begin
         if not((tsym(p).typ=typesym) and
-               (ttypesym(p).typedef.deftype=objectdef) and
+               (ttypesym(p).typedef.typ=objectdef) and
                (df_specialization in ttypesym(p).typedef.defoptions)
               ) then
           exit;
 
         { definitions }
-        hp:=tdef(tobjectdef(ttypesym(p).typedef).symtable.defindex.first);
-        while assigned(hp) do
-         begin
-           if hp.deftype=procdef then
+        for i:=0 to tobjectdef(ttypesym(p).typedef).symtable.DefList.Count-1 do
+          begin
+            hp:=tdef(tobjectdef(ttypesym(p).typedef).symtable.DefList[i]);
+            if hp.typ=procdef then
              begin
                if assigned(tprocdef(hp).genericdef) and
-                 (tprocdef(hp).genericdef.deftype=procdef) and
+                 (tprocdef(hp).genericdef.typ=procdef) and
                  assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf) then
                  begin
                    oldcurrent_filepos:=current_filepos;
@@ -1708,7 +1705,6 @@ implementation
                else
                  MessagePos1(tprocdef(tprocdef(hp).genericdef).fileinfo,sym_e_forward_not_resolved,tprocdef(tprocdef(hp).genericdef).fullprocname(false));
              end;
-           hp:=tdef(hp.indexnext);
          end;
       end;
 
@@ -1716,11 +1712,11 @@ implementation
     procedure generate_specialization_procs;
       begin
         if assigned(current_module.globalsymtable) then
-          current_module.globalsymtable.foreach_static(@specialize_objectdefs,nil);
+          current_module.globalsymtable.SymList.ForEachCall(@specialize_objectdefs,nil);
         if assigned(current_module.localsymtable) then
           begin
             symtablestack.push(current_module.localsymtable);
-            current_module.localsymtable.foreach_static(@specialize_objectdefs,nil);
+            current_module.localsymtable.SymList.ForEachCall(@specialize_objectdefs,nil);
             symtablestack.pop(current_module.localsymtable);
           end;
       end;

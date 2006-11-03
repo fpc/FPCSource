@@ -236,7 +236,7 @@ implementation
              second_mmx
          else
 {$endif SUPPORT_MMX}
-           if (left.resultdef.deftype=floatdef) then
+           if (left.resultdef.typ=floatdef) then
              second_float
          else
            second_integer;

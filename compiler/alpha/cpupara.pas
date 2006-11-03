@@ -70,7 +70,7 @@ unit cpupara;
          { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
            if push_addr_param for the def is true
          }
-         case p.deftype of
+         case p.typ of
             orddef:
               getparaloc:=LOC_REGISTER;
             floatdef:
@@ -248,7 +248,7 @@ unit cpupara;
 
     function talphaparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
       begin
-         case p.returndef.deftype of
+         case p.returndef.typ of
             orddef,
             enumdef:
               begin

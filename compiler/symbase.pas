@@ -34,36 +34,33 @@ interface
        ;
 
 {************************************************
-           Some internal constants
-************************************************}
-
-   const
-       hasharraysize    = 256;
-       indexgrowsize    = 64;
-
-{************************************************
             Needed forward pointers
 ************************************************}
 
     type
-       tsymtable = class;
+       TSymtable = class;
 
-{************************************************
-               TSymtableEntry
-************************************************}
+       { THashedIDString }
 
-      tsymtableentry = class(TNamedIndexItem)
-         owner : tsymtable;
-      end;
+       THashedIDString=object
+       private
+         FId   : TIDString;
+         FHash : Longword;
+         procedure SetId(const s:TIDString);
+       public
+         property Id:TIDString read FId write SetId;
+         property Hash:longword read FHash;
+       end;
 
 
 {************************************************
                  TDefEntry
 ************************************************}
 
-      tdefentry = class(tsymtableentry)
-         deftype : tdeftype;
-         defid   : longint;
+      TDefEntry = class
+         typ   : tdeftyp;
+         defid : longint;
+         owner : TSymtable;
       end;
 
 
@@ -72,69 +69,80 @@ interface
 ************************************************}
 
       { this object is the base for all symbol objects }
-      tsymentry = class(tsymtableentry)
+      TSymEntry = class(TFPHashObject)
+      private
+         FRealName : pshortstring;
+         function  GetRealname:shortstring;
+         procedure SetRealname(const ANewName:shortstring);
+      public
          typ   : tsymtyp;
-         symid : longint;
+         SymId : longint;
+         Owner : TSymtable;
+         destructor destroy;override;
+         property RealName:shortstring read GetRealName write SetRealName;
       end;
-
 
 {************************************************
                  TSymtable
 ************************************************}
 
-       tsearchhasharray = array[0..hasharraysize-1] of tsymentry;
-       psearchhasharray = ^tsearchhasharray;
-
-       tsymtable = class
-       private
-          clearing   : boolean;
-{$ifdef EXTDEBUG}
-          procedure dumpsym(p : TNamedIndexItem;arg:pointer);
-{$endif EXTDEBUG}
+       TSymtable = class
        public
+          clearing   : boolean;
           name      : pshortstring;
           realname  : pshortstring;
-          symindex,
-          defindex  : TIndexArray;
-          symsearch : Tdictionary;
-          defowner  : tdefentry; { for records and objects }
-          symtabletype  : tsymtabletype;
+          DefList   : TFPObjectList;
+          SymList   : TFPHashObjectList;
+          defowner  : TDefEntry; { for records and objects }
+          moduleid  : longint;
+          refcount  : smallint;
           { level of symtable, used for nested procedures }
           symtablelevel : byte;
-          moduleid      : longint;
-          refcount  : integer;
+          symtabletype  : TSymtabletype;
           constructor Create(const s:string);
           destructor  destroy;override;
           procedure freeinstance;override;
-          function  getcopy:tsymtable;
+          function  getcopy:TSymtable;
           procedure clear;virtual;
-          function  rename(const olds,news : stringid):tsymentry;
-          procedure foreach(proc2call : tnamedindexcallback;arg:pointer);
-          procedure foreach_static(proc2call : tnamedindexstaticcallback;arg:pointer);
-          function  checkduplicate(sym : tsymentry):boolean;virtual;
-          procedure insert(sym : tsymentry);virtual;
-          procedure delete(sym:tsymentry);
-          procedure replace(oldsym,newsym:tsymentry);
-          function  search(const s : stringid) : tsymentry;
-          function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;virtual;
-          procedure insertdef(def:tdefentry);virtual;
-          procedure deletedef(def:tdefentry);virtual;
+//          function  rename(const olds,news:TIDString):TSymEntry;
+          function  checkduplicate(var s:THashedIDString;sym:TSymEntry):boolean;virtual;
+          procedure insert(sym:TSymEntry);virtual;
+          function  Find(const s:TIDString) : TSymEntry;
+          function  FindWithHash(const s:THashedIDString) : TSymEntry;virtual;
+          procedure insertdef(def:TDefEntry);virtual;
+//          procedure deletedef(def:TDefEntry);virtual;
           function  iscurrentunit:boolean;virtual;
-{$ifdef EXTDEBUG}
-          procedure dump;
-{$endif EXTDEBUG}
-          function  getdefnr(l : longint) : tdefentry;
-          function  getsymnr(l : longint) : tsymentry;
        end;
 
-    var
-       aktrecordsymtable : tsymtable;     { current record symtable }
-       aktparasymtable   : tsymtable;     { current proc para symtable }
-       aktlocalsymtable  : tsymtable;     { current proc local symtable }
+       psymtablestackitem = ^TSymtablestackitem;
+       TSymtablestackitem = record
+         symtable : TSymtable;
+         next     : psymtablestackitem;
+       end;
 
-       initialmacrosymtable: tsymtable;   { macros initially defined by the compiler or
+       TSymtablestack = class
+         stack : psymtablestackitem;
+         constructor create;
+         destructor destroy;override;
+         procedure clear;
+         procedure push(st:TSymtable);
+         procedure pop(st:TSymtable);
+         function  top:TSymtable;
+       end;
+
+
+    var
+       initialmacrosymtable: TSymtable;   { macros initially defined by the compiler or
                                             given on the command line. Is common
                                             for all files compiled and do not change. }
+       macrosymtablestack,
+       symtablestack        : TSymtablestack;
+
+{$ifdef MEMDEBUG}
+    var
+      memrealnames : tmemdebug;
+{$endif MEMDEBUG}
+
 
 implementation
 
@@ -142,52 +150,96 @@ implementation
        verbose;
 
 {****************************************************************************
-                                TSYMTABLE
+                              THashedIDString
 ****************************************************************************}
 
-    constructor tsymtable.Create(const s:string);
+    procedure THashedIDString.SetId(const s:TIDString);
+      begin
+        FId:=s;
+        FHash:=FPHash(s);
+      end;
+
+
+{****************************************************************************
+                                TSymEntry
+****************************************************************************}
+
+    destructor TSymEntry.destroy;
+      begin
+{$ifdef MEMDEBUG}
+        memrealnames.start;
+{$endif MEMDEBUG}
+        stringdispose(Frealname);
+{$ifdef MEMDEBUG}
+        memrealnames.stop;
+{$endif MEMDEBUG}
+        inherited destroy;
+      end;
+
+
+    function TSymEntry.GetRealname:shortstring;
+      begin
+        if not assigned(FRealname) then
+          internalerror(200611011);
+        result:=FRealname^;
+      end;
+
+
+    procedure TSymEntry.SetRealname(const ANewName:shortstring);
+      begin
+        stringdispose(FRealname);
+        FRealname:=stringdup(ANewName);
+        if Hash<>$ffffffff then
+          begin
+            if FRealname^[1]='$' then
+              Rename(Copy(FRealname^,2,255))
+            else
+              Rename(Upper(FRealname^));
+          end;
+      end;
+
+
+{****************************************************************************
+                                TSymtable
+****************************************************************************}
+
+    constructor TSymtable.Create(const s:string);
       begin
          if s<>'' then
-          begin
-            name:=stringdup(upper(s));
-            realname:=stringdup(s);
-          end
+           begin
+             name:=stringdup(upper(s));
+             realname:=stringdup(s);
+           end
          else
-          begin
-            name:=nil;
-            realname:=nil;
-          end;
-         symtabletype:=abstractsymtable;
+           begin
+             name:=nil;
+             realname:=nil;
+           end;
+         symtabletype:=abstracTSymtable;
          symtablelevel:=0;
          defowner:=nil;
-         symindex:=tindexarray.create(indexgrowsize);
-         defindex:=TIndexArray.create(indexgrowsize);
-         symsearch:=tdictionary.create;
-         symsearch.noclear:=true;
+         DefList:=TFPObjectList.Create(true);
+         SymList:=TFPHashObjectList.Create(true);
          refcount:=1;
       end;
 
 
-    destructor tsymtable.destroy;
+    destructor TSymtable.destroy;
       begin
         { freeinstance decreases refcount }
         if refcount>1 then
           exit;
-        { symsearch can already be disposed or set to nil for withsymtable }
-        if assigned(symsearch) then
-         begin
-           symsearch.destroy;
-           symsearch:=nil;
-         end;
-        clear;
-        symindex.free;
-        defindex.free;
+        Clear;
+        DefList.Free;
+        { SymList can already be disposed or set to nil for withsymtable }
+        if assigned(SymList) then
+          SymList.Free;
         stringdispose(name);
         stringdispose(realname);
       end;
 
 
-    procedure tsymtable.freeinstance;
+    procedure TSymtable.freeinstance;
       begin
         dec(refcount);
         if refcount=0 then
@@ -195,156 +247,139 @@ implementation
       end;
 
 
-    function tsymtable.getcopy:tsymtable;
+    function TSymtable.getcopy:TSymtable;
       begin
         inc(refcount);
         result:=self;
       end;
 
 
-{$ifdef EXTDEBUG}
-    procedure tsymtable.dumpsym(p : TNamedIndexItem;arg:pointer);
-      begin
-        writeln(p.name);
-      end;
-
-
-    procedure tsymtable.dump;
-      begin
-        if assigned(name) then
-          writeln('Symtable ',name^)
-        else
-          writeln('Symtable <not named>');
-        symsearch.foreach(@dumpsym,nil);
-      end;
-{$endif EXTDEBUG}
-
-
-    function tsymtable.iscurrentunit:boolean;
+    function TSymtable.iscurrentunit:boolean;
       begin
         result:=false;
       end;
 
 
-    procedure tsymtable.foreach(proc2call : tnamedindexcallback;arg:pointer);
-      begin
-        symindex.foreach(proc2call,arg);
-      end;
-
-
-    procedure tsymtable.foreach_static(proc2call : tnamedindexstaticcallback;arg:pointer);
-      begin
-        symindex.foreach_static(proc2call,arg);
-      end;
-
-
-{***********************************************
-                Table Access
-***********************************************}
-
-    procedure tsymtable.clear;
+    procedure TSymtable.clear;
       begin
          clearing:=true;
-         symindex.clear;
-         defindex.clear;
+         SymList.Clear;
+         DefList.Clear;
          clearing:=false;
       end;
 
 
-    function tsymtable.checkduplicate(sym : tsymentry):boolean;
+    function TSymtable.checkduplicate(var s:THashedIDString;sym:TSymEntry):boolean;
       begin
-        result:=(speedsearch(sym.name,sym.speedvalue)<>nil);
+        result:=(FindWithHash(s)<>nil);
       end;
 
 
-    procedure tsymtable.insert(sym:tsymentry);
+    procedure TSymtable.insert(sym:TSymEntry);
+      var
+        hashedid : THashedIDString;
       begin
-         checkduplicate(sym);
-         sym.owner:=self;
-         { insert in index and search hash }
-         symindex.insert(sym);
-         symsearch.insert(sym);
+         if sym.realname[1]='$' then
+           hashedid.id:=Copy(sym.realname,2,255)
+         else
+           hashedid.id:=Upper(sym.realname);
+         { First check for duplicates, this can change the symbol name
+           in case of a duplicate entry }
+         checkduplicate(hashedid,sym);
+         { Now we can insert the symbol, any duplicate entries
+           are renamed to an unique (and for users unaccessible) name }
+         sym.ChangeOwnerAndName(SymList,hashedid.id);
+         sym.Owner:=self;
       end;
 
 
-    procedure tsymtable.insertdef(def:tdefentry);
+    procedure TSymtable.insertdef(def:TDefEntry);
       begin
+         DefList.Add(def);
          def.owner:=self;
-         defindex.insert(def);
       end;
 
 
-    procedure tsymtable.deletedef(def:tdefentry);
+    function TSymtable.Find(const s : TIDString) : TSymEntry;
       begin
-        { if we are already clearing everything it will already
-          be deleted }
-        if clearing then
-          exit;
-        defindex.deleteindex(def);
-        def.owner:=nil;
+        result:=TSymEntry(SymList.Find(s));
       end;
 
 
-    procedure tsymtable.delete(sym:tsymentry);
+    function TSymtable.FindWithHash(const s:THashedIDString) : TSymEntry;
       begin
-         sym.owner:=nil;
-         { remove from index and search hash }
-         symsearch.delete(sym.name);
-         symindex.delete(sym);
+        result:=TSymEntry(SymList.FindWithHash(s.id,s.hash));
       end;
 
 
-    procedure tsymtable.replace(oldsym,newsym:tsymentry);
+{****************************************************************************
+                            Symtable Stack
+****************************************************************************}
+
+    constructor TSymtablestack.create;
       begin
-         { Replace the entry in the dictionary, this checks
-           the name }
-         if not symsearch.replace(oldsym,newsym) then
-           internalerror(200209061);
-         { replace in index }
-         symindex.replace(oldsym,newsym);
-         { set owner of new symb }
-         newsym.owner:=self;
+        stack:=nil;
       end;
 
 
-    function tsymtable.search(const s : stringid) : tsymentry;
+    destructor TSymtablestack.destroy;
       begin
-        search:=speedsearch(s,getspeedvalue(s));
+        clear;
       end;
 
 
-    function tsymtable.speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;
-      begin
-        speedsearch:=tsymentry(symsearch.speedsearch(s,speedvalue));
-      end;
-
-
-    function tsymtable.rename(const olds,news : stringid):tsymentry;
-      begin
-        rename:=tsymentry(symsearch.rename(olds,news));
-      end;
-
-
-    function tsymtable.getsymnr(l : longint) : tsymentry;
+    procedure TSymtablestack.clear;
       var
-        hp : tsymentry;
+        hp : psymtablestackitem;
       begin
-        hp:=tsymentry(symindex.search(l));
-        if hp=nil then
-         internalerror(10999);
-        getsymnr:=hp;
+        while assigned(stack) do
+          begin
+            hp:=stack;
+            stack:=hp^.next;
+            dispose(hp);
+          end;
       end;
 
 
-    function tsymtable.getdefnr(l : longint) : tdefentry;
+    procedure TSymtablestack.push(st:TSymtable);
       var
-        hp : tdefentry;
+        hp : psymtablestackitem;
       begin
-        hp:=tdefentry(defindex.search(l));
-        if hp=nil then
-         internalerror(10998);
-        getdefnr:=hp;
+        new(hp);
+        hp^.symtable:=st;
+        hp^.next:=stack;
+        stack:=hp;
       end;
 
 
+    procedure TSymtablestack.pop(st:TSymtable);
+      var
+        hp : psymtablestackitem;
+      begin
+        if not assigned(stack) then
+          internalerror(200601231);
+        if stack^.symtable<>st then
+          internalerror(200601232);
+        hp:=stack;
+        stack:=hp^.next;
+        dispose(hp);
+      end;
+
+
+    function TSymtablestack.top:TSymtable;
+      begin
+        if not assigned(stack) then
+          internalerror(200601233);
+        result:=stack^.symtable;
+      end;
+
+
+{$ifdef MEMDEBUG}
+initialization
+  memrealnames:=TMemDebug.create('Realnames');
+  memrealnames.stop;
+
+finalization
+  memrealnames.free;
+{$endif MEMDEBUG}
 end.

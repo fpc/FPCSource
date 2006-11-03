@@ -300,7 +300,7 @@ var
               (TSearchDoubleIntItem(p).int2 = int2);
   end;
 
-  function TSearchLinkedList.searchByValue(p: PSearchLinkedListItem): boolean;
+  function TSearchLinkedList.FindByValue(p: PSearchLinkedListItem): boolean;
   var temp: PSearchLinkedListItem;
   begin
     temp := first;
@@ -403,7 +403,7 @@ procedure RemoveLastDeallocForFuncRes(asml: TAsmList; p: tai);
   end;
 
 begin
-    case current_procinfo.procdef.returndef.deftype of
+    case current_procinfo.procdef.returndef.typ of
       arraydef,recorddef,pointerdef,
          stringdef,enumdef,procdef,objectdef,errordef,
          filedef,setdef,procvardef,
@@ -425,7 +425,7 @@ var
   regCounter: TSuperRegister;
 begin
   regs := [];
-  case current_procinfo.procdef.returndef.deftype of
+  case current_procinfo.procdef.returndef.typ of
     arraydef,recorddef,pointerdef,
        stringdef,enumdef,procdef,objectdef,errordef,
        filedef,setdef,procvardef,

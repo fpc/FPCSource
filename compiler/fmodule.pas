@@ -126,9 +126,9 @@ interface
         deflist,
         symlist       : TFPObjectList;
         globalsymtable,           { pointer to the global symtable of this unit }
-        localsymtable : tsymtable;{ pointer to the local symtable of this unit }
+        localsymtable : TSymtable;{ pointer to the local symtable of this unit }
         globalmacrosymtable,           { pointer to the global macro symtable of this unit }
-        localmacrosymtable : tsymtable;{ pointer to the local macro symtable of this unit }
+        localmacrosymtable : TSymtable;{ pointer to the local macro symtable of this unit }
         scanner       : TObject;  { scanner object used }
         procinfo      : TObject;  { current procedure being compiled }
         asmdata       : TObject;  { Assembler data }

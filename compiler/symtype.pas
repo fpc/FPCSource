@@ -48,26 +48,12 @@ interface
 
 
 {************************************************
-                     TRef
-************************************************}
-
-      tref = class
-        nextref     : tref;
-        posinfo     : tfileposinfo;
-        moduleindex : longint;
-        is_written  : boolean;
-        constructor create(ref:tref;pos:pfileposinfo);
-        procedure   freechain;
-        destructor  destroy;override;
-      end;
-
-{************************************************
                      TDef
 ************************************************}
 
-      tgetsymtable = (gs_none,gs_record,gs_local,gs_para);
+      tgeTSymtable = (gs_none,gs_record,gs_local,gs_para);
 
-      tdef = class(tdefentry)
+      tdef = class(TDefEntry)
          typesym    : tsym;  { which type the definition was generated this def }
          { maybe it's useful to merge the dwarf and stabs debugging info with some hacking }
          { dwarf debugging }
@@ -76,7 +62,7 @@ interface
          stab_number : word;
          dbg_state  : tdefdbgstatus;
          defoptions : tdefoptions;
-         constructor create(dt:tdeftype);
+         constructor create(dt:tdeftyp);
          procedure buildderef;virtual;abstract;
          procedure buildderefimpl;virtual;abstract;
          procedure deref;virtual;abstract;
@@ -90,10 +76,11 @@ interface
          function  alignment:shortint;virtual;abstract;
          function  getvardef:longint;virtual;abstract;
          function  getparentdef:tdef;virtual;
-         function  getsymtable(t:tgetsymtable):tsymtable;virtual;
+         function  geTSymtable(t:tgeTSymtable):TSymtable;virtual;
          function  is_publishable:boolean;virtual;abstract;
          function  needs_inittable:boolean;virtual;abstract;
          function  is_related(def:tdef):boolean;virtual;
+         procedure ChangeOwner(st:TSymtable);
       end;
 
 {************************************************
@@ -101,32 +88,26 @@ interface
 ************************************************}
 
       { this object is the base for all symbol objects }
-      tsym = class(tsymentry)
+
+      { tsym }
+
+      tsym = class(TSymEntry)
       protected
       public
-         _realname  : pshortstring;
          fileinfo   : tfileposinfo;
          symoptions : tsymoptions;
-         refs          : longint;
-         lastref,
-         defref,
-         lastwritten : tref;
-         refcount    : longint;
+         refs       : longint;
          isdbgwritten : boolean;
-         constructor create(st:tsymtyp;const n : string);
-         destructor destroy;override;
-         function  realname:string;
+         constructor create(st:tsymtyp;const aname:string);
          function  mangledname:string; virtual;
          procedure buildderef;virtual;
          procedure deref;virtual;
-         function  getderefdef:tdef;virtual;
-         procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
-         function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;virtual;
          { currobjdef is the object def to assume, this is necessary for protected and
            private,
            context is the object def we're really in, this is for the strict stuff
          }
          function is_visible_for_object(currobjdef:tdef;context : tdef):boolean;virtual;
+         procedure ChangeOwner(st:TSymtable);
       end;
 
       tsymarr = array[0..maxlongint div sizeof(pointer)-1] of tsym;
@@ -139,8 +120,8 @@ interface
       tderef = object
         dataidx : longint;
         procedure reset;
-        procedure build(s:tsymtableentry);
-        function  resolve:tsymtableentry;
+        procedure build(s:TObject);
+        function  resolve:TObject;
      end;
 
 {************************************************
@@ -200,7 +181,6 @@ interface
 
 {$ifdef MEMDEBUG}
     var
-      membrowser,
       memrealnames,
       memmanglednames,
       memprocpara,
@@ -225,10 +205,10 @@ implementation
                                 Tdef
 ****************************************************************************}
 
-    constructor tdef.create(dt:tdeftype);
+    constructor tdef.create(dt:tdeftyp);
       begin
          inherited create;
-         deftype:=dt;
+         typ:=dt;
          owner := nil;
          typesym := nil;
          defoptions:=[];
@@ -240,12 +220,11 @@ implementation
     function tdef.typename:string;
       begin
         if assigned(typesym) and
-           not(deftype in [procvardef,procdef]) and
-           assigned(typesym._realname) and
-           (typesym._realname^[1]<>'$') then
-         typename:=typesym._realname^
+           not(typ in [procvardef,procdef]) and
+           (typesym.realname[1]<>'$') then
+          result:=typesym.realname
         else
-         typename:=GetTypeName;
+          result:=GetTypeName;
       end;
 
 
@@ -276,7 +255,7 @@ implementation
       end;
 
 
-    function tdef.getsymtable(t:tgetsymtable):tsymtable;
+    function tdef.geTSymtable(t:tgeTSymtable):TSymtable;
       begin
         result:=nil;
       end;
@@ -294,45 +273,28 @@ implementation
       end;
 
 
+    procedure tdef.ChangeOwner(st:TSymtable);
+      begin
+//        if assigned(Owner) then
+//          Owner.DefList.List[i]:=nil;
+        Owner:=st;
+        Owner.DefList.Add(self);
+      end;
+
+
 {****************************************************************************
                           TSYM (base for all symtypes)
 ****************************************************************************}
 
-    constructor tsym.create(st:tsymtyp;const n : string);
+    constructor tsym.create(st:tsymtyp;const aname:string);
       begin
-         if n[1]='$' then
-          inherited createname(copy(n,2,255))
-         else
-          inherited createname(upper(n));
-         _realname:=stringdup(n);
+         inherited CreateNotOwned;
+         realname:=aname;
          typ:=st;
          symoptions:=[];
-         defref:=nil;
-         refs:=0;
-         lastwritten:=nil;
-         refcount:=0;
          fileinfo:=current_tokenpos;
-         if (cs_browser in current_settings.moduleswitches) and make_ref then
-          begin
-            defref:=tref.create(defref,@current_tokenpos);
-            inc(refcount);
-          end;
-         lastref:=defref;
          isdbgwritten := false;
          symoptions:=current_object_option;
-      end;
-
-
-    destructor tsym.destroy;
-      begin
-{$ifdef MEMDEBUG}
-        memrealnames.start;
-{$endif MEMDEBUG}
-        stringdispose(_realname);
-{$ifdef MEMDEBUG}
-        memrealnames.stop;
-{$endif MEMDEBUG}
-        inherited destroy;
       end;
 
 
@@ -346,95 +308,10 @@ implementation
       end;
 
 
-    function tsym.realname : string;
-      begin
-        if assigned(_realname) then
-         realname:=_realname^
-        else
-         realname:=name;
-      end;
-
-
     function tsym.mangledname : string;
       begin
         internalerror(200204171);
         result:='';
-      end;
-
-
-    function tsym.getderefdef:tdef;
-      begin
-        getderefdef:=nil;
-      end;
-
-
-    procedure Tsym.load_references(ppufile:tcompilerppufile;locals:boolean);
-      var
-        pos : tfileposinfo;
-        move_last : boolean;
-      begin
-        move_last:=lastwritten=lastref;
-        while (not ppufile.endofentry) do
-         begin
-           ppufile.getposinfo(pos);
-           inc(refcount);
-           lastref:=tref.create(lastref,@pos);
-           lastref.is_written:=true;
-           if refcount=1 then
-            defref:=lastref;
-         end;
-        if move_last then
-          lastwritten:=lastref;
-      end;
-
-    { big problem here :
-      wrong refs were written because of
-      interface parsing of other units PM
-      moduleindex must be checked !! }
-
-    function Tsym.write_references(ppufile:tcompilerppufile;locals:boolean):boolean;
-      var
-        d : tderef;
-        ref   : tref;
-        symref_written,move_last : boolean;
-      begin
-        write_references:=false;
-        if lastwritten=lastref then
-          exit;
-      { should we update lastref }
-        move_last:=true;
-        symref_written:=false;
-      { write symbol refs }
-        d.reset;
-        if assigned(lastwritten) then
-          ref:=lastwritten
-        else
-          ref:=defref;
-        while assigned(ref) do
-         begin
-           if ref.moduleindex=current_module.unit_index then
-             begin
-              { write address to this symbol }
-                if not symref_written then
-                  begin
-                     d.build(self);
-                     ppufile.putderef(d);
-                     symref_written:=true;
-                  end;
-                ppufile.putposinfo(ref.posinfo);
-                ref.is_written:=true;
-                if move_last then
-                  lastwritten:=ref;
-             end
-           else if not ref.is_written then
-             move_last:=false
-           else if move_last then
-             lastwritten:=ref;
-           ref:=ref.nextref;
-         end;
-        if symref_written then
-          ppufile.writeentry(ibsymref);
-        write_references:=symref_written;
       end;
 
 
@@ -485,39 +362,13 @@ implementation
         is_visible_for_object:=true;
       end;
 
-{****************************************************************************
-                               TRef
-****************************************************************************}
 
-    constructor tref.create(ref :tref;pos : pfileposinfo);
+    procedure tsym.ChangeOwner(st:TSymtable);
       begin
-        nextref:=nil;
-        if pos<>nil then
-          posinfo:=pos^;
-        if assigned(current_module) then
-          moduleindex:=current_module.unit_index;
-        if assigned(ref) then
-          ref.nextref:=self;
-        is_written:=false;
-      end;
-
-    procedure tref.freechain;
-      var
-        p,q : tref;
-      begin
-        p:=nextref;
-        nextref:=nil;
-        while assigned(p) do
-          begin
-            q:=p.nextref;
-            p.free;
-            p:=q;
-          end;
-      end;
-
-    destructor tref.destroy;
-      begin
-         nextref:=nil;
+//        if assigned(Owner) then
+//          Owner.SymList.List.List^[i].Data:=nil;
+        Owner:=st;
+        inherited ChangeOwner(Owner.SymList);
       end;
 
 
@@ -696,10 +547,11 @@ implementation
         dataidx:=-1;
       end;
 
-    procedure tderef.build(s:tsymtableentry);
+
+    procedure tderef.build(s:TObject);
       var
         len  : byte;
-        st   : tsymtable;
+        st   : TSymtable;
         data : array[0..255] of byte;
         idx : word;
       begin
@@ -708,7 +560,11 @@ implementation
 
         if assigned(s) then
          begin
-           st:=findunitsymtable(s.owner);
+{$warning TODO ugly hack}
+           if s is tsym then
+             st:=finduniTSymtable(tsym(s).owner)
+           else
+             st:=finduniTSymtable(tdef(s).owner);
            if not st.iscurrentunit then
              begin
                { register that the unit is needed for resolving }
@@ -753,7 +609,7 @@ implementation
       end;
 
 
-    function tderef.resolve:tsymtableentry;
+    function tderef.resolve:TObject;
       var
         pm     : tmodule;
         typ    : tdereftype;
@@ -1093,8 +949,6 @@ implementation
 
 {$ifdef MEMDEBUG}
 initialization
-  membrowser:=TMemDebug.create('BrowserRefs');
-  membrowser.stop;
   memrealnames:=TMemDebug.create('Realnames');
   memrealnames.stop;
   memmanglednames:=TMemDebug.create('Manglednames');
@@ -1109,7 +963,6 @@ initialization
   memprocnodetree.stop;
 
 finalization
-  membrowser.free;
   memrealnames.free;
   memmanglednames.free;
   memprocpara.free;
