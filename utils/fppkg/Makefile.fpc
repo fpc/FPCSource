@@ -4,7 +4,7 @@
 
 [target]
 programs=fppkg
-units=fpmktype fpmkunit fprepos fpxmlrep pkgropts pkghandler pkgmkconv pkgdownload
+units=fpmktype fpmkunit fprepos fpxmlrep pkgropts pkghandler pkgmkconv pkgdownload pkgwget
 examples=rep2xml
 rsts=fprepos fpxmlrep fppkg
 

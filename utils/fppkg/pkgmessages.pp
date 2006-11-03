@@ -16,7 +16,8 @@ Resourcestring
   SErrBackupFailed           = 'Backup of file "%s" to file "%s" failed.';
   SErrUnknownProtocol        = 'Unknown download protocol: "%s"';
   SErrNoSuchFile             = 'File "%s" does not exist.';
-  
+  SErrWGetDownloadFailed     = 'Download failed: wget reported exit status %d.';
+    
   SLogGeneratingFPMake       = 'Generating fpmake.pp';
   SLogCompilingFPMake        = 'Compiling fpmake.pp: ';
   SLogRunningFPMake          = 'Running fpmake';
