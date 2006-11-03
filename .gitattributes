@@ -7797,6 +7797,7 @@ utils/fppkg/pkgwget.pp svneol=native#text/plain
 utils/fppkg/rep2xml.lpi svneol=native#text/plain
 utils/fppkg/rep2xml.lpr svneol=native#text/plain
 utils/fppkg/reptest.pp svneol=native#text/plain
+utils/fppkg/testdownload.pp svneol=native#text/plain
 utils/fprcp/Makefile svneol=native#text/plain
 utils/fprcp/Makefile.fpc svneol=native#text/plain
 utils/fprcp/Readme.txt svneol=native#text/plain
