@@ -73,6 +73,7 @@ implementation
          tmpguid   : tguid;
          symidx,
          aktpos    : longint;
+         pd        : tprocdef;
          obj       : tobjectdef;
          recsym,
          srsym     : tsym;
@@ -424,12 +425,13 @@ implementation
                         case srsym.typ of
                           procsym :
                             begin
-                              if Tprocsym(srsym).procdef_count>1 then
+                              pd:=tprocdef(tprocsym(srsym).ProcdefList[0]);
+                              if Tprocsym(srsym).ProcdefList.Count>1 then
                                 Message(parser_e_no_overloaded_procvars);
-                              if po_abstractmethod in tprocsym(srsym).first_procdef.procoptions then
+                              if po_abstractmethod in pd.procoptions then
                                 Message(type_e_cant_take_address_of_abstract_method)
                               else
-                                datalist.concat(Tai_const.Createname(tprocsym(srsym).first_procdef.mangledname,offset));
+                                datalist.concat(Tai_const.Createname(pd.mangledname,offset));
                             end;
                           globalvarsym :
                             datalist.concat(Tai_const.Createname(tglobalvarsym(srsym).mangledname,offset));
@@ -766,8 +768,8 @@ implementation
               if (p.nodetype=loadn) and
                  (tloadnode(p).symtableentry.typ=procsym) then
                begin
-                 datalist.concat(Tai_const.createname(
-                   tprocsym(tloadnode(p).symtableentry).first_procdef.mangledname,0));
+                 pd:=tprocdef(tprocsym(tloadnode(p).symtableentry).ProcdefList[0]);
+                 datalist.concat(Tai_const.createname(pd.mangledname,0));
                end
               else
                Message(parser_e_illegal_expression);

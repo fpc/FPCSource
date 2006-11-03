@@ -1778,8 +1778,8 @@ implementation
         var
           i : longint;
         begin
-          for i:=1 to sym.procdef_count do
-            appendprocdef(sym.procdef[i]);
+          for i:=0 to sym.ProcdefList.Count-1 do
+            appendprocdef(tprocdef(sym.ProcdefList[i]));
         end;
 
       procedure TDebugInfoDwarf.appendsym_property(sym: tpropertysym);

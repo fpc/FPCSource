@@ -146,6 +146,7 @@ end;
 procedure texportlibsolaris.generatelib;
 var
   hp2 : texported_item;
+  pd  : tprocdef;
 begin
   new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);
@@ -156,12 +157,13 @@ begin
       begin
         { the manglednames can already be the same when the procedure
           is declared with cdecl }
-        if tprocsym(hp2.sym).first_procdef.mangledname<>hp2.name^ then
+        pd:=tprocdef(tprocsym(hp2.sym).ProcdefList[0]);
+        if pd.mangledname<>hp2.name^ then
          begin
            { place jump in al_procedures }
            current_asmdata.asmlists[al_procedures].concat(tai_align.create(target_info.alignment.procalign));
            current_asmdata.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           cg.a_jmp_name(current_asmdata.asmlists[al_procedures],tprocsym(hp2.sym).first_procdef.mangledname);
+           cg.a_jmp_name(current_asmdata.asmlists[al_procedures],pd.mangledname);
            current_asmdata.asmlists[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
          end;
       end

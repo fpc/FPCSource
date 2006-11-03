@@ -831,7 +831,7 @@ implementation
                 typedconstsym :
                   address_table.concat(Tai_const.Createname_rva(ttypedconstsym(hp.sym).mangledname));
                 procsym :
-                  address_table.concat(Tai_const.Createname_rva(tprocsym(hp.sym).first_procdef.mangledname));
+                  address_table.concat(Tai_const.Createname_rva(tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname));
               end;
               inc(current_index);
               hp:=texported_item(hp.next);
@@ -865,7 +865,7 @@ implementation
                typedconstsym :
                  s:=ttypedconstsym(hp.sym).mangledname;
                procsym :
-                 s:=tprocsym(hp.sym).first_procdef.mangledname;
+                 s:=tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname;
                else
                  s:='';
              end;

@@ -38,7 +38,7 @@ implementation
        systems,
        ppu,fmodule,
        { symtable }
-       symconst,symbase,symtype,symsym,
+       symconst,symbase,symdef,symtype,symsym,
        { pass 1 }
        node,
        ncon,
@@ -54,10 +54,11 @@ implementation
       var
         hp        : texported_item;
         orgs,
-        DefString : string;
+        DefString,
         InternalProcName : string;
-        pt               : tnode;
-        srsym            : tsym;
+        pd         : tprocdef;
+        pt         : tnode;
+        srsym      : tsym;
         srsymtable : TSymtable;
 
         function IsGreater(hp1,hp2:texported_item):boolean;
@@ -96,13 +97,14 @@ implementation
                     InternalProcName:=ttypedconstsym(srsym).mangledname;
                   procsym :
                     begin
-                      if (Tprocsym(srsym).procdef_count>1) or
-                         (po_kylixlocal in tprocsym(srsym).first_procdef.procoptions) or
+                      pd:=tprocdef(tprocsym(srsym).ProcdefList[0]);
+                      if (Tprocsym(srsym).ProcdefList.Count>1) or
+                         (po_kylixlocal in pd.procoptions) or
                          ((tf_need_export in target_info.flags) and
-                          not(po_exports in tprocsym(srsym).first_procdef.procoptions)) then
+                          not(po_exports in pd.procoptions)) then
                         Message(parser_e_illegal_symbol_exported)
                       else
-                        InternalProcName:=tprocsym(srsym).first_procdef.mangledname;
+                        InternalProcName:=pd.mangledname;
                     end;
                   else
                     Message(parser_e_illegal_symbol_exported)

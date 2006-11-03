@@ -114,11 +114,14 @@ implementation
 
     procedure TDebugInfo.method_write_defs(p:TObject;arg:pointer);
       var
+        i  : longint;
         pd : tprocdef;
       begin
-        if tsym(p).typ=procsym then
+        if tsym(p).typ<>procsym then
+          exit;
+        for i:=0 to tprocsym(p).ProcdefList.Count-1 do
           begin
-            pd:=tprocsym(p).first_procdef;
+            pd:=tprocdef(tprocsym(p).ProcdefList[i]);
             insertdef(TAsmList(arg),pd.returndef);
           end;
       end;

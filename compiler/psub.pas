@@ -1401,9 +1401,9 @@ implementation
 
       var
         old_current_procinfo : tprocinfo;
-        pdflags          : tpdflags;
-        pd               : tprocdef;
-        s                : string;
+        pdflags    : tpdflags;
+        pd,firstpd : tprocdef;
+        s          : string;
       begin
          { save old state }
          old_current_procinfo:=current_procinfo;
@@ -1470,12 +1470,13 @@ implementation
               begin
                 { Give a better error if there is a forward def in the interface and only
                   a single implementation }
+                firstpd:=tprocdef(tprocsym(pd.procsym).ProcdefList[0]);
                 if (not pd.forwarddef) and
                    (not pd.interfacedef) and
-                   (tprocsym(pd.procsym).procdef_count>1) and
-                   tprocsym(pd.procsym).first_procdef.forwarddef and
-                   tprocsym(pd.procsym).first_procdef.interfacedef and
-                   not(tprocsym(pd.procsym).procdef_count>2) then
+                   (tprocsym(pd.procsym).ProcdefList.Count>1) and
+                   firstpd.forwarddef and
+                   firstpd.interfacedef and
+                   not(tprocsym(pd.procsym).ProcdefList.Count>2) then
                  begin
                    MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
                    tprocsym(pd.procsym).write_parameter_lists(pd);

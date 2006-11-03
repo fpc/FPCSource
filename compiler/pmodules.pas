@@ -724,7 +724,7 @@ implementation
         pd:=tprocdef.create(main_program_level);
         include(pd.procoptions,po_global);
         pd.procsym:=ps;
-        ps.addprocdef(pd);
+        ps.ProcdefList.Add(pd);
         { set procdef options }
         pd.proctypeoption:=potype;
         pd.proccalloption:=pocall_default;

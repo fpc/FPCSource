@@ -1541,7 +1541,7 @@ implementation
           for class entries as the tree keeps always the same }
         if (not sym.overloadchecked) and
            (sym.owner.symtabletype=ObjectSymtable) and
-           (po_overload in sym.first_procdef.procoptions) then
+           (po_overload in tprocdef(sym.ProcdefList[0]).procoptions) then
          search_class_overloads(sym);
 
         { when the class passed is defined in this unit we
@@ -1566,9 +1566,9 @@ implementation
           end;
 
         { link all procedures which have the same # of parameters }
-        for j:=1 to sym.procdef_count do
+        for j:=0 to sym.ProcdefList.Count-1 do
           begin
-            pd:=sym.procdef[j];
+            pd:=tprocdef(sym.ProcdefList[j]);
             { Is the procdef visible? This needs to be checked on
               procdef level since a symbol can contain both private and
               public declarations. But the check should not be done
@@ -1593,7 +1593,7 @@ implementation
 
         { remember if the procedure is declared with the overload directive,
           it's information is still needed also after all procs are removed }
-        has_overload_directive:=(po_overload in sym.first_procdef.procoptions);
+        has_overload_directive:=(po_overload in tprocdef(sym.ProcdefList[0]).procoptions);
 
         { when the definition has overload directive set, we search for
           overloaded definitions in the symtablestack. The found
@@ -1623,13 +1623,13 @@ implementation
                    begin
                      { if this visible procedure doesn't have overload we can stop
                        searching }
-                     if not(po_overload in srprocsym.first_procdef.procoptions) and
-                        srprocsym.first_procdef.is_visible_for_object(topclassh,nil) then
+                     if not(po_overload in tprocdef(srprocsym.ProcdefList[0]).procoptions) and
+                        tprocdef(srprocsym.ProcdefList[0]).is_visible_for_object(topclassh,nil) then
                       break;
                      { process all overloaded definitions }
-                     for j:=1 to srprocsym.procdef_count do
+                     for j:=0 to srprocsym.ProcdefList.Count-1 do
                       begin
-                        pd:=srprocsym.procdef[j];
+                        pd:=tprocdef(srprocsym.ProcdefList[j]);
                         { only visible procedures need to be added }
                         if pd.is_visible_for_object(topclassh,nil) then
                           begin
@@ -1713,9 +1713,9 @@ implementation
                       FProcsym:=srprocsym;
 
                     { process all overloaded definitions }
-                    for j:=1 to srprocsym.procdef_count do
+                    for j:=0 to srprocsym.ProcdefList.Count-1 do
                       begin
-                        pd:=srprocsym.procdef[j];
+                        pd:=tprocdef(srprocsym.ProcdefList[j]);
                         { only when the # of parameter are supported by the
                           procedure }
                         if (FParalength>=pd.minparacount) and

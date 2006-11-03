@@ -118,7 +118,7 @@ interface
           { called for each definition in a class and verifies if a method
             is abstract or not, if it is abstract, give out a warning
           }
-          procedure verifyabstract(p : TObject;arg:pointer);
+          procedure verifyabstract(sym:TObject;arg:pointer);
           procedure insertintolist(l : tnodelist);override;
           function  pass_1 : tnode;override;
           function  pass_typecheck:tnode;override;
@@ -887,23 +887,29 @@ type
 
 
     constructor tcallnode.createinternres(const name: string; params: tnode; res:tdef);
+      var
+        pd : tprocdef;
       begin
         createintern(name,params);
         typedef := res;
         include(callnodeflags,cnf_typedefset);
+        pd:=tprocdef(symtableprocentry.ProcdefList[0]);
         { both the normal and specified resultdef either have to be returned via a }
         { parameter or not, but no mixing (JM)                                      }
-        if paramanager.ret_in_param(typedef,symtableprocentry.first_procdef.proccalloption) xor
-           paramanager.ret_in_param(symtableprocentry.first_procdef.returndef,symtableprocentry.first_procdef.proccalloption) then
+        if paramanager.ret_in_param(typedef,pd.proccalloption) xor
+           paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
           internalerror(200108291);
       end;
 
 
     constructor tcallnode.createinternreturn(const name: string; params: tnode; returnnode : tnode);
+      var
+        pd : tprocdef;
       begin
         createintern(name,params);
         _funcretnode:=returnnode;
-        if not paramanager.ret_in_param(symtableprocentry.first_procdef.returndef,symtableprocentry.first_procdef.proccalloption) then
+        pd:=tprocdef(symtableprocentry.ProcdefList[0]);
+        if not paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
           internalerror(200204247);
       end;
 
@@ -1135,28 +1141,25 @@ type
       end;
 
 
-    procedure tcallnode.verifyabstract(p : TObject;arg:pointer);
-
+    procedure tcallnode.verifyabstract(sym:TObject;arg:pointer);
       var
-         hp : tprocdef;
-          j: integer;
+        pd : tprocdef;
+        i  : longint;
       begin
-         if (tsym(p).typ=procsym) then
-           begin
-              for j:=1 to tprocsym(p).procdef_count do
-               begin
-                  { index starts at 1 }
-                  hp:=tprocsym(p).procdef[j];
-                  { If this is an abstract method insert into the list }
-                  if (po_abstractmethod in hp.procoptions) then
-                     AbstractMethodsList.Insert(hp.procsym.realname)
-                  else
-                    { If this symbol is a virtual (includes override) method,
-                      then remove it from the list }
-                    if po_virtualmethod in hp.procoptions then
-                      AbstractMethodsList.Remove(hp.procsym.realname);
-               end;
-           end;
+        if (tsym(sym).typ<>procsym) then
+          exit;
+        for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(tprocsym(sym).ProcdefList[i]);
+            { If this is an abstract method insert into the list }
+            if (po_abstractmethod in pd.procoptions) then
+              AbstractMethodsList.Insert(pd.procsym.realname)
+            else
+              { If this symbol is a virtual (includes override) method,
+                then remove it from the list }
+              if po_virtualmethod in pd.procoptions then
+                AbstractMethodsList.Remove(pd.procsym.realname);
+          end;
       end;
 
 
@@ -1694,8 +1697,8 @@ type
                       if (m_delphi in current_settings.modeswitches) and
                          (cnf_anon_inherited in callnodeflags) and
                          (symtableprocentry.owner.symtabletype=ObjectSymtable) and
-                         (po_overload in symtableprocentry.first_procdef.procoptions) and
-                         (symtableprocentry.procdef_count>=2) then
+                         (po_overload in tprocdef(symtableprocentry.ProcdefList[0]).procoptions) and
+                         (symtableprocentry.ProcdefList.Count>=2) then
                         result:=cnothingnode.create
                       else
                         begin

@@ -1109,9 +1109,9 @@ implementation
             end;
           procsym :
             begin
-              for i:=1 to tprocsym(p).procdef_count do
+              for i:=0 to tprocsym(p).ProcdefList.Count-1 do
                 begin
-                  pd:=tprocsym(p).procdef[i];
+                  pd:=tprocdef(tprocsym(p).ProcdefList[i]);
                   if assigned(pd.localst) and
                      (pd.procsym=tprocsym(p)) and
                      (pd.localst.symtabletype<>staticsymtable) then
@@ -1147,9 +1147,9 @@ implementation
             end;
           procsym :
             begin
-              for i:=1 to tprocsym(p).procdef_count do
+              for i:=0 to tprocsym(p).ProcdefList.Count-1 do
                 begin
-                  pd:=tprocsym(p).procdef[i];
+                  pd:=tprocdef(tprocsym(p).ProcdefList[i]);
                   if assigned(pd.localst) and
                      (pd.procsym=tprocsym(p)) and
                      (pd.localst.symtabletype<>staticsymtable) then

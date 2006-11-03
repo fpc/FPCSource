@@ -2250,7 +2250,7 @@ implementation
                      anon_inherited:=true;
                      { For message methods we need to search using the message
                        number or string }
-                     pd:=tprocsym(current_procinfo.procdef.procsym).first_procdef;
+                     pd:=tprocdef(tprocsym(current_procinfo.procdef.procsym).ProcdefList[0]);
                      srdef:=nil;
                      if (po_msgint in pd.procoptions) then
                        searchsym_in_class_by_msgint(hclassdef,pd.messageinf.i,srdef,srsym,srsymtable)

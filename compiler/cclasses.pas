@@ -24,7 +24,8 @@ unit cclasses;
 {$i fpcdefs.inc}
 
 {$ifndef VER2_0}
-  {$define CCLASSESINLINE}
+  { Disabled for now, gives an IE 200311075 when compiling the IDE }
+  { $define CCLASSESINLINE}
 {$endif}
 
 interface
@@ -414,7 +415,7 @@ type
      type
        { can't use sizeof(integer) because it crashes gdb }
        tdynamicblockdata=array[0..1024*1024-1] of byte;
-       
+
        pdynamicblock = ^tdynamicblock;
        tdynamicblock = record
          pos,

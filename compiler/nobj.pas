@@ -207,51 +207,52 @@ implementation
            end;
       end;
 
+
     procedure tclassheader.insertmsgint(p:TObject;arg:pointer);
-
       var
-         i  : cardinal;
-         def: Tprocdef;
-         pt : pprocdeftree;
-
+        i  : longint;
+        pd : Tprocdef;
+        pt : pprocdeftree;
       begin
-         if tsym(p).typ=procsym then
-            for i:=1 to Tprocsym(p).procdef_count do
+        if tsym(p).typ<>procsym then
+          exit;
+        for i:=0 to Tprocsym(p).ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
+            if po_msgint in pd.procoptions then
               begin
-                def:=Tprocsym(p).procdef[i];
-                if po_msgint in def.procoptions then
-                  begin
-                    new(pt);
-                    pt^.data:=def;
-                    pt^.l:=nil;
-                    pt^.r:=nil;
-                    insertint(pt,root,plongint(arg)^);
-                  end;
+                new(pt);
+                pt^.data:=pd;
+                pt^.l:=nil;
+                pt^.r:=nil;
+                insertint(pt,root,plongint(arg)^);
               end;
+          end;
       end;
+
 
     procedure tclassheader.insertmsgstr(p:TObject;arg:pointer);
-
       var
-         i  : cardinal;
-         def: Tprocdef;
-         pt : pprocdeftree;
-
+        i  : longint;
+        pd : Tprocdef;
+        pt : pprocdeftree;
       begin
-         if tsym(p).typ=procsym then
-            for i:=1 to Tprocsym(p).procdef_count do
+        if tsym(p).typ<>procsym then
+          exit;
+        for i:=0 to Tprocsym(p).ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
+            if po_msgstr in pd.procoptions then
               begin
-                def:=Tprocsym(p).procdef[i];
-                if po_msgstr in def.procoptions then
-                  begin
-                    new(pt);
-                    pt^.data:=def;
-                    pt^.l:=nil;
-                    pt^.r:=nil;
-                    insertstr(pt,root,plongint(arg)^);
-                  end;
+                new(pt);
+                pt^.data:=pd;
+                pt^.l:=nil;
+                pt^.r:=nil;
+                insertstr(pt,root,plongint(arg)^);
               end;
+          end;
       end;
+
 
     procedure tclassheader.writenames(p : pprocdeftree);
       var
@@ -442,19 +443,18 @@ implementation
 
     procedure tclassheader.do_count_published_methods(p:TObject;arg:pointer);
       var
-        i : longint;
+        i  : longint;
         pd : tprocdef;
       begin
-         if (tsym(p).typ=procsym) then
-           begin
-             for i:=1 to tprocsym(p).procdef_count do
-               begin
-                 pd:=tprocsym(p).procdef[i];
-                 if (pd.procsym=tsym(p)) and
-                    (sp_published in pd.symoptions) then
-                   inc(plongint(arg)^);
-                end;
-           end;
+        if (tsym(p).typ<>procsym) then
+          exit;
+        for i:=0 to Tprocsym(p).ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
+            if (pd.procsym=tsym(p)) and
+               (sp_published in pd.symoptions) then
+              inc(plongint(arg)^);
+          end;
       end;
 
 
@@ -464,28 +464,27 @@ implementation
         l  : tasmlabel;
         pd : tprocdef;
       begin
-         if (tsym(p).typ=procsym) then
-           begin
-             for i:=1 to tprocsym(p).procdef_count do
-               begin
-                 pd:=tprocsym(p).procdef[i];
-                 if (pd.procsym=tsym(p)) and
-                    (sp_published in pd.symoptions) then
-                   begin
-                     current_asmdata.getdatalabel(l);
+        if (tsym(p).typ<>procsym) then
+          exit;
+        for i:=0 to Tprocsym(p).ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
+            if (pd.procsym=tsym(p)) and
+               (sp_published in pd.symoptions) then
+              begin
+                current_asmdata.getdatalabel(l);
 
-                     current_asmdata.asmlists[al_typedconsts].concat(cai_align.create(const_align(sizeof(aint))));
-                     current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l));
-                     current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(length(tsym(p).realname)));
-                     current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create(tsym(p).realname));
+                current_asmdata.asmlists[al_typedconsts].concat(cai_align.create(const_align(sizeof(aint))));
+                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l));
+                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(length(tsym(p).realname)));
+                current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create(tsym(p).realname));
 
-                     current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(l));
-                     if po_abstractmethod in pd.procoptions then
-                       current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil))
-                     else
-                       current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(pd.mangledname,0));
-                   end;
-                end;
+                current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(l));
+                if po_abstractmethod in pd.procoptions then
+                  current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil))
+                else
+                  current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(pd.mangledname,0));
+              end;
            end;
       end;
 
@@ -612,11 +611,11 @@ implementation
            if (_speed=vmtentry^.Hash) and
               (_name=vmtentry^.name^) then
             begin
-              hasoverloads:=(Tprocsym(sym).procdef_count>1);
+              hasoverloads:=(Tprocsym(sym).ProcdefList.Count>1);
               { walk through all defs of the symbol }
-              for i:=1 to Tprocsym(sym).procdef_count do
-                begin
-                 pd:=Tprocsym(sym).procdef[i];
+              for i:=0 to Tprocsym(sym).ProcdefList.Count-1 do
+               begin
+                 pd:=tprocdef(Tprocsym(sym).ProcdefList[i]);
 
                  { is this procdef visible from the class that we are
                    generating. This will be used to hide the other procdefs.
@@ -791,9 +790,9 @@ implementation
         vmtentry:=newvmtentry(tprocsym(sym));
 
         { Add procdefs }
-        for i:=1 to Tprocsym(sym).procdef_count do
+        for i:=0 to Tprocsym(sym).ProcdefList.Count-1 do
           begin
-            pd:=Tprocsym(sym).procdef[i];
+            pd:=tprocdef(Tprocsym(sym).ProcdefList[i]);
             newdefentry(vmtentry,pd,pd.is_visible_for_object(_class,nil));
           end;
       end;
@@ -1102,13 +1101,13 @@ implementation
               overloaded definitions in the class, this only needs to be done once
               for class entries as the tree keeps always the same }
             if (not tprocsym(sym).overloadchecked) and
-               (po_overload in tprocsym(sym).first_procdef.procoptions) and
+               (po_overload in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions) and
                (tprocsym(sym).owner.symtabletype=ObjectSymtable) then
              search_class_overloads(tprocsym(sym));
 
-            for i:=1 to tprocsym(sym).procdef_count do
+            for i:=0 to Tprocsym(sym).ProcdefList.Count-1 do
               begin
-                implprocdef:=tprocsym(sym).procdef[i];
+                implprocdef:=tprocdef(Tprocsym(sym).ProcdefList[i]);
                 if (compare_paras(proc.paras,implprocdef.paras,cp_none,[])>=te_equal) and
                    (proc.proccalloption=implprocdef.proccalloption) and
                    (proc.proctypeoption=implprocdef.proctypeoption) and

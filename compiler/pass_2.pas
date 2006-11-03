@@ -134,7 +134,8 @@ implementation
              'loadvmt',      {loadvmtn}
              'guidconstn',
              'rttin',
-             'loadparentfpn'
+             'loadparentfpn',
+             'dataconstn'
              );
       var
         p: pchar;

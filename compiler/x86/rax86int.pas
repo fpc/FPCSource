@@ -974,9 +974,9 @@ Unit Rax86int;
                              end;
                            procsym :
                              begin
-                               if Tprocsym(sym).procdef_count>1 then
+                               if Tprocsym(sym).ProcdefList.Count>1 then
                                 Message(asmr_w_calling_overload_func);
-                               hs:=tprocsym(sym).first_procdef.mangledname;
+                               hs:=tprocdef(tprocsym(sym).ProcdefList[0]).mangledname;
                                hssymtyp:=AT_FUNCTION;
                              end;
                            typesym :

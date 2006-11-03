@@ -919,11 +919,11 @@ Begin
       begin
         if opr.typ<>OPR_NONE then
           Message(asmr_e_invalid_operand_type);
-        if Tprocsym(sym).procdef_count>1 then
+        if Tprocsym(sym).ProcdefList.Count>1 then
           Message(asmr_w_calling_overload_func);
         l:=opr.ref.offset;
         opr.typ:=OPR_SYMBOL;
-        opr.symbol:=current_asmdata.RefAsmSymbol(tprocsym(sym).first_procdef.mangledname);
+        opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
         opr.symofs:=l;
         hasvar:=true;
         SetupVar:=TRUE;

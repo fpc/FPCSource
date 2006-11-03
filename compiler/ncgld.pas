@@ -81,6 +81,7 @@ implementation
       var
         hregister : tregister;
         symtabletype : TSymtabletype;
+        pd   : tprocdef;
         href : treference;
         newsize : tcgsize;
         endrelocatelab,
@@ -363,8 +364,9 @@ implementation
                     end
                   else
                     begin
-                       if (po_external in tprocsym(symtableentry).procdef[1].procoptions) then
-                         location.reference.base := cg.g_indirect_sym_load(current_asmdata.CurrAsmList,tprocsym(symtableentry).procdef[1].mangledname);
+                       pd:=tprocdef(tprocsym(symtableentry).ProcdefList[0]);
+                       if (po_external in pd.procoptions) then
+                         location.reference.base := cg.g_indirect_sym_load(current_asmdata.CurrAsmList,pd.mangledname);
                        {!!!!! Be aware, work on virtual methods too }
                        if (location.reference.base = NR_NO) then
                          location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname);

@@ -78,17 +78,12 @@ interface
           constructor create;
        end;
 
-       Tprocdefcallback = procedure(p:Tprocdef;arg:pointer);
-
        tprocsym = class(tstoredsym)
        protected
-          pdlistfirst,
-          pdlistlast   : pprocdeflist; { linked list of overloaded procdefs }
-          function getprocdef(nr:cardinal):Tprocdef;
+          FProcdefList   : TFPObjectList;
+          FProcdefDerefList : TFPList;
        public
-          procdef_count : byte;
           overloadchecked : boolean;
-          property procdef[nr:cardinal]:Tprocdef read getprocdef;
           constructor create(const n : string);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -101,12 +96,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          procedure addprocdef(p:tprocdef);
-          procedure addprocdef_deref(const d:tderef);
           procedure add_para_match_to(Aprocsym:Tprocsym;cpoptions:tcompare_paras_options);
-          procedure concat_procdefs_to(s:Tprocsym);
-          procedure foreach_procdef_static(proc2call:Tprocdefcallback;arg:pointer);
-          function first_procdef:Tprocdef;
           function find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
           function find_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
@@ -114,6 +104,7 @@ interface
           { currobjdef is the object def to assume, this is necessary for protected and
             private, context is the object def we're really in, this is for the strict stuff }
           function is_visible_for_object(currobjdef:tdef;context:tdef):boolean;override;
+          property ProcdefList:TFPObjectList read FProcdefList;
        end;
 
        ttypesym = class(Tstoredsym)
@@ -501,335 +492,211 @@ implementation
 ****************************************************************************}
 
     constructor tprocsym.create(const n : string);
-
       begin
          inherited create(procsym,n);
-         pdlistfirst:=nil;
-         pdlistlast:=nil;
+         FProcdefList:=TFPObjectList.Create(false);
+         FProcdefderefList:=nil;
          { the tprocdef have their own symoptions, make the procsym
            always visible }
          symoptions:=[sp_public];
          overloadchecked:=false;
-         procdef_count:=0;
       end;
 
 
     constructor tprocsym.ppuload(ppufile:tcompilerppufile);
       var
          pdderef : tderef;
-         i,n : longint;
+         i,
+         pdcnt : longint;
       begin
          inherited ppuload(procsym,ppufile);
-         pdlistfirst:=nil;
-         pdlistlast:=nil;
-         procdef_count:=0;
-         n:=ppufile.getword;
-         for i:=1to n do
+         FProcdefList:=TFPObjectList.Create(false);
+         FProcdefDerefList:=TFPList.Create;
+         pdcnt:=ppufile.getword;
+         for i:=1 to pdcnt do
           begin
             ppufile.getderef(pdderef);
-            addprocdef_deref(pdderef);
+            FProcdefDerefList.Add(Pointer(PtrInt(pdderef)));
           end;
-         overloadchecked:=false;
       end;
 
 
     destructor tprocsym.destroy;
-      var
-         hp,p : pprocdeflist;
       begin
-         p:=pdlistfirst;
-         while assigned(p) do
-           begin
-              hp:=p^.next;
-              dispose(p);
-              p:=hp;
-           end;
-         inherited destroy;
+        FProcdefList.Free;
+        if assigned(FProcdefDerefList) then
+          FProcdefDerefList.Free;
+        inherited destroy;
       end;
 
 
     procedure tprocsym.ppuwrite(ppufile:tcompilerppufile);
       var
-         p : pprocdeflist;
-         n : word;
+         i : longint;
       begin
          inherited ppuwrite(ppufile);
-         { count procdefs }
-         n:=0;
-         p:=pdlistfirst;
-         while assigned(p) do
-           begin
-             { only write the proc definitions that belong
-               to this procsym and are in the global symtable }
-             if p^.def.owner=owner then
-               inc(n);
-             p:=p^.next;
-           end;
-         ppufile.putword(n);
-         { write procdefs }
-         p:=pdlistfirst;
-         while assigned(p) do
-           begin
-             { only write the proc definitions that belong
-               to this procsym and are in the global symtable }
-             if p^.def.owner=owner then
-               ppufile.putderef(p^.defderef);
-             p:=p^.next;
-           end;
+         ppufile.putword(FProcdefDerefList.Count);
+         for i:=0 to FProcdefDerefList.Count-1 do
+           ppufile.putderef(TDeref(PtrInt(FProcdefDerefList[i])));
          ppufile.writeentry(ibprocsym);
       end;
 
 
     procedure tprocsym.write_parameter_lists(skipdef:tprocdef);
       var
-         p : pprocdeflist;
+        i  : longint;
+        pd : tprocdef;
       begin
-         p:=pdlistfirst;
-         while assigned(p) do
-           begin
-              if p^.def<>skipdef then
-                MessagePos1(p^.def.fileinfo,sym_h_param_list,p^.def.fullprocname(false));
-              p:=p^.next;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            if pd<>skipdef then
+              MessagePos1(pd.fileinfo,sym_h_param_list,pd.fullprocname(false));
            end;
-      end;
-
-    {Makes implicit externals (procedures declared in the interface
-     section which do not have a counterpart in the implementation)
-     to be an imported procedure. For mode macpas.}
-    procedure import_implict_external(pd:tabstractprocdef);
-
-      begin
-        tprocdef(pd).forwarddef:=false;
-        tprocdef(pd).setmangledname(target_info.CPrefix+tprocdef(pd).procsym.realname);
       end;
 
 
     procedure tprocsym.check_forward;
       var
-         p : pprocdeflist;
+        i  : longint;
+        pd : tprocdef;
       begin
-         p:=pdlistfirst;
-         while assigned(p) do
-           begin
-              if (p^.def.owner=owner) and (p^.def.forwarddef) then
-                begin
-                   if (m_mac in current_settings.modeswitches) and (p^.def.interfacedef) then
-                     import_implict_external(p^.def)
-                   else
-                     begin
-                       MessagePos1(p^.def.fileinfo,sym_e_forward_not_resolved,p^.def.fullprocname(false));
-                       { Turn further error messages off }
-                       p^.def.forwarddef:=false;
-                     end
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            if (pd.owner=owner) and (pd.forwarddef) then
+              begin
+                { For mode macpas. Make implicit externals (procedures declared in the interface
+                  section which do not have a counterpart in the implementation)
+                  to be an imported procedure }
+                if (m_mac in current_settings.modeswitches) and
+                   (pd.interfacedef) then
+                  begin
+                    pd.forwarddef:=false;
+                    pd.setmangledname(target_info.CPrefix+tprocdef(pd).procsym.realname);
+                  end
+                else
+                  begin
+                    MessagePos1(pd.fileinfo,sym_e_forward_not_resolved,pd.fullprocname(false));
+                    { Turn further error messages off }
+                    pd.forwarddef:=false;
+                  end
                 end;
-              p:=p^.next;
            end;
       end;
 
 
     procedure tprocsym.buildderef;
       var
-         p : pprocdeflist;
+        i  : longint;
+        pd : tprocdef;
+        d  : tderef;
       begin
-         p:=pdlistfirst;
-         while assigned(p) do
-           begin
-             if p^.def.owner=owner then
-               p^.defderef.build(p^.def);
-             p:=p^.next;
-           end;
+        if not assigned(FProcdefDerefList) then
+          FProcdefDerefList:=TFPList.Create
+        else
+          FProcdefDerefList.Clear;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            { only write the proc definitions that belong
+              to this procsym and are in the global symtable }
+            if pd.owner=owner then
+              begin
+                d.build(pd);
+                FProcdefDerefList.Add(Pointer(PtrInt(d)));
+              end;
+          end;
       end;
 
 
     procedure tprocsym.deref;
       var
-         p : pprocdeflist;
+        i  : longint;
+        pd : tprocdef;
+        d  : tderef;
       begin
-         { We have removed the overloaded entries, because they
-           are not valid anymore and we can't deref them because
-           the unit were they come from is not necessary in
-           our uses clause (PFV) }
-         unchain_overload;
-         { Deref our own procdefs }
-         p:=pdlistfirst;
-         while assigned(p) do
-           begin
-             if not(
-                    (p^.def=nil) or
-                    (p^.def.owner=owner)
-                   ) then
-               internalerror(200310291);
-             p^.def:=tprocdef(p^.defderef.resolve);
-             p:=p^.next;
-           end;
-      end;
-
-
-    procedure tprocsym.addprocdef(p:tprocdef);
-      var
-        pd : pprocdeflist;
-      begin
-        new(pd);
-        pd^.def:=p;
-        pd^.defderef.reset;
-        pd^.next:=nil;
-        { Add at end of list to keep always
-          a correct order, also after loading from ppu }
-        if assigned(pdlistlast) then
-         begin
-           pdlistlast^.next:=pd;
-           pdlistlast:=pd;
-         end
-        else
-         begin
-           pdlistfirst:=pd;
-           pdlistlast:=pd;
-         end;
-        inc(procdef_count);
-      end;
-
-
-    procedure tprocsym.addprocdef_deref(const d:tderef);
-      var
-        pd : pprocdeflist;
-      begin
-        new(pd);
-        pd^.def:=nil;
-        pd^.defderef:=d;
-        pd^.next:=nil;
-        { Add at end of list to keep always
-          a correct order, also after loading from ppu }
-        if assigned(pdlistlast) then
-         begin
-           pdlistlast^.next:=pd;
-           pdlistlast:=pd;
-         end
-        else
-         begin
-           pdlistfirst:=pd;
-           pdlistlast:=pd;
-         end;
-        inc(procdef_count);
-      end;
-
-
-    function Tprocsym.getprocdef(nr:cardinal):Tprocdef;
-      var
-        i : cardinal;
-        pd : pprocdeflist;
-      begin
-        pd:=pdlistfirst;
-        for i:=2 to nr do
+        { Clear all procdefs }
+        ProcdefList.Clear;
+        if not assigned(FProcdefDerefList) then
+          internalerror(200611031);
+        for i:=0 to FProcdefDerefList.Count-1 do
           begin
-            if not assigned(pd) then
-              internalerror(200209051);
-            pd:=pd^.next;
+            d.dataidx:=PtrInt(FProcdefDerefList[i]);
+            pd:=tprocdef(d.resolve);
+            ProcdefList.Add(pd);
           end;
-        getprocdef:=pd^.def;
       end;
 
 
     procedure Tprocsym.add_para_match_to(Aprocsym:Tprocsym;cpoptions:tcompare_paras_options);
       var
-        pd:pprocdeflist;
+        i  : longint;
+        pd : tprocdef;
       begin
-        pd:=pdlistfirst;
-        while assigned(pd) do
+        for i:=0 to ProcdefList.Count-1 do
           begin
-            if Aprocsym.find_procdef_bypara(pd^.def.paras,nil,cpoptions)=nil then
-              Aprocsym.addprocdef(pd^.def);
-            pd:=pd^.next;
+            pd:=tprocdef(ProcdefList[i]);
+            if Aprocsym.find_procdef_bypara(pd.paras,nil,cpoptions)=nil then
+              Aprocsym.ProcdefList.Add(pd);
           end;
-      end;
-
-
-    procedure Tprocsym.concat_procdefs_to(s:Tprocsym);
-      var
-        pd : pprocdeflist;
-      begin
-        pd:=pdlistfirst;
-        while assigned(pd) do
-         begin
-           s.addprocdef(pd^.def);
-           pd:=pd^.next;
-         end;
-      end;
-
-
-    function Tprocsym.first_procdef:Tprocdef;
-      begin
-        if assigned(pdlistfirst) then
-          first_procdef:=pdlistfirst^.def
-        else
-          first_procdef:=nil;
-      end;
-
-
-    procedure Tprocsym.foreach_procdef_static(proc2call:Tprocdefcallback;arg:pointer);
-      var
-        p : pprocdeflist;
-      begin
-        p:=pdlistfirst;
-        while assigned(p) do
-         begin
-           proc2call(p^.def,arg);
-           p:=p^.next;
-         end;
       end;
 
 
     function Tprocsym.Find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
       var
-        p : pprocdeflist;
+        i  : longint;
+        pd : tprocdef;
       begin
         result:=nil;
-        p:=pdlistfirst;
-        while p<>nil do
-         begin
-           if p^.def.proctypeoption=pt then
-            begin
-              result:=p^.def;
-              break;
-            end;
-           p:=p^.next;
-         end;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            if pd.proctypeoption=pt then
+              begin
+                result:=pd;
+                exit;
+              end;
+          end;
       end;
 
 
     function Tprocsym.Find_procdef_bypara(para:TFPObjectList;retdef:tdef;
                                             cpoptions:tcompare_paras_options):Tprocdef;
       var
-        pd : pprocdeflist;
+        i  : longint;
+        pd : tprocdef;
         eq : tequaltype;
       begin
         result:=nil;
-        pd:=pdlistfirst;
-        while assigned(pd) do
-         begin
-           if assigned(retdef) then
-             eq:=compare_defs(retdef,pd^.def.returndef,nothingn)
-           else
-             eq:=te_equal;
-           if (eq>=te_equal) or
-              ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
-            begin
-              eq:=compare_paras(para,pd^.def.paras,cp_value_equal_const,cpoptions);
-              if (eq>=te_equal) or
-                 ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
-                begin
-                  result:=pd^.def;
-                  break;
-                end;
-            end;
-           pd:=pd^.next;
-         end;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            if assigned(retdef) then
+              eq:=compare_defs(retdef,pd.returndef,nothingn)
+            else
+              eq:=te_equal;
+            if (eq>=te_equal) or
+               ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
+              begin
+                eq:=compare_paras(para,pd.paras,cp_value_equal_const,cpoptions);
+                if (eq>=te_equal) or
+                   ((cpo_allowconvert in cpoptions) and (eq>te_incompatible)) then
+                  begin
+                    result:=pd;
+                    exit;
+                  end;
+              end;
+          end;
       end;
+
 
     function Tprocsym.Find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
       var
-        pd : pprocdeflist;
+        i  : longint;
+        bestpd,
+        pd : tprocdef;
         eq,besteq : tequaltype;
-        bestpd : tprocdef;
       begin
         { This function will return the pprocdef of pprocsym that
           is the best match for procvardef. When there are multiple
@@ -837,86 +704,88 @@ implementation
         result:=nil;
         bestpd:=nil;
         besteq:=te_incompatible;
-        pd:=pdlistfirst;
-        while assigned(pd) do
-         begin
-           eq:=proc_to_procvar_equal(pd^.def,d);
-           if eq>=te_equal then
-            begin
-              { multiple procvars with the same equal level }
-              if assigned(bestpd) and
-                 (besteq=eq) then
-                exit;
-              if eq>besteq then
-               begin
-                 besteq:=eq;
-                 bestpd:=pd^.def;
-               end;
-            end;
-           pd:=pd^.next;
-         end;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            eq:=proc_to_procvar_equal(pd,d);
+            if eq>=te_equal then
+              begin
+                { multiple procvars with the same equal level }
+                if assigned(bestpd) and
+                   (besteq=eq) then
+                  exit;
+                if eq>besteq then
+                  begin
+                    besteq:=eq;
+                    bestpd:=pd;
+                  end;
+              end;
+          end;
         result:=bestpd;
       end;
 
 
     function Tprocsym.Find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
       var
+        paraidx,
+        i  : longint;
+        bestpd,
+        hpd,
+        pd : tprocdef;
         convtyp : tconverttype;
-        pd      : pprocdeflist;
-        bestpd  : tprocdef;
         eq      : tequaltype;
-        hpd     : tprocdef;
-        i       : byte;
       begin
+        { This function will return the pprocdef of pprocsym that
+          is the best match for procvardef. When there are multiple
+          matches it returns nil.}
         result:=nil;
         bestpd:=nil;
         besteq:=te_incompatible;
-        pd:=pdlistfirst;
-        while assigned(pd) do
+        for i:=0 to ProcdefList.Count-1 do
           begin
-            if equal_defs(todef,pd^.def.returndef) and
-              { the result type must be always really equal and not an alias,
-                if you mess with this code, check tw4093 }
-              ((todef=pd^.def.returndef) or
-               (
-                 not(df_unique in todef.defoptions) and
-                 not(df_unique in pd^.def.returndef.defoptions)
-               )
-              ) then
-             begin
-               i:=0;
-               { ignore vs_hidden parameters }
-               while (i<pd^.def.paras.count) and
-                     assigned(pd^.def.paras[i]) and
-                     (vo_is_hidden_para in tparavarsym(pd^.def.paras[i]).varoptions) do
-                 inc(i);
-               if (i<pd^.def.paras.count) and
-                  assigned(pd^.def.paras[i]) then
-                begin
-                  eq:=compare_defs_ext(fromdef,tparavarsym(pd^.def.paras[i]).vardef,nothingn,convtyp,hpd,[]);
+            pd:=tprocdef(ProcdefList[i]);
+            if equal_defs(todef,pd.returndef) and
+               { the result type must be always really equal and not an alias,
+                 if you mess with this code, check tw4093 }
+               ((todef=pd.returndef) or
+                (
+                  not(df_unique in todef.defoptions) and
+                  not(df_unique in pd.returndef.defoptions)
+                )
+               ) then
+              begin
+                paraidx:=0;
+                { ignore vs_hidden parameters }
+                while (paraidx<pd.paras.count) and
+                      assigned(pd.paras[paraidx]) and
+                      (vo_is_hidden_para in tparavarsym(pd.paras[paraidx]).varoptions) do
+                  inc(paraidx);
+                if (paraidx<pd.paras.count) and
+                   assigned(pd.paras[paraidx]) then
+                  begin
+                    eq:=compare_defs_ext(fromdef,tparavarsym(pd.paras[paraidx]).vardef,nothingn,convtyp,hpd,[]);
 
-                  { alias? if yes, only l1 choice,
-                    if you mess with this code, check tw4093 }
-                  if (eq=te_exact) and
-                    (fromdef<>tparavarsym(pd^.def.paras[i]).vardef) and
-                    ((df_unique in fromdef.defoptions) or
-                    (df_unique in tparavarsym(pd^.def.paras[i]).vardef.defoptions)) then
-                    eq:=te_convert_l1;
+                    { alias? if yes, only l1 choice,
+                      if you mess with this code, check tw4093 }
+                    if (eq=te_exact) and
+                       (fromdef<>tparavarsym(pd.paras[paraidx]).vardef) and
+                       ((df_unique in fromdef.defoptions) or
+                       (df_unique in tparavarsym(pd.paras[paraidx]).vardef.defoptions)) then
+                      eq:=te_convert_l1;
 
-                  if eq=te_exact then
-                   begin
-                     besteq:=eq;
-                     result:=pd^.def;
-                     exit;
-                   end;
-                  if eq>besteq then
-                   begin
-                     bestpd:=pd^.def;
-                     besteq:=eq;
-                   end;
-                end;
-             end;
-            pd:=pd^.next;
+                    if eq=te_exact then
+                      begin
+                        besteq:=eq;
+                        result:=pd;
+                        exit;
+                      end;
+                    if eq>besteq then
+                      begin
+                        bestpd:=pd;
+                        besteq:=eq;
+                      end;
+                  end;
+              end;
           end;
         result:=bestpd;
       end;
@@ -924,69 +793,47 @@ implementation
 
     procedure tprocsym.unchain_overload;
       var
-         p,hp : pprocdeflist;
+        i  : longint;
+        pd : tprocdef;
       begin
-         { remove all overloaded procdefs from the
-           procdeflist that are not in the current symtable }
-         overloadchecked:=false;
-         p:=pdlistfirst;
-         { reset new lists }
-         pdlistfirst:=nil;
-         pdlistlast:=nil;
-         while assigned(p) do
-           begin
-              hp:=p^.next;
-             { only keep the proc definitions:
-                - are not deref'd (def=nil)
-                - are in the same symtable as the procsym (for example both
-                  are in the staticsymtable) }
-             if (p^.def=nil) or
-                (p^.def.owner=owner) then
-                begin
-                  { keep, add to list }
-                  if assigned(pdlistlast) then
-                   begin
-                     pdlistlast^.next:=p;
-                     pdlistlast:=p;
-                   end
-                  else
-                   begin
-                     pdlistfirst:=p;
-                     pdlistlast:=p;
-                   end;
-                  p^.next:=nil;
-                end
-              else
-                begin
-                  { remove }
-                  dispose(p);
-                  dec(procdef_count);
-                end;
-              p:=hp;
-           end;
+        { remove all overloaded procdefs from the
+          procdeflist that are not in the current symtable }
+        overloadchecked:=false;
+        { reset new lists }
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            { only keep the proc definitions:
+              - are not deref'd (def=nil)
+              - are in the same symtable as the procsym (for example both
+                are in the staticsymtable) }
+            if not(pd.owner=owner) then
+              ProcdefList[i]:=nil;
+          end;
+        { Remove cleared entries }
+        ProcdefList.Pack;
       end;
 
 
     function tprocsym.is_visible_for_object(currobjdef:tdef;context:tdef):boolean;
       var
-        p : pprocdeflist;
+        i  : longint;
+        pd : tprocdef;
       begin
         { This procsym is visible, when there is at least
           one of the procdefs visible }
         result:=false;
-        p:=pdlistfirst;
-        while assigned(p) do
+        for i:=0 to ProcdefList.Count-1 do
           begin
-             if (p^.def.owner=owner) and
-                p^.def.is_visible_for_object(tobjectdef(currobjdef),tobjectdef(context)) then
-               begin
-                 result:=true;
-                 exit;
-               end;
-             p:=p^.next;
+            pd:=tprocdef(ProcdefList[i]);
+            if (pd.owner=owner) and
+                pd.is_visible_for_object(tobjectdef(currobjdef),tobjectdef(context)) then
+              begin
+                result:=true;
+                exit;
+              end;
           end;
       end;
-
 
 
 {****************************************************************************

@@ -316,7 +316,7 @@ implementation
                  when the expected procvardef is known, see get_information
                  in htypechk.pas (PFV) }
                if not assigned(procdef) then
-                 procdef:=tprocsym(symtableentry).first_procdef
+                 procdef:=tprocdef(tprocsym(symtableentry).ProcdefList[0])
                else if po_kylixlocal in procdef.procoptions then
                  CGMessage(type_e_cant_take_address_of_local_subroutine);
 

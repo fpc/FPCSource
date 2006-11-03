@@ -152,6 +152,7 @@ end;
 procedure texportlibbsd.generatelib;  // straight t_linux copy for now.
 var
   hp2 : texported_item;
+  pd  : tprocdef;
 {$ifdef x86}
   sym : tasmsymbol;
   r : treference;
@@ -166,7 +167,8 @@ begin
       begin
         { the manglednames can already be the same when the procedure
           is declared with cdecl }
-        if tprocsym(hp2.sym).first_procdef.mangledname<>hp2.name^ then
+        pd:=tprocdef(tprocsym(hp2.sym).ProcdefList[0]);
+        if pd.mangledname<>hp2.name^ then
          begin
            { place jump in al_procedures }
            current_asmdata.asmlists[al_procedures].concat(tai_align.create(target_info.alignment.procalign));
@@ -176,7 +178,7 @@ begin
              (target_info.system in [system_i386_freebsd]) then
              begin
 {$ifdef x86}
-               sym:=current_asmdata.RefAsmSymbol(tprocsym(hp2.sym).first_procdef.mangledname);
+               sym:=current_asmdata.RefAsmSymbol(pd.mangledname);
                reference_reset_symbol(r,sym,0);
                if cs_create_pic in current_settings.moduleswitches then
                  r.refaddr:=addr_pic
@@ -186,7 +188,7 @@ begin
 {$endif x86}
              end
            else
-             cg.a_jmp_name(current_asmdata.asmlists[al_procedures],tprocsym(hp2.sym).first_procdef.mangledname);
+             cg.a_jmp_name(current_asmdata.asmlists[al_procedures],pd.mangledname);
            current_asmdata.asmlists[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
          end;
       end

@@ -2414,9 +2414,9 @@ const
         forwardfound:=false;
 
         { check overloaded functions if the same function already exists }
-        for i:=1 to tprocsym(currpd.procsym).procdef_count do
+        for i:=0 to tprocsym(currpd.procsym).ProcdefList.Count-1 do
          begin
-           fwpd:=tprocsym(currpd.procsym).procdef[i];
+           fwpd:=tprocdef(tprocsym(currpd.procsym).ProcdefList[i]);
 
            { Skip overloaded definitions that are declared in other units }
            if fwpd.procsym<>currpd.procsym then
@@ -2676,7 +2676,7 @@ const
         { if we didn't reuse a forwarddef then we add the procdef to the overloaded
           list }
         if not forwardfound then
-          tprocsym(currpd.procsym).addprocdef(currpd);
+          tprocsym(currpd.procsym).ProcdefList.Add(currpd);
 
         proc_add_definition:=forwardfound;
       end;

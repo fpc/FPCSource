@@ -363,7 +363,7 @@ implementation
         state:=arg;
         if tsym(p).typ = procsym then
          begin
-           pd := tprocsym(p).first_procdef;
+           pd :=tprocdef(tprocsym(p).ProcdefList[0]);
            if (po_virtualmethod in pd.procoptions) then
              begin
                lindex := pd.extnumber;
@@ -1296,8 +1296,8 @@ implementation
             i : longint;
           begin
             result:=nil;
-            for i:=1 to sym.procdef_count do
-              write_procdef(list,sym.procdef[i]);
+            for i:=0 to sym.ProcdefList.Count-1 do
+              write_procdef(list,tprocdef(sym.ProcdefList[i]));
           end;
 
       var

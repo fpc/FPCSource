@@ -113,7 +113,7 @@ unit raatt;
       { input }
       scanner,
       { symtable }
-      symbase,symtype,symsym,symtable,
+      symbase,symtype,symsym,symdef,symtable,
 {$ifdef x86}
       rax86,
 {$endif x86}
@@ -1409,13 +1409,12 @@ unit raatt;
                            typedconstsym :
                              hs:=ttypedconstsym(sym).mangledname;
                            procsym :
-                             with Tprocsym(sym) do
-                               begin
-                                 if procdef_count>1 then
-                                   message(asmr_w_calling_overload_func);
-                                 hs:=first_procdef.mangledname;
-                                 hssymtyp:=AT_FUNCTION;
-                               end;
+                             begin
+                               if Tprocsym(sym).ProcdefList.Count>1 then
+                                Message(asmr_w_calling_overload_func);
+                               hs:=tprocdef(tprocsym(sym).ProcdefList[0]).mangledname;
+                               hssymtyp:=AT_FUNCTION;
+                             end;
                            typesym :
                              begin
                                if not(ttypesym(sym).typedef.typ in [recorddef,objectdef]) then

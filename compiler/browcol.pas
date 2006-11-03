@@ -1502,12 +1502,12 @@ end;
           procsym :
             begin
               with tprocsym(sym) do
-              if assigned(first_procdef) then
+              if assigned(tprocdef(procdeflist[0])) then
               begin
-                ProcessSymTable(Symbol,Symbol^.Items,first_procdef.parast);
-                if assigned(first_procdef.parast) then
+                ProcessSymTable(Symbol,Symbol^.Items,tprocdef(procdeflist[0]).parast);
+                if assigned(tprocdef(procdeflist[0]).parast) then
                   begin
-                    Symbol^.Params:=TypeNames^.Add(GetAbsProcParmDefStr(first_procdef));
+                    Symbol^.Params:=TypeNames^.Add(GetAbsProcParmDefStr(tprocdef(procdeflist[0])));
                   end
                 else { param-definition is NOT assigned }
                   if assigned(Table.Name) then
@@ -1517,9 +1517,9 @@ end;
                   end;
 //                if cs_local_browser in current_settings.moduleswitches then
                  begin
-                   if assigned(first_procdef.localst) and
-                     (first_procdef.localst.symtabletype<>staticsymtable) then
-                    ProcessSymTable(Symbol,Symbol^.Items,first_procdef.localst);
+                   if assigned(tprocdef(procdeflist[0]).localst) and
+                     (tprocdef(procdeflist[0]).localst.symtabletype<>staticsymtable) then
+                    ProcessSymTable(Symbol,Symbol^.Items,tprocdef(procdeflist[0]).localst);
                  end;
               end;
             end;
