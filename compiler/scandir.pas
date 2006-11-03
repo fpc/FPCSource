@@ -916,9 +916,11 @@ implementation
           if Assigned(Current_Module) then
             begin
               delete(S,1,1);
-              insert(ExtractFileName(ChangeFileExt(current_module.mainsource^,'')),S,1 );
+              insert(ChangeFileExt(ExtractFileName(current_module.mainsource^),''),S,1 );
             end;
-        s:=ChangeFileExt(FixFileName(s),target_info.resext);
+        s:=FixFileName(s);
+        if ExtractFileExt(s)='' then
+          s:=ChangeFileExt(s,target_info.resext);
         if target_info.res<>res_none then
           begin
           current_module.flags:=current_module.flags or uf_has_resourcefiles;
