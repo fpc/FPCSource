@@ -130,7 +130,7 @@ var
   end;
 
 begin
-  if i>=argc then
+  if argc<=0 then
     exit;
   GetMem(buf,ARG_MAX);
   size:=0;
