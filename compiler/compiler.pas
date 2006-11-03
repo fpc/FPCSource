@@ -114,10 +114,7 @@ implementation
 uses
   aasmcpu;
 
-{$ifdef EXTDEBUG}
-  {$define SHOWUSEDMEM}
-{$endif}
-{$ifdef MEMDEBUG}
+{$if defined(EXTDEBUG) or defined(MEMDEBUG)}
   {$define SHOWUSEDMEM}
 {$endif}
 

@@ -155,6 +155,13 @@ implementation
       verbose,
       aasmtai;
 
+{$ifdef MEMDEBUG}
+    var
+      memasmsymbols,
+      memasmcfi,
+      memasmlists : TMemDebug;
+{$endif MEMDEBUG}
+
 
 {*****************************************************************************
                                  TAsmCFI
@@ -284,33 +291,33 @@ implementation
 
     destructor TAsmData.destroy;
       var
-{$ifdef MEMDEBUG}
-        d : tmemdebug;
-{$endif}
         hal : TAsmListType;
       begin
+        { Symbols }
 {$ifdef MEMDEBUG}
-         d:=tmemdebug.create(name+' - AsmSymbols');
+        memasmsymbols.start;
 {$endif}
         FAltSymbolList.free;
         FAsmSymbolDict.free;
 {$ifdef MEMDEBUG}
-         d.free;
+        memasmsymbols.stop;
 {$endif}
+        { CFI }
 {$ifdef MEMDEBUG}
-         d:=tmemdebug.create(name+' - AsmCFI');
+        memasmcfi.start;
 {$endif}
         FAsmCFI.free;
 {$ifdef MEMDEBUG}
-         d.free;
+        memasmcfi.stop;
 {$endif}
+        { Lists }
 {$ifdef MEMDEBUG}
-         d:=tmemdebug.create(name+' - AsmLists');
+         memasmlists.start;
 {$endif}
          for hal:=low(TAsmListType) to high(TAsmListType) do
            AsmLists[hal].free;
 {$ifdef MEMDEBUG}
-         d.free;
+         memasmlists.stop;
 {$endif}
       end;
 
@@ -403,6 +410,22 @@ implementation
         inc(FNextLabelNr[alt_addr]);
       end;
 
-begin
+initialization
+{$ifdef MEMDEBUG}
+  memasmsymbols:=TMemDebug.create('AsmSymbols');
+  memasmsymbols.stop;
+  memasmcfi:=TMemDebug.create('AsmCFI');
+  memasmcfi.stop;
+  memasmlists:=TMemDebug.create('AsmLists');
+  memasmlists.stop;
+{$endif MEMDEBUG}
   CAsmCFI:=TAsmCFI;
+
+finalization
+{$ifdef MEMDEBUG}
+  memasmsymbols.free;
+  memasmcfi.free;
+  memasmlists.free;
+{$endif MEMDEBUG}
+
 end.

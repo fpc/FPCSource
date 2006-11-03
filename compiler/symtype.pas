@@ -181,7 +181,6 @@ interface
 
 {$ifdef MEMDEBUG}
     var
-      memrealnames,
       memmanglednames,
       memprocpara,
       memprocparast,
@@ -949,8 +948,6 @@ implementation
 
 {$ifdef MEMDEBUG}
 initialization
-  memrealnames:=TMemDebug.create('Realnames');
-  memrealnames.stop;
   memmanglednames:=TMemDebug.create('Manglednames');
   memmanglednames.stop;
   memprocpara:=TMemDebug.create('ProcPara');
@@ -963,7 +960,6 @@ initialization
   memprocnodetree.stop;
 
 finalization
-  memrealnames.free;
   memmanglednames.free;
   memprocpara.free;
   memprocparast.free;

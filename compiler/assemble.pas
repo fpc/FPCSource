@@ -628,21 +628,11 @@ Implementation
 
 
    destructor TInternalAssembler.destroy;
-{$ifdef MEMDEBUG}
-      var
-        d : tmemdebug;
-{$endif}
       begin
-{$ifdef MEMDEBUG}
-        d := tmemdebug.create(name+' - agbin');
-{$endif}
         if assigned(ObjData) then
           ObjData.free;
         if assigned(ObjOutput) then
           ObjOutput.free;
-{$ifdef MEMDEBUG}
-        d.free;
-{$endif}
       end;
 
 
@@ -1361,9 +1351,6 @@ Implementation
 
     var to_do:set of TasmlistType;
         i:TasmlistType;
-{$ifdef MEMDEBUG}
-        d : tmemdebug;
-{$endif}
 
         procedure addlist(p:TAsmList);
         begin
@@ -1385,23 +1372,6 @@ Implementation
           writetreesmart
         else
           writetree;
-
-(*
-        if assigned(objectlibrary) then
-          begin
-            if objectlibrary<>current_module.librarydata then
-              internalerror(200603013);
-{$ifdef MEMDEBUG}
-            d:=tmemdebug.create(modulename^+' - librarydata');
-{$endif}
-            current_asmdata.free;
-            objectlibrary:=nil;
-            current_module.librarydata:=nil;
-{$ifdef MEMDEBUG}
-            d.free;
-{$endif}
-          end;
-*)
       end;
 
 

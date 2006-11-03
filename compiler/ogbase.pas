@@ -740,13 +740,9 @@ implementation
 
 
     destructor TObjData.destroy;
-{$ifdef MEMDEBUG}
-       var
-         d : tmemdebug;
-{$endif}
       begin
+        { Symbols }
 {$ifdef MEMDEBUG}
-        d:=tmemdebug.create(name+' - ObjData symbols');
         MemObjSymbols.Start;
 {$endif}
         ResetCachedAsmSymbols;
@@ -754,16 +750,14 @@ implementation
         FObjSymbolList.free;
 {$ifdef MEMDEBUG}
         MemObjSymbols.Stop;
-        d.free;
 {$endif}
+        { Sections }
 {$ifdef MEMDEBUG}
-        d:=tmemdebug.create(name+' - ObjData sections');
         MemObjSections.Start;
 {$endif}
         FObjSectionList.free;
 {$ifdef MEMDEBUG}
         MemObjSections.Stop;
-        d.free;
 {$endif}
         inherited destroy;
       end;

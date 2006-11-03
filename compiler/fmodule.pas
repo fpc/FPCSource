@@ -209,6 +209,10 @@ implementation
       scanner,ppu,
       procinfo;
 
+{$ifdef MEMDEBUG}
+    var
+      memsymtable : TMemDebug;
+{$endif}
 
 {*****************************************************************************
                              Global Functions
@@ -445,9 +449,6 @@ implementation
 
     destructor tmodule.Destroy;
       var
-{$ifdef MEMDEBUG}
-        d : tmemdebug;
-{$endif}
         i : longint;
         hpi : tprocinfo;
       begin
@@ -516,7 +517,7 @@ implementation
         localincludesearchpath.free;
         locallibrarysearchpath.free;
 {$ifdef MEMDEBUG}
-        d:=tmemdebug.create(modulename^+' - symtable');
+        memsymtable.start;
 {$endif}
         derefdata.free;
         deflist.free;
@@ -530,7 +531,7 @@ implementation
         if assigned(localmacrosymtable) then
           localmacrosymtable.free;
 {$ifdef MEMDEBUG}
-        d.free;
+        memsymtable.stop;
 {$endif}
         stringdispose(modulename);
         inherited Destroy;
@@ -845,5 +846,16 @@ implementation
           ImportSymbol:=TImportSymbol.Create(ImportLibrary.ImportSymbolList,symname,OrdNr,isvar);
       end;
 
+
+initialization
+{$ifdef MEMDEBUG}
+  memsymtable:=TMemDebug.create('Symtables');
+  memsymtable.stop;
+{$endif MEMDEBUG}
+
+finalization
+{$ifdef MEMDEBUG}
+  memsymtable.free;
+{$endif MEMDEBUG}
 
 end.
