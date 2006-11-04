@@ -253,7 +253,7 @@ Implementation
         inherited Create(smart);
         if SmartAsm then
          begin
-           path:=FixPath(path+ChangeFileExt(AsmFileName,target_info.smartext),false);
+           path:=FixPath(ChangeFileExt(AsmFileName,target_info.smartext),false);
            CreateSmartLinkPath(path);
          end;
         Outcnt:=0;

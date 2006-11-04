@@ -677,7 +677,7 @@ Implementation
       { remove the library, to be sure that it is rewritten }
         DeleteFile(current_module.staticlibfilename^);
       { Call AR }
-        smartpath:=current_module.outputpath^+FixPath(ChangeFileExt(current_module.asmfilename^,target_info.smartext),false);
+        smartpath:=FixPath(ChangeFileExt(current_module.asmfilename^,target_info.smartext),false);
         SplitBinCmd(target_ar.arcmd,binstr,cmdstr);
         binstr := FindUtil(utilsprefix + binstr);
 
