@@ -186,7 +186,13 @@ const
 
 function Sign(const AValue: Integer): TValueSign;inline;
 function Sign(const AValue: Int64): TValueSign;inline;
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function Sign(const AValue: Single): TValueSign;inline;
+{$endif}
 function Sign(const AValue: Double): TValueSign;inline;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function Sign(const AValue: Extended): TValueSign;inline;
+{$endif}
 
 function IsZero(const A: Single; Epsilon: Single): Boolean;
 function IsZero(const A: Single): Boolean;inline;
@@ -541,6 +547,20 @@ begin
     Result:=ZeroValue;
 end;
 
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function Sign(const AValue: Single): TValueSign;inline;
+
+begin
+  If Avalue<0.0 then
+    Result:=NegativeValue
+  else If Avalue>0.0 then
+    Result:=PositiveValue
+  else
+    Result:=ZeroValue;
+end;
+{$endif}
+
+
 function Sign(const AValue: Double): TValueSign;inline;
 
 begin
@@ -552,6 +572,18 @@ begin
     Result:=ZeroValue;
 end;
 
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function Sign(const AValue: Extended): TValueSign;inline;
+
+begin
+  If Avalue<0.0 then
+    Result:=NegativeValue
+  else If Avalue>0.0 then
+    Result:=PositiveValue
+  else
+    Result:=ZeroValue;
+end;
+{$endif}
 
 function degtorad(deg : float) : float;
 
