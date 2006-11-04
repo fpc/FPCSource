@@ -516,7 +516,7 @@ implementation
          for i:=1 to pdcnt do
           begin
             ppufile.getderef(pdderef);
-            FProcdefDerefList.Add(Pointer(PtrInt(pdderef)));
+            FProcdefDerefList.Add(Pointer(PtrInt(pdderef.dataidx)));
           end;
       end;
 
@@ -533,11 +533,15 @@ implementation
     procedure tprocsym.ppuwrite(ppufile:tcompilerppufile);
       var
          i : longint;
+         d : tderef;
       begin
          inherited ppuwrite(ppufile);
          ppufile.putword(FProcdefDerefList.Count);
          for i:=0 to FProcdefDerefList.Count-1 do
-           ppufile.putderef(TDeref(PtrInt(FProcdefDerefList[i])));
+           begin
+             d.dataidx:=PtrInt(FProcdefDerefList[i]);
+             ppufile.putderef(d);
+           end;
          ppufile.writeentry(ibprocsym);
       end;
 
@@ -604,7 +608,7 @@ implementation
             if pd.owner=owner then
               begin
                 d.build(pd);
-                FProcdefDerefList.Add(Pointer(PtrInt(d)));
+                FProcdefDerefList.Add(Pointer(PtrInt(d.dataidx)));
               end;
           end;
       end;
