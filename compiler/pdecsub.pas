@@ -624,7 +624,8 @@ implementation
         storepos,
         procstartfilepos : tfileposinfo;
         searchagain : boolean;
-        st : TSymtable;
+        st,
+        genericst : TSymtable;
         aprocsym : tprocsym;
         popclass : boolean;
         ImplIntf : TImplementedInterface;
@@ -837,12 +838,12 @@ implementation
                   replay the tokens to generate the body }
                 if not assigned(pd._class.genericdef) then
                   internalerror(200512113);
-                st:=pd._class.genericdef.GetSymtable(gs_record);
-                if not assigned(st) then
+                genericst:=pd._class.genericdef.GetSymtable(gs_record);
+                if not assigned(genericst) then
                   internalerror(200512114);
                 { We are parsing the same objectdef, the def index numbers
                   are the same }
-                pd.genericdef:=tstoreddef(st.DefList[st.DefList.IndexOf(pd)]);
+                pd.genericdef:=tstoreddef(genericst.DefList[pd.owner.DefList.IndexOf(pd)]);
                 if not assigned(pd.genericdef) or
                    (pd.genericdef.typ<>procdef) then
                   internalerror(200512115);
