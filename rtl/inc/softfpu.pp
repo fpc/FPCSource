@@ -1560,9 +1560,9 @@ function float64_is_nan(a: float64): flag;
 *----------------------------------------------------------------------------*)
 function float64_is_signaling_nan( a:float64): flag;
  begin
-    float64_is_signaling_nan := flag
+    float64_is_signaling_nan := flag(
            ( ( ( a.high shr 19 ) and $FFF ) = $FFE )
-        and ( (a.low<>0) or ( boolean(( a.high and $0007FFFF )<>0)) );
+        and ( (a.low<>0) or ( ( a.high and $0007FFFF )<>0) ));
 
  end;
 

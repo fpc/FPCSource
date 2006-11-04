@@ -1764,9 +1764,9 @@ const
                 begin
                   instr:=TM68kInstruction.Create(tm68koperand);
                   BuildOpcode(instr);
-{                    instr.AddReferenceSizes;}
-{                    instr.SetInstructionOpsize;}
-{                    instr.CheckOperandSizes;}
+//                  instr.AddReferenceSizes;
+//                  instr.SetInstructionOpsize;
+//                  instr.CheckOperandSizes;
                   if instr.labeled then
                      instr.ConcatLabeledInstr(curlist)
                   else begin

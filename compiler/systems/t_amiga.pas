@@ -242,12 +242,12 @@ end;
 *****************************************************************************}
 
 initialization
-{$ifdef cpu68}
+{$ifdef m68k}
 {$warning No executable creation support for m68k yet!}
   RegisterTarget(system_m68k_Amiga_info);
-{$endif cpu68}
-{$ifdef cpupowerpc}
+{$endif m68k}
+{$ifdef powerpc}
   RegisterExternalLinker(system_powerpc_Amiga_info,TLinkerAmiga);
   RegisterTarget(system_powerpc_Amiga_info);
-{$endif cpupowerpc}
+{$endif powerpc}
 end.

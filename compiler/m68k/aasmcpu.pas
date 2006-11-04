@@ -112,8 +112,8 @@ type
       gas_op2str:op2strtable=
     {  warning: CPU32 opcodes are not fully compatible with the MC68020. }
        { 68000 only opcodes }
-       ('abcd',
-         'add','adda','addi','addq','addx','and','andi',
+       ( '',
+         'abcd','add','adda','addi','addq','addx','and','andi',
          'asl','asr','bcc','bcs','beq','bge','bgt','bhi',
          'ble','bls','blt','bmi','bne','bpl','bvc','bvs',
          'bchg','bclr','bra','bset','bsr','btst','chk',
@@ -159,7 +159,7 @@ type
          { (this may include 68040 mmu instructions)          }
          'frestore','fsave','pflush','pflusha','pload','pmove','ptest',
          { useful for assembly language output }
-         'label','none','db','s','b','fb');
+         'label','db','s','b','fb');
 
 
 {*****************************************************************************
@@ -543,7 +543,7 @@ type
             // no need to handle sizes here
             result:=taicpu.op_ref_reg(A_FMOVE,S_FS,ref,r);
           else
-            internalerror(200602011);            
+            internalerror(200602011);
         end;
       end;
 

@@ -1358,13 +1358,13 @@ unit cgcpu;
          end;
       OP_AND :
           begin
-            { should already be optimized out }
-            internalerror(2002081801);
+            list.concat(taicpu.op_const_reg(A_AND,S_L,lowvalue,regdst.reglo));
+            list.concat(taicpu.op_const_reg(A_AND,S_L,highvalue,regdst.reglo));
           end;
       OP_OR :
           begin
-            { should already be optimized out }
-            internalerror(2002081802);
+            list.concat(taicpu.op_const_reg(A_OR,S_L,lowvalue,regdst.reglo));
+            list.concat(taicpu.op_const_reg(A_OR,S_L,highvalue,regdst.reglo));
           end;
       { this is handled in 1st pass for 32-bit cpu's (helper call) }
       OP_IDIV,OP_DIV,

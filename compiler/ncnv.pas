@@ -1934,37 +1934,69 @@ implementation
     function ttypeconvnode.first_int_to_real: tnode;
       var
         fname: string[32];
-        typname : string[12];
       begin
-        { Get the type name  }
-        {  Normally the typename should be one of the following:
-            single, double - carl
-        }
-        typname := lower(pbestrealtype^.GetTypeName);
-        { converting a 64bit integer to a float requires a helper }
-        if is_64bit(left.resultdef) then
+        if target_info.system in system_wince then
           begin
-            if is_signed(left.resultdef) then
-              fname := 'fpc_int64_to_'+typname
+            { converting a 64bit integer to a float requires a helper }
+            if is_64bitint(left.resultdef) or
+              is_currency(left.resultdef) then
+              begin
+                { hack to avoid double division by 10000, as it's
+                  already done by typecheckpass.resultdef_int_to_real }
+                if is_currency(left.resultdef) then
+                  left.resultdef := s64inttype;
+                if is_signed(left.resultdef) then
+                  fname:='I64TOD'
+                else
+                  fname:='UI64TOD';
+              end
             else
-{$warning generic conversion from int to float does not support unsigned integers}
-              fname := 'fpc_int64_to_'+typname;
-            result := ccallnode.createintern(fname,ccallparanode.create(
+              { other integers are supposed to be 32 bit }
+              begin
+                if is_signed(left.resultdef) then
+                  fname:='ITOD'
+                else
+                  fname:='UTOD';
+                firstpass(left);
+              end;
+            result:=ccallnode.createintern(fname,ccallparanode.create(
               left,nil));
             left:=nil;
             firstpass(result);
             exit;
           end
         else
-          { other integers are supposed to be 32 bit }
           begin
-{$warning generic conversion from int to float does not support unsigned integers}
-            if is_signed(left.resultdef) then
-              fname := 'fpc_longint_to_'+typname
+            { converting a 64bit integer to a float requires a helper }
+            if is_64bitint(left.resultdef) or
+              is_currency(left.resultdef) then
+              begin
+                { hack to avoid double division by 10000, as it's
+                  already done by typecheckpass.resultdef_int_to_real }
+                if is_currency(left.resultdef) then
+                  left.resultdef := s64inttype;
+                if is_signed(left.resultdef) then
+                  fname:='int64_to_'
+                else
+                  { we can't do better currently }
+                  fname:='int64_to_';
+              end
             else
-              fname := 'fpc_longint_to_'+typname;
-            result := ccallnode.createintern(fname,ccallparanode.create(
-              left,nil));
+              { other integers are supposed to be 32 bit }
+              begin
+                if is_signed(left.resultdef) then
+                  fname:='int32_to_'
+                else
+                  { we can't do better currently }
+                  fname:='int32_to_';
+                firstpass(left);
+              end;
+            if tfloatdef(resultdef).floattype=s64real then
+              fname:=fname+'float64'
+            else
+              fname:=fname+'float32';
+            result:=ctypeconvnode.create_internal(ccallnode.createintern(fname,ccallparanode.create(
+              left,nil)),resultdef);
             left:=nil;
             firstpass(result);
             exit;

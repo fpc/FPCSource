@@ -110,15 +110,8 @@ Type
   ValReal = Real;
 
   {$define SUPPORT_SINGLE}
-  {$IFDEF Unix}
-    { Linux FPU emulator will be used }
-    {$define SUPPORT_DOUBLE}
-  {$ENDIF}
-  {$IFOPT E-}
-    { If not compiling with emulation }
-    { then support double type.       }
-    {$define SUPPORT_DOUBLE}
-  {$ENDIF}
+  {$define SUPPORT_DOUBLE}
+
   { Comp type does not exist on fpu }
   Comp    = int64;
   PComp = ^Comp;

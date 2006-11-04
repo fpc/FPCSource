@@ -1899,6 +1899,9 @@ begin
   def_system_macro('CPU68K');
   def_system_macro('CPUM68K');
   def_system_macro('CPU32');
+  def_system_macro('FPC_HAS_TYPE_DOUBLE');
+  def_system_macro('FPC_HAS_TYPE_SINGLE');
+  def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
 {$endif}
@@ -2179,7 +2182,7 @@ begin
     exclude(init_settings.globalswitches,cs_link_strip);
 
   { force fpu emulation on arm/wince and arm/gba }
-  if target_info.system in [system_arm_wince,system_arm_gba] then
+  if target_info.system in [system_arm_wince,system_arm_gba,system_m68k_amiga] then
     include(init_settings.moduleswitches,cs_fp_emulation);
 
   { Section smartlinking conflicts with import sections on Windows }

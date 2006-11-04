@@ -38,8 +38,8 @@ unit cpubase;
     type
     {  warning: CPU32 opcodes are not fully compatible with the MC68020. }
        { 68000 only opcodes }
-       tasmop = (a_abcd,
-         a_add,a_adda,a_addi,a_addq,a_addx,a_and,a_andi,
+       tasmop = (a_none,
+         a_abcd,a_add,a_adda,a_addi,a_addq,a_addx,a_and,a_andi,
          a_asl,a_asr,a_bcc,a_bcs,a_beq,a_bge,a_bgt,a_bhi,
          a_ble,a_bls,a_blt,a_bmi,a_bne,a_bpl,a_bvc,a_bvs,
          a_bchg,a_bclr,a_bra,a_bset,a_bsr,a_btst,a_chk,
@@ -85,7 +85,7 @@ unit cpubase;
          { (this may include 68040 mmu instructions)          }
          a_frestore,a_fsave,a_pflush,a_pflusha,a_pload,a_pmove,a_ptest,
          { useful for assembly language output }
-         a_label,a_none,a_dbxx,a_sxx,a_bxx,a_fbxx);
+         a_label,a_dbxx,a_sxx,a_bxx,a_fbxx);
 
       {# This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[11];
