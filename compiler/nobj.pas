@@ -110,6 +110,7 @@ interface
         function  genstrmsgtab : tasmlabel;
         function  genintmsgtab : tasmlabel;
         function  genpublishedmethodstable : tasmlabel;
+        function  generate_field_table : tasmlabel;
         { generates a VMT entries }
         procedure genvmt;
 {$ifdef WITHDMT}
@@ -130,7 +131,8 @@ implementation
        SysUtils,
        globals,verbose,systems,
        symtable,symconst,symtype,defcmp,
-       dbgbase
+       dbgbase,
+       ncgrtti
        ;
 
 
@@ -509,6 +511,80 @@ implementation
            end
          else
            genpublishedmethodstable:=nil;
+      end;
+
+
+    function tclassheader.generate_field_table : tasmlabel;
+      var
+        i   : longint;
+        sym : tsym;
+        fieldtable,
+        classtable : tasmlabel;
+        classindex,
+        fieldcount : longint;
+        classtablelist : TFPList;
+      begin
+        classtablelist:=TFPList.Create;
+        current_asmdata.getdatalabel(fieldtable);
+        current_asmdata.getdatalabel(classtable);
+        maybe_new_object_file(current_asmdata.asmlists[al_rtti]);
+        new_section(current_asmdata.asmlists[al_rtti],sec_rodata,classtable.name,const_align(sizeof(aint)));
+
+        { retrieve field info fields }
+        fieldcount:=0;
+        for i:=0 to _class.symtable.SymList.Count-1 do
+          begin
+            sym:=tsym(_class.symtable.SymList[i]);
+            if (tsym(sym).typ=fieldvarsym) and
+               (sp_published in tsym(sym).symoptions) then
+             begin
+                if tfieldvarsym(sym).vardef.typ<>objectdef then
+                  internalerror(200611032);
+                classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
+                if classindex=-1 then
+                  classtablelist.Add(tfieldvarsym(sym).vardef);
+                inc(fieldcount);
+             end;
+          end;
+
+        { write fields }
+        current_asmdata.asmlists[al_rtti].concat(Tai_label.Create(fieldtable));
+        current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(fieldcount));
+{$ifdef cpurequiresproperalignment}
+        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
+        current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(classtable));
+        for i:=0 to _class.symtable.SymList.Count-1 do
+          begin
+            sym:=tsym(_class.symtable.SymList[i]);
+            if (tsym(sym).typ=fieldvarsym) and
+               (sp_published in tsym(sym).symoptions) then
+              begin
+{$ifdef cpurequiresproperalignment}
+                current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(AInt)));
+{$endif cpurequiresproperalignment}
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(tfieldvarsym(sym).fieldoffset));
+                classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
+                if classindex=-1 then
+                  internalerror(200611033);
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(classindex+1));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(tfieldvarsym(sym).realname)));
+                current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(tfieldvarsym(sym).realname));
+              end;
+          end;
+
+        { generate the class table }
+        current_asmdata.asmlists[al_rtti].concat(cai_align.create(const_align(sizeof(aint))));
+        current_asmdata.asmlists[al_rtti].concat(Tai_label.Create(classtable));
+        current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(classtablelist.count));
+{$ifdef cpurequiresproperalignment}
+        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
+        for i:=0 to classtablelist.Count-1 do
+          current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(tobjectdef(classtablelist[i]).vmt_mangledname,0));
+
+        classtablelist.free;
+        result:=fieldtable;
       end;
 
 
@@ -1292,7 +1368,7 @@ implementation
               interfacetable:=genintftable;
 
             methodnametable:=genpublishedmethodstable;
-            fieldtablelabel:=_class.generate_field_table;
+            fieldtablelabel:=generate_field_table;
             { write class name }
             current_asmdata.asmlists[al_globals].concat(Tai_label.Create(classnamelabel));
             current_asmdata.asmlists[al_globals].concat(Tai_const.Create_8bit(length(_class.objrealname^)));
@@ -1349,12 +1425,12 @@ implementation
             current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(fieldtablelabel));
             { pointer to type info of published section }
             if (oo_can_have_published in _class.objectoptions) then
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(_class.get_rtti_label(fullrtti)))
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,fullrtti)))
             else
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
             { inittable for con-/destruction }
             if _class.members_need_inittable then
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(_class.get_rtti_label(initrtti)))
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,initrtti)))
             else
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
             { auto table }

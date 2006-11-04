@@ -113,9 +113,12 @@ interface
           function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
 
+       { tabstractlocalsymtable }
+
        tabstractlocalsymtable = class(tstoredsymtable)
        public
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function count_locals:longint;
        end;
 
        tlocalsymtable = class(tabstractlocalsymtable)
@@ -180,7 +183,6 @@ interface
 ****************************************************************************}
 
 {*** Misc ***}
-    function  finduniTSymtable(st:TSymtable):TSymtable;
     function  FullTypeName(def,otherdef:tdef):string;
     procedure incompatibletypes(def1,def2:tdef);
     procedure hidesym(sym:TSymEntry);
@@ -363,7 +365,6 @@ implementation
                 ibunitsym : sym:=tunitsym.ppuload(ppufile);
                iblabelsym : sym:=tlabelsym.ppuload(ppufile);
                  ibsyssym : sym:=tsyssym.ppuload(ppufile);
-                ibrttisym : sym:=trttisym.ppuload(ppufile);
                ibmacrosym : sym:=tmacro.ppuload(ppufile);
                 ibendsyms : break;
                     ibend : Message(unit_f_ppu_read_error);
@@ -1085,6 +1086,25 @@ implementation
       end;
 
 
+    function tabstractlocalsymtable.count_locals:longint;
+      var
+        i   : longint;
+        sym : tsym;
+      begin
+        result:=0;
+        for i:=0 to SymList.Count-1 do
+          begin
+            sym:=tsym(SymList[i]);
+            { Count only varsyms, but ignore the funcretsym }
+            if (tsym(sym).typ in [localvarsym,paravarsym]) and
+               (tsym(sym)<>current_procinfo.procdef.funcretsym) and
+               (not(vo_is_parentfp in tabstractvarsym(sym).varoptions) or
+                (tstoredsym(sym).refs>0)) then
+              inc(result);
+         end;
+      end;
+
+
 {****************************************************************************
                               TLocalSymtable
 ****************************************************************************}
@@ -1374,33 +1394,6 @@ implementation
 {*****************************************************************************
                              Helper Routines
 *****************************************************************************}
-
-    function finduniTSymtable(st:TSymtable):TSymtable;
-      begin
-        result:=nil;
-        repeat
-          if not assigned(st) then
-           internalerror(200602034);
-          case st.symtabletype of
-            localmacrosymtable,
-            exportedmacrosymtable,
-            staticsymtable,
-            globalsymtable :
-              begin
-                result:=st;
-                exit;
-              end;
-            recordsymtable,
-            localsymtable,
-            parasymtable,
-            ObjectSymtable :
-              st:=st.defowner.owner;
-            else
-              internalerror(200602035);
-          end;
-        until false;
-      end;
-
 
     function FullTypeName(def,otherdef:tdef):string;
       var

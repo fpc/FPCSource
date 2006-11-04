@@ -26,20 +26,17 @@ unit symutil;
 interface
 
     uses
-       symbase,symtype,symsym,cclasses;
+       symbase,symtype,symsym;
 
     function is_funcret_sym(p:TSymEntry):boolean;
 
-    { returns true, if sym needs an entry in the proplist of a class rtti }
-    function needs_prop_entry(sym : tsym) : boolean;
-
     function equal_constsym(sym1,sym2:tconstsym):boolean;
 
-    procedure count_locals(sym:TObject;arg:pointer);
 
 implementation
 
     uses
+       cclasses,
        globtype,cpuinfo,procinfo,
        symconst,widestr;
 
@@ -48,14 +45,6 @@ implementation
       begin
         is_funcret_sym:=(p.typ in [absolutevarsym,localvarsym,paravarsym]) and
                         (vo_is_funcret in tabstractvarsym(p).varoptions);
-      end;
-
-
-    function needs_prop_entry(sym : tsym) : boolean;
-
-      begin
-         needs_prop_entry:=(sp_published in tsym(sym).symoptions) and
-         (sym.typ in [propertysym,fieldvarsym]);
       end;
 
 
@@ -104,16 +93,5 @@ implementation
         end;
       end;
 
-
-    procedure count_locals(sym:TObject;arg:pointer);
-      begin
-        { Count only varsyms, but ignore the funcretsym }
-        if (tsym(sym).typ in [localvarsym,paravarsym]) and
-           (tsym(sym)<>current_procinfo.procdef.funcretsym) and
-           (not(vo_is_parentfp in tabstractvarsym(sym).varoptions) or
-            (tstoredsym(sym).refs>0)) then
-          inc(plongint(arg)^);
-      end;
-
-
 end.
+

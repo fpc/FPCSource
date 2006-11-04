@@ -43,7 +43,8 @@ implementation
       globals,globtype,verbose,
       systems,
       symconst,symtype,symsym,symdef,symtable,
-      aasmtai,aasmdata,aasmcpu,ncgutil,fmodule,
+      aasmtai,aasmdata,aasmcpu,
+      ncgutil,ncgrtti,fmodule,
       node,nbas,nflw,nset,ncon,ncnv,nld,nmem,ncal,nmat,nadd,ninl,nopt
       ;
 
@@ -111,14 +112,9 @@ implementation
         begin
           result:=ttypesym.create(s,def);
           systemunit.insert(result);
-          { add init/final table if required }
-          if def.needs_inittable then
-           generate_inittable(result);
-        end;
-
-        procedure adddef(const s:string;def:tdef);
-        begin
-          systemunit.insert(ttypesym.create(s,def));
+          { write always RTTI to get persistent typeinfo }
+          RTTIWriter.write_rtti(def,initrtti);
+          RTTIWriter.write_rtti(def,fullrtti);
         end;
 
       var
@@ -235,7 +231,7 @@ implementation
           end;
 {$ifdef x86}
         if target_info.system<>system_x86_64_win64 then
-          adddef('Comp',tfloatdef.create(s64comp));
+          addtype('Comp',tfloatdef.create(s64comp));
 {$endif x86}
         addtype('Currency',s64currencytype);
         addtype('Pointer',voidpointertype);
@@ -264,8 +260,8 @@ implementation
         addtype('Int64',s64inttype);
         addtype('Char',cchartype);
         addtype('WideChar',cwidechartype);
-        adddef('Text',tfiledef.createtext);
-        adddef('TypedFile',tfiledef.createtyped(voidtype));
+        addtype('Text',tfiledef.createtext);
+        addtype('TypedFile',tfiledef.createtyped(voidtype));
         addtype('Variant',cvarianttype);
         addtype('OleVariant',colevarianttype);
         { Internal types }
@@ -307,6 +303,10 @@ implementation
         hrecst:=trecordsymtable.create(current_settings.packrecords);
         vmttype:=trecorddef.create(hrecst);
         pvmttype:=tpointerdef.create(vmttype);
+        { can't use addtype for pvmt because the rtti of the pointed
+          type is not available. The rtti for pvmt will be written implicitly
+          by thev tblarray below }
+        systemunit.insert(ttypesym.create('$pvmt',pvmttype));
         hrecst.insertfield(tfieldvarsym.create('$parent',vs_value,pvmttype,[]));
         hrecst.insertfield(tfieldvarsym.create('$length',vs_value,s32inttype,[]));
         hrecst.insertfield(tfieldvarsym.create('$mlength',vs_value,s32inttype,[]));
@@ -314,7 +314,6 @@ implementation
         tarraydef(vmtarraytype).elementdef:=voidpointertype;
         hrecst.insertfield(tfieldvarsym.create('$__pfn',vs_value,vmtarraytype,[]));
         addtype('$__vtbl_ptr_type',vmttype);
-        addtype('$pvmt',pvmttype);
         vmtarraytype:=tarraydef.create(0,1,s32inttype);
         tarraydef(vmtarraytype).elementdef:=pvmttype;
         addtype('$vtblarray',vmtarraytype);

@@ -49,7 +49,7 @@ implementation
       script,gendef,
       comphook,
       scanner,scandir,
-      pbase,ptype,psystem,pmodules,psub,
+      pbase,ptype,psystem,pmodules,psub,ncgrtti,
       cresstr,cpuinfo,procinfo;
 
 
@@ -96,6 +96,9 @@ implementation
          { memory sizes }
          if stacksize=0 then
            stacksize:=target_info.stacksize;
+
+         { RTTI writer }
+         RTTIWriter:=TRTTIWriter.Create;
 
          { open assembler response }
          if cs_link_on_target in current_settings.globalswitches then
@@ -157,6 +160,8 @@ implementation
 
          { close scanner }
          DoneScanner;
+
+         RTTIWriter.free;
 
          { close ppas,deffile }
          asmres.free;

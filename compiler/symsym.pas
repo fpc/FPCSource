@@ -327,21 +327,6 @@ interface
           function GetCopy:tmacro;
        end;
 
-       { compiler generated symbol to point to rtti and init/finalize tables }
-       trttisym = class(tstoredsym)
-       private
-          _mangledname : pshortstring;
-       public
-          lab     : tasmsymbol;
-          rttityp : trttitype;
-          constructor create(const n:string;rt:trttitype);
-          constructor ppuload(ppufile:tcompilerppufile);
-          destructor destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function  mangledname:string;override;
-          function  get_label:tasmsymbol;
-       end;
-
     var
        generrorsym : tsym;
 
@@ -2023,72 +2008,5 @@ implementation
           end;
         Result:=p;
       end;
-
-
-{****************************************************************************
-                                  TRTTISYM
-****************************************************************************}
-
-    constructor trttisym.create(const n:string;rt:trttitype);
-      const
-        prefix : array[trttitype] of string[5]=('$rtti','$init');
-      begin
-        inherited create(rttisym,prefix[rt]+n);
-        include(symoptions,sp_internal);
-        lab:=nil;
-        rttityp:=rt;
-      end;
-
-
-    destructor trttisym.destroy;
-      begin
-        if assigned(_mangledname) then
-          begin
-{$ifdef MEMDEBUG}
-            memmanglednames.start;
-{$endif MEMDEBUG}
-            stringdispose(_mangledname);
-{$ifdef MEMDEBUG}
-            memmanglednames.stop;
-{$endif MEMDEBUG}
-          end;
-        inherited destroy;
-      end;
-
-
-    constructor trttisym.ppuload(ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(rttisym,ppufile);
-        lab:=nil;
-        rttityp:=trttitype(ppufile.getbyte);
-      end;
-
-
-    procedure trttisym.ppuwrite(ppufile:tcompilerppufile);
-      begin
-         inherited ppuwrite(ppufile);
-         ppufile.putbyte(byte(rttityp));
-         ppufile.writeentry(ibrttisym);
-      end;
-
-
-    function trttisym.mangledname : string;
-      const
-        prefix : array[trttitype] of string[5]=('RTTI_','INIT_');
-      begin
-        if not assigned(_mangledname) then
-          _mangledname:=stringdup(make_mangledname(prefix[rttityp],owner,Copy(name,5,255)));
-        result:=_mangledname^;
-      end;
-
-
-    function trttisym.get_label:tasmsymbol;
-      begin
-        { the label is always a global label }
-        if not assigned(lab) then
-         lab:=current_asmdata.RefAsmSymbol(mangledname);
-        get_label:=lab;
-      end;
-
 
 end.

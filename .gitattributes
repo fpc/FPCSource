@@ -253,6 +253,7 @@ compiler/ncgld.pas svneol=native#text/plain
 compiler/ncgmat.pas svneol=native#text/plain
 compiler/ncgmem.pas svneol=native#text/plain
 compiler/ncgopt.pas svneol=native#text/plain
+compiler/ncgrtti.pas svneol=native#text/plain
 compiler/ncgset.pas svneol=native#text/plain
 compiler/ncgutil.pas svneol=native#text/plain
 compiler/ncnv.pas svneol=native#text/plain

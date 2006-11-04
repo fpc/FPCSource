@@ -552,7 +552,8 @@ implementation
     uses
        globals,options,systems,
        verbose,defutil,paramgr,symsym,
-       tgobj,cutils,procinfo;
+       tgobj,cutils,procinfo,
+       ncgrtti;
 
 
 {*****************************************************************************
@@ -2523,7 +2524,7 @@ implementation
           end
          else
           begin
-            reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
+            reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0);
             paramanager.allocparaloc(list,cgpara2);
             a_paramaddr_ref(list,href,cgpara2);
             paramanager.allocparaloc(list,cgpara1);
@@ -2570,7 +2571,7 @@ implementation
           begin
             if needrtti then
              begin
-               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
+               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0);
                tempreg2:=getaddressregister(list);
                a_loadaddr_ref_reg(list,href,tempreg2);
              end;
@@ -2591,7 +2592,7 @@ implementation
           end
          else
           begin
-            reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
+            reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0);
             paramanager.allocparaloc(list,cgpara2);
             a_paramaddr_ref(list,href,cgpara2);
             paramanager.allocparaloc(list,cgpara1);
@@ -2623,7 +2624,7 @@ implementation
            a_load_const_ref(list,OS_ADDR,0,ref)
          else
            begin
-              reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
+              reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0);
               paramanager.allocparaloc(list,cgpara2);
               a_paramaddr_ref(list,href,cgpara2);
               paramanager.allocparaloc(list,cgpara1);
@@ -2657,7 +2658,7 @@ implementation
             end
          else
            begin
-              reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
+              reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0);
               paramanager.allocparaloc(list,cgpara2);
               a_paramaddr_ref(list,href,cgpara2);
               paramanager.allocparaloc(list,cgpara1);

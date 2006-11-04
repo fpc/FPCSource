@@ -1168,9 +1168,8 @@ implementation
                - target processor has optional frame pointer save
                  (vm, i386, vm only currently)
              }
-             locals:=0;
-             current_procinfo.procdef.localst.SymList.ForEachCall(@count_locals,@locals);
-             current_procinfo.procdef.parast.SymList.ForEachCall(@count_locals,@locals);
+             locals:=tabstractlocalsymtable(current_procinfo.procdef.localst).count_locals+
+                     tabstractlocalsymtable(current_procinfo.procdef.parast).count_locals;
              if (locals=0) and
                 (current_procinfo.procdef.owner.symtabletype<>ObjectSymtable) and
                 (not assigned(current_procinfo.procdef.funcretsym) or

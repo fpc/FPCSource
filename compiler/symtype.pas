@@ -71,6 +71,7 @@ interface
          function  GetTypeName:string;virtual;
          function  mangledparaname:string;
          function  getmangledparaname:string;virtual;
+         function  rtti_mangledname(rt:trttitype):string;virtual;abstract;
          function  size:aint;virtual;abstract;
          function  packedbitsize:aint;virtual;
          function  alignment:shortint;virtual;abstract;
@@ -191,13 +192,45 @@ interface
     const
        current_object_option : tsymoptions = [sp_public];
 
+    function  FindUnitSymtable(st:TSymtable):TSymtable;
+    
 
 implementation
 
     uses
        verbose,
-       fmodule,symtable
+       fmodule
        ;
+
+{****************************************************************************
+                                Utils
+****************************************************************************}
+
+    function FindUnitSymtable(st:TSymtable):TSymtable;
+      begin
+        result:=nil;
+        repeat
+          if not assigned(st) then
+           internalerror(200602034);
+          case st.symtabletype of
+            localmacrosymtable,
+            exportedmacrosymtable,
+            staticsymtable,
+            globalsymtable :
+              begin
+                result:=st;
+                exit;
+              end;
+            recordsymtable,
+            localsymtable,
+            parasymtable,
+            ObjectSymtable :
+              st:=st.defowner.owner;
+            else
+              internalerror(200602035);
+          end;
+        until false;
+      end;
 
 
 {****************************************************************************
@@ -561,9 +594,9 @@ implementation
          begin
 {$warning TODO ugly hack}
            if s is tsym then
-             st:=finduniTSymtable(tsym(s).owner)
+             st:=FindUnitSymtable(tsym(s).owner)
            else
-             st:=finduniTSymtable(tdef(s).owner);
+             st:=FindUnitSymtable(tdef(s).owner);
            if not st.iscurrentunit then
              begin
                { register that the unit is needed for resolving }
@@ -968,3 +1001,4 @@ finalization
 {$endif MEMDEBUG}
 
 end.
+

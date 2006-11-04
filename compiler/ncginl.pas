@@ -62,7 +62,7 @@ implementation
       aasmbase,aasmtai,aasmdata,aasmcpu,parabase,
       cgbase,pass_1,pass_2,
       cpuinfo,cpubase,paramgr,procinfo,
-      nbas,ncon,ncal,ncnv,nld,
+      nbas,ncon,ncal,ncnv,nld,ncgrtti,
       tgobj,ncgutil,
       cgutils,cgobj
 {$ifndef cpu64bit}
@@ -479,7 +479,7 @@ implementation
         begin
           location_reset(location,LOC_REGISTER,OS_ADDR);
           location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-          reference_reset_symbol(href,tstoreddef(left.resultdef).get_rtti_label(fullrtti),0);
+          reference_reset_symbol(href,RTTIWriter.get_rtti_label(left.resultdef,fullrtti),0);
           cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
         end;
 

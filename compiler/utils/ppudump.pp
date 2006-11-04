@@ -801,16 +801,6 @@ begin
   if df_unique in defoptions then
     writeln  (space,'      Unique type symbol');
 
-  if df_has_rttitable in defoptions then
-    begin
-      write  (space,'      RTTI symbol : ');
-      readderef;
-    end;
-  if df_has_inittable in defoptions then
-    begin
-      write  (space,'      Init symbol : ');
-      readderef;
-    end;
   if df_generic in defoptions then
     begin
       tokenbufsize:=ppufile.getlongint;
@@ -1570,12 +1560,6 @@ begin
            begin
              readcommonsym('Internal system symbol ');
              writeln(space,'  Internal Nr : ',getlongint);
-           end;
-
-         ibrttisym :
-           begin
-             readcommonsym('RTTI symbol ');
-             writeln(space,'    RTTI Type : ',getbyte);
            end;
 
          ibmacrosym :

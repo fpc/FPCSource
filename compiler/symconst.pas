@@ -386,7 +386,7 @@ type
     globalvarsym,localvarsym,paravarsym,fieldvarsym,
     typesym,procsym,unitsym,constsym,enumsym,typedconstsym,
     errorsym,syssym,labelsym,absolutevarsym,propertysym,
-    macrosym,rttisym
+    macrosym
   );
 
   { State of the variable, if it's declared, assigned or used }
@@ -442,7 +442,7 @@ const
        'abstractsym','globalvar','localvar','paravar','fieldvar',
        'type','proc','unit','const','enum','typed const',
        'errorsym','system sym','label','absolutevar','property',
-       'macrosym','rttisym'
+       'macrosym'
      );
 
      typName : array[tdeftyp] of string[12] = (

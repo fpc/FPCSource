@@ -55,7 +55,7 @@ implementation
       systems,
       verbose,globtype,globals,
       symconst,symtype,symdef,symsym,defutil,paramgr,
-      ncnv,ncon,nmem,nbas,
+      ncnv,ncon,nmem,nbas,ncgrtti,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,pass_2,
       procinfo,
@@ -979,7 +979,7 @@ implementation
     procedure tcgrttinode.pass_generate_code;
       begin
         location_reset(location,LOC_CREFERENCE,OS_NO);
-        location.reference.symbol:=rttidef.get_rtti_label(rttitype);
+        location.reference.symbol:=RTTIWriter.get_rtti_label(rttidef,rttitype);
       end;
 
 

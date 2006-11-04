@@ -50,7 +50,7 @@ uses
   cpubase, cgbase,
   aasmtai,aasmdata,
   tgobj,
-  symconst, symsym, paramgr, symutil,
+  symconst, symsym, paramgr, symutil, symtable,
   verbose;
 
 constructor tppcprocinfo.create(aparent: tprocinfo);
@@ -64,7 +64,6 @@ end;
 procedure tppcprocinfo.set_first_temp_offset;
 var
   ofs: aword;
-  locals: longint;
 begin
   if not (po_assembler in procdef.procoptions) then begin
     { align the stack properly }
@@ -78,9 +77,7 @@ begin
     end;
     tg.setfirsttemp(ofs);
   end else begin
-    locals := 0;
-    current_procinfo.procdef.localst.SymList.ForEachCall(@count_locals, @locals);
-    if locals <> 0 then
+    if tabstractlocalsymtable(current_procinfo.procdef.localst).count_locals <> 0 then
       { at 0(r1), the previous value of r1 will be stored }
       tg.setfirsttemp(8);
   end;
