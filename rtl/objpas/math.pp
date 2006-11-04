@@ -478,10 +478,10 @@ function norm(const data : array of Extended) : float;
 function norm(const data : PExtended; Const N : Integer) : float;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer; {$ifdef MATHINLINE}inline; {$endif}
-function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64;   {$ifdef MATHINLINE}inline; {$endif}
-function ifthen(val:boolean;const iftrue:double ; const iffalse:double =0.0):double;  {$ifdef MATHINLINE}inline; {$endif}
-function ifthen(val:boolean;const iftrue:String ; const iffalse:String ='') :String;  {$ifdef MATHINLINE}inline; {$endif}
+function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer; inline; 
+function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64;   inline; 
+function ifthen(val:boolean;const iftrue:double ; const iffalse:double =0.0):double;  inline; 
+function ifthen(val:boolean;const iftrue:String ; const iffalse:String ='') :String;  inline; 
 
 function CompareValue ( const A, B  : Integer) : TValueRelationship; inline;
 function CompareValue ( const A, B  : Int64) : TValueRelationship; inline;
@@ -2101,7 +2101,7 @@ begin
   if val then result:=iftrue else result:=iffalse;
 end;
 
-function ifthen(val:boolean;const iftrue:String ; const iffalse:String ='') :String;  {$ifdef MATHINLINE}inline; {$endif}
+function ifthen(val:boolean;const iftrue:String ; const iffalse:String ='') :String;  inline;
 begin
   if val then result:=iftrue else result:=iffalse;
 end;
