@@ -447,7 +447,9 @@ const
      procedure tcgppc.a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt);
 
        begin
-         if (sreg.bitlen <> sizeof(aint) * 8) then
+         if (slopt in [SL_SETZERO,SL_SETMAX]) then
+           inherited a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,sreg,slopt)
+         else if (sreg.bitlen <> sizeof(aint) * 8) then
            list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,sreg.subsetreg,fromreg,
              sreg.startbit,32-sreg.startbit-sreg.bitlen,31-sreg.startbit))
          else

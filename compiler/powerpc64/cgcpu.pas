@@ -829,8 +829,10 @@ begin
   {$ifdef extdebug}
   list.concat(tai_comment.create(strpnew('a_load_reg_subsetreg fromsize = ' + cgsize2string(fromsize) + ' subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + IntToStr(sreg.startbit))));
   {$endif}
-  { simply use the INSRDI instruction }
-  if (sreg.bitlen <> sizeof(aint)*8) then
+  if (slopt in [SL_SETZERO,SL_SETMAX]) then
+    inherited a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,sreg,slopt)
+  else if (sreg.bitlen <> sizeof(aint)*8) then
+    { simply use the INSRDI instruction }
     list.concat(taicpu.op_reg_reg_const_const(A_INSRDI, sreg.subsetreg, fromreg, sreg.bitlen, (64 - (sreg.startbit + sreg.bitlen)) and 63))
   else
     a_load_reg_reg(list, fromsize, subsetsize, fromreg, sreg.subsetreg);
