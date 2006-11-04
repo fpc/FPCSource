@@ -40,7 +40,7 @@
     <SearchPaths>
       <IncludeFiles Value="i386\"/>
       <OtherUnitFiles Value="i386\;x86\;systems\"/>
-      <UnitOutputDirectory Value="C:\fpc\compiler\myunits"/>
+      <UnitOutputDirectory Value="myunits"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
