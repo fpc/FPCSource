@@ -101,7 +101,7 @@ Implementation
        cpuinfo,aasmtai,aasmdata,aasmcpu,
        cgbase,
        { symtable }
-       symbase,symtype,symsym,symtable,
+       symbase,symtype,symsym,symdef,symtable,
        { pass 1 }
        nbas,
        { parser }
@@ -697,9 +697,9 @@ const
                                    hs:=ttypedconstsym(sym).mangledname;
                              procsym :
                                begin
-                                 if tprocsym(sym).procdef_count>1 then
+                                 if tprocsym(sym).procdeflist.count>1 then
                                       Message(asmr_w_calling_overload_func);
-                                 hs:=tprocsym(sym).first_procdef.mangledname;
+                                 hs:=tprocdef(tprocsym(sym).procdeflist[0]).mangledname;
                                end;
                              typesym :
                                begin
