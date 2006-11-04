@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for FCL lnet example tcp server/client
+#
+
+[require]
+packages=fcl
+
+[target]
+programs=lclient lserver
+
+[compiler]
+options=-S2
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..

@@ -1,0 +1,24 @@
+#
+#   Makefile.fpc for FCL lnet units
+#
+
+[package]
+main=fcl
+
+[target]
+units=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp \
+      lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
+exampledirs=examples
+
+[require]
+packages=netdb 
+
+[compiler]
+options=-S2 -Sm
+includedir=sys
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..

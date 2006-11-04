@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for FCL lnet examples
+#
+
+[require]
+packages=fcl
+
+[target]
+dirs=ltcp ludp ltelnet lftp lsmtp lhttp
+
+[compiler]
+options=-S2
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

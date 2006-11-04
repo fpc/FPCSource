@@ -25,7 +25,7 @@ packages_emx=netdb
 units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil pthreads streamio blowfish
 
 [target]
-dirs=xml image db shedit passrc net fpcunit
+dirs=xml image db shedit passrc net lnet fpcunit
 dirs_freebsd=web
 dirs_darwin=web
 dirs_solaris=web

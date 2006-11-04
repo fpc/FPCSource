@@ -35,6 +35,9 @@ begin
     
     { Net directory }
     {$i net/fpmake.inc}
+
+    { lNet directory }
+    {$i lnet/fpmake.inc}
     
     { fpcunit directory }
     {$i fpcunit/fpmake.inc}
