@@ -506,6 +506,7 @@ begin
 
     ret := do_syscall(syscall_nr___getcwd,TSysParam(pt),TSysParam( ept - pt));
     If (ret = 0) Then
+      begin
         If (pt[0] <> '/') Then
            Begin
              bpt := pt;
@@ -518,7 +519,10 @@ begin
                  ept^:=c;
                  dec(ept);
                End;
-           End;
+           End
+      end
+         else
+            pt:=nil;
  Fpgetcwd:=pt;
 end;
 
