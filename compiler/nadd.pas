@@ -2200,7 +2200,11 @@ implementation
             end;
             case tfloatdef(left.resultdef).floattype of
               s32real:
-                procname:=procname+'S';
+                begin
+                  procname:=procname+'S';
+                  if nodetype in [addn,muln,subn,slashn] then
+                    procname:=lower(procname);
+                end;
               s64real:
                 procname:=procname+'D';
               {!!! not yet implemented
