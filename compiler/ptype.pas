@@ -37,17 +37,20 @@ interface
        { object type as function argument type  }
        testcurobject : byte;
 
-    { reads a string, file type or a type id and returns a name and }
-    { tdef }
+    { reads a type identifier }
+    procedure id_type(var def : tdef;isforwarddef:boolean);
+
+    { reads a string, file type or a type identifier }
     procedure single_type(var def:tdef;isforwarddef:boolean);
 
+    { reads any type declaration, where the resulting type will get name as type identifier }
     procedure read_named_type(var def:tdef;const name : TIDString;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
+
+    { reads any type declaration }
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
 
-    { reads a type definition }
-    { to a appropriating tdef, s gets the name of   }
-    { the type to allow name mangling          }
-    procedure id_type(var def : tdef;isforwarddef:boolean);
+    { generate persistent type information like VMT, RTTI and inittables }
+    procedure write_persistent_type_info(def : tdef);
 
 
 implementation
@@ -64,7 +67,7 @@ implementation
        symconst,symbase,symsym,symtable,
        defutil,defcmp,
        { pass 1 }
-       node,
+       node,ncgrtti,nobj,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
@@ -757,6 +760,7 @@ implementation
             else
               expr_type;
          end;
+
          if def=nil then
           def:=generrordef;
       end;
@@ -767,5 +771,46 @@ implementation
         read_named_type(def,'',nil,nil,parseprocvardir);
       end;
 
+
+    procedure write_persistent_type_info(def : tdef);
+      var
+        ch  : tclassheader;
+      begin
+        { generate persistent init/final tables when it's declared in the interface so it can
+          be reused in other used }
+        if def.owner.symtabletype=globalsymtable then
+          RTTIWriter.write_rtti(def,initrtti);
+
+        { for objects we should write the vmt and interfaces.
+          This need to be done after the rtti has been written, because
+          it can contain a reference to that data (PFV)
+          This is not for forward classes }
+        if (def.typ=objectdef) then
+          begin
+            if not(oo_vmt_written in tobjectdef(def).objectoptions) and
+               not(oo_is_forward in tobjectdef(def).objectoptions) then
+              begin
+                ch:=tclassheader.create(tobjectdef(def));
+                { generate and check virtual methods, must be done
+                  before RTTI is written }
+                ch.genvmt;
+                { Generate RTTI for class }
+                RTTIWriter.write_rtti(def,fullrtti);
+                if is_interface(tobjectdef(def)) then
+                  ch.writeinterfaceids;
+                if (oo_has_vmt in tobjectdef(def).objectoptions) then
+                  ch.writevmt;
+                ch.free;
+                include(tobjectdef(def).objectoptions,oo_vmt_written);
+              end;
+          end
+        else
+          begin
+            { Always generate RTTI info for all types. This is to have typeinfo() return
+              the same pointer }
+            if def.owner.symtabletype=globalsymtable then
+              RTTIWriter.write_rtti(def,fullrtti);
+          end;
+      end;
 
 end.

@@ -57,9 +57,9 @@ implementation
        { symtable }
        symconst,symbase,symtype,symdef,symtable,paramgr,defutil,
        { pass 1 }
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
+       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { codegen }
-       ncgutil,ncgrtti,
+       ncgutil,
        { parser }
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,
@@ -230,6 +230,8 @@ implementation
                       { add default calling convention }
                       handle_calling_convention(tabstractprocdef(hdef));
                     end;
+                   { write rtti/init tables }
+                   write_persistent_type_info(hdef);
                    if not skipequal then
                     begin
                       { get init value }
@@ -396,7 +398,6 @@ implementation
          oldfilepos,
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
-         ch       : tclassheader;
          isgeneric,
          isunique,
          istyperenaming : boolean;
@@ -559,47 +560,7 @@ implementation
               { file position }
               oldfilepos:=current_filepos;
               current_filepos:=newtype.fileinfo;
-
-              { generate persistent init/final tables when it's declared in the interface so it can
-                be reused in other used }
-              if current_module.in_interface {or
-                 (
-                  (is_class(hdef) and
-                  tobjectdef(hdef).members_need_inittable) or
-                  hdef.needs_inittable
-                 ) }
-                 then
-                RTTIWriter.write_rtti(hdef,initrtti);
-
-              { for objects we should write the vmt and interfaces.
-                This need to be done after the rtti has been written, because
-                it can contain a reference to that data (PFV)
-                This is not for forward classes }
-              if (hdef.typ=objectdef) then
-                begin
-                  if not(oo_is_forward in tobjectdef(hdef).objectoptions) then
-                    begin
-                      ch:=tclassheader.create(tobjectdef(hdef));
-                      { generate and check virtual methods, must be done
-                        before RTTI is written }
-                      ch.genvmt;
-                      { Generate RTTI for class }
-                      RTTIWriter.write_rtti(hdef,fullrtti);
-                      if is_interface(tobjectdef(hdef)) then
-                        ch.writeinterfaceids;
-                      if (oo_has_vmt in tobjectdef(hdef).objectoptions) then
-                        ch.writevmt;
-                      ch.free;
-                    end;
-                end
-              else
-                begin
-                  { Always generate RTTI info for all types. This is to have typeinfo() return
-                    the same pointer }
-                  if current_module.in_interface then
-                    RTTIWriter.write_rtti(hdef,fullrtti);
-                end;
-
+              write_persistent_type_info(hdef);
               current_filepos:=oldfilepos;
             end;
          until token<>_ID;
