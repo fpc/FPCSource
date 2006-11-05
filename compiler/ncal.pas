@@ -279,7 +279,10 @@ implementation
         addstatement(statements,result_data);
 
         { build parameters }
+
         { first, count and check parameters }
+        // p2:=reverseparameters(tcallparanode(p2));
+
         para:=tcallparanode(p2);
         paracount:=0;
         namedparacount:=0;
@@ -340,7 +343,7 @@ implementation
                   internalerror(200611041);
               end;
 
-            dispatchbyref:=para.value.resultdef.typ in [stringdef];
+            dispatchbyref:=para.value.resultdef.typ in [{stringdef}];
             { assign the argument/parameter to the temporary location }
 
             if para.value.nodetype<>nothingn then
@@ -379,7 +382,7 @@ implementation
 
         { actual call }
         vardatadef:=trecorddef(search_system_type('TVARDATA').typedef);
-        pvardatadef:=trecorddef(search_system_type('PVARDATA').typedef);
+        pvardatadef:=ppointerdef(search_system_type('PVARDATA').typedef);
 
         addstatement(statements,ccallnode.createintern('fpc_dispinvoke_variant',
           { parameters are passed always reverted, i.e. the last comes first }

@@ -224,7 +224,7 @@ implementation
           raise EOleSysError.Create('',Status,0);
       end;
 
-{$define DEBUG_COMDISPATCH}
+{ $define DEBUG_COMDISPATCH}
     procedure DispatchInvoke(const Dispatch: IDispatch; CallDesc: PCallDesc;
       DispIDs: PDispIDList; Params: Pointer; Result: PVariant);
 
@@ -247,11 +247,14 @@ implementation
         fillchar(dispparams,sizeof(dispparams),0);
         try
 {$ifdef DEBUG_COMDISPATCH}
-          writeln('Got ',CallDesc^.ArgCount,' arguments');
+          writeln('DispatchInvoke: Got ',CallDesc^.ArgCount,' arguments   NamedArgs = ',CallDesc^.NamedArgCount);
 {$endif DEBUG_COMDISPATCH}
           { copy and prepare arguments }
           for i:=0 to CallDesc^.ArgCount-1 do
             begin
+{$ifdef DEBUG_COMDISPATCH}
+              writeln('DispatchInvoke: Params = ',hexstr(PtrInt(Params),SizeOf(Pointer)*2));
+{$endif DEBUG_COMDISPATCH}
               { get plain type }
               CurrType:=CallDesc^.ArgTypes[i] and $3f;
               { by reference? }
@@ -276,7 +279,14 @@ implementation
 {$endif DEBUG_COMDISPATCH}
                     else
                       begin
-                        writeln('Got ref argument with type ',CurrType);
+{$ifdef DEBUG_COMDISPATCH}
+                        write('DispatchInvoke: Got ref argument with type = ',CurrType);
+                        case CurrType of
+                          varOleStr:
+                            write(' Value = ',pwidestring(PPointer(Params)^)^);
+                        end;
+                        writeln;
+{$endif DEBUG_COMDISPATCH}
                         Arguments[i].VType:=CurrType or VarByRef;
                         Arguments[i].VPointer:=PPointer(Params)^;
                         inc(PPointer(Params));
@@ -318,7 +328,14 @@ implementation
                   else
                     begin
 {$ifdef DEBUG_COMDISPATCH}
-                      writeln('Got argument with type ',CurrType);
+                      write('DispatchInvoke: Got argument with type ',CurrType);
+                      case CurrType of
+                        varOleStr:
+                          write(' Value = ',pwidestring(Params)^);
+                        else
+                          write(' Value = ',hexstr(PtrInt(PPointer(Params)^),SizeOf(Pointer)*2));
+                      end;
+                      writeln;
 {$endif DEBUG_COMDISPATCH}
                       Arguments[i].VType:=CurrType;
                       Arguments[i].VPointer:=PPointer(Params)^;
@@ -331,17 +348,20 @@ implementation
           with DispParams do
             begin
               rgvarg:=@Arguments;
-              rgdispidNamedArgs:=@DispIDs[1];
-              cArgs:=CallDesc^.ArgCount;
               cNamedArgs:=CallDesc^.NamedArgCount;
+              if cNamedArgs=0 then
+                rgdispidNamedArgs:=nil
+              else
+                rgdispidNamedArgs:=@DispIDs^[1];
+              cArgs:=CallDesc^.ArgCount;              
             end;
           InvokeKind:=CallDesc^.CallType;
           MethodID:=DispIDs^[0];
 {$ifdef DEBUG_COMDISPATCH}
-          writeln('MethodID: ',MethodID);
+          writeln('DispatchInvoke: MethodID: ',MethodID,' InvokeKind: ',InvokeKind);
 {$endif DEBUG_COMDISPATCH}
           { do the call and check the result }
-          invokeresult:=Dispatch.Invoke(MethodID,GUID_NULL,0,InvokeKind,DispParams,result,@exceptioninfo,nil);;
+          invokeresult:=Dispatch.Invoke(MethodID,GUID_NULL,0,InvokeKind,DispParams,result,@exceptioninfo,nil);
           if invokeresult<>0 then
             DispatchInvokeError(invokeresult,exceptioninfo);
 
@@ -362,6 +382,7 @@ implementation
       	res : HRESULT;
       	NamesArray : ^PWideChar;
       	NamesData : PWideChar;
+      	OrigNames : PChar;
         NameCount,
       	NameLen,
       	NewNameLen,
@@ -372,8 +393,9 @@ implementation
       	getmem(NamesArray,Count*sizeof(PWideChar));
       	CurrentNameDataSize:=256;
       	CurrentNameDataUsed:=0;
-      	getmem(NamesData,CurrentNameDataSize*2);
+      	getmem(NamesData,CurrentNameDataSize);
         NameCount:=0;
+   	    OrigNames:=Names;
 {$ifdef DEBUG_COMDISPATCH}
         writeln('SearchIDs: Searching ',Count,' IDs');
 {$endif DEBUG_COMDISPATCH}
@@ -384,24 +406,29 @@ implementation
             writeln('SearchIDs: Original name: ',Names,' Len: ',NameLen);
 {$endif DEBUG_COMDISPATCH}
       	    NewNameLen:=MultiByteToWideChar(0,0,Names,NameLen,nil,0)+1;
-      	    if CurrentNameDataUsed+NewNameLen*2>CurrentNameDataSize then
+      	    if (CurrentNameDataUsed+NewNameLen)*2>CurrentNameDataSize then
       	      begin
       	      	inc(CurrentNameDataSize,256);
-      	        reallocmem(NamesData,CurrentNameDataSize*2);
+      	        reallocmem(NamesData,CurrentNameDataSize);
       	      end;
       	    NamesArray[i-1]:=@NamesData[CurrentNameDataUsed];
       	    MultiByteToWideChar(0,0,Names,NameLen,@NamesData[CurrentNameDataUsed],NewNameLen);
       	    NamesData[CurrentNameDataUsed+NewNameLen-1]:=#0;
 {$ifdef DEBUG_COMDISPATCH}
-            { we should write a widestring here writeln('SearchIDs: Translated name: ',NamesData[CurrentNameDataUsed]); }
+            writeln('SearchIDs: Translated name: ',WideString(PWideChar(@NamesData[CurrentNameDataUsed])));
 {$endif DEBUG_COMDISPATCH}
       	    inc(CurrentNameDataUsed,NewNameLen);
       	    inc(Names,NameLen+1);
             inc(NameCount);
       	  end;
       	res:=DispatchInterface.GetIDsOfNames(GUID_NULL,NamesArray,NameCount,GetThreadLocale,IDs);
+{$ifdef DEBUG_COMDISPATCH}
+        writeln('SearchIDs: GetIDsOfNames result = ',hexstr(res,SizeOf(HRESULT)*2));
+        for i:=0 to Count-1 do
+          writeln('SearchIDs: ID[',i,'] = ',ids^[i]);
+{$endif DEBUG_COMDISPATCH}
       	if res=DISP_E_UNKNOWNNAME then
-      	  raise EOleError.createresfmt(@snomethod,[names])
+      	  raise EOleError.createresfmt(@snomethod,[OrigNames])
       	else
       	  OleCheck(res);
       	freemem(NamesArray);
@@ -413,11 +440,12 @@ implementation
         calldesc : pcalldesc;params : pointer);cdecl;
       var
       	dispatchinterface : pointer;
-      	ids : array[0..255] of longint;
+      	ids : array[0..255] of TDispID;
       begin
+        fillchar(ids,sizeof(ids),sizeof(ids));
 {$ifdef DEBUG_COMDISPATCH}
         writeln('ComObjDispatchInvoke called');
-        writeln('ComObjDispatchInvoke: CallDesc^.ArgCount = ',CallDesc^.ArgCount);
+        writeln('ComObjDispatchInvoke: @CallDesc = $',hexstr(PtrInt(CallDesc),SizeOf(Pointer)*2),' CallDesc^.ArgCount = ',CallDesc^.ArgCount);
 {$endif DEBUG_COMDISPATCH}
       	if tvardata(source).vtype=VarDispatch then
       	  dispatchinterface:=tvardata(source).vdispatch
