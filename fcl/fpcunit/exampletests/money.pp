@@ -62,10 +62,8 @@ type
 
   TMoneyBag = class(TInterfacedObject, IMoney)
   private
-    FMonies: TFPList;
-    function AddToMoniesList(const Item: IInterface): Integer;
-    function RemoveFromMoniesList(const Item: IInterface): Integer;
-    function FindMoney(aCurrencyUnit: string): ISingleCurrencyMoney;
+    FMonies: TInterfaceList;
+    function FindMoney(aCurrencyUnit: string): Integer;
     function Contains(m: ISingleCurrencyMoney): boolean;
   public
     constructor Create;
@@ -109,45 +107,31 @@ begin
   c2 := c.multiply(i);
 end;
 
-function TMoneyBag.AddToMoniesList(const Item: IInterface): Integer;
-begin
-  Result := FMonies.Add(nil);
-  IInterface(FMonies.List^[Result]) := Item;
-end;
 
-function TMoneyBag.RemoveFromMoniesList(const Item: IInterface): Integer;
-begin
-  Result := FMonies.IndexOf(Pointer(Item));
-  if Result > -1 then
-  begin
-    IInterface(FMonies.List^[Result]) := nil;
-    FMonies.Delete(Result);
-  end;
-end;
-
-function TMoneyBag.FindMoney(aCurrencyUnit: string): ISingleCurrencyMoney;
+function TMoneyBag.FindMoney(aCurrencyUnit: string): Integer;
 var
   i: Integer;
 begin
   for i := 0 to FMonies.Count - 1 do
-    if ISingleCurrencyMoney(FMonies.items[i]).CurrencyUnit = aCurrencyUnit then
+    if (FMonies.items[i] as ISingleCurrencyMoney).CurrencyUnit = aCurrencyUnit then
     begin
-      Result := ISingleCurrencyMoney(FMonies.items[i]);
+      Result := i;
       Exit;
     end;
+  result := -1;
 end;
 
 function TMoneyBag.Contains(m: ISingleCurrencyMoney): boolean;
 var
-  found: ISingleCurrencyMoney;
+  idx: integer;
 begin
-  found := FindMoney(m.CurrencyUnit);
-  if found = nil then
+  idx := FindMoney(m.CurrencyUnit);
+  if idx = -1 then
   begin
     Result := false;
     Exit;
   end;
-  Result := (found.Amount = m.amount);
+  Result := ((FMonies[idx] as ISingleCurrencyMoney).Amount = m.amount);
 end;
 
 class function TMoneyBag.CreateWith(m1: IMoney; m2: IMoney): IMoney;
@@ -162,15 +146,11 @@ end;
 
 constructor TMoneyBag.Create;
 begin
-  FMonies := TFPList.Create;
+  FMonies := TInterfaceList.Create;
 end;
 
 destructor TMoneyBag.Destroy;
-var
-  i: integer;
 begin
-  for i := 0 to FMonies.Count - 1 do
-    IInterface(FMonies.items[i])._release;
   FMonies.Free;
   inherited Destroy;
 end;
@@ -178,7 +158,7 @@ end;
 function TMoneyBag.Simplify: IMoney;
 begin
   if FMonies.Count = 1 then
-    Result := IMoney(FMonies.items[0])
+    Result := FMonies.items[0] as IMoney
   else
     Result := Self;
 end;
@@ -203,25 +183,27 @@ var
   i: integer;
 begin
   for i := 0 to aBag.FMonies.Count - 1 do
-    appendMoney(ISingleCurrencyMoney(aBag.FMonies.Items[i]));
+    appendMoney(aBag.FMonies.Items[i] as ISingleCurrencyMoney);
 end;
 
 procedure TMoneyBag.appendMoney(aMoney: ISingleCurrencyMoney);
 var
+  i: integer;
   old: IMoney;
   sum: IMoney;
 begin
   if aMoney.isZero then Exit;
-  old := findMoney(aMoney.CurrencyUnit);
-  if old = nil then
+  i := FindMoney(aMoney.CurrencyUnit);
+  if i = -1 then
   begin
-    AddToMoniesList(aMoney);
+    FMonies.add(aMoney);
     Exit;
   end;
+  old := FMonies[i] as IMoney;
   sum := old.Add(aMoney);
-  RemoveFromMoniesList(old);
+  FMonies.Delete(i);
   if sum.isZero then Exit;
-  AddToMoniesList(sum);
+  FMonies.Add(sum);
 end;
 
 function TMoneyBag.isZero: boolean;
@@ -237,8 +219,8 @@ begin
   if factor <> 0 then
     for i := 0 to FMonies.Count - 1 do
     begin
-      TMoneyBag(Result._Self).appendMoney(ISingleCurrencyMoney(
-      ISingleCurrencyMoney(FMonies.items[i]).Multiply(factor)));
+      TMoneyBag(Result._Self).appendMoney(
+      (FMonies.items[i] as ISingleCurrencyMoney).Multiply(factor) as ISingleCurrencyMoney);
     end;
 end;
 
@@ -249,8 +231,8 @@ begin
   Result := TMoneyBag.Create;
   for i := 0 to FMonies.Count - 1 do
   begin
-    TMoneyBag(Result._Self).appendMoney(ISingleCurrencyMoney(
-      ISingleCurrencyMoney(FMonies.items[i]).negate));
+    TMoneyBag(Result._Self).appendMoney(
+(FMonies.items[i] as ISingleCurrencyMoney).negate as ISingleCurrencyMoney);
   end;
 end;
 
@@ -270,7 +252,7 @@ var
 begin
   Result := '{';
   for i := 0 to FMonies.Count - 1 do
-    Result := Result + ISingleCurrencyMoney(FMonies.items[i]).ToString;
+    Result := Result + (FMonies.items[i] as IMoney).ToString;
   Result := Result + '}';
 end;
 
@@ -300,7 +282,7 @@ begin
     end;
     for i := 0 to FMonies.Count - 1 do
     begin
-      ism := ISingleCurrencyMoney(FMonies.items[i]);
+      ism := FMonies.items[i] as ISingleCurrencyMoney;
       if not aMoneyBag.Contains(ism) then
       begin
         Result := false;
@@ -400,7 +382,7 @@ begin
          Result := m.isZero;
     if m._Self.ClassType = TMoney  then
     begin
-      ism := ISingleCurrencyMoney(m);
+      ism := m as ISingleCurrencyMoney;
        Result := (ism.Amount = Amount) and
           (ism.CurrencyUnit = CurrencyUnit)
     end
