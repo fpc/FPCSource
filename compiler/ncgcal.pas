@@ -130,8 +130,12 @@ implementation
         if left.location.loc in [LOC_FLAGS,LOC_JUMP,LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF] then
           location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
 
-        { Handle Floating point types differently }
-        if (left.resultdef.typ=floatdef) and not(cs_fp_emulation in current_settings.moduleswitches) then
+        { Handle Floating point types differently
+
+          This doesn't depend on emulator settings, emulator settings should
+          be handled by cpupara }
+
+        if left.resultdef.typ=floatdef then
          begin
 {$ifdef i386}
            if tempcgpara.location^.loc<>LOC_REFERENCE then
