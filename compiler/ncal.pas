@@ -382,7 +382,7 @@ implementation
 
         { actual call }
         vardatadef:=trecorddef(search_system_type('TVARDATA').typedef);
-        pvardatadef:=ppointerdef(search_system_type('PVARDATA').typedef);
+        pvardatadef:=tpointerdef(search_system_type('PVARDATA').typedef);
 
         addstatement(statements,ccallnode.createintern('fpc_dispinvoke_variant',
           { parameters are passed always reverted, i.e. the last comes first }
