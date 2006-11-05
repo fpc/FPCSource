@@ -2032,7 +2032,7 @@ const pemagic : array[0..3] of byte = (
 
     procedure tcoffexeoutput.CalcPos_Symbols;
       var
-        i : integer;
+        i : longint;
         sym : TExeSymbol;
       begin
         nsyms:=0;
@@ -2047,6 +2047,7 @@ const pemagic : array[0..3] of byte = (
                  ExeSymbolList.Delete(i);
              end;
            ExeSymbolList.Pack;
+           { Calculating symbols position and size }
            nsyms:=ExeSymbolList.Count;
            sympos:=CurrDataPos;
            inc(CurrDataPos,sizeof(coffsymbol)*nsyms);
