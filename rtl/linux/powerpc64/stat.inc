@@ -35,7 +35,7 @@
       st_gid     : gid_t;
 
       st_rdev    : cULong;
-      st_size    : int64;
+      st_size    : off_t;
       st_blksize : cULong;
       st_blocks  : cULong;     { Number 512-byte blocks allocated. }
 
