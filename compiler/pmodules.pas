@@ -224,15 +224,19 @@ implementation
 
 {$ifdef arm}
     procedure InsertPData;
+      var
+        prolog: TAsmList;
       begin
-        new_section(current_asmdata.asmlists[al_globals],sec_code,'FPC_EH_PROLOG',sizeof(aint),secorder_begin);
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Createname('_ARM_ExceptionHandler', 0));
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(0));
-        current_asmdata.asmlists[al_globals].concat(Tai_symbol.Createname_global('FPC_EH_CODE_START',AT_DATA,0));
-
-        new_section(current_asmdata.asmlists[al_globals],sec_pdata,'',sizeof(aint));
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Createname('FPC_EH_CODE_START', 0));
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit($cfffff02));
+        prolog:=TAsmList.create;
+        new_section(prolog,sec_code,'FPC_EH_PROLOG',sizeof(aint),secorder_begin);
+        prolog.concat(Tai_const.Createname('_ARM_ExceptionHandler', 0));
+        prolog.concat(Tai_const.Create_32bit(0));
+        prolog.concat(Tai_symbol.Createname_global('FPC_EH_CODE_START',AT_DATA,0));
+        current_asmdata.asmlists[al_start].insertList(prolog);
+        prolog.Free;
+        new_section(current_asmdata.asmlists[al_end],sec_pdata,'',sizeof(aint));
+        current_asmdata.asmlists[al_end].concat(Tai_const.Createname('FPC_EH_CODE_START', 0));
+        current_asmdata.asmlists[al_end].concat(Tai_const.Create_32bit($cfffff02));
       end;
 {$endif arm}
 

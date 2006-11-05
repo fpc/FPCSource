@@ -453,7 +453,7 @@ implementation
 
     uses
       SysUtils,
-      globals,verbose,fmodule,ogmap;
+      globals,verbose,fmodule,ogmap,dbgstabs;
 
     const
       SectionDataMaxGrow = 4096;
@@ -1507,7 +1507,8 @@ implementation
               end;
           end;
         { Sort list if needed }
-        TmpObjSectionList.Sort(@ObjSectionNameCompare);
+        if CurrExeSec.Name='.idata' then
+          TmpObjSectionList.Sort(@ObjSectionNameCompare);
         { Add the (sorted) list to the current ExeSection }
         for i:=0 to TmpObjSectionList.Count-1 do
           begin
@@ -2015,6 +2016,7 @@ implementation
         mergestabcnt,
         stabcnt : longint;
         skipstab : boolean;
+        skipfun : boolean;
         hstab   : TObjStabEntry;
         stabrelocofs : longint;
         buf     : array[0..1023] of byte;
@@ -2041,6 +2043,7 @@ implementation
         buf[0]:=0;
         mergedstabstrsec.write(buf[0],1);
 
+        skipfun:=false;
         { Copy stabs and corresponding Relocations }
         for i:=0 to stabexesec.ObjSectionList.Count-1 do
           begin
@@ -2059,6 +2062,11 @@ implementation
                     { Only include first hdrsym stab }
                     if hstab.ntype=0 then
                       skipstab:=true;
+                    if skipfun then
+                      begin
+                        skipstab:=hstab.ntype in [N_TextLine,N_RSYM,N_LSYM,N_tsym,N_LBRAC,N_RBRAC,N_IncludeFile];
+                        skipfun:=skipstab;
+                      end;
                     if not skipstab then
                       begin
                         { Find corresponding Relocation }
@@ -2088,7 +2096,17 @@ implementation
                             if not assigned(relocsec) then
                               internalerror(200603302);
                             if not relocsec.Used then
-                              skipstab:=true;
+                              begin
+                                skipstab:=true;
+                                if (hstab.ntype=N_Function) and (hstab.strpos<>0) then
+                                  begin
+                                    currstabstrsec.Data.seek(hstab.strpos);
+                                    bufsize:=currstabstrsec.Data.read(buf,sizeof(buf));
+                                    bufend:=indexbyte(buf,bufsize,Ord(':'));
+                                    if (bufend<>-1) and (bufend<bufsize-1) and (buf[bufend+1]=Ord('F')) then
+                                      skipfun:=true;
+                                  end;
+                              end;
                           end;
                       end;
                     if not skipstab then
