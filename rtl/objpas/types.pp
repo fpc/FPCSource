@@ -110,9 +110,10 @@ type
   POleStr = PWideChar;
   PPOleStr = ^POleStr;
 
-{$ifndef Windows}
 const
+  GUID_NULL: TGUID  = '{00000000-0000-0000-0000-000000000000}';
 
+{$ifndef Windows}
   STGTY_STORAGE   = 1;
   STGTY_STREAM    = 2;
   STGTY_LOCKBYTES = 3;
@@ -170,8 +171,6 @@ const
   STG_S_BLOCK                 = $00030201;
   STG_S_RETRYNOW              = $00030202;
   STG_S_MONITORING            = $00030203;
-
-  GUID_NULL: TGUID  = '{00000000-0000-0000-0000-000000000000}';
 
 type
   PCLSID = PGUID;
