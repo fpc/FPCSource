@@ -112,8 +112,10 @@ procedure EV_SET(kevp: PKEvent; const aIdent: cuint; const aFilter: cshort;
 
 implementation
 
+{$IFNDEF FPC_USE_LIBC}
 uses
   SysCall;
+{$endif}
 
 procedure EV_SET(kevp: PKEvent; const aIdent: cuint; const aFilter: cshort; const aFlags: cushort;
                                 const aFFlags: cuint; const aData: cint; const auData: Pointer); inline;
