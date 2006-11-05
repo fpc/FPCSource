@@ -8,8 +8,14 @@ program test_win32_drv;
 procedure printer;external 'winspool.drv' name 'AbortPrinter';
 
 procedure test;
+var
+  i : integer;
 begin
   Writeln('Loading of Winspool works ');
+  { Force reference to winspool.drv }
+  i:=1;
+  if i=0 then
+    printer;
 end;
 
 begin
