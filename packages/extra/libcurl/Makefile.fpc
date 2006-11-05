@@ -1,0 +1,23 @@
+#
+#   Makefile.fpc for libcurl Library interface
+#
+
+[package]
+name=libcurl
+version=2.0.4
+
+[require]
+libc=y
+
+[target]
+units=libcurl
+examples=testcurl teststream
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+[shared]
+build=n
