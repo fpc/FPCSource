@@ -899,19 +899,19 @@ implementation
               begin
                 s:=ObjectFiles.GetFirst;
                 if s<>'' then
-                  Concat('READOBJECT '+s);
+                  Concat('READOBJECT '+MaybeQuoted(s));
               end;
             while not StaticLibFiles.Empty do
               begin
                 s:=StaticLibFiles.GetFirst;
                 if s<>'' then
-                  Concat('READSTATICLIBRARY '+s);
+                  Concat('READSTATICLIBRARY '+MaybeQuoted(s));
               end;
             While not SharedLibFiles.Empty do
               begin
                 S:=SharedLibFiles.GetFirst;
                 if FindLibraryFile(s,target_info.staticClibprefix,target_info.staticClibext,s2) then
-                  Concat('READSTATICLIBRARY '+s2)
+                  Concat('READSTATICLIBRARY '+MaybeQuoted(s2))
                 else
                   Comment(V_Error,'Import library not found for '+S);
               end;
