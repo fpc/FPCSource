@@ -80,7 +80,8 @@ implementation
     procedure tcgloadnode.pass_generate_code;
       var
         hregister : tregister;
-        symtabletype : TSymtabletype;
+        vs   : tabstractnormalvarsym;
+        gvs  : tglobalvarsym;
         pd   : tprocdef;
         href : treference;
         newsize : tcgsize;
@@ -130,167 +131,142 @@ implementation
                  else
                    internalerror(22798);
               end;
-            globalvarsym,
-            localvarsym,
-            paravarsym :
-               begin
-                  if (symtableentry.typ = globalvarsym) and
-                     ([vo_is_dll_var,vo_is_external] * tglobalvarsym(symtableentry).varoptions <> []) then
-                    begin
-                      location.reference.base := cg.g_indirect_sym_load(current_asmdata.CurrAsmList,tglobalvarsym(symtableentry).mangledname);
-                      if (location.reference.base <> NR_NO) then
-                        exit;
-                    end;
+            globalvarsym :
+              begin
+                gvs:=tglobalvarsym(symtableentry);
+                if ([vo_is_dll_var,vo_is_external] * gvs.varoptions <> []) then
+                  begin
+                    location.reference.base := cg.g_indirect_sym_load(current_asmdata.CurrAsmList,tglobalvarsym(symtableentry).mangledname);
+                    if (location.reference.base <> NR_NO) then
+                      exit;
+                  end;
 
-                  symtabletype:=symtable.symtabletype;
-                  hregister:=NR_NO;
-                  if (vo_is_dll_var in tabstractvarsym(symtableentry).varoptions) then
-                  { DLL variable }
-                    begin
-                      hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                      location.reference.symbol:=current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname);
-                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,location.reference,hregister);
-                      reference_reset_base(location.reference,hregister,0);
-                    end
-                  { Thread variable }
-                  else if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) and
-                    not(tf_section_threadvars in target_info.flags) then
-                    begin
-                       {
-                         Thread var loading is optimized to first check if
-                         a relocate function is available. When the function
-                         is available it is called to retrieve the address.
-                         Otherwise the address is loaded with the symbol
-
-                         The code needs to be in the order to first handle the
-                         call and then the address load to be sure that the
-                         register that is used for returning is the same (PFV)
-                       }
-                       current_asmdata.getjumplabel(norelocatelab);
-                       current_asmdata.getjumplabel(endrelocatelab);
-                       { make sure hregister can't allocate the register necessary for the parameter }
-                       paraloc1.init;
-                       paramanager.getintparaloc(pocall_default,1,paraloc1);
-                       hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                       reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0);
-                       cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
-                       cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,hregister,norelocatelab);
-                       { don't save the allocated register else the result will be destroyed later }
-                       reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname),0);
-                       paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-                       cg.a_param_ref(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
-                       paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
-                       paraloc1.done;
-                       cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                       cg.a_call_reg(current_asmdata.CurrAsmList,hregister);
-                       cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-                       cg.getcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-                       cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-                       hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                       cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
-                       cg.a_jmp_always(current_asmdata.CurrAsmList,endrelocatelab);
-                       cg.a_label(current_asmdata.CurrAsmList,norelocatelab);
-                       { no relocation needed, load the address of the variable only, the
-                         layout of a threadvar is (4 bytes pointer):
-                           0 - Threadvar index
-                           4 - Threadvar value in single threading }
-                       reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname),sizeof(aint));
-                       cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
-                       cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
-                       location.reference.base:=hregister;
-                    end
-                  { Nested variable }
-                  else if assigned(left) then
-                    begin
-                      if not(symtabletype in [localsymtable,parasymtable]) then
-                        internalerror(200309285);
-                      secondpass(left);
-                      if left.location.loc<>LOC_REGISTER then
-                        internalerror(200309286);
-                      if tabstractnormalvarsym(symtableentry).localloc.loc<>LOC_REFERENCE then
-                        internalerror(200409241);
-                      hregister:=left.location.register;
-                      reference_reset_base(location.reference,hregister,tabstractnormalvarsym(symtableentry).localloc.reference.offset);
-                    end
-                  { Normal (or external) variable }
-                  else
-                    begin
-{$ifdef OLDREGVARS}
-                       { in case it is a register variable: }
-                       if tvarsym(symtableentry).localloc.loc in [LOC_REGISTER,LOC_FPUREGISTER] then
-                         begin
-                            case getregtype(tvarsym(symtableentry).localloc.register) of
-                              R_FPUREGISTER :
-                                begin
-                                  location_reset(location,LOC_CFPUREGISTER,def_cgsize(resultdef));
-                                  location.register:=tvarsym(symtableentry).localloc.register;
-                                end;
-                              R_INTREGISTER :
-                                begin
-                                  location_reset(location,LOC_CREGISTER,def_cgsize(resultdef));
-                                  location.register:=tvarsym(symtableentry).localloc.register;
-                                  hregister := location.register;
-                                end;
-                              else
-                                internalerror(200301172);
-                            end;
-                         end
-                       else
-{$endif OLDREGVARS}
-                         begin
-                           case symtabletype of
-                              stt_excepTSymtable,
-                              localsymtable,
-                              parasymtable :
-                                location:=tabstractnormalvarsym(symtableentry).localloc;
-                              globalsymtable,
-                              staticsymtable :
-                                begin
-                                  if tabstractnormalvarsym(symtableentry).localloc.loc=LOC_INVALID then
-                                    reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname),0)
-                                  else
-                                    location:=tglobalvarsym(symtableentry).localloc;
+                if (vo_is_dll_var in gvs.varoptions) then
+                { DLL variable }
+                  begin
+                    hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                    location.reference.symbol:=current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname);
+                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,location.reference,hregister);
+                    reference_reset_base(location.reference,hregister,0);
+                  end
+                { Thread variable }
+                else if (vo_is_thread_var in gvs.varoptions) and
+                        not(tf_section_threadvars in target_info.flags) then
+                  begin
+                     if (tf_section_threadvars in target_info.flags) then
+                       begin
+                         if gvs.localloc.loc=LOC_INVALID then
+                           reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0)
+                         else
+                           location:=gvs.localloc;
 {$ifdef i386}
-                                  if (tf_section_threadvars in target_info.flags) and
-                                     (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then
-                                    begin
-                                      case target_info.system of
-                                        system_i386_linux:
-                                          location.reference.segment:=NR_GS;
-                                        system_i386_win32:
-                                          location.reference.segment:=NR_FS;
-                                      end;
-                                    end;
-{$endif i386}
-                                end;
-                              else
-                                internalerror(200305102);
-                           end;
+                         case target_info.system of
+                           system_i386_linux:
+                             location.reference.segment:=NR_GS;
+                           system_i386_win32:
+                             location.reference.segment:=NR_FS;
                          end;
-                    end;
+{$endif i386}
+                       end
+                     else
+                       begin
+                         {
+                           Thread var loading is optimized to first check if
+                           a relocate function is available. When the function
+                           is available it is called to retrieve the address.
+                           Otherwise the address is loaded with the symbol
 
-                  { handle call by reference variables when they are not
-                    alreayd copied to local copies. Also ignore the reference
-                    when we need to load the self pointer for objects }
-                  if is_addr_param_load then
-                    begin
-                      if (location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
-                        hregister:=location.register
-                      else
-                        begin
-                          hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                          { we need to load only an address }
-                          location.size:=OS_ADDR;
-                          cg.a_load_loc_reg(current_asmdata.CurrAsmList,location.size,location,hregister);
-                        end;
-                      location_reset(location,LOC_REFERENCE,newsize);
-                      location.reference.base:=hregister;
-                    end;
+                           The code needs to be in the order to first handle the
+                           call and then the address load to be sure that the
+                           register that is used for returning is the same (PFV)
+                         }
+                         current_asmdata.getjumplabel(norelocatelab);
+                         current_asmdata.getjumplabel(endrelocatelab);
+                         { make sure hregister can't allocate the register necessary for the parameter }
+                         paraloc1.init;
+                         paramanager.getintparaloc(pocall_default,1,paraloc1);
+                         hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0);
+                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
+                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,hregister,norelocatelab);
+                         { don't save the allocated register else the result will be destroyed later }
+                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname),0);
+                         paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
+                         cg.a_param_ref(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
+                         paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+                         paraloc1.done;
+                         cg.allocallcpuregisters(current_asmdata.CurrAsmList);
+                         cg.a_call_reg(current_asmdata.CurrAsmList,hregister);
+                         cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+                         cg.getcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
+                         cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
+                         hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
+                         cg.a_jmp_always(current_asmdata.CurrAsmList,endrelocatelab);
+                         cg.a_label(current_asmdata.CurrAsmList,norelocatelab);
+                         { no relocation needed, load the address of the variable only, the
+                           layout of a threadvar is (4 bytes pointer):
+                             0 - Threadvar index
+                             4 - Threadvar value in single threading }
+                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname),sizeof(aint));
+                         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
+                         cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
+                         location.reference.base:=hregister;
+                       end;
+                   end
+                 { Normal (or external) variable }
+                 else
+                   begin
+                     if gvs.localloc.loc=LOC_INVALID then
+                       reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0)
+                     else
+                       location:=gvs.localloc;
+                   end;
 
-                  { make const a LOC_CREFERENCE }
-                  if (tabstractvarsym(symtableentry).varspez=vs_const) and
-                     (location.loc=LOC_REFERENCE) then
-                    location.loc:=LOC_CREFERENCE;
+                 { make const a LOC_CREFERENCE }
+                 if (gvs.varspez=vs_const) and
+                    (location.loc=LOC_REFERENCE) then
+                   location.loc:=LOC_CREFERENCE;
+               end;
+             paravarsym,
+             localvarsym :
+               begin
+                 vs:=tabstractnormalvarsym(symtableentry);
+                 { Nested variable }
+                 if assigned(left) then
+                   begin
+                     secondpass(left);
+                     if left.location.loc<>LOC_REGISTER then
+                       internalerror(200309286);
+                     if vs.localloc.loc<>LOC_REFERENCE then
+                       internalerror(200409241);
+                     reference_reset_base(location.reference,left.location.register,vs.localloc.reference.offset);
+                   end
+                 else
+                   location:=vs.localloc;
+
+                 { handle call by reference variables when they are not
+                   alreayd copied to local copies. Also ignore the reference
+                   when we need to load the self pointer for objects }
+                 if is_addr_param_load then
+                   begin
+                     if (location.loc in [LOC_CREGISTER,LOC_REGISTER]) then
+                       hregister:=location.register
+                     else
+                       begin
+                         hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                         { we need to load only an address }
+                         location.size:=OS_ADDR;
+                         cg.a_load_loc_reg(current_asmdata.CurrAsmList,location.size,location,hregister);
+                       end;
+                     location_reset(location,LOC_REFERENCE,newsize);
+                     location.reference.base:=hregister;
+                   end;
+
+                 { make const a LOC_CREFERENCE }
+                 if (vs.varspez=vs_const) and
+                    (location.loc=LOC_REFERENCE) then
+                   location.loc:=LOC_CREFERENCE;
                end;
             procsym:
                begin
@@ -372,7 +348,7 @@ implementation
                          location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname);
                     end;
                end;
-            typedconstsym :
+           typedconstsym :
               location.reference.symbol:=current_asmdata.RefAsmSymbol(ttypedconstsym(symtableentry).mangledname);
             labelsym :
               location.reference.symbol:=tcglabelnode((tlabelsym(symtableentry).code)).getasmlabel;
