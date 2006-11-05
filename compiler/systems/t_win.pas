@@ -1683,7 +1683,9 @@ implementation
         if FindLibraryFile(binname,target_info.staticClibprefix,target_info.staticClibext,hs) then
           exit;
         { check if we can find the dll }
-        hs:=ChangeFileExt(binname,target_info.sharedlibext);
+        hs:=binname;
+        if ExtractFileExt(hs)='' then
+          hs:=ChangeFileExt(hs,target_info.sharedlibext);
         if not FindDll(hs,dllname) then
           exit;
         importfound:=false;
