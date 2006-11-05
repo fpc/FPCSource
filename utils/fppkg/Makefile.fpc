@@ -4,7 +4,13 @@
 
 [target]
 programs=fppkg
-units=fpmktype fpmkunit fprepos fpxmlrep pkgropts pkghandler pkgmkconv pkgdownload pkgwget
+units=fpmktype fpmkunit fprepos fpxmlrep pkgropts pkghandler pkgmkconv pkgdownload pkgwget 
+units_linux=pkglibcurl
+units_freebsd=pkglibcurl
+units_netbsd=pkglibcurl
+units_openbsd=pkglibcurl
+units_darwin=pkglibcurl
+units_solaris=pkglibcurl
 examples=rep2xml
 rsts=fprepos fpxmlrep fppkg
 
@@ -15,7 +21,7 @@ fpcpackage=y
 fpcdir=../..
 
 [require]
-packages=fcl
+packages=fcl libcurl
 
 [rules]
 fpmkunit$(PPUEXT) : fpmkunit.pp fpmkcnst.inc fpmktype$(PPUEXT)

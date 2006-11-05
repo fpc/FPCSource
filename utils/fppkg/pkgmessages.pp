@@ -17,6 +17,8 @@ Resourcestring
   SErrUnknownProtocol        = 'Unknown download protocol: "%s"';
   SErrNoSuchFile             = 'File "%s" does not exist.';
   SErrWGetDownloadFailed     = 'Download failed: wget reported exit status %d.';
+  SErrDownloadFailed         = 'Download failed: %s';
+  
   SErrHTTPGetFailed          = 'HTTP Download failed.';
   SErrLoginFailed            = 'FTP LOGIN command failed.';
   SErrCWDFailed              = 'FTP CWD "%s" command failed.';  

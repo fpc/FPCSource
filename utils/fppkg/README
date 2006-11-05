@@ -62,6 +62,8 @@ pkgwget
 pkgsynapse
   a downloader based on Synapse. Do not put in makefile, as Synapse is
   not distributed by default with FPC.
+pkglibcurl
+  a downloader based on LibCurl (plain C library). 
 pkgocurl
   a downloader based on CurlPas (object version). Do not put in makefile,
   as CurlPas is not distributed with FPC.
