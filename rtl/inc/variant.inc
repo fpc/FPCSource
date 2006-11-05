@@ -156,7 +156,7 @@ function fpc_idispatch_to_variant(const i : idispatch) : variant;compilerproc;
 
 
 procedure fpc_dispinvoke_variant(dest : pvardata;const source : tvardata; 
-  calldesc : pcalldesc;params : pointer);
+  calldesc : pcalldesc;params : pointer); compilerproc;
   begin
   	variantmanager.dispinvoke(dest,source,calldesc,params);
   end;
