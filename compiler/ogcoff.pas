@@ -2031,11 +2031,22 @@ const pemagic : array[0..3] of byte = (
 
 
     procedure tcoffexeoutput.CalcPos_Symbols;
+      var
+        i : integer;
+        sym : TExeSymbol;
       begin
         nsyms:=0;
         sympos:=0;
         if not(cs_link_strip in current_settings.globalswitches) then
          begin
+           { Removing unused symbols }
+           for i:=0 to ExeSymbolList.Count-1 do
+             begin
+               sym:=TExeSymbol(ExeSymbolList[i]);
+               if not sym.ObjSymbol.objsection.Used then
+                 ExeSymbolList.Delete(i);
+             end;
+           ExeSymbolList.Pack;
            nsyms:=ExeSymbolList.Count;
            sympos:=CurrDataPos;
            inc(CurrDataPos,sizeof(coffsymbol)*nsyms);
