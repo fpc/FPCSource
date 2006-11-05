@@ -73,13 +73,15 @@ Begin
    InOutRes:=3;
 End;
 
-{$define usegetcwd}
-
+// !! for now we use getcwd, unless we are fpc_use_libc.
+// !! the old code  is _still needed_ since the syscall sometimes doesn't work
+// !! on special filesystems like NFS etc.
+// !! In the libc versions, the alt code is already integrated in the libc code.
+// !! Also significantly boosted buffersize. This will make failure of the 
+// !! dos legacy api's better visibile due to cut-off path, instead of "empty"
 procedure getdir(drivenr : byte;var dir : shortstring);
 var
-{$ifdef usegetcwd}
-  buf          : array[0..254] of char;
-{$else}
+  buf          : array[0..2047] of char;
   cwdinfo      : stat;
   rootinfo     : stat;
   thedir,dummy : string[255];
@@ -88,14 +90,14 @@ var
   name         : string[255];
   thisdir      : stat;
   tmp          : string[255];
-{$endif}
 
 begin
   dir:='';
-{$ifdef usegetcwd}
  if Fpgetcwd(@buf[0],sizeof(buf))<>nil then
-   dir:=strpas(buf);
-{$else}
+   dir:=strpas(buf)
+{$ifndef FPC_USE_LIBC}
+ else 
+  begin
   thedir:='';
   dummy:='';
 
@@ -147,6 +149,7 @@ begin
         exit;
       end;
   until false;
+  end;
  {$endif}
 end;
 
