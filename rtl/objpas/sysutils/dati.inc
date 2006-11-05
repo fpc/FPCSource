@@ -832,7 +832,7 @@ begin
     result:=defvalue;
 end;
 
-procedure ReplaceTime(var dati:TDateTime; NewTime : TDateTime);
+procedure ReplaceTime(var dati:TDateTime; NewTime : TDateTime);inline;
 
 begin
   dati:=trunc(dati)+frac(newtime);
