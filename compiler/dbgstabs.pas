@@ -30,6 +30,26 @@ interface
       dbgbase,
       symtype,symdef,symsym,symtable,symbase,
       aasmtai,aasmdata;
+      
+    const
+      { stab types }
+      N_GSYM = $20;
+      N_STSYM = 38;     { initialized const }
+      N_LCSYM = 40;     { non initialized variable}
+      N_Function = $24; { function or const }
+      N_TextLine = $44;
+      N_DataLine = $46;
+      N_BssLine = $48;
+      N_RSYM = $40;     { register variable }
+      N_LSYM = $80;
+      N_tsym = 160;
+      N_SourceFile = $64;
+      N_IncludeFile = $84;
+      N_BINCL = $82;
+      N_EINCL = $A2;
+      N_LBRAC = $C0;
+      N_EXCL  = $C2;
+      N_RBRAC = $E0;
 
     type
       TDebugInfoStabs=class(TDebugInfo)
@@ -74,24 +94,6 @@ implementation
 
     const
       memsizeinc = 512;
-
-      N_GSYM = $20;
-      N_STSYM = 38;     { initialized const }
-      N_LCSYM = 40;     { non initialized variable}
-      N_Function = $24; { function or const }
-      N_TextLine = $44;
-      N_DataLine = $46;
-      N_BssLine = $48;
-      N_RSYM = $40;     { register variable }
-      N_LSYM = $80;
-      N_tsym = 160;
-      N_SourceFile = $64;
-      N_IncludeFile = $84;
-      N_BINCL = $82;
-      N_EINCL = $A2;
-      N_LBRAC = $C0;
-      N_EXCL  = $C2;
-      N_RBRAC = $E0;
 
       tagtypes = [
         recorddef,
