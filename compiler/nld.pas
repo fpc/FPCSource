@@ -371,17 +371,7 @@ implementation
                   firstpass(left);
                 if not is_addr_param_load and
                    tabstractvarsym(symtableentry).is_regvar(is_addr_param_load) then
-                  begin
-                    case tabstractvarsym(symtableentry).varregable of
-                      vr_intreg,
-                      vr_addr :
-                        expectloc:=LOC_CREGISTER;
-                      vr_fpureg :
-                        expectloc:=LOC_CFPUREGISTER;
-                      vr_mmreg :
-                        expectloc:=LOC_CMMREGISTER;
-                    end
-                  end
+                  expectloc:=tvarregable2tcgloc[tabstractvarsym(symtableentry).varregable]
                 else
                   if (tabstractvarsym(symtableentry).varspez=vs_const) then
                     expectloc:=LOC_CREFERENCE;

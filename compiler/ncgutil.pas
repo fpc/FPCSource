@@ -727,7 +727,6 @@ implementation
     procedure location_force_mmreg(list:TAsmList;var l: tlocation;maybeconst:boolean);
       var
         reg : tregister;
-        href : treference;
       begin
         if (l.loc<>LOC_MMREGISTER)  and
            ((l.loc<>LOC_CMMREGISTER) or (not maybeconst)) then
@@ -1090,36 +1089,8 @@ implementation
       end;
 
 
-    { generates the code for finalisation of local typedconsts }
-    procedure finalize_local_typedconst(p:TObject;arg:pointer);
-      var
-        i : longint;
-        pd : tprocdef;
-      begin
-        case tsym(p).typ of
-          typedconstsym :
-            begin
-              if ttypedconstsym(p).is_writable and
-                 ttypedconstsym(p).typedconstdef.needs_inittable then
-                finalize_sym(TAsmList(arg),tsym(p));
-            end;
-          procsym :
-            begin
-              for i:=0 to tprocsym(p).ProcdefList.Count-1 do
-                begin
-                  pd:=tprocdef(tprocsym(p).ProcdefList[i]);
-                  if assigned(pd.localst) and
-                     (pd.procsym=tprocsym(p)) and
-                     (pd.localst.symtabletype<>staticsymtable) then
-                    pd.localst.SymList.ForEachCall(@finalize_local_typedconst,arg);
-                end;
-            end;
-        end;
-      end;
-
-
     { generates the code for finalization of static symtable and
-      all local (static) typedconsts }
+      all local (static) typed consts }
     procedure finalize_static_data(p:TObject;arg:pointer);
       var
         i : longint;
@@ -1129,16 +1100,11 @@ implementation
           globalvarsym :
             begin
               if (tglobalvarsym(p).refs>0) and
+                 (tglobalvarsym(p).varspez<>vs_const) and
                  not(vo_is_funcret in tglobalvarsym(p).varoptions) and
                  not(vo_is_external in tglobalvarsym(p).varoptions) and
                  not(is_class(tglobalvarsym(p).vardef)) and
                  tglobalvarsym(p).vardef.needs_inittable then
-                finalize_sym(TAsmList(arg),tsym(p));
-            end;
-          typedconstsym :
-            begin
-              if ttypedconstsym(p).is_writable and
-                 ttypedconstsym(p).typedconstdef.needs_inittable then
                 finalize_sym(TAsmList(arg),tsym(p));
             end;
           procsym :
@@ -1149,7 +1115,7 @@ implementation
                   if assigned(pd.localst) and
                      (pd.procsym=tprocsym(p)) and
                      (pd.localst.symtabletype<>staticsymtable) then
-                    pd.localst.SymList.ForEachCall(@finalize_local_typedconst,arg);
+                    pd.localst.SymList.ForEachCall(@finalize_static_data,arg);
                 end;
             end;
         end;
@@ -2201,8 +2167,7 @@ implementation
            DLLSource or
            (assigned(current_procinfo) and
             (po_inline in current_procinfo.procdef.procoptions)) or
-           (vo_is_exported in sym.varoptions) or
-           (vo_is_C_var in sym.varoptions) then
+           (vo_is_exported in sym.varoptions) then
           list.concat(Tai_datablock.create_global(sym.mangledname,l))
         else
           list.concat(Tai_datablock.create(sym.mangledname,l));
@@ -2210,125 +2175,111 @@ implementation
       end;
 
 
-    procedure init_regvar_loc(sym:tabstractnormalvarsym;cgsize:tcgsize);
-      begin
-        with sym do
-          begin
-            initialloc.size:=cgsize;
-            localloc.size:=initialloc.size;
-            case varregable of
-              vr_intreg,
-              vr_addr :
-                begin
-                  initialloc.loc:=LOC_CREGISTER;
-                end;
-              vr_fpureg :
-                begin
-                  initialloc.loc:=LOC_CFPUREGISTER;
-                end;
-              vr_mmreg :
-                begin
-                  initialloc.loc:=LOC_CMMREGISTER;
-                end;
-              else
-                internalerror(2004101010);
-            end;
-            localloc.loc:=initialloc.loc;
-          end;
-      end;
-
-
     procedure gen_alloc_symtable(list:TAsmList;st:TSymtable);
+
+        procedure setlocalloc(vs:tabstractnormalvarsym);
+        begin
+          if cs_asm_source in current_settings.globalswitches then
+            begin
+              case vs.initialloc.loc of
+                LOC_REFERENCE :
+                  begin
+                    if not assigned(vs.initialloc.reference.symbol) then
+                      list.concat(Tai_comment.Create(strpnew('Var '+vs.realname+' located at '+
+                         std_regname(vs.initialloc.reference.base)+tostr_with_plus(vs.initialloc.reference.offset))));
+                  end;
+              end;
+            end;
+          vs.localloc:=vs.initialloc;
+        end;
+
       var
         i       : longint;
         sym     : tsym;
+        vs      : tabstractnormalvarsym;
         isaddr  : boolean;
         cgsize  : tcgsize;
       begin
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
-            if (sym.typ in [globalvarsym,localvarsym,paravarsym]) then
-              begin
-                with tabstractnormalvarsym(sym) do
-                  begin
-                    { Parameters passed to assembler procedures need to be kept
-                      in the original location }
-                    if (sym.typ=paravarsym) and
-                       (po_assembler in current_procinfo.procdef.procoptions) then
-                      begin
-                        tparavarsym(sym).paraloc[calleeside].get_location(initialloc);
-                        localloc:=initialloc;
-                      end
-                    else
-                      begin
-                        isaddr:=(st.symtabletype=parasymtable) and
-                                paramanager.push_addr_param(varspez,vardef,current_procinfo.procdef.proccalloption);
-                        if isaddr then
-                          cgsize:=OS_ADDR
-                        else
-                          cgsize:=def_cgsize(vardef);
-{$ifndef OLDREGVARS}
-                        { When there is assembler code we can't use regvars }
-                        if is_regvar(isaddr) then
-                          begin
-                            init_regvar_loc(tabstractnormalvarsym(sym),cgsize);
-                            if (st.symtabletype <> parasymtable) then
-                              gen_alloc_regvar(list,tabstractnormalvarsym(sym));
-                          end
-                        else
-{$endif NOT OLDREGVARS}
-                          begin
-                            initialloc.loc:=LOC_REFERENCE;
-                            initialloc.size:=cgsize;
-                            case st.symtabletype of
-                              parasymtable :
-                                begin
-                                  { Reuse the parameter location for values to are at a single location on the stack }
-                                  if paramanager.param_use_paraloc(tparavarsym(sym).paraloc[calleeside]) then
-                                    begin
-                                      reference_reset_base(initialloc.reference,tparavarsym(sym).paraloc[calleeside].location^.reference.index,
-                                          tparavarsym(sym).paraloc[calleeside].location^.reference.offset);
-                                    end
-                                  else
-                                    begin
-                                      if isaddr then
-                                        tg.GetLocal(list,sizeof(aint),voidpointertype,initialloc.reference)
-                                      else
-                                        tg.GetLocal(list,getsize,tparavarsym(sym).paraloc[calleeside].alignment,vardef,initialloc.reference);
-                                    end;
-                                end;
-                              localsymtable,
-                              stt_excepTSymtable :
-                                begin
-                                  tg.GetLocal(list,getsize,vardef,initialloc.reference);
-                                end;
-                              staticsymtable :
-                                begin
-                                  { PIC, DLL and Threadvar need extra code and are handled in ncgld }
-                                  if not(vo_is_dll_var in varoptions) and ((tf_section_threadvars in target_info.flags) or
-                                     not(vo_is_thread_var in varoptions)) then
-                                    reference_reset_symbol(initialloc.reference,current_asmdata.RefAsmSymbol(mangledname),0);
-                                end;
-                              else
-                                internalerror(200410103);
-                            end;
-                          end;
-                      end;
-                    if cs_asm_source in current_settings.globalswitches then
-                      begin
-                        case initialloc.loc of
-                          LOC_REFERENCE :
+            case sym.typ of
+              globalvarsym :
+                begin
+                  vs:=tabstractnormalvarsym(sym);
+                  vs.initialloc.size:=def_cgsize(vs.vardef);
+                  if vs.is_regvar(false) then
+                    begin
+                      vs.initialloc.loc:=tvarregable2tcgloc[vs.varregable];
+                      gen_alloc_regvar(list,vs);
+                    end
+                  else
+                    begin
+                      vs.initialloc.loc:=LOC_REFERENCE;
+                      { PIC, DLL and Threadvar need extra code and are handled in ncgld }
+                      if not(vo_is_dll_var in vs.varoptions) and
+                         (
+                          (tf_section_threadvars in target_info.flags) or
+                          not(vo_is_thread_var in vs.varoptions)
+                         ) then
+                        reference_reset_symbol(vs.initialloc.reference,current_asmdata.RefAsmSymbol(vs.mangledname),0);
+                    end;
+                  setlocalloc(vs);
+                end;
+              paravarsym :
+                begin
+                  vs:=tabstractnormalvarsym(sym);
+                  { Parameters passed to assembler procedures need to be kept
+                    in the original location }
+                  if (po_assembler in current_procinfo.procdef.procoptions) then
+                    tparavarsym(vs).paraloc[calleeside].get_location(vs.initialloc)
+                  else
+                    begin
+                      isaddr:=paramanager.push_addr_param(vs.varspez,vs.vardef,current_procinfo.procdef.proccalloption);
+                      if isaddr then
+                        vs.initialloc.size:=OS_ADDR
+                      else
+                        vs.initialloc.size:=def_cgsize(vs.vardef);
+
+                      if vs.is_regvar(isaddr) then
+                        vs.initialloc.loc:=tvarregable2tcgloc[vs.varregable]
+                      else
+                        begin
+                          vs.initialloc.loc:=LOC_REFERENCE;
+                          { Reuse the parameter location for values to are at a single location on the stack }
+                          if paramanager.param_use_paraloc(tparavarsym(sym).paraloc[calleeside]) then
                             begin
-                              if not assigned(initialloc.reference.symbol) then
-                                list.concat(Tai_comment.Create(strpnew('Var '+realname+' located at '+
-                                   std_regname(initialloc.reference.base)+tostr_with_plus(initialloc.reference.offset))));
+                              reference_reset_base(vs.initialloc.reference,tparavarsym(sym).paraloc[calleeside].location^.reference.index,
+                                  tparavarsym(sym).paraloc[calleeside].location^.reference.offset);
+                            end
+                          else
+                            begin
+                              if isaddr then
+                                tg.GetLocal(list,sizeof(aint),voidpointertype,vs.initialloc.reference)
+                              else
+                                tg.GetLocal(list,vs.getsize,tparavarsym(sym).paraloc[calleeside].alignment,vs.vardef,vs.initialloc.reference);
                             end;
                         end;
-                      end;
-                    localloc:=initialloc;
-                  end;
-              end;
+                    end;
+                  setlocalloc(vs);
+                end;
+              localvarsym :
+                begin
+                  vs:=tabstractnormalvarsym(sym);
+                  vs.initialloc.size:=def_cgsize(vs.vardef);
+                  if vs.is_regvar(false) then
+                    begin
+                      vs.initialloc.loc:=tvarregable2tcgloc[vs.varregable];
+                      gen_alloc_regvar(list,vs);
+                    end
+                  else
+                    begin
+                      vs.initialloc.loc:=LOC_REFERENCE;
+                      tg.GetLocal(list,vs.getsize,vs.vardef,vs.initialloc.reference);
+                    end;
+                  setlocalloc(vs);
+                end;
+            end;
           end;
       end;
 
@@ -2642,12 +2593,8 @@ implementation
                           cg.a_reg_sync(list,localloc.register);
                       LOC_REFERENCE :
                         begin
-                          case st.symtabletype of
-                            localsymtable,
-                            parasymtable,
-                            stt_excepTSymtable :
-                              tg.Ungetlocal(list,localloc.reference);
-                          end;
+                          if typ in [localvarsym,paravarsym] then
+                            tg.Ungetlocal(list,localloc.reference);
                         end;
                     end;
                   end;

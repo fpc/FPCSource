@@ -266,6 +266,9 @@ interface
        tcgsize2tfloat: array[OS_F32..OS_C64] of tfloattype =
          (s32real,s64real,s80real,s64comp);
 
+       tvarregable2tcgloc : array[tvarregable] of tcgloc = (LOC_VOID,
+          LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER,LOC_CREGISTER);
+
        { Table to convert tcgsize variables to the correspondending
          unsigned types }
        tcgsize2unsigned : array[tcgsize] of tcgsize = (OS_NO,
