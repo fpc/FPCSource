@@ -25,7 +25,7 @@
 
 {$IFNDEF FPC_USE_LIBC}
 
-  Stat = packed record  // No unix typing because of differences
+  Stat = record  // No unix typing because of differences
     st_dev    : culonglong;
     st_ino    : culonglong;
     st_mode   : cuint;
@@ -35,16 +35,17 @@
     st_rdev   : culonglong;
     __pad2    : cushort;
     st_size   : clonglong;
-    st_blksize: cint;
+    st_blksize: clong;
+
     st_blocks : clonglong;
-    st_atime  : cint;
-    st_atime_nsec : cuint;
-    st_mtime  : cint;
-    st_mtime_nsec : cuint;
-    st_ctime  : cint;
-    st_ctime_nsec : cuint;
-    __unused4 : cuint;
-    __unused5 : cuint;
+    st_atime  : clong;
+    st_atime_nsec : culong;
+    st_mtime  : clong;
+    st_mtime_nsec : culong;
+    st_ctime  : clong;
+    __unused3 : culong;
+    __unused4 : culong;
+    __unused5 : culong;
   end;
 
 {$ELSE FPC_USE_LIBC}
