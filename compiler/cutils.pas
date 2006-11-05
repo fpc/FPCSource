@@ -578,21 +578,23 @@ implementation
     function GetToken(var s:string;endchar:char):string;
       var
         i : longint;
+        quote : char;
       begin
         GetToken:='';
         s:=TrimSpace(s);
         if (length(s)>0) and
-           (s[1]='''') then
+           (s[1] in ['''','"']) then
          begin
+           quote:=s[1];
            i:=1;
            while (i<length(s)) do
             begin
               inc(i);
-              if s[i]='''' then
+              if s[i]=quote then
                begin
                  { Remove double quote }
                  if (i<length(s)) and
-                    (s[i+1]='''') then
+                    (s[i+1]=quote) then
                   begin
                     Delete(s,i,1);
                     inc(i);
