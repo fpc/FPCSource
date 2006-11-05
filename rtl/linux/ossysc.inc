@@ -91,7 +91,7 @@ end;
 function Fpstat(path: pchar; var buf: stat):cint; [public, alias : 'FPC_SYSC_STAT'];
 
 begin
-{$if defined(cpu64) and not defined(cpupowerpc64)}
+{$if defined(cpu64)}
   Fpstat:=do_syscall(syscall_nr_stat,TSysParam(path),TSysParam(@buf));
 {$else}
   Fpstat:=do_syscall(syscall_nr_stat64,TSysParam(path),TSysParam(@buf));
@@ -310,7 +310,7 @@ end;
 function Fpfstat(fd : cint; var sb : stat): cint;  [public, alias : 'FPC_SYSC_FSTAT'];
 
 begin
-{$if defined(cpu64) and not defined(cpupowerpc64)}
+{$if defined(cpu64)}
   FpFStat:=do_SysCall(syscall_nr_fstat,TSysParam(fd),TSysParam(@sb));
 {$else}
   FpFStat:=do_SysCall(syscall_nr_fstat64,TSysParam(fd),TSysParam(@sb));
