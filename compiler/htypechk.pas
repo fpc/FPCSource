@@ -1235,6 +1235,12 @@ implementation
                     CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
                  exit;
                end;
+             dataconstn:
+               begin
+                 { only created internally, so no additional checks necessary }
+                 result:=true;
+                 exit;
+               end;
              loadn :
                begin
                  case tloadnode(hp).symtableentry.typ of

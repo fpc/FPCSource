@@ -1860,6 +1860,9 @@ implementation
           srsym  : tsym;
           srsymtable : TSymtable;
           classh     : tobjectdef;
+          { shouldn't be used that often, so the extra overhead is ok to save
+            stack space }
+          dispatchstring : ansistring;
         label
           skipreckklammercheck;
         begin
@@ -2049,12 +2052,13 @@ implementation
                            { dispatch call? }
                            if token=_ID then
                              begin
+                               dispatchstring:=orgpattern;
                                consume(_ID);
                                if try_to_consume(_LKLAMMER) then
                                  begin
                                    p2:=parse_paras(false,true,_RKLAMMER);
                                    consume(_RKLAMMER);
-                                   p1:=translate_vardisp_call(p1,p2);
+                                   p1:=translate_vardisp_call(p1,p2,dispatchstring);
                                  end
                                else
                                  p2:=nil;

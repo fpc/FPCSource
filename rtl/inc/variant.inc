@@ -143,6 +143,18 @@ function fpc_interface_to_variant(const i : iinterface) : variant;compilerproc;
   end;
 
 
+function fpc_variant_to_idispatch(const v : variant) : idispatch;compilerproc;
+  begin
+    variantmanager.vartodisp(result,v);
+  end;
+
+
+function fpc_idispatch_to_variant(const i : idispatch) : variant;compilerproc;
+  begin
+    variantmanager.varfromdisp(result,i);
+  end;
+
+
 procedure fpc_dispinvoke_variant(dest : pvardata;const source : tvardata; 
   calldesc : pcalldesc;params : pointer);
   begin

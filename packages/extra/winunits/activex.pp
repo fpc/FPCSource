@@ -1400,21 +1400,27 @@ TYPE
                                    cNamedArgs        : UINT;
                                    End;
   DISPPARAMS                    = tagDISPPARAMS;
+  TDispParams                   = tagDISPPARAMS;
+  PDispParams                   = ^TDispParams;
+
+  PExcepInfo                    = ^TExcepInfo;
+  TFNDeferredFillIn             = function(info : PExcepInfo): HRESULT;stdcall;
   tagEXCEPINFO                  = Record
                                     wCode,                         // An error code describing the error.
                                     wReserved      : Word;
                                     Source,                        // A source of the exception
                                     Description,                   // A description of the error
                                     HelpFile       : WideString;   // Fully qualified drive, path, and file name
-                                    dwHelpContext  : DWord;    // help context of topic within the help file
+                                    dwHelpContext  : ULONG;        // help context of topic within the help file
                                                                    // We can use ULONG_PTR here, because EXCEPINFO is marshalled by RPC
                                                                    // RPC will marshal pfnDeferredFillIn.
-                                    pvReserved,
-                                    pfnDeferredFillIn : pULONG;
+                                    pvReserved     : pointer;
+                                    pfnDeferredFillIn : TFNDeferredFillIn;
                                     SCODE          : scode;
                                     End;
 
   EXCEPINFO                     =  tagEXCEPINFO;
+  TExcepInfo                    =  tagEXCEPINFO;
 
   tagTYPEATTR                   = Record
                                    GUID            : Tguid;       // the GUID of the TypeInfo
@@ -3286,7 +3292,16 @@ type
   function SetErrorInfo(dwReserved:ULONG;errinfo:IErrorInfo):HResult;stdcall; external 'ole32.dll' name 'SetErrorInfo';
   function GetErrorInfo(dwReserved:ULONG;out errinfo:IErrorInfo):HResult;stdcall; external 'ole32.dll' name 'GetErrorInfo';
   function CreateErrorInfo(out errinfo:ICreateErrorInfo):HResult;stdcall; external 'ole32.dll' name 'CreateErrorInfo';
-
+  
+  const
+    oleaut32dll   = 'oleaut32.dll';
+    
+  function  SysAllocString(psz: pointer): Integer; external oleaut32dll name 'SysAllocString';
+  function  SysAllocStringLen(psz: pointer; len:dword): Integer; external oleaut32dll name 'SysAllocStringLen';
+  procedure SysFreeString(bstr:pointer); external oleaut32dll name 'SysFreeString';
+  function  SysStringLen(bstr:pointer):UINT; external oleaut32dll name 'SysStringLen';
+  function  SysReAllocString(var bstr:pointer;psz: pointer): Integer; external oleaut32dll name 'SysReAllocString';
+  function  SysReAllocStringLen(var bstr:pointer;psz: pointer; len:dword): Integer; external oleaut32dll name 'SysReAllocStringLen';
 
 implementation
 

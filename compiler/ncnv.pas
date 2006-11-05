@@ -1221,10 +1221,16 @@ implementation
 
     function ttypeconvnode.typecheck_variant_to_interface : tnode;
       begin
-        result := ccallnode.createinternres(
-          'fpc_variant_to_interface',
-            ccallparanode.create(left,nil)
-          ,resultdef);
+        if tobjectdef(resultdef).is_related(tobjectdef(search_system_type('IDISPATCH').typedef)) then
+          result := ccallnode.createinternres(
+            'fpc_variant_to_idispatch',
+              ccallparanode.create(left,nil)
+            ,resultdef)
+        else
+          result := ccallnode.createinternres(
+            'fpc_variant_to_interface',
+              ccallparanode.create(left,nil)
+            ,resultdef);
         typecheckpass(result);
         left:=nil;
       end;
@@ -1232,10 +1238,16 @@ implementation
 
     function ttypeconvnode.typecheck_interface_to_variant : tnode;
       begin
-        result := ccallnode.createinternres(
-          'fpc_interface_to_variant',
-            ccallparanode.create(left,nil)
-          ,resultdef);
+        if tobjectdef(left.resultdef).is_related(tobjectdef(search_system_type('IDISPATCH').typedef)) then
+          result := ccallnode.createinternres(
+            'fpc_idispatch_to_variant',
+              ccallparanode.create(left,nil)
+            ,resultdef)
+        else
+          result := ccallnode.createinternres(
+            'fpc_interface_to_variant',
+              ccallparanode.create(left,nil)
+            ,resultdef);
         typecheckpass(result);
         left:=nil;
       end;

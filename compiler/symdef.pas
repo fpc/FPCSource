@@ -507,6 +507,7 @@ interface
           function  is_publishable : boolean;override;
           function alignment : shortint;override;
           function  needs_inittable : boolean;override;
+          function  getvardef:longint;override;
        end;
 
        tenumdef = class(tstoreddef)
@@ -1212,6 +1213,15 @@ implementation
            'ShortString','LongString','AnsiString','WideString');
       begin
          GetTypeName:=names[stringtype];
+      end;
+
+
+    function tstringdef.getvardef : longint;
+      const
+        vardef : array[tstringtype] of longint = (
+          varUndefined,varUndefined,varString,varOleStr);
+      begin
+        result:=vardef[stringtype];
       end;
 
 

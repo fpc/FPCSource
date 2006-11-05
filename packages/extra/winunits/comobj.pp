@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002 by Florian Klaempfl
+    Copyright (c) 2006 by Florian Klaempfl
     member of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -106,10 +106,14 @@ unit comobj;
 
     function ProgIDToClassID(const id : string) : TGUID;
 
-  implementation
+    procedure DispatchInvoke(const Dispatch: IDispatch; CallDesc: PCallDesc;
+       DispIDs: PDispIDList; Params: Pointer; Result: PVariant);
+    procedure DispatchInvokeError(Status: HRESULT; const ExceptInfo: TExcepInfo);
+
+implementation
 
     uses
-       windows;
+      Windows,Types,Variants,ComConst;
 
     constructor EOleSysError.Create(const Msg: string; aErrorCode: HRESULT; aHelpContext: Integer);
       var
@@ -211,6 +215,224 @@ unit comobj;
      end;
 
 
+    procedure DispatchInvokeError(Status: HRESULT; const ExceptInfo: TExcepInfo);
+      begin
+        if Status=DISP_E_EXCEPTION then
+          raise EOleException.Create(ExceptInfo.Description,ExceptInfo.scode,ExceptInfo.Source,
+            ExceptInfo.HelpFile,ExceptInfo.dwHelpContext)
+        else
+          raise EOleSysError.Create('',Status,0);
+      end;
+
+{$define DEBUG_COMDISPATCH}
+    procedure DispatchInvoke(const Dispatch: IDispatch; CallDesc: PCallDesc;
+      DispIDs: PDispIDList; Params: Pointer; Result: PVariant);
+
+      var
+        { we can't pass pascal ansistrings to COM routines so we've to convert them
+          to/from widestring. This array contains the mapping to do so
+        }
+        StringMap : array[0..255] of record passtr : pansistring; comstr : pwidechar; end;
+        invokekind,
+        i : longint;
+        invokeresult : HResult;
+        exceptioninfo : TExcepInfo;
+        dispparams : TDispParams;
+        NextString : SizeInt;
+        Arguments : array[0..255] of TVarData;
+        CurrType : byte;
+        MethodID : TDispID;
+      begin
+        NextString:=0;
+        fillchar(dispparams,sizeof(dispparams),0);
+        try
+{$ifdef DEBUG_COMDISPATCH}
+          writeln('Got ',CallDesc^.ArgCount,' arguments');
+{$endif DEBUG_COMDISPATCH}
+          { copy and prepare arguments }
+          for i:=0 to CallDesc^.ArgCount-1 do
+            begin
+              { get plain type }
+              CurrType:=CallDesc^.ArgTypes[i] and $3f;
+              { by reference? }
+              if (CallDesc^.ArgTypes[i] and $80)<>0 then
+                begin
+                  case CurrType of
+                    varStrArg:
+                      begin
+{$ifdef DEBUG_COMDISPATCH}
+                        writeln('Translating var ansistring argument ',PString(Params^)^);
+{$endif DEBUG_COMDISPATCH}
+                        StringMap[NextString].ComStr:=StringToOleStr(PString(Params^)^);
+                        StringMap[NextString].PasStr:=PString(Params^);
+                        Arguments[i].VType:=varOleStr or varByRef;
+                        Arguments[i].VPointer:=StringMap[NextString].ComStr;
+                        inc(NextString);
+                        inc(PPointer(Params));
+                      end;
+                    varVariant:
+{$ifdef DEBUG_COMDISPATCH}
+                      writeln('Unimplemented ref variant dispatch');
+{$endif DEBUG_COMDISPATCH}
+                    else
+                      begin
+                        writeln('Got ref argument with type ',CurrType);
+                        Arguments[i].VType:=CurrType or VarByRef;
+                        Arguments[i].VPointer:=PPointer(Params)^;
+                        inc(PPointer(Params));
+                      end;
+                  end
+                end
+              else
+                case CurrType of
+                  varStrArg:
+                    begin
+{$ifdef DEBUG_COMDISPATCH}
+                      writeln('Translating ansistring argument ',PString(Params)^);
+{$endif DEBUG_COMDISPATCH}
+                      StringMap[NextString].ComStr:=StringToOleStr(PString(Params)^);
+                      StringMap[NextString].PasStr:=nil;
+                      Arguments[i].VType:=varOleStr;
+                      Arguments[i].VPointer:=StringMap[NextString].ComStr;
+                      inc(NextString);
+                      inc(PPointer(Params));
+                    end;
+
+                  varVariant:
+                    begin
+{$ifdef DEBUG_COMDISPATCH}
+                      writeln('Unimplemented variant dispatch');
+{$endif DEBUG_COMDISPATCH}
+                    end;
+                  varCurrency,
+                  varDouble,
+                  VarDate:
+                    begin
+{$ifdef DEBUG_COMDISPATCH}
+                      writeln('Got 8 byte float argument');
+{$endif DEBUG_COMDISPATCH}
+                      Arguments[i].VType:=CurrType;
+                      move(PPointer(Params)^,Arguments[i].VDouble,sizeof(Double));
+                      inc(PDouble(Params));
+                    end;
+                  else
+                    begin
+{$ifdef DEBUG_COMDISPATCH}
+                      writeln('Got argument with type ',CurrType);
+{$endif DEBUG_COMDISPATCH}
+                      Arguments[i].VType:=CurrType;
+                      Arguments[i].VPointer:=PPointer(Params)^;
+                      inc(PPointer(Params));
+                    end;
+                end;
+            end;
+
+          { finally prepare the call }
+          with DispParams do
+            begin
+              rgvarg:=@Arguments;
+              rgdispidNamedArgs:=@DispIDs[1];
+              cArgs:=CallDesc^.ArgCount;
+              cNamedArgs:=CallDesc^.NamedArgCount;
+            end;
+          InvokeKind:=CallDesc^.CallType;
+          MethodID:=DispIDs^[0];
+{$ifdef DEBUG_COMDISPATCH}
+          writeln('MethodID: ',MethodID);
+{$endif DEBUG_COMDISPATCH}
+          { do the call and check the result }
+          invokeresult:=Dispatch.Invoke(MethodID,GUID_NULL,0,InvokeKind,DispParams,result,@exceptioninfo,nil);;
+          if invokeresult<>0 then
+            DispatchInvokeError(invokeresult,exceptioninfo);
+
+          { translate strings back }
+          for i:=0 to NextString-1 do
+            if assigned(StringMap[i].passtr) then
+              OleStrToStrVar(StringMap[i].comstr,StringMap[i].passtr^);
+        finally
+          for i:=0 to NextString-1 do
+            SysFreeString(StringMap[i].ComStr);
+        end;
+      end;
+
+
+    procedure SearchIDs(const DispatchInterface : IDispatch; Names: PChar;
+      Count: Integer; IDs: PDispIDList);
+      var
+      	res : HRESULT;
+      	NamesArray : ^PWideChar;
+      	NamesData : PWideChar;
+        NameCount,
+      	NameLen,
+      	NewNameLen,
+        CurrentNameDataUsed,
+      	CurrentNameDataSize : SizeInt;
+      	i : longint;
+      begin
+      	getmem(NamesArray,Count*sizeof(PWideChar));
+      	CurrentNameDataSize:=256;
+      	CurrentNameDataUsed:=0;
+      	getmem(NamesData,CurrentNameDataSize*2);
+        NameCount:=0;
+{$ifdef DEBUG_COMDISPATCH}
+        writeln('SearchIDs: Searching ',Count,' IDs');
+{$endif DEBUG_COMDISPATCH}
+      	for i:=1 to Count do
+      	  begin
+       	    NameLen:=strlen(Names);
+{$ifdef DEBUG_COMDISPATCH}
+            writeln('SearchIDs: Original name: ',Names,' Len: ',NameLen);
+{$endif DEBUG_COMDISPATCH}
+      	    NewNameLen:=MultiByteToWideChar(0,0,Names,NameLen,nil,0)+1;
+      	    if CurrentNameDataUsed+NewNameLen*2>CurrentNameDataSize then
+      	      begin
+      	      	inc(CurrentNameDataSize,256);
+      	        reallocmem(NamesData,CurrentNameDataSize*2);
+      	      end;
+      	    NamesArray[i-1]:=@NamesData[CurrentNameDataUsed];
+      	    MultiByteToWideChar(0,0,Names,NameLen,@NamesData[CurrentNameDataUsed],NewNameLen);
+      	    NamesData[CurrentNameDataUsed+NewNameLen-1]:=#0;
+{$ifdef DEBUG_COMDISPATCH}
+            { we should write a widestring here writeln('SearchIDs: Translated name: ',NamesData[CurrentNameDataUsed]); }
+{$endif DEBUG_COMDISPATCH}
+      	    inc(CurrentNameDataUsed,NewNameLen);
+      	    inc(Names,NameLen+1);
+            inc(NameCount);
+      	  end;
+      	res:=DispatchInterface.GetIDsOfNames(GUID_NULL,NamesArray,NameCount,GetThreadLocale,IDs);
+      	if res=DISP_E_UNKNOWNNAME then
+      	  raise EOleError.createresfmt(@snomethod,[names])
+      	else
+      	  OleCheck(res);
+      	freemem(NamesArray);
+      	freemem(NamesData);
+      end;
+
+
+    procedure ComObjDispatchInvoke(dest : PVariant;const source : Variant;
+        calldesc : pcalldesc;params : pointer);cdecl;
+      var
+      	dispatchinterface : pointer;
+      	ids : array[0..255] of longint;
+      begin
+{$ifdef DEBUG_COMDISPATCH}
+        writeln('ComObjDispatchInvoke called');
+        writeln('ComObjDispatchInvoke: CallDesc^.ArgCount = ',CallDesc^.ArgCount);
+{$endif DEBUG_COMDISPATCH}
+      	if tvardata(source).vtype=VarDispatch then
+      	  dispatchinterface:=tvardata(source).vdispatch
+      	else if tvardata(source).vtype=(VarDispatch or VarByRef) then
+      	  dispatchinterface:=pvardata(tvardata(source).vpointer)^.vdispatch
+      	else
+      	  raise eoleerror.createres(@SVarNotObject);
+      	SearchIDs(IDispatch(dispatchinterface),@CallDesc^.ArgTypes[CallDesc^.ArgCount],
+          CallDesc^.NamedArgCount+1,@ids);
+      	if assigned(dest) then
+      	  VarClear(dest^);
+      	DispatchInvoke(IDispatch(dispatchinterface),calldesc,@ids,params,dest);
+      end;
+
+
 const
   Initialized : boolean = false;
 
@@ -218,7 +440,9 @@ initialization
   if not(IsLibrary) then
     Initialized:=Succeeded(CoInitialize(nil));
   SafeCallErrorProc:=@SafeCallErrorHandler;
+  VarDispProc:=@ComObjDispatchInvoke;
 finalization
+  VarDispProc:=nil;
   SafeCallErrorProc:=nil;
   if Initialized then
     CoUninitialize;

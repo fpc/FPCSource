@@ -207,6 +207,8 @@ function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer
 function fpc_dynarray_to_variant(dynarr : pointer;typeinfo : pointer) : variant;compilerproc;
 function fpc_variant_to_interface(const v : variant) : iinterface;compilerproc;
 function fpc_interface_to_variant(const i : iinterface) : variant;compilerproc;
+function fpc_variant_to_idispatch(const v : variant) : idispatch;compilerproc;
+function fpc_idispatch_to_variant(const i : idispatch) : variant;compilerproc;
 procedure fpc_vararray_get(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
 procedure fpc_vararray_put(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
 procedure fpc_dispinvoke_variant(dest : pvardata;const source : tvardata;  calldesc : pcalldesc;params : pointer);compilerproc;

@@ -4002,6 +4002,7 @@ packages/extra/winunits/Makefile svneol=native#text/plain
 packages/extra/winunits/Makefile.fpc svneol=native#text/plain
 packages/extra/winunits/activex.pp svneol=native#text/plain
 packages/extra/winunits/buildjwa.pp svneol=native#text/plain
+packages/extra/winunits/comconst.pp svneol=native#text/plain
 packages/extra/winunits/commctrl.pp svneol=native#text/plain
 packages/extra/winunits/comobj.pp svneol=native#text/plain
 packages/extra/winunits/examples/testver.pp svneol=native#text/plain

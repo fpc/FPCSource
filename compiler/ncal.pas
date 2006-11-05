@@ -171,7 +171,7 @@ interface
        tcallparanodeclass = class of tcallparanode;
 
     function reverseparameters(p: tcallparanode): tcallparanode;
-    function translate_vardisp_call(p1,p2 : tnode) : tnode;
+    function translate_vardisp_call(p1,p2 : tnode;methodname : ansistring) : tnode;
 
     var
       ccallnode : tcallnodeclass;
@@ -223,7 +223,7 @@ implementation
       end;
 
 
-    function translate_vardisp_call(p1,p2 : tnode) : tnode;
+    function translate_vardisp_call(p1,p2 : tnode;methodname : ansistring) : tnode;
       const
         DISPATCH_METHOD = $1;
         DISPATCH_PROPERTYGET = $2;
@@ -242,21 +242,32 @@ implementation
         paracount : longint;
         vardatadef,
         pvardatadef : tdef;
+        dispatchbyref : boolean;
 
         calldesc : packed record
             calltype,argcount,namedargcount : byte;
+            { size of argtypes is unknown at compile time
+              so this is basically a dummy }
             argtypes : array[0..255] of byte;
+            { argtypes is followed by method name
+              names of named parameters, each being
+              a zero terminated string
+            }
         end;
         names : ansistring;
 
       procedure increase_paramssize;
         begin
+          { for now we pass everything by reference
           case para.value.resultdef.typ of
             variantdef:
               inc(paramssize,para.value.resultdef.size);
             else
+          }
               inc(paramssize,sizeof(voidpointertype.size ));
+          {
           end;
+          }
         end;
 
       begin
@@ -318,6 +329,7 @@ implementation
         { build up parameters and description }
         para:=tcallparanode(p2);
         currargpos:=0;
+        paramssize:=0;
         while assigned(para) do
           begin
             if assigned(para.parametername) then
@@ -327,14 +339,25 @@ implementation
                 else
                   internalerror(200611041);
               end;
+
+            dispatchbyref:=para.value.resultdef.typ in [stringdef];
             { assign the argument/parameter to the temporary location }
+
             if para.value.nodetype<>nothingn then
               addstatement(statements,cassignmentnode.create(
                 ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
                   caddrnode.create(ctemprefnode.create(params)),
                   cordconstnode.create(paramssize,ptrinttype,false)
-                )),para.value.resultdef),
-                para.value));
+                )),voidpointertype),
+                ctypeconvnode.create_internal(para.value,voidpointertype)));
+
+            if is_ansistring(para.value.resultdef) then
+              calldesc.argtypes[currargpos]:=varStrArg
+            else
+              calldesc.argtypes[currargpos]:=para.value.resultdef.getvardef;
+
+            if dispatchbyref then
+              calldesc.argtypes[currargpos]:=calldesc.argtypes[currargpos] or $80;
 
             increase_paramssize;
 
@@ -343,10 +366,15 @@ implementation
             para:=tcallparanode(para.nextpara);
           end;
 
+//        typecheckpass(statements);
+//        printnode(output,statements);
+
         { old argument list skeleton isn't needed anymore }
         p2.free;
 
-        calldescnode.append(calldesc,4+calldesc.argcount);
+        calldescnode.append(calldesc,3+calldesc.argcount);
+        methodname:=methodname+#0;
+        calldescnode.append(pointer(methodname)^,length(methodname));
         calldescnode.append(pointer(names)^,length(names));
 
         { actual call }
@@ -356,7 +384,7 @@ implementation
         addstatement(statements,ccallnode.createintern('fpc_dispinvoke_variant',
           { parameters are passed always reverted, i.e. the last comes first }
           ccallparanode.create(caddrnode.create(ctemprefnode.create(params)),
-          ccallparanode.create(calldescnode,
+          ccallparanode.create(caddrnode.create(calldescnode),
           ccallparanode.create(ctypeconvnode.create_internal(p1,vardatadef),
           ccallparanode.create(ctypeconvnode.create_internal(caddrnode.create(
               ctemprefnode.create(result_data)
