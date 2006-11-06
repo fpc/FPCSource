@@ -4,20 +4,24 @@ program fppkg;
 
 uses
   // General
+{$ifdef unix}
+  baseunix,
+{$endif}
   Classes, SysUtils, TypInfo, custapp,
   // Repository handler objects
-  fprepos, fpxmlrep,fpmktype,
+  fprepos, fpxmlrep,fpmktype, pkgropts,
   // Package Handler components
   pkghandler, pkgmkconv, pkgdownload, pkgmessages;
   
 Type
 
-  TRunMode = (rmHelp,rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDownload);
+  TRunMode = (rmHelp,rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDownload,rmUpdate);
 
   { TMakeTool }
 
   TMakeTool = Class(TCustomApplication)
   Private
+    FDefaults: TPackagerOptions;
     FConvertOnly,
     FLogging : Boolean;
     FCompiler : String;
@@ -26,16 +30,22 @@ Type
     FHaveFpmake : Boolean;
     FFPMakeSrc : String;
     FFPMakeBin : String;
+    FVerbose: TVerbosities;
+    FPackages : TStrings;
     Procedure Log(Msg : String);
     Procedure Error(Msg : String);
     Procedure Error(Fmt : String; Args : Array of const);
     Function GetCompiler : String;
   Public
+    Procedure DownloadFile(Const URL,Dest : String);
+    Function GetConfigFileName : String;
+    Procedure LoadDefaults;
     Procedure ProcessCommandLine;
     procedure CreateFPMake;
     procedure CompileFPMake(Extra : Boolean);
     Function RunFPMake : Integer;
     Procedure DoRun; Override;
+    Property Verbose : TVerbosities Read FVerbose Write FVerbose;
   end;
 
   EMakeToolError = Class(Exception);
@@ -147,6 +157,36 @@ begin
     end;
 end;
 
+procedure TMakeTool.DownloadFile(const URL, Dest: String);
+begin
+
+end;
+
+function TMakeTool.GetConfigFileName: String;
+
+var
+  G : Boolean;
+
+begin
+  if HasOption('C','config-file') then
+    Result:=GetOptionValue('C','config-file')
+  else
+    begin
+{$ifdef unix}
+    g:=(fpgetuid=0);
+{$else}
+    G:=true;
+{$endif}
+    Result:=GetAppConfigFile(G,False);
+    end
+end;
+
+procedure TMakeTool.LoadDefaults;
+begin
+  FDefaults:=TPackagerOptions.Create;
+  FDefaults.LoadFromFile(GetConfigFileName);
+end;
+
 
 procedure TMakeTool.ProcessCommandLine;
 
@@ -191,44 +231,66 @@ procedure TMakeTool.ProcessCommandLine;
 
 Var
   I : Integer;
-
+  GlobalOpts : Boolean;
+  cmd : string;
+  
 begin
   I:=0;
   FLogging:=False;
   FRunMode:=rmhelp;
   FConvertOnly:=False;
+  GlobalOpts:=True;
+  FPackages:=TStringList.Create;
+  // We can't use the TCustomApplication option handling,
+  // because they cannot handle [general opts] [command] [cmd-opts] [args]
   While (I<ParamCount) do
     begin
     Inc(I);
-    if Checkoption(I,'n','convert') then
-      FConvertOnly:=True
-    else if Checkoption(I,'m','compile') then
-      FRunMode:=rmCompile
-    else if Checkoption(I,'b','build') then
-      FRunMode:=rmBuild
-    else if CheckOption(I,'i','install') then
-      FRunMode:=rmInstall
-    else if CheckOption(I,'c','clean') then
-      FRunMode:=rmClean
-    else if CheckOption(I,'a','archive') then
-      FRunMode:=rmarchive
-    else if CheckOption(I,'d','download') then
-      FRunMode:=rmDownload
+    // Check options.
+    if CheckOption(I,'r','compiler') then
+      FDefaults.Compiler:=OptionArg(I)
+    else if CheckOption(I,'v','verbose') then
+      Include(FVerbose,StringToVerbosity(OptionArg(I)))
     else if CheckOption(I,'h','help') then
       FRunMode:=rmhelp
-    // Check.
-    else if CheckOption(I,'r','compiler') then
-      FCompiler:=OptionArg(I)
-    else if CheckOption(I,'v','verbose') then
-      Flogging:=Pos('info',Lowercase(OptionArg(I)))<>0;
+    else if (Length(Paramstr(i))>0) and (Paramstr(I)[1]='-') then
+      Raise EMakeToolError.CreateFmt(SErrInvalidArgument,[I,ParamStr(i)])
+    else
+      If GlobalOpts then
+        begin
+        // It's a command.
+        Cmd:=Paramstr(I);
+        if (Cmd='convert') then
+          FConvertOnly:=True
+        else if (Cmd='compile') then
+          FRunMode:=rmCompile
+        else if (Cmd='build') then
+          FRunMode:=rmBuild
+        else if (Cmd='install') then
+          FRunMode:=rmInstall
+        else if (cmd='clean') then
+          FRunMode:=rmClean
+        else if (cmd='archive') then
+          FRunMode:=rmarchive
+        else if (cmd='download') then
+          FRunMode:=rmDownload
+        else if (cmd='update') then
+          FRunMode:=rmUpdate
+        else
+          Raise EMakeToolError.CreateFmt(SErrInvalidCommand,[Cmd]);
+        end
+      else // It's a package name.
+        begin
+        FPackages.Add(Paramstr(i));
+        end;
     end;
 end;
-
 
 procedure TMakeTool.DoRun;
 
 
 begin
+  LoadDefaults;
   Try
     ProcessCommandLine;
     If FConvertOnly then

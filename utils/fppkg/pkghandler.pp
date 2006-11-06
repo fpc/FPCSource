@@ -35,10 +35,33 @@ Type
   end;
   
   EPackageHandler = Class(EInstallerError);
+
+Function StringToVerbosity (S : String) : TVerbosity;
+Function VerbosityToString (V : TVerbosity): String;
+
   
 Implementation
 
-uses pkgmessages;
+uses pkgmessages,typinfo;
+
+function StringToVerbosity(S: String): TVerbosity;
+
+Var
+  I : integer;
+
+begin
+  I:=GetEnumValue(TypeInfo(TVerbosity),'v'+S);
+  If (I<>-1) then
+    Result:=TVerbosity(I)
+  else
+    Raise EPackageHandler.CreateFmt(SErrInvalidVerbosity,[S]);
+end;
+
+Function VerbosityToString (V : TVerbosity): String;
+begin
+  Result:=GetEnumName(TypeInfo(TVerbosity),Integer(V));
+  Delete(Result,1,1);// Delete 'v'
+end;
 
 { TPackageHandler }
 

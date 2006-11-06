@@ -6,7 +6,7 @@ interface
 
 
 Resourcestring
- //  SErrInValidArgument     = 'Invalid command-line argument at position %d : %s';
+  SErrInValidArgument        = 'Invalid command-line argument at position %d : %s';
   SErrNeedArgument           = 'Option at position %d (%s) needs an argument';
   SErrMissingConfig          = 'Missing configuration Makefile.fpc or fpmake.pp';
   SErrRunning                = 'The FPC make tool encountered the following error: %s';
@@ -18,6 +18,8 @@ Resourcestring
   SErrNoSuchFile             = 'File "%s" does not exist.';
   SErrWGetDownloadFailed     = 'Download failed: wget reported exit status %d.';
   SErrDownloadFailed         = 'Download failed: %s';
+  SErrInvalidVerbosity       = 'Invalid verbosity string: "%s"';
+  SErrInvalidCommand         = 'Invalid command: %s';
   
   SErrHTTPGetFailed          = 'HTTP Download failed.';
   SErrLoginFailed            = 'FTP LOGIN command failed.';

@@ -7864,6 +7864,7 @@ utils/fppkg/fprepos.pp svneol=native#text/plain
 utils/fppkg/fpxmlrep.pp svneol=native#text/plain
 utils/fppkg/pkgdownload.pp svneol=native#text/plain
 utils/fppkg/pkghandler.pp svneol=native#text/plain
+utils/fppkg/pkglibcurl.pp svneol=native#text/plain
 utils/fppkg/pkglnet.pas svneol=native#text/plain
 utils/fppkg/pkgmessages.pp svneol=native#text/plain
 utils/fppkg/pkgmkconv.pp svneol=native#text/plain
