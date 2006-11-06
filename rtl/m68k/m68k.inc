@@ -314,3 +314,31 @@ function abs(l : longint) : longint;
   end;
 
 
+function InterLockedDecrement (var Target: longint) : longint;
+  begin
+  {$warning FIX ME}
+  end;
+
+
+function InterLockedIncrement (var Target: longint) : longint;
+  begin
+  {$warning FIX ME}
+  end;
+
+
+function InterLockedExchange (var Target: longint;Source : longint) : longint;
+  begin
+  {$warning FIX ME}
+  end;
+
+
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint;
+  begin
+  {$warning FIX ME}
+  end;
+
+
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint;
+  begin
+  {$warning FIX ME}
+  end;

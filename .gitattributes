@@ -4633,8 +4633,12 @@ rtl/linux/m68k/gprt0.as -text
 rtl/linux/m68k/gprt21.as -text
 rtl/linux/m68k/prt0.as -text
 rtl/linux/m68k/prt1.as -text
-rtl/linux/m68k/signal.inc svneol=native#text/plain
+rtl/linux/m68k/sighnd.inc svneol=native#text/plain
+rtl/linux/m68k/sighndh.inc svneol=native#text/plain
 rtl/linux/m68k/stat.inc svneol=native#text/plain
+rtl/linux/m68k/syscall.inc svneol=native#text/plain
+rtl/linux/m68k/syscallh.inc svneol=native#text/plain
+rtl/linux/m68k/sysnr.inc svneol=native#text/plain
 rtl/linux/oldlinux.pp svneol=native#text/plain
 rtl/linux/osdefs.inc svneol=native#text/plain
 rtl/linux/osmacro.inc svneol=native#text/plain
@@ -4717,6 +4721,8 @@ rtl/m68k/readme -text
 rtl/m68k/set.inc svneol=native#text/plain
 rtl/m68k/setjump.inc svneol=native#text/plain
 rtl/m68k/setjumph.inc svneol=native#text/plain
+rtl/m68k/strings.inc svneol=native#text/plain
+rtl/m68k/stringss.inc svneol=native#text/plain
 rtl/macos/MPWmake -text
 rtl/macos/Makefile svneol=native#text/plain
 rtl/macos/Makefile.fpc svneol=native#text/plain
