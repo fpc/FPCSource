@@ -1899,6 +1899,7 @@ implementation
                     firstcommon:=false;
                   end;
                 internalObjData.setsection(commonObjSection);
+                internalObjData.allocalign(var_align(objsym.size));
                 commonsym:=internalObjData.symboldefine(objsym.name,AB_GLOBAL,AT_FUNCTION);
                 commonsym.size:=objsym.size;
                 internalObjData.alloc(objsym.size);
