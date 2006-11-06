@@ -7,7 +7,8 @@ main=rtl
 
 [target]
 loaders=prt0 dllprt0 cprt0 gprt0 $(CRT21)
-units=$(SYSTEMUNIT) unixtype ctypes baseunix strings objpas macpas syscall unixutil \
+units=$(SYSTEMUNIT) $(SYSINIT_UNITS) \
+      unixtype ctypes baseunix strings objpas macpas syscall unixutil \
       heaptrc lineinfo \
       termio unix linux initc cmem $(CPU_UNITS) \
       crt printer linuxvcs \
@@ -16,7 +17,6 @@ units=$(SYSTEMUNIT) unixtype ctypes baseunix strings objpas macpas syscall unixu
       errors sockets gpm ipc serial terminfo dl dynlibs \
       video mouse keyboard variants types dateutils sysconst fmtbcd \
       cthreads classes convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix
-units_i386_linux=si_prc si_c21g si_c21 si_c si_dll
 
 rsts=math varutils typinfo variants sysconst rtlconsts stdconvs
 
@@ -58,6 +58,7 @@ UNITPREFIX=rtl
 ifeq ($(CPU_TARGET),i386)
 CRT21=cprt21 gprt21
 CPU_UNITS=x86 ports cpu mmx 
+SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll
 else
 CPU_UNITS=
 endif
