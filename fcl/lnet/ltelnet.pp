@@ -124,6 +124,7 @@ type
 
   TLTelnetClient = class(TLTelnet, ILClient)
    protected
+    FLocalEcho: Boolean;
     procedure OnEr(const msg: string; aSocket: TLSocket);
     procedure OnDs(aSocket: TLSocket);
     procedure OnRe(aSocket: TLSocket);
@@ -139,6 +140,7 @@ type
     function SendMessage(const msg: string; aSocket: TLSocket = nil): Integer; override;
     procedure SendCommand(const aCommand: Char; const How: TLHowEnum);
     procedure CallAction; override;
+    property LocalEcho: Boolean read FLocalEcho write FLocalEcho;
   end;
   
 implementation
@@ -424,7 +426,7 @@ begin
     SetLength(Tmp, aSize);
     Move(aData, PChar(Tmp)^, aSize);
     DoubleIAC(Tmp);
-    if (not OptionIsSet(TS_ECHO)) and (not OptionIsSet(TS_HYI)) then
+    if LocalEcho and (not OptionIsSet(TS_ECHO)) and (not OptionIsSet(TS_HYI)) then
       FOutput.Write(PChar(Tmp)^, Length(Tmp));
     Result:=FConnection.SendMessage(Tmp);
   end;

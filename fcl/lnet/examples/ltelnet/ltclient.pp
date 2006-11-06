@@ -30,6 +30,7 @@ type
 constructor TLTelnetTest.Create;
 begin
   FCon:=TLTelnetClient.Create(nil);
+  FCon.OnError:=@OnError;
 end;
 
 destructor TLTelnetTest.Destroy;
@@ -46,9 +47,8 @@ end;
   
 procedure TLTelnetTest.Run;
 var
-  s: string;
+  s, SendStr: string;
   c: Char;
-  l: Longint; // length of line currently written
   AD: string;
   PORT: Word;
 begin
@@ -63,8 +63,9 @@ begin
       Writeln('Usage: ', ExtractFileName(ParamStr(0)), ' IP PORT');
       Exit;
     end;
+
   FQuit:=False;
-  l:=0;
+
   if FCon.Connect(AD, PORT) then begin
     Writeln('Connecting... press any key to cancel');
     repeat
@@ -73,27 +74,28 @@ begin
       if KeyPressed then
         Halt;
     until FCon.Connected; // wait until timeout or we actualy connected
+
+    SendStr:='';
     
     while not FQuit do begin // if we connected, do main loop
       if KeyPressed then begin
         c:=ReadKey;
         case c of
           #27: FQuit:=True;
-           #8: if l > 0 then
-                 begin
-                   GotoXY(WhereX-1, WhereY);
-                   Write(' ');
-                   Dec(l);
-                   FCon.SendMessage(c);
-                 end;
-        else begin
-               Inc(l);
-               if c = #13 then begin
-                 Writeln;
-               l:=0;
+           #8: if Length(SendStr) > 0 then begin
+                 GotoXY(WhereX-1, WhereY);
+                 Write(' ');
+                 GotoXY(WhereX-1, WhereY);
+                 SetLength(SendStr, Length(SendStr) - 1);
                end;
-               FCon.SendMessage(c);
-             end;
+        else   if c = #13 then begin
+                 Writeln;
+                 FCon.SendMessage(SendStr + #13#10);
+                 SendStr:='';
+               end else begin
+                 SendStr:=SendStr + c;
+                 Write(c);
+               end;
         end;
       end;
       if FCon.GetMessage(s) > 0 then
