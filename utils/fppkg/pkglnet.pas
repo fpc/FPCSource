@@ -102,25 +102,27 @@ var
   URI: TURI;
 begin
   FOutStream:=Dest;
-  { parse URL }
-  URI:=ParseURI(URL);
-  
-  if URI.Port = 0 then
-    URI.Port := 21;
+  Try
+    { parse URL }
+    URI:=ParseURI(URL);
     
-  FFTP.Connect(URI.Host, URI.Port);
-  while not FFTP.Connected and not FQuit do
-    FFTP.CallAction;
-    
-  if not FQuit then begin
-    FFTP.Authenticate(URI.Username, URI.Password);
-    FFTP.ChangeDirectory(URI.Path);
-    FFTP.Retrieve(URI.Document);
-    while not FQuit do
+    if URI.Port = 0 then
+      URI.Port := 21;
+      
+    FFTP.Connect(URI.Host, URI.Port);
+    while not FFTP.Connected and not FQuit do
       FFTP.CallAction;
+      
+    if not FQuit then begin
+      FFTP.Authenticate(URI.Username, URI.Password);
+      FFTP.ChangeDirectory(URI.Path);
+      FFTP.Retrieve(URI.Document);
+      while not FQuit do
+        FFTP.CallAction;
+    end;
+  finally
+    FOutStream:=nil;
   end;
-  
-  FOutStream:=nil;
 end;
 
 procedure TLNetDownloader.HTTPDownload(const URL: String; Dest: TStream);
@@ -128,22 +130,25 @@ var
   URI: TURI;
 begin
   FOutStream:=Dest;
-  { parse aURL }
-  URI := ParseURI(URL);
-  
-  if URI.Port = 0 then
-    URI.Port := 80;
+  Try
+    { parse aURL }
+    URI := ParseURI(URL);
+    
+    if URI.Port = 0 then
+      URI.Port := 80;
 
-  FHTTP.Host := URI.Host;
-  FHTTP.Method := hmGet;
-  FHTTP.Port := URI.Port;
-  FHTTP.URI := '/' + URI.Document;
-  FHTTP.SendRequest;
+    FHTTP.Host := URI.Host;
+    FHTTP.Method := hmGet;
+    FHTTP.Port := URI.Port;
+    FHTTP.URI := '/' + URI.Document;
+    FHTTP.SendRequest;
 
-  FQuit:=False;
-  while not FQuit do
-    FHTTP.CallAction;
-  FOutStream:=nil; // to be sure
+    FQuit:=False;
+    while not FQuit do
+      FHTTP.CallAction;
+  Finally  
+    FOutStream:=nil; // to be sure
+  end;
 end;
 
 constructor TLNetDownloader.Create(AOwner: TComponent);
