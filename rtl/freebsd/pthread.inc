@@ -50,7 +50,7 @@ function  pthread_attr_setscope      (p : ppthread_attr_t;i:cint):cint;cdecl;ext
 function  pthread_attr_setdetachstate (p : ppthread_attr_t;i:cint):cint;cdecl;external;
 function  pthread_create ( p: ppthread_t;attr : ppthread_attr_t;f:__startroutine_t;arg:pointer):cint;cdecl;external;
 procedure pthread_exit  ( p: pointer); cdecl;external;
-function  pthread_self:cint; cdecl;external;
+function  pthread_self:pthread_t; cdecl;external;
 function  pthread_mutex_init (p:ppthread_mutex_t;o:ppthread_mutex_attr_t):cint; cdecl;external;
 function  pthread_mutex_destroy (p:ppthread_mutex_attr_t):cint; cdecl;external;
 function  pthread_mutex_lock    (p:ppthread_mutex_attr_t):cint; cdecl;external;

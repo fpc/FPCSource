@@ -146,7 +146,7 @@ function  pthread_attr_setscope      (p : ppthread_attr_t;i:cint):cint;cdecl;ext
 function  pthread_attr_setdetachstate (p : ppthread_attr_t;i:cint):cint;cdecl;external 'c';
 function  pthread_create ( p: ppthread_t;attr : ppthread_attr_t;f:__startroutine_t;arg:pointer):cint;cdecl;external 'c';
 procedure pthread_exit  ( p: pointer); cdecl;external 'c';
-function  pthread_self:cint; cdecl;external 'c';
+function  pthread_self:pthread_t; cdecl;external 'c';
 function  pthread_mutex_init (p:ppthread_mutex_t;o:ppthread_mutexattr_t):cint; cdecl;external 'c';
 function  pthread_mutex_destroy (p:ppthread_mutexattr_t):cint; cdecl;external 'c';
 function  pthread_mutex_lock    (p:ppthread_mutexattr_t):cint; cdecl;external 'c';
