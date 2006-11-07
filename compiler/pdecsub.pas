@@ -629,7 +629,6 @@ implementation
         aprocsym : tprocsym;
         popclass : boolean;
         ImplIntf : TImplementedInterface;
-        hashedid : THashedIDString;
       begin
         { Save the position where this procedure really starts }
         procstartfilepos:=current_tokenpos;
@@ -780,10 +779,7 @@ implementation
                         if (m_fpc in current_settings.modeswitches) then
                           Message1(parser_e_overloaded_no_procedure,srsym.realname)
                         else
-                          begin
-                            hashedid.id:='';
-                            duplicatesym(hashedid,nil,srsym);
-                          end;
+                          Message1(sym_e_duplicate_id,srsym.realname);
                         { rename the name to an unique name to avoid an
                           error when inserting the symbol in the symtable }
                         orgsp:=orgsp+'$'+tostr(current_filepos.line);

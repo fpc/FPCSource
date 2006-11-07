@@ -104,13 +104,11 @@ interface
           procedure freeinstance;override;
           function  getcopy:TSymtable;
           procedure clear;virtual;
-//          function  rename(const olds,news:TIDString):TSymEntry;
           function  checkduplicate(var s:THashedIDString;sym:TSymEntry):boolean;virtual;
-          procedure insert(sym:TSymEntry);virtual;
+          procedure insert(sym:TSymEntry;checkdup:boolean=true);
           function  Find(const s:TIDString) : TSymEntry;
           function  FindWithHash(const s:THashedIDString) : TSymEntry;virtual;
           procedure insertdef(def:TDefEntry);virtual;
-//          procedure deletedef(def:TDefEntry);virtual;
           function  iscurrentunit:boolean;virtual;
        end;
 
@@ -275,20 +273,26 @@ implementation
       end;
 
 
-    procedure TSymtable.insert(sym:TSymEntry);
+    procedure TSymtable.insert(sym:TSymEntry;checkdup:boolean=true);
       var
         hashedid : THashedIDString;
       begin
-         if sym.realname[1]='$' then
-           hashedid.id:=Copy(sym.realname,2,255)
-         else
-           hashedid.id:=Upper(sym.realname);
-         { First check for duplicates, this can change the symbol name
-           in case of a duplicate entry }
-         checkduplicate(hashedid,sym);
+         if checkdup then
+           begin
+             if sym.realname[1]='$' then
+               hashedid.id:=Copy(sym.realname,2,255)
+             else
+               hashedid.id:=Upper(sym.realname);
+             { First check for duplicates, this can change the symbol name
+               in case of a duplicate entry }
+             checkduplicate(hashedid,sym);
+           end;
          { Now we can insert the symbol, any duplicate entries
            are renamed to an unique (and for users unaccessible) name }
-         sym.ChangeOwnerAndName(SymList,hashedid.id);
+         if sym.realname[1]='$' then
+           sym.ChangeOwnerAndName(SymList,Copy(sym.realname,2,255))
+         else
+           sym.ChangeOwnerAndName(SymList,Upper(sym.realname));
          sym.Owner:=self;
       end;
 

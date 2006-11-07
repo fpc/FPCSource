@@ -371,7 +371,7 @@ implementation
            else
              Message1(unit_f_ppu_invalid_entry,tostr(b));
            end;
-           Insert(sym);
+           Insert(sym,false);
          until false;
       end;
 
@@ -1049,7 +1049,7 @@ implementation
             ) then
            begin
               { but private ids can be reused }
-              hsym:=search_class_member(tobjectdef(defowner),sym.name);
+              hsym:=search_class_member(tobjectdef(defowner),hashedid.id);
               if assigned(hsym) and
                  tsym(hsym).is_visible_for_object(tobjectdef(defowner),tobjectdef(defowner)) then
                 begin
@@ -1157,9 +1157,11 @@ implementation
                (vo_is_funcret in tabstractvarsym(sym).varoptions) and
                not((m_result in current_settings.modeswitches) and
                    (vo_is_result in tabstractvarsym(sym).varoptions)) then
-              HideSym(sym)
+              Hidesym(sym)
             else
               DuplicateSym(hashedid,sym,hsym);
+            result:=true;
+            exit;
           end;
 
         { check ObjectSymtable, skip this for funcret sym because
@@ -1424,7 +1426,7 @@ implementation
 
     procedure hidesym(sym:TSymEntry);
       begin
-        sym.realname:='$hidden'+sym.name;
+        sym.realname:='$hidden'+sym.realname;
         include(tsym(sym).symoptions,sp_hidden);
       end;
 
