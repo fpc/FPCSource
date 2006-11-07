@@ -158,6 +158,7 @@ function  pthread_cond_destroy(_para1:Ppthread_cond_t):cint;cdecl;external 'c' n
 function  pthread_cond_init(_para1:Ppthread_cond_t;_para2:Ppthread_condattr_t):cint;cdecl;external  'c' name 'pthread_cond_init';
 function  pthread_cond_signal(_para1:Ppthread_cond_t):cint;cdecl;external 'c' name 'pthread_cond_signal';
 function  pthread_cond_wait(_para1:Ppthread_cond_t;_para2:Ppthread_mutex_t):cint;cdecl;external 'c' name 'pthread_cond_wait';
+function pthread_kill(__thread:pthread_t; __signo:cint):cint;cdecl;external 'c';
 
 function sem_init(__sem:Psem_t; __pshared:cint;__value:cuint):cint;cdecl; external 'c' name 'sem_init';
 function sem_destroy(__sem:Psem_t):cint;cdecl;external 'c' name 'sem_destroy';

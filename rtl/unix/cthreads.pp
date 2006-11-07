@@ -249,13 +249,13 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
   function  CSuspendThread (threadHandle : TThreadID) : dword;
     begin
-      {$Warning SuspendThread needs to be implemented}
+      result := pthread_kill(threadHandle,SIGSTOP);
     end;
 
 
   function  CResumeThread  (threadHandle : TThreadID) : dword;
     begin
-      {$Warning ResumeThread needs to be implemented}
+      result := pthread_kill(threadHandle,SIGCONT);
     end;
 
 

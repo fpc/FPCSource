@@ -193,18 +193,7 @@ begin
       CurrentTM.SemaphoreWait(FSem);
     end else begin
       FSuspendedExternal := true;
-      // naughty hack if the user doesn't have Linux with NPTL...
-      // in that case, the PID of threads will not be identical
-      // to the other threads, which means that our thread is a normal
-      // process that we can suspend via SIGSTOP...
-      // this violates POSIX, but is the way it works on the
-      // LinuxThreads pthread implementation. Not with NPTL, but in that case
-      // getpid(2) also behaves properly and returns the same PID for
-      // all threads. Thats actually (FINALLY!) native thread support :-)
-      if FPid <> GMainPID then begin
-        FSuspended := true;
-        fpkill(FPid, SIGSTOP);
-      end;
+      SuspendThread(FHandle);
     end;
   end;
 end;
@@ -219,11 +208,7 @@ begin
     end;
   end else begin
     FSuspendedExternal := false;
-    // see .Suspend
-    if FPid <> GMainPID then begin
-      FSuspended := False;
-      fpkill(FPid, SIGCONT);
-    end;  end;
+    ResumeThread(FHandle);
 end;
 
 
