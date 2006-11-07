@@ -3411,31 +3411,36 @@ implementation
 
 
     function tprocvardef.getcopy : tstoreddef;
+      var
+        i : tcallercallee;
+        j : longint;
       begin
-        result:=self;
-      (*
-          { saves a definition to the return type }
-          returndef         : ttype;
-          parast          : TSymtable;
-          paras           : tparalist;
-          proctypeoption  : tproctypeoption;
-          proccalloption  : tproccalloption;
-          procoptions     : tprocoptions;
-          requiredargarea : aint;
-          { number of user visibile parameters }
-          maxparacount,
-          minparacount    : byte;
-{$ifdef i386}
-          fpu_used        : longint;    { how many stack fpu must be empty }
-{$endif i386}
-          funcretloc : array[tcallercallee] of TLocation;
-          has_paraloc_info : boolean; { paraloc info is available }
+        result:=tprocvardef.create(parast.symtablelevel);
+        tprocvardef(result).returndef:=returndef;
+        tprocvardef(result).returndefderef:=returndefderef;
+        tprocvardef(result).parast:=parast.getcopy;
 
-       tprocvardef = class(tabstractprocdef)
-          constructor create(level:byte);
-          constructor ppuload(ppufile:tcompilerppufile);
-          function getcopy : tstoreddef;override;
-       *)
+        { create paralist copy }
+        tprocvardef(result).paras:=tparalist.create(false);
+        tprocvardef(result).paras.count:=paras.count;
+        for j:=0 to paras.count-1 do
+          tprocvardef(result).paras[j]:=paras[j];
+
+        tprocvardef(result).proctypeoption:=proctypeoption;
+        tprocvardef(result).proccalloption:=proccalloption;
+        tprocvardef(result).procoptions:=procoptions;
+        tprocvardef(result).requiredargarea:=requiredargarea;
+        tprocvardef(result).maxparacount:=maxparacount;
+        tprocvardef(result).minparacount:=minparacount;
+        for i:=low(tcallercallee) to high(tcallercallee) do
+          location_copy(tprocvardef(result).funcretloc[i],funcretloc[i]);
+        tprocvardef(result).has_paraloc_info:=has_paraloc_info;
+{$ifdef i386}
+        tprocvardef(result).fpu_used:=fpu_used;
+{$endif i386}
+{$ifdef m68k}
+        tprocvardef(result).exp_funcretloc:=exp_funcretlog;
+{$endif}
       end;
 
 
