@@ -326,7 +326,7 @@ const
 
   { assume that this program will not spawn other threads, when the
     first thread is started the following constants need to be filled }
-  IsMultiThread : boolean = FALSE;
+  IsMultiThread : longbool = FALSE;
   { set to true, if a threading helper is used before a thread
     manager has been installed }
   ThreadingAlreadyUsed : boolean = FALSE;

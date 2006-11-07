@@ -201,12 +201,14 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$endif DEBUG_MT}
       { Initialize multithreading if not done }
       if not IsMultiThread then
-       begin
-        { We're still running in single thread mode, setup the TLS }
-         pthread_key_create(@TLSKey,nil);
-         InitThreadVars(@CRelocateThreadvar);
-         IsMultiThread:=true;
-       end;
+        begin
+          if (InterLockedExchange(longint(IsMultiThread),1) = 0) then
+            begin
+              { We're still running in single thread mode, setup the TLS }
+               pthread_key_create(@TLSKey,nil);
+              InitThreadVars(@CRelocateThreadvar);
+            end
+        end;
       { the only way to pass data to the newly created thread
         in a MT safe way, is to use the heap }
       new(ti);
