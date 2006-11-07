@@ -3419,6 +3419,7 @@ implementation
         tprocvardef(result).returndef:=returndef;
         tprocvardef(result).returndefderef:=returndefderef;
         tprocvardef(result).parast:=parast.getcopy;
+        tprocvardef(result).savesize:=savesize;
 
         { create paralist copy }
         tprocvardef(result).paras:=tparalist.create(false);
