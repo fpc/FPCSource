@@ -209,6 +209,7 @@ begin
   end else begin
     FSuspendedExternal := false;
     ResumeThread(FHandle);
+  end;
 end;
 
 
