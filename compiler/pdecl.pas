@@ -553,9 +553,10 @@ implementation
                hdef.typesym:=newtype;
              end;
 
-           { Write tables if we are the typesym that defines
-             this type. This will not be done for simple type renamings }
-           if (hdef.typesym=newtype) then
+           { Write tables if there are no errors and we are the typesym that
+             defines this type, so this will not be done for simple type renamings }
+           if (hdef.typ<>errordef) and
+              (hdef.typesym=newtype) then
             begin
               { file position }
               oldfilepos:=current_filepos;
