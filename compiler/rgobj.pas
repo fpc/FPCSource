@@ -697,7 +697,8 @@ unit rgobj;
       begin
         supreg:=getsupreg(r);
 {$ifdef extdebug}
-        if supreg>=maxreginfo then
+        if not (cs_no_regalloc in current_settings.globalswitches) and
+           (supreg>=maxreginfo) then
           internalerror(200411061);
 {$endif extdebug}
         if supreg>=first_imaginary then
