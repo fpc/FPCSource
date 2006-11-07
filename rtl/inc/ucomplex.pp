@@ -315,14 +315,35 @@ Unit UComplex;
   inline;
   {$endif TEST_INLINE}
     { division : z := znum / zden }
-    var
-       denom : real;
-    begin
-       with zden do denom := (re * re) + (im * im);
-       { generates a fpu exception if denom=0 as for reals }
-       z.re := ((znum.re * zden.re) + (znum.im * zden.im)) / denom;
-       z.im := ((znum.im * zden.re) - (znum.re * zden.im)) / denom;
-    end;
+    { The following algorithm is used to properly handle
+      denominator overflow:
+
+                 |  a + b(d/c)   c - a(d/c)
+                 |  ---------- + ---------- I     if |d| < |c|
+      a + b I    |  c + d(d/c)   a + d(d/c)
+      -------  = |
+      c + d I    |  b + a(c/d)   -a+ b(c/d)
+                 |  ---------- + ---------- I     if |d| >= |c|
+                 |  d + c(c/d)   d + c(c/d)
+    }
+     var
+       tmp, denom : real;
+     begin
+       if ( abs(zden.re) > abs(zden.im) ) then
+       begin
+          tmp := zden.im / zden.re;
+          denom := zden.re + zden.im * tmp;
+          z.re := (znum.re + znum.im * tmp) / denom;
+          z.im := (znum.im - znum.re * tmp) / denom;
+       end
+       else
+       begin
+          tmp := zden.re / zden.im;
+          denom := zden.im + zden.re * tmp;
+          z.re := (znum.im + znum.re * tmp) / denom;
+          z.im := (-znum.re + znum.im * tmp) / denom;
+       end;
+     end;    
 
     operator / (znum : complex; r : real) z : complex;
       { division : z := znum / r }
