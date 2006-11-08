@@ -1729,10 +1729,8 @@ implementation
         newstatement : tstatementnode;
         temp    : ttempcreatenode;
       begin
-        if is_varset(left.resultdef) then
+        if is_varset(left.resultdef) or is_varset(right.resultdef) then
           begin
-            if not(is_varset(right.resultdef)) then
-              internalerror(2006091901);
             case nodetype of
               equaln,unequaln,lten,gten:
                 begin
@@ -1778,7 +1776,7 @@ implementation
                       addstatement(newstatement,ccallnode.createintern('fpc_varset_create_element',
                         ccallparanode.create(ctemprefnode.create(temp),
                         ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false),
-                        ccallparanode.create(tsetelementnode(right).left,nil))))
+                        ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype),nil))))
                       );
 
                       { the last statement should return the value as
@@ -1804,15 +1802,15 @@ implementation
                           if assigned(tsetelementnode(right).right) then
                             addstatement(newstatement,ccallnode.createintern('fpc_varset_set_range',
                               ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false),
-                              ccallparanode.create(tsetelementnode(right).right,
-                              ccallparanode.create(tsetelementnode(right).left,
+                              ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(tsetelementnode(right).right),sinttype),
+                              ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(tsetelementnode(right).left),sinttype),
                               ccallparanode.create(ctemprefnode.create(temp),
                               ccallparanode.create(left,nil))))))
                             )
                           else
                             addstatement(newstatement,ccallnode.createintern('fpc_varset_set',
                               ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false),
-                              ccallparanode.create(tsetelementnode(right).left,
+                              ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype),
                               ccallparanode.create(ctemprefnode.create(temp),
                               ccallparanode.create(left,nil)))))
                             );

@@ -239,11 +239,11 @@ procedure fpc_varset_create_element(b,size : ptrint; var data); compilerproc;
 {
   add the element b to the set "source"
 }
-procedure fpc_varset_set(var source,dest; b,size : ptrint); compilerproc;
+procedure fpc_varset_set(const source;var dest; b,size : ptrint); compilerproc;
   type
     tbytearray = array[0..sizeof(sizeint)-1] of byte;
   begin
-    move(source,dest,sizeof(source));
+    move(source,dest,size);
     tbytearray(dest)[b div 8]:=tbytearray(dest)[b div 8] or (1 shl (b mod 8));
   end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_SET_BYTE}
@@ -254,7 +254,7 @@ procedure fpc_varset_set(var source,dest; b,size : ptrint); compilerproc;
    suppresses the element b to the set pointed by p
    used for exclude(set,element)
 }
-procedure fpc_varset_unset(var source,dest; b,size : ptrint); compilerproc;
+procedure fpc_varset_unset(const source;var dest; b,size : ptrint); compilerproc;
   type
     tbytearray = array[0..sizeof(sizeint)-1] of byte;
   begin

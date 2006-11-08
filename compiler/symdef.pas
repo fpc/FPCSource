@@ -2012,10 +2012,14 @@ implementation
          if high<32 then
            begin
              settype:=smallset;
+             {
              if current_settings.setalloc=0 then      { $PACKSET Fixed?}
+              }
                savesize:=Sizeof(longint)
+              {
              else                       {No, use $PACKSET VALUE for rounding}
-               savesize:=current_settings.setalloc*((high+current_settings.setalloc*8-1) DIV (current_settings.setalloc*8));
+               savesize:=current_settings.setalloc*(((high+1)+current_settings.setalloc*8-1) DIV (current_settings.setalloc*8));
+             }
            end
          else
           if high<256 then
@@ -2024,10 +2028,10 @@ implementation
               if current_settings.setalloc=0 then      { $PACKSET Fixed?}
                 savesize:=32
               else                       {No, use $PACKSET VALUE for rounding}
-                savesize:=current_settings.setalloc*((high+current_settings.setalloc*8-1) DIV (current_settings.setalloc*8));
+                savesize:=current_settings.setalloc*(((high+1)+current_settings.setalloc*8-1) DIV (current_settings.setalloc*8));
             end
           else
-            savesize:=current_settings.setalloc*((high+current_settings.setalloc*8-1) DIV (current_settings.setalloc*8));
+            savesize:=current_settings.setalloc*(((high+1)+current_settings.setalloc*8-1) DIV (current_settings.setalloc*8));
       end;
 
 

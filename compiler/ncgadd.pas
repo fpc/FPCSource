@@ -219,7 +219,7 @@ interface
             { when it is not allowed to swap we have a constant on
               left, that will give problems }
             if not allow_swap then
-              internalerror(200307041);
+              internalerror(200307043);
             swapleftright;
           end;
       end;

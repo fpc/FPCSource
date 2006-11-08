@@ -1011,7 +1011,7 @@ implementation
     {# returns true, if the type passed is a varset }
     function is_varset(p : tdef) : boolean;
       begin
-        result:=(p.typ=setdef) and not(p.size=4) and not(p.size=32);
+        result:=(p.typ=setdef) and not(p.size=4);
       end;
 
 

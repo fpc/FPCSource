@@ -73,6 +73,8 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           procedure printnodetree(var t:text);override;
+          property statement : tnode read left write left;
+          property next : tnode read right write right;
        end;
        tstatementnodeclass = class of tstatementnode;
 
@@ -84,6 +86,7 @@ interface
 {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
 {$endif state_tracking}
+          property statements : tnode read left write left;
        end;
        tblocknodeclass = class of tblocknode;
 

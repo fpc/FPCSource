@@ -313,8 +313,8 @@ function fpc_set_contains_sets(const set1,set2: fpc_normal_set): boolean; compil
 
 procedure fpc_varset_load_small(l: fpc_small_set;var dest;size : ptrint); compilerproc;
 procedure fpc_varset_create_element(b,size : ptrint; var data); compilerproc;
-procedure fpc_varset_set(var source,dest; b,size : ptrint); compilerproc;
-procedure fpc_varset_unset(var source,dest; b,size : ptrint); compilerproc;
+procedure fpc_varset_set(const source;var dest; b,size : ptrint); compilerproc;
+procedure fpc_varset_unset(const source;var dest; b,size : ptrint); compilerproc;
 procedure fpc_varset_set_range(const orgset; var dest;l,h,size : ptrint); compilerproc;
 function fpc_varset_in(const p; b : ptrint): boolean; compilerproc;
 procedure fpc_varset_add_sets(const set1,set2; var dest;size : ptrint); compilerproc;

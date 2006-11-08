@@ -895,6 +895,7 @@ implementation
 
     function  valid_for_assign(p:tnode;opts:TValidAssigns; report_errors: boolean):boolean;
       var
+        hp2,
         hp : tnode;
         gotstring,
         gotsubscript,
@@ -1083,6 +1084,24 @@ implementation
                  if (m_delphi in current_settings.modeswitches) and is_dynamic_array(tunarynode(hp).left.resultdef) then
                    gotdynarray:=true;
                  hp:=tunarynode(hp).left;
+               end;
+             blockn :
+               begin
+                 hp2:=tblocknode(hp).statements;
+                 if assigned(hp2) then
+                   begin
+                     if hp2.nodetype<>statementn then
+                       internalerror(2006110801);
+                     while assigned(tstatementnode(hp2).next) do
+                       hp2:=tstatementnode(hp2).next;
+                     hp:=tstatementnode(hp2).statement;
+                   end
+                 else
+                   begin
+                     if report_errors then
+                      CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
+                     exit;
+                   end;
                end;
              asn :
                begin
