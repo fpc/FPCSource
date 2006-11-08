@@ -45,7 +45,7 @@ type
     constructor Create;
     procedure Clear;
     procedure Push(const Value: Char);
-    property Index: Byte read FIndex;
+    property ItemIndex: Byte read FIndex;
     property Items[i: Byte]: Char read GetItem write SetItem; default;
     property Full: Boolean read GetFull;
     property OnFull: TLOnFull read FOnFull write FOnFull;
@@ -90,13 +90,12 @@ end;
 
 procedure TLControlStack.Push(const Value: Char);
 begin
-  if FIndex < TL_CSLENGTH then
-    begin
-      FItems[FIndex]:=Value;
-      Inc(FIndex);
-      if Full then
-        if Assigned(FOnFull) then FOnFull;
-    end;
+  if FIndex < TL_CSLENGTH then begin
+    FItems[FIndex]:=Value;
+    Inc(FIndex);
+    if Full and Assigned(FOnFull) then
+      FOnFull;
+  end;
 end;
 
 end.

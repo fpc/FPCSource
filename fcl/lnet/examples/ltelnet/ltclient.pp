@@ -95,7 +95,8 @@ begin
                  SendStr:='';
                end else begin
                  SendStr:=SendStr + c;
-                 Write(c);
+                 if not FCon.OptionIsSet(TS_ECHO) then
+                   Write(c);
                end;
         end;
       end;

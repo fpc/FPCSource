@@ -245,11 +245,14 @@ procedure TLTelnet.TelnetParse(const msg: string);
 var
   i: Longint;
 begin
-  if Length(msg) > 0 then
-    for i:=1 to Length(msg) do
-      if (FStack.Index > 0) or (msg[i] = TS_IAC) then
+  for i:=1 to Length(msg) do
+    if (FStack.ItemIndex > 0) or (msg[i] = TS_IAC) then begin
+      if msg[i] = TS_GA then
+        FStack.Clear
+      else
         FStack.Push(msg[i])
-      else FOutput.WriteByte(Byte(msg[i]));
+    end else
+      FOutput.WriteByte(Byte(msg[i]));
 end;
 
 function TLTelnet.OptionIsSet(const Option: Char): Boolean;
