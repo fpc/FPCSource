@@ -923,7 +923,7 @@ implementation
         else
           prefix:='INIT';
         if assigned(typesym) and
-           (owner.symtabletype=globalsymtable) then
+           (owner.symtabletype in [staticsymtable,globalsymtable]) then
           result:=make_mangledname(prefix,owner,typesym.name)
         else
           result:=make_mangledname(prefix,findunitsymtable(owner),'DEF'+tostr(DefId))
