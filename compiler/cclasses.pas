@@ -2029,13 +2029,13 @@ end;
       var
         NewNode,NewNode2 : TLinkedListItem;
       begin
-        NewNode:=p.First;
+        NewNode:=p.Last;
         while assigned(NewNode) do
          begin
            NewNode2:=NewNode.Getcopy;
            if assigned(NewNode2) then
             Insert(NewNode2);
-           NewNode:=NewNode.Next;
+           NewNode:=NewNode.Previous;
          end;
       end;
 
