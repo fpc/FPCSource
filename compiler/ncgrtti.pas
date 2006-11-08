@@ -29,7 +29,7 @@ interface
       cclasses,
       aasmbase,
       symbase,symconst,symtype,symdef;
-      
+
     type
 
       { TRTTIWriter }
@@ -54,8 +54,8 @@ interface
 
     var
       RTTIWriter : TRTTIWriter;
-      
-      
+
+
 implementation
 
     uses
@@ -69,7 +69,7 @@ implementation
 
     const
        rttidefopt : array[trttitype] of tdefoption = (df_has_rttitable,df_has_inittable);
-       
+
     type
        TPropNameListItem = class(TFPHashObject)
          propindex : longint;
@@ -557,7 +557,7 @@ implementation
         end;
 
 
-        procedure procvar_rtti(def:tprocvardef);
+        procedure procvardef_rtti(def:tprocvardef);
 
            procedure write_para(parasym:tparavarsym);
            var
@@ -794,6 +794,8 @@ implementation
             floatdef_rtti(tfloatdef(def));
           setdef :
             setdef_rtti(tsetdef(def));
+          procvardef :
+            procvardef_rtti(tprocvardef(def));
           arraydef :
             begin
               if ado_IsBitPacked in tarraydef(def).arrayoptions then
@@ -843,8 +845,8 @@ implementation
           internalerror(200611037);
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
       end;
-      
-      
+
+
     procedure TRTTIWriter.write_rtti(def:tdef;rt:trttitype);
       var
         rttilab : tasmsymbol;
