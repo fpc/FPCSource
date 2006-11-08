@@ -312,13 +312,9 @@ begin
 end;
 
 procedure TLTelnetClient.OnDs(aSocket: TLSocket);
-const
-  LCM = 'Lost connection';
 begin
   if Assigned(FOnDisconnect) then
-    FOnDisconnect(aSocket)
-  else
-    FOutput.Write(LCM, Length(LCM));
+    FOnDisconnect(aSocket);
 end;
 
 procedure TLTelnetClient.OnRe(aSocket: TLSocket);

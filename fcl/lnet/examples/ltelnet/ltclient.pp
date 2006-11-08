@@ -74,7 +74,8 @@ begin
       if KeyPressed then
         Halt;
     until FCon.Connected; // wait until timeout or we actualy connected
-
+    
+    Writeln('Connected');
     SendStr:='';
     
     while not FQuit do begin // if we connected, do main loop
