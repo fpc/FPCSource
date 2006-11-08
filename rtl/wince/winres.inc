@@ -12,11 +12,19 @@ Function FindResource(ModuleHandle: HMODULE; ResourceName, ResourceType: PChar):
 var
   ws1, ws2: PWideChar;
 begin
-  ws1:=PCharToPWideChar(ResourceName);
-  ws2:=PCharToPWideChar(ResourceType);
+  if cardinal(ResourceName) shr 16 <> 0 then
+    ws1:=PCharToPWideChar(ResourceName)
+  else
+    ws1:=pointer(ResourceName);
+  if cardinal(ResourceType) shr 16 <> 0 then
+    ws2:=PCharToPWideChar(ResourceType)
+  else
+    ws2:=pointer(ResourceType);
   Result:=SysFindResource(ModuleHandle, ws1, ws2);
-  FreeMem(ws2);
-  FreeMem(ws1);
+  if cardinal(ResourceType) shr 16 <> 0 then
+    FreeMem(ws2);
+  if cardinal(ResourceName) shr 16 <> 0 then
+    FreeMem(ws1);
 end;
 
 Function LoadResource(ModuleHandle: HMODULE; ResHandle: TResourceHandle): HGLOBAL;

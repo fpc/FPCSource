@@ -1,9 +1,9 @@
 
-function SysFindResource(hModule:HMODULE; lpName:Pchar; lpType:Pchar):TResourceHandle; external 'kernel32' name 'FindResourceA';
-function SysLoadResource(hModule:HMODULE; hResInfo:TResourceHandle):HGLOBAL; external 'kernel32' name 'LoadResource';
-function SysSizeofResource(hModule:HMODULE; hResInfo:TResourceHandle):DWORD; external 'kernel32' name 'SizeofResource';
-function SysLockResource(hResData:HGLOBAL):Pointer; external 'kernel32' name 'LockResource';
-function SysFreeResource(hResData:HGLOBAL):Longbool; external 'kernel32' name 'FreeResource';
+function SysFindResource(hModule:HMODULE; lpName:Pchar; lpType:Pchar):TResourceHandle; stdcall; external 'kernel32' name 'FindResourceA';
+function SysLoadResource(hModule:HMODULE; hResInfo:TResourceHandle):HGLOBAL; stdcall; external 'kernel32' name 'LoadResource';
+function SysSizeofResource(hModule:HMODULE; hResInfo:TResourceHandle):DWORD; stdcall; external 'kernel32' name 'SizeofResource';
+function SysLockResource(hResData:HGLOBAL):Pointer; stdcall; external 'kernel32' name 'LockResource';
+function SysFreeResource(hResData:HGLOBAL):Longbool; stdcall; external 'kernel32' name 'FreeResource';
 
 Function HINSTANCE : HMODULE;
 
