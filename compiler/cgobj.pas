@@ -919,7 +919,7 @@ implementation
 
    procedure tcg.a_load_subsetreg_reg(list : TAsmList; subsetsize, tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister);
      var
-       bitmask: aint;
+       bitmask: aword;
        tmpreg: tregister;
        stopbit: byte;
      begin
@@ -928,11 +928,11 @@ implementation
        stopbit := sreg.startbit + sreg.bitlen;
        // on x86(64), 1 shl 32(64) = 1 instead of 0
        // use aword to prevent overflow with 1 shl 31
-       if (stopbit - sreg.startbit < AIntBits) then
+       if (stopbit - sreg.startbit <> AIntBits) then
          bitmask := (aword(1) shl (stopbit - sreg.startbit)) - 1
        else
-         bitmask := -1;
-       a_op_const_reg(list,OP_AND,sreg.subsetregsize,bitmask,tmpreg);
+         bitmask := high(aword);
+       a_op_const_reg(list,OP_AND,sreg.subsetregsize,aint(bitmask),tmpreg);
        tmpreg := makeregsize(list,tmpreg,subsetsize);
        a_load_reg_reg(list,tcgsize2unsigned[subsetsize],subsetsize,tmpreg,tmpreg);
        a_load_reg_reg(list,subsetsize,tosize,tmpreg,destreg);
@@ -947,7 +947,7 @@ implementation
 
    procedure tcg.a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt);
      var
-       bitmask: aint;
+       bitmask: aword;
        tmpreg: tregister;
        stopbit: byte;
      begin
@@ -956,17 +956,17 @@ implementation
        if (stopbit <> AIntBits) then
          bitmask := not(((aword(1) shl stopbit)-1) xor ((aword(1) shl sreg.startbit)-1))
        else
-         bitmask := not(-1 xor ((aword(1) shl sreg.startbit)-1));
+         bitmask := not(high(aword) xor ((aword(1) shl sreg.startbit)-1));
        if not(slopt in [SL_SETZERO,SL_SETMAX]) then
          begin
            tmpreg:=getintregister(list,sreg.subsetregsize);
            a_load_reg_reg(list,fromsize,sreg.subsetregsize,fromreg,tmpreg);
            a_op_const_reg(list,OP_SHL,sreg.subsetregsize,sreg.startbit,tmpreg);
             if (slopt <> SL_REGNOSRCMASK) then
-             a_op_const_reg(list,OP_AND,sreg.subsetregsize,not(bitmask),tmpreg);
+             a_op_const_reg(list,OP_AND,sreg.subsetregsize,aint(not(bitmask)),tmpreg);
          end;
        if (slopt <> SL_SETMAX) then
-         a_op_const_reg(list,OP_AND,sreg.subsetregsize,bitmask,sreg.subsetreg);
+         a_op_const_reg(list,OP_AND,sreg.subsetregsize,aint(bitmask),sreg.subsetreg);
 
        case slopt of
          SL_SETZERO : ;
@@ -986,7 +986,7 @@ implementation
     procedure tcg.a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize : tcgsize; const fromsreg, tosreg: tsubsetregister);
       var
         tmpreg: tregister;
-        bitmask: aint;
+        bitmask: aword;
         stopbit: byte;
       begin
         if (fromsreg.bitlen >= tosreg.bitlen) then
@@ -1003,8 +1003,8 @@ implementation
               bitmask := not(((aword(1) shl stopbit)-1) xor ((aword(1) shl tosreg.startbit)-1))
              else
                bitmask := (aword(1) shl tosreg.startbit) - 1;
-            a_op_const_reg(list,OP_AND,tosreg.subsetregsize,bitmask,tosreg.subsetreg);
-            a_op_const_reg(list,OP_AND,tosreg.subsetregsize,not(bitmask),tmpreg);
+            a_op_const_reg(list,OP_AND,tosreg.subsetregsize,aint(bitmask),tosreg.subsetreg);
+            a_op_const_reg(list,OP_AND,tosreg.subsetregsize,aint(not(bitmask)),tmpreg);
             a_op_reg_reg(list,OP_OR,tosreg.subsetregsize,tmpreg,tosreg.subsetreg);
           end
         else
@@ -1038,7 +1038,7 @@ implementation
 
   procedure tcg.a_load_const_subsetreg(list: TAsmlist; subsetsize: tcgsize; a: aint; const sreg: tsubsetregister);
     var
-      bitmask: aint;
+      bitmask: aword;
       stopbit: byte;
     begin
        stopbit := sreg.startbit + sreg.bitlen;
@@ -1048,8 +1048,8 @@ implementation
        else
          bitmask := (aword(1) shl sreg.startbit) - 1;
        if (((a shl sreg.startbit) and not bitmask) <> not bitmask) then
-         a_op_const_reg(list,OP_AND,sreg.subsetregsize,bitmask,sreg.subsetreg);
-       a_op_const_reg(list,OP_OR,sreg.subsetregsize,(a shl sreg.startbit) and not(bitmask),sreg.subsetreg);
+         a_op_const_reg(list,OP_AND,sreg.subsetregsize,aint(bitmask),sreg.subsetreg);
+       a_op_const_reg(list,OP_OR,sreg.subsetregsize,aint((aword(a) shl sreg.startbit) and not(bitmask)),sreg.subsetreg);
     end;
 
 

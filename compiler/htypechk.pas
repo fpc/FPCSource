@@ -655,7 +655,7 @@ implementation
                else
                  make_not_regable_intern(ttypeconvnode(p).left,how,records_only);
             loadn :
-              if (tloadnode(p).symtableentry.typ in [globalvarsym,localvarsym,paravarsym]) and
+              if (tloadnode(p).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) and
                  (tabstractvarsym(tloadnode(p).symtableentry).varregable <> vr_none) and
                  ((not records_only) or
                   (tabstractvarsym(tloadnode(p).symtableentry).vardef.typ = recorddef)) then
@@ -818,7 +818,7 @@ implementation
                break;
              loadn :
                begin
-                 if (tloadnode(p).symtableentry.typ in [localvarsym,paravarsym,globalvarsym]) then
+                 if (tloadnode(p).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) then
                   begin
                     hsym:=tabstractvarsym(tloadnode(p).symtableentry);
                     if (vsf_must_be_valid in varstateflags) and
@@ -1245,7 +1245,7 @@ implementation
                begin
                  case tloadnode(hp).symtableentry.typ of
                    absolutevarsym,
-                   globalvarsym,
+                   staticvarsym,
                    localvarsym,
                    paravarsym :
                      begin
@@ -1257,7 +1257,7 @@ implementation
                           CGMessage1(parser_e_illegal_assignment_to_count_var,tloadnode(hp).symtableentry.realname)
                          else
                           exit;
-                       { derefed pointer }
+                       { read-only variable? }
                        if (tabstractvarsym(tloadnode(hp).symtableentry).varspez=vs_const) then
                         begin
                           { allow p^:= constructions with p is const parameter }
@@ -1270,17 +1270,6 @@ implementation
                           exit;
                         end;
                        result:=true;
-                       exit;
-                     end;
-                   typedconstsym :
-                     begin
-                       if ttypedconstsym(tloadnode(hp).symtableentry).is_writable or
-                          (valid_addr in opts) or
-                          (valid_const in opts) then
-                        result:=true
-                       else
-                        if report_errors then
-                         CGMessagePos(hp.fileinfo,type_e_no_assign_to_const);
                        exit;
                      end;
                    procsym :

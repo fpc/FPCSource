@@ -837,12 +837,10 @@ In case not, the value returned can be arbitrary.
                         begin
                           l:=0;
                           case srsym.typ of
-                            globalvarsym,
+                            staticvarsym,
                             localvarsym,
                             paravarsym :
                               l:=tabstractvarsym(srsym).getsize;
-                            typedconstsym :
-                              l:=ttypedconstsym(srsym).getsize;
                             typesym:
                               l:=ttypesym(srsym).typedef.size;
                             else

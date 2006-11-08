@@ -354,13 +354,12 @@ implementation
                 ibtypesym : sym:=ttypesym.ppuload(ppufile);
                 ibprocsym : sym:=tprocsym.ppuload(ppufile);
                ibconstsym : sym:=tconstsym.ppuload(ppufile);
-           ibglobalvarsym : sym:=tglobalvarsym.ppuload(ppufile);
+           ibstaticvarsym : sym:=tstaticvarsym.ppuload(ppufile);
             iblocalvarsym : sym:=tlocalvarsym.ppuload(ppufile);
              ibparavarsym : sym:=tparavarsym.ppuload(ppufile);
             ibfieldvarsym : sym:=tfieldvarsym.ppuload(ppufile);
          ibabsolutevarsym : sym:=tabsolutevarsym.ppuload(ppufile);
                 ibenumsym : sym:=tenumsym.ppuload(ppufile);
-          ibtypedconstsym : sym:=ttypedconstsym.ppuload(ppufile);
             ibpropertysym : sym:=tpropertysym.ppuload(ppufile);
                 ibunitsym : sym:=tunitsym.ppuload(ppufile);
                iblabelsym : sym:=tlabelsym.ppuload(ppufile);
@@ -549,7 +548,7 @@ implementation
 
     procedure TStoredSymtable.varsymbolused(sym:TObject;arg:pointer);
       begin
-         if (tsym(sym).typ in [globalvarsym,localvarsym,paravarsym,fieldvarsym]) and
+         if (tsym(sym).typ in [staticvarsym,localvarsym,paravarsym,fieldvarsym]) and
             ((tsym(sym).owner.symtabletype in
              [parasymtable,localsymtable,ObjectSymtable,staticsymtable])) then
           begin
@@ -587,12 +586,12 @@ implementation
                   end
                 else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_only_set,tsym(sym).owner.realname^,tsym(sym).realname)
-                else if not(vo_is_exported in tabstractvarsym(sym).varoptions) and
+                else if not(vo_is_public in tabstractvarsym(sym).varoptions) and
                         not(vo_is_funcret in tabstractvarsym(sym).varoptions) then
                   MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_only_set,tsym(sym).realname);
              end
            else if (tabstractvarsym(sym).varstate = vs_read_not_warned) and
-                   ([vo_is_exported,vo_is_external] * tabstractvarsym(sym).varoptions = []) then
+                   ([vo_is_public,vo_is_external] * tabstractvarsym(sym).varoptions = []) then
              MessagePos1(tsym(sym).fileinfo,sym_w_identifier_only_read,tsym(sym).realname)
          end
       else if ((tsym(sym).owner.symtabletype in
@@ -702,18 +701,12 @@ implementation
           exit;
          case tsym(sym).typ of
            fieldvarsym,
-           globalvarsym,
+           staticvarsym,
            localvarsym,
            paravarsym :
              begin
                if not(is_class(tabstractvarsym(sym).vardef)) and
                   tstoreddef(tabstractvarsym(sym).vardef).needs_inittable then
-                 b_needs_init_final:=true;
-             end;
-           typedconstsym :
-             begin
-               if ttypedconstsym(sym).is_writable and
-                  tstoreddef(ttypedconstsym(sym).typedconstdef).needs_inittable then
                  b_needs_init_final:=true;
              end;
          end;

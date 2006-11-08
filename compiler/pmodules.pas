@@ -184,13 +184,13 @@ implementation
         ltvTable : TAsmList;
       begin
         ltvTable:=TAsmList(arg);
-        if (tsym(p).typ=globalvarsym) and
-           (vo_is_thread_var in tglobalvarsym(p).varoptions) then
+        if (tsym(p).typ=staticvarsym) and
+           (vo_is_thread_var in tstaticvarsym(p).varoptions) then
          begin
            { address of threadvar }
-           ltvTable.concat(tai_const.Createname(tglobalvarsym(p).mangledname,0));
+           ltvTable.concat(tai_const.Createname(tstaticvarsym(p).mangledname,0));
            { size of threadvar }
-           ltvTable.concat(tai_const.create_32bit(tglobalvarsym(p).getsize));
+           ltvTable.concat(tai_const.create_32bit(tstaticvarsym(p).getsize));
          end;
       end;
 
@@ -712,7 +712,7 @@ implementation
       end;
 
 
-    function create_main_proc(const name:string;potype:tproctypeoption;st:TSymtable):tprocdef;
+    function create_main_proc(const name:string;potype:tproctypeoption;st:TSymtable):tcgprocinfo;
       var
         ps  : tprocsym;
         pd  : tprocdef;
@@ -741,35 +741,25 @@ implementation
         pd.localst.free;
         pd.localst:=st;
         { set procinfo and current_procinfo.procdef }
-        current_procinfo:=cprocinfo.create(nil);
-        current_module.procinfo:=current_procinfo;
-        current_procinfo.procdef:=pd;
-        { return procdef }
-        create_main_proc:=pd;
+        result:=tcgprocinfo(cprocinfo.create(nil));
+        result.procdef:=pd;
         { main proc does always a call e.g. to init system unit }
-        include(current_procinfo.flags,pi_do_call);
+        include(result.flags,pi_do_call);
       end;
 
 
-    procedure release_main_proc(pd:tprocdef);
+    procedure release_main_proc(pi:tcgprocinfo);
       begin
-        { this is a main proc, so there should be no parent }
-        if not(assigned(current_procinfo)) or
-           assigned(current_procinfo.parent) or
-           not(current_procinfo.procdef=pd) then
-         internalerror(200304276);
+        { remove localst as it was replaced by staticsymtable }
+        pi.procdef.localst:=nil;
         { remove procinfo }
         current_module.procinfo:=nil;
-        current_procinfo.free;
-        current_procinfo:=nil;
-        { remove localst as it was replaced by staticsymtable }
-        pd.localst:=nil;
+        pi.free;
+        pi:=nil;
       end;
 
 
-    procedure gen_implicit_initfinal(flag:word;st:TSymtable);
-      var
-        pd : tprocdef;
+    function gen_implicit_initfinal(flag:word;st:TSymtable):tcgprocinfo;
       begin
         { update module flags }
         current_module.flags:=current_module.flags or flag;
@@ -777,20 +767,18 @@ implementation
         case flag of
           uf_init :
             begin
-              pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'init_implicit'),potype_unitinit,st);
-              pd.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
+              result:=create_main_proc(make_mangledname('',current_module.localsymtable,'init_implicit'),potype_unitinit,st);
+              result.procdef.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
             end;
           uf_finalize :
             begin
-              pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize_implicit'),potype_unitfinalize,st);
-              pd.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
+              result:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize_implicit'),potype_unitfinalize,st);
+              result.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
             end;
           else
             internalerror(200304253);
         end;
-        tcgprocinfo(current_procinfo).code:=cnothingnode.create;
-        tcgprocinfo(current_procinfo).generate_code;
-        release_main_proc(pd);
+        result.code:=cnothingnode.create;
       end;
 
 
@@ -826,13 +814,17 @@ implementation
          store_interface_crc : cardinal;
          s1,s2  : ^string; {Saves stack space}
          force_init_final : boolean;
-         pd : tprocdef;
+         init_procinfo,
+         finalize_procinfo : tcgprocinfo;
          unitname8 : string[8];
          has_impl,ag: boolean;
 {$ifdef i386}
-         globalvarsym : tglobalvarsym;
+         gotvarsym : tstaticvarsym;
 {$endif i386}
       begin
+         init_procinfo:=nil;
+         finalize_procinfo:=nil;
+
          if m_mac in current_settings.modeswitches then
            current_module.mode_switch_allowed:= false;
 
@@ -916,9 +908,6 @@ implementation
          { load default units, like the system unit }
          loaddefaultunits;
 
-         { reset }
-         make_ref:=true;
-
          { insert qualifier for the system unit (allows system.writeln) }
          if not(cs_compilesystem in current_settings.moduleswitches) and
             (token=_USES) then
@@ -988,12 +977,12 @@ implementation
          if cs_create_pic in current_settings.moduleswitches then
            begin
              { insert symbol for got access in assembler code}
-             globalvarsym:=tglobalvarsym.create('_GLOBAL_OFFSET_TABLE_',vs_value,voidpointertype,[vo_is_external,vo_is_C_var]);
-             globalvarsym.set_mangledname('_GLOBAL_OFFSET_TABLE_');
-             current_module.localsymtable.insert(globalvarsym);
+             gotvarsym:=tstaticvarsym.create('_GLOBAL_OFFSET_TABLE_',vs_value,voidpointertype,[vo_is_external]);
+             gotvarsym.set_mangledname('_GLOBAL_OFFSET_TABLE_');
+             current_module.localsymtable.insert(gotvarsym);
              { avoid unnecessary warnings }
-             globalvarsym.varstate:=vs_read;
-             globalvarsym.refs:=1;
+             gotvarsym.varstate:=vs_read;
+             gotvarsym.refs:=1;
            end;
 {$endif i386}
 
@@ -1024,14 +1013,11 @@ implementation
                internalerror(200212285);
 
              { Compile the unit }
-             pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'init'),potype_unitinit,current_module.localsymtable);
-             pd.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
-             tcgprocinfo(current_procinfo).parse_body;
-             tcgprocinfo(current_procinfo).generate_code;
-             tcgprocinfo(current_procinfo).resetprocdef;
+             init_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'init'),potype_unitinit,current_module.localsymtable);
+             init_procinfo.procdef.aliasnames.insert(make_mangledname('INIT$',current_module.localsymtable,''));
+             init_procinfo.parse_body;
              { save file pos for debuginfo }
-             current_module.mainfilepos:=current_procinfo.entrypos;
-             release_main_proc(pd);
+             current_module.mainfilepos:=init_procinfo.entrypos;
            end;
 
          { Generate specializations of objectdefs methods }
@@ -1045,7 +1031,12 @@ implementation
          { should we force unit initialization? }
          { this is a hack, but how can it be done better ? }
          if force_init_final and ((current_module.flags and uf_init)=0) then
-           gen_implicit_initfinal(uf_init,current_module.localsymtable);
+           begin
+             { first release the not used init procinfo }
+             if assigned(init_procinfo) then
+               release_main_proc(init_procinfo);
+             init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable);
+           end;
          { finalize? }
          if has_impl and (token=_FINALIZATION) then
            begin
@@ -1053,15 +1044,29 @@ implementation
               current_module.flags:=current_module.flags or uf_finalize;
 
               { Compile the finalize }
-              pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
-              pd.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
-              tcgprocinfo(current_procinfo).parse_body;
-              tcgprocinfo(current_procinfo).generate_code;
-              tcgprocinfo(current_procinfo).resetprocdef;
-              release_main_proc(pd);
+              finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
+              finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
+              finalize_procinfo.parse_body;
            end
          else if force_init_final then
-           gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
+           finalize_procinfo:=gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
+
+         { Now both init and finalize bodies are read and it is known
+           which variables are used in both init and finalize we can now
+           generate the code. This is required to prevent putting a variable in
+           a register that is also used in the finalize body (PFV) }
+         if assigned(init_procinfo) then
+           begin
+             init_procinfo.generate_code;
+             init_procinfo.resetprocdef;
+             release_main_proc(init_procinfo);
+           end;
+         if assigned(finalize_procinfo) then
+           begin
+             finalize_procinfo.generate_code;
+             finalize_procinfo.resetprocdef;
+             release_main_proc(finalize_procinfo);
+           end;
 
          symtablestack.pop(current_module.localsymtable);
          symtablestack.pop(current_module.globalsymtable);
@@ -1180,12 +1185,18 @@ implementation
       var
          main_file : tinputfile;
          hp,hp2    : tmodule;
-         pd        : tprocdef;
+         finalize_procinfo,
+         init_procinfo,
+         main_procinfo : tcgprocinfo;
+         force_init_final : boolean;
       begin
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
          Status.IsExe:=true;
          parse_only:=false;
+         main_procinfo:=nil;
+         init_procinfo:=nil;
+         finalize_procinfo:=nil;
 
          { DLL defaults to create reloc info }
          if islibrary then
@@ -1301,40 +1312,33 @@ implementation
            from the bootstrap code.}
          if islibrary then
           begin
-            pd:=create_main_proc(make_mangledname('',current_module.localsymtable,mainaliasname),potype_proginit,current_module.localsymtable);
+            main_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,mainaliasname),potype_proginit,current_module.localsymtable);
             { Win32 startup code needs a single name }
             if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
-              pd.aliasnames.insert('PASCALMAIN')
+              main_procinfo.procdef.aliasnames.insert('PASCALMAIN')
             else
-              pd.aliasnames.insert(target_info.Cprefix+'PASCALMAIN')
+              main_procinfo.procdef.aliasnames.insert(target_info.Cprefix+'PASCALMAIN')
           end
          else if (target_info.system in [system_i386_netware,system_i386_netwlibc,system_powerpc_macos,system_powerpc_darwin,system_i386_darwin]) then
            begin
-             pd:=create_main_proc('PASCALMAIN',potype_proginit,current_module.localsymtable);
+             main_procinfo:=create_main_proc('PASCALMAIN',potype_proginit,current_module.localsymtable);
            end
          else
            begin
-             pd:=create_main_proc(mainaliasname,potype_proginit,current_module.localsymtable);
-             pd.aliasnames.insert('PASCALMAIN');
+             main_procinfo:=create_main_proc(mainaliasname,potype_proginit,current_module.localsymtable);
+             main_procinfo.procdef.aliasnames.insert('PASCALMAIN');
            end;
-         tcgprocinfo(current_procinfo).parse_body;
-         tcgprocinfo(current_procinfo).generate_code;
-         tcgprocinfo(current_procinfo).resetprocdef;
+         main_procinfo.parse_body;
          { save file pos for debuginfo }
-         current_module.mainfilepos:=current_procinfo.entrypos;
-         release_main_proc(pd);
+         current_module.mainfilepos:=main_procinfo.entrypos;
 
          { Generate specializations of objectdefs methods }
          generate_specialization_procs;
 
          { should we force unit initialization? }
-         if tstaticsymtable(current_module.localsymtable).needs_init_final then
-           begin
-              { initialize section }
-              gen_implicit_initfinal(uf_init,current_module.localsymtable);
-              { finalize section }
-              gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
-           end;
+         force_init_final:=tstaticsymtable(current_module.localsymtable).needs_init_final;
+         if force_init_final then
+           init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable);
 
          { Add symbol to the exports section for win32 so smartlinking a
            DLL will include the edata section }
@@ -1348,14 +1352,30 @@ implementation
            begin
               { set module options }
               current_module.flags:=current_module.flags or uf_finalize;
+              { Parse the finalize }
+              finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
+              finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
+              finalize_procinfo.parse_body;
+           end
+         else
+           if force_init_final then
+             finalize_procinfo:=gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
 
-              { Compile the finalize }
-              pd:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
-              pd.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
-              tcgprocinfo(current_procinfo).parse_body;
-              tcgprocinfo(current_procinfo).generate_code;
-              tcgprocinfo(current_procinfo).resetprocdef;
-              release_main_proc(pd);
+         { See remark in unit init/final }
+         main_procinfo.generate_code;
+         main_procinfo.resetprocdef;
+         release_main_proc(main_procinfo);
+         if assigned(init_procinfo) then
+           begin
+             init_procinfo.generate_code;
+             init_procinfo.resetprocdef;
+             release_main_proc(init_procinfo);
+           end;
+         if assigned(finalize_procinfo) then
+           begin
+             finalize_procinfo.generate_code;
+             finalize_procinfo.resetprocdef;
+             release_main_proc(finalize_procinfo);
            end;
 
          symtablestack.pop(current_module.localsymtable);

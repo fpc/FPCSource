@@ -872,12 +872,10 @@ Unit Rax86int;
                       if assigned(sym) then
                        begin
                          case sym.typ of
-                           globalvarsym,
+                           staticvarsym,
                            localvarsym,
                            paravarsym :
                              l:=tabstractvarsym(sym).getsize;
-                           typedconstsym :
-                             l:=ttypedconstsym(sym).getsize;
                            typesym :
                              l:=ttypesym(sym).typedef.size;
                            else
@@ -957,20 +955,15 @@ Unit Rax86int;
                       if assigned(sym) then
                        begin
                          case sym.typ of
-                           globalvarsym :
+                           staticvarsym :
                              begin
-                               hs:=tglobalvarsym(sym).mangledname;
-                               def:=tglobalvarsym(sym).vardef;
+                               hs:=tstaticvarsym(sym).mangledname;
+                               def:=tstaticvarsym(sym).vardef;
                              end;
                            localvarsym,
                            paravarsym :
                              begin
                                Message(asmr_e_no_local_or_para_allowed);
-                             end;
-                           typedconstsym :
-                             begin
-                               hs:=ttypedconstsym(sym).mangledname;
-                               def:=ttypedconstsym(sym).typedconstdef;
                              end;
                            procsym :
                              begin

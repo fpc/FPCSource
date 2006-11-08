@@ -791,7 +791,7 @@ Begin
         hasvar:=true;
         SetupVar:=true;
       end;
-    globalvarsym,
+    staticvarsym,
     localvarsym,
     paravarsym :
       begin
@@ -801,15 +801,14 @@ Begin
         inc(tabstractvarsym(sym).refs);
         { variable can't be placed in a register }
         tabstractvarsym(sym).varregable:=vr_none;
-        case sym.owner.symtabletype of
-          globalsymtable,
-          staticsymtable :
+        case sym.typ of
+          staticvarsym :
             begin
               initref;
-              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tglobalvarsym(sym).mangledname);
+              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(sym).mangledname);
             end;
-          parasymtable,
-          localsymtable :
+          paravarsym,
+          localvarsym :
             begin
               if opr.typ=OPR_REFERENCE then
                 begin
@@ -845,41 +844,13 @@ Begin
           orddef,
           enumdef,
           pointerdef,
-          arraydef,
           floatdef :
             SetSize(tabstractvarsym(sym).getsize,false);
-          (* makes no sense when using sse instructions (FK)
           arraydef :
             begin
               { for arrays try to get the element size, take care of
                 multiple indexes }
               harrdef:=tarraydef(tabstractvarsym(sym).vardef);
-              while assigned(harrdef.elementdef) and
-                    (harrdef.elementdef.typ=arraydef) do
-               harrdef:=tarraydef(harrdef.elementdef);
-              SetSize(harrdef.elesize,false);
-            end;
-          *)
-        end;
-        hasvar:=true;
-        SetupVar:=true;
-        Exit;
-      end;
-    typedconstsym :
-      begin
-        initref;
-        opr.ref.symbol:=current_asmdata.RefAsmSymbol(ttypedconstsym(sym).mangledname);
-        case ttypedconstsym(sym).typedconstdef.typ of
-          orddef,
-          enumdef,
-          pointerdef,
-          floatdef :
-            SetSize(ttypedconstsym(sym).getsize,false);
-          arraydef :
-            begin
-              { for arrays try to get the element size, take care of
-                multiple indexes }
-              harrdef:=tarraydef(ttypedconstsym(sym).typedconstdef);
               while assigned(harrdef.elementdef) and
                     (harrdef.elementdef.typ=arraydef) do
                harrdef:=tarraydef(harrdef.elementdef);
@@ -1306,14 +1277,12 @@ Begin
      { we can start with a var,type,typedconst }
      if assigned(sym) then
        case sym.typ of
-         globalvarsym,
+         staticvarsym,
          localvarsym,
          paravarsym :
            st:=Tabstractvarsym(sym).vardef.GetSymtable(gs_record);
          typesym :
            st:=Ttypesym(sym).typedef.GetSymtable(gs_record);
-         typedconstsym :
-           st:=Ttypedconstsym(sym).typedconstdef.GetSymtable(gs_record);
        end
      else
        s:='';

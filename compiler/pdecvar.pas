@@ -671,64 +671,273 @@ implementation
 
     procedure read_var_decls(options:Tvar_dec_options);
 
-      procedure read_default_value(sc : TFPObjectList;def:tdef;is_threadvar : boolean);
+        procedure read_default_value(sc : TFPObjectList);
         var
           vs : tabstractnormalvarsym;
-          tcsym : ttypedconstsym;
+          tcsym : tstaticvarsym;
         begin
           vs:=tabstractnormalvarsym(sc[0]);
           if sc.count>1 then
-             Message(parser_e_initialized_only_one_var);
-          if is_threadvar then
-             Message(parser_e_initialized_not_for_threadvar);
-          if symtablestack.top.symtabletype=localsymtable then
+            Message(parser_e_initialized_only_one_var);
+          if vo_is_thread_var in vs.varoptions then
+            Message(parser_e_initialized_not_for_threadvar);
+          consume(_EQUAL);
+          case vs.typ of
+            localvarsym :
+              begin
+                tcsym:=tstaticvarsym.create('$default'+vs.realname,vs_const,vs.vardef,[]);
+                include(tcsym.symoptions,sp_internal);
+                vs.defaultconstsym:=tcsym;
+                symtablestack.top.insert(tcsym);
+                read_typed_const(current_asmdata.asmlists[al_typedconsts],tcsym);
+                { The variable has a value assigned }
+                vs.varstate:=vs_initialised;
+              end;
+            staticvarsym :
+              begin
+                read_typed_const(current_asmdata.asmlists[al_typedconsts],tstaticvarsym(vs));
+              end;
+            else
+              internalerror(200611051);
+          end;
+        end;
+
+        procedure read_gpc_name(sc : TFPObjectList);
+        var
+          vs : tabstractnormalvarsym;
+          C_Name : string;
+        begin
+          consume(_ID);
+          C_Name:=get_stringconst;
+          vs:=tabstractnormalvarsym(sc[0]);
+          if sc.count>1 then
+            Message(parser_e_absolute_only_one_var);
+          if vs.typ=staticvarsym then
             begin
-              consume(_EQUAL);
-              tcsym:=ttypedconstsym.create('$default'+vs.realname,def,false);
-              include(tcsym.symoptions,sp_internal);
-              vs.defaultconstsym:=tcsym;
-              symtablestack.top.insert(tcsym);
-              readtypedconst(current_asmdata.asmlists[al_typedconsts],def,tcsym,false);
-              { The variable has a value assigned }
-              vs.varstate:=vs_initialised;
+              tstaticvarsym(vs).set_mangledname(target_info.Cprefix+vs.realname);
+              include(vs.varoptions,vo_is_external);
             end
           else
+            Message(parser_e_no_local_var_external);
+        end;
+
+        procedure read_absolute(sc : TFPObjectList);
+        var
+          vs     : tabstractvarsym;
+          abssym : tabsolutevarsym;
+          pt,hp  : tnode;
+        begin
+          abssym:=nil;
+          { only allowed for one var }
+          vs:=tabstractvarsym(sc[0]);
+          if sc.count>1 then
+            Message(parser_e_absolute_only_one_var);
+          { parse the rest }
+          pt:=expr;
+          { check allowed absolute types }
+          if (pt.nodetype=stringconstn) or
+            (is_constcharnode(pt)) then
             begin
-              tcsym:=ttypedconstsym.create(vs.realname,def,true);
-              tcsym.fileinfo:=vs.fileinfo;
+              abssym:=tabsolutevarsym.create(vs.realname,vs.vardef);
+              abssym.fileinfo:=vs.fileinfo;
+              if pt.nodetype=stringconstn then
+                abssym.asmname:=stringdup(strpas(tstringconstnode(pt).value_str))
+              else
+                abssym.asmname:=stringdup(chr(tordconstnode(pt).value));
+              consume(token);
+              abssym.abstyp:=toasm;
+            end
+          { address }
+          else if is_constintnode(pt) then
+            begin
+              abssym:=tabsolutevarsym.create(vs.realname,vs.vardef);
+              abssym.fileinfo:=vs.fileinfo;
+              abssym.abstyp:=toaddr;
+              abssym.addroffset:=tordconstnode(pt).value;
+{$ifdef i386}
+              abssym.absseg:=false;
+              if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
+                  try_to_consume(_COLON) then
+                begin
+                  pt.free;
+                  pt:=expr;
+                  if is_constintnode(pt) then
+                    begin
+                      abssym.addroffset:=abssym.addroffset shl 4+tordconstnode(pt).value;
+                      abssym.absseg:=true;
+                    end
+                  else
+                    Message(type_e_ordinal_expr_expected);
+                end;
+{$endif i386}
+            end
+          { variable }
+          else
+            begin
+              { remove subscriptn before checking for loadn }
+              hp:=pt;
+              while (hp.nodetype in [subscriptn,typeconvn,vecn]) do
+                hp:=tunarynode(hp).left;
+              if (hp.nodetype=loadn) then
+                begin
+                  { we should check the result type of loadn }
+                  if not (tloadnode(hp).symtableentry.typ in [fieldvarsym,staticvarsym,localvarsym,paravarsym]) then
+                    Message(parser_e_absolute_only_to_var_or_const);
+                  abssym:=tabsolutevarsym.create(vs.realname,vs.vardef);
+                  abssym.fileinfo:=vs.fileinfo;
+                  abssym.abstyp:=tovar;
+                  abssym.ref:=node_to_propaccesslist(pt);
+                end
+              else
+                Message(parser_e_absolute_only_to_var_or_const);
+            end;
+          pt.free;
+          { replace old varsym with the new absolutevarsym }
+          if assigned(abssym) then
+            begin
               Hidesym(vs);
-              vs.owner.Insert(tcsym);
-              consume(_EQUAL);
-              readtypedconst(current_asmdata.asmlists[al_typedconsts],def,tcsym,true);
+              vs.owner.insert(abssym);
+              sc[0]:=abssym;
             end;
         end;
 
+        procedure read_public_and_external(sc:TFPObjectList);
+        var
+          vs          : tabstractvarsym;
+          semicolonatend,
+          is_dll,
+          is_cdecl,
+          is_external_var,
+          is_public_var  : boolean;
+          dll_name,
+          C_name      : string;
+        begin
+          { only allowed for one var }
+          vs:=tabstractvarsym(sc[0]);
+          if sc.count>1 then
+            Message(parser_e_absolute_only_one_var);
+          { only allow external and public on global symbols }
+          if vs.typ<>staticvarsym then
+            begin
+              Message(parser_e_no_local_var_external);
+              exit;
+            end;
+            
+          { defaults }
+          is_dll:=false;
+          is_cdecl:=false;
+          is_external_var:=false;
+          is_public_var:=false;
+          semicolonatend:= false;
+          C_name:=vs.realname;
+
+          { macpas specific handling due to some switches}
+          if (m_mac in current_settings.modeswitches) then
+            begin
+              if (cs_external_var in current_settings.localswitches) then
+                begin {The effect of this is the same as if cvar; external; has been given as directives.}
+                  is_cdecl:=true;
+                  is_external_var:=true;
+                end
+              else if (cs_externally_visible in current_settings.localswitches) then
+                begin {The effect of this is the same as if cvar has been given as directives.}
+                  is_cdecl:=true;
+                end;
+            end;
+
+          { cdecl }
+          if try_to_consume(_CVAR) then
+            begin
+              consume(_SEMICOLON);
+              is_cdecl:=true;
+            end;
+
+          { external }
+          if try_to_consume(_EXTERNAL) then
+            begin
+              is_external_var:=true;
+              if not is_cdecl then
+                begin
+                  if idtoken<>_NAME then
+                    begin
+                      is_dll:=true;
+                      dll_name:=get_stringconst;
+                      if ExtractFileExt(dll_name)='' then
+                        dll_name:=ChangeFileExt(dll_name,target_info.sharedlibext);
+                    end;
+                  if try_to_consume(_NAME) then
+                    C_name:=get_stringconst;
+                end;
+              consume(_SEMICOLON);
+            end;
+
+          { export or public }
+          if idtoken in [_EXPORT,_PUBLIC] then
+            begin
+              consume(_ID);
+              if is_external_var then
+                Message(parser_e_not_external_and_export)
+              else
+                is_public_var:=true;
+              if try_to_consume(_NAME) then
+                C_name:=get_stringconst;
+              consume(_SEMICOLON);
+            end;
+
+          { Windows uses an indirect reference using import tables }
+          if is_dll and
+             (target_info.system in system_all_windows) then
+            include(vs.varoptions,vo_is_dll_var);
+
+          { Add C _ prefix }
+          if is_cdecl or
+             (
+              is_dll and
+              (target_info.system in [system_powerpc_darwin,system_i386_darwin])
+             ) then
+            C_Name := target_info.Cprefix+C_Name;
+
+          if is_public_var then
+            begin
+              include(vs.varoptions,vo_is_public);
+              vs.varregable := vr_none;
+              { mark as referenced }
+              inc(vs.refs);
+            end;
+
+          { now we can insert it in the import lib if its a dll, or
+            add it to the externals }
+          if is_external_var then
+            begin
+              include(vs.varoptions,vo_is_external);
+              vs.varregable := vr_none;
+              if is_dll then
+                current_module.AddExternalImport(dll_name,C_Name,0,true)
+              else
+                if tf_has_dllscanner in target_info.flags then
+                  current_module.dllscannerinputlist.Add(vs.mangledname,vs);
+            end;
+
+          { Set the assembler name }
+          tstaticvarsym(vs).set_mangledname(C_Name);
+        end;
+
       var
-         sc : TFPObjectList;
-         i  : longint;
-         old_block_type : tblock_type;
-         symdone : boolean;
-         { to handle absolute }
-         abssym : tabsolutevarsym;
-         { c var }
-         is_dll,
-         hasdefaultvalue,
-         is_gpc_name,is_cdecl,
-         extern_var,export_var : boolean;
-         old_current_object_option : tsymoptions;
-         hs,sorg,C_name,dll_name : string;
+         sc   : TFPObjectList;
+         vs   : tabstractvarsym;
          hdef : tdef;
-         hp,pt : tnode;
-         vs    : tabstractvarsym;
-         hintsymoptions : tsymoptions;
-         semicolonatend,semicoloneaten: boolean;
+         i    : longint;
+         semicoloneaten,
+         hasdefaultvalue : boolean;
+         old_current_object_option : tsymoptions;
+         hintsymoptions  : tsymoptions;
+         old_block_type  : tblock_type;
       begin
          old_current_object_option:=current_object_option;
          { all variables are public if not in a object declaration }
          current_object_option:=[sp_public];
          old_block_type:=block_type;
          block_type:=bt_type;
-         is_gpc_name:=false;
          { Force an expected ID error message }
          if not (token in [_ID,_CASE,_END]) then
            consume(_ID);
@@ -736,10 +945,8 @@ implementation
          sc:=TFPObjectList.create(false);
          while (token=_ID) do
            begin
-             sorg:=orgpattern;
              semicoloneaten:=false;
              hasdefaultvalue:=false;
-             symdone:=false;
              sc.clear;
              repeat
                if (token = _ID) then
@@ -749,7 +956,11 @@ implementation
                        vs:=tlocalvarsym.create(orgpattern,vs_value,generrordef,[]);
                      staticsymtable,
                      globalsymtable :
-                       vs:=tglobalvarsym.create(orgpattern,vs_value,generrordef,[]);
+                       begin
+                         vs:=tstaticvarsym.create(orgpattern,vs_value,generrordef,[]);
+                         if vd_threadvar in options then
+                           include(vs.varoptions,vo_is_thread_var);
+                       end;
                      else
                        internalerror(200411064);
                    end;
@@ -763,136 +974,34 @@ implementation
              if (m_gpc in current_settings.modeswitches) and
                 (token=_ID) and
                 (orgpattern='__asmname__') then
-               begin
-                 consume(_ID);
-                 C_name:=get_stringconst;
-                 Is_gpc_name:=true;
-               end;
+               read_gpc_name(sc);
 
-             { this is needed for Delphi mode at least
-               but should be OK for all modes !! (PM) }
+             { read variable type def }
              ignore_equal:=true;
              read_anon_type(hdef,false);
              ignore_equal:=false;
+             for i:=0 to sc.count-1 do
+               begin
+                 vs:=tabstractvarsym(sc[i]);
+                 vs.vardef:=hdef;
+               end;
 
              { Process procvar directives }
              if maybe_parse_proc_directives(hdef) then
                semicoloneaten:=true;
 
-             if is_gpc_name then
-               begin
-                  vs:=tabstractvarsym(sc[0]);
-                  if sc.count>1 then
-                    Message(parser_e_absolute_only_one_var);
-                  vs.vardef:=hdef;
-                  if vs.typ=globalvarsym then
-                    begin
-                      tglobalvarsym(vs).set_mangledname(target_info.Cprefix+sorg);
-                      include(vs.varoptions,vo_is_C_var);
-                      include(vs.varoptions,vo_is_external);
-                    end
-                  else
-                    Message(parser_e_no_local_var_external);
-                  symdone:=true;
-               end;
-
              { check for absolute }
-             if not symdone and
-                try_to_consume(_ABSOLUTE) then
-              begin
-                abssym:=nil;
-                { only allowed for one var }
-                vs:=tabstractvarsym(sc[0]);
-                if sc.count>1 then
-                  Message(parser_e_absolute_only_one_var);
-                { parse the rest }
-                pt:=expr;
-                { check allowed absolute types }
-                if (pt.nodetype=stringconstn) or
-                   (is_constcharnode(pt)) then
-                 begin
-                   abssym:=tabsolutevarsym.create(vs.realname,hdef);
-                   abssym.fileinfo:=vs.fileinfo;
-                   if pt.nodetype=stringconstn then
-                     hs:=strpas(tstringconstnode(pt).value_str)
-                   else
-                     hs:=chr(tordconstnode(pt).value);
-                   consume(token);
-                   abssym.abstyp:=toasm;
-                   abssym.asmname:=stringdup(hs);
-                   { replace the varsym }
-                   Hidesym(vs);
-                   vs.owner.insert(abssym);
-                 end
-                { address }
-                else if is_constintnode(pt) and
-                        ((target_info.system in [system_i386_go32v2,system_i386_watcom,
-                                                 system_i386_wdosx,system_i386_win32,
-                                                 system_arm_wince,system_i386_wince,
-                                                 system_arm_gba]) or
-                         (m_objfpc in current_settings.modeswitches) or
-                         (m_delphi in current_settings.modeswitches)) then
-                 begin
-                   abssym:=tabsolutevarsym.create(vs.realname,hdef);
-                   abssym.fileinfo:=vs.fileinfo;
-                   abssym.abstyp:=toaddr;
-                   abssym.addroffset:=tordconstnode(pt).value;
-{$ifdef i386}
-                   abssym.absseg:=false;
-                   if (target_info.system in [system_i386_go32v2,system_i386_watcom]) and
-                      try_to_consume(_COLON) then
-                    begin
-                      pt.free;
-                      pt:=expr;
-                      if is_constintnode(pt) then
-                        begin
-                          abssym.addroffset:=abssym.addroffset shl 4+tordconstnode(pt).value;
-                          abssym.absseg:=true;
-                        end
-                      else
-                         Message(type_e_ordinal_expr_expected);
-                    end;
-{$endif i386}
-                   HideSym(vs);
-                   vs.owner.Insert(abssym);
-                 end
-                { variable }
-                else
-                  begin
-                    { remove subscriptn before checking for loadn }
-                    hp:=pt;
-                    while (hp.nodetype in [subscriptn,typeconvn,vecn]) do
-                      hp:=tunarynode(hp).left;
-                    if (hp.nodetype=loadn) then
-                     begin
-                       { we should check the result type of loadn }
-                       if not (tloadnode(hp).symtableentry.typ in [fieldvarsym,globalvarsym,localvarsym,
-                                                                   paravarsym,typedconstsym]) then
-                         Message(parser_e_absolute_only_to_var_or_const);
-                       abssym:=tabsolutevarsym.create(vs.realname,hdef);
-                       abssym.fileinfo:=vs.fileinfo;
-                       abssym.abstyp:=tovar;
-                       abssym.ref:=node_to_propaccesslist(pt);
-                       Hidesym(vs);
-                       vs.owner.insert(abssym);
-                     end
-                    else
-                     Message(parser_e_absolute_only_to_var_or_const);
-                  end;
-                if assigned(abssym) then
-                 begin
-                   { try to consume the hint directives with absolute symbols }
-                   hintsymoptions:=[];
-                   try_consume_hintdirective(hintsymoptions);
-                   abssym.symoptions := abssym.symoptions + hintsymoptions;
-                 end;
-                pt.free;
-                symdone:=true;
-              end;
+             if try_to_consume(_ABSOLUTE) then
+               read_absolute(sc);
 
              { try to parse the hint directives }
              hintsymoptions:=[];
              try_consume_hintdirective(hintsymoptions);
+             for i:=0 to sc.count-1 do
+               begin
+                 vs:=tabstractvarsym(sc[i]);
+                 vs.symoptions := vs.symoptions + hintsymoptions;
+               end;
 
              { Handling of Delphi typed const = initialized vars }
              if (token=_EQUAL) and
@@ -903,11 +1012,8 @@ implementation
                  if (hdef.typ=procvardef) and
                     (hdef.typesym=nil) then
                    handle_calling_convention(tprocvardef(hdef));
-                 read_default_value(sc,hdef,vd_threadvar in options);
+                 read_default_value(sc);
                  consume(_SEMICOLON);
-                 { for locals we've created typedconstsym with a different name }
-                 if symtablestack.top.symtabletype<>localsymtable then
-                   symdone:=true;
                  hasdefaultvalue:=true;
                end
              else
@@ -930,163 +1036,37 @@ implementation
                     not(m_tp7 in current_settings.modeswitches) and
                     (symtablestack.top.symtabletype<>parasymtable) then
                    begin
-                     read_default_value(sc,hdef,vd_threadvar in options);
+                     read_default_value(sc);
                      consume(_SEMICOLON);
-                     symdone:=true;
                      hasdefaultvalue:=true;
                    end;
                end;
 
              { Check for EXTERNAL etc directives or, in macpas, if cs_external_var is set}
-             if not symdone then
-              begin
-                if (
-                     (token=_ID) and
-                     (m_cvar_support in current_settings.modeswitches) and
-                     (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR])
-                   ) or
-                   (
-                     (m_mac in current_settings.modeswitches) and
-                     ((cs_external_var in current_settings.localswitches) or (cs_externally_visible in current_settings.localswitches))
-                   ) then
-                 begin
-                   { only allowed for one var }
-                   vs:=tabstractvarsym(sc[0]);
-                   if sc.count>1 then
-                     Message(parser_e_absolute_only_one_var);
-                   { set type of the var }
-                   vs.vardef:=hdef;
-                   vs.symoptions := vs.symoptions + hintsymoptions;
-                   { defaults }
-                   is_dll:=false;
-                   is_cdecl:=false;
-                   extern_var:=false;
-                   export_var:=false;
-                   C_name:=sorg;
-                   semicolonatend:= false;
-                   { cdecl }
-                   if try_to_consume(_CVAR) then
-                    begin
-                      consume(_SEMICOLON);
-                      is_cdecl:=true;
-                      C_name:=target_info.Cprefix+sorg;
-                    end;
-                   { external }
-                   if try_to_consume(_EXTERNAL) then
-                    begin
-                      extern_var:=true;
-                      semicolonatend:= true;
-                    end;
-                   { macpas specific handling due to some switches}
-                   if (m_mac in current_settings.modeswitches) then
-                     begin
-                       if (cs_external_var in current_settings.localswitches) then
-                         begin {The effect of this is the same as if cvar; external; has been given as directives.}
-                           is_cdecl:=true;
-                           C_name:=target_info.Cprefix+sorg;
-                           extern_var:=true;
-                         end
-                       else if (cs_externally_visible in current_settings.localswitches) then
-                         begin {The effect of this is the same as if cvar has been given as directives.}
-                           is_cdecl:=true;
-                           C_name:=target_info.Cprefix+sorg;
-                         end;
-                       vs.varregable := vr_none;
-                     end;
-                   { export }
-                   if idtoken in [_EXPORT,_PUBLIC] then
-                    begin
-                      consume(_ID);
-                      if extern_var then
-                       Message(parser_e_not_external_and_export)
-                      else
-                       begin
-                         export_var:=true;
-                         semicolonatend:= true;
-                       end;
-                    end;
-                   { external and export need a name after when no cdecl is used }
-                   if not is_cdecl then
-                    begin
-                      { dll name ? }
-                      if (extern_var) and (idtoken<>_NAME) then
-                       begin
-                         is_dll:=true;
-                         dll_name:=get_stringconst;
-                         if ExtractFileExt(dll_name)='' then
-                           dll_name:=ChangeFileExt(dll_name,target_info.sharedlibext);
-                       end;
-                      if try_to_consume(_NAME) then
-                        C_name:=get_stringconst
-                      else
-                        C_name:=sorg;
-                    end;
-                   { consume the ; when export or external is used }
-                   if semicolonatend then
-                    consume(_SEMICOLON);
+             if (not hasdefaultvalue) and
+                (
+                 (
+                  (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) and
+                  (m_cvar_support in current_settings.modeswitches)
+                 ) or
+                 (
+                  (m_mac in current_settings.modeswitches) and
+                  (
+                   (cs_external_var in current_settings.localswitches) or
+                   (cs_externally_visible in current_settings.localswitches)
+                  )
+                 )
+                ) then
+               read_public_and_external(sc);
 
-                   { set some vars options }
-                   if is_dll then
-                     begin
-                       { Windows uses an indirect reference using import tables }
-                       if target_info.system in system_all_windows then
-                         include(vs.varoptions,vo_is_dll_var);
-                     end
-                   else
-                     include(vs.varoptions,vo_is_C_var);
-
-                   if (is_dll) and
-                      (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
-                     C_Name := target_info.Cprefix+C_Name;
-
-                   if export_var then
-                    begin
-                      inc(vs.refs);
-                      include(vs.varoptions,vo_is_exported);
-                    end;
-
-                   if extern_var then
-                    include(vs.varoptions,vo_is_external);
-
-                   if vs.typ=globalvarsym then
-                     begin
-                       tglobalvarsym(vs).set_mangledname(C_Name);
-                       { insert in the al_globals when it is not external }
-                       if (not extern_var) then
-                         insertbssdata(tglobalvarsym(vs));
-                       { now we can insert it in the import lib if its a dll, or
-                         add it to the externals }
-                       if extern_var then
-                        begin
-                          vs.varregable := vr_none;
-                          if is_dll then
-                            current_module.AddExternalImport(dll_name,C_Name,0,true)
-                          else
-                            if tf_has_dllscanner in target_info.flags then
-                              current_module.dllscannerinputlist.Add(vs.mangledname,vs);
-                        end;
-                     end
-                   else
-                     Message(parser_e_no_local_var_external);
-                   symdone:=true;
-                 end;
-              end;
-
-             { insert it in the symtable, if not done yet }
-             if not symdone then
+             { allocate normal variable (non-external and non-typed-const) staticvarsyms }
+             for i:=0 to sc.count-1 do
                begin
-                 for i:=0 to sc.count-1 do
-                   begin
-                     vs:=tabstractvarsym(sc[i]);
-                     vs.vardef:=hdef;
-                     { insert any additional hint directives }
-                     vs.symoptions := vs.symoptions + hintsymoptions;
-                     if vd_threadvar in options then
-                       include(vs.varoptions,vo_is_thread_var);
-                     { static data fields are inserted in the globalsymtable }
-                     if vs.typ=globalvarsym then
-                       insertbssdata(tglobalvarsym(vs));
-                   end;
+                 vs:=tabstractvarsym(sc[i]);
+                 if (vs.typ=staticvarsym) and
+                    not(vo_is_typed_const in vs.varoptions) and
+                    not(vo_is_external in vs.varoptions) then
+                   insertbssdata(tstaticvarsym(vs));
                end;
            end;
          block_type:=old_block_type;
@@ -1112,7 +1092,7 @@ implementation
          maxpadalign, startpadalign: shortint;
          pt : tnode;
          fieldvs   : tfieldvarsym;
-         hstaticvs : tglobalvarsym;
+         hstaticvs : tstaticvarsym;
          vs    : tabstractvarsym;
          srsym : tsym;
          srsymtable : TSymtable;
@@ -1120,7 +1100,6 @@ implementation
          unionsymtable : trecordsymtable;
          offset : longint;
          uniondef : trecorddef;
-//         unionsym : tfieldvarsym;
          hintsymoptions : tsymoptions;
          semicoloneaten: boolean;
 {$ifdef powerpc}
@@ -1214,6 +1193,15 @@ implementation
              hintsymoptions:=[];
              try_consume_hintdirective(hintsymoptions);
 
+             { update variable type and hints }
+             for i:=0 to sc.count-1 do
+               begin
+                 fieldvs:=tfieldvarsym(sc[i]);
+                 fieldvs.vardef:=hdef;
+                 { insert any additional hint directives }
+                 fieldvs.symoptions := fieldvs.symoptions + hintsymoptions;
+               end;
+
              { Records and objects can't have default values }
              { for a record there doesn't need to be a ; before the END or )    }
              if not(token in [_END,_RKLAMMER]) and
@@ -1233,7 +1221,15 @@ implementation
                 (cs_static_keyword in current_settings.moduleswitches) and
                 (try_to_consume(_STATIC)) then
                begin
-                 include(current_object_option,sp_static);
+                 { add static flag and staticvarsyms }
+                 for i:=0 to sc.count-1 do
+                   begin
+                     fieldvs:=tfieldvarsym(sc[i]);
+                     include(fieldvs.symoptions,sp_static);
+                     hstaticvs:=tstaticvarsym.create('$'+lower(symtablestack.top.name^)+'_'+fieldvs.name,vs_value,hdef,[]);
+                     recst.defowner.owner.insert(hstaticvs);
+                     insertbssdata(hstaticvs);
+                   end;
                  consume(_SEMICOLON);
                end;
 
@@ -1258,23 +1254,12 @@ implementation
                  exclude(current_object_option,sp_published);
                end;
 
-             { update variable options }
+             { Generate field in the recordsymtable }
              for i:=0 to sc.count-1 do
                begin
                  fieldvs:=tfieldvarsym(sc[i]);
-                 fieldvs.vardef:=hdef;
-                 { insert any additional hint directives }
-                 fieldvs.symoptions := fieldvs.symoptions + hintsymoptions;
-                 if (sp_static in current_object_option) then
-                   include(fieldvs.symoptions,sp_static);
-                 { static data fields are inserted in the globalsymtable }
-                 if (sp_static in current_object_option) then
-                   begin
-                      hstaticvs:=tglobalvarsym.create('$'+lower(symtablestack.top.name^)+'_'+fieldvs.name,vs_value,hdef,[]);
-                      recst.defowner.owner.insert(hstaticvs);
-                      insertbssdata(hstaticvs);
-                   end
-                 else
+                 { static data fields are already inserted in the globalsymtable }
+                 if not(sp_static in current_object_option) then
                    recst.addfield(fieldvs);
                end;
 
@@ -1361,7 +1346,6 @@ implementation
               { at last set the record size to that of the biggest variant }
               unionsymtable.datasize:=maxsize;
               unionsymtable.fieldalignment:=maxalignment;
-//              UnionSym:=tfieldvarsym.create('$case',vs_value,uniondef,[]);
               unionsymtable.addalignmentpadding;
 {$ifdef powerpc}
               { parent inherits the alignment padding if the variant is the first "field" of the parent record/variant }
@@ -1384,7 +1368,6 @@ implementation
                 recst.fieldalignment:=unionsymtable.recordalignment;
 
               trecordsymtable(recst).insertunionst(Unionsymtable,offset);
-//              unionsym.free;
               uniondef.free;
            end;
          block_type:=old_block_type;

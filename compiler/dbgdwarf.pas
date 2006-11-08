@@ -251,7 +251,6 @@ interface
         procedure appendsym_unit(sym:tunitsym); virtual;
         procedure appendsym_const(sym:tconstsym); virtual;
         procedure appendsym_type(sym:ttypesym); virtual;
-        procedure appendsym_typedconst(sym:ttypedconstsym); virtual;
         procedure appendsym_label(sym:tlabelsym); virtual;
         procedure appendsym_absolute(sym:tabsolutevarsym); virtual;
         procedure appendsym_property(sym:tpropertysym); virtual;
@@ -1591,7 +1590,7 @@ implementation
             else
               begin
                 case sym.typ of
-                  globalvarsym:
+                  staticvarsym:
                     begin
                       if (vo_is_thread_var in sym.varoptions) then
                         begin
@@ -1747,26 +1746,6 @@ implementation
           finish_entry;
         end;
 
-      procedure TDebugInfoDwarf.appendsym_typedconst(sym: ttypedconstsym);
-        begin
-          append_entry(DW_TAG_variable,false,[
-            DW_AT_name,DW_FORM_string,symname(sym)+#0,
-            {
-            DW_AT_decl_file,DW_FORM_data1,0,
-            DW_AT_decl_line,DW_FORM_data1,
-            }
-            DW_AT_external,DW_FORM_flag,true,
-            { data continues below }
-            DW_AT_location,DW_FORM_block1,1+sizeof(aword)
-          ]);
-          { append block data }
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(3));
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.createname(sym.mangledname,0));
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.typedconstdef));
-
-          finish_entry;
-        end;
-
       procedure TDebugInfoDwarf.appendsym_label(sym: tlabelsym);
         begin
           { ignore label syms for now, the problem is that a label sym
@@ -1874,8 +1853,8 @@ implementation
 
         current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Symbol '+symname(sym))));
         case sym.typ of
-          globalvarsym :
-            appendsym_var(tglobalvarsym(sym));
+          staticvarsym :
+            appendsym_var(tstaticvarsym(sym));
           unitsym:
             appendsym_unit(tunitsym(sym));
           procsym :
@@ -1886,8 +1865,6 @@ implementation
             appendsym_var(tlocalvarsym(sym));
           paravarsym :
             appendsym_var(tparavarsym(sym));
-          typedconstsym :
-            appendsym_typedconst(ttypedconstsym(sym));
           constsym :
             appendsym_const(tconstsym(sym));
           typesym :

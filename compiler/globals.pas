@@ -251,7 +251,6 @@ interface
        parsing_para_level : integer;     { parameter level, used to convert
                                            proc calls to proc loads in firstcalln }
        compile_level : word;
-       make_ref : boolean;
        resolving_forward : boolean;      { used to add forward reference as second ref }
        inlining_procedure : boolean;     { are we inlining a procedure }
        exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
@@ -1308,7 +1307,6 @@ implementation
         DLLsource:=false;
         inlining_procedure:=false;
         resolving_forward:=false;
-        make_ref:=false;
         LinkTypeSetExplicitly:=false;
         paratarget:=system_none;
         paratargetasm:=as_none;

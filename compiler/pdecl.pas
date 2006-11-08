@@ -164,6 +164,7 @@ implementation
          old_block_type : tblock_type;
          skipequal : boolean;
          tclist : tasmlist;
+         varspez : tvarspez;
       begin
          consume(_CONST);
          old_block_type:=block_type;
@@ -203,7 +204,11 @@ implementation
                    { create symbol }
                    storetokenpos:=current_tokenpos;
                    current_tokenpos:=filepos;
-                   sym:=ttypedconstsym.create(orgname,hdef,(cs_typed_const_writable in current_settings.localswitches));
+                   if not (cs_typed_const_writable in current_settings.localswitches) then
+                     varspez:=vs_const
+                   else
+                     varspez:=vs_value;
+                   sym:=tstaticvarsym.create(orgname,varspez,hdef,[]);
                    current_tokenpos:=storetokenpos;
                    symtablestack.top.insert(sym);
                    { procvar can have proc directives, but not type references }
@@ -240,7 +245,7 @@ implementation
                         tclist:=current_asmdata.asmlists[al_rotypedconsts]
                       else
                         tclist:=current_asmdata.asmlists[al_typedconsts];
-                      readtypedconst(tclist,hdef,ttypedconstsym(sym),(cs_typed_const_writable in current_settings.localswitches));
+                      read_typed_const(tclist,tstaticvarsym(sym));
                       consume(_SEMICOLON);
                     end;
                 end;
@@ -317,11 +322,9 @@ implementation
                     stpos:=current_tokenpos;
                     current_tokenpos:=tforwarddef(hpd).forwardpos;
                     resolving_forward:=true;
-                    make_ref:=false;
                     if not assigned(tforwarddef(hpd).tosymname) then
                       internalerror(20021120);
                     searchsym(tforwarddef(hpd).tosymname^,srsym,srsymtable);
-                    make_ref:=true;
                     resolving_forward:=false;
                     current_tokenpos:=stpos;
                     { we don't need the forwarddef anymore, dispose it }

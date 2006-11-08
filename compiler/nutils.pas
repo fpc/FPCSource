@@ -574,8 +574,8 @@ implementation
               loadn:
                 begin
                   { threadvars need a helper call }
-                  if (tloadnode(p).symtableentry.typ=globalvarsym) and
-                     (vo_is_thread_var in tglobalvarsym(tloadnode(p).symtableentry).varoptions) then
+                  if (tloadnode(p).symtableentry.typ=staticvarsym) and
+                     (vo_is_thread_var in tstaticvarsym(tloadnode(p).symtableentry).varoptions) then
                     inc(result,5)
                   else
                     inc(result);

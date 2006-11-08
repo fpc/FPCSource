@@ -1139,13 +1139,12 @@ end;
 type
   { options for variables }
   tvaroption=(vo_none,
-    vo_is_C_var,
     vo_is_external,
     vo_is_dll_var,
     vo_is_thread_var,
     vo_has_local_copy,
     vo_is_const,  { variable is declared as const (parameter) and can't be written to }
-    vo_is_exported,
+    vo_is_public,
     vo_is_high_para,
     vo_is_funcret,
     vo_is_self,
@@ -1156,14 +1155,16 @@ type
     vo_is_hidden_para,
     vo_has_explicit_paraloc,
     vo_is_syscall_lib,
-    vo_has_mangledname
+    vo_has_mangledname,
+    vo_is_typed_const
   );
   tvaroptions=set of tvaroption;
   { register variable }
   tvarregable=(vr_none,
     vr_intreg,
     vr_fpureg,
-    vr_mmreg
+    vr_mmreg,
+    vr_addr
   );
 procedure readabstractvarsym(const s:string;var varoptions:tvaroptions);
 type
@@ -1174,13 +1175,12 @@ type
 const
   varopts=18;
   varopt : array[1..varopts] of tvaropt=(
-     (mask:vo_is_C_var;        str:'CVar'),
      (mask:vo_is_external;     str:'External'),
      (mask:vo_is_dll_var;      str:'DLLVar'),
      (mask:vo_is_thread_var;   str:'ThreadVar'),
      (mask:vo_has_local_copy;  str:'HasLocalCopy'),
      (mask:vo_is_const;        str:'Constant'),
-     (mask:vo_is_exported;     str:'Exported'),
+     (mask:vo_is_public;       str:'Public'),
      (mask:vo_is_high_para;    str:'HighValue'),
      (mask:vo_is_funcret;      str:'Funcret'),
      (mask:vo_is_self;         str:'Self'),
@@ -1191,7 +1191,8 @@ const
      (mask:vo_is_hidden_para;  str:'Hidden'),
      (mask:vo_has_explicit_paraloc;str:'ExplicitParaloc'),
      (mask:vo_is_syscall_lib;  str:'SysCallLib'),
-     (mask:vo_has_mangledname; str:'HasMangledName')
+     (mask:vo_has_mangledname; str:'HasMangledName'),
+     (mask:vo_is_typed_const;  str:'TypedConst')
   );
 var
   i : longint;
@@ -1236,7 +1237,8 @@ type
     oo_has_msgstr,
     oo_has_msgint,
     oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
-    oo_has_default_property
+    oo_has_default_property,
+    oo_vmt_written
   );
   tobjectoptions=set of tobjectoption;
   tsymopt=record
@@ -1244,7 +1246,7 @@ type
     str  : string[30];
   end;
 const
-  symopts=13;
+  symopts=14;
   symopt : array[1..symopts] of tsymopt=(
      (mask:oo_has_virtual;        str:'IsForward'),
      (mask:oo_has_virtual;        str:'HasVirtual'),
@@ -1258,7 +1260,8 @@ const
      (mask:oo_has_msgstr;         str:'HasMsgStr'),
      (mask:oo_has_msgint;         str:'HasMsgInt'),
      (mask:oo_can_have_published; str:'CanHavePublished'),
-     (mask:oo_has_default_property;str:'HasDefaultProperty')
+     (mask:oo_has_default_property;str:'HasDefaultProperty'),
+     (mask:oo_vmt_written;        str:'VMTWritten')
   );
 var
   symoptions : tobjectoptions;
@@ -1518,7 +1521,7 @@ begin
              writeln(space,'      Address : ',getaint);
            end;
 
-         ibglobalvarsym :
+         ibstaticvarsym :
            begin
              readabstractvarsym('Global Variable symbol ',varoptions);
              write  (space,' DefaultConst : ');
@@ -1578,14 +1581,6 @@ begin
                  writeln(space,'         Value: "',pc,'"');
                  freemem(pc,len+1);
                end;
-           end;
-
-         ibtypedconstsym :
-           begin
-             readcommonsym('Typed constant ');
-             write  (space,'  Constant Type : ');
-             readderef;
-             writeln(space,'    ReallyConst : ',(getbyte<>0));
            end;
 
          ibpropertysym :

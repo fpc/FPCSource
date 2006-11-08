@@ -1350,12 +1350,10 @@ unit raatt;
                       if assigned(sym) then
                        begin
                          case sym.typ of
-                           globalvarsym,
+                           staticvarsym,
                            localvarsym,
                            paravarsym :
                              l:=tabstractvarsym(sym).getsize;
-                           typedconstsym :
-                             l:=ttypedconstsym(sym).getsize;
                            typesym :
                              l:=ttypesym(sym).typedef.size;
                            else
@@ -1401,13 +1399,11 @@ unit raatt;
                       if assigned(sym) then
                        begin
                          case sym.typ of
-                           globalvarsym :
-                             hs:=tglobalvarsym(sym).mangledname;
+                           staticvarsym :
+                             hs:=tstaticvarsym(sym).mangledname;
                            localvarsym,
                            paravarsym :
                              Message(asmr_e_no_local_or_para_allowed);
-                           typedconstsym :
-                             hs:=ttypedconstsym(sym).mangledname;
                            procsym :
                              begin
                                if Tprocsym(sym).ProcdefList.Count>1 then

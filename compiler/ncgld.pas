@@ -72,7 +72,7 @@ implementation
       begin
 {$ifndef sparc}
         location.reference.base:=current_procinfo.got;
-        location.reference.symbol:=current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname+'@GOT');
+        location.reference.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname+'@GOT');
 {$endif sparc}
       end;
 
@@ -81,7 +81,7 @@ implementation
       var
         hregister : tregister;
         vs   : tabstractnormalvarsym;
-        gvs  : tglobalvarsym;
+        gvs  : tstaticvarsym;
         pd   : tprocdef;
         href : treference;
         newsize : tcgsize;
@@ -131,12 +131,12 @@ implementation
                  else
                    internalerror(22798);
               end;
-            globalvarsym :
+            staticvarsym :
               begin
-                gvs:=tglobalvarsym(symtableentry);
+                gvs:=tstaticvarsym(symtableentry);
                 if ([vo_is_dll_var,vo_is_external] * gvs.varoptions <> []) then
                   begin
-                    location.reference.base := cg.g_indirect_sym_load(current_asmdata.CurrAsmList,tglobalvarsym(symtableentry).mangledname);
+                    location.reference.base := cg.g_indirect_sym_load(current_asmdata.CurrAsmList,tstaticvarsym(symtableentry).mangledname);
                     if (location.reference.base <> NR_NO) then
                       exit;
                   end;
@@ -145,7 +145,7 @@ implementation
                 { DLL variable }
                   begin
                     hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                    location.reference.symbol:=current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname);
+                    location.reference.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname);
                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,location.reference,hregister);
                     reference_reset_base(location.reference,hregister,0);
                   end
@@ -190,7 +190,7 @@ implementation
                          cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,hregister,norelocatelab);
                          { don't save the allocated register else the result will be destroyed later }
-                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname),0);
+                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname),0);
                          paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                          cg.a_param_ref(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
                          paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
@@ -208,7 +208,7 @@ implementation
                            layout of a threadvar is (4 bytes pointer):
                              0 - Threadvar index
                              4 - Threadvar value in single threading }
-                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tglobalvarsym(symtableentry).mangledname),sizeof(aint));
+                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname),sizeof(aint));
                          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
                          cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
                          location.reference.base:=hregister;
@@ -348,8 +348,6 @@ implementation
                          location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname);
                     end;
                end;
-           typedconstsym :
-              location.reference.symbol:=current_asmdata.RefAsmSymbol(ttypedconstsym(symtableentry).mangledname);
             labelsym :
               location.reference.symbol:=tcglabelnode((tlabelsym(symtableentry).code)).getasmlabel;
             else internalerror(200510032);

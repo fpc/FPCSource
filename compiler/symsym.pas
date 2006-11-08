@@ -182,7 +182,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
       end;
 
-      tglobalvarsym = class(tabstractnormalvarsym)
+      tstaticvarsym = class(tabstractnormalvarsym)
       private
           _mangledname : pshortstring;
       public
@@ -235,24 +235,6 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-       end;
-
-       ttypedconstsym = class(tstoredsym)
-       private
-          _mangledname : pshortstring;
-       public
-          typedconstdef  : tdef;
-          typedconstdefderef : tderef;
-          is_writable     : boolean;
-          constructor create(const n : string;def : tdef;writable : boolean);
-          constructor ppuload(ppufile:tcompilerppufile);
-          destructor destroy;override;
-          function  mangledname : string;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderef;override;
-          procedure deref;override;
-          function  getsize:longint;
-          procedure set_mangledname(const s:string);
        end;
 
        tconstvalue = record
@@ -444,13 +426,8 @@ implementation
 ****************************************************************************}
 
     constructor tunitsym.create(const n : string;amodule : tobject);
-      var
-        old_make_ref : boolean;
       begin
-         old_make_ref:=make_ref;
-         make_ref:=false;
          inherited create(unitsym,n);
-         make_ref:=old_make_ref;
          module:=amodule;
       end;
 
@@ -1204,32 +1181,32 @@ implementation
 
 
 {****************************************************************************
-                             TGLOBALVARSYM
+                             Tstaticvarsym
 ****************************************************************************}
 
-    constructor tglobalvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
+    constructor tstaticvarsym.create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
-         inherited create(globalvarsym,n,vsp,def,vopts);
+         inherited create(staticvarsym,n,vsp,def,vopts);
          _mangledname:=nil;
       end;
 
 
-    constructor tglobalvarsym.create_dll(const n : string;vsp:tvarspez;def:tdef);
+    constructor tstaticvarsym.create_dll(const n : string;vsp:tvarspez;def:tdef);
       begin
-         tglobalvarsym(self).create(n,vsp,def,[vo_is_dll_var]);
+         tstaticvarsym(self).create(n,vsp,def,[vo_is_dll_var]);
       end;
 
 
-    constructor tglobalvarsym.create_C(const n,mangled : string;vsp:tvarspez;def:tdef);
+    constructor tstaticvarsym.create_C(const n,mangled : string;vsp:tvarspez;def:tdef);
       begin
-         tglobalvarsym(self).create(n,vsp,def,[]);
+         tstaticvarsym(self).create(n,vsp,def,[]);
          set_mangledname(mangled);
       end;
 
 
-    constructor tglobalvarsym.ppuload(ppufile:tcompilerppufile);
+    constructor tstaticvarsym.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited ppuload(globalvarsym,ppufile);
+         inherited ppuload(staticvarsym,ppufile);
          if vo_has_mangledname in varoptions then
            _mangledname:=stringdup(ppufile.getstring)
          else
@@ -1237,7 +1214,7 @@ implementation
       end;
 
 
-    destructor tglobalvarsym.destroy;
+    destructor tstaticvarsym.destroy;
       begin
         if assigned(_mangledname) then
           begin
@@ -1253,30 +1230,36 @@ implementation
       end;
 
 
-    procedure tglobalvarsym.ppuwrite(ppufile:tcompilerppufile);
+    procedure tstaticvarsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
          if vo_has_mangledname in varoptions then
            ppufile.putstring(_mangledname^);
-         ppufile.writeentry(ibglobalvarsym);
+         ppufile.writeentry(ibstaticvarsym);
       end;
 
 
-    function tglobalvarsym.mangledname:string;
+    function tstaticvarsym.mangledname:string;
+      var
+        prefix : string[2];
       begin
         if not assigned(_mangledname) then
           begin
+            if (vo_is_typed_const in varoptions) then
+              prefix:='TC'
+            else
+              prefix:='U';
       {$ifdef compress}
-            _mangledname:=stringdup(minilzw_encode(make_mangledname('U',owner,name)));
+            _mangledname:=stringdup(minilzw_encode(make_mangledname(prefix,owner,name)));
       {$else}
-           _mangledname:=stringdup(make_mangledname('U',owner,name));
+           _mangledname:=stringdup(make_mangledname(prefix,owner,name));
       {$endif}
           end;
         result:=_mangledname^;
       end;
 
 
-    procedure tglobalvarsym.set_mangledname(const s:string);
+    procedure tstaticvarsym.set_mangledname(const s:string);
       begin
         stringdispose(_mangledname);
       {$ifdef compress}
@@ -1486,97 +1469,6 @@ implementation
            else
              internalerror(200411062);
          end;
-      end;
-
-
-{****************************************************************************
-                             TTYPEDCONSTSYM
-*****************************************************************************}
-
-    constructor ttypedconstsym.create(const n : string;def : tdef;writable : boolean);
-      begin
-         inherited create(typedconstsym,n);
-         typedconstdef:=def;
-         is_writable:=writable;
-      end;
-
-
-    constructor ttypedconstsym.ppuload(ppufile:tcompilerppufile);
-      begin
-         inherited ppuload(typedconstsym,ppufile);
-         ppufile.getderef(typedconstdefderef);
-         is_writable:=boolean(ppufile.getbyte);
-      end;
-
-
-    destructor ttypedconstsym.destroy;
-      begin
-        if assigned(_mangledname) then
-          begin
-{$ifdef MEMDEBUG}
-            memmanglednames.start;
-{$endif MEMDEBUG}
-            stringdispose(_mangledname);
-{$ifdef MEMDEBUG}
-            memmanglednames.stop;
-{$endif MEMDEBUG}
-          end;
-         inherited destroy;
-      end;
-
-
-    function ttypedconstsym.mangledname:string;
-      begin
-        if not assigned(_mangledname) then
-          begin
-      {$ifdef compress}
-            _mangledname:=stringdup(make_mangledname('TC',owner,name));
-      {$else}
-            _mangledname:=stringdup(make_mangledname('TC',owner,name));
-      {$endif}
-          end;
-        result:=_mangledname^;
-      end;
-
-
-    procedure ttypedconstsym.set_mangledname(const s:string);
-      begin
-        stringdispose(_mangledname);
-      {$ifdef compress}
-        _mangledname:=stringdup(minilzw_encode(s));
-      {$else}
-        _mangledname:=stringdup(s);
-      {$endif}
-      end;
-
-
-    function ttypedconstsym.getsize : longint;
-      begin
-        if assigned(typedconstdef) then
-         getsize:=typedconstdef.size
-        else
-         getsize:=0;
-      end;
-
-
-    procedure ttypedconstsym.buildderef;
-      begin
-        typedconstdefderef.build(typedconstdef);
-      end;
-
-
-    procedure ttypedconstsym.deref;
-      begin
-        typedconstdef:=tdef(typedconstdefderef.resolve);
-      end;
-
-
-    procedure ttypedconstsym.ppuwrite(ppufile:tcompilerppufile);
-      begin
-         inherited ppuwrite(ppufile);
-         ppufile.putderef(typedconstdefderef);
-         ppufile.putbyte(byte(is_writable));
-         ppufile.writeentry(ibtypedconstsym);
       end;
 
 

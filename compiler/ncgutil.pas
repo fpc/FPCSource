@@ -138,7 +138,7 @@ interface
     procedure new_exception(list:TAsmList;const t:texceptiontemps;exceptlabel:tasmlabel);
     procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
 
-    procedure insertbssdata(sym : tglobalvarsym);
+    procedure insertbssdata(sym : tstaticvarsym);
 
     procedure gen_alloc_symtable(list:TAsmList;st:TSymtable);
     procedure gen_free_symtable(list:TAsmList;st:TSymtable);
@@ -974,7 +974,7 @@ implementation
 {$q-}
 {$endif}
                cg.a_load_const_reg(list,reg_cgsize(tabstractnormalvarsym(p).initialloc.register),
-                 trashintval and (aint(1) shl (tcgsize2size[reg_cgsize(tabstractnormalvarsym(p).initialloc.register)] * 8) - 1),
+                 trashintval and (aword(1) shl (tcgsize2size[reg_cgsize(tabstractnormalvarsym(p).initialloc.register)] * 8) - 1),
                    tabstractnormalvarsym(p).initialloc.register);
 {$ifdef overflowon}
 {$undef overflowon}
@@ -1008,27 +1008,30 @@ implementation
     { initializes the regvars from staticsymtable with 0 }
     procedure initialize_regvars(p:TObject;arg:pointer);
       begin
-        if (tsym(p).typ=globalvarsym) then
+        if (tsym(p).typ=staticvarsym) then
          begin
-           case tglobalvarsym(p).initialloc.loc of
+           { Static variables can have the initialloc only set to LOC_CxREGISTER
+             or LOC_INVALID, for explaination see gen_alloc_symtable (PFV) }
+           case tstaticvarsym(p).initialloc.loc of
              LOC_CREGISTER :
                begin
 {$ifndef cpu64bit}
-                 if (tglobalvarsym(p).initialloc.size in [OS_64,OS_S64]) then
-                   cg64.a_load64_const_reg(TAsmList(arg),0,tglobalvarsym(p).initialloc.register64)
+                 if (tstaticvarsym(p).initialloc.size in [OS_64,OS_S64]) then
+                   cg64.a_load64_const_reg(TAsmList(arg),0,tstaticvarsym(p).initialloc.register64)
                  else
 {$endif not cpu64bit}
-                   cg.a_load_const_reg(TAsmList(arg),reg_cgsize(tglobalvarsym(p).initialloc.register),0,
-                       tglobalvarsym(p).initialloc.register);
+                   cg.a_load_const_reg(TAsmList(arg),reg_cgsize(tstaticvarsym(p).initialloc.register),0,
+                       tstaticvarsym(p).initialloc.register);
                end;
-             LOC_REFERENCE : ;
              LOC_CMMREGISTER :
                { clear the whole register }
-               cg.a_opmm_reg_reg(TAsmList(arg),OP_XOR,reg_cgsize(tglobalvarsym(p).initialloc.register),
-                 tglobalvarsym(p).initialloc.register,
-                 tglobalvarsym(p).initialloc.register,
+               cg.a_opmm_reg_reg(TAsmList(arg),OP_XOR,reg_cgsize(tstaticvarsym(p).initialloc.register),
+                 tstaticvarsym(p).initialloc.register,
+                 tstaticvarsym(p).initialloc.register,
                  nil);
              LOC_CFPUREGISTER :
+               ;
+             LOC_INVALID :
                ;
              else
                internalerror(200410124);
@@ -1043,8 +1046,9 @@ implementation
         OldAsmList : TAsmList;
         hp : tnode;
       begin
-        if (tsym(p).typ in [globalvarsym,localvarsym]) and
+        if (tsym(p).typ in [staticvarsym,localvarsym]) and
            (tabstractvarsym(p).refs>0) and
+           not(vo_is_typed_const in tabstractvarsym(p).varoptions) and
            not(vo_is_external in tabstractvarsym(p).varoptions) and
            not(is_class(tabstractvarsym(p).vardef)) and
            tabstractvarsym(p).vardef.needs_inittable then
@@ -1097,14 +1101,14 @@ implementation
         pd : tprocdef;
       begin
         case tsym(p).typ of
-          globalvarsym :
+          staticvarsym :
             begin
-              if (tglobalvarsym(p).refs>0) and
-                 (tglobalvarsym(p).varspez<>vs_const) and
-                 not(vo_is_funcret in tglobalvarsym(p).varoptions) and
-                 not(vo_is_external in tglobalvarsym(p).varoptions) and
-                 not(is_class(tglobalvarsym(p).vardef)) and
-                 tglobalvarsym(p).vardef.needs_inittable then
+              if (tstaticvarsym(p).refs>0) and
+                 (tstaticvarsym(p).varspez<>vs_const) and
+                 not(vo_is_funcret in tstaticvarsym(p).varoptions) and
+                 not(vo_is_external in tstaticvarsym(p).varoptions) and
+                 not(is_class(tstaticvarsym(p).vardef)) and
+                 tstaticvarsym(p).vardef.needs_inittable then
                 finalize_sym(TAsmList(arg),tsym(p));
             end;
           procsym :
@@ -2128,7 +2132,7 @@ implementation
                                Const Data
 ****************************************************************************}
 
-    procedure insertbssdata(sym : tglobalvarsym);
+    procedure insertbssdata(sym : tstaticvarsym);
       var
         l : aint;
         varalign : shortint;
@@ -2167,7 +2171,7 @@ implementation
            DLLSource or
            (assigned(current_procinfo) and
             (po_inline in current_procinfo.procdef.procoptions)) or
-           (vo_is_exported in sym.varoptions) then
+           (vo_is_public in sym.varoptions) then
           list.concat(Tai_datablock.create_global(sym.mangledname,l))
         else
           list.concat(Tai_datablock.create(sym.mangledname,l));
@@ -2198,33 +2202,26 @@ implementation
         sym     : tsym;
         vs      : tabstractnormalvarsym;
         isaddr  : boolean;
-        cgsize  : tcgsize;
       begin
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
             case sym.typ of
-              globalvarsym :
+              staticvarsym :
                 begin
                   vs:=tabstractnormalvarsym(sym);
-                  vs.initialloc.size:=def_cgsize(vs.vardef);
+                  { The code in laodnode.pass_generatecode will create the
+                    LOC_REFERENCE instead for all none register variables. This is
+                    required because we can't store an asmsymbol in the localloc because
+                    the asmsymbol is invalid after an unit is compiled. This gives
+                    problems when this procedure is inlined in an other unit (PFV) }
                   if vs.is_regvar(false) then
                     begin
                       vs.initialloc.loc:=tvarregable2tcgloc[vs.varregable];
+                      vs.initialloc.size:=def_cgsize(vs.vardef);
                       gen_alloc_regvar(list,vs);
-                    end
-                  else
-                    begin
-                      vs.initialloc.loc:=LOC_REFERENCE;
-                      { PIC, DLL and Threadvar need extra code and are handled in ncgld }
-                      if not(vo_is_dll_var in vs.varoptions) and
-                         (
-                          (tf_section_threadvars in target_info.flags) or
-                          not(vo_is_thread_var in vs.varoptions)
-                         ) then
-                        reference_reset_symbol(vs.initialloc.reference,current_asmdata.RefAsmSymbol(vs.mangledname),0);
+                      setlocalloc(vs);
                     end;
-                  setlocalloc(vs);
                 end;
               paravarsym :
                 begin
@@ -2325,7 +2322,7 @@ implementation
             if (ttemprefnode(n).tempinfo^.valid) then
               add_regvars(rv^,ttemprefnode(n).tempinfo^.location);
           loadn:
-            if (tloadnode(n).symtableentry.typ in [globalvarsym,localvarsym,paravarsym]) then
+            if (tloadnode(n).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) then
               add_regvars(rv^,tabstractnormalvarsym(tloadnode(n).symtableentry).localloc);
           vecn:
             { range checks sometimes need the high parameter }
@@ -2353,7 +2350,7 @@ implementation
         rv: pusedregvarscommon absolute arg;
       begin
         if (n.nodetype = loadn) and
-           (tloadnode(n).symtableentry.typ in [globalvarsym,localvarsym,paravarsym]) then
+           (tloadnode(n).symtableentry.typ in [staticvarsym,localvarsym,paravarsym]) then
           with tabstractnormalvarsym(tloadnode(n).symtableentry).localloc do
             case loc of
               LOC_CREGISTER:
@@ -2568,7 +2565,7 @@ implementation
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
-            if (sym.typ in [globalvarsym,localvarsym,paravarsym]) then
+            if (sym.typ in [staticvarsym,localvarsym,paravarsym]) then
               begin
                 with tabstractnormalvarsym(sym) do
                   begin

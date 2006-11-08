@@ -122,7 +122,7 @@ implementation
       var
         b : tblocknode;
       begin
-        if not (tsym(p).typ in [localvarsym,globalvarsym]) then
+        if not (tsym(p).typ in [localvarsym,staticvarsym]) then
          exit;
         with tabstractnormalvarsym(p) do
          begin
@@ -602,7 +602,7 @@ implementation
 
     procedure clearrefs(p:TObject;arg:pointer);
       begin
-         if (tsym(p).typ in [localvarsym,paravarsym,globalvarsym]) then
+         if (tsym(p).typ in [localvarsym,paravarsym,staticvarsym]) then
            if tabstractvarsym(p).refs>1 then
              tabstractvarsym(p).refs:=1;
       end;
@@ -610,7 +610,7 @@ implementation
 
     procedure translate_registers(p:TObject;list:pointer);
       begin
-         if (tsym(p).typ in [localvarsym,paravarsym,globalvarsym]) and
+         if (tsym(p).typ in [localvarsym,paravarsym,staticvarsym]) and
             (tabstractnormalvarsym(p).localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,
               LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
            begin

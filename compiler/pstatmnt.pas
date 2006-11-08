@@ -355,20 +355,22 @@ implementation
             (hp.nodetype=loadn) then
            begin
              case tloadnode(hp).symtableentry.typ of
-               globalvarsym,
+               staticvarsym,
                localvarsym,
                paravarsym :
                  begin
-                   { we need a simple loadn and the load must be in a global symtable or
-                     in the same level as the para of the current proc }
+                   { we need a simple loadn:
+                       1. The load must be in a global symtable or
+                           in the same level as the para of the current proc.
+                       2. value variables (no const,out or var)
+                       3. No threadvar, readonly or typedconst
+                   }
                    if (
                        (tloadnode(hp).symtable.symtablelevel=main_program_level) or
                        (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
                       ) and
-                      not(
-                          ((tabstractvarsym(tloadnode(hp).symtableentry).varspez in [vs_var,vs_out]) or
-                           (vo_is_thread_var in tabstractvarsym(tloadnode(hp).symtableentry).varoptions))
-                         ) then
+                      (tabstractvarsym(tloadnode(hp).symtableentry).varspez=vs_value) and
+                      ([vo_is_thread_var,vo_is_typed_const] * tabstractvarsym(tloadnode(hp).symtableentry).varoptions=[]) then
                      begin
                        { Assigning for-loop variable is only allowed in tp7 and macpas }
                        if ([m_tp7,m_mac] * current_settings.modeswitches = []) then
@@ -379,13 +381,12 @@ implementation
                          end;
                      end
                    else
-                     MessagePos(hp.fileinfo,type_e_illegal_count_var);
-                 end;
-               typedconstsym :
-                 begin
-                   { Bad programming, only allowed in tp7 mode }
-                   if not(m_tp7 in current_settings.modeswitches) then
-                     MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                     begin
+                       { Typed const is allowed in tp7 }
+                       if not(m_tp7 in current_settings.modeswitches) or
+                          not(vo_is_typed_const in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
+                         MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                     end;
                  end;
                else
                  MessagePos(hp.fileinfo,type_e_illegal_count_var);
@@ -1168,8 +1169,9 @@ implementation
                - target processor has optional frame pointer save
                  (vm, i386, vm only currently)
              }
-             locals:=tabstractlocalsymtable(current_procinfo.procdef.localst).count_locals+
-                     tabstractlocalsymtable(current_procinfo.procdef.parast).count_locals;
+             locals:=tabstractlocalsymtable(current_procinfo.procdef.parast).count_locals;
+             if (current_procinfo.procdef.localst.symtabletype=localsymtable) then
+               inc(locals,tabstractlocalsymtable(current_procinfo.procdef.localst).count_locals);
              if (locals=0) and
                 (current_procinfo.procdef.owner.symtabletype<>ObjectSymtable) and
                 (not assigned(current_procinfo.procdef.funcretsym) or

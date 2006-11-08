@@ -1089,11 +1089,12 @@ implementation
                   [def_stab_number(sym.vardef)]);
           end;
 
-        function globalvarsym_stabstr(sym:tglobalvarsym):Pchar;
+        function staticvarsym_stabstr(sym:tstaticvarsym):Pchar;
           var
             st : string;
             threadvaroffset : string;
             regidx : Tregisterindex;
+            nsym : string[7];
           begin
             result:=nil;
             { external symbols can't be resolved at link time, so we
@@ -1121,12 +1122,16 @@ implementation
                     threadvaroffset:='+'+tostr(sizeof(aint))
                   else
                     threadvaroffset:='';
+                  if (vo_is_typed_const in sym.varoptions) then
+                    nsym:='N_STSYM'
+                  else
+                    nsym:='N_LCSYM';
                   { Here we used S instead of
                     because with G GDB doesn't look at the address field
                     but searches the same name or with a leading underscore
                     but these names don't exist in pascal !}
                   st:='S'+st;
-                  result:=sym_stabstr_evaluate(sym,'"${name}:$1",${N_LCSYM},0,${line},${mangledname}$2',[st,threadvaroffset]);
+                  result:=sym_stabstr_evaluate(sym,'"${name}:$1",${'+nsym+'},0,${line},${mangledname}$2',[st,threadvaroffset]);
                 end;
             end;
           end;
@@ -1311,15 +1316,12 @@ implementation
             stabstr:=sym_stabstr_evaluate(sym,'"${name}",${N_LSYM},0,${line},0',[]);
           fieldvarsym :
             stabstr:=fieldvarsym_stabstr(tfieldvarsym(sym));
-          globalvarsym :
-            stabstr:=globalvarsym_stabstr(tglobalvarsym(sym));
+          staticvarsym :
+            stabstr:=staticvarsym_stabstr(tstaticvarsym(sym));
           localvarsym :
             stabstr:=localvarsym_stabstr(tlocalvarsym(sym));
           paravarsym :
             stabstr:=paravarsym_stabstr(tparavarsym(sym));
-          typedconstsym :
-            stabstr:=sym_stabstr_evaluate(sym,'"${name}:S$1",${N_STSYM},0,${line},${mangledname}',
-                [def_stab_number(ttypedconstsym(sym).typedconstdef)]);
           constsym :
             stabstr:=constsym_stabstr(tconstsym(sym));
           typesym :

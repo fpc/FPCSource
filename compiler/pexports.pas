@@ -91,10 +91,8 @@ implementation
                 hp.sym:=srsym;
                 InternalProcName:='';
                 case srsym.typ of
-                  globalvarsym :
-                    InternalProcName:=tglobalvarsym(srsym).mangledname;
-                  typedconstsym :
-                    InternalProcName:=ttypedconstsym(srsym).mangledname;
+                  staticvarsym :
+                    InternalProcName:=tstaticvarsym(srsym).mangledname;
                   procsym :
                     begin
                       pd:=tprocdef(tprocsym(srsym).ProcdefList[0]);

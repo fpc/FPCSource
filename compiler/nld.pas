@@ -256,36 +256,39 @@ implementation
                else
                  internalerror(22799);
              end;
-           globalvarsym,
+           staticvarsym :
+             begin
+               inc(tabstractvarsym(symtableentry).refs);
+               { static variables referenced in procedures or from finalization,
+                 variable needs to be in memory.
+                 It is too hard and the benefit is too small to detect whether a
+                 variable is only used in the finalization to add support for it (PFV) }
+               if assigned(current_procinfo) and
+                  (symtable.symtabletype=staticsymtable) and
+                  (
+                    (symtable.symtablelevel<>current_procinfo.procdef.localst.symtablelevel) or
+                    (current_procinfo.procdef.proctypeoption=potype_unitfinalize)
+                  ) then
+                 make_not_regable(self,vr_none);
+               resultdef:=tabstractvarsym(symtableentry).vardef;
+             end;
            paravarsym,
            localvarsym :
              begin
                inc(tabstractvarsym(symtableentry).refs);
                { Nested variable? The we need to load the framepointer of
                  the parent procedure }
-               if assigned(current_procinfo) then
+               if assigned(current_procinfo) and
+                  (symtable.symtabletype in [localsymtable,parasymtable]) and
+                  (symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel) then
                  begin
-                   if (symtable.symtabletype in [localsymtable,parasymtable]) and
-                      (symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel) then
-                     begin
-                       if assigned(left) then
-                         internalerror(200309289);
-                       left:=cloadparentfpnode.create(tprocdef(symtable.defowner));
-                       { we can't inline the referenced parent procedure }
-                       exclude(tprocdef(symtable.defowner).procoptions,po_inline);
-                       { reference in nested procedures, variable needs to be in memory }
-                       make_not_regable(self,vr_none);
-                     end;
-                   { static variables referenced in procedures or from finalization,
-                     variable needs to be in memory.
-                     It is too hard and the benefit is too small to detect whether a
-                     variable is only used in the finalization to add support for it (PFV) }
-                   if (symtable.symtabletype=staticsymtable) and
-                      (
-                       (symtable.symtablelevel<>current_procinfo.procdef.localst.symtablelevel) or
-                       (current_procinfo.procdef.proctypeoption=potype_unitfinalize)
-                      ) then
-                     make_not_regable(self,vr_none);
+                   if assigned(left) then
+                     internalerror(200309289);
+                   left:=cloadparentfpnode.create(tprocdef(symtable.defowner));
+                   { we can't inline the referenced parent procedure }
+                   exclude(tprocdef(symtable.defowner).procoptions,po_inline);
+                   { reference in nested procedures, variable needs to be in memory }
+                   make_not_regable(self,vr_none);
                  end;
                { fix self type which is declared as voidpointer in the
                  definition }
@@ -307,8 +310,6 @@ implementation
                else
                  resultdef:=tabstractvarsym(symtableentry).vardef;
              end;
-           typedconstsym :
-             resultdef:=ttypedconstsym(symtableentry).typedconstdef;
            procsym :
              begin
                { Return the first procdef. In case of overlaoded
@@ -363,7 +364,7 @@ implementation
                  if tconstsym(symtableentry).consttyp=constresourcestring then
                    expectloc:=LOC_CREFERENCE;
               end;
-            globalvarsym,
+            staticvarsym,
             localvarsym,
             paravarsym :
               begin
@@ -394,8 +395,6 @@ implementation
                 if cg.t_times>1 then
                   inc(tabstractvarsym(symtableentry).refs,cg.t_times-1);
               end;
-            typedconstsym :
-                ;
             procsym :
                 begin
                    { method pointer ? }

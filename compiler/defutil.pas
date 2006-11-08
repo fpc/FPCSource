@@ -774,8 +774,8 @@ implementation
               l:=tarraydef(def).lowrange;
               h:=tarraydef(def).highrange;
             end;
-        else
-          internalerror(987);
+          else
+            internalerror(200611054);
         end;
       end;
 

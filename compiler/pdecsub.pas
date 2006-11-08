@@ -1337,7 +1337,7 @@ begin
 
       if consume_sym(sym,symtable) then
         begin
-          if (sym.typ=globalvarsym) and
+          if (sym.typ=staticvarsym) and
              (
               (tabstractvarsym(sym).vardef.typ=pointerdef) or
               is_32bitint(tabstractvarsym(sym).vardef)
@@ -1367,7 +1367,7 @@ begin
 
       if consume_sym(sym,symtable) then
         begin
-          if (sym.typ=globalvarsym) and
+          if (sym.typ=staticvarsym) and
              (
               (tabstractvarsym(sym).vardef.typ=pointerdef) or
               is_32bitint(tabstractvarsym(sym).vardef)
@@ -1430,7 +1430,7 @@ begin
 
       if consume_sym(sym,symtable) then
         begin
-          if (sym.typ=globalvarsym) and
+          if (sym.typ=staticvarsym) and
              (
               (tabstractvarsym(sym).vardef.typ=pointerdef) or
               is_32bitint(tabstractvarsym(sym).vardef)
@@ -2366,12 +2366,10 @@ const
         pd:=nil;
         case sym.typ of
           fieldvarsym,
-          globalvarsym,
+          staticvarsym,
           localvarsym,
           paravarsym :
             pd:=tabstractprocdef(tabstractvarsym(sym).vardef);
-          typedconstsym :
-            pd:=tabstractprocdef(ttypedconstsym(sym).typedconstdef);
           typesym :
             pd:=tabstractprocdef(ttypesym(sym).typedef);
           else

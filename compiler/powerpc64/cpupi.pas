@@ -77,7 +77,8 @@ begin
     end;
     tg.setfirsttemp(ofs);
   end else begin
-    if tabstractlocalsymtable(current_procinfo.procdef.localst).count_locals <> 0 then
+    if (current_procinfo.procdef.localst.symtabletype=localsymtable) and
+       (tabstractlocalsymtable(current_procinfo.procdef.localst).count_locals <> 0) then
       { at 0(r1), the previous value of r1 will be stored }
       tg.setfirsttemp(8);
   end;

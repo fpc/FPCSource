@@ -767,7 +767,7 @@ begin
   case Typ of
     abstractsym  : S:='abst';
     fieldvarsym  : S:='member';
-    globalvarsym,
+    staticvarsym,
     localvarsym,
     paravarsym   : S:='var';
     typesym      : S:='type';
@@ -778,7 +778,6 @@ begin
     unitsym      : S:='unit';
     constsym     : S:='const';
     enumsym      : S:='enum';
-    typedconstsym: S:='const';
     errorsym     : S:='error';
     syssym       : S:='sys';
     labelsym     : S:='label';
@@ -1430,7 +1429,7 @@ end;
         sym:=tsym(Table.SymList[symidx]);
         New(Symbol, Init(Sym.Name,Sym.Typ,'',nil));
         case Sym.Typ of
-          globalvarsym,
+          staticvarsym,
           localvarsym,
           paravarsym :
              with tabstractvarsym(sym) do
@@ -1707,7 +1706,7 @@ begin
         C^.Insert(P);
       if (P^.typ=typesym) then
         D^.Insert(P);
-      if (P^.typ in [globalvarsym,localvarsym,paravarsym]) and ((P^.flags and sfPointer)<>0) then
+      if (P^.typ in [staticvarsym,localvarsym,paravarsym]) and ((P^.flags and sfPointer)<>0) then
         E^.Insert(P);
       if P^.Items<>nil then
         InsertSymbolCollection(P^.Items);

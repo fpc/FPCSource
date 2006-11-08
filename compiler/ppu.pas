@@ -87,10 +87,10 @@ const
   {syms}
   ibtypesym        = 20;
   ibprocsym        = 21;
-  ibglobalvarsym   = 22;
+  ibstaticvarsym   = 22;
   ibconstsym       = 23;
   ibenumsym        = 24;
-  ibtypedconstsym  = 25;
+//  ibtypedconstsym  = 25;
   ibabsolutevarsym = 26;
   ibpropertysym    = 27;
   ibfieldvarsym    = 28;

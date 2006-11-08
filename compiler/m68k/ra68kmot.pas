@@ -693,8 +693,8 @@ const
                                  Message(asmr_e_no_local_or_para_allowed);
                                  hs:=tabstractvarsym(sym).mangledname;
                                end;
-                             typedconstsym :
-                                   hs:=ttypedconstsym(sym).mangledname;
+                             staticvarsym :
+                                   hs:=tstaticvarsym(sym).mangledname;
                              procsym :
                                begin
                                  if tprocsym(sym).procdeflist.count>1 then

@@ -672,7 +672,6 @@ implementation
         hp      : tnode;
         lt,rt   : tnodetype;
         rd,ld   : tdef;
-        hdef    : tdef;
         ot      : tnodetype;
         hsym    : tfieldvarsym;
         i       : longint;
@@ -1102,8 +1101,7 @@ implementation
              begin
                { generate a temporary normset def, it'll be destroyed
                  when the symtable is unloaded }
-               hdef:=tsetdef.create(tsetdef(ld).elementdef,255);
-               inserttypeconv(left,hdef);
+               inserttypeconv(left,tsetdef.create(tsetdef(ld).elementdef,255));
              end;
 
             { if the right side is also a setdef then the settype must

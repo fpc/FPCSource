@@ -333,13 +333,12 @@ type
 
   { options for variables }
   tvaroption=(vo_none,
-    vo_is_C_var,
     vo_is_external,
     vo_is_dll_var,
     vo_is_thread_var,
     vo_has_local_copy,
     vo_is_const,  { variable is declared as const (parameter) and can't be written to }
-    vo_is_exported,
+    vo_is_public,
     vo_is_high_para,
     vo_is_funcret,
     vo_is_self,
@@ -350,7 +349,8 @@ type
     vo_is_hidden_para,
     vo_has_explicit_paraloc,
     vo_is_syscall_lib,
-    vo_has_mangledname
+    vo_has_mangledname,
+    vo_is_typed_const
   );
   tvaroptions=set of tvaroption;
 
@@ -384,8 +384,8 @@ type
 
   { possible types for symtable entries }
   tsymtyp = (abstractsym,
-    globalvarsym,localvarsym,paravarsym,fieldvarsym,
-    typesym,procsym,unitsym,constsym,enumsym,typedconstsym,
+    staticvarsym,localvarsym,paravarsym,fieldvarsym,
+    typesym,procsym,unitsym,constsym,enumsym,
     errorsym,syssym,labelsym,absolutevarsym,propertysym,
     macrosym
   );
@@ -441,7 +441,7 @@ const
 
      SymTypeName : array[tsymtyp] of string[12] = (
        'abstractsym','globalvar','localvar','paravar','fieldvar',
-       'type','proc','unit','const','enum','typed const',
+       'type','proc','unit','const','enum',
        'errorsym','system sym','label','absolutevar','property',
        'macrosym'
      );

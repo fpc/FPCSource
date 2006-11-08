@@ -1429,7 +1429,7 @@ implementation
                       p1:=cloadnode.create(srsym,srsymtable);
                   end;
 
-                globalvarsym,
+                staticvarsym,
                 localvarsym,
                 paravarsym,
                 fieldvarsym :
@@ -1467,11 +1467,6 @@ implementation
                       else
                         p1:=cloadnode.create(srsym,srsymtable);
                     end;
-                  end;
-
-                typedconstsym :
-                  begin
-                    p1:=cloadnode.create(srsym,srsymtable);
                   end;
 
                 syssym :

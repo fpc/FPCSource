@@ -2090,7 +2090,7 @@ implementation
 
                { The object is already used if it is called once }
                if (hpt.nodetype=loadn) and
-                  (tloadnode(hpt).symtableentry.typ in [localvarsym,paravarsym,globalvarsym]) then
+                  (tloadnode(hpt).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) then
                  set_varstate(hpt,vs_read,[]);
 //                 tabstractvarsym(tloadnode(hpt).symtableentry).varstate:=vs_readwritten;
              end;

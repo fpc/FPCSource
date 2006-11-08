@@ -787,10 +787,6 @@ implementation
     end;
 
     function tvecnode.pass_1 : tnode;
-{$ifdef consteval}
-      var
-         tcsym : ttypedconstsym;
-{$endif}
       begin
          result:=nil;
          firstpass(left);
@@ -817,18 +813,6 @@ implementation
          { the register calculation is easy if a const index is used }
          if right.nodetype=ordconstn then
            begin
-{$ifdef consteval}
-              { constant evaluation }
-              if (left.nodetype=loadn) and
-                 (left.symtableentry.typ=typedconstsym) then
-               begin
-                 tcsym:=ttypedconstsym(left.symtableentry);
-                 if tcsym.defintion^.typ=stringdef then
-                  begin
-
-                  end;
-               end;
-{$endif}
               registersint:=left.registersint;
 
               { for ansi/wide strings, we need at least one register }

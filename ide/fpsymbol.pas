@@ -499,7 +499,7 @@ begin
     exit;
   if not Debugger^.IsRunning then
     exit;
-  if (S^.typ in [fieldvarsym,globalvarsym,localvarsym,paravarsym]) or (GDBI=Debugger^.RunCount) then
+  if (S^.typ in [fieldvarsym,staticvarsym,localvarsym,paravarsym]) or (GDBI=Debugger^.RunCount) then
     exit;
   If Assigned(St) then
     DisposeStr(St);
@@ -1829,7 +1829,7 @@ begin
   PB:=New(PBrowserWindow, Init(R,
     st2,SearchFreeWindowNo,S,Line,st,
     Symbols,References,Inheritance,MemInfo));
-  if (assigned(S) and (S^.typ in [fieldvarsym,globalvarsym,localvarsym,paravarsym])) or
+  if (assigned(S) and (S^.typ in [fieldvarsym,staticvarsym,localvarsym,paravarsym])) or
      (assigned(ParentBrowser) and ParentBrowser^.IsValid) then
     PB^.IsValid:=true;
 

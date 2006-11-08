@@ -826,10 +826,8 @@ implementation
                    inc(current_index);
                 end;
               case hp.sym.typ of
-                globalvarsym :
-                  address_table.concat(Tai_const.Createname_rva(tglobalvarsym(hp.sym).mangledname));
-                typedconstsym :
-                  address_table.concat(Tai_const.Createname_rva(ttypedconstsym(hp.sym).mangledname));
+                staticvarsym :
+                  address_table.concat(Tai_const.Createname_rva(tstaticvarsym(hp.sym).mangledname));
                 procsym :
                   address_table.concat(Tai_const.Createname_rva(tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname));
               end;
@@ -860,10 +858,8 @@ implementation
          while assigned(hp) do
            begin
              case hp.sym.typ of
-               globalvarsym :
-                 s:=tglobalvarsym(hp.sym).mangledname;
-               typedconstsym :
-                 s:=ttypedconstsym(hp.sym).mangledname;
+               staticvarsym :
+                 s:=tstaticvarsym(hp.sym).mangledname;
                procsym :
                  s:=tprocdef(tprocsym(hp.sym).ProcdefList[0]).mangledname;
                else
