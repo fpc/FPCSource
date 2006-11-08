@@ -29,7 +29,7 @@
     _PTHREAD_MUTEX_RECURSIVE     = 4;
     
   type
-    pthread_t = culong;
+    pthread_t = cuint;
 
     sched_param = record
       __sched_priority: cint;

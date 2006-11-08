@@ -17,7 +17,7 @@
 
 type
   THandle = Longint;
-  TThreadID = THandle;
+  TThreadID = Cardinal;
   
   PRTLCriticalSection = ^TRTLCriticalSection;
   TRTLCriticalSection = record
