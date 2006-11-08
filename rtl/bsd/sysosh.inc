@@ -19,11 +19,7 @@
 type
   { fd are int in C also for 64bit targets (x86_64) }
   THandle = Longint;
-{$ifdef darwin}
   TThreadID = pointer;
-{$else}
-  TThreadID = longint;
-{$endif}
   
   { pthread_mutex_t }
   PRTLCriticalSection = ^TRTLCriticalSection;
