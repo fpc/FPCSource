@@ -508,6 +508,28 @@ begin
                           IllegalPara(opt);
                         break;
                       end;
+                    'P':
+                      begin
+                        delete(more,1,1);
+                        if upper(copy(more,1,pos('=',more)-1))='SETALLOC' then
+                          begin
+                            delete(more,1,pos('=',more));
+                            if more='0' then
+                              init_settings.setalloc:=0
+                            else if (more='1') or (more='DEFAULT') or (more='NORMAL') then
+                              init_settings.setalloc:=1
+                            else if more='2' then
+                              init_settings.setalloc:=2
+                            else if more='4' then
+                              init_settings.setalloc:=4
+                            else if more='8' then
+                              init_settings.setalloc:=8
+                            else
+                              IllegalPara(opt);
+                          end
+                        else
+                          IllegalPara(opt);
+                      end;
                     'r' :
                       If UnsetBool(More, j) then
                         exclude(init_settings.localswitches,cs_check_range)
