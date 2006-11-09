@@ -200,6 +200,7 @@ implementation
         vs       : tlocalvarsym;
         aliasvs  : tabsolutevarsym;
         sl       : tpropaccesslist;
+        hs       : string;
       begin
         { The result from constructors and destructors can't be accessed directly }
         if not(pd.proctypeoption in [potype_constructor,potype_destructor]) and
@@ -220,11 +221,13 @@ implementation
            { insert the name of the procedure as alias for the function result,
              we can't use realname because that will not work for compilerprocs
              as the name is lowercase and unreachable from the code }
-           if pd.resultname='' then
-            pd.resultname:=pd.procsym.name;
+           if assigned(pd.resultname) then
+             hs:=pd.resultname^
+           else
+             hs:=pd.procsym.name;
            sl:=tpropaccesslist.create;
            sl.addsym(sl_load,pd.funcretsym);
-           aliasvs:=tabsolutevarsym.create_ref(pd.resultname,pd.returndef,sl);
+           aliasvs:=tabsolutevarsym.create_ref(hs,pd.returndef,sl);
            include(aliasvs.varoptions,vo_is_funcret);
            tlocalsymtable(pd.localst).insert(aliasvs);
 
@@ -1051,7 +1054,7 @@ implementation
                     end
                   else
                     begin
-                      pd.resultname:=orgpattern;
+                      pd.resultname:=stringdup(orgpattern);
                       consume(_ID);
                     end;
                   if not try_to_consume(_COLON) then

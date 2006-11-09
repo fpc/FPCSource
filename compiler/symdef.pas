@@ -439,7 +439,7 @@ interface
           libsymderef : tderef;
 {$endif powerpc or m68k}
           { name of the result variable to insert in the localsymtable }
-          resultname : TIDString;
+          resultname : pshortstring;
           { true, if the procedure is only declared
             (forward procedure) }
           forwarddef,
