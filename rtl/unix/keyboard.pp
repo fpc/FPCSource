@@ -840,11 +840,11 @@ const key_sequences:array[0..278] of key_sequence=(
        (char:0;scan:kbHome;st:#27'[1~'),         {linux}
        (char:0;scan:kbHome;st:#27'[7~'),         {Eterm,rxvt}
        (char:0;scan:kbHome;st:#27'[H'),          {FreeBSD}
-       (char:0;scan:kbHome;st:#27'OF'),          {some xterm configurations}
+       (char:0;scan:kbHome;st:#27'OH'),          {some xterm configurations}
        (char:0;scan:kbEnd;st:#27'[4~'),          {linux,Eterm}
        (char:0;scan:kbEnd;st:#27'[8~'),          {rxvt}
        (char:0;scan:kbEnd;st:#27'[F'),           {FreeBSD}
-       (char:0;scan:kbEnd;st:#27'OH'),           {some xterm configurations}
+       (char:0;scan:kbEnd;st:#27'OF'),           {some xterm configurations}
        (char:0;scan:kbPgUp;st:#27'[5~'),         {linux,Eterm,rxvt}
        (char:0;scan:kbPgUp;st:#27'[I'),          {FreeBSD}
        (char:0;scan:kbPgDn;st:#27'[6~'),         {linux,Eterm,rxvt}
