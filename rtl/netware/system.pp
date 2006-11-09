@@ -233,14 +233,6 @@ end;
                              Thread Handling
 *****************************************************************************}
 
-procedure InitFPU;assembler;
-
-  asm
-     fninit
-     fldcw   fpucw
-  end;
-
-
 { if return-value is <> 0, netware shows the message
   Unload Anyway ?
   To Disable unload at all, SetNLMDontUnloadFlag can be used on
