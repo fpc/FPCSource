@@ -21,6 +21,9 @@
 
 { This reduces the memory requirements a lot }
 {$PACKENUM 1}
+{$ifdef FPC_HAS_VARSETS}
+{$SETALLOC 1}
+{$endif FPC_HAS_VARSETS}
 
 { We don't use exceptions, so turn off the implicit
   exceptions in the constructors }
