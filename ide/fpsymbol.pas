@@ -1367,7 +1367,7 @@ begin
   GetExtent(R); R.Grow(-1,-1); R.B.Y:=R.A.Y+1;
 {$ifndef NODEBUG}
   if {assigned(Debugger) and Debugger^.IsRunning and}
-     assigned(Sym) and (Sym^.typ in [fieldvarsym,globalvarsym,localvarsym,paravarsym]) then
+     assigned(Sym) and (Sym^.typ in [fieldvarsym,staticvarsym,localvarsym,paravarsym]) then
     begin
       New(DebuggerValue,Init(ATitle,Sym));
       New(ST, Init(R, ' '+DebuggerValue^.GetText));
