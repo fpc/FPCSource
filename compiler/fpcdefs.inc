@@ -22,7 +22,9 @@
 { This reduces the memory requirements a lot }
 {$PACKENUM 1}
 {$ifdef FPC_HAS_VARSETS}
+{$ifndef FPC_BIG_ENDIAN}
 {$PACKSET 1}
+{$endif}
 {$endif FPC_HAS_VARSETS}
 
 { We don't use exceptions, so turn off the implicit
