@@ -87,6 +87,7 @@ interface
     function backspace_quote(const s:string;const qchars:Tcharset):string;
     function octal_quote(const s:string;const qchars:Tcharset):string;
     function maybequoted(const s:string):string;
+    function maybequoted(const s:ansistring):ansistring;
 
     {# If the string is quoted, in accordance with pascal, it is
        dequoted and returned in s, and the function returns true.
@@ -781,6 +782,50 @@ implementation
             octal_quote:=octal_quote+s[i];
         end;
     end;
+
+    function maybequoted(const s:ansistring):ansistring;
+      const
+        {$IFDEF MSWINDOWS}
+          FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+                             '{', '}', '''', '`', '~'];
+        {$ELSE}
+          FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+                             '{', '}', '''', ':', '\', '`', '~'];
+        {$ENDIF}
+      var
+        s1 : ansistring;
+        i  : integer;
+        quoted : boolean;
+      begin
+        quoted:=false;
+        s1:='"';
+        for i:=1 to length(s) do
+         begin
+           case s[i] of
+             '"' :
+               begin
+                 quoted:=true;
+                 s1:=s1+'\"';
+               end;
+             ' ',
+             #128..#255 :
+               begin
+                 quoted:=true;
+                 s1:=s1+s[i];
+               end;
+             else begin
+               if s[i] in FORBIDDEN_CHARS then
+                 quoted:=True;
+               s1:=s1+s[i];
+             end;
+           end;
+         end;
+        if quoted then
+          maybequoted:=s1+'"'
+        else
+          maybequoted:=s;
+      end;
+
 
     function maybequoted(const s:string):string;
       const
