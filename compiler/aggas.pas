@@ -1098,6 +1098,11 @@ implementation
                 result := '.const';
                 exit;
               end;
+            sec_fpc:
+              begin
+                result := '.section __TEXT, .fpc, regular, no_dead_strip';
+                exit;
+              end;
           end;
         result := inherited sectionname(atype,aname,aorder);
       end;
