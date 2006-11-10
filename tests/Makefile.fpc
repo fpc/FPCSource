@@ -347,6 +347,8 @@ full : clean allexectests digest
 
 fulldb : clean allexectests digest uploadrun
 
+tarfile : $(TEST_OUTPUTDIR)/$(DB_TARGZ)
+
 onlyknown :
         $(MAKE) full "DOTESTOPT= $(DOTESTOPT) -k-"
 
