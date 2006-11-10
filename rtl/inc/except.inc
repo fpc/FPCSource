@@ -153,7 +153,7 @@ begin
     with ExceptObjectStack^ do
       begin
         TExceptProc(ExceptProc)(FObject,Addr,FrameCount,Frames);
-        Halt(ExitCode);
+        halt(217)
       end;
   if erroraddr = nil then
     RunError(217)
