@@ -1,7 +1,7 @@
 {
-    Copyright (c) 1999-2002 by Jonas Maebe
+    Copyright (c) 1999-2002 by Jonas Maebe and Thomas Schatzl
 
-    Contains the assembler object for the PowerPC
+    Contains the assembler object for the PowerPC 32 and PowerPC 64
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,6 +51,8 @@ uses
 
          constructor op_const_const(op : tasmop;_op1,_op2 : aint);
 
+         constructor op_reg_reg_const_const(op: tasmop; _op1, _op2: tregister; _op3, _op4: aint);
+
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
          constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aint);
          constructor op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: aint);
@@ -83,8 +85,8 @@ uses
          function is_same_reg_move(regtype: Tregistertype):boolean; override;
 
          { register spilling code }
-         function spilling_get_operation_type(opnr: aint): topertype;override;
-         function spilling_get_operation_type_ref(opnr: aint; reg: tregister): topertype;override;
+         function spilling_get_operation_type(opnr: longint): topertype;override;
+         function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;override;
       end;
 
       tai_align = class(tai_align_abstract)
@@ -184,6 +186,17 @@ uses cutils, cclasses;
          ops:=2;
          loadconst(0,_op1);
          loadconst(1,_op2);
+      end;
+
+
+    constructor taicpu.op_reg_reg_const_const(op: tasmop; _op1, _op2: tregister; _op3, _op4: aint);
+      begin
+        inherited create(op);
+        ops := 4;
+        loadreg(0, _op1);
+        loadreg(1, _op2);
+        loadconst(2, _op3);
+        loadconst(3, _op4);
       end;
 
 
@@ -371,38 +384,68 @@ uses cutils, cclasses;
       end;
 
 
-    function taicpu.spilling_get_operation_type(opnr: aint): topertype;
+    function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
         result := operand_read;
         case opcode of
-            A_STMW,A_LMW:
-              internalerror(2005021805);
-            A_STBU, A_STBUX, A_STHU, A_STHUX, A_STWU, A_STWUX, A_STFSU, A_STFSUX, A_STFDU, A_STFDUX, A_STB, A_STBX, A_STH, A_STHX, A_STW, A_STWX, A_STFS, A_STFSX, A_STFD, A_STFDX, A_STFIWX, A_STHBRX, A_STWBRX, A_STWCX_, A_CMP, A_CMPI, A_CMPL, A_CMPLI, A_DCBA, A_DCBI, A_DCBST, A_DCBT, A_DCBTST, A_DCBZ, A_ECOWX, A_FCMPO, A_FCMPU, A_MTMSR, A_TLBIE, A_TW, A_TWI, A_CMPWI, A_CMPW, A_CMPLWI, A_CMPLW, A_MT, A_MTLR, A_MTCTR:;
-            A_RLWIMI, A_RLWIMI_:
-              if opnr = 0 then
-                result := operand_readwrite;
+          A_STMW,A_LMW:
+            internalerror(2005021805);
+          A_STBU, A_STBUX, A_STHU, A_STHUX,
+          A_STWU, A_STWUX,
+          A_STFSU, A_STFSUX, A_STFDU, A_STFDUX,
+          A_STB, A_STBX, A_STH, A_STHX,
+          A_STW, A_STWX,
+          A_STFS, A_STFSX, A_STFD, A_STFDX, A_STFIWX, A_STHBRX, A_STWBRX, A_STWCX_,
+          A_CMP, A_CMPI, A_CMPL, A_CMPLI,
+          A_DCBA, A_DCBI, A_DCBST, A_DCBT, A_DCBTST, A_DCBZ,
+          A_ECOWX, A_FCMPO, A_FCMPU, A_MTMSR, A_TLBIE, A_TW, A_TWI,
+          A_CMPWI, A_CMPW, A_CMPLWI, A_CMPLW, A_MT, A_MTLR, A_MTCTR
+{$ifdef cpu64bit}
+          , A_STDU, A_STDUX,
+          A_STD, A_STDX,
+          A_STDCX_,
+          A_CMPD, A_CMPDI, A_CMPLD, A_CMPLDI,
+          A_MFXER
+{$endif cpu64bit}
+            : ;
+          A_RLWIMI, A_RLWIMI_
+{$ifdef cpu64bit}
+          , A_INSRDI, A_INSRDI_, A_RLDIMI
+{$endif not cpu64bit}
+          :
+            if opnr = 0 then
+              result := operand_readwrite;
           else
             if opnr = 0 then
               result := operand_write;
-          end;
+        end;
       end;
 
 
-    function taicpu.spilling_get_operation_type_ref(opnr: aint; reg: tregister): topertype;
+    function taicpu.spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;
       begin
         result := operand_read;
         case opcode of
-          A_STBU, A_STBUX, A_STHU, A_STHUX, A_STWU, A_STWUX, A_STFSU, A_STFSUX, A_STFDU, A_STFDUX:
+          A_STBU, A_STBUX, A_STHU, A_STHUX, A_STWU, A_STWUX, 
+{$ifdef cpu64bit}
+          A_STDU, A_STDUX,
+{$endif cpu64bit}
+          A_STFSU, A_STFSUX, A_STFDU, A_STFDUX:
             if (oper[opnr]^.ref^.base = reg) then
               result := operand_readwrite;
         end;
       end;
 
+
     function spilling_create_load(const ref:treference;r:tregister): tai;
       begin
         case getregtype(r) of
           R_INTREGISTER:
+{$ifdef cpu64bit}
+            result:=taicpu.op_reg_ref(A_LD,r,ref);
+{$else cpu64bit}
             result:=taicpu.op_reg_ref(A_LWZ,r,ref);
+{$endif cpu64bit}
           R_FPUREGISTER:
             result:=taicpu.op_reg_ref(A_LFD,r,ref);
           else
@@ -415,7 +458,11 @@ uses cutils, cclasses;
       begin
         case getregtype(r) of
           R_INTREGISTER:
+{$ifdef cpu64bit}
+            result:=taicpu.op_reg_ref(A_STD,r,ref);
+{$else cpu64bit}
             result:=taicpu.op_reg_ref(A_STW,r,ref);
+{$endif cpu64bit}
           R_FPUREGISTER:
             result:=taicpu.op_reg_ref(A_STFD,r,ref);
           else
@@ -489,10 +536,24 @@ uses cutils, cclasses;
                            assigned(taicpu(p).oper[0]^.ref^.symbol) and
                            (taicpu(p).oper[0]^.ref^.symbol is tasmlabel) and
                            (labelpositions[tasmlabel(taicpu(p).oper[0]^.ref^.symbol).labelnr] <> NIL) and
+{$ifopt q+}
+{$q-}
+{$define overflowon}
+{$endif}
                            (ptruint(abs(ptrint(labelpositions[tasmlabel(taicpu(p).oper[0]^.ref^.symbol).labelnr]-instrpos)) - (low(smallint) div 4)) > ptruint((high(smallint) - low(smallint)) div 4)) then
+{$ifdef overflowon}
+{$q+}
+{$undef overflowon}
+{$endif}
                           begin
                             // add a new label after this jump
                             current_asmdata.getjumplabel(l);
+                            { new label -> may have to increase array size }
+                            if (l.labelnr >= labelpositions.count) then
+                              labelpositions.count := l.labelnr + 10;
+                            { newjmp will be inserted before the label, and it's inserted after }
+                            { the current jump -> instrpos+2                                    }
+                            labelpositions[l.labelnr] := pointer(instrpos+2);
                             list.insertafter(tai_label.create(l),p);
                             // add a new unconditional jump between this jump and the label
                             newjmp := taicpu.op_sym(A_B,taicpu(p).oper[0]^.ref^.symbol);
@@ -523,3 +584,4 @@ begin
   cai_align:=tai_align;
   cai_cpu:=taicpu;
 end.
+
