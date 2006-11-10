@@ -67,7 +67,7 @@ implementation
 {$endif}
 
 {$ifopt q+}
-{$r-}
+{$q-}
 {$define overflowon}
 {$endif}
 { helper functions }
