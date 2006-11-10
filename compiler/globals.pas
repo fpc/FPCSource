@@ -322,7 +322,7 @@ interface
 
     procedure DefaultReplacements(var s:string);
 
-    function Shell(const command:string): longint;
+    function Shell(const command:ansistring): longint;
     function  GetEnvPChar(const envname:string):pchar;
     procedure FreeEnvPChar(p:pchar);
 
@@ -667,7 +667,7 @@ implementation
   {$define AMIGASHELL}
 {$endif}
 
-    function Shell(const command:string): longint;
+    function Shell(const command:ansistring): longint;
       { This is already defined in the linux.ppu for linux, need for the *
         expansion under linux }
 {$ifdef hasunix}
