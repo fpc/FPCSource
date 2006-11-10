@@ -30,7 +30,7 @@ const
 
   // Used in AsBoolean for string fields to determine
   // whether it's true or false.
-  YesNoChars : Array[Boolean] of char = ('Y','N');
+  YesNoChars : Array[Boolean] of char = ('N', 'Y');
 
   SQLDelimiterCharacters = [';',',',' ','(',')',#13,#10,#9];
 
