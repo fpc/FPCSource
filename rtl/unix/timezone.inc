@@ -154,7 +154,7 @@ var
   
   function readbufbyte: byte;
   begin
-    if bufptr >= @buf[bufsize] then
+    if bufptr > @buf[bufsize-1] then
       readfilebuf;
     readbufbyte := bufptr^;
     inc(bufptr);
@@ -166,7 +166,7 @@ var
   begin
     readbuf := 0;
     repeat
-      numbytes := @buf[bufsize] - bufptr;
+      numbytes := @buf[bufsize-1] - bufptr + 1;
       if numbytes > count then
         numbytes := count;
       if numbytes > 0 then
@@ -203,7 +203,7 @@ begin
   f:=fpopen(fn,Open_RdOnly);
   if f<0 then
    exit;
-  bufptr := @buf[bufsize];
+  bufptr := @buf[bufsize-1]+1;
   i:=readbuf(tzhead,sizeof(tzhead));
   if i<>sizeof(tzhead) then
    exit;
