@@ -119,13 +119,12 @@ begin
   { resources aren't case sensitive }
   n:=upcase(strpas(resourcename));
   searchhash:=HashELF(n);
-  I:=0;
-  While (Result=0) and (I<ResInfoCount) do
-    begin
+  for i:=0 to ResInfoCount-1 do
     if (FPCRuntimeResourceInfoArray[i].reshash=searchhash) and (upcase(FPCRuntimeResourceInfoArray[i].name)=n) then
-      result:=i+1;
-    Inc(I);
-    end;
+      begin
+        result:=i+1;
+        break;
+      end;
 end;
 
 function LoadResource(ModuleHandle: HMODULE; ResHandle: TResourceHandle): HGLOBAL;
