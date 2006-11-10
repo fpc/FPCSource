@@ -17,47 +17,9 @@
 var
    variantmanager : tvariantmanager;
 
-procedure printmissingvariantunit;
-  begin
-    writeln(stderr);
-    writeln(stderr,'Program needs probably the variants unit.');
-    writeln(stderr,'Include the variants unit in your uses statements');
-    writeln(stderr,'as one of the first units.');
-    writeln(stderr);
-  end;
-
-
-procedure invalidvariantop;
-  begin
-     printmissingvariantunit;
-     HandleErrorFrame(221,get_frame);
-  end;
-
-
-procedure invalidvariantopnovariants;
-  begin
-    printmissingvariantunit;
-    HandleErrorFrame(221,get_frame);
-  end;
-
-
-procedure vardisperror;
-  begin
-    printmissingvariantunit;
-    HandleErrorFrame(222,get_frame);
-  end;
-
-
 { ---------------------------------------------------------------------
     Compiler helper routines.
   ---------------------------------------------------------------------}
-
-procedure varclear(var v : tvardata);
-begin
-   if not(v.vtype in [varempty,varerror,varnull]) then
-     invalidvariantop;
-end;
-
 
 procedure variant_init(var v : tvardata);[Public,Alias:'FPC_VARIANT_INIT'];
   begin
@@ -1005,29 +967,6 @@ begin
   VariantManager:=VarMgr;
 end;
 
-function IsVariantManagerSet: Boolean;
-var
-   i : longint;
-begin
-   I:=0;
-   Result:=True;
-   While Result and (I<(sizeof(tvariantmanager) div sizeof(pointer))-1) do
-     begin
-       Result:=(PPointer(@variantmanager)+i)^<>Pointer(@invalidvariantop);
-       Inc(I);
-     end;
-end;
-
-
 procedure initvariantmanager;
-  var
-     i : longint;
   begin
-     VarDispProc:=@vardisperror;
-     DispCallByIDProc:=@vardisperror;
-     tvardata(Unassigned).VType:=varEmpty;
-     tvardata(Null).VType:=varNull;
-     for i:=0 to (sizeof(tvariantmanager) div sizeof(pointer))-1 do
-       (ppointer(@variantmanager)+i)^:=@invalidvariantopnovariants;
-     pointer(variantmanager.varclear):=@varclear
   end;

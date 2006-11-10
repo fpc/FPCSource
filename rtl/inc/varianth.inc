@@ -194,7 +194,6 @@ type
 
 procedure GetVariantManager(var VarMgr: TVariantManager);
 procedure SetVariantManager(const VarMgr: TVariantManager);
-function IsVariantManagerSet: Boolean;
 
 const
   VarClearProc :  procedure(var v : TVarData) = nil;
@@ -202,11 +201,6 @@ const
   VarCopyProc :   procedure(var d : TVarData;const s : TVarData) = nil;
   VarToLStrProc : procedure(var d : AnsiString;const s : TVarData) = nil;
   VarToWStrProc : procedure(var d : WideString;const s : TVarData) = nil;
-
-var
-   VarDispProc : pointer;
-   DispCallByIDProc : pointer;
-   Null,Unassigned : Variant;
 
 {**********************************************************************
                        to Variant assignments
