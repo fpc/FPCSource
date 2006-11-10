@@ -41,7 +41,7 @@ const
 
 const
 { Default filehandles }
-  UnusedHandle    : THandle = -1;
+  UnusedHandle    : THandle = THandle(-1);
   StdInputHandle  : THandle = 0;
   StdOutputHandle : THandle = 0;
   StdErrorHandle  : THandle = 0;
@@ -832,8 +832,6 @@ Const
      DLL_THREAD_ATTACH = 2;
      DLL_PROCESS_DETACH = 0;
      DLL_THREAD_DETACH = 3;
-Const
-     DLLExitOK : boolean = true;
 
 function Dll_entry : longbool;[public, alias : '_FPC_DLL_Entry'];
 var

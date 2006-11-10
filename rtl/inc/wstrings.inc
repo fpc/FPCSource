@@ -450,7 +450,6 @@ end;
 procedure fpc_WideStr_Concat (var DestS:Widestring;const S1,S2 : WideString); compilerproc;
 Var
   Size,Location : SizeInt;
-  pc : pwidechar;
 begin
   { only assign if s1 or s2 is empty }
   if (S1='') then
