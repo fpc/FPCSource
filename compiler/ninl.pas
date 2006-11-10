@@ -2191,7 +2191,7 @@ implementation
 
     function tinlinenode.pass_1 : tnode;
       var
-         hp,hpp  : tnode;
+         hp,hpp,resultnode  : tnode;
          shiftconst: longint;
          tempnode: ttempcreatenode;
          newstatement: tstatementnode;
@@ -2306,20 +2306,9 @@ implementation
             begin
                expectloc:=LOC_VOID;
 
-               { check type }
-               if
-{$ifndef cpu64bit}
-                  is_64bit(left.resultdef) or
-{$endif cpu64bit}
-                  { range/overflow checking doesn't work properly }
-                  { with the inc/dec code that's generated (JM)   }
-                  (
-                   (((left.resultdef.typ = orddef) and
-                     not(is_char(left.resultdef)) and
-                     not(is_boolean(left.resultdef))) or
-                    (left.resultdef.typ = pointerdef)) and
-                   (current_settings.localswitches * [cs_check_overflow,cs_check_range] <> [])
-                  ) then
+               { range/overflow checking doesn't work properly }
+               { with the inc/dec code that's generated (JM)   }
+               if (current_settings.localswitches * [cs_check_overflow,cs_check_range] <> []) then
                  { convert to simple add (JM) }
                  begin
                    newblock := internalstatements(newstatement);
@@ -2338,10 +2327,13 @@ implementation
                        hpp := cordconstnode.create(1,tcallparanode(left).left.resultdef,false);
                      end;
                    typecheckpass(hpp);
-{$ifndef cpu64bit}
+
                    if not((hpp.resultdef.typ=orddef) and
+{$ifndef cpu64bit}
                           (torddef(hpp.resultdef).ordtype<>u32bit)) then
-{$endif cpu64bit}
+{$else not cpu64bit}
+                          (torddef(hpp.resultdef).ordtype<>u64bit)) then
+{$endif not cpu64bit}
                      inserttypeconv_internal(hpp,sinttype);
                    { No overflow check for pointer operations, because inc(pointer,-1) will always
                      trigger an overflow. For uint32 it works because then the operation is done
@@ -2364,14 +2356,38 @@ implementation
                        hp := tcallparanode(left).left.getcopy;
                        tempnode := nil;
                      end;
+
+                   resultnode := hp.getcopy;
+                   { avoid type errors from the addn/subn }
+                   if not is_integer(resultnode.resultdef) and
+                      (resultnode.resultdef.typ <> pointerdef) then
+                     begin
+                       inserttypeconv_internal(hp,sinttype);
+                       inserttypeconv_internal(hpp,sinttype);
+                     end;
+
                    { addition/substraction depending on inc/dec }
                    if inlinenumber = in_inc_x then
                      hpp := caddnode.create(addn,hp,hpp)
                    else
                      hpp := caddnode.create(subn,hp,hpp);
                    { assign result of addition }
-                   inserttypeconv_internal(hpp,hp.resultdef);
-                   addstatement(newstatement,cassignmentnode.create(hp.getcopy,hpp));
+                   if not(is_integer(resultnode.resultdef)) and
+                      (resultnode.resultdef.typ <> pointerdef) then
+                     inserttypeconv(hpp,torddef.create(
+{$ifdef cpu64bit}
+                       s64bit,
+{$else cpu64bit}
+                       s32bit,
+{$endif cpu64bit}
+                       get_min_value(resultnode.resultdef),
+                       get_max_value(resultnode.resultdef)))
+                   else
+                     inserttypeconv(hpp,resultnode.resultdef);
+                   { avoid any possible warnings }
+                   inserttypeconv_internal(hpp,resultnode.resultdef);
+                   
+                   addstatement(newstatement,cassignmentnode.create(resultnode,hpp));
                    { deallocate the temp }
                    if assigned(tempnode) then
                      addstatement(newstatement,ctempdeletenode.create(tempnode));
