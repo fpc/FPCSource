@@ -294,7 +294,6 @@ compiler/pexports.pas svneol=native#text/plain
 compiler/pexpr.pas svneol=native#text/plain
 compiler/pinline.pas svneol=native#text/plain
 compiler/pmodules.pas svneol=native#text/plain
-compiler/powerpc/aasmcpu.pas svneol=native#text/plain
 compiler/powerpc/agppcgas.pas svneol=native#text/plain
 compiler/powerpc/agppcmpw.pas svneol=native#text/plain
 compiler/powerpc/aoptcpu.pas svneol=native#text/plain
@@ -332,7 +331,6 @@ compiler/powerpc/rppcsri.inc svneol=native#text/plain
 compiler/powerpc/rppcstab.inc svneol=native#text/plain
 compiler/powerpc/rppcstd.inc svneol=native#text/plain
 compiler/powerpc/rppcsup.inc svneol=native#text/plain
-compiler/powerpc64/aasmcpu.pas svneol=native#text/plain
 compiler/powerpc64/agppcgas.pas svneol=native#text/plain
 compiler/powerpc64/aoptcpu.pas svneol=native#text/plain
 compiler/powerpc64/aoptcpub.pas svneol=native#text/plain
@@ -378,6 +376,7 @@ compiler/ppc.cfg -text
 compiler/ppc.conf -text
 compiler/ppc.dof -text
 compiler/ppc.dpr -text
+compiler/ppcgen/aasmcpu.pas svneol=native#text/plain
 compiler/ppcgen/cgppc.pas svneol=native#text/plain
 compiler/ppcgen/ngppcadd.pas svneol=native#text/plain
 compiler/ppheap.pas svneol=native#text/plain
