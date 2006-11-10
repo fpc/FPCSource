@@ -1515,10 +1515,12 @@ function CharLengthPChar(const Str: PChar): PtrInt;
 procedure initwidestringmanager;
   begin
     fillchar(widestringmanager,sizeof(widestringmanager),0);
+{$ifndef HAS_WIDESTRINGMANAGER}
     widestringmanager.Wide2AnsiMoveProc:=@defaultWide2AnsiMove;
     widestringmanager.Ansi2WideMoveProc:=@defaultAnsi2WideMove;
     widestringmanager.UpperWideStringProc:=@GenericWideCase;
     widestringmanager.LowerWideStringProc:=@GenericWideCase;
+{$endif HAS_WIDESTRINGMANAGER}
     widestringmanager.CompareWideStringProc:=@CompareWideString;
     widestringmanager.CompareTextWideStringProc:=@CompareTextWideString;
     widestringmanager.CharLengthPCharProc:=@CharLengthPChar;

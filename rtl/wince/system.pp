@@ -25,6 +25,7 @@ interface
 {$define DISABLE_NO_THREAD_MANAGER}
 {$define HAS_CMDLINE}
 {$define HAS_MT_MEMORYMANAGER}  // comment this line to switch from wincemm to fpcmm
+{$define HAS_WIDESTRINGMANAGER}
 
 { include system-independent routine headers }
 {$I systemh.inc}
