@@ -233,7 +233,7 @@ interface
        function  sectiontype2options(atype:TAsmSectiontype):TObjSectionOptions;virtual;
        function  sectiontype2align(atype:TAsmSectiontype):shortint;virtual;
        function  createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;
-       function  createsection(const aname:string;aalign:shortint;aoptions:TObjSectionOptions):TObjSection;virtual;
+       function  createsection(const aname:string;aalign:shortint;aoptions:TObjSectionOptions;DiscardDuplicate:boolean=true):TObjSection;virtual;
        procedure CreateDebugSections;virtual;
        function  findsection(const aname:string):TObjSection;
        procedure setsection(asec:TObjSection);
@@ -873,9 +873,12 @@ implementation
       end;
 
 
-    function TObjData.createsection(const aname:string;aalign:shortint;aoptions:TObjSectionOptions):TObjSection;
+    function TObjData.createsection(const aname:string;aalign:shortint;aoptions:TObjSectionOptions;DiscardDuplicate:boolean):TObjSection;
       begin
-        result:=TObjSection(FObjSectionList.Find(aname));
+        if DiscardDuplicate then
+          result:=TObjSection(FObjSectionList.Find(aname))
+        else
+          result:=nil;
         if not assigned(result) then
           begin
             result:=CObjSection.create(FObjSectionList,aname,aalign,aoptions);
@@ -2204,12 +2207,12 @@ implementation
           begin
             exesec:=TExeSection(ExeSections[i]);
             if not(oso_keep in exesec.SecOptions) and
-               (
-                (exesec.ObjSectionlist.count=0) or
                 (
-                 (cs_link_strip in current_settings.globalswitches) and
-                 (oso_debug in exesec.SecOptions)
-                )
+                 (exesec.ObjSectionlist.count=0) or
+                 (
+                  (cs_link_strip in current_settings.globalswitches) and
+                  (oso_debug in exesec.SecOptions)
+                 )
                ) then
               begin
                 Comment(V_Debug,'Deleting empty section '+exesec.name);
@@ -2316,7 +2319,11 @@ implementation
                 if oso_debug in objsec.secoptions then
                   objsec.Used:=true;
                 if (oso_keep in objsec.secoptions) then
-                  AddToObjSectionWorkList(objsec);
+                  begin
+                    AddToObjSectionWorkList(objsec);
+                    if objsec.name='.fpc.n_links' then
+                      objsec.Used:=false;
+                  end;
               end;
           end;
         AddToObjSectionWorkList(entrysym.exesymbol.objsymbol.objsection);

@@ -366,6 +366,7 @@ begin
       add('*(.data)');
       add('*(.data.*)');
       add('*(.gnu.linkonce.d*)');
+      add('*(.fpc*)');
       add('CONSTRUCTORS');
       add('. = ALIGN(4);');
       add('} >iwram = 0xff');

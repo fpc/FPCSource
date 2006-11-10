@@ -258,7 +258,7 @@ implementation
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
-          'fpc.resptrs',
+          '.fpc',
           '.toc'
         );
         secnames_pic : array[TAsmSectiontype] of string[17] = ('',
@@ -274,7 +274,7 @@ implementation
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
-          'fpc.resptrs',
+          '.fpc',
           '.toc'
         );
       var
@@ -286,6 +286,12 @@ implementation
           secname:=secnames_pic[atype]
         else
           secname:=secnames[atype];
+          
+        if (atype=sec_fpc) and (Copy(aname,1,3)='res') then
+          begin
+            result:=secname+'.'+aname;
+            exit;
+          end;
 
         if (atype=sec_threadvar) and
           (target_info.system=system_i386_win32) then
@@ -336,7 +342,8 @@ implementation
         AsmWrite(s);
         case atype of
           sec_fpc :
-            AsmWrite(', "a", @progbits');
+            if aname = 'resptrs' then
+              AsmWrite(', "a", @progbits');
           sec_stub :
             begin
               case target_info.system of

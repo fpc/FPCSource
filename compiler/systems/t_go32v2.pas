@@ -190,6 +190,7 @@ begin
   ScriptRes.Add('      *(.dtor)');
   ScriptRes.Add('      djgpp_last_dtor = . ;');
   ScriptRes.Add('      *(.data)');
+  ScriptRes.Add('      *(.fpc*)');
   ScriptRes.Add('      *(.gcc_exc)');
   ScriptRes.Add('      ___EH_FRAME_BEGIN__ = . ;');
   ScriptRes.Add('      *(.eh_fram)');

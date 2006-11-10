@@ -16,7 +16,7 @@
 { *********************************************************************** }
 
 {
-This tool will update the fpc.resptrs section of an ELF executable to point
+This tool will update the .fpc.resptrs section of an ELF executable to point
 to the various resource sections in the file. This is done so that the FPC
 RTL at runtime is able to get pointers to these sections.
 
@@ -206,12 +206,12 @@ begin
     SectionName:=copy(strtab,SectionHeaders[i].sh_name+1,32);
     SectionName:=copy(SectionName,1,pos(#0,SectionName)-1);
     DoVerbose(SProcessingSection+SectionName);
-    sn:=Copy(SectionName,1,4);
+    sn:=Copy(SectionName,1,5);
     // FPC section ?
-    if (sn='fpc.') then
+    if (sn='.fpc.') then
       begin
       sn:=SectionName;
-      Delete(SN,1,4);
+      Delete(SN,1,5);
       if SN='resptrs' then
         begin
         ResPtrsSection:=i;

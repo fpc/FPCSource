@@ -27,7 +27,7 @@ though.
 
 Format used for the various resource sections:
 
- fpc.resptrs:   This section is contained in resptrs.o and always linked to the executable by
+ .fpc.resptrs:  This section is contained in resptrs.o and always linked to the executable by
                 FPC. It containes an exported label fpcrespointers, which is used at runtime
                 to find the resptrs section in memory. The resptrs contains pointers to all the
                 sections and their sizes. These are updated in a post-precessing step by the
@@ -38,15 +38,15 @@ Format used for the various resource sections:
                 The second integer (32/64 Bit) value in this section contains the number of
                 resources.
                 After this follows a version-defined number of TFPCResourceSectionInfo entries.
- fpc.ressym:    Contains the resource names. This simply is a stream of zero-terminated strings.
+ .fpc.ressym:   Contains the resource names. This simply is a stream of zero-terminated strings.
                 Only textual names are supported, numeric IDs get autoconverted to #ID's.
                 The reshash table has got a byte index into ressym to quickly get that data if needed
- fpc.reshash:   n TFPCResourceInfo records. (number of entries is defined in fpc.resptrs)
- fpc.resdata:   Contains the plain resource data stream. A byte index into the data stream
+ .fpc.reshash:  n TFPCResourceInfo records. (number of entries is defined in fpc.resptrs)
+ .fpc.resdata:  Contains the plain resource data stream. A byte index into the data stream
                 is given for each resource entry in TResourceInfo
- fpc.resspare:  An empty section which is resized to make room if the size of any of the previous
+ .fpc.resspare: An empty section which is resized to make room if the size of any of the previous
                 sections gets changed. NOT USED IN VERSION 1 (SIZE WILL BE 0)
- fpc.resstr:    This section is completely seperated from the rest and contains a block of
+ .fpc.resstr:   This section is completely seperated from the rest and contains a block of
                 resourcestrings in internal FPC format.
 
 resptr TFPCResourceSectionInfo list for FPC resources version 1:
@@ -78,8 +78,8 @@ const fpcres2elf_version=1;
 
 // Do not change the following consts, they are dummy tables to generate an .o that makes ld happy
 const shstrtab = #0+'.symtab'+#0+'.strtab'+#0+'.shstrtab'+#0+'.text'+#0+'.data'+#0+
-                 '.bss'+#0+'fpc.ressym'+#0+'fpc.resstr'+#0+'fpc.reshash'+#0+
-                 'fpc.resdata'+#0+'fpc.resspare'+#0+#0;
+                 '.bss'+#0+'.fpc.ressym'+#0+'.fpc.resstr'+#0+'.fpc.reshash'+#0+
+                 '.fpc.resdata'+#0+'.fpc.resspare'+#0+#0;
       symtab =   #$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00+
                  #$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$03#$00#$01#$00+
                  #$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$00#$03#$00#$02#$00+
@@ -545,7 +545,7 @@ begin
   SectionHeader.sh_entsize:=0;
   FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
 
-  // fpc.ressym
+  // .fpc.ressym
   SectionHeader.sh_name:=$2C;
   SectionHeader.sh_type:=1; // PROGBITS
   SectionHeader.sh_flags:=2; // A
@@ -558,8 +558,8 @@ begin
   SectionHeader.sh_entsize:=0;
   FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
 
-  // fpc.resstr
-  SectionHeader.sh_name:=$37;
+  // .fpc.resstr
+  SectionHeader.sh_name:=$38;
   SectionHeader.sh_type:=1; // PROGBITS
   SectionHeader.sh_flags:=2; // A
   SectionHeader.sh_addr:=0;
@@ -571,8 +571,8 @@ begin
   SectionHeader.sh_entsize:=0;
   FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
 
-  // fpc.reshash
-  SectionHeader.sh_name:=$42;
+  // .fpc.reshash
+  SectionHeader.sh_name:=$44;
   SectionHeader.sh_type:=1; // PROGBITS
   SectionHeader.sh_flags:=2; // A
   SectionHeader.sh_addr:=0;
@@ -584,8 +584,8 @@ begin
   SectionHeader.sh_entsize:=0;
   FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
 
-  // fpc.resdata
-  SectionHeader.sh_name:=$4e;
+  // .fpc.resdata
+  SectionHeader.sh_name:=$51;
   SectionHeader.sh_type:=1; // PROGBITS
   SectionHeader.sh_flags:=2; // A
   SectionHeader.sh_addr:=0;
@@ -597,9 +597,9 @@ begin
   SectionHeader.sh_entsize:=0;
   FSectionStream.Write(SectionHeader,sizeOf(SectionHeader));
 
-  // fpc.resspare
+  // .fpc.resspare
   // Not used in V1
-  SectionHeader.sh_name:=$5a;
+  SectionHeader.sh_name:=$5f;
   SectionHeader.sh_type:=8; // NOBITS
   SectionHeader.sh_flags:=2; // A
   SectionHeader.sh_addr:=0;

@@ -1529,10 +1529,10 @@ implementation
         hp : tmodule;
         dbgtable : tai_symbol;
       begin
-        { Reference all DEBUGINFO sections from the main .text section }
+        { Reference all DEBUGINFO sections from the main .fpc section }
         if (target_info.system=system_powerpc_macos) then
           exit;
-        list.concat(Tai_section.create(sec_data,'',0));
+        list.concat(Tai_section.create(sec_fpc,'links',0));
         { make sure the debuginfo doesn't get stripped out }
         if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
           begin

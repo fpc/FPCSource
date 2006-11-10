@@ -958,6 +958,7 @@ implementation
             Concat('EXESECTION .data');
             Concat('  SYMBOL __data_start__');
             Concat('  OBJSECTION .data*');
+            Concat('  OBJSECTION .fpc*');
             Concat('  SYMBOL edata');
             Concat('  SYMBOL __data_end__');
             Concat('ENDEXESECTION');
@@ -1158,7 +1159,7 @@ implementation
             Add('  .data BLOCK(__section_alignment__) :');
             Add('  {');
             Add('    __data_start__ = . ;');
-            add('    *(.data .data.* .gnu.linkonce.d.*)');
+            add('    *(.data .data.* .gnu.linkonce.d.* .fpc*)');
             Add('    *(.data2)');
             Add('    *(SORT(.data$*))');
             Add('    __data_end__ = . ;');

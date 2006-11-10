@@ -574,6 +574,7 @@ begin
       add('  .data           :');
       add('  {');
       add('    *(.data .data.* .gnu.linkonce.d.*)');
+      add('    KEEP (*(.fpc .fpc.version .fpc.links))');
       add('    KEEP (*(.gnu.linkonce.d.*personality*))');
       add('  }');
       add('  _edata = .;');

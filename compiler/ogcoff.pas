@@ -1795,9 +1795,10 @@ const pemagic : array[0..3] of byte = (
                if (Copy(secname,1,6)='.idata') or
                   (Copy(secname,1,6)='.edata') or
                   (Copy(secname,1,5)='.rsrc') or
-                  (Copy(secname,1,6)='.pdata') then
+                  (Copy(secname,1,6)='.pdata') or
+                  (Copy(secname,1,4)='.fpc') then
                  include(secoptions,oso_keep);
-               objsec:=TCoffObjSection(createsection(secname,secalign,secoptions));
+               objsec:=TCoffObjSection(createsection(secname,secalign,secoptions,false));
                FSecTbl^[i]:=objsec;
                if not win32 then
                  objsec.mempos:=sechdr.rvaofs;
