@@ -125,10 +125,9 @@ implementation
                (ttypesym(sym).typedef.typ=undefineddef) then
               begin
                 if not first then
-                  begin
-                    consume(_COMMA);
-                    first:=false;
-                  end;
+                  consume(_COMMA)
+                else
+                  first:=false;
                 pt2:=factor(false);
                 if pt2.nodetype=typen then
                   begin
