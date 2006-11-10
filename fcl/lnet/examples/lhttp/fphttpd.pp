@@ -27,7 +27,7 @@ program fphttpd;
 
 uses
   SysUtils, Classes, lNet,
-{$ifndef WINDOWS}
+{$ifdef UNIX}
   BaseUnix, Errors,
 {$endif}
   lhttp, lwebserver, lHTTPSettings, lSpawnFCGI;
@@ -98,7 +98,7 @@ end;
 
 procedure HandleSignals;
 begin
-  {$ifndef WINDOWS}
+  {$ifdef UNIX}
   FpSignal(SIGTERM, @HandleTermSignal);
   FpSignal(SIGINT, @HandleTermSignal);
   FpSignal(SIGHUP, signalhandler(SIG_IGN));
@@ -107,7 +107,7 @@ begin
 end;
 
 function Daemonize: Integer;
-  {$ifndef WINDOWS}
+  {$ifdef UNIX}
 var
   PID: TPid;
 begin

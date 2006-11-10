@@ -74,10 +74,21 @@ end;
 
 {$else}
 
+{$ifdef UNIX}
+
 function TZSeconds: integer; inline;
 begin
   Result := unixutil.TZSeconds;
 end;
+
+{$else}
+
+function TZSeconds: integer; inline;
+begin
+  Result := 0; // TODO: implement for non windows, non unix
+end;
+
+{$endif}
 
 {$endif}
 

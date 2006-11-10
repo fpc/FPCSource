@@ -36,7 +36,27 @@ const
   SOL_SOCKET = $ffff;
   LMSG = 0;
   SOCKET_ERROR = WinSock2.SOCKET_ERROR;
-  {$ELSE}
+  {$ENDIF}
+
+  {$IFDEF OS2}
+  SOL_SOCKET = WinSock.SOL_SOCKET;
+  LMSG = 0;
+  SOCKET_ERROR = WinSock.SOCKET_ERROR;
+  {$ENDIF}
+
+  {$IFDEF NETWARE}
+  SOL_SOCKET = WinSock.SOL_SOCKET;
+  LMSG = 0;
+  SOCKET_ERROR = WinSock.SOCKET_ERROR;
+  {$ENDIF}
+
+  {$IFDEF NETWLIBC}
+  SOL_SOCKET = WinSock.SOL_SOCKET;
+  LMSG = 0;
+  SOCKET_ERROR = WinSock.SOCKET_ERROR;
+  {$ENDIF}
+
+  {$IFDEF UNIX}
   INVALID_SOCKET = -1;
   SOCKET_ERROR = -1;
     {$IFDEF LINUX} // TODO: fix this crap, some don't even have MSD_NOSIGNAL
@@ -49,17 +69,13 @@ const
   LDEFAULT_BACKLOG = 5;
   BUFFER_SIZE = 65536;
   
-  {$IFDEF WINDOWS}
+  {$IFNDEF UNIX}
 type
   TInetSockAddr = TSockAddrin;
   {$ENDIF}
   
   { Base functions }
-  function StrToHostAddr(const IP: string): Cardinal; inline;
-  function HostAddrToStr(const Entry: Cardinal): string; inline;
-  function StrToNetAddr(const IP: string): Cardinal; inline;
-  function NetAddrToStr(const Entry: Cardinal): string; inline;
-  {$IFDEF WINDOWS}
+  {$IFNDEF UNIX}
   function fpSelect(const nfds: Integer; const readfds, writefds, exceptfds: PFDSet;
                     const timeout: PTimeVal): Integer; inline;
   function fpFD_ISSET(const Socket: Integer; var FDSet: TFDSet): Integer; inline;
@@ -77,10 +93,16 @@ type
 
   function IsBlockError(const anError: Integer): Boolean; inline;
 
+  function StrToHostAddr(const IP: string): Cardinal; inline;
+  function HostAddrToStr(const Entry: Cardinal): string; inline;
+  function StrToNetAddr(const IP: string): Cardinal; inline;
+  function NetAddrToStr(const Entry: Cardinal): string; inline;
+
 implementation
 
-{$IFDEF WINDOWS}
+{$IFNDEF UNIX}
 
+{$IFDEF WINDOWS}
 uses
   Windows;
 
@@ -108,6 +130,15 @@ begin
     Delete(Tmp, Length(Tmp)-1, 2);
   Result:=Tmp;
 end;
+
+{$ELSE}
+
+function LStrError(const Ernum: Longint; const UseUTF8: Boolean = False): string;
+begin
+  Result:=IntToStr(Ernum); // TODO: fix for non-windows winsock users
+end;
+
+{$ENDIF}
 
 function LSocketError: Longint;
 begin
@@ -187,7 +218,7 @@ begin
 end;
 
 {$ELSE}
-
+// unix
 uses
   Errors;
 
@@ -253,14 +284,9 @@ end;
 
 {$ENDIF}
 
-function NetAddrToStr(const Entry: Cardinal): string; inline;
+function StrToHostAddr(const IP: string): Cardinal; inline;
 begin
-  Result:=Sockets.NetAddrToStr(in_addr(Entry));
-end;
-
-function StrToNetAddr(const IP: string): Cardinal; inline;
-begin
-  Result:=Cardinal(Sockets.StrToNetAddr(IP));
+  Result:=Cardinal(Sockets.StrToHostAddr(IP));
 end;
 
 function HostAddrToStr(const Entry: Cardinal): string; inline;
@@ -268,9 +294,14 @@ begin
   Result:=Sockets.HostAddrToStr(in_addr(Entry));
 end;
 
-function StrToHostAddr(const IP: string): Cardinal; inline;
+function StrToNetAddr(const IP: string): Cardinal; inline;
 begin
-  Result:=Cardinal(Sockets.StrToHostAddr(IP));
+  Result:=Cardinal(Sockets.StrToNetAddr(IP));
+end;
+
+function NetAddrToStr(const Entry: Cardinal): string; inline;
+begin
+  Result:=Sockets.NetAddrToStr(in_addr(Entry));
 end;
 
 end.

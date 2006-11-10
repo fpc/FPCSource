@@ -11,10 +11,10 @@ uses
 
 implementation
 
-{$ifdef WINDOWS}
-  {$i lspawnfcgiwin.inc}
-{$else}
+{$ifdef UNIX}
   {$i lspawnfcgiunix.inc}
+{$else}
+  {$i lspawnfcgiwin.inc}
 {$endif}
 
 end.

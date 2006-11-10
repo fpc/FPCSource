@@ -233,7 +233,7 @@ end;
 
 function TClient.UserString: string;
 begin
-  {$ifdef win32}
+  {$ifdef WINDOWS}
     Result:='USERNAME';
   {$else}
     Result:='USER';
