@@ -2414,7 +2414,7 @@ S*2Aas_assemble using GNU AS
 **2Co_check overflow of integer operations
 **2Cp<x>_select instruction set, see fpc -i for possible values
 **2CP<x>=<y>_ packing settings
-**3CPSETALLOC=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
+**3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
 **2Cr_range checking
 **2CR_verify object method call validity
 **2Cs<n>_set stack size to <n>

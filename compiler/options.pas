@@ -511,7 +511,7 @@ begin
                     'P':
                       begin
                         delete(more,1,1);
-                        if upper(copy(more,1,pos('=',more)-1))='SETALLOC' then
+                        if upper(copy(more,1,pos('=',more)-1))='PACKSET' then
                           begin
                             delete(more,1,pos('=',more));
                             if more='0' then
