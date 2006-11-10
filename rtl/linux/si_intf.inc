@@ -1,3 +1,5 @@
+{$SMARTLINK OFF}
+
 var
   initialstkptr: pointer; public name '__stkptr';
   operatingsystem_parameter_envp: ppchar; public name 'operatingsystem_parameter_envp';
