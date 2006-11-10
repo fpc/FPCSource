@@ -656,7 +656,7 @@ Implementation
 
     Function TExternalLinker.MakeStaticLibrary:boolean;
 
-        function GetNextFiles(const maxCmdLength : AInt; var item : TStringListItem) : string;
+        function GetNextFiles(const maxCmdLength : AInt; var item : TStringListItem) : ansistring;
           begin
             result := '';
             while (assigned(item) and ((length(result) + length(item.str) + 1) < maxCmdLength)) do begin
@@ -710,12 +710,11 @@ Implementation
             Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename^));
             { create AR commands }
             success := true;
-            nextcmd := cmdstr;
             current := TStringListItem(SmartLinkOFiles.First);
             repeat
+              nextcmd := cmdstr;
               Replace(nextcmd,'$FILES',GetNextFiles(240 - length(nextcmd) + 6 - length(binstr) - 1, current));
               success:=DoExec(binstr,nextcmd,false,true);
-              nextcmd := cmdstr;
             until (not assigned(current)) or (not success);
           end;
 
