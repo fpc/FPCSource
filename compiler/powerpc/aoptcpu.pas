@@ -207,11 +207,11 @@ const
     begin
        // 1 shl 32 = 1 instead of 0 on x86
       if (l1 <> 0) then
-        result :=  (1 shl (32 - l1) - 1) xor (1 shl (31 - l2) - 1)
+        result :=  longint(cardinal(1) shl (32 - l1) - 1) xor (cardinal(1) shl (31 - l2) - 1)
       else
-        result := not(1 shl (31 - l2) - 1);
+        result := longint(not(cardinal(1) shl (31 - l2) - 1));
       if (l1 > l2) then
-        result := not(result);        
+        result := not(result);
     end;
 
 
