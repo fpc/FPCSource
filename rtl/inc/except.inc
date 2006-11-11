@@ -49,11 +49,14 @@ end;
 
 
 function AcquireExceptionObject: Pointer;
+var
+  _ExceptObjectStack : PExceptObject;
 begin
-  If ExceptObjectStack<>nil then
+  _ExceptObjectStack:=ExceptObjectStack;
+  If _ExceptObjectStack<>nil then
     begin
-      Inc(ExceptObjectStack^.refcount);
-      AcquireExceptionObject := ExceptObjectStack^.FObject;
+      Inc(_ExceptObjectStack^.refcount);
+      AcquireExceptionObject := _ExceptObjectStack^.FObject;
     end
   else
     RunError(231);
@@ -61,11 +64,14 @@ end;
 
 
 procedure ReleaseExceptionObject;
+var
+  _ExceptObjectStack : PExceptObject;
 begin
-  If ExceptObjectStack <> nil then
+  _ExceptObjectStack:=ExceptObjectStack;
+  If _ExceptObjectStack <> nil then
     begin
-      if ExceptObjectStack^.refcount > 0 then
-        Dec(ExceptObjectStack^.refcount);
+      if _ExceptObjectStack^.refcount > 0 then
+        Dec(_ExceptObjectStack^.refcount);
     end
   else
     RunError(231);
@@ -74,12 +80,15 @@ end;
 
 Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ;
   [Public, Alias : 'FPC_PUSHEXCEPTADDR'];compilerproc;
+var
+  _ExceptAddrstack : ^PExceptAddr;
 begin
 {$ifdef excdebug}
   writeln ('In PushExceptAddr');
 {$endif}
-  PExceptAddr(_newaddr)^.Next:=ExceptAddrstack;
-  ExceptAddrStack:=PExceptAddr(_newaddr);
+  _ExceptAddrstack:=@ExceptAddrstack;
+  PExceptAddr(_newaddr)^.Next:=_ExceptAddrstack^;
+  _ExceptAddrStack^:=PExceptAddr(_newaddr);
   PExceptAddr(_newaddr)^.Buf:=PJmp_Buf(_buf);
   PExceptAddr(_newaddr)^.FrameType:=ft;
   result:=PJmp_Buf(_buf);
@@ -90,6 +99,7 @@ Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer);
   [Public, Alias : 'FPC_PUSHEXCEPTOBJECT']; compilerproc;
 var
   Newobj : PExceptObject;
+  _ExceptObjectStack : ^PExceptObject;
   framebufsize,
   framecount  : longint;
   frames      : PPointer;
@@ -101,20 +111,24 @@ begin
 {$ifdef excdebug}
   writeln ('In PushExceptObject');
 {$endif}
-  If ExceptObjectStack=Nil then
+  _ExceptObjectStack:=@ExceptObjectStack;
+  If _ExceptObjectStack^=Nil then
     begin
-      New(ExceptObjectStack);
-      ExceptObjectStack^.Next:=Nil;
+      New(_ExceptObjectStack^);
+      _ExceptObjectStack^^.Next:=Nil;
     end
   else
     begin
       New(NewObj);
-      NewObj^.Next:=ExceptObjectStack;
-      ExceptObjectStack:=NewObj;
+      NewObj^.Next:=_ExceptObjectStack^;
+      _ExceptObjectStack^:=NewObj;
     end;
-  ExceptObjectStack^.FObject:=Obj;
-  ExceptObjectStack^.Addr:=AnAddr;
-  ExceptObjectStack^.refcount:=0;
+  with _ExceptObjectStack^^ do
+    begin
+      FObject:=Obj;
+      Addr:=AnAddr;
+      refcount:=0;
+    end;
   { Backtrace }
   curr_frame:=AFrame;
   prev_frame:=get_frame;
@@ -139,8 +153,8 @@ begin
      prev_frame:=curr_frame;
      curr_frame:=caller_frame;
    End;
-  ExceptObjectStack^.framecount:=framecount;
-  ExceptObjectStack^.frames:=frames;
+  _ExceptObjectStack^^.framecount:=framecount;
+  _ExceptObjectStack^^.frames:=frames;
 end;
 
 { make it avalable for local use }
@@ -148,9 +162,12 @@ Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer); [external 
 
 
 Procedure DoUnHandledException;
+var
+  _ExceptObjectStack : PExceptObject;
 begin
-  If (ExceptProc<>Nil) and (ExceptObjectStack<>Nil) then
-    with ExceptObjectStack^ do
+  _ExceptObjectStack:=ExceptObjectStack;
+  If (ExceptProc<>Nil) and (_ExceptObjectStack<>Nil) then
+    with _ExceptObjectStack^ do
       begin
         TExceptProc(ExceptProc)(FObject,Addr,FrameCount,Frames);
         halt(217)
@@ -166,18 +183,23 @@ end;
 
 
 Function fpc_Raiseexception (Obj : TObject; AnAddr,AFrame : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION']; compilerproc;
+var
+  _ExceptObjectStack : PExceptObject;
+  _ExceptAddrstack : PExceptAddr;
 begin
 {$ifdef excdebug}
   writeln ('In RaiseException');
 {$endif}
   fpc_Raiseexception:=nil;
   fpc_PushExceptObj(Obj,AnAddr,AFrame);
-  If ExceptAddrStack=Nil then
+  _ExceptAddrstack:=ExceptAddrStack;
+  If _ExceptAddrStack=Nil then
     DoUnhandledException;
-  if (RaiseProc <> nil) and (ExceptObjectStack <> nil) then
-    with ExceptObjectStack^ do
+  _ExceptObjectStack:=ExceptObjectStack;
+  if (RaiseProc <> nil) and (_ExceptObjectStack <> nil) then
+    with _ExceptObjectStack^ do
       RaiseProc(FObject,Addr,FrameCount,Frames);
-  longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
+  longjmp(_ExceptAddrStack^.Buf^,FPC_Exception);
 end;
 
 
@@ -203,12 +225,13 @@ end;
 
 function fpc_PopObjectStack : TObject;[Public, Alias : 'FPC_POPOBJECTSTACK']; compilerproc;
 var
-  hp : PExceptObject;
+  hp,_ExceptObjectStack : PExceptObject;
 begin
 {$ifdef excdebug}
   writeln ('In PopObjectstack');
 {$endif}
-  If ExceptObjectStack=nil then
+  _ExceptObjectStack:=ExceptObjectStack;
+  If _ExceptObjectStack=nil then
     begin
     writeln ('At end of ExceptionObjectStack');
     halt (1);
@@ -216,13 +239,13 @@ begin
   else
     begin
        { we need to return the exception object to dispose it }
-       if ExceptObjectStack^.refcount = 0 then begin
-         fpc_PopObjectStack:=ExceptObjectStack^.FObject;
+       if _ExceptObjectStack^.refcount = 0 then begin
+         fpc_PopObjectStack:=_ExceptObjectStack^.FObject;
        end else begin
          fpc_PopObjectStack:=nil;
        end;
-       hp:=ExceptObjectStack;
-       ExceptObjectStack:=ExceptObjectStack^.next;
+       hp:=_ExceptObjectStack;
+       ExceptObjectStack:=_ExceptObjectStack^.next;
        if assigned(hp^.frames) then
          freemem(hp^.frames);
        dispose(hp);
@@ -234,26 +257,27 @@ end;
 { in an except/on                                                        }
 function fpc_PopSecondObjectStack : TObject;[Public, Alias : 'FPC_POPSECONDOBJECTSTACK']; compilerproc;
 var
-  hp : PExceptObject;
+  hp,_ExceptObjectStack : PExceptObject;
 begin
 {$ifdef excdebug}
   writeln ('In PopObjectstack');
 {$endif}
-  If not(assigned(ExceptObjectStack)) or
-     not(assigned(ExceptObjectStack^.next)) then
+  _ExceptObjectStack:=ExceptObjectStack;
+  If not(assigned(_ExceptObjectStack)) or
+     not(assigned(_ExceptObjectStack^.next)) then
     begin
       writeln ('At end of ExceptionObjectStack');
       halt (1);
     end
   else
     begin
-      if ExceptObjectStack^.next^.refcount=0 then
+      if _ExceptObjectStack^.next^.refcount=0 then
         { we need to return the exception object to dispose it if refcount=0 }
-        fpc_PopSecondObjectStack:=ExceptObjectStack^.next^.FObject
+        fpc_PopSecondObjectStack:=_ExceptObjectStack^.next^.FObject
       else
         fpc_PopSecondObjectStack:=nil;
-      hp:=ExceptObjectStack^.next;
-      ExceptObjectStack^.next:=hp^.next;
+      hp:=_ExceptObjectStack^.next;
+      _ExceptObjectStack^.next:=hp^.next;
       if assigned(hp^.frames) then
         freemem(hp^.frames);
       dispose(hp);
@@ -261,34 +285,39 @@ begin
 end;
 
 Procedure fpc_ReRaise;[Public, Alias : 'FPC_RERAISE']; compilerproc;
+var
+  _ExceptAddrStack : PExceptAddr;
 begin
 {$ifdef excdebug}
   writeln ('In reraise');
 {$endif}
-  If ExceptAddrStack=Nil then
+  _ExceptAddrStack:=ExceptAddrStack;
+  If _ExceptAddrStack=Nil then
     DoUnHandledException;
   ExceptObjectStack^.refcount := 0;
-  longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
+  longjmp(_ExceptAddrStack^.Buf^,FPC_Exception);
 end;
 
 
 Function fpc_Catches(Objtype : TClass) : TObject;[Public, Alias : 'FPC_CATCHES']; compilerproc;
 var
   _Objtype : TExceptObjectClass;
+  _ExceptObjectStack : PExceptObject;
 begin
-  If ExceptObjectStack=Nil then
+  _ExceptObjectStack:=ExceptObjectStack;
+  If _ExceptObjectStack=Nil then
    begin
      Writeln ('Internal error.');
      halt (255);
    end;
   _Objtype := TExceptObjectClass(Objtype);
   if Not ((_Objtype = TExceptObjectClass(CatchAllExceptions)) or
-         (ExceptObjectStack^.FObject is _ObjType)) then
+         (_ExceptObjectStack^.FObject is _ObjType)) then
     fpc_Catches:=Nil
   else
     begin
       // catch !
-      fpc_Catches:=ExceptObjectStack^.FObject;
+      fpc_Catches:=_ExceptObjectStack^.FObject;
       { this can't be done, because there could be a reraise (PFV)
        PopObjectStack;
 
