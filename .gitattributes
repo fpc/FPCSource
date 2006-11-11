@@ -6449,6 +6449,7 @@ tests/test/tfpu5.pp svneol=native#text/plain
 tests/test/tfpuover.pp svneol=native#text/plain
 tests/test/tgeneric1.pp svneol=native#text/plain
 tests/test/tgeneric10.pp svneol=native#text/plain
+tests/test/tgeneric11.pp svneol=native#text/plain
 tests/test/tgeneric2.pp svneol=native#text/plain
 tests/test/tgeneric3.pp svneol=native#text/plain
 tests/test/tgeneric4.pp svneol=native#text/plain
