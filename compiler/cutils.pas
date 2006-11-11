@@ -60,7 +60,7 @@ interface
     function size_2_align(len : longint) : shortint;
     function packedbitsloadsize(bitlen: int64) : int64;
     procedure Replace(var s:string;s1:string;const s2:string);
-    procedure Replace(var s:AnsiString;s1:string;const s2:string);
+    procedure Replace(var s:AnsiString;s1:string;const s2:AnsiString);
     procedure ReplaceCase(var s:string;const s1,s2:string);
     Function MatchPattern(const pattern,what:string):boolean;
     function upper(const s : string) : string;
@@ -351,7 +351,7 @@ implementation
       end;
 
 
-    procedure Replace(var s:AnsiString;s1:string;const s2:string);
+    procedure Replace(var s:AnsiString;s1:string;const s2:AnsiString);
       var
          last,
          i  : longint;
