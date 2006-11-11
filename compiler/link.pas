@@ -713,7 +713,7 @@ Implementation
             current := TStringListItem(SmartLinkOFiles.First);
             repeat
               nextcmd := cmdstr;
-              Replace(nextcmd,'$FILES',GetNextFiles(240 - length(nextcmd) + 6 - length(binstr) - 1, current));
+              Replace(nextcmd,'$FILES',GetNextFiles(2047, current));
               success:=DoExec(binstr,nextcmd,false,true);
             until (not assigned(current)) or (not success);
           end;
