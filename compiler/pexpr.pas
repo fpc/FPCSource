@@ -2137,7 +2137,19 @@ implementation
                      begin
                        if assigned(getprocvardef) and
                           equal_defs(p1.resultdef,getprocvardef) then
-                         again:=false
+                         begin
+                           { classes can define now types so we've to allow
+                             type casts with these nested types as well }
+                           if (p1.nodetype=typen) and
+                              try_to_consume(_LKLAMMER) then
+                             begin
+                               p1:=comp_expr(true);
+                               consume(_RKLAMMER);
+                               p1:=ctypeconvnode.create_explicit(p1,p1.resultdef);
+                             end
+                           else
+                             again:=false
+                         end
                        else
                          begin
                            if try_to_consume(_LKLAMMER) then

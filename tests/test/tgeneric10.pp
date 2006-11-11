@@ -4,7 +4,7 @@ type
    generic TList<_T>=class(TObject)
    type public
      TCompareFunc = function(const Item1, Item2: _T): Integer;
-   var public 
+   var public
      data : _T;
      compare : TCompareFunc;
      procedure Add(item: _T);
@@ -17,7 +17,7 @@ begin
     halt(1);
 end;
 
-function CompareInt(Item1, Item2: Integer): Integer;
+function CompareInt(const Item1, Item2: Integer): Integer;
 begin
   Result := Item2 - Item1;
 end;
@@ -33,4 +33,5 @@ begin
   ilist := TMyIntList.Create;
   ilist.compare := ilist.TCompareFunc(@CompareInt);
   ilist.add(someInt);
+  writeln('ok');
 end.
