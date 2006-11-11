@@ -2568,7 +2568,7 @@ const
                             if (currparasym.name<>fwparasym.name) then
                               begin
                                 MessagePos3(currpd.fileinfo,parser_e_header_different_var_names,
-                                            tprocsym(currpd.procsym).realname,currparasym.realname,fwparasym.realname);
+                                            tprocsym(currpd.procsym).realname,fwparasym.realname,currparasym.realname);
                                 break;
                               end;
                           end;
