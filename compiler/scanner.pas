@@ -88,6 +88,9 @@ interface
           replaysavetoken : ttoken;
           replaytokenbuf,
           recordtokenbuf : tdynamicarray;
+
+          { old settings, i.e. settings specialization was started }
+          old_settings,
           { last settings we stored }
           last_settings : tsettings;
 
@@ -1913,6 +1916,7 @@ In case not, the value returned can be arbitrary.
         if token in [_CWCHAR,_CWSTRING,_CCHAR,_CSTRING,_INTCONST,_REALNUMBER,_ID] then
           internalerror(200511178);
         replaysavetoken:=token;
+        old_settings:=current_settings;
         if assigned(inputpointer) then
           dec(inputpointer);
         { install buffer }
@@ -1941,6 +1945,8 @@ In case not, the value returned can be arbitrary.
                 inc(inputpointer);
               end;
             token:=replaysavetoken;
+            { restore compiler settings }
+            current_settings:=old_settings;
             exit;
           end;
         repeat
