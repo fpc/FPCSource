@@ -279,28 +279,33 @@ threadvar
 
 
    Procedure Errno2InOutRes;
+   var
+     res : Word;
+     pErrno : ^longint;
    Begin
      { DO NOT MODIFY UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING }
-     case Errno of
+     pErrno:=@Errno;
+     case pErrno^ of
        ERROR_WRITE_PROTECT..ERROR_GEN_FAILURE :
          begin
            { This is the offset to the Win32 to add to directly map  }
            { to the DOS/TP compatible error codes when in this range }
-           InOutRes := word(errno)+131;
+           res := word(pErrno^)+131;
          end;
        ERROR_DIR_NOT_EMPTY,
        ERROR_ALREADY_EXISTS,
        ERROR_SHARING_VIOLATION :
          begin
-           InOutRes :=5;
+           res :=5;
          end;
        else
          begin
            { other error codes can directly be mapped }
-           InOutRes := Word(errno);
+           res := Word(pErrno^);
          end;
      end;
-     errno:=0;
+     pErrno^:=0;
+     InOutRes:=res;
    end;
 
 

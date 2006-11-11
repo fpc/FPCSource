@@ -671,6 +671,7 @@ Procedure FinalizeHeap;forward;
 Procedure InternalExit;
 var
   current_exit : Procedure;
+  pstdout : ^Text;
 {$if defined(MSWINDOWS) or defined(OS2)}
   i : longint;
 {$endif}
@@ -688,18 +689,19 @@ Begin
   { Finalize units }
   FinalizeUnits;
   { Show runtime error and exit }
+  pstdout:=@stdout;
   If erroraddr<>nil Then
    Begin
-     Writeln(stdout,'Runtime error ',Errorcode,' at $',hexstr(PtrInt(Erroraddr),sizeof(PtrInt)*2));
+     Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(PtrInt(Erroraddr),sizeof(PtrInt)*2));
      { to get a nice symify }
-     Writeln(stdout,BackTraceStrFunc(Erroraddr));
-     dump_stack(stdout,ErrorBase);
-     Writeln(stdout,'');
+     Writeln(pstdout^,BackTraceStrFunc(Erroraddr));
+     dump_stack(pstdout^,ErrorBase);
+     Writeln(pstdout^,'');
    End;
   { Make sure that all output is written to the redirected file }
   Flush(Output);
   Flush(ErrOutput);
-  Flush(StdOut);
+  Flush(pstdout^);
   Flush(StdErr);
 {$if defined(MSWINDOWS) or defined(OS2)}
   { finally release the heap if possible, especially
