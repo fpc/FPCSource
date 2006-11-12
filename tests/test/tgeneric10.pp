@@ -17,7 +17,7 @@ begin
     halt(1);
 end;
 
-function CompareInt(const Item1, Item2: Integer): Integer;
+function CompareInt(Item1, Item2: Integer): Integer;
 begin
   Result := Item2 - Item1;
 end;
