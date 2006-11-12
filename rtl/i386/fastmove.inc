@@ -830,9 +830,19 @@ end;
 {$endif INTERNALMOVEFILLCHAR}
 
 {$asmmode att}
+{$ifdef FPC_HAS_VALGRINDBOOL}
+var
+  valgrind_used : boolean;external name '__fpc_valgrind';
+{$endif FPC_HAS_VALGRINDBOOL}
 
 procedure setup_fastmove;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
+{$ifdef FPC_HAS_VALGRINDBOOL}
+    { workaround valgrind bug }
+    if valgrind_used then
+      exit;
+{$endif FPC_HAS_VALGRINDBOOL}
+
     if has_sse_support then
       begin
         fastmoveproc_forward:=@Forwards_SSE_3;
