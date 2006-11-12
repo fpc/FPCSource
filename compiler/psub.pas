@@ -74,6 +74,7 @@ interface
 implementation
 
     uses
+       sysutils,
        { common }
        cutils,
        { global }
@@ -1373,7 +1374,8 @@ implementation
           consume(_SEMICOLON);
 
         if not isnestedproc then
-          current_procinfo.free;
+          { current_procinfo is checked for nil later on }
+          freeandnil(current_procinfo);
       end;
 
 
