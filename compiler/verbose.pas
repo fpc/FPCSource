@@ -145,12 +145,19 @@ var
 
     procedure SetRedirectFile(const fn:string);
       begin
+        { close old redirection file because FileRedirection is handled in both passes }
+        if status.use_redir then
+          close(status.redirfile);
+
         assign(status.redirfile,fn);
-        {$I-}
-         append(status.redirfile);
-         if ioresult <> 0 then
-          rewrite(status.redirfile);
-        {$I+}
+      {$I-}
+        append(status.redirfile);
+        if ioresult <> 0 then
+          begin
+            assign(status.redirfile,fn);
+            rewrite(status.redirfile);
+          end;
+      {$I+}
         status.use_redir:=(ioresult=0);
       end;
 
@@ -384,7 +391,7 @@ var
            status.currentmodule:=module.modulename^;
            status.currentsource:=module.sourcefiles.get_file_name(current_filepos.fileindex);
            status.currentsourcepath:=module.sourcefiles.get_file_path(current_filepos.fileindex);
-           
+
            { update lastfileidx only if name known PM }
            if status.currentsource<>'' then
              lastfileidx:=current_filepos.fileindex
