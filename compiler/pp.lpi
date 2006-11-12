@@ -26,21 +26,29 @@
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="1">
+    <Units Count="2">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pp"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="x86\aasmcpu.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="aasmcpu"/>
+      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="5"/>
     <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="i386\pp"/>
+    </Target>
     <SearchPaths>
       <IncludeFiles Value="i386\"/>
       <OtherUnitFiles Value="i386\;x86\;systems\"/>
-      <UnitOutputDirectory Value="myunits"/>
+      <UnitOutputDirectory Value="i386\lazbuild"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
@@ -69,8 +77,7 @@
       <ConfigFile>
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
-      <CustomOptions Value="-dGDB
--di386
+      <CustomOptions Value="-di386
 "/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
