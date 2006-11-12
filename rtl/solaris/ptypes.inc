@@ -211,3 +211,67 @@ const
   Prio_User    = 2;
 
 
+ type
+    pthread_t = cuint;
+
+    pthread_attr_t = record
+      __pthread_attrp : pointer;
+    end;
+
+    pthread_mutexattr_t = record
+      __pthread_mutexattrp : pointer;
+    end;
+
+    pthread_cond_t = record
+      __pthread_cond_flags : record
+        __pthread_cond_flag : array[0..3] of byte;
+        __pthread_cond_type : uint16_t;
+        __pthread_cond_magic : uint16_t;
+      end;
+      __pthread_cond_data : upad64_t;
+    end;
+
+    pthread_condattr_t = record
+      __pthread_condattrp : pointer;
+    end;
+
+    pthread_key_t = cuint;
+
+    pthread_mutex_t = record
+      __pthread_mutex_flags : record
+           __pthread_mutex_flag1 : word;
+           __pthread_mutex_flag2 : byte;
+           __pthread_mutex_ceiling : byte;
+           __pthread_mutex_type : word;
+           __pthread_mutex_magic : word;
+        end;
+      __pthread_mutex_lock : record
+          case longint of
+             0 : ( __pthread_mutex_lock64 : record
+                  __pthread_mutex_pad : array[0..7] of byte;
+               end );
+             1 : ( __pthread_mutex_lock32 : record
+                  __pthread_ownerpid : dword;
+                  __pthread_lockword : dword;
+               end );
+             2 : ( __pthread_mutex_owner64 : qword );
+          end;
+      __pthread_mutex_data : qword;
+    end;
+
+    pthread_rwlock_t = record
+      __pthread_rwlock_readers : int32_t;
+      __pthread_rwlock_type : uint16_t;
+      __pthread_rwlock_magic : uint16_t;
+      __pthread_rwlock_mutex : pthread_mutex_t;
+      __pthread_rwlock_readercv : pthread_cond_t;
+      __pthread_rwlock_writercv : pthread_cond_t;
+    end;
+
+    sem_t = record
+      sem_count : uint32_t;
+      sem_type : uint16_t;
+      sem_magic : uint16_t;
+      sem_pad1 : array[0..2] of upad64_t;
+      sem_pad2 : array[0..1] of upad64_t;
+    end;
