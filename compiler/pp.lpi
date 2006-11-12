@@ -58,11 +58,6 @@
         <CPPInline Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <CodeGeneration>
-      <Generate Value="Faster"/>
-      <TargetProcessor Value="3"/>
-      <TargetOS Value="Win32"/>
-    </CodeGeneration>
     <Linking>
       <Debugging>
         <GenerateDebugInfo Value="True"/>
