@@ -504,7 +504,7 @@ implementation
            { Lineinfo unit }
            if (cs_use_lineinfo in current_settings.globalswitches) then
              AddUnit('LineInfo');
-           { Lineinfo unit }
+           { Valgrind requires c memory manager }
            if (cs_gdb_valgrind in current_settings.globalswitches) then
              AddUnit('CMem');
 {$ifdef cpufpemu}
