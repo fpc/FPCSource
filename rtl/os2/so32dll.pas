@@ -1026,11 +1026,15 @@ type
     fd_count  :  Word;                        // how many are SET?
     fd_array  :  array[0..FD_SETSIZE-1] of Longint;   // an array of SOCKETs
   end;
+  TFDSet = FD_Set;
+  PFDSet = ^TFDSet;
 
   timeval = record
     tv_sec   :  Longint; // Number of seconds
     tv_usec  :  Longint; // Number of microseconds
   end;
+  TTimeVal = TimeVal;
+  PTimeVal = ^TTimeVal;
 
 {
  * ioctl & ip trace support
