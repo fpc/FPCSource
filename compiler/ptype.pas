@@ -26,7 +26,8 @@ unit ptype;
 interface
 
     uses
-       globtype,cclasses,symtype,symdef;
+       globtype,cclasses,
+       symtype,symdef,symbase;
 
     const
        { forward types should only be possible inside a TYPE statement }
@@ -50,7 +51,7 @@ interface
     procedure read_anon_type(var def : tdef;parseprocvardir:boolean);
 
     { generate persistent type information like VMT, RTTI and inittables }
-    procedure write_persistent_type_info(def : tdef);
+    procedure write_persistent_type_info(st:tsymtable);
 
 
 implementation
@@ -64,7 +65,7 @@ implementation
        { target }
        paramgr,
        { symtable }
-       symconst,symbase,symsym,symtable,
+       symconst,symsym,symtable,
        defutil,defcmp,
        { pass 1 }
        node,ncgrtti,nobj,
@@ -771,43 +772,61 @@ implementation
       end;
 
 
-    procedure write_persistent_type_info(def : tdef);
+    procedure write_persistent_type_info(st:tsymtable);
       var
-        ch  : tclassheader;
+        i : longint;
+        def : tdef;
+        vmtwriter  : TVMTWriter;
       begin
-        { generate persistent init/final tables when it's declared in the interface so it can
-          be reused in other used }
-        if def.owner.symtabletype=globalsymtable then
-          RTTIWriter.write_rtti(def,initrtti);
-
-        { for objects we should write the vmt and interfaces.
-          This need to be done after the rtti has been written, because
-          it can contain a reference to that data (PFV)
-          This is not for forward classes }
-        if (def.typ=objectdef) then
+        for i:=0 to st.DefList.Count-1 do
           begin
-            if not(oo_vmt_written in tobjectdef(def).objectoptions) and
-               not(oo_is_forward in tobjectdef(def).objectoptions) then
-              begin
-                ch:=tclassheader.create(tobjectdef(def));
-                { generate and check virtual methods, must be done
-                  before RTTI is written }
-                ch.genvmt;
-                { Generate RTTI for class }
-                RTTIWriter.write_rtti(def,fullrtti);
-                if is_interface(tobjectdef(def)) then
-                  ch.writeinterfaceids;
-                if (oo_has_vmt in tobjectdef(def).objectoptions) then
-                  ch.writevmt;
-                ch.free;
-                include(tobjectdef(def).objectoptions,oo_vmt_written);
-              end;
-          end
-        else
-          begin
-            { Always generate RTTI info for all types. This is to have typeinfo() return
-              the same pointer }
-            if def.owner.symtabletype=globalsymtable then
+            def:=tdef(st.DefList[i]);
+            if df_deleted in def.defoptions then
+              continue;
+            case def.typ of
+              recorddef :
+                write_persistent_type_info(trecorddef(def).symtable);
+              objectdef :
+                begin
+                  write_persistent_type_info(tobjectdef(def).symtable);
+                  { Write also VMT }
+                  if not(ds_vmt_written in def.defstates) and
+                     not(oo_is_forward in tobjectdef(def).objectoptions) then
+                    begin
+                      vmtwriter:=TVMTWriter.create(tobjectdef(def));
+                      if is_interface(tobjectdef(def)) then
+                        vmtwriter.writeinterfaceids;
+                      if (oo_has_vmt in tobjectdef(def).objectoptions) then
+                        vmtwriter.writevmt;
+                      vmtwriter.free;
+                      include(def.defstates,ds_vmt_written);
+                    end;
+                end;
+              procdef :
+                begin
+                  if assigned(tprocdef(def).localst) and
+                     (tprocdef(def).localst.symtabletype=localsymtable) then
+                    write_persistent_type_info(tprocdef(def).localst);
+                  if assigned(tprocdef(def).parast) then
+                    write_persistent_type_info(tprocdef(def).parast);
+                end;
+            end;
+            { generate always persistent tables for types in the interface so it can
+              be reused in other units and give always the same pointer location. }
+            { Init }
+            if (
+                assigned(def.typesym) and
+                (st.symtabletype=globalsymtable)
+               ) or
+               def.needs_inittable or
+               (ds_init_table_used in def.defstates) then
+              RTTIWriter.write_rtti(def,initrtti);
+            { RTTI }
+            if (
+                  assigned(def.typesym) and
+                  (st.symtabletype=globalsymtable)
+               ) or
+               (ds_rtti_table_used in def.defstates) then
               RTTIWriter.write_rtti(def,fullrtti);
           end;
       end;

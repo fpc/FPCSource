@@ -227,6 +227,7 @@ interface
           objectoptions  : tobjectoptions;
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
+          vmtentries     : TFPObjectList;
           vmt_offset     : longint;
           writing_class_record_dbginfo : boolean;
           objecttype     : tobjecttyp;
@@ -919,9 +920,15 @@ implementation
         prefix : string[4];
       begin
         if rt=fullrtti then
-          prefix:='RTTI'
+          begin
+            prefix:='RTTI';
+            include(defstates,ds_rtti_table_used);
+          end
         else
-          prefix:='INIT';
+          begin
+            prefix:='INIT';
+            include(defstates,ds_init_table_used);
+          end;
         if assigned(typesym) and
            (owner.symtabletype in [staticsymtable,globalsymtable]) then
           result:=make_mangledname(prefix,owner,typesym.name)
@@ -2151,7 +2158,8 @@ implementation
 
     constructor tarraydef.create_from_pointer(def:tdef);
       begin
-         self.create(0,$7fffffff,s32inttype);
+         { use -1 so that the elecount will not overflow }
+         self.create(0,$7fffffff-1,s32inttype);
          arrayoptions:=[ado_IsConvertedPointer];
          setelementdef(def);
       end;
@@ -3560,6 +3568,7 @@ implementation
         childof:=nil;
         symtable:=tObjectSymtable.create(self,n,current_settings.packrecords);
         { create space for vmt !! }
+        vmtentries:=nil;
         vmt_offset:=0;
         lastvtableindex:=0;
         set_parent(c);
@@ -3593,6 +3602,7 @@ implementation
          tObjectSymtable(symtable).fieldalignment:=ppufile.getbyte;
          tObjectSymtable(symtable).recordalignment:=ppufile.getbyte;
          vmt_offset:=ppufile.getlongint;
+         vmtentries:=nil;
          ppufile.getderef(childofderef);
          ppufile.getsmallset(objectoptions);
 
@@ -3658,6 +3668,11 @@ implementation
              dispose(iidguid);
              iidguid:=nil;
            end;
+         if assigned(vmtentries) then
+           begin
+             vmtentries.free;
+             vmtentries:=nil;
+           end;
          inherited destroy;
       end;
 
@@ -3686,6 +3701,11 @@ implementation
           begin
             for i:=0 to ImplementedInterfaces.count-1 do
               tobjectdef(result).ImplementedInterfaces.Add(TImplementedInterface(ImplementedInterfaces[i]).Getcopy);
+          end;
+        if assigned(vmtentries) then
+          begin
+            tobjectdef(result).vmtentries:=TFPobjectList.Create(false);
+            tobjectdef(result).vmtentries.Assign(vmtentries);
           end;
       end;
 

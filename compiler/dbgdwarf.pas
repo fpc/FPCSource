@@ -612,7 +612,7 @@ implementation
         { Need a new label? }
         if not assigned(def.dwarf_lab) then
           begin
-            if (df_has_dwarf_dbg_info in def.defoptions) then
+            if (ds_dwarf_dbg_info_written in def.defstates) then
               begin
                 if not assigned(def.typesym) then
                   internalerror(200610011);
@@ -628,7 +628,7 @@ implementation
                    (def.owner.iscurrentunit) then
                   begin
                     def.dwarf_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
-                    include(def.defoptions,df_has_dwarf_dbg_info);
+                    include(def.defstates,ds_dwarf_dbg_info_written);
                   end
                 else
                   { The pointer typecast is needed to prevent a problem with range checking
@@ -1388,7 +1388,7 @@ implementation
 
         current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Definition '+def.typename)));
         labsym:=def_dwarf_lab(def);
-        if df_has_dwarf_dbg_info in def.defoptions then
+        if ds_dwarf_dbg_info_written in def.defstates then
           current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(labsym,0))
         else
           current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));

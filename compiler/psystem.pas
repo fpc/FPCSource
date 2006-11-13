@@ -112,9 +112,6 @@ implementation
         begin
           result:=ttypesym.create(s,def);
           systemunit.insert(result);
-          { write always RTTI to get persistent typeinfo }
-          RTTIWriter.write_rtti(def,initrtti);
-          RTTIWriter.write_rtti(def,fullrtti);
         end;
 
       var

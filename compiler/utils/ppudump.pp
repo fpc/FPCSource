@@ -741,34 +741,53 @@ end;
 
 procedure readcommondef(const s:string);
 type
+  { flags for a definition }
   tdefoption=(df_none,
-    { init data has been generated }
-    df_has_inittable,
-    { rtti data has been generated }
-    df_has_rttitable,
-    { dwarf debug info has been generated }
-    df_has_dwarf_dbg_info,
     { type is unique, i.e. declared with type = type <tdef>; }
     df_unique,
     { type is a generic }
     df_generic,
     { type is a specialization of a generic type }
-    df_specialization
+    df_specialization,
+    { type is deleted does not to be stored in ppu }
+    df_deleted
   );
   tdefoptions=set of tdefoption;
+
+  tdefstate=(ds_none,
+    ds_vmt_written,
+    ds_rtti_table_used,
+    ds_init_table_used,
+    ds_rtti_table_written,
+    ds_init_table_written,
+    ds_dwarf_dbg_info_used,
+    ds_dwarf_dbg_info_written
+  );
+  tdefstates=set of tdefstate;
   tdefopt=record
     mask : tdefoption;
     str  : string[30];
   end;
+  tdefstateinfo=record
+    mask : tdefstate;
+    str  : string[30];
+  end;
 const
-  defopts=6;
+  defopts=3;
   defopt : array[1..defopts] of tdefopt=(
-     (mask:df_has_inittable;  str:'InitTable'),
-     (mask:df_has_rttitable;  str:'RTTITable'),
-     (mask:df_has_dwarf_dbg_info;  str:'Dwarf DbgInfo'),
      (mask:df_unique;         str:'Unique Type'),
      (mask:df_generic;        str:'Generic'),
      (mask:df_specialization; str:'Specialization')
+  );
+  defstateinfos=7;
+  defstate : array[1..defstateinfos] of tdefstateinfo=(
+     (mask:ds_init_table_used;       str:'InitTable Used'),
+     (mask:ds_rtti_table_used;       str:'RTTITable Used'),
+     (mask:ds_init_table_written;    str:'InitTable Written'),
+     (mask:ds_rtti_table_written;    str:'RTTITable Written'),
+     (mask:ds_dwarf_dbg_info_used;   str:'Dwarf DbgInfo Used'),
+     (mask:ds_dwarf_dbg_info_written;str:'Dwarf DbgInfo Written'),
+     (mask:ds_vmt_written;           str:'VMT Written')
   );
 var
   defoptions : tdefoptions;

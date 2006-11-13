@@ -43,7 +43,7 @@ implementation
        link,assemble,import,export,gendef,ppu,comprsrc,dbgbase,
        cresstr,procinfo,
        pexports,
-       scanner,pbase,pexpr,psystem,psub,pdecsub;
+       scanner,pbase,pexpr,psystem,psub,pdecsub,ptype;
 
 
     procedure create_objectfile;
@@ -1110,10 +1110,6 @@ implementation
          { do we need to add the variants unit? }
          maybeloadvariantsunit;
 
-         { generate debuginfo }
-         if (cs_debuginfo in current_settings.moduleswitches) then
-           debuginfo.inserttypeinfo;
-
          { generate wrappers for interfaces }
          gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.globalsymtable);
          gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable);
@@ -1121,11 +1117,19 @@ implementation
          { generate pic helpers to load eip if necessary }
          gen_pic_helpers(current_asmdata.asmlists[al_procedures]);
 
+         { generate rtti/init tables }
+         write_persistent_type_info(current_module.globalsymtable);
+         write_persistent_type_info(current_module.localsymtable);
+
          { Tables }
          insertThreadVars;
 
          { Resource strings }
          GenerateResourceStrings;
+
+         { generate debuginfo }
+         if (cs_debuginfo in current_settings.moduleswitches) then
+           debuginfo.inserttypeinfo;
 
          { generate imports }
          if current_module.ImportLibraryList.Count>0 then
@@ -1437,21 +1441,24 @@ implementation
            InsertPData;
 {$endif arm}
 
-         { generate debuginfo }
-         if (cs_debuginfo in current_settings.moduleswitches) then
-           debuginfo.inserttypeinfo;
-
          InsertThreadvars;
-
-         { generate wrappers for interfaces }
-         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable);
 
          { generate pic helpers to load eip if necessary }
          gen_pic_helpers(current_asmdata.asmlists[al_procedures]);
 
+         { generate rtti/init tables }
+         write_persistent_type_info(current_module.localsymtable);
+
+         { generate wrappers for interfaces }
+         gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable);
+
          { generate imports }
          if current_module.ImportLibraryList.Count>0 then
            importlib.generatelib;
+
+         { generate debuginfo }
+         if (cs_debuginfo in current_settings.moduleswitches) then
+           debuginfo.inserttypeinfo;
 
          if islibrary or (target_info.system in system_unit_program_exports) then
            exportlib.generatelib;

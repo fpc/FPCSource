@@ -34,6 +34,42 @@ interface
        ;
 
     type
+      pprocdefentry = ^tprocdefentry;
+      tprocdefentry = record
+         data    : tprocdef;
+         hidden  : boolean;
+         visible : boolean;
+      end;
+
+      { tvmtsymentry }
+
+      tvmtsymentry = class(TFPHashObject)
+        procdeflist : TFPList;
+        constructor Create(AList:TFPHashObjectList;const AName:shortstring);
+        destructor Destroy;override;
+      end;
+
+      TVMTBuilder=class
+      private
+        _Class : tobjectdef;
+        VMTSymEntryList : TFPHashObjectList;
+        has_constructor,
+        has_virtual_method : boolean;
+        function is_new_vmt_entry(VMTSymEntry:TVMTSymEntry;pd:tprocdef):boolean;
+        procedure add_new_vmt_entry(VMTSymEntry:TVMTSymEntry;pd:tprocdef);
+        procedure add_vmt_entries(objdef:tobjectdef);
+        function  intf_search_procdef_by_name(proc: tprocdef;const name: string): tprocdef;
+        procedure intf_get_procdefs(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
+        procedure intf_get_procdefs_recursive(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
+        procedure intf_optimize_vtbls;
+        procedure intf_allocate_vtbls;
+      public
+        constructor create(c:tobjectdef);
+        destructor  destroy;override;
+        procedure generate_vmt;
+      end;
+
+    type
       pprocdeftree = ^tprocdeftree;
       tprocdeftree = record
          data : tprocdef;
@@ -41,26 +77,9 @@ interface
          l,r  : pprocdeftree;
       end;
 
-      pprocdefcoll = ^tprocdefcoll;
-      tprocdefcoll = record
-         data    : tprocdef;
-         hidden  : boolean;
-         visible : boolean;
-         next    : pprocdefcoll;
-      end;
-
-      pvmtentry = ^tvmtentry;
-      tvmtentry = record
-         hash         : longword;
-         name         : pshortstring;
-         firstprocdef : pprocdefcoll;
-         next         : pvmtentry;
-      end;
-
-      tclassheader=class
+      TVMTWriter=class
       private
         _Class : tobjectdef;
-      private
         { message tables }
         root : pprocdeftree;
         procedure disposeprocdeftree(p : pprocdeftree);
@@ -72,58 +91,37 @@ interface
         procedure writeintentry(p : pprocdeftree);
         procedure writestrentry(p : pprocdeftree);
 {$ifdef WITHDMT}
-      private
         { dmt }
         procedure insertdmtentry(p:TObject;arg:pointer);
         procedure writedmtindexentry(p : pprocdeftree);
         procedure writedmtaddressentry(p : pprocdeftree);
 {$endif}
-      private
         { published methods }
         procedure do_count_published_methods(p:TObject;arg:pointer);
         procedure do_gen_published_methods(p:TObject;arg:pointer);
-      private
-        { vmt }
-        firstvmtentry      : pvmtentry;
-        nextvirtnumber     : integer;
-        has_constructor,
-        has_virtual_method : boolean;
-        procedure newdefentry(vmtentry:pvmtentry;pd:tprocdef;is_visible:boolean);
-        function  newvmtentry(sym:tprocsym):pvmtentry;
-        procedure eachsym(sym : TObject;arg:pointer);
-        procedure disposevmttree;
+        { virtual methods }
         procedure writevirtualmethods(List:TAsmList);
-      private
         { interface tables }
         function  intf_get_vtbl_name(AImplIntf:TImplementedInterface): string;
         procedure intf_create_vtbl(rawdata: TAsmList;AImplIntf:TImplementedInterface);
         procedure intf_gen_intf_ref(rawdata: TAsmList;AImplIntf:TImplementedInterface);
-        procedure intf_optimize_vtbls;
-        procedure intf_write_data;
-        function  intf_search_procdef_by_name(proc: tprocdef;const name: string): tprocdef;
-        procedure intf_get_procdefs(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
-        procedure intf_get_procdefs_recursive(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
-      public
-        constructor create(c:tobjectdef);
-        destructor destroy;override;
+        function  intf_write_table:TAsmLabel;
         { generates the message tables for a class }
         function  genstrmsgtab : tasmlabel;
         function  genintmsgtab : tasmlabel;
         function  genpublishedmethodstable : tasmlabel;
         function  generate_field_table : tasmlabel;
-        { generates a VMT entries }
-        procedure genvmt;
 {$ifdef WITHDMT}
         { generates a DMT for _class }
         function  gendmt : tasmlabel;
 {$endif WITHDMT}
-        { interfaces }
-        function  genintftable: tasmlabel;
+      public
+        constructor create(c:tobjectdef);
+        destructor destroy;override;
         { write the VMT to al_globals }
         procedure writevmt;
         procedure writeinterfaceids;
       end;
-
 
 implementation
 
@@ -137,465 +135,50 @@ implementation
 
 
 {*****************************************************************************
-                                TClassHeader
+                              TVMTSymEntry
 *****************************************************************************}
 
-    constructor tclassheader.create(c:tobjectdef);
+    constructor tvmtsymentry.Create(AList:TFPHashObjectList;const AName:shortstring);
+      begin
+        inherited Create(AList,AName);
+        procdeflist:=TFPList.Create;
+      end;
+
+
+    destructor TVMTSymEntry.Destroy;
+      var
+        i : longint;
+      begin
+        for i:=0 to procdeflist.Count-1 do
+          Dispose(pprocdefentry(procdeflist[i]));
+        procdeflist.free;
+        inherited Destroy;
+      end;
+
+
+{*****************************************************************************
+                              TVMTBuilder
+*****************************************************************************}
+
+    constructor TVMTBuilder.create(c:tobjectdef);
       begin
         inherited Create;
         _Class:=c;
+        VMTSymEntryList:=TFPHashObjectList.Create;
       end;
 
 
-    destructor tclassheader.destroy;
+    destructor TVMTBuilder.destroy;
       begin
-        disposevmttree;
+        VMTSymEntryList.free;
       end;
 
 
-{**************************************
-           Message Tables
-**************************************}
-
-    procedure tclassheader.disposeprocdeftree(p : pprocdeftree);
-      begin
-         if assigned(p^.l) then
-           disposeprocdeftree(p^.l);
-         if assigned(p^.r) then
-           disposeprocdeftree(p^.r);
-         dispose(p);
-      end;
-
-
-    procedure tclassheader.insertint(p : pprocdeftree;var at : pprocdeftree;var count:longint);
-
-      begin
-         if at=nil then
-           begin
-              at:=p;
-              inc(count);
-           end
-         else
-           begin
-              if p^.data.messageinf.i<at^.data.messageinf.i then
-                insertint(p,at^.l,count)
-              else if p^.data.messageinf.i>at^.data.messageinf.i then
-                insertint(p,at^.r,count)
-              else
-                Message1(parser_e_duplicate_message_label,tostr(p^.data.messageinf.i));
-           end;
-      end;
-
-    procedure tclassheader.insertstr(p : pprocdeftree;var at : pprocdeftree;var count:longint);
-
+    procedure TVMTBuilder.add_new_vmt_entry(VMTSymEntry:TVMTSymEntry;pd:tprocdef);
       var
-         i : integer;
-
-      begin
-         if at=nil then
-           begin
-              at:=p;
-              inc(count);
-           end
-         else
-           begin
-              i:=CompareStr(p^.data.messageinf.str^,at^.data.messageinf.str^);
-              if i<0 then
-                insertstr(p,at^.l,count)
-              else if i>0 then
-                insertstr(p,at^.r,count)
-              else
-                Message1(parser_e_duplicate_message_label,p^.data.messageinf.str^);
-           end;
-      end;
-
-
-    procedure tclassheader.insertmsgint(p:TObject;arg:pointer);
-      var
-        i  : longint;
-        pd : Tprocdef;
-        pt : pprocdeftree;
-      begin
-        if tsym(p).typ<>procsym then
-          exit;
-        for i:=0 to Tprocsym(p).ProcdefList.Count-1 do
-          begin
-            pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
-            if po_msgint in pd.procoptions then
-              begin
-                new(pt);
-                pt^.data:=pd;
-                pt^.l:=nil;
-                pt^.r:=nil;
-                insertint(pt,root,plongint(arg)^);
-              end;
-          end;
-      end;
-
-
-    procedure tclassheader.insertmsgstr(p:TObject;arg:pointer);
-      var
-        i  : longint;
-        pd : Tprocdef;
-        pt : pprocdeftree;
-      begin
-        if tsym(p).typ<>procsym then
-          exit;
-        for i:=0 to Tprocsym(p).ProcdefList.Count-1 do
-          begin
-            pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
-            if po_msgstr in pd.procoptions then
-              begin
-                new(pt);
-                pt^.data:=pd;
-                pt^.l:=nil;
-                pt^.r:=nil;
-                insertstr(pt,root,plongint(arg)^);
-              end;
-          end;
-      end;
-
-
-    procedure tclassheader.writenames(p : pprocdeftree);
-      var
-        ca : pchar;
-        len : byte;
-      begin
-         current_asmdata.getdatalabel(p^.nl);
-         if assigned(p^.l) then
-           writenames(p^.l);
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_label.Create(p^.nl));
-         len:=length(p^.data.messageinf.str^);
-         current_asmdata.asmlists[al_globals].concat(tai_const.create_8bit(len));
-         getmem(ca,len+1);
-         move(p^.data.messageinf.str[1],ca^,len);
-         ca[len]:=#0;
-         current_asmdata.asmlists[al_globals].concat(Tai_string.Create_pchar(ca,len));
-         if assigned(p^.r) then
-           writenames(p^.r);
-      end;
-
-    procedure tclassheader.writestrentry(p : pprocdeftree);
-
-      begin
-         if assigned(p^.l) then
-           writestrentry(p^.l);
-
-         { write name label }
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(p^.nl));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname,0));
-
-         if assigned(p^.r) then
-           writestrentry(p^.r);
-     end;
-
-
-    function tclassheader.genstrmsgtab : tasmlabel;
-      var
-         count : aint;
-      begin
-         root:=nil;
-         count:=0;
-         { insert all message handlers into a tree, sorted by name }
-         _class.symtable.SymList.ForEachCall(@insertmsgstr,@count);
-
-         { write all names }
-         if assigned(root) then
-           writenames(root);
-
-         { now start writing of the message string table }
-         current_asmdata.getdatalabel(result);
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_label.Create(result));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(count));
-         if assigned(root) then
-           begin
-              writestrentry(root);
-              disposeprocdeftree(root);
-           end;
-      end;
-
-
-    procedure tclassheader.writeintentry(p : pprocdeftree);
-      begin
-         if assigned(p^.l) then
-           writeintentry(p^.l);
-
-         { write name label }
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(p^.data.messageinf.i));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname,0));
-
-         if assigned(p^.r) then
-           writeintentry(p^.r);
-      end;
-
-
-    function tclassheader.genintmsgtab : tasmlabel;
-      var
-         r : tasmlabel;
-         count : longint;
-      begin
-         root:=nil;
-         count:=0;
-         { insert all message handlers into a tree, sorted by name }
-         _class.symtable.SymList.ForEachCall(@insertmsgint,@count);
-
-         { now start writing of the message string table }
-         current_asmdata.getdatalabel(r);
-         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
-         current_asmdata.asmlists[al_globals].concat(Tai_label.Create(r));
-         genintmsgtab:=r;
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(count));
-         if assigned(root) then
-           begin
-              writeintentry(root);
-              disposeprocdeftree(root);
-           end;
-      end;
-
-{$ifdef WITHDMT}
-
-{**************************************
-              DMT
-**************************************}
-
-    procedure tclassheader.insertdmtentry(p:TObject;arg:pointer);
-
-      var
-         hp : tprocdef;
-         pt : pprocdeftree;
-
-      begin
-         if tsym(p).typ=procsym then
-           begin
-              hp:=tprocsym(p).definition;
-              while assigned(hp) do
-                begin
-                   if (po_msgint in hp.procoptions) then
-                     begin
-                        new(pt);
-                        pt^.p:=hp;
-                        pt^.l:=nil;
-                        pt^.r:=nil;
-                        insertint(pt,root);
-                     end;
-                   hp:=hp.nextoverloaded;
-                end;
-           end;
-      end;
-
-    procedure tclassheader.writedmtindexentry(p : pprocdeftree);
-
-      begin
-         if assigned(p^.l) then
-           writedmtindexentry(p^.l);
-         al_globals.concat(Tai_const.Create_32bit(p^.data.messageinf.i));
-         if assigned(p^.r) then
-           writedmtindexentry(p^.r);
-      end;
-
-    procedure tclassheader.writedmtaddressentry(p : pprocdeftree);
-
-      begin
-         if assigned(p^.l) then
-           writedmtaddressentry(p^.l);
-         al_globals.concat(Tai_const_symbol.Createname(p^.data.mangledname,0));
-         if assigned(p^.r) then
-           writedmtaddressentry(p^.r);
-      end;
-
-    function tclassheader.gendmt : tasmlabel;
-
-      var
-         r : tasmlabel;
-
-      begin
-         root:=nil;
-         count:=0;
-         gendmt:=nil;
-         { insert all message handlers into a tree, sorted by number }
-         _class.symtable.SymList.ForEachCall(insertdmtentry);
-
-         if count>0 then
-           begin
-              current_asmdata.getdatalabel(r);
-              gendmt:=r;
-              al_globals.concat(cai_align.create(const_align(sizeof(aint))));
-              al_globals.concat(Tai_label.Create(r));
-              { entries for caching }
-              al_globals.concat(Tai_const.Create_ptr(0));
-              al_globals.concat(Tai_const.Create_ptr(0));
-
-              al_globals.concat(Tai_const.Create_32bit(count));
-              if assigned(root) then
-                begin
-                   writedmtindexentry(root);
-                   writedmtaddressentry(root);
-                   disposeprocdeftree(root);
-                end;
-           end;
-      end;
-
-{$endif WITHDMT}
-
-{**************************************
-        Published Methods
-**************************************}
-
-    procedure tclassheader.do_count_published_methods(p:TObject;arg:pointer);
-      var
-        i  : longint;
-        pd : tprocdef;
-      begin
-        if (tsym(p).typ<>procsym) then
-          exit;
-        for i:=0 to Tprocsym(p).ProcdefList.Count-1 do
-          begin
-            pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
-            if (pd.procsym=tsym(p)) and
-               (sp_published in pd.symoptions) then
-              inc(plongint(arg)^);
-          end;
-      end;
-
-
-    procedure tclassheader.do_gen_published_methods(p:TObject;arg:pointer);
-      var
-        i  : longint;
-        l  : tasmlabel;
-        pd : tprocdef;
-      begin
-        if (tsym(p).typ<>procsym) then
-          exit;
-        for i:=0 to Tprocsym(p).ProcdefList.Count-1 do
-          begin
-            pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
-            if (pd.procsym=tsym(p)) and
-               (sp_published in pd.symoptions) then
-              begin
-                current_asmdata.getdatalabel(l);
-
-                current_asmdata.asmlists[al_typedconsts].concat(cai_align.create(const_align(sizeof(aint))));
-                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l));
-                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(length(tsym(p).realname)));
-                current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create(tsym(p).realname));
-
-                current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(l));
-                if po_abstractmethod in pd.procoptions then
-                  current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil))
-                else
-                  current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(pd.mangledname,0));
-              end;
-           end;
-      end;
-
-
-    function tclassheader.genpublishedmethodstable : tasmlabel;
-
-      var
-         l : tasmlabel;
-         count : longint;
-
-      begin
-         count:=0;
-         _class.symtable.SymList.ForEachCall(@do_count_published_methods,@count);
-         if count>0 then
-           begin
-              current_asmdata.getdatalabel(l);
-              current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
-              current_asmdata.asmlists[al_globals].concat(Tai_label.Create(l));
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(count));
-              _class.symtable.SymList.ForEachCall(@do_gen_published_methods,nil);
-              genpublishedmethodstable:=l;
-           end
-         else
-           genpublishedmethodstable:=nil;
-      end;
-
-
-    function tclassheader.generate_field_table : tasmlabel;
-      var
-        i   : longint;
-        sym : tsym;
-        fieldtable,
-        classtable : tasmlabel;
-        classindex,
-        fieldcount : longint;
-        classtablelist : TFPList;
-      begin
-        classtablelist:=TFPList.Create;
-        current_asmdata.getdatalabel(fieldtable);
-        current_asmdata.getdatalabel(classtable);
-        maybe_new_object_file(current_asmdata.asmlists[al_rtti]);
-        new_section(current_asmdata.asmlists[al_rtti],sec_rodata,classtable.name,const_align(sizeof(aint)));
-
-        { retrieve field info fields }
-        fieldcount:=0;
-        for i:=0 to _class.symtable.SymList.Count-1 do
-          begin
-            sym:=tsym(_class.symtable.SymList[i]);
-            if (tsym(sym).typ=fieldvarsym) and
-               (sp_published in tsym(sym).symoptions) then
-             begin
-                if tfieldvarsym(sym).vardef.typ<>objectdef then
-                  internalerror(200611032);
-                classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
-                if classindex=-1 then
-                  classtablelist.Add(tfieldvarsym(sym).vardef);
-                inc(fieldcount);
-             end;
-          end;
-
-        { write fields }
-        current_asmdata.asmlists[al_rtti].concat(Tai_label.Create(fieldtable));
-        current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(fieldcount));
-{$ifdef cpurequiresproperalignment}
-        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
-        current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(classtable));
-        for i:=0 to _class.symtable.SymList.Count-1 do
-          begin
-            sym:=tsym(_class.symtable.SymList[i]);
-            if (tsym(sym).typ=fieldvarsym) and
-               (sp_published in tsym(sym).symoptions) then
-              begin
-{$ifdef cpurequiresproperalignment}
-                current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(AInt)));
-{$endif cpurequiresproperalignment}
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(tfieldvarsym(sym).fieldoffset));
-                classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
-                if classindex=-1 then
-                  internalerror(200611033);
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(classindex+1));
-                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(tfieldvarsym(sym).realname)));
-                current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(tfieldvarsym(sym).realname));
-              end;
-          end;
-
-        { generate the class table }
-        current_asmdata.asmlists[al_rtti].concat(cai_align.create(const_align(sizeof(aint))));
-        current_asmdata.asmlists[al_rtti].concat(Tai_label.Create(classtable));
-        current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(classtablelist.count));
-{$ifdef cpurequiresproperalignment}
-        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
-        for i:=0 to classtablelist.Count-1 do
-          current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(tobjectdef(classtablelist[i]).vmt_mangledname,0));
-
-        classtablelist.free;
-        result:=fieldtable;
-      end;
-
-
-{**************************************
-               VMT
-**************************************}
-
-
-    procedure tclassheader.newdefentry(vmtentry:pvmtentry;pd:tprocdef;is_visible:boolean);
-      var
-        procdefcoll : pprocdefcoll;
+        procdefcoll : pprocdefentry;
+        i : longint;
+        oldpd : tprocdef;
       begin
         if (_class=pd._class) then
           begin
@@ -606,18 +189,17 @@ implementation
             { check that all methods have overload directive }
             if not(m_fpc in current_settings.modeswitches) then
               begin
-                procdefcoll:=vmtentry^.firstprocdef;
-                while assigned(procdefcoll) do
+                for i:=0 to VMTSymentry.ProcdefList.Count-1 do
                   begin
-                    if (procdefcoll^.data._class=pd._class) and
-                       ((po_overload in pd.procoptions)<>(po_overload in procdefcoll^.data.procoptions)) then
+                    oldpd:=pprocdefentry(VMTSymentry.ProcdefList[i])^.data;
+                    if (oldpd._class=pd._class) and
+                       ((po_overload in pd.procoptions)<>(po_overload in oldpd.procoptions)) then
                       begin
                         MessagePos1(pd.fileinfo,parser_e_no_overload_for_all_procs,pd.procsym.realname);
                         { recover }
-                        include(procdefcoll^.data.procoptions,po_overload);
+                        include(oldpd.procoptions,po_overload);
                         include(pd.procoptions,po_overload);
                       end;
-                    procdefcoll:=procdefcoll^.next;
                   end;
               end;
           end;
@@ -626,15 +208,22 @@ implementation
         new(procdefcoll);
         procdefcoll^.data:=pd;
         procdefcoll^.hidden:=false;
-        procdefcoll^.visible:=is_visible;
-        procdefcoll^.next:=vmtentry^.firstprocdef;
-        vmtentry^.firstprocdef:=procdefcoll;
+        procdefcoll^.visible:=pd.is_visible_for_object(_class,nil);
+        VMTSymEntry.ProcdefList.Add(procdefcoll);
 
-        { give virtual method a number }
+        { Register virtual method and give it a number }
         if (po_virtualmethod in pd.procoptions) then
           begin
-             pd.extnumber:=nextvirtnumber;
-             inc(nextvirtnumber);
+             if not assigned(_class.VMTEntries) then
+               _class.VMTEntries:=TFPObjectList.Create(false);
+             if pd.extnumber=$ffff then
+               pd.extnumber:=_class.VMTEntries.Count
+             else
+               begin
+                 if pd.extnumber<>_class.VMTEntries.Count then
+                   internalerror(200611081);
+               end;
+             _class.VMTEntries.Add(pd);
              has_virtual_method:=true;
           end;
 
@@ -643,375 +232,306 @@ implementation
       end;
 
 
-    function tclassheader.newvmtentry(sym:tprocsym):pvmtentry;
-      begin
-        { generate new vmtentry }
-        new(result);
-        result^.Hash:=sym.Hash;
-        result^.name:=stringdup(sym.name);
-        result^.next:=firstvmtentry;
-        result^.firstprocdef:=nil;
-        firstvmtentry:=result;
-      end;
-
-
-    procedure tclassheader.eachsym(sym : TObject;arg:pointer);
+    function TVMTBuilder.is_new_vmt_entry(VMTSymEntry:TVMTSymEntry;pd:tprocdef):boolean;
       const
         po_comp = [po_classmethod,po_virtualmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgstr,po_msgint,
                    po_exports,po_varargs,po_explicitparaloc,po_nostackframe];
-      label
-         handlenextdef;
       var
-         pd : tprocdef;
-         i : cardinal;
-         is_visible,
-         hasoverloads,
-         pdoverload : boolean;
-         procdefcoll : pprocdefcoll;
-         vmtentry : pvmtentry;
-         _name : string;
-         _speed : cardinal;
+        i : longint;
+        is_visible,
+        hasoverloads,
+        pdoverload : boolean;
+        procdefcoll : pprocdefentry;
       begin
-        if (tsym(sym).typ<>procsym) then
-          exit;
+        result:=false;
+        { is this procdef visible from the class that we are
+          generating. This will be used to hide the other procdefs.
+          When the symbol is not visible we don't hide the other
+          procdefs, because they can be reused in the next class.
+          The check to skip the invisible methods that are in the
+          list is futher down in the code }
+        is_visible:=pd.is_visible_for_object(_class,nil);
+        { Load other values for easier readability }
+        hasoverloads:=(tprocsym(pd.procsym).ProcdefList.Count>1);
+        pdoverload:=(po_overload in pd.procoptions);
 
-        { check the current list of symbols }
-        _name:=TSym(sym).name;
-        _speed:=TSym(sym).Hash;
-        vmtentry:=firstvmtentry;
-        while assigned(vmtentry) do
-         begin
-           { does the symbol already exist in the list? First
-             compare speedvalue before doing the string compare to
-             speed it up a little }
-           if (_speed=vmtentry^.Hash) and
-              (_name=vmtentry^.name^) then
-            begin
-              hasoverloads:=(Tprocsym(sym).ProcdefList.Count>1);
-              { walk through all defs of the symbol }
-              for i:=0 to Tprocsym(sym).ProcdefList.Count-1 do
-               begin
-                 pd:=tprocdef(Tprocsym(sym).ProcdefList[i]);
+        { compare with all stored definitions }
+        for i:=0 to VMTSymEntry.ProcdefList.Count-1 do
+          begin
+            procdefcoll:=pprocdefentry(VMTSymEntry.ProcdefList[i]);
+            { skip definitions that are already hidden }
+            if procdefcoll^.hidden then
+              continue;
 
-                 { is this procdef visible from the class that we are
-                   generating. This will be used to hide the other procdefs.
-                   When the symbol is not visible we don't hide the other
-                   procdefs, because they can be reused in the next class.
-                   The check to skip the invisible methods that are in the
-                   list is futher down in the code }
-                 is_visible:=pd.is_visible_for_object(_class,nil);
-
-                 if pd.procsym=sym then
+            { check if one of the two methods has virtual }
+            if (po_virtualmethod in procdefcoll^.data.procoptions) or
+               (po_virtualmethod in pd.procoptions) then
+              begin
+                { if the current definition has no virtual then hide the
+                  old virtual if the new definition has the same arguments or
+                  when it has no overload directive and no overloads }
+                if not(po_virtualmethod in pd.procoptions) then
                   begin
-                    pdoverload:=(po_overload in pd.procoptions);
-
-                    { compare with all stored definitions }
-                    procdefcoll:=vmtentry^.firstprocdef;
-                    while assigned(procdefcoll) do
+                    if procdefcoll^.visible and
+                       (
+                        not(pdoverload or hasoverloads) or
+                        (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)
+                       ) then
                       begin
-                         { compare only if the definition is not hidden }
-                         if not procdefcoll^.hidden then
-                          begin
-                            { check if one of the two methods has virtual }
-                            if (po_virtualmethod in procdefcoll^.data.procoptions) or
-                               (po_virtualmethod in pd.procoptions) then
-                             begin
-                               { if the current definition has no virtual then hide the
-                                 old virtual if the new definition has the same arguments or
-                                 when it has no overload directive and no overloads }
-                               if not(po_virtualmethod in pd.procoptions) then
-                                begin
-                                  if procdefcoll^.visible and
-                                     (not(pdoverload or hasoverloads) or
-                                      (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)) then
-                                   begin
-                                     if is_visible then
-                                       procdefcoll^.hidden:=true;
-                                     if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
-                                       MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
-                                   end;
-                                end
-                               { if both are virtual we check the header }
-                               else if (po_virtualmethod in pd.procoptions) and
-                                       (po_virtualmethod in procdefcoll^.data.procoptions) then
-                                begin
-                                  { new one has not override }
-                                  if is_class(_class) and
-                                     not(po_overridingmethod in pd.procoptions) then
-                                   begin
-                                     { we start a new virtual tree, hide the old }
-                                     if (not(pdoverload or hasoverloads) or
-                                         (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)) and
-                                        (procdefcoll^.visible) then
-                                      begin
-                                        if is_visible then
-                                          procdefcoll^.hidden:=true;
-                                        if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
-                                          MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
-                                      end;
-                                   end
-                                  { same parameters }
-                                  else if (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal) then
-                                   begin
-                                     { overload is inherited }
-                                     if (po_overload in procdefcoll^.data.procoptions) then
-                                      include(pd.procoptions,po_overload);
-
-                                     { inherite calling convention when it was force and the
-                                       current definition has none force }
-                                     if (po_hascallingconvention in procdefcoll^.data.procoptions) and
-                                        not(po_hascallingconvention in pd.procoptions) then
-                                       begin
-                                         pd.proccalloption:=procdefcoll^.data.proccalloption;
-                                         include(pd.procoptions,po_hascallingconvention);
-                                       end;
-
-                                     { the flags have to match except abstract and override }
-                                     { only if both are virtual !!  }
-                                     if (procdefcoll^.data.proccalloption<>pd.proccalloption) or
-                                        (procdefcoll^.data.proctypeoption<>pd.proctypeoption) or
-                                        ((procdefcoll^.data.procoptions*po_comp)<>(pd.procoptions*po_comp)) then
-                                        begin
-                                          MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
-                                          tprocsym(procdefcoll^.data.procsym).write_parameter_lists(pd);
-                                        end;
-
-                                     { error, if the return types aren't equal }
-                                     if not(equal_defs(procdefcoll^.data.returndef,pd.returndef)) and
-                                        not((procdefcoll^.data.returndef.typ=objectdef) and
-                                         (pd.returndef.typ=objectdef) and
-                                         is_class_or_interface(procdefcoll^.data.returndef) and
-                                         is_class_or_interface(pd.returndef) and
-                                         (tobjectdef(pd.returndef).is_related(
-                                             tobjectdef(procdefcoll^.data.returndef)))) then
-                                       begin
-                                         if not((m_delphi in current_settings.modeswitches) and
-                                                is_interface(_class)) then
-                                           Message2(parser_e_overridden_methods_not_same_ret,pd.fullprocname(false),
-                                                    procdefcoll^.data.fullprocname(false))
-                                         else
-                                          { Delphi allows changing the result type }
-                                          { of interface methods from anything to  }
-                                          { anything (JM)                          }
-                                           Message2(parser_w_overridden_methods_not_same_ret,pd.fullprocname(false),
-                                                    procdefcoll^.data.fullprocname(false));
-                                       end;
-                                     { check if the method to override is visible, check is only needed
-                                       for the current parsed class. Parent classes are already validated and
-                                       need to include all virtual methods including the ones not visible in the
-                                       current class }
-                                     if (_class=pd._class) and
-                                        (po_overridingmethod in pd.procoptions) and
-                                        (not procdefcoll^.visible) then
-                                       MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
-
-                                     { override old virtual method in VMT }
-                                     pd.extnumber:=procdefcoll^.data.extnumber;
-                                     procdefcoll^.data:=pd;
-                                     if is_visible then
-                                       procdefcoll^.visible:=true;
-
-                                     goto handlenextdef;
-                                   end
-                                  { different parameters }
-                                  else
-                                   begin
-                                     { when we got an override directive then can search futher for
-                                       the procedure to override.
-                                       If we are starting a new virtual tree then hide the old tree }
-                                     if not(po_overridingmethod in pd.procoptions) and
-                                        not pdoverload then
-                                      begin
-                                        if is_visible then
-                                          procdefcoll^.hidden:=true;
-                                        if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
-                                          MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
-                                      end;
-                                   end;
-                                end
-                               else
-                                begin
-                                  { the new definition is virtual and the old static, we hide the old one
-                                    if the new defintion has not the overload directive }
-                                  if is_visible and
-                                     ((not(pdoverload or hasoverloads)) or
-                                      (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)) then
-                                    procdefcoll^.hidden:=true;
-                                end;
-                             end
-                            else
-                             begin
-                               { both are static, we hide the old one if the new defintion
-                                 has not the overload directive }
-                               if is_visible and
-                                  ((not pdoverload) or
-                                   (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)) then
-                                 procdefcoll^.hidden:=true;
-                             end;
-                          end; { not hidden }
-                         procdefcoll:=procdefcoll^.next;
+                        if is_visible then
+                          procdefcoll^.hidden:=true;
+                        if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
+                          MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                       end;
+                  end
+                { if both are virtual we check the header }
+                else if (po_virtualmethod in pd.procoptions) and
+                        (po_virtualmethod in procdefcoll^.data.procoptions) then
+                  begin
+                    { new one has not override }
+                    if is_class(_class) and
+                       not(po_overridingmethod in pd.procoptions) then
+                      begin
+                        { we start a new virtual tree, hide the old }
+                        if (not(pdoverload or hasoverloads) or
+                            (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)) and
+                           (procdefcoll^.visible) then
+                          begin
+                            if is_visible then
+                              procdefcoll^.hidden:=true;
+                            if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
+                              MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
+                          end;
+                      end
+                    { same parameters }
+                    else if (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal) then
+                      begin
+                        { overload is inherited }
+                        if (po_overload in procdefcoll^.data.procoptions) then
+                         include(pd.procoptions,po_overload);
 
-                    { if it isn't saved in the list we create a new entry }
-                    newdefentry(vmtentry,pd,is_visible);
+                        { inherite calling convention when it was force and the
+                          current definition has none force }
+                        if (po_hascallingconvention in procdefcoll^.data.procoptions) and
+                           not(po_hascallingconvention in pd.procoptions) then
+                          begin
+                            pd.proccalloption:=procdefcoll^.data.proccalloption;
+                            include(pd.procoptions,po_hascallingconvention);
+                          end;
+
+                        { the flags have to match except abstract and override }
+                        { only if both are virtual !!  }
+                        if (procdefcoll^.data.proccalloption<>pd.proccalloption) or
+                           (procdefcoll^.data.proctypeoption<>pd.proctypeoption) or
+                           ((procdefcoll^.data.procoptions*po_comp)<>(pd.procoptions*po_comp)) then
+                           begin
+                             MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
+                             tprocsym(procdefcoll^.data.procsym).write_parameter_lists(pd);
+                           end;
+
+                        { error, if the return types aren't equal }
+                        if not(equal_defs(procdefcoll^.data.returndef,pd.returndef)) and
+                           not((procdefcoll^.data.returndef.typ=objectdef) and
+                            (pd.returndef.typ=objectdef) and
+                            is_class_or_interface(procdefcoll^.data.returndef) and
+                            is_class_or_interface(pd.returndef) and
+                            (tobjectdef(pd.returndef).is_related(tobjectdef(procdefcoll^.data.returndef)))) then
+                          begin
+                            if not((m_delphi in current_settings.modeswitches) and
+                                   is_interface(_class)) then
+                              Message2(parser_e_overridden_methods_not_same_ret,pd.fullprocname(false),
+                                       procdefcoll^.data.fullprocname(false))
+                            else
+                              { Delphi allows changing the result type of interface methods from anything to
+                                anything (JM) }
+                              Message2(parser_w_overridden_methods_not_same_ret,pd.fullprocname(false),
+                                       procdefcoll^.data.fullprocname(false));
+                          end;
+                        { check if the method to override is visible, check is only needed
+                          for the current parsed class. Parent classes are already validated and
+                          need to include all virtual methods including the ones not visible in the
+                          current class }
+                        if (_class=pd._class) and
+                           (po_overridingmethod in pd.procoptions) and
+                           (not procdefcoll^.visible) then
+                          MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
+
+                        { override old virtual method in VMT }
+                        if (procdefcoll^.data.extnumber>=_class.VMTEntries.Count) or
+                           (_class.VMTEntries[procdefcoll^.data.extnumber]<>procdefcoll^.data) then
+                          internalerror(200611084);
+                        _class.VMTEntries[procdefcoll^.data.extnumber]:=pd;
+                        pd.extnumber:=procdefcoll^.data.extnumber;
+                        procdefcoll^.data:=pd;
+                        if is_visible then
+                          procdefcoll^.visible:=true;
+
+                        exit;
+                      end
+                    { different parameters }
+                    else
+                     begin
+                       { when we got an override directive then can search futher for
+                         the procedure to override.
+                         If we are starting a new virtual tree then hide the old tree }
+                       if not(po_overridingmethod in pd.procoptions) and
+                          not pdoverload then
+                        begin
+                          if is_visible then
+                            procdefcoll^.hidden:=true;
+                          if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
+                            MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
+                        end;
+                     end;
+                  end
+                else
+                  begin
+                    { the new definition is virtual and the old static, we hide the old one
+                      if the new defintion has not the overload directive }
+                    if is_visible and
+                       (
+                        (not(pdoverload or hasoverloads)) or
+                        (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)
+                       ) then
+                      procdefcoll^.hidden:=true;
                   end;
-                  handlenextdef:
+              end
+            else
+              begin
+                { both are static, we hide the old one if the new defintion
+                  has not the overload directive }
+                if is_visible and
+                   (
+                    (not pdoverload) or
+                    (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)
+                   ) then
+                  procdefcoll^.hidden:=true;
                end;
-              exit;
-            end;
-           vmtentry:=vmtentry^.next;
-         end;
+          end;
+        { No entry found, we need to create a new entry }
+        result:=true;
+      end;
 
-        { Generate new procsym entry in vmt }
-        vmtentry:=newvmtentry(tprocsym(sym));
 
-        { Add procdefs }
-        for i:=0 to Tprocsym(sym).ProcdefList.Count-1 do
+    procedure TVMTBuilder.add_vmt_entries(objdef:tobjectdef);
+      var
+         pd  : tprocdef;
+         i,j : longint;
+         sym : tsym;
+         VMTSymEntry : TVMTSymEntry;
+      begin
+        { start with the base class }
+        if assigned(objdef.childof) then
+          add_vmt_entries(objdef.childof);
+        { process all procsyms }
+        for i:=0 to objdef.symtable.SymList.Count-1 do
           begin
-            pd:=tprocdef(Tprocsym(sym).ProcdefList[i]);
-            newdefentry(vmtentry,pd,pd.is_visible_for_object(_class,nil));
+            sym:=tsym(objdef.symtable.SymList[i]);
+            if sym.typ=procsym then
+              begin
+                { Find VMT procsym }
+                VMTSymEntry:=TVMTSymEntry(VMTSymEntryList.Find(sym.name));
+                if not assigned(VMTSymEntry) then
+                  VMTSymEntry:=TVMTSymEntry.Create(VMTSymEntryList,sym.name);
+                { Add all procdefs }
+                for j:=0 to Tprocsym(sym).ProcdefList.Count-1 do
+                  begin
+                    pd:=tprocdef(Tprocsym(sym).ProcdefList[j]);
+                    if pd.procsym=tprocsym(sym) then
+                      begin
+                        if is_new_vmt_entry(VMTSymEntry,pd) then
+                          add_new_vmt_entry(VMTSymEntry,pd);
+                      end;
+                  end;
+              end;
           end;
       end;
 
 
-    procedure tclassheader.disposevmttree;
+    function TVMTBuilder.intf_search_procdef_by_name(proc: tprocdef;const name: string): tprocdef;
+      const
+        po_comp = [po_classmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgstr,po_msgint,
+                   po_exports,po_varargs,po_explicitparaloc,po_nostackframe];
       var
-        vmtentry : pvmtentry;
-        procdefcoll : pprocdefcoll;
+        sym: tsym;
+        implprocdef : Tprocdef;
+        i: cardinal;
       begin
-        { disposes the above generated tree }
-        vmtentry:=firstvmtentry;
-        while assigned(vmtentry) do
+        result:=nil;
+
+        sym:=tsym(search_class_member(_class,name));
+        if assigned(sym) and
+           (sym.typ=procsym) then
           begin
-            firstvmtentry:=vmtentry^.next;
-            stringdispose(vmtentry^.name);
-            procdefcoll:=vmtentry^.firstprocdef;
-            while assigned(procdefcoll) do
+            { when the definition has overload directive set, we search for
+              overloaded definitions in the class, this only needs to be done once
+              for class entries as the tree keeps always the same }
+            if (not tprocsym(sym).overloadchecked) and
+               (po_overload in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions) and
+               (tprocsym(sym).owner.symtabletype=ObjectSymtable) then
+             search_class_overloads(tprocsym(sym));
+
+            for i:=0 to Tprocsym(sym).ProcdefList.Count-1 do
               begin
-                vmtentry^.firstprocdef:=procdefcoll^.next;
-                dispose(procdefcoll);
-                procdefcoll:=vmtentry^.firstprocdef;
+                implprocdef:=tprocdef(Tprocsym(sym).ProcdefList[i]);
+                if (compare_paras(proc.paras,implprocdef.paras,cp_none,[])>=te_equal) and
+                   (proc.proccalloption=implprocdef.proccalloption) and
+                   (proc.proctypeoption=implprocdef.proctypeoption) and
+                   ((proc.procoptions*po_comp)=((implprocdef.procoptions+[po_virtualmethod])*po_comp)) then
+                  begin
+                    result:=implprocdef;
+                    exit;
+                  end;
               end;
-            dispose(vmtentry);
-            vmtentry:=firstvmtentry;
           end;
       end;
 
 
-    procedure tclassheader.genvmt;
-
-      procedure do_genvmt(p : tobjectdef);
-
-        begin
-           { start with the base class }
-           if assigned(p.childof) then
-             do_genvmt(p.childof);
-
-           { walk through all public syms }
-           p.symtable.SymList.ForEachCall(@eachsym,nil);
-        end;
-
-      begin
-         firstvmtentry:=nil;
-         nextvirtnumber:=0;
-
-         has_constructor:=false;
-         has_virtual_method:=false;
-
-         { generates a tree of all used methods }
-         do_genvmt(_class);
-
-         if not(is_interface(_class)) and
-            has_virtual_method and
-            not(has_constructor) then
-           Message1(parser_w_virtual_without_constructor,_class.objrealname^);
-      end;
-
-
-{**************************************
-           Interface tables
-**************************************}
-
-    function  tclassheader.intf_get_vtbl_name(AImplIntf:TImplementedInterface): string;
-      begin
-        result:=make_mangledname('VTBL',_class.owner,_class.objname^+'_$_'+AImplIntf.IntfDef.objname^);
-      end;
-
-
-    procedure tclassheader.intf_create_vtbl(rawdata: TAsmList;AImplIntf:TImplementedInterface);
+    procedure TVMTBuilder.intf_get_procdefs(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
       var
-        pd : tprocdef;
-        vtblstr,
-        hs : string;
-        i  : longint;
+        i   : longint;
+        def : tdef;
+        hs,
+        prefix,
+        mappedname: string;
+        implprocdef: tprocdef;
       begin
-        vtblstr:=intf_get_vtbl_name(AImplIntf);
-        section_symbol_start(rawdata,vtblstr,AT_DATA,true,sec_data,const_align(sizeof(aint)));
-        if assigned(AImplIntf.procdefs) then
+        prefix:=ImplIntf.IntfDef.symtable.name^+'.';
+        for i:=0 to IntfDef.symtable.DefList.Count-1 do
           begin
-            for i:=0 to AImplIntf.procdefs.count-1 do
+            def:=tdef(IntfDef.symtable.DefList[i]);
+            if def.typ=procdef then
               begin
-                pd:=tprocdef(AImplIntf.procdefs[i]);
-                hs:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+AImplIntf.IntfDef.objname^+'_$_'+
-                                     tostr(i)+'_$_'+pd.mangledname);
-                { create reference }
-                rawdata.concat(Tai_const.Createname(hs,0));
+                { Find implementing procdef
+                   1. Check for mapped name
+                   2. Use symbol name }
+                implprocdef:=nil;
+                hs:=prefix+tprocdef(def).procsym.name;
+                mappedname:=ImplIntf.GetMapping(hs);
+                if mappedname<>'' then
+                  implprocdef:=intf_search_procdef_by_name(tprocdef(def),mappedname);
+                if not assigned(implprocdef) then
+                  implprocdef:=intf_search_procdef_by_name(tprocdef(def),tprocdef(def).procsym.name);
+                { Add procdef to the implemented interface }
+                if assigned(implprocdef) then
+                  ImplIntf.AddImplProc(implprocdef)
+                else
+                  if ImplIntf.IntfDef.iitype = etStandard then
+                    Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
               end;
-           end;
-        section_symbol_end(rawdata,vtblstr);
-      end;
-
-
-    procedure tclassheader.intf_gen_intf_ref(rawdata: TAsmList;AImplIntf:TImplementedInterface);
-      var
-        iidlabel,
-        guidlabel : tasmlabel;
-        i: longint;
-      begin
-        { GUID }
-        if AImplIntf.IntfDef.objecttype in [odt_interfacecom] then
-          begin
-            { label for GUID }
-            current_asmdata.getdatalabel(guidlabel);
-            rawdata.concat(cai_align.create(const_align(sizeof(aint))));
-            rawdata.concat(Tai_label.Create(guidlabel));
-            with AImplIntf.IntfDef.iidguid^ do
-              begin
-                rawdata.concat(Tai_const.Create_32bit(longint(D1)));
-                rawdata.concat(Tai_const.Create_16bit(D2));
-                rawdata.concat(Tai_const.Create_16bit(D3));
-                for i:=Low(D4) to High(D4) do
-                  rawdata.concat(Tai_const.Create_8bit(D4[i]));
-              end;
-            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(guidlabel));
-          end
-        else
-          begin
-            { nil for Corba interfaces }
-            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
           end;
-        { VTable }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(intf_get_vtbl_name(AImplIntf.VtblImplIntf),0));
-        { IOffset field }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(AImplIntf.VtblImplIntf.ioffset));
-        { IIDStr }
-        current_asmdata.getdatalabel(iidlabel);
-        rawdata.concat(cai_align.create(const_align(sizeof(aint))));
-        rawdata.concat(Tai_label.Create(iidlabel));
-        rawdata.concat(Tai_const.Create_8bit(length(AImplIntf.IntfDef.iidstr^)));
-        if AImplIntf.IntfDef.objecttype=odt_interfacecom then
-          rawdata.concat(Tai_string.Create(upper(AImplIntf.IntfDef.iidstr^)))
-        else
-          rawdata.concat(Tai_string.Create(AImplIntf.IntfDef.iidstr^));
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(iidlabel));
-        { EntryType }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(aint(AImplIntf.IntfDef.iitype)));
-        { EntryOffset }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(aint(AImplIntf.IntfDef.iioffset)));
       end;
 
 
-    procedure tclassheader.intf_optimize_vtbls;
+    procedure TVMTBuilder.intf_get_procdefs_recursive(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
+      begin
+        if assigned(IntfDef.childof) then
+          intf_get_procdefs_recursive(ImplIntf,IntfDef.childof);
+        intf_get_procdefs(ImplIntf,IntfDef);
+      end;
+
+
+    procedure TVMTBuilder.intf_optimize_vtbls;
       type
         tcompintfentry = record
           weight: longint;
@@ -1117,14 +637,12 @@ implementation
       end;
 
 
-    procedure tclassheader.intf_write_data;
+    procedure TVMTBuilder.intf_allocate_vtbls;
       var
-        rawdata  : TAsmList;
-        i        : longint;
+        i : longint;
         ImplIntf : TImplementedInterface;
       begin
-        rawdata:=TAsmList.Create;
-        { Two pass, one for allocation and vtbl creation }
+        { Allocation vtbl space }
         for i:=0 to _class.ImplementedInterfaces.count-1 do
           begin
             ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
@@ -1138,134 +656,618 @@ implementation
                     ImplIntf.Ioffset:=datasize;
                     inc(datasize,sizeof(aint));
                   end;
-                { write vtbl }
-                intf_create_vtbl(rawdata,ImplIntf);
               end;
           end;
-        { second pass: for fill interfacetable and remained ioffsets }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(_class.ImplementedInterfaces.count));
+        { Update ioffset of current interface with the ioffset from
+          the interface that is reused to implements this interface }
         for i:=0 to _class.ImplementedInterfaces.count-1 do
           begin
             ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
-            { Update ioffset of current interface with the ioffset from
-              the interface that is reused to implements this interface }
             if ImplIntf.VtblImplIntf<>ImplIntf then
               ImplIntf.Ioffset:=ImplIntf.VtblImplIntf.Ioffset;
-            intf_gen_intf_ref(rawdata,ImplIntf);
           end;
-        current_asmdata.asmlists[al_globals].concatlist(rawdata);
-        rawdata.free;
       end;
 
 
-    function tclassheader.intf_search_procdef_by_name(proc: tprocdef;const name: string): tprocdef;
-      const
-        po_comp = [po_classmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgstr,po_msgint,
-                   po_exports,po_varargs,po_explicitparaloc,po_nostackframe];
+    procedure TVMTBuilder.generate_vmt;
       var
-        sym: tsym;
-        implprocdef : Tprocdef;
-        i: cardinal;
+        i : longint;
+        ImplIntf : TImplementedInterface;
       begin
-        result:=nil;
+        { Find VMT entries }
+        has_constructor:=false;
+        has_virtual_method:=false;
+        add_vmt_entries(_class);
+        if not(is_interface(_class)) and
+           has_virtual_method and
+           not(has_constructor) then
+          Message1(parser_w_virtual_without_constructor,_class.objrealname^);
 
-        sym:=tsym(search_class_member(_class,name));
-        if assigned(sym) and
-           (sym.typ=procsym) then
+        { Find Procdefs implementing the interfaces }
+        if assigned(_class.ImplementedInterfaces) then
           begin
-            { when the definition has overload directive set, we search for
-              overloaded definitions in the class, this only needs to be done once
-              for class entries as the tree keeps always the same }
-            if (not tprocsym(sym).overloadchecked) and
-               (po_overload in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions) and
-               (tprocsym(sym).owner.symtabletype=ObjectSymtable) then
-             search_class_overloads(tprocsym(sym));
-
-            for i:=0 to Tprocsym(sym).ProcdefList.Count-1 do
+            { Collect implementor functions into the tImplementedInterface.procdefs }
+            for i:=0 to _class.ImplementedInterfaces.count-1 do
               begin
-                implprocdef:=tprocdef(Tprocsym(sym).ProcdefList[i]);
-                if (compare_paras(proc.paras,implprocdef.paras,cp_none,[])>=te_equal) and
-                   (proc.proccalloption=implprocdef.proccalloption) and
-                   (proc.proctypeoption=implprocdef.proctypeoption) and
-                   ((proc.procoptions*po_comp)=((implprocdef.procoptions+[po_virtualmethod])*po_comp)) then
-                  begin
-                    result:=implprocdef;
-                    exit;
-                  end;
+                ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
+                intf_get_procdefs_recursive(ImplIntf,ImplIntf.IntfDef);
+              end;
+            { Optimize interface tables to reuse wrappers }
+            intf_optimize_vtbls;
+            { Allocate interface tables }
+            intf_allocate_vtbls;
+          end;
+      end;
+
+
+{*****************************************************************************
+                                TVMTWriter
+*****************************************************************************}
+
+    constructor TVMTWriter.create(c:tobjectdef);
+      begin
+        inherited Create;
+        _Class:=c;
+      end;
+
+
+    destructor TVMTWriter.destroy;
+      begin
+      end;
+
+
+{**************************************
+           Message Tables
+**************************************}
+
+    procedure TVMTWriter.disposeprocdeftree(p : pprocdeftree);
+      begin
+         if assigned(p^.l) then
+           disposeprocdeftree(p^.l);
+         if assigned(p^.r) then
+           disposeprocdeftree(p^.r);
+         dispose(p);
+      end;
+
+
+    procedure TVMTWriter.insertint(p : pprocdeftree;var at : pprocdeftree;var count:longint);
+
+      begin
+         if at=nil then
+           begin
+              at:=p;
+              inc(count);
+           end
+         else
+           begin
+              if p^.data.messageinf.i<at^.data.messageinf.i then
+                insertint(p,at^.l,count)
+              else if p^.data.messageinf.i>at^.data.messageinf.i then
+                insertint(p,at^.r,count)
+              else
+                Message1(parser_e_duplicate_message_label,tostr(p^.data.messageinf.i));
+           end;
+      end;
+
+    procedure TVMTWriter.insertstr(p : pprocdeftree;var at : pprocdeftree;var count:longint);
+
+      var
+         i : integer;
+
+      begin
+         if at=nil then
+           begin
+              at:=p;
+              inc(count);
+           end
+         else
+           begin
+              i:=CompareStr(p^.data.messageinf.str^,at^.data.messageinf.str^);
+              if i<0 then
+                insertstr(p,at^.l,count)
+              else if i>0 then
+                insertstr(p,at^.r,count)
+              else
+                Message1(parser_e_duplicate_message_label,p^.data.messageinf.str^);
+           end;
+      end;
+
+
+    procedure TVMTWriter.insertmsgint(p:TObject;arg:pointer);
+      var
+        i  : longint;
+        pd : Tprocdef;
+        pt : pprocdeftree;
+      begin
+        if tsym(p).typ<>procsym then
+          exit;
+        for i:=0 to Tprocsym(p).ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
+            if po_msgint in pd.procoptions then
+              begin
+                new(pt);
+                pt^.data:=pd;
+                pt^.l:=nil;
+                pt^.r:=nil;
+                insertint(pt,root,plongint(arg)^);
               end;
           end;
       end;
 
 
-    procedure tclassheader.intf_get_procdefs(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
+    procedure TVMTWriter.insertmsgstr(p:TObject;arg:pointer);
+      var
+        i  : longint;
+        pd : Tprocdef;
+        pt : pprocdeftree;
+      begin
+        if tsym(p).typ<>procsym then
+          exit;
+        for i:=0 to Tprocsym(p).ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
+            if po_msgstr in pd.procoptions then
+              begin
+                new(pt);
+                pt^.data:=pd;
+                pt^.l:=nil;
+                pt^.r:=nil;
+                insertstr(pt,root,plongint(arg)^);
+              end;
+          end;
+      end;
+
+
+    procedure TVMTWriter.writenames(p : pprocdeftree);
+      var
+        ca : pchar;
+        len : byte;
+      begin
+         current_asmdata.getdatalabel(p^.nl);
+         if assigned(p^.l) then
+           writenames(p^.l);
+         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
+         current_asmdata.asmlists[al_globals].concat(Tai_label.Create(p^.nl));
+         len:=length(p^.data.messageinf.str^);
+         current_asmdata.asmlists[al_globals].concat(tai_const.create_8bit(len));
+         getmem(ca,len+1);
+         move(p^.data.messageinf.str[1],ca^,len);
+         ca[len]:=#0;
+         current_asmdata.asmlists[al_globals].concat(Tai_string.Create_pchar(ca,len));
+         if assigned(p^.r) then
+           writenames(p^.r);
+      end;
+
+    procedure TVMTWriter.writestrentry(p : pprocdeftree);
+
+      begin
+         if assigned(p^.l) then
+           writestrentry(p^.l);
+
+         { write name label }
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(p^.nl));
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname,0));
+
+         if assigned(p^.r) then
+           writestrentry(p^.r);
+     end;
+
+
+    function TVMTWriter.genstrmsgtab : tasmlabel;
+      var
+         count : aint;
+      begin
+         root:=nil;
+         count:=0;
+         { insert all message handlers into a tree, sorted by name }
+         _class.symtable.SymList.ForEachCall(@insertmsgstr,@count);
+
+         { write all names }
+         if assigned(root) then
+           writenames(root);
+
+         { now start writing of the message string table }
+         current_asmdata.getdatalabel(result);
+         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
+         current_asmdata.asmlists[al_globals].concat(Tai_label.Create(result));
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(count));
+         if assigned(root) then
+           begin
+              writestrentry(root);
+              disposeprocdeftree(root);
+           end;
+      end;
+
+
+    procedure TVMTWriter.writeintentry(p : pprocdeftree);
+      begin
+         if assigned(p^.l) then
+           writeintentry(p^.l);
+
+         { write name label }
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(p^.data.messageinf.i));
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname,0));
+
+         if assigned(p^.r) then
+           writeintentry(p^.r);
+      end;
+
+
+    function TVMTWriter.genintmsgtab : tasmlabel;
+      var
+         r : tasmlabel;
+         count : longint;
+      begin
+         root:=nil;
+         count:=0;
+         { insert all message handlers into a tree, sorted by name }
+         _class.symtable.SymList.ForEachCall(@insertmsgint,@count);
+
+         { now start writing of the message string table }
+         current_asmdata.getdatalabel(r);
+         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
+         current_asmdata.asmlists[al_globals].concat(Tai_label.Create(r));
+         genintmsgtab:=r;
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(count));
+         if assigned(root) then
+           begin
+              writeintentry(root);
+              disposeprocdeftree(root);
+           end;
+      end;
+
+{$ifdef WITHDMT}
+
+{**************************************
+              DMT
+**************************************}
+
+    procedure TVMTWriter.insertdmtentry(p:TObject;arg:pointer);
+
+      var
+         hp : tprocdef;
+         pt : pprocdeftree;
+
+      begin
+         if tsym(p).typ=procsym then
+           begin
+              hp:=tprocsym(p).definition;
+              while assigned(hp) do
+                begin
+                   if (po_msgint in hp.procoptions) then
+                     begin
+                        new(pt);
+                        pt^.p:=hp;
+                        pt^.l:=nil;
+                        pt^.r:=nil;
+                        insertint(pt,root);
+                     end;
+                   hp:=hp.nextoverloaded;
+                end;
+           end;
+      end;
+
+    procedure TVMTWriter.writedmtindexentry(p : pprocdeftree);
+
+      begin
+         if assigned(p^.l) then
+           writedmtindexentry(p^.l);
+         al_globals.concat(Tai_const.Create_32bit(p^.data.messageinf.i));
+         if assigned(p^.r) then
+           writedmtindexentry(p^.r);
+      end;
+
+    procedure TVMTWriter.writedmtaddressentry(p : pprocdeftree);
+
+      begin
+         if assigned(p^.l) then
+           writedmtaddressentry(p^.l);
+         al_globals.concat(Tai_const_symbol.Createname(p^.data.mangledname,0));
+         if assigned(p^.r) then
+           writedmtaddressentry(p^.r);
+      end;
+
+    function TVMTWriter.gendmt : tasmlabel;
+
+      var
+         r : tasmlabel;
+
+      begin
+         root:=nil;
+         count:=0;
+         gendmt:=nil;
+         { insert all message handlers into a tree, sorted by number }
+         _class.symtable.SymList.ForEachCall(insertdmtentry);
+
+         if count>0 then
+           begin
+              current_asmdata.getdatalabel(r);
+              gendmt:=r;
+              al_globals.concat(cai_align.create(const_align(sizeof(aint))));
+              al_globals.concat(Tai_label.Create(r));
+              { entries for caching }
+              al_globals.concat(Tai_const.Create_ptr(0));
+              al_globals.concat(Tai_const.Create_ptr(0));
+
+              al_globals.concat(Tai_const.Create_32bit(count));
+              if assigned(root) then
+                begin
+                   writedmtindexentry(root);
+                   writedmtaddressentry(root);
+                   disposeprocdeftree(root);
+                end;
+           end;
+      end;
+
+{$endif WITHDMT}
+
+{**************************************
+        Published Methods
+**************************************}
+
+    procedure TVMTWriter.do_count_published_methods(p:TObject;arg:pointer);
+      var
+        i  : longint;
+        pd : tprocdef;
+      begin
+        if (tsym(p).typ<>procsym) then
+          exit;
+        for i:=0 to Tprocsym(p).ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
+            if (pd.procsym=tsym(p)) and
+               (sp_published in pd.symoptions) then
+              inc(plongint(arg)^);
+          end;
+      end;
+
+
+    procedure TVMTWriter.do_gen_published_methods(p:TObject;arg:pointer);
+      var
+        i  : longint;
+        l  : tasmlabel;
+        pd : tprocdef;
+      begin
+        if (tsym(p).typ<>procsym) then
+          exit;
+        for i:=0 to Tprocsym(p).ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
+            if (pd.procsym=tsym(p)) and
+               (sp_published in pd.symoptions) then
+              begin
+                current_asmdata.getdatalabel(l);
+
+                current_asmdata.asmlists[al_typedconsts].concat(cai_align.create(const_align(sizeof(aint))));
+                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l));
+                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(length(tsym(p).realname)));
+                current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create(tsym(p).realname));
+
+                current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(l));
+                if po_abstractmethod in pd.procoptions then
+                  current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil))
+                else
+                  current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(pd.mangledname,0));
+              end;
+           end;
+      end;
+
+
+    function TVMTWriter.genpublishedmethodstable : tasmlabel;
+
+      var
+         l : tasmlabel;
+         count : longint;
+
+      begin
+         count:=0;
+         _class.symtable.SymList.ForEachCall(@do_count_published_methods,@count);
+         if count>0 then
+           begin
+              current_asmdata.getdatalabel(l);
+              current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
+              current_asmdata.asmlists[al_globals].concat(Tai_label.Create(l));
+              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(count));
+              _class.symtable.SymList.ForEachCall(@do_gen_published_methods,nil);
+              genpublishedmethodstable:=l;
+           end
+         else
+           genpublishedmethodstable:=nil;
+      end;
+
+
+    function TVMTWriter.generate_field_table : tasmlabel;
       var
         i   : longint;
-        def : tdef;
-        hs,
-        prefix,
-        mappedname: string;
-        implprocdef: tprocdef;
+        sym : tsym;
+        fieldtable,
+        classtable : tasmlabel;
+        classindex,
+        fieldcount : longint;
+        classtablelist : TFPList;
       begin
-        prefix:=ImplIntf.IntfDef.symtable.name^+'.';
-        for i:=0 to IntfDef.symtable.DefList.Count-1 do
+        classtablelist:=TFPList.Create;
+        current_asmdata.getdatalabel(fieldtable);
+        current_asmdata.getdatalabel(classtable);
+        maybe_new_object_file(current_asmdata.asmlists[al_rtti]);
+        new_section(current_asmdata.asmlists[al_rtti],sec_rodata,classtable.name,const_align(sizeof(aint)));
+
+        { retrieve field info fields }
+        fieldcount:=0;
+        for i:=0 to _class.symtable.SymList.Count-1 do
           begin
-            def:=tdef(IntfDef.symtable.DefList[i]);
-            if def.typ=procdef then
+            sym:=tsym(_class.symtable.SymList[i]);
+            if (tsym(sym).typ=fieldvarsym) and
+               (sp_published in tsym(sym).symoptions) then
+             begin
+                if tfieldvarsym(sym).vardef.typ<>objectdef then
+                  internalerror(200611032);
+                classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
+                if classindex=-1 then
+                  classtablelist.Add(tfieldvarsym(sym).vardef);
+                inc(fieldcount);
+             end;
+          end;
+
+        { write fields }
+        current_asmdata.asmlists[al_rtti].concat(Tai_label.Create(fieldtable));
+        current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(fieldcount));
+{$ifdef cpurequiresproperalignment}
+        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
+        current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(classtable));
+        for i:=0 to _class.symtable.SymList.Count-1 do
+          begin
+            sym:=tsym(_class.symtable.SymList[i]);
+            if (tsym(sym).typ=fieldvarsym) and
+               (sp_published in tsym(sym).symoptions) then
               begin
-                { Find implementing procdef
-                   1. Check for mapped name
-                   2. Use symbol name }
-                implprocdef:=nil;
-                hs:=prefix+tprocdef(def).procsym.name;
-                mappedname:=ImplIntf.GetMapping(hs);
-                if mappedname<>'' then
-                  implprocdef:=intf_search_procdef_by_name(tprocdef(def),mappedname);
-                if not assigned(implprocdef) then
-                  implprocdef:=intf_search_procdef_by_name(tprocdef(def),tprocdef(def).procsym.name);
-                { Add procdef to the implemented interface }
-                if assigned(implprocdef) then
-                  ImplIntf.AddImplProc(implprocdef)
-                else
-                  if ImplIntf.IntfDef.iitype = etStandard then
-                    Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
+{$ifdef cpurequiresproperalignment}
+                current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(AInt)));
+{$endif cpurequiresproperalignment}
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(tfieldvarsym(sym).fieldoffset));
+                classindex:=classtablelist.IndexOf(tfieldvarsym(sym).vardef);
+                if classindex=-1 then
+                  internalerror(200611033);
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(classindex+1));
+                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(tfieldvarsym(sym).realname)));
+                current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(tfieldvarsym(sym).realname));
               end;
           end;
+
+        { generate the class table }
+        current_asmdata.asmlists[al_rtti].concat(cai_align.create(const_align(sizeof(aint))));
+        current_asmdata.asmlists[al_rtti].concat(Tai_label.Create(classtable));
+        current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(classtablelist.count));
+{$ifdef cpurequiresproperalignment}
+        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
+        for i:=0 to classtablelist.Count-1 do
+          current_asmdata.asmlists[al_rtti].concat(Tai_const.Createname(tobjectdef(classtablelist[i]).vmt_mangledname,0));
+
+        classtablelist.free;
+        result:=fieldtable;
       end;
 
 
-    procedure tclassheader.intf_get_procdefs_recursive(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
+{**************************************
+           Interface tables
+**************************************}
+
+    function  TVMTWriter.intf_get_vtbl_name(AImplIntf:TImplementedInterface): string;
       begin
-        if assigned(IntfDef.childof) then
-          intf_get_procdefs_recursive(ImplIntf,IntfDef.childof);
-        intf_get_procdefs(ImplIntf,IntfDef);
+        result:=make_mangledname('VTBL',_class.owner,_class.objname^+'_$_'+AImplIntf.IntfDef.objname^);
       end;
 
 
-    function tclassheader.genintftable: tasmlabel;
+    procedure TVMTWriter.intf_create_vtbl(rawdata: TAsmList;AImplIntf:TImplementedInterface);
       var
-        ImplIntf  : TImplementedInterface;
-        intftable : tasmlabel;
-        i : longint;
+        pd : tprocdef;
+        vtblstr,
+        hs : string;
+        i  : longint;
       begin
-        { 1. step collect implementor functions into the tImplementedInterface.procdefs }
+        vtblstr:=intf_get_vtbl_name(AImplIntf);
+        section_symbol_start(rawdata,vtblstr,AT_DATA,true,sec_data,const_align(sizeof(aint)));
+        if assigned(AImplIntf.procdefs) then
+          begin
+            for i:=0 to AImplIntf.procdefs.count-1 do
+              begin
+                pd:=tprocdef(AImplIntf.procdefs[i]);
+                hs:=make_mangledname('WRPR',_class.owner,_class.objname^+'_$_'+AImplIntf.IntfDef.objname^+'_$_'+
+                                     tostr(i)+'_$_'+pd.mangledname);
+                { create reference }
+                rawdata.concat(Tai_const.Createname(hs,0));
+              end;
+           end;
+        section_symbol_end(rawdata,vtblstr);
+      end;
+
+
+    procedure TVMTWriter.intf_gen_intf_ref(rawdata: TAsmList;AImplIntf:TImplementedInterface);
+      var
+        iidlabel,
+        guidlabel : tasmlabel;
+        i: longint;
+      begin
+        { GUID }
+        if AImplIntf.IntfDef.objecttype in [odt_interfacecom] then
+          begin
+            { label for GUID }
+            current_asmdata.getdatalabel(guidlabel);
+            rawdata.concat(cai_align.create(const_align(sizeof(aint))));
+            rawdata.concat(Tai_label.Create(guidlabel));
+            with AImplIntf.IntfDef.iidguid^ do
+              begin
+                rawdata.concat(Tai_const.Create_32bit(longint(D1)));
+                rawdata.concat(Tai_const.Create_16bit(D2));
+                rawdata.concat(Tai_const.Create_16bit(D3));
+                for i:=Low(D4) to High(D4) do
+                  rawdata.concat(Tai_const.Create_8bit(D4[i]));
+              end;
+            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(guidlabel));
+          end
+        else
+          begin
+            { nil for Corba interfaces }
+            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
+          end;
+        { VTable }
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(intf_get_vtbl_name(AImplIntf.VtblImplIntf),0));
+        { IOffset field }
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(AImplIntf.VtblImplIntf.ioffset));
+        { IIDStr }
+        current_asmdata.getdatalabel(iidlabel);
+        rawdata.concat(cai_align.create(const_align(sizeof(aint))));
+        rawdata.concat(Tai_label.Create(iidlabel));
+        rawdata.concat(Tai_const.Create_8bit(length(AImplIntf.IntfDef.iidstr^)));
+        if AImplIntf.IntfDef.objecttype=odt_interfacecom then
+          rawdata.concat(Tai_string.Create(upper(AImplIntf.IntfDef.iidstr^)))
+        else
+          rawdata.concat(Tai_string.Create(AImplIntf.IntfDef.iidstr^));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(iidlabel));
+        { EntryType }
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(aint(AImplIntf.IntfDef.iitype)));
+        { EntryOffset }
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(aint(AImplIntf.IntfDef.iioffset)));
+      end;
+
+
+    function TVMTWriter.intf_write_table:TAsmLabel;
+      var
+        rawdata  : TAsmList;
+        i        : longint;
+        ImplIntf : TImplementedInterface;
+        intftablelab : tasmlabel;
+      begin
+        current_asmdata.getdatalabel(intftablelab);
+        current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
+        current_asmdata.asmlists[al_globals].concat(Tai_label.Create(intftablelab));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(_class.ImplementedInterfaces.count));
+        rawdata:=TAsmList.Create;
+        { Write vtbls }
         for i:=0 to _class.ImplementedInterfaces.count-1 do
           begin
             ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
-            intf_get_procdefs_recursive(ImplIntf,ImplIntf.IntfDef);
+            if ImplIntf.VtblImplIntf=ImplIntf then
+              intf_create_vtbl(rawdata,ImplIntf);
           end;
-        { 2. Optimize interface tables to reuse wrappers }
-        intf_optimize_vtbls;
-        { 3. Calculate offsets in object map and Write interface tables }
-        current_asmdata.getdatalabel(intftable);
-        current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(aint))));
-        current_asmdata.asmlists[al_globals].concat(Tai_label.Create(intftable));
-        intf_write_data;
-        genintftable:=intftable;
+        { Write vtbl references }
+        for i:=0 to _class.ImplementedInterfaces.count-1 do
+          begin
+            ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
+            intf_gen_intf_ref(rawdata,ImplIntf);
+          end;
+        { Write interface table }
+        current_asmdata.asmlists[al_globals].concatlist(rawdata);
+        rawdata.free;
+        result:=intftablelab;
       end;
 
 
   { Write interface identifiers to the data section }
-  procedure tclassheader.writeinterfaceids;
+  procedure TVMTWriter.writeinterfaceids;
     var
       i : longint;
       s : string;
@@ -1291,54 +1293,41 @@ implementation
     end;
 
 
-    procedure tclassheader.writevirtualmethods(List:TAsmList);
+    procedure TVMTWriter.writevirtualmethods(List:TAsmList);
       var
-         vmtentry : pvmtentry;
-         procdefcoll : pprocdefcoll;
-         i : longint;
+         pd : tprocdef;
+         i  : longint;
          procname : string;
 {$ifdef vtentry}
          hs : string;
 {$endif vtentry}
       begin
-         { walk trough all numbers for virtual methods and search }
-         { the method                                             }
-         for i:=0 to nextvirtnumber-1 do
-           begin
-              { walk trough all symbols }
-              vmtentry:=firstvmtentry;
-              while assigned(vmtentry) do
-                begin
-                   { walk trough all methods }
-                   procdefcoll:=vmtentry^.firstprocdef;
-                   while assigned(procdefcoll) do
-                     begin
-                        { writes the addresses to the VMT }
-                        { but only this which are declared as virtual }
-                        if (procdefcoll^.data.extnumber=i) and
-                           (po_virtualmethod in procdefcoll^.data.procoptions) then
-                          begin
-                            if (po_abstractmethod in procdefcoll^.data.procoptions) then
-                              procname:='FPC_ABSTRACTERROR'
-                            else
-                              procname:=procdefcoll^.data.mangledname;
-                            List.concat(Tai_const.createname(procname,0));
+        if not assigned(_class.VMTEntries) then
+          exit;
+        for i:=0 to _class.VMTEntries.Count-1 do
+         begin
+           pd:=tprocdef(_class.VMTEntries[i]);
+           if not(po_virtualmethod in pd.procoptions) then
+             internalerror(200611082);
+           if pd.extnumber<>i then
+             internalerror(200611083);
+           if (po_abstractmethod in pd.procoptions) then
+             procname:='FPC_ABSTRACTERROR'
+           else
+             procname:=pd.mangledname;
+           List.concat(Tai_const.createname(procname,0));
 {$ifdef vtentry}
-                            hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(aint));
-                            current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
+           hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(aint));
+           current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
 {$endif vtentry}
-                            break;
-                          end;
-                        procdefcoll:=procdefcoll^.next;
-                     end;
-                   vmtentry:=vmtentry^.next;
-                end;
-           end;
+         end;
+        { release VMTEntries, we don't need them anymore }
+        _class.VMTEntries.free;
+        _class.VMTEntries:=nil;
       end;
 
-    { generates the vmt for classes as well as for objects }
-    procedure tclassheader.writevmt;
 
+    procedure TVMTWriter.writevmt;
       var
          methodnametable,intmessagetable,
          strmessagetable,classnamelabel,
@@ -1365,7 +1354,7 @@ implementation
 
             { interface table }
             if _class.ImplementedInterfaces.count>0 then
-              interfacetable:=genintftable;
+              interfacetable:=intf_write_table;
 
             methodnametable:=genpublishedmethodstable;
             fieldtablelabel:=generate_field_table;

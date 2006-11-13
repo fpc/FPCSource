@@ -142,12 +142,6 @@ type
 
   { flags for a definition }
   tdefoption=(df_none,
-    { init data has been generated }
-    df_has_inittable,
-    { rtti data has been generated }
-    df_has_rttitable,
-    { dwarf debug info has been generated }
-    df_has_dwarf_dbg_info,
     { type is unique, i.e. declared with type = type <tdef>; }
     df_unique,
     { type is a generic }
@@ -158,6 +152,17 @@ type
     df_deleted
   );
   tdefoptions=set of tdefoption;
+
+  tdefstate=(ds_none,
+    ds_vmt_written,
+    ds_rtti_table_used,
+    ds_init_table_used,
+    ds_rtti_table_written,
+    ds_init_table_written,
+    ds_dwarf_dbg_info_used,
+    ds_dwarf_dbg_info_written
+  );
+  tdefstates=set of tdefstate;
 
   { tsymlist entry types }
   tsltype = (sl_none,
@@ -305,8 +310,7 @@ type
     oo_has_msgstr,
     oo_has_msgint,
     oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
-    oo_has_default_property,
-    oo_vmt_written
+    oo_has_default_property
   );
   tobjectoptions=set of tobjectoption;
 

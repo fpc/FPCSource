@@ -60,8 +60,9 @@ interface
          dwarf_lab : tasmsymbol;
          { stabs debugging }
          stab_number : word;
-         dbg_state  : tdefdbgstatus;
-         defoptions : tdefoptions;
+         dbg_state   : tdefdbgstatus;
+         defoptions  : tdefoptions;
+         defstates   : tdefstates;
          constructor create(dt:tdeftyp);
          procedure buildderef;virtual;abstract;
          procedure buildderefimpl;virtual;abstract;
@@ -193,7 +194,7 @@ interface
        current_object_option : tsymoptions = [sp_public];
 
     function  FindUnitSymtable(st:TSymtable):TSymtable;
-    
+
 
 implementation
 

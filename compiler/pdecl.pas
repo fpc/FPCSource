@@ -57,7 +57,7 @@ implementation
        { symtable }
        symconst,symbase,symtype,symdef,symtable,paramgr,defutil,
        { pass 1 }
-       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
+       nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
        { codegen }
        ncgutil,
        { parser }
@@ -235,8 +235,6 @@ implementation
                       { add default calling convention }
                       handle_calling_convention(tabstractprocdef(hdef));
                     end;
-                   { write rtti/init tables }
-                   write_persistent_type_info(hdef);
                    if not skipequal then
                     begin
                       { get init value }
@@ -406,6 +404,7 @@ implementation
          istyperenaming : boolean;
          generictypelist : TFPObjectList;
          generictokenbuf : tdynamicarray;
+         vmtbuilder : TVMTBuilder;
       begin
          old_block_type:=block_type;
          block_type:=bt_type;
@@ -533,7 +532,19 @@ implementation
                        handle_calling_convention(tprocvardef(hdef));
                      end;
                   end;
-                objectdef,
+                objectdef :
+                  begin
+                    { Build VMT indexes, skip for type renaming and forward classes }
+                    if (hdef.typesym=newtype) and
+                       not(oo_is_forward in tobjectdef(hdef).objectoptions) then
+                      begin
+                        vmtbuilder:=TVMTBuilder.Create(tobjectdef(hdef));
+                        vmtbuilder.generate_vmt;
+                        vmtbuilder.free;
+                      end;
+                    try_consume_hintdirective(newtype.symoptions);
+                    consume(_SEMICOLON);
+                  end;
                 recorddef :
                   begin
                     try_consume_hintdirective(newtype.symoptions);
@@ -555,18 +566,6 @@ implementation
                { Generic is never a type renaming }
                hdef.typesym:=newtype;
              end;
-
-           { Write tables if there are no errors and we are the typesym that
-             defines this type, so this will not be done for simple type renamings }
-           if (hdef.typ<>errordef) and
-              (hdef.typesym=newtype) then
-            begin
-              { file position }
-              oldfilepos:=current_filepos;
-              current_filepos:=newtype.fileinfo;
-              write_persistent_type_info(hdef);
-              current_filepos:=oldfilepos;
-            end;
          until token<>_ID;
          typecanbeforward:=false;
          symtablestack.top.SymList.ForEachCall(@resolve_type_forward,nil);

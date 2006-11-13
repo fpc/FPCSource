@@ -68,7 +68,7 @@ implementation
 
 
     const
-       rttidefopt : array[trttitype] of tdefoption = (df_has_rttitable,df_has_inittable);
+       rttidefstate : array[trttitype] of tdefstate = (ds_rtti_table_written,ds_init_table_written);
 
     type
        TPropNameListItem = class(TFPHashObject)
@@ -831,18 +831,20 @@ implementation
           recorddef :
             fields_write_rtti(trecorddef(def).symtable,rt);
           objectdef :
-            if rt=initrtti then
-              fields_write_rtti(tobjectdef(def).symtable,rt)
-            else
-              published_write_rtti(tobjectdef(def).symtable,rt);
+            begin
+              if assigned(tobjectdef(def).childof) then
+                write_rtti(tobjectdef(def).childof,rt);
+              if rt=initrtti then
+                fields_write_rtti(tobjectdef(def).symtable,rt)
+              else
+                published_write_rtti(tobjectdef(def).symtable,rt);
+            end;
         end;
       end;
 
 
     function TRTTIWriter.ref_rtti(def:tdef;rt:trttitype):tasmsymbol;
       begin
-        if not(rttidefopt[rt] in def.defoptions) then
-          internalerror(200611037);
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
       end;
 
@@ -851,14 +853,13 @@ implementation
       var
         rttilab : tasmsymbol;
       begin
-        if rttidefopt[rt] in def.defoptions then
-          exit;
-        { only write the rttis of defs defined in the current unit,
-          otherwise we will generate duplicate asmsymbols }
+        { only write rtti of definitions from the current module }
         if not findunitsymtable(def.owner).iscurrentunit then
-          internalerror(200611035);
+          exit;
         { prevent recursion }
-        include(def.defoptions,rttidefopt[rt]);
+        if rttidefstate[rt] in def.defstates then
+          exit;
+        include(def.defstates,rttidefstate[rt]);
         { write first all dependencies }
         write_child_rtti_data(def,rt);
         { write rtti data }
@@ -873,9 +874,7 @@ implementation
 
     function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
       begin
-        if not(rttidefopt[rt] in def.defoptions) then
-          write_rtti(def,rt);
-        result:=ref_rtti(def,rt);
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
       end;
 
 end.
