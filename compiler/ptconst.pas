@@ -796,6 +796,7 @@ implementation
           consume(_LKLAMMER);
           curroffset:=0;
           symidx:=0;
+          sorg:='';
           srsym:=tsym(def.symtable.SymList[symidx]);
           recsym := nil;
           while token<>_RKLAMMER do
