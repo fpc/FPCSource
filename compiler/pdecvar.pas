@@ -690,8 +690,6 @@ implementation
                 vs.defaultconstsym:=tcsym;
                 symtablestack.top.insert(tcsym);
                 read_typed_const(current_asmdata.asmlists[al_typedconsts],tcsym);
-                { The variable has a value assigned }
-                vs.varstate:=vs_initialised;
               end;
             staticvarsym :
               begin
@@ -714,7 +712,7 @@ implementation
             Message(parser_e_absolute_only_one_var);
           if vs.typ=staticvarsym then
             begin
-              tstaticvarsym(vs).set_mangledname(target_info.Cprefix+vs.realname);
+              tstaticvarsym(vs).set_mangledname(C_Name);
               include(vs.varoptions,vo_is_external);
             end
           else
@@ -726,6 +724,7 @@ implementation
           vs     : tabstractvarsym;
           abssym : tabsolutevarsym;
           pt,hp  : tnode;
+          st     : tsymtable;
         begin
           abssym:=nil;
           { only allowed for one var }
@@ -795,8 +794,9 @@ implementation
           { replace old varsym with the new absolutevarsym }
           if assigned(abssym) then
             begin
-              Hidesym(vs);
-              vs.owner.insert(abssym);
+              st:=vs.owner;
+              vs.owner.Delete(vs);
+              st.insert(abssym);
               sc[0]:=abssym;
             end;
         end;
@@ -804,7 +804,6 @@ implementation
         procedure read_public_and_external(sc:TFPObjectList);
         var
           vs          : tabstractvarsym;
-          semicolonatend,
           is_dll,
           is_cdecl,
           is_external_var,
@@ -822,13 +821,12 @@ implementation
               Message(parser_e_no_local_var_external);
               exit;
             end;
-            
+
           { defaults }
           is_dll:=false;
           is_cdecl:=false;
           is_external_var:=false;
           is_public_var:=false;
-          semicolonatend:= false;
           C_name:=vs.realname;
 
           { macpas specific handling due to some switches}

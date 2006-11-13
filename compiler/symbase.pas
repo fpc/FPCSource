@@ -106,9 +106,11 @@ interface
           procedure clear;virtual;
           function  checkduplicate(var s:THashedIDString;sym:TSymEntry):boolean;virtual;
           procedure insert(sym:TSymEntry;checkdup:boolean=true);
+          procedure Delete(sym:TSymEntry);
           function  Find(const s:TIDString) : TSymEntry;
           function  FindWithHash(const s:THashedIDString) : TSymEntry;virtual;
           procedure insertdef(def:TDefEntry);virtual;
+          procedure deletedef(def:TDefEntry);
           function  iscurrentunit:boolean;virtual;
        end;
 
@@ -297,10 +299,26 @@ implementation
       end;
 
 
+    procedure TSymtable.Delete(sym:TSymEntry);
+      begin
+        if sym.Owner<>self then
+          internalerror(200611121);
+        SymList.Remove(sym);
+      end;
+
+
     procedure TSymtable.insertdef(def:TDefEntry);
       begin
          DefList.Add(def);
          def.owner:=self;
+      end;
+
+
+    procedure TSymtable.deletedef(def:TDefEntry);
+      begin
+        if def.Owner<>self then
+          internalerror(200611122);
+         DefList.Remove(def);
       end;
 
 

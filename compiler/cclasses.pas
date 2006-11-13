@@ -518,10 +518,6 @@ implementation
                TFPObjectList (Copied from rtl/objpas/classes/lists.inc)
 *****************************************************************************}
 
-Const
-  // Ratio of Pointer and Word Size.
-  WordRatio = SizeOf(Pointer) Div SizeOf(Word);
-
 procedure TFPList.RaiseIndexError(Index : Integer);
 begin
   Error(SListIndexError, Index);
@@ -574,7 +570,7 @@ begin
     If NewCount > FCapacity then
       SetCapacity(NewCount);
     If FCount < NewCount then
-      FillWord(Flist^[FCount], (NewCount-FCount) *  WordRatio, 0);
+      FillChar(Flist^[FCount], (NewCount-FCount) *  sizeof(Pointer), 0);
     end;
   FCount := Newcount;
 end;
@@ -591,7 +587,7 @@ begin
     Self.Expand;
   FList^[FCount] := Item;
   Result := FCount;
-  FCount := FCount + 1;
+  inc(FCount);
 end;
 
 procedure TFPList.Clear;
@@ -608,9 +604,9 @@ procedure TFPList.Delete(Index: Integer);
 begin
   If (Index<0) or (Index>=FCount) then
     Error (SListIndexError, Index);
-  FCount := FCount-1;
+  dec(FCount);
   System.Move (FList^[Index+1], FList^[Index], (FCount - Index) * SizeOf(Pointer));
-  // Shrink the list if appropriate
+  { Shrink the list if appropriate }
   if (FCapacity > 256) and (FCount < FCapacity shr 2) then
   begin
     FCapacity := FCapacity shr 1;
@@ -744,10 +740,8 @@ begin
   FCount:=NewCount;
 end;
 
-// Needed by Sort method.
 
-Procedure QuickSort(FList: PPointerList; L, R : Longint;
-                     Compare: TListSortCompare);
+Procedure QuickSort(FList: PPointerList; L, R : Longint;Compare: TListSortCompare);
 var
   I, J : Longint;
   P, Q : Pointer;
@@ -1236,14 +1230,42 @@ begin
 end;
 
 procedure TFPHashList.Delete(Index: Integer);
+var
+  HashIndex,
+  PrevIndex  : integer;
 begin
   If (Index<0) or (Index>=FCount) then
     Error (SListIndexError, Index);
-  with FHashList^[Index] do
+  { Remove from current Hash }
+  HashIndex:=FHashTable^[FHashList^[Index].HashValue mod LongWord(FHashCapacity)];
+  PrevIndex:=-1;
+  while Index<>-1 do
     begin
-      Data:=nil;
-      StrIndex:=-1;
+      if HashIndex=Index then
+        break;
+      PrevIndex:=HashIndex;
+      HashIndex:=FHashList^[HashIndex].NextIndex;
     end;
+  if PrevIndex<>-1 then
+    FHashList^[PrevIndex].NextIndex:=FHashList^[Index].NextIndex
+  else
+    FHashTable^[FHashList^[Index].HashValue mod LongWord(FHashCapacity)]:=FHashList^[Index].NextIndex;
+  { Remove from HashList }
+  dec(FCount);
+  System.Move (FHashList^[Index+1], FHashList^[Index], (FCount - Index) * Sizeof(THashItem));
+  { Shrink the list if appropriate }
+  if (FCapacity > 256) and (FCount < FCapacity shr 2) then
+    begin
+      FCapacity := FCapacity shr 1;
+      ReallocMem(FHashList, Sizeof(THashItem) * FCapacity);
+    end;
+end;
+
+function TFPHashList.Remove(Item: Pointer): Integer;
+begin
+  Result := IndexOf(Item);
+  If Result <> -1 then
+    Self.Delete(Result);
 end;
 
 class procedure TFPHashList.Error(const Msg: string; Data: PtrInt);
@@ -1299,13 +1321,6 @@ begin
         end;
       inc(psrc);
     end;
-end;
-
-function TFPHashList.Remove(Item: Pointer): Integer;
-begin
-  Result := IndexOf(Item);
-  If Result <> -1 then
-    Self.Delete(Result);
 end;
 
 function TFPHashList.InternalFind(AHash:LongWord;const AName:string;out PrevIndex:Integer):Integer;

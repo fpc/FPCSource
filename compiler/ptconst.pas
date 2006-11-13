@@ -1065,8 +1065,8 @@ implementation
       begin
         { mark the staticvarsym as typedconst }
         include(sym.varoptions,vo_is_typed_const);
-        { the variable is declared }
-        sym.varstate:=vs_declared;
+        { The variable has a value assigned }
+        sym.varstate:=vs_initialised;
         { the variable can't be placed in a register }
         sym.varregable:=vr_none;
 
