@@ -534,6 +534,7 @@ var
   Start: pchar;
 begin
   Val := 0;
+  ACode := 0;
   Start := ABuffer;
   while ABuffer^ <> #0 do
   begin
@@ -545,13 +546,12 @@ begin
       Incr := ord(ABuffer^) - ord('a') + 10
     else begin
       ACode := ABuffer - Start + 1;
-      exit;
+      break;
     end;
-    Val := (Val * 16) + Incr;
+    Val := (Val shl 4) + Incr;
     Inc(ABuffer);
   end;
   AValue := Val;
-  ACode := 0;
 end;
 
 { TURIHandler }
@@ -1189,7 +1189,7 @@ begin
       begin
         lLineEnd^ := #0;
         HexToInt(FBufferPos, dword(FInputRemaining), lCode);
-        if lCode <> 0 then
+        if lCode = 1 then
         begin
           FChunkState := csFinished;
           Disconnect;

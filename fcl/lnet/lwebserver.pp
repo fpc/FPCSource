@@ -32,10 +32,19 @@ uses
   sysutils, classes, lnet, lhttp, lhttputil, lmimetypes, levents, 
   lprocess, process, lfastcgi, fastcgi;
 
+type
+  TLMultipartParameter = (mpContentType, mpContentDisposition, mpContentTransferEncoding,
+    mpContentID, mpContentDescription);
+  TLMultipartState = (msStart, msBodypartHeader, msBodypartData);
+
 const
   URIParamSepChar: char = '&';
   CookieSepChar: char = ';';
   FormURLContentType: pchar = 'application/x-www-form-urlencoded';
+  MultipartContentType: pchar = 'multipart/form-data';
+  MPParameterStrings: array[TLMultipartParameter] of string =
+    ('Content-Type', 'Content-Disposition', 'Content-Transfer-Encoding',
+     'Content-ID', 'Content-Discription');
 
 type
   TDocumentHandler = class;
@@ -237,16 +246,26 @@ type
   TFormOutput = class;
 
   TFillBufferEvent = procedure(AFormOutput: TFormOutput; var AStatus: TWriteBlockStatus);
+  THandleInputMethod = function(ABuffer: pchar; ASize: integer): integer of object;
 
   TFormOutput = class(TBufferOutput)
   protected
+    FBoundary: pchar;
     FRequestVars: TStrings;
+    FMPParameters: array[TLMultipartParameter] of pchar;
+    FMPState: TLMultipartState;
     FOnExtraHeaders: TNotifyEvent;
     FOnFillBuffer: TFillBufferEvent;
+    FHandleInput: THandleInputMethod;
 
     procedure DoneInput; override;
-    function FillBuffer: TWriteBlockStatus; override;
+    function  FillBuffer: TWriteBlockStatus; override;
+    function  FindBoundary(ABuffer: pchar): pchar;
     function  HandleInput(ABuffer: pchar; ASize: integer): integer; override;
+    function  HandleInputDiscard(ABuffer: pchar; ASize: integer): integer;
+    function  HandleInputFormURL(ABuffer: pchar; ASize: integer): integer;
+    function  HandleInputMultipart(ABuffer: pchar; ASize: integer): integer;
+    procedure ParseMultipartHeader(ABuffer, ALineEnd: pchar);
   public
     constructor Create(ASocket: TLHTTPSocket);
     destructor Destroy; override;
@@ -268,6 +287,7 @@ type
     FOnHandleURI: THandleURIEvent;
 
     function HandleURI(ASocket: TLHTTPServerSocket): TOutputItem; override;
+    procedure SelectMultipart(AFormOutput: TFormOutput; AContentType: pchar);
   public
     property OnHandleURI: THandleURIEvent read FOnHandleURI write FOnHandleURI;
   end;
@@ -308,8 +328,10 @@ begin
     lOutput.DocumentRoot := FDocumentRoot;
     lOutput.EnvPath := FEnvPath;
     lOutput.Process.CurrentDirectory := FCGIRoot;
-    lExecPath := FCGIRoot+(ASocket.RequestInfo.Argument+Length(ScriptPathPrefix));
-    if SeparatePath(lExecPath, lOutput.ExtraPath) then
+    lExecPath := (ASocket.RequestInfo.Argument+Length(ScriptPathPrefix));
+    DoDirSeparators(lExecPath);
+    lExecPath := FCGIRoot+lExecPath;
+    if SeparatePath(lExecPath, lOutput.ExtraPath, faAnyFile and not faDirectory) then
     begin
       lOutput.Process.CommandLine := lExecPath;
       lOutput.ScriptFileName := lExecPath;
@@ -363,7 +385,8 @@ var
   lHeaderOut: PHeaderOutInfo;
   lIndex: integer;
 begin
-  if Length(ARequest.ExtraPath) = 0 then
+  Result := nil;
+  if ARequest.InfoValid then
   begin
     lReqInfo := @ARequest.Socket.RequestInfo;
     lRespInfo := @ARequest.Socket.ResponseInfo;
@@ -400,11 +423,14 @@ begin
   Result := nil;
   lDocRequest.Socket := ASocket;
   lDocRequest.URIPath := ASocket.RequestInfo.Argument;
-  lDocRequest.Document := FDocumentRoot+lDocRequest.URIPath;
-  lDocRequest.InfoValid := SeparatePath(lDocRequest.Document, lDocRequest.ExtraPath, @lDocRequest.Info);
-  if not lDocRequest.InfoValid then 
+  lDocRequest.Document := lDocRequest.URIPath;
+  DoDirSeparators(LDocRequest.Document);
+  lDocRequest.Document := IncludeTrailingPathDelimiter(FDocumentRoot)+lDocRequest.Document;
+  lDocRequest.InfoValid := SeparatePath(lDocRequest.Document,lDocRequest.ExtraPath, 
+    faAnyFile, @lDocRequest.Info);
+  if not lDocRequest.InfoValid then
     exit;
-  if ((lDocRequest.Info.Attr and faDirectory) <> 0) and (Length(lDocRequest.ExtraPath) = 0) then
+  if ((lDocRequest.Info.Attr and faDirectory) <> 0) and (lDocRequest.ExtraPath = PathDelim) then
   begin
     lDocRequest.Document := IncludeTrailingPathDelimiter(lDocRequest.Document);
     lDirIndexFound := false;
@@ -1043,12 +1069,102 @@ begin
   TLHTTPServerSocket(FSocket).StartResponse(Self);
 end;
 
+function TFormOutput.HandleInputFormURL(ABuffer: pchar; ASize: integer): integer;
+begin
+  Result := ASize-AddVariables(ABuffer, ASize, URIParamSepChar)
+end;
+
+procedure TFormOutput.ParseMultipartHeader(ABuffer, ALineEnd: pchar);
+var
+  I: TLMultipartParameter;
+  len: integer;
+begin
+  for I := Low(TLMultipartParameter) to High(TLMultipartParameter) do
+  begin
+    len := Length(MPParameterStrings[I]);
+    if ABuffer+len >= ALineEnd then
+      continue;
+    if (ABuffer[len] = ':')
+      and (StrLIComp(ABuffer, PChar(MPParameterStrings[I]), len) = 0) then
+    begin
+      Inc(ABuffer, len+2);
+      repeat
+        if ABuffer = ALineEnd then exit;
+        if ABuffer^ <> ' ' then break;
+        inc(ABuffer);
+      until false;
+      FMPParameters[I] := ABuffer;
+      if I = mpContentType then
+      begin
+        repeat
+          if ABuffer = ALineEnd then exit;
+          if ABuffer = ';' then break;
+          inc(ABuffer);
+        until false;
+
+      end;
+      break;
+    end;
+  end;
+end;
+
+function TFormOutput.FindBoundary(ABuffer: pchar): pchar;
+begin
+  {$warning TODO}
+  Result := nil;
+end;
+
+function TFormOutput.HandleInputMultipart(ABuffer: pchar; ASize: integer): integer;
+var
+  pos, next, endline: pchar;
+begin
+  pos := ABuffer;
+  repeat
+    case FMPState of
+      msStart:
+      begin
+        { discard until first boundary }
+        next := FindBoundary(pos);
+        if next = nil then
+          exit(ASize);
+        FMPState := msBodypartHeader;
+      end;
+      msBodypartHeader:
+      begin
+        endline := pos + IndexChar(pos, ASize, #10);
+        if endline < pos then
+          exit(pos-ABuffer);
+        next := endline+1;
+        if (endline > pos) and ((endline-1)^ = #13) then
+          dec(endline);
+        endline^ := #0;
+        if endline > pos then
+          ParseMultipartHeader(pos, endline)
+        else
+          FMPState := msBodypartData;
+      end;
+      msBodypartData:
+      begin
+        { decode based on content-transfer-encoding ? }
+        { CRLF before boundary, belongs to boundary, not data! }
+        next := FindBoundary(ABuffer);
+      end;
+    else
+      exit(ASize);
+    end;
+    dec(ASize, next-pos);
+    pos := next;
+  until false;
+end;
+
+function TFormOutput.HandleInputDiscard(ABuffer: pchar; ASize: integer): integer;
+begin
+  Result := ASize;
+end;
+
 function TFormOutput.HandleInput(ABuffer: pchar; ASize: integer): integer;
 begin
-  if StrIComp(TLHTTPServerSocket(FSocket).Parameters[hpContentType], FormURLContentType) = 0 then
-    Result := ASize-AddVariables(ABuffer, ASize, URIParamSepChar)
-  else
-    Result := 0;
+  Result := FHandleInput(ABuffer, ASize);
 end;
 
 function TFormOutput.FillBuffer: TWriteBlockStatus;
@@ -1083,9 +1199,31 @@ end;
 
 { TFormHandler }
 
+procedure TFormHandler.SelectMultipart(AFormOutput: TFormOutput; AContentType: pchar);
+var
+  boundary, endquote: pchar;
+begin
+  boundary := StrScan(AContentType, '=');
+  if boundary <> nil then
+  begin
+    Inc(boundary);
+    if boundary^ = '"' then
+    begin
+      Inc(boundary);
+      endquote := StrScan(boundary, '"');
+      if endquote <> nil then
+        endquote^ := #0;
+    end;
+  end;
+
+  AFormOutput.FBoundary := boundary;
+  AFormOutput.FHandleInput := @AFormOutput.HandleInputMultipart;
+end;
+
 function TFormHandler.HandleURI(ASocket: TLHTTPServerSocket): TOutputItem;
 var
   newFormOutput: TFormOutput;
+  contentType: pchar;
 begin
   if not Assigned(FOnHandleURI) then
     exit(nil);
@@ -1096,6 +1234,13 @@ begin
 
   newFormOutput.AddVariables(ASocket.RequestInfo.QueryParams, -1, URIParamSepChar);
   newFormOutput.AddVariables(ASocket.Parameters[hpCookie], -1, CookieSepChar);
+  contentType := TLHTTPServerSocket(ASocket).Parameters[hpContentType];
+  if StrIComp(contentType, FormURLContentType) = 0 then
+    newFormOutput.FHandleInput := @newFormOutput.HandleInputFormURL
+  else if StrIComp(contentType, MultipartContentType) = 0 then
+    SelectMultipart(newFormOutput, contentType)
+  else
+    newFormOutput.FHandleInput := @newFormOutput.HandleInputDiscard;
 
   Result := newFormOutput;
 end;

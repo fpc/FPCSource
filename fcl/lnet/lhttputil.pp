@@ -48,7 +48,8 @@ function GMTToLocalTime(ADateTime: TDateTime): TDateTime;
 function LocalTimeToGMT(ADateTime: TDateTime): TDateTime;
 function TryHTTPDateStrToDateTime(ADateStr: pchar; var ADest: TDateTime): boolean;
 
-function SeparatePath(var InPath: string; out ExtraPath: string; ASearchRec: PSearchRec = nil): boolean;
+function SeparatePath(var InPath: string; out ExtraPath: string; const Mode:Longint;
+  ASearchRec: PSearchRec = nil): boolean;
 function CheckPermission(const ADocument: pchar): boolean;
 function HTTPDecode(AStr: pchar): pchar;
 function HTTPEncode(const AStr: string): string;
@@ -147,7 +148,8 @@ begin
   Result := true;
 end;
 
-function SeparatePath(var InPath: string; out ExtraPath: string; ASearchRec: PSearchRec = nil): boolean;
+function SeparatePath(var InPath: string; out ExtraPath: string; const Mode:Longint; 
+  ASearchRec: PSearchRec = nil): boolean;
 var
   lFullPath: string;
   lPos: integer;
@@ -158,17 +160,17 @@ begin
   ExtraPath := '';
   if Length(InPath) <= 2 then exit(false);
   lFullPath := InPath;
-  if InPath[Length(InPath)] = '/' then
+  if InPath[Length(InPath)] = PathDelim then
     SetLength(InPath, Length(InPath)-1);
   repeat
-    Result := SysUtils.FindFirst(InPath, faAnyFile and not faDirectory, ASearchRec^) = 0;
+    Result := SysUtils.FindFirst(InPath, Mode, ASearchRec^) = 0;
     SysUtils.FindClose(ASearchRec^);
     if Result then
     begin
       ExtraPath := Copy(lFullPath, Length(InPath)+1, Length(lFullPath)-Length(InPath));
       break;
     end;
-    lPos := RPos('/', InPath);
+    lPos := RPos(PathDelim, InPath);
     if lPos > 0 then
       SetLength(InPath, lPos-1)
     else
