@@ -215,9 +215,9 @@ begin
   s^.stream.avail_out := Z_BUFSIZE;
 
   {$IFOPT I+} {$I-} {$define IOcheck} {$ENDIF}
-  Assign (s^.gzfile, s^.path);
+  Assign (s^.gzfile, path);
   {$ifdef unix}
-  if (fpstat(s^.path,info)<0) and (s^.mode='w') then
+  if (fpstat(path,info)<0) and (s^.mode='w') then
     ReWrite (s^.gzfile,1)  
   else
     Reset (s^.gzfile,1);
@@ -494,7 +494,7 @@ begin
     end;
   end;
 
-  if (s^.path <> '') then begin
+  if s^.path <> '' then begin
     {$I-}
     close(s^.gzfile);
     {$I+}
