@@ -198,6 +198,7 @@ type
     function InternalFind(AHash:LongWord;const AName:string;out PrevIndex:Integer):Integer;
   protected
     function Get(Index: Integer): Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Put(Index: Integer; Item: Pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index : Integer);
@@ -229,7 +230,7 @@ type
     procedure ForEachCall(proc2call:TListStaticCallback;arg:pointer);
     property Capacity: Integer read FCapacity write SetCapacity;
     property Count: Integer read FCount write SetCount;
-    property Items[Index: Integer]: Pointer read Get; default;
+    property Items[Index: Integer]: Pointer read Get write Put; default;
     property List: PHashItemList read FHashList;
     property Strs: PChar read FStrs;
   end;
@@ -270,6 +271,7 @@ type
     procedure SetCount(const AValue: integer); {$ifdef CCLASSESINLINE}inline;{$endif}
   protected
     function GetItem(Index: Integer): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetItem(Index: Integer; AObject: TObject); {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure SetCapacity(NewCapacity: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
     function GetCapacity: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
   public
@@ -295,7 +297,7 @@ type
     property Capacity: Integer read GetCapacity write SetCapacity;
     property Count: Integer read GetCount write SetCount;
     property OwnsObjects: Boolean read FFreeObjects write FFreeObjects;
-    property Items[Index: Integer]: TObject read GetItem; default;
+    property Items[Index: Integer]: TObject read GetItem write SetItem; default;
     property List: TFPHashList read FHashList;
   end;
 
@@ -1059,6 +1061,14 @@ begin
 end;
 
 
+procedure TFPHashList.Put(Index: Integer; Item: Pointer);
+begin
+  if (Index < 0) or (Index >= FCount) then
+    RaiseIndexError(Index);
+  FHashList^[Index].Data:=Item;;
+end;
+
+
 function TFPHashList.NameOfIndex(Index: Integer): String;
 begin
   If (Index < 0) or (Index >= FCount) then
@@ -1230,29 +1240,14 @@ begin
 end;
 
 procedure TFPHashList.Delete(Index: Integer);
-var
-  HashIndex,
-  PrevIndex  : integer;
 begin
   If (Index<0) or (Index>=FCount) then
     Error (SListIndexError, Index);
-  { Remove from current Hash }
-  HashIndex:=FHashTable^[FHashList^[Index].HashValue mod LongWord(FHashCapacity)];
-  PrevIndex:=-1;
-  while Index<>-1 do
-    begin
-      if HashIndex=Index then
-        break;
-      PrevIndex:=HashIndex;
-      HashIndex:=FHashList^[HashIndex].NextIndex;
-    end;
-  if PrevIndex<>-1 then
-    FHashList^[PrevIndex].NextIndex:=FHashList^[Index].NextIndex
-  else
-    FHashTable^[FHashList^[Index].HashValue mod LongWord(FHashCapacity)]:=FHashList^[Index].NextIndex;
   { Remove from HashList }
   dec(FCount);
   System.Move (FHashList^[Index+1], FHashList^[Index], (FCount - Index) * Sizeof(THashItem));
+  { All indexes are updated, we need to build the hashtable again }
+  Rehash;
   { Shrink the list if appropriate }
   if (FCapacity > 256) and (FCount < FCapacity shr 2) then
     begin
@@ -1617,6 +1612,13 @@ end;
 function TFPHashObjectList.GetItem(Index: Integer): TObject;
 begin
   Result := TObject(FHashList[Index]);
+end;
+
+procedure TFPHashObjectList.SetItem(Index: Integer; AObject: TObject);
+begin
+  if OwnsObjects then
+    TObject(FHashList[Index]).Free;
+  FHashList[index] := AObject;
 end;
 
 procedure TFPHashObjectList.SetCapacity(NewCapacity: Integer);
