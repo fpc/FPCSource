@@ -93,11 +93,13 @@ type
 
   function IsBlockError(const anError: Integer): Boolean; inline;
 
+  function TZSeconds: Integer; inline;
+
   function StrToHostAddr(const IP: string): Cardinal; inline;
   function HostAddrToStr(const Entry: Cardinal): string; inline;
   function StrToNetAddr(const IP: string): Cardinal; inline;
   function NetAddrToStr(const Entry: Cardinal): string; inline;
-
+  
 implementation
 
 {$IFNDEF UNIX}
@@ -131,11 +133,27 @@ begin
   Result:=Tmp;
 end;
 
+function TZSeconds: integer; inline;
+var
+  lInfo: Windows.TIME_ZONE_INFORMATION;
+begin
+  { lInfo.Bias is in minutes }
+  if Windows.GetTimeZoneInformation(@lInfo) <> $FFFFFFFF then
+    Result := lInfo.Bias * 60
+  else
+    Result := 0;
+end;
+
 {$ELSE}
 
 function LStrError(const Ernum: Longint; const UseUTF8: Boolean = False): string;
 begin
   Result:=IntToStr(Ernum); // TODO: fix for non-windows winsock users
+end;
+
+function TZSeconds: integer; inline;
+begin
+  Result:=0; // todo: fix for non-windows non unix
 end;
 
 {$ENDIF}
@@ -220,7 +238,7 @@ end;
 {$ELSE}
 // unix
 uses
-  Errors;
+  Errors, UnixUtil;
 
 function LStrError(const Ernum: Longint; const UseUTF8: Boolean = False): string;
 begin
@@ -280,6 +298,11 @@ end;
 function IsBlockError(const anError: Integer): Boolean; inline;
 begin
   Result:=(anError = ESysEWOULDBLOCK) or (anError = ESysENOBUFS);
+end;
+
+function TZSeconds: Integer; inline;
+begin
+  Result := unixutil.TZSeconds;
 end;
 
 {$ENDIF}

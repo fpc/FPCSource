@@ -477,6 +477,9 @@ type
 
 implementation
 
+uses
+  lCommon;
+
 const
   RequestBufferSize = 1024;
   DataBufferSize = 16*1024;

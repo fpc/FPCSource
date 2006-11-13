@@ -30,9 +30,6 @@ interface
 
 uses
   sysutils, 
-{$ifdef UNIX}
-  unixutil,
-{$endif}
   strutils;
 
 const
@@ -43,7 +40,6 @@ const
 type
   PSearchRec = ^TSearchRec;
 
-function TZSeconds: integer;
 function GMTToLocalTime(ADateTime: TDateTime): TDateTime;
 function LocalTimeToGMT(ADateTime: TDateTime): TDateTime;
 function TryHTTPDateStrToDateTime(ADateStr: pchar; var ADest: TDateTime): boolean;
@@ -57,41 +53,8 @@ function HexToNum(AChar: char): byte;
 
 implementation
 
-{$ifdef WINDOWS}
-
 uses
-  windows;
-
-function TZSeconds: integer;
-var
-  lInfo: Windows.TIME_ZONE_INFORMATION;
-begin
-  { lInfo.Bias is in minutes }
-  if Windows.GetTimeZoneInformation(@lInfo) <> $FFFFFFFF then
-    Result := lInfo.Bias * 60
-  else
-    Result := 0;
-end;
-
-{$else}
-
-{$ifdef UNIX}
-
-function TZSeconds: integer; inline;
-begin
-  Result := unixutil.TZSeconds;
-end;
-
-{$else}
-
-function TZSeconds: integer; inline;
-begin
-  Result := 0; // TODO: implement for non windows, non unix
-end;
-
-{$endif}
-
-{$endif}
+  lCommon;
 
 function GMTToLocalTime(ADateTime: TDateTime): TDateTime;
 begin
