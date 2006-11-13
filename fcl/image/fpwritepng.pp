@@ -267,7 +267,7 @@ procedure TFPWriterPNG.DetermineHeader (var AHeader : THeaderChunk);
 var c : integer;
   function CountAlphas : integer;
   var none, half : boolean;
-      x,y : longword;
+      x,y : longint;  // warning, checks on <0 !
       p : integer;
       c : TFPColor;
       a : word;
