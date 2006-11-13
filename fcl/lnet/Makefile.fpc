@@ -8,6 +8,7 @@ main=fcl
 [target]
 units=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp \
       lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
+units_os2=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp
 exampledirs=examples
 
 [require]

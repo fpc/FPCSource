@@ -7,6 +7,7 @@ packages=fcl
 
 [target]
 dirs=ltcp ludp ltelnet lftp lsmtp lhttp
+dirs_os2=ltcp ludp ltelnet lftp lsmtp
 
 [compiler]
 options=-S2
