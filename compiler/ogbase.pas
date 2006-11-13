@@ -99,7 +99,7 @@ interface
       N_LBRAC = $C0;
       N_EXCL  = $C2;
       N_RBRAC = $E0;
-      
+
     type
       TObjSectionOption = (
        { Has Data available in the file }
@@ -384,7 +384,7 @@ interface
 
       TExeOutput = class
       private
-        { ExeSections }
+        { ExeSectionList }
         FCObjData         : TObjDataClass;
         FCExeSection      : TExeSectionClass;
         FCurrExeSec       : TExeSection;
@@ -450,7 +450,7 @@ interface
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);virtual;
         function  writeexefile(const fn:string):boolean;
         property Writer:TObjectWriter read FWriter;
-        property ExeSections:TFPHashObjectList read FExeSectionList;
+        property ExeSectionList:TFPHashObjectList read FExeSectionList;
         property ObjDataList:TFPObjectList read FObjDataList;
         property ExeSymbolList:TFPHashObjectList read FExeSymbolList;
         property UnresolvedExeSymbols:TFPObjectList read FUnresolvedExeSymbols;
@@ -1407,7 +1407,7 @@ implementation
 
     function  TExeOutput.FindExeSection(const aname:string):TExeSection;
       begin
-        result:=TExeSection(FExeSectionList.Find(aname));
+        result:=TExeSection(ExeSectionList.Find(aname));
       end;
 
 
@@ -1485,7 +1485,7 @@ implementation
       begin
         sec:=FindExeSection(aname);
         if not assigned(sec) then
-          sec:=CExeSection.create(FExeSectionList,aname);
+          sec:=CExeSection.create(ExeSectionList,aname);
         { Clear ExeSection contents }
         FCurrExeSec:=sec;
       end;
@@ -1952,9 +1952,9 @@ implementation
         if not assigned(exemap) then
           exit;
         exemap.AddMemoryMapHeader(ImageBase);
-        for i:=0 to ExeSections.Count-1 do
+        for i:=0 to ExeSectionList.Count-1 do
           begin
-            exesec:=TExeSection(ExeSections[i]);
+            exesec:=TExeSection(ExeSectionList[i]);
             exemap.AddMemoryMapExeSection(exesec);
             for j:=0 to exesec.ObjSectionList.count-1 do
               begin
@@ -2203,9 +2203,9 @@ implementation
         i      : longint;
         exesec : TExeSection;
       begin
-        for i:=0 to ExeSections.Count-1 do
+        for i:=0 to ExeSectionList.Count-1 do
           begin
-            exesec:=TExeSection(ExeSections[i]);
+            exesec:=TExeSection(ExeSectionList[i]);
             if not(oso_keep in exesec.SecOptions) and
                 (
                  (exesec.ObjSectionlist.count=0) or
@@ -2216,10 +2216,10 @@ implementation
                ) then
               begin
                 Comment(V_Debug,'Deleting empty section '+exesec.name);
-                FExeSectionList.Delete(i);
+                ExeSectionList[i]:=nil;
               end;
           end;
-        ExeSections.Pack;
+        ExeSectionList.Pack;
       end;
 
 
@@ -2367,10 +2367,10 @@ implementation
         ObjSectionWorkList.Free;
         ObjSectionWorkList:=nil;
 
-        { Remove unused objsections from exesections }
-        for i:=0 to ExeSections.Count-1 do
+        { Remove unused objsections from ExeSectionList }
+        for i:=0 to ExeSectionList.Count-1 do
           begin
-            exesec:=TExeSection(ExeSections[i]);
+            exesec:=TExeSection(ExeSectionList[i]);
             for j:=0 to exesec.ObjSectionlist.count-1 do
               begin
                 objsec:=TObjSection(exesec.ObjSectionlist[j]);
@@ -2393,9 +2393,9 @@ implementation
         exesec  : TExeSection;
         objsec  : TObjSection;
       begin
-        for i:=0 to ExeSections.Count-1 do
+        for i:=0 to ExeSectionList.Count-1 do
           begin
-            exesec:=TExeSection(ExeSections[i]);
+            exesec:=TExeSection(ExeSectionList[i]);
             if not assigned(exesec) then
               continue;
             for j:=0 to exesec.ObjSectionlist.count-1 do

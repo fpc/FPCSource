@@ -224,11 +224,11 @@ interface
          nsects    : smallint;
          nsyms,
          sympos    : aint;
-         procedure ExeSections_pass2_header(p:TObject;arg:pointer);
+         procedure ExeSectionList_pass2_header(p:TObject;arg:pointer);
          procedure write_symbol(const name:string;value:aint;section:smallint;typ,aux:byte);
          procedure globalsyms_write_symbol(p:TObject;arg:pointer);
-         procedure ExeSections_write_header(p:TObject;arg:pointer);
-         procedure ExeSections_write_data(p:TObject;arg:pointer);
+         procedure ExeSectionList_write_header(p:TObject;arg:pointer);
+         procedure ExeSectionList_write_data(p:TObject;arg:pointer);
        protected
          procedure CalcPos_Header;override;
          procedure CalcPos_Symbols;override;
@@ -1934,7 +1934,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffexeoutput.ExeSections_write_header(p:TObject;arg:pointer);
+    procedure TCoffexeoutput.ExeSectionList_write_header(p:TObject;arg:pointer);
       var
         sechdr    : tcoffsechdr;
       begin
@@ -1969,7 +1969,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffexeoutput.ExeSections_pass2_header(p:TObject;arg:pointer);
+    procedure TCoffexeoutput.ExeSectionList_pass2_header(p:TObject;arg:pointer);
       begin
         with TExeSection(p) do
           begin
@@ -1979,7 +1979,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure Tcoffexeoutput.ExeSections_write_Data(p:TObject;arg:pointer);
+    procedure Tcoffexeoutput.ExeSectionList_write_Data(p:TObject;arg:pointer);
       var
         objsec : TObjSection;
         i      : longint;
@@ -2024,7 +2024,7 @@ const pemagic : array[0..3] of byte = (
           end;
         { retrieve amount of ObjSections }
         nsects:=0;
-        ExeSections.ForEachCall(@ExeSections_pass2_header,@nsects);
+        ExeSectionList.ForEachCall(@ExeSectionList_pass2_header,@nsects);
         { calculate start positions after the headers }
         currdatapos:=stubsize+optheadersize+sizeof(tcoffsechdr)*nsects;
         currmempos:=stubsize+optheadersize+sizeof(tcoffsechdr)*nsects;
@@ -2045,7 +2045,7 @@ const pemagic : array[0..3] of byte = (
              begin
                sym:=TExeSymbol(ExeSymbolList[i]);
                if not sym.ObjSymbol.objsection.Used then
-                 ExeSymbolList.Delete(i);
+                 ExeSymbolList[i]:=nil;
              end;
            ExeSymbolList.Pack;
            { Calculating symbols position and size }
@@ -2191,9 +2191,9 @@ const pemagic : array[0..3] of byte = (
             FWriter.write(djoptheader,sizeof(djoptheader));
           end;
         { Section headers }
-        ExeSections.ForEachCall(@ExeSections_write_header,nil);
+        ExeSectionList.ForEachCall(@ExeSectionList_write_header,nil);
         { Section data }
-        ExeSections.ForEachCall(@ExeSections_write_data,nil);
+        ExeSectionList.ForEachCall(@ExeSectionList_write_data,nil);
         { Optional ObjSymbols }
         if not(cs_link_strip in current_settings.globalswitches) then
          begin
@@ -2474,9 +2474,9 @@ const pemagic : array[0..3] of byte = (
         exesec.AddObjSection(objsec);
         pgaddr:=-1;
         hdrpos:=-1;
-        for i:=0 to ExeSections.Count-1 do
+        for i:=0 to ExeSectionList.Count-1 do
           begin
-            exesec:=TExeSection(ExeSections[i]);
+            exesec:=TExeSection(ExeSectionList[i]);
             for j:=0 to exesec.ObjSectionList.count-1 do
               begin
                 objsec:=TObjSection(exesec.ObjSectionList[j]);
