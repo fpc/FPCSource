@@ -1003,7 +1003,7 @@ implementation
               inc(pc);
              move(startpc^,singlepathstring[1],pc-startpc);
              singlepathstring[0]:=char(longint(pc-startpc));
-             singlepathstring:=FixPath(singlepathstring,false);
+             singlepathstring:=FixPath(ExpandFileName(singlepathstring),false);
              result:=FileExistsNonCase(singlepathstring,f,allowcache,FoundFile);
              if result then
                exit;
