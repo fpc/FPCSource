@@ -8,15 +8,21 @@ version=2.0.0
 
 [require]
 libc=y
+packages_linux=x11
+packages_freebsd=x11
+packages_solaris=x11
+packages_openbsd=x11
+packages_netbsd=x11
+packages_darwin=x11
 
 [target]
 units=buildgtk2 
 exampledirs=examples
-implicitunits=glib2 atk pango gdk2pixbuf gdk2 gtk2 libglade2 gtkglext gdkglext gdk2x
+implicitunits=glib2 atk pango gdk2pixbuf gdk2 gtk2 libglade2 gtkglext gdkglext $(GDK2X)
 
 [compiler]
-unitdir=glib atk pango gtk+/gdk-pixbuf gtk+/gdk gtk+/gtk libglade gtkglext gtk2x11
-includedir=gtk2x11/include
+unitdir=glib atk pango gtk+/gdk-pixbuf gtk+/gdk gtk+/gtk libglade gtkglext $(GTK2X11)
+includedir=$(GTK2X11INCLUDE)
 
 [install]
 buildunit=buildgtk2
@@ -28,3 +34,9 @@ build=n
 [default]
 fpcdir=../../..
 
+[prerules]
+ifneq ($(findstring $(OS_TARGET),linux freebsd netbsd openbsd solaris darwin ),)
+GDK2X=gdk2x
+GTK2X11=gtk2x11
+GTK2X11INCLUDE=gtk2x11/include
+endif
