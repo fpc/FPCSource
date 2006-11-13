@@ -49,7 +49,7 @@ Type
            __pthread_mutex_type : word;
            __pthread_mutex_magic : word;
         end;
-}
+
       __pthread_mutex_lock : record
           case longint of
              0 : ( __pthread_mutex_lock64 : record
@@ -63,12 +63,14 @@ Type
           end;
       __pthread_mutex_data : qword;
     end;
-  
+}  
     pthread_spinlock_t = pthread_mutex_t;
   
+{ already in unix type
     pthread_mutexattr_t = record
       __pthread_mutexattrp : pointer;
     end;
+}
   
 { already in unix type
     pthread_cond_t = record
@@ -79,7 +81,7 @@ Type
       end;
       __pthread_cond_data : upad64_t;
     end;
-}
+
   
     pthread_condattr_t = record
       __pthread_condattrp : pointer;
@@ -95,7 +97,7 @@ Type
       __pthread_rwlock_readercv : pthread_cond_t;
       __pthread_rwlock_writercv : pthread_cond_t;
     end;
-  
+}  
     pthread_rwlockattr_t = record
       __pthread_rwlockattrp : pointer;
     end;
