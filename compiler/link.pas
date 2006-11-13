@@ -721,6 +721,7 @@ Implementation
         if (target_ar.arfinishcmd <> '') then
           begin
             SplitBinCmd(target_ar.arfinishcmd,binstr,cmdstr);
+            binstr := FindUtil(utilsprefix + binstr);
             Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename^));
             success:=DoExec(binstr,cmdstr,false,true);
           end;
