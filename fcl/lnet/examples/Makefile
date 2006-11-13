@@ -233,19 +233,13 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/ext
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
 endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
 ifeq ($(FULL_TARGET),i386-win32)
 override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp  ltcp ludp ltelnet lftp lsmtp
+override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
-ifeq ($(FULL_TARGET),i386-beos)
 override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
@@ -254,32 +248,17 @@ endif
 ifeq ($(FULL_TARGET),i386-solaris)
 override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
 endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
+override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
 override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
 endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
+override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
@@ -290,16 +269,7 @@ endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
 endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
 override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
@@ -308,16 +278,7 @@ endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
 endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
 override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
@@ -339,15 +300,6 @@ ifeq ($(FULL_TARGET),x86_64-win64)
 override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
-endif
-ifeq ($(FULL_TARGET),arm-gba)
 override TARGET_DIRS+=ltcp ludp ltelnet lftp lsmtp lhttp
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
@@ -2364,14 +2316,6 @@ TARGET_DIRS_LFTP=1
 TARGET_DIRS_LSMTP=1
 TARGET_DIRS_LHTTP=1
 endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
 ifeq ($(FULL_TARGET),i386-win32)
 TARGET_DIRS_LTCP=1
 TARGET_DIRS_LUDP=1
@@ -2386,22 +2330,8 @@ TARGET_DIRS_LUDP=1
 TARGET_DIRS_LTELNET=1
 TARGET_DIRS_LFTP=1
 TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
-ifeq ($(FULL_TARGET),i386-beos)
 TARGET_DIRS_LTCP=1
 TARGET_DIRS_LUDP=1
 TARGET_DIRS_LTELNET=1
@@ -2425,31 +2355,14 @@ TARGET_DIRS_LFTP=1
 TARGET_DIRS_LSMTP=1
 TARGET_DIRS_LHTTP=1
 endif
-ifeq ($(FULL_TARGET),i386-qnx)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
 ifeq ($(FULL_TARGET),i386-netware)
 TARGET_DIRS_LTCP=1
 TARGET_DIRS_LUDP=1
 TARGET_DIRS_LTELNET=1
 TARGET_DIRS_LFTP=1
 TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
 TARGET_DIRS_LTCP=1
 TARGET_DIRS_LUDP=1
 TARGET_DIRS_LTELNET=1
@@ -2465,37 +2378,12 @@ TARGET_DIRS_LFTP=1
 TARGET_DIRS_LSMTP=1
 TARGET_DIRS_LHTTP=1
 endif
-ifeq ($(FULL_TARGET),i386-emx)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 TARGET_DIRS_LTCP=1
 TARGET_DIRS_LUDP=1
 TARGET_DIRS_LTELNET=1
 TARGET_DIRS_LFTP=1
 TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 TARGET_DIRS_LTCP=1
@@ -2521,31 +2409,7 @@ TARGET_DIRS_LFTP=1
 TARGET_DIRS_LSMTP=1
 TARGET_DIRS_LHTTP=1
 endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
 TARGET_DIRS_LTCP=1
 TARGET_DIRS_LUDP=1
 TARGET_DIRS_LTELNET=1
@@ -2569,31 +2433,7 @@ TARGET_DIRS_LFTP=1
 TARGET_DIRS_LSMTP=1
 TARGET_DIRS_LHTTP=1
 endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
 TARGET_DIRS_LTCP=1
 TARGET_DIRS_LUDP=1
 TARGET_DIRS_LTELNET=1
@@ -2650,30 +2490,6 @@ TARGET_DIRS_LSMTP=1
 TARGET_DIRS_LHTTP=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-TARGET_DIRS_LTCP=1
-TARGET_DIRS_LUDP=1
-TARGET_DIRS_LTELNET=1
-TARGET_DIRS_LFTP=1
-TARGET_DIRS_LSMTP=1
-TARGET_DIRS_LHTTP=1
-endif
-ifeq ($(FULL_TARGET),arm-gba)
 TARGET_DIRS_LTCP=1
 TARGET_DIRS_LUDP=1
 TARGET_DIRS_LTELNET=1

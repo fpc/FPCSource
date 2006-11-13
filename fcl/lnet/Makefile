@@ -235,19 +235,13 @@ PACKAGEDIR_MAIN:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuff
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
 endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
 ifeq ($(FULL_TARGET),i386-win32)
 override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver  lnet lcommon levents lcontrolstack ltelnet lftp lsmtp
+override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
-ifeq ($(FULL_TARGET),i386-beos)
 override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
@@ -256,32 +250,17 @@ endif
 ifeq ($(FULL_TARGET),i386-solaris)
 override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
 endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
+override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
 override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
 endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
+override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
@@ -292,16 +271,7 @@ endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
 endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
 override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
@@ -310,16 +280,7 @@ endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
 endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
 override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
@@ -341,15 +302,6 @@ ifeq ($(FULL_TARGET),x86_64-win64)
 override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
-endif
-ifeq ($(FULL_TARGET),arm-gba)
 override TARGET_UNITS+=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)

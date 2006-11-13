@@ -6,9 +6,26 @@
 main=fcl
 
 [target]
-units=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp \
+units_linux=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp \
+      lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
+units_freebsd=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp \
+      lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
+units_darwin=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp \
+      lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
+units_solaris=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp \
+      lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
+units_netbsd=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp \
+      lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
+units_openbsd=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp \
+      lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
+units_win32=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp \
+      lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
+units_win64=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp lhttputil lhttp \
       lmimetypes lprocess lstrbuffer fastcgi lfastcgi lspawnfcgi lwebserver
 units_os2=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp
+units_netware=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp
+units_netwlibc=lnet lcommon levents lcontrolstack ltelnet lftp lsmtp
+
 exampledirs=examples
 
 [require]
