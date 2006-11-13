@@ -6600,6 +6600,7 @@ tests/test/tvarset1.pp svneol=native#text/plain
 tests/test/twide1.pp svneol=native#text/plain
 tests/test/twide2.pp svneol=native#text/plain
 tests/test/uabstrcl.pp svneol=native#text/plain
+tests/test/ugeneric10.pp svneol=native#text/plain
 tests/test/ugeneric3.pp svneol=native#text/plain
 tests/test/ugeneric4.pp svneol=native#text/plain
 tests/test/uimpluni1.pp svneol=native#text/plain
