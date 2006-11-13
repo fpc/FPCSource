@@ -12,10 +12,11 @@ libc=y
 [target]
 units=buildgtk2 
 exampledirs=examples
-implicitunits=glib2 atk pango gdk2pixbuf gdk2 gtk2 libglade2 gtkglext gdkglext
+implicitunits=glib2 atk pango gdk2pixbuf gdk2 gtk2 libglade2 gtkglext gdkglext gdk2x
 
 [compiler]
-unitdir=glib atk pango gtk+/gdk-pixbuf gtk+/gdk gtk+/gtk libglade gtkglext
+unitdir=glib atk pango gtk+/gdk-pixbuf gtk+/gdk gtk+/gtk libglade gtkglext gtk2x11
+includedir=gtk2x11/include
 
 [install]
 buildunit=buildgtk2
