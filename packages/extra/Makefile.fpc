@@ -48,8 +48,8 @@ dirs_emx=os2units \
 dirs_go32v2=unzip
 dirs_amiga=amunits
 dirs_palmos=palmunits
-dirs_netware=unzip zlib openssl
-dirs_netwlibc=unzip zlib openssl
+dirs_netware=unzip zlib
+dirs_netwlibc=unzip zlib
 dirs_darwin= unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms libpng libgd \
