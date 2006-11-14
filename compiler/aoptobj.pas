@@ -1058,9 +1058,9 @@ Unit AoptObj;
                                   GetNextInstruction(hp1, hp2) and
                                   FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol), hp2) then
                                 begin
-                                  if (taicpu(p).opcode=aopt_condjmp) and
+                                  if (taicpu(p).opcode=aopt_condjmp)
 {$ifdef arm}
-                                    (taicpu(p).condition<>C_None)
+                                    and (taicpu(p).condition<>C_None)
 {$endif arm}
                                   then
                                     begin
