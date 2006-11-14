@@ -229,7 +229,7 @@ Unit aopt;
       {          CSE;}
               End;
             { more peephole optimizations }
-      {      PeepHoleOptPass2;}
+            PeepHoleOptPass2;
             { if pass = last_pass then }
             PostPeepHoleOpts;
             { free memory }

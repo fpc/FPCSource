@@ -288,7 +288,7 @@ Unit AoptObj;
         { peephole optimizer }
         procedure PrePeepHoleOpts;
         procedure PeepHoleOptPass1;
-        procedure PeepHoleOptPass2;
+        procedure PeepHoleOptPass2; virtual;
         procedure PostPeepHoleOpts;
 
         { processor dependent methods }
