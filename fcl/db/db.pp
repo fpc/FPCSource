@@ -1498,6 +1498,28 @@ type
     property BeforeDisconnect : TNotifyEvent read FBeforeDisconnect write SetBeforeDisconnect;
   end;
 
+  { TBufBlobStream }
+  
+  PBlobBuffer = ^TBlobBuffer;
+  TBlobBuffer = record
+    FieldNo : integer;
+    OrgBufID: integer;
+    Buffer  : pointer;
+    Size    : ptrint;
+  end;
+
+   TBufBlobStream = class(TStream)
+  private
+    FBlobBuffer : PBlobBuffer;
+    FPosition   : ptrint;
+    FDataset    : TBufDataset;
+  protected
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
+  public
+    constructor Create(Field: TBlobField; Mode: TBlobStreamMode);
+  end;
 
   { TBufDataset }
 
@@ -1523,14 +1545,9 @@ type
   PBufBlobField = ^TBufBlobField;
   TBufBlobField = record
     ConnBlobBuffer : array[0..11] of byte; // It's here where the db-specific data is stored
-    BufBlobId      : Integer;
+    BlobBuffer     : PBlobBuffer;
   end;
   
-  TTempBlobStream = record
-    Id      : integer;
-    AStream : TMemoryStream;
-  end;
-
   TRecordsUpdateBuffer = array of TRecUpdateBuffer;
 
   TBufDataset = class(TDBDataSet)
@@ -1551,9 +1568,10 @@ type
     
     FAllPacketsFetched : boolean;
     FOnUpdateError  : TResolverErrorEvent;
-    
-    FNonPostedStreams : array of TTempBlobStream;
-    FPostedStreams    : array of TMemoryStream;
+
+    FBlobBuffers      : array of PBlobBuffer;
+    FUpdateBlobBuffers: array of PBlobBuffer;
+
     procedure CalcRecordSize;
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
@@ -1561,6 +1579,8 @@ type
     procedure SetPacketRecords(aValue : integer);
     function  IntAllocRecordBuffer: PChar;
   protected
+    function GetNewBlobBuffer : PBlobBuffer;
+    function GetNewWriteBlobBuffer : PBlobBuffer;
     procedure SetRecNo(Value: Longint); override;
     function  GetRecNo: Longint; override;
     function GetChangeCount: integer; virtual;
@@ -1574,6 +1594,7 @@ type
     function getnextpacket : integer;
     function GetRecordSize: Word; override;
     procedure InternalPost; override;
+    procedure InternalCancel; Override;
     procedure InternalDelete; override;
     procedure InternalFirst; override;
     procedure InternalLast; override;
@@ -1596,7 +1617,7 @@ type
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual; abstract;
     function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; virtual; abstract;
-    procedure LoadBlobIntoStream(Field: TField;AStream: TMemoryStream); virtual; abstract;
+    procedure LoadBlobIntoStream(Field: TField;AStream: TStream); virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
     procedure ApplyUpdates; virtual; overload;

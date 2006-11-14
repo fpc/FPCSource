@@ -84,7 +84,7 @@ type
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
-    procedure LoadBlobIntoStream(Field: TField;AStream: TMemoryStream;cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
+    procedure LoadBlobIntoStream(Field: TField;AStream: TStream;cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
   public
     constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
@@ -365,8 +365,6 @@ end;
 
 procedure TIBConnection.AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
 
-var x : shortint;
-
 begin
   FreeSQLDABuffer(aSQLDA);
 
@@ -496,9 +494,7 @@ procedure TIBConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLT
 
 var dh    : pointer;
     tr    : pointer;
-    p     : pchar;
     x     : shortint;
-    i     : integer;
 
 begin
   with cursor as TIBcursor do
@@ -1065,7 +1061,7 @@ begin
      CheckError('isc_blob_info', FStatus);
 end;
 
-procedure TIBConnection.LoadBlobIntoStream(Field: TField;AStream: TMemoryStream;cursor: TSQLCursor;ATransaction : TSQLTransaction);
+procedure TIBConnection.LoadBlobIntoStream(Field: TField;AStream: TStream;cursor: TSQLCursor;ATransaction : TSQLTransaction);
 const
   isc_segstr_eof = 335544367; // It's not defined in ibase60 but in ibase40. Would it be better to define in ibase60?
 

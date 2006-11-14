@@ -21,8 +21,8 @@ constructor TBufDataset.Create(AOwner : TComponent);
 begin
   Inherited Create(AOwner);
   SetLength(FUpdateBuffer,0);
-  SetLength(FNonPostedStreams,0);
-  SetLength(FPostedStreams,0);
+  SetLength(FBlobBuffers,0);
+  SetLength(FUpdateBlobBuffers,0);
   BookmarkSize := sizeof(TBufBookmark);
   FPacketRecords := 10;
 end;
@@ -509,8 +509,7 @@ end;
 
 procedure TBufDataset.ApplyUpdates(MaxErrors: Integer);
 
-var SaveBookmark : pchar;
-    r            : Integer;
+var r            : Integer;
     FailedCount  : integer;
     Response     : TResolverResponse;
     StoreRecBuf  : PBufRecLinkItem;
@@ -555,38 +554,71 @@ begin
       end;
   finally
     if failedcount = 0 then
+      begin
       SetLength(FUpdateBuffer,0);
+
+      if assigned(FUpdateBlobBuffers) then for r:=0 to length(FUpdateBlobBuffers)-1 do
+       if assigned(FUpdateBlobBuffers[r]) then
+        begin
+        if FUpdateBlobBuffers[r]^.OrgBufID >= 0 then
+          begin
+          Freemem(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]^.Buffer);
+          Dispose(FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID]);
+          FBlobBuffers[FUpdateBlobBuffers[r]^.OrgBufID] :=FUpdateBlobBuffers[r];
+          end
+        else
+          begin
+          setlength(FBlobBuffers,length(FBlobBuffers)+1);
+          FUpdateBlobBuffers[r]^.OrgBufID := high(FBlobBuffers);
+          FBlobBuffers[high(FBlobBuffers)] := FUpdateBlobBuffers[r];
+          
+          end;
+        end;
+      SetLength(FUpdateBlobBuffers,0);
+      end;
 
     FCurrentRecBuf := StoreRecBuf;
     Resync([]);
   end;
 end;
 
+
+procedure TBufDataset.InternalCancel;
+
+Var i            : integer;
+
+begin
+  if assigned(FUpdateBlobBuffers) then for i:=0 to length(FUpdateBlobBuffers)-1 do
+   if assigned(FUpdateBlobBuffers[i]) and (FUpdateBlobBuffers[i]^.FieldNo>0) then
+    begin
+    Reallocmem(FUpdateBlobBuffers[i]^.Buffer,0);
+    Dispose(FUpdateBlobBuffers[i]);
+    FUpdateBlobBuffers[i] := nil;
+    end;
+end;
+
 procedure TBufDataset.InternalPost;
 
 Var tmpRecBuffer : PBufRecLinkItem;
     CurrBuff     : PChar;
-    i ,sid       : integer;
+    i            : integer;
     blobbuf      : tbufblobfield;
+    NullMask     : pbyte;
 
 begin
-// First, if there are changed blob-field, make copies of their streams and
-// set the stream-id's in the activebuffer
-  if assigned(FNonPostedStreams) then for i:=0 to length(FNonPostedStreams)-1 do
+  if assigned(FUpdateBlobBuffers) then for i:=0 to length(FUpdateBlobBuffers)-1 do
+   if assigned(FUpdateBlobBuffers[i]) and (FUpdateBlobBuffers[i]^.FieldNo>0) then
     begin
-    sid := length(FPostedStreams);
-    SetLength(FPostedStreams,sid+1);
+    blobbuf.BlobBuffer := FUpdateBlobBuffers[i];
+    CurrBuff := ActiveBuffer;
+    NullMask := pbyte(CurrBuff);
 
-    FPostedStreams[sid] := TMemoryStream.Create;
+    inc(CurrBuff,FFieldBufPositions[FUpdateBlobBuffers[i]^.FieldNo-1]);
+    Move(blobbuf, CurrBuff^, GetFieldSize(FieldDefs[FUpdateBlobBuffers[i]^.FieldNo-1]));
+    unSetFieldIsNull(NullMask,FUpdateBlobBuffers[i]^.FieldNo-1);
     
-    FPostedStreams[sid].loadfromstream(FNonPostedStreams[i].AStream);
-
-    fillbyte(blobbuf,sizeof(TBufBlobField),0);
-    blobbuf.BufBlobId := sid+1;
-
-    SetFieldData(FieldByNumber(FNonPostedStreams[i].Id),@blobbuf);
+    FUpdateBlobBuffers[i]^.FieldNo := -1;
     end;
-  setlength(FNonPostedStreams,0);
 
   if state = dsInsert then
     begin
@@ -755,10 +787,101 @@ begin
     end;
 end;
 
+function TbufDataset.GetNewBlobBuffer : PBlobBuffer;
+
+var ABlobBuffer : PBlobBuffer;
+
+begin
+  setlength(FBlobBuffers,length(FBlobBuffers)+1);
+  new(ABlobBuffer);
+  fillbyte(ABlobBuffer^,sizeof(ABlobBuffer^),0);
+  ABlobBuffer^.OrgBufID := high(FUpdateBlobBuffers);
+  FBlobBuffers[high(FBlobBuffers)] := ABlobBuffer;
+  result := ABlobBuffer;
+end;
+
+function TbufDataset.GetNewWriteBlobBuffer : PBlobBuffer;
+
+var ABlobBuffer : PBlobBuffer;
+
+begin
+  setlength(FUpdateBlobBuffers,length(FUpdateBlobBuffers)+1);
+  new(ABlobBuffer);
+  fillbyte(ABlobBuffer^,sizeof(ABlobBuffer^),0);
+  FUpdateBlobBuffers[high(FUpdateBlobBuffers)] := ABlobBuffer;
+  result := ABlobBuffer;
+end;
+
+function TBufBlobStream.Seek(Offset: Longint; Origin: Word): Longint;
+
+begin
+  Case Origin of
+    soFromBeginning : FPosition:=Offset;
+    soFromEnd       : FPosition:=FBlobBuffer^.Size+Offset;
+    soFromCurrent   : FpoSition:=FPosition+Offset;
+  end;
+  Result:=FPosition;
+end;
+
+
+function TBufBlobStream.Read(var Buffer; Count: Longint): Longint;
+
+var ptr : pointer;
+
+begin
+  if FPosition + count > FBlobBuffer^.Size then
+    count := FBlobBuffer^.Size-FPosition;
+  ptr := FBlobBuffer^.Buffer+FPosition;
+  move(ptr^,buffer,count);
+  inc(FPosition,count);
+  result := count;
+end;
+
+function TBufBlobStream.Write(const Buffer; Count: Longint): Longint;
+
+var ptr : pointer;
+
+begin
+  ReAllocMem(FBlobBuffer^.Buffer,FPosition+Count);
+  ptr := FBlobBuffer^.Buffer+FPosition;
+  move(buffer,ptr^,count);
+  inc(FBlobBuffer^.Size,count);
+  inc(FPosition,count);
+  Result := count;
+end;
+
+constructor TBufBlobStream.Create(Field: TBlobField; Mode: TBlobStreamMode);
+
+var bufblob : TBufBlobField;
+
+begin
+  FDataset := Field.DataSet as TBufDataset;
+  if mode = bmread then
+    begin
+    if not field.getData(@bufblob) then
+      DatabaseError(SFieldIsNull);
+    if not assigned(bufblob.BlobBuffer) then with FDataSet do
+      begin
+      FBlobBuffer := GetNewBlobBuffer;
+      LoadBlobIntoStream(field,self);
+      end
+    else
+      FBlobBuffer := bufblob.BlobBuffer;
+    end
+  else if mode=bmWrite then with FDataSet as TBufDataset do
+    begin
+    FBlobBuffer := GetNewWriteBlobBuffer;
+    FBlobBuffer^.FieldNo := Field.FieldNo;
+    if (field.getData(@bufblob)) and assigned(bufblob.BlobBuffer) then
+      FBlobBuffer^.OrgBufID := bufblob.BlobBuffer^.OrgBufID
+    else
+      FBlobBuffer^.OrgBufID := -1;
+    end;
+end;
+
 function TBufDataset.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
 
-var mStream : TmemoryStream;
-    bufblob : TBufBlobField;
+var bufblob : TBufBlobField;
 
 begin
   result := nil;
@@ -767,30 +890,20 @@ begin
     if not field.getData(@bufblob) then
       exit;
 
-    mStream := TMemoryStream.Create;
-    if bufblob.BufBlobId>0 then
-      mStream.LoadFromStream(FPostedStreams[bufblob.BufBlobId-1])
-    else
-      LoadBlobIntoStream(field,mStream);
-
-    result := mStream;
+    result := TBufBlobStream.Create(Field as tblobfield,bmread);
     end
   else if mode=bmWrite then
     begin
-
-    if not (state in [dsEdit, dsInsert, dsFilter]) then
+    if not (state in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
       begin
       DatabaseErrorFmt(SNotInEditState,[Name],self);
       exit;
       end;
 
-    setlength(FNonPostedStreams,length(FNonPostedStreams)+1);
-    with FNonPostedStreams[high(FNonPostedStreams)] do
-      begin
-      id := field.fieldno;
-      astream := TMemoryStream.Create;
-      result := AStream;
-      end;
+    result := TBufBlobStream.Create(Field as tblobfield,bmWrite);
+
+    if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
+      DataEvent(deFieldChange, Ptrint(Field));
     end;
 end;
 

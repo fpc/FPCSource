@@ -79,6 +79,7 @@ Resourcestring
   SInvPacketRecordsValue   = 'PacketRecords has to be larger then 0';
   SInvalidSearchFieldType  = 'Searching in fields of type %s is not supported';
   SDatasetEmpty            = 'The dataset is empty';
+  SFieldIsNull             = 'The field is null';
   SOnUpdateError           = 'An error occured while applying the updates in a record: %s';
   SApplyRecNotSupported    = 'Applying updates is not supported by this TDataset descendent';
   SNoWhereFields           = 'There are no fields found to generate the where-clause';
