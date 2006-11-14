@@ -40,16 +40,16 @@ const
 type
   PSearchRec = ^TSearchRec;
 
-function GMTToLocalTime(ADateTime: TDateTime): TDateTime;
-function LocalTimeToGMT(ADateTime: TDateTime): TDateTime;
-function TryHTTPDateStrToDateTime(ADateStr: pchar; var ADest: TDateTime): boolean;
+  function GMTToLocalTime(ADateTime: TDateTime): TDateTime;
+  function LocalTimeToGMT(ADateTime: TDateTime): TDateTime;
+  function TryHTTPDateStrToDateTime(ADateStr: pchar; var ADest: TDateTime): boolean;
 
-function SeparatePath(var InPath: string; out ExtraPath: string; const Mode:Longint;
-  ASearchRec: PSearchRec = nil): boolean;
-function CheckPermission(const ADocument: pchar): boolean;
-function HTTPDecode(AStr: pchar): pchar;
-function HTTPEncode(const AStr: string): string;
-function HexToNum(AChar: char): byte;
+  function SeparatePath(var InPath: string; out ExtraPath: string; const Mode:Longint;
+    ASearchRec: PSearchRec = nil): boolean;
+  function CheckPermission(const ADocument: pchar): boolean;
+  function HTTPDecode(AStr: pchar): pchar;
+  function HTTPEncode(const AStr: string): string;
+  function HexToNum(AChar: char): byte;
 
 implementation
 

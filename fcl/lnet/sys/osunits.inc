@@ -14,9 +14,5 @@
   WinSock,
 {$endif}
 
-{$ifdef NETWLIBC}
-  WinSock,
-{$endif}
-
   SysUtils, Sockets;
 
