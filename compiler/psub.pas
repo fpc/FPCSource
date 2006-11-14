@@ -745,7 +745,7 @@ implementation
             { set the start offset to the start of the temp area in the stack }
             tg:=ttgobj.create;
 
-{$ifdef x86}
+{$if defined(x86) or defined(arm)}
             { try to strip the stack frame }
             { set the framepointer to esp if:
               - no assembler directive, those are handled elsewhere
@@ -761,7 +761,11 @@ implementation
                not(po_assembler in procdef.procoptions) and
                ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
                        pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter,
-                       pi_needs_stackframe])=[]) then
+                       pi_needs_stackframe])=[])
+               {$ifdef arm}
+               and ((cs_fp_emulation in current_settings.moduleswitches) or not (pi_uses_fpu in flags))
+               {$endif arm}
+             then
                begin
                  { we need the parameter info here to determine if the procedure gets
                    parameters on the stack
@@ -777,8 +781,7 @@ implementation
                      tg.direction:=1;
                    end;
                end;
-{$endif x86}
-
+{$endif}
             { Create register allocator }
             cg.init_register_allocators;
 

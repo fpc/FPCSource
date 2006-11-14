@@ -62,7 +62,8 @@ unit cpupi;
           is especially a problem when taking the address of a local. For now,
           this extra memory should hurt less than generating all local contants with offsets
           >256 as non shifter constants }
-        tg.setfirsttemp(-12-28);
+        if tg.direction = -1 then
+          tg.setfirsttemp(-12-28);
       end;
 
 

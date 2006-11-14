@@ -1156,7 +1156,8 @@ unit cgcpu;
          firstfloatreg,lastfloatreg,
          r : byte;
          i : aint;
-        again : tasmlabel;
+         again : tasmlabel;
+         regs : tcpuregisterset;
       begin
         LocalSize:=align(LocalSize,4);
         if not(nostackframe) then
@@ -1171,19 +1172,28 @@ unit cgcpu;
                   lastfloatreg:=r;
                 end;
             a_reg_alloc(list,NR_STACK_POINTER_REG);
-            a_reg_alloc(list,NR_FRAME_POINTER_REG);
-            a_reg_alloc(list,NR_R12);
+            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+              begin
+                a_reg_alloc(list,NR_FRAME_POINTER_REG);
+                a_reg_alloc(list,NR_R12);
 
-            list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_STACK_POINTER_REG));
+                list.concat(taicpu.op_reg_reg(A_MOV,NR_R12,NR_STACK_POINTER_REG));
+              end;
             { save int registers }
             reference_reset(ref);
             ref.index:=NR_STACK_POINTER_REG;
             ref.addressmode:=AM_PREINDEXED;
-            list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,
-              rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)+[RS_R11,RS_R12,RS_R14,RS_R15]),
-              PF_FD));
+            regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
+            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+              regs:=regs+[RS_R11,RS_R12,RS_R14,RS_R15]
+            else
+              if (regs<>[]) or (pi_do_call in current_procinfo.flags) then
+                include(regs,RS_R14);
+            if regs<>[] then
+              list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,regs),PF_FD));
 
-            list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
+            if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
+              list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
 
             { allocate necessary stack size
               not necessary according to Yury Sidorov
@@ -1248,17 +1258,20 @@ unit cgcpu;
              end
             else
             }
-            if not(is_shifter_const(localsize,shift)) then
-              begin
-                a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
-                list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
-                a_reg_dealloc(list,NR_R12);
-              end
-            else
-              begin
-                a_reg_dealloc(list,NR_R12);
-                list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
-              end;
+            if LocalSize<>0 then
+              if not(is_shifter_const(localsize,shift)) then
+                begin
+                  if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+                    a_reg_alloc(list,NR_R12);
+                  a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
+                  list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
+                  a_reg_dealloc(list,NR_R12);
+                end
+              else
+                begin
+                  a_reg_dealloc(list,NR_R12);
+                  list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
+                end;
 
             if firstfloatreg<>RS_NO then
               begin
@@ -1287,6 +1300,8 @@ unit cgcpu;
          firstfloatreg,lastfloatreg,
          r : byte;
          shift : byte;
+         regs : tcpuregisterset;
+         LocalSize : longint;
       begin
         if not(nostackframe) then
           begin
@@ -1320,7 +1335,37 @@ unit cgcpu;
               end;
 
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
-              list.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14))
+              begin
+                LocalSize:=current_procinfo.calc_stackframe_size;
+                if LocalSize<>0 then
+                  if not(is_shifter_const(LocalSize,shift)) then
+                    begin
+                      a_reg_alloc(list,NR_R12);
+                      a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
+                      list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
+                      a_reg_dealloc(list,NR_R12);
+                    end
+                  else
+                    begin
+                      list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
+                    end;
+                    
+                regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
+                if (pi_do_call in current_procinfo.flags) or (regs<>[]) then
+                  begin
+                    exclude(regs,RS_R14);
+                    include(regs,RS_R15);
+                  end;
+                if regs=[] then
+                  list.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14))
+                else
+                  begin
+                    reference_reset(ref);
+                    ref.index:=NR_STACK_POINTER_REG;
+                    ref.addressmode:=AM_PREINDEXED;
+                    list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,regs),PF_FD));
+                  end;
+              end
             else
               begin
                 { restore int registers and return }
