@@ -1380,6 +1380,7 @@ end;
 Procedure TDataset.Edit;
 
 begin
+  CheckBrowseMode;
   If Not CanModify then
     DatabaseError(SDatasetReadOnly,Self);
   If State in [dsedit,dsinsert] then exit;
@@ -1388,7 +1389,6 @@ begin
     Append;
     Exit;
     end;
-  CheckBrowseMode;
   DoBeforeEdit;
   If Not TryDoing(@InternalEdit,OnEditError) then
     exit;
