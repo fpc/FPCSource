@@ -627,9 +627,10 @@ implementation
         lastpos : longint;
         curop : longint;
         curtai : tai;
-        curdatatai,hp : tai;
+        curdatatai,hp,hp2 : tai;
         curdata : TAsmList;
         l : tasmlabel;
+        removeref : boolean;
       begin
         curdata:=TAsmList.create;
         lastpos:=-1;
@@ -652,11 +653,38 @@ implementation
                           { move only if we're at the first reference of a label }
                           (taicpu(curtai).oper[curop]^.ref^.offset=0) then
                           begin
-                            { if yes, insert till next symbol }
+                            { check if symbol already used. }
+                            { if yes, reuse the symbol }
+                            hp:=tai(curdatatai.next);
+                            removeref:=false;
+                            if assigned(hp) and (hp.typ=ait_const) then
+                              begin
+                                hp2:=tai(curdata.first);
+                                while assigned(hp2) do
+                                  begin
+                                    if (hp2.typ=ait_const) and (tai_const(hp2).sym=tai_const(hp).sym)
+                                      and (tai_const(hp2).value=tai_const(hp).value) and (tai(hp2.previous).typ=ait_label)
+                                    then
+                                      begin
+                                        with taicpu(curtai).oper[curop]^.ref^ do
+                                          begin
+                                            symboldata:=hp2.previous;
+                                            symbol:=tai_label(hp2.previous).labsym;
+                                          end;
+                                        removeref:=true;
+                                        break;
+                                      end;
+                                    hp2:=tai(hp2.next);
+                                  end;
+                              end;
+                            { move or remove symbol reference }
                             repeat
                               hp:=tai(curdatatai.next);
                               listtoinsert.remove(curdatatai);
-                              curdata.concat(curdatatai);
+                              if removeref then
+                                curdatatai.free
+                              else
+                                curdata.concat(curdatatai);
                               curdatatai:=hp;
                             until (curdatatai=nil) or (curdatatai.typ=ait_label);
                             if lastpos=-1 then
