@@ -50,9 +50,12 @@ interface
       end;
 
       TExportLibWin=class(texportlib)
+      private
         st : string;
         EList_indexed:TFPList;
         EList_nonindexed:TFPList;
+      public
+        destructor Destroy;override;
         procedure preparelib(const s:string);override;
         procedure exportprocedure(hp : texported_item);override;
         procedure exportvar(hp : texported_item);override;
@@ -572,6 +575,14 @@ implementation
                              TExportLibWin
 *****************************************************************************}
 
+    destructor TExportLibWin.Destroy;
+      begin
+        EList_indexed.Free;
+        EList_nonindexed.Free;
+        inherited;
+      end;
+      
+    
     procedure TExportLibWin.preparelib(const s:string);
       begin
          if current_asmdata.asmlists[al_exports]=nil then
@@ -666,8 +677,8 @@ implementation
          if Gl_DoubleIndex then
            begin
              message1(parser_e_export_ordinal_double,tostr(Gl_DoubleIndexValue));
-             EList_indexed.Free;
-             EList_nonindexed.Free;
+             FreeAndNil(EList_indexed);
+             FreeAndNil(EList_nonindexed);
              exit;
            end;
 
@@ -694,10 +705,10 @@ implementation
            EList_nonindexed.Delete(ni_high);
            texported_item(EList_indexed.Items[pred(AutoIndex)]).index:=autoindex;
           end;
-         EList_nonindexed.Free;
+         FreeAndNil(EList_nonindexed);
          for i:=0 to pred(EList_indexed.Count)do
           exportfromlist(texported_item(EList_indexed.Items[i]));
-         EList_indexed.Free;
+         FreeAndNil(EList_indexed);
 
          if (target_asm.id in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
           begin

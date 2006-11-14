@@ -181,8 +181,6 @@ unit opttail;
         oldnodes : tnode;
         i : longint;
       begin
-        labelnode:=clabelnode.create(cnothingnode.create);
-
         { check if the parameters actually would support tail recursion elimination }
         for i:=0 to p.paras.count-1 do
           with tparavarsym(p.paras[i]) do
@@ -190,6 +188,8 @@ unit opttail;
               ((varspez=vs_const) and
                (paramanager.push_addr_param(varspez,vardef,p.proccalloption))) then
                exit;
+
+        labelnode:=clabelnode.create(cnothingnode.create);
         if find_and_replace_tailcalls(n) then
           begin
             oldnodes:=n;

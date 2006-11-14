@@ -601,6 +601,7 @@ implementation
       begin
         if assigned(Data) then
           Data.Free;
+        stringdispose(FCachedFullName);
         ObjRelocations.Free;
         ObjSymbolDefines.Free;
         VTRefList.Free;
@@ -1323,7 +1324,7 @@ implementation
     constructor TImportLibrary.create(AList:TFPHashObjectList;const AName:string);
       begin
         inherited create(AList,AName);
-        FImportSymbolList:=TFPHashObjectList.Create(false);
+        FImportSymbolList:=TFPHashObjectList.Create(true);
       end;
 
 
@@ -1538,6 +1539,7 @@ implementation
             objsec:=TObjSection(TmpObjSectionList[i]);
             CurrExeSec.AddObjSection(objsec);
           end;
+        TmpObjSectionList.Free;
       end;
 
 

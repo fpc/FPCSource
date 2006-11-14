@@ -2948,6 +2948,7 @@ implementation
             dispose(inlininginfo);
             inlininginfo:=nil;
           end;
+         stringdispose(resultname);
          stringdispose(import_dll);
          stringdispose(import_name);
          if (po_msgstr in procoptions) then

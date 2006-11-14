@@ -1293,6 +1293,8 @@ implementation
        unitsearchpath.Free;
        objectsearchpath.Free;
        includesearchpath.Free;
+       LinkLibraryAliases.Free;
+       LinkLibraryOrder.Free;
      end;
 
    procedure InitGlobals;

@@ -316,6 +316,7 @@ implementation
 {$endif}
          for hal:=low(TAsmListType) to high(TAsmListType) do
            AsmLists[hal].free;
+         CurrAsmList.free;
 {$ifdef MEMDEBUG}
          memasmlists.stop;
 {$endif}

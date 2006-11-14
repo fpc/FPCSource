@@ -200,7 +200,7 @@ implementation
     constructor TDirectoryCache.create;
       begin
         inherited create;
-        FDirectories:=TFPHashObjectList.Create(false);
+        FDirectories:=TFPHashObjectList.Create(true);
       end;
 
 
