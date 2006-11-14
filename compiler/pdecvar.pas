@@ -838,8 +838,9 @@ implementation
                   is_external_var:=true;
                 end
               else if (cs_externally_visible in current_settings.localswitches) then
-                begin {The effect of this is the same as if cvar has been given as directives.}
+                begin {The effect of this is the same as if cvar has been given as directives and it's made public.}
                   is_cdecl:=true;
+                  is_public_var:=true;
                 end;
             end;
 
