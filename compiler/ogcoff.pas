@@ -2338,7 +2338,7 @@ const pemagic : array[0..3] of byte = (
           with internalobjdata do
             begin
               secname:=basedllname+'_i_'+afuncname;
-              textobjsection:=createsection(sectionname(sec_code,secname,secorder_default),sectiontype2align(sec_code),sectiontype2options(sec_code) - [oso_keep]);
+              textobjsection:=createsection(sectionname(sec_code,secname,secorder_default),current_settings.alignment.procalign,sectiontype2options(sec_code) - [oso_keep]);
               idata4objsection:=createsection(sec_idata4, secname);
               idata5objsection:=createsection(sec_idata5, secname);
               idata6objsection:=createsection(sec_idata6, secname);
