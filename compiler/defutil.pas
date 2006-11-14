@@ -1011,7 +1011,10 @@ implementation
     {# returns true, if the type passed is a varset }
     function is_varset(p : tdef) : boolean;
       begin
-        result:=(p.typ=setdef) and not(p.size=4);
+        if (target_info.endian = endian_little) then
+          result:=(p.typ=setdef) and not(p.size=4)
+        else
+          result:=false;
       end;
 
 
