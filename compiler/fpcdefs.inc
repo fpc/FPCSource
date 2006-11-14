@@ -23,7 +23,7 @@
 {$PACKENUM 1}
 {$ifdef FPC_HAS_VARSETS}
 {$ifndef FPC_BIG_ENDIAN}
-{$PACKSET 1}
+{ $PACKSET 1}
 {$endif}
 {$endif FPC_HAS_VARSETS}
 
