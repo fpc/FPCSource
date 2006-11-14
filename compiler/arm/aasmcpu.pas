@@ -236,6 +236,8 @@ uses
 
     { inserts pc relative symbols at places where they are reachable }
     procedure insertpcrelativedata(list,listtoinsert : TAsmList);
+    { inserts .pdata section and dummy function prolog needed for arm-wince exception handling }
+    procedure InsertPData;
 
     procedure InitAsm;
     procedure DoneAsm;
@@ -723,6 +725,23 @@ implementation
         curdata.free;
       end;
 
+    procedure InsertPData;
+      var
+        prolog: TAsmList;
+      begin
+        prolog:=TAsmList.create;
+        new_section(prolog,sec_code,'FPC_EH_PROLOG',sizeof(aint),secorder_begin);
+        prolog.concat(Tai_const.Createname('_ARM_ExceptionHandler', 0));
+        prolog.concat(Tai_const.Create_32bit(0));
+        prolog.concat(Tai_symbol.Createname_global('FPC_EH_CODE_START',AT_DATA,0));
+        { dummy function }
+        prolog.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14));
+        current_asmdata.asmlists[al_start].insertList(prolog);
+        prolog.Free;
+        new_section(current_asmdata.asmlists[al_end],sec_pdata,'',sizeof(aint));
+        current_asmdata.asmlists[al_end].concat(Tai_const.Createname('FPC_EH_CODE_START', 0));
+        current_asmdata.asmlists[al_end].concat(Tai_const.Create_32bit($ffffff01));
+      end;
 
 (*
       Floating point instruction format information, taken from the linux kernel
