@@ -46,6 +46,16 @@ Implementation
       result:=true;
     end;
 
+
+  { instructions modifying the CPSR can be only the last instruction }
+  function MustBeLast(p : tai) : boolean;
+    begin
+      Result:=(p.typ=ait_instruction) and
+        ((taicpu(p).opcode in [A_BL,A_BLX,A_CMP,A_CMN,A_SWI,A_TEQ,A_TST]) or
+         (taicpu(p).oppostfix=PF_S));
+    end;
+
+
   procedure TCpuAsmOptimizer.PeepHoleOptPass2;
     var
       p,hp1,hp2: tai;
@@ -55,7 +65,6 @@ Implementation
       { UsedRegs, TmpUsedRegs: TRegSet; }
 
     begin
-      exit; { deactived, not working yet FK }
       p := BlockStart;
       { UsedRegs := []; }
       while (p <> BlockEnd) Do
@@ -82,7 +91,13 @@ Implementation
                            not(hp1.typ=ait_label) do
                            begin
                               inc(l);
-                              GetNextInstruction(hp1,hp1);
+                              if MustBeLast(hp1) then
+                                begin
+                                  GetNextInstruction(hp1,hp1);
+                                  break;
+                                end
+                              else
+                                GetNextInstruction(hp1,hp1);
                            end;
                          if assigned(hp1) then
                            begin
@@ -97,7 +112,13 @@ Implementation
                                       repeat
                                         if hp1.typ=ait_instruction then
                                           taicpu(hp1).condition:=condition;
-                                        GetNextInstruction(hp1,hp1);
+                                        if MustBeLast(hp1) then
+                                          begin
+                                            GetNextInstruction(hp1,hp1);
+                                            break;
+                                          end
+                                        else
+                                          GetNextInstruction(hp1,hp1);
                                       until not(assigned(hp1)) or
                                         not(CanBeCond(hp1)) or
                                         (hp1.typ=ait_label);
