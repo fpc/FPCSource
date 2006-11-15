@@ -3453,7 +3453,7 @@ implementation
         tprocvardef(result).fpu_used:=fpu_used;
 {$endif i386}
 {$ifdef m68k}
-        tprocvardef(result).exp_funcretloc:=exp_funcretlog;
+        tprocvardef(result).exp_funcretloc:=exp_funcretloc;
 {$endif}
       end;
 
