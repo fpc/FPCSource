@@ -2348,7 +2348,12 @@ implementation
                 n := para.left.getcopy;
                 para.left.free;
                 para.left := n;
-                firstpass(para.left);
+                { not pass_1, because if that para is a function call to  }
+                { this same function, then it will be inlined again since }
+                { po_inline is not yet unset (since set_resulttype needs  }
+                { it to determine whether the resulttype location may be  }
+                { changed)                                                }
+                typecheckpass(para.left);
 
                 { create temps for value parameters, function result and also for    }
                 { const parameters which are passed by value instead of by reference }
