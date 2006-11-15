@@ -953,6 +953,21 @@ operator :=(const source : terror) dest : olevariant;{$ifdef SYSTEMINLINE}inline
   begin
     variantmanager.olevarfromint(dest,source,-sizeof(terror));
   end;
+  
+
+function Unassigned: Variant; // Unassigned standard constant
+begin
+  VarClearProc(TVarData(Result));
+  TVarData(Result).VType := varempty;
+end;
+
+
+function Null: Variant;       // Null standard constant
+  begin
+    VarClearProc(TVarData(Result));
+    TVarData(Result).VType := varnull;
+  end;
+
 {**********************************************************************
                       Variant manager functions
  **********************************************************************}

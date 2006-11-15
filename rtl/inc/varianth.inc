@@ -195,6 +195,11 @@ type
 procedure GetVariantManager(var VarMgr: TVariantManager);
 procedure SetVariantManager(const VarMgr: TVariantManager);
 
+{ Global constants. Needed here only for compatibility. }
+
+function Unassigned: Variant; // Unassigned standard constant
+function Null: Variant;       // Null standard constant
+
 const
   VarClearProc :  procedure(var v : TVarData) = nil;
   VarAddRefProc : procedure(var v : TVarData) = nil;
