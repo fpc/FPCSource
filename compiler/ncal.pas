@@ -2353,7 +2353,7 @@ implementation
                 { po_inline is not yet unset (since set_resulttype needs  }
                 { it to determine whether the resulttype location may be  }
                 { changed)                                                }
-                typecheckpass(para.left);
+                firstpass(para.left);
 
                 { create temps for value parameters, function result and also for    }
                 { const parameters which are passed by value instead of by reference }
@@ -2374,7 +2374,7 @@ implementation
                     { substitute the dereferenced temp in the inlined function }
                     { We can't do this if we can't take the address of the     }
                     { parameter expression, so in that case assign to a temp   }
-                    (para.left.expectloc in [LOC_CSUBSETREG,LOC_SUBSETREG]) or
+                    not(para.left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CONSTANT]) or
                     ((paracomplexity > 1) and
                      (not valid_for_addr(para.left,false) or
                       (para.left.nodetype = calln) or
