@@ -43,7 +43,7 @@ end;
 
 function Fplseek(fd : cint; offset : off_t; whence : cint): off_t; [public, alias : 'FPC_SYSC_LSEEK'];
 begin
-{$if defined(cpu64) and not defined(cpupowerpc64)}
+{$if defined(cpu64)}
   result:=do_syscall(syscall_nr_lseek,tsysparam(fd),tsysparam(offset),tsysparam(whence));
 {$else}
   if do_syscall(syscall_nr__llseek,tsysparam(fd),tsysparam(hi(offset)),tsysparam(lo(offset)),
@@ -299,7 +299,7 @@ function Fpftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SY
 doesn't have the returnvalue 64-bit problem)}
 
 begin
-{$if defined(cpu64) and not defined(cpupowerpc64)}
+{$if defined(cpu64)}
  Fpftruncate:=Do_syscall(syscall_nr_ftruncate,TSysParam(fd),TSysParam(flength));
 {$else}
  Fpftruncate:=Do_syscall(syscall_nr_ftruncate64,TSysParam(fd),TSysParam(lo(flength)),
