@@ -43,7 +43,7 @@ Implementation
 
   function CanBeCond(p : tai) : boolean;
     begin
-      result:=true;
+      result:=(p.typ=ait_instruction) and (taicpu(p).condition=C_None);
     end;
 
 
