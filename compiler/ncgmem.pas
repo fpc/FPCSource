@@ -172,6 +172,8 @@ implementation
 
          location_reset(location,LOC_REGISTER,OS_ADDR);
          location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+         if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+           internalerror(2006111510);
          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
       end;
 
