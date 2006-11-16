@@ -32,7 +32,19 @@
 }
 unit dbgdwarf;
 
-{$i fpcdefs.inc}
+{$i fpcdefs.inc} 
+
+{ 
+  I think I screwed up here. 
+  In the original code all (except one) places were isdwar64 is used there 
+  was a ifdef cpu64bit. I changed these since I thought that the moment a 
+  compiler is compiled with this flag, you cannot generate 32 bit cross 
+  information anymore. So in my understanding we needed someting dynamic 
+  based on the target flags. I fear that I didn't understand the 
+  crosscompilation completely. As a temp "solution" I restored the old 
+  behaviour using tmp_dwarf64_fix (MWE)
+}
+{$define tmp_dwarf64_fix}
 
 interface
 
@@ -646,8 +658,15 @@ implementation
     constructor TDebugInfoDwarf.Create;
       begin
         inherited Create;
-        // never generate dwarf info with 64 bit sizes for now
+{$ifdef tmp_dwarf64_fix}
+ {$ifdef cpu64bit}
+        isdwarf64 := true;
+ {$else}
         isdwarf64 := false;
+ {$endif}
+{$else}
+        isdwarf64 := target_cpu in [cpu_iA64,cpu_x86_64,cpu_powerpc64];
+{$endif}
         dirlist := TFPHashObjectList.Create;
         { add current dir as first item (index=0) }
         TDirIndexItem.Create(dirlist,'.', 0);
@@ -2141,10 +2160,13 @@ implementation
         { version }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(dwarf_version));
         { abbrev table (=relative from section start)}
+{$ifndef tmp_dwarf64_fix}
+        { this was the only place where isdwarf64 existed, however it was never set, to for now skip it (MWE)} 
         if isdwarf64 then
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_64bit,
             current_asmdata.RefAsmSymbol('.Ldebug_abbrev0')))
-        else
+        else 
+{$endif}
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_32bit,
             current_asmdata.RefAsmSymbol('.Ldebug_abbrev0')));
         { address size }
