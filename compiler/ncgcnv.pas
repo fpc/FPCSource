@@ -224,6 +224,7 @@ interface
       begin
         location_reset(location,LOC_REFERENCE,OS_NO);
         case left.location.loc of
+          LOC_CREGISTER,
           LOC_REGISTER :
             begin
             {$ifdef cpu_uses_separate_address_registers}
@@ -236,12 +237,6 @@ interface
               else
             {$endif}
                 location.reference.base := left.location.register;
-            end;
-          LOC_CREGISTER :
-            begin
-              location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
-              cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.register,
-                location.reference.base);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE :
