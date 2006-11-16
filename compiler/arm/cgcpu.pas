@@ -1488,16 +1488,18 @@ unit cgcpu;
                 ref.base:=tmpreg;
               end
             else
-              begin
-                ref.index:=tmpreg;
-                ref.shiftimm:=0;
-                ref.signindex:=1;
-                ref.shiftmode:=SM_None;
-              end;
+              if ref.base<>NR_PC then
+                begin
+                  ref.index:=tmpreg;
+                  ref.shiftimm:=0;
+                  ref.signindex:=1;
+                  ref.shiftmode:=SM_None;
+                end
+                else
+                  ref.base:=tmpreg;
           end
         else
           ref.base:=tmpreg;
-
         ref.offset:=0;
         ref.symbol:=nil;
       end;
