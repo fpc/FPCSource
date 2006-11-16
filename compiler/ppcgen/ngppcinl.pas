@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    Generate i386 inline nodes
+    Generate PowerPC32/64 inline nodes
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
  ****************************************************************************
 }
-unit nppcinl;
+unit ngppcinl;
 
 {$i fpcdefs.inc}
 
@@ -29,7 +29,7 @@ interface
        node,ninl,ncginl;
 
     type
-       tppcinlinenode = class(tcginlinenode)
+       tgppcinlinenode = class(tcginlinenode)
           { first pass override
             so that the code generator will actually generate
             these nodes.
@@ -39,7 +39,7 @@ interface
           procedure second_abs_real; override;
           procedure second_sqr_real; override;
           procedure second_prefetch;override;
-       private
+       protected
           procedure load_fpu_location;
        end;
 
@@ -56,10 +56,10 @@ implementation
 
 
 {*****************************************************************************
-                              TPPCINLINENODE
+                              tgppcinlinenode
 *****************************************************************************}
 
-     function tppcinlinenode.first_abs_real : tnode;
+     function tgppcinlinenode.first_abs_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
         registersint:=left.registersint;
@@ -70,7 +70,7 @@ implementation
         first_abs_real := nil;
       end;
 
-     function tppcinlinenode.first_sqr_real : tnode;
+     function tgppcinlinenode.first_sqr_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
         registersint:=left.registersint;
@@ -81,21 +81,19 @@ implementation
         first_sqr_real := nil;
       end;
 
+
        { load the FPU into the an fpu register }
-       procedure tppcinlinenode.load_fpu_location;
+       procedure tgppcinlinenode.load_fpu_location;
          begin
            location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
            secondpass(left);
            location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
-           location_copy(location,left.location);
-           if (location.loc = LOC_CFPUREGISTER) then
-             begin
-               location.loc := LOC_FPUREGISTER;
-               location.register := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-             end;
+           location.loc := LOC_FPUREGISTER;
+           location.register := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
          end;
 
-     procedure tppcinlinenode.second_abs_real;
+
+     procedure tgppcinlinenode.second_abs_real;
        begin
          location.loc:=LOC_FPUREGISTER;
          load_fpu_location;
@@ -103,7 +101,7 @@ implementation
            left.location.register));
        end;
 
-     procedure tppcinlinenode.second_sqr_real;
+     procedure tgppcinlinenode.second_sqr_real;
        var
          op: tasmop;
        begin
@@ -118,7 +116,7 @@ implementation
        end;
 
 
-     procedure tppcinlinenode.second_prefetch;
+     procedure tgppcinlinenode.second_prefetch;
        var
          r: tregister;
        begin
@@ -147,6 +145,7 @@ implementation
          end;
        end;
 
+
 begin
-   cinlinenode:=tppcinlinenode;
+   cinlinenode:=tgppcinlinenode;
 end.
