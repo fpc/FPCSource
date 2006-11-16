@@ -1119,14 +1119,22 @@ unit cgcpu;
 
 
     procedure tcgarm.a_jmp_name(list : TAsmList;const s : string);
+      var
+        ai : taicpu;
       begin
-        list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s)));
+        ai:=taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s));
+        ai.is_jmp:=true;
+        list.concat(ai);
       end;
 
 
     procedure tcgarm.a_jmp_always(list : TAsmList;l: tasmlabel);
+      var
+        ai : taicpu;
       begin
-        list.concat(taicpu.op_sym(A_B,l));
+        ai:=taicpu.op_sym(A_B,l);
+        ai.is_jmp:=true;
+        list.concat(ai);
       end;
 
 
@@ -1349,7 +1357,7 @@ unit cgcpu;
                     begin
                       list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
                     end;
-                    
+
                 regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
                 if (pi_do_call in current_procinfo.flags) or (regs<>[]) then
                   begin
@@ -1558,7 +1566,7 @@ unit cgcpu;
           a_load_ref_reg(list,size2opsize[size],size2opsize[size],srcref,r);
           list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,countreg,countreg,1),PF_S));
           a_load_reg_ref(list,size2opsize[size],size2opsize[size],r,dstref);
-          list.concat(setcondition(taicpu.op_sym(A_B,l),C_NE));
+          a_jmp_flags(list,F_NE,l);
           srcref.offset:=1;
           dstref.offset:=1;
           case count mod size of
