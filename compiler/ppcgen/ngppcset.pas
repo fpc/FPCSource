@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl and Carl Eric Codere
 
-    Generate PowerPC assembler for in set/case nodes
+    Generate PowerPC32/64 assembler for in set/case nodes
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
  ****************************************************************************
 }
-unit nppcset;
+unit ngppcset;
 
 {$i fpcdefs.inc}
 
@@ -29,8 +29,9 @@ interface
        node,nset,ncgset,cpubase,cgbase,cgobj,aasmbase,aasmtai,aasmdata,globtype;
 
     type
-       tppccasenode = class(tcgcasenode)
+       tgppccasenode = class(tcgcasenode)
          protected
+           procedure optimizevalues(var max_linear_list : aint; var max_dist : aword);override;
            function  has_jumptable : boolean;override;
            procedure genjumptable(hp : pcaselabel;min_,max_ : aint);override;
            procedure genlinearlist(hp : pcaselabel); override;
@@ -56,13 +57,19 @@ implementation
 *****************************************************************************}
 
 
-    function tppccasenode.has_jumptable : boolean;
+    procedure tgppccasenode.optimizevalues(var max_linear_list : aint; var max_dist : aword);
+    begin
+      max_linear_list := 10;
+    end;
+    
+
+    function tgppccasenode.has_jumptable : boolean;
       begin
         has_jumptable:=true;
       end;
 
 
-    procedure tppccasenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
+    procedure tgppccasenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
       var
         table : tasmlabel;
         last : TConstExprInt;
@@ -76,10 +83,18 @@ implementation
             if assigned(t^.less) then
               genitem(list,t^.less);
             { fill possible hole }
-            for i:=last+1 to t^._low-1 do
-              list.concat(Tai_const.Create_sym(elselabel));
-            for i:=t^._low to t^._high do
-              list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
+            i:=last+1;
+            while i<=t^._low-1 do
+              begin
+                list.concat(Tai_const.Create_sym(elselabel));
+                inc(i);
+              end;
+            i:=t^._low;
+            while i<=t^._high do
+              begin
+                list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
+                inc(i);
+              end;
             last:=t^._high;
             if assigned(t^.greater) then
               genitem(list,t^.greater);
@@ -117,7 +132,7 @@ implementation
       end;
 
 
-    procedure tppccasenode.genlinearlist(hp : pcaselabel);
+    procedure tgppccasenode.genlinearlist(hp : pcaselabel);
 
       var
          first, lastrange : boolean;
@@ -201,7 +216,7 @@ implementation
       begin
          { do we need to generate cmps? }
          if (with_sign and (min_label<0)) or
-            (opsize = OS_32) then
+            (opsize = OS_INT) then
            genlinearcmplist(hp)
          else
            begin
@@ -215,5 +230,5 @@ implementation
 
 
 begin
-   ccasenode:=tppccasenode;
+   ccasenode:=tgppccasenode;
 end.

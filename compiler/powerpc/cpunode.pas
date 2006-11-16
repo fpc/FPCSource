@@ -39,8 +39,8 @@ unit cpunode;
 //       nppccon,
 //       nppcflw,
 //       nppcmem,
-       nppcset,
-       nppcinl,
+       ngppcset,
+       ngppcinl,
 //       nppcopt,
        nppcmat,
        nppccnv
