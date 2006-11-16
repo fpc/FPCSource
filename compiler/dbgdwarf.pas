@@ -220,6 +220,7 @@ interface
         function get_file_index(afile: tinputfile): Integer;
         procedure write_symtable_syms(st:TSymtable);
       protected
+        // use 64 bit offsets/lengths or not
         isdwarf64: Boolean;
         vardatadef: trecorddef;
         procedure append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
@@ -645,7 +646,8 @@ implementation
     constructor TDebugInfoDwarf.Create;
       begin
         inherited Create;
-        isdwarf64 := target_cpu in [cpu_iA64,cpu_x86_64,cpu_powerpc64];
+        // never generate dwarf info with 64 bit sizes for now
+        isdwarf64 := false;
         dirlist := TFPHashObjectList.Create;
         { add current dir as first item (index=0) }
         TDirIndexItem.Create(dirlist,'.', 0);
