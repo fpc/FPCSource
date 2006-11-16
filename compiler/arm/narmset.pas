@@ -142,7 +142,9 @@ implementation
                     cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_EQ,0,hregister,blocklabel(t^.blockid))
                   else
                     begin
+                      tcgarm(cg).cgsetflags:=true;
                       cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(t^._low-last), hregister);
+                      tcgarm(cg).cgsetflags:=false;
                       cg.a_jmp_flags(current_asmdata.CurrAsmList,F_EQ,blocklabel(t^.blockid));
                     end;
                   last:=t^._low;
@@ -157,7 +159,11 @@ implementation
                     begin
                        { have we to ajust the first value ? }
                        if (t^._low>get_min_value(left.resultdef)) then
-                         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(t^._low), hregister);
+                         begin
+                           tcgarm(cg).cgsetflags:=true;
+                           cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(t^._low), hregister);
+                           tcgarm(cg).cgsetflags:=false;
+                         end;
                     end
                   else
                     begin
@@ -165,7 +171,9 @@ implementation
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
 
+                      tcgarm(cg).cgsetflags:=true;
                       cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SUB, opsize, aint(t^._low-last), hregister);
+                      tcgarm(cg).cgsetflags:=false;
                       { no jump necessary here if the new range starts at }
                       { at the value following the previous one           }
                       if ((t^._low-last) <> 1) or
