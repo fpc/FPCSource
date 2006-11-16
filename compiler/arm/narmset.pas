@@ -202,7 +202,7 @@ implementation
            else
               begin
                 cond_lt:=F_HI;
-                cond_le:=F_CS;
+                cond_le:=F_LS;
              end;
            { do we need to generate cmps? }
            if (with_sign and (min_label<0)) then
