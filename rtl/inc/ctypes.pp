@@ -31,7 +31,7 @@ type
 
   { the following type definitions are compiler dependant }
   { and system dependant                                  }
-  
+
   cint8                  = shortint;           pcint8                 = ^cint8;
   cuint8                 = byte;               pcuint8                = ^cuint8;
   cchar                  = cint8;              pcchar                 = ^cchar;
@@ -59,8 +59,8 @@ type
   culonglong             = cuint64;            pculonglong            = ^culonglong;
 
   cbool                  = longbool;           pcbool                 = ^cbool;
-  
-{$ifdef cpu64}
+
+{$if defined(cpu64) and not(defined(win64) and defined(cpux86_64))}
   clong                  = int64;              pclong                 = ^clong;
   cslong                 = int64;              pcslong                = ^cslong;
   culong                 = qword;              pculong                = ^culong;
@@ -69,7 +69,7 @@ type
   cslong                 = longint;            pcslong                = ^cslong;
   culong                 = cardinal;           pculong                = ^culong;
 {$endif}
-    
+
   cfloat                 = single;             pcfloat                = ^cfloat;
   cdouble                = double;             pcdouble               = ^cdouble;
   clongdouble            = extended;           pclongdouble           = ^clongdouble;
