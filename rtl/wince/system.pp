@@ -1772,10 +1772,12 @@ procedure SysCleanup;
 var
   i: integer;
 begin
+  if FCmdLine = nil then
+    exit;
   SysFreeMem(FCmdLine);
-  for i:=0 to argc do
-    sysfreemem(argv[i]);
-  sysfreemem(argv);
+  for i:=0 to Fargc do
+    sysfreemem(Fargv[i]);
+  sysfreemem(Fargv);
 end;
 
 initialization
