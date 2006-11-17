@@ -66,7 +66,8 @@ interface
         location_reset(location,LOC_CREFERENCE,def_cgsize(resultdef));
         lastlabel:=nil;
         realait:=floattype2ait[tfloatdef(resultdef).floattype];
-        hiloswapped:=current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11];
+        hiloswapped:=(current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) and
+          not(cs_fp_emulation in current_settings.moduleswitches);;
         { const already used ? }
         if not assigned(lab_real) then
           begin

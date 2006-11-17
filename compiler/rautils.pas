@@ -1482,7 +1482,8 @@ end;
           s32real : p.concat(Tai_real_32bit.Create(value));
           s64real :
 {$ifdef ARM}
-           if current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11] then
+           if (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) and
+             not(cs_fp_emulation in current_settings.moduleswitches) then
              p.concat(Tai_real_64bit.Create_hiloswapped(value))
            else
 {$endif ARM}
