@@ -3,7 +3,7 @@
 {$inline on}
 
 uses
-  uw7817;
+  tw7817a;
 
 var
   byteorder: cfbyteorder;
