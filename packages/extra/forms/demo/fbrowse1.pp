@@ -7,14 +7,14 @@ var
   form : PFL_FORM;
   br, but : PFL_OBJECT;
 
-procedure load_file(ob : PFL_OBJECT; arg : longint);export;
+procedure load_file(ob : PFL_OBJECT; arg : longint);cdecl;
 
 begin
   if (fl_load_browser(br,fl_show_input('Filename to load',''))<>0) then
      fl_add_browser_line(br,'NO SUCH FILE!');
 end;
 
-procedure set_size(ob : PFL_OBJECT; arg : Longint);export;
+procedure set_size(ob : PFL_OBJECT; arg : Longint);cdecl;
 
 begin
   fl_set_browser_fontsize(br, arg);

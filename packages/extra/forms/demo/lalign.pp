@@ -17,14 +17,14 @@ var fd_form0 : PFD_form0;
     align :integer;
 
 
-Procedure align_cb(ob : PFL_OBJECT; n : longint);export;
+Procedure align_cb(ob : PFL_OBJECT; n : longint);cdecl;
 begin
     if fl_get_button(fd_form0^.inside)<>0 then
        n:=n or FL_ALIGN_INSIDE;
     fl_set_object_lalign(fd_form0^.box, n);
 end;
 
-Procedure inside_cb(Ob : PFL_OBJECT; data : longint);export;
+Procedure inside_cb(Ob : PFL_OBJECT; data : longint);cdecl;
 
 begin
    if fl_get_button(ob)<>0 then

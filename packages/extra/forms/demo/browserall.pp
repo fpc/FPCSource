@@ -16,7 +16,7 @@ bnames : array[0..3] of pchar =
 );
 
 
-procedure deselect(obj  : PFL_OBJECT ; arg : longint);export;
+procedure deselect(obj  : PFL_OBJECT ; arg : longint);cdecl;
 var
   i : longint ;
 begin
@@ -24,7 +24,7 @@ begin
      fl_deselect_browser(br[i]);
 end;
 
-procedure set_size(obj : PFL_OBJECT; arg : longint);export;
+procedure set_size(obj : PFL_OBJECT; arg : longint);cdecl;
 var
   i : longint;
 begin
@@ -32,7 +32,7 @@ begin
      fl_set_browser_fontsize(br[i],arg);
 end;
 
-procedure set_style(obj : PFL_OBJECT; arg :  longint);export;
+procedure set_style(obj : PFL_OBJECT; arg :  longint);cdecl;
 var
   i : longint;
 
@@ -41,7 +41,7 @@ begin
      fl_set_browser_fontstyle(br[i], arg);
 end;
 
-procedure br_callback(ob : PFL_OBJECT; arg : longint);export;
+procedure br_callback(ob : PFL_OBJECT; arg : longint);cdecl;
 var
     buf : string[255];
 const

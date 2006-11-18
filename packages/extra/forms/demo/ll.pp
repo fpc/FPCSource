@@ -19,7 +19,7 @@ var
 xypui : PFD_axypform;
 
 { callbacks for form axypform }
-Procedure xyplot_cb(ob : PFL_OBJECT; data : longint);export;
+Procedure xyplot_cb(ob : PFL_OBJECT; data : longint);cdecl;
 
 
 var
@@ -37,13 +37,13 @@ begin
 end;
 
 
-Procedure alwaysreturn_cb(ob : PFL_OBJECT; data : longint); export;
+Procedure alwaysreturn_cb(ob : PFL_OBJECT; data : longint); cdecl;
 
 begin
    fl_set_xyplot_return(xypui^.xyplot, fl_get_button(ob));
 end;
 
-procedure interpolate_cb(ob : PFL_OBJECT; data : longint);export;
+procedure interpolate_cb(ob : PFL_OBJECT; data : longint);cdecl;
 
 begin
    if fl_get_button(ob)=0 then
@@ -52,14 +52,14 @@ begin
      fl_set_xyplot_interpolate(xypui^.xyplot, 0,0,0.2);
 end;
 
-Procedure inspect_cb(ob : PFL_OBJECT; data :longint); export;
+Procedure inspect_cb(ob : PFL_OBJECT; data :longint); cdecl;
 
 begin
    fl_set_xyplot_inspect(xypui^.xyplot, fl_get_button(ob));
 end;
 
 
-procedure notic_cb(ob : PFL_OBJECT; data :longint); export;
+procedure notic_cb(ob : PFL_OBJECT; data :longint); cdecl;
 
 var notic : Longint;
 

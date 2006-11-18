@@ -8,7 +8,7 @@ var
 form : PFL_FORM;
 br : PFL_OBJECT;
 
-procedure load_file(ob : PFL_OBJECT; arg : longint);export;
+procedure load_file(ob : PFL_OBJECT; arg : longint);cdecl;
 var
   fname : pchar;
 
@@ -19,12 +19,12 @@ begin
      fl_add_browser_line(br,'NO SUCH FILE!');
 end;
 
-procedure set_size(ob : PFL_OBJECT; arg : longint);export;
+procedure set_size(ob : PFL_OBJECT; arg : longint);cdecl;
 begin
    fl_set_browser_fontsize(br,arg);
 end;
 
-procedure exit_program(ob : PFL_OBJECT; data : longint);export;
+procedure exit_program(ob : PFL_OBJECT; data : longint);cdecl;
 begin
    halt(0);
 end;

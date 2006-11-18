@@ -16,17 +16,17 @@ PFD_fontsform=^TFD_fontsform;
 
 var ui : PFD_fontsform;
 
-procedure done_cb(obj : PFL_OBJECT; arg : longint);export;
+procedure done_cb(obj : PFL_OBJECT; arg : longint);cdecl;
 begin
     halt(0);
 end;
 
-procedure style_cb(obj : PFL_OBJECT; arg : Longint);export;
+procedure style_cb(obj : PFL_OBJECT; arg : Longint);cdecl;
 begin
   fl_set_object_lstyle(ui^.textobj, fl_get_browser(obj) - 1);
 end;
 
-procedure size_cb(obj : PFL_OBJECT; arg : longint); export;
+procedure size_cb(obj : PFL_OBJECT; arg : longint); cdecl;
 begin
   case fl_get_browser(obj) of
      1: fl_set_object_lsize(ui^.textobj,8);

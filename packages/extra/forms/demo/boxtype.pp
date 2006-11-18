@@ -52,7 +52,7 @@ var
 Const
 lastbt : Longint = -1;
 
-procedure boxtype_cb (ob : PFL_OBJECT; arg : longint);export;
+procedure boxtype_cb (ob : PFL_OBJECT; arg : longint);cdecl;
 
 var
   i, req_bt  : longint;
@@ -76,7 +76,7 @@ end;
 
 Const lval : longint = -1;
 
-procedure  mode_cb (ob : PFL_OBJECT; arg : longint);export;
+procedure  mode_cb (ob : PFL_OBJECT; arg : longint);cdecl;
 
 var
   db,theval : longint;

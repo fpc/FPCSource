@@ -23,7 +23,7 @@ var
 fd_form0 : PFD_form;
 
 { callbacks for form form0 }
-procedure return_cb(ob : PFL_OBJECT; data : longint); export;
+procedure return_cb(ob : PFL_OBJECT; data : longint); cdecl;
 
 begin
     fl_addto_browser(fd_form0^.br, pchar(data));
@@ -38,7 +38,7 @@ begin
     fl_set_object_return(fd_form0^.obj[3], n);
 end;
 
-procedure when_cb(ob : PFL_OBJECT; data : longint); export;
+procedure when_cb(ob : PFL_OBJECT; data : longint); cdecl;
 
 var n : longint;
 
@@ -48,7 +48,7 @@ begin
         set_when(n);
 end;
 
-procedure resetlog_cb(ob : PFL_OBJECT; data : longint);export;
+procedure resetlog_cb(ob : PFL_OBJECT; data : longint);cdecl;
 
 begin
     fl_clear_browser(fd_form0^.br);

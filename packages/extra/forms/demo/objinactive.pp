@@ -14,7 +14,7 @@ form : PFL_FORM;
         group,
         firstbut : PFL_OBJECT;
 
-procedure  exit_cb(obj : PFL_OBJECT; arg : longint); export;
+procedure  exit_cb(obj : PFL_OBJECT; arg : longint); cdecl;
 begin
  halt;
 end;
@@ -35,7 +35,7 @@ begin
     end
 end;
 
-Procedure setit_cb(obj : PFL_OBJECT; val : longint); export;
+Procedure setit_cb(obj : PFL_OBJECT; val : longint); cdecl;
 
 begin
   setit (obj,val)
@@ -50,7 +50,7 @@ begin
   setit(button4,b4);
 end;
 
-Procedure set_active(obj : PFL_OBJECT; arg : longint); export;
+Procedure set_active(obj : PFL_OBJECT; arg : longint); cdecl;
 
 begin
   case arg of

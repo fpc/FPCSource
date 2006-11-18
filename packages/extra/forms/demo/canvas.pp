@@ -24,7 +24,7 @@ PFD_canvasform = ^TFD_canvasform;
 Var canvasGC : TGC;
 
 
-function canvas_expose(ob : PFL_OBJECT;win : TWindow; w,h : longint; ev : PXEvent;d : Pointer) : longint;export;
+function canvas_expose(ob : PFL_OBJECT;win : TWindow; w,h : longint; ev : PXEvent;d : Pointer) : longint;cdecl;
 
 var ui : PFD_CANVASFORM;
 
@@ -35,7 +35,7 @@ begin
 end;
 
 
-function canvas_key(ob : PFL_OBJECT; win : TWindow; w,h : Longint; ev : PXEvent; d: pointer) : longint;export;
+function canvas_key(ob : PFL_OBJECT; win : TWindow; w,h : Longint; ev : PXEvent; d: pointer) : longint;cdecl;
 var
    ui :PFD_canvasform;
    buf : string[128];
@@ -50,7 +50,7 @@ begin
 end;
 
 
-function canvas_but(ob : PFL_OBJECT; win : TWindow; w,h : longint, ev : PXEvent;d : pointer) : longint;export;
+function canvas_but(ob : PFL_OBJECT; win : TWindow; w,h : longint, ev : PXEvent;d : pointer) : longint;cdecl;
 
 var
     ui : PFD_canvasform;
@@ -68,7 +68,7 @@ begin
     fl_addto_browser(ui^.br, @buf[1]);
 end;
 
-function canvas_misc(ob : PFL_OBJECT; win : TWindow; w,h : longint, ev : PXEvent;d : pointer) : longint;export;
+function canvas_misc(ob : PFL_OBJECT; win : TWindow; w,h : longint, ev : PXEvent;d : pointer) : longint;cdecl;
 
 var
 
@@ -97,7 +97,7 @@ end;
 var
 fd_canvasform : PFD_canvasform;
 
-procedure sensitive_setting(ob : PFL_OBJECT ; event : longint); export;
+procedure sensitive_setting(ob : PFL_OBJECT ; event : longint); cdecl;
 
 var
     hc : PFL_HANDLE_CANVAS;
@@ -113,7 +113,7 @@ begin
        fl_remove_canvas_handler(fd_canvasform^.canvas, event, hc);
 end;
 
-procedure disable_it(ob : PFL_OBJECT; data : longint);export;
+procedure disable_it(ob : PFL_OBJECT; data : longint);cdecl;
 
 begin
     if fl_get_button(ob)<>0 then
@@ -122,7 +122,7 @@ begin
       fl_activate_object (fd_canvasform^.canvas);
 end;
 
-procedure hide_it(ob : PFL_OBJECT; all : longint);export;
+procedure hide_it(ob : PFL_OBJECT; all : longint);cdecl;
 
 
 begin
@@ -151,7 +151,7 @@ begin
         end;
 end;
 
-procedure misc_cb(ob : PFL_OBJECT; data : longint); export;
+procedure misc_cb(ob : PFL_OBJECT; data : longint); cdecl;
 
 begin
     if(fl_get_button(ob)<>0) then

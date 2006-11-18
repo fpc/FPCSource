@@ -41,7 +41,7 @@ begin
     fl_unfreeze_form(cl);
 end;
 
-procedure br_cb(ob : PFL_OBJECT; q :longint);export;
+procedure br_cb(ob : PFL_OBJECT; q :longint);cdecl;
 
 var r : longint;
 
@@ -160,7 +160,7 @@ begin
     search_entry:= j;
 end;
 
-procedure search_rgb(ob : PFL_OBJECT; q : longint);export;
+procedure search_rgb(ob : PFL_OBJECT; q : longint);cdecl;
 
 var r, g, b, i,top : longint;
 
@@ -182,7 +182,7 @@ begin
 end;
 
 { change database }
-procedure db_cb(ob : PFL_OBJECT; q : longint);export;
+procedure db_cb(ob : PFL_OBJECT; q : longint);cdecl;
 
 var p: pchar;
     buf : string;
@@ -198,7 +198,7 @@ begin
         fl_set_object_label(ob, @dbname[1]);
 end;
 
-procedure done_cb (ob : PFL_OBJECT; q :  longint);export;
+procedure done_cb (ob : PFL_OBJECT; q :  longint);cdecl;
 begin
     halt(0);
 end;

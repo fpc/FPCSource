@@ -1,6 +1,6 @@
 program butttypes;
 
-uses strings,forms;
+uses strings,xforms;
 
 type TFD_form0 = record
         form0 : PFL_FORM;
@@ -11,7 +11,7 @@ end;
 PFD_form0 = ^TFD_form0;
 
 { callbacks for form form0 }
-procedure button_cb(ob : PFL_OBJECT; data : longint);export;
+procedure button_cb(ob : PFL_OBJECT; data : longint);cdecl;
 var
    ui : PFD_form0;
   buf : string [128];

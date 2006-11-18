@@ -21,7 +21,7 @@ begin
     fl_set_object_label(yval,@st[1]);
 end;
 
-procedure positioner_cb(ob :PFL_OBJECT; q : longint);export;
+procedure positioner_cb(ob :PFL_OBJECT; q : longint);cdecl;
 
 begin
   Do_Position (ob,q);

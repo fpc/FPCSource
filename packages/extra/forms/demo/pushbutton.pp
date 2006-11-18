@@ -6,7 +6,7 @@ uses xforms;
 var form : PFL_FORM;
     Abox : array[0..8] of PFL_OBJECT;
 
-procedure push_cb( ob : PFL_OBJECT; n : longint);export;
+procedure push_cb( ob : PFL_OBJECT; n : longint);cdecl;
 
 begin
    if (fl_get_button(ob)<>0) then

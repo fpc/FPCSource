@@ -29,7 +29,7 @@ PFD_objsform = ^TFD_objsform;
 var fd_objsform : PFD_objsform;
 
 { callbacks for form objsform }
-procedure show_group(ob : PFL_OBJECT;data:  longint);export;
+procedure show_group(ob : PFL_OBJECT;data:  longint);cdecl;
 
 var  i : longint;
 

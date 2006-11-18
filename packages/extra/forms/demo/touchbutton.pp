@@ -1,14 +1,14 @@
 {  This demo shows the use of a touch buttons. }
 program touchbutton;
 
-uses strings,forms;
+uses strings,xforms;
 
 var form : PFL_FORM;
     valobj,obj : PFL_OBJECT;
     value : LongInt;
 
 
-Procedure show_val(ob : PFL_OBJECT;delta : Longint);export;
+Procedure show_val(ob : PFL_OBJECT;delta : Longint);cdecl;
 
 var     st : string[32];
 

@@ -15,7 +15,7 @@ PFD_bwform = ^TFD_bwform;
 
 
 { callbacks for form bwform }
-procedure done_callback(ob : PFL_OBJECT; data : longint);export;
+procedure done_callback(ob : PFL_OBJECT; data : longint);cdecl;
 begin
   { fill-in code for callback }
    halt(0);
@@ -26,7 +26,7 @@ fd_bwform : PFD_bwform;
 
 const bws : array[0..7] of longint = (-3,-2,-1,1,2,3,4,5);
 
-procedure bw_callback(ob : PFL_OBJECT; data : longint);export;
+procedure bw_callback(ob : PFL_OBJECT; data : longint);cdecl;
 
 var bw : longint;
 

@@ -9,7 +9,7 @@ form : PFL_FORM;
 result : PFL_OBJECT;
 co : array[0..2] of PFL_OBJECT;
 
-procedure color_change(ob : PFL_OBJECT; data : longint);export;
+procedure color_change(ob : PFL_OBJECT; data : longint);cdecl;
 
 var r,g,b : longint;
 

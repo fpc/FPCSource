@@ -9,13 +9,13 @@ type TFD_INPUT = record
    end;
 PFD_INPUT = ^TFD_input;
 
-procedure done_cb( ob : PFL_OBJECT; data : longint);export;
+procedure done_cb( ob : PFL_OBJECT; data : longint);cdecl;
 
 begin
    halt(0);
 end;
 
-procedure input_cb( ob : PFL_OBJECT; data : longint);export;
+procedure input_cb( ob : PFL_OBJECT; data : longint);cdecl;
 
 var
    cx, cy, pos : Longint;
@@ -29,7 +29,7 @@ begin
    fl_set_object_label( PFD_input(ob^.form^.fdui)^.report,@buf[1]);
 end;
 
-procedure hide_show_cb(ob : PFL_OBJECT; data : longint);export;
+procedure hide_show_cb(ob : PFL_OBJECT; data : longint);cdecl;
 
 var  fd: PFD_input;
 

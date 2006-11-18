@@ -14,7 +14,7 @@ Const FL_CROSSBUTTON=2000;
 type TSPEC = TFL_BUTTON_STRUCT;
      PSPEC = ^TSPEC;
 
-Procedure draw_crossbutton(ob : PFL_OBJECT);export;
+Procedure draw_crossbutton(ob : PFL_OBJECT);cdecl;
 
 var temp : longint;
     xx, yy, ww, hh ,tt : TFL_Coord;

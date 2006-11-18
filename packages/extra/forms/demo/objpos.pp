@@ -6,7 +6,7 @@ const
   dx : TFL_Coord = 11 ;
   dy : TFL_Coord = 7 ;
 
-procedure move_cb(ob : PFL_OBJECT; data : longint);export;
+procedure move_cb(ob : PFL_OBJECT; data : longint);cdecl;
 
 var
    but : PFL_OBJECT;

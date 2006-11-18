@@ -2,7 +2,7 @@ program minput;
 
 uses xforms;
 
-procedure input_cb( ob : PFL_OBJECT; data : Longint);export;
+procedure input_cb( ob : PFL_OBJECT; data : Longint);cdecl;
 
 var
     x, y : Longint;

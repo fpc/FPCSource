@@ -14,7 +14,7 @@ PFD_inv=^TFD_inv;
 
 var ui : PFD_INV;
 
-procedure invert_it(ob : PFL_OBJECT; data : longint);export;
+procedure invert_it(ob : PFL_OBJECT; data : longint);cdecl;
 
 begin
    if (fl_get_button(ob)<>0) then

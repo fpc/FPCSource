@@ -7,7 +7,7 @@ var
 form : PFL_FORM;
 browserobj, inputobj, exitobj : PFL_OBJECT;
 
-procedure addit(ob : PFL_OBJECT; arg : longint);export;
+procedure addit(ob : PFL_OBJECT; arg : longint);cdecl;
 begin
   { append and show the last line. Don't use this if you just want
    * to add some lines. use fl_add_browser_line
@@ -15,7 +15,7 @@ begin
   fl_addto_browser(browserobj,fl_get_input(inputobj));
 end;
 
-procedure insertit(ob : PFL_OBJECT ; arg : longint);export;
+procedure insertit(ob : PFL_OBJECT ; arg : longint);cdecl;
 var
   n :  integer;
 begin
@@ -24,7 +24,7 @@ begin
   fl_insert_browser_line(browserobj,n,fl_get_input(inputobj));
 end;
 
-procedure replaceit(obj : PFL_OBJECT; arg : longint);export;
+procedure replaceit(obj : PFL_OBJECT; arg : longint);cdecl;
 var
   n :  integer;
 begin
@@ -34,7 +34,7 @@ begin
 end;
 
 
-procedure deleteit(ob : PFL_OBJECT; arg : Longint);export;
+procedure deleteit(ob : PFL_OBJECT; arg : Longint);cdecl;
 var
   n :  integer;
 begin
@@ -43,7 +43,7 @@ begin
   fl_delete_browser_line(browserobj,n);
 end;
 
-procedure clearit(ob : PFL_OBJECT; arg : longint);export;
+procedure clearit(ob : PFL_OBJECT; arg : longint);cdecl;
 begin
   fl_clear_browser(browserobj);
 end;

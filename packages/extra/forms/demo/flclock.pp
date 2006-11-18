@@ -6,7 +6,7 @@ uses xforms;
 var
  fclock : PFL_FORM;
 
-procedure exit_cb (ob : PFL_OBJECT; q : longint);export;
+procedure exit_cb (ob : PFL_OBJECT; q : longint);cdecl;
 begin
    halt(0);
 end;

@@ -16,7 +16,7 @@ Var menu,abox : array[0..3] of PFL_OBJECT;
    i, j : longint;
 
 
-procedure menu_cb(ob : PFL_OBJECT; m : longint);export;
+procedure menu_cb(ob : PFL_OBJECT; m : longint);cdecl;
 
 var i,item : longint;
 
@@ -39,7 +39,7 @@ begin
     fl_set_object_color(abox[m], FL_BLACK+item, FL_BLACK);
 end;
 
-procedure done_cb(ob : PFL_OBJECT; data : longint) ; export;
+procedure done_cb(ob : PFL_OBJECT; data : longint) ; cdecl;
 
 begin
     halt;

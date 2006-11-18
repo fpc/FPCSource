@@ -5,7 +5,7 @@ uses xforms;
 var form : PFL_FORM;
     topbox : PFL_OBJECT;
 
-procedure change_color(ob : PFL_OBJECT; col : longint);export;
+procedure change_color(ob : PFL_OBJECT; col : longint);cdecl;
 
 begin
   fl_set_object_color(topbox, col,  col);

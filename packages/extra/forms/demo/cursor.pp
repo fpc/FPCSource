@@ -27,7 +27,7 @@ begin
    fl_set_cursor(FL_ObjWin(ob), data);
 end;
 
-procedure setbitmapcursor_cb(ob : PFL_OBJECT ; data : Longint);export;
+procedure setbitmapcursor_cb(ob : PFL_OBJECT ; data : Longint);cdecl;
 
 begin
   if bitmapcur<>0 then
@@ -38,7 +38,7 @@ begin
 end;
 
 
-Procedure done_cb (ob : PFL_OBJECT; data : Longint);export;
+Procedure done_cb (ob : PFL_OBJECT; data : Longint);cdecl;
 begin
     Halt(0);
 end;

@@ -20,7 +20,7 @@ var
 { The call back routine }
 function handle_it(obj : PFL_OBJECT; event : longint;
                    mx,my : TFL_Coord;
-                   key : longint; ev : pointer) : longint;export;
+                   key : longint; ev : pointer) : longint;cdecl;
 
 begin
   exit;
@@ -43,7 +43,7 @@ begin
   handle_it:=0;
 end;
 
-procedure done(ob : PFL_OBJECT; data : longint); export;
+procedure done(ob : PFL_OBJECT; data : longint); cdecl;
 
 begin
  halt(0)

@@ -10,12 +10,12 @@ type TFD_buttform = record
 end;
 PFD_buttform = ^TFD_buttform;
 
-Procedure done_cb(ob : PFL_OBJECT; data :  longint);export;
+Procedure done_cb(ob : PFL_OBJECT; data :  longint);cdecl;
 begin
    halt(0);
 end;
 
-procedure bw_cb(ob : PFL_OBJECT; data : longint);export;
+procedure bw_cb(ob : PFL_OBJECT; data : longint);cdecl;
 
 const
     bws : array [0..7] of longint = (-4,-3,-2,-1,1,2,3,4);

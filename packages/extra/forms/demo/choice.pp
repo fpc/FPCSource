@@ -8,7 +8,7 @@ uses xforms;
 var form : PFL_FORM;
     sexobj,childobj,licenceobj,marriedobj,readyobj : PFL_OBJECT;
 
-procedure  cb( ob : PFL_OBJECT; data : longint);export;
+procedure  cb( ob : PFL_OBJECT; data : longint);cdecl;
 
 begin
    Writeln ('CallBack: ', fl_get_choice(ob));

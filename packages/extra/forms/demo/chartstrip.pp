@@ -12,14 +12,14 @@ var
 
  chartobj,sinobj,exitbut,stepobj : PFL_OBJECT;
 
-procedure set_function(obj : PFL_OBJECT; arg : longint);export;
+procedure set_function(obj : PFL_OBJECT; arg : longint);cdecl;
 begin
    func := arg;
    fl_clear_chart(chartobj);
    xx := 0.0;
 end;
 
-procedure set_step(obj : PFL_OBJECT; arg : longint);export;
+procedure set_step(obj : PFL_OBJECT; arg : longint);cdecl;
 
 begin
     step := fl_get_slider_value(stepobj);
