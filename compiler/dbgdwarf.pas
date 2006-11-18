@@ -878,10 +878,15 @@ implementation
         }
         current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
         if use_64bit_headers then
-          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)))
+          begin
+            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_64bit,sym));
+          end
         else
-          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym));
+          begin
+            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_32bit,sym));
+          end;
       end;
 
 
