@@ -5119,6 +5119,8 @@ Const
      WS_EX_COMPOSITED     =   $02000000;
      WS_EX_NOACTIVATE     =   $08000000;
 
+     C3_LEXICAL     = 1024;
+
   { --------------------- old stuff, need to organize! ---------------  }
   { BEGINNING of windowsx.h stuff from old headers:  }
   {  Not convertable by H2PAS
