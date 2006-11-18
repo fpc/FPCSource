@@ -87,6 +87,12 @@ implementation
           begin
             classh:=tobjectdef(p.resultdef);
 
+            { make sure we call ObjPas.TObject.Create/Free and not a random }
+            { create/free method in a macpas descendent object (since those }
+            { are not supposed to be called automatically when you call     }
+            { new/dispose)                                                  }
+            while assigned(classh.childof) do
+              classh := classh.childof;
             if is_new then
               begin
                 sym:=search_class_member(classh,'CREATE');
