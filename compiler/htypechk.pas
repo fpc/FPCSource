@@ -1353,7 +1353,7 @@ implementation
     function  valid_for_formal_const(p : tnode; report_errors: boolean) : boolean;
       begin
         valid_for_formal_const:=(p.resultdef.typ=formaldef) or
-          valid_for_assign(p,[valid_void,valid_const],report_errors);
+          valid_for_assign(p,[valid_void,valid_const,valid_property],report_errors);
       end;
 
 
