@@ -34,18 +34,6 @@ unit dbgdwarf;
 
 {$i fpcdefs.inc} 
 
-{ 
-  I think I screwed up here. 
-  In the original code all (except one) places were isdwar64 is used there 
-  was a ifdef cpu64bit. I changed these since I thought that the moment a 
-  compiler is compiled with this flag, you cannot generate 32 bit cross 
-  information anymore. So in my understanding we needed someting dynamic 
-  based on the target flags. I fear that I didn't understand the 
-  crosscompilation completely. As a temp "solution" I restored the old 
-  behaviour using tmp_dwarf64_fix (MWE)
-}
-{$define tmp_dwarf64_fix}
-
 interface
 
     uses
@@ -232,13 +220,13 @@ interface
         function get_file_index(afile: tinputfile): Integer;
         procedure write_symtable_syms(st:TSymtable);
       protected
-        // use 64 bit offsets/lengths or not
-        isdwarf64: Boolean;
+        // set if we should use 64bit headers (dwarf3 and up)
+        use_64bit_headers: Boolean;
         vardatadef: trecorddef;
         procedure append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
         procedure append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
-        procedure append_labelentry_data(attr : tdwarf_attribute;sym : tasmsymbol);
+        procedure append_labelentry_dataptr(attr : tdwarf_attribute;sym : tasmsymbol);
 
         procedure appenddef(def:tdef);
         procedure appenddef_ord(def:torddef); virtual;
@@ -658,15 +646,9 @@ implementation
     constructor TDebugInfoDwarf.Create;
       begin
         inherited Create;
-{$ifdef tmp_dwarf64_fix}
- {$ifdef cpu64bit}
-        isdwarf64 := true;
- {$else}
-        isdwarf64 := false;
- {$endif}
-{$else}
-        isdwarf64 := target_cpu in [cpu_iA64,cpu_x86_64,cpu_powerpc64];
-{$endif}
+        { 64bit headers are only supported for dwarf3 and up, so default off }
+        use_64bit_headers := false;
+
         dirlist := TFPHashObjectList.Create;
         { add current dir as first item (index=0) }
         TDirIndexItem.Create(dirlist,'.', 0);
@@ -888,10 +870,14 @@ implementation
       end;
 
 
-    procedure TDebugInfoDwarf.append_labelentry_data(attr : tdwarf_attribute;sym : tasmsymbol);
+    procedure TDebugInfoDwarf.append_labelentry_dataptr(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
+        {
+          used for writing dwarf lineptr, loclistptr, macptr and rangelistptr classes as FORM_dataN
+          The size of these depend on the header format
+        }
         current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
-        if isdwarf64 then
+        if use_64bit_headers then
           current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)))
         else
           current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
@@ -1712,29 +1698,23 @@ implementation
               end;
             constnil:
               begin
-                if isdwarf64 then
-                  begin
-                    current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(0));
-                  end
-                else
-                  begin
-                    current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(0));
-                  end;
+{$ifdef cpu64bit}
+                current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(0));
+{$else cpu64bit}
+                current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(0));
+{$endif cpu64bit}
               end;
             constpointer:
               begin
-                if isdwarf64 then
-                  begin
-                    current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(sym.value.valueordptr));
-                  end
-                else
-                  begin
-                    current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(sym.value.valueordptr));
-                  end;
+{$ifdef cpu64bit}
+                current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(sym.value.valueordptr));
+{$else cpu64bit}
+                current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(sym.value.valueordptr));
+{$endif cpu64bit}
               end;
             constreal:
               begin
@@ -1974,10 +1954,15 @@ implementation
 
         { size }
         current_asmdata.getlabel(lbl,alt_dbgfile);
-        { currently we create only 32 bit dwarf }
-        linelist.concat(tai_const.create_rel_sym(aitconst_32bit,
-          lbl,current_asmdata.RefAsmSymbol('.Ledebug_line0')));
-
+        if use_64bit_headers then
+          begin
+            linelist.concat(tai_const.create_32bit($FFFFFFFF));
+            linelist.concat(tai_const.create_rel_sym(aitconst_64bit,
+              lbl,current_asmdata.RefAsmSymbol('.Ledebug_line0')));
+          end
+        else
+          linelist.concat(tai_const.create_rel_sym(aitconst_32bit,
+            lbl,current_asmdata.RefAsmSymbol('.Ledebug_line0')));
         linelist.concat(tai_label.create(lbl));
 
         { version }
@@ -1985,10 +1970,12 @@ implementation
 
         { header length }
         current_asmdata.getlabel(lbl,alt_dbgfile);
-        { currently we create only 32 bit dwarf }
-        linelist.concat(tai_const.create_rel_sym(aitconst_32bit,
-          lbl,current_asmdata.RefAsmSymbol('.Lehdebug_line0')));
-
+        if use_64bit_headers then
+          linelist.concat(tai_const.create_rel_sym(aitconst_64bit,
+            lbl,current_asmdata.RefAsmSymbol('.Lehdebug_line0')))
+        else
+          linelist.concat(tai_const.create_rel_sym(aitconst_32bit,
+            lbl,current_asmdata.RefAsmSymbol('.Lehdebug_line0')));
         linelist.concat(tai_label.create(lbl));
 
         { minimum_instruction_length }
@@ -2152,26 +2139,30 @@ implementation
         { debug info header }
         current_asmdata.getlabel(lenstartlabel,alt_dbgfile);
         { size }
-        { currently we create only 32 bit dwarf }
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(aitconst_32bit,
-          lenstartlabel,current_asmdata.RefAsmSymbol('.Ledebug_info0')));
+        if use_64bit_headers then
+          begin
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit($FFFFFFFF));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(aitconst_64bit,
+              lenstartlabel,current_asmdata.RefAsmSymbol('.Ledebug_info0')));
+          end
+        else
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(aitconst_32bit,
+            lenstartlabel,current_asmdata.RefAsmSymbol('.Ledebug_info0')));
 
         current_asmdata.asmlists[al_dwarf_info].concat(tai_label.create(lenstartlabel));
         { version }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(dwarf_version));
         { abbrev table (=relative from section start)}
-{$ifndef tmp_dwarf64_fix}
-        { this was the only place where isdwarf64 existed, however it was never set, to for now skip it (MWE)} 
-        if isdwarf64 then
+        if use_64bit_headers then
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_64bit,
             current_asmdata.RefAsmSymbol('.Ldebug_abbrev0')))
         else 
-{$endif}
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_32bit,
             current_asmdata.RefAsmSymbol('.Ldebug_abbrev0')));
         { address size }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(aint)));
 
+        { first manadatory compilation unit TAG }
         append_entry(DW_TAG_compile_unit,true,[
           DW_AT_name,DW_FORM_string,FixFileName(current_module.sourcefiles.get_file(1).name^)+#0,
           DW_AT_producer,DW_FORM_string,'Free Pascal '+full_version_string+' '+date_string+#0,
@@ -2180,7 +2171,7 @@ implementation
           DW_AT_identifier_case,DW_FORM_data1,DW_ID_case_insensitive]);
 
         { reference to line info section }
-        append_labelentry_data(DW_AT_stmt_list,current_asmdata.RefAsmSymbol('.Ldebug_line0'));
+        append_labelentry_dataptr(DW_AT_stmt_list,current_asmdata.RefAsmSymbol('.Ldebug_line0'));
         append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol('.Ltext0'));
         append_labelentry(DW_AT_high_pc,current_asmdata.RefAsmSymbol('.Letext0'));
 
@@ -2264,7 +2255,6 @@ implementation
         hlabel       : tasmlabel;
         hp : tai;
         infile : tinputfile;
-        current_file : tai_file;
         prevcolumn,
         diffline,
         prevline,
@@ -2339,15 +2329,15 @@ implementation
                     if prevlabel = nil then
                       begin
                         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
-                        if isdwarf64 then
-                          asmline.concat(tai_const.create_uleb128bit(9))  { 1 + 8 }
-                        else
-                          asmline.concat(tai_const.create_uleb128bit(5)); { 1 + 4 }
+{$ifdef cpu64bit}
+                        asmline.concat(tai_const.create_uleb128bit(9)); { 1 + 8 }
                         asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
-                        if isdwarf64 then
-                          asmline.concat(tai_const.create_type_sym(aitconst_64bit, currlabel))
-                        else
-                          asmline.concat(tai_const.create_type_sym(aitconst_32bit, currlabel));
+                        asmline.concat(tai_const.create_type_sym(aitconst_64bit, currlabel));
+{$else cpu64bit}
+                        asmline.concat(tai_const.create_uleb128bit(5)); { 1 + 4 }
+                        asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
+                        asmline.concat(tai_const.create_type_sym(aitconst_32bit, currlabel));
+{$endif cpu64bit}
                       end
                     else
                       begin
