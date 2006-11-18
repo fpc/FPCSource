@@ -1118,7 +1118,7 @@ begin
   while (i<=l) and not (S[i] in Delims) do
     inc(i);
   Result:=Copy(S,Pos,i-Pos);
-  if (i<=l) and (S[i] in Delims) then
+  while (i<=l) and (S[i] in Delims) do
     inc(i);
   Pos:=i;
 end;
