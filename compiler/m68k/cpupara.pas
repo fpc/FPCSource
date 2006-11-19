@@ -208,7 +208,7 @@ unit cpupara;
             exit;
           end;
         { Return in FPU register? }
-        if p.returndef.typ=floatdef then
+        if not(cs_fp_emulation in current_settings.moduleswitches) and (p.returndef.typ=floatdef) then
           begin
             p.funcretloc[side].loc:=LOC_FPUREGISTER;
             p.funcretloc[side].register:=NR_FPU_RESULT_REG;
