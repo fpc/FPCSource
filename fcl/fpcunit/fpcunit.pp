@@ -57,6 +57,7 @@ type
   TRunMethod = procedure of object;
 
   TTestResult = class;
+  TTestSuite = class;
 
   {$M+}
   TTest = class(TObject)
@@ -79,6 +80,8 @@ type
   end;
   {$M-}
 
+
+  { TAssert }
 
   TAssert = class(TTest)
   public
@@ -170,6 +173,8 @@ type
     procedure AddError(ATest: TTest; AError: TTestFailure);
     procedure StartTest(ATest: TTest);
     procedure EndTest(ATest: TTest);
+    procedure StartTestSuite(ATestSuite: TTestSuite);
+    procedure EndTestSuite(ATestSuite: TTestSuite);
   end;
 
   TTestCase = class(TAssert)
@@ -271,6 +276,8 @@ type
     function SkipTest(ATestCase: TTestCase): boolean;
     procedure AddToSkipList(ATestCase: TTestCase);
     procedure RemoveFromSkipList(ATestCase: TTestCase);
+    procedure StartTestSuite(ATestSuite: TTestSuite);
+    procedure EndTestSuite(ATestSuite: TTestSuite);
   published
     property Listeners: TFPList read FListeners;
     property Failures: TFPList read FFailures;
@@ -1005,8 +1012,14 @@ procedure TTestSuite.Run(AResult: TTestResult);
 var
   i: integer;
 begin
+  if FTests.Count > 0 then
+    AResult.StartTestSuite(self);
+    
   for i := 0 to FTests.Count - 1 do
     RunTest(TTest(FTests[i]), AResult);
+    
+  if FTests.Count > 0 then
+    AResult.EndTestSuite(self);
 end;
 
 
@@ -1245,6 +1258,22 @@ end;
 procedure TTestResult.RemoveFromSkipList(ATestCase: TTestCase);
 begin
   FSkippedTests.Remove(ATestCase);
+end;
+
+procedure TTestResult.StartTestSuite(ATestSuite: TTestSuite);
+var
+  i: integer;
+begin
+  for i := 0 to FListeners.Count - 1 do
+    ITestListener(FListeners[i]).StartTestSuite(ATestSuite);
+end;
+
+procedure TTestResult.EndTestSuite(ATestSuite: TTestSuite);
+var
+  i: integer;
+begin
+  for i := 0 to FListeners.Count - 1 do
+    ITestListener(FListeners[i]).EndTestSuite(ATestSuite);
 end;
 
 end.

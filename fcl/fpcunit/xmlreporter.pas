@@ -22,7 +22,7 @@
     framework.  It uses the XMLWrite unit, which is part of FPC, to generate
     the XML document. The benefit of using the XMLWrite unit, is that the
     data generated is valid XML, with resevered characters correctly escaped.
-    This allows the XML document to be further processed with XSTL etc without
+    This allows the XML document to be further processed with XSLT etc without
     any issues.
 
 }
@@ -44,6 +44,9 @@ uses
 
 type
   { XML Test Listner }
+
+  { TXMLResultsWriter }
+
   TXMLResultsWriter = class(TNoRefCountObject, ITestListener)
   private
     FDoc: TXMLDocument;
@@ -53,6 +56,7 @@ type
     FFailures: TDOMNode;
     FIgnores: TDOMNode;
     FErrors: TDOMNode;
+    FLastTestSuite: TDOMNode;
     FStartCrono: TDateTime;
     { Converts the actual test results into XML nodes. This gets called
       by the public method WriteResult. }
@@ -69,7 +73,9 @@ type
     procedure   AddError(ATest: TTest; AError: TTestFailure);
     procedure   StartTest(ATest: TTest);
     procedure   EndTest(ATest: TTest);
-    
+    procedure   StartTestSuite(ATestSuite: TTestSuite);
+    procedure   EndTestSuite(ATestSuite: TTestSuite);
+
     { A public property to the internal XML document }
     property    Document: TXMLDocument read FDoc;
   end;
@@ -125,18 +131,25 @@ end;
 
 constructor TXMLResultsWriter.Create;
 begin
-  FDoc        := TXMLDocument.Create;
-  FResults    := nil;
-  FFailures   := nil;
-  FIgnores    := nil;
-  FErrors     := nil;
-  FListing    := nil;
+  FDoc            := TXMLDocument.Create;
+  FResults        := nil;
+  FFailures       := nil;
+  FIgnores        := nil;
+  FErrors         := nil;
+  FListing        := nil;
+  FLastTestSuite  := nil;
   WriteHeader;
 end;
 
 
 destructor TXMLResultsWriter.Destroy;
 begin
+  FResults        := nil;
+  FFailures       := nil;
+  FIgnores        := nil;
+  FErrors         := nil;
+  FListing        := nil;
+  FLastTestSuite  := nil;
   FDoc.Free;
   inherited Destroy;
 end;
@@ -218,19 +231,9 @@ procedure TXMLResultsWriter.StartTest(ATest: TTest);
 var
   n: TDOMElement;
 begin
-  { Try and find the Listings node first }
-  if not Assigned(FListing) then
-    FListing := FDoc.FindNode('TestListing');
-  { If we couldn't find it, create it }
-  if not Assigned(FListing) then
-  begin
-    FListing := FDoc.CreateElement('TestListing');
-    FResults.AppendChild(FListing);
-  end;
-
   n := FDoc.CreateElement('Test');
   n['Name'] := ATest.TestSuiteName + '.' + ATest.TestName;
-  FListing.AppendChild(n);
+  FLastTestSuite.AppendChild(n);
   FStartCrono := Now;
 end;
 
@@ -239,6 +242,16 @@ procedure TXMLResultsWriter.EndTest(ATest: TTest);
 var
   n: TDOMNode;
   lNew: TDOMElement;
+begin
+  n := FLastTestSuite.LastChild;
+  lNew := FDoc.CreateElement('ElapsedTime');
+  lNew.AppendChild(FDoc.CreateTextNode(FormatDateTime('hh:nn:ss.zzz', Now - FStartCrono)));
+  n.AppendChild(lNew);
+end;
+
+procedure TXMLResultsWriter.StartTestSuite(ATestSuite: TTestSuite);
+var
+  n: TDOMElement;
 begin
   { Try and find the Listings node first }
   if not Assigned(FListing) then
@@ -250,10 +263,19 @@ begin
     FResults.AppendChild(FListing);
   end;
 
-  n := FListing.LastChild;
-  lNew := FDoc.CreateElement('ElapsedTime');
-  lNew.AppendChild(FDoc.CreateTextNode(FormatDateTime('hh:nn:ss.zzz', Now - FStartCrono)));
-  n.AppendChild(lNew);
+  { The first TestSuite always seem to be blank/empty }
+  if ATestSuite.TestName <> '' then
+  begin
+    n := FDoc.CreateElement('TestSuite');
+    n['Name'] := ATestSuite.TestName;
+    FListing.AppendChild(n);
+    FLastTestSuite := n;
+  end;
+end;
+
+procedure TXMLResultsWriter.EndTestSuite(ATestSuite: TTestSuite);
+begin
+  // do nothing
 end;
 
 

@@ -22,6 +22,9 @@ uses
   classes, SysUtils, fpcunit, testutils;
 
 type
+
+  { TXMLResultsWriter }
+
   TXMLResultsWriter = class(TNoRefCountObject, ITestListener)
   public
     procedure WriteHeader;
@@ -31,7 +34,11 @@ type
     procedure AddError(ATest: TTest; AError: TTestFailure);
     procedure StartTest(ATest: TTest);
     procedure EndTest(ATest: TTest);
+    procedure StartTestSuite(ATestSuite: TTestSuite);
+    procedure EndTestSuite(ATestSuite: TTestSuite);
   end;
+
+  { TPlainResultsWriter }
 
   TPlainResultsWriter = class(TNoRefCountObject, ITestListener)
   public
@@ -42,6 +49,8 @@ type
     procedure AddError(ATest: TTest; AError: TTestFailure);
     procedure StartTest(ATest: TTest);
     procedure EndTest(ATest: TTest);
+    procedure StartTestSuite(ATestSuite: TTestSuite);
+    procedure EndTestSuite(ATestSuite: TTestSuite);
   end;
 
  {
@@ -51,6 +60,8 @@ type
     procedure AddError(ATest: TTest; AError: TTestFailure);
     procedure StartTest(ATest: TTest);
     procedure EndTest(ATest: TTest);
+    procedure StartTestSuite(ATestSuite: TTestSuite);
+    procedure EndTestSuite(ATestSuite: TTestSuite);
   end;}
 
 function TestSuiteAsXML(aSuite:TTestSuite; Indent : Integer): string;
@@ -106,6 +117,16 @@ begin
   writeln('</test>');
 end;
 
+procedure TXMLResultsWriter.StartTestSuite(ATestSuite: TTestSuite);
+begin
+
+end;
+
+procedure TXMLResultsWriter.EndTestSuite(ATestSuite: TTestSuite);
+begin
+
+end;
+
 {TPlainResultsWriter}
 procedure TPlainResultsWriter.WriteHeader;
 begin
@@ -132,12 +153,24 @@ end;
 
 procedure TPlainResultsWriter.StartTest(ATest: TTest);
 begin
-  write('Test: ' , ATest.TestSuiteName + '.' + ATest.TestName);
+  write('Test: ', ATest.TestSuiteName + '.' + ATest.TestName);
 end;
 
 procedure TPlainResultsWriter.EndTest(ATest: TTest);
 begin
   writeln;
+end;
+
+procedure TPlainResultsWriter.StartTestSuite(ATestSuite: TTestSuite);
+begin
+  { example output }
+//  Writeln('TestSuite: ' + ATestSuite.TestName);
+end;
+
+procedure TPlainResultsWriter.EndTestSuite(ATestSuite: TTestSuite);
+begin
+  { example output }
+//  Writeln('TestSuite: ' + ATestSuite.TestName + ' - END ');
 end;
 
 function TestSuiteAsXML(aSuite:TTestSuite): string;
