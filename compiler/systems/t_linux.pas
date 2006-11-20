@@ -329,7 +329,7 @@ begin
      hp:=tmodule(hp.next);
    end;
   reorder := linklibc and ReOrderEntries;
-  if islibrary then
+  if current_module.islibrary then
    begin
      sysinitunit:='dll';
      csysinitunit:='dll';
