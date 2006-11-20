@@ -1961,7 +1961,7 @@ implementation
         current_asmdata.getlabel(lbl,alt_dbgfile);
         if use_64bit_headers then
           begin
-            linelist.concat(tai_const.create_32bit($FFFFFFFF));
+            linelist.concat(tai_const.create_32bit(longint($FFFFFFFF)));
             linelist.concat(tai_const.create_rel_sym(aitconst_64bit,
               lbl,current_asmdata.RefAsmSymbol('.Ledebug_line0')));
           end
@@ -2146,7 +2146,7 @@ implementation
         { size }
         if use_64bit_headers then
           begin
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit($FFFFFFFF));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(longint($FFFFFFFF)));
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(aitconst_64bit,
               lenstartlabel,current_asmdata.RefAsmSymbol('.Ledebug_info0')));
           end
