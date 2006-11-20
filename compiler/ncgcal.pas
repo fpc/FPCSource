@@ -211,8 +211,7 @@ implementation
                      location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
                      cg.a_parammm_reg(current_asmdata.CurrAsmList,left.location.size,left.location.register,tempcgpara,mms_movescalar);
                    end;
-{$ifdef x86_64}
-                 { x86_64 pushes s64comp in normal register }
+{$ifdef cpu64bit}
                  LOC_REGISTER,
                  LOC_CREGISTER :
                    begin
@@ -221,7 +220,7 @@ implementation
                      left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
                      cg.a_param_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara);
                    end;
-{$endif x86_64}
+{$endif cpu64bit}
 {$ifdef powerpc}
                  LOC_REGISTER,
                  LOC_CREGISTER :
@@ -237,18 +236,7 @@ implementation
                        cg64.a_param64_ref(current_asmdata.CurrAsmList,left.location.reference,tempcgpara);
                    end;
 {$endif powerpc}
-{$ifdef powerpc64}
-                 LOC_REGISTER,
-                 LOC_CREGISTER :
-                   begin
-                     { ppc64 abi passes floats of varargs in integer registers, so force a store }
-                     location_force_mem(current_asmdata.CurrAsmList,left.location);
-                     { force integer size }
-                     left.location.size:=int_cgsize(tcgsize2size[tempcgpara.location^.size]);
-                     cg.a_param_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara)
-                   end;
-{$endif powerpc64}
-{$if defined(sparc) or defined(arm)}
+{$if defined(sparc) or defined(arm) or defined(m68k)}
                  { sparc and arm pass floats in normal registers }
                  LOC_REGISTER,
                  LOC_CREGISTER,
@@ -267,8 +255,7 @@ implementation
                  LOC_MMREGISTER,
                  LOC_CMMREGISTER:
                    cg.a_parammm_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara,mms_movescalar);
-{$ifdef x86_64}
-                 { x86_64 pushes s64comp in normal register }
+{$ifdef cpu64bit}
                  LOC_REGISTER,
                  LOC_CREGISTER :
                    begin
@@ -276,7 +263,7 @@ implementation
                      left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
                      cg.a_param_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara);
                    end;
-{$endif x86_64}
+{$endif cpu64bit}
 {$ifdef powerpc}
                  { x86_64 pushes s64comp in normal register }
                  LOC_REGISTER,
@@ -290,20 +277,11 @@ implementation
                        cg64.a_param64_ref(current_asmdata.CurrAsmList,left.location.reference,tempcgpara);
                    end;
 {$endif powerpc}
-{$ifdef powerpc64}
-                 LOC_REGISTER,
-                 LOC_CREGISTER :
-                   begin
-                     { force integer size }
-                     left.location.size:=int_cgsize(tcgsize2size[tempcgpara.location^.size]);
-                     cg.a_param_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara)
-                   end;
-{$endif powerpc64}
-{$if defined(sparc) or defined(arm) }
+{$if defined(sparc) or defined(arm) or defined(m68k)}
                  { sparc and arm pass floats in normal registers }
                  LOC_REGISTER,
                  LOC_CREGISTER,
-{$endif sparc}
+{$endif}
                  LOC_REFERENCE,
                  LOC_CREFERENCE,
                  LOC_FPUREGISTER,
@@ -311,6 +289,27 @@ implementation
                    cg.a_paramfpu_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara);
                  else
                    internalerror(2002042431);
+               end;
+             LOC_REGISTER,
+             LOC_CREGISTER :
+               begin
+{$ifndef cpu64bit}
+                 { use cg64 only for int64, not for 8 byte records }
+                 if is_64bit(left.resultdef) then
+                   cg64.a_param64_loc(current_asmdata.CurrAsmList,left.location,tempcgpara)
+                 else
+{$endif cpu64bit}
+                   begin
+{$ifndef cpu64bit}
+                     { Only a_param_ref supports multiple locations, when the
+                       value is still a const or in a register then write it
+                       to a reference first. This situation can be triggered
+                       by typecasting an int64 constant to a record of 8 bytes }
+                     if left.location.size in [OS_64,OS_S64] then
+                       location_force_mem(current_asmdata.CurrAsmList,left.location);
+{$endif cpu64bit}
+                     cg.a_param_loc(current_asmdata.CurrAsmList,left.location,tempcgpara);
+                   end;
                end;
              else
                internalerror(2002042432);

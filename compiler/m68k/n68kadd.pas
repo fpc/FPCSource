@@ -437,7 +437,7 @@ implementation
 
     procedure t68kaddnode.second_cmp64bit;
      begin
-      writeln('second_cmp64bit');
+      // writeln('second_cmp64bit');
       pass_left_right;
 
 
@@ -537,7 +537,7 @@ implementation
           location_reset(location,LOC_JUMP,OS_NO);
 *)
        location_reset(location,LOC_JUMP,OS_NO);
-       writeln('second_cmp64_exit');
+       // writeln('second_cmp64_exit');
      end;
 
 

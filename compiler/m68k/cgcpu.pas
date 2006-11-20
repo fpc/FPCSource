@@ -1337,6 +1337,7 @@ unit cgcpu;
   var
    lowvalue : cardinal;
    highvalue : cardinal;
+   hreg : tregister;
   begin
 //    writeln('a_op64_const_reg');
     { is it optimized out ? }
@@ -1353,8 +1354,10 @@ unit cgcpu;
    case op of
       OP_ADD :
          begin
-            list.concat(taicpu.op_const_reg(A_ADD,S_L,lowvalue,regdst.reglo));
-            list.concat(taicpu.op_const_reg(A_ADDX,S_L,highvalue,regdst.reglo));
+           hreg:=cg.getintregister(list,OS_INT);
+           list.concat(taicpu.op_const_reg(A_MOVE,S_L,highvalue,hreg));
+           list.concat(taicpu.op_const_reg(A_ADD,S_L,lowvalue,regdst.reglo));
+           list.concat(taicpu.op_reg_reg(A_ADDX,S_L,hreg,regdst.reglo));
          end;
       OP_AND :
           begin
@@ -1366,15 +1369,17 @@ unit cgcpu;
             list.concat(taicpu.op_const_reg(A_OR,S_L,lowvalue,regdst.reglo));
             list.concat(taicpu.op_const_reg(A_OR,S_L,highvalue,regdst.reglo));
           end;
-      { this is handled in 1st pass for 32-bit cpu's (helper call) }
+      { this is handled in 1st pass for 32-bit cpus (helper call) }
       OP_IDIV,OP_DIV,
       OP_IMUL,OP_MUL: internalerror(2002081701);
-      { this is also handled in 1st pass for 32-bit cpu's (helper call) }
+      { this is also handled in 1st pass for 32-bit cpus (helper call) }
       OP_SAR,OP_SHL,OP_SHR: internalerror(2002081702);
       OP_SUB:
          begin
-            list.concat(taicpu.op_const_reg(A_SUB,S_L,lowvalue,regdst.reglo));
-            list.concat(taicpu.op_const_reg(A_SUBX,S_L,highvalue,regdst.reglo));
+           hreg:=cg.getintregister(list,OS_INT);
+           list.concat(taicpu.op_const_reg(A_MOVE,S_L,highvalue,hreg));
+           list.concat(taicpu.op_const_reg(A_SUB,S_L,lowvalue,regdst.reglo));
+           list.concat(taicpu.op_reg_reg(A_SUBX,S_L,hreg,regdst.reglo));
          end;
       OP_XOR:
         begin
