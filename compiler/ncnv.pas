@@ -1453,6 +1453,9 @@ implementation
         aprocdef : tprocdef;
         eq : tequaltype;
         cdoptions : tcompare_defs_options;
+        newblock: tblocknode;
+        newstatement: tstatementnode;
+        tempnode: ttempcreatenode;
       begin
         result:=nil;
         resultdef:=totypedef;
@@ -1670,13 +1673,37 @@ implementation
                            end;
 
                          { Add runtime check? }
-                         if (cs_check_object in current_settings.localswitches) then
+                         if (cs_check_object in current_settings.localswitches) and
+                            not(nf_internal in flags) then
                            begin
                              { we can translate the typeconvnode to 'as' when
                                typecasting to a class or interface }
-                             hp:=casnode.create(left,cloadvmtaddrnode.create(ctypenode.create(resultdef)));
+                             { we need to make sure the result can still be
+                               passed as a var parameter                    }
+                             newblock:=internalstatements(newstatement);
+                             if (valid_for_var(left,false)) then
+                               begin
+                                 tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+                                 addstatement(newstatement,tempnode);
+                                 addstatement(newstatement,cassignmentnode.create(
+                                   ctemprefnode.create(tempnode),
+                                   caddrnode.create_internal(left)));
+                                 left:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),left.resultdef);
+                               end
+                             else
+                               begin
+                                 tempnode:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
+                                 addstatement(newstatement,tempnode);
+                                 addstatement(newstatement,cassignmentnode.create(
+                                   ctemprefnode.create(tempnode),
+                                   left));
+                                 left:=ctemprefnode.create(tempnode);
+                               end;
+                             addstatement(newstatement,casnode.create(left.getcopy,cloadvmtaddrnode.create(ctypenode.create(resultdef))));
+                             addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode));
+                             addstatement(newstatement,ctypeconvnode.create_internal(left,resultdef));
                              left:=nil;
-                             result:=hp;
+                             result:=newblock;
                              exit;
                            end;
                        end
