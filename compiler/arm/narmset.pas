@@ -201,7 +201,7 @@ implementation
              end
            else
               begin
-                cond_lt:=F_HI;
+                cond_lt:=F_CC;
                 cond_le:=F_LS;
              end;
            { do we need to generate cmps? }
