@@ -153,6 +153,43 @@ type
   end;
   TFPCustomBrushClass = class of TFPCustomBrush;
 
+  { TFPCustomInterpolation }
+
+  TFPCustomInterpolation = class
+  private
+    fcanvas: TFPCustomCanvas;
+    fimage: TFPCustomImage;
+  protected
+    procedure Initialize (aimage:TFPCustomImage; acanvas:TFPCustomCanvas); virtual;
+    procedure Execute (x,y,w,h:integer); virtual; abstract;
+  public
+    property Canvas : TFPCustomCanvas read fcanvas;
+    property Image : TFPCustomImage read fimage;
+  end;
+
+  { TFPBaseInterpolation }
+
+  TFPBaseInterpolation = class (TFPCustomInterpolation)
+  private
+    xfactor, yfactor : double;
+    xsupport,ysupport : double;
+    tempimage : TFPCustomImage;
+    procedure Horizontal (width : integer);
+    procedure vertical (dx,dy,width,height: integer);
+  protected
+    procedure Execute (x,y,w,h:integer); override;
+    function Filter (x : double) : double; virtual; abstract;
+    function MaxSupport : double; virtual; abstract;
+  end;
+
+  { TMitchelInterpolation }
+
+  TMitchelInterpolation = class (TFPBaseInterpolation)
+  protected
+    function Filter (x : double) : double; override;
+    function MaxSupport : double; override;
+  end;
+
   { TFPCustomCanvas }
 
   TFPCustomCanvas = class(TPersistent)
@@ -170,6 +207,7 @@ type
     FClipRect : TRect;
     FHelpers : TList;
     FLocks : integer;
+    FInterpolation : TFPCustomInterpolation;
     function AllowFont (AFont : TFPCustomFont) : boolean;
     function AllowBrush (ABrush : TFPCustomBrush) : boolean;
     function AllowPen (APen : TFPCustomPen) : boolean;
@@ -219,8 +257,6 @@ type
     procedure DoMoveTo (x,y:integer); virtual;
     procedure DoLineTo (x,y:integer); virtual;
     procedure DoLine (x1,y1,x2,y2:integer); virtual; abstract;
-    procedure DoCopyRect (x,y:integer; canvas:TFPCustomCanvas; Const SourceRect:TRect); virtual; abstract;
-    procedure DoDraw (x,y:integer; Const image:TFPCustomImage); virtual; abstract;
     procedure CheckHelper (AHelper:TFPCanvasHelper); virtual;
     procedure AddHelper (AHelper:TFPCanvasHelper);
   public
@@ -259,11 +295,13 @@ type
     // other procedures
     procedure CopyRect (x,y:integer; canvas:TFPCustomCanvas; SourceRect:TRect);
     procedure Draw (x,y:integer; image:TFPCustomImage);
+    procedure StretchDraw (x,y,w,h:integer; source:TFPCustomImage);
     procedure Erase;virtual;
     // properties
     property Font : TFPCustomFont read GetFont write SetFont;
     property Pen : TFPCustomPen read GetPen write SetPen;
     property Brush : TFPCustomBrush read GetBrush write SetBrush;
+    property Interpolation : TFPCustomInterpolation read FInterpolation write FInterpolation;
     property Colors [x,y:integer] : TFPColor read GetColor write SetColor;
     property ClipRect : TRect read GetClipRect write SetClipRect;
     property Clipping : boolean read FClipping write FClipping;
@@ -375,6 +413,7 @@ end;
 {$i FPFont.inc}
 {$i FPPen.inc}
 {$i FPBrush.inc}
+{$i fpinterpolation.inc}
 {$i FPCanvas.inc}
 {$i FPCDrawH.inc}
 

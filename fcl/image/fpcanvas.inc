@@ -605,3 +605,26 @@ begin
     end;
 end;
 
+procedure TFPCustomCanvas.StretchDraw(x, y, w, h: integer; source: TFPCustomImage);
+var i : TFPCustomInterpolation;
+    FreeInterpolation : boolean;
+    IP : TFPCustomInterpolation;
+begin
+  FreeInterpolation := not assigned (FInterpolation);
+  if FreeInterpolation then
+    IP := TMitchelInterpolation.Create
+  else
+    IP := FInterpolation;
+  try
+    with IP do
+      begin
+      Initialize (source, self);
+      Execute (x,y,w,h);
+      end;
+  finally
+    if FreeInterpolation then
+      IP.Free;
+  end;
+end;
+
+
