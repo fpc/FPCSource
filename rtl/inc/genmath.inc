@@ -294,9 +294,9 @@ type
 
   function fpc_trunc_real(d : ValReal) : int64;compilerproc;
     var
-{$ifdef cpuarm}
+{$ifdef FPC_DOUBLE_HILO_SWAPPED}
      l: longint;
-{$endif cpuarm}
+{$endif FPC_DOUBLE_HILO_SWAPPED}
      f32 : float32;
      f64 : float64;
     Begin
@@ -308,12 +308,12 @@ type
      if sizeof(D)=8 then
        begin
          move(d,f64,sizeof(f64));
-{$ifdef cpuarm}
+{$ifdef FPC_DOUBLE_HILO_SWAPPED}
          { the arm fpu has a strange opinion how a double has to be stored }
          l:=f64.low;
          f64.low:=f64.high;
          f64.high:=l;
-{$endif cpuarm}
+{$endif FPC_DOUBLE_HILO_SWAPPED}
          result:=float64_to_int64_round_to_zero(f64);
        end
      else
@@ -339,12 +339,12 @@ type
         f64 : float64;
       begin
         f64:=float64(d);
-{$ifdef cpuarm}
+{$ifdef FPC_DOUBLE_HILO_SWAPPED}
         { the arm fpu has a strange opinion how a double has to be stored }
         i0:=f64.low;
         f64.low:=f64.high;
         f64.high:=i0;
-{$endif cpuarm}
+{$endif FPC_DOUBLE_HILO_SWAPPED}
         i0 := f64.high;
         i1 := cardinal(f64.low);
         sx := i0 and $80000000;
@@ -374,12 +374,12 @@ type
             f64.high := i0;
             f64.low := longint(i1 and not(cardinal($ffffffff) shr (j0 - 20)));
           end;
-{$ifdef cpuarm}
+{$ifdef FPC_DOUBLE_HILO_SWAPPED}
         { the arm fpu has a strange opinion how a double has to be stored }
         i0:=f64.low;
         f64.low:=f64.high;
         f64.high:=i0;
-{$endif cpuarm}
+{$endif FPC_DOUBLE_HILO_SWAPPED}
         result:=double(f64);
       end;
 

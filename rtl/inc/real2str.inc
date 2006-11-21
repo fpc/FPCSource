@@ -261,20 +261,20 @@ begin
                   ((TSplitExtended(d).cards[1] and $7fffffff) = 0);
 {$else SUPPORT_EXTENDED}
 {$ifdef SUPPORT_DOUBLE}
-{$ifdef CPUARM}
+{$ifdef FPC_DOUBLE_HILO_SWAPPED}
   { double, format (MSB): 1 Sign bit, 11 bit exponent, 52 bit mantissa }
   { high and low dword are swapped when using the arm fpa }
   sign := ((TSplitDouble(d).cards[0] shr 20) and $800) <> 0;
   expMaximal := ((TSplitDouble(d).cards[0] shr 20) and $7ff) = 2047;
   fraczero:= (TSplitDouble(d).cards[0] and $fffff = 0) and
               (TSplitDouble(d).cards[1] = 0);
-{$else CPUARM}
+{$else FPC_DOUBLE_HILO_SWAPPED}
   { double, format (MSB): 1 Sign bit, 11 bit exponent, 52 bit mantissa }
   sign := ((TSplitDouble(d).cards[1] shr 20) and $800) <> 0;
   expMaximal := ((TSplitDouble(d).cards[1] shr 20) and $7ff) = 2047;
   fraczero := (TSplitDouble(d).cards[1] and $fffff = 0) and
               (TSplitDouble(d).cards[0] = 0);
-{$endif CPUARM}
+{$endif FPC_DOUBLE_HILO_SWAPPED}
 {$else SUPPORT_DOUBLE}
 {$ifdef SUPPORT_SINGLE}
   { single, format (MSB): 1 Sign bit, 8 bit exponent, 23 bit mantissa }

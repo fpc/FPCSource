@@ -2210,6 +2210,13 @@ begin
     system_m68k_linux] then
     include(init_settings.moduleswitches,cs_fp_emulation);
 
+{$ifdef ARM}
+  { define FPC_DOUBLE_HILO_SWAPPED if needed to properly handle doubles in RTL }
+  if (init_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) and
+    not(cs_fp_emulation in init_settings.moduleswitches) then
+    def_system_macro('FPC_DOUBLE_HILO_SWAPPED');
+{$endif ARM}
+
   { Section smartlinking conflicts with import sections on Windows }
   if GenerateImportSection and
      (target_info.system in [system_i386_win32,system_x86_64_win64]) then
