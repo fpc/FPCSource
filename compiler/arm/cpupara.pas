@@ -401,15 +401,6 @@ unit cpupara;
                    end;
                  dec(paralen,tcgsize2size[paraloc^.size]);
                end;
-             { hack to swap doubles in int registers }
-             if is_double(hp.vardef) and (paracgsize=OS_64) and
-               (hp.paraloc[side].location^.loc=LOC_REGISTER) then
-               begin
-                 paraloc:=hp.paraloc[side].location;
-                 hp.paraloc[side].location:=hp.paraloc[side].location^.next;
-                 hp.paraloc[side].location^.next:=paraloc;
-                 paraloc^.next:=nil;
-               end;
           end;
         curintreg:=nextintreg;
         curfloatreg:=nextfloatreg;
@@ -456,8 +447,8 @@ unit cpupara;
                     begin
                       { low }
                       p.funcretloc[side].loc:=LOC_REGISTER;
-                      p.funcretloc[side].register64.reglo:=NR_FUNCTION_RESULT64_HIGH_REG;
-                      p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_LOW_REG;
+                      p.funcretloc[side].register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG;
+                      p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG;
                       p.funcretloc[side].size:=OS_64;
                     end;
                   OS_32,
