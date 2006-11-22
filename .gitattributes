@@ -1877,6 +1877,7 @@ packages/base/mysql/ver40/mysql_version.pp svneol=native#text/plain
 packages/base/netdb/Makefile svneol=native#text/plain
 packages/base/netdb/Makefile.fpc svneol=native#text/plain
 packages/base/netdb/README -text
+packages/base/netdb/cnetdb.pp svneol=native#text/plain
 packages/base/netdb/fpmake.inc svneol=native#text/plain
 packages/base/netdb/fpmake.pp svneol=native#text/plain
 packages/base/netdb/hs.inc svneol=native#text/plain
