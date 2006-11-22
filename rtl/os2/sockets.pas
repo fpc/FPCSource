@@ -25,6 +25,9 @@ Uses
 
 Const
 //  AF_LOCAL       = so32dll.AF_LOCAL;
+  AF_UNSPEC      = so32dll.AF_UNSPEC;
+  AF_LOCAL       = so32dll.AF_LOCAL;
+  AF_UNIX        = so32dll.AF_UNIX;
   AF_OS2         = so32dll.AF_OS2;
   AF_IMPLINK     = so32dll.AF_IMPLINK;     // arpanet imp addresses
   AF_PUP         = so32dll.AF_PUP;         // pup protocols: e.g. BSP
