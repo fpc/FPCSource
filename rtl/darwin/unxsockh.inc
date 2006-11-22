@@ -14,29 +14,50 @@
 }
 
 Const
-  AF_AX25         = 3;      { Amateur Radio AX.25          }
-  AF_IPX          = 4;      { Novell IPX                   }
-  AF_APPLETALK    = 5;      { Appletalk DDP                }
-  AF_NETROM       = 6;      { Amateur radio NetROM         }
-  AF_BRIDGE       = 7;       { Multiprotocol bridge         }
-  AF_AAL5         = 8;       { Reserved for Werner's ATM    }
-  AF_X25          = 9;       { Reserved for X.25 project    }
-  AF_INET6        = 10;      { IP version 6                 }
-  AF_MAX          = 12;
+   AF_UNSPEC = 0;     
+   AF_UNIX = 1;     
+   AF_LOCAL = AF_UNIX;     
+   AF_INET = 2;     
+   AF_IMPLINK = 3;     
+   AF_PUP = 4;     
+   AF_CHAOS = 5;     
+   AF_NS = 6;     
+   AF_ISO = 7;     
+   AF_OSI = AF_ISO;     
+   AF_ECMA = 8;     
+   AF_DATAKIT = 9;     
+   AF_CCITT = 10;     
+   AF_SNA = 11;     
+   AF_DECnet = 12;     
+   AF_DLI = 13;     
+   AF_LAT = 14;     
+   AF_HYLINK = 15;     
+   AF_APPLETALK = 16;     
+   AF_ROUTE = 17;     
+   AF_LINK = 18;     
+   pseudo_AF_XTP = 19;     
+   AF_COIP = 20;     
+   AF_CNT = 21;     
+   pseudo_AF_RTIP = 22;     
+   AF_IPX = 23;     
+   AF_SIP = 24;     
+   pseudo_AF_PIP = 25;     
+   AF_NDRV = 27;     
+   AF_ISDN = 28;     
+   AF_E164 = AF_ISDN;     
+   pseudo_AF_KEY = 29;     
+   AF_INET6 = 30;     
+   AF_NATM = 31;     
+   AF_SYSTEM = 32;     
+   AF_NETBIOS = 33;     
+   AF_PPP = 34;     
+   AF_ATM = 30;     
+   pseudo_AF_HDRCMPLT = 35;     
+   AF_RESERVED_36 = 36;     
+   AF_NETGRAPH = 32;     
+   AF_MAX = 37;     
 
   SOCK_PACKET     = 10;
-
-  PF_AX25         = AF_AX25;
-  PF_IPX          = AF_IPX;
-  PF_APPLETALK    = AF_APPLETALK;
-  PF_NETROM       = AF_NETROM;
-  PF_BRIDGE       = AF_BRIDGE;
-  PF_AAL5         = AF_AAL5;
-  PF_X25          = AF_X25;
-  PF_INET6        = AF_INET6;
-
-  PF_MAX          = AF_MAX;
-
 
 { Maximum queue length specifiable by listen.  }
   SOMAXCONN     = 128;
