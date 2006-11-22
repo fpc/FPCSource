@@ -1397,6 +1397,7 @@ packages/base/hash/md5.pp svneol=native#text/plain
 packages/base/hash/md5.ref -text
 packages/base/hash/md5test.pp svneol=native#text/plain
 packages/base/hash/ntlm.pas svneol=native#text/plain
+packages/base/hash/unixcrypt.pas -text
 packages/base/httpd/Makefile svneol=native#text/plain
 packages/base/httpd/Makefile.fpc svneol=native#text/plain
 packages/base/httpd/examples/Makefile svneol=native#text/plain
