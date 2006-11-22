@@ -5359,7 +5359,6 @@ rtl/wince/dos.pp -text
 rtl/wince/dynlibs.inc -text
 rtl/wince/messages.pp -text
 rtl/wince/readme.txt -text
-rtl/wince/sockets.pp svneol=native#text/plain
 rtl/wince/system.pp svneol=native#text/plain
 rtl/wince/sysutils.pp -text
 rtl/wince/tthread.inc -text
