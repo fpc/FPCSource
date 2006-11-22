@@ -13,66 +13,107 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-Const
-   AF_IMPLINK    = 3;               { arpanet imp addresses }
-   AF_PUP        = 4;               { pup protocols: e.g. BSP }
-   AF_CHAOS      = 5;               { mit CHAOS protocols }
-   AF_NS         = 6;               { XEROX NS protocols }
-   AF_NBS        = 7;               { nbs protocols }
-   AF_ECMA       = 8;               { european computer manufacturers }
-   AF_DATAKIT    = 9;               { datakit protocols }
-   AF_CCITT      = 10;              { CCITT protocols, X.25 etc }
-   AF_SNA        = 11;              { IBM SNA }
-   AF_DECnet     = 12;              { DECnet }
-   AF_DLI        = 13;              { Direct data link interface }
-   AF_LAT        = 14;              { LAT }
-   AF_HYLINK     = 15;              { NSC Hyperchannel }
-   AF_APPLETALK  = 16;              { Apple Talk }
-   AF_NIT        = 17;              { Network Interface Tap }
-   AF_802        = 18;              { IEEE 802.2, also ISO 8802 }
-   AF_OSI        = 19;              { umbrella for all families used }
-   AF_X25        = 20;              { CCITT X.25 in particular }
-   AF_OSINET     = 21;              { AFI = 47, IDI = 4 }
-   AF_GOSIP      = 22;              { U.S. Government OSI }
-   AF_IPX        = 23;              { Novell Internet Protocol }
-   AF_ROUTE      = 24;              { Internal Routing Protocol }
-   AF_LINK       = 25;              { Link-layer interface }
-   AF_INET6      = 26;              { Internet Protocol, Version 6 }
-   AF_KEY        = 27;              { Security Association DB socket }
-   AF_NCA        = 28;              { NCA socket }
-   AF_POLICY     = 29;
 
-   AF_MAX        = 29;
+const
+  {
+   * Address families.
+    }
 
-   PF_IMPLINK    = AF_IMPLINK;
-   PF_PUP        = AF_PUP;
-   PF_CHAOS      = AF_CHAOS;
-   PF_NS         = AF_NS;
-   PF_NBS        = AF_NBS;
-   PF_ECMA       = AF_ECMA;
-   PF_DATAKIT    = AF_DATAKIT;
-   PF_CCITT      = AF_CCITT;
-   PF_SNA        = AF_SNA;
-   PF_DECnet     = AF_DECnet;
-   PF_DLI        = AF_DLI;
-   PF_LAT        = AF_LAT;
-   PF_HYLINK     = AF_HYLINK;
-   PF_APPLETALK  = AF_APPLETALK;
-   PF_NIT        = AF_NIT;
-   PF_802        = AF_802;
-   PF_OSI        = AF_OSI;
-   PF_X25        = AF_X25;
-   PF_OSINET     = AF_OSINET;
-   PF_GOSIP      = AF_GOSIP;
-   PF_IPX        = AF_IPX;
-   PF_ROUTE      = AF_ROUTE;
-   PF_LINK       = AF_LINK;
-   PF_INET6      = AF_INET6;
-   PF_KEY        = AF_KEY;
-   PF_NCA        = AF_NCA;
-
-   PF_MAX        = AF_MAX;
-
+  { unspecified  }
+     AF_UNSPEC = 0;
+  { local to host (pipes, portals)  }
+     AF_UNIX = 1;
+  { internetwork: UDP, TCP, etc.  }
+     AF_INET = 2;
+  { arpanet imp addresses  }
+     AF_IMPLINK = 3;
+  { pup protocols: e.g. BSP  }
+     AF_PUP = 4;
+  { mit CHAOS protocols  }
+     AF_CHAOS = 5;
+  { XEROX NS protocols  }
+     AF_NS = 6;
+  { nbs protocols  }
+     AF_NBS = 7;
+  { european computer manufacturers  }
+     AF_ECMA = 8;
+  { datakit protocols  }
+     AF_DATAKIT = 9;
+  { CCITT protocols, X.25 etc  }
+     AF_CCITT = 10;
+  { IBM SNA  }
+     AF_SNA = 11;
+  { DECnet  }
+     AF_DECnet = 12;
+  { Direct data link interface  }
+     AF_DLI = 13;
+  { LAT  }
+     AF_LAT = 14;
+  { NSC Hyperchannel  }
+     AF_HYLINK = 15;
+  { Apple Talk  }
+     AF_APPLETALK = 16;
+  { Network Interface Tap  }
+     AF_NIT = 17;
+  { IEEE 802.2, also ISO 8802  }
+     AF_802 = 18;
+  { umbrella for all families used  }
+     AF_OSI = 19;
+  { CCITT X.25 in particular  }
+     AF_X25 = 20;
+  { AFI = 47, IDI = 4  }
+     AF_OSINET = 21;
+  { U.S. Government OSI  }
+     AF_GOSIP = 22;
+  { Novell Internet Protocol  }
+     AF_IPX = 23;
+  { Internal Routing Protocol  }
+     AF_ROUTE = 24;
+  { Link-layer interface  }
+     AF_LINK = 25;
+  { Internet Protocol, Version 6  }
+     AF_INET6 = 26;
+  { Security Association DB socket  }
+     AF_KEY = 27;
+  { NCA socket  }
+     AF_NCA = 28;
+  { Security Policy DB socket  }
+     AF_POLICY = 29;
+     AF_MAX = 29;
+  {
+   * Protocol families, same as address families for now.
+    }
+     PF_UNSPEC = AF_UNSPEC;
+     PF_UNIX = AF_UNIX;
+     PF_INET = AF_INET;
+     PF_IMPLINK = AF_IMPLINK;
+     PF_PUP = AF_PUP;
+     PF_CHAOS = AF_CHAOS;
+     PF_NS = AF_NS;
+     PF_NBS = AF_NBS;
+     PF_ECMA = AF_ECMA;
+     PF_DATAKIT = AF_DATAKIT;
+     PF_CCITT = AF_CCITT;
+     PF_SNA = AF_SNA;
+     PF_DECnet = AF_DECnet;
+     PF_DLI = AF_DLI;
+     PF_LAT = AF_LAT;
+     PF_HYLINK = AF_HYLINK;
+     PF_APPLETALK = AF_APPLETALK;
+     PF_NIT = AF_NIT;
+     PF_802 = AF_802;
+     PF_OSI = AF_OSI;
+     PF_X25 = AF_X25;
+     PF_OSINET = AF_OSINET;
+     PF_GOSIP = AF_GOSIP;
+     PF_IPX = AF_IPX;
+     PF_ROUTE = AF_ROUTE;
+     PF_LINK = AF_LINK;
+     PF_INET6 = AF_INET6;
+     PF_KEY = AF_KEY;
+     PF_NCA = AF_NCA;
+     PF_POLICY = AF_POLICY;
+     PF_MAX = AF_MAX;
 
 { Maximum queue length specifiable by listen.  }
   SOMAXCONN     = 128;

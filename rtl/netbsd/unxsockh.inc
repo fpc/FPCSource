@@ -16,28 +16,124 @@
 {$warning taken from FreeBSD, please check and fix }
 
 Const
-  AF_AX25         = 3;      { Amateur Radio AX.25          }
-  AF_IPX          = 4;      { Novell IPX                   }
-  AF_APPLETALK    = 5;      { Appletalk DDP                }
-  AF_NETROM       = 6;      { Amateur radio NetROM         }
-  AF_BRIDGE       = 7;       { Multiprotocol bridge         }
-  AF_AAL5         = 8;       { Reserved for Werner's ATM    }
-  AF_X25          = 9;       { Reserved for X.25 project    }
-  AF_INET6        = 10;      { IP version 6                 }
-  AF_MAX          = 12;
+  {
+   * Address families.
+    }
+
+  { unspecified  }
+     AF_UNSPEC = 0;
+  { local to host (pipes, portals)  }
+     AF_LOCAL = 1;
+  { backward compatibility  }
+     AF_UNIX = AF_LOCAL;
+  { internetwork: UDP, TCP, etc.  }
+     AF_INET = 2;
+  { arpanet imp addresses  }
+     AF_IMPLINK = 3;
+  { pup protocols: e.g. BSP  }
+     AF_PUP = 4;
+  { mit CHAOS protocols  }
+     AF_CHAOS = 5;
+  { XEROX NS protocols  }
+     AF_NS = 6;
+  { ISO protocols  }
+     AF_ISO = 7;
+     AF_OSI = AF_ISO;
+  { european computer manufacturers  }
+     AF_ECMA = 8;
+  { datakit protocols  }
+     AF_DATAKIT = 9;
+  { CCITT protocols, X.25 etc  }
+     AF_CCITT = 10;
+  { IBM SNA  }
+     AF_SNA = 11;
+  { DECnet  }
+     AF_DECnet = 12;
+  { DEC Direct data link interface  }
+     AF_DLI = 13;
+  { LAT  }
+     AF_LAT = 14;
+  { NSC Hyperchannel  }
+     AF_HYLINK = 15;
+  { Apple Talk  }
+     AF_APPLETALK = 16;
+  { Internal Routing Protocol  }
+     AF_ROUTE = 17;
+  { Link layer interface  }
+     AF_LINK = 18;
+  { eXpress Transfer Protocol (no AF)  }
+     pseudo_AF_XTP = 19;
+  { connection-oriented IP, aka ST II  }
+     AF_COIP = 20;
+  { Computer Network Technology  }
+     AF_CNT = 21;
+  { Help Identify RTIP packets  }
+     pseudo_AF_RTIP = 22;
+  { Novell Internet Protocol  }
+     AF_IPX = 23;
+  { IP version 6  }
+     AF_INET6 = 24;
+  { Help Identify PIP packets  }
+     pseudo_AF_PIP = 25;
+  { Integrated Services Digital Network }
+     AF_ISDN = 26;
+  { CCITT E.164 recommendation  }
+     AF_E164 = AF_ISDN;
+  { native ATM access  }
+     AF_NATM = 27;
+  { (rev.) addr. res. prot. (RFC 826)  }
+     AF_ARP = 28;
+  { Internal key management protocol   }
+     pseudo_AF_KEY = 29;
+  { Used by BPF to not rewrite hdrs in interface output routine  }
+     pseudo_AF_HDRCMPLT = 30;
+     AF_BLUETOOTH = 31;
+     AF_MAX = 32;
+
+  {
+   * Protocol families, same as address families for now.
+    }
+     PF_UNSPEC = AF_UNSPEC;
+     PF_LOCAL = AF_LOCAL;
+  { backward compatibility  }
+     PF_UNIX = PF_LOCAL;
+     PF_INET = AF_INET;
+     PF_IMPLINK = AF_IMPLINK;
+     PF_PUP = AF_PUP;
+     PF_CHAOS = AF_CHAOS;
+     PF_NS = AF_NS;
+     PF_ISO = AF_ISO;
+     PF_OSI = AF_ISO;
+     PF_ECMA = AF_ECMA;
+     PF_DATAKIT = AF_DATAKIT;
+     PF_CCITT = AF_CCITT;
+     PF_SNA = AF_SNA;
+     PF_DECnet = AF_DECnet;
+     PF_DLI = AF_DLI;
+     PF_LAT = AF_LAT;
+     PF_HYLINK = AF_HYLINK;
+     PF_APPLETALK = AF_APPLETALK;
+     PF_ROUTE = AF_ROUTE;
+     PF_LINK = AF_LINK;
+  { really just proto family, no AF  }
+     PF_XTP = pseudo_AF_XTP;
+     PF_COIP = AF_COIP;
+     PF_CNT = AF_CNT;
+     PF_INET6 = AF_INET6;
+  { same format as AF_NS  }
+     PF_IPX = AF_IPX;
+     PF_RTIP = pseudo_AF_RTIP;
+     PF_PIP = pseudo_AF_PIP;
+     PF_ISDN = AF_ISDN;
+     PF_E164 = AF_E164;
+     PF_NATM = AF_NATM;
+     PF_ARP = AF_ARP;
+     PF_KEY = pseudo_AF_KEY;
+     PF_BLUETOOTH = AF_BLUETOOTH;
+     PF_MAX = AF_MAX;
+
 
   SOCK_PACKET     = 10;
-
-  PF_AX25         = AF_AX25;
-  PF_IPX          = AF_IPX;
-  PF_APPLETALK    = AF_APPLETALK;
-  PF_NETROM       = AF_NETROM;
-  PF_BRIDGE       = AF_BRIDGE;
-  PF_AAL5         = AF_AAL5;
-  PF_X25          = AF_X25;
-  PF_INET6        = AF_INET6;
-
-  PF_MAX          = AF_MAX;
 
 
 { Maximum queue length specifiable by listen.  }
