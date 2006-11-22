@@ -210,7 +210,11 @@ type
     ai_family: cInt;    {* PF_xxx *}
     ai_socktype: cInt;  {* SOCK_xxx *}
     ai_protocol: cInt;  {* 0 or IPPROTO_xxx for IPv4 and IPv6 *}
+    {$ifdef BSD}
+    ai_addrlen: socklen_t;  {* length of ai_addr *}
+    {$else} // solaris and linux has this, fix if additional platforms added
     ai_addrlen: size_t;  {* length of ai_addr *}
+    {$endif}
     ai_addr: psockaddr;	   {* binary address *}
     ai_canonname: PChar;   {* canonical name for hostname *}
     ai_next: PAddrInfo;	   {* next structure in linked list *}
