@@ -257,6 +257,8 @@ type
     procedure DoMoveTo (x,y:integer); virtual;
     procedure DoLineTo (x,y:integer); virtual;
     procedure DoLine (x1,y1,x2,y2:integer); virtual; abstract;
+    procedure DoCopyRect (x,y:integer; canvas:TFPCustomCanvas; Const SourceRect:TRect); virtual; abstract;
+    procedure DoDraw (x,y:integer; Const image:TFPCustomImage); virtual; abstract;
     procedure CheckHelper (AHelper:TFPCanvasHelper); virtual;
     procedure AddHelper (AHelper:TFPCanvasHelper);
   public
