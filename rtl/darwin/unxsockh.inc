@@ -57,6 +57,57 @@ Const
    AF_NETGRAPH = 32;     
    AF_MAX = 37;     
 
+
+  {
+   * Protocol families, same as address families for now.
+    }
+
+     PF_UNSPEC = AF_UNSPEC;     
+     PF_LOCAL = AF_LOCAL;     
+  { backward compatibility  }
+     PF_UNIX = PF_LOCAL;     
+     PF_INET = AF_INET;     
+     PF_IMPLINK = AF_IMPLINK;     
+     PF_PUP = AF_PUP;     
+     PF_CHAOS = AF_CHAOS;     
+     PF_NS = AF_NS;     
+     PF_ISO = AF_ISO;     
+     PF_OSI = AF_ISO;     
+     PF_ECMA = AF_ECMA;     
+     PF_DATAKIT = AF_DATAKIT;     
+     PF_CCITT = AF_CCITT;     
+     PF_SNA = AF_SNA;     
+     PF_DECnet = AF_DECnet;     
+     PF_DLI = AF_DLI;     
+     PF_LAT = AF_LAT;     
+     PF_HYLINK = AF_HYLINK;     
+     PF_APPLETALK = AF_APPLETALK;     
+     PF_ROUTE = AF_ROUTE;     
+     PF_LINK = AF_LINK;     
+  { really just proto family, no AF  }
+     PF_XTP = pseudo_AF_XTP;     
+     PF_COIP = AF_COIP;     
+     PF_CNT = AF_CNT;     
+     PF_SIP = AF_SIP;     
+  { same format as AF_NS  }
+     PF_IPX = AF_IPX;     
+  { same format as AF_INET  }
+     PF_RTIP = pseudo_AF_RTIP;     
+     PF_PIP = pseudo_AF_PIP;     
+     PF_NDRV = AF_NDRV;     
+     PF_ISDN = AF_ISDN;     
+     PF_KEY = pseudo_AF_KEY;     
+     PF_INET6 = AF_INET6;     
+     PF_NATM = AF_NATM;     
+     PF_SYSTEM = AF_SYSTEM;     
+     PF_NETBIOS = AF_NETBIOS;     
+     PF_PPP = AF_PPP;     
+     PF_RESERVED_36 = AF_RESERVED_36;     
+     PF_ATM = AF_ATM;     
+     PF_NETGRAPH = AF_NETGRAPH;     
+     PF_MAX = AF_MAX;     
+
+
   SOCK_PACKET     = 10;
 
 { Maximum queue length specifiable by listen.  }
