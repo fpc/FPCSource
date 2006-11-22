@@ -14,79 +14,76 @@
 }
 
 Const
-//  AF_LOCAL        =1;              { local to host (pipes, portals) }
-  AF_IMPLINK      =3;               { arpanet imp addresses }
-  AF_PUP          =4;              { pup protocols: e.g. BSP }
-  AF_CHAOS        =5;               { mit CHAOS protocols }
-  AF_NS           =6;              { XEROX NS protocols }
-  AF_ISO          =7;              { ISO protocols }
-  AF_OSI          =AF_ISO;
-  AF_ECMA         =8;              { European computer manufacturers }
-  AF_DATAKIT      =9;              { datakit protocols }
-  AF_CCITT        =10;             { CCITT protocols, X.25 etc }
-  AF_SNA          =11;             { IBM SNA }
-  AF_DECnet       =12;             { DECnet }
-  AF_DLI          =13;             { DEC Direct data link interface }
-  AF_LAT          =14;             { LAT }
-  AF_HYLINK       =15;             { NSC Hyperchannel }
-  AF_APPLETALK    =16;             { Apple Talk }
-  AF_ROUTE        =17;             { Internal Routing Protocol }
-  AF_LINK         =18;             { Link layer interface }
-  pseudo_AF_XTP   =19;             { eXpress Transfer Protocol (no AF) }
-  AF_COIP         =20;             { connection-oriented IP, aka ST II }
-  AF_CNT          =21;             { Computer Network Technology }
-  pseudo_AF_RTIP  =22;             { Help Identify RTIP packets }
-  AF_IPX          =23;             { Novell Internet Protocol }
-  AF_SIP          =24;             { Simple Internet Protocol }
-  pseudo_AF_PIP   =25;             { Help Identify PIP packets }
-  AF_ISDN         =26;             { Integrated Services Digital Network}
-  AF_E164         =AF_ISDN;        { CCITT E.164 recommendation }
-  pseudo_AF_KEY   =27;             { Internal key-management function }
-  AF_INET6        =28;             { IPv6 }
-  AF_NATM         =29;             { native ATM access }
-  AF_ATM          =30;             { ATM }
-  pseudo_AF_HDRCMPLT=31;           { Used by BPF to not rewrite headers
-                                    in interface output routine}
-  AF_NETGRAPH     =32;             { Netgraph sockets }
-  AF_MAX          =33;
-
-  SOCK_MAXADDRLEN =255;             { longest possible addresses }
+{* Supported address families. *}
+  AF_UNSPEC     = 0;
+  AF_UNIX       = 1;     { Unix domain sockets          }
+  AF_LOCAL      = 1;     { POSIX name for AF_UNIX       }
+  AF_INET       = 2;     { Internet IP Protocol         }
+  AF_AX25       = 3;     { Amateur Radio AX.25          }
+  AF_IPX        = 4;     { Novell IPX                   }
+  AF_APPLETALK  = 5;     { AppleTalk DDP                }
+  AF_NETROM     = 6;     { Amateur Radio NET/ROM        }
+  AF_BRIDGE     = 7;     { Multiprotocol bridge         }
+  AF_ATMPVC     = 8;     { ATM PVCs                     }
+  AF_X25        = 9;     { Reserved for X.25 project    }
+  AF_INET6      = 10;    { IP version 6                 }
+  AF_ROSE       = 11;    { Amateur Radio X.25 PLP       }
+  AF_DECnet     = 12;    { Reserved for DECnet project  }
+  AF_NETBEUI    = 13;    { Reserved for 802.2LLC project}
+  AF_SECURITY   = 14;    { Security callback pseudo AF }
+  AF_KEY        = 15;    { PF_KEY key management API }
+  AF_NETLINK    = 16;
+  AF_ROUTE      = AF_NETLINK; { Alias to emulate 4.4BSD }
+  AF_PACKET     = 17;    { Packet family                }
+  AF_ASH        = 18;    { Ash                          }
+  AF_ECONET     = 19;    { Acorn Econet                 }
+  AF_ATMSVC     = 20;    { ATM SVCs                     }
+  AF_SNA        = 22;	 { Linux SNA Project (nutters!) }
+  AF_IRDA       = 23;    { IRDA sockets                 }
+  AF_PPPOX	= 24;    { PPPoX sockets                }
+  AF_WANPIPE    = 25;    { Wanpipe API Sockets }
+  AF_LLC        = 26;    { Linux LLC                    }
+  AF_TIPC       = 30;    { TIPC sockets                 }
+  AF_BLUETOOTH  = 31;    { Bluetooth sockets            }
+  AF_MAX        = 32;    { For now.. }
+  
+  SOCK_MAXADDRLEN = 255;             { longest possible addresses }
 
 {
 * Protocol families, same as address families for now.
 }
-//  PF_LOCAL        =AF_LOCAL;
-  PF_IMPLINK      =AF_IMPLINK;
-  PF_PUP          =AF_PUP;
-  PF_CHAOS        =AF_CHAOS;
-  PF_NS           =AF_NS;
-  PF_ISO          =AF_ISO;
-  PF_OSI          =AF_ISO;
-  PF_ECMA         =AF_ECMA;
-  PF_DATAKIT      =AF_DATAKIT;
-  PF_CCITT        =AF_CCITT;
-  PF_SNA          =AF_SNA;
-  PF_DECnet       =AF_DECnet;
-  PF_DLI          =AF_DLI;
-  PF_LAT          =AF_LAT;
-  PF_HYLINK       =AF_HYLINK;
-  PF_APPLETALK    =AF_APPLETALK;
-  PF_ROUTE        =AF_ROUTE;
-  PF_LINK         =AF_LINK;
-  PF_XTP          =pseudo_AF_XTP;  { really just proto family, no AF }
-  PF_COIP         =AF_COIP;
-  PF_CNT          =AF_CNT;
-  PF_SIP          =AF_SIP;
-  PF_IPX          =AF_IPX;         { same format as AF_NS }
-  PF_RTIP         =pseudo_AF_RTIP; { same format as AF_INET }
-  PF_PIP          =pseudo_AF_PIP;
-  PF_ISDN         =AF_ISDN;
-  PF_KEY          =pseudo_AF_KEY;
-  PF_INET6        =AF_INET6;
-  PF_NATM         =AF_NATM;
-  PF_ATM          =AF_ATM;
-  PF_NETGRAPH     =AF_NETGRAPH;
-  PF_MAX          =AF_MAX;
+
+  PF_UNSPEC     = AF_UNSPEC;
+  PF_UNIX       = AF_UNIX;
+  PF_LOCAL      = AF_LOCAL;
+  PF_INET       = AF_INET;
+  PF_AX25       = AF_AX25;
+  PF_IPX        = AF_IPX;
+  PF_APPLETALK  = AF_APPLETALK;
+  PF_NETROM     = AF_NETROM;
+  PF_BRIDGE     = AF_BRIDGE;
+  PF_ATMPVC     = AF_ATMPVC;
+  PF_X25        = AF_X25;
+  PF_INET6      = AF_INET6;
+  PF_ROSE       = AF_ROSE;
+  PF_DECnet     = AF_DECnet;
+  PF_NETBEUI    = AF_NETBEUI;
+  PF_SECURITY   = AF_SECURITY;
+  PF_KEY        = AF_KEY;
+  PF_NETLINK    = AF_NETLINK;
+  PF_ROUTE      = AF_ROUTE;
+  PF_PACKET     = AF_PACKET;
+  PF_ASH        = AF_ASH;
+  PF_ECONET     = AF_ECONET;
+  PF_ATMSVC     = AF_ATMSVC;
+  PF_SNA        = AF_SNA;
+  PF_IRDA       = AF_IRDA;
+  PF_PPPOX	= AF_PPPOX;
+  PF_WANPIPE    = AF_WANPIPE;
+  PF_LLC        = AF_LLC;
+  PF_TIPC       = AF_TIPC;
+  PF_BLUETOOTH  = AF_BLUETOOTH;
+  PF_MAX        = AF_MAX;
 
 
 { Maximum queue length specifiable by listen.  }
@@ -173,9 +170,9 @@ Const
          IPPROTO_RAW     = 255;       { Raw IP packets.  }
          IPPROTO_MAX     = 255;
 //from /usr/include/bits/in.h
-{/* Options for use with etsockopt' and etsockopt' at the IP level.
+{{ Options for use with etsockopt' and etsockopt' at the IP level.
    The first word in the comment at the right is the data type used;
-   "bool" means a boolean value stored in an 	nt'.  */
+   "bool" means a boolean value stored in an 	nt'.  }
 }
         IP_OPTIONS              = 4;               { ip_opts; IP per-packet options.  }
         IP_HDRINCL              = 3;               { int; Header is included with data.  }

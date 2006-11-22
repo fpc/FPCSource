@@ -36,21 +36,6 @@ const
   SOCK_SEQPACKET  = 5;               { sequential packet socket     }
 {$endif}
 
-  { Protocol families }
-  PF_UNSPEC    = 0;                  { Unspecified }
-  PF_LOCAL     = 1;                  { Local to host (pipes and file-domain) }
-  PF_UNIX      = PF_LOCAL;           { Old BSD name for PF_LOCAL }
-  PF_FILE      = PF_LOCAL;           { Another non-standard name for PF_LOCAL }
-  PF_INET      = 2;                  { IP protocol family }
-
-
-  { Address families }
-  AF_UNSPEC    = PF_UNSPEC;
-  AF_LOCAL     = PF_LOCAL;
-  AF_UNIX      = PF_UNIX;
-  AF_FILE      = PF_FILE;
-  AF_INET      = PF_INET;
-
   INADDR_ANY   = CARDINAL(0);
   INADDR_NONE  = CARDINAL($FFFFFFFF);
 
