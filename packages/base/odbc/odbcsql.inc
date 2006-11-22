@@ -15,8 +15,9 @@ uses
 {$IFDEF DYNLOADINGODBC}
      Dynlibs,
 {$ENDIF}
+     ctypes,
      sysutils;
-     
+
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
   const
@@ -44,20 +45,21 @@ uses
 *)
 
 type
-  SQLCHAR      = Char;
-  SQLSMALLINT  = smallint;
-  SQLUSMALLINT = Word;
+  SQLCHAR      = char;
+  SQLSMALLINT  = csshort;
+  SQLUSMALLINT = cushort;
   SQLRETURN    = SQLSMALLINT;
-  SQLHANDLE    = LongInt;
+  SQLHANDLE    = pointer;
   SQLHENV      = SQLHANDLE;
   SQLHDBC      = SQLHANDLE;
   SQLHSTMT     = SQLHANDLE;
-  SQLINTEGER   = LongInt;
-  SQLUINTEGER  = Cardinal;
-  SQLPOINTER   = Pointer;
-  SQLREAL      = real;
-  SQLDOUBLE    = Double;
-  SQLFLOAT     = Double;
+  SQLHDESC     = SQLHANDLE;
+  SQLINTEGER   = cint;
+  SQLUINTEGER  = cuint;
+  SQLPOINTER   = pointer;
+  SQLREAL      = cfloat;
+  SQLDOUBLE    = cdouble;
+  SQLFLOAT     = cdouble;
   SQLHWND      = pointer;
   PSQLCHAR      = PChar;
   PSQLINTEGER   = ^SQLINTEGER;
@@ -67,7 +69,7 @@ type
   PSQLREAL      = ^SQLREAL;
   PSQLDOUBLE    = ^SQLDOUBLE;
   PSQLFLOAT     = ^SQLFLOAT;
-  PSQLHandle    = ^SQLHANDLE;
+  PSQLHANDLE    = ^SQLHANDLE;
 
 const
   { SQL data type codes }
@@ -441,7 +443,7 @@ const
 
   SQL_NO_DATA = 100;
   SQL_ERROR   = (-1);
-  SQL_INVALID_HANDLE =(-2);
+  SQL_INVALID_HANDLE = (-2);
 
   SQL_STILL_EXECUTING =  2;
   SQL_NEED_DATA       = 99;
@@ -710,18 +712,18 @@ const
 {
 /* SQLEndTran() options */
 #define SQL_COMMIT          0
-#define SQL_ROLLBACK        1
+#define SQL_ROLLBACK        1}
 
-/* null handles returned by SQLAllocHandle() */
-#define SQL_NULL_HENV       0
-#define SQL_NULL_HDBC       0
-#define SQL_NULL_HSTMT      0
-#if (ODBCVER >= 0x0300)
-#define SQL_NULL_HDESC      0
-#endif
-}
+//* null handles returned by SQLAllocHandle() */
+  SQL_NULL_HENV       = SQLHENV(0);
+  SQL_NULL_HDBC       = SQLHDBC(0);
+  SQL_NULL_HSTMT      = SQLHSTMT(0);
+{$ifdef odbcver3}
+  SQL_NULL_HDESC      = SQLHDESC(0);
+{$endif}
+
 //* null handle used in place of parent handle when allocating HENV */
-  SQL_NULL_HANDLE = 0;
+  SQL_NULL_HANDLE = SQLHANDLE(0);
 
 //* Values that may appear in the result set of SQLSpecialColumns() */
   SQL_SCOPE_CURROW      = 0;
