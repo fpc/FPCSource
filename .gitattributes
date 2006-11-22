@@ -5295,6 +5295,7 @@ rtl/win/crt.pp svneol=native#text/plain
 rtl/win/dos.pp svneol=native#text/plain
 rtl/win/dynlibs.inc svneol=native#text/plain
 rtl/win/fpcmemdll.pp svneol=native#text/plain
+rtl/win/fpwinsockh.inc svneol=native#text/plain
 rtl/win/keyboard.pp svneol=native#text/plain
 rtl/win/messages.pp svneol=native#text/plain
 rtl/win/mouse.pp svneol=native#text/plain

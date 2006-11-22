@@ -28,11 +28,8 @@ Type
   psocklen= ^tsocklen;
 
 
-  Const
-     AF_MAX          = WinSock2.AF_MAX;
-     PF_MAX          = AF_MAX;
-
 {$i socketsh.inc}
+{$i fpwinsockh.inc}
 
 Implementation
 

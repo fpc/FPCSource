@@ -52,12 +52,21 @@ type
     fd_count: u_int;
     fd_array: array[0..FD_SETSIZE-1] of TSocket;
   end;
+  fdset = TFDSet;
 
   PTimeVal = ^TTimeVal;
   TTimeVal = record
     tv_sec: Longint;
     tv_usec: Longint;
   end;
+  timeval = TTimeVal;
+
+       timezone = record
+          tz_minuteswest : longint;
+          tz_dsttime : longint;
+       end;
+       TTimeZone = timezone;
+       PTimeZone = ^TTimeZone;
 
 const
   IOCPARM_MASK = $7f;
@@ -87,6 +96,7 @@ type
       0: (h_addr_list: ^PChar);
       1: (h_addr: ^PChar)
   end;
+  hostent = THostEnt;
 
   PNetEnt = ^TNetEnt;
   TNetEnt = record
@@ -95,6 +105,7 @@ type
     n_addrtype: Smallint;
     n_net: u_long;
   end;
+  netent = TNetEnt;
 
   PServEnt = ^TServEnt;
   TServEnt = record
@@ -108,6 +119,7 @@ type
     s_proto: PChar;
 {$endif WIN64}
   end;
+  servent = TServEnt;
 
   PProtoEnt = ^TProtoEnt;
   TProtoEnt = record
@@ -115,6 +127,7 @@ type
     p_aliases: ^Pchar;
     p_proto: Smallint;
   end;
+  protoent = TProtoEnt;
 
 const
 
@@ -364,6 +377,7 @@ type
       1: (S_un_w: SunW);
       2: (S_addr: u_long);
   end;
+  in_addr = TInAddr;
 
   PSockAddrIn = ^TSockAddrIn;
   TSockAddrIn = record
@@ -375,6 +389,7 @@ type
       1: (sa_family: u_short;
           sa_data: array[0..13] of Char)
   end;
+  sockaddr_in = TSockAddrIn;
 
   { Structure used by kernel to store most addresses. }
 
@@ -387,6 +402,7 @@ type
     sp_family: u_short;
     sp_protocol: u_short;
   end;
+  sockproto = TSockProto;
 
 { Structure used for manipulating linger option. }
   PLinger = ^TLinger;
@@ -625,6 +641,7 @@ type
      lpVendorInfo : pchar;         { 4 byte, ofs 396 }
 {$endif win64}
   end;
+  WSAData = TWSAData;
 
 {       WSAOVERLAPPED = Record
                 Internal: LongInt;
@@ -661,6 +678,7 @@ type
                 MaxSduSize,     MinimumPolicedSize : LongInt;// In Bytes
         end;
         PFlowSpec = ^TFLOWSPEC;
+        flowspec = TFlowSpec;
 
         TQualityOfService = record
                 SendingFlowspec: TFlowSpec;     { the flow spec for data sending }
