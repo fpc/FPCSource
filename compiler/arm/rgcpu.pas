@@ -80,7 +80,8 @@ unit rgcpu;
             tmpref.base:=NR_R15;
             helplist.concat(taicpu.op_reg_ref(A_LDR,hreg,tmpref));
 
-            reference_reset_base(tmpref,hreg,0);
+            reference_reset_base(tmpref,current_procinfo.framepointer,0);
+            tmpref.index:=hreg;
 
             if spilltemp.index<>NR_NO then
               internalerror(200401263);
@@ -130,7 +131,8 @@ unit rgcpu;
             if spilltemp.index<>NR_NO then
               internalerror(200401263);
 
-            reference_reset_base(tmpref,hreg,0);
+            reference_reset_base(tmpref,current_procinfo.framepointer,0);
+            tmpref.index:=hreg;
 
             helplist.concat(spilling_create_store(tempreg,tmpref));
 
