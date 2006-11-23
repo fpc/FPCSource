@@ -747,7 +747,7 @@ implementation
                           begin
                             if not assigned(lenpara) then
                               lenpara := ccallparanode.create(
-                                cordconstnode.create(0,sinttype,false),nil)
+                                cordconstnode.create(0,s32inttype,false),nil)
                             else
                               { make sure we don't pass the successive }
                               { parameters too. We also already have a }
@@ -759,18 +759,18 @@ implementation
                           begin
                             if not assigned(lenpara) then
                               lenpara := ccallparanode.create(
-                                cordconstnode.create(-32767,sinttype,false),nil);
+                                cordconstnode.create(-32767,s32inttype,false),nil);
                             { also create a default fracpara if necessary }
                             if not assigned(fracpara) then
                               fracpara := ccallparanode.create(
-                                cordconstnode.create(-1,sinttype,false),nil);
+                                cordconstnode.create(-1,s32inttype,false),nil);
                             { add it to the lenpara }
                             lenpara.right := fracpara;
                             { and add the realtype para (this also removes the link }
                             { to any parameters coming after it)                    }
                             fracpara.right := ccallparanode.create(
                                 cordconstnode.create(ord(tfloatdef(para.left.resultdef).floattype),
-                                sinttype,true),nil);
+                                s32inttype,true),nil);
                           end;
                       end;
 
