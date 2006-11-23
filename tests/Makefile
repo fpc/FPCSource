@@ -1364,6 +1364,9 @@ TEST_OUTPUTDIR=output/$(TEST_FULL_TARGET)
 TEST_DATETIME:=$(shell $(DATE) +%Y%m%d%H%M)
 ifndef TEST_USER
 TEST_USER=$(USER)
+ifeq ($(TEST_USER),)
+TEST_USER=$(USERNAME)
+endif
 endif
 DB_TARGZ=$(TEST_HOSTNAME)-$(TEST_DATETIME).tar.gz
 DB_HOST=fpc@www.freepascal.org
@@ -1507,6 +1510,9 @@ $(TEST_OUTPUTDIR)/tar.lst:
 	$(ECHOREDIR) "log" >> $(TEST_OUTPUTDIR)/tar.lst
 	$(ECHOREDIR) "dbdigest.cfg" >> $(TEST_OUTPUTDIR)/tar.lst
 $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/tar.lst $(TEST_OUTPUTDIR)/dbdigest.cfg
+ifdef inCygWin
+	dos2unix $(TEST_OUTPUTDIR)/tar.lst
+endif
 	cd $(TEST_OUTPUTDIR) && tar cfz $(DB_TARGZ) --files-from=tar.lst
 else
 $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/dbdigest.cfg

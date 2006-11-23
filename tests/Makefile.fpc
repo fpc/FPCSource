@@ -79,6 +79,9 @@ TEST_DATETIME:=$(shell $(DATE) +%Y%m%d%H%M)
 
 ifndef TEST_USER
 TEST_USER=$(USER)
+ifeq ($(TEST_USER),)
+TEST_USER=$(USERNAME)
+endif
 endif
 
 # Testsuite upload
@@ -326,6 +329,9 @@ $(TEST_OUTPUTDIR)/tar.lst:
         $(ECHOREDIR) "dbdigest.cfg" >> $(TEST_OUTPUTDIR)/tar.lst
 
 $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/tar.lst $(TEST_OUTPUTDIR)/dbdigest.cfg
+ifdef inCygWin
+        dos2unix $(TEST_OUTPUTDIR)/tar.lst
+endif
         cd $(TEST_OUTPUTDIR) && tar cfz $(DB_TARGZ) --files-from=tar.lst
 
 else
