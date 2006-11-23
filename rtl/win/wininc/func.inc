@@ -807,6 +807,7 @@ function DeleteEnhMetaFile(_para1:HENHMETAFILE):WINBOOL; external 'gdi32' name '
 function EnumEnhMetaFile(_para1:HDC; _para2:HENHMETAFILE; _para3:ENHMETAFILEPROC; _para4:LPVOID; var _para5:RECT):WINBOOL; external 'gdi32' name 'EnumEnhMetaFile';
 function GetEnhMetaFileHeader(_para1:HENHMETAFILE; _para2:UINT; _para3:LPENHMETAHEADER):UINT; external 'gdi32' name 'GetEnhMetaFileHeader';
 function GetEnhMetaFilePaletteEntries(_para1:HENHMETAFILE; _para2:UINT; _para3:LPPALETTEENTRY):UINT; external 'gdi32' name 'GetEnhMetaFilePaletteEntries';
+function GetEnhMetaFileBits(_para1:HENHMETAFILE; _para2:UINT; _para3:LPBYTE): UINT; external 'gdi32' name 'GetEnhMetaFileBits';
 function GetWinMetaFileBits(_para1:HENHMETAFILE; _para2:UINT; _para3:LPBYTE; _para4:wINT; _para5:HDC):UINT; external 'gdi32' name 'GetWinMetaFileBits';
 function PlayEnhMetaFile(_para1:HDC; _para2:HENHMETAFILE; var _para3:RECT):WINBOOL; external 'gdi32' name 'PlayEnhMetaFile';
 function PlayEnhMetaFileRecord(_para1:HDC; _para2:LPHANDLETABLE; var _para3:ENHMETARECORD; _para4:UINT):WINBOOL; external 'gdi32' name 'PlayEnhMetaFileRecord';

@@ -1027,6 +1027,9 @@
      DT_VCENTER = 4;
      DT_WORDBREAK = 16;
      DT_INTERNAL = 4096;
+     DT_WORD_ELLIPSIS = $40000;
+     DT_HIDEPREFIX = $100000;
+     DT_PREFIXONLY = $200000;
   { DuplicateHandle, MapViewOfFile  }
      DUPLICATE_CLOSE_SOURCE = 1;
      DUPLICATE_SAME_ACCESS = 2;
@@ -2527,6 +2530,9 @@ Const
      LOCALE_NOUSEROVERRIDE = $80000000;
      LOCALE_USE_CP_ACP     = $40000000;   // use the system ACP
      LOCALE_RETURN_NUMBER  = $20000000;   // return number instead
+     LOCALE_SISO639LANGNAME = $59;
+     LOCALE_SISO3166CTRYNAME = $5A;
+ 
   { Calendar Type Information  }
      CAL_ICALINTVALUE = 1;
      CAL_IYEAROFFSETRANGE = 3;
