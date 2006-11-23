@@ -72,7 +72,6 @@ implementation
       var
         table : tasmlabel;
         last : TConstExprInt;
-        targetreg,
         indexreg : tregister;
         href : treference;
 
@@ -104,17 +103,18 @@ implementation
         { make it a 32bit register }
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,OS_INT,hregister,indexreg);
-        targetreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_+1,indexreg,indexreg);
         { create reference }
-        reference_reset_symbol(href,table,0);
-        href.offset:=(-aint(min_))*4;
-        href.index:=targetreg;
-        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,2,indexreg,targetreg);
+        reference_reset(href);
+        href.base:=NR_PC;
+        href.index:=indexreg;
+        href.shiftmode:=SM_LSL;
+        href.shiftimm:=2;
         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,NR_PC);
         { generate jump table }
-        current_procinfo.aktlocaldata.concat(Tai_label.Create(table));
+        current_asmdata.CurrAsmList.concat(Tai_label.Create(table));
         last:=min_;
-        genitem(current_procinfo.aktlocaldata,hp);
+        genitem(current_asmdata.CurrAsmList,hp);
       end;
 
 
