@@ -216,7 +216,7 @@ implementation
       begin
          { do we need to generate cmps? }
          if (with_sign and (min_label<0)) or
-            (opsize = OS_INT) then
+            (opsize in [OS_32,OS_64,OS_S64]) then
            genlinearcmplist(hp)
          else
            begin
