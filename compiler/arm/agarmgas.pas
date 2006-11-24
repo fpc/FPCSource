@@ -111,7 +111,7 @@ unit agarmgas;
                      s:=s+gas_regname(index);
 
                      if shiftmode<>SM_None then
-                       s:=s+' ,'+gas_shiftmode2str[shiftmode]+' #'+tostr(shiftimm);
+                       s:=s+', '+gas_shiftmode2str[shiftmode]+' #'+tostr(shiftimm);
                   end
                 else if offset<>0 then
                   s:=s+', #'+tostr(offset);

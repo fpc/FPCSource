@@ -70,7 +70,6 @@ implementation
 
     procedure tarmcasenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
       var
-        table : tasmlabel;
         last : TConstExprInt;
         indexreg : tregister;
         href : treference;
@@ -99,7 +98,6 @@ implementation
              { case expr greater than max_ => goto elselabel }
              cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,jmp_gt,aint(max_),hregister,elselabel);
           end;
-        current_asmdata.getjumplabel(table);
         { make it a 32bit register }
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,OS_INT,hregister,indexreg);
@@ -112,7 +110,6 @@ implementation
         href.shiftimm:=2;
         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,NR_PC);
         { generate jump table }
-        current_asmdata.CurrAsmList.concat(Tai_label.Create(table));
         last:=min_;
         genitem(current_asmdata.CurrAsmList,hp);
       end;
