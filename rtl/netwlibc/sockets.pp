@@ -36,10 +36,7 @@ Type
   psocklen=^tsocklen;
 
 
-  Const
-     AF_MAX          = WinSock.AF_MAX;
-     PF_MAX          = AF_MAX;
-
+{$i netwsockh.inc}
 {$i socketsh.inc}
 
 Implementation

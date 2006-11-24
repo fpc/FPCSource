@@ -4872,6 +4872,7 @@ rtl/netware/mouse.pp svneol=native#text/plain
 rtl/netware/ndpsrpc.imp -text
 rtl/netware/netnlm32.imp -text
 rtl/netware/netware.pp svneol=native#text/plain
+rtl/netware/netwsockh.inc svneol=native#text/plain
 rtl/netware/nit.imp -text
 rtl/netware/nlmlib.imp -text
 rtl/netware/npackoff.inc svneol=native#text/plain
@@ -4928,6 +4929,7 @@ rtl/netwlibc/libc.pp svneol=native#text/plain
 rtl/netwlibc/libcclib.imp -text
 rtl/netwlibc/mouse.pp svneol=native#text/plain
 rtl/netwlibc/netware.imp -text
+rtl/netwlibc/netwsockh.inc svneol=native#text/plain
 rtl/netwlibc/nwl_dlle.as -text
 rtl/netwlibc/nwl_main.as -text
 rtl/netwlibc/nwsnut.imp -text
