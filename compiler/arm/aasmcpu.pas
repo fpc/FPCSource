@@ -695,7 +695,10 @@ implementation
                       end;
                   end;
                 inc(curpos);
-              end;
+              end
+            else
+              if curtai.typ=ait_const then
+                inc(curpos);
 
             { split only at real instructions else the test below fails }
             if ((curpos-lastpos)>1016) and (curtai.typ=ait_instruction) and
