@@ -9,6 +9,56 @@
   	  <style type="text/css" title="fpcUnit" media="screen">
 		    @import "fpcunit.css";
 	    </style>
+    <script>
+window.onload = function () {
+	var x = document.getElementsByTagName('div');
+	for (var i=0;i&lt;x.length;i++)
+	{
+		if (x[i].className == 'testsuitelabel')
+			x[i].onclick = clickSuite;
+		if (x[i].className == 'testsuiteshowall')
+			x[i].onclick = openSuites;
+		if (x[i].className == 'testsuitehideall')
+			x[i].onclick = closeSuites;
+	}
+
+	closeSuites();
+}
+
+function closeSuites()
+{
+	var x = document.getElementsByTagName('div');
+	for (var i=0;i&lt;x.length;i++)
+	{
+		if (x[i].className == 'testcontent')
+			x[i].style.display = 'none';
+	}
+}
+
+function openSuites()
+{
+	var x = document.getElementsByTagName('div');
+	for (var i=0;i&lt;x.length;i++)
+	{
+		if (x[i].className == 'testcontent')
+			x[i].style.display = 'block';
+	}
+}
+
+function clickSuite(e)
+{
+	if (!e) var e = window.event;
+	if (e.target) var tg = e.target;
+	else if (e.srcElement) var tg = e.srcElement;
+	while (tg.nodeName != 'DIV') // Safari GRRRRRRRRRR
+		tg = tg.parentNode;
+	var nextSib = tg.nextSibling;
+	while (nextSib.nodeType != 1)
+		nextSib = nextSib.nextSibling;
+	var nextSibStatus = (nextSib.style.display == 'none') ? 'block' : 'none';
+	nextSib.style.display = nextSibStatus;
+}
+    </script>
   </head>
   <body>
 
@@ -101,18 +151,24 @@ unexpected results.</p>
   <!--  Test Listing Table -->
 	<table border="0" rules="none" width="100%">
 		<tr align="left" class="title">
-			<th width="89%" align="left">Name</th>
-			<th width="11%" align="left">Elapsed Time<br/>(hh:mm:ss.zzz)</th>
+			<td align="left">Name<br/><div class="testsuiteshowall">[show all]</div><div class="testsuitehideall">[hide all]</div></td>
+			<td width="150" align="right">Elapsed Time<br/>(hh:mm:ss.zzz)</td>
 		</tr>
-    <xsl:for-each select="TestListing/TestSuite/Test">
-    <xsl:variable name="testName" select="@Name"/>
-    <xsl:variable name="elapsedTime" select="ElapsedTime"/>
-    <tr class="success">
-      <td><xsl:value-of select="$testName"/></td>
-      <td><xsl:value-of select="ElapsedTime"/></td>
-    </tr>
-	  </xsl:for-each>
   </table>
+	<xsl:for-each select="TestListing/TestSuite">
+    <div class="testsuitelabel"><xsl:value-of select="@Name"/></div>
+    <div class="testcontent">
+      <table border="0" cellspacing="1" width="100%">
+        <xsl:for-each select="./Test">
+        <tr class="success">
+          <td><xsl:value-of select="@Name"/></td>
+          <td width="150" align="right"><xsl:value-of select="ElapsedTime"/></td>
+        </tr>
+    	  </xsl:for-each>  <!-- Test -->
+      </table>
+    </div>
+  </xsl:for-each> <!-- TestSuite -->
+
 </div>  <!-- testlisting -->
 </xsl:template>
 

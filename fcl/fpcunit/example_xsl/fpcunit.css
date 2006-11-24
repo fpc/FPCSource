@@ -4,19 +4,23 @@ body
 	font-size: x-small;
   background: #FFFFFF;
 }
+
 a 
 {
   text-decoration: none;
   background-color: Transparent
 }
+
 a:link 
 {	
 	color: #0033ff;
 }		
+
 a:visited 
 {	
 	color:	#003399;
 }			
+
 a:active, a:hover
 {	
 	color:#69c;
@@ -26,21 +30,22 @@ h2
 {
   padding: 4px 4px 4px 6px;
   font-size: large;
-    border: 1px solid black;
-    font-weight: bold;
-    color: white;
-    background-color: #006699;
+  border: 1px solid black;
+  font-weight: bold;
+  color: white;
+  background-color: #006699;
 }
+
 h3 
 {
   padding: 4px 4px 4px 6px;
   border: 1px solid #003399;
   color: #FFFFFF;
-/* #003399;  */
   background-color: #0099CC;
   font-weight: normal;
   font-size: medium;
 }
+
 table 
 {
 	padding:0px;
@@ -48,59 +53,90 @@ table
 	margin-left: -2px;
 	margin-right: -2px;
 }
+
 th, td 
 {
   padding: 2px 4px 2px 4px;
   vertical-align: top;
   font-size: x-small;
 }
+
 address 
 {
 	font-family: verdana, arial, helvetica, Sans-Serif;
 	font-size: 8pt;
-    font-style: normal; 
-    text-align: right;
+  font-style: normal; 
+  text-align: right;
 }
 
 .title 
 {
 	background-color: #bbb; 
-/* #bbb;  #D8D8D8   #D3E4FF */
   color: white;	
 }
+
 .resultmessage
 {
 	background-color: #D3E4FF; 
 }
+
 .success 
 {
 	background-color: lightgreen;
 	color: black;
 }
+
 .failure 
 {
 	background-color: #FF00FF;
 	color: black;
 }
+
 .notrun 
 {
 	background-color: yellow;
 	color: black;
 }
+
 .error 
 {
 	background-color: red;
 	color: black;
 	font-size: 9pt;
 }
+
 .right
 {
 	font-size: 8pt;
 	text-align: right;
 }
+
 .backToTop
 {
   text-align: right;
 }
 
+.testsuitelabel
+{
+	background-color: cadetblue;
+	color: black;
+  cursor:pointer; cursor:hand;   /* cross browser hack */
+	padding-top: 3px;
+	border: 1px solid #F5F5F5;
+}
 
+.testsuiteshowall
+{
+  display:inline;
+  cursor:pointer; cursor:hand;   /* cross browser hack */
+}
+
+.testsuitehideall
+{
+  display:inline;
+  cursor:pointer; cursor:hand;   /* cross browser hack */
+}
+
+div.testcontent {
+	margin-left: 8px;
+}
