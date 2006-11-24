@@ -162,6 +162,15 @@ unit rgcpu;
                   add_edge(getsupreg(taicpu(p).oper[1]^.reg),getsupreg(taicpu(p).oper[2]^.reg));
                   add_edge(getsupreg(taicpu(p).oper[0]^.reg),getsupreg(taicpu(p).oper[2]^.reg));
                 end;
+              A_LDRB,
+              A_STRB,
+              A_STR,
+              A_LDR,
+              A_LDRH,
+              A_STRH:
+                { don't mix up the framepointer with pre/post indexed operations }
+                if (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) then
+                  add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),getsupreg(current_procinfo.framepointer));
             end;
           end;
       end;
