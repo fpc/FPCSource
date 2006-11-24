@@ -92,7 +92,7 @@ type
 {$endif Windows}
   PSize = ^TSize;
   tagSIZE = TSize;
-  SIZE = TSize;
+//  SIZE = TSize;
 
 
   TSmallPoint =
@@ -264,6 +264,8 @@ function IsRectEmpty(const Rect : TRect) : Boolean;
 function OffsetRect(var Rect : TRect;DX : Integer;DY : Integer) : Boolean;
 function CenterPoint(const Rect: TRect): TPoint;
 function InflateRect(var Rect: TRect; dx: Integer; dy: Integer): Boolean;
+function Size(AWidth, AHeight: Integer): TSize;
+function Size(ARect: TRect): TSize;
 
 implementation
 
@@ -391,7 +393,6 @@ begin
     end;
 end;
 
-
 function InflateRect(var Rect: TRect; dx: Integer; dy: Integer): Boolean;
 begin
   if Assigned(@Rect) then
@@ -407,6 +408,18 @@ begin
   end
   else
     Result := False;
+end;
+
+function Size(AWidth, AHeight: Integer): TSize;
+begin
+  Result.cx := AWidth;
+  Result.cy := AHeight;
+end;
+
+function Size(ARect: TRect): TSize;
+begin
+  Result.cx := ARect.Right - ARect.Left;
+  Result.cy := ARect.Bottom - ARect.Top;
 end;
 
 
