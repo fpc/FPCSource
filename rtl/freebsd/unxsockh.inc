@@ -18,8 +18,8 @@ Const
  * Address families.
  *}
   AF_UNSPEC        = 0;		{ unspecified }
-  AF_LOCAL         = AF_UNIX;	{ local to host (pipes, portals) }
   AF_UNIX          = 1;		{ standardized name for AF_LOCAL }
+  AF_LOCAL         = AF_UNIX;	{ local to host (pipes, portals) }
   AF_INET          = 2;		{ internetwork: UDP, TCP, etc. }
   AF_IMPLINK       = 3;		{ arpanet imp addresses }
   AF_PUP           = 4;		{ pup protocols: e.g. BSP }
