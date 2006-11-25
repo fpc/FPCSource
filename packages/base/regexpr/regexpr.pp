@@ -2,7 +2,7 @@
     This unit implements basic regular expression support
 
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2000-2005 by Florian Klaempfl
+    Copyright (c) 2000-2006 by Florian Klaempfland Carl Eric Codere
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -12,25 +12,32 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{ $define DEBUG}
+{.$ define DEBUG}
+
 (*
+  - newline handling (uses all known formats of ASCII, #10,#13,#13#10 and #$85
+
   TODO:
      - correct backtracking, for example in (...)*
-     - | support
+     - full | support (currently requires to put all items with | operator
+        between parenthesis (in a group) to take care over order priority.
+          Therefore the following would work: (foo)|(nofoo) but not
+          foo|nofoo
      - getting substrings and using substrings with \1 etc.
-     - test ^  and $
-     - newline handling in DOS?
-     - locals dependend upper/lowercase routines
-     - extend the interface
-     - support for number of matches:
-       {n}    Match exactly n times
-       {n,}   Match at least n times
-       {n,m}  Match at least n but not more than m times
-
+     - do we treat several multiline characters in a row as a single
+        newline character for $ and ^?
 *)
 
+{$IFDEF FPC}
 {$mode objfpc}
+{$ENDIF}
 
+{** @abstract(Regular expression unit)
+
+    This unit implements a basic regular expression parser that mostly conforms
+    to the POSIX extended-regular expression syntax. It also supports standard
+    escape characters for patterns (as defined in PERL).
+}
 unit regexpr;
 
   interface
@@ -40,20 +47,27 @@ unit regexpr;
     { use this unit shouldn't access this data structures        }
     type
        tcharset = set of char;
-       tregexprentrytype = (ret_charset,ret_or,ret_startpattern,
-          ret_endpattern,ret_illegalend,ret_backtrace,ret_startline,
-          ret_endline);
+       tregexprentrytype = (ret_charset,ret_or,
+          ret_illegalend,ret_backtrace,ret_startline,
+          ret_endline,ret_pattern);
 
        pregexprentry = ^tregexprentry;
        tregexprentry = record
           next,nextdestroy : pregexprentry;
           case typ : tregexprentrytype of
-             ret_charset : (chars : tcharset;
-                            elsepath : pregexprentry);
-             ret_or : (alternative : pregexprentry);
+             ret_charset : (chars : tcharset; elsepath : pregexprentry);
+             {** This is a complete pattern path ()+ , ()* or ()?, n,m }
+             ret_pattern: (pattern: pregexprentry; minoccurs: integer; maxoccurs: integer; alternative : pregexprentry);
        end;
 
-       tregexprflag = (ref_singleline,ref_multiline,ref_caseinsensitive);
+       tregexprflag = (
+         ref_singleline,
+         {** This indicates that a start of line is either the
+             start of the pattern or a linebreak. }
+         ref_multiline,
+         {** The match will be done in a case-insensitive way
+              according to US-ASCII character set. }
+         ref_caseinsensitive);
        tregexprflags = set of tregexprflag;
 
        TRegExprEngine = record
@@ -77,14 +91,37 @@ unit regexpr;
 
      { the following procedures can be used by units basing }
      { on the regexpr unit                                  }
-     function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags) : TRegExprEngine;
 
+     {** From a regular expression, compile an encoded version of the regular expression.
+
+         @param(regexpr Regular expression to compile)
+         @param(flags Flags relating to the type of parsing that will occur)
+         @param(RegExprEngine The actual encoded version of the regular expression)
+         @returns(true if success, otherwise syntax error in compiling regular expression)
+     }
+     function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags;var RegExprEngine: TRegExprEngine): boolean;
+
+{$IFDEF FPC}     
+    {** Backward compatibility routine }
+     function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags): TREGExprEngine;
+{$ENDIF}     
+
+     {** Frees all up resources used for the encoded regular expression }
      procedure DestroyRegExprEngine(var regexpr : TRegExprEngine);
 
-     function RegExprPos(regexprengine : TRegExprEngine;p : pchar;var index,len : longint) : boolean;
+     {** @abstract(Matches a regular expression)
 
-     { This function Escape known regex chars and place the result on Return. If something went wrong the function will return false. }
-     function RegExprEscapeStr (const S : AnsiString) : AnsiString;
+        @param(RegExprEngine The actual compiled regular expression to match against)
+        @param(p The text to search for for a match)
+        @param(index zero-based index to the start of the match -1 if no match in p)
+        @param(len length of the match)
+        @returns(true if there was a match, otherwise false)
+     }
+     function RegExprPos(RegExprEngine : TRegExprEngine;p : pchar;var index,len : longint) : boolean;
+
+     { This function Escape known regex chars and place the result on Return. If something went wrong the
+       function will return false. }
+     function RegExprEscapeStr (const S : string) : string;
 
   implementation
 
@@ -95,14 +132,90 @@ unit regexpr;
           b : byte;
 
        begin
-          for b:=0 to 255 do
+          for b:=20 to 255 do
             if chr(b) in c then
               write(chr(b));
           writeln;
        end;
+
+
+    const
+
+      typ2str : array[tregexprentrytype] of string =
+      (
+        'ret_charset',
+        'ret_or',
+        'ret_illegalend',
+        'ret_backtrace',
+        'ret_startline',
+        'ret_endline',
+        'ret_pattern'
+      );
+
+
+     { Dumps all the next elements of a tree }
+     procedure dumptree(space: string; regentry: pregexprentry);
+      begin
+        while assigned(regentry) do
+          begin
+            WriteLn(space+'------- Node Type ',typ2str[regentry^.typ]);
+            if (regentry^.typ = ret_charset) then
+              WriteCharSet(regentry^.chars);
+            { dump embedded pattern information }
+            if regentry^.typ = ret_pattern then
+               begin
+                 dumptree(space+#9,regentry^.pattern);
+                 WriteLn(space+#9,' --- Alternative nodes ');
+                 if assigned(regentry^.alternative) then
+                   dumptree(space+#9#9,regentry^.alternative);
+               end;
+            if regentry^.typ = ret_startline then
+               dumptree(space+#9,regentry^.pattern);
+            regentry:=regentry^.next;
+          end;
+      end;
 {$endif DEBUG}
 
-     function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags) : TRegExprEngine;
+
+     {** Determines the length of a pattern, including sub-patterns.
+
+         It goes through the nodes and returns the pattern length
+         between the two, using minOccurs as required.
+
+         Called recursively.
+     }
+     function patlength(hp1: pregexprentry): integer;
+       var
+        count: integer;
+        hp: pregexprentry;
+       begin
+        count:=0;
+        if hp1^.typ=ret_pattern then
+            hp:=hp1^.pattern
+        else
+            hp:=hp1;
+        { now go through all chars and get the length
+          does not currently take care of embedded patterns
+        }
+        while assigned(hp) do
+          begin
+            if hp^.typ = ret_pattern then
+              begin
+                inc(count,patlength(hp));
+              end
+            else
+            if hp^.typ = ret_charset then
+               inc(count);
+            hp:=hp^.next;
+          end;
+        if hp1^.typ=ret_pattern then
+          begin
+            count:=hp1^.minOccurs*count;
+          end;
+         patlength:=count;
+       end;
+
+     function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags; var RegExprEngine:TRegExprEngine) : boolean;
 
        var
           first : pregexprentry;
@@ -118,20 +231,20 @@ unit regexpr;
           currentpos : pchar;
           error : boolean;
 
-       function readchars : tcharset;
+       procedure readchars(var chars: tcharset);
 
          var
             c1 : char;
 
          begin
-            readchars:=[];
+            chars:=[];
             case currentpos^ of
                #0:
                   exit;
                '.':
                   begin
                      inc(currentpos);
-                     readchars:=cs_allchars-cs_newline;
+                     chars:=cs_allchars-cs_newline;
                   end;
                '\':
                   begin
@@ -145,61 +258,61 @@ unit regexpr;
                         't':
                            begin
                               inc(currentpos);
-                              readchars:=[#9];
+                              chars:=[#9];
                            end;
                         'n':
                            begin
                               inc(currentpos);
-                              readchars:=[#10];
+                              chars:=[#10];
                            end;
                         'r':
                            begin
                               inc(currentpos);
-                              readchars:=[#13];
+                              chars:=[#13];
                            end;
                         'd':
                           begin
                              inc(currentpos);
-                             readchars:=cs_digits;
+                             chars:=cs_digits;
                           end;
                         'D':
                           begin
                              inc(currentpos);
-                             readchars:=cs_nondigits;
+                             chars:=cs_nondigits;
                           end;
                         's':
                           begin
                              inc(currentpos);
-                             readchars:=cs_whitespace;
+                             chars:=cs_whitespace;
                           end;
                         'S':
                           begin
                              inc(currentpos);
-                             readchars:=cs_nonwhitespace;
+                             chars:=cs_nonwhitespace;
                           end;
                         'w':
                            begin
                               inc(currentpos);
-                              readchars:=cs_wordchars;
+                              chars:=cs_wordchars;
                            end;
                         'W':
                            begin
                               inc(currentpos);
-                              readchars:=cs_nonwordchars;
+                              chars:=cs_nonwordchars;
                            end;
                         'f' :
                             begin
                               inc(currentpos);
-                              readchars:= [#12];
+                              chars:= [#12];
                             end;
                         'a' :
                             begin
                               inc(currentpos);
-                              readchars:= [#7];
+                              chars:= [#7];
                             end;
                          else
-                           begin //Some basic escaping...
-                              readchars := [currentpos^];
+                           begin { Some basic escaping...}
+                              chars := [currentpos^];
                               inc (currentpos);
                               {error:=true;
                               exit;}
@@ -223,22 +336,24 @@ unit regexpr;
                               exit;
                            end;
                          if ref_caseinsensitive in flags then
-                           readchars:=[c1..upcase(currentpos^)]
+                           chars:=[c1..upcase(currentpos^)]
                          else
-                           readchars:=[c1..currentpos^];
+                           chars:=[c1..currentpos^];
                          inc(currentpos);
                       end
                     else
-                      readchars:=[c1];
+                      chars:=[c1];
                  end;
             end;
          end;
 
 
-       function readcharset : tcharset;
+       procedure readcharset(var charset: tcharset);
 
+         var
+           chars: tcharset;
          begin
-            readcharset:=[];
+            charset:=[];
             case currentpos^ of
                #0:
                   exit;
@@ -250,10 +365,14 @@ unit regexpr;
                           if currentpos^='^' then
                             begin
                                inc(currentpos);
-                               readcharset:=readcharset+(cs_allchars-readchars);
+                               readchars(chars);
+                               charset:=charset+(cs_allchars-chars);
                             end
                           else
-                            readcharset:=readcharset+readchars;
+                            begin
+                              readchars(chars);
+                              charset:=charset+chars;
+                            end;
                           if error or (currentpos^=#0) then
                             begin
                                error:=true;
@@ -265,32 +384,104 @@ unit regexpr;
                '^':
                   begin
                      inc(currentpos);
-                     readcharset:=cs_allchars-readchars;
+                     readchars(chars);
+                     charset:=cs_allchars-chars;
                   end;
                else
-                  readcharset:=readchars;
+                  begin
+                    readchars(chars);
+                    charset:=chars;
+                  end;
             end;
          end;
+
+
+       (* takes care of parsing the {n}, {n,} and {n,m} regular expression
+          elements. In case of error, sets error to true and returns false,
+          otherwise returns true and set minoccurs and maxoccurs accordingly
+          (-1 if not present). *)
+       function parseoccurences(var currentpos: pchar; var minoccurs,maxoccurs: integer): boolean;
+         var
+          minOccursString: string;
+          maxOccursString: string;
+         begin
+           parseoccurences:=false;
+           minOccurs:=-1;
+           maxOccurs:=-1;
+           inc(currentpos);
+           minOccursString:='';
+           if currentPos^ = #0 then
+             begin
+               error:=true;
+               exit;
+             end;
+            while (currentpos^<>#0) and (currentpos^ in ['0'..'9']) do
+                begin
+                   minOccursString:=minOccursString+currentPos^;
+                   inc(currentpos);
+                end;
+            if length(minOccursString) = 0 then
+                begin
+                  error:=true;
+                  exit;
+                end;
+            Val(minOccursString,minOccurs);
+            { possible cases here: commad or end bracket }
+            if currentpos^= '}' then
+              begin
+                inc(currentpos);
+                maxOccurs:=minOccurs;
+                parseoccurences:=true;
+                exit;
+              end;
+            if currentpos^= ',' then
+              begin
+                maxOccursString:='';
+                inc(currentpos);
+                while (currentpos^<>#0) and (currentpos^ in ['0'..'9']) do
+                begin
+                   maxOccursString:=maxOccursString+currentPos^;
+                   inc(currentpos);
+                end;
+                if currentpos^= '}' then
+                 begin
+                   { If the length of the string is zero, then there is
+                     no upper bound. }
+                   if length(maxOccursString) > 0 then
+                      Val(maxOccursString,maxOccurs)
+                   else
+                      maxOccurs:=high(integer);
+                   inc(currentpos);
+                   parseoccurences:=true;
+                   exit;
+                 end;
+              end;
+              error:=true;
+         end;
+
 
        function parseregexpr(next,elsepath : pregexprentry) : pregexprentry;
 
          var
-            hp,hp2,ep : pregexprentry;
+            hp : pregexprentry;
+            minOccurs,maxOccurs: integer;
+            hp3: pregexprentry;
             cs : tcharset;
             chaining : ^pregexprentry;
 
          begin
             chaining:=nil;
             parseregexpr:=nil;
+            elsepath:=nil;
             if error then
               exit;
             { this dummy allows us to redirect the elsepath later }
-            new(ep);
+{            new(ep);
             doregister(ep);
             ep^.typ:=ret_charset;
             ep^.chars:=[];
             ep^.elsepath:=elsepath;
-            elsepath:=ep;
+            elsepath:=ep;}
             while true do
               begin
                  if error then
@@ -299,33 +490,144 @@ unit regexpr;
                     '(':
                        begin
                           inc(currentpos);
-                          new(hp2);
-                          doregister(hp2);
-                          hp2^.typ:=ret_charset;
-                          hp2^.chars:=[];
-                          hp2^.elsepath:=next;
-                          hp:=parseregexpr(hp2,ep);
-                          if assigned(chaining) then
-                            chaining^:=hp
-                          else
-                            parseregexpr:=hp;
-                          chaining:=@hp2^.elsepath;
+                          hp:=parseregexpr(nil,nil);
+                          { Special characters after the bracket }
+                           if error then
+                              exit;
                           if currentpos^<>')' then
                             begin
                                error:=true;
                                exit;
                             end;
                           inc(currentpos);
-                       end;
+                            case currentpos^ of
+                            '*':
+                               begin
+                                  inc(currentpos);
+                                  new(hp3);
+                                  doregister(hp3);
+                                  hp3^.typ:=ret_pattern;
+                                  hp3^.alternative:=nil;
+                                  hp3^.pattern:=hp;
+                                  hp3^.elsepath:=elsepath;
+                                  hp3^.minoccurs:=0;
+                                  hp3^.maxoccurs:=high(integer);
+                                  hp3^.next:=nil;
+                                  if assigned(chaining) then
+                                    chaining^:=hp3
+                                  else
+                                    parseregexpr:=hp3;
+                                  chaining:=@hp3^.next;
+                               end;
+                            '+':
+                               begin
+                                  inc(currentpos);
+                                  new(hp3);
+                                  doregister(hp3);
+                                  hp3^.typ:=ret_pattern;
+                                  hp3^.alternative:=nil;
+                                  hp3^.pattern:=hp;
+                                  hp3^.elsepath:=elsepath;
+                                  hp3^.minoccurs:=1;
+                                  hp3^.maxoccurs:=high(integer);
+                                  hp3^.next:=nil;
+                                  if assigned(chaining) then
+                                    chaining^:=hp3
+                                  else
+                                    parseregexpr:=hp3;
+                                  chaining:=@hp3^.next;
+                               end;
 
-(*                    '|':
+                            '?':
+                               begin
+                                  inc(currentpos);
+                                  new(hp3);
+                                  doregister(hp3);
+                                  hp3^.typ:=ret_pattern;
+                                  hp3^.alternative:=nil;
+                                  hp3^.pattern:=hp;
+                                  hp3^.elsepath:=elsepath;
+                                  hp3^.minoccurs:=0;
+                                  hp3^.maxoccurs:=1;
+                                  hp3^.next:=nil;
+                                  if assigned(chaining) then
+                                    chaining^:=hp3
+                                  else
+                                    parseregexpr:=hp3;
+                                  chaining:=@hp3^.next;
+                               end;
+                            '{':
+                               begin
+                                 if not parseOccurences(currentPos,minOccurs,maxOccurs) then
+                                   exit;
+                                  inc(currentpos);
+                                  new(hp3);
+                                  doregister(hp3);
+                                  hp3^.typ:=ret_pattern;
+                                  hp3^.alternative:=nil;
+                                  hp3^.pattern:=hp;
+                                  hp3^.elsepath:=elsepath;
+                                  hp3^.minoccurs:=minOccurs;
+                                  hp3^.maxoccurs:=maxOccurs;
+                                  hp3^.next:=nil;
+                                  if assigned(chaining) then
+                                    chaining^:=hp3
+                                  else
+                                    parseregexpr:=hp3;
+                                  chaining:=@hp3^.next;
+                               end;
+                            else
+                              begin
+                                { go to end of this list - always the
+                                  last next used }
+(*
+                                hp3:=hp;
+                                while assigned(hp3^.next) do
+                                  begin
+                                    hp3:=hp3^.next;
+                                  end;
+                                if assigned(chaining) then
+                                   chaining^:=hp
+                                else
+                                   parseregexpr:=hp;
+                                chaining:=@hp3^.next;*)
+                                  new(hp3);
+                                  doregister(hp3);
+                                  hp3^.typ:=ret_pattern;
+                                  hp3^.alternative:=nil;
+                                  hp3^.pattern:=hp;
+                                  hp3^.elsepath:=elsepath;
+                                  hp3^.minoccurs:=1;
+                                  hp3^.maxoccurs:=1;
+                                  hp3^.next:=nil;
+                                  if assigned(chaining) then
+                                    chaining^:=hp3
+                                  else
+                                    parseregexpr:=hp3;
+                                  chaining:=@hp3^.next;
+
+                              end;
+                          end;
+                       end;
+{ This is only partially implemented currently, as the terms before
+  the | character must be grouped together with parenthesis, which
+  is also compatible with other regular expressions.
+}
+                    '|':
                        begin
 {$ifdef DEBUG}
-                          writeln('Creating backtrace entry');
+                          writeln('Creating or entry');
 {$endif DEBUG}
-                          if (not assigned (hp2)) then
-                            new (hp2);
-
+                          if (not assigned (hp3)) then
+                            begin
+                              error:=true;
+                              exit;
+                            end;
+                          if (hp3^.typ <> ret_pattern) then
+                            begin
+                              error:=true;
+                              exit;
+                            end;
                           while currentpos^='|' do
                             begin
                               inc(currentpos);
@@ -334,36 +636,39 @@ unit regexpr;
                                    error:=true;
                                    exit;
                                 end;
-
-                          doregister(hp2);
-                          hp2^.typ:=ret_charset;
-                          hp2^.chars:=[];
-                          hp2^.elsepath:=next;
-
-                              new(hp);
-                              doregister(hp);
-                              hp^.typ:=ret_backtrace;
-                              hp^.elsepath:= parseregexpr (next, elsepath);
-                              hp^.next:=next;
-                              if assigned(chaining) then
-                                chaining^:=hp
+                              { always put the longest pattern first, so
+                                swap the trees as necessary.
+                              }
+                              hp := parseregexpr (next, elsepath);
+                              if patlength(hp) > patlength(hp3^.pattern) then
+                                begin
+                                  hp3^.alternative:=hp3^.pattern;
+                                  hp3^.pattern:=hp;
+                                end
                               else
-                                parseregexpr:=hp;
-                              chaining:=@hp^.elsepath;
+                                 hp3^.alternative:=hp;
                             end;
-                          exit;
                        end;
-*)
                     ')':
                        exit;
                     '^':
                        begin
                           inc(currentpos);
-                          new(hp);
-                          doregister(hp);
-                          hp^.typ:=ret_startline;
-                          hp^.elsepath:=ep;
-                          // hp^.next:=parseregexpr(ep);
+                          hp:=parseregexpr(nil,nil);
+                          { Special characters after the bracket }
+                           if error then
+                              exit;
+                           new(hp3);
+                           doregister(hp3);
+                           hp3^.typ:=ret_startline;
+                           hp3^.pattern:=hp;
+                           hp3^.elsepath:=elsepath;
+                           hp3^.next:=nil;
+                           if assigned(chaining) then
+                              chaining^:=hp3
+                           else
+                              parseregexpr:=hp3;
+                           chaining:=@hp3^.next;
                        end;
                     '$':
                        begin
@@ -371,14 +676,19 @@ unit regexpr;
                           new(hp);
                           doregister(hp);
                           hp^.typ:=ret_endline;
-                          hp^.elsepath:=ep;
-                          // hp^.next:=parseregexpr(ep);
+                          hp^.elsepath:=elsepath;
+                          hp^.next:=nil;
+                          if assigned(chaining) then
+                            chaining^:=hp
+                          else
+                            parseregexpr:=hp;
+                          chaining:=@hp^.next;
                        end;
                     #0:
                        exit;
                     else
                       begin
-                         cs:=readcharset;
+                         readcharset(cs);
                          if error then
                            exit;
                          case currentpos^ of
@@ -389,57 +699,102 @@ unit regexpr;
                                   doregister(hp);
                                   hp^.typ:=ret_charset;
                                   hp^.chars:=cs;
-                                  hp^.elsepath:=next;
-                                  hp^.next:=hp;
+                                  hp^.elsepath:=nil;
+                                  hp^.next:=nil;
+                                  new(hp3);
+                                  doregister(hp3);
+                                  hp3^.typ:=ret_pattern;
+                                  hp3^.alternative:=nil;
+                                  hp3^.pattern:=hp;
+                                  hp3^.elsepath:=elsepath;
+                                  hp3^.minoccurs:=0;
+                                  hp3^.maxoccurs:=high(integer);
+                                  hp3^.next:=nil;
                                   if assigned(chaining) then
-                                    chaining^:=hp
+                                    chaining^:=hp3
                                   else
-                                    parseregexpr:=hp;
-                                  chaining:=@hp^.elsepath;
+                                    parseregexpr:=hp3;
+                                  chaining:=@hp3^.next;
                                end;
                             '+':
                                begin
                                   inc(currentpos);
                                   new(hp);
-                                  new(hp2);
                                   doregister(hp);
-                                  doregister(hp2);
                                   hp^.typ:=ret_charset;
-                                  hp2^.typ:=ret_charset;
                                   hp^.chars:=cs;
-                                  hp2^.chars:=cs;
-                                  hp^.elsepath:=elsepath;
-                                  hp^.next:=hp2;
-                                  hp2^.elsepath:=next;
-                                  hp2^.next:=hp2;
+                                  hp^.elsepath:=nil;
+                                  hp^.next:=nil;
+
+                                  new(hp3);
+                                  doregister(hp3);
+                                  hp3^.typ:=ret_pattern;
+                                  hp3^.alternative:=nil;
+                                  hp3^.pattern:=hp;
+                                  hp3^.elsepath:=elsepath;
+                                  hp3^.minoccurs:=1;
+                                  hp3^.maxoccurs:=high(integer);
+                                  hp3^.next:=nil;
                                   if assigned(chaining) then
-                                    chaining^:=hp
+                                    chaining^:=hp3
                                   else
-                                    parseregexpr:=hp;
-                                  chaining:=@hp2^.elsepath;
+                                    parseregexpr:=hp3;
+                                  chaining:=@hp3^.next;
                                end;
                             '?':
                                begin
                                   inc(currentpos);
                                   new(hp);
-                                  { this is a dummy }
-                                  new(hp2);
                                   doregister(hp);
-                                  doregister(hp2);
                                   hp^.typ:=ret_charset;
                                   hp^.chars:=cs;
-                                  hp^.next:=hp2;
-                                  hp^.elsepath:=hp2;
-                                  hp2^.typ:=ret_charset;
-                                  hp2^.chars:=[];
-                                  hp2^.elsepath:=next;
+                                  hp^.elsepath:=nil;
+                                  hp^.next:=nil;
+
+                                  new(hp3);
+                                  doregister(hp3);
+                                  hp3^.typ:=ret_pattern;
+                                  hp3^.pattern:=hp;
+                                  hp3^.alternative:=nil;
+                                  hp3^.elsepath:=elsepath;
+                                  hp3^.minoccurs:=0;
+                                  hp3^.maxoccurs:=1;
+                                  hp3^.next:=nil;
                                   if assigned(chaining) then
-                                    chaining^:=hp
+                                    chaining^:=hp3
                                   else
-                                    parseregexpr:=hp;
-                                  chaining:=@hp2^.elsepath;
+                                    parseregexpr:=hp3;
+                                  chaining:=@hp3^.next;
                                end;
+                            '{':
+                               begin
+                                 if not parseOccurences(currentPos,minOccurs,maxOccurs) then
+                                   exit;
+                                  new(hp);
+                                  doregister(hp);
+                                  hp^.typ:=ret_charset;
+                                  hp^.chars:=cs;
+                                  hp^.elsepath:=nil;
+                                  hp^.next:=nil;
+
+                                  new(hp3);
+                                  doregister(hp3);
+                                  hp3^.typ:=ret_pattern;
+                                  hp3^.alternative:=nil;
+                                  hp3^.pattern:=hp;
+                                  hp3^.elsepath:=elsepath;
+                                  hp3^.minoccurs:=minOccurs;
+                                  hp3^.maxoccurs:=maxOccurs;
+                                  hp3^.next:=nil;
+                                  if assigned(chaining) then
+                                    chaining^:=hp3
+                                  else
+                                    parseregexpr:=hp3;
+                                  chaining:=@hp3^.next;
+
+                                end;
                             else
+                               { Normal character }
                                begin
                                   new(hp);
                                   doregister(hp);
@@ -452,8 +807,10 @@ unit regexpr;
                                   else
                                     parseregexpr:=hp;
                                   chaining:=@hp^.next;
+                                  continue;
                                end;
-                         end;
+                           { This was a pattern }
+                         end; { END CASE }
                       end;
                  end;
               end;
@@ -463,24 +820,44 @@ unit regexpr;
           endp : pregexprentry;
 
        begin
-          GenerateRegExprEngine.Data:=nil;
-          GenerateRegExprEngine.DestroyList:=nil;
+          GenerateRegExprEngine:=false;
+          RegExprEngine.Data:=nil;
+          RegExprEngine.DestroyList:=nil;
           if regexpr=nil then
             exit;
           first:=nil;
           if (ref_singleline in flags) and (ref_multiline in flags) then
             exit;
           currentpos:=regexpr;
+          GenerateRegExprEngine:=true;
           error:=false;
           new(endp);
           doregister(endp);
           endp^.typ:=ret_illegalend;
-          GenerateRegExprEngine.flags:=flags;
-          GenerateRegExprEngine.Data:=parseregexpr(nil,endp);
-          GenerateRegExprEngine.DestroyList:=first;
+          RegExprEngine.flags:=flags;
+          RegExprEngine.Data:=parseregexpr(nil,endp);
+{$IFDEF DEBUG}
+          writeln('========== Generating tree ============');
+          dumptree('',RegExprEngine.Data);
+{$ENDIF}
+          RegExprEngine.DestroyList:=first;
           if error or (currentpos^<>#0) then
-            DestroyRegExprEngine(Result);
+            begin
+              GenerateRegExprEngine:=false;
+              DestroyRegExprEngine(RegExprEngine);
+            end;
        end;
+       
+    
+{$IFDEF FPC}    
+    function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags): TREGExprEngine;
+    var
+     r: TRegExprEngine;
+    begin
+      GenerateRegExprEngine(regexpr,flags,r);
+      GenerateRegExprEngine:=r;
+    end;
+{$ENDIF}    
 
     procedure DestroyRegExprEngine(var regexpr : TRegExprEngine);
 
@@ -503,61 +880,165 @@ unit regexpr;
 
        var
           lastpos : pchar;
+          firstpos: pchar;
 
-       function dosearch(regexpr : pregexprentry;pos : pchar) : boolean;
+       { Does the actual search of the data - return true if the term was found }
+       function dosearch(regexprentry : pregexprentry;pos : pchar) : boolean;
+       var
+          found: boolean;
+          checkvalue: boolean;
+          savedpos: pchar;
+          counter: word;
 
          begin
             dosearch:=false;
             while true do
               begin
                  {$IFDEF Debug}
-                 writeln(byte(regexpr^.typ));
+                 writeln('Entering ',typ2str[regexprentry^.typ]);
+                 writeln('Pattern length ',patlength(regexprentry));
                  {$ENDIF Debug}
-                 case regexpr^.typ of
+                 case regexprentry^.typ of
                     ret_endline:
                       begin
+                         { automatically a match! }
+                         if pos^ = #0 then
+                            begin
+                              dosearch:=true;
+                              exit;
+                            end;
                          if ref_multiline in regexprengine.flags then
+                            begin
+                              { Supports DOS/Commodore/UNIX/IBM Mainframe line formats }
+                              { avoid reading invalid memory also }
+                                  if (pos^=#13) and ((pos+1)^=#10) then
+                                    begin
+                                      regexprentry:=regexprentry^.next;
+                                    end
+                                  else
+                                  if (pos^=#$85) or (pos^=#10) or ((pos^=#13) and ((pos-1)^ <> #10)) then
+                                    begin
+                                       regexprentry:=regexprentry^.next;
+                                    end
+                                  else
+                                    begin
+                                       dosearch:=false;
+                                       lastpos:=savedpos;
+                                       exit;
+                                    end;
+                             end
+                           else
+                             exit;
+                      end;
+                    ret_pattern:
+                      begin
+                         found:=false;
+                         { Take care of occurences here }
+                         savedpos:=pos;
+                         counter:=0;
+                         repeat
+                           found:=dosearch(regexprentry^.pattern,pos);
+                           if not found then
+                            break;
+                           pos:=lastpos;
+                           inc(counter);
+                         until (not found) or (counter >= regexprentry^.maxoccurs) or (pos^= #0);
+
+                         if counter = 0 then
                            begin
-                              if ((pos+1)^ in [#10,#0]) then
-                                regexpr:=regexpr^.next
-                              else
-                                regexpr:=regexpr^.elsepath;
+                             { If there was no occurence and the minimum occurence is > 0 then
+                               problem.
+                             }
+                             if (regexprentry^.minoccurs > 0) then
+                              begin
+                                dosearch:=false;
+                                { verify alternative path as required }
+                                if assigned(regexprentry^.alternative) then
+                                  begin
+                                     dosearch:=dosearch(regexprentry^.alternative,savedpos);
+                                     exit;
+                                  end;
+                                exit;
+                              end;
+                             dosearch:=true;
+                             lastpos:=savedpos;
                            end
                          else
+                           { found }
                            begin
-                              if (pos+1)^=#0 then
-                                regexpr:=regexpr^.next
-                              else
-                                regexpr:=regexpr^.elsepath;
+                              { Possible choices :
+                                 - found and (counter >= minOccurences) and (counter =< maxOccurences) = true
+                                 - found and (counter < minOccurences) or (counter > maxOccurences) = false
+                              }
+                              if (counter < regexprentry^.minoccurs) or (counter > regexprentry^.maxoccurs) then
+                                begin
+                                  dosearch:=false;
+                                  exit;
+                                end;
+                              dosearch:=true;
+                              { if all matches were found, and the current position
+                                points to zero (processed all characters) }
+                              if pos^=#0 then
+                                begin
+                                  dosearch:=true;
+                                  exit;
+                                end;
                            end;
+                         { If we are that means the matches were valid, go to next element to match
+                         }
+                         regexprentry:=regexprentry^.next;
+                         if (counter = 0) and not assigned(regexprentry) then
+                           exit;
                       end;
                     ret_startline:
                       begin
+                         checkvalue:=pos=firstpos;
                          if ref_multiline in regexprengine.flags then
                            begin
-                              if (pos=p) or ((pos-1)^=#10) then
-                                regexpr:=regexpr^.next
-                              else
-                                regexpr:=regexpr^.elsepath;
-                           end
-                         else
-                           begin
-                              if pos=p then
-                                regexpr:=regexpr^.next
-                              else
-                                regexpr:=regexpr^.elsepath;
+                             { Supports DOS/Commodore/UNIX/IBM Mainframe line formats }
+                             { avoid reading invalid memory also }
+                             if
+                                 (
+                                   ((pos-1) >= firstpos) and ((pos-1)^=#$85)
+                                  )
+                              or
+                                 (
+                                   ((pos-1) >= firstpos) and ((pos-1)^=#10)
+                                  )
+                              or
+                                (
+                                 ((pos-1) >= firstpos) and ((pos-1)^=#13) and
+                                 ((pos)^ <> #10)
+                                )
+                             then
+                               begin
+                                 checkvalue:=true;
+                               end;
                            end;
+                          if checkvalue then
+                            begin
+                              dosearch:=dosearch(regexprentry^.pattern,pos);
+                              regexprentry:=regexprentry^.next;
+                              if not dosearch then
+                                exit;
+                              pos:=lastpos;
+                            end
+                          else
+                            begin
+                              dosearch:=false;
+                              exit;
+                            end;
                       end;
                     ret_charset:
                       begin
-                         if (pos^ in regexpr^.chars) or
+                         if (pos^ in regexprentry^.chars) or
                            ((ref_caseinsensitive in regexprengine.flags) and
-                            (upcase(pos^) in regexpr^.chars)) then
+                            (upcase(pos^) in regexprentry^.chars)) then
                            begin
 {$ifdef DEBUG}
                               writeln('Found matching: ',pos^);
 {$endif DEBUG}
-                              regexpr:=regexpr^.next;
+                              regexprentry:=regexprentry^.next;
                               inc(pos);
                            end
                          else
@@ -565,7 +1046,7 @@ unit regexpr;
 {$ifdef DEBUG}
                               writeln('Found unmatching: ',pos^);
 {$endif DEBUG}
-                              regexpr:=regexpr^.elsepath;
+                              exit;
                            end;
                       end;
                     ret_backtrace:
@@ -573,12 +1054,12 @@ unit regexpr;
 {$ifdef DEBUG}
                          writeln('Starting backtrace');
 {$endif DEBUG}
-                         if dosearch(regexpr^.next,pos) then
+                         if dosearch(regexprentry^.next,pos) then
                            begin
                               dosearch:=true;
                               exit;
                            end
-                         else if dosearch(regexpr^.elsepath,pos) then
+                         else if dosearch(regexprentry^.elsepath,pos) then
                            begin
                               dosearch:=true;
                               exit;
@@ -588,13 +1069,20 @@ unit regexpr;
                       end;
                  end;
                  lastpos:=pos;
-                 if regexpr=nil then
+                 if regexprentry=nil then
                    begin
                       dosearch:=true;
                       exit;
                    end;
-                 if regexpr^.typ=ret_illegalend then
+                 if regexprentry^.typ=ret_illegalend then
                    exit;
+                 { end of string, and we were expecting an end of string }
+                 if (pos^=#0) and (regexprentry^.typ = ret_endline) and
+                    (not assigned(regexprentry^.next)) then
+                   begin
+                     dosearch:=true;
+                     exit;
+                   end;
                  if pos^=#0 then
                    exit;
               end;
@@ -604,6 +1092,7 @@ unit regexpr;
           RegExprPos:=false;
           index:=0;
           len:=0;
+          firstpos:=p;
           if regexprengine.Data=nil then
             exit;
           while p^<>#0 do
@@ -624,16 +1113,15 @@ unit regexpr;
        end;
 
 
-  function RegExprEscapeStr (const S : AnsiString) : AnsiString;
+  function RegExprEscapeStr (const S : string) : string;
     var
-     i, len   : SizeUInt;
-
+     i, len   : integer;
+     s1: string;
     begin
-      Result := '';
+      RegExprEscapeStr:= '';
+      s1:='';
       if (S = '') then
        exit;
-
-      SetLength(Result,Length(S)*2);
 
       len := Length (S);
 
@@ -641,12 +1129,12 @@ unit regexpr;
         begin
           if (S [i] in ['(','|', '.', '*', '?', '^', '$', '-', '[', '{', '}', ']', ')', '\']) then
             begin
-              Result := Result + '\';
+              s1 := s1 + '\';
             end;
 
-          Result := Result + S[i];
+          s1 := s1 + S[i];
         end;
-      SetLength(Result,Length(Result));
+      RegExprEscapeStr:=s1;
     end;
 
 begin
