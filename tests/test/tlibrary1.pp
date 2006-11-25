@@ -2,7 +2,9 @@
 { %SKIPTARGET=macos }
 
 {$ifdef CPUX86_64}
+{$ifndef WINDOWS}
 {$PIC+}
+{$endif WINDOWS}
 {$endif CPUX86_64}
 
 { The .so of the library needs to be in the current dir when
