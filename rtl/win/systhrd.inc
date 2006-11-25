@@ -86,10 +86,6 @@ CONST
       end;
 
 
-    function SysRelocateThreadvar(offset : dword) : pointer;
-      begin
-        SysRelocateThreadvar:=TlsGetValue(tlskey)+Offset;
-      end;
 
 
     procedure SysAllocateThreadVars;
@@ -105,6 +101,20 @@ CONST
         TlsSetValue(tlskey,dataindex);
       end;
 
+    function SysRelocateThreadvar(offset : dword) : pointer;
+	var
+        dataindex : pointer;
+      begin
+        dataindex := TlsGetValue(tlskey);
+        if dataindex = nil then begin
+          SysAllocateThreadVars;
+          dataindex := TlsGetValue(tlskey);
+        end;
+        SysRelocateThreadvar:=DataIndex+Offset;
+{
+      begin
+        SysRelocateThreadvar:=TlsGetValue(tlskey)+Offset;
+}      end;
 
     procedure SysReleaseThreadVars;
       begin
