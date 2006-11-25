@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at physik.uni-halle.de>
 #
-#   Based on errore.msg of SVN revision 4710
+#   Based on errore.msg of SVN revision 5313
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
@@ -169,7 +169,7 @@ scan_w_illegal_switch=02009_W_Compilerschalter $1 ist ungültig
 scan_w_switch_is_global=02010_W_Dieser Compilerschalter hat globale Auswirkung
 % The compiler switch is misplaced, and should be located at
 % the start of the unit or program.
-scan_e_illegal_char_const=02011_E_Ungültige Char-Konstantante
+scan_e_illegal_char_const=02011_E_Ungültige Char-Konstante
 % This happens when you specify a character with its ASCII code, as in
 % \var{\#96}, but the number is either illegal, or out of range.
 scan_f_cannot_open_input=02012_F_Datei $1 kann nicht geöffnet werden
@@ -928,10 +928,10 @@ parser_w_skipped_fields_after=03177_W_Einige Felder nach dem Feld "$1" sind nich
 % You can leave some fields at the end of a type constant record uninitialized
 % (the compiler will initialize them to zero automatically). This may be the cause
 % of subtle problems.
-parser_e_varargs_need_cdecl_and_external=03178_E_Verwendung von VarArgs ohne CDecl oder External nicht möglich
-% The varargs directive can only be used with procedures or functions
-% that are declared with \var{cdecl} and \var{external} directives. The varargs directive
-% is only meant to provide a compatible interface to C functions like printf.
+parser_e_varargs_need_cdecl_and_external=03178_E_Verwendung von VarArgs (oder '...' in MacPas) ohne CDecl/CPPDecl/MWPascal oder External nicht möglich
+% The varargs directive (or the ``...'' varargs parameter in MacPas mode) can only be used with procedures or functions
+% that are declared with \var{external} and one of \var{cdecl}, \var{cppdecl} and \var{mwpascal}. This functionality
+% is only supported to provide a compatible interface to C functions like printf.
 parser_e_self_call_by_value=03179_E_Self muss ein Call-By-Value-Parameter sein
 % You can't declare self as a const or var parameter, it must always be
 % a call-by-value parameter
@@ -1093,6 +1093,11 @@ parser_e_packed_element_no_loop=03223_E_Bit packed Array-Elemente und Record-Fel
 % If you declare an array or record as \var{packed} in Mac Pascal mode (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. For performance reasons, they cannot be
 % used as loop variables.
+parser_e_type_and_var_only_in_generics=03224_E_VAR und TYPE sind nur innerhalb "generics" erlaubt
+% The usage of VAR and TYPE to declare new types inside an object is allowed only inside
+% generics.
+parser_e_cant_create_generics_of_this_type=03225_E_Dieser Typ kann nicht "generic" sein
+% Only Classes, Objects, Interfaces and Records are allowed to be used as generic
 % \end{description}
 #
 # Type Checking
@@ -1306,7 +1311,7 @@ type_h_smaller_possible_range_check=04049_H_Unpassende Typgrössen, Gefahr des D
 % this may cause a range-check error, or may lead to possible loss of data.
 type_e_cant_take_address_of_abstract_method=04050_E_Die Adresse einer abstrakten Methode kann nicht verwendet werden
 % An abstract method has no body, so the address of an abstract method can't be taken.
-type_e_operator_not_allowed=04051_E_Der Operator passt nicht zum Typ des Operanden
+type_e_operator_not_allowed=04051_E_Der Operator "$1" passt nicht zu der Kombination aus aus Operanden mit den Typen "$2" und "$3"
 % You are trying an operator that is not available for the type of the
 % operands
 type_e_constant_expr_expected=04052_E_Konstanter Ausdruck erwartet
@@ -1348,6 +1353,15 @@ type_e_no_packed_inittable=04064_E_Elemente von packed Arrays können nicht von 
 % Support for packed arrays of types that need initialization (such as ansistrings, or records which contain ansistrings) is not yet implemented.
 type_e_no_const_packed_record=04065_E_Konstante packed Records und Objekte werden noch nicht unterstützt
 % You cannot declare a (bit)packed array as a typed constant at this time.
+type_w_untyped_arithmetic_unportable=04066_W_Arithmetik "$1" mit typenlosem Pointer ist nicht portierbar nach {$T+}, schlage typecast vor
+% Addition/subtraction from untyped pointer may work differently in {$T+}, use typecast to typed pointer
+type_e_cant_take_address_of_local_subroutine=04076_E_Die Address einer Subroutine, die als local markiert ist, kann nicht verwendet werden
+% The address of a subroutine marked as local can't be taken.
+type_e_cant_export_local=04077_E_Eine Subroutine, die aus einer Unit als local markiert ist, kann nicht exportiert werden
+% A subroutine marked as local can't be export from a unit.
+type_e_not_automatable=04078_E_Typ "$1" ist nicht "automatable"
+% Only byte, integer, longint, smallint, currency, single, double, ansistring,
+% widestring, tdatetime, variant, olevariant, wordbool and all interfaces are automatable.
 % \end{description}
 #
 # Symtable
@@ -1860,6 +1874,11 @@ asmr_e_packed_element=07100_E_Die Adresse der packed Komponente ist nicht an ein
 % message when trying to index arrays with elements whose size is not a multiple
 % of 8 bits. The same goes for accessing record fields with such an address.
 % multiple of 8 bits.
+asmr_w_unable_to_determine_reference_size_using_byte=07101_W_Grösse nicht angegeben und kann auch nicht aus der Grösse der Operanden bestimmt werden. Verwende BYTE als Voreinstellung
+% You should specify explicitly a size for the reference, because
+% the compiler is unable to determine what size (byte,word,dword,etc.) it
+% should use for the reference. This warning is only used in Delphi mode where
+% it falls back to use BYTE as default.
 % \end{verbatim}
 #
 # Assembler/binary writers
@@ -2134,10 +2153,8 @@ unit_u_check_time=10037_U_PPU prüfe Datei $1 Zeit $2
 unit_w_cant_compile_unit_with_changed_incfile=10040_W_Kann Unit $1 nicht rekompilieren, aber geänderte Include-Datei gefunden
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.
-unit_h_source_modified=10041_H_Datei $1 ist neuer als die Release PPU Datei $2
-% A modified source file for a unit was found that was compiled with the
-% release flag (-Ur). The unit will not implicitly be recompiled because
-% this release flag is set.
+unit_u_source_modified=10041_U_Datei $1 ist neuer als die PPU Datei $2
+% A modified source file for a compiler unit was found.
 unit_u_ppu_invalid_fpumode=10042_U_Eine Unit wurde nicht mit der korrekten FPU Mode kompiliert
 % Trying to compile code while using units which were not compiled with
 % the same floating point format mode. Either all code should be compiled
@@ -2399,6 +2416,8 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 **2Cn_lasse die Linkstufe aus
 **2Co_prüfe Überlauf von Integer-Operationen
 **2Cp<x>_wähle instruction set aus, siehe fpc -i wegen möglicher Werte
+**2CP<x>=<y>_ Einstellungen für packing
+**3CPPACKSET=<y>_ <y> Belegung von Sets: 0, 1 oder DEFAULT oder NORMAL, 2, 4 und 8
 **2Cr_führe Bereichsprüfung durch
 **2CR_verifiziere die Gültigkiet des Aufrufs der Objektmethoden
 **2Cs<n>_setze Grösse des Stacks auf <n>
@@ -2492,6 +2511,7 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 **2Sp_sei gpc-kompatibel (wie -Mgpc)
 **2Ss_Kon-und Destruktorname müssen "Init" und "Done" sein
 **2St_erlaube Schlüsselwort static in Objekten
+**2Sx_Exception Schlüsselwörter einschalten (Voreinstellung in Delphi/ObjFPC Moden)
 **1s_rufe weder Assembler noch Linker auf (nur mit -a)
 **2sh_erzeuge Script um auf dem Host zu linken
 **2st_erzeuge Script um auf dem Zielsystem zu linken
