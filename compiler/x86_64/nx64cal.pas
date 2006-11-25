@@ -38,6 +38,7 @@ implementation
 
     uses
       globtype,
+      systems,
       cpubase,
       aasmtai,aasmdata,aasmcpu;
 
@@ -46,7 +47,7 @@ implementation
         mmregs : aint;
       begin
         { x86_64 requires %al to contain the no. SSE regs passed }
-        if cnf_uses_varargs in callnodeflags then
+        if (cnf_uses_varargs in callnodeflags) and (target_info.system<>system_x86_64_win64) then
           begin
             if assigned(varargsparas) then
               mmregs:=varargsparas.mmregsused

@@ -564,6 +564,8 @@ implementation
                      not(nf_explicit in p.flags) then
                     MessagePos(p.fileinfo,type_w_double_c_varargs);
                   if (tfloatdef(p.resultdef).floattype in [{$ifndef x86_64}s32real,{$endif}s64currency]) or
+                    { win64 requires the double type cast for singles as well }
+                     ((tfloatdef(p.resultdef).floattype=s32real) and (target_info.system=system_x86_64_win64)) or
                      (is_constrealnode(p) and
                       not(nf_explicit in p.flags)) then
                     p:=ctypeconvnode.create(p,s64floattype);

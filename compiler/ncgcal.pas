@@ -82,7 +82,7 @@ implementation
       aasmbase,aasmtai,aasmdata,
       nbas,nmem,nld,ncnv,nutils,
 {$ifdef x86}
-      cga,cgx86,
+      cga,cgx86,aasmcpu,
 {$endif x86}
       ncgutil,
       cgobj,tgobj,
@@ -193,6 +193,13 @@ implementation
                  LOC_MMREGISTER,
                  LOC_CMMREGISTER:
                    cg.a_parammm_reg(current_asmdata.CurrAsmList,left.location.size,left.location.register,tempcgpara,mms_movescalar);
+{$ifdef x86_64}
+                 LOC_REGISTER,
+                 LOC_CREGISTER :
+                   begin
+                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_MOVD,S_NO,left.location.register,tempcgpara.location^.register));
+                   end;
+{$endif x86_64}
                  LOC_FPUREGISTER,
                  LOC_CFPUREGISTER:
                    begin

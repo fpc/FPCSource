@@ -37,7 +37,7 @@ unit cpupara;
        private
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
           procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
-                                               var intparareg,mmparareg,parasize:longint);
+                                               var intparareg,mmparareg,parasize:longint;varargsparas: boolean);
        public
           function param_use_paraloc(const cgpara:tcgpara):boolean;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
@@ -364,7 +364,7 @@ unit cpupara;
 
 
     procedure tx86_64paramanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
-                                                            var intparareg,mmparareg,parasize:longint);
+                                                            var intparareg,mmparareg,parasize:longint;varargsparas: boolean);
       var
         hp         : tparavarsym;
         paraloc    : pcgparalocation;
@@ -397,6 +397,20 @@ unit cpupara;
                 paralen:=push_size(hp.varspez,hp.vardef,p.proccalloption);
                 paracgsize:=def_cgsize(hp.vardef);
               end;
+
+            { cheat for now, we should copy the value to an mm reg as well (FK) }
+            if varargsparas and
+               (target_info.system = system_x86_64_win64) and
+               (hp.vardef.typ = floatdef) then
+              begin
+                loc[1] := LOC_REGISTER;
+                loc[2] := LOC_INVALID;
+                if paracgsize = OS_F64 then
+                  paracgsize := OS_64
+                else
+                  paracgsize := OS_32;
+              end;
+
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].intsize:=paralen;
@@ -542,9 +556,9 @@ unit cpupara;
         else
           parasize:=0;
         { calculate the registers for the normal parameters }
-        create_paraloc_info_intern(p,callerside,p.paras,intparareg,mmparareg,parasize);
+        create_paraloc_info_intern(p,callerside,p.paras,intparareg,mmparareg,parasize,false);
         { append the varargs }
-        create_paraloc_info_intern(p,callerside,varargspara,intparareg,mmparareg,parasize);
+        create_paraloc_info_intern(p,callerside,varargspara,intparareg,mmparareg,parasize,true);
         { store used no. of SSE registers, that needs to be passed in %AL }
         varargspara.mmregsused:=mmparareg;
         result:=parasize;
@@ -562,7 +576,7 @@ unit cpupara;
           parasize:=4*8
         else
           parasize:=0;
-        create_paraloc_info_intern(p,side,p.paras,intparareg,mmparareg,parasize);
+        create_paraloc_info_intern(p,side,p.paras,intparareg,mmparareg,parasize,false);
         { Create Function result paraloc }
         create_funcretloc_info(p,side);
         { We need to return the size allocated on the stack }
