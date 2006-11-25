@@ -79,6 +79,8 @@ resourcestring
   SPrivilege             = 'Privileged instruction';
   SRangeError            = 'Range check error';
   SSafecallException     = 'Exception in safecall method';
+  SiconvError            = 'iconv error';
+
   STooManyOpenFiles      = 'Too many open files';
   SUnKnownRunTimeError   = 'Unknown Run-Time error : %3.3d';
   SUnderflow             = 'Floating point underflow';
