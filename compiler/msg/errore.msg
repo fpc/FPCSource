@@ -345,6 +345,9 @@ scanner_e_illegal_warn_state=02079_E_Illegal state for $WARN directive
 % Only ON and OFF can be used as state with a \$warn compiler directive
 scan_e_only_packset=02080_E_Illegal set packing value
 % Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameter
+scan_w_pic_ignored=02081_W_PIC directive ignored
+% Several targets like windows doesn't support and need the PIC directive so
+% it is ignored.
 % \end{description}
 #
 # Parser

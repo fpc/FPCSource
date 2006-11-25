@@ -843,7 +843,11 @@ implementation
 
     procedure dir_pic;
       begin
-        do_moduleswitch(cs_create_pic);
+        { windows doesn't need/support pic }
+        if not(target_info.system in system_windows+system_wince) then
+          do_moduleswitch(cs_create_pic)
+        else
+          message(scan_w_pic_ignored);
       end;
 
     procedure dir_pop;
