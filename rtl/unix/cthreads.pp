@@ -101,10 +101,6 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         inc(threadvarblocksize,size);
       end;
 
-    function CRelocateThreadvar(offset : dword) : pointer;
-      begin
-        CRelocateThreadvar:=pthread_getspecific(tlskey)+Offset;
-      end;
 
 
     procedure CAllocateThreadVars;
@@ -121,6 +117,21 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         pthread_setspecific(tlskey,dataindex);
       end;
 
+    function CRelocateThreadvar(offset : dword) : pointer;
+
+    var
+      P : Pointer;
+
+      begin
+        P:=pthread_getspecific(tlskey);
+        if (P=Nil) then
+          begin
+          CAllocateThreadvars;
+          // If this also goes wrong: bye bye threadvars...
+          P:=pthread_getspecific(tlskey);
+          end;
+        CRelocateThreadvar:=P+Offset;
+      end;
 
     procedure CReleaseThreadVars;
       begin
