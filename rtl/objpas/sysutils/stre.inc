@@ -73,4 +73,4 @@ Const
    SVarArrayBounds = 'Variant array bounds error';
    SVarArrayCreate = 'Variant array cannot be created';
    SVarNotArray = 'Variant doesn''t contain an array';
-
+   SVarArrayBounds = 'iconv error';

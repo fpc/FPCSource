@@ -35,7 +35,6 @@ Uses
   ctypes,
   unix,
   unixtype,
-  sysutils,
   initc;
 
 Const
@@ -120,6 +119,9 @@ var
   lock_ansi2wide : integer = -1;
   lock_wide2ansi : integer = -1;
 
+  iconv_lock : TRTLcriticalsection;
+
+{
 procedure lockiconv(var lockcount: integer);
 begin
  while interlockedincrement(lockcount) <> 0 do begin
@@ -132,7 +134,8 @@ procedure unlockiconv(var lockcount: integer);
 begin
  interlockeddecrement(lockcount);
 end;
-  
+}
+ 
 procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
   var
     outlength,
@@ -153,7 +156,7 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
     srcpos:=source;
     destpos:=pchar(dest);
     outleft:=outlength;
-    lockiconv(lock_wide2ansi);
+    entercriticalsection(iconv_lock);
     while iconv(iconv_wide2ansi,ppchar(@srcpos),@srclen,@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
@@ -179,13 +182,11 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
               destpos:=pchar(dest)+outoffset;
             end;
           else
-            begin
-              unlockiconv(lock_wide2ansi);
-              raise EConvertError.Create('iconv error '+IntToStr(fpgetCerrno));
-            end;
+            leavecriticalsection(iconv_lock);
+            runerror(231);
         end;
       end;
-    unlockiconv(lock_wide2ansi);
+    leavecriticalsection(iconv_lock);
     // truncate string
     setlength(dest,length(dest)-outleft);
   end;
@@ -210,7 +211,7 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
     srcpos:=source;
     destpos:=pchar(dest);
     outleft:=outlength*2;
-    lockiconv(lock_ansi2wide);
+    entercriticalsection(iconv_lock);
     while iconv(iconv_ansi2wide,@srcpos,psize(@len),@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
@@ -235,13 +236,11 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
               destpos:=pchar(dest)+outoffset;
             end;
           else
-            begin
-              unlockiconv(lock_ansi2wide);
-              raise EConvertError.Create('iconv error '+IntToStr(fpgetCerrno));
-            end;
+            leavecriticalsection(iconv_lock);
+            runerror(231);
         end;
       end;
-    unlockiconv(lock_ansi2wide);
+    leavecriticalsection(iconv_lock);
     // truncate string
     setlength(dest,length(dest)-outleft div 2);
   end;
@@ -286,7 +285,7 @@ procedure Ansi2UCS4Move(source:pchar;var dest:UCS4String;len:SizeInt);
     srcpos:=source;
     destpos:=pchar(dest);
     outleft:=outlength*4;
-    lockiconv(lock_ansi2ucs4);
+    entercriticalsection(iconv_lock);
     while iconv(iconv_ansi2ucs4,@srcpos,psize(@len),@destpos,@outleft)=size_t(-1) do
       begin
         case fpgetCerrno of
@@ -301,13 +300,11 @@ procedure Ansi2UCS4Move(source:pchar;var dest:UCS4String;len:SizeInt);
               destpos:=pchar(dest)+outoffset;
             end;
           else
-            begin
-              unlockiconv(lock_ansi2ucs4);
-              raise EConvertError.Create('iconv error '+IntToStr(fpgetCerrno));
-            end;
+            leavecriticalsection(iconv_lock);
+            runerror(231);
         end;
       end;
-    unlockiconv(lock_ansi2ucs4);
+    leavecriticalsection(iconv_lock);
     // truncate string
     setlength(dest,length(dest)-outleft div 4);
   end;

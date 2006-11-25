@@ -306,6 +306,7 @@ begin
   228 : E:=EExternalException.Create(SExternalException);
   229 : E:=EIntfCastError.Create(SIntfCastError);
   230 : E:=ESafecallException.Create(SSafecallException);
+  231 : E:=EConvertError.Create(SiconvError);
   232 : E:=ENoThreadSupport.Create(SNoThreadSupport);
   else
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
