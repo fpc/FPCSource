@@ -2527,6 +2527,7 @@ buildfp:
 	$(MAKE) fpc_all
 	$(MAKE) postgdbinfo
 gdb:
+	$(MAKE) -C ../packages/base/gdbint
 	$(MAKE) buildfp
 nogdb:
 	$(MAKE) buildfp NOGDB=1

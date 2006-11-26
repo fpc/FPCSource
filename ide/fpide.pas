@@ -21,7 +21,7 @@ uses
   Objects,Drivers,Views,App,Gadgets,MsgBox,Tabs,
   WEditor,WCEdit,
   Comphook,Browcol,
-  WHTMLScn,
+  WHTMLScn,fpevalw,
   FPViews,FPSymbol,fpstring;
 
 type
@@ -92,6 +92,7 @@ type
       procedure DoShowBreakpointList;
       procedure DoShowWatches;
       procedure DoAddWatch;
+      procedure do_evaluate;
       procedure DoShowRegisters;
       procedure DoShowFPU;
       procedure DoShowVector;
@@ -404,6 +405,7 @@ begin
       NewItem(menu_debug_watches,'', kbNoKey, cmWatches, hcWatchesWindow,
       NewItem(menu_debug_breakpoint,menu_key_debug_breakpoint, kbCtrlF8, cmToggleBreakpoint, hcToggleBreakpoint,
       NewItem(menu_debug_breakpointlist,'', kbNoKey, cmBreakpointList, hcBreakpointList,
+      NewItem('~E~valuate...','Ctrl+F4', kbCtrlF4, cmEvaluate, hcEvaluate,
       NewItem(menu_debug_callstack,menu_key_debug_callstack, kbCtrlF3, cmStack, hcStackWindow,
       NewLine(
       NewItem(menu_debug_disassemble,'', kbNoKey, cmDisassemble, hcStackWindow,
@@ -416,7 +418,7 @@ begin
 {$ifdef SUPPORT_REMOTE}
       )
 {$endif SUPPORT_REMOTE}
-      )))))))))))))))),
+      ))))))))))))))))),
     NewSubMenu(menu_tools, hcToolsMenu, NewMenu(
       NewItem(menu_tools_messages,menu_key_tools_messages, kbF11, cmToolsMessages, hcToolsMessages,
       NewItem(menu_tools_msgnext,menu_key_tools_msgnext, kbAltF8, cmToolsMsgNext, hcToolsMsgNext,
@@ -765,6 +767,7 @@ begin
              cmRegisters     : DoShowRegisters;
              cmFPURegisters     : DoShowFPU;
              cmVectorRegisters : DoShowVector;
+             cmEvaluate      : do_evaluate;
            { -- Options menu -- }
              cmSwitchesMode  : SetSwitchesMode;
              cmCompiler      : DoCompilerSwitch;

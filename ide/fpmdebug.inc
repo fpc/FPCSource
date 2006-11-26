@@ -254,5 +254,19 @@ begin
   else
     dispose(P,Done);
 end;
+
+procedure TIDEapp.do_evaluate;
+
+var d:Pevaluate_dialog;
+    r:Trect;
+
+begin
+  desktop^.getextent(r);
+  r.b.x:=r.b.x*3 div 4;
+  r.b.y:=12;
+  new(d,init(r));
+  desktop^.execview(d);
+  dispose(d,done);
+end;
 {$endif NODEBUG}
 

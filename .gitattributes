@@ -1247,6 +1247,7 @@ ide/fpcygwin.pas svneol=native#text/plain
 ide/fpdebug.pas svneol=native#text/plain
 ide/fpdesk.pas svneol=native#text/plain
 ide/fpdpansi.pas svneol=native#text/plain
+ide/fpevalw.pas svneol=native#text/x-pascal
 ide/fphelp.pas svneol=native#text/plain
 ide/fpide.pas svneol=native#text/plain
 ide/fpini.pas svneol=native#text/plain
