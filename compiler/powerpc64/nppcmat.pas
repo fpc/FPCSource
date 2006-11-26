@@ -56,7 +56,7 @@ uses
   aasmbase, aasmcpu, aasmtai,aasmdata,
   defutil,
   cgbase, cgutils, cgobj, pass_1, pass_2,
-  ncon, procinfo,
+  ncon, procinfo, nbas, nld, nadd,
   cpubase, cpuinfo,
   ncgutil, cgcpu, rgobj;
 
@@ -65,8 +65,56 @@ uses
 *****************************************************************************}
 
 function tppcmoddivnode.pass_1: tnode;
+var
+    statementnode : tstatementnode;
+    temp_left, temp_right : ttempcreatenode;
+    left_copy, right_copy : tnode;
+    block : tblocknode;
 begin
-  result := inherited pass_1;
+  result := nil;
+  (*
+  // this code replaces all mod nodes by the equivalent div/mul/sub sequence
+  // on node level, which might be advantageous when doing CSE on that level
+  // However, optimal modulo code for some cases (in particular a 'x mod 2^n-1' 
+  // operation) can not be expressed using nodes, so this is commented out for now 
+  if (nodetype = modn) then begin
+    block := internalstatements(statementnode);
+
+    temp_left := ctempcreatenode.create(left.resultdef, left.resultdef.size, tt_persistent, true);
+    addstatement(statementnode, temp_left);
+    addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_left), left.getcopy));
+
+    if (right.nodetype <> ordconstn) then begin
+      // implementated optimization: use temps to store the right value, otherwise
+      // it is calculated twice when simply copying it which might result in side
+      // effects
+      temp_right := ctempcreatenode.create(right.resultdef, right.resultdef.size, tt_persistent, true);
+      addstatement(statementnode, temp_right);
+      addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_right), right.getcopy));
+
+      addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_left), 
+        caddnode.create(subn, ctemprefnode.create(temp_left),
+        caddnode.create(muln, cmoddivnode.create(divn, ctemprefnode.create(temp_left), ctemprefnode.create(temp_right)), 
+        ctemprefnode.create(temp_right)))));
+
+      addstatement(statementnode, ctempdeletenode.create(temp_right));
+    end else begin
+      // in case this is a modulo by a constant operation, do not use a temp for the
+      // right hand side, because otherwise the div optimization will not recognize this
+      // fact (and there is no constant propagator/recognizer in the compiler), 
+      // resulting in suboptimal code.
+      addstatement(statementnode, cassignmentnode.create(ctemprefnode.create(temp_left), 
+        caddnode.create(subn, ctemprefnode.create(temp_left),
+        caddnode.create(muln, cmoddivnode.create(divn, ctemprefnode.create(temp_left), right.getcopy), 
+          right.getcopy))));
+    end;
+    addstatement(statementnode, ctempdeletenode.create_normal_temp(temp_left));
+    addstatement(statementnode, ctemprefnode.create(temp_left));
+    result := block;
+  end;
+  *)
+  if (not assigned(result)) then
+    result := inherited pass_1;
   if not assigned(result) then
     include(current_procinfo.flags, pi_do_call);
 end;

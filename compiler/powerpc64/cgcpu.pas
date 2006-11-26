@@ -196,7 +196,7 @@ end;
 
 function cgsize2string(const size : TCgSize) : string;
 const
-  cgsize_strings : array[TCgSize] of string[6] = (
+  cgsize_strings : array[TCgSize] of string[7] = (
     'OS_NO', 'OS_8', 'OS_16', 'OS_32', 'OS_64', 'OS_128', 'OS_S8', 'OS_S16', 'OS_S32',
     'OS_S64', 'OS_S128', 'OS_F32', 'OS_F64', 'OS_F80', 'OS_C64', 'OS_F128',
     'OS_M8', 'OS_M16', 'OS_M32', 'OS_M64', 'OS_M128', 'OS_MS8', 'OS_MS16', 'OS_MS32',
@@ -225,6 +225,15 @@ begin
   end;
 end;
 
+{$ifopt r+}
+{$r-}
+{$define rangeon}
+{$endif}
+
+{$ifopt q+}
+{$q-}
+{$define overflowon}
+{$endif}
 { helper function which calculate "magic" values for replacement of unsigned
  division by constant operation by multiplication. See the PowerPC compiler
  developer manual for more information }
@@ -316,6 +325,15 @@ begin
   end;
   magic_s := p - N; { resulting shift }
 end;
+{$ifdef rangeon}
+{$r+}
+{$undef rangeon}
+{$endif}
+
+{$ifdef overflowon}
+{$q+}
+{$undef overflowon}
+{$endif}
 
 { finds positive and negative powers of two of the given value, returning the
  power and whether it's a negative power or not in addition to the actual result
