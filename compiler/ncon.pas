@@ -384,6 +384,7 @@ implementation
                 len:=0;
               end;
           end;
+          dogetcopy := n;
       end;
 
 

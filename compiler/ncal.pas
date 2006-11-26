@@ -333,6 +333,7 @@ implementation
         para:=tcallparanode(p2);
         currargpos:=0;
         paramssize:=0;
+        names := '';
         while assigned(para) do
           begin
             if assigned(para.parametername) then

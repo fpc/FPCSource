@@ -1111,7 +1111,6 @@ implementation
    function tgotonode.dogetcopy : tnode;
      var
        p : tgotonode;
-       i : longint;
      begin
         p:=tgotonode(inherited dogetcopy);
         p.exceptionblock:=exceptionblock;
