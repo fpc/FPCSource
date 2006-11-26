@@ -1618,7 +1618,6 @@ implementation
                       sizeleft:=currpara.paraloc[calleeside].intsize;
                       while assigned(paraloc) do
                         begin
-                          unget_para(paraloc^);
                           if (paraloc^.size=OS_NO) then
                             begin
                               { Can only be a reference that contains the rest
@@ -1636,6 +1635,7 @@ implementation
                               inc(href.offset,TCGSize2Size[paraloc^.size]);
                               dec(sizeleft,TCGSize2Size[paraloc^.size]);
                             end;
+                          unget_para(paraloc^);
                           paraloc:=paraloc^.next;
                         end;
                     end;
