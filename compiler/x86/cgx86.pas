@@ -1159,7 +1159,7 @@ unit cgx86;
             begin
 {$ifdef x86_64}
               if (a and 63) <> 0 Then
-                list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],a and 31,reg));
+                list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],a and 63,reg));
               if (a shr 6) <> 0 Then
                 internalerror(200609073);
 {$else x86_64}
