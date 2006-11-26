@@ -4,7 +4,7 @@
 #
 #   Hebrew (CP1255) language file for Free Pascal Compiler
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
-#   Based on errore.msg of SVN revision 4719
+#   Based on errore.msg of SVN revision 5473
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -48,8 +48,6 @@
 #
 # 01023 is the last used one
 #
-general_text_bytes_code=01019_bytes code
-general_text_bytes_data=01020_bytes data
 # BeginOfTeX
 % \section{General compiler messages}
 % This section gives the compiler messages which are not fatal, but which
@@ -117,6 +115,8 @@ general_e_path_does_not_exist=01017_E_הנתיב "$1" אינו קיים
 % The specified path does not exist.
 general_f_compilation_aborted=01018_F_ההידור בוטל
 % Compilation was aborted.
+general_text_bytes_code=01019_bytes code
+general_text_bytes_data=01020_bytes data
 general_i_number_of_warnings=01021_I_אזהרות $1 הונפקו
 % Total number of warnings issued during compilation.
 general_i_number_of_hints=01022_I_הונפקו  $1 רמזים
@@ -927,10 +927,10 @@ parser_w_skipped_fields_after=03177_W_חלק מהשדות הבאים אחרי "$1" לא אותחלו
 % You can leave some fields at the end of a type constant record uninitialized
 % (the compiler will initialize them to zero automatically). This may be the cause
 % of subtle problems.
-parser_e_varargs_need_cdecl_and_external=03178_E_השימוש בVarArgs חייב להיות בשימוש עם CDecl ו External
-% The varargs directive can only be used with procedures or functions
-% that are declared with \var{cdecl} and \var{external} directives. The varargs directive
-% is only meant to provide a compatible interface to C functions like printf.
+parser_e_varargs_need_cdecl_and_external=03178_E_השימוש בVarArgs (או '...' בMacPas) חייב להיות בשימוש עם CDecl/CPPDecl/MWPascal ו External
+% The varargs directive (or the ``...'' varargs parameter in MacPas mode) can only be used with procedures or functions
+% that are declared with \var{external} and one of \var{cdecl}, \var{cppdecl} and \var{mwpascal}. This functionality
+% is only supported to provide a compatible interface to C functions like printf.
 parser_e_self_call_by_value=03179_E_Self חייב להיות פרמטר רגיל (call-by-value)
 % You can't declare self as a const or var parameter, it must always be
 % a call-by-value parameter
@@ -1092,6 +1092,11 @@ parser_e_packed_element_no_loop=03223_E_אלמנטים ושדות של מערכי ביט ארוזים אינם י
 % If you declare an array or record as \var{packed} in Mac Pascal mode (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. For performance reasons, they cannot be
 % used as loop variables.
+parser_e_type_and_var_only_in_generics=03224_E_ניתן להשתמש ב VAR ו TYPE רק עם generics
+% The usage of VAR and TYPE to declare new types inside an object is allowed only inside
+% generics.
+parser_e_cant_create_generics_of_this_type=03225_E_הטיפוס אינו יכול להיות generic
+% Only Classes, Objects, Interfaces and Records are allowed to be used as generic
 % \end{description}
 #
 # Type Checking
@@ -1305,7 +1310,7 @@ type_h_smaller_possible_range_check=04049_H_גודל הטיפוס אינו מתאים, ישנה אפשרות 
 % this may cause a range-check error, or may lead to possible loss of data.
 type_e_cant_take_address_of_abstract_method=04050_E_לא ניתן לספק את כתובת המתודה המוגדרת כ abstract
 % An abstract method has no body, so the address of an abstract method can't be taken.
-type_e_operator_not_allowed=04051_E_לא ניתן להשתמש באורפנד עם האופריטור הנוכחי
+type_e_operator_not_allowed=04051_E_האופרטור "$1" אינו יישים כאשר משתמשים בשילוב של האופרנדים "$2" ו "3"
 % You are trying an operator that is not available for the type of the
 % operands
 type_e_constant_expr_expected=04052_E_מצפה לביטוי קבוע
@@ -1347,6 +1352,15 @@ type_e_no_packed_inittable=04064_E_אלמטים של מערך דחוס אינם יכולים להיות מטיפוס 
 % Support for packed arrays of types that need initialization (such as ansistrings, or records which contain ansistrings) is not yet implemented.
 type_e_no_const_packed_record=04065_E_אין תמיכה לרשומות ואבייקטים קבועים ודחוסים
 % You cannot declare a (bit)packed array as a typed constant at this time.
+type_w_untyped_arithmetic_unportable=04066_W_חישוב "$1" על טיפוס לא מוגדר של מצביע אינו נתמך במצב {$T+}, אך ניתן להשתמש בtypecast
+% Addition/subtraction from untyped pointer may work differently in {$T+}, use typecast to typed pointer
+type_e_cant_take_address_of_local_subroutine=04076_E_לא ניתן לקחת את כתובת השיגרה המסומנת כמקומית
+% The address of a subroutine marked as local can't be taken.
+type_e_cant_export_local=04077_E_לא ניתן לייצא שיגרה המסומנת כמקומית בתוך יחידה
+% A subroutine marked as local can't be export from a unit.
+type_e_not_automatable=04078_E_הטיפוס אינו אוטומט: "$1"
+% Only byte, integer, longint, smallint, currency, single, double, ansistring,
+% widestring, tdatetime, variant, olevariant, wordbool and all interfaces are automatable.
 % \end{description}
 #
 # Symtable
@@ -1859,6 +1873,11 @@ asmr_e_packed_element=07100_E_הכתובת של רכיב ארוז אינו נמצא בטווח של בית
 % message when trying to index arrays with elements whose size is not a multiple
 % of 8 bits. The same goes for accessing record fields with such an address.
 % multiple of 8 bits.
+asmr_w_unable_to_determine_reference_size_using_byte=07101_W_לא צויין גודל, והמהדר אינו מצליח לקבוע את גודל האופרנד, משתמש בגודל BYTE בתור ברירת מחדל
+% You should specify explicitly a size for the reference, because
+% the compiler is unable to determine what size (byte,word,dword,etc.) it
+% should use for the reference. This warning is only used in Delphi mode where
+% it falls back to use BYTE as default.
 % \end{verbatim}
 #
 # Assembler/binary writers
@@ -2133,10 +2152,8 @@ unit_u_check_time=10037_U_בדיקת קובץ PPU $1 זמן $2
 unit_w_cant_compile_unit_with_changed_incfile=10040_W_לא ניתן להדר את היחידה $1 למרות שקבצי הinclude שונו
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.
-unit_h_source_modified=10041_H_הקובץ $1 חדש יותר מגרסת השחרור של קובץ הPPU $2
-% A modified source file for a unit was found that was compiled with the
-% release flag (-Ur). The unit will not implicitly be recompiled because
-% this release flag is set.
+unit_u_source_modified=10041_U_הקובץ $1 חדש יותר מהקובץ PPU $2
+% A modified source file for a compiler unit was found.
 unit_u_ppu_invalid_fpumode=10042_U_משתמש ביחידה אשר לא הודרה בצורה נכונה במצב FPU
 % Trying to compile code while using units which were not compiled with
 % the same floating point format mode. Either all code should be compiled
@@ -2398,6 +2415,8 @@ S*2Aas_אסוף עם GNU AS
 **2Cn_השמט מצב קישור
 **2Co_בדוק גלישה של פעולות מספר שלם
 **2Cp<x>_בחר קבוצת הוראות, ראה fpc -i לערכים אפשריים
+**2CP<x>=<y>_הגדרות אריזה
+**3CPPACKSET=<y>_ <y> מסדר הקצאה: 0, 1 או DEFAULT או NORMAL, 2, 4 ו 8
 **2Cr_בדיקת טווח
 **2CR_וודא קריאה תקינה למתודה
 **2Cs<n>_קבע גודל מחסנית ל <n>
@@ -2491,6 +2510,7 @@ S*2Aas_אסוף עם GNU AS
 **2Sp_זהה ל -Mgpc
 **2Ss_שם יוצר חייב להיות init (שם הורס חייב להיות done)
 **2St_אפשר מילות מפתח באובייקטים
+**2Sx_אפשר מילות מפתח לexception (ברירת מחדל במצבי Delphi/ObjFPC)
 **1s_אל תקרא למאסף והמקשר
 **2sh_צור תסריט לקישור במארח
 **2st_צור תסריט לקישור במטרה
