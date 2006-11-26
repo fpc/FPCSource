@@ -774,7 +774,7 @@ implementation
                  }
                  generate_parameter_info;
                  if not(stack_tainting_parameter) and
-                   not(has_assembler_child) then
+                   not(has_assembler_child) and (para_stack_size=0) then
                    begin
                      { Only need to set the framepointer }
                      framepointer:=NR_STACK_POINTER_REG;
