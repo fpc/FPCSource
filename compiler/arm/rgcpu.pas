@@ -147,6 +147,8 @@ unit rgcpu;
 
 
     procedure trgintcpu.add_cpu_interferences(p : tai);
+      var
+        r : tregister;
       begin
         if p.typ=ait_instruction then
           begin
@@ -168,9 +170,16 @@ unit rgcpu;
               A_LDR,
               A_LDRH,
               A_STRH:
-                { don't mix up the framepointer with pre/post indexed operations }
+                { don't mix up the framepointer and stackpointer with pre/post indexed operations }
                 if (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) then
-                  add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),getsupreg(current_procinfo.framepointer));
+                  begin
+                    add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),getsupreg(current_procinfo.framepointer));
+                    { FIXME: temp variable r is needed here to avoid Internal error 20060521 }
+                    {        while compiling the compiler. }
+                    r:=NR_STACK_POINTER_REG;
+                    if current_procinfo.framepointer<>r then
+                      add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),getsupreg(r));
+                  end;
             end;
           end;
       end;
