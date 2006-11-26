@@ -1,5 +1,5 @@
 { %OPT=-al }
-{ %SKIPTARGET=macos }
+{ %SKIPTARGET=macos,win64 }
 { On macos, PPCAsm chokes on this and crashes}
 
 { this forces use of GNU as }
