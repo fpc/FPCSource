@@ -139,8 +139,14 @@ end;
 
 function TBufDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
 
+var Acceptable : Boolean;
+    SaveState: TDataSetState;
+
+
 begin
   Result := grOK;
+  repeat
+  Acceptable := True;
   case GetMode of
     gmPrior :
       if not assigned(PBufRecLinkItem(FCurrentRecBuf)^.prior) then
@@ -187,9 +193,18 @@ begin
       end;
     move((pointer(FCurrentRecBuf)+sizeof(TBufRecLinkItem))^,buffer^,FRecordSize);
     GetCalcFields(Buffer);
+
+    if Filtered then
+      begin
+      FFilterBuffer := Buffer;
+      SaveState := SetTempState(dsFilter);
+      DoFilterRecord(Acceptable);
+      RestoreState(SaveState);
+      end;
     end
   else if (Result = grError) and doCheck then
     DatabaseError('No record');
+  until Acceptable;
 end;
 
 function TBufDataset.GetRecordUpdateBuffer : boolean;
@@ -314,6 +329,13 @@ begin
   Result := grOK;
 end;
 
+function TBufDataset.GetCurrentBuffer: PChar;
+begin
+  if State = dsFilter then Result := FFilterBuffer
+  else Result := ActiveBuffer;
+end;
+
+
 function TBufDataset.GetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean): Boolean;
 begin
@@ -340,7 +362,7 @@ begin
       end
     else
       begin
-      CurrBuff := ActiveBuffer;
+      CurrBuff := GetCurrentBuffer;
       if not assigned(CurrBuff) then
         begin
         result := false;
@@ -746,7 +768,7 @@ Var SearchRecBuffer : PBufRecLinkItem;
     abuf            : PChar;
 
 begin
-  abuf := ActiveBuffer;
+  abuf := GetCurrentBuffer;
   // If abuf isn't assigned, the recordset probably isn't opened.
   if assigned(abuf) and (FBRecordCount>0) and (state <> dsInsert) then
     begin
@@ -905,6 +927,18 @@ begin
     if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
       DataEvent(deFieldChange, Ptrint(Field));
     end;
+end;
+
+procedure TBufDataset.DoFilterRecord(var Acceptable: Boolean);
+begin
+  // check filtertext
+  if Length(Filter) > 0 then
+  begin
+  end;
+
+  // check user filter
+  if Acceptable and Assigned(OnFilterRecord) then
+    OnFilterRecord(Self, Acceptable);
 end;
 
 Function TBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; options: TLocateOptions) : boolean;

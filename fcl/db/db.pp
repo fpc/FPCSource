@@ -1555,6 +1555,7 @@ type
     FCurrentRecBuf  : PBufRecLinkItem;
     FLastRecBuf     : PBufRecLinkItem;
     FFirstRecBuf    : PBufRecLinkItem;
+    FFilterBuffer   : pchar;
     FBRecordCount   : integer;
 
     FPacketRecords  : integer;
@@ -1572,12 +1573,14 @@ type
     FBlobBuffers      : array of PBlobBuffer;
     FUpdateBlobBuffers: array of PBlobBuffer;
 
+    function  GetCurrentBuffer: PChar;
     procedure CalcRecordSize;
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
     function GetRecordUpdateBuffer : boolean;
     procedure SetPacketRecords(aValue : integer);
     function  IntAllocRecordBuffer: PChar;
+    procedure DoFilterRecord(var Acceptable: Boolean);
   protected
     function GetNewBlobBuffer : PBlobBuffer;
     function GetNewWriteBlobBuffer : PBlobBuffer;

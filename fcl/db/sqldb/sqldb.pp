@@ -248,8 +248,8 @@ type
   published
     // redeclared data set properties
     property Active;
-//    property Filter;
-//    property Filtered;
+    property Filter;
+    property Filtered;
     property ServerFilter: string read FServerFilterText write SetServerFilterText;
     property ServerFiltered: Boolean read FServerFiltered write SetServerFiltered default False;
 //    property FilterOptions;
