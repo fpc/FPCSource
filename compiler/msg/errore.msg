@@ -1353,7 +1353,6 @@ type_e_no_packed_inittable=04064_E_Elements of packed arrays cannot be of a type
 % Support for packed arrays of types that need initialization (such as ansistrings, or records which contain ansistrings) is not yet implemented.
 type_e_no_const_packed_record=04065_E_Constant packed records and objects are not yet supported
 % You cannot declare a (bit)packed array as a typed constant at this time.
-% \end{description}
 type_w_untyped_arithmetic_unportable=04066_W_Arithmetic "$1" on untyped pointer is unportable to {$T+}, suggest typecast
 % Addition/subtraction from untyped pointer may work differently in {$T+}, use typecast to typed pointer
 type_e_cant_take_address_of_local_subroutine=04076_E_Can't take address of a subroutine marked as local
@@ -1363,6 +1362,7 @@ type_e_cant_export_local=04077_E_Can't export subroutine marked as local from a 
 type_e_not_automatable=04078_E_Type is not automatable: "$1"
 % Only byte, integer, longint, smallint, currency, single, double, ansistring,
 % widestring, tdatetime, variant, olevariant, wordbool and all interfaces are automatable.
+% \end{description}
 #
 # Symtable
 #
