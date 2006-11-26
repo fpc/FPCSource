@@ -851,15 +851,16 @@ unit cgcpu;
              case FromSize of
                OS_16,OS_S16:
                  begin
-                   a_loadaddr_ref_reg(list,ref,reg);
-                   reference_reset_base(usedtmpref,reg,0);
+                   tmpreg3:=getintregister(list,OS_INT);
+                   a_loadaddr_ref_reg(list,ref,tmpreg3);
+                   reference_reset_base(usedtmpref,tmpreg3,0);
                    shifterop_reset(so);so.shiftmode:=SM_LSL;so.shiftimm:=8;
                    tmpreg:=getintregister(list,OS_INT);
                    a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
                    inc(usedtmpref.offset);
                    tmpreg2:=getintregister(list,OS_INT);
                    if FromSize=OS_16 then
-                   a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg2)
+                     a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg2)
                    else
                      a_internal_load_ref_reg(list,OS_S8,OS_S8,usedtmpref,tmpreg2);
                    list.concat(taicpu.op_reg_reg_reg_shifterop(A_ORR,reg,tmpreg,tmpreg2,so));
