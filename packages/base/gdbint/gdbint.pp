@@ -22,22 +22,26 @@ interface
 
 { 6.2.x }
 {$ifdef GDB_V602}
+  {$info using gdb 6.2.x}
   {$define GDB_V6}
 {$endif def GDB_V602}
 
 { 6.3.x }
 {$ifdef GDB_V603}
+  {$info using gdb 6.3.x}
   {$define GDB_V6}
 {$endif def GDB_V603}
 
 { 6.4.x }
 {$ifdef GDB_V604}
+  {$info using gdb 6.4.x}
   {$define GDB_V6}
   {$define GDB_NEEDS_NO_ERROR_INIT}
 {$endif def GDB_V604}
 
 { 6.5.x }
 {$ifdef GDB_V605}
+  {$info using gdb 6.5.x}
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
   {$define GDB_NEEDS_NO_ERROR_INIT}
@@ -81,7 +85,7 @@ interface
   {$LINKLIB libopcodes.a}
   {$LINKLIB libhistory.a}
   {$LINKLIB libiberty.a}
-  {     $LINKLIB ncurses}
+  {$LINKLIB ncurses}
   {$LINKLIB m}
   {$LINKLIB dl}
   {$LINKLIB c}
@@ -1058,10 +1062,10 @@ var
 
 { Whether xdb commands will be handled }
 {$ifndef GDB_HAS_DB_COMMANDS}
-  xdb_commands : longint;cvar;public;
+  xdb_commands : longint;cvar;external;
 
 { Whether dbx commands will be handled }
-  dbx_commands : longint;cvar;public;
+  dbx_commands : longint;cvar;external;
 {$endif GDB_HAS_DB_COMMANDS}
 
 var
@@ -2470,7 +2474,7 @@ begin
 end;
 
 {$ifdef GDB_HAS_SYSROOT}
-var gdb_sysroot  : pchar; {$ifdef powerpc}external{$else}export{$endif} name 'gdb_sysroot';
+var gdb_sysroot  : pchar; {$ifdef linux}external{$else}export{$endif} name 'gdb_sysroot';
     gdb_sysrootc : char;
 {$endif}
 
