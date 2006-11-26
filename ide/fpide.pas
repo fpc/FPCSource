@@ -26,9 +26,11 @@ uses
 
 type
     TExecType = (exNormal,exNoSwap,exDosShell);
+    Tdisplaymode = (dmIDE,dmUser);
 
     TIDEApp = object(TApplication)
       IsRunning : boolean;
+      displaymode : Tdisplaymode;
       constructor Init;
       procedure   InitDesktop; virtual;
       procedure   LoadMenuBar;
@@ -263,6 +265,7 @@ end;
 constructor TIDEApp.Init;
 var R: TRect;
 begin
+  displaymode:=dmIDE;
   UseSyntaxHighlight:=@IDEUseSyntaxHighlight;
   UseTabsPattern:=@IDEUseTabsPattern;
   inherited Init;
@@ -879,6 +882,7 @@ end;
 
 procedure TIDEApp.ShowUserScreen;
 begin
+  displaymode:=dmUser;
   if Assigned(UserScreen) then
     UserScreen^.SaveIDEScreen;
   DoneSysError;
@@ -942,6 +946,7 @@ begin
   UpdateScreen(true);
 {$endif go32v2}
 {$endif Windows}
+  displaymode:=dmIDE;
 end;
 
 function TIDEApp.AutoSave: boolean;
