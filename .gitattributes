@@ -4733,6 +4733,8 @@ rtl/linux/x86_64/cprt0.as -text
 rtl/linux/x86_64/dllprt0.as -text
 rtl/linux/x86_64/gprt0.as -text
 rtl/linux/x86_64/prt0.as -text
+rtl/linux/x86_64/si_c.inc svneol=native#text/plain
+rtl/linux/x86_64/si_prc.inc svneol=native#text/plain
 rtl/linux/x86_64/sighnd.inc svneol=native#text/plain
 rtl/linux/x86_64/sighndh.inc svneol=native#text/plain
 rtl/linux/x86_64/stat.inc svneol=native#text/plain
