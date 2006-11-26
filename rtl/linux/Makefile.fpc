@@ -55,12 +55,17 @@ UNIXINC=$(RTL)/unix
 
 UNITPREFIX=rtl
 
+CPU_UNITS=
+SYSINIT_UNITS=
+
 ifeq ($(CPU_TARGET),i386)
 CRT21=cprt21 gprt21
-CPU_UNITS=x86 ports cpu mmx 
+CPU_UNITS=x86 ports cpu mmx
 SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll
-else
-CPU_UNITS=
+endif
+
+ifeq ($(CPU_TARGET),x86_64)
+SYSINIT_UNITS=   # si_prc si_c si_dll
 endif
 
 SYSTEMUNIT=system
