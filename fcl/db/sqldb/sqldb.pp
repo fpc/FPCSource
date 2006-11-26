@@ -193,6 +193,9 @@ type
     FMasterLink          : TMasterParamsDatalink;
 //    FSchemaInfo          : TSchemaInfo;
 
+    FServerFilterText    : string;
+    FServerFiltered      : Boolean;
+
     FUpdateQry,
     FDeleteQry,
     FInsertQry           : TSQLQuery;
@@ -228,8 +231,8 @@ type
     procedure ApplyRecUpdate(UpdateKind : TUpdateKind); override;
     Function IsPrepared : Boolean; virtual;
     Procedure SetActive (Value : Boolean); override;
-    procedure SetFiltered(Value: Boolean); override;
-    procedure SetFilterText(const Value: string); override;
+    procedure SetServerFiltered(Value: Boolean); virtual;
+    procedure SetServerFilterText(const Value: string); virtual;
     Function GetDataSource : TDatasource; override;
     Procedure SetDataSource(AValue : TDatasource); 
     procedure LoadBlobIntoStream(Field: TField;AStream: TStream); override;
@@ -245,8 +248,10 @@ type
   published
     // redeclared data set properties
     property Active;
-    property Filter;
-    property Filtered;
+//    property Filter;
+//    property Filtered;
+    property ServerFilter: string read FServerFilterText write SetServerFilterText;
+    property ServerFiltered: Boolean read FServerFiltered write SetServerFiltered default False;
 //    property FilterOptions;
     property BeforeOpen;
     property AfterOpen;
@@ -696,7 +701,7 @@ begin
 
   s := FSQLBuf;
 
-  if Filtered then s := AddFilter(s);
+  if ServerFiltered then s := AddFilter(s);
 
   (Database as tsqlconnection).PrepareStatement(Fcursor,(transaction as tsqltransaction),S,FParams);
 
@@ -715,22 +720,22 @@ begin
 end;
 
 
-procedure TSQLQuery.SetFiltered(Value: Boolean);
+procedure TSQLQuery.SetServerFiltered(Value: Boolean);
 
 begin
   if Value and not FParseSQL then DatabaseErrorFmt(SNoParseSQL,['Filtering ']);
-  if (Filtered <> Value) then
+  if (ServerFiltered <> Value) then
     begin
-    inherited setfiltered(Value);
+    FServerFiltered := Value;
     if active then ApplyFilter;
     end;
 end;
 
-procedure TSQLQuery.SetFilterText(const Value: string);
+procedure TSQLQuery.SetServerFilterText(const Value: string);
 begin
-  if Value <> Filter then
+  if Value <> ServerFilter then
     begin
-    inherited SetFilterText(Value);
+    FServerFilterText := Value;
     if active then ApplyFilter;
     end;
 end;
@@ -764,7 +769,7 @@ begin
 
     SQLParser(FSQLBuf);
 
-    if filtered then
+    if ServerFiltered then
       Db.PrepareStatement(Fcursor,sqltr,AddFilter(FSQLBuf),FParams)
     else
       Db.PrepareStatement(Fcursor,sqltr,FSQLBuf,FParams);
@@ -1084,6 +1089,10 @@ begin
   FIndexDefs := TIndexDefs.Create(Self);
   FReadOnly := false;
   FParseSQL := True;
+  
+  FServerFiltered := False;
+  FServerFilterText := '';
+  
 // Delphi has upWhereAll as default, but since strings and oldvalue's don't work yet
 // (variants) set it to upWhereKeyOnly
   FUpdateMode := upWhereKeyOnly;
@@ -1124,7 +1133,7 @@ begin
   if not AValue then
     begin
     FReadOnly := True;
-    Filtered := False;
+    FServerFiltered := False;
     FParseSQL := False;
     end
   else
