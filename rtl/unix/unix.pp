@@ -90,6 +90,7 @@ function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
 
 Function Shell   (const Command:String):cint;
 Function Shell   (const Command:AnsiString):cint;
+Function fpSystem(const Command:string):cint;
 Function fpSystem(const Command:AnsiString):cint;
 
 Function WaitProcess (Pid:cint):cint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
@@ -474,11 +475,68 @@ end;
 {$ifdef FPC_USE_LIBC}
 function xfpsystem(p:pchar):cint; cdecl; external clib name 'system';
 
+function fpsystem(const Command:string):cint;
+
+var c:array[0..255] of char;
+
+begin
+  strpcopy(@c,command);
+  fpsystem:=xfpsystem(@c);
+end;
+
 Function fpSystem(const Command:AnsiString):cint;
 begin
   fpsystem:=xfpsystem(pchar(command));
 end;
+
 {$else}
+Function fpSystem(const Command:string):cint;
+
+var
+  pid,savedpid   : cint;
+  pstat          : cint;
+  ign,intact,
+  quitact        : SigactionRec;
+  newsigblock,
+  oldsigblock    : tsigset;
+
+begin { Changes as above }
+  if command='' then exit(1);
+  ign.sa_handler:=SigActionHandler(SIG_IGN);
+  fpsigemptyset(ign.sa_mask);
+  ign.sa_flags:=0;
+  fpsigaction(SIGINT, @ign, @intact);
+  fpsigaction(SIGQUIT, @ign, @quitact);
+  fpsigemptyset(newsigblock);
+  fpsigaddset(newsigblock,SIGCHLD);
+  fpsigprocmask(SIG_BLOCK,newsigblock,oldsigblock);
+  pid:=fpfork;
+  if pid=0 then // We are in the Child
+   begin
+     fpsigaction(SIGINT,@intact,NIL);
+     fpsigaction(SIGQUIT,@quitact,NIL);
+     fpsigprocmask(SIG_SETMASK,@oldsigblock,NIL);
+     fpexecl('/bin/sh',['-c',Command]);
+     fpExit(127); // was exit(127)!! We must exit the Process, not the function
+   end
+  else if (pid<>-1) then // Successfull started
+     begin
+        savedpid:=pid;
+        repeat
+          pid:=fpwaitpid(savedpid,@pstat,0);
+        until (pid<>-1) and (fpgeterrno()<>ESysEintr);
+        if pid=-1 Then
+         fpsystem:=-1
+        else
+         fpsystem:=pstat;
+     end
+  else // no success
+   fpsystem:=-1;
+  fpsigaction(SIGINT,@intact,NIL);
+  fpsigaction(SIGQUIT,@quitact,NIL);
+  fpsigprocmask(SIG_SETMASK,@oldsigblock,NIL);
+end;
+
 Function fpSystem(const Command:AnsiString):cint;
 {
   AnsiString version of Shell
