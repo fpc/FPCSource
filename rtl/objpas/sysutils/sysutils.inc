@@ -293,8 +293,8 @@ begin
   214 : E:=EBusError.Create(SBusError);
   215 : E:=EIntOverflow.Create(SIntOverflow);
   216 : E:=EAccessViolation.Create(SAccessViolation);
-  217 : E:=EPrivilege.Create(SPrivilege);
-  218 : E:=EControlC.Create(SControlC);
+  217 : E:=EControlC.Create(SControlC);
+  218 : E:=EPrivilege.Create(SPrivilege);
   219 : E:=EInvalidCast.Create(SInvalidCast);
   220 : E:=EVariantError.Create(SInvalidVarCast);
   221 : E:=EVariantError.Create(SInvalidVarOp);
