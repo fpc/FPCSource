@@ -198,19 +198,19 @@ interface
           top_ref:
             if o.ref^.refaddr=addr_full then
               begin
-             if assigned(o.ref^.symbol) then
-               hs:='#'+o.ref^.symbol.name
-             else
-               hs:='#';
-               if o.ref^.offset>0 then
-                hs:=hs+'+'+tostr(o.ref^.offset)
-               else
-                if o.ref^.offset<0 then
-                 hs:=hs+tostr(o.ref^.offset)
-               else
-                if not(assigned(o.ref^.symbol)) then
-                  hs:=hs+'0';
-               getopstr:=hs;
+                if assigned(o.ref^.symbol) then
+                  hs:=o.ref^.symbol.name
+                else
+                  hs:='#';
+                if o.ref^.offset>0 then
+                  hs:=hs+'+'+tostr(o.ref^.offset)
+                else
+                  if o.ref^.offset<0 then
+                    hs:=hs+tostr(o.ref^.offset)
+                  else
+                    if not(assigned(o.ref^.symbol)) then
+                      hs:=hs+'0';
+                getopstr:=hs;
               end
             else
               getopstr:=getreferencestring(o.ref^);
