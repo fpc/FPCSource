@@ -53,6 +53,6 @@ begin
      BeginThread({$ifdef fpc}@{$endif}f,pointer(i));
 
    while finished<threadcount do
-     ;
+     {$ifdef wince}sleep(10){$endif};
    writeln(finished);
 end.
