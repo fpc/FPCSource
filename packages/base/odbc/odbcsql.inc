@@ -54,8 +54,8 @@ type
   SQLHDBC      = SQLHANDLE;
   SQLHSTMT     = SQLHANDLE;
   SQLHDESC     = SQLHANDLE;
-  SQLINTEGER   = cint;
-  SQLUINTEGER  = cuint;
+  SQLINTEGER   = clong;
+  SQLUINTEGER  = culong;
   SQLPOINTER   = pointer;
   SQLREAL      = cfloat;
   SQLDOUBLE    = cdouble;
