@@ -254,7 +254,15 @@ begin
   else
     dispose(P,Done);
 end;
+{$endif NODEBUG}
 
+{$ifdef NODEBUG}
+procedure TIDEapp.do_evaluate;
+
+begin
+  nodebugger;
+end;
+{$else}
 procedure TIDEapp.do_evaluate;
 
 var d:Pevaluate_dialog;
@@ -268,5 +276,5 @@ begin
   desktop^.execview(d);
   dispose(d,done);
 end;
-{$endif NODEBUG}
+{$endif}
 

@@ -21,8 +21,11 @@ uses
   Objects,Drivers,Views,App,Gadgets,MsgBox,Tabs,
   WEditor,WCEdit,
   Comphook,Browcol,
-  WHTMLScn,fpevalw,
-  FPViews,FPSymbol,fpstring;
+  WHTMLScn,
+  FPViews,FPSymbol,fpstring
+  {$ifndef NODEBUG}
+  ,fpevalw
+  {$endif};
 
 type
     TExecType = (exNormal,exNoSwap,exDosShell);
