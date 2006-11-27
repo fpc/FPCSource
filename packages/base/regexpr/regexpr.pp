@@ -118,6 +118,8 @@ unit regexpr;
         @returns(true if there was a match, otherwise false)
      }
      function RegExprPos(RegExprEngine : TRegExprEngine;p : pchar;var index,len : longint) : boolean;
+     
+     // function RegExprReplace(RegExprEngine : TRegExprEngine;const src,newstr : ansistring;var dest : ansistring) : sizeint;
 
      { This function Escape known regex chars and place the result on Return. If something went wrong the
        function will return false. }
@@ -1112,6 +1114,31 @@ unit regexpr;
           index:=-1;
        end;
 
+{
+  function RegExprReplace(RegExprEngine : TRegExprEngine;const src,newstr : ansistring;var dest : ansistring) : sizeint;
+    var
+      index,len : longint;
+      pos,lastpos : pchar;
+    begin
+      pos:=pchar(src);
+      lastpos:=pos;
+      { estimate some length }
+      SetLength(dest,length(src)+((length(src) div 10)*length(newstr)));
+      while RegExprPos(RegExprEngine,pos,index,len) do
+        begin
+          if pos>lastpos then
+            begin  
+              { cast dest here because it is already unified }            
+              move(lastpos^,char(dest[length(dest)+1)]),pos-lastpos);
+              SetLength(dest,Length(dest)+(pos-lastpos));
+            end;
+          dest:=dest+newstr;
+          inc(pos,len);
+        end;
+      { copy remainder }
+      
+    end;
+}   
 
   function RegExprEscapeStr (const S : string) : string;
     var
