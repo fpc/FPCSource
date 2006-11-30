@@ -205,6 +205,9 @@ implementation
          hreg : tregister;
          op : tasmop;
       begin
+        if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
+          location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
+
 {$ifdef x86_64}
         if use_sse(resultdef) then
           begin
@@ -225,9 +228,6 @@ implementation
 
             location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
-
-            if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
-              location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,true);
 
             case torddef(left.resultdef).ordtype of
               u64bit:

@@ -149,7 +149,7 @@ begin
   end;
 
   if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
-    location_force_reg(current_asmdata.CurrAsmList,left.location,OS_INT,false);
+    location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,false);
   case left.location.loc of
     // the conversion algorithm does not modify the input register, so it can
     // be used for both LOC_REGISTER and LOC_CREGISTER
