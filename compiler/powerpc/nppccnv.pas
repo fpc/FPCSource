@@ -168,6 +168,8 @@ implementation
            is_64bitint(left.resultdef) then
           internalerror(200110011);
 
+        if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
+          location_force_reg(current_asmdata.CurrAsmList,left.location,OS_INT,false);
         case left.location.loc of
           LOC_REGISTER:
             begin
