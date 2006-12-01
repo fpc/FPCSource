@@ -382,30 +382,3 @@ struct _7BYTE_ test_function_struct()
 	test_struct.u16 = RESULT_U16BIT;
 	return test_struct;
 }
-
-/*
-
-  Revision 1.7  2005/02/06 20:00:41  peter
-    * use int for 32bit types
-
-  Revision 1.6  2002/11/18 00:42:16  pierre
-   + records with really 3 byte size tests added
-
-  Revision 1.5  2002/11/04 15:17:45  pierre
-   * compatibility with C checks improved
-
-  Revision 1.4  2002/09/07 15:40:56  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/05/04 16:57:23  carl
-  + var parameter testing
-  + function result testing
-  + floating point testing
-
-  Revision 1.2  2002/04/22 19:09:12  carl
-  + added structure testing
-
-  Revision 1.1  2002/04/13 21:06:39  carl
-  + c module testing
-
-*/
