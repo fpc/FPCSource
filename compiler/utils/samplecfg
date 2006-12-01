@@ -5,6 +5,53 @@
 #  Generate Sample Free Pascal configuration file
 #
 
+function setgccdir() {
+# Find path to libgcc.a
+GCCSPEC=`(gcc -v $@ 2>&1)| head -n 1| awk '{ print $4 } '`
+if [ -z "$GCCSPEC" ] ; then
+  GCCSPEC=`gcc -print-libgcc-file-name $@ 2>/dev/null`
+fi
+GCCDIR=`dirname $GCCSPEC`
+}
+
+
+function setgccdirarch() {
+# Find path to libgcc.a
+GCCSPEC=`(gcc -v -arch $1 2>&1)| head -n 1| awk '{ print $4 } '`
+if [ -z "$GCCSPEC" ] ; then
+  GCCSPEC=`gcc -print-libgcc-file-name -arch $1`
+fi
+
+GCCDIR=`dirname $GCCSPEC`
+
+if [ -z "$GCCDIR" ] ; then
+  return
+fi
+
+case $1 in
+ ppc)
+    GCCDIR="#ifdef cpupowerpc
+-Fl$GCCDIR
+#endif"
+     ;;
+ ppc64)
+    GCCDIR="#ifdef cpupowerpc64
+-Fl$GCCDIR
+#endif"
+     ;;
+ i386)
+    GCCDIR="#ifdef cpui386
+-Fl$GCCDIR
+#endif"
+     ;;
+ x86_64)
+    GCCDIR="#ifdef cpux86_64
+-Fl$GCCDIR
+#endif"
+     ;;
+esac
+}
+
 HOSTOS=`uname -s | tr A-Z a-z`
 echo Running on $HOSTOS
 
@@ -41,12 +88,10 @@ if [ -f $thefile ] ; then
   fi
 fi
 
-# Find path to libgcc.a
-GCCSPEC=`(gcc -v 2>&1)| head -n 1| awk '{ print $4 } '`
-if [ -z "$GCCSPEC" ] ; then
-  GCCSPEC=`gcc -print-libgcc-file-name`
-fi
-GCCDIR=`dirname $GCCSPEC`
+setgccdir
+GCCDIR2=""
+GCCDIR3=""
+GCCDIR4=""
 
 # include ports tree dir for FreeBSDers.
 case $HOSTOS in
@@ -58,6 +103,15 @@ case $HOSTOS in
      ;;
  netbsd)
    GCCDIR=-Fl/usr/pkg/lib
+     ;;
+ darwin)
+   setgccdirarch ppc
+   GCCDIR2=$GCCDIR
+   setgccdirarch ppc64
+   GCCDIR3=$GCCDIR
+   setgccdirarch i386
+   GCCDIR4=$GCCDIR
+   setgccdirarch x86_64
      ;;
  *)
    if [ -d $GCCDIR ]; then	
@@ -215,6 +269,9 @@ cat <<EOFCFG > $thefile
 
 # searchpath for libraries
 $GCCDIR
+$GCCDIR2
+$GCCDIR3
+$GCCDIR4
 #-Fl/pp/lib
 #-Fl/lib;/usr/lib
 
