@@ -168,7 +168,7 @@ function TryStrToBool(const S: string; out Value: Boolean): Boolean;
 function LastDelimiter(const Delimiters, S: string): Integer;
 function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
 Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;
-Procedure FloatToDecimal(Var Result: TFloatRec; Value: Extended; Precision, Decimals : integer);
+Procedure FloatToDecimal(Out Result: TFloatRec; Value: Extended; Precision, Decimals : integer);
 Function FormatFloat(Const Format : String; Value : Extended) : String;
 Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
 function FormatCurr(const Format: string; Value: Currency): string;

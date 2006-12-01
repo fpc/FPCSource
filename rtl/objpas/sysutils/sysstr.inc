@@ -1887,69 +1887,107 @@ End;
 
 
 
-Procedure FloatToDecimal(Var Result: TFloatRec; Value: Extended; Precision, Decimals : integer);
+Procedure FloatToDecimal(Out Result: TFloatRec; Value: Extended; Precision, Decimals : integer);
 
-Var
-  Buffer: String[24];
-  Error, N: Integer;
-
-Begin
+var
+  Buffer: String[254];  //Though str func returns only 25 chars, this might change in the future
+  Error, N, L, Start, C: Integer;
+  GotNonZeroBeforeDot, BeforeDot : boolean;
+begin
   Str(Value:23, Buffer);
-  Result.Negative := (Buffer[1] = '-');
-  Val(Copy(Buffer, 19, 5), Result.Exponent, Error);
-  Inc(Result. Exponent);
-  Result.Digits[0] := Buffer[2];
-  Move(Buffer[4], Result.Digits[1], 14);
-  If Decimals + Result.Exponent < Precision Then
+  N := 1;
+  L := Byte(Buffer[0]);
+  while Buffer[N]=' ' do
+    Inc(N);
+  Result.Negative := (Buffer[N] = '-');
+  if Result.Negative then
+    Inc(N);
+  Start := N;  //Start of digits
+  Result.Exponent := 0; BeforeDot := true;
+  GotNonZeroBeforeDot := false;
+  while (L>=N) and (Buffer[N]<>'E') do
+    begin
+      if Buffer[N]='.' then
+        BeforeDot := false
+      else
+        begin
+          if BeforeDot then
+            begin  // Currently this is always 1 char
+              Inc(Result.Exponent);
+              Result.Digits[N-Start] := Buffer[N];
+              if Buffer[N] <> '0' then
+                GotNonZeroBeforeDot := true;
+            end
+          else
+            Result.Digits[N-Start-1] := Buffer[N]
+        end;
+      Inc(N);
+    end;
+  Inc(N); // Pass through 'E'
+  if N<=L then
+    begin
+      Val(Copy(Buffer, N, L-N+1), C, Error); // Get exponent after 'E'
+      Inc(Result.Exponent, C);
+    end;
+  // Calculate number of digits we have from str
+  if BeforeDot then
+    N := N - Start - 1
+  else
+    N := N - Start - 2;
+  L := SizeOf(Result.Digits);
+  if N<L then
+    FillChar(Result.Digits[N], L-N, '0');  //Zero remaining space
+  if Decimals + Result.Exponent < Precision Then //After this it is the same as in FloatToDecimal
     N := Decimals + Result.Exponent
   Else
     N := Precision;
-  If N > maxdigits Then
-    N := maxdigits;
-  If N = 0 Then
-    Begin
-    If Result.Digits[0] >= '5' Then
-      Begin
-      Result.Digits[0] := '1';
-      Result.Digits[1] := #0;
-      Inc(Result.Exponent);
-      End
-    Else
-      Result.Digits[0] := #0;
-    End
-  Else If N > 0 Then
-    Begin
-    If Result.Digits[N] >= '5' Then
-      Begin
-      Repeat
-        Result.Digits[N] := #0;
-        Dec(N);
-        Inc(Result.Digits[N]);
-      Until (N = 0) Or (Result.Digits[N] < ':');
-      If Result.Digits[0] = ':' Then
-        Begin
-        Result.Digits[0] := '1';
-        Inc(Result.Exponent);
-        End;
-      End
-    Else
-      Begin
-      Result.Digits[N] := '0';
-      While (Result.Digits[N] = '0') And (N > -1) Do
-        Begin
-        Result.Digits[N] := #0;
-        Dec(N);
-        End;
-      End;
-    End
+  if N >= L Then
+    N := L-1;
+  if N = 0 Then
+    begin
+      if Result.Digits[0] >= '5' Then
+        begin
+          Result.Digits[0] := '1';
+          Result.Digits[1] := #0;
+          Inc(Result.Exponent);
+        end
+      Else
+        Result.Digits[0] := #0;
+    end  //N=0
+  Else if N > 0 Then
+    begin
+      if Result.Digits[N] >= '5' Then
+        begin
+          Repeat
+            Result.Digits[N] := #0;
+            Dec(N);
+            Inc(Result.Digits[N]);
+          Until (N = 0) Or (Result.Digits[N] < ':');
+          If Result.Digits[0] = ':' Then
+            begin
+              Result.Digits[0] := '1';
+              Inc(Result.Exponent);
+            end;
+        end
+      Else
+        begin
+          Result.Digits[N] := '0';
+          While (N > -1) And (Result.Digits[N] = '0') Do
+            begin
+              Result.Digits[N] := #0;
+              Dec(N);
+            end;
+        end;
+      end //N>0
   Else
     Result.Digits[0] := #0;
-  If Result.Digits[0] = #0 Then
-    Begin
-    Result.Exponent := 0;
-    Result.Negative := False;
-    End;
-End;
+  if (Result.Digits[0] = #0) and
+     not GotNonZeroBeforeDot then
+    begin
+      Result.Exponent := 0;
+      Result.Negative := False;
+    end;
+end;
 
 Function FormatFloat(Const format: String; Value: Extended): String;
 
