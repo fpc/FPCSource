@@ -1886,15 +1886,26 @@ Begin
 End;
 
 
-
-Procedure FloatToDecimal(Out Result: TFloatRec; Value: Extended; Precision, Decimals : integer);
-
+Procedure FloatToDecimal(Out Result: TFloatRec; const Value; ValueType: TFloatValue; Precision, Decimals : integer);
 var
   Buffer: String[254];  //Though str func returns only 25 chars, this might change in the future
   Error, N, L, Start, C: Integer;
   GotNonZeroBeforeDot, BeforeDot : boolean;
 begin
-  Str(Value:23, Buffer);
+  case ValueType of
+    fvExtended:
+      Str(Extended(Value):25, Buffer);
+    fvDouble,
+    fvReal:
+      Str(Double(Value):23, Buffer);
+    fvSingle:
+      Str(Single(Value):16, Buffer);
+    fvCurrency:
+      Str(Currency(Value):25, Buffer);
+    fvComp:
+      Str(Currency(Value):23, Buffer);
+  end;
+    
   N := 1;
   L := Byte(Buffer[0]);
   while Buffer[N]=' ' do
@@ -1987,6 +1998,13 @@ begin
       Result.Exponent := 0;
       Result.Negative := False;
     end;
+end;
+
+
+Procedure FloatToDecimal(Out Result: TFloatRec; Value: Extended; Precision, Decimals : integer);
+
+begin
+  FloatToDecimal(Result,Value,fvExtended,Precision,Decimals);
 end;
 
 Function FormatFloat(Const format: String; Value: Extended): String;
