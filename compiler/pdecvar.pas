@@ -698,6 +698,7 @@ implementation
             else
               internalerror(200611051);
           end;
+          vs.varstate:=vs_initialised;
         end;
 
         procedure read_gpc_name(sc : TFPObjectList);
