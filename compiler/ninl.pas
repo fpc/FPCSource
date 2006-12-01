@@ -148,7 +148,7 @@ implementation
         if not assigned(left) or
            (left.nodetype <> callparan) then
           begin
-            CGMessage(parser_e_wrong_parameter_size);
+            CGMessage1(parser_e_wrong_parameter_size,'Str');
             exit;
           end;
 
@@ -165,7 +165,7 @@ implementation
         if (source=dest) or
            (cpf_is_colon_para in tcallparanode(dest).callparaflags) then
           begin
-            CGMessage(parser_e_wrong_parameter_size);
+            CGMessage1(parser_e_wrong_parameter_size,'Str');
             exit;
           end;
 
@@ -307,6 +307,8 @@ implementation
       const
         procnames: array[boolean,boolean] of string[11] =
           (('write_text_','read_text_'),('typed_write','typed_read'));
+        procnamesdisplay: array[boolean] of string[5] =
+          ('Write','Read');
 
       var
         filepara,
@@ -477,7 +479,7 @@ implementation
             { check for "no parameters" (you need at least one extra para for typed files) }
             if not assigned(para) then
               begin
-                CGMessage(parser_e_wrong_parameter_size);
+                CGMessage1(parser_e_wrong_parameter_size,procnamesdisplay[do_read]);
                 found_error := true;
               end;
 
@@ -905,7 +907,7 @@ implementation
         if not(assigned(left)) or
            not(assigned(tcallparanode(left).right)) then
          begin
-           CGMessage(parser_e_wrong_parameter_size);
+           CGMessage1(parser_e_wrong_parameter_size,'Val');
            exit;
          end;
 

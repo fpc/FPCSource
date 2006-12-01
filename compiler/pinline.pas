@@ -470,7 +470,7 @@ implementation
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
-           CGMessage(parser_e_wrong_parameter_size);
+           CGMessage1(parser_e_wrong_parameter_size,'SetLength');
            exit;
          end;
 
@@ -489,7 +489,7 @@ implementation
          end;
         if dims=0 then
          begin
-           CGMessage(parser_e_wrong_parameter_size);
+           CGMessage1(parser_e_wrong_parameter_size,'SetLength');
            paras.free;
            exit;
          end;
@@ -523,7 +523,7 @@ implementation
                 begin
                   if not(is_dynamic_array(def)) then
                     begin
-                      CGMessage(parser_e_wrong_parameter_size);
+                      CGMessage1(parser_e_wrong_parameter_size,'SetLength');
                       break;
                     end;
                   dec(counter);
@@ -597,7 +597,7 @@ implementation
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
-           CGMessage(parser_e_wrong_parameter_size);
+           CGMessage1(parser_e_wrong_parameter_size,'Initialize');
            exit;
          end;
 
@@ -605,7 +605,7 @@ implementation
         { 2 arguments? }
         if assigned(ppn.right) then
          begin
-           CGMessage(parser_e_wrong_parameter_size);
+           CGMessage1(parser_e_wrong_parameter_size,'Initialize');
            paras.free;
            exit;
          end;
@@ -635,7 +635,7 @@ implementation
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
-           CGMessage(parser_e_wrong_parameter_size);
+           CGMessage1(parser_e_wrong_parameter_size,'Finalize');
            exit;
          end;
 
@@ -647,7 +647,7 @@ implementation
            { 3 arguments is invalid }
            if assigned(destppn.right) then
             begin
-              CGMessage(parser_e_wrong_parameter_size);
+              CGMessage1(parser_e_wrong_parameter_size,'Finalize');
               paras.free;
               exit;
             end;
@@ -694,7 +694,7 @@ implementation
         consume(_RKLAMMER);
         if not assigned(paras) then
          begin
-           CGMessage(parser_e_wrong_parameter_size);
+           CGMessage1(parser_e_wrong_parameter_size,'Copy');
            exit;
          end;
 
@@ -728,7 +728,7 @@ implementation
             { Only allow 1 or 3 arguments }
             if (counter<>1) and (counter<>3) then
              begin
-               CGMessage(parser_e_wrong_parameter_size);
+               CGMessage1(parser_e_wrong_parameter_size,'Copy');
                exit;
              end;
 

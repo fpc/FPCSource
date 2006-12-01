@@ -414,7 +414,7 @@ parser_n_object_has_no_vmt=03023_N_The object "$1" has no VMT
 parser_e_illegal_parameter_list=03024_E_Illegal parameter list
 % You are calling a function with parameters that are of a different type than
 % the declared parameters of the function.
-parser_e_wrong_parameter_size=03026_E_Wrong number of parameters specified
+parser_e_wrong_parameter_size=03026_E_Wrong number of parameters specified for call to "$1"
 % There is an error in the parameter list of the function or procedure,
 % the number of parameters is not correct.
 parser_e_overloaded_no_procedure=03027_E_overloaded identifier "$1" isn't a function

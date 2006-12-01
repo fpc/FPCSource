@@ -1799,7 +1799,7 @@ implementation
                         internalerror(200402261);
                       if not assigned(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym) then
                         begin
-                          CGMessage(parser_e_wrong_parameter_size);
+                          CGMessage1(parser_e_wrong_parameter_size,symtableprocentry.realname);
                           goto errorexit;
                         end;
                       dec(paraidx);
@@ -1828,7 +1828,7 @@ implementation
                 begin
                    if assigned(pt) then
                      current_filepos:=pt.fileinfo;
-                   CGMessage(parser_e_wrong_parameter_size);
+                   CGMessage1(parser_e_wrong_parameter_size,symtableprocentry.realname);
                    goto errorexit;
                 end;
            end
@@ -1881,7 +1881,7 @@ implementation
                             begin
                               if assigned(left) then
                                current_filepos:=left.fileinfo;
-                              CGMessage(parser_e_wrong_parameter_size);
+                              CGMessage1(parser_e_wrong_parameter_size,symtableprocentry.realname);
                               symtableprocentry.write_parameter_lists(nil);
                             end;
                         end;
