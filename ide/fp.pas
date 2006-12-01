@@ -206,7 +206,7 @@ begin
   end;
   if ErrS<>'' then
   begin
-    if Assigned(Application) then
+    if (application<>nil) and (ideapp.displaymode=dmIDE) then
       ErrorBox('Stream error: '+#13+ErrS,nil)
     else
 
@@ -408,7 +408,7 @@ BEGIN
             { If ExitProc=@InterceptExit then
               ExitProc:=StoreExitProc;}
             Str(SeenExitCode,ErrS);
-            if Assigned(Application) then
+            if (application<>nil) and (ideapp.displaymode=dmIDE) then
               begin
                 P.l1:=SeenExitCode;
                 ErrS:=hexstr(longint(SeenErrorAddr),8);
@@ -423,7 +423,7 @@ BEGIN
           begin
             Str(SetJmpRes,ErrS);
           { Longjmp was called by fpcatch }
-            if Assigned(Application) then
+            if (application<>nil) and (ideapp.displaymode=dmIDE) then
               begin
                 P.l1:=SetJmpRes;
                 if OKCancelBox(error_programexitedwithsignal,@P)=cmCancel then
@@ -432,7 +432,14 @@ BEGIN
             else
               writeln('Signal error: ',ErrS);
           end;
+        if ideapp.displaymode=dmUser then
+          begin
+            writeln('Fatal exception occured while in user screen mode. File save message boxes');
+            writeln('cannot be displayed. We are sorry, but need to terminate now.');
+            halt(255);
+          end;
       end;
+
     if (AutoSaveOptions and asEditorFiles)=0 then
       CanExit:=IDEApp.AskSaveAll
     else

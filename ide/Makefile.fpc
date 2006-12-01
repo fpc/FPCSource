@@ -141,6 +141,7 @@ buildfp:
         $(MAKE) postgdbinfo
 
 gdb:
+        $(MAKE) -C ../packages/base/gdbint
         $(MAKE) buildfp
 
 nogdb:

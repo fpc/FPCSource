@@ -209,9 +209,9 @@ type
       procedure Force_new_value;
       destructor done;virtual;
       expr : pstring;
+      last_value,current_value : pchar;
     private
       GDBRunCount : longint;
-      last_value,current_value : pchar;
     end;
 
     PWatchesCollection = ^TWatchesCollection;

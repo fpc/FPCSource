@@ -940,10 +940,11 @@ end;
   SmallHeap;
 {$EndIf MsDos}
     SwapVectors;
-    { Must use shell() for linux for the wildcard expansion (PFV) }
 {$ifdef UNIX}
     IOStatus:=0;
-    ExecuteResult:=Shell(MaybeQuoted(FixPath(Progname))+' '+Comline);
+    {We need to use fpsystem to get wildcard expansion and avoid being
+     interrupted by ctrl+c (SIGINT).};
+    ExecuteResult:=fpsystem(MaybeQuoted(FixPath(Progname))+' '+Comline);
     if ExecuteResult<0 then
       begin
         IOStatus:=(-ExecuteResult) and $7f;

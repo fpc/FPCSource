@@ -22,13 +22,18 @@ uses
   WEditor,WCEdit,
   Comphook,Browcol,
   WHTMLScn,
-  FPViews,FPSymbol,fpstring;
+  FPViews,FPSymbol,fpstring
+  {$ifndef NODEBUG}
+  ,fpevalw
+  {$endif};
 
 type
     TExecType = (exNormal,exNoSwap,exDosShell);
+    Tdisplaymode = (dmIDE,dmUser);
 
     TIDEApp = object(TApplication)
       IsRunning : boolean;
+      displaymode : Tdisplaymode;
       constructor Init;
       procedure   InitDesktop; virtual;
       procedure   LoadMenuBar;
@@ -90,6 +95,7 @@ type
       procedure DoShowBreakpointList;
       procedure DoShowWatches;
       procedure DoAddWatch;
+      procedure do_evaluate;
       procedure DoShowRegisters;
       procedure DoShowFPU;
       procedure DoShowVector;
@@ -263,6 +269,7 @@ end;
 constructor TIDEApp.Init;
 var R: TRect;
 begin
+  displaymode:=dmIDE;
   UseSyntaxHighlight:=@IDEUseSyntaxHighlight;
   UseTabsPattern:=@IDEUseTabsPattern;
   inherited Init;
@@ -401,6 +408,7 @@ begin
       NewItem(menu_debug_watches,'', kbNoKey, cmWatches, hcWatchesWindow,
       NewItem(menu_debug_breakpoint,menu_key_debug_breakpoint, kbCtrlF8, cmToggleBreakpoint, hcToggleBreakpoint,
       NewItem(menu_debug_breakpointlist,'', kbNoKey, cmBreakpointList, hcBreakpointList,
+      NewItem('~E~valuate...','Ctrl+F4', kbCtrlF4, cmEvaluate, hcEvaluate,
       NewItem(menu_debug_callstack,menu_key_debug_callstack, kbCtrlF3, cmStack, hcStackWindow,
       NewLine(
       NewItem(menu_debug_disassemble,'', kbNoKey, cmDisassemble, hcStackWindow,
@@ -413,7 +421,7 @@ begin
 {$ifdef SUPPORT_REMOTE}
       )
 {$endif SUPPORT_REMOTE}
-      )))))))))))))))),
+      ))))))))))))))))),
     NewSubMenu(menu_tools, hcToolsMenu, NewMenu(
       NewItem(menu_tools_messages,menu_key_tools_messages, kbF11, cmToolsMessages, hcToolsMessages,
       NewItem(menu_tools_msgnext,menu_key_tools_msgnext, kbAltF8, cmToolsMsgNext, hcToolsMsgNext,
@@ -762,6 +770,7 @@ begin
              cmRegisters     : DoShowRegisters;
              cmFPURegisters     : DoShowFPU;
              cmVectorRegisters : DoShowVector;
+             cmEvaluate      : do_evaluate;
            { -- Options menu -- }
              cmSwitchesMode  : SetSwitchesMode;
              cmCompiler      : DoCompilerSwitch;
@@ -879,6 +888,7 @@ end;
 
 procedure TIDEApp.ShowUserScreen;
 begin
+  displaymode:=dmUser;
   if Assigned(UserScreen) then
     UserScreen^.SaveIDEScreen;
   DoneSysError;
@@ -913,6 +923,9 @@ begin
 {$ifndef go32v2}
   initvideo;
 {$endif ndef go32v2}
+  {Videobuffer has been reallocated, need passive video situation detection
+   again.}
+  initscreen;
 {$ifdef Windows}
   { write the empty screen to dummy console handle }
   UpdateScreen(true);
@@ -942,6 +955,7 @@ begin
   UpdateScreen(true);
 {$endif go32v2}
 {$endif Windows}
+  displaymode:=dmIDE;
 end;
 
 function TIDEApp.AutoSave: boolean;
