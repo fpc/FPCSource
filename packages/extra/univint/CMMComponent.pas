@@ -248,7 +248,7 @@ function CMMCheckBitmap(cmm: CMMComponentInst; const (*var*) bitmap: CMBitmap; p
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function CMMMatchPixMap(cmm: CMMComponentInst; var pixMap: PixMap; progressProc: CMBitmapCallBackUPP; refCon: UnivPtr): CMError; external name '_CMMMatchPixMap';
+function CMMMatchPixMap(cmm: CMMComponentInst; var pixMap_: PixMap; progressProc: CMBitmapCallBackUPP; refCon: UnivPtr): CMError; external name '_CMMMatchPixMap';
 {
  *  CMMCheckPixMap()
  *  
@@ -257,7 +257,7 @@ function CMMMatchPixMap(cmm: CMMComponentInst; var pixMap: PixMap; progressProc:
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function CMMCheckPixMap(cmm: CMMComponentInst; const (*var*) pixMap: PixMap; progressProc: CMBitmapCallBackUPP; var bitMap: BitMap; refCon: UnivPtr): CMError; external name '_CMMCheckPixMap';
+function CMMCheckPixMap(cmm: CMMComponentInst; const (*var*) pixMap_: PixMap; progressProc: CMBitmapCallBackUPP; var bitMap_: BitMap; refCon: UnivPtr): CMError; external name '_CMMCheckPixMap';
 {
  *  CMMConcatInit()
  *  

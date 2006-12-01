@@ -510,7 +510,7 @@ procedure SetEventMask( value: EventMask ); external name '_SetEventMask';
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function GetNextEvent( eventMask: EventMask; var theEvent: EventRecord ): Boolean; external name '_GetNextEvent';
+function GetNextEvent( eventMask_: EventMask; var theEvent: EventRecord ): Boolean; external name '_GetNextEvent';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -525,7 +525,7 @@ function GetNextEvent( eventMask: EventMask; var theEvent: EventRecord ): Boolea
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function WaitNextEvent( eventMask: EventMask; var theEvent: EventRecord; sleep: UInt32; mouseRgn: RgnHandle { can be NULL } ): Boolean; external name '_WaitNextEvent';
+function WaitNextEvent( eventMask_: EventMask; var theEvent: EventRecord; sleep: UInt32; mouseRgn: RgnHandle { can be NULL } ): Boolean; external name '_WaitNextEvent';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -540,7 +540,7 @@ function WaitNextEvent( eventMask: EventMask; var theEvent: EventRecord; sleep: 
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function EventAvail( eventMask: EventMask; var theEvent: EventRecord ): Boolean; external name '_EventAvail';
+function EventAvail( eventMask_: EventMask; var theEvent: EventRecord ): Boolean; external name '_EventAvail';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 

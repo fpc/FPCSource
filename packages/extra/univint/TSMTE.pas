@@ -292,7 +292,7 @@ procedure SetTSMTEDialogDocumentID( dialog: DialogRef; documentID: TSMDocumentID
  *    CarbonLib:        in CarbonLib 1.0.2 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0.2 and later
  }
-procedure SetTSMTEDialogTSMTERecHandle( dialog: DialogRef; tsmteRecHandle: TSMTERecHandle ); external name '_SetTSMTEDialogTSMTERecHandle';
+procedure SetTSMTEDialogTSMTERecHandle( dialog: DialogRef; tsmteRecHandle_: TSMTERecHandle ); external name '_SetTSMTEDialogTSMTERecHandle';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 

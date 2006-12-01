@@ -141,7 +141,7 @@ const
 	 *    CarbonLib:        in CarbonLib 1.1 and later
 	 *    Mac OS X:         in version 10.0 and later
 	 	}
-function HRNewReference(var hrRef: HRReference; rendererType: OSType; grafPtr: GrafPtr): OSStatus; external name '_HRNewReference';
+function HRNewReference(var hrRef: HRReference; rendererType: OSType; grafPtr_: GrafPtr): OSStatus; external name '_HRNewReference';
 
 {
  *  HRNewReferenceInWindow()
@@ -213,7 +213,7 @@ procedure HRScreenConfigurationChanged; external name '_HRScreenConfigurationCha
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HRIsHREvent(const (*var*) eventRecord: EventRecord): boolean; external name '_HRIsHREvent';
+function HRIsHREvent(const (*var*) eventRecord_: EventRecord): boolean; external name '_HRIsHREvent';
 
 
 { Drawing }
@@ -225,7 +225,7 @@ function HRIsHREvent(const (*var*) eventRecord: EventRecord): boolean; external 
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HRSetGrafPtr(hrRef: HRReference; grafPtr: GrafPtr): OSStatus; external name '_HRSetGrafPtr';
+function HRSetGrafPtr(hrRef: HRReference; grafPtr_: GrafPtr): OSStatus; external name '_HRSetGrafPtr';
 
 {
  *  HRSetWindowRef()
@@ -249,7 +249,7 @@ function HRSetGrafPtr(hrRef: HRReference; grafPtr: GrafPtr): OSStatus; external 
  *    CarbonLib:        in CarbonLib 1.3 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HRSetWindowRef(hrRef: HRReference; windowRef: WindowRef): OSStatus; external name '_HRSetWindowRef';
+function HRSetWindowRef(hrRef: HRReference; windowRef_: WindowRef): OSStatus; external name '_HRSetWindowRef';
 
 {
  *  HRSetEmbeddingControl()
@@ -275,7 +275,7 @@ function HRSetWindowRef(hrRef: HRReference; windowRef: WindowRef): OSStatus; ext
  *    CarbonLib:        in CarbonLib 1.3 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HRSetEmbeddingControl(hrRef: HRReference; controlRef: ControlRef): OSStatus; external name '_HRSetEmbeddingControl';
+function HRSetEmbeddingControl(hrRef: HRReference; controlRef_: ControlRef): OSStatus; external name '_HRSetEmbeddingControl';
 
 {
  *  HRActivate()
@@ -471,7 +471,7 @@ function HRSetGrowboxCutout(hrRef: HRReference; allowCutout: boolean): OSStatus;
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HRGoToFile(hrRef: HRReference; const (*var*) fsspec: FSSpec; addToHistory: boolean; forceRefresh: boolean): OSStatus; external name '_HRGoToFile';
+function HRGoToFile(hrRef: HRReference; const (*var*) fsspec_: FSSpec; addToHistory: boolean; forceRefresh: boolean): OSStatus; external name '_HRGoToFile';
 
 {
  *  HRGoToURL()
@@ -673,7 +673,7 @@ function HRGetTitle(hrRef: HRReference; title: StringPtr): OSStatus; external na
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HRGetHTMLFile(hrRef: HRReference; var fsspec: FSSpec): OSStatus; external name '_HRGetHTMLFile';
+function HRGetHTMLFile(hrRef: HRReference; var fsspec_: FSSpec): OSStatus; external name '_HRGetHTMLFile';
 
 
 {
@@ -831,7 +831,7 @@ function HRUtilGetFSSpecFromURL(rootURL: ConstCStringPtr; linkURL: ConstCStringP
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HRUtilGetURLFromFSSpec(const (*var*) fsspec: FSSpec; urlHandle: Handle): OSStatus; external name '_HRUtilGetURLFromFSSpec';
+function HRUtilGetURLFromFSSpec(const (*var*) fsspec_: FSSpec; urlHandle: Handle): OSStatus; external name '_HRUtilGetURLFromFSSpec';
 
 
 {
@@ -1109,7 +1109,7 @@ const
 
 type
 {$ifc TYPED_FUNCTION_POINTERS}
-	HRURLToFSSpecProcPtr = function(rootURL: ConstCStringPtr; linkURL: ConstCStringPtr; var fsspec: FSSpec; urlSourceType: URLSourceType; refCon: UnivPtr): OSStatus;
+	HRURLToFSSpecProcPtr = function(rootURL: ConstCStringPtr; linkURL: ConstCStringPtr; var fsspec_: FSSpec; urlSourceType_: URLSourceType; refCon: UnivPtr): OSStatus;
 {$elsec}
 	HRURLToFSSpecProcPtr = ProcPtr;
 {$endc}
@@ -1148,7 +1148,7 @@ procedure HRUnregisterURLToFSSpecUPP(hrRef: HRReference); external name '_HRUnre
 
 type
 {$ifc TYPED_FUNCTION_POINTERS}
-	HRURLToFSRefProcPtr = function(rootString: CFStringRef; linkString: CFStringRef; var fref: FSRef; urlSourceType: URLSourceType; refCon: UnivPtr): OSStatus;
+	HRURLToFSRefProcPtr = function(rootString: CFStringRef; linkString: CFStringRef; var fref: FSRef; urlSourceType_: URLSourceType; refCon: UnivPtr): OSStatus;
 {$elsec}
 	HRURLToFSRefProcPtr = ProcPtr;
 {$endc}
@@ -1338,7 +1338,7 @@ function InvokeHRNewCFURLUPP(url: CFURLRef; targetString: CFStringRef; addToHist
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function InvokeHRURLToFSSpecUPP(rootURL: ConstCStringPtr; linkURL: ConstCStringPtr; var fsspec: FSSpec; urlSourceType: URLSourceType; refCon: UnivPtr; userRoutine: HRURLToFSSpecUPP): OSStatus; external name '_InvokeHRURLToFSSpecUPP'; { old name was CallHRURLToFSSpecProc }
+function InvokeHRURLToFSSpecUPP(rootURL: ConstCStringPtr; linkURL: ConstCStringPtr; var fsspec_: FSSpec; urlSourceType_: URLSourceType; refCon: UnivPtr; userRoutine: HRURLToFSSpecUPP): OSStatus; external name '_InvokeHRURLToFSSpecUPP'; { old name was CallHRURLToFSSpecProc }
 {
  *  InvokeHRURLToFSRefUPP()
  *  
@@ -1347,7 +1347,7 @@ function InvokeHRURLToFSSpecUPP(rootURL: ConstCStringPtr; linkURL: ConstCStringP
  *    CarbonLib:        in CarbonLib 1.3 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function InvokeHRURLToFSRefUPP(rootString: CFStringRef; linkString: CFStringRef; var fref: FSRef; urlSourceType: URLSourceType; refCon: UnivPtr; userRoutine: HRURLToFSRefUPP): OSStatus; external name '_InvokeHRURLToFSRefUPP';
+function InvokeHRURLToFSRefUPP(rootString: CFStringRef; linkString: CFStringRef; var fref: FSRef; urlSourceType_: URLSourceType; refCon: UnivPtr; userRoutine: HRURLToFSRefUPP): OSStatus; external name '_InvokeHRURLToFSRefUPP';
 {$ALIGN MAC68K}
 
 

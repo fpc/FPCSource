@@ -2188,7 +2188,7 @@ function GetMovieTimeScale(theMovie: Movie): TimeScale; external name '_GetMovie
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure SetMovieTimeScale(theMovie: Movie; timeScale: TimeScale); external name '_SetMovieTimeScale';
+procedure SetMovieTimeScale(theMovie: Movie; timeScale_: TimeScale); external name '_SetMovieTimeScale';
 {
  *  GetMovieDuration()
  *  
@@ -2800,7 +2800,7 @@ function SetTrackSoundLocalizationSettings(theTrack: Track; settings: Handle): O
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NewTrackMedia(theTrack: Track; mediaType: OSType; timeScale: TimeScale; dataRef: Handle; dataRefType: OSType): Media; external name '_NewTrackMedia';
+function NewTrackMedia(theTrack: Track; mediaType: OSType; timeScale_: TimeScale; dataRef: Handle; dataRefType: OSType): Media; external name '_NewTrackMedia';
 {
  *  DisposeTrackMedia()
  *  
@@ -2873,7 +2873,7 @@ function GetMediaTimeScale(theMedia: Media): TimeScale; external name '_GetMedia
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure SetMediaTimeScale(theMedia: Media; timeScale: TimeScale); external name '_SetMediaTimeScale';
+procedure SetMediaTimeScale(theMedia: Media; timeScale_: TimeScale); external name '_SetMediaTimeScale';
 {
  *  GetMediaDuration()
  *  
@@ -4969,7 +4969,7 @@ procedure DisposeAllSprites(theSpriteWorld: SpriteWorld); external name '_Dispos
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function SetSpriteWorldFlags(spriteWorld: SpriteWorld; flags: SInt32; flagsMask: SInt32): OSErr; external name '_SetSpriteWorldFlags';
+function SetSpriteWorldFlags(spriteWorld_: SpriteWorld; flags: SInt32; flagsMask: SInt32): OSErr; external name '_SetSpriteWorldFlags';
 {
  *  NewSprite()
  *  

@@ -320,7 +320,7 @@ procedure QTMLResetSyncVar(sync: QTMLSyncVarPtr); external name '_QTMLResetSyncV
  *    Mac OS X:         not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure InitializeQHdr(var qhdr: QHdr); external name '_InitializeQHdr';
+procedure InitializeQHdr(var qhdr_: QHdr); external name '_InitializeQHdr';
 
 {
  *  TerminateQHdr()
@@ -331,7 +331,7 @@ procedure InitializeQHdr(var qhdr: QHdr); external name '_InitializeQHdr';
  *    Mac OS X:         not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure TerminateQHdr(var qhdr: QHdr); external name '_TerminateQHdr';
+procedure TerminateQHdr(var qhdr_: QHdr); external name '_TerminateQHdr';
 
 
 {

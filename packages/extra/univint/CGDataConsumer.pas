@@ -3,6 +3,7 @@
  * All rights reserved.
  }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
 {
     Modified for use with Free Pascal
     Version 200
@@ -103,7 +104,7 @@ type
  * data consumer. }
 
 type
-	CGDataConsumerPutBytesCallback = function( info: UnivPtr; const (*var*) buffer: UnivPtr; count: size_t ): size_t;
+	CGDataConsumerPutBytesCallback = function( info: UnivPtr; buffer: {const} UnivPtr; count: size_t ): size_t;
 
 { This callback is called to release the `info' pointer when the data
  * provider is freed. }

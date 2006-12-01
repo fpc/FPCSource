@@ -320,6 +320,12 @@ const
 	kAEYes						= $79657320 (* 'yes ' *);						{   0x79657320   }
 	kAEZoom						= $7A6F6F6D (* 'zoom' *);						{   0x7a6f6f6d   }
 
+    { events that can be sent to the "system" process (eg, loginwindow) on OS X 10.2 or later }
+	kAELogOut                   = $6C6F676F (* 'logo' *);
+	kAEReallyLogOut             = $726C676F (* 'rlgo' *);
+	kAEShowRestartDialog        = $72727374 (* 'rrst' *);
+	kAEShowShutdownDialog       = $7273646E (* 'rsdn' *);
+
 	{	 EventRecord Classes and EventIDs 	}
 	kAEMouseClass				= $6D6F7573 (* 'mous' *);
 	kAEDown						= $646F776E (* 'down' *);
@@ -562,6 +568,7 @@ const
 	typeIntlText				= $69747874 (* 'itxt' *);						{   0x69747874   }
 	typeIntlWritingCode			= $696E746C (* 'intl' *);						{   0x696e746c   }
 	typeLongDateTime			= $6C647420 (* 'ldt ' *);						{   0x6c647420   }
+	typeISO8601DateTime         = $69736F74 (* 'isot' *);                       {   0x69736f74  data is ascii text of an ISO8601 date }
 	typeLongFixed				= $6C667864 (* 'lfxd' *);						{   0x6c667864   }
 	typeLongFixedPoint			= $6C667074 (* 'lfpt' *);						{   0x6c667074   }
 	typeLongFixedRectangle		= $6C667263 (* 'lfrc' *);						{   0x6c667263   }
@@ -594,6 +601,8 @@ const
 	typeTextStyles				= $74737479 (* 'tsty' *);						{   0x74737479   }
 
 	typeTIFF					= $54494646 (* 'TIFF' *);						{   0x54494646   }
+	typeJPEG                    = $4A504547 (* 'JPEG' *);
+	typeGIF                     = $47494666 (* 'GIFf' *);
 	typeVersion					= $76657273 (* 'vers' *);						{   0x76657273   }
 
 	kAEMenuClass				= $6D656E75 (* 'menu' *);
@@ -713,14 +722,30 @@ type
 	{	 Hilite styles 	}
 
 const
-	kCaretPosition				= 1;							{  specify caret position  }
-	kRawText					= 2;							{  specify range of raw text  }
-	kSelectedRawText			= 3;							{  specify range of selected raw text  }
-	kConvertedText				= 4;							{  specify range of converted text  }
-	kSelectedConvertedText		= 5;							{  specify range of selected converted text  }
-	kBlockFillText				= 6;							{  Block Fill hilite style  }
-	kOutlineText				= 7;							{  Outline hilite style  }
-	kSelectedText				= 8;							{  Selected hilite style  }
+	kTSMHiliteCaretPosition     = 1;    { specify caret position }
+	kTSMHiliteRawText           = 2;    { specify range of raw text }
+	kTSMHiliteSelectedRawText   = 3;    { specify range of selected raw text }
+	kTSMHiliteConvertedText     = 4;    { specify range of converted text }
+	kTSMHiliteSelectedConvertedText = 5;  { specify range of selected converted text }
+	kTSMHiliteBlockFillText     = 6;    { Block Fill hilite style }
+	kTSMHiliteOutlineText       = 7;    { Outline hilite style }
+	kTSMHiliteSelectedText      = 8;    { Selected hilite style }
+	kTSMHiliteNoHilite          = 9;     { specify range of non-hilited text }
+
+{$ifc OLDROUTINENAMES}
+{ Hilite styles }
+const
+	kCaretPosition             = kTSMHiliteCaretPosition;
+	kRawText                   = kTSMHiliteRawText;
+	kSelectedRawText           = kTSMHiliteSelectedRawText;
+	kConvertedText             = kTSMHiliteConvertedText;
+	kSelectedConvertedText     = kTSMHiliteSelectedConvertedText;
+	kBlockFillText             = kTSMHiliteBlockFillText;
+	kOutlineText               = kTSMHiliteOutlineText;
+	kSelectedText              = kTSMHiliteSelectedText;
+
+{$endc}  {OLDROUTINENAMES}
+
 
 	keyAEHiliteRange			= $68726E67 (* 'hrng' *);						{  typeTextRangeArray for System 7, typeHiliteRangeArray for System 8  }
 	keyAEPinRange				= $706E7267 (* 'pnrg' *);						{  typeTextRange for System 7, typeTextRegionRange for System 8    }
@@ -738,11 +763,16 @@ const
 {$endc}  {OLDROUTINENAMES}
 
 																{  AppleScript 1.3: New Text types  }
-	typeUnicodeText				= $75747874 (* 'utxt' *);
-	typeStyledUnicodeText		= $73757478 (* 'sutx' *);
-	typeEncodedString			= $656E6373 (* 'encs' *);
-	typeCString					= $63737472 (* 'cstr' *);
-	typePString					= $70737472 (* 'pstr' *);
+{
+ * The following descriptor types are deprecated due to their lack of
+ * explicit encoding or byte order definition.  Please use
+ * typeUTF16ExternalRepresentation or typeUTF8Text instead. }
+
+	typeUnicodeText				= $75747874 (* 'utxt' *); { native byte ordering, optional BOM 
+	typeStyledUnicodeText		= $73757478 (* 'sutx' *); { Not implemented }
+	typeEncodedString			= $656E6373 (* 'encs' *); { Not implemented }
+	typeCString					= $63737472 (* 'cstr' *); { MacRoman characters followed by a NULL byte }
+	typePString					= $70737472 (* 'pstr' *); { Unsigned length byte followed by MacRoman characters }
 
 																{  AppleScript 1.3: Unit types  }
 	typeMeters					= $6D657472 (* 'metr' *);						{  Base Unit  }
@@ -998,6 +1028,8 @@ const
 	eF13Key						= $6B736900;
 	eF14Key						= $6B736B00;
 	eF15Key						= $6B737100;
+
+	keyAEQuitWithoutUI          = $6E6F7569 (* 'noui' *); { If present in a kAEQuitApplication event, autosave any documents with uncommitted changes and quit }
 
 {$ALIGN MAC68K}
 

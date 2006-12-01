@@ -448,7 +448,7 @@ type
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ThreadsLib 1.0 and later
  }
-function NewThread( threadStyle: ThreadStyle; threadEntry: ThreadEntryTPP; threadParam: UnivPtr; stackSize: Size; options: ThreadOptions; threadResult: UnivPtrPtr { can be NULL }; var threadMade: ThreadID ): OSErr; external name '_NewThread';
+function NewThread( threadStyle_: ThreadStyle; threadEntry: ThreadEntryTPP; threadParam: UnivPtr; stackSize: Size; options: ThreadOptions; threadResult: UnivPtrPtr { can be NULL }; var threadMade: ThreadID ): OSErr; external name '_NewThread';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -508,7 +508,7 @@ function SetDebuggerNotificationProcs( notifyNewThread: DebuggerNewThreadTPP; no
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ThreadsLib 1.0 and later
  }
-function CreateThreadPool( threadStyle: ThreadStyle; numToCreate: SInt16; stackSize: Size ): OSErr; external name '_CreateThreadPool';
+function CreateThreadPool( threadStyle_: ThreadStyle; numToCreate: SInt16; stackSize: Size ): OSErr; external name '_CreateThreadPool';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -520,7 +520,7 @@ function CreateThreadPool( threadStyle: ThreadStyle; numToCreate: SInt16; stackS
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ThreadsLib 1.0 and later
  }
-function GetFreeThreadCount( threadStyle: ThreadStyle; var freeCount: SInt16 ): OSErr; external name '_GetFreeThreadCount';
+function GetFreeThreadCount( threadStyle_: ThreadStyle; var freeCount: SInt16 ): OSErr; external name '_GetFreeThreadCount';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
 
 
@@ -532,7 +532,7 @@ function GetFreeThreadCount( threadStyle: ThreadStyle; var freeCount: SInt16 ): 
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ThreadsLib 1.0 and later
  }
-function GetSpecificFreeThreadCount( threadStyle: ThreadStyle; stackSize: Size; var freeCount: SInt16 ): OSErr; external name '_GetSpecificFreeThreadCount';
+function GetSpecificFreeThreadCount( threadStyle_: ThreadStyle; stackSize: Size; var freeCount: SInt16 ): OSErr; external name '_GetSpecificFreeThreadCount';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
 
 
@@ -544,7 +544,7 @@ function GetSpecificFreeThreadCount( threadStyle: ThreadStyle; stackSize: Size; 
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ThreadsLib 1.0 and later
  }
-function GetDefaultThreadStackSize( threadStyle: ThreadStyle; var stackSize: Size ): OSErr; external name '_GetDefaultThreadStackSize';
+function GetDefaultThreadStackSize( threadStyle_: ThreadStyle; var stackSize: Size ): OSErr; external name '_GetDefaultThreadStackSize';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -618,7 +618,7 @@ function MacGetCurrentThread( var currentThreadID: ThreadID ): OSErr; external n
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ThreadsLib 1.0 and later
  }
-function GetThreadState( threadToGet: ThreadID; var threadState: ThreadState ): OSErr; external name '_GetThreadState';
+function GetThreadState( threadToGet: ThreadID; var threadState_: ThreadState ): OSErr; external name '_GetThreadState';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -690,7 +690,7 @@ function GetThreadCurrentTaskRef( var threadTRef: ThreadTaskRef ): OSErr; extern
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ThreadsLib 1.0 and later
  }
-function GetThreadStateGivenTaskRef( threadTRef: ThreadTaskRef; threadToGet: ThreadID; var threadState: ThreadState ): OSErr; external name '_GetThreadStateGivenTaskRef';
+function GetThreadStateGivenTaskRef( threadTRef: ThreadTaskRef; threadToGet: ThreadID; var threadState_: ThreadState ): OSErr; external name '_GetThreadStateGivenTaskRef';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 

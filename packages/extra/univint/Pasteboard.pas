@@ -194,9 +194,9 @@ uses MacTypes,CFBase,CFArray,CFData,CFURL;
  *    services to act on multiple items. Another difference from both
  *    the Scrap and Drag Managers is the use of Uniform Type Identifier
  *    based flavor types rather than four character code OSTypes. These
- *    have several advantages. They allow compatiblity with Cocoa's
+ *    have several advantages. They allow compatibility with Cocoa's
  *    NSPasteboard, more accurately describe the data being
- *    transported, provied a type inheritance mechanism and allow
+ *    transported, provide a type inheritance mechanism and allow
  *    namespacing with a reverse DNS scheme.
  }
  
@@ -234,7 +234,7 @@ const
    * reference. The call to PasteboardSynchronize() has updated the
    * local pasteboard reference to sync it up with the global resource.
    * This is a good time to see what new information has been placed on
-   * the pasteboard to determine wether any tasty flavors have been
+   * the pasteboard to determine whether any tasty flavors have been
    * added and possibly enable pasting.
    }
     kPasteboardModified           = $00000001; {(1 << 0)}
@@ -470,6 +470,38 @@ function PasteboardClear(inPasteboard: PasteboardRef): OSStatus; external name '
 
 
 {
+ *  PasteboardCopyName()
+ *  
+ *  Summary:
+ *    Copies the name of the given pasteboard. Useful for discovering
+ *    the name of a uniquely named pasteboard so other processes may
+ *    access it.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inPasteboard:
+ *      A local pasteboard reference.
+ *    
+ *    outName:
+ *      On return, a CFString reference to the pasteboard's name. This
+ *      string must be released by the client.
+ *  
+ *  Result:
+ *    An operating system result code.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
+ *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
+ *    Non-Carbon CFM:   not available
+ }
+function PasteboardCopyName( inPasteboard: PasteboardRef; var outName: CFStringRef ): OSStatus; external name '_PasteboardCopyName';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+
+{
  *  PasteboardGetItemCount()
  *  
  *  Summary:
@@ -517,7 +549,7 @@ function PasteboardGetItemCount(
  *      A local pasteboard reference.
  *    
  *    inIndex:
- *      A UInt32 index requesting the nth pasteboard item reference.
+ *      A 1-based UInt32 index requesting the nth pasteboard item reference.
  *    
  *    outItem:
  *      A PasteboardItemID which receives the nth pasteboard item

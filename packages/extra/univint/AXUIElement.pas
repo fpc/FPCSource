@@ -5,7 +5,7 @@
  *
  }
 {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
 
 {
     Modified for use with Free Pascal
@@ -99,9 +99,20 @@ uses MacTypes,CFBase,CFArray,AXErrors,CFRunLoop,CGRemoteOperation,MacOSXPosix;
 {$ALIGN MAC68K}
 
 function AXAPIEnabled: Boolean; external name '_AXAPIEnabled';
+function AXIsProcessTrusted: Boolean; external name '_AXIsProcessTrusted';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+// must be called with root privs
+function AXMakeProcessTrusted( executablePath: CFStringRef ): AXError; external name '_AXMakeProcessTrusted';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 type
 	AXUIElementRef    = ^SInt32; { an opaque 32-bit type }
+
+const
+	kAXCopyMultipleAttributeOptionStopOnError = $1;
+type
+	AXCopyMultipleAttributeOptions = UInt32;
+
 
 function AXUIElementGetTypeID: CFTypeID; external name '_AXUIElementGetTypeID';
 
@@ -111,9 +122,13 @@ function AXUIElementGetAttributeValueCount( element: AXUIElementRef; attribute: 
 function AXUIElementCopyAttributeValues( element: AXUIElementRef; attribute: CFStringRef; index: CFIndex; maxValues: CFIndex; var values: CFArrayRef ): AXError; external name '_AXUIElementCopyAttributeValues';
 function AXUIElementIsAttributeSettable( element: AXUIElementRef; attribute: CFStringRef; var settable: Boolean ): AXError; external name '_AXUIElementIsAttributeSettable';
 function AXUIElementSetAttributeValue( element: AXUIElementRef; attribute: CFStringRef; value: CFTypeRef ): AXError; external name '_AXUIElementSetAttributeValue';
+function AXUIElementCopyMultipleAttributeValues( element: AXUIElementRef; attributes: CFArrayRef; options: AXCopyMultipleAttributeOptions; var values: CFArrayRef ): AXError; external name '_AXUIElementCopyMultipleAttributeValues';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 function AXUIElementCopyParameterizedAttributeNames( element: AXUIElementRef; var names: CFArrayRef ): AXError; external name '_AXUIElementCopyParameterizedAttributeNames';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 function AXUIElementCopyParameterizedAttributeValue( element: AXUIElementRef; parameterizedAttribute: CFStringRef; parameter: CFTypeRef; var result: CFTypeRef ): AXError; external name '_AXUIElementCopyParameterizedAttributeValue';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 function AXUIElementCopyActionNames( element: AXUIElementRef; var names: CFArrayRef ): AXError; external name '_AXUIElementCopyActionNames';
 function AXUIElementCopyActionDescription( element: AXUIElementRef; action: CFStringRef; var description: CFStringRef ): AXError; external name '_AXUIElementCopyActionDescription';
@@ -126,6 +141,13 @@ function AXUIElementCreateSystemWide: AXUIElementRef; external name '_AXUIElemen
 
 function AXUIElementGetPid( element: AXUIElementRef; var pid: pid_t ): AXError; external name '_AXUIElementGetPid';
 
+// pass the SystemWide element (AXUIElementCreateSystemWide) if you want to set the timeout globally for this process
+// setting the timeout on another AXUIElementRef sets it only for that ref, not for other AXUIElementRef(s) that are
+// equal to it.
+// setting timeout to 0 makes this element use the global timeout
+function AXUIElementSetMessagingTimeout( element: AXUIElementRef; timeoutInSeconds: Float32 ): AXError; external name '_AXUIElementSetMessagingTimeout';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
 // see CGRemoteOperation.h for documentation of parameters
 // you can only pass the root or application uielement
 function AXUIElementPostKeyboardEvent( application: AXUIElementRef; keyChar: CGCharCode; virtualKey: CGKeyCode; keyDown: Boolean ): AXError; external name '_AXUIElementPostKeyboardEvent';
@@ -135,7 +157,8 @@ function AXUIElementPostKeyboardEvent( application: AXUIElementRef; keyChar: CGC
 type
 	AXObserverRef    = ^SInt32; { an opaque 32-bit type }
 
-type AXObserverCallback = procedure( observer: AXObserverRef; element: AXUIElementRef; notification: CFStringRef; refcon: UnivPtr );
+type
+    AXObserverCallback = procedure( observer: AXObserverRef; element: AXUIElementRef; notification: CFStringRef; refcon: UnivPtr );
 
 function AXObserverGetTypeID: CFTypeID; external name '_AXObserverGetTypeID';
 

@@ -248,7 +248,7 @@ procedure LongMul(a: SInt32; b: SInt32; var result: Int64Bit); external name '_L
  *    CarbonLib:        in CarbonLib H.a.c.k and later
  *    Mac OS X:         not available
  }
-function HiWord(x: SInt32): SInt16; external name '_HiWord';
+
 {
  *  LoWord()
  *  
@@ -257,8 +257,43 @@ function HiWord(x: SInt32): SInt16; external name '_HiWord';
  *    CarbonLib:        in CarbonLib H.a.c.k and later
  *    Mac OS X:         not available
  }
-function LoWord(x: SInt32): SInt16; external name '_LoWord';
+
+function HiWord(arg: SInt32): SInt16; inline; overload;
+function HiWord(arg: UInt32): UInt16; inline; overload;
+function LoWord(arg: SInt32): SInt16; inline; overload;
+function LoWord(arg: UInt32): UInt16; inline; overload;
+
+
+
 {$ALIGN MAC68K}
 
+
+
+implementation
+
+
+function HiWord(arg: SInt32): SInt16; inline;
+begin
+  HiWord := arg shr 16;
+end;
+
+
+function HiWord(arg: UInt32): UInt16; inline;
+begin
+  HiWord := arg shr 16;
+end;
+
+
+function LoWord(arg: SInt32): SInt16; inline;
+begin
+  LoWord := SInt16(arg);
+end;
+
+
+function LoWord(arg: UInt32): UInt16; inline;
+begin
+  LoWord := UInt16(arg);
+end;
+  
 
 end.

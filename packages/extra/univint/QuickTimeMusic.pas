@@ -1416,7 +1416,7 @@ function NASaveMusicConfiguration(na: NoteAllocator): ComponentResult; external 
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NANewNoteChannel(na: NoteAllocator; var noteRequest: NoteRequest; var outChannel: NoteChannel): ComponentResult; external name '_NANewNoteChannel';
+function NANewNoteChannel(na: NoteAllocator; var noteRequest_: NoteRequest; var outChannel: NoteChannel): ComponentResult; external name '_NANewNoteChannel';
 {
  *  NADisposeNoteChannel()
  *  
@@ -1426,7 +1426,7 @@ function NANewNoteChannel(na: NoteAllocator; var noteRequest: NoteRequest; var o
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NADisposeNoteChannel(na: NoteAllocator; noteChannel: NoteChannel): ComponentResult; external name '_NADisposeNoteChannel';
+function NADisposeNoteChannel(na: NoteAllocator; noteChannel_: NoteChannel): ComponentResult; external name '_NADisposeNoteChannel';
 {
  *  NAGetNoteChannelInfo()
  *  
@@ -1436,7 +1436,7 @@ function NADisposeNoteChannel(na: NoteAllocator; noteChannel: NoteChannel): Comp
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NAGetNoteChannelInfo(na: NoteAllocator; noteChannel: NoteChannel; var index: SInt32; var part: SInt32): ComponentResult; external name '_NAGetNoteChannelInfo';
+function NAGetNoteChannelInfo(na: NoteAllocator; noteChannel_: NoteChannel; var index: SInt32; var part: SInt32): ComponentResult; external name '_NAGetNoteChannelInfo';
 {
  *  NAPrerollNoteChannel()
  *  
@@ -1446,7 +1446,7 @@ function NAGetNoteChannelInfo(na: NoteAllocator; noteChannel: NoteChannel; var i
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NAPrerollNoteChannel(na: NoteAllocator; noteChannel: NoteChannel): ComponentResult; external name '_NAPrerollNoteChannel';
+function NAPrerollNoteChannel(na: NoteAllocator; noteChannel_: NoteChannel): ComponentResult; external name '_NAPrerollNoteChannel';
 {
  *  NAUnrollNoteChannel()
  *  
@@ -1456,7 +1456,7 @@ function NAPrerollNoteChannel(na: NoteAllocator; noteChannel: NoteChannel): Comp
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NAUnrollNoteChannel(na: NoteAllocator; noteChannel: NoteChannel): ComponentResult; external name '_NAUnrollNoteChannel';
+function NAUnrollNoteChannel(na: NoteAllocator; noteChannel_: NoteChannel): ComponentResult; external name '_NAUnrollNoteChannel';
 {
  *  NASetNoteChannelVolume()
  *  
@@ -1466,7 +1466,7 @@ function NAUnrollNoteChannel(na: NoteAllocator; noteChannel: NoteChannel): Compo
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NASetNoteChannelVolume(na: NoteAllocator; noteChannel: NoteChannel; volume: Fixed): ComponentResult; external name '_NASetNoteChannelVolume';
+function NASetNoteChannelVolume(na: NoteAllocator; noteChannel_: NoteChannel; volume: Fixed): ComponentResult; external name '_NASetNoteChannelVolume';
 {
  *  NAResetNoteChannel()
  *  
@@ -1476,7 +1476,7 @@ function NASetNoteChannelVolume(na: NoteAllocator; noteChannel: NoteChannel; vol
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NAResetNoteChannel(na: NoteAllocator; noteChannel: NoteChannel): ComponentResult; external name '_NAResetNoteChannel';
+function NAResetNoteChannel(na: NoteAllocator; noteChannel_: NoteChannel): ComponentResult; external name '_NAResetNoteChannel';
 {
  *  NAPlayNote()
  *  
@@ -1486,7 +1486,7 @@ function NAResetNoteChannel(na: NoteAllocator; noteChannel: NoteChannel): Compon
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NAPlayNote(na: NoteAllocator; noteChannel: NoteChannel; pitch: SInt32; velocity: SInt32): ComponentResult; external name '_NAPlayNote';
+function NAPlayNote(na: NoteAllocator; noteChannel_: NoteChannel; pitch: SInt32; velocity: SInt32): ComponentResult; external name '_NAPlayNote';
 {
  *  NASetController()
  *  
@@ -1496,7 +1496,7 @@ function NAPlayNote(na: NoteAllocator; noteChannel: NoteChannel; pitch: SInt32; 
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NASetController(na: NoteAllocator; noteChannel: NoteChannel; controllerNumber: SInt32; controllerValue: SInt32): ComponentResult; external name '_NASetController';
+function NASetController(na: NoteAllocator; noteChannel_: NoteChannel; controllerNumber: SInt32; controllerValue: SInt32): ComponentResult; external name '_NASetController';
 {
  *  NASetKnob()
  *  
@@ -1506,7 +1506,7 @@ function NASetController(na: NoteAllocator; noteChannel: NoteChannel; controller
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NASetKnob(na: NoteAllocator; noteChannel: NoteChannel; knobNumber: SInt32; knobValue: SInt32): ComponentResult; external name '_NASetKnob';
+function NASetKnob(na: NoteAllocator; noteChannel_: NoteChannel; knobNumber: SInt32; knobValue: SInt32): ComponentResult; external name '_NASetKnob';
 {
  *  NAFindNoteChannelTone()
  *  
@@ -1516,7 +1516,7 @@ function NASetKnob(na: NoteAllocator; noteChannel: NoteChannel; knobNumber: SInt
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NAFindNoteChannelTone(na: NoteAllocator; noteChannel: NoteChannel; var td: ToneDescription; var instrumentNumber: SInt32): ComponentResult; external name '_NAFindNoteChannelTone';
+function NAFindNoteChannelTone(na: NoteAllocator; noteChannel_: NoteChannel; var td: ToneDescription; var instrumentNumber: SInt32): ComponentResult; external name '_NAFindNoteChannelTone';
 {
  *  NASetInstrumentNumber()
  *  
@@ -1526,7 +1526,7 @@ function NAFindNoteChannelTone(na: NoteAllocator; noteChannel: NoteChannel; var 
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NASetInstrumentNumber(na: NoteAllocator; noteChannel: NoteChannel; instrumentNumber: SInt32): ComponentResult; external name '_NASetInstrumentNumber';
+function NASetInstrumentNumber(na: NoteAllocator; noteChannel_: NoteChannel; instrumentNumber: SInt32): ComponentResult; external name '_NASetInstrumentNumber';
 {
  *  NAPickInstrument()
  *  
@@ -1601,7 +1601,7 @@ function NAGetMIDIPorts(na: NoteAllocator; var inputPorts: QTMIDIPortListHandle;
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NAGetNoteRequest(na: NoteAllocator; noteChannel: NoteChannel; var nrOut: NoteRequest): ComponentResult; external name '_NAGetNoteRequest';
+function NAGetNoteRequest(na: NoteAllocator; noteChannel_: NoteChannel; var nrOut: NoteRequest): ComponentResult; external name '_NAGetNoteRequest';
 {
  *  NASendMIDI()
  *  
@@ -1611,7 +1611,7 @@ function NAGetNoteRequest(na: NoteAllocator; noteChannel: NoteChannel; var nrOut
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NASendMIDI(na: NoteAllocator; noteChannel: NoteChannel; var mp: MusicMIDIPacket): ComponentResult; external name '_NASendMIDI';
+function NASendMIDI(na: NoteAllocator; noteChannel_: NoteChannel; var mp: MusicMIDIPacket): ComponentResult; external name '_NASendMIDI';
 {
  *  NAPickEditInstrument()
  *  
@@ -1641,7 +1641,7 @@ function NANewNoteChannelFromAtomicInstrument(na: NoteAllocator; instrument: Ato
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NASetAtomicInstrument(na: NoteAllocator; noteChannel: NoteChannel; instrument: AtomicInstrumentPtr; flags: SInt32): ComponentResult; external name '_NASetAtomicInstrument';
+function NASetAtomicInstrument(na: NoteAllocator; noteChannel_: NoteChannel; instrument: AtomicInstrumentPtr; flags: SInt32): ComponentResult; external name '_NASetAtomicInstrument';
 {
  *  NAGetKnob()
  *  
@@ -1651,7 +1651,7 @@ function NASetAtomicInstrument(na: NoteAllocator; noteChannel: NoteChannel; inst
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NAGetKnob(na: NoteAllocator; noteChannel: NoteChannel; knobNumber: SInt32; var knobValue: SInt32): ComponentResult; external name '_NAGetKnob';
+function NAGetKnob(na: NoteAllocator; noteChannel_: NoteChannel; knobNumber: SInt32; var knobValue: SInt32): ComponentResult; external name '_NAGetKnob';
 {
  *  NATask()
  *  
@@ -1671,7 +1671,7 @@ function NATask(na: NoteAllocator): ComponentResult; external name '_NATask';
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NASetNoteChannelBalance(na: NoteAllocator; noteChannel: NoteChannel; balance: SInt32): ComponentResult; external name '_NASetNoteChannelBalance';
+function NASetNoteChannelBalance(na: NoteAllocator; noteChannel_: NoteChannel; balance: SInt32): ComponentResult; external name '_NASetNoteChannelBalance';
 {
  *  NASetInstrumentNumberInterruptSafe()
  *  
@@ -1681,7 +1681,7 @@ function NASetNoteChannelBalance(na: NoteAllocator; noteChannel: NoteChannel; ba
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NASetInstrumentNumberInterruptSafe(na: NoteAllocator; noteChannel: NoteChannel; instrumentNumber: SInt32): ComponentResult; external name '_NASetInstrumentNumberInterruptSafe';
+function NASetInstrumentNumberInterruptSafe(na: NoteAllocator; noteChannel_: NoteChannel; instrumentNumber: SInt32): ComponentResult; external name '_NASetInstrumentNumberInterruptSafe';
 {
  *  NASetNoteChannelSoundLocalization()
  *  
@@ -1691,7 +1691,7 @@ function NASetInstrumentNumberInterruptSafe(na: NoteAllocator; noteChannel: Note
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NASetNoteChannelSoundLocalization(na: NoteAllocator; noteChannel: NoteChannel; data: Handle): ComponentResult; external name '_NASetNoteChannelSoundLocalization';
+function NASetNoteChannelSoundLocalization(na: NoteAllocator; noteChannel_: NoteChannel; data: Handle): ComponentResult; external name '_NASetNoteChannelSoundLocalization';
 {
  *  NAGetController()
  *  
@@ -1701,7 +1701,7 @@ function NASetNoteChannelSoundLocalization(na: NoteAllocator; noteChannel: NoteC
  *    Mac OS X:         in version 10.0 and later
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NAGetController(na: NoteAllocator; noteChannel: NoteChannel; controllerNumber: SInt32; var controllerValue: SInt32): ComponentResult; external name '_NAGetController';
+function NAGetController(na: NoteAllocator; noteChannel_: NoteChannel; controllerNumber: SInt32; var controllerValue: SInt32): ComponentResult; external name '_NAGetController';
 const
 	kTuneQueueDepth				= 8;							{  Deepest you can queue tune segments  }
 

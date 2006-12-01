@@ -3,6 +3,8 @@
  * All rights reserved.
  }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
+
 {
     Modified for use with Free Pascal
     Version 200
@@ -183,7 +185,7 @@ function CGColorSpaceCreateLab(const (*var*) whitePoint: TristimulusValue; const
  * DeviceCMYK, depending on whether `nComponents' is 1, 3, or 4,
  * respectively. }
 
-function CGColorSpaceCreateICCBased( nComponents: size_t; const (*var*) range: Float32; profile: CGDataProviderRef; alternate: CGColorSpaceRef ): CGColorSpaceRef; external name '_CGColorSpaceCreateICCBased';
+function CGColorSpaceCreateICCBased( nComponents: size_t; {const} range: {variable-size-array} Float32Ptr; profile: CGDataProviderRef; alternate: CGColorSpaceRef ): CGColorSpaceRef; external name '_CGColorSpaceCreateICCBased';
 
 {* Special colorspaces. *}
 

@@ -6,7 +6,7 @@
  *
  }
 {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
 
 {
     Modified for use with Free Pascal
@@ -107,6 +107,9 @@ const
 
     { Types from CFBase.h }
     kAXValueCFRangeType = 4;
+
+    { Types from AXError.h }
+    kAXValueAXErrorType = 5;
 
     { Other }
     kAXValueIllegalType = 0;

@@ -273,13 +273,13 @@ type
 {$endc}
 
 {$ifc TYPED_FUNCTION_POINTERS}
-	TECPluginGetTextEncodingInternetNamePtr = function(textEncoding: TextEncoding; var encodingName: Str255): OSStatus;
+	TECPluginGetTextEncodingInternetNamePtr = function(textEncoding_: TextEncoding; var encodingName: Str255): OSStatus;
 {$elsec}
 	TECPluginGetTextEncodingInternetNamePtr = ProcPtr;
 {$endc}
 
 {$ifc TYPED_FUNCTION_POINTERS}
-	TECPluginGetTextEncodingFromInternetNamePtr = function(var textEncoding: TextEncoding; encodingName: Str255): OSStatus;
+	TECPluginGetTextEncodingFromInternetNamePtr = function(var textEncoding_: TextEncoding; encodingName: Str255): OSStatus;
 {$elsec}
 	TECPluginGetTextEncodingFromInternetNamePtr = ProcPtr;
 {$endc}

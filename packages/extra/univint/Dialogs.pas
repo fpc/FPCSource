@@ -1330,7 +1330,7 @@ function GetStandardAlertDefaultParams( param: AlertStdCFStringAlertParamPtr; ve
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
-function CreateStandardAlert( alertType: AlertType; error: CFStringRef; explanation: CFStringRef { can be NULL }; {const} param: AlertStdCFStringAlertParamPtr { can be NULL }; var outAlert: DialogRef ): OSStatus; external name '_CreateStandardAlert';
+function CreateStandardAlert( alertType_: AlertType; error: CFStringRef; explanation: CFStringRef { can be NULL }; {const} param: AlertStdCFStringAlertParamPtr { can be NULL }; var outAlert: DialogRef ): OSStatus; external name '_CreateStandardAlert';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -1462,7 +1462,7 @@ function RunStandardAlert( inAlert: DialogRef; filterProc: ModalFilterUPP { can 
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
-function CreateStandardSheet( alertType: AlertType; error: CFStringRef; explanation: CFStringRef { can be NULL }; {const} param: AlertStdCFStringAlertParamPtr { can be NULL }; notifyTarget: EventTargetRef { can be NULL }; var outSheet: DialogRef ): OSStatus; external name '_CreateStandardSheet';
+function CreateStandardSheet( alertType_: AlertType; error: CFStringRef; explanation: CFStringRef { can be NULL }; {const} param: AlertStdCFStringAlertParamPtr { can be NULL }; notifyTarget: EventTargetRef { can be NULL }; var outSheet: DialogRef ): OSStatus; external name '_CreateStandardSheet';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 

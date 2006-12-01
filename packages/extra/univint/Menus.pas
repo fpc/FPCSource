@@ -1521,7 +1521,7 @@ type
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function NewMenu( menuID: MenuID; const (*var*) menuTitle: Str255 ): MenuRef; external name '_NewMenu';
+function NewMenu( menuID_: MenuID; const (*var*) menuTitle: Str255 ): MenuRef; external name '_NewMenu';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -2935,7 +2935,7 @@ function IsMenuBarInvalid( rootMenu: MenuRef ): Boolean; external name '_IsMenuB
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure HiliteMenu( menuID: MenuID ); external name '_HiliteMenu';
+procedure HiliteMenu( menuID_: MenuID ); external name '_HiliteMenu';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -3059,9 +3059,9 @@ function DisposeMenuBar( inMbar: MenuBarHandle ): OSStatus; external name '_Disp
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function GetMenuHandle( menuID: MenuID ): MenuRef; external name '_GetMenuHandle';
+function GetMenuHandle( menuID_: MenuID ): MenuRef; external name '_GetMenuHandle';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-function GetMenuRef( menuID: MenuID ): MenuRef; external name '_GetMenuHandle';
+function GetMenuRef( menuID_: MenuID ): MenuRef; external name '_GetMenuHandle';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -3093,9 +3093,9 @@ procedure MacInsertMenu( theMenu: MenuRef; beforeID: MenuID ); external name '_I
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure DeleteMenu( menuID: MenuID ); external name '_DeleteMenu';
+procedure DeleteMenu( menuID_: MenuID ); external name '_DeleteMenu';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-procedure MacDeleteMenu( menuID: MenuID ); external name '_DeleteMenu';
+procedure MacDeleteMenu( menuID_: MenuID ); external name '_DeleteMenu';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -3153,7 +3153,7 @@ procedure SetMenuFlashCount( count: SInt16 ); external name '_SetMenuFlashCount'
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure FlashMenuBar( menuID: MenuID ); external name '_FlashMenuBar';
+procedure FlashMenuBar( menuID_: MenuID ); external name '_FlashMenuBar';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -4208,7 +4208,7 @@ function SetMenuItemCommandKey( inMenu: MenuRef; inItem: MenuItemIndex; inSetVir
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure DeleteMCEntries( menuID: MenuID; menuItem: SInt16 ); external name '_DeleteMCEntries';
+procedure DeleteMCEntries( menuID_: MenuID; menuItem: SInt16 ); external name '_DeleteMCEntries';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -4268,7 +4268,7 @@ procedure DisposeMCInfo( menuCTbl: MCTableHandle ); external name '_DisposeMCInf
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function GetMCEntry( menuID: MenuID; menuItem: SInt16 ): MCEntryPtr; external name '_GetMCEntry';
+function GetMCEntry( menuID_: MenuID; menuItem: SInt16 ): MCEntryPtr; external name '_GetMCEntry';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -6083,7 +6083,7 @@ function GetMenuDefinition( menu: MenuRef; outDefSpec: MenuDefSpecPtr ): OSStatu
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-procedure SetMenuID( menu: MenuRef; menuID: MenuID ); external name '_SetMenuID';
+procedure SetMenuID( menu: MenuRef; menuID_: MenuID ); external name '_SetMenuID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 

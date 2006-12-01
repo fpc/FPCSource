@@ -117,7 +117,7 @@ type
 type
 	CGDisplayCoord = SInt32;
 type
-	CGByteValue = UInt8;
+	CGByteValue = SInt8;
 	CGByteValuePtr					= ^CGByteValue;
 type
 	CGOpenGLDisplayMask = UInt32;

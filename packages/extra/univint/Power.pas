@@ -218,7 +218,7 @@ const
 
 type
 {$ifc TYPED_FUNCTION_POINTERS}
-	PowerHandlerProcPtr = function(message: UInt32; param: UnivPtr; refCon: UInt32; var regEntryID: RegEntryID): OSStatus;
+	PowerHandlerProcPtr = function(message: UInt32; param: UnivPtr; refCon: UInt32; var regEntryID_: RegEntryID): OSStatus;
 {$elsec}
 	PowerHandlerProcPtr = ProcPtr;
 {$endc}
@@ -258,7 +258,7 @@ procedure DisposePowerHandlerUPP(userUPP: PowerHandlerUPP); external name '_Disp
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function InvokePowerHandlerUPP(message: UInt32; param: UnivPtr; refCon: UInt32; var regEntryID: RegEntryID; userRoutine: PowerHandlerUPP): OSStatus; external name '_InvokePowerHandlerUPP'; { old name was CallPowerHandlerProc }
+function InvokePowerHandlerUPP(message: UInt32; param: UnivPtr; refCon: UInt32; var regEntryID_: RegEntryID; userRoutine: PowerHandlerUPP): OSStatus; external name '_InvokePowerHandlerUPP'; { old name was CallPowerHandlerProc }
 {$endc}  {CALL_NOT_IN_CARBON}
 
 {

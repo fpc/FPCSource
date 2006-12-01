@@ -438,9 +438,9 @@ function CFURLCreateStringByAddingPercentEscapes( allocator: CFAllocatorRef; ori
 
 {#ifndef CF_OPEN_SOURCE}
 
-function CFURLCreateFromFSRef( allocator: CFAllocatorRef; const (*var*) fsRef: FSRef ): CFURLRef; external name '_CFURLCreateFromFSRef';
+function CFURLCreateFromFSRef( allocator: CFAllocatorRef; const (*var*) fsRef_: FSRef ): CFURLRef; external name '_CFURLCreateFromFSRef';
 
-function CFURLGetFSRef( url: CFURLRef; var fsRef: FSRef ): Boolean; external name '_CFURLGetFSRef';
+function CFURLGetFSRef( url: CFURLRef; var fsRef_: FSRef ): Boolean; external name '_CFURLGetFSRef';
 
 {#endif} // !CF_OPEN_SOURCE
 

@@ -118,7 +118,7 @@ const
 type
 	TMTaskPtr = ^TMTask;
 {$ifc TYPED_FUNCTION_POINTERS}
-	TimerProcPtr = procedure(tmTaskPtr: TMTaskPtr);
+	TimerProcPtr = procedure(tmTaskPtr_: TMTaskPtr);
 {$elsec}
 	TimerProcPtr = Register68kProcPtr;
 {$endc}
@@ -249,7 +249,7 @@ procedure DisposeTimerUPP(userUPP: TimerUPP); external name '_DisposeTimerUPP';
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-procedure InvokeTimerUPP(tmTaskPtr: TMTaskPtr; userRoutine: TimerUPP); external name '_InvokeTimerUPP'; { old name was CallTimerProc }
+procedure InvokeTimerUPP(tmTaskPtr_: TMTaskPtr; userRoutine: TimerUPP); external name '_InvokeTimerUPP'; { old name was CallTimerProc }
 
 
 {$ALIGN MAC68K}

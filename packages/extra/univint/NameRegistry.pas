@@ -14,7 +14,7 @@
                      http://www.freepascal.org/bugs.html
  
 }
-
+{       Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
 
 {
     Modified for use with Free Pascal
@@ -150,11 +150,12 @@ const
 
 type
 	RegCStrEntryName					= char;
-	RegCStrEntryNamePtr					= ^char;
+	RegCStrEntryNamePtr					= CStringPtr;
 	{  length of RegCStrEntryNameBuf =  kRegCStrMaxEntryNameLength+1 }
 	RegCStrEntryNameBuf					= packed array [0..47] of char;
-	RegCStrPathName						= char;
+	RegCStrPathName					    = char;
 	RegPathNameSize						= UInt32;
+	RegCStrPathNamePtr                  = CStringPtr;
 
 const
 	kRegPathNameSeparator		= 58;							{  0x3A  }
@@ -172,8 +173,8 @@ const
 
 type
 	RegPropertyNameBuf					= packed array [0..31] of char;
-	RegPropertyName						= char;
-	RegPropertyNamePtr					= ^char;
+	RegPropertyName					    = char;
+	RegPropertyNamePtr					= CStringPtr;
 	{	******************************************************************************
 	 *
 	 * Iteration Operations
@@ -345,7 +346,7 @@ function RegistryEntryIDDispose(var id: RegEntryID): OSStatus; external name '_R
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function RegistryCStrEntryCreate(const (*var*) parentEntry: RegEntryID; const (*var*) name: RegCStrPathName; var newEntry: RegEntryID): OSStatus; external name '_RegistryCStrEntryCreate';
+function RegistryCStrEntryCreate(const (*var*) parentEntry: RegEntryID; {const} name: {variable-size-array} RegCStrPathNamePtr; var newEntry: RegEntryID): OSStatus; external name '_RegistryCStrEntryCreate';
 {
  *  RegistryEntryDelete()
  *  
@@ -464,7 +465,7 @@ function RegistryEntryIterate(var cookie: RegEntryIter; relationship: RegEntryIt
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function RegistryEntrySearch(var cookie: RegEntryIter; relationship: RegEntryIterationOp; var foundEntry: RegEntryID; var done: boolean; const (*var*) propertyName: RegPropertyName; propertyValue: UnivPtr; propertySize: RegPropertyValueSize): OSStatus; external name '_RegistryEntrySearch';
+function RegistryEntrySearch(var cookie: RegEntryIter; relationship: RegEntryIterationOp; var foundEntry: RegEntryID; var done: boolean; {const} propertyName: {variable-size-array} RegPropertyNamePtr; propertyValue: UnivPtr; propertySize: RegPropertyValueSize): OSStatus; external name '_RegistryEntrySearch';
 {--------------------------------
  * Find a name in the namespace
  *
@@ -483,7 +484,7 @@ function RegistryEntrySearch(var cookie: RegEntryIter; relationship: RegEntryIte
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function RegistryCStrEntryLookup(const (*var*) searchPointID: RegEntryID; const (*var*) pathName: RegCStrPathName; var foundEntry: RegEntryID): OSStatus; external name '_RegistryCStrEntryLookup';
+function RegistryCStrEntryLookup(const (*var*) searchPointID: RegEntryID; {const} pathName: {variable-size-array} RegCStrPathNamePtr; var foundEntry: RegEntryID): OSStatus; external name '_RegistryCStrEntryLookup';
 {---------------------------------------------
  * Convert an entry to a rooted name string
  *
@@ -539,7 +540,7 @@ function RegistryCStrEntryToName(const (*var*) entryID: RegEntryID; var parentEn
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function RegistryPropertyCreate(const (*var*) entryID: RegEntryID; const (*var*) propertyName: RegPropertyName; propertyValue: UnivPtr; propertySize: RegPropertyValueSize): OSStatus; external name '_RegistryPropertyCreate';
+function RegistryPropertyCreate(const (*var*) entryID: RegEntryID; {const} propertyName: {variable-size-array} RegPropertyNamePtr; propertyValue: UnivPtr; propertySize: RegPropertyValueSize): OSStatus; external name '_RegistryPropertyCreate';
 {
  *  RegistryPropertyDelete()
  *  
@@ -548,7 +549,7 @@ function RegistryPropertyCreate(const (*var*) entryID: RegEntryID; const (*var*)
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function RegistryPropertyDelete(const (*var*) entryID: RegEntryID; const (*var*) propertyName: RegPropertyName): OSStatus; external name '_RegistryPropertyDelete';
+function RegistryPropertyDelete(const (*var*) entryID: RegEntryID; {const} propertyName: {variable-size-array} RegPropertyNamePtr): OSStatus; external name '_RegistryPropertyDelete';
 {
  *  RegistryPropertyRename()
  *  
@@ -557,7 +558,7 @@ function RegistryPropertyDelete(const (*var*) entryID: RegEntryID; const (*var*)
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function RegistryPropertyRename(const (*var*) entry: RegEntryID; const (*var*) oldName: RegPropertyName; const (*var*) newName: RegPropertyName): OSStatus; external name '_RegistryPropertyRename';
+function RegistryPropertyRename(const (*var*) entry: RegEntryID; {const} oldName: {variable-size-array} RegPropertyNamePtr; {const} newName: {variable-size-array} RegPropertyNamePtr): OSStatus; external name '_RegistryPropertyRename';
 {---------------------------
  * Traversing the Properties of a name
  *
@@ -608,7 +609,7 @@ function RegistryPropertyIterate(var cookie: RegPropertyIter; var foundProperty:
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function RegistryPropertyGetSize(const (*var*) entryID: RegEntryID; const (*var*) propertyName: RegPropertyName; var propertySize: RegPropertyValueSize): OSStatus; external name '_RegistryPropertyGetSize';
+function RegistryPropertyGetSize(const (*var*) entryID: RegEntryID; {const} propertyName: {variable-size-array} RegPropertyNamePtr; var propertySize: RegPropertyValueSize): OSStatus; external name '_RegistryPropertyGetSize';
 {
  * (*propertySize) is the maximum size of the value returned in the buffer
  * pointed to by (propertyValue).  Upon return, (*propertySize) is the size of the
@@ -622,7 +623,7 @@ function RegistryPropertyGetSize(const (*var*) entryID: RegEntryID; const (*var*
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function RegistryPropertyGet(const (*var*) entryID: RegEntryID; const (*var*) propertyName: RegPropertyName; propertyValue: UnivPtr; var propertySize: RegPropertyValueSize): OSStatus; external name '_RegistryPropertyGet';
+function RegistryPropertyGet(const (*var*) entryID: RegEntryID; {const} propertyName: {variable-size-array} RegPropertyNamePtr; propertyValue: UnivPtr; var propertySize: RegPropertyValueSize): OSStatus; external name '_RegistryPropertyGet';
 {
  *  RegistryPropertySet()
  *  
@@ -631,7 +632,7 @@ function RegistryPropertyGet(const (*var*) entryID: RegEntryID; const (*var*) pr
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function RegistryPropertySet(const (*var*) entryID: RegEntryID; const (*var*) propertyName: RegPropertyName; propertyValue: UnivPtr; propertySize: RegPropertyValueSize): OSStatus; external name '_RegistryPropertySet';
+function RegistryPropertySet(const (*var*) entryID: RegEntryID; {const} propertyName: {variable-size-array} RegPropertyNamePtr; propertyValue: UnivPtr; propertySize: RegPropertyValueSize): OSStatus; external name '_RegistryPropertySet';
 { //////////////////////////////////////////////////////
 //
 // Modifier Management
@@ -678,7 +679,7 @@ function RegistryEntrySetMod(const (*var*) entry: RegEntryID; modifiers: RegEntr
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function RegistryPropertyGetMod(const (*var*) entry: RegEntryID; const (*var*) name: RegPropertyName; var modifiers: RegPropertyModifiers): OSStatus; external name '_RegistryPropertyGetMod';
+function RegistryPropertyGetMod(const (*var*) entry: RegEntryID; {const} name: {variable-size-array} RegPropertyNamePtr; var modifiers: RegPropertyModifiers): OSStatus; external name '_RegistryPropertyGetMod';
 {
  *  RegistryPropertySetMod()
  *  
@@ -687,7 +688,7 @@ function RegistryPropertyGetMod(const (*var*) entry: RegEntryID; const (*var*) n
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function RegistryPropertySetMod(const (*var*) entry: RegEntryID; const (*var*) name: RegPropertyName; modifiers: RegPropertyModifiers): OSStatus; external name '_RegistryPropertySetMod';
+function RegistryPropertySetMod(const (*var*) entry: RegEntryID; {const} name: {variable-size-array} RegPropertyNamePtr; modifiers: RegPropertyModifiers): OSStatus; external name '_RegistryPropertySetMod';
 {
  * Iterator operator for entry modifier search
  }

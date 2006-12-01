@@ -1313,7 +1313,7 @@ function NCMUseProfileComment(prof: CMProfileRef; flags: UInt32): CMError; exter
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function CWMatchHBITMAP(cw: CMWorldRef; hBitmap: HBITMAP; progressProc: CMBitmapCallBackUPP; refCon: UnivPtr): CMError; external name '_CWMatchHBITMAP';
+function CWMatchHBITMAP(cw: CMWorldRef; hBitmap_: HBITMAP; progressProc: CMBitmapCallBackUPP; refCon: UnivPtr): CMError; external name '_CWMatchHBITMAP';
 
 {$endc}  {CALL_NOT_IN_CARBON}
 {$endc}  {TARGET_OS_WIN32}

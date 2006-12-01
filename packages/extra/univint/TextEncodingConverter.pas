@@ -214,7 +214,7 @@ function TECGetDestinationTextEncodings(inputEncoding: TextEncoding; destination
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function TECGetTextEncodingInternetName(textEncoding: TextEncoding; var encodingName: Str255): OSStatus; external name '_TECGetTextEncodingInternetName';
+function TECGetTextEncodingInternetName(textEncoding_: TextEncoding; var encodingName: Str255): OSStatus; external name '_TECGetTextEncodingInternetName';
 
 {
  *  TECGetTextEncodingFromInternetName()
@@ -224,7 +224,7 @@ function TECGetTextEncodingInternetName(textEncoding: TextEncoding; var encoding
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function TECGetTextEncodingFromInternetName(var textEncoding: TextEncoding; const (*var*) encodingName: Str255): OSStatus; external name '_TECGetTextEncodingFromInternetName';
+function TECGetTextEncodingFromInternetName(var textEncoding_: TextEncoding; const (*var*) encodingName: Str255): OSStatus; external name '_TECGetTextEncodingFromInternetName';
 
 { create/dispose converters }
 {

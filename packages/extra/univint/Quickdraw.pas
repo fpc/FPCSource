@@ -1732,7 +1732,7 @@ const
 
 type
 {$ifc TYPED_FUNCTION_POINTERS}
-	RegionToRectsProcPtr = function(message: UInt16; rgn: RgnHandle; const (*var*) rect: Rect; refCon: UnivPtr): OSStatus;
+	RegionToRectsProcPtr = function(message: UInt16; rgn: RgnHandle; const (*var*) rect_: Rect; refCon: UnivPtr): OSStatus;
 {$elsec}
 	RegionToRectsProcPtr = ProcPtr;
 {$endc}
@@ -1771,7 +1771,7 @@ procedure DisposeRegionToRectsUPP(userUPP: RegionToRectsUPP); external name '_Di
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function InvokeRegionToRectsUPP(message: UInt16; rgn: RgnHandle; const (*var*) rect: Rect; refCon: UnivPtr; userRoutine: RegionToRectsUPP): OSStatus; external name '_InvokeRegionToRectsUPP'; { old name was CallRegionToRectsProc }
+function InvokeRegionToRectsUPP(message: UInt16; rgn: RgnHandle; const (*var*) rect_: Rect; refCon: UnivPtr; userRoutine: RegionToRectsUPP): OSStatus; external name '_InvokeRegionToRectsUPP'; { old name was CallRegionToRectsProc }
 {
  *  QDRegionToRects()
  *  
@@ -4119,7 +4119,7 @@ function GetPortBitMapForCopyBits(port: CGrafPtr): BitMapPtr; external name '_Ge
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function GetPortBounds(port: CGrafPtr; var rect: Rect): RectPtr; external name '_GetPortBounds';
+function GetPortBounds(port: CGrafPtr; var rect_: Rect): RectPtr; external name '_GetPortBounds';
 
 {
  *  GetPortForeColor()
@@ -4485,7 +4485,7 @@ function SwapPortRegionSaveHandle(port: CGrafPtr; inRegionSaveHdl: Handle): Hand
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-procedure SetPortBounds(port: CGrafPtr; const (*var*) rect: Rect); external name '_SetPortBounds';
+procedure SetPortBounds(port: CGrafPtr; const (*var*) rect_: Rect); external name '_SetPortBounds';
 
 {
  *  SetPortOpColor()
@@ -4829,7 +4829,7 @@ procedure SetQDError(err: OSErr); external name '_SetQDError';
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function QDLocalToGlobalPoint(port: CGrafPtr; var point: Point): PointPtr; external name '_QDLocalToGlobalPoint';
+function QDLocalToGlobalPoint(port: CGrafPtr; var point_: Point): PointPtr; external name '_QDLocalToGlobalPoint';
 
 {
  *  QDGlobalToLocalPoint()
@@ -4839,7 +4839,7 @@ function QDLocalToGlobalPoint(port: CGrafPtr; var point: Point): PointPtr; exter
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function QDGlobalToLocalPoint(port: CGrafPtr; var point: Point): PointPtr; external name '_QDGlobalToLocalPoint';
+function QDGlobalToLocalPoint(port: CGrafPtr; var point_: Point): PointPtr; external name '_QDGlobalToLocalPoint';
 
 {
  *  QDLocalToGlobalRect()

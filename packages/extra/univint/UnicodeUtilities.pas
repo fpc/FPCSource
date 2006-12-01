@@ -437,7 +437,7 @@ function UCKeyTranslate(const (*var*) keyLayoutPtr: UCKeyboardLayout; virtualKey
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function UCCreateCollator(locale: LocaleRef; opVariant: LocaleOperationVariant; options: UCCollateOptions; var collatorRef: CollatorRef): OSStatus; external name '_UCCreateCollator';
+function UCCreateCollator(locale: LocaleRef; opVariant: LocaleOperationVariant; options: UCCollateOptions; var collatorRef_: CollatorRef): OSStatus; external name '_UCCreateCollator';
 
 {
  *  UCGetCollationKey()
@@ -447,7 +447,7 @@ function UCCreateCollator(locale: LocaleRef; opVariant: LocaleOperationVariant; 
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function UCGetCollationKey(collatorRef: CollatorRef; textPtr: ConstUniCharPtr; textLength: UniCharCount; maxKeySize: ItemCount; var actualKeySize: ItemCount; collationKey: UCCollationValuePtr): OSStatus; external name '_UCGetCollationKey';
+function UCGetCollationKey(collatorRef_: CollatorRef; textPtr: ConstUniCharPtr; textLength: UniCharCount; maxKeySize: ItemCount; var actualKeySize: ItemCount; collationKey: UCCollationValuePtr): OSStatus; external name '_UCGetCollationKey';
 
 {
  *  UCCompareCollationKeys()
@@ -467,7 +467,7 @@ function UCCompareCollationKeys(key1Ptr: UCCollationValuePtr; key1Length: ItemCo
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function UCCompareText(collatorRef: CollatorRef; text1Ptr: ConstUniCharPtr; text1Length: UniCharCount; text2Ptr: ConstUniCharPtr; text2Length: UniCharCount; var equivalent: boolean; var order: SInt32): OSStatus; external name '_UCCompareText';
+function UCCompareText(collatorRef_: CollatorRef; text1Ptr: ConstUniCharPtr; text1Length: UniCharCount; text2Ptr: ConstUniCharPtr; text2Length: UniCharCount; var equivalent: boolean; var order: SInt32): OSStatus; external name '_UCCompareText';
 
 {
  *  UCDisposeCollator()
@@ -477,7 +477,7 @@ function UCCompareText(collatorRef: CollatorRef; text1Ptr: ConstUniCharPtr; text
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function UCDisposeCollator(var collatorRef: CollatorRef): OSStatus; external name '_UCDisposeCollator';
+function UCDisposeCollator(var collatorRef_: CollatorRef): OSStatus; external name '_UCDisposeCollator';
 
 {  Simple collation using default locale }
 

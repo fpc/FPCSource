@@ -1526,7 +1526,7 @@ procedure DisposeWindow( window: WindowRef ); external name '_DisposeWindow';
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in WindowsLib 8.5 and later
  }
-function CreateNewWindow( windowClass: WindowClass; attributes: WindowAttributes; const (*var*) contentBounds: Rect; var outWindow: WindowRef ): OSStatus; external name '_CreateNewWindow';
+function CreateNewWindow( windowClass_: WindowClass; attributes: WindowAttributes; const (*var*) contentBounds: Rect; var outWindow: WindowRef ): OSStatus; external name '_CreateNewWindow';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -1560,7 +1560,7 @@ function CreateWindowFromResource( resID: SInt16; var outWindow: WindowRef ): OS
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in WindowsLib 8.5 and later
  }
-function StoreWindowIntoCollection( window: WindowRef; collection: Collection ): OSStatus; external name '_StoreWindowIntoCollection';
+function StoreWindowIntoCollection( window: WindowRef; collection_: Collection ): OSStatus; external name '_StoreWindowIntoCollection';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -1575,7 +1575,7 @@ function StoreWindowIntoCollection( window: WindowRef; collection: Collection ):
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in WindowsLib 8.5 and later
  }
-function CreateWindowFromCollection( collection: Collection; var outWindow: WindowRef ): OSStatus; external name '_CreateWindowFromCollection';
+function CreateWindowFromCollection( collection_: Collection; var outWindow: WindowRef ): OSStatus; external name '_CreateWindowFromCollection';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -1711,7 +1711,7 @@ function ReleaseWindow( inWindow: WindowRef ): OSStatus; external name '_Release
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-function CreateCustomWindow( const (*var*) def: WindowDefSpec; windowClass: WindowClass; attributes: WindowAttributes; const (*var*) contentBounds: Rect; var outWindow: WindowRef ): OSStatus; external name '_CreateCustomWindow';
+function CreateCustomWindow( const (*var*) def: WindowDefSpec; windowClass_: WindowClass; attributes: WindowAttributes; const (*var*) contentBounds: Rect; var outWindow: WindowRef ): OSStatus; external name '_CreateCustomWindow';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -2531,7 +2531,7 @@ function GetWindowGroupRetainCount( inGroup: WindowGroupRef ): ItemCount; extern
  *    CarbonLib:        in CarbonLib 1.4 and later
  *    Non-Carbon CFM:   not available
  }
-function GetWindowGroupOfClass( windowClass: WindowClass ): WindowGroupRef; external name '_GetWindowGroupOfClass';
+function GetWindowGroupOfClass( windowClass_: WindowClass ): WindowGroupRef; external name '_GetWindowGroupOfClass';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -8158,7 +8158,7 @@ function HIWindowGetScaleMode( inWindow: HIWindowRef; var outMode: HIWindowScale
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in WindowsLib 8.5 and later
  }
-function GetWindowProperty( window: WindowRef; propertyCreator: PropertyCreator; propertyTag: PropertyTag; bufferSize: UInt32; actualSize: UInt32Ptr { can be NULL }; propertyBuffer: UnivPtr ): OSStatus; external name '_GetWindowProperty';
+function GetWindowProperty( window: WindowRef; propertyCreator_: PropertyCreator; propertyTag_: PropertyTag; bufferSize: UInt32; actualSize: UInt32Ptr { can be NULL }; propertyBuffer: UnivPtr ): OSStatus; external name '_GetWindowProperty';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -8188,7 +8188,7 @@ function GetWindowPropertySize( window: WindowRef; creator: PropertyCreator; tag
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in WindowsLib 8.5 and later
  }
-function SetWindowProperty( window: WindowRef; propertyCreator: PropertyCreator; propertyTag: PropertyTag; propertySize: UInt32; propertyBuffer: {const} UnivPtr ): OSStatus; external name '_SetWindowProperty';
+function SetWindowProperty( window: WindowRef; propertyCreator_: PropertyCreator; propertyTag_: PropertyTag; propertySize: UInt32; propertyBuffer: {const} UnivPtr ): OSStatus; external name '_SetWindowProperty';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -8203,7 +8203,7 @@ function SetWindowProperty( window: WindowRef; propertyCreator: PropertyCreator;
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in WindowsLib 8.5 and later
  }
-function RemoveWindowProperty( window: WindowRef; propertyCreator: PropertyCreator; propertyTag: PropertyTag ): OSStatus; external name '_RemoveWindowProperty';
+function RemoveWindowProperty( window: WindowRef; propertyCreator_: PropertyCreator; propertyTag_: PropertyTag ): OSStatus; external name '_RemoveWindowProperty';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -8655,7 +8655,7 @@ function GetPreviousWindow( inWindow: WindowRef ): WindowRef; external name '_Ge
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later or as macro/inline
  }
-function GetWindowStandardState( window: WindowRef; var rect: Rect ): RectPtr; external name '_GetWindowStandardState';
+function GetWindowStandardState( window: WindowRef; var rect_: Rect ): RectPtr; external name '_GetWindowStandardState';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -8670,7 +8670,7 @@ function GetWindowStandardState( window: WindowRef; var rect: Rect ): RectPtr; e
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later or as macro/inline
  }
-function GetWindowUserState( window: WindowRef; var rect: Rect ): RectPtr; external name '_GetWindowUserState';
+function GetWindowUserState( window: WindowRef; var rect_: Rect ): RectPtr; external name '_GetWindowUserState';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -8700,7 +8700,7 @@ procedure SetWindowKind( window: WindowRef; kind: SInt16 ); external name '_SetW
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later or as macro/inline
  }
-procedure SetWindowStandardState( window: WindowRef; const (*var*) rect: Rect ); external name '_SetWindowStandardState';
+procedure SetWindowStandardState( window: WindowRef; const (*var*) rect_: Rect ); external name '_SetWindowStandardState';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -8715,7 +8715,7 @@ procedure SetWindowStandardState( window: WindowRef; const (*var*) rect: Rect );
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later or as macro/inline
  }
-procedure SetWindowUserState( window: WindowRef; const (*var*) rect: Rect ); external name '_SetWindowUserState';
+procedure SetWindowUserState( window: WindowRef; const (*var*) rect_: Rect ); external name '_SetWindowUserState';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 

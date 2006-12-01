@@ -815,7 +815,7 @@ function NSLGetNeighborhoodLength(neighborhood: NSLNeighborhood): SInt32; extern
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function NSLNewThread(threadStyle: ThreadStyle; threadEntry: ThreadEntryProcPtr; threadParam: UnivPtr; stackSize: Size; options: ThreadOptions; var threadResult: UnivPtr; var threadMade: ThreadID): OSErr; external name '_NSLNewThread';
+function NSLNewThread(threadStyle_: ThreadStyle; threadEntry: ThreadEntryProcPtr; threadParam: UnivPtr; stackSize: Size; options: ThreadOptions; var threadResult: UnivPtr; var threadMade: ThreadID): OSErr; external name '_NSLNewThread';
 
 { this routine works the same as the Thread manager's routine DisposeThread, except }
 { that the thread is removed from the NSL manager's thread list. }

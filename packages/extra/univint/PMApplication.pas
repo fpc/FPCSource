@@ -514,7 +514,7 @@ function PMPageSetupDialogMain(pageFormat: PMPageFormat; var accepted: boolean; 
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function PMGetDialogPtr(pmDialog: PMDialog; var theDialog: DialogRef): OSStatus; external name '_PMGetDialogPtr';
+function PMGetDialogPtr(pmDialog_: PMDialog; var theDialog: DialogRef): OSStatus; external name '_PMGetDialogPtr';
 
 {
  *  PMGetModalFilterProc()
@@ -524,7 +524,7 @@ function PMGetDialogPtr(pmDialog: PMDialog; var theDialog: DialogRef): OSStatus;
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function PMGetModalFilterProc(pmDialog: PMDialog; var filterProc: ModalFilterUPP): OSStatus; external name '_PMGetModalFilterProc';
+function PMGetModalFilterProc(pmDialog_: PMDialog; var filterProc: ModalFilterUPP): OSStatus; external name '_PMGetModalFilterProc';
 
 {
  *  PMSetModalFilterProc()
@@ -534,7 +534,7 @@ function PMGetModalFilterProc(pmDialog: PMDialog; var filterProc: ModalFilterUPP
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function PMSetModalFilterProc(pmDialog: PMDialog; filterProc: ModalFilterUPP): OSStatus; external name '_PMSetModalFilterProc';
+function PMSetModalFilterProc(pmDialog_: PMDialog; filterProc: ModalFilterUPP): OSStatus; external name '_PMSetModalFilterProc';
 
 {
  *  PMGetItemProc()
@@ -544,7 +544,7 @@ function PMSetModalFilterProc(pmDialog: PMDialog; filterProc: ModalFilterUPP): O
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function PMGetItemProc(pmDialog: PMDialog; var itemProc: PMItemUPP): OSStatus; external name '_PMGetItemProc';
+function PMGetItemProc(pmDialog_: PMDialog; var itemProc: PMItemUPP): OSStatus; external name '_PMGetItemProc';
 
 {
  *  PMSetItemProc()
@@ -554,7 +554,7 @@ function PMGetItemProc(pmDialog: PMDialog; var itemProc: PMItemUPP): OSStatus; e
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function PMSetItemProc(pmDialog: PMDialog; itemProc: PMItemUPP): OSStatus; external name '_PMSetItemProc';
+function PMSetItemProc(pmDialog_: PMDialog; itemProc: PMItemUPP): OSStatus; external name '_PMSetItemProc';
 
 {
  *  PMGetDialogAccepted()
@@ -564,7 +564,7 @@ function PMSetItemProc(pmDialog: PMDialog; itemProc: PMItemUPP): OSStatus; exter
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function PMGetDialogAccepted(pmDialog: PMDialog; var process: boolean): OSStatus; external name '_PMGetDialogAccepted';
+function PMGetDialogAccepted(pmDialog_: PMDialog; var process: boolean): OSStatus; external name '_PMGetDialogAccepted';
 
 {
  *  PMSetDialogAccepted()
@@ -574,7 +574,7 @@ function PMGetDialogAccepted(pmDialog: PMDialog; var process: boolean): OSStatus
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function PMSetDialogAccepted(pmDialog: PMDialog; process: boolean): OSStatus; external name '_PMSetDialogAccepted';
+function PMSetDialogAccepted(pmDialog_: PMDialog; process: boolean): OSStatus; external name '_PMSetDialogAccepted';
 
 {
  *  PMGetDialogDone()
@@ -584,7 +584,7 @@ function PMSetDialogAccepted(pmDialog: PMDialog; process: boolean): OSStatus; ex
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function PMGetDialogDone(pmDialog: PMDialog; var done: boolean): OSStatus; external name '_PMGetDialogDone';
+function PMGetDialogDone(pmDialog_: PMDialog; var done: boolean): OSStatus; external name '_PMGetDialogDone';
 
 {
  *  PMSetDialogDone()
@@ -594,7 +594,7 @@ function PMGetDialogDone(pmDialog: PMDialog; var done: boolean): OSStatus; exter
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function PMSetDialogDone(pmDialog: PMDialog; done: boolean): OSStatus; external name '_PMSetDialogDone';
+function PMSetDialogDone(pmDialog_: PMDialog; done: boolean): OSStatus; external name '_PMSetDialogDone';
 
 {$ALIGN MAC68K}
 

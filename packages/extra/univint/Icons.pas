@@ -15,6 +15,7 @@
  
 }
 
+{    Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
 
 {
     Modified for use with Free Pascal
@@ -195,6 +196,7 @@ const
 
 	{	 The following icon types can only be used as an icon element 	}
 	{	 inside a 'icns' icon family 	}
+    kIconServices256PixelDataARGB = $69633038 (* 'ic08' *);
 	kThumbnail32BitData			= $69743332 (* 'it32' *);
 	kThumbnail8BitMask			= $74386D6B (* 't8mk' *);
 
@@ -1771,7 +1773,7 @@ function PtInIconRef(const (*var*) testPt: Point; const (*var*) iconRect: Rect; 
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function RectInIconRef(const (*var*) testRect: Rect; const (*var*) iconRect: Rect; align: IconAlignmentType; iconServicesUsageFlags: IconServicesUsageFlags; theIconRef: IconRef): boolean; external name '_RectInIconRef';
+function RectInIconRef(const (*var*) testRect: Rect; const (*var*) iconRect: Rect; align: IconAlignmentType; iconServicesUsageFlags_: IconServicesUsageFlags; theIconRef: IconRef): boolean; external name '_RectInIconRef';
 {
    IconRefToRgn
    
@@ -1788,7 +1790,7 @@ function RectInIconRef(const (*var*) testRect: Rect; const (*var*) iconRect: Rec
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function IconRefToRgn(theRgn: RgnHandle; const (*var*) iconRect: Rect; align: IconAlignmentType; iconServicesUsageFlags: IconServicesUsageFlags; theIconRef: IconRef): OSErr; external name '_IconRefToRgn';
+function IconRefToRgn(theRgn: RgnHandle; const (*var*) iconRect: Rect; align: IconAlignmentType; iconServicesUsageFlags_: IconServicesUsageFlags; theIconRef: IconRef): OSErr; external name '_IconRefToRgn';
 {
    GetIconSizesFromIconRef
    
@@ -1804,17 +1806,54 @@ function IconRefToRgn(theRgn: RgnHandle; const (*var*) iconRect: Rect; align: Ic
    in hitting the local disk or even the network to obtain the data to determine 
    which sizes/depths actually exist.
    Pass kIconServicesNormalUsageFlag as a default value for IconServicesUsageFlags.
+   
+   This call is deprecated. Please use IsDataAvailableInIconRef() instead.
 }
 
 {
- *  GetIconSizesFromIconRef()
+ *  GetIconSizesFromIconRef()   *** DEPRECATED ***
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
  *  
  *  Availability:
  *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function GetIconSizesFromIconRef(iconSelectorInput: IconSelectorValue; var iconSelectorOutputPtr: IconSelectorValue; iconServicesUsageFlags: IconServicesUsageFlags; theIconRef: IconRef): OSErr; external name '_GetIconSizesFromIconRef';
+function GetIconSizesFromIconRef(iconSelectorInput: IconSelectorValue; var iconSelectorOutputPtr: IconSelectorValue; iconServicesUsageFlags_: IconServicesUsageFlags; theIconRef: IconRef): OSErr; external name '_GetIconSizesFromIconRef';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+
+{ IsDataAvailableInIconRef}
+{
+ *  IsDataAvailableInIconRef()
+ *  
+ *  Summary:
+ *    Check if IconRef has specific data.
+ *  
+ *  Discussion:
+ *    This routine returns true if inIconKind icon data is availabe or
+ *    can be created.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inIconKind:
+ *      The icon data kind
+ *    
+ *    inIconRef:
+ *      The IconRef to test.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
+ *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
+ *    Non-Carbon CFM:   not available
+ }
+function IsDataAvailableInIconRef( inIconKind: OSType; inIconRef: IconRef ): Boolean; external name '_IsDataAvailableInIconRef';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+
 {
   ==============================================================================
    Flushing IconRef data
@@ -1831,14 +1870,19 @@ function GetIconSizesFromIconRef(iconSelectorInput: IconSelectorValue; var iconS
 }
 
 {
- *  FlushIconRefs()
+ *  FlushIconRefs()   *** DEPRECATED ***
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
- *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function FlushIconRefs(creator: OSType; iconType: OSType): OSErr; external name '_FlushIconRefs';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+
 {
    FlushIconRefsByVolume
    
@@ -1848,14 +1892,19 @@ function FlushIconRefs(creator: OSType; iconType: OSType): OSErr; external name 
 }
 
 {
- *  FlushIconRefsByVolume()
+ *  FlushIconRefsByVolume()   *** DEPRECATED ***
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
- *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.3
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in IconServicesLib 8.5 and later
  }
 function FlushIconRefsByVolume(vRefNum: SInt16): OSErr; external name '_FlushIconRefsByVolume';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_3 *)
+
 {
   ==============================================================================
    Controling custom icons
@@ -1906,7 +1955,7 @@ function GetCustomIconsEnabled(vRefNum: SInt16; var customIconsEnabled: boolean)
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function IsIconRefMaskEmpty(iconRef: IconRef): boolean; external name '_IsIconRefMaskEmpty';
+function IsIconRefMaskEmpty(iconRef_: IconRef): boolean; external name '_IsIconRefMaskEmpty';
 {
    GetIconRefVariant
    Icon variants allows different images to be used with different icon state.

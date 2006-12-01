@@ -96,7 +96,6 @@ uses MacTypes,ConditionalMacros;
 
 
 type
-	size_t								= UInt32;
 	boolean_t							= SInt32;
 
 // Avoid cyclic dependencises by putting CGRefs here

@@ -163,7 +163,7 @@ function ConvertUTCToLocalTime(utcSeconds: UInt32; var localSeconds: UInt32): OS
  *    CarbonLib:        in CarbonLib 1.0.2 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function ConvertUTCToLocalDateTime(const (*var*) utcDateTime: UTCDateTime; var localDateTime: LocalDateTime): OSStatus; external name '_ConvertUTCToLocalDateTime';
+function ConvertUTCToLocalDateTime(const (*var*) utcDateTime_: UTCDateTime; var localDateTime_: LocalDateTime): OSStatus; external name '_ConvertUTCToLocalDateTime';
 
 {
  *  ConvertLocalToUTCDateTime()
@@ -173,7 +173,7 @@ function ConvertUTCToLocalDateTime(const (*var*) utcDateTime: UTCDateTime; var l
  *    CarbonLib:        in CarbonLib 1.0.2 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function ConvertLocalToUTCDateTime(const (*var*) localDateTime: LocalDateTime; var utcDateTime: UTCDateTime): OSStatus; external name '_ConvertLocalToUTCDateTime';
+function ConvertLocalToUTCDateTime(const (*var*) localDateTime_: LocalDateTime; var utcDateTime_: UTCDateTime): OSStatus; external name '_ConvertLocalToUTCDateTime';
 
 { Getter and Setter Clock routines using 64 Bit values }
 {
@@ -184,7 +184,7 @@ function ConvertLocalToUTCDateTime(const (*var*) localDateTime: LocalDateTime; v
  *    CarbonLib:        in CarbonLib 1.0.2 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function GetUTCDateTime(var utcDateTime: UTCDateTime; options: OptionBits): OSStatus; external name '_GetUTCDateTime';
+function GetUTCDateTime(var utcDateTime_: UTCDateTime; options: OptionBits): OSStatus; external name '_GetUTCDateTime';
 
 {
  *  SetUTCDateTime()
@@ -194,7 +194,7 @@ function GetUTCDateTime(var utcDateTime: UTCDateTime; options: OptionBits): OSSt
  *    CarbonLib:        in CarbonLib 1.0.2 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function SetUTCDateTime(const (*var*) utcDateTime: UTCDateTime; options: OptionBits): OSStatus; external name '_SetUTCDateTime';
+function SetUTCDateTime(const (*var*) utcDateTime_: UTCDateTime; options: OptionBits): OSStatus; external name '_SetUTCDateTime';
 
 {
  *  GetLocalDateTime()
@@ -204,7 +204,7 @@ function SetUTCDateTime(const (*var*) utcDateTime: UTCDateTime; options: OptionB
  *    CarbonLib:        in CarbonLib 1.0.2 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function GetLocalDateTime(var localDateTime: LocalDateTime; options: OptionBits): OSStatus; external name '_GetLocalDateTime';
+function GetLocalDateTime(var localDateTime_: LocalDateTime; options: OptionBits): OSStatus; external name '_GetLocalDateTime';
 
 {
  *  SetLocalDateTime()
@@ -214,7 +214,7 @@ function GetLocalDateTime(var localDateTime: LocalDateTime; options: OptionBits)
  *    CarbonLib:        in CarbonLib 1.0.2 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function SetLocalDateTime(const (*var*) localDateTime: LocalDateTime; options: OptionBits): OSStatus; external name '_SetLocalDateTime';
+function SetLocalDateTime(const (*var*) localDateTime_: LocalDateTime; options: OptionBits): OSStatus; external name '_SetLocalDateTime';
 
 {$ALIGN MAC68K}
 

@@ -113,7 +113,12 @@ uses MacTypes,MixedMode;
 
 const
 	typeBoolean					= $626F6F6C (* 'bool' *);
-	typeChar					= $54455854 (* 'TEXT' *);
+	typeChar					= $54455854 (* 'TEXT' *); { Deprecated, use typeUTF8Text instead. }
+
+{ The preferred unicode text types.  In both cases, there is no explicit null termination or length byte. }
+
+	typeUTF16ExternalRepresentation = $75743136 (* 'ut16' *); { big-endian 16 bit unicode with optional byte-order-mark, or little-endian 16 bit unicode with required byte-order-mark. }
+	typeUTF8Text                = $75746638 (* 'utf8' *); { 8 bit unicode }
 
 	{	 Preferred numeric Apple event descriptor types 	}
 	typeSInt16					= $73686F72 (* 'shor' *);
@@ -171,6 +176,13 @@ const
 
 {$endc}  {CALL_NOT_IN_CARBON}
 
+	{ New addressing modes for MacOS X }
+	typeKernelProcessID         = $6B706964 (* 'kpid' *);
+	typeMachPort                = $706F7274 (* 'port' *);
+
+	{ Targeting applications by bundle ID is only available in Mac OS X 10.3 or later. }
+	typeApplicationBundleID     = $62756E64 (* 'bund' *);
+
 	{	 Keywords for Apple event attributes 	}
 	keyTransactionIDAttr		= $7472616E (* 'tran' *);
 	keyReturnIDAttr				= $72746964 (* 'rtid' *);
@@ -184,6 +196,99 @@ const
 	keyMissedKeywordAttr		= $6D697373 (* 'miss' *);						{  this attribute is read only  }
 	keyOriginalAddressAttr		= $66726F6D (* 'from' *);						{  new in 1.0.1  }
 	keyAcceptTimeoutAttr		= $6163746D (* 'actm' *);						{  new for Mac OS X  }
+	keyReplyRequestedAttr       = $72657071 (* 'repq' *);                       { Was a reply requested for this event - returned as typeBoolean }
+
+	{ These bits are specified in the keyXMLDebuggingAttr (an SInt32) }
+	kAEDebugPOSTHeader          = 1 shl 0; { headers of the HTTP post we sent - typeChar }
+	kAEDebugReplyHeader         = 1 shl 1; { headers returned by the server }
+	kAEDebugXMLRequest          = 1 shl 2; { the XML request we sent }
+	kAEDebugXMLResponse         = 1 shl 3; { the XML reply from the server }
+	kAEDebugXMLDebugAll         = $FFFFFFFF; { everything! }
+
+	{ These values can be added as a parameter to the direct object of a
+    SOAP message to specify the serialization schema.  If not
+    specified, kSOAP1999Schema is the default. These should be added as
+    typeType. }
+	kSOAP1999Schema             = $73733939 (* 'ss99' *);
+	kSOAP2001Schema             = $73733031 (* 'ss01' *);
+
+	{ outgoing event attributes }
+	keyUserNameAttr             = $756E616D (* 'unam' *);
+	keyUserPasswordAttr         = $70617373 (* 'pass' *); { not sent with the event }
+	keyDisableAuthenticationAttr = $61757468 (* 'auth' *); { When present and with a non zero value (that is, false, or integer 0), }
+                                                           { AESend will not authenticate the user.  If not present, or with a non-zero}
+                                                           { value, AESend will prompt for authentication information from the user if the interaction level allows. }
+	keyXMLDebuggingAttr         = $78646267 (* 'xdbg' *); { a bitfield of specifying which XML debugging data is to be returned with the event }
+                                                          { Event class / id }
+	kAERPCClass                 = $72706320 (* 'rpc ' *); { for outgoing XML events }
+	kAEXMLRPCScheme             = $52504332 (* 'RPC2' *); { event ID: event should be sent to an XMLRPC endpoint }
+	kAESOAPScheme               = $534F4150 (* 'SOAP' *); { event ID: event should be sent to a SOAP endpoint }
+	kAESharedScriptHandler      = $77736370 (* 'wscp' *); { event ID: handler for incoming XML requests }
+                                                          { these parameters exist as part of the direct object of the event for both incoming and outgoing requests }
+	keyRPCMethodName            = $6D657468 (* 'meth' *); { name of the method to call }
+	keyRPCMethodParam           = $7061726D (* 'parm' *); { the list (or structure) of parameters }
+	keyRPCMethodParamOrder      = $2F6F7264 (* '/ord' *); { if a structure, the order of parameters (a list) }
+                                                          { when keyXMLDebugginAttr so specifies, these additional parameters will be part of the reply. }
+	keyAEPOSTHeaderData         = $70686564 (* 'phed' *); { what we sent to the server }
+	keyAEReplyHeaderData        = $72686564 (* 'rhed' *); { what the server sent to us }
+	keyAEXMLRequestData         = $78726571 (* 'xreq' *); { what we sent to the server }
+	keyAEXMLReplyData           = $78726570 (* 'xrep' *); { what the server sent to us }
+                                                          { additional parameters that can be specified in the direct object of the event }
+	keyAdditionalHTTPHeaders    = $61686564 (* 'ahed' *); { list of additional HTTP headers (a list of 2 element lists) }
+	keySOAPAction               = $73616374 (* 'sact' *); { the SOAPAction header (required for SOAP messages) }
+	keySOAPMethodNameSpace      = $6D737063 (* 'mspc' *); { Optional namespace (defaults to m:) }
+	keySOAPMethodNameSpaceURI   = $6D737075 (* 'mspu' *); { Required namespace URI }
+	keySOAPSchemaVersion        = $73736368 (* 'ssch' *); { Optional XML Schema version, defaults to kSOAP1999Schama }
+
+{ 
+   When serializing AERecords as SOAP structures, it is possible
+   to specify the namespace and type of the structure.  To do this,
+   add a keySOAPStructureMetaData record to the top level of the
+   record to be serialized.  If present, this will be used to specify
+   the structure namespace.  This will produce a structure elment that
+   looks like:
+
+    <myStruct
+        xmlns:myNamespace="http://myUri.org/xsd",
+        xsi:type="myNamespace:MyStructType">
+        ...
+    </myStruct>
+
+}
+	keySOAPStructureMetaData    = $2F736D64 (* '/smd' *);
+	keySOAPSMDNamespace         = $73736E73 (* 'ssns' *); { "myNamespace"}
+	keySOAPSMDNamespaceURI      = $73736E75 (* 'ssnu' *); { "http://myUri.org/xsd"}
+	keySOAPSMDType              = $73737470 (* 'sstp' *); { "MyStructType"}
+
+{ 
+ * Web Services Proxy support.  Available only on Mac OS X 10.2 or later.
+ * These constants should be added as attributes on the event that is
+ * being sent (not part of the direct object.)
+ }
+   { Automatically configure the proxy based on System Configuration }
+	kAEUseHTTPProxyAttr         = $78757072 (* 'xupr' *); { a typeBoolean.  Defaults to true.}
+                                                          { manually specify the proxy host and port. }
+	kAEHTTPProxyPortAttr        = $78687470 (* 'xhtp' *); { a typeSInt32}
+	kAEHTTPProxyHostAttr        = $78687468 (* 'xhth' *); { a typeChar}
+
+{
+ * Web Services SOCKS support.  kAEUseSocksAttr is a boolean that
+ * specifies whether to automatically configure SOCKS proxies by
+ * querying System Configuration.
+ }
+	kAESocks4Protocol           = 4;
+	kAESocks5Protocol           = 5;
+
+	kAEUseSocksAttr             = $78736373 (* 'xscs' *); { a typeBoolean.  Defaults to true.}
+                                                          { This attribute specifies a specific SOCKS protocol to be used }
+	kAESocksProxyAttr           = $78736F6B (* 'xsok' *); { a typeSInt32}
+                                                     { if version >= 4 }
+	kAESocksHostAttr            = $78736873 (* 'xshs' *); { a typeChar}
+	kAESocksPortAttr            = $78736870 (* 'xshp' *); { a typeSInt32}
+	kAESocksUserAttr            = $78736875 (* 'xshu' *); { a typeChar}
+                                                     { if version >= 5 }
+	kAESocksPasswordAttr        = $78736877 (* 'xshw' *); { a typeChar}
+
 
 
 	{	  Constants used for specifying the factoring of AEDescLists. 	}
@@ -401,6 +506,9 @@ type
 	{
 	 *  AEInstallCoercionHandler()
 	 *  
+	 *  Mac OS X threading:
+	 *    Thread safe since version 10.2
+	 *  
 	 *  Availability:
 	 *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
 	 *    CarbonLib:        in CarbonLib 1.0 and later
@@ -410,6 +518,9 @@ function AEInstallCoercionHandler(fromType: DescType; toType: DescType; handler:
 {
  *  AERemoveCoercionHandler()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -418,6 +529,9 @@ function AEInstallCoercionHandler(fromType: DescType; toType: DescType; handler:
 function AERemoveCoercionHandler(fromType: DescType; toType: DescType; handler: AECoercionHandlerUPP; isSysHandler: boolean): OSErr; external name '_AERemoveCoercionHandler';
 {
  *  AEGetCoercionHandler()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
@@ -431,6 +545,9 @@ function AEGetCoercionHandler(fromType: DescType; toType: DescType; var handler:
 {
  *  AECoercePtr()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -439,6 +556,9 @@ function AEGetCoercionHandler(fromType: DescType; toType: DescType; var handler:
 function AECoercePtr(typeCode: DescType; dataPtr: UnivPtr; dataSize: Size; toType: DescType; var result: AEDesc): OSErr; external name '_AECoercePtr';
 {
  *  AECoerceDesc()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
@@ -456,6 +576,9 @@ function AECoerceDesc(const (*var*) theAEDesc: AEDesc; toType: DescType; var res
 {
  *  AEInitializeDesc()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   not available
  *    CarbonLib:        in CarbonLib 1.4 and later
@@ -467,6 +590,9 @@ procedure AEInitializeDesc(var desc: AEDesc); external name '_AEInitializeDesc';
 {
  *  AECreateDesc()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -475,6 +601,9 @@ procedure AEInitializeDesc(var desc: AEDesc); external name '_AEInitializeDesc';
 function AECreateDesc(typeCode: DescType; dataPtr: UnivPtr; dataSize: Size; var result: AEDesc): OSErr; external name '_AECreateDesc';
 {
  *  AEDisposeDesc()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
@@ -485,12 +614,49 @@ function AEDisposeDesc(var theAEDesc: AEDesc): OSErr; external name '_AEDisposeD
 {
  *  AEDuplicateDesc()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
 function AEDuplicateDesc(const (*var*) theAEDesc: AEDesc; var result: AEDesc): OSErr; external name '_AEDuplicateDesc';
+
+{
+ * Create an AEDesc with memory "borrowed" from the application. The
+ * data passed in *must* be immutable and not freed until the Dispose
+ * callback is made.
+ * The dispose callback may be made at any time, including during the
+ * creation of the descriptor.
+ * If possible, the descriptor will be copied to the address space of
+ * any recipient process using virtual memory APIs and avoid an
+ * actual memory copy.
+ }
+type
+	AEDisposeExternalProcPtr = procedure( dataPtr: {const} UnivPtr; dataLength: Size; refcon: SInt32 );
+
+{$ifc OPAQUE_UPP_TYPES}
+	AEDisposeExternalUPP = ^SInt32; { an opaque UPP }
+{$elsec}
+	AEDisposeExternalUPP = UniversalProcPtr;
+{$endc}	
+
+{
+ *  AECreateDescFromExternalPtr()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
+ *    Non-Carbon CFM:   not available
+ }
+function AECreateDescFromExternalPtr( descriptorType: OSType; dataPtr: {const} UnivPtr; dataLength: Size; disposeCallback: AEDisposeExternalUPP; disposeRefcon: SInt32; var theDesc: AEDesc ): OSStatus; external name '_AECreateDescFromExternalPtr';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+
 {*************************************************************************
   The following calls apply to AEDescList. Since AEDescList is a subtype of
   AEDesc, the calls in the previous section can also be used for AEDescList.
@@ -501,6 +667,9 @@ function AEDuplicateDesc(const (*var*) theAEDesc: AEDesc; var result: AEDesc): O
 {
  *  AECreateList()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -509,6 +678,9 @@ function AEDuplicateDesc(const (*var*) theAEDesc: AEDesc; var result: AEDesc): O
 function AECreateList(factoringPtr: UnivPtr; factoredSize: Size; isRecord: boolean; var resultList: AEDescList): OSErr; external name '_AECreateList';
 {
  *  AECountItems()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
@@ -519,6 +691,9 @@ function AECountItems(const (*var*) theAEDescList: AEDescList; var theCount: SIn
 {
  *  AEPutPtr()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -527,6 +702,9 @@ function AECountItems(const (*var*) theAEDescList: AEDescList; var theCount: SIn
 function AEPutPtr(var theAEDescList: AEDescList; index: SInt32; typeCode: DescType; dataPtr: UnivPtr; dataSize: Size): OSErr; external name '_AEPutPtr';
 {
  *  AEPutDesc()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
@@ -537,6 +715,9 @@ function AEPutDesc(var theAEDescList: AEDescList; index: SInt32; const (*var*) t
 {
  *  AEGetNthPtr()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -545,6 +726,9 @@ function AEPutDesc(var theAEDescList: AEDescList; index: SInt32; const (*var*) t
 function AEGetNthPtr(const (*var*) theAEDescList: AEDescList; index: SInt32; desiredType: DescType; theAEKeywordPtr: AEKeywordPtr; typeCode: DescTypePtr; dataPtr: UnivPtr; maximumSize: Size; actualSize: SizePtr): OSErr; external name '_AEGetNthPtr';
 {
  *  AEGetNthDesc()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
@@ -555,6 +739,9 @@ function AEGetNthDesc(const (*var*) theAEDescList: AEDescList; index: SInt32; de
 {
  *  AESizeOfNthItem()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -563,6 +750,9 @@ function AEGetNthDesc(const (*var*) theAEDescList: AEDescList; index: SInt32; de
 function AESizeOfNthItem(const (*var*) theAEDescList: AEDescList; index: SInt32; typeCode: DescTypePtr; dataSize: SizePtr): OSErr; external name '_AESizeOfNthItem';
 {
  *  AEGetArray()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
@@ -573,6 +763,9 @@ function AEGetArray(const (*var*) theAEDescList: AEDescList; arrayType: AEArrayT
 {
  *  AEPutArray()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -581,6 +774,9 @@ function AEGetArray(const (*var*) theAEDescList: AEDescList; arrayType: AEArrayT
 function AEPutArray(var theAEDescList: AEDescList; arrayType: AEArrayType; const (*var*) arrayPtr: AEArrayData; itemType: DescType; itemSize: Size; itemCount: SInt32): OSErr; external name '_AEPutArray';
 {
  *  AEDeleteItem()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
@@ -600,6 +796,9 @@ function AEDeleteItem(var theAEDescList: AEDescList; index: SInt32): OSErr; exte
 ***********************************************************************}
 {
  *  AECheckIsRecord()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   not available
@@ -676,6 +875,9 @@ function AEDeleteKeyDesc(var theAERecord: AERecord; theAEKeyword: AEKeyword): OS
 {
  *  AECreateAppleEvent()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -692,6 +894,9 @@ function AECreateAppleEvent(theAEEventClass: AEEventClass; theAEEventID: AEEvent
 {
  *  AEPutParamPtr()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -700,6 +905,9 @@ function AECreateAppleEvent(theAEEventClass: AEEventClass; theAEEventID: AEEvent
 function AEPutParamPtr(var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword; typeCode: DescType; dataPtr: UnivPtr; dataSize: Size): OSErr; external name '_AEPutParamPtr';
 {
  *  AEPutParamDesc()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
@@ -710,6 +918,9 @@ function AEPutParamDesc(var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword; 
 {
  *  AEGetParamPtr()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -718,6 +929,9 @@ function AEPutParamDesc(var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword; 
 function AEGetParamPtr(const (*var*) theAppleEvent: AppleEvent; theAEKeyword: AEKeyword; desiredType: DescType; actualType: DescTypePtr; dataPtr: UnivPtr; maximumSize: Size; actualSize: SizePtr): OSErr; external name '_AEGetParamPtr';
 {
  *  AEGetParamDesc()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
@@ -728,6 +942,9 @@ function AEGetParamDesc(const (*var*) theAppleEvent: AppleEvent; theAEKeyword: A
 {
  *  AESizeOfParam()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -736,6 +953,9 @@ function AEGetParamDesc(const (*var*) theAppleEvent: AppleEvent; theAEKeyword: A
 function AESizeOfParam(const (*var*) theAppleEvent: AppleEvent; theAEKeyword: AEKeyword; typeCode: DescTypePtr; dataSize: SizePtr): OSErr; external name '_AESizeOfParam';
 {
  *  AEDeleteParam()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
@@ -752,6 +972,9 @@ function AEDeleteParam(var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword): 
 {
  *  AEGetAttributePtr()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -760,6 +983,9 @@ function AEDeleteParam(var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword): 
 function AEGetAttributePtr(const (*var*) theAppleEvent: AppleEvent; theAEKeyword: AEKeyword; desiredType: DescType; typeCode: DescTypePtr; dataPtr: UnivPtr; maximumSize: Size; actualSize: SizePtr): OSErr; external name '_AEGetAttributePtr';
 {
  *  AEGetAttributeDesc()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
@@ -770,6 +996,9 @@ function AEGetAttributeDesc(const (*var*) theAppleEvent: AppleEvent; theAEKeywor
 {
  *  AESizeOfAttribute()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -779,6 +1008,9 @@ function AESizeOfAttribute(const (*var*) theAppleEvent: AppleEvent; theAEKeyword
 {
  *  AEPutAttributePtr()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -787,6 +1019,9 @@ function AESizeOfAttribute(const (*var*) theAppleEvent: AppleEvent; theAEKeyword
 function AEPutAttributePtr(var theAppleEvent: AppleEvent; theAEKeyword: AEKeyword; typeCode: DescType; dataPtr: UnivPtr; dataSize: Size): OSErr; external name '_AEPutAttributePtr';
 {
  *  AEPutAttributeDesc()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
@@ -815,6 +1050,9 @@ function AEPutAttributeDesc(var theAppleEvent: AppleEvent; theAEKeyword: AEKeywo
 {
  *  AESizeOfFlattenedDesc()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   not available
  *    CarbonLib:        in CarbonLib 1.4 and later
@@ -837,6 +1075,9 @@ function AESizeOfFlattenedDesc(const (*var*) theAEDesc: AEDesc): Size; external 
 {
  *  AEFlattenDesc()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   not available
  *    CarbonLib:        in CarbonLib 1.4 and later
@@ -854,6 +1095,9 @@ function AEFlattenDesc(const (*var*) theAEDesc: AEDesc; buffer: Ptr; bufferSize:
 
 {
  *  AEUnflattenDesc()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   not available
@@ -875,6 +1119,9 @@ function AEUnflattenDesc(buffer: Ptr; var result: AEDesc): OSStatus; external na
 {
  *  AEGetDescData()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -884,6 +1131,9 @@ function AEGetDescData(const (*var*) theAEDesc: AEDesc; dataPtr: UnivPtr; maximu
 
 {
  *  AEGetDescDataSize()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
  *  
  *  Availability:
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
@@ -895,6 +1145,9 @@ function AEGetDescDataSize(const (*var*) theAEDesc: AEDesc): Size; external name
 {
  *  AEReplaceDescData()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
  *  Availability:
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -903,6 +1156,27 @@ function AEGetDescDataSize(const (*var*) theAEDesc: AEDesc): Size; external name
 function AEReplaceDescData(typeCode: DescType; dataPtr: UnivPtr; dataSize: Size; var theAEDesc: AEDesc): OSErr; external name '_AEReplaceDescData';
 
 {$endc}  {ACCESSOR_CALLS_ARE_FUNCTIONS}
+
+{
+ * Retrieve a range of bytes from an AEDesc.  This obviates the need
+ * to retrieve the entire data from the event using AEGetDescData.
+ * This is only valid for data type AEDescs.  If the requested length
+ * and offset are such that they do not fit entirely with the data of the
+ * desc, errAEBufferTooSmall is returned.
+ }
+{
+ *  AEGetDescDataRange()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
+ *    Non-Carbon CFM:   not available
+ }
+function AEGetDescDataRange( const (*var*) dataDesc: AEDesc; buffer: UnivPtr; offset: Size; length: Size ): OSStatus; external name '_AEGetDescDataRange';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {*************************************************************************
@@ -924,6 +1198,18 @@ type
 
 const
 	uppAEEventHandlerProcInfo = $00000FE0;
+
+{
+ *  NewAEDisposeExternalUPP()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
+ *    Non-Carbon CFM:   available as macro/inline
+ }
+function NewAEDisposeExternalUPP( userRoutine: AEDisposeExternalProcPtr ): AEDisposeExternalUPP; external name '_NewAEDisposeExternalUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+
 	{
 	 *  NewAEEventHandlerUPP()
 	 *  
@@ -933,6 +1219,18 @@ const
 	 *    Mac OS X:         in version 10.0 and later
 	 	}
 function NewAEEventHandlerUPP(userRoutine: AEEventHandlerProcPtr): AEEventHandlerUPP; external name '_NewAEEventHandlerUPP'; { old name was NewAEEventHandlerProc }
+
+{
+ *  DisposeAEDisposeExternalUPP()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
+ *    Non-Carbon CFM:   available as macro/inline
+ }
+procedure DisposeAEDisposeExternalUPP( userUPP: AEDisposeExternalUPP ); external name '_DisposeAEDisposeExternalUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+
 {
  *  DisposeAEEventHandlerUPP()
  *  
@@ -942,6 +1240,18 @@ function NewAEEventHandlerUPP(userRoutine: AEEventHandlerProcPtr): AEEventHandle
  *    Mac OS X:         in version 10.0 and later
  }
 procedure DisposeAEEventHandlerUPP(userUPP: AEEventHandlerUPP); external name '_DisposeAEEventHandlerUPP';
+
+{
+ *  InvokeAEDisposeExternalUPP()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
+ *    Non-Carbon CFM:   available as macro/inline
+ }
+procedure InvokeAEDisposeExternalUPP( dataPtr: {const} UnivPtr; dataLength: Size; refcon: SInt32; userUPP: AEDisposeExternalUPP ); external name '_InvokeAEDisposeExternalUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+
 {
  *  InvokeAEEventHandlerUPP()
  *  
