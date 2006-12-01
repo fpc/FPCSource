@@ -1114,7 +1114,7 @@ implementation
   The startbit/bitindex in a subsetreference always refers to
   a) on big endian: the most significant bit of the value
      (bits counted from left to right, both memory an registers)
-  b) on little endia: the least significant bit when the value
+  b) on little endian: the least significant bit when the value
      is loaded in a register (bit counted from right to left)
 
   Although a) results in more complex code for big endian systems, it's
