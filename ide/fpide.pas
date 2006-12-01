@@ -923,6 +923,9 @@ begin
 {$ifndef go32v2}
   initvideo;
 {$endif ndef go32v2}
+  {Videobuffer has been reallocated, need passive video situation detection
+   again.}
+  initscreen;
 {$ifdef Windows}
   { write the empty screen to dummy console handle }
   UpdateScreen(true);
