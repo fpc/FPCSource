@@ -14,7 +14,7 @@ implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs \
   ASRegistry ATSFont ATSLayoutTypes ATSTypes \
   ATSUnicodeDirectAccess ATSUnicodeDrawing \
   ATSUnicodeFlattening ATSUnicodeFonts ATSUnicodeGlyphs \
-  ATSUnicodeObjects ATSUnicodeTypes AVLTree AXConstants \
+  ATSUnicodeObjects ATSUnicodeTypes AVLTree \
   AXErrors AXUIElement AXValue Aliases Appearance \
   AppleDiskPartitions AppleEvents AppleHelp AppleScript \
   AuthSession Authorization AuthorizationDB AuthorizationTags \
