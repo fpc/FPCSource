@@ -745,23 +745,28 @@ end;
 
 Procedure QuickSort(FList: PPointerList; L, R : Longint;Compare: TListSortCompare);
 var
-  I, J : Longint;
-  P, Q : Pointer;
+  I, J, P: Longint;
+  PItem, Q : Pointer;
 begin
  repeat
    I := L;
    J := R;
-   P := FList^[ (L + R) div 2 ];
+   P := (L + R) div 2;
    repeat
-     while Compare(P, FList^[i]) > 0 do
+     PItem := FList^[P];
+     while Compare(PItem, FList^[i]) > 0 do
        I := I + 1;
-     while Compare(P, FList^[J]) < 0 do
+     while Compare(PItem, FList^[J]) < 0 do
        J := J - 1;
      If I <= J then
      begin
        Q := FList^[I];
        Flist^[I] := FList^[J];
        FList^[J] := Q;
+       if P = I then
+        P := J
+       else if P = J then
+        P := I;
        I := I + 1;
        J := J - 1;
      end;
