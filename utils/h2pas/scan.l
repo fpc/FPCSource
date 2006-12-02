@@ -1,6 +1,5 @@
 %{
 {
-    $Id: scan.l,v 1.7 2004/09/08 22:21:41 carl Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
@@ -216,8 +215,8 @@ type
         > -1 = ifdef sublevel in an else block.
        }
        cplusblocklevel : LongInt = 0;
-       
-       
+
+
     function yylex : integer;
     function act_token : string;
     procedure internalerror(i : integer);
@@ -328,7 +327,7 @@ type
     begin
       NotInCPlusBlock := cplusblocklevel < 1;
     end;
-    
+
     constructor tresobject.init_preop(const s : string;_p1 : presobject);
       begin
          typ:=t_preop;
@@ -489,7 +488,7 @@ type
 D [0-9]
 %%
 
-"/*"                    if NotInCPlusBlock then 
+"/*"                    if NotInCPlusBlock then
                         begin
                           if not stripcomment then
                             write(outfile,aktspace,'{');
@@ -542,9 +541,9 @@ D [0-9]
                           until false;
                           flush(outfile);
                         end
-                        else 
+                        else
                           skip_until_eol;
-"//"                    if NotInCPlusBlock then 
+"//"                    if NotInCPlusBlock then
                         begin
                           commentstr:='';
                           if (in_define) and not (stripcomment) then
@@ -598,11 +597,11 @@ D [0-9]
                           until false;
                           flush(outfile);
                         end
-                        else 
+                        else
                           skip_until_eol;
 \"[^\"]*\"              if NotInCPlusBlock then return(CSTRING) else skip_until_eol;
 \'[^\']*\'              if NotInCPlusBlock then return(CSTRING) else skip_until_eol;
-"L"\"[^\"]*\"           if NotInCPlusBlock then 
+"L"\"[^\"]*\"           if NotInCPlusBlock then
                         begin
                           if win32headers then
                             return(CSTRING)
@@ -610,7 +609,7 @@ D [0-9]
                             return(256);
                         end
                         else skip_until_eol;
-"L"\'[^\']*\'           if NotInCPlusBlock then 
+"L"\'[^\']*\'           if NotInCPlusBlock then
                         begin
                           if win32headers then
                             return(CSTRING)
@@ -619,7 +618,7 @@ D [0-9]
                         end
                         else
                           skip_until_eol;
-{D}+[Uu]?[Ll]?          if NotInCPlusBlock then 
+{D}+[Uu]?[Ll]?          if NotInCPlusBlock then
                         begin
                            while yytext[length(yytext)] in ['L','U','l','u'] do
                              Delete(yytext,length(yytext),1);
@@ -627,7 +626,7 @@ D [0-9]
                         end
                          else skip_until_eol;
 "0x"[0-9A-Fa-f]*[Uu]?[Ll]?
-                        if NotInCPlusBlock then                  
+                        if NotInCPlusBlock then
                         begin
                            (* handle pre- and postfixes *)
                            if copy(yytext,1,2)='0x' then
@@ -642,20 +641,20 @@ D [0-9]
                         else
                          skip_until_eol;
 {D}+(\.{D}+)?([Ee][+-]?{D}+)?
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                           return(NUMBER);
                         end
-                        else 
+                        else
                           skip_until_eol;
-"->"                    if NotInCPlusBlock then 
+"->"                    if NotInCPlusBlock then
                         begin
                           if in_define then
                             return(DEREF)
                           else
                             return(256);
                         end
-                        else 
+                        else
                           skip_until_eol;
 "-"                     if NotInCPlusBlock then return(MINUS) else skip_until_eol;
 "=="                    if NotInCPlusBlock then return(EQUAL) else skip_until_eol;
@@ -678,30 +677,30 @@ D [0-9]
 ","                     if NotInCPlusBlock then return(COMMA) else skip_until_eol;
 "["                     if NotInCPlusBlock then return(LECKKLAMMER) else skip_until_eol;
 "]"                     if NotInCPlusBlock then return(RECKKLAMMER) else skip_until_eol;
-"("                     if NotInCPlusBlock then 
-                           begin 
+"("                     if NotInCPlusBlock then
+                           begin
                              inc(arglevel);
                              return(LKLAMMER);
                            end
                         else
                            skip_until_eol;
-")"                     if NotInCPlusBlock then 
+")"                     if NotInCPlusBlock then
                            begin
                              dec(arglevel);
                              return(RKLAMMER);
                            end
-                         else 
+                         else
                            skip_until_eol;
 "*"                     if NotInCPlusBlock then return(STAR) else skip_until_eol;
 "..."                   if NotInCPlusBlock then return(ELLIPSIS) else skip_until_eol;
-"."                     if NotInCPlusBlock then 
+"."                     if NotInCPlusBlock then
                           if in_define then
                             return(POINT)
                           else
                             return(256);
 "="                     if NotInCPlusBlock then return(_ASSIGN) else skip_until_eol;
 "extern"                if NotInCPlusBlock then return(EXTERN) else skip_until_eol;
-"STDCALL"               if NotInCPlusBlock then 
+"STDCALL"               if NotInCPlusBlock then
                         begin
                           if Win32headers then
                             return(STDCALL)
@@ -711,9 +710,9 @@ D [0-9]
                         else
                         begin
                           skip_until_eol;
-                        end;                            
+                        end;
 "CDECL"                 if NotInCPlusBlock then
-                        begin 
+                        begin
                           if not Win32headers then
                             return(ID)
                           else
@@ -722,8 +721,8 @@ D [0-9]
                         else
                         begin
                           skip_until_eol;
-                        end;                            
-"PASCAL"                if NotInCPlusBlock then 
+                        end;
+"PASCAL"                if NotInCPlusBlock then
                         begin
                           if not Win32headers then
                             return(ID)
@@ -733,8 +732,8 @@ D [0-9]
                         else
                         begin
                           skip_until_eol;
-                        end;                            
-"PACKED"                if NotInCPlusBlock then 
+                        end;
+"PACKED"                if NotInCPlusBlock then
                         begin
                           if not Win32headers then
                             return(ID)
@@ -745,7 +744,7 @@ D [0-9]
                         begin
                           skip_until_eol;
                         end;
-"WINAPI"                if NotInCPlusBlock then 
+"WINAPI"                if NotInCPlusBlock then
                         begin
                           if not Win32headers then
                             return(ID)
@@ -755,8 +754,8 @@ D [0-9]
                         else
                         begin
                           skip_until_eol;
-                        end;                            
-"SYS_TRAP"              if NotInCPlusBlock then 
+                        end;
+"SYS_TRAP"              if NotInCPlusBlock then
                         begin
                           if not palmpilot then
                             return(ID)
@@ -766,8 +765,8 @@ D [0-9]
                         else
                         begin
                           skip_until_eol;
-                        end;                            
-"WINGDIAPI"             if NotInCPlusBlock then 
+                        end;
+"WINGDIAPI"             if NotInCPlusBlock then
                         begin
                           if not Win32headers then
                             return(ID)
@@ -778,8 +777,8 @@ D [0-9]
                         begin
                           skip_until_eol;
                         end;
-"CALLBACK"              if NotInCPlusBlock then 
-                        begin              
+"CALLBACK"              if NotInCPlusBlock then
+                        begin
                           if not Win32headers then
                             return(ID)
                           else
@@ -789,7 +788,7 @@ D [0-9]
                         begin
                           skip_until_eol;
                         end;
-"EXPENTRY"              if NotInCPlusBlock then 
+"EXPENTRY"              if NotInCPlusBlock then
                         begin
                           if not Win32headers then
                             return(ID)
@@ -811,7 +810,7 @@ D [0-9]
                         begin
                           if not stripinfo then
                             writeln(outfile,'{ C++ extern C conditionnal removed }');
-                        end;                        
+                        end;
 "#ifdef __cplusplus"[ \t]*\n"}"\n"#endif"
                         begin
                           if not stripinfo then
@@ -821,29 +820,29 @@ D [0-9]
                         begin
                           if not stripinfo then
                             writeln(outfile,'{ C++ end of extern C conditionnal removed }');
-                        end;    
+                        end;
 "#ifdef cplusplus"[ \t]*
                         begin
                           Inc(cplusblocklevel);
-                        end;   
+                        end;
 "#ifdef __cplusplus"[ \t]*
                         begin
                           Inc(cplusblocklevel);
-                        end; 
+                        end;
 "#ifdef"[ \t]
                         begin
                            if cplusblocklevel > 0 then
                              Inc(cplusblocklevel)
                            else
-                           begin 
+                           begin
                              if cplusblocklevel < 0 then
                                Dec(cplusblocklevel);
                              write(outfile,'{$ifdef ');
                              copy_until_eol;
                              writeln(outfile,'}');
-                             flush(outfile);                           
+                             flush(outfile);
                            end;
-                        end;                
+                        end;
 "#"[ \t]*"else"         begin
                            if cplusblocklevel < -1 then
                            begin
@@ -857,7 +856,7 @@ D [0-9]
                                  begin
                                    writeln(outfile,'{$else}');
                                    block_type:=bt_no;
-                                   flush(outfile);                                 
+                                   flush(outfile);
                                  end;
                              1 : cplusblocklevel := -1;
                              -1 : cplusblocklevel := 1;
@@ -874,7 +873,7 @@ D [0-9]
                                0 : begin
                                      writeln(outfile,'{$endif}');
                                      block_type:=bt_no;
-                                     flush(outfile);                               
+                                     flush(outfile);
                                    end;
                                -1 : begin
                                      cplusblocklevel :=0;
@@ -906,11 +905,11 @@ D [0-9]
                                    copy_until_eol;
                                    writeln(outfile,'}');
                                    block_type:=bt_no;
-                                   flush(outfile);                             
+                                   flush(outfile);
                                  end;
                              1 : cplusblocklevel := -1;
                              -1 : cplusblocklevel := 1;
-                             end;                           
+                             end;
                         end;
 "#"[ \t]*"undef"        begin
                            write(outfile,'{$undef');
@@ -938,7 +937,7 @@ D [0-9]
                            if cplusblocklevel > 0 then
                              Inc(cplusblocklevel)
                            else
-                           begin 
+                           begin
                              if cplusblocklevel < 0 then
                                Dec(cplusblocklevel);
                              write(outfile,'{$if');
@@ -947,7 +946,7 @@ D [0-9]
                              flush(outfile);
                              block_type:=bt_no;
                            end;
-                        end; 
+                        end;
 "# "[0-9]+" "           if NotInCPlusBlock then
                           (* preprocessor line info *)
                           repeat
@@ -997,7 +996,7 @@ D [0-9]
 "short"                 if NotInCPlusBlock then return(SHORT) else skip_until_eol;
 "long"                  if NotInCPlusBlock then return(LONG) else skip_until_eol;
 "signed"                if NotInCPlusBlock then return(SIGNED) else skip_until_eol;
-"unsigned"              if NotInCPlusBlock then return(UNSIGNED) else skip_until_eol; 
+"unsigned"              if NotInCPlusBlock then return(UNSIGNED) else skip_until_eol;
 "__int8"                if NotInCPlusBlock then return(INT8) else skip_until_eol;
 "__int16"               if NotInCPlusBlock then return(INT16) else skip_until_eol;
 "__int32"               if NotInCPlusBlock then return(INT32) else skip_until_eol;
@@ -1016,16 +1015,16 @@ D [0-9]
 "HUGE"                  if NotInCPlusBlock then return(_HUGE) else skip_until_eol;
 "huge"                  if NotInCPlusBlock then return(_HUGE) else skip_until_eol;
 "while"                 if NotInCPlusBlock then return(_WHILE) else skip_until_eol;
-[A-Za-z_][A-Za-z0-9_]*  if NotInCPlusBlock then 
+[A-Za-z_][A-Za-z0-9_]*  if NotInCPlusBlock then
                            begin
                              if in_space_define=1 then
                                in_space_define:=2;
                              return(ID);
                           end
-                          else 
+                          else
                             skip_until_eol;
 ";"                     if NotInCPlusBlock then return(SEMICOLON) else skip_until_eol;
-[ \f\t]                 if NotInCPlusBlock then 
+[ \f\t]                 if NotInCPlusBlock then
                         begin
                            if (arglevel=0) and (in_space_define=2) then
                             begin
@@ -1046,10 +1045,10 @@ D [0-9]
                               else
                               begin
                                 in_define:=false;
-                                if NotInCPlusBlock then 
+                                if NotInCPlusBlock then
                                   return(NEW_LINE)
                                 else
-                                  skip_until_eol                                  
+                                  skip_until_eol
                               end;
                             end;
                        end;

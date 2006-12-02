@@ -2,7 +2,6 @@
 program h2pas;
 
 (*
-    $Id: h2pas.y,v 1.10 2005/02/20 11:09:41 florian Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
@@ -38,7 +37,7 @@ program h2pas;
      UINT_STR   = 'dword';
      CHAR_STR   = 'char';
      UCHAR_STR  = USHORT_STR; { should we use byte or char for 'unsigned char' ?? }
-     
+
      INT64_STR  = 'int64';
      QWORD_STR  = 'qword';
      REAL_STR   = 'double';
@@ -51,22 +50,22 @@ program h2pas;
     cchar_STR       = 'cchar';
     cschar_STR      = 'cschar';
     cuchar_STR      = 'cuchar';
-    
+
     cint16_STR      = 'cint16';
     cuint16_STR     = 'cuint16';
     cshort_STR      = 'cshort';
     csshort_STR     = 'csshort';
     cushort_STR     = 'cushort';
-    
+
     cint32_STR      = 'cint32';
     cuint32_STR     = 'cuint32';
     cint_STR        = 'cint';
     csint_STR       = 'csint';
     cuint_STR       = 'cuint';
-    
+
     csigned_STR     = 'csigned';
     cunsigned_STR   = 'cunsigned';
-    
+
     cint64_STR      = 'cint64';
     cuint64_STR     = 'cuint64';
     clonglong_STR   = 'clonglong';
@@ -74,32 +73,32 @@ program h2pas;
     culonglong_STR  = 'culonglong';
 
     cbool_STR       = 'cbool';
-    
+
     clong_STR       = 'clong';
     cslong_STR      = 'cslong';
     culong_STR      = 'culong';
-    
+
     cfloat_STR      = 'cfloat';
     cdouble_STR     = 'cdouble';
     clongdouble_STR = 'clongdouble';
-  
+
   const
     MAX_CTYPESARRAY = 25;
     CTypesArray : array [0..MAX_CTYPESARRAY] of string =
-      (cint8_STR,     cuint8_STR, 
+      (cint8_STR,     cuint8_STR,
        cchar_STR,     cschar_STR,     cuchar_STR,
-       cint16_STR,    cuint16_STR, 
+       cint16_STR,    cuint16_STR,
        cshort_STR,    csshort_STR,    cushort_STR,
-       csigned_STR,   cunsigned_STR, 
+       csigned_STR,   cunsigned_STR,
        cint32_STR,    cuint32_STR,    cint_STR,
-       csint_STR,     cuint_STR,       
+       csint_STR,     cuint_STR,
        cint64_STR,    cuint64_STR,
        clonglong_STR, cslonglong_STR, culonglong_STR,
-       
-       cbool_STR,     
-       clong_STR,      cslong_STR,    culong_STR);  
-    
-    
+
+       cbool_STR,
+       clong_STR,      cslong_STR,    culong_STR);
+
+
   var
      hp,ph    : presobject;
      implemfile  : text;  (* file for implementation headers extern procs *)
@@ -803,7 +802,7 @@ program h2pas;
                                      begin
                                        pointerwritten:=false;
                                        if (p^.p1=nil) and UsePPointers then
-                                        begin   
+                                        begin
                                           if (simple_type^.typ=t_id) then
                                            begin
                                              write(outfile,PointerName(simple_type^.p));
@@ -2272,7 +2271,7 @@ special_type_name :
         begin
           s:=strpas(hp^.p);
           if UseCTypesUnit then
-          begin          
+          begin
             if s=cint_STR then
               s:=csint_STR
             else if s=cshort_STR then
@@ -2280,17 +2279,17 @@ special_type_name :
             else if s=cchar_STR then
               s:=cschar_STR
             else if s=clong_STR then
-              s:=cslong_STR              
+              s:=cslong_STR
             else if s=clonglong_STR then
               s:=cslonglong_STR
             else if s=cint8_STR then
               s:=cint8_STR
             else if s=cint16_STR then
-              s:=cint16_STR 
+              s:=cint16_STR
             else if s=cint32_STR then
-              s:=cint32_STR 
+              s:=cint32_STR
             else if s=cint64_STR then
-              s:=cint64_STR                                                     
+              s:=cint64_STR
             else
              s:='';
           end
@@ -2299,7 +2298,7 @@ special_type_name :
             if s=UINT_STR then
               s:=INT_STR
             else if s=USHORT_STR then
-              s:=SHORT_STR               
+              s:=SHORT_STR
             else if s=USMALL_STR then
               s:=SMALL_STR
             else if s=UCHAR_STR then
@@ -2307,8 +2306,8 @@ special_type_name :
             else if s=QWORD_STR then
               s:=INT64_STR
             else
-              s:='';          
-          end; 
+              s:='';
+          end;
           if s<>'' then
            hp^.setstr(s);
         end;
@@ -2335,22 +2334,22 @@ special_type_name :
             else if s=cint8_STR then
               s:=cuint8_STR
             else if s=cint16_STR then
-              s:=cuint16_STR 
+              s:=cuint16_STR
             else if s=cint32_STR then
-              s:=cuint32_STR 
+              s:=cuint32_STR
             else if s=cint64_STR then
-              s:=cuint64_STR                
+              s:=cuint64_STR
             else
-              s:='';          
+              s:='';
           end
           else
           begin
             if s=INT_STR then
               s:=UINT_STR
             else if s=SHORT_STR then
-              s:=USHORT_STR          
+              s:=USHORT_STR
             else if s=SMALL_STR then
-              s:=USMALL_STR          
+              s:=USMALL_STR
             else if s=CHAR_STR then
               s:=UCHAR_STR
             else if s=INT64_STR then
@@ -2365,80 +2364,80 @@ special_type_name :
      INT
      {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(cint_STR)) 
-     else       
+       $$:=new(presobject,init_id(cint_STR))
+     else
        $$:=new(presobject,init_intid(INT_STR));
      } |
      LONG
      {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(clong_STR)) 
-     else      
+       $$:=new(presobject,init_id(clong_STR))
+     else
        $$:=new(presobject,init_intid(INT_STR));
      } |
      LONG INT
      {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(clong_STR)) 
-     else    
+       $$:=new(presobject,init_id(clong_STR))
+     else
        $$:=new(presobject,init_intid(INT_STR));
      } |
      LONG LONG
      {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(clonglong_STR)) 
-     else        
+       $$:=new(presobject,init_id(clonglong_STR))
+     else
        $$:=new(presobject,init_intid(INT64_STR));
      } |
      LONG LONG INT
      {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(clonglong_STR)) 
-     else      
+       $$:=new(presobject,init_id(clonglong_STR))
+     else
        $$:=new(presobject,init_intid(INT64_STR));
      } |
      SHORT
      {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(cshort_STR)) 
-     else      
+       $$:=new(presobject,init_id(cshort_STR))
+     else
        $$:=new(presobject,init_intid(SMALL_STR));
      } |
      SHORT INT
      {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(csint_STR)) 
-     else      
+       $$:=new(presobject,init_id(csint_STR))
+     else
        $$:=new(presobject,init_intid(SMALL_STR));
      } |
      INT8
      {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(cint8_STR)) 
-     else      
-       $$:=new(presobject,init_intid(SHORT_STR));     
+       $$:=new(presobject,init_id(cint8_STR))
+     else
+       $$:=new(presobject,init_intid(SHORT_STR));
      } |
      INT16
-     {    
+     {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(cint16_STR)) 
-     else      
-       $$:=new(presobject,init_intid(SMALL_STR));     
+       $$:=new(presobject,init_id(cint16_STR))
+     else
+       $$:=new(presobject,init_intid(SMALL_STR));
      } |
-     INT32   
-     {    
+     INT32
+     {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(cint32_STR)) 
-     else      
-       $$:=new(presobject,init_intid(INT_STR));     
+       $$:=new(presobject,init_id(cint32_STR))
+     else
+       $$:=new(presobject,init_intid(INT_STR));
      } |
      INT64
-     {   
+     {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(cint64_STR)) 
-     else      
-       $$:=new(presobject,init_intid(INT64_STR));         
-     } |   
+       $$:=new(presobject,init_id(cint64_STR))
+     else
+       $$:=new(presobject,init_intid(INT64_STR));
+     } |
      REAL
      {
        $$:=new(presobject,init_intid(REAL_STR));
@@ -2450,15 +2449,15 @@ special_type_name :
      _CHAR
      {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(cchar_STR)) 
+       $$:=new(presobject,init_id(cchar_STR))
      else
        $$:=new(presobject,init_intid(CHAR_STR));
      } |
      UNSIGNED
      {
      if UseCTypesUnit then
-       $$:=new(presobject,init_id(cunsigned_STR)) 
-     else     
+       $$:=new(presobject,init_id(cunsigned_STR))
+     else
        $$:=new(presobject,init_intid(UINT_STR));
      }
      ;
