@@ -1,4 +1,4 @@
-{ %opt=-Sehw }
+{ %opt=-Sehw -S2 }
 
 type myclass=class(TObject)
       procedure myproc(); 
