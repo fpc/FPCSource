@@ -169,11 +169,10 @@ unit cpupara;
 
 
     function tx86_64paramanager.ret_in_param(def : tdef;calloption : tproccalloption) : boolean;
-      var
-        size: longint;
       begin
-        if (target_info.system=system_x86_64_win64) and (calloption=pocall_safecall) then
-          result:=true
+        if target_info.system=system_x86_64_win64 then
+          result:=(calloption=pocall_safecall) or
+            not(def.size in [1,2,4,8])
         else
           result:=inherited ret_in_param(def,calloption);
       end;
@@ -314,7 +313,6 @@ unit cpupara;
           retcgsize:=OS_ADDR
         else
           retcgsize:=def_cgsize(p.returndef);
-
         location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
         { void has no location }
         if is_void(p.returndef) then

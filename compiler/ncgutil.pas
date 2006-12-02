@@ -1381,7 +1381,7 @@ implementation
                       if paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption) then
                         cg.a_load_loc_reg(list,OS_ADDR,restmploc,hreg)
                       else
-                      cg.a_load_loc_reg(list,restmploc.size,restmploc,hreg);
+                        cg.a_load_loc_reg(list,restmploc.size,restmploc,hreg);
                     end;
                 end;
               LOC_FPUREGISTER:
