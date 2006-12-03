@@ -182,12 +182,16 @@ begin
     exit;
 {$ifndef MSWINDOWS}
   Dec (S,WideFirstOff);
+  Freemem(S);
 {$else MSWINDOWS}
   if winwidestringalloc then
     SysFreeString(S)
   else
+    begin
+      Dec (S,WideFirstOff);
+      Freemem(S);
+    end;
 {$endif MSWINDOWS}
-    FreeMem (S);
   S:=Nil;
 end;
 
