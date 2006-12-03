@@ -76,12 +76,12 @@ implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs \
   TranslationExtensions TypeSelect URLAccess USB UTCUtils \
   UTType UnicodeConverter UnicodeUtilities Video WorldScript \
   fenv fp vBLAS vDSP \
-  UTCoreTypes.pas xattr.pas FontPanel.pas CoreAudioTypes.pas \
-  AXNotificationConstants.pas AudioHardware.pas AXRoleConstants.pas \
-  TranslationServices.pas AXActionConstants.pas HIMovieView.pas \
-  CGImageDestination.pas AXValueConstants.pas AXAttributeConstants.pas \
-  AXTextAttributedString.pas CGImageProperties.pas CGImageSource.pas \
-  UniversalAccess.pas HostTime.pas
+  UTCoreTypes xattr FontPanel CoreAudioTypes \
+  AXNotificationConstants AudioHardware AXRoleConstants \
+  TranslationServices AXActionConstants HIMovieView \
+  CGImageDestination AXValueConstants AXAttributeConstants \
+  AXTextAttributedString CGImageProperties CGImageSource \
+  UniversalAccess HostTime
 
 [libs]
 libversion=2.0.0
