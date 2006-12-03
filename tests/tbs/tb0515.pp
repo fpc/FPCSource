@@ -7,9 +7,9 @@ const
   count = 64;
   factor = 15;
 
-function inttopaddedstr(x: integer): string;
+function ptrtopaddedstr(x: pointer): string;
 begin
-  result := format('%02u', [x]);
+  result := format('%02p', [x]);
 end;
 
 procedure fatalerror(str: string; index: integer);
@@ -19,19 +19,19 @@ begin
 end;
 
 var
-  i, j: integer;
+  i, j: ptrint;
   strlist: tstringlist;
 begin
   strlist := tstringlist.create;
   for i := 0 to count-1 do
   begin
     j := factor*i mod count;
-    strlist.addobject(inttopaddedstr(j), tobject(j));
+    strlist.addobject(ptrtopaddedstr(pointer(j)), tobject(j));
   end;
   for i := 0 to count-1 do
   begin
     j := factor*i mod count;
-    if strlist.strings[i] <> inttopaddedstr(j) then
+    if strlist.strings[i] <> ptrtopaddedstr(pointer(j)) then
       fatalerror('string error at ', i);
     if strlist.objects[i] <> tobject(j) then
       fatalerror('object error at ', i);
@@ -39,7 +39,7 @@ begin
   strlist.sort;
   for i := 0 to count-1 do
   begin
-    if strlist.strings[i] <> inttopaddedstr(i) then
+    if strlist.strings[i] <> ptrtopaddedstr(pointer(i)) then
       fatalerror('sorted string error at ', i);
     if strlist.objects[i] <> tobject(i) then
       fatalerror('sorted object error at ', i);
@@ -51,7 +51,7 @@ begin
   j := 0;
   for i := 0 to 61 do
   begin
-    if strlist.strings[i] <> inttopaddedstr(j) then
+    if strlist.strings[i] <> ptrtopaddedstr(pointer(j)) then
       fatalerror('delete string error at ', i);
     if strlist.objects[i] <> tobject(j) then
       fatalerror('delete object error at ', i);
