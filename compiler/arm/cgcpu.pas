@@ -942,68 +942,62 @@ unit cgcpu;
 
      procedure tcgarm.a_load_reg_reg(list : TAsmList; fromsize, tosize : tcgsize;reg1,reg2 : tregister);
        var
-         instr: taicpu;
          so : tshifterop;
-       begin
-         shifterop_reset(so);
-         if (tcgsize2size[tosize] < tcgsize2size[fromsize]) or
-            (
-              (tcgsize2size[tosize] = tcgsize2size[fromsize]) and
-             (tosize <> fromsize) and
-             not(fromsize in [OS_32,OS_S32])
-            ) then
-           begin
-             case tosize of
-               OS_8:
-                 list.concat(taicpu.op_reg_reg_const(A_AND,
-                   reg2,reg1,$ff));
-               OS_S8:
-                 begin
-                   so.shiftmode:=SM_LSL;
-                   so.shiftimm:=24;
-                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg1,so));
-                   so.shiftmode:=SM_ASR;
-                   so.shiftimm:=24;
-                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg2,so));
-                 end;
-               OS_16:
-                 begin
-                   so.shiftmode:=SM_LSL;
-                   so.shiftimm:=16;
-                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg1,so));
-                   so.shiftmode:=SM_LSR;
-                   so.shiftimm:=16;
-                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg2,so));
-                 end;
-               OS_S16:
-                 begin
-                   so.shiftmode:=SM_LSL;
-                   so.shiftimm:=16;
-                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg1,so));
-                   so.shiftmode:=SM_ASR;
-                   so.shiftimm:=16;
-                   list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg2,so));
-                 end;
-               OS_32,OS_S32:
-                 begin
-                   instr:=taicpu.op_reg_reg(A_MOV,reg2,reg1);
-                   list.concat(instr);
-                   add_move_instruction(instr);
-                 end;
-               else internalerror(2002090901);
-             end;
-           end
-         else
-           begin
-             if reg1<>reg2 then
+         conv_done: boolean;
+
+       procedure do_shift(shiftmode : tshiftmode; shiftimm : byte; reg : tregister);
+         begin
+           so.shiftmode:=shiftmode;
+           so.shiftimm:=shiftimm;
+           list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg,so));
+         end;
+       
+       function do_conv(size : tcgsize) : boolean;
+         begin
+           result:=true;
+           case size of
+             OS_8:
+               list.concat(taicpu.op_reg_reg_const(A_AND,reg2,reg1,$ff));
+             OS_S8:
                begin
-                 { same size, only a register mov required }
-                 instr:=taicpu.op_reg_reg(A_MOV,reg2,reg1);
-                 list.Concat(instr);
-                 { Notify the register allocator that we have written a move instruction so
-                   it can try to eliminate it. }
-                 add_move_instruction(instr);
+                 do_shift(SM_LSL,24,reg1);
+                 do_shift(SM_ASR,24,reg2);
                end;
+             OS_16,OS_S16:
+               begin
+                 do_shift(SM_LSL,16,reg1);
+                 if size=OS_S16 then
+                   do_shift(SM_ASR,16,reg2)
+                 else
+                   do_shift(SM_LSR,16,reg2);
+               end;
+             else
+               result:=false;
+           end;
+           conv_done:=result;
+         end;
+     
+       var
+         instr: taicpu;
+       begin
+         conv_done:=false;
+         if tcgsize2size[tosize]<>tcgsize2size[fromsize] then
+           begin
+             shifterop_reset(so);
+             if not do_conv(tosize) then
+               if tosize in [OS_32,OS_S32] then
+                 do_conv(fromsize)
+               else
+                 internalerror(2002090901);
+           end;
+         if not conv_done and (reg1<>reg2) then
+           begin
+             { same size, only a register mov required }
+             instr:=taicpu.op_reg_reg(A_MOV,reg2,reg1);
+             list.Concat(instr);
+             { Notify the register allocator that we have written a move instruction so
+               it can try to eliminate it. }
+             add_move_instruction(instr);
            end;
        end;
 
