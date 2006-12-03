@@ -101,10 +101,10 @@ unit regexpr;
      }
      function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags;var RegExprEngine: TRegExprEngine): boolean;
 
-{$IFDEF FPC}     
+{$IFDEF FPC}
     {** Backward compatibility routine }
      function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags): TREGExprEngine;
-{$ENDIF}     
+{$ENDIF}
 
      {** Frees all up resources used for the encoded regular expression }
      procedure DestroyRegExprEngine(var regexpr : TRegExprEngine);
@@ -118,8 +118,8 @@ unit regexpr;
         @returns(true if there was a match, otherwise false)
      }
      function RegExprPos(RegExprEngine : TRegExprEngine;p : pchar;var index,len : longint) : boolean;
-     
-     // function RegExprReplace(RegExprEngine : TRegExprEngine;const src,newstr : ansistring;var dest : ansistring) : sizeint;
+
+     function RegExprReplaceAll(RegExprEngine : TRegExprEngine;const src,newstr : ansistring;var dest : ansistring) : sizeint;
 
      { This function Escape known regex chars and place the result on Return. If something went wrong the
        function will return false. }
@@ -849,9 +849,9 @@ unit regexpr;
               DestroyRegExprEngine(RegExprEngine);
             end;
        end;
-       
-    
-{$IFDEF FPC}    
+
+
+{$IFDEF FPC}
     function GenerateRegExprEngine(regexpr : pchar;flags : tregexprflags): TREGExprEngine;
     var
      r: TRegExprEngine;
@@ -859,7 +859,7 @@ unit regexpr;
       GenerateRegExprEngine(regexpr,flags,r);
       GenerateRegExprEngine:=r;
     end;
-{$ENDIF}    
+{$ENDIF}
 
     procedure DestroyRegExprEngine(var regexpr : TRegExprEngine);
 
@@ -918,14 +918,13 @@ unit regexpr;
                                       regexprentry:=regexprentry^.next;
                                     end
                                   else
-                                  if (pos^=#$85) or (pos^=#10) or ((pos^=#13) and ((pos-1)^ <> #10)) then
+                                  if (pos^=#$85) or (pos^=#10) or ((pos^=#13) and ((pos-1) >= firstpos) and ((pos-1)^ <> #10)) then
                                     begin
                                        regexprentry:=regexprentry^.next;
                                     end
                                   else
                                     begin
                                        dosearch:=false;
-                                       lastpos:=savedpos;
                                        exit;
                                     end;
                              end
@@ -1114,31 +1113,65 @@ unit regexpr;
           index:=-1;
        end;
 
-{
-  function RegExprReplace(RegExprEngine : TRegExprEngine;const src,newstr : ansistring;var dest : ansistring) : sizeint;
+
+  function RegExprReplaceAll(RegExprEngine : TRegExprEngine;const src,newstr : ansistring;var dest : ansistring) : sizeint;
     var
       index,len : longint;
       pos,lastpos : pchar;
+      first : boolean;
+      oldlength : PtrInt;
     begin
       pos:=pchar(src);
       lastpos:=pos;
+      first:=true;
+      Result:=0;
       { estimate some length }
       SetLength(dest,length(src)+((length(src) div 10)*length(newstr)));
       while RegExprPos(RegExprEngine,pos,index,len) do
         begin
+          inc(pos,index);
           if pos>lastpos then
-            begin  
-              { cast dest here because it is already unified }            
-              move(lastpos^,char(dest[length(dest)+1)]),pos-lastpos);
-              SetLength(dest,Length(dest)+(pos-lastpos));
+            begin
+              { copy skipped part }
+
+              { because we cheat with SetLength a SetLength(...,0) isn't what we want
+                so we've to trick at the first SetLength call
+              }
+              if first then
+                begin
+                  SetLength(dest,(pos-lastpos));
+                  { cast dest here because it is already unified }
+                  move(lastpos^,char(dest[1]),pos-lastpos);
+                end
+              else
+                begin
+                  oldlength:=Length(dest);
+                  SetLength(dest,oldlength+(pos-lastpos));
+                  move(lastpos^,char(dest[oldlength+1]),pos-lastpos);
+                end;
+              first:=false;
             end;
+          { found }
+          inc(Result);
           dest:=dest+newstr;
           inc(pos,len);
+          lastpos:=pos;
         end;
       { copy remainder }
-      
+      len:=strlen(pos);
+      if first then
+        begin
+          SetLength(dest,len);
+          move(pos^,char(dest[length(dest)+1]),len);
+        end
+      else
+        begin
+          oldlength:=Length(dest);
+          SetLength(dest,oldlength+len);
+          move(pos^,char(dest[oldlength+1]),len);
+        end
     end;
-}   
+
 
   function RegExprEscapeStr (const S : string) : string;
     var

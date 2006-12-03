@@ -9,6 +9,7 @@ var
    r         : tregexprengine;
    index,len : longint;
    S         : String;
+   Dest	     : AnsiString;
 
 procedure do_error(i : longint);
 
@@ -22,6 +23,7 @@ var
 begin
    writeln('*** Testing unit regexpr ***');
 
+   writeln('*** Searching tests ***');
    { basic tests }
 
    initok:=GenerateRegExprEngine('.*',[],r);
@@ -712,10 +714,12 @@ begin
     do_error (1408);
 
 
+   writeln('*** Escaping tests ***');
    s := '^Hello World \.  [a-z] \D { } |() ?a*.*\\ 1 $';
-   writeln ('Before Escaping: ', s);
-   writeln ('Afther Escaping: ', RegExprEscapeStr(s));
+   if RegExprEscapeStr(s)<>'\^Hello World \\\.  \[a\-z\] \\D \{ \} \|\(\) \?a\*\.\*\\\\ 1 \$' then
+     do_error(1450);
 
+   writeln('*** More search tests ***');
 
   initok:=GenerateRegExprEngine('((nofoo)|(foo))1234',[],r);
   if not initok then
@@ -758,8 +762,6 @@ begin
      do_error(1505);
    DestroyregExprEngine(r);
 
-
-
 {
   initok:=GenerateRegExprEngine('(nofoo|foo)1234',[],r);
   if not initok then
@@ -781,5 +783,49 @@ begin
      do_error(1010);
    DestroyregExprEngine(r);
    }
+
+  { *************************************************************************
+                              replacement tests
+   ************************************************************************* }
+  writeln('*** Replacement tests ***');
+
+  initok:=GenerateRegExprEngine('fa',[],r);
+  if not initok then
+    do_error(2000);
+  if (RegExprReplaceAll(r,'asdfasdf','',Dest)<>1) or
+    (Dest<>'asdsdf') then
+    do_error(2001);
+  DestroyregExprEngine(r);
+
+  initok:=GenerateRegExprEngine('fa',[],r);
+  if not initok then
+    do_error(2002);
+  if (RegExprReplaceAll(r,'fa','',Dest)<>1) or
+    (Dest<>'') then
+    do_error(2003);
+  DestroyregExprEngine(r);
+
+  initok:=GenerateRegExprEngine('fa',[],r);
+  if not initok then
+    do_error(2004);
+  if RegExprReplaceAll(r,'','',Dest)<>0then
+    do_error(2005);
+  DestroyregExprEngine(r);
+
+  initok:=GenerateRegExprEngine('fa',[],r);
+  if not initok then
+    do_error(2006);
+  if (RegExprReplaceAll(r,'asdfafaasd','',Dest)<>2) or
+    (Dest<>'asdasd') then
+    do_error(2007);
+  DestroyregExprEngine(r);
+
+  initok:=GenerateRegExprEngine('fa',[],r);
+  if not initok then
+    do_error(2008);
+  if (RegExprReplaceAll(r,'asdfafaasdasdfafaasd','',Dest)<>4) or
+    (Dest<>'asdasdasdasd') then
+    do_error(2009);
+  DestroyregExprEngine(r);
    writeln('*** Testing unit regexpr was successful ***');
 end.
