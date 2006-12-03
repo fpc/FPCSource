@@ -3,7 +3,6 @@
 
 (* global definitions: *)
 {
-    $Id: scan.l,v 1.7 2004/09/08 22:21:41 carl Exp $
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     This program is free software; you can redistribute it and/or modify
@@ -219,8 +218,8 @@ type
         > -1 = ifdef sublevel in an else block.
        }
        cplusblocklevel : LongInt = 0;
-       
-       
+
+
     function yylex : integer;
     function act_token : string;
     procedure internalerror(i : integer);
@@ -331,7 +330,7 @@ type
     begin
       NotInCPlusBlock := cplusblocklevel < 1;
     end;
-    
+
     constructor tresobject.init_preop(const s : string;_p1 : presobject);
       begin
          typ:=t_preop;
@@ -498,7 +497,7 @@ begin
   (* actions: *)
   case yyruleno of
   1:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                           if not stripcomment then
                             write(outfile,aktspace,'{');
@@ -551,10 +550,10 @@ begin
                           until false;
                           flush(outfile);
                         end
-                        else 
+                        else
                           skip_until_eol;
   2:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                           commentstr:='';
                           if (in_define) and not (stripcomment) then
@@ -608,14 +607,14 @@ begin
                           until false;
                           flush(outfile);
                         end
-                        else 
+                        else
                           skip_until_eol;
   3:
                         if NotInCPlusBlock then return(CSTRING) else skip_until_eol;
   4:
                         if NotInCPlusBlock then return(CSTRING) else skip_until_eol;
   5:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                           if win32headers then
                             return(CSTRING)
@@ -624,7 +623,7 @@ begin
                         end
                         else skip_until_eol;
   6:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                           if win32headers then
                             return(CSTRING)
@@ -634,7 +633,7 @@ begin
                         else
                           skip_until_eol;
   7:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                            while yytext[length(yytext)] in ['L','U','l','u'] do
                              Delete(yytext,length(yytext),1);
@@ -643,7 +642,7 @@ begin
                          else skip_until_eol;
   8:
                           
-                        if NotInCPlusBlock then                  
+                        if NotInCPlusBlock then
                         begin
                            (* handle pre- and postfixes *)
                            if copy(yytext,1,2)='0x' then
@@ -659,21 +658,21 @@ begin
                          skip_until_eol;
   9:
                              
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                           return(NUMBER);
                         end
-                        else 
+                        else
                           skip_until_eol;
   10:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                           if in_define then
                             return(DEREF)
                           else
                             return(256);
                         end
-                        else 
+                        else
                           skip_until_eol;
   11:
                         if NotInCPlusBlock then return(MINUS) else skip_until_eol;
@@ -718,27 +717,27 @@ begin
   31:
                         if NotInCPlusBlock then return(RECKKLAMMER) else skip_until_eol;
   32:
-                        if NotInCPlusBlock then 
-                           begin 
+                        if NotInCPlusBlock then
+                           begin
                              inc(arglevel);
                              return(LKLAMMER);
                            end
                         else
                            skip_until_eol;
   33:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                            begin
                              dec(arglevel);
                              return(RKLAMMER);
                            end
-                         else 
+                         else
                            skip_until_eol;
   34:
                         if NotInCPlusBlock then return(STAR) else skip_until_eol;
   35:
                         if NotInCPlusBlock then return(ELLIPSIS) else skip_until_eol;
   36:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                           if in_define then
                             return(POINT)
                           else
@@ -748,7 +747,7 @@ begin
   38:
                         if NotInCPlusBlock then return(EXTERN) else skip_until_eol;
   39:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                           if Win32headers then
                             return(STDCALL)
@@ -758,10 +757,10 @@ begin
                         else
                         begin
                           skip_until_eol;
-                        end;                            
+                        end;
   40:
                         if NotInCPlusBlock then
-                        begin 
+                        begin
                           if not Win32headers then
                             return(ID)
                           else
@@ -770,9 +769,9 @@ begin
                         else
                         begin
                           skip_until_eol;
-                        end;                            
+                        end;
   41:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                           if not Win32headers then
                             return(ID)
@@ -782,9 +781,9 @@ begin
                         else
                         begin
                           skip_until_eol;
-                        end;                            
+                        end;
   42:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                           if not Win32headers then
                             return(ID)
@@ -796,7 +795,7 @@ begin
                           skip_until_eol;
                         end;
   43:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                           if not Win32headers then
                             return(ID)
@@ -806,9 +805,9 @@ begin
                         else
                         begin
                           skip_until_eol;
-                        end;                            
+                        end;
   44:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                           if not palmpilot then
                             return(ID)
@@ -818,9 +817,9 @@ begin
                         else
                         begin
                           skip_until_eol;
-                        end;                            
+                        end;
   45:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                           if not Win32headers then
                             return(ID)
@@ -832,8 +831,8 @@ begin
                           skip_until_eol;
                         end;
   46:
-                        if NotInCPlusBlock then 
-                        begin              
+                        if NotInCPlusBlock then
+                        begin
                           if not Win32headers then
                             return(ID)
                           else
@@ -844,7 +843,7 @@ begin
                           skip_until_eol;
                         end;
   47:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                           if not Win32headers then
                             return(ID)
@@ -870,7 +869,7 @@ begin
                         begin
                           if not stripinfo then
                             writeln(outfile,'{ C++ extern C conditionnal removed }');
-                        end;                        
+                        end;
   52:
                                          
                         begin
@@ -882,32 +881,32 @@ begin
                         begin
                           if not stripinfo then
                             writeln(outfile,'{ C++ end of extern C conditionnal removed }');
-                        end;    
+                        end;
   54:
                         
                         begin
                           Inc(cplusblocklevel);
-                        end;   
+                        end;
   55:
                           
                         begin
                           Inc(cplusblocklevel);
-                        end; 
+                        end;
   56:
              
                         begin
                            if cplusblocklevel > 0 then
                              Inc(cplusblocklevel)
                            else
-                           begin 
+                           begin
                              if cplusblocklevel < 0 then
                                Dec(cplusblocklevel);
                              write(outfile,'{$ifdef ');
                              copy_until_eol;
                              writeln(outfile,'}');
-                             flush(outfile);                           
+                             flush(outfile);
                            end;
-                        end;                
+                        end;
   57:
                         begin
                            if cplusblocklevel < -1 then
@@ -922,7 +921,7 @@ begin
                                  begin
                                    writeln(outfile,'{$else}');
                                    block_type:=bt_no;
-                                   flush(outfile);                                 
+                                   flush(outfile);
                                  end;
                              1 : cplusblocklevel := -1;
                              -1 : cplusblocklevel := 1;
@@ -940,7 +939,7 @@ begin
                                0 : begin
                                      writeln(outfile,'{$endif}');
                                      block_type:=bt_no;
-                                     flush(outfile);                               
+                                     flush(outfile);
                                    end;
                                -1 : begin
                                      cplusblocklevel :=0;
@@ -973,11 +972,11 @@ begin
                                    copy_until_eol;
                                    writeln(outfile,'}');
                                    block_type:=bt_no;
-                                   flush(outfile);                             
+                                   flush(outfile);
                                  end;
                              1 : cplusblocklevel := -1;
                              -1 : cplusblocklevel := 1;
-                             end;                           
+                             end;
                         end;
   60:
                         begin
@@ -1009,7 +1008,7 @@ begin
                            if cplusblocklevel > 0 then
                              Inc(cplusblocklevel)
                            else
-                           begin 
+                           begin
                              if cplusblocklevel < 0 then
                                Dec(cplusblocklevel);
                              write(outfile,'{$if');
@@ -1018,7 +1017,7 @@ begin
                              flush(outfile);
                              block_type:=bt_no;
                            end;
-                        end; 
+                        end;
   64:
                         if NotInCPlusBlock then
                           (* preprocessor line info *)
@@ -1083,7 +1082,7 @@ begin
   77:
                         if NotInCPlusBlock then return(SIGNED) else skip_until_eol;
   78:
-                        if NotInCPlusBlock then return(UNSIGNED) else skip_until_eol; 
+                        if NotInCPlusBlock then return(UNSIGNED) else skip_until_eol;
   79:
                         if NotInCPlusBlock then return(INT8) else skip_until_eol;
   80:
@@ -1121,18 +1120,18 @@ begin
   96:
                         if NotInCPlusBlock then return(_WHILE) else skip_until_eol;
   97:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                            begin
                              if in_space_define=1 then
                                in_space_define:=2;
                              return(ID);
                           end
-                          else 
+                          else
                             skip_until_eol;
   98:
                         if NotInCPlusBlock then return(SEMICOLON) else skip_until_eol;
   99:
-                        if NotInCPlusBlock then 
+                        if NotInCPlusBlock then
                         begin
                            if (arglevel=0) and (in_space_define=2) then
                             begin
@@ -1154,10 +1153,10 @@ begin
                               else
                               begin
                                 in_define:=false;
-                                if NotInCPlusBlock then 
+                                if NotInCPlusBlock then
                                   return(NEW_LINE)
                                 else
-                                  skip_until_eol                                  
+                                  skip_until_eol
                               end;
                             end;
                        end;
