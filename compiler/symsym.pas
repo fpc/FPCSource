@@ -943,8 +943,16 @@ implementation
 
 
     procedure tabstractvarsym.deref;
+      var
+        oldvarregable: tvarregable;
       begin
+        { setting the vardef also updates varregable. We just loaded this }
+        { value from a ppu, so it must not be changed (e.g. tw7817a.pp/   }
+        { tw7817b.pp: the address is taken of a local variable in an      }
+        { inlined procedure -> must remain non-regable when inlining)     }
+        oldvarregable:=varregable;
         vardef:=tdef(vardefderef.resolve);
+        varregable:=oldvarregable;
       end;
 
 
