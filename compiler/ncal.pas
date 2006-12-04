@@ -2289,13 +2289,6 @@ implementation
           begin
             tempnode := ctempcreatenode.create(tabstractvarsym(p).vardef,tabstractvarsym(p).vardef.size,tt_persistent,tabstractvarsym(p).is_regvar(false));
             addstatement(tempinfo^.createstatement,tempnode);
-            if assigned(tlocalvarsym(p).defaultconstsym) then
-              begin
-                { warning: duplicate from psub.pas:initializevars() -> must refactor }
-                addstatement(tempinfo^.createstatement,cassignmentnode.create(
-                                  ctemprefnode.create(tempnode),
-                                  cloadnode.create(tlocalvarsym(p).defaultconstsym,tlocalvarsym(p).defaultconstsym.owner)));
-              end;
             if (vo_is_funcret in tlocalvarsym(p).varoptions) then
               begin
                 funcretnode := ctemprefnode.create(tempnode);
