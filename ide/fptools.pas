@@ -1332,7 +1332,11 @@ begin
   OK:=(S<>nil) and (S^.Status=stOK);
   if OK then S^.Read(Sign,SizeOf(Sign));
   OK:=OK and (Sign=MsgFilterSign);
-  Done:=false; InFileName:=false; InReference:=false;
+  Done:=false;
+  InFileName:=false;
+  InReference:=false;
+  FileName:='';
+  Line:='';
   while OK and (Done=false) do
     begin
       S^.Read(C,SizeOf(C));
