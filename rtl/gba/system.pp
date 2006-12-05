@@ -56,7 +56,8 @@ var
   argv: PPChar;
   envp: PPChar;
   errno: integer;
-
+  fake_heap_start: pchar; cvar;
+  fake_heap_end: pchar; cvar;
 
 implementation
 
@@ -152,9 +153,11 @@ end;
 
 begin
   StackLength := CheckInitialStkLen(InitialStkLen);
-  StackBottom := Sptr - StackLength;
+  ///StackBottom := Sptr - StackLength;
+  StackBottom := StackTop - StackLength;
 { OS specific startup }
-
+  fake_heap_start := pchar(0);
+  fake_heap_end := pchar(0);
 { Set up signals handlers }
 
 { Setup heap }

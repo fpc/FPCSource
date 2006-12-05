@@ -4477,6 +4477,7 @@ rtl/freebsd/x86_64/prt0.as -text
 rtl/gba/Makefile svneol=native#text/plain
 rtl/gba/Makefile.fpc svneol=native#text/plain
 rtl/gba/classes.pp svneol=native#text/plain
+rtl/gba/cprt0.as -text
 rtl/gba/dos.pp svneol=native#text/plain
 rtl/gba/gbabios.inc svneol=native#text/plain
 rtl/gba/gbabiosh.inc svneol=native#text/plain

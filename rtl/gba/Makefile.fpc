@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-loaders=prt0
+loaders=prt0 cprt0
 units=$(SYSTEMUNIT) objpas macpas strings \
 #      dos \
       sysutils \
@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
 #      exec timer doslib utility hardware inputevent graphics layers \
 # these can be moved to packages later
 #      clipboard datatypes asl ahi tinygl get9 muihelper \
-rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil
+#rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil
 
 [require]
 nortl=y
@@ -77,6 +77,8 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 prt0$(OEXT) : prt0.as
         $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)prt0$(OEXT) prt0.as
 
+cprt0$(OEXT) : cprt0.as
+        $(AS) $(ASTARGET) -o $(UNITTARGETDIRPREFIX)cprt0$(OEXT) cprt0.as
 
 #
 # Base Units (System, strings, os-dependent-base-unit)
