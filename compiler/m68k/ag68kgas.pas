@@ -291,6 +291,10 @@ interface
         if op = A_SXX then
          s:=gas_op2str[op]+cond2str[taicpu(hp).condition]
         else
+        { size of DBRA is always WORD, doesn't need opsize (KB) }
+        if op = A_DBRA then
+         s:=gas_op2str[op]+cond2str[taicpu(hp).condition]
+        else
         if op in [a_dbxx,a_bxx,a_fbxx] then
          s:=gas_op2str[op]+cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize]
         else
@@ -322,6 +326,11 @@ interface
                 begin
                   owner.AsmWrite(s+#9);
                   s:=getopstr_jmp(taicpu(hp).oper[0]^);
+                  { dbcc dx,<sym> has two operands! (KB) }
+                  if (taicpu(hp).ops>1) then 
+                    s:=s+','+getopstr_jmp(taicpu(hp).oper[1]^);
+                  if (taicpu(hp).ops>2) then
+                    internalerror(2006120501);
                 end
               else
                 begin
