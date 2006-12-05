@@ -72,10 +72,19 @@ Var
   linkres  : TLinkRes;
   i        : longint;
   HPath    : TStringListItem;
-  s        : string;
+  s,s1,s2  : string;
+  prtobj, 
+  cprtobj  : string[80];
   linklibc : boolean;
+  found1,
+  found2   : boolean;  
 begin
   WriteResponseFile:=False;
+  linklibc:=(SharedLibFiles.Find('c')<>nil);
+  prtobj:='prt0';
+  cprtobj:='cprt0';
+  if linklibc then
+    prtobj:=cprtobj;
 
 	{ Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
@@ -101,8 +110,19 @@ begin
 
   LinkRes.Add('INPUT (');
   { add objectfiles, start with prt0 always }
-  s:=FindObjectFile('prt0','',false);
+  //s:=FindObjectFile('prt0','',false);
+  if prtobj<>'' then
+   s:=FindObjectFile(prtobj,'',false);
   LinkRes.AddFileName(s);
+  { try to add crti and crtbegin if linking to C }
+  if linklibc then
+   begin
+     if librarysearchpath.FindFile('crtbegin.o',false,s) then
+      LinkRes.AddFileName(s);
+     if librarysearchpath.FindFile('crti.o',false,s) then
+      LinkRes.AddFileName(s);
+   end;
+  
   while not ObjectFiles.Empty do
    begin
     s:=ObjectFiles.GetFirst;
@@ -170,6 +190,23 @@ begin
      end;
     LinkRes.Add(')');
    end;
+
+  { objects which must be at the end }
+  if linklibc then
+   begin
+     found1:=librarysearchpath.FindFile('crtend.o',false,s1);
+     found2:=librarysearchpath.FindFile('crtn.o',false,s2);
+     if found1 or found2 then
+      begin
+        LinkRes.Add('INPUT(');
+        if found1 then
+         LinkRes.AddFileName(s1);
+        if found2 then
+         LinkRes.AddFileName(s2);
+        LinkRes.Add(')');
+      end;
+   end;   
+   
   with linkres do
     begin
       add('/* Linker Script Original v1.3 by Jeff Frohwein     */');
