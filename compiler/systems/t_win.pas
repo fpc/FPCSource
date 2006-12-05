@@ -581,14 +581,16 @@ implementation
         EList_nonindexed.Free;
         inherited;
       end;
-      
-    
+
+
     procedure TExportLibWin.preparelib(const s:string);
       begin
          if current_asmdata.asmlists[al_exports]=nil then
            current_asmdata.asmlists[al_exports]:=TAsmList.create;
-         EList_indexed:=tFPList.Create;
-         EList_nonindexed:=tFPList.Create;
+         if EList_indexed=nil then
+           EList_indexed:=tFPList.Create;
+         if EList_nonindexed=nil then
+           EList_nonindexed:=tFPList.Create;
       end;
 
 
