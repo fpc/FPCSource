@@ -328,7 +328,9 @@ implementation
         AsmLn;
         case target_info.system of
          system_i386_OS2,
-         system_i386_EMX: ;
+         system_i386_EMX, 
+         system_m68k_amiga,  { amiga has old GNU AS (2.14), which blews up from .section (KB) }
+         system_m68k_linux: ;
          system_powerpc_darwin,
          system_i386_darwin:
            begin
