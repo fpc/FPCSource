@@ -62,9 +62,17 @@ Type
     Name : String;
     Addr : THostAddr;
     Aliases : String;
-  end;  
+  end;
   PHostEntry = ^THostEntry;
   THostEntryArray = Array of THostEntry;
+
+  THostEntry6 = record
+    Name : String;
+    Addr : THostAddr6;
+    Aliases : String;
+  end;
+  PHostEntry6 = ^THostEntry6;
+  THostEntry6Array = Array of THostEntry6;
   
   TNetworkEntry = Record
     Name : String;
@@ -108,6 +116,9 @@ function IN6_IS_ADDR_V4MAPPED(HostAddr: THostAddr6): boolean;
 
 Function ResolveHostByName(HostName : String; Var H : THostEntry) : Boolean;
 Function ResolveHostByAddr(HostAddr : THostAddr; Var H : THostEntry) : Boolean;
+
+Function ResolveHostByName6(Hostname : String; Var H : THostEntry6) : Boolean;
+Function ResolveHostByAddr6(HostAddr : THostAddr6; Var H : THostEntry6) : Boolean;
 
 Function GetHostByName(HostName: String;  Var H : THostEntry) : boolean;
 Function GetHostByAddr(Addr: THostAddr;  Var H : THostEntry) : boolean;
@@ -248,7 +259,7 @@ Function GetAddr(Var L : String; Var Addr : THostAddr) : Boolean;
 
 Var
   S : String;
-  i,p,a : Integer;
+//  i,p,a : Integer;
   
 begin
   Result:=True;
@@ -265,17 +276,20 @@ Var
   H : String;
 
 begin
+  Result := False;
   Repeat
   H:=NextWord(L);
-  If (H<>'') then
-    if (Entry.Name='') then
-      Entry.Name:=H
-    else  
-      begin
-      If (Entry.Aliases<>'') then
-        Entry.Aliases:=Entry.Aliases+',';
-      Entry.Aliases:=Entry.Aliases+H;
-      end;
+    If (H<>'') then begin
+      if (Entry.Name='') then
+        Entry.Name:=H
+      else  
+        begin
+        If (Entry.Aliases<>'') then
+          Entry.Aliases:=Entry.Aliases+',';
+        Entry.Aliases:=Entry.Aliases+H;
+        end;
+      Result := True;
+    end;
   until (H='');
 end;
 
@@ -321,7 +335,7 @@ end;
 Var
   HostsList : PHostListEntry = Nil;  
   HostsFileAge  : Longint;
-  HostsFileName : String;
+//  HostsFileName : String;
 
 Function FreeHostsList(var List : PHostListEntry) : Integer;
 
@@ -391,7 +405,7 @@ end;
 Function FindHostEntryInHostsFile(N: String; Addr: THostAddr; Var H : THostEntry) : boolean;
 
 Var
-  F : Text;
+//  F : Text;
   HE : THostEntry;
   P : PHostListEntry;
   
@@ -429,7 +443,7 @@ Function GetDNSServers(Fn : String) : Integer;
 Var
   R : Text;
   L : String;
-  I : Integer;
+//  I : Integer;
   H : THostAddr;
   E : THostEntry;
   
@@ -1004,7 +1018,6 @@ begin
    (HostAddr.u6_addr16[5] = $FFFF);
 end;
 
-
 Function ResolveHostByName(HostName : String; Var H : THostEntry) : Boolean;
 
 Var
@@ -1022,6 +1035,25 @@ begin
     H.aliases:='';
     end;
 end;
+
+Function ResolveHostByName6(HostName : String; Var H : THostEntry6) : Boolean;
+
+Var
+  Address : Array[1..MaxResolveAddr] of THostAddr6;
+  L : Integer;
+  
+begin
+  L:=ResolveName6(HostName,Address);
+  Result:=(L>0);
+  If Result then
+    begin
+    // We could add a reverse call here to get the real name and aliases.
+    H.Name:=HostName;
+    H.Addr:=Address[1];
+    H.aliases:='';
+    end;
+end;
+
 
 Function ResolveHostByAddr(HostAddr : THostAddr; Var H : THostEntry) : Boolean;
 
@@ -1045,6 +1077,31 @@ begin
           H.Aliases:=H.Aliases+','+Names[i];
     end;
 end;
+
+Function ResolveHostByAddr6(HostAddr : THostAddr6; Var H : THostEntry6) : Boolean;
+
+Var
+  Names : Array[1..MaxResolveAddr] of String;
+  I,L : Integer;
+  
+begin
+  L:=ResolveAddress6(HostAddr,Names);
+  Result:=(L>0);
+  If Result then
+    begin
+    H.Name:=Names[1];
+    H.Addr:=HostAddr;
+    H.Aliases:='';
+    If (L>1) then
+      For I:=2 to L do
+        If (I=2) then
+          H.Aliases:=Names[i]
+        else  
+          H.Aliases:=H.Aliases+','+Names[i];
+    end;
+end;
+
+
 
 
 //const NoAddress : in_addr = (s_addr: 0);
@@ -1158,7 +1215,7 @@ function StrTonetpartial( IP : AnsiString) : in_addr ;
 Var
     Dummy : AnsiString;
     I,j,k     : Longint;
-    Temp : in_addr;
+//    Temp : in_addr;
 
 begin
   strtonetpartial.s_addr:=0;              //:=NoAddress;
@@ -1352,8 +1409,8 @@ end;
 
 Procedure InitResolver;
 
-Var
-  I : Integer;
+//Var
+//  I : Integer;
 
 begin
   TimeOutS :=5;
