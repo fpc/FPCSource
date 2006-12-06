@@ -1654,6 +1654,80 @@ Type
       Result : LRESULT;
     end;
 
+	  TWMSizeClipboard = record
+	    Msg: UINT;
+	    Viewer: HWND;
+	    RC: THandle;
+	    Result: LRESULT;
+	  end;
+	
+	  TWMSpoolerStatus = record
+            Msg: UINT;
+	    JobStatus: LPARAM;
+	    JobsLeft: WPARAM;
+	    Unused: WPARAM;
+	    Result: LRESULT;
+	  end;
+	
+	  TWMStyleChange = record
+	    Msg: UINT;
+	    StyleType: LPARAM;
+	    StyleStruct: PStyleStruct;
+	    Result: LRESULT;
+	  end;
+	
+	  TWMStyleChanged = TWMStyleChange;
+	  TWMStyleChanging = TWMStyleChange;
+	
+	
+	  TWMSysDeadChar = record
+	    Msg: UINT;
+	    CharCode: WPARAM;
+	    Unused: WPARAM;
+	    KeyData: LPARAM;
+	    Result: LRESULT;
+	  end;
+	
+	  TWMSystemError = record
+	    Msg: UINT;
+	    ErrSpec: WPARAM;
+	    Unused: LPARAM;
+	    Result: LRESULT;
+	  end;
+	
+	  TWMTimeChange = TWMNoParams;
+	
+	  TWMTimer = record
+	    Msg: UINT;
+	    TimerID: LPARAM;
+	    TimerProc: TFarProc;
+	    Result: LRESULT;
+	  end;
+	
+	  TWMUndo = TWMNoParams;
+	
+	  TWMVScrollClipboard = record
+	    Msg: UINT;
+	    Viewer: HWND;
+	    ScollCode: WPARAM;
+	    ThumbPos: WPARAM;
+	    Result: LRESULT;
+	  end;
+	
+	  TWMDisplayChange = record
+	    Msg: UINT;
+	    BitsPerPixel: Integer;
+	    Width: WPARAM;
+	    Height: WPARAM;
+	    Result: LRESULT;
+	  end;
+	
+	  TWMDropFiles = record
+	     Msg: UINT;
+	     Drop: THANDLE;
+	     Unused: LPARAM;
+	     Result: LRESULT;
+	  end;
     {$endif messagesunit}
 
 {$endif read_interface}

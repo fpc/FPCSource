@@ -26,7 +26,6 @@ type
   PCharInfo = ^TCharInfo;
   TCharInfo = _CHAR_INFO;
 
-  TFarProc = FARPROC;
   TFNDlgProc = FARPROC;
   TFNThreadStartRoutine = FARPROC;
   TFNTimerAPCRoutine    = FARPROC;
