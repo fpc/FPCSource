@@ -1315,6 +1315,8 @@ implementation
                   pt:=comp_expr(true);
                   if not(pt.nodetype=ordconstn) then
                     Message(parser_e_illegal_expression);
+                  if try_to_consume(_POINTPOINT) then
+                    pt:=crangenode.create(pt,comp_expr(true));
                   pt.free;
                   if token=_COMMA then
                     consume(_COMMA)
