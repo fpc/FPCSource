@@ -1596,6 +1596,7 @@ implementation
               if (left.nodetype=stringconstn) and (tstringconstnode(left).len=0) then
                 begin
                   result:=right;
+                  left.free;
                   left:=nil;
                   right:=nil;
                   exit;
@@ -1604,6 +1605,7 @@ implementation
                 begin
                   result:=left;
                   left:=nil;
+                  right.free;
                   right:=nil;
                   exit;
                 end;
