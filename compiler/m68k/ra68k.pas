@@ -35,7 +35,7 @@ unit ra68k;
 
       Tm68kInstruction=class(TInstruction)
         opsize : topsize;
-//        function ConcatInstruction(p : TAsmList):tai;override;
+        function ConcatInstruction(p : TAsmList):tai;override;
         function ConcatLabeledInstr(p : TAsmList):tai;
       end;
 
@@ -48,6 +48,13 @@ unit ra68k;
                                 TM68kInstruction
 *****************************************************************************}
 
+ function TM68kInstruction.ConcatInstruction(p : TAsmList):tai;
+   var
+     ai : taicpu;
+   begin
+     ai:=taicpu(inherited ConcatInstruction(p));
+     ai.opsize:=opsize;
+   end;
 {
  function TM68kInstruction.ConcatInstruction(p : TAsmList):tai;
   var
