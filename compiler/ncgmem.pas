@@ -637,7 +637,14 @@ implementation
               case left.location.loc of
                 LOC_REGISTER,
                 LOC_CREGISTER :
-                  location.reference.base:=left.location.register;
+                  begin
+{$ifdef m68k}
+                    location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                    cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.register,location.reference.base);
+{$else m68k}
+                    location.reference.base:=left.location.register;
+{$endif m68k}
+                  end;
                 LOC_CREFERENCE,
                 LOC_REFERENCE :
                   begin
