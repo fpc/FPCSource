@@ -1786,9 +1786,11 @@ implementation
                 end;
               if (result.nodetype = realconstn) then
                 begin
-                  result:=crealconstnode.create(trealconstnode(result).value_real,resultdef);
+                  hp:=result;
+                  result:=crealconstnode.create(trealconstnode(hp).value_real,resultdef);
                   if ([nf_explicit,nf_internal] * flags <> []) then
                     include(result.flags, nf_explicit);
+                  hp.free;
                 end;
             end;
           niln :
