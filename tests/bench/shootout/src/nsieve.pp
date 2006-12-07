@@ -6,31 +6,32 @@
 
 program nsieve;
 
-{$mode objfpc}
+{$mode objfpc}{$I-}
 
-var n : integer;
+var
+  n : integer;
 
 procedure primes(n : integer); inline;
-var flags : array of boolean;
-    size,i,j,count : integer;
+var
+  flags: PBoolean;
+  size,i,j,count : integer;
 begin
   size := 10000 shl n;
-  SetLength(flags, size+1);
-  for i := 2 to size do flags[i] := true;
-//fillchar(flags[0],length(flags),ord(true));
+  flags := getmem(size+1);
+  fillchar(flags^,memsize(flags),true);
   count := 0;
   for i := 2 to size do
     if flags[i] then
     begin
-      count := count + 1;
+      inc(count);
       j := i + i;
       while j <= size do begin
-//      flags[j] := false;
-        if flags[j] then flags[j] := false;
-        j := j + i;
+        flags[j] := false;
+        inc(j, i);
       end;
     end;
   writeln('Primes up to', size:9, count:9);
+  freemem(flags);
 end;
 
 begin
