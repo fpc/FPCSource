@@ -11,14 +11,16 @@
 
  **********************************************************************}
  
-{$WARNING FIX ME!! dummy int64_to_double}
+{$WARNING FIX ME!! dummy int64_to_double
 function fpc_int64_to_double(i: int64): double; compilerproc;
 assembler;
 asm
 end;
+}
 
-{$WARNING FIX ME!! dummy longword_to_double}
+{$WARNING FIX ME!! dummy longword_to_double
 function fpc_longword_to_double(i: longword): double; compilerproc;
 assembler;
 asm
 end;
+}
