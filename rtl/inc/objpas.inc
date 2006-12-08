@@ -135,17 +135,26 @@
       procedure InitInterfacePointers(objclass: tclass;instance : pointer);
 
         var
-           intftable : pinterfacetable;
-           i : longint;
+          i: integer;
+          intftable: pinterfacetable;
+          Res: pinterfaceentry;
         begin
           while assigned(objclass) do
             begin
-               intftable:=pinterfacetable((pointer(objclass)+vmtIntfTable)^);
-               if assigned(intftable) then
-                 for i:=0 to intftable^.EntryCount-1 do
-                   ppointer(@(PChar(instance)[intftable^.Entries[i].IOffset]))^:=
-                     pointer(intftable^.Entries[i].VTable);
-               objclass:=pclass(pointer(objclass)+vmtParent)^;
+              intftable:=pinterfacetable((pointer(objclass)+vmtIntfTable)^);
+              if assigned(intftable) then
+              begin
+                i:=intftable^.EntryCount;
+                Res:=@intftable^.Entries[0];
+                while i>0 do begin
+                   if Res^.EntryType = etStandard then
+                     ppointer(@(pbyte(instance)[Res^.IOffset]))^:=
+                       pointer(Res^.VTable);
+                  inc(Res);
+                  dec(i);
+                end;
+              end;
+              objclass:=pclass(pointer(objclass)+vmtParent)^;
             end;
         end;
 
@@ -564,39 +573,37 @@
             (PDWORD(@guid1.D4[4])^=PDWORD(@guid2.D4[4])^);
         end;
 
-      function TObject.getinterface(const iid : tguid;out obj) : boolean;
+      function getinterfacebyentry(Instance: pointer; IEntry: pinterfaceentry; out obj): boolean;
         var
-          IEntry: pinterfaceentry;
           Getter: function: IInterface of object;
         begin
           Pointer(Obj) := nil;
-          IEntry:=getinterfaceentry(iid);
           if Assigned(IEntry) then
           begin
             case IEntry^.EntryType of
               etStandard:
                 begin
-//                  writeln('Doing etStandard cast of ', classname(), ' with self = ', ptrint(self), ' and offset = ', IEntry^.IOffset);
-                  Pointer(Obj) := Pointer(PtrInt(self) + IEntry^.IOffset);
+                  writeln('Doing etStandard cast of ', TObject(Instance).classname(), ' with self = ', ptruint(Instance), ' and offset = ', IEntry^.IOffset);
+                  Pointer(Obj) := Pointer(PtrInt(Instance) + IEntry^.IOffset);
                 end;
               etFieldValue:
                 begin
-//                  writeln('Doing etFieldValue cast of ', classname(), ' with offset = ', IEntry^.EntryOffset);
-                  Pointer(obj) := ppointer(Pointer(Self)+IEntry^.EntryOffset)^;
+                  writeln('Doing etFieldValue cast of ', TObject(Instance).classname(), ' with offset = ', IEntry^.EntryOffset);
+                  Pointer(obj) := ppointer(Pointer(Instance)+IEntry^.EntryOffset)^;
                 end;
               etVirtualMethodResult:
                 begin
-//                  writeln('Doing etVirtualMethodResult cast of ', classname());
-                  TMethod(Getter).data := self;
-                  TMethod(Getter).code := ppointer(ptrint(self) + IEntry^.EntryOffset)^;
-                  Pointer(obj) := Getter();
+                  writeln('Doing etVirtualMethodResult cast of ', TObject(Instance).classname());
+                  TMethod(Getter).data := Instance;
+                  TMethod(Getter).code := ppointer(ptrint(Instance) + IEntry^.EntryOffset)^;
+                  Pointer(obj) := Pointer(Getter());
                 end;
               etStaticMethodResult:
                 begin
-//                  writeln('Doing etStaticMethodResult cast of ', classname());
-                  TMethod(Getter).data := self;
+                  writeln('Doing etStaticMethodResult cast of ', TObject(Instance).classname());
+                  TMethod(Getter).data := Instance;
                   TMethod(Getter).code := pointer(IEntry^.EntryOffset);
-                  Pointer(obj) := Getter();
+                  Pointer(obj) := Pointer(Getter());
                 end;
             end;
           end;
@@ -605,17 +612,14 @@
             IInterface(obj)._AddRef;
         end;
 
-      function TObject.getinterfacebystr(const iidstr : string;out obj) : boolean;
-        var
-          IEntry: pinterfaceentry;
+      function TObject.getinterface(const iid : tguid;out obj) : boolean;
         begin
-          IEntry:=getinterfaceentrybystr(iidstr);
-          if not Assigned(IEntry) then
-          begin
-            Pointer(obj) := nil;
-            result := false;
-          end else
-            result := getinterface(IEntry^.IID^, obj);
+          Result := getinterfacebyentry(self, getinterfaceentry(iid), obj);
+        end;
+
+      function TObject.getinterfacebystr(const iidstr : string;out obj) : boolean;
+        begin
+          Result := getinterfacebyentry(self, getinterfaceentrybystr(iidstr), obj);
         end;
 
       class function TObject.getinterfaceentry(const iid : tguid) : pinterfaceentry;
@@ -648,7 +652,7 @@
           Res: pinterfaceentry;
         begin
           getinterfaceentrybystr:=nil;
-          intftable:=getinterfacetable;
+          intftable:=pinterfacetable((pointer(Self)+vmtIntfTable)^);
           if assigned(intftable) then begin
             i:=intftable^.EntryCount;
             Res:=@intftable^.Entries[0];
