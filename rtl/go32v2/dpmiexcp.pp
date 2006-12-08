@@ -645,7 +645,7 @@ end;
 
 var
   signal_list : Array[0..SIGMAX] of SignalHandler;cvar;
-  {$ifndef CREATE_C_FUNCTIONS}external;{$endif}
+  {$ifndef CREATE_C_FUNCTIONS}external;{$else}public;{$endif}
 
 {$ifdef CREATE_C_FUNCTIONS}
 function SIG_ERR(x:longint):longint;[public,alias : '___djgpp_SIG_ERR'];
