@@ -38,7 +38,7 @@ type
    public
       function GetDriver: TBidirBinaryObjectReader;
       function ReadStr: string;
-      procedure Read(var Buf; Count: LongInt);
+      procedure Read(var Buf; Count: LongInt); override;
       property Position: LongInt read GetPosition write SetPosition;
    end;
 
@@ -52,7 +52,7 @@ type
    public
       function GetDriver: TBidirBinaryObjectWriter;
       procedure FlushBuffer;
-      procedure Write(const Buf; Count: LongInt);
+      procedure Write(const Buf; Count: LongInt); override;
       procedure WriteStr(const Value: string);
       procedure WriteValue(Value: TValueType);
       property Position: LongInt read GetPosition write SetPosition;
