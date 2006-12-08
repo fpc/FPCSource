@@ -20,7 +20,7 @@ interface
 { force ansistrings }
 {$H+}
 
-{$if defined(BSD) and defined(FPC_USE_LIBC)}
+{$if (defined(BSD) or defined(SUNOS)) and defined(FPC_USE_LIBC)}
 {$define USE_VFORK}
 {$endif}
 
