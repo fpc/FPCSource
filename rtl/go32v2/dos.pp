@@ -181,27 +181,32 @@ var
   execblock       : texecblock;
   c,p             : string;
 
-  function paste_to_dos(src : string;cr : boolean) : boolean;
+  function paste_to_dos(src : string;cr : boolean; n : longint) : boolean;
+  {Changed by Laaca - added parameter N}
   var
     c : pchar;
     CLen : cardinal;
+    ls : longint;
   begin
      paste_to_dos:=false;
      if current_dos_buffer_pos+length(src)+3>transfer_buffer+tb_size then
       RunError(217);
-     getmem(c,length(src)+3);
-     move(src[0],c^,length(src)+1);
+
+     ls:=Length(src)-n;
+
+     getmem(c,ls+3);
+     move(src[n],c^,ls+1);
      if cr then
-      begin 
-        c[length(src)+1]:=#13;
-        c[length(src)+2]:=#0;
+      begin
+        c[ls+1]:=#13;
+        c[ls+2]:=#0;
       end
      else
-      c[length(src)+1]:=#0;
+      c[ls+1]:=#0;
      CLen := StrLen (C) + 1;
      seg_move(get_ds,longint(c),dosmemselector,current_dos_buffer_pos,CLen);
      current_dos_buffer_pos:=current_dos_buffer_pos+CLen;
-     freemem(c,length(src)+3);
+     freemem(c,ls+3);
      paste_to_dos:=true;
   end;
 
@@ -223,13 +228,14 @@ begin
   current_dos_buffer_pos:=la_env;
 { copy environment }
   for i:=1 to envcount do
-   paste_to_dos(envstr(i),false);
-  paste_to_dos(chr(0),false); { adds a double zero at the end }
+   paste_to_dos(envstr(i),false,1);
+  {the behaviour is still suboptimal because variable COMMAND is stripped out}
+  paste_to_dos(chr(0),false,1); { adds a double zero at the end }
 { allow slash as backslash }
   la_p:=current_dos_buffer_pos;
-  paste_to_dos(p,false);
+  paste_to_dos(p,false,0);
   la_c:=current_dos_buffer_pos;
-  paste_to_dos(c,true);
+  paste_to_dos(c,true,0);
   la_e:=current_dos_buffer_pos;
   fcb1_la:=la_e;
   la_e:=la_e+16;
