@@ -213,11 +213,15 @@ begin
     WaitOnExit;
 end;
 
-Function TProcess.WaitOnExit : Dword;
+Function TProcess.WaitOnExit : Boolean;
+
+Var
+  R : DWord;
 
 begin
-  Result:=WaitForSingleObject (FProcessHandle,Infinite);
-  If Result<>Wait_Failed then
+  R:=WaitForSingleObject (FProcessHandle,Infinite);
+  Result:=R<>Wait_Failed;
+  If R then
     GetExitStatus;
   FRunning:=False;
 end;
