@@ -1039,8 +1039,8 @@ type
 
 var
 { external variables }
-  error_return : jmp_buf;cvar;
-  quit_return  : jmp_buf;cvar;
+  error_return : jmp_buf;cvar;public;
+  quit_return  : jmp_buf;cvar;public;
   {$ifdef GDB_V6}
   deprecated_create_breakpoint_hook : pointer;cvar;external;
   {$else}
@@ -1049,7 +1049,7 @@ var
   current_target : target_ops;cvar;external;
   stop_pc      : CORE_ADDR;cvar;external;
   { Only used from GDB 5.01 but doesn't hurst otherwise }
-  interpreter_p : pchar;cvar;
+  interpreter_p : pchar;cvar;public;
 
 { we need also to declare some vars }
   watchdog      : longint;cvar;external;
