@@ -237,12 +237,9 @@ Procedure fpc_WideStr_Incr_Ref(Var S : Pointer);[Public,Alias:'FPC_WIDESTR_INCR_
     If S=Nil then
       exit;
 {$ifdef FPC_WINLIKEWIDESTRING}
-    if S<>nil then
-    begin
-      p:=NewWidestring(length(WideString(S)));
-      move(s^,p^,length(WideString(s))*sizeof(widechar));
-    end;
-    s:= p;
+    p:=NewWidestring(length(WideString(S)));
+    move(s^,p^,length(WideString(s))*sizeof(widechar));
+    s:=p;
 {$else FPC_WINLIKEWIDESTRING}
     { Let's be paranoid : Constant string ??}
     If PWideRec(S-WideFirstOff)^.Ref<0 then exit;
