@@ -295,6 +295,7 @@ implementation
       begin
         rg[R_INTREGISTER].free;
         rg[R_FPUREGISTER].free;
+        rg[R_MMREGISTER].free;
         inherited done_register_allocators;
       end;
 
