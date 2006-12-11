@@ -159,8 +159,8 @@ implementation
                     DirectoryEntries.Add(Dir.Name,Pointer(Ptrint(Dir.Attr)));
                 end;
             until findnext(dir) <> 0;
-            findclose(dir);
           end;
+        findclose(dir);
       end;
 
 
