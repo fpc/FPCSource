@@ -147,7 +147,7 @@ unit cgppc;
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_lazy_symbol_pointer,''));
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(l1,0));
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
-        current_asmdata.asmlists[al_imports].concat(tai_const.createname(strpnew('dyld_stub_binding_helper'),0));
+        current_asmdata.asmlists[al_imports].concat(tai_const.createname('dyld_stub_binding_helper',0));
       end;
 
 
