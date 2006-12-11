@@ -101,7 +101,7 @@ type
 
 implementation
 
-uses strutils;
+uses strutils, bufdataset;
 
 type
   TTm = packed record

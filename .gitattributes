@@ -599,7 +599,8 @@ fcl/db/Dataset.txt svneol=native#text/plain
 fcl/db/Makefile svneol=native#text/plain
 fcl/db/Makefile.fpc svneol=native#text/plain
 fcl/db/README -text
-fcl/db/bufdataset.inc svneol=native#text/plain
+fcl/db/bufdataset.pp svneol=native#text/plain
+fcl/db/bufdataset_parser.pp svneol=native#text/plain
 fcl/db/database.inc svneol=native#text/plain
 fcl/db/dataset.inc svneol=native#text/plain
 fcl/db/datasource.inc svneol=native#text/plain

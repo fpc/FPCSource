@@ -69,7 +69,6 @@ type
   TField = class;
   TFields = Class;
   TDataSet = class;
-  TBufDataSet = class;
   TDataBase = Class;
   TDatasource = Class;
   TDatalink = Class;
@@ -924,8 +923,6 @@ type
   TDataSetNotifyEvent = procedure(DataSet: TDataSet) of object;
   TDataSetErrorEvent = procedure(DataSet: TDataSet; E: EDatabaseError;
     var DataAction: TDataAction) of object;
-  TResolverErrorEvent = procedure(Sender: TObject; DataSet: TBufDataset; E: EUpdateError;
-    UpdateKind: TUpdateKind; var Response: TResolverResponse) of object;
 
   TFilterOption = (foCaseInsensitive, foNoPartialCompare);
   TFilterOptions = set of TFilterOption;
@@ -1102,8 +1099,6 @@ type
     procedure GetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
     function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; virtual; abstract;
     function GetDataSource: TDataSource; virtual;
-    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; overload; virtual;
-    function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload; virtual;
     function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
     function GetRecordSize: Word; virtual; abstract;
     procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); virtual; abstract;
@@ -1121,12 +1116,14 @@ type
     function IsCursorOpen: Boolean; virtual; abstract;
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); virtual; abstract;
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
-    procedure SetFieldData(Field: TField; Buffer: Pointer); overload; virtual;
-    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); overload; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function ActiveBuffer: PChar;
+    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; overload; virtual;
+    function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload; virtual;
+    procedure SetFieldData(Field: TField; Buffer: Pointer); overload; virtual;
+    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); overload; virtual;
     procedure Append;
     procedure AppendRecord(const Values: array of const);
     function BookmarkValid(ABookmark: TBookmark): Boolean; virtual;
@@ -1498,143 +1495,7 @@ type
     property BeforeDisconnect : TNotifyEvent read FBeforeDisconnect write SetBeforeDisconnect;
   end;
 
-  { TBufBlobStream }
-  
-  PBlobBuffer = ^TBlobBuffer;
-  TBlobBuffer = record
-    FieldNo : integer;
-    OrgBufID: integer;
-    Buffer  : pointer;
-    Size    : ptrint;
-  end;
 
-   TBufBlobStream = class(TStream)
-  private
-    FBlobBuffer : PBlobBuffer;
-    FPosition   : ptrint;
-    FDataset    : TBufDataset;
-  protected
-    function Read(var Buffer; Count: Longint): Longint; override;
-    function Write(const Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
-  public
-    constructor Create(Field: TBlobField; Mode: TBlobStreamMode);
-  end;
-
-  { TBufDataset }
-
-  PBufRecLinkItem = ^TBufRecLinkItem;
-  TBufRecLinkItem = record
-    prior   : PBufRecLinkItem;
-    next    : PBufRecLinkItem;
-  end;
-
-  PBufBookmark = ^TBufBookmark;
-  TBufBookmark = record
-    BookmarkData : PBufRecLinkItem;
-    BookmarkFlag : TBookmarkFlag;
-  end;
-
-  PRecUpdateBuffer = ^TRecUpdateBuffer;
-  TRecUpdateBuffer = record
-    UpdateKind         : TUpdateKind;
-    BookmarkData       : pointer;
-    OldValuesBuffer    : pchar;
-  end;
-  
-  PBufBlobField = ^TBufBlobField;
-  TBufBlobField = record
-    ConnBlobBuffer : array[0..11] of byte; // It's here where the db-specific data is stored
-    BlobBuffer     : PBlobBuffer;
-  end;
-  
-  TRecordsUpdateBuffer = array of TRecUpdateBuffer;
-
-  TBufDataset = class(TDBDataSet)
-  private
-    FCurrentRecBuf  : PBufRecLinkItem;
-    FLastRecBuf     : PBufRecLinkItem;
-    FFirstRecBuf    : PBufRecLinkItem;
-    FFilterBuffer   : pchar;
-    FBRecordCount   : integer;
-
-    FPacketRecords  : integer;
-    FRecordSize     : Integer;
-    FNullmaskSize   : byte;
-    FOpen           : Boolean;
-    FUpdateBuffer   : TRecordsUpdateBuffer;
-    FCurrentUpdateBuffer : integer;
-
-    FFieldBufPositions : array of longint;
-    
-    FAllPacketsFetched : boolean;
-    FOnUpdateError  : TResolverErrorEvent;
-
-    FBlobBuffers      : array of PBlobBuffer;
-    FUpdateBlobBuffers: array of PBlobBuffer;
-
-    function  GetCurrentBuffer: PChar;
-    procedure CalcRecordSize;
-    function LoadBuffer(Buffer : PChar): TGetResult;
-    function GetFieldSize(FieldDef : TFieldDef) : longint;
-    function GetRecordUpdateBuffer : boolean;
-    procedure SetPacketRecords(aValue : integer);
-    function  IntAllocRecordBuffer: PChar;
-    procedure DoFilterRecord(var Acceptable: Boolean);
-  protected
-    function GetNewBlobBuffer : PBlobBuffer;
-    function GetNewWriteBlobBuffer : PBlobBuffer;
-    procedure SetRecNo(Value: Longint); override;
-    function  GetRecNo: Longint; override;
-    function GetChangeCount: integer; virtual;
-    function  AllocRecordBuffer: PChar; override;
-    procedure FreeRecordBuffer(var Buffer: PChar); override;
-    procedure InternalInitRecord(Buffer: PChar); override;
-    function  GetCanModify: Boolean; override;
-    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
-    procedure InternalOpen; override;
-    procedure InternalClose; override;
-    function getnextpacket : integer;
-    function GetRecordSize: Word; override;
-    procedure InternalPost; override;
-    procedure InternalCancel; Override;
-    procedure InternalDelete; override;
-    procedure InternalFirst; override;
-    procedure InternalLast; override;
-    procedure InternalSetToRecord(Buffer: PChar); override;
-    procedure InternalGotoBookmark(ABookmark: Pointer); override;
-    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
-    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
-    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
-    function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
-    function GetFieldData(Field: TField; Buffer: Pointer;
-      NativeFormat: Boolean): Boolean; override;
-    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
-    procedure SetFieldData(Field: TField; Buffer: Pointer;
-      NativeFormat: Boolean); override;
-    procedure SetFieldData(Field: TField; Buffer: Pointer); override;
-    function IsCursorOpen: Boolean; override;
-    function  GetRecordCount: Longint; override;
-    procedure ApplyRecUpdate(UpdateKind : TUpdateKind); virtual;
-    procedure SetOnUpdateError(const aValue: TResolverErrorEvent);
-  {abstracts, must be overidden by descendents}
-    function Fetch : boolean; virtual; abstract;
-    function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; virtual; abstract;
-    procedure LoadBlobIntoStream(Field: TField;AStream: TStream); virtual; abstract;
-  public
-    constructor Create(AOwner: TComponent); override;
-    procedure ApplyUpdates; virtual; overload;
-    procedure ApplyUpdates(MaxErrors: Integer); virtual; overload;
-    procedure CancelUpdates; virtual;
-    destructor Destroy; override;
-    function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
-    function UpdateStatus: TUpdateStatus; override;
-    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
-    property ChangeCount : Integer read GetChangeCount;
-  published
-    property PacketRecords : Integer read FPacketRecords write SetPacketRecords default 10;
-    property OnUpdateError: TResolverErrorEvent read FOnUpdateError write SetOnUpdateError;
-  end;
 
   { TParam }
 
@@ -2249,7 +2110,6 @@ end;
 {$i fields.inc}
 {$i datasource.inc}
 {$i database.inc}
-{$i bufdataset.inc}
 {$i dsparams.inc}
 
 end.

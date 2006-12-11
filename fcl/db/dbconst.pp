@@ -35,6 +35,9 @@ Resourcestring
   SErrNoStatement          = 'SQL statement not set';
   SErrTransAlreadyActive   = 'Transaction already active';
   SErrTransactionnSet      = 'Transaction not set';
+  SErrIndexResultTooLong   = 'Index result for "%s" too long, >100 characters (%d).';
+  SErrIndexBasedOnInvField = 'Field "%s" is an invalid field type to base index on.';
+  SErrIndexBasedOnUnkField = 'Index based on unknown field "%s".';
   SErrConnTransactionnSet  = 'Transaction of connection not set';
   STransNotActive          = 'Operation cannot be performed on an inactive transaction';
   STransActive             = 'Operation cannot be performed on an active transaction';

@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, member of the
+    Copyright (c) 1999-2006 by Joost van der Sluis, member of the
     Free Pascal development team
 
     BufDataset implementation
@@ -13,6 +13,170 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+unit BufDataset;
+
+{$mode objfpc}
+{$h+}
+
+interface
+
+uses Classes,Sysutils,db,bufdataset_parser;
+
+type
+  TBufDataset = Class;
+
+  TResolverErrorEvent = procedure(Sender: TObject; DataSet: TBufDataset; E: EUpdateError;
+    UpdateKind: TUpdateKind; var Response: TResolverResponse) of object;
+
+  { TBufBlobStream }
+
+  PBlobBuffer = ^TBlobBuffer;
+  TBlobBuffer = record
+    FieldNo : integer;
+    OrgBufID: integer;
+    Buffer  : pointer;
+    Size    : ptrint;
+  end;
+
+   TBufBlobStream = class(TStream)
+  private
+    FBlobBuffer : PBlobBuffer;
+    FPosition   : ptrint;
+    FDataset    : TBufDataset;
+  protected
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
+  public
+    constructor Create(Field: TBlobField; Mode: TBlobStreamMode);
+  end;
+
+  { TBufDataset }
+
+  PBufRecLinkItem = ^TBufRecLinkItem;
+  TBufRecLinkItem = record
+    prior   : PBufRecLinkItem;
+    next    : PBufRecLinkItem;
+  end;
+
+  PBufBookmark = ^TBufBookmark;
+  TBufBookmark = record
+    BookmarkData : PBufRecLinkItem;
+    BookmarkFlag : TBookmarkFlag;
+  end;
+
+  PRecUpdateBuffer = ^TRecUpdateBuffer;
+  TRecUpdateBuffer = record
+    UpdateKind         : TUpdateKind;
+    BookmarkData       : pointer;
+    OldValuesBuffer    : pchar;
+  end;
+
+  PBufBlobField = ^TBufBlobField;
+  TBufBlobField = record
+    ConnBlobBuffer : array[0..11] of byte; // It's here where the db-specific data is stored
+    BlobBuffer     : PBlobBuffer;
+  end;
+
+  TRecordsUpdateBuffer = array of TRecUpdateBuffer;
+
+  TBufDataset = class(TDBDataSet)
+  private
+    FCurrentRecBuf  : PBufRecLinkItem;
+    FLastRecBuf     : PBufRecLinkItem;
+    FFirstRecBuf    : PBufRecLinkItem;
+    FFilterBuffer   : pchar;
+    FBRecordCount   : integer;
+
+    FPacketRecords  : integer;
+    FRecordSize     : Integer;
+    FNullmaskSize   : byte;
+    FOpen           : Boolean;
+    FUpdateBuffer   : TRecordsUpdateBuffer;
+    FCurrentUpdateBuffer : integer;
+
+    FParser         : TBufDatasetParser;
+
+    FFieldBufPositions : array of longint;
+
+    FAllPacketsFetched : boolean;
+    FOnUpdateError  : TResolverErrorEvent;
+
+    FBlobBuffers      : array of PBlobBuffer;
+    FUpdateBlobBuffers: array of PBlobBuffer;
+
+    function  GetCurrentBuffer: PChar;
+    procedure CalcRecordSize;
+    function LoadBuffer(Buffer : PChar): TGetResult;
+    function GetFieldSize(FieldDef : TFieldDef) : longint;
+    function GetRecordUpdateBuffer : boolean;
+    procedure SetPacketRecords(aValue : integer);
+    function  IntAllocRecordBuffer: PChar;
+    procedure DoFilterRecord(var Acceptable: Boolean);
+    procedure ParseFilter(const AFilter: string);
+  protected
+    function GetNewBlobBuffer : PBlobBuffer;
+    function GetNewWriteBlobBuffer : PBlobBuffer;
+    procedure SetRecNo(Value: Longint); override;
+    function  GetRecNo: Longint; override;
+    function GetChangeCount: integer; virtual;
+    function  AllocRecordBuffer: PChar; override;
+    procedure FreeRecordBuffer(var Buffer: PChar); override;
+    procedure InternalInitRecord(Buffer: PChar); override;
+    function  GetCanModify: Boolean; override;
+    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
+    procedure InternalOpen; override;
+    procedure InternalClose; override;
+    function getnextpacket : integer;
+    function GetRecordSize: Word; override;
+    procedure InternalPost; override;
+    procedure InternalCancel; Override;
+    procedure InternalDelete; override;
+    procedure InternalFirst; override;
+    procedure InternalLast; override;
+    procedure InternalSetToRecord(Buffer: PChar); override;
+    procedure InternalGotoBookmark(ABookmark: Pointer); override;
+    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
+    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
+    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
+    function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
+    function IsCursorOpen: Boolean; override;
+    function  GetRecordCount: Longint; override;
+    procedure ApplyRecUpdate(UpdateKind : TUpdateKind); virtual;
+    procedure SetOnUpdateError(const aValue: TResolverErrorEvent);
+    procedure SetFilterText(const Value: String); override; {virtual;}
+    procedure SetFiltered(Value: Boolean); override; {virtual;}
+  {abstracts, must be overidden by descendents}
+    function Fetch : boolean; virtual; abstract;
+    function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; virtual; abstract;
+    procedure LoadBlobIntoStream(Field: TField;AStream: TStream); virtual; abstract;
+
+  public
+    constructor Create(AOwner: TComponent); override;
+    function GetFieldData(Field: TField; Buffer: Pointer;
+      NativeFormat: Boolean): Boolean; override;
+    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
+    procedure SetFieldData(Field: TField; Buffer: Pointer;
+      NativeFormat: Boolean); override;
+    procedure SetFieldData(Field: TField; Buffer: Pointer); override;
+    procedure ApplyUpdates; virtual; overload;
+    procedure ApplyUpdates(MaxErrors: Integer); virtual; overload;
+    procedure CancelUpdates; virtual;
+    destructor Destroy; override;
+    function Locate(const keyfields: string; const keyvalues: Variant; options: TLocateOptions) : boolean; override;
+    function UpdateStatus: TUpdateStatus; override;
+    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
+    property ChangeCount : Integer read GetChangeCount;
+  published
+    property PacketRecords : Integer read FPacketRecords write SetPacketRecords default 10;
+    property OnUpdateError: TResolverErrorEvent read FOnUpdateError write SetOnUpdateError;
+  end;
+
+implementation
+
+uses variants, dbconst;
+
 { ---------------------------------------------------------------------
     TBufDataSet
   ---------------------------------------------------------------------}
@@ -24,6 +188,7 @@ begin
   SetLength(FBlobBuffers,0);
   SetLength(FUpdateBlobBuffers,0);
   BookmarkSize := sizeof(TBufBookmark);
+  FParser := nil;
   FPacketRecords := 10;
 end;
 
@@ -74,7 +239,17 @@ begin
   FCurrentRecBuf := FLastRecBuf;
 
   FAllPacketsFetched := False;
+
   FOpen:=True;
+
+  // parse filter expression
+  try
+    ParseFilter(Filter);
+  except
+    // oops, a problem with parsing, clear filter for now
+    on E: Exception do Filter := EmptyStr;
+  end;
+
 end;
 
 procedure TBufDataset.InternalClose;
@@ -104,6 +279,8 @@ begin
 
   FFirstRecBuf:= nil;
   SetLength(FFieldBufPositions,0);
+
+  if assigned(FParser) then FreeAndNil(FParser);
 end;
 
 procedure TBufDataset.InternalFirst;
@@ -199,6 +376,11 @@ begin
       FFilterBuffer := Buffer;
       SaveState := SetTempState(dsFilter);
       DoFilterRecord(Acceptable);
+      if (GetMode = gmCurrent) and not Acceptable then
+        begin
+        Acceptable := True;
+        Result := grError;
+        end;
       RestoreState(SaveState);
       end;
     end
@@ -931,15 +1113,66 @@ end;
 
 procedure TBufDataset.DoFilterRecord(var Acceptable: Boolean);
 begin
-  // check filtertext
-  if Length(Filter) > 0 then
-  begin
-  end;
-
+  Acceptable := true;
   // check user filter
-  if Acceptable and Assigned(OnFilterRecord) then
+  if Assigned(OnFilterRecord) then
     OnFilterRecord(Self, Acceptable);
+
+  // check filtertext
+  if Acceptable and (Length(Filter) > 0) then
+    Acceptable := Boolean((FParser.ExtractFromBuffer(GetCurrentBuffer))^);
+
 end;
+
+procedure TBufDataset.SetFilterText(const Value: String);
+begin
+  if Value = Filter then
+    exit;
+
+  // parse
+  ParseFilter(Value);
+
+  // call dataset method
+  inherited;
+
+  // refilter dataset if filtered
+  if IsCursorOpen and Filtered then Refresh;
+end;
+
+procedure TBufDataset.SetFiltered(Value: Boolean); {override;}
+begin
+  if Value = Filtered then
+    exit;
+
+  // pass on to ancestor
+  inherited;
+
+  // only refresh if active
+  if IsCursorOpen then
+    Refresh;
+end;
+
+procedure TBufDataset.ParseFilter(const AFilter: string);
+begin
+  // parser created?
+  if Length(AFilter) > 0 then
+  begin
+    if (FParser = nil) and IsCursorOpen then
+    begin
+      FParser := TBufDatasetParser.Create(Self);
+    end;
+    // have a parser now?
+    if FParser <> nil then
+    begin
+      // set options
+      FParser.PartialMatch := not (foNoPartialCompare in FilterOptions);
+      FParser.CaseInsensitive := foCaseInsensitive in FilterOptions;
+      // parse expression
+      FParser.ParseExpression(AFilter);
+    end;
+  end;
+end;
+
 
 Function TBufDataset.Locate(const KeyFields: string; const KeyValues: Variant; options: TLocateOptions) : boolean;
 
@@ -1067,3 +1300,5 @@ begin
   ReAllocmem(ValueBuffer,0);
 end;
 
+begin
+end.

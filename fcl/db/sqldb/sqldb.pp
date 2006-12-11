@@ -20,7 +20,7 @@ unit sqldb;
 
 interface
 
-uses SysUtils, Classes, DB;
+uses SysUtils, Classes, DB, bufdataset;
 
 type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages);
      TConnOption = (sqSupportParams);

@@ -15,11 +15,11 @@ dirs_netbsd=sqlite
 dirs_openbsd=sqlite
 dirs_win32=dbase sqlite
 dirs_wince=dbase sqlite
-units=dbconst db dbwhtml
+units=dbconst db dbwhtml bufdataset_parser bufdataset
 rsts=dbwhtml dbconst
 
 [compiler]
-options=-S2
+options=-S2 -Fudbase -Fidbase
 
 [install]
 fpcpackage=y
