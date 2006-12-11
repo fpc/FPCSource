@@ -101,7 +101,7 @@ Type
     Function Resume : Integer; virtual;
     Function Suspend : Integer; virtual;
     Function Terminate (AExitCode : Integer): Boolean; virtual;
-    Function WaitOnExit : DWord;
+    Function WaitOnExit : Boolean;
     Property WindowRect : Trect Read GetWindowRect Write SetWindowRect;
     Property Handle : THandle Read FProcessHandle;
     Property ProcessHandle : THandle Read FProcessHandle;

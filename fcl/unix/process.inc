@@ -340,12 +340,16 @@ begin
     WaitOnExit;
 end;
 
-Function TProcess.WaitOnExit : Dword;
+Function TProcess.WaitOnExit : Boolean;
+
+Var
+  R : Dword;
 
 begin
-  Result:=fpWaitPid(Handle,pcint(@FExitCode),0);
-  If Result=Handle then
-    FExitCode:=WexitStatus(FExitCode);
+  R:=fpWaitPid(Handle,pcint(@FExitCode),0);
+  Result:=(R=Handle);
+  If Result then
+    FExitCode:=WExitStatus(FExitCode);
   FRunning:=False;
 end;
 

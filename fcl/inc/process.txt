@@ -101,9 +101,10 @@ Function Terminate (AExitCode : Integer): Boolean; virtual;
   exitcode 'AExitCode'
   It returns True on succes, False on failure.
 
-Function WaitOnExit : Integer;
-  This function returns immediatly if the application is not running,
-  and waits for the application to finish if it was still running.
+Function WaitOnExit : Boolean;
+  This function returns true if the wait for the process exit was succesful,
+  false if some error occurded. It returns immediatly if the application is 
+  not running, and waits for the application to finish if it was still running.
   
 Property ApplicationName : String;
   Sets the name of the application.
