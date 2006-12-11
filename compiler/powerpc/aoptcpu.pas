@@ -374,9 +374,9 @@ const
                             // masks have no bits in common
                             taicpu(p).opcode := A_LI;
                             taicpu(p).loadconst(1,0);
-                            taicpu(p).clearop(2);
-                            taicpu(p).clearop(3);
-                            taicpu(p).clearop(4);
+                            taicpu(p).freeop(2);
+                            taicpu(p).freeop(3);
+                            taicpu(p).freeop(4);
                             taicpu(p).ops := 2;
                             taicpu(p).opercnt := 2;
                             asml.remove(next1);
@@ -480,20 +480,20 @@ const
                         taicpu(p).oper[2]^.val := word(
                           ((1 shl (16-taicpu(p).oper[3]^.val)) - 1) xor
                           ((1 shl (15-taicpu(p).oper[4]^.val)) - 1));
-                        taicpu(p).clearop(3);
-                        taicpu(p).clearop(4);
+                        taicpu(p).freeop(3);
+                        taicpu(p).freeop(4);
                         taicpu(p).ops := 3;
-                        taicpu(p).opercnt := 2;
+                        taicpu(p).opercnt := 3;
                       end
                     else if (taicpu(p).oper[3]^.val >= 16) and
                        (taicpu(p).oper[4]^.val >= 16) then
                       begin
                         taicpu(p).opcode := A_ANDI_;
                         taicpu(p).oper[2]^.val := word(rlwinm2mask(taicpu(p).oper[3]^.val,taicpu(p).oper[4]^.val));
-                        taicpu(p).clearop(3);
-                        taicpu(p).clearop(4);
+                        taicpu(p).freeop(3);
+                        taicpu(p).freeop(4);
                         taicpu(p).ops := 3;
-                        taicpu(p).opercnt := 2;
+                        taicpu(p).opercnt := 3;
                       end;
                 end;
             end;

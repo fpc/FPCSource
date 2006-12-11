@@ -593,6 +593,7 @@ interface
            procedure loadreg(opidx:longint;r:tregister);
            procedure loadoper(opidx:longint;o:toper);
            procedure clearop(opidx:longint);
+           procedure freeop(opidx:longint);
            { register allocator }
            function is_same_reg_move(regtype: Tregistertype):boolean;virtual;
            function spilling_get_operation_type(opnr: longint): topertype;virtual;
@@ -1992,10 +1993,7 @@ implementation
         i : integer;
       begin
         for i:=0 to opercnt-1 do
-          begin
-            clearop(i);
-            dispose(oper[i]);
-          end;
+          freeop(i);
         inherited destroy;
       end;
 
@@ -2179,6 +2177,13 @@ implementation
             end;
             typ:=top_none;
           end;
+      end;
+
+
+    procedure tai_cpu_abstract.freeop(opidx:longint);
+      begin
+        clearop(opidx);
+        dispose(oper[opidx]);
       end;
 
 
