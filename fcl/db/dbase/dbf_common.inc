@@ -212,7 +212,7 @@
 // Joost, 12-12-2006 Check temporarily disabled, until TDbf is properly changed so that
 // dbf_prscore is compilable without any dependencies on Dbf (and dbf_common.inc)
 {ifndef FPC_LITTLE_ENDIAN}
-  {$message error TDbf is not compatible with non little-endian CPUs. Please contact the author.}
+  {message error TDbf is not compatible with non little-endian CPUs. Please contact the author.}
 {endif}
 
 {$ifdef USE_ASSEMBLER_486_UP}
