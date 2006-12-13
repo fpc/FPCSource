@@ -24,7 +24,6 @@ begin
     SourceName:=Source.ClassName
   else
     SourceName:='Nil';
-  Writeln ('Error assigning to ',ClassName,' from : ',SourceName);
   raise EConvertError.CreateFmt (SAssignError,[SourceName,ClassName]);
 end;
 
