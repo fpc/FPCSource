@@ -223,6 +223,28 @@ function SameValue(const A, B: Double; Epsilon: Double): Boolean;
 {$endif}
 function SameValue(const A, B: Single; Epsilon: Single): Boolean;
 
+type
+  TRoundToRange = -37..37;
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function RoundTo(const AValue: Double; const Digits: TRoundToRange): Double;
+{$endif}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function RoundTo(const AVAlue: Extended; const Digits: TRoundToRange): Extended;
+{$endif}
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function RoundTo(const AValue: Single; const Digits: TRoundToRange): Single;
+{$endif}
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function SimpleRoundTo(const AValue: Single; const Digits: TRoundToRange = -2): Single;
+{$endif}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function SimpleRoundTo(const AValue: Double; const Digits: TRoundToRange = -2): Double;
+{$endif}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function SimpleRoundTo(const AValue: Extended; const Digits: TRoundToRange = -2): Extended;
+{$endif}  
+
 
 { angle conversion }
 
@@ -2198,6 +2220,76 @@ begin
 end;
 {$endif}
 
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function RoundTo(const AValue: Double; const Digits: TRoundToRange): Double;
 
+var
+  RV : Double;
+
+begin
+  RV:=IntPower(10,Digits);
+  Result:=Round(AValue/RV)*RV;
+end;
+{$endif}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function RoundTo(const AVAlue: Extended; const Digits: TRoundToRange): Extended;
+
+var
+  RV : Extended;
+
+begin
+  RV:=IntPower(10,Digits);
+  Result:=Round(AValue/RV)*RV;
+end;
+{$endif}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function RoundTo(const AValue: Single; const Digits: TRoundToRange): Single;
+
+var
+  RV : Single;
+
+begin
+  RV:=IntPower(10,Digits);
+  Result:=Round(AValue/RV)*RV;
+end;
+{$endif}
+
+{$ifdef FPC_HAS_TYPE_SINGLE}
+function SimpleRoundTo(const AValue: Single; const Digits: TRoundToRange = -2): Single;
+
+var
+  RV : Single;
+
+begin
+  RV:=IntPower(10,Digits);
+  Result:=Trunc((AValue/RV)+0.5)*RV;
+end;
+{$endif}
+
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+function SimpleRoundTo(const AValue: Double; const Digits: TRoundToRange = -2): Double;
+
+var
+  RV : Double;
+
+begin
+  RV:=IntPower(10,Digits);
+  Result:=Trunc((AValue/RV)+0.5)*RV;
+end;  
+{$endif}
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+function SimpleRoundTo(const AValue: Extended; const Digits: TRoundToRange = -2): Extended;
+
+var
+  RV : Extended;
+
+begin
+  RV:=IntPower(10,Digits);
+  Result:=Trunc((AValue/RV)+0.5)*RV;
+end;
+{$endif}  
 
 end.
