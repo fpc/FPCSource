@@ -55,7 +55,7 @@ type
 
 implementation
 
-uses dbf_parser, dbconst;
+uses dbconst;
 
 type
 // TFieldVar aids in retrieving field values from records
