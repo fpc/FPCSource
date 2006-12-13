@@ -112,6 +112,7 @@ ResourceString
   SErrNoVariantSupport          = 'No variant support for properties. Please use the variants unit in your project and recompile';
   SErrOutOfMemory               = 'Out of memory';
   SErrPropertyNotFound          = 'Unknown property: "%s"';
+  SerrInvalidPropertyType       = 'Invalid property type from streamed property: %d';
   SErrUnknownEnumValue          = 'Unknown enumeration value: "%s"';
   SFailedToCallConstructor      = 'TStrings descendant "%s" failed to call inherited constructor';
   SFB                           = 'FB';
