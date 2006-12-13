@@ -57,7 +57,7 @@ implementation
               if po_syscall_legacy in tprocdef(procdefinition).procoptions then
                 begin
                   reference_reset_base(tmpref,NR_A6,-tprocdef(procdefinition).extnumber);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_JSR,S_NO,tmpref,NR_NO));
+                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_JSR,S_NO,tmpref));
                 end
               else
                 internalerror(2005010403);
