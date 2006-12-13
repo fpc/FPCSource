@@ -53,7 +53,7 @@ type
   PInteger  = ^Integer;
   PSmallInt = ^SmallInt;
   PInt64    = ^Int64;
-  PFloat    = ^Extended;
+  PFloat    = ^Double;
   PBoolean  = ^Boolean;
 
 
@@ -278,7 +278,7 @@ begin
   case FieldDefs.Items[FieldNo-1].Datatype of
    ftString:   result:=FieldDefs.Items[FieldNo-1].Size+1;
    ftBoolean:  result:=SizeOf(Boolean);
-   ftFloat:    result:=SizeOf(Extended);
+   ftFloat:    result:=SizeOf(Double);
    ftLargeInt: result:=SizeOf(int64);
    ftSmallInt: result:=SizeOf(SmallInt);
    ftInteger:  result:=SizeOf(Integer);
