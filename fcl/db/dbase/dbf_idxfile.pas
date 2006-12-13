@@ -400,6 +400,7 @@ uses
   dbf_dbffile,
   dbf_fields,
   dbf_str,
+  dbf_prssupp,
   dbf_lang;
 
 const

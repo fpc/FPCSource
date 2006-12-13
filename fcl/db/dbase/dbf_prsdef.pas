@@ -7,7 +7,7 @@ interface
 uses
   SysUtils,
   Classes,
-  dbf_common,
+  Db,
   dbf_prssupp;
 
 const
@@ -343,8 +343,6 @@ const
   ('c' in 'a,b') =False}
 
 function ExprCharToExprType(ExprChar: Char): TExpressionType;
-
-
 
 implementation
 

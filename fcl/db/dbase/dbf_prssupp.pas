@@ -49,9 +49,52 @@ type
     procedure FreeItem(Item: Pointer); override;
   end;
 
+function GetStrFromInt(Val: Integer; const Dst: PChar): Integer;
+procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PChar; const PadChar: Char);
+
 implementation
 
 uses SysUtils;
+
+// it seems there is no pascal function to convert an integer into a PChar???
+// NOTE: in dbf_dbffile.pas there is also a convert routine, but is slightly different
+
+function GetStrFromInt(Val: Integer; const Dst: PChar): Integer;
+var
+  Temp: array[0..10] of Char;
+  I, J: Integer;
+begin
+  Val := Abs(Val);
+  // we'll have to store characters backwards first
+  I := 0;
+  J := 0;
+  repeat
+    Temp[I] := Chr((Val mod 10) + Ord('0'));
+    Val := Val div 10;
+    Inc(I);
+  until Val = 0;
+
+  // remember number of digits
+  Result := I;
+  // copy value, remember: stored backwards
+  repeat
+    Dst[J] := Temp[I-1];
+    Inc(J);
+    Dec(I);
+  until I = 0;
+  // done!
+end;
+
+// it seems there is no pascal function to convert an integer into a PChar???
+
+procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PChar; const PadChar: Char);
+var
+  Temp: array[0..10] of Char;
+  I, J: Integer;
+  NegSign: boolean;
+begin
+  {$I getstrfromint.inc}
+end;
 
 destructor TOCollection.Destroy;
 begin

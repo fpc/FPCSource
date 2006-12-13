@@ -197,7 +197,7 @@ uses
   BaseUnix,
 {$endif}
 {$endif}
-  dbf_str, dbf_lang;
+  dbf_str, dbf_lang, dbf_prssupp;
 
 const
   sDBF_DEC_SEP = '.';

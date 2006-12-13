@@ -38,6 +38,7 @@ type
 
 {LargeInt}
   LargeInt = Int64;
+  PLargeInt= ^LargeInt;
 
 { Auxiliary type }
   TStringFieldBuffer = Array[0..dsMaxStringSize] of Char;
@@ -116,6 +117,7 @@ type
 { TDateTimeRec }
 
   TDateTimeAlias = type TDateTime;
+  PDateTimeRec = ^TdateTimeRec;
   TDateTimeRec = record
     case TFieldType of
       ftDate: (Date: Longint);
