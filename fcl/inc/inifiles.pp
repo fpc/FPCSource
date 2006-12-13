@@ -32,7 +32,7 @@
  *   the SectionList object structure)
  * - ReadInteger supports '0x' type hex formats
  * - Comment support (this isn't standard in ini files)
- * - EscapeLineFeeds property
+ * - EscapeLineFeeds creation parameter
  *
  * Since the SectionList object structure is very different from the
  * way Delphi 5 accesses ini files (Delphi mostly uses Windows calls
@@ -71,8 +71,7 @@ type
     function KeyByName(AName: string; CaseSensitive : Boolean): TIniFileKey;
   public
     destructor Destroy; override;
-    procedure Clear;
-override;
+    procedure Clear; override;
     property Items[Index: integer]: TIniFileKey read GetItem; default;
   end;
 
@@ -103,7 +102,7 @@ override;
     FEscapeLineFeeds: boolean;
     FCaseSensitive : Boolean; 
   public
-    constructor Create(const AFileName: string); virtual;
+    constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); virtual;
     destructor Destroy; override;
     function SectionExists(const Section: string): Boolean; virtual;
     function ReadString(const Section, Ident, Default: string): string; virtual; abstract;
@@ -128,7 +127,7 @@ override;
     procedure UpdateFile; virtual; abstract;
     function ValueExists(const Section, Ident: string): Boolean; virtual;
     property FileName: string read FFileName;
-    property EscapeLineFeeds: boolean read FEscapeLineFeeds write FEscapeLineFeeds;
+    property EscapeLineFeeds: boolean read FEscapeLineFeeds;
     Property CaseSensitive : Boolean Read FCaseSensitive Write FCaseSensitive;
   end;
 
@@ -144,8 +143,8 @@ override;
     procedure MaybeUpdateFile;
     property Dirty : Boolean Read FDirty;
   public
-    constructor Create(const AFileName: string); override;
-    constructor Create(AStream: TStream);
+    constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); override;
+    constructor Create(AStream: TStream; AEscapeLineFeeds : Boolean = False);
     destructor Destroy; override;
     function ReadString(const Section, Ident, Default: string): string; override;
     procedure WriteString(const Section, Ident, Value: String); override;
@@ -162,7 +161,7 @@ override;
 
   TMemIniFile = class(TIniFile)
   public
-    constructor Create(const AFileName: string); override;
+    constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); override;
     procedure Clear;
     procedure GetStrings(List: TStrings);
     procedure Rename(const AFileName: string; Reload: Boolean);
@@ -315,11 +314,11 @@ end;
 
 { TCustomIniFile }
 
-constructor TCustomIniFile.Create(const AFileName: string);
+constructor TCustomIniFile.Create(const AFileName: string; AEscapeLineFeeds : Boolean = False);
 begin
   FFileName := AFileName;
   FSectionList := TIniFileSectionList.Create;
-  FEscapeLineFeeds := False;
+  FEscapeLineFeeds := AEscapeLineFeeds;
 end;
 
 destructor TCustomIniFile.Destroy;
@@ -458,11 +457,11 @@ end;
 
 { TIniFile }
 
-constructor TIniFile.Create(const AFileName: string);
+constructor TIniFile.Create(const AFileName: string; AEscapeLineFeeds : Boolean = False);
 var
   slLines: TStringList;
 begin
-  inherited Create(AFileName);
+  inherited Create(AFileName,AEscapeLineFeeds);
   FStream := nil;
   slLines := TStringList.Create;
   try
@@ -478,11 +477,11 @@ begin
   end;
 end;
 
-constructor TIniFile.Create(AStream: TStream);
+constructor TIniFile.Create(AStream: TStream; AEscapeLineFeeds : Boolean = False);
 var
   slLines: TStringList;
 begin
-  inherited Create('');
+  inherited Create('',AEscapeLineFeeds);
   FStream := AStream;
   slLines := TStringList.Create;
   try
@@ -509,31 +508,23 @@ var
 
   procedure RemoveBackslashes;
   var
-    i: integer;
+    i,l: integer;
     s: string;
     bAppendNextLine, bAppended: boolean;
   begin
     AStrings.BeginUpdate;
     try
-      i := 0;
-      bAppendNextLine := False;
-      while i < AStrings.Count do begin
-        s := AStrings[i];
-        bAppended := False;
-        if bAppendNextLine then begin
-          // add line to previous line
-          AStrings[i-1] := AStrings[i-1] + Trim(s);
-          AStrings.Delete(i);
-          s := AStrings[i-1];
-          bAppended := True;
+      For I:=AStrings.Count-2 downto 0 do
+        begin
+        S:=AStrings[i];
+        L:=Length(S);
+        If (I<AStrings.Count-1) and (L>0) and (S[L]=LF_Escape) then
+          begin
+          S:=Copy(S,1,L-1)+AStrings[I+1];
+          AStrings.Delete(I+1);
+          AStrings[i]:=S;
+          end;
         end;
-        bAppendNextLine := (Copy(s, Length(s), 1) = LF_Escape);
-        if bAppendNextLine then
-          // remove backslash
-          AStrings[i] := Copy(s, 1, Length(s) - 1);
-        if not bAppended then
-          Inc(i);
-      end;
     finally
       AStrings.EndUpdate;
     end;
@@ -782,7 +773,7 @@ end;
 
 { TMemIniFile }
 
-constructor TMemIniFile.Create(const AFileName: string);
+constructor TMemIniFile.Create(const AFileName: string; AEscapeLineFeeds : Boolean = False);
 
 begin
   Inherited;
