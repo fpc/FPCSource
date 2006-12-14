@@ -1177,6 +1177,7 @@ fcl/xml/htmwrite.pp svneol=native#text/plain
 fcl/xml/names.inc svneol=native#text/plain
 fcl/xml/sax.pp svneol=native#text/plain
 fcl/xml/sax_html.pp svneol=native#text/plain
+fcl/xml/sax_xml.pp svneol=native#text/plain
 fcl/xml/xhtml.pp svneol=native#text/plain
 fcl/xml/xmlcfg.pp svneol=native#text/plain
 fcl/xml/xmlread.pp svneol=native#text/plain
