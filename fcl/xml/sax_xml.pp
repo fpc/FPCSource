@@ -1,3 +1,5 @@
+{$mode objfpc}
+{$h+}
 {
     This file is part of the Free Component Library
     Copyright (c) 2006 by Michael Van Canneyt.
