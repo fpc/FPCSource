@@ -646,7 +646,7 @@ implementation
       var
         pm     : tmodule;
         typ    : tdereftype;
-        idx    : word;
+        idx    : longint;
         i      : aint;
         len    : byte;
         data   : array[0..255] of byte;
@@ -680,13 +680,13 @@ implementation
                 end;
               deref_defid :
                 begin
-                  idx:=(data[i] shl 24) or (data[i+1] shl 16) or (data[i+2] shl 8) or data[i+3];
+                  idx:=longint((data[i] shl 24) or (data[i+1] shl 16) or (data[i+2] shl 8) or data[i+3]);
                   inc(i,4);
                   result:=tdef(pm.deflist[idx]);
                 end;
               deref_symid :
                 begin
-                  idx:=(data[i] shl 24) or (data[i+1] shl 16) or (data[i+2] shl 8) or data[i+3];
+                  idx:=longint((data[i] shl 24) or (data[i+1] shl 16) or (data[i+2] shl 8) or data[i+3]);
                   inc(i,4);
                   result:=tsym(pm.symlist[idx]);
                 end;
