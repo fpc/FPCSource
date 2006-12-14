@@ -1799,7 +1799,7 @@ implementation
                         internalerror(200402261);
                       if not assigned(tparavarsym(procdefinition.paras[paraidx]).defaultconstsym) then
                         begin
-                          CGMessage1(parser_e_wrong_parameter_size,symtableprocentry.realname);
+                          CGMessage1(parser_e_wrong_parameter_size,'<Procedure Variable>');
                           goto errorexit;
                         end;
                       dec(paraidx);
