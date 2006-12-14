@@ -79,6 +79,9 @@ uses
 {$ifdef macos}
   ,i_macos
 {$endif macos}
+{$ifdef nds}
+  ,i_nds
+{$endif nds}
 {$ifdef nwm}
   ,i_nwm
 {$endif nwm}

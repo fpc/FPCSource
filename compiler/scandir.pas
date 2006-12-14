@@ -245,7 +245,8 @@ implementation
          hs : string;
       begin
         if not (target_info.system in system_all_windows + [system_i386_os2,
-                                       system_i386_emx, system_powerpc_macos]) then
+                                       system_i386_emx, system_powerpc_macos,
+                                       system_arm_nds]) then
           begin
             if m_delphi in current_settings.modeswitches then
               Message(scan_n_app_type_not_support)
@@ -271,6 +272,10 @@ implementation
                    apptype:=app_fs
                  else if (hs='TOOL') and (target_info.system in [system_powerpc_macos]) then
                    apptype:=app_tool
+                 else if (hs='ARM9') and (target_info.system in [system_arm_nds]) then
+                   apptype:=app_arm9
+                 else if (hs='ARM7') and (target_info.system in [system_arm_nds]) then
+                   apptype:=app_arm7
                  else
                    Message1(scan_w_unsupported_app_type,hs);
               end;

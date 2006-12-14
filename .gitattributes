@@ -452,6 +452,7 @@ compiler/systems/i_go32v2.pas svneol=native#text/plain
 compiler/systems/i_linux.pas svneol=native#text/plain
 compiler/systems/i_macos.pas svneol=native#text/plain
 compiler/systems/i_morph.pas svneol=native#text/plain
+compiler/systems/i_nds.pas -text
 compiler/systems/i_nwl.pas svneol=native#text/plain
 compiler/systems/i_nwm.pas svneol=native#text/plain
 compiler/systems/i_os2.pas svneol=native#text/plain
@@ -471,6 +472,7 @@ compiler/systems/t_go32v2.pas svneol=native#text/plain
 compiler/systems/t_linux.pas svneol=native#text/plain
 compiler/systems/t_macos.pas svneol=native#text/plain
 compiler/systems/t_morph.pas svneol=native#text/plain
+compiler/systems/t_nds.pas -text
 compiler/systems/t_nwl.pas svneol=native#text/plain
 compiler/systems/t_nwm.pas svneol=native#text/plain
 compiler/systems/t_os2.pas svneol=native#text/plain

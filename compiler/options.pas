@@ -2205,9 +2205,9 @@ begin
      (cs_profile in init_settings.moduleswitches) then
     exclude(init_settings.globalswitches,cs_link_strip);
 
-  { force fpu emulation on arm/wince and arm/gba }
+  { force fpu emulation on arm/wince, arm/gba and arm/nds}
   if target_info.system in [system_arm_wince,system_arm_gba,system_m68k_amiga,
-    system_m68k_linux] then
+    system_m68k_linux,system_arm_nds] then
     include(init_settings.moduleswitches,cs_fp_emulation);
 
 {$ifdef ARM}

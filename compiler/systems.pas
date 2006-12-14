@@ -124,7 +124,8 @@ interface
              system_powerpc64_linux,    { 43 }
              system_i386_darwin,        { 44 }
              system_arm_palmos,         { 45 }
-             system_powerpc64_darwin    { 46 }
+             system_powerpc64_darwin,   { 46 }
+             system_arm_nds             { 47 }
        );
 
        tasm = (as_none

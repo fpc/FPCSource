@@ -105,6 +105,8 @@ compiler/systems/*.o
 compiler/systems/*.ppu
 compiler/systems/*.s
 compiler/systems/fpcmade.*
+compiler/systems/i_nds.pas
+compiler/systems/t_nds.pas
 compiler/systems/units
 compiler/units
 compiler/utils/*.bak
