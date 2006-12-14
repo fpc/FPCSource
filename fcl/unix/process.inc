@@ -6,7 +6,8 @@ uses
    Unix,
    Baseunix;
 
-
+resourcestring
+  SErrNoSuchProgram = 'Executable not found: "%s"';
 
 Const
   PriorityConstants : Array [TProcessPriority] of Integer =
@@ -247,7 +248,7 @@ Var
   FEnv     : PPChar;
   Argv     : PPChar;
   fd       : Integer;
-  PName    : String;
+  PName,p2    : String;
 
 begin
   If (poUsePipes in FProcessOptions) then
@@ -270,7 +271,11 @@ begin
             PName:=CommandLine;
           end;
         if (pos('/',PName)<>1) then
-          PName:=FileSearch(Pname,fpgetenv('PATH'));
+          P2:=FileSearch(Pname,fpgetenv('PATH'));
+        If (P2='') then
+          Raise EProcess.CreateFmt(SErrNoSuchProgram,[PName])
+        else
+          PName:=P2;  
         Pid:=fpfork;
         if Pid<0 then
           Raise EProcess.Create('Failed to Fork process');
