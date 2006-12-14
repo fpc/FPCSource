@@ -1278,7 +1278,7 @@ end;
                                  InitHeap
 *****************************************************************************}
 
-{$ifndef gba}
+{$if not(defined(gba)) and not(defined(nds))}
 { This function will initialize the Heap manager and need to be called from
   the initialization of the system unit }
 procedure InitHeap;
@@ -1290,7 +1290,7 @@ begin
   freeoslistcount := 0;
   fillchar(internal_status,sizeof(internal_status),0);
 end;
-{$endif gba}
+{$endif}
 
 procedure FinalizeHeap;
 var

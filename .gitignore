@@ -1882,6 +1882,7 @@ rtl/morphos/*.ppu
 rtl/morphos/*.s
 rtl/morphos/fpcmade.*
 rtl/morphos/units
+rtl/nds/parcheggio
 rtl/netbsd/*.bak
 rtl/netbsd/*.exe
 rtl/netbsd/*.o
