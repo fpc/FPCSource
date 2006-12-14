@@ -2426,11 +2426,12 @@ implementation
       begin
          inherited ppuload(recorddef,ppufile);
          symtable:=trecordsymtable.create(0);
-         trecordsymtable(symtable).datasize:=ppufile.getaint;
          trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
          trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
          trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
          trecordsymtable(symtable).usefieldalignment:=shortint(ppufile.getbyte);
+         { requires usefieldalignment to be set }
+         trecordsymtable(symtable).datasize:=ppufile.getaint;
          trecordsymtable(symtable).ppuload(ppufile);
          symtable.defowner:=self;
          isunion:=false;
@@ -2486,11 +2487,11 @@ implementation
     procedure trecorddef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.putaint(trecordsymtable(symtable).datasize);
          ppufile.putbyte(byte(trecordsymtable(symtable).fieldalignment));
          ppufile.putbyte(byte(trecordsymtable(symtable).recordalignment));
          ppufile.putbyte(byte(trecordsymtable(symtable).padalignment));
          ppufile.putbyte(byte(trecordsymtable(symtable).usefieldalignment));
+         ppufile.putaint(trecordsymtable(symtable).datasize);
          ppufile.writeentry(ibrecorddef);
          trecordsymtable(symtable).ppuwrite(ppufile);
       end;

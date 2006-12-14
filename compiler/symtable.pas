@@ -913,7 +913,9 @@ implementation
     procedure tabstractrecordsymtable.setdatasize(val: aint);
       begin
         _datasize:=val;
-        databitsize:=val*8;
+        if (usefieldalignment=bit_alignment) then
+          { can overflow in non bitpacked records }
+          databitsize:=val*8;
       end;
 
 {****************************************************************************
@@ -943,7 +945,8 @@ implementation
         storesize:=_datasize;
         storealign:=fieldalignment;
         _datasize:=offset;
-        databitsize:=offset*8;
+        if (usefieldalignment=bit_alignment) then
+          databitsize:=offset*8;
 
         { We move the ownership of the defs and symbols to the new recordsymtable.
           The old unionsymtable keeps the references, but doesn't own the

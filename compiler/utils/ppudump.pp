@@ -1831,11 +1831,11 @@ begin
          ibrecorddef :
            begin
              readcommondef('Record definition');
-             writeln(space,'         DataSize : ',getaint);
              writeln(space,'       FieldAlign : ',getbyte);
              writeln(space,'      RecordAlign : ',getbyte);
              writeln(space,'         PadAlign : ',getbyte);
              writeln(space,'UseFieldAlignment : ',getbyte);
+             writeln(space,'         DataSize : ',getaint);
              if not EndOfEntry then
               Writeln('!! Entry has more information stored');
              {read the record definitions and symbols}
