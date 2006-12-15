@@ -6,15 +6,15 @@
 
 program nsieve;
 
-{$mode objfpc}{$I-}
+{$mode fpc}{$I-}
 
 var
-  n : integer;
+  n : longint;
 
-procedure primes(n : integer); inline;
+procedure primes(n : longint); inline;
 var
   flags: PBoolean;
-  size,i,j,count : integer;
+  size,i,j,count : longint;
 begin
   size := 10000 shl n;
   flags := getmem(size+1);
