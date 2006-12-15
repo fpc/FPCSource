@@ -244,7 +244,10 @@ implementation
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
-            hp.paraloc[side].Alignment:=std_param_align;
+            if (side = callerside) then
+              hp.paraloc[side].Alignment:=std_param_align
+            else
+              hp.paraloc[side].Alignment:=hp.vardef.alignment;
             paralen:=tcgsize2size[paracgsize];
             hp.paraloc[side].intsize:=paralen;
             while paralen>0 do
