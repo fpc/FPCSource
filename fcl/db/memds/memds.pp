@@ -476,7 +476,7 @@ begin
   CheckMarker(F,smData);
   Size:=ReadInteger(F);
   FStream.Clear;
-  FStream.CopyFrom(F,Size);
+  if Size>0 then FStream.CopyFrom(F,Size);
   FRecCount:=Size div FRecSize;
   FCurrRecNo:=-1;
 end;
