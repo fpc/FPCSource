@@ -220,8 +220,8 @@ Var
 
 begin
   R:=WaitForSingleObject (FProcessHandle,Infinite);
-  Result:=R<>Wait_Failed;
-  If R then
+  Result:=(R<>Wait_Failed);
+  If Result then
     GetExitStatus;
   FRunning:=False;
 end;
