@@ -129,6 +129,15 @@ type
   GLXPixmap = TXID;
   GLXDrawable = TXID;
   GLXContextID = TXID;
+  
+  TXPixmap = XPixmap;
+  TXFont = XFont;
+  TXColormap = XColormap;
+
+  TGLXContext = GLXContext;
+  TGLXPixmap = GLXPixmap;
+  TGLXDrawable = GLXDrawable;
+  TGLXContextID = GLXContextID;
 
 var
   glXChooseVisual: function(dpy: PDisplay; screen: Integer; attribList: PInteger): PXVisualInfo; cdecl;

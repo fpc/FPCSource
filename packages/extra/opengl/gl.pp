@@ -94,6 +94,21 @@ type
   GLclampd   = Double;        PGLclampd   = ^GLclampd;
 { GLvoid     = void; }        PGLvoid     = Pointer;
                               PPGLvoid    = ^PGLvoid;
+                              
+  TGLenum     = GLenum;
+  TGLboolean  = GLboolean;
+  TGLbitfield = GLbitfield;
+  TGLbyte     = GLbyte;
+  TGLshort    = GLshort;
+  TGLint      = GLint;
+  TGLsizei    = GLsizei;
+  TGLubyte    = GLubyte;
+  TGLushort   = GLushort;
+  TGLuint     = GLuint;
+  TGLfloat    = GLfloat;
+  TGLclampf   = GLclampf;
+  TGLdouble   = GLdouble;
+  TGLclampd   = GLclampd;
 
 {******************************************************************************}
 

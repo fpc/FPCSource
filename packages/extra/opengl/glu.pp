@@ -99,6 +99,15 @@ type
   GLUquadricObj = GLUquadric;           PGLUquadricObj = PGLUquadric;
   GLUtesselatorObj = GLUtesselator;     PGLUtesselatorObj = PGLUtesselator;
   GLUtriangulatorObj = GLUtesselator;   PGLUtriangulatorObj = PGLUtesselator;
+  
+  TGLUnurbs = GLUnurbs;
+  TGLUquadric = GLUquadric;
+  TGLUtesselator = GLUtesselator;
+  
+  TGLUnurbsObj = GLUnurbsObj;
+  TGLUquadricObj = GLUquadricObj;
+  TGLUtesselatorObj = GLUtesselatorObj;
+  TGLUtriangulatorObj = GLUtriangulatorObj;
 
 {$IFDEF MORPHOS}
 

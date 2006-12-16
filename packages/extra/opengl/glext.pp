@@ -50,18 +50,23 @@ function glext_LoadExtension(ext: String): Boolean;
 
 type
   GLcharARB = Char;
+  TGLcharARB = GLcharARB;
   PGLcharARB = ^GLcharARB;
 
   GLhandleARB = Cardinal;
+  TGLhandleARB = GLhandleARB;
   PGLhandleARB = ^GLhandleARB;
 
   GLintptr = Integer;
+  TGLintptr = GLintptr;
   PGLintptr = ^GLintptr;
 
   GLsizeiptr = Integer;
+  TGLsizeiptr = GLsizeiptr;
   PGLsizeiptr = ^GLsizeiptr;
 
   GLchar = Char;
+  TGLchar = GLchar;
   PGLchar = Pchar;
 
 //***** GL_version_1_2 *****//
