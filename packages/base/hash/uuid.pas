@@ -57,8 +57,14 @@ const
  * core uuid functions
  ******************************************************************************)
 
+{ uuid_initialize -- used to initialize the uuid_create function }
+procedure uuid_initialize(const state: uuid_state);
+
 { uuid_create -- generator a UUID }
 function uuid_create(var uuid: uuid_t): boolean;
+
+{ uuid_finalize -- returns the current state }
+procedure uuid_finalize(var state: uuid_state);
 
 { uuid_create_md5_from_name -- create a version 3 (MD5) UUID using a "name" from a "name space" }
 procedure uuid_create_md5_from_name(var uuid: uuid_t; const nsid: uuid_t; const name: string);
@@ -99,13 +105,37 @@ procedure get_current_time(var timestamp: uuid_time_t);
 { get_system_time -- system dependent call to get the current system time. Returned as 100ns ticks since UUID epoch, but resolution may be less than 100ns. }
 procedure get_system_time(var timestamp: uuid_time_t);
 
-{ get_system_node_identifier -- system dependent call to get IEEE node ID }
-procedure get_system_node_identifier(var node: uuid_node_t);
-
 { true_random -- generate a crypto-quality random number. }
 function true_random: unsigned16;
 
 implementation
+
+
+{ uuid_initialize }
+
+var
+  current_state : uuid_state;
+  current_node  : uuid_node_t;
+
+procedure uuid_initialize(const state: uuid_state);
+begin
+  Randomize;
+  current_node[0] := Random($100);
+  current_node[1] := Random($100);
+  current_node[2] := Random($100);
+  current_node[3] := Random($100);
+  current_node[4] := Random($100);
+  current_node[5] := Random($100);
+  current_state := state;
+end;
+
+
+{ uuid_finalize }
+
+procedure uuid_finalize(var state: uuid_state);
+begin
+  state := current_state;
+end;
 
 
 { uuid_create }
@@ -115,7 +145,6 @@ var
   timestamp: uuid_time_t;
   last_time: uuid_time_t;
   clockseq: unsigned16;
-  node: uuid_node_t;
   last_node: uuid_node_t;
   f: boolean;
 begin
@@ -124,23 +153,22 @@ begin
 
   (* get time, node ID, saved state from non-volatile storage *)
   get_current_time(timestamp);
-  get_system_node_identifier(node);
   f := read_state(clockseq, last_time, last_node);
 
   (* if no NV state, or if clock went backwards, or node ID
      changed (e.g., new network card) change clockseq *)
-   if not f or CompareMem(@node, @last_node, sizeof(node)) then
+   if not f or not CompareMem(@current_node, @last_node, sizeof(uuid_node_t)) then
      clockseq := true_random() else
    if timestamp < last_time then
      clockseq := clockseq + 1;
 
    (* save the state for next time *)
-   write_state(clockseq, timestamp, node);
+   write_state(clockseq, timestamp, current_node);
 
 // UNLOCK;
 
    (* stuff fields into the UUID *)
-   format_uuid_v1(uuid, clockseq, timestamp, node);
+   format_uuid_v1(uuid, clockseq, timestamp, current_node);
 
    Result := true;
 end;
@@ -212,59 +240,23 @@ end;
 
 { read_state }
 
-var
-  read_state_inited: boolean = false;
-  st: uuid_state;
-
 function read_state(var clockseq: unsigned16; var timestamp: uuid_time_t; var node: uuid_node_t): boolean;
 begin
-  (* only need to read state once per boot *)
-  if not read_state_inited then
-  begin
-    {fp = fopen("state", "rb");
-    if (fp == NULL)
-      return 0;
-    fread(&st, sizeof st, 1, fp);
-    fclose(fp);}
-    read_state_inited := true;
-  end;
-
-  clockseq := st.cs;
-  timestamp := st.ts;
-  node := st.node;
-
+  clockseq := current_state.cs;
+  timestamp := current_state.ts;
+  node := current_state.node;
   Result := true;
 end;
 
 
 { write_state }
 
-var
-  write_state_inited: boolean = false;
-  next_save: uuid_time_t;
-
 procedure write_state(var clockseq: unsigned16; const timestamp: uuid_time_t; const node: uuid_node_t);
 begin
-  if not write_state_inited then
-  begin
-    next_save := timestamp;
-    write_state_inited := true;
-  end;
-
   (* always save state to volatile shared state *)
-  st.cs := clockseq;
-  st.ts := timestamp;
-  st.node := node;
-
-  if timestamp >= next_save then
-  begin
-    {fp = fopen("state", "wb");
-    fwrite(&st, sizeof st, 1, fp);
-    fclose(fp);}
-
-    (* schedule next save for 10 seconds from now *)
-    next_save := timestamp + (10 * 10 * 1000 * 1000);
-  end;
+  current_state.cs := clockseq;
+  current_state.ts := timestamp;
+  current_state.node := node;
 end;
 
 
@@ -304,21 +296,13 @@ end;
 { get_current_time }
 
 var
-  get_current_time_inited: boolean = false;
   time_last: uuid_time_t;
-  uuids_this_tick: unsigned16;
+  uuids_this_tick: unsigned16 = UUIDS_PER_TICK;
 
 procedure get_current_time(var timestamp: uuid_time_t);
 var
   time_now: uuid_time_t;
 begin
-  if not get_current_time_inited then
-  begin
-    get_system_time(time_now);
-    uuids_this_tick := UUIDS_PER_TICK;
-    get_current_time_inited := true;
-  end;
-
   while true do
   begin
     get_system_time(time_now);
@@ -337,6 +321,7 @@ begin
       uuids_this_tick := uuids_this_tick + 1;
       Break;
     end;
+
     (* going too fast for our clock; spin *)
   end;
 
@@ -353,30 +338,6 @@ var
 begin
   Epoch := EncodeDateTime(1582, 10, 15, 0, 0, 0, 0);
   timestamp := 10000*MilliSecondsBetween(Epoch, Now);
-end;
-
-
-{ get_system_node_identifier }
-
-var
-  get_system_node_identifier_inited: boolean = false;
-  saved_node: uuid_node_t;
-
-procedure get_system_node_identifier(var node: uuid_node_t);
-begin
-  if not get_system_node_identifier_inited then
-  begin
-    saved_node[0] := Random($100);
-    saved_node[1] := Random($100);
-    saved_node[2] := Random($100);
-    saved_node[3] := Random($100);
-    saved_node[4] := Random($100);
-    saved_node[5] := Random($100);
-
-    get_system_node_identifier_inited := true;
-  end;
-
-  node := saved_node;
 end;
 
 
