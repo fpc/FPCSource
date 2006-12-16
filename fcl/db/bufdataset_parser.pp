@@ -275,91 +275,7 @@ begin
     FFieldVal := False;
 end;
 
-//--Expression functions-----------------------------------------------------
-
-//These functions are in the unit dbf_parser, but they are forgotten in the interface section
-
-procedure FuncStrIP_EQ(Param: PExpressionRec);
-var
-  arg0len, arg1len: integer;
-  match: boolean;
-  str0, str1: string;
-begin
-  with Param^ do
-  begin
-    arg1len := StrLen(Args[1]);
-    if Args[1][0] = '*' then
-    begin
-      if Args[1][arg1len-1] = '*' then
-      begin
-        str0 := AnsiStrUpper(Args[0]);
-        str1 := AnsiStrUpper(Args[1]+1);
-        setlength(str1, arg1len-2);
-        match := AnsiPos(str0, str1) = 0;
-      end else begin
-        arg0len := StrLen(Args[0]);
-        // at least length without asterisk
-        match := arg0len >= arg1len - 1;
-        if match then
-          match := AnsiStrLIComp(Args[0]+(arg0len-arg1len+1), Args[1]+1, arg1len-1) = 0;
-      end;
-    end else
-    if Args[1][arg1len-1] = '*' then
-    begin
-      arg0len := StrLen(Args[0]);
-      match := arg0len >= arg1len - 1;
-      if match then
-        match := AnsiStrLIComp(Args[0], Args[1], arg1len-1) = 0;
-    end else begin
-      match := AnsiStrIComp(Args[0], Args[1]) = 0;
-    end;
-    Res.MemoryPos^^ := Char(match);
-  end;
-end;
-
-procedure FuncStrP_EQ(Param: PExpressionRec);
-var
-  arg0len, arg1len: integer;
-  match: boolean;
-begin
-  with Param^ do
-  begin
-    arg1len := StrLen(Args[1]);
-    if Args[1][0] = '*' then
-    begin
-      if Args[1][arg1len-1] = '*' then
-      begin
-        Args[1][arg1len-1] := #0;
-        match := AnsiStrPos(Args[0], Args[1]+1) <> nil;
-        Args[1][arg1len-1] := '*';
-      end else begin
-        arg0len := StrLen(Args[0]);
-        // at least length without asterisk
-        match := arg0len >= arg1len - 1;
-        if match then
-          match := AnsiStrLComp(Args[0]+(arg0len-arg1len+1), Args[1]+1, arg1len-1) = 0;
-      end;
-    end else
-    if Args[1][arg1len-1] = '*' then
-    begin
-      arg0len := StrLen(Args[0]);
-      match := arg0len >= arg1len - 1;
-      if match then
-        match := AnsiStrLComp(Args[0], Args[1], arg1len-1) = 0;
-    end else begin
-      match := AnsiStrComp(Args[0], Args[1]) = 0;
-    end;
-    Res.MemoryPos^^ := Char(match);
-  end;
-end;
-
 //--TBufDatasetParser---------------------------------------------------------------
-
-var
-  BufWordsSensGeneralList, BufWordsInsensGeneralList: TExpressList;
-  BufWordsSensPartialList, BufWordsInsensPartialList: TExpressList;
-  BufWordsSensNoPartialList, BufWordsInsensNoPartialList: TExpressList;
-  BufWordsGeneralList: TExpressList;
 
 constructor TBufDatasetParser.Create(Adataset: TDataSet);
 begin
@@ -412,23 +328,23 @@ begin
   lExpression := FCurrentExpression;
   ClearExpressions;
   FWordsList.FreeAll;
-  FWordsList.AddList(BufWordsGeneralList, 0, BufWordsGeneralList.Count - 1);
+  FWordsList.AddList(DbfWordsGeneralList, 0, DbfWordsGeneralList.Count - 1);
   if FCaseInsensitive then
   begin
-    FWordsList.AddList(BufWordsInsensGeneralList, 0, BufWordsInsensGeneralList.Count - 1);
+    FWordsList.AddList(DbfWordsInsensGeneralList, 0, DbfWordsInsensGeneralList.Count - 1);
     if FPartialMatch then
     begin
-      FWordsList.AddList(BufWordsInsensPartialList, 0, BufWordsInsensPartialList.Count - 1);
+      FWordsList.AddList(DbfWordsInsensPartialList, 0, DbfWordsInsensPartialList.Count - 1);
     end else begin
-      FWordsList.AddList(BufWordsInsensNoPartialList, 0, BufWordsInsensNoPartialList.Count - 1);
+      FWordsList.AddList(DbfWordsInsensNoPartialList, 0, DbfWordsInsensNoPartialList.Count - 1);
     end;
   end else begin
-    FWordsList.AddList(BufWordsSensGeneralList, 0, BufWordsSensGeneralList.Count - 1);
+    FWordsList.AddList(DbfWordsSensGeneralList, 0, DbfWordsSensGeneralList.Count - 1);
     if FPartialMatch then
     begin
-      FWordsList.AddList(BufWordsSensPartialList, 0, BufWordsSensPartialList.Count - 1);
+      FWordsList.AddList(DbfWordsSensPartialList, 0, DbfWordsSensPartialList.Count - 1);
     end else begin
-      FWordsList.AddList(BufWordsSensNoPartialList, 0, BufWordsSensNoPartialList.Count - 1);
+      FWordsList.AddList(DbfWordsSensNoPartialList, 0, DbfWordsSensNoPartialList.Count - 1);
     end;
   end;
   if Length(lExpression) > 0 then
@@ -591,182 +507,6 @@ begin
       Result := PPChar(Result)^;
   end;
 end;
-
-initialization
-
-  BufWordsGeneralList := TExpressList.Create;
-  BufWordsInsensGeneralList := TExpressList.Create;
-  BufWordsInsensNoPartialList := TExpressList.Create;
-  BufWordsInsensPartialList := TExpressList.Create;
-  BufWordsSensGeneralList := TExpressList.Create;
-  BufWordsSensNoPartialList := TExpressList.Create;
-  BufWordsSensPartialList := TExpressList.Create;
-
-  with BufWordsGeneralList do
-  begin
-    // basic function functionality
-    Add(TLeftBracket.Create('(', nil));
-    Add(TRightBracket.Create(')', nil));
-    Add(TComma.Create(',', nil));
-
-    // operators - name, param types, result type, func addr, precedence
-    Add(TFunction.CreateOper('+', 'SS', etString,   nil,          40));
-    
-    Add(TFunction.CreateOper('+', 'FF', etFloat,    FuncAdd_F_FF, 40));
-    
-    Add(TFunction.CreateOper('+', 'FI', etFloat,    FuncAdd_F_FI, 40));
-    Add(TFunction.CreateOper('+', 'IF', etFloat,    FuncAdd_F_IF, 40));
-    Add(TFunction.CreateOper('+', 'II', etInteger,  FuncAdd_F_II, 40));
-{$ifdef SUPPORT_INT64}
-    Add(TFunction.CreateOper('+', 'FL', etFloat,    FuncAdd_F_FL, 40));
-    Add(TFunction.CreateOper('+', 'IL', etLargeInt, FuncAdd_F_IL, 40));
-    Add(TFunction.CreateOper('+', 'LF', etFloat,    FuncAdd_F_LF, 40));
-    Add(TFunction.CreateOper('+', 'LL', etLargeInt, FuncAdd_F_LI, 40));
-    Add(TFunction.CreateOper('+', 'LI', etLargeInt, FuncAdd_F_LL, 40));
-{$endif}
-    Add(TFunction.CreateOper('-', 'FF', etFloat,    FuncSub_F_FF, 40));
-    Add(TFunction.CreateOper('-', 'FI', etFloat,    FuncSub_F_FI, 40));
-    Add(TFunction.CreateOper('-', 'IF', etFloat,    FuncSub_F_IF, 40));
-    Add(TFunction.CreateOper('-', 'II', etInteger,  FuncSub_F_II, 40));
-{$ifdef SUPPORT_INT64}
-    Add(TFunction.CreateOper('-', 'FL', etFloat,    FuncSub_F_FL, 40));
-    Add(TFunction.CreateOper('-', 'IL', etLargeInt, FuncSub_F_IL, 40));
-    Add(TFunction.CreateOper('-', 'LF', etFloat,    FuncSub_F_LF, 40));
-    Add(TFunction.CreateOper('-', 'LL', etLargeInt, FuncSub_F_LI, 40));
-    Add(TFunction.CreateOper('-', 'LI', etLargeInt, FuncSub_F_LL, 40));
-{$endif}
-    Add(TFunction.CreateOper('*', 'FF', etFloat,    FuncMul_F_FF, 40));
-    Add(TFunction.CreateOper('*', 'FI', etFloat,    FuncMul_F_FI, 40));
-    Add(TFunction.CreateOper('*', 'IF', etFloat,    FuncMul_F_IF, 40));
-    Add(TFunction.CreateOper('*', 'II', etInteger,  FuncMul_F_II, 40));
-{$ifdef SUPPORT_INT64}
-    Add(TFunction.CreateOper('*', 'FL', etFloat,    FuncMul_F_FL, 40));
-    Add(TFunction.CreateOper('*', 'IL', etLargeInt, FuncMul_F_IL, 40));
-    Add(TFunction.CreateOper('*', 'LF', etFloat,    FuncMul_F_LF, 40));
-    Add(TFunction.CreateOper('*', 'LL', etLargeInt, FuncMul_F_LI, 40));
-    Add(TFunction.CreateOper('*', 'LI', etLargeInt, FuncMul_F_LL, 40));
-{$endif}
-    Add(TFunction.CreateOper('/', 'FF', etFloat,    FuncDiv_F_FF, 40));
-    Add(TFunction.CreateOper('/', 'FI', etFloat,    FuncDiv_F_FI, 40));
-    Add(TFunction.CreateOper('/', 'IF', etFloat,    FuncDiv_F_IF, 40));
-    Add(TFunction.CreateOper('/', 'II', etInteger,  FuncDiv_F_II, 40));
-{$ifdef SUPPORT_INT64}
-    Add(TFunction.CreateOper('/', 'FL', etFloat,    FuncDiv_F_FL, 40));
-    Add(TFunction.CreateOper('/', 'IL', etLargeInt, FuncDiv_F_IL, 40));
-    Add(TFunction.CreateOper('/', 'LF', etFloat,    FuncDiv_F_LF, 40));
-    Add(TFunction.CreateOper('/', 'LL', etLargeInt, FuncDiv_F_LI, 40));
-    Add(TFunction.CreateOper('/', 'LI', etLargeInt, FuncDiv_F_LL, 40));
-{$endif}
-
-    Add(TFunction.CreateOper('=', 'FF', etBoolean, Func_FF_EQ , 80));
-    Add(TFunction.CreateOper('<', 'FF', etBoolean, Func_FF_LT , 80));
-    Add(TFunction.CreateOper('>', 'FF', etBoolean, Func_FF_GT , 80));
-    Add(TFunction.CreateOper('<=','FF', etBoolean, Func_FF_LTE, 80));
-    Add(TFunction.CreateOper('>=','FF', etBoolean, Func_FF_GTE, 80));
-    Add(TFunction.CreateOper('<>','FF', etBoolean, Func_FF_NEQ, 80));
-    Add(TFunction.CreateOper('=', 'FI', etBoolean, Func_FI_EQ , 80));
-    Add(TFunction.CreateOper('<', 'FI', etBoolean, Func_FI_LT , 80));
-    Add(TFunction.CreateOper('>', 'FI', etBoolean, Func_FI_GT , 80));
-    Add(TFunction.CreateOper('<=','FI', etBoolean, Func_FI_LTE, 80));
-    Add(TFunction.CreateOper('>=','FI', etBoolean, Func_FI_GTE, 80));
-    Add(TFunction.CreateOper('<>','FI', etBoolean, Func_FI_NEQ, 80));
-    Add(TFunction.CreateOper('=', 'II', etBoolean, Func_II_EQ , 80));
-    Add(TFunction.CreateOper('<', 'II', etBoolean, Func_II_LT , 80));
-    Add(TFunction.CreateOper('>', 'II', etBoolean, Func_II_GT , 80));
-    Add(TFunction.CreateOper('<=','II', etBoolean, Func_II_LTE, 80));
-    Add(TFunction.CreateOper('>=','II', etBoolean, Func_II_GTE, 80));
-    Add(TFunction.CreateOper('<>','II', etBoolean, Func_II_NEQ, 80));
-    Add(TFunction.CreateOper('=', 'IF', etBoolean, Func_IF_EQ , 80));
-    Add(TFunction.CreateOper('<', 'IF', etBoolean, Func_IF_LT , 80));
-    Add(TFunction.CreateOper('>', 'IF', etBoolean, Func_IF_GT , 80));
-    Add(TFunction.CreateOper('<=','IF', etBoolean, Func_IF_LTE, 80));
-    Add(TFunction.CreateOper('>=','IF', etBoolean, Func_IF_GTE, 80));
-    Add(TFunction.CreateOper('<>','IF', etBoolean, Func_IF_NEQ, 80));
-{$ifdef SUPPORT_INT64}
-    Add(TFunction.CreateOper('=', 'LL', etBoolean, Func_LL_EQ , 80));
-    Add(TFunction.CreateOper('<', 'LL', etBoolean, Func_LL_LT , 80));
-    Add(TFunction.CreateOper('>', 'LL', etBoolean, Func_LL_GT , 80));
-    Add(TFunction.CreateOper('<=','LL', etBoolean, Func_LL_LTE, 80));
-    Add(TFunction.CreateOper('>=','LL', etBoolean, Func_LL_GTE, 80));
-    Add(TFunction.CreateOper('<>','LL', etBoolean, Func_LL_NEQ, 80));
-    Add(TFunction.CreateOper('=', 'LF', etBoolean, Func_LF_EQ , 80));
-    Add(TFunction.CreateOper('<', 'LF', etBoolean, Func_LF_LT , 80));
-    Add(TFunction.CreateOper('>', 'LF', etBoolean, Func_LF_GT , 80));
-    Add(TFunction.CreateOper('<=','LF', etBoolean, Func_LF_LTE, 80));
-    Add(TFunction.CreateOper('>=','LF', etBoolean, Func_LF_GTE, 80));
-    Add(TFunction.CreateOper('<>','FI', etBoolean, Func_LF_NEQ, 80));
-    Add(TFunction.CreateOper('=', 'LI', etBoolean, Func_LI_EQ , 80));
-    Add(TFunction.CreateOper('<', 'LI', etBoolean, Func_LI_LT , 80));
-    Add(TFunction.CreateOper('>', 'LI', etBoolean, Func_LI_GT , 80));
-    Add(TFunction.CreateOper('<=','LI', etBoolean, Func_LI_LTE, 80));
-    Add(TFunction.CreateOper('>=','LI', etBoolean, Func_LI_GTE, 80));
-    Add(TFunction.CreateOper('<>','LI', etBoolean, Func_LI_NEQ, 80));
-    Add(TFunction.CreateOper('=', 'FL', etBoolean, Func_FL_EQ , 80));
-    Add(TFunction.CreateOper('<', 'FL', etBoolean, Func_FL_LT , 80));
-    Add(TFunction.CreateOper('>', 'FL', etBoolean, Func_FL_GT , 80));
-    Add(TFunction.CreateOper('<=','FL', etBoolean, Func_FL_LTE, 80));
-    Add(TFunction.CreateOper('>=','FL', etBoolean, Func_FL_GTE, 80));
-    Add(TFunction.CreateOper('<>','FL', etBoolean, Func_FL_NEQ, 80));
-    Add(TFunction.CreateOper('=', 'IL', etBoolean, Func_IL_EQ , 80));
-    Add(TFunction.CreateOper('<', 'IL', etBoolean, Func_IL_LT , 80));
-    Add(TFunction.CreateOper('>', 'IL', etBoolean, Func_IL_GT , 80));
-    Add(TFunction.CreateOper('<=','IL', etBoolean, Func_IL_LTE, 80));
-    Add(TFunction.CreateOper('>=','IL', etBoolean, Func_IL_GTE, 80));
-    Add(TFunction.CreateOper('<>','IL', etBoolean, Func_IL_NEQ, 80));
-{$endif}
-
-    Add(TFunction.CreateOper('NOT', 'B',  etBoolean, Func_NOT, 85));
-    Add(TFunction.CreateOper('AND', 'BB', etBoolean, Func_AND, 90));
-    Add(TFunction.CreateOper('OR',  'BB', etBoolean, Func_OR, 100));
-
-    // Functions - name, description, param types, min params, result type, Func addr
-    Add(TFunction.Create('STR',       '',      'FII', 1, etString, FuncFloatToStr, ''));
-    Add(TFunction.Create('STR',       '',      'III', 1, etString, FuncIntToStr, ''));
-    Add(TFunction.Create('DTOS',      '',      'D',   1, etString, FuncDateToStr, ''));
-    Add(TFunction.Create('SUBSTR',    'SUBS',  'SII', 3, etString, FuncSubString, ''));
-    Add(TFunction.Create('UPPERCASE', 'UPPER', 'S',   1, etString, FuncUppercase, ''));
-    Add(TFunction.Create('LOWERCASE', 'LOWER', 'S',   1, etString, FuncLowercase, ''));
-  end;
-
-  with BufWordsInsensGeneralList do
-  begin
-    Add(TFunction.CreateOper('<', 'SS', etBoolean, FuncStrI_LT , 80));
-    Add(TFunction.CreateOper('>', 'SS', etBoolean, FuncStrI_GT , 80));
-    Add(TFunction.CreateOper('<=','SS', etBoolean, FuncStrI_LTE, 80));
-    Add(TFunction.CreateOper('>=','SS', etBoolean, FuncStrI_GTE, 80));
-    Add(TFunction.CreateOper('<>','SS', etBoolean, FuncStrI_NEQ, 80));
-  end;
-
-  with BufWordsInsensNoPartialList do
-    Add(TFunction.CreateOper('=', 'SS', etBoolean, FuncStrI_EQ , 80));
-
-  with BufWordsInsensPartialList do
-    Add(TFunction.CreateOper('=', 'SS', etBoolean, FuncStrIP_EQ, 80));
-
-  with BufWordsSensGeneralList do
-  begin
-    Add(TFunction.CreateOper('<', 'SS', etBoolean, FuncStr_LT , 80));
-    Add(TFunction.CreateOper('>', 'SS', etBoolean, FuncStr_GT , 80));
-    Add(TFunction.CreateOper('<=','SS', etBoolean, FuncStr_LTE, 80));
-    Add(TFunction.CreateOper('>=','SS', etBoolean, FuncStr_GTE, 80));
-    Add(TFunction.CreateOper('<>','SS', etBoolean, FuncStr_NEQ, 80));
-  end;
-    
-  with BufWordsSensNoPartialList do
-    Add(TFunction.CreateOper('=', 'SS', etBoolean, FuncStr_EQ , 80));
-
-  with BufWordsSensPartialList do
-    Add(TFunction.CreateOper('=', 'SS', etBoolean, FuncStrP_EQ , 80));
-
-finalization
-
-  BufWordsGeneralList.Free;
-  BufWordsInsensGeneralList.Free;
-  BufWordsInsensNoPartialList.Free;
-  BufWordsInsensPartialList.Free;
-  BufWordsSensGeneralList.Free;
-  BufWordsSensNoPartialList.Free;
-  BufWordsSensPartialList.Free;
 
 end.
 
