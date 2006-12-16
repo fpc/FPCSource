@@ -88,7 +88,9 @@ procedure test_param_s32(x: longint); cdecl; external;
 procedure test_param_s64(x: int64); cdecl; external;
 procedure test_param_float(x : single); cdecl; external;
 procedure test_param_double(x: double); cdecl; external;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 procedure test_param_longdouble(x: extended); cdecl; external;
+{$endif FPC_HAS_TYPE_EXTENDED}
 procedure test_param_var_u8(var x: byte); cdecl; external;
 
 { array parameter passing }
@@ -101,7 +103,9 @@ procedure test_array_param_s32(x: longint_array); cdecl; external;
 procedure test_array_param_s64(x: int64_array); cdecl; external;
 procedure test_array_param_float(x : single_array); cdecl; external;
 procedure test_array_param_double(x: double_array); cdecl; external;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 procedure test_array_param_longdouble(x: extended_array); cdecl; external;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 { mixed parameter passing }
 procedure test_param_mixed_u16(z: byte; x : word; y :byte); cdecl; external;
@@ -134,7 +138,9 @@ function test_function_s64: int64; cdecl; external;
 function test_function_pchar: pchar; cdecl; external;
 function test_function_float : single; cdecl; external;
 function test_function_double : double; cdecl; external;
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 function test_function_longdouble: extended; cdecl; external;
+{$endif FPC_HAS_TYPE_EXTENDED}
 function test_function_tiny_struct : _1byte_; cdecl; external;
 function test_function_small_struct : _3byte_; cdecl; external;
 function test_function_small_struct_s : _3byte_s; cdecl; external;
@@ -229,6 +235,7 @@ begin
   clear_values;
   clear_globals;
 
+{$ifdef FPC_HAS_TYPE_EXTENDED}
   array_long_double[1] := RESULT_LONGDOUBLE;
   test_array_param_longdouble(array_long_double);
   if trunc(global_long_double) <> trunc(RESULT_LONGDOUBLE) then
@@ -248,6 +255,7 @@ begin
    fail
   else
     WriteLn('Passed!');
+{$endif FPC_HAS_TYPE_EXTENDED}
 
   if has_errors then
     Halt(1);
