@@ -366,7 +366,7 @@ begin
     inc(pos);
   end;
 
-  Result := MDBuffer(wpwd, 2*pos, 4);
+  Result := MDBuffer(wpwd, 2*pos, MD_VERSION_4);
   FillChar(wpwd, Sizeof(wpwd), 0);
 end;
 

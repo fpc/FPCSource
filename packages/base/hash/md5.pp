@@ -25,15 +25,25 @@ unit md5;
 
 interface
 
+
+(******************************************************************************
+ * types and constants
+ ******************************************************************************)
+
 const
-  DefBufSize = 1024;
+  MDDefBufSize = 1024;
 
 type
+  TMDVersion = (
+    MD_VERSION_4,
+    MD_VERSION_5
+  );
+
   PMDDigest = ^TMDDigest;
   TMDDigest = array[0..15] of Byte;
 
-  TMDContext = packed record
-    Version : Cardinal;
+  TMDContext = record
+    Version : TMDVersion;
     State   : array[0..3] of Cardinal;
     Length  : PtrUInt;
     BufCnt  : PtrUInt;
@@ -41,17 +51,24 @@ type
   end;
 
 
-{ Raw methods }
 
-procedure MDInit(var Context: TMDContext; const Version: Cardinal);
+(******************************************************************************
+ * Raw functions
+ ******************************************************************************)
+
+procedure MDInit(var Context: TMDContext; const Version: TMDVersion);
 procedure MDUpdate(var Context: TMDContext; var Buf; const BufLen: PtrUInt);
 procedure MDFinal(var Context: TMDContext; var Digest: TMDDigest);
 
-{ Auxiliary methods }
 
-function MDString(const S: String; const Version: Cardinal): TMDDigest;
-function MDBuffer(var Buf; const BufLen: PtrUInt; const Version: Cardinal): TMDDigest;
-function MDFile(const Filename: String; const Version: Cardinal; const Bufsize: PtrUInt = DefBufSize): TMDDigest;
+
+(******************************************************************************
+ * Auxilary functions
+ ******************************************************************************)
+
+function MDString(const S: String; const Version: TMDVersion): TMDDigest;
+function MDBuffer(var Buf; const BufLen: PtrUInt; const Version: TMDVersion): TMDDigest;
+function MDFile(const Filename: String; const Version: TMDVersion; const Bufsize: PtrUInt = MDDefBufSize): TMDDigest;
 function MDPrint(const Digest: TMDDigest): String;
 function MDMatch(const Digest1, Digest2: TMDDigest): Boolean;
 
@@ -206,7 +223,7 @@ begin
 end;
 
 
-procedure MDInit(var Context: TMDContext; const Version: Cardinal);
+procedure MDInit(var Context: TMDContext; const Version: TMDVersion);
 begin
   Context.Version := Version;
   Context.State[0] := $67452301;
@@ -242,8 +259,8 @@ begin
     if Context.BufCnt = 64 then
     begin
       case Context.Version of
-        4: MD4Transform(Context, @Context.Buffer);
-        5: MD5Transform(Context, @Context.Buffer);
+        MD_VERSION_4: MD4Transform(Context, @Context.Buffer);
+        MD_VERSION_5: MD5Transform(Context, @Context.Buffer);
       end;
       Context.BufCnt := 0;
     end;
@@ -254,8 +271,8 @@ begin
   while Num >= 64 do
   begin
     case Context.Version of
-      4: MD4Transform(Context, Src);
-      5: MD5Transform(Context, Src);
+      MD_VERSION_4: MD4Transform(Context, Src);
+      MD_VERSION_5: MD5Transform(Context, Src);
     end;
     Src := Pointer(PtrUInt(Src) + 64);
     Num := Num - 64;
@@ -296,7 +313,7 @@ begin
 end;
 
 
-function MDString(const S: String; const Version: Cardinal): TMDDigest;
+function MDString(const S: String; const Version: TMDVersion): TMDDigest;
 var
   Context: TMDContext;
 begin
@@ -306,7 +323,7 @@ begin
 end;
 
 
-function MDBuffer(var Buf; const BufLen: PtrUInt; const Version: Cardinal): TMDDigest;
+function MDBuffer(var Buf; const BufLen: PtrUInt; const Version: TMDVersion): TMDDigest;
 var
   Context: TMDContext;
 begin
@@ -316,7 +333,7 @@ begin
 end;
 
 
-function MDFile(const Filename: String; const Version: Cardinal; const BufSize: PtrUInt): TMDDigest;
+function MDFile(const Filename: String; const Version: TMDVersion; const BufSize: PtrUInt): TMDDigest;
 var
   F: File;
   Buf: Pchar;
