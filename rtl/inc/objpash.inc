@@ -105,6 +105,14 @@
                   D3 : word;
                   D4 : array[0..7] of byte;
                  );
+             3 : ( { uuid fields according to RFC4122 }
+                  time_low : dword;			// The low field of the timestamp
+                  time_mid : word;                      // The middle field of the timestamp
+                  time_hi_and_version : word;           // The high field of the timestamp multiplexed with the version number
+                  clock_seq_hi_and_reserved : byte;     // The high field of the clock sequence multiplexed with the variant
+                  clock_seq_low : byte;                 // The low field of the clock sequence
+                  node : array[0..5] of byte;           // The spatially unique node identifier
+                 );                  
        end;
 
        // This enumerate is found both in the rtl and compiler. Do not change the order of the fields.
