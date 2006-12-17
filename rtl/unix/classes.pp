@@ -28,6 +28,7 @@ uses
   sysutils,
   types,
   typinfo,
+  fgl,
   rtlconsts;
 
 {$i classesh.inc}

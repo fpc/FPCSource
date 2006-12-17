@@ -105,6 +105,8 @@ type
   end;
   PSmallPoint = ^TSmallPoint;
 
+  TDuplicates = (dupIgnore, dupAccept, dupError);
+
 type
   TOleChar = WideChar;
   POleStr = PWideChar;
@@ -225,6 +227,9 @@ type
   TStatStg = tagSTATSTG;
   STATSTG = TStatStg;
   PStatStg = ^TStatStg;
+
+  TListCallback = procedure(data,arg:pointer) of object;
+  TListStaticCallback = procedure(data,arg:pointer);
 
   IClassFactory = Interface(IUnknown) ['{00000001-0000-0000-C000-000000000046}']
      Function CreateInstance(Const unkOuter : IUnknown;Const riid : TGUID;Out vObject) : HResult;StdCall;
