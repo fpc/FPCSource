@@ -249,11 +249,12 @@ end;
 
 procedure TFPSList.SetCapacity(NewCapacity: Integer);
 begin
-  If (NewCapacity < FCount) or (NewCapacity > MaxListSize) then
-     Error (SListCapacityError, NewCapacity);
+  if (NewCapacity < FCount) or (NewCapacity > MaxListSize) then
+    Error(SListCapacityError, NewCapacity);
   if NewCapacity = FCapacity then
     exit;
   ReallocMem(FList, (NewCapacity+1) * FItemSize);
+  FillChar(InternalItems[FCapacity]^, (NewCapacity+1-FCapacity) * FItemSize, #0);
   FCapacity := NewCapacity;
 end;
 
