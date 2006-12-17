@@ -248,7 +248,7 @@ Var
   FEnv     : PPChar;
   Argv     : PPChar;
   fd       : Integer;
-  PName,p2    : String;
+  PName    : String;
 
 begin
   If (poUsePipes in FProcessOptions) then
@@ -271,16 +271,13 @@ begin
             PName:=CommandLine;
           end;
           
-        if not FileExists(PName) then
-          P2 := FileSearch(Pname,fpgetenv('PATH'))
-        else
-          P2 := PName;
-          
-        If (P2='') then
-          Raise EProcess.CreateFmt(SErrNoSuchProgram,[PName])
-        else
-          PName:=P2;  
-          
+        if not FileExists(PName) then begin
+          PName := FileSearch(Pname,fpgetenv('PATH'));
+
+          if Length(PName) = 0 then
+            raise EProcess.CreateFmt(SErrNoSuchProgram,[PName]);
+        end;
+      
         Pid:=fpfork;
         if Pid<0 then
           Raise EProcess.Create('Failed to Fork process');
