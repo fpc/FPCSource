@@ -1,6 +1,6 @@
 {$mode objfpc}
 {$H+}
-unit uuid;
+unit macuuid;
 
 Interface
 

@@ -1,6 +1,6 @@
 program testuid;
 
-uses sysutils,uuid;
+uses sysutils, macuuid;
 
 Var
   T : TGUID;
