@@ -376,7 +376,8 @@ begin
     ftString:
       begin
       TempFieldVar := TStringFieldVar.Create(FieldInfo);
-      TempFieldVar.FExprWord := DefineStringVariableFixedLen(VarName, TempFieldVar.FieldVal, FieldInfo.Size);
+      TempFieldVar.FExprWord := DefineStringVariable(VarName, TempFieldVar.FieldVal);
+      TempFieldVar.FExprWord.fixedlen := Fieldinfo.Size;
       end;
     ftBoolean:
       begin
