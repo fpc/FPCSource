@@ -270,12 +270,17 @@ begin
           If (PName='') then
             PName:=CommandLine;
           end;
-        if (pos('/',PName)<>1) then
-          P2:=FileSearch(Pname,fpgetenv('PATH'));
+          
+        if not FileExists(PName) then
+          P2 := FileSearch(Pname,fpgetenv('PATH'))
+        else
+          P2 := PName;
+          
         If (P2='') then
           Raise EProcess.CreateFmt(SErrNoSuchProgram,[PName])
         else
           PName:=P2;  
+          
         Pid:=fpfork;
         if Pid<0 then
           Raise EProcess.Create('Failed to Fork process');
