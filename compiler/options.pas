@@ -1016,6 +1016,21 @@ begin
                            SetErrorFlags(copy(more,j+1,length(more)));
                            break;
                          end;
+                       'f' :
+                         begin
+                           inc(j);
+                           if more[j]='-' then
+                             begin
+                               features:=[];
+                               if length(more)>j then
+                                 IllegalPara(opt);
+                             end
+                           else
+                             begin
+                               if not(IncludeFeature(upper(copy(more,j,length(more)-j+1)))) then
+                                 IllegalPara(opt);
+                             end;
+                         end;
                        'g' :
                          include(init_settings.moduleswitches,cs_support_goto);
                        'h' :
@@ -1837,6 +1852,8 @@ end;
 
 
 procedure read_arguments(cmd:string);
+var
+  i : tfeature;
 begin
   option:=coption.create;
   disable_configfile:=false;
@@ -1899,6 +1916,8 @@ begin
   if pocall_default = pocall_register then
     def_system_macro('REGCALL');
 
+  { don't remove this, it's also for fpdoc necessary (FK) }
+  def_system_macro('FPC_HAS_FEATURE_SUPPORT');
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -2248,6 +2267,9 @@ begin
   set_system_macro('FPC_RELEASE',release_nr);
   set_system_macro('FPC_PATCH',patch_nr);
 
+  for i:=low(tfeature) to high(tfeature) do
+    if i in features then
+      def_system_macro('FPC_HAS_FEATURE_'+featurestr[i]);
   option.free;
   Option:=nil;
 end;

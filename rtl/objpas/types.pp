@@ -112,6 +112,9 @@ type
   POleStr = PWideChar;
   PPOleStr = ^POleStr;
 
+  TListCallback = procedure(data,arg:pointer) of object;
+  TListStaticCallback = procedure(data,arg:pointer);
+
 const
   GUID_NULL: TGUID  = '{00000000-0000-0000-0000-000000000000}';
 
@@ -227,9 +230,6 @@ type
   TStatStg = tagSTATSTG;
   STATSTG = TStatStg;
   PStatStg = ^TStatStg;
-
-  TListCallback = procedure(data,arg:pointer) of object;
-  TListStaticCallback = procedure(data,arg:pointer);
 
   IClassFactory = Interface(IUnknown) ['{00000001-0000-0000-C000-000000000046}']
      Function CreateInstance(Const unkOuter : IUnknown;Const riid : TGUID;Out vObject) : HResult;StdCall;

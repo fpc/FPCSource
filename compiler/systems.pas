@@ -125,7 +125,18 @@ interface
              system_i386_darwin,        { 44 }
              system_arm_palmos,         { 45 }
              system_powerpc64_darwin,   { 46 }
-             system_arm_nds             { 47 }
+             system_arm_nds,            { 47 }
+             system_i386_embedded,      { 48 }
+             system_m68k_embedded,      { 49 }
+             system_alpha_embedded,     { 50 }
+             system_powerpc_embedded,   { 51 }
+             system_sparc_embedded,     { 52 }
+             system_vm_embedded,        { 53 }
+             system_iA64_embedded,      { 54 }
+             system_x86_64_embedded,    { 55 }
+             system_mips_embedded,      { 56 }
+             system_arm_embedded,       { 57 }
+             system_powerpc64_embedded  { 58 }
        );
 
        tasm = (as_none
@@ -354,7 +365,13 @@ interface
                                          system_x86_64_win64,
                                          system_ia64_win64]+system_linux;
 
-       systems_internal_sysinit = [system_i386_linux,system_i386_win32];
+       system_internal_sysinit = [system_i386_linux,system_i386_win32];
+
+       system_embedded = [system_i386_embedded,system_m68k_embedded,system_alpha_embedded,
+             system_powerpc_embedded,system_sparc_embedded,system_vm_embedded,
+             system_iA64_embedded,system_x86_64_embedded,system_mips_embedded,
+             system_arm_embedded,system_powerpc64_embedded];
+
 
        cpu2str : array[TSystemCpu] of string =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',

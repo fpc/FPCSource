@@ -82,11 +82,13 @@ end;
 procedure EndThread(ExitCode : DWord);
 
 begin
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   { Make sure that all output is written to the redirected file }
   Flush(Output);
   Flush(ErrOutput);
   Flush(StdOut);
-  Flush(StdErr);  
+  Flush(StdErr);
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
   CurrentTM.EndThread(ExitCode);
 end;
 
@@ -284,11 +286,13 @@ const
 Procedure NoThreadError;
 
 begin
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   If IsConsole then
     begin
     Writeln(StdErr,SNoThreads);
     Writeln(StdErr,SRecompileWithThreads);
     end;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
   RunError(232)
 end;
 

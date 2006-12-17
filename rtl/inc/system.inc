@@ -55,7 +55,9 @@ var
  information, should simply return the given stklen value (This is the default
  implementation).
 }
+{$ifdef FPC_HAS_FEATURE_STACKCHECK}
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt; forward;
+{$endif FPC_HAS_FEATURE_STACKCHECK}
 
 {****************************************************************************
                     Include processor specific routines
@@ -235,6 +237,16 @@ end;
 {$I genmath.inc}
 
 
+function aligntoptr(p : pointer) : pointer;inline;
+  begin
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+    result:=align(p,sizeof(p));
+{$else FPC_REQUIRES_PROPER_ALIGNMENT}
+    result:=p;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  end;
+
+
 {****************************************************************************
                   Subroutines for String handling
 ****************************************************************************}
@@ -248,9 +260,13 @@ end;
 {$I int64.inc}
 
 {Requires int64.inc, since that contains the VAL functions for int64 and qword}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 {$i astrings.inc}
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 {$i wstrings.inc}
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$i aliases.inc}
 
@@ -258,24 +274,33 @@ end;
                         Dynamic Array support
 *****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_DYNARRAYS}
 {$i dynarr.inc}
+{$endif FPC_HAS_FEATURE_DYNARRAYS}
 
 {*****************************************************************************
                         Object Pascal support
 *****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_CLASSES}
 {$i objpas.inc}
+{$endif FPC_HAS_FEATURE_CLASSES}
 
 {*****************************************************************************
                             Variant support
 *****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
 {$i variant.inc}
+{$endif FPC_HAS_FEATURE_VARIANTS}
+
 {****************************************************************************
                          Run-Time Type Information (RTTI)
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_RTTI}
 {$i rtti.inc}
+{$endif FPC_HAS_FEATURE_VARIANTS}
 
 
 
@@ -485,6 +510,7 @@ End;
                              Directory support.
 *****************************************************************************}
 
+{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
 Procedure getdir(drivenr:byte;Var dir:ansistring);
 { this is needed to also allow ansistrings, the shortstring version is
   OS dependent }
@@ -494,6 +520,7 @@ begin
   getdir(drivenr,s);
   dir:=s;
 end;
+{$endif}
 
 {$ifopt R+}
 {$define RangeCheckWasOn}
@@ -663,10 +690,12 @@ end;
 *****************************************************************************}
 
 Procedure system_exit;forward;
+{$ifdef FPC_HAS_FEATURE_HEAP}
 {$if not (defined(HAS_MEMORYMANAGER) or defined(HAS_MT_MEMORYMANAGER))}
 //not needed if independant memory manager
 Procedure FinalizeHeap;forward;
 {$endif HAS_MEMORYMANAGER}
+{$endif FPC_HAS_FEATURE_HEAP}
 
 Procedure InternalExit;
 var
@@ -688,6 +717,8 @@ Begin
    End;
   { Finalize units }
   FinalizeUnits;
+
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   { Show runtime error and exit }
   pstdout:=@stdout;
   If erroraddr<>nil Then
@@ -698,11 +729,14 @@ Begin
      dump_stack(pstdout^,ErrorBase);
      Writeln(pstdout^,'');
    End;
+
   { Make sure that all output is written to the redirected file }
   Flush(Output);
   Flush(ErrOutput);
   Flush(pstdout^);
   Flush(StdErr);
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
+
 {$if defined(MSWINDOWS) or defined(OS2)}
   { finally release the heap if possible, especially
     important for DLLs }
@@ -717,9 +751,12 @@ Begin
 {$ifdef BSD}
   sysfreemem(cmdline);
 {$endif}
+
+{$ifdef FPC_HAS_FEATURE_HEAP}
 {$if not (defined(HAS_MEMORYMANAGER) or defined(HAS_MT_MEMORYMANAGER))}
   FinalizeHeap;
 {$endif HAS_MEMORYMANAGER}
+{$endif FPC_HAS_FEATURE_HEAP}
 End;
 
 
@@ -756,12 +793,19 @@ begin
   errorcode:=word(Errno);
   erroraddr:=addr;
   errorbase:=frame;
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
   if ExceptAddrStack <> nil then
     raise TObject(nil) at addr,frame;
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
+
+{$ifdef FPC_HAS_FEATURE_EXITCODE}
   if errorcode <= maxExitCode then
     halt(errorcode)
   else
     halt(255)
+{$else FPC_HAS_FEATURE_EXITCODE}
+  halt;
+{$endif FPC_HAS_FEATURE_EXITCODE}
 end;
 
 Procedure HandleErrorFrame (Errno : longint;frame : Pointer);
@@ -790,10 +834,14 @@ begin
   errorcode:=w;
   erroraddr:=get_caller_addr(get_frame);
   errorbase:=get_caller_frame(get_frame);
+{$ifdef FPC_HAS_FEATURE_EXITCODE}
   if errorcode <= maxExitCode then
     halt(errorcode)
   else
     halt(255)
+{$else FPC_HAS_FEATURE_EXITCODE}
+  halt;
+{$endif FPC_HAS_FEATURE_EXITCODE}
 end;
 
 
@@ -815,8 +863,12 @@ begin
 end;
 
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 function do_isdevice(handle:thandle):boolean;forward;
+{$endif FPC_HAS_FEATURE_FILEIO}
 
+
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 Procedure dump_stack(var f : text;bp : Pointer);
 var
   i : Longint;
@@ -825,7 +877,9 @@ var
   caller_frame,
   caller_addr : Pointer;
 Begin
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
   try
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
     prevbp:=bp-1;
     i:=0;
     is_dev:=do_isdevice(textrec(f).Handle);
@@ -844,12 +898,16 @@ Begin
        prevbp:=bp;
        bp:=caller_frame;
      End;
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
    except
      { prevent endless dump if an exception occured }
    end;
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
 End;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 
+{$ifdef FPC_HAS_FEATURE_HEAP}
 Type
   PExitProcInfo = ^TExitProcInfo;
   TExitProcInfo = Record
@@ -885,7 +943,10 @@ Begin
   ExitProcList:=P;
   ExitProc:=@DoExitProc;
 End;
+{$endif FPC_HAS_FEATURE_HEAP}
 
+
+{$ifdef FPC_HAS_FEATURE_HEAP}
 function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
 // Extra allocate reserveentries pchar's at the beginning (default param=0 after 1.0.x ?)
 // Note: for internal use by skilled programmers only
@@ -910,6 +971,7 @@ begin
   ArrayStringToPPchar:=p;
 end;
 
+
 Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
 {
   Create a PPChar to structure of pchars which are the arguments specified
@@ -919,6 +981,7 @@ Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
 begin
   StringToPPChar:=StringToPPChar(PChar(S),ReserveEntries);
 end;
+
 
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
 
@@ -991,8 +1054,7 @@ begin
        end;
    end;
 end;
-
-
+{$endif FPC_HAS_FEATURE_HEAP}
 
 
 {*****************************************************************************
@@ -1018,13 +1080,19 @@ end;
 
 Procedure SysAssert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer);
 begin
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   If msg='' then
     write(stderr,'Assertion failed')
   else
     write(stderr,msg);
   Writeln(stderr,' (',FName,', line ',LineNo,').');
   Writeln(stderr,'');
+{$ifdef FPC_HAS_FEATURE_EXITCODE}
   Halt(227);
+{$else FPC_HAS_FEATURE_EXITCODE}
+  halt;
+{$endif FPC_HAS_FEATURE_EXITCODE}
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
 end;
 
 
@@ -1059,14 +1127,17 @@ end;
                                Heap
 *****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_HEAP}
 {$i sysheap.inc}
 
 {$i heap.inc}
+{$endif FPC_HAS_FEATURE_HEAP}
 
 {*****************************************************************************
                           Thread support
 *****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_THREADING}
 { Generic threadmanager }
 {$i thread.inc}
 
@@ -1075,6 +1146,7 @@ end;
 
 { OS Dependent implementation }
 {$i systhrd.inc}
+{$endif FPC_HAS_FEATURE_THREADING}
 
 
 {*****************************************************************************
@@ -1082,16 +1154,22 @@ end;
 *****************************************************************************}
 
 { OS dependent low level file functions }
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 {$i sysfile.inc}
+{$endif FPC_HAS_FEATURE_FILEIO}
 
 { Text file }
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 {$i text.inc}
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 { Untyped file }
 {$i file.inc}
 
 { Typed file }
 {$i typefile.inc}
+{$endif FPC_HAS_FEATURE_FILEIO}
 
 
 {*****************************************************************************

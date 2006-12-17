@@ -732,4 +732,6 @@
                              Exception Support
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 {$i except.inc}
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}

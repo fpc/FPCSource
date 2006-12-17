@@ -1411,7 +1411,7 @@ implementation
          maybeloadvariantsunit;
 
          linker.initsysinitunitname;
-         if target_info.system in systems_internal_sysinit then
+         if target_info.system in system_internal_sysinit then
          begin
            { add start/halt unit }
            AddUnit(linker.sysinitunit);

@@ -54,6 +54,28 @@
 }
 {$S-}
 
+{$ifndef FPC_HAS_FEATURE_SUPPORT}
+{$define FPC_HAS_FEATURE_HEAP}
+{$define FPC_HAS_FEATURE_INITFINAL}
+{$define FPC_HAS_FEATURE_RTTI}
+{$define FPC_HAS_FEATURE_CLASSES}
+{$define FPC_HAS_FEATURE_EXCEPTIONS}
+{$define FPC_HAS_FEATURE_EXITCODE}
+{$define FPC_HAS_FEATURE_ANSISTRINGS}
+{$define FPC_HAS_FEATURE_WIDESTRINGS}
+{$define FPC_HAS_FEATURE_TEXTIO}
+{$define FPC_HAS_FEATURE_CONSOLEIO}
+{$define FPC_HAS_FEATURE_FILEIO}
+{$define FPC_HAS_FEATURE_RANDOM}
+{$define FPC_HAS_FEATURE_VARIANTS}
+{$define FPC_HAS_FEATURE_OBJECTS}
+{$define FPC_HAS_FEATURE_DYNARRAYS}
+{$define FPC_HAS_FEATURE_THREADING}
+{$define FPC_HAS_FEATURE_COMMANDARGS}
+{$define FPC_HAS_FEATURE_PROCESSES}
+{$define FPC_HAS_FEATURE_STACKCHECK}
+{$endif FPC_HAS_FEATURE_SUPPORT}
+
 {****************************************************************************
                          Global Types and Constants
 ****************************************************************************}
@@ -441,10 +463,12 @@ Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}[interncon
 Function Align (Addr : PtrUInt; Alignment : PtrUInt) : PtrUInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Align (Addr : Pointer; Alignment : PtrUInt) : Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 
+{$ifdef FPC_HAS_FEATURE_RANDOM}
 Function  Random(l:longint):longint;
 Function  Random(l:int64):int64;
 Function  Random: extended;
 Procedure Randomize;
+{$endif FPC_HAS_FEATURE_RANDOM}
 
 Function abs(l:Longint):Longint;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function abs(l:Int64):Int64;[internconst:fpc_in_const_abs];{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -516,9 +540,11 @@ Procedure Insert(const source:shortstring;var s:shortstring;index:SizeInt);
 Procedure Insert(source:Char;var s:shortstring;index:SizeInt);
 Function  Pos(const substr:shortstring;const s:shortstring):SizeInt;
 Function  Pos(C:Char;const s:shortstring):SizeInt;
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Function  Pos (const Substr : ShortString; const Source : AnsiString) : SizeInt;
-Procedure SetString (out S : Shortstring; Buf : PChar; Len : SizeInt);
 Procedure SetString (out S : AnsiString; Buf : PChar; Len : SizeInt);
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+Procedure SetString (out S : Shortstring; Buf : PChar; Len : SizeInt);
 Function  upCase(const s:shortstring):shortstring;
 Function  lowerCase(const s:shortstring):shortstring; overload;
 Function  Space(b:byte):shortstring;
@@ -541,6 +567,7 @@ function  pos(const substr : shortstring;c:char): SizeInt;
                              AnsiString Handling
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure UniqueString(var S : AnsiString);external name 'FPC_ANSISTR_UNIQUE';
 Function  Pos (const Substr : AnsiString; const Source : AnsiString) : SizeInt;
 Function  Pos (c : Char; const s : AnsiString) : SizeInt;
@@ -549,19 +576,23 @@ Procedure Delete (var S : AnsiString; Index,Size: SizeInt);
 Function  StringOfChar(c : char;l : SizeInt) : AnsiString;
 function  upcase(const s : ansistring) : ansistring;
 function  lowercase(const s : ansistring) : ansistring;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
 {****************************************************************************
                              WideString Handling
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 {$i wstringh.inc}
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 
 {****************************************************************************
                           Untyped File Management
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:string);
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:pchar);
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:char);
@@ -591,22 +622,26 @@ Procedure Rename(var f:File;const s:string);
 Procedure Rename(var f:File;p:pchar);
 Procedure Rename(var f:File;c:char);
 Procedure Truncate (var F:File);
+{$endif FPC_HAS_FEATURE_FILEIO}
 
 
 {****************************************************************************
                            Typed File Management
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:string);
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:pchar);
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:char);
 Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
+{$endif FPC_HAS_FEATURE_FILEIO}
 
 {****************************************************************************
                             Text File Management
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:string);
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:pchar);
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:char);
@@ -630,16 +665,22 @@ Function  SeekEOF:Boolean;
 Procedure SetTextBuf(var f:Text; var Buf);[INTERNPROC:fpc_in_settextbuf_file_x];
 Procedure SetTextBuf(var f:Text; var Buf; Size:SizeInt);
 Procedure SetTextLineEnding(var f:Text; Ending:string);
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
 {****************************************************************************
                             Directory Management
 ****************************************************************************}
 
+
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 Procedure chdir(const s:string);
 Procedure mkdir(const s:string);
 Procedure rmdir(const s:string);
 Procedure getdir(drivenr:byte;var dir:shortstring);
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure getdir(drivenr:byte;var dir:ansistring);
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$endif FPC_HAS_FEATURE_FILEIO}
 
 
 {*****************************************************************************
@@ -664,8 +705,11 @@ function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{
 
 Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Sptr:Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_ptr];
+
+{$ifdef FPC_HAS_FEATURE_PROCESSES}
 Function GetProcessID:SizeUInt;
 Function GetThreadID:TThreadID;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_FEATURE_PROCESSES}
 
 function InterLockedIncrement (var Target: longint) : longint; public name 'FPC_INTERLOCKEDINCREMENT';
 function InterLockedDecrement (var Target: longint) : longint; public name 'FPC_INTERLOCKEDDECREMENT';
@@ -721,27 +765,43 @@ Const
      234);
 
 Procedure Error(RunTimeError : TRunTimeError);
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
+
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 Procedure Dump_Stack(var f : text;bp:pointer);
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
+
 Procedure RunError(w:Word);
 Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}
 Procedure halt(errnum:byte);
+{$ifdef FPC_HAS_FEATURE_HEAP}
 Procedure AddExitProc(Proc:TProcedure);
+{$endif FPC_HAS_FEATURE_HEAP}
 Procedure halt;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 { Need to be exported for threads unit }
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 Procedure SysInitExceptions;
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
 procedure SysInitStdIO;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
 Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {*****************************************************************************
                          Abstract/Assert/Error Handling
 *****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_HEAP}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
 Function StringToPPChar(var S:AnsiString;ReserveEntries:integer):ppchar;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
+{$endif FPC_HAS_FEATURE_HEAP}
 
 
 procedure AbstractError;external name 'FPC_ABSTRACTERROR';
@@ -775,19 +835,25 @@ const
                        Object Pascal support
 *****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_CLASSES}
 {$i objpash.inc}
+{$endif FPC_HAS_FEATURE_CLASSES}
 
 {*****************************************************************************
                            Variant support
 *****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
 {$i varianth.inc}
+{$endif FPC_HAS_FEATURE_VARIANTS}
 
 {*****************************************************************************
                    Internal helper routines support
 *****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_DYNARRAYS}
 {$i dynarrh.inc}
+{$endif FPC_HAS_FEATURE_DYNARRAYS}
 
 {$i compproc.inc}
 
@@ -795,14 +861,18 @@ const
                                Heap
 *****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_HEAP}
 {$i heaph.inc}
+{$endif FPC_HAS_FEATURE_HEAP}
 
 {*****************************************************************************
                           Thread support
 *****************************************************************************}
 
 { Generic threadmanager }
+{$ifdef FPC_HAS_FEATURE_THREADING}
 {$i threadh.inc}
+{$endif FPC_HAS_FEATURE_THREADING}
 
 {*****************************************************************************
                           Resources support

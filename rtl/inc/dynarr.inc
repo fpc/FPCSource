@@ -25,16 +25,6 @@ type
    end;
 
 
-function aligntoptr(p : pointer) : pointer;inline;
-  begin
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-    result:=align(p,sizeof(p));
-{$else FPC_REQUIRES_PROPER_ALIGNMENT}
-    result:=p;
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-  end;
-
-
 procedure fpc_dynarray_rangecheck(p : pointer;i : tdynarrayindex);[Public,Alias:'FPC_DYNARRAY_RANGECHECK']; compilerproc;
   begin
      if not(assigned(p)) or (i<0) or (i>pdynarray(p-sizeof(tdynarray))^.high) then

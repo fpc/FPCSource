@@ -31,9 +31,11 @@ type
   fpc_normal_set = array[0..7] of longint;
 
 
+{$ifdef FPC_HAS_FEATURE_HEAP}
 { Needed to solve overloading problem with call from assembler (PFV) }
 Function  fpc_getmem(size:ptrint):pointer;compilerproc;
 Procedure fpc_freemem(p:pointer);compilerproc;
+{$endif FPC_HAS_FEATURE_HEAP}
 
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt); compilerproc;
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; compilerproc;
@@ -54,62 +56,85 @@ function fpc_chararray_to_shortstr(const arr: array of char; zerobased: boolean 
 function fpc_shortstr_to_chararray(arraysize: longint; const src: ShortString): fpc_big_chararray; compilerproc;
 
 Function  fpc_shortstr_Copy(const s:shortstring;index:SizeInt;count:SizeInt):shortstring;compilerproc;
-Function  fpc_ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;compilerproc;
-Function  fpc_widestr_Copy (Const S : WideString; Index,Size : SizeInt) : WideString;compilerproc;
 function  fpc_char_copy(c:char;index : SizeInt;count : SizeInt): shortstring;compilerproc;
+
+{$ifdef FPC_HAS_FEATURE_DYNARRAYS}
 function fpc_dynarray_copy(psrc : pointer;ti : pointer;
     lowidx,count:tdynarrayindex) : pointer;compilerproc;
-
 function  fpc_dynarray_length(p : pointer) : tdynarrayindex; compilerproc;
 function  fpc_dynarray_high(p : pointer) : tdynarrayindex; compilerproc;
 procedure fpc_dynarray_clear(var p : pointer;ti : pointer); compilerproc;
 procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); compilerproc;
 procedure fpc_dynarray_incr_ref(p : pointer); compilerproc;
 procedure fpc_dynarray_setlength(var p : pointer;pti : pointer; dimcount : dword;dims : pdynarrayindex); compilerproc;
+{$endif FPC_HAS_FEATURE_DYNARRAYS}
 
 { Str() support }
 procedure fpc_ShortStr_sint(v : valsint;len : SizeInt;out s : shortstring); compilerproc;
 procedure fpc_shortstr_uint(v : valuint;len : SizeInt;out s : shortstring); compilerproc;
+procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : shortstring); compilerproc;
+
 procedure fpc_chararray_sint(v : valsint;len : SizeInt;out a : array of char); compilerproc;
 procedure fpc_chararray_uint(v : valuint;len : SizeInt;out a : array of char); compilerproc;
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 procedure fpc_AnsiStr_sint(v : valsint; Len : SizeInt; out S : AnsiString); compilerproc;
 procedure fpc_AnsiStr_uint(v : valuint;Len : SizeInt; out S : AnsiString); compilerproc;
+procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : ansistring); compilerproc;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 procedure fpc_WideStr_sint(v : valsint; Len : SizeInt; out S : WideString); compilerproc;
 procedure fpc_WideStr_uint(v : valuint;Len : SizeInt; out S : WideString); compilerproc;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifndef CPU64}
-procedure fpc_shortstr_qword(v : qword;len : SizeInt;out s : shortstring); compilerproc;
-procedure fpc_shortstr_int64(v : int64;len : SizeInt;out s : shortstring); compilerproc;
-procedure fpc_chararray_qword(v : qword;len : SizeInt;out a : array of char); compilerproc;
-procedure fpc_chararray_int64(v : int64;len : SizeInt;out a : array of char); compilerproc;
-procedure fpc_ansistr_qword(v : qword;len : SizeInt;out s : ansistring); compilerproc;
-procedure fpc_ansistr_int64(v : int64;len : SizeInt;out s : ansistring); compilerproc;
-procedure fpc_widestr_qword(v : qword;len : SizeInt;out s : widestring); compilerproc;
-procedure fpc_widestr_int64(v : int64;len : SizeInt;out s : widestring); compilerproc;
+  procedure fpc_shortstr_qword(v : qword;len : SizeInt;out s : shortstring); compilerproc;
+  procedure fpc_shortstr_int64(v : int64;len : SizeInt;out s : shortstring); compilerproc;
+  procedure fpc_chararray_qword(v : qword;len : SizeInt;out a : array of char); compilerproc;
+  procedure fpc_chararray_int64(v : int64;len : SizeInt;out a : array of char); compilerproc;
+  {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+  procedure fpc_ansistr_qword(v : qword;len : SizeInt;out s : ansistring); compilerproc;
+  procedure fpc_ansistr_int64(v : int64;len : SizeInt;out s : ansistring); compilerproc;
+  {$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
+  {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+  procedure fpc_widestr_qword(v : qword;len : SizeInt;out s : widestring); compilerproc;
+  procedure fpc_widestr_int64(v : int64;len : SizeInt;out s : widestring); compilerproc;
+  {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif CPU64}
-procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : shortstring); compilerproc;
-procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;out a : array of char); compilerproc;
-procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : ansistring); compilerproc;
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : WideString); compilerproc;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
+procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;out a : array of char); compilerproc;
 
 { Val() support }
 Function fpc_Val_Real_ShortStr(const s : shortstring; out code : ValSInt): ValReal; compilerproc;
-Function fpc_Val_Real_AnsiStr(Const S : AnsiString; out Code : ValSInt): ValReal; compilerproc;
-Function fpc_Val_Real_WideStr(Const S : WideString; out Code : ValSInt): ValReal; compilerproc;
 Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code: ValSInt): ValSInt; compilerproc;
 Function fpc_Val_UInt_Shortstr(Const S: ShortString; out Code: ValSInt): ValUInt; compilerproc;
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Function fpc_Val_Real_AnsiStr(Const S : AnsiString; out Code : ValSInt): ValReal; compilerproc;
 Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; out Code : ValSInt): ValUInt; compilerproc;
 Function fpc_Val_SInt_AnsiStr (DestSize: SizeInt; Const S : AnsiString; out Code : ValSInt): ValSInt; compilerproc;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+Function fpc_Val_Real_WideStr(Const S : WideString; out Code : ValSInt): ValReal; compilerproc;
 Function fpc_Val_UInt_WideStr (Const S : WideString; out Code : ValSInt): ValUInt; compilerproc;
 Function fpc_Val_SInt_WideStr (DestSize: SizeInt; Const S : WideString; out Code : ValSInt): ValSInt; compilerproc;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifndef CPU64}
 Function fpc_val_int64_shortstr(Const S: ShortString; out Code: ValSInt): Int64; compilerproc;
 Function fpc_val_qword_shortstr(Const S: ShortString; out Code: ValSInt): QWord; compilerproc;
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Function fpc_Val_qword_AnsiStr (Const S : AnsiString; out Code : ValSInt): qword;compilerproc;
 Function fpc_Val_int64_AnsiStr (Const S : AnsiString; out Code : ValSInt): Int64; compilerproc;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Function fpc_Val_qword_WideStr (Const S : WideString; out Code : ValSInt): qword; compilerproc;
 Function fpc_Val_int64_WideStr (Const S : WideString; out Code : ValSInt): Int64; compilerproc;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif CPU64}
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure fpc_ansistr_decr_ref (Var S : Pointer); compilerproc;
 Procedure fpc_ansistr_incr_ref (S : Pointer); compilerproc;
 Procedure fpc_AnsiStr_Assign (Var DestS : Pointer;S2 : Pointer); compilerproc;
@@ -136,6 +161,7 @@ Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): SizeInt; compilerproc;
 Procedure fpc_AnsiStr_CheckZero(p : pointer); compilerproc;
 Procedure fpc_AnsiStr_CheckRange(len,index : SizeInt); compilerproc;
 Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : SizeInt); compilerproc;
+Function  fpc_ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;compilerproc;
 {$ifdef EXTRAANSISHORT}
 Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): SizeInt; compilerproc;
 {$endif EXTRAANSISHORT}
@@ -143,7 +169,9 @@ Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): 
   an endless loop since a 'var s: ansistring' must be made
   unique as well                                               }
 Function fpc_ansistr_Unique(Var S : Pointer): Pointer; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer); compilerproc;
 Procedure fpc_WideStr_Incr_Ref (Var S : Pointer); compilerproc;
 function fpc_WideStr_To_ShortStr (high_of_res: SizeInt;const S2 : WideString): shortstring; compilerproc;
@@ -172,14 +200,21 @@ Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt; compilerproc;
 Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
 Procedure fpc_WideStr_CheckRange(len,index : SizeInt); compilerproc;
 Procedure fpc_WideStr_SetLength (Var S : WideString; l : SizeInt); compilerproc;
+Function  fpc_widestr_Copy (Const S : WideString; Index,Size : SizeInt) : WideString;compilerproc;
 {$ifndef FPC_WINLIKEWIDESTRING}
 function fpc_widestr_Unique(Var S : Pointer): Pointer; compilerproc;
 {$endif FPC_WINLIKEWIDESTRING}
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc;
 Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 { from text.inc }
 Function fpc_get_input:PText;compilerproc;
 Function fpc_get_output:PText;compilerproc;
@@ -200,7 +235,9 @@ Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValRea
 Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); compilerproc;
 Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); compilerproc;
 Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); compilerproc;
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
 procedure fpc_variant_copy(d,s : pointer);compilerproc;
 procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); compilerproc;
 function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
@@ -212,7 +249,9 @@ function fpc_idispatch_to_variant(const i : idispatch) : variant;compilerproc;
 procedure fpc_vararray_get(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
 procedure fpc_vararray_put(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
 procedure fpc_dispinvoke_variant(dest : pvardata;const source : tvardata;  calldesc : pcalldesc;params : pointer);compilerproc;
+{$endif FPC_HAS_FEATURE_VARIANTS}
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 Procedure fpc_Read_End(var f:Text); compilerproc;
 Procedure fpc_ReadLn_End(var f : Text); compilerproc;
 Procedure fpc_Read_Text_ShortStr(var f : Text;out s : String); compilerproc;
@@ -227,6 +266,7 @@ Procedure fpc_Read_Text_Float(var f : Text; out v :ValReal); compilerproc;
 Procedure fpc_Read_Text_QWord(var f : text; out q : qword); compilerproc;
 Procedure fpc_Read_Text_Int64(var f : text; out i : int64); compilerproc;
 {$endif CPU64}
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_INCLUDE_SOFTWARE_MOD_DIV}
 function fpc_div_dword(n,z : dword) : dword; compilerproc;
@@ -264,6 +304,7 @@ function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
 function fpc_round_real(d : ValReal) : int64;compilerproc;
 function fpc_trunc_real(d : ValReal) : int64;compilerproc;
 
+{$ifdef FPC_HAS_FEATURE_CLASSES}
 function fpc_do_is(aclass : tclass;aobject : tobject) : boolean; compilerproc;
 function fpc_do_as(aclass : tclass;aobject : tobject): tobject; compilerproc;
 procedure fpc_intf_decr_ref(var i: pointer); compilerproc;
@@ -272,7 +313,10 @@ procedure fpc_intf_assign(var D: pointer; const S: pointer); compilerproc;
 procedure fpc_intf_assign_by_iid(var D: pointer; const S: pointer; const iid: TGUID); compilerproc;
 function  fpc_intf_as(const S: pointer; const iid: TGUID): IInterface; compilerproc;
 function fpc_class_as_intf(const S: pointer; const iid: TGUID): IInterface; compilerproc;
+{$endif FPC_HAS_FEATURE_CLASSES}
 
+
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
 Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ; compilerproc;
 Procedure fpc_PushExceptObj (Obj : TObject; AnAddr,AFrame : Pointer); compilerproc;
 Function fpc_Raiseexception (Obj : TObject; AnAddr,AFrame : Pointer) : TObject; compilerproc;
@@ -281,10 +325,15 @@ function fpc_PopObjectStack : TObject; compilerproc;
 function fpc_PopSecondObjectStack : TObject; compilerproc;
 Procedure fpc_ReRaise; compilerproc;
 Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
+
+{$ifdef FPC_HAS_FEATURE_OBJECTS}
 function fpc_help_constructor(_self:pointer;var _vmt:pointer;_vmt_pos:cardinal):pointer;compilerproc;
 procedure fpc_help_destructor(_self,_vmt:pointer;vmt_pos:cardinal);compilerproc;
 procedure fpc_help_fail(_self:pointer;var _vmt:pointer;vmt_pos:cardinal);compilerproc;
+{$endif FPC_HAS_FEATURE_OBJECTS}
+
 
 {$ifdef dummy}
 Procedure fpc_DestroyException(o : TObject); compilerproc;
@@ -292,11 +341,14 @@ procedure fpc_check_object(obj:pointer); compilerproc;
 procedure fpc_check_object_ext(vmt,expvmt:pointer);compilerproc;
 {$endif dummy}
 
+
+{$ifdef FPC_HAS_FEATURE_RTTI}
 Procedure fpc_Initialize (Data,TypeInfo : pointer); compilerproc;
 Procedure fpc_finalize (Data,TypeInfo: Pointer); compilerproc;
 Procedure fpc_Addref (Data,TypeInfo : Pointer); compilerproc;
 Procedure fpc_DecRef (Data,TypeInfo : Pointer);  compilerproc;
 procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); compilerproc;
+{$endif FPC_HAS_FEATURE_RTTI}
 
 function fpc_set_load_small(l: fpc_small_set): fpc_normal_set; compilerproc;
 function fpc_set_create_element(b : byte): fpc_normal_set; compilerproc;
@@ -354,10 +406,12 @@ Procedure fpc_HandleError (Errno : longint); compilerproc;
 procedure fpc_AbstractErrorIntern;compilerproc;
 procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer); compilerproc;
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 Procedure fpc_reset_typed(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf); compilerproc;
 Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;out Buf); compilerproc;
+{$endif FPC_HAS_FEATURE_FILEIO}
 
 {$ifdef FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE}
 function fpc_int64_to_double(i: int64): double; compilerproc;

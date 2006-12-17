@@ -50,6 +50,9 @@ implementation
     {$ifndef NOTARGETNDS}
       ,t_nds
     {$endif}
+    {$ifndef NOTARGETEMBEDDED}
+      ,t_embedded
+    {$endif}
 
 {**************************************
              Assemblers

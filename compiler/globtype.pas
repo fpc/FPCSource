@@ -135,6 +135,17 @@ interface
        );
        tglobalswitches = set of tglobalswitch;
 
+       { adding a new entry here requires also adding the appropriate define in
+         systemh.inc (FK)
+       }
+       tfeature = (
+         f_heap,f_init_final,f_rtti,f_classes,f_exceptions,f_exitcode,
+         f_ansistrings,f_widestrings,f_textio,f_consoleio,f_fileio,
+         f_random,f_variants,f_objects,f_dynarrays,f_threading,f_commandargs,
+         f_processes,f_stackcheck
+       );
+       tfeatures = set of tfeature;
+
      type
        { optimizer }
        toptimizerswitch = (cs_opt_none,
@@ -155,6 +166,13 @@ interface
        genericlevel1optimizerswitches = [cs_opt_level1];
        genericlevel2optimizerswitches = [cs_opt_level2];
        genericlevel3optimizerswitches = [cs_opt_level3];
+
+       featurestr : array[tfeature] of string[12] = (
+         'HEAP','INITFINAL','RTTI','CLASSES','EXCEPTIONS','EXITCODE',
+         'ANSISTRINGS','WIDESTRINGS','TEXTIO','CONSOLEIO','FILEIO',
+         'RANDOM','VARIANTS','OBJECTS','DYNARRAYS','THREADING','COMMANDARGS',
+         'PROCESSES','STACKCHECK'
+       );
 
     type
        { Switches which can be changed by a mode (fpc,tp7,delphi) }

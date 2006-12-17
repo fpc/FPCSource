@@ -358,6 +358,8 @@ end;
                               Object Helpers
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_OBJECTS}
+
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
 { Note: _vmt will be reset to -1 when memory is allocated,
   this is needed for fpc_help_fail }
@@ -498,6 +500,8 @@ begin
 end;
 {$endif not FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
 
+
+{$endif FPC_HAS_FEATURE_OBJECTS}
 
 {****************************************************************************
                                  String

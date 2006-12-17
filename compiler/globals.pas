@@ -276,6 +276,8 @@ interface
        { windows / OS/2 application type }
        apptype : tapptype;
 
+       features : tfeatures;
+
     const
        DLLsource : boolean = false;
        DLLImageBase : pshortstring = nil;
@@ -342,6 +344,7 @@ interface
     function SetFpuType(const s:string;var a:tfputype):boolean;
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
+    function IncludeFeature(const s : string) : boolean;
 
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
@@ -1223,6 +1226,21 @@ implementation
       end;
 
 
+    function IncludeFeature(const s : string) : boolean;
+      var
+        i : tfeature;
+      begin
+        result:=true;
+        for i:=low(tfeature) to high(tfeature) do
+          if s=featurestr[i] then
+            begin
+              include(features,i);
+              exit;
+            end;
+        result:=false;
+      end;
+
+
     function var_align(siz: shortint): shortint;
       begin
         siz := size_2_align(siz);
@@ -1298,6 +1316,8 @@ implementation
      end;
 
    procedure InitGlobals;
+     var
+       i : tfeature;
      begin
         get_exepath;
 
@@ -1417,6 +1437,9 @@ implementation
         LinkLibraryAliases :=TLinkStrMap.Create;
         LinkLibraryOrder   :=TLinkStrMap.Create;
 
+        { enable all features by default }
+        for i:=low(tfeature) to high(tfeature) do
+          include(features,i);
      end;
 
 end.
