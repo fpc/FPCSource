@@ -2403,9 +2403,9 @@ var
       end;
   end;
 
-var CurLine: Sw_integer;
+var CurLineNr: Sw_integer;
     Line,NextLine,PrevLine{,OldLine}: PCustomLine;
-    PrevLI,LI,NextLI: PEditorLineInfo;
+    PrevLI,LI,nextLI: PEditorLineInfo;
 begin
   if (not Editor^.IsFlagSet(efSyntaxHighlight)) or (FromLine>=GetLineCount) then
   begin
@@ -2427,16 +2427,16 @@ begin
 {$ifdef TEST_PARTIAL_SYNTAX}
   If Editor^.IsFlagSet(efSyntaxHighlight) and (LastSyntaxedLine<FromLine)
      and (FromLine<GetLineCount) then
-    CurLine:=LastSyntaxedLine
+    CurLineNr:=LastSyntaxedLine
   else
 {$endif TEST_PARTIAL_SYNTAX}
-    CurLine:=FromLine;
-  if CurLine>0 then
-    PrevLine:=GetLine(CurLine-1)
+    CurLineNr:=FromLine;
+  if CurLineNr>0 then
+    PrevLine:=GetLine(CurLineNr-1)
   else
     PrevLine:=nil;
   repeat
-    Line:=GetLine(CurLine);
+    Line:=GetLine(CurLineNr);
     if Assigned(PrevLine) then PrevLI:=PrevLine^.GetEditorInfo(Editor) else PrevLI:=nil;
     if Assigned(Line) then LI:=Line^.GetEditorInfo(Editor) else LI:=nil;
     InSingleLineComment:=false;
@@ -2469,7 +2469,7 @@ begin
         InDirective:=LI^.BeginsWithDirective;
         CurrentCommentType:=LI^.BeginCommentType;
       end;
-    LineText:=GetLineText(CurLine);
+    LineText:=GetLineText(CurLineNr);
     Format:=CharStr(chr(coTextColor),length(LineText));
     LastCC:=ccWhiteSpace;
     ClassStart:=1;
@@ -2482,16 +2482,16 @@ begin
        Inc(X);
        ProcessChar(' ');
      end;
-    SetLineFormat(Editor,CurLine,Format);
+    SetLineFormat(Editor,CurLineNr,Format);
     LI^.EndsWithAsm:=InAsm;
     LI^.EndsWithComment:=InComment;
     LI^.EndsInSingleLineComment:=InSingleLineComment;
     LI^.EndCommentType:=CurrentCommentType;
     LI^.EndsWithDirective:=InDirective;
-    Inc(CurLine);
-    if CurLine>=GetLineCount then
+    Inc(CurLineNr);
+    if CurLineNr>=GetLineCount then
      Break;
-    NextLine:=GetLine(CurLine);
+    NextLine:=GetLine(CurLineNr);
     if Assigned(NextLine) then NextLI:=NextLine^.GetEditorInfo(Editor) else NextLI:=nil;
     if ((Attrs and attrForceFull)=0) then
       if (*  Why should we go
@@ -2503,7 +2503,7 @@ begin
          (PrevLI^.EndsWithAsm=LI^.EndsWithAsm) and
          (PrevLI^.EndsWithDirective=LI^.EndsWithDirective) and *)
 {$ifdef TEST_PARTIAL_SYNTAX}
-         (CurLine>FromLine) and
+         (CurLineNr>FromLine) and
 {$endif TEST_PARTIAL_SYNTAX}
          (NextLI^.BeginsWithAsm=LI^.EndsWithAsm) and
          (NextLI^.BeginsWithComment=LI^.EndsWithComment) and
@@ -2512,27 +2512,27 @@ begin
          (NextLI^.Format<>nil) then
        Break;
 {$ifdef TEST_PARTIAL_SYNTAX}
-    if (CurLine<GetLineCount) and
-       (CurLine>FromLine) and
+    if (CurLineNr<GetLineCount) and
+       (CurLineNr>FromLine) and
        ((Attrs and attrForceFull)=0) and
-       (CurLine>GetLastVisibleLine) then
+       (CurLineNr>GetLastVisibleLine) then
       begin
         If SyntaxComplete then
           begin
             SyntaxComplete:=false;
             DoSyntaxStateChanged;
           end;
-        LastSyntaxedLine:=CurLine-1;
+        LastSyntaxedLine:=CurLineNr-1;
         break;
       end;
 {$endif TEST_PARTIAL_SYNTAX}
     PrevLine:=Line;
   until false;
-  DoUpdateAttrs:=CurLine;
+  DoUpdateAttrs:=CurLineNr;
 {$ifdef TEST_PARTIAL_SYNTAX}
-  If LastSyntaxedLine<CurLine-1 then
-    LastSyntaxedLine:=CurLine-1;
-  if CurLine=GetLineCount then
+  If LastSyntaxedLine<CurLineNr-1 then
+    LastSyntaxedLine:=CurLineNr-1;
+  if CurLineNr=GetLineCount then
     begin
       SyntaxComplete:=true;
       DoSyntaxStateChanged;
