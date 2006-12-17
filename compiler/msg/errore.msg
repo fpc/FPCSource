@@ -1099,6 +1099,9 @@ parser_e_type_and_var_only_in_generics=03224_E_VAR and TYPE are allowed only in 
 parser_e_cant_create_generics_of_this_type=03225_E_This type can't be a generic
 % Only Classes, Objects, Interfaces and Records are allowed to be used as generic
 % \end{description}
+parser_w_no_lineinfo_use_switch=03226_W_Don't load LINEINFO unit manually, Use the -gl compiler switch instead
+% Do not use the LINEINFO unit directly, Use the \var{-gl} switch which automatically adds the
+% unit for reading the selected type of debugging information instead.
 #
 # Type Checking
 #

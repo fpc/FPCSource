@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit lineinfo;
+unit lnfostbs;
 interface
 
 {$IFDEF OS2}

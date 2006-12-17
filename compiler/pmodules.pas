@@ -485,8 +485,12 @@ implementation
            if (cs_use_heaptrc in current_settings.globalswitches) then
              AddUnit('HeapTrc');
            { Lineinfo unit }
-           if (cs_use_lineinfo in current_settings.globalswitches) then
-             AddUnit('LineInfo');
+           if (cs_use_lineinfo in current_settings.globalswitches) then begin
+             if (paratargetdbg = dbg_stabs) then
+               AddUnit('lnfostbs')
+             else
+               AddUnit('lnfodwrf');
+           end;
            { Valgrind requires c memory manager }
            if (cs_gdb_valgrind in current_settings.globalswitches) then
              AddUnit('CMem');
@@ -548,6 +552,15 @@ implementation
            if not(m_tp7 in current_settings.modeswitches) and
               try_to_consume(_OP_IN) then
              fn:=FixFileName(get_stringconst);
+           { Give a warning if lineinfo is loaded }
+           if s='LINEINFO' then begin
+            Message(parser_w_no_lineinfo_use_switch);
+            if (paratargetdbg = dbg_stabs) then
+              s := 'LNFOSTBS'
+            else
+              s := 'LNFODWRF';
+            sorg := s;
+           end;
            { Give a warning if objpas is loaded }
            if s='OBJPAS' then
             Message(parser_w_no_objpas_use_mode);

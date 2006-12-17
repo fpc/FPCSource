@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders= prt0
 units=$(SYSTEMUNIT) ctypes objpas macpas strings \
-      lineinfo heaptrc \
+      lnfodwrf lnfostbs heaptrc \
       windows messages dynlibs \
       dos objects \
       rtlconsts sysconst sysutils \

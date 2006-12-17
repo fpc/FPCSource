@@ -4602,7 +4602,8 @@ rtl/inc/int64.inc svneol=native#text/plain
 rtl/inc/keyboard.inc svneol=native#text/plain
 rtl/inc/keybrdh.inc svneol=native#text/plain
 rtl/inc/keyscan.inc svneol=native#text/plain
-rtl/inc/lineinfo.pp svneol=native#text/plain
+rtl/inc/lnfodwrf.pp -text
+rtl/inc/lnfostbs.pp svneol=native#text/plain
 rtl/inc/lstrings.pp svneol=native#text/plain
 rtl/inc/macpas.pp svneol=native#text/plain
 rtl/inc/makefile.inc svneol=native#text/plain

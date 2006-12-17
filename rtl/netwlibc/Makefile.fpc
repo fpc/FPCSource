@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=nwplibc nwl_main nwl_dlle
 units=$(SYSTEMUNIT) objpas macpas strings \
-      lineinfo winsock heaptrc matrix \
+      lnfostbs lnfodwrf winsock heaptrc matrix \
       nwsnut libc dos crt objects sysconst dynlibs \
       initc sysutils types typinfo fgl classes fmtbcd \
       cpu mmx getopts \
@@ -240,7 +240,9 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+lnfostbs$(PPUEXT) : $(INC)/lnfostbs.pp $(SYSTEMUNIT)$(PPUEXT)
+
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 

@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
       dos crt objects printer matrix \
       sysutils fgl classes math typinfo varutils winsock \
-      charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
+      charset ucomplex cpu mmx getopts heaptrc lnfostbs lnfodwrf dynlibs \
       video mouse keyboard variants types rtlconst sysconst dateutil \
       strutils convutil so32dll sockets
 rsts=math varutils typinfo variants pmhelp classes sysconst dateutil
@@ -226,7 +226,9 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+lnfostbs$(PPUEXT) : $(INC)/lnfostbs.pp $(SYSTEMUNIT)$(PPUEXT)
+
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
 
