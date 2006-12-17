@@ -611,6 +611,7 @@ fcl/db/dbase/Makefile svneol=native#text/plain
 fcl/db/dbase/Makefile.fpc svneol=native#text/plain
 fcl/db/dbase/dbf.pas svneol=native#text/plain
 fcl/db/dbase/dbf_avl.pas svneol=native#text/plain
+fcl/db/dbase/dbf_collate.pas svneol=native#text/plain
 fcl/db/dbase/dbf_common.inc svneol=native#text/plain
 fcl/db/dbase/dbf_common.pas svneol=native#text/plain
 fcl/db/dbase/dbf_cursor.pas svneol=native#text/plain
