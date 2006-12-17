@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas macpas \
       baseunix unixutil \
       termio unix initc cmem \
       crt printer \
-      sysutils typinfo math classes matrix varutils \
+      sysutils typinfo math fgl classes matrix varutils \
       charset ucomplex getopts \
       errors sockets \
       # ipc serial
@@ -167,8 +167,12 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) \
+		   $(SYSTEMUNIT)$(PPUEXT) fgl$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
+
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fgl.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp

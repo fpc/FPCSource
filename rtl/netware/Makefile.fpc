@@ -10,7 +10,7 @@ loaders=nwpre prelude
 units=$(SYSTEMUNIT) objpas macpas strings \
       lineinfo winsock heaptrc matrix \
       dos crt objects sysconst \
-      initc sysutils types typinfo classes fmtbcd \
+      initc sysutils types typinfo fgl classes fmtbcd \
       cpu mmx getopts \
       dateutils strutils convutils \
       charset ucomplex variants \
@@ -160,8 +160,11 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
-                   sysconst$(PPUEXT) types$(PPUEXT)
+                   sysconst$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fgl.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp

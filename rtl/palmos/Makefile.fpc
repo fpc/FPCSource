@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       windows messages dynlibs \
       dos objects \
       rtlconsts sysconst sysutils \
-      typinfo types classes fmtbcd \
+      typinfo types fgl classes fmtbcd \
       strutils convutils math dateutils \
       varutils variants \
       matrix ucomplex \

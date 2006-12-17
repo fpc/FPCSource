@@ -25,6 +25,7 @@ interface
 uses
   sysutils,
   types,
+  fgl,
   typinfo,
   rtlconsts;
 

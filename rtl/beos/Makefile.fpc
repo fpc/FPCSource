@@ -10,7 +10,7 @@ loaders=prt0 cprt0 func dllprt
 units=system posix objpas macpas strings \
       beos \
       dos matrix \
-      sysutils classes typinfo math varutils fmtbcd \
+      sysutils fgl classes typinfo math varutils fmtbcd \
       cpu mmx getopts heaptrc lineinfo variants types sysconst
 rsts=math varutils typinfo sysconst
 
@@ -120,7 +120,7 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) fgl$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
@@ -141,6 +141,9 @@ fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) varia
 
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
+
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fgl.pp
 
 #
 # Mac Pascal Model

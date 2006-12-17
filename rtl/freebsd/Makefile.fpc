@@ -13,7 +13,7 @@ loaders=prt0 cprt0 gprt0
 units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings syscall sysctl  baseunix unixutil \
       unix rtlconsts initc cmem matrix \
        dl termio  printer \
-      sysutils varutils math variants typinfo types classes fmtbcd dynlibs \
+      sysutils varutils math variants typinfo types classes fgl fmtbcd dynlibs \
       $(CPU_UNITS) charset ucomplex crt getopts heaptrc lineinfo \
       errors sockets ipc terminfo bsd freebsd \
       video mouse keyboard console serial dateutils \
@@ -176,8 +176,11 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
 	$(COMPILER): $(OBJPASDIR)/rtlconsts.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
+
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fgl.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) rtlconsts$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp

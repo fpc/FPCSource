@@ -13,7 +13,7 @@ units=system ctypes objpas macpas strings \
       windows winsock winsock2 cmem \
       rtlconsts sysconst sysutils math types \
       strutils convutils dateutils \
-      varutils variants typinfo classes getopts \
+      varutils variants typinfo fgl classes getopts \
       sockets printer charset ucomplex fmtbcd \
       winevent video mouse keyboard \
       dynlibs crt messages \
@@ -159,8 +159,12 @@ sysutils$(PPUEXT) : $(WINDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(WINDIR)/sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) sysconst$(PPUEXT) system$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) \
+		   sysconst$(PPUEXT) system$(PPUEXT) fgl$(PPUEXT)
         $(COMPILER) -Fi../win -Fi$(OBJPASDIR)/classes classes.pp
+
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fgl.pp
 
 winsysut$(PPUEXT) : winsysut.pp sysutils$(PPUEXT) system$(PPUEXT)
 

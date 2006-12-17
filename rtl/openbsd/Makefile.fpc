@@ -13,7 +13,7 @@ loaders=prt0 cprt0
 units=$(SYSTEMUNIT) objpas macpas strings syscall baseunix \
       $(LINUXUNIT) unix initc systhrds \
       dos crt objects printer matrix \
-      sysutils classes fmtbcd typinfo math varutils \
+      sysutils fgl classes fmtbcd typinfo math varutils \
        charset ucomplex getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
       video mouse keyboard  serial variants types systhrds sysctl sysconst
@@ -170,8 +170,11 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) fgl$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+
+fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fgl.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
