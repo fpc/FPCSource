@@ -4,6 +4,18 @@ unit dbf_prscore;
 | TCustomExpressionParser
 |
 | - contains core expression parser
+|
+| This code is based on code from:
+|
+| Original author: Egbert van Nes
+| With contributions of: John Bultena and Ralf Junker
+| Homepage: http://www.slm.wau.nl/wkao/parseexpr.html
+|
+| see also: http://www.datalog.ro/delphi/parser.html
+|   (Renate Schaaf (schaaf at math.usu.edu), 1993
+|    Alin Flaider (aflaidar at datalog.ro), 1996
+|    Version 9-10: Stefan Hoffmeister, 1996-1997)
+|
 |---------------------------------------------------------------}
 
 interface
@@ -81,7 +93,6 @@ type
     function DefineDateTimeVariable(AVarName: string; AValue: PDateTimeRec): TExprWord;
     function DefineBooleanVariable(AVarName: string; AValue: PBoolean): TExprWord;
     function DefineStringVariable(AVarName: string; AValue: PPChar): TExprWord;
-    function DefineStringVariableFixedLen(AVarName: string; AValue: PPChar; ALength: Integer): TExprWord;
     function DefineFunction(AFunctName, AShortName, ADescription, ATypeSpec: string;
         AMinFunctionArg: Integer; AResultType: TExpressionType; AFuncAddress: TExprFunc): TExprWord;
     procedure Evaluate(AnExpression: string);
@@ -104,8 +115,9 @@ type
 //--Expression functions-----------------------------------------------------
 
 procedure FuncFloatToStr(Param: PExpressionRec);
-procedure FuncIntToStr_Gen(Param: PExpressionRec; Val: Integer);
+procedure FuncIntToStr_Gen(Param: PExpressionRec; Val: {$ifdef SUPPORT_INT64}Int64{$else}Integer{$endif});
 procedure FuncIntToStr(Param: PExpressionRec);
+procedure FuncInt64ToStr(Param: PExpressionRec);
 procedure FuncDateToStr(Param: PExpressionRec);
 procedure FuncSubString(Param: PExpressionRec);
 procedure FuncUppercase(Param: PExpressionRec);
@@ -155,13 +167,11 @@ procedure FuncDiv_F_LF(Param: PExpressionRec);
 procedure FuncDiv_F_LI(Param: PExpressionRec);
 {$endif}
 procedure FuncStrI_EQ(Param: PExpressionRec);
-procedure FuncStrIP_EQ(Param: PExpressionRec);
 procedure FuncStrI_NEQ(Param: PExpressionRec);
 procedure FuncStrI_LT(Param: PExpressionRec);
 procedure FuncStrI_GT(Param: PExpressionRec);
 procedure FuncStrI_LTE(Param: PExpressionRec);
 procedure FuncStrI_GTE(Param: PExpressionRec);
-procedure FuncStrP_EQ(Param: PExpressionRec);
 procedure FuncStr_EQ(Param: PExpressionRec);
 procedure FuncStr_NEQ(Param: PExpressionRec);
 procedure FuncStr_LT(Param: PExpressionRec);
@@ -236,6 +246,40 @@ var
 
 implementation
 
+procedure LinkVariable(ExprRec: PExpressionRec);
+begin
+  with ExprRec^ do
+  begin
+    if ExprWord.IsVariable then
+    begin
+      // copy pointer to variable
+      Args[0] := ExprWord.AsPointer;
+      // is this a fixed length string variable?
+      if ExprWord.FixedLen >= 0 then
+      begin
+        // store length as second parameter
+        Args[1] := PChar(ExprWord.LenAsPointer);
+      end;
+    end;
+  end;
+end;
+
+procedure LinkVariables(ExprRec: PExpressionRec);
+var
+  I: integer;
+begin
+  with ExprRec^ do
+  begin
+    I := 0;
+    while (I < MaxArg) and (ArgList[I] <> nil) do
+    begin
+      LinkVariables(ArgList[I]);
+      Inc(I);
+    end;
+  end;
+  LinkVariable(ExprRec);
+end;
+
 { TCustomExpressionParser }
 
 constructor TCustomExpressionParser.Create;
@@ -288,6 +332,7 @@ begin
       ExprTree := MakeTree(ExpColl, 0, ExpColl.Count - 1);
       FCurrentRec := nil;
       CheckArguments(ExprTree);
+      LinkVariables(ExprTree);
       if Optimize then
         RemoveConstants(ExprTree);
       // all constant expressions are evaluated and replaced by variables
@@ -309,15 +354,44 @@ end;
 procedure TCustomExpressionParser.CheckArguments(ExprRec: PExpressionRec);
 var
   TempExprWord: TExprWord;
-  I, error: Integer;
+  I, error, firstFuncIndex, funcIndex: Integer;
   foundAltFunc: Boolean;
-begin
-  with ExprRec^ do
+
+  procedure FindAlternate;
   begin
-    repeat
-      I := 0;
-      error := 0;
-      foundAltFunc := false;
+    // see if we can find another function
+    if funcIndex < 0 then
+    begin
+      firstFuncIndex := FWordsList.IndexOf(ExprRec^.ExprWord);
+      funcIndex := firstFuncIndex;
+    end;
+    // check if not last function
+    if (0 <= funcIndex) and (funcIndex < FWordsList.Count - 1) then
+    begin
+      inc(funcIndex);
+      TempExprWord := TExprWord(FWordsList.Items[funcIndex]);
+      if FWordsList.Compare(FWordsList.KeyOf(ExprRec^.ExprWord), FWordsList.KeyOf(TempExprWord)) = 0 then
+      begin
+        ExprRec^.ExprWord := TempExprWord;
+        ExprRec^.Oper := ExprRec^.ExprWord.ExprFunc;
+        foundAltFunc := true;
+      end;
+    end;
+  end;
+
+  procedure InternalCheckArguments;
+  begin
+    I := 0;
+    error := 0;
+    foundAltFunc := false;
+    with ExprRec^ do
+    begin
+      if WantsFunction <> (ExprWord.IsFunction and not ExprWord.IsOperator) then
+      begin
+        error := 4;
+        exit;
+      end;
+
       while (I < ExprWord.MaxFunctionArg) and (ArgList[I] <> nil) and (error = 0) do
       begin
         // test subarguments first
@@ -338,32 +412,37 @@ begin
       // test if too many parameters passed
       if (error = 0) and (I > ExprWord.MaxFunctionArg) then
         error := 3;
-
-      // error occurred?
-      if error <> 0 then
-      begin
-        // see if we can find another function
-        I := FWordsList.IndexOf(ExprWord);
-        // check if not last function
-        if I < FWordsList.Count - 1 then
-        begin
-          TempExprWord := TExprWord(FWordsList.Items[I+1]);
-          if FWordsList.Compare(FWordsList.KeyOf(ExprWord), FWordsList.KeyOf(TempExprWord)) = 0 then
-          begin
-            ExprWord := TempExprWord;
-            Oper := ExprWord.ExprFunc;
-            foundAltFunc := true;
-          end;
-        end;
-      end;
-    until (error = 0) or not foundAltFunc;
-
-    // fatal error?
-    case error of
-      1: raise EParserException.Create('Function or operand has too few arguments');
-      2: raise EParserException.Create('Argument type mismatch');
-      3: raise EParserException.Create('Function or operand has too many arguments');
     end;
+  end;
+
+begin
+  funcIndex := -1;
+  repeat
+    InternalCheckArguments;
+
+    // error occurred?
+    if error <> 0 then
+      FindAlternate;
+  until (error = 0) or not foundAltFunc;
+
+  // maybe it's an undefined variable
+  if (error <> 0) and not ExprRec^.WantsFunction and (firstFuncIndex >= 0) then
+  begin
+    HandleUnknownVariable(ExprRec^.ExprWord.Name);
+    { must not add variable as first function in this set of duplicates,
+      otherwise following searches will not find it }
+    FWordsList.Exchange(firstFuncIndex, firstFuncIndex+1);
+    ExprRec^.ExprWord := TExprWord(FWordsList.Items[firstFuncIndex+1]);
+    ExprRec^.Oper := ExprRec^.ExprWord.ExprFunc;
+    InternalCheckArguments;
+  end;
+
+  // fatal error?
+  case error of
+    1: raise EParserException.Create('Function or operand has too few arguments');
+    2: raise EParserException.Create('Argument type mismatch');
+    3: raise EParserException.Create('Function or operand has too many arguments');
+    4: raise EParserException.Create('No function with this name, remove brackets for variable');
   end;
 end;
 
@@ -377,7 +456,7 @@ begin
     Result := ExprWord.CanVary;
     if not Result then
       for I := 0 to ExprWord.MaxFunctionArg - 1 do
-        if ResultCanVary(ArgList[I]) then
+        if (ArgList[I] <> nil) and ResultCanVary(ArgList[I]) then
         begin
           Result := true;
           Exit;
@@ -610,17 +689,6 @@ begin
   begin
     Result^.ExprWord := TExprWord(Expr.Items[FirstItem]);
     Result^.Oper := Result^.ExprWord.ExprFunc;
-    if Result^.ExprWord.IsVariable then
-    begin
-      // copy pointer to variable
-      Result^.Args[0] := Result^.ExprWord.AsPointer;
-      // is this a fixed length string variable?
-      if Result^.ExprWord.FixedLen >= 0 then
-      begin
-        // store length as second parameter
-        Result^.Args[1] := PChar(Result^.ExprWord.LenAsPointer);
-      end;
-    end;
     exit;
   end;
 
@@ -664,6 +732,7 @@ begin
     // save function
     Result^.ExprWord := TExprWord(Expr.Items[FirstItem]);
     Result^.Oper := Result^.ExprWord.ExprFunc;
+    Result^.WantsFunction := true;
     // parse function arguments
     IEnd := FirstItem + 1;
     IStart := IEnd;
@@ -979,9 +1048,8 @@ begin
       if (TExprWord(Items[I]).IsVariable) and ((I < Count - 1) and
         (TExprWord(Items[I + 1]).IsVariable)) then
         raise EParserException.Create('Missing operator between '''+TExprWord(Items[I]).Name+''' and '''+TExprWord(Items[I]).Name+'''');
-      if (TExprWord(Items[I]).ResultType = etLeftBracket) and ((I >= Count - 1) or
-        (TExprWord(Items[I + 1]).ResultType = etRightBracket)) then
-        raise EParserException.Create('Empty brackets ()');
+      if (TExprWord(Items[I]).ResultType = etLeftBracket) and (I >= Count - 1) then
+        raise EParserException.Create('Missing closing bracket');
       if (TExprWord(Items[I]).ResultType = etRightBracket) and ((I < Count - 1) and
         (TExprWord(Items[I + 1]).ResultType = etLeftBracket)) then
         raise EParserException.Create('Missing operator between )(');
@@ -1070,12 +1138,7 @@ end;
 
 function TCustomExpressionParser.DefineStringVariable(AVarName: string; AValue: PPChar): TExprWord;
 begin
-  Result := DefineStringVariableFixedLen(AVarName, AValue, -1);
-end;
-
-function TCustomExpressionParser.DefineStringVariableFixedLen(AVarName: string; AValue: PPChar; ALength: Integer): TExprWord;
-begin
-  Result := TStringVariable.Create(AVarName, AValue, ALength);
+  Result := TStringVariable.Create(AVarName, AValue);
   FWordsList.Add(Result);
 end;
 
@@ -1114,6 +1177,7 @@ begin
   New(Result);
   Result^.Oper := nil;
   Result^.AuxData := nil;
+  Result^.WantsFunction := false;
   for I := 0 to MaxArg - 1 do
   begin
     Result^.Args[I] := nil;
@@ -1238,7 +1302,7 @@ begin
   end;
 end;
 
-procedure FuncIntToStr_Gen(Param: PExpressionRec; Val: Integer);
+procedure FuncIntToStr_Gen(Param: PExpressionRec; Val: {$ifdef SUPPORT_INT64}Int64{$else}Integer{$endif});
 var
   width: Integer;
 begin
@@ -1249,7 +1313,12 @@ begin
     begin
       // convert to string
       width := PInteger(Args[1])^;
-      GetStrFromInt_Width(Val, width, Res.MemoryPos^, #32);
+{$ifdef SUPPORT_INT64}
+      GetStrFromInt64_Width
+{$else}
+      GetStrFromInt_Width
+{$endif}
+        (Val, width, Res.MemoryPos^, #32);
       // advance pointer
       Inc(Res.MemoryPos^, width);
       // need to add decimal?
@@ -1267,7 +1336,13 @@ begin
       end;
     end else begin
       // convert to string
-      width := GetStrFromInt(Val, Res.MemoryPos^);
+      width := 
+{$ifdef SUPPORT_INT64}
+        GetStrFromInt64
+{$else}
+        GetStrFromInt
+{$endif}
+          (Val, Res.MemoryPos^);
       // advance pointer
       Inc(Param^.Res.MemoryPos^, width);
     end;
@@ -1280,6 +1355,15 @@ procedure FuncIntToStr(Param: PExpressionRec);
 begin
   FuncIntToStr_Gen(Param, PInteger(Param^.Args[0])^);
 end;
+
+{$ifdef SUPPORT_INT64}
+
+procedure FuncInt64ToStr(Param: PExpressionRec);
+begin
+  FuncIntToStr_Gen(Param, PInt64(Param^.Args[0])^);
+end;
+
+{$endif}
 
 procedure FuncDateToStr(Param: PExpressionRec);
 var
@@ -1302,11 +1386,14 @@ begin
   begin
     srcLen := StrLen(Args[0]);
     index := PInteger(Args[1])^ - 1;
-    count := PInteger(Args[2])^;
-    if index + count <= srcLen then
-      Res.Append(Args[0]+index, count)
-    else
-      Res.MemoryPos^^ := #0;
+    if Args[2] <> nil then
+    begin
+      count := PInteger(Args[2])^;
+      if index + count > srcLen then
+        count := srcLen - index;
+    end else
+      count := srcLen - index;
+    Res.Append(Args[0]+index, count)
   end;
 end;
 

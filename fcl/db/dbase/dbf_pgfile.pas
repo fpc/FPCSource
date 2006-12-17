@@ -146,7 +146,7 @@ type
 implementation
 
 uses
-{$ifdef WIN32}
+{$ifdef WINDOWS}
   Windows,
 {$else}
 {$ifdef KYLIX}
@@ -773,7 +773,7 @@ end;
 
 // BDE compatible lock offset found!
 const
-{$ifdef WIN32}
+{$ifdef WINDOWS}
   LockOffset = $EFFFFFFE;       // BDE compatible
   FileLockSize = 2;
 {$else}

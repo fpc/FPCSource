@@ -117,6 +117,7 @@ type
     FParser: TDbfParser;
     FFieldNames: string;
     FValidExpression: Boolean;
+    FKeyTranslation: boolean;
     FOnMasterChange: TNotifyEvent;
     FOnMasterDisable: TNotifyEvent;
 
@@ -134,6 +135,7 @@ type
     destructor Destroy; override;
 
     property FieldNames: string read FFieldNames write SetFieldNames;
+    property KeyTranslation: boolean read FKeyTranslation;
     property ValidExpression: Boolean read FValidExpression write FValidExpression;
     property FieldsVal: PChar read GetFieldsVal;
     property Parser: TDbfParser read FParser;
@@ -256,7 +258,7 @@ type
     function  IsCursorOpen: Boolean; override; {virtual abstract}
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override; {virtual abstract}
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override; {virtual abstract}
-    procedure SetFieldData(Field: TField; Buffer: Pointer); override; {virtual abstract}
+    procedure SetFieldData(Field: TField; Buffer: Pointer); overload; override; {virtual abstract}
 
     { virtual methods (mostly optionnal) }
     function  GetDataSource: TDataSource; {$ifndef VER1_0}override;{$endif}
@@ -286,7 +288,7 @@ type
     destructor Destroy; override;
 
     { abstract methods }
-    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override; {virtual abstract}
+    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; overload; override; {virtual abstract}
     { virtual methods (mostly optionnal) }
     procedure Resync(Mode: TResyncMode); override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override; {virtual}
@@ -296,10 +298,10 @@ type
     procedure Translate(Src, Dest: PChar; ToOem: Boolean); override; {virtual}
 {$endif}
 
-{$ifdef SUPPORT_BACKWARD_FIELDDATA}
-    function  GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload; override;
-    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); overload; override;
-{$endif}
+    function  GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload;
+      {$ifdef SUPPORT_BACKWARD_FIELDDATA} override; {$endif}
+    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); overload;
+      {$ifdef SUPPORT_BACKWARD_FIELDDATA} override; {$endif}
 
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Integer; override;
     procedure CheckDbfFieldDefs(ADbfFieldDefs: TDbfFieldDefs);
@@ -323,12 +325,16 @@ type
     procedure CancelRange;
     procedure CheckMasterRange;
 {$ifdef SUPPORT_VARIANTS}
-    function  SearchKey(Key: Variant; SearchType: TSearchKeyType): Boolean;
-    procedure SetRange(LowRange: Variant; HighRange: Variant);
+    function  SearchKey(Key: Variant; SearchType: TSearchKeyType; KeyIsANSI: boolean
+      {$ifdef SUPPORT_DEFAULT_PARAMS}= false{$endif}): Boolean;
+    procedure SetRange(LowRange: Variant; HighRange: Variant; KeyIsANSI: boolean
+      {$ifdef SUPPORT_DEFAULT_PARAMS}= false{$endif});
 {$endif}
     function  PrepareKey(Buffer: Pointer; BufferType: TExpressionType): PChar;
-    function  SearchKeyPChar(Key: PChar; SearchType: TSearchKeyType): Boolean;
-    procedure SetRangePChar(LowRange: PChar; HighRange: PChar);
+    function  SearchKeyPChar(Key: PChar; SearchType: TSearchKeyType; KeyIsANSI: boolean
+      {$ifdef SUPPORT_DEFAULT_PARAMS}= false{$endif}): Boolean;
+    procedure SetRangePChar(LowRange: PChar; HighRange: PChar; KeyIsANSI: boolean
+      {$ifdef SUPPORT_DEFAULT_PARAMS}= false{$endif});
     function  GetCurrentBuffer: PChar;
     procedure ExtractKey(KeyBuffer: PChar);
     procedure UpdateIndexDefs; override;
@@ -353,7 +359,7 @@ type
 
 {$ifdef SUPPORT_VARIANTS}
     function  Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; override;
-    function  Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): Boolean; {$ifndef FPC}override;{$endif}
+    function  Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): Boolean; override;
 {$endif}
 
     function  IsDeleted: Boolean;
@@ -453,7 +459,7 @@ uses
 {$ifndef FPC}
   DBConsts,
 {$endif}
-{$ifdef WIN32}
+{$ifdef WINDOWS}
   Windows,
 {$else}
 {$ifdef KYLIX}
@@ -551,7 +557,7 @@ begin
     Translate(true);
     Dbf.FDbfFile.MemoFile.WriteMemo(FMemoRecNo, FReadSize, Self);
     Dbf.FDbfFile.SetFieldData(FBlobField.FieldNo-1, ftInteger, @FMemoRecNo,
-      @pDbfRecord(TDbf(FBlobField.DataSet).ActiveBuffer)^.DeletedFlag);
+      @pDbfRecord(TDbf(FBlobField.DataSet).ActiveBuffer)^.DeletedFlag, false);
     FDirty := false;
   end;
 end;
@@ -693,6 +699,18 @@ begin
 end;
 
 function TDbf.GetFieldData(Field: TField; Buffer: Pointer): Boolean; {override virtual abstract from TDataset}
+begin
+  Result := GetFieldData(Field, Buffer, true);
+end;
+
+// we don't want converted data formats, we want native :-)
+// it makes coding easier in TDbfFile.GetFieldData
+//  ftCurrency:
+//    Delphi 3,4: BCD array
+//  ftBCD:
+// ftDateTime is more difficult though
+
+function TDbf.GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; {overload; override;}
 var
   Src: PChar;
 begin
@@ -705,7 +723,7 @@ begin
 
   if Field.FieldNo>0 then
   begin
-    Result := FDbfFile.GetFieldData(Field.FieldNo-1, Field.DataType, Src, Buffer);
+    Result := FDbfFile.GetFieldData(Field.FieldNo-1, Field.DataType, Src, Buffer, NativeFormat);
   end else begin { weird calculated fields voodoo (from dbtables).... }
     Inc(PChar(Src), Field.Offset + GetRecordSize);
     Result := Boolean(Src[0]);
@@ -714,28 +732,25 @@ begin
   end;
 end;
 
-{$ifdef SUPPORT_BACKWARD_FIELDDATA}
-
-// we don't want converted data formats, we want native :-)
-// it makes coding easier in TDbfFile.GetFieldData
-//  ftCurrency:
-//    Delphi 3,4: BCD array
-//  ftBCD:
-// ftDateTime is more difficult though
-
-function TDbf.GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; {overload; override;}
-begin
-  // pretend nativeformat is true
-  Result := inherited GetFieldData(Field, Buffer, True);
-end;
-
 procedure TDbf.SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); {overload; override;}
+var
+  Dst: PChar;
 begin
-  // pretend nativeformat is true
-  inherited SetFieldData(Field, Buffer, True);
+  if (Field.FieldNo >= 0) then
+  begin
+    Dst := @PDbfRecord(ActiveBuffer)^.DeletedFlag;
+    FDbfFile.SetFieldData(Field.FieldNo - 1, Field.DataType, Buffer, Dst, NativeFormat);
+  end else begin    { ***** fkCalculated, fkLookup ***** }
+    Dst := @PDbfRecord(CalcBuffer)^.DeletedFlag;
+    Inc(PChar(Dst), RecordSize + Field.Offset);
+    Boolean(Dst[0]) := Buffer <> nil;
+    if Buffer <> nil then
+      Move(Buffer^, Dst[1], Field.DataSize)
+  end;     { end of ***** fkCalculated, fkLookup ***** }
+  if not (State in [dsCalcFields, dsFilter, dsNewValue]) then begin
+    DataEvent(deFieldChange, PtrInt(Field));
+  end;
 end;
-
-{$endif}
 
 procedure TDbf.DoFilterRecord(var Acceptable: Boolean);
 begin
@@ -1792,7 +1807,8 @@ begin
     searchFlag := stGreaterEqual
   else
     searchFlag := stEqual;
-  TIndexCursor(FCursor).VariantToBuffer(KeyValues, @lTempBuffer[0]);
+  if TIndexCursor(FCursor).VariantToBuffer(KeyValues, @lTempBuffer[0]) = etString then
+    Translate(@lTempBuffer[0], @lTempBuffer[0], true);
   Result := FIndexFile.SearchKey(@lTempBuffer[0], searchFlag);
   if Result then
   begin
@@ -1918,7 +1934,7 @@ begin
     FBlobStreams^[MemoFieldNo] := TDbfBlobStream.Create(Field);
   lBlob := FBlobStreams^[MemoFieldNo].AddReference;
   // update pageno of blob <-> location where to read/write in memofile
-  if FDbfFile.GetFieldData(Field.FieldNo-1, ftInteger, GetCurrentBuffer, @MemoPageNo) then
+  if FDbfFile.GetFieldData(Field.FieldNo-1, ftInteger, GetCurrentBuffer, @MemoPageNo, false) then
   begin
     // read blob? different blob?
     if (Mode = bmRead) or (Mode = bmReadWrite) then
@@ -2061,23 +2077,8 @@ begin
 end;
 
 procedure TDbf.SetFieldData(Field: TField; Buffer: Pointer); {override virtual abstract from TDataset}
-var
-  Dst: PChar;
 begin
-  if (Field.FieldNo >= 0) then
-  begin
-    Dst := @PDbfRecord(ActiveBuffer)^.DeletedFlag;
-    FDbfFile.SetFieldData(Field.FieldNo - 1,Field.DataType,Buffer,Dst);
-  end else begin    { ***** fkCalculated, fkLookup ***** }
-    Dst := @PDbfRecord(CalcBuffer)^.DeletedFlag;
-    Inc(PChar(Dst), RecordSize + Field.Offset);
-    Boolean(Dst[0]) := Buffer <> nil;
-    if Buffer <> nil then
-      Move(Buffer^, Dst[1], Field.DataSize)
-  end;     { end of ***** fkCalculated, fkLookup ***** }
-  if not (State in [dsCalcFields, dsFilter, dsNewValue]) then begin
-    DataEvent(deFieldChange, PtrInt(Field));
-  end;
+  SetFieldData(Field, Buffer, true);
 end;
 
 // this function counts real number of records: skip deleted records, filter, etc.
@@ -2181,7 +2182,7 @@ begin
     if (FParser = nil) and (FDbfFile <> nil) then
     begin
       FParser := TDbfParser.Create(FDbfFile);
-      // we need translated (to ANSI) strings
+      // we need truncated, translated (to ANSI) strings
       FParser.RawStringFields := false;
     end;
     // have a parser now?
@@ -2616,7 +2617,7 @@ end;
 
 {$ifdef SUPPORT_VARIANTS}
 
-procedure TDbf.SetRange(LowRange: Variant; HighRange: Variant);
+procedure TDbf.SetRange(LowRange: Variant; HighRange: Variant; KeyIsANSI: boolean);
 var
   LowBuf, HighBuf: array[0..100] of Char;
 begin
@@ -2624,14 +2625,16 @@ begin
     exit;
 
   // convert variants to index key type
-  TIndexCursor(FCursor).VariantToBuffer(LowRange,  @LowBuf[0]);
-  TIndexCursor(FCursor).VariantToBuffer(HighRange, @HighBuf[0]);
+  if (TIndexCursor(FCursor).VariantToBuffer(LowRange,  @LowBuf[0]) = etString) and KeyIsANSI then
+    Translate(@LowBuf[0], @LowBuf[0], true);
+  if (TIndexCursor(FCursor).VariantToBuffer(HighRange, @HighBuf[0]) = etString) and KeyIsANSI then
+    Translate(@HighBuf[0], @HighBuf[0], true);
   SetRangeBuffer(@LowBuf[0], @HighBuf[0]);
 end;
 
 {$endif}
 
-procedure TDbf.SetRangePChar(LowRange: PChar; HighRange: PChar);
+procedure TDbf.SetRangePChar(LowRange: PChar; HighRange: PChar; KeyIsANSI: boolean);
 var
   LowBuf, HighBuf: array [0..100] of Char;
   LowPtr, HighPtr: PChar;
@@ -2640,6 +2643,13 @@ begin
     exit;
 
   // convert to pchars
+  if KeyIsANSI then
+  begin
+    Translate(LowRange, @LowBuf[0], true);
+    Translate(HighRange, @HighBuf[0], true);
+    LowRange := @LowBuf[0];
+    HighRange := @HighBuf[0];
+  end;
   LowPtr  := TIndexCursor(FCursor).CheckUserKey(LowRange,  @LowBuf[0]);
   HighPtr := TIndexCursor(FCursor).CheckUserKey(HighRange, @HighBuf[0]);
   SetRangeBuffer(LowPtr, HighPtr);
@@ -2663,7 +2673,7 @@ end;
 
 {$ifdef SUPPORT_VARIANTS}
 
-function TDbf.SearchKey(Key: Variant; SearchType: TSearchKeyType): Boolean;
+function TDbf.SearchKey(Key: Variant; SearchType: TSearchKeyType; KeyIsANSI: boolean): Boolean;
 var
   TempBuffer: array [0..100] of Char;
 begin
@@ -2674,7 +2684,8 @@ begin
   end;
 
   // FIndexFile <> nil -> FCursor as TIndexCursor <> nil
-  TIndexCursor(FCursor).VariantToBuffer(Key, @TempBuffer[0]);
+  if (TIndexCursor(FCursor).VariantToBuffer(Key, @TempBuffer[0]) = etString) and KeyIsANSI then
+    Translate(@TempBuffer[0], @TempBuffer[0], true);
   Result := SearchKeyBuffer(@TempBuffer[0], SearchType);
 end;
 
@@ -2691,7 +2702,7 @@ begin
   Result := TIndexCursor(FCursor).IndexFile.PrepareKey(Buffer, BufferType);
 end;
 
-function TDbf.SearchKeyPChar(Key: PChar; SearchType: TSearchKeyType): Boolean;
+function TDbf.SearchKeyPChar(Key: PChar; SearchType: TSearchKeyType; KeyIsANSI: boolean): Boolean;
 var
   StringBuf: array [0..100] of Char;
 begin
@@ -2701,6 +2712,11 @@ begin
     exit;
   end;
 
+  if KeyIsANSI then
+  begin
+    Translate(Key, @StringBuf[0], true);
+    Key := @StringBuf[0];
+  end;
   Result := SearchKeyBuffer(TIndexCursor(FCursor).CheckUserKey(Key, @StringBuf[0]), SearchType);
 end;
 
@@ -2759,8 +2775,15 @@ end;
 procedure TDbf.UpdateRange;
 var
   fieldsVal: PChar;
+  tempBuffer: array[0..300] of char;
 begin
   fieldsVal := FMasterLink.FieldsVal;
+  if FMasterLink.KeyTranslation then
+  begin
+    FMasterLink.DataSet.Translate(fieldsVal, @tempBuffer[0], false);
+    fieldsVal := @tempBuffer[0];
+    Translate(fieldsVal, fieldsVal, true);
+  end;
   fieldsVal := TIndexCursor(FCursor).IndexFile.PrepareKey(fieldsVal, FMasterLink.Parser.ResultType);
   SetRangeBuffer(fieldsVal, fieldsVal);
 end;
@@ -2905,8 +2928,10 @@ begin
   if Active and (FFieldNames <> EmptyStr) then
   begin
     FValidExpression := false;
-    FParser.DbfFile := TDbf(DataSet).DbfFile;
+    FParser.DbfFile := (DataSet as TDbf).DbfFile;
     FParser.ParseExpression(FFieldNames);
+    FKeyTranslation := TDbfFile(FParser.DbfFile).UseCodePage <> 
+      FDetailDataSet.DbfFile.UseCodePage;
     FValidExpression := true;
   end else begin
     FParser.ClearExpressions;

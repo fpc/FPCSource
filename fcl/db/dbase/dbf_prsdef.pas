@@ -25,6 +25,10 @@ type
   EParserException = class(Exception);
   PExpressionRec = ^TExpressionRec;
   PDynamicType = ^TDynamicType;
+  PDateTimeRec = ^TDateTimeRec;
+{$ifdef SUPPORT_INT64}
+  PLargeInt = ^Int64;
+{$endif}
 
   TExprWord = class;
 
@@ -58,7 +62,8 @@ type
     Res: TDynamicType;
     ExprWord: TExprWord;
     AuxData: pointer;
-    ResetDest: Boolean;
+    ResetDest: boolean;
+    WantsFunction: boolean;
     Args: array[0..MaxArg-1] of PChar;
     ArgsPos: array[0..MaxArg-1] of PChar;
     ArgsSize: array[0..MaxArg-1] of Integer;
@@ -107,6 +112,7 @@ type
     function GetDescription: string; virtual;
     function GetTypeSpec: string; virtual;
     function GetShortName: string; virtual;
+    procedure SetFixedLen(NewLen: integer); virtual;
   public
     constructor Create(AName: string; AExprFunc: TExprFunc);
 
@@ -119,7 +125,7 @@ type
     property CanVary: Boolean read GetCanVary;
     property IsVariable: Boolean read GetIsVariable;
     property NeedsCopy: Boolean read GetNeedsCopy;
-    property FixedLen: Integer read GetFixedLen;
+    property FixedLen: Integer read GetFixedLen write SetFixedLen;
     property ResultType: TExpressionType read GetResultType;
     property MinFunctionArg: Integer read GetMinFunctionArg;
     property MaxFunctionArg: Integer read GetMaxFunctionArg;
@@ -235,8 +241,9 @@ type
     FFixedLen: Integer;
   protected
     function GetFixedLen: Integer; override;
+    procedure SetFixedLen(NewLen: integer); override;
   public
-    constructor Create(AName: string; AValue: PPChar; AFixedLen: Integer);
+    constructor Create(AName: string; AValue: PPChar);
 
     function LenAsPointer: PInteger; override;
     function AsPointer: PChar; override;
@@ -379,15 +386,16 @@ begin
 end;
 
 procedure _StringVariable(Param: PExpressionRec);
+var
+  length: integer;
 begin
   with Param^ do
-    Res.Append(PPChar(Args[0])^, StrLen(PPChar(Args[0])^));
-end;
-
-procedure _StringVariableFixedLen(Param: PExpressionRec);
-begin
-  with Param^ do
-    Res.Append(PPChar(Args[0])^, PInteger(Args[1])^);
+  begin
+    length := PInteger(Args[1])^;
+    if length = -1 then
+      length := StrLen(PPChar(Args[0])^);
+    Res.Append(PPChar(Args[0])^, length);
+  end;
 end;
 
 procedure _DateTimeVariable(Param: PExpressionRec);
@@ -454,7 +462,6 @@ begin
   // fpc simply returns pointer to function, no '@' needed
   Result := (@FExprFunc = @_StringVariable)         or
             (@FExprFunc = @_StringConstant)         or
-            (@FExprFunc = @_StringVariableFixedLen) or
             (@FExprFunc = @_FloatVariable)          or
             (@FExprFunc = @_IntegerVariable)        or
 //            (FExprFunc = @_SmallIntVariable)       or
@@ -522,6 +529,10 @@ end;
 function TExprWord.IsFunction: Boolean;
 begin
   Result := False;
+end;
+
+procedure TExprWord.SetFixedLen(NewLen: integer);
+begin
 end;
 
 { TConstant }
@@ -659,17 +670,14 @@ end;
 
 { TStringVariable }
 
-constructor TStringVariable.Create(AName: string; AValue: PPChar; AFixedLen: Integer);
+constructor TStringVariable.Create(AName: string; AValue: PPChar);
 begin
   // variable or fixed length?
-  if (AFixedLen < 0) then
-    inherited Create(AName, etString, _StringVariable)
-  else
-    inherited Create(AName, etString, _StringVariableFixedLen);
+  inherited Create(AName, etString, _StringVariable);
 
   // store pointer to string
   FValue := AValue;
-  FFixedLen := AFixedLen;
+  FFixedLen := -1;
 end;
 
 function TStringVariable.AsPointer: PChar;
@@ -685,6 +693,11 @@ end;
 function TStringVariable.LenAsPointer: PInteger;
 begin
   Result := @FFixedLen;
+end;
+
+procedure TStringVariable.SetFixedLen(NewLen: integer);
+begin
+  FFixedLen := NewLen;
 end;
 
 { TDateTimeVariable }

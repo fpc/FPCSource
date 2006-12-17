@@ -4,14 +4,16 @@ interface
 
 {$I dbf_common.inc}
 
-{$ifndef FPC_LITTLE_ENDIAN}
+{$ifdef FPC}
+ {$ifndef FPC_LITTLE_ENDIAN}
   {$message error TDbf is not compatible with non little-endian CPUs. Please contact the author.}
+ {$endif}
 {$endif}
 
 
 uses
   SysUtils, Classes, DB
-{$ifndef WIN32}
+{$ifndef WINDOWS}
   , Types, dbf_wtil
 {$ifdef KYLIX}
   , Libc
@@ -22,8 +24,8 @@ uses
 
 const
   TDBF_MAJOR_VERSION      = 6;
-  TDBF_MINOR_VERSION      = 49;
-  TDBF_SUB_MINOR_VERSION  = 0;
+  TDBF_MINOR_VERSION      = 9;
+  TDBF_SUB_MINOR_VERSION  = 1;
 
   TDBF_TABLELEVEL_FOXPRO = 25;
 
@@ -51,11 +53,6 @@ type
   PCardinal = ^Cardinal;
   PDouble = ^Double;
   PString = ^String;
-  PDateTimeRec = ^TDateTimeRec;
-
-{$ifdef SUPPORT_INT64}
-  PLargeInt = ^Int64;
-{$endif}
 
 {$ifdef DELPHI_3}
   dword = cardinal;
@@ -73,7 +70,7 @@ procedure FreeMemAndNil(var P: Pointer);
 
 {$ifndef SUPPORT_PATHDELIM}
 const
-{$ifdef WIN32}
+{$ifdef WINDOWS}
   PathDelim = '\';
 {$else}
   PathDelim = '/';
@@ -91,10 +88,6 @@ function GetCompleteFileName(const Base, FileName: string): string;
 function IsFullFilePath(const Path: string): Boolean; // full means not relative
 function DateTimeToBDETimeStamp(aDT: TDateTime): double;
 function BDETimeStampToDateTime(aBT: double): TDateTime;
-{$ifdef SUPPORT_INT64}
-function  GetStrFromInt64(Val: Int64; const Dst: PChar): Integer;
-procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PChar; const PadChar: Char);
-{$endif}
 procedure FindNextName(BaseName: string; var OutName: string; var Modifier: Integer);
 {$ifdef USE_CACHE}
 function GetFreeMemory: Integer;
@@ -122,7 +115,7 @@ function Max(x, y: integer): integer;
 
 implementation
 
-{$ifdef WIN32}
+{$ifdef WINDOWS}
 uses
   Windows;
 {$endif}
@@ -148,7 +141,7 @@ end;
 
 function IsFullFilePath(const Path: string): Boolean; // full means not relative
 begin
-{$ifdef WIN32}
+{$ifdef WINDOWS}
   Result := Length(Path) > 1;
   if Result then
     // check for 'x:' or '\\' at start of path
@@ -174,49 +167,6 @@ begin
   result := lpath;
 end;
 
-{$ifdef SUPPORT_INT64}
-
-procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PChar; const PadChar: Char);
-var
-  Temp: array[0..19] of Char;
-  I, J: Integer;
-  NegSign: boolean;
-begin
-  {$I getstrfromint.inc}
-end;
-
-{$endif}
-
-{$ifdef SUPPORT_INT64}
-
-function GetStrFromInt64(Val: Int64; const Dst: PChar): Integer;
-var
-  Temp: array[0..19] of Char;
-  I, J: Integer;
-begin
-  Val := Abs(Val);
-  // we'll have to store characters backwards first
-  I := 0;
-  J := 0;
-  repeat
-    Temp[I] := Chr((Val mod 10) + Ord('0'));
-    Val := Val div 10;
-    Inc(I);
-  until Val = 0;
-
-  // remember number of digits
-  Result := I;
-  // copy value, remember: stored backwards
-  repeat
-    Dst[J] := Temp[I-1];
-    inc(J);
-    dec(I);
-  until I = 0;
-  // done!
-end;
-
-{$endif}
-
 function DateTimeToBDETimeStamp(aDT: TDateTime): double;
 var
   aTS: TTimeStamp;
@@ -229,7 +179,7 @@ function BDETimeStampToDateTime(aBT: double): TDateTime;
 var
   aTS: TTimeStamp;
 begin
-  aTS := MSecsToTimeStamp(aBT);
+  aTS := MSecsToTimeStamp(Round(aBT));
   Result := TimeStampToDateTime(aTS);
 end;
 
@@ -279,7 +229,7 @@ end;
 
 function IncludeTrailingPathDelimiter(const Path: string): string;
 begin
-{$ifdef WIN32}
+{$ifdef WINDOWS}
   Result := IncludeTrailingBackslash(Path);
 {$else}
   Result := IncludeTrailingSlash(Path);

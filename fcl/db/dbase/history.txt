@@ -33,11 +33,31 @@ BUGS & WARNINGS
 
 
 ------------------------
-V6.4.9
+V6.9.1
 
+- fix last memo field getting truncated (patch by dhdorrough)
+- add dbf_collate unit to the packages
+- fix index result too long bug
+
+------------------------
+V6.9.0
+
+- BDE compatible index collation: MDX/NDXes have to be rebuilt!
+    (thx sstewart for generating collation tables)
 - fix use long char fields check icw foxpro (thx rpoverdijk)
 - fix TDbf.GetRecNo AV when no file open
 - remove UseFloatFields, delphi 3 will use float fields, others not
+- fix size/precision truncation when opening foxpro B-type fields (thx nring)
+- foxbase memo is 10 character index, sizes 4 and 10 are valid (thx majky)
+- add int64 to string conversion in expression parser function STR
+- fix nativeformat for tdbf.getfielddata(A,B) users
+- allow later defined expression variables to have same name as 
+    already defined function
+- third parameter in substr function is optional now
+- expression parser distinguishes between function() and variable, =no brackets
+- updated bcb 4 packages files from troy dalton
+- fix write blob B-type field for non-foxpro (thx leexgone)
+- fix win64 compatibility
 
 
 ------------------------

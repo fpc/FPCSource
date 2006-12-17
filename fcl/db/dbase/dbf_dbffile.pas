@@ -6,10 +6,7 @@ interface
 
 uses
   Classes, SysUtils,
-{$ifdef SUPPORT_MATH_UNIT}
-  Math,
-{$endif}
-{$ifdef WIN32}
+{$ifdef WINDOWS}
   Windows,
 {$else}
 {$ifdef KYLIX}
@@ -107,9 +104,11 @@ type
     procedure RestructureTable(DbfFieldDefs: TDbfFieldDefs; Pack: Boolean);
     procedure Rename(DestFileName: string; NewIndexFileNames: TStrings; DeleteFiles: boolean);
     function  GetFieldInfo(FieldName: string): TDbfFieldDef;
-    function  GetFieldData(Column: Integer; DataType: TFieldType; Src,Dst: Pointer): Boolean;
-    function  GetFieldDataFromDef(AFieldDef: TDbfFieldDef; DataType: TFieldType; Src, Dst: Pointer): Boolean;
-    procedure SetFieldData(Column: Integer; DataType: TFieldType; Src,Dst: Pointer);
+    function  GetFieldData(Column: Integer; DataType: TFieldType; Src,Dst: Pointer; 
+      NativeFormat: boolean): Boolean;
+    function  GetFieldDataFromDef(AFieldDef: TDbfFieldDef; DataType: TFieldType; 
+      Src, Dst: Pointer; NativeFormat: boolean): Boolean;
+    procedure SetFieldData(Column: Integer; DataType: TFieldType; Src,Dst: Pointer; NativeFormat: boolean);
     procedure InitRecord(DestBuf: PChar);
     procedure PackIndex(lIndexFile: TIndexFile; AIndexName: string);
     procedure RegenerateIndexes;
@@ -190,14 +189,17 @@ var
 implementation
 
 uses
-{$ifndef WIN32}
+{$ifndef WINDOWS}
 {$ifndef FPC}
   RTLConsts,
 {$else}
   BaseUnix,
 {$endif}
 {$endif}
-  dbf_str, dbf_lang, dbf_prssupp;
+{$ifdef SUPPORT_MATH_UNIT}
+  Math,
+{$endif}
+  dbf_str, dbf_lang, dbf_prssupp, dbf_prsdef;
 
 const
   sDBF_DEC_SEP = '.';
@@ -1288,7 +1290,7 @@ begin
             if TempDstDef.IsBlob and ((DbfFieldDefs = nil) or (TempDstDef.CopyFrom >= 0)) then
             begin
               // get current blob blockno
-              GetFieldData(lFieldNo, ftInteger, pBuff, @lBlobPageNo);
+              GetFieldData(lFieldNo, ftInteger, pBuff, @lBlobPageNo, false);
               // valid blockno read?
               if lBlobPageNo > 0 then
               begin
@@ -1299,7 +1301,7 @@ begin
                 DestDbfFile.FMemoFile.WriteMemo(lBlobPageNo, 0, BlobStream);
               end;
               // write new blockno
-              DestDbfFile.SetFieldData(lFieldNo, ftInteger, @lBlobPageNo, pDestBuff);
+              DestDbfFile.SetFieldData(lFieldNo, ftInteger, @lBlobPageNo, pDestBuff, false);
             end else if (DbfFieldDefs <> nil) and (TempDstDef.CopyFrom >= 0) then
             begin
               // copy content of field
@@ -1387,16 +1389,18 @@ begin
 end;
 
 // NOTE: Dst may be nil!
-function TDbfFile.GetFieldData(Column: Integer; DataType: TFieldType; Src, Dst: Pointer): Boolean;
+function TDbfFile.GetFieldData(Column: Integer; DataType: TFieldType; 
+  Src, Dst: Pointer; NativeFormat: boolean): Boolean;
 var
   TempFieldDef: TDbfFieldDef;
 begin
   TempFieldDef := TDbfFieldDef(FFieldDefs.Items[Column]);
-  Result := GetFieldDataFromDef(TempFieldDef, DataType, Src, Dst);
+  Result := GetFieldDataFromDef(TempFieldDef, DataType, Src, Dst, NativeFormat);
 end;
 
 // NOTE: Dst may be nil!
-function TDbfFile.GetFieldDataFromDef(AFieldDef: TDbfFieldDef; DataType: TFieldType; Src, Dst: Pointer): Boolean;
+function TDbfFile.GetFieldDataFromDef(AFieldDef: TDbfFieldDef; DataType: TFieldType; 
+  Src, Dst: Pointer; NativeFormat: boolean): Boolean;
 var
   FieldOffset, FieldSize: Integer;
 //  s: string;
@@ -1444,20 +1448,21 @@ var
 
   procedure SaveDateToDst;
   begin
-{$ifdef SUPPORT_NEW_FIELDDATA}
-    // Delphi 5 requests a TDateTime
-    PDateTime(Dst)^ := date;
-{$else}
-    // Delphi 3 and 4 request a TDateTimeRec
-    //  date is TTimeStamp.date
-    //  datetime = msecs == BDE timestamp as we implemented it
-    if DataType = ftDateTime then
+    if not NativeFormat then
     begin
-      PDateTimeRec(Dst)^.DateTime := date;
+      // Delphi 5 requests a TDateTime
+      PDateTime(Dst)^ := date;
     end else begin
-      PLongInt(Dst)^ := DateTimeToTimeStamp(date).Date;
+      // Delphi 3 and 4 request a TDateTimeRec
+      //  date is TTimeStamp.date
+      //  datetime = msecs == BDE timestamp as we implemented it
+      if DataType = ftDateTime then
+      begin
+        PDateTimeRec(Dst)^.DateTime := date;
+      end else begin
+        PLongInt(Dst)^ := DateTimeToTimeStamp(date).Date;
+      end;
     end;
-{$endif}
   end;
 
 begin
@@ -1562,9 +1567,13 @@ begin
       end;
     'B':    // foxpro double
       begin
-        Result := true;
-        if Dst <> nil then
-          PDouble(Dst)^ := PDouble(Src)^;
+        if FDbfVersion = xFoxPro then
+        begin
+          Result := true;
+          if Dst <> nil then
+            PDouble(Dst)^ := PDouble(Src)^;
+        end else
+          asciiContents := true;
       end;
     'M':
       begin
@@ -1683,7 +1692,8 @@ begin
   end;
 end;
 
-procedure TDbfFile.SetFieldData(Column: Integer; DataType: TFieldType; Src, Dst: Pointer);
+procedure TDbfFile.SetFieldData(Column: Integer; DataType: TFieldType; 
+  Src, Dst: Pointer; NativeFormat: boolean);
 const
   IsBlobFieldToPadChar: array[Boolean] of Char = (#32, '0');
   SrcNilToUpdateNullField: array[boolean] of TUpdateNullField = (unClear, unSet);
@@ -1700,22 +1710,23 @@ var
 
   procedure LoadDateFromSrc;
   begin
-{$ifdef SUPPORT_NEW_FIELDDATA}
-    // Delphi 5 passes a TDateTime
-    date := PDateTime(Src)^;
-{$else}
-    // Delphi 3 and 4 pass a TDateTimeRec with a time stamp
-    //  date = integer
-    //  datetime = msecs == BDETimeStampToDateTime as we implemented it
-    if DataType = ftDateTime then
+    if not NativeFormat then
     begin
-      date := PDouble(Src)^;
+      // Delphi 5, new format, passes a TDateTime
+      date := PDateTime(Src)^;
     end else begin
-      timeStamp.Time := 0;
-      timeStamp.Date := PLongInt(Src)^;
-      date := TimeStampToDateTime(timeStamp);
+      // Delphi 3 and 4, old "native" format, pass a TDateTimeRec with a time stamp
+      //  date = integer
+      //  datetime = msecs == BDETimeStampToDateTime as we implemented it
+      if DataType = ftDateTime then
+      begin
+        date := PDouble(Src)^;
+      end else begin
+        timeStamp.Time := 0;
+        timeStamp.Date := PLongInt(Src)^;
+        date := TimeStampToDateTime(timeStamp);
+      end;
     end;
-{$endif}
   end;
 
 begin
@@ -1811,10 +1822,14 @@ begin
       end;
     'B':
       begin
-        if Src = nil then
-          PDouble(Dst)^ := 0
-        else
-          PDouble(Dst)^ := PDouble(Src)^;
+        if DbfVersion = xFoxPro then
+        begin
+          if Src = nil then
+            PDouble(Dst)^ := 0
+          else
+            PDouble(Dst)^ := PDouble(Src)^;
+        end else
+          asciiContents := true;
       end;
     'M':
       begin
@@ -2025,6 +2040,7 @@ var
   lIndexFile: TIndexFile;
   lIndexFileName: string;
   createMdxFile: Boolean;
+  tempExclusive: boolean;
   addedIndexFile: Integer;
   addedIndexName: Integer;
 begin
@@ -2110,7 +2126,8 @@ begin
     if CreateIndex then
     begin
       // try get exclusive mode
-      if IsSharedAccess then TryExclusive;
+      tempExclusive := IsSharedAccess;
+      if tempExclusive then TryExclusive;
       // always uppercase index expression
       IndexField := AnsiUpperCase(IndexField);
       try
@@ -2153,7 +2170,7 @@ begin
         end;
       finally
         // return to previous mode
-        if TempMode <> pfNone then EndExclusive;
+        if tempExclusive then EndExclusive;
       end;
     end;
   end;
@@ -2682,13 +2699,13 @@ end;
 
 procedure TDbfGlobals.InitUserName;
 {$ifdef FPC}
-{$ifndef WIN32}
+{$ifndef WINDOWS}
 var
   TempName: UTSName;
 {$endif}
 {$endif}
 begin
-{$ifdef WIN32}
+{$ifdef WINDOWS}
   FUserNameLen := MAX_COMPUTERNAME_LENGTH+1;
   SetLength(FUserName, FUserNameLen);
   Windows.GetComputerName(PChar(FUserName), 

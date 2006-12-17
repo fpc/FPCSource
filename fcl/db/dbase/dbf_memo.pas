@@ -238,7 +238,7 @@ begin
     exit;
   end else
   if numBytes < RecordSize then
-    FillChar(FBuffer[RecordSize-numBytes], numBytes, #0);
+    FillChar(FBuffer[numBytes], RecordSize-numBytes, #0);
 
   bytesLeft := GetMemoSize;
   // bytesLeft <> -1 -> memo size is known (FoxPro, dBase4)

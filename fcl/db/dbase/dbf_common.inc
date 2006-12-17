@@ -163,6 +163,7 @@
 {$ifdef DELPHI_3}
 
   {$define SUPPORT_VARIANTS}
+  {$define WINDOWS}
 
 {$ifdef DELPHI_4}
 
@@ -182,7 +183,6 @@
 {$ifdef DELPHI_5}
 
   {$define SUPPORT_BACKWARD_FIELDDATA}
-  {$define SUPPORT_NEW_FIELDDATA}
   {$define SUPPORT_INITDEFSFROMFIELDS}
   {$define SUPPORT_DEF_DELETE}
   {$define SUPPORT_FREEANDNIL}
@@ -217,7 +217,6 @@
   {$define SUPPORT_INT64}
   {$define SUPPORT_DEFAULT_PARAMS}
   {$define SUPPORT_NEW_TRANSLATE}
-  {$define SUPPORT_NEW_FIELDDATA}
   {$define SUPPORT_FIELDDEF_TPERSISTENT}
   {$define SUPPORT_FIELDTYPES_V4}
   {$define SUPPORT_UINT32_CARDINAL}
@@ -246,10 +245,10 @@
 {$endif}
 
 //----------------------------------------------------------
-//--- Conclude supported features in non-Win32 platforms ---
+//--- Conclude supported features in non-Windows platforms ---
 //----------------------------------------------------------
 
-{$ifndef WIN32}
+{$ifndef WINDOWS}
 
     {$define SUPPORT_PATHDELIM}
     {$define SUPPORT_INCLUDETRAILPATHDELIM}

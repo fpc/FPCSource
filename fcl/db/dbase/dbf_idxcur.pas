@@ -40,7 +40,7 @@ type
     procedure Update(RecNo: Integer; PrevBuffer, NewBuffer: PChar);
 
 {$ifdef SUPPORT_VARIANTS}
-    procedure VariantToBuffer(Key: Variant; ABuffer: PChar);
+    function  VariantToBuffer(Key: Variant; ABuffer: PChar): TExpressionType;
 {$endif}
     function  CheckUserKey(Key: PChar; StringBuf: PChar): PChar;
 
@@ -128,7 +128,7 @@ end;
 
 {$ifdef SUPPORT_VARIANTS}
 
-procedure TIndexCursor.VariantToBuffer(Key: Variant; ABuffer: PChar);
+function TIndexCursor.VariantToBuffer(Key: Variant; ABuffer: PChar): TExpressionType;
 // assumes ABuffer is large enough ie. at least max key size
 var
   currLen: Integer;
@@ -140,12 +140,14 @@ begin
     begin
       // make copy of userbcd to buffer
       Move(TIndexFile(PagedFile).PrepareKey(ABuffer, etFloat)[0], ABuffer[0], 11);
-    end
+    end;
+    Result := etInteger;
   end else begin
     StrPLCopy(ABuffer, Key, TIndexFile(PagedFile).KeyLen);
     // we have null-terminated string, pad with spaces if string too short
     currLen := StrLen(ABuffer);
     FillChar(ABuffer[currLen], TIndexFile(PagedFile).KeyLen-currLen, ' ');
+    Result := etString;
   end;
 end;
 

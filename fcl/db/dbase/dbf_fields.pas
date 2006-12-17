@@ -332,7 +332,9 @@ begin
   case FNativeFieldType of
 // OH 2000-11-15 dBase7 support.
 // Add the new fieldtypes
-    '+' : FFieldType := ftAutoInc;
+    '+' : 
+      if DbfVersion = xBaseVII then
+        FFieldType := ftAutoInc;
     'I' : FFieldType := ftInteger;
     'O' : FFieldType := ftFloat;
     '@', 'T':
@@ -501,11 +503,21 @@ begin
         FSize := 8;
         FPrecision := 0;
       end;
-    'M','G','B':
+    'B':
+      begin
+        if DbfVersion <> xFoxPro then
+        begin
+          FSize := 10;
+          FPrecision := 0;
+        end;
+      end;
+    'M','G':
       begin
         if DbfVersion = xFoxPro then
-          FSize := 4
-        else
+        begin
+          if (FSize <> 4) and (FSize <> 10) then
+            FSize := 4;
+        end else
           FSize := 10;
         FPrecision := 0;
       end;

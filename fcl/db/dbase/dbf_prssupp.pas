@@ -51,50 +51,14 @@ type
 
 function GetStrFromInt(Val: Integer; const Dst: PChar): Integer;
 procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PChar; const PadChar: Char);
+{$ifdef SUPPORT_INT64}
+function  GetStrFromInt64(Val: Int64; const Dst: PChar): Integer;
+procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PChar; const PadChar: Char);
+{$endif}
 
 implementation
 
 uses SysUtils;
-
-// it seems there is no pascal function to convert an integer into a PChar???
-// NOTE: in dbf_dbffile.pas there is also a convert routine, but is slightly different
-
-function GetStrFromInt(Val: Integer; const Dst: PChar): Integer;
-var
-  Temp: array[0..10] of Char;
-  I, J: Integer;
-begin
-  Val := Abs(Val);
-  // we'll have to store characters backwards first
-  I := 0;
-  J := 0;
-  repeat
-    Temp[I] := Chr((Val mod 10) + Ord('0'));
-    Val := Val div 10;
-    Inc(I);
-  until Val = 0;
-
-  // remember number of digits
-  Result := I;
-  // copy value, remember: stored backwards
-  repeat
-    Dst[J] := Temp[I-1];
-    Inc(J);
-    Dec(I);
-  until I = 0;
-  // done!
-end;
-
-// it seems there is no pascal function to convert an integer into a PChar???
-
-procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PChar; const PadChar: Char);
-var
-  Temp: array[0..10] of Char;
-  I, J: Integer;
-  NegSign: boolean;
-begin
-  {$I getstrfromint.inc}
-end;
 
 destructor TOCollection.Destroy;
 begin
@@ -193,7 +157,7 @@ function TSortedCollection.Search(Key: Pointer; var Index: Integer): Boolean;
 var
   L, H, I, C: Integer;
 begin
-  Search := False;
+  Result := false;
   L := 0;
   H := Count - 1;
   while L <= H do
@@ -202,11 +166,9 @@ begin
     C := Compare(KeyOf(Items[I]), Key);
     if C < 0 then
       L := I + 1
-    else
-    begin
+    else begin
       H := I - 1;
-      if C = 0 then
-        Search := True;
+      Result := C = 0;
     end;
   end;
   Index := L;
@@ -223,6 +185,85 @@ procedure TStrCollection.FreeItem(Item: Pointer);
 begin
   StrDispose(Item);
 end;
+
+// it seems there is no pascal function to convert an integer into a PChar???
+// NOTE: in dbf_dbffile.pas there is also a convert routine, but is slightly different
+
+function GetStrFromInt(Val: Integer; const Dst: PChar): Integer;
+var
+  Temp: array[0..10] of Char;
+  I, J: Integer;
+begin
+  Val := Abs(Val);
+  // we'll have to store characters backwards first
+  I := 0;
+  J := 0;
+  repeat
+    Temp[I] := Chr((Val mod 10) + Ord('0'));
+    Val := Val div 10;
+    Inc(I);
+  until Val = 0;
+
+  // remember number of digits
+  Result := I;
+  // copy value, remember: stored backwards
+  repeat
+    Dst[J] := Temp[I-1];
+    Inc(J);
+    Dec(I);
+  until I = 0;
+  // done!
+end;
+
+// it seems there is no pascal function to convert an integer into a PChar???
+
+procedure GetStrFromInt_Width(Val: Integer; const Width: Integer; const Dst: PChar; const PadChar: Char);
+var
+  Temp: array[0..10] of Char;
+  I, J: Integer;
+  NegSign: boolean;
+begin
+  {$I getstrfromint.inc}
+end;
+
+{$ifdef SUPPORT_INT64}
+
+procedure GetStrFromInt64_Width(Val: Int64; const Width: Integer; const Dst: PChar; const PadChar: Char);
+var
+  Temp: array[0..19] of Char;
+  I, J: Integer;
+  NegSign: boolean;
+begin
+  {$I getstrfromint.inc}
+end;
+
+function GetStrFromInt64(Val: Int64; const Dst: PChar): Integer;
+var
+  Temp: array[0..19] of Char;
+  I, J: Integer;
+begin
+  Val := Abs(Val);
+  // we'll have to store characters backwards first
+  I := 0;
+  J := 0;
+  repeat
+    Temp[I] := Chr((Val mod 10) + Ord('0'));
+    Val := Val div 10;
+    Inc(I);
+  until Val = 0;
+
+  // remember number of digits
+  Result := I;
+  // copy value, remember: stored backwards
+  repeat
+    Dst[J] := Temp[I-1];
+    inc(J);
+    dec(I);
+  until I = 0;
+  // done!
+end;
+
+{$endif}
 
 end.
 
