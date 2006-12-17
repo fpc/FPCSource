@@ -14,6 +14,7 @@ dirs_darwin=sqlite
 dirs_netbsd=sqlite
 dirs_openbsd=sqlite
 dirs_win32=dbase sqlite
+dirs_win64=dbase
 dirs_wince=dbase sqlite
 units=dbconst db dbwhtml bufdataset_parser bufdataset
 rsts=dbwhtml dbconst

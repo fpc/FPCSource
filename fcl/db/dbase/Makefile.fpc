@@ -35,8 +35,9 @@ units=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur \
       dbf_prscore dbf_prsdef dbf_prssupp dbf_str
 
 [prerules]
-# dbf_Wtil is needed on all targets except win32
+# dbf_Wtil is needed on all targets except windows
 ifneq ($(OS_TARGET),win32)
+ifneq ($(OS_TARGET),win64)
 
 ifeq ($(CPU_TARGET),i386)
 INSTALL_UNITS+=dbf_wtil
@@ -48,4 +49,5 @@ INSTALL_UNITS+=dbf_wtil
 CLEAN_UNITS+=dbf_wtil
 endif
 
+endif
 endif
