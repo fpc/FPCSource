@@ -277,7 +277,7 @@ function TMemDataset.MDSGetFieldSize(FieldNo: integer): integer;
 begin
   case FieldDefs.Items[FieldNo-1].Datatype of
    ftString:   result:=FieldDefs.Items[FieldNo-1].Size+1;
-   ftBoolean:  result:=SizeOf(Boolean);
+   ftBoolean:  result:=SizeOf(Wordbool);
    ftFloat:    result:=SizeOf(Double);
    ftLargeInt: result:=SizeOf(int64);
    ftSmallInt: result:=SizeOf(SmallInt);
