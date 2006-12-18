@@ -332,4 +332,6 @@ begin
   end;
 end;
 
+finalization
+  finalizeresourcetabels;
 end.

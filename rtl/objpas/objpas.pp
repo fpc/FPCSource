@@ -75,6 +75,7 @@ unit objpas;
 
    Function Hash(S : AnsiString) : LongWord;
    Procedure ResetResourceTables;
+   Procedure FinalizeResourceTables;
    Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
    Procedure SetUnitResourceStrings (const UnitName:string;SetFunction :  TResourceIterator;arg:pointer);
 {$ifndef RESSTRSECTIONS}
@@ -509,7 +510,7 @@ end;
 
 
 Initialization
-  ResetResourceTables;
+{  ResetResourceTables;}
 finalization
   FinalizeResourceTables;
 end.
