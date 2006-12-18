@@ -71,8 +71,6 @@ type
     function Remove(Item: Pointer): Integer;
     procedure Pack;
     procedure Sort(Compare: TFPSListCompareFunc);
-    procedure ForEachCall(Proc2call: TListCallback; Arg: Pointer);
-    procedure ForEachCall(Proc2call: TListStaticCallback; Arg: Pointer);
     property Capacity: Integer read FCapacity write SetCapacity;
     property Count: Integer read FCount write SetCount;
     property Items[Index: Integer]: Pointer read Get write Put; default;
@@ -94,6 +92,7 @@ type
     procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
   public
     constructor Create;
+    function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
     function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOf(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
@@ -533,23 +532,6 @@ begin
     Add(Obj[i]);
 end;
 
-procedure TFPSList.ForEachCall(Proc2call: TListCallback; Arg: Pointer);
-var
-  I: integer;
-begin
-  for I:=0 to Count-1 do
-    proc2call(InternalItems[I],arg);
-end;
-
-
-procedure TFPSList.ForEachCall(Proc2call: TListStaticCallback; Arg: Pointer);
-var
-  I: integer;
-begin
-  for I:=0 to Count-1 do
-    Proc2call(InternalItems[I], Arg);
-end;
-
 {****************************************************************************}
 {*                TFPGList                                                  *}
 {****************************************************************************}
@@ -584,6 +566,11 @@ end;
 procedure TFPGList.Put(Index: Integer; const Item: T);
 begin
   inherited Put(Index, @Item);
+end;
+
+function TFPGList.Add(const Item: T): Integer;
+begin
+  Result := inherited Add(@Item);
 end;
 
 function TFPGList.Extract(const Item: T): T;
