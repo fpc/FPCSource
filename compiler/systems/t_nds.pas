@@ -758,6 +758,13 @@ begin
         true,false);
     end;
 
+  if success and (apptype=app_arm9) then 
+    begin
+      success:=DoExec(FindUtil('ndstool'), '-c ' + 
+        ChangeFileExt(current_module.exefilename^, '.nds') + ' -9 ' + 
+        ChangeFileExt(current_module.exefilename^, preName+target_info.exeext),
+        true,false);
+    end;
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
 
