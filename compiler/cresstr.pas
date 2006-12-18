@@ -203,7 +203,7 @@ uses
             resstrlab:=current_asmdata.DefineAsmSymbol(make_mangledname('RESSTR',R.Sym.owner,R.Sym.name),AB_GLOBAL,AT_DATA);
             current_asmdata.asmlists[al_resourcestrings].concat(tai_symbol.Create_global(resstrlab,0));
             current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(namelab));
-            current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(nil));
+            current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(valuelab));
             current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(valuelab));
             current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_32bit(longint(R.Hash)));
 {$ifdef cpu64bit}

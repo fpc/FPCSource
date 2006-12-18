@@ -496,7 +496,7 @@ const
       (str:'UNIMPLEMENTED' ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'IMPLEMENTATION';special:false;keyword:m_all;op:NOTOKEN),
       (str:'INITIALIZATION';special:false;keyword:m_initfinal;op:NOTOKEN),
-      (str:'RESOURCESTRING';special:false;keyword:m_class;op:NOTOKEN)
+      (str:'RESOURCESTRING';special:false;keyword:m_all;op:NOTOKEN)
   );
 
 

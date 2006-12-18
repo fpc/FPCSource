@@ -1607,10 +1607,10 @@ implementation
                       begin
                         { m_class is needed, because the resourcestring
                           loading is in the ObjPas unit }
-                        if (m_class in current_settings.modeswitches) then
+{                        if (m_class in current_settings.modeswitches) then}
                           resourcestring_dec
-                        else
-                          break;
+{                        else
+                          break;}
                       end;
                     _PROPERTY:
                       begin
