@@ -263,7 +263,7 @@ procedure RegisterWViews;
 implementation
 
 uses Mouse,
-     Resource,
+{     Resource,}
 {$ifdef WinClipSupported}
      WinClip,
      FpConst,
@@ -299,6 +299,12 @@ const
      Store:   @TDlgWindow.Store
   );
 {$endif}
+
+
+resourcestring  sConfirm='Confirm';
+                sError='Error';
+                sInformation='Information';
+                sWarning='Warning';
 
 const
   MessageDialog  : PCenterDialog = nil;
@@ -2527,14 +2533,14 @@ end;
 
 procedure InitAdvMsgBox;
 begin
-  ButtonName[0] := Labels^.Get(slYes);
-  ButtonName[1] := Labels^.Get(slNo);
-  ButtonName[2] := Labels^.Get(slOk);
-  ButtonName[3] := Labels^.Get(slCancel);
-  Titles[0] := Labels^.Get(sWarning);
-  Titles[1] := Labels^.Get(sError);
-  Titles[2] := Labels^.Get(sInformation);
-  Titles[3] := Labels^.Get(sConfirm);
+  ButtonName[0] := slYes;
+  ButtonName[1] := slNo;
+  ButtonName[2] := slOk;
+  ButtonName[3] := slCancel;
+  Titles[0] := sWarning;
+  Titles[1] := sError;
+  Titles[2] := sInformation;
+  Titles[3] := sConfirm;
 end;
 
 procedure DoneAdvMsgBox;

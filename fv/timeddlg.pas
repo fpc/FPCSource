@@ -115,7 +115,7 @@ FUNCTION TimedMessageBoxRect (Var R: TRect; Const Msg: String; Params: Pointer;
 
 USES
   dos,
-  app, resource, msgbox;   { Standard GFV units }
+  app, {resource,} msgbox;   { Standard GFV units }
 
 
 {***************************************************************************}

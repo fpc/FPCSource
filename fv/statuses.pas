@@ -66,8 +66,8 @@ interface
 
 uses
 
-  FVCommon, FVConsts, Objects, Drivers, Views, Dialogs,
-  Resource;
+  FVCommon, FVConsts, Objects, Drivers, Views, Dialogs;
+{  Resource;}
 
 const
 

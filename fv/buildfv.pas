@@ -10,7 +10,7 @@ uses
   drivers,
 {  memory,}
   fvconsts,
-  resource,
+{  resource,}
   views,
   validate,
   msgbox,

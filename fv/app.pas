@@ -351,8 +351,11 @@ CONST
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
-  uses
-    Mouse,Resource;
+uses    Mouse{,Resource};
+
+resourcestring  sVideoFailed='Video initialization failed.';
+                sTypeExitOnReturn='Type EXIT to return...';
+
 
 {***************************************************************************}
 {                        PRIVATE DEFINED CONSTANTS                          }
@@ -974,18 +977,16 @@ CONSTRUCTOR TApplication.Init;
 
 BEGIN
 {   InitMemory;}                                              { Start memory up }
-   if not(InitResource) then
+{   if not(InitResource) then
      begin
        writeln('Fatal: Can''t init resources');
        halt(1);
-     end;
+     end;}
    initkeyboard;
    if not Drivers.InitVideo then                              { Start video up }
      begin
        donekeyboard;
-       {Initresource might have failed.}
-       if strings<>nil then
-         writeln(strings^.get(sVideoFailed));
+       writeln(sVideoFailed);
        halt(1);
      end;
    Drivers.InitEvents;                                        { Start event drive }
@@ -1010,7 +1011,7 @@ BEGIN
    drivers.donevideo;
 {   DoneMemory;}                                       { Close memory }
    donekeyboard;
-   DoneResource;
+{   DoneResource;}
 END;
 
 {--TApplication-------------------------------------------------------------}
@@ -1097,7 +1098,7 @@ END;
 procedure TApplication.WriteShellMsg;
 
 begin
-  writeln(Strings^.Get(sTypeExitOnReturn));
+  writeln(sTypeExitOnReturn);
 end;
 
 

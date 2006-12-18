@@ -388,7 +388,7 @@ function IsList(const S: String): Boolean;
 function IsDir(const S: String): Boolean;
   { IsDir returns True if S is a valid DOS directory. }
 
-procedure MakeResources;
+{procedure MakeResources;}
   { MakeResources places a language specific version of all resources
     needed for the StdDlg unit to function on the RezFile using the string
     constants and variables in the Resource unit.  The Resource unit and the
@@ -560,7 +560,7 @@ implementation
 {****************************************************************************}
 
 uses
-  App, {Memory,} HistList, MsgBox, Resource;
+  App, {Memory,} HistList, MsgBox{, Resource};
 
 type
 
@@ -569,6 +569,39 @@ type
       MessageBox. }
     AString : PString;
   end;
+
+resourcestring  sChangeDirectory='Change Directory';
+                sDeleteFile='Delete file?'#13#10#13#3'%s';
+                sDirectory='Directory';
+                sDrives='Drives';
+                sInvalidDirectory='Invalid directory.';
+                sInvalidDriveOrDir='Invalid drive or directory.';
+                sInvalidFileName='Invalid file name.';
+                sOpen='Open';
+                sReplaceFile='Replace file?'#13#10#13#3'%s';
+                sSaveAs='Save As';
+                sTooManyFiles='Too many files.';
+
+                smApr='Apr';
+                smAug='Aug';
+                smDec='Dec';
+                smFeb='Feb';
+                smJan='Jan';
+                smJul='Jul';
+                smJun='Jun';
+                smMar='Mar';
+                smMay='May';
+                smNov='Nov';
+                smOct='Oct';
+                smSep='Sep';
+
+                slChDir='~C~hdir';
+                slClear='C~l~ear';
+                slDirectoryName='Directory ~n~ame';
+                slDirectoryTree='Directory ~t~ree';
+                slFiles='~F~iles';
+                slReplace='~R~eplace';
+                slRevert='~R~evert';
 
 {****************************************************************************}
 { PathValid                        }
@@ -1021,7 +1054,7 @@ begin
      begin
 {       P := MemAlloc(SizeOf(P^));
        if assigned(P) then
-       begin} 
+       begin}
          new(P);
          P^.Attr:=S.Attr;
          P^.Time:=S.Time;
@@ -1090,7 +1123,7 @@ begin
 {    end;}
   end;
   if P = nil then
-    MessageBox(strings^.get(sTooManyFiles), nil, mfOkButton + mfWarning);
+    MessageBox(sTooManyFiles, nil, mfOkButton + mfWarning);
   NewList(FileList);
   if List^.Count > 0 then
   begin
@@ -1133,7 +1166,7 @@ var
   Time: DateTime;
   Path: PathStr;
   FmtId: String;
-  Params: array[0..7] of PtrInt;
+  Params: array[0..7] of PtruInt;
   Str: String[80];
 const
   sDirectoryLine = ' %-12s %-9s %3s %2d, %4d  %2d:%02d%cm';
@@ -1142,18 +1175,18 @@ const
 var
   Month: array[1..12] of String[3];
 begin
-  Month[1] := Strings^.Get(smJan);
-  Month[2] := Strings^.Get(smFeb);
-  Month[3] := Strings^.Get(smMar);
-  Month[4] := Strings^.Get(smApr);
-  Month[5] := Strings^.Get(smMay);
-  Month[6] := Strings^.Get(smJun);
-  Month[7] := Strings^.Get(smJul);
-  Month[8] := Strings^.Get(smAug);
-  Month[9] := Strings^.Get(smSep);
-  Month[10] := Strings^.Get(smOct);
-  Month[11] := Strings^.Get(smNov);
-  Month[12] := Strings^.Get(smDec);
+  Month[1] := smJan;
+  Month[2] := smFeb;
+  Month[3] := smMar;
+  Month[4] := smApr;
+  Month[5] := smMay;
+  Month[6] := smJun;
+  Month[7] := smJul;
+  Month[8] := smAug;
+  Month[9] := smSep;
+  Month[10] := smOct;
+  Month[11] := smNov;
+  Month[12] := smDec;
   { Display path }
   if (PFileDialog(Owner)^.Directory <> nil) then
     Path := PFileDialog(Owner)^.Directory^
@@ -1171,12 +1204,12 @@ begin
     Exit;
 
   { Display file }
-  Params[0] := PtrInt(@S.Name);
+  Params[0] := ptruint(@S.Name);
   if S.Attr and Directory <> 0 then
   begin
     FmtId := sDirectoryLine;
-    D := Strings^.Get(sDirectory);
-    Params[1] := PtrInt(@D);
+    D := sDirectory;
+    Params[1] := ptruint(@D);
   end else
   begin
     FmtId := sFileLine;
@@ -1184,7 +1217,7 @@ begin
   end;
   UnpackTime(S.Time, Time);
   M := Month[Time.Month];
-  Params[2] := PtrInt(@M);
+  Params[2] := ptruint(@M);
   Params[3] := Time.Day;
   Params[4] := Time.Year;
   PM := Time.Hour >= 12;
@@ -1412,40 +1445,40 @@ begin
   FileList := New(PFileList, Init(R, PScrollBar(Control)));
   Insert(FileList);
   R.Assign(2,5,8,6);
-  Control := New(PLabel, Init(R, labels^.get(slFiles), FileList));
+  Control := New(PLabel, Init(R, slFiles, FileList));
   Insert(Control);
 
   R.Assign(35,3,46,5);
   Opt := bfDefault;
   if AOptions and fdOpenButton <> 0 then
   begin
-    Insert(New(PButton, Init(R,labels^.get(slOpen), cmFileOpen, Opt)));
+    Insert(New(PButton, Init(R,slOpen, cmFileOpen, Opt)));
     Opt := bfNormal;
     Inc(R.A.Y,3); Inc(R.B.Y,3);
   end;
   if AOptions and fdOkButton <> 0 then
   begin
-    Insert(New(PButton, Init(R,labels^.get(slOk), cmFileOpen, Opt)));
+    Insert(New(PButton, Init(R,slOk, cmFileOpen, Opt)));
     Opt := bfNormal;
     Inc(R.A.Y,3); Inc(R.B.Y,3);
   end;
   if AOptions and fdReplaceButton <> 0 then
   begin
-    Insert(New(PButton, Init(R, labels^.get(slReplace),cmFileReplace, Opt)));
+    Insert(New(PButton, Init(R, slReplace,cmFileReplace, Opt)));
     Opt := bfNormal;
     Inc(R.A.Y,3); Inc(R.B.Y,3);
   end;
   if AOptions and fdClearButton <> 0 then
   begin
-    Insert(New(PButton, Init(R, labels^.get(slClear),cmFileClear, Opt)));
+    Insert(New(PButton, Init(R, slClear,cmFileClear, Opt)));
     Opt := bfNormal;
     Inc(R.A.Y,3); Inc(R.B.Y,3);
   end;
-  Insert(New(PButton, Init(R, labels^.get(slCancel), cmCancel, bfNormal)));
+  Insert(New(PButton, Init(R, slCancel, cmCancel, bfNormal)));
   Inc(R.A.Y,3); Inc(R.B.Y,3);
   if AOptions and fdHelpButton <> 0 then
   begin
-    Insert(New(PButton, Init(R,labels^.get(slHelp),cmHelp, bfNormal)));
+    Insert(New(PButton, Init(R,slHelp,cmHelp, bfNormal)));
     Inc(R.A.Y,3); Inc(R.B.Y,3);
   end;
 
@@ -1602,7 +1635,7 @@ var
   begin
     if not PathValid(S) then
     begin
-      MessageBox(Strings^.Get(sInvalidDriveOrDir), nil, mfError + mfOkButton);
+      MessageBox(sInvalidDriveOrDir, nil, mfError + mfOkButton);
       FileName^.Select;
       CheckDirectory := False;
     end else CheckDirectory := True;
@@ -1689,7 +1722,7 @@ begin
           Valid := True
         else
           begin
-            MessageBox(^C + Strings^.Get(sInvalidFileName), nil, mfError + mfOkButton);
+            MessageBox(^C + sInvalidFileName, nil, mfError + mfOkButton);
             Valid := False;
           end;
     end
@@ -1735,7 +1768,7 @@ const
 constructor TDirListBox.Init(var Bounds: TRect; AScrollBar:
   PScrollBar);
 begin
-  DrivesS := strings^.get(sDrives);
+  DrivesS := sDrives;
   TListBox.Init(Bounds, 1, AScrollBar);
   Dir := '';
 end;
@@ -1924,7 +1957,7 @@ var
   Control: PView;
 begin
   R.Assign(16, 2, 64, 20);
-  TDialog.Init(R,strings^.get(sChangeDirectory));
+  TDialog.Init(R,sChangeDirectory);
 
   Options := Options or ofCentered;
 
@@ -1932,7 +1965,7 @@ begin
   DirInput := New(PInputLine, Init(R, FileNameLen+4));
   Insert(DirInput);
   R.Assign(2, 2, 17, 3);
-  Control := New(PLabel, Init(R,labels^.get(slDirectoryName), DirInput));
+  Control := New(PLabel, Init(R,slDirectoryName, DirInput));
   Insert(Control);
   R.Assign(30, 3, 33, 4);
   Control := New(PHistory, Init(R, DirInput, HistoryId));
@@ -1945,22 +1978,22 @@ begin
   DirList := New(PDirListBox, Init(R, PScrollBar(Control)));
   Insert(DirList);
   R.Assign(2, 5, 17, 6);
-  Control := New(PLabel, Init(R, labels^.get(slDirectoryTree), DirList));
+  Control := New(PLabel, Init(R, slDirectoryTree, DirList));
   Insert(Control);
 
   R.Assign(35, 6, 45, 8);
-  OkButton := New(PButton, Init(R, labels^.get(slOk), cmOK, bfDefault));
+  OkButton := New(PButton, Init(R, slOk, cmOK, bfDefault));
   Insert(OkButton);
   Inc(R.A.Y,3); Inc(R.B.Y,3);
-  ChDirButton := New(PButton,Init(R,labels^.get(slChDir),cmChangeDir,
+  ChDirButton := New(PButton,Init(R,slChDir,cmChangeDir,
            bfNormal));
   Insert(ChDirButton);
   Inc(R.A.Y,3); Inc(R.B.Y,3);
-  Insert(New(PButton, Init(R,labels^.get(slRevert), cmRevert, bfNormal)));
+  Insert(New(PButton, Init(R,slRevert, cmRevert, bfNormal)));
   if AOptions and cdHelpButton <> 0 then
   begin
     Inc(R.A.Y,3); Inc(R.B.Y,3);
-    Insert(New(PButton, Init(R,labels^.get(slHelp), cmHelp, bfNormal)));
+    Insert(New(PButton, Init(R,slHelp, cmHelp, bfNormal)));
   end;
 
   if AOptions and cdNoLoadDir = 0 then SetUpDialog;
@@ -2090,7 +2123,7 @@ begin
     ChDir(P);
     if (IOResult <> 0) then
     begin
-      MessageBox(Strings^.Get(sInvalidDirectory), nil, mfError + mfOkButton);
+      MessageBox(sInvalidDirectory, nil, mfError + mfOkButton);
       Valid := False;
     end;
     {$I+}
@@ -2281,7 +2314,7 @@ begin
   begin
     AFile := ShrinkPath(AFile,33);
     Rec.AString := PString(@AFile);
-    StdDeleteFile := (MessageBox(^C + Strings^.Get(sDeleteFile),
+    StdDeleteFile := (MessageBox(^C + sDeleteFile,
                @Rec,mfConfirmation or mfOkCancel) = cmOk);
   end
   else StdDeleteFile := False;
@@ -2464,6 +2497,7 @@ end;
 {****************************************************************************}
 { MakeResources                           }
 {****************************************************************************}
+(*
 procedure MakeResources;
 var
   Dlg : PDialog;
@@ -2475,14 +2509,12 @@ begin
     case i of
       0 : begin
        Key := reOpenDlg;
-       Dlg := New(PFileDialog,Init('*.*',strings^.get(sOpen),
-             labels^.get(slName),
+       Dlg := New(PFileDialog,Init('*.*',sOpen,slName,
              fdOkButton or fdHelpButton or fdNoLoadDir,0));
      end;
       1 : begin
        Key := reSaveAsDlg;
-       Dlg := New(PFileDialog,Init('*.*',strings^.get(sSaveAs),
-             labels^.get(slName),
+       Dlg := New(PFileDialog,Init('*.*',sSaveAs,slName,
              fdOkButton or fdHelpButton or fdNoLoadDir,0));
      end;
       2 : begin
@@ -2506,7 +2538,7 @@ begin
     end;
   end;
 end;
-
+*)
 {****************************************************************************}
 { NoWildChars                       }
 {****************************************************************************}
@@ -2539,7 +2571,7 @@ begin
   {$ifdef cdResource}
   Dlg := PFileDialog(RezFile^.Get(reOpenDlg));
   {$else}
-  Dlg := New(PFileDialog,Init('*.*',strings^.get(sOpen),labels^.get(slName),
+  Dlg := New(PFileDialog,Init('*.*',sOpen,slName,
         fdOkButton or fdHelpButton,0));
   {$endif cdResource}
     { this might not work }
@@ -2598,7 +2630,7 @@ begin
     AFile := ShrinkPath(AFile,33);
     Rec.AString := PString(@AFile);
     StdReplaceFile :=
-       (MessageBox(^C + Strings^.Get(sReplaceFile),
+       (MessageBox(^C + sReplaceFile,
          @Rec,mfConfirmation or mfOkCancel) = cmOk);
   end
   else StdReplaceFile := True;
@@ -2612,8 +2644,7 @@ var
   Dlg : PFileDialog;
 begin
   SaveAs := False;
-  Dlg := New(PFileDialog,Init('*.*',strings^.get(sSaveAs),
-        labels^.get(slSaveAs),
+  Dlg := New(PFileDialog,Init('*.*',sSaveAs,slSaveAs,
         fdOkButton or fdHelpButton,0));
     { this might not work }
   PHistory(Dlg^.FileName^.Next^.Next)^.HistoryID := HistoryID;

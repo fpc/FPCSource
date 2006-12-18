@@ -1009,6 +1009,22 @@ CONST
     Load    : @TModalInputLine.Load;
     Store   : @TModalInputLine.Store);
 
+resourcestring  slCancel='Cancel';
+                slOk='O~k~';
+                slYes='~Y~es';
+                slNo='~N~o';
+
+                slHelp='~H~elp';
+                slName='~N~ame';
+
+                slOpen='~O~pen';
+                slClose='~C~lose';
+                slCloseAll='Cl~o~se all';
+
+                slSave='~S~ave';
+                slSaveAll='Save a~l~l';
+                slSaveAs='S~a~ve as...';
+                slSaveFileAs='~S~ave file as';
 
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                 IMPLEMENTATION

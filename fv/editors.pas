@@ -403,10 +403,47 @@ procedure RegisterEditors;
 implementation
 
 uses
-  Dos, App, StdDlg, MsgBox, Resource;
+  Dos, App, StdDlg, MsgBox{, Resource};
 
 type
   pword = ^word;
+
+resourcestring  sClipboard='Clipboard';
+                sFileCreateError='Error creating file %s';
+                sFileReadError='Error reading file %s';
+                sFileUntitled='Save untitled file?';
+                sFileWriteError='Error writing to file %s';
+                sFind='Find';
+                sJumpTo='Jump To';
+                sModified=''#3'%s'#13#10#13#3'has been modified.  Save?';
+                sOutOfMemory='Not enough memory for this operation.';
+                sPasteNotPossible='Wordwrap on:  Paste not possible in current margins when at end of line.';
+                sReformatDocument='Reformat Document';
+                sReformatNotPossible='Paragraph reformat not possible while trying to wrap current line with current margins.';
+                sReformattingTheDocument='Reformatting the document:';
+                sReplaceNotPossible='Wordwrap on:  Replace not possible in current margins when at end of line.';
+                sReplaceThisOccurence='Replace this occurence?';
+                sRightMargin='Right Margin';
+                sSearchStringNotFound='Search string not found.';
+                sSelectWhereToBegin='Please select where to begin.';
+                sSetting='Setting:';
+                sTabSettings='Tab Settings';
+                sUnknownDialog='Unknown dialog requested!';
+                sUntitled='Untitled';
+                sWordWrapNotPossible='Wordwrap on:  Wordwrap not possible in current margins with continuous line.';
+                sWordWrapOff='You must turn on wordwrap before you can reformat.';
+
+                slCaseSensitive='~C~ase sensitive';
+                slCurrentLine='~C~urrent line';
+                slEntireDocument='~E~ntire document';
+                slLineNumber='~L~ine number';
+                slNewText='~N~ew text';
+                slPromptOnReplace='~P~rompt on replace';
+                slReplace='~R~eplace';
+                slReplaceAll='~R~eplace all';
+                slTextToFind='~T~ext to find';
+                slWholeWordsOnly='~W~hole words only';
+
 
 CONST
   { Update flag constants. }
@@ -575,7 +612,7 @@ var
   R: TRect;
 begin
   R.Assign(0, 0, 38, 12);
-  D := New(PDialog, Init(R, strings^.get(sFind)));
+  D := New(PDialog, Init(R,sFind));
   with D^ do
   begin
     Options := Options or ofCentered;
@@ -585,24 +622,24 @@ begin
     Control^.HelpCtx := hcDFindText;
     Insert(Control);
     R.Assign(2, 2, 15, 3);
-    Insert(New(PLabel, Init(R, labels^.get(slTextToFind), Control)));
+    Insert(New(PLabel, Init(R, slTextToFind, Control)));
     R.Assign(32, 3, 35, 4);
     Insert(New(PHistory, Init(R, PInputLine(Control), 10)));
 
     R.Assign(3, 5, 35, 7);
     Control := New(PCheckBoxes, Init(R,
-        NewSItem (labels^.get(slCaseSensitive),
-        NewSItem (labels^.get(slWholeWordsOnly),nil))));
+        NewSItem (slCaseSensitive,
+        NewSItem (slWholeWordsOnly,nil))));
     Control^.HelpCtx := hcCCaseSensitive;
     Insert(Control);
 
     R.Assign(14, 9, 24, 11);
-    Control := New (PButton, Init(R,labels^.get(slOK),cmOk,bfDefault));
+    Control := New (PButton, Init(R,slOK,cmOk,bfDefault));
     Control^.HelpCtx := hcDOk;
     Insert (Control);
 
     Inc(R.A.X, 12); Inc(R.B.X, 12);
-    Control := New (PButton, Init(R,labels^.get(slCancel),cmCancel, bfNormal));
+    Control := New (PButton, Init(R,slCancel,cmCancel, bfNormal));
     Control^.HelpCtx := hcDCancel;
     Insert (Control);
 
@@ -619,7 +656,7 @@ var
   R: TRect;
 begin
   R.Assign(0, 0, 40, 16);
-  D := New(PDialog, Init(R,labels^.get(slReplace)));
+  D := New(PDialog, Init(R,slReplace));
   with D^ do
   begin
     Options := Options or ofCentered;
@@ -629,7 +666,7 @@ begin
     Control^.HelpCtx := hcDFindText;
     Insert(Control);
     R.Assign(2, 2, 15, 3);
-    Insert(New(PLabel, Init(R,labels^.get(slTextToFind), Control)));
+    Insert(New(PLabel, Init(R,slTextToFind, Control)));
     R.Assign(34, 3, 37, 4);
     Insert(New(PHistory, Init(R, PInputLine(Control), 10)));
 
@@ -638,26 +675,26 @@ begin
     Control^.HelpCtx := hcDReplaceText;
     Insert(Control);
     R.Assign(2, 5, 12, 6);
-    Insert(New(PLabel, Init(R,labels^.get(slNewText), Control)));
+    Insert(New(PLabel, Init(R,slNewText, Control)));
     R.Assign(34, 6, 37, 7);
     Insert(New(PHistory, Init(R, PInputLine(Control), 11)));
 
     R.Assign(3, 8, 37, 12);
     Control := New (Dialogs.PCheckBoxes, Init (R,
-      NewSItem (labels^.get(slCasesensitive),
-      NewSItem (labels^.get(slWholewordsonly),
-      NewSItem (labels^.get(slPromptonreplace),
-      NewSItem (labels^.get(slReplaceall), nil))))));
+      NewSItem (slCasesensitive,
+      NewSItem (slWholewordsonly,
+      NewSItem (slPromptonreplace,
+      NewSItem (slReplaceall, nil))))));
     Control^.HelpCtx := hcCCaseSensitive;
     Insert (Control);
 
     R.Assign (8, 13, 18, 15);
-    Control := New (PButton, Init (R,labels^.get(slOK), cmOk, bfDefault));
+    Control := New (PButton, Init (R,slOK, cmOk, bfDefault));
     Control^.HelpCtx := hcDOk;
     Insert (Control);
 
     R.Assign (22, 13, 32, 15);
-    Control := New (PButton, Init (R,labels^.get(slCancel), cmCancel, bfNormal));
+    Control := New (PButton, Init (R,slCancel, cmCancel, bfNormal));
     Control^.HelpCtx := hcDCancel;
     Insert (Control);
 
@@ -674,13 +711,13 @@ VAR
   Control: PView;
 Begin
   R.Assign (0, 0, 26, 8);
-  D := New(PDialog, Init(R,strings^.get(sJumpTo)));
+  D := New(PDialog, Init(R,sJumpTo));
   with D^ do
     begin
       Options := Options or ofCentered;
 
       R.Assign (3, 2, 15, 3);
-      Control := New (Dialogs.PStaticText, Init (R,labels^.get(slLineNumber)));
+      Control := New (Dialogs.PStaticText, Init (R,slLineNumber));
       Insert (Control);
 
       R.Assign (15, 2, 21, 3);
@@ -692,12 +729,12 @@ Begin
       Insert (New (Dialogs.PHistory, Init (R, Dialogs.PInputLine (Control), 12)));
 
       R.Assign (2, 5, 12, 7);
-      Control := New (Dialogs.PButton, Init (R, labels^.get(slOK), cmOK, Dialogs.bfDefault));
+      Control := New (Dialogs.PButton, Init (R, slOK, cmOK, Dialogs.bfDefault));
       Control^.HelpCtx := hcDOk;
       Insert (Control);
 
       R.Assign (14, 5, 24, 7);
-      Control := New (Dialogs.PButton, Init (R, labels^.get(slCancel), cmCancel, Dialogs.bfNormal));
+      Control := New (Dialogs.PButton, Init (R, slCancel, cmCancel, Dialogs.bfNormal));
       Control^.HelpCtx := hcDCancel;
       Insert (Control);
 
@@ -716,37 +753,37 @@ VAR
   Control      : PView;
 Begin
   R.Assign (0, 0, 32, 11);
-  D := New (Dialogs.PDialog, Init (R, strings^.get(sReformatDocument)));
+  D := New (Dialogs.PDialog, Init (R, sReformatDocument));
   with D^ do
     begin
       Options := Options or ofCentered;
 
       R.Assign (2, 2, 30, 3);
-      Control := New (Dialogs.PStaticText, Init (R, strings^.get(sSelectWhereToBegin)));
+      Control := New (Dialogs.PStaticText, Init (R, sSelectWhereToBegin));
       Insert (Control);
 
       R.Assign (3, 3, 29, 4);
-      Control := New (Dialogs.PStaticText, Init (R, strings^.get(sReformattingTheDocument)));
+      Control := New (Dialogs.PStaticText, Init (R, sReformattingTheDocument));
       Insert (Control);
 
       R.Assign (50, 5, 68, 6);
-      Control := New (Dialogs.PLabel, Init (R, strings^.get(sReformatDocument), Control));
+      Control := New (Dialogs.PLabel, Init (R, sReformatDocument, Control));
       Insert (Control);
 
       R.Assign (5, 5, 26, 7);
       Control := New (Dialogs.PRadioButtons, Init (R,
-        NewSItem (labels^.get(slCurrentLine),
-        NewSItem (labels^.get(slEntireDocument), Nil))));
+        NewSItem (slCurrentLine,
+        NewSItem (slEntireDocument, Nil))));
       Control^.HelpCtx := hcDReformDoc;
       Insert (Control);
 
       R.Assign (4, 8, 14, 10);
-      Control := New (Dialogs.PButton, Init (R,labels^.get(slOK), cmOK, Dialogs.bfDefault));
+      Control := New (Dialogs.PButton, Init (R, slOK, cmOK, Dialogs.bfDefault));
       Control^.HelpCtx := hcDOk;
       Insert (Control);
 
       R.Assign (17, 8, 27, 10);
-      Control := New (Dialogs.PButton, Init (R, labels^.get(slCancel), cmCancel, Dialogs.bfNormal));
+      Control := New (Dialogs.PButton, Init (R, slCancel, cmCancel, Dialogs.bfNormal));
       Control^.HelpCtx := hcDCancel;
       Insert (Control);
 
@@ -765,13 +802,13 @@ VAR
   Control  : PView;
 Begin
   R.Assign (0, 0, 26, 8);
-  D := New (Dialogs.PDialog, Init (R, strings^.get(sRightMargin)));
+  D := New (Dialogs.PDialog, Init (R, sRightMargin));
   with D^ do
     begin
       Options := Options or ofCentered;
 
       R.Assign (5, 2, 13, 3);
-      Control := New (Dialogs.PStaticText, Init (R, strings^.get(sSetting)));
+      Control := New (Dialogs.PStaticText, Init (R, sSetting));
       Insert (Control);
 
       R.Assign (13, 2, 18, 3);
@@ -783,12 +820,12 @@ Begin
       Insert (New (Dialogs.PHistory, Init (R, Dialogs.PInputLine (Control), 13)));
 
       R.Assign (2, 5, 12, 7);
-      Control := New (Dialogs.PButton, Init (R, labels^.get(slOK), cmOK, Dialogs.bfDefault));
+      Control := New (Dialogs.PButton, Init (R, slOK, cmOK, Dialogs.bfDefault));
       Control^.HelpCtx := hcDOk;
       Insert (Control);
 
       R.Assign (14, 5, 24, 7);
-      Control := New (Dialogs.PButton, Init (R, labels^.get(slCancel), cmCancel, Dialogs.bfNormal));
+      Control := New (Dialogs.PButton, Init (R, slCancel, cmCancel, Dialogs.bfNormal));
       Control^.HelpCtx := hcDCancel;
       Insert (Control);
 
@@ -809,7 +846,7 @@ VAR
   Tab_Stop   : String[2];        { Local string to print tab column number. }
 Begin
   R.Assign (0, 0, 80, 8);
-  D := New (Dialogs.PDialog, Init (R, strings^.get(sTabSettings)));
+  D := New (Dialogs.PDialog, Init (R, sTabSettings));
   with D^ do
     begin
       Options := Options or ofCentered;
@@ -836,12 +873,12 @@ Begin
       Insert (New (Dialogs.PHistory, Init (R, Dialogs.PInputLine (Control), 14)));
 
       R.Assign (27, 5, 37, 7);
-      Control := New (Dialogs.PButton, Init (R, labels^.get(slOK), cmOK, Dialogs.bfDefault));
+      Control := New (Dialogs.PButton, Init (R, slOK, cmOK, Dialogs.bfDefault));
       Control^.HelpCtx := hcDOk;
       Insert (Control);
 
       R.Assign (42, 5, 52, 7);
-      Control := New (Dialogs.PButton, Init (R, labels^.get(slCancel), cmCancel, Dialogs.bfNormal));
+      Control := New (Dialogs.PButton, Init (R, slCancel, cmCancel, Dialogs.bfNormal));
       Control^.HelpCtx := hcDCancel;
       Insert (Control);
       SelectNext (False);
@@ -857,24 +894,24 @@ var
 begin
   case Dialog of
     edOutOfMemory:
-      StdEditorDialog := MessageBox(strings^.get(sOutOfMemory), nil, mfError + mfOkButton);
+      StdEditorDialog := MessageBox(sOutOfMemory, nil, mfError + mfOkButton);
     edReadError:
-      StdEditorDialog := MessageBox(strings^.get(sFileReadError), @Info, mfError + mfOkButton);
+      StdEditorDialog := MessageBox(sFileReadError, @Info, mfError + mfOkButton);
     edWriteError:
-      StdEditorDialog := MessageBox(strings^.get(sFileWriteError), @Info, mfError + mfOkButton);
+      StdEditorDialog := MessageBox(sFileWriteError, @Info, mfError + mfOkButton);
     edCreateError:
-      StdEditorDialog := MessageBox(strings^.get(sFileCreateError), @Info, mfError + mfOkButton);
+      StdEditorDialog := MessageBox(sFileCreateError, @Info, mfError + mfOkButton);
     edSaveModify:
-      StdEditorDialog := MessageBox(strings^.get(sModified), @Info, mfInformation + mfYesNoCancel);
+      StdEditorDialog := MessageBox(sModified, @Info, mfInformation + mfYesNoCancel);
     edSaveUntitled:
-      StdEditorDialog := MessageBox(strings^.get(sFileUntitled), nil, mfInformation + mfYesNoCancel);
+      StdEditorDialog := MessageBox(sFileUntitled, nil, mfInformation + mfYesNoCancel);
     edSaveAs:
       StdEditorDialog := Application^.ExecuteDialog(New(PFileDialog, Init('*.*',
-        labels^.get(slSaveFileAs), labels^.get(slName), fdOkButton, 101)), Info);
+        slSaveFileAs, slName, fdOkButton, 101)), Info);
     edFind:
       StdEditorDialog := Application^.ExecuteDialog(CreateFindDialog, Info);
     edSearchFailed:
-      StdEditorDialog := MessageBox(strings^.get(sSearchStringNotFound), nil, mfError + mfOkButton);
+      StdEditorDialog := MessageBox(sSearchStringNotFound, nil, mfError + mfOkButton);
     edReplace:
       StdEditorDialog := Application^.ExecuteDialog(CreateReplaceDialog, Info);
     edReplacePrompt:
@@ -886,7 +923,7 @@ begin
         Inc(T.Y);
         if PPoint(Info)^.Y <= T.Y then
           R.Move(0, Desktop^.Size.Y - R.B.Y - 2);
-        StdEditorDialog := MessageBoxRect(R, strings^.get(sReplaceThisOccurence),
+        StdEditorDialog := MessageBoxRect(R, sReplaceThisOccurence,
           nil, mfYesNoCancel + mfInformation);
       end;
     edJumpToLine:
@@ -894,21 +931,21 @@ begin
     edSetTabStops:
       StdEditorDialog := Application^.ExecuteDialog(TabStopDialog, Info);
     edPasteNotPossible:
-      StdEditorDialog := MessageBox (strings^.get(sPasteNotPossible), nil, mfError + mfOkButton);
+      StdEditorDialog := MessageBox (sPasteNotPossible, nil, mfError + mfOkButton);
     edReformatDocument:
       StdEditorDialog := Application^.ExecuteDialog(ReformDocDialog, Info);
     edReformatNotAllowed:
-      StdEditorDialog := MessageBox (strings^.get(sWordWrapOff), nil, mfError + mfOkButton);
+      StdEditorDialog := MessageBox (sWordWrapOff, nil, mfError + mfOkButton);
     edReformNotPossible:
-      StdEditorDialog := MessageBox (strings^.get(sReformatNotPossible), nil, mfError + mfOkButton);
+      StdEditorDialog := MessageBox (sReformatNotPossible, nil, mfError + mfOkButton);
     edReplaceNotPossible:
-      StdEditorDialog := MessageBox (strings^.get(sReplaceNotPossible), nil, mfError + mfOkButton);
+      StdEditorDialog := MessageBox (sReplaceNotPossible, nil, mfError + mfOkButton);
     edRightMargin:
       StdEditorDialog := Application^.ExecuteDialog(RightMarginDialog, Info);
     edWrapNotPossible:
-      StdEditorDialog := MessageBox (strings^.get(sWordWrapNotPossible), nil, mfError + mfOKButton);
+      StdEditorDialog := MessageBox (sWordWrapNotPossible, nil, mfError + mfOKButton);
   else
-    StdEditorDialog := MessageBox (strings^.get(sUnknownDialog), nil, mfError + mfOkButton);
+    StdEditorDialog := MessageBox (sUnknownDialog, nil, mfError + mfOkButton);
   end;
 end;
 
@@ -1119,8 +1156,8 @@ begin
     IScan := NotFoundValue
   else
     IScan := numb - pred(len);
-end; 
-  
+end;
+
 
 {****************************************************************************
                                  TIndicator
@@ -3696,10 +3733,10 @@ end; { TEditWindow.Close }
 function TEditWindow.GetTitle (MaxSize : Sw_Integer) : TTitleStr;
 begin
   if Editor^.IsClipboard then
-    GetTitle := strings^.get(sClipboard)
+    GetTitle := sClipboard
   else
     if Editor^.FileName = '' then
-      GetTitle := strings^.get(sUntitled)
+      GetTitle := sUntitled
     else
       GetTitle := Editor^.FileName;
 end; { TEditWindow.GetTile }

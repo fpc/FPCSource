@@ -162,7 +162,7 @@ FUNCTION InputBoxRect (Var Bounds: TRect; Const Title, ALabel: String;
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
-USES Drivers, Views, App, Resource;                    { Standard GFV units }
+USES Drivers, Views, App{, Resource};                    { Standard GFV units }
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -173,6 +173,12 @@ const
     (cmYes, cmNo, cmOK, cmCancel);
 var
   ButtonName: array[0..3] of string[40];
+
+resourcestring  sConfirm='Confirm';
+                sError='Error';
+                sInformation='Information';
+                sWarning='Warning';
+
 
 {---------------------------------------------------------------------------}
 {  MessageBox -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB        }
@@ -292,14 +298,14 @@ END;
 
 procedure InitMsgBox;
 begin
-  ButtonName[0] := Labels^.Get(slYes);
-  ButtonName[1] := Labels^.Get(slNo);
-  ButtonName[2] := Labels^.Get(slOk);
-  ButtonName[3] := Labels^.Get(slCancel);
-  MsgBoxTitles[0] := Strings^.Get(sWarning);
-  MsgBoxTitles[1] := Strings^.Get(sError);
-  MsgBoxTitles[2] := Strings^.Get(sInformation);
-  MsgBoxTitles[3] := Strings^.Get(sConfirm);
+  ButtonName[0] := slYes;
+  ButtonName[1] := slNo;
+  ButtonName[2] := slOk;
+  ButtonName[3] := slCancel;
+  MsgBoxTitles[0] := sWarning;
+  MsgBoxTitles[1] := sError;
+  MsgBoxTitles[2] := sInformation;
+  MsgBoxTitles[3] := sConfirm;
 end;
 
 procedure DoneMsgBox;
