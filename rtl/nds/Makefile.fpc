@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       sysutils \
       classes math typinfo varutils fmtbcd ctypes \
       charset ucomplex getopts matrix \
-      variants types rtlconsts sysconst dateutil \
+      variants types rtlconsts sysconst dateutil fgl \
 #      exec timer doslib utility hardware inputevent graphics layers \
 # these can be moved to packages later
 #      clipboard datatypes asl ahi tinygl get9 muihelper \
@@ -132,7 +132,8 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT)
+                   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) types$(PPUEXT) \
+                   fgl$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
@@ -156,6 +157,9 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
 
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
+
+fgl$(PPUEXT): $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) 
+        $(COMPILER) -Sg $(OBJPASDIR)/fgl.pp $(REDIR)
 
 dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
         $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
