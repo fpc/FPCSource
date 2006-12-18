@@ -333,5 +333,5 @@ begin
 end;
 
 finalization
-  finalizeresourcetabels;
+  finalizeresourcetables;
 end.
