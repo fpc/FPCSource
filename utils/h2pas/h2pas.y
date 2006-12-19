@@ -23,7 +23,7 @@ program h2pas;
 {$message TODO: warning Unit types is only needed due to issue 7910}
 
    uses
-     SysUtils,classes,types,
+     SysUtils,types, classes,
      options,scan,converu,lexlib,yacclib;
 
    type
