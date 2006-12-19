@@ -10,7 +10,7 @@ version=2.0.0
 units=buildfv
 implicitunits=app colortxt dialogs drivers editors \
               fvcommon fvconsts gadgets histlist inplong memory \
-              menus msgbox resource statuses stddlg tabs time validate \
+              menus msgbox statuses stddlg tabs time validate \
               views sysmsg asciitab timeddlg
 exampledirs=test
 
