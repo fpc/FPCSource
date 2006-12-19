@@ -1,5 +1,3 @@
-{ %fail }
-
 {$mode fpc}
 
 { This is not allowed in normal fpc mode }
