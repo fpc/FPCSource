@@ -1,8 +1,17 @@
 {$mode fpc}
 
-{ Resourcestrings are pre-initialized }
 resourcestring
   s = 'OK';
+
+var t:ansistring;
+
 begin
-  writeln(s);
+  t:=s;
+  if t<>'OK' then
+    begin
+      writeln('Resourcestring error!');
+      halt(1);
+    end
+  else
+    writeln(s);
 end.
