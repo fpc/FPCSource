@@ -185,9 +185,9 @@ begin
   (* put name space ID in network byte order so it hashes the same
      no matter what endian machine we're on *)
   net_nsid := nsid;
-//  net_nsid.time_low := htonl(net_nsid.time_low);
-//  net_nsid.time_mid := htons(net_nsid.time_mid);
-//  net_nsid.time_hi_and_version := htons(net_nsid.time_hi_and_version);
+  net_nsid.time_low := ntobe(net_nsid.time_low);
+  net_nsid.time_mid := ntobe(net_nsid.time_mid);
+  net_nsid.time_hi_and_version := ntobe(net_nsid.time_hi_and_version);
 
   MDInit(c, MD_VERSION_4);
   MDUpdate(c, net_nsid, sizeof(net_nsid));
@@ -202,19 +202,17 @@ end;
 { uuid_create_sha1_from_name }
 
 procedure uuid_create_sha1_from_name(var uuid: uuid_t; const nsid: uuid_t; const name: string);
-begin
-end;
-{var
+var
   net_nsid: uuid_t;
-  c: TMDContext;
-  hash: TMDDigest;
+{  c: TMDContext;
+  hash: TMDDigest;}
 begin
   (* put name space ID in network byte order so it hashes the same
      no matter what endian machine we're on *)
-//  net_nsid := nsid;
-//  net_nsid.time_low := htonl(net_nsid.time_low);
-//  net_nsid.time_mid := htons(net_nsid.time_mid);
-//  net_nsid.time_hi_and_version := htons(net_nsid.time_hi_and_version);
+  net_nsid := nsid;
+  net_nsid.time_low := ntobe(net_nsid.time_low);
+  net_nsid.time_mid := ntobe(net_nsid.time_mid);
+  net_nsid.time_hi_and_version := ntobe(net_nsid.time_hi_and_version);
 
   {SHAInit(c, SHA_VERSION_1);
   SHAUpdate(c, net_nsid, sizeof(net_nsid));
@@ -223,7 +221,7 @@ begin
 
   (* the hash is in network byte order at this point *)
   format_uuid_v3or5(uuid, @hash, UUID_VERSION_5);
-end;}
+end;
 
 
 { uuid_compare }
@@ -283,9 +281,9 @@ procedure format_uuid_v3or5(var uuid: uuid_t; const hash: pointer; const v: inte
 begin
   (* convert UUID to local byte order *)
   move(hash^, uuid, sizeof(uuid));
-//  uuid.time_low := ntohl(uuid.time_low);
-//  uuid.time_mid := ntohs(uuid.time_mid);
-//  uuid.time_hi_and_version := ntohs(uuid.time_hi_and_version);
+  uuid.time_low := beton(uuid.time_low);
+  uuid.time_mid := beton(uuid.time_mid);
+  uuid.time_hi_and_version := beton(uuid.time_hi_and_version);
 
   (* put in the variant and version bits *)
   uuid.time_hi_and_version := uuid.time_hi_and_version and $0FFF;

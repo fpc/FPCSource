@@ -2,7 +2,9 @@
     This file is part of the Free Pascal packages.
     Copyright (c) 1999-2006 by the Free Pascal development team
 
-    Implements a MD5 digest algorithm.
+    Implements a MD2 digest algorithm (RFC 1319)
+    Implements a MD4 digest algorithm (RFC 1320)
+    Implements a MD5 digest algorithm (RFC 1321)
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -12,11 +14,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
-{
-  Implements a MD4 digest algorithm (RFC 1320)
-  Implements a MD5 digest algorithm (RFC 1321)
-}
 
 unit md5;
 
@@ -35,6 +32,7 @@ const
 
 type
   TMDVersion = (
+    MD_VERSION_2,
     MD_VERSION_4,
     MD_VERSION_5
   );
@@ -44,10 +42,13 @@ type
 
   TMDContext = record
     Version : TMDVersion;
+    Align   : PtrUInt;
     State   : array[0..3] of Cardinal;
-    Length  : PtrUInt;
     BufCnt  : PtrUInt;
     Buffer  : array[0..63] of Byte;
+    case Integer of
+      0: (Length   : PtrUInt);
+      1: (Checksum : array[0..15] of Byte);
   end;
 
 
@@ -96,6 +97,68 @@ begin
     inc(S,4);
     inc(T);
   end;
+end;
+
+
+procedure MD2Transform(var Context: TMDContext; Buffer: Pointer);
+const
+  PI_SUBST: array[0..255] of Byte = (
+  41, 46, 67, 201, 162, 216, 124, 1, 61, 54, 84, 161, 236, 240, 6,
+  19, 98, 167, 5, 243, 192, 199, 115, 140, 152, 147, 43, 217, 188,
+  76, 130, 202, 30, 155, 87, 60, 253, 212, 224, 22, 103, 66, 111, 24,
+  138, 23, 229, 18, 190, 78, 196, 214, 218, 158, 222, 73, 160, 251,
+  245, 142, 187, 47, 238, 122, 169, 104, 121, 145, 21, 178, 7, 63,
+  148, 194, 16, 137, 11, 34, 95, 33, 128, 127, 93, 154, 90, 144, 50,
+  39, 53, 62, 204, 231, 191, 247, 151, 3, 255, 25, 48, 179, 72, 165,
+  181, 209, 215, 94, 146, 42, 172, 86, 170, 198, 79, 184, 56, 210,
+  150, 164, 125, 182, 118, 252, 107, 226, 156, 116, 4, 241, 69, 157,
+  112, 89, 100, 113, 135, 32, 134, 91, 207, 101, 230, 45, 168, 2, 27,
+  96, 37, 173, 174, 176, 185, 246, 28, 70, 97, 105, 52, 64, 126, 15,
+  85, 71, 163, 35, 221, 81, 175, 58, 195, 92, 249, 206, 186, 197,
+  234, 38, 44, 83, 13, 110, 133, 40, 132, 9, 211, 223, 205, 244, 65,
+  129, 77, 82, 106, 220, 55, 200, 108, 193, 171, 250, 36, 225, 123,
+  8, 12, 189, 177, 74, 120, 136, 149, 139, 227, 99, 232, 109, 233,
+  203, 213, 254, 59, 0, 29, 57, 242, 239, 183, 14, 102, 88, 208, 228,
+  166, 119, 114, 248, 235, 117, 75, 10, 49, 68, 80, 180, 143, 237,
+  31, 26, 219, 153, 141, 51, 159, 17, 131, 20
+);
+var
+  i: Integer;
+  j: Integer;
+  t: Cardinal;
+  x: array[0..47] of Byte;
+begin
+  { Form encryption block from state, block, state ^ block }
+  Move(Context.State, x[0], 16);
+  Move(Buffer^, x[16], 16);
+  for i := 0 to 15 do
+    x[i+32] := PByte(@Context.State)[i] xor PByte(Buffer)[i];
+
+  { Encrypt block (18 rounds) }
+  t := 0;
+  for i := 0 to 17 do
+  begin
+    for j := 0 to 47 do
+    begin
+      x[j] := x[j] xor PI_SUBST[t];
+      t := x[j];
+    end;
+    t := (t + i) and $FF;
+  end;
+
+  { Save new state }
+  Move(x[0], Context.State, 16);
+
+  { Update checksum }
+  t := Context.Checksum[15];
+  for i := 0 to 15 do
+  begin
+    Context.Checksum[i] := Context.Checksum[i] xor PI_SUBST[PByte(Buffer)[i] xor t];
+    t := Context.Checksum[i];
+  end;
+
+  { Zeroize sensitive information. }
+  FillChar(x, Sizeof(x), 0);
 end;
 
 
@@ -225,29 +288,49 @@ end;
 
 procedure MDInit(var Context: TMDContext; const Version: TMDVersion);
 begin
+  FillChar(Context, Sizeof(TMDContext), 0);
   Context.Version := Version;
-  Context.State[0] := $67452301;
-  Context.State[1] := $efcdab89;
-  Context.State[2] := $98badcfe;
-  Context.State[3] := $10325476;
-  Context.Length := 0;
-  Context.BufCnt := 0;
+
+  case Version of
+
+    MD_VERSION_4, MD_VERSION_5:
+      begin
+        Context.Align := 64;
+        Context.State[0] := $67452301;
+        Context.State[1] := $efcdab89;
+        Context.State[2] := $98badcfe;
+        Context.State[3] := $10325476;
+        Context.Length := 0;
+        Context.BufCnt := 0;
+      end;
+
+    MD_VERSION_2:
+      begin
+        Context.Align := 16;
+      end;
+
+  end;
 end;
 
 
 procedure MDUpdate(var Context: TMDContext; var Buf; const BufLen: PtrUInt);
 var
+  Align: PtrUInt;
   Src: Pointer;
   Num: PtrUInt;
 begin
+  if BufLen = 0 then
+    Exit;
+
+  Align := Context.Align;
   Src := @Buf;
   Num := 0;
 
   // 1. Transform existing data in buffer
   if Context.BufCnt > 0 then
   begin
-    // 1.1 Try to fill buffer to 64 bytes
-    Num := 64 - Context.BufCnt;
+    // 1.1 Try to fill buffer to "Align" bytes
+    Num := Align - Context.BufCnt;
     if Num > BufLen then
       Num := BufLen;
 
@@ -255,10 +338,11 @@ begin
     Context.BufCnt := Context.BufCnt + Num;
     Src := Pointer(PtrUInt(Src) + Num);
 
-    // 1.2 If buffer contains 64 bytes, transform it
-    if Context.BufCnt = 64 then
+    // 1.2 If buffer contains "Align" bytes, transform it
+    if Context.BufCnt = Align then
     begin
       case Context.Version of
+        MD_VERSION_2: MD2Transform(Context, @Context.Buffer);
         MD_VERSION_4: MD4Transform(Context, @Context.Buffer);
         MD_VERSION_5: MD5Transform(Context, @Context.Buffer);
       end;
@@ -266,19 +350,20 @@ begin
     end;
   end;
 
-  // 2. Transform 64-Byte blocks of Buf
+  // 2. Transform "Align"-Byte blocks of Buf
   Num := BufLen - Num;
-  while Num >= 64 do
+  while Num >= Align do
   begin
     case Context.Version of
+      MD_VERSION_2: MD2Transform(Context, Src);
       MD_VERSION_4: MD4Transform(Context, Src);
       MD_VERSION_5: MD5Transform(Context, Src);
     end;
-    Src := Pointer(PtrUInt(Src) + 64);
-    Num := Num - 64;
+    Src := Pointer(PtrUInt(Src) + Align);
+    Num := Num - Align;
   end;
 
-  // 3. If there's a block smaller than 64 Bytes left, add it to buffer
+  // 3. If there's a block smaller than "Align" Bytes left, add it to buffer
   if Num > 0 then
   begin
     Context.BufCnt := Num;
@@ -289,26 +374,47 @@ end;
 
 procedure MDFinal(var Context: TMDContext; var Digest: TMDDigest);
 const
-  Padding: array[0..15] of Cardinal = ($80,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+  PADDING_MD45: array[0..15] of Cardinal = ($80,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
 var
   Length: QWord;
   Pads: Cardinal;
 begin
-  // 1. Compute length of the whole stream in bits
-  Length := 8 * (Context.Length + Context.BufCnt);
+  case Context.Version of
 
-  // 2. Append padding bits
-  Pads := (120 - Context.BufCnt) mod 64;
-  if Pads > 0 then
-    MDUpdate(Context, Padding, Pads) else
-    MDUpdate(Context, Padding, 56);
+    MD_VERSION_4, MD_VERSION_5:
+      begin
+        // 1. Compute length of the whole stream in bits
+        Length := 8 * (Context.Length + Context.BufCnt);
 
-  // 3. Append length of the stream
-  Invert(@Length, @Length, 8);
-  MDUpdate(Context, Length, 8);
+        // 2. Append padding bits
+        Pads := (120 - Context.BufCnt) mod 64;
+        if Pads > 0 then
+          MDUpdate(Context, PADDING_MD45, Pads) else
+          MDUpdate(Context, PADDING_MD45, 56);
 
-  // 4. Invert state to digest
-  Invert(@Context.State, @Digest, 16);
+        // 3. Append length of the stream
+        Invert(@Length, @Length, 8);
+        MDUpdate(Context, Length, 8);
+
+        // 4. Invert state to digest
+        Invert(@Context.State, @Digest, 16);
+      end;
+
+    MD_VERSION_2:
+      begin
+        Pads := 16 - Context.BufCnt;
+        Length := Pads;
+        while Pads > 0 do
+        begin
+          MDUpdate(Context, Length, 1);
+          Dec(Pads);
+        end;
+        MDUpdate(Context, Context.Checksum, 16);
+        Move(Context.State, Digest, 16);
+      end;
+
+  end;
+
   FillChar(Context, SizeOf(TMDContext), 0);
 end;
 
