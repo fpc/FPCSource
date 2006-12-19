@@ -199,11 +199,7 @@ const
     NAME_MAX       = 255;      {14}    { Maximum number of bytes in filename }
     PATH_MAX       = 4095;     {255}   { Maximum number of bytes in pathname }
     SYS_NMLN       = 65;
-{$ifdef FPC_USE_LIBC}
-   SIG_MAXSIG      = 1024;      // highest signal version
-{$else}
-   SIG_MAXSIG      = 128;       // highest signal version
-{$endif}
+    SIG_MAXSIG      = 128;      // highest signal version
 
  { For getting/setting priority }
   Prio_Process = 0;
