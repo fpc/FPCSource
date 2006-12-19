@@ -2173,7 +2173,7 @@ Const
      ICC_TAB_CLASSES       = $00000008; // tab, tooltips
      ICC_UPDOWN_CLASS      = $00000010; // updown
      ICC_PROGRESS_CLASS    = $00000020; // progress
-     ICC_WIN95_CLASSES     = $000000FF; //
+     ICC_WIN95_CLASSES     = $0000007F; // ! was ICC_WIN95_CLASSES     = $000000FF
      ICC_DATE_CLASSES      = $00000100; // month picker, date picker, time picker, updown
      ICC_COOL_CLASSES      = $00000400; // rebar (coolbar) control
      ICC_INTERNET_CLASSES  = $00000800; // IP Address control

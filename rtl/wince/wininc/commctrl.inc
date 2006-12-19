@@ -106,7 +106,87 @@
 const
   ComctlDLL     = 'commctrl';
 
-  COMCTL32_VERSION=$020c;
+  COMCTL32_VERSION=$020e;
+
+  // Common control shared messages
+  CCM_FIRST = $2000;
+  CCM_LAST  = CCM_FIRST + $200;
+
+  CCM_SETBKCOLOR = CCM_FIRST + $1; // lParam is bkColor
+  CCM_SETVERSION = CCM_FIRST + $7;
+  CCM_GETVERSION = CCM_FIRST + $8;
+
+  //InitCommonControlEx
+  //I_IMAGENONE           = -2; // Desktop listview uses this same value for I_IMAGENONE when (_WIN32_IE >= 0x0501)
+
+  //ICC_LISTVIEW_CLASSES  = $00000001; // listview, header
+  //ICC_TREEVIEW_CLASSES  = $00000002; // treeview, tooltips
+  //ICC_BAR_CLASSES       = $00000004; // toolbar, statusbar, trackbar, tooltips
+  //ICC_TAB_CLASSES       = $00000008; // tab, tooltips
+  //ICC_UPDOWN_CLASS      = $00000010; // updown
+  //ICC_PROGRESS_CLASS    = $00000020; // progress
+  ICC_ANIMATE_CLASS     = $00000080; // animate
+  //ICC_WIN95_CLASSES     = $0000007F;
+  //ICC_DATE_CLASSES      = $00000100; // month picker, date picker, time picker, updown
+  //ICC_COOL_CLASSES      = $00000400; // rebar (coolbar) control
+  //ICC_INTERNET_CLASSES  = $00000800; // IP Address control
+  //ICC_TOOLTIP_CLASSES   = $00001000; // Tooltip static & button
+  //ICC_CAPEDIT_CLASS     = $00002000; // All-caps edit control
+  //ICC_FE_CLASSES        = $40000000; // FE specific input subclasses
+
+  LVM_FIRST             =  $1000;      // ListView messages
+  TV_FIRST              =  $1100;      // TreeView messages
+  HDM_FIRST             =  $1200;      // Header messages
+
+  //Ranges for control message IDs
+  LVN_FIRST             =  (-100);       // listview
+  LVN_LAST              =  (-199);
+  HDN_FIRST             =  (-300);       // header
+  HDN_LAST              =  (-399);
+  TVN_FIRST             =  (-400);       // treeview
+  TVN_LAST              =  (-499);
+  TTN_FIRST             =  (-520);       // tooltips
+  TTN_LAST              =  (-549);
+  TCN_FIRST             =  (-550);       // tab control
+  TCN_LAST              =  (-580);
+  // Shell reserved               (0U-580U) -  (0U-589U)
+  CDN_FIRST             =  (-601);        // common dialog (new)
+  CDN_LAST              =  (-699);
+  TBN_FIRST             =  (-700);        // toolbar
+  TBN_LAST              =  (-720);
+  UDN_FIRST             =  (-721);        // updown
+  UDN_LAST              =  (-740);
+  MCN_FIRST             =  (-750);        // monthcal
+  MCN_LAST              =  (-759);
+  RBN_FIRST             =  (-831);        // rebar
+  RBN_LAST              =  (-859);
+  IPN_FIRST             =  (-860);        // internet address
+  IPN_LAST              =  (-879);        // internet address
+  SBN_FIRST             =  (-880);        // status bar
+  SBN_LAST              =  (-900);
+  SHN_FIRST             =  (-1400);       // Shell reserved
+  SHN_LAST              =  (-1500);
+
+  MSGF_COMMCTRL_BEGINDRAG     = $4200;
+  MSGF_COMMCTRL_SIZEHEADER    = $4201;
+  MSGF_COMMCTRL_DRAGSELECT    = $4202;
+
+  //Generic WM_NOTIFY notification codes
+  NM_FIRST              =  0;
+  NM_LAST               =  -99;
+  //NM_OUTOFMEMORY        =  (NM_FIRST-1);
+  //NM_CLICK              =  (NM_FIRST-2);
+  //NM_DBLCLK             =  (NM_FIRST-3);
+  //NM_RETURN             =  (NM_FIRST-4);
+  //NM_RCLICK             =  (NM_FIRST-5);
+  //NM_RDBLCLK            =  (NM_FIRST-6);
+  //NM_SETFOCUS           =  (NM_FIRST-7);
+  //NM_KILLFOCUS          =  (NM_FIRST-8);
+  NM_CUSTOMDRAW         =  (NM_FIRST-12);
+  NM_HOVER              =  (NM_FIRST-13);
+  NM_NCHITTEST          =  (NM_FIRST-14);
+  NM_KEYDOWN            =  (NM_FIRST-15);
+  NM_RECOGNIZEGESTURE   =  (NM_FIRST-50);
 
   // DATETIMEPICK CONTROL
   DATETIMEPICK_CLASS  ='SysDateTimePick32';
@@ -134,7 +214,9 @@ const
   DTS_RIGHTALIGN             = $0020;
   DTS_NONEBUTTON             = $0080;
 
+  //datetimepick
   DTN_FIRST                  =-760;
+  DTN_LAST                   =-799;
   DTN_DATETIMECHANGE  = DTN_FIRST + 1;
   DTN_USERSTRINGA     = DTN_FIRST + 2;
   DTN_WMKEYDOWNA      = DTN_FIRST + 3;
@@ -154,6 +236,40 @@ const
   GDT_VALID           = 0;
   GDT_NONE            = 1;
 
+  //TOOLBAR CONTROL
+  //TOOLBARCLASSNAMEW   = 'ToolbarWindow32';
+  //TOOLBARCLASSNAME    = TOOLBARCLASSNAMEW;
+
+  TBIF_IMAGE          =  $00000001;
+  TBIF_TEXT           =  $00000002;
+  TBIF_STATE          =  $00000004;
+  TBIF_STYLE          =  $00000008;
+  TBIF_LPARAM         =  $00000010;
+  TBIF_COMMAND        =  $00000020;
+  TBIF_SIZE           =  $00000040;
+
+  // BUTTONINFO APIs
+  TB_GETBUTTONINFOW   = (WM_USER + 63);
+  TB_SETBUTTONINFOW   = (WM_USER + 64);
+  TB_GETBUTTONINFO    = TB_GETBUTTONINFOW;
+  TB_SETBUTTONINFO    = TB_SETBUTTONINFOW;
+
+  TB_INSERTBUTTONW    = (WM_USER + 67);
+  TB_ADDBUTTONSW      = (WM_USER + 68);
+  TB_HITTEST          = (WM_USER + 69);
+
+  //TB_INSERTBUTTON     = TB_INSERTBUTTONW;
+  //TB_ADDBUTTONS       = TB_ADDBUTTONSW;
+
+  TB_SETDRAWTEXTFLAGS = (WM_USER + 70);
+
+  //TBN_GETBUTTONINFOW  = (TBN_FIRST-20);
+  //TBN_BEGINDRAG       = (TBN_FIRST-1);
+  //TBN_ENDDRAG         = (TBN_FIRST-2);
+  TBN_DROPDOWN        = (TBN_FIRST - 10);
+  TBN_DRAGOUT         = (TBN_FIRST - 14);
+  //TBN_GETBUTTONINFO   = TBN_GETBUTTONINFOW;
+
   // Pocket PC  special controls
   WC_CAPEDIT    = 'CAPEDIT';
   WC_TSTATIC    = 'TTSTATIC';
@@ -169,9 +285,6 @@ const
 
 type
   // DATETIMEPICK CONTROL
-
-
-
   tagNMDATETIMECHANGE = record
     nmhdr   : NMHDR;
     dwFlags : DWORD;
@@ -200,7 +313,6 @@ type
   NMDATETIMESTRINGW=tagNMDATETIMESTRINGW;
   TNMDATETIMESTRINGW=tagNMDATETIMESTRINGW;
   LPNMDATETIMESTRINGW=^tagNMDATETIMESTRINGW;
-
 
   tagNMDATETIMEWMKEYDOWNA = record
     nmhdr     : NMHDR;
@@ -264,6 +376,42 @@ type
   TNMDATETIMEFORMATQUERYW=tagNMDATETIMEFORMATQUERYW;
   LPNMDATETIMEFORMATQUERYW=^tagNMDATETIMEFORMATQUERYW;
 
+  //Generic structure for a key
+  tagNMKEY = Record
+    hdr   : NMHDR;
+    wVKey : WORD;
+    flags : UINT;
+  end;
+  NMKEY=tagNMKEY;
+  LPNMKEY=^NMKEY;
+
+  //Generic WM_NOTIFY notification structures
+  tagNMMOUSE = Record
+    hdr        : NMHDR;
+    dwItemSpec : DWORD;
+    dwItemData : DWORD;
+    pt         : POINT;
+  end;
+  NMMOUSE=tagNMMOUSE;
+  LPNMMOUSE=^NMMOUSE;
+  NMCLICK=NMMOUSE;
+  LPNMCLICK=LPNMMOUSE;
+
+  //TOOLBAR CONTROL
+  TBBUTTONINFOW = record
+    cbSize    : UINT;
+    dwMask    : DWORD;
+    idCommand : Longint;
+    iImage    : Longint;
+    fsState   : BYTE;
+    fsStyle   : BYTE;
+    cx        : WORD;
+    lParam    : DWORD;
+    pszText   : LPWSTR;
+    cchText   : Longint;
+  end;
+  LPTBBUTTONINFOW=^TBBUTTONINFOW;
+  TBBUTTONINFO=TBBUTTONINFOW;
 
 //*****************************************************************************
 // functions
