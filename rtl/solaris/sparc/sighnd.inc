@@ -16,6 +16,12 @@
  **********************************************************************}
 
 const
+  REG_PC = 1;
+  REG_nPC = 2;
+  REG_O6 = 17;
+  REG_SP = REG_O6;
+
+const
   FPE_INTDIV = 1;
   FPE_INTOVF = 2;
   FPE_FLTDIV = 3;
@@ -30,13 +36,22 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
 var
   res : word;
   addr : pointer;
+  frame : pointer;
 begin
   res:=0;
-  addr:=nil;
+  if assigned(sigcontext) then
+    begin
+      addr := pointer(sigcontext^.uc_mcontext.gregs[REG_PC]);
+      frame := pointer(sigcontext^.uc_mcontext.gregs[REG_SP])
+    end
+  else
+    begin
+      addr := nil;
+      frame := nil;
+    end;
   case sig of
     SIGFPE :
         begin
-          addr := siginfo^._sifields._sigfault._addr;
           res := 207;
           case  siginfo^.si_code of
             FPE_INTDIV:
@@ -60,19 +75,17 @@ begin
     SIGILL,
     SIGSEGV :
         begin
-          addr := siginfo^._sifields._sigfault._addr;
           res:=216;
         end;
     SIGBUS :
       begin
-        addr := siginfo^._sifields._sigfault._addr;
         res:=214;
       end;
   end;
   reenable_signal(sig);
   { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,addr,nil);
+    HandleErrorAddrFrame(res,addr,frame);
 end;
 
 
