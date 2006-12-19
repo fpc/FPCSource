@@ -26,7 +26,6 @@ uses
   rtlconsts,
   sysutils,
   types,
-  fgl,
   typinfo,
   windows;
 

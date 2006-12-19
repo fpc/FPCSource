@@ -25,7 +25,6 @@ interface
 uses
   typinfo,
   rtlconsts,
-  fgl,
   sysutils;
 
 {$i classesh.inc}
