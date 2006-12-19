@@ -1,6 +1,6 @@
 {$mode fpc}
 
-{ This is not allowed in normal fpc mode }
+{ Resourcestrings are pre-initialized }
 resourcestring
   s = 'OK';
 begin
