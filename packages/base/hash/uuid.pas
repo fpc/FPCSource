@@ -174,7 +174,7 @@ begin
 end;
 
 
-{ uuid_create_md5_from_name -- create a version 3 (MD5) UUID using a "name" from a "name space" }
+{ uuid_create_md5_from_name }
 
 procedure uuid_create_md5_from_name(var uuid: uuid_t; const nsid: uuid_t; const name: string);
 var
@@ -189,7 +189,7 @@ begin
   net_nsid.time_mid := ntobe(net_nsid.time_mid);
   net_nsid.time_hi_and_version := ntobe(net_nsid.time_hi_and_version);
 
-  MDInit(c, MD_VERSION_4);
+  MDInit(c, MD_VERSION_5);
   MDUpdate(c, net_nsid, sizeof(net_nsid));
   MDUpdate(c, pchar(name)^, Length(name));
   MDFinal(c, hash);
