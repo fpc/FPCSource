@@ -417,6 +417,9 @@ const
   INADDR_BROADCAST = $FFFFFFFF;
   INADDR_NONE      = $FFFFFFFF;
 
+  { options for socket level  }
+  SOL_SOCKET = $ffff;
+
   MSG_OOB         = $1;             {process out-of-band data }
   MSG_PEEK        = $2;             {peek at incoming message }
   MSG_DONTROUTE   = $4;             {send without using routing tables }
