@@ -20,12 +20,12 @@ fpcdir=../../..
 
 [install]
 fpcpackage=y
-units_i386=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur \
+units_i386=dbf_collate dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur \
       dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile \
       dbf_prscore dbf_prsdef dbf_prssupp dbf_str
 
 
-units_x86_64=dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur \
+units_x86_64=dbf_collate dbf_common dbf_cursor dbf_dbffile dbf_fields dbf_idxcur \
       dbf_idxfile dbf_lang dbf_memo dbf_parser dbf_pgfile \
       dbf_prscore dbf_prsdef dbf_prssupp dbf_str
 
