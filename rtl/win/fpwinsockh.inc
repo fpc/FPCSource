@@ -167,7 +167,7 @@ const
   SO_DISCOPT      = winsock2.SO_DISCOPT;
   SO_CONNDATALEN  = winsock2.SO_CONNDATALEN;
   SO_CONNOPTLEN   = winsock2.SO_CONNOPTLEN;
-  SO_DISCDATALEN  = winsock2.SO_DISCONDATALEN;
+  SO_DISCDATALEN  = winsock2.SO_DISCDATALEN;
   SO_DISCOPTLEN   = winsock2.SO_DISCOPTLEN;
 
 { Option for opening sockets for synchronous access. }
