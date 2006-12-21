@@ -287,8 +287,6 @@ unit cgcpu;
 
 
     procedure tcgarm.a_call_reg(list : TAsmList;reg: tregister);
-      var
-         r : tregister;
       begin
         list.concat(taicpu.op_reg_reg(A_MOV,NR_R14,NR_PC));
         list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,reg));
@@ -581,7 +579,6 @@ unit cgcpu;
           imm_shift : byte;
           l : tasmlabel;
           hr : treference;
-          tmpreg : tregister;
        begin
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
             internalerror(2002090902);
@@ -623,10 +620,9 @@ unit cgcpu;
 
     function tcgarm.handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference;
       var
-        tmpreg,tmpreg2 : tregister;
+        tmpreg : tregister;
         tmpref : treference;
         l : tasmlabel;
-        so : tshifterop;
       begin
         tmpreg:=NR_NO;
 
@@ -769,8 +765,8 @@ unit cgcpu;
      procedure tcgarm.a_load_reg_ref(list : TAsmList; fromsize, tosize: tcgsize; reg : tregister;const ref : treference);
        var
          oppostfix:toppostfix;
-         usedtmpref,usedtmpref2: treference;
-         tmpreg,tmpreg2 : tregister;
+         usedtmpref: treference;
+         tmpreg : tregister;
          so : tshifterop;
        begin
          case ToSize of
@@ -826,7 +822,7 @@ unit cgcpu;
      procedure tcgarm.a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);
        var
          oppostfix:toppostfix;
-         usedtmpref,usedtmpref2: treference;
+         usedtmpref: treference;
          tmpreg,tmpreg2,tmpreg3 : tregister;
          so : tshifterop;
        begin
@@ -1144,8 +1140,6 @@ unit cgcpu;
 
 
     procedure tcgarm.g_flags2reg(list: TAsmList; size: TCgSize; const f: TResFlags; reg: TRegister);
-      var
-        ai : taicpu;
       begin
         list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,1),flags_to_cond(f)));
         list.concat(setcondition(taicpu.op_reg_const(A_MOV,reg,0),inverse_cond(flags_to_cond(f))));
@@ -1154,12 +1148,10 @@ unit cgcpu;
 
     procedure tcgarm.g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);
       var
-         ref,href : treference;
+         ref : treference;
          shift : byte;
          firstfloatreg,lastfloatreg,
          r : byte;
-         i : aint;
-         again : tasmlabel;
          regs : tcpuregisterset;
       begin
         LocalSize:=align(LocalSize,4);
@@ -1425,19 +1417,17 @@ unit cgcpu;
           end
         else
           begin
-            if tmpref.offset<>0 then
-              begin
-                if tmpref.base<>NR_NO then
-                  a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tmpref.offset,tmpref.base,r)
-                else
-                  a_load_const_reg(list,OS_ADDR,tmpref.offset,r);
-              end
+            if tmpref.base=NR_NO then
+              a_load_const_reg(list,OS_ADDR,tmpref.offset,r)
             else
-              begin
-                instr:=taicpu.op_reg_reg(A_MOV,r,tmpref.base);
-                list.concat(instr);
-                add_move_instruction(instr);
-              end;
+              if tmpref.offset<>0 then
+                a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tmpref.offset,tmpref.base,r)
+              else
+                begin
+                  instr:=taicpu.op_reg_reg(A_MOV,r,tmpref.base);
+                  list.concat(instr);
+                  add_move_instruction(instr);
+                end;
           end;
       end;
 
@@ -1536,11 +1526,10 @@ unit cgcpu;
 
       var
         srcref,dstref,usedtmpref,usedtmpref2:treference;
-        srcreg,destreg,countreg,r,tmpreg,tmpreg2:tregister;
-        helpsize:aword;
+        srcreg,destreg,countreg,r,tmpreg:tregister;
+        helpsize:aint;
         copysize:byte;
         cgsize:Tcgsize;
-        so:tshifterop;
         tmpregisters:array[1..maxtmpreg]of tregister;
         tmpregi,tmpregi2:byte;
 
@@ -1848,9 +1837,7 @@ unit cgcpu;
         end;
 
       var
-        lab : tasmsymbol;
         make_global : boolean;
-        href : treference;
       begin
         if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
           Internalerror(200006137);
@@ -1890,8 +1877,6 @@ unit cgcpu;
 
 
     procedure tcg64farm.a_op64_reg_reg(list : TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst : tregister64);
-      var
-        tmpreg : tregister;
       begin
         case op of
           OP_NEG:
@@ -2057,8 +2042,6 @@ unit cgcpu;
 
 
     procedure tcg64farm.a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);
-      var
-        op1,op2:TAsmOp;
       begin
         ovloc.loc:=LOC_VOID;
         case op of
