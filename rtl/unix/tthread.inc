@@ -82,11 +82,11 @@ begin
     // free ourselves before TThread.Create has finished
     // (since that one may check our VTM in case of $R+, and
     //  will call the AfterConstruction method in all cases)
-    LThread.Suspend;
+//    LThread.Suspend;
     WRITE_DEBUG('AfterConstruction should have been called for ',ptrint(lthread));
     if LThread.FInitialSuspended then
       begin
-        LThread.Suspend;
+        CurrentTM.SemaphoreWait(LThread.FSem);
         if not(LThread.FTerminated) then
           begin
             if not LThread.FSuspended then
@@ -142,7 +142,7 @@ begin
   FSem := CurrentTM.SemaphoreInit();
   if FSem = nil then
     raise EThread.create('Semaphore init failed (possibly too many concurrent threads)');
-  FSuspended := False;
+  FSuspended := CreateSuspended;
   FSuspendedExternal := false;
   FInitialSuspended := CreateSuspended;
   FFatalException := nil;
