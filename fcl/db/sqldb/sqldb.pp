@@ -1273,7 +1273,7 @@ Function TSQLQuery.GetCanModify: Boolean;
 begin
   // the test for assigned(FCursor) is needed for the case that the dataset isn't opened
   if assigned(FCursor) and (FCursor.FStatementType = stSelect) then
-    Result:= Active and  FUpdateable and (not FReadOnly)
+    Result:= FUpdateable and (not FReadOnly)
   else
     Result := False;
 end;
