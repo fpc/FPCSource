@@ -142,7 +142,7 @@ begin
   FSem := CurrentTM.SemaphoreInit();
   if FSem = nil then
     raise EThread.create('Semaphore init failed (possibly too many concurrent threads)');
-  FSuspended := True;
+  FSuspended := False;
   FSuspendedExternal := false;
   FInitialSuspended := CreateSuspended;
   FFatalException := nil;
