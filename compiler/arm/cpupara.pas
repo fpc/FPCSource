@@ -164,7 +164,7 @@ unit cpupara;
           variantdef,
           formaldef,
           recorddef:
-            result:=varspez=vs_const;
+            result:=(varspez=vs_const) or (def.size=0);
           arraydef:
             result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
                              is_open_array(def) or
