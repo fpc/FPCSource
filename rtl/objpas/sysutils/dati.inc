@@ -327,7 +327,9 @@ var
    s1:string[4];
    values:array[1..3] of longint;
    LocalTime:tsystemtime;
+   YearMoreThenTwoDigits : boolean;
 begin
+  YearMoreThenTwoDigits := False;
   df := UpperCase(ShortDateFormat);
   { Determine order of D,M,Y }
   yp:=0;
@@ -375,6 +377,8 @@ begin
         inc(n);
         if n>3 then
          Raise EConvertError.Create('Invalid date format');
+         // Check if the year has more then two digits (if n=yp, then we are evaluating the year.)
+        if (n=yp) and (length(s1)>2) then YearMoreThenTwoDigits := True;
         val(s1, values[n], c);
         if c<>0 then
          Raise EConvertError.Create('Invalid date format');
@@ -412,7 +416,7 @@ begin
         m:=values[1];
       end;
   end;
-  if (y >= 0) and (y < 100) then
+  if (y >= 0) and (y < 100) and not YearMoreThenTwoDigits then
     begin
     ly := ly - TwoDigitYearCenturyWindow;
     Inc(Y, ly div 100 * 100);
