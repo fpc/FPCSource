@@ -135,6 +135,7 @@ const
 type
   sigset_t = array[0..wordsinsigset-1] of cuLong;
   tsigset  = sigset_t;
+  sigset   = sigset_t;
   psigset  = ^tsigset;
 
   psiginfo = ^tsiginfo;
