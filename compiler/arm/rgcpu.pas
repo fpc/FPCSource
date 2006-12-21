@@ -53,7 +53,6 @@ unit rgcpu;
 
     procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
       var
-        helpins: tai;
         tmpref : treference;
         helplist : TAsmList;
         l : tasmlabel;
@@ -86,13 +85,11 @@ unit rgcpu;
             if spilltemp.index<>NR_NO then
               internalerror(200401263);
 
-            helpins:=spilling_create_load(tmpref,tempreg);
-            helplist.concat(helpins);
-            if pos=nil then
-              list.insertlistafter(list.first,helplist)
-            else
-              list.insertlistafter(pos.next,helplist);
+            helplist.concat(spilling_create_load(tmpref,tempreg));
+            if getregtype(tempreg)=R_INTREGISTER then
+              ungetregisterinline(helplist,hreg);
 
+            list.insertlistafter(pos,helplist);
             helplist.free;
           end
         else
@@ -102,7 +99,6 @@ unit rgcpu;
 
     procedure trgcpu.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
       var
-        helpins: tai;
         tmpref : treference;
         helplist : TAsmList;
         l : tasmlabel;
@@ -139,7 +135,8 @@ unit rgcpu;
             if getregtype(tempreg)=R_INTREGISTER then
               ungetregisterinline(helplist,hreg);
 
-            list.insertlistafter(pos,helplist)
+            list.insertlistafter(pos,helplist);
+            helplist.free;
           end
         else
           inherited do_spill_written(list,pos,spilltemp,tempreg);
