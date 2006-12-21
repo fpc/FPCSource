@@ -108,6 +108,7 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefnode;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           function  dogetcopy : tnode;override;
@@ -1123,29 +1124,43 @@ implementation
 
     constructor tcallnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
+        methodpointerinit:=tblocknode(ppuloadnode(ppufile));
+        methodpointer:=ppuloadnode(ppufile);
+        methodpointerdone:=tblocknode(ppuloadnode(ppufile));
+        _funcretnode:=ppuloadnode(ppufile);
         inherited ppuload(t,ppufile);
         ppufile.getderef(symtableprocentryderef);
 {$warning FIXME: No withsymtable support}
         symtableproc:=nil;
         ppufile.getderef(procdefinitionderef);
         ppufile.getsmallset(callnodeflags);
-        methodpointer:=ppuloadnode(ppufile);
-        methodpointerinit:=tblocknode(ppuloadnode(ppufile));
-        methodpointerdone:=tblocknode(ppuloadnode(ppufile));
-        _funcretnode:=ppuloadnode(ppufile);
       end;
 
 
     procedure tcallnode.ppuwrite(ppufile:tcompilerppufile);
       begin
+        ppuwritenode(ppufile,methodpointerinit);
+        ppuwritenode(ppufile,methodpointer);
+        ppuwritenode(ppufile,methodpointerdone);
+        ppuwritenode(ppufile,_funcretnode);
         inherited ppuwrite(ppufile);
         ppufile.putderef(symtableprocentryderef);
         ppufile.putderef(procdefinitionderef);
         ppufile.putsmallset(callnodeflags);
-        ppuwritenode(ppufile,methodpointer);
-        ppuwritenode(ppufile,methodpointerinit);
-        ppuwritenode(ppufile,methodpointerdone);
-        ppuwritenode(ppufile,_funcretnode);
+      end;
+
+
+    procedure tcallnode.derefnode;
+      begin
+        if assigned(methodpointerinit) then
+          methodpointerinit.derefnode;
+        if assigned(methodpointer) then
+          methodpointer.derefnode;
+        if assigned(methodpointerdone) then
+          methodpointerdone.derefnode;
+        if assigned(_funcretnode) then
+          _funcretnode.derefnode;
+        inherited derefnode;
       end;
 
 
