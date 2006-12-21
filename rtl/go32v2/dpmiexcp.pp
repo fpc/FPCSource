@@ -591,11 +591,13 @@ begin
   if (exception_level>0) then
     dec(exception_level);
   asm
+        { copy from longjmp.S }
+        { Adapted to avoid being sensitive to
+          argument being on stack or in registers 2006-12-21 PM }
+        movl    rec,%edi    { get dpmi_jmp_buf }
+        movl    return_value,%eax    { store retval in j->eax }
         { restore compiler shit }
         popl    %ebp
-        { copy from longjmp.S }
-        movl    4(%esp),%edi    { get dpmi_jmp_buf }
-        movl    8(%esp),%eax    { store retval in j->eax }
         movl    %eax,0(%edi)
 
         movw    46(%edi),%fs
