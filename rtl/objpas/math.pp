@@ -2033,7 +2033,7 @@ function IsNan(const d : Double): Boolean;
   var
     fraczero, expMaximal: boolean;
   begin
-{$if defined(FPC_BIG_ENDIAN) or (defined(CPUARM) and defined(FPUFPA))}
+{$if defined(FPC_BIG_ENDIAN) or defined(FPC_DOUBLE_HILO_SWAPPED)}
     expMaximal := ((TSplitDouble(d).cards[0] shr 20) and $7ff) = 2047;
     fraczero:= (TSplitDouble(d).cards[0] and $fffff = 0) and
                 (TSplitDouble(d).cards[1] = 0);
@@ -2050,7 +2050,7 @@ function IsInfinite(const d : Double): Boolean;
   var
     fraczero, expMaximal: boolean;
   begin
-{$if defined(FPC_BIG_ENDIAN) or (defined(CPUARM) and defined(FPUFPA))}
+{$if defined(FPC_BIG_ENDIAN) or defined(FPC_DOUBLE_HILO_SWAPPED)}
     expMaximal := ((TSplitDouble(d).cards[0] shr 20) and $7ff) = 2047;
     fraczero:= (TSplitDouble(d).cards[0] and $fffff = 0) and
                 (TSplitDouble(d).cards[1] = 0);
