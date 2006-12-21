@@ -3933,12 +3933,23 @@ exit_label:
            end;
          repeat
            case c of
-{$ifndef arm}
              // the { ... } is used in ARM assembler to define register sets,  so we can't used
-             // it as comment, either (* ... *), /* ... */ or // ... should be used instead
+             // it as comment, either (* ... *), /* ... */ or // ... should be used instead.
+             // But compiler directives {$...} are allowed in ARM assembler.
              '{' :
-               skipcomment;
+               begin
+{$ifdef arm}
+                 readchar;
+                 dec(inputpointer);
+                 if c<>'$' then
+                   begin
+                     asmgetchar:='{';
+                     exit;
+                   end
+                 else
 {$endif arm}
+                   skipcomment;
+               end;
              #10,#13 :
                begin
                  linebreak;

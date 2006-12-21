@@ -189,20 +189,10 @@ unit raatt;
         while c in [' ',#9] do
          c:=current_scanner.asmgetchar;
         { get token pos }
-{$ifdef arm}
-        if not (c in [#10,#13,';']) then
-          current_scanner.gettokenpos;
-{$else arm}
         if not (c in [#10,#13,'{',';']) then
           current_scanner.gettokenpos;
-{$endif arm}
-
         { Local Label, Label, Directive, Prefix or Opcode }
-{$ifdef arm}
-        if firsttoken and not(c in [#10,#13,';']) then
-{$else arm}
         if firsttoken and not(c in [#10,#13,'{',';']) then
-{$endif arm}
          begin
            firsttoken:=FALSE;
            len:=0;
@@ -610,7 +600,7 @@ unit raatt;
                  c:=current_scanner.asmgetchar;
                  exit;
                end;
-
+               
              '}' :
                begin
                  actasmtoken:=AS_RSBRACKET;
