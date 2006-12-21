@@ -218,8 +218,13 @@ begin
   {$ENDIF}
   WRITE_DEBUG('thread initing, parameter = %d'#13#10, LongInt(LThread));
   try
+    // wait until AfterConstruction has been called, so we cannot
+    // free ourselves before TThread.Create has finished
+    // (since that one may check our VTM in case of $R+, and
+    //  will call the AfterConstruction method in all cases)
+    LThread.Suspend;
     if LThread.FInitialSuspended then begin
-      SemaphoreWait(LThread.FSem);
+       LThread.Suspend;
       if not LThread.FInitialSuspended then begin
         WRITE_DEBUG('going into LThread.Execute'#13#10);
         LThread.Execute;
@@ -261,7 +266,7 @@ begin
   AddThread(self);
   inherited Create;
   FSem := SemaphoreInit;
-  FSuspended :=CreateSuspended;
+  FSuspended := False;
   FSuspendedExternal := false;
   FInitialSuspended := CreateSuspended;
   FFatalException := nil;

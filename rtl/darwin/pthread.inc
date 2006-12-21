@@ -22,6 +22,7 @@
 CONST PTHREAD_EXPLICIT_SCHED       = 0;
       PTHREAD_CREATE_DETACHED      = 1;
       PTHREAD_SCOPE_PROCESS        = 0;
+      SEM_FAILED                   = -1;
 
  TYPE
     ppthread_t           = ^pthread_t;
@@ -63,7 +64,9 @@ function  pthread_cond_wait(_para1:Ppthread_cond_t;_para2:Ppthread_mutex_t):cint
 function pthread_kill(__thread:pthread_t; __signo:cint):cint;cdecl;external 'c';
 
 
-function sem_init(__sem:Psem_t; __pshared:cint;__value:cuint):cint;cdecl; external 'c' name 'sem_init';
+// not yet implemented in Mac OS X 10.4.8!
+// function sem_init(__sem:Psem_t; __pshared:cint;__value:cuint):cint;cdecl; external 'c' name 'sem_init';
+function sem_open(name: pchar; oflag: cint): Psem_t; cdecl; varargs; external 'c' name 'sem_open';
 function sem_destroy(__sem:Psem_t):cint;cdecl;external 'c' name 'sem_destroy';
 function sem_close(__sem:Psem_t):cint;cdecl;external 'c'  name 'sem_close';
 function sem_unlink(__name:Pchar):cint;cdecl;external 'c' name 'sem_unlink';
@@ -76,5 +79,4 @@ function pthread_mutexattr_init(_para1:Ppthread_mutexattr_t):cint;cdecl;external
 function pthread_mutexattr_destroy(_para1:Ppthread_mutexattr_t):cint;cdecl;external 'c' name 'pthread_mutexattr_destroy';
 function pthread_mutexattr_gettype(_para1:Ppthread_mutexattr_t; _para2:Pcint):cint;cdecl;external 'c' name 'pthread_mutexattr_gettype';
 function pthread_mutexattr_settype(_para1:Ppthread_mutexattr_t; _para2:cint):cint;cdecl;external 'c' name 'pthread_mutexattr_settype';
-function pthread_cond_timedwait(__cond:ppthread_cond_t; __mutex:ppthread_mutex_t; __abstime:ptimespec):cint; cdecl;external 'c' name 'pthread_cond_timedwait'; 
-
+function pthread_cond_timedwait(__cond:ppthread_cond_t; __mutex:ppthread_mutex_t; __abstime:ptimespec):cint; cdecl;external 'c' name 'pthread_cond_timedwait';

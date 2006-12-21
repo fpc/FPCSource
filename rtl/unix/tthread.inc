@@ -1,8 +1,10 @@
 {
-    This file is part of the Free Component Library (FCL)
+    This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Peter Vreman
+    Copyright (c) 2006 by Jonas Maebe
+    members of the Free Pascal development team.
 
-    Darwin TThread implementation
+    Generic *nix TThread implementation
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -12,6 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
 
 
 {
@@ -31,25 +34,6 @@
   let it wait on the semaphore until it is unblocked by someone else
   who calls .Resume.
 
-  If a thread is supposed to be suspended (from outside its own path of
-  execution) on a system where the symbol LINUX is defined, two things
-  are possible.
-  1) the system has the LinuxThreads pthread implementation
-  2) the system has NPTL as the pthread implementation.
-
-  In the first case, each thread is a process on its own, which as far as
-  know actually violates posix with respect to signal handling.
-  But we can detect this case, because getpid(2) will
-  return a different PID for each thread. In that case, sending SIGSTOP
-  to the PID associated with a thread will actually stop that thread
-  only.
-  In the second case, this is not possible. But getpid(2) returns the same
-  PID across all threads, which is detected, and TThread.Suspend() does
-  nothing in that case. This should probably be changed, but I know of
-  no way to suspend a thread when using NPTL.
-
-  If the symbol LINUX is not defined, then the unimplemented
-  function SuspendThread is called.
 
   Johannes Berg <johannes@sipsolutions.de>, Sunday, November 16 2003
 }
@@ -73,10 +57,12 @@ const
 
 procedure InitThreads;
 begin
-  if not ThreadsInited then begin
+  { This is not thread safe, but it doesn't matter if this is executed }
+  { multiple times. Conversely, if one thread goes by this without the }
+  { operation having been finished by another thread already, it will  }
+  { use an uninitialised thread manager -> leave as it is              }
+  if not ThreadsInited then
     GetThreadManager(CurrentTM);
-    ThreadsInited := true;
-  end;
 end;
 
 procedure DoneThreads;
@@ -92,9 +78,15 @@ begin
   LThread := TThread(parameter);
   WRITE_DEBUG('thread initing, parameter = ', LongInt(LThread));
   try
+    // wait until AfterConstruction has been called, so we cannot
+    // free ourselves before TThread.Create has finished
+    // (since that one may check our VTM in case of $R+, and
+    //  will call the AfterConstruction method in all cases)
+    LThread.Suspend;
+    WRITE_DEBUG('AfterConstruction should have been called for ',ptrint(lthread));
     if LThread.FInitialSuspended then
       begin
-        CurrentTM.SemaphoreWait(LThread.FSem);
+        LThread.Suspend;
         if not(LThread.FTerminated) then
           begin
             if not LThread.FSuspended then
@@ -113,7 +105,7 @@ begin
   except
     on e: exception do begin
       WRITE_DEBUG('got exception: ',e.message);
-      LThread.FFatalException :=  TObject(AcquireExceptionObject);
+      LThread.FFatalException := TObject(AcquireExceptionObject);
       // not sure if we should really do this...
       // but .Destroy was called, so why not try FreeOnTerminate?
       if e is EThreadDestroyCalled then LThread.FFreeOnTerminate := true;
@@ -124,14 +116,19 @@ begin
   WRITE_DEBUG('Result is ',Result);
   LThread.FFinished := True;
   LThread.DoTerminate;
-  if LThread.FreeOnTerminate then begin
-    WRITE_DEBUG('Thread should be freed');
-    LThread.Free;
-    WRITE_DEBUG('Thread freed');
+  if LThread.FreeOnTerminate then
+    begin
+      WRITE_DEBUG('Thread ',ptrint(lthread),' should be freed');
+      LThread.Free;
+      WRITE_DEBUG('Thread freed');
 //    tthread.destroy already frees all things and terminates the thread
 //    WRITE_DEBUG('thread func calling EndThread');
 //    EndThread(Result);
-  end;
+    end
+  else
+    begin
+      FlushThread;
+    end;
 end;
 
 { TThread }
@@ -143,35 +140,49 @@ begin
   InitThreads;
   inherited Create;
   FSem := CurrentTM.SemaphoreInit();
-  FSuspended := CreateSuspended;
+  if FSem = nil then
+    raise EThread.create('Semaphore init failed (possibly too many concurrent threads)');
+  FSuspended := True;
   FSuspendedExternal := false;
   FInitialSuspended := CreateSuspended;
   FFatalException := nil;
   WRITE_DEBUG('creating thread, self = ',longint(self));
   FHandle:= BeginThread(@ThreadFunc, Pointer(Self), FThreadID, StackSize);
-  WRITE_DEBUG('TThread.Create done');
+  if FHandle = TThreadID(0) then
+    raise EThread.create('Failed to create new thread');
+  WRITE_DEBUG('TThread.Create done, fhandle = ', ptrint(fhandle));
 end;
 
 
 destructor TThread.Destroy;
 begin
-  if (FThreadID = GetCurrentThreadID) and not(FFreeOnTerminate) and not ffinished then begin
+  if (FSem = nil) then
+    { exception in constructor }
+    begin
+      inherited destroy;
+      exit;
+    end;
+  CurrentTM.SemaphoreDestroy(FSem);
+  if (FHandle = TThreadID(0)) then
+  { another exception in constructor }
+    begin
+      inherited destroy;
+      exit;
+    end;
+  if (FThreadID = GetCurrentThreadID) and not(FFreeOnTerminate) and not FFinished then
     raise EThreadDestroyCalled.Create('A thread cannot destroy itself except by setting FreeOnTerminate and leaving!');
-  end;
   // if someone calls .Free on a thread with
   // FreeOnTerminate, then don't crash!
   FFreeOnTerminate := false;
-  if (FInitialSuspended) then
-    // thread was created suspended but never woken up.
-    Resume;
-  if not FFinished and not FSuspended then
+  if not FFinished then
     begin
       Terminate;
+      if (FInitialSuspended) then
+        Resume;
       WaitFor;
     end;
   FFatalException.Free;
   FFatalException := nil;
-  CurrentTM.SemaphoreDestroy(FSem);
   { threadvars have been released by cthreads.ThreadMain -> DoneThread }
   inherited Destroy;
 end;
@@ -201,15 +212,20 @@ end;
 
 procedure TThread.Resume;
 begin
-  if (not FSuspendedExternal) then begin
-    if FSuspended then begin
-      FSuspended := False;
-      CurrentTM.SemaphorePost(FSem);
+  if (not FSuspendedExternal) then
+    begin
+      if FSuspended then
+        begin
+          WRITE_DEBUG('resuming ',ptrint(self));
+          FSuspended := False;
+          CurrentTM.SemaphorePost(FSem);
+        end;
+    end
+  else
+    begin
+      FSuspendedExternal := false;
+      ResumeThread(FHandle);
     end;
-  end else begin
-    FSuspendedExternal := false;
-    ResumeThread(FHandle);
-  end;
 end;
 
 
@@ -255,4 +271,3 @@ procedure TThread.SetPriority(Value: TThreadPriority);
 begin
   ThreadSetPriority(FHandle, Priorities[Value]);
 end;
-

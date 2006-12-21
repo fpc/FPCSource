@@ -79,7 +79,7 @@ begin
   Result:=CurrentTM.BeginThread(sa,stacksize,threadfunction,P,creationflags,ThreadID);
 end;
 
-procedure EndThread(ExitCode : DWord);
+procedure FlushThread;
 
 begin
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
@@ -89,6 +89,12 @@ begin
   Flush(StdOut);
   Flush(StdErr);
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
+end;
+
+procedure EndThread(ExitCode : DWord);
+
+begin
+  FlushThread;
   CurrentTM.EndThread(ExitCode);
 end;
 

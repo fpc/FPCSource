@@ -18,6 +18,24 @@
 {$define dynpthreads} // Useless on BSD, since they are in libc
 {$endif}
 
+
+{ sem_init is best, since it does not consume any file descriptors.    }
+{ sem_open is second best, since it consumes only one file descriptor  }
+{ per semaphore.                                                       }
+{ If neither is available, pipe is used as fallback, which consumes 2  }
+{ file descriptors per semaphore.                                      }
+
+{ Darwin doesn't support nameless semaphores in at least }
+{ Mac OS X 10.4.8/Darwin 8.8                             }
+{$ifndef darwin}
+{$define has_sem_init}
+{$define has_sem_getvalue}
+{$else }
+{$ifdef darwin}
+{$define has_sem_open}
+{$endif}
+{$endif}
+
 unit cthreads;
 interface
 {$S-}
@@ -213,10 +231,10 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       { Initialize multithreading if not done }
       if not IsMultiThread then
         begin
-          if (InterLockedExchange(longint(IsMultiThread),1) = 0) then
+          if (InterLockedExchange(longint(IsMultiThread),ord(true)) = 0) then
             begin
               { We're still running in single thread mode, setup the TLS }
-               pthread_key_create(@TLSKey,nil);
+              pthread_key_create(@TLSKey,nil);
               InitThreadVars(@CRelocateThreadvar);
             end
         end;
@@ -239,9 +257,11 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       // don't create detached, we need to be able to join (waitfor) on
       // the newly created thread!
       //pthread_attr_setdetachstate(@thread_attr, PTHREAD_CREATE_DETACHED);
-      if pthread_create(ppthread_t(@threadid), @thread_attr, @ThreadMain,ti) <> 0 then begin
-        threadid := TThreadID(0);
-      end;
+      if pthread_create(ppthread_t(@threadid), @thread_attr, @ThreadMain,ti) <> 0 then
+        begin
+          dispose(ti);
+          threadid := TThreadID(0);
+        end;
       CBeginThread:=threadid;
 {$ifdef DEBUG_MT}
       writeln('BeginThread returning ',ptrint(CBeginThread));
@@ -367,6 +387,130 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
 
 {*****************************************************************************
+                           Semaphore routines
+*****************************************************************************}
+  
+
+procedure cSemaphoreWait(const FSem: Pointer);
+var
+  res: cint;
+  err: cint;
+{$if not defined(has_sem_init) and not defined(has_sem_open)}
+  b: byte;
+{$endif}
+begin
+{$if defined(has_sem_init) or defined(has_sem_open)}
+  repeat
+    res:=sem_wait(PSemaphore(FSem));
+    err:=fpgeterrno;
+  until (res<>-1) or (err<>ESysEINTR);
+{$else}
+  repeat
+    res:=fpread(PFilDes(FSem)^[0], b, 1);
+    err:=fpgeterrno;
+  until (res<>-1) or ((err<>ESysEINTR) and (err<>ESysEAgain));
+{$endif}
+end;
+
+procedure cSemaphorePost(const FSem: Pointer);
+{$if defined(has_sem_init) or defined(has_sem_open)}
+begin
+  sem_post(PSemaphore(FSem));
+end;
+{$else}
+var
+  writeres: cint;
+  err: cint;
+  b : byte;
+begin
+  b:=0;
+  repeat
+    writeres:=fpwrite(PFilDes(FSem)^[1], b, 1);
+    err:=fpgeterrno;
+  until (writeres<>-1) or ((err<>ESysEINTR) and (err<>ESysEAgain));
+end;
+{$endif}
+
+
+{$if defined(has_sem_open) and not defined(has_sem_init)}
+function cIntSemaphoreOpen(const name: pchar; initvalue: boolean): Pointer;
+var
+  err: cint;
+begin
+  repeat
+    cIntSemaphoreOpen := sem_open(name,O_CREAT,0,ord(initvalue));
+    err:=fpgeterrno;
+  until (ptrint(cIntSemaphoreOpen) <> SEM_FAILED) or (err <> ESysEINTR);
+  if (ptrint(cIntSemaphoreOpen) <> SEM_FAILED) then
+    { immediately unlink so the semaphore will be destroyed when the }
+    { the process exits                                              }
+    sem_unlink(name)
+  else
+    cIntSemaphoreOpen:=NIL;
+end;
+{$endif}
+
+
+function cIntSemaphoreInit(initvalue: boolean): Pointer;
+{$if defined(has_sem_open) and not defined(has_sem_init)}
+var
+  tid: string[31];
+  semname: string[63];
+  err: cint;
+{$endif}
+begin
+{$ifdef has_sem_init}
+  cIntSemaphoreInit := GetMem(SizeOf(TSemaphore));
+  if sem_init(PSemaphore(cIntSemaphoreInit), 0, ord(initvalue)) <> 0 then
+    begin
+      FreeMem(cIntSemaphoreInit);
+      cIntSemaphoreInit:=NIL;
+    end;
+{$else}
+{$ifdef has_sem_open}
+  { avoid a potential temporary nameclash with another process/thread }
+  str(fpGetPid,semname);
+  str(ptruint(pthread_self),tid);
+  semname:='/FPC'+semname+'T'+tid+#0;
+  cIntSemaphoreInit:=cIntSemaphoreOpen(@semname[1],initvalue);
+{$else}
+  cIntSemaphoreInit := GetMem(SizeOf(TFilDes));
+  if (fppipe(PFilDes(cIntSemaphoreInit)^) <> 0) then
+    begin
+      FreeMem(cIntSemaphoreInit);
+      cIntSemaphoreInit:=nil;
+    end
+  else if initvalue then
+    cSemaphorePost(cIntSemaphoreInit);
+{$endif}
+{$endif}
+end;
+
+
+function cSemaphoreInit: Pointer;
+begin
+  cSemaphoreInit:=cIntSemaphoreInit(false);
+end;
+
+
+procedure cSemaphoreDestroy(const FSem: Pointer);
+begin
+{$ifdef has_sem_init}
+  sem_destroy(PSemaphore(FSem));
+  FreeMem(FSem);
+{$else}
+{$ifdef has_sem_open}
+  sem_close(PSemaphore(FSem));
+{$else has_sem_init}
+  fpclose(PFilDes(FSem)^[0]);
+  fpclose(PFilDes(FSem)^[1]);
+  FreeMem(FSem);
+{$endif}
+{$endif}
+end;
+
+
+{*****************************************************************************
                            Heap Mutex Protection
 *****************************************************************************}
 
@@ -411,8 +555,8 @@ type
      TPthreadMutex = pthread_mutex_t;
      Tbasiceventstate=record
          FSem: Pointer;
-         FManualReset: Boolean;
          FEventSection: TPthreadMutex;
+         FManualReset: Boolean;
         end;
      plocaleventstate = ^tbasiceventstate;
 //     peventstate=pointer;
@@ -428,12 +572,35 @@ function IntBasicEventCreate(EventAttributes : Pointer; AManualReset,InitialStat
 var
   MAttr : pthread_mutexattr_t;
   res   : cint;
-
-
 begin
   new(plocaleventstate(result));
   plocaleventstate(result)^.FManualReset:=AManualReset;
-  plocaleventstate(result)^.FSem:=New(PSemaphore);  //sem_t.
+{$ifdef has_sem_init}
+  plocaleventstate(result)^.FSem:=cIntSemaphoreInit(true);
+  if plocaleventstate(result)^.FSem=nil then
+    begin
+      FreeMem(result);
+      runerror(6);
+    end;
+{$else}
+{$ifdef has_sem_open}
+  plocaleventstate(result)^.FSem:=cIntSemaphoreOpen(PChar(Name),InitialState);
+  if (plocaleventstate(result)^.FSem = NIL) then
+    begin
+      FreeMem(result);
+      runerror(6);
+    end;
+{$else}
+  plocaleventstate(result)^.FSem:=cSemaphoreInit;
+  if (plocaleventstate(result)^.FSem = NIL) then
+    begin
+      FreeMem(result);
+      runerror(6);
+    end;
+  if InitialState then
+    cSemaphorePost(plocaleventstate(result)^.FSem);
+{$endif}
+{$endif}
 //  plocaleventstate(result)^.feventsection:=nil;
   res:=pthread_mutexattr_init(@MAttr);
   if res=0 then
@@ -448,35 +615,93 @@ begin
     res:=pthread_mutex_init(@plocaleventstate(result)^.feventsection,nil);
   pthread_mutexattr_destroy(@MAttr);
   if res <> 0 then
-    runerror(6);
-  if sem_init(psem_t(plocaleventstate(result)^.FSem),ord(False),Ord(InitialState)) <> 0 then
-    runerror(6);
+    begin
+      cSemaphoreDestroy(plocaleventstate(result)^.FSem);
+      FreeMem(result);
+      runerror(6);
+    end;
 end;
 
 procedure Intbasiceventdestroy(state:peventstate);
 
 begin
-  sem_destroy(psem_t(  plocaleventstate(state)^.FSem));
+  cSemaphoreDestroy(plocaleventstate(state)^.FSem);
+  FreeMem(state);
 end;
 
 procedure IntbasiceventResetEvent(state:peventstate);
 
+{$if defined(has_sem_init) or defined(has_sem_open)}
+var
+  res: cint;
+  err: cint;
 begin
-  While sem_trywait(psem_t( plocaleventstate(state)^.FSem))=0 do
-    ;
+  repeat
+    res:=sem_trywait(psem_t(plocaleventstate(state)^.FSem));
+    err:=fpgeterrno;
+  until (res<>0) and ((res<>-1) or (err<>ESysEINTR));
+{$else has_sem_init or has_sem_open}
+var
+  fds: TFDSet;
+  tv : timeval;
+begin
+  tv.tv_sec:=0;
+  tv.tv_usec:=0;
+  fpFD_ZERO(fds);
+  fpFD_SET(PFilDes(plocaleventstate(state)^.FSem)^[0],fds);
+  pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
+  Try
+    while fpselect(PFilDes(plocaleventstate(state)^.FSem)^[0],@fds,nil,nil,@tv) > 0 do
+      cSemaphoreWait(plocaleventstate(state)^.FSem);
+  finally
+    pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
+  end;
+{$endif has_sem_init or has_sem_open}
 end;
 
 procedure IntbasiceventSetEvent(state:peventstate);
 
 Var
+{$if defined(has_sem_init) or defined(has_sem_open)}
   Value : Longint;
-
+  res : cint;
+  err : cint;
+{$else}
+  fds: TFDSet;
+  tv : timeval;
+{$endif}
 begin
   pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
   Try
-    sem_getvalue(plocaleventstate(state)^.FSem,@value);
-    if Value=0 then
-      sem_post(psem_t( plocaleventstate(state)^.FSem));
+{$if defined(has_sem_init) or defined(has_sem_open)}
+    if (sem_getvalue(plocaleventstate(state)^.FSem,@value) <> -1) then
+      begin
+        if Value=0 then
+          cSemaphorePost(plocaleventstate(state)^.FSem);
+      end
+    else if (fpgeterrno = ESysENOSYS) then
+      { not yet implemented on Mac OS X 10.4.8 }
+      begin
+        repeat
+          res:=sem_trywait(psem_t(plocaleventstate(state)^.FSem));
+          err:=fpgeterrno;
+        until ((res<>-1) or (err<>ESysEINTR));
+        { now we've either decreased the semaphore by 1 (if it was  }
+        { not zero), or we've done nothing (if it was already zero) }
+        { -> increase by 1 and we have the same result as           }
+        { increasing by 1 only if it was 0                          }
+        cSemaphorePost(plocaleventstate(state)^.FSem);
+      end
+    else
+      runerror(6);
+{$else has_sem_init or has_sem_open}
+    tv.tv_sec:=0;
+    tv.tv_usec:=0;
+    fpFD_ZERO(fds);
+    fpFD_SET(PFilDes(plocaleventstate(state)^.FSem)^[0],fds);
+    if fpselect(PFilDes(plocaleventstate(state)^.FSem)^[0],@fds,nil,nil,@tv)=0 then
+      cSemaphorePost(plocaleventstate(state)^.FSem);
+{$endif has_sem_init or has_sem_open}
   finally
     pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
   end;
@@ -489,16 +714,16 @@ begin
     result:=wrError
   else
     begin
-      sem_wait(psem_t(plocaleventstate(state)^.FSem));
+      cSemaphoreWait(plocaleventstate(state)^.FSem);
       result:=wrSignaled;
       if plocaleventstate(state)^.FManualReset then
         begin
           pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
           Try
-              intbasiceventresetevent(State);
-              sem_post(psem_t( plocaleventstate(state)^.FSem));
-            Finally
-          pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
+            intbasiceventresetevent(State);
+            cSemaphorePost(plocaleventstate(state)^.FSem);
+          Finally
+            pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
         end;
       end;
     end;
@@ -582,36 +807,7 @@ procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
     if (errres=0) or (errres=ESysETIMEDOUT) then
       pthread_mutex_unlock(@p^.mutex);
   end;
-  
-function cSemaphoreInit: Pointer;
-var
-  s: PSemaphore;
-begin
-  GetMem(s, SizeOf(TSemaphore));
-  if sem_init(s, 0, 0) = 0 then
-    cSemaphoreInit:=s
-  else
-    cSemaphoreInit:=nil;
-end;
 
-procedure cSemaphoreWait(const FSem: Pointer);
-begin
-  sem_wait(PSemaphore(FSem));
-end;
-
-procedure cSemaphorePost(const FSem: Pointer);
-begin
-  sem_post(PSemaphore(FSem));
-end;
-
-procedure cSemaphoreDestroy(const FSem: Pointer);
-var
-  s: PSemaphore;
-begin
-  s:=FSem;
-  sem_destroy(PSemaphore(FSem));
-  FreeMem(s);
-end;
 
 type
   threadmethod = procedure of object;

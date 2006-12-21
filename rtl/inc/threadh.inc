@@ -129,6 +129,7 @@ procedure EndThread(ExitCode : DWord);
 procedure EndThread;
 
 {some thread support functions}
+procedure FlushThread;
 function  SuspendThread (threadHandle : TThreadID) : dword;
 function  ResumeThread  (threadHandle : TThreadID) : dword;
 procedure ThreadSwitch;                                                                {give time to other threads}
