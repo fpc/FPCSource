@@ -6750,8 +6750,8 @@ tests/test/units/system/trdtxt01.pp svneol=native#text/plain
 tests/test/units/system/trdtxt02.pp svneol=native#text/plain
 tests/test/units/system/trdtxt03.pp svneol=native#text/plain
 tests/test/units/system/tres.pp -text
-tests/test/units/system/tres1.RES -text
 tests/test/units/system/tres1.rc -text
+tests/test/units/system/tres1.res -text
 tests/test/units/system/tres1.txt -text
 tests/test/units/system/tres2.txt -text
 tests/test/units/system/tround.pp svneol=native#text/plain
