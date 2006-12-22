@@ -87,9 +87,9 @@ ESysENOCSI      = 43;   { No CSI structure available }
 ESysEL2HLT      = 44;   { Level 2 halted }
 ESysEDEADLK     = 45;   { Resource deadlock would occur }
 ESysENOLCK      = 46;   { No record locks available }
-ESysECANCELED   = 47;
-ESysENOTSUP     = 48;
-ESysEDQUOT      = 49;
+ESysECANCELED   = 47;   { Operation canceled }
+ESysENOTSUP     = 48;   { Operation not supported }
+ESysEDQUOT      = 49;   { Quota exceeded }
 ESysEBADE       = 50;   { Invalid exchange }
 ESysEBADR       = 51;   { Invalid request descriptor }
 ESysEXFULL      = 52;   { Exchange full }
@@ -117,7 +117,7 @@ ESysENOTACTIVE  = 73;
 ESysEMULTIHOP   = 74;   { Multihop attempted }
 ESysEBADMSG     = 77;   { Not a data message }
 
-ESysENAMETOOLONG= 78;
+ESysENAMETOOLONG= 78;   { File name too long }
 ESysEOVERFLOW   = 79;   { Value too large for defined data type }
 ESysENOTUNIQ    = 80;   { Name not unique on network }
 ESysEBADFD      = 81;   { File descriptor in bad state }
@@ -128,6 +128,7 @@ ESysELIBSCN     = 85;   { .lib section in a.out corrupted }
 ESysELIBMAX     = 86;   { Attempting to link in too many shared libraries }
 ESysELIBEXEC    = 87;   { Cannot exec a shared library directly }
 ESysEILSEQ      = 88;   { Illegal byte sequence }
+ESysENOSYS      = 89    { Unsupported file system operation }
 ESysELOOP       = 90;   { Too many symbolic links encountered }
 ESysERESTART    = 91;   { Interrupted system call should be restarted }
 ESysESTRPIPE    = 92;   { Streams pipe error }
@@ -166,14 +167,11 @@ ESysESTALE      = 151;  { Stale NFS file handle }
 
 
 (* Linux Errors not supported in Solaris:
-ESysENAMETOOLONG= 36;   { File name too long }
-ESysENOSYS      = 38;   { Function not implemented }
 ESysEDOTDOT     = 73;   { RFS specific error }
 ESysEUCLEAN     = 117;  { Structure needs cleaning }
 ESysENOTNAM     = 118;  { Not a XENIX named type file }
 ESysENAVAIL     = 119;  { No XENIX semaphores available }
 ESysEISNAM      = 120;  { Is a named type file }
 ESysEREMOTEIO   = 121;  { Remote I/O error }
-ESysEDQUOT      = 122;  { Quota exceeded }
 *)
 
