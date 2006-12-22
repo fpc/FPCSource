@@ -162,10 +162,10 @@ begin
       inherited destroy;
       exit;
     end;
-  CurrentTM.SemaphoreDestroy(FSem);
   if (FHandle = TThreadID(0)) then
   { another exception in constructor }
     begin
+      CurrentTM.SemaphoreDestroy(FSem);
       inherited destroy;
       exit;
     end;
@@ -181,6 +181,7 @@ begin
         Resume;
       WaitFor;
     end;
+  CurrentTM.SemaphoreDestroy(FSem);
   FFatalException.Free;
   FFatalException := nil;
   { threadvars have been released by cthreads.ThreadMain -> DoneThread }
