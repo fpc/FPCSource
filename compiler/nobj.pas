@@ -330,12 +330,7 @@ implementation
                            end;
 
                         { error, if the return types aren't equal }
-                        if not(equal_defs(procdefcoll^.data.returndef,pd.returndef)) and
-                           not((procdefcoll^.data.returndef.typ=objectdef) and
-                            (pd.returndef.typ=objectdef) and
-                            is_class_or_interface(procdefcoll^.data.returndef) and
-                            is_class_or_interface(pd.returndef) and
-                            (tobjectdef(pd.returndef).is_related(tobjectdef(procdefcoll^.data.returndef)))) then
+                        if not compatible_childmethod_resultdef(procdefcoll^.data.returndef,pd.returndef) then
                           begin
                             if not((m_delphi in current_settings.modeswitches) and
                                    is_interface(_class)) then
@@ -514,7 +509,13 @@ implementation
                   implprocdef:=intf_search_procdef_by_name(tprocdef(def),tprocdef(def).procsym.name);
                 { Add procdef to the implemented interface }
                 if assigned(implprocdef) then
-                  ImplIntf.AddImplProc(implprocdef)
+                  begin
+                    if (compare_paras(tprocdef(def).paras,implprocdef.paras,cp_all,[cpo_ignorehidden,cpo_comparedefaultvalue])<te_equal) or
+                       not compatible_childmethod_resultdef(tprocdef(def).returndef,implprocdef.returndef) then
+                      MessagePos1(tprocdef(implprocdef).fileinfo,parser_e_header_dont_match_forward,
+                                  tprocdef(def).fullprocname(false));
+                    ImplIntf.AddImplProc(implprocdef)
+                  end
                 else
                   if ImplIntf.IntfDef.iitype = etStandard then
                     Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));

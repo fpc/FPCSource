@@ -6979,12 +6979,15 @@ tests/webtbf/tw4893d.pp svneol=native#text/plain
 tests/webtbf/tw4893e.pp svneol=native#text/plain
 tests/webtbf/tw4911.pp svneol=native#text/plain
 tests/webtbf/tw4913.pp -text
+tests/webtbf/tw6631.pp svneol=native#text/plain
 tests/webtbf/tw6686.pp svneol=native#text/plain
 tests/webtbf/tw6796.pp svneol=native#text/plain
 tests/webtbf/tw6922.pp svneol=native#text/plain
 tests/webtbf/tw6970.pp svneol=native#text/plain
+tests/webtbf/tw7322.pp svneol=native#text/plain
 tests/webtbf/tw7438.pp svneol=native#text/plain
 tests/webtbf/tw7438a.pp svneol=native#text/plain
+tests/webtbf/tw7989.pp svneol=native#text/plain
 tests/webtbf/uw0744.pp svneol=native#text/plain
 tests/webtbf/uw0840a.pp svneol=native#text/plain
 tests/webtbf/uw0840b.pp svneol=native#text/plain

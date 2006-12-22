@@ -116,6 +116,13 @@ interface
     { used to test compatibility between two pprocvardefs (JM)               }
     function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef):tequaltype;
 
+    { Parentdef is the definition of a method defined in a parent class or interface }
+    { Childdef is the definition of a method defined in a child class, interface or  }
+    { a class implementing an interface with parentdef.                              }
+    { Returns true if the resultdef of childdef can be used to implement/override    }
+    { parentdef's resultdef                                                          }
+    function compatible_childmethod_resultdef(parentretdef, childretdef: tdef): boolean;
+
 
 implementation
 
@@ -1541,5 +1548,18 @@ implementation
             proc_to_procvar_equal:=eq;
           end;
       end;
+
+
+    function compatible_childmethod_resultdef(parentretdef, childretdef: tdef): boolean;
+      begin
+        compatible_childmethod_resultdef :=
+          (equal_defs(parentretdef,childretdef)) or
+          ((parentretdef.typ=objectdef) and
+           (childretdef.typ=objectdef) and
+           is_class_or_interface(parentretdef) and
+           is_class_or_interface(childretdef) and
+           (tobjectdef(childretdef).is_related(tobjectdef(parentretdef))))
+      end;
+
 
 end.
