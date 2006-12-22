@@ -70,7 +70,7 @@ begin
   ThreadsInited := false;
 end;
 
-function ThreadFunc(parameter: Pointer): LongInt;
+function ThreadFunc(parameter: Pointer): ptrint;
 var
   LThread: TThread;
 begin
