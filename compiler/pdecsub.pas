@@ -2457,7 +2457,6 @@ const
                      also the parameters must match also with the type }
                    if (fwpd.proctypeoption<>currpd.proctypeoption) or
                       (
-                       (m_repeat_forward in current_settings.modeswitches) and
                        (not((currpd.maxparacount=0) or
                             (compare_paras(currpd.paras,fwpd.paras,cp_all,[cpo_comparedefaultvalue])>=te_equal)))
                       ) or
