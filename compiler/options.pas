@@ -733,6 +733,8 @@ begin
                else
                 begin
                   include(init_settings.moduleswitches,cs_debuginfo);
+                  if paratargetdbg=dbg_none then
+                    paratargetdbg:=dbg_stabs;
                 end;
                if not RelocSectionSetExplicitly then
                  RelocSection:=false;
