@@ -5459,6 +5459,8 @@ tests/MPWMake -text
 tests/Makefile svneol=native#text/plain
 tests/Makefile.fpc svneol=native#text/plain
 tests/bench/ansibench.pp -text
+tests/bench/blists1.inc svneol=native#text/plain
+tests/bench/blists1.pp svneol=native#text/plain
 tests/bench/dmisc.pas svneol=native#text/plain
 tests/bench/drystone.pas svneol=native#text/plain
 tests/bench/pi.c -text
