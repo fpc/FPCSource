@@ -67,7 +67,7 @@ var
   c: dword;
 begin
   c:=_controlfp(0, 0);
-  if c and _PC_64 <> 0 then
+  if c and _MCW_PC = _PC_64 then
     Result:=pmDouble
   else
     Result:=pmSingle;
@@ -77,15 +77,12 @@ function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode
 var
   c: dword;
 begin
+  Result:=GetPrecisionMode;
   if Precision = pmSingle then
-    c:=_PC_53
+    c:=_PC_24
   else
     c:=_PC_64;
-  c:=_controlfp(c, _MCW_PC);
-  if c and _PC_64 <> 0 then
-    Result:=pmDouble
-  else
-    Result:=pmSingle;
+  _controlfp(c, _MCW_PC);
 end;
 
 function ConvertExceptionMask(em: dword): TFPUExceptionMask;
