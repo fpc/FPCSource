@@ -34,6 +34,7 @@ dirs_openbsd=web lnet
 dirs_linux=web lnet
 dirs_win32=web lnet
 dirs_win64=web lnet
+dirs_wince=lnet
 dirs_os2=lnet
 dirs_netware=lnet
 dirs_netwlibc=lnet
