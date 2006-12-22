@@ -139,6 +139,7 @@ implementation
         source  : tcallparanode;
         procname: string;
         is_real : boolean;
+        rt : aint;
 
       begin
         result := cerrornode.create;
@@ -169,7 +170,7 @@ implementation
             exit;
           end;
 
-        is_real := source.resultdef.typ = floatdef;
+        is_real := (source.resultdef.typ = floatdef) or is_currency(source.resultdef);
 
         if ((dest.left.resultdef.typ<>stringdef) and
             not(is_chararray(dest.left.resultdef))) or
@@ -221,9 +222,12 @@ implementation
         if is_real then
           begin
             { insert realtype parameter }
+            if source.resultdef.typ = floatdef then
+              rt:=ord(tfloatdef(source.left.resultdef).floattype)
+            else
+              rt:=ord(tfloatdef(pbestrealtype^).floattype);
             newparas.right := ccallparanode.create(cordconstnode.create(
-              ord(tfloatdef(source.left.resultdef).floattype),s32inttype,true),
-               newparas.right);
+              rt,s32inttype,true),newparas.right);
             { if necessary, insert a fraction parameter }
             if not assigned(fracpara) then
               begin
