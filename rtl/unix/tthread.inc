@@ -198,34 +198,34 @@ end;
 
 procedure TThread.Suspend;
 begin
-  if not FSuspended then begin
-    if FThreadID = GetCurrentThreadID then begin
-      FSuspended := true;
-      CurrentTM.SemaphoreWait(FSem);
-    end else begin
-      FSuspendedExternal := true;
-      SuspendThread(FHandle);
+  if not FSuspended and
+     (InterLockedExchange(longint(FSuspended),ord(true)) = ord(false)) then
+    begin
+      if FThreadID = GetCurrentThreadID then
+        CurrentTM.SemaphoreWait(FSem)
+      else
+        begin
+          FSuspendedExternal := true;
+          SuspendThread(FHandle);
+        end;
     end;
-  end;
 end;
 
 
 procedure TThread.Resume;
 begin
-  if (not FSuspendedExternal) then
-    begin
-      if FSuspended then
-        begin
-          WRITE_DEBUG('resuming ',ptrint(self));
-          FSuspended := False;
-          CurrentTM.SemaphorePost(FSem);
-        end;
-    end
-  else
-    begin
-      FSuspendedExternal := false;
-      ResumeThread(FHandle);
-    end;
+  if FSuspended and
+     (InterLockedExchange(longint(FSuspended),ord(false)) = ord(true)) then
+    if (not FSuspendedExternal) then
+      begin
+        WRITE_DEBUG('resuming ',ptrint(self));
+        CurrentTM.SemaphorePost(FSem);
+      end
+    else
+      begin
+        FSuspendedExternal := false;
+        ResumeThread(FHandle);
+      end;
 end;
 
 
