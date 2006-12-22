@@ -95,7 +95,7 @@ procedure TSqlite3Dataset.InternalInitFieldDefs;
 var
   vm:Pointer;
   ColumnStr:String;
-  i,FieldSize:Integer;
+  i,ColumnCount,FieldSize:Integer;
   AType:TFieldType;
 begin
   {$ifdef DEBUG}
@@ -105,7 +105,12 @@ begin
   FieldDefs.Clear;
   sqlite3_prepare(FSqliteHandle,PChar(FSql),-1,@vm,nil);
   sqlite3_step(vm);
-  for i:= 0 to sqlite3_column_count(vm) - 1 do
+  ColumnCount:=sqlite3_column_count(vm);
+  //Set BufferSize
+  FRowBufferSize:=(SizeOf(PPChar)*ColumnCount);
+  //Prepare the array of pchar2sql functions
+  SetLength(FGetSqlStr,ColumnCount);
+  for i:= 0 to ColumnCount - 1 do
   begin
    ColumnStr:= UpperCase(StrPas(sqlite3_column_decltype(vm,i)));
    if (ColumnStr = 'INTEGER') or (ColumnStr = 'INT') then
@@ -170,13 +175,17 @@ begin
      FieldSize:=0;
    end;
    FieldDefs.Add(StrPas(sqlite3_column_name(vm,i)), AType, FieldSize, False);
+   //Set the pchar2sql function
+   if AType in [ftString,ftMemo] then
+     FGetSqlStr[i]:=@Char2SqlStr
+   else
+     FGetSqlStr[i]:=@Num2SqlStr;
    {$ifdef DEBUG}
    writeln('  Field[',i,'] Name: ',sqlite3_column_name(vm,i));
    writeln('  Field[',i,'] Type: ',sqlite3_column_decltype(vm,i));
    {$endif}
   end;
   sqlite3_finalize(vm);
-  FRowBufferSize:=(SizeOf(PPChar)*FieldDefs.Count);
   {$ifdef DEBUG}
   writeln('  FieldDefs.Count: ',FieldDefs.Count);
   {$endif}

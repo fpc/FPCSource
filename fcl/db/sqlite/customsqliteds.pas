@@ -57,7 +57,9 @@ type
   end;
   
   TSqliteCallback = function (UserData:Pointer; Columns:longint; Values:PPchar; ColumnNames:PPchar):longint;cdecl;
-  
+  TGetSqlStrFunction = function (APChar: PChar): String;
+
+
   { TCustomSqliteDataset }
 
   TCustomSqliteDataset = class(TDataSet)
@@ -104,6 +106,7 @@ type
     FBeginItem: PDataRecord;
     FEndItem: PDataRecord;
     FCacheItem: PDataRecord;
+    FGetSqlStr: array of TGetSqlStrFunction;
     function SqliteExec(AHandle: Pointer; Sql:PChar):Integer;virtual; abstract;
     procedure InternalCloseHandle;virtual;abstract;
     function InternalGetHandle: Pointer; virtual; abstract;
@@ -229,6 +232,10 @@ type
     property OnEditError;
   end;
   
+  function Num2SqlStr(APChar: PChar): String;
+  function Char2SqlStr(APChar: PChar): String;
+
+
 implementation
 
 uses
@@ -236,6 +243,30 @@ uses
 
 const
   SQLITE_OK = 0;//sqlite2.x.x and sqlite3.x.x defines this equal
+
+function Num2SqlStr(APChar: PChar): String;
+begin
+  if APChar = nil then
+  begin
+    Result:='NULL';
+    Exit;
+  end;
+  Result:=StrPas(APChar);
+end;
+
+function Char2SqlStr(APChar: PChar): String;
+begin
+  if APChar = nil then
+  begin
+    Result:='NULL';
+    Exit;
+  end;
+  //todo: create custom routine to directly transform PChar -> SQL str
+  Result:=StrPas(APChar);
+  if Pos('''',Result) > 0 then
+    Result:=AnsiReplaceStr(Result,'''','''''');
+  Result:=''''+Result+'''';
+end;
 
 // TDSStream
 
@@ -919,12 +950,17 @@ end;
 procedure TCustomSqliteDataset.SetDetailFilter;
   function FieldToSqlStr(AField:TField):String;
   begin
-    case AField.DataType of
-      ftString,ftMemo: Result:='"'+AField.AsString+'"';//todo: handle " caracter properly
-      ftDateTime,ftDate,ftTime:Str(AField.AsDateTime,Result);
+    if not AField.IsNull then
+    begin
+      case AField.DataType of
+        ftString,ftMemo: Result:='"'+AField.AsString+'"';//todo: handle " caracter properly
+        ftDateTime,ftDate,ftTime:Str(AField.AsDateTime,Result);
+      else
+        Result:=AField.AsString;
+      end;//case
+    end
     else
-      Result:=AField.AsString;
-    end;//case
+      Result:='NULL';
   end;//function
 
 var
@@ -1034,25 +1070,9 @@ begin
   ExecSQL(FSql);
 end;
 
-function GetSqlStr(IsString: boolean; APChar: PChar): String;
-begin
-  if APChar = nil then
-  begin
-    Result:='NULL';
-    Exit;
-  end;  
-  Result:=StrPas(APChar);
-  if IsString then
-  begin
-    if Pos('''',Result) > 0 then
-      Result:=AnsiReplaceStr(Result,'''','''''');
-    Result:=''''+Result+'''';    
-  end;  
-end;  
-
 function TCustomSqliteDataset.ApplyUpdates:Boolean;
 var
-  CounterFields,CounterItems,StatementsCounter:Integer;
+  iFields,iItems,StatementsCounter:Integer;
   SqlTemp,WhereKeyNameEqual,ASqlLine,TemplateStr:String;
 begin
   if not UpdatesPending then
@@ -1076,10 +1096,10 @@ begin
     // Delete Records
     if FDeletedItems.Count > 0 then
       TemplateStr:='DELETE FROM '+FTableName+WhereKeyNameEqual;
-    for CounterItems:= 0 to FDeletedItems.Count - 1 do  
+    for iItems:= 0 to FDeletedItems.Count - 1 do
     begin
       SqlTemp:=SqlTemp+(TemplateStr+
-        StrPas(PDataRecord(FDeletedItems[CounterItems])^.Row[FPrimaryKeyNo])+';');    
+        StrPas(PDataRecord(FDeletedItems[iItems])^.Row[FPrimaryKeyNo])+';');
       inc(StatementsCounter);
       //ApplyUpdates each 400 statements
       if StatementsCounter = 400 then
@@ -1093,18 +1113,18 @@ begin
     // Update changed records
     if FUpdatedItems.Count > 0 then
       TemplateStr:='UPDATE '+FTableName+' SET ';
-    for CounterItems:= 0 to FUpdatedItems.Count - 1 do  
+    for iItems:= 0 to FUpdatedItems.Count - 1 do
     begin
       ASqlLine:=TemplateStr;
-      for CounterFields:= 0 to Fields.Count - 2 do
+      for iFields:= 0 to Fields.Count - 2 do
       begin
-        ASqlLine:=ASqlLine + (Fields[CounterFields].FieldName +' = '+
-          GetSqlStr((Fields[CounterFields].DataType in [ftString,ftMemo]),
-            PDataRecord(FUpdatedItems[CounterItems])^.Row[CounterFields])+',');        
+        ASqlLine:=ASqlLine + (Fields[iFields].FieldName +' = '+
+          FGetSqlStr[iFields](PDataRecord(FUpdatedItems[iItems])^.Row[iFields])+',');
       end;
-        ASqlLine:=ASqlLine + (Fields[Fields.Count - 1].FieldName +' = '+
-          GetSqlStr((Fields[Fields.Count - 1].DataType in [ftString,ftMemo]),PDataRecord(FUpdatedItems[CounterItems])^.Row[Fields.Count - 1])+
-          WhereKeyNameEqual+StrPas(PDataRecord(FUpdatedItems[CounterItems])^.Row[FPrimaryKeyNo])+';');
+      iFields:=Fields.Count - 1;
+      ASqlLine:=ASqlLine + (Fields[iFields].FieldName +' = '+
+        FGetSqlStr[iFields](PDataRecord(FUpdatedItems[iItems])^.Row[iFields])+
+        WhereKeyNameEqual+StrPas(PDataRecord(FUpdatedItems[iItems])^.Row[FPrimaryKeyNo])+';');
       SqlTemp:=SqlTemp + ASqlLine;
       inc(StatementsCounter);
       //ApplyUpdates each 400 statements
@@ -1121,24 +1141,22 @@ begin
     if FAddedItems.Count > 0 then
     begin
       TemplateStr:='INSERT INTO '+FTableName+ ' (';
-      for CounterFields:= 0 to Fields.Count - 1 do
+      for iFields:= 0 to Fields.Count - 2 do
       begin
-        TemplateStr:=TemplateStr + Fields[CounterFields].FieldName; 
-        if CounterFields <> Fields.Count - 1 then
-          TemplateStr:=TemplateStr+',';
+        TemplateStr:=TemplateStr + Fields[iFields].FieldName+',';
       end; 
-      TemplateStr:=TemplateStr+') VALUES (';
+      TemplateStr:= TemplateStr+Fields[Fields.Count - 1].FieldName+') VALUES (';
     end;  
-    for CounterItems:= 0 to FAddedItems.Count - 1 do  
+    for iItems:= 0 to FAddedItems.Count - 1 do
     begin
       ASqlLine:=TemplateStr;
-      for CounterFields:= 0 to Fields.Count - 2 do
+      for iFields:= 0 to Fields.Count - 2 do
       begin
-        ASqlLine:=ASqlLine + (GetSqlStr((Fields[CounterFields].DataType in [ftString,ftMemo]),
-          PDataRecord(FAddedItems[CounterItems])^.Row[CounterFields])+',');        
+        ASqlLine:=ASqlLine + (FGetSqlStr[iFields](PDataRecord(FAddedItems[iItems])^.Row[iFields])+',');
       end;
-      ASqlLine:=ASqlLine + (GetSqlStr((Fields[Fields.Count -1].DataType in [ftString,ftMemo]),
-        PDataRecord(FAddedItems[CounterItems])^.Row[Fields.Count - 1])+');');
+      //todo: see if i can assume iFields = Fields.Count-2 safely
+      iFields:=Fields.Count - 1;
+      ASqlLine:=ASqlLine + (FGetSqlStr[iFields](PDataRecord(FAddedItems[iItems])^.Row[iFields])+');');
       SqlTemp:=SqlTemp + ASqlLine;    
       inc(StatementsCounter);
       //ApplyUpdates each 400 statements
@@ -1254,6 +1272,7 @@ begin
   for i := 0 to BufferCount - 1 do
     PPDataRecord(Buffers[i])^:=FBeginItem;
   Resync([]);
+  DoAfterScroll;
 end;
 
 function TCustomSqliteDataset.TableExists: Boolean;

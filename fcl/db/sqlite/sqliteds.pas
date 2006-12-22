@@ -57,9 +57,6 @@ implementation
 uses
   sqlite,db;
 
-var
-  DummyAutoIncFieldNo:Integer;
-
 //function sqlite_last_statement_changes(dbhandle:Pointer):longint;cdecl;external 'sqlite' name 'sqlite_last_statement_changes';
 
 function GetAutoIncValue(NextValue: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPChar): integer; cdecl;
@@ -77,6 +74,7 @@ begin
   Result:=1;
 end;
 
+{
 function GetFieldDefs(TheDataset: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPChar): integer; cdecl;
 var
   FieldSize:Word;
@@ -84,6 +82,8 @@ var
   AType:TFieldType;
   ColumnStr:String;
 begin
+ //Prepare the array of pchar2sql functions
+ SetLength(TCustomSqliteDataset(TheDataset).FGetSqlStr,Columns);
  // Sqlite is typeless (allows any type in any field)
  // regardless of what is in Create Table, but returns
  // exactly what is in Create Table statement
@@ -155,10 +155,11 @@ begin
      FieldSize:=0;
    end;
    TDataset(TheDataset).FieldDefs.Add(StrPas(ColumnNames[i]), AType, FieldSize, False);
+   //Set
  end;
  Result:=-1;
 end;
-
+}
 
 { TSqliteDataset }
 
@@ -179,17 +180,104 @@ begin
 end;
 
 procedure TSqliteDataset.InternalInitFieldDefs;
+var
+  ColumnCount,i:Integer;
+  FieldSize:Word;
+  AType:TFieldType;
+  vm:Pointer;
+  ColumnNames,ColumnValues:PPChar;
+  ColumnStr:String;
 begin
   FieldDefs.Clear;
-  sqlite_exec(FSqliteHandle,PChar('PRAGMA empty_result_callbacks = ON;PRAGMA show_datatypes = ON;'),nil,nil,nil);
-  DummyAutoIncFieldNo:=-1;
-  FSqliteReturnId:=sqlite_exec(FSqliteHandle,PChar(FSql),@GetFieldDefs,Self,nil);
-  FAutoIncFieldNo:=DummyAutoIncFieldNo;
+  FAutoIncFieldNo:=-1;
+  sqlite_compile(FSqliteHandle,PChar(FSql),nil,@vm,nil);
+  sqlite_step(vm,@ColumnCount,@ColumnValues,@ColumnNames);
+  //Prepare the array of pchar2sql functions
+  SetLength(FGetSqlStr,ColumnCount);
+  //Set BufferSize
+  FRowBufferSize:=(SizeOf(PPChar)*ColumnCount);
+  // Sqlite is typeless (allows any type in any field)
+  // regardless of what is in Create Table, but returns
+  // exactly what is in Create Table statement
+  // here is a trick to get the datatype.
+  // If the field contains another type, may have problems
+  for i:= 0 to ColumnCount - 1 do
+  begin
+    ColumnStr:= UpperCase(StrPas(ColumnNames[i + ColumnCount]));
+    if (ColumnStr = 'INTEGER') or (ColumnStr = 'INT') then
+    begin
+      if AutoIncrementKey and
+           (UpperCase(StrPas(ColumnNames[i])) = UpperCase(PrimaryKey)) then
+      begin
+        AType:= ftAutoInc;
+        FAutoIncFieldNo:=i;
+      end
+      else
+        AType:= ftInteger;
+      FieldSize:=SizeOf(LongInt);
+    end else if Pos('VARCHAR',ColumnStr) = 1 then
+    begin
+      AType:= ftString;
+      FieldSize:=0;
+    end else if Pos('BOOL',ColumnStr) = 1 then
+    begin
+      AType:= ftBoolean;
+      FieldSize:=SizeOf(WordBool);
+    end else if Pos('AUTOINC',ColumnStr) = 1 then
+    begin
+      AType:= ftAutoInc;
+      FieldSize:=SizeOf(LongInt);
+      if FAutoIncFieldNo = -1 then
+        FAutoIncFieldNo:= i;
+    end else if (Pos('FLOAT',ColumnStr)=1) or (Pos('NUMERIC',ColumnStr)=1) then
+    begin
+      AType:= ftFloat;
+      FieldSize:=SizeOf(Double);
+    end else if (ColumnStr = 'DATETIME') then
+    begin
+      AType:= ftDateTime;
+      FieldSize:=SizeOf(TDateTime);
+    end else if (ColumnStr = 'DATE') then
+    begin
+      AType:= ftDate;
+      FieldSize:=SizeOf(TDateTime);
+    end else if (ColumnStr = 'TIME') then
+    begin
+      AType:= ftTime;
+      FieldSize:=SizeOf(TDateTime);
+    end else if (ColumnStr = 'LARGEINT') then
+    begin
+      AType:= ftLargeInt;
+      FieldSize:=SizeOf(LargeInt);
+    end else if (ColumnStr = 'TEXT') then
+    begin
+      AType:= ftMemo;
+      FieldSize:=0;
+    end else if (ColumnStr = 'CURRENCY') then
+    begin
+      AType:= ftCurrency;
+      FieldSize:=SizeOf(Double);
+    end else if (ColumnStr = 'WORD') then
+    begin
+      AType:= ftWord;
+      FieldSize:=SizeOf(Word);
+    end else
+    begin
+      AType:=ftString;
+      FieldSize:=0;
+    end;
+    FieldDefs.Add(StrPas(ColumnNames[i]), AType, FieldSize, False);
+    //Set the pchar2sql function
+    if AType in [ftString,ftMemo] then
+      FGetSqlStr[i]:=@Char2SqlStr
+    else
+      FGetSqlStr[i]:=@Num2SqlStr;
+  end;
+  sqlite_finalize(vm, nil);
   {
   if FSqliteReturnId <> SQLITE_ABORT then
      DatabaseError(SqliteReturnString,Self);
   }
-  FRowBufferSize:=(SizeOf(PPChar)*FieldDefs.Count);
 end;
 
 function TSqliteDataset.GetRowsAffected: Integer;
