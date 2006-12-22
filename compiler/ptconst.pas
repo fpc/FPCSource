@@ -922,7 +922,7 @@ implementation
               n:=comp_expr(true);
               if n.nodetype<>niln then
                 begin
-                  Message(type_e_no_const_packed_array);
+                  Message(parser_e_type_const_not_possible);
                   consume_all_until(_SEMICOLON);
                 end
               else
