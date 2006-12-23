@@ -271,9 +271,7 @@ type
     { importing }
     po_has_importdll,
     po_has_importname,
-    po_kylixlocal,
-    { this is a function and not a procedure -- needed for tbf/tb0175 }
-    po_function
+    po_kylixlocal
   );
   tprocoptions=set of tprocoption;
 

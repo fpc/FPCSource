@@ -918,7 +918,6 @@ implementation
                   { pd=nil when it is a interface mapping }
                   if assigned(pd) then
                     begin
-                      include(pd.procoptions,po_function);
                       if try_to_consume(_COLON) then
                        begin
                          inc(testcurobject);
@@ -2522,11 +2521,12 @@ const
                    { Check procedure options, Delphi requires that class is
                      repeated in the implementation for class methods }
                    if (m_fpc in current_settings.modeswitches) then
-                     po_comp:=[po_classmethod,po_varargs,po_methodpointer,po_interrupt,po_function]
+                     po_comp:=[po_classmethod,po_varargs,po_methodpointer,po_interrupt]
                    else
-                     po_comp:=[po_classmethod,po_methodpointer,po_function];
+                     po_comp:=[po_classmethod,po_methodpointer];
 
-                   if ((po_comp * fwpd.procoptions)<>(po_comp * currpd.procoptions)) then
+                   if ((po_comp * fwpd.procoptions)<>(po_comp * currpd.procoptions)) or
+                      (fwpd.proctypeoption <> currpd.proctypeoption) then
                      begin
                        MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,
                                    fwpd.fullprocname(false));
