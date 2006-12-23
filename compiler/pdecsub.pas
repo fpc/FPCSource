@@ -918,6 +918,7 @@ implementation
                   { pd=nil when it is a interface mapping }
                   if assigned(pd) then
                     begin
+                      include(pd.procoptions,po_function);
                       if try_to_consume(_COLON) then
                        begin
                          inc(testcurobject);
@@ -2408,8 +2409,9 @@ const
         curridx,
         fwidx,
         i       : longint;
-        forwardfound : boolean;
         po_comp : tprocoptions;
+        paracompopt: tcompare_paras_options;
+        forwardfound : boolean;
       begin
         forwardfound:=false;
 
@@ -2453,37 +2455,11 @@ const
                  begin
                    forwardfound:=true;
 
-                   { Check if the procedure type and return type are correct,
-                     also the parameters must match also with the type }
-                   if (fwpd.proctypeoption<>currpd.proctypeoption) or
-                      (
-                       (not((currpd.maxparacount=0) or
-                            (compare_paras(currpd.paras,fwpd.paras,cp_all,[cpo_comparedefaultvalue])>=te_equal)))
-                      ) or
-                      (
-                       ((m_repeat_forward in current_settings.modeswitches) or
-                        not(is_void(currpd.returndef))) and
-                       (not equal_defs(fwpd.returndef,currpd.returndef))) then
-                     begin
-                       MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,
-                                   currpd.fullprocname(false));
-                       tprocsym(currpd.procsym).write_parameter_lists(currpd);
-                       break;
-                     end;
-
-                   { Check if both are declared forward }
-                   if fwpd.forwarddef and currpd.forwarddef then
-                    begin
-                      MessagePos1(currpd.fileinfo,parser_e_function_already_declared_public_forward,
-                                  currpd.fullprocname(false));
-                    end;
-
-                   { internconst or internproc only need to be defined once }
-                   if (fwpd.proccalloption=pocall_internproc) then
-                    currpd.proccalloption:=fwpd.proccalloption
+                   if (m_repeat_forward in current_settings.modeswitches) or
+                      (fwpd.proccalloption<>currpd.proccalloption) then
+                     paracompopt:=[cpo_ignorehidden,cpo_comparedefaultvalue]
                    else
-                    if (currpd.proccalloption=pocall_internproc) then
-                     fwpd.proccalloption:=currpd.proccalloption;
+                     paracompopt:=[cpo_comparedefaultvalue];
 
                    { Check calling convention }
                    if (fwpd.proccalloption<>currpd.proccalloption) then
@@ -2516,12 +2492,40 @@ const
                         end;
                     end;
 
+                   { Check if the procedure type and return type are correct,
+                     also the parameters must match also with the type }
+                   if ((m_repeat_forward in current_settings.modeswitches) or
+                       (currpd.maxparacount<>0) or
+                       (not(is_void(currpd.returndef)))) and
+                      ((compare_paras(currpd.paras,fwpd.paras,cp_all,paracompopt)<te_equal) or
+                       (not equal_defs(fwpd.returndef,currpd.returndef))) then
+                     begin
+                       MessagePos1(currpd.fileinfo,parser_e_header_dont_match_forward,
+                                   fwpd.fullprocname(false));
+                       tprocsym(currpd.procsym).write_parameter_lists(currpd);
+                       break;
+                     end;
+
+                   { Check if both are declared forward }
+                   if fwpd.forwarddef and currpd.forwarddef then
+                    begin
+                      MessagePos1(currpd.fileinfo,parser_e_function_already_declared_public_forward,
+                                  currpd.fullprocname(false));
+                    end;
+
+                   { internconst or internproc only need to be defined once }
+                   if (fwpd.proccalloption=pocall_internproc) then
+                    currpd.proccalloption:=fwpd.proccalloption
+                   else
+                    if (currpd.proccalloption=pocall_internproc) then
+                     fwpd.proccalloption:=currpd.proccalloption;
+
                    { Check procedure options, Delphi requires that class is
                      repeated in the implementation for class methods }
                    if (m_fpc in current_settings.modeswitches) then
-                     po_comp:=[po_classmethod,po_varargs,po_methodpointer,po_interrupt]
+                     po_comp:=[po_classmethod,po_varargs,po_methodpointer,po_interrupt,po_function]
                    else
-                     po_comp:=[po_classmethod,po_methodpointer];
+                     po_comp:=[po_classmethod,po_methodpointer,po_function];
 
                    if ((po_comp * fwpd.procoptions)<>(po_comp * currpd.procoptions)) then
                      begin
