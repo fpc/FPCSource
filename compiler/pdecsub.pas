@@ -2431,7 +2431,7 @@ const
               (
                not(m_repeat_forward in current_settings.modeswitches) and
                not(currpd.forwarddef) and
-               (currpd.maxparacount=0) and
+               is_bareprocdef(currpd) and
                not(po_overload in fwpd.procoptions)
               ) or
               { check arguments, we need to check only the user visible parameters. The hidden parameters
@@ -2455,12 +2455,12 @@ const
                  begin
                    forwardfound:=true;
 
-                   if (m_repeat_forward in current_settings.modeswitches) or
+                   if not(m_repeat_forward in current_settings.modeswitches) and
                       (fwpd.proccalloption<>currpd.proccalloption) then
                      paracompopt:=[cpo_ignorehidden,cpo_comparedefaultvalue]
                    else
                      paracompopt:=[cpo_comparedefaultvalue];
-
+ 
                    { Check calling convention }
                    if (fwpd.proccalloption<>currpd.proccalloption) then
                     begin
@@ -2495,8 +2495,7 @@ const
                    { Check if the procedure type and return type are correct,
                      also the parameters must match also with the type }
                    if ((m_repeat_forward in current_settings.modeswitches) or
-                       (currpd.maxparacount<>0) or
-                       (not(is_void(currpd.returndef)))) and
+                       not is_bareprocdef(currpd)) and
                       ((compare_paras(currpd.paras,fwpd.paras,cp_all,paracompopt)<te_equal) or
                        (not equal_defs(fwpd.returndef,currpd.returndef))) then
                      begin

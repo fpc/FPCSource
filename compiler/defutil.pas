@@ -230,6 +230,9 @@ interface
     {# returns true, if the type passed is a varset }
     function is_varset(p : tdef) : boolean;
 
+    { # returns true if the procdef has no parameters and no specified return type }
+    function is_bareprocdef(pd : tprocdef): boolean;
+
 implementation
 
     uses
@@ -1017,5 +1020,12 @@ implementation
           result:=false;
       end;
 
+
+    function is_bareprocdef(pd : tprocdef): boolean;
+      begin
+        result:=(pd.maxparacount=0) and
+                (is_void(pd.returndef) or
+                 (pd.proctypeoption = potype_constructor));
+      end;
 
 end.
