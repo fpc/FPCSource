@@ -362,11 +362,19 @@ implementation
         srsym : tsym;
         para : tcallparanode;
         newstatement : tstatementnode;
+        oldlocalswitches: tlocalswitches;
       begin
         result:=internalstatements(newstatement);
 
         if assigned(current_procinfo.procdef._class) then
           begin
+            { Don't test self and the vmt here. The reason is that  }
+            { a constructor already checks whether these are valid  }
+            { before. Further, in case of TThread the thread may    }
+            { free the class instance right after AfterConstruction }
+            { has been called, so it may no longer be valid (JM)    }
+            oldlocalswitches:=current_settings.localswitches;
+            current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
             { maybe call AfterConstruction for classes }
             if (current_procinfo.procdef.proctypeoption=potype_constructor) and
                is_class(current_procinfo.procdef._class) then
@@ -444,6 +452,7 @@ implementation
                 else
                   internalerror(200305105);
               end;
+            current_settings.localswitches:=oldlocalswitches;
           end;
       end;
 
@@ -452,6 +461,7 @@ implementation
       var
         pd : tprocdef;
         newstatement : tstatementnode;
+        oldlocalswitches: tlocalswitches;
       begin
         generate_except_block:=internalstatements(newstatement);
 
@@ -460,6 +470,10 @@ implementation
         if assigned(current_procinfo.procdef._class) and
            (current_procinfo.procdef.proctypeoption=potype_constructor) then
           begin
+            { Don't test self and the vmt here. See generate_bodyexit_block }
+            { why (JM)                                                      }
+            oldlocalswitches:=current_settings.localswitches;
+            current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
             pd:=current_procinfo.procdef._class.Finddestructor;
             if assigned(pd) then
               begin
@@ -471,6 +485,7 @@ implementation
                     ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[]),
                     nil));
               end;
+            current_settings.localswitches:=oldlocalswitches;
           end
         else
           begin
