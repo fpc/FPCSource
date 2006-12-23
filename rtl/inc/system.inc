@@ -214,14 +214,14 @@ Begin
 End;
 
 {$ifdef SUPPORT_DOUBLE}
-operator := (b:real48) d:double;
+operator := (b:real48) d:double;inline;
 begin
  D:=real2double(b);
 end;
 {$endif SUPPORT_DOUBLE}
 
 {$ifdef SUPPORT_EXTENDED}
-operator := (b:real48) e:extended;
+operator := (b:real48) e:extended;inline;
 begin
  e:=real2double(b);
 end;
