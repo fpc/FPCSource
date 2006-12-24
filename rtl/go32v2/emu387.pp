@@ -67,7 +67,7 @@ begin
 end;
 
 
-function nofpsig( sig : longint) : longint;
+function nofpsig( sig : longint) : longint;cdecl;
 const
   last_eip : longint = 0;
 var

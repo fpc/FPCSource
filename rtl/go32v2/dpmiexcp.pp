@@ -109,31 +109,31 @@ const
   SIG_SETMASK = 2;
   SIG_UNBLOCK = 3;
 
-function SIG_DFL( x: longint) : longint;
+function SIG_DFL( x: longint) : longint;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 {$ifndef CREATE_C_FUNCTIONS}
-external name '___djgpp_SIG_DFL';
+external name '__djgpp_SIG_DFL';
 {$endif CREATE_C_FUNCTIONS}
 
-function SIG_ERR( x: longint) : longint;
+function SIG_ERR( x: longint) : longint;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 {$ifndef CREATE_C_FUNCTIONS}
-external name '___djgpp_SIG_ERR';
+external name '__djgpp_SIG_ERR';
 {$endif CREATE_C_FUNCTIONS}
 
-function SIG_IGN( x: longint) : longint;
+function SIG_IGN( x: longint) : longint;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 {$ifndef CREATE_C_FUNCTIONS}
-external name '___djgpp_SIG_IGN';
+external name '__djgpp_SIG_IGN';
 {$endif CREATE_C_FUNCTIONS}
 
 type
-  SignalHandler  = function (v : longint) : longint;
+  SignalHandler  = function (v : longint) : longint;cdecl;
   PSignalHandler = ^SignalHandler; { to be compatible with linux.pp }
 
-function signal(sig : longint;func : SignalHandler) : SignalHandler;
+function signal(sig : longint;func : SignalHandler) : SignalHandler;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
-function _raise(sig : longint) : longint;
+function _raise(sig : longint) : longint;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 
 { Exceptions }
@@ -149,13 +149,13 @@ type
     __fpu_state : array [0..108-1] of byte; {  for future use  }
   end;
 
-procedure djgpp_exception_toggle;
+procedure djgpp_exception_toggle;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 {$ifndef CREATE_C_FUNCTIONS}
 external name '___djgpp_exception_toggle';
 {$endif CREATE_C_FUNCTIONS}
 
-procedure djgpp_exception_setup;
+procedure djgpp_exception_setup;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 {$ifndef CREATE_C_FUNCTIONS}
 external name '___djgpp_exception_setup';
@@ -164,11 +164,11 @@ external name '___djgpp_exception_setup';
 function  djgpp_exception_state : pexception_state;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 
-function  djgpp_set_ctrl_c(enable : boolean) : boolean;
+function  djgpp_set_ctrl_c(enable : boolean) : boolean;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 
 { Other }
-function dpmi_set_coprocessor_emulation(flag : longint) : longint;
+function dpmi_set_coprocessor_emulation(flag : longint) : longint;cdecl;
 {$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 
 function __djgpp_set_sigint_key(new_key : longint) : longint;cdecl;
@@ -499,8 +499,9 @@ end;
 ****************************************************************************}
 
 {$ifdef CREATE_C_FUNCTIONS}
-function c_setjmp(var rec : dpmi_jmp_buf) : longint;[public, alias : '_setjmp'];
+function c_setjmp(var rec : dpmi_jmp_buf) : longint;cdecl;[public, alias : '_setjmp'];
   begin
+{$ifndef REGCALL}
   { here we need to be subtle :
     - we need to return with the arg still on the stack
     - but we also need to jmp to FPC_setjmp and not to call it
@@ -520,6 +521,27 @@ function c_setjmp(var rec : dpmi_jmp_buf) : longint;[public, alias : '_setjmp'];
         popl    %eax
         jmp     dpmi_setjmp
      end;
+{$ELSE REGCALL}
+    { this is easier with regcall convention
+      because dpmi_setjmp expects rec arg in $eax }
+     asm
+        movl     rec,%eax
+        movl    %ebp,%esp
+        popl    %ebp
+        pushl   %eax
+        { stack is now:
+           (%esp): saved eax
+          4(%esp): return addr
+          8(%esp): rec addr
+          we need just
+          (%esp): return addr }
+        movl    4(%esp),%eax
+        movl    %eax,8(%esp)
+        popl    %eax
+        addl    $4,%esp
+        jmp     dpmi_setjmp
+     end;
+{$ENDIF REGCALL}
   end;
 {$endif CREATE_C_FUNCTIONS}
 
@@ -535,16 +557,27 @@ begin
         movl    %ecx,8(%edi)
         movl    %edx,12(%edi)
         movl    %esi,16(%edi)
+{$ifndef REGCALL}
         { load edi }
         movl    -4(%ebp),%eax
+{$ELSE REGCALL}
+        { load edi }
+        movl    (%esp),%eax
+{$ENDIF REGCALL}
         { ... and store it }
         movl    %eax,20(%edi)
         { ebp ... }
         movl    (%ebp),%eax
         movl    %eax,24(%edi)
+{$ifndef REGCALL}
         { esp ... }
         movl    %esp,%eax
         addl    $12,%eax
+{$ELSE REGCALL}
+        { for esp, use ebp ... }
+        movl    %ebp,%eax
+        addl    $8,%eax
+{$ENDIF REGCALL}
         movl    %eax,28(%edi)
         { the return address }
         movl    4(%ebp),%eax
@@ -577,7 +610,7 @@ end;
 
 
 {$ifdef CREATE_C_FUNCTIONS}
-procedure c_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);[public, alias : '_longjmp'];
+procedure c_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);cdecl;[public, alias : '_longjmp'];
   begin
      dpmi_longjmp(rec,return_value);
      { never gets here !! so pascal stack convention is no problem }
@@ -650,25 +683,25 @@ var
   {$ifndef CREATE_C_FUNCTIONS}external;{$else}public;{$endif}
 
 {$ifdef CREATE_C_FUNCTIONS}
-function SIG_ERR(x:longint):longint;[public,alias : '___djgpp_SIG_ERR'];
+function SIG_ERR(x:longint):longint;cdecl;[public,alias : '___djgpp_SIG_ERR'];
 begin
   SIG_ERR:=-1;
 end;
 
 
-function SIG_IGN(x:longint):longint;[public,alias : '___djgpp_SIG_IGN'];
+function SIG_IGN(x:longint):longint;cdecl;[public,alias : '___djgpp_SIG_IGN'];
 begin
   SIG_IGN:=-1;
 end;
 
 
-function SIG_DFL(x:longint):longint;[public,alias : '___djgpp_SIG_DFL'];
+function SIG_DFL(x:longint):longint;cdecl;[public,alias : '___djgpp_SIG_DFL'];
 begin
   SIG_DFL:=0;
 end;
 {$endif CREATE_C_FUNCTIONS}
 
-function signal(sig : longint;func : SignalHandler) : SignalHandler;
+function signal(sig : longint;func : SignalHandler) : SignalHandler;cdecl;
 var
   temp : SignalHandler;
 begin
@@ -715,7 +748,7 @@ begin
      errln('');
 end;
 
-function _raise(sig : longint) : longint;
+function _raise(sig : longint) : longint;cdecl;
 var
   temp : SignalHandler;
 begin
@@ -1011,7 +1044,7 @@ end;
 var
   _os_trueversion : word;external name '__os_trueversion';
 
-procedure djgpp_exception_processor;[public,alias : '___djgpp_exception_processor'];
+procedure djgpp_exception_processor;cdecl;[public,alias : '___djgpp_exception_processor'];
 var
   sig : longint;
 begin
@@ -1073,7 +1106,7 @@ var
   v2prt0_exceptions_on : longbool;external name '_v2prt0_exceptions_on';
 
 
-procedure djgpp_exception_toggle;
+procedure djgpp_exception_toggle;cdecl;
 [public,alias : '___djgpp_exception_toggle'];
 var
   _except : tseginfo;
@@ -1163,7 +1196,7 @@ begin
 end;
 {$endif CREATE_C_FUNCTIONS}
 
-function dpmi_set_coprocessor_emulation(flag : longint) : longint;
+function dpmi_set_coprocessor_emulation(flag : longint) : longint;cdecl;
 var
   res : longint;
 begin
@@ -1191,7 +1224,7 @@ var
 const
   STUBINFO_END = $54;
 
-procedure __maybe_fix_w2k_ntvdm_bug;[public,alias : '___maybe_fix_w2k_ntvdm_bug'];
+procedure __maybe_fix_w2k_ntvdm_bug;cdecl;[public,alias : '___maybe_fix_w2k_ntvdm_bug'];
 var
   psp_sel : word;
 begin
@@ -1223,13 +1256,13 @@ begin
 end;
 
 
-procedure dpmiexcp_exit{(status : longint)};[public,alias : 'excep_exit'];
+procedure dpmiexcp_exit{(status : longint)};cdecl;[public,alias : 'excep_exit'];
 { We need to restore hardware interrupt handlers even if somebody calls
   `_exit' directly, or else we crash the machine in nested programs.
   We only toggle the handlers if the original keyboard handler is intact
   (otherwise, they might have already toggled them). }
 begin
-{
+(*
 void __maybe_fix_w2k_ntvdm_bug(void)
   if (_osmajor == 5 && _get_dos_version(1) == 0x532) /* Windows NT, 2000 or XP? */
   {
@@ -1251,7 +1284,7 @@ void __maybe_fix_w2k_ntvdm_bug(void)
                   : "g" (_stubinfo->psp_selector) /* input */
                   : "ax", "bx" );                 /* regs */
   }
-}
+*)
   if (exceptions_on) then
     djgpp_exception_toggle;
   _exception_exit:=nil;
@@ -1266,14 +1299,14 @@ end;
   is already present in v2prt0.as  PM}
 
 { used by dos.pp for swap vectors }
-procedure dpmi_swap_in;[public,alias : 'swap_in'];
+procedure dpmi_swap_in;cdecl;[public,alias : 'swap_in'];
 begin
   if not (exceptions_on) then
    djgpp_exception_toggle;
 end;
 
 
-procedure dpmi_swap_out;[public,alias : 'swap_out'];
+procedure dpmi_swap_out;cdecl;[public,alias : 'swap_out'];
 begin
   if (exceptions_on) then
    djgpp_exception_toggle;
@@ -1391,7 +1424,7 @@ begin
 end;
 
 
-procedure djgpp_exception_setup;
+procedure djgpp_exception_setup;cdecl;
 [public,alias : '___djgpp_exception_setup'];
 var
   temp_kbd,
@@ -1465,7 +1498,7 @@ end;
 {$endif CREATE_C_FUNCTIONS}
 
 
-function djgpp_set_ctrl_c(enable : boolean) : boolean;
+function djgpp_set_ctrl_c(enable : boolean) : boolean;cdecl;
 begin
   djgpp_set_ctrl_c:=(djgpp_hwint_flags and 1)=0;
   if enable then
@@ -1517,7 +1550,7 @@ end.
 {$else IN_SYSTEM}
 const
   FPU_ControlWord : word = $1332;
-function HandleException(sig : longint) : longint;
+function HandleException(sig : longint) : longint;cdecl;
 var
   truesig : longint;
   ErrorOfSig : longint;

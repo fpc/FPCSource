@@ -195,7 +195,7 @@ var
   doublecall,
   reload          : longint; {=0}
 
-function mcount_tick(x : longint) : longint;
+function mcount_tick(x : longint) : longint;cdecl;
 var
   bin : longint;
 begin
@@ -220,7 +220,7 @@ end;
 var
   ___djgpp_timer_countdown:longint;external name '___djgpp_timer_countdown';
 
-function timer(x : longint) : longint;
+function timer(x : longint) : longint;cdecl;
 begin
    if reload>0 then
     ___djgpp_timer_countdown:=RELOAD;
