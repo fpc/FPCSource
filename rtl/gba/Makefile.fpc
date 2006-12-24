@@ -84,7 +84,7 @@ cprt0$(OEXT) : cprt0.as
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
+$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS) $(INC)/softfpu.pp
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
@@ -152,7 +152,7 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
-fgl$(PPUEXT): $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT) 
+fgl$(PPUEXT): $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/fgl.pp $(REDIR)
 
 dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
