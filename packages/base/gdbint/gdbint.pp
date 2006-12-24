@@ -20,16 +20,30 @@ interface
 {.$define DebugCommand}
 {$define NotImplemented}
 
+{ Is create_breakpoint_hook deprecated? }
+{ Seem not so for 6.1 }
+{$define GDB_HAS_DEPRECATED_CBPH}
+
+{ 6.1.x }
+{$ifdef GDB_V601}
+  {$info using gdb 6.1.x}
+  {$define GDB_V6}
+  {$define GDB_HAS_DB_COMMANDS}
+  {$undef GDB_HAS_DEPRECATED_CBPH}
+{$endif def GDB_V601}
+
 { 6.2.x }
 {$ifdef GDB_V602}
   {$info using gdb 6.2.x}
   {$define GDB_V6}
+  {$define GDB_HAS_DB_COMMANDS}
 {$endif def GDB_V602}
 
 { 6.3.x }
 {$ifdef GDB_V603}
   {$info using gdb 6.3.x}
   {$define GDB_V6}
+  {$define GDB_HAS_DB_COMMANDS}
 {$endif def GDB_V603}
 
 { 6.4.x }
@@ -37,11 +51,20 @@ interface
   {$info using gdb 6.4.x}
   {$define GDB_V6}
   {$define GDB_NEEDS_NO_ERROR_INIT}
+  {$define GDB_HAS_DB_COMMANDS}
 {$endif def GDB_V604}
 
 { 6.5.x }
 {$ifdef GDB_V605}
   {$info using gdb 6.5.x}
+  {$define GDB_V6}
+  {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_NEEDS_NO_ERROR_INIT}
+{$endif def GDB_V605}
+
+{ 6.6.x }
+{$ifdef GDB_V606}
+  {$info using gdb 6.6.x}
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
   {$define GDB_NEEDS_NO_ERROR_INIT}
@@ -1041,7 +1064,7 @@ var
 { external variables }
   error_return : jmp_buf;cvar;public;
   quit_return  : jmp_buf;cvar;public;
-  {$ifdef GDB_V6}
+  {$ifdef GDB_HAS_DEPRECATED_CBPH}
   deprecated_create_breakpoint_hook : pointer;cvar;external;
   {$else}
   create_breakpoint_hook : pointer;cvar;external;
@@ -1061,11 +1084,11 @@ var
   tui_version : longint;cvar;public;
 
 { Whether xdb commands will be handled }
-{$ifndef GDB_HAS_DB_COMMANDS}
-  xdb_commands : longint;cvar;external;
+{$ifdef GDB_HAS_DB_COMMANDS}
+  xdb_commands : longint;cvar;public;
 
 { Whether dbx commands will be handled }
-  dbx_commands : longint;cvar;external;
+  dbx_commands : longint;cvar;public;
 {$endif GDB_HAS_DB_COMMANDS}
 
 var
@@ -2010,7 +2033,7 @@ procedure tgdbinterface.gdb__init;
 begin
   gdboutputbuf.reset;
   gdberrorbuf.reset;
-  {$ifdef GDB_V6}
+  {$ifdef GDB_HAS_DEPRECATED_CBPH}
   deprecated_create_breakpoint_hook:=@CreateBreakPointHook;
   {$else}
   create_breakpoint_hook:=@CreateBreakPointHook;
@@ -2028,7 +2051,7 @@ begin
       current_target.to_kill;
       current_target.to_close(1);
     end;
-  {$ifdef GDB_V6}
+  {$ifdef GDB_HAS_DEPRECATED_CBPH}
   deprecated_create_breakpoint_hook:=nil;
   {$else}
   create_breakpoint_hook:=nil;
@@ -2474,8 +2497,11 @@ begin
 end;
 
 {$ifdef GDB_HAS_SYSROOT}
-var gdb_sysroot  : pchar; {$ifdef linux}external{$else}export{$endif} name 'gdb_sysroot';
+var gdb_sysroot  : pchar; cvar;public;
     gdb_sysrootc : char;
+    return_child_result : longbool;cvar;public;
+    return_child_result_value : longint;cvar;public;
+    batch_silent : longbool;cvar;public;
 {$endif}
 
 begin
