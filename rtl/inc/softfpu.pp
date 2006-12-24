@@ -29,6 +29,39 @@ include prominent notice akin to these four paragraphs for those parts of
 this code that are retained.
 
 ===============================================================================
+The float80 and float128 part is translated from the softfloat package
+by Florian Klaempfl and contained the following copyright notice
+===============================================================================
+
+This C source file is part of the SoftFloat IEC/IEEE Floating-point Arithmetic
+Package, Release 2b.
+
+Written by John R. Hauser.  This work was made possible in part by the
+International Computer Science Institute, located at Suite 600, 1947 Center
+Street, Berkeley, California 94704.  Funding was partially provided by the
+National Science Foundation under grant MIP-9311980.  The original version
+of this code was written as part of a project to build a fixed-point vector
+processor in collaboration with the University of California at Berkeley,
+overseen by Profs. Nelson Morgan and John Wawrzynek.  More information
+is available through the Web page `http://www.cs.berkeley.edu/~jhauser/
+arithmetic/SoftFloat.html'.
+
+THIS SOFTWARE IS DISTRIBUTED AS IS, FOR FREE.  Although reasonable effort has
+been made to avoid it, THIS SOFTWARE MAY CONTAIN FAULTS THAT WILL AT TIMES
+RESULT IN INCORRECT BEHAVIOR.  USE OF THIS SOFTWARE IS RESTRICTED TO PERSONS
+AND ORGANIZATIONS WHO CAN AND WILL TAKE FULL RESPONSIBILITY FOR ALL LOSSES,
+COSTS, OR OTHER PROBLEMS THEY INCUR DUE TO THE SOFTWARE, AND WHO FURTHERMORE
+EFFECTIVELY INDEMNIFY JOHN HAUSER AND THE INTERNATIONAL COMPUTER SCIENCE
+INSTITUTE (possibly via similar legal warning) AGAINST ALL LOSSES, COSTS, OR
+OTHER PROBLEMS INCURRED BY THEIR CUSTOMERS AND CLIENTS DUE TO THE SOFTWARE.
+
+Derivative works are acceptable, even for commercial purposes, so long as
+(1) the source code for the derivative work includes prominent notice that
+the work is derivative, and (2) the source code includes prominent notice with
+these four paragraphs for those parts of this code that are retained.
+
+
+===============================================================================
 *}
 
 { the softfpu unit can be also embedded directly into the system unit }
@@ -4657,6 +4690,2121 @@ Begin
     packFloat64( zSign, $432 - shiftCount, zSig0, zSig1, float_result );
     int64_to_float64:= float_result;
 End;
+
+
+{$ifdef FPC_SOFTFLOAT_FLOATX80}
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the extended double-precision floating-
+| point value `a' to the 32-bit two's complement integer format.  The
+| conversion is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic---which means in particular that the conversion
+| is rounded according to the current rounding mode.  If `a' is a NaN, the
+| largest positive integer is returned.  Otherwise, if the conversion
+| overflows, the largest integer with the same sign as `a' is returned.
+*----------------------------------------------------------------------------*}
+
+function floatx80_to_int32(a: floatx80): int32;
+begin
+    flag aSign;
+    int32 aExp, shiftCount;
+    bits64 aSig;
+
+    aSig := extractFloatx80Frac( a );
+    aExp := extractFloatx80Exp( a );
+    aSign := extractFloatx80Sign( a );
+    if ( ( aExp = $7FFF ) and (bits64) ( aSig shl 1 ) ) aSign := 0;
+    shiftCount := $4037 - aExp;
+    if ( shiftCount <= 0 ) shiftCount := 1;
+    shift64RightJamming( aSig, shiftCount, &aSig );
+    result := roundAndPackInt32( aSign, aSig );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the extended double-precision floating-
+| point value `a' to the 32-bit two's complement integer format.  The
+| conversion is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic, except that the conversion is always rounded
+| toward zero.  If `a' is a NaN, the largest positive integer is returned.
+| Otherwise, if the conversion overflows, the largest integer with the same
+| sign as `a' is returned.
+*----------------------------------------------------------------------------*}
+
+function floatx80_to_int32_round_to_zero(a: floatx80): int32;
+begin
+    flag aSign;
+    int32 aExp, shiftCount;
+    bits64 aSig, savedASig;
+    int32 z;
+
+    aSig := extractFloatx80Frac( a );
+    aExp := extractFloatx80Exp( a );
+    aSign := extractFloatx80Sign( a );
+    if ( $401E < aExp ) begin
+        if ( ( aExp = $7FFF ) and (bits64) ( aSig shl 1 ) ) aSign := 0;
+        goto invalid;
+    end;
+    else if ( aExp < $3FFF ) begin
+        if ( aExp or aSig ) float_exception_flags or= float_flag_inexact;
+        result := 0;
+    end;
+    shiftCount := $403E - aExp;
+    savedASig := aSig;
+    aSig >>= shiftCount;
+    z := aSig;
+    if ( aSign ) z := - z;
+    if ( ( z < 0 ) xor aSign ) begin
+ invalid:
+        float_raise( float_flag_invalid );
+        result := aSign ? (sbits32) $80000000 : $7FFFFFFF;
+    end;
+    if ( ( aSig shl shiftCount ) <> savedASig ) begin
+        float_exception_flags or= float_flag_inexact;
+    end;
+    result := z;
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the extended double-precision floating-
+| point value `a' to the 64-bit two's complement integer format.  The
+| conversion is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic---which means in particular that the conversion
+| is rounded according to the current rounding mode.  If `a' is a NaN,
+| the largest positive integer is returned.  Otherwise, if the conversion
+| overflows, the largest integer with the same sign as `a' is returned.
+*----------------------------------------------------------------------------*}
+
+function floatx80_to_int64(a: floatx80): int64;
+begin
+    flag aSign;
+    int32 aExp, shiftCount;
+    bits64 aSig, aSigExtra;
+
+    aSig := extractFloatx80Frac( a );
+    aExp := extractFloatx80Exp( a );
+    aSign := extractFloatx80Sign( a );
+    shiftCount := $403E - aExp;
+    if ( shiftCount <= 0 ) begin
+        if ( shiftCount ) begin
+            float_raise( float_flag_invalid );
+            if (    ! aSign
+                 or (    ( aExp = $7FFF )
+                      and ( aSig <> LIT64( $8000000000000000 ) ) )
+               ) begin
+                result := LIT64( $7FFFFFFFFFFFFFFF );
+            end;
+            result := (sbits64) LIT64( $8000000000000000 );
+        end;
+        aSigExtra := 0;
+    end;
+    else begin
+        shift64ExtraRightJamming( aSig, 0, shiftCount, &aSig, &aSigExtra );
+    end;
+    result := roundAndPackInt64( aSign, aSig, aSigExtra );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the extended double-precision floating-
+| point value `a' to the 64-bit two's complement integer format.  The
+| conversion is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic, except that the conversion is always rounded
+| toward zero.  If `a' is a NaN, the largest positive integer is returned.
+| Otherwise, if the conversion overflows, the largest integer with the same
+| sign as `a' is returned.
+*----------------------------------------------------------------------------*}
+
+function floatx80_to_int64_round_to_zero(a: floatx80): int64;
+begin
+    flag aSign;
+    int32 aExp, shiftCount;
+    bits64 aSig;
+    int64 z;
+
+    aSig := extractFloatx80Frac( a );
+    aExp := extractFloatx80Exp( a );
+    aSign := extractFloatx80Sign( a );
+    shiftCount := aExp - $403E;
+    if ( 0 <= shiftCount ) begin
+        aSig &= LIT64( $7FFFFFFFFFFFFFFF );
+        if ( ( a.high <> $C03E ) or aSig ) begin
+            float_raise( float_flag_invalid );
+            if ( ! aSign or ( ( aExp = $7FFF ) and aSig ) ) begin
+                result := LIT64( $7FFFFFFFFFFFFFFF );
+            end;
+        end;
+        result := (sbits64) LIT64( $8000000000000000 );
+    end;
+    else if ( aExp < $3FFF ) begin
+        if ( aExp or aSig ) float_exception_flags or= float_flag_inexact;
+        result := 0;
+    end;
+    z := aSig>>( - shiftCount );
+    if ( (bits64) ( aSig shl ( shiftCount and 63 ) ) ) begin
+        float_exception_flags or= float_flag_inexact;
+    end;
+    if ( aSign ) z := - z;
+    result := z;
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the extended double-precision floating-
+| point value `a' to the single-precision floating-point format.  The
+| conversion is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_to_float32(a: floatx80): float32;
+begin
+    flag aSign;
+    int32 aExp;
+    bits64 aSig;
+
+    aSig := extractFloatx80Frac( a );
+    aExp := extractFloatx80Exp( a );
+    aSign := extractFloatx80Sign( a );
+    if ( aExp = $7FFF ) begin
+        if ( (bits64) ( aSig shl 1 ) ) begin
+            result := commonNaNToFloat32( floatx80ToCommonNaN( a ) );
+        end;
+        result := packFloat32( aSign, $FF, 0 );
+    end;
+    shift64RightJamming( aSig, 33, &aSig );
+    if ( aExp or aSig ) aExp -= $3F81;
+    result := roundAndPackFloat32( aSign, aExp, aSig );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the extended double-precision floating-
+| point value `a' to the double-precision floating-point format.  The
+| conversion is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_to_float64(a: floatx80): float64;
+begin
+    flag aSign;
+    int32 aExp;
+    bits64 aSig, zSig;
+
+    aSig := extractFloatx80Frac( a );
+    aExp := extractFloatx80Exp( a );
+    aSign := extractFloatx80Sign( a );
+    if ( aExp = $7FFF ) begin
+        if ( (bits64) ( aSig shl 1 ) ) begin
+            result := commonNaNToFloat64( floatx80ToCommonNaN( a ) );
+        end;
+        result := packFloat64( aSign, $7FF, 0 );
+    end;
+    shift64RightJamming( aSig, 1, &zSig );
+    if ( aExp or aSig ) aExp -= $3C01;
+    result := roundAndPackFloat64( aSign, aExp, zSig );
+
+end;
+
+{$ifdef FPC_SOFTFLOAT_FLOAT128}
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the extended double-precision floating-
+| point value `a' to the quadruple-precision floating-point format.  The
+| conversion is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_to_float128(a: floatx80): float128;
+begin
+    flag aSign;
+    int16 aExp;
+    bits64 aSig, zSig0, zSig1;
+
+    aSig := extractFloatx80Frac( a );
+    aExp := extractFloatx80Exp( a );
+    aSign := extractFloatx80Sign( a );
+    if ( ( aExp = $7FFF ) and (bits64) ( aSig shl 1 ) ) begin
+        result := commonNaNToFloat128( floatx80ToCommonNaN( a ) );
+    end;
+    shift128Right( aSig shl 1, 0, 16, &zSig0, &zSig1 );
+    result := packFloat128( aSign, aExp, zSig0, zSig1 );
+
+end;
+
+{$endif FPC_SOFTFLOAT_FLOAT128}
+
+{*----------------------------------------------------------------------------
+| Rounds the extended double-precision floating-point value `a' to an integer,
+| and Returns the result as an extended quadruple-precision floating-point
+| value.  The operation is performed according to the IEC/IEEE Standard for
+| Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_round_to_int(a: floatx80): floatx80;
+begin
+    flag aSign;
+    int32 aExp;
+    bits64 lastBitMask, roundBitsMask;
+    int8 roundingMode;
+    floatx80 z;
+
+    aExp := extractFloatx80Exp( a );
+    if ( $403E <= aExp ) begin
+        if ( ( aExp = $7FFF ) and (bits64) ( extractFloatx80Frac( a ) shl 1 ) ) begin
+            result := propagateFloatx80NaN( a, a );
+        end;
+        result := a;
+    end;
+    if ( aExp < $3FFF ) begin
+        if (    ( aExp = 0 )
+             and ( (bits64) ( extractFloatx80Frac( a ) shl 1 ) = 0 ) ) begin
+            result := a;
+        end;
+        float_exception_flags or= float_flag_inexact;
+        aSign := extractFloatx80Sign( a );
+        switch ( float_rounding_mode ) begin
+         case float_round_nearest_even:
+            if ( ( aExp = $3FFE ) and (bits64) ( extractFloatx80Frac( a ) shl 1 )
+               ) begin
+                result :=
+                    packFloatx80( aSign, $3FFF, LIT64( $8000000000000000 ) );
+            end;
+            break;
+         case float_round_down:
+            result :=
+                  aSign ?
+                      packFloatx80( 1, $3FFF, LIT64( $8000000000000000 ) )
+                : packFloatx80( 0, 0, 0 );
+         case float_round_up:
+            result :=
+                  aSign ? packFloatx80( 1, 0, 0 )
+                : packFloatx80( 0, $3FFF, LIT64( $8000000000000000 ) );
+        end;
+        result := packFloatx80( aSign, 0, 0 );
+    end;
+    lastBitMask := 1;
+    lastBitMask  shl = $403E - aExp;
+    roundBitsMask := lastBitMask - 1;
+    z := a;
+    roundingMode := float_rounding_mode;
+    if ( roundingMode = float_round_nearest_even ) begin
+        z.low += lastBitMask>>1;
+        if ( ( z.low and roundBitsMask ) = 0 ) z.low &= ~ lastBitMask;
+    end;
+    else if ( roundingMode <> float_round_to_zero ) begin
+        if ( extractFloatx80Sign( z ) xor ( roundingMode = float_round_up ) ) begin
+            z.low += roundBitsMask;
+        end;
+    end;
+    z.low &= ~ roundBitsMask;
+    if ( z.low = 0 ) begin
+        ++z.high;
+        z.low := LIT64( $8000000000000000 );
+    end;
+    if ( z.low <> a.low ) float_exception_flags or= float_flag_inexact;
+    result := z;
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of adding the absolute values of the extended double-
+| precision floating-point values `a' and `b'.  If `zSign' is 1, the sum is
+| negated before being returned.  `zSign' is ignored if the result is a NaN.
+| The addition is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function addFloatx80Sigs(a: floatx80; b: floatx80, flag zSign ): floatx80;
+begin
+    int32 aExp, bExp, zExp;
+    bits64 aSig, bSig, zSig0, zSig1;
+    int32 expDiff;
+
+    aSig := extractFloatx80Frac( a );
+    aExp := extractFloatx80Exp( a );
+    bSig := extractFloatx80Frac( b );
+    bExp := extractFloatx80Exp( b );
+    expDiff := aExp - bExp;
+    if ( 0 < expDiff ) begin
+        if ( aExp = $7FFF ) begin
+            if ( (bits64) ( aSig shl 1 ) ) result := propagateFloatx80NaN( a, b );
+            result := a;
+        end;
+        if ( bExp = 0 ) --expDiff;
+        shift64ExtraRightJamming( bSig, 0, expDiff, &bSig, &zSig1 );
+        zExp := aExp;
+    end;
+    else if ( expDiff < 0 ) begin
+        if ( bExp = $7FFF ) begin
+            if ( (bits64) ( bSig shl 1 ) ) result := propagateFloatx80NaN( a, b );
+            result := packFloatx80( zSign, $7FFF, LIT64( $8000000000000000 ) );
+        end;
+        if ( aExp = 0 ) ++expDiff;
+        shift64ExtraRightJamming( aSig, 0, - expDiff, &aSig, &zSig1 );
+        zExp := bExp;
+    end;
+    else begin
+        if ( aExp = $7FFF ) begin
+            if ( (bits64) ( ( aSig or bSig ) shl 1 ) ) begin
+                result := propagateFloatx80NaN( a, b );
+            end;
+            result := a;
+        end;
+        zSig1 := 0;
+        zSig0 := aSig + bSig;
+        if ( aExp = 0 ) begin
+            normalizeFloatx80Subnormal( zSig0, &zExp, &zSig0 );
+            goto roundAndPack;
+        end;
+        zExp := aExp;
+        goto shiftRight1;
+    end;
+    zSig0 := aSig + bSig;
+    if ( (sbits64) zSig0 < 0 ) goto roundAndPack;
+ shiftRight1:
+    shift64ExtraRightJamming( zSig0, zSig1, 1, &zSig0, &zSig1 );
+    zSig0 or= LIT64( $8000000000000000 );
+    ++zExp;
+ roundAndPack:
+    result :=
+        roundAndPackFloatx80(
+            floatx80_rounding_precision, zSign, zExp, zSig0, zSig1 );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of subtracting the absolute values of the extended
+| double-precision floating-point values `a' and `b'.  If `zSign' is 1, the
+| difference is negated before being returned.  `zSign' is ignored if the
+| result is a NaN.  The subtraction is performed according to the IEC/IEEE
+| Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function subFloatx80Sigs(a: floatx80; b: floatx80, flag zSign ): floatx80;
+begin
+    int32 aExp, bExp, zExp;
+    bits64 aSig, bSig, zSig0, zSig1;
+    int32 expDiff;
+    floatx80 z;
+
+    aSig := extractFloatx80Frac( a );
+    aExp := extractFloatx80Exp( a );
+    bSig := extractFloatx80Frac( b );
+    bExp := extractFloatx80Exp( b );
+    expDiff := aExp - bExp;
+    if ( 0 < expDiff ) goto aExpBigger;
+    if ( expDiff < 0 ) goto bExpBigger;
+    if ( aExp = $7FFF ) begin
+        if ( (bits64) ( ( aSig or bSig ) shl 1 ) ) begin
+            result := propagateFloatx80NaN( a, b );
+        end;
+        float_raise( float_flag_invalid );
+        z.low := floatx80_default_nan_low;
+        z.high := floatx80_default_nan_high;
+        result := z;
+    end;
+    if ( aExp = 0 ) begin
+        aExp := 1;
+        bExp := 1;
+    end;
+    zSig1 := 0;
+    if ( bSig < aSig ) goto aBigger;
+    if ( aSig < bSig ) goto bBigger;
+    result := packFloatx80( float_rounding_mode = float_round_down, 0, 0 );
+ bExpBigger:
+    if ( bExp = $7FFF ) begin
+        if ( (bits64) ( bSig shl 1 ) ) result := propagateFloatx80NaN( a, b );
+        result := packFloatx80( zSign xor 1, $7FFF, LIT64( $8000000000000000 ) );
+    end;
+    if ( aExp = 0 ) ++expDiff;
+    shift128RightJamming( aSig, 0, - expDiff, &aSig, &zSig1 );
+ bBigger:
+    sub128( bSig, 0, aSig, zSig1, &zSig0, &zSig1 );
+    zExp := bExp;
+    zSign  xor = 1;
+    goto normalizeRoundAndPack;
+ aExpBigger:
+    if ( aExp = $7FFF ) begin
+        if ( (bits64) ( aSig shl 1 ) ) result := propagateFloatx80NaN( a, b );
+        result := a;
+    end;
+    if ( bExp = 0 ) --expDiff;
+    shift128RightJamming( bSig, 0, expDiff, &bSig, &zSig1 );
+ aBigger:
+    sub128( aSig, 0, bSig, zSig1, &zSig0, &zSig1 );
+    zExp := aExp;
+ normalizeRoundAndPack:
+    result :=
+        normalizeRoundAndPackFloatx80(
+            floatx80_rounding_precision, zSign, zExp, zSig0, zSig1 );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of adding the extended double-precision floating-point
+| values `a' and `b'.  The operation is performed according to the IEC/IEEE
+| Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_add(a: floatx80; b: floatx80): floatx80;
+begin
+    flag aSign, bSign;
+
+    aSign := extractFloatx80Sign( a );
+    bSign := extractFloatx80Sign( b );
+    if ( aSign = bSign ) begin
+        result := addFloatx80Sigs( a, b, aSign );
+    end;
+    else begin
+        result := subFloatx80Sigs( a, b, aSign );
+    end;
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of subtracting the extended double-precision floating-
+| point values `a' and `b'.  The operation is performed according to the
+| IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_sub(a: floatx80; b: floatx80 ): floatx80;
+begin
+    flag aSign, bSign;
+
+    aSign := extractFloatx80Sign( a );
+    bSign := extractFloatx80Sign( b );
+    if ( aSign = bSign ) begin
+        result := subFloatx80Sigs( a, b, aSign );
+    end;
+    else begin
+        result := addFloatx80Sigs( a, b, aSign );
+    end;
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of multiplying the extended double-precision floating-
+| point values `a' and `b'.  The operation is performed according to the
+| IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_mul(a: floatx80; b: floatx80): floatx80;
+begin
+    flag aSign, bSign, zSign;
+    int32 aExp, bExp, zExp;
+    bits64 aSig, bSig, zSig0, zSig1;
+    floatx80 z;
+
+    aSig := extractFloatx80Frac( a );
+    aExp := extractFloatx80Exp( a );
+    aSign := extractFloatx80Sign( a );
+    bSig := extractFloatx80Frac( b );
+    bExp := extractFloatx80Exp( b );
+    bSign := extractFloatx80Sign( b );
+    zSign := aSign xor bSign;
+    if ( aExp = $7FFF ) begin
+        if (    (bits64) ( aSig shl 1 )
+             or ( ( bExp = $7FFF ) and (bits64) ( bSig shl 1 ) ) ) begin
+            result := propagateFloatx80NaN( a, b );
+        end;
+        if ( ( bExp or bSig ) = 0 ) goto invalid;
+        result := packFloatx80( zSign, $7FFF, LIT64( $8000000000000000 ) );
+    end;
+    if ( bExp = $7FFF ) begin
+        if ( (bits64) ( bSig shl 1 ) ) result := propagateFloatx80NaN( a, b );
+        if ( ( aExp or aSig ) = 0 ) begin
+ invalid:
+            float_raise( float_flag_invalid );
+            z.low := floatx80_default_nan_low;
+            z.high := floatx80_default_nan_high;
+            result := z;
+        end;
+        result := packFloatx80( zSign, $7FFF, LIT64( $8000000000000000 ) );
+    end;
+    if ( aExp = 0 ) begin
+        if ( aSig = 0 ) result := packFloatx80( zSign, 0, 0 );
+        normalizeFloatx80Subnormal( aSig, &aExp, &aSig );
+    end;
+    if ( bExp = 0 ) begin
+        if ( bSig = 0 ) result := packFloatx80( zSign, 0, 0 );
+        normalizeFloatx80Subnormal( bSig, &bExp, &bSig );
+    end;
+    zExp := aExp + bExp - $3FFE;
+    mul64To128( aSig, bSig, &zSig0, &zSig1 );
+    if ( 0 < (sbits64) zSig0 ) begin
+        shortShift128Left( zSig0, zSig1, 1, &zSig0, &zSig1 );
+        --zExp;
+    end;
+    result :=
+        roundAndPackFloatx80(
+            floatx80_rounding_precision, zSign, zExp, zSig0, zSig1 );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of dividing the extended double-precision floating-point
+| value `a' by the corresponding value `b'.  The operation is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_div(a: floatx80; b: floatx80 ): floatx80;
+begin
+    flag aSign, bSign, zSign;
+    int32 aExp, bExp, zExp;
+    bits64 aSig, bSig, zSig0, zSig1;
+    bits64 rem0, rem1, rem2, term0, term1, term2;
+    floatx80 z;
+
+    aSig := extractFloatx80Frac( a );
+    aExp := extractFloatx80Exp( a );
+    aSign := extractFloatx80Sign( a );
+    bSig := extractFloatx80Frac( b );
+    bExp := extractFloatx80Exp( b );
+    bSign := extractFloatx80Sign( b );
+    zSign := aSign xor bSign;
+    if ( aExp = $7FFF ) begin
+        if ( (bits64) ( aSig shl 1 ) ) result := propagateFloatx80NaN( a, b );
+        if ( bExp = $7FFF ) begin
+            if ( (bits64) ( bSig shl 1 ) ) result := propagateFloatx80NaN( a, b );
+            goto invalid;
+        end;
+        result := packFloatx80( zSign, $7FFF, LIT64( $8000000000000000 ) );
+    end;
+    if ( bExp = $7FFF ) begin
+        if ( (bits64) ( bSig shl 1 ) ) result := propagateFloatx80NaN( a, b );
+        result := packFloatx80( zSign, 0, 0 );
+    end;
+    if ( bExp = 0 ) begin
+        if ( bSig = 0 ) begin
+            if ( ( aExp or aSig ) = 0 ) begin
+ invalid:
+                float_raise( float_flag_invalid );
+                z.low := floatx80_default_nan_low;
+                z.high := floatx80_default_nan_high;
+                result := z;
+            end;
+            float_raise( float_flag_divbyzero );
+            result := packFloatx80( zSign, $7FFF, LIT64( $8000000000000000 ) );
+        end;
+        normalizeFloatx80Subnormal( bSig, &bExp, &bSig );
+    end;
+    if ( aExp = 0 ) begin
+        if ( aSig = 0 ) result := packFloatx80( zSign, 0, 0 );
+        normalizeFloatx80Subnormal( aSig, &aExp, &aSig );
+    end;
+    zExp := aExp - bExp + $3FFE;
+    rem1 := 0;
+    if ( bSig <= aSig ) begin
+        shift128Right( aSig, 0, 1, &aSig, &rem1 );
+        ++zExp;
+    end;
+    zSig0 := estimateDiv128To64( aSig, rem1, bSig );
+    mul64To128( bSig, zSig0, &term0, &term1 );
+    sub128( aSig, rem1, term0, term1, &rem0, &rem1 );
+    while ( (sbits64) rem0 < 0 ) begin
+        --zSig0;
+        add128( rem0, rem1, 0, bSig, &rem0, &rem1 );
+    end;
+    zSig1 := estimateDiv128To64( rem1, 0, bSig );
+    if ( (bits64) ( zSig1 shl 1 ) <= 8 ) begin
+        mul64To128( bSig, zSig1, &term1, &term2 );
+        sub128( rem1, 0, term1, term2, &rem1, &rem2 );
+        while ( (sbits64) rem1 < 0 ) begin
+            --zSig1;
+            add128( rem1, rem2, 0, bSig, &rem1, &rem2 );
+        end;
+        zSig1 or= ( ( rem1 or rem2 ) <> 0 );
+    end;
+    result :=
+        roundAndPackFloatx80(
+            floatx80_rounding_precision, zSign, zExp, zSig0, zSig1 );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the remainder of the extended double-precision floating-point value
+| `a' with respect to the corresponding value `b'.  The operation is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_rem(a: floatx80; b: floatx80 ): floatx80;
+begin
+    flag aSign, bSign, zSign;
+    int32 aExp, bExp, expDiff;
+    bits64 aSig0, aSig1, bSig;
+    bits64 q, term0, term1, alternateASig0, alternateASig1;
+    floatx80 z;
+
+    aSig0 := extractFloatx80Frac( a );
+    aExp := extractFloatx80Exp( a );
+    aSign := extractFloatx80Sign( a );
+    bSig := extractFloatx80Frac( b );
+    bExp := extractFloatx80Exp( b );
+    bSign := extractFloatx80Sign( b );
+    if ( aExp = $7FFF ) begin
+        if (    (bits64) ( aSig0 shl 1 )
+             or ( ( bExp = $7FFF ) and (bits64) ( bSig shl 1 ) ) ) begin
+            result := propagateFloatx80NaN( a, b );
+        end;
+        goto invalid;
+    end;
+    if ( bExp = $7FFF ) begin
+        if ( (bits64) ( bSig shl 1 ) ) result := propagateFloatx80NaN( a, b );
+        result := a;
+    end;
+    if ( bExp = 0 ) begin
+        if ( bSig = 0 ) begin
+ invalid:
+            float_raise( float_flag_invalid );
+            z.low := floatx80_default_nan_low;
+            z.high := floatx80_default_nan_high;
+            result := z;
+        end;
+        normalizeFloatx80Subnormal( bSig, &bExp, &bSig );
+    end;
+    if ( aExp = 0 ) begin
+        if ( (bits64) ( aSig0 shl 1 ) = 0 ) result := a;
+        normalizeFloatx80Subnormal( aSig0, &aExp, &aSig0 );
+    end;
+    bSig or= LIT64( $8000000000000000 );
+    zSign := aSign;
+    expDiff := aExp - bExp;
+    aSig1 := 0;
+    if ( expDiff < 0 ) begin
+        if ( expDiff < -1 ) result := a;
+        shift128Right( aSig0, 0, 1, &aSig0, &aSig1 );
+        expDiff := 0;
+    end;
+    q := ( bSig <= aSig0 );
+    if ( q ) aSig0 -= bSig;
+    expDiff -= 64;
+    while ( 0 < expDiff ) begin
+        q := estimateDiv128To64( aSig0, aSig1, bSig );
+        q := ( 2 < q ) ? q - 2 : 0;
+        mul64To128( bSig, q, &term0, &term1 );
+        sub128( aSig0, aSig1, term0, term1, &aSig0, &aSig1 );
+        shortShift128Left( aSig0, aSig1, 62, &aSig0, &aSig1 );
+        expDiff -= 62;
+    end;
+    expDiff += 64;
+    if ( 0 < expDiff ) begin
+        q := estimateDiv128To64( aSig0, aSig1, bSig );
+        q := ( 2 < q ) ? q - 2 : 0;
+        q >>= 64 - expDiff;
+        mul64To128( bSig, q shl ( 64 - expDiff ), &term0, &term1 );
+        sub128( aSig0, aSig1, term0, term1, &aSig0, &aSig1 );
+        shortShift128Left( 0, bSig, 64 - expDiff, &term0, &term1 );
+        while ( le128( term0, term1, aSig0, aSig1 ) ) begin
+            ++q;
+            sub128( aSig0, aSig1, term0, term1, &aSig0, &aSig1 );
+        end;
+    end;
+    else begin
+        term1 := 0;
+        term0 := bSig;
+    end;
+    sub128( term0, term1, aSig0, aSig1, &alternateASig0, &alternateASig1 );
+    if (    lt128( alternateASig0, alternateASig1, aSig0, aSig1 )
+         or (    eq128( alternateASig0, alternateASig1, aSig0, aSig1 )
+              and ( q and 1 ) )
+       ) begin
+        aSig0 := alternateASig0;
+        aSig1 := alternateASig1;
+        zSign := ! zSign;
+    end;
+    result :=
+        normalizeRoundAndPackFloatx80(
+            80, zSign, bExp + expDiff, aSig0, aSig1 );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the square root of the extended double-precision floating-point
+| value `a'.  The operation is performed according to the IEC/IEEE Standard
+| for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_sqrt(a: floatx80): floatx80;
+begin
+    flag aSign;
+    int32 aExp, zExp;
+    bits64 aSig0, aSig1, zSig0, zSig1, doubleZSig0;
+    bits64 rem0, rem1, rem2, rem3, term0, term1, term2, term3;
+    floatx80 z;
+
+    aSig0 := extractFloatx80Frac( a );
+    aExp := extractFloatx80Exp( a );
+    aSign := extractFloatx80Sign( a );
+    if ( aExp = $7FFF ) begin
+        if ( (bits64) ( aSig0 shl 1 ) ) result := propagateFloatx80NaN( a, a );
+        if ( ! aSign ) result := a;
+        goto invalid;
+    end;
+    if ( aSign ) begin
+        if ( ( aExp or aSig0 ) = 0 ) result := a;
+ invalid:
+        float_raise( float_flag_invalid );
+        z.low := floatx80_default_nan_low;
+        z.high := floatx80_default_nan_high;
+        result := z;
+    end;
+    if ( aExp = 0 ) begin
+        if ( aSig0 = 0 ) result := packFloatx80( 0, 0, 0 );
+        normalizeFloatx80Subnormal( aSig0, &aExp, &aSig0 );
+    end;
+    zExp := ( ( aExp - $3FFF )>>1 ) + $3FFF;
+    zSig0 := estimateSqrt32( aExp, aSig0>>32 );
+    shift128Right( aSig0, 0, 2 + ( aExp and 1 ), &aSig0, &aSig1 );
+    zSig0 := estimateDiv128To64( aSig0, aSig1, zSig0 shl 32 ) + ( zSig0 shl 30 );
+    doubleZSig0 := zSig0 shl 1;
+    mul64To128( zSig0, zSig0, &term0, &term1 );
+    sub128( aSig0, aSig1, term0, term1, &rem0, &rem1 );
+    while ( (sbits64) rem0 < 0 ) begin
+        --zSig0;
+        doubleZSig0 -= 2;
+        add128( rem0, rem1, zSig0>>63, doubleZSig0 or 1, &rem0, &rem1 );
+    end;
+    zSig1 := estimateDiv128To64( rem1, 0, doubleZSig0 );
+    if ( ( zSig1 and LIT64( $3FFFFFFFFFFFFFFF ) ) <= 5 ) begin
+        if ( zSig1 = 0 ) zSig1 := 1;
+        mul64To128( doubleZSig0, zSig1, &term1, &term2 );
+        sub128( rem1, 0, term1, term2, &rem1, &rem2 );
+        mul64To128( zSig1, zSig1, &term2, &term3 );
+        sub192( rem1, rem2, 0, 0, term2, term3, &rem1, &rem2, &rem3 );
+        while ( (sbits64) rem1 < 0 ) begin
+            --zSig1;
+            shortShift128Left( 0, zSig1, 1, &term2, &term3 );
+            term3 or= 1;
+            term2 or= doubleZSig0;
+            add192( rem1, rem2, rem3, 0, term2, term3, &rem1, &rem2, &rem3 );
+        end;
+        zSig1 or= ( ( rem1 or rem2 or rem3 ) <> 0 );
+    end;
+    shortShift128Left( 0, zSig1, 1, &zSig0, &zSig1 );
+    zSig0 or= doubleZSig0;
+    result :=
+        roundAndPackFloatx80(
+            floatx80_rounding_precision, 0, zExp, zSig0, zSig1 );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the extended double-precision floating-point value `a' is
+| equal to the corresponding value `b', and 0 otherwise.  The comparison is
+| performed according to the IEC/IEEE Standard for Binary Floating-Point
+| Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_eq(a: floatx80; b: floatx80 ): flag;
+begin
+
+    if (    (    ( extractFloatx80Exp( a ) = $7FFF )
+              and (bits64) ( extractFloatx80Frac( a ) shl 1 ) )
+         or (    ( extractFloatx80Exp( b ) = $7FFF )
+              and (bits64) ( extractFloatx80Frac( b ) shl 1 ) )
+       ) begin
+        if (    floatx80_is_signaling_nan( a )
+             or floatx80_is_signaling_nan( b ) ) begin
+            float_raise( float_flag_invalid );
+        end;
+        result := 0;
+    end;
+    result :=
+           ( a.low = b.low )
+        and (    ( a.high = b.high )
+             or (    ( a.low = 0 )
+                  and ( (bits16) ( ( a.high or b.high ) shl 1 ) = 0 ) )
+           );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the extended double-precision floating-point value `a' is
+| less than or equal to the corresponding value `b', and 0 otherwise.  The
+| comparison is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_le(a: floatx80; b: floatx80 ): flag;
+begin
+    flag aSign, bSign;
+
+    if (    (    ( extractFloatx80Exp( a ) = $7FFF )
+              and (bits64) ( extractFloatx80Frac( a ) shl 1 ) )
+         or (    ( extractFloatx80Exp( b ) = $7FFF )
+              and (bits64) ( extractFloatx80Frac( b ) shl 1 ) )
+       ) begin
+        float_raise( float_flag_invalid );
+        result := 0;
+    end;
+    aSign := extractFloatx80Sign( a );
+    bSign := extractFloatx80Sign( b );
+    if ( aSign <> bSign ) begin
+        result :=
+               aSign
+            or (    ( ( (bits16) ( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
+                 = 0 );
+    end;
+    result :=
+          aSign ? le128( b.high, b.low, a.high, a.low )
+        : le128( a.high, a.low, b.high, b.low );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the extended double-precision floating-point value `a' is
+| less than the corresponding value `b', and 0 otherwise.  The comparison
+| is performed according to the IEC/IEEE Standard for Binary Floating-Point
+| Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_lt(a: floatx80; b: floatx80 ): flag;
+begin
+    flag aSign, bSign;
+
+    if (    (    ( extractFloatx80Exp( a ) = $7FFF )
+              and (bits64) ( extractFloatx80Frac( a ) shl 1 ) )
+         or (    ( extractFloatx80Exp( b ) = $7FFF )
+              and (bits64) ( extractFloatx80Frac( b ) shl 1 ) )
+       ) begin
+        float_raise( float_flag_invalid );
+        result := 0;
+    end;
+    aSign := extractFloatx80Sign( a );
+    bSign := extractFloatx80Sign( b );
+    if ( aSign <> bSign ) begin
+        result :=
+               aSign
+            and (    ( ( (bits16) ( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
+                 <> 0 );
+    end;
+    result :=
+          aSign ? lt128( b.high, b.low, a.high, a.low )
+        : lt128( a.high, a.low, b.high, b.low );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the extended double-precision floating-point value `a' is equal
+| to the corresponding value `b', and 0 otherwise.  The invalid exception is
+| raised if either operand is a NaN.  Otherwise, the comparison is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_eq_signaling(a: floatx80; b: floatx80 ): flag;
+begin
+
+    if (    (    ( extractFloatx80Exp( a ) = $7FFF )
+              and (bits64) ( extractFloatx80Frac( a ) shl 1 ) )
+         or (    ( extractFloatx80Exp( b ) = $7FFF )
+              and (bits64) ( extractFloatx80Frac( b ) shl 1 ) )
+       ) begin
+        float_raise( float_flag_invalid );
+        result := 0;
+    end;
+    result :=
+           ( a.low = b.low )
+        and (    ( a.high = b.high )
+             or (    ( a.low = 0 )
+                  and ( (bits16) ( ( a.high or b.high ) shl 1 ) = 0 ) )
+           );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the extended double-precision floating-point value `a' is less
+| than or equal to the corresponding value `b', and 0 otherwise.  Quiet NaNs
+| do not cause an exception.  Otherwise, the comparison is performed according
+| to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_le_quiet(a: floatx80; b: floatx80 ): flag;
+begin
+    flag aSign, bSign;
+
+    if (    (    ( extractFloatx80Exp( a ) = $7FFF )
+              and (bits64) ( extractFloatx80Frac( a ) shl 1 ) )
+         or (    ( extractFloatx80Exp( b ) = $7FFF )
+              and (bits64) ( extractFloatx80Frac( b ) shl 1 ) )
+       ) begin
+        if (    floatx80_is_signaling_nan( a )
+             or floatx80_is_signaling_nan( b ) ) begin
+            float_raise( float_flag_invalid );
+        end;
+        result := 0;
+    end;
+    aSign := extractFloatx80Sign( a );
+    bSign := extractFloatx80Sign( b );
+    if ( aSign <> bSign ) begin
+        result :=
+               aSign
+            or (    ( ( (bits16) ( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
+                 = 0 );
+    end;
+    result :=
+          aSign ? le128( b.high, b.low, a.high, a.low )
+        : le128( a.high, a.low, b.high, b.low );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the extended double-precision floating-point value `a' is less
+| than the corresponding value `b', and 0 otherwise.  Quiet NaNs do not cause
+| an exception.  Otherwise, the comparison is performed according to the
+| IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function floatx80_lt_quiet(a: floatx80; b: floatx80 ): flag;
+begin
+    flag aSign, bSign;
+
+    if (    (    ( extractFloatx80Exp( a ) = $7FFF )
+              and (bits64) ( extractFloatx80Frac( a ) shl 1 ) )
+         or (    ( extractFloatx80Exp( b ) = $7FFF )
+              and (bits64) ( extractFloatx80Frac( b ) shl 1 ) )
+       ) begin
+        if (    floatx80_is_signaling_nan( a )
+             or floatx80_is_signaling_nan( b ) ) begin
+            float_raise( float_flag_invalid );
+        end;
+        result := 0;
+    end;
+    aSign := extractFloatx80Sign( a );
+    bSign := extractFloatx80Sign( b );
+    if ( aSign <> bSign ) begin
+        result :=
+               aSign
+            and (    ( ( (bits16) ( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
+                 <> 0 );
+    end;
+    result :=
+          aSign ? lt128( b.high, b.low, a.high, a.low )
+        : lt128( a.high, a.low, b.high, b.low );
+
+end;
+
+{$endif FPC_SOFTFLOAT_FLOATX80}
+
+
+{$ifdef FPC_SOFTFLOAT_FLOAT128}
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the quadruple-precision floating-point
+| value `a' to the 32-bit two's complement integer format.  The conversion
+| is performed according to the IEC/IEEE Standard for Binary Floating-Point
+| Arithmetic---which means in particular that the conversion is rounded
+| according to the current rounding mode.  If `a' is a NaN, the largest
+| positive integer is returned.  Otherwise, if the conversion overflows, the
+| largest integer with the same sign as `a' is returned.
+*----------------------------------------------------------------------------*}
+
+function float128_to_int32(a: float128): int32;
+begin
+    flag aSign;
+    int32 aExp, shiftCount;
+    bits64 aSig0, aSig1;
+
+    aSig1 := extractFloat128Frac1( a );
+    aSig0 := extractFloat128Frac0( a );
+    aExp := extractFloat128Exp( a );
+    aSign := extractFloat128Sign( a );
+    if ( ( aExp = $7FFF ) and ( aSig0 or aSig1 ) ) aSign := 0;
+    if ( aExp ) aSig0 or= LIT64( $0001000000000000 );
+    aSig0 or= ( aSig1 <> 0 );
+    shiftCount := $4028 - aExp;
+    if ( 0 < shiftCount ) shift64RightJamming( aSig0, shiftCount, &aSig0 );
+    result := roundAndPackInt32( aSign, aSig0 );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the quadruple-precision floating-point
+| value `a' to the 32-bit two's complement integer format.  The conversion
+| is performed according to the IEC/IEEE Standard for Binary Floating-Point
+| Arithmetic, except that the conversion is always rounded toward zero.  If
+| `a' is a NaN, the largest positive integer is returned.  Otherwise, if the
+| conversion overflows, the largest integer with the same sign as `a' is
+| returned.
+*----------------------------------------------------------------------------*}
+
+function float128_to_int32_round_to_zero(a: float128): int32;
+begin
+    flag aSign;
+    int32 aExp, shiftCount;
+    bits64 aSig0, aSig1, savedASig;
+    int32 z;
+
+    aSig1 := extractFloat128Frac1( a );
+    aSig0 := extractFloat128Frac0( a );
+    aExp := extractFloat128Exp( a );
+    aSign := extractFloat128Sign( a );
+    aSig0 or= ( aSig1 <> 0 );
+    if ( $401E < aExp ) begin
+        if ( ( aExp = $7FFF ) and aSig0 ) aSign := 0;
+        goto invalid;
+    end;
+    else if ( aExp < $3FFF ) begin
+        if ( aExp or aSig0 ) float_exception_flags or= float_flag_inexact;
+        result := 0;
+    end;
+    aSig0 or= LIT64( $0001000000000000 );
+    shiftCount := $402F - aExp;
+    savedASig := aSig0;
+    aSig0 >>= shiftCount;
+    z := aSig0;
+    if ( aSign ) z := - z;
+    if ( ( z < 0 ) xor aSign ) begin
+ invalid:
+        float_raise( float_flag_invalid );
+        result := aSign ? (sbits32) $80000000 : $7FFFFFFF;
+    end;
+    if ( ( aSig0 shl shiftCount ) <> savedASig ) begin
+        float_exception_flags or= float_flag_inexact;
+    end;
+    result := z;
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the quadruple-precision floating-point
+| value `a' to the 64-bit two's complement integer format.  The conversion
+| is performed according to the IEC/IEEE Standard for Binary Floating-Point
+| Arithmetic---which means in particular that the conversion is rounded
+| according to the current rounding mode.  If `a' is a NaN, the largest
+| positive integer is returned.  Otherwise, if the conversion overflows, the
+| largest integer with the same sign as `a' is returned.
+*----------------------------------------------------------------------------*}
+
+function float128_to_int64(a: float128): int64;
+begin
+    flag aSign;
+    int32 aExp, shiftCount;
+    bits64 aSig0, aSig1;
+
+    aSig1 := extractFloat128Frac1( a );
+    aSig0 := extractFloat128Frac0( a );
+    aExp := extractFloat128Exp( a );
+    aSign := extractFloat128Sign( a );
+    if ( aExp ) aSig0 or= LIT64( $0001000000000000 );
+    shiftCount := $402F - aExp;
+    if ( shiftCount <= 0 ) begin
+        if ( $403E < aExp ) begin
+            float_raise( float_flag_invalid );
+            if (    ! aSign
+                 or (    ( aExp = $7FFF )
+                      and ( aSig1 or ( aSig0 <> LIT64( $0001000000000000 ) ) )
+                    )
+               ) begin
+                result := LIT64( $7FFFFFFFFFFFFFFF );
+            end;
+            result := (sbits64) LIT64( $8000000000000000 );
+        end;
+        shortShift128Left( aSig0, aSig1, - shiftCount, &aSig0, &aSig1 );
+    end;
+    else begin
+        shift64ExtraRightJamming( aSig0, aSig1, shiftCount, &aSig0, &aSig1 );
+    end;
+    result := roundAndPackInt64( aSign, aSig0, aSig1 );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the quadruple-precision floating-point
+| value `a' to the 64-bit two's complement integer format.  The conversion
+| is performed according to the IEC/IEEE Standard for Binary Floating-Point
+| Arithmetic, except that the conversion is always rounded toward zero.
+| If `a' is a NaN, the largest positive integer is returned.  Otherwise, if
+| the conversion overflows, the largest integer with the same sign as `a' is
+| returned.
+*----------------------------------------------------------------------------*}
+
+function float128_to_int64_round_to_zero(a: float128): int64;
+begin
+    flag aSign;
+    int32 aExp, shiftCount;
+    bits64 aSig0, aSig1;
+    int64 z;
+
+    aSig1 := extractFloat128Frac1( a );
+    aSig0 := extractFloat128Frac0( a );
+    aExp := extractFloat128Exp( a );
+    aSign := extractFloat128Sign( a );
+    if ( aExp ) aSig0 or= LIT64( $0001000000000000 );
+    shiftCount := aExp - $402F;
+    if ( 0 < shiftCount ) begin
+        if ( $403E <= aExp ) begin
+            aSig0 &= LIT64( $0000FFFFFFFFFFFF );
+            if (    ( a.high = LIT64( $C03E000000000000 ) )
+                 and ( aSig1 < LIT64( $0002000000000000 ) ) ) begin
+                if ( aSig1 ) float_exception_flags or= float_flag_inexact;
+            end;
+            else begin
+                float_raise( float_flag_invalid );
+                if ( ! aSign or ( ( aExp = $7FFF ) and ( aSig0 or aSig1 ) ) ) begin
+                    result := LIT64( $7FFFFFFFFFFFFFFF );
+                end;
+            end;
+            result := (sbits64) LIT64( $8000000000000000 );
+        end;
+        z := ( aSig0 shl shiftCount ) or ( aSig1>>( ( - shiftCount ) and 63 ) );
+        if ( (bits64) ( aSig1 shl shiftCount ) ) begin
+            float_exception_flags or= float_flag_inexact;
+        end;
+    end;
+    else begin
+        if ( aExp < $3FFF ) begin
+            if ( aExp or aSig0 or aSig1 ) begin
+                float_exception_flags or= float_flag_inexact;
+            end;
+            result := 0;
+        end;
+        z := aSig0>>( - shiftCount );
+        if (    aSig1
+             or ( shiftCount and (bits64) ( aSig0 shl ( shiftCount and 63 ) ) ) ) begin
+            float_exception_flags or= float_flag_inexact;
+        end;
+    end;
+    if ( aSign ) z := - z;
+    result := z;
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the quadruple-precision floating-point
+| value `a' to the single-precision floating-point format.  The conversion
+| is performed according to the IEC/IEEE Standard for Binary Floating-Point
+| Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_to_float32(a: float128): float32;
+begin
+    flag aSign;
+    int32 aExp;
+    bits64 aSig0, aSig1;
+    bits32 zSig;
+
+    aSig1 := extractFloat128Frac1( a );
+    aSig0 := extractFloat128Frac0( a );
+    aExp := extractFloat128Exp( a );
+    aSign := extractFloat128Sign( a );
+    if ( aExp = $7FFF ) begin
+        if ( aSig0 or aSig1 ) begin
+            result := commonNaNToFloat32( float128ToCommonNaN( a ) );
+        end;
+        result := packFloat32( aSign, $FF, 0 );
+    end;
+    aSig0 or= ( aSig1 <> 0 );
+    shift64RightJamming( aSig0, 18, &aSig0 );
+    zSig := aSig0;
+    if ( aExp or zSig ) begin
+        zSig or= $40000000;
+        aExp -= $3F81;
+    end;
+    result := roundAndPackFloat32( aSign, aExp, zSig );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the quadruple-precision floating-point
+| value `a' to the double-precision floating-point format.  The conversion
+| is performed according to the IEC/IEEE Standard for Binary Floating-Point
+| Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_to_float64(a: float128): float64;
+begin
+    flag aSign;
+    int32 aExp;
+    bits64 aSig0, aSig1;
+
+    aSig1 := extractFloat128Frac1( a );
+    aSig0 := extractFloat128Frac0( a );
+    aExp := extractFloat128Exp( a );
+    aSign := extractFloat128Sign( a );
+    if ( aExp = $7FFF ) begin
+        if ( aSig0 or aSig1 ) begin
+            result := commonNaNToFloat64( float128ToCommonNaN( a ) );
+        end;
+        result := packFloat64( aSign, $7FF, 0 );
+    end;
+    shortShift128Left( aSig0, aSig1, 14, &aSig0, &aSig1 );
+    aSig0 or= ( aSig1 <> 0 );
+    if ( aExp or aSig0 ) begin
+        aSig0 or= LIT64( $4000000000000000 );
+        aExp -= $3C01;
+    end;
+    result := roundAndPackFloat64( aSign, aExp, aSig0 );
+
+end;
+
+{$ifdef FPC_SOFTFLOAT_FLOATX80}
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the quadruple-precision floating-point
+| value `a' to the extended double-precision floating-point format.  The
+| conversion is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_to_floatx80(a: float128): floatx80;
+begin
+    flag aSign;
+    int32 aExp;
+    bits64 aSig0, aSig1;
+
+    aSig1 := extractFloat128Frac1( a );
+    aSig0 := extractFloat128Frac0( a );
+    aExp := extractFloat128Exp( a );
+    aSign := extractFloat128Sign( a );
+    if ( aExp = $7FFF ) begin
+        if ( aSig0 or aSig1 ) begin
+            result := commonNaNToFloatx80( float128ToCommonNaN( a ) );
+        end;
+        result := packFloatx80( aSign, $7FFF, LIT64( $8000000000000000 ) );
+    end;
+    if ( aExp = 0 ) begin
+        if ( ( aSig0 or aSig1 ) = 0 ) result := packFloatx80( aSign, 0, 0 );
+        normalizeFloat128Subnormal( aSig0, aSig1, &aExp, &aSig0, &aSig1 );
+    end;
+    else begin
+        aSig0 or= LIT64( $0001000000000000 );
+    end;
+    shortShift128Left( aSig0, aSig1, 15, &aSig0, &aSig1 );
+    result := roundAndPackFloatx80( 80, aSign, aExp, aSig0, aSig1 );
+
+end;
+
+{$endif FPC_SOFTFLOAT_FLOATX80}
+
+{*----------------------------------------------------------------------------
+| Rounds the quadruple-precision floating-point value `a' to an integer, and
+| Returns the result as a quadruple-precision floating-point value.  The
+| operation is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_round_to_int(a: float128): float128;
+begin
+    flag aSign;
+    int32 aExp;
+    bits64 lastBitMask, roundBitsMask;
+    int8 roundingMode;
+    float128 z;
+
+    aExp := extractFloat128Exp( a );
+    if ( $402F <= aExp ) begin
+        if ( $406F <= aExp ) begin
+            if (    ( aExp = $7FFF )
+                 and ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ) )
+               ) begin
+                result := propagateFloat128NaN( a, a );
+            end;
+            result := a;
+        end;
+        lastBitMask := 1;
+        lastBitMask := ( lastBitMask shl ( $406E - aExp ) ) shl 1;
+        roundBitsMask := lastBitMask - 1;
+        z := a;
+        roundingMode := float_rounding_mode;
+        if ( roundingMode = float_round_nearest_even ) begin
+            if ( lastBitMask ) begin
+                add128( z.high, z.low, 0, lastBitMask>>1, &z.high, &z.low );
+                if ( ( z.low and roundBitsMask ) = 0 ) z.low &= ~ lastBitMask;
+            end;
+            else begin
+                if ( (sbits64) z.low < 0 ) begin
+                    ++z.high;
+                    if ( (bits64) ( z.low shl 1 ) = 0 ) z.high &= ~1;
+                end;
+            end;
+        end;
+        else if ( roundingMode <> float_round_to_zero ) begin
+            if (   extractFloat128Sign( z )
+                 xor ( roundingMode = float_round_up ) ) begin
+                add128( z.high, z.low, 0, roundBitsMask, &z.high, &z.low );
+            end;
+        end;
+        z.low &= ~ roundBitsMask;
+    end;
+    else begin
+        if ( aExp < $3FFF ) begin
+            if ( ( ( (bits64) ( a.high shl 1 ) ) or a.low ) = 0 ) result := a;
+            float_exception_flags or= float_flag_inexact;
+            aSign := extractFloat128Sign( a );
+            switch ( float_rounding_mode ) begin
+             case float_round_nearest_even:
+                if (    ( aExp = $3FFE )
+                     and (   extractFloat128Frac0( a )
+                          or extractFloat128Frac1( a ) )
+                   ) begin
+                    result := packFloat128( aSign, $3FFF, 0, 0 );
+                end;
+                break;
+             case float_round_down:
+                result :=
+                      aSign ? packFloat128( 1, $3FFF, 0, 0 )
+                    : packFloat128( 0, 0, 0, 0 );
+             case float_round_up:
+                result :=
+                      aSign ? packFloat128( 1, 0, 0, 0 )
+                    : packFloat128( 0, $3FFF, 0, 0 );
+            end;
+            result := packFloat128( aSign, 0, 0, 0 );
+        end;
+        lastBitMask := 1;
+        lastBitMask  shl = $402F - aExp;
+        roundBitsMask := lastBitMask - 1;
+        z.low := 0;
+        z.high := a.high;
+        roundingMode := float_rounding_mode;
+        if ( roundingMode = float_round_nearest_even ) begin
+            z.high += lastBitMask>>1;
+            if ( ( ( z.high and roundBitsMask ) or a.low ) = 0 ) begin
+                z.high &= ~ lastBitMask;
+            end;
+        end;
+        else if ( roundingMode <> float_round_to_zero ) begin
+            if (   extractFloat128Sign( z )
+                 xor ( roundingMode = float_round_up ) ) begin
+                z.high or= ( a.low <> 0 );
+                z.high += roundBitsMask;
+            end;
+        end;
+        z.high &= ~ roundBitsMask;
+    end;
+    if ( ( z.low <> a.low ) or ( z.high <> a.high ) ) begin
+        float_exception_flags or= float_flag_inexact;
+    end;
+    result := z;
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of adding the absolute values of the quadruple-precision
+| floating-point values `a' and `b'.  If `zSign' is 1, the sum is negated
+| before being returned.  `zSign' is ignored if the result is a NaN.
+| The addition is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function addFloat128Sigs( float128 a, float128 b, flag zSign ): float128;
+begin
+    int32 aExp, bExp, zExp;
+    bits64 aSig0, aSig1, bSig0, bSig1, zSig0, zSig1, zSig2;
+    int32 expDiff;
+
+    aSig1 := extractFloat128Frac1( a );
+    aSig0 := extractFloat128Frac0( a );
+    aExp := extractFloat128Exp( a );
+    bSig1 := extractFloat128Frac1( b );
+    bSig0 := extractFloat128Frac0( b );
+    bExp := extractFloat128Exp( b );
+    expDiff := aExp - bExp;
+    if ( 0 < expDiff ) begin
+        if ( aExp = $7FFF ) begin
+            if ( aSig0 or aSig1 ) result := propagateFloat128NaN( a, b );
+            result := a;
+        end;
+        if ( bExp = 0 ) begin
+            --expDiff;
+        end;
+        else begin
+            bSig0 or= LIT64( $0001000000000000 );
+        end;
+        shift128ExtraRightJamming(
+            bSig0, bSig1, 0, expDiff, &bSig0, &bSig1, &zSig2 );
+        zExp := aExp;
+    end;
+    else if ( expDiff < 0 ) begin
+        if ( bExp = $7FFF ) begin
+            if ( bSig0 or bSig1 ) result := propagateFloat128NaN( a, b );
+            result := packFloat128( zSign, $7FFF, 0, 0 );
+        end;
+        if ( aExp = 0 ) begin
+            ++expDiff;
+        end;
+        else begin
+            aSig0 or= LIT64( $0001000000000000 );
+        end;
+        shift128ExtraRightJamming(
+            aSig0, aSig1, 0, - expDiff, &aSig0, &aSig1, &zSig2 );
+        zExp := bExp;
+    end;
+    else begin
+        if ( aExp = $7FFF ) begin
+            if ( aSig0 or aSig1 or bSig0 or bSig1 ) begin
+                result := propagateFloat128NaN( a, b );
+            end;
+            result := a;
+        end;
+        add128( aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1 );
+        if ( aExp = 0 ) result := packFloat128( zSign, 0, zSig0, zSig1 );
+        zSig2 := 0;
+        zSig0 or= LIT64( $0002000000000000 );
+        zExp := aExp;
+        goto shiftRight1;
+    end;
+    aSig0 or= LIT64( $0001000000000000 );
+    add128( aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1 );
+    --zExp;
+    if ( zSig0 < LIT64( $0002000000000000 ) ) goto roundAndPack;
+    ++zExp;
+ shiftRight1:
+    shift128ExtraRightJamming(
+        zSig0, zSig1, zSig2, 1, &zSig0, &zSig1, &zSig2 );
+ roundAndPack:
+    result := roundAndPackFloat128( zSign, zExp, zSig0, zSig1, zSig2 );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of subtracting the absolute values of the quadruple-
+| precision floating-point values `a' and `b'.  If `zSign' is 1, the
+| difference is negated before being returned.  `zSign' is ignored if the
+| result is a NaN.  The subtraction is performed according to the IEC/IEEE
+| Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function subFloat128Sigs( float128 a, float128 b, flag zSign ): float128;
+begin
+    int32 aExp, bExp, zExp;
+    bits64 aSig0, aSig1, bSig0, bSig1, zSig0, zSig1;
+    int32 expDiff;
+    float128 z;
+
+    aSig1 := extractFloat128Frac1( a );
+    aSig0 := extractFloat128Frac0( a );
+    aExp := extractFloat128Exp( a );
+    bSig1 := extractFloat128Frac1( b );
+    bSig0 := extractFloat128Frac0( b );
+    bExp := extractFloat128Exp( b );
+    expDiff := aExp - bExp;
+    shortShift128Left( aSig0, aSig1, 14, &aSig0, &aSig1 );
+    shortShift128Left( bSig0, bSig1, 14, &bSig0, &bSig1 );
+    if ( 0 < expDiff ) goto aExpBigger;
+    if ( expDiff < 0 ) goto bExpBigger;
+    if ( aExp = $7FFF ) begin
+        if ( aSig0 or aSig1 or bSig0 or bSig1 ) begin
+            result := propagateFloat128NaN( a, b );
+        end;
+        float_raise( float_flag_invalid );
+        z.low := float128_default_nan_low;
+        z.high := float128_default_nan_high;
+        result := z;
+    end;
+    if ( aExp = 0 ) begin
+        aExp := 1;
+        bExp := 1;
+    end;
+    if ( bSig0 < aSig0 ) goto aBigger;
+    if ( aSig0 < bSig0 ) goto bBigger;
+    if ( bSig1 < aSig1 ) goto aBigger;
+    if ( aSig1 < bSig1 ) goto bBigger;
+    result := packFloat128( float_rounding_mode = float_round_down, 0, 0, 0 );
+ bExpBigger:
+    if ( bExp = $7FFF ) begin
+        if ( bSig0 or bSig1 ) result := propagateFloat128NaN( a, b );
+        result := packFloat128( zSign xor 1, $7FFF, 0, 0 );
+    end;
+    if ( aExp = 0 ) begin
+        ++expDiff;
+    end;
+    else begin
+        aSig0 or= LIT64( $4000000000000000 );
+    end;
+    shift128RightJamming( aSig0, aSig1, - expDiff, &aSig0, &aSig1 );
+    bSig0 or= LIT64( $4000000000000000 );
+ bBigger:
+    sub128( bSig0, bSig1, aSig0, aSig1, &zSig0, &zSig1 );
+    zExp := bExp;
+    zSign  xor = 1;
+    goto normalizeRoundAndPack;
+ aExpBigger:
+    if ( aExp = $7FFF ) begin
+        if ( aSig0 or aSig1 ) result := propagateFloat128NaN( a, b );
+        result := a;
+    end;
+    if ( bExp = 0 ) begin
+        --expDiff;
+    end;
+    else begin
+        bSig0 or= LIT64( $4000000000000000 );
+    end;
+    shift128RightJamming( bSig0, bSig1, expDiff, &bSig0, &bSig1 );
+    aSig0 or= LIT64( $4000000000000000 );
+ aBigger:
+    sub128( aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1 );
+    zExp := aExp;
+ normalizeRoundAndPack:
+    --zExp;
+    result := normalizeRoundAndPackFloat128( zSign, zExp - 14, zSig0, zSig1 );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of adding the quadruple-precision floating-point values
+| `a' and `b'.  The operation is performed according to the IEC/IEEE Standard
+| for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_add(a: float128; b: float128): float128;
+begin
+    flag aSign, bSign;
+
+    aSign := extractFloat128Sign( a );
+    bSign := extractFloat128Sign( b );
+    if ( aSign = bSign ) begin
+        result := addFloat128Sigs( a, b, aSign );
+    end;
+    else begin
+        result := subFloat128Sigs( a, b, aSign );
+    end;
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of subtracting the quadruple-precision floating-point
+| values `a' and `b'.  The operation is performed according to the IEC/IEEE
+| Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_sub(a: float128; b: float128): float128;
+begin
+    flag aSign, bSign;
+
+    aSign := extractFloat128Sign( a );
+    bSign := extractFloat128Sign( b );
+    if ( aSign = bSign ) begin
+        result := subFloat128Sigs( a, b, aSign );
+    end;
+    else begin
+        result := addFloat128Sigs( a, b, aSign );
+    end;
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of multiplying the quadruple-precision floating-point
+| values `a' and `b'.  The operation is performed according to the IEC/IEEE
+| Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_mul(a: float128; b: float128): float128;
+begin
+    flag aSign, bSign, zSign;
+    int32 aExp, bExp, zExp;
+    bits64 aSig0, aSig1, bSig0, bSig1, zSig0, zSig1, zSig2, zSig3;
+    float128 z;
+
+    aSig1 := extractFloat128Frac1( a );
+    aSig0 := extractFloat128Frac0( a );
+    aExp := extractFloat128Exp( a );
+    aSign := extractFloat128Sign( a );
+    bSig1 := extractFloat128Frac1( b );
+    bSig0 := extractFloat128Frac0( b );
+    bExp := extractFloat128Exp( b );
+    bSign := extractFloat128Sign( b );
+    zSign := aSign xor bSign;
+    if ( aExp = $7FFF ) begin
+        if (    ( aSig0 or aSig1 )
+             or ( ( bExp = $7FFF ) and ( bSig0 or bSig1 ) ) ) begin
+            result := propagateFloat128NaN( a, b );
+        end;
+        if ( ( bExp or bSig0 or bSig1 ) = 0 ) goto invalid;
+        result := packFloat128( zSign, $7FFF, 0, 0 );
+    end;
+    if ( bExp = $7FFF ) begin
+        if ( bSig0 or bSig1 ) result := propagateFloat128NaN( a, b );
+        if ( ( aExp or aSig0 or aSig1 ) = 0 ) begin
+ invalid:
+            float_raise( float_flag_invalid );
+            z.low := float128_default_nan_low;
+            z.high := float128_default_nan_high;
+            result := z;
+        end;
+        result := packFloat128( zSign, $7FFF, 0, 0 );
+    end;
+    if ( aExp = 0 ) begin
+        if ( ( aSig0 or aSig1 ) = 0 ) result := packFloat128( zSign, 0, 0, 0 );
+        normalizeFloat128Subnormal( aSig0, aSig1, &aExp, &aSig0, &aSig1 );
+    end;
+    if ( bExp = 0 ) begin
+        if ( ( bSig0 or bSig1 ) = 0 ) result := packFloat128( zSign, 0, 0, 0 );
+        normalizeFloat128Subnormal( bSig0, bSig1, &bExp, &bSig0, &bSig1 );
+    end;
+    zExp := aExp + bExp - $4000;
+    aSig0 or= LIT64( $0001000000000000 );
+    shortShift128Left( bSig0, bSig1, 16, &bSig0, &bSig1 );
+    mul128To256( aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1, &zSig2, &zSig3 );
+    add128( zSig0, zSig1, aSig0, aSig1, &zSig0, &zSig1 );
+    zSig2 or= ( zSig3 <> 0 );
+    if ( LIT64( $0002000000000000 ) <= zSig0 ) begin
+        shift128ExtraRightJamming(
+            zSig0, zSig1, zSig2, 1, &zSig0, &zSig1, &zSig2 );
+        ++zExp;
+    end;
+    result := roundAndPackFloat128( zSign, zExp, zSig0, zSig1, zSig2 );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of dividing the quadruple-precision floating-point value
+| `a' by the corresponding value `b'.  The operation is performed according to
+| the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_div(a: float128; b: float128): float128;
+begin
+    flag aSign, bSign, zSign;
+    int32 aExp, bExp, zExp;
+    bits64 aSig0, aSig1, bSig0, bSig1, zSig0, zSig1, zSig2;
+    bits64 rem0, rem1, rem2, rem3, term0, term1, term2, term3;
+    float128 z;
+
+    aSig1 := extractFloat128Frac1( a );
+    aSig0 := extractFloat128Frac0( a );
+    aExp := extractFloat128Exp( a );
+    aSign := extractFloat128Sign( a );
+    bSig1 := extractFloat128Frac1( b );
+    bSig0 := extractFloat128Frac0( b );
+    bExp := extractFloat128Exp( b );
+    bSign := extractFloat128Sign( b );
+    zSign := aSign xor bSign;
+    if ( aExp = $7FFF ) begin
+        if ( aSig0 or aSig1 ) result := propagateFloat128NaN( a, b );
+        if ( bExp = $7FFF ) begin
+            if ( bSig0 or bSig1 ) result := propagateFloat128NaN( a, b );
+            goto invalid;
+        end;
+        result := packFloat128( zSign, $7FFF, 0, 0 );
+    end;
+    if ( bExp = $7FFF ) begin
+        if ( bSig0 or bSig1 ) result := propagateFloat128NaN( a, b );
+        result := packFloat128( zSign, 0, 0, 0 );
+    end;
+    if ( bExp = 0 ) begin
+        if ( ( bSig0 or bSig1 ) = 0 ) begin
+            if ( ( aExp or aSig0 or aSig1 ) = 0 ) begin
+ invalid:
+                float_raise( float_flag_invalid );
+                z.low := float128_default_nan_low;
+                z.high := float128_default_nan_high;
+                result := z;
+            end;
+            float_raise( float_flag_divbyzero );
+            result := packFloat128( zSign, $7FFF, 0, 0 );
+        end;
+        normalizeFloat128Subnormal( bSig0, bSig1, &bExp, &bSig0, &bSig1 );
+    end;
+    if ( aExp = 0 ) begin
+        if ( ( aSig0 or aSig1 ) = 0 ) result := packFloat128( zSign, 0, 0, 0 );
+        normalizeFloat128Subnormal( aSig0, aSig1, &aExp, &aSig0, &aSig1 );
+    end;
+    zExp := aExp - bExp + $3FFD;
+    shortShift128Left(
+        aSig0 or LIT64( $0001000000000000 ), aSig1, 15, &aSig0, &aSig1 );
+    shortShift128Left(
+        bSig0 or LIT64( $0001000000000000 ), bSig1, 15, &bSig0, &bSig1 );
+    if ( le128( bSig0, bSig1, aSig0, aSig1 ) ) begin
+        shift128Right( aSig0, aSig1, 1, &aSig0, &aSig1 );
+        ++zExp;
+    end;
+    zSig0 := estimateDiv128To64( aSig0, aSig1, bSig0 );
+    mul128By64To192( bSig0, bSig1, zSig0, &term0, &term1, &term2 );
+    sub192( aSig0, aSig1, 0, term0, term1, term2, &rem0, &rem1, &rem2 );
+    while ( (sbits64) rem0 < 0 ) begin
+        --zSig0;
+        add192( rem0, rem1, rem2, 0, bSig0, bSig1, &rem0, &rem1, &rem2 );
+    end;
+    zSig1 := estimateDiv128To64( rem1, rem2, bSig0 );
+    if ( ( zSig1 and $3FFF ) <= 4 ) begin
+        mul128By64To192( bSig0, bSig1, zSig1, &term1, &term2, &term3 );
+        sub192( rem1, rem2, 0, term1, term2, term3, &rem1, &rem2, &rem3 );
+        while ( (sbits64) rem1 < 0 ) begin
+            --zSig1;
+            add192( rem1, rem2, rem3, 0, bSig0, bSig1, &rem1, &rem2, &rem3 );
+        end;
+        zSig1 or= ( ( rem1 or rem2 or rem3 ) <> 0 );
+    end;
+    shift128ExtraRightJamming( zSig0, zSig1, 0, 15, &zSig0, &zSig1, &zSig2 );
+    result := roundAndPackFloat128( zSign, zExp, zSig0, zSig1, zSig2 );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the remainder of the quadruple-precision floating-point value `a'
+| with respect to the corresponding value `b'.  The operation is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_rem(a: float128; b: float128): float128;
+begin
+    flag aSign, bSign, zSign;
+    int32 aExp, bExp, expDiff;
+    bits64 aSig0, aSig1, bSig0, bSig1, q, term0, term1, term2;
+    bits64 allZero, alternateASig0, alternateASig1, sigMean1;
+    sbits64 sigMean0;
+    float128 z;
+
+    aSig1 := extractFloat128Frac1( a );
+    aSig0 := extractFloat128Frac0( a );
+    aExp := extractFloat128Exp( a );
+    aSign := extractFloat128Sign( a );
+    bSig1 := extractFloat128Frac1( b );
+    bSig0 := extractFloat128Frac0( b );
+    bExp := extractFloat128Exp( b );
+    bSign := extractFloat128Sign( b );
+    if ( aExp = $7FFF ) begin
+        if (    ( aSig0 or aSig1 )
+             or ( ( bExp = $7FFF ) and ( bSig0 or bSig1 ) ) ) begin
+            result := propagateFloat128NaN( a, b );
+        end;
+        goto invalid;
+    end;
+    if ( bExp = $7FFF ) begin
+        if ( bSig0 or bSig1 ) result := propagateFloat128NaN( a, b );
+        result := a;
+    end;
+    if ( bExp = 0 ) begin
+        if ( ( bSig0 or bSig1 ) = 0 ) begin
+ invalid:
+            float_raise( float_flag_invalid );
+            z.low := float128_default_nan_low;
+            z.high := float128_default_nan_high;
+            result := z;
+        end;
+        normalizeFloat128Subnormal( bSig0, bSig1, &bExp, &bSig0, &bSig1 );
+    end;
+    if ( aExp = 0 ) begin
+        if ( ( aSig0 or aSig1 ) = 0 ) result := a;
+        normalizeFloat128Subnormal( aSig0, aSig1, &aExp, &aSig0, &aSig1 );
+    end;
+    expDiff := aExp - bExp;
+    if ( expDiff < -1 ) result := a;
+    shortShift128Left(
+        aSig0 or LIT64( $0001000000000000 ),
+        aSig1,
+        15 - ( expDiff < 0 ),
+        &aSig0,
+        &aSig1
+    );
+    shortShift128Left(
+        bSig0 or LIT64( $0001000000000000 ), bSig1, 15, &bSig0, &bSig1 );
+    q := le128( bSig0, bSig1, aSig0, aSig1 );
+    if ( q ) sub128( aSig0, aSig1, bSig0, bSig1, &aSig0, &aSig1 );
+    expDiff -= 64;
+    while ( 0 < expDiff ) begin
+        q := estimateDiv128To64( aSig0, aSig1, bSig0 );
+        q := ( 4 < q ) ? q - 4 : 0;
+        mul128By64To192( bSig0, bSig1, q, &term0, &term1, &term2 );
+        shortShift192Left( term0, term1, term2, 61, &term1, &term2, &allZero );
+        shortShift128Left( aSig0, aSig1, 61, &aSig0, &allZero );
+        sub128( aSig0, 0, term1, term2, &aSig0, &aSig1 );
+        expDiff -= 61;
+    end;
+    if ( -64 < expDiff ) begin
+        q := estimateDiv128To64( aSig0, aSig1, bSig0 );
+        q := ( 4 < q ) ? q - 4 : 0;
+        q >>= - expDiff;
+        shift128Right( bSig0, bSig1, 12, &bSig0, &bSig1 );
+        expDiff += 52;
+        if ( expDiff < 0 ) begin
+            shift128Right( aSig0, aSig1, - expDiff, &aSig0, &aSig1 );
+        end;
+        else begin
+            shortShift128Left( aSig0, aSig1, expDiff, &aSig0, &aSig1 );
+        end;
+        mul128By64To192( bSig0, bSig1, q, &term0, &term1, &term2 );
+        sub128( aSig0, aSig1, term1, term2, &aSig0, &aSig1 );
+    end;
+    else begin
+        shift128Right( aSig0, aSig1, 12, &aSig0, &aSig1 );
+        shift128Right( bSig0, bSig1, 12, &bSig0, &bSig1 );
+    end;
+    do begin
+        alternateASig0 := aSig0;
+        alternateASig1 := aSig1;
+        ++q;
+        sub128( aSig0, aSig1, bSig0, bSig1, &aSig0, &aSig1 );
+    end; while ( 0 <= (sbits64) aSig0 );
+    add128(
+        aSig0, aSig1, alternateASig0, alternateASig1, &sigMean0, &sigMean1 );
+    if (    ( sigMean0 < 0 )
+         or ( ( ( sigMean0 or sigMean1 ) = 0 ) and ( q and 1 ) ) ) begin
+        aSig0 := alternateASig0;
+        aSig1 := alternateASig1;
+    end;
+    zSign := ( (sbits64) aSig0 < 0 );
+    if ( zSign ) sub128( 0, 0, aSig0, aSig1, &aSig0, &aSig1 );
+    result :=
+        normalizeRoundAndPackFloat128( aSign xor zSign, bExp - 4, aSig0, aSig1 );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the square root of the quadruple-precision floating-point value `a'.
+| The operation is performed according to the IEC/IEEE Standard for Binary
+| Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_sqrt(a: float128): float128;
+begin
+    flag aSign;
+    int32 aExp, zExp;
+    bits64 aSig0, aSig1, zSig0, zSig1, zSig2, doubleZSig0;
+    bits64 rem0, rem1, rem2, rem3, term0, term1, term2, term3;
+    float128 z;
+
+    aSig1 := extractFloat128Frac1( a );
+    aSig0 := extractFloat128Frac0( a );
+    aExp := extractFloat128Exp( a );
+    aSign := extractFloat128Sign( a );
+    if ( aExp = $7FFF ) begin
+        if ( aSig0 or aSig1 ) result := propagateFloat128NaN( a, a );
+        if ( ! aSign ) result := a;
+        goto invalid;
+    end;
+    if ( aSign ) begin
+        if ( ( aExp or aSig0 or aSig1 ) = 0 ) result := a;
+ invalid:
+        float_raise( float_flag_invalid );
+        z.low := float128_default_nan_low;
+        z.high := float128_default_nan_high;
+        result := z;
+    end;
+    if ( aExp = 0 ) begin
+        if ( ( aSig0 or aSig1 ) = 0 ) result := packFloat128( 0, 0, 0, 0 );
+        normalizeFloat128Subnormal( aSig0, aSig1, &aExp, &aSig0, &aSig1 );
+    end;
+    zExp := ( ( aExp - $3FFF )>>1 ) + $3FFE;
+    aSig0 or= LIT64( $0001000000000000 );
+    zSig0 := estimateSqrt32( aExp, aSig0>>17 );
+    shortShift128Left( aSig0, aSig1, 13 - ( aExp and 1 ), &aSig0, &aSig1 );
+    zSig0 := estimateDiv128To64( aSig0, aSig1, zSig0 shl 32 ) + ( zSig0 shl 30 );
+    doubleZSig0 := zSig0 shl 1;
+    mul64To128( zSig0, zSig0, &term0, &term1 );
+    sub128( aSig0, aSig1, term0, term1, &rem0, &rem1 );
+    while ( (sbits64) rem0 < 0 ) begin
+        --zSig0;
+        doubleZSig0 -= 2;
+        add128( rem0, rem1, zSig0>>63, doubleZSig0 or 1, &rem0, &rem1 );
+    end;
+    zSig1 := estimateDiv128To64( rem1, 0, doubleZSig0 );
+    if ( ( zSig1 and $1FFF ) <= 5 ) begin
+        if ( zSig1 = 0 ) zSig1 := 1;
+        mul64To128( doubleZSig0, zSig1, &term1, &term2 );
+        sub128( rem1, 0, term1, term2, &rem1, &rem2 );
+        mul64To128( zSig1, zSig1, &term2, &term3 );
+        sub192( rem1, rem2, 0, 0, term2, term3, &rem1, &rem2, &rem3 );
+        while ( (sbits64) rem1 < 0 ) begin
+            --zSig1;
+            shortShift128Left( 0, zSig1, 1, &term2, &term3 );
+            term3 or= 1;
+            term2 or= doubleZSig0;
+            add192( rem1, rem2, rem3, 0, term2, term3, &rem1, &rem2, &rem3 );
+        end;
+        zSig1 or= ( ( rem1 or rem2 or rem3 ) <> 0 );
+    end;
+    shift128ExtraRightJamming( zSig0, zSig1, 0, 14, &zSig0, &zSig1, &zSig2 );
+    result := roundAndPackFloat128( 0, zExp, zSig0, zSig1, zSig2 );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the quadruple-precision floating-point value `a' is equal to
+| the corresponding value `b', and 0 otherwise.  The comparison is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_eq(a: float128; b: float128): flag;
+begin
+
+    if (    (    ( extractFloat128Exp( a ) = $7FFF )
+              and ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ) ) )
+         or (    ( extractFloat128Exp( b ) = $7FFF )
+              and ( extractFloat128Frac0( b ) or extractFloat128Frac1( b ) ) )
+       ) begin
+        if (    float128_is_signaling_nan( a )
+             or float128_is_signaling_nan( b ) ) begin
+            float_raise( float_flag_invalid );
+        end;
+        result := 0;
+    end;
+    result :=
+           ( a.low = b.low )
+        and (    ( a.high = b.high )
+             or (    ( a.low = 0 )
+                  and ( (bits64) ( ( a.high or b.high ) shl 1 ) = 0 ) )
+           );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the quadruple-precision floating-point value `a' is less than
+| or equal to the corresponding value `b', and 0 otherwise.  The comparison
+| is performed according to the IEC/IEEE Standard for Binary Floating-Point
+| Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_le(a: float128; b: float128): flag;
+begin
+    flag aSign, bSign;
+
+    if (    (    ( extractFloat128Exp( a ) = $7FFF )
+              and ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ) ) )
+         or (    ( extractFloat128Exp( b ) = $7FFF )
+              and ( extractFloat128Frac0( b ) or extractFloat128Frac1( b ) ) )
+       ) begin
+        float_raise( float_flag_invalid );
+        result := 0;
+    end;
+    aSign := extractFloat128Sign( a );
+    bSign := extractFloat128Sign( b );
+    if ( aSign <> bSign ) begin
+        result :=
+               aSign
+            or (    ( ( (bits64) ( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
+                 = 0 );
+    end;
+    result :=
+          aSign ? le128( b.high, b.low, a.high, a.low )
+        : le128( a.high, a.low, b.high, b.low );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the quadruple-precision floating-point value `a' is less than
+| the corresponding value `b', and 0 otherwise.  The comparison is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_lt(a: float128; b: float128): flag;
+begin
+    flag aSign, bSign;
+
+    if (    (    ( extractFloat128Exp( a ) = $7FFF )
+              and ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ) ) )
+         or (    ( extractFloat128Exp( b ) = $7FFF )
+              and ( extractFloat128Frac0( b ) or extractFloat128Frac1( b ) ) )
+       ) begin
+        float_raise( float_flag_invalid );
+        result := 0;
+    end;
+    aSign := extractFloat128Sign( a );
+    bSign := extractFloat128Sign( b );
+    if ( aSign <> bSign ) begin
+        result :=
+               aSign
+            and (    ( ( (bits64) ( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
+                 <> 0 );
+    end;
+    result :=
+          aSign ? lt128( b.high, b.low, a.high, a.low )
+        : lt128( a.high, a.low, b.high, b.low );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the quadruple-precision floating-point value `a' is equal to
+| the corresponding value `b', and 0 otherwise.  The invalid exception is
+| raised if either operand is a NaN.  Otherwise, the comparison is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_eq_signaling(a: float128; b: float128): flag;
+begin
+
+    if (    (    ( extractFloat128Exp( a ) = $7FFF )
+              and ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ) ) )
+         or (    ( extractFloat128Exp( b ) = $7FFF )
+              and ( extractFloat128Frac0( b ) or extractFloat128Frac1( b ) ) )
+       ) begin
+        float_raise( float_flag_invalid );
+        result := 0;
+    end;
+    result :=
+           ( a.low = b.low )
+        and (    ( a.high = b.high )
+             or (    ( a.low = 0 )
+                  and ( (bits64) ( ( a.high or b.high ) shl 1 ) = 0 ) )
+           );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the quadruple-precision floating-point value `a' is less than
+| or equal to the corresponding value `b', and 0 otherwise.  Quiet NaNs do not
+| cause an exception.  Otherwise, the comparison is performed according to the
+| IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_le_quiet(a: float128; b: float128): flag;
+begin
+    flag aSign, bSign;
+
+    if (    (    ( extractFloat128Exp( a ) = $7FFF )
+              and ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ) ) )
+         or (    ( extractFloat128Exp( b ) = $7FFF )
+              and ( extractFloat128Frac0( b ) or extractFloat128Frac1( b ) ) )
+       ) begin
+        if (    float128_is_signaling_nan( a )
+             or float128_is_signaling_nan( b ) ) begin
+            float_raise( float_flag_invalid );
+        end;
+        result := 0;
+    end;
+    aSign := extractFloat128Sign( a );
+    bSign := extractFloat128Sign( b );
+    if ( aSign <> bSign ) begin
+        result :=
+               aSign
+            or (    ( ( (bits64) ( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
+                 = 0 );
+    end;
+    result :=
+          aSign ? le128( b.high, b.low, a.high, a.low )
+        : le128( a.high, a.low, b.high, b.low );
+
+end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the quadruple-precision floating-point value `a' is less than
+| the corresponding value `b', and 0 otherwise.  Quiet NaNs do not cause an
+| exception.  Otherwise, the comparison is performed according to the IEC/IEEE
+| Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*}
+
+function float128_lt_quiet(a: float128; b: float128): flag;
+begin
+    flag aSign, bSign;
+
+    if (    (    ( extractFloat128Exp( a ) = $7FFF )
+              and ( extractFloat128Frac0( a ) or extractFloat128Frac1( a ) ) )
+         or (    ( extractFloat128Exp( b ) = $7FFF )
+              and ( extractFloat128Frac0( b ) or extractFloat128Frac1( b ) ) )
+       ) begin
+        if (    float128_is_signaling_nan( a )
+             or float128_is_signaling_nan( b ) ) begin
+            float_raise( float_flag_invalid );
+        end;
+        result := 0;
+    end;
+    aSign := extractFloat128Sign( a );
+    bSign := extractFloat128Sign( b );
+    if ( aSign <> bSign ) begin
+        result :=
+               aSign
+            and (    ( ( (bits64) ( ( a.high or b.high ) shl 1 ) ) or a.low or b.low )
+                 <> 0 );
+    end;
+    result :=
+          aSign ? lt128( b.high, b.low, a.high, a.low )
+        : lt128( a.high, a.low, b.high, b.low );
+
+end;
+
+{$endif FPC_SOFTFLOAT_FLOAT128}
 
 {$endif not(defined(fpc_softfpu_interface))}
 
