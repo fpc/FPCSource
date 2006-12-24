@@ -2678,7 +2678,13 @@ const
         { if we didn't reuse a forwarddef then we add the procdef to the overloaded
           list }
         if not forwardfound then
-          tprocsym(currpd.procsym).ProcdefList.Add(currpd);
+          begin
+            { can happen in Delphi mode }
+            if (currpd.proctypeoption = potype_function) and
+               is_void(currpd.returndef) then
+              MessagePos1(currpd.fileinfo,parser_e_no_funcret_specified,currpd.procsym.realname);
+            tprocsym(currpd.procsym).ProcdefList.Add(currpd);
+          end;
 
         proc_add_definition:=forwardfound;
       end;

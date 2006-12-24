@@ -1102,6 +1102,9 @@ parser_e_cant_create_generics_of_this_type=03225_E_This type can't be a generic
 parser_w_no_lineinfo_use_switch=03226_W_Don't load LINEINFO unit manually, Use the -gl compiler switch instead
 % Do not use the LINEINFO unit directly, Use the \var{-gl} switch which automatically adds the
 % unit for reading the selected type of debugging information instead.
+parser_e_no_funcret_specified=03227_E_No function result type specified for function "$1"
+% The first time you declare a function you have to declare it completely,
+% including all parameters and the result type.
 #
 # Type Checking
 #
