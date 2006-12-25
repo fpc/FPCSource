@@ -149,7 +149,7 @@ TYPE
     low : qword;
   end;
 
-  float128 = packed word
+  float128 = packed record
     high : qword;
     low : qword;
   end;
