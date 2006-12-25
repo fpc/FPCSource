@@ -47,7 +47,6 @@ type
   public
     procedure ExecuteDirect(const ASql: String);override;
     function SqliteReturnString: String; override;
-    function TableExists(const ATableName:String): Boolean;override;
     function QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;override;
     property SqliteEncoding: String read GetSqliteEncoding;
   end;
@@ -73,93 +72,6 @@ begin
   Integer(NextValue^):=Succ(TempInt);
   Result:=1;
 end;
-
-{
-function GetFieldDefs(TheDataset: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPChar): integer; cdecl;
-var
-  FieldSize:Word;
-  i:Integer;
-  AType:TFieldType;
-  ColumnStr:String;
-begin
- //Prepare the array of pchar2sql functions
- SetLength(TCustomSqliteDataset(TheDataset).FGetSqlStr,Columns);
- // Sqlite is typeless (allows any type in any field)
- // regardless of what is in Create Table, but returns
- // exactly what is in Create Table statement
- // here is a trick to get the datatype.
- // If the field contains another type, may have problems
- for i:= 0 to Columns - 1 do
- begin
-   ColumnStr:= UpperCase(StrPas(ColumnNames[i + Columns]));
-   if (ColumnStr = 'INTEGER') or (ColumnStr = 'INT') then
-   begin
-     if TCustomSqliteDataset(TheDataset).AutoIncrementKey and
-          (UpperCase(StrPas(ColumnNames[i])) = UpperCase(TCustomSqliteDataset(TheDataset).PrimaryKey)) then
-     begin
-       AType:= ftAutoInc;
-       DummyAutoIncFieldNo:=i;
-     end
-     else
-       AType:= ftInteger;
-     FieldSize:=SizeOf(LongInt);
-   end else if Pos('VARCHAR',ColumnStr) = 1 then
-   begin
-     AType:= ftString;
-     FieldSize:=0;
-   end else if Pos('BOOL',ColumnStr) = 1 then
-   begin
-     AType:= ftBoolean;
-     FieldSize:=SizeOf(WordBool);
-   end else if Pos('AUTOINC',ColumnStr) = 1 then
-   begin
-     AType:= ftAutoInc;
-     FieldSize:=SizeOf(LongInt);
-     if DummyAutoIncFieldNo = -1 then
-       DummyAutoIncFieldNo:= i;
-   end else if (Pos('FLOAT',ColumnStr)=1) or (Pos('NUMERIC',ColumnStr)=1) then
-   begin
-     AType:= ftFloat;
-     FieldSize:=SizeOf(Double);
-   end else if (ColumnStr = 'DATETIME') then
-   begin
-     AType:= ftDateTime;
-     FieldSize:=SizeOf(TDateTime);
-   end else if (ColumnStr = 'DATE') then
-   begin
-     AType:= ftDate;
-     FieldSize:=SizeOf(TDateTime);
-   end else if (ColumnStr = 'TIME') then
-   begin
-     AType:= ftTime;
-     FieldSize:=SizeOf(TDateTime);
-   end else if (ColumnStr = 'LARGEINT') then
-   begin
-     AType:= ftLargeInt;
-     FieldSize:=SizeOf(LargeInt);
-   end else if (ColumnStr = 'TEXT') then
-   begin
-     AType:= ftMemo;
-     FieldSize:=0;
-   end else if (ColumnStr = 'CURRENCY') then
-   begin
-     AType:= ftCurrency;
-     FieldSize:=SizeOf(Double);
-   end else if (ColumnStr = 'WORD') then
-   begin
-     AType:= ftWord;
-     FieldSize:=SizeOf(Word);
-   end else
-   begin
-     AType:=ftString;
-     FieldSize:=0;
-   end;
-   TDataset(TheDataset).FieldDefs.Add(StrPas(ColumnNames[i]), AType, FieldSize, False);
-   //Set
- end;
- Result:=-1;
-end;
-}
 
 { TSqliteDataset }
 
@@ -347,38 +259,6 @@ begin
   GetMem(FBeginItem^.Row,FRowBufferSize);
   for Counter := 0 to FRowCount - 1 do
     FBeginItem^.Row[Counter]:=nil;
-end;
-
-function TSqliteDataset.TableExists(const ATableName:String): Boolean;
-var
-  vm:Pointer;
-  ColumnNames,ColumnValues:PPChar;
-  AInt:Integer;
-begin
-  {$ifdef DEBUG}
-  WriteLn('##TSqliteDataset.TableExists##');
-  {$endif}
-  Result:=False;
-  if not (ATableName = '') and FileExists(FFileName) then
-  begin
-    if FSqliteHandle = nil then
-      GetSqliteHandle;
-    FSqliteReturnId:=sqlite_compile(FSqliteHandle,
-      Pchar('SELECT name FROM SQLITE_MASTER WHERE type = ''table'' AND name LIKE '''+ ATableName+ ''';'),
-      nil,@vm,nil);
-    {$ifdef DEBUG}
-    WriteLn('  sqlite_compile - SqliteReturnString:',SqliteReturnString);
-    {$endif}
-    FSqliteReturnId:=sqlite_step(vm,@AInt,@ColumnValues,@ColumnNames);
-    {$ifdef DEBUG}
-    WriteLn('  sqlite_step - SqliteReturnString:',SqliteReturnString);
-    {$endif}
-    Result:=FSqliteReturnId = SQLITE_ROW;
-    sqlite_finalize(vm, nil);
-  end;
-  {$ifdef DEBUG}
-  WriteLn('  Table '+ATableName+' exists:',Result);
-  {$endif}
 end;
 
 function TSqliteDataset.SqliteReturnString: String;

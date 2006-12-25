@@ -41,13 +41,11 @@ type
     procedure InternalCloseHandle;override;
     procedure BuildLinkedList; override;
   protected
-    procedure InternalCancel;override;
     procedure InternalInitFieldDefs; override;
     function GetRowsAffected:Integer; override;
   public
     procedure ExecuteDirect(const ASql: String);override;
     function SqliteReturnString: String; override;
-    function TableExists(const ATableName:String): Boolean;override;
     function QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;override;
   end;
 
@@ -254,81 +252,6 @@ begin
   //Todo: see if is better to nullif using FillDWord
   for Counter := 0 to FRowCount - 1 do
     FBeginItem^.Row[Counter]:=nil;
-end;
-
-procedure TSqlite3Dataset.InternalCancel;
-{
-var
-  vm:Pointer;
-  i:Integer;
-  ActiveItem:PDataRecord;
-  ASql:String;
-}
-begin
-{
-  //WriteLn('InternalCancel called');
-  if FPrimaryKeyNo <> - 1 then //requires a primarykey
-  begin
-    ActiveItem:=PPDataRecord(ActiveBuffer)^;
-    if ActiveItem = FBeginItem then //Dataset is empty
-      Exit;
-    for i:= 0 to FRowCount -1 do
-      StrDispose(ActiveItem^.Row[i]);
-
-    if FAddedItems.IndexOf(ActiveItem) <> -1 then //the record is not in the database
-    begin
-      for i:= 0 to FRowCount - 1 do
-      begin
-        ActiveItem^.Row[i]:=nil;
-        //DataEvent(deFieldChange, Ptrint(Fields[i]));
-      end;
-      Exit;
-    end;
-    ASql:=FSelectSqlStr+' Where '+Fields[FPrimaryKeyNo].FieldName+
-      ' = '+StrPas(ActiveItem^.Row[FPrimaryKeyNo]);
-    //writeln(Asql);
-    sqlite3_prepare(FSqliteHandle,PChar(ASql),-1,@vm,nil);
-    if sqlite3_step(vm) = SQLITE_ROW then
-    begin
-      for i:= 0 to FRowCount - 1 do
-      begin
-        ActiveItem^.Row[i]:=StrNew(sqlite3_column_text(vm,i));
-        //DataEvent(deFieldChange, Ptrint(Fields[i]));
-      end;
-    end;
-    sqlite3_finalize(vm);
-  end;
-}
-end;
-
-function TSqlite3Dataset.TableExists(const ATableName:String): Boolean;
-var
-  vm:Pointer;
-begin
-  {$ifdef DEBUG}
-  writeln('##TSqlite3Dataset.TableExists##');
-  {$endif}
-  Result:=False;
-  if not (ATableName = '') and FileExists(FFileName) then
-  begin
-    if FSqliteHandle = nil then
-      GetSqliteHandle;
-    FSqliteReturnId:=sqlite3_prepare(FSqliteHandle,
-    Pchar('SELECT name FROM SQLITE_MASTER WHERE type = ''table'' AND name LIKE '''+ ATableName+ ''';'),
-      -1,@vm,nil);
-    {$ifdef DEBUG}
-    WriteLn('  sqlite3_prepare - SqliteReturnString:',SqliteReturnString);
-    {$endif}
-    FSqliteReturnId:=sqlite3_step(vm);
-    {$ifdef DEBUG}
-    WriteLn('  sqlite3_step - SqliteReturnString:',SqliteReturnString);
-    {$endif}
-    Result:=FSqliteReturnId = SQLITE_ROW;
-    sqlite3_finalize(vm);
-  end;
-  {$ifdef DEBUG}
-  WriteLn('  Table '+ATableName+' exists: ',Result);
-  {$endif}
 end;
 
 function TSqlite3Dataset.SqliteReturnString: String;
