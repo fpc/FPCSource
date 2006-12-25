@@ -345,7 +345,7 @@ implementation
                   paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                   cg.a_param_const(current_asmdata.CurrAsmList,OS_S32,200,paraloc1);
                   paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
-                  cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLERROR');
+                  cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR');
                   paraloc1.done;
                   cg.a_label(current_asmdata.CurrAsmList,hl);
                   if nodetype = modn then
