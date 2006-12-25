@@ -170,6 +170,7 @@ Type
     function sem_close (__sem:Psem_t):longint;cdecl;external;
     function sem_unlink (__name:Pchar):longint;cdecl;external;
     function sem_wait (__sem:Psem_t):longint;cdecl;external;
+    function sem_timedwait (__sem:Psem_t; __abs_timeout:ptimespec):longint;cdecl;
     function sem_trywait  (__sem:Psem_t):longint;cdecl;external;
     function sem_post     (__sem:Psem_t):longint;cdecl;external;
     function sem_getvalue (__sem:Psem_t; __sval:Plongint):longint;cdecl;external;
@@ -237,6 +238,7 @@ Var
     sem_close    :   function (__sem:Psem_t):longint;cdecl;
     sem_unlink   :   function (__name:Pchar):longint;cdecl;
     sem_wait     :   function (__sem:Psem_t):longint;cdecl;
+    sem_timedwait:   function (__sem:Psem_t; __abs_timeout:ptimespec):longint;cdecl;
     sem_trywait  :   function (__sem:Psem_t):longint;cdecl;
     sem_post     :   function (__sem:Psem_t):longint;cdecl;
     sem_getvalue :   function (__sem:Psem_t; __sval:Plongint):longint;cdecl;
@@ -311,6 +313,7 @@ begin
   Pointer(sem_close    ) := dlsym(PthreadDLL,'sem_close');
   Pointer(sem_unlink   ) := dlsym(PthreadDLL,'sem_unlink');
   Pointer(sem_wait     ) := dlsym(PthreadDLL,'sem_wait');
+  Pointer(sem_timedwait) := dlsym(PthreadDLL,'sem_timedwait');
   Pointer(sem_trywait  ) := dlsym(PthreadDLL,'sem_trywait');
   Pointer(sem_post     ) := dlsym(PthreadDLL,'sem_post');
   Pointer(sem_getvalue ) := dlsym(PthreadDLL,'sem_getvalue');
