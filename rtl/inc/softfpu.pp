@@ -135,6 +135,10 @@ TYPE
     high : word;
   end;
 
+  float128 = packed record
+    low : qword;
+    high : qword;
+  end;
 {$else}
  float64 = packed record
    high,low : bits32;
@@ -528,6 +532,130 @@ end;
 (* desired.)                                                                  *)
 (* ---------------------------------------------------------------------------*)
 (*****************************************************************************)
+
+
+{*----------------------------------------------------------------------------
+| Takes a 64-bit fixed-point value `absZ' with binary point between bits 6
+| and 7, and returns the properly rounded 32-bit integer corresponding to the
+| input.  If `zSign' is 1, the input is negated before being converted to an
+| integer.  Bit 63 of `absZ' must be zero.  Ordinarily, the fixed-point input
+| is simply rounded to an integer, with the inexact exception raised if the
+| input cannot be represented exactly as an integer.  However, if the fixed-
+| point input is too large, the invalid exception is raised and the largest
+| positive or negative integer is returned.
+*----------------------------------------------------------------------------*}
+
+function roundAndPackInt32( zSign: flag; absZ : bits64): int32;
+var
+    roundingMode: int8;
+    roundNearestEven: flag;
+    roundIncrement, roundBits: int8;
+    z: int32;
+begin
+    roundingMode := float_rounding_mode;
+    roundNearestEven := ord( roundingMode = float_round_nearest_even );
+    roundIncrement := $40;
+    if ( roundNearestEven=0 ) then
+    begin
+        if ( roundingMode = float_round_to_zero ) then
+        begin
+            roundIncrement := 0;
+        end
+        else begin
+            roundIncrement := $7F;
+            if ( zSign<>0 ) then
+            begin
+                if ( roundingMode = float_round_up ) then
+                  roundIncrement := 0;
+            end
+            else begin
+                if ( roundingMode = float_round_down ) then
+                  roundIncrement := 0;
+            end;
+        end;
+    end;
+    roundBits := absZ and $7F;
+    absZ := ( absZ + roundIncrement ) shr 7;
+    absZ := absZ and not( ord( ( roundBits xor  $40 ) = 0 ) and roundNearestEven );
+    z := absZ;
+    if ( zSign<>0 ) then
+      z := - z;
+    if ( ( absZ shr 32 ) or ( z and ( ord( z < 0 ) xor  zSign ) ) )<>0 then
+    begin
+        float_raise( float_flag_invalid );
+        if zSign<>0 then
+          result:=sbits32($80000000)
+        else
+          result:=$7FFFFFFF;
+        exit;
+    end;
+    if ( roundBits<>0 ) then
+      float_exception_flags := float_exception_flags or float_flag_inexact;
+    result:=z;
+end;
+
+{*----------------------------------------------------------------------------
+| Takes the 128-bit fixed-point value formed by concatenating `absZ0' and
+| `absZ1', with binary point between bits 63 and 64 (between the input words),
+| and returns the properly rounded 64-bit integer corresponding to the input.
+| If `zSign' is 1, the input is negated before being converted to an integer.
+| Ordinarily, the fixed-point input is simply rounded to an integer, with
+| the inexact exception raised if the input cannot be represented exactly as
+| an integer.  However, if the fixed-point input is too large, the invalid
+| exception is raised and the largest positive or negative integer is
+| returned.
+*----------------------------------------------------------------------------*}
+
+function roundAndPackInt64( zSign: flag; absZ0: bits64; absZ1 : bits64): int64;
+var
+    roundingMode: int8;
+    roundNearestEven, increment: flag;
+    z: int64;
+label
+    overflow;
+begin
+    roundingMode := float_rounding_mode;
+    roundNearestEven := ord( roundingMode = float_round_nearest_even );
+    increment := ord( sbits64(absZ1) < 0 );
+    if ( roundNearestEven=0 ) then
+    begin
+        if ( roundingMode = float_round_to_zero ) then
+        begin
+            increment := 0;
+        end
+        else begin
+            if ( zSign<>0 ) then
+            begin
+                increment := ord(( roundingMode = float_round_down ) and (absZ1<>0));
+            end
+            else begin
+                increment := ord(( roundingMode = float_round_up ) and (absZ1<>0));
+            end;
+        end;
+    end;
+    if ( increment<>0 ) then
+    begin
+        inc(absZ0);
+        if ( absZ0 = 0 ) then
+          goto overflow;
+        absZ0 := absZ0 and not( ord( bits64( absZ1 shl 1 ) = 0 ) and roundNearestEven );
+    end;
+    z := absZ0;
+    if ( zSign<>0 ) then
+      z := - z;
+    if ( (z<>0) and (( ord( z < 0 ) xor  zSign )<>0) ) then
+    begin
+ overflow:
+        float_raise( float_flag_invalid );
+        if zSign<>0 then
+          result:=int64($8000000000000000)
+        else
+          result:=int64($7FFFFFFFFFFFFFFF);
+    end;
+    if ( absZ1<>0 ) then
+      float_exception_flags := float_exception_flags or float_flag_inexact;
+    result:=z;
+end;
 
 {*
 -------------------------------------------------------------------------------
@@ -4711,6 +4839,207 @@ Begin
 End;
 
 
+{*----------------------------------------------------------------------------
+| Returns 1 if the 128-bit value formed by concatenating `a0' and `a1'
+| is equal to the 128-bit value formed by concatenating `b0' and `b1'.
+| Otherwise, returns 0.
+*----------------------------------------------------------------------------*}
+
+function eq128( a0: bits64; a1: bits64; b0: bits64; b1 : bits64): flag;inline;
+begin
+    result := ord(( a0 = b0 ) and ( a1 = b1 ));
+end;
+
+{*----------------------------------------------------------------------------
+| Returns 1 if the 128-bit value formed by concatenating `a0' and `a1' is less
+| than the 128-bit value formed by concatenating `b0' and `b1'.  Otherwise,
+| returns 0.
+*----------------------------------------------------------------------------*}
+
+function lt128(a0: bits64; a1: bits64; b0: bits64; b1 : bits64): flag;inline;
+begin
+    result := ord(( a0 < b0 ) or ( ( a0 = b0 ) and ( a1 < b1 ) ));
+end;
+
+{*----------------------------------------------------------------------------
+| Adds the 128-bit value formed by concatenating `a0' and `a1' to the 128-bit
+| value formed by concatenating `b0' and `b1'.  Addition is modulo 2^128, so
+| any carry out is lost.  The result is broken into two 64-bit pieces which
+| are stored at the locations pointed to by `z0Ptr' and `z1Ptr'.
+*----------------------------------------------------------------------------*}
+
+procedure add128(a0: bits64; a1: bits64; b0: bits64; b1: bits64; var z0Ptr: bits64; var z1Ptr : bits64);inline;
+var
+    z1: bits64;
+begin
+    z1 := a1 + b1;
+    z1Ptr := z1;
+    z0Ptr := a0 + b0 + ord( z1 < a1 );
+end;
+
+{*----------------------------------------------------------------------------
+| Shifts `a' right by the number of bits given in `count'.  If any nonzero
+| bits are shifted off, they are ``jammed'' into the least significant bit of
+| the result by setting the least significant bit to 1.  The value of `count'
+| can be arbitrarily large; in particular, if `count' is greater than 64, the
+| result will be either 0 or 1, depending on whether `a' is zero or nonzero.
+| The result is stored in the location pointed to by `zPtr'.
+*----------------------------------------------------------------------------*}
+
+procedure shift64RightJamming(a: bits64; count: int16; var zPtr : bits64);
+var
+    z: bits64;
+begin
+    if ( count = 0 ) then
+    begin
+        z := a;
+    end
+    else if ( count < 64 ) then
+    begin
+        z := ( a shr count ) or ord( ( a  shl ( ( - count ) and 63 ) ) <> 0 );
+    end
+    else
+    begin
+        z := ord( a <> 0 );
+    end;
+    zPtr := z;
+end;
+
+
+procedure shortShift128Left(a0: bits64; a1: bits64; count: int16; var z0Ptr: bits64; var z1Ptr : bits64);inline;
+begin
+    z1Ptr := a1 shl count;
+    if count = 0 then
+      z0Ptr:=a0
+    else
+      z0Ptr:=( a0 shl count ) or ( a1 shr ( ( - count ) and 63 ) );
+end;
+
+{*----------------------------------------------------------------------------
+| Shifts the 192-bit value formed by concatenating `a0', `a1', and `a2' right
+| by 64 _plus_ the number of bits given in `count'.  The shifted result is
+| at most 128 nonzero bits; these are broken into two 64-bit pieces which are
+| stored at the locations pointed to by `z0Ptr' and `z1Ptr'.  The bits shifted
+| off form a third 64-bit result as follows:  The _last_ bit shifted off is
+| the most-significant bit of the extra result, and the other 63 bits of the
+| extra result are all zero if and only if _all_but_the_last_ bits shifted off
+| were all zero.  This extra result is stored in the location pointed to by
+| `z2Ptr'.  The value of `count' can be arbitrarily large.
+|     (This routine makes more sense if `a0', `a1', and `a2' are considered
+| to form a fixed-point value with binary point between `a1' and `a2'.  This
+| fixed-point value is shifted right by the number of bits given in `count',
+| and the integer part of the result is returned at the locations pointed to
+| by `z0Ptr' and `z1Ptr'.  The fractional part of the result may be slightly
+| corrupted as described above, and is returned at the location pointed to by
+| `z2Ptr'.)
+*----------------------------------------------------------------------------*}
+
+procedure shift128ExtraRightJamming(
+     a0: bits64;
+     a1: bits64;
+     a2: bits64;
+     count: int16;
+     var z0Ptr: bits64;
+     var z1Ptr: bits64;
+     var z2Ptr: bits64);
+var
+    z0, z1, z2: bits64;
+    negCount: int8;
+begin
+    negCount := ( - count ) and 63;
+
+    if ( count = 0 ) then
+    begin
+        z2 := a2;
+        z1 := a1;
+        z0 := a0;
+    end
+    else begin
+        if ( count < 64 ) then
+        begin
+            z2 := a1 shr negCount;
+            z1 := ( a0 shl negCount ) or  ( a1 shr count );
+            z0 := a0 shr count;
+        end
+        else begin
+            if ( count = 64 ) then
+            begin
+                z2 := a1;
+                z1 := a0;
+            end
+            else begin
+                a2 := a2 or a1;
+                if ( count < 128 ) then
+                begin
+                    z2 := a0 shl negCount;
+                    z1 := a0 shr ( count and 63 );
+                end
+                else begin
+                	  if ( count = 128 ) then
+                      z2 :=  a0
+                    else
+                      z2 := ord( a0 <> 0 );
+                    z1 := 0;
+                end;
+            end;
+            z0 := 0;
+        end;
+        z2 := z2 or ord( a2 <> 0 );
+    end;
+    z2Ptr := z2;
+    z1Ptr := z1;
+    z0Ptr := z0;
+
+end;
+
+{*----------------------------------------------------------------------------
+| Shifts the 128-bit value formed by concatenating `a0' and `a1' right by 64
+| _plus_ the number of bits given in `count'.  The shifted result is at most
+| 64 nonzero bits; this is stored at the location pointed to by `z0Ptr'.  The
+| bits shifted off form a second 64-bit result as follows:  The _last_ bit
+| shifted off is the most-significant bit of the extra result, and the other
+| 63 bits of the extra result are all zero if and only if _all_but_the_last_
+| bits shifted off were all zero.  This extra result is stored in the location
+| pointed to by `z1Ptr'.  The value of `count' can be arbitrarily large.
+|     (This routine makes more sense if `a0' and `a1' are considered to form
+| a fixed-point value with binary point between `a0' and `a1'.  This fixed-
+| point value is shifted right by the number of bits given in `count', and
+| the integer part of the result is returned at the location pointed to by
+| `z0Ptr'.  The fractional part of the result may be slightly corrupted as
+| described above, and is returned at the location pointed to by `z1Ptr'.)
+*----------------------------------------------------------------------------*}
+
+procedure shift64ExtraRightJamming(a0: bits64; a1: bits64; count: int16; var z0Ptr: bits64; var z1Ptr : bits64);
+var
+    z0, z1: bits64;
+    negCount: int8;
+begin
+    negCount := ( - count ) and 63;
+
+    if ( count = 0 ) then
+    begin
+        z1 := a1;
+        z0 := a0;
+    end
+    else if ( count < 64 ) then
+    begin
+        z1 := ( a0 shl negCount ) or ord( a1 <>  0 );
+        z0 := a0 shr count;
+    end
+    else begin
+        if ( count = 64 ) then
+        begin
+            z1 := a0 or ord( a1 <>  0 );
+        end
+        else begin
+            z1 := ord( ( a0 or a1 ) <>  0 );
+        end;
+        z0 := 0;
+    end;
+    z1Ptr := z1;
+    z0Ptr := z0;
+end;
+
 {$ifdef FPC_SOFTFLOAT_FLOATX80}
 
 {*----------------------------------------------------------------------------
@@ -5203,7 +5532,6 @@ begin
 end;
 
 {$ifdef FPC_SOFTFLOAT_FLOAT128}
-
 {*----------------------------------------------------------------------------
 | Returns the result of converting the extended double-precision floating-
 | point value `a' to the quadruple-precision floating-point format.  The
@@ -5986,6 +6314,48 @@ end;
 {$ifdef FPC_SOFTFLOAT_FLOAT128}
 
 {*----------------------------------------------------------------------------
+| Returns 1 if the quadruple-precision floating-point value `a' is a
+| signaling NaN; otherwise returns 0.
+*----------------------------------------------------------------------------*}
+
+function float128_is_signaling_nan( a : float128): flag;
+begin
+    result:=ord(( ( ( a.high shr 47 ) and $FFFF ) = $FFFE ) and
+        ( (a.low<>0) or (( a.high and int64( $00007FFFFFFFFFFF ) )<>0) ));
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the quadruple-precision floating-point NaN
+| `a' to the canonical NaN format.  If `a' is a signaling NaN, the invalid
+| exception is raised.
+*----------------------------------------------------------------------------*}
+
+function float128ToCommonNaN( a : float128): commonNaNT;
+var
+    z: commonNaNT;
+begin
+    if ( float128_is_signaling_nan( a )<>0)  then
+      float_raise( float_flag_invalid );
+    z.sign := a.high shr 63;
+    shortShift128Left( a.high, a.low, 16, z.high, z.low );
+    result:=z;
+end;
+
+{*----------------------------------------------------------------------------
+| Returns the result of converting the canonical NaN `a' to the quadruple-
+| precision floating-point format.
+*----------------------------------------------------------------------------*}
+
+function commonNaNToFloat128( a : commonNaNT): float128;
+var
+    z: float128;
+begin
+    shift128Right( a.high, a.low, 16, z.high, z.low );
+    z.high := z.high or ( ( bits64(a.sign) ) shl 63 ) or int64( $7FFF800000000000 );
+    result:=z;
+end;
+
+{*----------------------------------------------------------------------------
 | Returns the least-significant 64 fraction bits of the quadruple-precision
 | floating-point value `a'.
 *----------------------------------------------------------------------------*}
@@ -6002,7 +6372,7 @@ end;
 
 function extractFloat128Frac0(a : float128): bits64;
 begin
-    result:=a.high and LIT64( $0000FFFFFFFFFFFF );
+    result:=a.high and int64($0000FFFFFFFFFFFF);
 end;
 
 {*----------------------------------------------------------------------------
@@ -6043,18 +6413,20 @@ procedure normalizeFloat128Subnormal(
 var
     shiftCount: int8;
 begin
-    if ( aSig0 = 0 ) begin
+    if ( aSig0 = 0 ) then
+    begin
         shiftCount := countLeadingZeros64( aSig1 ) - 15;
-        if ( shiftCount < 0 ) begin
+        if ( shiftCount < 0 ) then
+        begin
             zSig0Ptr := aSig1 shr ( - shiftCount );
             zSig1Ptr := aSig1 shl ( shiftCount and 63 );
-        end;
+        end
         else begin
             zSig0Ptr := aSig1 shl shiftCount;
             zSig1Ptr := 0;
         end;
         zExpPtr := - shiftCount - 63;
-    end;
+    end
     else begin
         shiftCount := countLeadingZeros64( aSig0 ) - 15;
         shortShift128Left( aSig0, aSig1, shiftCount, zSig0Ptr, zSig1Ptr );
@@ -6081,7 +6453,7 @@ var
     z: float128;
 begin
     z.low := zSig1;
-    z.high := ( ( (bits64) zSign ) shl 63 ) + ( ( (bits64) zExp ) shl 48 ) + zSig0;
+    z.high := ( ( bits64(zSign) ) shl 63 ) + ( ( bits64(zExp) ) shl 48 ) + zSig0;
     result:=z;
 end;
 
@@ -6112,86 +6484,98 @@ var
     roundNearestEven, increment, isTiny: flag;
 begin
     roundingMode := float_rounding_mode;
-    roundNearestEven := ( roundingMode = float_round_nearest_even );
-    increment := ( (sbits64) zSig2 < 0 );
-    if ( ! roundNearestEven ) begin
-        if ( roundingMode = float_round_to_zero ) begin
+    roundNearestEven := ord( roundingMode = float_round_nearest_even );
+    increment := ord( sbits64(zSig2) < 0 );
+    if ( roundNearestEven=0 ) then
+    begin
+        if ( roundingMode = float_round_to_zero ) then
+        begin
             increment := 0;
-        end;
+        end
         else begin
-            if ( zSign ) begin
-                increment := ( roundingMode = float_round_down ) and zSig2;
-            end;
+            if ( zSign<>0 ) then
+            begin
+                increment := ord( roundingMode = float_round_down ) and zSig2;
+            end
             else begin
-                increment := ( roundingMode = float_round_up ) and zSig2;
+                increment := ord( roundingMode = float_round_up ) and zSig2;
             end;
         end;
     end;
-    if ( $7FFD <= (bits32) zExp ) begin
-        if (    ( $7FFD < zExp )
-             or (    ( zExp = $7FFD )
+    if ( $7FFD <= bits32(zExp) ) then
+    begin
+        if (    ord( $7FFD < zExp )
+             or (    ord( zExp = $7FFD )
                   and eq128(
-                         LIT64( $0001FFFFFFFFFFFF ),
-                         LIT64( $FFFFFFFFFFFFFFFF ),
+                         int64( $0001FFFFFFFFFFFF ),
+                         int64( $FFFFFFFFFFFFFFFF ),
                          zSig0,
                          zSig1
                      )
                   and increment
                 )
-           ) begin
+           )<>0 then
+           begin
             float_raise( float_flag_overflow or float_flag_inexact );
-            if (    ( roundingMode = float_round_to_zero )
-                 or ( zSign and ( roundingMode = float_round_up ) )
-                 or ( ! zSign and ( roundingMode = float_round_down ) )
-               ) begin
-                return
+            if (    ord( roundingMode = float_round_to_zero )
+                 or ( zSign and ord( roundingMode = float_round_up ) )
+                 or ( not(zSign) and ord( roundingMode = float_round_down ) )
+               )<>0 then
+               begin
+                result :=
                     packFloat128(
                         zSign,
                         $7FFE,
-                        LIT64( $0000FFFFFFFFFFFF ),
-                        LIT64( $FFFFFFFFFFFFFFFF )
+                        int64( $0000FFFFFFFFFFFF ),
+                        int64( $FFFFFFFFFFFFFFFF )
                     );
             end;
             result:=packFloat128( zSign, $7FFF, 0, 0 );
         end;
-        if ( zExp < 0 ) begin
-            isTiny =
-                   ( float_detect_tininess = float_tininess_before_rounding )
+        if ( zExp < 0 ) then
+        begin
+            isTiny :=
+                   ord(( float_detect_tininess = float_tininess_before_rounding )
                 or ( zExp < -1 )
-                or ! increment
-                or lt128(
+                or not( increment<>0 )
+                or boolean(lt128(
                        zSig0,
                        zSig1,
-                       LIT64( $0001FFFFFFFFFFFF ),
-                       LIT64( $FFFFFFFFFFFFFFFF )
-                   );
+                       int64( $0001FFFFFFFFFFFF ),
+                       int64( $FFFFFFFFFFFFFFFF )
+                   )));
             shift128ExtraRightJamming(
-                zSig0, zSig1, zSig2, - zExp, &zSig0, &zSig1, &zSig2 );
+                zSig0, zSig1, zSig2, - zExp, zSig0, zSig1, zSig2 );
             zExp := 0;
-            if ( isTiny and zSig2 ) float_raise( float_flag_underflow );
-            if ( roundNearestEven ) begin
-                increment := ( (sbits64) zSig2 < 0 );
-            end;
+            if ( isTiny and zSig2 )<>0 then
+              float_raise( float_flag_underflow );
+            if ( roundNearestEven<>0 ) then
+            begin
+                increment := ord( sbits64(zSig2) < 0 );
+            end
             else begin
-                if ( zSign ) begin
-                    increment := ( roundingMode = float_round_down ) and zSig2;
-                end;
+                if ( zSign<>0 ) then
+                begin
+                    increment := ord( roundingMode = float_round_down ) and zSig2;
+                end
                 else begin
-                    increment := ( roundingMode = float_round_up ) and zSig2;
+                    increment := ord( roundingMode = float_round_up ) and zSig2;
                 end;
             end;
         end;
     end;
-    if ( zSig2 ) float_exception_flags |= float_flag_inexact;
-    if ( increment ) begin
-        add128( zSig0, zSig1, 0, 1, &zSig0, &zSig1 );
-        zSig1 &= ~ ( ( zSig2 + zSig2 = 0 ) and roundNearestEven );
-    end;
+    if ( zSig2<>0 ) then
+      float_exception_flags := float_exception_flags or float_flag_inexact;
+    if ( increment<>0 ) then
+    begin
+        add128( zSig0, zSig1, 0, 1, zSig0, zSig1 );
+        zSig1 := zSig1 and  not( ord( zSig2 + zSig2 = 0 ) and roundNearestEven );
+    end
     else begin
-        if ( ( zSig0 or zSig1 ) = 0 ) zExp := 0;
+        if ( ( zSig0 or zSig1 ) = 0 ) then
+          zExp := 0;
     end;
     result:=packFloat128( zSign, zExp, zSig0, zSig1 );
-
 end;
 
 {*----------------------------------------------------------------------------
@@ -6209,21 +6593,23 @@ var
     shiftCount: int8;
     zSig2: bits64;
 begin
-    if ( zSig0 = 0 ) begin
+    if ( zSig0 = 0 ) then
+    begin
         zSig0 := zSig1;
         zSig1 := 0;
-        zExp -= 64;
+        dec(zExp, 64);
     end;
     shiftCount := countLeadingZeros64( zSig0 ) - 15;
-    if ( 0 <= shiftCount ) begin
+    if ( 0 <= shiftCount ) then
+    begin
         zSig2 := 0;
-        shortShift128Left( zSig0, zSig1, shiftCount, &zSig0, &zSig1 );
-    end;
+        shortShift128Left( zSig0, zSig1, shiftCount, zSig0, zSig1 );
+    end
     else begin
         shift128ExtraRightJamming(
-            zSig0, zSig1, 0, - shiftCount, &zSig0, &zSig1, &zSig2 );
+            zSig0, zSig1, 0, - shiftCount, zSig0, zSig1, zSig2 );
     end;
-    zExp -= shiftCount;
+    dec(zExp, shiftCount);
     result:=roundAndPackFloat128( zSign, zExp, zSig0, zSig1, zSig2 );
 
 end;
@@ -6248,11 +6634,14 @@ begin
     aSig0 := extractFloat128Frac0( a );
     aExp := extractFloat128Exp( a );
     aSign := extractFloat128Sign( a );
-    if ( ( aExp = $7FFF ) and ( aSig0 or aSig1 ) ) aSign := 0;
-    if ( aExp ) aSig0 or= LIT64( $0001000000000000 );
-    aSig0 or= ( aSig1 <> 0 );
+    if ( ord( aExp = $7FFF ) and ( aSig0 or aSig1 ) )<>0 then
+      aSign := 0;
+    if ( aExp<>0 ) then
+      aSig0 := aSig0 or int64( $0001000000000000 );
+    aSig0 := aSig0 or ord( aSig1 <> 0 );
     shiftCount := $4028 - aExp;
-    if ( 0 < shiftCount ) shift64RightJamming( aSig0, shiftCount, &aSig0 );
+    if ( 0 < shiftCount ) then
+      shift64RightJamming( aSig0, shiftCount, aSig0 );
     result := roundAndPackInt32( aSign, aSig0 );
 
 end;
@@ -6273,36 +6662,49 @@ var
     aExp, shiftCount: int32;
     aSig0, aSig1, savedASig: bits64;
     z: int32;
+label
+    invalid;
 begin
     aSig1 := extractFloat128Frac1( a );
     aSig0 := extractFloat128Frac0( a );
     aExp := extractFloat128Exp( a );
     aSign := extractFloat128Sign( a );
-    aSig0 or= ( aSig1 <> 0 );
-    if ( $401E < aExp ) begin
-        if ( ( aExp = $7FFF ) and aSig0 ) aSign := 0;
+    aSig0 := aSig0 or ord( aSig1 <> 0 );
+    if ( $401E < aExp ) then
+    begin
+        if ( ord( aExp = $7FFF ) and aSig0 )<>0 then
+          aSign := 0;
         goto invalid;
-    end;
-    else if ( aExp < $3FFF ) begin
-        if ( aExp or aSig0 ) float_exception_flags or= float_flag_inexact;
+    end
+    else if ( aExp < $3FFF ) then
+    begin
+        if ( aExp or aSig0 )<>0 then
+          float_exception_flags := float_exception_flags or float_flag_inexact;
         result := 0;
+        exit;
     end;
-    aSig0 or= LIT64( $0001000000000000 );
+    aSig0 := aSig0 or int64( $0001000000000000 );
     shiftCount := $402F - aExp;
     savedASig := aSig0;
-    aSig0 >>= shiftCount;
+    aSig0 := aSig0 shr shiftCount;
     z := aSig0;
-    if ( aSign ) z := - z;
-    if ( ( z < 0 ) xor aSign ) begin
+    if ( aSign )<>0 then
+      z := - z;
+    if ( ord( z < 0 ) xor aSign )<>0 then
+    begin
  invalid:
         float_raise( float_flag_invalid );
-        result := aSign ? (sbits32) $80000000 : $7FFFFFFF;
+        if aSign<>0 then
+          result:=$80000000
+        else
+          result:=$7FFFFFFF;
+        exit;
     end;
-    if ( ( aSig0 shl shiftCount ) <> savedASig ) begin
-        float_exception_flags or= float_flag_inexact;
+    if ( ( aSig0 shl shiftCount ) <> savedASig ) then
+    begin
+        float_exception_flags := float_exception_flags or float_flag_inexact;
     end;
     result := z;
-
 end;
 
 {*----------------------------------------------------------------------------
@@ -6325,24 +6727,28 @@ begin
     aSig0 := extractFloat128Frac0( a );
     aExp := extractFloat128Exp( a );
     aSign := extractFloat128Sign( a );
-    if ( aExp ) aSig0 or= LIT64( $0001000000000000 );
+    if ( aExp<>0 ) then
+      aSig0 := aSig0 or int64( $0001000000000000 );
     shiftCount := $402F - aExp;
-    if ( shiftCount <= 0 ) begin
-        if ( $403E < aExp ) begin
+    if ( shiftCount <= 0 ) then
+    begin
+        if ( $403E < aExp ) then
+        begin
             float_raise( float_flag_invalid );
-            if (    ! aSign
+            if (    (aSign=0)
                  or (    ( aExp = $7FFF )
-                      and ( aSig1 or ( aSig0 <> LIT64( $0001000000000000 ) ) )
+                      and ( (aSig1<>0) or ( aSig0 <> int64( $0001000000000000 ) ) )
                     )
-               ) begin
-                result := LIT64( $7FFFFFFFFFFFFFFF );
+               ) then
+               begin
+                result := int64( $7FFFFFFFFFFFFFFF );
             end;
-            result := (sbits64) LIT64( $8000000000000000 );
+            result := int64( $8000000000000000 );
         end;
-        shortShift128Left( aSig0, aSig1, - shiftCount, &aSig0, &aSig1 );
-    end;
+        shortShift128Left( aSig0, aSig1, - shiftCount, aSig0, aSig1 );
+    end
     else begin
-        shift64ExtraRightJamming( aSig0, aSig1, shiftCount, &aSig0, &aSig1 );
+        shift64ExtraRightJamming( aSig0, aSig1, shiftCount, aSig0, aSig1 );
     end;
     result := roundAndPackInt64( aSign, aSig0, aSig1 );
 
@@ -6369,42 +6775,56 @@ begin
     aSig0 := extractFloat128Frac0( a );
     aExp := extractFloat128Exp( a );
     aSign := extractFloat128Sign( a );
-    if ( aExp ) aSig0 or= LIT64( $0001000000000000 );
+    if ( aExp<>0 ) then
+      aSig0 := aSig0 or int64( $0001000000000000 );
     shiftCount := aExp - $402F;
-    if ( 0 < shiftCount ) begin
-        if ( $403E <= aExp ) begin
-            aSig0 &= LIT64( $0000FFFFFFFFFFFF );
-            if (    ( a.high = LIT64( $C03E000000000000 ) )
-                 and ( aSig1 < LIT64( $0002000000000000 ) ) ) begin
-                if ( aSig1 ) float_exception_flags or= float_flag_inexact;
-            end;
+    if ( 0 < shiftCount ) then
+    begin
+        if ( $403E <= aExp ) then
+        begin
+            aSig0 := aSig0 and int64( $0000FFFFFFFFFFFF );
+            if (    ( a.high = int64( $C03E000000000000 ) )
+                 and ( aSig1 < int64( $0002000000000000 ) ) ) then
+            begin
+                if ( aSig1<>0 ) then
+                  float_exception_flags := float_exception_flags or float_flag_inexact;
+            end
             else begin
                 float_raise( float_flag_invalid );
-                if ( ! aSign or ( ( aExp = $7FFF ) and ( aSig0 or aSig1 ) ) ) begin
-                    result := LIT64( $7FFFFFFFFFFFFFFF );
+                if ( (aSign=0) or ( ( aExp = $7FFF ) and (( aSig0 or aSig1 )<>0) ) ) then
+                begin
+                    result := int64( $7FFFFFFFFFFFFFFF );
+                    exit;
                 end;
             end;
-            result := (sbits64) LIT64( $8000000000000000 );
+            result := int64( $8000000000000000 );
+            exit;
         end;
         z := ( aSig0 shl shiftCount ) or ( aSig1>>( ( - shiftCount ) and 63 ) );
-        if ( (bits64) ( aSig1 shl shiftCount ) ) begin
-            float_exception_flags or= float_flag_inexact;
+        if ( int64( aSig1 shl shiftCount )<>0 ) then
+        begin
+            float_exception_flags := float_exception_flags or float_flag_inexact;
         end;
-    end;
+    end
     else begin
-        if ( aExp < $3FFF ) begin
-            if ( aExp or aSig0 or aSig1 ) begin
-                float_exception_flags or= float_flag_inexact;
+        if ( aExp < $3FFF ) then
+        begin
+            if ( aExp or aSig0 or aSig1 )<>0 then
+            begin
+                float_exception_flags := float_exception_flags or float_flag_inexact;
             end;
             result := 0;
+            exit;
         end;
-        z := aSig0>>( - shiftCount );
-        if (    aSig1
-             or ( shiftCount and (bits64) ( aSig0 shl ( shiftCount and 63 ) ) ) ) begin
-            float_exception_flags or= float_flag_inexact;
+        z := aSig0 shr ( - shiftCount );
+        if (    (aSig1<>0)
+             or ( (shiftCount<>0) and (int64( aSig0 shl ( shiftCount and 63 ) )<>0) ) ) then
+        begin
+            float_exception_flags := float_exception_flags or float_flag_inexact;
         end;
     end;
-    if ( aSign ) z := - z;
+    if ( aSign<>0 ) then
+      z := - z;
     result := z;
 
 end;
@@ -6427,13 +6847,17 @@ begin
     aSig0 := extractFloat128Frac0( a );
     aExp := extractFloat128Exp( a );
     aSign := extractFloat128Sign( a );
-    if ( aExp = $7FFF ) begin
-        if ( aSig0 or aSig1 ) begin
+    if ( aExp = $7FFF ) then
+    begin
+        if ( aSig0 or aSig1 )<>0 then
+        begin
             result := commonNaNToFloat32( float128ToCommonNaN( a ) );
+            exit;
         end;
         result := packFloat32( aSign, $FF, 0 );
+        exit;
     end;
-    aSig0 or= ( aSig1 <> 0 );
+    aSig0 := sSig0 or ( aSig1 <> 0 );
     shift64RightJamming( aSig0, 18, &aSig0 );
     zSig := aSig0;
     if ( aExp or zSig ) begin
@@ -6470,7 +6894,7 @@ begin
     shortShift128Left( aSig0, aSig1, 14, &aSig0, &aSig1 );
     aSig0 or= ( aSig1 <> 0 );
     if ( aExp or aSig0 ) begin
-        aSig0 or= LIT64( $4000000000000000 );
+        aSig0 or= int64( $4000000000000000 );
         aExp -= $3C01;
     end;
     result := roundAndPackFloat64( aSign, aExp, aSig0 );
@@ -6500,14 +6924,14 @@ begin
         if ( aSig0 or aSig1 ) begin
             result := commonNaNToFloatx80( float128ToCommonNaN( a ) );
         end;
-        result := packFloatx80( aSign, $7FFF, LIT64( $8000000000000000 ) );
+        result := packFloatx80( aSign, $7FFF, int64( $8000000000000000 ) );
     end;
     if ( aExp = 0 ) begin
         if ( ( aSig0 or aSig1 ) = 0 ) result := packFloatx80( aSign, 0, 0 );
         normalizeFloat128Subnormal( aSig0, aSig1, &aExp, &aSig0, &aSig1 );
     end;
     else begin
-        aSig0 or= LIT64( $0001000000000000 );
+        aSig0 or= int64( $0001000000000000 );
     end;
     shortShift128Left( aSig0, aSig1, 15, &aSig0, &aSig1 );
     result := roundAndPackFloatx80( 80, aSign, aExp, aSig0, aSig1 );
@@ -6649,7 +7073,7 @@ begin
             --expDiff;
         end;
         else begin
-            bSig0 or= LIT64( $0001000000000000 );
+            bSig0 or= int64( $0001000000000000 );
         end;
         shift128ExtraRightJamming(
             bSig0, bSig1, 0, expDiff, &bSig0, &bSig1, &zSig2 );
@@ -6664,7 +7088,7 @@ begin
             ++expDiff;
         end;
         else begin
-            aSig0 or= LIT64( $0001000000000000 );
+            aSig0 or= int64( $0001000000000000 );
         end;
         shift128ExtraRightJamming(
             aSig0, aSig1, 0, - expDiff, &aSig0, &aSig1, &zSig2 );
@@ -6680,14 +7104,14 @@ begin
         add128( aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1 );
         if ( aExp = 0 ) result := packFloat128( zSign, 0, zSig0, zSig1 );
         zSig2 := 0;
-        zSig0 or= LIT64( $0002000000000000 );
+        zSig0 or= int64( $0002000000000000 );
         zExp := aExp;
         goto shiftRight1;
     end;
-    aSig0 or= LIT64( $0001000000000000 );
+    aSig0 or= int64( $0001000000000000 );
     add128( aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1 );
     --zExp;
-    if ( zSig0 < LIT64( $0002000000000000 ) ) goto roundAndPack;
+    if ( zSig0 < int64( $0002000000000000 ) ) goto roundAndPack;
     ++zExp;
  shiftRight1:
     shift128ExtraRightJamming(
@@ -6750,10 +7174,10 @@ begin
         ++expDiff;
     end;
     else begin
-        aSig0 or= LIT64( $4000000000000000 );
+        aSig0 or= int64( $4000000000000000 );
     end;
     shift128RightJamming( aSig0, aSig1, - expDiff, &aSig0, &aSig1 );
-    bSig0 or= LIT64( $4000000000000000 );
+    bSig0 or= int64( $4000000000000000 );
  bBigger:
     sub128( bSig0, bSig1, aSig0, aSig1, &zSig0, &zSig1 );
     zExp := bExp;
@@ -6768,10 +7192,10 @@ begin
         --expDiff;
     end;
     else begin
-        bSig0 or= LIT64( $4000000000000000 );
+        bSig0 or= int64( $4000000000000000 );
     end;
     shift128RightJamming( bSig0, bSig1, expDiff, &bSig0, &bSig1 );
-    aSig0 or= LIT64( $4000000000000000 );
+    aSig0 or= int64( $4000000000000000 );
  aBigger:
     sub128( aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1 );
     zExp := aExp;
@@ -6873,12 +7297,12 @@ begin
         normalizeFloat128Subnormal( bSig0, bSig1, &bExp, &bSig0, &bSig1 );
     end;
     zExp := aExp + bExp - $4000;
-    aSig0 or= LIT64( $0001000000000000 );
+    aSig0 or= int64( $0001000000000000 );
     shortShift128Left( bSig0, bSig1, 16, &bSig0, &bSig1 );
     mul128To256( aSig0, aSig1, bSig0, bSig1, &zSig0, &zSig1, &zSig2, &zSig3 );
     add128( zSig0, zSig1, aSig0, aSig1, &zSig0, &zSig1 );
     zSig2 or= ( zSig3 <> 0 );
-    if ( LIT64( $0002000000000000 ) <= zSig0 ) begin
+    if ( int64( $0002000000000000 ) <= zSig0 ) begin
         shift128ExtraRightJamming(
             zSig0, zSig1, zSig2, 1, &zSig0, &zSig1, &zSig2 );
         ++zExp;
@@ -6942,9 +7366,9 @@ begin
     end;
     zExp := aExp - bExp + $3FFD;
     shortShift128Left(
-        aSig0 or LIT64( $0001000000000000 ), aSig1, 15, &aSig0, &aSig1 );
+        aSig0 or int64( $0001000000000000 ), aSig1, 15, &aSig0, &aSig1 );
     shortShift128Left(
-        bSig0 or LIT64( $0001000000000000 ), bSig1, 15, &bSig0, &bSig1 );
+        bSig0 or int64( $0001000000000000 ), bSig1, 15, &bSig0, &bSig1 );
     if ( le128( bSig0, bSig1, aSig0, aSig1 ) ) begin
         shift128Right( aSig0, aSig1, 1, &aSig0, &aSig1 );
         ++zExp;
@@ -7022,14 +7446,14 @@ begin
     expDiff := aExp - bExp;
     if ( expDiff < -1 ) result := a;
     shortShift128Left(
-        aSig0 or LIT64( $0001000000000000 ),
+        aSig0 or int64( $0001000000000000 ),
         aSig1,
         15 - ( expDiff < 0 ),
         &aSig0,
         &aSig1
     );
     shortShift128Left(
-        bSig0 or LIT64( $0001000000000000 ), bSig1, 15, &bSig0, &bSig1 );
+        bSig0 or int64( $0001000000000000 ), bSig1, 15, &bSig0, &bSig1 );
     q := le128( bSig0, bSig1, aSig0, aSig1 );
     if ( q ) sub128( aSig0, aSig1, bSig0, bSig1, &aSig0, &aSig1 );
     expDiff -= 64;
@@ -7094,6 +7518,8 @@ var
     aSig0, aSig1, zSig0, zSig1, zSig2, doubleZSig0: bits64;
     rem0, rem1, rem2, rem3, term0, term1, term2, term3: bits64;
     z: float128;
+label
+    invalid;
 begin
     aSig1 := extractFloat128Frac1( a );
     aSig0 := extractFloat128Frac0( a );
@@ -7117,7 +7543,7 @@ begin
         normalizeFloat128Subnormal( aSig0, aSig1, &aExp, &aSig0, &aSig1 );
     end;
     zExp := ( ( aExp - $3FFF )>>1 ) + $3FFE;
-    aSig0 or= LIT64( $0001000000000000 );
+    aSig0 := aSig0 or int64( $0001000000000000 );
     zSig0 := estimateSqrt32( aExp, aSig0>>17 );
     shortShift128Left( aSig0, aSig1, 13 - ( aExp and 1 ), &aSig0, &aSig1 );
     zSig0 := estimateDiv128To64( aSig0, aSig1, zSig0 shl 32 ) + ( zSig0 shl 30 );
