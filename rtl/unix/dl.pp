@@ -1,8 +1,8 @@
-Unit dl;
+unit dl;
 
-Interface
+interface
 
-Const
+const
  {$ifdef BSD}   // dlopen is in libc on FreeBSD.
   LibDL = 'c';
  {$else}
@@ -32,13 +32,13 @@ type
     dli_saddr      : pointer;
   end;
 
-Function dlopen(Name : PChar; Flags : longint) : Pointer; cdecl; external libdl;
-FUnction dlsym(Lib : Pointer; Name : Pchar) : Pointer; cdecl; external Libdl;
-Function dlclose(Lib : Pointer) : Longint; cdecl; external libdl;
-Function dlerror() : Pchar; cdecl; external libdl;
+function dlopen(Name : PChar; Flags : longint) : Pointer; cdecl; external libdl;
+function dlsym(Lib : Pointer; Name : Pchar) : Pointer; cdecl; external Libdl;
+function dlclose(Lib : Pointer) : Longint; cdecl; external libdl;
+function dlerror() : Pchar; cdecl; external libdl;
 { overloaded for compatibility with hmodule }
-FUnction dlsym(Lib : PtrInt; Name : Pchar) : Pointer; cdecl; external Libdl;
-Function dlclose(Lib : PtrInt) : Longint; cdecl; external libdl;
+function dlsym(Lib : PtrInt; Name : Pchar) : Pointer; cdecl; external Libdl;
+function dlclose(Lib : PtrInt) : Longint; cdecl; external libdl;
 function dladdr(Lib: pointer; info: Pdl_info): Longint; cdecl; external; platform;
 
 implementation
