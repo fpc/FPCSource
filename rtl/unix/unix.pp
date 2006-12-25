@@ -152,6 +152,7 @@ const
   PROT_EXEC  = $4;             { page can be executed }
   PROT_NONE  = $0;             { page can not be accessed }
 
+  MAP_FAILED    = pointer(-1); { mmap() has failed }
   MAP_SHARED    = $1;          { Share changes }
 //  MAP_PRIVATE   = $2;          { Changes are private }
   MAP_TYPE      = $f;          { Mask for type of mapping }
