@@ -145,6 +145,14 @@ type
   TSockPairArray = Array[0..1] of Longint;
   TSockArray     = Array[1..2] of Longint;              //legacy
 
+  psockaddr_un = ^sockaddr_un;
+  sockaddr_un = packed record
+    {$ifdef SOCK_HAS_SINLEN}
+      sun_len     : cuint8;
+    {$endif}
+    sun_family    : sa_family_t;
+    sun_path      : array[0..107] of char;
+  end;
 
 Var
   SocketError:cint;
