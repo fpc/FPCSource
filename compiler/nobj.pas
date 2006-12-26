@@ -280,7 +280,9 @@ implementation
                       begin
                         if is_visible then
                           procdefcoll^.hidden:=true;
-                        if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
+                        if (pd._class=procdefcoll^.data._class) then
+                           MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters)
+                        else if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
                           MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                       end;
                   end
@@ -299,7 +301,9 @@ implementation
                           begin
                             if is_visible then
                               procdefcoll^.hidden:=true;
-                            if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
+                            if (pd._class=procdefcoll^.data._class) then
+                              MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters)
+                            else if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
                               MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                           end;
                       end
@@ -374,7 +378,9 @@ implementation
                         begin
                           if is_visible then
                             procdefcoll^.hidden:=true;
-                          if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
+                          if (pd._class=procdefcoll^.data._class) then
+                            MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters)
+                          else if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
                             MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                         end;
                      end;
