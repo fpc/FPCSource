@@ -2353,10 +2353,12 @@ implementation
              if (ado_isvariant in arrayoptions) or ((highrange=-1) and (lowrange=0)) then
                GetTypeName:='Array Of Const'
              else
-               GetTypeName:='Array Of '+elementdef.typename;
+               GetTypeName:='Array Of Const/Constant Open Array of '+elementdef.typename;
            end
-         else if ((highrange=-1) and (lowrange=0)) or (ado_IsDynamicArray in arrayoptions) then
-           GetTypeName:='Array Of '+elementdef.typename
+         else if (ado_IsDynamicArray in arrayoptions) then
+           GetTypeName:='Dynamic Array Of '+elementdef.typename
+         else if ((highrange=-1) and (lowrange=0)) then
+           GetTypeName:='Open Array Of '+elementdef.typename
          else
            begin
               result := '';
