@@ -1068,9 +1068,13 @@ implementation
           AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
         end;
 
+{
+      Result doesn't work properly yet due to a bug in Apple's linker
+
       if (cs_create_smart in current_settings.moduleswitches) and
          (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
         AsmWriteLn(#9'.subsections_via_symbols');
+}
 
       AsmLn;
 {$ifdef EXTDEBUG}
