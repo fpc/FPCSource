@@ -9,7 +9,7 @@ main=rtl
 loaders=prt0
 #exceptn fpu
 units=system objpas macpas strings watcom dos crt objects \
-      cpu charset types getopts heaptrc lnfodwrf lnfostbs ctypes fgl
+      cpu charset types getopts heaptrc lnfodwrf lineinfo ctypes fgl
 #      math typinfo mmx ucomplex \
 #      varutils variants sysutils
 
@@ -195,7 +195,7 @@ getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
-lnfostbs$(PPUEXT) : $(INC)/lnfostbs.pp system$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
 

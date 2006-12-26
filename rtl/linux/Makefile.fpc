@@ -9,7 +9,7 @@ main=rtl
 loaders=prt0 dllprt0 cprt0 gprt0 $(CRT21)
 units=$(SYSTEMUNIT) $(SYSINIT_UNITS) \
       unixtype ctypes baseunix strings objpas macpas syscall unixutil \
-      heaptrc lnfostbs lnfodwrf \
+      heaptrc lineinfo lnfodwrf \
       termio unix linux initc cmem $(CPU_UNITS) \
       crt printer linuxvcs \
       sysutils typinfo math matrix varutils \
@@ -255,7 +255,7 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
-lnfostbs$(PPUEXT) : $(INC)/lnfostbs.pp $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 

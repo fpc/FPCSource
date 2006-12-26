@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=$(LOADERS)
 units=system ctypes objpas macpas strings \
-      lnfostbs lnfodwrf heaptrc matrix \
+      lineinfo lnfodwrf heaptrc matrix \
       dos objects \
       windows winsock winsock2 cmem \
       rtlconsts sysconst sysutils math types \
@@ -222,7 +222,7 @@ getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
-lnfostbs$(PPUEXT) : $(INC)/lnfostbs.pp system$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
 

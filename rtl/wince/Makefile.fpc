@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 units=$(SYSTEMUNIT) ctypes objpas macpas strings \
-      lnfostbs lnfodwrf heaptrc \
+      lineinfo lnfodwrf heaptrc \
       windows messages dynlibs \
       dos objects \
       rtlconsts sysconst sysutils \
@@ -222,7 +222,7 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
-lnfostbs$(PPUEXT) : $(INC)/lnfostbs.pp $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 

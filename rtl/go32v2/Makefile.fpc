@@ -9,7 +9,7 @@ units=system objpas macpas strings \
       go32 dpmiexcp initc ports profile dxetype dxeload emu387 \
       dos crt objects printer \
       sysutils classes math typinfo matrix \
-      cpu mmx ucomplex getopts heaptrc lnfostbs lnfodwrf \
+      cpu mmx ucomplex getopts heaptrc lineinfo lnfodwrf \
       msmouse charset varutils \
       video mouse keyboard variants vesamode types fmtbcd \
       sysconst rtlconst dateutil convutil strutils
@@ -143,7 +143,7 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
-lnfostbs$(PPUEXT) : $(INC)/lnfostbs.pp system$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
 charset$(PPUEXT) : $(INC)/charset.pp system$(PPUEXT)
 ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) system$(PPUEXT)

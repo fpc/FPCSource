@@ -11,7 +11,7 @@ units=system posix objpas macpas strings \
       beos \
       dos matrix \
       sysutils fgl classes typinfo math varutils fmtbcd \
-      cpu mmx getopts heaptrc lnfostbs lnfodwrf variants types sysconst
+      cpu mmx getopts heaptrc lineinfo lnfodwrf variants types sysconst
 rsts=math varutils typinfo sysconst
 
 [require]
@@ -165,7 +165,7 @@ getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
-lnfostbs$(PPUEXT) : $(INC)/lnfostbs.pp system$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
 

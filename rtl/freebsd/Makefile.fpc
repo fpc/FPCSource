@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings syscall sysctl  baseun
       unix rtlconsts initc cmem matrix \
        dl termio  printer \
       sysutils varutils math variants typinfo types classes fgl fmtbcd dynlibs \
-      $(CPU_UNITS) charset ucomplex crt getopts heaptrc lnfodwrf lnfostbs \
+      $(CPU_UNITS) charset ucomplex crt getopts heaptrc lnfodwrf lineinfo \
       errors sockets ipc terminfo bsd freebsd \
       video mouse keyboard console serial dateutils \
       sysconst cthreads strutils convutils stdconvs dos objects cwstring
@@ -224,7 +224,7 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
-lnfostbs$(PPUEXT) : $(INC)/lnfostbs.pp $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 

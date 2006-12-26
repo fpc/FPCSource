@@ -8,7 +8,7 @@ main=rtl
 [target]
 loaders=nwpre prelude
 units=$(SYSTEMUNIT) objpas macpas strings \
-      lnfostbs lnfodwrf winsock heaptrc matrix \
+      lineinfo lnfodwrf winsock heaptrc matrix \
       dos crt objects sysconst \
       initc sysutils types typinfo fgl classes fmtbcd \
       cpu mmx getopts \
@@ -228,7 +228,7 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
-lnfostbs$(PPUEXT) : $(INC)/lnfostbs.pp $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 

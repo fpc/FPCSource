@@ -285,7 +285,7 @@ begin
     T:=AddUnit('inc/softfpu.pp');
     T:=AddUnit('inc/ucomplex.pp');
     T:=AddUnit('inc/heaptrc.pp');
-    T:=AddUnit('inc/lnfostbs.pp');
+    T:=AddUnit('inc/lineinfo.pp');
     T:=AddUnit('inc/lnfodwrf.pp');
     T:=AddUnit('inc/charset.pp');
     // T:=AddUnit('inc/pagemem.pp');

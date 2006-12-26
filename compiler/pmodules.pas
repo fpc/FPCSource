@@ -487,7 +487,7 @@ implementation
            { Lineinfo unit }
            if (cs_use_lineinfo in current_settings.globalswitches) then begin
              if (paratargetdbg = dbg_stabs) then
-               AddUnit('lnfostbs')
+               AddUnit('lineinfo')
              else
                AddUnit('lnfodwrf');
            end;
@@ -555,9 +555,7 @@ implementation
            { Give a warning if lineinfo is loaded }
            if s='LINEINFO' then begin
             Message(parser_w_no_lineinfo_use_switch);
-            if (paratargetdbg = dbg_stabs) then
-              s := 'LNFOSTBS'
-            else
+            if (paratargetdbg in [dbg_dwarf2, dbg_dwarf3]) then
               s := 'LNFODWRF';
             sorg := s;
            end;

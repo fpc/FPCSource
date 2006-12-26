@@ -14,7 +14,7 @@ units=$(SYSTEMUNIT) objpas macpas strings syscall baseunix \
       $(LINUXUNIT) unix initc systhrds \
       dos crt objects printer matrix \
       sysutils fgl classes fmtbcd typinfo math varutils \
-       charset ucomplex getopts heaptrc lnfostbs lnfodwrf \
+       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors sockets gpm ipc terminfo \
       video mouse keyboard  serial variants types systhrds sysctl sysconst
 units_netbsd_i386=mmx cpu
@@ -215,7 +215,7 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
-lnfostbs$(PPUEXT) : $(INC)/lnfostbs.pp $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 
