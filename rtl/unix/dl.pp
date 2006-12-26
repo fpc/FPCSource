@@ -39,7 +39,7 @@ function dlerror() : Pchar; cdecl; external libdl;
 { overloaded for compatibility with hmodule }
 function dlsym(Lib : PtrInt; Name : Pchar) : Pointer; cdecl; external Libdl;
 function dlclose(Lib : PtrInt) : Longint; cdecl; external libdl;
-function dladdr(Lib: pointer; info: Pdl_info): Longint; cdecl; external; platform;
+function dladdr(Lib: pointer; info: Pdl_info): Longint; cdecl; external;
 
 implementation
 
