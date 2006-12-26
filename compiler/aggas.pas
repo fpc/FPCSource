@@ -286,7 +286,11 @@ implementation
           secname:=secnames_pic[atype]
         else
           secname:=secnames[atype];
-          
+{$ifdef m68k}
+        { old Amiga GNU AS doesn't support .section .fpc }
+        if (atype=sec_fpc) and (target_info.system = system_m68k_amiga) then
+            secname:=secnames[sec_data];
+{$endif}
         if (atype=sec_fpc) and (Copy(aname,1,3)='res') then
           begin
             result:=secname+'.'+aname;
