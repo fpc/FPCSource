@@ -15,6 +15,12 @@ unit Editors;
 
 {$define UNIXLF}
 
+{2.0 compatibility}
+{$ifdef VER2_0}
+  {$macro on}
+  {$define resourcestring := const}
+{$endif}
+
 interface
 
 uses
