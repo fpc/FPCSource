@@ -396,6 +396,7 @@ type
   function sem_destroy(var __sem: sem_t):cint;cdecl;external libthreads;
   function sem_close(var __sem: sem_t):cint;cdecl;external libthreads;
   function sem_wait(var __sem: sem_t):cint;cdecl;external libthreads;
+  function sem_timedwait(var __sem: sem_t; var __abstime: timespec):cint;cdecl; external libthreads;
   function sem_trywait(var __sem: sem_t):cint;cdecl;external libthreads;
   function sem_post(var __sem: sem_t):cint;cdecl;external libthreads;
   function sem_getvalue(var __sem: sem_t; var __sval:cint):cint;cdecl;external libthreads;
