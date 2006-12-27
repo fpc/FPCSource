@@ -151,7 +151,7 @@ cat <<EOFCFG > $thefile
 
 # For a release compile with optimizes and strip debuginfo
 #IFDEF RELEASE
-  -OG2p3
+  -O2
   -Xs
   #WRITE Compiling Release Version
 #ENDIF
@@ -196,18 +196,24 @@ cat <<EOFCFG > $thefile
 #      -Sc        supports operators like C (*=,+=,/= and -=)
 #      -Sa        include assertion code.
 #      -Sd        same as -Mdelphi
-#      -Se<x>     compiler stops after the <x> errors (default is 1)
+#      -Se<x>     error options. <x> is a combination of the following:
+#         <n> : compiler stops after the <n> errors (default is 1)
+#         w : compiler stops also after warnings
+#         n : compiler stops also after notes
+#         h : compiler stops also after hints
 #      -Sg        allow LABEL and GOTO
 #      -Sh        Use ansistrings
 #      -Si        support C++ styled INLINE
+#      -Sk        load fpcylix unit
 #      -SI<x>     set interface style to <x>
-#         -SIcomCOM compatible interface (default)
-#         -SIcorbaCORBA compatible interface
+#         -SIcom     COM compatible interface (default)
+#         -SIcorba   CORBA compatible interface
 #      -Sm        support macros like C (global)
 #      -So        same as -Mtp
 #      -Sp        same as -Mgpc
 #      -Ss        constructor name must be init (destructor must be done)
 #      -St        allow static keyword in objects
+#      -Sx        enable exception keywords (default in Delphi/ObjFPC modes)
 #
 # Allow goto, inline, C-operators, C-vars
 -Sgic
@@ -230,22 +236,15 @@ cat <<EOFCFG > $thefile
 #-Cr
 #-Ct
 
-# Optimizer switches for i386 compiler
-# -Og        generate smaller code
-# -OG        generate faster code (default)
-# -Or        keep certain variables in registers (still BUGGY!!!)
-# -Ou        enable uncertain optimizations (see docs)
-# -O1        level 1 optimizations (quick optimizations)
-# -O2        level 2 optimizations (-O1 + slower optimizations)
-# -O3        level 3 optimizations (same as -O2u)
-# -Op        target processor
-#     -Op1  set target processor to 386/486
-#     -Op2  set target processor to Pentium/PentiumMMX (tm)
-#     -Op3  set target processor to PPro/PII/c6x86/K6 (tm)
-
-# Optimize always for Size and PII
-#-OG2p3
-
+# Optimizer switches
+# -Os        generate smaller code
+# -O1        level 1 optimizations (quick optimizations, debuggable)
+# -O2        level 2 optimizations (-O1 + optimizations which make debugging more difficult)
+# -O3        level 3 optimizations (-O2 + optimizations which also may make the program slower rather than faster)
+# -Op<x>     set target cpu for optimizing, see fpc -i for possible values
+#
+# See "fpc -i" also for more fine-grained control over which optimizations
+# to perform
 
 # -----------------------
 # Set Filenames and Paths
@@ -311,15 +310,15 @@ $GCCDIR4
 #      e : Show errors (default)       d : Show debug info
 #      w : Show warnings               u : Show unit info
 #      n : Show notes                  t : Show tried/used files
-#      h : Show hints                  m : Show defined macros
-#      i : Show general info           p : Show compiled procedures
-#      l : Show linenumbers            c : Show conditionals
-#      a : Show everything             0 : Show nothing (except errors)
-#      b : Show all procedure          r : Rhide/GCC compatibility mode
-#          declarations if an error    x : Executable info (Win32 only)
-#          occurs
+#      h : Show hints                  c : Show conditionals
+#      i : Show general info           d : Show debug info
+#      l : Show linenumbers            r : Rhide/GCC compatibility mode
+#      a : Show everything             x : Executable info (Win32 only)
+#      b : Write file names messages with full path
+#      v : write fpcdebug.txt with     p : Write tree.log with parse tree
+#          lots of debugging info
 #
-# Display Info, Warnings, Notes and Hints
+# Display Info, Warnings and Notes
 -viwn
 # If you don't want so much verbosity use
 #-vw
