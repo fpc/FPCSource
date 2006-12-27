@@ -94,7 +94,8 @@ implementation
       defutil,
       htypechk,pass_1,
       cgbase,
-      ncon,ncnv,ncal,nadd;
+      ncon,ncnv,ncal,nadd,
+      nutils;
 
 {****************************************************************************
                               TMODDIVNODE
@@ -163,6 +164,10 @@ implementation
          set_varstate(right,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
+
+         { tp procvar support }
+         maybe_call_procvar(left,true);
+         maybe_call_procvar(right,true);
 
          result:=simplify;
          if assigned(result) then
@@ -494,6 +499,10 @@ implementation
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
+
+         { tp procvar support }
+         maybe_call_procvar(left,true);
+         maybe_call_procvar(right,true);
 
          result:=simplify;
          if assigned(result) then
@@ -852,6 +861,9 @@ implementation
          set_varstate(left,vs_read,[]);
          if codegenerror then
            exit;
+
+         { tp procvar support }
+         maybe_call_procvar(left,true);
 
          resultdef:=left.resultdef;
 
