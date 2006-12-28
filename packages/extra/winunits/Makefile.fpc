@@ -45,7 +45,7 @@ implicitunits=winver mmsystem comobj ole2 activex shellapi shlobj oleserver \
  jwawpcrsmsg jwawpftpmsg jwawppstmsg jwawpspihlp jwawptypes \
  jwawpwizmsg jwaws2atm jwaws2bth jwaws2dnet jwaws2spi jwaws2tcpip \
  jwawshisotp jwawsnetbs jwawsnwlink jwawtsapi32 jwazmouse jwasensevts \
- jwaadstlb jwanative
+ jwaadstlb jwanative shfolder
 
 examples=examples
 
