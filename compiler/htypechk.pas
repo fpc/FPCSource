@@ -73,7 +73,7 @@ interface
         procedure dump_info(lvl:longint);
 {$endif EXTDEBUG}
         procedure get_information;
-        function  choose_best(var bestpd:tabstractprocdef):integer;
+        function  choose_best(var bestpd:tabstractprocdef; singlevariant: boolean):integer;
         procedure find_wrong_para;
         property  Count:integer read FProcCnt;
         property  VisibleCount:integer read FProcVisibleCnt;
@@ -451,7 +451,7 @@ implementation
         { Display info when multiple candidates are found }
         candidates.dump_info(V_Debug);
 {$endif EXTDEBUG}
-        cand_cnt:=candidates.choose_best(operpd);
+        cand_cnt:=candidates.choose_best(operpd,false);
 
         { exit when no overloads are found }
         if cand_cnt=0 then
@@ -597,7 +597,7 @@ implementation
         { Display info when multiple candidates are found }
         candidates.dump_info(V_Debug);
 {$endif EXTDEBUG}
-        cand_cnt:=candidates.choose_best(operpd);
+        cand_cnt:=candidates.choose_best(operpd,false);
 
         { exit when no overloads are found }
         if cand_cnt=0 then
@@ -2133,6 +2133,183 @@ implementation
       end;
 
 
+    function get_variantequaltype(def: tdef): tvariantequaltype;
+      const
+        variantorddef_cl: array[tordtype] of tvariantequaltype =
+          (tve_incompatible,tve_byte,tve_word,tve_cardinal,tve_chari64,
+           tve_shortint,tve_smallint,tve_longint,tve_chari64,
+           tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
+           tve_chari64,tve_chari64,tve_dblcurrency);
+{$warning fixme for 128 bit floats }
+        variantfloatdef_cl: array[tfloattype] of tvariantequaltype =
+          (tve_single,tve_dblcurrency,tve_extended,
+           tve_dblcurrency,tve_dblcurrency,tve_extended);
+        variantstringdef_cl: array[tstringtype] of tvariantequaltype =
+          (tve_sstring,tve_astring,tve_astring,tve_wstring);
+      begin
+        result:=tve_incompatible;
+        case def.typ of
+          orddef:
+            begin
+              result:=variantorddef_cl[torddef(def).ordtype];
+            end;
+          floatdef:
+            begin
+              result:=variantfloatdef_cl[tfloatdef(def).floattype];
+            end;
+          stringdef:
+            begin
+              result:=variantstringdef_cl[tstringdef(def).stringtype];
+            end;
+          formaldef:
+            begin
+              result:=tve_boolformal;
+            end;
+          else
+            internalerror(2006122804);
+        end
+      end;
+
+
+{ Delphi precedence rules extracted from test programs. Only valid if passing
+  a variant parameter to overloaded procedures expecting exactly one parameter.
+
+  single > (char, currency, int64, shortstring, ansistring, widestring, extended, double)
+  double/currency > (char, int64, shortstring, ansistring, widestring, extended)
+  extended > (char, int64, shortstring, ansistring, widestring)
+  longint/cardinal > (int64, shortstring, ansistring, widestring, extended, double, single, char, currency)
+  smallint > (longint, int64, shortstring, ansistring, widestring, extended, double single, char, currency);
+  word > (longint, cardinal, int64, shortstring, ansistring, widestring, extended, double single, char, currency);
+  shortint > (longint, smallint, int64, shortstring, ansistring, widestring, extended, double, single, char, currency)
+  byte > (longint, cardinal, word, smallint, int64, shortstring, ansistring, widestring, extended, double, single, char, currency);
+  boolean/formal > (char, int64, shortstring, ansistring, widestring)
+  shortstring > (char, int64, ansistring, widestring)
+  ansistring > (char, int64, widestring)
+  widestring > (char, int64)
+
+  Relations not mentioned mean that they conflict: no decision possible }
+
+    function is_better_candidate_single_variant(currpd,bestpd:pcandidate):integer;
+
+      function calculate_relation(const currvcl, bestvcl, testvcl:
+          tvariantequaltype; const conflictvcls: tvariantequaltypes):integer;
+        begin
+          { if (bestvcl=conflictvcl) or
+               (currvcl=conflictvcl) then
+              result:=0
+            else if (bestvcl=testvcl) then
+              result:=-1
+            else result:=1 }
+          result:=1-2*ord(bestvcl=testvcl)+
+                  ord(currvcl in conflictvcls)-ord(bestvcl in conflictvcls);
+        end;
+
+      var
+        paraidx,
+        res: integer;
+        currpara, bestpara: tparavarsym;
+        currvcl, bestvcl: tvariantequaltype;
+      begin
+        {
+          Return values:
+            > 0 when currpd is better than bestpd
+            < 0 when bestpd is better than currpd
+            = 0 when both are equal
+        }
+        if (currpd^.firstparaidx<>bestpd^.firstparaidx) then
+          internalerror(2006122801);
+         paraidx:=currpd^.firstparaidx;
+         while (paraidx>=0) and (vo_is_hidden_para in tparavarsym(currpd^.data.paras[paraidx]).varoptions) do
+           if (vo_is_hidden_para in tparavarsym(bestpd^.data.paras[paraidx]).varoptions) then
+             dec(paraidx)
+           else
+             internalerror(2006122802);
+        if (vo_is_hidden_para in tparavarsym(currpd^.data.paras[paraidx]).varoptions) then
+          internalerror(2006122803);
+        currpara:=tparavarsym(currpd^.data.paras[paraidx]);
+        bestpara:=tparavarsym(bestpd^.data.paras[paraidx]);
+        currvcl:=get_variantequaltype(currpara.vardef);
+        bestvcl:=get_variantequaltype(bestpara.vardef);
+
+        { sanity check }
+        result:=-5;
+
+        { if both are the same, there is a conflict }
+        if (currvcl=bestvcl) then
+          result:=0
+        { boolean and formal are better than chari64str, but conflict with }
+        { everything else                                                  }
+        else if (currvcl=tve_boolformal) or
+                (bestvcl=tve_boolformal) then
+          if (currvcl=tve_boolformal) then
+            result:=ord(bestvcl in [tve_chari64,tve_sstring,tve_astring,tve_wstring])
+          else
+            result:=-ord(currvcl in [tve_chari64,tve_sstring,tve_astring,tve_wstring])
+        { byte is better than everything else (we assume both aren't byte, }
+        { since there's only one parameter and that one can't be the same) }
+        else if (currvcl=tve_byte) or
+                (bestvcl=tve_byte) then
+          result:=calculate_relation(currvcl,bestvcl,tve_byte,[tve_shortint])
+        { shortint conflicts with word and cardinal, but is better than    }
+        { everything else but byte (which has already been handled)        }
+        else if (currvcl=tve_shortint) or
+                (bestvcl=tve_shortint) then
+          result:=calculate_relation(currvcl,bestvcl,tve_shortint,[tve_word, tve_cardinal])
+        { word conflicts with smallint, but is better than everything else }
+        { but shortint and byte (which has already been handled)           }
+        else if (currvcl=tve_word) or
+                (bestvcl=tve_word) then
+          result:=calculate_relation(currvcl,bestvcl,tve_word,[tve_smallint])
+        { smallint conflicts with cardinal, but is better than everything  }
+        { which has not yet been tested                                    }
+        else if (currvcl=tve_smallint) or
+                (bestvcl=tve_smallint) then
+          result:=calculate_relation(currvcl,bestvcl,tve_smallint,[tve_cardinal])
+        { cardinal conflicts with each longint and is better than everything }
+        { which has not yet been tested                                      }
+        else if (currvcl = tve_cardinal) or
+                (bestvcl=tve_cardinal) then
+          result:=calculate_relation(currvcl,bestvcl,tve_cardinal,[tve_longint])
+        { longint is better than everything which has not yet been tested }
+        else if (currvcl=tve_longint) or
+                (bestvcl=tve_longint) then
+          { if bestvcl=tve_longint then
+              result:=-1
+            else
+              result:=1 }
+          result:=1-2*ord(bestvcl=tve_longint)
+        { single is better than everything left }
+        else if (currvcl=tve_single) or
+                (bestvcl=tve_single) then
+          result:=1-2*ord(bestvcl=tve_single)
+        { double/comp/currency are better than everything left, and conflict }
+        { with each other (but that's already tested)                        }
+        else if (currvcl=tve_dblcurrency) or
+                (bestvcl=tve_dblcurrency) then
+          result:=1-2*ord(bestvcl=tve_dblcurrency)
+        { extended is better than everything left }
+        else if (currvcl=tve_extended) or
+                (bestvcl=tve_extended) then
+          result:=1-2*ord(bestvcl=tve_extended)
+        { shortstring is better than everything left }
+        else if (currvcl=tve_sstring) or
+                (bestvcl=tve_sstring) then
+          result:=1-2*ord(bestvcl=tve_sstring)
+        { ansistring is better than everything left }
+        else if (currvcl=tve_astring) or
+                (bestvcl=tve_astring) then
+          result:=1-2*ord(bestvcl=tve_astring)
+        { widestring is better than everything left }
+        else if (currvcl=tve_wstring) or
+                (bestvcl=tve_wstring) then
+          result:=1-2*ord(bestvcl=tve_wstring);
+
+        { all possibilities should have been checked now }
+        if (result=-5) then
+          internalerror(2006122805);
+      end;
+
+
     function is_better_candidate(currpd,bestpd:pcandidate):integer;
       var
         res : integer;
@@ -2208,12 +2385,12 @@ implementation
       end;
 
 
-    function tcallcandidates.choose_best(var bestpd:tabstractprocdef):integer;
+    function tcallcandidates.choose_best(var bestpd:tabstractprocdef; singlevariant: boolean):integer;
       var
         besthpstart,
-        hp       : pcandidate;
+        hp            : pcandidate;
         cntpd,
-        res      : integer;
+        res           : integer;
       begin
         {
           Returns the number of candidates left and the
@@ -2232,7 +2409,10 @@ implementation
            hp:=FProcs^.next;
            while assigned(hp) do
             begin
-              res:=is_better_candidate(hp,besthpstart);
+              if not singlevariant then
+                res:=is_better_candidate(hp,besthpstart)
+              else
+                res:=is_better_candidate_single_variant(hp,besthpstart);
               if (res>0) then
                begin
                  { hp is better, flag all procs to be incompatible }

@@ -426,6 +426,25 @@ type
     te_exact
   );
 
+  tvariantequaltype = (
+    tve_incompatible,
+    tve_chari64,
+    tve_wstring,
+    tve_astring,
+    tve_sstring,
+    tve_boolformal,
+    tve_extended,
+    tve_dblcurrency,
+    tve_single,
+    tve_cardinal,
+    tve_longint,
+    tve_smallint,
+    tve_word,
+    tve_shortint,
+    tve_byte
+  );
+  tvariantequaltypes = set of tvariantequaltype;
+
   tdefdbgstatus = (
     dbg_state_unused,
     dbg_state_used,

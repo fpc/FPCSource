@@ -1913,7 +1913,10 @@ implementation
 
                    { Choose the best candidate and count the number of
                      candidates left }
-                   cand_cnt:=candidates.choose_best(procdefinition);
+                   cand_cnt:=candidates.choose_best(procdefinition,
+                     assigned(left) and
+                     not assigned(tcallparanode(left).right) and
+                     (tcallparanode(left).left.resultdef.typ=variantdef));
 
                    { All parameters are checked, check if there are any
                      procedures left }
