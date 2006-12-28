@@ -58,7 +58,6 @@ interface
 {$ifdef GDB_V605}
   {$info using gdb 6.5.x}
   {$define GDB_V6}
-  {$define GDB_HAS_DB_COMMANDS}
   {$define GDB_NEEDS_NO_ERROR_INIT}
 {$endif def GDB_V605}
 
@@ -68,10 +67,12 @@ interface
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
   {$define GDB_NEEDS_NO_ERROR_INIT}
+  {$define GDB_USES_EXPAT_LIB}
 {$endif def GDB_V605}
 
 {$ifdef GDB_V6}
   {$define GDB_HAS_SYSROOT}
+  {$define GDB_HAS_DB_COMMANDS}
   {$define GDB_SYMTAB_HAS_MACROS}
 {$endif GDB_V6}
 
@@ -108,6 +109,9 @@ interface
   {$LINKLIB libopcodes.a}
   {$LINKLIB libhistory.a}
   {$LINKLIB libiberty.a}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
   {$LINKLIB ncurses}
   {$LINKLIB m}
   {$LINKLIB dl}
@@ -134,6 +138,9 @@ interface
   {$LINKLIB iberty}
   {$LINKLIB intl}        { does not seem to exist on netbsd LINKLIB dl,
                             but I use GDB CVS snapshots for the *BSDs}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif freebsd}
@@ -153,6 +160,9 @@ interface
   {$LINKLIB m}
   {$LINKLIB iberty}
   {$LINKLIB intl}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
   { does not seem to exist on netbsd LINKLIB dl}
   {$LINKLIB c}
   {$LINKLIB gcc}
@@ -173,6 +183,9 @@ interface
   {$LINKLIB m}
   {$LINKLIB iberty}
   {$LINKLIB intl}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
   { does not seem to exist on netbsd LINKLIB dl}
   {$LINKLIB c}
   {$LINKLIB gcc}
@@ -192,6 +205,9 @@ interface
   {$LINKLIB libintl.a}
   {$LINKLIB libiconv.a}
   {$LINKLIB libncurses.a}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
   {$LINKLIB gcc}
   {$LINKLIB cygwin} { alias of libm.a and libc.a }
   {$LINKLIB imagehlp}
@@ -207,7 +223,7 @@ interface
 {$endif unix}
 
 {$ifdef CROSSGDB}
-  { do we neeed something special if cross GDB? }
+  { do we need something special if cross GDB? }
 {$endif CROSSGDB}
 
 {$ifdef NotImplemented}
