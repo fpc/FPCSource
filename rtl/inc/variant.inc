@@ -212,7 +212,7 @@ end;
 operator :=(const source : widechar) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 begin
-  VariantManager.VarFromWStr(Dest,Source);
+  Variantmanager.varfromInt(Dest,word(Source),2);
 end;
 
 { Strings }
@@ -393,13 +393,8 @@ end;
 
 operator :=(const source : variant) dest : widechar;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-Var
-  WS : WideString;
-
 begin
-  VariantManager.VarToWStr(WS,Source);
-  If Length(WS)>0 then
-    Dest:=WS[1];
+  dest:=widechar(variantmanager.vartoint(source));
 end;
 
 
