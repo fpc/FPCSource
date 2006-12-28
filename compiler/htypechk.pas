@@ -2171,6 +2171,81 @@ implementation
       end;
 
 
+    function is_better_candidate(currpd,bestpd:pcandidate):integer;
+      var
+        res : integer;
+      begin
+        {
+          Return values:
+            > 0 when currpd is better than bestpd
+            < 0 when bestpd is better than currpd
+            = 0 when both are equal
+
+          To choose the best candidate we use the following order:
+          - Incompatible flag
+          - (Smaller) Number of convert operator parameters.
+          - (Smaller) Number of convertlevel 2 parameters.
+          - (Smaller) Number of convertlevel 1 parameters.
+          - (Bigger) Number of exact parameters.
+          - (Smaller) Number of equal parameters.
+          - (Smaller) Total of ordinal distance. For example, the distance of a word
+            to a byte is 65535-255=65280.
+        }
+        if bestpd^.invalid then
+         begin
+           if currpd^.invalid then
+            res:=0
+           else
+            res:=1;
+         end
+        else
+         if currpd^.invalid then
+          res:=-1
+        else
+         begin
+           { less operator parameters? }
+           res:=(bestpd^.coper_count-currpd^.coper_count);
+           if (res=0) then
+            begin
+              { less cl3 parameters? }
+              res:=(bestpd^.cl3_count-currpd^.cl3_count);
+              if (res=0) then
+               begin
+                 { less cl2 parameters? }
+                 res:=(bestpd^.cl2_count-currpd^.cl2_count);
+                 if (res=0) then
+                  begin
+                    { less cl1 parameters? }
+                    res:=(bestpd^.cl1_count-currpd^.cl1_count);
+                    if (res=0) then
+                     begin
+                       { more exact parameters? }
+                       res:=(currpd^.exact_count-bestpd^.exact_count);
+                       if (res=0) then
+                        begin
+                          { less equal parameters? }
+                          res:=(bestpd^.equal_count-currpd^.equal_count);
+                          if (res=0) then
+                           begin
+                             { smaller ordinal distance? }
+                             if (currpd^.ordinal_distance<bestpd^.ordinal_distance) then
+                              res:=1
+                             else
+                              if (currpd^.ordinal_distance>bestpd^.ordinal_distance) then
+                               res:=-1
+                             else
+                              res:=0;
+                           end;
+                        end;
+                     end;
+                  end;
+               end;
+            end;
+         end;
+        is_better_candidate:=res;
+      end;
+
+
 { Delphi precedence rules extracted from test programs. Only valid if passing
   a variant parameter to overloaded procedures expecting exactly one parameter.
 
@@ -2228,6 +2303,16 @@ implementation
           internalerror(2006122803);
         currpara:=tparavarsym(currpd^.data.paras[paraidx]);
         bestpara:=tparavarsym(bestpd^.data.paras[paraidx]);
+
+        { if one of the parameters is a regular variant, fall back to the }
+        { default algorithm                                               }
+        if (currpara.vardef.typ = variantdef) or
+           (bestpara.vardef.typ = variantdef) then
+          begin
+            result:=is_better_candidate(currpd,bestpd);
+            exit;
+          end;
+
         currvcl:=get_variantequaltype(currpara.vardef);
         bestvcl:=get_variantequaltype(bestpara.vardef);
 
@@ -2307,81 +2392,6 @@ implementation
         { all possibilities should have been checked now }
         if (result=-5) then
           internalerror(2006122805);
-      end;
-
-
-    function is_better_candidate(currpd,bestpd:pcandidate):integer;
-      var
-        res : integer;
-      begin
-        {
-          Return values:
-            > 0 when currpd is better than bestpd
-            < 0 when bestpd is better than currpd
-            = 0 when both are equal
-
-          To choose the best candidate we use the following order:
-          - Incompatible flag
-          - (Smaller) Number of convert operator parameters.
-          - (Smaller) Number of convertlevel 2 parameters.
-          - (Smaller) Number of convertlevel 1 parameters.
-          - (Bigger) Number of exact parameters.
-          - (Smaller) Number of equal parameters.
-          - (Smaller) Total of ordinal distance. For example, the distance of a word
-            to a byte is 65535-255=65280.
-        }
-        if bestpd^.invalid then
-         begin
-           if currpd^.invalid then
-            res:=0
-           else
-            res:=1;
-         end
-        else
-         if currpd^.invalid then
-          res:=-1
-        else
-         begin
-           { less operator parameters? }
-           res:=(bestpd^.coper_count-currpd^.coper_count);
-           if (res=0) then
-            begin
-              { less cl3 parameters? }
-              res:=(bestpd^.cl3_count-currpd^.cl3_count);
-              if (res=0) then
-               begin
-                 { less cl2 parameters? }
-                 res:=(bestpd^.cl2_count-currpd^.cl2_count);
-                 if (res=0) then
-                  begin
-                    { less cl1 parameters? }
-                    res:=(bestpd^.cl1_count-currpd^.cl1_count);
-                    if (res=0) then
-                     begin
-                       { more exact parameters? }
-                       res:=(currpd^.exact_count-bestpd^.exact_count);
-                       if (res=0) then
-                        begin
-                          { less equal parameters? }
-                          res:=(bestpd^.equal_count-currpd^.equal_count);
-                          if (res=0) then
-                           begin
-                             { smaller ordinal distance? }
-                             if (currpd^.ordinal_distance<bestpd^.ordinal_distance) then
-                              res:=1
-                             else
-                              if (currpd^.ordinal_distance>bestpd^.ordinal_distance) then
-                               res:=-1
-                             else
-                              res:=0;
-                           end;
-                        end;
-                     end;
-                  end;
-               end;
-            end;
-         end;
-        is_better_candidate:=res;
       end;
 
 
