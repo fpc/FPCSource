@@ -233,7 +233,7 @@ const
 {$ifdef Unix}
 Procedure CalcSigFPE(sig : longint);cdecl;
 {$else}
-function CalcSigFPE(sig : longint) : longint;{ $ifndef go32v2}cdecl;{ $endif}
+function CalcSigFPE(sig : longint) : longint;cdecl;
 {$endif}
 begin
 {$ifdef CPUI386}
