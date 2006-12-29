@@ -8,53 +8,104 @@ interface
 
 uses
   Classes, SysUtils, toolsunit,
-  db,
-  Dbf, dbf_fields;
-
+  db, Dbf;
 
 type
-     { TDBFDBConnector }
+{ TDBFDBConnector }
 
-     TDBFDBConnector = class(TDBConnector)
-     private
-     protected
-       Function CreateNDataset(n : integer) : TDataset; override;
-       Procedure FreeNDataset(var ds : TDataset); override;
-     public
-       destructor Destroy; override;
-     end;
+  TDBFDBConnector = class(TDBConnector)
+  protected
+    procedure CreateNDatasets; override;
+    procedure CreateFieldDataset; override;
+    procedure DropNDatasets; override;
+    procedure DropFieldDataset; override;
+    Function InternalGetNDataset(n : integer) : TDataset; override;
+    Function InternalGetFieldDataset : TDataSet; override;
+  end;
 
 implementation
 
-destructor TDBFDBConnector.Destroy;
+procedure TDBFDBConnector.CreateNDatasets;
+var countID,n : integer;
 begin
-  inherited Destroy;
+  for n := 0 to MaxDataSet do
+    begin
+    with TDbf.Create(nil) do
+      begin
+      FilePath := dbname;
+      TableName := 'fpdev_'+inttostr(n)+'.db';
+      FieldDefs.Add('ID',ftInteger);
+      FieldDefs.Add('NAME',ftString,50);
+      CreateTable;
+      Open;
+      if n > 0 then for countId := 1 to n do
+        begin
+        Append;
+        FieldByName('ID').AsInteger := countID;
+        FieldByName('NAME').AsString := 'TestName'+inttostr(countID);
+        end;
+      if state = dsinsert then
+        Post;
+      Close;
+      Free;
+      end;
+    end;
 end;
 
-function TDBFDBConnector.CreateNDataset(n: integer): TDataset;
-var countID : integer;
+procedure TDBFDBConnector.CreateFieldDataset;
+var i : integer;
 begin
   with TDbf.Create(nil) do
     begin
     FilePath := dbname;
-    TableName := 'fpdev_'+inttostr(n)+'.db';
+    TableName := 'fpdev_field.db';
     FieldDefs.Add('ID',ftInteger);
-    FieldDefs.Add('NAME',ftString,50);
+    FieldDefs.Add('FSTRING',ftString,10);
+    FieldDefs.Add('FSMALLINT',ftSmallint);
+    FieldDefs.Add('FINTEGER',ftInteger);
+//    FieldDefs.Add('FWORD',ftWord);
+    FieldDefs.Add('FBOOLEAN',ftBoolean);
+    FieldDefs.Add('FFLOAT',ftFloat);
+//    FieldDefs.Add('FCURRENCY',ftCurrency);
+//    FieldDefs.Add('FBCD',ftBCD);
+    FieldDefs.Add('FDATE',ftDate);
+//    FieldDefs.Add('FTIME',ftTime);
+    FieldDefs.Add('FDATETIME',ftDateTime);
+    FieldDefs.Add('FLARGEINT',ftLargeint);
     CreateTable;
     Open;
-    for countId := 1 to n do
+    for i := 0 to testValuesCount-1 do
       begin
       Append;
-      FieldByName('ID').AsInteger := countID;
-      FieldByName('NAME').AsString := 'TestName'+inttostr(countID);
-      end;
-    if state = dsinsert then
+      FieldByName('ID').AsInteger := i;
+      FieldByName('FSTRING').AsString := testStringValues[i];
+      FieldByName('FSMALLINT').AsInteger := testSmallIntValues[i];
+      FieldByName('FINTEGER').AsInteger := testIntValues[i];
+      FieldByName('FBOOLEAN').AsBoolean := testBooleanValues[i];
+      FieldByName('FFLOAT').AsFloat := testFloatValues[i];
+      ShortDateFormat := 'yyyy-mm-dd';
+      FieldByName('FDATE').AsDateTime := StrToDate(testDateValues[i]);
+      FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
       Post;
+      end;
     Close;
-    Free;
     end;
-// A dataset that has been opened and closed can't be used. Or else the tests
-// for a newly generated dataset can't work properly.
+end;
+
+procedure TDBFDBConnector.DropNDatasets;
+var n : integer;
+begin
+  for n := 0 to MaxDataSet do
+    DeleteFile(ExtractFilePath(dbname)+PathDelim+'fpdev_'+inttostr(n)+'.db');
+end;
+
+procedure TDBFDBConnector.DropFieldDataset;
+begin
+  DeleteFile(ExtractFilePath(dbname)+PathDelim+'fpdev_field.db');
+end;
+
+function TDBFDBConnector.InternalGetNDataset(n: integer): TDataset;
+begin
   Result := TDbf.Create(nil);
   with (result as TDbf) do
     begin
@@ -63,11 +114,17 @@ begin
     end;
 end;
 
-procedure TDBFDBConnector.FreeNDataset(var ds: TDataset);
+function TDBFDBConnector.InternalGetFieldDataset: TDataSet;
 begin
-  if ds.Active then ds.close;
-  FreeAndNil(ds);
+  Result := TDbf.Create(nil);
+  with (result as TDbf) do
+    begin
+    FilePath := dbname;
+    TableName := 'fpdev_field.db';
+    end;
 end;
 
+initialization
+  RegisterClass(TDBFDBConnector);
 end.
 

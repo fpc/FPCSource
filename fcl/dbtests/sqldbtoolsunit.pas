@@ -9,44 +9,56 @@ uses
   db,
   sqldb, ibconnection, mysql40conn, mysql41conn, mysql50conn, pqconnection,odbcconn,oracleconnection;
 
-const SQLDBdbTypes = [mysql40,mysql41,mysql50,postgresql,interbase,odbc,oracle];
-      MySQLdbTypes = [mysql40,mysql41,mysql50];
+type TSQLDBTypes = (mysql40,mysql41,mysql50,postgresql,interbase,odbc,oracle);
+
+const MySQLdbTypes = [mysql40,mysql41,mysql50];
+      DBTypesNames : Array [TSQLDBTypes] of String[19] =
+             ('MYSQL40','MYSQL41','MYSQL50','POSTGRESQL','INTERBASE','ODBC','ORACLE');
 
 type
-
 { TSQLDBConnector }
+  TSQLDBConnector = class(TDBConnector)
+    FConnection   : TSQLConnection;
+    FTransaction  : TSQLTransaction;
+    FQuery        : TSQLQuery;
+  private
+    procedure CreateFConnection;
+    procedure CreateFTransaction;
+    Function CreateQuery : TSQLQuery;
+  protected
+    procedure CreateNDatasets; override;
+    procedure CreateFieldDataset; override;
+    procedure DropNDatasets; override;
+    procedure DropFieldDataset; override;
+    Function InternalGetNDataset(n : integer) : TDataset; override;
+    Function InternalGetFieldDataset : TDataSet; override;
+  public
+    destructor Destroy; override;
+    constructor Create; override;
+    property Connection : TSQLConnection read FConnection;
+    property Transaction : TSQLTransaction read FTransaction;
+    property Query : TSQLQuery read FQuery;
+  end;
 
-     TSQLDBConnector = class(TDBConnector)
-       FConnection   : TSQLConnection;
-       FTransaction  : TSQLTransaction;
-       FQuery        : TSQLQuery;
-     private
-       procedure CreateFConnection;
-       procedure CreateFTransaction;
-       Function CreateQuery : TSQLQuery;
-     protected
-       Procedure FreeNDataset(var ds : TDataset); override;
-       Function CreateNDataset(n : integer) : TDataset; override;
-     public
-       destructor Destroy; override;
-       constructor Create;
-       property Connection : TSQLConnection read FConnection;
-       property Transaction : TSQLTransaction read FTransaction;
-       property Query : TSQLQuery read FQuery;
-     end;
+var SQLDbType : TSQLDBTypes;
 
 implementation
 
-procedure TSQLDBConnector.CreateFConnection;
+{ TSQLDBConnector }
 
+procedure TSQLDBConnector.CreateFConnection;
+var i : TSQLDBTypes;
 begin
-  if dbtype = mysql40 then Fconnection := tMySQL40Connection.Create(nil);
-  if dbtype = mysql41 then Fconnection := tMySQL41Connection.Create(nil);
-  if dbtype = mysql50 then Fconnection := tMySQL50Connection.Create(nil);
-  if dbtype = postgresql then Fconnection := tpqConnection.Create(nil);
-  if dbtype = interbase then Fconnection := tIBConnection.Create(nil);
-  if dbtype = odbc then Fconnection := tODBCConnection.Create(nil);
-  if dbtype = oracle then Fconnection := TOracleConnection.Create(nil);
+  for i := low(DBTypesNames) to high(DBTypesNames) do
+    if UpperCase(dbconnectorparams) = DBTypesNames[i] then sqldbtype := i;
+    
+  if SQLDbType = MYSQL40 then Fconnection := tMySQL40Connection.Create(nil);
+  if SQLDbType = MYSQL41 then Fconnection := tMySQL41Connection.Create(nil);
+  if SQLDbType = MYSQL50 then Fconnection := tMySQL50Connection.Create(nil);
+  if SQLDbType = POSTGRESQL then Fconnection := tpqConnection.Create(nil);
+  if SQLDbType = INTERBASE then Fconnection := tIBConnection.Create(nil);
+  if SQLDbType = ODBC then Fconnection := tODBCConnection.Create(nil);
+  if SQLDbType = ORACLE then Fconnection := TOracleConnection.Create(nil);
 
   if not assigned(Fconnection) then writeln('Invalid database-type, check if a valid database-type was provided in the file ''database.ini''');
 
@@ -59,8 +71,6 @@ begin
     open;
     end;
 end;
-
-{ TSQLDBConnector }
 
 procedure TSQLDBConnector.CreateFTransaction;
 
@@ -81,51 +91,20 @@ begin
     end;
 end;
 
-destructor TSQLDBConnector.Destroy;
+procedure TSQLDBConnector.CreateNDatasets;
+var CountID : Integer;
 begin
-  try
-    if Ftransaction.Active then Ftransaction.Rollback;
-    Ftransaction.StartTransaction;
-    Fconnection.ExecuteDirect('DROP TABLE FPDEV');
-    Ftransaction.Commit;
-  Except
-    if Ftransaction.Active then Ftransaction.Rollback
-  end;
-  try
-    if Ftransaction.Active then Ftransaction.Rollback;
-    Ftransaction.StartTransaction;
-    Fconnection.ExecuteDirect('DROP TABLE FPDEV2');
-    Ftransaction.Commit;
-  Except
-    if Ftransaction.Active then Ftransaction.Rollback
-  end;
-
-  FreeAndNil(FQuery);
-  FreeAndNil(FTransaction);
-  FreeAndNil(FConnection);
-  inherited Destroy;
-end;
-
-constructor TSQLDBConnector.Create;
-
-var countID : integer;
-
-begin
-  CreateFConnection;
-  CreateFTransaction;
-  FQuery := CreateQuery;
-  FConnection.Transaction := FTransaction;
-
   try
     Ftransaction.StartTransaction;
     Fconnection.ExecuteDirect('create table FPDEV (       ' +
                               '  ID INT NOT NULL,           ' +
-                              '  NAME VARCHAR(50)          ' +
+                              '  NAME VARCHAR(50),          ' +
+                              '  PRIMARY KEY (ID)           ' +
                               ')                            ');
 
     FTransaction.CommitRetaining;
 
-    for countID := 1 to 35 do
+    for countID := 1 to MaxDataSet do
       Fconnection.ExecuteDirect('insert into FPDEV (ID,NAME)' +
                                 'values ('+inttostr(countID)+',''TestName'+inttostr(countID)+''')');
 
@@ -135,21 +114,104 @@ begin
   end;
 end;
 
-function TSQLDBConnector.CreateNDataset(n: integer): TDataset;
+procedure TSQLDBConnector.CreateFieldDataset;
+var CountID : Integer;
 begin
-  result := CreateQuery;
-  with result as TSQLQuery do
+  try
+    Ftransaction.StartTransaction;
+    Fconnection.ExecuteDirect('create table FPDEV_FIELD (   ' +
+                              '  ID INT NOT NULL,           ' +
+                              '  FSTRING VARCHAR(10),        ' +
+                              '  FINTEGER INT,               ' +
+                              '  FDATE DATE,         ' +
+                              '  FDATETIME TIMESTAMP,        ' +
+                              '  PRIMARY KEY (ID)           ' +
+                              ')                            ');
+
+    FTransaction.CommitRetaining;
+
+    for countID := 0 to testValuesCount-1 do
+      Fconnection.ExecuteDirect('insert into FPDEV_FIELD (ID,FSTRING,FINTEGER,FDATE,FDATETIME)' +
+                                'values ('+inttostr(countID)+','''+testStringValues[CountID]+''','''+inttostr(testIntValues[CountID])+''','''+testDateValues[CountID]+''','''+testDateValues[CountID]+''')');
+
+    Ftransaction.Commit;
+  except
+    if Ftransaction.Active then Ftransaction.Rollback
+  end;
+end;
+
+procedure TSQLDBConnector.DropNDatasets;
+begin
+  try
+    if Ftransaction.Active then Ftransaction.Rollback;
+    Ftransaction.StartTransaction;
+    Fconnection.ExecuteDirect('DROP TABLE FPDEV');
+    Ftransaction.Commit;
+  Except
+    if Ftransaction.Active then Ftransaction.Rollback
+  end;
+end;
+
+procedure TSQLDBConnector.DropFieldDataset;
+begin
+  try
+    if Ftransaction.Active then Ftransaction.Rollback;
+    Ftransaction.StartTransaction;
+    Fconnection.ExecuteDirect('DROP TABLE FPDEV_FIELD');
+    Ftransaction.Commit;
+  Except
+    if Ftransaction.Active then Ftransaction.Rollback
+  end;
+end;
+
+function TSQLDBConnector.InternalGetNDataset(n: integer): TDataset;
+begin
+  Result := CreateQuery;
+  with (Result as TSQLQuery) do
     begin
     sql.clear;
-    sql.add('SELECT ID,NAME FROM FPDEV WHERE ID<'+inttostr(n+1));
+    sql.add('SELECT * FROM FPDEV WHERE ID < '+inttostr(n+1));
     end;
 end;
 
-procedure TSQLDBConnector.FreeNDataset(var ds: TDataset);
+function TSQLDBConnector.InternalGetFieldDataset: TDataSet;
 begin
-  if ds.active then ds.Close;
-  FreeAndNil(ds);
+  Result := CreateQuery;
+  with (Result as TSQLQuery) do
+    begin
+    sql.clear;
+    sql.add('SELECT * FROM FPDEV_FIELD');
+    end;
 end;
 
+destructor TSQLDBConnector.Destroy;
+begin
+  try
+    if Ftransaction.Active then Ftransaction.Rollback;
+    Ftransaction.StartTransaction;
+    Fconnection.ExecuteDirect('DROP TABLE FPDEV2');
+    Ftransaction.Commit;
+  Except
+    if Ftransaction.Active then Ftransaction.Rollback
+  end;
+  inherited Destroy;
+
+  FreeAndNil(FQuery);
+  FreeAndNil(FTransaction);
+  FreeAndNil(FConnection);
+end;
+
+constructor TSQLDBConnector.Create;
+begin
+  FConnection := nil;
+  CreateFConnection;
+  CreateFTransaction;
+  FQuery := CreateQuery;
+  FConnection.Transaction := FTransaction;
+  Inherited;
+end;
+
+initialization
+  RegisterClass(TSQLDBConnector);
 end.
 

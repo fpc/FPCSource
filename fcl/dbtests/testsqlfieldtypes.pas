@@ -1,4 +1,4 @@
-unit TestSQLFieldTypes;
+ unit TestSQLFieldTypes;
 
 {$mode objfpc}{$H+}
 
@@ -10,21 +10,38 @@ uses
 
 type
 
+
+  TParamProc = procedure(AParam:TParam; i : integer);
+  TFieldProc = procedure(AField:TField; i : integer);
+
   { TTestFieldTypes }
 
   TTestFieldTypes= class(TTestCase)
   private
     procedure CreateTableWithFieldType(ADatatype : TFieldType; ASQLTypeDecl : string);
     procedure TestFieldDeclaration(ADatatype: TFieldType; ADataSize: integer);
+    procedure TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer);
   protected
     procedure SetUp; override; 
     procedure TearDown; override;
     procedure RunTest; override;
   published
+  
+
+
     procedure TestInt;
+    procedure TestScript;
+
+    procedure TestParametersAndDates;
+    procedure TestExceptionOnsecondClose;
+
+    procedure TestBlob;
+    procedure TestChangeBlob;
+
+    procedure TestLargeRecordSize;
+    procedure TestNumeric;
     procedure TestFloat;
     procedure TestDateTime;       // bug 6925
-    procedure TestNumeric;
     procedure TestString;
     procedure TestUnlVarChar;
     procedure TestDate;
@@ -32,18 +49,89 @@ type
     procedure TestNullValues;
     procedure TestParamQuery;
     procedure TestStringParamQuery;
+    procedure TestDateParamQuery;
+    procedure TestIntParamQuery;
+    procedure TestFloatParamQuery;
+  published
     procedure TestAggregates;
   end;
 
 implementation
 
-uses sqldbtoolsunit,toolsunit, variants;
-
-procedure TTestFieldTypes.TestInt;
+uses sqldbtoolsunit,toolsunit, variants, sqldb;
 
 const
-  testValuesCount = 17;
-  testValues : Array[0..testValuesCount-1] of integer = (-maxInt,-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,MaxInt);
+  testFloatValuesCount = 21;
+  testFloatValues : Array[0..testFloatValuesCount-1] of double = (-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,0.123456,-0.123456,4.35,12.434E7,9.876e-5,123.45678);
+
+  testIntValuesCount = 17;
+  testIntValues : Array[0..testIntValuesCount-1] of integer = (-maxInt,-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,MaxInt);
+
+  testStringValuesCount = 20;
+  testStringValues : Array[0..testStringValuesCount-1] of string = (
+    '',
+    'a',
+    'ab',
+    'abc',
+    'abcd',
+    'abcde',
+    'abcdef',
+    'abcdefg',
+    'abcdefgh',
+    'abcdefghi',
+    'abcdefghij',
+    'lMnOpQrStU',
+    '1234567890',
+    '_!@#$%^&*(',
+    ' ''quotes'' ',
+    ')-;:/?.<>',
+    '~`|{}- =',    // note that there's no \  (backslash) since some db's uses that as escape-character
+    '  WRaP  ',
+    'wRaP  ',
+    ' wRAP'
+  );
+
+  testDateValuesCount = 18;
+  testDateValues : Array[0..testDateValuesCount-1] of string = (
+    '2000-01-01',
+    '1999-12-31',
+    '2004-02-29',
+    '2004-03-01',
+    '1991-02-28',
+    '1991-03-01',
+    '2040-10-16',
+    '1977-09-29',
+    '1800-03-30',
+    '1650-05-10',
+    '1754-06-04',
+    '0904-04-12',
+    '0199-07-09',
+    '0001-01-01',
+    '1899-12-29',
+    '1899-12-30',
+    '1899-12-31',
+    '1900-01-01'
+  );
+
+
+procedure TTestFieldTypes.TestScript;
+
+var Ascript : TSQLScript;
+
+begin
+  Ascript := tsqlscript.create(nil);
+  with Ascript do
+    begin
+    DataBase := TSQLDBConnector(DBConnector).Connection;
+    transaction := TSQLDBConnector(DBConnector).Transaction;
+    script.clear;
+    script.append('create table a (id int);');
+    script.append('create table b (id int);');
+    ExecuteScript;
+    end;
+end;
+
+procedure TTestFieldTypes.TestInt;
 
 var
   i          : byte;
@@ -52,20 +140,47 @@ begin
   CreateTableWithFieldType(ftInteger,'INT');
   TestFieldDeclaration(ftInteger,4);
 
-  for i := 0 to testValuesCount-1 do
-    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + inttostr(testValues[i]) + ')');
+  for i := 0 to testIntValuesCount-1 do
+    TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (' + inttostr(testIntValues[i]) + ')');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
     Open;
-    for i := 0 to testValuesCount-1 do
+    for i := 0 to testIntValuesCount-1 do
       begin
-      AssertEquals(testValues[i],fields[0].AsInteger);
+      AssertEquals(testIntValues[i],fields[0].AsInteger);
       Next;
       end;
     close;
     end;
 end;
+
+procedure TTestFieldTypes.TestLargeRecordSize;
+
+var
+  i          : byte;
+
+begin
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (plant varchar(8192),sampling_type varchar(8192),area varchar(8192), area_description varchar(8192), batch varchar(8192), sampling_datetime timestamp, status varchar(8192), batch_commentary varchar(8192))');
+
+// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  if UpperCase(dbconnectorparams)='INTERBASE' then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    sql.clear;
+    sql.append('insert into FPDEV2 (plant,sampling_type,batch,sampling_datetime,status,batch_commentary) values (''ZUBNE PASTE'',''OTISCI POVR￿INA'',''000037756'',''2005-07-01'',''NE ODGOVARA'',''Ovdje se upisuje komentar o kontrolnom broju..............'')');
+    ExecSQL;
+
+    sql.clear;
+    sql.append('select * from FPDEV2');
+    open;
+    AssertEquals('ZUBNE PASTE',FieldByName('plant').AsString);
+    AssertEquals(EncodeDate(2005,07,01),FieldByName('sampling_datetime').AsDateTime);
+    close;
+    end;
+end;
+
 
 procedure TTestFieldTypes.TestNumeric;
 
@@ -137,7 +252,7 @@ begin
     Open;
     for i := 0 to testValuesCount-1 do
       begin
-      if (dbtype in MySQLdbTypes) then
+      if (SQLDbType in MySQLdbTypes) then
         AssertEquals(TrimRight(testValues[i]),fields[0].AsString) // MySQL automatically trims strings
       else
         AssertEquals(testValues[i],fields[0].AsString);
@@ -180,7 +295,7 @@ var
   i             : byte;
 
 begin
-  AssertTrue(SIgnoreAssertion,dbtype = postgresql); // Only postgres accept this type-definition
+//  AssertTrue(SIgnoreAssertion,SQLDbType = postgresql); // Only postgres accept this type-definition
   CreateTableWithFieldType(ftString,'VARCHAR');
   TestFieldDeclaration(ftString,dsMaxStringSize+1);
 
@@ -201,29 +316,6 @@ end;
 
 procedure TTestFieldTypes.TestDate;
 
-const
-  testValuesCount = 18;
-  testValues : Array[0..testValuesCount-1] of string = (
-    '2000-01-01',
-    '1999-12-31',
-    '2004-02-29',
-    '2004-03-01',
-    '1991-02-28',
-    '1991-03-01',
-    '2040-10-16',
-    '1977-09-29',
-    '1800-03-30',
-    '1650-05-10',
-    '1754-06-04',
-    '0904-04-12',
-    '0199-07-09',
-    '0001-01-01',
-    '1899-12-29',
-    '1899-12-30',
-    '1899-12-31',
-    '1900-01-01'
-  );
-
 var
   i             : byte;
 
@@ -231,26 +323,94 @@ begin
   CreateTableWithFieldType(ftDate,'DATE');
   TestFieldDeclaration(ftDate,8);
 
-  for i := 0 to testValuesCount-1 do
-    if dbtype=oracle then
-      TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (to_date (''' + testValues[i] + ''',''YYYY-MM-DD''))')
+  for i := 0 to testDateValuesCount-1 do
+    if SQLDbType=oracle then
+      TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (to_date (''' + testDateValues[i] + ''',''YYYY-MM-DD''))')
     else
-      TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testValues[i] + ''')');
+      TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testDateValues[i] + ''')');
 
 //  TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For debug-purposes
 
   with TSQLDBConnector(DBConnector).Query do
     begin
     Open;
-    for i := 0 to testValuesCount-1 do
+    for i := 0 to testDateValuesCount-1 do
       begin
-      AssertEquals(testValues[i],FormatDateTime('yyyy/mm/dd',fields[0].AsDateTime));
+      AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',fields[0].AsDateTime));
       Next;
       end;
     close;
     end;
 
 end;
+
+procedure TTestFieldTypes.TestChangeBlob;
+
+var s : string;
+
+begin
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID int,FT blob)');
+  TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For interbase
+
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (ID,FT) values (1,''Test deze blob'')');
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    sql.clear;
+    sql.add('select * from FPDEV2');
+    Open;
+    fields[1].ProviderFlags := [pfInUpdate]; // blob niet in de where
+    UpdateMode := upWhereAll;
+
+    AssertEquals('Test deze blob',fields[1].AsString);
+    edit;
+// Dat werkt niet lekker, omdat de stream vernield wordt...
+//    fields[0].asstring := 'Deze blob is gewijzigd!';
+
+    With Createblobstream(fields[1],bmwrite) do
+      begin
+      s := 'Deze blob is gewijzigd!';
+      WriteBuffer(Pointer(s)^,Length(s));
+      post;
+      free;
+      end;
+    AssertEquals('Deze blob is gewijzigd!',fields[1].AsString);
+    
+    ApplyUpdates(0);
+
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For debug-purposes
+
+    close;
+
+    open;
+    AssertEquals('Deze blob is gewijzigd!',fields[1].AsString);
+    close;
+    end;
+end;
+
+
+procedure TTestFieldTypes.TestBlob;
+
+var
+  i             : byte;
+
+begin
+//  CreateTableWithFieldType(ftBlob,'BLOB');
+  CreateTableWithFieldType(ftBlob,'TEXT');
+  TestFieldDeclaration(ftBlob,0);
+
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
+
+//  TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For debug-purposes
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    Open;
+    AssertEquals('Test deze blob',fields[0].AsString);
+    close;
+    end;
+end;
+
 
 procedure TTestFieldTypes.TestDateTime;
 
@@ -297,11 +457,11 @@ begin
   CreateTableWithFieldType(ftDateTime,'TIMESTAMP');
   TestFieldDeclaration(ftDateTime,8);
   
-  if dbtype=mysql40 then corrTestValueCount := testValuesCount-21
+  if SQLDbType=mysql40 then corrTestValueCount := testValuesCount-21
     else corrTestValueCount := testValuesCount;
 
   for i := 0 to corrTestValueCount-1 do
-    if dbtype=oracle then
+    if SQLDbType=oracle then
       TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (to_date (''' + testValues[i] + ''',''YYYY-MM-DD HH24:MI:SS''))')
     else
       TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + testValues[i] + ''')');
@@ -444,50 +604,59 @@ begin
 
 end;
 
+procedure TTestFieldTypes.TestIntParamQuery;
+
+begin
+  TestXXParamQuery(ftInteger,'INT',testIntValuesCount);
+end;
+
+procedure TTestFieldTypes.TestFloatParamQuery;
+
+begin
+  TestXXParamQuery(ftFloat,'FLOAT',testFloatValuesCount);
+end;
+
 procedure TTestFieldTypes.TestStringParamQuery;
 
-const
-  testValuesCount = 20;
-  testValues : Array[0..testValuesCount-1] of string = (
-    '',
-    'a',
-    'ab',
-    'abc',
-    'abcd',
-    'abcde',
-    'abcdef',
-    'abcdefg',
-    'abcdefgh',
-    'abcdefghi',
-    'abcdefghij',
-    'lMnOpQrStU',
-    '1234567890',
-    '_!@#$%^&*(',
-    ' ''quotes'' ',
-    ')-;:/?.<>',
-    '~`|{}- =',    // note that there's no \  (backslash) since some db's uses that as escape-character
-    '  WRaP  ',
-    'wRaP  ',
-    ' wRAP'
-  );
+begin
+  TestXXParamQuery(ftString,'VARCHAR(10)',testStringValuesCount);
+end;
+
+procedure TTestFieldTypes.TestDateParamQuery;
+
+begin
+  TestXXParamQuery(ftDate,'DATE',testDateValuesCount);
+end;
+
+
+procedure TTestFieldTypes.TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer);
 
 var i : integer;
 
 begin
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID INT, FIELD1 VARCHAR(10))');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID INT, FIELD1 '+ASQLTypeDecl+')');
 
 // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
-  TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+  if SQLDbType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
 
   with TSQLDBConnector(DBConnector).Query do
     begin
     sql.clear;
     sql.append('insert into FPDEV2 (ID,FIELD1) values (:id,:field1)');
-    
+
+    ShortDateFormat := 'yyyy-mm-dd';
+
     for i := 0 to testValuesCount -1 do
       begin
       Params.ParamByName('id').AsInteger := i;
-      Params.ParamByName('field1').AsString := testValues[i];
+      case ADataType of
+        ftInteger: Params.ParamByName('field1').asinteger := testIntValues[i];
+        ftFloat  : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
+        ftString : Params.ParamByName('field1').AsString  := testStringValues[i];
+        ftDate   : Params.ParamByName('field1').AsDateTime:= StrToDate(testDateValues[i]);
+      else
+        AssertTrue('no test for paramtype available',False);
+      end;
       ExecSQL;
       end;
   TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
@@ -499,7 +668,14 @@ begin
     for i := 0 to testValuesCount -1 do
       begin
       AssertEquals(i,FieldByName('ID').AsInteger);
-      AssertEquals(testValues[i],FieldByName('FIELD1').AsString);
+      case ADataType of
+        ftInteger: AssertEquals(testIntValues[i],FieldByName('FIELD1').AsInteger);
+        ftFloat  : AssertEquals(testFloatValues[i],FieldByName('FIELD1').AsFloat);
+        ftString : AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString);
+        ftdate   : AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',FieldByName('FIELD1').AsDateTime));
+      else
+        AssertTrue('no test for paramtype available',False);
+      end;
       Next;
       end;
     close;
@@ -584,11 +760,57 @@ end;
 
 procedure TTestFieldTypes.RunTest;
 begin
-  if (dbtype in SQLDBdbTypes) then
+//  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
 end;
 
+procedure TTestFieldTypes.TestParametersAndDates;
+begin
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    SQL.Clear;
+    sql.add('select now()::date as current_date where 1=1');
+    open;
+    first;
+    writeln(fields[0].asstring); // return the correct date
+    close;
+
+    sql.clear;
+    sql.add('select now()::date as current_date where cast(1 as integer) = :PARAM1');
+    params.parambyname('PARAM1').asinteger:= 1;
+    open;
+    first;
+    writeln(fields[0].asstring); // return invalid date
+    close;
+
+    end
+end;
+
+procedure TTestFieldTypes.TestExceptionOnsecondClose;
+begin
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    SQL.Clear;
+    SQL.Add('select * from FPDEV');
+
+    Open;
+    close;
+    
+    SQL.Clear;
+    SQL.Add('select blaise from FPDEV');
+{$IFDEF FPC}
+//    AssertException(EIBDatabaseError,@Open);
+{$ELSE}
+//    AssertException(EIBDatabaseError,Open);
+{$ENDIF}
+
+    Open;
+
+    Close;
+    end;
+end;
+
 initialization
-  if dbtype in SQLDBdbTypes then RegisterTest(TTestFieldTypes);
+  if uppercase(dbconnectorname)='SQL' then RegisterTest(TTestFieldTypes);
 end.
 

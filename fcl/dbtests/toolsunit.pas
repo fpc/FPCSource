@@ -4,8 +4,6 @@ unit ToolsUnit;
   {$mode objfpc}{$H+}
 {$ENDIF}
 
-{$I settings.inc}
-
 interface
 
 uses
@@ -16,18 +14,47 @@ Const MaxDataSet = 35;
 type
 
   { TDBConnector }
-
-  TDBConnector = class(TObject)
+  TDBConnectorClass = class of TDBConnector;
+  TDBConnector = class(TPersistent)
      private
-       FDatasets : array[0..MaxDataset] of TDataset;
+       FChangedDatasets : array[0..MaxDataSet] of boolean;
+       FUsedDatasets : TFPList;
+       FChangedFieldDataset : boolean;
      protected
-       Procedure FreeNDataset(var ds : TDataset); virtual; abstract;
-       Function CreateNDataset(n : integer) : TDataset; virtual; abstract;
+       // These methods should be implemented by any descendents
+       // They are called eacht time a test need a TDataset descendent
+       Function InternalGetNDataset(n : integer) : TDataset;  virtual; abstract;
+       Function InternalGetFieldDataset : TDataSet; virtual; abstract;
+
+       // These methods should be implemented by any descendents
+       // They are called only once in the constructor. They can be used
+       // to create the tables on disk, or on a DB-Server
+       procedure CreateNDatasets; virtual; abstract;
+       procedure CreateFieldDataset; virtual; abstract;
+
+       // These methods are called after each test in which a dataset is used
+       // by calling GetXXXDataset with Achange=true
+       // They should reset all data to their right/initial values.
+       procedure ResetNDatasets; virtual;
+       procedure ResetFieldDataset; virtual;
+       
+       // These methods are called only once in the destructor.
+       // They should clean up all mess, like tables on disk or on a DB-server
+       procedure DropNDatasets; virtual; abstract;
+       procedure DropFieldDataset; virtual; abstract;
      public
+       constructor create; virtual;
+       destructor destroy; override;
+
        procedure DataEvent(dataset :TDataset);
-       Function GetNDataset(n : integer) : TDataset; virtual;
-       procedure InitialiseDatasets; virtual;
-       procedure FreeDatasets; virtual;
+
+       Function GetNDataset(n : integer) : TDataset;  overload;
+       Function GetNDataset(AChange : Boolean; n : integer) : TDataset;  overload;
+       Function GetFieldDataset : TDataSet; overload;
+       Function GetFieldDataset(AChange : Boolean) : TDataSet; overload;
+
+       procedure StartTest;
+       procedure StopTest;
      end;
 
 
@@ -42,44 +69,123 @@ type
 {$ENDIF}
      end;
 
-type TDBTypes=(mysql40,mysql41,mysql50,interbase,postgresql,odbc,oracle,dbf);
-
 const
-  DBTypesNames : Array [TDBTypes] of String[19] =
-     ('mysql40','mysql41','mysql50','interbase','postgresql','odbc','oracle','dbf');
-
   DataEventnames : Array [TDataEvent] of String[19] =
     ('deFieldChange', 'deRecordChange', 'deDataSetChange', 'deDataSetScroll',
      'deLayoutChange', 'deUpdateRecord', 'deUpdateState', 'deCheckBrowseMode',
-     'dePropertyChange', 'deFieldListChange', 'deFocusControl' ,'deParentScroll'
-{$IFNDEF VER2_0_2}, 'deConnectChange','deReconcileError','deDisabledStateChange'{$ENDIF}
-    );
+     'dePropertyChange', 'deFieldListChange', 'deFocusControl' ,'deParentScroll',
+     'deConnectChange', 'deReconcileError', 'deDisabledStateChange');
 
-var dbtype          : TDBTypes;
+
+const
+  testValuesCount = 25;
+  testFloatValues : Array[0..testValuesCount-1] of double = (-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,0.123456,-0.123456,4.35,12.434E7,9.876e-5,123.45678,2.4,3.2,0.4,23);
+  testIntValues : Array[0..testValuesCount-1] of integer = (-maxInt,-maxInt+1,-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,MaxInt-1,MaxInt,100,130,150,-150,-132,234);
+  testSmallIntValues : Array[0..testValuesCount-1] of smallint = (-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,100,110,120,130,150,-150,-132,234,231,42);
+  testLargeIntValues : Array[0..testValuesCount-1] of smallint = (-MaxSIntValue,MaxSIntValue+1,-maxInt-1,-maxInt+1,-maxSmallint,-maxSmallint+1,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint-1,maxSmallint+1,MaxInt-1,MaxInt,MaxSIntValue-1,MaxSIntValue,235253244);
+  testBooleanValues : Array[0..testValuesCount-1] of boolean = (true,false,false,true,true,false,false,true,false,true,true,true,false,false,false,false,true,true,true,true,false,true,true,false,false);
+  testStringValues : Array[0..testValuesCount-1] of string = (
+    '',
+    'a',
+    'ab',
+    'abc',
+    'abcd',
+    'abcde',
+    'abcdef',
+    'abcdefg',
+    'abcdefgh',
+    'abcdefghi',
+    'abcdefghij',
+    'lMnOpQrStU',
+    '1234567890',
+    '_!@#$%^&*(',
+    '_!@#$%^&*(',
+//    ' ''quotes'' ',
+    ')-;:/?.<>',
+    '~`|{}- =',    // note that there's no \  (backslash) since some db's uses that as escape-character
+    '  WRaP  ',
+    'wRaP  ',
+    ' wRAP',
+    'this',
+    'is',
+    'fun',
+    'VB7^',
+    'vdfbst'
+  );
+
+  testDateValues : Array[0..testValuesCount-1] of string = (
+    '2000-01-01',
+    '1999-12-31',
+    '2004-02-29',
+    '2004-03-01',
+    '1991-02-28',
+    '1991-03-01',
+    '2040-10-16',
+    '1977-09-29',
+    '1800-03-30',
+    '1650-05-10',
+    '1754-06-04',
+    '0904-04-12',
+    '0199-07-09',
+    '0001-01-01',
+    '0031-11-02',
+    '1899-12-29',
+    '1899-12-30',
+    '1899-12-31',
+    '1977-09-29',
+    '1917-12-29',
+    '0079-11-29',
+    '1997-11-29',
+    '0001-01-01',
+    '1997-11-29',
+    '1900-01-01'
+  );
+
+var dbtype,
+    dbconnectorname,
+    dbconnectorparams,
     dbname,
     dbuser,
     dbhostname,
-    dbpassword      : string;
-
-    DBConnector     : TDBConnector;
+    dbpassword        : string;
+    DataEvents        : string;
+    DBConnector       : TDBConnector;
     
-    DataEvents      : string;
-
 procedure InitialiseDBConnector;
-
-resourcestring
-  SIgnoreAssertion = 'You can safely ignore this failure. This function is just not supported by the selected database';
 
 implementation
 
 uses
-{$IFDEF SQLDB_AVAILABLE}
   sqldbtoolsunit,
-{$ENDIF}
-{$IFDEF DBF_AVAILABLE}
   dbftoolsunit,
-{$ENDIF}
+  memdstoolsunit,
   inifiles;
+
+constructor TDBConnector.create;
+begin
+  CreateFieldDataset;
+  CreateNDatasets;
+  FUsedDatasets := TFPList.Create;
+end;
+
+destructor TDBConnector.destroy;
+begin
+  FUsedDatasets.Destroy;
+  DropNDatasets;
+  DropFieldDataset;
+end;
+
+procedure TDBConnector.ResetNDatasets;
+begin
+  DropNDatasets;
+  CreateNDatasets;
+end;
+
+procedure TDBConnector.ResetFieldDataset;
+begin
+  DropFieldDataset;
+  CreateFieldDataset;
+end;
 
 procedure TDBConnector.DataEvent(dataset : tdataset);
 
@@ -87,36 +193,36 @@ begin
   DataEvents := DataEvents + 'DataEvent' + ';';
 end;
 
+function TDBConnector.GetNDataset(n: integer): TDataset;
+begin
+  Result := GetNDataset(False,n);
+end;
+
 procedure ReadIniFile;
 
 var IniFile : TIniFile;
-    s       : string;
-    i       : TDBTypes;
+
 begin
   IniFile := TIniFile.Create(getcurrentdir + PathDelim + 'database.ini');
-  s := IniFile.ReadString('Database','Type','');
-  for i := low(DBTypesNames) to high(DBTypesNames) do
-    if s = DBTypesNames[i] then dbtype := i;
+  dbtype := IniFile.ReadString('Database','Type','');
+  dbconnectorname := IniFile.ReadString(dbtype,'Connector','');
+  dbname := IniFile.ReadString(dbtype,'Name','');
+  dbuser := IniFile.ReadString(dbtype,'User','');
+  dbhostname := IniFile.ReadString(dbtype,'Hostname','');
+  dbpassword := IniFile.ReadString(dbtype,'Password','');
+  dbconnectorparams := IniFile.ReadString(dbtype,'ConnectorParams','');
 
-  dbname := IniFile.ReadString(s,'Name','');
-  dbuser := IniFile.ReadString(s,'User','');
-  dbhostname := IniFile.ReadString(s,'Hostname','');
-  dbpassword := IniFile.ReadString(s,'Password','');
   IniFile.Free;
 end;
 
 procedure InitialiseDBConnector;
-
+var DBConnectorClass : TPersistentClass;
 begin
-//  ReadIniFile;
-  if (1 <> 1) then begin end
-{$IFDEF SQLDB_AVAILABLE}
-  else if (dbtype in SQLDBdbTypes)  then DBConnector := TSQLDBConnector.Create
-{$ENDIF}
-{$IFDEF DBF_AVAILABLE}
-  else if dbtype = dbf then DBConnector := TDBFDBConnector.Create
-{$ENDIF}
-  else Raise Exception.Create('Invalid database-type specified');
+  if dbconnectorname = '' then raise Exception.Create('There is no db-connector specified');
+  DBConnectorClass := GetClass('T'+dbconnectorname+'DBConnector');
+  if assigned(DBConnectorClass) then
+    DBConnector := TDBConnectorClass(DBConnectorClass).create
+  else Raise Exception.Create('Unknown db-connector specified');
 end;
 
 { TTestDataLink }
@@ -133,23 +239,48 @@ end;
 
 { TDBConnector }
 
-function TDBConnector.GetNDataset(n: integer): TDataset;
+function TDBConnector.GetNDataset(AChange : Boolean; n: integer): TDataset;
 begin
-  Result := FDatasets[n];
+  if AChange then FChangedDatasets[n] := True;
+  Result := InternalGetNDataset(n);
+  FUsedDatasets.Add(Result);
 end;
 
-procedure TDBConnector.InitialiseDatasets;
-var count : integer;
+function TDBConnector.GetFieldDataset: TDataSet;
 begin
-  for count := 0 to MaxDataSet do
-    FDatasets[count] := CreateNDataset(count);
+  Result := GetFieldDataset(False);
 end;
 
-procedure TDBConnector.FreeDatasets;
-var count : integer;
+function TDBConnector.GetFieldDataset(AChange: Boolean): TDataSet;
 begin
-  for count := 0 to MaxDataSet do if assigned(FDatasets[count]) then
-    FreeNDataset(FDatasets[count]);
+  if AChange then FChangedFieldDataset := True;
+  Result := InternalGetFieldDataset;
+  FUsedDatasets.Add(Result);
+end;
+
+procedure TDBConnector.StartTest;
+begin
+// Do nothing?
+end;
+
+procedure TDBConnector.StopTest;
+var i : integer;
+    ds : TDataset;
+begin
+  for i := 0 to FUsedDatasets.Count -1 do
+    begin
+    ds := tdataset(FUsedDatasets[i]);
+    if ds.active then ds.Close;
+    ds.Free;
+    end;
+  FUsedDatasets.Clear;
+  if FChangedFieldDataset then ResetFieldDataset;
+  for i := 0 to MaxDataSet do if FChangedDatasets[i] then
+    begin
+    ResetNDatasets;
+    fillchar(FChangedDatasets,sizeof(FChangedDatasets),ord(False));
+    break;
+    end;
 end;
 
 initialization
