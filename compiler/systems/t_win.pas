@@ -1722,6 +1722,7 @@ initialization
   RegisterTarget(system_i386_win32_info);
   { WinCE }
   RegisterExternalLinker(system_i386_wince_info,TExternalLinkerWin);
+  RegisterInternalLinker(system_i386_wince_info,TInternalLinkerWin);
   RegisterImport(system_i386_wince,TImportLibWin);
   RegisterExport(system_i386_wince,TExportLibWin);
   RegisterDLLScanner(system_i386_wince,TDLLScannerWin);
