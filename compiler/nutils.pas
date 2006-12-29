@@ -628,7 +628,8 @@ implementation
               tempcreaten,
               tempdeleten,
               ordconstn,
-              pointerconstn:
+              pointerconstn,
+              niln:
                 exit;
               else
                 begin
