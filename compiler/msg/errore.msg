@@ -1657,7 +1657,7 @@ cg_f_unknown_compilerproc=06046_F_Unknown compilerproc "$1". Check if you use th
 #
 # Assembler reader
 #
-# 07097 is the last used one
+# 07105 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -1873,6 +1873,7 @@ asmr_e_illegal_shifterop_syntax=07099_E_Syntax error while trying to parse a shi
 % asm
 %   orr     r2,r2,r2,lsl #8
 % end;
+% \end{verbatim}
 asmr_e_packed_element=07100_E_Address of packed component is not at a byte boundary
 % Packed components (record fields and array elements) may start at an arbitrary
 % bit inside a byte. On CPU which do not support bit-addressable memory (which
@@ -1885,7 +1886,18 @@ asmr_w_unable_to_determine_reference_size_using_byte=07101_W_No size specified a
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
 % it falls back to use BYTE as default.
-% \end{verbatim}
+asmr_w_no_direct_ebp_for_parameter=07102_W_Use of +offset(%ebp) for parameters invalid here
+% Using direct 8(%ebp) reference for function/procedure parameters is invalid
+% if parameters are in registers.
+asmr_w_direct_ebp_for_parameter_regcall=07103_W_Use of +offset(%ebp) is not compatible with regcall convention
+% Using direct 8(%ebp) reference for function/procedure parameters is invalid
+% if parameters are in registers.
+asmr_w_direct_ebp_neg_offset=07104_W_Use of -offset(%ebp) is not recommanded for local variable access
+% Using -8(%ebp) to access a local variable is not recommended
+asmr_w_direct_esp_neg_offset=07105_W_Use of -offset(%esp), value may be crashed
+% Using -8(%esp) to access a local stack is not recommended, as
+% this stack portion can be overwritten by any function calls or interrupts.
+%
 #
 # Assembler/binary writers
 #

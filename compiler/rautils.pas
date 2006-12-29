@@ -104,6 +104,7 @@ type
     Function  SetupSelf:boolean;
     Function  SetupOldEBP:boolean;
     Function  SetupVar(const s:string;GetOffset : boolean): Boolean;
+    Procedure CheckOperand; virtual;
     Procedure InitRef;
   end;
   TCOperand = class of TOperand;
@@ -964,6 +965,14 @@ Begin
   end;
 end;
 
+Procedure TOperand.CheckOperand;
+{*********************************************************************}
+{  Description: This routine checks if the operand is of              }
+{  valid. Does nothing by default.                                    }
+{*********************************************************************}
+begin
+end;
+
 
 {****************************************************************************
                                  TInstruction
@@ -1019,6 +1028,9 @@ end;
       ai   : taicpu;
       i : longint;
     begin
+      for i:=1 to Ops do
+        operands[i].CheckOperand;
+
       ai:=taicpu.op_none(opcode);
       ai.Ops:=Ops;
       ai.Allocate_oper(Ops);

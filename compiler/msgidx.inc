@@ -550,6 +550,10 @@ const
   asmr_e_illegal_shifterop_syntax=07099;
   asmr_e_packed_element=07100;
   asmr_w_unable_to_determine_reference_size_using_byte=07101;
+  asmr_w_no_direct_ebp_for_parameter=07102;
+  asmr_w_direct_ebp_for_parameter_regcall=07103;
+  asmr_w_direct_ebp_neg_offset=07104;
+  asmr_w_direct_esp_neg_offset=07105;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -706,9 +710,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 41907;
+  MsgTxtSize = 42160;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,82,228,79,62,47,102,22,135,60,
+    24,82,228,79,62,47,106,22,135,60,
     41,1,1,1,1,1,1,1,1,1
   );

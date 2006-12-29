@@ -44,6 +44,7 @@ type
     opsize  : topsize;
     Procedure SetSize(_size:longint;force:boolean);override;
     Procedure SetCorrectSize(opcode:tasmop);override;
+    Procedure CheckOperand; override;
   end;
 
   Tx86Instruction=class(TInstruction)
@@ -83,6 +84,7 @@ implementation
 
 uses
   globtype,globals,systems,verbose,
+  procinfo,
   cpuinfo,cgbase,cgutils,
   itcpugas,cgx86;
 
@@ -202,6 +204,26 @@ begin
         OS_32 : opsize:=S_IL;
         OS_64 : opsize:=S_IQ;
       end;
+    end;
+end;
+
+Procedure Tx86Operand.CheckOperand;
+
+begin
+  if (opr.typ=OPR_Reference) and
+     not hasvar then
+    begin
+      if (getsupreg(opr.ref.base)=RS_EBP) and (opr.ref.offset>0) then
+        begin
+          if current_procinfo.procdef.proccalloption=pocall_register then
+            message(asmr_w_no_direct_ebp_for_parameter)
+          else
+            message(asmr_w_direct_ebp_for_parameter_regcall);
+        end
+      else if (getsupreg(opr.ref.base)=RS_EBP) and (opr.ref.offset<0) then
+        message(asmr_w_direct_ebp_neg_offset)
+      else if (getsupreg(opr.ref.base)=RS_ESP) and (opr.ref.offset<0) then
+        message(asmr_w_direct_esp_neg_offset);
     end;
 end;
 
@@ -500,6 +522,9 @@ var
 begin
   if (OpOrder=op_intel) then
     SwapOperands;
+
+  for i:=1 to Ops do
+    operands[i].CheckOperand;
 
 { Get Opsize }
   if (opsize<>S_NO) or (Ops=0) then
