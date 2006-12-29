@@ -59,6 +59,9 @@ Const
   EmptyWideStr : WideString = '';
 //  NullWideStr : PWideString = @EmptyWideStr;
 
+Var TrueBoolStrs,
+    FalseBoolStrs : Array of String;
+
 function NewStr(const S: string): PString;
 procedure DisposeStr(S: PString);
 procedure AssignStr(var P: PString; const S: string);
@@ -161,7 +164,7 @@ function TryStrToCurr(const S: string;Var Value : Currency): Boolean;
 function StrToCurrDef(const S: string; Default : Currency): Currency;
 
 function StrToBool(const S: string): Boolean;
-function BoolToStr(B: Boolean): string;
+function BoolToStr(B: Boolean;UseBoolStrs:Boolean=False): string;
 function StrToBoolDef(const S: string; Default: Boolean): Boolean;
 function TryStrToBool(const S: string; out Value: Boolean): Boolean;
 

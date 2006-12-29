@@ -1373,22 +1373,43 @@ begin
     Raise EConvertError.CreateFmt(SInvalidBoolean,[S]);
 end;
 
+function BoolToStr(B: Boolean;UseBoolStrs:Boolean=False): string;
 
-function BoolToStr(B: Boolean): string;
+procedure CheckStrs;
 begin
-  If B then
-    Result:='TRUE'
-  else
-    Result:='FALSE';
+    If Length(TrueBoolStrs)=0 then
+      begin
+        SetLength(TrueBoolStrs,1);
+        TrueBoolStrs[0]:='True';
+      end;
+    If Length(FalseBoolStrs)=0 then
+      begin
+        SetLength(FalseBoolStrs,1);
+        FalseBoolStrs[0]:='False';
+      end;
 end;
 
+begin
+ if UseBoolStrs Then
+  begin
+    CheckStrs;
+    if B then
+      Result:=TrueBoolStrs[0] 
+    else
+      Result:=FalseBoolStrs[0];
+  end
+ else
+  If B then
+    Result:='-1'
+  else
+    Result:='0';
+end;
 
 function StrToBoolDef(const S: string; Default: Boolean): Boolean;
 begin
   if not(TryStrToBool(S,Result)) then
     Result:=Default;
 end;
-  
   
 function TryStrToBool(const S: string; out Value: Boolean): Boolean;
 Var
