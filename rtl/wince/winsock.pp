@@ -26,6 +26,8 @@ unit winsock;
 {$ifdef support_smartlink}
 {$smartlink on}
 {$endif}
+{ convention is cdecl for WinCE API}
+{$calling cdecl}
 
 
 {remaining functions exported from ws2.dll and not used yet = to do,

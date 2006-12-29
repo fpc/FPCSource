@@ -31,25 +31,25 @@ function TlsFree(dwTlsIndex : DWord) : LongBool;
   stdcall;external KernelDLL name 'TlsFree';
 {$endif WINCE}
 function TlsGetValue(dwTlsIndex : DWord) : pointer;
-  stdcall;external KernelDLL name 'TlsGetValue';
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'TlsGetValue';
 function TlsSetValue(dwTlsIndex : DWord;lpTlsValue : pointer) : LongBool;
-  stdcall;external KernelDLL name 'TlsSetValue';
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'TlsSetValue';
 function CreateThread(lpThreadAttributes : pointer;
   dwStackSize : SIZE_T; lpStartAddress : pointer;lpParameter : pointer;
   dwCreationFlags : DWord;var lpThreadId : DWord) : THandle;
-  stdcall;external KernelDLL name 'CreateThread';
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'CreateThread';
 procedure ExitThread(dwExitCode : DWord);
-  stdcall;external KernelDLL name 'ExitThread';
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'ExitThread';
 function LocalAlloc(uFlags:DWord; dwBytes:DWORD):Pointer;
-  stdcall;external KernelDLL name 'LocalAlloc';
-function LocalFree(hMem : Pointer):Pointer; stdcall;external KernelDLL name 'LocalFree';
-procedure Sleep(dwMilliseconds: DWord); stdcall;external KernelDLL name 'Sleep';
-function  WinSuspendThread (threadHandle : THandle) : dword; stdcall;external KernelDLL name 'SuspendThread';
-function  WinResumeThread  (threadHandle : THandle) : dword; stdcall;external KernelDLL name 'ResumeThread';
-function  TerminateThread  (threadHandle : THandle; var exitCode : dword) : boolean; stdcall;external KernelDLL name 'TerminateThread';
-function  WaitForSingleObject (hHandle : THandle;Milliseconds: dword): dword; stdcall;external KernelDLL name 'WaitForSingleObject';
-function  WinThreadSetPriority (threadHandle : THandle; Prio: longint): boolean; stdcall;external KernelDLL name 'SetThreadPriority';
-function  WinThreadGetPriority (threadHandle : THandle): LongInt; stdcall;external KernelDLL name 'GetThreadPriority';
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'LocalAlloc';
+function LocalFree(hMem : Pointer):Pointer; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'LocalFree';
+procedure Sleep(dwMilliseconds: DWord); {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'Sleep';
+function  WinSuspendThread (threadHandle : THandle) : dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SuspendThread';
+function  WinResumeThread  (threadHandle : THandle) : dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'ResumeThread';
+function  TerminateThread  (threadHandle : THandle; var exitCode : dword) : boolean; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'TerminateThread';
+function  WaitForSingleObject (hHandle : THandle;Milliseconds: dword): dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'WaitForSingleObject';
+function  WinThreadSetPriority (threadHandle : THandle; Prio: longint): boolean; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetThreadPriority';
+function  WinThreadGetPriority (threadHandle : THandle): LongInt; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetThreadPriority';
 {$ifndef WINCE}
 function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall; external KernelDLL name 'CreateEventA';
 function  ResetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 'ResetEvent';
@@ -141,7 +141,7 @@ CONST
       end;
 
 
-    function ThreadMain(param : pointer) : Longint; stdcall;
+    function ThreadMain(param : pointer) : Longint; {$ifdef wince}cdecl{$else}stdcall{$endif};
       var
         ti : tthreadinfo;
       begin
@@ -260,16 +260,16 @@ CONST
 *****************************************************************************}
 
 procedure WinInitCriticalSection(var cs : TRTLCriticalSection);
-  stdcall;external KernelDLL name 'InitializeCriticalSection';
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'InitializeCriticalSection';
 
 procedure WinDoneCriticalSection(var cs : TRTLCriticalSection);
-  stdcall;external KernelDLL name 'DeleteCriticalSection';
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'DeleteCriticalSection';
 
 procedure WinEnterCriticalSection(var cs : TRTLCriticalSection);
-  stdcall;external KernelDLL name 'EnterCriticalSection';
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'EnterCriticalSection';
 
 procedure WinLeaveCriticalSection(var cs : TRTLCriticalSection);
-  stdcall;external KernelDLL name 'LeaveCriticalSection';
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'LeaveCriticalSection';
 
 procedure SySInitCriticalSection(var cs);
 begin

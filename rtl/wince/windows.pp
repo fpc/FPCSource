@@ -23,8 +23,8 @@ unit windows;
 
 { stuff like array of const is used }
 {$mode objfpc}
-{$calling cdecl}   //convention is cdecl except for x86 emulator stdcall
-                   //change nothing on arm
+{ convention is cdecl for WinCE API}
+{$calling cdecl}
 
 interface
 

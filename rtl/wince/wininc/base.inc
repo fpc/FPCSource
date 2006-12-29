@@ -562,102 +562,102 @@
 
  type
 
-     BFFCALLBACK = function (_para1:HWND; _para2:UINT; _para3:LPARAM; _para4:LPARAM):longint;stdcall;
+     BFFCALLBACK = function (_para1:HWND; _para2:UINT; _para3:LPARAM; _para4:LPARAM):longint;
 
-     LPCCHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;stdcall;
+     LPCCHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;
 
-     LPCFHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;stdcall;
+     LPCFHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;
 
      PTHREAD_START_ROUTINE = Pointer;
 
      LPTHREAD_START_ROUTINE = PTHREAD_START_ROUTINE;
 
-     EDITSTREAMCALLBACK = function (_para1:DWORD; _para2:LPBYTE; _para3:LONG; _para4:LONG):DWORD;stdcall;
+     EDITSTREAMCALLBACK = function (_para1:DWORD; _para2:LPBYTE; _para3:LONG; _para4:LONG):DWORD;
 
-     LPFRHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;stdcall;
+     LPFRHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;
 
-     LPOFNHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;stdcall;
+     LPOFNHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;
 
-     LPPRINTHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;stdcall;
+     LPPRINTHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;
 
-     LPSETUPHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;stdcall;
+     LPSETUPHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;
 
-     DLGPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):LRESULT;stdcall;
+     DLGPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):LRESULT;
 
-     PFNPROPSHEETCALLBACK = function (_para1:HWND; _para2:UINT; _para3:LPARAM):longint;stdcall;
+     PFNPROPSHEETCALLBACK = function (_para1:HWND; _para2:UINT; _para3:LPARAM):longint;
 
-     LPSERVICE_MAIN_FUNCTION = procedure (_para1:DWORD; _para2:LPTSTR);stdcall;
+     LPSERVICE_MAIN_FUNCTION = procedure (_para1:DWORD; _para2:LPTSTR);
 
-     PFNTVCOMPARE = function (_para1:LPARAM; _para2:LPARAM; _para3:LPARAM):longint;stdcall;
+     PFNTVCOMPARE = function (_para1:LPARAM; _para2:LPARAM; _para3:LPARAM):longint;
 
-     WNDPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):LRESULT;stdcall;
+     WNDPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):LRESULT;
 
 
      FARPROC = pointer;    //windef
      NEARPROC= FARPROC;    //+windef
      PROC = FARPROC;       //~windef
 
-     ENUMRESTYPEPROC = function (_para1:HANDLE; _para2:LPTSTR; _para3:LONG):WINBOOL;stdcall;
+     ENUMRESTYPEPROC = function (_para1:HANDLE; _para2:LPTSTR; _para3:LONG):WINBOOL;
 
-     ENUMRESNAMEPROC = function (_para1:HANDLE; _para2:LPCTSTR; _para3:LPTSTR; _para4:LONG):WINBOOL;stdcall;
+     ENUMRESNAMEPROC = function (_para1:HANDLE; _para2:LPCTSTR; _para3:LPTSTR; _para4:LONG):WINBOOL;
 
-     ENUMRESLANGPROC = function (_para1:HANDLE; _para2:LPCTSTR; _para3:LPCTSTR; _para4:WORD; _para5:LONG):WINBOOL;stdcall;
+     ENUMRESLANGPROC = function (_para1:HANDLE; _para2:LPCTSTR; _para3:LPCTSTR; _para4:WORD; _para5:LONG):WINBOOL;
 
      DESKTOPENUMPROC = FARPROC;
 
-     ENUMWINDOWSPROC = function (_para1:HWND; _para2:LPARAM):WINBOOL;stdcall;
+     ENUMWINDOWSPROC = function (_para1:HWND; _para2:LPARAM):WINBOOL;
 
-     ENUMWINDOWSTATIONPROC = function (_para1:LPTSTR; _para2:LPARAM):WINBOOL;stdcall;
+     ENUMWINDOWSTATIONPROC = function (_para1:LPTSTR; _para2:LPARAM):WINBOOL;
 
-     SENDASYNCPROC = procedure (_para1:HWND; _para2:UINT; _para3:DWORD; _para4:LRESULT);stdcall;
+     SENDASYNCPROC = procedure (_para1:HWND; _para2:UINT; _para3:DWORD; _para4:LRESULT);
 
-     TIMERPROC = procedure (_para1:HWND; _para2:UINT; _para3:UINT; _para4:DWORD);stdcall;
+     TIMERPROC = procedure (_para1:HWND; _para2:UINT; _para3:UINT; _para4:DWORD);
 
      GRAYSTRINGPROC = FARPROC;
 
-     DRAWSTATEPROC = function (_para1:HDC; _para2:LPARAM; _para3:WPARAM; _para4:longint; _para5:longint):WINBOOL;stdcall;
+     DRAWSTATEPROC = function (_para1:HDC; _para2:LPARAM; _para3:WPARAM; _para4:longint; _para5:longint):WINBOOL;
 
-     PROPENUMPROCEX = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE; _para4:DWORD):WINBOOL;stdcall;
+     PROPENUMPROCEX = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE; _para4:DWORD):WINBOOL;
 
-     PROPENUMPROC = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE):WINBOOL;stdcall;
+     PROPENUMPROC = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE):WINBOOL;
 
-     HOOKPROC = function (_para1:longint; _para2:WPARAM; _para3:LPARAM):LRESULT;stdcall;
+     HOOKPROC = function (_para1:longint; _para2:WPARAM; _para3:LPARAM):LRESULT;
 
-     ENUMOBJECTSPROC = procedure (_para1:LPVOID; _para2:LPARAM);stdcall;
+     ENUMOBJECTSPROC = procedure (_para1:LPVOID; _para2:LPARAM);
 
-     LINEDDAPROC = procedure (_para1:longint; _para2:longint; _para3:LPARAM);stdcall;
+     LINEDDAPROC = procedure (_para1:longint; _para2:longint; _para3:LPARAM);
 
-     TABORTPROC = function (_para1:HDC; _para2:longint):WINBOOL;stdcall;
+     TABORTPROC = function (_para1:HDC; _para2:longint):WINBOOL;
 
-     LPPAGEPAINTHOOK = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;stdcall;
+     LPPAGEPAINTHOOK = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;
 
-     LPPAGESETUPHOOK = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;stdcall;
+     LPPAGESETUPHOOK = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT;
 
-     ICMENUMPROC = function (_para1:LPTSTR; _para2:LPARAM):longint;stdcall;
+     ICMENUMPROC = function (_para1:LPTSTR; _para2:LPARAM):longint;
 
-     EDITWORDBREAKPROCEX = function (_para1:pchar; _para2:LONG; _para3:BYTE; _para4:WINT):LONG;stdcall;
+     EDITWORDBREAKPROCEX = function (_para1:pchar; _para2:LONG; _para3:BYTE; _para4:WINT):LONG;
 
-     PFNLVCOMPARE = function (_para1:LPARAM; _para2:LPARAM; _para3:LPARAM):longint;stdcall;
+     PFNLVCOMPARE = function (_para1:LPARAM; _para2:LPARAM; _para3:LPARAM):longint;
 
-     LOCALE_ENUMPROC = function (_para1:LPTSTR):WINBOOL;stdcall;
+     LOCALE_ENUMPROC = function (_para1:LPTSTR):WINBOOL;
 
-     CODEPAGE_ENUMPROC = function (_para1:LPTSTR):WINBOOL;stdcall;
+     CODEPAGE_ENUMPROC = function (_para1:LPTSTR):WINBOOL;
      CODEPAGE_ENUMPROCW = function (_para1:LPWSTR):WINBOOL;        //+winnls
-     DATEFMT_ENUMPROC = function (_para1:LPTSTR):WINBOOL;stdcall;
+     DATEFMT_ENUMPROC = function (_para1:LPTSTR):WINBOOL;
 
-     TIMEFMT_ENUMPROC = function (_para1:LPTSTR):WINBOOL;stdcall;
+     TIMEFMT_ENUMPROC = function (_para1:LPTSTR):WINBOOL;
 
-     CALINFO_ENUMPROC = function (_para1:LPTSTR):WINBOOL;stdcall;
+     CALINFO_ENUMPROC = function (_para1:LPTSTR):WINBOOL;
 
-     PHANDLER_ROUTINE = function (_para1:DWORD):WINBOOL;stdcall;
+     PHANDLER_ROUTINE = function (_para1:DWORD):WINBOOL;
 
-     LPHANDLER_FUNCTION = function (_para1:DWORD):WINBOOL;stdcall;
+     LPHANDLER_FUNCTION = function (_para1:DWORD):WINBOOL;
 
-     PFNGETPROFILEPATH = function (_para1:LPCTSTR; _para2:LPSTR; _para3:UINT):UINT;stdcall;
+     PFNGETPROFILEPATH = function (_para1:LPCTSTR; _para2:LPSTR; _para3:UINT):UINT;
 
-     PFNRECONCILEPROFILE = function (_para1:LPCTSTR; _para2:LPCTSTR; _para3:DWORD):UINT;stdcall;
+     PFNRECONCILEPROFILE = function (_para1:LPCTSTR; _para2:LPCTSTR; _para3:DWORD):UINT;
 
-     PFNPROCESSPOLICIES = function (_para1:HWND; _para2:LPCTSTR; _para3:LPCTSTR; _para4:LPCTSTR; _para5:DWORD):WINBOOL;stdcall;
+     PFNPROCESSPOLICIES = function (_para1:HWND; _para2:LPCTSTR; _para3:LPCTSTR; _para4:LPCTSTR; _para5:DWORD):WINBOOL;
   const
      SE_CREATE_TOKEN_NAME = 'SeCreateTokenPrivilege';
      SE_ASSIGNPRIMARYTOKEN_NAME = 'SeAssignPrimaryTokenPrivilege';
@@ -709,7 +709,7 @@
 type
 
      { PFNCALLBACK = CALLB; }
-     PFNCALLBACK = function(_para1, _para2: UINT;_para3: HCONV;_para4, _para5: HSZ; _para6: HDDEDATA;_para7 ,_para8 :DWORD): HDDEData;stdcall;
+     PFNCALLBACK = function(_para1, _para2: UINT;_para3: HCONV;_para4, _para5: HSZ; _para6: HDDEDATA;_para7 ,_para8 :DWORD): HDDEData;
      { CALLB = procedure ;CDECL; }
        CALLB = PFNCALLBACK;
 

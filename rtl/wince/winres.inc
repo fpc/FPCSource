@@ -1,7 +1,7 @@
 
-function SysFindResource(hModule:HMODULE; lpName: PWideChar; lpType: PWideChar):TResourceHandle; external 'coredll' name 'FindResourceW';
-function SysLoadResource(hModule:HMODULE; hResInfo: TResourceHandle):HGLOBAL; external 'coredll' name 'LoadResource';
-function SysSizeofResource(hModule:HMODULE; hResInfo:TResourceHandle):DWORD; external 'coredll' name 'SizeofResource';
+function SysFindResource(hModule:HMODULE; lpName: PWideChar; lpType: PWideChar):TResourceHandle; cdecl; external 'coredll' name 'FindResourceW';
+function SysLoadResource(hModule:HMODULE; hResInfo: TResourceHandle):HGLOBAL; cdecl; external 'coredll' name 'LoadResource';
+function SysSizeofResource(hModule:HMODULE; hResInfo:TResourceHandle):DWORD; cdecl; external 'coredll' name 'SizeofResource';
 
 Function HINSTANCE: HMODULE;
 begin

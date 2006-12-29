@@ -79,23 +79,23 @@ function PCharToPWideChar(str: PChar; strlen: longint = -1; outlen: PLongInt = n
 function StringToPWideChar(const s: AnsiString; outlen: PLongInt = nil): PWideChar;
 
 { Wrappers for some WinAPI calls }
-function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall;
-function ResetEvent(h: THandle): LONGBOOL; stdcall;
-function SetEvent(h: THandle): LONGBOOL; stdcall;
-function GetCurrentProcessId:DWORD; stdcall;
-function Win32GetCurrentThreadId:DWORD; stdcall;
-function TlsAlloc : DWord; stdcall;
-function TlsFree(dwTlsIndex : DWord) : LongBool; stdcall;
+function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; 
+function ResetEvent(h: THandle): LONGBOOL; 
+function SetEvent(h: THandle): LONGBOOL; 
+function GetCurrentProcessId:DWORD; 
+function Win32GetCurrentThreadId:DWORD; 
+function TlsAlloc : DWord; 
+function TlsFree(dwTlsIndex : DWord) : LongBool; 
 
-function GetFileAttributes(p : pchar) : dword; stdcall;
-function DeleteFile(p : pchar) : longint; stdcall;
-function MoveFile(old,_new : pchar) : longint; stdcall;
+function GetFileAttributes(p : pchar) : dword; 
+function DeleteFile(p : pchar) : longint; 
+function MoveFile(old,_new : pchar) : longint; 
 function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                    lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
-                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint; stdcall;
+                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint; 
 
-function CreateDirectory(name : pointer;sec : pointer) : longbool; stdcall;
-function RemoveDirectory(name:pointer):longbool; stdcall;
+function CreateDirectory(name : pointer;sec : pointer) : longbool; 
+function RemoveDirectory(name:pointer):longbool; 
 
 
 {$ifdef CPUARM}
@@ -195,7 +195,7 @@ var
 {$i winres.inc}
 
 function MessageBox(w1:longint;l1,l2:PWideChar;w2:longint):longint;
-   stdcall;external 'coredll' name 'MessageBoxW';
+   cdecl; external 'coredll' name 'MessageBoxW';
 
 {*****************************************************************************}
 
@@ -236,7 +236,7 @@ begin
 end;
 
 {$define FPC_SYSTEM_HAS_TRUNC}
-function __dtoi64(d: double) : int64; external 'coredll';
+function __dtoi64(d: double) : int64; cdecl; external 'coredll';
 
 function fpc_trunc_real(d : ValReal) : int64; assembler; nostackframe; compilerproc;
 asm
@@ -244,7 +244,7 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_ABS}
-function fabs(d: double): double; external 'coredll';
+function fabs(d: double): double; cdecl; external 'coredll';
 
 function fpc_abs_real(d : ValReal) : ValReal; assembler; nostackframe; compilerproc;
 asm
@@ -252,7 +252,7 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_SQRT}
-function coresqrt(d: double): double; external 'coredll' name 'sqrt';
+function coresqrt(d: double): double; cdecl; external 'coredll' name 'sqrt';
 
 function fpc_sqrt_real(d : ValReal) : ValReal; assembler; nostackframe; compilerproc;
 asm
@@ -299,9 +299,9 @@ const
      CP_OEMCP = 1;
 
 function MultiByteToWideChar(CodePage:UINT; dwFlags:DWORD; lpMultiByteStr:PChar; cchMultiByte:longint; lpWideCharStr:PWideChar;cchWideChar:longint):longint;
-    stdcall; external 'coredll' name 'MultiByteToWideChar';
+     cdecl; external 'coredll' name 'MultiByteToWideChar';
 function WideCharToMultiByte(CodePage:UINT; dwFlags:DWORD; lpWideCharStr:PWideChar; cchWideChar:longint; lpMultiByteStr:PChar;cchMultiByte:longint; lpDefaultChar:PChar; lpUsedDefaultChar:pointer):longint;
-    stdcall; external 'coredll' name 'WideCharToMultiByte';
+     cdecl; external 'coredll' name 'WideCharToMultiByte';
 
 function AnsiToWideBuf(AnsiBuf: PChar; AnsiBufLen: longint; WideBuf: PWideChar; WideBufLen: longint): longint;
 begin
@@ -399,21 +399,21 @@ end;
 *****************************************************************************}
 
 function GetFileAttributesW(p : pwidechar) : dword;
-    stdcall;external KernelDLL name 'GetFileAttributesW';
+    cdecl; external KernelDLL name 'GetFileAttributesW';
 function DeleteFileW(p : pwidechar) : longint;
-    stdcall;external KernelDLL name 'DeleteFileW';
+    cdecl; external KernelDLL name 'DeleteFileW';
 function MoveFileW(old,_new : pwidechar) : longint;
-    stdcall;external KernelDLL name 'MoveFileW';
+    cdecl; external KernelDLL name 'MoveFileW';
 function CreateFileW(lpFileName:pwidechar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                    lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
                    dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
- stdcall;external KernelDLL name 'CreateFileW';
+    cdecl; external KernelDLL name 'CreateFileW';
 function CreateDirectoryW(name : pwidechar;sec : pointer) : longbool;
- stdcall;external KernelDLL name 'CreateDirectoryW';
+    cdecl; external KernelDLL name 'CreateDirectoryW';
 function RemoveDirectoryW(name:pwidechar):longbool;
- stdcall;external KernelDLL name 'RemoveDirectoryW';
+    cdecl; external KernelDLL name 'RemoveDirectoryW';
 
-function GetFileAttributes(p : pchar) : dword; stdcall;
+function GetFileAttributes(p : pchar) : dword; 
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
@@ -421,7 +421,7 @@ begin
   GetFileAttributes := GetFileAttributesW(buf);
 end;
 
-function DeleteFile(p : pchar) : longint; stdcall;
+function DeleteFile(p : pchar) : longint; 
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
@@ -429,7 +429,7 @@ begin
   DeleteFile := DeleteFileW(buf);
 end;
 
-function MoveFile(old,_new : pchar) : longint; stdcall;
+function MoveFile(old,_new : pchar) : longint; 
 var
   buf_old, buf_new: array[0..MaxPathLen] of WideChar;
 begin
@@ -440,7 +440,7 @@ end;
 
 function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                    lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
-                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint; stdcall;
+                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint; 
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
@@ -449,7 +449,7 @@ begin
                             dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 end;
 
-function CreateDirectory(name : pointer;sec : pointer) : longbool; stdcall;
+function CreateDirectory(name : pointer;sec : pointer) : longbool; 
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
@@ -457,7 +457,7 @@ begin
   CreateDirectory := CreateDirectoryW(buf, sec);
 end;
 
-function RemoveDirectory(name:pointer):longbool; stdcall;
+function RemoveDirectory(name:pointer):longbool; 
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
@@ -485,9 +485,9 @@ const
   EVENT_SET   =     3;
 
 function CreateEventW(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:PWideChar): THandle;
-   stdcall; external KernelDLL name 'CreateEventW';
+    cdecl; external KernelDLL name 'CreateEventW';
 
-function CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall;
+function CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; 
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
@@ -496,21 +496,21 @@ begin
 end;
 
 function EventModify(h: THandle; func: DWORD): LONGBOOL;
-    stdcall; external KernelDLL name 'EventModify';
+     cdecl; external KernelDLL name 'EventModify';
 function TlsCall(p1, p2: DWORD): DWORD;
-    stdcall; external KernelDLL name 'TlsCall';
+     cdecl; external KernelDLL name 'TlsCall';
 
-function ResetEvent(h: THandle): LONGBOOL; stdcall;
+function ResetEvent(h: THandle): LONGBOOL; 
 begin
 	ResetEvent := EventModify(h,EVENT_RESET);
 end;
 
-function SetEvent(h: THandle): LONGBOOL; stdcall;
+function SetEvent(h: THandle): LONGBOOL; 
 begin
 	SetEvent := EventModify(h,EVENT_SET);
 end;
 
-function GetCurrentProcessId:DWORD; stdcall;
+function GetCurrentProcessId:DWORD; 
 var
   p: PHandle;
 begin
@@ -518,7 +518,7 @@ begin
   GetCurrentProcessId := p^;
 end;
 
-function Win32GetCurrentThreadId:DWORD; stdcall;
+function Win32GetCurrentThreadId:DWORD; 
 var
   p: PHandle;
 begin
@@ -530,12 +530,12 @@ const
   TLS_FUNCALLOC = 0;
   TLS_FUNCFREE  = 1;
 
-function TlsAlloc : DWord; stdcall;
+function TlsAlloc : DWord; 
 begin
   TlsAlloc := TlsCall(TLS_FUNCALLOC, 0);
 end;
 
-function TlsFree(dwTlsIndex : DWord) : LongBool; stdcall;
+function TlsFree(dwTlsIndex : DWord) : LongBool; 
 begin
   TlsFree := LongBool(TlsCall(TLS_FUNCFREE, dwTlsIndex));
 end;
@@ -545,7 +545,7 @@ end;
 *****************************************************************************}
 
 function GetCommandLine : pwidechar;
-    stdcall;external KernelDLL name 'GetCommandLineW';
+    cdecl; external KernelDLL name 'GetCommandLineW';
 
 var
   ModuleName : array[0..255] of char;
@@ -802,8 +802,8 @@ end;
                          System Dependent Exit code
 *****************************************************************************}
 
-procedure PascalMain;stdcall;external name 'PASCALMAIN';
-procedure ExitThread(Exitcode : longint); external 'coredll';
+procedure PascalMain;external name 'PASCALMAIN';
+procedure ExitThread(Exitcode : longint); cdecl; external 'coredll';
 
 Procedure system_exit;
 begin
@@ -1110,13 +1110,13 @@ type
 {$ifdef CPUI386}
 {**************************** i386 Exception handling *****************************************}
 
-function GetCurrentProcess:DWORD; stdcall;
+function GetCurrentProcess:DWORD; 
 begin
   GetCurrentProcess := SH_CURPROC+SYS_HANDLE_BASE;
 end;
 
 function ReadProcessMemory(process : dword;address : pointer;dest : pointer;size : dword;bytesread : pdword) :  longbool;
- stdcall;external 'coredll' name 'ReadProcessMemory';
+   cdecl; external 'coredll' name 'ReadProcessMemory';
 
 function is_prefetch(p : pointer) : boolean;
 var
@@ -1192,10 +1192,8 @@ begin
   if IsConsole then
     writeln(stderr,'In JumpToHandleErrorFrame error=',error);
 {$endif SYSTEMEXCEPTIONDEBUG}
-  if resetFPU[exceptLevel] then asm
-    fninit
-    fldcw   fpucw
-  end;
+  if resetFPU[exceptLevel] then
+    SysResetFPU;
   { build a fake stack }
   asm
 {$ifdef REGCALL}
@@ -1466,19 +1464,19 @@ begin
 {$endif CPUI386}
 end;
 
-procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
+procedure _FPC_mainCRTStartup;public name '_mainCRTStartup';
 begin
   IsConsole:=True;
   Exe_entry;
 end;
 
-procedure _FPC_WinMainCRTStartup;stdcall;public name '_WinMainCRTStartup';
+procedure _FPC_WinMainCRTStartup;public name '_WinMainCRTStartup';
 begin
   IsConsole:=False;
   Exe_entry;
 end;
 
-procedure _FPC_DLLMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLMainCRTStartup';
+procedure _FPC_DLLMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);public name '_DLLMainCRTStartup';
 begin
   IsConsole:=true;
   sysinstance:=_hinstance;
@@ -1488,7 +1486,7 @@ begin
 end;
 
 
-procedure _FPC_DLLWinMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);stdcall;public name '_DLLWinMainCRTStartup';
+procedure _FPC_DLLWinMainCRTStartup(_hinstance,_dllreason,_dllparam:longint);public name '_DLLWinMainCRTStartup';
 begin
   IsConsole:=false;
   sysinstance:=_hinstance;
@@ -1501,8 +1499,8 @@ end;
                       OS dependend widestrings
 ****************************************************************************}
 
-function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; stdcall; external KernelDLL name 'CharUpperBuffW';
-function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; stdcall; external KernelDLL name 'CharLowerBuffW';
+function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; cdecl; external KernelDLL name 'CharUpperBuffW';
+function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; cdecl; external KernelDLL name 'CharLowerBuffW';
 
 
 procedure WinCEWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
@@ -1578,10 +1576,10 @@ procedure InitWinCEWidestrings;
                     Memory manager
 ****************************************************************************}
 
-function malloc(Size : ptrint) : Pointer; external 'coredll';
-procedure free(P : pointer); external 'coredll';
-function realloc(P : Pointer; Size : ptrint) : pointer; external 'coredll';
-function _msize(P : pointer): ptrint; external 'coredll';
+function malloc(Size : ptrint) : Pointer; cdecl; external 'coredll';
+procedure free(P : pointer); cdecl; external 'coredll';
+function realloc(P : Pointer; Size : ptrint) : pointer; cdecl; external 'coredll';
+function _msize(P : pointer): ptrint; cdecl; external 'coredll';
 
 function SysGetMem (Size : ptrint) : Pointer;
 begin

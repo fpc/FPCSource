@@ -171,11 +171,11 @@ threadvar
 
    { misc. functions }
    function GetLastError : DWORD;
-     stdcall;external KernelDLL name 'GetLastError';
+     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetLastError';
 
    { time and date functions }
    function GetTickCount : longint;
-     stdcall;external KernelDLL name 'GetTickCount';
+     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetTickCount';
 
 {$ifndef WINCE}
    { process functions }
@@ -201,27 +201,26 @@ threadvar
 
    { module functions }
    function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;
-     stdcall;external KernelDLL name 'GetModuleFileName' + ApiSuffix;
+     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetModuleFileName' + ApiSuffix;
    function GetModuleHandle(p : pointer) : longint;
-     stdcall;external KernelDLL name 'GetModuleHandle' + ApiSuffix;
-   function GetCommandFile:pchar;forward;
+     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetModuleHandle' + ApiSuffix;
 
    { file functions }
    function WriteFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;
      overlap:pointer):longint;
-     stdcall;external KernelDLL name 'WriteFile';
+     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'WriteFile';
    function ReadFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;
      overlap:pointer):longint;
-     stdcall;external KernelDLL name 'ReadFile';
+     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'ReadFile';
    function CloseHandle(h : thandle) : longint;
-     stdcall;external KernelDLL name 'CloseHandle';
+     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'CloseHandle';
    function SetFilePointer(l1,l2 : thandle;l3 : pointer;l4 : longint) : longint;
-     stdcall;external KernelDLL name 'SetFilePointer';
+     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetFilePointer';
    function GetFileSize(h:thandle;p:pointer) : longint;
-     stdcall;external KernelDLL name 'GetFileSize';
+     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetFileSize';
    function SetEndOfFile(h : thandle) : longbool;
-     stdcall;external KernelDLL name 'SetEndOfFile';
-   function FreeLibrary(hLibModule:THandle):ByteBool; stdcall; external KernelDLL name 'FreeLibrary';
+     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetEndOfFile';
+   function FreeLibrary(hLibModule:THandle):ByteBool; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'FreeLibrary';
 
 {$ifndef WINCE}
    function LoadLibrary(lpLibFileName:pchar):THandle; stdcall; external KernelDLL name 'LoadLibraryA';
@@ -248,16 +247,6 @@ threadvar
      stdcall;external KernelDLL name 'SetCurrentDirectoryA';
    function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
      stdcall;external KernelDLL name 'GetCurrentDirectoryA';
-{$else WINCE}
-   function LoadLibraryW(lpLibFileName:PWideChar):THandle; stdcall; external KernelDLL name 'LoadLibraryW';
-   function LoadLibrary(lpLibFileName:PChar):THandle;
-   var buf: array[0..MaxPathLen] of WideChar;
-   begin
-    AnsiToWideBuf(lpLibFileName, -1, buf, SizeOf(buf));
-    LoadLibrary:=LoadLibraryW(PWideChar(lpLibFileName));
-   end;
-   function GetProcAddress(hModule:THandle; lpProcName:pchar):pointer; stdcall; external KernelDLL name 'GetProcAddressA';
-{$endif WINCE}
 
    var
      SetFilePointerEx : function(hFile : THandle;
@@ -276,7 +265,7 @@ threadvar
           FreeLibrary(hinstLib);
         end;
     end;
-
+{$endif WINCE}
 
    Procedure Errno2InOutRes;
    var

@@ -5049,7 +5049,7 @@
      TMOUSEKEYS = MOUSEKEYS;
      PMOUSEKEYS = ^MOUSEKEYS;
 
-     MSGBOXCALLBACK = procedure (lpHelpInfo:LPHELPINFO);stdcall;
+     MSGBOXCALLBACK = procedure (lpHelpInfo:LPHELPINFO);
      TMSGBOXCALLBACK = MSGBOXCALLBACK;
 
      MSGBOXPARAMS = record
@@ -5993,7 +5993,7 @@
      TPROCESSINFORMATION = PROCESS_INFORMATION;
      PPROCESSINFORMATION = ^PROCESS_INFORMATION;
 
-     LPFNPSPCALLBACK = function (_para1:HWND; _para2:UINT; _para3:LPVOID):UINT;stdcall;
+     LPFNPSPCALLBACK = function (_para1:HWND; _para2:UINT; _para3:LPVOID):UINT;
      TFNPSPCALLBACK = LPFNPSPCALLBACK;
 
      PROPSHEETPAGEA = record
@@ -6136,10 +6136,10 @@
 
 
      { PropertySheet callbacks  }
-     LPFNADDPROPSHEETPAGE = function (_para1:HPROPSHEETPAGE; _para2:LPARAM):WINBOOL;stdcall;
+     LPFNADDPROPSHEETPAGE = function (_para1:HPROPSHEETPAGE; _para2:LPARAM):WINBOOL;
      TFNADDPROPSHEETPAGE = LPFNADDPROPSHEETPAGE;
 
-     LPFNADDPROPSHEETPAGES = function (_para1:LPVOID; _para2:LPFNADDPROPSHEETPAGE; _para3:LPARAM):WINBOOL;stdcall;
+     LPFNADDPROPSHEETPAGES = function (_para1:LPVOID; _para2:LPFNADDPROPSHEETPAGE; _para3:LPARAM):WINBOOL;
      TFNADDPROPSHEETPAGES = LPFNADDPROPSHEETPAGES;
 
      PROTOCOL_INFO = record
@@ -7387,17 +7387,17 @@
      TNETCONNECTINFOSTRUCT = NETCONNECTINFOSTRUCT;
      PNETCONNECTINFOSTRUCT = ^NETCONNECTINFOSTRUCT;
 
-     ENUMMETAFILEPROC = function (_para1:HDC; _para2:HANDLETABLE; _para3:METARECORD; _para4:longint; _para5:LPARAM):longint;stdcall;
+     ENUMMETAFILEPROC = function (_para1:HDC; _para2:HANDLETABLE; _para3:METARECORD; _para4:longint; _para5:LPARAM):longint;
 
-     ENHMETAFILEPROC = function (_para1:HDC; _para2:HANDLETABLE; _para3:ENHMETARECORD; _para4:longint; _para5:LPARAM):longint;stdcall;
+     ENHMETAFILEPROC = function (_para1:HDC; _para2:HANDLETABLE; _para3:ENHMETARECORD; _para4:longint; _para5:LPARAM):longint;
 
-     ENUMFONTSPROC = function (_para1:LPLOGFONT; _para2:LPTEXTMETRIC; _para3:DWORD; _para4:LPARAM):longint;stdcall;
+     ENUMFONTSPROC = function (_para1:LPLOGFONT; _para2:LPTEXTMETRIC; _para3:DWORD; _para4:LPARAM):longint;
 
-     FONTENUMPROC = function (var _para1:ENUMLOGFONT; var _para2:NEWTEXTMETRIC; _para3:longint; _para4:LPARAM):longint;stdcall;
+     FONTENUMPROC = function (var _para1:ENUMLOGFONT; var _para2:NEWTEXTMETRIC; _para3:longint; _para4:LPARAM):longint;
 
-     FONTENUMEXPROC = function (var _para1:ENUMLOGFONTEX;var _para2:NEWTEXTMETRICEX; _para3:longint; _para4:LPARAM):longint;stdcall;
+     FONTENUMEXPROC = function (var _para1:ENUMLOGFONTEX;var _para2:NEWTEXTMETRICEX; _para3:longint; _para4:LPARAM):longint;
 
-     LPOVERLAPPED_COMPLETION_ROUTINE = procedure (_para1:DWORD; _para2:DWORD; _para3:LPOVERLAPPED);stdcall;
+     LPOVERLAPPED_COMPLETION_ROUTINE = procedure (_para1:DWORD; _para2:DWORD; _para3:LPOVERLAPPED);
 
      { Structures for the extensions to OpenGL }
 
