@@ -2722,7 +2722,7 @@ const pemagic : array[0..3] of byte = (
             asmbin : '';
             asmcmd : '';
             supported_target : system_i386_wince;
-            flags : [af_outputbinary];
+            flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
           );
