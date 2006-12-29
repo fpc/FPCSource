@@ -1,3 +1,5 @@
+{ %fail }
+
 uses
   uenum2a;
 
@@ -6,5 +8,5 @@ var
 begin
   e := tone;
   inc(e);
-  writeln(e);
-end;
+  writeln(byte(e));
+end.
