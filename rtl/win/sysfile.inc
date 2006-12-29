@@ -106,6 +106,7 @@ function do_filepos(handle : thandle) : Int64;
 var
   l:longint;
 begin
+{$ifndef wince}
   if assigned(SetFilePointerEx) then
     begin
       if not(SetFilePointerEx(handle,0,@result,FILE_CURRENT)) then
@@ -115,6 +116,7 @@ begin
         end;
     end
   else
+{$endif wince}
     begin
       l:=SetFilePointer(handle,0,nil,FILE_CURRENT);
       if l=-1 then
@@ -130,6 +132,7 @@ end;
 
 procedure do_seek(handle:thandle;pos : Int64);
 begin
+{$ifndef wince}
   if assigned(SetFilePointerEx) then
     begin
       if not(SetFilePointerEx(handle,pos,nil,FILE_BEGIN)) then
@@ -139,6 +142,7 @@ begin
         end;
     end
   else
+{$endif wince}
     begin
       if SetFilePointer(handle,pos,nil,FILE_BEGIN)=-1 then
        Begin
@@ -151,6 +155,7 @@ end;
 
 function do_seekend(handle:thandle):Int64;
 begin
+{$ifndef wince}
   if assigned(SetFilePointerEx) then
     begin
       if not(SetFilePointerEx(handle,0,@result,FILE_END)) then
@@ -160,6 +165,7 @@ begin
         end;
     end
   else
+{$endif wince}
     begin
       do_seekend:=SetFilePointer(handle,0,nil,FILE_END);
       if do_seekend=-1 then
