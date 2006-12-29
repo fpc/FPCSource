@@ -95,7 +95,7 @@ type
     function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
     function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
-    function IndexOf(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
     {$warning TODO: fix TFPGList<T>.Assign(TFPGList) to work somehow}
@@ -592,7 +592,8 @@ end;
 function TFPGList.IndexOf(const Item: T): Integer;
 begin
   Result := 0;
-  while (Result < FCount) and (Items[Result] <> Item) do
+  {$warning TODO: fix inlining to work! InternalItems[Result]^}
+  while (Result < FCount) and (T(Pointer(FList+Result*sizeof(T))^) <> Item) do
     Inc(Result);
   {$warning TODO: Result := -1; does not compile }
   if Result = FCount then 
@@ -614,7 +615,9 @@ end;
 
 function TFPGList.Remove(const Item: T): Integer;
 begin
-  Result := inherited Remove(@Item);
+  Result := IndexOf(Item);
+  if Result >= 0 then
+    Delete(Result);
 end;
 
 procedure TFPGList.Sort(Compare: TCompareFunc);
