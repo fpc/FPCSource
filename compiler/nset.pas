@@ -219,6 +219,9 @@ implementation
          if right.resultdef.typ<>setdef then
            CGMessage(sym_e_set_expected);
 
+         if codegenerror then
+           exit;
+
          if (right.nodetype=typen) then
            begin
              { we need to create a setconstn }
