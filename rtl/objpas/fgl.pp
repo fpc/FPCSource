@@ -83,6 +83,7 @@ type
   generic TFPGList<T> = class(TFPSList)
   type public
     TCompareFunc = function(const Item1, Item2: T): Integer;
+    PT = ^T;
   var protected
     FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
@@ -593,7 +594,7 @@ function TFPGList.IndexOf(const Item: T): Integer;
 begin
   Result := 0;
   {$warning TODO: fix inlining to work! InternalItems[Result]^}
-  while (Result < FCount) and (T(Pointer(FList+Result*sizeof(T))^) <> Item) do
+  while (Result < FCount) and (PT(FList)[Result] <> Item) do
     Inc(Result);
   {$warning TODO: Result := -1; does not compile }
   if Result = FCount then 
