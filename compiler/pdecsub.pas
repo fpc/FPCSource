@@ -2459,7 +2459,7 @@ const
                      paracompopt:=[cpo_ignorehidden,cpo_comparedefaultvalue]
                    else
                      paracompopt:=[cpo_comparedefaultvalue];
- 
+
                    { Check calling convention }
                    if (fwpd.proccalloption<>currpd.proccalloption) then
                     begin
@@ -2586,7 +2586,7 @@ const
                    fwpd.procoptions:=fwpd.procoptions+currpd.procoptions;
 
                    { marked as local but exported from unit? }
-                   if (fwpd.procoptions*[po_global,po_kylixlocal])=[po_global,po_kylixlocal] then
+                   if (po_kylixlocal in fwpd.procoptions) and (fwpd.owner.symtabletype=globalsymtable) then
                      MessagePos(fwpd.fileinfo,type_e_cant_export_local);
 
                    if fwpd.extnumber=$ffff then
