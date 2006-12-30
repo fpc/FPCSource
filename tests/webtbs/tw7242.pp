@@ -1,4 +1,5 @@
-unit TestLibMain;
+{$mode delphi}
+unit tw7242;
 
 interface
 
