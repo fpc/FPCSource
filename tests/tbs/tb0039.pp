@@ -6,6 +6,7 @@
 
 
  {$UNDEF VP}
+ {$UNDEF WINDOWS}
 
  {$IFDEF Windows} ssss {$ENDIF}      {No Syntax Error}
 
