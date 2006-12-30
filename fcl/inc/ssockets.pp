@@ -555,7 +555,7 @@ begin
       end;
   addr.family := AF_INET;
   addr.port := ShortHostToNet(FPort);
-  addr.addr := a.s_addr; // hosttonet(A).s_addr;
+  addr.addr := hosttonet(a.s_addr); // hosttonet(A).s_addr;
 //Cardinal(A);
 
   If not Sockets.Connect(ASocket, addr, sizeof(addr)) then
