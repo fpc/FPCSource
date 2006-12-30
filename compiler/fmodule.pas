@@ -787,7 +787,11 @@ implementation
             hp:=tmodule(loaded_units.first);
             while assigned(hp) do
               begin
-                if hp.modulename^=derefmap[id].modulename^ then
+                { only check for units. The main program is also
+                  as a unit in the loaded_units list. We simply need
+                  to ignore this entry (PFV) }
+                if hp.is_unit and
+                   (hp.modulename^=derefmap[id].modulename^) then
                   break;
                 hp:=tmodule(hp.next);
               end;
