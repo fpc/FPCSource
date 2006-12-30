@@ -4,21 +4,13 @@ program dbtestframework;
   {$mode objfpc}{$H+}
 {$ENDIF}
 
-{$include settings.inc}
-
 {$APPTYPE CONSOLE}
 
 uses
   SysUtils,
-  fpcunit,testregistry,
-  testbasics, toolsunit,
-{$ifdef SQLDB_AVAILABLE}
-  testsqlfieldtypes,
-{$ENDIF}
-{$IFDEF DBF_AVAILABLE}
-  testdbbasics,
-{$ENDIF}
-  testreport;
+  fpcunit, testregistry, testreport,
+  toolsunit,
+  testbasics, testsqlfieldtypes, testdbbasics;
   
 var
   FXMLResultsWriter: TXMLResultsWriter;
