@@ -6,6 +6,9 @@
 name=cairo
 version=2.0.4
 
+[require]
+packages=x11
+
 [target]
 units=cairo
 
