@@ -1130,7 +1130,7 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl x11 fcl x11
+override REQUIRE_PACKAGES=rtl x11 fcl
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_X11=1
