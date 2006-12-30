@@ -8,23 +8,23 @@ dirs_linux=unzip zlib fftw \
            utmp bfd gdbm ncurses tcl cdrom \
            imlib gnome1 fpgtk newt uuid \
            ldap openal mad oggvorbis a52 \
-           modplug dts openssl libcurl
+           modplug dts openssl libcurl cairo
 dirs_i386_linux=unixutil
 dirs_netbsd=unzip zlib \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \
             utmp bfd gdbm ncurses fpgtk \
-            tcl imlib gnome1 openssl libcurl
+            tcl imlib gnome1 openssl libcurl cairo
 dirs_freebsd=unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm ncurses fpgtk \
-             tcl imlib gnome1 openssl libcurl
+             tcl imlib gnome1 openssl libcurl cairo
 dirs_openbsd=unzip zlib \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm ncurses fpgtk \
-             tcl imlib gnome1 openssl libcurl
+             tcl imlib gnome1 openssl libcurl cairo
 # libcurl should work on Win32 too, but I haven't tested this. Skip it for now. MVC.
 dirs_win32=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw \
              mad openal oggvorbis a52 libpng openssl
@@ -54,12 +54,12 @@ dirs_darwin= unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms libpng libgd \
              utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 \
-             univint openssl libcurl
+             univint openssl libcurl cairo
 dirs_solaris= unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms svgalib ggi libpng libgd \
              utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 \
-             openssl libcurl
+             openssl libcurl cairo
 
 [install]
 fpcpackage=y

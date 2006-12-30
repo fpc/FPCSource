@@ -2266,6 +2266,9 @@ packages/extra/bzip2/bzip2.pas svneol=native#text/plain
 packages/extra/bzip2/bzip2i386.inc svneol=native#text/plain
 packages/extra/bzip2/fpmake.pp svneol=native#text/plain
 packages/extra/bzip2/pasbzip.pas svneol=native#text/plain
+packages/extra/cairo/Makefile svneol=native#text/plain
+packages/extra/cairo/Makefile.fpc svneol=native#text/plain
+packages/extra/cairo/cairo.pp svneol=native#text/plain
 packages/extra/cdrom/Makefile svneol=native#text/plain
 packages/extra/cdrom/Makefile.fpc svneol=native#text/plain
 packages/extra/cdrom/README -text

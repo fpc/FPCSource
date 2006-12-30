@@ -1,0 +1,16 @@
+#
+#   Makefile.fpc for cairo
+#
+
+[package]
+name=cairo
+version=2.0.4
+
+[target]
+units=cairo
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
