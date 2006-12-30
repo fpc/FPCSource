@@ -92,7 +92,7 @@ implementation
         pt1.resultdef:=nil;
         if not(df_generic in genericdef.defoptions) then
           begin
-            Comment(V_Error,'Specialization is only supported for generic types');
+            Message(parser_e_special_onlygenerics);
             pt1.resultdef:=generrordef;
             { recover }
             consume(_LSHARPBRACKET);
@@ -132,6 +132,8 @@ implementation
                 pt2:=factor(false);
                 if pt2.nodetype=typen then
                   begin
+                    if df_generic in pt2.resultdef.defoptions then
+                      Message(parser_e_no_generics_as_params);
                     generictype:=ttypesym.create(sym.realname,pt2.resultdef);
                     generictypelist.add(generictype);
                   end

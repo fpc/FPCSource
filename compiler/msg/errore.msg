@@ -1105,6 +1105,11 @@ parser_w_no_lineinfo_use_switch=03226_W_Don't load LINEINFO unit manually, Use t
 parser_e_no_funcret_specified=03227_E_No function result type specified for function "$1"
 % The first time you declare a function you have to declare it completely,
 % including all parameters and the result type.
+parser_e_special_onlygenerics=03228_E_Specialization is only supported for generic types
+% Types not being generics can't be specialized
+parser_e_no_generics_as_params=03229_E_Generics can't be used as parameters when spezializing generics
+% When specializing a generic, only non-generic types can be used as parameters
+%
 #
 # Type Checking
 #
