@@ -977,9 +977,7 @@ implementation
                read_gpc_name(sc);
 
              { read variable type def }
-             ignore_equal:=true;
              read_anon_type(hdef,false);
-             ignore_equal:=false;
              for i:=0 to sc.count-1 do
                begin
                  vs:=tabstractvarsym(sc[i]);
@@ -1142,9 +1140,7 @@ implementation
              { Don't search in the recordsymtable for types }
              if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) then
                symtablestack.pop(recst);
-             ignore_equal:=true;
              read_anon_type(hdef,false);
-             ignore_equal:=false;
              if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) then
                symtablestack.push(recst);
 

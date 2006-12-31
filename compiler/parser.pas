@@ -55,10 +55,6 @@ implementation
 
     procedure initparser;
       begin
-         { ^M means a string or a char, because we don't parse a }
-         { type declaration                                      }
-         ignore_equal:=false;
-
          { we didn't parse a object or class declaration }
          { and no function header                        }
          testcurobject:=0;

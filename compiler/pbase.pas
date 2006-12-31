@@ -41,7 +41,7 @@ interface
 
        { true, if we are parsing arguments }
        in_args : boolean = false;
-       
+
        { true, if we are parsing arguments allowing named parameters }
        named_args_allowed : boolean = false;
 
@@ -58,9 +58,6 @@ interface
        { true, if only routine headers should be parsed }
        parse_only : boolean;
 
-       { true, if we should ignore an equal in const x : 1..2=2 }
-       ignore_equal : boolean;
-       
        { true, if we found a name for a named arg }
        found_arg_name : boolean;
 

@@ -196,9 +196,7 @@ implementation
                      caret, to support const s : ^string = nil }
                    block_type:=bt_type;
                    consume(_COLON);
-                   ignore_equal:=true;
                    read_anon_type(hdef,false);
-                   ignore_equal:=false;
                    block_type:=bt_const;
                    skipequal:=false;
                    { create symbol }

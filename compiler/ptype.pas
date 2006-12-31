@@ -353,12 +353,12 @@ implementation
            if try_to_consume(_SPECIALIZE) then
              block_type:=bt_specialize;
            { we can't accept a equal in type }
-           pt1:=comp_expr(not(ignore_equal));
+           pt1:=comp_expr(false);
            if (block_type<>bt_specialize) and
               try_to_consume(_POINTPOINT) then
              begin
                { get high value of range }
-               pt2:=comp_expr(not(ignore_equal));
+               pt2:=comp_expr(false);
                { make both the same type or give an error. This is not
                  done when both are integer values, because typecasting
                  between -3200..3200 will result in a signed-unsigned
