@@ -117,12 +117,12 @@ function fpc_idispatch_to_variant(const i : idispatch) : variant;compilerproc;
   end;
 
 
-procedure fpc_dispinvoke_variant(dest : pvardata;const source : tvardata; 
+procedure fpc_dispinvoke_variant(dest : pvardata;const source : tvardata;
   calldesc : pcalldesc;params : pointer); compilerproc;
   begin
   	variantmanager.dispinvoke(dest,source,calldesc,params);
   end;
-       
+
 
 { ---------------------------------------------------------------------
     Overloaded operators.
@@ -948,7 +948,7 @@ operator :=(const source : terror) dest : olevariant;{$ifdef SYSTEMINLINE}inline
   begin
     variantmanager.olevarfromint(dest,source,-sizeof(terror));
   end;
-  
+
 
 function Unassigned: Variant; // Unassigned standard constant
 begin
@@ -980,3 +980,58 @@ end;
 procedure initvariantmanager;
   begin
   end;
+
+Function Pos (c : Char; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Pos(c,ShortString(v));
+  end;
+
+
+Function Pos (s : ShortString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Pos(s,ShortString(v));
+  end;
+
+
+Function Pos (a : AnsiString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Pos(a,AnsiString(v));
+  end;
+
+
+Function Pos (w : WideString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Pos(w,WideString(v));
+  end;
+
+
+Function Pos (v : Variant; Const c : Char) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Pos(ShortString(v),c);
+  end;
+
+
+Function Pos (v : Variant; Const s : ShortString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Pos(ShortString(v),s);
+  end;
+
+
+Function Pos (v : Variant; Const a : AnsiString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Pos(AnsiString(v),a);
+  end;
+
+
+Function Pos (v : Variant; Const w : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Pos(WideString(v),w);
+  end;
+
+
+Function Pos (v1 : Variant; Const v2 : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Pos(WideString(v1),WideString(v2));
+  end;
+
+

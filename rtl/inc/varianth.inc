@@ -442,6 +442,17 @@ operator :=(const source : currency) dest : olevariant;{$ifdef SYSTEMINLINE}inli
 operator :=(const source : tdatetime) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : terror) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 
+{ silly, but how else should the compiler know what to do with pos(<string type>,<variant>)? (FK) }
+Function Pos (c : Char; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (s : ShortString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (a : AnsiString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (w : WideString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (v : Variant; Const c : Char) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (v : Variant; Const s : ShortString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (v : Variant; Const a : AnsiString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (v : Variant; Const w : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Pos (v1 : Variant; Const v2 : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+
 {**********************************************************************
                              OLEVariant Operators
  **********************************************************************}
