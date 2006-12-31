@@ -303,6 +303,12 @@ implementation
               begin
                 para.value:=ctypeconvnode.create_internal(para.value,cwidestringtype);
                 typecheckpass(para.value);
+              end
+            { force automatable boolean type }
+            else if is_boolean(para.value.resultdef) then
+              begin
+                para.value:=ctypeconvnode.create_internal(para.value,bool16type);
+                typecheckpass(para.value);
               end;
 
             if assigned(para.parametername) then
@@ -345,16 +351,24 @@ implementation
                   internalerror(200611041);
               end;
 
-            dispatchbyref:=para.value.resultdef.typ in [{stringdef}];
+            dispatchbyref:=para.value.resultdef.typ in [variantdef];
             { assign the argument/parameter to the temporary location }
 
             if para.value.nodetype<>nothingn then
-              addstatement(statements,cassignmentnode.create(
-                ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
-                  caddrnode.create(ctemprefnode.create(params)),
-                  cordconstnode.create(paramssize,ptrinttype,false)
-                )),voidpointertype),
-                ctypeconvnode.create_internal(para.value,voidpointertype)));
+              if dispatchbyref then
+                addstatement(statements,cassignmentnode.create(
+                  ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
+                    caddrnode.create(ctemprefnode.create(params)),
+                    cordconstnode.create(paramssize,ptrinttype,false)
+                  )),voidpointertype),
+                  ctypeconvnode.create_internal(caddrnode.create_internal(para.value),voidpointertype)))
+              else
+                addstatement(statements,cassignmentnode.create(
+                  ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
+                    caddrnode.create(ctemprefnode.create(params)),
+                    cordconstnode.create(paramssize,ptrinttype,false)
+                  )),voidpointertype),
+                  ctypeconvnode.create_internal(para.value,voidpointertype)));
 
             if is_ansistring(para.value.resultdef) then
               calldesc.argtypes[currargpos]:=varStrArg
