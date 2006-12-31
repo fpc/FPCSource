@@ -363,11 +363,11 @@ Var
 
 begin
    S:='';
-   If (FCPU<>'') and (FCPU<>'0') then
+   If (FCPU<>'') and (GetCPUName(FCPU)<>'All') then
      S:=S+' AND (TU_CPU_FK='+FCPU+')';
-   If (FVersion<>'') and (FVersion<>'0')  then
+   If (FVersion<>'') and (GetVersionName(FVersion)<>'All')  then
      S:=S+' AND (TU_VERSION_FK='+FVERSION+')';
-   if (FOS<>'') and (FOS<>'0') then
+   if (FOS<>'') and (GetOSName(FOS)<>'All') then
      S:=S+' AND (TU_OS_FK='+FOS+')';
    If (Round(FDate)<>0) then
      S:=S+' AND (TU_DATE>="'+FormatDateTime('YYYY/MM/DD',FDate)+'")'
