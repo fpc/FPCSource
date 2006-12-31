@@ -6,11 +6,11 @@ unit JwaNative;
 
 interface
 
-uses
- JwaWinBase, JwaWinNT, JwaWinType;
-
 {$WEAKPACKAGEUNIT}
 {$I jediapilib.inc}
+
+uses
+ JwaWinBase, JwaWinNT, JwaWinType;
 
 const
   ntdll = 'ntdll.dll';
