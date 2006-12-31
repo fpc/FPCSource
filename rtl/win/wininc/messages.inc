@@ -1728,7 +1728,20 @@ Type
 	     Unused: LPARAM;
 	     Result: LRESULT;
 	  end;
-    {$endif messagesunit}
+	  TWMEnable = packed record
+	     Msg: Cardinal;
+	     Enabled: LongBool;
+	     Unused: Longint;
+	     Result: Longint;
+	  end;
+	  TWMMouseActivate = packed record
+	     Msg: Cardinal;
+	     TopLevel: HWND;
+	     HitTestCode: Word;
+	     MouseMsg: Word;
+	     Result: Longint;
+	  end; 
+{$endif messagesunit}
 
 {$endif read_interface}
 
