@@ -19,7 +19,7 @@ unit comobj;
   interface
 
     uses
-      sysutils,activex;
+      Windows,Types,Variants,Sysutils,ActiveX;
 
     type
       EOleError = class(Exception);
@@ -110,10 +110,28 @@ unit comobj;
        DispIDs: PDispIDList; Params: Pointer; Result: PVariant);
     procedure DispatchInvokeError(Status: HRESULT; const ExceptInfo: TExcepInfo);
 
+    type
+      TCoCreateInstanceExProc = function(const clsid: TCLSID; unkOuter: IUnknown; dwClsCtx: DWORD; ServerInfo: PCoServerInfo;
+      dwCount: ULONG; rgmqResults: PMultiQIArray): HResult stdcall;
+      TCoInitializeExProc = function (pvReserved: Pointer;
+      coInit: DWORD): HResult; stdcall;
+      TCoAddRefServerProcessProc = function : ULONG; stdcall;
+      TCoReleaseServerProcessProc = function : ULONG; stdcall;
+      TCoResumeClassObjectsProc = function : HResult; stdcall;
+      TCoSuspendClassObjectsProc = function : HResult; stdcall;
+
+    const
+      CoCreateInstanceEx : TCoCreateInstanceExProc = nil;
+      CoInitializeEx : TCoInitializeExProc = nil;
+      CoAddRefServerProcess : TCoAddRefServerProcessProc = nil;
+      CoReleaseServerProcess : TCoReleaseServerProcessProc = nil;
+      CoResumeClassObjects : TCoResumeClassObjectsProc = nil;
+      CoSuspendClassObjects : TCoSuspendClassObjectsProc = nil;
+
 implementation
 
     uses
-      Windows,Types,Variants,ComConst;
+      ComConst,Ole2;
 
     constructor EOleSysError.Create(const Msg: string; aErrorCode: HRESULT; aHelpContext: Integer);
       var
@@ -155,9 +173,34 @@ implementation
 
 
    function CreateRemoteComObject(const MachineName : WideString;const ClassID : TGUID) : IUnknown;
+     var
+       flags : DWORD;
+       localhost : array[0..MAX_COMPUTERNAME_LENGTH] of WideChar;
+       server : TCoServerInfo;
+       mqi : TMultiQI;
+       size : DWORD;
      begin
-       {!!!!!!!}
-       runerror(211);
+       if not(assigned(CoCreateInstanceEx)) then
+         raise Exception.CreateRes(@SDCOMNotInstalled);
+
+       FillChar(server,sizeof(server),0);
+       server.pwszName:=PWideChar(MachineName);
+
+       FillChar(mqi,sizeof(mqi),0);
+       mqi.iid:=@IID_IUnknown;
+
+       flags:=CLSCTX_LOCAL_SERVER or CLSCTX_REMOTE_SERVER or CLSCTX_INPROC_SERVER;
+
+       { actually a remote call? }
+       size:=sizeof(localhost);
+       if (MachineName<>'') and
+          (not(GetComputerNameW(localhost,size)) or
+          (WideCompareText(localhost,MachineName)<>0)) then
+           flags:=CLSCTX_REMOTE_SERVER;
+
+       OleCheck(CoCreateInstanceEx(ClassID,nil,flags,@server,1,@mqi));
+       OleCheck(mqi.hr);
+       Result:=mqi.itf;
      end;
 
 
@@ -171,9 +214,13 @@ implementation
 
 
    function GetActiveOleObject(const ClassName : string) : IDispatch;
+     var
+     	 intf : IUnknown;
+       id : TCLSID;
      begin
-       {!!!!!!!}
-       runerror(211);
+       id:=ProgIDToClassID(ClassName);
+       OleCheck(GetActiveObject(id,nil,intf));
+       OleCheck(intf.QueryInterface(IDispatch,Result));
      end;
 
 
@@ -353,7 +400,7 @@ implementation
                 rgdispidNamedArgs:=nil
               else
                 rgdispidNamedArgs:=@DispIDs^[1];
-              cArgs:=CallDesc^.ArgCount;              
+              cArgs:=CallDesc^.ArgCount;
             end;
           InvokeKind:=CallDesc^.CallType;
           MethodID:=DispIDs^[0];
@@ -442,7 +489,7 @@ implementation
       	dispatchinterface : pointer;
       	ids : array[0..255] of TDispID;
       begin
-        fillchar(ids,sizeof(ids),sizeof(ids));
+        fillchar(ids,sizeof(ids),0);
 {$ifdef DEBUG_COMDISPATCH}
         writeln('ComObjDispatchInvoke called');
         writeln('ComObjDispatchInvoke: @CallDesc = $',hexstr(PtrInt(CallDesc),SizeOf(Pointer)*2),' CallDesc^.ArgCount = ',CallDesc^.ArgCount);
@@ -463,8 +510,20 @@ implementation
 
 const
   Initialized : boolean = false;
-
+var
+  Ole32Dll : HModule;
 initialization
+  Ole32Dll:=GetModuleHandle('ole32.dll');
+  if Ole32Dll<>0 then
+    begin
+      Pointer(CoCreateInstanceEx):=GetProcAddress(Ole32Dll,'CoCreateInstanceExProc');
+      Pointer(CoInitializeEx):=GetProcAddress(Ole32Dll,'CoInitializeExProc');
+      Pointer(CoAddRefServerProcess):=GetProcAddress(Ole32Dll,'CoAddRefServerProcessProc');
+      Pointer(CoReleaseServerProcess):=GetProcAddress(Ole32Dll,'CoReleaseServerProcessProc');
+      Pointer(CoResumeClassObjects):=GetProcAddress(Ole32Dll,'CoResumeClassObjectsProc');
+      Pointer(CoSuspendClassObjects):=GetProcAddress(Ole32Dll,'CoSuspendClassObjectsProc');
+    end;
+
   if not(IsLibrary) then
     Initialized:=Succeeded(CoInitialize(nil));
   SafeCallErrorProc:=@SafeCallErrorHandler;

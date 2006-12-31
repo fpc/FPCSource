@@ -22,6 +22,7 @@ unit comconst;
       SNoMethod = 'Method ''%s'' is not supported by automation object';
       SOleError = 'OLE error %.8x';
       SVarNotObject = 'Variant does not reference an automation object';
+      SDCOMNotInstalled = 'DCOM not installed';
 
   implementation
 

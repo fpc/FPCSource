@@ -20,7 +20,7 @@ Unit ActiveX;
 
 Interface
 
-Uses variants,Windows,types;
+Uses variants,Windows,ctypes,types;
 
 
 type
@@ -756,11 +756,15 @@ TYPE
    PMultiQI            = ^Multi_QI;
    tagMULTI_QI         = Record
                           iid: piid;                   // pass this one in
-                          itf: pointer {IUnknown};                // get these out (you must set to NULL before calling)
-                          hr : Hresult;
+                          itf: IUnknown;               // get these out (you must set to NULL before calling)
+                          hr : HResult;
                           END;
    MULTI_QI            = TagMULTI_QI;
    PMulti_QI           = PMultiQI;
+   TMultiQI						 = tagMULTI_QI;
+
+   PMultiQIArray = ^TMultiQIArray;
+   TMultiQIArray = array[0..65535] of TMultiQI;
 
 
    HContext            = Pointer;
@@ -3303,6 +3307,15 @@ type
   function  SysReAllocString(var bstr:pointer;psz: pointer): Integer; external oleaut32dll name 'SysReAllocString';
   function  SysReAllocStringLen(var bstr:pointer;psz: pointer; len:dword): Integer; external oleaut32dll name 'SysReAllocStringLen';
 
+	{ Active object registration API }
+	const
+	  ACTIVEOBJECT_STRONG = 0;
+	  ACTIVEOBJECT_WEAK = 1;
+	
+	function RegisterActiveObject(unk: IUnknown; const clsid: TCLSID; dwFlags: DWORD; out dwRegister: culong): HResult; external oleaut32dll name 'RegisterActiveObject';
+	function RevokeActiveObject(dwRegister: culong; pvReserved: Pointer) : HResult; external oleaut32dll name 'RevokeActiveObject';
+	function GetActiveObject(const clsid: TCLSID; pvReserved: Pointer; out unk: IUnknown) : HResult; external oleaut32dll name 'GetActiveObject';
+  
 implementation
 
 end.
