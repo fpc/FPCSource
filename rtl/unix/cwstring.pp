@@ -73,7 +73,7 @@ const
   __LC_CTYPE = 0;
   _NL_CTYPE_CLASS = (__LC_CTYPE shl 16);
   _NL_CTYPE_CODESET_NAME = (_NL_CTYPE_CLASS)+14;
-  CODESET = _NL_CTYPE_CODESET_NAME;
+  CODESET = 0; // _NL_CTYPE_CODESET_NAME;
 {$else freebsd}
 {$ifdef solaris}
   CODESET=49;
