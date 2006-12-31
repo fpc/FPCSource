@@ -30,6 +30,7 @@ type
   TFNThreadStartRoutine = FARPROC;
   TFNTimerAPCRoutine    = FARPROC;
   TFNFiberStartRoutine  = FARPROC;
+  TFNHookProc =  HOOKPROC;
 
   PObjectTypeList = ^TObjectTypeList;
   _OBJECT_TYPE_LIST = record
