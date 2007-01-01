@@ -4029,7 +4029,7 @@ implementation
 
     function tobjectdef.is_publishable : boolean;
       begin
-         is_publishable:=objecttype in [odt_class,odt_interfacecom,odt_interfacecorba];
+         is_publishable:=objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface];
       end;
 
 
