@@ -240,13 +240,19 @@ unit cpupara;
 
     function tx86_64paramanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
-        result:=[RS_RAX,RS_RCX,RS_RDX,RS_RSI,RS_RDI,RS_R8,RS_R9,RS_R10,RS_R11];
+        if target_info.system=system_x86_64_win64 then
+          result:=[RS_RAX,RS_RCX,RS_RDX,RS_R8,RS_R9,RS_R10,RS_R11]
+        else
+          result:=[RS_RAX,RS_RCX,RS_RDX,RS_RSI,RS_RDI,RS_R8,RS_R9,RS_R10,RS_R11];
       end;
 
 
     function tx86_64paramanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
-        result:=[RS_XMM0..RS_XMM15];
+        if target_info.system=system_x86_64_win64 then
+          result:=[RS_XMM0..RS_XMM5]
+        else
+          result:=[RS_XMM0..RS_XMM15];
       end;
 
 
