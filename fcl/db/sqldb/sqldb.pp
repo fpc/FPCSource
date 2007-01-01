@@ -850,6 +850,7 @@ begin
     (Database as tsqlconnection).AddFieldDefs(fcursor,FieldDefs);
   finally
     FLoadingFieldDefs := False;
+    FCursor.FInitFieldDef := false;
   end;
 end;
 
@@ -1018,6 +1019,8 @@ begin
     if FCursor.FStatementType in [stSelect] then
       begin
       Execute;
+      // InternalInitFieldDef is only called after a prepare. i.e. not twice if
+      // a dataset is opened - closed - opened.
       if FCursor.FInitFieldDef then InternalInitFieldDefs;
       if DefaultFields then
         begin
@@ -1041,7 +1044,9 @@ begin
               end;
             end;
           end;
-        end;
+        end
+      else
+        BindFields(True);
       if FUpdateable then
         begin
         InitialiseModifyQuery(FDeleteQry,FDeleteSQL);
