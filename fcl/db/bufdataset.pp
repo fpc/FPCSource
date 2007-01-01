@@ -216,7 +216,7 @@ end;
 
 function TBufDataset.AllocRecordBuffer: PChar;
 begin
-  result := AllocMem(FRecordsize + sizeof(TBufBookmark));
+  result := AllocMem(FRecordsize + sizeof(TBufBookmark) + CalcfieldsSize);
 // The records are initialised, or else the fields of an empty, just-opened dataset
 // are not null
   InitRecord(result);
@@ -514,6 +514,7 @@ end;
 function TBufDataset.GetCurrentBuffer: PChar;
 begin
   if State = dsFilter then Result := FFilterBuffer
+  else if state = dsCalcFields then Result := CalcBuffer
   else Result := ActiveBuffer;
 end;
 
@@ -530,37 +531,49 @@ var CurrBuff : pchar;
 
 begin
   Result := False;
+  if state = dsOldValue then
+    begin
+    if not GetRecordUpdateBuffer then
+      begin
+      // There is no old value available
+      result := false;
+      exit;
+      end;
+    currbuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer+sizeof(TBufRecLinkItem);
+    end
+  else
+    begin
+    CurrBuff := GetCurrentBuffer;
+    if not assigned(CurrBuff) then
+      begin
+      result := false;
+      exit;
+      end;
+    end;
+
   If Field.Fieldno > 0 then // If = 0, then calculated field or something similar
     begin
-    if state = dsOldValue then
-      begin
-      if not GetRecordUpdateBuffer then
-        begin
-        // There is no old value available
-        result := false;
-        exit;
-        end;
-      currbuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer+sizeof(TBufRecLinkItem);
-      end
-    else
-      begin
-      CurrBuff := GetCurrentBuffer;
-      if not assigned(CurrBuff) then
-        begin
-        result := false;
-        exit;
-        end;
-      end;
-
     if GetFieldIsnull(pbyte(CurrBuff),Field.Fieldno-1) then
       begin
       result := false;
       exit;
       end;
-
-    inc(CurrBuff,FFieldBufPositions[Field.FieldNo-1]);
-    if assigned(buffer) then Move(CurrBuff^, Buffer^, GetFieldSize(FieldDefs[Field.FieldNo-1]));
+    if assigned(buffer) then
+      begin
+      inc(CurrBuff,FFieldBufPositions[Field.FieldNo-1]);
+      Move(CurrBuff^, Buffer^, GetFieldSize(FieldDefs[Field.FieldNo-1]));
+      end;
     Result := True;
+    end
+  else
+    begin
+    Inc(CurrBuff, GetRecordSize + Field.Offset);
+    Result := Boolean(CurrBuff^);
+    if result and assigned(Buffer) then
+      begin
+      inc(CurrBuff);
+      Move(CurrBuff^, Buffer^, Field.Datasize);
+      end;
     end;
 end;
 
@@ -581,12 +594,12 @@ begin
     DatabaseErrorFmt(SNotInEditState,[Name],self);
     exit;
     end;
-//  If Field.Fieldno > 0 then // If = 0, then calculated field or something
+  if state = dsFilter then  // Set the value into the 'temporary' FLastRecBuf buffer for Locate and Lookup
+    CurrBuff := pointer(FLastRecBuf) + sizeof(TBufRecLinkItem)
+  else
+    CurrBuff := GetCurrentBuffer;
+  If Field.Fieldno > 0 then // If = 0, then calculated field or something
     begin
-    if state = dsFilter then  // Set the value into the 'temporary' FLastRecBuf buffer for Locate and Lookup
-      CurrBuff := pointer(FLastRecBuf) + sizeof(TBufRecLinkItem)
-    else
-      CurrBuff := ActiveBuffer;
     NullMask := CurrBuff;
 
     inc(CurrBuff,FFieldBufPositions[Field.FieldNo-1]);
@@ -597,10 +610,17 @@ begin
       end
     else
       SetFieldIsNull(NullMask,Field.FieldNo-1);
-      
-    if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
-      DataEvent(deFieldChange, Ptrint(Field));
+    end
+  else
+    begin
+    Inc(CurrBuff, GetRecordSize + Field.Offset);
+    Boolean(CurrBuff^) := Buffer <> nil;
+    inc(CurrBuff);
+    if assigned(Buffer) then
+      Move(Buffer^, CurrBuff^, Field.Datasize);
     end;
+  if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
+    DataEvent(deFieldChange, Ptrint(Field));
 end;
 
 procedure TBufDataset.InternalDelete;

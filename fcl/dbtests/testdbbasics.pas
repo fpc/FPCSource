@@ -17,6 +17,7 @@ type
   TTestDBBasics = class(TTestCase)
   private
     procedure TestfieldDefinition(AFieldType : TFieldType;ADatasize : integer;var ADS : TDataset; var AFld: TField);
+    procedure TestcalculatedField_OnCalcfields(DataSet: TDataSet);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -37,6 +38,7 @@ type
     procedure TestEofAfterFirst;           //bug 7211
     procedure TestBufDatasetCancelUpdates1;
     procedure TestDoubleClose;
+    procedure TestCalculatedField;
     procedure TestAssignFieldftString;
     procedure TestAssignFieldftFixedChar;
     procedure TestSelectQueryBasics;
@@ -421,6 +423,61 @@ end;
 procedure TTestDBBasics.TearDown;
 begin
   DBConnector.StopTest;
+end;
+
+procedure TTestDBBasics.TestcalculatedField_OnCalcfields(DataSet: TDataSet);
+begin
+  case dataset.fieldbyname('ID').asinteger of
+    1 : dataset.fieldbyname('CALCFLD').AsInteger := 5;
+    2 : dataset.fieldbyname('CALCFLD').AsInteger := 70000;
+    3 : dataset.fieldbyname('CALCFLD').Clear;
+    4 : dataset.fieldbyname('CALCFLD').AsInteger := 1234;
+    10 : dataset.fieldbyname('CALCFLD').Clear;
+  else
+    dataset.fieldbyname('CALCFLD').AsInteger := 1;
+  end;
+end;
+
+procedure TTestDBBasics.TestCalculatedField;
+var ds   : TDataset;
+    AFld1, AFld2, AFld3 : Tfield;
+begin
+  ds := DBConnector.GetNDataset(5);
+  with ds do
+    begin
+    AFld1 := TIntegerField.Create(ds);
+    AFld1.FieldName := 'ID';
+    AFld1.DataSet := ds;
+
+    AFld2 := TStringField.Create(ds);
+    AFld2.FieldName := 'NAME';
+    AFld2.DataSet := ds;
+
+    AFld3 := TIntegerField.Create(ds);
+    AFld3.FieldName := 'CALCFLD';
+    AFld3.DataSet := ds;
+    Afld3.FieldKind := fkCalculated;
+
+    AssertEquals(3,FieldCount);
+    ds.OnCalcFields := TestcalculatedField_OnCalcfields;
+    open;
+    AssertEquals(1,FieldByName('ID').asinteger);
+    AssertEquals(5,FieldByName('CALCFLD').asinteger);
+    next;
+    AssertEquals(70000,FieldByName('CALCFLD').asinteger);
+    next;
+    AssertEquals(true,FieldByName('CALCFLD').isnull);
+    next;
+    AssertEquals(1234,FieldByName('CALCFLD').AsInteger);
+    edit;
+    FieldByName('ID').AsInteger := 10;
+    post;
+    AssertEquals(true,FieldByName('CALCFLD').isnull);
+    close;
+    AFld1.Free;
+    AFld2.Free;
+    AFld3.Free;
+    end;
 end;
 
 procedure TTestDBBasics.TestEofAfterFirst;

@@ -176,7 +176,8 @@ end;
 Procedure TDataset.ClearCalcFields(Buffer: PChar);
 
 begin
-  //!! To be implemented
+  if FCalcFieldsSize > 0 then
+    FillByte((Buffer+RecordSize)^,FCalcFieldsSize,0);
 end;
 
 Procedure TDataset.CloseBlob(Field: TField);
