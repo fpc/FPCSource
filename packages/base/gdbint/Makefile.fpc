@@ -2,6 +2,7 @@
 #   Makefile.fpc for Free Pascal GDB Interface
 #
 
+
 [package]
 name=gdbint
 version=2.0.0
@@ -58,40 +59,50 @@ endif
 
 [rules]
 ifeq ($(FULL_SOURCE),$(FULL_TARGET))
+CAN_RUN_GDBVER=1
+endif
 
+ifeq ($(FULL_SOURCE),i386-win32)
+ifeq ($(FULL_TARGET),i386-go32v2)
+CAN_RUN_GDBVER=1
+endif
+endif
+
+
+ifdef CAN_RUN_GDBVER
 ifeq ($(GDBFOUND),1)
 # libgdb.a found
 
 $(CURRDIR)getver$(EXEEXT) : gdbver.pp
-        $(COMPILER) -o$(CURRDIR)getver$(EXEEXT) gdbver.pp
+	$(COMPILER) -o$(CURRDIR)getver$(EXEEXT) gdbver.pp
 
 ifndef GOTGDBVER
 # gdbver doesn't exists, build it first
 gdbint$(PPUEXT): $(CURRDIR)gdbver$(EXEEXT) gdbint.pp
-        $(MAKE) gdbint$(PPUEXT) GOTGDBVER=1
+	$(MAKE) gdbint$(PPUEXT) GOTGDBVER=1
 else
 # gdbver exists
 GDBVER:=GDB_V$(strip $(shell $(CURRDIR)gdbver$(EXEEXT) -n))
 gdbint$(PPUEXT): gdbint.pp
-        @$(ECHO) Using GDB $(GDBVER)
-        $(COMPILER) -d$(GDBVER) gdbint.pp
-        $(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
+	@$(ECHO) Using GDB $(GDBVER)
+	$(COMPILER) -d$(GDBVER) gdbint.pp
+	$(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
 endif
 
 else
 # libgdb.a not found, default to libgdb v5
 GDBVER=GDB_V6
 gdbint$(PPUEXT): gdbint.pp
-        @$(ECHO) libgdb.a not found, using default GDB $(GDBVER)
-        $(COMPILER) -d$(GDBVER) gdbint.pp
+	@$(ECHO) libgdb.a not found, using default GDB $(GDBVER)
+	$(COMPILER) -d$(GDBVER) gdbint.pp
 endif
 
 else
 # Different OS_TARGET, default to libgdb v5
 GDBVER=GDB_V5
 gdbint$(PPUEXT): gdbint.pp
-        @$(ECHO) Different target os or cpu, using default GDB $(GDBVER)
-        $(COMPILER) -d$(GDBVER) gdbint.pp
+	@$(ECHO) Different target os or cpu, using default GDB $(GDBVER)
+	$(COMPILER) -d$(GDBVER) gdbint.pp
 endif
 
 gdbcon$(PPUEXT): gdbcon.pp gdbint$(PPUEXT)
@@ -108,15 +119,15 @@ ifdef $(COMPILEDBGCOM)
 # on the fact that all files are opened via C lib calls
 # which is wrong for FPC !!
 $(DBGCOM): ../v4.16/dbgcom.c
-        gcc -c -DFPC -Dother_sel -gstabs -o dbgcom.o -I../v4.16 ../v4.16/dbgcom.c
+	gcc -c -DFPC -Dother_sel -gstabs -o dbgcom.o -I../v4.16 ../v4.16/dbgcom.c
 else
 $(DBGCOM):
 endif
 
 simple: $(DBGCOM)
-        -rm gdbint.ppu
-        ppc386 -dUSE_LIBGDB gdbint
-        ppc386 testgdb
+	-rm gdbint.ppu
+	ppc386 -dUSE_LIBGDB gdbint
+	ppc386 testgdb
 
 testgdb$(EXEEXT): testgdb.pp gdbint$(PPUEXT) gdbcon$(PPUEXT) $(DBGCOM)
 
@@ -126,5 +137,5 @@ testgdb$(EXEEXT): testgdb.pp gdbint$(PPUEXT) gdbcon$(PPUEXT) $(DBGCOM)
 test: examples
 
 clean: fpc_clean
-        $(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
+	$(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
 
