@@ -855,7 +855,10 @@ const
 {$i dynarrh.inc}
 {$endif FPC_HAS_FEATURE_DYNARRAYS}
 
+{ documenting compiler proc. is useless, they shouldn't be used by the user anyways }
+{$ifndef fpdocsystem}
 {$i compproc.inc}
+{$endif fpdocsystem}
 
 {*****************************************************************************
                                Heap
