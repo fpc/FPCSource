@@ -922,7 +922,7 @@ end;
 function TBufDataset.GetRecordSize : Word;
 
 begin
-  result := FRecordSize;
+  result := FRecordSize + sizeof(TBufBookmark);
 end;
 
 function TBufDataset.GetChangeCount: integer;
