@@ -725,6 +725,20 @@ end;
 
 {$endif CPU64}
 
+const
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  valmaxexpnorm=4932;
+{$else}
+{$ifdef FPC_HAS_TYPE_DOUBLE}
+  valmaxexpnorm=308;
+{$else}
+{$ifdef FPC_HAS_TYPE_SINGLE}
+  valmaxexpnorm=38;
+{$else}
+{$error Unknown floating point precision }
+{$endif}
+{$endif}
+{$endif}
 
 Function fpc_Val_Real_ShortStr(const s : shortstring; out Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR']; compilerproc;
 var
@@ -802,29 +816,40 @@ fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
            inc(code);
         end;
    end;
+{ evaluate sign }
+{ (before exponent, because the exponent may turn it into a denormal) }
+  fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*sign;
+
 { Calculate Exponent }
-{
-  if esign>0 then
-    for i:=1 to exponent do
-      fpc_Val_Real_ShortStr:=Val_Real_ShortStr*10
-    else
-      for i:=1 to exponent do
-        fpc_Val_Real_ShortStr:=Val_Real_ShortStr/10; }
   hd:=1.0;
+  { the magnitude range maximum (normal) is lower in absolute value than the }
+  { the magnitude range minimum (denormal). E.g. an extended value can go    }
+  { up to 1E4932, but "down" to 1E-4951. So make sure that we don't try to   }
+  { calculate 1E4951 as factor, since that would overflow and result in 0.   }
+  if (exponent>valmaxexpnorm-2) then
+    begin
+      for i:=1 to valmaxexpnorm-2 do
+        hd:=hd*10.0;
+      if esign>0 then
+        fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*hd
+      else
+        fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
+      dec(exponent,valmaxexpnorm-2);
+      hd:=1.0;
+    end;
   for i:=1 to exponent do
     hd:=hd*10.0;
   if esign>0 then
     fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*hd
   else
     fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
+
 { Not all characters are read ? }
   if length(s)>=code then
    begin
      fpc_Val_Real_ShortStr:=0.0;
      exit;
    end;
-{ evaluate sign }
-  fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*sign;
 { success ! }
   code:=0;
 end;
