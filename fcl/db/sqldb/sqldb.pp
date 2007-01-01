@@ -1209,7 +1209,7 @@ Procedure TSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
     sql_values := '';
     for x := 0 to Fields.Count -1 do
       begin
-      if not fields[x].IsNull then
+      if (not fields[x].IsNull) and (pfInUpdate in Fields[x].ProviderFlags) then
         begin
         sql_fields := sql_fields + fields[x].FieldName + ',';
         sql_values := sql_values + ':' + fields[x].FieldName + ',';

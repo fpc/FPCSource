@@ -27,8 +27,7 @@ type
     procedure RunTest; override;
   published
   
-
-
+    procedure TestpfInUpdateFlag; // bug 7565
     procedure TestInt;
     procedure TestScript;
 
@@ -58,7 +57,7 @@ type
 
 implementation
 
-uses sqldbtoolsunit,toolsunit, variants, sqldb;
+uses sqldbtoolsunit,toolsunit, variants, sqldb, bufdataset;
 
 const
   testFloatValuesCount = 21;
@@ -113,6 +112,44 @@ const
     '1900-01-01'
   );
 
+
+procedure TTestFieldTypes.TestpfInUpdateFlag;
+var ds   : TBufDataset;
+    AFld1, AFld2, AFld3 : Tfield;
+begin
+  ds := (DBConnector.GetNDataset(True,5) as TBufDataset);
+  with ds do
+    begin
+    AFld1 := TIntegerField.Create(ds);
+    AFld1.FieldName := 'ID';
+    AFld1.DataSet := ds;
+    AFld1.ProviderFlags := [pfInKey];
+
+    AFld2 := TStringField.Create(ds);
+    AFld2.FieldName := 'NAME';
+    AFld2.DataSet := ds;
+
+    AFld3 := TIntegerField.Create(ds);
+    AFld3.FieldName := 'CALCFLD';
+    AFld3.DataSet := ds;
+    Afld3.FieldKind := fkCalculated;
+    AFld3.ProviderFlags := [];
+
+    Open;
+    Edit;
+    FieldByName('ID').AsInteger := 254;
+    Post;
+    ApplyUpdates;
+    Append;
+    FieldByName('ID').AsInteger := 255;
+    Post;
+    ApplyUpdates;
+    Close;
+    AFld1.Free;
+    AFld2.Free;
+    AFld3.Free;
+    end;
+end;
 
 procedure TTestFieldTypes.TestScript;
 
