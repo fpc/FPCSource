@@ -2321,6 +2321,7 @@ implementation
 
    function tai_cpu_abstract.Pass1(objdata:TObjData):longint;
       begin
+        result:=0;
       end;
 
 
