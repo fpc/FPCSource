@@ -1047,7 +1047,7 @@ implementation
          bitmask := not(((aword(1) shl stopbit)-1) xor ((aword(1) shl sreg.startbit)-1))
        else
          bitmask := (aword(1) shl sreg.startbit) - 1;
-       if (((a shl sreg.startbit) and not bitmask) <> not bitmask) then
+       if (((aword(a) shl sreg.startbit) and not bitmask) <> not bitmask) then
          a_op_const_reg(list,OP_AND,sreg.subsetregsize,aint(bitmask),sreg.subsetreg);
        a_op_const_reg(list,OP_OR,sreg.subsetregsize,aint((aword(a) shl sreg.startbit) and not(bitmask)),sreg.subsetreg);
     end;
@@ -1665,8 +1665,9 @@ implementation
       begin
         slopt := SL_REGNOSRCMASK;
         if (
-            (a = (aword(1) shl sref.bitlen) -1) or
             { broken x86 "x shl regbitsize = x" }
+            ((sref.bitlen <> AIntBits) and
+             (aword(a) = (aword(1) shl sref.bitlen) -1)) or
             ((sref.bitlen = AIntBits) and
              (a = -1))
            ) then
