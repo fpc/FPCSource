@@ -567,7 +567,10 @@ begin
              sIdent:=Trim(Copy(sLine, 1,  j - 1));
              sValue:=Trim(Copy(sLine, j + 1, Length(sLine) - j));
              J:=Length(sValue);
-             If (J>0) and (sValue[1]='"') and (sValue[J]='"') then
+             // Joost, 2-jan-2007: The check (J>1) is there for the case that
+             // the value consist of a single double-quote character. (see
+             // mantis bug 6555)
+             If (J>1) and (sValue[1]='"') and (sValue[J]='"') then
                sValue:=Copy(sValue,2,J-2);
            end;
         end;
