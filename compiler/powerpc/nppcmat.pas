@@ -80,7 +80,7 @@ begin
     assert(d > 0);
     
     magic_add := false;
-    nc := - 1 - (-d) mod d;
+    nc := dword(- 1) - dword(-d) mod d;
     p := 31; { initialize p }
     q1 := $80000000 div nc; { initialize q1 = 2p/nc }
     r1 := $80000000 - q1*nc; { initialize r1 = rem(2p,nc) }
