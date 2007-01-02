@@ -8,6 +8,7 @@ compiler/Makefile.fpc svneol=native#text/plain
 compiler/README -text
 compiler/aasmbase.pas svneol=native#text/plain
 compiler/aasmdata.pas svneol=native#text/plain
+compiler/aasmsym.pas svneol=native#text/plain
 compiler/aasmtai.pas svneol=native#text/plain
 compiler/aggas.pas svneol=native#text/plain
 compiler/alpha/aasmcpu.pas svneol=native#text/plain

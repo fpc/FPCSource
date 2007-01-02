@@ -27,7 +27,7 @@ interface
 
 uses
   globtype,verbose,
-  aasmbase,aasmtai,aasmdata,
+  aasmbase,aasmtai,aasmdata,aasmsym,
   cpubase,cgbase,cgutils;
 
     const
@@ -38,7 +38,7 @@ uses
 
 
     type
-      taicpu = class(tai_cpu_abstract)
+      taicpu = class(tai_cpu_abstract_sym)
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -80,7 +80,6 @@ uses
          constructor op_sym_ofs_ref(op : tasmop;_op1 : tasmsymbol;_op1ofs:aint;const _op2 : treference);
 
          procedure loadbool(opidx:aint;_b:boolean);
-
 
          function is_same_reg_move(regtype: Tregistertype):boolean; override;
 

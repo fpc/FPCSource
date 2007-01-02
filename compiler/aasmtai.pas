@@ -557,8 +557,8 @@ interface
         }
         tai_cpu_abstract = class(tailineinfo)
         protected
-           procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);virtual;abstract;
-           procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);virtual;abstract;
+           procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);virtual;
+           procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);virtual;
            procedure ppubuildderefimploper(var o:toper);virtual;abstract;
            procedure ppuderefoper(var o:toper);virtual;abstract;
         public
@@ -599,8 +599,8 @@ interface
            function spilling_get_operation_type(opnr: longint): topertype;virtual;
            function spilling_get_operation_type_ref(opnr: longint; reg: tregister): topertype;virtual;
 
-           function  Pass1(objdata:TObjData):longint;virtual;abstract;
-           procedure Pass2(objdata:TObjData);virtual;abstract;
+           function  Pass1(objdata:TObjData):longint;virtual;
+           procedure Pass2(objdata:TObjData);virtual;
 
            procedure resetpass1; virtual;
            procedure resetpass2; virtual;
@@ -2318,6 +2318,95 @@ implementation
       begin
       end;
 
+
+   function tai_cpu_abstract.Pass1(objdata:TObjData):longint;
+      begin
+      end;
+
+
+    procedure tai_cpu_abstract.Pass2(objdata:TObjData);
+      begin
+      end;
+
+
+    procedure tai_cpu_abstract.ppuloadoper(ppufile:tcompilerppufile;var o:toper);
+      begin
+        o.typ:=toptype(ppufile.getbyte);
+        o.ot:=ppufile.getlongint;
+        case o.typ of
+          top_reg :
+            ppufile.getdata(o.reg,sizeof(Tregister));
+          top_ref :
+            begin
+              new(o.ref);
+{$ifdef x86}
+              ppufile.getdata(o.ref^.segment,sizeof(Tregister));
+{$endif x86}
+              ppufile.getdata(o.ref^.base,sizeof(Tregister));
+              ppufile.getdata(o.ref^.index,sizeof(Tregister));
+              ppufile.getdata(o.ref^.refaddr,sizeof(o.ref^.refaddr));;
+              o.ref^.scalefactor:=ppufile.getbyte;
+              o.ref^.offset:=ppufile.getaint;
+              o.ref^.symbol:=ppufile.getasmsymbol;
+              o.ref^.relsymbol:=ppufile.getasmsymbol;
+            end;
+          top_const :
+            o.val:=ppufile.getaint;
+          top_local :
+            begin
+              new(o.localoper);
+              with o.localoper^ do
+                begin
+                  ppufile.getderef(localsymderef);
+                  localsymofs:=ppufile.getaint;
+                  localindexreg:=tregister(ppufile.getlongint);
+                  localscale:=ppufile.getbyte;
+                  localgetoffset:=(ppufile.getbyte<>0);
+                end;
+            end;
+          else
+            internalerror(2007010210);
+        end;
+      end;
+
+
+    procedure tai_cpu_abstract.ppuwriteoper(ppufile:tcompilerppufile;const o:toper);
+      begin
+        ppufile.putbyte(byte(o.typ));
+        ppufile.putlongint(o.ot);
+        case o.typ of
+          top_reg :
+            ppufile.putdata(o.reg,sizeof(Tregister));
+          top_ref :
+            begin
+{$ifdef x86}
+              ppufile.putdata(o.ref^.segment,sizeof(Tregister));
+{$endif x86}
+              ppufile.putdata(o.ref^.base,sizeof(Tregister));
+              ppufile.putdata(o.ref^.index,sizeof(Tregister));
+              ppufile.putdata(o.ref^.refaddr,sizeof(o.ref^.refaddr));
+              ppufile.putbyte(o.ref^.scalefactor);
+              ppufile.putaint(o.ref^.offset);
+              ppufile.putasmsymbol(o.ref^.symbol);
+              ppufile.putasmsymbol(o.ref^.relsymbol);
+            end;
+          top_const :
+            ppufile.putaint(o.val);
+          top_local :
+            begin
+              with o.localoper^ do
+                begin
+                  ppufile.putderef(localsymderef);
+                  ppufile.putaint(localsymofs);
+                  ppufile.putlongint(longint(localindexreg));
+                  ppufile.putbyte(localscale);
+                  ppufile.putbyte(byte(localgetoffset));
+                end;
+            end;
+          else
+            internalerror(2007010211);
+        end;
+      end;
 
 {****************************************************************************
                               tai_align_abstract

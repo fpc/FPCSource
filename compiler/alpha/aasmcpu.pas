@@ -30,7 +30,7 @@ unit aasmcpu;
 
     uses
        aasmbase,globals,verbose,
-       cpubase,aasmtai,aasmdata;
+       cpubase,aasmtai,aasmdata,aasmsym;
 
     type
       tai_frame = class(tai)
@@ -45,7 +45,7 @@ unit aasmcpu;
         end;
 
 
-      taicpu = class(taicpu_abstract)
+      taicpu = class(tai_cpu_abstract_sym)
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);

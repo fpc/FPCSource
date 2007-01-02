@@ -34,7 +34,7 @@ interface
       cpubase,
       cgbase,cgutils,
       symtype,
-      aasmbase,aasmtai,aasmdata,
+      aasmbase,aasmtai,aasmdata,aasmsym,
       ogbase;
 
     const
@@ -192,7 +192,7 @@ interface
          function calculatefillbuf(var buf : tfillbuffer):pchar;override;
       end;
 
-      taicpu = class(tai_cpu_abstract)
+      taicpu = class(tai_cpu_abstract_sym)
          opsize    : topsize;
          constructor op_none(op : tasmop);
          constructor op_none(op : tasmop;_size : topsize);
@@ -243,11 +243,6 @@ interface
          function is_same_reg_move(regtype: Tregistertype):boolean;override;
          { register spilling code }
          function spilling_get_operation_type(opnr: longint): topertype;override;
-      protected
-         procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
-         procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);override;
-         procedure ppubuildderefimploper(var o:toper);override;
-         procedure ppuderefoper(var o:toper);override;
       private
          { next fields are filled in pass1, so pass2 is faster }
          insentry  : PInsEntry;
@@ -830,97 +825,6 @@ implementation
            Swapoperands;
            FOperandOrder:=order;
          end;
-      end;
-
-
-    procedure taicpu.ppuloadoper(ppufile:tcompilerppufile;var o:toper);
-      begin
-        o.typ:=toptype(ppufile.getbyte);
-        o.ot:=ppufile.getlongint;
-        case o.typ of
-          top_reg :
-            ppufile.getdata(o.reg,sizeof(Tregister));
-          top_ref :
-            begin
-              new(o.ref);
-              ppufile.getdata(o.ref^.segment,sizeof(Tregister));
-              ppufile.getdata(o.ref^.base,sizeof(Tregister));
-              ppufile.getdata(o.ref^.index,sizeof(Tregister));
-              o.ref^.scalefactor:=ppufile.getbyte;
-              o.ref^.offset:=ppufile.getaint;
-              o.ref^.symbol:=ppufile.getasmsymbol;
-              o.ref^.relsymbol:=ppufile.getasmsymbol;
-            end;
-          top_const :
-            o.val:=ppufile.getaint;
-          top_local :
-            begin
-              new(o.localoper);
-              with o.localoper^ do
-                begin
-                  ppufile.getderef(localsymderef);
-                  localsymofs:=ppufile.getaint;
-                  localindexreg:=tregister(ppufile.getlongint);
-                  localscale:=ppufile.getbyte;
-                  localgetoffset:=(ppufile.getbyte<>0);
-                end;
-            end;
-        end;
-      end;
-
-
-    procedure taicpu.ppuwriteoper(ppufile:tcompilerppufile;const o:toper);
-      begin
-        ppufile.putbyte(byte(o.typ));
-        ppufile.putlongint(o.ot);
-        case o.typ of
-          top_reg :
-            ppufile.putdata(o.reg,sizeof(Tregister));
-          top_ref :
-            begin
-              ppufile.putdata(o.ref^.segment,sizeof(Tregister));
-              ppufile.putdata(o.ref^.base,sizeof(Tregister));
-              ppufile.putdata(o.ref^.index,sizeof(Tregister));
-              ppufile.putbyte(o.ref^.scalefactor);
-              ppufile.putaint(o.ref^.offset);
-              ppufile.putasmsymbol(o.ref^.symbol);
-              ppufile.putasmsymbol(o.ref^.relsymbol);
-            end;
-          top_const :
-            ppufile.putaint(o.val);
-          top_local :
-            begin
-              with o.localoper^ do
-                begin
-                  ppufile.putderef(localsymderef);
-                  ppufile.putaint(localsymofs);
-                  ppufile.putlongint(longint(localindexreg));
-                  ppufile.putbyte(localscale);
-                  ppufile.putbyte(byte(localgetoffset));
-                end;
-            end;
-        end;
-      end;
-
-
-    procedure taicpu.ppubuildderefimploper(var o:toper);
-      begin
-        case o.typ of
-          top_local :
-            o.localoper^.localsymderef.build(tlocalvarsym(o.localoper^.localsym));
-        end;
-      end;
-
-
-    procedure taicpu.ppuderefoper(var o:toper);
-      begin
-        case o.typ of
-          top_ref :
-            begin
-            end;
-          top_local :
-            o.localoper^.localsym:=tlocalvarsym(o.localoper^.localsymderef.resolve);
-        end;
       end;
 
 
