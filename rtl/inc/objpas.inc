@@ -13,6 +13,20 @@
 
  **********************************************************************}
 
+    procedure DoDispCallByIDError(res : Pointer; const disp : IDispatch;desc : PDispDesc; params : Pointer);
+      begin
+        handleerrorframe(RuntimeErrorExitCodes[reVarDispatch],get_frame);
+      end;
+
+
+    procedure fpc_dispatch_by_id(Result: Pointer; const Dispatch: IDispatch;
+      DispDesc: Pointer; Params: Pointer); compilerproc;
+      type
+        TDispProc = procedure(res : Pointer; const disp : IDispatch;desc : PDispDesc; params : Pointer);
+      begin
+        TDispProc(DispCallByIDProc)(Result,Dispatch,DispDesc,Params);
+      end;
+
 {****************************************************************************
                   Internal Routines called from the Compiler
 ****************************************************************************}

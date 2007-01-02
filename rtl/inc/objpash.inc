@@ -330,3 +330,5 @@
            vtQWord      : (VQWord: PQWord);
        end;
 
+  var
+    DispCallByIDProc : pointer;

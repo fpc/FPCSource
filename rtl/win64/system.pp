@@ -1167,4 +1167,5 @@ begin
   initvariantmanager;
   initwidestringmanager;
   InitWin32Widestrings;
+  DispCallByIDProc:=@DoDispCallByIDError;
 end.

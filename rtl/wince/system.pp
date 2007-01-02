@@ -1807,9 +1807,8 @@ initialization
   initvariantmanager;
   initwidestringmanager;
   InitWinCEWidestrings
-
-finalization
-  { Cleanup }
-  SysCleanup;
+  DispCallByIDProc:=@DoDispCallByIDError;
   
+finalization
+  SysCleanup;
 end.
