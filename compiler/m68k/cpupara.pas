@@ -303,6 +303,7 @@ unit cpupara;
             if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
                is_array_of_const(paradef) then
               begin
+                writeln('loc register');
                 paraloc:=hp.paraloc[side].add_location;
                 { hack: the paraloc must be valid, but is not actually used }
                 paraloc^.loc:=LOC_REGISTER;
@@ -316,6 +317,7 @@ unit cpupara;
                is_open_array(paradef) or
                is_array_of_const(paradef) then
               begin
+                writeln('loc register');
                 paradef:=voidpointertype;
                 loc:=LOC_REGISTER;
                 paracgsize := OS_ADDR;
@@ -337,6 +339,7 @@ unit cpupara;
                     paralen := tcgsize2size[OS_ADDR];
                   end;
               end;
+              
             hp.paraloc[side].alignment:=std_param_align;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].intsize:=paralen;
@@ -384,7 +387,7 @@ unit cpupara;
                 else { LOC_REFERENCE }
 }
                   begin
-//		    writeln('loc reference');
+		    writeln('loc reference');
                     paraloc^.loc:=LOC_REFERENCE;
                     paraloc^.size:=int_cgsize(paralen);
                     if (side = callerside) then

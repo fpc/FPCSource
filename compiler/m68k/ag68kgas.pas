@@ -299,6 +299,9 @@ interface
          s:=gas_op2str[op]+cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize]
         else
          s:=gas_op2str[op]+gas_opsize2str[taicpu(hp).opsize];
+        if op = A_FMOVE then begin
+          writeln('fmove! opsize:',dword(taicpu(hp).opsize));
+        end;
         getopcodestring:=s;
       end;
 

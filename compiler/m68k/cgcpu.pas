@@ -38,9 +38,18 @@ unit cgcpu;
       tcg68k = class(tcg)
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
+        
+        procedure a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
+        procedure a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);override;
+        procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
+        procedure a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
+        
         procedure a_call_name(list : TAsmList;const s : string);override;
         procedure a_call_reg(list : TAsmList;reg : tregister);override;
+        
         procedure a_load_const_reg(list : TAsmList;size : tcgsize;a : aint;register : tregister);override;
+        procedure a_load_const_ref(list : TAsmList; tosize: tcgsize; a : aint;const ref : treference);override;
+        
         procedure a_load_reg_ref(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);override;
         procedure a_load_reg_reg(list : TAsmList;fromsize,tosize : tcgsize;reg1,reg2 : tregister);override;
         procedure a_load_ref_reg(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);override;
@@ -48,12 +57,16 @@ unit cgcpu;
         procedure a_loadfpu_reg_reg(list: TAsmList; size: tcgsize; reg1, reg2: tregister); override;
         procedure a_loadfpu_ref_reg(list: TAsmList; size: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; size: tcgsize; reg: tregister; const ref: treference); override;
+        
         procedure a_loadmm_reg_reg(list: TAsmList;fromsize,tosize : tcgsize; reg1, reg2: tregister;shuffle : pmmshuffle); override;
         procedure a_loadmm_ref_reg(list: TAsmList;fromsize,tosize : tcgsize; const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
         procedure a_loadmm_reg_ref(list: TAsmList;fromsize,tosize : tcgsize; reg: tregister; const ref: treference;shuffle : pmmshuffle); override;
         procedure a_parammm_reg(list: TAsmList; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle); override;
+        
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tcgsize; a: aint; reg: TRegister); override;
+        procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: aint; const ref: TReference); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister); override;
+                
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
           l : tasmlabel);override;
         procedure a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
@@ -180,6 +193,17 @@ unit cgcpu;
 {****************************************************************************}
 {                               TCG68K                                       }
 {****************************************************************************}
+
+
+    function use_push(const cgpara:tcgpara):boolean;
+      begin
+        result:=(not use_fixed_stack) and
+                assigned(cgpara.location) and
+                (cgpara.location^.loc=LOC_REFERENCE) and
+                (cgpara.location^.reference.index=NR_STACK_POINTER_REG);
+      end;
+
+
     procedure tcg68k.init_register_allocators;
       begin
         inherited init_register_allocators;
@@ -202,6 +226,166 @@ unit cgcpu;
         rg[R_ADDRESSREGISTER].free;
         inherited done_register_allocators;
       end;
+
+
+    procedure tcg68k.a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
+      var
+        pushsize : tcgsize;
+      begin
+        writeln('a_param_reg');
+      {
+        check_register_size(size,r);
+        if use_push(cgpara) then
+          begin
+            cgpara.check_simple_location;
+            if tcgsize2size[cgpara.location^.size]>cgpara.alignment then
+              pushsize:=cgpara.location^.size
+            else
+              pushsize:=int_cgsize(cgpara.alignment);
+            list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
+          end
+        else
+        }
+//          inherited a_param_reg(list,size,r,cgpara);
+      end;
+
+
+    procedure tcg68k.a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);
+      var
+        pushsize : tcgsize;
+        ref : treference;
+      begin
+        writeln('a_param_const');
+        
+        { remove "not" to trigger the location bug (KB) }
+        if not use_push(cgpara) then
+          begin
+            cgpara.check_simple_location;
+            if tcgsize2size[cgpara.location^.size]>cgpara.alignment then
+              pushsize:=cgpara.location^.size
+            else
+              pushsize:=int_cgsize(cgpara.alignment);
+              
+            reference_reset_base(ref, NR_STACK_POINTER_REG, 0);
+            ref.direction := dir_dec;
+            list.concat(taicpu.op_const_ref(A_MOVE,tcgsize2opsize[pushsize],a,ref));
+          end
+        else
+          inherited a_param_const(list,size,a,cgpara);
+      end;
+
+
+    procedure tcg68k.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);
+(*
+        procedure pushdata(paraloc:pcgparalocation;ofs:aint);
+        var
+          pushsize : tcgsize;
+          tmpreg   : tregister;
+          href     : treference;
+        begin
+          if not assigned(paraloc) then
+            exit;
+          if (paraloc^.loc<>LOC_REFERENCE) or
+             (paraloc^.reference.index<>NR_STACK_POINTER_REG) or
+             (tcgsize2size[paraloc^.size]>sizeof(aint)) then
+            internalerror(200501162);
+          { Pushes are needed in reverse order, add the size of the
+            current location to the offset where to load from. This
+            prevents wrong calculations for the last location when
+            the size is not a power of 2 }
+          if assigned(paraloc^.next) then
+            pushdata(paraloc^.next,ofs+tcgsize2size[paraloc^.size]);
+          { Push the data starting at ofs }
+          href:=r;
+          inc(href.offset,ofs);
+          if tcgsize2size[paraloc^.size]>cgpara.alignment then
+            pushsize:=paraloc^.size
+          else
+            pushsize:=int_cgsize(cgpara.alignment);
+          if tcgsize2size[paraloc^.size]<cgpara.alignment then
+            begin
+              tmpreg:=getintregister(list,pushsize);
+              a_load_ref_reg(list,paraloc^.size,pushsize,href,tmpreg);
+              list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],tmpreg));
+            end
+          else
+            list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[pushsize],href));
+        end;
+*)
+      var
+        len : aint;
+        href : treference;
+      begin
+        writeln('a_param_ref');
+      {
+        { cgpara.size=OS_NO requires a copy on the stack }
+        if use_push(cgpara) then
+          begin
+            { Record copy? }
+            if (cgpara.size in [OS_NO,OS_F64]) or (size=OS_NO) then
+              begin
+                cgpara.check_simple_location;
+                len:=align(cgpara.intsize,cgpara.alignment);
+                g_stackpointer_alloc(list,len);
+                reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                g_concatcopy(list,r,href,len);
+              end
+            else
+              begin
+                if tcgsize2size[cgpara.size]<>tcgsize2size[size] then
+                  internalerror(200501161);
+                { We need to push the data in reverse order,
+                  therefor we use a recursive algorithm }
+                pushdata(cgpara.location,0);
+              end
+          end
+        else
+        }
+          inherited a_param_ref(list,size,r,cgpara);
+      end;
+
+
+    procedure tcg68k.a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : tcgpara);
+      var
+        tmpreg : tregister;
+        opsize : topsize;
+      begin
+        writeln('a_paramaddr_ref');
+        with r do
+          begin
+          {
+            if (segment<>NR_NO) then
+              cgmessage(cg_e_cant_use_far_pointer_there);
+            if use_push(cgpara) then
+              begin
+                cgpara.check_simple_location;
+                opsize:=tcgsize2opsize[OS_ADDR];
+                if (segment=NR_NO) and (base=NR_NO) and (index=NR_NO) then
+                  begin
+                    if assigned(symbol) then
+                      list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset))
+                    else
+                      list.concat(Taicpu.Op_const(A_PUSH,opsize,offset));
+                  end
+                else if (segment=NR_NO) and (base=NR_NO) and (index<>NR_NO) and
+                        (offset=0) and (scalefactor=0) and (symbol=nil) then
+                  list.concat(Taicpu.Op_reg(A_PUSH,opsize,index))
+                else if (segment=NR_NO) and (base<>NR_NO) and (index=NR_NO) and
+                        (offset=0) and (symbol=nil) then
+                  list.concat(Taicpu.Op_reg(A_PUSH,opsize,base))
+                else
+                  begin
+                    tmpreg:=getaddressregister(list);
+                    a_loadaddr_ref_reg(list,r,tmpreg);
+                    list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
+                  end;
+              end
+            else
+            }
+//              inherited a_paramaddr_ref(list,r,cgpara);
+          end;
+      end;
+
 
 
     function tcg68k.fixref(list: TAsmList; var ref: treference): boolean;
@@ -263,6 +447,8 @@ unit cgcpu;
 
     procedure tcg68k.a_load_const_reg(list : TAsmList;size : tcgsize;a : aint;register : tregister);
       begin
+        writeln('a_load_const_reg');
+        
         if getregtype(register)=R_ADDRESSREGISTER then
          begin
            list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),register))
@@ -278,6 +464,13 @@ unit cgcpu;
               list.concat(taicpu.op_const_reg(A_MOVE,S_L,longint(a),register))
          end;
       end;
+      
+    procedure tcg68k.a_load_const_ref(list : TAsmList; tosize: tcgsize; a : aint;const ref : treference);
+      begin
+        writeln('a_load_const_ref');
+        
+        list.concat(taicpu.op_const_ref(A_MOVE,S_L,longint(a),ref));
+      end;
 
 
     procedure tcg68k.a_load_reg_ref(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);
@@ -286,6 +479,7 @@ unit cgcpu;
       begin
          href := ref;
          fixref(list,href);
+         writeln('a_load_reg_ref');
          { move to destination reference }
          list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[fromsize],register,href));
       end;
@@ -542,14 +736,38 @@ unit cgcpu;
                   end;
               end;
           OP_XOR :
-              Begin
-                 list.concat(taicpu.op_const_reg(A_EORI,S_L,a, reg));
+              begin
+                list.concat(taicpu.op_const_reg(A_EORI,S_L,a, reg));
               end;
         else
             internalerror(20020729);
          end;
       end;
 
+    procedure tcg68k.a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: aint; const ref: TReference);
+      var
+        opcode: tasmop;
+      begin
+        writeln('a_op_const_ref');
+        
+        optimize_op_const(op, a);
+        opcode := topcg2tasmop[op];        
+        case op of
+          OP_NONE :
+            begin
+              { opcode was optimized away }
+            end;
+          OP_MOVE :
+            begin            
+              { Optimized, replaced with a simple load }
+              a_load_const_ref(list,size,a,ref);
+            end;
+          else
+            begin
+              internalerror(2007010101);
+            end;
+        end;
+      end;
 
     procedure tcg68k.a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister);
       var
@@ -1007,11 +1225,22 @@ unit cgcpu;
       end;
 
 
-    procedure tcg68k.g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);
+    procedure tcg68k.g_proc_entry(list: TAsmList; localsize: longint; nostackframe:boolean);
       var
-        r,rsp:Tregister;
-        ref : treference;
+        r,rsp: TRegister;
+        ref  : TReference;
       begin
+        writeln('proc entry, localsize:',localsize);
+
+        if not nostackframe then 
+          begin
+            if (localsize<>0) then localsize:=-localsize;
+            // size can't be negative
+            if (localsize>0) then internalerror(2006122601);
+            list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,localsize));
+          end;
+      end;
+(*      
         r:=NR_FRAME_POINTER_REG;
         rsp:=NR_STACK_POINTER_REG;
         if localsize<>0 then
@@ -1030,7 +1259,8 @@ unit cgcpu;
              list.concat(taicpu.op_reg_ref(A_MOVE,S_L,r,ref));
              list.concat(taicpu.op_reg_reg(A_MOVE,S_L,rsp,r));
            end;
-      end;
+           *)
+    //  end;
 
 
 {    procedure tcg68k.g_restore_frame_pointer(list : TAsmList);
@@ -1042,14 +1272,40 @@ unit cgcpu;
       end;
 }
 
-    procedure tcg68k.g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);
+    procedure tcg68k.g_proc_exit(list : TAsmList; parasize: longint; nostackframe: boolean);
       var
-        r,hregister : tregister;
-        ref : treference;
-      begin
+//        r,hregister : TRegister;
+        localsize: aint;
+        spr : TRegister;
+        fpr : TRegister;
+        ref : TReference;
+      begin 
+        if not nostackframe then
+          begin
+            localsize := current_procinfo.calc_stackframe_size;
+            writeln('proc exit with stackframe, size:',localsize);
+            list.concat(taicpu.op_reg(A_UNLK,S_NO,NR_FRAME_POINTER_REG));
+            if (localsize<>0) then 
+              begin
+                { only 68020+ supports RTD, so this needs another code path
+                  for 68000 and Coldfire (KB) }
+{$WARNING 68020+ only code generation, without fallback}
+                localsize+=4;
+                list.concat(taicpu.op_const(A_RTD,S_NO,localsize));
+              end
+            else 
+              list.concat(taicpu.op_none(A_RTS,S_NO));
+          end
+        else 
+          begin
+            writeln('proc exit, no stackframe');
+            list.concat(taicpu.op_none(A_RTS,S_NO)); 
+          end;
+          
 //         writeln('g_proc_exit');
          { Routines with the poclearstack flag set use only a ret.
-           also routines with parasize=0     }
+           also  routines with parasize=0     }
+           (*
          if current_procinfo.procdef.proccalloption in clearstack_pocalls then
            begin
              { complex return values are removed from stack in C code PM }
@@ -1097,6 +1353,7 @@ unit cgcpu;
                 list.concat(taicpu.op_none(A_RTS,S_NO));
                end;
            end;
+           *)
       end;
 
 
