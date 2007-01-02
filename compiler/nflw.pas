@@ -71,7 +71,7 @@ interface
        end;
 
        twhilerepeatnode = class(tloopnode)
-          constructor create(l,r:Tnode;tab,cn:boolean);virtual;
+          constructor create(l,r:Tnode;tab,cn:boolean);virtual;reintroduce;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
 {$ifdef state_tracking}
@@ -81,7 +81,7 @@ interface
        twhilerepeatnodeclass = class of twhilerepeatnode;
 
        tifnode = class(tloopnode)
-          constructor create(l,r,_t1 : tnode);virtual;
+          constructor create(l,r,_t1 : tnode);virtual;reintroduce;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
        end;
@@ -93,7 +93,7 @@ interface
             number of executions }
           entrylabel : tnode;
           loopvar_notid:cardinal;
-          constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;
+          constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;reintroduce;
           procedure loop_var_access(not_type:Tnotification_flag;symbol:Tsym);
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
@@ -172,7 +172,7 @@ interface
        traisenodeclass = class of traisenode;
 
        ttryexceptnode = class(tloopnode)
-          constructor create(l,r,_t1 : tnode);virtual;
+          constructor create(l,r,_t1 : tnode);virtual;reintroduce;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
        end;
@@ -180,7 +180,7 @@ interface
 
        ttryfinallynode = class(tloopnode)
           implicitframe : boolean;
-          constructor create(l,r:tnode);virtual;
+          constructor create(l,r:tnode);virtual;reintroduce;
           constructor create_implicit(l,r,_t1:tnode);virtual;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;

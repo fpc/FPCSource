@@ -35,7 +35,7 @@ type
 
   taddoptnode = class(taddnode)
      subnodetype: tsubnodetype;
-     constructor create(ts: tsubnodetype; l,r : tnode); virtual;
+     constructor create(ts: tsubnodetype; l,r : tnode); virtual; reintroduce;
      { pass_1 will be overridden by the separate subclasses    }
      { By default, pass_generate_code is the same as for addnode           }
      { Only if there's a processor specific implementation, it }
@@ -59,13 +59,13 @@ type
 
   { add a char to a shortstring }
   taddsstringcharoptnode = class(taddsstringoptnode)
-    constructor create(l,r : tnode); virtual;
+    constructor create(l,r : tnode); virtual; reintroduce;
   end;
   taddsstringcharoptnodeclass = class of taddsstringcharoptnode;
 
   { add a constant string to a short string }
   taddsstringcsstringoptnode = class(taddsstringoptnode)
-    constructor create(l,r : tnode); virtual;
+    constructor create(l,r : tnode); virtual; reintroduce;
     function pass_1: tnode; override;
   end;
   taddsstringcsstringoptnodeclass = class of taddsstringcsstringoptnode;

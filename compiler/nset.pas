@@ -59,7 +59,7 @@ interface
        tsetelementnodeclass = class of tsetelementnode;
 
        tinnode = class(tbinopnode)
-          constructor create(l,r : tnode);virtual;
+          constructor create(l,r : tnode);virtual;reintroduce;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
        end;

@@ -127,7 +127,7 @@ Unit AoptObj;
         { can this instruction be removed? }
         CanBeRemoved: Boolean;
 
-        Constructor create;
+        Constructor create; reintroduce;
 
         { checks the whole sequence of which (so regs[which].StartMod and and  }
         { the next NrOfMods Tai objects) to see whether Reg is used somewhere, }
@@ -245,7 +245,7 @@ Unit AoptObj;
         { that has to be optimized and _LabelInfo a pointer to a       }
         { TLabelInfo record                                            }
         Constructor create(_AsmL: TAsmList; _BlockStart, _BlockEnd: Tai;
-                           _LabelInfo: PLabelInfo); virtual;
+                           _LabelInfo: PLabelInfo); virtual; reintroduce;
 
         { processor independent methods }
 
