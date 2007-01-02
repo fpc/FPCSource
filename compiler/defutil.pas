@@ -206,7 +206,7 @@ interface
     {# Returns the range of def, where @var(l) is the low-range and @var(h) is
       the high-range.
     }
-    procedure getrange(def : tdef;var l : TConstExprInt;var h : TConstExprInt);
+    procedure getrange(def : tdef;out l, h : TConstExprInt);
 
     { type being a vector? }
     function is_vector(p : tdef) : boolean;
@@ -759,7 +759,7 @@ implementation
 
 
     { return the range from def in l and h }
-    procedure getrange(def : tdef;var l : TConstExprInt;var h : TConstExprInt);
+    procedure getrange(def : tdef;out l, h : TConstExprInt);
       begin
         case def.typ of
           orddef :
