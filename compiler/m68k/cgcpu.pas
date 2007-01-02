@@ -53,6 +53,8 @@ unit cgcpu;
         procedure a_load_reg_ref(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);override;
         procedure a_load_reg_reg(list : TAsmList;fromsize,tosize : tcgsize;reg1,reg2 : tregister);override;
         procedure a_load_ref_reg(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);override;
+        procedure a_load_ref_ref(list : TAsmList;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);override;
+        
         procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
         procedure a_loadfpu_reg_reg(list: TAsmList; size: tcgsize; reg1, reg2: tregister); override;
         procedure a_loadfpu_ref_reg(list: TAsmList; size: tcgsize; const ref: treference; reg: tregister); override;
@@ -231,22 +233,28 @@ unit cgcpu;
     procedure tcg68k.a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
+        ref : treference;
       begin
         writeln('a_param_reg');
-      {
-        check_register_size(size,r);
-        if use_push(cgpara) then
+        
+        { it's probably necessary to port this from x86 later, or provide an m68k solution (KB) }
+{$WARNING FIX ME! check_register_size()}
+        // check_register_size(size,r);
+        { remove "not" to trigger the location bug (KB) }
+        if not use_push(cgpara) then
           begin
             cgpara.check_simple_location;
             if tcgsize2size[cgpara.location^.size]>cgpara.alignment then
               pushsize:=cgpara.location^.size
             else
               pushsize:=int_cgsize(cgpara.alignment);
-            list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
+            
+            reference_reset_base(ref, NR_STACK_POINTER_REG, 0);
+            ref.direction := dir_dec;
+            list.concat(taicpu.op_reg_ref(A_MOVE,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize),ref));
           end
         else
-        }
-//          inherited a_param_reg(list,size,r,cgpara);
+          inherited a_param_reg(list,size,r,cgpara);
       end;
 
 
@@ -276,19 +284,22 @@ unit cgcpu;
 
 
     procedure tcg68k.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);
-(*
+
         procedure pushdata(paraloc:pcgparalocation;ofs:aint);
         var
           pushsize : tcgsize;
           tmpreg   : tregister;
           href     : treference;
+          ref      : treference;
         begin
           if not assigned(paraloc) then
             exit;
-          if (paraloc^.loc<>LOC_REFERENCE) or
+{$WARNING FIX ME!!! this also triggers location bug }    
+          {if (paraloc^.loc<>LOC_REFERENCE) or
              (paraloc^.reference.index<>NR_STACK_POINTER_REG) or
              (tcgsize2size[paraloc^.size]>sizeof(aint)) then
-            internalerror(200501162);
+            internalerror(200501162);}
+            
           { Pushes are needed in reverse order, add the size of the
             current location to the offset where to load from. This
             prevents wrong calculations for the last location when
@@ -302,24 +313,29 @@ unit cgcpu;
             pushsize:=paraloc^.size
           else
             pushsize:=int_cgsize(cgpara.alignment);
+            
+          reference_reset_base(ref, NR_STACK_POINTER_REG, 0);
+          ref.direction := dir_dec;
+        
           if tcgsize2size[paraloc^.size]<cgpara.alignment then
             begin
               tmpreg:=getintregister(list,pushsize);
               a_load_ref_reg(list,paraloc^.size,pushsize,href,tmpreg);
-              list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],tmpreg));
+              list.concat(taicpu.op_reg_ref(A_MOVE,tcgsize2opsize[pushsize],tmpreg,ref));              
             end
           else
-            list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[pushsize],href));
+              list.concat(taicpu.op_ref_ref(A_MOVE,tcgsize2opsize[pushsize],href,ref));
         end;
-*)
+
       var
         len : aint;
         href : treference;
       begin
         writeln('a_param_ref');
-      {
+
         { cgpara.size=OS_NO requires a copy on the stack }
-        if use_push(cgpara) then
+        { remove "not" to trigger the location bug (KB) }
+        if not use_push(cgpara) then
           begin
             { Record copy? }
             if (cgpara.size in [OS_NO,OS_F64]) or (size=OS_NO) then
@@ -340,7 +356,6 @@ unit cgcpu;
               end
           end
         else
-        }
           inherited a_param_ref(list,size,r,cgpara);
       end;
 
@@ -353,36 +368,35 @@ unit cgcpu;
         writeln('a_paramaddr_ref');
         with r do
           begin
-          {
-            if (segment<>NR_NO) then
-              cgmessage(cg_e_cant_use_far_pointer_there);
-            if use_push(cgpara) then
+            { i suppose this is not required for m68k (KB) }
+//            if (segment<>NR_NO) then
+//              cgmessage(cg_e_cant_use_far_pointer_there);
+            if not use_push(cgpara) then
               begin
                 cgpara.check_simple_location;
                 opsize:=tcgsize2opsize[OS_ADDR];
                 if (segment=NR_NO) and (base=NR_NO) and (index=NR_NO) then
                   begin
                     if assigned(symbol) then
-                      list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset))
-                    else
-                      list.concat(Taicpu.Op_const(A_PUSH,opsize,offset));
+//                      list.concat(Taicpu.Op_sym_ofs(A_PUSH,opsize,symbol,offset))
+                    else;
+//                      list.concat(Taicpu.Op_const(A_PUSH,opsize,offset));
                   end
                 else if (segment=NR_NO) and (base=NR_NO) and (index<>NR_NO) and
                         (offset=0) and (scalefactor=0) and (symbol=nil) then
-                  list.concat(Taicpu.Op_reg(A_PUSH,opsize,index))
+//                  list.concat(Taicpu.Op_reg(A_PUSH,opsize,index))
                 else if (segment=NR_NO) and (base<>NR_NO) and (index=NR_NO) and
                         (offset=0) and (symbol=nil) then
-                  list.concat(Taicpu.Op_reg(A_PUSH,opsize,base))
+//                  list.concat(Taicpu.Op_reg(A_PUSH,opsize,base))
                 else
                   begin
                     tmpreg:=getaddressregister(list);
                     a_loadaddr_ref_reg(list,r,tmpreg);
-                    list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
+//                    list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                   end;
               end
             else
-            }
-//              inherited a_paramaddr_ref(list,r,cgpara);
+              inherited a_paramaddr_ref(list,r,cgpara);
           end;
       end;
 
@@ -482,6 +496,20 @@ unit cgcpu;
          writeln('a_load_reg_ref');
          { move to destination reference }
          list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[fromsize],register,href));
+      end;
+      
+      
+    procedure tcg68k.a_load_ref_ref(list : TAsmList;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);
+      var
+        aref: treference;
+        bref: treference;
+      begin
+        aref := sref;
+        bref := dref;
+        fixref(list,aref);
+        fixref(list,bref);
+        writeln('a_load_ref_ref');
+        list.concat(taicpu.op_ref_ref(A_MOVE,TCGSize2OpSize[fromsize],aref,bref));
       end;
 
 
