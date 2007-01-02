@@ -121,22 +121,9 @@ const
 *****************************************************************************}
 
     const
-      { Registers which must be saved when calling a routine declared as
-        cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
-        saved should be the ones as defined in the target ABI and / or GCC.
-
-        This value can be deduced from the CALLED_USED_REGISTERS array in the
-        GCC source.
-      }
-      saved_standard_registers : array[0..4] of tsuperregister = (RS_EBX,RS_R12,RS_R13,RS_R14,RS_R15);
-      { Registers which must be saved when calling a routine declared as
-        cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
-        saved should be the ones as defined in the target ABI and / or GCC.
-
-        This value can be deduced from the CALLED_USED_REGISTERS array in the
-        GCC source.
-      }
-      saved_xmm_registers : array[0..4] of tsuperregister = (RS_EBX,RS_R12,RS_R13,RS_R14,RS_R15);
+      { these arrays differ between unix and win64 }
+      saved_standard_registers : array of tsuperregister = nil;
+      saved_xmm_registers : array of tsuperregister = nil;
       { Required parameter alignment when calling a routine declared as
         stdcall and cdecl. The alignment value should be the one defined
         by GCC or the target ABI.

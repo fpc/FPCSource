@@ -51,8 +51,36 @@ unit cgcpu;
 
 
     procedure Tcgx86_64.init_register_allocators;
+      const
+        win64_saved_std_regs : array[0..6] of tsuperregister = (RS_RBX,RS_RDI,RS_RSI,RS_R12,RS_R13,RS_R14,RS_R15);
+        others_saved_std_regs : array[0..4] of tsuperregister = (RS_RBX,RS_R12,RS_R13,RS_R14,RS_R15);
+
+        win64_saved_xmm_regs : array[0..9] of tsuperregister = (RS_XMM6,RS_XMM7,
+          RS_XMM8,RS_XMM9,RS_XMM10,RS_XMM11,RS_XMM12,RS_XMM13,RS_XMM14,RS_XMM15);
+      var
+        i : longint;
       begin
         inherited init_register_allocators;
+        if target_info.system=system_x86_64_win64 then
+          begin
+            SetLength(saved_standard_registers,Length(win64_saved_std_regs));
+            SetLength(saved_xmm_registers,Length(win64_saved_xmm_regs));
+
+            for i:=low(win64_saved_std_regs) to high(win64_saved_std_regs) do
+              saved_standard_registers[i]:=win64_saved_std_regs[i];
+
+            for i:=low(win64_saved_xmm_regs) to high(win64_saved_xmm_regs) do
+              saved_xmm_registers[i]:=win64_saved_xmm_regs[i];
+          end
+        else
+          begin
+            SetLength(saved_standard_registers,Length(others_saved_std_regs));
+            SetLength(saved_xmm_registers,0);
+
+            for i:=low(others_saved_std_regs) to high(others_saved_std_regs) do
+              saved_standard_registers[i]:=others_saved_std_regs[i];
+          end;
+
         rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_RAX,RS_RDX,RS_RCX,RS_RBX,RS_RSI,RS_RDI,
           RS_R8,RS_R9,RS_R10,RS_R11,RS_R12,RS_R13,RS_R14,RS_R15],first_int_imreg,[RS_RBP]);
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBWHOLE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7,
