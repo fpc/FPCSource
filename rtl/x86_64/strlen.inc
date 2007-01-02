@@ -15,9 +15,14 @@
 {
   Implemented using the code from  glibc: libc/sysdeps/x86_64/strlen.S Version 1.2
 }
+{$ifdef win64}
+var
+  rdi : qword;
+{$endif win64}
 asm
         { win64 has different calling conventions }
 {$ifdef win64}
+        movq %rdi,rdi
         movq %rcx, %rdi                { Duplicate source pointer. }
 {$else win64}
         movq %rdi, %rcx                { Duplicate source pointer. }
@@ -132,6 +137,9 @@ asm
         incq %rax                { increment pointer }
 .LFPC_STRLEN_2:
         subq %rdi, %rax                { compute difference to string start }
+{$ifdef win64}
+        movq rdi,%rdi
+{$endif win64}
 end;
 
 
