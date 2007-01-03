@@ -79,23 +79,23 @@ function PCharToPWideChar(str: PChar; strlen: longint = -1; outlen: PLongInt = n
 function StringToPWideChar(const s: AnsiString; outlen: PLongInt = nil): PWideChar;
 
 { Wrappers for some WinAPI calls }
-function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; 
-function ResetEvent(h: THandle): LONGBOOL; 
-function SetEvent(h: THandle): LONGBOOL; 
-function GetCurrentProcessId:DWORD; 
-function Win32GetCurrentThreadId:DWORD; 
-function TlsAlloc : DWord; 
-function TlsFree(dwTlsIndex : DWord) : LongBool; 
+function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle;
+function ResetEvent(h: THandle): LONGBOOL;
+function SetEvent(h: THandle): LONGBOOL;
+function GetCurrentProcessId:DWORD;
+function Win32GetCurrentThreadId:DWORD;
+function TlsAlloc : DWord;
+function TlsFree(dwTlsIndex : DWord) : LongBool;
 
-function GetFileAttributes(p : pchar) : dword; 
-function DeleteFile(p : pchar) : longint; 
-function MoveFile(old,_new : pchar) : longint; 
+function GetFileAttributes(p : pchar) : dword;
+function DeleteFile(p : pchar) : longint;
+function MoveFile(old,_new : pchar) : longint;
 function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                    lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
-                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint; 
+                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
 
-function CreateDirectory(name : pointer;sec : pointer) : longbool; 
-function RemoveDirectory(name:pointer):longbool; 
+function CreateDirectory(name : pointer;sec : pointer) : longbool;
+function RemoveDirectory(name:pointer):longbool;
 
 
 {$ifdef CPUARM}
@@ -413,7 +413,7 @@ function CreateDirectoryW(name : pwidechar;sec : pointer) : longbool;
 function RemoveDirectoryW(name:pwidechar):longbool;
     cdecl; external KernelDLL name 'RemoveDirectoryW';
 
-function GetFileAttributes(p : pchar) : dword; 
+function GetFileAttributes(p : pchar) : dword;
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
@@ -421,7 +421,7 @@ begin
   GetFileAttributes := GetFileAttributesW(buf);
 end;
 
-function DeleteFile(p : pchar) : longint; 
+function DeleteFile(p : pchar) : longint;
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
@@ -429,7 +429,7 @@ begin
   DeleteFile := DeleteFileW(buf);
 end;
 
-function MoveFile(old,_new : pchar) : longint; 
+function MoveFile(old,_new : pchar) : longint;
 var
   buf_old, buf_new: array[0..MaxPathLen] of WideChar;
 begin
@@ -440,7 +440,7 @@ end;
 
 function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                    lpSecurityAttributes:pointer; dwCreationDisposition:DWORD;
-                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint; 
+                   dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
@@ -449,7 +449,7 @@ begin
                             dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
 end;
 
-function CreateDirectory(name : pointer;sec : pointer) : longbool; 
+function CreateDirectory(name : pointer;sec : pointer) : longbool;
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
@@ -457,7 +457,7 @@ begin
   CreateDirectory := CreateDirectoryW(buf, sec);
 end;
 
-function RemoveDirectory(name:pointer):longbool; 
+function RemoveDirectory(name:pointer):longbool;
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
@@ -487,7 +487,7 @@ const
 function CreateEventW(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:PWideChar): THandle;
     cdecl; external KernelDLL name 'CreateEventW';
 
-function CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; 
+function CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle;
 var
   buf: array[0..MaxPathLen] of WideChar;
 begin
@@ -500,17 +500,17 @@ function EventModify(h: THandle; func: DWORD): LONGBOOL;
 function TlsCall(p1, p2: DWORD): DWORD;
      cdecl; external KernelDLL name 'TlsCall';
 
-function ResetEvent(h: THandle): LONGBOOL; 
+function ResetEvent(h: THandle): LONGBOOL;
 begin
 	ResetEvent := EventModify(h,EVENT_RESET);
 end;
 
-function SetEvent(h: THandle): LONGBOOL; 
+function SetEvent(h: THandle): LONGBOOL;
 begin
 	SetEvent := EventModify(h,EVENT_SET);
 end;
 
-function GetCurrentProcessId:DWORD; 
+function GetCurrentProcessId:DWORD;
 var
   p: PHandle;
 begin
@@ -518,7 +518,7 @@ begin
   GetCurrentProcessId := p^;
 end;
 
-function Win32GetCurrentThreadId:DWORD; 
+function Win32GetCurrentThreadId:DWORD;
 var
   p: PHandle;
 begin
@@ -530,12 +530,12 @@ const
   TLS_FUNCALLOC = 0;
   TLS_FUNCFREE  = 1;
 
-function TlsAlloc : DWord; 
+function TlsAlloc : DWord;
 begin
   TlsAlloc := TlsCall(TLS_FUNCALLOC, 0);
 end;
 
-function TlsFree(dwTlsIndex : DWord) : LongBool; 
+function TlsFree(dwTlsIndex : DWord) : LongBool;
 begin
   TlsFree := LongBool(TlsCall(TLS_FUNCFREE, dwTlsIndex));
 end;
@@ -1110,7 +1110,7 @@ type
 {$ifdef CPUI386}
 {**************************** i386 Exception handling *****************************************}
 
-function GetCurrentProcess:DWORD; 
+function GetCurrentProcess:DWORD;
 begin
   GetCurrentProcess := SH_CURPROC+SYS_HANDLE_BASE;
 end;
@@ -1570,7 +1570,7 @@ procedure InitWinCEWidestrings;
   end;
 
 
-{$IFDEF HAS_MT_MEMORYMANAGER} 
+{$IFDEF HAS_MT_MEMORYMANAGER}
 
 {****************************************************************************
                     Memory manager
@@ -1640,7 +1640,7 @@ begin
   fillchar(Result,sizeof(Result),0);
 end;
 
-{$ENDIF HAS_MT_MEMORYMANAGER} 
+{$ENDIF HAS_MT_MEMORYMANAGER}
 
 {****************************************************************************
                     Error Message writing using messageboxes
@@ -1788,10 +1788,10 @@ initialization
   if not IsLibrary then
     SysInstance:=GetModuleHandle(nil);
   MainInstance:=SysInstance;
-{$IFNDEF HAS_MT_MEMORYMANAGER} 
+{$IFNDEF HAS_MT_MEMORYMANAGER}
   { Setup Heap }
   InitHeap;
-{$ENDIF HAS_MT_MEMORYMANAGER} 
+{$ENDIF HAS_MT_MEMORYMANAGER}
   SysInitExceptions;
   if not IsLibrary then
     begin
@@ -1806,9 +1806,9 @@ initialization
   errno:=0;
   initvariantmanager;
   initwidestringmanager;
-  InitWinCEWidestrings
+  InitWinCEWidestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
-  
+
 finalization
   SysCleanup;
 end.
