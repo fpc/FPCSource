@@ -30,6 +30,7 @@ unit cpupara;
     uses
       globtype,
       cpubase,
+      aasmdata,
       symconst,symtype,symdef,symsym,
       parabase,paramgr,cgbase;
 
@@ -44,12 +45,13 @@ unit cpupara;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
+          procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);override;
          private
-           procedure init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
-           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
+          procedure init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
+          function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
                                                var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword):longint;
-           function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
-           function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;override;
+          function parseparaloc(p : tparavarsym;const s : string) : boolean;override;
+          function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;override;
        end;
 
   implementation
@@ -85,9 +87,9 @@ unit cpupara;
     function getparaloc(p : tdef) : tcgloc;
 
       begin
+         result:=LOC_REFERENCE;
          { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
            if push_addr_param for the def is true
-         }
          case p.typ of
             orddef:
               result:=LOC_REGISTER;
@@ -138,6 +140,7 @@ unit cpupara;
             else
               internalerror(2002071001);
          end;
+         }
       end;
 
 
@@ -284,7 +287,7 @@ unit cpupara;
 	stack_offset:=cur_stack_offset;
 
         parasize:=0;
-	
+
         for i:=0 to p.paras.count-1 do
           begin
             hp:=tparavarsym(paras[i]);
@@ -339,7 +342,7 @@ unit cpupara;
                     paralen := tcgsize2size[OS_ADDR];
                   end;
               end;
-              
+
             hp.paraloc[side].alignment:=std_param_align;
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].intsize:=paralen;
@@ -538,6 +541,23 @@ unit cpupara;
         end;
         result:=true;
       end;
+
+
+    procedure tm68kparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
+      var
+        paraloc : pcgparalocation;
+      begin
+        paraloc:=parasym.paraloc[callerside].location;
+        { No need for temps when value is pushed }
+        if not(use_fixed_stack) and
+           assigned(paraloc) and
+           (paraloc^.loc=LOC_REFERENCE) and
+           (paraloc^.reference.index=NR_STACK_POINTER_REG) then
+          duplicateparaloc(list,calloption,parasym,cgpara)
+        else
+          inherited createtempparaloc(list,calloption,parasym,cgpara);
+      end;
+
 
 begin
   paramanager:=tm68kparamanager.create;
