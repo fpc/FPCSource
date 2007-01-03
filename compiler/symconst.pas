@@ -271,7 +271,8 @@ type
     { importing }
     po_has_importdll,
     po_has_importname,
-    po_kylixlocal
+    po_kylixlocal,
+    po_dispid
   );
   tprocoptions=set of tprocoption;
 

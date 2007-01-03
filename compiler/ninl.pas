@@ -1,5 +1,5 @@
 {
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2007 by Florian Klaempfl
 
     Type checking and register allocation for inline nodes
 

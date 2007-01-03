@@ -128,6 +128,7 @@ type
    pdispdesc = ^tdispdesc;
    tdispdesc = packed record
       dispid : longint;
+      { not used by fpc }
       restype : byte;
       calldesc : tcalldesc;
    end;

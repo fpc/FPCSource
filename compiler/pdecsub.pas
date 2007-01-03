@@ -1249,7 +1249,7 @@ begin
     internalerror(200604301);
   pt:=comp_expr(true);
   if is_constintnode(pt) then
-    tprocdef(pd).extnumber:=tordconstnode(pt).value
+    tprocdef(pd).dispid:=tordconstnode(pt).value
   else
     Message(parser_e_dispid_must_be_ord_const);
   pt.free;
@@ -1627,7 +1627,7 @@ const
       pd_flags : [pd_dispinterface];
       handler  : @pd_dispid;
       pocall   : pocall_none;
-      pooption : [];
+      pooption : [po_dispid];
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
       mutexclpo     : [po_interrupt,po_external,po_inline]

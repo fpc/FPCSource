@@ -133,6 +133,7 @@ interface
           { checks if there are any parameters which end up at the stack, i.e.
             which have LOC_REFERENCE and set pi_has_stackparameter if this applies }
           procedure check_stack_parameters;
+          property parameters : tnode read left write left;
        private
           AbstractMethodsList : TStringList;
        end;
@@ -172,7 +173,7 @@ interface
        tcallparanodeclass = class of tcallparanode;
 
     function reverseparameters(p: tcallparanode): tcallparanode;
-    function translate_vardisp_call(p1,p2 : tnode;methodname : ansistring) : tnode;
+    function translate_disp_call(selfnode,parametersnode : tnode;methodname : ansistring = '';dispid : longint = 0) : tnode;
 
     var
       ccallnode : tcallnodeclass;
@@ -224,7 +225,7 @@ implementation
       end;
 
 
-    function translate_vardisp_call(p1,p2 : tnode;methodname : ansistring) : tnode;
+    function translate_disp_call(selfnode,parametersnode : tnode;methodname : ansistring = '';dispid : longint = 0) : tnode;
       const
         DISPATCH_METHOD = $1;
         DISPATCH_PROPERTYGET = $2;
@@ -256,6 +257,8 @@ implementation
             }
         end;
         names : ansistring;
+        dispintfinvoke,
+        variantdispatch : boolean;
 
       procedure increase_paramssize;
         begin
@@ -272,6 +275,9 @@ implementation
         end;
 
       begin
+        variantdispatch:=selfnode.resultdef.typ=variantdef;
+        dispintfinvoke:=not(variantdispatch);
+
         result:=internalstatements(statements);
         fillchar(calldesc,sizeof(calldesc),0);
 
@@ -284,7 +290,7 @@ implementation
         { first, count and check parameters }
         // p2:=reverseparameters(tcallparanode(p2));
 
-        para:=tcallparanode(p2);
+        para:=tcallparanode(parametersnode);
         paracount:=0;
         namedparacount:=0;
         paramssize:=0;
@@ -336,8 +342,11 @@ implementation
 
         calldescnode:=cdataconstnode.create;
 
+        if dispintfinvoke then
+          calldescnode.append(dispid,sizeof(dispid));
+
         { build up parameters and description }
-        para:=tcallparanode(p2);
+        para:=tcallparanode(parametersnode);
         currargpos:=0;
         paramssize:=0;
         names := '';
@@ -389,27 +398,42 @@ implementation
 //        printnode(output,statements);
 
         { old argument list skeleton isn't needed anymore }
-        p2.free;
+        parametersnode.free;
 
         calldescnode.append(calldesc,3+calldesc.argcount);
-        methodname:=methodname+#0;
-        calldescnode.append(pointer(methodname)^,length(methodname));
-        calldescnode.append(pointer(names)^,length(names));
 
-        { actual call }
-        vardatadef:=trecorddef(search_system_type('TVARDATA').typedef);
         pvardatadef:=tpointerdef(search_system_type('PVARDATA').typedef);
+        if variantdispatch then
+          begin
+            methodname:=methodname+#0;
+            calldescnode.append(pointer(methodname)^,length(methodname));
+            calldescnode.append(pointer(names)^,length(names));
 
-        addstatement(statements,ccallnode.createintern('fpc_dispinvoke_variant',
-          { parameters are passed always reverted, i.e. the last comes first }
-          ccallparanode.create(caddrnode.create(ctemprefnode.create(params)),
-          ccallparanode.create(caddrnode.create(calldescnode),
-          ccallparanode.create(ctypeconvnode.create_internal(p1,vardatadef),
-          ccallparanode.create(ctypeconvnode.create_internal(caddrnode.create(
-              ctemprefnode.create(result_data)
-            ),pvardatadef),nil)))))
-        );
+            { actual call }
+            vardatadef:=trecorddef(search_system_type('TVARDATA').typedef);
 
+            addstatement(statements,ccallnode.createintern('fpc_dispinvoke_variant',
+              { parameters are passed always reverted, i.e. the last comes first }
+              ccallparanode.create(caddrnode.create(ctemprefnode.create(params)),
+              ccallparanode.create(caddrnode.create(calldescnode),
+              ccallparanode.create(ctypeconvnode.create_internal(selfnode,vardatadef),
+              ccallparanode.create(ctypeconvnode.create_internal(caddrnode.create(
+                  ctemprefnode.create(result_data)
+                ),pvardatadef),nil)))))
+            );
+          end
+        else
+          begin
+            addstatement(statements,ccallnode.createintern('fpc_dispatch_by_id',
+              { parameters are passed always reverted, i.e. the last comes first }
+              ccallparanode.create(caddrnode.create(ctemprefnode.create(params)),
+              ccallparanode.create(caddrnode.create(calldescnode),
+              ccallparanode.create(ctypeconvnode.create_internal(selfnode,voidpointertype),
+              ccallparanode.create(ctypeconvnode.create_internal(caddrnode.create(
+                  ctemprefnode.create(result_data)
+                ),pvardatadef),nil)))))
+            );
+          end;
         { clean up }
         addstatement(statements,ctempdeletenode.create_normal_temp(result_data));
         addstatement(statements,ctemprefnode.create(result_data));
@@ -1413,8 +1437,8 @@ implementation
         while assigned(stritem) do
          begin
            if assigned(stritem.fpstr) then
-             Message1(sym_h_param_list,stritem.str);
-           stritem := tstringlistitem(stritem.next);
+             Message1(sym_h_abstract_method_list,stritem.str);
+           stritem:=tstringlistitem(stritem.next);
          end;
         if assigned(AbstractMethodsList) then
           AbstractMethodsList.Free;
@@ -1772,6 +1796,8 @@ implementation
         cand_cnt : integer;
         i : longint;
         is_const : boolean;
+        statements : tstatementnode;
+        converted_result_data : ttempcreatenode;
       label
         errorexit;
       begin
@@ -2161,6 +2187,29 @@ implementation
          { insert type conversions for parameters }
          if assigned(left) then
            tcallparanode(left).insert_typeconv(true);
+
+         { dispinterface methode invoke? }
+         if assigned(methodpointer) and is_dispinterface(methodpointer.resultdef) then
+           begin
+             { if the result is used, we've to insert a call to convert the type to be on the "safe side" }
+             if cnf_return_value_used in callnodeflags then
+               begin
+                 result:=internalstatements(statements);
+                 converted_result_data:=ctempcreatenode.create(procdefinition.returndef,sizeof(procdefinition.returndef),tt_persistent,true);
+                 addstatement(statements,converted_result_data);
+                 addstatement(statements,cassignmentnode.create(ctemprefnode.create(converted_result_data),
+                   ctypeconvnode.create_internal(translate_disp_call(methodpointer,parameters,'',tprocdef(procdefinition).dispid),
+                   procdefinition.returndef)));
+                 addstatement(statements,ctempdeletenode.create_normal_temp(converted_result_data));
+                 addstatement(statements,ctemprefnode.create(converted_result_data));
+               end
+             else
+               result:=translate_disp_call(methodpointer,parameters,'',tprocdef(procdefinition).dispid);
+
+             { don't free reused nodes }
+             methodpointer:=nil;
+             parameters:=nil;
+           end;
 
       errorexit:
          aktcallnode:=oldcallnode;

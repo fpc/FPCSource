@@ -413,8 +413,9 @@ interface
        private
           _mangledname : pshortstring;
        public
-          extnumber      : word;
           messageinf : tmessageinf;
+          dispid : longint;
+          extnumber      : word;
 {$ifndef EXTDEBUG}
           { where is this function defined and what were the symbol
             flags, needed here because there
@@ -2883,6 +2884,8 @@ implementation
            messageinf.i:=ppufile.getlongint;
          if (po_msgstr in procoptions) then
            messageinf.str:=stringdup(ppufile.getstring);
+         if (po_dispid in procoptions) then
+           dispid:=ppufile.getlongint;
          { inline stuff }
          if (po_has_inlininginfo in procoptions) then
            begin
@@ -3001,6 +3004,8 @@ implementation
            ppufile.putlongint(messageinf.i);
          if (po_msgstr in procoptions) then
            ppufile.putstring(messageinf.str^);
+         if (po_dispid in procoptions) then
+           ppufile.putlongint(dispid);
          { inline stuff }
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;

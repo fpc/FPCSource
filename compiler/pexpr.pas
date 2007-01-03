@@ -2053,7 +2053,7 @@ implementation
                                  begin
                                    p2:=parse_paras(false,true,_RKLAMMER);
                                    consume(_RKLAMMER);
-                                   p1:=translate_vardisp_call(p1,p2,dispatchstring);
+                                   p1:=translate_disp_call(p1,p2,dispatchstring);
                                  end
                                else
                                  p2:=nil;

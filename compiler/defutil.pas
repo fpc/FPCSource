@@ -1007,6 +1007,8 @@ implementation
             result:=true;
           arraydef:
             result:=(ado_IsConstString in tarraydef(p).arrayoptions);
+          objectdef:
+            result:=tobjectdef(p).objecttype in [odt_interfacecom,odt_dispinterface,odt_interfacecorba];
         end;
       end;
 

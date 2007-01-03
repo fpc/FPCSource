@@ -19,12 +19,12 @@
       end;
 
 
-    procedure fpc_dispatch_by_id(Result: Pointer; const Dispatch: IDispatch;
+    procedure fpc_dispatch_by_id(Result: Pointer; const Dispatch: pointer;
       DispDesc: Pointer; Params: Pointer); compilerproc;
       type
         TDispProc = procedure(res : Pointer; const disp : IDispatch;desc : PDispDesc; params : Pointer);
       begin
-        TDispProc(DispCallByIDProc)(Result,Dispatch,DispDesc,Params);
+        TDispProc(DispCallByIDProc)(Result,IDispatch(Dispatch),DispDesc,Params);
       end;
 
 {****************************************************************************

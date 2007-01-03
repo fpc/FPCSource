@@ -1033,7 +1033,7 @@ implementation
                        can be assigned to void pointers, but it is less
                        preferred than assigning to a related objectdef }
                      if (
-                         is_class_or_interface(def_from) or
+                         is_class_or_interface_or_dispinterface(def_from) or
                          (def_from.typ=classrefdef)
                         ) and
                         (tpointerdef(def_to).pointeddef.typ=orddef) and
@@ -1129,7 +1129,7 @@ implementation
                 end
                else
                { Class/interface specific }
-                if is_class_or_interface(def_to) then
+                if is_class_or_interface_or_dispinterface(def_to) then
                  begin
                    { void pointer also for delphi mode }
                    if (m_delphi in current_settings.modeswitches) and
