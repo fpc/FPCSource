@@ -1111,6 +1111,7 @@ implementation
            case def.typ of
              orddef:
                begin
+                  set_varstate(left,vs_read,[]);
                   if inlinenumber=in_low_x then
                     v:=torddef(def).low
                   else
@@ -1150,6 +1151,7 @@ implementation
                end;
              enumdef:
                begin
+                  set_varstate(left,vs_read,[]);
                   enum:=tenumsym(tenumdef(def).firstenum);
                   v:=tenumdef(def).maxval;
                   if inlinenumber=in_high_x then
@@ -1567,7 +1569,11 @@ implementation
 
               in_length_x:
                 begin
-                  set_varstate(left,vs_read,[vsf_must_be_valid]);
+                  if not(is_special_array(left.resultdef)) or
+                    (left.resultdef.typ=orddef) then
+                    set_varstate(left,vs_read,[])
+                  else
+                    set_varstate(left,vs_read,[vsf_must_be_valid]);
 
                   case left.resultdef.typ of
                     variantdef:
@@ -1887,6 +1893,7 @@ implementation
                       begin
                         if inlinenumber=in_low_x then
                          begin
+                           set_varstate(left,vs_read,[]);
                            result:=cordconstnode.create(tarraydef(
                             left.resultdef).lowrange,tarraydef(left.resultdef).rangedef,true);
                          end
@@ -1912,6 +1919,7 @@ implementation
                               end
                            else
                             begin
+                              set_varstate(left,vs_read,[]);
                               result:=cordconstnode.create(tarraydef(
                                left.resultdef).highrange,tarraydef(left.resultdef).rangedef,true);
                             end;
@@ -2389,7 +2397,7 @@ implementation
                      inserttypeconv(hpp,resultnode.resultdef);
                    { avoid any possible warnings }
                    inserttypeconv_internal(hpp,resultnode.resultdef);
-                   
+
                    addstatement(newstatement,cassignmentnode.create(resultnode,hpp));
                    { deallocate the temp }
                    if assigned(tempnode) then
