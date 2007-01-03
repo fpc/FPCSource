@@ -508,6 +508,106 @@ implementation
       end;
 
 
+{ $define DEBUG_DISPATCH}
+    procedure DoDispCallByID(res : Pointer; const disp : IDispatch;desc : PDispDesc; params : Pointer);
+      var
+        exceptioninfo : TExcepInfo;
+        dispparams : TDispParams;
+        flags : WORD;
+        invokeresult : HRESULT;
+        preallocateddata : array[0..15] of TVarData;
+        Arguments : ^TVarData;
+        NamedArguments : PPointer;
+        CurrType : byte;
+        namedcount,i : byte;
+      begin
+        { use preallocated space, i.e. can we avoid a getmem call? }
+        if desc^.calldesc.argcount<=Length(preallocateddata) then
+          Arguments:=@preallocateddata
+        else
+          GetMem(Arguments,desc^.calldesc.argcount*sizeof(TVarData));
+
+        { prepare parameters }
+        for i:=0 to desc^.CallDesc.ArgCount-1 do
+          begin
+{$ifdef DEBUG_DISPATCH}
+            writeln('DoDispCallByID: Params = ',hexstr(PtrInt(Params),SizeOf(Pointer)*2));
+{$endif DEBUG_DISPATCH}
+            { get plain type }
+            CurrType:=desc^.CallDesc.ArgTypes[i] and $3f;
+            { by reference? }
+            if (desc^.CallDesc.ArgTypes[i] and $80)<>0 then
+              begin
+{$ifdef DEBUG_DISPATCH}
+                write('DispatchInvoke: Got ref argument with type = ',CurrType);
+                writeln;
+{$endif DEBUG_DISPATCH}
+                Arguments[i].VType:=CurrType or VarByRef;
+                Arguments[i].VPointer:=PPointer(Params)^;
+                inc(PPointer(Params));
+              end
+            else
+              begin
+{$ifdef DEBUG_DISPATCH}
+                writeln('DispatchInvoke: Got ref argument with type = ',CurrType);
+{$endif DEBUG_DISPATCH}
+                case CurrType of
+                  varVariant:
+                    begin
+                      Arguments[i].VType:=CurrType;
+                      move(PVarData(Params)^,Arguments[i],sizeof(TVarData));
+                      inc(PVarData(Params));
+                    end;
+                  varCurrency,
+                  varDouble,
+                  VarDate:
+                    begin
+{$ifdef DEBUG_DISPATCH}
+                      writeln('DispatchInvoke: Got 8 byte float argument');
+{$endif DEBUG_DISPATCH}
+                      Arguments[i].VType:=CurrType;
+                      move(PPointer(Params)^,Arguments[i].VDouble,sizeof(Double));
+                      inc(PDouble(Params));
+                    end;
+                else
+                  begin
+{$ifdef DEBUG_DISPATCH}
+                    writeln('DispatchInvoke: Got argument with type ',CurrType);
+{$endif DEBUG_DISPATCH}
+                    Arguments[i].VType:=CurrType;
+                    Arguments[i].VPointer:=PPointer(Params)^;
+                    inc(PPointer(Params));
+                  end;
+              end;
+            end;
+          end;
+        dispparams.cArgs:=desc^.calldesc.argcount;
+        dispparams.rgvarg:=pointer(Arguments);
+
+        { handle properties properly here ! }
+        namedcount:=desc^.calldesc.namedargcount;
+        if desc^.calldesc.calltype=DISPATCH_PROPERTYPUT then
+          inc(namedcount)
+        else
+          NamedArguments:=@desc^.CallDesc.ArgTypes[desc^.CallDesc.ArgCount];
+        dispparams.cNamedArgs:=namedcount;
+        dispparams.rgdispidNamedArgs:=pointer(NamedArguments);
+        flags:=0;
+        invokeresult:=disp.Invoke(
+                desc^.DispId, { DispID: LongInt; }
+                GUID_NULL, { const iid : TGUID; }
+                0, { LocaleID : longint; }
+                flags, { Flags: Word; }
+                dispparams, { var params; }
+                res,@exceptioninfo,nil { VarResult,ExcepInfo,ArgErr : pointer) }
+          );
+        if invokeresult<>0 then
+          DispatchInvokeError(invokeresult,exceptioninfo);
+        if desc^.calldesc.argcount>Length(preallocateddata) then
+          FreeMem(Arguments);
+      end;
+
+
 const
   Initialized : boolean = false;
 var
@@ -528,9 +628,11 @@ initialization
     Initialized:=Succeeded(CoInitialize(nil));
   SafeCallErrorProc:=@SafeCallErrorHandler;
   VarDispProc:=@ComObjDispatchInvoke;
+  DispCallByIDProc:=@DoDispCallByID;
 finalization
   VarDispProc:=nil;
   SafeCallErrorProc:=nil;
   if Initialized then
     CoUninitialize;
 end.
+
