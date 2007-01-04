@@ -243,7 +243,7 @@ function SimpleRoundTo(const AValue: Double; const Digits: TRoundToRange = -2): 
 {$endif}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SimpleRoundTo(const AValue: Extended; const Digits: TRoundToRange = -2): Extended;
-{$endif}  
+{$endif}
 
 
 { angle conversion }
@@ -262,7 +262,7 @@ function radtocycle(rad : float) : float;
 
 function tan(x : float) : float;
 function cotan(x : float) : float;
-procedure sincos(theta : float;var sinus,cosinus : float);
+procedure sincos(theta : float;out sinus,cosinus : float);
 
 { inverse functions }
 
@@ -506,10 +506,10 @@ function norm(const data : array of Extended) : float;
 function norm(const data : PExtended; Const N : Integer) : float;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer; inline; 
-function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64;   inline; 
-function ifthen(val:boolean;const iftrue:double ; const iffalse:double =0.0):double;  inline; 
-function ifthen(val:boolean;const iftrue:String ; const iffalse:String ='') :String;  inline; 
+function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer; inline;
+function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64;   inline;
+function ifthen(val:boolean;const iftrue:double ; const iffalse:double =0.0):double;  inline;
+function ifthen(val:boolean;const iftrue:String ; const iffalse:String ='') :String;  inline;
 
 function CompareValue ( const A, B  : Integer) : TValueRelationship; inline;
 function CompareValue ( const A, B  : Int64) : TValueRelationship; inline;
@@ -668,7 +668,7 @@ function cotan(x : float) : float;
      cotan:=Cos(X)/Sin(X);
   end;
 
-procedure sincos(theta : float;var sinus,cosinus : float);
+procedure sincos(theta : float;out sinus,cosinus : float);
 
   begin
     sinus:=sin(theta);
@@ -903,7 +903,7 @@ begin
         Dec(Exponent);
       until (abs(X)>=0.5)
     else
-      while (abs(X)>=1) do 
+      while (abs(X)>=1) do
         begin
         X:=X/2;
         Inc(Exponent);
@@ -2162,7 +2162,7 @@ end;
 
 // dilemma here. asm can do the two comparisons in one go?
 // but pascal is portable and can be i inline;ed. Ah well, we need purepascal's anyway:
-function CompareValue ( const A, B  : Integer) : TValueRelationship; 
+function CompareValue ( const A, B  : Integer) : TValueRelationship;
 
 begin
   result:=GreaterThanValue;
@@ -2173,7 +2173,7 @@ begin
      result:=LessThanValue;
 end;
 
-function CompareValue ( const A, B  : Int64) : TValueRelationship; 
+function CompareValue ( const A, B  : Int64) : TValueRelationship;
 
 begin
   result:=GreaterThanValue;
@@ -2197,7 +2197,7 @@ end;
 {$endif}
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function CompareValue ( const A, B : Double; delta : Double = 0.0) : TValueRelationship; 
+function CompareValue ( const A, B : Double; delta : Double = 0.0) : TValueRelationship;
 begin
   result:=GreaterThanValue;
   if abs(a-b)<=delta then
@@ -2277,7 +2277,7 @@ var
 begin
   RV:=IntPower(10,Digits);
   Result:=Trunc((AValue/RV)+0.5)*RV;
-end;  
+end;
 {$endif}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
@@ -2290,6 +2290,6 @@ begin
   RV:=IntPower(10,Digits);
   Result:=Trunc((AValue/RV)+0.5)*RV;
 end;
-{$endif}  
+{$endif}
 
 end.
