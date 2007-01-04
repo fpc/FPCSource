@@ -4,7 +4,7 @@
 
 [target]
 programs=fppkg
-units=fpmktype fpmkunit fprepos fpxmlrep pkgropts pkghandler pkgmkconv pkgdownload pkgwget 
+units=fpmktype fpmkunit fprepos fpxmlrep pkgropts pkghandler pkgmkconv pkgdownload pkgwget pkglnet
 units_linux=pkglibcurl
 units_freebsd=pkglibcurl
 units_netbsd=pkglibcurl
@@ -13,6 +13,10 @@ units_darwin=pkglibcurl
 units_solaris=pkglibcurl
 examples=rep2xml
 rsts=fprepos fpxmlrep fppkg
+
+[compiler]
+unitdir=lnet
+includedir=lnet/sys
 
 [install]
 fpcpackage=y

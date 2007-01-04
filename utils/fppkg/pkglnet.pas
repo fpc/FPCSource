@@ -25,10 +25,10 @@ Type
     procedure OnLNetDisconnect(aSocket: TLSocket);
     procedure OnHttpDoneInput(aSocket: TLHTTPClientSocket);
     procedure OnLNetError(const msg: string; aSocket: TLSocket);
-    procedure OnFTPControl(Sender: TLFtpClient);
-    procedure OnFTPReceive(Sender: TLFtpClient);
-    procedure OnFTPSuccess(Sender: TLFTPClient; const aStatus: TLFTPStatus);
-    procedure OnFTPFailure(Sender: TLFTPClient; const aStatus: TLFTPStatus);
+    procedure OnFTPControl(aSocket: TLSocket);
+    procedure OnFTPReceive(aSocket: TLSocket);
+    procedure OnFTPSuccess(aSocket: TLSocket; const aStatus: TLFTPStatus);
+    procedure OnFTPFailure(aSocket: TLSocket; const aStatus: TLFTPStatus);
     // overrides
     procedure FTPDownload(Const URL : String; Dest : TStream); override;
     procedure HTTPDownload(Const URL : String; Dest : TStream); override;
@@ -66,14 +66,14 @@ begin
   FQuit:=True;
 end;
 
-procedure TLNetDownloader.OnFTPControl(Sender: TLFtpClient);
+procedure TLNetDownloader.OnFTPControl(aSocket: TLSocket);
 var
   s: string;
 begin
   FFTP.GetMessage(s); // have to empty OS buffer, write the info if you wish to debug
 end;
 
-procedure TLNetDownloader.OnFTPReceive(Sender: TLFtpClient);
+procedure TLNetDownloader.OnFTPReceive(aSocket: TLSocket);
 const
   BUF_SIZE = 65536; // standard OS recv buffer size
 var
@@ -82,14 +82,14 @@ begin
   FOutStream.Write(Buf[1], FFTP.GetData(Buf[1], BUF_SIZE));
 end;
 
-procedure TLNetDownloader.OnFTPSuccess(Sender: TLFTPClient;
+procedure TLNetDownloader.OnFTPSuccess(aSocket: TLSocket;
   const aStatus: TLFTPStatus);
 begin
   FFTP.Disconnect;
   FQuit:=True;
 end;
 
-procedure TLNetDownloader.OnFTPFailure(Sender: TLFTPClient;
+procedure TLNetDownloader.OnFTPFailure(aSocket: TLSocket;
   const aStatus: TLFTPStatus);
 begin
   FFTP.Disconnect;
