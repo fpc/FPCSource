@@ -27,6 +27,7 @@ const
 var
   i : integer;
   Delta,Ref,Value : Double;
+  Ref2,Value2,Dummy : Float;
 
 begin
 for i:=1 to dim do
@@ -106,6 +107,20 @@ for i:=-1 downto -8 do
       halt(1);
     end;
   end;
+
+writeln('Testing SINCOS');
+for i:=1 to dim do
+  begin
+  sincos(pi/2-i*10/180*pi,Ref2,Dummy);
+  sincos(i*10/180*pi,Dummy,Value2);
+  Delta := Value2 - Ref2;
+  if Abs(Delta) > 1E-15 then
+    begin
+      writeln('  Error for Cos(',i*10,') was:',Value2,' should be:',Ref2) ;
+      halt(1);
+    end;
+  end;
+
 
 writeln('Tan +/- 90 deg test:');
 writeln('tan(89.999):',tan(89.999/180*pi));
