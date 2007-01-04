@@ -21,6 +21,38 @@ function arctan2(y,x : float) : float;assembler;
      fpatan
      fwait
   end;
+  
+  
+{$define FPC_MATH_HAS_SINCOS}
+procedure sincos(theta : float;out sinus,cosinus : float);assembler;
+  asm
+    fldt theta
+    fsincos
+    fstpt (%edx)
+    fstpt (%eax)
+    fwait
+  end;
+
+
+{$define FPC_MATH_HAS_TAN}  
+function tan(x : float) : float;assembler;
+  asm
+    fldt X
+    fptan
+    fstp %st
+    fwait
+  end;
+  
+
+{$define FPC_MATH_HAS_COTAN}
+function cotan(x : float) : float;assembler;
+  asm
+    fldt X
+    fptan
+    fdivrp
+    fwait
+  end;
+
 
 function GetRoundMode: TFPURoundingMode;
 begin

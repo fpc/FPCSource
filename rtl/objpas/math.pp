@@ -656,25 +656,35 @@ function radtocycle(rad : float) : float;
      radtocycle:=rad*(1/(2*pi));
   end;
 
+{$ifndef FPC_MATH_HAS_TAN}
 function tan(x : float) : float;
-
+  var
+    _sin,_cos : float;
   begin
-     Tan:=Sin(x)/Cos(x)
+    sincos(x,_Sin,_Cos);
+    cotan:=_Sin/_Cos;
   end;
+{$endif FPC_MATH_HAS_TAN}
 
+
+{$ifndef FPC_MATH_HAS_COTAN}
 function cotan(x : float) : float;
-
+  var
+    _sin,_cos : float;
   begin
-     cotan:=Cos(X)/Sin(X);
+    sincos(x,_Sin,_Cos);
+    cotan:=_Cos/_Sin;
   end;
+{$endif FPC_MATH_HAS_COTAN}
 
+
+{$ifndef FPC_MATH_HAS_SINCOS}
 procedure sincos(theta : float;out sinus,cosinus : float);
-
   begin
     sinus:=sin(theta);
     cosinus:=cos(theta);
   end;
-
+{$endif FPC_MATH_HAS_SINCOS}
 
 
 { ArcSin and ArcCos from Arjan van Dijk (arjan.vanDijk@User.METAIR.WAU.NL) }
