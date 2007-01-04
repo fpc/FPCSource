@@ -7942,6 +7942,7 @@ tests/webtbs/tw7847.pp svneol=native#text/plain
 tests/webtbs/tw7963.pp svneol=native#text/plain
 tests/webtbs/tw7975.pp svneol=native#text/plain
 tests/webtbs/tw7975a.pp svneol=native#text/plain
+tests/webtbs/tw8018.pp svneol=native#text/plain
 tests/webtbs/tw8028.pp svneol=native#text/plain
 tests/webtbs/ub1873.pp svneol=native#text/plain
 tests/webtbs/ub1883.pp svneol=native#text/plain

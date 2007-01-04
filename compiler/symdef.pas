@@ -235,7 +235,6 @@ interface
           iidstr         : pshortstring;
           iitype         : tinterfaceentrytype;
           iioffset       : longint;
-          lastvtableindex: longint;
           { store implemented interfaces defs and name mappings }
           ImplementedInterfaces : TFPObjectList;
           constructor create(ot : tobjecttyp;const n : string;c : tobjectdef);
@@ -3579,7 +3578,6 @@ implementation
         { create space for vmt !! }
         vmtentries:=nil;
         vmt_offset:=0;
-        lastvtableindex:=0;
         set_parent(c);
         objname:=stringdup(upper(n));
         objrealname:=stringdup(n);
@@ -3622,7 +3620,6 @@ implementation
               new(iidguid);
               ppufile.getguid(iidguid^);
               iidstr:=stringdup(ppufile.getstring);
-              lastvtableindex:=ppufile.getlongint;
            end;
 
          { load implemented interfaces }
@@ -3705,7 +3702,6 @@ implementation
           end;
         if assigned(iidstr) then
           tobjectdef(result).iidstr:=stringdup(iidstr^);
-        tobjectdef(result).lastvtableindex:=lastvtableindex;
         if assigned(ImplementedInterfaces) then
           begin
             for i:=0 to ImplementedInterfaces.count-1 do
@@ -3737,7 +3733,6 @@ implementation
            begin
               ppufile.putguid(iidguid^);
               ppufile.putstring(iidstr^);
-              ppufile.putlongint(lastvtableindex);
            end;
 
          if objecttype in [odt_class,odt_interfacecorba] then
@@ -3837,9 +3832,7 @@ implementation
         if assigned(c) then
           begin
              { only important for classes }
-             lastvtableindex:=c.lastvtableindex;
-             objectoptions:=objectoptions+(c.objectoptions*
-               inherited_objectoptions);
+             objectoptions:=objectoptions+(c.objectoptions*inherited_objectoptions);
              if not (objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]) then
                begin
                   { add the data of the anchestor class }

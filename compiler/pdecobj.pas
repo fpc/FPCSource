@@ -179,8 +179,6 @@ implementation
               if assigned(def) and
                  (def.typ=procdef) then
                 begin
-//                  tprocdef(def).extnumber:=aktobjectdef.lastvtableindex;
-//                  inc(aktobjectdef.lastvtableindex);
                   include(tprocdef(def).procoptions,po_virtualmethod);
                   tprocdef(def).forwarddef:=false;
                 end;

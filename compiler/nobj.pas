@@ -416,34 +416,31 @@ implementation
 
     procedure TVMTBuilder.add_vmt_entries(objdef:tobjectdef);
       var
+         def : tdef;
          pd  : tprocdef;
-         i,j : longint;
-         sym : tsym;
+         i   : longint;
          VMTSymEntry : TVMTSymEntry;
       begin
         { start with the base class }
         if assigned(objdef.childof) then
           add_vmt_entries(objdef.childof);
-        { process all procsyms }
-        for i:=0 to objdef.symtable.SymList.Count-1 do
+        { process all procdefs, we must process the defs to
+          keep the same order as that is written in the source
+          to be compatible with the indexes in the interface vtable (PFV) }
+        for i:=0 to objdef.symtable.DefList.Count-1 do
           begin
-            sym:=tsym(objdef.symtable.SymList[i]);
-            if sym.typ=procsym then
+            def:=tdef(objdef.symtable.DefList[i]);
+            if assigned(def) and
+               (def.typ=procdef) then
               begin
+                pd:=tprocdef(def);
                 { Find VMT procsym }
-                VMTSymEntry:=TVMTSymEntry(VMTSymEntryList.Find(sym.name));
+                VMTSymEntry:=TVMTSymEntry(VMTSymEntryList.Find(pd.procsym.name));
                 if not assigned(VMTSymEntry) then
-                  VMTSymEntry:=TVMTSymEntry.Create(VMTSymEntryList,sym.name);
-                { Add all procdefs }
-                for j:=0 to Tprocsym(sym).ProcdefList.Count-1 do
-                  begin
-                    pd:=tprocdef(Tprocsym(sym).ProcdefList[j]);
-                    if pd.procsym=tprocsym(sym) then
-                      begin
-                        if is_new_vmt_entry(VMTSymEntry,pd) then
-                          add_new_vmt_entry(VMTSymEntry,pd);
-                      end;
-                  end;
+                  VMTSymEntry:=TVMTSymEntry.Create(VMTSymEntryList,pd.procsym.name);
+                { VMT entry }
+                if is_new_vmt_entry(VMTSymEntry,pd) then
+                  add_new_vmt_entry(VMTSymEntry,pd);
               end;
           end;
       end;
