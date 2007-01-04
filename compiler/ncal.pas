@@ -1391,7 +1391,8 @@ implementation
         { also, this checking can only be done if the constructor is directly
           called, indirect constructor calls cannot be checked.
         }
-        if assigned(methodpointer) then
+        if assigned(methodpointer) and
+           not (nf_is_self in methodpointer.flags) then
           begin
             if (methodpointer.resultdef.typ = objectdef) then
               objectdf:=tobjectdef(methodpointer.resultdef)
