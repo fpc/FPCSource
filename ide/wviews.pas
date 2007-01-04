@@ -11,6 +11,10 @@
 
  **********************************************************************}
 {$I globdir.inc}
+{$ifdef USERESSTRINGS}
+{$mode objfpc}
+{$endif USERESSTRINGS}
+
 unit WViews;
 
 interface
@@ -300,11 +304,15 @@ const
   );
 {$endif}
 
-
-resourcestring  sConfirm='Confirm';
-                sError='Error';
-                sInformation='Information';
-                sWarning='Warning';
+{$ifdef USERESSTRINGS}
+    resourcestring
+{$else}
+    const
+{$endif}
+      sConfirm='Confirm';
+      sError='Error';
+      sInformation='Information';
+      sWarning='Warning';
 
 const
   MessageDialog  : PCenterDialog = nil;
