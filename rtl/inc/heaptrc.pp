@@ -55,6 +55,9 @@ const
   quicktrace : boolean=true;
   { calls halt() on error by default !! }
   HaltOnError : boolean = true;
+  { Halt on exit if any memory was not freed }
+  HaltOnNotReleased : boolean = false;
+
   { set this to true if you suspect that memory
     is freed several times }
 {$ifdef EXTRA}
@@ -1002,6 +1005,8 @@ begin
        ;
      pp:=pp^.previous;
    end;
+  if HaltOnNotReleased and (getmem_cnt<>freemem_cnt) then
+    exitcode:=203;
 end;
 
 
@@ -1228,6 +1233,8 @@ begin
    useheaptrace:=false;
   if pos('nohalt',s)>0 then
    haltonerror:=false;
+  if pos('haltonnotreleased',s)>0 then
+   HaltOnNotReleased :=true;
   i:=pos('log=',s);
   if i>0 then
    begin
