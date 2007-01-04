@@ -74,6 +74,7 @@ interface
   {$define GDB_HAS_SYSROOT}
   {$define GDB_HAS_DB_COMMANDS}
   {$define GDB_SYMTAB_HAS_MACROS}
+  {$define GDB_INIT_HAS_ARGV0}
 {$endif GDB_V6}
 
 { GDB has a simulator for powerpc CPU
@@ -1124,7 +1125,11 @@ function  xmalloc(size : longint) : pointer;cdecl;external;
 function  find_pc_line(i:CORE_ADDR;l:longint):symtab_and_line;cdecl;external;
 function  find_pc_function(i:CORE_ADDR):psymbol;cdecl;external;
 function  lookup_minimal_symbol_by_pc(i : CORE_ADDR):pminimal_symbol;cdecl;external;
+{$ifdef GDB_INIT_HAS_ARGV0}
+procedure gdb_init(argv0 : pchar);cdecl;external;
+{$else not GDB_INIT_HAS_ARGV0}
 procedure gdb_init;cdecl;external;
+{$endif not GDB_INIT_HAS_ARGV0}
 procedure execute_command(p:pchar;i:longint);cdecl;external;
 procedure target_kill;cdecl;external;
 procedure target_close(i:longint);cdecl;external;
@@ -2446,6 +2451,10 @@ procedure InitLibGDB;
 var
   OldSigInt : SignalHandler;
 {$endif supportexceptions}
+{$ifdef GDB_INIT_HAS_ARGV0}
+var
+  argv0 : pchar;
+{$endif not GDB_INIT_HAS_ARGV0}
 begin
 {$ifdef go32v2}
   c_environ:=system.envp;
@@ -2487,7 +2496,14 @@ begin
 {$ifdef GDB_V6}
   uiout := cli_out_new (gdb_stdout);
 {$endif}
+{$ifdef GDB_INIT_HAS_ARGV0}
+  getmem(argv0,length(paramstr(0))+1);
+  strpcopy(argv0,paramstr(0));
+  gdb_init(@argv0);
+  freemem(argv0,length(paramstr(0))+1);
+{$else not GDB_INIT_HAS_ARGV0}
   gdb_init;
+{$endif not GDB_INIT_HAS_ARGV0}
 {$ifdef supportexceptions}
   {$ifdef unix}
     fpsignal(SIGINT,OldSigInt);
