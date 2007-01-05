@@ -49,7 +49,7 @@ type
     FStatementType : TStatementType;
     FBlobStrings   : TStringList;   // list of strings in which the blob-fields are stored
   public
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
   end;
 
@@ -1191,6 +1191,7 @@ Procedure TSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
         sql_set := sql_set + fields[x].FieldName + '=:' + fields[x].FieldName + ',';
       end;
 
+    if length(sql_set) = 0 then DatabaseError(sNoUpdateFields,self);
     setlength(sql_set,length(sql_set)-1);
     if length(sql_where) = 0 then DatabaseError(sNoWhereFields,self);
     setlength(sql_where,length(sql_where)-5);
@@ -1215,6 +1216,7 @@ Procedure TSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
         sql_values := sql_values + ':' + fields[x].FieldName + ',';
         end;
       end;
+    if length(sql_fields) = 0 then DatabaseError(sNoUpdateFields,self);
     setlength(sql_fields,length(sql_fields)-1);
     setlength(sql_values,length(sql_values)-1);
 

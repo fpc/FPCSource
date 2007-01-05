@@ -86,6 +86,7 @@ Resourcestring
   SOnUpdateError           = 'An error occured while applying the updates in a record: %s';
   SApplyRecNotSupported    = 'Applying updates is not supported by this TDataset descendent';
   SNoWhereFields           = 'There are no fields found to generate the where-clause';
+  SNoUpdateFields          = 'There are no fields found to include in the update- or insert-clause';
   SNotSupported            = 'Operation is not supported by this type of database';
   SDBCreateDropFailed      = 'Creation or dropping of database failed';
 
