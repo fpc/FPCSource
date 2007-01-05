@@ -21,6 +21,8 @@ type
       GDSErrorCode : Longint;
   end;
 
+  { TIBCursor }
+
   TIBCursor = Class(TSQLCursor)
     protected
     Status               : array [0..19] of ISC_STATUS;
@@ -28,6 +30,7 @@ type
     SQLDA                : PXSQLDA;
     in_SQLDA             : PXSQLDA;
     ParamBinding         : array of integer;
+    FieldBinding         : array of integer;
   end;
 
   TIBTrans = Class(TSQLHandle)
@@ -620,6 +623,7 @@ begin
   {$R-}
   with cursor as TIBCursor do
     begin
+    setlength(FieldBinding,SQLDA^.SQLD);
     for x := 0 to SQLDA^.SQLD - 1 do
       begin
       TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
@@ -628,6 +632,7 @@ begin
          TransLen, False, (x + 1));
       if TransType = ftBCD then FD.precision := SQLDA^.SQLVar[x].SQLLen;
       FD.DisplayName := SQLDA^.SQLVar[x].AliasName;
+      FieldBinding[FD.FieldNo-1] := x;
       end;
     end;
   {$R+}
@@ -759,8 +764,7 @@ begin
   with cursor as TIBCursor do
     begin
 {$R-}
-    for x := 0 to SQLDA^.SQLD - 1 do
-      if SQLDA^.SQLVar[x].AliasName = FieldDef.Name then break;
+    x := FieldBinding[FieldDef.FieldNo-1];
 
     if SQLDA^.SQLVar[x].AliasName <> FieldDef.Name then
       DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
@@ -1102,7 +1106,5 @@ begin
   else
     CheckError('TIBConnection.CreateBlobStream isc_get_segment', FStatus);
 end;
-
-
 
 end.
