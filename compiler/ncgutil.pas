@@ -1442,7 +1442,7 @@ implementation
             end;
           LOC_CMMREGISTER:
             begin
-             sym.initialloc.register:=cg.getmmregister(list,sym.localloc.size);
+             sym.initialloc.register:=cg.getmmregister(list,sym.initialloc.size);
             end;
         end;
 
