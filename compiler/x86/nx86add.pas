@@ -88,14 +88,14 @@ unit nx86add;
          begin
            { right.location is a LOC_REGISTER }
            { when swapped another result register }
-           if (nodetype=subn) and (nf_swaped in flags) then
+           if (nodetype=subn) and (nf_swapped in flags) then
             begin
               if extra_not then
                emit_reg(A_NOT,TCGSize2Opsize[opsize],left.location.register);
               emit_reg_reg(op,TCGSize2Opsize[opsize],left.location.register,right.location.register);
               { newly swapped also set swapped flag }
               location_swap(left.location,right.location);
-              toggleflag(nf_swaped);
+              toggleflag(nf_swapped);
             end
            else
             begin
@@ -109,7 +109,7 @@ unit nx86add;
         else
          begin
            { right.location is not a LOC_REGISTER }
-           if (nodetype=subn) and (nf_swaped in flags) then
+           if (nodetype=subn) and (nf_swapped in flags) then
             begin
               if extra_not then
                 cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,opsize,left.location.register,left.location.register);
@@ -199,7 +199,7 @@ unit nx86add;
               (right.location.loc=LOC_REGISTER) then
             begin
               location_swap(left.location,right.location);
-              toggleflag(nf_swaped);
+              toggleflag(nf_swapped);
             end
            else
             begin
@@ -221,7 +221,7 @@ unit nx86add;
              location_force_fpureg(current_asmdata.CurrAsmList,left.location,false)
            else
              { left was on the stack => swap }
-             toggleflag(nf_swaped);
+             toggleflag(nf_swapped);
          end
         { the nominator in st0 }
         else if (left.location.loc<>LOC_FPUREGISTER) then
@@ -229,7 +229,7 @@ unit nx86add;
         else
          begin
            { fpu operands are always in the wrong order on the stack }
-           toggleflag(nf_swaped);
+           toggleflag(nf_swapped);
          end;
       end;
 
@@ -282,7 +282,7 @@ unit nx86add;
           else
            if not(unsigned) then
              begin
-                if nf_swaped in flags then
+                if nf_swapped in flags then
                   case nodetype of
                      ltn : getresflags:=F_G;
                      lten : getresflags:=F_GE;
@@ -299,7 +299,7 @@ unit nx86add;
              end
            else
              begin
-                if nf_swaped in flags then
+                if nf_swapped in flags then
                   case nodetype of
                      ltn : getresflags:=F_A;
                      lten : getresflags:=F_AE;
@@ -342,7 +342,7 @@ unit nx86add;
               { as it is done for subn               }
               { instead of two registers!!!!         }
               { adding elements is not commutative }
-              if (nf_swaped in flags) and (left.nodetype=setelementn) then
+              if (nf_swapped in flags) and (left.nodetype=setelementn) then
                swapleftright;
               { are we adding set elements ? }
               if right.nodetype=setelementn then
@@ -366,10 +366,10 @@ unit nx86add;
           subn :
             begin
               op:=A_AND;
-              if (not(nf_swaped in flags)) and
+              if (not(nf_swapped in flags)) and
                  (right.location.loc=LOC_CONSTANT) then
                 right.location.value := not(right.location.value)
-              else if (nf_swaped in flags) and
+              else if (nf_swapped in flags) and
                       (left.location.loc=LOC_CONSTANT) then
                 left.location.value := not(left.location.value)
               else
@@ -406,8 +406,8 @@ unit nx86add;
             op:=A_CMP;
           lten,gten:
             begin
-              if (not(nf_swaped in flags) and (nodetype = lten)) or
-                 ((nf_swaped in flags) and (nodetype = gten)) then
+              if (not(nf_swapped in flags) and (nodetype = lten)) or
+                 ((nf_swapped in flags) and (nodetype = gten)) then
                 swapleftright;
               location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
               emit_op_right_left(A_AND,opsize);
@@ -528,7 +528,7 @@ unit nx86add;
            if (right.location.loc=LOC_MMXREGISTER) then
             begin
               location_swap(left.location,right.location);
-              toggleflag(nf_swaped);
+              toggleflag(nf_swapped);
             end
            else
             begin
@@ -555,7 +555,7 @@ unit nx86add;
         { at this point, left.location.loc should be LOC_MMXREGISTER }
         if right.location.loc<>LOC_MMXREGISTER then
          begin
-           if (nodetype=subn) and (nf_swaped in flags) then
+           if (nodetype=subn) and (nf_swapped in flags) then
             begin
               hreg:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
               if right.location.loc=LOC_CMMXREGISTER then
@@ -588,11 +588,11 @@ unit nx86add;
         else
           begin
             { right.location=LOC_MMXREGISTER }
-            if (nodetype=subn) and (nf_swaped in flags) then
+            if (nodetype=subn) and (nf_swapped in flags) then
              begin
                emit_reg_reg(op,S_NO,left.location.register,right.location.register);
                location_swap(left.location,right.location);
-               toggleflag(nf_swaped);
+               toggleflag(nf_swapped);
              end
             else
              begin
@@ -632,7 +632,7 @@ unit nx86add;
             if right.nodetype=setelementn then
               begin
                 { adding elements is not commutative }
-{                if nf_swaped in flags then
+{                if nf_swapped in flags then
                   swapleftright;}
                 { bts requires both elements to be registers }
 {                location_force_reg(current_asmdata.CurrAsmList,left.location,opsize_2_cgsize[opsize],false);
@@ -657,8 +657,8 @@ unit nx86add;
           end;
         lten,gten:
           begin
-            if (not(nf_swaped in flags) and (nodetype = lten)) or
-               ((nf_swaped in flags) and (nodetype = gten)) then
+            if (not(nf_swapped in flags) and (nodetype = lten)) or
+               ((nf_swapped in flags) and (nodetype = gten)) then
               swapleftright;
             location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
             emit_op_right_left(A_AND,opsize);
@@ -696,7 +696,7 @@ unit nx86add;
         op : topcg;
       begin
         pass_left_right;
-        if (nf_swaped in flags) then
+        if (nf_swapped in flags) then
           swapleftright;
 
         case nodetype of
@@ -728,7 +728,7 @@ unit nx86add;
           end
         else
           begin
-            if (nf_swaped in flags) then
+            if (nf_swapped in flags) then
               swapleftright;
 
             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
@@ -779,10 +779,10 @@ unit nx86add;
               else
                 internalerror(200402221);
             end;
-            if nf_swaped in flags then
-              exclude(flags,nf_swaped)
+            if nf_swapped in flags then
+              exclude(flags,nf_swapped)
             else
-              include(flags,nf_swaped)
+              include(flags,nf_swapped)
           end
         else
           begin
@@ -815,7 +815,7 @@ unit nx86add;
         op : topcg;
       begin
         pass_left_right;
-        if (nf_swaped in flags) then
+        if (nf_swapped in flags) then
           swapleftright;
 
         case nodetype of
@@ -884,7 +884,7 @@ unit nx86add;
         left_and_right_must_be_fpureg;
 
         { if we swaped the tree nodes, then use the reverse operator }
-        if nf_swaped in flags then
+        if nf_swapped in flags then
           begin
              if (nodetype=slashn) then
                op:=A_FDIVRP
@@ -925,7 +925,7 @@ unit nx86add;
             emit_reg(A_FNSTSW,S_NO,NR_AX);
             emit_none(A_SAHF,S_NO);
             cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_AX);
-            if nf_swaped in flags then
+            if nf_swapped in flags then
              begin
                case nodetype of
                    equaln : resflags:=F_E;
@@ -958,7 +958,7 @@ unit nx86add;
             tcgx86(cg).dec_fpu_stack;
 
             { load fpu flags }
-            if nf_swaped in flags then
+            if nf_swapped in flags then
              begin
                case nodetype of
                    equaln : resflags:=F_E;

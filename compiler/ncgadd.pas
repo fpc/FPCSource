@@ -142,7 +142,7 @@ interface
             left.location.register := tmpreg;
 {$ifdef x86}
             { left operand is now on top of the stack, instead of the right one! }
-            toggleflag(nf_swaped);
+            toggleflag(nf_swapped);
 {$endif x86}
           end;
       end;
@@ -260,7 +260,7 @@ interface
           We need an extra check if left is a register because the
           default case can skip the register loading when the
           setelementn is in a register (PFV) }
-        if (nf_swaped in flags) and
+        if (nf_swapped in flags) and
            (left.nodetype=setelementn) then
           swapleftright;
         if (right.nodetype=setelementn) and
@@ -307,7 +307,7 @@ interface
           subn :
             begin
               cgop:=OP_AND;
-              if (not(nf_swaped in flags)) then
+              if (not(nf_swapped in flags)) then
                 if (right.location.loc=LOC_CONSTANT) then
                   right.location.value := not(right.location.value)
                 else
@@ -511,7 +511,7 @@ interface
             end;
           subn:
             begin
-              if (nf_swaped in flags) then
+              if (nf_swapped in flags) then
                 swapleftright;
 
               if left.location.loc <> LOC_CONSTANT then
@@ -554,7 +554,7 @@ interface
             end;
           subn:
             begin
-              if (nf_swaped in flags) then
+              if (nf_swapped in flags) then
                 swapleftright;
 
               if left.location.loc <> LOC_CONSTANT then
@@ -697,7 +697,7 @@ interface
         end
       else  { subtract is a special case since its not commutative }
         begin
-          if (nf_swaped in flags) then
+          if (nf_swapped in flags) then
             swapleftright;
           if left.location.loc<>LOC_CONSTANT then
             begin

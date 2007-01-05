@@ -186,7 +186,7 @@ implementation
           exit;
 
          { ofcourse not commutative }
-         if nf_swaped in flags then
+         if nf_swapped in flags then
           swapleftright;
 
          if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then

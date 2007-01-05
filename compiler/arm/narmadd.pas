@@ -68,7 +68,7 @@ interface
           else
             if not(unsigned) then
               begin
-                if nf_swaped in flags then
+                if nf_swapped in flags then
                   case NodeType of
                     ltn:
                       GetResFlags:=F_GT;
@@ -93,7 +93,7 @@ interface
               end
             else
               begin
-                if nf_swaped in Flags then
+                if nf_swapped in Flags then
                   case NodeType of
                     ltn:
                       GetResFlags:=F_HI;
@@ -130,7 +130,7 @@ interface
           fpu_fpa11:
             begin
               pass_left_right;
-              if (nf_swaped in flags) then
+              if (nf_swapped in flags) then
                 swapleftright;
 
               case nodetype of
@@ -175,7 +175,7 @@ interface
     procedure tarmaddnode.second_cmpfloat;
       begin
         pass_left_right;
-        if (nf_swaped in flags) then
+        if (nf_swapped in flags) then
           swapleftright;
 
         { force fpureg as location, left right doesn't matter
@@ -224,9 +224,9 @@ interface
           lten,
           gten:
             begin
-              if (not(nf_swaped in flags) and
+              if (not(nf_swapped in flags) and
                   (nodetype = lten)) or
-                 ((nf_swaped in flags) and
+                 ((nf_swapped in flags) and
                   (nodetype = gten)) then
                 swapleftright;
               tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
@@ -270,9 +270,9 @@ interface
                  begin
                     cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(false),current_procinfo.CurrTrueLabel);
                     { cheat a little bit for the negative test }
-                    toggleflag(nf_swaped);
+                    toggleflag(nf_swapped);
                     cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(false),current_procinfo.CurrFalseLabel);
-                    toggleflag(nf_swaped);
+                    toggleflag(nf_swapped);
                  end;
                lten,gten:
                  begin

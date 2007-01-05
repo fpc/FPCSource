@@ -253,7 +253,7 @@ begin
         end;
       subn:
         begin
-          if (nf_swaped in flags) then
+          if (nf_swapped in flags) then
             swapleftright;
           if left.location.loc <> LOC_CONSTANT then
             if right.location.loc <> LOC_CONSTANT then begin
@@ -295,7 +295,7 @@ begin
         subn:
           begin
             op := A_SUBO;
-            if (nf_swaped in flags) then
+            if (nf_swapped in flags) then
               swapleftright;
           end;
         muln:

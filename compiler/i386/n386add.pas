@@ -115,7 +115,7 @@ interface
            else
             begin
               location_swap(left.location,right.location);
-              toggleflag(nf_swaped);
+              toggleflag(nf_swapped);
             end;
          end;
 
@@ -123,13 +123,13 @@ interface
         if right.location.loc=LOC_REGISTER then
          begin
            { when swapped another result register }
-           if (nodetype=subn) and (nf_swaped in flags) then
+           if (nodetype=subn) and (nf_swapped in flags) then
             begin
               cg64.a_op64_reg_reg(current_asmdata.CurrAsmList,op,location.size,
                 left.location.register64,
                 right.location.register64);
               location_swap(left.location,right.location);
-              toggleflag(nf_swaped);
+              toggleflag(nf_swapped);
             end
            else
             begin
@@ -141,7 +141,7 @@ interface
         else
          begin
            { right.location<>LOC_REGISTER }
-           if (nodetype=subn) and (nf_swaped in flags) then
+           if (nodetype=subn) and (nf_swapped in flags) then
             begin
               r:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
               cg64.a_load64low_loc_reg(current_asmdata.CurrAsmList,right.location,r);
@@ -204,9 +204,9 @@ interface
                 begin
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
                    { cheat a little bit for the negative test }
-                   toggleflag(nf_swaped);
+                   toggleflag(nf_swapped);
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
-                   toggleflag(nf_swaped);
+                   toggleflag(nf_swapped);
                 end;
               lten,gten:
                 begin
@@ -286,7 +286,7 @@ interface
            else
             begin
               location_swap(left.location,right.location);
-              toggleflag(nf_swaped);
+              toggleflag(nf_swapped);
             end;
          end;
 

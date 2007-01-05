@@ -68,7 +68,7 @@ interface
           else
             if not(unsigned) then
               begin
-                if nf_swaped in flags then
+                if nf_swapped in flags then
                   case NodeType of
                     ltn:
                       GetResFlags:=F_G;
@@ -93,7 +93,7 @@ interface
               end
             else
               begin
-                if nf_swaped in Flags then
+                if nf_swapped in Flags then
                   case NodeType of
                     ltn:
                       GetResFlags:=F_A;
@@ -129,7 +129,7 @@ interface
             result:=F_FNE;
           else
             begin
-              if nf_swaped in Flags then
+              if nf_swapped in Flags then
                 case NodeType of
                   ltn:
                     result:=F_FG;
@@ -161,7 +161,7 @@ interface
         op : TAsmOp;
       begin
         pass_left_right;
-        if (nf_swaped in flags) then
+        if (nf_swapped in flags) then
           swapleftright;
 
         { force fpureg as location, left right doesn't matter
@@ -218,7 +218,7 @@ interface
         op : tasmop;
       begin
         pass_left_right;
-        if (nf_swaped in flags) then
+        if (nf_swapped in flags) then
           swapleftright;
 
         { force fpureg as location, left right doesn't matter
@@ -284,9 +284,9 @@ interface
                 begin
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
                    { cheat a little bit for the negative test }
-                   toggleflag(nf_swaped);
+                   toggleflag(nf_swapped);
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
-                   toggleflag(nf_swaped);
+                   toggleflag(nf_swapped);
                 end;
               lten,gten:
                 begin

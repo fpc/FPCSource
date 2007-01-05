@@ -144,7 +144,7 @@ implementation
           equaln : result.flag:=F_EQ;
           unequaln : result.flag:=F_NE;
         else
-          if nf_swaped in flags then
+          if nf_swapped in flags then
             case nodetype of
               ltn : result.flag:=F_GT;
               lten : result.flag:=F_GE;
@@ -335,7 +335,7 @@ implementation
 
         // get the operands in the correct order, there are no special cases
         // here, everything is register-based
-        if nf_swaped in flags then
+        if nf_swapped in flags then
           swapleftright;
 
         // put both operands in a register
@@ -406,7 +406,7 @@ implementation
         case nodetype of
           addn :
             begin
-              if (nf_swaped in flags) and (left.nodetype=setelementn) then
+              if (nf_swapped in flags) and (left.nodetype=setelementn) then
                 swapleftright;
               { are we adding set elements ? }
               if right.nodetype=setelementn then
@@ -443,7 +443,7 @@ implementation
           subn :
             begin
               cgop:=OP_AND;
-              if (not(nf_swaped in flags)) then
+              if (not(nf_swapped in flags)) then
                 if (right.location.loc=LOC_CONSTANT) then
                   right.location.value := not(right.location.value)
                 else
@@ -479,9 +479,9 @@ implementation
             end;
           lten,gten:
             begin
-              If (not(nf_swaped in flags) and
+              If (not(nf_swapped in flags) and
                   (nodetype = lten)) or
-                 ((nf_swaped in flags) and
+                 ((nf_swapped in flags) and
                   (nodetype = gten)) then
                 swapleftright;
               // now we have to check whether left >= right

@@ -197,7 +197,7 @@ interface
        { all boolean field of ttree are now collected in flags }
        tnodeflag = (
          nf_swapable,    { tbinop operands can be swaped }
-         nf_swaped,      { tbinop operands are swaped    }
+         nf_swapped,      { tbinop operands are swaped    }
          nf_error,
 
          { general }
@@ -1118,10 +1118,10 @@ implementation
          swapp:=right;
          right:=left;
          left:=swapp;
-         if nf_swaped in flags then
-           exclude(flags,nf_swaped)
+         if nf_swapped in flags then
+           exclude(flags,nf_swapped)
          else
-           include(flags,nf_swaped);
+           include(flags,nf_swapped);
       end;
 
 

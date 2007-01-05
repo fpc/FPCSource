@@ -68,7 +68,7 @@ implementation
           else
            if not(unsigned) then
              begin
-                if nf_swaped in flags then
+                if nf_swapped in flags then
                   case nodetype of
                      ltn : getresflags:=F_G;
                      lten : getresflags:=F_GE;
@@ -85,7 +85,7 @@ implementation
              end
            else
              begin
-                if nf_swaped in flags then
+                if nf_swapped in flags then
                   case nodetype of
                      ltn : getresflags:=F_A;
                      lten : getresflags:=F_AE;
@@ -136,7 +136,7 @@ implementation
 
         // get the operands in the correct order, there are no special cases
         // here, everything is register-based
-        if nf_swaped in flags then
+        if nf_swapped in flags then
           swapleftright;
 
         // put both operands in a register
@@ -183,7 +183,7 @@ implementation
         pass_left_right;
 
 {
-        if (nf_swaped in flags) then
+        if (nf_swapped in flags) then
           swapleftright;
 }
         { force fpureg as location, left right doesn't matter
@@ -229,9 +229,9 @@ implementation
             end;
           lten,gten:
             begin
-              If (not(nf_swaped in flags) and
+              If (not(nf_swapped in flags) and
                   (nodetype = lten)) or
-                 ((nf_swaped in flags) and
+                 ((nf_swapped in flags) and
                   (nodetype = gten)) then
                 swapleftright;
               // now we have to check whether left >= right

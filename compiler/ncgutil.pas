@@ -224,7 +224,7 @@ implementation
          if (p.nodetype in [orn,andn]) and
             is_boolean(p.left.resultdef) then
            begin
-             if nf_swaped in p.flags then
+             if nf_swapped in p.flags then
                internalerror(234234);
            end
          else
@@ -245,10 +245,10 @@ implementation
               hp:=p.left;
               p.left:=p.right;
               p.right:=hp;
-              if nf_swaped in p.flags then
-                exclude(p.flags,nf_swaped)
+              if nf_swapped in p.flags then
+                exclude(p.flags,nf_swapped)
               else
-                include(p.flags,nf_swaped);
+                include(p.flags,nf_swapped);
             end;
       end;
 

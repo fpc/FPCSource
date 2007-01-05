@@ -285,7 +285,7 @@ implementation
            exit;
 
          { ofcourse not commutative }
-         if nf_swaped in flags then
+         if nf_swapped in flags then
           swapleftright;
 
          if genjumps then

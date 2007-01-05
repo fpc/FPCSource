@@ -193,9 +193,9 @@ interface
                 begin
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrTrueLabel);
                    { cheat a little bit for the negative test }
-                   toggleflag(nf_swaped);
+                   toggleflag(nf_swapped);
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrFalseLabel);
-                   toggleflag(nf_swaped);
+                   toggleflag(nf_swapped);
                 end;
               lten,gten:
                 begin
@@ -276,7 +276,7 @@ interface
           subn :
             begin
               op:=OP_SUB;
-              if (nf_swaped in flags) then
+              if (nf_swapped in flags) then
                 swapleftright;
             end;
           ltn,lten,
@@ -642,7 +642,7 @@ interface
            if (right.location.loc=LOC_MMXREGISTER) then
             begin
               location_swap(left.location,right.location);
-              toggleflag(nf_swaped);
+              toggleflag(nf_swapped);
             end
            else
             begin
@@ -671,7 +671,7 @@ interface
         { at this point, left.location.loc should be LOC_MMXREGISTER }
         if right.location.loc<>LOC_MMXREGISTER then
          begin
-           if (nodetype=subn) and (nf_swaped in flags) then
+           if (nodetype=subn) and (nf_swapped in flags) then
             begin
               if right.location.loc=LOC_CMMXREGISTER then
                begin
@@ -707,11 +707,11 @@ interface
         else
           begin
             { right.location=LOC_MMXREGISTER }
-            if (nodetype=subn) and (nf_swaped in flags) then
+            if (nodetype=subn) and (nf_swapped in flags) then
              begin
                emit_reg_reg(op,S_NO,left.location.register,right.location.register);
                location_swap(left.location,right.location);
-               toggleflag(nf_swaped);
+               toggleflag(nf_swapped);
              end
             else
              begin
@@ -860,7 +860,7 @@ interface
                  end;
                subn:
                  begin
-                   if (nf_swaped in flags) then
+                   if (nf_swapped in flags) then
                      swapleftright;
                    if left.location.loc <> LOC_CONSTANT then
                      if right.location.loc <> LOC_CONSTANT then
@@ -905,7 +905,7 @@ interface
                    subn:
                      begin
                        op := A_SUBO;
-                       if (nf_swaped in flags) then
+                       if (nf_swapped in flags) then
                          swapleftright;
                      end;
                    muln:
@@ -929,7 +929,7 @@ interface
                     end;
                   subn:
                     begin
-                      if nf_swaped in flags then
+                      if nf_swapped in flags then
                         swapleftright;
                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
                         left.location.register,right.location.register));
