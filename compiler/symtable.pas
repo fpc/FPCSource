@@ -1748,7 +1748,7 @@ implementation
         sym:=tsym(systemunit.Find(s));
         if not assigned(sym) or
            (sym.typ<>typesym) then
-          internalerror(200501251);
+          cgmessage1(cg_f_unknown_system_type,s);
         result:=ttypesym(sym);
       end;
 

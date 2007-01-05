@@ -1654,10 +1654,15 @@ cg_e_break_not_allowed=06044_E_BREAK not allowed
 cg_e_continue_not_allowed=06045_E_CONTINUE not allowed
 % You're trying to use \var{continue} outside a loop construction.
 cg_f_unknown_compilerproc=06046_F_Unknown compilerproc "$1". Check if you use the correct run time library.
-% The compiler expects that the runtime library contains some subrountines. If you see this error
-% and you didn't mess with the runtime library, it's very likely that the runtime library
+% The compiler expects that the runtime library contains certain subroutines. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
 % that you removed a subroutine which the compiler needs for internal use.
+cg_f_unknown_system_type=06047_F_Cannot find system type "$1". Check if you use the correct run time library.
+% The compiler expects that the runtime library contains certain type definitions. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
+% you're using doesn't match the used compiler. If you changed the runtime library this error means
+% that you removed a type which the compiler needs for internal use.
 % \end{description}
 # EndOfTeX
 

@@ -456,6 +456,7 @@ const
   cg_e_break_not_allowed=06044;
   cg_e_continue_not_allowed=06045;
   cg_f_unknown_compilerproc=06046;
+  cg_f_unknown_system_type=06047;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;
@@ -713,9 +714,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 42325;
+  MsgTxtSize = 42410;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,82,230,79,63,47,106,22,135,60,
+    24,82,230,79,63,48,106,22,135,60,
     41,1,1,1,1,1,1,1,1,1
   );
