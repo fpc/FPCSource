@@ -2248,7 +2248,8 @@ const
             end;
           OP_ADD, OP_SUB:
             begin
-              if (value < 0) then
+              if (value < 0) and
+                 (value <> low(value)) then
                 begin
                   if op = OP_ADD then
                     op := OP_SUB
