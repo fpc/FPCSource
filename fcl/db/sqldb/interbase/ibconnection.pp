@@ -597,6 +597,7 @@ begin
     begin
     FreeSQLDABuffer(SQLDA);
     FreeSQLDABuffer(in_SQLDA);
+    SetLength(FieldBinding,0);
     end;
 end;
 
@@ -757,7 +758,6 @@ var
   x          : integer;
   VarcharLen : word;
   CurrBuff     : pchar;
-  b            : longint;
   c            : currency;
 
 begin
@@ -766,8 +766,13 @@ begin
 {$R-}
     x := FieldBinding[FieldDef.FieldNo-1];
 
-    if SQLDA^.SQLVar[x].AliasName <> FieldDef.Name then
-      DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
+    // Joost, 5 jan 2006: I disabled the following, since it's usefull for
+    // debugging, but it also slows things down. In principle things can only go
+    // wrong when FieldDefs is changed while the dataset is opened. A user just
+    // shoudn't do that. ;) (The same is done in PQConnection)
+
+    // if SQLDA^.SQLVar[x].AliasName <> FieldDef.Name then
+    // DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
     if assigned(SQLDA^.SQLVar[x].SQLInd) and (SQLDA^.SQLVar[x].SQLInd^ = -1) then
       result := false
     else
@@ -796,8 +801,7 @@ begin
           end;
         ftInteger :
           begin
-            b := 0;
-            Move(b, Buffer^, sizeof(longint));
+            FillByte(buffer^,sizeof(Longint),0);
             Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
           end;
         ftLargeint :

@@ -23,11 +23,12 @@ type
 
   TPQCursor = Class(TSQLCursor)
     protected
-    Statement : string;
-    tr        : TPQTrans;
-    res       : PPGresult;
-    CurTuple  : integer;
-    Nr        : string;
+    Statement    : string;
+    tr           : TPQTrans;
+    res          : PPGresult;
+    CurTuple     : integer;
+    Nr           : string;
+    FieldBinding : array of integer;
   end;
 
   { TPQConnection }
@@ -585,6 +586,7 @@ begin
   with cursor as TPQCursor do
     begin
     nFields := PQnfields(Res);
+    setlength(FieldBinding,nFields);
     for i := 0 to nFields-1 do
       begin
       size := PQfsize(Res, i);
@@ -600,7 +602,8 @@ begin
       else if fieldtype = ftblob then
         size := 0;
 
-      TFieldDef.Create(FieldDefs, PQfname(Res, i), fieldtype,size, False, (i + 1));
+      with TFieldDef.Create(FieldDefs, PQfname(Res, i), fieldtype,size, False, (i + 1)) do
+        FieldBinding[FieldNo-1] := i;
       end;
     CurTuple := -1;
     end;
@@ -645,11 +648,14 @@ var
 begin
   with cursor as TPQCursor do
     begin
-    for x := 0 to PQnfields(res)-1 do
-      if PQfname(Res, x) = FieldDef.Name then break;
 
+    // Joost, 5 jan 2006: I disabled the following, since it's usefull for
+    // debugging, but it also slows things down. In principle things can only go
+    // wrong when FieldDefs is changed while the dataset is opened. A user just
+    // shoudn't do that. ;) (The same is done in IBConnection)
     if PQfname(Res, x) <> FieldDef.Name then
       DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
+    x := FieldBinding[FieldDef.FieldNo-1];
 
     if pqgetisnull(res,CurTuple,x)=1 then
       result := false
