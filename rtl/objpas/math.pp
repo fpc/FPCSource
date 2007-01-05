@@ -661,8 +661,8 @@ function tan(x : float) : float;
   var
     _sin,_cos : float;
   begin
-    sincos(x,_Sin,_Cos);
-    cotan:=_Sin/_Cos;
+    sincos(x,_sin,_cos);
+    tan:=_sin/_cos;
   end;
 {$endif FPC_MATH_HAS_TAN}
 
@@ -672,8 +672,8 @@ function cotan(x : float) : float;
   var
     _sin,_cos : float;
   begin
-    sincos(x,_Sin,_Cos);
-    cotan:=_Cos/_Sin;
+    sincos(x,_sin,_cos);
+    cotan:=_cos/_sin;
   end;
 {$endif FPC_MATH_HAS_COTAN}
 
