@@ -498,6 +498,11 @@ interface
             internalerror(2002072705);
         end;
 
+        checkoverflow:=
+          checkoverflow and
+          (left.resultdef.typ<>pointerdef) and 
+          (right.resultdef.typ<>pointerdef);
+
 {$ifdef cpu64bit}
         case nodetype of
           xorn,orn,andn,addn:
@@ -683,6 +688,11 @@ interface
               cgop:=OP_SUB;
             end;
         end;
+
+       checkoverflow:=
+         checkoverflow and
+          (left.resultdef.typ<>pointerdef) and 
+          (right.resultdef.typ<>pointerdef);
 
        if nodetype<>subn then
         begin

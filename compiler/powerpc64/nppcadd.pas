@@ -146,6 +146,7 @@ var
   tmpreg: tregister;
   hl: tasmlabel;
   cmpop: boolean;
+  checkoverflow: boolean;
 
   { true, if unsigned types are compared }
   unsigned: boolean;
@@ -214,14 +215,18 @@ begin
   else
     location_reset(location, LOC_FLAGS, OS_NO);
 
-  load_left_right(cmpop, (cs_check_overflow in current_settings.localswitches) and
-    (nodetype in [addn, subn, muln]));
+  checkoverflow:=
+    (nodetype in [addn,subn,muln]) and
+    (cs_check_overflow in current_settings.localswitches) and
+    (left.resultdef.typ<>pointerdef) and 
+    (right.resultdef.typ<>pointerdef);
+
+  load_left_right(cmpop, checkoverflow);
 
   if not (cmpop) then
     location.register := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
 
-  if not (cs_check_overflow in current_settings.localswitches) or (cmpop) or
-    (nodetype in [orn, andn, xorn]) then begin
+  if not (checkoverflow) then begin
     case nodetype of
       addn, muln, xorn, orn, andn:
         begin
