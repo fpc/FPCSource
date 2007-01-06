@@ -70,7 +70,7 @@ _haltproc:
         movq    operatingsystem_result@GOTPCREL(%rip),%rbx
         movzwl  (%rbx),%edi
         syscall
-        jmp     _haltproc
+        jmp     _haltproc@PLT
 
 /* Define a symbol for the first piece of initialized data.  */
 	.data
@@ -90,7 +90,8 @@ __data_start:
 
 /* We need this stuff to make gdb behave itself, otherwise
    gdb will chokes with SIGILL when trying to debug apps.
-*/
+
+Makes ld choke:
         .section ".note.ABI-tag", "a"
         .align 4
         .long 1f - 0f
@@ -101,5 +102,5 @@ __data_start:
 2:      .long 0
         .long 2,4,0
 3:      .align 4
-
+*/
 	.section	.note.GNU-stack,"",@progbits
