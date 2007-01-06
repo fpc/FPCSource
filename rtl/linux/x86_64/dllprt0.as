@@ -33,6 +33,12 @@
 		...
 					NULL
 */
+.section .init
+	.align 16
+	.globl FPC_LIB_START
+	.type FPC_LIB_START,@function
+FPC_LIB_START:
+	jmp	_startlib@PLT
 
         .text
 	.globl _start
@@ -40,17 +46,13 @@
 _startlib:
 #       movq %rdx,%r9                 /* Address of the shared library termination
 #               	                 function.  */
-FPC_LIB_START:
-	popq     %rsi		      /* Pop the argument count.  */
+	pushq	 %rbx
         movq     operatingsystem_parameter_argc@GOTPCREL(%rip),%rbx
-        movq     %rsi,(%rbx)
+        movq     %rdi,(%rbx)
         movq     operatingsystem_parameter_argv@GOTPCREL(%rip),%rbx
-	movq     %rsp,(%rbx)          /* argv starts just at the current stack top.  */
-        leaq     8(,%rsi,8),%rax
-        addq     %rsp,%rax
+	movq     %rsi,(%rbx)          /* argv starts just at the current stack top.  */
         movq     operatingsystem_parameter_envp@GOTPCREL(%rip),%rbx
-        movq     %rax,(%rbx)
-        andq     $~15,%rsp            /* Align the stack to a 16 byte boundary to follow the ABI.  */
+        movq     %rdx,(%rbx)
 
         movq    TC_SYSTEM_ISLIBRARY@GOTPCREL(%rip),%rbx
         movb    $1,(%rbx)
@@ -59,9 +61,9 @@ FPC_LIB_START:
         movq    __stkptr@GOTPCREL(%rip),%rbx
         movq    %rsp,(%rbx)
 
-        xorq    %rbp, %rbp
         call    PASCALMAIN@PLT
-	call    _haltproc@PLT
+	popq	%rbx
+	ret
 
         .globl  _haltproc
         .type   _haltproc,@function
