@@ -39,7 +39,14 @@ interface
     type
        TAsmsymbind=(AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL);
 
-       TAsmsymtype=(AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL);
+       TAsmsymtype=(
+         AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,
+         { 
+           the address of this code label is taken somewhere in the code
+           so it must be taken care of it when creating pic
+         }
+         AT_ADDR
+         );
 
        { is the label only there for getting an DataOffset (e.g. for i/o
          checks -> alt_addr) or is it a jump target (alt_jump), for debug
@@ -298,7 +305,10 @@ implementation
 
     constructor TAsmLabel.Createlocal(AList:TFPHashObjectList;nr:longint;ltyp:TAsmLabelType);
       begin
-        inherited Create(AList,target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,AT_LABEL);
+        if ltyp=alt_addr then
+          inherited Create(AList,target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,AT_ADDR)
+        else
+          inherited Create(AList,target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,AT_LABEL);
         labelnr:=nr;
         labeltype:=ltyp;
         is_set:=false;

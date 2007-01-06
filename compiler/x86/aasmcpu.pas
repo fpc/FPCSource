@@ -2249,7 +2249,7 @@ implementation
                              currsym:=objdata.symbolref(oper[opidx]^.ref^.symbol);
 {$ifdef x86_64}
                              if oper[opidx]^.ref^.refaddr=addr_pic then
-                               currabsreloc:=RELOC_PLT32
+                               currabsreloc:=RELOC_GOTPCREL
                              else
 {$endif x86_64}
                                currabsreloc:=RELOC_ABSOLUTE;
@@ -2267,7 +2267,7 @@ implementation
                          currsym:=objdata.symbolref(oper[opidx]^.ref^.symbol);
 {$ifdef x86_64}
                          if oper[opidx]^.ref^.refaddr=addr_pic then
-                           currabsreloc:=RELOC_PLT32
+                           currabsreloc:=RELOC_GOTPCREL
                          else
 {$endif x86_64}
                            currabsreloc:=RELOC_ABSOLUTE32;

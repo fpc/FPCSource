@@ -584,9 +584,31 @@ implementation
           'fpc',
           ''
         );
+        secnames_pic : array[TAsmSectiontype] of string[17] = ('',
+          '.text',
+          '.data.rel',
+          '.data.rel',
+          '.bss',
+          '.threadvar',
+          '.pdata',
+          '', { stubs }
+          '.stab',
+          '.stabstr',
+          '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+          '.eh_frame',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
+          '.fpc',
+          '.toc'
+        );
       var
         sep : string[3];
+        secname : string;
       begin
+        if (cs_create_pic in current_settings.moduleswitches) and
+           not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+          secname:=secnames_pic[atype]
+        else
+          secname:=secnames[atype];
         if (use_smartlink_section and
            (aname<>'')) or (atype=sec_fpc) then
           begin
@@ -598,10 +620,10 @@ implementation
               else
                 sep:='.n_';
             end;
-            result:=secnames[atype]+sep+aname
+            result:=secname+sep+aname
           end
         else
-          result:=secnames[atype];
+          result:=secname;
       end;
 
 
@@ -752,7 +774,10 @@ implementation
                if assigned(objreloc.symbol) then
                  begin
                    if objreloc.symbol.symidx=-1 then
-                     internalerror(200603012);
+                     begin
+                       writeln(objreloc.symbol.Name);
+                       internalerror(200603012);
+                     end;
                    relsym:=objreloc.symbol.symidx;
                  end
                else
