@@ -59,12 +59,11 @@
 
   {$ifndef OS_FILESETDATEBYNAME}
   Function FileSetDate (Const FileName : String;Age : Longint) : Longint;
-
   Var
     fd : THandle;
-
   begin
-    fd:=FileOpen(FileName,fmOpenRead);
+    { at least windows requires fmOpenWrite here }
+    fd:=FileOpen(FileName,fmOpenWrite);
     If (Fd<>feInvalidHandle) then
       try
         Result:=FileSetDate(fd,Age);
@@ -72,7 +71,7 @@
         FileClose(fd);
       end
     else
-      Result:=Fd;
+      Result:=fd;
   end;
   {$endif}
 

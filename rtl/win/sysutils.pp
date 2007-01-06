@@ -409,7 +409,7 @@ Var
 begin
   Result := 0;
   if DosToWinTime(Age,FT) and
-    SetFileTime(Handle, ft, ft, FT) then
+    SetFileTime(Handle, nil, nil, @FT) then
     Exit;
   Result := GetLastError;
 end;
