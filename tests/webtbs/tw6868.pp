@@ -16,8 +16,6 @@ end;
 
 procedure FreeHelpSystem;
 begin
-  if HelpManager <> nil then
-    HelpManager._Release;
   HelpManager := nil;
 end;
 

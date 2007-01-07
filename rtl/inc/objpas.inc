@@ -51,8 +51,10 @@
     procedure fpc_intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF']; compilerproc;
       begin
         if assigned(i) then
-          IUnknown(i)._Release;
-        i:=nil;
+          begin
+            IUnknown(i)._Release;
+            i:=nil;
+          end;
       end;
 
     { local declaration for intf_decr_ref for local access }
@@ -85,8 +87,6 @@
            begin
              if IUnknown(S).QueryInterface(iid,tmp)<>S_OK then
                handleerror(219);  
-             if assigned(tmp) then             
-               IUnknown(tmp)._AddRef;
              if assigned(D) then
                IUnknown(D)._Release;
              D:=tmp;
