@@ -241,8 +241,13 @@ UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 CPU_UNITS=
 SYSINIT_UNITS=
+LOADER=prt0 dllprt0 cprt0 gprt0
 ifeq ($(CPU_TARGET),i386)
-CRT21=cprt21 gprt21
+ifeq ($(findstring 2.0.,$(FPC_VERSION)),)
+override LOADERS=
+else
+override LOADERS+=cprt21 gprt21
+endif
 CPU_UNITS=x86 ports cpu mmx
 SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll
 endif
@@ -402,151 +407,151 @@ ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_UNITS+=$(SYSTEMUNIT) $(SYSINIT_UNITS) unixtype ctypes baseunix strings objpas macpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) crt printer linuxvcs sysutils typinfo math matrix varutils charset ucomplex getopts errors sockets gpm ipc serial terminfo dl dynlibs video mouse keyboard variants types dateutils sysconst fmtbcd cthreads classes fgl convutils stdconvs strutils rtlconsts dos objects cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_LOADERS+=prt0 dllprt0 cprt0 gprt0 $(CRT21)
+override TARGET_LOADERS+=$(LOADERS)
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_RSTS+=math varutils typinfo variants sysconst rtlconsts stdconvs

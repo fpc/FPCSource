@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$goto on}
 {
  Linux ELF startup code for Free Pascal
 
@@ -39,39 +39,40 @@ procedure PASCALMAIN; external name 'PASCALMAIN';
                         Shared library start/halt
  ******************************************************************************}
 
-procedure _FPC_shared_lib_start; assembler; nostackframe; public name '_start';
-asm
-  pushl   %ebp
-  movl    %esp,%ebp
+procedure _FPC_shared_lib_start(argc : dword;argv,envp : pointer); cdecl; public name '_start';
+begin
+  { we've to discuss about the use of this ;) }
+  asm
+    { Save initial stackpointer }
+    movl    %esp,initialstkptr
+  end;
 
-{$ifdef FPC_PIC}
-  call    fpc_geteipasebx
-  addl    $_GLOBAL_OFFSET_TABLE_,%ebx
-{$endif}
+  operatingsystem_parameter_argc:=argc;    { Copy the argument count      }
+  operatingsystem_parameter_argv:=argv;    { Copy the argument pointer    }
+  operatingsystem_parameter_envp:=envp;    { Copy the environment pointer }
 
-  movl    8(%ebp),%eax
-  movl    12(%ebp),%ecx
-  movl    16(%ebp),%edx
+  IsLibrary:=true;
 
-  movl    %eax,operatingsystem_parameter_argc    { Copy the argument count      }
-  movl    %ecx,operatingsystem_parameter_argv    { Copy the argument pointer    }
-  movl    %edx,operatingsystem_parameter_envp    { Copy the environment pointer }
-
-{$ifdef FPC_PIC}
-  movl    ISLIBRARY@GOT(%ebx),%eax
-  movb    $1,(%eax)
-{$else}
-  movb    $1,ISLIBRARY
-{$endif}  
-
-  { Save initial stackpointer }
-  movl    %esp,initialstkptr
-
-  call    PASCALMAIN
-
-  leave
-  ret
+  PASCALMAIN;
 end;
+
+procedure initdummy; assembler; nostackframe;
+label
+  FPC_LIB_START;
+asm
+.init
+  .align 16
+  .globl FPC_LIB_START
+//    .type FPC_LIB_START,@function
+FPC_LIB_START:
+{$ifdef FPC_PIC}
+  jmp	_FPC_shared_lib_start@PLT
+{$else FPC_PIC}
+  jmp	_FPC_shared_lib_start
+{$endif FPC_PIC}
+.text
+end;
+
 
 procedure _FPC_shared_lib_haltproc; assembler; nostackframe; public name '_haltproc';
 asm
@@ -83,10 +84,10 @@ asm
   xorl    %eax,%eax
   incl    %eax                    { eax=1, exit call }
 {$ifdef FPC_PIC}
-  pushl   %ebx       
+  pushl   %ebx
   movl    ExitCode@GOT(%ebx),%ebx
   movzwl  (%ebx),%ebx
-{$endif}  
+{$endif}
   int     $0x80
   jmp     .Lhaltproc
   popl    %ebx
