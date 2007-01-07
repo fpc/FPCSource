@@ -58,7 +58,7 @@ UNITPREFIX=rtl
 CPU_UNITS=
 SYSINIT_UNITS=
 
-LOADER=prt0 dllprt0 cprt0 gprt0
+LOADERS=prt0 dllprt0 cprt0 gprt0
 
 ifeq ($(CPU_TARGET),i386)
 ifeq ($(findstring 2.0.,$(FPC_VERSION)),)
