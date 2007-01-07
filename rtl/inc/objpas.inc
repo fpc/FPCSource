@@ -78,13 +78,25 @@
       end;
 
     procedure fpc_intf_assign_by_iid(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_ASSIGN2']; compilerproc;
+      var
+        tmp : pointer;
       begin
-         if assigned(D) then
-           IUnknown(D)._Release;
          if assigned(S) then
-           IUnknown(S).QueryInterface(iid, D)
+           begin
+             if IUnknown(S).QueryInterface(iid,tmp)<>S_OK then
+               handleerror(219);  
+             if assigned(tmp) then             
+               IUnknown(tmp)._AddRef;
+             if assigned(D) then
+               IUnknown(D)._Release;
+             D:=tmp;
+           end
          else
-           D := nil;
+           begin
+             if assigned(D) then
+               IUnknown(D)._Release;
+             D:=nil;
+           end;
       end;
 
 
