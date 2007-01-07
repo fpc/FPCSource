@@ -56,6 +56,7 @@ begin
   PASCALMAIN;
 end;
 
+{$ifndef VER2_0}
 procedure initdummy; assembler; nostackframe;
 label
   FPC_LIB_START;
@@ -72,7 +73,7 @@ FPC_LIB_START:
 {$endif FPC_PIC}
 .text
 end;
-
+{$endif VER_2_0}
 
 procedure _FPC_shared_lib_haltproc; assembler; nostackframe; public name '_haltproc';
 asm
