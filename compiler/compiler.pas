@@ -34,7 +34,7 @@ uses
     emu387,
 {$endif WATCOM}
 {$IFNDEF USE_FAKE_SYSUTILS}
-  sysutils,
+  sysutils,math,
 {$ELSE}
   fksysutl,
 {$ENDIF}
@@ -219,9 +219,13 @@ var
 {$ifdef SHOWUSEDMEM}
   hstatus : TFPCHeapStatus;
 {$endif SHOWUSEDMEM}
+  ExceptionMask : TFPUExceptionMask;
 begin
   try
     try
+       ExceptionMask:=GetExceptionMask;
+       SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,
+                         exOverflow, exUnderflow, exPrecision]);
        { Initialize the compiler }
        InitCompiler(cmd);
 
@@ -270,6 +274,8 @@ begin
      finally
        { no message possible after this !!    }
        DoneCompiler;
+
+       SetExceptionMask(ExceptionMask);
      end;
      DoneVerbose;
   except

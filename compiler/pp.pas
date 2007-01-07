@@ -203,8 +203,6 @@ begin
 {$ifdef extheaptrc}
   keepreleased:=true;
 {$endif extheaptrc}
-  SetFPUExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,
-                        exOverflow, exUnderflow, exPrecision]);
 { Call the compiler with empty command, so it will take the parameters }
   Halt(compiler.Compile(''));
 end.
