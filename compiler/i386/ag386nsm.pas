@@ -364,7 +364,8 @@ interface
           '.eh_frame',
           '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
-          ''
+          '',
+          '.init'
         );
       begin
         AsmLn;

@@ -377,7 +377,7 @@ unit cgx86;
                end;
           end;
         if (cs_create_pic in current_settings.moduleswitches) and
-         assigned(ref.symbol) then
+         assigned(ref.symbol) and not((ref.symbol.bind=AB_LOCAL) and (ref.symbol.typ in [AT_LABEL,AT_FUNCTION])) then
           begin
             reference_reset_symbol(href,ref.symbol,0);
             hreg:=getaddressregister(list);
@@ -402,7 +402,7 @@ unit cgx86;
           end;
 {$else x86_64}
         if (cs_create_pic in current_settings.moduleswitches) and
-          assigned(ref.symbol) then
+          assigned(ref.symbol) and not((ref.symbol.bind=AB_LOCAL) and (ref.symbol.typ in [AT_LABEL,AT_FUNCTION])) then
           begin
             reference_reset_symbol(href,ref.symbol,0);
             hreg:=getaddressregister(list);

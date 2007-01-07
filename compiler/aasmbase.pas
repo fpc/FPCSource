@@ -41,7 +41,7 @@ interface
 
        TAsmsymtype=(
          AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,
-         { 
+         {
            the address of this code label is taken somewhere in the code
            so it must be taken care of it when creating pic
          }
@@ -81,7 +81,8 @@ interface
          { ELF resources }
          sec_fpc,
          { Table of contents section }
-         sec_toc
+         sec_toc,
+         sec_init
        );
 
        TAsmSectionOrder = (secorder_begin,secorder_default,secorder_end);

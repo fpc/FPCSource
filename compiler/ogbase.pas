@@ -799,7 +799,8 @@ implementation
           'eh_frame',
           'debug_frame','debug_info','debug_line','debug_abbrev',
           'fpc',
-          'toc'
+          'toc',
+          'init'
         );
       var
         sep : string[3];
@@ -846,7 +847,8 @@ implementation
           {debug_line} [oso_Data,oso_noload,oso_debug],
           {debug_abbrev} [oso_Data,oso_noload,oso_debug],
           {fpc} [oso_Data,oso_load,oso_write,oso_keep],
-          {toc} [oso_Data,oso_load,oso_readonly]
+          {toc} [oso_Data,oso_load,oso_readonly],
+          {init} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep]
         );
       begin
         result:=secoptions[atype];
