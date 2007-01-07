@@ -453,7 +453,7 @@ parser_e_double_caselabel=03037_E_duplicate case label
 parser_e_case_lower_less_than_upper_bound=03038_E_Upper bound of case range is less than lower bound
 % The upper bound of a \var{case} label is less than the lower bound and this
 % is useless
-parser_e_type_const_not_possible=03039_E_typed constants of classes are not allowed
+parser_e_type_const_not_possible=03039_E_typed constants of classes or interfaces are not allowed
 % You cannot declare a constant of type class or object.
 parser_e_no_overloaded_procvars=03040_E_functions variables of overloaded functions are not allowed
 % You are trying to assign an overloaded function to a procedural variable.
@@ -1110,6 +1110,10 @@ parser_e_special_onlygenerics=03228_E_Specialization is only supported for gener
 parser_e_no_generics_as_params=03229_E_Generics can't be used as parameters when spezializing generics
 % When specializing a generic, only non-generic types can be used as parameters
 %
+parser_e_type_object_constants=03230_E_Constants of objects containing a VMT aren't allowed
+% If an object requires a VMT either because it contains a constructor or virtual methods,
+% it's not allowed to create constants of it. In TP and Delphi mode this is allowed
+% for compatibility reasons.
 #
 # Type Checking
 #

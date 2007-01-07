@@ -908,6 +908,7 @@ implementation
           st     : tsymtable;
           curroffset : aint;
           s,sorg : TIDString;
+          vmtwritten : boolean;
         begin
           { no support for packed object }
           if is_packed_record_or_object(def) then
@@ -935,12 +936,13 @@ implementation
           if (oo_has_vmt in def.objectoptions) and
              (m_fpc in current_settings.modeswitches) then
             begin
-              Message(parser_e_type_const_not_possible);
+              Message(parser_e_type_object_constants);
               exit;
             end;
 
           consume(_LKLAMMER);
           curroffset:=0;
+          vmtwritten:=false;
           while token<>_RKLAMMER do
             begin
               s:=pattern;
@@ -974,7 +976,8 @@ implementation
                       message(parser_e_invalid_record_const);
 
                     { check in VMT needs to be added for TP mode }
-                    if not(m_fpc in current_settings.modeswitches) and
+                    if not(vmtwritten) and
+                       not(m_fpc in current_settings.modeswitches) and
                        (oo_has_vmt in def.objectoptions) and
                        (def.vmt_offset<fieldoffset) then
                       begin
@@ -983,6 +986,7 @@ implementation
                         list.concat(tai_const.createname(def.vmt_mangledname,0));
                         { this is more general }
                         curroffset:=def.vmt_offset + sizeof(aint);
+                        vmtwritten:=true;
                       end;
 
                     { if needed fill }
