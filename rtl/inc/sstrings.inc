@@ -439,23 +439,22 @@ begin
   else
     begin
       { fixed format }
-      { Currency have only 4 digits in fractional part }
       Inc(reslen, sign);
-      if tlen < 4 then
+      { prepending fractional part with zeroes }
+      while tlen < 5 do
         begin
-          r:=tlen - f;
-          point:=tlen - 1;
-        end
-      else
+          Inc(reslen);
+          Inc(tlen);
+          buf[tlen]:='0';
+        end;
+      { Currency have 4 digits in fractional part }
+      r:=4 - f;
+      point:=f;
+      if point <> 0 then
         begin
-          r:=4 - f;
-          point:=f;
-          if point <> 0 then
-            begin
-              if point > 4 then
-                point:=4;
-              Inc(point);
-            end;
+          if point > 4 then
+            point:=4;
+          Inc(point);
         end;
       Dec(reslen,r);
     end;
