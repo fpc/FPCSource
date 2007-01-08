@@ -1098,7 +1098,6 @@ parser_e_type_and_var_only_in_generics=03224_E_VAR and TYPE are allowed only in 
 % generics.
 parser_e_cant_create_generics_of_this_type=03225_E_This type can't be a generic
 % Only Classes, Objects, Interfaces and Records are allowed to be used as generic
-% \end{description}
 parser_w_no_lineinfo_use_switch=03226_W_Don't load LINEINFO unit manually, Use the -gl compiler switch instead
 % Do not use the LINEINFO unit directly, Use the \var{-gl} switch which automatically adds the
 % unit for reading the selected type of debugging information instead.
@@ -1108,12 +1107,12 @@ parser_e_no_funcret_specified=03227_E_No function result type specified for func
 parser_e_special_onlygenerics=03228_E_Specialization is only supported for generic types
 % Types not being generics can't be specialized
 parser_e_no_generics_as_params=03229_E_Generics can't be used as parameters when spezializing generics
-% When specializing a generic, only non-generic types can be used as parameters
-%
+% When specializing a generic, only non-generic types can be used as parameters.
 parser_e_type_object_constants=03230_E_Constants of objects containing a VMT aren't allowed
 % If an object requires a VMT either because it contains a constructor or virtual methods,
 % it's not allowed to create constants of it. In TP and Delphi mode this is allowed
 % for compatibility reasons.
+% \end{description}
 #
 # Type Checking
 #
