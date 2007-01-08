@@ -17,12 +17,9 @@
 
   22/15/2005 : orinaudo@gmail.com,  WCE 4.21 SE, First release
   02-09-2006 : updated
-
 }
 
 {$ifdef read_interface}
-
-//begin common win32 & wince
 
 type
   PIID = PGUID;
@@ -161,10 +158,7 @@ function SetFileTime(hFile:HANDLE; var lpCreationTime:FILETIME; var lpLastAccess
 function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external KernelDLL name 'SetLocalTime';
 function TryEnterCriticalSection(var CriticalSection : TRTLCriticalSection) : BOOL; external KernelDLL name 'TryEnterCriticalSection';
 function WriteFile(hFile: THandle; const Buffer; nNumberOfBytesToWrite: DWORD; var lpNumberOfBytesWritten: DWORD; lpOverlapped: POverlapped): BOOL; external KernelDLL name 'WriteFile';
-//end common win32 & wince
 
-{$ifdef WINCE}
-//begin wince only
 function GetVersionEx(var lpVersionInformation: TOSVersionInfo): BOOL;external KernelDLL name 'GetVersionExW';
 function CreateProcess(lpApplicationName: LPTSTR; lpCommandLine: LPTSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPTSTR;
   const lpStartupInfo: LPStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external KernelDLL name 'CreateProcessW';
@@ -172,20 +166,15 @@ function FindFirstFile(lpFileName: LPTSTR; var lpFindFileData: TWIN32FindData): 
 function FindNextFile(hFindFile: THandle; var lpFindFileData: TWIN32FindData): BOOL; external KernelDLL name 'FindNextFileW';
 function RegisterClass(const lpWndClass: TWndClass): ATOM;external KernelDLL name 'RegisterClassW';
 function PeekMessage(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL;external KernelDLL name 'PeekMessageW';
-//end wince only
-{$endif WINCE}
+function Polygon(DC: HDC; var Points; Count: Integer): BOOL; external KernelDLL name 'Polygon';
+function GetMessage(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax: UINT): BOOL;external KernelDLL name 'GetMessageW';
 
-{$ifdef WIN32}
-//begin win32 only ie not exist in wince4.2 second release lib imported functions from dlls
-function CreateProcessA(lpApplicationName: LPCSTR; lpCommandLine: LPCSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCSTR;
-  const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external 'kernel32' name 'CreateProcessA';
-function GetVersionExA(var lpVersionInformation: TOSVersionInfo): BOOL; external 'kernel32' name 'GetVersionExA';
-function InitializeCriticalSectionAndSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD) : BOOL; external 'kernel32' name 'InitializeCriticalSectionAndSpinCount';
-function SetCriticalSectionSpinCount(var CriticalSection : TRTLCriticalSection;dwSpinCount : DWORD ): DWORD; external 'kernel32' name 'SetCriticalSectionSpinCount';
-//end win32 only
-{$endif WIN32}
+(*
+!!! The following commented out part is copied from win32 redef.inc
+It is profided as reference. Functions which exists in wince should be corrected
+and moved from here to be available.
 
-{$ifdef WIN32}
+
 //begin win32 or wince not checked
 
 
@@ -965,16 +954,13 @@ function AnsiUpperBuff(lpsz:LPSTR; cchLength:DWORD):DWORD; external 'user32' nam
 function AnsiLower(lpsz:LPSTR):LPSTR; external 'user32' name 'CharLowerA';
 function AnsiLowerBuff(lpsz:LPSTR; cchLength:DWORD):DWORD; external 'user32' name 'CharLowerBuffA';
 //end win32 or wince not checked
-
-{$endif WIN32}
-
+*)
 
 {$endif read_interface}
 
 
 {$ifdef read_implementation}
 
-//begin common win32 & wince
 function MAKELANGID(PrimaryLang, SubLang: USHORT): WORD;
 begin
   MAKELANGID := (SubLang shl 10) or PrimaryLang;
@@ -1045,20 +1031,12 @@ begin
   LOCALE_INVARIANT := MAKELCID(MAKELANGID(LANG_INVARIANT, SUBLANG_NEUTRAL), SORT_DEFAULT);
 end;
 
-//end common win32 & wince
-
-{$ifdef WINCE}
-//begin wince only
-
 function MsgWaitForMultipleObjects(nCount: DWORD; var pHandles; fWaitAll: BOOL; dwMilliseconds, dwWakeMask: DWORD): DWORD;
 begin
   MsgWaitForMultipleObjects:=MsgWaitForMultipleObjectsEx(nCount,@pHandles,dwMilliseconds,dwWakeMask,0);
 end;
 
-//end wince only
-{$endif WINCE}
-
-{$ifdef WIN32}
+(*
 //begin win32 or wince not checked
 function Succeeded(Status : HRESULT) : BOOL;
   begin
@@ -1109,8 +1087,7 @@ function HResultFromNT(x : Longint) : HRESULT;
   end;
 
 //end win32 or wince not checked
-
-{$endif WIN32}
+*)
 
 
 {$endif read_implementation}
