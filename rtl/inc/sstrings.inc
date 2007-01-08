@@ -385,6 +385,160 @@ begin
   str_real(len,fr,d,treal_type(rt),s);
 end;
 
+procedure fpc_ShortStr_Currency(c : currency; len,f : SizeInt; out s : shortstring);[public,alias:'FPC_SHORTSTR_CURRENCY']; compilerproc;
+const
+  MinLen = 8; { Minimal string length in scientific format }
+
+var
+  buf : array[1..19] of char;
+  i,j,k,reslen,tlen,sign,r,point : longint;
+  ic : int64;
+begin
+  { default value for length is -32767 }
+  if len=-32767 then
+    len:=25;
+  ic:=PInt64(@c)^;
+  if ic >= 0 then
+    sign:=0
+  else
+    begin
+      sign:=1;
+      ic:=-ic;
+    end;
+  { converting to integer string }
+  tlen:=0;
+  repeat
+    Inc(tlen);
+    buf[tlen]:=Chr(ic mod 10 + $30);
+    ic:=ic div 10;
+  until ic = 0;
+  { calculating:
+     reslen - length of result string,
+     r      - rounding or appending zeroes,
+     point  - place of decimal point        }
+  reslen:=tlen;
+  if f <> 0 then
+    Inc(reslen); { adding decimal point length }
+  if f < 0 then
+    begin
+      { scientific format }
+      Inc(reslen,5); { adding length of sign and exponent }
+      if len < MinLen then
+        len:=MinLen;
+      r:=reslen-len;
+      if reslen < len then
+        reslen:=len;
+      if r > 0 then
+        begin
+          reslen:=len;
+          point:=tlen - r;
+        end
+      else
+        point:=tlen;
+    end
+  else
+    begin
+      { fixed format }
+      { Currency have only 4 digits in fractional part }
+      Inc(reslen, sign);
+      if tlen < 4 then
+        begin
+          r:=tlen - f;
+          point:=tlen - 1;
+        end
+      else
+        begin
+          r:=4 - f;
+          point:=f;
+          if point <> 0 then
+            begin
+              if point > 4 then
+                point:=4;
+              Inc(point);
+            end;
+        end;
+      Dec(reslen,r);
+    end;
+
+  { rounding string if r > 0 }
+  if r > 0 then
+    begin
+      i:=1;
+      k:=0;
+      for j:=0 to r do
+        begin
+          buf[i]:=chr(ord(buf[i]) + k);
+          if buf[i] >= '5' then
+            k:=1
+          else
+            k:=0;
+          Inc(i);
+          if i>tlen then
+            break;
+        end;
+    end;
+
+  { preparing result string }
+  if reslen<len then
+    reslen:=len;
+  if reslen>High(s) then
+    begin
+      if r < 0 then
+        Inc(r, reslen - High(s));
+      reslen:=High(s);
+    end;
+  SetLength(s,reslen);
+  j:=reslen;
+  if f<0 then
+    begin
+      { writing power of 10 part }
+      k:=tlen-5;
+      if k >= 0 then
+        s[j-2]:='+'
+      else
+        begin
+          s[j-2]:='-';
+          k:=-k;
+        end;
+      s[j]:=Chr(k mod 10 + $30);
+      Dec(j);
+      s[j]:=Chr(k div 10 + $30);
+      Dec(j,2);
+      s[j]:='E';
+      Dec(j);
+    end;
+  { writing extra zeroes if r < 0 }
+  while r < 0 do
+    begin
+      s[j]:='0';
+      Dec(j);
+      Inc(r);
+    end;
+  { writing digits and decimal point }
+  for i:=r + 1 to tlen do
+    begin
+      Dec(point);
+      if point = 0 then
+        begin
+          s[j]:='.';
+          Dec(j);
+        end;
+      s[j]:=buf[i];
+      Dec(j);
+    end;
+  { writing sign }
+  if sign = 1 then
+    begin
+      s[j]:='-';
+      Dec(j);
+    end;
+  { writing spaces }
+  while j > 0 do
+    begin
+      s[j]:=' ';
+      Dec(j);
+    end;
+end;
 
 {
    Array Of Char Str() helpers

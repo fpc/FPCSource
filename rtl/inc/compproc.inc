@@ -73,6 +73,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer; dimcount : dword
 procedure fpc_ShortStr_sint(v : valsint;len : SizeInt;out s : shortstring); compilerproc;
 procedure fpc_shortstr_uint(v : valuint;len : SizeInt;out s : shortstring); compilerproc;
 procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : shortstring); compilerproc;
+procedure fpc_ShortStr_Currency(c : currency; len,f : SizeInt; out s : shortstring); compilerproc;
 
 procedure fpc_chararray_sint(v : valsint;len : SizeInt;out a : array of char); compilerproc;
 procedure fpc_chararray_uint(v : valuint;len : SizeInt;out a : array of char); compilerproc;
