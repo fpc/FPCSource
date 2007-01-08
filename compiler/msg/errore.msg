@@ -1368,7 +1368,7 @@ type_e_no_packed_inittable=04064_E_Elements of packed arrays cannot be of a type
 type_e_no_const_packed_record=04065_E_Constant packed records and objects are not yet supported
 % You cannot declare a (bit)packed array as a typed constant at this time.
 type_w_untyped_arithmetic_unportable=04066_W_Arithmetic "$1" on untyped pointer is unportable to {$T+}, suggest typecast
-% Addition/subtraction from untyped pointer may work differently in {$T+}, use typecast to typed pointer
+% Addition/subtraction from untyped pointer may work differently in \var{\{\$T+\}}, use typecast to typed pointer
 type_e_cant_take_address_of_local_subroutine=04076_E_Can't take address of a subroutine marked as local
 % The address of a subroutine marked as local can't be taken.
 type_e_cant_export_local=04077_E_Can't export subroutine marked as local from a unit
