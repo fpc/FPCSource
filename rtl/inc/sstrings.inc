@@ -907,46 +907,46 @@ begin
   flags:=0;
   sign:=1;
   while (code<=length(s)) and (s[code] in [' ',#9]) do
-   inc(code);
-  case s[code] of
-   '+' : inc(code);
-   '-' : begin
-           sign:=-1;
-           inc(code);
-         end;
-  end;
+    inc(code);
+  if code<=length(s) then
+    case s[code] of
+     '+' : inc(code);
+     '-' : begin
+             sign:=-1;
+             inc(code);
+           end;
+    end;
   while (Code<=Length(s)) and (s[code] in ['0'..'9']) do
-   begin
+    begin
    { Read integer part }
       flags:=flags or 1;
-
-fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
+      fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
       inc(code);
-   end;
+    end;
 { Decimal ? }
   if (length(s)>=code) and (s[code]='.') then
-   begin
+    begin
       hd:=1.0;
       inc(code);
       while (length(s)>=code) and (s[code] in ['0'..'9']) do
         begin
            { Read fractional part. }
-           flags:=flags or 2;
-           fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
-           hd:=hd*10.0;
-           inc(code);
+          flags:=flags or 2;
+          fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
+          hd:=hd*10.0;
+          inc(code);
         end;
       fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
    end;
  { Again, read integer and fractional part}
   if flags=0 then
-   begin
+    begin
       fpc_Val_Real_ShortStr:=0.0;
       exit;
-   end;
+    end;
  { Exponent ? }
   if (length(s)>=code) and (upcase(s[code])='E') then
-   begin
+    begin
       inc(code);
       if Length(s) >= code then
         if s[code]='+' then
@@ -959,16 +959,16 @@ fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
            end;
       if (length(s)<code) or not(s[code] in ['0'..'9']) then
         begin
-           fpc_Val_Real_ShortStr:=0.0;
-           exit;
+          fpc_Val_Real_ShortStr:=0.0;
+          exit;
         end;
       while (length(s)>=code) and (s[code] in ['0'..'9']) do
         begin
-           exponent:=exponent*10;
-           exponent:=exponent+ord(s[code])-ord('0');
-           inc(code);
+          exponent:=exponent*10;
+          exponent:=exponent+ord(s[code])-ord('0');
+          inc(code);
         end;
-   end;
+    end;
 { evaluate sign }
 { (before exponent, because the exponent may turn it into a denormal) }
   fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*sign;
@@ -999,10 +999,10 @@ fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
 
 { Not all characters are read ? }
   if length(s)>=code then
-   begin
-     fpc_Val_Real_ShortStr:=0.0;
-     exit;
-   end;
+    begin
+      fpc_Val_Real_ShortStr:=0.0;
+      exit;
+    end;
 { success ! }
   code:=0;
 end;
