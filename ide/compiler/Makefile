@@ -1714,6 +1714,8 @@ ifdef ACROSSCOMPILE
 override FPCOPT+=$(CROSSOPT)
 endif
 override COMPILER:=$(FPC) $(FPCOPT)
+PREEXECPPAS=echo FPCOPT is "$FPCOPT"
+
 ifeq (,$(findstring -s ,$(COMPILER)))
 EXECPPAS=
 else
@@ -1750,15 +1752,19 @@ $(COMPILER_UNITTARGETDIR):
 $(COMPILER_TARGETDIR):
 	$(MKDIRTREE) $(COMPILER_TARGETDIR)
 %$(PPUEXT): %.pp
+        $(PREEXECPPAS)
 	$(COMPILER) $<
 	$(EXECPPAS)
 %$(PPUEXT): %.pas
+        $(PREEXECPPAS)
 	$(COMPILER) $<
 	$(EXECPPAS)
 %$(EXEEXT): %.pp
+        $(PREEXECPPAS)
 	$(COMPILER) $<
 	$(EXECPPAS)
 %$(EXEEXT): %.pas
+        $(PREEXECPPAS)
 	$(COMPILER) $<
 	$(EXECPPAS)
 %$(EXEEXT): %.lpr
