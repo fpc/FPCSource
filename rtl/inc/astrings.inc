@@ -746,6 +746,23 @@ begin
 end;
 
 
+Function fpc_Val_Currency_AnsiStr(Const S : AnsiString; out Code : ValSInt): Currency; [public, alias:'FPC_VAL_CURRENCY_ANSISTR']; compilerproc;
+Var
+  SS : String;
+begin
+  if length(S) > 255 then
+    begin
+      fpc_Val_Currency_AnsiStr := 0;
+      code := 256;
+    end
+  else
+    begin
+      SS := S;
+      Val(SS,fpc_Val_Currency_AnsiStr,code);
+    end;
+end;
+
+
 Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; out Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_ANSISTR']; compilerproc;
 Var
   SS : ShortString;
@@ -815,6 +832,15 @@ var
   ss: ShortString;
 begin
   str_real(len,fr,d,treal_type(rt),ss);
+  s:=ss;
+end;
+
+
+procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring);[public,alias:'FPC_ANSISTR_CURRENCY']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+var
+  ss: ShortString;
+begin
+  str(c:len:fr,ss);
   s:=ss;
 end;
 

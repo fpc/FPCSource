@@ -392,18 +392,20 @@ const
 var
   buf : array[1..19] of char;
   i,j,k,reslen,tlen,sign,r,point : longint;
-  ic : int64;
+  ic : qword;
 begin
   { default value for length is -32767 }
   if len=-32767 then
     len:=25;
-  ic:=PInt64(@c)^;
-  if ic >= 0 then
-    sign:=0
+  if PInt64(@c)^ >= 0 then
+    begin
+      ic:=QWord(PInt64(@c)^);
+      sign:=0;
+    end
   else
     begin
       sign:=1;
-      ic:=-ic;
+      ic:=QWord(-PInt64(@c)^);
     end;
   { converting to integer string }
   tlen:=0;
