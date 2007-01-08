@@ -81,7 +81,7 @@ end;
 function GetExceptionMask: TFPUExceptionMask;
 begin
 {$ifdef win64}
-  Result:=TFPUExceptionMask((GetSSECSR shr 7) and $1f);
+  Result:=TFPUExceptionMask((GetSSECSR shr 7) and $3f);
 {$else win64}
   Result:=TFPUExceptionMask(dword(Get8087CW and $3F));
 {$endif win64}
@@ -93,7 +93,7 @@ var
 begin
   CtlWord:=Get8087CW;
   Set8087CW((CtlWord and $FFC0) or Byte(Longint(Mask)));
-  SetSSECSR((((GetSSECSR shr 7) and $ffffffc0) or dword(Mask)) shl 7);
+  SetSSECSR((GetSSECSR and $ffffe07f) or (dword(Mask) shl 7));
   Result:=GetExceptionMask;
 end;
 

@@ -40,10 +40,10 @@ FPC_ABSMASK_DOUBLE:
       asm        
         movw cw,%ax
 {$ifdef FPC_PIC}
-        movq default8087cw@GOTPCREL(%rip),%rax
-        movw %ax,(%rax)
+        movq default8087cw@GOTPCREL(%rip),%rdx
+        movw %ax,(%rdx)
         fnclex
-        fldcw (%rax)
+        fldcw (%rdx)
 {$else FPC_PIC}
         movw %ax,default8087cw
         fnclex
