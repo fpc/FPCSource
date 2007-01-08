@@ -618,7 +618,7 @@ const msgtxt : array[0..000177,1..240] of char=(
   '07102_W_Use of +offset(%ebp) for parameters invalid here'#000+
   '07103_W_Use of +offset(%ebp) is not compatible with regcall convention'+
   #000+
-  '07104_W_Use of -offset(%ebp) is not recommanded for local variable acc'+
+  '07104_W_Use of -offset(%ebp) is not recommended for local variable acc'+
   'ess'#000+
   '07105','_W_Use of -offset(%esp), value may be crashed'#000+
   '08000_F_Too many assembler files'#000+

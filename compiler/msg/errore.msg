@@ -1908,7 +1908,7 @@ asmr_w_no_direct_ebp_for_parameter=07102_W_Use of +offset(%ebp) for parameters i
 asmr_w_direct_ebp_for_parameter_regcall=07103_W_Use of +offset(%ebp) is not compatible with regcall convention
 % Using direct 8(%ebp) reference for function/procedure parameters is invalid
 % if parameters are in registers.
-asmr_w_direct_ebp_neg_offset=07104_W_Use of -offset(%ebp) is not recommanded for local variable access
+asmr_w_direct_ebp_neg_offset=07104_W_Use of -offset(%ebp) is not recommended for local variable access
 % Using -8(%ebp) to access a local variable is not recommended
 asmr_w_direct_esp_neg_offset=07105_W_Use of -offset(%esp), value may be crashed
 % Using -8(%esp) to access a local stack is not recommended, as
