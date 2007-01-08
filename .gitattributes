@@ -8136,18 +8136,26 @@ utils/fppkg/fppkg.pp svneol=native#text/plain
 utils/fppkg/fprepos.pp svneol=native#text/plain
 utils/fppkg/fpxmlrep.pp svneol=native#text/plain
 utils/fppkg/lnet/LICENSE -text
+utils/fppkg/lnet/LICENSE.ADDON -text
 utils/fppkg/lnet/fastcgi.pp svneol=native#text/plain
 utils/fppkg/lnet/lcommon.pp svneol=native#text/plain
 utils/fppkg/lnet/lcontainers.inc svneol=native#text/plain
 utils/fppkg/lnet/lcontainersh.inc svneol=native#text/plain
 utils/fppkg/lnet/lcontrolstack.pp svneol=native#text/plain
 utils/fppkg/lnet/levents.pp svneol=native#text/plain
+utils/fppkg/lnet/lfastcgi.pp svneol=native#text/plain
 utils/fppkg/lnet/lftp.pp svneol=native#text/plain
+utils/fppkg/lnet/lhttp.pp svneol=native#text/plain
+utils/fppkg/lnet/lhttputil.pp svneol=native#text/plain
+utils/fppkg/lnet/lmimetypes.pp svneol=native#text/plain
 utils/fppkg/lnet/lnet.pp svneol=native#text/plain
+utils/fppkg/lnet/lprocess.pp svneol=native#text/plain
+utils/fppkg/lnet/lsmtp.pp svneol=native#text/plain
+utils/fppkg/lnet/lspawnfcgi.pp svneol=native#text/plain
 utils/fppkg/lnet/lstrbuffer.pp svneol=native#text/plain
 utils/fppkg/lnet/ltelnet.pp svneol=native#text/plain
+utils/fppkg/lnet/ltimer.pp svneol=native#text/plain
 utils/fppkg/lnet/lwebserver.pp svneol=native#text/plain
-utils/fppkg/lnet/openssl.pp -text svneol=unset#text/plain
 utils/fppkg/lnet/sys/lepolleventer.inc svneol=native#text/plain
 utils/fppkg/lnet/sys/lepolleventerh.inc svneol=native#text/plain
 utils/fppkg/lnet/sys/lkqueueeventer.inc svneol=native#text/plain

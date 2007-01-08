@@ -317,7 +317,7 @@ function TLEventer.Bail(const msg: string; const Ernum: Integer): Boolean;
 begin
   Result := False; // always false, substitute for caller's result
   if Assigned(FOnError) then
-    FOnError(msg + ': ' + LStrError(Ernum), Self);
+    FOnError(msg + '[' + IntToStr(Ernum) + ']: ' + LStrError(Ernum), Self);
 end;
 
 procedure TLEventer.AddForFree(aHandle: TLHandle);

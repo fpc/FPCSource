@@ -440,7 +440,7 @@ procedure TLSocket.LogError(const msg: string; const ernum: Integer);
 begin
   if Assigned(FOnError) then
     if ernum > 0 then
-      FOnError(Self, msg + ': ' + LStrError(ernum))
+      FOnError(Self, msg + '[' + IntToStr(ernum) + ']: ' + LStrError(ernum))
     else
       FOnError(Self, msg);
 end;
