@@ -781,13 +781,13 @@ type
         if k >= -1021 then
           begin
             hy:=float64(y).high;
-            float64(y).high:=hy+(k shl 20);        { add k to y's exponent }
+            float64(y).high:=longint(hy)+(k shl 20);        { add k to y's exponent }
             result:=y;
           end
         else
           begin
 	    hy:=float64(y).high;
-            float64(y).high:=hy+((k+1000) shl 20); { add k to y's exponent }
+            float64(y).high:=longint(hy)+((k+1000) shl 20); { add k to y's exponent }
 	    result:=y*twom1000;
           end;
       end;
