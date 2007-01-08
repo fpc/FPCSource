@@ -1008,6 +1008,140 @@ begin
 end;
 
 
+Function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : longint): currency; [public, alias:'FPC_VAL_CURRENCY_SHORTSTR']; compilerproc;
+const
+  MaxInt64 : Int64  = $7FFFFFFFFFFFFFFF;
+  Int64Edge : Int64 = ($7FFFFFFFFFFFFFFF - 10) div 10;
+  Int64Edge2 : Int64 = $7FFFFFFFFFFFFFFF div 10;
+var
+  res : Int64;
+  i,j,power,sign,len : longint;
+  FracOverflow : boolean;
+begin
+  fpc_Val_Currency_ShortStr:=0;
+  res:=0;
+  len:=Length(s);
+  Code:=1;
+  sign:=1;
+  power:=0;
+  while True do
+    if Code > len then
+      exit
+    else
+      if s[Code] in [' ', #9] then
+        Inc(Code)
+      else
+        break;
+  { Read sign }
+  case s[Code] of
+   '+' : Inc(Code);
+   '-' : begin
+           sign:=-1;
+           inc(code);
+         end;
+  end;
+  { Read digits }
+  FracOverflow:=False;
+  i:=0;
+  while Code <= len do
+    begin
+      case s[Code] of
+        '0'..'9':
+          begin
+            j:=Ord(s[code])-Ord('0');
+            { check overflow }
+            if (res <= Int64Edge) or (res <= (MaxInt64 - j) div 10) then
+              begin
+                res:=res*10 + j;
+                Inc(i);
+              end
+            else
+              if power = 0 then
+                { exit if integer part overflow }
+                exit
+              else
+                begin
+                  if not FracOverflow and (j >= 5) and (res < MaxInt64) then
+                    { round if first digit of fractional part overflow }
+                    Inc(res);
+                  FracOverflow:=True;
+                end;
+          end;
+        '.':
+          begin
+            if power = 0 then
+              begin
+                power:=1;
+                i:=0;
+              end
+            else
+              exit;
+          end;
+        else
+          break;
+      end;
+      Inc(Code);
+    end;
+  if (i = 0) and (power = 0) then
+    exit;
+  if power <> 0 then
+    power:=i;
+  power:=4 - power;
+  { Exponent? }
+  if Code <= len then
+    if s[Code] in ['E', 'e'] then
+      begin
+        Inc(Code);
+        if Code > len then
+          exit;
+        i:=1;
+        case s[Code] of
+          '+':
+            Inc(Code);
+          '-':
+            begin
+              i:=-1;
+              Inc(Code);
+            end;
+        end;
+        { read exponent }
+        j:=0;
+        while Code <= len do
+          if s[Code] in ['0'..'9'] then
+            begin
+              if j > 4951 then
+                exit;
+              j:=j*10 + (Ord(s[code])-Ord('0'));
+              Inc(Code);
+            end
+          else
+            exit;
+        power:=power + j*i;
+      end
+    else
+      exit;
+
+  if power > 0 then
+    begin
+      for i:=1 to power do
+        if res <= Int64Edge2 then
+          res:=res*10
+        else
+          exit;
+    end
+  else
+    for i:=1 to -power do
+      begin
+        if res <= MaxInt64 - 5 then
+          Inc(res, 5);
+        res:=res div 10;
+      end;
+  res:=res*sign;
+  fpc_Val_Currency_ShortStr:=PCurrency(@res)^;
+  Code:=0;
+end;
+
+
 Procedure SetString (Out S : Shortstring; Buf : PChar; Len : SizeInt);
 begin
   If Len > High(S) then
