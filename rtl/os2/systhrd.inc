@@ -467,18 +467,12 @@ procedure IntRTLEventSetEvent (AEvent: PRTLEvent);
 begin
 {$WARNING TODO!}
 {
-  PulseEvent(THANDLE(AEvent));
+  SetEvent(THANDLE(AEvent));
 }
 end;
 
 
 CONST INFINITE=-1;
-
-procedure IntRTLEventStartWait (AEvent: PRTLEvent);
-begin
-{$WARNING TODO!}
-  // nothing to do, win32 events stay signalled after being set
-end;
 
 procedure IntRTLEventWaitFor (AEvent: PRTLEvent);
 begin
@@ -526,7 +520,6 @@ begin
     RTLEventCreate         :=@IntRTLEventCreate;
     RTLEventDestroy        :=@IntRTLEventDestroy;
     RTLEventSetEvent       :=@IntRTLEventSetEvent;
-    RTLEventStartWait      :=@IntRTLEventStartWait;
     RTLEventWaitFor        :=@IntRTLEventWaitFor;
     end;
   SetThreadManager (OS2ThreadManager);

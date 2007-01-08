@@ -252,12 +252,6 @@ begin
   currenttm.rtleventResetEvent(state);
 end;
 
-procedure RTLeventStartWait(state:pRTLEvent);
-
-begin
-  currenttm.rtleventStartWait(state);
-end;
-
 procedure RTLeventWaitFor(state:pRTLEvent);
 
 begin
@@ -436,12 +430,6 @@ begin
   NoThreadError;
 end;
 
-procedure NORTLeventStartWait(state:pRTLEvent);
-  begin
-    NoThreadError;
-  end;
-
-
 procedure NORTLeventWaitFor(state:pRTLEvent);
   begin
     NoThreadError;
@@ -515,7 +503,6 @@ begin
     rtlEventCreate         :=@NortlEventCreate;
     rtleventdestroy        :=@Nortleventdestroy;
     rtleventSetEvent       :=@NortleventSetEvent;
-    rtleventStartWait      :=@NortleventStartWait;
     rtleventWaitFor        :=@NortleventWaitFor;
     rtleventsync           :=@Nortleventsync;
     rtleventwaitfortimeout :=@NortleventWaitForTimeout;

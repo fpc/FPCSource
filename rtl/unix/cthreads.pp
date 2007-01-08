@@ -71,7 +71,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       TINTRTLEvent = record
         condvar: pthread_cond_t;
         mutex: pthread_mutex_t;
-        IsSet: boolean;
+        isset: boolean;
        end;
 
 {*****************************************************************************
@@ -738,7 +738,7 @@ begin
   new(p);
   pthread_cond_init(@p^.condvar, nil);
   pthread_mutex_init(@p^.mutex, nil);
-  p^.IsSet:= false;
+  p^.isset:=false;
   result:=PRTLEVENT(p);
 end;
 
@@ -759,7 +759,7 @@ var p:pintrtlevent;
 begin
   p:=pintrtlevent(aevent);
   pthread_mutex_lock(@p^.mutex);
-  p^.IsSet:= true;
+  p^.isset:=true;
   pthread_cond_signal(@p^.condvar);
   pthread_mutex_unlock(@p^.mutex);
 end;
@@ -771,26 +771,19 @@ var p:pintrtlevent;
 begin
   p:=pintrtlevent(aevent);
   pthread_mutex_lock(@p^.mutex);
-  p^.IsSet:= false;
+  p^.isset:=false;
   pthread_mutex_unlock(@p^.mutex);
 end;
 
-
-procedure intRTLEventStartWait(AEvent: PRTLEvent);
-var p:pintrtlevent;
-
-begin
-  p:=pintrtlevent(aevent);
-  pthread_mutex_lock(@p^.mutex);
-end;
 
 procedure intRTLEventWaitFor(AEvent: PRTLEvent);
 var p:pintrtlevent;
 
 begin
   p:=pintrtlevent(aevent);
-  while not p^.IsSet do pthread_cond_wait(@p^.condvar, @p^.mutex);
-  p^.IsSet:=false;
+  pthread_mutex_lock(@p^.mutex);
+  while not p^.isset do pthread_cond_wait(@p^.condvar, @p^.mutex);
+  p^.isset:=false;
   pthread_mutex_unlock(@p^.mutex);
 end;
 
@@ -812,12 +805,13 @@ procedure intRTLEventWaitForTimeout(AEvent: PRTLEvent;timeout : longint);
       dec(timespec.tv_nsec, 1000000000);
     end;
     errres:=0;
-    while (not p^.IsSet) and
+    pthread_mutex_lock(@p^.mutex);
+    while (not p^.isset) and
           (errres <> ESysETIMEDOUT) do
       begin
         errres:=pthread_cond_timedwait(@p^.condvar, @p^.mutex, @timespec);
       end;
-    p^.IsSet:= false;
+    p^.isset:=false;
     pthread_mutex_unlock(@p^.mutex);
   end;
 
@@ -890,7 +884,6 @@ begin
     rtlEventDestroy        :=@intrtlEventDestroy;
     rtlEventSetEvent       :=@intrtlEventSetEvent;
     rtlEventResetEvent     :=@intrtlEventResetEvent;
-    rtlEventStartWait      :=@intrtlEventStartWait;
     rtleventWaitForTimeout :=@intrtleventWaitForTimeout;
     rtleventWaitFor        :=@intrtleventWaitFor;
     // semaphores

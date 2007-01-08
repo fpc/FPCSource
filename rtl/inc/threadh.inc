@@ -83,7 +83,6 @@ type
     RTLEventDestroy        : TRTLEventHandler;
     RTLEventSetEvent       : TRTLEventHandler;
     RTLEventResetEvent     : TRTLEventHandler;
-    RTLEventStartWait      : TRTLEventHandler;
     RTLEventWaitFor        : TRTLEventHandler;
     RTLEventSync           : TRTLEventSyncHandler;
     RTLEventWaitForTimeout : TRTLEventHandlerTimeout;
@@ -158,7 +157,6 @@ function  RTLEventCreate :PRTLEvent;
 procedure RTLeventdestroy(state:pRTLEvent);
 procedure RTLeventSetEvent(state:pRTLEvent);
 procedure RTLeventResetEvent(state:pRTLEvent);
-procedure RTLeventStartWait(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent);
 procedure RTLeventWaitFor(state:pRTLEvent;timeout : longint);
 procedure RTLeventsync(m:trtlmethod;p:tprocedure);

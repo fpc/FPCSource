@@ -414,14 +414,6 @@ begin
   ResetEvent(THANDLE(AEvent));
 end;
 
-procedure intRTLEventStartWait(AEvent: PRTLEvent);
-begin
-  { this is to get at least some common behaviour on unix and win32:
-    events before startwait are lost on unix, so reset the event on
-    win32 as well }
-  ResetEvent(THANDLE(AEvent));
-end;
-
 procedure intRTLEventWaitFor(AEvent: PRTLEvent);
 const
   INFINITE=dword(-1);
@@ -471,7 +463,6 @@ begin
     RTLEventDestroy        :=@intRTLEventDestroy;
     RTLEventSetEvent       :=@intRTLEventSetEvent;
     RTLEventResetEvent     :=@intRTLEventResetEvent;
-    RTLEventStartWait      :=@intRTLEventStartWait;
     RTLEventWaitFor        :=@intRTLEventWaitFor;
     RTLEventWaitForTimeout :=@intRTLEventWaitForTimeout;
     end;
