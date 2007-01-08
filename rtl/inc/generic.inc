@@ -558,7 +558,7 @@ end;
 
 procedure fpc_shortstr_concat(var dests:shortstring;const s1,s2:shortstring);compilerproc;
 var
-  s1l, s2l : byte;
+  s1l, s2l : longint;
 begin
   s1l:=length(s1);
   s2l:=length(s2);
