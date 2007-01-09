@@ -151,7 +151,7 @@ var
     bufptr := @buf[0];
     fpread(f, buf, bufsize);
   end;
-  
+
   function readbufbyte: byte;
   begin
     if bufptr > @buf[bufsize-1] then
@@ -159,14 +159,14 @@ var
     readbufbyte := bufptr^;
     inc(bufptr);
   end;
-  
+
   function readbuf(var dest; count: integer): integer;
   var
     numbytes: integer;
   begin
     readbuf := 0;
     repeat
-      numbytes := @buf[bufsize-1] - bufptr + 1;
+      numbytes := (@buf[bufsize-1] + 1) - bufptr;
       if numbytes > count then
         numbytes := count;
       if numbytes > 0 then
@@ -178,7 +178,7 @@ var
       end;
       if count > 0 then
         readfilebuf
-      else 
+      else
         break;
     until false;
   end;
