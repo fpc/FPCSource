@@ -151,7 +151,10 @@ Procedure DoUnHandledException;
 begin
   If (ExceptProc<>Nil) and (ExceptObjectStack<>Nil) then
     with ExceptObjectStack^ do
-      TExceptProc(ExceptProc)(FObject,Addr,FrameCount,Frames);
+      begin
+        TExceptProc(ExceptProc)(FObject,Addr,FrameCount,Frames);
+        halt(217)
+      end;
   if erroraddr = nil then
     RunError(217)
   else
