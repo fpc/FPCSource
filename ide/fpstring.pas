@@ -13,7 +13,10 @@
 
  **********************************************************************}
 {$i globdir.inc}
-{$ifdef USERESSTRINGS}{$mode objfpc}{$endif}
+{$ifdef USERESSTRINGS}
+{$mode objfpc}
+{$endif USERESSTRINGS}
+
 unit fpstring;
 
   interface

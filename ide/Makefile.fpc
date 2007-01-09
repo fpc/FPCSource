@@ -22,6 +22,7 @@ options=-Sg
 
 [require]
 packages=fv gdbint regexpr
+packages_go32v2=graph
 libc=y
 
 [default]

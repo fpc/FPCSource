@@ -1411,6 +1411,7 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_FV=1
 REQUIRE_PACKAGES_GDBINT=1
 REQUIRE_PACKAGES_REGEXPR=1
+REQUIRE_PACKAGES_GRAPH=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
@@ -1748,6 +1749,32 @@ endif
 endif
 ifdef UNITDIR_REGEXPR
 override COMPILER_UNITDIR+=$(UNITDIR_REGEXPR)
+endif
+endif
+ifdef REQUIRE_PACKAGES_GRAPH
+PACKAGEDIR_GRAPH:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /graph/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_GRAPH),)
+ifneq ($(wildcard $(PACKAGEDIR_GRAPH)/units/$(TARGETSUFFIX)),)
+UNITDIR_GRAPH=$(PACKAGEDIR_GRAPH)/units/$(TARGETSUFFIX)
+else
+UNITDIR_GRAPH=$(PACKAGEDIR_GRAPH)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_GRAPH)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_GRAPH) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_GRAPH)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_GRAPH=
+UNITDIR_GRAPH:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /graph/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_GRAPH),)
+UNITDIR_GRAPH:=$(firstword $(UNITDIR_GRAPH))
+else
+UNITDIR_GRAPH=
+endif
+endif
+ifdef UNITDIR_GRAPH
+override COMPILER_UNITDIR+=$(UNITDIR_GRAPH)
 endif
 endif
 ifndef NOCPUDEF

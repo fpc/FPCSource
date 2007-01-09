@@ -52,6 +52,10 @@ const
   UseLFB : boolean = false;
   UseNoSelector : boolean = false;
   LFBPointer : pointer = nil;
+{ Helpful variable to get save/restore support in IDE PM }
+const
+  DontClearGraphMemory : boolean = false;
+
 
 
 implementation
@@ -162,54 +166,64 @@ const
           pop es
           pop esi
           pop edi
-       end ['ESI','EDI','ECX','EAX']
+       end ['ECX','EAX']
     end;
 
 {$endif tp}
+
+ Procedure CallInt10(val_ax : word); assembler;
+   asm
+{$IFNDEF REGCALL}
+     mov ax,val_ax
+{$ENDIF REGCALL}
+{$ifdef fpc}
+      push ebp
+      push esi
+      push edi
+      push ebx
+{$endif fpc}
+      int 10h
+{$ifdef fpc}
+      pop ebx
+      pop edi
+      pop esi
+      pop ebp
+{$endif fpc}
+   end;
 
  {************************************************************************}
  {*                     4-bit planar VGA mode routines                   *}
  {************************************************************************}
 
-  Procedure Init640x200x16; {$ifndef fpc}far;{$endif fpc} assembler;
-  { must also clear the screen...}
-   asm
-     mov ax,000Eh
-{$ifdef fpc}
-     push ebp
-{$endif fpc}
-     int 10h
-{$ifdef fpc}
-     pop ebp
-{$endif fpc}
-   end;
-
-
-   Procedure Init640x350x16; {$ifndef fpc}far;{$endif fpc} assembler;
-  { must also clear the screen...}
-    asm
-      mov ax,0010h
-{$ifdef fpc}
-      push ebp
-{$endif fpc}
-      int 10h
-{$ifdef fpc}
-      pop ebp
-{$endif fpc}
+  Procedure Init640x200x16; {$ifndef fpc}far;{$endif fpc}
+    begin
+      if DontClearGraphMemory then
+        CallInt10($8e)
+      else
+        CallInt10($e);
     end;
 
-  procedure Init640x480x16; {$ifndef fpc}far;{$endif fpc} assembler;
-  { must also clear the screen...}
-    asm
-      mov  ax,0012h
-{$ifdef fpc}
-      push ebp
-{$endif fpc}
-      int  10h
-{$ifdef fpc}
-     pop ebp
-{$endif fpc}
+
+   Procedure Init640x350x16; {$ifndef fpc}far;{$endif fpc}
+    begin
+      if DontClearGraphMemory then
+        CallInt10($90)
+      else
+        CallInt10($10);
     end;
+
+
+
+  Procedure Init640x480x16; {$ifndef fpc}far;{$endif fpc}
+    begin
+      if DontClearGraphMemory then
+        CallInt10($92)
+      else
+        CallInt10($12);
+    end;
+
+
+
 
  Procedure PutPixel16(X,Y : smallint; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
 {$ifndef asmgraph}
@@ -313,9 +327,9 @@ const
         { restore enable set/reset register }
         mov  ax,0001h
         out  dx,ax
+ {$endif fpc}
         pop edi
         pop ebx
- {$endif fpc}
       end;
 {$endif asmgraph}
    end;
@@ -345,9 +359,6 @@ const
 {$else asmgraph}
     asm
   {$ifndef fpc}
-      push esi
-      push edi
-      push ebx
       mov   ax, [X]          { Get X address                    }
       push  ax
       shr   ax, 3
@@ -413,6 +424,9 @@ const
       xor   ah,ah
       mov   @Result, ax
   {$else fpc}
+      push esi
+      push edi
+      push ebx
       movzx eax, [X]          { Get X address                    }
       push  eax
       shr   eax, 3
@@ -660,9 +674,6 @@ End;
 {$else asmgraph}
 { note: still needs xor/or/and/notput support !!!!! (JM) }
     asm
-      push esi
-      push edi
-      push ebx
   {$ifndef fpc}
       mov  es, [SegA000]
       { enable the set / reset function and load the color }
@@ -708,6 +719,9 @@ End;
       mov  ax,0001h
       out  dx,ax
   {$else fpc}
+      push esi
+      push edi
+      push ebx
       { enable the set / reset function and load the color }
       mov  dx, 3ceh
       mov  ax, 0f01h
@@ -992,9 +1006,15 @@ End;
       mov ah,05h
 {$ifdef fpc}
       push ebp
+      push esi
+      push edi
+      push ebx
 {$endif fpc}
       int 10h
 {$ifdef fpc}
+      pop ebx
+      pop edi
+      pop esi
       pop ebp
 {$endif fpc}
 
@@ -1033,9 +1053,15 @@ End;
       mov ah,05h
 {$ifdef fpc}
       push ebp
+      push esi
+      push edi
+      push ebx
 {$endif fpc}
       int 10h
 {$ifdef fpc}
+      pop ebx
+      pop edi
+      pop esi
       pop ebp
 {$endif fpc}
     end;
@@ -1060,17 +1086,15 @@ End;
  {*                     320x200x256c Routines                            *}
  {************************************************************************}
 
- Procedure Init320; {$ifndef fpc}far;{$endif fpc} assembler;
-  asm
-    mov ax,0013h
-{$ifdef fpc}
-    push ebp
-{$endif fpc}
-    int 10h
-{$ifdef fpc}
-    pop ebp
-{$endif fpc}
-  end;
+ Procedure Init320; {$ifndef fpc}far;{$endif fpc}
+    begin
+      if DontClearGraphMemory then
+        CallInt10($93)
+      else
+        CallInt10($13);
+    end;
+
+
 
  Procedure PutPixel320(X,Y : smallint; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
  { x,y -> must be in local coordinates. Clipping if required. }
@@ -1277,6 +1301,11 @@ const CrtAddress: word = 0;
      MOV CRTAddress,DX
 
      MOV  AX, 0013h
+     MOV  BL, DontClearGraphMemory
+     OR   BL,BL
+     JZ   @L2
+     OR   AX, 080h
+  @L2:
 {$ifdef fpc}
      push ebp
 {$EndIf fpc}
@@ -1333,7 +1362,7 @@ const CrtAddress: word = 0;
      IN  AL,DX
      OR  AL,40h     {bit 6 := 1: memory access scheme=linear bit array      }
      OUT DX,AL
-  end;
+  end ['ESI','EDI','EBX','EAX'];
  end;
 
 
@@ -1376,6 +1405,7 @@ const CrtAddress: word = 0;
     mov al, ES:[DI]
     xor ah, ah
     mov @Result, ax
+  end;
   {$else fpc}
       push edi
       push ebx
@@ -1403,8 +1433,8 @@ const CrtAddress: word = 0;
     mov @Result, ax
     pop ebx
     pop edi
+   end ['ESI','EDI','EBX','EAX'];
   {$endif fpc}
-   end;
 {$endif asmgraph}
  end;
 
@@ -2003,6 +2033,11 @@ const CrtAddress: word = 0;
      { check if Hercules adapter supPorted ... }
      { check if EGA adapter supPorted...       }
      asm
+{$ifdef fpc}
+       push esi
+       push edi
+       push ebx
+{$endif fpc}
        mov ah,12h
        mov bx,0FF10h
 {$ifdef fpc}
@@ -2016,6 +2051,11 @@ const CrtAddress: word = 0;
        jz  @noega
        mov [EGADetected],TRUE
      @noega:
+{$ifdef fpc}
+       pop ebx
+       pop edi
+       pop esi
+{$endif fpc}
      end;
 {$ifdef logging}
      LogLn('EGA detected: '+strf(Longint(EGADetected)));
@@ -2024,6 +2064,11 @@ const CrtAddress: word = 0;
      if EGADetected then
        begin
         asm
+{$ifdef fpc}
+         push esi
+         push edi
+         push ebx
+{$endif fpc}
          mov ax,1a00h
 {$ifdef fpc}
          push ebp
@@ -2038,17 +2083,16 @@ const CrtAddress: word = 0;
          mov ax,1c00h       { get state size for save...     }
                             { ... all imPortant data         }
          mov cx,07h
-{$ifdef fpc}
-         push ebp
-{$endif fpc}
          int 10h
-{$ifdef fpc}
-         pop ebp
-{$endif fpc}
          cmp al,1ch         { success?                       }
          jne @novga
          mov [VGADetected],TRUE
         @novga:
+{$ifdef fpc}
+       pop ebx
+       pop edi
+       pop esi
+{$endif fpc}
         end;
        end;
 {$ifdef logging}
@@ -2774,6 +2818,6 @@ begin
     test ax,ax
     sete al
     mov  inWindows,al
-  end;
+  end ['ESI','EDI','EBX','EAX'];
   InitializeGraph;
 end.
