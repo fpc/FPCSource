@@ -135,6 +135,7 @@ implementation
         lenpara,
         fracpara,
         newparas,
+        tmppara,
         dest,
         source  : tcallparanode;
         procname: string;
@@ -222,19 +223,22 @@ implementation
         if is_real then
           begin
             { insert realtype parameter }
-            if source.resultdef.typ = floatdef then
-              rt:=ord(tfloatdef(source.left.resultdef).floattype)
+            if not is_currency(source.resultdef) then
+              begin
+                rt:=ord(tfloatdef(source.left.resultdef).floattype);
+                newparas.right := ccallparanode.create(cordconstnode.create(
+                  rt,s32inttype,true),newparas.right);
+                tmppara:=tcallparanode(newparas.right);
+              end
             else
-              rt:=ord(tfloatdef(pbestrealtype^).floattype);
-            newparas.right := ccallparanode.create(cordconstnode.create(
-              rt,s32inttype,true),newparas.right);
+              tmppara:=newparas;
             { if necessary, insert a fraction parameter }
             if not assigned(fracpara) then
               begin
-                tcallparanode(newparas.right).right := ccallparanode.create(
+                tmppara.right := ccallparanode.create(
                   cordconstnode.create(-1,s32inttype,false),
-                   tcallparanode(newparas.right).right);
-                fracpara := tcallparanode(tcallparanode(newparas.right).right);
+                   tmppara.right);
+                fracpara := tcallparanode(tmppara.right);
               end;
             { if necessary, insert a length para }
             if not assigned(lenpara) then
@@ -258,7 +262,10 @@ implementation
         else
           procname := 'fpc_' + tstringdef(dest.resultdef).stringtypname+'_';
         if is_real then
-          procname := procname + 'float'
+          if is_currency(source.resultdef) then
+            procname := procname + 'currency'
+          else
+            procname := procname + 'float'
         else
           case torddef(source.resultdef).ordtype of
 {$ifdef cpu64bit}
@@ -999,7 +1006,6 @@ implementation
             begin
               case torddef(destpara.resultdef).ordtype of
 {$ifdef cpu64bit}
-                scurrency,
                 s64bit,
 {$endif cpu64bit}
                 s8bit,
@@ -1019,10 +1025,10 @@ implementation
                 u32bit:
                    suffix := 'uint_';
 {$ifndef cpu64bit}
-                scurrency,
                 s64bit: suffix := 'int64_';
                 u64bit: suffix := 'qword_';
 {$endif cpu64bit}
+                scurrency: suffix := 'currency_';
                 else
                   internalerror(200304225);
               end;
