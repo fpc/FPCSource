@@ -60,7 +60,7 @@ var
 begin
   CtlWord:=Get8087CW;
   Set8087CW((CtlWord and $F3FF) or (Ord(RoundMode) shl 10));
-  SetSSECSR((((GetSSECSR shr 13) and $fffffffc) or dword(RoundMode)) shl 13);
+  SetSSECSR((GetSSECSR and $ffff9fff) or (dword(RoundMode) shl 13));
   Result:=GetRoundMode;
 end;
 
