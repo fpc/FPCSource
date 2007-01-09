@@ -1227,7 +1227,7 @@ begin
   s:=ss;
 end;
 
-
+{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_WideStr_Currency(c : Currency;len,fr : SizeInt;out s : WideString);compilerproc;
 var
   ss : shortstring;
@@ -1235,7 +1235,7 @@ begin
   str(c:len:fr,ss);
   s:=ss;
 end;
-
+{$endif FPC_HAS_STR_CURRENCY}
 
 Procedure fpc_WideStr_SInt(v : ValSint; Len : SizeInt; out S : WideString);compilerproc;
 Var

@@ -836,6 +836,7 @@ begin
 end;
 
 
+{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring);[public,alias:'FPC_ANSISTR_CURRENCY']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 var
   ss: ShortString;
@@ -843,7 +844,7 @@ begin
   str(c:len:fr,ss);
   s:=ss;
 end;
-
+{$endif FPC_HAS_STR_CURRENCY}
 
 Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; out S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALUINT']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 Var

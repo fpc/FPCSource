@@ -1911,6 +1911,7 @@ begin
   def_system_macro('FPC_HASINTERNALOLEVARIANT2VARIANTCAST');
   def_system_macro('FPC_HAS_VARSETS');
   def_system_macro('FPC_HAS_VALGRINDBOOL');
+  def_system_macro('FPC_HAS_STR_CURRENCY');
 {$ifdef x86}
   def_system_macro('INTERNAL_BACKTRACE');
 {$endif}

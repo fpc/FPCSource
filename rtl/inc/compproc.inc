@@ -81,7 +81,9 @@ procedure fpc_chararray_uint(v : valuint;len : SizeInt;out a : array of char); c
 procedure fpc_AnsiStr_sint(v : valsint; Len : SizeInt; out S : AnsiString); compilerproc;
 procedure fpc_AnsiStr_uint(v : valuint;Len : SizeInt; out S : AnsiString); compilerproc;
 procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : ansistring); compilerproc;
+{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring); compilerproc;
+{$endif FPC_HAS_STR_CURRENCY}
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
@@ -105,11 +107,15 @@ procedure fpc_WideStr_uint(v : valuint;Len : SizeInt; out S : WideString); compi
 {$endif CPU64}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : WideString); compilerproc;
+{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_WideStr_Currency(c : Currency;len,fr : SizeInt;out s : WideString);compilerproc;
+{$endif FPC_HAS_STR_CURRENCY}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;out a : array of char); compilerproc;
+{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of char);compilerproc;
+{$endif FPC_HAS_STR_CURRENCY}
 
 { Val() support }
 Function fpc_Val_Real_ShortStr(const s : shortstring; out code : ValSInt): ValReal; compilerproc;

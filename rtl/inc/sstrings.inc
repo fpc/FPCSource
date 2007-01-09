@@ -626,7 +626,7 @@ begin
   move(ss[1],pchar(@a)^,maxlen);
 end;
 
-
+{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of char);compilerproc;
 var
   ss : shortstring;
@@ -639,7 +639,7 @@ begin
     maxlen:=high(a)+1;
   move(ss[1],pchar(@a)^,maxlen);
 end;
-
+{$endif FPC_HAS_STR_CURRENCY}
 
 {*****************************************************************************
                            Val() Functions
