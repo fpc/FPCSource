@@ -1138,6 +1138,23 @@ begin
 end;
 
 
+Function fpc_Val_Currency_WideStr(Const S : WideString; out Code : ValSInt): Currency; [public, alias:'FPC_VAL_CURRENCY_WIDESTR']; compilerproc;
+Var
+  SS : String;
+begin
+  if length(S) > 255 then
+    begin
+      fpc_Val_Currency_WideStr:=0;
+      code := 256;
+    end
+  else
+    begin
+      SS := S;
+      Val(SS,fpc_Val_Currency_WideStr,code);
+    end;
+end;
+
+
 Function fpc_Val_UInt_WideStr (Const S : WideString; out Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_WIDESTR']; compilerproc;
 Var
   SS : ShortString;
@@ -1207,6 +1224,15 @@ var
   ss : shortstring;
 begin
   str_real(len,fr,d,treal_type(rt),ss);
+  s:=ss;
+end;
+
+
+procedure fpc_WideStr_Currency(c : Currency;len,fr : SizeInt;out s : WideString);compilerproc;
+var
+  ss : shortstring;
+begin
+  str(c:len:fr,ss);
   s:=ss;
 end;
 

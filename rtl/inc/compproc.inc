@@ -105,9 +105,11 @@ procedure fpc_WideStr_uint(v : valuint;Len : SizeInt; out S : WideString); compi
 {$endif CPU64}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : WideString); compilerproc;
+procedure fpc_WideStr_Currency(c : Currency;len,fr : SizeInt;out s : WideString);compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;out a : array of char); compilerproc;
+procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of char);compilerproc;
 
 { Val() support }
 Function fpc_Val_Real_ShortStr(const s : shortstring; out code : ValSInt): ValReal; compilerproc;
@@ -124,6 +126,7 @@ Function fpc_Val_Currency_AnsiStr(Const S : AnsiString; out Code : ValSInt): Cur
 Function fpc_Val_Real_WideStr(Const S : WideString; out Code : ValSInt): ValReal; compilerproc;
 Function fpc_Val_UInt_WideStr (Const S : WideString; out Code : ValSInt): ValUInt; compilerproc;
 Function fpc_Val_SInt_WideStr (DestSize: SizeInt; Const S : WideString; out Code : ValSInt): ValSInt; compilerproc;
+Function fpc_Val_Currency_WideStr(Const S : WideString; out Code : ValSInt): Currency; compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifndef CPU64}
 Function fpc_val_int64_shortstr(Const S: ShortString; out Code: ValSInt): Int64; compilerproc;

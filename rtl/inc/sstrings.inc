@@ -627,6 +627,20 @@ begin
 end;
 
 
+procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of char);compilerproc;
+var
+  ss : shortstring;
+  maxlen : SizeInt;
+begin
+  str(c:len:fr,ss);
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  move(ss[1],pchar(@a)^,maxlen);
+end;
+
+
 {*****************************************************************************
                            Val() Functions
 *****************************************************************************}
