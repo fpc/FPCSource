@@ -15,6 +15,9 @@
 {$inline on}
 {$define SYSUTILSINLINE}
 
+  { Read internationalization settings }
+  {$i sysinth.inc}
+
   { Read date & Time function declarations }
   {$i osutilsh.inc}
 
@@ -205,8 +208,6 @@ Type
    TFileRec=FileRec;
    TTextRec=TextRec;
 
-  { Read internationalization settings }
-  {$i sysinth.inc}
 
   { Read pchar handling functions declaration }
   {$i syspchh.inc}

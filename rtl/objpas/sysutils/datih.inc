@@ -42,7 +42,8 @@ const
      ((31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31),
       (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31));
 
-   TwoDigitYearCenturyWindow : word= 50;
+var
+   TwoDigitYearCenturyWindow : word absolute DefaultFormatSettings.TwoDigitYearCenturyWindow;
                              { Threshold to be subtracted from year before
                                age-detection.}
 

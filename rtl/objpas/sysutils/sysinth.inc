@@ -27,7 +27,32 @@
   ---------------------------------------------------------------------}
 
 type
-   TCaseTranslationTable = array[0..255] of char;
+  TCaseTranslationTable = array[0..255] of char;
+  TMonthNameArray = array[1..12] of string;
+  TWeekNameArray = array[1..7] of string;
+
+  TFormatSettings = record
+    CurrencyFormat: Byte;
+    NegCurrFormat: Byte;
+    ThousandSeparator: Char;
+    DecimalSeparator: Char;
+    CurrencyDecimals: Byte;
+    DateSeparator: Char;
+    TimeSeparator: Char;
+    ListSeparator: Char;
+    CurrencyString: string;
+    ShortDateFormat: string;
+    LongDateFormat: string;
+    TimeAMString: string;
+    TimePMString: string;
+    ShortTimeFormat: string;
+    LongTimeFormat: string;
+    ShortMonthNames: TMonthNameArray;
+    LongMonthNames: TMonthNameArray;
+    ShortDayNames: TWeekNameArray;
+    LongDayNames: TWeekNameArray;
+    TwoDigitYearCenturyWindow: Word;
+  end;
 
 var
    { Tables with upper and lowercase forms of character sets.
@@ -35,54 +60,72 @@ var
    UpperCaseTable: TCaseTranslationTable;
    LowerCaseTable: TCaseTranslationTable;
 
+  DefaultFormatSettings : TFormatSettings = (
+    CurrencyFormat: 1;
+    NegCurrFormat: 5;
+    ThousandSeparator: ',';
+    DecimalSeparator: '.';
+    CurrencyDecimals: 2;
+    DateSeparator: '-';
+    TimeSeparator: ':';
+    ListSeparator: ',';
+    CurrencyString: '$';
+    ShortDateFormat: 'd/m/y';
+    LongDateFormat: 'dd" "mmmm" "yyyy';
+    TimeAMString: 'AM';
+    TimePMString: 'PM';
+    ShortTimeFormat: 'hh:nn';
+    LongTimeFormat: 'hh:nn:ss';
+    ShortMonthNames: ('Jan','Feb','Mar','Apr','May','Jun', 
+                      'Jul','Aug','Sep','Oct','Nov','Dec');
+    LongMonthNames: ('January','February','March','April','May','June',
+                     'July','August','September','October','November','December');
+    ShortDayNames: ('Sun','Mon','Tue','Wed','Thu','Fri','Sat');
+    LongDayNames:  ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
+    TwoDigitYearCenturyWindow: 50;
+  );
 { ---------------------------------------------------------------------
     Date formatting settings
   ---------------------------------------------------------------------}
 
-Const
+Var
 
    { Character to be put between date, month and year }
-   DateSeparator: char = '-';
+   DateSeparator: char absolute DefaultFormatSettings.DateSeparator;
 
    { Format used for short date notation }
-   ShortDateFormat: string = 'd/m/y';
+   ShortDateFormat: string absolute DefaultFormatSettings.ShortDateFormat;
 
    { Format used for long date notation }
-   LongDateFormat: string = 'dd" "mmmm" "yyyy';
+   LongDateFormat: string absolute DefaultFormatSettings.LongDateFormat;
 
 
    { Short names of months. }
-   ShortMonthNames: array[1..12] of string[128] =
-     ('Jan','Feb','Mar','Apr','May','Jun',
-      'Jul','Aug','Sep','Oct','Nov','Dec');
+   ShortMonthNames: TMonthNameArray absolute DefaultFormatSettings.ShortMonthNames;
 
    { Long names of months. }
-   LongMonthNames: array[1..12] of string[128] =
-     ('January','February','March','April','May','June',
-      'July','August','September','October','November','December');
+   LongMonthNames: TMonthNameArray absolute DefaultFormatSettings.LongMonthNames;
 
    { Short names of days }
-   ShortDayNames: array[1..7] of string[128] =
-     ('Sun','Mon','Tue','Wed','Thu','Fri','Sat');
+   ShortDayNames: TWeekNameArray absolute DefaultFormatSettings.ShortDayNames;
 
    { Full names of days }
-   LongDayNames: array[1..7] of string[128] =
-     ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
+   LongDayNames: TWeekNameArray absolute DefaultFormatSettings.LongDayNames;
 
    { Format used for short time notation }
-   ShortTimeFormat: string[128] = 'hh:nn';
+   ShortTimeFormat: string absolute DefaultFormatSettings.ShortTimeFormat;
 
    { Format used for long time notation }
-   LongTimeFormat: string[128] = 'hh:nn:ss';
+   LongTimeFormat: string absolute DefaultFormatSettings.LongTimeFormat;
 
    { Character to be put between hours and minutes }
-   TimeSeparator: char = ':';
+   TimeSeparator: char absolute DefaultFormatSettings.TimeSeparator;
 
    { String to indicate AM time when using 12 hour clock. }
-   TimeAMString: string[7] = 'AM';
+   TimeAMString: string absolute DefaultFormatSettings.TimeAMString;
 
    { String to indicate PM time when using 12 hour clock. }
-   TimePMString: string[7] = 'PM';
+   TimePMString: string absolute DefaultFormatSettings.TimePMString;
 
 
 
@@ -92,13 +135,13 @@ Const
 
 
   { Character that comes between integer and fractional part of a number }
-  DecimalSeparator : Char = '.';
+  DecimalSeparator : Char absolute DefaultFormatSettings.DecimalSeparator; 
 
   { Character that is put every 3 numbers in a currency }
-  ThousandSeparator : Char = ',';
+  ThousandSeparator : Char absolute DefaultFormatSettings.ThousandSeparator;
 
   { Number of decimals to use when formatting a currency.  }
-  CurrencyDecimals : Byte = 2;
+  CurrencyDecimals : Byte absolute DefaultFormatSettings.CurrencyDecimals;
 
   { Format to use when formatting currency :
     0 = $1
@@ -107,7 +150,7 @@ Const
     3 = 1 $
     4 = Currency string replaces decimal indicator. e.g. 1$50
    }
-  CurrencyFormat : Byte = 1;
+  CurrencyFormat : Byte absolute DefaultFormatSettings.CurrencyFormat;
 
   { Same as above, only for negative currencies:
     0 = ($1)
@@ -122,12 +165,12 @@ Const
     9 = -$ 1
     10 = $ 1-
    }
-  NegCurrFormat : Byte = 5;
+  NegCurrFormat : Byte absolute DefaultFormatSettings.NegCurrFormat;
 
   { Currency notation. Default is $ for dollars. }
-  CurrencyString : String[7] = '$';
+  CurrencyString : String absolute DefaultFormatSettings.CurrencyString;
 
-  ListSeparator: Char = ',';
+  ListSeparator: Char absolute DefaultFormatSettings.ListSeparator;
 
 type
   TSysLocale = record
