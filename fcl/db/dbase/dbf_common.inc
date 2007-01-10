@@ -164,11 +164,13 @@
 
   {$define SUPPORT_VARIANTS}
   {$define WINDOWS}
+  {$define ENDIAN_LITTLE}
 
 {$ifdef DELPHI_4}
 
   {$define SUPPORT_DEFCHANGED}
   {$define SUPPORT_DEFAULT_PARAMS}
+  {$define SUPPORT_OVERLOAD}
   {$define SUPPORT_NEW_TRANSLATE}
   {$define SUPPORT_INT64}
   {$define SUPPORT_REINTRODUCE}
@@ -216,6 +218,7 @@
 
   {$define SUPPORT_INT64}
   {$define SUPPORT_DEFAULT_PARAMS}
+  {$define SUPPORT_OVERLOAD}
   {$define SUPPORT_NEW_TRANSLATE}
   {$define SUPPORT_FIELDDEF_TPERSISTENT}
   {$define SUPPORT_FIELDTYPES_V4}
@@ -254,5 +257,11 @@
     {$define SUPPORT_INCLUDETRAILPATHDELIM}
     {$define SUPPORT_INCLUDETRAILBACKSLASH}
 
+{$endif}
+
+{$ifndef ENDIAN_LITTLE}
+{$ifndef ENDIAN_BIG}
+{$error Neither ENDIAN_LITTLE nor ENDIAN_BIG defined!}
+{$endif}
 {$endif}
 

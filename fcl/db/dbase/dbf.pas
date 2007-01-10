@@ -258,7 +258,8 @@ type
     function  IsCursorOpen: Boolean; override; {virtual abstract}
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override; {virtual abstract}
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override; {virtual abstract}
-    procedure SetFieldData(Field: TField; Buffer: Pointer); overload; override; {virtual abstract}
+    procedure SetFieldData(Field: TField; Buffer: Pointer); 
+      {$ifdef SUPPORT_OVERLOAD} overload; {$endif} override; {virtual abstract}
 
     { virtual methods (mostly optionnal) }
     function  GetDataSource: TDataSource; {$ifndef VER1_0}override;{$endif}
@@ -288,7 +289,8 @@ type
     destructor Destroy; override;
 
     { abstract methods }
-    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; overload; override; {virtual abstract}
+    function GetFieldData(Field: TField; Buffer: Pointer): Boolean; 
+      {$ifdef SUPPORT_OVERLOAD} overload; {$endif} override; {virtual abstract}
     { virtual methods (mostly optionnal) }
     procedure Resync(Mode: TResyncMode); override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override; {virtual}
@@ -298,10 +300,12 @@ type
     procedure Translate(Src, Dest: PChar; ToOem: Boolean); override; {virtual}
 {$endif}
 
+{$ifdef SUPPORT_OVERLOAD}
     function  GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; overload;
       {$ifdef SUPPORT_BACKWARD_FIELDDATA} override; {$endif}
     procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); overload;
       {$ifdef SUPPORT_BACKWARD_FIELDDATA} override; {$endif}
+{$endif}
 
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Integer; override;
     procedure CheckDbfFieldDefs(ADbfFieldDefs: TDbfFieldDefs);
@@ -698,11 +702,6 @@ begin
     Result := @PDbfRecord(Result)^.DeletedFlag;
 end;
 
-function TDbf.GetFieldData(Field: TField; Buffer: Pointer): Boolean; {override virtual abstract from TDataset}
-begin
-  Result := GetFieldData(Field, Buffer, true);
-end;
-
 // we don't want converted data formats, we want native :-)
 // it makes coding easier in TDbfFile.GetFieldData
 //  ftCurrency:
@@ -710,7 +709,19 @@ end;
 //  ftBCD:
 // ftDateTime is more difficult though
 
+function TDbf.GetFieldData(Field: TField; Buffer: Pointer): Boolean; {override virtual abstract from TDataset}
+{$ifdef SUPPORT_OVERLOAD}
+begin
+  { calling through 'old' delphi 3 interface, use compatible/'native' format }
+  Result := GetFieldData(Field, Buffer, true);
+end;
+
 function TDbf.GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; {overload; override;}
+{$else}
+const
+  { no overload => delphi 3 => use compatible/'native' format }
+  NativeFormat = true;
+{$endif}
 var
   Src: PChar;
 begin
@@ -732,7 +743,19 @@ begin
   end;
 end;
 
+procedure TDbf.SetFieldData(Field: TField; Buffer: Pointer); {override virtual abstract from TDataset}
+{$ifdef SUPPORT_OVERLOAD}
+begin
+  { calling through 'old' delphi 3 interface, use compatible/'native' format }
+  SetFieldData(Field, Buffer, true);
+end;
+
 procedure TDbf.SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); {overload; override;}
+{$else}
+const
+  { no overload => delphi 3 => use compatible/'native' format }
+  NativeFormat = true;
+{$endif}
 var
   Dst: PChar;
 begin
@@ -1542,7 +1565,9 @@ begin
       lPhysFieldDefs.Assign(TDbf(DataSet).DbfFieldDefs);
       IndexDefs.Assign(TDbf(DataSet).IndexDefs);
     end else begin
+{$ifdef SUPPORT_FIELDDEF_TPERSISTENT}
       lPhysFieldDefs.Assign(DataSet.FieldDefs);
+{$endif}      
       IndexDefs.Clear;
     end;
     // convert list of tfields into a list of tdbffielddefs
@@ -2074,11 +2099,6 @@ end;
 procedure TDbf.SetBookmarkData(Buffer: PChar; Data: Pointer); {override virtual abstract from TDataset}
 begin
   pDbfRecord(Buffer)^.BookmarkData := pBookmarkData(Data)^;
-end;
-
-procedure TDbf.SetFieldData(Field: TField; Buffer: Pointer); {override virtual abstract from TDataset}
-begin
-  SetFieldData(Field, Buffer, true);
 end;
 
 // this function counts real number of records: skip deleted records, filter, etc.

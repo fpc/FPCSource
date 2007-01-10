@@ -662,8 +662,7 @@ begin
         lFieldDescVII.FieldType := lFieldDef.NativeFieldType;
         lFieldDescVII.FieldSize := lSize;
         lFieldDescVII.FieldPrecision := lPrec;
-        // TODO: bug-endianness
-        lFieldDescVII.NextAutoInc := lFieldDef.AutoInc;
+        lFieldDescVII.NextAutoInc := SwapIntLE(lFieldDef.AutoInc);
         //lFieldDescVII.MDXFlag := ???
       end else begin
         FillChar(lFieldDescIII, SizeOf(lFieldDescIII), #0);
@@ -671,9 +670,8 @@ begin
         lFieldDescIII.FieldType := lFieldDef.NativeFieldType;
         lFieldDescIII.FieldSize := lSize;
         lFieldDescIII.FieldPrecision := lPrec;
-        // TODO: bug-endianness
         if FDbfVersion = xFoxPro then
-          lFieldDescIII.FieldOffset := lFieldOffset;
+          lFieldDescIII.FieldOffset := SwapIntLE(lFieldOffset);
         if (PDbfHdr(Header)^.VerDBF = $02) and (lFieldDef.NativeFieldType in ['0', 'Y', 'T', 'O', '+']) then
           PDbfHdr(Header)^.VerDBF := $30;
         if (PDbfHdr(Header)^.VerDBF = $30) and (lFieldDef.NativeFieldType = '+') then
@@ -847,8 +845,7 @@ begin
         lSize := lFieldDescVII.FieldSize;
         lPrec := lFieldDescVII.FieldPrecision;
         lNativeFieldType := lFieldDescVII.FieldType;
-        // TODO: big-endianness
-        lAutoInc := lFieldDescVII.NextAutoInc;
+        lAutoInc := SwapIntLE(lFieldDescVII.NextAutoInc);
         if lNativeFieldType = '+' then
           FAutoIncPresent := true;
       end else begin
@@ -1496,23 +1493,23 @@ begin
           Result := PDWord(Src)^ <> 0;
           if Result and (Dst <> nil) then
           begin
-            PDWord(Dst)^ := SwapInt(PDWord(Src)^);
+            PDWord(Dst)^ := SwapIntBE(PDWord(Src)^);
             if Result then
               PInteger(Dst)^ := Integer(PDWord(Dst)^ xor $80000000);
           end;
         end else begin
           Result := true;
           if Dst <> nil then
-            PInteger(Dst)^ := PInteger(Src)^;
+            PInteger(Dst)^ := SwapIntLE(PInteger(Src)^);
         end;
       end;
     'O':
       begin
 {$ifdef SUPPORT_INT64}
-        Result := (PInt64(Src)^ <> 0);
+        Result := PInt64(Src)^ <> 0;
         if Result and (Dst <> nil) then
         begin
-          SwapInt64(Src, Dst);
+          SwapInt64BE(Src, Dst);
           if PInt64(Dst)^ > 0 then
             PInt64(Dst)^ := not PInt64(Dst)^
           else
@@ -1525,7 +1522,7 @@ begin
         Result := (PInteger(Src)^ <> 0) and (PInteger(PChar(Src)+4)^ <> 0);
         if Result and (Dst <> nil) then
         begin
-          SwapInt64(Src, Dst);
+          SwapInt64BE(Src, Dst);
           if FDateTimeHandling = dtBDETimeStamp then
             date := BDETimeStampToDateTime(PDouble(Dst)^)
           else
@@ -1536,11 +1533,15 @@ begin
     'T':
       begin
         // all binary zeroes -> empty datetime
+{$ifdef SUPPORT_INT64}        
+        Result := PInt64(Src)^ <> 0;
+{$else}        
         Result := (PInteger(Src)^ <> 0) or (PInteger(PChar(Src)+4)^ <> 0);
+{$endif}        
         if Result and (Dst <> nil) then
         begin
-          timeStamp.Date := PInteger(Src)^ - JulianDateDelta;
-          timeStamp.Time := PInteger(PChar(Src)+4)^;
+          timeStamp.Date := SwapIntLE(PInteger(Src)^) - JulianDateDelta;
+          timeStamp.Time := SwapIntLE(PInteger(PChar(Src)+4)^);
           date := TimeStampToDateTime(timeStamp);
           SaveDateToDst;
         end;
@@ -1551,17 +1552,9 @@ begin
         Result := true;
         if Dst <> nil then
         begin
-          // TODO: data is little endian;
-          case DataType of
-            ftCurrency:
-            begin
-              PDouble(Dst)^ := PInt64(Src)^ / 10000.0;
-            end;
-            ftBCD:
-            begin
-              PCurrency(Dst)^ := PCurrency(Src)^;
-            end;
-          end;
+          PInt64(Dst)^ := SwapIntLE(PInt64(Src)^);
+          if DataType = ftCurrency then
+            PDouble(Dst)^ := PInt64(Dst)^ / 10000.0;
         end;
 {$endif}
       end;
@@ -1571,7 +1564,7 @@ begin
         begin
           Result := true;
           if Dst <> nil then
-            PDouble(Dst)^ := PDouble(Src)^;
+            PInt64(Dst)^ := SwapIntLE(PInt64(Src)^);
         end else
           asciiContents := true;
       end;
@@ -1581,7 +1574,7 @@ begin
         begin
           Result := PInteger(Src)^ <> 0;
           if Dst <> nil then
-            PInteger(Dst)^ := PInteger(Src)^;
+            PInteger(Dst)^ := SwapIntLE(PInteger(Src)^);
         end else
           asciiContents := true;
       end;
@@ -1753,12 +1746,12 @@ begin
             IntValue := 0
           else
             IntValue := PDWord(Src)^ xor $80000000;
-          PDWord(Dst)^ := SwapInt(IntValue);
+          PDWord(Dst)^ := SwapIntBE(IntValue);
         end else begin
           if Src = nil then
             PDWord(Dst)^ := 0
           else
-            PDWord(Dst)^ := PDWord(Src)^;
+            PDWord(Dst)^ := SwapIntLE(PDWord(Src)^);
         end;
       end;
     'O':
@@ -1769,10 +1762,10 @@ begin
           PInt64(Dst)^ := 0;
         end else begin
           if PDouble(Src)^ < 0 then
-            PLargeInt(Dst)^ := not PLargeInt(Src)^
+            PInt64(Dst)^ := not PInt64(Src)^
           else
             PDouble(Dst)^ := (PDouble(Src)^) * -1;
-          SwapInt64(Dst, Dst);
+          SwapInt64BE(Dst, Dst);
         end;
 {$endif}
       end;
@@ -1780,13 +1773,17 @@ begin
       begin
         if Src = nil then
         begin
+{$ifdef SUPPORT_INT64}
+          PInt64(Dst)^ := 0;
+{$else}          
           PInteger(Dst)^ := 0;
           PInteger(PChar(Dst)+4)^ := 0;
+{$endif}
         end else begin
           LoadDateFromSrc;
           if FDateTimeHandling = dtBDETimeStamp then
             date := DateTimeToBDETimeStamp(date);
-          SwapInt64(@date, Dst);
+          SwapInt64BE(@date, Dst);
         end;
       end;
     'T':
@@ -1794,13 +1791,17 @@ begin
         // all binary zeroes -> empty datetime
         if Src = nil then
         begin
+{$ifdef SUPPORT_INT64}
+          PInt64(Dst)^ := 0;
+{$else}          
           PInteger(Dst)^ := 0;
           PInteger(PChar(Dst)+4)^ := 0;
+{$endif}          
         end else begin
           LoadDateFromSrc;
           timeStamp := DateTimeToTimeStamp(date);
-          PInteger(Dst)^ := timeStamp.Date + JulianDateDelta;
-          PInteger(PChar(Dst)+4)^ := timeStamp.Time;
+          PInteger(Dst)^ := SwapIntLE(timeStamp.Date + JulianDateDelta);
+          PInteger(PChar(Dst)+4)^ := SwapIntLE(timeStamp.Time);
         end;
       end;
     'Y':
@@ -1808,7 +1809,7 @@ begin
 {$ifdef SUPPORT_INT64}
         if Src = nil then
         begin
-          PInt64(Dst)^ := 0
+          PInt64(Dst)^ := 0;
         end else begin
           case DataType of
             ftCurrency:
@@ -1816,8 +1817,8 @@ begin
             ftBCD:
               PCurrency(Dst)^ := PCurrency(Src)^;
           end;
+          SwapInt64LE(Dst, Dst);
         end;
-        // TODO: data is little endian
 {$endif}
       end;
     'B':
@@ -1827,7 +1828,7 @@ begin
           if Src = nil then
             PDouble(Dst)^ := 0
           else
-            PDouble(Dst)^ := PDouble(Src)^;
+            SwapInt64LE(Src, Dst);
         end else
           asciiContents := true;
       end;
@@ -1838,7 +1839,7 @@ begin
           if Src = nil then
             PInteger(Dst)^ := 0
           else
-            PInteger(Dst)^ := PInteger(Src)^;
+            PInteger(Dst)^ := SwapIntLE(PInteger(Src)^);
         end else
           asciiContents := true;
       end;
@@ -1969,18 +1970,19 @@ begin
         // read current auto inc, from header or field, depending on sharing
         lAutoIncOffset := sizeof(rDbfHdr) + sizeof(rAfterHdrVII) + 
           FieldDescVII_AutoIncOffset + I * sizeof(rFieldDescVII);
-        // TODO: big-endianness
         if NeedLocks then
-          ReadBlock(@NextVal, 4, lAutoIncOffset)
-        else
+        begin
+          ReadBlock(@NextVal, 4, lAutoIncOffset);
+          NextVal := SwapIntLE(NextVal);
+        end else
           NextVal := TempFieldDef.AutoInc;
         // store to buffer, positive = high bit on, so flip it
-        PCardinal(DestBuf+TempFieldDef.Offset)^ := SwapInt(NextVal or $80000000);
+        PCardinal(DestBuf+TempFieldDef.Offset)^ := SwapIntBE(NextVal or $80000000);
         // increase
         Inc(NextVal);
         TempFieldDef.AutoInc := NextVal;
         // write new value to header buffer
-        PCardinal(FHeader+lAutoIncOffset)^ := NextVal;
+        PCardinal(FHeader+lAutoIncOffset)^ := SwapIntLE(NextVal);
       end;
     end;
 

@@ -85,9 +85,13 @@ type
     FDbfFile: TDbfFile;
     FFieldName: string;
     FExprWord: TExprWord;
+
+    procedure SetExprWord(NewExprWord: TExprWord);
   protected
     function GetFieldVal: Pointer; virtual; abstract;
     function GetFieldType: TExpressionType; virtual; abstract;
+
+    property ExprWord: TExprWord read FExprWord write SetExprWord;
   public
     constructor Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
 
@@ -169,7 +173,8 @@ type
     procedure Refresh(Buffer: PChar); override;
   end;
 
-//--TFieldVar----------------------------------------------------------------
+{ TFieldVar }
+
 constructor TFieldVar.Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
 begin
   inherited Create;
@@ -180,10 +185,17 @@ begin
   FFieldName := UseFieldDef.FieldName;
 end;
 
-//--TStringFieldVar---------------------------------------------------------
+procedure TFieldVar.SetExprWord(NewExprWord: TExprWord);
+begin
+  FExprWord.FixedLen := FFieldDef.Size;
+end;
+
+{ TStringFieldVar }
+
 constructor TStringFieldVar.Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
 begin
   inherited;
+  FRawStringField := true;
 end;
 
 destructor TStringFieldVar.Destroy;
@@ -209,16 +221,15 @@ var
   Len: Integer;
   Src: PChar;
 begin
-  // copy field data
-  Len := FieldDef.Size;
   Src := Buffer+FieldDef.Offset;
-  // trim right side spaces by null-termination
   if not FRawStringField then
   begin
-    while (Len >= 1) and (Buffer[Len-1] = ' ') do Dec(Len);
-    FFieldVal[Len] := #0;
+    // copy field data
+    Len := FieldDef.Size;
+    while (Len >= 1) and (Src[Len-1] = ' ') do Dec(Len);
     // translate to ANSI
-    TranslateString(DbfFile.UseCodePage, GetACP, Src, FFieldVal, Len);
+    Len := TranslateString(DbfFile.UseCodePage, GetACP, Src, FFieldVal, Len);
+    FFieldVal[Len] := #0;
   end else
     FFieldVal := Src;
 end;

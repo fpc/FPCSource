@@ -38,6 +38,8 @@ V6.9.1
 - fix last memo field getting truncated (patch by dhdorrough)
 - add dbf_collate unit to the packages
 - fix index result too long bug
+- add support for big endian
+- fix non-raw string field filter
 
 ------------------------
 V6.9.0

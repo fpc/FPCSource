@@ -4,13 +4,6 @@ interface
 
 {$I dbf_common.inc}
 
-{$ifdef FPC}
- {$ifndef FPC_LITTLE_ENDIAN}
-  {$message error TDbf is not compatible with non little-endian CPUs. Please contact the author.}
- {$endif}
-{$endif}
-
-
 uses
   SysUtils, Classes, DB
 {$ifndef WINDOWS}
@@ -93,11 +86,14 @@ procedure FindNextName(BaseName: string; var OutName: string; var Modifier: Inte
 function GetFreeMemory: Integer;
 {$endif}
 
-// OH 2000-11-15 dBase7 support. Swap Byte order for 4 and 8 Byte Integer
-function SwapWord(const Value: word): word;
-function SwapInt(const Value: dword): dword;
-{ SwapInt64 NOTE: do not call with same value for Value and Result ! }
-procedure SwapInt64(Value, Result: Pointer); register;
+function SwapWordBE(const Value: word): word;
+function SwapWordLE(const Value: word): word;
+function SwapIntBE(const Value: dword): dword;
+function SwapIntLE(const Value: dword): dword;
+{$ifdef SUPPORT_INT64}
+procedure SwapInt64BE(Value, Result: Pointer); register;
+procedure SwapInt64LE(Value, Result: Pointer); register;
+{$endif}
 
 function TranslateString(FromCP, ToCP: Cardinal; Src, Dest: PChar; Length: Integer): Integer;
 
@@ -255,19 +251,55 @@ end;
 // Utility routines
 //====================================================================
 
-function SwapWord(const Value: word): word;
+{$ifdef ENDIAN_LITTLE}
+function SwapWordBE(const Value: word): word;
+{$else}
+function SwapWordLE(const Value: word): word;
+{$endif}
 begin
   Result := ((Value and $FF) shl 8) or ((Value shr 8) and $FF);
 end;
 
+{$ifdef ENDIAN_LITTLE}
+function SwapWordLE(const Value: word): word;
+{$else}
+function SwapWordBE(const Value: word): word;
+{$endif}
+begin
+  Result := Value;
+end;
+
+{$ifdef FPC}
+
+function SwapIntBE(const Value: dword): dword;
+begin
+  Result := BEtoN(Value);
+end;
+
+function SwapIntLE(const Value: dword): dword;
+begin
+  Result := LEtoN(Value);
+end;
+
+procedure SwapInt64BE(Value, Result: Pointer);
+begin
+  PInt64(Result)^ := BEtoN(PInt64(Value)^);
+end;
+
+procedure SwapInt64LE(Value, Result: Pointer);
+begin
+  PInt64(Result)^ := LEtoN(PInt64(Value)^);
+end;
+
+{$else}
 {$ifdef USE_ASSEMBLER_486_UP}
 
-function SwapInt(const Value: dword): dword; register; assembler;
+function SwapIntBE(const Value: dword): dword; register; assembler;
 asm
   BSWAP EAX;
 end;
 
-procedure SwapInt64(Value {EAX}, Result {EDX}: Pointer); register; assembler;
+procedure SwapInt64BE(Value {EAX}, Result {EDX}: Pointer); register; assembler;
 asm
   MOV ECX, dword ptr [EAX] 
   MOV EAX, dword ptr [EAX + 4] 
@@ -279,7 +311,7 @@ end;
 
 {$else}
 
-function SwapInt(const Value: Cardinal): Cardinal;
+function SwapIntBE(const Value: Cardinal): Cardinal;
 begin
   PByteArray(@Result)[0] := PByteArray(@Value)[3];
   PByteArray(@Result)[1] := PByteArray(@Value)[2];
@@ -287,7 +319,7 @@ begin
   PByteArray(@Result)[3] := PByteArray(@Value)[0];
 end;
 
-procedure SwapInt64(Value, Result: Pointer); register;
+procedure SwapInt64BE(Value, Result: Pointer); register;
 var
   PtrResult: PByteArray;
   PtrSource: PByteArray;
@@ -304,6 +336,22 @@ begin
   PtrResult[6] := PtrSource[1];
   PtrResult[7] := PtrSource[0];
 end;
+
+{$endif}
+
+function SwapIntLE(const Value: dword): dword;
+begin
+  Result := Value;
+end;
+
+{$ifdef SUPPORT_INT64}
+
+procedure SwapInt64LE(Value, Result: Pointer);
+begin
+  PInt64(Result)^ := PInt64(Value)^;
+end;
+
+{$endif}
 
 {$endif}
 
@@ -328,7 +376,7 @@ begin
   end else begin
     // does this work on Win95/98/ME?
     wideBytes := MultiByteToWideChar(FromCP, MB_PRECOMPOSED, Src, Length, LPWSTR(@WideCharStr[0]), 1024);
-    WideCharToMultiByte(ToCP, 0, LPWSTR(@WideCharStr[0]), wideBytes, Dest, Length, nil, nil);
+    Result := WideCharToMultiByte(ToCP, 0, LPWSTR(@WideCharStr[0]), wideBytes, Dest, Length, nil, nil);
   end;
 end;
 

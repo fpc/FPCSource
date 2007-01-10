@@ -117,7 +117,9 @@ type
 procedure FuncFloatToStr(Param: PExpressionRec);
 procedure FuncIntToStr_Gen(Param: PExpressionRec; Val: {$ifdef SUPPORT_INT64}Int64{$else}Integer{$endif});
 procedure FuncIntToStr(Param: PExpressionRec);
+{$ifdef SUPPORT_INT64}
 procedure FuncInt64ToStr(Param: PExpressionRec);
+{$endif}
 procedure FuncDateToStr(Param: PExpressionRec);
 procedure FuncSubString(Param: PExpressionRec);
 procedure FuncUppercase(Param: PExpressionRec);
@@ -254,12 +256,8 @@ begin
     begin
       // copy pointer to variable
       Args[0] := ExprWord.AsPointer;
-      // is this a fixed length string variable?
-      if ExprWord.FixedLen >= 0 then
-      begin
-        // store length as second parameter
-        Args[1] := PChar(ExprWord.LenAsPointer);
-      end;
+      // store length as second parameter
+      Args[1] := PChar(ExprWord.LenAsPointer);
     end;
   end;
 end;
