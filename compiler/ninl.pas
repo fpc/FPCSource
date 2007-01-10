@@ -602,117 +602,119 @@ implementation
                     para.left:=p1;
                   end;
 
-                { Currency will be written using the bestreal }
                 if is_currency(para.left.resultdef) then
-                  inserttypeconv(para.left,pbestrealtype^);
-
-                case para.left.resultdef.typ of
-                  stringdef :
-                    begin
-                      name := procprefix+tstringdef(para.left.resultdef).stringtypname;
-                    end;
-                  pointerdef :
-                    begin
-                      if (not is_pchar(para.left.resultdef)) or do_read then
-                        begin
-                          CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
-                          error_para := true;
-                        end
-                      else
-                        name := procprefix+'pchar_as_pointer';
-                    end;
-                  floatdef :
-                    begin
-                      is_real:=true;
-                      name := procprefix+'float';
-                      readfunctype:=pbestrealtype^;
-                    end;
-                  orddef :
-                    begin
-                      case torddef(para.left.resultdef).ordtype of
-{$ifdef cpu64bit}
-                        s64bit,
-{$endif cpu64bit}
-                        s8bit,
-                        s16bit,
-                        s32bit :
+                  begin
+                    is_real:=true;
+                    name := procprefix+'currency';
+                  end
+                else
+                  case para.left.resultdef.typ of
+                    stringdef :
+                      begin
+                        name := procprefix+tstringdef(para.left.resultdef).stringtypname;
+                      end;
+                    pointerdef :
+                      begin
+                        if (not is_pchar(para.left.resultdef)) or do_read then
                           begin
-                            name := procprefix+'sint';
-                            readfunctype:=sinttype;
-                          end;
-{$ifdef cpu64bit}
-                        u64bit,
-{$endif cpu64bit}
-                        u8bit,
-                        u16bit,
-                        u32bit :
-                          begin
-                            name := procprefix+'uint';
-                            readfunctype:=uinttype;
-                          end;
-                        uchar :
-                          begin
-                            name := procprefix+'char';
-                            readfunctype:=cchartype;
-                          end;
-                        uwidechar :
-                          begin
-                            name := procprefix+'widechar';
-                            readfunctype:=cwidechartype;
-                          end;
-{$ifndef cpu64bit}
-                        s64bit :
-                          begin
-                            name := procprefix+'int64';
-                            readfunctype:=s64inttype;
-                          end;
-                        u64bit :
-                          begin
-                            name := procprefix+'qword';
-                            readfunctype:=u64inttype;
-                          end;
-{$endif cpu64bit}
-                        bool8bit,
-                        bool16bit,
-                        bool32bit,
-                        bool64bit:
-                          begin
-                            if do_read then
-                              begin
-                                CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
-                                error_para := true;
-                              end
-                            else
-                              begin
-                                name := procprefix+'boolean';
-                                readfunctype:=booltype;
-                              end;
+                            CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                            error_para := true;
                           end
+                        else
+                          name := procprefix+'pchar_as_pointer';
+                      end;
+                    floatdef :
+                      begin
+                        is_real:=true;
+                        name := procprefix+'float';
+                        readfunctype:=pbestrealtype^;
+                      end;
+                    orddef :
+                      begin
+                        case torddef(para.left.resultdef).ordtype of
+{$ifdef cpu64bit}
+                          s64bit,
+{$endif cpu64bit}
+                          s8bit,
+                          s16bit,
+                          s32bit :
+                            begin
+                              name := procprefix+'sint';
+                              readfunctype:=sinttype;
+                            end;
+{$ifdef cpu64bit}
+                          u64bit,
+{$endif cpu64bit}
+                          u8bit,
+                          u16bit,
+                          u32bit :
+                            begin
+                              name := procprefix+'uint';
+                              readfunctype:=uinttype;
+                            end;
+                          uchar :
+                            begin
+                              name := procprefix+'char';
+                              readfunctype:=cchartype;
+                            end;
+                          uwidechar :
+                            begin
+                              name := procprefix+'widechar';
+                              readfunctype:=cwidechartype;
+                            end;
+{$ifndef cpu64bit}
+                          s64bit :
+                            begin
+                              name := procprefix+'int64';
+                              readfunctype:=s64inttype;
+                            end;
+                          u64bit :
+                            begin
+                              name := procprefix+'qword';
+                              readfunctype:=u64inttype;
+                            end;
+{$endif cpu64bit}
+                          bool8bit,
+                          bool16bit,
+                          bool32bit,
+                          bool64bit:
+                            begin
+                              if do_read then
+                                begin
+                                  CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                                  error_para := true;
+                                end
+                              else
+                                begin
+                                  name := procprefix+'boolean';
+                                  readfunctype:=booltype;
+                                end;
+                            end
+                          else
+                            begin
+                              CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                              error_para := true;
+                            end;
+                        end;
+                      end;
+                    variantdef :
+                      name:=procprefix+'variant';
+                    arraydef :
+                      begin
+                        if is_chararray(para.left.resultdef) then
+                          name := procprefix+'pchar_as_array'
                         else
                           begin
                             CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
                             error_para := true;
-                          end;
-                      end;
-                    end;
-                  variantdef :
-                    name:=procprefix+'variant';
-                  arraydef :
-                    begin
-                      if is_chararray(para.left.resultdef) then
-                        name := procprefix+'pchar_as_array'
-                      else
-                        begin
-                          CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
-                          error_para := true;
-                        end
-                    end
-                  else
-                    begin
-                      CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
-                      error_para := true;
-                    end
-                end;
+                          end
+                      end
+                    else
+                      begin
+                        CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                        error_para := true;
+                      end
+                  end;
 
                 { check for length/fractional colon para's }
                 fracpara := nil;
@@ -779,11 +781,14 @@ implementation
                                 cordconstnode.create(-1,s32inttype,false),nil);
                             { add it to the lenpara }
                             lenpara.right := fracpara;
-                            { and add the realtype para (this also removes the link }
-                            { to any parameters coming after it)                    }
-                            fracpara.right := ccallparanode.create(
-                                cordconstnode.create(ord(tfloatdef(para.left.resultdef).floattype),
-                                s32inttype,true),nil);
+                            if not is_currency(para.left.resultdef) then
+                              begin
+                                { and add the realtype para (this also removes the link }
+                                { to any parameters coming after it)                    }
+                                fracpara.right := ccallparanode.create(
+                                    cordconstnode.create(ord(tfloatdef(para.left.resultdef).floattype),
+                                    s32inttype,true),nil);
+                              end;
                           end;
                       end;
 
