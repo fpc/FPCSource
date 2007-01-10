@@ -696,6 +696,17 @@ Begin
   Write_Str(Len,t,s);
 End;
 
+{$ifdef FPC_HAS_STR_CURRENCY}
+Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Currency); iocheck; [Public,Alias:'FPC_WRITE_TEXT_CURRENCY']; compilerproc;
+var
+  s : String;
+Begin
+  If (InOutRes<>0) then
+   exit;
+  str(c:Len:fixkomma,s);
+  Write_Str(Len,t,s);
+End;
+{$endif FPC_HAS_STR_CURRENCY}
 
 Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); iocheck; [Public,Alias:'FPC_WRITE_TEXT_BOOLEAN']; compilerproc;
 Begin
@@ -1118,6 +1129,42 @@ End;
 
 
 procedure fpc_Read_Text_Float(var f : Text; out v : ValReal); iocheck; [Public,Alias:'FPC_READ_TEXT_FLOAT']; compilerproc;
+var
+  hs : string;
+  code : Word;
+begin
+  v:=0.0;
+{ Leave if error or not open file, else check for empty buf }
+  If (InOutRes<>0) then
+   exit;
+  if (TextRec(f).mode<>fmInput) Then
+   begin
+     case TextRec(f).mode of
+       fmOutPut,fmAppend:
+         InOutRes:=104
+       else
+         InOutRes:=103;
+     end;
+     exit;
+   end;
+  If TextRec(f).BufPos>=TextRec(f).BufEnd Then
+   FileFunc(TextRec(f).InOutFunc)(TextRec(f));
+  hs:='';
+  if IgnoreSpaces(f) then
+   begin
+     { When spaces were found and we are now at EOF,
+       then we return 0 }
+     if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+      exit;
+     ReadNumeric(f,hs);
+   end;
+  val(hs,v,code);
+  If code<>0 Then
+   InOutRes:=106;
+end;
+
+
+procedure fpc_Read_Text_Currency(var f : Text; out v : Currency); iocheck; [Public,Alias:'FPC_READ_TEXT_CURRENCY']; compilerproc;
 var
   hs : string;
   code : Word;

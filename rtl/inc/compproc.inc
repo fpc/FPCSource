@@ -245,6 +245,9 @@ procedure fpc_write_text_qword(len : longint;var t : text;q : qword); compilerpr
 procedure fpc_write_text_int64(len : longint;var t : text;i : int64); compilerproc;
 {$endif CPU64}
 Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); compilerproc;
+{$ifdef FPC_HAS_STR_CURRENCY}
+Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Currency); compilerproc;
+{$endif FPC_HAS_STR_CURRENCY}
 Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); compilerproc;
 Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); compilerproc;
 Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); compilerproc;
@@ -275,6 +278,7 @@ Procedure fpc_Read_Text_Char(var f : Text; out c : char); compilerproc;
 Procedure fpc_Read_Text_SInt(var f : Text; out l :ValSInt); compilerproc;
 Procedure fpc_Read_Text_UInt(var f : Text; out u :ValUInt); compilerproc;
 Procedure fpc_Read_Text_Float(var f : Text; out v :ValReal); compilerproc;
+procedure fpc_Read_Text_Currency(var f : Text; out v : Currency); compilerproc;
 {$ifndef CPU64}
 Procedure fpc_Read_Text_QWord(var f : text; out q : qword); compilerproc;
 Procedure fpc_Read_Text_Int64(var f : text; out i : int64); compilerproc;
