@@ -1024,7 +1024,7 @@ begin
 end;
 
 
-Function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : longint): currency; [public, alias:'FPC_VAL_CURRENCY_SHORTSTR']; compilerproc;
+Function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : ValSInt): currency; [public, alias:'FPC_VAL_CURRENCY_SHORTSTR']; compilerproc;
 const
   MaxInt64 : Int64  = $7FFFFFFFFFFFFFFF;
   Int64Edge : Int64 = ($7FFFFFFFFFFFFFFF - 10) div 10;

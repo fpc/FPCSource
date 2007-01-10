@@ -121,7 +121,7 @@ procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of 
 Function fpc_Val_Real_ShortStr(const s : shortstring; out code : ValSInt): ValReal; compilerproc;
 Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; out Code: ValSInt): ValSInt; compilerproc;
 Function fpc_Val_UInt_Shortstr(Const S: ShortString; out Code: ValSInt): ValUInt; compilerproc;
-Function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : longint): currency; compilerproc;
+Function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : ValSInt): currency; compilerproc;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Function fpc_Val_Real_AnsiStr(Const S : AnsiString; out Code : ValSInt): ValReal; compilerproc;
 Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; out Code : ValSInt): ValUInt; compilerproc;
