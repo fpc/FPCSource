@@ -1630,6 +1630,7 @@ implementation
             if assigned(srsym) and
                tsym(srsym).is_visible_for_object(contextclassh,currentclassh) then
               begin
+                addsymref(srsym);
                 result:=true;
                 exit;
               end;
@@ -1661,6 +1662,7 @@ implementation
                     srdef:=def;
                     srsym:=tprocdef(def).procsym;
                     srsymtable:=classh.symtable;
+                    addsymref(srsym);
                     result:=true;
                     exit;
                   end;
@@ -1692,6 +1694,7 @@ implementation
                   begin
                     srsym:=tprocdef(def).procsym;
                     srsymtable:=classh.symtable;
+                    addsymref(srsym);
                     result:=true;
                     exit;
                   end;
