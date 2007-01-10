@@ -57,7 +57,7 @@ begin
     i:= ii(wii);
     i.Show;
   except       //excepts
-    on EAccessViolation do WriteLn('Access Violation');
+    on EInvalidCast do WriteLn('Invalid Cast');
   else
     WriteLn('Problem');
     halt(1);
