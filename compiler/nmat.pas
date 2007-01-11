@@ -644,7 +644,7 @@ implementation
              end
 {$endif SUPPORT_MMX}
 {$ifndef cpu64bit}
-         else if is_64bitint(left.resultdef) then
+         else if is_64bit(left.resultdef) then
            begin
            end
 {$endif cpu64bit}
