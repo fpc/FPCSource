@@ -269,7 +269,7 @@ type
     property UpdateSQL : TStringlist read FUpdateSQL write FUpdateSQL;
     property InsertSQL : TStringlist read FInsertSQL write FInsertSQL;
     property DeleteSQL : TStringlist read FDeleteSQL write FDeleteSQL;
-    property IndexDefs : TIndexDefs read GetIndexDefs;
+    property IndexDefs : TIndexDefs read GetIndexDefs stored false;
     property Params : TParams read FParams write FParams;
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey;
