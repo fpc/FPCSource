@@ -293,6 +293,9 @@ begin
   HT:=HelpFileTypes^.At(Index)^;
 end;
 
+{$R-}
+{$Q-}
+
 Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
 {$IFDEF OS2}
   const
