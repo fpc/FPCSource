@@ -16,12 +16,19 @@ type
 
   TTestDBBasics = class(TTestCase)
   private
+    procedure TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
     procedure TestfieldDefinition(AFieldType : TFieldType;ADatasize : integer;var ADS : TDataset; var AFld: TField);
     procedure TestcalculatedField_OnCalcfields(DataSet: TDataSet);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
   published
+    procedure TestIntFilter;
+    procedure TestOnFilter;
+    procedure TestStringFilter;
+
+    procedure TestNullAtOpen;
+
     procedure TestSupportIntegerFields;
     procedure TestSupportSmallIntFields;
     procedure TestSupportStringFields;
@@ -425,6 +432,67 @@ begin
   DBConnector.StopTest;
 end;
 
+procedure TTestDBBasics.TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
+
+var a : TDataSetState;
+begin
+  Accept := odd(Dataset.FieldByName('ID').AsInteger);
+end;
+
+procedure TTestDBBasics.TestOnFilter;
+var tel : byte;
+begin
+  with DBConnector.GetNDataset(15) do
+    begin
+    OnFilterRecord := TestOnFilterProc;
+    Filtered := True;
+    Open;
+    for tel := 1 to 8 do
+      begin
+      AssertTrue(odd(FieldByName('ID').asinteger));
+      next;
+      end;
+    AssertTrue(EOF);
+    end;
+end;
+
+procedure TTestDBBasics.TestIntFilter;
+var tel : byte;
+begin
+  with DBConnector.GetNDataset(15) do
+    begin
+    Filtered := True;
+    Filter := '(id>4) and (id<9)';
+    Open;
+    for tel := 5 to 8 do
+      begin
+      AssertEquals(tel,FieldByName('ID').asinteger);
+      next;
+      end;
+    AssertTrue(EOF);
+    Close;
+    end;
+end;
+
+procedure TTestDBBasics.TestStringFilter;
+var tel : byte;
+begin
+  with DBConnector.GetNDataset(15) do
+    begin
+    Open;
+    //FilterOptions := [foNoPartialCompare];
+    //FilterOptions := [];
+    Filter := '(name=''*Name3'')';
+    Filtered := True;
+    AssertFalse(EOF);
+    AssertEquals(3,FieldByName('ID').asinteger);
+    AssertEquals('TestName3',FieldByName('NAME').asstring);
+    next;
+    AssertTrue(EOF);
+    Close;
+    end;
+end;
+
 procedure TTestDBBasics.TestcalculatedField_OnCalcfields(DataSet: TDataSet);
 begin
   case dataset.fieldbyname('ID').asinteger of
@@ -777,6 +845,21 @@ begin
       Prior;
       end;
     end;
+end;
+
+procedure TTestDBBasics.TestNullAtOpen;
+begin
+  with dbconnector.getndataset(0) do
+    begin
+    active:= true;
+    AssertTrue('Field isn''t NULL on a just-opened empty dataset',fieldbyname('id').IsNull);
+    append;
+    AssertTrue('Field isn''t NULL after append on an empty dataset',fieldbyname('id').IsNull);
+    fieldbyname('id').asinteger:= 123;
+    cancel;
+    AssertTrue('Field isn''t NULL after cancel',fieldbyname('id').IsNull);
+    end;
+
 end;
 
 { TSQLTestSetup }
