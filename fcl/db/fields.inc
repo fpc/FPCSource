@@ -1625,12 +1625,15 @@ procedure TFloatField.SetAsString(const AValue: string);
 Var R : Double;
 
 begin
-  try
-    R := StrToFloat(AValue);
-    SetAsFloat(R);
-  except
-    DatabaseErrorFmt(SNotAFloat, [AValue]);
-  end;
+  If (AValue='') then
+    Clear
+  else  
+    try
+      R := StrToFloat(AValue);
+      SetAsFloat(R);
+    except
+      DatabaseErrorFmt(SNotAFloat, [AValue]);
+    end;
 end;
 
 procedure TFloatField.SetVarValue(const AValue: Variant);
