@@ -493,7 +493,10 @@ begin
   if f<0 then
     begin
       { writing power of 10 part }
-      k:=tlen-5;
+      if PInt64(@c)^ = 0 then
+        k:=0
+      else
+        k:=tlen-5;
       if k >= 0 then
         s[j-2]:='+'
       else
