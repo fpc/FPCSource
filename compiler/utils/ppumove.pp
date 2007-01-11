@@ -39,15 +39,15 @@ uses
 {$else unix}
   dos,
 {$endif unix}
-  ppu,
+  cutils,ppu,systems,
   getopts;
 
 const
-  Version   = 'Version 2.0.2';
+  Version   = 'Version 2.1.1';
   Title     = 'PPU-Mover';
-  Copyright = 'Copyright (c) 1998-2006 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2007 by the Free Pascal Development Team';
 
-  ShortOpts = 'o:e:d:i:qhsvbw';
+  ShortOpts = 'o:e:d:i:qhsvb';
   BufSize = 4096;
   PPUExt = 'ppu';
   ObjExt = 'o';
@@ -247,6 +247,7 @@ Var
   f      : file;
   ext,
   s      : string;
+  ppuversion : dword;
 begin
   DoPPU:=false;
   If Not Quiet then
@@ -265,10 +266,11 @@ begin
      Error('Error: Not a PPU File : '+PPUFn,false);
      Exit;
    end;
-  if inppu.GetPPUVersion<CurrentPPUVersion then
+  ppuversion:=inppu.GetPPUVersion;
+  if ppuversion<CurrentPPUVersion then
    begin
      inppu.free;
-     Error('Error: Wrong PPU Version : '+PPUFn,false);
+     Error('Error: Wrong PPU Version '+tostr(ppuversion)+' in '+PPUFn,false);
      Exit;
    end;
 { No .o file generated for this ppu, just skip }
@@ -293,6 +295,12 @@ begin
      inppu.free;
      Error('Error: PPU is not static linked : '+PPUFn,false);
      Exit;
+   end;
+{ Check if shared is allowed }
+  if tsystem(inppu.header.target) in [system_i386_go32v2] then
+   begin
+     Writeln('Warning: shared library not supported for ppu target, switching to static library');
+     MakeStatic:=true;
    end;
 { Create the new ppu }
   if PPUFn=PPLFn then
@@ -521,7 +529,7 @@ Procedure usage;
   Print usage and exit.
 }
 begin
-  Writeln(paramstr(0),': [-qhwvbsS] [-e ext] [-o name] [-d path] file [file ...]');
+  Writeln(paramstr(0),': [-qhvbsS] [-e ext] [-o name] [-d path] file [file ...]');
   Halt(0);
 end;
 
@@ -560,10 +568,6 @@ begin
             end;
       'e' : PPLext:=OptArg;
       'q' : Quiet:=True;
-      'w' : begin
-              ArBin:='arw';
-              LdBin:='ldw';
-            end;
       'b' : Batch:=true;
       's' : DoStrip:=true;
       '?' : Usage;
@@ -594,14 +598,6 @@ begin
      Writeln(Copyright);
      Writeln;
    end;
-{ Check if shared is allowed }
-{$ifndef unix}
-  if arbin<>'arw' then
-   begin
-     Writeln('Warning: shared library not supported for Go32, switching to static library');
-     MakeStatic:=true;
-   end;
-{$endif}
 { fix the libext and outputfilename }
   if Makestatic then
    LibExt:=StaticLibExt
