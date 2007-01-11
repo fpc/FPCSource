@@ -221,6 +221,7 @@ type
     function Extract(item: Pointer): Pointer;
     function IndexOf(Item: Pointer): Integer;
     function Find(const AName:string): Pointer;
+    function FindIndexOf(const AName:string): Integer;
     function FindWithHash(const AName:string;AHash:LongWord): Pointer;
     function Rename(const AOldName,ANewName:string): Integer;
     function Remove(Item: Pointer): Integer;
@@ -287,6 +288,7 @@ type
     function Remove(AObject: TObject): Integer;
     function IndexOf(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Find(const s:string): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function FindIndexOf(const s:string): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindWithHash(const AName:string;AHash:LongWord): Pointer;
     function Rename(const AOldName,ANewName:string): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function FindInstanceOf(AClass: TClass; AExact: Boolean; AStartAt: Integer): Integer;
@@ -1364,6 +1366,14 @@ begin
 end;
 
 
+function TFPHashList.FindIndexOf(const AName:string): Integer;
+var
+  PrevIndex : Integer;
+begin
+  Result:=InternalFind(FPHash(AName),AName,PrevIndex);
+end;
+
+
 function TFPHashList.FindWithHash(const AName:string;AHash:LongWord): Pointer;
 var
   Index,
@@ -1689,6 +1699,12 @@ end;
 function TFPHashObjectList.Find(const s:string): TObject;
 begin
   result:=TObject(FHashList.Find(s));
+end;
+
+
+function TFPHashObjectList.FindIndexOf(const s:string): Integer;
+begin
+  result:=FHashList.FindIndexOf(s);
 end;
 
 
