@@ -1359,17 +1359,19 @@ implementation
         pd : tprocdef;
         i  : longint;
         j  : integer;
+        hs : string;
       begin
         if (tsym(sym).typ<>procsym) then
           exit;
         for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
           begin
             pd:=tprocdef(tprocsym(sym).ProcdefList[i]);
-            j:=AbstractMethodsList.FindIndexOf(pd.procsym.name);
+            hs:=pd.procsym.name+pd.typename_paras(false);
+            j:=AbstractMethodsList.FindIndexOf(hs);
             if j<>-1 then
               AbstractMethodsList[j]:=pd
             else
-              AbstractMethodsList.Add(pd.procsym.name,pd);
+              AbstractMethodsList.Add(hs,pd);
           end;
       end;
 
