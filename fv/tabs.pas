@@ -21,6 +21,7 @@
  ****************************************************************************}
 unit tabs;
 
+{$I platform.inc}    (* Multi-platform support defines *)
 {$CODEPAGE cp437}
 
 interface
@@ -28,7 +29,6 @@ interface
 uses
   objects, drivers, views, fvconsts;
 
-{$I platform.inc}    (* Multi-platform support defines *)
 
 type
     PTabItem = ^TTabItem;
