@@ -553,6 +553,12 @@ begin
   UTagName:=UpcaseStr(TagName);
   NotEndTag:=copy(TagName,1,1)<>'/';
   if NotEndTag then ETagName:=UTagName else ETagName:=copy(UTagName,2,255);
+  { <BR/> is also a Break tag... }
+  if Copy(ETagName,Length(ETagName),1)='/' then
+    begin
+      ETagName:=copy(ETagName,1,Length(ETagName)-1);
+      NotEndTag:=false;
+    end;
 
   if (UTagName='!DOCTYPE') then DocTYPE else
   { Section tags }
