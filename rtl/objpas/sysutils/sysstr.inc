@@ -881,7 +881,7 @@ end;
 {$define TFormatString:=ansistring}
 {$define TFormatChar:=char}
 
-Function Format (Const Fmt : AnsiString; const Args : Array of const) : AnsiString;
+Function Format (Const Fmt : AnsiString; const Args : Array of const; const FormatSettings: TFormatSettings) : AnsiString;
 {$i sysformt.inc}
 
 {$undef TFormatString}
@@ -889,9 +889,13 @@ Function Format (Const Fmt : AnsiString; const Args : Array of const) : AnsiStri
 {$undef INFORMAT}
 {$macro off}
 
-Function FormatBuf (Var Buffer; BufLen : Cardinal;
-                     Const Fmt; fmtLen : Cardinal;
-                     Const Args : Array of const) : Cardinal;
+Function Format (Const Fmt : AnsiString; const Args : Array of const) : AnsiString;
+
+begin
+  Result:=Format(Fmt,Args,DefaultFormatSettings);
+end;
+
+Function FormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const; Const FormatSettings: TFormatSettings) : Cardinal;
 
 Var S,F : String;
 
@@ -907,13 +911,34 @@ begin
   Move(S[1],Buffer,Result);
 end;
 
-Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
+Function FormatBuf (Var Buffer; BufLen : Cardinal;
+                     Const Fmt; fmtLen : Cardinal;
+                     Const Args : Array of const) : Cardinal;
+
+begin
+  Result:=FormatBuf(Buffer,BufLen,Fmt,FmtLen,Args,DefaultFormatSettings);
+end;
+
+Procedure FmtStr(Var Res: string; const Fmt : string; Const args: Array of const; Const FormatSettings: TFormatSettings);
 
 begin
   Res:=Format(fmt,Args);
 end;
 
+Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
+
+begin
+  FmtStr(Res,Fmt,Args,DefaultFormatSettings);
+end;
+
+
 Function StrFmt(Buffer,Fmt : PChar; Const args: Array of const) : Pchar;
+
+begin
+  Result:=StrFmt(Buffer,Fmt,Args,DefaultFormatSettings);
+end;
+
+Function StrFmt(Buffer,Fmt : PChar; Const Args: Array of const; Const FormatSettings: TFormatSettings): PChar; 
 
 begin
   Buffer[FormatBuf(Buffer^,Maxint,Fmt^,strlen(fmt),args)]:=#0;
@@ -923,11 +948,23 @@ end;
 Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const) : Pchar;
 
 begin
+  Result:=StrLFmt(Buffer,MaxLen,Fmt,Args,DefaultFormatSettings);
+end;
+
+Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const; Const FormatSettings: TFormatSettings) : Pchar;
+
+begin
   Buffer[FormatBuf(Buffer^,MaxLen,Fmt^,strlen(fmt),args)]:=#0;
   Result:=Buffer;
 end;
 
 Function StrToFloat(Const S: String): Extended;
+
+begin
+  Result:=StrToFloat(S,DefaultFormatSettings);
+end;
+
+Function StrToFloat(Const S : String; Const FormatSettings: TFormatSettings) : Extended;
 
 Begin
   If Not TextToFloat(Pchar(S),Result) then
@@ -937,11 +974,17 @@ End;
 function StrToFloatDef(const S: string; const Default: Extended): Extended;
 
 begin
+  Result:=StrToFloatDef(S,Default,DefaultFormatSettings);
+end;
+
+Function StrToFloatDef(Const S: String; Const Default: Extended; Const FormatSettings: TFormatSettings): Extended;
+
+begin
    if not TextToFloat(PChar(S),Result,fvExtended) then
      Result:=Default;
 end;
 
-Function TextToFloat(Buffer: PChar; Var Value: Extended): Boolean;
+Function TextToFloat(Buffer: PChar; Var Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 
 Var
   E,P : Integer;
@@ -956,7 +999,19 @@ Begin
   Result:=(E=0);
 End;
 
+Function TextToFloat(Buffer: PChar; Var Value: Extended): Boolean;
+
+begin
+  Result:=TextToFloat(Buffer,Value,DefaultFormatSettings);
+end;
+
 Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue): Boolean;
+
+begin
+  Result:=TextToFloat(Buffer,Value,ValueType,DefaultFormatSettings);
+end;
+
+Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
 
 Var
   E,P : Integer;
@@ -1002,17 +1057,35 @@ Begin
 End;
 
 Function TryStrToFloat(Const S : String; Var Value: Single): Boolean;
+
+begin
+  Result:=TryStrToFloat(S,Value,DefaultFormatSettings);
+end;
+
+Function TryStrToFloat(Const S : String; Var Value: Single; Const FormatSettings: TFormatSettings): Boolean;
 Begin
   Result := TextToFloat(PChar(S), Value, fvSingle);
 End;
 
 Function TryStrToFloat(Const S : String; Var Value: Double): Boolean;
+
+begin
+  Result:=TryStrToFloat(S,Value,DefaultFormatSettings);
+end;
+
+Function TryStrToFloat(Const S : String; Var Value: Double; Const FormatSettings: TFormatSettings): Boolean;
 Begin
   Result := TextToFloat(PChar(S), Value, fvDouble);
 End;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 Function TryStrToFloat(Const S : String; Var Value: Extended): Boolean;
+
+begin
+  Result:=TryStrToFloat(S,Value,DefaultFormatSettings);
+end;
+
+Function TryStrToFloat(Const S : String; Var Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 Begin
   Result := TextToFloat(PChar(S), Value);
 End;
@@ -1279,19 +1352,36 @@ Begin
   End;
 End;
 
+
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-Function FloatToStr(Value: Extended): String;
+Function FloatToStr(Value: Extended; Const FormatSettings: TFormatSettings): String;
 Begin
   Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvExtended);
 End;
+
+
+Function FloatToStr(Value: Extended): String;
+
+begin
+  Result:=FloatToStr(Value,DefaultFormatSettings);
+end;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-Function FloatToStr(Value: Currency): String;
+
+Function FloatToStr(Value: Currency; Const FormatSettings: TFormatSettings): String;
 Begin
   Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvCurrency);
 End;
 
-Function FloatToStr(Value: Double): String;
+
+Function FloatToStr(Value: Currency): String;
+
+begin
+  Result:=FloatToStr(Value,DefaultFormatSettings);
+end;
+
+
+Function FloatToStr(Value: Double; Const FormatSettings: TFormatSettings): String;
 var
   e: Extended;
 Begin
@@ -1299,7 +1389,15 @@ Begin
   Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvDouble);
 End;
 
-Function FloatToStr(Value: Single): String;
+
+Function FloatToStr(Value: Double): String;
+
+begin
+  Result:=FloatToStr(Value,DefaultFormatSettings);
+end;
+
+
+Function FloatToStr(Value: Single; Const FormatSettings: TFormatSettings): String;
 var
   e: Extended;
 Begin
@@ -1307,7 +1405,15 @@ Begin
   Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvSingle);
 End;
 
-Function FloatToStr(Value: Comp): String;
+
+Function FloatToStr(Value: Single): String;
+
+begin
+  Result:=FloatToStr(Value,DefaultFormatSettings);
+end;
+
+
+Function FloatToStr(Value: Comp; Const FormatSettings: TFormatSettings): String;
 var
   e: Extended;
 Begin
@@ -1315,10 +1421,25 @@ Begin
   Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvComp);
 End;
 
+
+Function FloatToStr(Value: Comp): String;
+
+begin
+  Result:=FloatToStr(Value,DefaultFormatSettings);
+end;
+
 {$ifndef FPC_COMP_IS_INT64}
 Function FloatToStr(Value: Int64): String;
+
+begin
+  Result:=FloatToStr(Value,DefaultFormatSettings);
+end;
+
+Function FloatToStr(Value: Int64; Const FormatSettings: TFormatSettings): String;
+
 var
   e: Extended;
+
 Begin
   e := Comp(Value);
   Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvComp);
@@ -1326,7 +1447,7 @@ End;
 {$endif FPC_COMP_IS_INT64}
 
 
-Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
+Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): Longint;
 Var
   Tmp: String[40];
 Begin
@@ -1335,19 +1456,43 @@ Begin
   Move(Tmp[1], Buffer[0], Result);
 End;
 
-{$ifdef FPC_HAS_TYPE_EXTENDED}
-Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
+
+Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
+
 begin
-  result := FloatToStrFIntl(value,format,precision,digits,fvExtended);
+  Result:=FloatToText(Buffer,Value,Format,Precision,Digits,DefaultFormatSettings);
+end;
+
+
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
+begin
+  Result := FloatToStrFIntl(value,format,precision,digits,fvExtended);
+end;
+
+
+Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
+
+begin
+  Result:=FloatToStrF(Value,Format,Precision,Digits,DefaultFormatSettings);
 end;
 {$endif}
 
-Function FloatToStrF(Value: Currency; format: TFloatFormat; Precision, Digits: Integer): String;
+
+Function FloatToStrF(Value: Currency; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
 begin
-  result := FloatToStrFIntl(value,format,precision,digits,fvCurrency);
+  Result := FloatToStrFIntl(value,format,precision,digits,fvCurrency);
 end;
 
-Function FloatToStrF(Value: Double; format: TFloatFormat; Precision, Digits: Integer): String;
+
+Function FloatToStrF(Value: Currency; format: TFloatFormat; Precision, Digits: Integer): String;
+
+begin
+  Result:=FloatToStrF(Value,format,Precision,Digits,DefaultFormatSettings);
+end;
+
+
+Function FloatToStrF(Value: Double; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
 var
   e: Extended;
 begin
@@ -1355,37 +1500,79 @@ begin
   result := FloatToStrFIntl(e,format,precision,digits,fvDouble);
 end;
 
-Function FloatToStrF(Value: Single; format: TFloatFormat; Precision, Digits: Integer): String;
+
+Function FloatToStrF(Value: Double; format: TFloatFormat; Precision, Digits: Integer): String;
+
+begin
+  Result:= FloatToStrF(Value,Format,Precision,Digits,DefaultFormatSettings);
+end;
+
+
+Function FloatToStrF(Value: Single; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
+
 var
   e: Extended;
 begin
-  e := Value;
+  e:=Value;
   result := FloatToStrFIntl(e,format,precision,digits,fvSingle);
 end;
 
-Function FloatToStrF(Value: Comp; format: TFloatFormat; Precision, Digits: Integer): String;
+
+Function FloatToStrF(Value: Single; format: TFloatFormat; Precision, Digits: Integer): String;
+
+begin
+  Result:= FloatToStrF(Value,Format,Precision,Digits,DefaultFormatSettings);
+end;
+
+
+Function FloatToStrF(Value: Comp; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
+
 var
   e: Extended;
 begin
   e := Value;
-  result := FloatToStrFIntl(e,format,precision,digits,fvComp);
+  Result := FloatToStrFIntl(e,format,precision,digits,fvComp);
 end;
 
+
+Function FloatToStrF(Value: Comp; format: TFloatFormat; Precision, Digits: Integer): String;
+
+begin
+  Result:=FloatToStrF(Value,Format,Precision,Digits,DefaultFormatSettings);
+end;
+
+
 {$ifndef FPC_COMP_IS_INT64}
-Function FloatToStrF(Value: Int64; format: TFloatFormat; Precision, Digits: Integer): String;
+Function FloatToStrF(Value: Int64; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
+
 var
   e: Extended;
 begin
   e := Comp(Value);
   result := FloatToStrFIntl(e,format,precision,digits,fvComp);
 end;
+
+
+Function FloatToStrF(Value: Int64; format: TFloatFormat; Precision, Digits: Integer): String;
+
+begin
+  Result:=FloatToStrF(Value,Format,Precision,Digits,DefaultFormatSettings);
+end;
 {$endif FPC_COMP_IS_INT64}
 
 
+Function CurrToStrF(Value: Currency; Format: TFloatFormat; Digits: Integer; Const FormatSettings: TFormatSettings): string;
+
+begin
+  result:=FloatToStrF(Value,Format,19,Digits);
+end;
+
+
 Function CurrToStrF(Value: Currency; Format: TFloatFormat; Digits: Integer): string;
-  begin
-    result:=FloatToStrF(Value,Format,19,Digits);
-  end;
+
+begin
+  Result:=CurrToStrF(Value,Format,Digits);
+end;
 
 
 Function FloatToDateTime (Const Value : Extended) : TDateTime;
@@ -2108,7 +2295,7 @@ begin
   FloatToDecimal(Result,Value,fvExtended,Precision,Decimals);
 end;
 
-Function FormatFloat(Const format: String; Value: Extended): String;
+Function FormatFloat(Const Format : String; Value : Extended; Const FormatSettings: TFormatSettings) : String;
 
 Var
   buf : Array[0..1024] of char;
@@ -2118,9 +2305,21 @@ Begin
   Result:=StrPas(@Buf[0]);
 End;
 
-function FormatCurr(const Format: string; Value: Currency): string;
+Function FormatFloat(Const format: String; Value: Extended): String;
+
+begin
+  Result:=FormatFloat(Format,Value,DefaultFormatSettings);
+end;
+
+Function FormatCurr(const Format: string; Value: Currency; Const FormatSettings: TFormatSettings): string;
 begin
   Result := FormatFloat(Format, Value);
+end;
+
+function FormatCurr(const Format: string; Value: Currency): string;
+
+begin
+  Result:=FormatCurr(Format,Value,DefaultFormatSettings);
 end;
 
 

@@ -30,7 +30,8 @@ function WideCompareText(const s1, s2 : WideString) : PtrInt;{$ifdef SYSUTILSINL
 function WideSameText(const s1, s2 : WideString) : Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
 
 Function WideFormat (Const Fmt : WideString; const Args : Array of const) : WideString;
-Function WideFormatBuf (Var Buffer; BufLen : Cardinal;
-                     Const Fmt; fmtLen : Cardinal;
-                     Const Args : Array of const) : Cardinal;
+Function WideFormat (Const Fmt : WideString; const Args : Array of const; Const FormatSettings: TFormatSettings) : WideString;
+Function WideFormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const) : Cardinal;
+Function WideFormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const; Const FormatSettings: TFormatSettings) : Cardinal;
 Procedure WideFmtStr(Var Res: WideString; Const Fmt : WideString; Const args: Array of const);
+Procedure WideFmtStr(Var Res: WideString; Const Fmt : WideString; Const args: Array of const; Const FormatSettings: TFormatSettings);

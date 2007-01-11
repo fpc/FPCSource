@@ -119,41 +119,67 @@ function StrToQWordDef(const S: string; Default: QWord): QWord;
 function LoadStr(Ident: integer): string;
 // function FmtLoadStr(Ident: integer; const Args: array of const): string;
 Function Format (Const Fmt : String; const Args : Array of const) : String;
+Function Format (Const Fmt: string; const Args: array of const; const FormatSettings: TFormatSettings): string;
 Function FormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const) : Cardinal;
+Function FormatBuf (Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const; Const FormatSettings: TFormatSettings) : Cardinal;
 Function StrFmt(Buffer,Fmt : PChar; Const args: Array of const) : Pchar;
+Function StrFmt(Buffer,Fmt : PChar; Const Args: Array of const; Const FormatSettings: TFormatSettings): PChar; 
 Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const) : Pchar;
+Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const; Const FormatSettings: TFormatSettings) : Pchar;
 Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
+Procedure FmtStr(Var Res: string; const Fmt : string; Const args: Array of const; Const FormatSettings: TFormatSettings);
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
+Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
 {$endif FPC_HAS_TYPE_EXTENDED}
 Function FloatToStrF(Value: Double; format: TFloatFormat; Precision, Digits: Integer): String;
+Function FloatToStrF(Value: Double; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
 Function FloatToStrF(Value: Single; format: TFloatFormat; Precision, Digits: Integer): String;
+Function FloatToStrF(Value: Single; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
 Function FloatToStrF(Value: Comp; format: TFloatFormat; Precision, Digits: Integer): String;
+Function FloatToStrF(Value: Comp; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
 Function FloatToStrF(Value: Currency; format: TFloatFormat; Precision, Digits: Integer): String;
+Function FloatToStrF(Value: Currency; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
 {$ifndef FPC_COMP_IS_INT64}
 Function FloatToStrF(Value: Int64; format: TFloatFormat; Precision, Digits: Integer): String;
+Function FloatToStrF(Value: Int64; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
 {$endif FPC_COMP_IS_INT64}
 Function CurrToStrF(Value: Currency; Format: TFloatFormat; Digits: Integer): string;
+Function CurrToStrF(Value: Currency; Format: TFloatFormat; Digits: Integer; Const FormatSettings: TFormatSettings): string;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 Function FloatToStr(Value: Extended): String;
+Function FloatToStr(Value: Extended; Const FormatSettings: TFormatSettings): String;
 {$endif FPC_HAS_TYPE_EXTENDED}
 Function FloatToStr(Value: Double): String;
+Function FloatToStr(Value: Double; Const FormatSettings: TFormatSettings): String;
 Function FloatToStr(Value: Single): String;
+Function FloatToStr(Value: Single; Const FormatSettings: TFormatSettings): String;
 Function FloatToStr(Value: Currency): String;
+Function FloatToStr(Value: Currency; Const FormatSettings: TFormatSettings): String;
 Function FloatToStr(Value: Comp): String;
+Function FloatToStr(Value: Comp; Const FormatSettings: TFormatSettings): String;
 {$ifndef FPC_COMP_IS_INT64}
 Function FloatToStr(Value: Int64): String;
+Function FloatToStr(Value: Int64; Const FormatSettings: TFormatSettings): String;
 {$endif FPC_COMP_IS_INT64}
 Function StrToFloat(Const S : String) : Extended;
+Function StrToFloat(Const S : String; Const FormatSettings: TFormatSettings) : Extended;
 Function StrToFloatDef(Const S: String; Const Default: Extended): Extended;
+Function StrToFloatDef(Const S: String; Const Default: Extended; Const FormatSettings: TFormatSettings): Extended;
 Function TryStrToFloat(Const S : String; Var Value: Single): Boolean;
+Function TryStrToFloat(Const S : String; Var Value: Single; Const FormatSettings: TFormatSettings): Boolean;
 Function TryStrToFloat(Const S : String; Var Value: Double): Boolean;
+Function TryStrToFloat(Const S : String; Var Value: Double; Const FormatSettings: TFormatSettings): Boolean;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 Function TryStrToFloat(Const S : String; Var Value: Extended): Boolean;
+Function TryStrToFloat(Const S : String; Var Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 {$endif FPC_HAS_TYPE_EXTENDED}
 Function TextToFloat(Buffer: PChar; Var Value: Extended): Boolean;
+Function TextToFloat(Buffer: PChar; Var Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue): Boolean;
+Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
 Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
+Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): Longint;
 Function FloatToDateTime (Const Value : Extended) : TDateTime;
 Function FloattoCurr (Const Value : Extended) : Currency;
 function TryFloatToCurr(const Value: Extended; var AResult: Currency): Boolean;
@@ -174,8 +200,10 @@ Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;
 Procedure FloatToDecimal(Out Result: TFloatRec; const Value; ValueType: TFloatValue; Precision, Decimals : integer);
 Procedure FloatToDecimal(Out Result: TFloatRec; Value: Extended; Precision, Decimals : integer);
 Function FormatFloat(Const Format : String; Value : Extended) : String;
+Function FormatFloat(Const Format : String; Value : Extended; Const FormatSettings: TFormatSettings) : String;
 Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
 function FormatCurr(const Format: string; Value: Currency): string;
+Function FormatCurr(const Format: string; Value: Currency; Const FormatSettings: TFormatSettings): string;
 
 function SScanf(const s: string; const fmt : string;const Pointers : array of Pointer) : Integer;
 

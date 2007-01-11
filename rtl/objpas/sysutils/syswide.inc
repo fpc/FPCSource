@@ -99,7 +99,7 @@ function WideSameText(const s1, s2 : WideString) : Boolean;{$ifdef SYSUTILSINLIN
 {$define TFormatString:=widestring}
 {$define TFormatChar:=widechar}
 
-Function WideFormat (Const Fmt : WideString; const Args : Array of const) : WideString;
+Function WideFormat (Const Fmt : WideString; const Args : Array of const; Const FormatSettings: TFormatSettings) : WideString;
 {$i sysformt.inc}
 
 {$undef TFormatString}
@@ -107,28 +107,49 @@ Function WideFormat (Const Fmt : WideString; const Args : Array of const) : Wide
 {$undef INWIDEFORMAT}
 {$macro off}
 
+Function WideFormat (Const Fmt : WideString; const Args : Array of const) : WideString;
+
+begin
+  Result:=WideFormat(Fmt,Args,DefaultFormatSettings);
+end;
+
+
+
+Function WideFormatBuf (Var Buffer; BufLen : Cardinal;
+                     Const Fmt; fmtLen : Cardinal;
+                     Const Args : Array of const; Const FormatSettings: TFormatSettings) : Cardinal;
+Var 
+  S,F : WideString;
+begin
+  Setlength(F,fmtlen);
+  if fmtlen > 0 then
+    Move(fmt,F[1],fmtlen*sizeof(Widechar));
+  S:=WideFormat (F,Args);
+  If Cardinal(Length(S))<Buflen then
+    Result:=Length(S)
+  else
+    Result:=Buflen;
+  Move(S[1],Buffer,Result);
+end;
 
 Function WideFormatBuf (Var Buffer; BufLen : Cardinal;
                      Const Fmt; fmtLen : Cardinal;
                      Const Args : Array of const) : Cardinal;
-  Var 
-    S,F : WideString;
-  begin
-    Setlength(F,fmtlen);
-    if fmtlen > 0 then
-      Move(fmt,F[1],fmtlen*sizeof(Widechar));
-    S:=WideFormat (F,Args);
-    If Cardinal(Length(S))<Buflen then
-      Result:=Length(S)
-    else
-      Result:=Buflen;
-    Move(S[1],Buffer,Result);
-  end;
 
+begin
+  Result:=WideFormatBuf(Buffer,BufLEn,Fmt,FmtLen,Args,DefaultFormatSettings);
+end;
+
+Procedure WideFmtStr(Var Res: WideString; Const Fmt : WideString; Const args: Array of const; Const FormatSettings: TFormatSettings);
+
+begin
+  Res:=WideFormat(fmt,Args);
+end;
 
 Procedure WideFmtStr(Var Res: WideString; Const Fmt : WideString; Const args: Array of const);
-  begin
-    Res:=WideFormat(fmt,Args);
-  end;
+
+begin
+  WideFmtStr(Res,Fmt,Args,DefaultFormatSettings);
+end;
 
 
