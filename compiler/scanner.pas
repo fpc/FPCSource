@@ -100,7 +100,7 @@ interface
           comment_level,
           yylexcount     : longint;
           lastasmgetchar : char;
-          ignoredirectives : tstringlist; { ignore directives, used to give warnings only once }
+          ignoredirectives : TFPHashList; { ignore directives, used to give warnings only once }
           preprocstack   : tpreprocstack;
           in_asm_string  : boolean;
 
@@ -1698,7 +1698,7 @@ In case not, the value returned can be arbitrary.
         lasttoken:=NOTOKEN;
         nexttoken:=NOTOKEN;
         lastasmgetchar:=#0;
-        ignoredirectives:=TStringList.Create;
+        ignoredirectives:=TFPHashList.Create;
         in_asm_string:=false;
       end;
 
@@ -2396,9 +2396,7 @@ In case not, the value returned can be arbitrary.
             exit;
           end;
          if hs='' then
-          begin
-            Message1(scan_w_illegal_switch,'$'+hs);
-          end;
+           Message1(scan_w_illegal_switch,'$'+hs);
       { Check for compiler switches }
          while (length(hs)=1) and (c in ['-','+']) do
           begin
@@ -2445,7 +2443,7 @@ In case not, the value returned can be arbitrary.
              end
             else
              begin
-               current_scanner.ignoredirectives.insert(hs);
+               current_scanner.ignoredirectives.Add(hs,nil);
                Message1(scan_w_illegal_directive,'$'+hs);
              end;
           { conditionals already read the comment }
