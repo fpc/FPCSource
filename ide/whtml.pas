@@ -22,6 +22,7 @@ type
     PTextFile = ^TTextFile;
     TTextFile = object(TObject)
       function GetLine(Idx: sw_integer; var S: string): boolean; virtual;
+      function GetFileName : string; virtual;
     end;
 
     PMemoryTextFile = ^TMemoryTextFile;
@@ -29,6 +30,7 @@ type
       constructor Init;
       procedure   AddLine(const S: string); virtual;
       function    GetLine(Idx: sw_integer; var S: string): boolean; virtual;
+      function GetFileName : string; virtual;
       destructor  Done; virtual;
     private
       Lines : PUnsortedStrCollection;
@@ -37,6 +39,9 @@ type
     PDOSTextFile = ^TDOSTextFile;
     TDOSTextFile = object(TMemoryTextFile)
       constructor Init(AFileName: string);
+      function GetFileName : string; virtual;
+    private
+      DosFileName : string;
     end;
 
     PSGMLParser = ^TSGMLParser;
@@ -48,6 +53,7 @@ type
     public
       Line,LinePos: sw_integer;
       procedure   DocSoftBreak; virtual;
+      function    GetFileName : string;
       function    DocAddTextChar(C: char): boolean; virtual;
       procedure   DocAddText(S: string); virtual;
       procedure   DocProcessTag(Tag: string); virtual;
@@ -55,6 +61,7 @@ type
       function    DocDecodeNamedEntity(Name: string; var Entity: string): boolean; virtual;
     private
       CurTag: string;
+      FileName : string;
       InTag,InComment,InString: boolean;
     end;
 
@@ -68,6 +75,7 @@ type
       function    DocDecodeNamedEntity(Name: string; var E: string): boolean; virtual;
     public
       TagName,TagParams: string;
+      DisableCrossIndexing : boolean;
       procedure   DocUnknownTag; virtual;
       procedure   DocTYPE; virtual;
       procedure   DocHTML(Entered: boolean); virtual;
@@ -91,6 +99,8 @@ type
       procedure   DocStrong(Entered: boolean); virtual;
       procedure   DocTeleType(Entered: boolean); virtual;
       procedure   DocVariable(Entered: boolean); virtual;
+      procedure   DocSpan(Entered: boolean); virtual;
+      procedure   DocDiv(Entered: boolean); virtual;
       procedure   DocList(Entered: boolean); virtual;
       procedure   DocOrderedList(Entered: boolean); virtual;
       procedure   DocListItem; virtual;
@@ -106,7 +116,8 @@ type
 
 implementation
 
-uses WUtils;
+uses
+  WUtils;
 
 function TTextFile.GetLine(Idx: sw_integer; var S: string): boolean;
 begin
@@ -114,10 +125,21 @@ begin
   GetLine:=false;
 end;
 
+function TTextFile.GetFileName : string;
+begin
+  GetFileName:='unknown';
+end;
+
 constructor TMemoryTextFile.Init;
 begin
   inherited Init;
   New(Lines, Init(500,500));
+end;
+
+
+function TMemoryTextFile.GetFileName : string;
+begin
+  GetFileName:='unknown';
 end;
 
 procedure TMemoryTextFile.AddLine(const S: string);
@@ -140,8 +162,10 @@ end;
 
 destructor TMemoryTextFile.Done;
 begin
+  if Lines<>nil then
+    Dispose(Lines, Done);
+  Lines:=nil;
   inherited Done;
-  if Lines<>nil then Dispose(Lines, Done); Lines:=nil;
 end;
 
 constructor TDOSTextFile.Init(AFileName: string);
@@ -167,28 +191,43 @@ constructor TDOSTextFile.Init(AFileName: string);
     s[0]:=chr(i);
    end;
 {$endif}*)
-var f: text;
+var f: file;
+    linecomplete,hasCR: boolean;
     S: string;
 begin
   inherited Init;
   if AFileName='' then Fail;
 {$I-}
   Assign(f,AFileName);
-  Reset(f);
+  Reset(f,1);
   if IOResult<>0 then Fail;
+  DosFileName:=AFileName;
+  Dispose(Lines,Done);
   New(Lines, Init(500,2000));
   while (Eof(f)=false) and (IOResult=0) do
     begin
-      readln(f,S); { this is the one in WUTILS.PAS }
+      ReadlnFromFile(f,S,linecomplete,hasCR,true);
       AddLine(S);
     end;
   Close(f);
 {$I+}
 end;
 
+function TDosTextFile.GetFileName : string;
+begin
+  GetFileName:=DosFileName;
+end;
+
+
 constructor TSGMLParser.Init;
 begin
   inherited Init;
+  FileName:='';
+end;
+
+function TSGMLParser.GetFileName : string;
+begin
+  GetFileName:=FileName;
 end;
 
 function TSGMLParser.Process(HTMLFile: PTextFile): boolean;
@@ -198,12 +237,13 @@ begin
   if HTMLFile=nil then Exit;
   InTag:=false; InComment:=false; InString:=false; CurTag:='';
   Line:=0; OK:=true;
+  FileName:=HTMLFile^.GetFileName;
   repeat
     LineOK:=HTMLFile^.GetLine(Line,S);
     if LineOK then
       begin
-        OK:=ProcessLine(S);
         Inc(Line);
+        OK:=ProcessLine(S);
       end;
   until (LineOK=false) or (OK=false);
   Process:=OK;
@@ -295,9 +335,13 @@ begin
     end;
   { whtml does not depend on whelp,
     so I can not use hscLineBreak here. PM }
-  if InTag and InString then
-    CurTag:=CurTag+#0
-  else if WasThereAnyText then DocSoftBreak;
+  if InTag then
+    begin
+      if InString then
+        CurTag:=CurTag+#0;
+    end
+  else if WasThereAnyText then
+    DocSoftBreak;
 
   ProcessLine:=true;
 end;
@@ -355,7 +399,7 @@ var Found: boolean;
     Code: word;
     CC: word;
 begin
-  Found:=true; Code:=-1;
+  Found:=true; Code:=$ffff;
   Name:=LowCaseStr(Name);
   if copy(Name,1,1)='#' then
     begin
@@ -363,12 +407,23 @@ begin
         Val('$'+copy(Name,3,255),Code,CC)
       else
         Val(copy(Name,2,255),Code,CC);
-      if CC<>0 then Code:=-1;
+      if CC<>0 then
+        begin
+{$ifdef DEBUG}
+          DebugMessage(FileName,'NamedEntity '+Name+' not converted',1,1);
+{$endif DEBUG}
+          Code:=$ffff;
+        end;
     end;
+  if (Code=$22) or (Name='quot')   then E:='"'   else { double quote sign             }
+  if (Code=$26) or (Name='amp')    then E:='&'   else { ampersand                     }
   if (Code=$3C) or (Name='lt')     then E:='<'   else { less-than sign                }
   if (Code=$3E) or (Name='gt')     then E:='>'   else { greater-than sign              }
-  if (Code=$26) or (Name='amp')    then E:='&'   else { ampersand                     }
-  if (Code=$22) or (Name='quot')   then E:='"'   else { double quote sign             }
+  if (Code=$5B)                    then E:='['   else { [ }
+  if (Code=$5C)                    then E:='\'   else { \ }
+  if (Code=$5D)                    then E:=']'   else { ] }
+  if (Code=$5E)                    then E:='^'   else { ^ }
+  if (Code=$5F)                    then E:='_'   else { _ }
   if (Code=160) or (Name='nbsp')   then E:=#255  else { no-break space                }
   if (Code=161) or (Name='iexcl')  then E:='­'   else { inverted excalamation mark    }
   if (Code=162) or (Name='cent')   then E:='›'   else { cent sign                     }
@@ -465,13 +520,24 @@ begin
   if (Code=253) or (Name='yacute') then E:='y'   else { small y, acute accent         }
 (*  if (Code=254) or (Name='thorn')  then E:='?'   else { small thorn, Icelandic        }*)
   if (Code=255) or (Name='yuml')   then E:='y'   else { small y, dieresis or umlaut   }
+  { Special codes appearing in TeXH generated files }
   if (Code=8217) then E:=''''   else                  { acute accent as generated by TeXH   }
+  if (code=$2c6) then E:='^'  else                    { Modifier Letter Circumflex Accent }
+  if (code=$2013) then E:='-'  else                   { En dash }
+  if (code=$2014) then E:='--'  else                  { Em dash }
+  if (code=$201D) then E:='``'  else                  { right double quotation marks }
   if (Code=$FB00) then E:='ff'  else                  { ff together }
   if (Code=$FB01) then E:='fi'  else                  { fi together }
   if (Code=$FB02) then E:='fl'  else                  { fl together }
   if (Code=$FB03) then E:='ffi' else                  { ffi together }
   Found:=false;
   DocDecodeNamedEntity:=Found;
+{$ifdef DEBUG}
+  if (Code<>$ffff) and not found then
+    begin
+      DebugMessage(FileName,'NamedEntity '+Name+' not handled',1,1);
+    end;
+{$endif DEBUG}
 end;
 
 procedure THTMLParser.DocProcessTag(Tag: string);
@@ -516,6 +582,8 @@ begin
   if (ETagName='STRONG') then DocStrong(NotEndTag) else
   if (ETagName='TT') then DocTeleType(NotEndTag) else
   if (ETagName='VAR') then DocVariable(NotEndTag) else
+  if (ETagName='SPAN') then DocSpan(NotEndTag) else
+  if (ETagName='DIV') then DocDiv(NotEndTag) else
   { Unordered & ordered lists }
   if (ETagName='UL') then DocList(NotEndTag) else
   if (ETagName='OL') then DocOrderedList(NotEndTag) else
@@ -678,6 +746,37 @@ end;
 
 procedure THTMLParser.DocVariable(Entered: boolean);
 begin
+end;
+
+procedure THTMLParser.DocSpan(Entered: boolean);
+begin
+end;
+
+procedure THTMLParser.DocDiv(Entered: boolean);
+var
+  S: String;
+begin
+  if Entered then
+    begin
+      if DocGetTagParam('CLASS',S) then
+        if S='crosslinks' then
+          begin
+            DisableCrossIndexing:=true;
+{$ifdef DEBUG}
+          DebugMessage(GetFileName,'Crosslinks found',Line,LinePos);
+{$endif DEBUG}
+          end;
+    end
+  else
+    begin
+{$ifdef DEBUG}
+      if DisableCrossIndexing then
+        begin
+          DebugMessage(GetFileName,'Crosslinks end found',Line,LinePos);
+        end;
+{$endif DEBUG}
+      DisableCrossIndexing:=false;
+    end;
 end;
 
 procedure THTMLParser.DocList(Entered: boolean);

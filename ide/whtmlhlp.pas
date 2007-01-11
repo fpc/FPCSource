@@ -39,7 +39,7 @@ type
 
     PTableElement = ^TTableElement;
     TTableElement = object(Tobject)
-      TextBegin,TextEnd : sw_word;
+      TextBegin,TextEnd, TextLength, NumNL : sw_word;
       Alignment : TParagraphAlign;
       NextEl : PTableElement;
       constructor init(AAlignment : TParagraphAlign);
@@ -101,6 +101,7 @@ type
       procedure DocStrong(Entered: boolean); virtual;
       procedure DocTeleType(Entered: boolean); virtual;
       procedure DocVariable(Entered: boolean); virtual;
+      procedure DocSpan(Entered: boolean); virtual;
       procedure DocList(Entered: boolean); virtual;
       procedure DocOrderedList(Entered: boolean); virtual;
       procedure DocListItem; virtual;
@@ -138,6 +139,8 @@ type
       procedure AddChar(C: char);
       procedure AddCharAt(C: char;AtPtr : sw_word);
       function AddTextAt(const S: string;AtPtr : sw_word) : sw_word;
+      function ComputeTextLength(TStart,TEnd : sw_word) : sw_word;
+
     end;
 
     PCustomHTMLHelpFile = ^TCustomHTMLHelpFile;
@@ -198,7 +201,8 @@ procedure RegisterHelpType;
 
 implementation
 
-uses Views,WConsts,WUtils,WViews,WHTMLScn;
+uses
+  Views,WConsts,WUtils,WViews,WHTMLScn;
 
 
 
@@ -281,6 +285,8 @@ procedure TTable.TextInsert(Pos : sw_word;const S : string);
 var
   i : sw_word;
 begin
+  if S='' then
+    exit;
   i:=Renderer^.AddTextAt(S,Pos+GlobalOffset);
   GlobalOffset:=GlobalOffset+i;
 end;
@@ -293,26 +299,48 @@ type
   PLengthArray = ^TLengthArray;
 var
   ColLengthArray : PLengthArray;
+  RowSizeArray : PLengthArray;
   CurLine : PTableLine;
   CurEl : PTableElement;
   Align : TParagraphAlign;
   TextBegin,TextEnd : sw_word;
-  i,j,Length : sw_word;
+  i,j,k,Length : sw_word;
 begin
   GetMem(ColLengthArray,Sizeof(sw_word)*NumCols);
   FillChar(ColLengthArray^,Sizeof(sw_word)*NumCols,#0);
+  GetMem(RowSizeArray,Sizeof(sw_word)*NumLines);
+  FillChar(RowSizeArray^,Sizeof(sw_word)*NumLines,#0);
   { Compute the largest cell }
   CurLine:=FirstLine;
   For i:=1 to NumLines do
     begin
       CurEl:=CurLine^.FirstEl;
+      RowSizeArray^[i]:=1;
       For j:=1 to NumCols do
         begin
           if not assigned(CurEl) then
             break;
-          Length:=CurEl^.TextEnd-CurEl^.TextBegin;
+          Length:=CurEl^.TextLength;
+          if assigned(CurEl^.NextEl) and
+             (CurEl^.NextEl^.TextBegin>CurEl^.TextEnd) then
+            Inc(Length,Renderer^.ComputeTextLength(
+               CurEl^.NextEl^.TextBegin+GlobalOffset,
+               CurEl^.TextBegin+GlobalOffset));
+
           if Length>ColLengthArray^[j] then
             ColLengthArray^[j]:=Length;
+          { We need to handle multiline cells... }
+          if CurEl^.NumNL>=RowSizeArray^[i] then
+            RowSizeArray^[i]:=CurEl^.NumNL;
+          { We don't handle multiline cells yet... }
+          if CurEl^.NumNL>=1 then
+            begin
+              for k:=CurEl^.TextBegin+GlobalOffset to
+                     CurEl^.TextEnd+GlobalOffset do
+                if Renderer^.Topic^.Text^[k]=ord(hscLineBreak) then
+                  Renderer^.Topic^.Text^[k]:=ord(' ');
+            end;
+
           CurEl:=CurEl^.NextEl;
         end;
       CurLine:=CurLine^.NextLine;
@@ -346,14 +374,16 @@ begin
             begin
               TextBegin:=CurEl^.TextBegin;
               TextEnd:=CurEl^.TextEnd;
-              While (TextEnd>TextBegin) and
+              {While (TextEnd>TextBegin) and
                     (Renderer^.Topic^.Text^[TextEnd+GlobalOffset]=ord(hscLineBreak)) do
-                dec(TextEnd);
-              Length:=TextEnd-TextBegin;
+                dec(TextEnd); }
+              Length:=CurEl^.TextLength;
               Align:=CurEl^.Alignment;
             end;
           if WithBorder then
-            TextInsert(TextBegin,#179);
+            TextInsert(TextBegin,#179)
+          else
+            TextInsert(TextBegin,' ');
           if Length<ColLengthArray^[j] then
             begin
               case Align of
@@ -373,6 +403,7 @@ begin
         end;
       if WithBorder then
         TextInsert(TextEnd,#179);
+      //TextInsert(TextEnd,hscLineBreak);
       CurLine:=CurLine^.NextLine;
     end;
   If (NumLines>0) and WithBorder then
@@ -389,6 +420,8 @@ begin
       TextInsert(TextEnd,hscLineBreak);
     End;
 
+  FreeMem(ColLengthArray,Sizeof(sw_word)*NumCols);
+  FreeMem(RowSizeArray,Sizeof(sw_word)*NumLines);
 end;
 
 destructor TTable.Done;
@@ -555,7 +588,7 @@ end;
 procedure THTMLTopicRenderer.DocSoftBreak;
 begin
   if InPreformatted then DocBreak else
-  if AnyCharsInLine then
+  if AnyCharsInLine and not assigned(CurrentTable) then
     begin
       AddChar(' ');
       LastTextChar:=' ';
@@ -609,16 +642,20 @@ begin
     begin
       if DocGetTagParam('HREF',HRef)=false then HRef:='';
       if DocGetTagParam('NAME',Name)=false then Name:='';
+      if (HRef='') and (Name='') then
+        if DocGetTagParam('ID',Name)=false then
+          Name:='';
       if Name<>'' then
         begin
           Topic^.NamedMarks^.InsertStr(Name);
           AddChar(hscNamedMark);
         end;
-      if (HRef<>'') then
+      if (HRef<>'')then
           begin
             InAnchor:=true;
             AddChar(hscLink);
-            if LinkPtr<MaxTopicLinks then
+            if (LinkPtr<MaxTopicLinks){and
+               not DisableCrossIndexing}  then
             begin
               HRef:=CompleteURL(URL,HRef);
               LinkIndexes[LinkPtr]:=TopicLinks^.AddItem(HRef);
@@ -825,6 +862,10 @@ procedure THTMLTopicRenderer.DocVariable(Entered: boolean);
 begin
 end;
 
+procedure THTMLTopicRenderer.DocSpan(Entered: boolean);
+begin
+end;
+
 procedure THTMLTopicRenderer.DocList(Entered: boolean);
 begin
   if Entered then
@@ -892,7 +933,8 @@ begin
       CurrentTable:=ATable;
       CurrentTable^.Renderer:=@Self;
       if DocGetTagParam('BORDER',border) then
-        CurrentTable^.WithBorder:=true;
+        if Border<>'0' then
+          CurrentTable^.WithBorder:=true;
     end
   else
     begin
@@ -907,7 +949,9 @@ procedure THTMLTopicRenderer.DocTableRow(Entered: boolean);
 var
   ATableLine : PTableLine;
 begin
-  if AnyCharsInLine then
+  if AnyCharsInLine or
+     (assigned(CurrentTable) and
+      assigned(CurrentTable^.FirstLine)) then
     begin
       AddChar(hscLineBreak);
       AnyCharsInLine:=false;
@@ -924,6 +968,7 @@ end;
 procedure THTMLTopicRenderer.DocTableItem(Entered: boolean);
 var
   Align : String;
+  i : sw_word;
   NewEl : PTableElement;
   PAlignEl : TParagraphAlign;
 begin
@@ -934,6 +979,9 @@ begin
         begin
           NewEl:=CurrentTable^.LastLine^.LastEl;
           NewEl^.TextEnd:=TextPtr;
+          NewEl^.TextLength:=ComputeTextLength(
+            NewEl^.TextBegin+CurrentTable^.GlobalOffset,
+            TextPtr+CurrentTable^.GlobalOffset);
         end;
       PAlignEl:=paLeft;
       if DocGetTagParam('ALIGN',Align) then
@@ -948,6 +996,15 @@ begin
     begin
       NewEl:=CurrentTable^.LastLine^.LastEl;
       NewEl^.TextEnd:=TextPtr;
+      NewEl^.TextLength:=ComputeTextLength(
+        NewEl^.TextBegin+CurrentTable^.GlobalOffset,
+        TextPtr+CurrentTable^.GlobalOffset);
+      NewEl^.NumNL:=0;
+      for i:=NewEl^.TextBegin to TextPtr do
+        begin
+          if Topic^.Text^[i]=ord(hscLineBreak) then
+            inc(NewEl^.NumNL);
+        end;
     end;
 end;
 
@@ -991,6 +1048,36 @@ begin
     AddChar(S[I]);
 end;
 
+function THTMLTopicRenderer.ComputeTextLength(TStart,TEnd : sw_word) : sw_word;
+var I,tot: sw_integer;
+begin
+  tot:=0;
+  i:=TStart;
+  while i<= TEnd-1 do
+    begin
+      inc(tot);
+      case chr(Topic^.Text^[i]) of
+      hscLink,hscCode,
+      hscCenter,hscRight,
+      hscNamedMark,hscNormText :
+        Dec(tot);{ Do not increase tot }
+      hscDirect:
+        begin
+          Inc(i); { Skip next }
+          //Inc(tot);
+        end;
+      hscTextAttr,
+      hscTextColor:
+        begin
+          Inc(i);
+          Dec(tot);
+        end;
+      end;
+      inc(i);
+    end;
+  ComputeTextLength:=tot;
+
+end;
 function THTMLTopicRenderer.AddTextAt(const S: String;AtPtr : sw_word) : sw_word;
 var
   i,slen,len : sw_word;
@@ -1010,6 +1097,7 @@ begin
     begin
       Topic^.Text^[AtPtr]:=ord(S[i]);
       Inc(TextPtr);
+      inc(AtPtr);
       if (TextPtr=MaxBytes) then Exit;
     end;
   AddTextAt:=slen;
@@ -1125,10 +1213,18 @@ begin
   OK:=T<>nil;
   if OK then
     begin
-      if T^.HelpCtx=0 then Name:=DefaultFileName else
+      if T^.HelpCtx=0 then
+        begin
+          Name:=DefaultFileName;
+          P:=0;
+        end
+      else
         begin
           Link:=TopicLinks^.At((T^.HelpCtx and $ffff)-1)^;
           Link:=FormatPath(Link);
+{$ifdef DEBUG_WHTMLHLP}
+          DebugMessage(Link,' looking for',1,1);
+{$endif DEBUG_WHTMLHLP}
           P:=Pos('#',Link);
           if P>0 then
           begin
@@ -1139,9 +1235,29 @@ begin
           Name:=CompletePath(CurFileName,Link);}
           Name:=Link;
         end;
-      HTMLFile:=New(PDOSTextFile, Init(Name));
-      if HTMLFile=nil then
+      HTMLFile:=nil;
+      if Name<>'' then
+        HTMLFile:=New(PDOSTextFile, Init(Name));
+
+      if (HTMLFile=nil)and (CurFileName<>'') then
         begin
+          Name:=CurFileName;
+          HTMLFile:=New(PDOSTextFile, Init(Name));
+        end;
+      if (HTMLFile=nil) then
+        begin
+{$ifdef DEBUG}
+          DebugMessage(Link,' filename not known :(',1,1);
+{$endif DEBUG}
+        end;
+      if (p>1) and (HTMLFile=nil) then
+        begin
+{$ifdef DEBUG}
+          if p>0 then
+            DebugMessage(Name,Link+'#'+Bookmark+' not found',1,1)
+          else
+            DebugMessage(Name,Link+' not found',1,1);
+{$endif DEBUG}
           New(HTMLFile, Init);
           HTMLFile^.AddLine('<HEAD><TITLE>'+msg_pagenotavailable+'</TITLE></HEAD>');
           HTMLFile^.AddLine(
@@ -1150,7 +1266,17 @@ begin
             '</BODY>');
         end;
       OK:=Renderer^.BuildTopic(T,Name,HTMLFile,TopicLinks);
-      if OK then CurFileName:=Name;
+      if OK then
+        CurFileName:=Name
+      else
+        begin
+{$ifdef DEBUG}
+          if p>0 then
+            DebugMessage(Name,Link+'#'+Bookmark+' not found',1,1)
+          else
+            DebugMessage(Name,Link+' not found',1,1);
+{$endif DEBUG}
+        end;
       if HTMLFile<>nil then Dispose(HTMLFile, Done);
       if BookMark='' then
         T^.StartNamedMark:=0
@@ -1229,7 +1355,8 @@ begin
           TLI:=TopicLinks^.AddItem(LS^.GetDocumentURL(I));
           TLI:=EncodeHTMLCtx(ID,TLI+1);
           for J:=0 to LS^.GetDocumentAliasCount(I)-1 do
-            IndexEntries^.Insert(NewIndexEntry(FormatAlias(LS^.GetDocumentAlias(I,J)),ID,TLI));
+            IndexEntries^.Insert(NewIndexEntry(
+              FormatAlias(LS^.GetDocumentAlias(I,J)),ID,TLI));
         end;
       Dispose(LS, Done);
     end;

@@ -136,7 +136,8 @@ procedure RegisterWHTMLScan;
 
 implementation
 
-uses WUtils;
+uses
+  WUtils;
 
 const
   RHTMLLinkScanDocument: TStreamRec = (
@@ -183,7 +184,8 @@ begin
   else
     begin
       CurLinkText:=Trim(CurLinkText);
-      if CheckURL(CurURL) and CheckText(CurLinkText) or InNameAnchor then
+      if InNameAnchor or
+       (CheckURL(CurURL) and CheckText(CurLinkText)and not DisableCrossIndexing) then
         AddLink(CurLinkText,CurURL);
       InNameAnchor:=false;
     end;
@@ -586,11 +588,17 @@ begin
   CurDoc:=Doc^.GetDocumentURL;
   New(F, Init(Doc^.GetDocumentURL));
   if Assigned(F) then
-  begin
-    CurBaseURL:=CompleteURL(Doc^.GetDocumentURL,'');
-    Process(F);
-    Dispose(F, Done);
-  end;
+    begin
+      CurBaseURL:=CompleteURL(Doc^.GetDocumentURL,'');
+      Process(F);
+      Dispose(F, Done);
+    end
+  else
+    begin
+{$ifdef DEBUG}
+      DebugMessage(CurDoc,'file not found',1,1);
+{$endif DEBUG}
+    end;
   Doc^.State:=ssScanned;
   CurDoc:='';
 end;
