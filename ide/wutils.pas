@@ -124,6 +124,9 @@ type
 
 procedure ReadlnFromStream(Stream: PStream; var s:string;var linecomplete,hasCR : boolean);
 function eofstream(s: pstream): boolean;
+procedure ReadlnFromFile(var f : file; var S:string;
+           var linecomplete,hasCR : boolean;
+           BreakOnSpacesOnly : boolean);
 
 function Min(A,B: longint): longint;
 function Max(A,B: longint): longint;
@@ -197,12 +200,23 @@ const LastStrToIntResult : integer = 0;
 
 procedure RegisterWUtils;
 
+{$ifdef DEBUG}
+Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : sw_word);
+type
+  TDebugMessage = procedure(AFileName, AText : string; ALine, APos : sw_word);
+
+Const
+  DebugMessage : TDebugMessage = @WUtilsDebugMessage;
+{$endif DEBUG}
 implementation
 
 uses
 {$IFDEF OS2}
   DosCalls,
 {$ENDIF OS2}
+{$ifdef DEBUG}
+  fptools,
+{$endif DEBUG}
   Strings;
 
 {$ifndef NOOBJREG}
@@ -296,6 +310,80 @@ procedure ReadlnFromStream(Stream: PStream; var S:string;var linecomplete,hasCR 
       end;
 
     if (c=#10) or eofstream(stream) then
+      linecomplete:=true;
+    if (c=#10) then
+      hasCR:=true;
+    s[0]:=chr(i);
+  end;
+
+procedure ReadlnFromFile(var f : file; var S:string;
+           var linecomplete,hasCR : boolean;
+           BreakOnSpacesOnly : boolean);
+  var
+    c : char;
+    i,pos,
+    lastspacepos,LastSpaceFilePos : longint;
+{$ifdef DEBUG}
+    filename: string;
+{$endif DEBUG}
+  begin
+    LastSpacePos:=0;
+    linecomplete:=false;
+    c:=#0;
+    i:=0;
+    { this created problems for lines longer than 255 characters
+      now those lines are cutted into pieces without warning PM }
+    { changed implicit 255 to High(S), so it will be automatically extended
+      when longstrings eventually become default - Gabor }
+    while (not eof(f)) and (c<>#10) and (i<High(S)) do
+     begin
+       system.blockread(f,c,sizeof(c));
+       if c<>#10 then
+        begin
+          inc(i);
+          s[i]:=c;
+        end;
+       if BreakOnSpacesOnly and (c=' ') then
+         begin
+           LastSpacePos:=i;
+           LastSpaceFilePos:=system.filepos(f);
+         end;
+     end;
+    { if there was a CR LF then remove the CR Dos newline style }
+    if (i>0) and (s[i]=#13) then
+      begin
+        dec(i);
+      end;
+    if (c=#13) and (not eof(f)) then
+      system.blockread(f,c,sizeof(c));
+    if (i=High(S)) and not eof(f) then
+      begin
+        pos:=system.filepos(f);
+        system.blockread(f,c,sizeof(c));
+        if (c=#13) and not eof(f) then
+          system.blockread(f,c,sizeof(c));
+        if c<>#10 then
+          system.seek(f,pos);
+        if (c<>' ') and (c<>#10) and BreakOnSpacesOnly and
+           (LastSpacePos>1) then
+          begin
+{$ifdef DEBUG}
+            s[0]:=chr(i);
+            filename:=strpas(@(filerec(f).Name));
+            AddToolMessage(filename,'s='+s,1,1);
+            UpdateToolMessages;
+{$endif DEBUG}
+            i:=LastSpacePos;
+{$ifdef DEBUG}
+            s[0]:=chr(i);
+            AddToolMessage(filename,'reduced to '+s,1,1);
+            UpdateToolMessages;
+{$endif DEBUG}
+            system.seek(f,LastSpaceFilePos);
+          end;
+      end;
+
+    if (c=#10) or eof(f) then
       linecomplete:=true;
     if (c=#10) then
       hasCR:=true;
@@ -1262,6 +1350,13 @@ begin
 {$endif}
 end;
 
+{$ifdef DEBUG}
+Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : sw_word);
+begin
+  writeln(stderr,AFileName,' (',ALine,',',APos,') ',AText);
+end;
+
+{$endif DEBUG}
 BEGIN
   Randomize;
 END.
