@@ -196,6 +196,7 @@ function TryStrToBool(const S: string; out Value: Boolean): Boolean;
 
 function LastDelimiter(const Delimiters, S: string): Integer;
 function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
+Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar; FormatSettings : TFormatSettings): Integer;
 Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;
 Procedure FloatToDecimal(Out Result: TFloatRec; const Value; ValueType: TFloatValue; Precision, Decimals : integer);
 Procedure FloatToDecimal(Out Result: TFloatRec; Value: Extended; Precision, Decimals : integer);

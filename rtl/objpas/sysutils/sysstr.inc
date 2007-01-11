@@ -903,7 +903,7 @@ begin
   Setlength(F,fmtlen);
   if fmtlen > 0 then
     Move(fmt,F[1],fmtlen);
-  S:=Format (F,Args);
+  S:=Format (F,Args,FormatSettings);
   If Cardinal(Length(S))<Buflen then
     Result:=Length(S)
   else
@@ -922,7 +922,7 @@ end;
 Procedure FmtStr(Var Res: string; const Fmt : string; Const args: Array of const; Const FormatSettings: TFormatSettings);
 
 begin
-  Res:=Format(fmt,Args);
+  Res:=Format(fmt,Args,FormatSettings);
 end;
 
 Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
@@ -941,7 +941,7 @@ end;
 Function StrFmt(Buffer,Fmt : PChar; Const Args: Array of const; Const FormatSettings: TFormatSettings): PChar; 
 
 begin
-  Buffer[FormatBuf(Buffer^,Maxint,Fmt^,strlen(fmt),args)]:=#0;
+  Buffer[FormatBuf(Buffer^,Maxint,Fmt^,strlen(fmt),args,FormatSettings)]:=#0;
   Result:=Buffer;
 end;
 
@@ -954,7 +954,7 @@ end;
 Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const; Const FormatSettings: TFormatSettings) : Pchar;
 
 begin
-  Buffer[FormatBuf(Buffer^,MaxLen,Fmt^,strlen(fmt),args)]:=#0;
+  Buffer[FormatBuf(Buffer^,MaxLen,Fmt^,strlen(fmt),args,FormatSettings)]:=#0;
   Result:=Buffer;
 end;
 
@@ -967,7 +967,7 @@ end;
 Function StrToFloat(Const S : String; Const FormatSettings: TFormatSettings) : Extended;
 
 Begin
-  If Not TextToFloat(Pchar(S),Result) then
+  If Not TextToFloat(Pchar(S),Result,FormatSettings) then
     Raise EConvertError.createfmt(SInValidFLoat,[S]);
 End;
 
@@ -980,7 +980,7 @@ end;
 Function StrToFloatDef(Const S: String; Const Default: Extended; Const FormatSettings: TFormatSettings): Extended;
 
 begin
-   if not TextToFloat(PChar(S),Result,fvExtended) then
+   if not TextToFloat(PChar(S),Result,fvExtended,FormatSettings) then
      Result:=Default;
 end;
 
@@ -992,7 +992,7 @@ Var
 
 Begin
   S:=StrPas(Buffer);
-  P:=Pos(DecimalSeparator,S);
+  P:=Pos(FormatSettings.DecimalSeparator,S);
   If (P<>0) Then
     S[P] := '.';
   Val(trim(S),Value,E);
@@ -1022,13 +1022,13 @@ Var
 
 Begin
   S:=StrPas(Buffer);
-  P:=Pos(ThousandSeparator,S);
+  P:=Pos(FormatSettings.ThousandSeparator,S);
   While (P<>0) do
     begin
     Delete(S,P,1);
-    P:=Pos(ThousandSeparator,S);
+    P:=Pos(FormatSettings.ThousandSeparator,S);
     end;
-  P:=Pos(DecimalSeparator,S);
+  P:=Pos(FormatSettings.DecimalSeparator,S);
   If (P<>0) Then
     S[P] := '.';
   case ValueType of
@@ -1064,7 +1064,7 @@ end;
 
 Function TryStrToFloat(Const S : String; Var Value: Single; Const FormatSettings: TFormatSettings): Boolean;
 Begin
-  Result := TextToFloat(PChar(S), Value, fvSingle);
+  Result := TextToFloat(PChar(S), Value, fvSingle,FormatSettings);
 End;
 
 Function TryStrToFloat(Const S : String; Var Value: Double): Boolean;
@@ -1075,7 +1075,7 @@ end;
 
 Function TryStrToFloat(Const S : String; Var Value: Double; Const FormatSettings: TFormatSettings): Boolean;
 Begin
-  Result := TextToFloat(PChar(S), Value, fvDouble);
+  Result := TextToFloat(PChar(S), Value, fvDouble,FormatSettings);
 End;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
@@ -1087,7 +1087,7 @@ end;
 
 Function TryStrToFloat(Const S : String; Var Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 Begin
-  Result := TextToFloat(PChar(S), Value);
+  Result := TextToFloat(PChar(S), Value,FormatSettings);
 End;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
@@ -1099,12 +1099,14 @@ const
   maxdigits = 14;
 {$endif}
 
-Function FloatToStrFIntl(const Value; format: TFloatFormat; Precision, Digits: Integer; ValueType: TFloatValue): String;
+Function FloatToStrFIntl(const Value; format: TFloatFormat; Precision, Digits: Integer; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): String;
 Var
   P: Integer;
   Negative, TooSmall, TooLarge: Boolean;
-
+  DS: Char;
+  
 Begin
+  DS:=FormatSettings.DecimalSeparator;
   Case format Of
 
     ffGeneral:
@@ -1140,13 +1142,13 @@ Begin
           end;
           P := Pos('.', Result);
           if P<>0 then
-            Result[P] := DecimalSeparator;
+            Result[P] := DS;
           TooLarge :=(P > Precision + 1) or (Pos('E', Result)<>0);
         End;
 
         If TooSmall Or TooLarge Then
           begin
-            Result := FloatToStrFIntl(Value, ffExponent, Precision, Digits, ValueType);
+            Result := FloatToStrFIntl(Value, ffExponent, Precision, Digits, ValueType,FormatSettings);
             // Strip unneeded zeroes.
             P:=Pos('E',result)-1;
             If P<>-1 then
@@ -1159,7 +1161,7 @@ Begin
                     system.Delete(Result,P,1);
                     Dec(P);
                   end;
-                If (P>0) and (Result[P]=DecimalSeparator) Then
+                If (P>0) and (Result[P]=DS) Then
                   begin
                     system.Delete(Result,P,1);
                     Dec(P);
@@ -1183,7 +1185,7 @@ Begin
             P := Length(Result);
             While (P>0) and (Result[P] = '0') Do
               Dec(P);
-            If (P>0) and (Result[P]=DecimalSeparator) Then
+            If (P>0) and (Result[P]=DS) Then
               Dec(P);
             SetLength(Result, P);
           end;
@@ -1211,9 +1213,9 @@ Begin
         while Result[1] = ' ' do
           System.Delete(Result, 1, 1);
         if Result[1] = '-' then
-          Result[3] := DecimalSeparator
+          Result[3] := DS
         else
-          Result[2] := DecimalSeparator;
+          Result[2] := DS;
         if Digits < 4 then
           begin
             P:=Pos('E',Result);
@@ -1256,7 +1258,7 @@ Begin
         If Result[1] = ' ' Then
           System.Delete(Result, 1, 1);
         P := Pos('.', Result);
-        If P <> 0 Then Result[P] := DecimalSeparator;
+        If P <> 0 Then Result[P] := DS;
       End;
 
     ffNumber:
@@ -1281,13 +1283,13 @@ Begin
         If Result[1] = ' ' Then System.Delete(Result, 1, 1);
         P := Pos('.', Result);
         If P <> 0 Then
-          Result[P] := DecimalSeparator
+          Result[P] := DS
         else
           P := Length(Result)+1;
         Dec(P, 3);
         While (P > 1) Do
         Begin
-          If Result[P - 1] <> '-' Then Insert(ThousandSeparator, Result, P);
+          If Result[P - 1] <> '-' Then Insert(FormatSettings.ThousandSeparator, Result, P);
           Dec(P, 3);
         End;
       End;
@@ -1295,7 +1297,7 @@ Begin
     ffCurrency:
 
       Begin
-        If Digits = -1 Then Digits := CurrencyDecimals
+        If Digits = -1 Then Digits := FormatSettings.CurrencyDecimals
         Else If Digits > 18 Then Digits := 18;
         case ValueType of
           fvDouble:
@@ -1315,37 +1317,37 @@ Begin
         if Negative then
           System.Delete(Result, 1, 1);
         P := Pos('.', Result);
-        If P <> 0 Then Result[P] := DecimalSeparator;
+        If P <> 0 Then Result[P] := DS;
         Dec(P, 3);
         While (P > 1) Do
         Begin
-          Insert(ThousandSeparator, Result, P);
+          Insert(FormatSettings.ThousandSeparator, Result, P);
           Dec(P, 3);
         End;
 
         If Not Negative Then
         Begin
-          Case CurrencyFormat Of
-            0: Result := CurrencyString + Result;
-            1: Result := Result + CurrencyString;
-            2: Result := CurrencyString + ' ' + Result;
-            3: Result := Result + ' ' + CurrencyString;
+          Case FormatSettings.CurrencyFormat Of
+            0: Result := FormatSettings.CurrencyString + Result;
+            1: Result := Result + FormatSettings.CurrencyString;
+            2: Result := FormatSettings.CurrencyString + ' ' + Result;
+            3: Result := Result + ' ' + FormatSettings.CurrencyString;
           End
         End
         Else
         Begin
           Case NegCurrFormat Of
-            0: Result := '(' + CurrencyString + Result + ')';
-            1: Result := '-' + CurrencyString + Result;
-            2: Result := CurrencyString + '-' + Result;
-            3: Result := CurrencyString + Result + '-';
-            4: Result := '(' + Result + CurrencyString + ')';
-            5: Result := '-' + Result + CurrencyString;
-            6: Result := Result + '-' + CurrencyString;
-            7: Result := Result + CurrencyString + '-';
-            8: Result := '-' + Result + ' ' + CurrencyString;
-            9: Result := '-' + CurrencyString + ' ' + Result;
-            10: Result := CurrencyString + ' ' + Result + '-';
+            0: Result := '(' + FormatSettings.CurrencyString + Result + ')';
+            1: Result := '-' + FormatSettings.CurrencyString + Result;
+            2: Result := FormatSettings.CurrencyString + '-' + Result;
+            3: Result := FormatSettings.CurrencyString + Result + '-';
+            4: Result := '(' + Result + FormatSettings.CurrencyString + ')';
+            5: Result := '-' + Result + FormatSettings.CurrencyString;
+            6: Result := Result + '-' + FormatSettings.CurrencyString;
+            7: Result := Result + FormatSettings.CurrencyString + '-';
+            8: Result := '-' + Result + ' ' + FormatSettings.CurrencyString;
+            9: Result := '-' + FormatSettings.CurrencyString + ' ' + Result;
+            10: Result := FormatSettings.CurrencyString + ' ' + Result + '-';
           End;
         End;
       End;
@@ -1356,7 +1358,7 @@ End;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 Function FloatToStr(Value: Extended; Const FormatSettings: TFormatSettings): String;
 Begin
-  Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvExtended);
+  Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvExtended,FormatSettings);
 End;
 
 
@@ -1370,7 +1372,7 @@ end;
 
 Function FloatToStr(Value: Currency; Const FormatSettings: TFormatSettings): String;
 Begin
-  Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvCurrency);
+  Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvCurrency,FormatSettings);
 End;
 
 
@@ -1386,7 +1388,7 @@ var
   e: Extended;
 Begin
   e := Value;
-  Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvDouble);
+  Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvDouble,FormatSettings);
 End;
 
 
@@ -1402,7 +1404,7 @@ var
   e: Extended;
 Begin
   e := Value;
-  Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvSingle);
+  Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvSingle,FormatSettings);
 End;
 
 
@@ -1418,7 +1420,7 @@ var
   e: Extended;
 Begin
   e := Value;
-  Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvComp);
+  Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvComp,FormatSettings);
 End;
 
 
@@ -1442,7 +1444,7 @@ var
 
 Begin
   e := Comp(Value);
-  Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvComp);
+  Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvComp,FormatSettings);
 End;
 {$endif FPC_COMP_IS_INT64}
 
@@ -1451,7 +1453,7 @@ Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Preci
 Var
   Tmp: String[40];
 Begin
-  Tmp := FloatToStrF(Value, format, Precision, Digits);
+  Tmp := FloatToStrF(Value, format, Precision, Digits,FormatSettings);
   Result := Length(Tmp);
   Move(Tmp[1], Buffer[0], Result);
 End;
@@ -1467,7 +1469,7 @@ end;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
 begin
-  Result := FloatToStrFIntl(value,format,precision,digits,fvExtended);
+  Result := FloatToStrFIntl(value,format,precision,digits,fvExtended,FormatSettings);
 end;
 
 
@@ -1481,7 +1483,7 @@ end;
 
 Function FloatToStrF(Value: Currency; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): String;
 begin
-  Result := FloatToStrFIntl(value,format,precision,digits,fvCurrency);
+  Result := FloatToStrFIntl(value,format,precision,digits,fvCurrency,FormatSettings);
 end;
 
 
@@ -1497,7 +1499,7 @@ var
   e: Extended;
 begin
   e := Value;
-  result := FloatToStrFIntl(e,format,precision,digits,fvDouble);
+  result := FloatToStrFIntl(e,format,precision,digits,fvDouble,FormatSettings);
 end;
 
 
@@ -1514,7 +1516,7 @@ var
   e: Extended;
 begin
   e:=Value;
-  result := FloatToStrFIntl(e,format,precision,digits,fvSingle);
+  result := FloatToStrFIntl(e,format,precision,digits,fvSingle,FormatSettings);
 end;
 
 
@@ -1531,7 +1533,7 @@ var
   e: Extended;
 begin
   e := Value;
-  Result := FloatToStrFIntl(e,format,precision,digits,fvComp);
+  Result := FloatToStrFIntl(e,format,precision,digits,fvComp,FormatSettings);
 end;
 
 
@@ -1549,7 +1551,7 @@ var
   e: Extended;
 begin
   e := Comp(Value);
-  result := FloatToStrFIntl(e,format,precision,digits,fvComp);
+  result := FloatToStrFIntl(e,format,precision,digits,fvComp,FormatSettings);
 end;
 
 
@@ -1564,14 +1566,14 @@ end;
 Function CurrToStrF(Value: Currency; Format: TFloatFormat; Digits: Integer; Const FormatSettings: TFormatSettings): string;
 
 begin
-  result:=FloatToStrF(Value,Format,19,Digits);
+  result:=FloatToStrF(Value,Format,19,Digits,FormatSettings);
 end;
 
 
 Function CurrToStrF(Value: Currency; Format: TFloatFormat; Digits: Integer): string;
 
 begin
-  Result:=CurrToStrF(Value,Format,Digits);
+  Result:=CurrToStrF(Value,Format,Digits,DefaultFormatSettings);
 end;
 
 
@@ -1697,8 +1699,13 @@ begin
     Result:=false;
 end;
 
-
 Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;
+
+begin
+  Result:=FloatToTextFmt(Buffer,Value,Format,DefaultFormatSettings);
+end;
+
+Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar;FormatSettings : TFormatSettings): Integer;
 
 Var
   Digits: String[40];                         { String Of Digits                 }
@@ -2075,7 +2082,7 @@ Var
                     Begin
                     If (DigitExponent Mod 3 = 0) And (DigitExponent>0) Then
                       Begin
-                      Buf[0] := ThousandSeparator;
+                      Buf[0] := FormatSettings.ThousandSeparator;
                       Inc(Buf);
                       End;
                     Dec(DigitExponent);
@@ -2086,13 +2093,13 @@ Var
               If (Digits[Dig]<>' ') Then
                 Begin
                 If (Digits[Dig]='.') Then
-                  Buf[0] := DecimalSeparator
+                  Buf[0] := FormatSettings.DecimalSeparator
                 Else
                   Buf[0] := Digits[Dig];
                 Inc(Buf);
                 If thousand And (DigitExponent Mod 3 = 0) And (DigitExponent > 0) Then
                   Begin
-                  Buf[0] := ThousandSeparator;
+                  Buf[0] := FormatSettings.ThousandSeparator;
                   Inc(Buf);
                   End;
                 End;
@@ -2158,13 +2165,13 @@ Begin
     GetSectionRange(3);
   If FmtStart = Nil Then
     Begin
-    Result := FloatToText(Buffer, Value, ffGeneral, 15, 4);
+    Result := FloatToText(Buffer, Value, ffGeneral, 15, 4, FormatSettings);
     End
   Else
     Begin
     GetFormatOptions;
     If (ExpFmt = 0) And (Abs(Value) >= 1E18) Then
-      Result := FloatToText(Buffer, Value, ffGeneral, 15, 4)
+      Result := FloatToText(Buffer, Value, ffGeneral, 15, 4, FormatSettings)
     Else
       Begin
       FloatToStr;
@@ -2301,7 +2308,7 @@ Var
   buf : Array[0..1024] of char;
 
 Begin
-  Buf[FloatToTextFmt(@Buf[0],Value,Pchar(Format))]:=#0;
+  Buf[FloatToTextFmt(@Buf[0],Value,Pchar(Format),FormatSettings)]:=#0;
   Result:=StrPas(@Buf[0]);
 End;
 
@@ -2313,7 +2320,7 @@ end;
 
 Function FormatCurr(const Format: string; Value: Currency; Const FormatSettings: TFormatSettings): string;
 begin
-  Result := FormatFloat(Format, Value);
+  Result := FormatFloat(Format, Value,FormatSettings);
 end;
 
 function FormatCurr(const Format: string; Value: Currency): string;
