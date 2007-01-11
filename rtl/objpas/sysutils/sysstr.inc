@@ -1030,8 +1030,6 @@ Function FloatToStrFIntl(const Value; format: TFloatFormat; Precision, Digits: I
 Var
   P: Integer;
   Negative, TooSmall, TooLarge: Boolean;
-  ValExt: Extended;
-  ValCur: Currency;
 
 Begin
   Case format Of
@@ -1055,9 +1053,9 @@ Begin
         Begin
           case ValueType of
             fvDouble:
-              Str(Double(Value):0:precision, Result);
+              Str(Double(Extended(Value)):0:precision, Result);
             fvSingle:
-              Str(Single(Value):0:precision, Result);
+              Str(Single(Extended(Value)):0:precision, Result);
             fvCurrency:
 {$ifdef FPC_HAS_STR_CURRENCY}
               Str(Currency(Value):0:precision, Result);
@@ -1124,30 +1122,43 @@ Begin
         If (Precision = -1) Or (Precision > maxdigits) Then Precision := maxdigits;
         case ValueType of
           fvDouble:
-            Str(Double(Value):Precision+8, Result);
+            Str(Double(Extended(Value)):Precision+7, Result);
           fvSingle:
-            Str(Single(Value):Precision+8, Result);
+            Str(Single(Extended(Value)):Precision+6, Result);
           fvCurrency:
 {$ifdef FPC_HAS_STR_CURRENCY}
-            Str(Currency(Value):Precision+8, Result);
+            Str(Currency(Value):Precision+6, Result);
 {$else}
             Str(Extended(Currency(Value)):Precision+8, Result);
 {$endif FPC_HAS_STR_CURRENCY}
           else
             Str(Extended(Value):Precision+8, Result);
         end;
-        Result[3] := DecimalSeparator;
-        P:=4;
-        While (P>0) and (Digits < P) And (Result[Precision + 5] = '0') do
-          Begin
-          If P<>1 then
-            system.Delete(Result, Precision + 5, 1)
-          else
-            system.Delete(Result, Precision + 3, 3);
-          Dec(P);
-          end;
-        If Result[1] = ' ' Then
+        { Delete leading spaces }
+        while Result[1] = ' ' do
           System.Delete(Result, 1, 1);
+        if Result[1] = '-' then
+          Result[3] := DecimalSeparator
+        else
+          Result[2] := DecimalSeparator;
+        if Digits < 4 then
+          begin
+            P:=Pos('E',Result);
+            if P <> 0 then
+              begin
+                Inc(P, 2);
+                while (Result[P] = '0') and (Digits < 4) do
+                  begin
+                    System.Delete(Result, P, 1);
+                    if P > Length(Result) then
+                      begin
+                        System.Delete(Result, P - 2, 2);
+                        break;
+                      end;
+                    Inc(Digits);
+                  end;
+              end;
+          end;
       End;
 
     ffFixed:
@@ -1157,9 +1168,9 @@ Begin
         Else If Digits > 18 Then Digits := 18;
         case ValueType of
           fvDouble:
-            Str(Double(Value):0:Digits, Result);
+            Str(Double(Extended(Value)):0:Digits, Result);
           fvSingle:
-            Str(Single(Value):0:Digits, Result);
+            Str(Single(Extended(Value)):0:Digits, Result);
           fvCurrency:
 {$ifdef FPC_HAS_STR_CURRENCY}
             Str(Currency(Value):0:Digits, Result);
@@ -1182,9 +1193,9 @@ Begin
         Else If Digits > maxdigits Then Digits := maxdigits;
         case ValueType of
           fvDouble:
-            Str(Double(Value):0:Digits, Result);
+            Str(Double(Extended(Value)):0:Digits, Result);
           fvSingle:
-            Str(Single(Value):0:Digits, Result);
+            Str(Single(Extended(Value)):0:Digits, Result);
           fvCurrency:
 {$ifdef FPC_HAS_STR_CURRENCY}
             Str(Currency(Value):0:Digits, Result);
@@ -1211,45 +1222,25 @@ Begin
     ffCurrency:
 
       Begin
-        if ValueType = fvCurrency then
-          begin
-            ValCur:=Currency(Value);
-            If ValCur < 0 Then
-            Begin
-              Negative := True;
-              ValCur := -ValCur;
-            End
-            Else Negative := False;
-          end
-        else
-          begin
-            ValExt:=Extended(Value);
-            If ValExt < 0 Then
-            Begin
-              Negative := True;
-              ValExt := -ValExt;
-            End
-            Else Negative := False;
-          end;
-
         If Digits = -1 Then Digits := CurrencyDecimals
         Else If Digits > 18 Then Digits := 18;
         case ValueType of
           fvDouble:
-            Str(Double(ValExt):0:Digits, Result);
+            Str(Double(Extended(Value)):0:Digits, Result);
           fvSingle:
-            Str(Single(ValExt):0:Digits, Result);
+            Str(Single(Extended(Value)):0:Digits, Result);
           fvCurrency:
 {$ifdef FPC_HAS_STR_CURRENCY}
-            Str(ValCur:0:Digits, Result);
+            Str(Currency(Value):0:Digits, Result);
 {$else}
-            Str(Extended(ValCur):0:Digits, Result);
+            Str(Extended(Currency(Value)):0:Digits, Result);
 {$endif FPC_HAS_STR_CURRENCY}
           else
-            Str(Extended(ValExt):0:Digits, Result);
+            Str(Extended(Value):0:Digits, Result);
         end;
-        writeln(result);
-        If Result[1] = ' ' Then System.Delete(Result, 1, 1);
+        Negative:=Result[1] = '-';
+        if Negative then
+          System.Delete(Result, 1, 1);
         P := Pos('.', Result);
         If P <> 0 Then Result[P] := DecimalSeparator;
         Dec(P, 3);
