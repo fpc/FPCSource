@@ -1234,7 +1234,7 @@ asm
         jl      .Lj3596
 .Lj3603:
 // [104] If declocked(l^) then
-        cmpb    $0,ismultithread
+        cmpl    $0,ismultithread
         jne     .Lj3610
         decl    (%edx)
         je      .Lj3620
