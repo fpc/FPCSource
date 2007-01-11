@@ -1,3 +1,5 @@
+{$mode objfpc}
+{$h+}
 Unit PtoPu;
 {
     This file is part of the Free Pascal run time library.
@@ -32,27 +34,25 @@ The following was changed :
  - Uses streams
  - Run-time customizable.
 }
-
+{ $define debug}
 Interface
 
-Uses objects;
+uses Classes,Sysutils;
 
 Const
 
   MAXSYMBOLSIZE = 65500;
   MAXSHOWSIZE = 40;
-
   MAXSTACKSIZE = 100;
   MAXKEYLENGTH = 15;     { The longest keywords are IMPLEMENTATION INITIALIZATION }
-  MAXLINESIZE = 90;     { Maximum length of output line }
-
+  DEFLINESIZE = 100;
+  DEFINDENT = 2;
+  
 TYPE
-
-  {Token    = String[MAXSYMBOLSIZE];}
   Token    = AnsiString;
-{XXX this is not used  String0  = STRING[1];} {Pascal/z had 0}
   FileName = STRING;
 
+  TTokenScope = (tsInterface,tsImplementation);
 
   { Keysymbols }
   { If you add keysyms, adjust the definition of lastkey }
@@ -70,7 +70,7 @@ TYPE
                { Not used for formatting }
                andsym,arrsym,divsym,downsym,filesym,gotosym,insym,modsym,
                notsym,nilsym,orsym,setsym,tosym,virtualsym,usessym,
-               casevarsym,
+               casevarsym,ofobjectsym,
                { other symbols }
                becomes,delphicomment,dopencomment,dclosecomment,opencomment,closecomment,semicolon,colon,equals,
                openparen,closeparen,period,endoffile,othersym);
@@ -79,7 +79,7 @@ TYPE
   { If you add options, adjust the definition of lastopt }
   options = (crsupp,crbefore,blinbefore,
              dindonkey,dindent,spbef,
-             spaft,gobsym,inbytab,crafter,upper,lower,capital);
+             spaft,gobsym,inbytab,inbyindent,crafter,upper,lower,capital);
 
   optionset = SET OF options;
   keysymset = SET OF keysymbol;
@@ -111,7 +111,7 @@ TYPE
 
   stackentry = RECORD
                  indentsymbol : keysymbol;
-                 prevmargin : INTEGER
+                 prevmargin : INTEGER;
                END;
 
   symbolstack = ARRAY [1..MAXSTACKSIZE] OF stackentry;
@@ -124,7 +124,7 @@ Const FirstOpt = crsupp;
 
 Type
   tableptr = ^tableentry;
-  optiontable = ARRAY [keysymbol] OF tableptr;
+  optiontable = ARRAY [Ttokenscope,keysymbol] OF tableptr;
   OEntriesTable = Array [keysymbol] OF String[15];
   ONamesTable = Array [Options] of String[15];
   KeywordTable = ARRAY [endsym..lastFormatsym] OF String[MAXKEYLENGTH];
@@ -132,59 +132,79 @@ Type
   dblcharset = SET OF endsym..othersym;
   DblCharTable = ARRAY [becomes..dclosecomment] OF SpecialChar;
   SglCharTable = ARRAY [opencomment..period] OF CHAR;
+  
+  TVerboseEvent = Procedure (Sender : TObject; Const Msg : String) of Object;
 
-  TPrettyPrinter=Object(TObject)
-    Private
-      RecordSeen,
-      CRPending : BOOLEAN;
-      currchar,nextchar : charinfo;
-      currsym,nextsym : symbolinfo;
-      inlines,outlines : INTEGER;
-      stack   : symbolstack;
-      top,startpos,currlinepos,currmargin : Integer;
-      option : OptionTable;
-      Procedure Verbose (Const Msg : String);
-      Procedure GetChar;
-      Procedure StoreNextChar(VAR lngth: INTEGER;
-                              VAR Value: Token);
-      Procedure SkipBlanks(VAR spacesbefore, crsbefore: INTEGER);
-      Procedure GetComment(sym: symbolinfo);
-      Procedure GetDoubleComment(sym: symbolinfo);
-      Procedure GetDelphiComment(sym: symbolinfo);
-      Procedure GetNumber(sym: symbolinfo);
-      Procedure GetCharLiteral(sym: symbolinfo);
-      Function  char_Type: keysymbol;
-      Procedure GetSpecialChar(sym: symbolinfo);
-      Procedure GetNextSymbol(sym: symbolinfo);
-      Procedure GetIdentifier(sym: symbolinfo);
-      Procedure GetSymbol;
-      Procedure PopStack(VAR indentsymbol: keysymbol;
-                         VAR prevmargin: INTEGER);
-      Procedure PushStack(indentsymbol: keysymbol;
-                          prevmargin: INTEGER );
-      Procedure WriteCRs(numberofcrs: INTEGER);
-      Procedure InsertCR;
-      Procedure InsertBlankLine;
-      Procedure LShiftOn(dindsym: keysymset);
-      Procedure LShift;
-      Procedure InsertSpace(VAR symbol: symbolinfo);
-      Procedure MoveLinePos(newlinepos: INTEGER);
-      Procedure PrintSymbol;
-      Procedure PPSymbol;
-      Procedure Gobble(terminators: keysymset);
-      Procedure RShift(currmsym: keysymbol);
-      Function ReadConfigFile: Boolean;
-    Public
-      LineSize : longint;
-      Indent : Integer;    { How many characters to indent ? }
-      InS,
-      OutS,
-      DiagS,cfgS : PStream;
-      Constructor Create;
-      Function PrettyPrint : Boolean;
-    end;
+  { TPrettyPrinter }
 
-Procedure GenerateCfgFile(S: PStream);
+  TPrettyPrinter=Class(TObject)
+  Private
+    FTokenScope: TTokenScope;
+{$ifdef debug}
+    GobbleLevel : Integer;
+{$endif debug}
+    PreviousSymbol : keysymbol;
+    RecordLevel : Integer;
+    ClassSeen,ObjectSeen : Boolean;
+    LastStruct : KeySymbol;
+    CRPending : BOOLEAN;
+    currchar,nextchar : charinfo;
+    currsym,nextsym : symbolinfo;
+    inlines,outlines : INTEGER;
+    stack   : symbolstack;
+    top,startpos,currlinepos,currmargin : Integer;
+    option : OptionTable;
+    FOnVerbose :  TVerboseEvent;
+    FirstWordStackPos,
+    FirstWordPos,
+    FLineSize,
+    FIndent : Integer;
+    ins,outs,cfgs : TStream;
+    Procedure Verbose (Const Msg : String);
+    Procedure GetChar;
+    Procedure StoreNextChar(VAR lngth: INTEGER;
+                            VAR Value: Token);
+    Procedure SkipBlanks(VAR spacesbefore, crsbefore: INTEGER);
+    Procedure GetComment(sym: symbolinfo);
+    Procedure GetDoubleComment(sym: symbolinfo);
+    Procedure GetDelphiComment(sym: symbolinfo);
+    Procedure GetNumber(sym: symbolinfo);
+    Procedure GetCharLiteral(sym: symbolinfo);
+    Function  char_Type: keysymbol;
+    Procedure GetSpecialChar(sym: symbolinfo);
+    Procedure GetNextSymbol(sym: symbolinfo);
+    Procedure GetIdentifier(sym: symbolinfo);
+    Procedure GetSymbol;
+    Procedure PopStack(VAR indentsymbol: keysymbol;
+                       VAR prevmargin: INTEGER);
+    Procedure PushStack(indentsymbol: keysymbol;
+                        prevmargin: INTEGER );
+    Procedure WriteCRs(numberofcrs: INTEGER);
+    Procedure InsertCR;
+    Procedure InsertBlankLine;
+    Procedure LShiftOn(dindsym: keysymset);
+    Procedure LShift;
+    Procedure InsertSpace(VAR symbol: symbolinfo);
+    Procedure MoveLinePos(newlinepos: INTEGER);
+    Procedure PrintSymbol;
+    Procedure PPSymbol;
+    Procedure Gobble(terminators: keysymset);
+    Procedure RShift(currmsym: keysymbol);
+    Procedure RShiftIndent(currmsym: keysymbol);
+    Function ReadConfigFile: Boolean;
+  Public
+    Constructor Create;
+    Function PrettyPrint : Boolean;
+    Property OnVerbose : TVerboseEvent Read FOnVerbose Write FOnVerbose;
+    Property LineSize : Integer Read FLineSize Write FLineSize;
+    Property Indent : Integer Read FIndent Write FIndent;    { How many characters to indent ? }
+    Property Source : TStream Read Ins Write Ins;
+    Property Dest : TStream Read OutS Write Outs;
+    Property Config : Tstream Read cfgS Write cfgs;
+    Property CurrentScope : TTokenScope Read FTokenScope Write FTokenScope;
+  end;
+
+Procedure GenerateCfgFile(S: TStream);
 
 Implementation
 
@@ -199,17 +219,10 @@ CONST
   Blank = ' ';
   MAXBYTE = 255;{ Largest value of 1 byte variable }
 
-Type
-
-  hashentry = RECORD
-                Keyword : String[MAXKEYLENGTH];
-                symtype : keysymbol
-              END;
 
 VAR
   sets : tableptr;
   dblch   : dblcharset;
-  hashtable : ARRAY [Byte] OF hashentry;
 
 CONST
   Keyword : KeywordTable =
@@ -246,7 +259,7 @@ CONST
 
                'and','arr','div','down','file','goto',
                'in','mod','not','nil','or','set','to','virtual','uses',
-               'casevar',
+               'casevar','ofobject',
                'becomes','delphicomment','dopencomment','dclosecomment',
                'opencomment','closecomment','semicolon',
                'colon','equals',
@@ -255,7 +268,7 @@ CONST
   OptionNames : ONamesTable =
        ('crsupp','crbefore','blinbefore',
         'dindonkey','dindent','spbef','spaft',
-        'gobsym','inbytab','crafter','upper',
+        'gobsym','inbytab','inbyindent','crafter','upper',
         'lower','capital');
 
 
@@ -333,40 +346,6 @@ begin
     S:='';
 end;
 
-{ ---------------------------------------------------------------------
-    Hash table related functions
-  ---------------------------------------------------------------------}
-
-
-Function hash(Symbol: String): Byte;
-  { Hashing function for identifiers.  The formula gives a unique value
-    in the range 0..255 for each Pascal/Z keyword.  Note that range and
-    overflow checking must be turned off for this function even if they
-    are enabled for the rest of the program.  }
-  BEGIN
-{$R-}
-    hash := (ORD(Symbol[1]) * 5 + ORD(Symbol[length(Symbol)])) * 5 + length(Symbol);
-{$R+}
-  END; { of hash }
-
-Procedure CreateHash;
-
-Var psn : Byte;
-    sym : keysymbol;
-
-begin
-  FOR psn := 0 TO MAXBYTE DO BEGIN
-    hashtable[psn].Keyword := '         ';
-    hashtable[psn].symtype := othersym
-  END;
-  FOR sym := endsym TO lastformatsym DO BEGIN
-    psn := hash(Keyword[sym]);
-    hashtable[psn].Keyword := Keyword[sym];
-    hashtable[psn].symtype := sym
-  END; { for }
-end;
-
-
 Procedure ClassID(Value: Token;
                   lngth: INTEGER;
                   VAR idtype: keysymbol;
@@ -376,23 +355,30 @@ Procedure ClassID(Value: Token;
   VAR
     Keyvalue: String[MAXKEYLENGTH];
     tabent: INTEGER;
+    found : Integer;
+    Sym : keysymbol;
+    
   BEGIN
     IF lngth > MAXKEYLENGTH THEN BEGIN
       idtype := othersym;
       IsKeyWord := FALSE
     END
-    ELSE BEGIN
+    ELSE
+      BEGIN
+      IsKeyWord := FALSE;
       KeyValue:= UpperStr(Value);
-      tabent := hash(Keyvalue);
-      IF Keyvalue = hashtable[tabent].Keyword THEN BEGIN
-        idtype := hashtable[tabent].symtype;
-        IsKeyWord := TRUE;
-      END
-      ELSE BEGIN
+      sym:=endsym;
+      While (Not IsKeyword) and (sym<=lastformatsym) DO
+         begin
+         iskeyword:=(KeyValue=Keyword[sym]);
+         if not iskeyword then
+           Sym:=Succ(sym);
+         end;
+      if IsKeyWord then
+        idtype:=sym
+      ELSE
         idtype := othersym;
-        IsKeyWord := FALSE;
       END
-    END
   END; { of ClassID }
 
 { ---------------------------------------------------------------------
@@ -402,126 +388,152 @@ Procedure ClassID(Value: Token;
 Procedure CreateOptions (Var Option : OptionTable);
 
 Var Sym : KeySymbol;
+    T : TTokenScope;
 
 begin
-  FOR sym := endsym TO othersym DO BEGIN
-    NEW(option[sym]);
-    option[sym]^.selected := [];
-    option[sym]^.dindsym := [];
-    option[sym]^.terminators := []
-  END;
+  FOR sym := endsym TO othersym DO
+    For T:=Low(TTokenScope) to High(TTokenScope) do
+      begin
+      NEW(option[T,sym]);
+      option[T,sym]^.selected := [];
+      option[T,sym]^.dindsym := [];
+      option[T,sym]^.terminators := []
+      END;
 end;
 
 Procedure SetTerminators(Var Option : OptionTable);
 
+Var
+  T : TTokenScope;
+  
 begin
-  option[casesym]^.terminators    := [ofsym];
-  option[casevarsym]^.terminators := [ofsym];
-  option[forsym]^.terminators     := [dosym];
-  option[whilesym]^.terminators   := [dosym];
-  option[withsym]^.terminators    := [dosym];
-  option[ifsym]^.terminators      := [thensym];
-  option[untilsym]^.terminators   := [endsym, untilsym, elsesym, semicolon];
-  option[becomes]^.terminators    := [endsym, untilsym, elsesym, semicolon];
-  option[openparen]^.terminators  := [closeparen];
-  option[usessym]^.terminators    := [semicolon];
+  For T:=Low(TTokenScope) to High(TTokenScope) do
+    begin
+    option[t,casesym]^.terminators    := [ofsym];
+    option[t,casevarsym]^.terminators := [ofsym];
+    option[t,forsym]^.terminators     := [dosym];
+    option[t,whilesym]^.terminators   := [dosym];
+    option[t,withsym]^.terminators    := [dosym];
+    option[t,ifsym]^.terminators      := [thensym];
+    option[t,untilsym]^.terminators   := [endsym, untilsym, elsesym, semicolon];
+    option[t,becomes]^.terminators    := [endsym, untilsym, elsesym, semicolon];
+    option[t,openparen]^.terminators  := [closeparen];
+    option[t,usessym]^.terminators    := [semicolon];
+    end;
 end;
 
 Procedure SetDefaultIndents (Var Option : OptionTable);
 
+Var
+  T : TTokenScope;
+
 begin
-  option[recordsym]^.dindsym    := [endsym];
-  option[funcsym]^.dindsym      := [labelsym, constsym, typesym, varsym];
-  option[procsym]^.dindsym      := [labelsym, constsym, typesym, varsym];
-  option[constsym]^.dindsym     := [labelsym, constsym, typesym, varsym];
-  option[typesym]^.dindsym      := [labelsym, constsym, typesym, varsym];
-  option[varsym]^.dindsym       := [labelsym, constsym, typesym, varsym];
-  option[beginsym]^.dindsym     := [labelsym, constsym, typesym, varsym];
-  option[publicsym]^.dindsym    := [protectedsym,privatesym,publicsym,publishedsym];
-  option[privatesym]^.dindsym   := [protectedsym,privatesym,publicsym,publishedsym];
-  option[protectedsym]^.dindsym := [protectedsym,privatesym,publicsym,publishedsym];
-  option[publishedsym]^.dindsym := [protectedsym,privatesym,publicsym,publishedsym];
-  option[finallysym]^.dindsym   := [trysym];
-  option[exceptsym]^.dindsym   := [trysym];
-  option[elsesym]^.dindsym      := [ifsym, thensym, elsesym];
-  option[untilsym]^.dindsym     := [ifsym, thensym, elsesym, forsym, whilesym,
-                                    withsym, colon, equals];
-  option[endsym]^.dindsym       := [ifsym, thensym, elsesym, forsym, whilesym,
-                                    withsym, casevarsym, colon, equals, recordsym,
-                                    classsym,objectsym];
-  option[semicolon]^.dindsym    := [ifsym, thensym, elsesym, forsym,
-                                    whilesym, withsym, colon, equals];
+  For T:=Low(TTokenScope) to High(TTokenScope) do
+    begin
+    option[t,recordsym]^.dindsym    := [endsym];
+    option[t,funcsym]^.dindsym      := [labelsym, constsym, typesym, varsym];
+    option[t,procsym]^.dindsym      := [labelsym, constsym, typesym, varsym];
+    option[t,constsym]^.dindsym     := [labelsym, constsym, typesym, varsym];
+    option[t,typesym]^.dindsym      := [labelsym, constsym, typesym, varsym];
+    option[t,varsym]^.dindsym       := [labelsym, constsym, typesym, varsym];
+    option[t,beginsym]^.dindsym     := [labelsym, constsym, typesym, varsym];
+    option[t,publicsym]^.dindsym    := [endsym,protectedsym,privatesym,publicsym,publishedsym];
+    option[t,privatesym]^.dindsym   := [endsym,protectedsym,privatesym,publicsym,publishedsym];
+    option[t,protectedsym]^.dindsym := [endsym,protectedsym,privatesym,publicsym,publishedsym];
+    option[t,publishedsym]^.dindsym := [endsym,protectedsym,privatesym,publicsym,publishedsym];
+    option[t,finallysym]^.dindsym   := [trysym];
+    option[t,exceptsym]^.dindsym   := [trysym];
+    option[t,elsesym]^.dindsym      := [ifsym, thensym, elsesym];
+    option[t,untilsym]^.dindsym     := [ifsym, thensym, elsesym, forsym, whilesym,
+                                      withsym, colon, equals];
+    option[t,endsym]^.dindsym       := [ifsym, thensym, elsesym, forsym, whilesym,
+                                      withsym, casevarsym, colon, equals, recordsym,
+                                      trysym,classsym,objectsym];
+    option[t,semicolon]^.dindsym    := [ifsym, thensym, elsesym, forsym,
+                                      whilesym, withsym, colon, equals];
+    end;
 end;
 
 Procedure SetDefaults (Var Option : OptionTable);
 
 { Sets default values for the formatting rules. }
 
+Var
+  T : TTokenScope;
+
 begin
-  option[progsym]^.selected         := [capital,blinbefore, spaft];
-  option[unitsym]^.selected         := [capital,blinbefore, spaft];
-  option[librarysym]^.selected      := [capital,blinbefore, spaft];
-  option[funcsym]^.selected         := [capital,blinbefore, dindonkey, spaft];
-  option[procsym]^.selected         := [capital,blinbefore, dindonkey, spaft];
-  option[labelsym]^.selected        := [capital,blinbefore, spaft, inbytab];
-  option[constsym]^.selected        := [capital,blinbefore, dindonkey, spaft, inbytab];
-  option[typesym]^.selected         := [capital,blinbefore, dindonkey, spaft, inbytab];
-  option[varsym]^.selected          := [capital,blinbefore, dindonkey, spaft, inbytab];
-  option[beginsym]^.selected        := [capital,dindonkey, crbefore, crafter, inbytab];
-  option[repeatsym]^.selected       := [capital,inbytab, crafter];
-  option[recordsym]^.selected       := [capital,inbytab, crafter];
-  option[objectsym]^.selected       := [capital,inbytab, crafter];
-  option[classsym]^.selected        := [capital,inbytab, crafter];
-  option[publicsym]^.selected       := [capital,crbefore, dindonkey, spaft, inbytab];
-  option[publishedsym]^.selected    := [capital,crbefore, dindonkey, spaft, inbytab];
-  option[protectedsym]^.selected    := [capital,crbefore, dindonkey, spaft, inbytab];
-  option[privatesym]^.selected      := [capital,crbefore, dindonkey, spaft, inbytab];
-  option[trysym]^.Selected          := [capital,crbefore,crafter,inbytab];
-  option[finallysym]^.selected      := [capital,crbefore,dindonkey,crafter,inbytab];
-  option[exceptsym]^.selected       := [capital,crbefore,dindonkey,crafter,inbytab];
-  option[casesym]^.selected         := [capital,spaft, inbytab, gobsym, crafter];
-  option[casevarsym]^.selected      := [capital,spaft, inbytab, gobsym, crafter];
-  option[ofsym]^.selected           := [capital,crsupp, spbef];
-  option[forsym]^.selected          := [capital,spaft, inbytab, gobsym, crafter];
-  option[whilesym]^.selected        := [capital,spaft, inbytab, gobsym, crafter];
-  option[withsym]^.selected         := [capital,spaft, inbytab, gobsym, crafter];
-  option[dosym]^.selected           := [capital,crsupp, spbef];
-  option[ifsym]^.selected           :=  [capital,spaft, inbytab, gobsym];
-  option[thensym]^.selected         := [capital];
-  option[elsesym]^.selected         := [capital,crbefore, dindonkey, inbytab];
-  option[endsym]^.selected          := [capital,crbefore, crafter,dindonkey,dindent];
-  option[untilsym]^.selected        := [capital,crbefore, dindonkey, dindent, spaft,
-                                        gobsym, crafter];
-  option[becomes]^.selected         := [capital,spbef, spaft, gobsym];
-  option[Delphicomment]^.Selected   := [crafter];
-  option[opencomment]^.selected     := [capital,crsupp];
-  option[closecomment]^.selected    := [capital,crsupp];
-  option[semicolon]^.selected       := [capital,crsupp, dindonkey, crafter];
-  option[colon]^.selected           := [capital,inbytab];
-  option[equals]^.selected          := [capital,spbef, spaft, inbytab];
-  option[openparen]^.selected       := [capital,gobsym];
-  option[period]^.selected          := [capital,crsupp];
+  For T:=Low(TTokenScope) to High(TTokenScope) do
+    begin
+    option[t,progsym]^.selected         := [capital,blinbefore, spaft];
+    option[t,unitsym]^.selected         := [capital,blinbefore, spaft];
+    option[t,librarysym]^.selected      := [capital,blinbefore, spaft];
+    option[t,funcsym]^.selected         := [capital,blinbefore, dindonkey, spaft];
+    option[t,procsym]^.selected         := [capital,blinbefore, dindonkey, spaft];
+    option[t,labelsym]^.selected        := [capital,blinbefore, spaft, inbytab];
+    option[t,constsym]^.selected        := [capital,blinbefore, dindonkey, spaft, inbytab];
+    option[t,typesym]^.selected         := [capital,blinbefore, dindonkey, spaft, inbytab];
+    option[t,varsym]^.selected          := [capital,blinbefore, dindonkey, spaft, inbytab];
+    option[t,beginsym]^.selected        := [capital,dindonkey, crbefore, crafter, inbytab];
+    option[t,repeatsym]^.selected       := [capital,inbytab, crafter];
+    option[t,recordsym]^.selected       := [capital,inbyIndent, crafter];
+    option[t,objectsym]^.selected       := [capital,inbyIndent];
+    option[t,classsym]^.selected        := [capital,inbyIndent];
+    option[t,publicsym]^.selected       := [capital,crbefore, dindonkey, spaft];
+    option[t,publishedsym]^.selected    := [capital,crbefore, dindonkey, spaft];
+    option[t,protectedsym]^.selected    := [capital,crbefore, dindonkey, spaft];
+    option[t,privatesym]^.selected      := [capital,crbefore, dindonkey, spaft];
+    option[t,trysym]^.Selected          := [capital,crbefore,crafter,inbytab];
+    option[t,finallysym]^.selected      := [capital,crbefore,dindent,crafter,inbytab];
+    option[t,exceptsym]^.selected       := [capital,crbefore,dindent,crafter,inbytab];
+    option[t,casesym]^.selected         := [capital,spaft, inbytab, gobsym, crafter];
+    option[t,casevarsym]^.selected      := [capital,spaft, inbytab, gobsym, crafter];
+    option[t,ofsym]^.selected           := [capital,crsupp, spbef, spaft];
+    option[t,forsym]^.selected          := [capital,spaft, inbytab, gobsym, crafter];
+    option[t,whilesym]^.selected        := [capital,spaft, inbytab, gobsym, crafter];
+    option[t,withsym]^.selected         := [capital,spaft, inbytab, gobsym, crafter];
+    option[t,dosym]^.selected           := [capital,crsupp, spbef];
+    option[t,ifsym]^.selected           := [capital,spaft, inbytab, gobsym];
+    option[t,implementationsym]^.selected := [capital,blinbefore,crafter];
+    option[t,interfacesym]^.selected    := [capital,blinbefore,crafter];
+    option[t,usessym]^.selected         := [capital,blinbefore,spaft];
+    option[t,thensym]^.selected         := [capital];
+    option[t,elsesym]^.selected         := [capital,crbefore, dindonkey, inbytab];
+    option[t,endsym]^.selected          := [capital,crbefore, crafter,dindonkey,dindent];
+    option[t,untilsym]^.selected        := [capital,crbefore, dindonkey, dindent, spaft,
+                                          gobsym, crafter];
+    option[t,becomes]^.selected         := [capital,spbef, spaft, gobsym];
+    option[t,Delphicomment]^.Selected   := [crafter];
+    option[t,opencomment]^.selected     := [capital,crsupp];
+    option[t,closecomment]^.selected    := [capital,crsupp];
+    option[t,semicolon]^.selected       := [capital,crsupp, dindonkey, crafter];
+    option[t,colon]^.selected           := [capital,inbytab];
+    option[t,equals]^.selected          := [capital,spbef, spaft, inbytab];
+    option[t,openparen]^.selected       := [capital,gobsym];
+    option[t,period]^.selected          := [capital,crsupp];
+    end;
+  option[tsInterface,funcsym]^.selected         := [capital, dindonkey, spaft];
+  option[tsInterface,procsym]^.selected         := [capital, dindonkey, spaft];
 end;
 
 { ---------------------------------------------------------------------
     Stream handling routines
   ---------------------------------------------------------------------}
 
-Function ReadChar (S : PStream) : Char;
+Function ReadChar (S : TStream) : Char;
 
 Var C : Char;
 
 begin
   repeat
-    if S^.GetPos = S^.GetSize then
+    if S.Position=S.Size then
       C:=#0
     else
-      S^.Read(C,1);
-  Until C<>#13;
+      S.Read(C,1);
+  Until (C<>#13);
   ReadChar:=C;
 end;
 
-Function EoSLn (S : PStream) : Char;
+Function EoSLn (S : TStream) : Char;
 
 Const WhiteSpace = [' ', #9, #13 ];
 
@@ -529,47 +541,49 @@ Var C : Char;
 
 begin
   Repeat
-    if S^.GetPos = S^.GetSize then
+    if S.Position = S.Size then
       C:=#0
     else
-      S^.Read(C,1);
+      S.Read(C,1);
   Until (Not (C in WhiteSpace)) or ((C=#10));
   EoSln:=C;
 end;
 
-Function ReadString (S: PStream): String;
+Function ReadString (S: TStream): String;
 
-Var Buffer : String;
-    I : Byte;
-
+Var
+  I : Byte;
+  Count : Integer;
+    
 begin
-  Buffer:='';
+  Result:='';
   I:=0;
   Repeat
-    S^.Read(Buffer[I+1],1);
-    Inc(I);
-  until (I=255) or (Buffer[I]=#10) Or (S^.Status=StReadError);
-  If S^.Status=stReadError then Dec(I);
-  If Buffer[i]=#10 Then Dec(I);
-  If Buffer[I]=#13 then Dec(I);
-  Buffer[0] := chr(I);
-  ReadString:=Buffer;
+    If ((I+1)>Length(Result)) then
+      SetLength(Result,Length(Result)+255);
+    Count:=S.Read(Result[I+1],1);
+    If Count>0 then
+      Inc(I);
+  until (Result[I]=#10) or (Count=0);
+  If Result[i]=#10 Then Dec(I);
+  If Result[I]=#13 then Dec(I);
+  SetLength(Result,I);
 end;
 
-Procedure WriteString (S : PStream; ST : String);
+Procedure WriteString (S : TStream; ST : String);
 
 begin
-  S^.Write(St[1],length(St));
+  S.Write(St[1],length(St));
 end;
 
-Procedure WriteAnsiString (S : PStream; ST : AnsiString);
+Procedure WriteAnsiString (S : TStream; ST : AnsiString);
 
 begin
-  S^.Write(St[1],length(St));
+  S.Write(St[1],length(St));
 end;
 
 
-Procedure WriteCR (S: PStream);
+Procedure WriteCR (S: TStream);
 
 Const
   Newline = System.LineEnding;
@@ -579,7 +593,7 @@ begin
 end;
 
 
-Procedure WriteLnString (S : PStream; ST : String);
+Procedure WriteLnString (S : TStream; ST : String);
 
 begin
   WriteString(S,ST);
@@ -594,8 +608,8 @@ end;
 Procedure TPrettyPrinter.Verbose (Const Msg : String);
 
 begin
-  If Assigned (DiagS) then
-    WriteLnString (DiagS,Msg);
+  If Assigned (FOnVerbose) then
+    FOnVerbose(Self,Msg);
 end;
 
 Procedure TPrettyPrinter.GetChar;
@@ -701,12 +715,34 @@ Procedure TPrettyPrinter.GetIdentifier(sym: symbolinfo);
     WHILE nextchar.name IN [letter, digit] DO
       StoreNextChar(sym^.length, sym^.Value);
     ClassID(sym^.Value, sym^.length, sym^.name, sym^.IsKeyWord);
-    IF sym^.name IN [recordsym, casesym, endsym] THEN
+    IF sym^.name IN [recordsym, objectsym,classsym, casesym, endsym] THEN
+      begin
+      if sym^.name=implementationsym then
+        FTokenScope:=tsImplementation;
+      if sym^.name in [recordsym,objectsym,classsym] then
+        LastStruct:=sym^.name;
       CASE sym^.name OF
-        recordsym : RecordSeen := TRUE;
-        casesym   : IF RecordSeen THEN sym^.name := casevarsym;
-        endsym    : RecordSeen := FALSE;
+        RecordSym : Inc(RecordLevel);
+        ClassSym : ClassSeen:=True;
+        objectsym : begin
+                    if (PreviousSymbol=Ofsym) then
+                      sym^.name:=ofobjectsym
+                    else
+                      ObjectSeen:=True;
+                    end;
+        casesym   : IF (RecordLevel>0) and (LastStruct=recordsym) THEN sym^.name := casevarsym;
+        endsym    : If (LastStruct=recordsym) then
+                      Dec(Recordlevel);
+                    else
+                      begin
+                      ClassSeen:=False;
+                      ObjectSeen:=False;
+                      end
       END;  {case}
+      end;
+     If (PreviousSymbol=ClassSym) and (sym^.Name=ofsym) then
+       ClassSeen:=False;
+     PreviousSymbol:=sym^.Name;
   END; { of GetIdentifier }
 
 
@@ -839,7 +875,8 @@ Procedure TPrettyPrinter.WriteCRs(numberofcrs: INTEGER);
       FOR i := 1 TO numberofcrs DO
         WriteCr(OutS);
       Inc(outlines,numberofcrs);
-      currlinepos := 0;
+      Currlinepos := 0;
+      FirstWordStackPos:=-1;
     END;
   END; { of WriteCRs }
 
@@ -854,15 +891,23 @@ Procedure TPrettyPrinter.InsertCR;
 
 
 Procedure TPrettyPrinter.InsertBlankLine;
-  BEGIN
-    IF currsym^.crsbefore = 0 THEN BEGIN
-      IF currlinepos = 0 THEN WriteCRs(1)
-      ELSE WriteCRs(2);
+BEGIN
+  IF currsym^.crsbefore = 0 THEN 
+    BEGIN
+    IF currlinepos = 0 THEN 
+      WriteCRs(1)
+    ELSE 
+      WriteCRs(2);
       currsym^.spacesbefore := 0;
     END
-    ELSE IF currsym^.crsbefore = 1 THEN
-      IF currlinepos > 0 THEN WriteCRs(1);
-  END; { of InsertBlankLine }
+  ELSE 
+    IF currsym^.crsbefore = 1 THEN
+      IF currlinepos > 0 THEN 
+        begin
+        WriteCRs(1);
+        currsym^.spacesbefore := 0;
+        end;
+END; { of InsertBlankLine }
 
 
 Procedure TPrettyPrinter.LShiftOn(dindsym: keysymset);
@@ -871,6 +916,9 @@ Procedure TPrettyPrinter.LShiftOn(dindsym: keysymset);
     indentsymbol: keysymbol;
     prevmargin: INTEGER;
   BEGIN
+{$ifdef debug}
+    Write('LShiftOn ',EntryNames[currsym^.name],' : ',FirstWordPos,'/',CurrMargin);
+{$endif debug}
     IF top > 0 THEN BEGIN
       REPEAT
         PopStack(indentsymbol, prevmargin);
@@ -879,6 +927,9 @@ Procedure TPrettyPrinter.LShiftOn(dindsym: keysymset);
       IF NOT (indentsymbol IN dindsym) THEN
         PushStack(indentsymbol, prevmargin);
     END;
+{$ifdef debug}
+    Writeln('-> ',CurrMargin);
+{$endif debug}
   END; { of LShiftOn }
 
 
@@ -888,12 +939,56 @@ Procedure TprettyPrinter.LShift;
     indentsymbol: keysymbol;
     prevmargin: INTEGER;
   BEGIN
+{$ifdef debug}
+    Write('LShift ',EntryNames[currsym^.name],' : ',FirstWordPos,'/',CurrMargin);
+{$endif debug}
     IF top > 0 THEN BEGIN
       PopStack(indentsymbol, prevmargin);
       currmargin := prevmargin;
 (* maybe PopStack(indentsymbol,currmargin); *)
     END;
+{$ifdef debug}
+    Writeln('-> ',CurrMargin);
+{$endif debug}
   END; { of LShift }
+
+Procedure TprettyPrinter.RShift(currmsym: keysymbol);
+  { Move right, stacking margin positions }
+  BEGIN
+{$ifdef debug}
+    Write('RShift ',EntryNames[currmsym],' : ',FirstWordPos,'/',Currmargin);
+{$endif debug}
+    IF top < MAXSTACKSIZE THEN PushStack(currmsym, currmargin);
+    IF startpos > currmargin THEN currmargin := startpos;
+    Inc(currmargin,INDENT);
+{$ifdef debug}
+    Writeln(' -> ',Currmargin)
+{$endif debug}
+  END; { of RShift }
+
+Procedure TprettyPrinter.RShiftIndent(currmsym: keysymbol);
+  { Move right, stacking margin positions }
+  BEGIN
+{$ifdef debug}
+    Write('RShiftIndent ',EntryNames[currmsym],' : ',FirstWordPos,'/',Currmargin);
+{$endif debug}
+    If (FirstWordStackPos>=0) then
+      Top:=FirstWordStackPos
+    else
+      Top:=0;
+{$ifdef debug}
+    If (Top>0) then
+      Write(' Stackpos ',Top,' Item: ',EntryNames[Stack[Top].IndentSymbol],' Pos: ',Stack[Top].Prevmargin)
+    else
+      Write(' no item on stack');
+{$endif debug}
+    IF top < MAXSTACKSIZE THEN PushStack(othersym, FirstWordPos);
+//    IF top < MAXSTACKSIZE THEN PushStack(currmsym, currmargin);
+    CurrMargin:=FirstWordPos+Indent;
+{$ifdef debug}
+    Writeln(' -> ',Currmargin)
+{$endif debug}
+  END; { of RShift }
 
 
 Procedure TPrettyPrinter.InsertSpace(VAR symbol: symbolinfo);
@@ -939,6 +1034,18 @@ Procedure TPrettyPrinter.PrintSymbol;
       WriteAnsiString(OutS, currsym^.Value);
     startpos := currlinepos;
     Inc(currlinepos,currsym^.length);
+    if (FirstWordStackPos=-1) then
+      begin
+      FirstWordPos:=startpos;
+      FirstWordStackPos:=Top;
+{$ifdef debug}
+      write('First word : ',currlinepos,': ',currsym^.value);
+      If (FirstWordStackPos>0) then
+        writeln(' [Stack: ',FirstWordStackPos,' Item: "',EntryNames[Stack[FirstWordStackPos].IndentSymbol],'" Pos: ',Stack[FirstWordStackPos].Prevmargin,']')
+      else
+        Writeln(' No stack')
+{$endif debug}
+      end;
   END; { of PrintSymbol }
 
 
@@ -947,19 +1054,22 @@ Procedure TPrettyPrinter.PPSymbol;
   VAR  newlinepos: INTEGER;
   BEGIN
     WriteCRs(currsym^.crsbefore);
-    IF (currlinepos + currsym^.spacesbefore > currmargin)
-    OR (currsym^.name IN [opencomment, closecomment,dopencomment, dclosecomment])
-    THEN newlinepos := currlinepos + currsym^.spacesbefore
-    ELSE newlinepos := currmargin;
-
-    IF newlinepos + currsym^.length > LINESIZE THEN BEGIN {XXX - this needs to be cleaned for case of long symbol values}
+    IF ((currLinePos<>0) and (currlinepos + currsym^.spacesbefore > currmargin)) OR
+       (currsym^.name IN [opencomment, closecomment,dopencomment, dclosecomment])
+    THEN
+      newlinepos := currlinepos + currsym^.spacesbefore
+    ELSE
+      newlinepos := currmargin;
+    IF newlinepos + currsym^.length > LINESIZE THEN
+      BEGIN {XXX - this needs to be cleaned for case of long symbol values}
       WriteCRs(1);
-      IF currmargin + currsym^.length <= LINESIZE
-      THEN newlinepos := currmargin
-      ELSE IF currsym^.length < LINESIZE
-      THEN newlinepos := LINESIZE - currsym^.length
-      ELSE newlinepos := 0;
-    END;
+      IF currmargin + currsym^.length <= LINESIZE THEN
+        newlinepos := currmargin
+      ELSE IF currsym^.length < LINESIZE THEN
+        newlinepos := LINESIZE - currsym^.length
+      ELSE
+        newlinepos := 0;
+      END;
     MoveLinePos(newlinepos);
     PrintSymbol;
   END; { of PPSymbol }
@@ -969,6 +1079,10 @@ Procedure TPrettyPrinter.Gobble(terminators: keysymset);
   { Print symbols which follow a formatting symbol but which do not
     affect layout }
   BEGIN
+{$ifdef debug}
+    Inc(GobbleLevel);
+    Writeln('Gobble start ',GobbleLevel,' : ',EntryNames[currsym^.name]);
+{$endif debug}
     IF top < MAXSTACKSIZE THEN PushStack(currsym^.name, currmargin);
     currmargin := currlinepos;
     WHILE NOT ((nextsym^.name IN terminators)
@@ -977,21 +1091,18 @@ Procedure TPrettyPrinter.Gobble(terminators: keysymset);
       PPSymbol;
     END;
     LShift;
+{$ifdef debug}
+    Writeln('Gobble end ',gobblelevel,' : ',EntryNames[nextsym^.name],' ',nextsym^.name in terminators );
+    Dec(GobbleLevel);
+{$endif debug}
   END; { of Gobble }
 
-
-Procedure TprettyPrinter.RShift(currmsym: keysymbol);
-  { Move right, stacking margin positions }
-  BEGIN
-    IF top < MAXSTACKSIZE THEN PushStack(currmsym, currmargin);
-    IF startpos > currmargin THEN currmargin := startpos;
-    Inc(currmargin,INDENT);
-  END; { of RShift }
 
 
 Function TPrettyPrinter.ReadConfigFile : Boolean;
 
-Var I,J : Longint;
+Var
+  I,J : Longint;
 
   Procedure SetOption(TheKey : KeySymbol;Var OptionList : String);
 
@@ -999,6 +1110,7 @@ Var I,J : Longint;
       Found : Boolean;
       K : longint;
       opt : string;
+      TS : TTokenScope;
 
   begin
     Repeat
@@ -1022,7 +1134,8 @@ Var I,J : Longint;
         If not found then
           Verbose ('Unknown option on line '+inttostr(i)+': '+Opt)
         else
-          Option[TheKey]^.Selected:=Option[TheKey]^.Selected+[TheOpt];
+          For TS:=Low(TTokenScope) to High(TTokenScope) do
+            Option[TS,TheKey]^.Selected:=Option[TS,TheKey]^.Selected+[TheOpt];
         end;
     until k=0;
   end;
@@ -1034,6 +1147,7 @@ Var I,J : Longint;
       Found : Boolean;
       K : longint;
       opt : string;
+      TS : TTokenScope;
 
   begin
     Repeat
@@ -1059,7 +1173,8 @@ Var I,J : Longint;
           Verbose ('Unknown indent keysym on line '+inttostr(i)+': '+Opt);
           exit;
           end;
-        Option[TheKey]^.dindsym:=Option[TheKey]^.dindsym+[Theindent];
+        For TS:=Low(TTokenScope) to High(TTokenScope) do
+          Option[TS,TheKey]^.dindsym:=Option[TS,TheKey]^.dindsym+[Theindent];
         end;
     until k=0;
   end;
@@ -1067,59 +1182,63 @@ Var I,J : Longint;
 Var TheKey : KeySymbol;
     Found,DoIndent : Boolean;
     Line, Name : String;
-
+    L : TStringList;
+    
 begin
   ReadConfigFile:=false;
-  I:=0;
-  while not (CfgS^.Status=stReadError) do
-    begin
-    inc(i);
-    Line:='';
-    Line:=ReadString(cfgS);
-    { Strip comment }
-    If pos('#',Line)<>0 then
-      Line:=Copy(Line,1,Pos('#',Line)-1);
-    If length(Line)<>0 then
+  L:=TStringList.Create;
+  Try
+    L.LoadFromStream(CfgS);
+    For I:=1 to L.Count do
       begin
-      J:=Pos('=',Line);
-      If J>0 then
+      Line:=L[i-1];
+      { Strip comment }
+      If pos('#',Line)<>0 then
+        Line:=Copy(Line,1,Pos('#',Line)-1);
+      If length(Line)<>0 then
         begin
-        Line:=LowerStr(Line);
-        Name:=Copy(Line,1,j-1);
-        Delete(Line,1,J);
-        { indents or options ? }
-        If (Name[1]='[') and
-           (Name[Length(Name)]=']') then
-           begin
-           Name:=Copy(Name,2,Length(Name)-2);
-           Doindent:=True;
-           end
-        else
-           DoIndent:=False;
-        Strip(Name);
-        found:=false;
-        for thekey:=firstkey to lastkey do
+        J:=Pos('=',Line);
+        If J>0 then
           begin
-          found:=Name=EntryNames[thekey];
-          If Found then break;
-          end;
-        If not found then
-          Verbose ('Unknown keyword on line '+inttostr(i)+': '+Name)
-        else
-          If DoIndent then
-            SetIndent(TheKey,Line)
+          Line:=LowerStr(Line);
+          Name:=Copy(Line,1,j-1);
+          Delete(Line,1,J);
+          { indents or options ? }
+          If (Name[1]='[') and
+             (Name[Length(Name)]=']') then
+             begin
+             Name:=Copy(Name,2,Length(Name)-2);
+             Doindent:=True;
+             end
           else
-            SetOption(TheKey,Line)
-        end
-      else
-        verbose ('Error in config file on line '+IntToStr(i));
+             DoIndent:=False;
+          Strip(Name);
+          found:=false;
+          for thekey:=firstkey to lastkey do
+            begin
+            found:=Name=EntryNames[thekey];
+            If Found then break;
+            end;
+          If not found then
+            Verbose ('Unknown keyword on line '+inttostr(i)+': '+Name)
+          else
+            If DoIndent then
+              SetIndent(TheKey,Line)
+            else
+              SetOption(TheKey,Line)
+          end
+        else
+          verbose ('Error in config file on line '+IntToStr(i));
+        end;
       end;
-    end;
+  Finally
+    L.Free;
+  end;
   Verbose ('Processed configfile: read '+IntToStr(I)+' lines');
   ReadConfigFile:=true;
 end;
 
-Procedure GenerateCfgFile(S : PStream);
+Procedure GenerateCfgFile(S : TStream);
 
 Var TheKey,TheIndent : KeySymbol;
     TheOpt : Options;
@@ -1136,7 +1255,7 @@ begin
     WriteString (S,EntryNames[TheKey]+'=');
     Written:=False;
     for TheOpt:=FirstOpt to LastOpt do
-      If TheOpt in Option[TheKey]^.Selected then
+      If TheOpt in Option[tsInterface,TheKey]^.Selected then
         begin
         if written then
            WriteString (S,',')
@@ -1146,12 +1265,12 @@ begin
         end;
     WriteCr (S);
     { Write de-indent keysyms, if any }
-    If Option[TheKey]^.dindsym<>[] then
+    If Option[tsInterface,TheKey]^.dindsym<>[] then
       begin
       WriteString (S,'['+EntryNames[TheKey]+']=');
       Written:=False;
       For TheIndent:=FirstKey to lastkey do
-      If TheIndent in Option[TheKey]^.dindsym then
+      If TheIndent in Option[tsInterface,TheKey]^.dindsym then
         begin
         if written then
            WriteString (S,',')
@@ -1198,17 +1317,20 @@ Begin
   inlines := 0;
   outlines := 0;
   CrPending := FALSE;
-  RecordSeen := FALSE;
+  FirstWordStackPos:=-1;
+  RecordLevel := 0;
   GetChar;
   NEW(currsym);
   NEW(nextsym);
   GetSymbol;
   WHILE nextsym^.name <> endoffile DO BEGIN
     GetSymbol;
-    Verbose('line in-'+IntToStr(inlines)+' out-'+IntToStr(outlines)+
-            ' symbol "'+EntryNames[currsym^.name]+'" = "'+ 
+{$ifdef debug}
+    Writeln('line in-'+IntToStr(inlines)+' out-'+IntToStr(outlines)+
+            ' symbol "'+EntryNames[currsym^.name]+'" = "'+
             trimMiddle(currsym^.value,length(currsym^.value),MAXSHOWSIZE)+'"');
-    sets := option[currsym^.name];
+{$endif debug}
+    sets := option[FTokenScope,currsym^.name];
     IF (CrPending AND NOT (crsupp IN sets^.selected))
     OR (crbefore IN sets^.selected) THEN BEGIN
       InsertCR;
@@ -1218,12 +1340,17 @@ Begin
       InsertBlankLine;
       CrPending := FALSE
     END;
-    IF dindonkey IN sets^.selected THEN LShiftOn(sets^.dindsym);
-    IF dindent IN sets^.selected THEN LShift;
+    IF dindonkey IN sets^.selected THEN
+      LShiftOn(sets^.dindsym);
+    IF dindent IN sets^.selected THEN
+      LShift;
     IF spbef IN sets^.selected THEN InsertSpace(currsym);
     PPSymbol;
     IF spaft IN sets^.selected THEN InsertSpace(nextsym);
-    IF inbytab IN sets^.selected THEN RShift(currsym^.name);
+    IF inbytab IN sets^.selected THEN
+      RShift(currsym^.name)
+    else IF inbyindent IN sets^.selected THEN
+      RShiftIndent(currsym^.name);
     IF gobsym IN sets^.selected THEN Gobble(sets^.terminators);
     IF crafter IN sets^.selected THEN CrPending := TRUE
   END;
@@ -1235,10 +1362,10 @@ end;
 Constructor TPrettyPrinter.Create;
 
 Begin
-  LineSize:=MaxLineSize;
+  Indent:=DefIndent;
+  LineSize:=DefLineSize;
   CreateOptions (Option);
   SetTerminators(Option);
-  DiagS:=Nil;
   InS:=Nil;
   OutS:=Nil;
   CfgS:=Nil;
@@ -1250,6 +1377,5 @@ End;
 
 
 Begin
-  CreateHash;
   dblch := [becomes, opencomment];
 end.
