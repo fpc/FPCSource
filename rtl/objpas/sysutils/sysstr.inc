@@ -961,7 +961,9 @@ Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue): Boolean;
 Var
   E,P : Integer;
   S : String;
+{$ifndef FPC_HAS_STR_CURRENCY}
   TempValue: extended;
+{$endif FPC_HAS_STR_CURRENCY}
 
 Begin
   S:=StrPas(Buffer);
@@ -976,11 +978,15 @@ Begin
     S[P] := '.';
   case ValueType of
     fvCurrency:
+{$ifdef FPC_HAS_STR_CURRENCY}
+      Val(S,Currency(Value),E);
+{$else FPC_HAS_STR_CURRENCY}
       begin
         // needed for platforms where Currency = Int64
         Val(S,TempValue,E);
         Currency(Value) := TempValue;
       end;
+{$endif FPC_HAS_STR_CURRENCY}
     fvExtended:
       Val(S,Extended(Value),E);
     fvDouble:
@@ -1020,10 +1026,12 @@ const
   maxdigits = 14;
 {$endif}
 
-Function FloatToStrFIntl(Value: Extended; format: TFloatFormat; Precision, Digits: Integer; ValueType: TFloatValue): String;
+Function FloatToStrFIntl(const Value; format: TFloatFormat; Precision, Digits: Integer; ValueType: TFloatValue): String;
 Var
   P: Integer;
   Negative, TooSmall, TooLarge: Boolean;
+  ValExt: Extended;
+  ValCur: Currency;
 
 Begin
   Case format Of
@@ -1031,17 +1039,33 @@ Begin
     ffGeneral:
 
       Begin
-        If (Precision = -1) Or (Precision > maxdigits) Then Precision := maxdigits;
-        TooSmall := (Abs(Value) < 0.00001) and (Value>0.0);
+        case ValueType of
+          fvCurrency:
+            begin
+              If (Precision = -1) Or (Precision > 19) Then Precision := 19;
+              TooSmall:=False;
+            end;
+          else
+            begin
+              If (Precision = -1) Or (Precision > maxdigits) Then Precision := maxdigits;
+              TooSmall := (Abs(Extended(Value)) < 0.00001) and (Extended(Value)<>0.0);
+            end;
+        end;
         If Not TooSmall Then
         Begin
           case ValueType of
             fvDouble:
-              Str(Double(Value):digits:precision, Result);
+              Str(Double(Value):0:precision, Result);
             fvSingle:
-              Str(Single(Value):digits:precision, Result);
+              Str(Single(Value):0:precision, Result);
+            fvCurrency:
+{$ifdef FPC_HAS_STR_CURRENCY}
+              Str(Currency(Value):0:precision, Result);
+{$else}
+              Str(Extended(Currency(Value)):0:precision, Result);
+{$endif FPC_HAS_STR_CURRENCY}
             else
-              Str(Extended(Value):digits:precision, Result);
+              Str(Extended(Value):0:precision, Result);
           end;
           P := Pos('.', Result);
           if P<>0 then
@@ -1051,7 +1075,7 @@ Begin
 
         If TooSmall Or TooLarge Then
           begin
-            Result := FloatToStrF(Value, ffExponent, Precision, Digits);
+            Result := FloatToStrFIntl(Value, ffExponent, Precision, Digits, ValueType);
             // Strip unneeded zeroes.
             P:=Pos('E',result)-1;
             If P<>-1 then
@@ -1077,6 +1101,8 @@ Begin
             { significant digits" rather than "number of digits after the }
             { decimal point" (as it does in the system unit) -> adjust    }
             { (precision+1 to count the decimal point character)          }
+            if Result[1] = '-' then
+              Inc(Precision);
             if (Length(Result) > Precision + 1) and
                (Precision + 1 > P) then
               begin
@@ -1101,6 +1127,12 @@ Begin
             Str(Double(Value):Precision+8, Result);
           fvSingle:
             Str(Single(Value):Precision+8, Result);
+          fvCurrency:
+{$ifdef FPC_HAS_STR_CURRENCY}
+            Str(Currency(Value):Precision+8, Result);
+{$else}
+            Str(Extended(Currency(Value)):Precision+8, Result);
+{$endif FPC_HAS_STR_CURRENCY}
           else
             Str(Extended(Value):Precision+8, Result);
         end;
@@ -1128,6 +1160,12 @@ Begin
             Str(Double(Value):0:Digits, Result);
           fvSingle:
             Str(Single(Value):0:Digits, Result);
+          fvCurrency:
+{$ifdef FPC_HAS_STR_CURRENCY}
+            Str(Currency(Value):0:Digits, Result);
+{$else}
+            Str(Extended(Currency(Value)):0:Digits, Result);
+{$endif FPC_HAS_STR_CURRENCY}
           else
             Str(Extended(Value):0:Digits, Result);
         end;
@@ -1147,6 +1185,12 @@ Begin
             Str(Double(Value):0:Digits, Result);
           fvSingle:
             Str(Single(Value):0:Digits, Result);
+          fvCurrency:
+{$ifdef FPC_HAS_STR_CURRENCY}
+            Str(Currency(Value):0:Digits, Result);
+{$else}
+            Str(Extended(Currency(Value)):0:Digits, Result);
+{$endif FPC_HAS_STR_CURRENCY}
           else
             Str(Extended(Value):0:Digits, Result);
         end;
@@ -1167,23 +1211,44 @@ Begin
     ffCurrency:
 
       Begin
-        If Value < 0 Then
-        Begin
-          Negative := True;
-          Value := -Value;
-        End
-        Else Negative := False;
+        if ValueType = fvCurrency then
+          begin
+            ValCur:=Currency(Value);
+            If ValCur < 0 Then
+            Begin
+              Negative := True;
+              ValCur := -ValCur;
+            End
+            Else Negative := False;
+          end
+        else
+          begin
+            ValExt:=Extended(Value);
+            If ValExt < 0 Then
+            Begin
+              Negative := True;
+              ValExt := -ValExt;
+            End
+            Else Negative := False;
+          end;
 
         If Digits = -1 Then Digits := CurrencyDecimals
         Else If Digits > 18 Then Digits := 18;
         case ValueType of
           fvDouble:
-            Str(Double(Value):0:Digits, Result);
+            Str(Double(ValExt):0:Digits, Result);
           fvSingle:
-            Str(Single(Value):0:Digits, Result);
+            Str(Single(ValExt):0:Digits, Result);
+          fvCurrency:
+{$ifdef FPC_HAS_STR_CURRENCY}
+            Str(ValCur:0:Digits, Result);
+{$else}
+            Str(Extended(ValCur):0:Digits, Result);
+{$endif FPC_HAS_STR_CURRENCY}
           else
-            Str(Extended(Value):0:Digits, Result);
+            Str(Extended(ValExt):0:Digits, Result);
         end;
+        writeln(result);
         If Result[1] = ' ' Then System.Delete(Result, 1, 1);
         P := Pos('.', Result);
         If P <> 0 Then Result[P] := DecimalSeparator;
@@ -1236,24 +1301,36 @@ Begin
 End;
 
 Function FloatToStr(Value: Double): String;
+var
+  e: Extended;
 Begin
-  Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvDouble);
+  e := Value;
+  Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvDouble);
 End;
 
 Function FloatToStr(Value: Single): String;
+var
+  e: Extended;
 Begin
-  Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvSingle);
+  e := Value;
+  Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvSingle);
 End;
 
 Function FloatToStr(Value: Comp): String;
+var
+  e: Extended;
 Begin
-  Result := FloatToStrFIntl(Value, ffGeneral, 15, 0, fvComp);
+  e := Value;
+  Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvComp);
 End;
 
 {$ifndef FPC_COMP_IS_INT64}
 Function FloatToStr(Value: Int64): String;
+var
+  e: Extended;
 Begin
-  Result := FloatToStrFIntl(Comp(Value), ffGeneral, 15, 0, fvComp);
+  e := Comp(Value);
+  Result := FloatToStrFIntl(e, ffGeneral, 15, 0, fvComp);
 End;
 {$endif FPC_COMP_IS_INT64}
 
@@ -1280,24 +1357,36 @@ begin
 end;
 
 Function FloatToStrF(Value: Double; format: TFloatFormat; Precision, Digits: Integer): String;
+var
+  e: Extended;
 begin
-  result := FloatToStrFIntl(value,format,precision,digits,fvDouble);
+  e := Value;
+  result := FloatToStrFIntl(e,format,precision,digits,fvDouble);
 end;
 
 Function FloatToStrF(Value: Single; format: TFloatFormat; Precision, Digits: Integer): String;
+var
+  e: Extended;
 begin
-  result := FloatToStrFIntl(value,format,precision,digits,fvSingle);
+  e := Value;
+  result := FloatToStrFIntl(e,format,precision,digits,fvSingle);
 end;
 
 Function FloatToStrF(Value: Comp; format: TFloatFormat; Precision, Digits: Integer): String;
+var
+  e: Extended;
 begin
-  result := FloatToStrFIntl(value,format,precision,digits,fvComp);
+  e := Value;
+  result := FloatToStrFIntl(e,format,precision,digits,fvComp);
 end;
 
 {$ifndef FPC_COMP_IS_INT64}
 Function FloatToStrF(Value: Int64; format: TFloatFormat; Precision, Digits: Integer): String;
+var
+  e: Extended;
 begin
-  result := FloatToStrFIntl(Comp(value),format,precision,digits,fvComp);
+  e := Comp(Value);
+  result := FloatToStrFIntl(e,format,precision,digits,fvComp);
 end;
 {$endif FPC_COMP_IS_INT64}
 
@@ -1333,7 +1422,7 @@ end;
 
 Function CurrToStr(Value: Currency): string;
 begin
-  Result:=FloatToStrF(Value,ffNumber,15,2);
+  Result:=FloatToStrF(Value,ffGeneral,-1,0);
 end;
 
 function AnsiDequotedStr(const S: string; AQuote: Char): string; 
