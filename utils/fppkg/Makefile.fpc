@@ -2,6 +2,10 @@
 #   Makefile.fpc for fppkg
 #
 
+[package]
+name=fppkg
+version=2.0.0
+
 [target]
 programs=fppkg
 units=fpmktype fpmkunit fprepos fpxmlrep pkgropts pkghandler pkgmkconv pkgdownload pkgwget pkglnet
