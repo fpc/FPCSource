@@ -830,6 +830,28 @@ begin
 end;
 
 
+function CheckRead(var f:Text):Boolean;
+begin
+  CheckRead:=False;
+{ Check error and if file is open and load buf if empty }
+  If (InOutRes<>0) then
+    exit;
+  if (TextRec(f).mode<>fmInput) Then
+    begin
+      case TextRec(f).mode of
+        fmOutPut,fmAppend:
+          InOutRes:=104;
+        else
+          InOutRes:=103;
+      end;
+      exit;
+    end;
+  if TextRec(f).BufPos>=TextRec(f).BufEnd Then
+    FileFunc(TextRec(f).InOutFunc)(TextRec(f));
+  CheckRead:=True;
+end;
+
+
 Procedure fpc_Read_End(var f:Text);[Public,Alias:'FPC_READ_END']; iocheck; compilerproc;
 begin
   if TextRec(f).FlushFunc<>nil then
@@ -840,30 +862,15 @@ end;
 Procedure fpc_ReadLn_End(var f : Text);[Public,Alias:'FPC_READLN_END']; iocheck; compilerproc;
 var prev: char;
 Begin
-{ Check error and if file is open and load buf if empty }
-  If (InOutRes<>0) then
-   exit;
-  if (TextRec(f).mode<>fmInput) Then
-   begin
-     case TextRec(f).mode of
-      fmOutPut,fmAppend:
-        InOutRes:=104
-       else
-         InOutRes:=103;
-     end;
-     exit;
-   end;
-  if TextRec(f).BufPos>=TextRec(f).BufEnd Then
-   begin
-     FileFunc(TextRec(f).InOutFunc)(TextRec(f));
-     if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
-       { Flush if set }
-       begin
-         if (TextRec(f).FlushFunc<>nil) then
-           FileFunc(TextRec(f).FlushFunc)(TextRec(f));
-         exit;
-       end;
-   end;
+  If not CheckRead(f) then
+    exit;
+  if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+    { Flush if set }
+    begin
+      if (TextRec(f).FlushFunc<>nil) then
+        FileFunc(TextRec(f).FlushFunc)(TextRec(f));
+      exit;
+    end;
   if CtrlZMarksEOF and (TextRec (F).BufPtr^ [TextRec (F).BufPos] = #26) then
    Exit;
   repeat
@@ -919,19 +926,8 @@ Begin
     stop_chars[2]:=#26;
   stop_chars[3]:=#0;
   ReadPCharLen:=0;
-{ Check error and if file is open }
-  If (InOutRes<>0) then
-   exit;
-  if (TextRec(f).mode<>fmInput) Then
-   begin
-     case TextRec(f).mode of
-       fmOutPut,fmAppend:
-         InOutRes:=104
-       else
-         InOutRes:=103;
-     end;
-     exit;
-   end;
+  If not CheckRead(f) then
+    exit;
 { Read maximal until Maxlen is reached }
   sPos:=0;
   end_of_string:=false;
@@ -1016,29 +1012,13 @@ End;
 procedure fpc_Read_Text_Char(var f : Text; out c: char); iocheck; [Public,Alias:'FPC_READ_TEXT_CHAR'];compilerproc;
 Begin
   c:=#0;
-{ Check error and if file is open }
-  If (InOutRes<>0) then
-   exit;
-  if (TextRec(f).mode<>fmInput) Then
-   begin
-     case TextRec(f).mode of
-       fmOutPut,fmAppend:
-         InOutRes:=104
-       else
-         InOutRes:=103;
-     end;
-     exit;
-   end;
-{ Read next char or EOF }
+  If not CheckRead(f) then
+    exit;
   If TextRec(f).BufPos>=TextRec(f).BufEnd Then
-   begin
-     FileFunc(TextRec(f).InOutFunc)(TextRec(f));
-     If TextRec(f).BufPos>=TextRec(f).BufEnd Then
-       begin
-         c := #26;
-         exit;
-       end;
-   end;
+    begin
+      c := #26;
+      exit;
+    end;
   c:=TextRec(f).Bufptr^[TextRec(f).BufPos];
   inc(TextRec(f).BufPos);
 end;
@@ -1050,21 +1030,8 @@ var
   code : longint;
 Begin
   l:=0;
-{ Leave if error or not open file, else check for empty buf }
-  If (InOutRes<>0) then
-   exit;
-  if (TextRec(f).mode<>fmInput) Then
-   begin
-     case TextRec(f).mode of
-       fmOutPut,fmAppend:
-         InOutRes:=104
-       else
-         InOutRes:=103;
-     end;
-     exit;
-   end;
-  If TextRec(f).BufPos>=TextRec(f).BufEnd Then
-   FileFunc(TextRec(f).InOutFunc)(TextRec(f));
+  If not CheckRead(f) then
+    exit;
   hs:='';
   if IgnoreSpaces(f) then
    begin
@@ -1093,21 +1060,8 @@ var
   code : longint;
 Begin
   u:=0;
-{ Leave if error or not open file, else check for empty buf }
-  If (InOutRes<>0) then
-   exit;
-  if (TextRec(f).mode<>fmInput) Then
-   begin
-     case TextRec(f).mode of
-       fmOutPut,fmAppend:
-         InOutRes:=104
-       else
-         InOutRes:=103;
-     end;
-     exit;
-   end;
-  If TextRec(f).BufPos>=TextRec(f).BufEnd Then
-   FileFunc(TextRec(f).InOutFunc)(TextRec(f));
+  If not CheckRead(f) then
+    exit;
   hs:='';
   if IgnoreSpaces(f) then
    begin
@@ -1134,21 +1088,8 @@ var
   code : Word;
 begin
   v:=0.0;
-{ Leave if error or not open file, else check for empty buf }
-  If (InOutRes<>0) then
-   exit;
-  if (TextRec(f).mode<>fmInput) Then
-   begin
-     case TextRec(f).mode of
-       fmOutPut,fmAppend:
-         InOutRes:=104
-       else
-         InOutRes:=103;
-     end;
-     exit;
-   end;
-  If TextRec(f).BufPos>=TextRec(f).BufEnd Then
-   FileFunc(TextRec(f).InOutFunc)(TextRec(f));
+  If not CheckRead(f) then
+    exit;
   hs:='';
   if IgnoreSpaces(f) then
    begin
@@ -1170,21 +1111,8 @@ var
   code : Word;
 begin
   v:=0.0;
-{ Leave if error or not open file, else check for empty buf }
-  If (InOutRes<>0) then
-   exit;
-  if (TextRec(f).mode<>fmInput) Then
-   begin
-     case TextRec(f).mode of
-       fmOutPut,fmAppend:
-         InOutRes:=104
-       else
-         InOutRes:=103;
-     end;
-     exit;
-   end;
-  If TextRec(f).BufPos>=TextRec(f).BufEnd Then
-   FileFunc(TextRec(f).InOutFunc)(TextRec(f));
+  If not CheckRead(f) then
+    exit;
   hs:='';
   if IgnoreSpaces(f) then
    begin
@@ -1208,21 +1136,8 @@ var
   code : longint;
 Begin
   q:=0;
-  { Leave if error or not open file, else check for empty buf }
-  If (InOutRes<>0) then
-   exit;
-  if (TextRec(f).mode<>fmInput) Then
-   begin
-     case TextRec(f).mode of
-       fmOutPut,fmAppend:
-         InOutRes:=104
-       else
-         InOutRes:=103;
-     end;
-     exit;
-   end;
-  If TextRec(f).BufPos>=TextRec(f).BufEnd Then
-   FileFunc(TextRec(f).InOutFunc)(TextRec(f));
+  If not CheckRead(f) then
+    exit;
   hs:='';
   if IgnoreSpaces(f) then
    begin
@@ -1243,21 +1158,8 @@ var
   code : Longint;
 Begin
   i:=0;
-{ Leave if error or not open file, else check for empty buf }
-  If (InOutRes<>0) then
-   exit;
-  if (TextRec(f).mode<>fmInput) Then
-   begin
-     case TextRec(f).mode of
-       fmOutPut,fmAppend:
-         InOutRes:=104
-       else
-         InOutRes:=103;
-     end;
-     exit;
-   end;
-  If TextRec(f).BufPos>=TextRec(f).BufEnd Then
-   FileFunc(TextRec(f).InOutFunc)(TextRec(f));
+  If not CheckRead(f) then
+    exit;
   hs:='';
   if IgnoreSpaces(f) then
    begin
