@@ -149,6 +149,9 @@ const
      LongestTool : sw_integer = 0;
 
 procedure RegisterFPTools;
+{$ifdef DEBUG}
+Procedure FpToolsDebugMessage(AFileName, AText : string; ALine, APos : sw_word);
+{$endif DEBUG}
 
 implementation
 
@@ -1617,4 +1620,14 @@ begin
 {$endif}
 end;
 
+{$ifdef DEBUG}
+Procedure FpToolsDebugMessage(AFileName, AText : string; ALine, APos : sw_word);
+begin
+  AddToolMessage(AFileName,AText,Aline,APos);
+  UpdateToolMessages;
+end;
+
+begin
+  DebugMessage:=@FpToolsDebugMessage;
+{$endif DEBUG}
 END.
