@@ -135,7 +135,7 @@ interface
           procedure check_stack_parameters;
           property parameters : tnode read left write left;
        private
-          AbstractMethodsList : TStringList;
+          AbstractMethodsList : TFPHashList;
        end;
        tcallnodeclass = class of tcallnode;
 
@@ -1358,20 +1358,18 @@ implementation
       var
         pd : tprocdef;
         i  : longint;
+        j  : integer;
       begin
         if (tsym(sym).typ<>procsym) then
           exit;
         for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
           begin
             pd:=tprocdef(tprocsym(sym).ProcdefList[i]);
-            { If this is an abstract method insert into the list }
-            if (po_abstractmethod in pd.procoptions) then
-              AbstractMethodsList.Insert(pd.procsym.realname)
+            j:=AbstractMethodsList.FindIndexOf(pd.procsym.name);
+            if j<>-1 then
+              AbstractMethodsList[j]:=pd
             else
-              { If this symbol is a virtual (includes override) method,
-                then remove it from the list }
-              if po_virtualmethod in pd.procoptions then
-                AbstractMethodsList.Remove(pd.procsym.realname);
+              AbstractMethodsList.Add(pd.procsym.name,pd);
           end;
       end;
 
@@ -1382,6 +1380,9 @@ implementation
         parents : tlinkedlist;
         objectinfo : tobjectinfoitem;
         stritem : tstringlistitem;
+        pd : tprocdef;
+        i  : integer;
+        first : boolean;
       begin
         objectdf := nil;
         { verify if trying to create an instance of a class which contains
@@ -1406,7 +1407,7 @@ implementation
           exit;
 
         parents := tlinkedlist.create;
-        AbstractMethodsList := tstringlist.create;
+        AbstractMethodsList := TFPHashList.create;
 
         { insert all parents in this class : the first item in the
           list will be the base parent of the class .
@@ -1432,15 +1433,20 @@ implementation
         if assigned(parents) then
           parents.free;
         { Finally give out a warning for each abstract method still in the list }
-        stritem := tstringlistitem(AbstractMethodsList.first);
-        if assigned(stritem) then
-          Message1(type_w_instance_with_abstract,objectdf.objrealname^);
-        while assigned(stritem) do
-         begin
-           if assigned(stritem.fpstr) then
-             Message1(sym_h_abstract_method_list,stritem.str);
-           stritem:=tstringlistitem(stritem.next);
-         end;
+        first:=true;
+        for i:=0 to AbstractMethodsList.Count-1 do
+          begin
+            pd:=tprocdef(AbstractMethodsList[i]);
+            if po_abstractmethod in pd.procoptions then
+              begin
+                if first then
+                  begin
+                    Message1(type_w_instance_with_abstract,objectdf.objrealname^);
+                    first:=false;
+                  end;
+                MessagePos1(pd.fileinfo,sym_h_abstract_method_list,pd.fullprocname(true));
+              end;
+          end;
         if assigned(AbstractMethodsList) then
           AbstractMethodsList.Free;
       end;
