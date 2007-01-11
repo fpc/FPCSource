@@ -32,7 +32,7 @@
 }
 unit dbgdwarf;
 
-{$i fpcdefs.inc} 
+{$i fpcdefs.inc}
 
 interface
 
@@ -1459,8 +1459,7 @@ implementation
            for i:=0 to st.DefList.Count-1 do
              begin
                def:=tdef(st.DefList[i]);
-               if not(df_deleted in def.defoptions) and
-                  (def.dbg_state=dbg_state_used) then
+               if (def.dbg_state=dbg_state_used) then
                  appenddef(def);
              end;
          end;
@@ -2161,7 +2160,7 @@ implementation
         if use_64bit_headers then
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_64bit,
             current_asmdata.RefAsmSymbol('.Ldebug_abbrev0')))
-        else 
+        else
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_32bit,
             current_asmdata.RefAsmSymbol('.Ldebug_abbrev0')));
         { address size }

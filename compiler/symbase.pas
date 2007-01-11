@@ -88,7 +88,6 @@ interface
 
        TSymtable = class
        public
-          clearing   : boolean;
           name      : pshortstring;
           realname  : pshortstring;
           DefList   : TFPObjectList;
@@ -261,11 +260,17 @@ implementation
 
 
     procedure TSymtable.clear;
+      var
+        i : integer;
       begin
-         clearing:=true;
          SymList.Clear;
+         { Prevent recursive calls between TDef.destroy and TSymtable.Remove }
+         if DefList.OwnsObjects then
+           begin
+             for i := 0 to DefList.Count-1 do
+               TDefEntry(DefList[i]).Owner:=nil;
+           end;
          DefList.Clear;
-         clearing:=false;
       end;
 
 
@@ -318,7 +323,8 @@ implementation
       begin
         if def.Owner<>self then
           internalerror(200611122);
-         DefList.Remove(def);
+        def.Owner:=nil;
+        DefList.Remove(def);
       end;
 
 

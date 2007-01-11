@@ -311,7 +311,7 @@ unit cg64f32;
 
 
     procedure tcg64f32.a_load64_reg_subsetref(list : TAsmList; fromreg: tregister64; const sref: tsubsetreference);
-    
+
       var
         tmpreg: tregister;
         tmpsref: tsubsetreference;
@@ -337,7 +337,7 @@ unit cg64f32;
         inc(tmpsref.ref.offset,4);
         cg.a_load_reg_subsetref(list,OS_32,OS_32,fromreg.reghi,tmpsref);
       end;
-  
+
 
     procedure tcg64f32.a_load64_const_subsetref(list: TAsmlist; a: int64; const sref: tsubsetreference);
 
@@ -757,7 +757,7 @@ unit cg64f32;
                inc(temploc.reference.offset,4);
 
              cg.g_rangecheck(list,temploc,hdef,todef);
-             hdef.free;
+             hdef.owner.deletedef(hdef);
 
              if from_signed and to_signed then
                begin
@@ -788,7 +788,7 @@ unit cg64f32;
                  location_copy(temploc,l);
                  temploc.size:=OS_32;
                  cg.g_rangecheck(list,temploc,hdef,todef);
-                 hdef.free;
+                 hdef.owner.deletedef(hdef);
                  cg.a_label(list,endlabel);
                end;
            end

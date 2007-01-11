@@ -64,7 +64,6 @@ interface
           constructor create(dt:tdeftyp);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
-          procedure FreeInstance;override;
           procedure reset;virtual;
           function getcopy : tstoreddef;virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
@@ -855,23 +854,11 @@ implementation
       end;
 
 
-    procedure tstoreddef.FreeInstance;
-      begin
-        if assigned(owner) and
-           (not owner.clearing) then
-          begin
-            include(defoptions,df_deleted);
-            exit;
-          end;
-        inherited FreeInstance;
-      end;
-
-
     destructor tstoreddef.destroy;
       begin
-        { remove also index from symtable }
-//        if assigned(owner) then
-//          owner.deletedef(self);
+        { Direct calls are not allowed, use symtable.deletedef() }
+        if assigned(owner) then
+          internalerror(200612311);
         if assigned(generictokenbuf) then
           begin
             generictokenbuf.free;

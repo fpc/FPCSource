@@ -30,7 +30,7 @@ interface
       dbgbase,
       symtype,symdef,symsym,symtable,symbase,
       aasmtai,aasmdata;
-      
+
     const
       { stab types }
       N_GSYM = $20;
@@ -913,8 +913,7 @@ implementation
            for i:=0 to st.DefList.Count-1 do
              begin
                def:=tdef(st.DefList[i]);
-               if not(df_deleted in def.defoptions) and
-                  (def.dbg_state=dbg_state_used) then
+               if (def.dbg_state=dbg_state_used) then
                  insertdef(list,def);
              end;
          end;

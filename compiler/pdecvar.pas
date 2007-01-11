@@ -640,8 +640,9 @@ implementation
          end;
 
          { remove temporary procvardefs }
-         readprocdef.free;
-         writeprocdef.free;
+         readprocdef.owner.deletedef(readprocdef);
+         writeprocdef.owner.deletedef(writeprocdef);
+
          result:=p;
       end;
 
@@ -1366,7 +1367,7 @@ implementation
                 recst.fieldalignment:=unionsymtable.recordalignment;
 
               trecordsymtable(recst).insertunionst(Unionsymtable,offset);
-              uniondef.free;
+              uniondef.owner.deletedef(uniondef);
            end;
          block_type:=old_block_type;
          current_object_option:=old_current_object_option;

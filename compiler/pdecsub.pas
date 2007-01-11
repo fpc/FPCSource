@@ -2622,9 +2622,8 @@ const
                       { encountered, it must already use the new mangled name (JM)  }
                     end;
 
-                   { the procdef will be released by the symtable, we release
-                     at least the parast }
-                   currpd.free;
+                   { Release current procdef }
+                   currpd.owner.deletedef(currpd);
                    currpd:=fwpd;
                  end
                else

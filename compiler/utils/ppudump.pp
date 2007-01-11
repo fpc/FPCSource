@@ -748,9 +748,7 @@ type
     { type is a generic }
     df_generic,
     { type is a specialization of a generic type }
-    df_specialization,
-    { type is deleted does not to be stored in ppu }
-    df_deleted
+    df_specialization
   );
   tdefoptions=set of tdefoption;
 

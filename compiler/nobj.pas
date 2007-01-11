@@ -430,8 +430,7 @@ implementation
         for i:=0 to objdef.symtable.DefList.Count-1 do
           begin
             def:=tdef(objdef.symtable.DefList[i]);
-            if assigned(def) and
-               (def.typ=procdef) then
+            if def.typ=procdef then
               begin
                 pd:=tprocdef(def);
                 { Find VMT procsym }
@@ -498,7 +497,8 @@ implementation
         for i:=0 to IntfDef.symtable.DefList.Count-1 do
           begin
             def:=tdef(IntfDef.symtable.DefList[i]);
-            if def.typ=procdef then
+            if assigned(def) and
+               (def.typ=procdef) then
               begin
                 { Find implementing procdef
                    1. Check for mapped name

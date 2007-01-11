@@ -388,8 +388,7 @@ implementation
         for i:=0 to DefList.Count-1 do
           begin
             def:=tstoreddef(DefList[i]);
-            if not(df_deleted in def.defoptions) then
-              def.ppuwrite(ppufile);
+            def.ppuwrite(ppufile);
           end;
         { write end of definitions }
         ppufile.writeentry(ibenddefs);
@@ -426,8 +425,7 @@ implementation
         for i:=0 to DefList.Count-1 do
           begin
             def:=tstoreddef(DefList[i]);
-            if not(df_deleted in def.defoptions) then
-              def.buildderef;
+            def.buildderef;
           end;
         { interface symbols }
         for i:=0 to SymList.Count-1 do
@@ -447,8 +445,7 @@ implementation
         for i:=0 to DefList.Count-1 do
           begin
             def:=tstoreddef(DefList[i]);
-            if not(df_deleted in def.defoptions) then
-              def.buildderefimpl;
+            def.buildderefimpl;
           end;
       end;
 
@@ -473,8 +470,7 @@ implementation
         for i:=0 to DefList.Count-1 do
           begin
             def:=tstoreddef(DefList[i]);
-            if not(df_deleted in def.defoptions) then
-              def.deref;
+            def.deref;
           end;
         { interface symbols }
         for i:=0 to SymList.Count-1 do
@@ -495,8 +491,7 @@ implementation
         for i:=0 to DefList.Count-1 do
           begin
             def:=tstoreddef(DefList[i]);
-            if not(df_deleted in def.defoptions) then
-              def.derefimpl;
+            def.derefimpl;
           end;
       end;
 
@@ -658,8 +653,7 @@ implementation
         for i:=0 to DefList.Count-1 do
           begin
             def:=tstoreddef(DefList[i]);
-            if not(df_deleted in def.defoptions) then
-              def.reset;
+            def.reset;
           end;
       end;
 
@@ -1004,7 +998,6 @@ implementation
         for i:=0 to unionst.DefList.Count-1 do
           begin
             def:=TDef(unionst.DefList[i]);
-//            unionst.DefList.List[i]:=nil;
             def.ChangeOwner(self);
           end;
         _datasize:=storesize;

@@ -783,8 +783,6 @@ implementation
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
-            if df_deleted in def.defoptions then
-              continue;
             case def.typ of
               recorddef :
                 write_persistent_type_info(trecorddef(def).symtable);
