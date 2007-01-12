@@ -555,7 +555,7 @@ end;
 
       begin
          secondpass(left);
-         if is_64bitint(left.resultdef) then
+         if is_64bit(left.resultdef) then
            begin
              location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
              location_copy(location,left.location);
