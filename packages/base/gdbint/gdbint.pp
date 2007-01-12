@@ -49,6 +49,12 @@ interface
   {$define GDB_HAS_DB_COMMANDS}
 {$endif def GDB_V604}
 
+{ 6.5.x }
+{$ifdef GDB_V605}
+  {$info using gdb 6.5.x}
+  {$define GDB_V6}
+  {$define GDB_NEEDS_NO_ERROR_INIT}
+{$endif def GDB_V605}
 
 { 6.6.x }
 {$ifdef GDB_V606}
@@ -56,11 +62,14 @@ interface
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
   {$define GDB_NEEDS_NO_ERROR_INIT}
+  {$define GDB_USES_EXPAT_LIB}
 {$endif def GDB_V605}
 
 {$ifdef GDB_V6}
   {$define GDB_HAS_SYSROOT}
+  {$define GDB_HAS_DB_COMMANDS}
   {$define GDB_SYMTAB_HAS_MACROS}
+  {$define GDB_INIT_HAS_ARGV0}
 {$endif GDB_V6}
 
 { GDB has a simulator for powerpc CPU
@@ -96,6 +105,9 @@ interface
   {$LINKLIB libopcodes.a}
   {$LINKLIB libhistory.a}
   {$LINKLIB libiberty.a}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
   {$LINKLIB ncurses}
   {$LINKLIB m}
   {$LINKLIB dl}
@@ -122,6 +134,9 @@ interface
   {$LINKLIB iberty}
   {$LINKLIB intl}        { does not seem to exist on netbsd LINKLIB dl,
                             but I use GDB CVS snapshots for the *BSDs}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif freebsd}
@@ -141,6 +156,9 @@ interface
   {$LINKLIB m}
   {$LINKLIB iberty}
   {$LINKLIB intl}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
   { does not seem to exist on netbsd LINKLIB dl}
   {$LINKLIB c}
   {$LINKLIB gcc}
@@ -161,6 +179,9 @@ interface
   {$LINKLIB m}
   {$LINKLIB iberty}
   {$LINKLIB intl}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
   { does not seem to exist on netbsd LINKLIB dl}
   {$LINKLIB c}
   {$LINKLIB gcc}
@@ -180,6 +201,9 @@ interface
   {$LINKLIB libintl.a}
   {$LINKLIB libiconv.a}
   {$LINKLIB libncurses.a}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
   {$LINKLIB gcc}
   {$LINKLIB cygwin} { alias of libm.a and libc.a }
   {$LINKLIB imagehlp}
@@ -195,7 +219,7 @@ interface
 {$endif unix}
 
 {$ifdef CROSSGDB}
-  { do we neeed something special if cross GDB? }
+  { do we need something special if cross GDB? }
 {$endif CROSSGDB}
 
 {$ifdef NotImplemented}
@@ -1050,8 +1074,8 @@ type
 
 var
 { external variables }
-  error_return : jmp_buf;cvar;
-  quit_return  : jmp_buf;cvar;
+  error_return : jmp_buf;cvar;public;
+  quit_return  : jmp_buf;cvar;public;
   {$ifdef GDB_HAS_DEPRECATED_CBPH}
   deprecated_create_breakpoint_hook : pointer;cvar;external;
   {$else}
@@ -1060,7 +1084,7 @@ var
   current_target : target_ops;cvar;external;
   stop_pc      : CORE_ADDR;cvar;external;
   { Only used from GDB 5.01 but doesn't hurst otherwise }
-  interpreter_p : pchar;cvar;
+  interpreter_p : pchar;cvar;public;
 
 { we need also to declare some vars }
   watchdog      : longint;cvar;external;
@@ -1096,7 +1120,11 @@ function  xmalloc(size : longint) : pointer;cdecl;external;
 function  find_pc_line(i:CORE_ADDR;l:longint):symtab_and_line;cdecl;external;
 function  find_pc_function(i:CORE_ADDR):psymbol;cdecl;external;
 function  lookup_minimal_symbol_by_pc(i : CORE_ADDR):pminimal_symbol;cdecl;external;
+{$ifdef GDB_INIT_HAS_ARGV0}
+procedure gdb_init(argv0 : pchar);cdecl;external;
+{$else not GDB_INIT_HAS_ARGV0}
 procedure gdb_init;cdecl;external;
+{$endif not GDB_INIT_HAS_ARGV0}
 procedure execute_command(p:pchar;i:longint);cdecl;external;
 procedure target_kill;cdecl;external;
 procedure target_close(i:longint);cdecl;external;
@@ -2226,7 +2254,11 @@ var
 begin
   for i:=0 to frame_size-1 do
    dispose(frames[i],done);
-  freemem(frames,sizeof(pointer)*Frame_size);
+  if assigned(frames) then
+    begin
+      freemem(frames,sizeof(pointer)*Frame_size);
+      frames:=nil;
+    end;
   frame_count:=0;
   frame_size:=0;
 end;
@@ -2418,6 +2450,10 @@ procedure InitLibGDB;
 var
   OldSigInt : SignalHandler;
 {$endif supportexceptions}
+{$ifdef GDB_INIT_HAS_ARGV0}
+var
+  argv0 : pchar;
+{$endif not GDB_INIT_HAS_ARGV0}
 begin
 {$ifdef go32v2}
   c_environ:=system.envp;
@@ -2459,7 +2495,14 @@ begin
 {$ifdef GDB_V6}
   uiout := cli_out_new (gdb_stdout);
 {$endif}
+{$ifdef GDB_INIT_HAS_ARGV0}
+  getmem(argv0,length(paramstr(0))+1);
+  strpcopy(argv0,paramstr(0));
+  gdb_init(@argv0);
+  freemem(argv0,length(paramstr(0))+1);
+{$else not GDB_INIT_HAS_ARGV0}
   gdb_init;
+{$endif not GDB_INIT_HAS_ARGV0}
 {$ifdef supportexceptions}
   {$ifdef unix}
     fpsignal(SIGINT,OldSigInt);
