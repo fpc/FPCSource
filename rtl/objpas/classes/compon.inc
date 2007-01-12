@@ -15,11 +15,6 @@
 {*                             TComponent                                   *}
 {****************************************************************************}
 
-Type
-  Longrec = Packed Record
-    Hi,lo : word;
-    end;
-
 Function  TComponent.GetComponent(AIndex: Integer): TComponent;
 
 begin
