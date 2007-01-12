@@ -796,7 +796,7 @@ function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;s
           if sse_check then
             begin
               os_supports_sse:=false;
-              { if yes, then retry }
+              { skip the offending movq xmm0,xmm0 instruction }
               inc(excep^.ContextRecord^.Eip,4);
               excep^.ExceptionRecord^.ExceptionCode := 0;
               res:=EXCEPTION_CONTINUE_EXECUTION;
@@ -899,12 +899,15 @@ end;
 
 { because of the brain dead sse detection on x86, this test is post poned }
 procedure fpc_cpucodeinit;
+  label
+    sse_resume_addr;
   begin
     os_supports_sse:=true;
     sse_check:=true;
     asm
       { force an sse exception if no sse is supported, the exception handler sets
         os_supports_sse to false then }
+      { don't change this instruction, the code above depends on its size }
       movq %xmm0,%xmm0
     end;
     sse_check:=false;
@@ -913,8 +916,6 @@ procedure fpc_cpucodeinit;
     SysResetFPU;
     setup_fastmove;
   end;
-
-
 
 
 {****************************************************************************
