@@ -1097,7 +1097,7 @@ const
   maxdigits = 17;
   maxexplen = 4;
 {$else}
-  maxdigits = 14;
+  maxdigits = 15;
   maxexplen = 3;
 {$endif}
 
@@ -1199,7 +1199,7 @@ Begin
         If (Precision = -1) Or (Precision > maxdigits) Then Precision := maxdigits;
         case ValueType of
           fvDouble:
-            Str(Double(Extended(Value)):Precision+8, Result);
+            Str(Double(Extended(Value)):Precision+7, Result);
           fvSingle:
             Str(Single(Extended(Value)):Precision+6, Result);
           fvCurrency:
