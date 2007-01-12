@@ -5,7 +5,7 @@ unit libc;
 
 Interface
 
-uses kerneldefs;
+uses unixtype,kerneldefs;
 
 Const
   clib = 'c';

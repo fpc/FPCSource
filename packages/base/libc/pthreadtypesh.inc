@@ -25,10 +25,11 @@ type
   Ppthread_attr_t = ^pthread_attr_t;
 
   Ppthread_cond_t = ^pthread_cond_t;
-  pthread_cond_t = record
+  pthread_cond_t = unixtype.pthread_cond_t;
+  {record
        __c_lock : _pthread_fastlock;
        __c_waiting : _pthread_descr;
-    end;
+    end;}
 
   Ppthread_condattr_t = ^pthread_condattr_t;
   pthread_condattr_t = record
