@@ -269,10 +269,10 @@ end;
 
 Function FileExists (Const FileName : String) : Boolean;
 
-Var Info : Stat;
-
 begin
-  FileExists:=fpstat(filename,Info)>=0;
+  // Don't use stat. It fails on files >2 GB.
+  // Access obeys the same access rules, so the result should be the same.
+  FileExists:=fpAccess(filename,F_OK)=0;
 end;
 
 
