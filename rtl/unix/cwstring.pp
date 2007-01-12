@@ -219,11 +219,12 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
             begin
               { skip and set to '?' }
               inc(srcpos);
+              dec(len);
               pwidechar(destpos)^:='?';
               inc(destpos,2);
               dec(outleft,2);
               { reset }
-              iconv(iconv_wide2ansi,@mynil,@my0,@mynil,@my0);
+              iconv(iconv_ansi2wide,@mynil,@my0,@mynil,@my0);
             end;
           ESysE2BIG:
             begin
