@@ -39,7 +39,7 @@ interface
         DllCmd        : array[1..3] of string;
         ResName       : string[100];
         ScriptName    : string[100];
-        ExtraOptions  : string;
+        ExtraOptions  : TCmdStr;
         DynamicLinker : string[100];
       end;
 

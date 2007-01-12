@@ -180,7 +180,7 @@ interface
        paratarget        : tsystem;
        paratargetdbg     : tdbg;
        paratargetasm     : tasm;
-       paralinkoptions,
+       paralinkoptions   : TCmdStr;
        paradynamiclinker : string;
        paraprintnodetree : byte;
        parapreprocess    : boolean;
