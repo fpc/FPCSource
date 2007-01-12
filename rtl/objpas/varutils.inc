@@ -278,7 +278,7 @@ begin
 end;
 
 type
-  TVariantArrayType = (vatNormal, vatInterface, vatWideString);
+  TVariantArrayType = (vatNormal, vatInterface, vatWideString, vatVariant);
 
 Function VariantArrayType(psa: PVarArray): TVariantArrayType;
 
@@ -288,7 +288,9 @@ begin
     Result:=vatInterface
   else if (psa^.Flags AND ARR_OLESTR) <> 0 then
     Result:=vatWideString
-  else
+  else if (psa^.Flags and ARR_VARIANT) <> 0 then
+    Result := vatVariant
+  else    
     Result:=vatNormal;
 end;
 
@@ -296,16 +298,32 @@ Function SafeArrayClearDataSpace(psa: PVarArray; WipeBytes: Boolean {= True}): H
 
 var
   vat: TVariantArrayType;
-
+  P : Pointer;
+  J,Count : Integer;
 begin
   try
+    count:=SafeArrayElementTotal(psa);
     vat:=VariantArrayType(psa);
     case vat of
-      vatNormal     : FillChar(psa^.Data^,
-                         SafeArrayElementTotal(psa)*psa^.ElementSize,
-                         0);
-      vatInterface  : NoInterfaces;
-      vatWideString : NoWidestrings;
+      vatNormal : FillChar(psa^.Data^,Count*psa^.ElementSize,0);
+      vatInterface : 
+         for j := 0 to Count - 1 do
+           begin
+           P := SafeArrayCalculateElementAddress(psa,j);
+           IUnknown(PUnknown(P)^):=Nil
+           end;
+      vatWideString :
+         for j := 0 to Count - 1 do
+           begin
+           P := SafeArrayCalculateElementAddress(psa,j);
+           WideString(PPointer(P)^):='';
+           end;
+      vatVariant :       
+         for j := 0 to Count - 1 do
+           begin
+           P := SafeArrayCalculateElementAddress(psa,j);
+           VariantClear(PVarData(P)^);
+           end;
     end;
     Result:=VAR_OK;
   except
@@ -317,15 +335,35 @@ end;
 Function SafeArrayCopyDataSpace(psa, psaOut: PVarArray): HRESULT;
 var
   vat: TVariantArrayType;
+  P1,P2 : Pointer;
+  J,Count : Integer;
 begin
   try
+    Count:=SafeArrayElementTotal(psa);
     vat:=VariantArrayType(psa);
     case vat of
-      vatNormal: Move(psa^.Data^,
-                      psaOut^.Data^,
-                      SafeArrayElementTotal(psa)*psa^.ElementSize);
-      vatInterface : NoInterfaces; // Copy element per element...
-      vatWideString: NoWideStrings; // here also...
+      vatNormal: Move(psa^.Data^,psaOut^.Data^,Count*psa^.ElementSize);
+      vatInterface : 
+         for j := 0 to Count - 1 do
+           begin
+           P1 := SafeArrayCalculateElementAddress(psa,j);
+           P2 := SafeArrayCalculateElementAddress(psaout,j);
+           IUnknown(PUnknown(P2)^):=IUnknown(PUnknown(P1)^);
+           end;
+      vatWideString :
+         for j := 0 to Count - 1 do
+           begin
+           P1 := SafeArrayCalculateElementAddress(psa,j);
+           P2 := SafeArrayCalculateElementAddress(psaOut,j);
+           WideString(PPointer(P2)^):=WideString(PPointer(P1)^);
+           end;
+      vatVariant :       
+         for j := 0 to Count - 1 do
+           begin
+           P1 := SafeArrayCalculateElementAddress(psa,j);
+           P2 := SafeArrayCalculateElementAddress(psaOut,j);
+           VariantCopy(PVarData(P2)^,PVarData(P2)^);
+           end;
     end;
     Result:=VAR_OK;
   except
@@ -485,9 +523,11 @@ begin
           begin
           P:=SafeArrayCalculateElementAddress(psa,j);
           if vat = vatInterface then
-            NoInterfaces // Set to nil
-          else
-            NoWideStrings; // Set to empty...
+            IUnknown(PPointer(P)^):=Nil
+          else if vat=vatWideString then
+            WideString(PPointer(P)^):=''
+          else if vat=vatVariant then
+            VariantClear(PVarData(P)^);
           end;
         end;
       ReAllocMem(psa^.Data,Count+D);
