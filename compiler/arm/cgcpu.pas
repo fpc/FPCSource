@@ -69,9 +69,9 @@ unit cgcpu;
         function a_internal_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister):treference;
 
         { fpu move instructions }
-        procedure a_loadfpu_reg_reg(list: TAsmList; size: tcgsize; reg1, reg2: tregister); override;
-        procedure a_loadfpu_ref_reg(list: TAsmList; size: tcgsize; const ref: treference; reg: tregister); override;
-        procedure a_loadfpu_reg_ref(list: TAsmList; size: tcgsize; reg: tregister; const ref: treference); override;
+        procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
+        procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
+        procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
 
         procedure a_paramfpu_ref(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
         {  comparison operations }
@@ -231,7 +231,7 @@ unit cgcpu;
               LOC_FPUREGISTER,LOC_CFPUREGISTER:
                 case location^.size of
                    OS_F32, OS_F64:
-                     a_loadfpu_ref_reg(list,location^.size,tmpref,location^.register);
+                     a_loadfpu_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
                    else
                      internalerror(2002072801);
                 end;
@@ -1009,7 +1009,7 @@ unit cgcpu;
           begin
             case hloc^.loc of
               LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                a_loadfpu_ref_reg(list,size,ref,hloc^.register);
+                a_loadfpu_ref_reg(list,size,size,ref,hloc^.register);
               LOC_REGISTER :
                 case hloc^.size of
                   OS_F32:
@@ -1035,17 +1035,17 @@ unit cgcpu;
       end;
 
 
-     procedure tcgarm.a_loadfpu_reg_reg(list: TAsmList; size: tcgsize; reg1, reg2: tregister);
+     procedure tcgarm.a_loadfpu_reg_reg(list: TAsmList; fromsize,tosize: tcgsize; reg1, reg2: tregister);
        begin
-         list.concat(setoppostfix(taicpu.op_reg_reg(A_MVF,reg2,reg1),cgsize2fpuoppostfix[size]));
+         list.concat(setoppostfix(taicpu.op_reg_reg(A_MVF,reg2,reg1),cgsize2fpuoppostfix[tosize]));
        end;
 
 
-     procedure tcgarm.a_loadfpu_ref_reg(list: TAsmList; size: tcgsize; const ref: treference; reg: tregister);
+     procedure tcgarm.a_loadfpu_ref_reg(list: TAsmList; fromsize,tosize: tcgsize; const ref: treference; reg: tregister);
        var
          oppostfix:toppostfix;
        begin
-         case size of
+         case tosize of
            OS_32,
            OS_F32:
              oppostfix:=PF_S;
@@ -1061,11 +1061,11 @@ unit cgcpu;
        end;
 
 
-     procedure tcgarm.a_loadfpu_reg_ref(list: TAsmList; size: tcgsize; reg: tregister; const ref: treference);
+     procedure tcgarm.a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference);
        var
          oppostfix:toppostfix;
        begin
-         case size of
+         case tosize of
            OS_F32:
              oppostfix:=PF_S;
            OS_F64:

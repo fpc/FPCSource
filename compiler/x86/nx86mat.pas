@@ -204,7 +204,7 @@ interface
                 begin
                   location.register:=NR_ST;
                   cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                     def_cgsize(left.resultdef),
+                     left.location.size,location.size,
                      left.location.reference,location.register);
                   emit_none(A_FCHS,S_NO);
                 end;
@@ -212,7 +212,7 @@ interface
               LOC_CFPUREGISTER:
                 begin
                    { "load st,st" is ignored by the code generator }
-                   cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,left.location.register,NR_ST);
+                   cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,NR_ST);
                    location.register:=NR_ST;
                    emit_none(A_FCHS,S_NO);
                 end;

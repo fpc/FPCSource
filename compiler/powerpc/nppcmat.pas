@@ -599,7 +599,7 @@ end;
                           src1 := cg.getfpuregister(current_asmdata.CurrAsmList,def_cgsize(left.resultdef));
                           location.register := src1;
                           cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                            def_cgsize(left.resultdef),
+                            left.location.size,left.location.size,
                             left.location.reference,src1);
                        end
                      else

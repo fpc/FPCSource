@@ -691,7 +691,7 @@ implementation
                 l.reference:=href;
               end;
             reg:=cg.getfpuregister(list,l.size);
-            cg.a_loadfpu_loc_reg(list,l,reg);
+            cg.a_loadfpu_loc_reg(list,l.size,l,reg);
             location_freetemp(list,l);
             location_reset(l,LOC_FPUREGISTER,l.size);
             l.register:=reg;
@@ -711,7 +711,7 @@ implementation
             if (l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
               begin
                 tg.GetTemp(list,tcgsize2size[l.size],tt_normal,href);
-                cg.a_loadfpu_reg_ref(list,l.size,l.register,href);
+                cg.a_loadfpu_reg_ref(list,l.size,l.size,l.register,href);
                 location_reset(l,LOC_REFERENCE,l.size);
                 l.reference:=href;
               end;
@@ -749,7 +749,7 @@ implementation
           LOC_CFPUREGISTER :
             begin
               tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
-              cg.a_loadfpu_reg_ref(list,l.size,l.register,r);
+              cg.a_loadfpu_reg_ref(list,l.size,l.size,l.register,r);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
             end;
@@ -1393,7 +1393,7 @@ implementation
                   { we can't do direct moves between fpu and mm registers }
                   if restmploc.loc in [LOC_MMREGISTER,LOC_CMMREGISTER] then
                     location_force_fpureg(list,restmploc,false);
-                  cg.a_loadfpu_loc_reg(list,restmploc,funcretloc.register);
+                  cg.a_loadfpu_loc_reg(list,reg_cgsize(funcretloc.register),restmploc,funcretloc.register);
                 end;
               LOC_MMREGISTER:
                 begin
@@ -1526,7 +1526,7 @@ implementation
               LOC_MMREGISTER :
                 cg.a_loadmm_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref,mms_movescalar);
               LOC_FPUREGISTER :
-                cg.a_loadfpu_reg_ref(list,paraloc.size,paraloc.register,ref);
+                cg.a_loadfpu_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
               LOC_REFERENCE :
                 begin
                   reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset);
@@ -1551,7 +1551,7 @@ implementation
               LOC_MMREGISTER :
                 cg.a_loadmm_reg_reg(list,paraloc.size,paraloc.size,paraloc.register,reg,mms_movescalar);
               LOC_FPUREGISTER :
-                cg.a_loadfpu_reg_reg(list,paraloc.size,paraloc.register,reg);
+                cg.a_loadfpu_reg_reg(list,paraloc.size,paraloc.size,paraloc.register,reg);
               LOC_REFERENCE :
                 begin
                   reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset);
@@ -1559,7 +1559,7 @@ implementation
                     R_INTREGISTER :
                       cg.a_load_ref_reg(list,paraloc.size,paraloc.size,href,reg);
                     R_FPUREGISTER :
-                      cg.a_loadfpu_ref_reg(list,paraloc.size,href,reg);
+                      cg.a_loadfpu_ref_reg(list,paraloc.size,paraloc.size,href,reg);
                     R_MMREGISTER :
                       cg.a_loadmm_ref_reg(list,paraloc.size,paraloc.size,href,reg,mms_movescalar);
                     else
@@ -1710,7 +1710,7 @@ implementation
                       paraloc:=paraloc^.next;
                     end;
                   gen_alloc_regvar(list,currpara);
-                  cg.a_loadfpu_ref_reg(list,currpara.initialloc.size,tempref,currpara.initialloc.register);
+                  cg.a_loadfpu_ref_reg(list,currpara.initialloc.size,currpara.initialloc.size,tempref,currpara.initialloc.register);
                   tg.UnGetTemp(list,tempref);
 {$else sparc}
                   unget_para(paraloc^);
@@ -2533,7 +2533,7 @@ implementation
                   cg.a_load_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new);
               end;
             LOC_CFPUREGISTER:
-              cg.a_loadfpu_reg_reg(list,n.location.size,n.location.register,rr.new);
+              cg.a_loadfpu_reg_reg(list,n.location.size,n.location.size,n.location.register,rr.new);
       {$ifdef SUPPORT_MMX}
             LOC_CMMXREGISTER:
               cg.a_loadmm_reg_reg(list,OS_M64,OS_M64,n.location.register,rr.new,nil);

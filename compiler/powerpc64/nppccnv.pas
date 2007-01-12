@@ -178,7 +178,7 @@ begin
     cg.a_load_reg_ref(current_asmdata.CurrAsmList, OS_S64, OS_S64, valuereg, disp);
     // lfd frD, disp(r1)
     location.register := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, disp, location.register);
+    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, OS_F64, disp, location.register);
     // fcfid frD, frD
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCFID, location.register,
       location.register));
@@ -186,7 +186,7 @@ begin
     { ts:todo use TOC for this constant or at least schedule better }
     // lfd frC, const
     tmpfpuconst := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,tempconst.location.reference,
+    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,OS_F64,tempconst.location.reference,
       tmpfpuconst);
     tempconst.free;
 
@@ -204,10 +204,10 @@ begin
 
     // lfd frT1, disp(R1)
     tmpfpureg := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, disp, tmpfpureg);
+    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, OS_F64, disp, tmpfpureg);
     // lfd frD, disp+8(R1)
     location.register := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, disp2, location.register);
+    cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64, OS_F64, disp2, location.register);
 
     // fcfid frT1, frT1
     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCFID, tmpfpureg,
@@ -225,6 +225,10 @@ begin
   // free reference
   tg.ungetiftemp(current_asmdata.CurrAsmList, disp);
 
+  // make sure the precision is correct
+  if (tfloatdef(resultdef).floattype = s32real) then
+    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FRSP,location.register,
+      location.register));
 end;
 
 begin

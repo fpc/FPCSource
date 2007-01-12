@@ -152,7 +152,7 @@ implementation
                    end
                  else
                    reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset);
-                 cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,left.location.register,href);
+                 cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,left.location.size,left.location.register,href);
                end;
              LOC_MMREGISTER,
              LOC_CMMREGISTER:
@@ -574,7 +574,7 @@ implementation
                        if getsupreg(procdefinition.funcretloc[callerside].register)<first_fpu_imreg then
                          cg.ungetcpuregister(current_asmdata.CurrAsmList,procdefinition.funcretloc[callerside].register);
                        hregister:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                       cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,location.size,location.register,hregister);
+                       cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,location.size,location.size,location.register,hregister);
                        location.register:=hregister;
 {$endif x86}
                      end;
@@ -745,7 +745,7 @@ implementation
                              internalerror(200408222);
                            if getsupreg(callerparaloc^.register)<first_fpu_imreg then
                              cg.getcpuregister(current_asmdata.CurrAsmList,callerparaloc^.register);
-                           cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,ppn.tempcgpara.size,tmpparaloc^.register,callerparaloc^.register);
+                           cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,tmpparaloc^.size,ppn.tempcgpara.size,tmpparaloc^.register,callerparaloc^.register);
                          end;
                        LOC_MMREGISTER:
                          begin
@@ -783,7 +783,7 @@ implementation
                                 LOC_REGISTER:
                                   cg.a_load_reg_ref(current_asmdata.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
                                 LOC_FPUREGISTER:
-                                  cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,tmpparaloc^.size,tmpparaloc^.register,href);
+                                  cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
                                 LOC_MMREGISTER:
                                   cg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href,mms_movescalar);
                                 else

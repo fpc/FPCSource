@@ -412,7 +412,15 @@ begin
         { either LOC_REFERENCE, or one of the above which must be passed on the
         stack because of insufficient registers }
         paraloc^.loc := LOC_REFERENCE;
-        paraloc^.size := int_cgsize(paralen);
+        case loc of
+          LOC_FPUREGISTER:
+            paraloc^.size:=int_float_cgsize(paralen);
+          LOC_REGISTER,
+          LOC_REFERENCE:
+            paraloc^.size:=int_cgsize(paralen);
+          else
+            internalerror(2006011101);
+        end;
         if (side = callerside) then
           paraloc^.reference.index := NR_STACK_POINTER_REG
         else begin

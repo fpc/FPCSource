@@ -336,10 +336,10 @@ begin
         begin
           if (left.resultdef.typ = floatdef) then begin
             src1 := cg.getfpuregister(current_asmdata.CurrAsmList,
-              def_cgsize(left.resultdef));
+              left.location.size);
             location.register := src1;
             cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-              def_cgsize(left.resultdef),
+              left.location.size,left.location.size,
               left.location.reference, src1);
           end else begin
             src1 := cg.getintregister(current_asmdata.CurrAsmList, OS_64);

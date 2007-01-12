@@ -295,7 +295,7 @@ implementation
                   { then save it }
                   tg.GetTemp(list,extended_size,tt_persistent,hr);
                   saved[r.enum].ofs:=hr.offset;
-                  cg.a_loadfpu_reg_ref(list,OS_FLOAT,r,hr);
+                  cg.a_loadfpu_reg_ref(list,OS_FLOAT,OS_FLOAT,r,hr);
                   cg.a_reg_dealloc(list,r);
                   include(unusedregsfpu,r.enum);
                   inc(countunusedregsfpu);
@@ -324,7 +324,7 @@ implementation
                   r2.number:=NR_FRAME_POINTER_REG;
                   reference_reset_base(hr,r2,saved[r.enum].ofs);
                   cg.a_reg_alloc(list,r);
-                  cg.a_loadfpu_ref_reg(list,OS_FLOAT,hr,r);
+                  cg.a_loadfpu_ref_reg(list,OS_FLOAT,OS_FLOAT,hr,r);
                   if not (r.enum in unusedregsfpu) then
                     { internalerror(10)
                       in n386cal we always save/restore the reg *state*

@@ -290,7 +290,13 @@ interface
                 location.size:=def_cgsize(resultdef);
                 case expectloc of
                   LOC_FPUREGISTER:
-                    ;
+                    begin
+                      { on sparc a move from double -> single means from two to one register. }
+                      { On all other platforms it also needs rounding to avoid that           }
+                      { single(double_regvar) = double_regvar is true in all cases            }
+                      location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+                      cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
+                    end;
                   LOC_MMREGISTER:
                     location_force_mmregscalar(current_asmdata.CurrAsmList,location,false);
                   else
@@ -310,7 +316,7 @@ interface
                   else
                     begin
                       location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,left.location.size);
-                      cg.a_loadfpu_loc_reg(current_asmdata.CurrAsmList,left.location,location.register);
+                      cg.a_loadfpu_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register);
                     end;
                  location_freetemp(current_asmdata.CurrAsmList,left.location);
               end;

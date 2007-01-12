@@ -192,12 +192,12 @@ implementation
            LOC_CFPUREGISTER:
              begin
                cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,
-                 left.location.register,location.register);
+                 left.location.size,left.location.register,location.register);
              end;
            LOC_REFERENCE,LOC_CREFERENCE:
              begin
                cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                  def_cgsize(left.resultdef),
+                  left.location.size,left.location.size,
                   left.location.reference,location.register);
              end;
            LOC_MMREGISTER,LOC_CMMREGISTER:

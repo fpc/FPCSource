@@ -70,15 +70,6 @@ type
     procedure a_load_subsetreg_reg(list : TAsmList; subsetsize, tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister); override;
     procedure a_load_const_subsetreg(list: TAsmlist; subsetsize: tcgsize; a: aint; const sreg: tsubsetregister); override;
 
-    { fpu move instructions }
-    procedure a_loadfpu_reg_reg(list: TAsmList; size: tcgsize; reg1, reg2:
-      tregister); override;
-
-    procedure a_loadfpu_ref_reg(list: TAsmList; size: tcgsize; const ref:
-      treference; reg: tregister); override;
-    procedure a_loadfpu_reg_ref(list: TAsmList; size: tcgsize; reg:
-      tregister; const ref: treference); override;
-
     {  comparison operations }
     procedure a_cmp_const_reg_label(list: TAsmList; size: tcgsize; cmp_op:
       topcmp; a: aint; reg: tregister;
@@ -538,7 +529,7 @@ begin
       LOC_FPUREGISTER, LOC_CFPUREGISTER:
         case location^.size of
           OS_F32, OS_F64:
-            a_loadfpu_ref_reg(list, location^.size, tmpref, location^.register);
+            a_loadfpu_ref_reg(list, location^.size, location^.size, tmpref, location^.register);
         else
           internalerror(2002072801);
         end;
@@ -869,64 +860,6 @@ begin
   tmpreg := getintregister(list,subsetsize);
   a_load_const_reg(list,subsetsize,a,tmpreg);
   a_load_reg_subsetreg(list, subsetsize, subsetsize, tmpreg, sreg);
-end;
-
-procedure tcgppc.a_loadfpu_reg_reg(list: TAsmList; size: tcgsize;
-  reg1, reg2: tregister);
-var
-  instr: taicpu;
-begin
-  instr := taicpu.op_reg_reg(A_FMR, reg2, reg1);
-  list.concat(instr);
-  rg[R_FPUREGISTER].add_move_instruction(instr);
-end;
-
-procedure tcgppc.a_loadfpu_ref_reg(list: TAsmList; size: tcgsize;
-  const ref: treference; reg: tregister);
-const
-  FpuLoadInstr: array[OS_F32..OS_F64, boolean, boolean] of TAsmOp =
-  { indexed? updating?}
-  (((A_LFS, A_LFSU), (A_LFSX, A_LFSUX)),
-   ((A_LFD, A_LFDU), (A_LFDX, A_LFDUX)));
-var
-  op: tasmop;
-  ref2: treference;
-
-begin
-  { several functions call this procedure with OS_32 or OS_64
-   so this makes life easier (FK) }
-  case size of
-    OS_32, OS_F32:
-      size := OS_F32;
-    OS_64, OS_F64, OS_C64:
-      size := OS_F64;
-  else
-    internalerror(200201121);
-  end;
-  ref2 := ref;
-  fixref(list, ref2);
-  op := fpuloadinstr[size, ref2.index <> NR_NO, false];
-  a_load_store(list, op, reg, ref2);
-end;
-
-procedure tcgppc.a_loadfpu_reg_ref(list: TAsmList; size: tcgsize; reg:
-  tregister; const ref: treference);
-const
-  FpuStoreInstr: array[OS_F32..OS_F64, boolean, boolean] of TAsmOp =
-  { indexed? updating? }
-  (((A_STFS, A_STFSU), (A_STFSX, A_STFSUX)),
-   ((A_STFD, A_STFDU), (A_STFDX, A_STFDUX)));
-var
-  op: tasmop;
-  ref2: treference;
-
-begin
-  if not (size in [OS_F32, OS_F64]) then
-    internalerror(200201122);
-  ref2 := ref;
-  fixref(list, ref2);
-  op := fpustoreinstr[size, ref2.index <> NR_NO, false];
-  a_load_store(list, op, reg, ref2);
 end;
 
 procedure tcgppc.a_op_const_reg(list: TAsmList; Op: TOpCG; size: TCGSize; a:
@@ -1392,6 +1325,7 @@ begin
         para.paraloc[calleeside].Location^.register, para.localloc.reference);
     LOC_FPUREGISTER, LOC_CFPUREGISTER:
       a_loadfpu_reg_ref(list, para.paraloc[calleeside].Location^.size,
+        para.paraloc[calleeside].Location^.size,
         para.paraloc[calleeside].Location^.register, para.localloc.reference);
     LOC_MMREGISTER, LOC_CMMREGISTER:
       { not supported }
@@ -1407,6 +1341,7 @@ begin
         para.localloc.reference, para.paraloc[calleeside].Location^.register);
     LOC_FPUREGISTER, LOC_CFPUREGISTER:
       a_loadfpu_ref_reg(list, para.paraloc[calleeside].Location^.size,
+        para.paraloc[calleeside].Location^.size,
         para.localloc.reference, para.paraloc[calleeside].Location^.register);
     LOC_MMREGISTER, LOC_CMMREGISTER:
       { not supported }
@@ -1469,8 +1404,8 @@ var
       reference_reset_base(href, NR_STACK_POINTER_REG, -8);
       if (fprcount > 0) then
         for regcount := RS_F31 downto firstregfpu do begin
-          a_loadfpu_reg_ref(list, OS_FLOAT, newreg(R_FPUREGISTER, regcount,
-            R_SUBNONE), href);
+          a_loadfpu_reg_ref(list, OS_FLOAT, OS_FLOAT, newreg(R_FPUREGISTER,
+            regcount, R_SUBNONE), href);
           dec(href.offset, tcgsize2size[OS_FLOAT]);
         end;
       if (gprcount > 0) then
@@ -1605,7 +1540,7 @@ var
       reference_reset_base(href, NR_STACK_POINTER_REG, -tcgsize2size[OS_FLOAT]);
       if (fprcount > 0) then
         for regcount := RS_F31 downto firstregfpu do begin
-          a_loadfpu_ref_reg(list, OS_FLOAT, href, newreg(R_FPUREGISTER, regcount,
+          a_loadfpu_ref_reg(list, OS_FLOAT, OS_FLOAT, href, newreg(R_FPUREGISTER, regcount,
             R_SUBNONE));
           dec(href.offset, tcgsize2size[OS_FLOAT]);
         end;
@@ -1880,8 +1815,8 @@ begin
   if count > 0 then begin
     a_reg_alloc(list, NR_F0);
     for count2 := 1 to count do begin
-      a_loadfpu_ref_reg(list, OS_F64, src, NR_F0);
-      a_loadfpu_reg_ref(list, OS_F64, NR_F0, dst);
+      a_loadfpu_ref_reg(list, OS_F64, OS_F64, src, NR_F0);
+      a_loadfpu_reg_ref(list, OS_F64, OS_F64, NR_F0, dst);
       inc(src.offset, 8);
       inc(dst.offset, 8);
     end;

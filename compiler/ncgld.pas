@@ -362,7 +362,6 @@ implementation
     procedure tcgassignmentnode.pass_generate_code;
       var
          otlabel,hlabel,oflabel : tasmlabel;
-         fputyp : tfloattype;
          href : treference;
          releaseright : boolean;
          len : aint;
@@ -560,7 +559,7 @@ implementation
                     LOC_CFPUREGISTER :
                       begin
                         cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                            right.location.size,
+                            right.location.size,left.location.size,
                             right.location.reference,
                             left.location.register);
                       end;
@@ -637,28 +636,17 @@ implementation
               LOC_FPUREGISTER,
               LOC_CFPUREGISTER :
                 begin
-                  if (left.resultdef.typ=floatdef) then
-                   fputyp:=tfloatdef(left.resultdef).floattype
-                  else
-                   if (right.resultdef.typ=floatdef) then
-                    fputyp:=tfloatdef(right.resultdef).floattype
-                  else
-                   if (right.nodetype=typeconvn) and
-                      (ttypeconvnode(right).left.resultdef.typ=floatdef) then
-                    fputyp:=tfloatdef(ttypeconvnode(right).left.resultdef).floattype
-                  else
-                    fputyp:=s32real;
                   { we can't do direct moves between fpu and mm registers }
                   if left.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER] then
                     begin
                       location_force_mmregscalar(current_asmdata.CurrAsmList,right.location,false);
                       cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,
-                          tfloat2tcgsize[fputyp],tfloat2tcgsize[fputyp],
+                          right.location.size,left.location.size,
                           right.location.register,left.location.register,mms_movescalar);
                     end
                   else
                     cg.a_loadfpu_reg_loc(current_asmdata.CurrAsmList,
-                        tfloat2tcgsize[fputyp],
+                        right.location.size,
                         right.location.register,left.location);
                 end;
               LOC_SUBSETREG,
@@ -915,7 +903,7 @@ implementation
                        hp.left.location.register,href,mms_movescalar);
                    LOC_FPUREGISTER,
                    LOC_CFPUREGISTER :
-                     cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,hp.left.location.size,hp.left.location.register,href);
+                     cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,hp.left.location.size,hp.left.location.size,hp.left.location.register,href);
                    LOC_REFERENCE,
                    LOC_CREFERENCE :
                      begin

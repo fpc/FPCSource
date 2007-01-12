@@ -68,9 +68,9 @@ interface
         procedure a_load_reg_reg(list:TAsmList;FromSize,ToSize:TCgSize;reg1,reg2:tregister);override;
         procedure a_loadaddr_ref_reg(list:TAsmList;const ref:TReference;r:tregister);override;
         { fpu move instructions }
-        procedure a_loadfpu_reg_reg(list:TAsmList;size:tcgsize;reg1, reg2:tregister);override;
-        procedure a_loadfpu_ref_reg(list:TAsmList;size:tcgsize;const ref:TReference;reg:tregister);override;
-        procedure a_loadfpu_reg_ref(list:TAsmList;size:tcgsize;reg:tregister;const ref:TReference);override;
+        procedure a_loadfpu_reg_reg(list:TAsmList;fromsize,tosize:tcgsize;reg1, reg2:tregister);override;
+        procedure a_loadfpu_ref_reg(list:TAsmList;fromsize,tosize:tcgsize;const ref:TReference;reg:tregister);override;
+        procedure a_loadfpu_reg_ref(list:TAsmList;fromsize,tosize:tcgsize;reg:tregister;const ref:TReference);override;
         { comparison operations }
         procedure a_cmp_const_reg_label(list:TAsmList;size:tcgsize;cmp_op:topcmp;a:aint;reg:tregister;l:tasmlabel);override;
         procedure a_cmp_reg_reg_label(list:TAsmList;size:tcgsize;cmp_op:topcmp;reg1,reg2:tregister;l:tasmlabel);override;
@@ -423,7 +423,7 @@ implementation
         href : treference;
       begin
         tg.GetTemp(list,TCGSize2Size[size],tt_normal,href);
-        a_loadfpu_reg_ref(list,size,r,href);
+        a_loadfpu_reg_ref(list,size,size,r,href);
         a_paramfpu_ref(list,size,href,paraloc);
         tg.Ungettemp(list,href);
       end;
@@ -678,39 +678,57 @@ implementation
       end;
 
 
-    procedure TCgSparc.a_loadfpu_reg_reg(list:TAsmList;size:tcgsize;reg1, reg2:tregister);
+    procedure TCgSparc.a_loadfpu_reg_reg(list:TAsmList;fromsize,tosize:tcgsize;reg1, reg2:tregister);
       const
-         FpuMovInstr : Array[OS_F32..OS_F64] of TAsmOp =
-           (A_FMOVS,A_FMOVD);
+         FpuMovInstr : Array[OS_F32..OS_F64,OS_F32..OS_F64] of TAsmOp =
+           ((A_FMOVS,A_FSTOD),(A_FDTOS,A_FMOVD));
       var
+        op: TAsmOp;
         instr : taicpu;
       begin
-        if reg1<>reg2 then
-          begin
-            instr:=taicpu.op_reg_reg(fpumovinstr[size],reg1,reg2);
-            list.Concat(instr);
-            { Notify the register allocator that we have written a move instruction so
-              it can try to eliminate it. }
-            add_move_instruction(instr);
-          end;
+        op:=fpumovinstr[fromsize,tosize];
+        instr:=taicpu.op_reg_reg(op,reg1,reg2);
+        list.Concat(instr);
+        { Notify the register allocator that we have written a move instruction so
+        it can try to eliminate it. }
+        if (op = A_FMOVS) or
+           (op = A_FMOVD) then
+          add_move_instruction(instr);
       end;
 
 
-    procedure TCgSparc.a_loadfpu_ref_reg(list:TAsmList;size:tcgsize;const ref:TReference;reg:tregister);
+    procedure TCgSparc.a_loadfpu_ref_reg(list:TAsmList;fromsize,tosize:tcgsize;const ref:TReference;reg:tregister);
        const
          FpuLoadInstr : Array[OS_F32..OS_F64] of TAsmOp =
            (A_LDF,A_LDDF);
+       var
+         tmpreg: tregister;
        begin
-         handle_load_store(list,false,fpuloadinstr[size],reg,ref);
+         if (fromsize<>tosize) then
+           begin
+             tmpreg:=reg;
+             reg:=getfpuregister(list,fromsize);
+           end;
+         handle_load_store(list,false,fpuloadinstr[fromsize],reg,ref);
+         if (fromsize<>tosize) then
+           a_loadfpu_reg_reg(list,fromsize,tosize,reg,tmpreg);
        end;
 
 
-     procedure TCgSparc.a_loadfpu_reg_ref(list:TAsmList;size:tcgsize;reg:tregister;const ref:TReference);
+     procedure TCgSparc.a_loadfpu_reg_ref(list:TAsmList;fromsize,tosize:tcgsize;reg:tregister;const ref:TReference);
        const
          FpuLoadInstr : Array[OS_F32..OS_F64] of TAsmOp =
            (A_STF,A_STDF);
+       var
+         tmpreg: tregister;
        begin
-         handle_load_store(list,true,fpuloadinstr[size],reg,ref);
+         if (fromsize<>tosize) then
+           begin
+             tmpreg:=getfpuregister(list,tosize);
+             a_loadfpu_reg_reg(list,fromsize,tosize,reg,tmpreg);
+             reg:=tmpreg;
+           end;
+         handle_load_store(list,true,fpuloadinstr[tosize],reg,ref);
        end;
 
 

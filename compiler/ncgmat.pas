@@ -151,7 +151,7 @@ implementation
         }
         tg.gettemp(current_asmdata.CurrAsmList,tcgsize2size[_size],tt_normal,href);
         { store the floating point value in the temporary memory area }
-        cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,_size,r,href);
+        cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,_size,_size,r,href);
         { only single and double ieee are supported, for little endian
           the signed bit is in the second dword }
         href2:=href;
@@ -166,7 +166,7 @@ implementation
         end;
         { flip sign-bit (bit 31/63) of single/double }
         cg.a_op_const_ref(current_asmdata.CurrAsmList,OP_XOR,OS_32,aint($80000000),href2);
-        cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,_size,href,r);
+        cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,_size,_size,href,r);
         tg.ungetiftemp(current_asmdata.CurrAsmList,href);
       end;
 
@@ -193,7 +193,7 @@ implementation
             begin
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,
-                 def_cgsize(left.resultdef),
+                 left.location.size,location.size,
                  left.location.reference,location.register);
               emit_float_sign_change(location.register,def_cgsize(left.resultdef));
             end;
@@ -205,7 +205,7 @@ implementation
           LOC_CFPUREGISTER:
             begin
                location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-               cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,left.location.register,location.register);
+               cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
                emit_float_sign_change(location.register,def_cgsize(left.resultdef));
             end;
           else

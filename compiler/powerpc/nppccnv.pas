@@ -41,7 +41,7 @@ interface
          { procedure second_chararray_to_string;override; }
          { procedure second_char_to_string;override; }
           procedure second_int_to_real;override;
-          procedure second_real_to_real;override;
+         { procedure second_real_to_real;override; }
          { procedure second_cord_to_pointer;override; }
          { procedure second_proc_to_procvar;override; }
          { procedure second_bool_to_int;override; }
@@ -210,36 +210,23 @@ implementation
          dec(ref.offset,4);
 
          tmpfpureg := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-         cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,tempconst.location.reference,
+         cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,OS_F64,tempconst.location.reference,
            tmpfpureg);
          tempconst.free;
 
          location.register := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-         cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,ref,location.register);
+         cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,OS_F64,ref,location.register);
 
          tg.ungetiftemp(current_asmdata.CurrAsmList,ref);
 
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FSUB,location.register,
            location.register,tmpfpureg));
 
-         { work around bug in some PowerPC processors }
-         if (tfloatdef(resultdef).floattype = s32real) then
+        { make sure the precision is correct }
+        if (tfloatdef(resultdef).floattype = s32real) then
            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FRSP,location.register,
              location.register));
        end;
-
-
-     procedure tppctypeconvnode.second_real_to_real;
-       begin
-          inherited second_real_to_real;
-          { work around bug in some powerpc processors where doubles aren't }
-          { properly converted to singles                                   }
-          if (tfloatdef(left.resultdef).floattype = s64real) and
-             (tfloatdef(resultdef).floattype = s32real) then
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FRSP,location.register,
-              location.register));
-       end;
-
 
 begin
    ctypeconvnode:=tppctypeconvnode;

@@ -137,7 +137,7 @@ interface
         if pushedfpu then
           begin
             tmpreg := cg.getfpuregister(current_asmdata.CurrAsmList,left.location.size);
-            cg.a_loadfpu_loc_reg(current_asmdata.CurrAsmList,left.location,tmpreg);
+            cg.a_loadfpu_loc_reg(current_asmdata.CurrAsmList,left.location.size,left.location,tmpreg);
             location_reset(left.location,LOC_FPUREGISTER,left.location.size);
             left.location.register := tmpreg;
 {$ifdef x86}

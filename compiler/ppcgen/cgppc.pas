@@ -45,6 +45,11 @@ unit cgppc;
         procedure a_load_reg_ref(list: TAsmList; fromsize, tosize: TCGSize;
           reg: tregister; const ref: treference); override;
 
+        { fpu move instructions }
+        procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
+        procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
+        procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
+
        protected
         function  get_darwin_call_stub(const s: string): tasmsymbol;
         procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
@@ -201,6 +206,87 @@ unit cgppc;
       op := storeinstr[tcgsize2unsigned[tosize], ref2.index <> NR_NO, false];
       a_load_store(list, op, reg, ref2);
     end;
+
+
+
+     procedure tcgppcgen.a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister);
+
+       var
+         op: tasmop;
+         instr: taicpu;
+       begin
+         if not(fromsize in [OS_F32,OS_F64]) or
+            not(tosize in [OS_F32,OS_F64]) then
+           internalerror(2006123110);
+         if (tosize < fromsize) then
+           op:=A_FRSP
+         else
+           op:=A_FMR;
+         instr := taicpu.op_reg_reg(op,reg2,reg1);
+         list.concat(instr);
+         if (op = A_FMR) then
+           rg[R_FPUREGISTER].add_move_instruction(instr);
+       end;
+
+
+     procedure tcgppcgen.a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister);
+
+       const
+         FpuLoadInstr: Array[OS_F32..OS_F64,boolean, boolean] of TAsmOp =
+                          { indexed? updating?}
+                    (((A_LFS,A_LFSU),(A_LFSX,A_LFSUX)),
+                     ((A_LFD,A_LFDU),(A_LFDX,A_LFDUX)));
+       var
+         op: tasmop;
+         ref2: treference;
+
+       begin
+         if not(fromsize in [OS_F32,OS_F64]) or
+            not(tosize in [OS_F32,OS_F64]) then
+           internalerror(200201121);
+         ref2 := ref;
+         fixref(list,ref2);
+         op := fpuloadinstr[fromsize,ref2.index <> NR_NO,false];
+         a_load_store(list,op,reg,ref2);
+         if (fromsize > tosize) then
+           a_loadfpu_reg_reg(list,fromsize,tosize,reg,reg);
+       end;
+
+
+     procedure tcgppcgen.a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference);
+
+       const
+         FpuStoreInstr: Array[OS_F32..OS_F64,boolean, boolean] of TAsmOp =
+                            { indexed? updating?}
+                    (((A_STFS,A_STFSU),(A_STFSX,A_STFSUX)),
+                     ((A_STFD,A_STFDU),(A_STFDX,A_STFDUX)));
+       var
+         op: tasmop;
+         ref2: treference;
+{$ifndef cpu64bit}
+         reg2: tregister;
+{$endif cpu64bit}
+
+       begin
+         if not(fromsize in [OS_F32,OS_F64]) or
+            not(tosize in [OS_F32,OS_F64]) then
+           internalerror(200201122);
+         ref2 := ref;
+         fixref(list,ref2);
+         op := fpustoreinstr[tosize,ref2.index <> NR_NO,false];
+{$ifndef cpu64bit}
+         { some ppc's have a bug whereby storing a double to memory }
+         { as single corrupts the value -> convert double to single }
+         { first                                                    }
+         if (tosize < fromsize) then
+           begin
+             reg2:=getfpuregister(list,tosize);
+             a_loadfpu_reg_reg(list,fromsize,tosize,reg,reg2);
+             reg:=reg2;
+           end;
+{$endif not cpu64bit}
+         a_load_store(list,op,reg,ref2);
+       end;
 
 
   procedure tcgppcgen.a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister);

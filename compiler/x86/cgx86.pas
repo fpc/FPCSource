@@ -72,9 +72,9 @@ unit cgx86;
         procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
 
         { fpu move instructions }
-        procedure a_loadfpu_reg_reg(list: TAsmList; size: tcgsize; reg1, reg2: tregister); override;
-        procedure a_loadfpu_ref_reg(list: TAsmList; size: tcgsize; const ref: treference; reg: tregister); override;
-        procedure a_loadfpu_reg_ref(list: TAsmList; size: tcgsize; reg: tregister; const ref: treference); override;
+        procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
+        procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
+        procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
 
         { vector register move instructions }
         procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); override;
@@ -152,6 +152,7 @@ unit cgx86;
     uses
        globals,verbose,systems,cutils,
        symdef,defutil,paramgr,procinfo,
+       tgobj,
        fmodule;
 
     const
@@ -490,7 +491,7 @@ unit cgx86;
               end;
             OS_F80 :
               begin
-                  op:=A_FSTP;
+                  op:=A_FSTP; 
                   s:=S_FX;
                end;
             OS_C64 :
@@ -847,35 +848,51 @@ unit cgx86;
 
     { all fpu load routines expect that R_ST[0-7] means an fpu regvar and }
     { R_ST means "the current value at the top of the fpu stack" (JM)     }
-    procedure tcgx86.a_loadfpu_reg_reg(list: TAsmList; size: tcgsize; reg1, reg2: tregister);
+    procedure tcgx86.a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister);
 
+       var
+         href: treference;
+         op: tasmop;
+         s: topsize;
        begin
          if (reg1<>NR_ST) then
            begin
-             list.concat(taicpu.op_reg(A_FLD,S_NO,rgfpu.correct_fpuregister(reg1,rgfpu.fpuvaroffset)));
+             floatloadops(tosize,op,s);
+             list.concat(taicpu.op_reg(op,s,rgfpu.correct_fpuregister(reg1,rgfpu.fpuvaroffset)));
              inc_fpu_stack;
            end;
          if (reg2<>NR_ST) then
            begin
-             list.concat(taicpu.op_reg(A_FSTP,S_NO,rgfpu.correct_fpuregister(reg2,rgfpu.fpuvaroffset)));
+             floatstoreops(tosize,op,s);
+             list.concat(taicpu.op_reg(op,s,rgfpu.correct_fpuregister(reg2,rgfpu.fpuvaroffset)));
              dec_fpu_stack;
+           end;
+         { OS_F80 < OS_C64, but OS_C64 fits perfectly in OS_F80 }
+         if (reg1=NR_ST) and
+            (reg2=NR_ST) and
+            (tosize<>OS_F80) and
+            (tosize<fromsize) then
+           begin
+             { can't round down to lower precision in x87 :/ }
+             tg.gettemp(list,tcgsize2size[tosize],tt_persistent,href);
+             a_loadfpu_reg_ref(list,fromsize,tosize,NR_ST,href);
+             a_loadfpu_ref_reg(list,tosize,tosize,href,NR_ST);
            end;
        end;
 
 
-    procedure tcgx86.a_loadfpu_ref_reg(list: TAsmList; size: tcgsize; const ref: treference; reg: tregister);
+    procedure tcgx86.a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister);
        begin
-         floatload(list,size,ref);
-         if (reg<>NR_ST) then
-           a_loadfpu_reg_reg(list,size,NR_ST,reg);
+         floatload(list,fromsize,ref);
+         a_loadfpu_reg_reg(list,fromsize,tosize,NR_ST,reg);
        end;
 
 
-    procedure tcgx86.a_loadfpu_reg_ref(list: TAsmList; size: tcgsize; reg: tregister; const ref: treference);
+    procedure tcgx86.a_loadfpu_reg_ref(list: TAsmList; fromsize,tosize: tcgsize; reg: tregister; const ref: treference);
        begin
          if reg<>NR_ST then
-           a_loadfpu_reg_reg(list,size,reg,NR_ST);
-         floatstore(list,size,ref);
+           a_loadfpu_reg_reg(list,fromsize,tosize,reg,NR_ST);
+         floatstore(list,tosize,ref);
        end;
 
 

@@ -56,9 +56,9 @@ unit cgcpu;
         procedure a_load_ref_ref(list : TAsmList;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);override;
 
         procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
-        procedure a_loadfpu_reg_reg(list: TAsmList; size: tcgsize; reg1, reg2: tregister); override;
-        procedure a_loadfpu_ref_reg(list: TAsmList; size: tcgsize; const ref: treference; reg: tregister); override;
-        procedure a_loadfpu_reg_ref(list: TAsmList; size: tcgsize; reg: tregister; const ref: treference); override;
+        procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
+        procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
+        procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
 
         procedure a_loadmm_reg_reg(list: TAsmList;fromsize,tosize : tcgsize; reg1, reg2: tregister;shuffle : pmmshuffle); override;
         procedure a_loadmm_ref_reg(list: TAsmList;fromsize,tosize : tcgsize; const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
@@ -550,22 +550,23 @@ unit cgcpu;
       end;
 
 
-    procedure tcg68k.a_loadfpu_reg_reg(list: TAsmList; size: tcgsize; reg1, reg2: tregister);
+    procedure tcg68k.a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister);
       begin
         { in emulation mode, only 32-bit single is supported }
         if cs_fp_emulation in current_settings.moduleswitches then
           list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1,reg2))
         else
-          list.concat(taicpu.op_reg_reg(A_FMOVE,S_FD,reg1,reg2));
+          list.concat(taicpu.op_reg_reg(A_FMOVE,tcgsize2opsize[tosize],reg1,reg2));
       end;
 
 
-    procedure tcg68k.a_loadfpu_ref_reg(list: TAsmList; size: tcgsize; const ref: treference; reg: tregister);
+    procedure tcg68k.a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister);
      var
       opsize : topsize;
       href : treference;
+      tmpreg : tregister;
       begin
-        opsize := tcgsize2opsize[size];
+        opsize := tcgsize2opsize[fromsize];
         { extended is not supported, since it is not available on Coldfire }
         if opsize = S_FX then
           internalerror(20020729);
@@ -575,14 +576,18 @@ unit cgcpu;
         if cs_fp_emulation in current_settings.moduleswitches then
            list.concat(taicpu.op_ref_reg(A_MOVE,S_L,href,reg))
         else
-           list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
+           begin
+             list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
+             if (tosize < fromsize) then
+               a_loadfpu_reg_reg(list,fromsize,tosize,reg,reg);
+           end;
       end;
 
-    procedure tcg68k.a_loadfpu_reg_ref(list: TAsmList; size: tcgsize; reg: tregister; const ref: treference);
+    procedure tcg68k.a_loadfpu_reg_ref(list: TAsmList; fromsize,tosize: tcgsize; reg: tregister; const ref: treference);
       var
        opsize : topsize;
       begin
-        opsize := tcgsize2opsize[size];
+        opsize := tcgsize2opsize[tosize];
         { extended is not supported, since it is not available on Coldfire }
         if opsize = S_FX then
           internalerror(20020729);

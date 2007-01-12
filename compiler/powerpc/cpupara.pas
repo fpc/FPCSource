@@ -503,7 +503,15 @@ unit cpupara;
                   else { LOC_REFERENCE }
                     begin
                        paraloc^.loc:=LOC_REFERENCE;
-                       paraloc^.size:=int_cgsize(paralen);
+                       case loc of
+                         LOC_FPUREGISTER:
+                           paraloc^.size:=int_float_cgsize(paralen);
+                         LOC_REGISTER,
+                         LOC_REFERENCE:
+                           paraloc^.size:=int_cgsize(paralen);
+                         else
+                           internalerror(2006011101);
+                       end;
                        if (side = callerside) then
                          paraloc^.reference.index:=NR_STACK_POINTER_REG
                        else
@@ -511,7 +519,7 @@ unit cpupara;
                            paraloc^.reference.index:=NR_R12;
                            tppcprocinfo(current_procinfo).needs_frame_pointer := true;
                          end;
-                       
+
                        if (target_info.abi = abi_powerpc_aix) and
                           (hp.paraloc[side].intsize < 3) then
                            paraloc^.reference.offset:=stack_offset+(4-paralen)

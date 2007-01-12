@@ -40,7 +40,7 @@ interface
          { procedure second_chararray_to_string;override; }
          { procedure second_char_to_string;override; }
           procedure second_int_to_real;override;
-          procedure second_real_to_real;override;
+         { procedure second_real_to_real;override; }
          { procedure second_cord_to_pointer;override; }
          { procedure second_proc_to_procvar;override; }
          { procedure second_bool_to_int;override; }
@@ -117,7 +117,7 @@ implementation
         begin
           location_force_mem(current_asmdata.CurrAsmList,left.location);
           { Load memory in fpu register }
-          cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F32,left.location.reference,location.register);
+          cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F32,OS_F32,left.location.reference,location.register);
           tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
           { Convert value in fpu register from integer to float }
           case tfloatdef(resultdef).floattype of
@@ -156,7 +156,7 @@ implementation
             location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
             location_force_mem(current_asmdata.CurrAsmList,left.location);
             { Load memory in fpu register }
-            cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F32,left.location.reference,location.register);
+            cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F32,OS_F32,left.location.reference,location.register);
             tg.ungetiftemp(current_asmdata.CurrAsmList,left.location.reference);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FiTOd,location.register,location.register));
 
@@ -175,7 +175,7 @@ implementation
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($41f00000));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
 
-                   cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,href,hregister);
+                   cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,OS_F64,OS_F64,href,hregister);
                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_FADDD,location.register,hregister,location.register));
                    cg.a_label(current_asmdata.CurrAsmList,l2);
 
@@ -194,6 +194,7 @@ implementation
        end;
 
 
+(*
     procedure tsparctypeconvnode.second_real_to_real;
       const
         conv_op : array[tfloattype,tfloattype] of tasmop = (
@@ -217,7 +218,7 @@ implementation
         location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,left.location.register,location.register));
       end;
-
+*)
 
     procedure tsparctypeconvnode.second_int_to_bool;
       var

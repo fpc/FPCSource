@@ -236,11 +236,11 @@ unit cgobj;
           procedure a_load_subsetreg_subsetref(list: TAsmlist; fromsubsetsize, tosubsetsize : tcgsize; const fromsreg: tsubsetregister; const tosref: tsubsetreference); virtual;
 
           { fpu move instructions }
-          procedure a_loadfpu_reg_reg(list: TAsmList; size:tcgsize; reg1, reg2: tregister); virtual; abstract;
-          procedure a_loadfpu_ref_reg(list: TAsmList; size: tcgsize; const ref: treference; reg: tregister); virtual; abstract;
-          procedure a_loadfpu_reg_ref(list: TAsmList; size: tcgsize; reg: tregister; const ref: treference); virtual; abstract;
-          procedure a_loadfpu_loc_reg(list: TAsmList; const loc: tlocation; const reg: tregister);
-          procedure a_loadfpu_reg_loc(list: TAsmList; size: tcgsize; const reg: tregister; const loc: tlocation);
+          procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize:tcgsize; reg1, reg2: tregister); virtual; abstract;
+          procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); virtual; abstract;
+          procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); virtual; abstract;
+          procedure a_loadfpu_loc_reg(list: TAsmList; tosize: tcgsize; const loc: tlocation; const reg: tregister);
+          procedure a_loadfpu_reg_loc(list: TAsmList; fromsize: tcgsize; const reg: tregister; const loc: tlocation);
           procedure a_paramfpu_reg(list : TAsmList;size : tcgsize;const r : tregister;const cgpara : TCGPara);virtual;
           procedure a_paramfpu_ref(list : TAsmList;size : tcgsize;const ref : treference;const cgpara : TCGPara);virtual;
 
@@ -1928,26 +1928,26 @@ implementation
       end;
 
 
-    procedure tcg.a_loadfpu_loc_reg(list: TAsmList; const loc: tlocation; const reg: tregister);
+    procedure tcg.a_loadfpu_loc_reg(list: TAsmList; tosize: tcgsize; const loc: tlocation; const reg: tregister);
       begin
         case loc.loc of
           LOC_REFERENCE, LOC_CREFERENCE:
-            a_loadfpu_ref_reg(list,loc.size,loc.reference,reg);
+            a_loadfpu_ref_reg(list,loc.size,tosize,loc.reference,reg);
           LOC_FPUREGISTER, LOC_CFPUREGISTER:
-            a_loadfpu_reg_reg(list,loc.size,loc.register,reg);
+            a_loadfpu_reg_reg(list,loc.size,tosize,loc.register,reg);
           else
             internalerror(200203301);
         end;
       end;
 
 
-    procedure tcg.a_loadfpu_reg_loc(list: TAsmList; size: tcgsize; const reg: tregister; const loc: tlocation);
+    procedure tcg.a_loadfpu_reg_loc(list: TAsmList; fromsize: tcgsize; const reg: tregister; const loc: tlocation);
       begin
         case loc.loc of
           LOC_REFERENCE, LOC_CREFERENCE:
-            a_loadfpu_reg_ref(list,size,reg,loc.reference);
+            a_loadfpu_reg_ref(list,fromsize,loc.size,reg,loc.reference);
           LOC_FPUREGISTER, LOC_CFPUREGISTER:
-            a_loadfpu_reg_reg(list,size,reg,loc.register);
+            a_loadfpu_reg_reg(list,fromsize,loc.size,reg,loc.register);
           else
             internalerror(48991);
          end;
@@ -1962,19 +1962,19 @@ implementation
             LOC_FPUREGISTER,LOC_CFPUREGISTER:
               begin
                 cgpara.check_simple_location;
-                a_loadfpu_reg_reg(list,size,r,cgpara.location^.register);
+                a_loadfpu_reg_reg(list,size,size,r,cgpara.location^.register);
               end;
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
                 cgpara.check_simple_location;
                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset);
-                a_loadfpu_reg_ref(list,size,r,ref);
+                a_loadfpu_reg_ref(list,size,size,r,ref);
               end;
             LOC_REGISTER,LOC_CREGISTER:
               begin
                 { paramfpu_ref does the check_simpe_location check here if necessary }
                 tg.GetTemp(list,TCGSize2Size[size],tt_normal,ref);
-                a_loadfpu_reg_ref(list,size,r,ref);
+                a_loadfpu_reg_ref(list,size,size,r,ref);
                 a_paramfpu_ref(list,size,ref,cgpara);
                 tg.Ungettemp(list,ref);
               end;
@@ -1991,7 +1991,7 @@ implementation
          cgpara.check_simple_location;
          case cgpara.location^.loc of
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
-            a_loadfpu_ref_reg(list,size,ref,cgpara.location^.register);
+            a_loadfpu_ref_reg(list,size,size,ref,cgpara.location^.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
               reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset);
