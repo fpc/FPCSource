@@ -651,6 +651,14 @@ begin
                  include(init_settings.globalswitches,cs_link_nolink);
              end;
 
+           'f' :
+             begin
+               if more='PIC' then
+                 include(init_settings.moduleswitches,cs_create_pic)
+               else
+                 IllegalPara(opt);
+             end;
+
            'F' :
              begin
                c:=more[1];

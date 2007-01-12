@@ -2463,6 +2463,7 @@ S*2Aas_assemble using GNU AS
 *O2Dw_PM application
 **1e<x>_set path to executable
 **1E_same as -Cn
+**1fPIC_same as -Cg
 **1F<x>_set file names and paths:
 **2Fa<x>[,y]_for a program load first units <x> and [y] before uses is parsed
 **2Fc<x>_sets input codepage to <x>
