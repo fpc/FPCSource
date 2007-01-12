@@ -32,8 +32,28 @@ begin
 end;
 
 procedure TIDEApp.HelpTopicSearch;
+var FileID: word;
+    Ctx   : THelpCtx;
+var Found: boolean;
+var
+    EditorWindow : PSourceWindow;
+    S : string;
 begin
+  EditorWindow:=FirstEditorWindow;
+  If assigned(EditorWindow) then
+    S:=LowerCaseStr(EditorWindow^.Editor^.GetCurrentWord)
+  else
+    S:='';
+  CheckHelpSystem;
+  Found:=false;
+  if S<>'' then
+    Found:=HelpFacility^.TopicSearch(S,FileID,Ctx);
+  if Found then
+     Help(FileID,Ctx,false)
+  else
+     HelpIndex('');
 end;
+
 
 procedure TIDEApp.HelpPrevTopic;
 begin
