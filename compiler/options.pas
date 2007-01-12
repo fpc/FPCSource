@@ -1592,7 +1592,10 @@ begin
         inc(pc);
      { create argument }
        arglen:=pc-argstart;
-       hs[0]:=chr(arglen);
+{$warning FIXME: silent truncation of environment parameters }
+       if (arglen > 255) then
+         arglen := 255;
+       setlength(hs,arglen);
        move(argstart^,hs[1],arglen);
        interpret_option(hs,true);
      { skip quote }
