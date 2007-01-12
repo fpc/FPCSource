@@ -59,7 +59,7 @@ end;
 
 function DateTimeToTimeStamp(DateTime: TDateTime): TTimeStamp;
 begin
-  result.Time := Trunc(abs(Frac(DateTime)) * MSecsPerDay);
+  result.Time := Round(abs(Frac(DateTime)) * MSecsPerDay);
   result.Date := DateDelta + trunc(DateTime);
 end ;
 
