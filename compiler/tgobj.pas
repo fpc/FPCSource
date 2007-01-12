@@ -80,8 +80,8 @@ unit tgobj;
           }
           procedure setfirsttemp(l : longint);
 
-          procedure gettemp(list: TAsmList; size : longint;temptype:ttemptype;var ref : treference);
-          procedure gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;var ref : treference);
+          procedure gettemp(list: TAsmList; size : longint;temptype:ttemptype;out ref : treference);
+          procedure gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
           procedure ungettemp(list: TAsmList; const ref : treference);
 
           function sizeoftemp(list: TAsmList; const ref: treference): longint;
@@ -493,7 +493,7 @@ implementation
       end;
 
 
-    procedure ttgobj.gettemp(list: TAsmList; size : longint;temptype:ttemptype;var ref : treference);
+    procedure ttgobj.gettemp(list: TAsmList; size : longint;temptype:ttemptype;out ref : treference);
       var
         varalign : shortint;
       begin
@@ -507,7 +507,7 @@ implementation
       end;
 
 
-    procedure ttgobj.gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;var ref : treference);
+    procedure ttgobj.gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
       var
         varalign : shortint;
       begin
