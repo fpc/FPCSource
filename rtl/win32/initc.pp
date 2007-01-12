@@ -14,27 +14,25 @@
 unit initc;
 
 interface
+uses
+  ctypes;
+  
+function fpgetCerrno:cint;
+procedure fpsetCerrno(err:cint);
 
-type
- libcint   = longint;
- plibcint = ^libcint;
-
-function fpgetCerrno:libcint;
-procedure fpsetCerrno(err:libcint);
-
-property cerrno:libcint read fpgetCerrno write fpsetcerrno;
+property cerrno:cint read fpgetCerrno write fpsetcerrno;
 
 
 implementation
 
-function geterrnolocation: Plibcint; cdecl;external 'cygwin1.dll' name '__errno';
+function geterrnolocation: pcint; cdecl;external 'cygwin1.dll' name '__errno';
 
-function fpgetCerrno:libcint;
+function fpgetCerrno:cint;
 begin
   fpgetCerrno:=geterrnolocation^;
 end;
 
-procedure fpsetCerrno(err:libcint);
+procedure fpsetCerrno(err:cint);
 begin
   geterrnolocation^:=err;
 end;

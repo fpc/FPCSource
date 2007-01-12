@@ -15,28 +15,27 @@
 unit initc;
 
 interface
+uses
+  ctypes;
 
-type libcint   = longint;
-     plibcint = ^libcint;
+function fpgetCerrno:cint;
+procedure fpsetCerrno(err:cint);
 
-function fpgetCerrno:libcint;
-procedure fpsetCerrno(err:libcint);
-
-property cerrno:libcint read fpgetCerrno write fpsetcerrno;
+property cerrno:cint read fpgetCerrno write fpsetcerrno;
 
 implementation
 
 const clib = 'libc';
 
-function geterrnolocation: Plibcint; cdecl;external clib name '___errno';
+function geterrnolocation: pcint; cdecl;external clib name '___errno';
 
-function fpgetCerrno:libcint;
+function fpgetCerrno:cint;
 
 begin
   fpgetCerrno:=geterrnolocation^;
 end;
 
-procedure fpsetCerrno(err:libcint);
+procedure fpsetCerrno(err:cint);
 begin
   geterrnolocation^:=err;
 end;

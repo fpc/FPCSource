@@ -15,15 +15,14 @@
  **********************************************************************}
 unit initc;
 interface
+uses
+  ctypes;
 {$linklib c}
 
-type libcint   = longint;
-     plibcint = ^libcint;
+function fpgetCerrno:cint;
+procedure fpsetCerrno(err:cint);
 
-function fpgetCerrno:libcint;
-procedure fpsetCerrno(err:libcint);
-
-property cerrno:libcint read fpgetCerrno write fpsetcerrno;
+property cerrno:cint read fpgetCerrno write fpsetcerrno;
 
 const clib = 'c';
 
@@ -37,15 +36,15 @@ implementation
 
 {$ifdef UseOldErrnoDirectLink}
 Var
-  interrno : libcint;external name {$ifdef OpenBSD} '_errno' {$else} 'h_errno'{$endif};
+  interrno : cint;external name {$ifdef OpenBSD} '_errno' {$else} 'h_errno'{$endif};
 
-function fpgetCerrno:libcint;
+function fpgetCerrno:cint;
 
 begin
   fpgetCerrno:=interrno;
 end;
 
-procedure fpsetCerrno(err:libcint);
+procedure fpsetCerrno(err:cint);
 begin
   interrno:=err;
 end;
@@ -53,33 +52,33 @@ end;
 
 
 {$ifdef Linux}
-function geterrnolocation: Plibcint; cdecl;external clib name '__errno_location';
+function geterrnolocation: pcint; cdecl;external clib name '__errno_location';
 {$endif}
 
 {$ifdef FreeBSD} // tested on x86
-function geterrnolocation: Plibcint; cdecl;external clib name '__error';
+function geterrnolocation: pcint; cdecl;external clib name '__error';
 {$endif}
 
 {$ifdef NetBSD} // from a sparc dump.
-function geterrnolocation: Plibcint; cdecl;external clib name '__errno';
+function geterrnolocation: pcint; cdecl;external clib name '__errno';
 {$endif}
 
 {$ifdef Darwin}
-function geterrnolocation: Plibcint; cdecl;external clib name '__error';
+function geterrnolocation: pcint; cdecl;external clib name '__error';
 {$endif}
 
 
 {$ifdef SunOS}
-function geterrnolocation: Plibcint; cdecl;external clib name '___errno';
+function geterrnolocation: pcint; cdecl;external clib name '___errno';
 {$endif}
 
-function fpgetCerrno:libcint;
+function fpgetCerrno:cint;
 
 begin
   fpgetCerrno:=geterrnolocation^;
 end;
 
-procedure fpsetCerrno(err:libcint);
+procedure fpsetCerrno(err:cint);
 begin
   geterrnolocation^:=err;
 end;

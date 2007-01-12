@@ -14,24 +14,23 @@
  **********************************************************************}
 unit initc;
 interface
+uses
+  ctypes;
 {$i nwsys.inc}
 
-type libcint   = longint;
-     plibcint = ^libcint;
+function fpgetCerrno:cint;
+procedure fpsetCerrno(err:cint);
 
-function fpgetCerrno:libcint;
-procedure fpsetCerrno(err:libcint);
-
-property cerrno:libcint read fpgetCerrno write fpsetcerrno;
+property cerrno:cint read fpgetCerrno write fpsetcerrno;
 
 implementation
 
-function fpgetCerrno:libcint;
+function fpgetCerrno:cint;
 begin
   fpgetCerrno:=__get_errno_ptr^;
 end;
 
-procedure fpsetCerrno(err:libcint);
+procedure fpsetCerrno(err:cint);
 begin
   __get_errno_ptr^:=err;
 end;
