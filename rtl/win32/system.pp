@@ -797,6 +797,7 @@ function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;s
             begin
               os_supports_sse:=false;
               { if yes, then retry }
+              inc(excep^.ContextRecord^.Eip,4);
               excep^.ExceptionRecord^.ExceptionCode := 0;
               res:=EXCEPTION_CONTINUE_EXECUTION;
             end
