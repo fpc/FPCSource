@@ -1095,8 +1095,10 @@ End;
 const
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   maxdigits = 17;
+  maxexplen = 4;
 {$else}
   maxdigits = 14;
+  maxexplen = 3;
 {$endif}
 
 Function FloatToStrFIntl(const Value; format: TFloatFormat; Precision, Digits: Integer; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): String;
@@ -1197,7 +1199,7 @@ Begin
         If (Precision = -1) Or (Precision > maxdigits) Then Precision := maxdigits;
         case ValueType of
           fvDouble:
-            Str(Double(Extended(Value)):Precision+7, Result);
+            Str(Double(Extended(Value)):Precision+8, Result);
           fvSingle:
             Str(Single(Extended(Value)):Precision+6, Result);
           fvCurrency:
@@ -1222,7 +1224,10 @@ Begin
             if P <> 0 then
               begin
                 Inc(P, 2);
-                while (Result[P] = '0') and (Digits < 4) do
+                { the exponent length is shorted if extended is not supported }
+                if (Digits > maxexplen) then
+                  insert(copy('0000',1,Digits-maxexplen),Result,P);
+                while (Result[P] = '0') and (Digits < maxexplen) do
                   begin
                     System.Delete(Result, P, 1);
                     if P > Length(Result) then
