@@ -76,7 +76,7 @@ var
 begin
   WRITE_DEBUG('ThreadFunc is here...');
   LThread := TThread(parameter);
-  WRITE_DEBUG('thread initing, parameter = ', LongInt(LThread));
+  WRITE_DEBUG('thread initing, parameter = ', ptrint(LThread));
   try
     // wait until AfterConstruction has been called, so we cannot
     // free ourselves before TThread.Create has finished
