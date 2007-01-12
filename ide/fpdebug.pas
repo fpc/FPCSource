@@ -2648,7 +2648,7 @@ procedure TWatch.Get_new_value;
       end;
     while loop_higher do
       begin
-         s:='parent_ebp';
+         s:='parentfp';
          if GetValue(s) then
            begin
              repeat
