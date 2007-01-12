@@ -63,8 +63,12 @@ interface
     procedure Replace(var s:AnsiString;s1:string;const s2:AnsiString);
     procedure ReplaceCase(var s:string;const s1,s2:string);
     Function MatchPattern(const pattern,what:string):boolean;
+    function upper(const c : char) : char;
     function upper(const s : string) : string;
+    function upper(const s : ansistring) : ansistring;
+    function lower(const c : char) : char;
     function lower(const s : string) : string;
+    function lower(const s : ansistring) : ansistring;
     function trimbspace(const s:string):string;
     function trimspace(const s:string):string;
     function space (b : longint): string;
@@ -447,6 +451,15 @@ implementation
       end;
 
 
+    function upper(const c : char) : char;
+    {
+      return uppercase of c
+    }
+      begin
+        upper:=uppertbl[c];
+      end;
+
+
     function upper(const s : string) : string;
     {
       return uppercased string of s
@@ -460,6 +473,28 @@ implementation
       end;
 
 
+    function upper(const s : ansistring) : ansistring;
+    {
+      return uppercased string of s
+    }
+      var
+        i  : longint;
+      begin
+        setlength(upper,length(s));
+        for i:=1 to length(s) do
+          upper[i]:=uppertbl[s[i]];
+      end;
+
+
+    function lower(const c : char) : char;
+    {
+      return lowercase of c
+    }
+      begin
+        lower:=lowertbl[c];
+      end;
+
+
     function lower(const s : string) : string;
     {
       return lowercased string of s
@@ -470,6 +505,19 @@ implementation
         for i:=1 to length(s) do
           lower[i]:=lowertbl[s[i]];
         lower[0]:=s[0];
+      end;
+
+
+    function lower(const s : ansistring) : ansistring;
+    {
+      return lowercased string of s
+    }
+      var
+        i : longint;
+      begin
+        setlength(lower,length(s));
+        for i:=1 to length(s) do
+          lower[i]:=lowertbl[s[i]];
       end;
 
 
