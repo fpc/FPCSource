@@ -727,15 +727,9 @@ type
                   end;
               end;
             if d > o_threshold then
-              begin
-                result:=huge*huge; { overflow }
-                exit;
-              end;
+              HandleError(205); { overflow }
             if d < u_threshold then
-              begin
-                result:=twom1000*twom1000; { underflow }
-                exit;
-              end;
+              HandleError(206); { underflow }
           end;
 
         { argument reduction }
