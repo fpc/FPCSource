@@ -32,9 +32,9 @@ var
 begin
   dbl1 := -1e-128;
   comp1 := comp(dbl1);
-{$ifdef cpuarm}
+{$ifdef FPC_DOUBLE_HILO_SWAPPED}
   comp1:=swap(comp1);
-{$endif cpuarm}
+{$endif FPC_DOUBLE_HILO_SWAPPED}
   str(comp1,s);
 {$if defined(cpui386) or defined(cpux86_64)}
   if s<>'-6.53142228756617E+0018' then
