@@ -448,10 +448,10 @@ var
             Inc(Current);
          val(copy(S, j, 1 + Current - j), result, c);
          end
-      else if (S[Current] = TimeAMString[1]) or (S[Current] in ['a', 'A']) then begin
+      else if ((TimeAMString<>'') and (S[Current] = TimeAMString[1])) or (S[Current] in ['a', 'A']) then begin
          Current := 1 + Len;
          end
-      else if (S[Current] = TimePMString[1]) or (S[Current] in ['p', 'P']) then begin
+      else if ((TimePMString<>'') and (S[Current] = TimePMString[1])) or (S[Current] in ['p', 'P']) then begin
          Current := 1 + Len;
          PM := True;
          end
