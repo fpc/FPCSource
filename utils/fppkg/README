@@ -67,6 +67,9 @@ pkglibcurl
 pkgocurl
   a downloader based on CurlPas (object version). Do not put in makefile,
   as CurlPas is not distributed with FPC.
+pkglnet
+  a downloader based on lNet. The library is distributed in "lnet" subdir
+  of fppkg root.
  
 
 Options supported in packager config file:
