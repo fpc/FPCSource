@@ -60,7 +60,9 @@ begin
   With Varg do
     if (VType and varArray)=varArray then
       begin
-      Exit(SafeArrayDestroy(VArray))
+        Result:=SafeArrayDestroy(VArray);
+        if Result<>VAR_OK then
+          exit;
       end
     else
       begin
@@ -383,7 +385,7 @@ Const
     (0,0,2,4,4,8,8,8,4,4,4,2,16,4,0,0,0,1);
   psaElementFlags : Array [varEmpty..varByte] of Longint =
     (ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,
-     ARR_OLESTR,ARR_DISPATCH,ARR_NONE,ARR_NONE,ARR_NONE,ARR_UNKNOWN,
+     ARR_OLESTR,ARR_DISPATCH,ARR_NONE,ARR_NONE,ARR_VARIANT,ARR_UNKNOWN,
      ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE);
 
 Function SafeArrayCreate(VarType, Dim: DWord; const Bounds: TVarArrayBoundArray): PVarArray;stdcall;
@@ -530,7 +532,9 @@ begin
             VariantClear(PVarData(P)^);
           end;
         end;
-      ReAllocMem(psa^.Data,Count+D);
+      ReAllocMem(psa^.Data,(Count+D)*psa^.ElementSize);
+      if D>0 then
+        fillchar((PChar(psa^.Data)+Count*psa^.ElementSize)^,D*psa^.ElementSize,0);
       end;
     psa^.Bounds[0].ElementCount:=NewBound.ElementCount;
     psa^.Bounds[0].LowBound:=NewBound.LowBound;
