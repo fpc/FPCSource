@@ -853,7 +853,7 @@ var
 begin
   ws1:=StringToPWideChar(S1);
   ws2:=StringToPWideChar(S2);
-  Result:=CompareString(LOCALE_USER_DEFAULT, 0, ws1, -1, ws2, -1) - 2;
+  Result:=CompareString(LOCALE_USER_DEFAULT, 0, ws1, Length(S1), ws2, Length(S2)) - 2;
   FreeMem(ws2);
   FreeMem(ws1);
 end;
@@ -865,7 +865,7 @@ var
 begin
   ws1:=StringToPWideChar(S1);
   ws2:=StringToPWideChar(S2);
-  Result:=CompareString(LOCALE_USER_DEFAULT, NORM_IGNORECASE, ws1, -1, ws2, -1) - 2;
+  Result:=CompareString(LOCALE_USER_DEFAULT, NORM_IGNORECASE, ws1, Length(S1), ws2, Length(S2)) - 2;
   FreeMem(ws2);
   FreeMem(ws1);
 end;
