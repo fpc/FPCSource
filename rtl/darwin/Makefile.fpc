@@ -282,7 +282,7 @@ sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp unix$(PPUEXT) sysutils$(PPUEXT)
 
-initc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
+initc$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT)
 
 console$(PPUEXT) : baseunix$(PPUEXT) termio$(PPUEXT)
 
