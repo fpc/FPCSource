@@ -102,7 +102,6 @@ interface
           constructor create;
           destructor destroy;override;
           procedure register_file(f : tinputfile);
-          procedure inverse_register_indexes;
           function  get_file(l:longint) : tinputfile;
           function  get_file_name(l :longint):string;
           function  get_file_path(l :longint):string;
@@ -552,25 +551,6 @@ uses
       end;
 
 
-   { this procedure is necessary after loading the
-     sources files from a PPU file  PM }
-   procedure tinputfilemanager.inverse_register_indexes;
-     var
-        f : tinputfile;
-     begin
-        f:=files;
-        while assigned(f) do
-          begin
-             f.ref_index:=last_ref_index-f.ref_index+1;
-             f:=f.ref_next;
-          end;
-        { reset cache }
-        cacheindex:=0;
-        cacheinputfile:=nil;
-     end;
-
-
-
    function tinputfilemanager.get_file(l :longint) : tinputfile;
      var
         ff : tinputfile;
@@ -584,6 +564,11 @@ uses
        ff:=files;
        while assigned(ff) and (ff.ref_index<>l) do
          ff:=ff.ref_next;
+       if assigned(ff) then
+         begin
+           cacheindex:=ff.ref_index;
+           cacheinputfile:=ff;
+         end;
        get_file:=ff;
      end;
 
