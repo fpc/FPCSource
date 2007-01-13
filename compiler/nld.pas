@@ -585,7 +585,7 @@ implementation
         { assignments to formaldefs and open arrays aren't allowed }
         if (left.resultdef.typ=formaldef) or
            is_open_array(left.resultdef) then
-          CGMessage(type_e_operator_not_allowed);
+          CGMessage(type_e_assignment_not_allowed);
 
         { test if node can be assigned, properties are allowed }
         valid_for_assignment(left,true);

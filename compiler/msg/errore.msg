@@ -1325,9 +1325,9 @@ type_h_smaller_possible_range_check=04049_H_Type size mismatch, possible loss of
 % this may cause a range-check error, or may lead to possible loss of data.
 type_e_cant_take_address_of_abstract_method=04050_E_The address of an abstract method can't be taken
 % An abstract method has no body, so the address of an abstract method can't be taken.
-type_e_operator_not_allowed=04051_E_The operator "$1" is not applicable for the operand type combination "$2" and "$3"
-% You are trying an operator that is not available for the type of the
-% operands
+type_e_assignment_not_allowed=04051_E_Assignments to formal parameters and open arrays are not possible
+% You are trying to assign a value to a formal (untyped var, const or out)
+% parameter, or to an open array.
 type_e_constant_expr_expected=04052_E_Constant Expression expected
 % The compiler expects an constant expression, but gets a variable expression.
 type_e_operator_not_supported_for_types=04053_E_Operation "$1" not supported for types "$2" and "$3"

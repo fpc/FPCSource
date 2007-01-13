@@ -365,7 +365,7 @@ const
   type_w_smaller_possible_range_check=04048;
   type_h_smaller_possible_range_check=04049;
   type_e_cant_take_address_of_abstract_method=04050;
-  type_e_operator_not_allowed=04051;
+  type_e_assignment_not_allowed=04051;
   type_e_constant_expr_expected=04052;
   type_e_operator_not_supported_for_types=04053;
   type_e_illegal_type_conversion=04054;
@@ -715,7 +715,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 42505;
+  MsgTxtSize = 42488;
 
   MsgIdxMax : array[1..20] of longint=(
     24,82,231,79,63,48,106,22,135,60,
