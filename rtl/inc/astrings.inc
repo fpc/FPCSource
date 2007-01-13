@@ -203,6 +203,7 @@ end;
 procedure fpc_AnsiStr_Concat (var DestS:ansistring;const S1,S2 : AnsiString); compilerproc;
 Var
   Size,Location : SizeInt;
+  same : boolean;
 begin
   { only assign if s1 or s2 is empty }
   if (S1='') then
@@ -220,8 +221,12 @@ begin
   { Use Pointer() typecasts to prevent extra conversion code }
   if Pointer(DestS)=Pointer(S1) then
     begin
+      same:=Pointer(S1)=Pointer(S2);
       SetLength(DestS,Size+Location);
-      Move(Pointer(S2)^,(Pointer(DestS)+Location)^,Size+1);
+      if same then
+        Move(Pointer(DestS)^,(Pointer(DestS)+Location)^,Size)
+      else
+        Move(Pointer(S2)^,(Pointer(DestS)+Location)^,Size+1);
     end
   else if Pointer(DestS)=Pointer(S2) then
     begin
