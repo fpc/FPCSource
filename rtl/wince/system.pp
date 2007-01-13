@@ -1781,8 +1781,9 @@ end;
 initialization
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := StackTop - StackLength;
-  { Enable FPU exceptions }
-  _controlfp(1, $0008001F);
+  { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
+  { FPU precision 64 bit, rounding to nearest, affine infinity }
+  _controlfp($000C0003, $030F031F);
   { some misc stuff }
   hprevinst:=0;
   if not IsLibrary then
