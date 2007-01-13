@@ -694,14 +694,14 @@ implementation
     procedure Tcginlinenode.second_get_frame;
 
     begin
-{$ifdef x86}
+{$if defined(x86) or defined(arm)}
       if current_procinfo.framepointer=NR_STACK_POINTER_REG then
         begin
           location_reset(location,LOC_CONSTANT,OS_ADDR);
           location.value:=0;
         end
       else
-{$endif x86}
+{$endif defined(x86) or defined(arm)}
         begin
           location_reset(location,LOC_CREGISTER,OS_ADDR);
           location.register:=current_procinfo.framepointer;

@@ -1924,7 +1924,7 @@ begin
   def_system_macro('FPC_HAS_VALGRINDBOOL');
   def_system_macro('FPC_HAS_STR_CURRENCY');
   def_system_macro('FPC_REAL2REAL_FIXED');
-{$ifdef x86}
+{$if defined(x86) or defined(arm)}
   def_system_macro('INTERNAL_BACKTRACE');
 {$endif}
   def_system_macro('STR_CONCAT_PROCS');

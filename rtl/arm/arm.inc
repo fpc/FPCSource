@@ -33,12 +33,13 @@ end;
                        stack frame related stuff
 ****************************************************************************}
 
+{$IFNDEF INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
   mov    r0,r11
 end ['R0'];
-
+{$ENDIF not INTERNAL_BACKTRACE}
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
