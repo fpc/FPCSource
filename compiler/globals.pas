@@ -1079,7 +1079,6 @@ implementation
         DLLsource:=false;
         inlining_procedure:=false;
         resolving_forward:=false;
-        LinkTypeSetExplicitly:=false;
         paratarget:=system_none;
         paratargetasm:=as_none;
         paratargetdbg:=dbg_none;
