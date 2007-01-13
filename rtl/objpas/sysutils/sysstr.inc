@@ -1095,10 +1095,8 @@ End;
 const
 {$ifdef FPC_HAS_TYPE_EXTENDED}
   maxdigits = 17;
-  maxexplen = 4;
 {$else}
   maxdigits = 15;
-  maxexplen = 3;
 {$endif}
 
 Function FloatToStrFIntl(const Value; format: TFloatFormat; Precision, Digits: Integer; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): String;
@@ -1218,26 +1216,26 @@ Begin
           Result[3] := DS
         else
           Result[2] := DS;
-        if Digits < 4 then
+        P:=Pos('E',Result);
+        if P <> 0 then
           begin
-            P:=Pos('E',Result);
-            if P <> 0 then
-              begin
-                Inc(P, 2);
-                { the exponent length is shorted if extended is not supported }
-                if (Digits > maxexplen) then
-                  insert(copy('0000',1,Digits-maxexplen),Result,P);
-                while (Result[P] = '0') and (Digits < maxexplen) do
-                  begin
-                    System.Delete(Result, P, 1);
-                    if P > Length(Result) then
-                      begin
-                        System.Delete(Result, P - 2, 2);
-                        break;
-                      end;
-                    Inc(Digits);
-                  end;
-              end;
+            Inc(P, 2);
+            if Digits > 4 then
+              Digits:=4;
+            Digits:=Length(Result) - P - Digits + 1;
+            if Digits < 0 then
+              insert(copy('0000',1,-Digits),Result,P)
+            else
+              while (Digits > 0) and (Result[P] = '0') do
+                begin
+                  System.Delete(Result, P, 1);
+                  if P > Length(Result) then
+                    begin
+                      System.Delete(Result, P - 2, 2);
+                      break;
+                    end;
+                  Dec(Digits);
+                end;
           end;
       End;
 

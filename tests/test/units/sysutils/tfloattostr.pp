@@ -23,16 +23,23 @@ begin
 end;
 
 var
+  e: extended;
   d: double;
   s: single;
   c: currency;
 begin
+  e:=1234567890123.4;
   d:=12345.12345;
   s:=12345.12;
   c:=12345.1234;
+  CheckResult(FloatToStrF(e,ffExponent,15,1), '1.23456789012340E+12');
   CheckResult(FloatToStrF(d,ffExponent,11,0), '1.2345123450E+4');
   CheckResult(FloatToStrF(s,ffExponent,8,0), '1.2345120E+4');
+  CheckResult(FloatToStrF(s,ffExponent,8,7), '1.2345120E+0004');
+  CheckResult(FloatToStrF(e,ffExponent,8,3), '1.2345679E+012');
   CheckResult(FloatToStrF(c,ffExponent,10,0), '1.234512340E+4');
+  CheckResult(FloatToStrF(c,ffExponent,11,2), '1.2345123400E+04');
+  CheckResult(FloatToStrF(c,ffExponent,10,4), '1.234512340E+0004');
   CheckResult(FloatToStrF(-12345.12345,ffExponent,11,0), '-1.2345123450E+4');
   CheckResult(FloatToStrF(-0.00000123,ffGeneral,15,0), '-1.23E-6');
   CheckResult(FloatToStrF(-12345.12345,ffGeneral,7,0), '-12345.12');
