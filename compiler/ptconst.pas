@@ -131,7 +131,7 @@ implementation
                      intvalue := tordconstnode(n).value
                    { allow bootstrapping }
                    else if is_constrealnode(n) then
-                     intvalue:=round(trealconstnode(n).value_real*10000)
+                     intvalue:=PInt64(@trealconstnode(n).value_currency)^
                    else
                      begin
                        intvalue:=0;

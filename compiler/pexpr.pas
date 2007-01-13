@@ -2198,6 +2198,7 @@ implementation
          pd         : tprocdef;
          hclassdef     : tobjectdef;
          d          : bestreal;
+         cur        : currency;
          hs,hsorg   : string;
          hdef       : tdef;
          filepos    : tfileposinfo;
@@ -2446,6 +2447,11 @@ implementation
                else
 {$endif FPC_REAL2REAL_FIXED}
                  p1:=crealconstnode.create(d,pbestrealtype^);
+{$ifdef FPC_HAS_STR_CURRENCY}
+               val(pattern,cur,code);
+               if code=0 then
+                 trealconstnode(p1).value_currency:=cur;
+{$endif FPC_HAS_STR_CURRENCY}
              end;
 
            _STRING :
@@ -2595,6 +2601,7 @@ implementation
                         else if tbinarynode(p1).left.nodetype=realconstn then
                           begin
                             trealconstnode(tbinarynode(p1).left).value_real:=-trealconstnode(tbinarynode(p1).left).value_real;
+                            trealconstnode(tbinarynode(p1).left).value_currency:=-trealconstnode(tbinarynode(p1).left).value_currency;
                             p1:=cunaryminusnode.create(p1);
                           end
                         else

@@ -54,6 +54,7 @@ interface
           typedef : tdef;
           typedefderef : tderef;
           value_real : bestreal;
+          value_currency : currency;
           lab_real : tasmlabel;
           constructor create(v : bestreal;def:tdef);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -472,14 +473,19 @@ implementation
          inherited create(realconstn);
          typedef:=def;
          value_real:=v;
+         value_currency:=v;
          lab_real:=nil;
       end;
 
     constructor trealconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      var
+        i : int64;
       begin
         inherited ppuload(t,ppufile);
         ppufile.getderef(typedefderef);
         value_real:=ppufile.getreal;
+        i:=ppufile.getint64;
+        value_currency:=PCurrency(@i)^;
         lab_real:=tasmlabel(ppufile.getasmsymbol);
       end;
 
@@ -489,6 +495,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putderef(typedefderef);
         ppufile.putreal(value_real);
+        ppufile.putint64(PInt64(@value_currency)^);
         ppufile.putasmsymbol(lab_real);
       end;
 
@@ -513,6 +520,7 @@ implementation
       begin
          n:=trealconstnode(inherited dogetcopy);
          n.value_real:=value_real;
+         n.value_currency:=value_currency;
          n.lab_real:=lab_real;
          dogetcopy:=n;
       end;

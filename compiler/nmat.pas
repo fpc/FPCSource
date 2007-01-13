@@ -605,6 +605,7 @@ implementation
         if is_constrealnode(left) then
           begin
              trealconstnode(left).value_real:=-trealconstnode(left).value_real;
+             trealconstnode(left).value_currency:=-trealconstnode(left).value_currency;
              result:=left;
              left:=nil;
              exit;
