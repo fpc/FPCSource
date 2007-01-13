@@ -272,22 +272,25 @@ interface
 
     procedure tcgtypeconvnode.second_real_to_real;
       begin
-         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+         location_reset(location,expectloc,def_cgsize(resultdef));
 {$ifdef x86}
          { extended types in memory which should be loaded into the sse unit
            must be converted by the fpu first, so force them to be loaded into
            the fpu }
          if (expectloc=LOC_MMREGISTER) and
-           (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) and
-           (left.location.size=OS_F80) then
-           location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
+            (left.location.size in [OS_F80,OS_C64]) then
+           begin
+             if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+               location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
+             { round them down to the proper precision }
+             cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,left.location.register);
+             left.location.size:=location.size;
+           end;
 {$endif x86}
          case left.location.loc of
             LOC_FPUREGISTER,
             LOC_CFPUREGISTER:
               begin
-                location_copy(location,left.location);
-                location.size:=def_cgsize(resultdef);
                 case expectloc of
                   LOC_FPUREGISTER:
                     begin
@@ -298,7 +301,11 @@ interface
                       cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
                     end;
                   LOC_MMREGISTER:
-                    location_force_mmregscalar(current_asmdata.CurrAsmList,location,false);
+                    begin
+                      location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+                      location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+                      cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register,nil);
+                    end
                   else
                     internalerror(2003012262);
                 end;
@@ -309,29 +316,32 @@ interface
               begin
                  if expectloc=LOC_MMREGISTER then
                    begin
-                     location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));
                      location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
                      cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register,mms_movescalar)
                    end
                   else
                     begin
-                      location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,left.location.size);
-                      cg.a_loadfpu_loc_reg(current_asmdata.CurrAsmList,location.size,left.location,location.register);
+                      location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
+                      location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+                      cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
                     end;
                  location_freetemp(current_asmdata.CurrAsmList,left.location);
               end;
             LOC_MMREGISTER,
             LOC_CMMREGISTER:
               begin
-                location_copy(location,left.location);
                 case expectloc of
                   LOC_FPUREGISTER:
                     begin
-                      location_force_fpureg(current_asmdata.CurrAsmList,location,false);
-                      location.size:=def_cgsize(resultdef);
+                      location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
+                      location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+                      cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register);
                     end;
                   LOC_MMREGISTER:
-                    ;
+                    begin
+                      location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+                      cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register,nil);
+                    end;
                   else
                     internalerror(2003012261);
                 end;

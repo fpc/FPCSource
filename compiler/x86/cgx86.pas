@@ -915,22 +915,8 @@ unit cgx86;
       var
         instr : taicpu;
       begin
-        if shuffle=nil then
-          begin
-            if fromsize=tosize then
-              { needs correct size in case of spilling }
-              case fromsize of
-                OS_F32:
-                  instr:=taicpu.op_reg_reg(A_MOVAPS,S_NO,reg1,reg2);
-                OS_F64:
-                  instr:=taicpu.op_reg_reg(A_MOVAPD,S_NO,reg1,reg2);
-                else
-                  internalerror(2006091201);
-              end
-            else
-              internalerror(200312202);
-          end
-        else if shufflescalar(shuffle) then
+        if (shuffle=nil) or
+           shufflescalar(shuffle) then
           instr:=taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg1,reg2)
         else
           internalerror(200312201);
