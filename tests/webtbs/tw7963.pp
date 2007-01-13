@@ -12,4 +12,5 @@ var
 
 begin
   Proc(a, b);
+  Proc(a, b, a, b);
 end.

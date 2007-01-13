@@ -1892,7 +1892,7 @@ implementation
                 begin
                    if assigned(pt) then
                      current_filepos:=pt.fileinfo;
-                   CGMessage1(parser_e_wrong_parameter_size,symtableprocentry.realname);
+                   CGMessage1(parser_e_wrong_parameter_size,'<Procedure Variable>');
                    goto errorexit;
                 end;
            end
