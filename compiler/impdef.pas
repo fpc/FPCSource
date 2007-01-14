@@ -118,7 +118,7 @@ const
 {$ifdef unix}
   DirSep = '/';
 {$else}
-  {$ifdef amiga}
+  {$if defined(amiga) or defined(morphos)}
   DirSep = '/';
   {$else}
   DirSep = '\';

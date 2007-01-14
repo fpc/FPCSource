@@ -24,6 +24,9 @@ unit cfileutils;
 {$i fpcdefs.inc}
 
 {$define usedircache}
+{$if defined(morphos) or defined(amiga)}
+{$undef usedircache}
+{$endif}
 
 interface
 
@@ -340,7 +343,7 @@ implementation
 {$if defined(unix)}
         if (length(s)>0) and (s[1]='/') then
           result:=true;
-{$elseif defined(amiga)}
+{$elseif defined(amiga) or defined(morphos)}
         if ((length(s)>0) and ((s[1]='\') or (s[1]='/'))) or (Pos(':',s) = length(s)) then
           result:=true;
 {$elseif defined(macos)}
@@ -828,7 +831,7 @@ implementation
             currPath:=FixPath(ExpandFileName(currpath),false);
             if (CurrentDir<>'') and (Copy(currPath,1,length(CurrentDir))=CurrentDir) then
              begin
-{$ifdef AMIGA}
+{$if defined(amiga) and defined(morphos)}
                currPath:= CurrentDir+Copy(currPath,length(CurrentDir)+1,255);
 {$else}
                currPath:= CurDirRelPath(source_info)+Copy(currPath,length(CurrentDir)+1,255);
