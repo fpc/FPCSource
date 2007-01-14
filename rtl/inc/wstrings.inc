@@ -454,6 +454,7 @@ end;
 procedure fpc_WideStr_Concat (var DestS:Widestring;const S1,S2 : WideString); compilerproc;
 Var
   Size,Location : SizeInt;
+  same : boolean;
 begin
   { only assign if s1 or s2 is empty }
   if (S1='') then
@@ -471,8 +472,12 @@ begin
   { Use Pointer() typecasts to prevent extra conversion code }
   if Pointer(DestS)=Pointer(S1) then
     begin
+      same:=Pointer(S1)=Pointer(S2);
       SetLength(DestS,Size+Location);
-      Move(Pointer(S2)^,(Pointer(DestS)+Location*sizeof(WideChar))^,(Size+1)*sizeof(WideChar));
+      if same then
+        Move(Pointer(DestS)^,(Pointer(DestS)+Location*sizeof(WideChar))^,(Size)*sizeof(WideChar))
+      else
+        Move(Pointer(S2)^,(Pointer(DestS)+Location*sizeof(WideChar))^,(Size+1)*sizeof(WideChar));
     end
   else if Pointer(DestS)=Pointer(S2) then
     begin
