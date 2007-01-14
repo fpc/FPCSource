@@ -140,6 +140,79 @@ begin
   Bind:=(SocketError=0);
 end;
 
+
+
+Function DoAccept(Sock:longint;var addr:string):longint;
+var
+  UnixAddr : TUnixSockAddr;
+  AddrLen  : longint;
+begin
+  AddrLen:=length(addr)+3;
+  DoAccept:=Accept(Sock,UnixAddr,AddrLen);
+  Move(UnixAddr.Path,Addr[1],AddrLen);
+  SetLength(Addr,AddrLen);
+end;
+
+
+
+Function DoConnect(Sock:longint;const addr:string):Boolean;
+var
+  UnixAddr : TUnixSockAddr;
+  AddrLen  : longint;
+begin
+  Str2UnixSockAddr(addr,UnixAddr,AddrLen);
+  DoConnect:=Connect(Sock,UnixAddr,AddrLen);
+end;
+
+Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;
+var
+  s : longint;
+begin
+  S:=DoAccept(Sock,addr);
+  if S>0 then
+   begin
+     Sock2Text(S,SockIn,SockOut);
+     Accept:=true;
+   end
+  else
+   Accept:=false;
+end;
+
+
+
+Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
+var
+  s : longint;
+begin
+  S:=DoAccept(Sock,addr);
+  if S>0 then
+   begin
+     Sock2File(S,SockIn,SockOut);
+     Accept:=true;
+   end
+  else
+   Accept:=false;
+end;
+
+
+
+Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean;
+begin
+  Connect:=DoConnect(Sock,addr);
+  If Connect then
+     Sock2Text(Sock,SockIn,SockOut);
+end;
+
+
+
+Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean;
+begin
+  Connect:=DoConnect(Sock,addr);
+  if Connect then
+     Sock2File(Sock,SockIn,SockOut);
+end;
+
+
 // fsread and fswrite are used in socket.inc
 procedure fdwrite (Handle:longint; VAR Data; Len : LONGINT);
 begin

@@ -191,6 +191,19 @@ Function SetSocketOptions(Sock,Level,OptName:Longint;const OptVal;optlen:longint
 Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
 Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
 
+{Text Support}
+Procedure Sock2Text(Sock:Longint;Var SockIn,SockOut:Text);
+
+{Untyped File Support}
+Procedure Sock2File(Sock:Longint;Var SockIn,SockOut:File);
+
+{Better Pascal Calling, Overloaded Functions!}
+Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:File):Boolean;
+Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;
+Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;
+Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):Boolean;
+
+
 { Utility routines}
 function htonl( host : longint):longint; inline;
 Function NToHl( Net : Longint) : Longint; inline;

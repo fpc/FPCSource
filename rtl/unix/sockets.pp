@@ -41,6 +41,10 @@ type
 { unix socket specific functions }
 Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint);
 Function Bind(Sock:longint;const addr:string):boolean;
+Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean;
+Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean;
+Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;
+Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
 
 //function  fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; maybelibc
 //function  fpbind      (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  maybelibc
