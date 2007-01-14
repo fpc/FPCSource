@@ -2020,7 +2020,7 @@ void                  \2\x0F\x07                      P6,PRIV,AMD
 regmem,reg16|32|64    \300\320\1\x85\101              8086,SM
 reg16|32|64,mem       \301\320\1\x85\110              8086,SM
 reg8,reg8             \300\323\1\x84\101              8086
-reg8,mem              \301\323\1\x84\110              8086,SM
+rm8,reg8              \301\323\1\x84\110              8086,SM
 reg_eax,imm           \325\1\xA9\41                   386,SM
 reg_ax,imm            \324\1\xA9\31                   8086,SM
 reg_al,imm            \1\xA8\21                       8086,SM

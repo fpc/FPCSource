@@ -6289,7 +6289,7 @@
   (
     opcode  : A_TEST;
     ops     : 2;
-    optypes : (ot_reg8,ot_memory,ot_none);
+    optypes : (ot_regmem or ot_bits8,ot_reg8,ot_none);
     code    : #193#211#1#132#72;
     flags   : if_8086 or if_sm
   ),
