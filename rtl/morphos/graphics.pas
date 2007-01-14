@@ -2298,7 +2298,7 @@ SysCall GfxBase 228;
 procedure SetRast(rp : pRastPort location 'a1'; pen : CARDINAL location 'd0');
 SysCall GfxBase 234;
 
-procedure Move(rp : pRastPort location 'a1'; x : LongInt location 'd0'; y : LongInt location 'd1');
+procedure gfxMove(rp : pRastPort location 'a1'; x : LongInt location 'd0'; y : LongInt location 'd1');
 SysCall GfxBase 240;
 
 procedure Draw(rp : pRastPort location 'a1'; x : LongInt location 'd0'; y : LongInt location 'd1');
