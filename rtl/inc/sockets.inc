@@ -66,7 +66,7 @@ begin
           end;
       end;
       if r=-1 then
-        case errno of
+        case socketerror of
           EsockEBADF:
 {          EsysENOTSOCK:}   {Why is this constant not defined? (DM)}
             inoutres:=6;    {Invalid file handle.}
