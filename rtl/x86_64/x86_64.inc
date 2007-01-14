@@ -592,22 +592,27 @@ const
   mxcsr : dword = MM_MaskUnderflow or MM_MaskPrecision or MM_MaskDenorm;
 
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
-Procedure SysResetFPU;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
-asm
+Procedure SysResetFPU;
+begin
+  asm
 {$ifndef WIN64}
-  { initialize fpu }
-  fninit
-  fwait
+    { initialize fpu }
+    fninit
+    fwait
 {$endif WIN64}
 {$ifdef FPC_PIC}
-  movq fpucw@GOTPCREL(%rip),%rax
-  fldcw (%rax)
-  { set sse exceptions }
-  movq mxcsr@GOTPCREL(%rip),%rax
-  ldmxcsr (%rax)
+    movq fpucw@GOTPCREL(%rip),%rax
+    fldcw (%rax)
+    { set sse exceptions }
+    movq mxcsr@GOTPCREL(%rip),%rax
+    ldmxcsr (%rax)
 {$else FPC_PIC}
-  fldcw fpucw
-  { set sse exceptions }
-  ldmxcsr mxcsr
+    fldcw fpucw
+    { set sse exceptions }
+    ldmxcsr mxcsr
 {$endif FPC_PIC}
+  end ['RAX'];
+  { x86-64 might use softfloat code }
+  softfloat_exception_flags:=0;
+  softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
 end;

@@ -1237,14 +1237,19 @@ end;
 {$IFDEF MORPHOS}
 { this is only required for MorphOS }
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
-procedure SysResetFPU;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
-var tmp: array[0..1] of dword;
-asm
-   { setting fpu to round to nearest mode }
-   li r3,0
-   stw r3,8(r1)
-   stw r3,12(r1)
-   lfd f1,8(r1)
-   mtfsf 7,f1
+procedure SysResetFPU;$ifdef SYSTEMINLINE}inline;{$endif}
+  var tmp: array[0..1] of dword;
+begin
+  asm
+     { setting fpu to round to nearest mode }
+     li r3,0
+     stw r3,8(r1)
+     stw r3,12(r1)
+     lfd f1,8(r1)
+     mtfsf 7,f1
+  end;
+  { powerpc might use softfloat code }
+  softfloat_exception_flags:=0;
+  softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
 end;
 {$ENDIF}

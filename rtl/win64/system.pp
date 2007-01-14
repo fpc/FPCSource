@@ -16,6 +16,9 @@
 unit System;
 interface
 
+
+{ $define SYSTEMEXCEPTIONDEBUG}
+
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}

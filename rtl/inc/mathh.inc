@@ -24,7 +24,25 @@
     function GetSSECSR : dword;
 {$endif}
 
+const
+{*
+-------------------------------------------------------------------------------
+Software IEC/IEEE floating-point exception flags.
+-------------------------------------------------------------------------------
+*}
+    float_flag_invalid   =  1;
+    float_flag_denormal  =  2;
+    float_flag_divbyzero =  4;
+    float_flag_overflow  =  8;
+    float_flag_underflow = 16;
+    float_flag_inexact   = 32;
    { declarations of the math routines }
+
+threadvar
+  softfloat_exception_mask : Byte;
+  softfloat_exception_flags : Byte;
+
+procedure float_raise(i: shortint);
 
 {$ifdef cpui386}
   {$define INTERNMATH}

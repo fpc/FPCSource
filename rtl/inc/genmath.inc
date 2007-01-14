@@ -100,6 +100,33 @@ type
   flag = byte;
 {$endif FPC_SYSTEM_HAS_flag}
 
+{*
+-------------------------------------------------------------------------------
+Raises the exceptions specified by `flags'.  Floating-point traps can be
+defined here if desired.  It is currently not possible for such a trap
+to substitute a result value.  If traps are not implemented, this routine
+should be simply `softfloat_exception_flags |= flags;'.
+-------------------------------------------------------------------------------
+*}
+procedure float_raise( i: shortint );
+Begin
+  softfloat_exception_flags := softfloat_exception_flags or i;
+  if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_invalid) <> 0 then
+     RunError(207)
+  else
+  if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_divbyzero) <> 0 then
+     RunError(200)
+  else
+  if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_overflow) <> 0 then
+     RunError(205)
+  else
+  if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_underflow) <> 0 then
+     RunError(206)
+  else
+  if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_inexact) <> 0 then
+     RunError(207);
+end;
+
 
 {$ifndef FPC_SYSTEM_HAS_extractFloat64Frac0}
   Function extractFloat64Frac0(const a: float64): longint;
@@ -156,6 +183,8 @@ type
        aExp, shiftCount: smallint;
        aSig0, aSig1, absZ, aSigExtra: longint;
        z: longint;
+     label
+       invalid;
      Begin
        aSig1 := extractFloat64Frac1( a );
        aSig0 := extractFloat64Frac0( a );
@@ -165,7 +194,7 @@ type
        if 0<=shiftCount then
        Begin
           if (aExp=$7FF)  and ((aSig0 or aSig1)<>0) then
-            HandleError(207);
+            goto invalid;
           shortShift64Left(aSig0 OR  $00100000, aSig1, shiftCount, absZ, aSigExtra );
        End
        else
@@ -184,8 +213,19 @@ type
        else
          z:=absZ;
        if ((aSign<>0) xor (z<0)) AND  (z<>0) then
-         HandleError(207);
-      float64_to_int32_round_to_zero := z;
+         begin
+invalid:
+           float_raise(float_flag_invalid);
+           if (aSign <> 0) then
+             float64_to_int32_round_to_zero:=$80000000
+           else
+             float64_to_int32_round_to_zero:=$7FFFFFFF;
+           exit;
+         end;
+       if ( aSigExtra <> 0) then
+         float_raise(float_flag_inexact);
+
+       float64_to_int32_round_to_zero := z;
      End;
 
 
@@ -207,9 +247,17 @@ type
            if aExp>=$43e then
              begin
                if int64(a)<>$C3E0000000000000 then
-                 HandleError(207);
-               { pascal doesn't know Inf for int64 }
-               HandleError(207);
+                 begin
+                   float_raise(float_flag_invalid);
+                   if (aSign=0) or ((aExp=$7FF) and
+                      (aSig<>$0010000000000000 )) then
+                     begin
+                       result:=$7FFFFFFFFFFFFFFF;
+                       exit;
+                     end;
+                 end;
+               result:=$8000000000000000;
+               exit;
              end;
            z:=aSig shl shiftCount;
          end
@@ -270,13 +318,14 @@ type
          Begin
            if ( a <> Float32($CF000000) ) then
              Begin
+               float_raise( float_flag_invalid );
                if ( (aSign=0) or ( ( aExp = $FF ) and (aSig<>0) ) ) then
                  Begin
-                   HandleError(207);
+                   float32_to_int32_round_to_zero:=$7fffffff;
                    exit;
                  end;
              End;
-           HandleError(207);
+           float32_to_int32_round_to_zero:=$80000000;
            exit;
          End
        else
@@ -561,8 +610,8 @@ type
     begin
        if( d <= 0.0 ) then
        begin
-           if( d < 0.0 ) then
-               HandleError(207);
+           if d < 0.0 then
+             d:=0/0;
            result := 0.0;
        end
      else
@@ -1005,7 +1054,10 @@ type
     Label Ldone;
     begin
        if( d <= 0.0 ) then
-          HandleError(207);
+         begin
+           float_raise(float_flag_invalid);
+           exit;
+         end;
        d := frexp( d, e );
 
     { logarithm using log(x) = z + z**3 P(z)/Q(z),
@@ -1455,5 +1507,3 @@ function FPower10(val: Extended; Power: Longint): Extended;
       end;
   end;
 {$endif SUPPORT_EXTENDED}
-
-

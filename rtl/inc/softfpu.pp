@@ -470,23 +470,11 @@ rounded down.
 
 {*
 -------------------------------------------------------------------------------
-Software IEC/IEEE floating-point exception flags.
--------------------------------------------------------------------------------
-*}
-    float_flag_invalid   =  1;
-    float_flag_divbyzero =  4;
-    float_flag_overflow  =  8;
-    float_flag_underflow = 16;
-    float_flag_inexact   = 32;
-
-{*
--------------------------------------------------------------------------------
 Floating-point rounding mode and exception flags.
 -------------------------------------------------------------------------------
 *}
 const
  float_rounding_mode : Byte = float_round_nearest_even;
- float_exception_flags : Byte = 0;
 
 {*
 -------------------------------------------------------------------------------
@@ -505,31 +493,6 @@ implementation
 
 
 {$if not(defined(fpc_softfpu_interface))}
-{*
--------------------------------------------------------------------------------
-Raises the exceptions specified by `flags'.  Floating-point traps can be
-defined here if desired.  It is currently not possible for such a trap
-to substitute a result value.  If traps are not implemented, this routine
-should be simply `float_exception_flags |= flags;'.
--------------------------------------------------------------------------------
-*}
-procedure float_raise( i: shortint );
-Begin
-  float_exception_flags := float_exception_flags or i;
-  if (float_exception_flags and float_flag_invalid) <> 0 then
-     RunError(207)
-  else
-  if (float_exception_flags and float_flag_divbyzero) <> 0 then
-     RunError(200)
-  else
-  if (float_exception_flags and float_flag_overflow) <> 0 then
-     RunError(205)
-  else
-  if (float_exception_flags and float_flag_underflow) <> 0 then
-     RunError(206);
-end;
-
-
 (*****************************************************************************)
 (*----------------------------------------------------------------------------*)
 (* Primitive arithmetic functions, including multi-word arithmetic, and       *)
@@ -595,7 +558,7 @@ begin
         exit;
     end;
     if ( roundBits<>0 ) then
-      float_exception_flags := float_exception_flags or float_flag_inexact;
+      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
     result:=z;
 end;
 
@@ -658,7 +621,7 @@ begin
           result:=int64($7FFFFFFFFFFFFFFF);
     end;
     if ( absZ1<>0 ) then
-      float_exception_flags := float_exception_flags or float_flag_inexact;
+      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
     result:=z;
 end;
 
@@ -2169,7 +2132,7 @@ Function roundAndPackFloat32( zSign : Flag; zExp : Int16; zSig : Bits32 ) : floa
           End;
     End;
     if ( roundBits )<> 0 then
-       float_exception_flags := float_flag_inexact OR float_exception_flags;
+       softfloat_exception_flags := float_flag_inexact OR softfloat_exception_flags;
     zSig := ( zSig + roundIncrement ) shr 7;
     zSig := zSig AND not bits32( bits32( ( roundBits XOR $40 ) = 0 ) and roundNearestEven );
     if ( zSig = 0 ) then zExp := 0;
@@ -2432,7 +2395,7 @@ Procedure
         End;
     End;
     if ( zSig2 )<>0 then
-       float_exception_flags := float_exception_flags OR  float_flag_inexact;
+       softfloat_exception_flags := softfloat_exception_flags OR  float_flag_inexact;
     if ( increment )<>0 then
       Begin
         add64( zSig0, zSig1, 0, 1, zSig0, zSig1 );
@@ -2522,7 +2485,7 @@ begin
         end
     end;
     if ( roundBits<>0 ) then
-      float_exception_flags := float_exception_flags or float_flag_inexact;
+      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
     zSig := ( zSig + roundIncrement ) shr 10;
     zSig := zSig and not( ord( ( roundBits xor $200 ) = 0 ) and roundNearestEven );
     if ( zSig = 0 ) then
@@ -2695,7 +2658,7 @@ Function float32_to_int32( a : float32rec) : int32;compilerproc;
             z := aSig shr ( - shiftCount );
          End;
         if ( aSigExtra<>0 ) then
-          float_exception_flags := float_exception_flags
+          softfloat_exception_flags := softfloat_exception_flags
              or float_flag_inexact;
         roundingMode := float_rounding_mode;
         if ( roundingMode = float_round_nearest_even ) then
@@ -2766,8 +2729,8 @@ Function float32_to_int32_round_to_zero( a: Float32rec ): int32;compilerproc;
       if ( aExp <= $7E ) then
       Begin
         if ( aExp or aSig )<>0 then
-           float_exception_flags :=
-             float_exception_flags or float_flag_inexact;
+           softfloat_exception_flags :=
+             softfloat_exception_flags or float_flag_inexact;
         float32_to_int32_round_to_zero := 0;
         exit;
       End;
@@ -2775,8 +2738,8 @@ Function float32_to_int32_round_to_zero( a: Float32rec ): int32;compilerproc;
     z := aSig shr ( - shiftCount );
     if ( bits32 ( aSig shl ( shiftCount and 31 ) )<> 0 ) then
       Begin
-           float_exception_flags :=
-             float_exception_flags or float_flag_inexact;
+           softfloat_exception_flags :=
+             softfloat_exception_flags or float_flag_inexact;
       End;
     if ( aSign<>0 ) then z := - z;
     float32_to_int32_round_to_zero := z;
@@ -2859,8 +2822,8 @@ Function float32_round_to_int( a: float32rec): float32rec;compilerproc;
              float32_round_to_int:=a;
              exit;
           end;
-        float_exception_flags
-          := float_exception_flags OR  float_flag_inexact;
+        softfloat_exception_flags
+          := softfloat_exception_flags OR  float_flag_inexact;
         aSign := extractFloat32Sign( a.float32 );
 
         case ( float_rounding_mode ) of
@@ -2912,7 +2875,7 @@ Function float32_round_to_int( a: float32rec): float32rec;compilerproc;
       End;
     z := z and not roundBitsMask;
     if ( z <> a.float32 ) then
-      float_exception_flags := float_exception_flags or float_flag_inexact;
+      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
     float32_round_to_int.float32 := z;
   End;
 
@@ -3820,7 +3783,7 @@ Begin
         exit;
     End;
     if ( aSigExtra <> 0) then
-       float_exception_flags := float_exception_flags or float_flag_inexact;
+       softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
     float64_to_int32 := z;
 End;
 
@@ -3867,8 +3830,8 @@ Var
         Begin
             if ( aExp OR  aSig0 OR  aSig1 )<>0 then
             Begin
-                float_exception_flags :=
-                  float_exception_flags or float_flag_inexact;
+                softfloat_exception_flags :=
+                  softfloat_exception_flags or float_flag_inexact;
             End;
             float64_to_int32_round_to_zero := 0;
             exit;
@@ -3892,7 +3855,7 @@ Var
         exit;
     End;
     if ( aSigExtra <> 0) then
-       float_exception_flags := float_exception_flags or float_flag_inexact;
+       softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
     float64_to_int32_round_to_zero := z;
  End;
 
@@ -4010,7 +3973,7 @@ Begin
                 result := a;
                 exit;
             End;
-            float_exception_flags := float_exception_flags or
+            softfloat_exception_flags := softfloat_exception_flags or
                float_flag_inexact;
             aSign := extractFloat64Sign( a );
             case ( float_rounding_mode ) of
@@ -4072,8 +4035,8 @@ Begin
     End;
     if ( ( z.low <> a.low ) OR ( z.high <> a.high ) ) then
     Begin
-        float_exception_flags :=
-          float_exception_flags or float_flag_inexact;
+        softfloat_exception_flags :=
+          softfloat_exception_flags or float_flag_inexact;
     End;
     result := z;
 End;
@@ -5453,7 +5416,7 @@ begin
             zExp := 0;
             roundBits := zSig0 and roundMask;
             if ( isTiny and roundBits ) float_raise( float_flag_underflow );
-            if ( roundBits ) float_exception_flags |= float_flag_inexact;
+            if ( roundBits ) softfloat_exception_flags |= float_flag_inexact;
             zSig0 += roundIncrement;
             if ( (sbits64) zSig0 < 0 ) zExp := 1;
             roundIncrement := roundMask + 1;
@@ -5464,7 +5427,7 @@ begin
             result:=packFloatx80( zSign, zExp, zSig0 );
         end;
     end;
-    if ( roundBits ) float_exception_flags |= float_flag_inexact;
+    if ( roundBits ) softfloat_exception_flags |= float_flag_inexact;
     zSig0 += roundIncrement;
     if ( zSig0 < roundIncrement ) begin
         ++zExp;
@@ -5519,7 +5482,7 @@ begin
             shift64ExtraRightJamming( zSig0, zSig1, 1 - zExp, &zSig0, &zSig1 );
             zExp := 0;
             if ( isTiny and zSig1 ) float_raise( float_flag_underflow );
-            if ( zSig1 ) float_exception_flags |= float_flag_inexact;
+            if ( zSig1 ) softfloat_exception_flags |= float_flag_inexact;
             if ( roundNearestEven ) begin
                 increment := ( (sbits64) zSig1 < 0 );
             end;
@@ -5540,7 +5503,7 @@ begin
             result:=packFloatx80( zSign, zExp, zSig0 );
         end;
     end;
-    if ( zSig1 ) float_exception_flags |= float_flag_inexact;
+    if ( zSig1 ) softfloat_exception_flags |= float_flag_inexact;
     if ( increment ) begin
         ++zSig0;
         if ( zSig0 = 0 ) begin
@@ -5636,7 +5599,7 @@ begin
         goto invalid;
     end;
     else if ( aExp < $3FFF ) begin
-        if ( aExp or aSig ) float_exception_flags or= float_flag_inexact;
+        if ( aExp or aSig ) softfloat_exception_flags or= float_flag_inexact;
         result := 0;
     end;
     shiftCount := $403E - aExp;
@@ -5650,7 +5613,7 @@ begin
         result := aSign ? (sbits32) $80000000 : $7FFFFFFF;
     end;
     if ( ( aSig shl shiftCount ) <> savedASig ) begin
-        float_exception_flags or= float_flag_inexact;
+        softfloat_exception_flags or= float_flag_inexact;
     end;
     result := z;
 
@@ -5729,12 +5692,12 @@ begin
         result := (sbits64) LIT64( $8000000000000000 );
     end;
     else if ( aExp < $3FFF ) begin
-        if ( aExp or aSig ) float_exception_flags or= float_flag_inexact;
+        if ( aExp or aSig ) softfloat_exception_flags or= float_flag_inexact;
         result := 0;
     end;
     z := aSig>>( - shiftCount );
     if ( (bits64) ( aSig shl ( shiftCount and 63 ) ) ) begin
-        float_exception_flags or= float_flag_inexact;
+        softfloat_exception_flags or= float_flag_inexact;
     end;
     if ( aSign ) z := - z;
     result := z;
@@ -5851,7 +5814,7 @@ begin
              and ( (bits64) ( extractFloatx80Frac( a ) shl 1 ) = 0 ) ) begin
             result := a;
         end;
-        float_exception_flags or= float_flag_inexact;
+        softfloat_exception_flags or= float_flag_inexact;
         aSign := extractFloatx80Sign( a );
         switch ( float_rounding_mode ) begin
          case float_round_nearest_even:
@@ -5892,7 +5855,7 @@ begin
         ++z.high;
         z.low := LIT64( $8000000000000000 );
     end;
-    if ( z.low <> a.low ) float_exception_flags or= float_flag_inexact;
+    if ( z.low <> a.low ) softfloat_exception_flags or= float_flag_inexact;
     result := z;
 
 end;
@@ -6789,7 +6752,7 @@ begin
         end;
     end;
     if ( zSig2<>0 ) then
-      float_exception_flags := float_exception_flags or float_flag_inexact;
+      softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
     if ( increment<>0 ) then
     begin
         add128( zSig0, zSig1, 0, 1, zSig0, zSig1 );
@@ -6903,7 +6866,7 @@ begin
     else if ( aExp < $3FFF ) then
     begin
         if ( aExp or aSig0 )<>0 then
-          float_exception_flags := float_exception_flags or float_flag_inexact;
+          softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
         result := 0;
         exit;
     end;
@@ -6926,7 +6889,7 @@ begin
     end;
     if ( ( aSig0 shl shiftCount ) <> savedASig ) then
     begin
-        float_exception_flags := float_exception_flags or float_flag_inexact;
+        softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
     end;
     result := z;
 end;
@@ -7011,7 +6974,7 @@ begin
                  and ( aSig1 < int64( $0002000000000000 ) ) ) then
             begin
                 if ( aSig1<>0 ) then
-                  float_exception_flags := float_exception_flags or float_flag_inexact;
+                  softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
             end
             else begin
                 float_raise( float_flag_invalid );
@@ -7027,7 +6990,7 @@ begin
         z := ( aSig0 shl shiftCount ) or ( aSig1>>( ( - shiftCount ) and 63 ) );
         if ( int64( aSig1 shl shiftCount )<>0 ) then
         begin
-            float_exception_flags := float_exception_flags or float_flag_inexact;
+            softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
         end;
     end
     else begin
@@ -7035,7 +6998,7 @@ begin
         begin
             if ( aExp or aSig0 or aSig1 )<>0 then
             begin
-                float_exception_flags := float_exception_flags or float_flag_inexact;
+                softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
             end;
             result := 0;
             exit;
@@ -7044,7 +7007,7 @@ begin
         if (    (aSig1<>0)
              or ( (shiftCount<>0) and (int64( aSig0 shl ( shiftCount and 63 ) )<>0) ) ) then
         begin
-            float_exception_flags := float_exception_flags or float_flag_inexact;
+            softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
         end;
     end;
     if ( aSign<>0 ) then
@@ -7239,7 +7202,7 @@ begin
                 result := a;
                 exit;
               end;
-            float_exception_flags := float_exception_flags or float_flag_inexact;
+            softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
             aSign := extractFloat128Sign( a );
             case float_rounding_mode of
             float_round_nearest_even:
@@ -7291,7 +7254,7 @@ begin
         z.high &= ~ roundBitsMask;
     end;
     if ( ( z.low <> a.low ) or ( z.high <> a.high ) ) begin
-        float_exception_flags or= float_flag_inexact;
+        softfloat_exception_flags or= float_flag_inexact;
     end;
     result := z;
 
