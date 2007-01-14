@@ -1,3 +1,4 @@
+{%SKIPTARGET=wince}
 // Title: bad construction status of object.
 {$C+}
 uses Objects;
