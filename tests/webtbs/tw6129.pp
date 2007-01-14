@@ -35,10 +35,10 @@ begin
   WriteLn('@S2            = ',longint(@S2));
 
   WriteLn('Table[0].Name  = ',longint(Table[0].Name));
-  WriteLn('Table[1].Name  = ',longint(Table[1].Name));
+  WriteLn('Table[1].Name  = ',longint(unaligned(Table[1].Name)));
   WriteLn('Table[2].Name  = ',longint(Table[2].Name));
 
   WriteLn('Table[0].Name^ = ',Table[0].Name^);
-  WriteLn('Table[1].Name^ = ',Table[1].Name^);
+  WriteLn('Table[1].Name^ = ',unaligned(Table[1].Name)^);
   WriteLn('Table[2].Name^ = ',Table[2].Name^);
 end.
