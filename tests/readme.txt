@@ -175,3 +175,14 @@ Example cross testing of target arm-wince
 -----------------------------------------
 //arm-wince example : see FPCTRUNK\DEMO\WINCE\TESTEMU\ for additional required tools
 make TEST_FPC=ppcrossarm TEST_CPU_TARGET=arm TEST_OS_TARGET=wince TEST_OPT="-XParm-wince-pe- -WC" EMULATOR=MyDisc:\My\Path\to\wcetemu.exe
+
+Result uploading
+----------------
+Results can be uploaded to the testsuite result DB (http://www.freepascal.org/cgi-bin/testsuite.cgi) by executing
+make uploadrun
+On unix:
+- The testing machine must be enabled to login on www.freepascal.org automatically as user fpc with ssh.
+On Windows:
+- The putty utilities plink.exe and pscp.exe must be in the patch
+- the must be a putty session named fpc@www.freepascal.org which is enabled to login automatically into www.freepascal.org
+
