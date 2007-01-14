@@ -35,6 +35,10 @@ Type
   tsocklen=cint;
   psocklen=^tsocklen;
 
+const EsockEINTR  = WSAEINTR;
+      EsockEBADF  = WSAEBADF;
+      EsockEFAULT = WSAEFAULT;
+      EsockEINVAL = WSAEINVAL;
 
 {$i netwsockh.inc}
 {$i socketsh.inc}
