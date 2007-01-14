@@ -1,7 +1,6 @@
 {
-
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2004 by Karoly Balogh
+    Copyright (c) 2004-2006 by Karoly Balogh
 
     Sysutils unit for MorphOS
 
@@ -63,6 +62,39 @@ var
   MOS_fileList: Pointer; external name 'AOS_FILELIST';
 
 
+function dosLock(const name: String;
+                 accessmode: Longint) : LongInt;
+var
+  buffer: array[0..255] of Char;
+begin
+  move(name[1],buffer,length(name));
+  buffer[length(name)]:=#0;
+  dosLock:=Lock(buffer,accessmode);
+end;
+
+
+function AmigaFileDateToDateTime(aDate: TDateStamp; out success: boolean): TDateTime;
+var
+  tmpSecs: DWord;
+  tmpDate: TDateTime;
+  tmpTime: TDateTime; 
+  clockData: TClockData;
+begin
+  with aDate do
+    tmpSecs:=(ds_Days * (24 * 60 * 60)) + (ds_Minute * 60) + (ds_Tick div TICKS_PER_SECOND);
+
+  Amiga2Date(tmpSecs,@clockData);
+{$WARNING TODO: implement msec values, if possible}
+  with clockData do begin
+     success:=TryEncodeDate(year,month,mday,tmpDate) and
+              TryEncodeTime(hour,min,sec,0,tmpTime);
+  end;
+
+  result:=ComposeDateTime(tmpDate,tmpTime);
+end;
+
+
+
 {****************************************************************************
                               File Functions
 ****************************************************************************}
@@ -90,6 +122,7 @@ end;
 
 function FileGetDate(Handle: LongInt) : LongInt;
 begin
+  {$WARNING filegetdate call is dummy}
 end;
 
 
@@ -211,121 +244,130 @@ end;
 (****** end of non portable routines ******)
 
 
-Function FileAge (Const FileName : String): Longint;
+function FileAge (const FileName : String): Longint;
+var
+  tmpName: String;
+  tmpLock: Longint;
+  tmpFIB : PFileInfoBlock;
+  tmpDateTime: TDateTime;
+  validFile: boolean;
 
-var F: file;
-    Time: longint;
 begin
-   Assign(F,FileName);
-   dos.GetFTime(F,Time);
-   { Warning this is not compatible with standard routines
-     since Double are not supported on m68k by default!
-   }
-   FileAge:=Time;
-end;
+  validFile:=false;
+  tmpName := PathConv(FileName);
+  tmpLock := dosLock(tmpName, SHARED_LOCK);
 
-
-Function FileExists (Const FileName : String) : Boolean;
-Var
- F: File;
- OldMode : Byte;
-Begin
-  OldMode := FileMode;
-  FileMode := fmOpenRead;
-  Assign(F,FileName);
-  Reset(F,1);
-  FileMode := OldMode;
-  If IOResult <> 0 then
-    FileExists := FALSE
-  else
-    Begin
-      FileExists := TRUE;
-      Close(F);
+  if (tmpLock <> 0) then begin
+    new(tmpFIB);
+    if Examine(tmpLock,tmpFIB) then begin
+      tmpDateTime:=AmigaFileDateToDateTime(tmpFIB^.fib_Date,validFile);
     end;
+    Unlock(tmpLock);
+    dispose(tmpFIB);
+  end;
+
+  if validFile then
+    result:=DateTimeToFileDate(tmpDateTime)
+  else
+    result:=-1;   
 end;
 
-type
-  PDOSSearchRec = ^SearchRec;
 
-Function FindFirst (Const Path : String; Attr : Longint; Out Rslt : TSearchRec) : Longint;
-Const
-  faSpecial = faHidden or faSysFile or faVolumeID or faDirectory;
+function FileExists (const FileName : String) : Boolean;
 var
-  p : pDOSSearchRec;
-  dosattr: word;
-  DT: Datetime;
+  tmpName: String;
+  tmpLock: LongInt;
+  tmpFIB : PFileInfoBlock;
+
 begin
- dosattr:=0;
- if Attr and faHidden <> 0 then
-   dosattr := dosattr or Hidden;
- if Attr and faSysFile <> 0 then
-   dosattr := dosattr or SysFile;
- if Attr and favolumeID <> 0 then
-   dosattr := dosattr or VolumeID;
- if Attr and faDirectory <> 0 then
-   dosattr := dosattr or Directory;
- New(p);
- Rslt.FindHandle :=  THandle(p);
- dos.FindFirst(path,dosattr,p^);
- if DosError <> 0 then
-    begin
-      FindFirst := -1;
-    end
- else
-   begin
-     Rslt.Name := p^.Name;
-     { Not compatible with other platforms! }
-     Rslt.Time:=p^.Time;
-     Rslt.Attr := p^.Attr;
-     Rslt.ExcludeAttr := not p^.Attr;
-     Rslt.Size := p^.Size;
-     FindFirst := 0;
-   end;
+  result:=false;
+  tmpName := PathConv(FileName);
+  tmpLock := dosLock(tmpName, SHARED_LOCK);
+
+  if (tmpLock <> 0) then begin
+    new(tmpFIB);
+    if Examine(tmpLock,tmpFIB) and (tmpFIB^.fib_DirEntryType <= 0) then
+      result:=true;
+    Unlock(tmpLock);
+    dispose(tmpFIB);
+  end;
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+function FindFirst(const Path: String; Attr : Longint; out Rslt: TSearchRec): Longint;
 var
- p : pDOSSearchRec;
- DT: Datetime;
+  tmpStr: array[0..255] of Char;
+  Anchor: PAnchorPath;
+  tmpDateTime: TDateTime;
+  validDate: boolean;
 begin
-  p:= PDOsSearchRec(Rslt.FindHandle);
-  if not assigned(p) then
-     begin
-       FindNext := -1;
-       exit;
-     end;
-  Dos.FindNext(p^);
- if DosError <> 0 then
-    begin
-      FindNext := -1;
-    end
- else
-   begin
-     Rslt.Name := p^.Name;
-     UnpackTime(p^.Time, DT);
-     { Warning: Not compatible with other platforms }
-     Rslt.time := p^.Time;
-     Rslt.Attr := p^.Attr;
-     Rslt.ExcludeAttr := not p^.Attr;
-     Rslt.Size := p^.Size;
-     FindNext := 0;
-   end;
+  result:=-1; { We emulate Linux/Unix behaviour, and return -1 on errors. }
+
+  tmpStr:=PathConv(path)+#0;
+  Rslt.Name := tmpStr;
+  { "128" is Windows "NORMALFILE" attribute. Some buggy code depend on this... :( (KB) }
+  Rslt.Attr := Attr or 128;
+  { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
+  Rslt.ExcludeAttr := (not Attr) and ($1e);
+  Rslt.FindHandle  := 0;
+
+  new(Anchor);
+  FillChar(Anchor^,sizeof(TAnchorPath),#0);
+
+  if MatchFirst(@tmpStr,Anchor)<>0 then exit;
+  Rslt.FindHandle := longint(Anchor);
+
+  with Anchor^.ap_Info do begin
+    Rslt.Size := fib_Size;
+    Rslt.Time := DateTimeToFileDate(AmigaFileDateToDateTime(fib_Date,validDate));
+    if not validDate then exit;
+
+    if fib_DirEntryType > 0 then Rslt.Attr:=Rslt.Attr or faDirectory;
+    if ((fib_Protection and FIBF_READ) <> 0) and
+       ((fib_Protection and FIBF_WRITE) = 0) then Rslt.Attr:=Rslt.Attr or faReadOnly;
+
+    result:=0; { Return zero if everything went OK }
+  end;
 end;
 
-Procedure FindClose (Var F : TSearchrec);
-Var
-  p : PDOSSearchRec;
 
+function FindNext (var Rslt : TSearchRec): Longint;
+var
+  Anchor: PAnchorPath;
+  validDate: boolean;
 begin
-  p:=PDOSSearchRec(f.FindHandle);
-  if not assigned(p) then
-       exit;
-  Dos.FindClose(p^);
-  if assigned(p) then
-     Dispose(p);
-  f.FindHandle := THandle(nil);
+  result:=-1;
+
+  Anchor:=PAnchorPath(Rslt.FindHandle);
+  if not assigned(Anchor) then exit;
+  if MatchNext(Anchor) <> 0 then exit;
+
+  with Anchor^.ap_Info do begin
+    Rslt.Size := fib_Size;
+    Rslt.Time := DateTimeToFileDate(AmigaFileDateToDateTime(fib_Date,validDate));
+    if not validDate then exit;
+
+    if fib_DirEntryType > 0 then Rslt.Attr:=Rslt.Attr or faDirectory;
+    if ((fib_Protection and FIBF_READ) <> 0) and
+       ((fib_Protection and FIBF_WRITE) = 0) then Rslt.Attr:=Rslt.Attr or faReadOnly;
+
+    result:=0; { Return zero if everything went OK }
+  end;
 end;
+
+
+procedure FindClose(var f: TSearchRec);
+var
+  Anchor: PAnchorPath;
+begin
+  Anchor:=PAnchorPath(f.FindHandle);
+  if not assigned(Anchor) then exit;
+  MatchEnd(Anchor);
+  Dispose(Anchor);
+end;
+
+
+(****** end of non portable routines ******)
 
 Function FileGetAttr (Const FileName : String) : Longint;
 var
@@ -403,8 +445,7 @@ Begin
   DiskSize := dos.DiskSize(Drive);
 End;
 
-
-Function GetCurrentDir : String;
+function GetCurrentDir : String;
 begin
   GetDir (0,Result);
 end;
@@ -412,44 +453,42 @@ end;
 
 Function SetCurrentDir (Const NewDir : String) : Boolean;
 begin
-   ChDir(NewDir);
+  ChDir(NewDir);
   result := (IOResult = 0);
 end;
 
 
 Function CreateDir (Const NewDir : String) : Boolean;
 begin
-   MkDir(NewDir);
+  MkDir(NewDir);
   result := (IOResult = 0);
 end;
 
 
 Function RemoveDir (Const Dir : String) : Boolean;
 begin
-   RmDir(Dir);
+  RmDir(Dir);
   result := (IOResult = 0);
 end;
 
 
 function DirectoryExists(const Directory: string): Boolean;
 var
-  tmpStr : array[0..255] of Char;
+  tmpStr : String;
   tmpLock: LongInt;
   FIB    : PFileInfoBlock;
 begin
-  DirectoryExists:=False;
-  If (Directory='') or (InOutRes<>0) then exit;
-  tmpStr:=PathConv(Directory)+#0;
-  tmpLock:=0;
+  result:=false;
+  if (Directory='') or (InOutRes<>0) then exit;
+  tmpStr:=PathConv(Directory);
 
-  tmpLock:=Lock(@tmpStr,SHARED_LOCK);
+  tmpLock:=dosLock(tmpStr,SHARED_LOCK);
   if tmpLock=0 then exit;
 
   FIB:=nil; new(FIB);
 
-  if (Examine(tmpLock,FIB)=True) and (FIB^.fib_DirEntryType>0) then begin
-    DirectoryExists:=True;
-  end;
+  if (Examine(tmpLock,FIB)=True) and (FIB^.fib_DirEntryType>0) then
+    result:=True;
 
   if tmpLock<>0 then Unlock(tmpLock);
   if assigned(FIB) then dispose(FIB);
@@ -476,7 +515,7 @@ var
 begin
   dos.GetTime(SystemTime.Hour, SystemTime.Minute, SystemTime.Second,SystemTime.Millisecond);
   dos.GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day, DayOfWeek);
-end ;
+end;
 
 
 Procedure InitAnsi;
