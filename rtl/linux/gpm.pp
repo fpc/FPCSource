@@ -179,6 +179,7 @@ function Gpm_LowerRoi(which:PGpmRoi; after:PGpmRoi):PGpmRoi;cdecl;external;
 function Gpm_Getch:longint;}
 function Gpm_GetLibVersion(var where:longint):pchar;cdecl;external;
 function Gpm_GetServerVersion(var where:longint):pchar;cdecl;external;
+function gpm_getsnapshot(eptr:Pgpmevent):longint;cdecl;external;
 function Gpm_GetSnapshot(var ePtr:TGpmEvent):longint;cdecl;external;
 {$else}
 function gpm_open(var conn:Tgpm_connect;flag:longint):longint;
