@@ -1237,7 +1237,7 @@ end;
 {$IFDEF MORPHOS}
 { this is only required for MorphOS }
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
-procedure SysResetFPU;$ifdef SYSTEMINLINE}inline;{$endif}
+procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
   var tmp: array[0..1] of dword;
 begin
   asm
