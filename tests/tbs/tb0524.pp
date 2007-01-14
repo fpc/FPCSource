@@ -1,13 +1,8 @@
-program tb0523;
+program tb0524;
 
-uses sockets,baseunix;
+uses sockets;
 
 const port=6667;
-
- function rawport_to_netport(const raw_port:word):word;
- begin
-  rawport_to_netport := swap(raw_port);
- end;
 
 procedure do_server;
 
