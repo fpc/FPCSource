@@ -1671,7 +1671,11 @@ implementation
                   begin
                     { Support @label }
                     if getaddr then
-                      p1:=cloadnode.create(srsym,srsym.owner)
+                      begin
+                        if srsym.owner<>current_procinfo.procdef.localst then
+                          CGMessage(parser_e_label_outside_proc);
+                        p1:=cloadnode.create(srsym,srsym.owner)
+                      end
                     else
                       begin
                         consume(_COLON);

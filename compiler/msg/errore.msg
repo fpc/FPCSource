@@ -1112,6 +1112,9 @@ parser_e_type_object_constants=03230_E_Constants of objects containing a VMT are
 % If an object requires a VMT either because it contains a constructor or virtual methods,
 % it's not allowed to create constants of it. In TP and Delphi mode this is allowed
 % for compatibility reasons.
+parser_e_label_outside_proc=03231_E_Taking the address of labels defined outside the current scope isn't allowed
+% It isn't allowed to take the addresss of labels outside the
+% current procedure.
 % \end{description}
 #
 # Type Checking
