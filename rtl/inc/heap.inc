@@ -1260,16 +1260,20 @@ end;
 
 procedure SysHeapMutexLock;
 begin
+{$ifndef HAS_MT_MEMORYMANAGER}
   { give an runtime error. the program is running multithreaded without
     any heap protection. this will result in unpredictable errors so
     stopping here with an error is more safe (PFV) }
   runerror(244);
+{$endif}
 end;
 
 procedure SysHeapMutexUnLock;
 begin
+{$ifndef HAS_MT_MEMORYMANAGER}
   { see SysHeapMutexLock for comment }
   runerror(244);
+{$endif}
 end;
 
 {$ifndef HAS_MEMORYMANAGER}
