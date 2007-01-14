@@ -90,16 +90,6 @@ const sincof : TabCoef = (
                 4.16666666666665929218E-2, 0);
 
 
-{$ifndef FPC_SYSTEM_HAS_TRUNC}
-{$ifndef FPC_SYSTEM_HAS_float32}
-type
-  float32 = longint;
-{$endif FPC_SYSTEM_HAS_float32}
-{$ifndef FPC_SYSTEM_HAS_flag}
-type
-  flag = byte;
-{$endif FPC_SYSTEM_HAS_flag}
-
 {*
 -------------------------------------------------------------------------------
 Raises the exceptions specified by `flags'.  Floating-point traps can be
@@ -108,7 +98,7 @@ to substitute a result value.  If traps are not implemented, this routine
 should be simply `softfloat_exception_flags |= flags;'.
 -------------------------------------------------------------------------------
 *}
-procedure float_raise( i: shortint );
+procedure float_raise(i: shortint);
 Begin
   softfloat_exception_flags := softfloat_exception_flags or i;
   if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_invalid) <> 0 then
@@ -127,6 +117,16 @@ Begin
      RunError(207);
 end;
 
+
+{$ifndef FPC_SYSTEM_HAS_TRUNC}
+{$ifndef FPC_SYSTEM_HAS_float32}
+type
+  float32 = longint;
+{$endif FPC_SYSTEM_HAS_float32}
+{$ifndef FPC_SYSTEM_HAS_flag}
+type
+  flag = byte;
+{$endif FPC_SYSTEM_HAS_flag}
 
 {$ifndef FPC_SYSTEM_HAS_extractFloat64Frac0}
   Function extractFloat64Frac0(const a: float64): longint;

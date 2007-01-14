@@ -899,8 +899,6 @@ end;
 
 { because of the brain dead sse detection on x86, this test is post poned }
 procedure fpc_cpucodeinit;
-  label
-    sse_resume_addr;
   begin
     os_supports_sse:=true;
     sse_check:=true;
