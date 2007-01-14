@@ -14,7 +14,7 @@ unit Sockets;
 Interface
 
 {$ifdef Unix}
-Uses UnixType;
+Uses baseunix,UnixType;
 {$endif}
 
 {$ifdef FreeBSD}
@@ -37,6 +37,10 @@ type
                   path:array[0..107] of char;    //104 total for freebsd.
                   end;
 
+const EsockEINTR  = EsysEINTR;
+      EsockEBADF  = EsysEBADF;
+      EsockEFAULT = EsysEFAULT;
+      EsockEINVAL = EsysEINVAL;
 
 { unix socket specific functions }
 Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint);
@@ -52,7 +56,7 @@ Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
 
 Implementation
 
-Uses BaseUnix,{$ifndef FPC_USE_LIBC}SysCall{$else}initc{$endif};
+Uses {$ifndef FPC_USE_LIBC}SysCall{$else}initc{$endif};
 
 { Include filerec and textrec structures }
 {$i filerec.inc}

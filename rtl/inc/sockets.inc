@@ -48,7 +48,7 @@ begin
 {$else}
               r:=send(handle,bufptr^,bufpos,0);
 {$endif}
-            until (r<>-1) or (errno<>EsysEINTR);
+            until (r<>-1) or (socketerror<>EsockEINTR);
             bufend:=r;
             def_error:=101; {File write error.}
           end;
@@ -60,19 +60,19 @@ begin
 {$else}
               r:=recv(handle,bufptr^,bufsize,0);
 {$endif}
-            until (r<>-1) or (errno<>EsysEINTR);
+            until (r<>-1) or (socketerror<>EsockEINTR);
             bufend:=r;
             def_error:=100; {File read error.}
           end;
       end;
       if r=-1 then
         case errno of
-          EsysEBADF:
+          EsockEBADF:
 {          EsysENOTSOCK:}   {Why is this constant not defined? (DM)}
             inoutres:=6;    {Invalid file handle.}
-          EsysEFAULT:
+          EsockEFAULT:
             inoutres:=217;
-          EsysEINVAL:
+          EsockEINVAL:
             inoutres:=218;
         else
           inoutres:=def_error;

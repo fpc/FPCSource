@@ -96,6 +96,11 @@ Const
 
   PF_MAX       = so32dll.PF_MAX;
 
+const EsockEINTR  = SOCEINTR;
+      EsockEBADF  = SOCEBADF;
+      EsockEFAULT = SOCEFAULT;
+      EsockEINVAL = SOCEINVAL;
+
 
 Type
   cushort=word;
