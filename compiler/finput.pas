@@ -603,8 +603,7 @@ uses
 
     procedure tmodulebase.setfilename(const fn:string;allowoutput:boolean);
       var
-        p,n,e,
-        extension,
+        p,n,
         prefix,
         suffix : string;
       begin
@@ -624,7 +623,6 @@ uses
          paramallowoutput := allowoutput;
          p := FixPath(ExtractFilePath(fn),false);
          n := FixFileName(ChangeFileExt(ExtractFileName(fn),''));
-         e := ExtractFileExt(fn);
          { set path }
          path:=stringdup(p);
          { obj,asm,ppu names }
@@ -640,23 +638,6 @@ uses
          asmfilename:=stringdup(p+n+target_info.asmext);
          objfilename:=stringdup(p+n+target_info.objext);
          ppufilename:=stringdup(p+n+target_info.unitext);
-         { lib and exe could be loaded with a file specified with -o }
-         prefix := target_info.sharedlibprefix;
-         suffix := '';
-         extension := target_info.sharedlibext;
-
-         if AllowOutput and (compile_level=1) then
-           begin
-             if OutputFileName <> '' then
-               n:=OutputFileName;
-             if Assigned(OutputPrefix) then
-               prefix := OutputPrefix^;
-             if Assigned(OutputSuffix) then
-               suffix := OutputSuffix^;
-             if ExtractFileExt(OutputFileName) <> '' then
-               extension := ExtractFileExt(OutputFileName);
-           end;
-
          importlibfilename:=stringdup(p+target_info.staticClibprefix+'imp'+n+target_info.staticlibext);
          staticlibfilename:=stringdup(p+target_info.staticlibprefix+n+target_info.staticlibext);
 
@@ -665,13 +646,28 @@ uses
            p:=OutputExeDir
          else
            p:=path^;
-         sharedlibfilename:=stringdup(p+prefix+n+suffix+extension);
 
-         { don't use extension alone to check, it can be empty !! }
-         if (OutputFileName<>'')then
-           exefilename:=stringdup(p+OutputFileName)
+         { lib and exe could be loaded with a file specified with -o }
+         if AllowOutput and
+            (compile_level=1) and
+            (OutputFileName<>'')then
+           begin
+             exefilename:=stringdup(p+OutputFileName);
+             sharedlibfilename:=stringdup(p+OutputFileName);
+           end
          else
-           exefilename:=stringdup(p+n+target_info.exeext);
+           begin
+             exefilename:=stringdup(p+n+target_info.exeext);
+             if Assigned(OutputPrefix) then
+               prefix := OutputPrefix^
+             else
+               prefix := target_info.sharedlibprefix;
+             if Assigned(OutputSuffix) then
+               suffix := OutputSuffix^
+             else
+               suffix := '';
+             sharedlibfilename:=stringdup(p+prefix+n+suffix+target_info.sharedlibext);
+           end;
          mapfilename:=stringdup(p+n+'.map');
       end;
 
