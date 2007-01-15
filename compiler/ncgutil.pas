@@ -72,6 +72,7 @@ interface
 
     function  maybe_pushfpu(list:TAsmList;needed : byte;var l:tlocation) : boolean;
 
+    function  has_alias_name(pd:tprocdef;const s:string):boolean;
     procedure alloc_proc_symbol(pd: tprocdef);
     procedure gen_proc_symbol(list:TAsmList);
     procedure gen_proc_symbol_end(list:TAsmList);
@@ -1885,9 +1886,27 @@ implementation
                                 Entry/Exit
 ****************************************************************************}
 
+    function has_alias_name(pd:tprocdef;const s:string):boolean;
+      var
+        item : tstringlistitem;
+      begin
+        result:=true;
+        if pd.mangledname=s then
+          exit;
+        item := tstringlistitem(pd.aliasnames.first);
+        while assigned(item) do
+          begin
+            if item.str=s then
+              exit;
+            item := tstringlistitem(item.next);
+          end;
+        result:=false;
+      end;
+
+
     procedure alloc_proc_symbol(pd: tprocdef);
-     var
-        item: tstringlistitem;
+      var
+        item : tstringlistitem;
       begin
         item := tstringlistitem(pd.aliasnames.first);
         while assigned(item) do
