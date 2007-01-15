@@ -5,7 +5,7 @@
 #  Generate Sample Free Pascal configuration file
 #
 
-function setgccdir() {
+setgccdir() {
 # Find path to libgcc.a
 GCCSPEC=`(gcc -v $@ 2>&1)| head -n 1| awk '{ print $4 } '`
 if [ -z "$GCCSPEC" ] ; then
@@ -15,7 +15,7 @@ GCCDIR=`dirname $GCCSPEC`
 }
 
 
-function setgccdirarch() {
+setgccdirarch() {
 # Find path to libgcc.a
 GCCSPEC=`(gcc -v -arch $1 2>&1)| head -n 1| awk '{ print $4 } '`
 if [ -z "$GCCSPEC" ] ; then
