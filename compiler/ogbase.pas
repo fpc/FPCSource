@@ -523,11 +523,15 @@ implementation
         else
           begin
             if pass=apass then
-              Message1(asmw_e_duplicate_label,name);
+              begin
+                Message1(asmw_e_duplicate_label,name);
+                exit;
+              end;
           end;
         pass:=apass;
         { Code can never grow after a pass }
         if assigned(objsection) and
+           (objsection=aobjsec) and
            (aobjsec.size>offset) then
           internalerror(200603014);
         objsection:=aobjsec;
