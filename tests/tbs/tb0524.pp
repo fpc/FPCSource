@@ -1,6 +1,6 @@
 program tb0524;
 
-uses sockets;
+uses sockets,baseunix;
 
 const port=6667;
 
