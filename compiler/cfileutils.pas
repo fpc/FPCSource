@@ -24,9 +24,6 @@ unit cfileutils;
 {$i fpcdefs.inc}
 
 {$define usedircache}
-{$if defined(morphos) or defined(amiga)}
-{$undef usedircache}
-{$endif}
 
 interface
 
