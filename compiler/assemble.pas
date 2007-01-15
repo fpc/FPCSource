@@ -869,7 +869,9 @@ Implementation
             oldsec:=ObjData.CurrObjSec;
             ObjData.SetSection(ObjData.StabsSec);
             ObjData.Writebytes(stab,sizeof(TObjStabEntry)-4);
-            if (target_info.system in system_windows+system_wince) and DLLSource and RelocSection then
+            if assigned(relocsym) and
+               (target_info.system in system_windows+system_wince) and
+               (DLLSource and RelocSection) then
               reltype:=RELOC_RVA
             else
               reltype:=RELOC_ABSOLUTE;
