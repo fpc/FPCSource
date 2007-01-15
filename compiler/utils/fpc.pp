@@ -114,11 +114,13 @@ program fpc;
      ppcbin,
      versionStr,
      processorstr   : string;
-     ppccommandline : ansistring;
+     ppccommandline : array of ansistring;
+     ppccommandlinelen : longint;
      i : longint;
      errorvalue     : Longint;
   begin
-     ppccommandline:='';
+     setlength(ppccommandline,paramcount);
+     ppccommandlinelen:=0;
      cpusuffix     :='';        // if not empty, signals attempt at cross
                                 // compiler.
      extrapath     :='';
@@ -218,9 +220,13 @@ program fpc;
               else if pos('-Xp',s)=1 then
                 extrapath:=copy(s,4,length(s)-3)
               else
-                ppccommandline:=ppccommandline+s+' ';
+                begin
+                  ppccommandline[ppccommandlinelen]:=s;
+                  inc(ppccommandlinelen);
+                end;
             end;
        end;
+     SetLength(ppccommandline,ppccommandlinelen);
 
      if versionstr<>'' then
        ppcbin:=ppcbin+'-'+versionstr;
