@@ -302,11 +302,8 @@ var
   validDate: boolean;
 begin
   result:=-1; { We emulate Linux/Unix behaviour, and return -1 on errors. }
-
   tmpStr:=PathConv(path)+#0;
-  Rslt.Name := tmpStr;
-  { "128" is Windows "NORMALFILE" attribute. Some buggy code depend on this... :( (KB) }
-  Rslt.Attr := Attr or 128;
+
   { $1e = faHidden or faSysFile or faVolumeID or faDirectory }
   Rslt.ExcludeAttr := (not Attr) and ($1e);
   Rslt.FindHandle  := 0;
@@ -318,9 +315,14 @@ begin
   Rslt.FindHandle := longint(Anchor);
 
   with Anchor^.ap_Info do begin
+    Rslt.Name := StrPas(fib_FileName);
+
     Rslt.Size := fib_Size;
     Rslt.Time := DateTimeToFileDate(AmigaFileDateToDateTime(fib_Date,validDate));
     if not validDate then exit;
+
+    { "128" is Windows "NORMALFILE" attribute. Some buggy code depend on this... :( (KB) }
+    Rslt.Attr := 128;
 
     if fib_DirEntryType > 0 then Rslt.Attr:=Rslt.Attr or faDirectory;
     if ((fib_Protection and FIBF_READ) <> 0) and
@@ -343,10 +345,13 @@ begin
   if MatchNext(Anchor) <> 0 then exit;
 
   with Anchor^.ap_Info do begin
+    Rslt.Name := StrPas(fib_FileName);
     Rslt.Size := fib_Size;
     Rslt.Time := DateTimeToFileDate(AmigaFileDateToDateTime(fib_Date,validDate));
     if not validDate then exit;
 
+    { "128" is Windows "NORMALFILE" attribute. Some buggy code depend on this... :( (KB) }
+    Rslt.Attr := 128;
     if fib_DirEntryType > 0 then Rslt.Attr:=Rslt.Attr or faDirectory;
     if ((fib_Protection and FIBF_READ) <> 0) and
        ((fib_Protection and FIBF_WRITE) = 0) then Rslt.Attr:=Rslt.Attr or faReadOnly;
