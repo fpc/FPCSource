@@ -1496,7 +1496,11 @@ implementation
                    (tprocsym(pd.procsym).ProcdefList.Count>1) and
                    firstpd.forwarddef and
                    firstpd.interfacedef and
-                   not(tprocsym(pd.procsym).ProcdefList.Count>2) then
+                   not(tprocsym(pd.procsym).ProcdefList.Count>2) and
+                   { don't give an error if it may be an overload }
+                   not(m_fpc in current_settings.modeswitches) and
+                   (not(po_overload in pd.procoptions) or
+                    not(po_overload in firstpd.procoptions)) then
                  begin
                    MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
                    tprocsym(pd.procsym).write_parameter_lists(pd);
