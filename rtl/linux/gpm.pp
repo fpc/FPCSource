@@ -162,25 +162,25 @@ function Gpm_StrictTriple(EventType : longint) : boolean;
 function Gpm_AnyTriple(EventType : longint) : boolean;
 
 {$ifdef use_external}
-function Gpm_Open(var _para1:TGpmConnect; _para2:longint):longint;cdecl;external;
-function Gpm_Close:longint;cdecl;external;
-function Gpm_GetEvent(var _para1:TGpmEvent):longint;cdecl;external;
+function Gpm_Open(var _para1:TGpmConnect; _para2:longint):longint;cdecl;external name 'Gpm_Open';
+function Gpm_Close:longint;cdecl;external name 'Gpm_Close';
+function Gpm_GetEvent(var _para1:TGpmEvent):longint;cdecl;external name 'Gpm_GetEvent';
 {function Gpm_Getc(_para1:pFILE):longint;cdecl;external;
 function Gpm_Getchar : longint;}
-function Gpm_Repeat(millisec:longint):longint;cdecl;external;
-function Gpm_FitValuesM(var x,y:longint; margin:longint):longint;cdecl;external;
-function Gpm_FitValues(var x,y:longint):longint;cdecl;external;
+function Gpm_Repeat(millisec:longint):longint;cdecl;external name 'Gpm_Repeat';
+function Gpm_FitValuesM(var x,y:longint; margin:longint):longint;cdecl;external name 'Gpm_FitValuesM';
+function Gpm_FitValues(var x,y:longint):longint;cdecl;external name 'Gpm_FitValues';
 {function GPM_DRAWPOINTER(ePtr : longint) : longint;}
-function Gpm_PushRoi(x1:longint; y1:longint; X2:longint; Y2:longint; mask:longint; fun:TGpmHandler; xtradata:pointer):PGpmRoi;cdecl;external;
-function Gpm_PopRoi(which:PGpmRoi):PGpmRoi;cdecl;external;
-function Gpm_RaiseRoi(which:PGpmRoi; before:PGpmRoi):PGpmRoi;cdecl;external;
-function Gpm_LowerRoi(which:PGpmRoi; after:PGpmRoi):PGpmRoi;cdecl;external;
+function Gpm_PushRoi(x1:longint; y1:longint; X2:longint; Y2:longint; mask:longint; fun:TGpmHandler; xtradata:pointer):PGpmRoi;cdecl;external name 'Gpm_PushRoi';
+function Gpm_PopRoi(which:PGpmRoi):PGpmRoi;cdecl;external name 'Gpm_PopRoi';
+function Gpm_RaiseRoi(which:PGpmRoi; before:PGpmRoi):PGpmRoi;cdecl;external name 'Gpm_RaiseRoi';
+function Gpm_LowerRoi(which:PGpmRoi; after:PGpmRoi):PGpmRoi;cdecl;external name 'Gpm_LowerRoi';
 {function Gpm_Wgetch:longint;cdecl;external;
 function Gpm_Getch:longint;}
-function Gpm_GetLibVersion(var where:longint):pchar;cdecl;external;
-function Gpm_GetServerVersion(var where:longint):pchar;cdecl;external;
-function gpm_getsnapshot(eptr:Pgpmevent):longint;cdecl;external;
-function Gpm_GetSnapshot(var ePtr:TGpmEvent):longint;cdecl;external;
+function Gpm_GetLibVersion(var where:longint):pchar;cdecl;external name 'Gpm_GetLibVersion';
+function Gpm_GetServerVersion(var where:longint):pchar;cdecl;external name 'Gpm_GetServerVersion';
+function gpm_getsnapshot(eptr:Pgpmevent):longint;cdecl;external name 'Gpm_GetSnapshot';
+function Gpm_GetSnapshot(var ePtr:TGpmEvent):longint;cdecl;external name 'Gpm_GetSnapshot';
 {$else}
 function gpm_open(var conn:Tgpm_connect;flag:longint):longint;
 function gpm_close:longint;
