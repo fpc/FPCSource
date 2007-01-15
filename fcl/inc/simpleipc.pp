@@ -25,12 +25,16 @@ uses
 Const
   MsgVersion = 1;
   
+  //Message types
+  mtUnknown = 0;
+  mtString = 1;
+  
 Type
 
-  TMessageType = (mtUnknown,mtString); // For now
+  TMessageType = LongInt;
   TMsgHeader = Packed record
     Version : Byte;
-    msgType : TMessageType;
+    MsgType : TMessageType;
     MsgLen  : Integer;
   end;
 
@@ -80,6 +84,7 @@ Type
   private
     FGlobal: Boolean;
     FOnMessage: TNotifyEvent;
+    FMsgType: TMessageType;
     FMsgData : TStream;
     function GetInstanceID: String;
     function GetStringMessage: String;
@@ -92,12 +97,13 @@ Type
     Procedure ReadMessage;
   Public
     Constructor Create(AOwner : TComponent); override;
-    Destructor destroy; override;
+    Destructor Destroy; override;
     Procedure StartServer;
     Procedure StopServer;
     Function PeekMessage(TimeOut : Integer; DoReadMessage : Boolean): Boolean;
     Property  StringMessage : String Read GetStringMessage;
     Procedure GetMessageData(Stream : TStream);
+    Property  MsgType: TMessageType Read FMsgType;
     Property  MsgData : TStream Read FMsgData;
     Property  InstanceID : String Read GetInstanceID;
   Published
@@ -132,13 +138,15 @@ Type
     Function CommClass : TIPCClientCommClass; virtual;
   Public
     Constructor Create(AOwner : TComponent); override;
-    Destructor destroy; override;
+    Destructor Destroy; override;
     Procedure Connect;
     Procedure Disconnect;
     Function  ServerRunning : Boolean;
     Procedure SendMessage(MsgType : TMessageType; Stream: TStream);
-    Procedure SendStringMessage(Msg : String);
-    Procedure SendStringmessageFmt(Msg : String; Args : Array of const);
+    Procedure SendStringMessage(const Msg : String);
+    Procedure SendStringMessage(MsgType : TMessageType; const Msg : String);
+    Procedure SendStringMessageFmt(const Msg : String; Args : Array of const);
+    Procedure SendStringMessageFmt(MsgType : TMessageType; const Msg : String; Args : Array of const);
     Property  ServerInstance : String Read FServerInstance Write SetServerInstance;
   end;
 
@@ -239,11 +247,11 @@ begin
   FMsgData:=TStringStream.Create('');
 end;
 
-destructor TSimpleIPCServer.destroy;
+destructor TSimpleIPCServer.Destroy;
 begin
   Active:=False;
   FreeAndNil(FMsgData);
-  inherited destroy;
+  inherited Destroy;
 end;
 
 procedure TSimpleIPCServer.SetGlobal(const AValue: Boolean);
@@ -402,24 +410,34 @@ begin
   end;
 end;
 
-procedure TSimpleIPCClient.SendStringMessage(Msg: String);
+procedure TSimpleIPCClient.SendStringMessage(const Msg: String);
+begin
+  SendStringMessage(mtString,Msg);
+end;
 
+procedure TSimpleIPCClient.SendStringMessage(MsgType: TMessageType; const Msg: String
+  );
 Var
   S : TStringStream;
-
 begin
   S:=TStringStream.Create(Msg);
   try
-    SendMessage(mtString,S);
+    SendMessage(MsgType,S);
   finally
-    s.free;
+    S.free;
   end;
 end;
 
-procedure TSimpleIPCClient.SendStringmessageFmt(Msg: String;
+procedure TSimpleIPCClient.SendStringMessageFmt(const Msg: String;
   Args: array of const);
 begin
-  SendStringmessage(Format(Msg,Args));
+  SendStringMessageFmt(mtString,Msg,Args);
+end;
+
+procedure TSimpleIPCClient.SendStringMessageFmt(MsgType: TMessageType;
+  const Msg: String; Args: array of const);
+begin
+  SendStringMessage(MsgType, Format(Msg,Args));
 end;
 
 end.

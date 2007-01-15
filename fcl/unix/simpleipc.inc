@@ -75,7 +75,7 @@ Var
 
 begin
   Hdr.Version:=MsgVersion;
-  Hdr.msgType:=mtString;
+  Hdr.msgType:=MsgType;
   Hdr.MsgLen:=AStream.Size;
   FStream.WriteBuffer(hdr,SizeOf(hdr));
   FStream.CopyFrom(AStream,0);
@@ -156,6 +156,7 @@ Var
 
 begin
   FStream.ReadBuffer(Hdr,SizeOf(Hdr));
+  Owner.FMsgType:=Hdr.MsgType;
   Count:=Hdr.MsgLen;
   if count > 0 then
     begin
