@@ -1,3 +1,4 @@
+{%TARGET=linux,freebsd,darwin}
 program tb0524;
 
 uses sockets,baseunix;
@@ -11,7 +12,6 @@ var s,t:string;
     saddr:Tinetsockaddr;
     len:longInt;
     sin,sout:text;
-    raw_port:word;
     i:byte;
 
 begin
