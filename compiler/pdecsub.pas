@@ -131,7 +131,8 @@ implementation
             { Generate result variable accessing function result, it
               can't be put in a register since it must be accessable
               from the framepointer }
-            vs:=tparavarsym.create('$parentfp',paranr_parentfp,vs_var,voidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
+            vs:=tparavarsym.create('$parentfp',paranr_parentfp,vs_value
+                  ,voidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
             vs.varregable:=vr_none;
             pd.parast.insert(vs);
 
