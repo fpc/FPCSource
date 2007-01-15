@@ -35,7 +35,7 @@ type
 
   TSqliteDataset = class (TCustomSqliteDataset)
   private
-    function SqliteExec(AHandle: Pointer; ASql:PChar):Integer;override;
+    function SqliteExec(ASql:PChar; ACallback: TSqliteCdeclCallback; Data: Pointer):Integer;override;
     function InternalGetHandle: Pointer; override;
     function GetSqliteEncoding: String;
     function GetSqliteVersion: String; override;
@@ -46,7 +46,7 @@ type
     function GetRowsAffected:Integer; override;
   public
     procedure ExecuteDirect(const ASql: String);override;
-    function SqliteReturnString: String; override;
+    function ReturnString: String; override;
     function QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;override;
     property SqliteEncoding: String read GetSqliteEncoding;
   end;
@@ -75,9 +75,9 @@ end;
 
 { TSqliteDataset }
 
-function TSqliteDataset.SqliteExec(AHandle: Pointer; ASql: PChar): Integer;
+function TSqliteDataset.SqliteExec(ASql: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer;
 begin
-  Result:=sqlite_exec(AHandle, ASql, nil, nil, nil);
+  Result:=sqlite_exec(FSqliteHandle, ASql, ACallback, Data, nil);
 end;
 
 procedure TSqliteDataset.InternalCloseHandle;
@@ -187,8 +187,8 @@ begin
   end;
   sqlite_finalize(vm, nil);
   {
-  if FSqliteReturnId <> SQLITE_ABORT then
-     DatabaseError(SqliteReturnString,Self);
+  if FReturnCode <> SQLITE_ABORT then
+     DatabaseError(ReturnString,Self);
   }
 end;
 
@@ -204,11 +204,11 @@ var
   ColumnNames,ColumnValues:PPChar;
   ColCount:Integer;
 begin
-  FSqliteReturnId:=sqlite_compile(FSqliteHandle,Pchar(ASql),nil,@vm,nil);
-  if FSqliteReturnId <> SQLITE_OK then
-    DatabaseError(SqliteReturnString,Self);
+  FReturnCode:=sqlite_compile(FSqliteHandle,Pchar(ASql),nil,@vm,nil);
+  if FReturnCode <> SQLITE_OK then
+    DatabaseError(ReturnString,Self);
 
-  FSqliteReturnId:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);
+  FReturnCode:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);
 
   sqlite_finalize(vm, nil);
 end;
@@ -225,16 +225,16 @@ begin
     sqlite_exec(FSqliteHandle,PChar('Select Max('+Fields[FAutoIncFieldNo].FieldName+') from ' + FTableName),
       @GetAutoIncValue,@FNextAutoInc,nil);
 
-  FSqliteReturnId:=sqlite_compile(FSqliteHandle,Pchar(FSql),nil,@vm,nil);
-  if FSqliteReturnId <> SQLITE_OK then
-    DatabaseError(SqliteReturnString,Self);
+  FReturnCode:=sqlite_compile(FSqliteHandle,Pchar(FSql),nil,@vm,nil);
+  if FReturnCode <> SQLITE_OK then
+    DatabaseError(ReturnString,Self);
 
   FDataAllocated:=True;
 
   TempItem:=FBeginItem;
   FRecordCount:=0;
-  FSqliteReturnId:=sqlite_step(vm,@FRowCount,@ColumnValues,@ColumnNames);
-  while FSqliteReturnId = SQLITE_ROW do
+  FReturnCode:=sqlite_step(vm,@FRowCount,@ColumnValues,@ColumnNames);
+  while FReturnCode = SQLITE_ROW do
   begin
     Inc(FRecordCount);
     New(TempItem^.Next);
@@ -243,7 +243,7 @@ begin
     GetMem(TempItem^.Row,FRowBufferSize);
     for Counter := 0 to FRowCount - 1 do
       TempItem^.Row[Counter]:=StrNew(ColumnValues[Counter]);
-    FSqliteReturnId:=sqlite_step(vm,@FRowCount,@ColumnValues,@ColumnNames);
+    FReturnCode:=sqlite_step(vm,@FRowCount,@ColumnValues,@ColumnNames);
   end;
   sqlite_finalize(vm, nil);
 
@@ -261,9 +261,9 @@ begin
     FBeginItem^.Row[Counter]:=nil;
 end;
 
-function TSqliteDataset.SqliteReturnString: String;
+function TSqliteDataset.ReturnString: String;
 begin
- case FSqliteReturnId of
+ case FReturnCode of
       SQLITE_OK           : Result := 'SQLITE_OK';
       SQLITE_ERROR        : Result := 'SQLITE_ERROR';
       SQLITE_INTERNAL     : Result := 'SQLITE_INTERNAL';
@@ -295,7 +295,7 @@ begin
   else
     Result:='Unknow Return Value';
  end;
- Result:=Result+' - '+sqlite_error_string(FSqliteReturnId);
+ Result:=Result+' - '+sqlite_error_string(FReturnCode);
 end;
 
 function TSqliteDataset.GetSqliteEncoding: String;
@@ -316,31 +316,31 @@ var
   
   procedure FillStrings;
   begin
-    while FSqliteReturnId = SQLITE_ROW do
+    while FReturnCode = SQLITE_ROW do
     begin
       AStrList.Add(StrPas(ColumnValues[0]));
-      FSqliteReturnId:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);  
+      FReturnCode:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);
     end;
   end;
   procedure FillStringsAndObjects;
   begin
-    while FSqliteReturnId = SQLITE_ROW do
+    while FReturnCode = SQLITE_ROW do
     begin
       // I know, this code is really dirty!!
       AStrList.AddObject(StrPas(ColumnValues[0]),TObject(PtrInt(StrToInt(StrPas(ColumnValues[1])))));
-      FSqliteReturnId:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);  
+      FReturnCode:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);
     end;
   end;    
 begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
   Result:='';
-  FSqliteReturnId:=sqlite_compile(FSqliteHandle,Pchar(ASql),nil,@vm,nil);
-  if FSqliteReturnId <> SQLITE_OK then
-    DatabaseError(SqliteReturnString,Self);
+  FReturnCode:=sqlite_compile(FSqliteHandle,Pchar(ASql),nil,@vm,nil);
+  if FReturnCode <> SQLITE_OK then
+    DatabaseError(ReturnString,Self);
     
-  FSqliteReturnId:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);
-  if (FSqliteReturnId = SQLITE_ROW) and (ColCount > 0) then
+  FReturnCode:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);
+  if (FReturnCode = SQLITE_ROW) and (ColCount > 0) then
   begin
     Result:=StrPas(ColumnValues[0]);
     if AStrList <> nil then

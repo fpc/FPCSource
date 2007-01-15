@@ -23,7 +23,6 @@ unit customsqliteds;
 
 {$Mode ObjFpc}
 {$H+}
-{ $Define USE_SQLITEDS_INTERNALS}
 { $Define DEBUG}
 { $Define DEBUGACTIVEBUFFER}
 
@@ -55,10 +54,21 @@ type
     function Read(var Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
   end;
-  
-  TSqliteCallback = function (UserData:Pointer; Columns:longint; Values:PPchar; ColumnNames:PPchar):longint;cdecl;
-  TGetSqlStrFunction = function (APChar: PChar): String;
 
+  //callback types
+  TSqliteCdeclCallback = function (UserData:Pointer; Count:LongInt; Values:PPChar; Names:PPChar):LongInt;cdecl;
+  TSqliteCallback = function (UserData:Pointer; Count:LongInt; Values:PPChar; Names:PPChar):LongInt of Object;
+  TCallbackInfo = record
+    Proc: TSqliteCallback;
+    Data: Pointer;
+  end;
+  PCallbackInfo = ^TCallbackInfo;
+  
+  TRecordState = (rsAdded,rsDeleted,rsUpdated);
+  TRecordStateSet = set of TRecordState;
+  TQueryUpdatesCallback = procedure (UserData: Pointer; Values: PPChar; ABookmark: TBookmark; RecordState: TRecordState) of Object;
+
+  TGetSqlStrFunction = function (APChar: PChar): String;
 
   { TCustomSqliteDataset }
 
@@ -70,10 +80,12 @@ type
     FCurrentItem: PDataRecord;
     {$endif}
     FInternalActiveBuffer: PDataRecord;
+    FInsertBookmark: PDataRecord;
     FBufferSize: Integer;
     FExpectedAppends: Integer;
     FExpectedDeletes: Integer;
     FExpectedUpdates: Integer;
+    FOnCallback: TSqliteCallback;
     FSaveOnClose: Boolean;
     FSaveOnRefetch: Boolean;
     FAutoIncrementKey: Boolean;
@@ -98,7 +110,7 @@ type
     FAddedItems: TFPList;
     FDeletedItems: TFPList;
     FOrphanItems: TFPList;
-    FSqliteReturnId: Integer;
+    FReturnCode: Integer;
     FSqliteHandle: Pointer;
     FDataAllocated: Boolean;
     FRowBufferSize: Integer;
@@ -108,7 +120,7 @@ type
     FEndItem: PDataRecord;
     FCacheItem: PDataRecord;
     FGetSqlStr: array of TGetSqlStrFunction;
-    function SqliteExec(AHandle: Pointer; Sql:PChar):Integer;virtual; abstract;
+    function SqliteExec(Sql:PChar; ACallback: TSqliteCdeclCallback; Data: Pointer):Integer;virtual; abstract;
     procedure InternalCloseHandle;virtual;abstract;
     function InternalGetHandle: Pointer; virtual; abstract;
     procedure GetSqliteHandle;
@@ -127,6 +139,8 @@ type
     //TDataSet overrides
     function AllocRecordBuffer: PChar; override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
+    procedure DoAfterInsert; override;
+    procedure DoBeforeInsert; override;
     procedure FreeRecordBuffer(var Buffer: PChar); override;
     procedure GetBookmarkData(Buffer: PChar; Data: Pointer); override;
     function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; override;
@@ -158,6 +172,8 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    function BookmarkValid(ABookmark: TBookmark): Boolean; override;
+    function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint; override;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
     function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; override;
     function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : boolean; override;   
@@ -167,15 +183,17 @@ type
     function ApplyUpdates: Boolean;
     function CreateTable: Boolean;
     function CreateTable(const ATableName: String): Boolean;
+    procedure ExecCallback(const ASql: String; UserData: Pointer = nil);
     procedure ExecSQL;
     procedure ExecSQL(const ASql:String);
     procedure ExecSQLList;
     procedure ExecuteDirect(const ASql: String);virtual;abstract;
+    procedure QueryUpdates(RecordStates: TRecordStateSet; Callback: TQueryUpdatesCallback; UserData: Pointer=nil);
     function QuickQuery(const ASql:String):String;overload;
     function QuickQuery(const ASql:String;const AStrList: TStrings):String;overload;
     function QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;virtual;abstract;overload;
     procedure RefetchData;
-    function SqliteReturnString: String; virtual;abstract;
+    function ReturnString: String; virtual;abstract;
     function TableExists: Boolean;
     function TableExists(const ATableName:String):Boolean;
     function UpdatesPending: Boolean;
@@ -183,19 +201,12 @@ type
     procedure SetCurrentItem(Value:PDataRecord);
     property FCurrentItem: PDataRecord read FFCurrentItem write SetCurrentItem;
     {$endif}
-    {$ifdef USE_SQLITEDS_INTERNALS}
-    property BeginItem: PDataRecord read FBeginItem;
-    property EndItem: PDataRecord read FEndItem;
-    property UpdatedItems: TFPList read FUpdatedItems;
-    property AddedItems: TFPList read FAddedItems;
-    property DeletedItems: TFPList read FDeletedItems;
-    {$endif}
     property ExpectedAppends: Integer read FExpectedAppends write SetExpectedAppends;
     property ExpectedUpdates: Integer read FExpectedUpdates write SetExpectedUpdates;
     property ExpectedDeletes: Integer read FExpectedDeletes write SetExpectedDeletes;
     property IndexFields[Value: Integer]: TField read GetIndexFields;
     property RowsAffected: Integer read GetRowsAffected;
-    property SqliteReturnId: Integer read FSqliteReturnId;
+    property ReturnCode: Integer read FReturnCode;
     property SqliteHandle: Pointer read FSqliteHandle;
     property SqliteVersion: String read GetSqliteVersion;
     property SQLList:TStrings read FSqlList;
@@ -203,6 +214,7 @@ type
     property AutoIncrementKey: Boolean read FAutoIncrementKey write FAutoIncrementKey;
     property IndexFieldNames: string read FIndexFieldNames write FIndexFieldNames;
     property FileName: String read FFileName write SetFileName;
+    property OnCallback: TSqliteCallback read FOnCallback write FOnCallback;
     property PrimaryKey: String read FPrimaryKey write FPrimaryKey;
     property SaveOnClose: Boolean read FSaveOnClose write FSaveOnClose; 
     property SaveOnRefetch: Boolean read FSaveOnRefetch write FSaveOnRefetch;
@@ -248,11 +260,20 @@ const
   SQLITE_OK = 0;
   SQLITE_ROW = 100;
   
+  NullString = 'NULL';
+  
+
+function CallbackDispatcher(UserData:Pointer; Count:LongInt; Values:PPchar; Names:PPchar):LongInt;cdecl;
+begin
+  with PCallbackInfo(UserData)^ do
+    Result:= Proc(Data,Count,Values,Names);
+end;
+  
 function Num2SqlStr(APChar: PChar): String;
 begin
   if APChar = nil then
   begin
-    Result:='NULL';
+    Result:=NullString;
     Exit;
   end;
   Result:=StrPas(APChar);
@@ -262,7 +283,7 @@ function Char2SqlStr(APChar: PChar): String;
 begin
   if APChar = nil then
   begin
-    Result:='NULL';
+    Result:=NullString;
     Exit;
   end;
   //todo: create custom routine to directly transform PChar -> SQL str
@@ -399,6 +420,22 @@ begin
   Result:= TDSStream.Create(PPDataRecord(ActiveBuffer)^,Field.FieldNo - 1);
 end;
 
+procedure TCustomSqliteDataset.DoAfterInsert;
+begin
+  //an append or an insert in an empty dataset
+  if EOF then
+    FInsertBookmark:=FEndItem
+  else
+    FInsertBookmark:=FInternalActiveBuffer;
+  inherited DoAfterInsert;
+end;
+
+procedure TCustomSqliteDataset.DoBeforeInsert;
+begin
+  FInternalActiveBuffer:=PPDataRecord(ActiveBuffer)^;
+  inherited DoBeforeInsert;
+end;
+
 destructor TCustomSqliteDataset.Destroy;
 begin
   inherited Destroy;
@@ -415,6 +452,48 @@ begin
   Dispose(FBeginItem);
   Dispose(FCacheItem);
   Dispose(FEndItem);
+end;
+
+function TCustomSqliteDataset.BookmarkValid(ABookmark: TBookmark): Boolean;
+var
+  TempItem: PDataRecord;
+begin
+  Result:=False;
+  TempItem:=FBeginItem^.Next;
+  while TempItem <> FEndItem do
+  begin
+    if TempItem = PPDataRecord(ABookmark)^ then
+    begin
+      Result:=True;
+      Exit;
+    end;
+    TempItem:=TempItem^.Next;
+  end;
+end;
+
+function TCustomSqliteDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark
+  ): Longint;
+var
+  TempItem: PDataRecord;
+begin
+  if PPDataRecord(Bookmark1)^ = PPDataRecord(Bookmark2)^  then
+  begin
+    Result:=0;
+    Exit;
+  end;
+  //assume  Bookmark1 < Bookmark2
+  Result:=-1;
+  TempItem:=PPDataRecord(Bookmark1)^^.Previous;
+  while TempItem <> FBeginItem do
+  begin
+    if TempItem = PPDataRecord(Bookmark2)^ then
+    begin
+      //Bookmark1 is greater than Bookmark2
+      Result:=1;
+      Exit;
+    end;
+    TempItem:=TempItem^.Previous;
+  end;
 end;
 
 procedure TCustomSqliteDataset.CopyCacheToItem(AItem: PDataRecord);
@@ -622,14 +701,13 @@ begin
   CopyCacheToItem(NewItem);
 
   //insert in the linked list
-  FCurrentItem^.Previous^.Next:=NewItem;
-  NewItem^.Next:=FCurrentItem;
-  NewItem^.Previous:=FCurrentItem^.Previous;
-  FCurrentItem^.Previous:=NewItem;
+  FInsertBookmark^.Previous^.Next:=NewItem;
+  NewItem^.Next:=FInsertBookmark;
+  NewItem^.Previous:=FInsertBookmark^.Previous;
+  FInsertBookmark^.Previous:=NewItem;
   
-  //update the cursor in case of a insert
-  if FCurrentItem <> FEndItem then
-    FCurrentItem:=NewItem;
+  //update the cursor
+  FCurrentItem:=NewItem;
   
   Inc(FRecordCount);
   if FAutoIncFieldNo <> - 1 then
@@ -1052,7 +1130,7 @@ procedure TCustomSqliteDataset.SetDetailFilter;
       end;//case
     end
     else
-      Result:='NULL';
+      Result:=NullString;
   end;//function
 
 var
@@ -1154,7 +1232,7 @@ procedure TCustomSqliteDataset.ExecSQLList;
 begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
-  SqliteExec(FSqliteHandle,PChar(FSqlList.Text));
+  SqliteExec(PChar(FSqlList.Text),nil,nil);
 end;
 
 procedure TCustomSqliteDataset.ExecSQL;
@@ -1197,7 +1275,7 @@ begin
       if StatementsCounter = 400 then
       begin
         SqlTemp:=SqlTemp+'COMMIT;';
-        FSqliteReturnId:=SqliteExec(FSqliteHandle,PChar(SqlTemp));
+        FReturnCode:=SqliteExec(PChar(SqlTemp),nil,nil);
         StatementsCounter:=0;
         SqlTemp:='BEGIN;';
       end;    
@@ -1223,7 +1301,7 @@ begin
       if StatementsCounter = 400 then
       begin
         SqlTemp:=SqlTemp+'COMMIT;';
-        FSqliteReturnId:=SqliteExec(FSqliteHandle,PChar(SqlTemp));
+        FReturnCode:=SqliteExec(PChar(SqlTemp),nil,nil);
         StatementsCounter:=0;
         SqlTemp:='BEGIN;';
       end;  
@@ -1255,7 +1333,7 @@ begin
       if StatementsCounter = 400 then
       begin
         SqlTemp:=SqlTemp+'COMMIT;';
-        FSqliteReturnId:=SqliteExec(FSqliteHandle,PChar(SqlTemp));
+        FReturnCode:=SqliteExec(PChar(SqlTemp),nil,nil);
         StatementsCounter:=0;
         SqlTemp:='BEGIN;';
       end;  
@@ -1267,8 +1345,8 @@ begin
    FAddedItems.Clear;
    FUpdatedItems.Clear;
    FDeletedItems.Clear;   
-   FSqliteReturnId:=SqliteExec(FSqliteHandle,PChar(SqlTemp));
-   Result:= FSqliteReturnId = SQLITE_OK;
+   FReturnCode:=SqliteExec(PChar(SqlTemp),nil,nil);
+   Result:= FReturnCode = SQLITE_OK;
   end;  
   {$ifdef DEBUG}
     writeln('  Result: ',Result);
@@ -1294,8 +1372,6 @@ begin
   {$endif}
   if (ATableName <> '') and (FieldDefs.Count > 0) then
   begin
-    if FSqliteHandle = nil then
-      GetSqliteHandle;
     SqlTemp:='CREATE TABLE '+ATableName+' (';
     for i := 0 to FieldDefs.Count-1 do
     begin
@@ -1338,12 +1414,55 @@ begin
     {$ifdef DEBUG}
     writeln('  SQL: ',SqlTemp);
     {$endif}
-    FSqliteReturnId:=SqliteExec(FSqliteHandle,PChar(SqlTemp));
-    Result:= FSqliteReturnId = SQLITE_OK;
+    ExecSQL(SqlTemp);
+    Result:= FReturnCode = SQLITE_OK;
   end
   else
     Result:=False;
 end;
+
+procedure TCustomSqliteDataset.ExecCallback(const ASql: String; UserData: Pointer = nil);
+var
+  CallbackInfo: TCallbackInfo;
+begin
+  if not Assigned(FOnCallback) then
+    DatabaseError('OnCallback property not set',Self);
+  if FSqliteHandle = nil then
+    GetSqliteHandle;
+  CallbackInfo.Data:=UserData;
+  CallbackInfo.Proc:=FOnCallback;
+  SqliteExec(PChar(ASql),@CallbackDispatcher,@CallbackInfo);
+end;
+
+
+procedure TCustomSqliteDataset.QueryUpdates(RecordStates: TRecordStateSet; Callback: TQueryUpdatesCallback;
+  UserData: Pointer = nil);
+var
+  i: Integer;
+  TempItem: PDataRecord;
+begin
+  if not Assigned(Callback) then
+    DatabaseError('Callback parameter not set',Self);
+  if rsDeleted in RecordStates then
+    with FDeletedItems do
+    for i:= 0 to Count - 1 do
+      Callback(UserData,PDataRecord(Items[i])^.Row,nil,rsDeleted);
+  if rsUpdated in RecordStates then
+    with FUpdatedItems do
+    for i:= 0 to Count - 1 do
+    begin
+      TempItem:=PDataRecord(Items[i]);
+      Callback(UserData,TempItem^.Row,TBookmark(@TempItem),rsUpdated);
+    end;
+  if rsAdded in RecordStates then
+    with FAddedItems do
+    for i:= 0 to Count - 1 do
+    begin
+      TempItem:=PDataRecord(Items[i]);
+      Callback(UserData,TempItem^.Row,TBookmark(@TempItem),rsAdded);
+    end;
+end;
+
 
 procedure TCustomSqliteDataset.RefetchData;
 var
@@ -1378,14 +1497,12 @@ begin
   if not (ATableName = '') and FileExists(FFileName) then
   begin
     ExecSql('SELECT name FROM SQLITE_MASTER WHERE type = ''table'' AND name LIKE '''+ ATableName+ ''';');
-    Result:=FSqliteReturnId = SQLITE_ROW;
+    Result:=FReturnCode = SQLITE_ROW;
   end;
 end;
 
 function TCustomSqliteDataset.UpdatesPending: Boolean;
 begin
-  //Sometimes FBeginItem is inserted in FUpdatedItems
-  FUpdatedItems.Remove(FBeginItem);
   Result:= (FUpdatedItems.Count > 0) or
     (FAddedItems.Count > 0) or (FDeletedItems.Count > 0);
 end;
