@@ -325,7 +325,7 @@ type
   end;
 
   TDOMElementDef = class(TDOMElement);
-  
+
 
 {$i names.inc}
 
@@ -343,15 +343,19 @@ procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
 begin
   ABuffer.MaxLength := ALength;
   ABuffer.Length := 0;
-  GetMem(ABuffer.Buffer, ABuffer.MaxLength*SizeOf(WideChar));
+  ABuffer.Buffer:=AllocMem(ABuffer.MaxLength*SizeOf(WideChar));
 end;
 
 procedure BufAppend(var ABuffer: TWideCharBuf; wc: WideChar);
+var
+  OldLength : integer;
 begin
   if ABuffer.Length >= ABuffer.MaxLength then
   begin
+    OldLength := ABuffer.MaxLength;
     ABuffer.MaxLength := ABuffer.MaxLength * 2;
     ReallocMem(ABuffer.Buffer, ABuffer.MaxLength * SizeOf(WideChar));
+    FillChar(ABuffer.Buffer[OldLength],(ABuffer.MaxLength-OldLength) * SizeOf(WideChar),0);
   end;
   ABuffer.Buffer[ABuffer.Length] := wc;
   Inc(ABuffer.Length);
@@ -466,7 +470,7 @@ begin
   else if Assigned(FParent) then
     Result := FParent.PublicID
   else
-    Result := '';    
+    Result := '';
 end;
 
 function TXMLInputSource.GetSystemID: WideString;
@@ -857,7 +861,7 @@ begin
     StartPE;
     FCurChar := #32;
     FWhitespace := True;
-  end;  
+  end;
 end;
 
 procedure TXMLReader.Unget(wc: WideChar);
@@ -1506,7 +1510,7 @@ begin
   if FCurChar <> '?' then
     ExpectWhitespace;
 
-  FAllowedDecl := dtNone;  
+  FAllowedDecl := dtNone;
   FValue.Length := 0;
   repeat
     BufAppend(FValue, FCurChar);
@@ -1953,12 +1957,12 @@ begin
         AttDef.FDefault := AD_DEFAULT;
         ValueRequired := True;
       end;
-      
+
       if ValueRequired then
       begin
         SaveCurNode := FCursor;
         FCursor := AttDef;
-// tricky moment, no tests for that        
+// tricky moment, no tests for that
 {       FRecognizePE := False;  }        // TODO: shall it really be disabled?
         try
           ExpectAttValue;
@@ -1996,7 +2000,7 @@ begin
     if FIntSubset and (FSource.FParent = nil) then
       RaiseExc('PE references in internal subset not allowed inside declarations');
     StartPE;
-    GetCharRaw;  
+    GetCharRaw;
   end
   else if FCurChar = '&' then  // CharRefs: include, EntityRefs: bypass
   begin
