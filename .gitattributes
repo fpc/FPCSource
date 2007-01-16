@@ -7927,6 +7927,7 @@ tests/webtbs/tw7285.pp svneol=native#text/plain
 tests/webtbs/tw7329.pp svneol=native#text/plain
 tests/webtbs/tw7372.pp svneol=native#text/plain
 tests/webtbs/tw7379.pp svneol=native#text/plain
+tests/webtbs/tw7381.pp svneol=native#text/plain
 tests/webtbs/tw7391.pp svneol=native#text/plain
 tests/webtbs/tw7425.pp svneol=native#text/plain
 tests/webtbs/tw7440.pp svneol=native#text/plain
@@ -7999,6 +8000,7 @@ tests/webtbs/uw4352e.pp svneol=native#text/plain
 tests/webtbs/uw4541.pp svneol=native#text/plain
 tests/webtbs/uw6203.pp svneol=native#text/plain
 tests/webtbs/uw6767.pp svneol=native#text/plain
+tests/webtbs/uw7381.pp svneol=native#text/plain
 utils/Makefile svneol=native#text/plain
 utils/Makefile.fpc svneol=native#text/plain
 utils/README -text
