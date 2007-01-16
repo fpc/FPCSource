@@ -4,7 +4,7 @@
 PROGRAM Test;
 
 uses
-  variants;
+  math;
 
 BEGIN
 
