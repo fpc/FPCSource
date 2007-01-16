@@ -1919,20 +1919,20 @@ implementation
 
     procedure gen_proc_symbol(list:TAsmList);
       var
-        hs : string;
+        item : tstringlistitem;
       begin
-        repeat
-          hs:=current_procinfo.procdef.aliasnames.getfirst;
-          if hs='' then
-            break;
-          if (cs_profile in current_settings.moduleswitches) or
-             (po_global in current_procinfo.procdef.procoptions) then
-            list.concat(Tai_symbol.createname_global(hs,AT_FUNCTION,0))
-          else
-            list.concat(Tai_symbol.createname(hs,AT_FUNCTION,0));
-          if tf_use_function_relative_addresses in target_info.flags then
-            list.concat(Tai_function_name.create(hs));
-        until false;
+        item := tstringlistitem(current_procinfo.procdef.aliasnames.first);
+        while assigned(item) do
+          begin
+            if (cs_profile in current_settings.moduleswitches) or
+              (po_global in current_procinfo.procdef.procoptions) then
+              list.concat(Tai_symbol.createname_global(item.str,AT_FUNCTION,0))
+            else
+              list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0));
+            if tf_use_function_relative_addresses in target_info.flags then
+              list.concat(Tai_function_name.create(item.str));
+            item := tstringlistitem(item.next);
+          end;
 
         current_procinfo.procdef.procstarttai:=tai(list.last);
       end;

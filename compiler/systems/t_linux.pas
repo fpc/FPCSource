@@ -164,7 +164,7 @@ begin
         { the manglednames can already be the same when the procedure
           is declared with cdecl }
         pd:=tprocdef(tprocsym(hp2.sym).ProcdefList[0]);
-        if has_alias_name(pd,hp2.name^) then
+        if not has_alias_name(pd,hp2.name^) then
          begin
            { place jump in al_procedures }
            current_asmdata.asmlists[al_procedures].concat(tai_align.create(target_info.alignment.procalign));
