@@ -10922,6 +10922,7 @@ s += chr(85);
 s += chr(86);
 s += chr(87);
 s += chr(88);
+{$ifndef cpuarm}
 s += chr(89);
 s += chr(90);
 s += chr(65);
@@ -13075,5 +13076,6 @@ s += chr(80);
 s += chr(81);
 s += chr(82);
 s += chr(83);
+{$endif cpuarm}
 writeln(s)
 END.
