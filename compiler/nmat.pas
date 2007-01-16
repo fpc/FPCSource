@@ -859,7 +859,7 @@ implementation
       begin
          result:=nil;
          typecheckpass(left);
-         set_varstate(left,vs_read,[]);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
 
