@@ -646,25 +646,28 @@ implementation
         { call helpers for interface }
         if is_interfacecom(left.resultdef) then
          begin
-           {
-           hp:=
-             ccallparanode.create(
-               ctypeconvnode.create_internal(right,voidpointertype),
-             ccallparanode.create(
-               ctypeconvnode.create_internal(left,voidpointertype),
-               nil));
-           result:=ccallnode.createintern('fpc_intf_assign',hp);
-           }
-
-           hp:=
-             ccallparanode.create(
-               cguidconstnode.create(tobjectdef(left.resultdef).iidguid^),
-             ccallparanode.create(
-               ctypeconvnode.create_internal(right,voidpointertype),
-             ccallparanode.create(
-               ctypeconvnode.create_internal(left,voidpointertype),
-               nil)));
-           result:=ccallnode.createintern('fpc_intf_assign_by_iid',hp);
+           if right.resultdef.is_related(left.resultdef) then
+             begin
+               hp:=
+                 ccallparanode.create(
+                   ctypeconvnode.create_internal(right,voidpointertype),
+                 ccallparanode.create(
+                   ctypeconvnode.create_internal(left,voidpointertype),
+                   nil));
+               result:=ccallnode.createintern('fpc_intf_assign',hp)
+             end
+           else
+             begin
+               hp:=
+                 ccallparanode.create(
+                   cguidconstnode.create(tobjectdef(left.resultdef).iidguid^),
+                 ccallparanode.create(
+                   ctypeconvnode.create_internal(right,voidpointertype),
+                 ccallparanode.create(
+                   ctypeconvnode.create_internal(left,voidpointertype),
+                   nil)));
+               result:=ccallnode.createintern('fpc_intf_assign_by_iid',hp);
+             end;
 
            left:=nil;
            right:=nil;
