@@ -452,7 +452,9 @@ implementation
          { To avoid false positives regarding "uninitialised"          }
          { warnings when using arrays, perform it in two steps         }
          set_varstate(left,vs_written,[]);
-         set_varstate(left,vs_read,[]);
+         { vsf_must_be_valid so it doesn't get changed into }
+         { vsf_referred_not_inited                          }
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
          dec(parsing_para_level);
       end;
 

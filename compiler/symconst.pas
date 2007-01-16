@@ -393,9 +393,27 @@ type
     macrosym
   );
 
-  { State of the variable, if it's declared, assigned or used }
+  { State of the variable:
+     vs_declared: variable has been declared, not initialised
+       (e.g. normal variable, out parameter)
+     vs_initialised: variable has been declared and is valid
+       (e.g. typed constant, var/const parameter)
+     vs_read: variable has been read and the read was checked for validity
+       (so a warning has been given if necessary)
+     vs_read_not_warned: variable has been read, but we didn't warn about
+       whether or not the variable was valid
+       (e.g. read of global variable -> warn at end of compilation unit if
+        the state is vs_read_not_warned, since that means it's only read and
+        never written)
+     vs_referred_not_inited: variable has been used in length/low/high/@/...
+        expression, was not yet initialised and needn't be at that time
+        (e.g. length() of a statically allocated array, or sizeof(variable))
+     vs_written: variable has been assigned/written to, but not yet read
+        (e.g. assigning something to a variable/parameter)
+     vs_readwritten: variable has been written to and read from }
   tvarstate=(vs_none,
-    vs_declared,vs_initialised,vs_read,vs_read_not_warned,vs_written,vs_readwritten
+    vs_declared,vs_initialised,vs_read,vs_read_not_warned,
+    vs_referred_not_inited,vs_written,vs_readwritten
   );
 
   tvarspez = (vs_value,vs_const,vs_var,vs_out);

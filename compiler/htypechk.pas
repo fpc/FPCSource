@@ -765,22 +765,29 @@ implementation
       const
         vstrans: array[tvarstate,tvarstate] of tvarstate = (
           { vs_none -> ... }
-          (vs_none,vs_declared,vs_initialised,vs_read,vs_read_not_warned,vs_written,vs_readwritten),
+          (vs_none,vs_declared,vs_initialised,vs_read,vs_read_not_warned,vs_referred_not_inited,vs_written,vs_readwritten),
           { vs_declared -> ... }
-          (vs_none,vs_declared,vs_initialised,vs_read,vs_read_not_warned,vs_written,vs_readwritten),
+          (vs_none,vs_declared,vs_initialised,vs_read,vs_read_not_warned,vs_referred_not_inited,vs_written,vs_readwritten),
           { vs_initialised -> ... }
-          (vs_none,vs_initialised,vs_initialised,vs_read,vs_read,vs_written,vs_readwritten),
+          (vs_none,vs_initialised,vs_initialised,vs_read,vs_read,vs_read,vs_written,vs_readwritten),
           { vs_read -> ... }
-          (vs_none,vs_read,vs_read,vs_read,vs_read_not_warned,vs_readwritten,vs_readwritten),
+          (vs_none,vs_read,vs_read,vs_read,vs_read,vs_read,vs_readwritten,vs_readwritten),
           { vs_read_not_warned -> ... }
-          (vs_none,vs_read_not_warned,vs_read,vs_read,vs_read_not_warned,vs_readwritten,vs_readwritten),
+          (vs_none,vs_read_not_warned,vs_read,vs_read,vs_read_not_warned,vs_read_not_warned,vs_readwritten,vs_readwritten),
+          { vs_referred_not_inited }
+          (vs_none,vs_referred_not_inited,vs_read,vs_read,vs_read,vs_referred_not_inited,vs_readwritten,vs_readwritten),
           { vs_written -> ... }
-          (vs_none,vs_written,vs_written,vs_readwritten,vs_readwritten,vs_written,vs_readwritten),
+          (vs_none,vs_written,vs_written,vs_readwritten,vs_readwritten,vs_written,vs_written,vs_readwritten),
           { vs_readwritten -> ... }
-          (vs_none,vs_readwritten,vs_readwritten,vs_readwritten,vs_readwritten,vs_readwritten,vs_readwritten));
+          (vs_none,vs_readwritten,vs_readwritten,vs_readwritten,vs_readwritten,vs_readwritten,vs_readwritten,vs_readwritten));
       var
         hsym : tabstractvarsym;
       begin
+        { make sure we can still warn about uninitialised use after high(v), @v etc }
+        if (newstate = vs_read) and
+           not(vsf_must_be_valid in varstateflags) then
+          newstate := vs_referred_not_inited;
+
         while assigned(p) do
          begin
            case p.nodetype of
@@ -822,7 +829,7 @@ implementation
                   begin
                     hsym:=tabstractvarsym(tloadnode(p).symtableentry);
                     if (vsf_must_be_valid in varstateflags) and
-                       (hsym.varstate in [vs_declared,vs_read_not_warned]) then
+                       (hsym.varstate in [vs_declared,vs_read_not_warned,vs_referred_not_inited]) then
                       begin
                         { Give warning/note for uninitialized locals }
                         if assigned(hsym.owner) and

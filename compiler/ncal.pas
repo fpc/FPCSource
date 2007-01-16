@@ -2144,15 +2144,15 @@ implementation
                  Also allow it for simple loads }
                if (procdefinition.proctypeoption=potype_constructor) or
                   ((hpt.nodetype=loadn) and
-                   (
-                    (methodpointer.resultdef.typ=classrefdef) or
-                    (
-                     (methodpointer.resultdef.typ=objectdef) and
-                     not(oo_has_virtual in tobjectdef(methodpointer.resultdef).objectoptions)
-                    )
-                   )
+                   (methodpointer.resultdef.typ=objectdef) and
+                   not(oo_has_virtual in tobjectdef(methodpointer.resultdef).objectoptions)
                   ) then
-                 set_varstate(methodpointer,vs_read,[])
+                 { a constructor will and a method may write something to }
+                 { the fields                                             }
+                 set_varstate(methodpointer,vs_written,[])
+               else if ((hpt.nodetype=loadn) and
+                     (methodpointer.resultdef.typ=classrefdef)) then
+                   set_varstate(methodpointer,vs_read,[])
                else
                  set_varstate(methodpointer,vs_read,[vsf_must_be_valid]);
 
