@@ -102,19 +102,19 @@ procedure float_raise(i: shortint);
 Begin
   softfloat_exception_flags := softfloat_exception_flags or i;
   if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_invalid) <> 0 then
-     RunError(207)
+     HandleError(207)
   else
   if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_divbyzero) <> 0 then
-     RunError(200)
+     HandleError(200)
   else
   if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_overflow) <> 0 then
-     RunError(205)
+     HandleError(205)
   else
   if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_underflow) <> 0 then
-     RunError(206)
+     HandleError(206)
   else
   if ((softfloat_exception_flags and not(softfloat_exception_mask)) and float_flag_inexact) <> 0 then
-     RunError(207);
+     HandleError(207);
 end;
 
 
