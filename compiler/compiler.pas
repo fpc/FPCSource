@@ -148,6 +148,7 @@ begin
    end;
 { Free memory for the others }
   CompilerInited:=false;
+  do_doneSymbolInfo;
   DoneSymtable;
   DoneGlobals;
   DoneFileUtils;
@@ -169,6 +170,7 @@ begin
   InitVerbose;
   inittokens;
   IniTSymtable; {Must come before read_arguments, to enable macrosymstack}
+  do_initSymbolInfo;
   CompilerInited:=true;
 { this is needed here for the IDE
   in case of compilation failure
