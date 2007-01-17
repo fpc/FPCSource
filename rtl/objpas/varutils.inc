@@ -236,17 +236,8 @@ end;
 
 Function CheckVarArrayAndCalculateAddress(psa: PVarArray;
   Indices: PVarArrayCoorArray; var Address: Pointer; Lockit: Boolean): HRESULT;
-
-  Function CountElements(D: Longint): Longint;
-  begin
-    if (D<psa^.DimCount) then
-      Result:=CountElements(D+1)+psa^.Bounds[D-1].ElementCount
-    else
-      Result:=1;
-  end;
-
 var
-  LB,HB,I,Count : LongInt;
+  I,D,Count,Idx : LongInt;
 
 begin
   Result:=CheckVarArray(psa);
@@ -254,14 +245,18 @@ begin
   Count:=0;
   If Result<>VAR_OK then
     exit;
-  for I:=1 to psa^.DimCount do
+  D:=0;
+  for I:=0 to psa^.DimCount-1 do
     begin
-    LB:=psa^.Bounds[I-1].LowBound;
-    HB:=LB+psa^.Bounds[I-1].ElementCount;
-    if (LB=HB) or ((Indices^[I-1]< LB) or(Indices^[I-1]>HB)) then
-      Exit(VAR_BADINDEX);
-    Count:=Count+(Indices^[I-1]-LB)*CountElements(I+1);
-  end;
+      Idx:=Indices^[psa^.DimCount-I-1] - psa^.Bounds[I].LowBound;
+      if (Idx<0) or (Idx>=psa^.Bounds[I].ElementCount) then
+        Exit(VAR_BADINDEX);
+      if I=0 then
+        Count:=Idx
+      else
+        Inc(Count,Idx*D);
+      Inc(D,psa^.Bounds[I].ElementCount);
+    end;
   Address:=SafeArrayCalculateElementAddress(psa, Count);
   if LockIt then
     Result:=SafeArrayLock(psa);
@@ -639,7 +634,7 @@ begin
   if Result<>VAR_OK then
     exit;
   if (Dim>0) and (Dim<=psa^.DimCount) then
-    LBound:=psa^.Bounds[Dim-1].LowBound
+    LBound:=psa^.Bounds[psa^.dimcount-Dim].LowBound
   else
     Result:=VAR_BADINDEX;
 end;
@@ -650,8 +645,8 @@ begin
   if Result<>VAR_OK then
     exit;
   if (Dim>0) and (Dim<=psa^.DimCount) then
-    UBound:=psa^.Bounds[Dim-1].LowBound +
-            psa^.Bounds[Dim-1].ElementCount-1
+    UBound:=psa^.Bounds[psa^.dimcount-Dim].LowBound +
+            psa^.Bounds[psa^.dimcount-Dim].ElementCount-1
   else
     Result:=VAR_BADINDEX
 end;
