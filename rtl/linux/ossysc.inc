@@ -579,3 +579,26 @@ begin
     TSysParam(resource), TSysParam(rlim));
 end;
 {$endif}
+
+{$if defined(cpupowerpc)}
+const
+  { FP exception related constants for prctl(); PowerPC specific }
+  PR_GET_FPEXC    = 11;   { get floating point exception mode }
+  PR_SET_FPEXC    = 12;   { set floating point exception mode }
+  
+  PR_FP_EXC_DISABLED = 0; { FP exceptions disabled }
+  PR_FP_EXC_NONREC   = 1; { async non-recoverable exc. mode }
+  PR_FP_EXC_ASYNC    = 2; { async recoverable exc. mode }
+  PR_FP_EXC_PRECISE  = 3; { precise exception mode }
+
+{ prctl() call to get FP exception mode }
+function prctl_get_fpexc(var mode : cint): cint;
+begin
+  prctl_get_fpexc := do_syscall(syscall_nr_prctl, PR_GET_FPEXC, ptrint(@mode));
+end;
+{ prctl() call to set FP exception mode }
+function prctl_set_fpexc(const mode : cint): cint;
+begin
+  prctl_set_fpexc := do_syscall(syscall_nr_prctl, PR_SET_FPEXC, mode);
+end;
+{$endif}
