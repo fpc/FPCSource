@@ -21,8 +21,8 @@ function arctan2(y,x : float) : float;assembler;
      fpatan
      fwait
   end;
-  
-  
+
+
 {$define FPC_MATH_HAS_SINCOS}
 procedure sincos(theta : float;out sinus,cosinus : float);assembler;
   asm
@@ -34,7 +34,7 @@ procedure sincos(theta : float;out sinus,cosinus : float);assembler;
   end;
 
 
-{$define FPC_MATH_HAS_TAN}  
+{$define FPC_MATH_HAS_TAN}
 function tan(x : float) : float;assembler;
   asm
     fldt X
@@ -42,7 +42,7 @@ function tan(x : float) : float;assembler;
     fstp %st
     fwait
   end;
-  
+
 
 {$define FPC_MATH_HAS_COTAN}
 function cotan(x : float) : float;assembler;
@@ -65,6 +65,8 @@ var
 begin
   CtlWord := Get8087CW;
   Set8087CW((CtlWord and $F3FF) or (Ord(RoundMode) shl 10));
+  if has_sse_support then
+    SetSSECSR((GetSSECSR and $ffff9fff) or (dword(RoundMode) shl 13));
   Result := TFPURoundingMode((CtlWord shr 10) and 3);
 end;
 
@@ -93,6 +95,9 @@ var
 begin
   CtlWord := Get8087CW;
   Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
+  if has_sse_support then
+    SetSSECSR((GetSSECSR and $ffffe07f) or (dword(Mask) shl 7));
+  softfloat_exception_mask:=dword(Mask);
   Result := TFPUExceptionMask(Longint(CtlWord and $3F));
 end;
 
@@ -104,4 +109,3 @@ asm
 .Lclear:
   fnclex
 end;
-
