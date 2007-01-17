@@ -34,6 +34,7 @@ type
     function  GetOutput : Pchar;
     function  GetError : Pchar;
     function  LoadFile(const fn:string):boolean;
+    procedure SetDir(const s : string);
     procedure SetArgs(const s : string);
     procedure ClearSymbols;
   end;
@@ -94,6 +95,10 @@ procedure TGDBController.SetArgs(const s : string);
 begin
 end;
 
+
+procedure TGDBController.SetDir(const s : string);
+begin
+end;
 
 procedure TGDBController.StartTrace;
 begin
