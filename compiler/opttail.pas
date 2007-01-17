@@ -186,7 +186,12 @@ unit opttail;
           with tparavarsym(p.paras[i]) do
             if (varspez in [vs_out,vs_var]) or
               ((varspez=vs_const) and
-               (paramanager.push_addr_param(varspez,vardef,p.proccalloption))) then
+               (paramanager.push_addr_param(varspez,vardef,p.proccalloption)) or
+               { parameters requiring tables are too complicated to handle
+                 and slow down things anyways so a tail recursion call
+                 makes no sense
+               }
+               vardef.needs_inittable) then
                exit;
 
         labelnode:=clabelnode.create(cnothingnode.create);
