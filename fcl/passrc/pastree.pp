@@ -313,6 +313,7 @@ type
     VarType: TPasType;
     Value: string;
     Modifiers : string;
+    AbsoluteLocation : String;
   end;
 
   TPasConst = class(TPasVariable)

@@ -1200,8 +1200,18 @@ begin
   NextToken;
   if CurToken = tkAbsolute then
   begin
-    // !!!: Store this information
     ExpectIdentifier;
+    S:=CurTokenText;
+    NextToken;
+    if CurToken=tkDot then
+      begin
+      ExpectIdentifier;
+      S:=S+'.'+CurTokenText;
+      end
+    else
+      UnGetToken;
+    For I:=0 to List.Count-1 do
+      TPasVariable(List[i]).AbsoluteLocation:=S;
   end else
     UngetToken;
 
