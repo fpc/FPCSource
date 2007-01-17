@@ -176,32 +176,37 @@ begin
   Result := ParseSQL(SQL,DoCreate,ParameterStyle,ParamBinding, rs);
 end;
 
-function SkipComments(var p: PChar) : boolean;
+function SkipComments(var p: PChar; EscapeSlash, EscapeRepeat : Boolean) : Boolean;
+var notRepeatEscaped : boolean;
+
+  procedure SkipQuotesString(QuoteChar : char);
+  begin
+    Inc(p);
+    Result := True;
+    repeat
+      notRepeatEscaped := True;
+      while not (p^ in [#0, QuoteChar]) do
+      begin
+        if EscapeSlash and (p^='\') then Inc(p,2) // make sure we handle \' and \\ correct
+        else Inc(p);
+      end;
+      if p^=QuoteChar then
+      begin
+        Inc(p); // skip final '
+        if (p^=QuoteChar) and EscapeRepeat then // Handle escaping by ''
+        begin
+        notRepeatEscaped := False;
+        inc(p);
+        end
+      end;
+    until notRepeatEscaped;
+  end;
+
 begin
   result := false;
   case p^ of
-    '''': // single quote delimited string
-      begin
-        Inc(p);
-        Result := True;
-        while not (p^ in [#0, '''']) do
-        begin
-          if p^='\' then Inc(p,2) // make sure we handle \' and \\ correct
-          else Inc(p);
-        end;
-        if p^='''' then Inc(p); // skip final '
-      end;
-    '"':  // double quote delimited string
-      begin
-        Inc(p);
-        Result := True;
-        while not (p^ in [#0, '"']) do
-        begin
-          if p^='\'  then Inc(p,2) // make sure we handle \" and \\ correct
-          else Inc(p);
-        end;
-        if p^='"' then Inc(p); // skip final "
-      end;
+    '''': SkipQuotesString('''');       // single quote delimited string
+    '"':  SkipQuotesString('"');        // double quote delimited string
     '-': // possible start of -- comment
       begin
         Inc(p);
@@ -275,7 +280,7 @@ begin
   p:=PChar(SQL);
   BufStart:=p; // used to calculate ParamPart.Start values
   repeat
-    SkipComments(p);
+    SkipComments(p,ParameterStyle<>psPostgreSQL,ParameterStyle=psPostgreSQL);
     case p^ of
       ':','?': // parameter
         begin

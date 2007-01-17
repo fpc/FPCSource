@@ -881,7 +881,7 @@ begin
     begin
     inc(CurrentP);
     
-    EndOfComment := SkipComments(CurrentP);
+    EndOfComment := SkipComments(CurrentP,True,False);
     if EndOfcomment then dec(currentp);
     if EndOfComment and (ParsePart = ppStart) then PhraseP := CurrentP;
     
