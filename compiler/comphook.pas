@@ -148,6 +148,7 @@ const
   do_initsymbolinfo : tinitsymbolinfoproc = @def_initsymbolinfo;
   do_donesymbolinfo : tdonesymbolinfoproc = @def_donesymbolinfo;
   do_extractsymbolinfo : textractsymbolinfoproc = @def_extractsymbolinfo;
+  needsymbolinfo : boolean =false;
 
   do_openinputfile : topeninputfilefunc = @def_openinputfile;
   do_getnamedfiletime : tgetnamedfiletimefunc = @def_getnamedfiletime;
