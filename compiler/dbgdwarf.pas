@@ -1162,8 +1162,9 @@ implementation
         if is_dynamic_array(def) then
           begin
             { !!! FIXME !!! }
-            { gdb's dwarf implementation sucks, so we can't use DW_OP_push_object here (FK)
+            { gdb's dwarf implementation sucks, so we can't use DW_OP_push_object here (FK)}
             { insert location attribute manually }
+            {
             current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(DW_AT_data_location));
             current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(DW_FORM_block1));
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(1));
@@ -1516,7 +1517,7 @@ implementation
             append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(pd.mangledname));
             append_labelentry(DW_AT_high_pc,procendlabel);
 
-            {
+            (*
             if assigned(pd.funcretsym) and
                (tabstractnormalvarsym(pd.funcretsym).refs>0) then
               begin
@@ -1536,13 +1537,13 @@ implementation
                          tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
                   end;
               end;
-            }
+            *)
 
             finish_entry;
-{
+(*
             { para types }
             write_def_stabstr(templist,pd);
-}
+*)
 
             if assigned(pd.parast) then
               write_symtable_syms(pd.parast);
@@ -1779,11 +1780,11 @@ implementation
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.typedef));
           finish_entry;
 
-          { Moved fom append sym, do we need this (MWE)
+          (* Moved fom append sym, do we need this (MWE)
           { For object types write also the symtable entries }
           if (sym.typ=typesym) and (ttypesym(sym).typedef.typ=objectdef) then
             write_symtable_syms(list,tobjectdef(ttypesym(sym).typedef).symtable);
-          }
+          *)
         end;
 
       procedure TDebugInfoDwarf.appendsym_unit(sym: tunitsym);
@@ -1802,13 +1803,13 @@ implementation
             toaddr :
               begin
                  { MWE: replaced ifdef i368 }
-                 {
+                 (*
                  if target_cpu = cpu_i386 then
                    begin
                     { in theory, we could write a DW_AT_segment entry here for sym.absseg,
                       however I doubt that gdb supports this (FK) }
                    end;
-                 }
+                 *)
                  templist.concat(tai_const.create_8bit(3));
                  templist.concat(tai_const.create_aint(sym.addroffset));
                  blocksize:=1+sizeof(aword);
