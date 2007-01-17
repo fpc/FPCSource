@@ -1482,8 +1482,13 @@ implementation
          { assemble and link }
          create_objectfile;
 
+         { We might need the symbols info if not using
+           the default do_extractsymbolinfo
+           which is a dummy function PM }
+         needsymbolinfo:=do_extractsymbolinfo<>@def_extractsymbolinfo;;
          { release all local symtables that are not needed anymore }
-         free_localsymtables(current_module.localsymtable);
+         if (not needsymbolinfo) then
+           free_localsymtables(current_module.localsymtable);
 
          { leave when we got an error }
          if (Errorcount>0) and not status.skip_error then
@@ -1509,7 +1514,8 @@ implementation
                   begin
                     linker.AddModuleFiles(hp);
                     hp2:=tmodule(hp.next);
-                    if hp<>current_module then
+                    if (hp<>current_module) and
+                       (not needsymbolinfo) then
                       begin
                         loaded_units.remove(hp);
                         hp.free;

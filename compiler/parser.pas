@@ -277,6 +277,7 @@ implementation
 
       var
          olddata : polddata;
+         hp,hp2 : tmodule;
        begin
          inc(compile_level);
          parser_current_file:=filename;
@@ -471,6 +472,24 @@ implementation
                 (status.errorcount=0) then
               begin
                 parser_current_file:='';
+                 { Write Browser Collections }
+                 do_extractsymbolinfo;
+                 { free now what we did not free earlier in
+                   proc_program PM }
+                 if needsymbolinfo then
+                   begin
+                     hp:=tmodule(loaded_units.first);
+                     while assigned(hp) do
+                      begin
+                        hp2:=tmodule(hp.next);
+                        if (hp<>current_module) then
+                          begin
+                            loaded_units.remove(hp);
+                            hp.free;
+                          end;
+                        hp:=hp2;
+                      end;
+                    end;
                 { Close script }
                 if (not AsmRes.Empty) then
                 begin
