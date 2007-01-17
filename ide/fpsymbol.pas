@@ -196,7 +196,7 @@ type
       ReferenceView : PSymbolReferenceView;
 {$ifdef HASOUTLINE}
       InheritanceView: PSymbolInheritanceView;
-{$endif HASOUTLIEN}
+{$endif HASOUTLINE}
       MemInfoView   : PSymbolMemInfoView;
       UnitInfoText  : PSymbolMemoView;
       UnitInfoUsed  : PSymbolScopeView;
@@ -1223,7 +1223,8 @@ function TBrowserTab.GetItem(Index: sw_integer): PBrowserTabItem;
 var Counter: integer;
     P: PBrowserTabItem;
 begin
-  P:=Items; Counter:=0;
+  P:=Items;
+  Counter:=0;
   while (P<>nil) and (Counter<Index) do
     begin
       P:=P^.Next;
@@ -1294,7 +1295,8 @@ begin
       begin
         DontClear:=false; Idx:=-1;
         for I:=0 to GetItemCount-1 do
-          if GetCtrlCode(GetItem(I)^.Sign)=Event.KeyCode then
+          if (GetCtrlCode(GetItem(I)^.Sign)=Event.KeyCode){ or
+             (GetItem(I)^.Sign=UpCase(Event.CharCode))}  then
            if (Flags and (1 shl I))<>0 then
             begin
               Idx:=I;
@@ -1509,22 +1511,21 @@ begin
     NewBrowserTabItem(label_browsertab_reference,ReferenceView,
 {$ifdef HASOUTLINE}
     NewBrowserTabItem(label_browsertab_inheritance,InheritanceView,
-{$endif HASOUTLINE}
+{$else not  HASOUTLINE}
+    NewBrowserTabItem(label_browsertab_inheritance,nil,
+{$endif not HASOUTLINE}
     NewBrowserTabItem(label_browsertab_memory,MemInfoView,
     NewBrowserTabItem(label_browsertab_unit,UnitInfo,
-    nil))
-{$ifdef HASOUTLINE}
-    )
-{$endif HASOUTLINE}
-    ))));
+    nil)))))));
   PageTab^.GrowMode:=gfGrowHiX;
   Insert(PageTab);
 
   if assigned(ScopeView) then
    SelectTab(btScope)
-  else
-   if assigned(ReferenceView) then
+  else if assigned(ReferenceView) then
     SelectTab(btReferences)
+  else if assigned(MemInfoView) then
+    SelectTab(btMemInfo)
 {$ifdef HASOUTLINE}
   else
    if assigned(InheritanceView) then
@@ -1700,17 +1701,20 @@ end;
 
 procedure TBrowserWindow.SelectTab(BrowserTab: Sw_integer);
 var Tabs: Sw_integer;
-{    PB : PBreakpoint;
+    PB : PBreakpoint;
     PS :PString;
-    l : longint; }
+    l : longint;
 begin
-(*  case BrowserTab of
+  case BrowserTab of
     btScope :
       if assigned(ScopeView) then
         ScopeView^.Select;
     btReferences :
       if assigned(ReferenceView) then
         ReferenceView^.Select;
+    btMemInfo:
+      if assigned(MemInfoView) then
+        MemInfoView^.Select;
     btBreakWatch :
       begin
         if Assigned(Sym) then
@@ -1768,7 +1772,7 @@ begin
         end;
       end;
 
-  end;*)
+  end;
   Tabs:=0;
   if assigned(ScopeView) then
     Tabs:=Tabs or (1 shl btScope);
