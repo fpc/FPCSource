@@ -207,7 +207,7 @@ var
     end;
   Var
     st : string;
-
+    CIndex : sw_integer;
   begin
     Inc(level);
     if UnitsCodeCompleteWords^.Count=MaxCollectionSize then
@@ -215,7 +215,12 @@ var
     st:=P^.GetName;
     if Length(st)>=CodeCompleteMinLen then
       if not ((level=1) and OnlyStandard and (st=UpCaseStr(CodeCompleteUnitName))) then
-        UnitsCodeCompleteWords^.Insert(NewStr(Lowcasestr(st)));
+        begin
+          st:=Lowcasestr(st);
+          UnitsCodeCompleteWords^.LookUp(st,CIndex);
+          if CIndex<>-1 then
+          UnitsCodeCompleteWords^.Insert(NewStr(st));
+        end;
     { this is wrong because it inserted args or locals of proc
       in the globals list !! PM}
     if (P^.Items<>nil) and (level=1) and
