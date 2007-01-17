@@ -26,6 +26,7 @@
 unit browcol;
 
 {$i fpcdefs.inc}
+{ $define use_refs}
 {$H-}
 
 interface
@@ -88,6 +89,8 @@ type
     TSymbol = object(TObject)
       Name       : PString;
       Typ        : tsymtyp;
+      varoptions : tvaroptions;
+      varspez    : tvarspez;  { sets the type of access }
       Params     : PString;
       References : PReferenceCollection;
       Items      : PSymbolCollection;
@@ -109,6 +112,8 @@ type
       function    GetText: string;
       function    GetTypeName: string;
       destructor  Done; virtual;
+      procedure   SetVarSpez(const AVarSpez : TVarSpez);
+      procedure   SetVarOptions(const AVarOptions : TVarOptions);
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
     end;
@@ -337,6 +342,9 @@ const
      Store:   @TModuleSymbol.Store
   );
 
+  SymbolCount : longint = 0;
+  Current_moduleIndex : longint = 0;
+
 {****************************************************************************
                                    Helpers
 ****************************************************************************}
@@ -404,7 +412,7 @@ end;
 constructor TSymbolCollection.Init(ALimit, ADelta: Integer);
 begin
   inherited Init(ALimit,ADelta);
-{  Duplicates:=true;}
+  Duplicates:=true;
 end;
 
 function TSymbolCollection.At(Index: Sw_Integer): PSymbol;
@@ -448,7 +456,9 @@ begin
   S2:=Upper(K2^.GetName);
   if S1<S2 then R:=-1 else
   if S1>S2 then R:=1 else
-   if K1^.TypeID=K2^.TypeID then R:=0 else
+   if K1^.TypeID=K2^.TypeID then
+     R:=0
+   else
     begin
       S1:=K1^.GetName;
       S2:=K2^.GetName;
@@ -456,7 +466,19 @@ begin
       if S1>S2 then R:=1 else
        if K1^.TypeID<K2^.TypeID then R:=-1 else
        if K1^.TypeID>K2^.TypeID then R:= 1 else
-        R:=0;
+         begin
+           { Handle overloaded functions }
+           if (K1^.Typ=procsym) then
+             begin
+               S1:=K1^.GetText;
+               S2:=K2^.GetText;
+               if S1<S2 then R:=-1 else
+               if S1>S2 then R:=1 else
+                 R:=0;
+             end
+           else
+             R:=0;
+         end
     end;
   Compare:=R;
 end;
@@ -676,6 +698,9 @@ end;
 constructor TSymbol.Init(const AName: string; ATyp: tsymtyp; AParams: string; AMemInfo: PSymbolMemInfo);
 begin
   inherited Init;
+  inc(SymbolCount);
+  VarSpez:=vs_value;
+  VarOptions:=[];
   Name:=NewStr(AName); Typ:=ATyp;
   if AMemInfo<>nil then
     SetMemInfo(AMemInfo^);
@@ -684,6 +709,16 @@ begin
     begin
       Items:=New(PSortedSymbolCollection, Init(50,100));
     end;
+end;
+
+procedure TSymbol.SetVarSpez(const AVarSpez : TVarSpez);
+begin
+  VarSpez:=AVarSpez;
+end;
+
+procedure TSymbol.SetVarOptions(const AVarOptions : TVarOptions);
+begin
+  VarOptions:=AVarOptions;
 end;
 
 procedure TSymbol.SetMemInfo(const AMemInfo: TSymbolMemInfo);
@@ -758,6 +793,8 @@ begin
       if Assigned(VType) then
         S:=S+': '+VType^;
     end;
+  if Typ=ProcSym then
+    S:=S+';';
   GetText:=S;
 end;
 
@@ -769,7 +806,13 @@ begin
     fieldvarsym  : S:='member';
     staticvarsym,
     localvarsym,
-    paravarsym   : S:='var';
+    paravarsym   :
+      begin
+        if (vo_is_hidden_para in varoptions) then
+          S:='hidden'
+        else
+          S:='var';
+      end;
     typesym      : S:='type';
     procsym      : if VType=nil then
                      S:='proc'
@@ -781,7 +824,11 @@ begin
     errorsym     : S:='error';
     syssym       : S:='sys';
     labelsym     : S:='label';
-    absolutevarsym : S:='abs';
+    absolutevarsym :
+      if (vo_is_funcret in varoptions) then
+        S:='ret'
+      else
+        S:='abs';
     propertysym  : S:='prop';
     macrosym     : S:='macro';
   else S:='';
@@ -791,7 +838,6 @@ end;
 
 destructor TSymbol.Done;
 begin
-  inherited Done;
   if assigned(MemInfo) then
     Dispose(MemInfo);
   if assigned(References) then
@@ -808,6 +854,8 @@ begin
     DisposeStr(DType);
   if assigned(Ancestor) then
     DisposeStr(Ancestor);}
+  dec(SymbolCount);
+  inherited Done;
 end;
 
 constructor TSymbol.Load(var S: TStream);
@@ -815,8 +863,25 @@ var MI: TSymbolMemInfo;
     W: word;
 begin
   TObject.Init;
+  inc(SymbolCount);
 
   S.Read(Typ,SizeOf(Typ));
+  case Typ of
+    abstractsym,
+    absolutevarsym,
+    staticvarsym,
+    localvarsym,
+    paravarsym :
+    begin
+      S.Read(VarSpez,SizeOf(VarSpez));
+      S.Read(VarOptions,SizeOf(VarOptions));
+    end;
+  else
+    begin
+      VarSpez:=vs_value;
+      VarOptions:=[];
+    end;
+  end;
   S.Read(TypeID, SizeOf(TypeID));
   S.Read(RelatedTypeID, SizeOf(RelatedTypeID));
   S.Read(Flags, SizeOf(Flags));
@@ -844,6 +909,17 @@ procedure TSymbol.Store(var S: TStream);
 var W: word;
 begin
   S.Write(Typ,SizeOf(Typ));
+  case Typ of
+    abstractsym,
+    absolutevarsym,
+    staticvarsym,
+    localvarsym,
+    paravarsym :
+    begin
+      S.Write(VarSpez,SizeOf(VarSpez));
+      S.Write(VarOptions,SizeOf(VarOptions));
+    end;
+  end;
   S.Write(TypeID, SizeOf(TypeID));
   S.Write(RelatedTypeID, SizeOf(RelatedTypeID));
   S.Write(Flags, SizeOf(Flags));
@@ -998,7 +1074,6 @@ end;
 
 destructor TModuleSymbol.Done;
 begin
-  inherited Done;
   if Assigned(MainSource) then DisposeStr(MainSource);
   if assigned(Exports_) then
     Dispose(Exports_, Done);
@@ -1017,6 +1092,7 @@ begin
     Dispose(DependentUnits, Done);
   end;
   if Assigned(SourceFiles) then Dispose(SourceFiles, Done);
+  inherited Done;
 end;
 
 
@@ -1154,11 +1230,17 @@ end;
 
 
   procedure ProcessSymTable(OwnerSym: PSymbol; var Owner: PSymbolCollection; Table: TSymTable);
-  var J: longint;
+  var I,J: longint;
       Sym: TSym;
+      pd : TProcDef;
       Symbol: PSymbol;
       Reference: PReference;
       inputfile : Tinputfile;
+{$ifdef use_refs}
+      Ref : defref;
+{$else not use_refs}
+      DefPos : TFilePosInfo;
+{$endif not use_refs}
   procedure SetVType(Symbol: PSymbol; VType: string);
   begin
     Symbol^.VType:=TypeNames^.Add(VType);
@@ -1236,7 +1318,7 @@ end;
   end;
   function GetAbsProcParmDefStr(def: tabstractprocdef): string;
   var Name: string;
-      dc: tparavarsym;
+      dc: tabstractvarsym;
       i,
       Count: integer;
       CurName: string;
@@ -1245,20 +1327,24 @@ end;
     Count:=0;
     for i:=0 to def.paras.count-1 do
      begin
-       dc:=tparavarsym(def.paras[i]);
-       if i=0 then
-         CurName:=''
-       else
-         CurName:=', '+CurName;
-       case dc.varspez of
-         vs_Value : ;
-         vs_Const : CurName:=CurName+'const ';
-         vs_Var   : CurName:=CurName+'var ';
-       end;
-       if assigned(dc.vardef) then
-         CurName:=CurName+GetDefinitionStr(dc.vardef);
-       Name:=CurName+Name;
-       Inc(Count);
+       dc:=tabstractvarsym(def.paras[i]);
+       if not (vo_is_hidden_para in dc.VarOptions) then
+         begin
+           CurName:='';
+           if assigned(dc.vardef) then
+             CurName:=': '+GetDefinitionStr(dc.vardef);
+           CurName:=dc.RealName+CurName;
+           case dc.varspez of
+             vs_Value : ;
+             vs_Const : CurName:='const '+CurName;
+             vs_Var   : CurName:='var '+CurName;
+             vs_Out   : CurName:='out '+CurName;
+           end;
+           if Count>0 then
+             CurName:='; '+CurName;
+           Name:=Name+CurName;
+           Inc(Count);
+         end;
      end;
     GetAbsProcParmDefStr:=Name;
   end;
@@ -1268,9 +1354,9 @@ end;
     Name:=GetAbsProcParmDefStr(def);
     if Name<>'' then Name:='('+Name+')';
     if retdefassigned(def) then
-      Name:='function'+Name+': '+GetDefinitionStr(def.returndef)
+      Name:='function'+Name+': '+GetDefinitionStr(def.returndef)+';'
     else
-      Name:='procedure'+Name;
+      Name:='procedure'+Name+';';
     GetAbsProcDefStr:=Name;
   end;
   function GetProcDefStr(def: tprocdef): string;
@@ -1422,6 +1508,7 @@ end;
   begin
     if not Assigned(Table) then
      Exit;
+    Symbol:=nil;
     if Owner=nil then
      Owner:=New(PSortedSymbolCollection, Init(10,50));
     for symidx:=0 to Table.SymList.Count-1 do
@@ -1431,9 +1518,28 @@ end;
         case Sym.Typ of
           staticvarsym,
           localvarsym,
+          absolutevarsym,
+          paravarsym :
+            begin
+              Symbol^.SetVarOptions(tabstractvarsym(sym).VarOptions);
+              Symbol^.SetVarSpez(tabstractvarsym(sym).VarSpez);
+            end;
+        end;
+        case Sym.Typ of
+          staticvarsym,
+          localvarsym,
           paravarsym :
              with tabstractvarsym(sym) do
              begin
+               if (vo_is_funcret in varoptions) then
+                 begin
+                   if Assigned(OwnerSym) then
+                       if assigned(vardef) then
+                         if assigned(vardef.typesym) then
+                           SetVType(OwnerSym,vardef.typesym.name)
+                         else
+                           SetVType(OwnerSym,GetDefinitionStr(vardef));
+                 end;
                if assigned(vardef) then
                  if assigned(vardef.typesym) then
                    SetVType(Symbol,vardef.typesym.name)
@@ -1466,7 +1572,13 @@ end;
                else
                  MemInfo.Size:=getsize;
                { this is not completely correct... }
-               MemInfo.PushSize:=paramanager.push_size(varspez,vardef,pocall_default);
+               if assigned(vardef) then
+                 MemInfo.PushSize:=paramanager.push_size(varspez,vardef,pocall_default)
+               else
+                 begin
+                   { This can happen, why? }
+                   MemInfo.PushSize:=0;
+                 end;
                Symbol^.SetMemInfo(MemInfo);
              end;
           fieldvarsym :
@@ -1500,27 +1612,40 @@ end;
               end;
           procsym :
             begin
-              with tprocsym(sym) do
-              if assigned(tprocdef(procdeflist[0])) then
-              begin
-                ProcessSymTable(Symbol,Symbol^.Items,tprocdef(procdeflist[0]).parast);
-                if assigned(tprocdef(procdeflist[0]).parast) then
-                  begin
-                    Symbol^.Params:=TypeNames^.Add(GetAbsProcParmDefStr(tprocdef(procdeflist[0])));
-                  end
-                else { param-definition is NOT assigned }
-                  if assigned(Table.Name) then
-                  if Table.Name^='SYSTEM' then
-                  begin
-                    Symbol^.Params:=TypeNames^.Add('...');
-                  end;
-//                if cs_local_browser in current_settings.moduleswitches then
-                 begin
-                   if assigned(tprocdef(procdeflist[0]).localst) and
-                     (tprocdef(procdeflist[0]).localst.symtabletype<>staticsymtable) then
-                    ProcessSymTable(Symbol,Symbol^.Items,tprocdef(procdeflist[0]).localst);
-                 end;
-              end;
+              for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
+                begin
+                  if i>0 then
+                    begin
+                      if Assigned(Symbol) then
+                        Owner^.Insert(Symbol);
+                      New(Symbol, Init(Sym.Name,Sym.Typ,'',nil));
+                    end;
+                  with tprocsym(sym) do
+                    begin
+                      pd:=tprocdef(procdeflist[i]);
+                      if assigned(pd) then
+                        begin
+                          ProcessSymTable(Symbol,Symbol^.Items,pd.parast);
+                          if assigned(pd.parast) then
+                            begin
+                              Symbol^.Params:=TypeNames^.Add(
+                                GetAbsProcParmDefStr(pd));
+                            end
+                          else { param-definition is NOT assigned }
+                            if assigned(Table.Name) and
+                               (Table.Name^='SYSTEM') then
+                            begin
+                              Symbol^.Params:=TypeNames^.Add('...');
+                            end;
+          //                if cs_local_browser in current_settings.moduleswitches then
+                           begin
+                             if assigned(pd.localst) and
+                               (pd.localst.symtabletype<>staticsymtable) then
+                              ProcessSymTable(Symbol,Symbol^.Items,pd.localst);
+                           end;
+                        end;
+                    end;
+                end;
             end;
           typesym :
             begin
@@ -1581,16 +1706,25 @@ end;
               end;
             Ref:=Ref.nextref;
           end;
+{$else not use_refs}
+        DefPos:=tstoredsym(sym).FileInfo;
+        inputfile:=get_source_file(current_moduleindex,defpos.fileindex);
+        if Assigned(inputfile) and Assigned(inputfile.name) then
+          begin
+            New(Reference, Init(ModuleNames^.Add(inputfile.name^),
+              DefPos.line,DefPos.column));
+            Symbol^.References^.Insert(Reference);
+          end;
 {$endif use_refs}
         if Assigned(Symbol) then
           begin
-            if not Owner^.Search(Symbol,J) then
+            (* if not Owner^.Search(Symbol,J) then *)
               Owner^.Insert(Symbol)
-            else
+            (*else
               begin
                 Dispose(Symbol,done);
                 Symbol:=nil;
-              end;
+              end;*)
           end;
       end;
   end;
@@ -1624,7 +1758,11 @@ begin
 //  if (cs_browser in current_settings.moduleswitches) then
    while assigned(hp) do
     begin
-       t:=tsymtable(hp.globalsymtable);
+       current_moduleindex:=hp.unit_index;
+       if hp.is_unit then
+         t:=tsymtable(hp.globalsymtable)
+       else
+         t:=tsymtable(hp.localsymtable);
        if assigned(t) then
          begin
            New(UnitS, Init(T.Name^,hp.mainsource^));
@@ -1645,6 +1783,7 @@ begin
 
            Modules^.Insert(UnitS);
            ProcessSymTable(UnitS,UnitS^.Items,T);
+           if hp.is_unit then
 //           if cs_local_browser in current_settings.moduleswitches then
              begin
                 t:=tsymtable(hp.localsymtable);
