@@ -23,28 +23,6 @@ function arctan2(y,x : float) : float;assembler;
   end;
 {$endif WIN64}
 
-procedure SetSSECSR(w : dword);
-  var
-    _w : dword;
-  begin
-    _w:=w;
-    asm
-      ldmxcsr _w
-    end;
-  end;
-
-
-function GetSSECSR : dword;
-  var
-    _w : dword;
-  begin
-    asm
-      stmxcsr _w
-    end;
-    result:=_w;
-  end;
-
-
 function GetRoundMode: TFPURoundingMode;
 begin
 {$ifdef win64}
