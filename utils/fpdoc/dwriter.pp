@@ -278,6 +278,25 @@ begin
       List.Add(FName+'='+FDescription);
 end;
 
+function IsWhitespaceNode(Node: TDOMText): Boolean;
+var
+  I,L: Integer;
+  S: DOMString;
+  P : PWideChar;
+  
+begin
+  S := Node.Data;
+  Result := True;
+  I:=0;
+  L:=Length(S);
+  P:=PWideChar(S);
+  While Result and (I<L) do
+    begin
+    Result:=P^ in [#32,#10,#9,#13];
+    Inc(P);
+    Inc(I);
+    end;
+end;
 
 
 { ---------------------------------------------------------------------
@@ -347,7 +366,8 @@ end;
 
 function IsContentNodeType(Node: TDOMNode): Boolean;
 begin
-  Result := (Node.NodeType = ELEMENT_NODE) or (Node.NodeType = TEXT_NODE) or
+  Result := (Node.NodeType = ELEMENT_NODE) or 
+    ((Node.NodeType = TEXT_NODE) and not IsWhitespaceNode(TDOMText(Node))) or
     (Node.NodeType = ENTITY_REFERENCE_NODE);
 end;
 
@@ -771,7 +791,10 @@ function TFPDocWriter.ConvertNonSectionBlock(AContext: TPasElement;
 begin
   if Node.NodeType <> ELEMENT_NODE then
   begin
-    Result := Node.NodeType = COMMENT_NODE;
+    if Node.NodeType = TEXT_NODE then
+	  Result := IsWhitespaceNode(TDOMText(Node))
+	else  
+      Result := Node.NodeType = COMMENT_NODE;
     exit;
   end;
   if Node.NodeName = 'remark' then
@@ -809,7 +832,7 @@ function TFPDocWriter.ConvertSimpleBlock(AContext: TPasElement;
     Empty := True;
     while Assigned(Node) do
     begin
-      if (Node.NodeType = TEXT_NODE) or (Node.NodeType = ENTITY_REFERENCE_NODE)
+      if ((Node.NodeType = TEXT_NODE) and not IsWhitespaceNode(TDOMText(Node))) or (Node.NodeType = ENTITY_REFERENCE_NODE)
         then
         Warning(AContext, SErrInvalidListContent)
       else if Node.NodeType = ELEMENT_NODE then
@@ -836,7 +859,7 @@ function TFPDocWriter.ConvertSimpleBlock(AContext: TPasElement;
     ExpectDTNext := True;
     while Assigned(Node) do
     begin
-      if (Node.NodeType = TEXT_NODE) or (Node.NodeType = ENTITY_REFERENCE_NODE)
+      if ((Node.NodeType = TEXT_NODE) and not IsWhitespaceNode(TDOMText(Node))) or (Node.NodeType = ENTITY_REFERENCE_NODE)
         then
         Warning(AContext, SErrInvalidListContent)
       else if Node.NodeType = ELEMENT_NODE then
@@ -899,7 +922,7 @@ var
 begin
   if Node.NodeType <> ELEMENT_NODE then
   begin
-    Result := False;
+    Result := (Node.NodeType = TEXT_NODE) and IsWhitespaceNode(TDOMText(Node));
     exit;
   end;
   if Node.NodeName = 'p' then
