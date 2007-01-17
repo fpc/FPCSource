@@ -24,15 +24,15 @@ const
   _EM_OVERFLOW   = $00000004;
   _EM_UNDERFLOW  = $00000002;
   _EM_INEXACT    = $00000001;
-  
+
   _IC_AFFINE     = $00040000;
   _IC_PROJECTIVE = $00000000;
-  
+
   _RC_CHOP       = $00000300;
   _RC_UP         = $00000200;
   _RC_DOWN       = $00000100;
   _RC_NEAR       = $00000000;
-  
+
   _PC_24         = $00020000;
   _PC_53         = $00010000;
   _PC_64         = $00000000;
@@ -131,5 +131,188 @@ end;
 procedure ClearExceptions(RaisePending: Boolean =true);
 begin
 end;
+
+{$else wince}
+
+{*****************************************************************************
+                                   FPA code
+ *****************************************************************************}
+{
+ Docs from uclib
+ 
+ * We have a slight terminology confusion here.  On the ARM, the register
+ * we're interested in is actually the FPU status word - the FPU control
+ * word is something different (which is implementation-defined and only
+ * accessible from supervisor mode.)
+ *
+ * The FPSR looks like this:
+ *
+ *     31-24        23-16          15-8              7-0
+ * | system ID | trap enable | system control | exception flags |
+ *
+ * We ignore the system ID bits; for interest's sake they are:
+ *
+ *  0000	"old" FPE
+ *  1000	FPPC hardware
+ *  0001	FPE 400
+ *  1001	FPA hardware
+ *
+ * The trap enable and exception flags are both structured like this:
+ *
+ *     7 - 5     4     3     2     1     0
+ * | reserved | INX | UFL | OFL | DVZ | IVO |
+ *
+ * where a `1' bit in the enable byte means that the trap can occur, and
+ * a `1' bit in the flags byte means the exception has occurred.
+ *
+ * The exceptions are:
+ *
+ *  IVO - invalid operation
+ *  DVZ - divide by zero
+ *  OFL - overflow
+ *  UFL - underflow
+ *  INX - inexact (do not use; implementations differ)
+ *
+ * The system control byte looks like this:
+ *
+ *     7-5      4    3    2    1    0
+ * | reserved | AC | EP | SO | NE | ND |
+ *
+ * where the bits mean
+ *
+ *  ND - no denormalised numbers (force them all to zero)
+ *  NE - enable NaN exceptions
+ *  SO - synchronous operation
+ *  EP - use expanded packed-decimal format
+ *  AC - use alternate definition for C flag on compare operations
+ */
+
+/* masking of interrupts */
+#define _FPU_MASK_IM	0x00010000	/* invalid operation */
+#define _FPU_MASK_ZM	0x00020000	/* divide by zero */
+#define _FPU_MASK_OM	0x00040000	/* overflow */
+#define _FPU_MASK_UM	0x00080000	/* underflow */
+#define _FPU_MASK_PM	0x00100000	/* inexact */
+#define _FPU_MASK_DM	0x00000000	/* denormalized operation */
+
+/* The system id bytes cannot be changed.
+   Only the bottom 5 bits in the trap enable byte can be changed.
+   Only the bottom 5 bits in the system control byte can be changed.
+   Only the bottom 5 bits in the exception flags are used.
+   The exception flags are set by the fpu, but can be zeroed by the user. */
+#define _FPU_RESERVED	0xffe0e0e0	/* These bits are reserved.  */
+
+/* The fdlibm code requires strict IEEE double precision arithmetic,
+   no interrupts for exceptions, rounding to nearest.  Changing the
+   rounding mode will break long double I/O.  Turn on the AC bit,
+   the compiler generates code that assumes it is on.  */
+#define _FPU_DEFAULT	0x00001000	/* Default value.  */
+#define _FPU_IEEE	0x001f1000	/* Default + exceptions enabled. */
+}
+
+
+const
+  _FPU_MASK_IM  =  $00010000;      { invalid operation      }
+  _FPU_MASK_ZM  =  $00020000;      { divide by zero         }
+  _FPU_MASK_OM  =  $00040000;      { overflow               }
+  _FPU_MASK_UM  =  $00080000;      { underflow              }
+  _FPU_MASK_PM  =  $00100000;      { inexact                }
+  _FPU_MASK_DM  =  $00000000;      { denormalized operation }
+  _FPU_MASK_ALL =  $001f0000;      { mask for all flags     }
+
+function FPU_GetCW : dword; nostackframe; assembler;
+  asm
+    rfs r0
+  end;
+
+
+procedure FPU_SetCW(cw : dword); nostackframe; assembler;
+  asm
+    wfs r0
+  end;
+
+
+function GetRoundMode: TFPURoundingMode;
+  begin
+    { does not apply }
+  end;
+
+
+function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+  begin
+    { does not apply }
+  end;
+
+
+function GetPrecisionMode: TFPUPrecisionMode;
+  begin
+    { does not apply }
+  end;
+
+
+function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
+  begin
+    { does not apply }
+  end;
+
+
+function GetExceptionMask: TFPUExceptionMask;
+  var
+    cw : dword;
+  begin
+    Result:=[];
+    cw:=FPU_GetCW;
+    
+    if (cw and _FPU_MASK_IM)<>0 then
+      include(Result,exInvalidOp);
+    
+    if (cw and _FPU_MASK_DM)<>0 then
+      include(Result,exDenormalized);
+      
+    if (cw and _FPU_MASK_ZM)<>0 then
+      include(Result,exZeroDivide);
+      
+    if (cw and _FPU_MASK_OM)<>0 then
+      include(Result,exOverflow);
+      
+    if (cw and _FPU_MASK_UM)<>0 then
+      include(Result,exUnderflow);
+      
+    if (cw and _FPU_MASK_PM)<>0 then
+      include(Result,exPrecision);    
+  end;
+
+
+function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+  var
+    cw : dword;
+  begin
+    cw:=FPU_GetCW and not(_FPU_MASK_ALL);
+    
+    if exInvalidOp in Mask then
+      cw:=cw or _FPU_MASK_IM;
+      
+    if exDenormalized in Mask then
+      cw:=cw or _FPU_MASK_DM;
+      
+    if exZeroDivide in Mask then
+      cw:=cw or _FPU_MASK_ZM;
+      
+    if exOverflow in Mask then
+      cw:=cw or _FPU_MASK_OM;
+      
+    if exUnderflow in Mask then
+      cw:=cw or _FPU_MASK_UM;
+      
+    if exPrecision in Mask then
+      cw:=cw or _FPU_MASK_PM;
+      
+    FPU_SetCW(cw);
+  end;
+
+
+procedure ClearExceptions(RaisePending: Boolean =true);
+  begin
+  end;
 
 {$endif wince}

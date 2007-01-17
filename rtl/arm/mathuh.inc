@@ -11,9 +11,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
-{$ifdef wince}
-
 type
   TFPURoundingMode = (rmNearest, rmDown, rmUp, rmTruncate);
   TFPUPrecisionMode = (pmSingle, pmReserved, pmDouble, pmExtended);
@@ -28,5 +25,3 @@ function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode
 function GetExceptionMask: TFPUExceptionMask;
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 procedure ClearExceptions(RaisePending: Boolean =true);
-
-{$endif}
