@@ -126,6 +126,7 @@ begin
     c:=c or _EM_INEXACT;
   c:=_controlfp(c, _MCW_EM);
   Result:=ConvertExceptionMask(c);
+  softfloat_exception_mask:=dword(Mask);
 end;
 
 procedure ClearExceptions(RaisePending: Boolean =true);
@@ -308,6 +309,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
       cw:=cw or _FPU_MASK_PM;
       
     FPU_SetCW(cw);
+    softfloat_exception_mask:=dword(Mask);
   end;
 
 

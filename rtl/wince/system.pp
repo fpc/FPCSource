@@ -1452,7 +1452,6 @@ begin
     xorl %eax,%eax
     movw %ss,%ax
     movl %eax,_SS
-    call SysResetFPU
     xorl %ebp,%ebp
     call PASCALMAIN
     popl %ebp
@@ -1725,7 +1724,6 @@ end;
 
 function _getstdfilex(fd: integer): pointer; cdecl; external 'coredll';
 function _fileno(fd: pointer): THandle; cdecl; external 'coredll';
-function _controlfp(new: DWORD; mask: DWORD): DWORD; cdecl; external 'coredll';
 
 procedure SysInitStdIO;
 begin
@@ -1779,11 +1777,9 @@ begin
 end;
 
 initialization
+  SysResetFPU;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := StackTop - StackLength;
-  { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
-  { FPU precision 64 bit, rounding to nearest, affine infinity }
-  _controlfp($000C0003, $030F031F);
   { some misc stuff }
   hprevinst:=0;
   if not IsLibrary then
