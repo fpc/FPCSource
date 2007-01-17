@@ -5,8 +5,7 @@ program fpu;
 uses SysUtils,Math;
 
 var
-  f1,f2 : double;
+  f1,f2 : single;
   caught: boolean;
 
 {$include tmask.inc}
-
