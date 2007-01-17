@@ -1701,7 +1701,9 @@ end;
 
 procedure TBrowserWindow.SelectTab(BrowserTab: Sw_integer);
 var Tabs: Sw_integer;
+{$ifndef NODEBUG}
     PB : PBreakpoint;
+{$endif}
     PS :PString;
     l : longint;
 begin
@@ -1715,6 +1717,7 @@ begin
     btMemInfo:
       if assigned(MemInfoView) then
         MemInfoView^.Select;
+{$ifndef NODEBUG}
     btBreakWatch :
       begin
         if Assigned(Sym) then
@@ -1771,7 +1774,7 @@ begin
             end;
         end;
       end;
-
+{$endif NODEBUG}
   end;
   Tabs:=0;
   if assigned(ScopeView) then
@@ -1784,9 +1787,11 @@ begin
 {$endif HASOUTLINE}
   if assigned(MemInfoView) then
     Tabs:=Tabs or (1 shl btMemInfo);
+{$ifndef NODEBUG}
   if Assigned(Sym) then
     if (Pos('proc',Sym^.GetText)>0) or (Pos('var',Sym^.GetText)>0) then
       Tabs:=Tabs or (1 shl btBreakWatch);
+{$endif NODEBUG}	  
   if assigned(UnitInfo) then
     Tabs:=Tabs or (1 shl btUnitInfo);
   if PageTab<>nil then PageTab^.SetParams(Tabs,BrowserTab);
