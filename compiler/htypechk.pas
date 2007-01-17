@@ -775,7 +775,7 @@ implementation
           { vs_read_not_warned -> ... }
           (vs_none,vs_read_not_warned,vs_read,vs_read,vs_read_not_warned,vs_read_not_warned,vs_readwritten,vs_readwritten),
           { vs_referred_not_inited }
-          (vs_none,vs_referred_not_inited,vs_read,vs_read,vs_read,vs_referred_not_inited,vs_readwritten,vs_readwritten),
+          (vs_none,vs_referred_not_inited,vs_read,vs_read,vs_read_not_warned,vs_referred_not_inited,vs_written,vs_readwritten),
           { vs_written -> ... }
           (vs_none,vs_written,vs_written,vs_readwritten,vs_readwritten,vs_written,vs_written,vs_readwritten),
           { vs_readwritten -> ... }
@@ -791,6 +791,14 @@ implementation
         while assigned(p) do
          begin
            case p.nodetype of
+             derefn:
+               begin
+                 if (tderefnode(p).left.nodetype=temprefn) and
+                    assigned(ttemprefnode(tderefnode(p).left).tempinfo^.withnode) then
+                   p:=ttemprefnode(tderefnode(p).left).tempinfo^.withnode
+                 else
+                   break;
+               end;
              typeconvn :
                begin
                  case ttypeconvnode(p).convtype of

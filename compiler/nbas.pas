@@ -104,10 +104,11 @@ interface
          typedefderef               : tderef;
          temptype                   : ttemptype;
          owner                      : ttempcreatenode;
+         withnode                   : tnode;
+         location                   : tlocation;
          may_be_in_reg              : boolean;
          valid                      : boolean;
          nextref_set_hookoncopy_nil : boolean;
-         location                   : tlocation;
        end;
 
        { a node which will create a (non)persistent temp of a given type with a given  }
@@ -123,10 +124,12 @@ interface
           { freeing it. In this last case, you must use only one reference      }
           { to it and *not* generate a ttempdeletenode                          }
           constructor create(_typedef: tdef; _size: aint; _temptype: ttemptype;allowreg:boolean); virtual;
+          constructor create_withnode(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean; withnode: tnode); virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
+          procedure derefnode;override;
           function dogetcopy: tnode; override;
           function pass_1 : tnode; override;
           function pass_typecheck: tnode; override;
@@ -632,7 +635,8 @@ implementation
         fillchar(tempinfo^,sizeof(tempinfo^),0);
         tempinfo^.typedef := _typedef;
         tempinfo^.temptype := _temptype;
-        tempinfo^.owner:=self;
+        tempinfo^.owner := self;
+        tempinfo^.withnode := nil;
         tempinfo^.may_be_in_reg:=
           allowreg and
           { temp must fit a single register }
@@ -647,6 +651,13 @@ implementation
            (not tpointerdef(_typedef).pointeddef.needs_inittable));
       end;
 
+    constructor ttempcreatenode.create_withnode(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean; withnode: tnode);
+      begin
+        self.create(_typedef,_size,_temptype,allowreg);
+        tempinfo^.withnode:=withnode.getcopy;
+      end;
+
+
     function ttempcreatenode.dogetcopy: tnode;
       var
         n: ttempcreatenode;
@@ -659,6 +670,10 @@ implementation
         n.tempinfo^.owner:=n;
         n.tempinfo^.typedef := tempinfo^.typedef;
         n.tempinfo^.temptype := tempinfo^.temptype;
+        if assigned(tempinfo^.withnode) then
+          n.tempinfo^.withnode := tempinfo^.withnode.getcopy
+        else
+          n.tempinfo^.withnode := nil;
 
         { when the tempinfo has already a hookoncopy then it is not
           reset by a tempdeletenode }
@@ -686,6 +701,7 @@ implementation
         ppufile.getderef(tempinfo^.typedefderef);
         tempinfo^.temptype := ttemptype(ppufile.getbyte);
         tempinfo^.owner:=self;
+        tempinfo^.withnode:=ppuloadnode(ppufile);
       end;
 
 
@@ -696,27 +712,44 @@ implementation
         ppufile.putbyte(byte(tempinfo^.may_be_in_reg));
         ppufile.putderef(tempinfo^.typedefderef);
         ppufile.putbyte(byte(tempinfo^.temptype));
+        ppuwritenode(ppufile,tempinfo^.withnode);
       end;
 
 
     procedure ttempcreatenode.buildderefimpl;
       begin
+        inherited buildderefimpl;
         tempinfo^.typedefderef.build(tempinfo^.typedef);
+        if assigned(tempinfo^.withnode) then
+          tempinfo^.withnode.buildderefimpl;
       end;
 
 
     procedure ttempcreatenode.derefimpl;
       begin
+        inherited derefimpl;
         tempinfo^.typedef:=tdef(tempinfo^.typedefderef.resolve);
+        if assigned(tempinfo^.withnode) then
+          tempinfo^.withnode.derefimpl;
+      end;
+
+
+    procedure ttempcreatenode.derefnode;
+      begin
+        inherited derefnode;
+        if assigned(tempinfo^.withnode) then
+          tempinfo^.withnode.derefnode;
       end;
 
 
     function ttempcreatenode.pass_1 : tnode;
       begin
-         result := nil;
-         expectloc:=LOC_VOID;
-         if (tempinfo^.typedef.needs_inittable) then
-           include(current_procinfo.flags,pi_needs_implicit_finally);
+        result := nil;
+        expectloc:=LOC_VOID;
+        if (tempinfo^.typedef.needs_inittable) then
+          include(current_procinfo.flags,pi_needs_implicit_finally);
+        if assigned(tempinfo^.withnode) then
+          firstpass(tempinfo^.withnode);
       end;
 
 
@@ -725,6 +758,8 @@ implementation
         result := nil;
         { a tempcreatenode doesn't have a resultdef, only temprefnodes do }
         resultdef := voidtype;
+        if assigned(tempinfo^.withnode) then
+          typecheckpass(tempinfo^.withnode);
       end;
 
 
@@ -734,6 +769,7 @@ implementation
           inherited docompare(p) and
           (ttempcreatenode(p).size = size) and
           (ttempcreatenode(p).tempinfo^.may_be_in_reg = tempinfo^.may_be_in_reg) and
+          (ttempcreatenode(p).tempinfo^.withnode.isequal(tempinfo^.withnode)) and
           equal_defs(ttempcreatenode(p).tempinfo^.typedef,tempinfo^.typedef);
       end;
 
@@ -818,6 +854,7 @@ implementation
       var
         temp : ttempcreatenode;
       begin
+        inherited derefnode;
         temp:=ttempcreatenode(nodeppuidxget(tempidx));
         if temp.nodetype<>tempcreaten then
           internalerror(200311075);

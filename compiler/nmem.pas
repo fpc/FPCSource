@@ -56,6 +56,7 @@ interface
           getprocvardefderef : tderef;
           constructor create(l : tnode);virtual;
           constructor create_internal(l : tnode); virtual;
+          constructor create_internal_nomark(l : tnode); virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure mark_write;override;
@@ -64,6 +65,8 @@ interface
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
+         private
+          mark_read_written: boolean;
        end;
        taddrnodeclass = class of taddrnode;
 
@@ -275,6 +278,7 @@ implementation
       begin
          inherited create(addrn,l);
          getprocvardef:=nil;
+         mark_read_written := true;
       end;
 
 
@@ -282,6 +286,13 @@ implementation
       begin
         self.create(l);
         include(flags,nf_internal);
+      end;
+
+
+    constructor taddrnode.create_internal_nomark(l : tnode);
+      begin
+        self.create_internal(l);
+        mark_read_written := false;
       end;
 
 
@@ -445,17 +456,21 @@ implementation
               CGMessage(type_e_variable_id_expected);
           end;
 
-         { this is like the function addr }
-         inc(parsing_para_level);
-         { This is actually only "read", but treat it nevertheless as  }
-         { modified due to the possible use of pointers                }
-         { To avoid false positives regarding "uninitialised"          }
-         { warnings when using arrays, perform it in two steps         }
-         set_varstate(left,vs_written,[]);
-         { vsf_must_be_valid so it doesn't get changed into }
-         { vsf_referred_not_inited                          }
-         set_varstate(left,vs_read,[vsf_must_be_valid]);
-         dec(parsing_para_level);
+        if (mark_read_written) then
+          begin
+            { this is like the function addr }
+            inc(parsing_para_level);
+
+            { This is actually only "read", but treat it nevertheless as  }
+            { modified due to the possible use of pointers                }
+            { To avoid false positives regarding "uninitialised"          }
+            { warnings when using arrays, perform it in two steps         }
+            set_varstate(left,vs_written,[]);
+            { vsf_must_be_valid so it doesn't get changed into }
+            { vsf_referred_not_inited                          }
+            set_varstate(left,vs_read,[vsf_must_be_valid]);
+            dec(parsing_para_level);
+          end;
       end;
 
 

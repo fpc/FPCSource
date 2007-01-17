@@ -526,7 +526,7 @@ implementation
                 else
                   hdef:=tpointerdef.create(p.resultdef);
                 { load address of the value in a temp }
-                tempnode:=ctempcreatenode.create(hdef,sizeof(aint),tt_persistent,true);
+                tempnode:=ctempcreatenode.create_withnode(hdef,sizeof(aint),tt_persistent,true,p);
                 typecheckpass(tempnode);
                 valuenode:=p;
                 refnode:=ctemprefnode.create(tempnode);
@@ -535,7 +535,7 @@ implementation
                   is not done implicitly }
                 if not hasimplicitderef then
                   begin
-                    valuenode:=caddrnode.create_internal(valuenode);
+                    valuenode:=caddrnode.create_internal_nomark(valuenode);
                     refnode:=cderefnode.create(refnode);
                     fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);
                   end;
