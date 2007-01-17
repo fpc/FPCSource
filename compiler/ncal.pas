@@ -2149,7 +2149,7 @@ implementation
                   ) then
                  { a constructor will and a method may write something to }
                  { the fields                                             }
-                 set_varstate(methodpointer,vs_written,[])
+                 set_varstate(methodpointer,vs_readwritten,[])
                else if ((hpt.nodetype=loadn) and
                      (methodpointer.resultdef.typ=classrefdef)) then
                    set_varstate(methodpointer,vs_read,[])
