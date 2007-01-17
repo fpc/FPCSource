@@ -1134,6 +1134,8 @@ implementation
 
     begin
       minilzw_encode:='';
+      fillchar(data,sizeof(data),#0);
+      fillchar(previous,sizeof(previous),#0);
       if s<>'' then
         begin
           lzwptr:=127;
@@ -1191,6 +1193,8 @@ implementation
 
     begin
       minilzw_decode:='';
+      fillchar(data,sizeof(data),#0);
+      fillchar(previous,sizeof(previous),#0);
       if s<>'' then
         begin
           lzwptr:=127;
