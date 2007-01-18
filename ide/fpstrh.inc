@@ -186,6 +186,7 @@ const
       menu_srclocal_options = menu_local_options;
 
       { Help viewer local menu items }
+      menu_hlplocal_debug = 'Debug infos';{ NOT TRANSLATED }
       menu_hlplocal_contents = menu_common_contents;
       menu_hlplocal_index = menu_common_index;
       menu_hlplocal_topicsearch = menu_common_topicsearch;
