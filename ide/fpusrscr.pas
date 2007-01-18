@@ -980,6 +980,11 @@ end;
 
 {$ifdef Windows}
 
+{ Seems to be missing in windows unit PM }
+const
+  ENABLE_INSERT_MODE = $20;
+  ENABLE_QUICK_EDIT_MODE = $40;
+
 procedure UpdateFileHandles;
 begin
   {StdInputHandle:=longint(GetStdHandle(STD_INPUT_HANDLE));}
@@ -1302,7 +1307,12 @@ begin
   { Needed to force InitSystemMsg to use the right console handle }
   DoneEvents;
   InitEvents;
-  IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_WINDOW_INPUT) and not ENABLE_PROCESSED_INPUT;
+  IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_WINDOW_INPUT)
+           and not (ENABLE_PROCESSED_INPUT or
+                    ENABLE_LINE_INPUT or
+                    ENABLE_ECHO_INPUT or
+                    ENABLE_INSERT_MODE or
+                    ENABLE_QUICK_EDIT_MODE);
   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), IdeMode);
   WindowPos.left:=0;
   WindowPos.right:=ConsoleScreenBufferInfo.srWindow.right
