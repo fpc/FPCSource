@@ -1,0 +1,7 @@
+#
+#   Makefile.fpc for Free Pascal Symbian
+#
+
+[package]
+main=rtl
+
