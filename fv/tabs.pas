@@ -27,7 +27,10 @@ unit tabs;
 interface
 
 uses
-  objects, drivers, views, fvconsts;
+  objects,
+  drivers,
+  views,
+  fvconsts;
 
 
 type
@@ -97,7 +100,8 @@ const
 implementation
 
 uses
-  FvCommon,dialogs;
+  FvCommon,
+  dialogs;
 
 constructor TTab.Init(var Bounds: TRect; ATabDef: PTabDef);
 begin
@@ -418,7 +422,8 @@ begin
   CallOrig:=true;
   if Event.What=evKeyDown then
      begin
-     if ((Owner<>nil) and (Owner^.Phase=phPostProcess) and (GetAltChar(Event.KeyCode)<>#0)) or GetState(sfFocused)
+     if ((Owner<>nil) and (Owner^.Phase=phPostProcess)
+       and (GetAltChar(Event.KeyCode)<>#0)) or GetState(sfFocused)
         then
         else CallOrig:=false;
      end;
@@ -430,7 +435,21 @@ begin
   GetPalette:=nil;
 end;
 
+{$define AVOIDTHREELINES}
+
 procedure TTab.Draw;
+const
+{$ifdef AVOIDTHREELINES}
+  UDL='¿';
+  LUR='Ä';
+  URD='Ú';
+{$else not AVOIDTHREELINES}
+  UDL='´';
+  LUR='Á';
+  URD='Ã';
+{$endif not AVOIDTHREELINES}
+
+
 var B     : TDrawBuffer;
     i     : integer;
     C1,C2,C3,C : word;
@@ -475,7 +494,9 @@ begin
   if HeaderLen>Size.X-2 then HeaderLen:=Size.X-2;
 
   { --- 1. sor --- }
-  ClearBuf; MoveChar(B[0],'³',C1,1); MoveChar(B[HeaderLen+1],'³',C1,1);
+  ClearBuf;
+  MoveChar(B[0],'³',C1,1);
+  MoveChar(B[HeaderLen+1],'³',C1,1);
   X:=1;
   for i:=0 to DefCount-1 do
       begin
@@ -487,7 +508,8 @@ begin
                   if GetState(sfFocused) then C:=C3 else C:=C2;
                 end
            else C:=C2;
-        MoveCStr(B[X],' '+Name^+' ',C); X:=X+X2+3;
+        MoveCStr(B[X],' '+Name^+' ',C);
+        X:=X+X2+3;
         MoveChar(B[X-1],'³',C1,1);
       end;
   SWriteBuf(0,1,Size.X,1,B);
@@ -497,37 +519,56 @@ begin
   X:=1;
   for i:=0 to DefCount-1 do
       begin
-        if I<ActiveDef then FC:='Ú'
-                       else FC:='¿';
+{$ifdef AVOIDTHREELINES}
+        if I<ActiveDef then
+          FC:='Ú'
+        else
+          FC:='¿';
+{$else not AVOIDTHREELINES}
+        FC:='Â';
+{$endif not AVOIDTHREELINES}
         X2:=CStrLen(AtTab(i)^.Name^)+2;
-        MoveChar(B[X+X2],{'Â'}FC,C1,1);
+        MoveChar(B[X+X2],FC,C1,1);
         if i=DefCount-1 then X2:=X2+1;
         if X2>0 then
         MoveChar(B[X],'Ä',C1,X2);
         X:=X+X2+1;
       end;
   MoveChar(B[HeaderLen+1],'¿',C1,1);
-  MoveChar(B[ActiveKPos],'Ú',C1,1); MoveChar(B[ActiveVPos],'¿',C1,1);
+  MoveChar(B[ActiveKPos],'Ú',C1,1);
+  MoveChar(B[ActiveVPos],'¿',C1,1);
   SWriteBuf(0,0,Size.X,1,B);
 
   { --- 2. sor --- }
-  MoveChar(B[1],'Ä',C1,Max(HeaderLen,0)); MoveChar(B[HeaderLen+2],'Ä',C1,Max(Size.X-HeaderLen-3,0));
-  MoveChar(B[Size.X-1],'¿',C1,1);
+  MoveChar(B[1],'Ä',C1,Max(HeaderLen,0));
+  MoveChar(B[HeaderLen+2],'Ä',C1,Max(Size.X-HeaderLen-3,0));
+  MoveChar(B[HeaderLen+1],LUR,C1,1);
   MoveChar(B[ActiveKPos],'Ù',C1,1);
-  if ActiveDef=0 then MoveChar(B[0],'³',C1,1)
-                 else MoveChar(B[0],{'Ã'}'Ú',C1,1);
-  MoveChar(B[HeaderLen+1],'Ä'{'Á'},C1,1); MoveChar(B[ActiveVPos],'À',C1,1);
+  if ActiveDef=0 then
+    MoveChar(B[0],'³',C1,1)
+  else
+    MoveChar(B[0],URD,C1,1);
   MoveChar(B[ActiveKPos+1],' ',C1,Max(ActiveVPos-ActiveKPos-1,0));
+  MoveChar(B[ActiveVPos],'À',C1,1);
+  if HeaderLen+1<Size.X-1 then
+    MoveChar(B[Size.X-1],'¿',C1,1)
+  else if (ActiveDef=DefCount-1) then
+    MoveChar(B[Size.X-1],'³',C1,1)
+  else
+    MoveChar(B[Size.X-1],UDL,C1,1);
   SWriteBuf(0,2,Size.X,1,B);
 
   { --- marad‚k sor --- }
-  ClearBuf; MoveChar(B[0],'³',C1,1); MoveChar(B[Size.X-1],'³',C1,1);
+  ClearBuf; MoveChar(B[0],'³',C1,1);
+  MoveChar(B[Size.X-1],'³',C1,1);
   {SWriteBuf(0,3,Size.X,Size.Y-4,B);}
   for i:=3 to Size.Y-1 do
     SWriteBuf(0,i,Size.X,1,B);
 
   { --- Size.X . sor --- }
-  MoveChar(B[0],'À',C1,1); MoveChar(B[1],'Ä',C1,Max(Size.X-2,0)); MoveChar(B[Size.X-1],'Ù',C1,1);
+  MoveChar(B[0],'À',C1,1);
+  MoveChar(B[1],'Ä',C1,Max(Size.X-2,0));
+  MoveChar(B[Size.X-1],'Ù',C1,1);
   SWriteBuf(0,Size.Y-1,Size.X,1,B);
 
   { - End of TGroup.Draw - }
