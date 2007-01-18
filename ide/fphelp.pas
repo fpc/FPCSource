@@ -43,6 +43,7 @@ procedure HelpIndex(Keyword: string);
 procedure HelpTopicSearch(Editor: PEditor);
 procedure HelpTopic(const S: string);
 procedure CloseHelpWindows;
+procedure HelpDebugInfos;
 
 procedure InitHelpSystem;
 procedure DoneHelpSystem;
@@ -408,6 +409,12 @@ begin
     MakeFirst;
   end;
   Message(Application,evCommand,cmUpdate,nil);
+end;
+
+procedure HelpDebugInfos;
+begin
+  HelpCreateWindow;
+  HelpWindow^.ShowDebugInfos;
 end;
 
 procedure PushStatus(S: string);
