@@ -136,7 +136,9 @@ interface
              system_x86_64_embedded,    { 55 }
              system_mips_embedded,      { 56 }
              system_arm_embedded,       { 57 }
-             system_powerpc64_embedded  { 58 }
+             system_powerpc64_embedded, { 58 }
+             system_i386_symbian,       { 59 }
+             system_arm_symbian         { 60 }
        );
 
        tasm = (as_none

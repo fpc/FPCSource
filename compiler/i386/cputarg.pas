@@ -71,6 +71,9 @@ implementation
     {$ifndef NOTARGETWATCOM}
       ,t_watcom
     {$endif}
+    {$ifndef NOTARGETSYMBIAN}
+      ,t_symbian
+    {$endif}
 
 {**************************************
              Assemblers

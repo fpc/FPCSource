@@ -107,6 +107,9 @@ uses
 {$ifdef win32}
   ,i_win
 {$endif win32}
+{$ifdef symbian}
+  ,i_symbian
+{$endif symbian}
   ;
 
 function Compile(const cmd:string):longint;
