@@ -1,8 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2001 by Several contributors
+    Copyright (c) 1999-2007 by Several contributors
 
-    Generic mathemtical routines (on type real)
+    Generic mathematical routines (on type real)
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -610,8 +610,10 @@ invalid:
     begin
        if( d <= 0.0 ) then
        begin
-           if d < 0.0 then
-             d:=0/0;
+           if d < 0.0 then begin
+             float_raise(float_flag_invalid);
+             d := 0/0;
+           end;
            result := 0.0;
        end
      else
@@ -668,55 +670,55 @@ invalid:
      * Method
      *   1. Argument reduction:
      *      Reduce x to an r so that |r| <= 0.5*ln2 ~ 0.34658.
-     *	Given x, find r and integer k such that
+     *  Given x, find r and integer k such that
      *
      *               x = k*ln2 + r,  |r| <= 0.5*ln2.
      *
      *      Here r will be represented as r = hi-lo for better
-     *	accuracy.
+     *  accuracy.
      *
      *   2. Approximation of exp(r) by a special rational function on
-     *	the interval [0,0.34658]:
-     *	Write
-     *	    R(r**2) = r*(exp(r)+1)/(exp(r)-1) = 2 + r*r/6 - r**4/360 + ...
+     *  the interval [0,0.34658]:
+     *  Write
+     *      R(r**2) = r*(exp(r)+1)/(exp(r)-1) = 2 + r*r/6 - r**4/360 + ...
      *      We use a special Reme algorithm on [0,0.34658] to generate
-     * 	a polynomial of degree 5 to approximate R. The maximum error
-     *	of this polynomial approximation is bounded by 2**-59. In
-     *	other words,
-     *	    R(z) ~ 2.0 + P1*z + P2*z**2 + P3*z**3 + P4*z**4 + P5*z**5
-     *  	(where z=r*r, and the values of P1 to P5 are listed below)
-     *	and
-     *	    |                  5          |     -59
-     *	    | 2.0+P1*z+...+P5*z   -  R(z) | <= 2
-     *	    |                             |
-     *	The computation of exp(r) thus becomes
-     *                             2*r
-     *		exp(r) = 1 + -------
-     *		              R - r
-     *                                 r*R1(r)
-     *		       = 1 + r + ----------- (for better accuracy)
-     *		                  2 - R1(r)
-     *	where
-     *			         2       4             10
-     *		R1(r) = r - (P1*r  + P2*r  + ... + P5*r   ).
+     *  a polynomial of degree 5 to approximate R. The maximum error
+     *  of this polynomial approximation is bounded by 2**-59. In
+     *  other words,
+     *      R(z) ~ 2.0 + P1*z + P2*z**2 + P3*z**3 + P4*z**4 + P5*z**5
+     *      (where z=r*r, and the values of P1 to P5 are listed below)
+     *  and
+     *      |                  5          |     -59
+     *      | 2.0+P1*z+...+P5*z   -  R(z) | <= 2
+     *      |                             |
+     *  The computation of exp(r) thus becomes
+     *                     2*r
+     *      exp(r) = 1 + -------
+     *                    R - r
+     *                         r*R1(r)
+     *             = 1 + r + ----------- (for better accuracy)
+     *                        2 - R1(r)
+     *  where
+                         2       4             10
+     *     R1(r) = r - (P1*r  + P2*r  + ... + P5*r   ).
      *
      *   3. Scale back to obtain exp(x):
-     *	From step 1, we have
-     *	   exp(x) = 2^k * exp(r)
+     *  From step 1, we have
+     *     exp(x) = 2^k * exp(r)
      *
      * Special cases:
-     *	exp(INF) is INF, exp(NaN) is NaN;
-     *	exp(-INF) is 0, and
-     *	for finite argument, only exp(0)=1 is exact.
+     *  exp(INF) is INF, exp(NaN) is NaN;
+     *  exp(-INF) is 0, and
+     *  for finite argument, only exp(0)=1 is exact.
      *
      * Accuracy:
-     *	according to an error analysis, the error is always less than
-     *	1 ulp (unit in the last place).
+     *  according to an error analysis, the error is always less than
+     *  1 ulp (unit in the last place).
      *
      * Misc. info.
-     *	For IEEE double
-     *	    if x >  7.09782712893383973096e+02 then exp(x) overflow
-     *	    if x < -7.45133219101941108420e+02 then exp(x) underflow
+     *  For IEEE double
+     *      if x >  7.09782712893383973096e+02 then exp(x) overflow
+     *      if x < -7.45133219101941108420e+02 then exp(x) underflow
      *
      * Constants:
      * The hexadecimal values are the intended ones for the following
@@ -744,9 +746,9 @@ invalid:
         P4   = -1.65339022054652515390e-06; { 0xBEBBBD41, 0xC5D26BF1 }
         P5   =  4.13813679705723846039e-08; { 0x3E663769, 0x72BEA4D0 }
       var
-	c,hi,lo,t,y : double;
-	k,xsb : longint;
-	hx,hy,lx : dword;
+        c,hi,lo,t,y : double;
+        k,xsb : longint;
+        hx,hy,lx : dword;
       begin
         hi:=0.0;
         lo:=0.0;
@@ -768,27 +770,23 @@ invalid:
                   end
                 else
                   begin
-                    if xsb=0 then
+                    if xsb=0 then begin
+                      float_raise(float_flag_overflow);
                       result:=d
-                    else
+                    end else
                       result:=0.0;    { exp(+-inf)=begininf,0end }
                     exit;
                   end;
               end;
-            if d > o_threshold then
-              begin
-                float_raise(float_flag_overflow); { overflow }
-                result:=huge*huge;
-                exit;
-              end;
-            if d < u_threshold then
-              begin
-                float_raise(float_flag_underflow); { underflow }
-                result:=twom1000*twom1000;
-                exit;
-              end;
+            if d > o_threshold then begin
+              float_raise(float_flag_overflow); { overflow }
+              exit;
+            end;
+            if d < u_threshold then begin
+              float_raise(float_flag_underflow); { underflow }
+              exit;
+            end;
           end;
-
         { argument reduction }
         if hx > $3fd62e42 then
           begin           { if  |d| > 0.5 ln2 }
@@ -800,10 +798,10 @@ invalid:
               end
             else
               begin
-		k  := round(invln2*d+halF[xsb]);
-		t  := k;
-                hi := d - t*ln2HI[0];    { t*ln2HI is exact here }
-		lo := t*ln2LO[0];
+               k  := round(invln2*d+halF[xsb]);
+               t  := k;
+               hi := d - t*ln2HI[0];    { t*ln2HI is exact here }
+               lo := t*ln2LO[0];
               end;
             d  := hi - lo;
           end
@@ -815,18 +813,18 @@ invalid:
                 exit;
               end;
           end
-	else
+        else
           k := 0;
 
         { d is now in primary range }
-	t:=d*d;
-	c:=d - t*(P1+t*(P2+t*(P3+t*(P4+t*P5))));
-	if k=0 then
+        t:=d*d;
+        c:=d - t*(P1+t*(P2+t*(P3+t*(P4+t*P5))));
+        if k=0 then
           begin
             result:=one-((d*c)/(c-2.0)-d);
             exit;
           end
-	else
+        else
           y := one-((lo-(d*c)/(2.0-c))-hi);
 
         if k >= -1021 then
@@ -837,9 +835,9 @@ invalid:
           end
         else
           begin
-	    hy:=float64(y).high;
+            hy:=float64(y).high;
             float64(y).high:=longint(hy)+((k+1000) shl 20); { add k to y's exponent }
-	    result:=y*twom1000;
+            result:=y*twom1000;
           end;
       end;
 
@@ -885,11 +883,11 @@ invalid:
         px, qx, xx : Real;
     begin
       if( d > MAXLOG) then
-          HandleError(205)
+          float_raise(float_flag_overflow)
       else
       if( d < MINLOG ) then
       begin
-        HandleError(205);
+        float_raise(float_flag_underflow);
       end
       else
       begin
