@@ -816,6 +816,7 @@ begin
              cmHelp,
              cmHelpContents  : HelpContents;
              cmHelpIndex     : HelpHelpIndex;
+             cmHelpDebug     : HelpDebugInfos;
 {             cmHelpTopicSearch: HelpTopicSearch;}
              cmHelpPrevTopic : HelpPrevTopic;
              cmHelpUsingHelp : HelpUsingHelp;
