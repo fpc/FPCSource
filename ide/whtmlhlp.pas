@@ -86,6 +86,7 @@ type
       procedure DocTITLE(Entered: boolean); virtual;
       procedure DocBODY(Entered: boolean); virtual;
       procedure DocAnchor(Entered: boolean); virtual;
+      procedure   DocUnknownTag; virtual;
       procedure DocHeading(Level: integer; Entered: boolean); virtual;
       procedure DocParagraph(Entered: boolean); virtual;
       procedure DocBreak; virtual;
@@ -148,6 +149,7 @@ type
       constructor Init(AID: word);
       destructor  Done; virtual;
     public
+      function    GetTopicInfo(T: PTopic) : string; virtual;
       function    SearchTopic(HelpCtx: THelpCtx): PTopic; virtual;
       function    ReadTopic(T: PTopic): boolean; virtual;
     private
@@ -642,23 +644,29 @@ begin
     begin
       if DocGetTagParam('HREF',HRef)=false then HRef:='';
       if DocGetTagParam('NAME',Name)=false then Name:='';
-      if (HRef='') and (Name='') then
+      if {(HRef='') and} (Name='') then
         if DocGetTagParam('ID',Name)=false then
           Name:='';
       if Name<>'' then
         begin
           Topic^.NamedMarks^.InsertStr(Name);
+{$ifdef DEBUG}
+          DebugMessage('',' Adding Name '+Name,1,1);
+{$endif DEBUG}
           AddChar(hscNamedMark);
         end;
       if (HRef<>'')then
           begin
-            InAnchor:=true;
-            AddChar(hscLink);
-            if (LinkPtr<MaxTopicLinks){and
+            if (LinkPtr<MaxTopicLinks){ and
                not DisableCrossIndexing}  then
             begin
+              InAnchor:=true;
+              AddChar(hscLink);
               HRef:=CompleteURL(URL,HRef);
               LinkIndexes[LinkPtr]:=TopicLinks^.AddItem(HRef);
+{$ifdef DEBUG}
+          DebugMessage('',' Adding Link '+HRef,1,1);
+{$endif DEBUG}
               Inc(LinkPtr);
             end;
           end;
@@ -668,6 +676,14 @@ begin
       if InAnchor=true then AddChar(hscLink);
       InAnchor:=false;
     end;
+end;
+
+procedure THTMLTopicRenderer.DocUnknownTag;
+begin
+{$ifdef DEBUG}
+  DebugMessage('',' Unknown tag "'+TagName+'" params "'+
+    TagParams+'"',1,1);
+{$endif DEBUG}
 end;
 
 procedure DecodeAlign(Align: string; var PAlign: TParagraphAlign);
@@ -803,8 +819,10 @@ begin
     begin
       StorePreformatted:=InPreformatted;
       InPreformatted:=true;
+      DocGetTagParam('SRC',src);
       AddChar(hscInImage);
-      AddText('['+Alt+']');
+      AddText('[--'+Src+'--'+hscLineBreak);
+      AddText(Alt+hscLineBreak+'--]');
       AddChar(hscInImage);
       AddChar(hscNormText);
       InPreformatted:=StorePreformatted;
@@ -1202,9 +1220,8 @@ begin
   SearchTopic:=P;
 end;
 
-function TCustomHTMLHelpFile.ReadTopic(T: PTopic): boolean;
+function TCustomHTMLHelpFile.GetTopicInfo(T: PTopic) : string;
 var OK: boolean;
-    HTMLFile: PMemoryTextFile;
     Name: string;
     Link,Bookmark: string;
     P: sw_integer;
@@ -1225,6 +1242,43 @@ begin
 {$ifdef DEBUG_WHTMLHLP}
           DebugMessage(Link,' looking for',1,1);
 {$endif DEBUG_WHTMLHLP}
+          P:=Pos('#',Link);
+          if P>0 then
+          begin
+            Bookmark:=copy(Link,P+1,length(Link));
+            Link:=copy(Link,1,P-1);
+          end;
+{          if CurFileName='' then Name:=Link else
+          Name:=CompletePath(CurFileName,Link);}
+          Name:=Link;
+        end;
+    end;
+  GetTopicInfo:=Name+'#'+BookMark;
+end;
+
+function TCustomHTMLHelpFile.ReadTopic(T: PTopic): boolean;
+var OK: boolean;
+    HTMLFile: PMemoryTextFile;
+    Name: string;
+    Link,Bookmark: string;
+    P: sw_integer;
+begin
+  Bookmark:='';
+  OK:=T<>nil;
+  if OK then
+    begin
+      if T^.HelpCtx=0 then
+        begin
+          Name:=DefaultFileName;
+          P:=0;
+        end
+      else
+        begin
+          Link:=TopicLinks^.At((T^.HelpCtx and $ffff)-1)^;
+          Link:=FormatPath(Link);
+{$ifdef DEBUG}
+          DebugMessage(Link,' looking for',1,1);
+{$endif DEBUG}
           P:=Pos('#',Link);
           if P>0 then
           begin
@@ -1281,7 +1335,14 @@ begin
       if BookMark='' then
         T^.StartNamedMark:=0
       else
-        T^.StartNamedMark:=T^.GetNamedMarkIndex(BookMark)+1;
+        begin
+          P:=T^.GetNamedMarkIndex(BookMark);
+{$ifdef DEBUG}
+          if p=-1 then
+            DebugMessage(Name,Link+'#'+Bookmark+' bookmark not found',1,1);
+{$endif DEBUG}
+          T^.StartNamedMark:=P+1;
+        end;
     end;
   ReadTopic:=OK;
 end;

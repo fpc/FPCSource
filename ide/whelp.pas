@@ -120,6 +120,7 @@ type
         function    LoadIndex: boolean; virtual;
         function    SearchTopic(HelpCtx: THelpCtx): PTopic; virtual;
         function    ReadTopic(T: PTopic): boolean; virtual;
+        function    GetTopicInfo(T: PTopic) : string; virtual;
       private
         procedure MaintainTopicCache;
       end;
@@ -134,6 +135,7 @@ type
         function    AddFile(const FileName, Param: string): PHelpFile;
         function    AddHelpFile(H: PHelpFile): boolean;
         function    LoadTopic(SourceFileID: word; Context: THelpCtx): PTopic; virtual;
+        function    GetTopicInfo(SourceFileID: word; Context: THelpCtx) : string; virtual;
         function    TopicSearch(Keyword: string; var FileID: word; var Context: THelpCtx): boolean; virtual;
         function    BuildIndexTopic: PTopic; virtual;
         destructor  Done; virtual;
@@ -702,6 +704,12 @@ begin
   ReadTopic:=false; { remove warning }
 end;
 
+function THelpFile.GetTopicInfo(T: PTopic) : string;
+begin
+  Abstract;
+  GetTopicInfo:=''; { remove warning }
+end;
+
 procedure THelpFile.MaintainTopicCache;
 var Count: sw_integer;
     MinLRU: longint;
@@ -801,6 +809,28 @@ begin
   end;
   LoadTopic:=P;
 end;
+
+function THelpFacility.GetTopicInfo(SourceFileID: word; Context: THelpCtx) : string;
+var P: PTopic;
+    H: PHelpFile;
+begin
+  if (SourceFileID=0) and (Context=0) then
+     begin
+       P:=BuildIndexTopic;
+     end
+  else
+    begin
+      H:=SearchTopicOwner(SourceFileID,Context);
+      if (H=nil) then P:=nil else
+         P:=H^.SearchTopic(Context);
+    end;
+  If not assigned(P) then
+    GetTopicInfo:='Not found'
+  else
+    GetTopicInfo:=H^.GetTopicInfo(P);
+end;
+
+
 
 function THelpFacility.TopicSearch(Keyword: string; var FileID: word; var Context: THelpCtx): boolean;
 function ScanHelpFile(H: PHelpFile): boolean; {$ifndef FPC}far;{$endif}

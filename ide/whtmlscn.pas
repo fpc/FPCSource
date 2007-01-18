@@ -38,6 +38,7 @@ type
      private
        CurLinkText: string;
        CurURL: string;
+       CurName: string;
        CurDoc: string;
        InAnchor,InNameAnchor: boolean;
        LastSynonym: PHTMLLinkScanDocument;
@@ -170,23 +171,44 @@ begin
     begin
       CurLinkText:='';
       if DocGetTagParam('HREF',CurURL)=false then
-      if DocGetTagParam('NAME',CurURL) then
+        CurURL:='';
+      if not DocGetTagParam('NAME',CurName) then
+      if not DocGetTagParam('ID',CurName) then
+        CurName:='';
+      if CurName<>'' then
         begin
           InNameAnchor:=true;
-          If Pos('#',CurURL)=0 then
-            CurURL:=CurDoc+'#'+CurURL;
+          If Pos('#',CurName)=0 then
+            CurName:=CurDoc+'#'+CurName;
+          CurName:=Trim(CurName);
+          CurName:=CompleteURL(GetDocumentBaseURL,CurName);
+          if CurURL='' then
+            CurURL:=CurName;
         end
       else
-        CurURL:='';
+        CurName:='';
       CurURL:=Trim(CurURL);
       CurURL:=CompleteURL(GetDocumentBaseURL,CurURL);
     end
   else
     begin
       CurLinkText:=Trim(CurLinkText);
-      if InNameAnchor or
-       (CheckURL(CurURL) and CheckText(CurLinkText)and not DisableCrossIndexing) then
-        AddLink(CurLinkText,CurURL);
+      if (CurName='') and CheckURL(CurURL) and CheckText(CurLinkText) and
+         not DisableCrossIndexing then
+        begin
+          AddLink(CurLinkText,CurURL);
+{$ifdef DEBUG}
+          DebugMessage('',' Adding ScanLink "'+CurLinkText+'" to "'+
+            CurURL+'"',1,1);
+{$endif DEBUG}
+        end;
+      if InNameAnchor and CheckURL(CurName) and CheckText(CurLinkText) then
+        begin
+          AddLink(CurLinkText,CurName);
+{$ifdef DEBUG}
+          DebugMessage('',' Adding ScanName '+CurLinkText+' to '+CurName,1,1);
+{$endif DEBUG}
+        end;
       InNameAnchor:=false;
     end;
   InAnchor:=Entered;

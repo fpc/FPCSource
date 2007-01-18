@@ -207,6 +207,7 @@ type
         procedure   InitScrollBars; virtual;
         procedure   InitHelpView; virtual;
         procedure   ShowIndex; virtual;
+        procedure   ShowDebugInfos; virtual;
         procedure   ShowTopic(SourceFileID: word; Context: THelpCtx); virtual;
         procedure   HandleEvent(var Event: TEvent); virtual;
         procedure   Close; virtual;
@@ -861,8 +862,17 @@ begin
 end;
 
 function THelpViewer.GetLinkTarget(Index: sw_integer): string;
+var
+  Ctx : THelpCtx;
+  ID : sw_integer;
 begin
   GetLinkTarget:='';
+  if HelpTopic=nil then begin ID:=0; Ctx:=0; end else
+     begin
+       ID:=GetLinkFileID(Index);
+       Ctx:=GetLinkContext(Index);
+     end;
+  GetLinkTarget:=HelpFacility^.GetTopicInfo(ID,CTx);
 end;
 
 function THelpViewer.GetLinkText(Index: sw_integer): string;
@@ -1354,6 +1364,18 @@ begin
        ShowTopic(ASourceFileID, AContext);
     Insert(HelpView);
   end;
+end;
+
+procedure THelpWindow.ShowDebugInfos;
+begin
+{$ifdef DEBUG}
+  DebugMessage(GetTitle(255),'Generic Help window',1,1);
+  if HelpView^.CurLink<>-1 then
+    begin
+      DebugMessage('','Curlink is '+IntToStr(HelpView^.CurLink),1,1);
+      DebugMessage('',HelpView^.GetLinkTarget(HelpView^.CurLink),1,1);
+    end;
+{$endif DEBUG}
 end;
 
 procedure THelpWindow.InitScrollBars;
