@@ -206,7 +206,7 @@ endif
 
 # ARM specific
 ifeq ($(PPC_TARGET),arm)
-override LOCALOPT+=-dNOOPT
+override LOCALOPT+=
 endif
 
 [rules]
