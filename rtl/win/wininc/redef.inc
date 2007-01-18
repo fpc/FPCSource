@@ -68,6 +68,11 @@ type
      palPalEntry   : array[Byte] of TPaletteEntry;
   end;
   PMaxLogPalette = ^TMaxLogPalette;
+  
+  POSVersionInfoA = POSVERSIONINFO;
+  
+  TBitmapFileHeader = BITMAPFILEHEADER;
+  PBitmapFileHeader = ^TBitmapFileHeader;
 
 const
   { dll names }
@@ -90,6 +95,13 @@ const
 
   { HRESULT codes, delphilike }
   NOERROR = 0;
+
+  { Some missing consts }
+  SIF_TRACKPOS = $10;
+  HTBORDER = 18;
+  CP_UTF7 = 65000;
+  CP_UTF8 = 65001;
+  CREATE_NO_WINDOW = $08000000;
 
 const
   { Severity values }
@@ -519,6 +531,12 @@ function GetPath(DC: HDC; var Points, Types; nSize: Integer): Integer; external 
 function GetPriorityClipboardFormat(var paFormatPriorityList; cFormats: Integer): Integer; external 'user32' name 'GetPriorityClipboardFormat';
 //function GetPrivateObjectSecurity(ObjectDescriptor: PSecurityDescriptor; SecurityInformation: SECURITY_INFORMATION; ResultantDescriptor: PSecurityDescriptor; DescriptorLength: DWORD; var ReturnLength: DWORD): BOOL;
 //  external 'advapi32' name 'GetPrivateObjectSecurity';
+function GetPrivateProfileSectionNamesA(lpszReturnBuffer: LPSTR; nSize: DWORD; lpFileName: LPCSTR): DWORD; external 'kernel32' name 'GetPrivateProfileSectionNamesA';
+function GetPrivateProfileSectionNamesW(lpszReturnBuffer: LPWSTR; nSize: DWORD; lpFileName: LPCWSTR): DWORD; external 'kernel32' name 'GetPrivateProfileSectionNamesW';
+function GetPrivateProfileSectionNames(lpszReturnBuffer: LPTSTR; nSize: DWORD; lpFileName: LPCTSTR): DWORD; external 'kernel32' name 'GetPrivateProfileSectionNamesA';
+function GetPrivateProfileStructA(lpszSection, lpszKey: LPCSTR; lpStruct: LPVOID; uSizeStruct: UINT; szFile: LPCSTR): BOOL; external 'kernel32' name 'GetPrivateProfileStructA';
+function GetPrivateProfileStructW(lpszSection, lpszKey: LPCWSTR; lpStruct: LPVOID; uSizeStruct: UINT; szFile: LPCWSTR): BOOL; external 'kernel32' name 'GetPrivateProfileStructW';
+function GetPrivateProfileStruct(lpszSection, lpszKey: LPCTSTR; lpStruct: LPVOID; uSizeStruct: UINT; szFile: LPCTSTR): BOOL; external 'kernel32' name 'GetPrivateProfileStructA';
 function GetProcessAffinityMask(hProcess: THandle; var lpProcessAffinityMask, lpSystemAffinityMask: DWORD): BOOL; external 'kernel32' name 'GetProcessAffinityMask';
 function GetProcessHeaps(NumberOfHeaps: DWORD; var ProcessHeaps: THandle): DWORD;external 'kernel32' name 'GetProcessHeaps';
 {$ifdef support_smartlink}
@@ -742,6 +760,9 @@ function RegEnumValue(hKey: HKEY; dwIndex: DWORD; lpValueName: PChar; var lpcbVa
 function RegEnumValueA(hKey: HKEY; dwIndex: DWORD; lpValueName: PChar; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint; external 'advapi32' name 'RegEnumValueA';
 function RegEnumValueW(hKey: HKEY; dwIndex: DWORD; lpValueName: PChar; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint; external 'advapi32' name 'RegEnumValueW';
 function RegGetKeySecurity(hKey: HKEY; SecurityInformation: SECURITY_INFORMATION; pSecurityDescriptor: PSecurityDescriptor; var lpcbSecurityDescriptor: DWORD): Longint; external 'advapi32' name 'RegGetKeySecurity';
+function RegSetValueEx(hKey:HKEY; lpValueName:LPCSTR; Reserved:DWORD; dwType:DWORD; lpData:pointer;cbData:DWORD):LONG; external 'advapi32' name 'RegSetValueExA';
+function RegSetValueExA(hKey:HKEY; lpValueName:LPCSTR; Reserved:DWORD; dwType:DWORD; lpData:pointer;cbData:DWORD):LONG; external 'advapi32' name 'RegSetValueExA';
+function RegSetValueExW(hKey:HKEY; lpValueName:LPCWSTR; Reserved:DWORD; dwType:DWORD; lpData:pointer;cbData:DWORD):LONG; external 'advapi32' name 'RegSetValueExW';
 function RegisterClass(const lpWndClass: TWndClass): ATOM;external 'user32' name 'RegisterClassA';
 function RegisterClassA(const lpWndClass: TWndClassA): ATOM; external 'user32' name 'RegisterClassA';
 function RegisterClassEx(const WndClass: TWndClassEx): ATOM;external 'user32' name 'RegisterClassExA';
@@ -832,6 +853,7 @@ function TabbedTextOutW(hDC: HDC; X, Y: Integer; lpString: LPWSTR; nCount, nTabP
 // Careful, NT and higher only.
 function TrackMouseEvent(var EventTrack: TTrackMouseEvent): BOOL;external 'user32' name 'TrackMouseEvent';
 function TrackMouseEvent(lpEventTrack: PTrackMouseEvent): BOOL;external 'user32' name 'TrackMouseEvent';
+function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint;hWnd:HWND; prcRect: PRect):WINBOOL;  external 'user32' name 'TrackPopupMenu';
 function TransactNamedPipe(hNamedPipe: THandle; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesRead: DWORD; lpOverlapped: POverlapped): BOOL; external 'kernel32' name 'TransactNamedPipe';
 function TranslateAccelerator(hWnd: HWND; hAccTable: HACCEL; var lpMsg: TMsg): Integer;external 'user32' name 'TranslateAcceleratorA';
 function TranslateAcceleratorA(hWnd: HWND; hAccTable: HACCEL; var lpMsg: TMsg): Integer; external 'user32' name 'TranslateAcceleratorA';
@@ -922,6 +944,9 @@ function WriteConsoleOutputW(hConsoleOutput: THandle; lpBuffer: Pointer; dwBuffe
 function WriteConsoleW(hConsoleOutput: THandle; const lpBuffer: Pointer; nNumberOfCharsToWrite: DWORD; var lpNumberOfCharsWritten: DWORD; lpReserved: Pointer): BOOL; external 'kernel32' name 'WriteConsoleW';
 function WriteFile(hFile: THandle; const Buffer; nNumberOfBytesToWrite: DWORD; var lpNumberOfBytesWritten: DWORD; lpOverlapped: POverlapped): BOOL; external 'kernel32' name 'WriteFile';
 function WriteFileEx(hFile: THandle; lpBuffer: Pointer; nNumberOfBytesToWrite: DWORD; const lpOverlapped: TOverlapped; lpCompletionRoutine: FARPROC): BOOL; external 'kernel32' name 'WriteFileEx';
+function WritePrivateProfileStructA(lpszSection, lpszKey: LPCSTR; lpStruct: LPVOID; uSizeStruct: UINT; szFile: LPCSTR): BOOL; external 'kernel32' name 'WritePrivateProfileStructA';
+function WritePrivateProfileStructW(lpszSection, lpszKey: LPCWSTR; lpStruct: LPVOID; uSizeStruct: UINT; szFile: LPCWSTR): BOOL; external 'kernel32' name 'WritePrivateProfileStructW';
+function WritePrivateProfileStruct(lpszSection, lpszKey: LPCTSTR; lpStruct: LPVOID; uSizeStruct: UINT; szFile: LPCTSTR): BOOL; external 'kernel32' name 'WritePrivateProfileStructA';
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; external 'kernel32' name 'WriteProcessMemory';
 function SHFileOperation(Var para1: SHFILEOPSTRUCT):longint; external 'shell32' name 'SHFileOperation';
 // these are old Win16 funcs that under win32 are aliases for several char* funcs.
