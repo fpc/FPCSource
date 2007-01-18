@@ -415,6 +415,7 @@ type
       function    GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
       function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): pstring; virtual;
       function    GetPalette: PPalette; virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
     end;
 
     PFPCodeMemo = ^TFPCodeMemo;
@@ -1957,13 +1958,20 @@ function TFPHelpViewer.GetLocalMenu: PMenu;
 var M: PMenu;
 begin
   M:=NewMenu(
+{$ifdef DEBUG}
+    NewItem(menu_hlplocal_debug,'',kbNoKey,cmHelpDebug,hcHelpDebug,
+{$endif DEBUG}
     NewItem(menu_hlplocal_contents,'',kbNoKey,cmHelpContents,hcHelpContents,
     NewItem(menu_hlplocal_index,menu_key_hlplocal_index,kbShiftF1,cmHelpIndex,hcHelpIndex,
     NewItem(menu_hlplocal_topicsearch,menu_key_hlplocal_topicsearch,kbCtrlF1,cmHelpTopicSearch,hcHelpTopicSearch,
     NewItem(menu_hlplocal_prevtopic,menu_key_hlplocal_prevtopic,kbAltF1,cmHelpPrevTopic,hcHelpPrevTopic,
     NewLine(
     NewItem(menu_hlplocal_copy,menu_key_hlplocal_copy,copy_key,cmCopy,hcCopy,
-    nil)))))));
+    nil)))))))
+{$ifdef DEBUG}
+      )
+{$endif DEBUG}
+    ;
   GetLocalMenu:=M;
 end;
 
@@ -4361,6 +4369,25 @@ constructor TFPMemo.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
 begin
   inherited Init(Bounds,AHScrollBar,AVScrollBar,AIndicator,nil);
   SetFlags(Flags and not (efPersistentBlocks) or efSyntaxHighlight);
+end;
+
+procedure TFPMemo.HandleEvent(var Event: TEvent);
+var DontClear: boolean;
+    S: string;
+begin
+  case Event.What of
+    evKeyDown :
+      begin
+        DontClear:=false;
+        case Event.KeyCode of
+          kbEsc:
+            Message(Owner,evCommand,cmCancel,nil);
+        else DontClear:=true;
+        end;
+        if not DontClear then ClearEvent(Event);
+      end;
+  end;
+  inherited HandleEvent(Event);
 end;
 
 function TFPMemo.GetPalette: PPalette;
