@@ -280,7 +280,10 @@ begin
   p:=PChar(SQL);
   BufStart:=p; // used to calculate ParamPart.Start values
   repeat
-    SkipComments(p,ParameterStyle<>psPostgreSQL,ParameterStyle=psPostgreSQL);
+// This doesn't work, since ParseSQL passes psInterbase as default. This need
+// some more advanced solution. Now temporary fix, to fix at least fpcbot...
+//    SkipComments(p,ParameterStyle<>psPostgreSQL,ParameterStyle=psPostgreSQL);
+    SkipComments(p,True,True);
     case p^ of
       ':','?': // parameter
         begin
