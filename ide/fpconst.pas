@@ -254,6 +254,7 @@ const
      cmHelpUsingHelp     = 2104;
      cmHelpFiles         = 2105;
      cmAbout             = 2106;
+     cmHelpDebug         = 2107;
 
      cmEditorOptions     = 2202;
      cmBrowserOptions    = 2203;
@@ -394,6 +395,7 @@ const
      hcHelpPrevTopic     = hcShift+cmHelpPrevTopic;
      hcHelpUsingHelp     = hcShift+cmHelpUsingHelp;
      hcHelpFiles         = hcShift+cmHelpFiles;
+     hcHelpDebug         = hcShift+cmHelpDebug;
      hcUpdate            = hcShift+cmUpdate;
      hcMsgClear          = hcShift+cmMsgClear;
      hcMsgGotoSource     = hcShift+cmMsgGotoSource;
