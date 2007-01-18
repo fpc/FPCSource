@@ -776,9 +776,17 @@ invalid:
                   end;
               end;
             if d > o_threshold then
-              HandleError(205); { overflow }
+              begin
+                float_raise(float_flag_overflow); { overflow }
+                result:=huge*huge;
+                exit;
+              end;
             if d < u_threshold then
-              HandleError(206); { underflow }
+              begin
+                float_raise(float_flag_underflow); { underflow }
+                result:=twom1000*twom1000;
+                exit;
+              end;
           end;
 
         { argument reduction }
