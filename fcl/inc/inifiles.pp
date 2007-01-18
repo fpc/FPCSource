@@ -465,13 +465,12 @@ begin
   FStream := nil;
   slLines := TStringList.Create;
   try
-    if FileExists(FFileName) then begin
+    if FileExists(FFileName) then 
+      begin
       // read the ini file values
       slLines.LoadFromFile(FFileName);
       FillSectionList(slLines);
-    end else
-      // create a new ini file
-      slLines.SaveToFile(FFileName);
+      end 
   finally
     slLines.Free;
   end;
