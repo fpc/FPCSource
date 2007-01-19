@@ -53,10 +53,21 @@ Implementation
                        Misc. System Dependent Functions
 *****************************************************************************}
 
+{$ifdef darwin}
+procedure normalexit(status: cint); cdecl; external 'c' name 'exit';
+{$endif}
+
 procedure System_exit;
+{$ifndef darwin}
 begin
    Fpexit(cint(ExitCode));
-End;
+end;
+{$else darwin}
+begin
+   { make sure the libc atexit handlers are called, needed for e.g. profiling }
+   normalexit(cint(ExitCode));
+end;
+{$endif darwin}
 
 
 Function ParamCount: Longint;
