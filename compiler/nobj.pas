@@ -193,7 +193,8 @@ implementation
                   begin
                     oldpd:=pprocdefentry(VMTSymentry.ProcdefList[i])^.data;
                     if (oldpd._class=pd._class) and
-                       ((po_overload in pd.procoptions)<>(po_overload in oldpd.procoptions)) then
+                       (not(po_overload in pd.procoptions) or
+                        not(po_overload in oldpd.procoptions)) then
                       begin
                         MessagePos1(pd.fileinfo,parser_e_no_overload_for_all_procs,pd.procsym.realname);
                         { recover }
@@ -374,7 +375,7 @@ implementation
                          the procedure to override.
                          If we are starting a new virtual tree then hide the old tree }
                        if not(po_overridingmethod in pd.procoptions) and
-                          not pdoverload then
+                          not (pdoverload or hasoverloads) then
                         begin
                           if is_visible then
                             procdefcoll^.hidden:=true;
@@ -403,7 +404,7 @@ implementation
                   has not the overload directive }
                 if is_visible and
                    (
-                    (not pdoverload) or
+                    not(pdoverload or hasoverloads) or
                     (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)
                    ) then
                   procdefcoll^.hidden:=true;
