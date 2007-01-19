@@ -83,6 +83,7 @@ unit i_sunos;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
+            abi          : abi_default;
           );
 
        system_sparc_solaris_info : tsysteminfo =
@@ -141,6 +142,7 @@ unit i_sunos;
               );
             first_parm_offset : 92;
             stacksize    : 262144;
+            abi          : abi_default;
           );
 
   implementation
