@@ -413,20 +413,20 @@ $(TEMPNAME1) :
         $(MOVE) $(EXENAME) $(TEMPNAME1)
 
 $(TEMPNAME2) : $(TEMPNAME1)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME1)' 'OLDFPC=' next
+        $(MAKE) FPC="$(BASEDIR)/$(TEMPNAME1)" 'OLDFPC=' next
         -$(DEL) $(TEMPNAME2)
         $(MOVE) $(EXENAME) $(TEMPNAME2)
 
 $(TEMPNAME3) : $(TEMPNAME2)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME2)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME1)' next
+        $(MAKE) FPC="$(BASEDIR)/$(TEMPNAME2)" OLDFPC="$(BASEDIR)/$(TEMPNAME1)" next
         -$(DEL) $(TEMPNAME3)
         $(MOVE) $(EXENAME) $(TEMPNAME3)
 
 cycle:
         $(MAKE) tempclean $(TEMPNAME3)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME2)' next
+        $(MAKE) FPC="$(BASEDIR)/$(TEMPNAME3)" OLDFPC="$(BASEDIR)/$(TEMPNAME2)" next
         $(DIFF) $(TEMPNAME3) $(EXENAME)
-        $(MAKE) $(addsuffix _all,$(TARGET_DIRS)) 'FPC=$(BASEDIR)/$(EXENAME)'
+        $(MAKE) $(addsuffix _all,$(TARGET_DIRS)) FPC="$(BASEDIR)/$(EXENAME)"
         $(MAKE) echotime
 
 else
@@ -440,12 +440,12 @@ cycle:
         $(MAKE) OS_TARGET=$(OS_SOURCE) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
         $(MAKE) OS_TARGET=$(OS_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
 # ppcross<ARCH> (source native)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) EXENAME=$(PPCROSSNAME) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
+        $(MAKE) FPC="$(BASEDIR)/$(TEMPNAME)" OS_TARGET=$(OS_SOURCE) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
+        $(MAKE) FPC="$(BASEDIR)/$(TEMPNAME)" OS_TARGET=$(OS_SOURCE) EXENAME=$(PPCROSSNAME) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
 # ppc<ARCH> (target native)
 ifndef CROSSINSTALL
-        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler
+        $(MAKE) FPC="$(BASEDIR)/$(PPCROSSNAME)" rtlclean rtl
+        $(MAKE) FPC="$(BASEDIR)/$(PPCROSSNAME)" cycleclean compiler
 endif
 
 endif
@@ -465,12 +465,12 @@ cycle:
         $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
         $(MAKE) OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) EXENAME=$(TEMPNAME) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
 # ppcross<ARCH> (source native)
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME)' OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) PPC_TARGET=$(CPU_TARGET) EXENAME=$(PPCROSSNAME) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
+        $(MAKE) FPC="$(BASEDIR)/$(TEMPNAME)" OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 rtlclean rtl
+        $(MAKE) FPC="$(BASEDIR)/$(TEMPNAME)" OS_TARGET=$(OS_SOURCE) CPU_TARGET=$(CPU_SOURCE) PPC_TARGET=$(CPU_TARGET) EXENAME=$(PPCROSSNAME) CROSSBINDIR="" BINUTILSPREFIX="" CROSSCYCLEBOOTSTRAP=1 cycleclean compiler
 # ppc<ARCH> (target native)
 ifndef CROSSINSTALL
-        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler
+        $(MAKE) FPC="$(BASEDIR)/$(PPCROSSNAME)" rtlclean rtl
+        $(MAKE) FPC="$(BASEDIR)/$(PPCROSSNAME)" cycleclean compiler
 endif
 
 endif
@@ -499,7 +499,7 @@ full: fullcycle
 fullcycle:
         $(MAKE) cycle
         $(MAKE) ppuclean
-        $(MAKE) $(filter-out $(PPC_TARGET),$(CYCLETARGETS)) 'FPC=$(BASEDIR)/$(EXENAME)'
+        $(MAKE) $(filter-out $(PPC_TARGET),$(CYCLETARGETS)) FPC="$(BASEDIR)/$(EXENAME)"
 
 #####################################################################
 # Docs
