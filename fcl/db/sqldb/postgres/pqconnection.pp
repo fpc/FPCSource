@@ -648,14 +648,14 @@ var
 begin
   with cursor as TPQCursor do
     begin
+    x := FieldBinding[FieldDef.FieldNo-1];
 
     // Joost, 5 jan 2006: I disabled the following, since it's usefull for
     // debugging, but it also slows things down. In principle things can only go
     // wrong when FieldDefs is changed while the dataset is opened. A user just
     // shoudn't do that. ;) (The same is done in IBConnection)
-    if PQfname(Res, x) <> FieldDef.Name then
-      DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
-    x := FieldBinding[FieldDef.FieldNo-1];
+    //if PQfname(Res, x) <> FieldDef.Name then
+    //  DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
 
     if pqgetisnull(res,CurTuple,x)=1 then
       result := false
