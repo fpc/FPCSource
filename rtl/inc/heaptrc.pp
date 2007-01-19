@@ -872,6 +872,11 @@ begin
   {$WARNING data and bss checking missing }
 {$endif morphos}
 
+  {$ifdef darwin}
+  {$warning No checkpointer support yet for Darwin}
+  exit;
+  {$endif}
+
   { first try valid list faster }
 
 {$ifdef EXTRA}
