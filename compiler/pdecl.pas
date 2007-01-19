@@ -568,6 +568,8 @@ implementation
          until token<>_ID;
          typecanbeforward:=false;
          symtablestack.top.SymList.ForEachCall(@resolve_type_forward,nil);
+         if assigned(generictypelist) then
+           generictypelist.free;
          block_type:=old_block_type;
       end;
 
