@@ -940,10 +940,12 @@ const
           begin
             { save link register? }
             if (pi_do_call in current_procinfo.flags) or
-               ([cs_lineinfo,cs_debuginfo] * current_settings.moduleswitches <> []) then
+               ([cs_lineinfo,cs_debuginfo,cs_profile] * current_settings.moduleswitches <> []) then
               begin
                 a_reg_alloc(list,NR_R0);
                 { save return address... }
+                { warning: if this is no longer done via r0, or if r0 is       }
+                { added to the usable registers, adapt tcgppcgen.g_profilecode }
                 list.concat(taicpu.op_reg(A_MFLR,NR_R0));
                 { ... in caller's frame }
                 case target_info.abi of
@@ -953,7 +955,8 @@ const
                     reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_SYSV);
                 end;
                 list.concat(taicpu.op_reg_ref(A_STW,NR_R0,href));
-                a_reg_dealloc(list,NR_R0);
+                if not(cs_profile in current_settings.moduleswitches) then
+                  a_reg_dealloc(list,NR_R0);
               end;
 
 (*

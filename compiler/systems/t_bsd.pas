@@ -329,19 +329,31 @@ begin
     begin
       { for darwin: always link dynamically against libc }
       linklibc := true;
+      { not sure what this is for, but gcc always links against it }
+      if not(cs_profile in current_settings.moduleswitches) then
+        AddSharedLibrary('SystemStubs')
+      else
+        AddSharedLibrary('SystemStubs_profile');
       reorder:=reorderentries;
       if not(isdll) then
         if not(cs_profile in current_settings.moduleswitches) then
           begin
-             if librarysearchpath.FindFile('crt1.o',false,s) then
+            if librarysearchpath.FindFile('crt1.o',false,s) then
              prtobj:=s
             else
              prtobj:='/usr/lib/crt1.o';
           end
         else
-          prtobj:='/usr/lib/gcrt1.o'
+          begin
+            if librarysearchpath.FindFile('gcrt1.o',false,s) then
+             prtobj:=s
+            else
+             prtobj:='/usr/lib/gcrt1.o';
+          end
       else
-        prtobj:='';
+        begin
+          prtobj:='';
+        end;
     end;
 
   if reorder Then
@@ -523,13 +535,14 @@ begin
       // warning: this option only exists for 32 bit under Mac OS X, maybe the default for 64 bit?
       GCSectionsStr:='-dead_strip';
 
-  If (cs_profile in current_settings.moduleswitches) or
+   if(not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) and
+      (cs_profile in current_settings.moduleswitches)) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
 
   if CShared Then
    begin
-   if  not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+   if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
      DynLinKStr:=DynLinkStr+' --shared'
     else
      DynLinKStr:=DynLinkStr+' -dynamic'; // one dash!

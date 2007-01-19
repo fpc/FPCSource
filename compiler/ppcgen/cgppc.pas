@@ -50,6 +50,8 @@ unit cgppc;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
 
+        { entry code }
+        procedure g_profilecode(list: TAsmList); override;
        protected
         function  get_darwin_call_stub(const s: string): tasmsymbol;
         procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
@@ -319,4 +321,25 @@ unit cgppc;
       a_load_subsetreg_subsetreg(list,subsetsize,subsetsize,fromsreg,tosreg);
     end;
 
+
+  procedure tcgppcgen.g_profilecode(list: TAsmList);
+    var
+      paraloc1 : tcgpara;
+      reg: tregister;
+    begin
+      if (target_info.system in [system_powerpc_darwin]) then
+        begin
+          paraloc1.init;
+          paramanager.getintparaloc(pocall_cdecl,1,paraloc1);
+          a_param_reg(list,OS_ADDR,NR_R0,paraloc1);
+          paramanager.freeparaloc(list,paraloc1);
+          paraloc1.done;
+          allocallcpuregisters(list);
+          a_call_name(list,'mcount');
+          deallocallcpuregisters(list);
+          a_reg_dealloc(list,NR_R0);
+        end;
+    end;
+
 end.
+
