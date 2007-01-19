@@ -806,7 +806,9 @@ begin
         i:=pos('=',s);
         if upcase(copy(s,1,i-1))=upcase(envvar) then
           begin
-             getenv:=copy(s,i+1,length(s)-i);
+             { getenv:=copy(s,i+1,length(s)-i);
+               this limits the size to 255-(i+1) }
+             getenv:=strpas(hp+i+1);
              break;
           end;
         { next string entry}
