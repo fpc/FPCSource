@@ -1744,6 +1744,9 @@ end;
 
 procedure CreateBrowserCol;
 var
+  path,module,
+  name,msource : string;
+
   T: TSymTable;
   UnitS,PM: PModuleSymbol;
   hp : tmodule;
@@ -1765,7 +1768,9 @@ begin
          t:=tsymtable(hp.localsymtable);
        if assigned(t) then
          begin
-           New(UnitS, Init(T.Name^,hp.mainsource^));
+           name:=GetStr(T.Name);
+           msource:=GetStr(hp.mainsource);
+           New(UnitS, Init(Name,msource));
            if Assigned(hp.loaded_from) then
              if assigned(hp.loaded_from.globalsymtable) then
                UnitS^.SetLoadedFrom(tsymtable(hp.loaded_from.globalsymtable).name^);
@@ -1776,7 +1781,9 @@ begin
              pif:=hp.sourcefiles.files;
              while (pif<>nil) do
              begin
-               UnitS^.AddSourceFile(pif.path^+pif.name^);
+               path:=GetStr(pif.path);
+               name:=GetStr(pif.name);
+               UnitS^.AddSourceFile(path+name);
                pif:=pif.next;
              end;
            end;
@@ -1801,11 +1808,13 @@ begin
        t:=tsymtable(hp.globalsymtable);
        if assigned(t) then
          begin
-           UnitS:=SearchModule(T.Name^);
+           name:=GetStr(T.Name);
+           UnitS:=SearchModule(Name);
            puu:=tused_unit(hp.used_units.first);
            while (puu<>nil) do
            begin
-             PM:=SearchModule(puu.u.modulename^);
+             module:=GetStr(puu.u.modulename);
+             PM:=SearchModule(module);
              if Assigned(PM) then
                UnitS^.AddUsedUnit(PM);
              puu:=tused_unit(puu.next);
@@ -1813,7 +1822,8 @@ begin
            pdu:=tdependent_unit(hp.dependent_units.first);
            while (pdu<>nil) do
            begin
-             PM:=SearchModule(tsymtable(pdu.u.globalsymtable).name^);
+             name:=GetStr(tsymtable(pdu.u.globalsymtable).name);
+             PM:=SearchModule(Name);
              if Assigned(PM) then
                UnitS^.AddDependentUnit(PM);
              pdu:=tdependent_unit(pdu.next);
@@ -1841,7 +1851,7 @@ begin
   for I:=0 to Symbols^.Count-1 do
     begin
       P:=Symbols^.At(I);
-      if (P^.Flags and sfObject)<>0 then
+      if (P^.Flags and (sfObject or sfClass))<>0 then
         C^.Insert(P);
       if (P^.typ=typesym) then
         D^.Insert(P);
