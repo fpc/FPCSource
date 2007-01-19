@@ -1,5 +1,3 @@
-{ %fail }
-
 { Source provided for Free Pascal Bug Report 3841 }
 { Submitted by "Joost v.d. Sluis" on  2005-03-28 }
 { e-mail:  }
