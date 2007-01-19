@@ -93,10 +93,14 @@ implementation
 initialization
 
 {$ifdef CPU86}
+  {$ifdef Symbian}
   set_source_info(system_i386_symbian_info);
+  {$endif Symbian}
 {$endif CPU86}
 
 {$ifdef CPUARM}
+  {$ifdef Symbian}
   set_source_info(system_arm_symbian_info);
+  {$endif Symbian}
 {$endif CPUARM}
 end.
