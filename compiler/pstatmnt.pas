@@ -508,8 +508,9 @@ implementation
                 calltempnode:=nil;
                 { complex load, load in temp first }
                 newblock:=internalstatements(newstatement);
-                { when right is a call then load it first in a temp }
-                if p.nodetype=calln then
+                { when we can't take the address of p, load it in a temp }
+                { since we may need its address later on                 }
+                if not valid_for_addr(p,false) then
                   begin
                     calltempnode:=ctempcreatenode.create(p.resultdef,p.resultdef.size,tt_persistent,true);
                     addstatement(newstatement,calltempnode);
