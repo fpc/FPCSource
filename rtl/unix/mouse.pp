@@ -27,7 +27,7 @@ implementation
 uses
   BaseUnix,Video
 {$ifndef NOGPM}
-  ,gpm
+  ,gpm,linuxvcs
 {$endif ndef NOGPM}
   ;
 
@@ -127,27 +127,52 @@ begin
    Updatescreen(false);
 end;
 
-procedure SysInitMouse;
-{$ifndef NOGPM}
-var
-  connect : TGPMConnect;
-  E : Tgpm_event;
-{$endif ndef NOGPM}
+function detect_xterm_mouse:boolean;
+
+const mouse_terminals:array[0..6] of string[7]=('cons','eterm','gnome',
+                                                'konsole','rxvt','screen',
+                                                'xterm');
+var term:string;
+    i:byte;
+
 begin
+  detect_xterm_mouse:=true;
+  term:=fpgetenv('TERM');
+  for i:=low(mouse_terminals) to high(mouse_terminals) do
+    if copy(term,1,length(mouse_terminals[i]))=mouse_terminals[i] then
+      exit;
+  detect_xterm_mouse:=false;
+end;
+
+procedure SysInitMouse;
+
 {$ifndef NOGPM}
-  if gpm_fs=-1 then
+var connect:TGPMConnect;
+    e:Tgpm_event;
+{$endif ndef NOGPM}
+
+begin
+{  if gpm_fs<>-1 then
+    runerror(240);}
+  {Test wether to use X-terminals.}
+  if detect_xterm_mouse then
     begin
-    { open gpm }
+      {Use the xterm mouse.}
+      gpm_fs:=-2;
+      write(#27'[?1001s'); { save old hilit tracking }
+      write(#27'[?1000h'); { enable mouse tracking }
+    end;
+{$ifndef NOGPM}
+  if (gpm_fs=-1) and (vcs_device<>-1) then
+    begin
+      {Use the gpm mouse.}
+
+      { open gpm }
       connect.EventMask:=GPM_MOVE or GPM_DRAG or GPM_DOWN or GPM_UP;
       connect.DefaultMask:=0;
       connect.MinMod:=0;
       connect.MaxMod:=0;
-      gpm_fs:=Gpm_Open(connect,0);
-      if (gpm_fs=-2) and (fpgetenv('TERM')<>'xterm') then
-        begin
-          gpm_fs:=-1;
-          Gpm_Close;
-        end;
+      gpm_fs:=gpm_open(connect,0);
       { initialize SysLastMouseEvent }
       if gpm_fs<>-1 then
        begin
@@ -155,33 +180,25 @@ begin
          GPMEvent2MouseEvent(e,SysLastMouseEvent);
        end;
     end;
-  { show mousepointer }
-  if gpm_fs<>-1 then
-    ShowMouse;
-{$else ifdef NOGPM}
-      if (fpgetenv('TERM')='xterm') then
-        begin
-          gpm_fs:=-2;
-          Write(#27'[?1001s'); { save old hilit tracking }
-          Write(#27'[?1000h'); { enable mouse tracking }
-        end;
 {$endif NOGPM}
 end;
 
 
 procedure SysDoneMouse;
 begin
-  If gpm_fs<>-1 then
-    begin
+  if gpm_fs<>-1 then
       HideMouse;
+  if gpm_fs=-2 then
+    begin
+      {xterm mouse}
+      write(#27'[?1000l'); { disable mouse tracking }
+      write(#27'[?1001r'); { Restore old hilit tracking }
+    end
 {$ifndef NOGPM}
-      Gpm_Close;
-{$else ifdef NOGPM}
-      Write(#27'[?1000l'); { disable mouse tracking }
-      Write(#27'[?1001r'); { Restore old hilit tracking }
-{$endif ifdef NOGPM}
-      gpm_fs:=-1;
-    end;
+  else
+    gpm_close
+{$endif};
+  gpm_fs:=-1;
 end;
 
 
@@ -193,39 +210,35 @@ var
   e : Tgpm_event;
 {$endif ndef NOGPM}
 begin
+  if detect_xterm_mouse then
+    SysDetectMouse:=2
 {$ifndef NOGPM}
-  if gpm_fs=-1 then
-    begin
-      connect.EventMask:=GPM_MOVE or GPM_DRAG or GPM_DOWN or GPM_UP;
-      connect.DefaultMask:=0;
-      connect.MinMod:=0;
-      connect.MaxMod:=0;
-      gpm_fs:=Gpm_Open(connect,0);
-      if (gpm_fs=-2) and (fpgetenv('TERM')<>'xterm') then
-        begin
-          Gpm_Close;
-          gpm_fs:=-1;
-        end;
-    end;
-  if gpm_fs>=0 then
-    begin
-      fpFD_ZERO(fds);
-      fpFD_SET(gpm_fs,fds);
-      while fpSelect(gpm_fs+1,@fds,nil,nil,1)>0 do
-        begin
-          fillchar(e,sizeof(e),#0);
-          Gpm_GetEvent(e);
-        end;
-    end;
-  if gpm_fs<>-1 then
-    SysDetectMouse:=Gpm_GetSnapshot(nil)
   else
-    SysDetectMouse:=0;
-{$else ifdef NOGPM}
-{ always a mouse deamon present }
-  if (fpgetenv('TERM')='xterm') then
-    SysDetectMouse:=2;
-{$endif NOGPM}
+    begin
+      if gpm_fs=-1 then
+        begin
+          connect.EventMask:=GPM_MOVE or GPM_DRAG or GPM_DOWN or GPM_UP;
+          connect.DefaultMask:=0;
+          connect.MinMod:=0;
+          connect.MaxMod:=0;
+          gpm_fs:=gpm_open(connect,0);
+        end;
+      if gpm_fs>=0 then
+        begin
+          fpFD_ZERO(fds);
+          fpFD_SET(gpm_fs,fds);
+          while fpSelect(gpm_fs+1,@fds,nil,nil,1)>0 do
+            begin
+              fillchar(e,sizeof(e),#0);
+              Gpm_GetEvent(e);
+            end;
+        end;
+      if gpm_fs<>-1 then
+        SysDetectMouse:=Gpm_GetSnapshot(nil)
+      else
+        SysDetectMouse:=0;
+    end
+{$endif NOGPM};
 end;
 
 

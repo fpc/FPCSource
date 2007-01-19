@@ -175,23 +175,27 @@ const term_codes_ansi:Ttermcodes=
          #$1B#$28#$42#$1B#$29#$30);                         {ena_acs}
 
 
-const    terminal_names:array[0..8] of string[7]=(
+const    terminal_names:array[0..10] of string[7]=(
                         'ansi',
                         'cons',
                         'eterm',
                         'gnome',
                         'konsole',
                         'linux',
+                        'rxvt',
+                        'screen',
                         'vt100',
                         'vt220',
                         'xterm');
-         terminal_data:array[0..8] of Ptermcodes=(
+         terminal_data:array[0..10] of Ptermcodes=(
                         @term_codes_ansi,
                         @term_codes_freebsd,
                         @term_codes_xterm,
                         @term_codes_xterm,
                         @term_codes_xterm,
                         @term_codes_linux,
+                        @term_codes_xterm,
+                        @term_codes_xterm,
                         @term_codes_vt100,
                         @term_codes_vt220,
                         @term_codes_xterm);

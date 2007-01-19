@@ -414,6 +414,7 @@ begin
 
   {....................................... First of all, check xterm}
 
+(*
   term:=fpgetenv('TERM');
   if (term<>nil) and (strcomp(term,'xterm')=0) then
     begin
@@ -431,6 +432,7 @@ begin
       gpm_open:=gpm_fd;
       exit;
     end;
+*)
   {....................................... No xterm, go on}
 
   { check whether we know what name the console is: what's with the lib??? }
@@ -600,12 +602,14 @@ var next:Pgpm_stst;
 
 begin
   gpm_tried:=false; { reset the error flag for next time }
+(*
   if gpm_fd=-2 then { xterm }
     begin
       write(#27'[?1000l'#27'[?1001r');
       flush(output);
     end
   else            { linux }
+*)
     begin
       if not gpm_flag then
         gpm_close:=0
