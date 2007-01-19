@@ -808,7 +808,7 @@ begin
           begin
              { getenv:=copy(s,i+1,length(s)-i);
                this limits the size to 255-(i+1) }
-             getenv:=strpas(hp+i+1);
+             getenv:=strpas(hp+i);
              break;
           end;
         { next string entry}
