@@ -1507,7 +1507,8 @@ implementation
                     need to check for typen, because that will always get the
                     loadvmtaddrnode added }
                   selftree:=methodpointer.getcopy;
-                  if methodpointer.resultdef.typ<>classrefdef then
+                  if (methodpointer.resultdef.typ<>classrefdef) or
+                     (methodpointer.nodetype = typen) then
                     selftree:=cloadvmtaddrnode.create(selftree);
                 end
               else
