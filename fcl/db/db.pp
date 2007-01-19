@@ -1624,9 +1624,9 @@ type
     Function  IsEqual(Value: TParams): Boolean;
     Function  ParamByName(const Value: string): TParam;
     Function  ParseSQL(SQL: String; DoCreate: Boolean): String;
-    Function  ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle): String; overload;
-    Function  ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String; overload;
-    Function  ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding; var ReplaceString : string): String;
+    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle): String; overload;
+    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String; overload;
+    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding; var ReplaceString : string): String;
     Procedure RemoveParam(Value: TParam);
     Procedure CopyParamValuesFromDataset(ADataset : TDataset; CopyBound : Boolean);
     Property Dataset : TDataset Read GetDataset;

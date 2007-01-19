@@ -156,24 +156,24 @@ var pb : TParamBinding;
     rs : string;
 
 begin
-  Result := ParseSQL(SQL,DoCreate,psInterbase, pb, rs);
+  Result := ParseSQL(SQL,DoCreate,True,True,psInterbase, pb, rs);
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle): String;
+Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle): String;
 
 var pb : TParamBinding;
     rs : string;
 
 begin
-  Result := ParseSQL(SQL,DoCreate,ParameterStyle,pb, rs);
+  Result := ParseSQL(SQL,DoCreate,EscapeSlash,EscapeRepeat,ParameterStyle,pb, rs);
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String;
+Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String;
 
 var rs : string;
 
 begin
-  Result := ParseSQL(SQL,DoCreate,ParameterStyle,ParamBinding, rs);
+  Result := ParseSQL(SQL,DoCreate,EscapeSlash, EscapeRepeat, ParameterStyle,ParamBinding, rs);
 end;
 
 function SkipComments(var p: PChar; EscapeSlash, EscapeRepeat : Boolean) : Boolean;
@@ -187,7 +187,7 @@ var notRepeatEscaped : boolean;
       notRepeatEscaped := True;
       while not (p^ in [#0, QuoteChar]) do
       begin
-        if EscapeSlash and (p^='\') then Inc(p,2) // make sure we handle \' and \\ correct
+        if EscapeSlash and (p^='\') and (p[1] <> #0) then Inc(p,2) // make sure we handle \' and \\ correct
         else Inc(p);
       end;
       if p^=QuoteChar then
@@ -238,7 +238,7 @@ begin
   end; {case}
 end;
 
-Function TParams.ParseSQL(SQL: String; DoCreate: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding; var ReplaceString : string): String;
+Function TParams.ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat: Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding; var ReplaceString : string): String;
 
 type
   // used for ParamPart
@@ -280,10 +280,7 @@ begin
   p:=PChar(SQL);
   BufStart:=p; // used to calculate ParamPart.Start values
   repeat
-// This doesn't work, since ParseSQL passes psInterbase as default. This need
-// some more advanced solution. Now temporary fix, to fix at least fpcbot...
-//    SkipComments(p,ParameterStyle<>psPostgreSQL,ParameterStyle=psPostgreSQL);
-    SkipComments(p,True,True);
+    SkipComments(p,EscapeSlash,EscapeRepeat);
     case p^ of
       ':','?': // parameter
         begin

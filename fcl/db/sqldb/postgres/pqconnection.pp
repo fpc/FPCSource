@@ -112,7 +112,7 @@ constructor TPQConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams];
+  FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat] + [sqEscapeSlash];
 end;
 
 procedure TPQConnection.CreateDB;
@@ -480,7 +480,7 @@ begin
             else DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
           end;
         s[length(s)] := ')';
-        buf := AParams.ParseSQL(buf,false,psPostgreSQL);
+        buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
         end;
       s := s + ' as ' + buf;
       res := pqexec(tr.PGConn,pchar(s));

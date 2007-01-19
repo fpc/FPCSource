@@ -27,6 +27,7 @@ type
     procedure RunTest; override;
   published
   
+    procedure TestDoubleQuoteEscapeComments;
     procedure TestpfInUpdateFlag; // bug 7565
     procedure TestInt;
     procedure TestScript;
@@ -799,6 +800,17 @@ procedure TTestFieldTypes.RunTest;
 begin
 //  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
+end;
+
+procedure TTestFieldTypes.TestDoubleQuoteEscapeComments;
+begin
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    SQL.Clear;
+    SQL.Add('select * from FPDEV where name=''test '''' and :ThisIsNotAParameter  ''');
+    open;
+    close;
+    end;
 end;
 
 procedure TTestFieldTypes.TestParametersAndDates;

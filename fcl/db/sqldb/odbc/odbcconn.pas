@@ -100,6 +100,7 @@ type
     // Internal utility functions
     function CreateConnectionString:string;
   public
+    constructor Create(AOwner : TComponent); override;
     property Environment:TODBCEnvironment read FEnvironment;
   published
     property Driver:string read FDriver write FDriver;    // will be passed as DRIVER connection parameter
@@ -254,6 +255,12 @@ begin
     else
       Result:=Result + EscapeParamValue(Copy(Param,1,EqualSignPos-1))+'='+EscapeParamValue(Copy(Param,EqualSignPos+1,MaxInt))+';';
   end;
+end;
+
+constructor TODBCConnection.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
 end;
 
 procedure TODBCConnection.SetParameters(ODBCCursor: TODBCCursor; AParams: TParams);
@@ -440,7 +447,7 @@ begin
 
   // Parse the SQL and build FParamIndex
   if assigned(AParams) and (AParams.count > 0) then
-    buf := AParams.ParseSQL(buf,false,psInterbase,ODBCCursor.FParamIndex);
+    buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psInterbase,ODBCCursor.FParamIndex);
 
   // prepare statement
   ODBCCheckResult(

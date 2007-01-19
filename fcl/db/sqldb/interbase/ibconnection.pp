@@ -144,7 +144,7 @@ constructor TIBConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams];
+  FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat];
   FBLobSegmentSize := 80;
 end;
 
@@ -508,7 +508,7 @@ begin
     tr := aTransaction.Handle;
     
     if assigned(AParams) and (AParams.count > 0) then
-      buf := AParams.ParseSQL(buf,false,psInterbase,paramBinding);
+      buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psInterbase,paramBinding);
 
     if isc_dsql_prepare(@Status[0], @tr, @Statement, 0, @Buf[1], Dialect, nil) <> 0 then
       CheckError('PrepareStatement', Status);

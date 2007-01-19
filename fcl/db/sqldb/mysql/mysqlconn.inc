@@ -53,6 +53,8 @@ Type
     MapDSRowToMSQLRow  : array of integer;
   end;
 
+  { TConnectionName }
+
   TConnectionName = class (TSQLConnection)
   private
     FDialect: integer;
@@ -97,6 +99,7 @@ Type
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
   Public
+    constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
     procedure DropDB; override;
     Property ServerInfo : String Read FServerInfo;
@@ -348,7 +351,7 @@ begin
     begin
     FStatement:=Buf;
     if assigned(AParams) and (AParams.count > 0) then
-      FStatement := AParams.ParseSQL(FStatement,false,psSimulated,paramBinding,ParamReplaceString);
+      FStatement := AParams.ParseSQL(FStatement,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psSimulated,paramBinding,ParamReplaceString);
     if FStatementType=stSelect then
       FNeedData:=True;
     ConnectMySQL(FQMySQL,FMySQL^.host,FMySQL^.user,FMySQL^.passwd);
@@ -801,6 +804,12 @@ begin
     end;
   qry.close;
   qry.free;
+end;
+
+constructor TConnectionName.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
 end;
 
 function TConnectionName.GetTransactionHandle(trans: TSQLHandle): pointer;

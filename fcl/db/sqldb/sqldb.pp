@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, DB, bufdataset;
 
 type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages);
-     TConnOption = (sqSupportParams);
+     TConnOption = (sqSupportParams,sqEscapeSlash,sqEscapeRepeat);
      TConnOptions= set of TConnOption;
 
 type
@@ -632,11 +632,14 @@ end;
 { TSQLQuery }
 procedure TSQLQuery.OnChangeSQL(Sender : TObject);
 
+var ConnOptions : TConnOptions;
+
 begin
   UnPrepare;
   if (FSQL <> nil) then
     begin
-    FParams.ParseSQL(FSQL.Text,True);
+    ConnOptions := (DataBase as TSQLConnection).ConnOptions;
+    Fparams.ParseSQL(FSQL.Text,True, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psInterbase);
     If Assigned(FMasterLink) then
       FMasterLink.RefreshParamNames;
     end;
@@ -866,6 +869,7 @@ Var
   StrLength               : Integer;
   EndOfComment            : Boolean;
   BracketCount            : Integer;
+  ConnOptions             : TConnOptions;
 
 begin
   PSQL:=Pchar(ASQL);
@@ -876,12 +880,14 @@ begin
 
   FWhereStartPos := 0;
   FWhereStopPos := 0;
+  
+  ConnOptions := (DataBase as TSQLConnection).ConnOptions;
 
   repeat
     begin
     inc(CurrentP);
-    
-    EndOfComment := SkipComments(CurrentP,True,False);
+
+    EndOfComment := SkipComments(CurrentP,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions);
     if EndOfcomment then dec(currentp);
     if EndOfComment and (ParsePart = ppStart) then PhraseP := CurrentP;
     
