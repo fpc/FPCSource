@@ -127,6 +127,16 @@ begin
    Updatescreen(false);
 end;
 
+{Note: libgpm will initialize an xterm mouse if TERM=xterm.
+       However, this check sucks, because xterm is not the only terminal
+       with mouse. To make it worse, it assumes gpm should be used on
+       anything not xterm, while in reality only the Linux console has gpm.
+
+       Some distributions use a patched libgpm to work around this, but
+       to avoid this mess, we detect the xterm mouse ourselves (we need to
+       be able to do this anyway for the NOGPM case), and don't do any libgpm
+       call at all if an xterm mouse is detected.}
+
 function detect_xterm_mouse:boolean;
 
 const mouse_terminals:array[0..6] of string[7]=('cons','eterm','gnome',
@@ -166,6 +176,7 @@ begin
   if (gpm_fs=-1) and (vcs_device<>-1) then
     begin
       {Use the gpm mouse.}
+
 
       { open gpm }
       connect.EventMask:=GPM_MOVE or GPM_DRAG or GPM_DOWN or GPM_UP;
