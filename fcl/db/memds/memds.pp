@@ -284,6 +284,7 @@ begin
    ftInteger:  result:=SizeOf(Integer);
    ftDate:     result:=SizeOf(TDateTime);
    ftTime:     result:=SizeOf(TDateTime);
+   ftDateTime: result:=SizeOf(TDateTime);
  else
    RaiseError(SErrFieldTypeNotSupported,[FieldDefs.Items[FieldNo-1].Name]);
  end;
@@ -853,7 +854,7 @@ Function TMemDataset.GetRecNo: Longint;
 begin
   UpdateCursorPos;
   if (FCurrRecNo<0) then
-    Result:=1
+    Result:=0
   else
     Result:=FCurrRecNo+1;
 end;
