@@ -4795,6 +4795,7 @@ rtl/morphos/utilf.inc svneol=native#text/plain
 rtl/morphos/utility.pp svneol=native#text/plain
 rtl/morphos/varutils.pp svneol=native#text/plain
 rtl/morphos/video.pp svneol=native#text/plain
+rtl/morphos/videodata.inc svneol=native#text/plain
 rtl/nds/Makefile svneol=native#text/plain
 rtl/nds/Makefile.fpc -text
 rtl/nds/classes.pp -text
