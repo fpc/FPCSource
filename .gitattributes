@@ -4769,7 +4769,10 @@ rtl/morphos/graphics.pas svneol=native#text/plain
 rtl/morphos/hardware.pas svneol=native#text/plain
 rtl/morphos/inputevent.pas svneol=native#text/plain
 rtl/morphos/intuition.pas svneol=native#text/plain
+rtl/morphos/keyboard.pp svneol=native#text/plain
+rtl/morphos/kvm.pp svneol=native#text/plain
 rtl/morphos/layers.pas svneol=native#text/plain
+rtl/morphos/mouse.pp svneol=native#text/plain
 rtl/morphos/mui.pas -text
 rtl/morphos/muihelper.pas -text
 rtl/morphos/prt0.as -text
@@ -4791,6 +4794,7 @@ rtl/morphos/utild2.inc svneol=native#text/plain
 rtl/morphos/utilf.inc svneol=native#text/plain
 rtl/morphos/utility.pp svneol=native#text/plain
 rtl/morphos/varutils.pp svneol=native#text/plain
+rtl/morphos/video.pp svneol=native#text/plain
 rtl/nds/Makefile svneol=native#text/plain
 rtl/nds/Makefile.fpc -text
 rtl/nds/classes.pp -text

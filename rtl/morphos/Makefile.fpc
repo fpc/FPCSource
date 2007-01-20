@@ -14,8 +14,10 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       variants types rtlconsts sysconst dateutil objects \
       exec timer doslib utility hardware inputevent graphics layers \
       intuition aboxlib mui \
+# these units are here, because they depend on system interface units above
+      kvm video keyboard mouse \
 # these can be moved to packages later
-      clipboard datatypes asl ahi tinygl get9 muihelper \
+      clipboard datatypes asl ahi tinygl get9 muihelper
 rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil
 
 [require]
@@ -222,3 +224,15 @@ tinygl$(PPUEXT): tinygl.pp exec$(PPUEXT)
 get9$(PPUEXT): get9.pas exec$(PPUEXT)
 
 muihelper$(PPUEXT): muihelper.pas intuition$(PPUEXT) mui$(PPUEXT) doslib$(PPUEXT) utility$(PPUEXT)
+
+
+kvm$(PPUEXT) : kvm.pp
+
+video$(PPUEXT) : video.pp 
+#windows$(PPUEXT) dos$(PPUEXT)
+
+mouse$(PPUEXT) : mouse.pp 
+#windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT)
+
+keyboard$(PPUEXT) : keyboard.pp 
+#windows$(PPUEXT) dos$(PPUEXT) winevent$(PPUEXT)
