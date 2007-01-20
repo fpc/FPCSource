@@ -226,6 +226,20 @@
           property RefCount : longint read frefcount;
        end;
        TInterfacedClass = class of TInterfacedObject;
+       
+       TAggregatedObject = class(TObject)
+       private
+          fcontroller: Pointer;
+          function GetController: IUnknown;
+       protected
+          { implement methods of IUnknown }
+          function QueryInterface(const iid : tguid;out obj) : longint;stdcall;
+          function _AddRef : longint;stdcall;
+          function _Release : longint;stdcall;
+       public
+          constructor Create(const aController: IUnknown);
+          property Controller : IUnknown read GetController;
+       end;
 
        { some pointer definitions }
        PUnknown = ^IUnknown;

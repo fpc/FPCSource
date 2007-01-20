@@ -752,6 +752,43 @@
          NewInstance:=inherited NewInstance;
          TInterfacedObject(NewInstance).frefcount:=1;
       end;
+      
+{****************************************************************************
+                               TAGGREGATEDOBJECT
+****************************************************************************}
+
+    constructor TAggregatedObject.Create(const aController: IUnknown);
+
+      begin
+        inherited Create;
+        { do not keep a counted reference to the controller! }
+        fcontroller := Pointer(aController);
+      end;
+
+    function TAggregatedObject.QueryInterface(
+      const iid : tguid;out obj) : longint;stdcall;
+
+      begin
+         Result := IUnknown(fcontroller).QueryInterface(iid, obj);
+      end;
+
+    function TAggregatedObject._AddRef : longint;stdcall;
+
+      begin
+         Result := IUnknown(fcontroller)._AddRef;
+      end;
+
+    function TAggregatedObject._Release : longint;stdcall;
+
+      begin
+         Result := IUnknown(fcontroller)._Release;
+      end;    
+  
+    function TAggregatedObject.GetController : IUnknown;
+
+      begin
+         Result := IUnknown(fcontroller);
+      end;    
 
 
 {****************************************************************************
