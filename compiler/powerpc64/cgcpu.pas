@@ -154,6 +154,8 @@ type
     procedure a_call_name_direct(list: TAsmList; s: string; prependDot : boolean;
       addNOP : boolean; includeCall : boolean = true);
 
+    procedure a_jmp_name_direct(list : TAsmList; s : string; prependDot : boolean);
+
     { emits code to store the given value a into the TOC (if not already in there), and load it from there
      as well }
     procedure loadConstantPIC(list : TAsmList; size : TCGSize; a : aint; reg : TRegister);
@@ -1209,13 +1211,20 @@ begin
   a_jmp(list, A_BC, TOpCmp2AsmCond[cond], 0, l);
 end;
 
-procedure tcgppc.a_jmp_name(list: TAsmList; const s: string);
+procedure tcgppc.a_jmp_name_direct(list : TAsmList; s : string; prependDot : boolean);
 var
   p: taicpu;
 begin
+  if (prependDot) then
+    s := '.' + s;
   p := taicpu.op_sym(A_B, current_asmdata.RefAsmSymbol(s));
   p.is_jmp := true;
   list.concat(p)
+end;
+
+procedure tcgppc.a_jmp_name(list: TAsmList; const s: string);
+begin
+  a_jmp_name_direct(list, s, true);
 end;
 
 procedure tcgppc.a_jmp_always(list: TAsmList; l: tasmlabel);
@@ -1527,11 +1536,11 @@ var
       if ((fprcount > 0) and (gprcount > 0)) then begin
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
         a_call_name_direct(list, '_restgpr1_' + intToStr(32-gprcount), false, false, false);
-        a_jmp_name(list, '_restfpr_' + intToStr(32-fprcount));
+        a_jmp_name_direct(list, '_restfpr_' + intToStr(32-fprcount), false);
       end else if (gprcount > 0) then
-        a_jmp_name(list, '_restgpr0_' + intToStr(32-gprcount))
+        a_jmp_name_direct(list, '_restgpr0_' + intToStr(32-gprcount), false)
       else if (fprcount > 0) then
-        a_jmp_name(list, '_restfpr_' + intToStr(32-fprcount))
+        a_jmp_name_direct(list, '_restfpr_' + intToStr(32-fprcount), false)
       else
         needsExitCode := true;
     end else begin
