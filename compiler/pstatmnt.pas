@@ -454,17 +454,18 @@ implementation
          hasimplicitderef : boolean;
          withsymtablelist : TFPObjectList;
 
-         procedure pushobjchild(obj:tobjectdef);
+         procedure pushobjchild(withdef,obj:tobjectdef);
          begin
            if not assigned(obj) then
              exit;
-           pushobjchild(obj.childof);
+           pushobjchild(withdef,obj.childof);
            { keep the original tobjectdef as owner, because that is used for
              visibility of the symtable }
-           st:=twithsymtable.create(tobjectdef(p.resultdef),obj.symtable.SymList,refnode.getcopy);
+           st:=twithsymtable.create(withdef,obj.symtable.SymList,refnode.getcopy);
            symtablestack.push(st);
            withsymtablelist.add(st);
          end;
+
 
       begin
          p:=comp_expr(true);
@@ -474,7 +475,7 @@ implementation
             (nf_memseg in p.flags) then
            CGMessage(parser_e_no_with_for_variable_in_other_segments);
 
-         if (p.resultdef.typ in [objectdef,recorddef]) then
+         if (p.resultdef.typ in [objectdef,recorddef,classrefdef]) then
           begin
             newblock:=nil;
             valuenode:=nil;
@@ -521,7 +522,8 @@ implementation
                     typecheckpass(p);
                   end;
                 { classes and interfaces have implicit dereferencing }
-                hasimplicitderef:=is_class_or_interface(p.resultdef);
+                hasimplicitderef:=is_class_or_interface(p.resultdef) or
+                                  (p.resultdef.typ = classrefdef);
                 if hasimplicitderef then
                   hdef:=p.resultdef
                 else
@@ -552,12 +554,21 @@ implementation
               objectdef :
                 begin
                    { push symtables of all parents in reverse order }
-                   pushobjchild(tobjectdef(p.resultdef).childof);
+                   pushobjchild(tobjectdef(p.resultdef),tobjectdef(p.resultdef).childof);
                    { push object symtable }
                    st:=twithsymtable.Create(tobjectdef(p.resultdef),tobjectdef(p.resultdef).symtable.SymList,refnode);
                    symtablestack.push(st);
                    withsymtablelist.add(st);
                  end;
+              classrefdef :
+                begin
+                   { push symtables of all parents in reverse order }
+                   pushobjchild(tobjectdef(tclassrefdef(p.resultdef).pointeddef),tobjectdef(tclassrefdef(p.resultdef).pointeddef).childof);
+                   { push object symtable }
+                   st:=twithsymtable.Create(tobjectdef(tclassrefdef(p.resultdef).pointeddef),tobjectdef(tclassrefdef(p.resultdef).pointeddef).symtable.SymList,refnode);
+                   symtablestack.push(st);
+                   withsymtablelist.add(st);
+                end;
               recorddef :
                 begin
                    st:=twithsymtable.create(trecorddef(p.resultdef),trecorddef(p.resultdef).symtable.SymList,refnode);

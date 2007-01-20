@@ -1299,7 +1299,11 @@ implementation
                       else
                         begin
                           if isclassref then
-                            Message(parser_e_only_class_methods_via_class_ref);
+                            if assigned(p1) and
+                               is_self_node(p1) then
+                              Message(parser_e_only_class_methods)
+                            else
+                              Message(parser_e_only_class_methods_via_class_ref);
                           p1:=csubscriptnode.create(sym,p1);
                         end;
                    end;
@@ -1322,6 +1326,41 @@ implementation
 {****************************************************************************
                                Factor
 ****************************************************************************}
+
+    
+    function is_member_read(sym: tsym; st: tsymtable; var p1: tnode;
+                            out memberparentdef: tdef): boolean;
+      var
+        hdef : tdef;
+      begin
+        result:=true;
+        memberparentdef:=nil;
+
+        case st.symtabletype of
+          ObjectSymtable: 
+            begin
+              memberparentdef:=tdef(st.defowner);
+              exit;
+            end;
+          WithSymtable:
+            begin
+              if assigned(p1) then
+               internalerror(2007012002);
+
+              hdef:=tnode(twithsymtable(st).withrefnode).resultdef;
+              p1:=tnode(twithsymtable(st).withrefnode).getcopy;
+
+              if not(hdef.typ in [objectdef,classrefdef]) then
+                exit;
+
+              if (hdef.typ=classrefdef) then
+                hdef:=tclassrefdef(hdef).pointeddef;
+              memberparentdef:=hdef;
+            end;
+          else
+            result:=false;
+        end;
+      end;
 
   {$maxfpuregisters 0}
 
@@ -1434,39 +1473,28 @@ implementation
                 paravarsym,
                 fieldvarsym :
                   begin
-                    if (sp_static in srsym.symoptions) then
-                     begin
-                       static_name:=lower(srsym.owner.name^)+'_'+srsym.name;
-                       searchsym(static_name,srsym,srsymtable);
-                       if assigned(srsym) then
-                         check_hints(srsym,srsym.symoptions);
-                     end
+                    { check if we are reading a field of an object/class/   }
+                    { record. is_member_read() will deal with withsymtables }
+                    { if needed.                                            }
+                    if is_member_read(srsym,srsymtable,p1,hdef) then
+                      begin
+                        { if the field was originally found in an    }
+                        { objectsymtable, it means it's part of self }
+                        if (srsymtable.symtabletype=ObjectSymtable) then
+                          p1:=load_self_node;
+                        { now, if the field itself is part of an objectsymtab }
+                        { (it can be even if it was found in a withsymtable,  }
+                        {  e.g., "with classinstance do field := 5"), then    }
+                        { let do_member_read handle it                        }
+                        if (srsym.owner.symtabletype=ObjectSymtable) then
+                          do_member_read(tobjectdef(hdef),getaddr,srsym,p1,again,[])
+                        else
+                          { otherwise it's a regular record subscript }
+                          p1:=csubscriptnode.create(srsym,p1);
+                      end
                     else
-                     begin
-                       { are we in a class method, we check here the
-                         srsymtable, because a field in another object
-                         also has ObjectSymtable. And withsymtable is
-                         not possible for self in class methods (PFV) }
-                       if (srsymtable.symtabletype=ObjectSymtable) and
-                          assigned(current_procinfo) and
-                          (po_classmethod in current_procinfo.procdef.procoptions) then
-                         Message(parser_e_only_class_methods);
-                     end;
-
-                    case srsymtable.symtabletype of
-                      ObjectSymtable :
-                        begin
-                          p1:=csubscriptnode.create(srsym,load_self_node);
-                          node_tree_set_filepos(p1,current_filepos);
-                        end;
-                      withsymtable :
-                        begin
-                          p1:=csubscriptnode.create(srsym,tnode(twithsymtable(srsymtable).withrefnode).getcopy);
-                          node_tree_set_filepos(p1,current_filepos);
-                        end;
-                      else
-                        p1:=cloadnode.create(srsym,srsymtable);
-                    end;
+                      { regular non-field load }
+                      p1:=cloadnode.create(srsym,srsymtable);
                   end;
 
                 syssym :
@@ -1633,38 +1661,43 @@ implementation
 
                 procsym :
                   begin
-                    { are we in a class method ? }
-                    possible_error:=(srsymtable.symtabletype<>withsymtable) and
-                                    (srsym.owner.symtabletype=ObjectSymtable) and
-                                    not(is_interface(tdef(srsym.owner.defowner))) and
-                                    assigned(current_procinfo) and
-                                    (po_classmethod in current_procinfo.procdef.procoptions);
-                    do_proc_call(srsym,srsymtable,nil,
-                                 (getaddr and not(token in [_CARET,_POINT])),
-                                 again,p1,[]);
-                    { we need to know which procedure is called }
-                    if possible_error then
-                     begin
-                       do_typecheckpass(p1);
-                       if (p1.nodetype=calln) and
-                          assigned(tcallnode(p1).procdefinition) and
-                          not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
-                          not(po_classmethod in tcallnode(p1).procdefinition.procoptions) then
-                         Message(parser_e_only_class_methods);
-                     end;
+                    { check if it's a method/class method }
+                    if is_member_read(srsym,srsymtable,p1,hdef) then
+                      begin
+                        { not srsymtable.symtabletype since that can be }
+                        { withsymtable as well                          }
+                        if (srsym.owner.symtabletype=ObjectSymtable) then
+                          do_member_read(tobjectdef(hdef),getaddr,srsym,p1,again,[])
+                        else
+                          { no procsyms in records (yet) }
+                          internalerror(2007012006);
+                      end
+                    else 
+                      { regular procedure/function call }
+                      do_proc_call(srsym,srsymtable,nil,
+                                   (getaddr and not(token in [_CARET,_POINT])),
+                                   again,p1,[]);
                   end;
 
                 propertysym :
                   begin
-                    { access to property in a method }
-                    { are we in a class method ? }
-                    if (srsymtable.symtabletype=ObjectSymtable) and
-                       assigned(current_procinfo) and
-                       (po_classmethod in current_procinfo.procdef.procoptions) then
-                     Message(parser_e_only_class_methods);
+                    { property of a class/object? }
+                    if is_member_read(srsym,srsymtable,p1,hdef) then
+                      begin
+                        { not srsymtable.symtabletype since that can be }
+                        { withsymtable as well                          }
+                        if (srsym.owner.symtabletype=ObjectSymtable) then
+                          do_member_read(tobjectdef(hdef),getaddr,srsym,p1,again,[])
+                        else
+                          { no propertysyms in records (yet) }
+                          internalerror(2007012006);
+                      end
+                    else
                     { no method pointer }
-                    p1:=nil;
-                    handle_propertysym(tpropertysym(srsym),srsymtable,p1);
+                      begin
+                        p1:=nil;
+                        handle_propertysym(tpropertysym(srsym),srsymtable,p1);
+                      end;
                   end;
 
                 labelsym :
