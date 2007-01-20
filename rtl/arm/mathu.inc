@@ -140,7 +140,7 @@ end;
  *****************************************************************************}
 {
  Docs from uclib
- 
+
  * We have a slight terminology confusion here.  On the ARM, the register
  * we're interested in is actually the FPU status word - the FPU control
  * word is something different (which is implementation-defined and only
@@ -212,6 +212,7 @@ end;
 }
 
 
+{$if not(defined(gba)) and not(defined(nds))}
 const
   _FPU_MASK_IM  =  $00010000;      { invalid operation      }
   _FPU_MASK_ZM  =  $00020000;      { divide by zero         }
@@ -231,6 +232,7 @@ procedure FPU_SetCW(cw : dword); nostackframe; assembler;
   asm
     wfs r0
   end;
+{$endif}
 
 
 function GetRoundMode: TFPURoundingMode;
@@ -261,26 +263,30 @@ function GetExceptionMask: TFPUExceptionMask;
   var
     cw : dword;
   begin
+{$if not(defined(gba)) and not(defined(nds))}
     Result:=[];
     cw:=FPU_GetCW;
-    
+
     if (cw and _FPU_MASK_IM)<>0 then
       include(Result,exInvalidOp);
-    
+
     if (cw and _FPU_MASK_DM)<>0 then
       include(Result,exDenormalized);
-      
+
     if (cw and _FPU_MASK_ZM)<>0 then
       include(Result,exZeroDivide);
-      
+
     if (cw and _FPU_MASK_OM)<>0 then
       include(Result,exOverflow);
-      
+
     if (cw and _FPU_MASK_UM)<>0 then
       include(Result,exUnderflow);
-      
+
     if (cw and _FPU_MASK_PM)<>0 then
-      include(Result,exPrecision);    
+      include(Result,exPrecision);
+{$else}
+    dword(Result):=softfloat_exception_mask;
+{$endif}
   end;
 
 
@@ -288,27 +294,29 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   var
     cw : dword;
   begin
+{$if not(defined(gba)) and not(defined(nds))}
     cw:=FPU_GetCW and not(_FPU_MASK_ALL);
-    
+
     if exInvalidOp in Mask then
       cw:=cw or _FPU_MASK_IM;
-      
+
     if exDenormalized in Mask then
       cw:=cw or _FPU_MASK_DM;
-      
+
     if exZeroDivide in Mask then
       cw:=cw or _FPU_MASK_ZM;
-      
+
     if exOverflow in Mask then
       cw:=cw or _FPU_MASK_OM;
-      
+
     if exUnderflow in Mask then
       cw:=cw or _FPU_MASK_UM;
-      
+
     if exPrecision in Mask then
       cw:=cw or _FPU_MASK_PM;
-      
+
     FPU_SetCW(cw);
+{$endif}
     softfloat_exception_mask:=dword(Mask);
   end;
 
