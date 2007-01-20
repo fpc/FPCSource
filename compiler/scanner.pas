@@ -2374,6 +2374,12 @@ In case not, the value returned can be arbitrary.
          gettokenpos;
          readchar; {Remove the $}
          hs:=readid;
+         { handle empty directive }
+         if hs='' then
+           begin
+             Message1(scan_w_illegal_switch,'$');
+             exit;
+           end;
 {$ifdef PREPROCWRITE}
          if parapreprocess then
           begin
@@ -2395,9 +2401,7 @@ In case not, the value returned can be arbitrary.
             aktcommentstyle:=comment_none;
             exit;
           end;
-         if hs='' then
-           Message1(scan_w_illegal_switch,'$'+hs);
-      { Check for compiler switches }
+         { Check for compiler switches }
          while (length(hs)=1) and (c in ['-','+']) do
           begin
             HandleSwitch(hs[1],c);
@@ -2405,7 +2409,7 @@ In case not, the value returned can be arbitrary.
             if c=',' then
              begin
                current_scanner.readchar;   {Remove , }
-             { read next switch, support $v+,$+}
+               { read next switch, support $v+,$+}
                hs:=current_scanner.readid;
                if (hs='') then
                 begin
@@ -2423,7 +2427,7 @@ In case not, the value returned can be arbitrary.
             else
              hs:='';
           end;
-      { directives may follow switches after a , }
+         { directives may follow switches after a , }
          if hs<>'' then
           begin
             if not (m_mac in current_settings.modeswitches) then
@@ -2446,7 +2450,7 @@ In case not, the value returned can be arbitrary.
                current_scanner.ignoredirectives.Add(hs,nil);
                Message1(scan_w_illegal_directive,'$'+hs);
              end;
-          { conditionals already read the comment }
+            { conditionals already read the comment }
             if (current_scanner.comment_level>0) then
              current_scanner.readcomment;
             { we've read the whole comment }
@@ -2643,7 +2647,7 @@ In case not, the value returned can be arbitrary.
                           if (i<255) then
                             begin
                               inc(i);
-                              readcomment[i]:='*';
+                              readcomment[i]:=c;
                             end;
                         end;
                   end
