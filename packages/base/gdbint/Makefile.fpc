@@ -83,7 +83,9 @@ gdbint$(PPUEXT): $(CURRDIR)gdbver$(EXEEXT) gdbint.pp
 else
 # gdbver exists
 GDBVER:=GDB_V$(strip $(shell $(CURRDIR)gdbver$(EXEEXT) -n))
-gdbint$(PPUEXT): gdbint.pp
+gdbver.inc:
+        $(ECHO) "{\$$define $(GDBVER)}" > gdbver.inc
+gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	@$(ECHO) Using GDB $(GDBVER)
 	$(COMPILER) -d$(GDBVER) gdbint.pp
 	$(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
