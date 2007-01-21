@@ -1,9 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Florian Klaempfl
-    member of the Free Pascal development team
+    Copyright (c) 2006 by Karoly Balogh
 
-    Keyboard unit for Win32
+    Keyboard unit for MorphOS and Amiga
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -794,6 +793,8 @@ begin
   IsMsgPortEmpty:=(port^.mp_MsgList.lh_TailPred = @(port^.mp_MsgList));
 end;
 
+var
+  KeyQueue: TKeyEvent;
 
 function SysPollKeyEvent: TKeyEvent;
 //var t   : TKeyEventRecord;
@@ -804,6 +805,12 @@ var
 begin
   KeyCode:=0;
   SysPollKeyEvent:=0;
+
+  if KeyQueue<>0 then begin
+    SysPollKeyEvent:=KeyQueue;
+    exit;
+  end;
+
 //  writeln('keyboard/SysPollKeyEvent');
   if videoWindow<>nil then begin
     if IsMsgPortEmpty(videoWindow^.UserPort) then exit;
@@ -860,11 +867,15 @@ begin
 //  end;
 
   // XXX: huh :)
+
   if KeyCode>=0 then begin
     SysPollKeyEvent:=KeyCode or (kbPhys shl 24);
   end else begin
     SysPollKeyEvent:=0;
   end;
+
+  KeyQueue:=SysPollKeyEvent;
+
 {*
   SysPollKeyEvent := 0;
   if getKeyEventFromQueue (t, true) then
@@ -883,13 +894,12 @@ begin
 end;
 
 
-
 function SysGetKeyEvent: TKeyEvent;
 //var t   : TKeyEventRecord;
 //    key : TKeyEvent;
 var
   iMsg : PIntuiMessage;
-  res: TKeyEvent;
+  res : TKeyEvent;
 begin
 {*
   key := 0;
@@ -905,11 +915,19 @@ begin
 
 //  writeln('keyboard/SysGetKeyEvent');
   if videoWindow<>nil then begin
+    if KeyQueue <> 0 then begin
+      SysGetKeyEvent := KeyQueue;
+      KeyQueue:=0;
+      exit;
+    end;
     repeat
       WaitPort(videoWindow^.UserPort);
       res:=SysPollKeyEvent;
     until res<>0;
   end;
+
+  SysGetKeyEvent:=res;
+
 {*
   if videoWindow<>nil then begin
     WaitPort(videoWindow^.UserPort);
