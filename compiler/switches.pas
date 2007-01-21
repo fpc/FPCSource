@@ -39,7 +39,7 @@ uses
 ****************************************************************************}
 
 type
-  TSwitchType=(ignoredsw,localsw,modulesw,globalsw,illegalsw,unsupportedsw,alignsw,optimizersw);
+  TSwitchType=(ignoredsw,localsw,modulesw,globalsw,illegalsw,unsupportedsw,alignsw,optimizersw,packenumsw);
   SwitchRec=record
     typesw : TSwitchType;
     setsw  : byte;
@@ -73,7 +73,7 @@ const
    {W} (typesw:localsw; setsw:ord(cs_generate_stackframes)),
    {X} (typesw:modulesw; setsw:ord(cs_extsyntax)),
    {Y} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
-   {Z} (typesw:illegalsw; setsw:ord(cs_localnone))
+   {Z} (typesw:packenumsw; setsw:ord(cs_localnone))
     );
 
 
@@ -188,7 +188,14 @@ begin
            else
             Message(scan_w_switch_is_global);
          end;
-      end;
+       packenumsw:
+         begin
+           if state='-' then
+             current_settings.packenum:=1
+           else
+             current_settings.packenum:=4;
+         end;
+     end;
    end;
 end;
 
@@ -222,6 +229,7 @@ begin
       localsw : found:=(tlocalswitch(setsw) in current_settings.localswitches);
      modulesw : found:=(tmoduleswitch(setsw) in current_settings.moduleswitches);
      globalsw : found:=(tglobalswitch(setsw) in current_settings.globalswitches);
+     packenumsw : found := (current_settings.packenum = 4);
      else
       found:=false;
      end;
