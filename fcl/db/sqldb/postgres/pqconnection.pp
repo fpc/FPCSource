@@ -7,7 +7,7 @@ unit pqconnection;
 interface
 
 uses
-  Classes, SysUtils, sqldb, db, dbconst,
+  Classes, SysUtils, sqldb, db, dbconst,bufdataset,
 {$IfDef LinkDynamically}
   postgres3dyn;
 {$Else}
@@ -55,7 +55,7 @@ type
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); override;
     function Fetch(cursor : TSQLCursor) : boolean; override;
     procedure UnPrepareStatement(cursor : TSQLCursor); override;
-    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer) : boolean; override;
+    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
     function Commit(trans : TSQLHandle) : boolean; override;
@@ -64,6 +64,7 @@ type
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBlobBuffer; cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
   public
     constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
@@ -626,7 +627,7 @@ begin
     end;
 end;
 
-function TPQConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer) : boolean;
+function TPQConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 
 type TNumericRecord = record
        Digits : SmallInt;
@@ -646,6 +647,7 @@ var
   s             : string;
 
 begin
+  Createblob := False;
   with cursor as TPQCursor do
     begin
     x := FieldBinding[FieldDef.FieldNo-1];
@@ -685,14 +687,7 @@ begin
           pchar(Buffer + li)^ := #0;
           i := pqfmod(res,x)-3;
           end;
-        ftBlob  :
-          begin
-          li := pqgetlength(res,curtuple,x);
-          setlength(s,li);
-          Move(CurrBuff^, s[1], li);
-          i := fBlobStrings.Add(S);
-          Move(I, Buffer^, SizeOf(Integer));
-          end;
+        ftBlob : Createblob := True;
         ftdate :
           begin
           dbl := pointer(buffer);
@@ -833,5 +828,20 @@ begin
   result := s;
 end;
 
+procedure TPQConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef;
+  ABlobBuf: PBlobBuffer; cursor: TSQLCursor; ATransaction: TSQLTransaction);
+var
+  x             : integer;
+  li            : Longint;
+begin
+  with cursor as TPQCursor do
+    begin
+    x := FieldBinding[FieldDef.FieldNo-1];
+    li := pqgetlength(res,curtuple,x);
+    ReAllocMem(ABlobBuf^.Buffer,li);
+    Move(pqgetvalue(res,CurTuple,x)^, ABlobBuf^.Buffer^, li);
+    ABlobBuf^.Size := li;
+    end;
+end;
 
 end.

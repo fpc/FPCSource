@@ -78,7 +78,7 @@ type
     procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); override;
     procedure AddFieldDefs(cursor: TSQLCursor;FieldDefs : TfieldDefs); override;
     function Fetch(cursor : TSQLCursor) : boolean; override;
-    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer) : boolean; override;
+    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
@@ -752,7 +752,7 @@ begin
 {$R+}
 end;
 
-function TIBConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer) : boolean;
+function TIBConnection.LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 
 var
   x          : integer;
@@ -761,6 +761,7 @@ var
   c            : currency;
 
 begin
+  CreateBlob := False;
   with cursor as TIBCursor do
     begin
 {$R-}

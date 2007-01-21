@@ -65,7 +65,7 @@ type
     // - Result retrieving
     procedure AddFieldDefs(cursor:TSQLCursor; FieldDefs:TFieldDefs); override;
     function Fetch(cursor:TSQLCursor):boolean; override;
-    function LoadField(cursor:TSQLCursor; FieldDef:TFieldDef; buffer:pointer):boolean; override;
+    function LoadField(cursor:TSQLCursor; FieldDef:TFieldDef; buffer:pointer; out CreateBlob : boolean):boolean; override;
 //    function CreateBlobStream(Field:TField; Mode:TBlobStreamMode):TStream; override;
     procedure FreeFldBuffers(cursor:TSQLCursor); override;
 
@@ -414,7 +414,7 @@ begin
   end; {case}
 end;
 
-function TOracleConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef; buffer: pointer): boolean;
+function TOracleConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef; buffer: pointer; out CreateBlob : boolean): boolean;
 
 var dt        : TDateTime;
     b         : pbyte;
@@ -424,6 +424,7 @@ var dt        : TDateTime;
     odt       : POCIdateTime;
 
 begin
+  CreateBlob := False;
   with cursor as TOracleCursor do if fieldbuffers[FieldDef.FieldNo-1].ind = -1 then
     Result := False
   else

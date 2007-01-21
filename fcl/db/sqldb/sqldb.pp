@@ -99,7 +99,7 @@ type
     procedure UnPrepareStatement(cursor : TSQLCursor); virtual; abstract;
 
     procedure FreeFldBuffers(cursor : TSQLCursor); virtual;
-    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer) : boolean; virtual; abstract;
+    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual; abstract;
     function GetTransactionHandle(trans : TSQLHandle): pointer; virtual; abstract;
     function Commit(trans : TSQLHandle) : boolean; virtual; abstract;
     function RollBack(trans : TSQLHandle) : boolean; virtual; abstract;
@@ -109,6 +109,7 @@ type
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
     procedure LoadBlobIntoStream(Field: TField;AStream: TStream;cursor: TSQLCursor;ATransaction : TSQLTransaction); virtual;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBlobBuffer; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
   public
     property Handle: Pointer read GetHandle;
     destructor Destroy; override;
@@ -218,7 +219,7 @@ type
   protected
     // abstract & virtual methods of TBufDataset
     function Fetch : boolean; override;
-    function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; override;
+    function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
     // abstract & virtual methods of TDataset
     procedure UpdateIndexDefs; override;
     procedure SetDatabase(Value : TDatabase); override;
@@ -236,6 +237,7 @@ type
     Function GetDataSource : TDatasource; override;
     Procedure SetDataSource(AValue : TDatasource); 
     procedure LoadBlobIntoStream(Field: TField;AStream: TStream); override;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBlobBuffer); override;
   public
     procedure Prepare; virtual;
     procedure UnPrepare; virtual;
@@ -814,10 +816,10 @@ begin
   (Database as tsqlconnection).execute(Fcursor,Transaction as tsqltransaction, FParams);
 end;
 
-function TSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean;
+function TSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 
 begin
-  result := (Database as tSQLConnection).LoadField(FCursor,FieldDef,buffer)
+  result := (Database as tSQLConnection).LoadField(FCursor,FieldDef,buffer, Createblob)
 end;
 
 procedure TSQLQuery.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);
@@ -1321,6 +1323,12 @@ procedure TSQLQuery.LoadBlobIntoStream(Field: TField;AStream: TStream);
 
 begin
   (DataBase as tsqlconnection).LoadBlobIntoStream(Field, AStream, FCursor,(Transaction as tsqltransaction));
+end;
+
+procedure TSQLQuery.LoadBlobIntoBuffer(FieldDef: TFieldDef;
+  ABlobBuf: PBlobBuffer);
+begin
+  (DataBase as tsqlconnection).LoadBlobIntoBuffer(FieldDef, ABlobBuf, FCursor,(Transaction as tsqltransaction));
 end;
 
 function TSQLQuery.GetStatementType : TStatementType;

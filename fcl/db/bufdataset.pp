@@ -149,8 +149,9 @@ type
     procedure SetFiltered(Value: Boolean); override; {virtual;}
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual; abstract;
-    function LoadField(FieldDef : TFieldDef;buffer : pointer) : boolean; virtual; abstract;
+    function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual; abstract;
     procedure LoadBlobIntoStream(Field: TField;AStream: TStream); virtual; abstract;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBlobBuffer); virtual; abstract;
 
   public
     constructor Create(AOwner: TComponent); override;
@@ -487,8 +488,10 @@ end;
 
 function TBufDataset.LoadBuffer(Buffer : PChar): TGetResult;
 
-var NullMask     : pbyte;
-    x            : longint;
+var NullMask        : pbyte;
+    x               : longint;
+    CreateblobField : boolean;
+    BufBlob         : PBufBlobField;
 
 begin
   if not Fetch then
@@ -504,8 +507,14 @@ begin
 
   for x := 0 to FieldDefs.count-1 do
     begin
-    if not LoadField(FieldDefs[x],buffer) then
-      SetFieldIsNull(NullMask,x);
+    if not LoadField(FieldDefs[x],buffer,CreateblobField) then
+      SetFieldIsNull(NullMask,x)
+    else if CreateblobField then
+      begin
+      BufBlob := PBufBlobField(Buffer);
+      BufBlob^.BlobBuffer := GetNewBlobBuffer;
+      LoadBlobIntoBuffer(FieldDefs[x],BufBlob^.BlobBuffer);
+      end;
     inc(buffer,GetFieldSize(FieldDefs[x]));
     end;
   Result := grOK;
