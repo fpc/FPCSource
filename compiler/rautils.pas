@@ -184,7 +184,7 @@ Function EscapeToPascal(const s:string): string;
 ---------------------------------------------------------------------}
 
 procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:TSymtable);
-Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint):boolean;
+Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint; var mangledname: string):boolean;
 Function SearchType(const hs:string;var size:aint): Boolean;
 Function SearchRecordType(const s:string): boolean;
 Function SearchIConstant(const s:string; var l:aint): boolean;
@@ -1259,7 +1259,7 @@ Begin
 end;
 
 
-Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint):boolean;
+Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint; var mangledname: string):boolean;
 { search and returns the offset and size of records/objects of the base }
 { with field name setup in field.                              }
 { returns FALSE if not found.                                  }
@@ -1275,6 +1275,7 @@ Begin
   GetRecordOffsetSize:=FALSE;
   Offset:=0;
   Size:=0;
+  mangledname:='';
   i:=pos('.',s);
   if i=0 then
    i:=255;
@@ -1348,6 +1349,15 @@ Begin
                  st:=tobjectdef(vardef).symtable;
              end;
            end;
+       procsym:
+         begin
+           st:=nil;
+           if Tprocsym(sym).ProcdefList.Count>1 then
+             Message(asmr_w_calling_overload_func);
+           mangledname:=tprocdef(tprocsym(sym).ProcdefList[0]).mangledname;
+           GetRecordOffsetSize:=(s='');
+           exit;
+         end;
      end;
    end;
    { Support Field.Type as typecasting }

@@ -61,7 +61,7 @@ Unit rappcgas;
 
     procedure tppcattreader.ReadSym(oper : tppcoperand);
       var
-         tempstr : string;
+         tempstr, mangledname : string;
          typesize,l,k : aint;
       begin
         tempstr:=actasmpattern;
@@ -83,7 +83,9 @@ Unit rappcgas;
         { record.field ? }
         if actasmtoken=AS_DOT then
          begin
-           BuildRecordOffsetSize(tempstr,l,k);
+           BuildRecordOffsetSize(tempstr,l,k,mangledname);
+           if (mangledname<>'') then
+             Message(asmr_e_invalid_reference_syntax);
            inc(oper.opr.ref.offset,l);
          end;
       end;
@@ -260,6 +262,7 @@ Unit rappcgas;
 
         procedure MaybeRecordOffset;
           var
+            mangledname: string;
             hasdot  : boolean;
             l,
             toffset,
@@ -273,7 +276,10 @@ Unit rappcgas;
               begin
                 if expr<>'' then
                   begin
-                    BuildRecordOffsetSize(expr,toffset,tsize);
+                    BuildRecordOffsetSize(expr,toffset,tsize,mangledname);
+                    if (oper.opr.typ<>OPR_CONSTANT) and
+                       (mangledname<>'') then
+                      Message(asmr_e_wrong_sym_type);
                     inc(l,toffset);
                     oper.SetSize(tsize,true);
                   end;
@@ -293,9 +299,19 @@ Unit rappcgas;
                   inc(oper.opr.localsymofs,l)
                 end;
               OPR_CONSTANT :
-                inc(oper.opr.val,l);
+                if (mangledname<>'') then
+                  begin
+                    if (oper.opr.val<>0) then
+                      Message(asmr_e_wrong_sym_type);
+                    oper.opr.typ:=OPR_SYMBOL;
+                    oper.opr.symbol:=current_asmdata.RefAsmSymbol(mangledname);
+                  end
+                else
+                  inc(oper.opr.val,l);
               OPR_REFERENCE :
                 inc(oper.opr.ref.offset,l);
+              OPR_SYMBOL:
+                Message(asmr_e_invalid_symbol_ref);
               else
                 internalerror(200309221);
             end;

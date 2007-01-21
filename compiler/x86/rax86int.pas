@@ -61,7 +61,7 @@ Unit Rax86int;
          procedure GetToken;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
-         procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint);
+         procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string);
          procedure BuildConstSymbolExpression(needofs,isref:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
          function BuildConstExpression:aint;
          function BuildRefConstExpression:aint;
@@ -706,9 +706,9 @@ Unit Rax86int;
     { This routine builds up a record offset after a AS_DOT
       token is encountered.
       On entry actasmtoken should be equal to AS_DOT                     }
-    Procedure tx86intreader.BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint);
+    Procedure tx86intreader.BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string);
       var
-        s : string;
+        s: string;
       Begin
         offset:=0;
         size:=0;
@@ -728,14 +728,14 @@ Unit Rax86int;
               break;
             end;
          end;
-        if not GetRecordOffsetSize(s,offset,size) then
+        if not GetRecordOffsetSize(s,offset,size,mangledname) then
           Message(asmr_e_building_record_offset);
       end;
 
 
     Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
       var
-        tempstr,expr,hs : string;
+        tempstr,expr,hs,mangledname : string;
         parenlevel : longint;
         l,k : aint;
         hasparen,
@@ -865,7 +865,12 @@ Unit Rax86int;
                    tempstr:=actasmpattern;
                    Consume(AS_ID);
                    if actasmtoken=AS_DOT then
-                    BuildRecordOffsetSize(tempstr,k,l)
+                     begin
+                       BuildRecordOffsetSize(tempstr,k,l,mangledname);
+                       if mangledname<>'' then
+                         { procsym }
+                         Message(asmr_e_wrong_sym_type);
+                     end                         
                    else
                     begin
                       searchsym(tempstr,sym,srsymtable);
@@ -1011,9 +1016,14 @@ Unit Rax86int;
                     end;
                    if actasmtoken=AS_DOT then
                     begin
-                      BuildRecordOffsetSize(tempstr,l,k);
-                      str(l, tempstr);
-                      expr:=expr + tempstr;
+                      BuildRecordOffsetSize(tempstr,l,k,hs);
+                      if hs <> '' then
+                        hssymtyp:=AT_FUNCTION
+                      else
+                        begin
+                          str(l, tempstr);
+                          expr:=expr + tempstr;
+                        end
                     end
                    else
                     begin
@@ -1200,7 +1210,9 @@ Unit Rax86int;
                    { record.field ? }
                    if actasmtoken=AS_DOT then
                     begin
-                      BuildRecordOffsetSize(tempstr,l,k);
+                      BuildRecordOffsetSize(tempstr,l,k,hs);
+                      if (hs<>'') then
+                        Message(asmr_e_invalid_symbol_ref);
                       case oper.opr.typ of
                         OPR_LOCAL :
                           inc(oper.opr.localsymofs,l);
@@ -1504,7 +1516,8 @@ Unit Rax86int;
         end;
 
       var
-        expr    : string;
+        expr,
+        hs      : string;
         tempreg : tregister;
         l       : aint;
         hl      : tasmlabel;
@@ -1517,7 +1530,10 @@ Unit Rax86int;
             begin
               if expr<>'' then
                 begin
-                  BuildRecordOffsetSize(expr,toffset,tsize);
+                  BuildRecordOffsetSize(expr,toffset,tsize, hs);
+                  if (oper.opr.typ<>OPR_NONE) and
+                     (hs<>'') then
+                    Message(asmr_e_wrong_sym_type);
                   oper.SetSize(tsize,true);
                   { we have used the size of a field. Reset the typesize of the record }
                   oper.typesize:=0;
@@ -1539,9 +1555,19 @@ Unit Rax86int;
                       inc(oper.opr.ref.offset,toffset);
                     OPR_NONE :
                       begin
-                        oper.opr.typ:=OPR_CONSTANT;
-                        oper.opr.val:=toffset;
+                        if (hs <> '') then
+                          begin
+                            oper.opr.typ:=OPR_SYMBOL;
+                            oper.opr.symbol:=current_asmdata.RefAsmSymbol(hs);
+                          end
+                        else
+                          begin
+                            oper.opr.typ:=OPR_CONSTANT;
+                            oper.opr.val:=toffset;
+                          end;
                       end;
+                    OPR_SYMBOL:
+                      Message(asmr_e_invalid_symbol_ref);
                     else
                       internalerror(200309222);
                   end;
