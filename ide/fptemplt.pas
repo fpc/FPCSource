@@ -24,6 +24,13 @@ const
       tsTime         = '$TIME';
       tsPrompt       = '$PROMPT(';
 
+{$ifdef useresstrings}
+resourcestring
+{$else}
+const
+{$endif}
+      dialog_fillintemplateparameter = 'Fill in template parameter';
+
 function  GetTemplateCount: integer;
 function  GetTemplateName(Index: integer): string;
 function  StartTemplate(Index: integer; Editor: PSourceEditor): boolean;
@@ -39,7 +46,7 @@ uses
   MsgBox,
   WUtils,
   WEditor,
-  FPConst,FPVars,FPString,FPUtils;
+  FPConst,FPVars,FPUtils;
 
 type
     PTemplate = ^TTemplate;

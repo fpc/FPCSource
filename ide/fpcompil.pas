@@ -15,6 +15,12 @@
 {$i globdir.inc}
 unit FPCompil;
 
+{2.0 compatibility}
+{$ifdef VER2_0}
+  {$macro on}
+  {$define resourcestring := const}
+{$endif}
+
 interface
 
 { don't redir under linux, because all stdout (also from the ide!) will
@@ -138,7 +144,7 @@ uses
   FVConsts,
   CompHook, Compiler, systems, browcol,
   WEditor,
-  FPString,FPRedir,FPDesk,
+  FPRedir,FPDesk,
   FPUsrScr,FPHelp,
 {$ifndef NODEBUG}FPDebug,{$endif}
   FPConst,FPVars,FPUtils,
@@ -159,7 +165,58 @@ const
      Store:   @TCompilerMessageWindow.Store
   );
 {$endif}
+{$ifdef useresstrings}
+resourcestring
+{$else}
+const
+{$endif}
+                dialog_compilermessages = 'Compiler Messages';
+                dialog_compilingwithmode = 'Compiling  (%s mode)';
 
+                { Compiler message classes }
+                msg_class_normal   = '';
+                msg_class_fatal    = 'Fatal';
+                msg_class_error    = 'Error';
+                msg_class_warning  = 'Warning';
+                msg_class_note     = 'Note';
+                msg_class_hint     = 'Hint';
+                msg_class_macro    = 'Macro';
+                msg_class_procedure= 'Procedure';
+                msg_class_conditional = 'Conditional';
+                msg_class_info     = 'Info';
+                msg_class_status   = 'Status';
+                msg_class_used     = 'Used';
+                msg_class_tried    = 'Tried';
+                msg_class_debug    = 'Debug';
+
+                { Compile status dialog texts }
+                msg_compilingfile      = 'Compiling %s';
+                msg_loadingunit        = 'Loading %s unit';
+                msg_linkingfile        = 'Linking %s';
+                msg_compiledone        = 'Done.';
+                msg_failedtocompile    = 'Failed to compile...';
+                msg_compilationaborted = 'Compilation aborted...';
+
+                msg_nothingtocompile = 'Oooops, nothing to compile.';
+                msg_cantcompileunsavedfile = 'Can''t compile unsaved file.';
+
+                msg_couldnotcreatefile = 'could not create %s';
+                msg_therearemoreerrorsinfile = 'There are more errors in file %s';
+                msg_firstcompilationof = 'First compilation of %s';
+                msg_recompilingbecauseof = 'Recompiling because of %s';
+
+                msg_errorinexternalcompilation = 'Error in external compilation';
+                msg_iostatusis = 'IOStatus = %d';
+                msg_executeresultis = 'ExecuteResult = %d';
+
+                { Status hints during compilation }
+                msg_hint_pressesctocancel = 'Press ESC to cancel';
+                msg_hint_compilesuccessfulpressenter = 'Compile successful: ~Press any key~';
+                msg_hint_compilefailed = 'Compile failed';
+                msg_hint_compileaborted = 'Compile aborted';
+                msg_hint_pleasewait = 'Please wait...';
+
+                msg_cantopenfile = 'Can''t open %s';
 
 procedure ParseUserScreen;
 var
@@ -172,7 +229,7 @@ var
       var AText,ModuleName,st : String;
           row : longint;
       begin
-        if pos('  0x',Text)=1 then
+        if pos('  $',Text)=1 then
           begin
             AText:=Text;
             Delete(Text,1,10);

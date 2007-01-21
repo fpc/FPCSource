@@ -116,11 +116,19 @@ uses
     signals,
   {$endif}
 {$endif windows}
-  FPString,FPUtils,FPConst,WUtils;
+  FPUtils,FPConst,WUtils;
 
 const
   cmCalcButton  = 100;
   cmPressButton = 101;
+
+{$ifdef useresstrings}
+resourcestring
+{$else}
+const
+{$endif}
+      dialog_calculator       = 'Calculator';
+
 
 procedure TCalcButton.HandleEvent(var Event: TEvent);
 var

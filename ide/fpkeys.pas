@@ -19,7 +19,7 @@ interface
 
   uses
     keyboard, Objects, Drivers, Dialogs, App,
-    FPViews, FPString, WViews;
+    FPViews, WViews;
 
 procedure  LearnKeysDialog;
 

@@ -242,7 +242,46 @@ uses App,Strings,
      symconst,
 {$endif BROWSERCOL}
      WUtils,WEditor,
-     FPConst,FPString,FPUtils,FPVars,{$ifndef FPDEBUG}FPDebug{$endif},FPIDE;
+     FPConst,FPUtils,FPVars,{$ifndef FPDEBUG}FPDebug{$endif},FPIDE;
+
+{$ifdef USERESSTRINGS}
+resourcestring
+{$else}
+const
+{$endif}
+                msg_symbolnotfound = #3'Symbol %s not found';
+                msg_nobrowserinfoavailable = 'No Browser info available';
+                msg_cantfindfile = 'Can''t find %s';
+
+                menu_local_gotosource = '~G~oto source';
+                menu_local_tracksource = '~T~rack source';
+                menu_local_options = '~O~ptions...';
+                menu_local_clear = '~C~lear';
+                menu_local_saveas = 'Save ~a~s';
+
+                { Symbol view local menu items }
+                menu_symlocal_browse = '~B~rowse';
+                menu_symlocal_gotosource = '~G~oto source';
+                menu_symlocal_tracksource = '~T~rack source';
+                menu_symlocal_options = '~O~ptions...';
+
+                { Symbol browser meminfo page }
+                msg_sizeinmemory = 'Size in memory';
+                msg_sizeonstack = 'Size on stack';
+
+                msg_usedfirstin = 'Used first in';
+                msg_mainsource = 'Main source';
+                msg_sourcefiles = 'Source files';
+
+                dialog_browse = 'Browse: %s';
+
+const           { Symbol browser tabs }
+                { must be char constants (so cannot be resourcestring)}
+                label_browsertab_scope = 'S';
+                label_browsertab_reference = 'R';
+                label_browsertab_inheritance = 'I';
+                label_browsertab_memory = 'M';
+                label_browsertab_unit = 'U';
 
 procedure CloseAllBrowsers;
   procedure SendCloseIfBrowser(P: PView); {$ifndef FPC}far;{$endif}

@@ -499,6 +499,41 @@ var  MsgParms : array[1..10] of
              1 : (Long: longint);
          end;
 
+const menu_key_common_copy_borland   = 'Ctrl+Ins';
+      menu_key_common_copy_microsoft = 'Ctrl+C';
+
+      menu_key_edit_undo             = 'Alt+BkSp';
+      menu_key_edit_cut_borland      = 'Shift+Del';
+      menu_key_edit_copy_borland     = menu_key_common_copy_borland;
+      menu_key_edit_paste_borland    = 'Shift+Ins';
+      menu_key_edit_cut_microsoft    = 'Ctrl+X';
+      menu_key_edit_copy_microsoft   = menu_key_common_copy_microsoft;
+      menu_key_edit_paste_microsoft  = 'Ctrl+V';
+      menu_key_edit_clear            = 'Ctrl+Del';
+
+      menu_key_common_helpindex      = 'Shift+F1';
+      menu_key_common_topicsearch    = 'Ctrl+F1';
+      menu_key_common_prevtopic      = 'Alt+F1';
+
+      menu_key_help_helpindex= menu_key_common_helpindex;
+      menu_key_help_topicsearch = menu_key_common_topicsearch;
+      menu_key_help_prevtopic= menu_key_common_prevtopic;
+
+      menu_key_hlplocal_index = menu_key_common_helpindex;
+      menu_key_hlplocal_topicsearch = menu_key_common_topicsearch;
+      menu_key_hlplocal_prevtopic = menu_key_common_prevtopic;
+      menu_key_hlplocal_copy_borland = menu_key_common_copy_borland;
+      menu_key_hlplocal_copy_microsoft = menu_key_common_copy_microsoft;
+
+{Configurable keys.}
+const menu_key_edit_cut:string[63]=menu_key_edit_cut_borland;
+      menu_key_edit_copy:string[63]=menu_key_edit_copy_borland;
+      menu_key_edit_paste:string[63]=menu_key_edit_paste_borland;
+      menu_key_hlplocal_copy:string[63]=menu_key_hlplocal_copy_borland;
+      cut_key:word=kbShiftDel;
+      copy_key:word=kbCtrlIns;
+      paste_key:word=kbShiftIns;
+
 procedure RegisterFPViews;
 
 implementation
@@ -517,7 +552,7 @@ uses
   gdbint,
 {$endif NODEBUG}
   {$ifdef VESA}Vesa,{$endif}
-  FPString,FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompil,FPHelp,
+  FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompil,FPHelp,
   FPTools,FPIDE,FPCodTmp,FPCodCmp;
 
 const
@@ -607,6 +642,54 @@ const
 var
   ReservedWords  : array[1..ReservedWordMaxLen] of PStringCollection;
   AsmReservedWords  : array[1..ReservedWordMaxLen] of PStringCollection;
+
+{$ifdef useresstrings}
+resourcestring
+{$else}
+const
+{$endif}
+      { Source editor local menu items }
+      menu_srclocal_openfileatcursor = 'Open ~f~ile at cursor';
+      menu_srclocal_browseatcursor = '~B~rowse symbol at cursor';
+      menu_srclocal_topicsearch = 'Topic ~s~earch';
+      menu_srclocal_options = '~O~ptions...';
+      menu_srclocal_reload = '~R~eload modified file';
+
+      { Help viewer local menu items }
+      menu_hlplocal_debug = 'Debug infos';
+      menu_hlplocal_contents = '~C~ontents';
+      menu_hlplocal_index = '~I~ndex';
+      menu_hlplocal_topicsearch = '~T~opic search';
+      menu_hlplocal_prevtopic = '~P~revious topic';
+      menu_hlplocal_copy = '~C~opy';
+
+      { Messages local menu items }
+      menu_msglocal_clear = '~C~lear';
+      menu_msglocal_gotosource = '~G~oto source';
+      menu_msglocal_tracksource = '~T~rack source';
+
+      menu_edit_cut          = 'Cu~t~';
+      menu_edit_copy         = '~C~opy';
+      menu_edit_paste        = '~P~aste';
+      menu_edit_clear        = 'C~l~ear';
+
+      msg_errorreadingfile = 'Error reading file %s';
+      msg_loadingfile = 'Loading %s';
+      msg_storingfile = 'Storing %s';
+      msg_closingfile = 'Closing %s';
+
+      dialog_gdbwindow = 'GDB window';
+      dialog_disaswindow = 'Disassembly window';
+      dialog_clipboard = 'Clipboard';
+      dialog_userscreen = 'User screen';
+      dialog_about = 'About';
+      label_about_compilerversion = 'Compiler Version';
+      label_about_debugger = 'Debugger';
+
+      menu_msglocal_saveas = 'Save ~a~s';
+      msg_openingsourcefile = 'Opening source file... (%s)';
+      msg_readingfileineditor = 'Reading %s into editor...';
+      msg_nodebuggersupportavailable = 'No debugger support available.';
 
 {****************************************************************************
                                 TStoreCollection

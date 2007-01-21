@@ -40,11 +40,26 @@ uses
 {$endif USE_EXTERNAL_COMPILER}
   WConsts,WUtils,WINI,WViews,WEditor,WCEdit,
   {$ifndef NODEBUG}FPDebug,{$endif}FPConst,FPVars,
-  FPIntf,FPTools,FPSwitch,FPString,fpccrc;
+  FPIntf,FPTools,FPSwitch,fpccrc;
 
 const
   PrinterDevice : string = 'prn';
 
+{$ifdef useresstrings}
+resourcestring
+{$else}
+const
+{$endif}
+      btn_config_copyexisting = 'Copy ~e~xisting';
+      btn_config_createnew = ' Create ~n~ew  ';
+      msg_doyouwanttocreatelocalconfigfile =
+        'The Free Pascal IDE was never started in this directory before. '+
+         'Do you want to create a new config file in this directory? '{#13+
+         '(If you answer with "No", the IDE will use '+
+         'the config file located in "%s")'};
+      msg_configcopyexistingorcreatenew =
+        'Do you want to copy the existing configuration or '+
+        'create a new one from scratch?';
 
 function GetPrinterDevice: string;
 begin
@@ -416,7 +431,7 @@ begin
   CtrlMouseAction:=INIFile^.GetIntEntry(secMouse,ieCtrlClickAction,CtrlMouseAction);
   {Keyboard}
   case crc32(upcase(INIFile^.GetEntry(secKeyboard,ieEditKeys,''))) of
-    $86a4c898: {crc32 for 'MICROSOFT'} 
+    $86a4c898: {crc32 for 'MICROSOFT'}
       EditKeys:=ekm_microsoft;
     $b20b87b3: {crc32 for 'BORLAND'}
       EditKeys:=ekm_borland;

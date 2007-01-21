@@ -197,10 +197,120 @@ implementation
 uses
   Dos,
   GlobType,
-  FPString,FPVars,FPUtils;
+  FPVars,FPUtils;
 
 var
   CfgFile : text;
+
+{$ifdef useresstrings}
+resourcestring
+{$else}
+const
+{$endif}
+      msg_automaticallycreateddontedit = 'Automaticly created file, don''t edit.';
+
+      { Compiler options }
+      opt_objectpascal = 'Object pascal support';
+      opt_clikeoperators = 'C-like operators';
+      opt_stopafterfirsterror = 'Stop after first error';
+      opt_allowlabelandgoto = 'Allow LABEL and GOTO';
+      opt_cplusplusstyledinline = 'Allow inline';
+      opt_globalcmacros = 'Enable macros';
+      opt_allowstaticinobjects = 'Allow STATIC in objects';
+      opt_assertions = 'Include assertion code';
+      opt_kylix = 'Load Kylix compat. unit';
+      opt_strictvarstrings = 'Strict var-strings';
+      opt_extendedsyntax = 'Extended syntax';
+      opt_allowmmxoperations = 'Allow MMX operations';
+
+      opt_mode_freepascal = 'Free Pascal dialect';
+      opt_mode_objectpascal = 'Object Pascal extension on';
+      opt_mode_turbopascal = 'Turbo Pascal compatible';
+      opt_mode_delphi = 'Delphi compatible';
+      opt_mode_macpascal = 'Macintosh Pascal dialect';
+      opt_mode_gnupascal = 'GNU Pascal';
+      { Verbose options }
+      opt_warnings = '~W~arnings';
+      opt_notes = 'N~o~tes';
+      opt_hints = '~H~ints';
+      opt_generalinfo = 'General ~I~nfo';
+      opt_usedtriedinfo = '~U~sed,tried info';
+      opt_all = '~A~ll';
+      opt_showallprocsonerror = 'Show all ~P~rocedures if error';
+      { Checking options }
+      opt_rangechecking = '~R~ange checking';
+      opt_stackchecking = '~S~tack checking';
+      opt_iochecking = '~I~/O checking';
+      opt_overflowchecking = 'Integer ~o~verflow checking';
+      opt_objmethcallvalid = 'Object ~m~ethod call checking';
+      { Code generation }
+      opt_pic = '~P~osition independend code';
+      opt_smart = '~C~reate smartlinkable units';
+      { Code options }
+      opt_generatefastercode = 'Generate ~f~aster code';
+      opt_generatesmallercode = 'Generate s~m~aller code';
+      opt_useregistervariables = 'Use regis~t~er-variables';
+      opt_uncertainoptimizations = '~U~ncertain optimizations';
+      opt_level1optimizations = 'Level ~1~ optimizations';
+      opt_level2optimizations = 'Level ~2~ optimizations';
+      opt_i386486 = 'i~3~86/i486';
+      opt_pentiumandmmx = 'Pentium/PentiumMM~X~ (tm)';
+      opt_pentiumpro = '~P~entium2/PentiumM/AMD';
+      opt_pentiumiv = 'Pentium~4~';
+      opt_m68000 = 'm~6~8000';
+      opt_m68020 = 'm680~2~0';
+      { Assembler options }
+      opt_directassembler = '~D~irect assembler';
+      opt_attassembler = '~A~T&T style assembler';
+      opt_intelassembler = '~I~ntel style assembler';
+      opt_motassembler = '~M~otorola style assembler';
+      opt_listsource = '~L~ist source';
+      opt_listregisterallocation = 'list ~r~egister allocation';
+      opt_listtempallocation = 'list ~t~emp allocation';
+      opt_usedefaultas = 'Use ~d~efault output';
+      opt_usegnuas = 'Use ~G~NU as';
+      opt_usenasmcoff = 'Use ~N~ASM coff';
+      opt_usenasmelf = 'Use NASM ~e~lf';
+      opt_usenasmobj = 'Use NASM ~o~bj';
+      opt_usemasm = 'Use ~M~ASM';
+      opt_usetasm = 'Use ~T~ASM';
+      opt_usecoff = 'Use ~c~off';
+      opt_usepecoff = 'Use ~p~ecoff';
+      { Browser options }
+      opt_nobrowser = 'N~o~ browser';
+      opt_globalonlybrowser = 'Only Glob~a~l browser';
+      opt_localglobalbrowser = '~L~ocal and global browser';
+      { Conditional defines }
+      opt_conditionaldefines = 'Conditio~n~al defines';
+      { Memory sizes }
+      opt_stacksize = '~S~tack size';
+      opt_heapsize = '~H~eap size';
+      { Directory options }
+      opt_unitdirectories = '~U~nit directories';
+      opt_includedirectories = '~I~nclude directories';
+      opt_librarydirectories = '~L~ibrary directories';
+      opt_objectdirectories = '~O~bject directories';
+      opt_exeppudirectories = '~E~XE output directory';
+      opt_ppuoutputdirectory = '~P~PU output directory';
+      opt_cross_tools_directory = '~C~ross tools directory';
+      opt_dynamic_linker = '~D~ynamic linker path';
+      { Library options }
+      opt_librariesdefault = '~T~arget default';
+      opt_dynamiclibraries = 'Link to ~D~ynamic libraries';
+      opt_staticlibraries = 'Link to ~S~tatic libraries';
+      opt_smartlibraries = 'Link to S~m~art libraries';
+      opt_forcestaticlibs = 'Only link to st~a~tic libraries';
+      { Symbol info options }
+      opt_stripalldebugsymbols = '~S~trip all debug symbols from executable';
+      opt_nogendebugsymbolinfo = 'Skip ~d~ebug information generation';
+      opt_gendebugsymbolinfo = 'Generate ~d~ebug symbol information';
+      opt_gensymbolandbacktraceinfo = 'Generate also backtrace ~l~ine information';
+      opt_valgrindinfo = 'Generate ~v~algrind compatible debug info';
+      { Link after options }
+      opt_linkafter = 'Call ~l~inker after';
+      { Profiling options }
+      opt_noprofileinfo = '~N~o profile information';
+      opt_gprofinfo = 'Generate profile code for g~p~rof';
 
 {*****************************************************************************
             TSwitchItem

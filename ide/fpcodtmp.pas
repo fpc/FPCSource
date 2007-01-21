@@ -15,6 +15,12 @@
 
 unit FPCodTmp; { Code Templates }
 
+{2.0 compatibility}
+{$ifdef VER2_0}
+  {$macro on}
+  {$define resourcestring := const}
+{$endif}
+
 interface
 
 uses Objects,Drivers,Dialogs,
@@ -93,7 +99,21 @@ implementation
 
 uses Views,App,Validate,
      FVConsts,
-     FPConst,FPString;
+     FPConst;
+
+resourcestring  label_codetemplate_shortcut = '~S~hortcut';
+                label_codetemplate_content = '~T~emplate content';
+                label_codetemplate_templates = '~T~emplates';
+                msg_codetemplate_alreadyinlist = 'A template named "%s" is already in the list';
+                dialog_modifytemplate = 'Modify template';
+                dialog_newtemplate = 'New template';
+
+                { standard button texts }
+                button_OK          = 'O~K~';
+                button_Cancel      = 'Cancel';
+                button_New         = '~N~ew';
+                button_Edit        = '~E~dit';
+                button_Delete      = '~D~elete';
 
 {$ifndef NOOBJREG}
 const

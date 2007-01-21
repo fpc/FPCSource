@@ -64,7 +64,7 @@ uses
 {$endif COLORSEL}
   ASCIITab,
   WUtils,WViews,WHTMLScn,WHelp,
-  FPIDE,FPCalc,FPCompil,FPString,
+  FPIDE,FPCalc,FPCompil,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
   FPTools,
 {$ifndef NODEBUG}
@@ -94,6 +94,26 @@ Const
     PutMouseEvent   : nil;
   );
 {$endif fpc}
+
+{$ifdef useresstrings}
+resourcestring
+{$else}
+const
+{$endif}
+      { caught signals or abnormal exits }
+            { Debugger messages and status hints }
+      error_programexitedwitherror = #3'Program generated a RTE %d'#13+
+                                     #3'at address $%s.'#13+
+                                     #3'Save your sources and restart the IDE.';
+      error_programexitedwithsignal = #3'Program generated a signal %d.'#13+
+                                      #3'Save your sources and restart the IDE.';
+
+      continue_despite_error = #3'The IDE generated an internal error'#13+
+                            #3'Do you really want to continue?'#13+
+                            #3'The IDE could be in an unstable state.';
+
+      leaving_after_error = #3'The IDE generated an internal error'#13+
+                            #3'and will now be closed.';
 
 {$ifdef DEBUG}
 const

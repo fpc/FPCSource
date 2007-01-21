@@ -51,7 +51,7 @@ uses Dos,
 {$ifdef Unix}
      FPKeys,
 {$endif Unix}
-     FPConst,FPVars,FPString,FPTools,FPUtils,FPViews,FPHelp,
+     FPConst,FPVars,FPTools,FPUtils,FPViews,FPHelp,
      FPCompil,FPCodCmp,FPCodTmp;
 
 type
@@ -68,6 +68,65 @@ type
        TitleLen  : word;
        Title     : packed record end;
      end;
+
+{$ifdef useresstrings}
+resourcestring
+{$else}
+const
+{$endif}
+      { Desktop file messages }
+      msg_readingdesktopfile = 'Reading desktop file...';
+      msg_writingdesktopfile = 'Writing desktop file...';
+      msg_readingdesktopcontents = 'Reading desktop contents...';
+      msg_storingdesktopcontents = 'Storing desktop contents...';
+      msg_readinghistory = 'Reading history...';
+      msg_storinghistory = 'Storing history...';
+      msg_readingwatches = 'Reading watches...';
+      msg_storingwatches = 'Storing watches...';
+      msg_readingbreakpoints = 'Reading breakpoints...';
+      msg_storingbreakpoints = 'Storing breakpoints...';
+      msg_readingcodecompletewordlist = 'Reading CodeComplete wordlist...';
+      msg_storingcodecompletewordlist = 'Writing CodeComplete wordlist...';
+      msg_readingcodetemplates = 'Reading CodeTemplates...';
+      msg_storingcodetemplates = 'Writing CodeTemplates...';
+      msg_readingsymbolinformation = 'Reading symbol information...';
+      msg_storingsymbolinformation = 'Storing symbol information...';
+      msg_failedtoreplacedesktopfile = 'Failed to replace desktop file.';
+      msg_errorloadinghistory = 'Error loading history';
+      msg_errorstoringhistory = 'Error storing history';
+      msg_errorloadingkeys = 'Error loading custom keys';
+      msg_errorstoringkeys = 'Error storing custom keys';
+      msg_errorloadingwatches = 'Error loading watches';
+      msg_errorstoringwatches = 'Error storing watches';
+      msg_errorloadingbreakpoints = 'Error loading breakpoints';
+      msg_errorstoringbreakpoints = 'Error storing breakpoints';
+      msg_errorloadingdesktop = 'Error loading desktop';
+      msg_errorstoringdesktop = 'Error storing desktop';
+      msg_errorreadingflags = 'Error loading flags';
+      msg_errorwritingflags = 'Error writing flags';
+      msg_errorreadingvideomode = 'Error reading video mode';
+      msg_errorstoringvideomode = 'Error storing video mode';
+      msg_errorloadingcodetemplates = 'Error loading CodeTemplates';
+      msg_errorstoringcodetemplates = 'Error writing CodeTemplates';
+      msg_errorloadingsymbolinformation = 'Error loading symbol information';
+      msg_errorstoringsymbolinformation = 'Error storing symbol information';
+      msg_errorloadingcodecompletewordlist = 'Error loading CodeComplete wordlist';
+      msg_errorstoringcodecompletewordlist = 'Error writing CodeComplete wordlist';
+      msg_invaliddesktopversionlayoutlost = 'Invalid desktop version. Desktop layout lost.';
+      msg_saveansifile = 'Save previous screen as Ansi File';
+      msg_click_upper_left = 'Click to select upper left corner; Escape to cancel; Enter to select (0,0)';
+      msg_click_lower_right = 'Click to select lower right corner; Escape to cancel; Enter to select (maxX,maxY)';
+
+      msg_cantopenfile = 'Can''t open %s';
+      msg_cantcreatefile = 'Can''t create %s';
+      msg_cantfindfile = 'Can''t find %s';
+      msg_errorreadingfile = 'Error reading file %s';
+      msg_loadingfile = 'Loading %s';
+      msg_storingfile = 'Storing %s';
+      msg_closingfile = 'Closing %s';
+
+      msg_openingsourcefile = 'Opening source file... (%s)';
+      msg_readingfileineditor = 'Reading %s into editor...';
 
 procedure InitDesktopFile;
 begin

@@ -222,7 +222,6 @@ uses
   WViews,WEditor,
   wutils,
   FPConst,FPVars,
-  FPString,
   FPDebug;
 
 
@@ -262,6 +261,14 @@ Const
      Store:   @TVectorView.Store
   );
 
+{$ifdef useresstrings}
+resourcestring
+{$else}
+const
+{$endif}
+      dialog_registers = 'Register View';
+      dialog_fpu = 'FPU View';
+      dialog_vector = 'Vector Unit View';
 
 {****************************************************************************
                          TRegistersView

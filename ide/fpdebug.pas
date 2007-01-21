@@ -350,7 +350,7 @@ uses
 {$endif Unix}
   Systems,Globals,
   FPRegs,
-  FPString,FPVars,FPUtils,FPConst,FPSwitch,
+  FPVars,FPUtils,FPConst,FPSwitch,
   FPIntf,FPCompil,FPIde,FPHelp,
   Validate,WUtils,Wconsts;
 
@@ -426,7 +426,90 @@ const
      Store:   @TWatchesCollection.Store
   );
 
+{$ifdef USERESSTRINGS}
+resourcestring
+{$else}
+const
+{$endif}
+      button_OK          = 'O~K~';
+      button_Cancel      = 'Cancel';
+      button_New         = '~N~ew';
+      button_Edit        = '~E~dit';
+      button_Delete      = '~D~elete';
+      button_Close       = '~C~lose';
+      button_ToggleButton = '~T~oggle';
 
+      { Watches local menu items }
+      menu_watchlocal_edit = '~E~dit watch';
+      menu_watchlocal_new = '~N~ew watch';
+      menu_watchlocal_delete = '~D~elete watch';
+
+      { Breakpoints window local menu items }
+      menu_bplocal_gotosource = '~G~oto source';
+      menu_bplocal_editbreakpoint = '~E~dit breakpoint';
+      menu_bplocal_newbreakpoint = '~N~ew breakpoint';
+      menu_bplocal_deletebreakpoint = '~D~elete breakpoint';
+      menu_bplocal_togglestate = '~T~oggle state';
+
+      { Debugger messages and status hints }
+      msg_programexitedwithcodeandsteps = #3'Program exited with '#13+
+                                          #3'exitcode = %d'#13+
+                                          #3'hidden steps = %d';
+
+      msg_programexitedwithexitcode = #3'Program exited with '#13+
+                                      #3'exitcode = %d';
+
+      msg_programsignal             = #3'Program recieved signal %s'#13+
+                                      #3'%s';
+
+      msg_runningprogram  = 'Running...';
+      msg_runningremotely = 'Executable running remotely on ';
+      msg_connectingto    = 'Connecting to ';
+      msg_getting_info_on = 'Getting infos from ';
+      msg_runninginanotherwindow = 'Executable running in another window..';
+      msg_couldnotsetbreakpointat = #3'Could not set Breakpoint'#13+
+                                    #3+'%s:%d';
+      msg_couldnotsetbreakpointtype = #3'Could not set Breakpoint'#13+
+                                      #3+'%s %s';
+
+      button_DisableAllBreakpoints = 'Dis. ~a~ll invalid';
+
+      { Breakpoints window }
+      dialog_breakpointlist = 'Breakpoint list';
+      label_breakpointpropheader = ' Type      | State   | Position          | Ignore | Conditions ';
+
+      dialog_modifynewbreakpoint = 'Modify/New Breakpoint';
+      label_breakpoint_name = '~N~ame';
+      label_breakpoint_line = '~L~ine';
+      label_breakpoint_conditions = '~C~onditions';
+      label_breakpoint_ignorecount = '~I~gnore count';
+      label_breakpoint_type = '~T~ype';
+
+      { Watches window }
+      dialog_watches = 'Watches';
+      label_watch_expressiontowatch = '~E~xpression to watch';
+      label_watch_values = 'Watch values';
+      msg_watch_currentvalue = 'Current value: '+#13+
+                               '%s';
+      msg_watch_currentandpreviousvalue = 'Current value: '+#13+
+                                          '%s'+#13+
+                                          'Previous value: '+#13+
+                                          '%s';
+
+      dialog_callstack = 'Call Stack';
+
+      menu_msglocal_saveas = 'Save ~a~s';
+
+      msg_cantdebugchangetargetto = #3'Sorry, can not debug'#13+
+                                    #3'programs compiled for %s.'#13+
+                                    #3'Change target to %s?';
+      msg_compiledwithoutdebuginforecompile =
+                                 #3'Warning, the program'#13+
+                                 #3'was compiled without'#13+
+                                 #3'debugging info.'#13+
+                                 #3'Recompile it?';
+      msg_nothingtodebug = 'Oooops, nothing to debug.';
+      msg_startingdebugger = 'Starting debugger';
 
 {$ifdef I386}
 const

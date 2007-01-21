@@ -130,7 +130,9 @@
 {$endif DEBUG}
 
 {$ifdef FPC}
-  {$define USERESSTRINGS}
+  {$ifndef ver2_0}
+    {$define USERESSTRINGS}
+  {$endif}
   {$define USE_FREEVISION}
 
   { Use inlining for small functions }

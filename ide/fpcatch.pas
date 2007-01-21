@@ -95,10 +95,18 @@ uses
   drivers,
   FVConsts,
   dos,app,msgbox,
-  FPString,FPCompil,FPIDE;
+  FPCompil,FPIDE;
 
 Const
   LastCtrlC : longint = 0;
+
+
+{$ifdef useresstrings}
+resourcestring
+{$else}
+const
+{$endif}
+      msg_quitconfirm         = 'Do You really want to quit?';
 
 {$ifdef DEBUG}
 

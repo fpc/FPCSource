@@ -11,9 +11,6 @@
 
  **********************************************************************}
 {$I globdir.inc}
-{$ifdef USERESSTRINGS}
-{$mode objfpc}
-{$endif USERESSTRINGS}
 
 unit WViews;
 

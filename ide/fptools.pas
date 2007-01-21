@@ -159,7 +159,7 @@ uses Dos,
      FVConsts,
      App,MsgBox,
      WConsts,WUtils,WINI,
-     FPConst,FPString,FPVars,FPUtils;
+     FPConst,FPVars,FPUtils;
 
 {$ifndef NOOBJREG}
 const
@@ -176,6 +176,35 @@ const
      Store:   @TMessagesWindow.Store
   );
 {$endif}
+
+{$ifdef useresstrings}
+resourcestring
+{$else}
+const
+{$endif}
+      dialog_tools = 'Tools';
+      dialog_modifynewtool = 'Modify/New Tool';
+      dialog_programarguments = 'Program Arguments';
+      dialog_messages = 'Messages';
+      msg_errorparsingparametersatpos = ^C'Error parsing parameters line at line position %d.';
+      msg_cantinstallmoretools = ^C'Can''t install more tools...';
+      msg_requiredparametermissingin = 'Required parameter missing in [%s]';
+      msg_requiredpropertymissingin = 'Required property missing in [%s]';
+      msg_unknowntypein = 'Unknown type in [%s]';
+      msg_propertymissingin = '%s property missing in [%s]';
+      msg_invaliditemsin = 'Invalid number of items in [%s]';
+      label_tools_programtitles = '~P~rogram titles';
+      label_toolprop_title = '~T~itle';
+      label_toolprop_programpath = 'Program ~p~ath';
+      label_toolprop_commandline = 'Command ~l~ine';
+      label_enterprogramargument = '~E~nter program argument';
+
+      { standard button texts }
+      button_OK          = 'O~K~';
+      button_Cancel      = 'Cancel';
+      button_New         = '~N~ew';
+      button_Edit        = '~E~dit';
+      button_Delete      = '~D~elete';
 
 type
     THotKeyDef = record

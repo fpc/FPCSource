@@ -66,7 +66,7 @@ uses App,Views,MsgBox,Validate,
      systems, BrowCol,
      FPSwitch, FPCompil,
      FPVars, FPSymbol,
-     FPConst,FPString,FPViews;
+     FPConst,FPViews;
 
 {$ifndef NOOBJREG}
 const
@@ -77,6 +77,30 @@ const
      Store:   @TCodeCompleteWordList.Store
   );
 {$endif}
+
+{$ifdef useresstrings}
+resourcestring
+{$else}
+const
+{$endif}
+      { CodeComplete dialog }
+      dialog_codecomplete     = 'CodeComplete';
+      label_codecomplete_keywords = '~K~eywords';
+
+      dialog_codecomplete_add = 'Add new keyword';
+      label_codecomplete_add_keyword = 'Keyword';
+
+      dialog_codecomplete_edit = 'Edit keyword';
+      label_codecomplete_edit_keyword = 'Keyword';
+
+      msg_codecomplete_alreadyinlist = '"%s" is already in the list';
+
+      { standard button texts }
+      button_OK          = 'O~K~';
+      button_Cancel      = 'Cancel';
+      button_New         = '~N~ew';
+      button_Edit        = '~E~dit';
+      button_Delete      = '~D~elete';
 
 function FPCompleteCodeWord(const WordS: string; var Text: string): boolean;
 var OK: boolean;
