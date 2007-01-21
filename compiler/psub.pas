@@ -763,8 +763,9 @@ implementation
 {$if defined(x86) or defined(arm)}
             { try to strip the stack frame }
             { set the framepointer to esp if:
-              - no assembler directive, those are handled elsewhere
-                (for cases not caught by the Delphi exception below)
+              - no assembler directive, those are handled in assembler_block
+                in pstatment.pas (for cases not caught by the Delphi
+                exception below)
               - no exceptions are used
               - no debug info
               - no pushes are used/esp modifications, could be:
