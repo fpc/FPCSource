@@ -1394,7 +1394,7 @@ implementation
                   { we can't do direct moves between fpu and mm registers }
                   if restmploc.loc in [LOC_MMREGISTER,LOC_CMMREGISTER] then
                     location_force_fpureg(list,restmploc,false);
-                  cg.a_loadfpu_loc_reg(list,reg_cgsize(funcretloc.register),restmploc,funcretloc.register);
+                  cg.a_loadfpu_loc_reg(list,funcretloc.size,restmploc,funcretloc.register);
                 end;
               LOC_MMREGISTER:
                 begin
