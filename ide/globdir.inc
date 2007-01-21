@@ -134,6 +134,7 @@
     {$define USERESSTRINGS}
   {$endif}
   {$define USE_FREEVISION}
+  {$define HASOUTLINE}
 
   { Use inlining for small functions }
   {$ifndef VER1_0}
