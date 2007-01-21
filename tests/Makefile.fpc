@@ -21,6 +21,8 @@ ifeq ($(TEST_HOSTNAME),)
 TEST_HOSTNAME:=$(shell hostname)
 endif
 
+override TEST_FPC:=$(subst \,/,$(TEST_FPC))
+
 ifndef TEST_FPC
 #Use development version of the compiler
 TEST_FPC=$(wildcard $(dir $(CURDIR))compiler/$(notdir $(FPC)))
