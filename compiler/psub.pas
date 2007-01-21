@@ -763,7 +763,7 @@ implementation
 {$if defined(x86) or defined(arm)}
             { try to strip the stack frame }
             { set the framepointer to esp if:
-              - no assembler directive, those are handled elsewhere
+              - no assembler directive
               - no exceptions are used
               - no debug info
               - no pushes are used/esp modifications, could be:
@@ -771,15 +771,27 @@ implementation
                 * incoming parameters on the stack
                 * open arrays
               - no inline assembler
+             or
+              - Delphi mode
+              - assembler directive
+              - no pushes are used/esp modifications, could be:
+                * outgoing parameters on the stack
+                * incoming parameters on the stack
+                * open arrays
+              - no local variables
             }
-            if (cs_opt_stackframe in current_settings.optimizerswitches) and
-               not(po_assembler in procdef.procoptions) and
-               ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
-                       pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter,
-                       pi_needs_stackframe])=[])
-               {$ifdef arm}
-               and ((cs_fp_emulation in current_settings.moduleswitches) or not (pi_uses_fpu in flags))
-               {$endif arm}
+            if ((po_assembler in procdef.procoptions) and
+                (m_delphi in current_settings.modeswitches) and
+                (tabstractlocalsymtable(procdef.localst).count_locals = 0)) or
+               ((cs_opt_stackframe in current_settings.optimizerswitches) and
+                not(po_assembler in procdef.procoptions) and
+                ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
+                        pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter,
+                        pi_needs_stackframe])=[])
+                {$ifdef arm}
+                and ((cs_fp_emulation in current_settings.moduleswitches) or not (pi_uses_fpu in flags))
+                {$endif arm}
+               )
              then
                begin
                  { we need the parameter info here to determine if the procedure gets
@@ -796,6 +808,7 @@ implementation
                      tg.direction:=1;
                    end;
                end;
+            
 {$endif}
             { Create register allocator }
             cg.init_register_allocators;

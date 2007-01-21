@@ -2283,7 +2283,18 @@ implementation
                 begin
                   vs:=tabstractnormalvarsym(sym);
                   vs.initialloc.size:=def_cgsize(vs.vardef);
-                  if vs.is_regvar(false) then
+                  if (m_delphi in current_settings.modeswitches) and
+                     (po_assembler in current_procinfo.procdef.procoptions) and
+                     (vo_is_funcret in vs.varoptions) and
+                     (vs.refs=0) then
+                    begin
+                      { not referenced, so don't allocate. Use dummy to }
+                      { avoid ie's later on because of LOC_INVALID      }
+                      vs.initialloc.loc:=LOC_REGISTER;
+                      vs.initialloc.size:=OS_INT;
+                      vs.initialloc.register:=NR_FUNCTION_RESULT_REG;
+                    end
+                  else if vs.is_regvar(false) then
                     begin
                       vs.initialloc.loc:=tvarregable2tcgloc[vs.varregable];
                       gen_alloc_regvar(list,vs);
