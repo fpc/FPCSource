@@ -109,7 +109,7 @@ type
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
     procedure LoadBlobIntoStream(Field: TField;AStream: TStream;cursor: TSQLCursor;ATransaction : TSQLTransaction); virtual;
-    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBlobBuffer; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
   public
     property Handle: Pointer read GetHandle;
     destructor Destroy; override;
@@ -237,7 +237,7 @@ type
     Function GetDataSource : TDatasource; override;
     Procedure SetDataSource(AValue : TDatasource); 
     procedure LoadBlobIntoStream(Field: TField;AStream: TStream); override;
-    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBlobBuffer); override;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
   public
     procedure Prepare; virtual;
     procedure UnPrepare; virtual;
@@ -640,7 +640,10 @@ begin
   UnPrepare;
   if (FSQL <> nil) then
     begin
-    ConnOptions := (DataBase as TSQLConnection).ConnOptions;
+    if assigned(DataBase) then
+      ConnOptions := (DataBase as TSQLConnection).ConnOptions
+    else
+      ConnOptions := [sqEscapeRepeat,sqEscapeSlash];
     Fparams.ParseSQL(FSQL.Text,True, sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psInterbase);
     If Assigned(FMasterLink) then
       FMasterLink.RefreshParamNames;
@@ -673,6 +676,7 @@ begin
     inherited setdatabase(value);
     if assigned(value) and (Transaction = nil) and (Assigned(db.Transaction)) then
       transaction := Db.Transaction;
+    OnChangeSQL(Self);
     end;
 end;
 
@@ -1326,7 +1330,7 @@ begin
 end;
 
 procedure TSQLQuery.LoadBlobIntoBuffer(FieldDef: TFieldDef;
-  ABlobBuf: PBlobBuffer);
+  ABlobBuf: PBufBlobField);
 begin
   (DataBase as tsqlconnection).LoadBlobIntoBuffer(FieldDef, ABlobBuf, FCursor,(Transaction as tsqltransaction));
 end;

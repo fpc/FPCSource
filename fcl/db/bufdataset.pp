@@ -151,7 +151,7 @@ type
     function Fetch : boolean; virtual; abstract;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual; abstract;
     procedure LoadBlobIntoStream(Field: TField;AStream: TStream); virtual; abstract;
-    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBlobBuffer); virtual; abstract;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); virtual; abstract;
 
   public
     constructor Create(AOwner: TComponent); override;
@@ -513,7 +513,7 @@ begin
       begin
       BufBlob := PBufBlobField(Buffer);
       BufBlob^.BlobBuffer := GetNewBlobBuffer;
-      LoadBlobIntoBuffer(FieldDefs[x],BufBlob^.BlobBuffer);
+      LoadBlobIntoBuffer(FieldDefs[x],BufBlob);
       end;
     inc(buffer,GetFieldSize(FieldDefs[x]));
     end;
@@ -1096,7 +1096,8 @@ begin
     if not assigned(bufblob.BlobBuffer) then with FDataSet do
       begin
       FBlobBuffer := GetNewBlobBuffer;
-      LoadBlobIntoStream(field,self);
+      bufblob.BlobBuffer := FBlobBuffer;
+      LoadBlobIntoBuffer(FieldDefs[field.FieldNo-1],@bufblob);
       end
     else
       FBlobBuffer := bufblob.BlobBuffer;

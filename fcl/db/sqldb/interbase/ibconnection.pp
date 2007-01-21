@@ -7,7 +7,7 @@ unit IBConnection;
 interface
 
 uses
-  Classes, SysUtils, sqldb, db, math, dbconst,
+  Classes, SysUtils, sqldb, db, math, dbconst, bufdataset,
 {$IfDef LinkDynamically}
   ibase60dyn;
 {$Else}
@@ -87,7 +87,7 @@ type
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
-    procedure LoadBlobIntoStream(Field: TField;AStream: TStream;cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
   public
     constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
@@ -104,7 +104,7 @@ type
 
 implementation
 
-uses strutils, bufdataset;
+uses strutils;
 
 type
   TTm = packed record
@@ -1070,7 +1070,7 @@ begin
      CheckError('isc_blob_info', FStatus);
 end;
 
-procedure TIBConnection.LoadBlobIntoStream(Field: TField;AStream: TStream;cursor: TSQLCursor;ATransaction : TSQLTransaction);
+procedure TIBConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction);
 const
   isc_segstr_eof = 335544367; // It's not defined in ibase60 but in ibase40. Would it be better to define in ibase60?
 
@@ -1080,12 +1080,10 @@ var
   blobSegLen : word;
   maxBlobSize : longInt;
   TransactionHandle : pointer;
-  BlobBuf : TBufBlobField;
   blobId : PISC_QUAD;
+  ptr : Pointer;
 begin
-  if not field.getData(@BlobBuf) then
-    exit;
-  blobId := PISC_QUAD(@BlobBuf.ConnBlobBuffer);
+  blobId := PISC_QUAD(@(ABlobBuf^.ConnBlobBuffer));
 
   TransactionHandle := Atransaction.Handle;
   blobHandle := nil;
@@ -1097,11 +1095,18 @@ begin
 
   blobSegment := AllocMem(maxBlobSize);
 
-  while (isc_get_segment(@FStatus[0], @blobHandle, @blobSegLen, maxBlobSize, blobSegment) = 0) do begin
-      AStream.writeBuffer(blobSegment^, blobSegLen);
-  end;
+  with ABlobBuf^.BlobBuffer^ do
+    begin
+    Size := 0;
+    while (isc_get_segment(@FStatus[0], @blobHandle, @blobSegLen, maxBlobSize, blobSegment) = 0) do
+      begin
+      ReAllocMem(Buffer,Size+blobSegLen);
+      ptr := Buffer+Size;
+      move(blobSegment^,ptr^,blobSegLen);
+      inc(Size,blobSegLen);
+      end;
+    end;
   freemem(blobSegment);
-  AStream.seek(0,soFromBeginning);
 
   if FStatus[1] = isc_segstr_eof then
     begin

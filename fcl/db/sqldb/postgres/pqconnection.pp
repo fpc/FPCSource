@@ -64,7 +64,7 @@ type
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
-    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBlobBuffer; cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
   public
     constructor Create(AOwner : TComponent); override;
     procedure CreateDB; override;
@@ -829,7 +829,7 @@ begin
 end;
 
 procedure TPQConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef;
-  ABlobBuf: PBlobBuffer; cursor: TSQLCursor; ATransaction: TSQLTransaction);
+  ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
 var
   x             : integer;
   li            : Longint;
@@ -838,9 +838,9 @@ begin
     begin
     x := FieldBinding[FieldDef.FieldNo-1];
     li := pqgetlength(res,curtuple,x);
-    ReAllocMem(ABlobBuf^.Buffer,li);
-    Move(pqgetvalue(res,CurTuple,x)^, ABlobBuf^.Buffer^, li);
-    ABlobBuf^.Size := li;
+    ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer,li);
+    Move(pqgetvalue(res,CurTuple,x)^, ABlobBuf^.BlobBuffer^.Buffer^, li);
+    ABlobBuf^.BlobBuffer^.Size := li;
     end;
 end;
 
