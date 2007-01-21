@@ -134,7 +134,7 @@ unit cpubase;
 
     const
       cgsize2fpuoppostfix : array[OS_NO..OS_F128] of toppostfix = (
-        PF_E,
+        PF_None,
         PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,
         PF_S,PF_D,PF_E,PF_None,PF_None);
 

@@ -683,6 +683,12 @@ unit cgcpu;
                 tmpref.symbol:=l;
                 tmpref.base:=NR_R15;
                 list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+
+                { in case of LDF/STF, we got rid of the NR_R15 }
+                if is_pc(ref.base) then
+                  ref.base:=NR_NO;
+                if is_pc(ref.index) then
+                  ref.index:=NR_NO;
               end
             else
               a_load_const_reg(list,OS_ADDR,ref.offset,tmpreg);
@@ -947,7 +953,7 @@ unit cgcpu;
            so.shiftimm:=shiftimm;
            list.concat(taicpu.op_reg_reg_shifterop(A_MOV,reg2,reg,so));
          end;
-       
+
        function do_conv(size : tcgsize) : boolean;
          begin
            result:=true;
@@ -972,7 +978,7 @@ unit cgcpu;
            end;
            conv_done:=result;
          end;
-     
+
        var
          instr: taicpu;
        begin
