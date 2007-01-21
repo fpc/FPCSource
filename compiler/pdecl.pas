@@ -493,6 +493,17 @@ implementation
                   if isunique then
                     begin
                       hdef:=tstoreddef(hdef).getcopy;
+
+                      { fix name, it is used e.g. for tables }
+                      if is_class_or_interface_or_dispinterface(hdef) then
+                        with tobjectdef(hdef) do
+                          begin
+                            stringdispose(objname);
+                            stringdispose(objrealname);
+                            objrealname:=stringdup(orgtypename);
+                            objname:=stringdup(upper(orgtypename));
+                          end;
+
                       include(hdef.defoptions,df_unique);
                     end;
                   if not assigned(hdef.typesym) then
