@@ -123,6 +123,8 @@ implementation
           begin
             pd:=tprocdef(tprocsym(p).ProcdefList[i]);
             insertdef(TAsmList(arg),pd.returndef);
+            if (po_virtualmethod in pd.procoptions) then
+              insertdef(TAsmList(arg),pd._class);
           end;
       end;
 

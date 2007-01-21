@@ -249,10 +249,12 @@ implementation
           so they won't be written implicitly }
         if (def.typ=procdef) then
           def.dbg_state:=dbg_state_written;
+
         { Stab must already be written, or we must be busy writing it }
         if writing_def_stabs and
            not(def.dbg_state in [dbg_state_writing,dbg_state_written]) then
           internalerror(200403091);
+
         { Keep track of used stabs, this info is only usefull for stabs
           referenced by the symbols. Definitions will always include all
           required stabs }
@@ -798,6 +800,7 @@ implementation
       var
         anc : tobjectdef;
         oldtypesym : tsym;
+        i : longint;
       begin
         if (def.dbg_state in [dbg_state_writing,dbg_state_written]) then
           exit;
@@ -854,12 +857,18 @@ implementation
           objectdef :
             begin
               insertdef(list,vmtarraytype);
+              if assigned(tobjectdef(def).ImplementedInterfaces) then
+                for i:=0 to tobjectdef(def).ImplementedInterfaces.Count-1 do
+                  insertdef(list,TImplementedInterface(tobjectdef(def).ImplementedInterfaces[i]).IntfDef);
               { first the parents }
               anc:=tobjectdef(def);
               while assigned(anc.childof) do
                 begin
                   anc:=anc.childof;
                   insertdef(list,anc);
+                  if assigned(anc.ImplementedInterfaces) then
+                    for i:=0 to anc.ImplementedInterfaces.Count-1 do
+                      insertdef(list,TImplementedInterface(anc.ImplementedInterfaces[i]).IntfDef);
                 end;
               tobjectdef(def).symtable.symList.ForEachCall(@field_write_defs,list);
               tobjectdef(def).symtable.symList.ForEachCall(@method_write_defs,list);
