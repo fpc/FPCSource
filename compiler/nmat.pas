@@ -651,8 +651,10 @@ implementation
 {$endif cpu64bit}
          else if (left.resultdef.typ=orddef) then
            begin
-              inserttypeconv(left,sinttype);
-              resultdef:=left.resultdef;
+              if (torddef(left.resultdef).ordtype <> scurrency) then begin
+                inserttypeconv(left,sinttype);
+                resultdef:=left.resultdef;
+              end;
            end
          else
            begin
