@@ -1326,7 +1326,7 @@ begin
              cmHelpContents  : HelpContents;
              cmHelpIndex     : HelpHelpIndex;
              cmHelpDebug     : HelpDebugInfos;
-{             cmHelpTopicSearch: HelpTopicSearch;}
+             cmHelpTopicSearch: HelpTopicSearch;
              cmHelpPrevTopic : HelpPrevTopic;
              cmHelpUsingHelp : HelpUsingHelp;
              cmHelpFiles     : HelpFiles;

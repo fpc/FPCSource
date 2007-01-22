@@ -833,6 +833,18 @@ end;
 
 
 function THelpFacility.TopicSearch(Keyword: string; var FileID: word; var Context: THelpCtx): boolean;
+function ScanHelpFileExact(H: PHelpFile): boolean; {$ifndef FPC}far;{$endif}
+function SearchExact(P: PIndexEntry): boolean; {$ifndef FPC}far;{$endif}
+begin
+  SearchExact:=UpcaseStr(P^.Tag^)=Keyword;
+end;
+var P: PIndexEntry;
+begin
+  H^.LoadIndex;
+  P:=H^.IndexEntries^.FirstThat(@SearchExact);
+  if P<>nil then begin FileID:=H^.ID; Context:=P^.HelpCtx; end;
+  ScanHelpFileExact:=P<>nil;
+end;
 function ScanHelpFile(H: PHelpFile): boolean; {$ifndef FPC}far;{$endif}
 function Search(P: PIndexEntry): boolean; {$ifndef FPC}far;{$endif}
 begin
@@ -845,9 +857,14 @@ begin
   if P<>nil then begin FileID:=H^.ID; Context:=P^.HelpCtx; end;
   ScanHelpFile:=P<>nil;
 end;
+var
+  PH : PHelpFile;
 begin
   Keyword:=UpcaseStr(Keyword);
-  TopicSearch:=HelpFiles^.FirstThat(@ScanHelpFile)<>nil;
+  PH:=HelpFiles^.FirstThat(@ScanHelpFileExact);
+  if not assigned(PH) then
+    PH:=HelpFiles^.FirstThat(@ScanHelpFile);
+  TopicSearch:=PH<>nil;
 end;
 
 function THelpFacility.BuildIndexTopic: PTopic;
