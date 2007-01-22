@@ -1331,7 +1331,8 @@ begin
             DebugMessage(Name,Link+' not found',1,1);
 {$endif DEBUG}
         end;
-      if HTMLFile<>nil then Dispose(HTMLFile, Done);
+      if HTMLFile<>nil then
+        Dispose(HTMLFile, Done);
       if BookMark='' then
         T^.StartNamedMark:=0
       else

@@ -88,6 +88,7 @@ var Hello : word;
     Pointer2: PObj;
     ClassVar1: TClass;
     ClassVar2: TClass2;
+    ClassClass: Class of TObject;
     Obj1: TObj;
     Obj2: TObj2;
     CharArray : Array[1..2000] of char;
@@ -128,6 +129,17 @@ constructor TClass2.Create;
 begin
   Name:='TClass2 instance';
   X:=7;
+end;
+
+procedure TestOverload;
+begin
+  Writeln('Procedure without argument called');
+end;
+
+procedure TestOverload(arg : string);
+begin
+  Writeln('Procedure with one argument called');
+  Writeln('argument is ',arg);
 end;
 
 function Func1(x,z : word; var y : boolean; const r: TRecord): shortint;
@@ -181,6 +193,8 @@ BEGIN
       SingleArrayArray[i,j]:=i*j;
 
   ClassVar1:=TClass2.create;
+
+  ClassClass:=TClass2.ClassType;
   Obj1.Init;
   pointer2:=@Obj1;
   Writeln('Obj1.Z=',Obj1.Z);
@@ -193,6 +207,8 @@ BEGIN
   Writeln('ParamCount = ',ParamCount);
   For i:=0 to paramcount do
    writeln('Paramstr(',i,') = '+Paramstr(i));
+  TestOverload;
+  TestOverload('Test');
   writeln(IsOdd(3));
   writeln(Func1(5,5,Bool,T));
   new(X);

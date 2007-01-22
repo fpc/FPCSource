@@ -695,9 +695,12 @@ end;
 function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
 {$ifdef Windows}
 var
-  mode : word;
+  mode,modebefore : word;
 {$endif Windows}
 Begin
+{$ifdef Windows}
+  GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @modebefore);
+{$endif Windows}
   RedirErrorOut:=0; RedirErrorIn:=0; RedirErrorError:=0;
   ExecuteResult:=0;
   IOStatus:=0;
@@ -715,10 +718,10 @@ Begin
                 (RedirErrorIn=0) and (RedirErrorError=0) and
                 (ExecuteResult=0);
 {$ifdef Windows}
-  // reenable mouse events
+  // restore previous mode
   GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @mode);
-  mode:=mode or ENABLE_MOUSE_INPUT;
-  SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), mode);
+  //mode:=mode or ENABLE_MOUSE_INPUT;
+  SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), modebefore);
 {$endif Windows}
 End;
 

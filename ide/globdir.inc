@@ -32,9 +32,9 @@
   {$define HasSignal}
   {$define FSCaseInsensitive}
   {$define HasSysMsgUnit}
-  {$ifdef DEBUG}
+  {$ifdef EXTDEBUG}
     {$define USE_GRAPH_SWITCH}
-  {$endif DEBUG}
+  {$endif EXTDEBUG}
 {$endif}
 
 {$ifdef Linux}

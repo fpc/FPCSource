@@ -220,7 +220,8 @@ const
 
 procedure ParseUserScreen;
 var
-  y : longint;
+  Y,YMax : longint;
+  LEvent : TEvent;
   Text,Attr : String;
   DisplayCompilerWindow : boolean;
   cc: integer;
@@ -232,7 +233,7 @@ var
         if pos('  $',Text)=1 then
           begin
             AText:=Text;
-            Delete(Text,1,10);
+            Delete(Text,1,11);
             While pos(' ',Text)=1 do
               Delete(Text,1,1);
             if pos('of ',Text)>0 then
@@ -251,7 +252,7 @@ var
               end
             else
               row:=0;
-            CompilerMessageWindow^.AddMessage(V_Fatal,AText
+            CompilerMessageWindow^.AddMessage(V_Fatal or v_lineinfo,AText
                   ,ModuleName,row,1);
             DisplayCompilerWindow:=true;
           end;
@@ -282,11 +283,21 @@ begin
   if not assigned(UserScreen) then
     exit;
   DisplayCompilerWindow:=false;
+  YMax:=UserScreen^.GetHeight;
   PushStatus('Parsing User Screen');
   CompilerMessageWindow^.Lock;
-  for Y:=0 to UserScreen^.GetHeight do
+  for Y:=0 to YMax do
     begin
       UserScreen^.GetLine(Y,Text,Attr);
+      if (y mod 10) = 0 then
+        begin
+          CompilerMessageWindow^.Unlock;
+          SetStatus('Parsing User Screen line '+IntToStr(y)+'/'+IntToStr(YMax));
+          CompilerMessageWindow^.Lock;
+        end;
+      GetKeyEvent(LEvent);
+      if (LEvent.What=evKeyDown) and (LEvent.KeyCode=kbEsc) then
+        break;
       SearchBackTrace;
       InsertInMessages(' Fatal:',v_Fatal or v_lineinfo,true);
       InsertInMessages(' Error:',v_Error or v_lineinfo,true);

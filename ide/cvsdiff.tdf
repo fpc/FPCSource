@@ -1,5 +1,5 @@
 [Main]
-Title="CVS Commit"
+Title="CVS Diff"
 Size=(56,15)
 CommandLine="diff %c% %revision% %filename%"
 Default="filename"
