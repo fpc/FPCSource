@@ -715,20 +715,15 @@
     function TInterfacedObject._AddRef : longint;stdcall;
 
       begin
-         inclocked(frefcount);
-         _addref:=frefcount;
+         _addref:=interlockedincrement(frefcount);
       end;
 
     function TInterfacedObject._Release : longint;stdcall;
 
       begin
-         if declocked(frefcount) then
-           begin
-              self.destroy;
-              _Release:=0;
-           end
-         else
-           _Release:=frefcount;
+         _Release:=interlockeddecrement(frefcount);
+         if _Release=0 then
+           self.destroy;
       end;
 
     procedure TInterfacedObject.AfterConstruction;
