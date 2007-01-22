@@ -178,8 +178,8 @@ function GetMenuItemInfoW(p1: HMENU; p2: UINT; p3: BOOL; var p4: TMenuItemInfoW)
 function GetMessage(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax: UINT): BOOL;external KernelDLL name 'GetMessageW';
 function GetScrollInfo(hWnd: HWND; BarFlag: Integer; var ScrollInfo: TScrollInfo): BOOL; external KernelDLL name 'GetScrollInfo';
 procedure GetSystemTime(var lpSystemTime:SYSTEMTIME); external KernelDLL name 'GetSystemTime';
-function GetTextExtentPoint32(DC: HDC; Str: LPWSTR; Count: Integer; var Size: TSize): BOOL; external KernelDLL name 'GetTextExtentPoint32W';
-function GetTextExtentPoint32W(DC: HDC; Str: LPWSTR; Count: Integer; var Size: TSize): BOOL; external KernelDLL name 'GetTextExtentPoint32W';
+function GetTextExtentPoint32(DC: HDC; Str: LPWSTR; Count: Integer; var Size: TSize): BOOL;
+function GetTextExtentPoint32W(DC: HDC; Str: LPWSTR; Count: Integer; var Size: TSize): BOOL;
 function GetVersionEx(var lpVersionInformation: TOSVersionInfo): BOOL;external KernelDLL name 'GetVersionExW';
 function GetVersionExW(var lpVersionInformation: TOSVersionInfoW): BOOL; external KernelDLL name 'GetVersionExW';
 function GetWindowRect(hWnd: HWND; var lpRect: TRect): BOOL; external KernelDLL name 'GetWindowRect';
@@ -1065,6 +1065,16 @@ end;
 function MsgWaitForMultipleObjects(nCount: DWORD; var pHandles; fWaitAll: BOOL; dwMilliseconds, dwWakeMask: DWORD): DWORD;
 begin
   MsgWaitForMultipleObjects:=MsgWaitForMultipleObjectsEx(nCount,@pHandles,dwMilliseconds,dwWakeMask,0);
+end;
+
+function GetTextExtentPoint32(DC: HDC; Str: LPWSTR; Count: Integer; var Size: TSize): BOOL;
+begin
+  Result:=GetTextExtentExPoint(DC, Str, Count, 0, nil, nil, @Size);
+end;
+
+function GetTextExtentPoint32W(DC: HDC; Str: LPWSTR; Count: Integer; var Size: TSize): BOOL;
+begin
+  Result:=GetTextExtentExPoint(DC, Str, Count, 0, nil, nil, @Size);
 end;
 
 (*

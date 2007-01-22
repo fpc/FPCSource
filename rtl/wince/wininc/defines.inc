@@ -5089,20 +5089,16 @@ Const
      MK_RBUTTON = 2;
      MK_SHIFT = 4;
   { WNDCLASS structure  }
-     CS_BYTEALIGNCLIENT = 4096;
-     CS_BYTEALIGNWINDOW = 8192;
-     CS_CLASSDC = 64;
-     CS_DBLCLKS = 8;
-     CS_GLOBALCLASS = 16384;
-     CS_HREDRAW = 2;
-     CS_KEYCVTWINDOW = 4;
-     CS_NOCLOSE = 512;
-     CS_NOKEYCVT = 256;
-     CS_OWNDC = 32;
-     CS_PARENTDC = 128;
-     CS_SAVEBITS = 2048;
      CS_VREDRAW = 1;
-     DLGWINDOWEXTRA = 30;
+     CS_HREDRAW = 2;
+     CS_DBLCLKS = 8;
+     CS_PARENTDC = 128;
+     CS_NOCLOSE = 512;
+     CS_SAVEBITS = 2048;
+     CS_GLOBALCLASS = 16384;
+     CS_IME = $10000;
+
+     DLGWINDOWEXTRA = 32;
   { ACCEL structure  }
      FALT = 16;
      FCONTROL = 8;
