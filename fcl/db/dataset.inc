@@ -877,6 +877,8 @@ begin
   Writeln('Getting next buffers');
 {$endif}
   GetNextRecords;
+  if FRecordCount < FBufferCount then
+    GetPriorRecords;
 {$Ifdef dsDebug}
   WriteLn(
     'SetBufferCount: FActiveRecord=',FActiveRecord,
