@@ -280,6 +280,18 @@ type
   tiovec=iovec;
   piovec=^tiovec;		
 
+{$if defined(cpupowerpc)}
+const
+  { FP exception related constants for prctl(); PowerPC specific }
+  PR_GET_FPEXC    = 11;   { get floating point exception mode }
+  PR_SET_FPEXC    = 12;   { set floating point exception mode }
+  
+  PR_FP_EXC_DISABLED = 0; { FP exceptions disabled }
+  PR_FP_EXC_NONREC   = 1; { async non-recoverable exc. mode }
+  PR_FP_EXC_ASYNC    = 2; { async recoverable exc. mode }
+  PR_FP_EXC_PRECISE  = 3; { precise exception mode }
+{$endif}
+
     {*************************************************************************}
     {                               SIGNALS                                   }
     {*************************************************************************}
