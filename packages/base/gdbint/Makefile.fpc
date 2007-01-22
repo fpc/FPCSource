@@ -92,8 +92,10 @@ gdbint$(PPUEXT): gdbint.pp gdbver.inc
 endif
 
 else
-# libgdb.a not found, default to libgdb v5
-GDBVER=GDB_V6
+# libgdb.a not found, default to libgdb v6
+GDBVER=GDB_V606
+gdbver.inc:
+        $(ECHO) "{\$$define $(GDBVER)}" > gdbver.inc
 gdbint$(PPUEXT): gdbint.pp
 	@$(ECHO) libgdb.a not found, using default GDB $(GDBVER)
 	$(COMPILER) -d$(GDBVER) gdbint.pp
@@ -102,6 +104,8 @@ endif
 else
 # Different OS_TARGET, default to libgdb v5
 GDBVER=GDB_V5
+gdbver.inc:
+        $(ECHO) "{\$$define $(GDBVER)}" > gdbver.inc
 gdbint$(PPUEXT): gdbint.pp
 	@$(ECHO) Different target os or cpu, using default GDB $(GDBVER)
 	$(COMPILER) -d$(GDBVER) gdbint.pp
