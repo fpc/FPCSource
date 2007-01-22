@@ -224,10 +224,27 @@ begin
     exit;
 {$ifdef Windows}
   if GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @Mode) then
-    SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), (Mode or ENABLE_MOUSE_INPUT) and not ENABLE_PROCESSED_INPUT);
+    begin
+{$ifdef DEBUG}
+      Writeln(stderr,'Starting value of ConsoleMode is $',hexstr(Mode,8));
+{$endif DEBUG}
+      SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),
+        (Mode or ENABLE_MOUSE_INPUT) and not ENABLE_PROCESSED_INPUT);
+{$ifdef DEBUG}
+    end
+  else
+    begin
+      Writeln(stderr,'Call to GetConsoleMode failed, GetLastError=',
+        GetLastError);
+{$endif DEBUG}
+    end;
 {$endif Windows}
 {$ifdef go32v2}
-  djgpp_set_ctrl_c(false);
+  {
+    I think that it was an error to put that here PM
+    djgpp_set_ctrl_c(false);
+    at least since that this is now handled in fpusrscr.pas unit
+  }
 {$endif go32v2}
 {$ifdef HasSignal}
 {$ifndef TP}
