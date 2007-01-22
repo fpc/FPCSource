@@ -67,7 +67,7 @@ begin
     GetCygwinFullName:='cygwin1.dll';
 end;
 
-initialization
+begin
   ModuleH:=GetModuleHandle('cygwin1');
   GetMem(CygwinFullName,MAX_PATH+1);
   GetModuleFileName(ModuleH,CygwinFullName,MAX_PATH+1);
@@ -81,6 +81,5 @@ initialization
         FileInfo:=PFileInfo^;
     end;
   FreeMem(InfoData,size);
-finalization
-  FreeMem(CygwinFullName,MAX_PATH+1);
+  {FreeMem(CygwinFullName,MAX_PATH+1);}
 end.

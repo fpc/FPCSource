@@ -222,10 +222,6 @@ type
       ConsoleMode,IdeMode      : Dword;
       IdeScreenMode : TVideoMode;
       procedure BufferCopy(src,dest : THandle);
-{$ifdef debug}
-      procedure Complain(St : string);
-      Procedure SetConsoleMode(FH : Handle;Mode : DWord);
-{$endif debug}
     end;
 {$endif}
 
@@ -986,12 +982,8 @@ end;
 
 { Seems to be missing in windows unit PM }
 const
-  ENABLE_INSERT_MODE     = $20;
+  ENABLE_INSERT_MODE = $20;
   ENABLE_QUICK_EDIT_MODE = $40;
-  ENABLE_EXTENDED_FLAGS  = $80;
-  ENABLE_AUTO_POSITION   = $100;
-
-
 
 procedure UpdateFileHandles;
 begin
@@ -1029,7 +1021,6 @@ begin
   GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @ConsoleMode);
   IdeMode:=ConsoleMode;
 {$ifdef debug}
-  Complain('Starting ConsoleMode is $'+hexstr(ConsoleMode,8));
 {define Windowsbigwin}
 {$endif debug}
 {$ifdef Windowsbigwin}
@@ -1274,17 +1265,9 @@ end;
 { dummy for Windows as the Buffer screen
   do hold all the info }
 procedure TWindowsScreen.SaveIDEScreen;
-var
-  NowIdeMode : Dword;
 begin
   IdeScreenMode:=ScreenMode;
-  GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @NowIdeMode);
-{$ifdef debug}
-  Complain('IDE ConsoleMode is $'+hexstr(NowIdeMode,8));
-  if NowIdeMode<>IdeMode then
-    Complain('is not equal to IDEMode  $'+hexstr(IdeMode,8));
-{$endif debug}
-  IdeMode:=NowIdeMode;
+  GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @IdeMode);
   { set the dummy buffer as active already now PM }
   SetStdHandle(cardinal(Std_Output_Handle),DummyScreenBufferHandle);
   UpdateFileHandles;
@@ -1295,9 +1278,6 @@ end;
 procedure TWindowsScreen.SaveConsoleScreen;
 begin
   GetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)), @ConsoleMode);
-{$ifdef debug}
-  Complain('ConsoleMode now is $'+hexstr(ConsoleMode,8));
-{$endif debug}
   { set the dummy buffer as active already now PM }
   SetStdHandle(cardinal(Std_Output_Handle),DummyScreenBufferHandle);
   UpdateFileHandles;
@@ -1327,9 +1307,7 @@ begin
   { Needed to force InitSystemMsg to use the right console handle }
   DoneEvents;
   InitEvents;
-  IdeMode:=({IdeMode or }ENABLE_MOUSE_INPUT or
-                   ENABLE_WINDOW_INPUT or
-                   ENABLE_EXTENDED_FLAGS)
+  IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT or ENABLE_WINDOW_INPUT)
            and not (ENABLE_PROCESSED_INPUT or
                     ENABLE_LINE_INPUT or
                     ENABLE_ECHO_INPUT or
@@ -1361,39 +1339,6 @@ begin
     Application^.SetScreenVideoMode(IdeScreenMode);
   IDEActive:=true;
 end;
-
-{$ifdef debug}
-
-procedure TWindowsScreen.Complain(St : string);
-begin
-  if IDEActive then
-    DebugMessage('',St,0,0)
-  else
-    Writeln(stderr,St);
-end;
-
-procedure TWindowsScreen.SetConsoleMode(FH : Handle;Mode: DWord);
-var
-  Test: DWord;
-begin
-  If not Windows.SetConsoleMode(FH,Mode) then
-    begin
-      Complain('SetConsoleMode call failed GetLastError='+IntToStr(GetLastError));
-    end
-  else
-    begin
-      if not GetConsoleMode(FH,Test) then
-        begin
-          Complain('GetConsoleMode call failed GetLastError='+IntToStr(GetLastError));
-        end
-      else if (Test<>Mode) then
-        begin
-          Complain('GetConsoleMode result '+IntToStr(Test)+' <> '+
-            IntToStr(Mode));
-        end;
-    end;
-end;
-{$endif DEBUG}
 
 {$endif}
 

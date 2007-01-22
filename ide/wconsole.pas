@@ -48,13 +48,8 @@ Procedure RestoreConsoleMode(const ConsoleMode : TConsoleMode);
 implementation
 {$ifdef Windows}
   uses
-    wutils,
     windows;
 {$endif Windows}
-{$ifdef GO32V2}
-  uses
-    Dpmiexcp;
-{$endif GO32V2}
 
 Procedure SaveConsoleMode(var ConsoleMode : TConsoleMode);
 Begin
@@ -62,15 +57,10 @@ Begin
   TCGetAttr(1,ConsoleMode);
 {$endif UNIX}
 {$ifdef Windows}
-  if not GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE),ConsoleMode) then
-    DebugMessage('','Call to GetConsoleMode failed, GetLastError='+
-        IntToStr(GetLastError),0,0);
+  GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE),ConsoleMode);
 {$endif Windows}
 {$ifdef go32v2}
-  if djgpp_set_ctrl_c(false) then
-    ConsoleMode:=1
-  else
-    ConsoleMode:=0;
+  ConsoleMode:=0;
 {$endif go32v2}
 {$ifdef netware}
   ConsoleMode:=0;
@@ -83,12 +73,9 @@ Begin
   TCSetAttr(1,TCSANOW,ConsoleMode);
 {$endif UNIX}
 {$ifdef Windows}
-  if not SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE),ConsoleMode) then
-    DebugMessage('','Call to SetConsoleMode failed, GetLastError='+
-        IntToStr(GetLastError),0,0);
+  SetConsoleMode(GetStdHandle(STD_INPUT_HANDLE),ConsoleMode);
 {$endif Windows}
 {$ifdef go32v2}
-  djgpp_set_ctrl_c((ConsoleMode and 1)<>0);
 {$endif go32v2}
 End;
 
