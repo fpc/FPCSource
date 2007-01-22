@@ -500,7 +500,7 @@ interface
 
         checkoverflow:=
           checkoverflow and
-          (left.resultdef.typ<>pointerdef) and 
+          (left.resultdef.typ<>pointerdef) and
           (right.resultdef.typ<>pointerdef);
 
 {$ifdef cpu64bit}
@@ -691,7 +691,7 @@ interface
 
        checkoverflow:=
          checkoverflow and
-          (left.resultdef.typ<>pointerdef) and 
+          (left.resultdef.typ<>pointerdef) and
           (right.resultdef.typ<>pointerdef);
 
        if nodetype<>subn then
@@ -717,7 +717,7 @@ interface
                     location.register,checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc)
               else
                 cg.a_op_const_reg_reg_checkoverflow(current_asmdata.CurrAsmList,OP_SUB,location.size,
-                  aword(right.location.value),left.location.register,
+                  right.location.value,left.location.register,
                   location.register,checkoverflow and (cs_check_overflow in current_settings.localswitches),ovloc);
             end
           else
