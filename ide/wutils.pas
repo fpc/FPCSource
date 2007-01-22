@@ -200,14 +200,14 @@ const LastStrToIntResult : integer = 0;
 
 procedure RegisterWUtils;
 
-{$ifdef DEBUG}
 Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : sw_word);
 type
   TDebugMessage = procedure(AFileName, AText : string; ALine, APos : sw_word);
 
 Const
   DebugMessage : TDebugMessage = @WUtilsDebugMessage;
-{$endif DEBUG}
+
+
 implementation
 
 uses
@@ -1350,13 +1350,11 @@ begin
 {$endif}
 end;
 
-{$ifdef DEBUG}
 Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : sw_word);
 begin
   writeln(stderr,AFileName,' (',ALine,',',APos,') ',AText);
 end;
 
-{$endif DEBUG}
 BEGIN
   Randomize;
 END.
