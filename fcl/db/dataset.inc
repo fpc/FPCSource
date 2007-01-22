@@ -878,7 +878,10 @@ begin
 {$endif}
   GetNextRecords;
   if FRecordCount < FBufferCount then
-    GetPriorRecords;
+    begin
+    FActiveRecord := FActiveRecord + GetPriorRecords;
+    CursorPosChanged;
+    end;
 {$Ifdef dsDebug}
   WriteLn(
     'SetBufferCount: FActiveRecord=',FActiveRecord,
