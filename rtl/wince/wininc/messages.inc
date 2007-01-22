@@ -528,7 +528,10 @@
   { Progress bar control  }
      PBM_DELTAPOS = 1027;
      PBM_SETPOS = 1026;
+     PBM_GETPOS = WM_USER+8;
      PBM_SETRANGE = 1025;
+     PBM_SETRANGE32 = WM_USER+6;
+     PBM_GETRANGE = WM_USER+7;
      PBM_SETSTEP = 1028;
      PBM_STEPIT = 1029;
   { Property sheets  } //prsht
@@ -641,6 +644,8 @@
      TB_ADDSTRINGA = 1052;
      TB_GETBUTTONTEXTA = 1069;
      TB_SAVERESTOREA = 1050;
+     TB_SETINDENT = WM_USER + 47;
+     TB_SETBUTTONWIDTH = WM_USER + 59;
 {$ifdef UNICODE}
 
   const
@@ -833,18 +838,6 @@
      TTM_RELAYEVENT = 1031;
      TTM_SETDELAYTIME = 1027;
      TTM_WINDOWFROMPOINT = 1040;
-  { Tool tip control notification  }
-     TTN_NEEDTEXTW = -(530);
-     TTN_NEEDTEXTA = -(520);
-{$ifdef UNICODE}
-
-  const
-     TTN_NEEDTEXT = TTN_NEEDTEXTW;
-{$else}
-
-  const
-     TTN_NEEDTEXT = TTN_NEEDTEXTA;
-{$endif}
   { UNICODE  }
 
   const

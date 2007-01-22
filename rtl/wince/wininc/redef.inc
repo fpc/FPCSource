@@ -138,36 +138,82 @@ function LOCALE_USER_DEFAULT: DWORD;                            //+winnt
 function LOCALE_NEUTRAL: DWORD;                                   //winnt
 function LOCALE_INVARIANT: DWORD;                                 //winnt
 
-
+function BeginPaint(hWnd: HWND; var lpPaint: TPaintStruct): HDC; external KernelDLL name 'BeginPaint';
+function ClientToScreen(hWnd: HWND; var lpPoint: TPoint): BOOL; external KernelDLL name 'ClientToScreen';
+function CreateAcceleratorTable(var Accel; Count: Integer): HACCEL; external KernelDLL name 'CreateAcceleratorTableW';
+function CreateAcceleratorTableW(var Accel; Count: Integer): HACCEL; external KernelDLL name 'CreateAcceleratorTableW';
+function CreateFontIndirect(const p1: TLogFont): HFONT; external KernelDLL name 'CreateFontIndirectW';
+function CreateFontIndirectW(const p1: TLogFontW): HFONT; external KernelDLL name 'CreateFontIndirectW';
+function CreateIconIndirect(var piconinfo: TIconInfo): HICON; external KernelDLL name 'CreateIconIndirect';
+function CreateProcess(lpApplicationName: LPTSTR; lpCommandLine: LPTSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPTSTR;
+  const lpStartupInfo: LPStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external KernelDLL name 'CreateProcessW';
+function CreateProcess(lpApplicationName: LPTSTR; lpCommandLine: LPTSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPTSTR;
+  const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external KernelDLL name 'CreateProcessW';
 function CreateProcessW(lpApplicationName: LPWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPWSTR;
   const lpStartupInfo: TStartupInfo; var lpProcessInformation: TProcessInformation): BOOL; external KernelDLL name 'CreateProcessW';
 procedure DeleteCriticalSection(var CriticalSection : TRTLCriticalSection); external KernelDLL name 'DeleteCriticalSection';
+function DispatchMessage(const lpMsg: TMsg): Longint; external KernelDLL name 'DispatchMessageW';
+function DispatchMessageW(const lpMsg: TMsg): Longint; external KernelDLL name 'DispatchMessageW';
+function DrawEdge(hdc: HDC; var qrc: TRect; edge: UINT; grfFlags: UINT): BOOL; external KernelDLL name 'DrawEdge';
+function DrawText(hDC: HDC; lpString: LPWSTR; nCount: Integer; var lpRect: TRect; uFormat: UINT): Integer; external KernelDLL name 'DrawTextW';
+function DrawTextW(hDC: HDC; lpString: LPWSTR; nCount: Integer; var lpRect: TRect; uFormat: UINT): Integer; external KernelDLL name 'DrawTextW';
+function EndPaint(hWnd: HWND; const lpPaint: TPaintStruct): BOOL; external KernelDLL name 'EndPaint';
 procedure EnterCriticalSection(var CriticalSection : TRTLCriticalSection); external KernelDLL name 'EnterCriticalSection';
+function FileTimeToSystemTime(const lpFileTime: TFileTime; var lpSystemTime: TSystemTime): BOOL; external KernelDLL name 'FileTimeToSystemTime';
+function FileTimeToLocalFileTime(const lpFileTime: TFileTime; var lpLocalFileTime: TFileTime): BOOL; external KernelDLL name 'FileTimeToLocalFileTime';
+function FindFirstFile(lpFileName: LPTSTR; var lpFindFileData: TWIN32FindData): THandle; external KernelDLL name 'FindFirstFileW';
+function FindFirstFileW(lpFileName: LPTSTR; var lpFindFileData: TWIN32FindDataW): THandle; external KernelDLL name 'FindFirstFileW';
+function FindNextFile(hFindFile: THandle; var lpFindFileData: TWIN32FindData): BOOL; external KernelDLL name 'FindNextFileW';
+function FindNextFileW(hFindFile: THandle; var lpFindFileData: TWIN32FindDataW): BOOL; external KernelDLL name 'FindNextFileW';
+function GetClassInfo(hInstance: HINST; lpClassName: LPWSTR; var lpWndClass: TWndClassW): BOOL; external KernelDLL name 'GetClassInfoW';
+function GetClassInfoW(hInstance: HINST; lpClassName: LPWSTR; var lpWndClass: TWndClassW): BOOL; external KernelDLL name 'GetClassInfoW';
+function GetClientRect(hWnd: HWND; var lpRect: TRect): BOOL; external KernelDLL name 'GetClientRect';
+function GetClipBox(DC: HDC; var Rect: TRect): Integer; external KernelDLL name 'GetClipBox';
+function GetCursorPos(var lpPoint: TPoint): BOOL; external KernelDLL name 'GetCursorPos';
 function GetExitCodeProcess(hProcess: THandle; var lpExitCode: DWORD): BOOL; external KernelDLL name 'GetExitCodeProcess';
 function GetExitCodeThread(hThread: THandle; var lpExitCode: DWORD): BOOL; external KernelDLL name 'GetExitCodeThread';
 procedure GetLocalTime(var SystemTime: SYSTEMTIME); external KernelDLL name 'GetLocalTime';
+function GetMenuItemInfo(p1: HMENU; p2: UINT; p3: BOOL; var p4: TMenuItemInfo): BOOL; external KernelDLL name 'GetMenuItemInfoW';
+function GetMenuItemInfoW(p1: HMENU; p2: UINT; p3: BOOL; var p4: TMenuItemInfoW): BOOL; external KernelDLL name 'GetMenuItemInfoW';
+function GetMessage(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax: UINT): BOOL;external KernelDLL name 'GetMessageW';
+function GetScrollInfo(hWnd: HWND; BarFlag: Integer; var ScrollInfo: TScrollInfo): BOOL; external KernelDLL name 'GetScrollInfo';
+procedure GetSystemTime(var lpSystemTime:SYSTEMTIME); external KernelDLL name 'GetSystemTime';
+function GetTextExtentPoint32(DC: HDC; Str: LPWSTR; Count: Integer; var Size: TSize): BOOL; external KernelDLL name 'GetTextExtentPoint32W';
+function GetTextExtentPoint32W(DC: HDC; Str: LPWSTR; Count: Integer; var Size: TSize): BOOL; external KernelDLL name 'GetTextExtentPoint32W';
+function GetVersionEx(var lpVersionInformation: TOSVersionInfo): BOOL;external KernelDLL name 'GetVersionExW';
 function GetVersionExW(var lpVersionInformation: TOSVersionInfoW): BOOL; external KernelDLL name 'GetVersionExW';
+function GetWindowRect(hWnd: HWND; var lpRect: TRect): BOOL; external KernelDLL name 'GetWindowRect';
+function InflateRect(var lprc: TRect; dx, dy: Integer): BOOL; external KernelDLL name 'InflateRect';
 procedure InitializeCriticalSection(var CriticalSection : TRTLCriticalSection); external KernelDLL name 'InitializeCriticalSection';
 procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection); external KernelDLL name 'LeaveCriticalSection';
+function LocalFileTimeToFileTime(const lpLocalFileTime: TFileTime; var lpFileTime: TFileTime): BOOL; external KernelDLL name 'LocalFileTimeToFileTime';
 //redirected to MsgWaitForMultipleObjectsEx
 function MsgWaitForMultipleObjects(nCount: DWORD; var pHandles; fWaitAll: BOOL; dwMilliseconds, dwWakeMask: DWORD): DWORD;
+function OffsetRect(var lprc: TRect; dx, dy: Integer): BOOL; external KernelDLL name 'OffsetRect';
+function PeekMessage(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL;external KernelDLL name 'PeekMessageW';
 function PeekMessageW(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL; external KernelDLL name 'PeekMessageW';
+function Polygon(DC: HDC; var Points; Count: Integer): BOOL; external KernelDLL name 'Polygon';
 function ReadFile(hFile: THandle; var Buffer; nNumberOfBytesToRead: DWORD; var lpNumberOfBytesRead: DWORD; lpOverlapped: POverlapped): BOOL; external KernelDLL name 'ReadFile';
+function RegCreateKeyEx(hKey: HKEY; lpSubKey: LPWSTR; Reserved: DWORD; lpClass: LPWSTR; dwOptions: DWORD; samDesired: REGSAM; lpSecurityAttributes: PSecurityAttributes; var phkResult: HKEY; lpdwDisposition: PDWORD): Longint; external KERNELDLL name 'RegCreateKeyExW';
+function RegCreateKeyExW(hKey: HKEY; lpSubKey: LPWSTR; Reserved: DWORD; lpClass: LPWSTR; dwOptions: DWORD; samDesired: REGSAM; lpSecurityAttributes: PSecurityAttributes; var phkResult: HKEY; lpdwDisposition: PDWORD): Longint; external KERNELDLL name 'RegCreateKeyExW';
+function RegEnumKeyEx(hKey: HKEY; dwIndex: DWORD; lpName: LPWSTR; var lpcbName: DWORD; lpReserved: Pointer; lpClass: LPWSTR; lpcbClass: PDWORD; lpftLastWriteTime: PFileTime): Longint; external KernelDLL name 'RegEnumKeyExW';
+function RegEnumKeyExW(hKey: HKEY; dwIndex: DWORD; lpName: LPWSTR; var lpcbName: DWORD; lpReserved: Pointer; lpClass: LPWSTR; lpcbClass: PDWORD; lpftLastWriteTime: PFileTime): Longint; external KernelDLL name 'RegEnumKeyExW';
+function RegEnumValue(hKey: HKEY; dwIndex: DWORD; lpValueName: PChar; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint; external KernelDLL name 'RegEnumValueW';
+function RegEnumValueW(hKey: HKEY; dwIndex: DWORD; lpValueName: PChar; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint; external KernelDLL name 'RegEnumValueW';
+function RegisterClass(const lpWndClass: TWndClass): ATOM;external KernelDLL name 'RegisterClassW';
 function RegisterClassW(const lpWndClass: TWndClassW): ATOM; external KernelDLL name 'RegisterClassW';
+function RegOpenKeyEx(hKey: HKEY; lpSubKey: LPWSTR; ulOptions: DWORD; samDesired: REGSAM; var phkResult: HKEY): Longint; external KernelDLL name 'RegOpenKeyExW';
+function RegOpenKeyExW(hKey: HKEY; lpSubKey: LPWSTR; ulOptions: DWORD; samDesired: REGSAM; var phkResult: HKEY): Longint; external KernelDLL name 'RegOpenKeyExW';
+function ScreenToClient(hWnd: HWND; var lpPoint: TPoint): BOOL; external KernelDLL name 'ScreenToClient';
 function SetFileTime(hFile:HANDLE; var lpCreationTime:FILETIME; var lpLastAccessTime:FILETIME; var lpLastWriteTime:FILETIME):WINBOOL; external KernelDLL name 'SetFileTime';
 function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external KernelDLL name 'SetLocalTime';
+function SetMenuItemInfo(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfo): BOOL; external KernelDLL name 'SetMenuItemInfoW';
+function SetMenuItemInfoW(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfoW): BOOL; external KernelDLL name 'SetMenuItemInfoW';
+function SetScrollInfo(hWnd: HWND; BarFlag: Integer; const ScrollInfo: TScrollInfo; Redraw: BOOL): Integer; external KernelDLL name 'SetScrollInfo';
+function SystemTimeToFileTime(const lpSystemTime: TSystemTime; var lpFileTime: TFileTime): BOOL; external KernelDLL name 'SystemTimeToFileTime';
+function TranslateMessage(const lpMsg: TMsg): BOOL; external KernelDLL name 'TranslateMessage';
 function TryEnterCriticalSection(var CriticalSection : TRTLCriticalSection) : BOOL; external KernelDLL name 'TryEnterCriticalSection';
 function WriteFile(hFile: THandle; const Buffer; nNumberOfBytesToWrite: DWORD; var lpNumberOfBytesWritten: DWORD; lpOverlapped: POverlapped): BOOL; external KernelDLL name 'WriteFile';
-
-function GetVersionEx(var lpVersionInformation: TOSVersionInfo): BOOL;external KernelDLL name 'GetVersionExW';
-function CreateProcess(lpApplicationName: LPTSTR; lpCommandLine: LPTSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPTSTR;
-  const lpStartupInfo: LPStartupInfo; var lpProcessInformation: TProcessInformation): BOOL;external KernelDLL name 'CreateProcessW';
-function FindFirstFile(lpFileName: LPTSTR; var lpFindFileData: TWIN32FindData): THandle; external KernelDLL name 'FindFirstFileW';
-function FindNextFile(hFindFile: THandle; var lpFindFileData: TWIN32FindData): BOOL; external KernelDLL name 'FindNextFileW';
-function RegisterClass(const lpWndClass: TWndClass): ATOM;external KernelDLL name 'RegisterClassW';
-function PeekMessage(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL;external KernelDLL name 'PeekMessageW';
-function Polygon(DC: HDC; var Points; Count: Integer): BOOL; external KernelDLL name 'Polygon';
-function GetMessage(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax: UINT): BOOL;external KernelDLL name 'GetMessageW';
 
 (*
 !!! The following commented out part is copied from win32 redef.inc
@@ -269,7 +315,6 @@ function AllocateLocallyUniqueId(var Luid: TLargeInteger): BOOL; external 'advap
 function BackupRead(hFile: THandle; lpBuffer: PByte; nNumberOfBytesToRead: DWORD; var lpNumberOfBytesRead: DWORD; bAbort: BOOL; bProcessSecurity: BOOL; var lpContext: Pointer): BOOL; external 'kernel32' name 'BackupRead';
 function BackupSeek(hFile: THandle; dwLowBytesToSeek, dwHighBytesToSeek: DWORD; var lpdwLowByteSeeked, lpdwHighByteSeeked: DWORD; lpContext: Pointer): BOOL; external 'kernel32' name 'BackupSeek';
 function BackupWrite(hFile: THandle; lpBuffer: PByte; nNumberOfBytesToWrite: DWORD; var lpNumberOfBytesWritten: DWORD; bAbort, bProcessSecurity: BOOL; var lpContext: Pointer): BOOL; external 'kernel32' name 'BackupWrite';
-function BeginPaint(hWnd: HWND; var lpPaint: TPaintStruct): HDC; external 'user32' name 'BeginPaint';
 function BuildCommDCB(lpDef: PChar; var lpDCB: TDCB): BOOL;external 'kernel32' name 'BuildCommDCBA';
 function BuildCommDCBA(lpDef: LPCSTR; var lpDCB: TDCB): BOOL; external 'kernel32' name 'BuildCommDCBA';
 function BuildCommDCBAndTimeouts(lpDef: PChar; var lpDCB: TDCB; var lpCommTimeouts: TCommTimeouts): BOOL;external 'kernel32' name 'BuildCommDCBAndTimeoutsA';
@@ -294,7 +339,6 @@ function ChangeDisplaySettingsW(var lpDevMode: TDeviceModeW; dwFlags: DWORD): Lo
 //function CheckColorsInGamut(DC: HDC; var RGBQuads, Results; Count: DWORD): BOOL; external 'gdi32' name 'CheckColorsInGamut';
 function ChoosePixelFormat(_para1:HDC; var _para2:PIXELFORMATDESCRIPTOR):longint; external 'gdi32' name 'ChoosePixelFormat';
 function ClearCommError(hFile: THandle; var lpErrors: DWORD; lpStat: PComStat): BOOL; external 'kernel32' name 'ClearCommError';
-function ClientToScreen(hWnd: HWND; var lpPoint: TPoint): BOOL; external 'user32' name 'ClientToScreen';
 function ClipCursor(var lpRect:RECT):WINBOOL; external 'user32' name 'ClipCursor';
 //function CombineTransform(var p1: TXForm; const p2, p3: TXForm): BOOL; external 'gdi32' name 'CombineTransform';
 function CommConfigDialog(lpszName: PChar; hWnd: HWND; var lpCC: TCommConfig): BOOL;external 'kernel32' name 'CommConfigDialogA';
@@ -347,7 +391,6 @@ function CreatePolyPolygonRgn(const pPtStructs; const pIntArray; p3, p4: Integer
 //function CreateRectRgnIndirect(const p1: TRect): HRGN; external 'gdi32' name 'CreateRectRgnIndirect';
 function CreateRemoteThread(hProcess: THandle; lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle;
   external 'kernel32' name 'CreateRemoteThread';
-function CreateThread(lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; external 'kernel32' name 'CreateThread';
 function DdeSetQualityOfService(hWndClient: HWnd; const pqosNew: TSecurityQualityOfService; pqosPrev: PSecurityQualityOfService): BOOL;external 'user32' name 'DdeSetQualityOfService';
 //function DeleteAce(var pAcl: TACL; dwAceIndex: DWORD): BOOL; external 'advapi32' name 'DeleteAce';
 function DescribePixelFormat(DC: HDC; p2: Integer; p3: UINT; var p4: TPixelFormatDescriptor): BOOL; external 'gdi32' name 'DescribePixelFormat';
@@ -364,7 +407,6 @@ function DosDateTimeToFileTime(wFatDate, wFatTime: Word; var lpFileTime: TFileTi
 function DPtoLP(DC: HDC; var Points; Count: Integer): BOOL; external 'gdi32' name 'DPtoLP';
 // function DrawAnimatedRects(hwnd: HWND; idAni: Integer; const lprcFrom, lprcTo: TRect): BOOL; external 'user32' name 'DrawAnimatedRects';
 //function DrawCaption(p1: HWND; p2: HDC; const p3: TRect; p4: UINT): BOOL; external 'user32' name 'DrawCaption';
-function DrawEdge(hdc: HDC; var qrc: TRect; edge: UINT; grfFlags: UINT): BOOL; external 'user32' name 'DrawEdge';
 //function DrawFocusRect(hDC: HDC; const lprc: TRect): BOOL; external 'user32' name 'DrawFocusRect';
 function DrawFrameControl(DC: HDC; const Rect: TRect; uType, uState: UINT): BOOL; external 'user32' name 'DrawFrameControl';
 function DrawText(hDC: HDC; lpString: PChar; nCount: Integer; var lpRect: TRect; uFormat: UINT): Integer;external 'user32' name 'DrawTextA';
@@ -375,7 +417,6 @@ function DrawTextExW(DC: HDC; lpchText: LPWSTR; cchText: Integer; var p4: TRect;
 function DrawTextW(hDC: HDC; lpString: LPWSTR; nCount: Integer; var lpRect: TRect; uFormat: UINT): Integer; external 'user32' name 'DrawTextW';
 //function DuplicateTokenEx(hExistingToken: THandle; dwDesiredAccess: DWORD; lpTokenAttributes: PSecurityAttributes; ImpersonationLevel: TSecurityImpersonationLevel; TokenType: TTokenType; var phNewToken: THandle): BOOL;
 //  external 'advapi32' name 'DuplicateTokenEx';
-function EndPaint(hWnd: HWND; const lpPaint: TPaintStruct): BOOL; external 'user32' name 'EndPaint';
 //function EnumDisplayDevices(Unused: Pointer; iDevNum: DWORD; var lpDisplayDevice: TDisplayDevice; dwFlags: DWORD): BOOL;external 'user32' name 'EnumDisplayDevicesA';
 //function EnumDisplayDevicesA(Unused: Pointer; iDevNum: DWORD; var lpDisplayDevice: TDisplayDeviceA; dwFlags: DWORD): BOOL;external 'user32' name 'EnumDisplayDevicesA';
 //function EnumDisplayDevicesW(Unused: Pointer; iDevNum: DWORD; var lpDisplayDevice: TDisplayDeviceW; dwFlags: DWORD): BOOL;external 'user32' name 'EnumDisplayDevicesW';
@@ -445,8 +486,6 @@ function GetClassInfoEx(Instance: HINST; Classname: PChar; var WndClass: TWndCla
 //function GetClassInfoExA(Instance: HINST; Classname: LPCSTR; var WndClass: TWndClassExA): BOOL; external 'user32' name 'GetClassInfoExA';
 //function GetClassInfoExW(Instance: HINST; Classname: LPWSTR; var WndClass: TWndClassExW): BOOL; external 'user32' name 'GetClassInfoExW';
 //function GetClassInfoW(hInstance: HINST; lpClassName: LPWSTR; var lpWndClass: TWndClassW): BOOL; external 'user32' name 'GetClassInfoW';
-function GetClientRect(hWnd: HWND; var lpRect: TRect): BOOL; external 'user32' name 'GetClientRect';
-function GetClipBox(DC: HDC; var Rect: TRect): Integer; external 'gdi32' name 'GetClipBox';
 function GetClipCursor(var lpRect: TRect): BOOL; external 'user32' name 'GetClipCursor';
 function GetColorAdjustment(DC: HDC; var p2: TColorAdjustment): BOOL; external 'gdi32' name 'GetColorAdjustment';
 function GetCommConfig(hCommDev: THandle; var lpCC: TCommConfig; var lpdwSize: DWORD): BOOL; external 'kernel32' name 'GetCommConfig';
@@ -468,7 +507,6 @@ function GetCPInfo(CodePage: UINT; var lpCPInfo: TCPInfo): BOOL;external 'kernel
 {$ifdef support_smartlink}
 function GetCursorInfo(var pci: TCursorInfo): BOOL;external 'user32' name 'GetCursorInfo';
 {$endif support_smartlink}
-function GetCursorPos(var lpPoint: TPoint): BOOL; external 'user32' name 'GetCursorPos';
 function GetDCOrgEx(DC: HDC; var Origin: TPoint): BOOL; external 'gdi32' name 'GetDCOrgEx';
 function GetDefaultCommConfig(lpszName: PChar; var lpCC: TCommConfig; var lpdwSize: DWORD): BOOL;external 'kernel32' name 'GetDefaultCommConfigA';
 function GetDefaultCommConfigA(lpszName: LPCSTR; var lpCC: TCommConfig; var lpdwSize: DWORD): BOOL; external 'kernel32' name 'GetDefaultCommConfigA';
@@ -551,7 +589,6 @@ function GetProcessWorkingSetSize(hProcess: THandle; var lpMinimumWorkingSetSize
 function GetQueuedCompletionStatus(CompletionPort: THandle; var lpNumberOfBytesTransferred, lpCompletionKey: DWORD; var lpOverlapped: POverlapped; dwMilliseconds: DWORD): BOOL; external 'kernel32' name 'GetQueuedCompletionStatus';
 function GetRasterizerCaps(var p1: TRasterizerStatus; p2: UINT): BOOL; external 'gdi32' name 'GetRasterizerCaps';
 function GetRgnBox(RGN: HRGN; var p2: TRect): Integer; external 'gdi32' name 'GetRgnBox';
-function GetScrollInfo(hWnd: HWND; BarFlag: Integer; var ScrollInfo: TScrollInfo): BOOL; external 'user32' name 'GetScrollInfo';
 function GetScrollRange(hWnd: HWND; nBar: Integer; var lpMinPos, lpMaxPos: Integer): BOOL; external 'user32' name 'GetScrollRange';
 //function GetSecurityDescriptorControl(pSecurityDescriptor: PSecurityDescriptor; var pControl: SECURITY_DESCRIPTOR_CONTROL; var lpdwRevision: DWORD): BOOL; external 'advapi32' name 'GetSecurityDescriptorControl';
 //function GetSecurityDescriptorDacl(pSecurityDescriptor: PSecurityDescriptor; var lpbDaclPresent: BOOL; var pDacl: PACL; var lpbDaclDefaulted: BOOL): BOOL; external 'advapi32' name 'GetSecurityDescriptorDacl';
@@ -622,7 +659,6 @@ function GetWorldTransform(DC: HDC; var p2: TXForm): BOOL; external 'gdi32' name
 procedure GlobalMemoryStatus(var Buffer: MEMORYSTATUS); external 'kernel32' name 'GlobalMemoryStatus';
 function HeapWalk(hHeap: THandle; var lpEntry: TProcessHeapEntry): BOOL; external 'kernel32' name 'HeapWalk';
 function ImageList_GetDragImage(var ppt:POINT; var pptHotspot:POINT):HIMAGELIST; external 'comctl32' name 'ImageList_GetDragImage';
-function InflateRect(var lprc: TRect; dx, dy: Integer): BOOL; external 'user32' name 'InflateRect';
 function InitializeAcl(var pAcl: TACL; nAclLength, dwAclRevision: DWORD): BOOL; external 'advapi32' name 'InitializeAcl';
 {$ifdef support_smartlink}
 function InitializeCriticalSectionAndSpinCount(var lpCriticalSection: TRTLCriticalSection; dwSpinCount: DWORD): BOOL;external 'kernel32' name 'InitializeCriticalSectionAndSpinCount';
@@ -644,7 +680,6 @@ function IsDialogMessageA(hDlg: HWND; var lpMsg: TMsg): BOOL; external 'user32' 
 function IsDialogMessageW(hDlg: HWND; var lpMsg: TMsg): BOOL; external 'user32' name 'IsDialogMessageW';
 //function IsRectEmpty(const lprc: TRect): BOOL; external 'user32' name 'IsRectEmpty';
 function IsValidAcl(const pAcl: TACL): BOOL; external 'advapi32' name 'IsValidAcl';
-function LocalFileTimeToFileTime(const lpLocalFileTime: TFileTime; var lpFileTime: TFileTime): BOOL; external 'kernel32' name 'LocalFileTimeToFileTime';
 function LockFileEx(hFile: THandle; dwFlags, dwReserved: DWORD; nNumberOfBytesToLockLow, nNumberOfBytesToLockHigh: DWORD; const lpOverlapped: TOverlapped): BOOL; external 'kernel32' name 'LockFileEx';
 function LogonUser(lpszUsername, lpszDomain, lpszPassword: PChar; dwLogonType, dwLogonProvider: DWORD; var phToken: THandle): BOOL;external 'advapi32' name 'LogonUserA';
 function LogonUserA(lpszUsername, lpszDomain, lpszPassword: LPCSTR; dwLogonType, dwLogonProvider: DWORD; var phToken: THandle): BOOL; external 'advapi32' name 'LogonUserA';
@@ -688,7 +723,6 @@ function ObjectPrivilegeAuditAlarm(SubsystemName: PChar; HandleId: Pointer; Clie
 function ObjectPrivilegeAuditAlarmA(SubsystemName: LPCSTR; HandleId: Pointer; ClientToken: THandle; DesiredAccess: DWORD; var Privileges: TPrivilegeSet; AccessGranted: BOOL): BOOL; external 'advapi32' name 'ObjectPrivilegeAuditAlarmA';
 function ObjectPrivilegeAuditAlarmW(SubsystemName: LPWSTR; HandleId: Pointer; ClientToken: THandle; DesiredAccess: DWORD; var Privileges: TPrivilegeSet; AccessGranted: BOOL): BOOL; external 'advapi32' name 'ObjectPrivilegeAuditAlarmW';
 
-function OffsetRect(var lprc: TRect; dx, dy: Integer): BOOL; external 'user32' name 'OffsetRect';
 function OffsetViewportOrgEx(DC: HDC; X, Y: Integer; var Points): BOOL; external 'gdi32' name 'OffsetViewportOrgEx';
 function OffsetWindowOrgEx(DC: HDC; X, Y: Integer; var Points): BOOL; external 'gdi32' name 'OffsetWindowOrgEx';
 function OpenFile(const lpFileName: LPCSTR; var lpReOpenBuff: TOFStruct; uStyle: UINT): HFILE; external 'kernel32' name 'OpenFile';
@@ -782,7 +816,6 @@ function RegQueryValueW(hKey: HKEY; lpSubKey: LPWSTR; lpValue: LPWSTR; var lpcbV
 function ResetDC(DC: HDC; const p2: TDeviceMode): HDC;external 'gdi32' name 'ResetDCA';
 function ResetDCA(DC: HDC; const p2: TDeviceModeA): HDC; external 'gdi32' name 'ResetDCA';
 //function ResetDCW(DC: HDC; const p2: TDeviceModeW): HDC; external 'gdi32' name 'ResetDCW';
-function ScreenToClient(hWnd: HWND; var lpPoint: TPoint): BOOL; external 'user32' name 'ScreenToClient';
 function ScrollConsoleScreenBuffer(hConsoleOutput: THandle; const lpScrollRectangle: TSmallRect; const lpClipRectangle: TSmallRect; dwDestinationOrigin: TCoord; var lpFill: TCharInfo): BOOL;external 'kernel32' name 'ScrollConsoleScreenBufferA';
 function ScrollConsoleScreenBufferA(hConsoleOutput: THandle; const lpScrollRectangle: TSmallRect; const lpClipRectangle: TSmallRect; dwDestinationOrigin: TCoord; var lpFill: TCharInfo): BOOL; external 'kernel32' name 'ScrollConsoleScreenBufferA';
 function ScrollConsoleScreenBufferW(hConsoleOutput: THandle; const lpScrollRectangle: TSmallRect; const lpClipRectangle: TSmallRect; dwDestinationOrigin: TCoord; var lpFill: TCharInfo): BOOL; external 'kernel32' name 'ScrollConsoleScreenBufferW';
@@ -825,7 +858,6 @@ function SetPaletteEntries(Palette: HPALETTE; StartIndex, NumEntries: UINT; var 
 //  const GenericMapping: TGenericMapping; Token: THandle): BOOL;external 'advapi32' name 'SetPrivateObjectSecurityEx';
 function SetRect(var lprc: TRect; xLeft, yTop, xRight, yBottom: Integer): BOOL; external 'user32' name 'SetRect';
 function SetRectEmpty(var lprc: TRect): BOOL; external 'user32' name 'SetRectEmpty';
-function SetScrollInfo(hWnd: HWND; BarFlag: Integer; const ScrollInfo: TScrollInfo; Redraw: BOOL): Integer; external 'user32' name 'SetScrollInfo';
 function SetSysColors(cElements: Integer; const lpaElements; const lpaRgbValues): BOOL; external 'user32' name 'SetSysColors';
 //function SetSystemTime(const lpSystemTime: TSystemTime): BOOL; external 'kernel32' name 'SetSystemTime';
 function SetThreadContext(hThread: THandle; const lpContext: TContext): BOOL; external 'kernel32' name 'SetThreadContext';
@@ -856,7 +888,6 @@ function TranslateAcceleratorA(hWnd: HWND; hAccTable: HACCEL; var lpMsg: TMsg): 
 function TranslateAcceleratorW(hWnd: HWND; hAccTable: HACCEL; var lpMsg: TMsg): Integer; external 'user32' name 'TranslateAcceleratorW';
 function TranslateCharsetInfo(var lpSrc: DWORD; var lpCs: TCharsetInfo; dwFlags: DWORD): BOOL; external 'gdi32' name 'TranslateCharsetInfo';
 function TranslateMDISysAccel(hWndClient: HWND; const lpMsg: TMsg): BOOL; external 'user32' name 'TranslateMDISysAccel';
-function TranslateMessage(const lpMsg: TMsg): BOOL; external 'user32' name 'TranslateMessage';
 //function TransparentDIBits(DC: HDC; p2, p3, p4, p5: Integer; const p6: Pointer; const p7: PBitmapInfo; p8: UINT; p9, p10, p11, p12: Integer; p13: UINT): BOOL;external 'gdi32' name 'TransparentDIBits';
 {$ifdef support_smartlink}
 function TryEnterCriticalSection(var lpCriticalSection: TRTLCriticalSection): BOOL;external 'kernel32' name 'TryEnterCriticalSection';

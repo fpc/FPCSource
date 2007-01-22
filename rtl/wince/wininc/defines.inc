@@ -1769,6 +1769,7 @@
      SIF_POS = 4;
      SIF_RANGE = 1;
      SIF_DISABLENOSCROLL = 8;
+     SIF_TRACKPOS = $10;
   { GetStdHandle  }
     { was #define dname def_expr }
     function STD_INPUT_HANDLE : DWORD;
@@ -3684,6 +3685,7 @@ Const
      CCS_NOPARENTALIGN = $8;
      CCS_NORESIZE = $4;
      CCS_TOP = $1;
+     CCS_VERT = $80;
      ANIMATE_CLASSA = 'SysAnimate32';
      HOTKEY_CLASSA = 'msctls_hotkey32';
      PROGRESS_CLASSA = 'msctls_progress32';
@@ -3893,6 +3895,7 @@ Const
      LVS_NOSCROLL = 8192;
      LVS_NOSORTHEADER = 32768;
      LVS_OWNERDRAWFIXED = 1024;
+     LVS_OWNERDATA = $1000;
      LVS_REPORT = 1;
      LVS_SHAREIMAGELISTS = 64;
      LVS_SHOWSELALWAYS = 8;
@@ -3921,6 +3924,11 @@ Const
      LVIS_SELECTED = 2;
      LVIS_OVERLAYMASK = 3840;
      LVIS_STATEIMAGEMASK = 61440;
+     
+     // progress bar styles
+     PBS_SMOOTH              = 01;
+     PBS_VERTICAL            = 04;
+
     { was #define dname def_expr }
     function LPSTR_TEXTCALLBACKW : LPWSTR;
 
@@ -3947,6 +3955,7 @@ Const
      LVIF_IMAGE = 2;
      LVIF_PARAM = 4;
      LVIF_STATE = 8;
+     LVIF_INDENT = $10;
      LVIF_DI_SETITEM = 4096;
   { LVM_GETNEXTITEM structure  }
      LVNI_ABOVE = 256;
@@ -3973,14 +3982,20 @@ Const
      LVHT_ONITEMSTATEICON = 8;
      LVHT_TOLEFT = 64;
      LVHT_TORIGHT = 32;
+     LVHT_ONITEM = LVHT_ONITEMICON or LVHT_ONITEMLABEL or LVHT_ONITEMSTATEICON;
   { LV_COLUMN structure  }
      LVCF_FMT = 1;
      LVCF_SUBITEM = 8;
      LVCF_TEXT = 4;
      LVCF_WIDTH = 2;
+     LVCF_IMAGE = $10;
+     LVCF_ORDER = $20;
      LVCFMT_CENTER = 2;
      LVCFMT_LEFT = 0;
      LVCFMT_RIGHT = 1;
+     LVCFMT_JUSTIFYMASK      = $0003;
+     LVCFMT_IMAGE            = $0800;
+     LVCFMT_BITMAP_ON_RIGHT  = $1000;
   { ListView_GetItemRect  }
      LVIR_BOUNDS = 0;
      LVIR_ICON = 1;
@@ -4001,6 +4016,8 @@ Const
      TVS_HASLINES = 2;
      TVS_LINESATROOT = 4;
      TVS_SHOWSELALWAYS = 32;
+     TVS_CHECKBOXES = $0100;
+     TVS_SINGLEEXPAND = $0400;
   { Tree View states  }
      TVIS_BOLD = 16;
      TVIS_CUT = 4;
@@ -4025,11 +4042,7 @@ Const
   { TV_INSERTSTRUCT structure  }
     { added manually PM, TREEITEM is not defined in the C headers }
      type
-       TREEITEM = record
-                  end;
-       HTREEITEM = ^TREEITEM;
-       TTREEITEM = TREEITEM;
-       PTREEITEM = ^TREEITEM;
+       HTREEITEM = THandle;
 
     { was #define dname def_expr }
     function TVI_ROOT : HTREEITEM;

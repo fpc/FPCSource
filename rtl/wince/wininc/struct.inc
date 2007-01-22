@@ -449,6 +449,7 @@
        bfReserved2 : Word;
        bfOffBits : DWord;
      end;
+     TBitmapFileHeader = BITMAPFILEHEADER;
 
      BLOB = record
           cbSize : ULONG;
@@ -4792,8 +4793,9 @@
      LPCMENUITEMINFO = ^MENUITEMINFO;
      tagMENUITEMINFO = MENUITEMINFO;
      TMENUITEMINFO = MENUITEMINFO;
-     TMENUITEMINFOA = MENUITEMINFO;
+     TMENUITEMINFOW = MENUITEMINFO;
      PMENUITEMINFO = ^MENUITEMINFO;
+     PMENUITEMINFOW = ^MENUITEMINFO;
 
      MENUITEMTEMPLATE = record
           mtOption : WORD;
@@ -7011,17 +7013,6 @@
      TTOOLINFO = TOOLINFO;
      PTOOLINFO = ^TOOLINFO;
 
-     TOOLTIPTEXT = record
-          hdr : NMHDR;
-          lpszText : LPTSTR;
-          szText : array[0..79] of char;
-          hinst : HINST;
-          uFlags : UINT;
-       end;
-     LPTOOLTIPTEXT = ^TOOLTIPTEXT;
-     TTOOLTIPTEXT = TOOLTIPTEXT;
-     PTOOLTIPTEXT = ^TOOLTIPTEXT;
-
      TPMPARAMS = record
           cbSize : UINT;
           rcExclude : RECT;
@@ -7254,9 +7245,7 @@
        end;
      LPWNDCLASS = ^WNDCLASS;
      _WNDCLASS = WNDCLASS;
-     TWNDCLASS = WNDCLASS;
      TWNDCLASSA = WNDCLASS;
-     PWNDCLASS = ^WNDCLASS;
 
 
      WNDCLASSW = record
@@ -7275,6 +7264,8 @@
      _WNDCLASSW  = WNDCLASSW;
      TWNDCLASSW  = WNDCLASSW;
      PWNDCLASSW  = ^WNDCLASSW;
+     TWNDCLASS = WNDCLASSW;
+     PWNDCLASS = ^WNDCLASSW;
 
      WNDCLASSEX = record
           cbSize : UINT;

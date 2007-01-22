@@ -202,6 +202,7 @@ const
   DTM_SETMCFONT       = DTM_FIRST + 9;
   DTM_GETMCFONT       = DTM_FIRST + 10;
   DTM_SETFORMATW      = DTM_FIRST + 50;
+  DTM_SETFORMAT       = DTM_SETFORMATW;
 
 
   DTS_UPDOWN                 = $0001;
@@ -270,6 +271,32 @@ const
   TBN_DRAGOUT         = (TBN_FIRST - 14);
   //TBN_GETBUTTONINFO   = TBN_GETBUTTONINFOW;
 
+  // custom draw return flags
+  // values under 0x00010000 are reserved for global custom draw values.
+  // above that are for specific controls
+  CDRF_DODEFAULT          = $00000000;
+  CDRF_NEWFONT            = $00000002;
+  CDRF_SKIPDEFAULT        = $00000004;
+  CDRF_NOTIFYPOSTPAINT    = $00000010;
+  CDRF_NOTIFYITEMDRAW     = $00000020;
+  CDRF_NOTIFYSUBITEMDRAW  = $00000020;  // flags are the same, we can distinguish by context
+  CDRF_NOTIFYPOSTERASE    = $00000040;
+
+  // drawstage flags
+  // values under = $00010000 are reserved for global custom draw values.
+  // above that are for specific controls
+  CDDS_PREPAINT           = $00000001;
+  CDDS_POSTPAINT          = $00000002;
+  CDDS_PREERASE           = $00000003;
+  CDDS_POSTERASE          = $00000004;
+  // the = $000010000 bit means it's individual item specific
+  CDDS_ITEM               = $00010000;
+  CDDS_ITEMPREPAINT       = CDDS_ITEM or CDDS_PREPAINT;
+  CDDS_ITEMPOSTPAINT      = CDDS_ITEM or CDDS_POSTPAINT;
+  CDDS_ITEMPREERASE       = CDDS_ITEM or CDDS_PREERASE;
+  CDDS_ITEMPOSTERASE      = CDDS_ITEM or CDDS_POSTERASE;
+  CDDS_SUBITEM            = $00020000;
+
   // Pocket PC  special controls
   WC_CAPEDIT    = 'CAPEDIT';
   WC_TSTATIC    = 'TTSTATIC';
@@ -294,16 +321,6 @@ type
   TNMDATETIMECHANGE=tagNMDATETIMECHANGE;
   LPNMDATETIMECHANGE=^tagNMDATETIMECHANGE;
 
-  tagNMDATETIMESTRINGA = record
-    nmhdr         : NMHDR;
-    pszUserString : LPCSTR;
-    st            : SYSTEMTIME;
-    dwFlags       : DWORD;
-  end;
-  NMDATETIMESTRINGA=tagNMDATETIMESTRINGA;
-  TNMDATETIMESTRINGA=tagNMDATETIMESTRINGA;
-  LPNMDATETIMESTRINGA=^tagNMDATETIMESTRINGA;
-
   tagNMDATETIMESTRINGW = record
     nmhdr         : NMHDR;
     pszUserString : LPCWSTR;
@@ -313,6 +330,9 @@ type
   NMDATETIMESTRINGW=tagNMDATETIMESTRINGW;
   TNMDATETIMESTRINGW=tagNMDATETIMESTRINGW;
   LPNMDATETIMESTRINGW=^tagNMDATETIMESTRINGW;
+  NMDATETIMESTRING=tagNMDATETIMESTRINGW;
+  TNMDATETIMESTRING=tagNMDATETIMESTRINGW;
+  PNMDATETIMESTRING=^tagNMDATETIMESTRINGW;
 
   tagNMDATETIMEWMKEYDOWNA = record
     nmhdr     : NMHDR;
@@ -394,6 +414,7 @@ type
   end;
   NMMOUSE=tagNMMOUSE;
   LPNMMOUSE=^NMMOUSE;
+  PNMMOUSE=^NMMOUSE;
   NMCLICK=NMMOUSE;
   LPNMCLICK=LPNMMOUSE;
 
@@ -412,7 +433,39 @@ type
   end;
   LPTBBUTTONINFOW=^TBBUTTONINFOW;
   TBBUTTONINFO=TBBUTTONINFOW;
+  TTBButtonInfo=TBBUTTONINFO;
 
+  tagNMCUSTOMDRAWINFO = packed record
+    hdr: TNMHdr;
+    dwDrawStage: DWORD;
+    hdc: HDC;
+    rc: TRect;
+    dwItemSpec: DWORD;
+    uItemState: UINT;
+    lItemlParam: LPARAM;
+  end;
+  PNMCustomDraw = ^TNMCustomDraw;
+  TNMCustomDraw = tagNMCUSTOMDRAWINFO;
+  
+  tagNMLVCUSTOMDRAW = packed record
+    nmcd: TNMCustomDraw;
+    clrText: COLORREF;
+    clrTextBk: COLORREF;
+    iSubItem: Integer;
+  end;
+  PNMLVCustomDraw = ^TNMLVCustomDraw;
+  TNMLVCustomDraw = tagNMLVCUSTOMDRAW;
+  
+  tagNMLVODSTATECHANGE = packed record
+    hdr: TNMHdr;
+    iFrom: Integer;
+    iTo: Integer;
+    uNewState: UINT;
+    uOldState: UINT;
+  end;
+  PNMLVODStateChange = ^TNMLVODStateChange;
+  TNMLVODStateChange = tagNMLVODSTATECHANGE;
+  
 //*****************************************************************************
 // functions
 //*****************************************************************************

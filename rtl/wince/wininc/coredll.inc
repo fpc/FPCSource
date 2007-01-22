@@ -175,7 +175,6 @@
       111 CreateMsgQueue
       16E CreateServiceHandle
       34E CreateStaticMapping
-      2F4 CreateThread
        C5 CryptAcquireContextW
        E1 CryptContextAddRef
        D0 CryptCreateHash
@@ -237,7 +236,6 @@
       14D EnumUILanguagesW
       374 ExtractResource
       17F FileSystemPowerFunction
-      511 FillRgn
       381 FilterTrackedItem
       345 FlushViewOfFileMaybe
       334 ForcePageout
@@ -2384,6 +2382,7 @@ function CreateRectRgnIndirect(var _para1:RECT):HRGN; external KernelDLL name 'C
 function CreateSemaphore(lpSemaphoreAttributes:LPSECURITY_ATTRIBUTES; lInitialCount:LONG; lMaximumCount:LONG; lpName:LPCWSTR):HWND; external KernelDLL name 'CreateSemaphoreW';
 function CreateSemaphoreW(lpSemaphoreAttributes:LPSECURITY_ATTRIBUTES; lInitialCount:LONG; lMaximumCount:LONG; lpName:LPCWSTR):HWND; external KernelDLL name 'CreateSemaphoreW';
 function CreateSolidBrush(_para1:COLORREF):HBRUSH; external KernelDLL name 'CreateSolidBrush';
+function CreateThread(lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: pointer; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; external KernelDLL name 'CreateThread';
 function CreateWindow(lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:Longint;Y:Longint; nWidth:Longint; nHeight:Longint; hWndParent:HWND; hMenu:HMENU;hInstance:HINST; lpParam:LPVOID):HWND;
 function CreateWindowEx(dwExStyle:DWORD; lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint;Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU;hInstance:HINST; lpParam:LPVOID):HWND;
   external KernelDLL name 'CreateWindowExW';
@@ -2471,6 +2470,7 @@ function FileTimeToLocalFileTime(lpFileTime:LPFILETIME; lpLocalFileTime:LPFILETI
 function FileTimeToSystemTime(lpFileTime:LPFILETIME; lpSystemTime:LPSYSTEMTIME):WINBOOL; external KernelDLL name 'FileTimeToSystemTime';
 procedure FillMemory(Destination:PVOID; Length:DWORD; Fill:BYTE);
 function FillRect(hDC:HDC; const lprc:RECT; hbr:HBRUSH):longint; external KernelDLL name 'FillRect';
+function FillRgn(DC: HDC; p2: HRGN; p3: HBRUSH): BOOL; external KernelDLL name 'FillRgn';
 function FindClose(hFindFile:HWND):WINBOOL; external KernelDLL name 'FindClose';
 function FindCloseChangeNotification(hChangeHandle:HWND):WINBOOL; external KernelDLL name 'FindCloseChangeNotification';
 function FindFirstChangeNotification(lpPathName:LPCWSTR; bWatchSubtree:WINBOOL; dwNotifyFilter:DWORD):HWND; external KernelDLL name 'FindFirstChangeNotificationW';
@@ -2616,6 +2616,8 @@ function GetRgnBox(_para1:HRGN; _para2:LPRECT):longint; external KernelDLL name 
 function GetSaveFileName(_para1:LPOPENFILENAMEW):WINBOOL; external KernelDLL name 'GetSaveFileNameW';
 function GetSaveFileNameW(_para1:LPOPENFILENAMEW):WINBOOL; external KernelDLL name 'GetSaveFileNameW';
 function GetScrollInfo(_para1:HWND; _para2:longint; _para3:LPSCROLLINFO):WINBOOL; external KernelDLL name 'GetScrollInfo';
+function GetScrollPos(hWnd: HWND; nBar: LongInt): LongInt;
+function GetScrollRange(hWnd: HWND; nBar: Integer; var lpMinPos, lpMaxPos: LongInt): BOOL;
 function SHGetSpecialFolderPath(hwndOwner: HWND; lpszPath: LPTSTR; nFolder: LongInt; fCreate: BOOL): BOOL;
   external KernelDLL name 'SHGetSpecialFolderPath';
 function GetStockObject(_para1:longint):HGDIOBJ; external KernelDLL name 'GetStockObject';
@@ -2722,12 +2724,14 @@ function ImageList_Draw(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:lon
 function ImageList_DrawEx(himl:HIMAGELIST; i:longint; hdcDst:HDC; x:longint; y:longint;dx:longint; dy:longint; rgbBk:COLORREF; rgbFg:COLORREF; fStyle:UINT):WINBOOL; external KernelDLL name 'ImageList_DrawEx';
 function ImageList_DrawIndirect(pimldp:PIMAGELISTDRAWPARAMS):WINBOOL; external KernelDLL name 'ImageList_DrawIndirect'; //+commctrl
 procedure ImageList_EndDrag; external KernelDLL name 'ImageList_EndDrag';
+function ImageList_ExtractIcon(Instance: THandle; ImageList: HIMAGELIST; Image: LongInt): HIcon;
 function ImageList_GetBkColor(himl:HIMAGELIST):COLORREF; external KernelDLL name 'ImageList_GetBkColor';
 function ImageList_GetDragImage(ppt:LPPOINT; pptHotspot:LPPOINT):HIMAGELIST; external KernelDLL name 'ImageList_GetDragImage';
 function ImageList_GetIcon(himl:HIMAGELIST; i:longint; flags:UINT):HICON; external KernelDLL name 'ImageList_GetIcon';
 function ImageList_GetIconSize(himl:HIMAGELIST; var cx:longint; var cy:longint):WINBOOL; external KernelDLL name 'ImageList_GetIconSize';
 function ImageList_GetImageCount(himl:HIMAGELIST):longint; external KernelDLL name 'ImageList_GetImageCount';
 function ImageList_GetImageInfo(himl:HIMAGELIST; i:longint; var pImageInfo:IMAGEINFO):WINBOOL; external KernelDLL name 'ImageList_GetImageInfo';
+function ImageList_LoadBitmap(Instance: THandle; Bmp: LPCSTR; CX, Grow: LongInt; Mask: TColorRef): HImageList;
 function ImageList_LoadImage(hi:HINST; lpbmp:LPCSTR; cx:longint; cGrow:longint; crMask:COLORREF;uType:UINT; uFlags:UINT):HIMAGELIST; external KernelDLL name 'ImageList_LoadImage';
 function ImageList_Merge(himl1:HIMAGELIST; i1:longint; himl2:HIMAGELIST; i2:longint; dx:longint;dy:longint):HIMAGELIST; external KernelDLL name 'ImageList_Merge';
 function ImageList_Replace(himl:HIMAGELIST; i:longint; hbmImage:HBITMAP; hbmMask:HBITMAP):WINBOOL; external KernelDLL name 'ImageList_Replace';
@@ -2947,8 +2951,8 @@ function RegDeleteValue(hKey:HKEY; lpValueName:LPCWSTR):LONG; external KernelDLL
 function RegDeleteValueW(hKey:HKEY; lpValueName:LPCWSTR):LONG; external KernelDLL name 'RegDeleteValueW';
 function RegEnumKeyEx(hKey:HKEY; dwIndex:DWORD; lpName:LPWSTR; lpcbName:LPDWORD; lpReserved:LPDWORD;lpClass:LPWSTR; lpcbClass:LPDWORD; lpftLastWriteTime:PFILETIME):LONG; external KernelDLL name 'RegEnumKeyExW';
 function RegEnumKeyExW(hKey:HKEY; dwIndex:DWORD; lpName:LPWSTR; lpcbName:LPDWORD; lpReserved:LPDWORD;lpClass:LPWSTR; lpcbClass:LPDWORD; lpftLastWriteTime:PFILETIME):LONG; external KernelDLL name 'RegEnumKeyExW';
-function RegEnumValue(hKey:HKEY; dwIndex:DWORD; lpValueName:LPWSTR; lpcbValueName:LPDWORD; lpReserved:LPDWORD;lpType:LPDWORD; lpData:LPBYTE; lpcbData:LPDWORD):LONG; external KernelDLL name 'RegEnumValueW';
-function RegEnumValueW(hKey:HKEY; dwIndex:DWORD; lpValueName:LPWSTR; lpcbValueName:LPDWORD; lpReserved:LPDWORD;lpType:LPDWORD; lpData:LPBYTE; lpcbData:LPDWORD):LONG; external KernelDLL name 'RegEnumValueW';
+function RegEnumValue(hKey:HKEY; dwIndex:DWORD; lpValueName:LPWSTR; lpcbValueName:LPDWORD; lpReserved:LPDWORD;lpType:LPDWORD; lpData:pointer; lpcbData:LPDWORD):LONG; external KernelDLL name 'RegEnumValueW';
+function RegEnumValueW(hKey:HKEY; dwIndex:DWORD; lpValueName:LPWSTR; lpcbValueName:LPDWORD; lpReserved:LPDWORD;lpType:LPDWORD; lpData:pointer; lpcbData:LPDWORD):LONG; external KernelDLL name 'RegEnumValueW';
 function RegFlushKey(hKey:HKEY):LONG; external KernelDLL name 'RegFlushKey';
 function RegisterClass(lpWndClass:LPWNDCLASS):ATOM; external KernelDLL name 'RegisterClassW';
 function RegisterClassW(lpWndClass:LPWNDCLASS):ATOM; external KernelDLL name 'RegisterClassW';
@@ -2962,10 +2966,10 @@ function RegQueryInfoKey(hKey:HKEY; lpClass:LPWSTR; lpcbClass:LPDWORD; lpReserve
   lpcbMaxValueLen:LPDWORD;lpcbSecurityDescriptor:LPDWORD; lpftLastWriteTime:PFILETIME):LONG; external KernelDLL name 'RegQueryInfoKeyW';
 function RegQueryInfoKeyW(hKey:HKEY; lpClass:LPWSTR; lpcbClass:LPDWORD; lpReserved:LPDWORD; lpcSubKeys:LPDWORD;lpcbMaxSubKeyLen:LPDWORD; lpcbMaxClassLen:LPDWORD; lpcValues:LPDWORD; lpcbMaxValueNameLen:LPDWORD;
   lpcbMaxValueLen:LPDWORD;lpcbSecurityDescriptor:LPDWORD; lpftLastWriteTime:PFILETIME):LONG; external KernelDLL name 'RegQueryInfoKeyW';
-function RegQueryValueEx(hKey:HKEY; lpValueName:LPCWSTR; lpReserved:LPDWORD; lpType:LPDWORD; lpData:LPBYTE;lpcbData:LPDWORD):LONG; external KernelDLL name 'RegQueryValueExW';
-function RegQueryValueExW(hKey:HKEY; lpValueName:LPCWSTR; lpReserved:LPDWORD; lpType:LPDWORD; lpData:LPBYTE;lpcbData:LPDWORD):LONG; external KernelDLL name 'RegQueryValueExW';
-function RegSetValueEx(hKey:HKEY; lpValueName:LPCWSTR; Reserved:DWORD; dwType:DWORD; lpData:LPBYTE;cbData:DWORD):LONG; external KernelDLL name 'RegSetValueExW';
-function RegSetValueExW(hKey:HKEY; lpValueName:LPCWSTR; Reserved:DWORD; dwType:DWORD; lpData:LPBYTE;cbData:DWORD):LONG; external KernelDLL name 'RegSetValueExW';
+function RegQueryValueEx(hKey:HKEY; lpValueName:LPCWSTR; lpReserved:LPDWORD; lpType:LPDWORD; lpData:pointer;lpcbData:LPDWORD):LONG; external KernelDLL name 'RegQueryValueExW';
+function RegQueryValueExW(hKey:HKEY; lpValueName:LPCWSTR; lpReserved:LPDWORD; lpType:LPDWORD; lpData:pointer;lpcbData:LPDWORD):LONG; external KernelDLL name 'RegQueryValueExW';
+function RegSetValueEx(hKey:HKEY; lpValueName:LPCWSTR; Reserved:DWORD; dwType:DWORD; lpData:pointer;cbData:DWORD):LONG; external KernelDLL name 'RegSetValueExW';
+function RegSetValueExW(hKey:HKEY; lpValueName:LPCWSTR; Reserved:DWORD; dwType:DWORD; lpData:pointer;cbData:DWORD):LONG; external KernelDLL name 'RegSetValueExW';
 function RegReplaceKey(hKey:HKEY; lpSubKey:LPCTSTR; lpNewFile:LPCTSTR; lpOldFile:LPCTSTR):LONG; external KernelDLL name 'RegReplaceKey';
 function RegSaveKey(hKey:HKEY; lpFile:LPCTSTR; lpSecurityAttributes:LPSECURITY_ATTRIBUTES):LONG; external KernelDLL name 'RegSaveKey';
 function ReleaseCapture:WINBOOL; external KernelDLL name 'ReleaseCapture';
@@ -3113,7 +3117,7 @@ function TlsCall(p1:DWORD; p2:DWORD):DWORD; external KernelDLL name 'TlsCall';
 function TlsFree(dwTlsIndex:DWORD):WINBOOL;
 function TlsGetValue(dwTlsIndex:DWORD):LPVOID; external KernelDLL name 'TlsGetValue';
 function TlsSetValue(dwTlsIndex:DWORD; lpTlsValue:LPVOID):WINBOOL; external KernelDLL name 'TlsSetValue';
-function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint;hWnd:HWND; var prcRect:RECT):WINBOOL;
+function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint;hWnd:HWND; prcRect: PRect):WINBOOL;
 function TrackPopupMenuEx(_para1:HMENU; _para2:UINT; _para3:longint; _para4:longint; _para5:HWND;_para6:LPTPMPARAMS):WINBOOL; external KernelDLL name 'TrackPopupMenuEx';
 function TranslateAccelerator(hWnd:HWND; hAccTable:HACCEL; lpMsg:LPMSG):longint; external KernelDLL name 'TranslateAcceleratorW';
 function TranslateAcceleratorW(hWnd:HWND; hAccTable:HACCEL; lpMsg:LPMSG):longint; external KernelDLL name 'TranslateAcceleratorW';
@@ -4033,7 +4037,7 @@ begin
   TabCtrl_SetCurFocus:=SendMessage(hwnd,TCM_SETCURFOCUS,i,0);
 end;
 
-function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint;hWnd:HWND; var prcRect:RECT):WINBOOL;
+function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserved:longint;hWnd:HWND; prcRect: PRect):WINBOOL;
 begin
   TrackPopupMenu:=TrackPopupMenuEx(hMenu,uFlags,x,y,hWnd,nil);
 end;
@@ -4256,6 +4260,39 @@ end;
 procedure ZeroMemory(Destination:PVOID; Length:DWORD);
 begin
   FillChar(Destination^,Length,#0);
+end;
+
+function GetScrollPos(hWnd: HWND; nBar: LongInt): LongInt;
+var
+  si : TScrollInfo;
+begin
+  si.cbSize:=SizeOf(si);
+  if GetScrollInfo(hWnd, nBar, si) then
+    Result:=si.nPos
+  else
+    Result:=0;
+end;
+
+function GetScrollRange(hWnd: HWND; nBar: Integer; var lpMinPos, lpMaxPos: LongInt): BOOL;
+var
+  si : TScrollInfo;
+begin
+  si.cbSize:=SizeOf(si);
+  Result:=GetScrollInfo(hWnd, nBar, si);
+  if Result then begin
+    lpMinPos:=si.nMin;
+    lpMaxPos:=si.nMax;
+  end;
+end;
+
+function ImageList_ExtractIcon(Instance: THandle; ImageList: HIMAGELIST; Image: LongInt): HIcon;
+begin
+  Result:=ImageList_GetIcon(ImageList, Image, 0);
+end;
+
+function ImageList_LoadBitmap(Instance: THandle; Bmp: LPCSTR; CX, Grow: LongInt; Mask: TColorRef): HImageList;
+begin
+  Result := ImageList_LoadImage(Instance, Bmp, CX, Grow, Mask, IMAGE_BITMAP, 0);
 end;
 
 {$endif read_implementation}
