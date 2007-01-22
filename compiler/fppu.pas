@@ -751,7 +751,7 @@ uses
                     begin
                       do_compile:=true;
                       recompile_reason:=rr_sourcenewer;
-                      Message2(unit_u_source_modified,hs,ppufilename^);
+                      Message2(unit_u_source_modified,hs,ppufilename^,@queuecomment);
                       temp:=temp+' *';
                     end;
                 end
@@ -769,7 +769,7 @@ uses
                stringdispose(mainsource);
                mainsource:=stringdup(hs);
              end;
-           Message1(unit_u_ppu_source,hs+temp);
+           Message1(unit_u_ppu_source,hs+temp,@queuecomment);
            is_main:=false;
          end;
       { check if we want to rebuild every unit, only if the sources are
