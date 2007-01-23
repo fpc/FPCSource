@@ -982,6 +982,10 @@ Unit Rax86int;
                                if not(ttypesym(sym).typedef.typ in [recorddef,objectdef]) then
                                 Message(asmr_e_wrong_sym_type);
                              end;
+                           fieldvarsym :
+                             begin
+                               tempstr:='SELF.'+tempstr;
+                             end;
                            else
                              Message(asmr_e_wrong_sym_type);
                          end;
@@ -1014,8 +1018,10 @@ Unit Rax86int;
                        else
                          Message(asmr_e_only_add_relocatable_symbol);
                     end;
-                   if actasmtoken=AS_DOT then
-                    begin
+                   if (actasmtoken=AS_DOT) or
+                      (assigned(sym) and
+                       (sym.typ = fieldvarsym)) then
+                     begin
                       BuildRecordOffsetSize(tempstr,l,k,hs);
                       if hs <> '' then
                         hssymtyp:=AT_FUNCTION

@@ -1202,6 +1202,14 @@ Begin
               exit;
             end;
          end;
+       fieldvarsym :
+         begin
+           if (tfieldvarsym(srsym).vardef.typ in [recorddef,objectdef]) then
+             begin
+               SearchRecordType:=true;
+               exit;
+             end;
+         end;
      end;
    end;
 end;
