@@ -1327,7 +1327,7 @@ implementation
                                Factor
 ****************************************************************************}
 
-    
+
     function is_member_read(sym: tsym; st: tsymtable; var p1: tnode;
                             out memberparentdef: tdef): boolean;
       var
@@ -1337,7 +1337,7 @@ implementation
         memberparentdef:=nil;
 
         case st.symtabletype of
-          ObjectSymtable: 
+          ObjectSymtable:
             begin
               memberparentdef:=tdef(st.defowner);
               exit;
@@ -1672,7 +1672,7 @@ implementation
                           { no procsyms in records (yet) }
                           internalerror(2007012006);
                       end
-                    else 
+                    else
                       { regular procedure/function call }
                       do_proc_call(srsym,srsymtable,nil,
                                    (getaddr and not(token in [_CARET,_POINT])),
@@ -1955,7 +1955,7 @@ implementation
                         else
                           begin
                             { The property symbol is referenced indirect }
-                            inc(protsym.refs);
+                            protsym.IncRefCount;
                             handle_propertysym(protsym,protsym.owner,p1);
                           end;
                       end
