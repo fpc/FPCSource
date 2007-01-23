@@ -443,7 +443,23 @@ begin
 
            'b' :
              begin
-               Message1(option_obsolete_switch,'-b');
+               // Message1(option_obsolete_switch,'-b');
+               if UnsetBool(More,0) then
+                 begin
+                   init_settings.moduleswitches:=init_settings.moduleswitches-[cs_browser];
+                   init_settings.moduleswitches:=init_settings.moduleswitches-[cs_local_browser];
+                 end
+               else
+                 begin
+                   init_settings.moduleswitches:=init_settings.moduleswitches+[cs_browser];
+                 end;
+               if More<>'' then
+                 if (More='l') or (More='l+') then
+                   init_settings.moduleswitches:=init_settings.moduleswitches+[cs_local_browser]
+                 else if More='l-' then
+                   init_settings.moduleswitches:=init_settings.moduleswitches-[cs_local_browser]
+                 else
+                   IllegalPara(opt);
              end;
 
            'B' :
