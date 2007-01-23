@@ -107,7 +107,9 @@ interface
          cs_profile,cs_debuginfo,cs_compilesystem,
          cs_lineinfo,cs_implicit_exceptions,
          { linking }
-         cs_create_smart,cs_create_dynamic,cs_create_pic
+         cs_create_smart,cs_create_dynamic,cs_create_pic,
+         { browser switches are back }
+         cs_browser,cs_local_browser
        );
        tmoduleswitches = set of tmoduleswitch;
 
