@@ -1379,7 +1379,7 @@ invalid:
 {$ifndef FPC_SYSTEM_HAS_QWORD_TO_DOUBLE}
 function fpc_qword_to_double(q : qword): double; compilerproc;
   begin
-     result:=dword(q and $ffffffff)+dword(q shr 32)*4294967296.0;
+     result:=dword(q and $ffffffff)+dword(q shr 32)*double(4294967296.0);
   end;
 {$endif FPC_SYSTEM_HAS_INT64_TO_DOUBLE}
 
