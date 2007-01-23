@@ -93,6 +93,7 @@ compiler/comprsrc.pas svneol=native#text/plain
 compiler/cp437.pas svneol=native#text/plain
 compiler/cp850.pas svneol=native#text/plain
 compiler/cp8859_1.pas svneol=native#text/plain
+compiler/crefs.pas -text
 compiler/cresstr.pas svneol=native#text/plain
 compiler/cstreams.pas svneol=native#text/plain
 compiler/cutils.pas svneol=native#text/plain
