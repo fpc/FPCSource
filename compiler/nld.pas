@@ -258,7 +258,7 @@ implementation
              end;
            staticvarsym :
              begin
-               inc(tabstractvarsym(symtableentry).refs);
+               tabstractvarsym(symtableentry).IncRefCountBy(1);
                { static variables referenced in procedures or from finalization,
                  variable needs to be in memory.
                  It is too hard and the benefit is too small to detect whether a
@@ -275,7 +275,7 @@ implementation
            paravarsym,
            localvarsym :
              begin
-               inc(tabstractvarsym(symtableentry).refs);
+               tabstractvarsym(symtableentry).IncRefCountBy(1);
                { Nested variable? The we need to load the framepointer of
                  the parent procedure }
                if assigned(current_procinfo) and
@@ -393,7 +393,7 @@ implementation
                   Tabstractvarsym(symtableentry).trigger_notifications(vn_onread);
                 { count variable references }
                 if cg.t_times>1 then
-                  inc(tabstractvarsym(symtableentry).refs,cg.t_times-1);
+                  tabstractvarsym(symtableentry).IncRefCountBy(cg.t_times-1);
               end;
             procsym :
                 begin
