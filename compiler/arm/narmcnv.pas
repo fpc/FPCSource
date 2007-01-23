@@ -158,7 +158,7 @@ implementation
                 begin
                   hregister:=location.register;
                   location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                  current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_MVF,hregister,location.register),PF_S));
+                  current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_MVF,location.register,hregister),PF_S));
                 end;
             end;
           else
