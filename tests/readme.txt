@@ -181,10 +181,11 @@ You need to create \fpctest folder on remote device before running testsuite.
 Result uploading
 ----------------
 Results can be uploaded to the testsuite result DB (http://www.freepascal.org/cgi-bin/testsuite.cgi) by executing
+
 make uploadrun
+
 On unix:
 - The testing machine must be enabled to login on www.freepascal.org automatically as user fpc with ssh.
 On Windows:
-- The putty utilities plink.exe and pscp.exe must be in the patch
-- the must be a putty session named fpc@www.freepascal.org which is enabled to login automatically into www.freepascal.org
-
+- The putty utilities plink.exe and pscp.exe must be in the path
+- There must be a putty session named fpc@www.freepascal.org which is enabled to login automatically into www.freepascal.org
