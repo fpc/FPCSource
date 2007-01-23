@@ -27,9 +27,7 @@ interface
     uses
       { common }
       cutils,
-{$ifdef MEMDEBUG}
       cclasses,
-{$endif MEMDEBUG}
       { global }
       globtype,globals,
       { symtable }
@@ -99,8 +97,10 @@ interface
          fileinfo   : tfileposinfo;
          symoptions : tsymoptions;
          refs       : longint;
+         reflist    : TLinkedList;
          isdbgwritten : boolean;
          constructor create(st:tsymtyp;const aname:string);
+         destructor  destroy;override;
          function  mangledname:string; virtual;
          procedure buildderef;virtual;
          procedure deref;virtual;
@@ -110,6 +110,10 @@ interface
          }
          function is_visible_for_object(currobjdef:tdef;context : tdef):boolean;virtual;
          procedure ChangeOwner(st:TSymtable);
+         procedure IncRefCount;
+         procedure IncRefCountBy(AValue : longint);
+         procedure MaybeCreateRefList;
+         procedure AddRef;
       end;
 
       tsymarr = array[0..maxlongint div sizeof(pointer)-1] of tsym;
@@ -199,6 +203,7 @@ interface
 implementation
 
     uses
+       crefs,
        verbose,
        fmodule
        ;
@@ -324,12 +329,48 @@ implementation
          inherited CreateNotOwned;
          realname:=aname;
          typ:=st;
+         RefList:=nil;
          symoptions:=[];
          fileinfo:=current_tokenpos;
          isdbgwritten := false;
          symoptions:=current_object_option;
       end;
 
+    destructor  Tsym.destroy;
+      begin
+        if assigned(RefList) then
+          RefList.Free;
+        inherited Destroy;
+      end;
+
+    procedure Tsym.IncRefCount;
+      begin
+        inc(refs);
+        if cs_browser in current_settings.moduleswitches then
+          begin
+            MaybeCreateRefList;
+            AddRef;
+          end;
+      end;
+
+    procedure Tsym.IncRefCountBy(AValue : longint);
+      begin
+        inc(refs,AValue);
+      end;
+
+    procedure Tsym.MaybeCreateRefList;
+      begin
+        if not assigned(reflist) then
+          reflist:=TRefLinkedList.create;
+      end;
+
+    procedure Tsym.AddRef;
+      var
+        RefItem: TRefItem;
+      begin
+        RefItem:=TRefItem.Create(current_tokenpos);
+        RefList.Concat(RefItem);
+      end;
 
     procedure Tsym.buildderef;
       begin
