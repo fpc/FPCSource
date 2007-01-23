@@ -434,6 +434,11 @@ implementation
                  end;
              end;
 
+            if (compile_level=1) and
+               (status.errorcount=0) then
+              { Write Browser Collections }
+              do_extractsymbolinfo;
+
             with olddata^ do
               begin
                 { restore scanner }
@@ -472,24 +477,6 @@ implementation
                 (status.errorcount=0) then
               begin
                 parser_current_file:='';
-                 { Write Browser Collections }
-                 do_extractsymbolinfo;
-                 { free now what we did not free earlier in
-                   proc_program PM }
-                 if needsymbolinfo then
-                   begin
-                     hp:=tmodule(loaded_units.first);
-                     while assigned(hp) do
-                      begin
-                        hp2:=tmodule(hp.next);
-                        if (hp<>current_module) then
-                          begin
-                            loaded_units.remove(hp);
-                            hp.free;
-                          end;
-                        hp:=hp2;
-                      end;
-                    end;
                 { Close script }
                 if (not AsmRes.Empty) then
                 begin
@@ -498,6 +485,22 @@ implementation
                 end;
               end;
 
+          { free now what we did not free earlier in
+            proc_program PM }
+          if (compile_level=1) and needsymbolinfo then
+            begin
+              hp:=tmodule(loaded_units.first);
+              while assigned(hp) do
+               begin
+                 hp2:=tmodule(hp.next);
+                 if (hp<>current_module) then
+                   begin
+                     loaded_units.remove(hp);
+                     hp.free;
+                   end;
+                 hp:=hp2;
+               end;
+             end;
            dec(compile_level);
            compiled_module:=olddata^.old_compiled_module;
            SetCompileModule(compiled_module);
