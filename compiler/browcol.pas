@@ -271,7 +271,8 @@ uses
   verbose,
 {$endif DEBUG}
   finput,fmodule,
-  cpuinfo,cgbase,aasmbase,aasmtai,aasmdata,paramgr,
+  crefs,cpuinfo,cgbase,
+  aasmbase,aasmtai,aasmdata,paramgr,
   symsym,symdef,symtype,symbase,defutil;
 
 const
@@ -1236,11 +1237,8 @@ end;
       Symbol: PSymbol;
       Reference: PReference;
       inputfile : Tinputfile;
-{$ifdef use_refs}
-      Ref : defref;
-{$else not use_refs}
+      Ref : TRefItem;
       DefPos : TFilePosInfo;
-{$endif not use_refs}
   procedure SetVType(Symbol: PSymbol; VType: string);
   begin
     Symbol^.VType:=TypeNames^.Add(VType);
@@ -1637,7 +1635,7 @@ end;
                             begin
                               Symbol^.Params:=TypeNames^.Add('...');
                             end;
-          //                if cs_local_browser in current_settings.moduleswitches then
+                          if cs_local_browser in current_settings.moduleswitches then
                            begin
                              if assigned(pd.localst) and
                                (pd.localst.symtabletype<>staticsymtable) then
@@ -1693,29 +1691,32 @@ end;
                end;
             end;
         end;
-{$ifdef use_refs}
-        Ref:=tstoredsym(sym).defref;
-        while Assigned(Symbol) and assigned(Ref) do
+        if assigned(sym) then
           begin
-            inputfile:=get_source_file(ref.moduleindex,ref.posinfo.fileindex);
+            DefPos:=tstoredsym(sym).FileInfo;
+            inputfile:=get_source_file(defpos.moduleindex,defpos.fileindex);
             if Assigned(inputfile) and Assigned(inputfile.name) then
               begin
                 New(Reference, Init(ModuleNames^.Add(inputfile.name^),
-                  ref.posinfo.line,ref.posinfo.column));
+                  DefPos.line,DefPos.column));
                 Symbol^.References^.Insert(Reference);
               end;
-            Ref:=Ref.nextref;
           end;
-{$else not use_refs}
-        DefPos:=tstoredsym(sym).FileInfo;
-        inputfile:=get_source_file(current_moduleindex,defpos.fileindex);
-        if Assigned(inputfile) and Assigned(inputfile.name) then
+        if assigned(Symbol) and assigned(sym.RefList) then
           begin
-            New(Reference, Init(ModuleNames^.Add(inputfile.name^),
-              DefPos.line,DefPos.column));
-            Symbol^.References^.Insert(Reference);
+            Ref:=TRefItem(tstoredsym(sym).RefList.First);
+            while assigned(Ref) do
+              begin
+                inputfile:=get_source_file(ref.refinfo.moduleindex,ref.refinfo.fileindex);
+                if Assigned(inputfile) and Assigned(inputfile.name) then
+                  begin
+                    New(Reference, Init(ModuleNames^.Add(inputfile.name^),
+                      ref.refinfo.line,ref.refinfo.column));
+                    Symbol^.References^.Insert(Reference);
+                  end;
+                Ref:=TRefItem(Ref.next);
+              end;
           end;
-{$endif use_refs}
         if Assigned(Symbol) then
           begin
             (* if not Owner^.Search(Symbol,J) then *)
@@ -1755,10 +1756,10 @@ var
   pif: tinputfile;
 begin
   DisposeBrowserCol;
-//  if (cs_browser in current_settings.moduleswitches) then
+  if (cs_browser in current_settings.moduleswitches) then
     NewBrowserCol;
   hp:=tmodule(loaded_units.first);
-//  if (cs_browser in current_settings.moduleswitches) then
+  if (cs_browser in current_settings.moduleswitches) then
    while assigned(hp) do
     begin
        current_moduleindex:=hp.unit_index;
@@ -1791,7 +1792,7 @@ begin
            Modules^.Insert(UnitS);
            ProcessSymTable(UnitS,UnitS^.Items,T);
            if hp.is_unit then
-//           if cs_local_browser in current_settings.moduleswitches then
+           if cs_local_browser in current_settings.moduleswitches then
              begin
                 t:=tsymtable(hp.localsymtable);
                 if assigned(t) then
@@ -1802,7 +1803,7 @@ begin
     end;
 
   hp:=tmodule(loaded_units.first);
-//  if (cs_browser in current_settings.moduleswitches) then
+  if (cs_browser in current_settings.moduleswitches) then
    while assigned(hp) do
     begin
        t:=tsymtable(hp.globalsymtable);
@@ -1832,7 +1833,7 @@ begin
        hp:=tmodule(hp.next);
     end;
 
-  //if (cs_browser in current_settings.moduleswitches) then
+  if (cs_browser in current_settings.moduleswitches) then
     BuildObjectInfo;
   { can allways be done
     needed to know when recompilation of sources is necessary }
