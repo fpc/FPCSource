@@ -1452,7 +1452,7 @@ implementation
      procedure addsymref(sym:tsym);
        begin
          { symbol uses count }
-         inc(sym.refs);
+         sym.IncRefCount;
          { unit uses count }
          if assigned(current_module) and
             (sym.owner.symtabletype=globalsymtable) then
