@@ -267,22 +267,22 @@ function GetExceptionMask: TFPUExceptionMask;
     Result:=[];
     cw:=FPU_GetCW;
 
-    if (cw and _FPU_MASK_IM)<>0 then
+    if (cw and _FPU_MASK_IM)=0 then
       include(Result,exInvalidOp);
 
-    if (cw and _FPU_MASK_DM)<>0 then
+    if (cw and _FPU_MASK_DM)=0 then
       include(Result,exDenormalized);
 
-    if (cw and _FPU_MASK_ZM)<>0 then
+    if (cw and _FPU_MASK_ZM)=0 then
       include(Result,exZeroDivide);
 
-    if (cw and _FPU_MASK_OM)<>0 then
+    if (cw and _FPU_MASK_OM)=0 then
       include(Result,exOverflow);
 
-    if (cw and _FPU_MASK_UM)<>0 then
+    if (cw and _FPU_MASK_UM)=0 then
       include(Result,exUnderflow);
 
-    if (cw and _FPU_MASK_PM)<>0 then
+    if (cw and _FPU_MASK_PM)=0 then
       include(Result,exPrecision);
 {$else}
     dword(Result):=softfloat_exception_mask;
@@ -295,25 +295,25 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
     cw : dword;
   begin
 {$if not(defined(gba)) and not(defined(nds))}
-    cw:=FPU_GetCW and not(_FPU_MASK_ALL);
+    cw:=FPU_GetCW or _FPU_MASK_ALL;
 
     if exInvalidOp in Mask then
-      cw:=cw or _FPU_MASK_IM;
+      cw:=cw and not(_FPU_MASK_IM);
 
     if exDenormalized in Mask then
-      cw:=cw or _FPU_MASK_DM;
+      cw:=cw and not(_FPU_MASK_DM);
 
     if exZeroDivide in Mask then
-      cw:=cw or _FPU_MASK_ZM;
+      cw:=cw and not(_FPU_MASK_ZM);
 
     if exOverflow in Mask then
-      cw:=cw or _FPU_MASK_OM;
+      cw:=cw and not(_FPU_MASK_OM);
 
     if exUnderflow in Mask then
-      cw:=cw or _FPU_MASK_UM;
+      cw:=cw and not(_FPU_MASK_UM);
 
     if exPrecision in Mask then
-      cw:=cw or _FPU_MASK_PM;
+      cw:=cw and not(_FPU_MASK_PM);
 
     FPU_SetCW(cw);
 {$endif}
