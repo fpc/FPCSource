@@ -963,9 +963,10 @@ implementation
         trashintval: aint;
         list: TAsmList absolute arg;
       begin
-        if (tsym(p).typ=localvarsym) or
-           ((tsym(p).typ=paravarsym) and
-            (vo_is_funcret in tparavarsym(p).varoptions))  then
+        if ((tsym(p).typ=localvarsym) or
+            ((tsym(p).typ=paravarsym) and
+             (vo_is_funcret in tparavarsym(p).varoptions))) and
+           not(tabstractnormalvarsym(p).vardef.needs_inittable) then
          begin
            trashintval := trashintvalues[localvartrashing];
            case tabstractnormalvarsym(p).initialloc.loc of
@@ -1140,7 +1141,6 @@ implementation
         if (tsym(p).typ=paravarsym) then
          begin
            needs_inittable :=
-             not is_class_or_interface(tparavarsym(p).vardef) and
              tparavarsym(p).vardef.needs_inittable;
            case tparavarsym(p).varspez of
              vs_value :
@@ -1158,6 +1158,7 @@ implementation
                      cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).initialloc,tmpreg);
                      reference_reset_base(href,tmpreg,0);
                      if (localvartrashing <> -1) and
+                        not(needs_inittable) and
                         { needs separate implementation to trash open arrays }
                         { since their size is only known at run time         }
                         not is_special_array(tparavarsym(p).vardef) then
@@ -1167,6 +1168,7 @@ implementation
                    end;
                end;
              else if (localvartrashing <> -1) and
+                     not(needs_inittable) and
                      ([vo_is_funcret,vo_is_hidden_para] * tparavarsym(p).varoptions = [vo_is_funcret,vo_is_hidden_para]) then
                    begin
                      tmpreg:=cg.getaddressregister(list);
