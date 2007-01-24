@@ -8,13 +8,16 @@ version=2.0.0
 
 [target]
 programs=fppkg
-units=fpmktype fpmkunit fprepos fpxmlrep pkgropts pkghandler pkgmkconv pkgdownload pkglnet
-units_linux=pkglibcurl pkgwget
-units_freebsd=pkglibcurl pkgwget
-units_netbsd=pkglibcurl pkgwget
-units_openbsd=pkglibcurl pkgwget
-units_darwin=pkglibcurl pkgwget
-units_solaris=pkglibcurl pkgwget
+units=fpmktype fpmkunit fprepos fpxmlrep pkgropts pkghandler pkgmkconv pkgdownload
+units_linux=pkgwget  pkglnet pkglibcurl
+units_freebsd=pkgwget pkglnet pkglibcurl
+units_netbsd=pkgwget pkglnet pkglibcurl
+units_openbsd=pkgwget pkglnet pkglibcurl
+units_darwin=pkgwget pkglnet pkglibcurl
+units_solaris=pkgwget pkglnet pkglibcurl
+units_win32=pkgwget pkglnet
+units_win64=pkgwget pkglnet
+units_wince=pkgwget pkglnet
 examples=rep2xml
 rsts=fprepos fpxmlrep fppkg
 
