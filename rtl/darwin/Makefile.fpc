@@ -278,7 +278,7 @@ terminfo$(PPUEXT) : terminfo.pp baseunix$(PPUEXT)
 
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 
-sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT)
+sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp unix$(PPUEXT) sysutils$(PPUEXT)
 
