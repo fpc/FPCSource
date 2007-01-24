@@ -823,9 +823,9 @@ begin
       begin
       Inc(FRunFailedCount);
       if Run1Field.AsString='' then
-        BGColor:='#FF225B'
+        BGColor:='#FF82AB'    // Light red
       else
-        BGColor:='#FF82AB';   // Light red
+        BGColor:='#FF225B';
       end;
     end;
 end;
