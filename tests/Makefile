@@ -1528,7 +1528,7 @@ endif
 	cd $(TEST_OUTPUTDIR) && tar cfz $(DB_TARGZ) --files-from=tar.lst
 else
 $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/dbdigest.cfg
-	cd $(TEST_OUTPUTDIR) && ../../$(PREPUP) $(DB_TARGZ)
+	cd $(TEST_OUTPUTDIR) && $(subst /,\,../../$(PREPUP)) $(DB_TARGZ)
 endif
 uploadrun: $(TEST_OUTPUTDIR)/$(DB_TARGZ)
 ifdef inWinNT
