@@ -836,7 +836,8 @@ end;
 
 procedure tppufile.writebuf;
 begin
-  if not crc_only then
+  if not crc_only and
+     (bufidx <> 0) then
     blockwrite(f,buf^,bufidx);
   inc(bufstart,bufidx);
   bufidx:=0;
