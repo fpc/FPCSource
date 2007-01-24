@@ -984,7 +984,7 @@ Unit Rax86int;
                              end;
                            fieldvarsym :
                              begin
-                               tempstr:='SELF.'+tempstr;
+                               tempstr:=upper(tdef(sym.owner.defowner).GetTypeName)+'.'+tempstr;
                              end;
                            else
                              Message(asmr_e_wrong_sym_type);
