@@ -54,7 +54,7 @@ unit raatt;
         AS_ASCIIZ,AS_LCOMM,AS_COMM,AS_SINGLE,AS_DOUBLE,AS_EXTENDED,
         AS_DATA,AS_TEXT,AS_INIT,AS_END,
         {------------------ Assembler Operators  --------------------}
-        AS_TYPE,AS_SIZEOF,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
+        AS_TYPE,AS_SIZEOF,AS_VMTOFFSET,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
         AS_LO,AS_HI);
 
         tasmkeyword = string[10];
@@ -75,7 +75,7 @@ unit raatt;
         '.align','.balign','.p2align','.ascii',
         '.asciz','.lcomm','.comm','.single','.double','.tfloat',
         '.data','.text','.init','END',
-        'TYPE','SIZEOF','%','<<','>>','!','&','|','^','~','@','lo','hi');
+        'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','lo','hi');
 
     type
        tattreader = class(tasmreader)
@@ -86,7 +86,7 @@ unit raatt;
          procedure BuildConstantOperand(oper : toperand);
          procedure BuildRealConstant(typ : tfloattype);
          procedure BuildStringConstant(asciiz: boolean);
-         procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string);
+         procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
          procedure BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
          function BuildConstExpression(allowref,betweenbracket:boolean): aint;
          function Assemble: tlinkedlist;override;
@@ -351,6 +351,11 @@ unit raatt;
                  if actasmpattern = 'SIZEOF' then
                   Begin
                     actasmtoken:=AS_SIZEOF;
+                    exit;
+                  end;
+                 if actasmpattern = 'VMTOFFSET' then
+                  Begin
+                    actasmtoken:=AS_VMTOFFSET;
                     exit;
                   end;
                  if is_register(actasmpattern) then
@@ -787,6 +792,7 @@ unit raatt;
             AS_TYPE,
             AS_SIZEOF,
             AS_NOT,
+            AS_VMTOFFSET,
             AS_ID :
               Begin
                 BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp);
@@ -1165,7 +1171,7 @@ unit raatt;
                                Parsing Helpers
 *****************************************************************************}
 
-    Procedure tattreader.BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string);
+    Procedure tattreader.BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
       { Description: This routine builds up a record offset after a AS_DOT }
       { token is encountered.                                              }
       { On entry actasmtoken should be equal to AS_DOT                     }
@@ -1186,7 +1192,7 @@ unit raatt;
               break;
             end;
          end;
-        if not GetRecordOffsetSize(s,offset,size,mangledname) then
+        if not GetRecordOffsetSize(s,offset,size,mangledname,needvmtofs) then
          Message(asmr_e_building_record_offset);
       end;
 
@@ -1341,7 +1347,7 @@ unit raatt;
                    Consume(AS_ID);
                    if actasmtoken=AS_DOT then
                     begin
-                      BuildRecordOffsetSize(tempstr,k,l,mangledname);
+                      BuildRecordOffsetSize(tempstr,k,l,mangledname,false);
                       if mangledname<>'' then
                         Message(asmr_e_wrong_sym_type);
                     end
@@ -1367,6 +1373,22 @@ unit raatt;
                  end;
                 str(l, tempstr);
                 expr:=expr + tempstr;
+              end;
+            AS_VMTOFFSET:
+              begin
+                Consume(actasmtoken);
+                if actasmtoken<>AS_ID then
+                  Message(asmr_e_type_without_identifier)
+                else
+                  begin
+                    tempstr:=actasmpattern;
+                    consume(AS_ID);
+                    BuildRecordOffsetSize(tempstr,k,l,mangledname,true);
+                    if (mangledname <> '') then
+                      Message(asmr_e_wrong_sym_type);
+                    str(k,tempstr);
+                    expr := expr + tempstr;
+                  end
               end;
             AS_ID:
               Begin
@@ -1447,7 +1469,7 @@ unit raatt;
                     end;
                    if actasmtoken=AS_DOT then
                     begin
-                      BuildRecordOffsetSize(tempstr,l,k,hs);
+                      BuildRecordOffsetSize(tempstr,l,k,hs,false);
                       if (hs<>'') then
                         hssymtyp:=AT_FUNCTION
                       else

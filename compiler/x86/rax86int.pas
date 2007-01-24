@@ -43,7 +43,7 @@ Unit Rax86int;
       AS_ALIGN,AS_DB,AS_DW,AS_DD,AS_END,
        {------------------ Assembler Operators  --------------------}
       AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_NEAR,AS_FAR,
-      AS_HIGH,AS_LOW,AS_OFFSET,AS_SIZEOF,AS_SEG,AS_TYPE,AS_PTR,AS_MOD,AS_SHL,AS_SHR,AS_NOT,
+      AS_HIGH,AS_LOW,AS_OFFSET,AS_SIZEOF,AS_VMTOFFSET,AS_SEG,AS_TYPE,AS_PTR,AS_MOD,AS_SHL,AS_SHR,AS_NOT,
       AS_AND,AS_OR,AS_XOR);
 
     type
@@ -61,7 +61,7 @@ Unit Rax86int;
          procedure GetToken;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
-         procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string);
+         procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
          procedure BuildConstSymbolExpression(needofs,isref:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
          function BuildConstExpression:aint;
          function BuildRefConstExpression:aint;
@@ -94,7 +94,7 @@ Unit Rax86int;
        ;
 
     type
-      tasmkeyword = string[6];
+      tasmkeyword = string[9];
 
 
     const
@@ -115,7 +115,7 @@ Unit Rax86int;
        { context sensitive.                                 }
        _asmoperators : array[0.._count_asmoperators] of tasmkeyword = (
         'BYTE','WORD','DWORD','QWORD','TBYTE','DQWORD','NEAR','FAR','HIGH',
-        'LOW','OFFSET','SIZEOF','SEG','TYPE','PTR','MOD','SHL','SHR','NOT','AND',
+        'LOW','OFFSET','SIZEOF','VMTOFFSET','SEG','TYPE','PTR','MOD','SHL','SHR','NOT','AND',
         'OR','XOR');
 
       token2str : array[tasmtoken] of string[10] = (
@@ -125,7 +125,7 @@ Unit Rax86int;
         ';','identifier','register','opcode','/',
         '','','','','END',
         '','','','','','','','','',
-        '','','sizeof','','type','ptr','mod','shl','shr','not',
+        '','','sizeof','vmtoffset','','type','ptr','mod','shl','shr','not',
         'and','or','xor'
       );
 
@@ -706,7 +706,7 @@ Unit Rax86int;
     { This routine builds up a record offset after a AS_DOT
       token is encountered.
       On entry actasmtoken should be equal to AS_DOT                     }
-    Procedure tx86intreader.BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string);
+    Procedure tx86intreader.BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
       var
         s: string;
       Begin
@@ -728,7 +728,7 @@ Unit Rax86int;
               break;
             end;
          end;
-        if not GetRecordOffsetSize(s,offset,size,mangledname) then
+        if not GetRecordOffsetSize(s,offset,size,mangledname,needvmtofs) then
           Message(asmr_e_building_record_offset);
       end;
 
@@ -739,7 +739,8 @@ Unit Rax86int;
         parenlevel : longint;
         l,k : aint;
         hasparen,
-        errorflag : boolean;
+        errorflag,
+        needvmtofs : boolean;
         prevtok : tasmtoken;
         hl : tasmlabel;
         hssymtyp : Tasmsymtype;
@@ -756,6 +757,7 @@ Unit Rax86int;
         expr:='';
         inexpression:=TRUE;
         parenlevel:=0;
+        needvmtofs:=FALSE;
         Repeat
           { Support ugly delphi constructs like: [ECX].1+2[EDX] }
           if isref and (actasmtoken=AS_LBRACKET) then
@@ -840,10 +842,14 @@ Unit Rax86int;
                 expr:=expr + actasmpattern;
                 Consume(AS_INTNUM);
               end;
+            AS_VMTOFFSET,
             AS_OFFSET:
               begin
-                Consume(AS_OFFSET);
-                needofs:=true;
+                if (actasmtoken = AS_OFFSET) then
+                  needofs:=true
+                else
+                  needvmtofs:=true;
+                Consume(actasmtoken);
                 if actasmtoken<>AS_ID then
                  Message(asmr_e_offset_without_identifier);
               end;
@@ -866,7 +872,7 @@ Unit Rax86int;
                    Consume(AS_ID);
                    if actasmtoken=AS_DOT then
                      begin
-                       BuildRecordOffsetSize(tempstr,k,l,mangledname);
+                       BuildRecordOffsetSize(tempstr,k,l,mangledname,false);
                        if mangledname<>'' then
                          { procsym }
                          Message(asmr_e_wrong_sym_type);
@@ -1022,7 +1028,7 @@ Unit Rax86int;
                       (assigned(sym) and
                        (sym.typ = fieldvarsym)) then
                      begin
-                      BuildRecordOffsetSize(tempstr,l,k,hs);
+                      BuildRecordOffsetSize(tempstr,l,k,hs,needvmtofs);
                       if hs <> '' then
                         hssymtyp:=AT_FUNCTION
                       else
@@ -1140,15 +1146,16 @@ Unit Rax86int;
             Message(asmr_e_invalid_reference_syntax);
 
           Case actasmtoken of
-
-            AS_ID: { Constant reference expression OR variable reference expression }
+            AS_ID, { Constant reference expression OR variable reference expression }
+            AS_VMTOFFSET: 
               Begin
                 if not GotPlus then
                   Message(asmr_e_invalid_reference_syntax);
                 GotStar:=false;
                 GotPlus:=false;
-                if SearchIConstant(actasmpattern,l) or
-                   SearchRecordType(actasmpattern) then
+                if (actasmtoken = AS_VMTOFFSET) or
+                   (SearchIConstant(actasmpattern,l) or
+                    SearchRecordType(actasmpattern)) then
                  begin
                    l:=BuildRefConstExpression;
                    GotPlus:=(prevasmtoken=AS_PLUS);
@@ -1216,7 +1223,7 @@ Unit Rax86int;
                    { record.field ? }
                    if actasmtoken=AS_DOT then
                     begin
-                      BuildRecordOffsetSize(tempstr,l,k,hs);
+                      BuildRecordOffsetSize(tempstr,l,k,hs,false);
                       if (hs<>'') then
                         Message(asmr_e_invalid_symbol_ref);
                       case oper.opr.typ of
@@ -1536,7 +1543,7 @@ Unit Rax86int;
             begin
               if expr<>'' then
                 begin
-                  BuildRecordOffsetSize(expr,toffset,tsize, hs);
+                  BuildRecordOffsetSize(expr,toffset,tsize,hs,false);
                   if (oper.opr.typ<>OPR_NONE) and
                      (hs<>'') then
                     Message(asmr_e_wrong_sym_type);
@@ -1589,6 +1596,7 @@ Unit Rax86int;
           case actasmtoken of
             AS_OFFSET,
             AS_SIZEOF,
+            AS_VMTOFFSET,
             AS_TYPE,
             AS_NOT,
             AS_STRING,

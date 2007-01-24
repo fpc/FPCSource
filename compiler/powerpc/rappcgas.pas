@@ -83,7 +83,7 @@ Unit rappcgas;
         { record.field ? }
         if actasmtoken=AS_DOT then
          begin
-           BuildRecordOffsetSize(tempstr,l,k,mangledname);
+           BuildRecordOffsetSize(tempstr,l,k,mangledname,false);
            if (mangledname<>'') then
              Message(asmr_e_invalid_reference_syntax);
            inc(oper.opr.ref.offset,l);
@@ -276,7 +276,7 @@ Unit rappcgas;
               begin
                 if expr<>'' then
                   begin
-                    BuildRecordOffsetSize(expr,toffset,tsize,mangledname);
+                    BuildRecordOffsetSize(expr,toffset,tsize,mangledname,false);
                     if (oper.opr.typ<>OPR_CONSTANT) and
                        (mangledname<>'') then
                       Message(asmr_e_wrong_sym_type);

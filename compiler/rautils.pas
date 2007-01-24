@@ -184,7 +184,7 @@ Function EscapeToPascal(const s:string): string;
 ---------------------------------------------------------------------}
 
 procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:TSymtable);
-Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint; var mangledname: string):boolean;
+Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint; var mangledname: string; needvmtofs: boolean):boolean;
 Function SearchType(const hs:string;var size:aint): Boolean;
 Function SearchRecordType(const s:string): boolean;
 Function SearchIConstant(const s:string; var l:aint): boolean;
@@ -1267,7 +1267,7 @@ Begin
 end;
 
 
-Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint; var mangledname: string):boolean;
+Function GetRecordOffsetSize(s:string;Var Offset: aint;var Size:aint; var mangledname: string; needvmtofs: boolean):boolean;
 { search and returns the offset and size of records/objects of the base }
 { with field name setup in field.                              }
 { returns FALSE if not found.                                  }
@@ -1279,6 +1279,7 @@ var
   srsymtable : TSymtable;
   i    : longint;
   base : string;
+  procdef: tprocdef;
 Begin
   GetRecordOffsetSize:=FALSE;
   Offset:=0;
@@ -1362,7 +1363,24 @@ Begin
            st:=nil;
            if Tprocsym(sym).ProcdefList.Count>1 then
              Message(asmr_w_calling_overload_func);
-           mangledname:=tprocdef(tprocsym(sym).ProcdefList[0]).mangledname;
+           procdef:=tprocdef(tprocsym(sym).ProcdefList[0]);
+           if (not needvmtofs) then
+             begin
+               mangledname:=procdef.mangledname;
+             end
+           else
+             begin
+               { can only get the vmtoffset of virtual methods }
+               if not(po_virtualmethod in procdef.procoptions) then
+                 Message1(asmr_e_no_vmtoffset_possible,FullTypeName(procdef,nil))
+               else
+                 begin
+                   { size = sizeof(target_system_pointer) }
+                   size:=sizeof(aint);
+                   offset:=procdef._class.vmtmethodoffset(procdef.extnumber)
+                 end;
+             end;
+           { if something comes after the procsym, it's invalid assembler syntax }
            GetRecordOffsetSize:=(s='');
            exit;
          end;

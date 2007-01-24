@@ -560,6 +560,7 @@ const
   asmr_w_direct_ebp_for_parameter_regcall=07103;
   asmr_w_direct_ebp_neg_offset=07104;
   asmr_w_direct_esp_neg_offset=07105;
+  asmr_e_no_vmtoffset_possible=07106;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -716,9 +717,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 42573;
+  MsgTxtSize = 42691;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,82,232,79,63,48,106,22,135,60,
+    24,82,232,79,63,48,107,22,135,60,
     41,1,1,1,1,1,1,1,1,1
   );

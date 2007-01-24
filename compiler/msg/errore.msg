@@ -1912,9 +1912,10 @@ asmr_w_direct_ebp_for_parameter_regcall=07103_W_Use of +offset(%ebp) is not comp
 % if parameters are in registers.
 asmr_w_direct_ebp_neg_offset=07104_W_Use of -offset(%ebp) is not recommended for local variable access
 % Using -8(%ebp) to access a local variable is not recommended
-asmr_w_direct_esp_neg_offset=07105_W_Use of -offset(%esp), value may be crashed
+asmr_w_direct_esp_neg_offset=07105_W_Use of -offset(%esp), access may cause a crash or value may be lost
 % Using -8(%esp) to access a local stack is not recommended, as
 % this stack portion can be overwritten by any function calls or interrupts.
+asmr_e_no_vmtoffset_possible=07106_E_VMTOffset must be used in combination with a virtual method, and "$1" is not virtual
 %
 #
 # Assembler/binary writers
