@@ -2261,11 +2261,10 @@ zipinstall: fpc_zipinstall
 zipsourceinstall: fpc_zipsourceinstall
 zipexampleinstall: fpc_zipexampleinstall
 zipdistinstall: fpc_zipdistinstall
-distclean: fpc_distclean
 cleanall: fpc_cleanall
 info: fpc_info
 makefiles: fpc_makefiles
-.PHONY: all debug smart release units examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall distclean cleanall info makefiles
+.PHONY: all debug smart release units examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall cleanall info makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
@@ -2286,8 +2285,8 @@ gdbint$(PPUEXT): $(CURRDIR)gdbver$(EXEEXT) gdbint.pp
 	$(MAKE) gdbint$(PPUEXT) GOTGDBVER=1
 else
 GDBVER:=GDB_V$(strip $(shell $(CURRDIR)gdbver$(EXEEXT) -n))
-gdbver.inc:
-	$(ECHO) "{\$$define $(GDBVER)}" > gdbver.inc
+gdbver.inc: gdbver$(EXEEXT)
+	gdbver$(EXEEXT) -o gdbver.inc
 gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	@$(ECHO) Using GDB $(GDBVER)
 	$(COMPILER) -d$(GDBVER) gdbint.pp
@@ -2296,15 +2295,15 @@ endif
 else
 GDBVER=GDB_V606
 gdbver.inc:
-	$(ECHO) "{\$$define $(GDBVER)}" > gdbver.inc
+	$(CPPROG) gdbver_nogdb.inc gdbver.inc
 gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	@$(ECHO) libgdb.a not found, using default GDB $(GDBVER)
 	$(COMPILER) -d$(GDBVER) gdbint.pp
 endif
 else
-GDBVER=GDB_V5
+GDBVER=GDB_V606
 gdbver.inc:
-	$(ECHO) "{\$$define $(GDBVER)}" > gdbver.inc
+	$(CPPROG) gdbver_nogdb.inc gdbver.inc
 gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	@$(ECHO) Different target os or cpu, using default GDB $(GDBVER)
 	$(COMPILER) -d$(GDBVER) gdbint.pp
@@ -2330,3 +2329,5 @@ testgdb$(EXEEXT): testgdb.pp gdbint$(PPUEXT) gdbcon$(PPUEXT) $(DBGCOM)
 test: examples
 clean: fpc_clean
 	$(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
+distclean: fpc_distclean
+	$(DEL) gdbver.inc

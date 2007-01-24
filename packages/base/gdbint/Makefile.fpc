@@ -83,8 +83,8 @@ gdbint$(PPUEXT): $(CURRDIR)gdbver$(EXEEXT) gdbint.pp
 else
 # gdbver exists
 GDBVER:=GDB_V$(strip $(shell $(CURRDIR)gdbver$(EXEEXT) -n))
-gdbver.inc:
-        $(ECHO) "{\$$define $(GDBVER)}" > gdbver.inc
+gdbver.inc: gdbver$(EXEEXT)
+        gdbver$(EXEEXT) -o gdbver.inc
 gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	@$(ECHO) Using GDB $(GDBVER)
 	$(COMPILER) -d$(GDBVER) gdbint.pp
@@ -95,17 +95,17 @@ else
 # libgdb.a not found, default to libgdb v6
 GDBVER=GDB_V606
 gdbver.inc:
-        $(ECHO) "{\$$define $(GDBVER)}" > gdbver.inc
+        $(CPPROG) gdbver_nogdb.inc gdbver.inc
 gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	@$(ECHO) libgdb.a not found, using default GDB $(GDBVER)
 	$(COMPILER) -d$(GDBVER) gdbint.pp
 endif
 
 else
-# Different OS_TARGET, default to libgdb v5
-GDBVER=GDB_V5
+# Different OS_TARGET, default to libgdb v6
+GDBVER=GDB_V606
 gdbver.inc:
-        $(ECHO) "{\$$define $(GDBVER)}" > gdbver.inc
+        $(CPPROG) gdbver_nogdb.inc gdbver.inc
 gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	@$(ECHO) Different target os or cpu, using default GDB $(GDBVER)
 	$(COMPILER) -d$(GDBVER) gdbint.pp
@@ -145,3 +145,5 @@ test: examples
 clean: fpc_clean
 	$(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
 
+distclean: fpc_distclean
+	$(DEL) gdbver.inc

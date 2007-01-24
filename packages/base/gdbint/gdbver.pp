@@ -21,6 +21,9 @@ const
   Current_cvs_version : longint = 503;
   Max_version_length = 255;
 
+const
+  output_file:string='';
+
 var
   version : array[0..0] of char;cvar;external;
   gdbversion : pchar;
@@ -30,9 +33,15 @@ var
   subsubversion_number : longint;
   error : word;
   only_ver : boolean;
+  o : text;
 
 begin
   only_ver:=(Paramcount>0) and (ParamStr(1)='-n');
+  if (paramcount>=2) and (paramstr(1)='-o') then
+    begin
+      only_ver:=true;
+      output_file:=paramstr(2);
+    end;
   getmem(gdbversion,Max_version_length+1);
   strlcopy(gdbversion,@version,Max_version_length);
   gdbversion[Max_version_length]:=#0;
@@ -79,7 +88,17 @@ begin
       version_number:=0;
     end;
   freemem(gdbversion);
-  if only_ver then
-    Write(version_number);
-  Halt(version_number);
+  if output_file<>'' then
+    begin
+      assign(o,output_file);
+      rewrite(o);
+      writeln(o,'{$define GDB_V',version_number,'}');
+      close(o);
+    end
+  else
+    begin
+      if only_ver then
+        Write(version_number);
+      Halt(version_number);
+    end;
 end.

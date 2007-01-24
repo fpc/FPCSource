@@ -1306,6 +1306,7 @@ packages/base/gdbint/gdbcon.pp svneol=native#text/plain
 packages/base/gdbint/gdbint.pp svneol=native#text/plain
 packages/base/gdbint/gdbobjs.inc svneol=native#text/plain
 packages/base/gdbint/gdbver.pp svneol=native#text/plain
+packages/base/gdbint/gdbver_nogdb.inc svneol=native#text/x-pascal
 packages/base/gdbint/symify.pp svneol=native#text/plain
 packages/base/gdbint/testgdb.pp svneol=native#text/plain
 packages/base/graph/Makefile -text
