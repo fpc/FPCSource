@@ -141,7 +141,6 @@ implementation
        end;
 
 
-
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
       var
         plist : ppropaccesslistitem;

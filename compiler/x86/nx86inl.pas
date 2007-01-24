@@ -343,7 +343,10 @@ implementation
          cgop : topcg;
          opsize : tcgsize;
         begin
-          opsize:=OS_32;
+          if not(is_varset(tcallparanode(left).resultdef)) then
+            opsize:=int_cgsize(tcallparanode(left).resultdef.size)
+          else
+            opsize:=OS_32;
           bitsperop:=(8*tcgsize2size[opsize]);
           secondpass(tcallparanode(left).left);
           if tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn then
@@ -374,6 +377,8 @@ implementation
             end
           else
             begin
+              if opsize=OS_8 then
+                opsize:=OS_32;
               { generate code for the element to set }
               secondpass(tcallparanode(tcallparanode(left).right).left);
               { determine asm operator }

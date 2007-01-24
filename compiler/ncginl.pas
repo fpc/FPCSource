@@ -510,7 +510,10 @@ implementation
           use_small : boolean;
           href : treference;
         begin
-          opsize:=OS_32;
+          if not(is_varset(tcallparanode(left).resultdef)) then
+            opsize:=int_cgsize(tcallparanode(left).resultdef.size)
+          else
+            opsize:=OS_32;
           bitsperop:=(8*tcgsize2size[opsize]);
           secondpass(tcallparanode(left).left);
           if tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn then

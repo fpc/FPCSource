@@ -333,14 +333,10 @@ unit nx86add;
 
         noswap:=false;
         extra_not:=false;
-        opsize:=OS_32;
+        opsize:=int_cgsize(resultdef.size);
         case nodetype of
           addn :
             begin
-              { this is a really ugly hack!!!!!!!!!! }
-              { this could be done later using EDI   }
-              { as it is done for subn               }
-              { instead of two registers!!!!         }
               { adding elements is not commutative }
               if (nf_swapped in flags) and (left.nodetype=setelementn) then
                swapleftright;
@@ -349,7 +345,10 @@ unit nx86add;
                begin
                  { no range support for smallsets! }
                  if assigned(tsetelementnode(right).right) then
-                  internalerror(43244);
+                   internalerror(43244);
+                 { btsb isn't supported }
+                 if opsize=OS_8 then
+                   opsize:=OS_32;
                  { bts requires both elements to be registers }
                  location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
                  location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,true);
@@ -389,7 +388,12 @@ unit nx86add;
         emit_generic_code(op,opsize,true,extra_not,false);
         location_freetemp(current_asmdata.CurrAsmList,right.location);
 
-        set_result_location_reg;
+        { left is always a register and contains the result }
+        location:=left.location;
+
+        { fix the changed opsize we did above because of the missing btsb }
+        if opsize<>int_cgsize(resultdef.size) then
+          location_force_reg(current_asmdata.CurrAsmList,location,int_cgsize(resultdef.size),false);
       end;
 
 
@@ -399,7 +403,7 @@ unit nx86add;
         op     : TAsmOp;
       begin
         pass_left_right;
-        opsize:=OS_32;
+        opsize:=int_cgsize(resultdef.size);
         case nodetype of
           equaln,
           unequaln :

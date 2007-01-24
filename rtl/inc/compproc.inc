@@ -381,7 +381,7 @@ function fpc_set_symdif_sets(const set1,set2: fpc_normal_set): fpc_normal_set; c
 function fpc_set_comp_sets(const set1,set2: fpc_normal_set): boolean; compilerproc;
 function fpc_set_contains_sets(const set1,set2: fpc_normal_set): boolean; compilerproc;
 
-procedure fpc_varset_load_small(l: fpc_small_set;var dest;size : ptrint); compilerproc;
+procedure fpc_varset_load(const l;sourcesize : longint;var dest;size : ptrint); compilerproc;
 procedure fpc_varset_create_element(b,size : ptrint; var data); compilerproc;
 procedure fpc_varset_set(const source;var dest; b,size : ptrint); compilerproc;
 procedure fpc_varset_unset(const source;var dest; b,size : ptrint); compilerproc;

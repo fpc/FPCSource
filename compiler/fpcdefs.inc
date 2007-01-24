@@ -23,9 +23,13 @@
 {$PACKENUM 1}
 {$ifdef FPC_HAS_VARSETS}
 {$ifndef FPC_BIG_ENDIAN}
-{ $PACKSET 1}
+{$define USE_PACKSET1}
 {$endif}
 {$endif FPC_HAS_VARSETS}
+
+{$ifdef USE_PACKSET1}
+{$PACKSET 1}
+{$endif USE_PACKSET1}
 
 { We don't use exceptions, so turn off the implicit
   exceptions in the constructors }

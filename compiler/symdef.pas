@@ -2006,14 +2006,12 @@ implementation
          if high<32 then
            begin
              settype:=smallset;
-             (*
              if current_settings.setalloc=0 then      { $PACKSET Fixed?}
-             *)
                savesize:=Sizeof(longint)
-             (*
-             else                       {No, use $PACKSET VALUE for rounding}
+             else
                savesize:=current_settings.setalloc*(((high+1)+current_settings.setalloc*8-1) DIV (current_settings.setalloc*8));
-             *)
+             if savesize=3 then
+               savesize:=4;
            end
          else
           if high<256 then
@@ -2035,7 +2033,7 @@ implementation
          ppufile.getderef(elementdefderef);
          settype:=tsettype(ppufile.getbyte);
          case settype of
-           normset : savesize:=32;
+           normset : savesize:=ppufile.getaint;
            varset : savesize:=ppufile.getlongint;
            smallset : savesize:=Sizeof(longint);
          end;

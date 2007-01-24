@@ -2246,22 +2246,38 @@ implementation
 
 
     function ttypeconvnode.first_load_smallset : tnode;
-
       var
         srsym: ttypesym;
-        p: tcallparanode;
-
+        newstatement : tstatementnode;
+        temp    : ttempcreatenode;
       begin
-        srsym:=search_system_type('FPC_SMALL_SET');
-        p := ccallparanode.create(left,nil);
+        { old small set code }
+        if left.resultdef.size=4 then
+          begin
+            srsym:=search_system_type('FPC_SMALL_SET');
+            result :=
+              ccallnode.createinternres('fpc_set_load_small',
+                ccallparanode.create(ctypeconvnode.create_internal(left,srsym.typedef),nil),resultdef);
+          end
+        else
+          begin
+            result:=internalstatements(newstatement);
+
+            { create temp for result }
+            temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+                          addstatement(newstatement,temp);
+
+            addstatement(newstatement,ccallnode.createintern('fpc_varset_load',
+              ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false),
+              ccallparanode.create(ctemprefnode.create(temp),
+              ccallparanode.create(cordconstnode.create(left.resultdef.size,sinttype,false),
+              ccallparanode.create(left,nil)))))
+            );
+            addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+            addstatement(newstatement,ctemprefnode.create(temp));
+          end;
         { reused }
         left := nil;
-        { convert parameter explicitely to fpc_small_set }
-        p.left := ctypeconvnode.create_internal(p.left,srsym.typedef);
-        { create call, adjust resultdef }
-        result :=
-          ccallnode.createinternres('fpc_set_load_small',p,resultdef);
-        firstpass(result);
       end;
 
 

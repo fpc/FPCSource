@@ -699,7 +699,11 @@ implementation
             { interface: write flags, iid and iidstr }
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(
               { ugly, but working }
+{$ifdef USE_PACKSET1}
+              byte([
+{$else USE_PACKSET1}
               longint([
+{$endif USE_PACKSET1}
                 TCompilerIntfFlag(ord(ifHasGuid)*ord(assigned(def.iidguid))),
                 TCompilerIntfFlag(ord(ifHasStrGUID)*ord(assigned(def.iidstr)))
               ])

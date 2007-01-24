@@ -1017,7 +1017,7 @@ implementation
     function is_varset(p : tdef) : boolean;
       begin
         if (target_info.endian = endian_little) then
-          result:=(p.typ=setdef) and not(p.size=4)
+          result:=(p.typ=setdef) and not(p.size in [1,2,4])
         else
           result:=false;
       end;
