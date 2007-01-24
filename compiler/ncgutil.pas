@@ -1135,13 +1135,19 @@ implementation
         href : treference;
         tmpreg : tregister;
         list : TAsmList;
-        needs_inittable: boolean;
+        needs_inittable,
+        do_trashing       : boolean;
       begin
         list:=TAsmList(arg);
         if (tsym(p).typ=paravarsym) then
          begin
            needs_inittable :=
+             not is_class_or_interface(tparavarsym(p).vardef) and
              tparavarsym(p).vardef.needs_inittable;
+           do_trashing :=
+             (localvartrashing <> -1) and
+             (not tparavarsym(p).vardef.needs_inittable or
+              is_class(tparavarsym(p).vardef));
            case tparavarsym(p).varspez of
              vs_value :
                if needs_inittable then
@@ -1152,13 +1158,12 @@ implementation
              vs_out :
                begin
                  if (needs_inittable) or
-                    (localvartrashing <> -1) then
+                    (do_trashing) then
                    begin
                      tmpreg:=cg.getaddressregister(list);
                      cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).initialloc,tmpreg);
                      reference_reset_base(href,tmpreg,0);
-                     if (localvartrashing <> -1) and
-                        not(needs_inittable) and
+                     if do_trashing and
                         { needs separate implementation to trash open arrays }
                         { since their size is only known at run time         }
                         not is_special_array(tparavarsym(p).vardef) then
@@ -1167,8 +1172,7 @@ implementation
                        cg.g_initialize(list,tparavarsym(p).vardef,href);
                    end;
                end;
-             else if (localvartrashing <> -1) and
-                     not(needs_inittable) and
+             else if do_trashing and
                      ([vo_is_funcret,vo_is_hidden_para] * tparavarsym(p).varoptions = [vo_is_funcret,vo_is_hidden_para]) then
                    begin
                      tmpreg:=cg.getaddressregister(list);
