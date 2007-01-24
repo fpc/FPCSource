@@ -14,6 +14,7 @@ Type
     FComboBoxProducer : TComboBoxProducer;
     FDB : TMySQLDatabase;
     FRunID,
+    FCompareRunID,
     FVersion,
     FCPU,
     FOS  : String;
@@ -46,8 +47,9 @@ Type
     Function GetVersionName(ID : String) : String;
     Function InitCGIVars : Integer;
     Procedure DoRun; override;
-    Procedure EmitForm;
+    Procedure EmitOverviewForm;
     Procedure ShowRunResults;
+    Procedure ShowRunComparison;
     Function ConnectToDB : Boolean;
     procedure DisconnectFromDB;
     Procedure EmitTitle(ATitle : String);
@@ -71,7 +73,7 @@ Const
 }
 
 Const
-  SDetailsURL = 'testsuite.cgi?TESTACTION=1&TESTRUN=%s';
+  SDetailsURL = 'testsuite.cgi?action=1&run1id=%s';
 
 Procedure TTestSuite.DoRun;
 
@@ -79,8 +81,12 @@ begin
   Try
     Try
       Case InitCGIVars of
-        0 : EmitForm;
-        1 : ShowRunResults;
+        0 : EmitOverviewForm;
+        1 : 
+          if Length(FCompareRunID) = 0 then
+            ShowRunResults
+          else
+            ShowRunComparison;
         2 : CreateRunPie;
       end;
     finally
@@ -102,27 +108,48 @@ begin
   FComboBoxProducer:=TComboBoxProducer.Create(Self);
   DateSeparator:='/';
   Result:=0;
-  FAction:=StrToIntDef(RequestVariables['TESTACTION'],0);
-  FVersion:=RequestVariables['TESTVERSION'];
-  FOS:=RequestVariables['TESTOS'];
-  FCPU:=RequestVariables['TESTCPU'];
-  S:=RequestVariables['TESTDATE'];
-  FRunID:=RequestVariables['TESTRUN'];
-  FTestLastDays:=StrToIntDef(RequestVariables['TESTLASTDAYS'],31);
-  If (S<>'') then
-    Try
+  S:=RequestVariables['action'];
+  if Length(S) = 0 then
+    S:=RequestVariables['TESTACTION'];
+  FAction:=StrToIntDef(S,0);
+  FVersion:=RequestVariables['version'];
+  if Length(FVersion) = 0 then
+    FVersion:=RequestVariables['TESTVERSION'];
+  FOS:=RequestVariables['os'];
+  if Length(FOS) = 0 then
+    FOS:=RequestVariables['TESTOS'];
+  FCPU:=RequestVariables['cpu'];
+  if Length(FCPU) = 0 then
+    FCPU:=RequestVariables['TESTCPU'];
+  FRunID:=RequestVariables['run1id'];
+  if Length(FRunID) = 0 then
+    FRunID:=RequestVariables['TESTRUN'];
+  S:=RequestVariables['lastdays'];
+  if Length(S) = 0 then
+    S:=RequestVariables['TESTLASTDAYS'];
+  FTestLastDays:=StrToIntDef(S,31);
+  S:=RequestVariables['date'];
+  if Length(S) = 0 then
+    S:=RequestVariables['TESTDATE'];
+  if Length(S) > 0 then
+    try
       FDate:=StrToDate(S);
     except
       FDate:=0;
     end;
-  S:=RequestVariables['TESTFAILEDONLY'];
+  S:=RequestVariables['failedonly'];
+  if Length(S) = 0 then
+    S:=RequestVariables['TESTFAILEDONLY'];
   FOnlyFailed:=(S='1');
-  S:=RequestVariables['TESTNOSKIPPED'];
+  S:=RequestVariables['noskipped'];
+  if Length(S) = 0 then
+    S:=RequestVariables['TESTNOSKIPPED'];
   FNoSkipped:=(S='1');
-  S:=RequestVariables['DEBUGCGI'];
+  FCompareRunID:=RequestVariables['run2id'];
   FRunCount:=StrToIntDef(RequestVariables['PIETOTAL'],0);
   FRunSkipCount:=StrToIntDef(RequestVariables['PIESKIPPED'],0);
   FRunFailedCount:=StrToIntDef(RequestVariables['PIEFAILED'],0);
+  S:=RequestVariables['DEBUGCGI'];
   FDebug:=(S='1');
   Result:=FAction;
 end;
@@ -209,7 +236,7 @@ begin
   AddResponseLn('<BODY>');
 end;
 
-Procedure TTestSuite.EmitForm;
+Procedure TTestSuite.EmitOverviewForm;
 
 begin
   ConnectToDB;
@@ -229,40 +256,40 @@ begin
       CellStart;
         Write('Operating system:');
       CellNext;
-        ComboBoxFromQuery('TESTOS','SELECT TO_ID,TO_NAME FROM TESTOS ORDER BY TO_NAME',FOS);
+        ComboBoxFromQuery('os','SELECT TO_ID,TO_NAME FROM TESTOS ORDER BY TO_NAME',FOS);
       CellEnd;
     RowNext;
       CellStart;
         Write('Processor:');
       CellNext;
-        ComboBoxFromQuery('TESTCPU','SELECT TC_ID,TC_NAME FROM TESTCPU ORDER BY TC_NAME',FCPU);
+        ComboBoxFromQuery('cpu','SELECT TC_ID,TC_NAME FROM TESTCPU ORDER BY TC_NAME',FCPU);
       CellEnd;
     RowNext;
       CellStart;
         Write('Version');
       CellNext;
-        ComboBoxFromQuery('TESTVERSION','SELECT TV_ID,TV_VERSION FROM TESTVERSION ORDER BY TV_VERSION DESC',FVERSION);
+        ComboBoxFromQuery('version','SELECT TV_ID,TV_VERSION FROM TESTVERSION ORDER BY TV_VERSION DESC',FVERSION);
       CellEnd;
     RowNext;
       CellStart;
         Write('Date');
       CellNext;
         If (FDate=0) then
-          EmitInput('TESTDATE','')
+          EmitInput('date','')
         else
-          EmitInput('TESTDATE',DateToStr(FDate));
+          EmitInput('date',DateToStr(FDate));
       CellEnd;
     RowNext;
       CellStart;
         Write('Only failed tests');
       CellNext;
-        EmitCheckBox('TESTFAILEDONLY','1',FonlyFailed);
+        EmitCheckBox('failedonly','1',FonlyFailed);
       CellEnd;
     RowNext;
       CellStart;
         Write('No skipped tests');
       CellNext;
-        EmitCheckBox('TESTNOSKIPPED','1',FNoSkipped);
+        EmitCheckBox('noskipped','1',FNoSkipped);
       CellEnd;
     RowEnd;
     TableEnd;
@@ -309,7 +336,7 @@ Var
 
 begin
   If FDebug then
-    Write('Query : '+Qry);
+    Writeln('Query : '+Qry);
   Q:=CreateDataset(Qry);
   With Q do
     try
@@ -329,7 +356,7 @@ begin
             Free;
           end;
         If IncludeRecordCount then
-          Write('Record count: '+IntTostr(Q.RecordCount));
+          Writeln('<p>Record count: ',Q.RecordCount,'</p>');
       Finally
         Close;
       end;
@@ -339,22 +366,23 @@ begin
 end;
 
 Procedure TTestSuite.ShowRunOverview;
-
 Const
-  SOverview = 'SELECT TU_ID,TU_DATE,TC_NAME,TO_NAME,TV_VERSION,COUNT(TR_ID) as RESULTCOUNT,'+
-              '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN) AS OK,'+
-              '(TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as FAILED,'+              
-              '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN+'+
-                'TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as TOTAL,'+
-              'TU_SUBMITTER as SUBMITTER, TU_MACHINE as MACHINE, TU_COMMENT as COMMENT'+
-              ' FROM TESTRESULTS,TESTRUN,TESTCPU,TESTOS,TESTVERSION '+
+  SOverview = 'SELECT TU_ID as ID,TU_DATE as Date,TC_NAME as CPU,TO_NAME as OS,'+
+               'TV_VERSION as Version,COUNT(TR_ID) as Count,'+
+               '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN) AS OK,'+
+               '(TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Failed,'+              
+               '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN+'+
+                'TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Total,'+
+               'TU_SUBMITTER as Submitter, TU_MACHINE as Machine, TU_COMMENT as Comment '+
+              'FROM TESTRESULTS,TESTRUN,TESTCPU,TESTOS,TESTVERSION '+
               'WHERE '+
-              ' (TC_ID=TU_CPU_FK) AND '+
-              ' (TO_ID=TU_OS_FK) AND '+
-              ' (TV_ID=TU_VERSION_FK) AND '+
-              ' (TR_TESTRUN_FK=TU_ID) '+
-              ' %s '+
-              ' GROUP BY TU_ID ';
+               '(TC_ID=TU_CPU_FK) AND '+
+               '(TO_ID=TU_OS_FK) AND '+
+               '(TV_ID=TU_VERSION_FK) AND '+
+               '(TR_TESTRUN_FK=TU_ID) '+
+               '%s '+
+              'GROUP BY TU_ID '+
+              'ORDER BY TU_ID DESC LIMIT 50';
 
 
 Var
@@ -370,19 +398,17 @@ begin
    if (FOS<>'') and (GetOSName(FOS)<>'All') then
      S:=S+' AND (TU_OS_FK='+FOS+')';
    If (Round(FDate)<>0) then
-     S:=S+' AND (TU_DATE>="'+FormatDateTime('YYYY/MM/DD',FDate)+'")'
-   else
-     S:=S+' AND (TU_DATE>="'+FormatDateTime('YYYY/MM/DD',Date-FTESTLASTDAYS)+'")';
+     S:=S+' AND (TU_DATE="'+FormatDateTime('YYYY/MM/DD',FDate)+'")';
    If FOnlyFailed then
      S:=S+' AND (TR_OK="-")';
    A:=SDetailsURL;
    If FOnlyFailed then
-     A:=A+'&TESTFAILEDONLY=1';
+     A:=A+'&failedonly=1';
    If FNoSkipped then
-     A:=A+'&TESTNOSKIPPED=1';
+     A:=A+'&noskipped=1';
   Qry:=Format(SOverview,[S]);
   If FDebug then
-    Write('Query : '+Qry);
+    Writeln('Query : '+Qry);
   Q:=CreateDataset(Qry);
   With Q do
     try
@@ -393,13 +419,13 @@ begin
             Border:=True;
             OnGetRowAttributes:=@GetOverViewRowAttr;
             CreateColumns(Nil);
-            TableColumns.ColumnByName('TU_ID').ActionURL:=A;
-            TableColumns.ColumnByNAme('FAILED').OnGetCellContents:=@FormatFailedOverview;
+            TableColumns.ColumnByName('ID').ActionURL:=A;
+            TableColumns.ColumnByNAme('Failed').OnGetCellContents:=@FormatFailedOverview;
             CreateTable(Response);
           Finally
             Free;
           end;
-        Write('Record count: '+IntTostr(Q.RecordCount));
+        Writeln('<p>Record count: ',Q.RecordCount,'</p>');
       Finally
         Close;
       end;
@@ -432,8 +458,8 @@ end;
 
 Function TTestSuite.ShowRunData : Boolean;
 
-COnst
-  SGetRunData = 'SELECT TU_ID,TU_DATE,TC_NAME,TO_NAME,TV_VERSION '+
+Const
+  SGetRunData = 'SELECT TU_ID,TU_DATE,TC_NAME,TO_NAME,TU_COMMENT,TV_VERSION '+
                 ' FROM TESTRUN,TESTCPU,TESTOS,TESTVERSION '+
                 'WHERE '+
                 ' (TC_ID=TU_CPU_FK) AND '+
@@ -443,51 +469,115 @@ COnst
 
 
 Var
-  Q : TmYSQLDataset;
-
+  Q1,Q2 : TmYSQLDataset;
+  F : TField;
+  Date1, Date2: TDateTime;
 begin
   Result:=(FRunID<>'');
   If Result then
     begin
-    Q:=CreateDataset(Format(SGetRunData,[FRunID]));
+    Q1:=CreateDataset(Format(SGetRunData,[FRunID]));
+    if Length(FCompareRunID) > 0 then
+      Q2:=CreateDataset(Format(SGetRunData,[FCompareRunID]))
+    else
+      Q2:=nil;
     Try
-      Q.Open;
-      Result:=Not (Q.EOF and Q.BOF);
+      Q1.Open;
+      if Q2 <> nil then
+        Q2.Open;
+      Result:=Not (Q1.EOF and Q1.BOF);
       If Result then
         With FHTMLWriter do
           begin
-          TableStart(2,true);
+          FormStart('testsuite.cgi','get');
+          EmitHiddenVar('action', '1');
+          TableStart(3,true);
           RowStart;
+            CellStart;
+              Write('Run ID:');
+            CellNext;
+              EmitInput('run1id',FRunID);
+            CellNext;
+              EmitInput('run2id',FCompareRunID);
+            CellEnd;
+          RowNext;
             CellStart;
               Write('Operating system:');
             CellNext;
-              Write(Q.FieldByName('TO_NAME').AsString);
+              Write(Q1.FieldByName('TO_NAME').AsString);
+            CellNext;
+              if Q2 <> nil then
+                Write(Q2.FieldByName('TO_NAME').AsString);
             CellEnd;
           RowNext;
             CellStart;
               Write('Processor:');
             CellNext;
-              Write(Q.FieldByName('TC_NAME').AsString);
+              Write(Q1.FieldByName('TC_NAME').AsString);
+            CellNext;
+              if Q2 <> nil then
+                Write(Q2.FieldByName('TC_NAME').AsString);
             CellEnd;
           RowNext;
             CellStart;
-              Write('Version');
+              Write('Version:');
             CellNext;
-              Write(Q.FieldByNAme('TV_VERSION').AsString);
+              Write(Q1.FieldByNAme('TV_VERSION').AsString);
+            CellNext;
+              if Q2 <> nil then
+                Write(Q2.FieldByNAme('TV_VERSION').AsString);
             CellEnd;
           RowNext;
             CellStart;
-              Write('Date');
+              Write('Comment:');
             CellNext;
-              Write(Q.FieldByNAme('TU_DATE').AsString);
+              Write(Q1.FieldByName('TU_COMMENT').AsString);
+            CellNext;
+              if Q2 <> nil then
+                Write(Q2.FieldByName('TU_COMMENT').AsString);
+            CellEnd;
+          RowNext;
+            CellStart;
+              Write('Date:');
+            CellNext;
+              F := Q1.FieldByName('TU_DATE');
+              Date1 := F.AsDateTime;
+              Write(F.AsString);
+            CellNext;
+              if Q2 <> nil then
+                begin
+                F := Q2.FieldByName('TU_DATE');
+                Date2 := F.AsDateTime;
+                Write(F.AsString);
+                end;
             CellEnd;
           RowEnd;
           TableEnd;
+          ParagraphStart;
+          EmitCheckBox('noskipped','1',FNoSkipped);
+          Write(' No skipped tests');
+          ParagraphEnd;
           ParaGraphStart;
+          EmitSubmitButton('','Show/Compare');
+          EmitResetButton('','Reset form');
+          ParagraphEnd;
+          FormEnd;
+          { give warning if dates reversed }
+          if (Q2 <> nil) and (Date1 > Date2) then
+            begin
+            ParagraphStart;
+            Write('Warning: testruns are not compared in chronological order.');
+            ParagraphEnd;
+            end;
           end;
     Finally
-      Q.Close;
-      Q.Free;
+      Q1.Close;
+      Q1.Free;
+      if Q2 <> nil then
+        begin
+        Q2.Close;
+        Q2.Free;
+        end;
     end;
     end;
 end;
@@ -534,17 +624,19 @@ begin
         end;
       HeaderEnd(2);
       ParaGraphStart;
-      S:='SELECT T_NAME as Test,T_FULLNAME as FileName ,TR_SKIP as Skipped,TR_OK as OK FROM ';
-      S:=S+' TESTRESULTS,TESTS WHERE ';
-      S:=S+' (TR_TEST_FK=T_ID) ';
-      S:=S+'  AND (TR_TESTRUN_FK='+FRunID+') ';
+      S:='SELECT T_NAME as Test,T_FULLNAME as Filename,TR_SKIP as Skipped,TR_OK as OK'
+        +' FROM TESTRESULTS,TESTS'
+        +' WHERE (TR_TEST_FK=T_ID) AND (TR_TESTRUN_FK='+FRunID+') ';
       If FOnlyFailed then
         S:=S+' AND (TR_OK="-")';
       If FNoSkipped then
         S:=S+' AND (TR_SKIP="-")';
       Qry:=S;
       If FDebug then
-        Write('Query : '+Qry);
+        begin
+        Writeln('Query : '+Qry);
+        Flush(stdout);
+      end;
       FRunCount:=0;
       FRunSkipCount:=0;
       FRunFailedCount:=0;  
@@ -556,7 +648,7 @@ begin
             With CreateTableProducer(Q) do
               Try
                 Border:=True;
-                FL:='Test,FileName';
+                FL:='Test,Filename';
                 If Not FNoSkipped then
                   FL:=FL+',Skipped';
                 If Not FOnlyFailed then
@@ -568,7 +660,7 @@ begin
               Finally
                 Free;
               end;
-            Write('Record count: '+IntTostr(Q.RecordCount));
+            Writeln('<p>Record count: ',Q.RecordCount,'</p>');
           Finally
             Close;
           end;
@@ -578,7 +670,104 @@ begin
       If Not (FRunCount=0) and not (FNoSkipped or FOnlyFailed) then
         begin
         ParaGraphStart;
-        TagStart('IMG',Format('Src="testsuite.cgi?TESTACTION=2&PIETOTAL=%d&PIEFAILED=%d&PIESKIPPED=%d"',[FRunCount,FRunFailedCount,FRunSkipCount]));
+        TagStart('IMG',Format('Src="testsuite.cgi?action=2&pietotal=%d&piefailed=%d&pieskipped=%d"',[FRunCount,FRunFailedCount,FRunSkipCount]));
+        end;
+      end
+    else
+      Write('No data for test run with ID: '+FRunID);
+    end;
+end;
+
+Procedure TTestSuite.ShowRunComparison;
+
+Var
+  S : String;
+  Qry : String;
+  Q : TMySQLDataset;
+  FL : String;
+  
+begin
+  ConnectToDB;
+  ContentType:='text/html';
+  EmitContentType;
+  EmitTitle(Title+' : Compare 2 runs');
+  With FHTMLWriter do
+    begin
+    HeaderStart(1);
+    Write('Test suite results for run '+FRunID+' vs. '+FCompareRunID);
+    HeaderEnd(1);
+    HeaderStart(2);
+    Write('Test run data: ');
+    HeaderEnd(2);
+    If ShowRunData then
+      begin
+      HeaderStart(2);
+      Write('Detailed test run results:');
+
+      FL:='';
+      If FOnlyFailed or FNoSkipped then
+        begin
+        FL:='';
+        If FOnlyFailed then
+          FL:='failed';
+        if FNoSkipped then
+          begin
+          If (FL<>'') then
+            FL:=FL+',';
+          FL:=FL+'not skipped';
+          end;
+        Write(' (only '+FL+' tests are shown)');
+        end;
+      HeaderEnd(2);
+      ParaGraphStart;
+      S:='SELECT T_NAME as Test,T_FULLNAME as FileName,tr1.TR_SKIP as Run1_Skipped,'
+         +'tr2.TR_SKIP as Run2_Skipped,tr1.TR_OK as Run1_OK,tr2.TR_OK as Run2_OK '
+        +'FROM TESTS,(select * from TESTRESULTS where TR_TESTRUN_FK='+FCompareRunID+') as tr2 '
+         +'LEFT JOIN (select * from TESTRESULTS where TR_TESTRUN_FK='+FRunID+') as tr1 '
+         +'USING (TR_TEST_FK) '
+        +'WHERE ((tr1.TR_SKIP IS NULL) or (%s(tr1.TR_OK<>tr2.TR_OK))) and (T_ID=tr2.TR_TEST_FK);';
+      If FNoSkipped then
+        Qry:='(tr1.TR_SKIP<>"+") and (tr2.TR_SKIP<>"+") and'
+      else
+        Qry:='';
+      Qry:=Format(S,[Qry]);
+      If FDebug then
+        begin
+        Writeln('Query: '+Qry);
+        Flush(stdout);
+        end;
+      FRunCount:=0;
+      FRunSkipCount:=0;
+      FRunFailedCount:=0;  
+      Q:=CreateDataset(Qry);
+      With Q do
+        try
+          Open;
+          Try
+            With CreateTableProducer(Q) do
+              Try
+                Border:=True;
+                FL:='Test,FileName,Run1_OK,Run2_OK';
+                If Not FNoSkipped then
+                  FL:=FL+',Run1_Skipped,Run2_Skipped';
+                CreateColumns(FL);
+                OnGetRowAttributes:=@GetRunRowAttr;
+                //(TableColumns.Items[0] as TTableColumn).ActionURL:=ALink;
+                CreateTable(Response);
+              Finally
+                Free;
+              end;
+            Writeln('<p>Record count: ',Q.RecordCount,'</p>');
+          Finally
+            Close;
+          end;
+        finally
+          Free;
+        end;
+      If Not (FRunCount=0) and not (FNoSkipped or FOnlyFailed) then
+        begin
+        ParaGraphStart;
+        TagStart('IMG',Format('Src="testsuite.cgi?action=2&pietotal=%d&piefailed=%d&pieskipped=%d"',[FRunCount,FRunFailedCount,FRunSkipCount]));
         end;
       end
     else
@@ -591,7 +780,7 @@ procedure TTestSuite.GetRunRowAttr(Sender: TObject; var BGColor: String;
   
 Var
   P : TTableProducer;
-  
+  SkipField, Run1Field, Run2Field : TField;
 begin
   P:=(Sender as TTAbleProducer);
   Inc(FRunCount);
@@ -600,19 +789,36 @@ begin
     If (P.CurrentRow Mod 2)=0 then
       BGColor:='#EEEEEE'
     end
-  else
-    If P.Dataset.FieldByName('Skipped').AsString='+' then
+  else 
+    begin
+    SkipField := P.Dataset.FindField('Skipped');
+    if SkipField = nil then
+      SkipField := P.Dataset.FindField('Run2_Skipped');
+    Run1Field := P.Dataset.FindField('OK');
+    if Run1Field = nil then
+      Run1Field := P.Dataset.FindField('Run1_OK');
+    Run2Field := P.Dataset.FindField('OK');
+    if Run2Field = nil then
+      Run2Field := P.Dataset.FindField('Run2_OK');
+    If (not FNoSkipped) and (SkipField.AsString='+') then
       begin
       Inc(FRunSkipCount);
       BGColor:='yellow';    // Yellow
       end
-    else If P.Dataset.FieldByName('OK').AsString='+' then
-      BGColor:='#98FB98'    // pale Green
+    else If Run2Field.AsString='+' then
+      if Run1Field.AsString='' then
+        BGColor:='#68DFB8'
+      else
+        BGColor:='#98FB98'    // pale Green
     else
       begin
       Inc(FRunFailedCount);
-      BGColor:='#FF82AB';   // Light red
+      if Run1Field.AsString='' then
+        BGColor:='#FF225B'
+      else
+        BGColor:='#FF82AB';   // Light red
       end;
+    end;
 end;
 
 procedure TTestSuite.FormatFailedOverview(Sender: TObject; var CellData: String);
@@ -623,8 +829,8 @@ Var
 
 begin
   P:=(Sender as TTableProducer);
-  S:=Format(SDetailsURL,[P.DataSet.FieldByName('TU_ID').AsString]);
-  S:=S+'&TESTFAILEDONLY=1&TESTNOSKIPPED=1';
+  S:=Format(SDetailsURL,[P.DataSet.FieldByName('ID').AsString]);
+  S:=S+'&failedonly=1&noksipped=1';
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
 end;
 
