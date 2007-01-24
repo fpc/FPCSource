@@ -26,24 +26,7 @@
             66    AddMRUStringA
             67    AddMRUStringW
             35    CenterWindow
-            39    CommandBands_AddAdornments
-            37    CommandBands_AddBands
-            36    CommandBands_Create
-            38    CommandBands_GetCommandBar
-            41    CommandBands_GetRestoreInformation
-            40    CommandBands_Show
-            10    CommandBar_AddAdornments
-             5    CommandBar_AddBitmap
-             3    CommandBar_Create
-            43    CommandBar_DrawMenuBar
             11    CommandBar_GetItemWindow
-             9    CommandBar_GetMenu
-            12    CommandBar_Height
-             6    CommandBar_InsertComboBox
-             7    CommandBar_InsertControl
-             8    CommandBar_InsertMenubar
-            42    CommandBar_InsertMenubarEx
-             4    CommandBar_Show
             63    CreateMRUListA
             64    CreateMRUListW
             15    CreateToolbar
@@ -83,7 +66,6 @@
             65    FreeMRUList
             22    InvertRect
             55    IsCapEditAvailable
-            13    IsCommandBarMessage
                   ListView_SetItemSpacing
             75    PopulateComboWithMRU
             76    PopulateMenuWithMRU
@@ -304,7 +286,81 @@ const
 
   // for FE, single byte character edit
   WC_SBEDIT     = 'sbedit';
+  
+  // REBAR CONTROL
+  REBARCLASSNAME = 'ReBarWindow';
 
+  RBIM_IMAGELIST = $00000001;
+  RBS_VARHEIGHT = $0200;
+  RBS_BANDBORDERS = $0400;
+  RBS_FIXEDORDER = $0800;
+  RBS_SMARTLABELS = $1000;
+  RBS_AUTOSIZE = $2000;
+  RBS_VERTICALGRIPPER = $4000;       { this always has the vertical gripper (default for horizontal mode) }
+
+  RBBS_BREAK = $00000001;       { break to new line }
+  RBBS_FIXEDSIZE = $00000002;       { band can't be sized }
+  RBBS_CHILDEDGE = $00000004;       { edge around top & bottom of child window }
+  RBBS_HIDDEN = $00000008;       { don't show }
+  RBBS_NOVERT = $00000010;       { don't show when vertical }
+  RBBS_FIXEDBMP = $00000020;       { bitmap doesn't move during band resize }
+  RBBS_VARIABLEHEIGHT = $00000040;       { allow autosizing of this child vertically }
+  RBBS_GRIPPERALWAYS = $00000080;       { always show the gripper }
+  RBBS_NOGRIPPER = $00000100;       { never show gripper for this band }
+
+  RBBIM_STYLE = $00000001;
+  RBBIM_COLORS = $00000002;
+  RBBIM_TEXT = $00000004;
+  RBBIM_IMAGE = $00000008;
+  RBBIM_CHILD = $00000010;
+  RBBIM_CHILDSIZE = $00000020;
+  RBBIM_SIZE = $00000040;
+  RBBIM_BACKGROUND = $00000080;
+  RBBIM_ID = $00000100;
+  RBBIM_IDEALSIZE = $00000200;
+  RBBIM_LPARAM = $00000400;
+  
+  RB_DELETEBAND = WM_USER+2;
+  RB_GETBARINFO = WM_USER+3;
+  RB_SETBARINFO = WM_USER+4;
+  RB_SETPARENT = WM_USER+7;
+  RB_HITTEST = WM_USER+8;
+  RB_GETRECT = WM_USER+9;
+  RB_INSERTBANDW = WM_USER+10;
+  RB_SETBANDINFOW = WM_USER+11;
+  RB_GETBANDCOUNT = WM_USER+12;
+  RB_GETROWCOUNT = WM_USER+13;
+  RB_GETROWHEIGHT = WM_USER+14;
+  RB_IDTOINDEX = WM_USER+16;       { wParam == id }
+  RB_SETBKCOLOR = WM_USER+19;       { sets the default BK color }
+  RB_GETBKCOLOR = WM_USER+20;       { defaults to CLR_NONE }
+  RB_SETTEXTCOLOR = WM_USER+21;
+  RB_GETTEXTCOLOR = WM_USER+22;       { defaults to 0x00000000 }
+  RB_SIZETORECT = WM_USER+23;       { resize the rebar/break bands and such to this rect (lparam) }
+  RB_INSERTBAND = RB_INSERTBANDW;
+  RB_SETBANDINFO = RB_SETBANDINFOW;
+  RB_BEGINDRAG = WM_USER+24;
+  RB_ENDDRAG = WM_USER+25;
+  RB_DRAGMOVE = WM_USER+26;
+  RB_GETBARHEIGHT = WM_USER+27;
+  RB_GETBANDINFOW = WM_USER+28;
+  RB_GETBANDINFO = RB_GETBANDINFOW;
+  RB_MINIMIZEBAND = WM_USER+30;
+  RB_MAXIMIZEBAND = WM_USER+31;
+  RB_GETBANDBORDERS = WM_USER+34;       { returns in lparam = lprc the amount of edges added to band wparam }
+  RB_SHOWBAND = WM_USER+35;       { show/hide band }
+  RB_MOVEBAND = WM_USER+36;
+
+  RBN_HEIGHTCHANGE = RBN_FIRST-0;
+  RBN_LAYOUTCHANGED = RBN_FIRST-2;
+  RBN_AUTOSIZE = RBN_FIRST-3;
+  RBN_BEGINDRAG = RBN_FIRST-4;
+  RBN_ENDDRAG = RBN_FIRST-5;
+
+  RBHT_NOWHERE = $0001;
+  RBHT_CAPTION = $0002;
+  RBHT_CLIENT = $0003;
+  RBHT_GRABBER = $0004;
 
 //*****************************************************************************
 // types
@@ -466,6 +522,80 @@ type
   PNMLVODStateChange = ^TNMLVODStateChange;
   TNMLVODStateChange = tagNMLVODSTATECHANGE;
   
+  tagREBARINFO = record
+    cbSize : UINT;
+    fMask : UINT;
+    himl : HIMAGELIST;
+  end;
+  REBARINFO = tagREBARINFO;
+  LPREBARINFO = ^tagREBARINFO;
+  
+  tagREBARBANDINFOW = record
+    cbSize : UINT;
+    fMask : UINT;
+    fStyle : UINT;
+    clrFore : COLORREF;
+    clrBack : COLORREF;
+    lpText : LPWSTR;
+    cch : UINT;
+    iImage : longint;
+    hwndChild : HWND;
+    cxMinChild : UINT;
+    cyMinChild : UINT;
+    cx : UINT;
+    hbmBack : HBITMAP;
+    wID : UINT;
+    cyChild : UINT;
+    cyMaxChild : UINT;
+    cyIntegral : UINT;
+    cxIdeal : UINT;
+    lParam : LPARAM;
+  end;
+  REBARBANDINFOW = tagREBARBANDINFOW;
+  LPREBARBANDINFOW = ^tagREBARBANDINFOW;
+  LPCREBARBANDINFOW = REBARBANDINFOW;
+  REBARBANDINFO = REBARBANDINFOW;
+  LPREBARBANDINFO = LPREBARBANDINFOW;
+  LPCREBARBANDINFO = LPCREBARBANDINFOW;
+
+  tagNMREBAR = record
+    hdr : NMHDR;
+    uBand : UINT;
+    wID : UINT;
+    cyChild : UINT;
+    cyBand : UINT;
+   end;
+  NMREBAR = tagNMREBAR;
+  LPNMREBAR = ^tagNMREBAR;
+
+  tagNMRBAUTOSIZE = record
+    hdr : NMHDR;
+    fChanged : BOOL;
+    rcTarget : RECT;
+    rcActual : RECT;
+  end;
+  NMRBAUTOSIZE = tagNMRBAUTOSIZE;
+  LPNMRBAUTOSIZE = ^tagNMRBAUTOSIZE;
+
+  _RB_HITTESTINFO = record
+    pt : POINT;
+    flags : UINT;
+    iBand : longint;
+  end;
+  RBHITTESTINFO = _RB_HITTESTINFO;
+  LPRBHITTESTINFO = ^_RB_HITTESTINFO;
+       
+  tagCOMMANDBANDSRESTOREINFO = record
+    cbSize : UINT;
+    wID : UINT;
+    fStyle : UINT;
+    cxRestored : UINT;
+    fMaximized : BOOL;
+  end;
+  COMMANDBANDSRESTOREINFO = tagCOMMANDBANDSRESTOREINFO;
+  LPCOMMANDBANDSRESTOREINFO = ^tagCOMMANDBANDSRESTOREINFO;
+  LPCCOMMANDBANDSRESTOREINFO = COMMANDBANDSRESTOREINFO;
+
 //*****************************************************************************
 // functions
 //*****************************************************************************
@@ -485,10 +615,68 @@ function InitCommonControlsEx(_para1:LPINITCOMMONCONTROLSEX):WINBOOL; external C
 function PropertySheet(lppsph:LPCPROPSHEETHEADER):longint; external ComctlDll name 'PropertySheetW';
 function PropertySheetW(lppsph:LPCPROPSHEETHEADER):longint; external ComctlDll name 'PropertySheetW';
 
+function CommandBands_AddAdornments(hwndCmdBands:HWND; hinst:THandle; dwFlags:DWORD; prbbi:LPREBARBANDINFO):BOOL;external ComctlDll name 'CommandBands_AddAdornments';
+function CommandBands_AddBands(hwndCmdBands:HWND; hinst:THandle; cBands:UINT; prbbi:LPREBARBANDINFO):BOOL;external ComctlDll name 'CommandBands_AddBands';
+function CommandBands_Create(hinst:THandle; hwndParent:HWND; wID:UINT; dwStyles:DWORD; himl:HIMAGELIST):HWND;external ComctlDll name 'CommandBands_Create';
+function CommandBands_GetCommandBar(hwndCmdBands:HWND; uBand:UINT):HWND;external ComctlDll name 'CommandBands_GetCommandBar';
+function CommandBands_GetRestoreInformation(hwndCmdBands:HWND; uBand:UINT; pcbri:LPCOMMANDBANDSRESTOREINFO):BOOL;external ComctlDll name 'CommandBands_GetRestoreInformation';
+function CommandBands_Show(hwndCmdBands:HWND; fShow:BOOL):BOOL;external ComctlDll name 'CommandBands_Show';
+function CommandBar_AddAdornments(hwndCB:HWND; dwFlags:DWORD; dwReserved:DWORD):BOOL;external ComctlDll name 'CommandBar_AddAdornments';
+function CommandBar_AddBitmap(hwndCB:HWND; hInst:THandle; idBitmap:longint; iNumImages:longint; iImageWidth:longint; iImageHeight:longint):longint;external ComctlDll name 'CommandBar_AddBitmap';
+function CommandBar_Create(hInst:THandle; hwndParent:HWND; idCmdBar:longint):HWND;external ComctlDll name 'CommandBar_Create';
+function CommandBar_DrawMenuBar(hwndCB:HWND; iButton:WORD):BOOL;external ComctlDll name 'CommandBar_DrawMenuBar';
+function CommandBar_GetMenu(hwndCB:HWND; iButton:WORD):HMENU;external ComctlDll name 'CommandBar_GetMenu';
+function CommandBar_Height(hwndCB:HWND):longint;external ComctlDll name 'CommandBar_Height';
+function CommandBar_InsertComboBox(hwndCB:HWND; THandle:THandle; iWidth:longint; dwStyle:UINT; idComboBox:WORD; iButton:WORD):HWND;external ComctlDll name 'CommandBar_InsertComboBox';
+function CommandBar_InsertMenubar(hwndCB:HWND; hInst:THandle; idMenu:WORD; iButton:WORD):BOOL;external ComctlDll name 'CommandBar_InsertMenubar';
+function CommandBar_InsertMenubarEx(hwndCB:HWND; hinst:THandle; pszMenu:LPTSTR; iButton:WORD):BOOL;external ComctlDll name 'CommandBar_InsertMenubarEx';
+function CommandBar_Show(hwndCB:HWND; fShow:BOOL):BOOL;external ComctlDll name 'CommandBar_Show';
+function IsCommandBarMessage(hwndCB:HWND; lpMsg:LPMSG):BOOL;external ComctlDll name 'IsCommandBarMessage';
+procedure CommandBar_Destroy(hwndCB : HWND);
+function CommandBar_IsVisible(hwndCB : HWND) : BOOL;
+function CommandBar_AddButtons(hwndCB : HWND; cbButtons : UINT; lpButtons : LPTBBUTTON) : BOOL;
+function CommandBar_InsertButton(hwndCB : HWND; iButton : longint; lpButton : LPTBBUTTON) : BOOL;
+function CommandBar_AddToolTips(hwndCB: HWND; cbToolTips : UINT; lpToolTipsStrings : LPTSTR) : BOOL;
+function CommandBands_Height(hwndCmdBands : HWND) : UINT;
+function CommandBands_IsVisible(hwndCmdBands : HWND) : BOOL;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
+procedure CommandBar_Destroy(hwndCB : HWND);
+begin
+  DestroyWindow(hwndCB);
+end;
+
+function CommandBar_IsVisible(hwndCB : HWND) : BOOL;
+begin
+  CommandBar_IsVisible:=IsWindowVisible(hwndCB);
+end;
+
+function CommandBar_AddButtons(hwndCB : HWND; cbButtons : UINT; lpButtons : LPTBBUTTON) : BOOL;
+begin
+   CommandBar_AddButtons:=BOOL(SendMessage(hwndCB,TB_ADDBUTTONS,WPARAM(cbButtons),LPARAM(lpButtons)));
+end;
+
+function CommandBar_InsertButton(hwndCB : HWND; iButton : longint; lpButton : LPTBBUTTON) : BOOL;
+begin
+   CommandBar_InsertButton:=BOOL(SendMessage(hwndCB,TB_INSERTBUTTON,WPARAM(iButton),LPARAM(lpButton)));
+end;
+
+function CommandBar_AddToolTips(hwndCB: HWND; cbToolTips : UINT; lpToolTipsStrings : LPTSTR) : BOOL;
+begin
+   CommandBar_AddToolTips:=BOOL(SendMessage(hwndCB,TB_SETTOOLTIPS,WPARAM(cbToolTips),LPARAM(lpToolTipsStrings)));
+end;
+
+function CommandBands_Height(hwndCmdBands : HWND) : UINT;
+begin
+   CommandBands_Height:=UINT(SendMessage(hwndCmdBands,RB_GETBARHEIGHT,0,0));
+end;
+
+function CommandBands_IsVisible(hwndCmdBands : HWND) : BOOL;
+begin
+   CommandBands_IsVisible:=IsWindowVisible(hwndCmdBands);
+end;
+
 {$endif read_implementation}
-
-
