@@ -39,7 +39,7 @@ uses
 ****************************************************************************}
 
 type
-  TSwitchType=(ignoredsw,localsw,modulesw,globalsw,illegalsw,unsupportedsw,alignsw,optimizersw,packenumsw);
+  TSwitchType=(ignoredsw,localsw,modulesw,globalsw,illegalsw,unsupportedsw,alignsw,optimizersw,packenumsw,pentiumfdivsw);
   SwitchRec=record
     typesw : TSwitchType;
     setsw  : byte;
@@ -68,7 +68,7 @@ const
    {R} (typesw:localsw; setsw:ord(cs_check_range)),
    {S} (typesw:localsw; setsw:ord(cs_check_stack)),
    {T} (typesw:localsw; setsw:ord(cs_typed_addresses)),
-   {U} (typesw:illegalsw; setsw:ord(cs_localnone)),
+   {U} (typesw:pentiumfdivsw; setsw:ord(cs_localnone)),
    {V} (typesw:localsw; setsw:ord(cs_strict_var_strings)),
    {W} (typesw:localsw; setsw:ord(cs_generate_stackframes)),
    {X} (typesw:modulesw; setsw:ord(cs_extsyntax)),
@@ -194,6 +194,13 @@ begin
              current_settings.packenum:=1
            else
              current_settings.packenum:=4;
+         end;
+       pentiumfdivsw:
+         begin
+           { Switch u- means pentium-safe fdiv off -> fpc default. We don't }
+           { support u+                                                     }
+           if state='+' then
+             Message1(scan_w_unsupported_switch,'$'+switch);
          end;
      end;
    end;
