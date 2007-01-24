@@ -58,6 +58,10 @@ begin
   If (s='') or (InOutRes <> 0) then
    exit;
   dirfn(TDirFnType(@RemoveDirectory),s);
+{$ifdef WINCE}
+  if (Inoutres=3) and (Pos(DirectorySeparator, s)<2) then
+    Inoutres:=2;
+{$endif WINCE}
 end;
 
 procedure chdir(const s:string);[IOCHECK];
