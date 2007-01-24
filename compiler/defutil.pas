@@ -230,6 +230,9 @@ interface
     {# returns true, if the type passed is a varset }
     function is_varset(p : tdef) : boolean;
 
+    {# returns true if the type passed is a normalset }
+    function is_normalset(p : tdef) : boolean;
+
     { # returns true if the procdef has no parameters and no specified return type }
     function is_bareprocdef(pd : tprocdef): boolean;
 
@@ -1020,6 +1023,12 @@ implementation
           result:=(p.typ=setdef) and not(p.size in [1,2,4])
         else
           result:=false;
+      end;
+
+
+    function is_normalset(p : tdef) : boolean;
+      begin
+        result:=(p.typ=setdef) and (tsetdef(p).settype = normset);
       end;
 
 

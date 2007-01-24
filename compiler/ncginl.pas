@@ -510,7 +510,8 @@ implementation
           use_small : boolean;
           href : treference;
         begin
-          if not(is_varset(tcallparanode(left).resultdef)) then
+          if not(is_varset(tcallparanode(left).resultdef)) and
+             not(is_normalset(tcallparanode(left).resultdef)) then
             opsize:=int_cgsize(tcallparanode(left).resultdef.size)
           else
             opsize:=OS_32;
