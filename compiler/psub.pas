@@ -776,7 +776,6 @@ implementation
              or
               - Delphi mode
               - assembler directive
-              - no cs_generate_stackframes in localswitches
               - no pushes are used/esp modifications, could be:
                 * outgoing parameters on the stack
                 * incoming parameters on the stack
@@ -784,10 +783,10 @@ implementation
               - no local variables
             }
             if ((po_assembler in procdef.procoptions) and
-                not(cs_generate_stackframes in current_settings.localswitches) and
                 (m_delphi in current_settings.modeswitches) and
                 (tabstractlocalsymtable(procdef.localst).count_locals = 0)) or
                ((cs_opt_stackframe in current_settings.optimizerswitches) and
+                not(cs_generate_stackframes in current_settings.localswitches) and
                 not(po_assembler in procdef.procoptions) and
                 ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
                         pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter,

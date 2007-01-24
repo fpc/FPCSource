@@ -1,17 +1,16 @@
 { %cpu=i386 }
 { %target=win32,linux,freebsd }
 
-{$w+}
-
 {$ifdef fpc}
 {$mode delphi}
 {$endif}
 
-{ should generate a stack frame because of w+ above }
+{$w+}
+
+{ should not generate a stack frame in spite of w+ above }
 function testje(l1,l2,l3: longint): longint;
 asm
   mov eax, 30000
-  leave
   ret
 end;
 
