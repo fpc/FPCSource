@@ -39,7 +39,7 @@ interface
        { maximum of aasmoutput lists there will be }
        maxoutputlists = 20;
        { buffer size for writing the .s file }
-       AsmOutSize=32768;
+       AsmOutSize=32768*4;
 
     type
       TAssembler=class(TAbstractAssembler)
