@@ -592,5 +592,6 @@
 (Ch: (Ch_All, Ch_None, Ch_None)),
 (Ch: (Ch_Wop2, Ch_Rop1, Ch_None)),
 (Ch: (Ch_Wop2, Ch_Rop1, Ch_None)),
-(Ch: (Ch_MRAX, Ch_WRDX, Ch_None))
+(Ch: (Ch_MRAX, Ch_WRDX, Ch_None)),
+(Ch: (Ch_All, Ch_None, Ch_None))
 );

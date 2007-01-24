@@ -199,7 +199,7 @@ rm8,reg8              \300\323\2\x0F\xB0\101          PENT
 regmem,reg16|32|64    \300\320\2\x0F\xA7\101          486,SM
 rm8,reg8              \300\323\2\x0F\xA6\101          486,UNDOC
 
-[CMPXCHG8B,cmpxchg8bX]
+[CMPXCHG8B,cmpxchg8b]
 (Ch_All, Ch_None, Ch_None)
 mem                   \300\323\2\x0F\xC7\201          PENT
 

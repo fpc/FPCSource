@@ -592,5 +592,6 @@
 'rdm',
 'movabs',
 'movslq',
-'cqto'
+'cqto',
+'cmpxchg16b'
 );

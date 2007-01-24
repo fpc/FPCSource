@@ -31,7 +31,7 @@ attsufNONE,
 attsufNONE,
 attsufINT,
 attsufINT,
-attsufINT,
+attsufNONE,
 attsufNONE,
 attsufNONE,
 attsufNONE,
@@ -592,5 +592,6 @@ attsufNONE,
 attsufNONE,
 attsufNONE,
 attsufNONE,
-attsufNONE
+attsufNONE,
+attsufINT
 );
