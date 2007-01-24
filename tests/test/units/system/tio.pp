@@ -198,4 +198,5 @@ Begin
 
   test_rename(FILE_NAME2, 'test3.tmp');
   test_erase(FILE_NAME);
+  test_erase('test3.tmp');
 end.
