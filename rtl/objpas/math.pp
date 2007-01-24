@@ -262,7 +262,13 @@ function radtocycle(rad : float) : float;
 
 function tan(x : float) : float;
 function cotan(x : float) : float;
+function cot(x : float) : float; inline;
 procedure sincos(theta : float;out sinus,cosinus : float);
+
+function secant(x : float) : float; inline;
+function cosecant(x : float) : float; inline;
+function sec(x : float) : float; inline;
+function csc(x : float) : float; inline;
 
 { inverse functions }
 
@@ -677,6 +683,11 @@ function cotan(x : float) : float;
   end;
 {$endif FPC_MATH_HAS_COTAN}
 
+function cot(x : float) : float; inline;
+begin
+  cot := cotan(x);
+end;
+
 
 {$ifndef FPC_MATH_HAS_SINCOS}
 procedure sincos(theta : float;out sinus,cosinus : float);
@@ -685,6 +696,30 @@ procedure sincos(theta : float;out sinus,cosinus : float);
     cosinus:=cos(theta);
   end;
 {$endif FPC_MATH_HAS_SINCOS}
+
+
+function secant(x : float) : float; inline;
+begin
+  secant := 1 / cos(x);
+end;
+
+
+function cosecant(x : float) : float; inline;
+begin
+  cosecant := 1 / sin(x);
+end;
+
+
+function sec(x : float) : float; inline;
+begin
+  sec := secant(x);
+end;
+
+
+function csc(x : float) : float; inline;
+begin
+  csc := cosecant(x);
+end;
 
 
 { ArcSin and ArcCos from Arjan van Dijk (arjan.vanDijk@User.METAIR.WAU.NL) }
