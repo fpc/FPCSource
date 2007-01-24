@@ -79,11 +79,8 @@ Floating Point ........ tfpu1.pp
                         tfpu2.pp
 Assembler readers...... tasmread.pp    tests for support of unit or program specifier
                         testmovd.pp    testspecial issues about MOVD instruction
-<<<<<<< README
 Variants............... tvariant.pp    tests the variant support of FPC
-=======
                         tasout.pp      tests a problem if a unit is compiled with nasm
->>>>>>> 1.13
 
 --------------------------------------------------------------------
                             RTL
