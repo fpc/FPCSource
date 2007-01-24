@@ -725,9 +725,12 @@ begin
         +'FROM TESTS,(select * from TESTRESULTS where TR_TESTRUN_FK='+FCompareRunID+') as tr2 '
          +'LEFT JOIN (select * from TESTRESULTS where TR_TESTRUN_FK='+FRunID+') as tr1 '
          +'USING (TR_TEST_FK) '
-        +'WHERE ((tr1.TR_SKIP IS NULL) or (%s(tr1.TR_OK<>tr2.TR_OK))) and (T_ID=tr2.TR_TEST_FK);';
+        +'WHERE ((tr1.TR_SKIP IS NULL) or (%s(tr1.TR_OK<>tr2.TR_OK))) and (T_ID=tr2.TR_TEST_FK)';
       If FNoSkipped then
-        Qry:='(tr1.TR_SKIP<>"+") and (tr2.TR_SKIP<>"+") and'
+        begin
+        S:=S+' and (tr2.TR_SKIP<>"+")';
+        Qry:='(tr1.TR_SKIP<>"+") and';
+        end
       else
         Qry:='';
       Qry:=Format(S,[Qry]);
@@ -780,7 +783,7 @@ procedure TTestSuite.GetRunRowAttr(Sender: TObject; var BGColor: String;
   
 Var
   P : TTableProducer;
-  SkipField, Run1Field, Run2Field : TField;
+  Skip1Field, Skip2Field, Run1Field, Run2Field : TField;
 begin
   P:=(Sender as TTAbleProducer);
   Inc(FRunCount);
@@ -791,16 +794,22 @@ begin
     end
   else 
     begin
-    SkipField := P.Dataset.FindField('Skipped');
-    if SkipField = nil then
-      SkipField := P.Dataset.FindField('Run2_Skipped');
+    Skip1Field := P.Dataset.FindField('Skipped');
+    if Skip1Field = nil then
+      begin
+      Skip1Field := P.Dataset.FindField('Run1_Skipped');
+      Skip2Field := P.Dataset.FindField('Run2_Skipped');
+      end
+    else
+      Skip2Field := nil; 
     Run1Field := P.Dataset.FindField('OK');
     if Run1Field = nil then
       Run1Field := P.Dataset.FindField('Run1_OK');
     Run2Field := P.Dataset.FindField('OK');
     if Run2Field = nil then
       Run2Field := P.Dataset.FindField('Run2_OK');
-    If (not FNoSkipped) and (SkipField.AsString='+') then
+    If (not FNoSkipped) and ((Skip1Field.AsString='+') 
+        or ((Skip2Field <> nil) and (Skip2Field.AsString = '+'))) then
       begin
       Inc(FRunSkipCount);
       BGColor:='yellow';    // Yellow
