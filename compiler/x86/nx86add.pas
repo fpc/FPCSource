@@ -403,7 +403,7 @@ unit nx86add;
         op     : TAsmOp;
       begin
         pass_left_right;
-        opsize:=int_cgsize(resultdef.size);
+        opsize:=int_cgsize(left.resultdef.size);
         case nodetype of
           equaln,
           unequaln :
