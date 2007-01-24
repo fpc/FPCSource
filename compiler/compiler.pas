@@ -209,22 +209,14 @@ function Compile(const cmd:string):longint;
      end;
   end;
 
-  function getrealtime : real;
-  var
-    h,m,s,s1000 : word;
-  begin
-    DecodeTime(Time,h,m,s,s1000);
-    result:=h*3600.0+m*60.0+s+s1000/1000.0;
-  end;
-
 var
-  starttime  : real;
   timestr    : string[20];
   linkstr    : string[64];
 {$ifdef SHOWUSEDMEM}
   hstatus : TFPCHeapStatus;
 {$endif SHOWUSEDMEM}
   ExceptionMask : TFPUExceptionMask;
+  totaltime : real;
 begin
   try
     try
@@ -257,10 +249,10 @@ begin
        { Show statistics }
        if status.errorcount=0 then
         begin
-          starttime:=getrealtime-starttime;
-          if starttime<0 then
-            starttime:=starttime+3600.0*24.0;
-          timestr:=tostr(trunc(starttime))+'.'+tostr(trunc(frac(starttime)*10));
+          totaltime:=getrealtime-starttime;
+          if totaltime<0 then
+            totaltime:=totaltime+3600.0*24.0;
+          timestr:=tostr(trunc(totaltime))+'.'+tostr(round(frac(totaltime)*10));
           if status.codesize<>-1 then
             linkstr:=', '+tostr(status.codesize)+' ' +strpas(MessagePChar(general_text_bytes_code))+', '+tostr(status.datasize)+' '+strpas(MessagePChar(general_text_bytes_data))
           else

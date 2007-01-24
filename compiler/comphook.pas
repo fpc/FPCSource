@@ -52,6 +52,7 @@ Const
   V_Conditional  = $10000;
   V_Debug        = $20000;
   V_Executable   = $40000;
+  V_TimeStamps   = $80000;
   V_LevelMask    = $fffffff;
   V_All          = V_LevelMask;
   V_Default      = V_Fatal + V_Error + V_Normal;
@@ -156,7 +157,7 @@ const
 implementation
 
   uses
-   cutils, systems
+   cutils, systems, globals
    ;
 
 {****************************************************************************
@@ -248,6 +249,7 @@ const
   rh_warningstr = 'warning:';
 var
   hs : string;
+  hs2 : string;
 begin
   def_comment:=false; { never stop }
   hs:='';
@@ -324,6 +326,11 @@ begin
      else
       hs:=s;
    end;
+  if (status.verbosity and V_TimeStamps)<>0 then
+    begin
+      system.str(getrealtime-starttime:0:3,hs2);
+      hs:='['+hs2+'] '+s;
+    end;
 
   { Display line }
   if ((status.verbosity and (Level and V_LevelMask))=(Level and V_LevelMask)) then

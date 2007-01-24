@@ -295,6 +295,10 @@ var
                          status.verbosity:=status.verbosity and (not V_Executable)
                        else
                          status.verbosity:=status.verbosity or V_Executable;
+                 'S' : if inverse then
+                         status.verbosity:=status.verbosity and (not V_TimeStamps)
+                       else
+                         status.verbosity:=status.verbosity or V_TimeStamps;
                  'V' : PrepareReport;
                  end;
                 inc(i);

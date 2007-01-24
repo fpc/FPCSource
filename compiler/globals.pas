@@ -313,10 +313,13 @@ interface
        { actual values are defined in ncgutil.pas }
        nroftrashvalues = 4;
 
+    var
+      starttime  : real;
 
     function getdatestr:string;
     function gettimestr:string;
     function filetimestring( t : longint) : string;
+    function getrealtime : real;
 
     procedure DefaultReplacements(var s:string);
 
@@ -582,6 +585,14 @@ implementation
        Result := L0(Year)+'/'+L0(Month)+'/'+L0(Day)+' '+L0(Hour)+':'+L0(min)+':'+L0(sec);
      end;
 
+
+   function getrealtime : real;
+     var
+       h,m,s,s1000 : word;
+     begin
+       DecodeTime(Time,h,m,s,s1000);
+       result:=h*3600.0+m*60.0+s+s1000/1000.0;
+     end;
 
 {****************************************************************************
                           Default Macro Handling
