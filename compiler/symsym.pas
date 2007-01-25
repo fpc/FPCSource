@@ -1132,13 +1132,19 @@ implementation
     function tfieldvarsym.mangledname:string;
       var
         srsym : tsym;
-        srsymtable : TSymtable;
+        srsymtable : tsymtable;
       begin
         if sp_static in symoptions then
           begin
-            searchsym(lower(owner.name^)+'_'+name,srsym,srsymtable);
-            if assigned(srsym) then
-             result:=srsym.mangledname;
+            if searchsym(lower(owner.name^)+'_'+name,srsym,srsymtable) then
+              result:=srsym.mangledname
+            { when generating the debug info for the module in which the }
+            { symbol is defined, the localsymtable of that module is     }
+            { already popped from the symtablestack                      }
+            else if searchsym_in_module(current_module,lower(owner.name^)+'_'+name,srsym,srsymtable) then
+              result:=srsym.mangledname
+            else
+              internalerror(2007012501);
           end
         else
           result:=inherited mangledname;
