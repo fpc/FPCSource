@@ -966,7 +966,8 @@ implementation
         if ((tsym(p).typ=localvarsym) or
             ((tsym(p).typ=paravarsym) and
              (vo_is_funcret in tparavarsym(p).varoptions))) and
-           not(tabstractnormalvarsym(p).vardef.needs_inittable) then
+           not(tabstractnormalvarsym(p).vardef.needs_inittable) and
+           not(assigned(tabstractnormalvarsym(p).defaultconstsym)) then
          begin
            trashintval := trashintvalues[localvartrashing];
            case tabstractnormalvarsym(p).initialloc.loc of
@@ -1146,6 +1147,7 @@ implementation
              tparavarsym(p).vardef.needs_inittable;
            do_trashing :=
              (localvartrashing <> -1) and
+             (not assigned(tparavarsym(p).defaultconstsym)) and
              (not tparavarsym(p).vardef.needs_inittable or
               is_class(tparavarsym(p).vardef));
            case tparavarsym(p).varspez of
@@ -1157,19 +1159,15 @@ implementation
                  end;
              vs_out :
                begin
-                 if (needs_inittable) or
-                    (do_trashing) then
+                 { can't trash out-variables: they may not be modified at all, }
+                 { in which case trashing them would destroy their previous    }
+                 { value :/ (e.g. srdef in pexpr.pas)                          }
+                 if (needs_inittable) then
                    begin
                      tmpreg:=cg.getaddressregister(list);
                      cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).initialloc,tmpreg);
                      reference_reset_base(href,tmpreg,0);
-                     if do_trashing and
-                        { needs separate implementation to trash open arrays }
-                        { since their size is only known at run time         }
-                        not is_special_array(tparavarsym(p).vardef) then
-                       trash_reference(list,href,tparavarsym(p).vardef.size);
-                     if needs_inittable then
-                       cg.g_initialize(list,tparavarsym(p).vardef,href);
+                     cg.g_initialize(list,tparavarsym(p).vardef,href);
                    end;
                end;
              else if do_trashing and
