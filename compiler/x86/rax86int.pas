@@ -757,6 +757,7 @@ Unit Rax86int;
         expr:='';
         inexpression:=TRUE;
         parenlevel:=0;
+        sym:=nil;
         needvmtofs:=FALSE;
         Repeat
           { Support ugly delphi constructs like: [ECX].1+2[EDX] }
