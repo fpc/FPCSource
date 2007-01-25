@@ -12,7 +12,7 @@ type
 
 procedure tc.test; assembler;
 asm
-{$ifdef cpu64bit}
+{$ifdef cpu64}
   ld r4,0(r3)
   ld r4,+vmtoffset tc.v(r4)
 {$else}

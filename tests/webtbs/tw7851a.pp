@@ -32,13 +32,13 @@ var
   retaddr: pointer;
 asm
   mflr r0
-{$ifndef cpu64bit}
+{$ifndef cpu64}
   stw r0, retaddr
 {$else}
   std r0, retaddr
 {$endif}
   bl TMyObject.Test2
-{$ifndef cpu64bit}
+{$ifndef cpu64}
   lwz r0, retaddr
 {$else}
   ld r0, retaddr
