@@ -2033,23 +2033,21 @@ implementation
          ppufile.getderef(elementdefderef);
          settype:=tsettype(ppufile.getbyte);
          case settype of
-           normset : savesize:=ppufile.getaint;
-           varset : savesize:=ppufile.getlongint;
-           smallset : savesize:=Sizeof(longint);
+           normset :
+             savesize:=ppufile.getaint;
+           varset,
+           smallset :
+             savesize:=ppufile.getlongint;
          end;
       end;
 
 
     function tsetdef.getcopy : tstoreddef;
       begin
-        case settype of
-          smallset:
-            result:=tsetdef.create(elementdef,31);
-          normset:
-            result:=tsetdef.create(elementdef,255);
-          else
-            internalerror(2004121202);
-        end;
+        result:=tsetdef.create(elementdef,setmax);
+        { the copy might have been created with a different setalloc setting }
+        tsetdef(result).settype:=settype;
+        tsetdef(result).savesize:=savesize;
       end;
 
 
@@ -2058,10 +2056,13 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.putderef(elementdefderef);
          ppufile.putbyte(byte(settype));
-         if settype=varset then
-           ppufile.putlongint(savesize);
-         if settype=normset then
-           ppufile.putaint(savesize);
+         case settype of
+           varset,
+           smallset:
+             ppufile.putlongint(savesize);
+           normset:
+             ppufile.putaint(savesize);
+         end;
          ppufile.writeentry(ibsetdef);
       end;
 
