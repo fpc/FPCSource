@@ -784,6 +784,8 @@ implementation
             }
             if ((po_assembler in procdef.procoptions) and
                 (m_delphi in current_settings.modeswitches) and
+                { localst at main_program_level is a staticsymtable }
+                (procdef.localst.symtablelevel<>main_program_level) and
                 (tabstractlocalsymtable(procdef.localst).count_locals = 0)) or
                ((cs_opt_stackframe in current_settings.optimizerswitches) and
                 not(cs_generate_stackframes in current_settings.localswitches) and
