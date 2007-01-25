@@ -2208,7 +2208,7 @@ const
                   else if ((value shr 32) = 0) then
                     begin
                       tmpreg := tcgppc(cg).rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-                      cg.a_load_const_reg(list,OS_32,cardinal(value),tmpreg);
+                      cg.a_load_const_reg(list,OS_32,aint(value),tmpreg);
                       list.concat(taicpu.op_reg_reg_reg(ops[issub,2],
                         regdst.reglo,regsrc.reglo,tmpreg));
                       list.concat(taicpu.op_reg_reg(ops[issub,3],
