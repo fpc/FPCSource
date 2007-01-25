@@ -783,17 +783,24 @@ type
 
   TIndexDef = class(TCollectionItem)
   Private
+    FCaseinsFields: string;
+    FDescFields: string;
     FExpression : String;
     FFields : String;
     FName : String;
     FOptions : TIndexOptions;
     FSource : String;
+  protected
+    procedure SetCaseInsFields(const AValue: string); virtual;
+    procedure SetDescFields(const AValue: string);
   public
     constructor Create(Owner: TIndexDefs; const AName, TheFields: string;
       TheOptions: TIndexOptions);
     destructor Destroy; override;
     property Expression: string read FExpression;
     property Fields: string read FFields write FFields;
+    property CaseInsFields: string read FCaseinsFields write SetCaseInsFields;
+    property DescFields: string read FDescFields write SetDescFields;
     property Name: string read FName write FName;
     property Options: TIndexOptions read FOptions write FOptions;
     property Source: string read FSource write FSource;
@@ -1859,6 +1866,20 @@ begin
 end;
 
 { TIndexDef }
+
+procedure TIndexDef.SetDescFields(const AValue: string);
+begin
+  if FDescFields=AValue then exit;
+  if AValue <> '' then FOptions:=FOptions + [ixDescending];
+  FDescFields:=AValue;
+end;
+
+procedure TIndexDef.SetCaseInsFields(const AValue: string);
+begin
+  if FCaseinsFields=AValue then exit;
+  if AValue <> '' then FOptions:=FOptions + [ixCaseInsensitive];
+  FCaseinsFields:=AValue;
+end;
 
 constructor TIndexDef.Create(Owner: TIndexDefs; const AName, TheFields: string;
       TheOptions: TIndexOptions);
