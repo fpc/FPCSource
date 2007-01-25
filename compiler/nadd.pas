@@ -1804,8 +1804,8 @@ implementation
                           if assigned(tsetelementnode(right).right) then
                             addstatement(newstatement,ccallnode.createintern('fpc_varset_set_range',
                               ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false),
-                              ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(tsetelementnode(right).right),sinttype),
-                              ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(tsetelementnode(right).left),sinttype),
+                              ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).right,sinttype),
+                              ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype),
                               ccallparanode.create(ctemprefnode.create(temp),
                               ccallparanode.create(left,nil))))))
                             )
