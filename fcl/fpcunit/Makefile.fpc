@@ -6,7 +6,8 @@
 main=fcl
 
 [target]
-units=fpcunit testregistry testreport testutils testdecorator ubmockobject xmlreporter
+units=testregistry testreport testdecorator ubmockobject xmlreporter \
+      fpcunitreport latextestreport xmltestreport plaintestreport
 exampledirs=exampletests
 
 [compiler]

@@ -1,0 +1,150 @@
+FPCUnitTests Time:00.007 N:85 E:1 F:5 I:1
+  TSuiteOne Time:00.001 N:9 E:0 F:3 I:0
+    FirstNestedSuiteOne Time:00.001 N:2 E:0 F:1 I:0
+      00.000  Test11
+      00.000  Test12  Failed: Failed test
+    00.000  Test11
+    00.000  Test11
+    00.000  Test11
+    00.000  Test11
+    00.000  Test12  Failed: Failed test
+    SecondNestedSuiteOne Time:00.000 N:2 E:0 F:1 I:0
+      00.000  Test11
+      00.000  Test12  Failed: Failed test
+  TSuiteTwo Time:00.000 N:2 E:1 F:0 I:0
+    00.000  Test21
+    00.000  Test22  Error: EAccessViolation
+      Exception:   MyError
+      Source unit: exampletestsuites.pp
+      Method name: TSUITETWO__TEST22
+      Line number: 110
+  TSuiteThree Time:00.000 N:1 E:0 F:0 I:0
+    00.000  Test31
+  TSuiteFour Time:00.000 N:2 E:0 F:1 I:1
+    00.000  Test41  Ignored test: This is an ignored test.
+    00.000  Test42  Failed: Failed Test
+  TMoneyTest Time:00.002 N:23 E:0 F:0 I:0
+    00.000  testBagCreate
+    00.000  testBagMultiply
+    00.001  testBagNegate
+    00.000  testBagSimpleAdd
+    00.000  testBagSubtract
+    00.000  testBagSumAdd
+    00.000  testIsZero
+    00.000  testMixedSimpleAdd
+    00.000  testBagNotEquals
+    00.000  testMoneyBagEquals
+    00.000  testMoneyEquals
+    00.000  testSimplify
+    00.000  testNormalize2
+    00.000  testNormalize3
+    00.001  testNormalize4
+    00.000  testPrint
+    00.000  testMoneyBagPrint
+    00.000  testSimpleAdd
+    00.000  testSimpleBagAdd
+    00.000  testSimpleMultiply
+    00.000  testSimpleNegate
+    00.000  testSimpleSubtract
+    00.000  testOperators
+  TTestCaseTest Time:00.000 N:2 E:0 F:0 I:0
+    00.000  TestSetUp
+    00.000  TestAsString
+  TTestSuiteTest Time:00.000 N:2 E:0 F:0 I:0
+    00.000  CheckCountTestCases
+    00.000  TestExtractMethods
+  TAssertTest Time:00.001 N:27 E:0 F:1 I:0
+    00.000  TestEqualsInt
+    00.000  TestEqualsInt64
+    00.001  TestEqualsCurrency
+    00.000  TestEqualsDouble
+    00.000  TestEqualsBoolean
+    00.000  TestEqualsChar
+    00.000  TestEqualsTClass
+    00.000  TestEqualsTObject
+    00.000  TestNull
+    00.000  TestNullInterface
+    00.000  TestNotNull
+    00.000  TestNotNullWithInterface
+    00.000  TestNotNullInterface
+    00.000  TestFailEqualsInt
+    00.000  TestFailEqualsInt64
+    00.000  TestFailEqualsCurrency
+    00.000  TestFailEqualsDouble
+    00.000  TestFailEqualsBoolean  Failed: Wrong failure message: expected < expected: <TRUE> but was: <FALSE>>but was < expected: <-1> but was: <0>>
+    00.000  TestFailEqualsChar
+    00.000  TestFailEqualsTClass
+    00.000  TestFailEqualsTObject
+    00.000  TestFailNull
+    00.000  TestFailNullInterface
+    00.000  TestFailNotNull
+    00.000  TestFailNotNullInterface
+    00.000  TestAssertException
+    00.000  TestComparisonMsg
+  TListenerTest Time:00.002 N:6 E:0 F:0 I:0
+    00.001  TestStartAndEndTest
+    00.000  TestAddError
+    00.000  TestAddFailure
+    00.000  TestSetUpTearDown
+    00.000  TestSetUpException
+    00.001  TestTearDownException
+  TTestDecoratorTest Time:00.000 N:2 E:0 F:0 I:0
+    00.000  TestRun
+    00.000  TestOneTimeSetup
+  TSuiteTest Time:00.000 N:8 E:0 F:0 I:0
+    00.000  testNoTestCaseClass
+    00.000  testNoTestCases
+    00.000  testOneTestCase
+    00.000  testInheritedTests
+    00.000  testNotExistingTestCase
+    00.000  testShadowedTests
+    00.000  testAddTestSuiteFromClass
+    00.000  testCreateTestSuiteFromArray
+  TReportTest Time:00.001 N:1 E:0 F:0 I:0
+    00.001  TestWriteSuite
+
+Number of run tests: 85
+Number of errors:    1
+Number of failures:  5
+
+List of errors:
+  Error: 
+    Message:           TSuiteTwo.Test22: MyError
+    Exception class:   EAccessViolation
+    Exception message: MyError
+    Source unitname:   exampletestsuites.pp
+    Line number:       110
+    Failed methodname: TSUITETWO__TEST22
+
+
+List of failures:
+  Failure: 
+    Message:           FirstNestedSuiteOne.Test12: Failed test
+    Exception class:   EAssertionFailedError
+    Exception message: Failed test
+  Failure: 
+    Message:           TSuiteOne.Test12: Failed test
+    Exception class:   EAssertionFailedError
+    Exception message: Failed test
+  Failure: 
+    Message:           SecondNestedSuiteOne.Test12: Failed test
+    Exception class:   EAssertionFailedError
+    Exception message: Failed test
+  Failure: 
+    Message:           TSuiteFour.Test42: Failed Test
+    Exception class:   EAssertionFailedError
+    Exception message: Failed Test
+  Failure: 
+    Message:           TAssertTest.TestFailEqualsBoolean: Wrong failure message: expected < expected: <TRUE> but was: <FALSE>>but was < expected: <-1> but was: <0>>
+    Exception class:   EAssertionFailedError
+    Exception message: Wrong failure message: expected < expected: <TRUE> but was: <FALSE>>but was < expected: <-1> but was: <0>>
+
+
+List of ignored tests:
+  Ignored test: 
+    Message:           TSuiteFour.Test41: This is an ignored test.
+    Exception class:   EIgnoredTest
+    Exception message: This is an ignored test.
+
+
+
