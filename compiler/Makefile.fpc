@@ -479,7 +479,7 @@ cycledep:
         $(MAKE) cycle USEDEPEND=1
 
 extcycle:
-        $(MAKE) cycle OPT='-n -OG2p3 -gl -CRriot -dEXTDEBUG'
+        $(MAKE) cycle OPT='-n -OG2p3 -glttt -CRriot -dEXTDEBUG'
 
 cvstest:
         $(MAKE) cycle 'LOCALOPT=-n -Se' 'RTLOPT=-n -Se'
