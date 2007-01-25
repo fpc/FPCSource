@@ -763,19 +763,19 @@ unit cgcpu;
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              cg.a_op_const_ref(list,op,OS_32,lo(value),ref);
+              cg.a_op_const_ref(list,op,OS_32,aint(lo(value)),ref);
               tempref:=ref;
               inc(tempref.offset,4);
-              cg.a_op_const_ref(list,op,OS_32,hi(value),tempref);
+              cg.a_op_const_ref(list,op,OS_32,aint(hi(value)),tempref);
             end;
           OP_ADD, OP_SUB:
             begin
               get_64bit_ops(op,op1,op2);
               // can't use a_op_const_ref because this may use dec/inc
-              list.concat(taicpu.op_const_ref(op1,S_L,lo(value),ref));
+              list.concat(taicpu.op_const_ref(op1,S_L,aint(lo(value)),ref));
               tempref:=ref;
               inc(tempref.offset,4);
-              list.concat(taicpu.op_const_ref(op2,S_L,hi(value),tempref));
+              list.concat(taicpu.op_const_ref(op2,S_L,aint(hi(value)),tempref));
             end;
           else
             internalerror(200204022);
