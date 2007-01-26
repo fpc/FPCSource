@@ -601,8 +601,9 @@ interface
        { default integer type s32inttype on 32 bit systems, s64bittype on 64 bit systems }
        sinttype,
        uinttype,
-       { unsigned ord type with the same size as a pointer }
-       ptrinttype,
+       { unsigned and signed ord type with the same size as a pointer }
+       ptruinttype,
+       ptrsinttype,
        { several types to simulate more or less C++ objects for GDB }
        vmttype,
        vmtarraytype,

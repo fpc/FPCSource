@@ -1560,7 +1560,7 @@ implementation
                        begin
                          if m_mac in current_settings.modeswitches then
                            begin
-                             hp:=ctypeconvnode.create_internal(left,ptrinttype);
+                             hp:=ctypeconvnode.create_internal(left,ptruinttype);
                              left:=nil;
                              result:=hp;
                            end

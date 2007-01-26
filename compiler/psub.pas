@@ -342,11 +342,13 @@ implementation
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
-                    { if vmt<>0 then beforedestruction }
+                    { if vmt>0 then beforedestruction }
                     addstatement(newstatement,cifnode.create(
-                        caddnode.create(unequaln,
-                            load_vmt_pointer_node,
-                            cnilnode.create),
+                        caddnode.create(gtn,
+                            ctypeconvnode.create_internal(
+                              load_vmt_pointer_node,ptrsinttype),
+                            ctypeconvnode.create_internal(
+                              cnilnode.create,ptrsinttype)),
                         ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
                         nil));
                   end
@@ -409,17 +411,17 @@ implementation
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
-                        { if self<>0 and vmt=1 then freeinstance }
+                        { if self<>0 and vmt<>0 then freeinstance }
                         addstatement(newstatement,cifnode.create(
                             caddnode.create(andn,
                                 caddnode.create(unequaln,
                                     load_self_pointer_node,
                                     cnilnode.create),
-                                caddnode.create(equaln,
+                                caddnode.create(unequaln,
                                     ctypeconvnode.create(
                                         load_vmt_pointer_node,
                                         voidpointertype),
-                                    cpointerconstnode.create(1,voidpointertype))),
+                                    cpointerconstnode.create(0,voidpointertype))),
                             ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
                             nil));
                       end
@@ -482,7 +484,8 @@ implementation
                     caddnode.create(unequaln,
                         load_vmt_pointer_node,
                         cnilnode.create),
-                    ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[]),
+                    { cnf_create_failed -> don't call BeforeDestruction }
+                    ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed]),
                     nil));
               end;
             current_settings.localswitches:=oldlocalswitches;
@@ -581,7 +584,6 @@ implementation
             exceptcode:=generate_except_block;
             { Generate code that will be in the try...finally }
             finalcode:=internalstatements(codestatement);
-            addstatement(codestatement,bodyexitcode);
             addstatement(codestatement,final_asmnode);
             { Initialize before try...finally...end frame }
             addstatement(newstatement,loadpara_asmnode);
@@ -595,6 +597,7 @@ implementation
                finalcode,
                exceptcode));
             addstatement(newstatement,exitlabel_asmnode);
+            addstatement(newstatement,bodyexitcode);
             { set flag the implicit finally has been generated }
             include(flags,pi_has_implicit_finally);
           end

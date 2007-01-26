@@ -44,7 +44,8 @@ interface
          cnf_new_call,
          cnf_dispose_call,
          cnf_member_call,        { called with implicit methodpointer tree }
-         cnf_uses_varargs        { varargs are used in the declaration }
+         cnf_uses_varargs,       { varargs are used in the declaration }
+         cnf_create_failed       { exception thrown in constructor -> don't call beforedestruction }
        );
        tcallnodeflags = set of tcallnodeflag;
 
@@ -368,14 +369,14 @@ implementation
                 addstatement(statements,cassignmentnode.create(
                   ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
                     caddrnode.create(ctemprefnode.create(params)),
-                    cordconstnode.create(paramssize,ptrinttype,false)
+                    cordconstnode.create(paramssize,ptruinttype,false)
                   )),voidpointertype),
                   ctypeconvnode.create_internal(caddrnode.create_internal(para.value),voidpointertype)))
               else
                 addstatement(statements,cassignmentnode.create(
                   ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
                     caddrnode.create(ctemprefnode.create(params)),
-                    cordconstnode.create(paramssize,ptrinttype,false)
+                    cordconstnode.create(paramssize,ptruinttype,false)
                   )),voidpointertype),
                   ctypeconvnode.create_internal(para.value,voidpointertype)));
 
@@ -1574,26 +1575,30 @@ implementation
                         call afterconstrution, vmt=1 }
                   if (procdefinition.proctypeoption=potype_destructor) then
                     vmttree:=cpointerconstnode.create(0,voidpointertype)
+                  else if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+                          (procdefinition.proctypeoption=potype_constructor) then
+                    vmttree:=cpointerconstnode.create(0,voidpointertype)
                   else
-                    begin
-                      if (current_procinfo.procdef.proctypeoption=potype_constructor) and
-                         (procdefinition.proctypeoption=potype_constructor) then
-                        vmttree:=cpointerconstnode.create(0,voidpointertype)
-                      else
-                        vmttree:=cpointerconstnode.create(1,voidpointertype);
-                    end;
+                    vmttree:=cpointerconstnode.create(1,voidpointertype);
                 end
             else
             { normal call to method like cl1.proc }
               begin
-                { destructor: release instance, vmt=1
+                { destructor:
+                     if not called from exception block in constructor
+                       call beforedestruction and release instance, vmt=1
+                     else
+                       don't call beforedestruction and release instance, vmt=-1
                   constructor:
                     if called from a constructor in the same class using self.create then
                       don't call afterconstruction, vmt=0
                     else
                       call afterconstrution, vmt=1 }
                 if (procdefinition.proctypeoption=potype_destructor) then
-                  vmttree:=cpointerconstnode.create(1,voidpointertype)
+                  if not(cnf_create_failed in callnodeflags) then
+                    vmttree:=cpointerconstnode.create(1,voidpointertype)
+                  else 
+                    vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype)
                 else
                   begin
                     if (current_procinfo.procdef.proctypeoption=potype_constructor) and

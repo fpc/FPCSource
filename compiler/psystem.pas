@@ -189,11 +189,13 @@ implementation
 {$ifdef cpu64bit}
         uinttype:=u64inttype;
         sinttype:=s64inttype;
-        ptrinttype:=u64inttype;
+        ptruinttype:=u64inttype;
+        ptrsinttype:=s64inttype;
 {$else cpu64bit}
         uinttype:=u32inttype;
         sinttype:=s32inttype;
-        ptrinttype:=u32inttype;
+        ptruinttype:=u32inttype;
+        ptrsinttype:=s32inttype;
 {$endif cpu64bit}
         { some other definitions }
         voidpointertype:=tpointerdef.create(voidtype);
@@ -387,11 +389,13 @@ implementation
 {$ifdef cpu64bit}
         uinttype:=u64inttype;
         sinttype:=s64inttype;
-        ptrinttype:=u64inttype;
+        ptruinttype:=u64inttype;
+        ptrsinttype:=s64inttype;
 {$else cpu64bit}
         uinttype:=u32inttype;
         sinttype:=s32inttype;
-        ptrinttype:=u32inttype;
+        ptruinttype:=u32inttype;
+        ptrsinttype:=s32inttype;
 {$endif cpu64bit}
         current_module:=oldcurrentmodule;
       end;
