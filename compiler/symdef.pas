@@ -199,10 +199,14 @@ interface
        TImplementedInterface = class
          IntfDef      : tobjectdef;
          IntfDefDeref : tderef;
+         IType        : tinterfaceentrytype;
          IOffset      : longint;
-         VtblImplIntf   : TImplementedInterface;
+         VtblImplIntf : TImplementedInterface;
          NameMappings : TFPHashList;
          ProcDefs     : TFPObjectList;
+         FieldOffset  : longint;
+         // FieldOffset can be merged with IOffset. But then, fpc is not allowed to genrate a vmtentry.
+         // Right now, fpc generate an entry for all implemented interfaces (but it should just for etStandard ones)
          constructor create(aintf: tobjectdef);
          constructor create_deref(d:tderef);
          destructor  destroy; override;
@@ -232,8 +236,6 @@ interface
           objecttype     : tobjecttyp;
           iidguid        : pguid;
           iidstr         : pshortstring;
-          iitype         : tinterfaceentrytype;
-          iioffset       : longint;
           { store implemented interfaces defs and name mappings }
           ImplementedInterfaces : TFPObjectList;
           constructor create(ot : tobjecttyp;const n : string;c : tobjectdef);
@@ -3576,7 +3578,6 @@ implementation
         else
           ImplementedInterfaces:=nil;
         writing_class_record_dbginfo:=false;
-        iitype := etStandard;
      end;
 
 
@@ -4027,6 +4028,8 @@ implementation
         inherited create;
         intfdef:=aintf;
         ioffset:=-1;
+        itype:=etStandard;
+        fieldoffset:=-1;
         NameMappings:=nil;
         procdefs:=nil;
       end;
@@ -4038,6 +4041,8 @@ implementation
         intfdef:=nil;
         intfdefderef:=d;
         ioffset:=-1;
+        itype:=etStandard;
+        fieldoffset:=-1;
         NameMappings:=nil;
         procdefs:=nil;
       end;

@@ -632,8 +632,8 @@ implementation
                end;
              if found then
                begin
-                 ImplIntf.IntfDef.iitype := etFieldValue;
-                 ImplIntf.IntfDef.iioffset := tfieldvarsym(p.propaccesslist[palt_read].firstsym^.sym).fieldoffset;
+                 ImplIntf.itype := etFieldValue;
+                 ImplIntf.fieldoffset := tfieldvarsym(p.propaccesslist[palt_read].firstsym^.sym).fieldoffset;
                end
              else
                Comment(V_Error,'Implements-property used on unimplemented interface');

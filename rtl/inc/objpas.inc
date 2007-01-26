@@ -173,7 +173,7 @@
                 i:=intftable^.EntryCount;
                 Res:=@intftable^.Entries[0];
                 while i>0 do begin
-                  if Res^.EntryType = etStandard then
+                  if Res^.IType = etStandard then
                     ppointer(@(pbyte(instance)[Res^.IOffset]))^:=
                       pointer(Res^.VTable);
                   inc(Res);
@@ -604,9 +604,9 @@
           Getter: function: IInterface of object;
         begin
           Pointer(Obj) := nil;
-          if Assigned(IEntry) then
+          if Assigned(IEntry) and Assigned(Instance) then
           begin
-            case IEntry^.EntryType of
+            case IEntry^.IType of
               etStandard:
                 begin
                   //writeln('Doing etStandard cast of ', TObject(Instance).classname(), ' with self = ', ptruint(Instance), ' and offset = ', IEntry^.IOffset);
@@ -614,21 +614,21 @@
                 end;
               etFieldValue:
                 begin
-                  //writeln('Doing etFieldValue cast of ', TObject(Instance).classname(), ' with offset = ', IEntry^.EntryOffset);
-                  Pointer(obj) := ppointer(Pointer(Instance)+IEntry^.EntryOffset)^;
+                  //writeln('Doing etFieldValue cast of ', TObject(Instance).classname(), ' with offset = ', IEntry^.IOffset);
+                  Pointer(obj) := ppointer(Pointer(Instance)+IEntry^.IOffset)^;
                 end;
               etVirtualMethodResult:
                 begin
                   //writeln('Doing etVirtualMethodResult cast of ', TObject(Instance).classname());
                   TMethod(Getter).data := Instance;
-                  TMethod(Getter).code := ppointer(ptrint(Instance) + IEntry^.EntryOffset)^;
+                  TMethod(Getter).code := ppointer(ptrint(Instance) + IEntry^.IOffset)^;
                   Pointer(obj) := Pointer(Getter());
                 end;
               etStaticMethodResult:
                 begin
                   //writeln('Doing etStaticMethodResult cast of ', TObject(Instance).classname());
                   TMethod(Getter).data := Instance;
-                  TMethod(Getter).code := pointer(IEntry^.EntryOffset);
+                  TMethod(Getter).code := pointer(IEntry^.IOffset);
                   Pointer(obj) := Pointer(Getter());
                 end;
             end;
