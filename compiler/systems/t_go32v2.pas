@@ -153,7 +153,7 @@ end;
 Function TExternalLinkerGo32v2.WriteScript(isdll:boolean) : Boolean;
 Var
   scriptres  : TLinkRes;
-  HPath    : TStringListItem;
+  HPath    : TCmdStrListItem;
   s        : string;
 begin
   WriteScript:=False;
@@ -211,17 +211,17 @@ begin
   ScriptRes.Add('  }');
 
   { Write path to search libraries }
-  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
      ScriptRes.Add('SEARCH_DIR("'+GetShortName(HPath.Str)+'")');
-     HPath:=TStringListItem(HPath.Next);
+     HPath:=TCmdStrListItem(HPath.Next);
    end;
-  HPath:=TStringListItem(LibrarySearchPath.First);
+  HPath:=TCmdStrListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
      ScriptRes.Add('SEARCH_DIR("'+GetShortName(HPath.Str)+'")');
-     HPath:=TStringListItem(HPath.Next);
+     HPath:=TCmdStrListItem(HPath.Next);
    end;
 
 { Write and Close response }

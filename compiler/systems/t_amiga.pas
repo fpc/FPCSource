@@ -96,7 +96,7 @@ function TLinkerAmiga.WriteResponseFile(isdll: boolean): boolean;
 var
   linkres  : TLinkRes;
   i        : longint;
-  HPath    : TStringListItem;
+  HPath    : TCmdStrListItem;
   s        : string;
   linklibc : boolean;
 begin
@@ -106,22 +106,22 @@ begin
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
   { Write path to search libraries }
-  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;
     if (cs_link_on_target in current_settings.globalswitches) then
      s:=ScriptFixFileName(s);
     LinkRes.Add('-L'+s);
-    HPath:=TStringListItem(HPath.Next);
+    HPath:=TCmdStrListItem(HPath.Next);
    end;
-  HPath:=TStringListItem(LibrarySearchPath.First);
+  HPath:=TCmdStrListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;
     if s<>'' then
      LinkRes.Add('SEARCH_DIR('+PathConv(maybequoted(s))+')');
-    HPath:=TStringListItem(HPath.Next);
+    HPath:=TCmdStrListItem(HPath.Next);
    end;
 
   LinkRes.Add('INPUT (');

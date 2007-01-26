@@ -40,7 +40,7 @@ type
     is_empty : boolean;
     WrittenOnDisk : boolean;
     exportlist,
-    importlist   : tstringlist;
+    importlist   : TCmdStrList;
   end;
 
 var
@@ -62,8 +62,8 @@ begin
   fname:=fn;
   WrittenOnDisk:=false;
   is_empty:=true;
-  importlist:=TStringList.Create;
-  exportlist:=TStringList.Create;
+  importlist:=TCmdStrList.Create;
+  exportlist:=TCmdStrList.Create;
 end;
 
 

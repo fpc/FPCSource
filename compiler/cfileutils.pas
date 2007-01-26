@@ -81,11 +81,11 @@ interface
         function FindClose(var Res:TCachedSearchRec):boolean;
       end;
 
-      TSearchPathList = class(TStringList)
-        procedure AddPath(s:string;addfirst:boolean);overload;
-        procedure AddPath(SrcPath,s:string;addfirst:boolean);overload;
+      TSearchPathList = class(TCmdStrList)
+        procedure AddPath(s:TCmdStr;addfirst:boolean);overload;
+        procedure AddPath(SrcPath,s:TCmdStr;addfirst:boolean);overload;
         procedure AddList(list:TSearchPathList;addfirst:boolean);
-        function  FindFile(const f : string;allowcache:boolean;var foundfile:string):boolean;
+        function  FindFile(const f : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
       end;
 
     function  bstoslash(const s : string) : string;
@@ -97,16 +97,16 @@ interface
     function  path_absolute(const s : string) : boolean;
     Function  PathExists (const F : String;allowcache:boolean) : Boolean;
     Function  FileExists (const F : String;allowcache:boolean) : Boolean;
-    function  FileExistsNonCase(const path,fn:string;allowcache:boolean;var foundfile:string):boolean;
+    function  FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     Function  RemoveDir(d:string):boolean;
     Function  FixPath(s:string;allowdot:boolean):string;
     function  FixFileName(const s:string):string;
     function  TargetFixPath(s:string;allowdot:boolean):string;
     function  TargetFixFileName(const s:string):string;
     procedure SplitBinCmd(const s:string;var bstr: String;var cstr:TCmdStr);
-    function  FindFile(const f : string;path : string;allowcache:boolean;var foundfile:string):boolean;
-    function  FindFilePchar(const f : string;path : pchar;allowcache:boolean;var foundfile:string):boolean;
-    function  FindExe(const bin:string;allowcache:boolean;var foundfile:string):boolean;
+    function  FindFile(const f : TCmdStr;path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
+    function  FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;
+    function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     function  GetShortName(const n:string):string;
 
     procedure InitFileUtils;
@@ -370,7 +370,7 @@ implementation
       end;
 
 
-    function FileExistsNonCase(const path,fn:string;allowcache:boolean;var foundfile:string):boolean;
+    function FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
       var
         fn2 : string;
       begin
@@ -743,29 +743,29 @@ implementation
      end;
 
 
-    procedure TSearchPathList.AddPath(s:string;addfirst:boolean);
+    procedure TSearchPathList.AddPath(s:TCmdStr;addfirst:boolean);
       begin
         AddPath('',s,AddFirst);
       end;
 
 
-   procedure TSearchPathList.AddPath(SrcPath,s:string;addfirst:boolean);
+   procedure TSearchPathList.AddPath(SrcPath,s:TCmdStr;addfirst:boolean);
      var
        staridx,
        j        : longint;
        prefix,
        suffix,
        CurrentDir,
-       currPath : string;
+       currPath : TCmdStr;
        subdirfound : boolean;
 {$ifdef usedircache}
        dir      : TCachedSearchRec;
 {$else usedircache}
        dir      : TSearchRec;
 {$endif usedircache}
-       hp       : TStringListItem;
+       hp       : TCmdStrListItem;
 
-       procedure WarnNonExistingPath(const path : string);
+       procedure WarnNonExistingPath(const path : TCmdStr);
        begin
          if assigned(do_comment) then
            do_comment(V_Tried,'Path "'+path+'" not found');
@@ -899,7 +899,7 @@ implementation
      var
        s : string;
        hl : TSearchPathList;
-       hp,hp2 : TStringListItem;
+       hp,hp2 : TCmdStrListItem;
      begin
        if list.empty then
         exit;
@@ -907,11 +907,11 @@ implementation
        if addfirst then
         begin
           hl:=TSearchPathList.Create;
-          hp:=TStringListItem(list.first);
+          hp:=TCmdStrListItem(list.first);
           while assigned(hp) do
            begin
              hl.insert(hp.Str);
-             hp:=TStringListItem(hp.next);
+             hp:=TCmdStrListItem(hp.next);
            end;
           while not hl.empty do
            begin
@@ -923,40 +923,40 @@ implementation
         end
        else
         begin
-          hp:=TStringListItem(list.first);
+          hp:=TCmdStrListItem(list.first);
           while assigned(hp) do
            begin
              hp2:=Find(hp.Str);
              { Check if already in path, then we don't add it }
              if not assigned(hp2) then
               Concat(hp.Str);
-             hp:=TStringListItem(hp.next);
+             hp:=TCmdStrListItem(hp.next);
            end;
         end;
      end;
 
 
-   function TSearchPathList.FindFile(const f : string;allowcache:boolean;var foundfile:string):boolean;
+   function TSearchPathList.FindFile(const f :TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
      Var
-       p : TStringListItem;
+       p : TCmdStrListItem;
      begin
        FindFile:=false;
-       p:=TStringListItem(first);
+       p:=TCmdStrListItem(first);
        while assigned(p) do
         begin
           result:=FileExistsNonCase(p.Str,f,allowcache,FoundFile);
           if result then
             exit;
-          p:=TStringListItem(p.next);
+          p:=TCmdStrListItem(p.next);
         end;
        { Return original filename if not found }
        FoundFile:=f;
      end;
 
 
-   function FindFile(const f : string;path : string;allowcache:boolean;var foundfile:string):boolean;
+   function FindFile(const f : TCmdStr;path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
       Var
-        singlepathstring : string;
+        singlepathstring : TCmdStr;
         i : longint;
      begin
 {$ifdef Unix}
@@ -979,9 +979,9 @@ implementation
      end;
 
 
-   function FindFilePchar(const f : string;path : pchar;allowcache:boolean;var foundfile:string):boolean;
+   function FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;
       Var
-        singlepathstring : string;
+        singlepathstring : TCmdStr;
         startpc,pc : pchar;
         sepch : char;
      begin
@@ -1002,8 +1002,8 @@ implementation
              startpc:=pc;
              while (pc^<>sepch) and (pc^<>';') and (pc^<>#0) do
               inc(pc);
-             move(startpc^,singlepathstring[1],pc-startpc);
-             singlepathstring[0]:=char(longint(pc-startpc));
+			 SetLength(singlepathstring, pc-startpc);
+             move(startpc^,singlepathstring[1],pc-startpc);            
              singlepathstring:=FixPath(ExpandFileName(singlepathstring),false);
              result:=FileExistsNonCase(singlepathstring,f,allowcache,FoundFile);
              if result then
@@ -1017,7 +1017,7 @@ implementation
      end;
 
 
-   function  FindExe(const bin:string;allowcache:boolean;var foundfile:string):boolean;
+   function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
      var
        p : pchar;
        found : boolean;

@@ -50,7 +50,7 @@ implementation
       var
         DLLScanner      : TDLLScanner;
         s               : string;
-        KeepShared      : TStringList;
+        KeepShared      : TCmdStrList;
       begin
         { try to create import entries from system dlls }
         if (tf_has_dllscanner in target_info.flags) and
@@ -61,7 +61,7 @@ implementation
             DLLScanner:=CDLLScanner[target_info.system].Create
            else
             internalerror(200104121);
-           KeepShared:=TStringList.Create;
+           KeepShared:=TCmdStrList.Create;
            { Walk all shared libs }
            While not current_module.linkOtherSharedLibs.Empty do
             begin

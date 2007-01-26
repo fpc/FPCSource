@@ -71,8 +71,8 @@ Function TLinkerGba.WriteResponseFile: Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
-  HPath    : TStringListItem;
-  s,s1,s2  : string;
+  HPath    : TCmdStrListItem;
+  s,s1,s2  : TCmdStr;
   prtobj, 
   cprtobj  : string[80];
   linklibc : boolean;
@@ -90,22 +90,22 @@ begin
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
   { Write path to search libraries }
-  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;
     if (cs_link_on_target in current_settings.globalswitches) then
      s:=ScriptFixFileName(s);
     LinkRes.Add('-L'+s);
-    HPath:=TStringListItem(HPath.Next);
+    HPath:=TCmdStrListItem(HPath.Next);
    end;
-  HPath:=TStringListItem(LibrarySearchPath.First);
+  HPath:=TCmdStrListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
     s:=HPath.Str;
     if s<>'' then
      LinkRes.Add('SEARCH_DIR('+(maybequoted(s))+')');
-    HPath:=TStringListItem(HPath.Next);
+    HPath:=TCmdStrListItem(HPath.Next);
    end;
 
   LinkRes.Add('INPUT (');

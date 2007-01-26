@@ -283,8 +283,8 @@ Var
   cprtobj,
   gprtobj,
   prtobj       : string[80];
-  HPath        : TStringListItem;
-  s,s1,s2      : string;
+  HPath        : TCmdStrListItem;
+  s,s1,s2      : TCmdStr;
   linkdynamic,
   linklibc     : boolean;
   Fl1,Fl2      : Boolean;
@@ -372,23 +372,23 @@ begin
       end;
   end;
   { Write path to search libraries }
-  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
      if LdSupportsNoResponseFile then
        LinkRes.Add(maybequoted('-L'+HPath.Str))
      else
        LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
-     HPath:=TStringListItem(HPath.Next);
+     HPath:=TCmdStrListItem(HPath.Next);
    end;
-  HPath:=TStringListItem(LibrarySearchPath.First);
+  HPath:=TCmdStrListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
      if LdSupportsNoResponseFile then
        LinkRes.Add(maybequoted('-L'+HPath.Str))
      else
        LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
-     HPath:=TStringListItem(HPath.Next);
+     HPath:=TCmdStrListItem(HPath.Next);
    end;
 
   if not LdSupportsNoResponseFile then

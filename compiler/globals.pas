@@ -157,7 +157,7 @@ interface
         procedure SetValue(key:AnsiString;Weight:Integer);
         procedure SortonWeight;
         function Find(key:AnsiString):AnsiString;
-        procedure Expand(src:TStringList;dest: TLinkStrMap);
+        procedure Expand(src:TCmdStrList;dest: TLinkStrMap);
         procedure UpdateWeights(Weightmap:TLinkStrMap);
         constructor Create;
         property count : longint read itemcnt;
@@ -191,10 +191,10 @@ interface
        { directory where the utils can be found (options -FD) }
        utilsdirectory : TPathStr;
        { targetname specific prefix used by these utils (options -XP<path>) }
-       utilsprefix    : TPathStr;
+       utilsprefix    : TCmdStr;
        cshared        : boolean;        { pass --shared to ld to link C libs shared}
        Dontlinkstdlibpath: Boolean;     { Don't add std paths to linkpath}
-       rlinkpath      : TPathStr;         { rpath-link linkdir override}
+       rlinkpath      : TCmdStr;         { rpath-link linkdir override}
 
        { some flags for global compiler switches }
        do_build,
@@ -321,7 +321,7 @@ interface
     function filetimestring( t : longint) : string;
     function getrealtime : real;
 
-    procedure DefaultReplacements(var s:string);
+    procedure DefaultReplacements(var s:ansistring);
 
     function Shell(const command:ansistring): longint;
     function  GetEnvPChar(const envname:string):pchar;
@@ -491,11 +491,11 @@ implementation
       end;
 
 
-    procedure TLinkStrMap.Expand(Src:TStringList;Dest:TLinkStrMap);
+    procedure TLinkStrMap.Expand(Src:TCmdStrList;Dest:TLinkStrMap);
       // expands every thing in Src to Dest for linkorder purposes.
       var
         l,r  : longint;
-        LibN    : String;
+        LibN    : TCmdStr;
       begin
         while not src.empty do
           begin
@@ -598,7 +598,7 @@ implementation
                           Default Macro Handling
 ****************************************************************************}
 
-     procedure DefaultReplacements(var s:string);
+     procedure DefaultReplacements(var s:ansistring);
        begin
          { Replace some macros }
          Replace(s,'$FPCVERSION',version_string);
@@ -1032,7 +1032,8 @@ implementation
 
    procedure get_exepath;
      var
-       exeName:String;
+	   localExepath : TCmdStr;
+       exeName:TCmdStr;
 {$ifdef need_path_search}
        hs1 : TPathStr;
        p   : pchar;
@@ -1054,12 +1055,12 @@ implementation
 {$else macos}
           p:=GetEnvPchar('PATH');
 {$endif macos}
-          FindFilePChar(hs1,p,false,exepath);
+          FindFilePChar(hs1,p,false,localExepath);
           FreeEnvPChar(p);
-          exepath:=ExtractFilePath(exepath);
+          localExepath:=ExtractFilePath(localExepath);
         end;
 {$endif need_path_search}
-       exepath:=FixPath(exepath,false);
+       exepath:=FixPath(localExepath,false);
      end;
 
 

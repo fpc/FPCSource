@@ -1455,10 +1455,10 @@ In case not, the value returned can be arbitrary.
 
     procedure dir_include;
 
-        function findincludefile(const path,name:string;var foundfile:string):boolean;
+        function findincludefile(const path,name:TCmdStr;var foundfile:TCmdStr):boolean;
         var
           found  : boolean;
-          hpath  : string;
+          hpath  : TCmdStr;
         begin
           (* look for the include file
            If path was specified as part of {$I } then
@@ -1491,10 +1491,10 @@ In case not, the value returned can be arbitrary.
         end;
 
       var
+        foundfile : TCmdStr;
         path,
         name,
         args,
-        foundfile,
         hs    : tpathstr;
         hp    : tinputfile;
         found : boolean;

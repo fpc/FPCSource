@@ -199,13 +199,13 @@ function Compile(const cmd:string):longint;
 
   procedure writepathlist(w:longint;l:TSearchPathList);
   var
-    hp : tstringlistitem;
+    hp : TCmdStrListItem;
   begin
-    hp:=tstringlistitem(l.first);
+    hp:=TCmdStrListItem(l.first);
     while assigned(hp) do
      begin
        Message1(w,hp.str);
-       hp:=tstringlistitem(hp.next);
+       hp:=TCmdStrListItem(hp.next);
      end;
   end;
 

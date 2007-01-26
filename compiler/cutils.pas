@@ -98,7 +98,7 @@ interface
        If it is not quoted, or if the quoting is bad, s is not touched,
        and false is returned.
     }
-    function DePascalQuote(var s: string): Boolean;
+    function DePascalQuote(var s: ansistring): Boolean;
     function CompareStr(const S1, S2: string): Integer;
     function CompareText(S1, S2: string): integer;
 
@@ -919,7 +919,7 @@ implementation
       end;
 
 
-    function DePascalQuote(var s: string): Boolean;
+    function DePascalQuote(var s: ansistring): Boolean;
       var
         destPos, sourcePos, len: Integer;
         t: string;

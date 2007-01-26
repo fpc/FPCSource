@@ -900,7 +900,7 @@ implementation
     procedure TInternalLinkerWin.DefaultLinkScript;
       var
         s,s2,
-        ibase : string;
+        ibase : TCmdStr;
       begin
         with LinkScript do
           begin
@@ -1069,8 +1069,8 @@ implementation
     Function TExternalLinkerWin.WriteResponseFile(isdll:boolean) : Boolean;
       Var
         linkres : TLinkRes;
-        HPath   : TStringListItem;
-        s,s2    : string;
+        HPath   : TCmdStrListItem;
+        s,s2    : TCmdStr;
         i       : integer;
       begin
         WriteResponseFile:=False;
@@ -1088,17 +1088,17 @@ implementation
         with linkres do
           begin
             { Write path to search libraries }
-            HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
+            HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
             while assigned(HPath) do
              begin
                Add('SEARCH_DIR('+MaybeQuoted(HPath.Str)+')');
-               HPath:=TStringListItem(HPath.Next);
+               HPath:=TCmdStrListItem(HPath.Next);
              end;
-            HPath:=TStringListItem(LibrarySearchPath.First);
+            HPath:=TCmdStrListItem(LibrarySearchPath.First);
             while assigned(HPath) do
              begin
                Add('SEARCH_DIR('+MaybeQuoted(HPath.Str)+')');
-               HPath:=TStringListItem(HPath.Next);
+               HPath:=TCmdStrListItem(HPath.Next);
              end;
 
             { add objectfiles, start with prt0 always                  }
@@ -1686,7 +1686,7 @@ implementation
     function TDLLScannerWin.scan(const binname:string):boolean;
       var
         hs,
-        dllname : string;
+        dllname : TCmdStr;
       begin
         result:=false;
         { is there already an import library the we will use that one }

@@ -301,7 +301,7 @@ Implementation
     const
       lastas  : byte=255;
     var
-      LastASBin : string;
+      LastASBin : TCmdStr;
     Function TExternalAssembler.FindAssembler:string;
       var
         asfound : boolean;

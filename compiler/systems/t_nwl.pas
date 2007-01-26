@@ -273,7 +273,7 @@ Function TLinkerNetwlibc.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres      : TLinkRes;
   i            : longint;
-  s,s2,s3      : string;
+  s,s2,s3      : TCmdStr;
   ProgNam      : string [80];
   NlmNam       : string [80];
   hp2          : texported_item;  { for exports }

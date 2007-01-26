@@ -85,7 +85,7 @@ interface
     procedure SetErrorFlags(const s:string);
     procedure GenerateError;
     procedure Internalerror(i:longint);
-    procedure Comment(l:longint;s:string);
+    procedure Comment(l:longint;s:ansistring);
     function  MessagePchar(w:longint):pchar;
     procedure Message(w:longint;onqueue:tmsgqueueevent=nil);
     procedure Message1(w:longint;const s1:string;onqueue:tmsgqueueevent=nil);
@@ -475,7 +475,7 @@ var
       end;
 
 
-    procedure Comment(l:longint;s:string);
+    procedure Comment(l:longint;s:ansistring);
       var
         dostop : boolean;
       begin
@@ -506,7 +506,7 @@ var
       end;
 
 
-    Procedure Msg2Comment(s:string;w:longint;onqueue:tmsgqueueevent);
+    Procedure Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
       var
         idx,i,v : longint;
         dostop  : boolean;

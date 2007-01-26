@@ -429,7 +429,7 @@ interface
           procsym : tsym;
           procsymderef : tderef;
           { alias names }
-          aliasnames : tstringlist;
+          aliasnames : TCmdStrList;
           { symtables }
           localst : TSymtable;
           funcretsym : tsym;
@@ -2827,7 +2827,7 @@ implementation
          _mangledname:=nil;
          fileinfo:=current_filepos;
          extnumber:=$ffff;
-         aliasnames:=tstringlist.create;
+         aliasnames:=TCmdStrList.create;
          funcretsym:=nil;
          forwarddef:=true;
          interfacedef:=false;
@@ -2906,7 +2906,7 @@ implementation
             (tf_need_export in target_info.flags) and
             (po_exports in procoptions) then
            deffile.AddExport(mangledname);
-         aliasnames:=tstringlist.create;
+         aliasnames:=TCmdStrList.create;
          forwarddef:=false;
          interfacedef:=false;
          hasforward:=false;

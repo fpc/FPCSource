@@ -106,7 +106,7 @@ implementation
          DefFile:=TDefFile.Create(outputexedir+ChangeFileExt(inputfilename,target_info.defext));
 
          { list of generated .o files, so the linker can remove them }
-         SmartLinkOFiles:=TStringList.Create;
+         SmartLinkOFiles:=TCmdStrList.Create;
 
          { codegen }
          if paraprintnodetree<>0 then

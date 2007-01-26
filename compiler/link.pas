@@ -27,6 +27,7 @@ unit link;
 interface
 
     uses
+	  sysutils,
       cclasses,
       systems,
       fmodule,
@@ -50,7 +51,7 @@ interface
          SysInitUnit     : string[20];
          ObjectFiles,
          SharedLibFiles,
-         StaticLibFiles  : TStringList;
+         StaticLibFiles  : TCmdStrList;
          Constructor Create;virtual;
          Destructor Destroy;override;
          procedure AddModuleFiles(hp:tmodule);
@@ -64,7 +65,7 @@ interface
          Function  MakeExecutable:boolean;virtual;
          Function  MakeSharedLibrary:boolean;virtual;
          Function  MakeStaticLibrary:boolean;virtual;
-         procedure ExpandAndApplyOrder(var Src:TStringList);
+         procedure ExpandAndApplyOrder(var Src:TCmdStrList);
          procedure LoadPredefinedLibraryOrder;virtual;
          function  ReOrderEntries : boolean;
        end;
@@ -75,7 +76,7 @@ interface
          Constructor Create;override;
          Destructor Destroy;override;
          Function  FindUtil(const s:string):String;
-         Function  DoExec(const command:string; para:TCmdStr;showinfo,useshell:boolean):boolean;
+         Function  DoExec(const command:TCmdStr; para:TCmdStr;showinfo,useshell:boolean):boolean;
          procedure SetDefaultInfo;virtual;
          Function  MakeStaticLibrary:boolean;override;
        end;
@@ -100,7 +101,7 @@ interface
          property StaticLibraryList:TFPHashObjectList read FStaticLibraryList;
          property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
          procedure DefaultLinkScript;virtual;abstract;
-         linkscript : TStringList;
+         linkscript : TCmdStrList;
       public
          IsSharedLibrary : boolean;
          Constructor Create;override;
@@ -114,8 +115,8 @@ interface
       Linker  : TLinker;
 
     function FindObjectFile(s : string;const unitpath:string;isunit:boolean) : string;
-    function FindLibraryFile(s:string;const prefix,ext:string;var foundfile : string) : boolean;
-    function FindDLL(const s:string;var founddll:string):boolean;
+    function FindLibraryFile(s:string;const prefix,ext:string;var foundfile : TCmdStr) : boolean;
+    function FindDLL(const s:string;var founddll:TCmdStr):boolean;
 
     procedure InitLinker;
     procedure DoneLinker;
@@ -124,7 +125,6 @@ interface
 Implementation
 
     uses
-      SysUtils,
       cutils,cfileutils,
       script,globals,verbose,comphook,ppu,
       aasmbase,aasmtai,aasmdata,aasmcpu,
@@ -141,7 +141,7 @@ Implementation
     function FindObjectFile(s:string;const unitpath:string;isunit:boolean) : string;
       var
         found : boolean;
-        foundfile : string;
+        foundfile : TCmdStr;
       begin
         findobjectfile:='';
         if s='' then
@@ -206,7 +206,7 @@ Implementation
 
 
     { searches a (windows) DLL file }
-    function FindDLL(const s:string;var founddll:string):boolean;
+    function FindDLL(const s:string;var founddll:TCmdStr):boolean;
       var
         sysdir : string;
         Found : boolean;
@@ -234,7 +234,7 @@ Implementation
 
 
     { searches an library file }
-    function FindLibraryFile(s:string;const prefix,ext:string;var foundfile : string) : boolean;
+    function FindLibraryFile(s:string;const prefix,ext:string;var foundfile : TCmdStr) : boolean;
       var
         found : boolean;
         paths : string;
@@ -287,9 +287,9 @@ Implementation
     Constructor TLinker.Create;
       begin
         Inherited Create;
-        ObjectFiles:=TStringList.Create_no_double;
-        SharedLibFiles:=TStringList.Create_no_double;
-        StaticLibFiles:=TStringList.Create_no_double;
+        ObjectFiles:=TCmdStrList.Create_no_double;
+        SharedLibFiles:=TCmdStrList.Create_no_double;
+        StaticLibFiles:=TCmdStrList.Create_no_double;
       end;
 
 
@@ -428,7 +428,7 @@ Implementation
 
     Procedure TLinker.AddStaticLibrary(const S:String);
       var
-        ns : string;
+        ns : TCmdStr;
         found : boolean;
       begin
         if s='' then
@@ -457,7 +457,7 @@ Implementation
 
     Procedure TLinker.AddStaticCLibrary(const S:String);
       var
-        ns : string;
+        ns : TCmdStr;
         found : boolean;
       begin
         if s='' then
@@ -499,7 +499,7 @@ Implementation
       end;
 
 
-    Procedure TLinker.ExpandAndApplyOrder(var Src:TStringList);
+    Procedure TLinker.ExpandAndApplyOrder(var Src:TCmdStrList);
       var
         p : TLinkStrMap;
         i : longint;
@@ -584,7 +584,7 @@ Implementation
     Function TExternalLinker.FindUtil(const s:string):string;
       var
         Found    : boolean;
-        FoundBin : string;
+        FoundBin : TCmdStr;
         UtilExe  : string;
       begin
         if cs_link_on_target in current_settings.globalswitches then
@@ -611,7 +611,7 @@ Implementation
       end;
 
 
-    Function TExternalLinker.DoExec(const command:string; para:TCmdStr;showinfo,useshell:boolean):boolean;
+    Function TExternalLinker.DoExec(const command:TCmdStr; para:TCmdStr;showinfo,useshell:boolean):boolean;
       var
         exitcode: longint;
       begin
@@ -656,12 +656,12 @@ Implementation
 
     Function TExternalLinker.MakeStaticLibrary:boolean;
 
-        function GetNextFiles(const maxCmdLength : AInt; var item : TStringListItem) : ansistring;
+        function GetNextFiles(const maxCmdLength : AInt; var item : TCmdStrListItem) : ansistring;
           begin
             result := '';
             while (assigned(item) and ((length(result) + length(item.str) + 1) < maxCmdLength)) do begin
               result := result + ' ' + item.str;
-              item := TStringListItem(item.next);
+              item := TCmdStrListItem(item.next);
             end;
           end;
 
@@ -669,7 +669,7 @@ Implementation
         binstr, scriptfile : string;
         success : boolean;
         cmdstr, nextcmd, smartpath : TCmdStr;
-        current : TStringListItem;
+        current : TCmdStrListItem;
         script: Text;
         scripted_ar : boolean;
       begin
@@ -692,11 +692,11 @@ Implementation
             Rewrite(script);
             try
               writeln(script, 'CREATE ' + current_module.staticlibfilename^);
-              current := TStringListItem(SmartLinkOFiles.First);
+              current := TCmdStrListItem(SmartLinkOFiles.First);
               while current <> nil do
                 begin
                   writeln(script, 'ADDMOD ' + current.str);
-                  current := TStringListItem(current.next);
+                  current := TCmdStrListItem(current.next);
                 end;
               writeln(script, 'SAVE');
               writeln(script, 'END');
@@ -710,7 +710,7 @@ Implementation
             Replace(cmdstr,'$LIB',maybequoted(current_module.staticlibfilename^));
             { create AR commands }
             success := true;
-            current := TStringListItem(SmartLinkOFiles.First);
+            current := TCmdStrListItem(SmartLinkOFiles.First);
             repeat
               nextcmd := cmdstr;
               Replace(nextcmd,'$FILES',GetNextFiles(2047, current));
@@ -754,7 +754,7 @@ Implementation
     Constructor TInternalLinker.Create;
       begin
         inherited Create;
-        linkscript:=TStringList.Create;
+        linkscript:=TCmdStrList.Create;
         FStaticLibraryList:=TFPHashObjectList.Create(true);
         FImportLibraryList:=TFPHashObjectList.Create(true);
         exemap:=nil;
@@ -838,10 +838,10 @@ Implementation
         s,
         para,
         keyword : string;
-        hp : TStringListItem;
+        hp : TCmdStrListItem;
       begin
         exeoutput.Load_Start;
-        hp:=tstringlistitem(linkscript.first);
+        hp:=TCmdStrListItem(linkscript.first);
         while assigned(hp) do
           begin
             s:=hp.str;
@@ -861,7 +861,7 @@ Implementation
               Load_ReadObject(para)
             else if keyword='READSTATICLIBRARY' then
               Load_ReadStaticLibrary(para);
-            hp:=tstringlistitem(hp.next);
+            hp:=TCmdStrListItem(hp.next);
           end;
       end;
 
@@ -871,10 +871,10 @@ Implementation
         s,
         para,
         keyword : string;
-        hp : TStringListItem;
+        hp : TCmdStrListItem;
       begin
         exeoutput.Order_Start;
-        hp:=tstringlistitem(linkscript.first);
+        hp:=TCmdStrListItem(linkscript.first);
         while assigned(hp) do
           begin
             s:=hp.str;
@@ -892,7 +892,7 @@ Implementation
               ExeOutput.Order_Zeros(para)
             else if keyword='SYMBOL' then
               ExeOutput.Order_Symbol(para);
-            hp:=tstringlistitem(hp.next);
+            hp:=TCmdStrListItem(hp.next);
           end;
         exeoutput.Order_End;
       end;
@@ -903,10 +903,10 @@ Implementation
         s,
         para,
         keyword : string;
-        hp : TStringListItem;
+        hp : TCmdStrListItem;
       begin
         exeoutput.CalcPos_Start;
-        hp:=tstringlistitem(linkscript.first);
+        hp:=TCmdStrListItem(linkscript.first);
         while assigned(hp) do
           begin
             s:=hp.str;
@@ -922,24 +922,24 @@ Implementation
               ExeOutput.CalcPos_Header
             else if keyword='SYMBOLS' then
               ExeOutput.CalcPos_Symbols;
-            hp:=tstringlistitem(hp.next);
+            hp:=TCmdStrListItem(hp.next);
           end;
       end;
 
 
     procedure TInternalLinker.PrintLinkerScript;
       var
-        hp : TStringListItem;
+        hp : TCmdStrListItem;
       begin
         if not assigned(exemap) then
           exit;
         exemap.Add('Used linker script');
         exemap.Add('');
-        hp:=tstringlistitem(linkscript.first);
+        hp:=TCmdStrListItem(linkscript.first);
         while assigned(hp) do
           begin
             exemap.Add(hp.str);
-            hp:=tstringlistitem(hp.next);
+            hp:=TCmdStrListItem(hp.next);
           end;
       end;
 

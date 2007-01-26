@@ -69,7 +69,7 @@ var
   n,
   s,
   resobj,
-  resbin   : string;
+  resbin   : TCmdStr;
   resfound,
   objused  : boolean;
 begin

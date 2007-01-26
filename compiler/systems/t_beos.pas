@@ -213,8 +213,8 @@ Var
   i        : integer;
   cprtobj,
   prtobj   : string[80];
-  HPath    : TStringListItem;
-  s        : string;
+  HPath    : TCmdStrListItem;
+  s        : TCmdStr;
   linklibc : boolean;
 begin
   WriteResponseFile:=False;
@@ -250,17 +250,17 @@ begin
   LinkRes.Add('-m elf_i386_be -shared -Bsymbolic');
 
   { Write path to search libraries }
-  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
      LinkRes.Add(maybequoted('-L'+HPath.Str));
-     HPath:=TStringListItem(HPath.Next);
+     HPath:=TCmdStrListItem(HPath.Next);
    end;
-  HPath:=TStringListItem(LibrarySearchPath.First);
+  HPath:=TCmdStrListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
      LinkRes.Add(maybequoted('-L'+HPath.Str));
-     HPath:=TStringListItem(HPath.Next);
+     HPath:=TCmdStrListItem(HPath.Next);
    end;
 
   { try to add crti and crtbegin if linking to C }

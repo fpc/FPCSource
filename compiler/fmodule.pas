@@ -136,7 +136,7 @@ interface
         loaded_from   : tmodule;
         _exports      : tlinkedlist;
         dllscannerinputlist : TFPHashList;
-        resourcefiles : tstringlist;
+        resourcefiles : TCmdStrList;
         linkunitofiles,
         linkunitstaticlibs,
         linkunitsharedlibs,
@@ -192,7 +192,7 @@ interface
        compiled_module   : tmodule;     { Current module which is compiled }
        usedunits         : tlinkedlist; { Used units for this program }
        loaded_units      : tlinkedlist; { All loaded units }
-       SmartLinkOFiles   : TStringList; { List of .o files which are generated,
+       SmartLinkOFiles   : TCmdStrList; { List of .o files which are generated,
                                           used to delete them after linking }
 
     function get_module(moduleindex : longint) : tmodule;
@@ -401,7 +401,7 @@ implementation
         locallibrarysearchpath:=TSearchPathList.Create;
         used_units:=TLinkedList.Create;
         dependent_units:=TLinkedList.Create;
-        resourcefiles:=TStringList.Create;
+        resourcefiles:=TCmdStrList.Create;
         linkunitofiles:=TLinkContainer.Create;
         linkunitstaticlibs:=TLinkContainer.Create;
         linkunitsharedlibs:=TLinkContainer.Create;
@@ -625,7 +625,7 @@ implementation
         dependent_units.free;
         dependent_units:=TLinkedList.Create;
         resourcefiles.Free;
-        resourcefiles:=TStringList.Create;
+        resourcefiles:=TCmdStrList.Create;
         linkunitofiles.Free;
         linkunitofiles:=TLinkContainer.Create;
         linkunitstaticlibs.Free;

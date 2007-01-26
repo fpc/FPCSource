@@ -386,8 +386,8 @@ Function TLinkerLinux.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres      : TLinkRes;
   i            : longint;
-  HPath        : TStringListItem;
-  s,s1,s2      : string;
+  HPath        : TCmdStrListItem;
+  s,s1,s2      : TCmdStr;
   found1,
   found2       : boolean;
 begin
@@ -405,17 +405,17 @@ begin
   with linkres do
     begin
       { Write path to search libraries }
-      HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
+      HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
       while assigned(HPath) do
        begin
          Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
-         HPath:=TStringListItem(HPath.Next);
+         HPath:=TCmdStrListItem(HPath.Next);
        end;
-      HPath:=TStringListItem(LibrarySearchPath.First);
+      HPath:=TCmdStrListItem(LibrarySearchPath.First);
       while assigned(HPath) do
        begin
          Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
-         HPath:=TStringListItem(HPath.Next);
+         HPath:=TCmdStrListItem(HPath.Next);
        end;
 
       StartSection('INPUT(');

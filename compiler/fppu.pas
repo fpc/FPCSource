@@ -43,7 +43,7 @@ interface
        tppumodule = class(tmodule)
           ppufile    : tcompilerppufile; { the PPU file }
           sourcefn   : pshortstring; { Source specified with "uses .. in '..'" }
-          comments   : tstringlist;
+          comments   : TCmdStrList;
 {$ifdef Test_Double_checksum}
           crc_array  : pointer;
           crc_size   : longint;
@@ -156,7 +156,7 @@ uses
     procedure tppumodule.queuecomment(s:string;v,w:longint);
     begin
       if comments = nil then
-        comments := tstringlist.create;
+        comments := TCmdStrList.create;
       comments.insert(s);
     end;
 
@@ -260,18 +260,18 @@ uses
     function tppumodule.search_unit(onlysource,shortname:boolean):boolean;
       var
          singlepathstring,
-         filename : string;
+         filename : TCmdStr;
 
-         Function UnitExists(const ext:string;var foundfile:string):boolean;
+         Function UnitExists(const ext:string;var foundfile:TCmdStr):boolean;
          begin
            Message1(unit_t_unitsearch,Singlepathstring+filename+ext);
            UnitExists:=FindFile(FileName+ext,Singlepathstring,true,foundfile);
          end;
 
-         Function PPUSearchPath(const s:string):boolean;
+         Function PPUSearchPath(const s:TCmdStr):boolean;
          var
            found : boolean;
-           hs    : string;
+           hs    : TCmdStr;
          begin
            Found:=false;
            singlepathstring:=FixPath(s,false);
@@ -285,10 +285,10 @@ uses
            PPUSearchPath:=Found;
          end;
 
-         Function SourceSearchPath(const s:string):boolean;
+         Function SourceSearchPath(const s:TCmdStr):boolean;
          var
            found   : boolean;
-           hs      : string;
+           hs      : TCmdStr;
          begin
            Found:=false;
            singlepathstring:=FixPath(s,false);
@@ -321,7 +321,7 @@ uses
            SourceSearchPath:=Found;
          end;
 
-         Function SearchPath(const s:string):boolean;
+         Function SearchPath(const s:TCmdStr):boolean;
          var
            found : boolean;
          begin
@@ -336,24 +336,24 @@ uses
 
          Function SearchPathList(list:TSearchPathList):boolean;
          var
-           hp : TStringListItem;
+           hp : TCmdStrListItem;
            found : boolean;
          begin
            found:=false;
-           hp:=TStringListItem(list.First);
+           hp:=TCmdStrListItem(list.First);
            while assigned(hp) do
             begin
               found:=SearchPath(hp.Str);
               if found then
                break;
-              hp:=TStringListItem(hp.next);
+              hp:=TCmdStrListItem(hp.next);
             end;
            SearchPathList:=found;
          end;
 
        var
          fnd : boolean;
-         hs  : string;
+         hs  : TCmdStr;
        begin
          if shortname then
           filename:=FixFileName(Copy(realmodulename^,1,8))
@@ -679,8 +679,8 @@ uses
     procedure tppumodule.readsourcefiles;
       var
         temp,hs       : string;
-        temp_dir      : string;
-        main_dir      : string;
+        temp_dir      : TCmdStr;
+        main_dir      : TCmdStr;
         found,
         is_main       : boolean;
         orgfiletime,

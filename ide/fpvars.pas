@@ -70,7 +70,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       UseMouse         : boolean = true;
       MainFile         : string = '';
       PrevMainFile     : string = '';
-      EXEFile          : string = '';
+      EXEFile          : ansistring = '';
       CompilationPhase : TCompPhase = cpNothing;
 {$ifndef NODEBUG}
       GDBWindow        : PGDBWindow = nil;

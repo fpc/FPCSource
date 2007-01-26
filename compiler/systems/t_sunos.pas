@@ -235,8 +235,8 @@ Var
   cprtobj,
   gprtobj,
   prtobj       : string[80];
-  HPath        : TStringListItem;
-  s,s2         : string;
+  HPath        : TCmdStrListItem;
+  s,s2         : TCmdStr;
   linkdynamic,
   linklibc     : boolean;
 begin
@@ -268,17 +268,17 @@ begin
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
   { Write path to search libraries }
-  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
+  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
    begin
      LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
-     HPath:=TStringListItem(HPath.Next);
+     HPath:=TCmdStrListItem(HPath.Next);
    end;
-  HPath:=TStringListItem(LibrarySearchPath.First);
+  HPath:=TCmdStrListItem(LibrarySearchPath.First);
   while assigned(HPath) do
    begin
      LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
-     HPath:=TStringListItem(HPath.Next);
+     HPath:=TCmdStrListItem(HPath.Next);
    end;
 
   LinkRes.Add('INPUT(');

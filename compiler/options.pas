@@ -49,7 +49,7 @@ Type
     procedure WriteHelpPages;
     procedure WriteQuickInfo;
     procedure IllegalPara(const opt:string);
-    function  Unsetbool(var Opts:string; Pos: Longint):boolean;
+    function  Unsetbool(var Opts:TCmdStr; Pos: Longint):boolean;
     procedure interpret_option(const opt :string;ispara:boolean);
     procedure Interpret_envvar(const envname : string);
     procedure Interpret_file(const filename : string);
@@ -348,7 +348,7 @@ begin
 end;
 
 
-function Toption.Unsetbool(var Opts:string; Pos: Longint):boolean;
+function Toption.Unsetbool(var Opts:TCmdStr; Pos: Longint):boolean;
 { checks if the character after pos in Opts is a + or a - and returns resp.
   false or true. If it is another character (or none), it also returns false }
 begin
@@ -367,11 +367,11 @@ procedure TOption.interpret_option(const opt:string;ispara:boolean);
 var
   code : integer;
   c    : char;
-  more : string;
+  more : TCmdStr;
   major,minor : longint;
   error : integer;
   j,l   : longint;
-  d,s   : string;
+  d,s   : TCmdStr;
 begin
   if opt='' then
    exit;
@@ -2097,7 +2097,6 @@ begin
       if option.quickinfo<>'' then
         option.writequickinfo;
     end;
-
   { Stop if errors in options }
   if ErrorCount>0 then
    StopOptions(1);
@@ -2133,7 +2132,6 @@ begin
 
   { CPU Define }
   def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
-
 { Check file to compile }
   if param_file='' then
    begin

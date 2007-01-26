@@ -36,6 +36,7 @@ interface
 {$ELSE}
       fksysutl,
 {$ENDIF}
+      globtype,
       CUtils,CStreams;
 
 {********************************************
@@ -368,47 +369,45 @@ type
        end;
 
 {********************************************
-                TStringList
+                TCmdStrList
 ********************************************}
 
        { string containerItem }
-       TStringListItem = class(TLinkedListItem)
-          FPStr : pshortstring;
+       TCmdStrListItem = class(TLinkedListItem)
+          FPStr : TCmdStr;
        public
-          constructor Create(const s:string);
+          constructor Create(const s:TCmdStr);
           destructor  Destroy;override;
           function GetCopy:TLinkedListItem;override;
-          function Str:string; {$ifdef CCLASSESINLINE}inline;{$endif}
+          function Str:TCmdStr; {$ifdef CCLASSESINLINE}inline;{$endif}
        end;
 
        { string container }
-       TStringList = class(TLinkedList)
+       TCmdStrList = class(TLinkedList)
        private
           FDoubles : boolean;  { if this is set to true, doubles are allowed }
        public
           constructor Create;
           constructor Create_No_Double;
           { inserts an Item }
-          procedure Insert(const s:string);
+          procedure Insert(const s:TCmdStr);
           { concats an Item }
-          procedure Concat(const s:string);
+          procedure Concat(const s:TCmdStr);
           { deletes an Item }
-          procedure Remove(const s:string);
+          procedure Remove(const s:TCmdStr);
           { Gets First Item }
-          function  GetFirst:string;
+          function  GetFirst:TCmdStr;
           { Gets last Item }
-          function  GetLast:string;
+          function  GetLast:TCmdStr;
           { true if string is in the container, compare case sensitive }
-          function FindCase(const s:string):TStringListItem;
+          function FindCase(const s:TCmdStr):TCmdStrListItem;
           { true if string is in the container }
-          function Find(const s:string):TStringListItem;
+          function Find(const s:TCmdStr):TCmdStrListItem;
           { inserts an item }
-          procedure InsertItem(item:TStringListItem); {$ifdef CCLASSESINLINE}inline;{$endif}
+          procedure InsertItem(item:TCmdStrListItem); {$ifdef CCLASSESINLINE}inline;{$endif}
           { concats an item }
-          procedure ConcatItem(item:TStringListItem); {$ifdef CCLASSESINLINE}inline;{$endif}
+          procedure ConcatItem(item:TCmdStrListItem); {$ifdef CCLASSESINLINE}inline;{$endif}
           property Doubles:boolean read FDoubles write FDoubles;
-          procedure readstream(f:TCStream);
-          procedure writestream(f:TCStream);
        end;
 
 
@@ -2094,74 +2093,74 @@ end;
 
 
 {****************************************************************************
-                             TStringListItem
+                             TCmdStrListItem
  ****************************************************************************}
 
-    constructor TStringListItem.Create(const s:string);
+    constructor TCmdStrListItem.Create(const s:TCmdStr);
       begin
         inherited Create;
-        FPStr:=stringdup(s);
+        FPStr:=s;
       end;
 
 
-    destructor TStringListItem.Destroy;
+    destructor TCmdStrListItem.Destroy;
       begin
-        stringdispose(FPStr);
+        FPStr:='';
       end;
 
 
-    function TStringListItem.Str:string;
+    function TCmdStrListItem.Str:TCmdStr;
       begin
-        Str:=FPStr^;
+        Str:=FPStr;
       end;
 
 
-    function TStringListItem.GetCopy:TLinkedListItem;
+    function TCmdStrListItem.GetCopy:TLinkedListItem;
       begin
         Result:=(inherited GetCopy);
-        TStringListItem(Result).FPStr:=stringdup(FPstr^);
+        TCmdStrListItem(Result).FPStr:=FPstr;
       end;
 
 
 {****************************************************************************
-                           TSTRINGList
+                           TCmdStrList
  ****************************************************************************}
 
-    constructor tstringList.Create;
+    constructor TCmdStrList.Create;
       begin
          inherited Create;
          FDoubles:=true;
       end;
 
 
-    constructor tstringList.Create_no_double;
+    constructor TCmdStrList.Create_no_double;
       begin
          inherited Create;
          FDoubles:=false;
       end;
 
 
-    procedure tstringList.insert(const s : string);
+    procedure TCmdStrList.insert(const s : TCmdStr);
       begin
          if (s='') or
             ((not FDoubles) and (find(s)<>nil)) then
           exit;
-         inherited insert(tstringListItem.create(s));
+         inherited insert(TCmdStrListItem.create(s));
       end;
 
 
-    procedure tstringList.concat(const s : string);
+    procedure TCmdStrList.concat(const s : TCmdStr);
       begin
          if (s='') or
             ((not FDoubles) and (find(s)<>nil)) then
           exit;
-         inherited concat(tstringListItem.create(s));
+         inherited concat(TCmdStrListItem.create(s));
       end;
 
 
-    procedure tstringList.remove(const s : string);
+    procedure TCmdStrList.remove(const s : TCmdStr);
       var
-        p : tstringListItem;
+        p : TCmdStrListItem;
       begin
         if s='' then
          exit;
@@ -2174,185 +2173,87 @@ end;
       end;
 
 
-    function tstringList.GetFirst : string;
+    function TCmdStrList.GetFirst : TCmdStr;
       var
-         p : tstringListItem;
+         p : TCmdStrListItem;
       begin
-         p:=tstringListItem(inherited GetFirst);
+         p:=TCmdStrListItem(inherited GetFirst);
          if p=nil then
           GetFirst:=''
          else
           begin
-            GetFirst:=p.FPStr^;
+            GetFirst:=p.FPStr;
             p.free;
           end;
       end;
 
 
-    function tstringList.Getlast : string;
+    function TCmdStrList.Getlast : TCmdStr;
       var
-         p : tstringListItem;
+         p : TCmdStrListItem;
       begin
-         p:=tstringListItem(inherited Getlast);
+         p:=TCmdStrListItem(inherited Getlast);
          if p=nil then
           Getlast:=''
          else
           begin
-            Getlast:=p.FPStr^;
+            Getlast:=p.FPStr;
             p.free;
           end;
       end;
 
 
-    function tstringList.FindCase(const s:string):TstringListItem;
+    function TCmdStrList.FindCase(const s:TCmdStr):TCmdStrListItem;
       var
-        NewNode : tstringListItem;
+        NewNode : TCmdStrListItem;
       begin
         result:=nil;
         if s='' then
          exit;
-        NewNode:=tstringListItem(FFirst);
+        NewNode:=TCmdStrListItem(FFirst);
         while assigned(NewNode) do
          begin
-           if NewNode.FPStr^=s then
+           if NewNode.FPStr=s then
             begin
               result:=NewNode;
               exit;
             end;
-           NewNode:=tstringListItem(NewNode.Next);
+           NewNode:=TCmdStrListItem(NewNode.Next);
          end;
       end;
 
 
-    function tstringList.Find(const s:string):TstringListItem;
+    function TCmdStrList.Find(const s:TCmdStr):TCmdStrListItem;
       var
-        NewNode : tstringListItem;
+        NewNode : TCmdStrListItem;
         ups     : string;
       begin
         result:=nil;
         if s='' then
          exit;
         ups:=upper(s);
-        NewNode:=tstringListItem(FFirst);
+        NewNode:=TCmdStrListItem(FFirst);
         while assigned(NewNode) do
          begin
-           if upper(NewNode.FPStr^)=ups then
+           if upper(NewNode.FPStr)=ups then
             begin
               result:=NewNode;
               exit;
             end;
-           NewNode:=tstringListItem(NewNode.Next);
+           NewNode:=TCmdStrListItem(NewNode.Next);
          end;
       end;
 
 
-    procedure TStringList.InsertItem(item:TStringListItem);
+    procedure TCmdStrList.InsertItem(item:TCmdStrListItem);
       begin
         inherited Insert(item);
       end;
 
 
-    procedure TStringList.ConcatItem(item:TStringListItem);
+    procedure TCmdStrList.ConcatItem(item:TCmdStrListItem);
       begin
         inherited Concat(item);
-      end;
-
-
-    procedure TStringList.readstream(f:TCStream);
-      const
-        BufSize = 16384;
-      var
-        Hsp,
-        p,maxp,
-        Buf    : PChar;
-        Prev   : Char;
-        HsPos,
-        ReadLen,
-        BufPos,
-        BufEnd : Longint;
-        hs     : string;
-
-        procedure ReadBuf;
-        begin
-          if BufPos<BufEnd then
-            begin
-              Move(Buf[BufPos],Buf[0],BufEnd-BufPos);
-              Dec(BufEnd,BufPos);
-              BufPos:=0;
-            end;
-          ReadLen:=f.Read(buf[BufEnd],BufSize-BufEnd);
-          inc(BufEnd,ReadLen);
-        end;
-
-      begin
-        Getmem(Buf,Bufsize);
-        BufPos:=0;
-        BufEnd:=0;
-        HsPos:=1;
-        ReadBuf;
-        repeat
-          hsp:=@hs[hsPos];
-          p:=@Buf[BufPos];
-          maxp:=@Buf[BufEnd];
-          while (p<maxp) and not(P^ in [#10,#13]) do
-            begin
-              hsp^:=p^;
-              inc(p);
-              if hsp-@hs[1]<255 then
-                inc(hsp);
-            end;
-          inc(BufPos,maxp-p);
-          inc(HsPos,maxp-p);
-          prev:=p^;
-          inc(BufPos);
-          { no system uses #10#13 as line seperator (#10 = *nix, #13 = Mac, }
-          { #13#10 = Dos), so if we've got #10, we can safely exit          }
-          if (prev<>#10) then
-            begin
-              if (BufPos>=BufEnd) then
-                begin
-                  ReadBuf;
-                  if BufPos>=BufEnd then
-                    break;
-                end;
-              { is there also a #10 after it? }
-              if prev=#13 then
-                begin
-                  if (Buf[BufPos]=#10) then
-                    inc(BufPos);
-                  prev:=#10;
-                end;
-            end;
-          if prev=#10 then
-            begin
-              hs[0]:=char(hsp-@hs[1]);
-              Concat(hs);
-              HsPos:=1;
-            end;
-        until BufPos>=BufEnd;
-        hs[0]:=char(hsp-@hs[1]);
-        Concat(hs);
-        freemem(buf);
-      end;
-
-
-    procedure TStringList.writestream(f:TCStream);
-      var
-        Node : TStringListItem;
-        LineEnd : string[2];
-      begin
-        Case DefaultTextLineBreakStyle Of
-          tlbsLF: LineEnd := #10;
-          tlbsCRLF: LineEnd := #13#10;
-          tlbsCR: LineEnd := #13;
-        End;
-        Node:=tstringListItem(FFirst);
-        while assigned(Node) do
-          begin
-            f.Write(Node.FPStr^[1],Length(Node.FPStr^));
-            f.Write(LineEnd[1],length(LineEnd));
-            Node:=tstringListItem(Node.Next);
-          end;
       end;
 
 
