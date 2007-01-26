@@ -521,7 +521,7 @@ implementation
                     ImplIntf.AddImplProc(implprocdef)
                   end
                 else
-                  if ImplIntf.itype = etStandard then
+                  if ImplIntf.VtblImplIntf.IType = etStandard then
                     Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
               end;
           end;
@@ -1221,10 +1221,10 @@ implementation
         { VTable }
         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(intf_get_vtbl_name(AImplIntf.VtblImplIntf),0));
         { IOffset field }
-        if AImplIntf.VtblImplIntf.itype = etStandard then
-          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(AImplIntf.VtblImplIntf.ioffset))
+        if AImplIntf.VtblImplIntf.IType = etStandard then
+          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(AImplIntf.VtblImplIntf.IOffset))
         else
-          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(AImplIntf.VtblImplIntf.iioffset));
+          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(AImplIntf.VtblImplIntf.FieldOffset));
         { IIDStr }
         current_asmdata.getdatalabel(iidlabel);
         rawdata.concat(cai_align.create(const_align(sizeof(aint))));
@@ -1236,7 +1236,7 @@ implementation
           rawdata.concat(Tai_string.Create(AImplIntf.IntfDef.iidstr^));
         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(iidlabel));
         { IType }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(aint(AImplIntf.itype)));
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(aint(AImplIntf.VtblImplIntf.IType)));
       end;
 
 

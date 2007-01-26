@@ -643,6 +643,7 @@ implementation
                for i:=0 to aclass.ImplementedInterfaces.Count-1 do
                begin
                  ImplIntf:=TImplementedInterface(aclass.ImplementedInterfaces[i]);
+                 { FIXME: Is this check valid? }
                  if ImplIntf.IntfDef.Objname^=pattern then
                  begin
                    found:=true;
@@ -651,8 +652,8 @@ implementation
                end;
                if found then
                begin
-                 ImplIntf.itype := etFieldValue;
-                 ImplIntf.iioffset := tfieldvarsym(p.propaccesslist[palt_read].firstsym^.sym).fieldoffset;
+                 ImplIntf.IType := etFieldValue;
+                 ImplIntf.FieldOffset := tfieldvarsym(p.propaccesslist[palt_read].firstsym^.sym).fieldoffset;
                end
                else
                  Comment(V_Error, 'Implements-property used on unimplemented interface');
