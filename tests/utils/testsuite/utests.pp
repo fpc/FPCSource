@@ -287,7 +287,7 @@ begin
       CellEnd;
     RowNext;
       CellStart;
-        Write('No skipped tests');
+        Write('Hide skipped tests');
       CellNext;
         EmitCheckBox('noskipped','1',FNoSkipped);
       CellEnd;
@@ -555,7 +555,7 @@ begin
           TableEnd;
           ParagraphStart;
           EmitCheckBox('noskipped','1',FNoSkipped);
-          Write(' No skipped tests');
+          Write(' Hide skipped tests');
           ParagraphEnd;
           ParaGraphStart;
           EmitSubmitButton('','Show/Compare');
@@ -613,14 +613,14 @@ begin
         begin
         FL:='';
         If FOnlyFailed then
-          FL:='failed';
+          FL:='successful';
         if FNoSkipped then
           begin
           If (FL<>'') then
-            FL:=FL+',';
-          FL:=FL+'not skipped';
+            FL:=FL+' and ';
+          FL:=FL+'skipped';
           end;
-        Write(' (only '+FL+' tests are shown)');
+        Write(' ('+FL+' tests are hidden)');
         end;
       HeaderEnd(2);
       ParaGraphStart;
@@ -709,14 +709,14 @@ begin
         begin
         FL:='';
         If FOnlyFailed then
-          FL:='failed';
+          FL:='successful';
         if FNoSkipped then
           begin
           If (FL<>'') then
-            FL:=FL+',';
-          FL:=FL+'not skipped';
+            FL:=FL+' and ';
+          FL:=FL+'skipped';
           end;
-        Write(' (only '+FL+' tests are shown)');
+        Write(' ('+FL+' tests are hidden)');
         end;
       HeaderEnd(2);
       ParaGraphStart;
@@ -839,7 +839,7 @@ Var
 begin
   P:=(Sender as TTableProducer);
   S:=Format(SDetailsURL,[P.DataSet.FieldByName('ID').AsString]);
-  S:=S+'&failedonly=1&noksipped=1';
+  S:=S+'&failedonly=1&noskipped=1';
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
 end;
 
