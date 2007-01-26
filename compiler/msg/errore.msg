@@ -2258,7 +2258,7 @@ unit_u_skipping_reresolving_unit=10059_U_Skipping re-resolving unit $1, still lo
 #
 #  Options
 #
-# 11039 is the last used one
+# 11041 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -2329,6 +2329,9 @@ option_asm_forced=11022_W_"$1" assembler use forced
 % The assembler output selected can not generate
 % object files with the correct format. Therefore, the
 % default assembler for this target is used instead.
+option_confict_asm_debug=11041_W_Assembler output selected "$1" cannot generate debug info, debugging disabled
+% The assembler output selected can not generate
+% debugging information, debugging option is therefore disabled.
 option_using_file=11026_T_Reading options from file $1
 % Options are also read from this file
 option_using_env=11027_T_Reading options from environment $1
