@@ -204,9 +204,11 @@ interface
          VtblImplIntf : TImplementedInterface;
          NameMappings : TFPHashList;
          ProcDefs     : TFPObjectList;
-         FieldOffset  : longint;
-         // FieldOffset can be merged with IOffset. But then, fpc is not allowed to genrate a vmtentry.
+         iitype       : tinterfaceentrytype;
+         // IIOffset can be merged with IOffset. But then, fpc is not allowed to genrate a vmtentry.
          // Right now, fpc generate an entry for all implemented interfaces (but it should just for etStandard ones)
+         // - Ivo Steinmann
+         iioffset     : longint;
          constructor create(aintf: tobjectdef);
          constructor create_deref(d:tderef);
          destructor  destroy; override;
@@ -4032,6 +4034,8 @@ implementation
         fieldoffset:=-1;
         NameMappings:=nil;
         procdefs:=nil;
+        iitype := etStandard;
+        iioffset := 0;
       end;
 
 
