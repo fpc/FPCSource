@@ -1159,15 +1159,19 @@ implementation
                  end;
              vs_out :
                begin
-                 { can't trash out-variables: they may not be modified at all, }
-                 { in which case trashing them would destroy their previous    }
-                 { value :/ (e.g. srdef in pexpr.pas)                          }
-                 if (needs_inittable) then
+                 if needs_inittable or
+                    do_trashing then
                    begin
                      tmpreg:=cg.getaddressregister(list);
                      cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).initialloc,tmpreg);
                      reference_reset_base(href,tmpreg,0);
-                     cg.g_initialize(list,tparavarsym(p).vardef,href);
+                     if do_trashing and
+                        { needs separate implementation to trash open arrays }
+                        { since their size is only known at run time         }
+                        not is_special_array(tparavarsym(p).vardef) then
+                       trash_reference(list,href,tparavarsym(p).vardef.size);
+                     if needs_inittable then
+                       cg.g_initialize(list,tparavarsym(p).vardef,href);
                    end;
                end;
              else if do_trashing and
@@ -1892,17 +1896,17 @@ implementation
 
     function has_alias_name(pd:tprocdef;const s:string):boolean;
       var
-        item : tstringlistitem;
+        item : TCmdStrListItem;
       begin
         result:=true;
         if pd.mangledname=s then
           exit;
-        item := tstringlistitem(pd.aliasnames.first);
+        item := TCmdStrListItem(pd.aliasnames.first);
         while assigned(item) do
           begin
             if item.str=s then
               exit;
-            item := tstringlistitem(item.next);
+            item := TCmdStrListItem(item.next);
           end;
         result:=false;
       end;
@@ -1910,22 +1914,22 @@ implementation
 
     procedure alloc_proc_symbol(pd: tprocdef);
       var
-        item : tstringlistitem;
+        item : TCmdStrListItem;
       begin
-        item := tstringlistitem(pd.aliasnames.first);
+        item := TCmdStrListItem(pd.aliasnames.first);
         while assigned(item) do
           begin
             current_asmdata.DefineAsmSymbol(item.str,AB_GLOBAL,AT_FUNCTION);
-            item := tstringlistitem(item.next);
+            item := TCmdStrListItem(item.next);
           end;
        end;
 
 
     procedure gen_proc_symbol(list:TAsmList);
       var
-        item : tstringlistitem;
+        item : TCmdStrListItem;
       begin
-        item := tstringlistitem(current_procinfo.procdef.aliasnames.first);
+        item := TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
         while assigned(item) do
           begin
             if (cs_profile in current_settings.moduleswitches) or
@@ -1935,7 +1939,7 @@ implementation
               list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0));
             if tf_use_function_relative_addresses in target_info.flags then
               list.concat(Tai_function_name.create(item.str));
-            item := tstringlistitem(item.next);
+            item := TCmdStrListItem(item.next);
           end;
 
         current_procinfo.procdef.procstarttai:=tai(list.last);
