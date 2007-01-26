@@ -521,7 +521,7 @@ implementation
                     ImplIntf.AddImplProc(implprocdef)
                   end
                 else
-                  if ImplIntf.VtblImplIntf.IType = etStandard then
+                  if ImplIntf.IType = etStandard then
                     Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
               end;
           end;
