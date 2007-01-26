@@ -34,13 +34,11 @@ asm
   mflr r0
 {$ifndef cpu64}
   stw r0, retaddr
-{$else}
-  std r0, retaddr
-{$endif}
   bl TMyObject.Test2
-{$ifndef cpu64}
   lwz r0, retaddr
 {$else}
+  std r0, retaddr
+  bl .TMyObject.Test2
   ld r0, retaddr
 {$endif}
   mtlr r0
