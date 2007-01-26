@@ -521,7 +521,7 @@ implementation
                     ImplIntf.AddImplProc(implprocdef)
                   end
                 else
-                  if ImplIntf.VtblImplIntf.itype = etStandard then
+                  if ImplIntf.iitype = etStandard then
                     Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
               end;
           end;
@@ -1235,8 +1235,8 @@ implementation
         else
           rawdata.concat(Tai_string.Create(AImplIntf.IntfDef.iidstr^));
         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(iidlabel));
-        { IType }
-        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(aint(AImplIntf.VtblImplIntf.itype)));
+        { IIType }
+        current_asmdata.asmlists[al_globals].concat(Tai_const.Create_aint(aint(AImplIntf.iitype)));
       end;
 
 
