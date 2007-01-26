@@ -29,6 +29,11 @@ build=n
 #
 # PPU Tools
 #
+
+# not parallel because systems using an external linker will get conflicts
+# due to overwriting each other's link.res file
+.NOTPARALLEL:
+
 ppu$(PPUEXT): ppu.pas
 
 ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)

@@ -3041,6 +3041,7 @@ PPC_TARGETS=i386 m68k powerpc sparc arm x86_64 powerpc64 alpha vis ia64
 $(PPC_TARGETS):
 	$(MAKE) PPC_TARGET=$@ CPU_UNITDIR=$@ all
 alltargets: $(ALLTARGETS)
+.NOTPARALLEL:
 .PHONY: all compiler echotime ppuclean execlean clean distclean
 all: compiler $(addsuffix _all,$(TARGET_DIRS))
 compiler: $(COMPILER_UNITTARGETDIR) $(COMPILER_TARGETDIR) $(EXENAME)

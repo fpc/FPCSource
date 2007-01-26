@@ -283,6 +283,8 @@ alltargets: $(ALLTARGETS)
 # Default makefile
 #####################################################################
 
+.NOTPARALLEL:
+
 .PHONY: all compiler echotime ppuclean execlean clean distclean
 
 all: compiler $(addsuffix _all,$(TARGET_DIRS))
