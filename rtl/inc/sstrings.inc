@@ -747,8 +747,9 @@ begin
     Case DestSize of
       1: fpc_Val_SInt_ShortStr := shortint(fpc_Val_SInt_ShortStr);
       2: fpc_Val_SInt_ShortStr := smallint(fpc_Val_SInt_ShortStr);
-{     Uncomment the folling once full 64bit support is in place
-      4: fpc_Val_SInt_ShortStr := SizeInt(fpc_Val_SInt_ShortStr);}
+{$ifdef cpu64}
+      4: fpc_Val_SInt_ShortStr := longint(fpc_Val_SInt_ShortStr);
+{$endif cpu64}
     End;
 end;
 
