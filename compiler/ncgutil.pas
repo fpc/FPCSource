@@ -1896,17 +1896,17 @@ implementation
 
     function has_alias_name(pd:tprocdef;const s:string):boolean;
       var
-        item : TCmdStrListItem;
+        item : tstringlistitem;
       begin
         result:=true;
         if pd.mangledname=s then
           exit;
-        item := TCmdStrListItem(pd.aliasnames.first);
+        item := tstringlistitem(pd.aliasnames.first);
         while assigned(item) do
           begin
             if item.str=s then
               exit;
-            item := TCmdStrListItem(item.next);
+            item := tstringlistitem(item.next);
           end;
         result:=false;
       end;
@@ -1914,22 +1914,22 @@ implementation
 
     procedure alloc_proc_symbol(pd: tprocdef);
       var
-        item : TCmdStrListItem;
+        item : tstringlistitem;
       begin
-        item := TCmdStrListItem(pd.aliasnames.first);
+        item := tstringlistitem(pd.aliasnames.first);
         while assigned(item) do
           begin
             current_asmdata.DefineAsmSymbol(item.str,AB_GLOBAL,AT_FUNCTION);
-            item := TCmdStrListItem(item.next);
+            item := tstringlistitem(item.next);
           end;
        end;
 
 
     procedure gen_proc_symbol(list:TAsmList);
       var
-        item : TCmdStrListItem;
+        item : tstringlistitem;
       begin
-        item := TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
+        item := tstringlistitem(current_procinfo.procdef.aliasnames.first);
         while assigned(item) do
           begin
             if (cs_profile in current_settings.moduleswitches) or
@@ -1939,7 +1939,7 @@ implementation
               list.concat(Tai_symbol.createname(item.str,AT_FUNCTION,0));
             if tf_use_function_relative_addresses in target_info.flags then
               list.concat(Tai_function_name.create(item.str));
-            item := TCmdStrListItem(item.next);
+            item := tstringlistitem(item.next);
           end;
 
         current_procinfo.procdef.procstarttai:=tai(list.last);
