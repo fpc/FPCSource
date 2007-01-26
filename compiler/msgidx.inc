@@ -700,6 +700,7 @@ const
   option_switch_bin_to_src_assembler=11020;
   option_incompatible_asm=11021;
   option_asm_forced=11022;
+  option_confict_asm_debug=11041;
   option_using_file=11026;
   option_using_env=11027;
   option_handling_option=11028;
@@ -717,9 +718,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 42691;
+  MsgTxtSize = 42777;
 
   MsgIdxMax : array[1..20] of longint=(
     24,82,232,79,63,48,107,22,135,60,
-    41,1,1,1,1,1,1,1,1,1
+    42,1,1,1,1,1,1,1,1,1
   );
