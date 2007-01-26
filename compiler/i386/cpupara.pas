@@ -503,104 +503,144 @@ unit cpupara;
         varalign : longint;
         pushaddr : boolean;
         paraalign : shortint;
+        pass : byte;
       begin
+        if paras.count=0 then
+          exit;
         paraalign:=get_para_align(p.proccalloption);
-        { Register parameters are assigned from left to right }
-        for i:=0 to paras.count-1 do
-          begin
-            hp:=tparavarsym(paras[i]);
-            pushaddr:=push_addr_param(hp.varspez,hp.vardef,p.proccalloption);
-            if pushaddr then
-              begin
-                paralen:=sizeof(aint);
-                paracgsize:=OS_ADDR;
-              end
-            else
-              begin
-                paralen:=push_size(hp.varspez,hp.vardef,p.proccalloption);
-                paracgsize:=def_cgsize(hp.vardef);
-              end;
-            hp.paraloc[side].reset;
-            hp.paraloc[side].size:=paracgsize;
-            hp.paraloc[side].intsize:=paralen;
-            hp.paraloc[side].Alignment:=paraalign;
-            {
-              EAX
-              EDX
-              ECX
-              Stack
-              Stack
 
-              64bit values,floats,arrays and records are always
-              on the stack.
-            }
-            if (parareg<=high(parasupregs)) and
-               (paralen<=sizeof(aint)) and
-               (
-                not(hp.vardef.typ in [floatdef,recorddef,arraydef]) or
-                pushaddr
-               ) then
-              begin
-                paraloc:=hp.paraloc[side].add_location;
-                paraloc^.size:=paracgsize;
-                paraloc^.loc:=LOC_REGISTER;
-                paraloc^.register:=newreg(R_INTREGISTER,parasupregs[parareg],cgsize2subreg(paracgsize));
-                inc(parareg);
-              end
+        { clean up here so we can later detect properly if a parameter has been
+          assigned or not
+        }
+        for i:=0 to paras.count-1 do
+          tparavarsym(paras[i]).paraloc[side].reset;
+        { Register parameters are assigned from left to right,
+          stack parameters from right to left so assign first the
+          register parameters in a first pass, in the second
+          pass all unhandled parameters are done }
+        for pass:=1 to 2 do
+          begin
+            if pass=1 then
+              i:=0
             else
+              i:=paras.count-1;
+            while true do
               begin
-                { Copy to stack? }
-                if (use_fixed_stack) or
-                   (paracgsize=OS_NO) then
+                hp:=tparavarsym(paras[i]);
+                if not(assigned(hp.paraloc[side].location)) then
                   begin
-                    paraloc:=hp.paraloc[side].add_location;
-                    paraloc^.loc:=LOC_REFERENCE;
-                    paraloc^.size:=paracgsize;
-                    if side=callerside then
-                      paraloc^.reference.index:=NR_STACK_POINTER_REG
-                    else
-                      paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                    varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
-                    paraloc^.reference.offset:=parasize;
-                    if side=calleeside then
-                      inc(paraloc^.reference.offset,target_info.first_parm_offset);
-                    parasize:=align(parasize+paralen,varalign);
-                  end
-                else
-                  begin
-                    if paralen=0 then
-                      internalerror(200501163);
-                    while (paralen>0) do
+
+                    pushaddr:=push_addr_param(hp.varspez,hp.vardef,p.proccalloption);
+                    if pushaddr then
                       begin
-                        paraloc:=hp.paraloc[side].add_location;
-                        paraloc^.loc:=LOC_REFERENCE;
-                        { Extended and double need a single location }
-                        if (paracgsize in [OS_F64,OS_F32]) then
-                          begin
-                            paraloc^.size:=paracgsize;
-                            l:=paralen;
-                          end
-                        else
-                          begin
-                            { We can allocate at maximum 32 bits per location }
-                            if paralen>sizeof(aint) then
-                              l:=sizeof(aint)
-                            else
-                              l:=paralen;
-                            paraloc^.size:=int_cgsize(l);
-                          end;
-                        if side=callerside then
-                          paraloc^.reference.index:=NR_STACK_POINTER_REG
-                        else
-                          paraloc^.reference.index:=NR_FRAME_POINTER_REG;
-                        varalign:=used_align(size_2_align(l),paraalign,paraalign);
-                        paraloc^.reference.offset:=parasize;
-                        if side=calleeside then
-                          inc(paraloc^.reference.offset,target_info.first_parm_offset);
-                        parasize:=align(parasize+l,varalign);
-                        dec(paralen,l);
+                        paralen:=sizeof(aint);
+                        paracgsize:=OS_ADDR;
+                      end
+                    else
+                      begin
+                        paralen:=push_size(hp.varspez,hp.vardef,p.proccalloption);
+                        paracgsize:=def_cgsize(hp.vardef);
                       end;
+                    hp.paraloc[side].size:=paracgsize;
+                    hp.paraloc[side].intsize:=paralen;
+                    hp.paraloc[side].Alignment:=paraalign;
+                    {
+                      EAX
+                      EDX
+                      ECX
+                      Stack
+                      Stack
+
+                      64bit values,floats,arrays and records are always
+                      on the stack.
+                    }
+                    if (parareg<=high(parasupregs)) and
+                       (paralen<=sizeof(aint)) and
+                       (
+                        not(hp.vardef.typ in [floatdef,recorddef,arraydef]) or
+                        pushaddr
+                       ) then
+                      begin
+                        if pass=1 then
+                          begin
+                            paraloc:=hp.paraloc[side].add_location;
+                            paraloc^.size:=paracgsize;
+                            paraloc^.loc:=LOC_REGISTER;
+                            paraloc^.register:=newreg(R_INTREGISTER,parasupregs[parareg],cgsize2subreg(paracgsize));
+                            inc(parareg);
+                          end;
+                      end
+                    else
+                      if pass=2 then
+                        begin
+                          { Copy to stack? }
+                          if (use_fixed_stack) or
+                             (paracgsize=OS_NO) then
+                            begin
+                              paraloc:=hp.paraloc[side].add_location;
+                              paraloc^.loc:=LOC_REFERENCE;
+                              paraloc^.size:=paracgsize;
+                              if side=callerside then
+                                paraloc^.reference.index:=NR_STACK_POINTER_REG
+                              else
+                                paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                              varalign:=used_align(size_2_align(paralen),paraalign,paraalign);
+                              paraloc^.reference.offset:=parasize;
+                              if side=calleeside then
+                                inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                              parasize:=align(parasize+paralen,varalign);
+                            end
+                          else
+                            begin
+                              if paralen=0 then
+                                internalerror(200501163);
+                              while (paralen>0) do
+                                begin
+                                  paraloc:=hp.paraloc[side].add_location;
+                                  paraloc^.loc:=LOC_REFERENCE;
+                                  { Extended and double need a single location }
+                                  if (paracgsize in [OS_F64,OS_F32]) then
+                                    begin
+                                      paraloc^.size:=paracgsize;
+                                      l:=paralen;
+                                    end
+                                  else
+                                    begin
+                                      { We can allocate at maximum 32 bits per location }
+                                      if paralen>sizeof(aint) then
+                                        l:=sizeof(aint)
+                                      else
+                                        l:=paralen;
+                                      paraloc^.size:=int_cgsize(l);
+                                    end;
+                                  if side=callerside then
+                                    paraloc^.reference.index:=NR_STACK_POINTER_REG
+                                  else
+                                    paraloc^.reference.index:=NR_FRAME_POINTER_REG;
+                                  varalign:=used_align(size_2_align(l),paraalign,paraalign);
+                                  paraloc^.reference.offset:=parasize;
+                                  if side=calleeside then
+                                    inc(paraloc^.reference.offset,target_info.first_parm_offset);
+                                  parasize:=align(parasize+l,varalign);
+                                  dec(paralen,l);
+                                end;
+                            end;
+                        end;
                   end;
+                case pass of
+                  1:
+                    begin
+                      if i=paras.count-1 then
+                        break;
+                      inc(i);
+                    end;
+                  2:
+                    begin
+                      if i=0 then
+                        break;
+                      dec(i);
+                    end;
+                end;
               end;
           end;
       end;
