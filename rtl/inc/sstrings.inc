@@ -670,7 +670,9 @@ begin
   if code<=length(s) then
    begin
      case s[code] of
-      '$' : begin
+      '$',
+      'X',
+      'x' : begin
               base:=16;
               inc(code);
             end;
