@@ -235,7 +235,8 @@ interface
          af_outputbinary,af_allowdirect,
          af_needar,af_smartlink_sections,
          af_labelprefix_only_inside_procedure,
-         af_supports_dwarf
+         af_supports_dwarf,
+         af_no_debug
        );
 
        pasminfo = ^tasminfo;
