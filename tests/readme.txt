@@ -93,7 +93,7 @@ This differentiation also enables cross testing.
 
 The following test options can be given:
 
-TEST_FPC               defaults to FPC
+TEST_FPC               compiler to test (no default)
 TEST_OS_TARGET         defaults to default target of TEST_FPC
 TEST_CPU_TARGET        defaults to default target of TEST_FPC
 TEST_OPT               defaults to ""
