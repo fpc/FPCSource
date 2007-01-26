@@ -1662,6 +1662,7 @@ implementation
               end;
             classh:=classh.childof;
           end;
+        srdef:=nil;
         srsym:=nil;
         srsymtable:=nil;
       end;
