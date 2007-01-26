@@ -2220,10 +2220,6 @@ begin
   objectsearchpath.AddList(unitsearchpath,false);
   librarysearchpath.AddList(unitsearchpath,false);
 
-  { maybe override debug info format }
-  if (paratargetdbg<>dbg_none) then
-    set_target_dbg(paratargetdbg);
-
   { maybe override assembler }
   if (paratargetasm<>as_none) then
     begin
@@ -2233,7 +2229,19 @@ begin
           set_target_asm(target_info.assemextern);
           Message1(option_asm_forced,target_asm.idtxt);
         end;
+      if (af_no_debug in asminfos[paratargetasm]^.flags) and
+         (paratargetdbg<>dbg_none) then
+        begin
+          Message1(option_confict_asm_debug,
+            asminfos[paratargetasm]^.idtxt);
+          paratargetdbg:=dbg_none;
+          exclude(init_settings.moduleswitches,cs_debuginfo);
+        end;
     end;
+
+  { maybe override debug info format }
+  if (paratargetdbg<>dbg_none) then
+    set_target_dbg(paratargetdbg);
 
   { switch assembler if it's binary and we got -a on the cmdline }
   if (cs_asm_leave in init_settings.globalswitches) and

@@ -833,7 +833,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f coff -o $OBJ $ASM';
             supported_target : system_i386_go32v2;
-            flags : [af_allowdirect,af_needar];
+            flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
           );
@@ -845,7 +845,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f win32 -o $OBJ $ASM';
             supported_target : system_i386_win32;
-            flags : [af_allowdirect,af_needar];
+            flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
           );
@@ -857,7 +857,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f obj -o $OBJ $ASM';
             supported_target : system_any; { what should I write here ?? }
-            flags : [af_allowdirect,af_needar];
+            flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
           );
@@ -869,7 +869,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f win32 -o $OBJ $ASM';
             supported_target : system_i386_wdosx;
-            flags : [af_allowdirect,af_needar];
+            flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
           );
@@ -882,7 +882,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
             supported_target : system_i386_linux;
-            flags : [af_allowdirect,af_needar];
+            flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
           );
@@ -894,7 +894,7 @@ interface
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
             supported_target : system_i386_beos;
-            flags : [af_allowdirect,af_needar];
+            flags : [af_allowdirect,af_needar,af_no_debug];
             labelprefix : '..@';
             comment : '; ';
           );
