@@ -652,7 +652,7 @@ implementation
                if found then
                begin
                  ImplIntf.itype := etFieldValue;
-                 ImplIntf.fieldoffset := tfieldvarsym(p.propaccesslist[palt_read].firstsym^.sym).fieldoffset;
+                 ImplIntf.iioffset := tfieldvarsym(p.propaccesslist[palt_read].firstsym^.sym).fieldoffset;
                end
                else
                  Comment(V_Error, 'Implements-property used on unimplemented interface');
