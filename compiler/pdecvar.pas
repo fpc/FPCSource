@@ -612,31 +612,52 @@ implementation
          if try_to_consume(_IMPLEMENTS) then
            begin
              consume(_ID);
-             if not is_interface(p.propdef) then
+             try
+               { NOTE: This code will be fixed when the strings are added to the localized string table }
+               if not is_interface(p.propdef) then
                begin
-                 Comment(V_Error,'Implements property must have interface type');
+                 Comment(V_Error, 'Implements property must have interface type');
+                 exit;
                end;
-             if pattern <> p.propdef.mangledparaname() then
+               if pattern <> p.propdef.mangledparaname() then
                begin
-                 Comment(V_Error,'Implements-property must implement interface of correct type');
+                 Comment(V_Error, 'Implements-property must implement interface of correct type');
+                 exit;
                end;
-             found:=false;
-             for i:=0 to aclass.ImplementedInterfaces.Count-1 do
+               if not assigned(p.propaccesslist[palt_read].firstsym) then
+               begin
+                 Comment(V_Error, 'Implements-property must have read specifier');
+                 exit;
+               end;
+               if assigned(p.propaccesslist[palt_write].firstsym) then
+               begin
+                 Comment(V_Error, 'Implements-property must not have write-specifier');
+                 exit;
+               end;
+               if assigned(p.propaccesslist[palt_stored].firstsym) then
+               begin
+                 Comment(V_Error, 'Implements-property must not have stored-specifier');
+                 exit;
+               end;
+               found:=false;
+               for i:=0 to aclass.ImplementedInterfaces.Count-1 do
                begin
                  ImplIntf:=TImplementedInterface(aclass.ImplementedInterfaces[i]);
                  if ImplIntf.IntfDef.Objname^=pattern then
-                   begin
-                     found:=true;
-                     break;
-                   end;
+                 begin
+                   found:=true;
+                   break;
+                 end;
                end;
-             if found then
+               if found then
                begin
                  ImplIntf.itype := etFieldValue;
                  ImplIntf.fieldoffset := tfieldvarsym(p.propaccesslist[palt_read].firstsym^.sym).fieldoffset;
                end
-             else
-               Comment(V_Error,'Implements-property used on unimplemented interface');
+               else
+                 Comment(V_Error, 'Implements-property used on unimplemented interface');
+             finally
+             end;
          end;
 
          { remove temporary procvardefs }
