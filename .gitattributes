@@ -6806,6 +6806,7 @@ tests/test/tset1.pp svneol=native#text/plain
 tests/test/tset2.pp svneol=native#text/plain
 tests/test/tset3.pp svneol=native#text/plain
 tests/test/tset4.pp svneol=native#text/plain
+tests/test/tset5.pp svneol=native#text/plain
 tests/test/tstack.pp svneol=native#text/plain
 tests/test/tstprocv.pp svneol=native#text/plain
 tests/test/tstring1.pp svneol=native#text/plain
