@@ -4738,9 +4738,14 @@ xmlreg.pp: avl_tree$(PPUEXT) xml inc/xmlreg.pp
 registry.pp: xml
 dbugintf$(PPUEXT): dbugmsg.pp simpleipc.pp
 fpcunit$(PPUEXT): fpcunit.pp testutils.pp
-mkxmlrpc.pp: passrc
 fpsock.pp: fpasync$(PPUEXT) resolve$(PPUEXT)
 httpbase.pp: fpasync$(PPUEXT)
 httpclient.pp: httpbase$(PPUEXT) fpsock$(PPUEXT) fpasync$(PPUEXT) 
 httpsvlt.pp: fpasync$(PPUEXT) fpsock$(PPUEXT) httpbase$(PPUEXT) servlets$(PPUEXT)
 xmlrpc.pp: avl_tree$(PPUEXT) fpasync$(PPUEXT) dom$(PPUEXT) httpclient$(PPUEXT) httpsvlt$(PPUEXT) xml
+net_all: passrc_all xml_all
+net_debug: passrc_debug xml_debug
+net_smart: passrc_smart xml_smart
+net_release: passrc_release xml_release
+net_shared: passrc_shared xml_shared
+net_examples: hash_examples hash_examples
