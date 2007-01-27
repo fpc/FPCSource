@@ -142,23 +142,40 @@ function detect_xterm_mouse:word;
 const mouse_terminals:array[0..6] of string[7]=('cons','eterm','gnome',
                                                 'konsole','rxvt','screen',
                                                 'xterm');
-      mouse_1003_capable=[6]; {xterm only for now}
+      xterm=6;
+      mouse_1003_capable=[xterm]; {xterm only for now}
 
-var term:string;
-    i:byte;
+var term,colorterm:string;
+    i,t:shortint;
 
 begin
   detect_xterm_mouse:=0;
+  t:=-1;
   term:=fpgetenv('TERM');
   for i:=low(mouse_terminals) to high(mouse_terminals) do
     if copy(term,1,length(mouse_terminals[i]))=mouse_terminals[i] then
       begin
-        detect_xterm_mouse:=1000;
-        {Can the terminal report all mouse events?}
-        if i in mouse_1003_capable then
-          detect_xterm_mouse:=1003;
+        t:=i;
         break;
       end;
+  if t=xterm then 
+    begin
+      {Rxvt sets TERM=xterm and COLORTERM=rxvt. Gnome does something similar.}
+      term:=fpgetenv('COLORTERM');
+      for i:=low(mouse_terminals) to high(mouse_terminals) do
+        if copy(term,1,length(mouse_terminals[i]))=mouse_terminals[i] then
+          begin
+            t:=i;
+            break;
+          end;
+    end;
+  if t>0 then
+    begin
+      detect_xterm_mouse:=1000;
+      {Can the terminal report all mouse events?}
+      if t in mouse_1003_capable then
+        detect_xterm_mouse:=1003;
+    end;
 end;
 
 procedure SysInitMouse;
