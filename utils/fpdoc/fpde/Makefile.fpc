@@ -25,6 +25,7 @@ units=fpdeopts frmlink frmmakeskel frmoptions pgeditor fpdemsg frmabout \
 files=fpdemsg.rst  frmmakeskel.rst
 
 [rules]
+.NOTPARALLEL:
 fpde$(EXEEXT): fpde.pp fpdeopts.pp frmlink.pp frmmakeskel.pp frmoptions.pp\
                pgeditor.pp fpdemsg.pp frmabout.pp frmmain.pp frmnewnode.pp\
                frmtable.pp xpms.pp

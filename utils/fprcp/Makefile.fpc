@@ -16,4 +16,5 @@ fpcdir=../..
 
 
 [rules]
+.NOTPARALLEL:
 fpcrp$(EXEEXT): fpcrp.pp comments.pp pexpr.pp pasprep.pp

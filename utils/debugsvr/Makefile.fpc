@@ -20,6 +20,7 @@ fpcdir=../..
 
 
 [rules]
+.NOTPARALLEL:
 debugserverintf$(PPUEXT): msgintf$(PPUEXT) debugserverintf.pp
         $(COMPILER) debugserverintf$(PASEXT)
 

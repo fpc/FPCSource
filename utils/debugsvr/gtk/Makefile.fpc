@@ -19,5 +19,6 @@ fpcpackage=y
 fpcdir=../../..
 
 [rules]
+.NOTPARALLEL:
 debugserver$(EXEEXT): frmabout$(PPUEXT) frmmain$(PPUEXT) bitmapdata$(PPUEXT) debugserver.pp
 	$(COMPILER) debugserver.pp

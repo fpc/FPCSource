@@ -35,6 +35,7 @@ fpcdir=../..
 packages=fcl libcurl
 
 [rules]
+.NOTPARALLEL:
 fpmkunit$(PPUEXT) : fpmkunit.pp fpmkcnst.inc fpmktype$(PPUEXT)
 
 fpmktype$(PPUEXT) : fpmktype.pp fpmkcnst.inc

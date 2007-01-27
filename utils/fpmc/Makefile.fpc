@@ -33,6 +33,7 @@ endif
 endif
 
 [rules]
+.NOTPARALLEL:
 fpmc$(EXEEXT): msgcomp.pp fpmc.pp
 
 fpmcgtk$(EXEEXT): msgcomp.pp fpmcgtk.pp $(wildcard frm*.pp)

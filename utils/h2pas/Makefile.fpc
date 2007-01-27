@@ -18,6 +18,7 @@ fpcpackage=y
 fpcdir=../..
 
 [rules]
+.NOTPARALLEL:
 # do we have pyacc?
 ifndef PYACC
 PYACC=$(strip $(wildcard $(addsuffix /pyacc$(EXEEXT),$(SEARCHPATH))))

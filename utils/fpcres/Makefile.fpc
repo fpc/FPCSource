@@ -19,4 +19,5 @@ fpcpackage=y
 fpcdir=../..
 
 [rules]
+.NOTPARALLEL:
 fpcmake$(EXEEXT): fpcresfix.pas elfbfd.pas elfres.pas fpcres.pas

@@ -27,6 +27,7 @@ fpcdir=../..
 build=n
 
 [rules]
+.NOTPARALLEL:
 pyacc$(EXEEXT): pyacc.pas $(wildcard yacc*.pas)
         $(COMPILER) pyacc.pas
 

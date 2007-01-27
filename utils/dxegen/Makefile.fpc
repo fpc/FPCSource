@@ -15,6 +15,7 @@ fpcpackage=y
 fpcdir=../..
 
 [rules]
+.NOTPARALLEL:
 dxegen$(EXEEXT): dxegen.pp coff$(PPUEXT)
 
 coff$(PPUEXT)  : coff.pp

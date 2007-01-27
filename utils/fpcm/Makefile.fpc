@@ -20,6 +20,7 @@ fpcpackage=y
 fpcdir=../..
 
 [rules]
+.NOTPARALLEL:
 ifneq ($(DATA2INC),)
 fpcmake.inc: fpcmake.ini
         $(DATA2INC) -b -s fpcmake.ini fpcmake.inc fpcmakeini
