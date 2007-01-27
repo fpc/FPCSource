@@ -90,3 +90,15 @@ registry.pp: xml
 dbugintf$(PPUEXT): dbugmsg.pp simpleipc.pp
 
 fpcunit$(PPUEXT): fpcunit.pp testutils.pp
+
+mkxmlrpc.pp: passrc
+
+fpsock.pp: fpasync$(PPUEXT) resolve$(PPUEXT)
+
+httpbase.pp: fpasync$(PPUEXT)
+
+httpclient.pp: httpbase$(PPUEXT) fpsock$(PPUEXT) fpasync$(PPUEXT) 
+
+httpsvlt.pp: fpasync$(PPUEXT) fpsock$(PPUEXT) httpbase$(PPUEXT) servlets$(PPUEXT)
+
+xmlrpc.pp: avl_tree$(PPUEXT) fpasync$(PPUEXT) dom$(PPUEXT) httpclient$(PPUEXT) httpsvlt$(PPUEXT) xml
