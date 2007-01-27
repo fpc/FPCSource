@@ -690,7 +690,7 @@ begin
 end;
 
 procedure TDebugController.SetSourceDirs;
-  var f,s: string;
+  var f,s: ansistring;
       i : longint;
       Dir : SearchRec;
 begin
