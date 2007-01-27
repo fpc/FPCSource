@@ -84,7 +84,7 @@ else
 # gdbver exists
 GDBVER:=GDB_V$(strip $(shell $(CURRDIR)gdbver$(EXEEXT) -n))
 gdbver.inc: gdbver$(EXEEXT)
-        gdbver$(EXEEXT) -o gdbver.inc
+        ./gdbver$(EXEEXT) -o gdbver.inc
 gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	@$(ECHO) Using GDB $(GDBVER)
 	$(COMPILER) -d$(GDBVER) gdbint.pp
