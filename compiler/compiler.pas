@@ -223,6 +223,9 @@ begin
        ExceptionMask:=GetExceptionMask;
        SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,
                          exOverflow, exUnderflow, exPrecision]);
+
+       starttime:=getrealtime;
+
        { Initialize the compiler }
        InitCompiler(cmd);
 
@@ -235,8 +238,6 @@ begin
        WritePathList(general_t_includepath,includesearchpath);
        WritePathList(general_t_librarypath,librarysearchpath);
        WritePathList(general_t_objectpath,objectsearchpath);
-
-       starttime:=getrealtime;
 
        { Compile the program }
   {$ifdef PREPROCWRITE}
