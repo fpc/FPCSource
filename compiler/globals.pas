@@ -1039,14 +1039,14 @@ implementation
        p   : pchar;
 {$endif need_path_search}
      begin
-       exepath:=GetEnvironmentVariable('PPC_EXEC_PATH');
-       if exepath='' then
+       localexepath:=GetEnvironmentVariable('PPC_EXEC_PATH');
+       if localexepath='' then
          begin
            exeName := FixFileName(system.paramstr(0));
-           exepath := ExtractFilePath(exeName);
+           localexepath := ExtractFilePath(exeName);
          end;
 {$ifdef need_path_search}
-       if exepath='' then
+       if localexepath='' then
         begin
           hs1 := ExtractFileName(exeName);
           ChangeFileExt(hs1,source_info.exeext);
