@@ -5346,6 +5346,7 @@ rtl/win/winsock.pp svneol=native#text/plain
 rtl/win/winsock2.pp svneol=native#text/plain
 rtl/win32/Makefile svneol=native#text/plain
 rtl/win32/Makefile.fpc svneol=native#text/plain
+rtl/win32/buildrtl.pp svneol=native#text/plain
 rtl/win32/classes.pp svneol=native#text/plain
 rtl/win32/gprt0.as -text
 rtl/win32/initc.pp svneol=native#text/plain
