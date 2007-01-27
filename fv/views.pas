@@ -2910,6 +2910,7 @@ begin
       if (PWindow(Owner)^.Flags and wfClose <> 0) and
         (State and sfActive <> 0) and (Mouse.X >= 2) and (Mouse.X <= 4) then
       begin
+        {Close button clicked.}
         repeat
           MakeLocal(Event.Where, Mouse);
           if (Mouse.X >= 2) and (Mouse.X <= 4) and (Mouse.Y = 0) then
@@ -2933,6 +2934,7 @@ begin
           (Mouse.X >= Size.X - 5) and
           (Mouse.X <= Size.X - 3)) then
         begin
+          {Zoom button clicked.}
           if not Event.Double then
             repeat
               MakeLocal(Event.Where, Mouse);
@@ -4442,6 +4444,11 @@ begin
         Inc(Event.Where.Y, P.Y);
         MoveGrow(Event.Where, Size);
       until not MouseEvent(Event, evMouseMove);
+      {We need to process the mouse-up event, since not all terminals
+       send drag events.}
+      Inc(Event.Where.X, P.X);
+      Inc(Event.Where.Y, P.Y);
+      MoveGrow(Event.Where, Size);
     end else
     begin
       P.X := Size.X - Event.Where.X;
@@ -4451,6 +4458,11 @@ begin
         Inc(Event.Where.Y, P.Y);
         MoveGrow(Origin, Event.Where);
       until not MouseEvent(Event, evMouseMove);
+      {We need to process the mouse-up event, since not all terminals
+       send drag events.}
+      Inc(Event.Where.X, P.X);
+      Inc(Event.Where.Y, P.Y);
+      MoveGrow(Origin, Event.Where);
     end;
   end else
   begin
