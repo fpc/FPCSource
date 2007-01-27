@@ -85,6 +85,8 @@ fpcdir=..
 # xmlreg needs the XML units, XML units depend on avl_tree
 xmlreg.pp: avl_tree$(PPUEXT) xml inc/xmlreg.pp
 
+registry.pp: xml
+
 dbugintf$(PPUEXT): dbugmsg.pp simpleipc.pp
 
 fpcunit$(PPUEXT): fpcunit.pp testutils.pp

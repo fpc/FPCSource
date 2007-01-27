@@ -66,6 +66,7 @@ GRAPHDIR=$(INC)/graph
 
 
 [rules]
+.NOTPARALLEL:
 SYSTEMPPU=syspalm.ppu
 
 # Get the system independent include file names.

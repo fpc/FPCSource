@@ -24,6 +24,7 @@ fpcdir=../../..
 build=n
 
 [rules]
+.NOTPARALLEL:
 testgdbm$(EXEEXT): testgdbm.pp gdbm$(PPUEXT)
 
 testgdbm2$(EXEEXT): testgdbm2.pp gdbm$(PPUEXT)

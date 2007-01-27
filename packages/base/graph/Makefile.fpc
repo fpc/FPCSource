@@ -87,3 +87,4 @@ winmouse$(PPUEXT) : win32/winmouse.pp graph$(PPUEXT)
 wincrt$(PPUEXT) : win32/wincrt.pp graph$(PPUEXT)
         $(COMPILER) win32/wincrt.pp
 
+.NOTPARALLEL:

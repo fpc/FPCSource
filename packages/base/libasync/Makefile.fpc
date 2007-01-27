@@ -22,3 +22,6 @@ sourcedir_openbsd=unix
 
 [default]
 fpcdir=../../..
+
+[rules]
+.NOTPARALLEL:

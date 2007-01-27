@@ -85,6 +85,7 @@ endif
 OBJPASDIR=$(RTL)/objpas
 
 [rules]
+.NOTPARALLEL:
 # Get the $(SYSTEMUNIT) independent include file names.
 # This will set the following variables :
 # SYSINCNAMES

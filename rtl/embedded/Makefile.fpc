@@ -38,7 +38,8 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
-override FPCOPT+=@rtl.cfg
+override FPCOPT+=
+rtl.cfg
 
 ifdef RELEASE
 override FPCOPT+=-Ur
@@ -49,6 +50,7 @@ OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 
 [rules]
+.NOTPARALLEL:
 # Get the system independent include file names.
 # This will set the following variables :
 # SYSINCNAMES

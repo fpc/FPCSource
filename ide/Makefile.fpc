@@ -73,6 +73,8 @@ endif  #NOGDB
 
 
 [rules]
+.NOTPARALLEL:
+
 .PHONY: compilerunits compilerclean \
         nogdb gdb all \
         clean_compiler clean testgdb postgdbinfo

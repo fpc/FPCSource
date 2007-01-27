@@ -23,3 +23,6 @@ options=-S2h
 fpcdir=../../../..
 
 
+
+[rules]
+.NOTPARALLEL:

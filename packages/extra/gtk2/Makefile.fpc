@@ -40,3 +40,6 @@ GDK2X=gdk2x
 GTK2X11=gtk2x11
 GTK2X11INCLUDE=gtk2x11/include
 endif
+
+[rules]
+.NOTPARALLEL:

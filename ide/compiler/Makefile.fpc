@@ -48,6 +48,8 @@ override FPCOPT+= -Fu$(COMPILERDIR)/ppcgen
 endif
 
 [rules]
+.NOTPARALLEL:
+
 .PHONY: compiler_ppuclean all clean install
 
 compiler_ppuclean:

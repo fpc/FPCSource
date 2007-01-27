@@ -28,6 +28,7 @@ fpcdir=../../..
 nortl=y
 
 [rules]
+.NOTPARALLEL:
 core_asm$(OEXT):core_asm.as
         $(AS) -o $(UNITTARGETDIRPREFIX)core_asm$(OEXT) core_asm.as
 bios_asm$(OEXT):bios_asm.as

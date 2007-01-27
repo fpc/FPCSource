@@ -51,3 +51,6 @@ endif
 
 endif
 endif
+
+[rules]
+.NOTPARALLEL:

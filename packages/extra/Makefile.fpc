@@ -68,3 +68,6 @@ fpcsubdir=packages/extra
 [default]
 fpcdir=../..
 
+
+[rules]
+.NOTPARALLEL:

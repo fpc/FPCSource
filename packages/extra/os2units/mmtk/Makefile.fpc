@@ -18,6 +18,7 @@ fpcpackage=y
 fpcdir=../../../..
 
 [rules]
+.NOTPARALLEL:
 dive$(PPUEXT) : dive.pas mmbase$(PPUEXT)
 
 mci$(PPUEXT) : mci.pas mmbase$(PPUEXT)

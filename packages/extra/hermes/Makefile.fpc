@@ -18,6 +18,7 @@ targetdir=.
 fpcdir=../../..
 
 [rules]
+.NOTPARALLEL:
 mmx_clr$(OEXT):$(CPU_TARGET)/mmx_clr.as
         $(AS) --32 -o $(UNITTARGETDIRPREFIX)mmx_clr$(OEXT) $(CPU_TARGET)/mmx_clr.as
 

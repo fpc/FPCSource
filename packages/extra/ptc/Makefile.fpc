@@ -24,3 +24,6 @@ packages_freebsd=x11
 [default]
 fpcdir=../../..
 
+
+[rules]
+.NOTPARALLEL:

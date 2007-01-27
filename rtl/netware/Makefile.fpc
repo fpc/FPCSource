@@ -76,6 +76,7 @@ tli.imp vollib.imp ws2_32.imp ws2nlm.imp unicode.imp
 
 
 [rules]
+.NOTPARALLEL:
 SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
 
 # Get the system independent include file names.

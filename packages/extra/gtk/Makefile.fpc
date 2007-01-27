@@ -27,6 +27,7 @@ fpcdir=../../..
 build=n
 
 [rules]
+.NOTPARALLEL:
 glib$(PPUEXT): $(wildcard glib/glib*.pp)
 
 gmodule$(PPUEXT): $(wildcard glib/gmodule*.pp) glib$(PPUEXT)

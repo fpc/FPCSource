@@ -20,3 +20,6 @@ fpcdir=../../../..
 packages=hermes ptc
 packages_linux=x11
 packages_freebsd=x11
+
+[rules]
+.NOTPARALLEL:

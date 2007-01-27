@@ -27,6 +27,7 @@ fpcdir=../../../..
 build=n
 
 [rules]
+.NOTPARALLEL:
 gconf$(PPUEXT): $(wildcard gconf/gconf*.pp) 
 
 gconfclient$(PPUEXT): $(wildcard gconfclient/gconfclient*.pp)

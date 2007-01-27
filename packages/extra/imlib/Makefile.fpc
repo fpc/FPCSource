@@ -25,3 +25,6 @@ fpcdir=../../..
 
 [shared]
 build=n
+
+[rules]
+.NOTPARALLEL:

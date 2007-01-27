@@ -21,6 +21,7 @@ fpcpackage=y
 fpcdir=../../..
 
 [rules]
+.NOTPARALLEL:
 testuid$(EXEEXT): testuid.pp uuid$(PPUEXT)
 
 testlibuid$(EXEEXT): testlibuid.pp libuuid$(PPUEXT)

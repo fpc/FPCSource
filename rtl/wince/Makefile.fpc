@@ -74,6 +74,7 @@ WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
 
 
 [rules]
+.NOTPARALLEL:
 SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
 
 # Get the system independent include file names.

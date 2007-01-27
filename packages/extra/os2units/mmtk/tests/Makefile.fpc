@@ -10,3 +10,6 @@ fpcpackage=y
 
 [default]
 fpcdir=../../../../..
+
+[rules]
+.NOTPARALLEL:

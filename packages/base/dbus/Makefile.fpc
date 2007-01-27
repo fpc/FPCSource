@@ -20,3 +20,5 @@ fpcpackage=y
 fpcdir=../../..
 
 [rules]
+
+.NOTPARALLEL:

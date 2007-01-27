@@ -27,4 +27,5 @@ fpcdir=../../../..
 
 
 [rules]
+.NOTPARALLEL:
 libgnome$(PPUEXT): $(wildcard libgnome/*.pp libgnome/*.inc)

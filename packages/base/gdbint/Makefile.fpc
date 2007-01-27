@@ -147,3 +147,5 @@ clean: fpc_clean
 
 distclean: fpc_distclean
 	$(DEL) gdbver.inc
+
+.NOTPARALLEL:

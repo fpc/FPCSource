@@ -30,6 +30,8 @@ fpcdir=..
 
 
 [rules]
+.NOTPARALLEL:
+
 #
 # FVision or old FV detection
 #

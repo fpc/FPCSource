@@ -36,3 +36,6 @@ createpackagefpc=y
 
 [default]
 fpcdir=..
+
+[rules]
+.NOTPARALLEL:

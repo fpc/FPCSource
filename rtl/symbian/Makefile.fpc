@@ -5,3 +5,6 @@
 [package]
 main=rtl
 
+
+[rules]
+.NOTPARALLEL:

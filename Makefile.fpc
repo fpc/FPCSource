@@ -165,6 +165,8 @@ endif
 endif
 
 [rules]
+.NOTPARALLEL:
+
 # These values can change
 unexport FPC_VERSION FPC_COMPILERINFO OS_SOURCE
 
