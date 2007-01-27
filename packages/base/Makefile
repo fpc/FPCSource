@@ -2944,6 +2944,6 @@ endif
 paszlib_all: hash_all
 paszlib_debug: hash_debug
 paszlib_smart: hash_smart
-paszlib_release: hash_smart
+paszlib_release: hash_release
 paszlib_shared: hash_shared
-paszlib_examples: hash_smart
+paszlib_examples: hash_examples
