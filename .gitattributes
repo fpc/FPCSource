@@ -1878,6 +1878,7 @@ packages/base/oracle/ort.inc -text
 packages/base/pasjpeg/Makefile svneol=native#text/plain
 packages/base/pasjpeg/Makefile.fpc svneol=native#text/plain
 packages/base/pasjpeg/PasJpeg.raw -text
+packages/base/pasjpeg/buildpasjpeg.pp svneol=native#text/plain
 packages/base/pasjpeg/cderror.pas svneol=native#text/plain
 packages/base/pasjpeg/cdjpeg.pas svneol=native#text/plain
 packages/base/pasjpeg/cjpeg.pas svneol=native#text/plain
