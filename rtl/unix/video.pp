@@ -1052,7 +1052,7 @@ begin
           end
         else
           {No VGA font :( }
-          fpwrite(stdoutputhandle,font_custom,sizeof(font_vga));
+          fpwrite(stdoutputhandle,font_custom,sizeof(font_custom));
         { running on a remote terminal, no error with /dev/vcsa }
    {$ifdef linux}
       end;
