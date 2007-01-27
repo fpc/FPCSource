@@ -137,21 +137,28 @@ end;
        be able to do this anyway for the NOGPM case), and don't do any libgpm
        call at all if an xterm mouse is detected.}
 
-function detect_xterm_mouse:boolean;
+function detect_xterm_mouse:word;
 
 const mouse_terminals:array[0..6] of string[7]=('cons','eterm','gnome',
                                                 'konsole','rxvt','screen',
                                                 'xterm');
+      mouse_1003_capable=[6]; {xterm only for now}
+
 var term:string;
     i:byte;
 
 begin
-  detect_xterm_mouse:=true;
+  detect_xterm_mouse:=0;
   term:=fpgetenv('TERM');
   for i:=low(mouse_terminals) to high(mouse_terminals) do
     if copy(term,1,length(mouse_terminals[i]))=mouse_terminals[i] then
-      exit;
-  detect_xterm_mouse:=false;
+      begin
+        detect_xterm_mouse:=1000;
+        {Can the terminal report all mouse events?}
+        if i in mouse_1003_capable then
+          detect_xterm_mouse:=1003;
+        break;
+      end;
 end;
 
 procedure SysInitMouse;
@@ -165,19 +172,25 @@ begin
 {  if gpm_fs<>-1 then
     runerror(240);}
   {Test wether to use X-terminals.}
-  if detect_xterm_mouse then
-    begin
-      {Use the xterm mouse.}
-      gpm_fs:=-2;
-      write(#27'[?1001s'); { save old hilit tracking }
-      write(#27'[?1000h'); { enable mouse tracking }
-    end;
+  case detect_xterm_mouse of
+    1000:
+      begin
+        {Use the xterm mouse, report button events only.}
+        gpm_fs:=-1000;
+        {write(#27'[?1001s');} { save old hilit tracking }
+        write(#27'[?1000h'); { enable mouse tracking }
+      end;
+    1003:
+      begin
+        {Use the xterm mouse, report all mouse events.}
+        gpm_fs:=-1003;
+        write(#27'[?1003h'); { enable mouse tracking }
+      end;
+  end;
 {$ifndef NOGPM}
+  {Use the gpm mouse?}
   if (gpm_fs=-1) and (vcs_device<>-1) then
     begin
-      {Use the gpm mouse.}
-
-
       { open gpm }
       connect.EventMask:=GPM_MOVE or GPM_DRAG or GPM_DOWN or GPM_UP;
       connect.DefaultMask:=0;
@@ -196,19 +209,24 @@ end;
 
 
 procedure SysDoneMouse;
+
 begin
-  if gpm_fs<>-1 then
+  case gpm_fs of
+    -1:
       HideMouse;
-  if gpm_fs=-2 then
-    begin
-      {xterm mouse}
-      write(#27'[?1000l'); { disable mouse tracking }
-      write(#27'[?1001r'); { Restore old hilit tracking }
-    end
+    -1000:
+      begin
+        {xterm mouse}
+        write(#27'[?1000l'); { disable mouse tracking }
+        {write(#27'[?1001r');} { Restore old hilit tracking }
+      end;
+    -1003:
+      write(#27'[?1003l'); { disable mouse tracking }
 {$ifndef NOGPM}
-  else
-    gpm_close
+    else
+      gpm_close;
 {$endif};
+  end;
   gpm_fs:=-1;
 end;
 
@@ -221,7 +239,7 @@ var
   e : Tgpm_event;
 {$endif ndef NOGPM}
 begin
-  if detect_xterm_mouse then
+  if detect_xterm_mouse<>0 then
     SysDetectMouse:=2
 {$ifndef NOGPM}
   else

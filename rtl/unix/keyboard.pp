@@ -479,6 +479,7 @@ const
   var MouseEvent: TMouseEvent;
       ch : char;
       fdsin : tfdSet;
+      buttonval:byte;
   begin
     fpFD_ZERO(fdsin);
     fpFD_SET(StdInputHandle,fdsin);
@@ -488,15 +489,21 @@ const
       fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
     ch:=ttyRecvChar;
     { Other bits are used for Shift, Meta and Ctrl modifiers PM }
-    case (ord(ch)-ord(' ')) and 3  of
+    buttonval:=byte(ch)-byte(' ');
+    {bits 0..1: button status
+     bit  5   : mouse movement while button down.
+     bit  6   : interpret button 1 as button 4
+                interpret button 2 as button 5}
+    case buttonval and 3 of
       0 : {left button press}
         MouseEvent.buttons:=1;
       1 : {middle button pressed }
         MouseEvent.buttons:=2;
       2 : { right button pressed }
         MouseEvent.buttons:=4;
-      3 : { no button pressed };
-      end;
+      3 : { no button pressed }
+        MouseEvent.buttons:=0;
+    end;
      if inhead=intail then
        fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
      ch:=ttyRecvChar;
@@ -505,9 +512,14 @@ const
       fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
      ch:=ttyRecvChar;
      MouseEvent.y:=Ord(ch)-ord(' ')-1;
-     if (MouseEvent.buttons<>0) then
-       MouseEvent.action:=MouseActionDown
+     mouseevent.action:=MouseActionMove;
+     if (lastmouseevent.buttons=0) and (mouseevent.buttons<>0) then
+       MouseEvent.action:=MouseActionDown;
+     if (lastmouseevent.buttons<>0) and (mouseevent.buttons=0) then
+       MouseEvent.action:=MouseActionUp;
+(*
      else
+
        begin
          if (LastMouseEvent.Buttons<>0) and
             ((LastMouseEvent.X<>MouseEvent.X) or (LastMouseEvent.Y<>MouseEvent.Y)) then
@@ -522,6 +534,7 @@ const
            end;
          MouseEvent.Action:=MouseActionUp;
        end;
+*)
      PutMouseEvent(MouseEvent);
 {$ifdef DebugMouse}
      if MouseEvent.Action=MouseActionDown then
