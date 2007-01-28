@@ -772,7 +772,8 @@ begin
       begin
       SetState(dsBrowse);
       DoAfterOpen;
-      DoAfterScroll;
+      if not IsEmpy then
+        DoAfterScroll;
       end
     else
       begin
