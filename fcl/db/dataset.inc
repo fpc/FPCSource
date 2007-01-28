@@ -46,6 +46,7 @@ var
   i: Integer;
 
 begin
+  if Fstate <> dsinactive then CloseCursor;
   Active:=False;
   FFieldDefs.Free;
   FFieldList.Free;
@@ -189,14 +190,10 @@ end;
 Procedure TDataset.CloseCursor;
 
 begin
-  DoBeforeScroll;
-  DoBeforeClose;
   FreeFieldBuffers;
   ClearBuffers;
   SetBufListSize(0);
-  SetState(dsInactive);
   InternalClose;
-  DoAfterClose;
   FInternalOpenComplete := False;
 end;
 
@@ -772,7 +769,7 @@ begin
       begin
       SetState(dsBrowse);
       DoAfterOpen;
-      if not IsEmpy then
+      if not IsEmpty then
         DoAfterScroll;
       end
     else
@@ -840,7 +837,12 @@ begin
       end;
     end
   else if not value and (Fstate <> dsinactive) then
+    begin
+    DoBeforeClose;
+    SetState(dsInactive);
     CloseCursor;
+    DoAfterClose;
+    end;
 end;
 
 procedure TDataset.Loaded;
