@@ -1586,7 +1586,7 @@ implementation
       var
         p: tnode;
         newstatement : tstatementnode;
-        tempnode : ttempcreatenode;
+        tempnode,tempnode2 : ttempcreatenode;
       begin
         { when we get here, we are sure that both the left and the right }
         { node are both strings of the same stringtype (JM)              }
@@ -1645,6 +1645,8 @@ implementation
               { generate better code for comparison with empty string, we
                 only need to compare the length with 0 }
               if (nodetype in [equaln,unequaln,gtn,gten,ltn,lten]) and
+                { windows widestrings are too complicated to be handled optimized }
+                not(is_widestring(left.resultdef) and (target_info.system in system_windows)) and
                  (((left.nodetype=stringconstn) and (tstringconstnode(left).len=0)) or
                   ((right.nodetype=stringconstn) and (tstringconstnode(right).len=0))) then
                 begin
@@ -1664,11 +1666,45 @@ implementation
                       cordconstnode.create(0,s32inttype,false))
                   else
                     begin
-                      { compare the pointer with nil (for ansistrings etc), }
-                      { faster than getting the length (JM)                 }
-                      result:= caddnode.create(nodetype,
-                        ctypeconvnode.create_internal(left,voidpointertype),
-                        cpointerconstnode.create(0,voidpointertype));
+                      (*
+                      if is_widestring(left.resultdef) and
+                        (target_info.system in system_windows) then
+                        begin
+                          { windows like widestrings requires that we also check the length }
+                          result:=internalstatements(newstatement);
+                          tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+                          tempnode2:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+                          addstatement(newstatement,tempnode);
+                          addstatement(newstatement,tempnode2);
+                          { poor man's cse }
+                          addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
+                            ctypeconvnode.create_internal(left,voidpointertype))
+                          );
+                          addstatement(newstatement,cassignmentnode.create(ctemprefnode.create(tempnode2),
+                            caddnode.create(orn,
+                              caddnode.create(nodetype,
+                                ctemprefnode.create(tempnode),
+                                cpointerconstnode.create(0,voidpointertype)
+                              ),
+                              caddnode.create(nodetype,
+                                ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),s32inttype),
+                                cordconstnode.create(0,s32inttype,false)
+                              )
+                            )
+                          ));
+                          addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode));
+                          addstatement(newstatement,ctempdeletenode.create_normal_temp(tempnode2));
+                          addstatement(newstatement,ctemprefnode.create(tempnode2));
+                        end
+                      else
+                      *)
+                        begin
+                          { compare the pointer with nil (for ansistrings etc), }
+                          { faster than getting the length (JM)                 }
+                          result:= caddnode.create(nodetype,
+                            ctypeconvnode.create_internal(left,voidpointertype),
+                            cpointerconstnode.create(0,voidpointertype));
+                        end;
                     end;
                   { left is reused }
                   left := nil;
