@@ -21,7 +21,7 @@ unit buildjwa;
 interface
 
 uses
-    winver, mmsystem, comobj, ole2, activex, shellapi, shlobj, oleserver,
+    winver, mmsystem, comconst, comobj, ole2, activex, shellapi, shlobj, oleserver,
     jwawintype, jwawinbase, jwawinnt, shfolder,
     jwalmerr, jwalmmsg, jwaaclui, jwaadsdb, jwalmerrlog, jwalmjoin, jwaauthz,
     jwabits, jwalmremutl, jwalmrepl, jwalmserver, jwalmshare, jwalmsname,
