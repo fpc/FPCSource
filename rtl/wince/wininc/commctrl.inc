@@ -88,7 +88,7 @@
 const
   ComctlDLL     = 'commctrl';
 
-  COMCTL32_VERSION=$020e;
+  COMCTL32_VERSION=$020c;
 
   // Common control shared messages
   CCM_FIRST = $2000;
