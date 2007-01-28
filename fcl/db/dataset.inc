@@ -411,7 +411,7 @@ begin
   DoBeforeClose;
   FreeFieldBuffers;
   ClearBuffers;
-  SetBufListSize(-1);
+  SetBufListSize(0);
   SetState(dsInactive);
   InternalClose;
   DoAfterClose;
@@ -902,6 +902,7 @@ Procedure TDataset.SetBufListSize(Value: Longint);
 Var I : longint;
 
 begin
+  if Value = 0 then Value := -1;
 {$ifdef dsdebug}
   Writeln ('SetBufListSize: ',Value);
 {$endif}
@@ -965,10 +966,10 @@ begin
       else
         ReAllocMem(FBuffers,(Value+1)*SizeOf(Pchar));
       end;
-    if FRecordcount > Value then FRecordcount := Value;
     end;
   If Value=-1 then
     Value:=0;
+  if FRecordcount > Value then FRecordcount := Value;
   FBufferCount:=Value;
 {$ifdef dsdebug}
   Writeln ('   SetBufListSize: Final FBufferCount=',FBufferCount);

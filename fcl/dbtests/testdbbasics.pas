@@ -56,6 +56,7 @@ type
     procedure TestDataEventsResync;
     procedure TestBug7007;
     procedure TestBug6893;
+    procedure TestRecordcountAfterReopen;  // partly bug 8228
     procedure TestdeFieldListChange;
     procedure TestLastAppendCancel;        // bug 5058
     procedure TestRecNo;                   // bug 5061
@@ -475,6 +476,32 @@ begin
     AssertTrue(EOF);
     Close;
     end;
+end;
+
+procedure TTestDBBasics.TestRecordcountAfterReopen;
+var
+  datalink1: tdatalink;
+  datasource1: tdatasource;
+  query1: TDataSet;
+
+begin
+  query1:= DBConnector.GetNDataset(11);
+  datalink1:= TDataLink.create;
+  datasource1:= tdatasource.create(nil);
+  try
+    datalink1.datasource:= datasource1;
+    datasource1.dataset:= query1;
+
+    query1.active := true;
+    query1.active := False;
+    AssertEquals(0, THackDataLink(datalink1).RecordCount);
+    query1.active := true;
+    AssertTrue(THackDataLink(datalink1).RecordCount>0);
+    query1.active := false;
+  finally
+    datalink1.free;
+    datasource1.free;
+  end;
 end;
 
 procedure TTestDBBasics.TestStringFilter;
