@@ -1000,7 +1000,6 @@ type
     FInternalOpenComplete: Boolean;
     Procedure DoInsertAppend(DoAppend : Boolean);
     Procedure DoInternalOpen;
-    Procedure DoInternalClose;
     Function  GetBuffer (Index : longint) : Pchar;
     Function  GetField (Index : Longint) : TField;
     Procedure RegisterDataSource(ADatasource : TDataSource);
@@ -1073,7 +1072,7 @@ type
     procedure InternalInsert; virtual;
     procedure InternalRefresh; virtual;
     procedure OpenCursor(InfoQuery: Boolean); virtual;
-    procedure OpenCursorcomplete;
+    procedure OpenCursorcomplete; virtual;
     procedure RefreshInternalCalcFields(Buffer: PChar); virtual;
     procedure RestoreState(const Value: TDataSetState);
     Procedure SetActive (Value : Boolean); virtual;

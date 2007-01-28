@@ -189,6 +189,14 @@ end;
 Procedure TDataset.CloseCursor;
 
 begin
+  DoBeforeScroll;
+  DoBeforeClose;
+  FreeFieldBuffers;
+  ClearBuffers;
+  SetBufListSize(0);
+  SetState(dsInactive);
+  InternalClose;
+  DoAfterClose;
   FInternalOpenComplete := False;
 end;
 
@@ -391,19 +399,6 @@ begin
   FRecordcount := 0;
   RecalcBufListSize;
   FEOF := (FRecordcount = 0);
-end;
-
-Procedure TDataset.DoInternalClose;
-
-begin
-  DoBeforeScroll;
-  DoBeforeClose;
-  FreeFieldBuffers;
-  ClearBuffers;
-  SetBufListSize(0);
-  SetState(dsInactive);
-  InternalClose;
-  DoAfterClose;
 end;
 
 Procedure TDataset.DoOnCalcFields;
@@ -844,7 +839,7 @@ begin
       end;
     end
   else if not value and (Fstate <> dsinactive) then
-    DoInternalClose;
+    CloseCursor;
 end;
 
 procedure TDataset.Loaded;
