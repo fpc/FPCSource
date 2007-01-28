@@ -47,8 +47,8 @@ DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
 
 fpcunit-stamp.$(FULL_TARGET):
-        $(MAKE) -C ../../fcl/fpcunit all 'OPT=$(OPT) -n'
-        $(MAKE) -C ../../fcl/fpcunit install $(INSTALLOPT)
+ 	$(TESTCOMPILER) -Fu$(BASEDIR)/$(COMPILER_TARGETDIR) ../../fcl/inc/testutils
+        $(TESTCOMPILER) -Fu$(BASEDIR)/$(COMPILER_TARGETDIR) ../../fcl/inc/fpcunit
         $(ECHO) Compiled > fpcunit-stamp.$(FULL_TARGET)
 
 cleanfpcunit:
