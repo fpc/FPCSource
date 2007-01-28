@@ -624,7 +624,7 @@ begin
         end;
       HeaderEnd(2);
       ParaGraphStart;
-      S:='SELECT T_NAME as Test,T_FULLNAME as Filename,TR_SKIP as Skipped,TR_OK as OK'
+      S:='SELECT T_NAME as Filename,TR_SKIP as Skipped,TR_OK as OK'
         +' FROM TESTRESULTS,TESTS'
         +' WHERE (TR_TEST_FK=T_ID) AND (TR_TESTRUN_FK='+FRunID+') ';
       If FOnlyFailed then
@@ -648,7 +648,7 @@ begin
             With CreateTableProducer(Q) do
               Try
                 Border:=True;
-                FL:='Test,Filename';
+                FL:='Filename';
                 If Not FNoSkipped then
                   FL:=FL+',Skipped';
                 If Not FOnlyFailed then
@@ -720,7 +720,7 @@ begin
         end;
       HeaderEnd(2);
       ParaGraphStart;
-      S:='SELECT T_NAME as Test,T_FULLNAME as FileName,tr1.TR_SKIP as Run1_Skipped,'
+      S:='SELECT T_NAME as Filename,tr1.TR_SKIP as Run1_Skipped,'
          +'tr2.TR_SKIP as Run2_Skipped,tr1.TR_OK as Run1_OK,tr2.TR_OK as Run2_OK '
         +'FROM TESTS,(select * from TESTRESULTS where TR_TESTRUN_FK='+FCompareRunID+') as tr2 '
          +'LEFT JOIN (select * from TESTRESULTS where TR_TESTRUN_FK='+FRunID+') as tr1 '
@@ -750,7 +750,7 @@ begin
             With CreateTableProducer(Q) do
               Try
                 Border:=True;
-                FL:='Test,FileName,Run1_OK,Run2_OK';
+                FL:='Filename,Run1_OK,Run2_OK';
                 If Not FNoSkipped then
                   FL:=FL+',Run1_Skipped,Run2_Skipped';
                 CreateColumns(FL);

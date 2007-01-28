@@ -175,16 +175,9 @@ Function GetTestID(Name : string) : Integer;
 
 Const
   SFromName = 'SELECT T_ID FROM TESTS WHERE (T_NAME="%s")';
-  SFromFullName = 'SELECT T_ID FROM TESTS WHERE (T_FULLNAME="%s")';
-
-Var
-  FN : String;
 
 begin
-  FN:=ExtractFileName(Name);
-  Result:=IDQuery(Format(SFromName,[FN]));
-  If Result=-1 then
-    Result:=IDQuery(Format(SFromFullName,[Name]))
+  Result:=IDQuery(Format(SFromName,[Name]));
 end;
 
 Function GetOSID(Name : String) : Integer;
@@ -251,8 +244,8 @@ end;
 Function AddTest(Name : String; AddSource : Boolean) : Integer;
 
 Const
-  SInsertTest = 'INSERT INTO TESTS (T_NAME,T_FULLNAME,T_ADDDATE)'+
-                ' VALUES ("%s","%s",NOW())';
+  SInsertTest = 'INSERT INTO TESTS (T_NAME,T_ADDDATE)'+
+                ' VALUES ("%s",NOW())';
 
 Var
   Info : TConfig;
@@ -263,7 +256,7 @@ begin
   If FileExists(TestSrcDir+Name) and
      GetConfig(TestSrcDir+Name,Info) then
     begin
-    If RunQuery(Format(SInsertTest,[ExtractFileName(Name),Name]),Res) then
+    If RunQuery(Format(SInsertTest,[Name]),Res) then
       begin
       Result:=GetTestID(Name);
       If Result=-1 then
