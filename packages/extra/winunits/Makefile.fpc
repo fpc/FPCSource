@@ -8,7 +8,7 @@ version=2.0.0
 
 [target]
 units=buildjwa
-implicitunits=winver mmsystem comobj ole2 activex shellapi shlobj oleserver \
+implicitunits=winver mmsystem comobj comconst ole2 activex shellapi shlobj oleserver \
  jwawintype jwawinbase jwawinnt \
  jwalmerr jwalmmsg jwaaclui jwaadsdb jwalmerrlog jwalmjoin jwaauthz  \
  jwabits jwalmremutl jwalmrepl jwalmserver jwalmshare jwalmsname \
