@@ -172,7 +172,7 @@ unit cpupara;
       begin
         if target_info.system=system_x86_64_win64 then
           result:=(calloption=pocall_safecall) or
-            not(def.size in [1,2,4,8])
+            (def.size>8) or not(def.size in [1,2,4,8])
         else
           result:=inherited ret_in_param(def,calloption);
       end;
