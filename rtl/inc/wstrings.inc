@@ -754,6 +754,24 @@ begin
   fpc_WideStr_Compare:=Temp;
 end;
 
+Function fpc_WideStr_Compare_Equal(const S1,S2 : WideString): SizeInt;[Public,Alias : 'FPC_WIDESTR_COMPARE_EQUAL']; compilerproc;
+{
+  Compares 2 WideStrings for equality only;
+  The result is
+   0 if S1=S2
+   <>0 if S1<>S2
+}
+Var
+  MaxI : SizeInt;
+begin
+  if pointer(S1)=pointer(S2) then
+    exit(0);
+  Maxi:=Length(S1);
+  If MaxI<>Length(S2) then
+    exit(-1)
+  else
+    exit(CompareWord(S1[1],S2[1],MaxI));
+end;
 
 Procedure fpc_WideStr_CheckZero(p : pointer);[Public,Alias : 'FPC_WIDESTR_CHECKZERO']; compilerproc;
 begin

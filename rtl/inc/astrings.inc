@@ -457,6 +457,29 @@ begin
     result:=Length(S1)-Length(S2);
 end;
 
+Function fpc_AnsiStr_Compare_equal(const S1,S2 : AnsiString): SizeInt;[Public,Alias : 'FPC_ANSISTR_COMPARE_EQUAL'];  compilerproc;
+{
+  Compares 2 AnsiStrings for equality/inequality only;
+  The result is
+   0 if S1=S2
+   <>0 if S1<>S2
+}
+Var
+  MaxI,Temp : SizeInt;
+begin
+  if pointer(S1)=pointer(S2) then
+    begin
+      result:=0;
+      exit;
+    end;
+  Maxi:=Length(S1);
+  temp:=Length(S2);
+  Result := Maxi - temp;
+  if Result = 0 then
+    if MaxI>0 then
+      result:=CompareByte(S1[1],S2[1],MaxI);
+end;
+
 
 Procedure fpc_AnsiStr_CheckZero(p : pointer);[Public,Alias : 'FPC_ANSISTR_CHECKZERO'];  compilerproc;
 begin

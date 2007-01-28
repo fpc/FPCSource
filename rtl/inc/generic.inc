@@ -694,6 +694,28 @@ begin
     exit(0);
 end;
 
+function fpc_shortstr_compare_equal(const left,right:shortstring) : longint;[public,alias:'FPC_SHORTSTR_COMPARE_EQUAL']; compilerproc;
+var
+   s1,s2,i : byte;
+   d : longint;
+begin
+  s1:=length(left);
+  s2:=length(right);
+  if s1<>s2 then
+    exit(-1)
+  else
+    for i:=1 to s1 do
+      begin
+       d:=byte(left[i])-byte(right[i]);
+       if d>0 then
+         exit(1)
+       else if d<0 then
+         exit(-1);
+      end;
+  exit(0);
+end;
+
+
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}

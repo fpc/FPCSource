@@ -1587,6 +1587,7 @@ implementation
         p: tnode;
         newstatement : tstatementnode;
         tempnode,tempnode2 : ttempcreatenode;
+        cmpfuncname: string;
       begin
         { when we get here, we are sure that both the left and the right }
         { node are both strings of the same stringtype (JM)              }
@@ -1714,8 +1715,12 @@ implementation
                   exit;
                 end;
               { no string constant -> call compare routine }
-              result := ccallnode.createintern('fpc_'+
-                tstringdef(left.resultdef).stringtypname+'_compare',
+              cmpfuncname := 'fpc_'+tstringdef(left.resultdef).stringtypname+'_compare';
+              { for equality checks use optimized version }
+              if nodetype in [equaln,unequaln] then
+                cmpfuncname := cmpfuncname + '_equal';
+
+              result := ccallnode.createintern(cmpfuncname,
                 ccallparanode.create(right,ccallparanode.create(left,nil)));
               { and compare its result with 0 according to the original operator }
               result := caddnode.create(nodetype,result,

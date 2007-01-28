@@ -135,7 +135,10 @@ end;
        Some distributions use a patched libgpm to work around this, but
        to avoid this mess, we detect the xterm mouse ourselves (we need to
        be able to do this anyway for the NOGPM case), and don't do any libgpm
-       call at all if an xterm mouse is detected.}
+       call at all if an xterm mouse is detected. Of course, we use the
+       Pascal libgpm translation, doing it here allows us to keep the Pascal
+       one compatible with the external C one.
+       }
 
 function detect_xterm_mouse:word;
 

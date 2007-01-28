@@ -936,6 +936,13 @@ asm
         movl    saveebx,%ebx
 end;
 
+function fpc_shortstr_compare_equal(const left,right:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE_EQUAL']; compilerproc;
+begin
+  Result := longint(left[0]) - longint(right[0]);
+  if Result = 0 then
+    Result := CompareByte(left[1],right[1], longint(left[0]));
+end;
+
 {$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
 
