@@ -984,7 +984,7 @@ var
 {$endif}
 
 const font_vga:array[0..11] of char=#15#27'%@'#27'(U'#27'[3h';
-      font_custom:array[0..2] of char=#27'(K';
+      font_lat1:array[0..5] of char=#27'%@'#27'(B';
 
 begin
   { check for tty }
@@ -1052,7 +1052,7 @@ begin
           end
         else
           {No VGA font :( }
-          fpwrite(stdoutputhandle,font_custom,sizeof(font_custom));
+          fpwrite(stdoutputhandle,font_lat1,sizeof(font_lat1));
         { running on a remote terminal, no error with /dev/vcsa }
    {$ifdef linux}
       end;
