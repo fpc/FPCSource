@@ -2160,17 +2160,6 @@ Function normalizeRoundAndPackFloat32( zSign: flag; zExp: int16; zSig:bits32 ): 
 
 {*
 -------------------------------------------------------------------------------
-Returns the least-significant 32 fraction bits of the double-precision
-floating-point value `a'.
--------------------------------------------------------------------------------
-*}
-Function extractFloat64Frac( a: float64 ): bits32;
-  Begin
-    extractFloat64Frac := a.low;
-  End;
-
-{*
--------------------------------------------------------------------------------
 Returns the most-significant 20 fraction bits of the double-precision
 floating-point value `a'.
 -------------------------------------------------------------------------------

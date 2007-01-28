@@ -74,7 +74,6 @@ const calculated_cmdline:Pchar=nil;
 {$define FPC_SYSTEM_HAS_extractFloat64Frac0}
 {$define FPC_SYSTEM_HAS_extractFloat64Frac1}
 {$define FPC_SYSTEM_HAS_extractFloat64Exp}
-{$define FPC_SYSTEM_HAS_extractFloat64Frac}
 {$define FPC_SYSTEM_HAS_extractFloat64Sign}
 {$define FPC_SYSTEM_HAS_ExtractFloat32Frac}
 {$define FPC_SYSTEM_HAS_extractFloat32Exp}
