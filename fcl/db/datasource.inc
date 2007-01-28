@@ -7,6 +7,7 @@ Constructor TDataLink.Create;
 begin
   Inherited Create;
   FBufferCount:=1;
+  FFirstRecord := 0;
   FDataSource := nil;
   FDatasourceFixed:=False;
 end;
@@ -26,6 +27,7 @@ end;
 Procedure TDataLink.ActiveChanged;
 
 begin
+  FFirstRecord := 0;
 end;
 
 Procedure TDataLink.CheckActiveAndEditing;

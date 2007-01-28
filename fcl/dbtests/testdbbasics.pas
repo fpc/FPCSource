@@ -55,6 +55,7 @@ type
     procedure TestEOFBOFClosedDataset;
     procedure TestDataEventsResync;
     procedure TestBug7007;
+    procedure TestBug6893;
     procedure TestdeFieldListChange;
     procedure TestLastAppendCancel;        // bug 5058
     procedure TestRecNo;                   // bug 5061
@@ -72,6 +73,8 @@ type
 implementation
 
 uses toolsunit, bufdataset;
+
+type THackDataLink=class(TdataLink);
 
 procedure TTestDBBasics.TestIsEmpty;
 begin
@@ -812,6 +815,45 @@ begin
     AssertEquals(6, datalink1.RecordCount);
     AssertEquals(6, query1.RecordCount);
     AssertEquals(6, query1.RecNo);
+  finally
+    datalink1.free;
+    datasource1.free;
+  end;
+end;
+
+procedure TTestDBBasics.TestBug6893;
+var
+  datalink1: tdatalink;
+  datasource1: tdatasource;
+  query1: TDataSet;
+
+begin
+  query1:= DBConnector.GetNDataset(25);
+  datalink1:= TDataLink.create;
+  datasource1:= tdatasource.create(nil);
+  try
+    datalink1.datasource:= datasource1;
+    datasource1.dataset:= query1;
+
+    datalink1.buffercount:= 5;
+    query1.active := true;
+    query1.MoveBy(20);
+
+    AssertEquals(5, THackDataLink(datalink1).Firstrecord);
+    AssertEquals(4, datalink1.ActiveRecord);
+    AssertEquals(21, query1.RecNo);
+
+    query1.active := False;
+
+    AssertEquals(0, THackDataLink(datalink1).Firstrecord);
+    AssertEquals(0, datalink1.ActiveRecord);
+
+    query1.active := true;
+
+    AssertEquals(0, THackDataLink(datalink1).Firstrecord);
+    AssertEquals(0, datalink1.ActiveRecord);
+    AssertEquals(1, query1.RecNo);
+    
   finally
     datalink1.free;
     datasource1.free;
