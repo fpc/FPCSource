@@ -245,7 +245,7 @@ begin
 {$ifndef NOGPM}
     else
       gpm_close;
-{$endif};
+{$endif}
   end;
   gpm_fs:=-1;
 end;
