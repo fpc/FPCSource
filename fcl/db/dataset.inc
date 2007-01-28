@@ -189,7 +189,7 @@ end;
 Procedure TDataset.CloseCursor;
 
 begin
-  //!! To be implemented
+  FInternalOpenComplete := False;
 end;
 
 Procedure TDataset.CreateFields;
@@ -379,29 +379,18 @@ Procedure TDataset.DoInternalOpen;
 
 begin
   FDefaultFields:=FieldCount=0;
-  DoBeforeOpen;
   InternalOpen;
-  Try
+  FInternalOpenComplete := True;
 {$ifdef dsdebug}
-    Writeln ('Calling internal open');
+  Writeln ('Calling internal open');
 {$endif}
-    FBOF:=True;
+  FBOF:=True;
 {$ifdef dsdebug}
-    Writeln ('Calling RecalcBufListSize');
+  Writeln ('Calling RecalcBufListSize');
 {$endif}
-    FRecordcount := 0;
-    RecalcBufListSize;
-    FEOF := (FRecordcount = 0);
-{$ifdef dsdebug}
-    Writeln ('Setting state to browse');
-{$endif}
-    SetState(dsBrowse);
-    DoAfterOpen;
-    DoAfterScroll;
-  except
-    DoInternalClose;
-    raise;
-  end;
+  FRecordcount := 0;
+  RecalcBufListSize;
+  FEOF := (FRecordcount = 0);
 end;
 
 Procedure TDataset.DoInternalClose;
@@ -733,13 +722,16 @@ end;
 Procedure TDataset.InitFieldDefs;
 
 begin
-  if IsCursorOpen then InternalInitFieldDefs
+  if IsCursorOpen then
+    InternalInitFieldDefs
   else
-  try
-    OpenCursor(True);
-  finally
-    CloseCursor;
-  end;
+    begin
+    try
+      OpenCursor(True);
+    finally
+      CloseCursor;
+      end;
+    end;
 end;
 
 Procedure TDataset.InitRecord(Buffer: PChar);
@@ -770,7 +762,29 @@ end;
 Procedure TDataset.OpenCursor(InfoQuery: Boolean);
 
 begin
-  //!! To be implemented
+  if InfoQuery then
+    InternalInitfieldDefs
+  else if state <> dsOpening then
+    DoInternalOpen;
+end;
+
+procedure TDataSet.OpenCursorcomplete;
+begin
+  try
+    if FState = dsOpening then DoInternalOpen
+  finally
+    if FInternalOpenComplete then
+      begin
+      SetState(dsBrowse);
+      DoAfterOpen;
+      DoAfterScroll;
+      end
+    else
+      begin
+      SetState(dsInactive);
+      CloseCursor;
+      end;
+  end;
 end;
 
 Procedure TDataset.RefreshInternalCalcFields(Buffer: PChar);
@@ -797,7 +811,7 @@ end;
 function TDataset.GetActive : boolean;
 
 begin
-  result := FState <> dsInactive;
+  result := (FState <> dsInactive) and (FState <> dsOpening);
 end;
 
 Procedure TDataset.InternalHandleException;
@@ -820,7 +834,14 @@ begin
       exit;
       end
     else
-      DoInternalOpen;
+      begin
+      DoBeforeOpen;
+      try
+        OpenCursor(False);
+      finally
+        if FState <> dsOpening then OpenCursorComplete;
+        end;
+      end;
     end
   else if not value and (Fstate <> dsinactive) then
     DoInternalClose;

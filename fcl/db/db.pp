@@ -997,6 +997,7 @@ type
     FRecordCount: Longint;
     FIsUniDirectional: Boolean;
     FState : TDataSetState;
+    FInternalOpenComplete: Boolean;
     Procedure DoInsertAppend(DoAppend : Boolean);
     Procedure DoInternalOpen;
     Procedure DoInternalClose;
@@ -1072,11 +1073,12 @@ type
     procedure InternalInsert; virtual;
     procedure InternalRefresh; virtual;
     procedure OpenCursor(InfoQuery: Boolean); virtual;
+    procedure OpenCursorcomplete;
     procedure RefreshInternalCalcFields(Buffer: PChar); virtual;
     procedure RestoreState(const Value: TDataSetState);
     Procedure SetActive (Value : Boolean); virtual;
     procedure SetBookmarkStr(const Value: TBookmarkStr); virtual;
-    procedure SetBufListSize(Value: Longint);
+    procedure SetBufListSize(Value: Longint); virtual;
     procedure SetChildOrder(Component: TComponent; Order: Longint); override;
     procedure SetCurrentRecord(Index: Longint); virtual;
     procedure SetFiltered(Value: Boolean); virtual;
@@ -1232,7 +1234,7 @@ type
 
   TDataLink = class(TPersistent)
   private
-    FFIrstRecord,
+    FFirstRecord,
     FBufferCount : Integer;
     FActive,
     FDataSourceFixed,
