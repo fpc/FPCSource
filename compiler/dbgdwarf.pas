@@ -1491,6 +1491,7 @@ implementation
       var
         procendlabel : tasmlabel;
         mangled_length : longint;
+        procentry : String;
         p : pchar;
         hs : string;
       begin
@@ -1514,7 +1515,12 @@ implementation
             current_asmdata.getlabel(procendlabel,alt_dbgtype);
             current_asmdata.asmlists[al_procedures].insertbefore(tai_label.create(procendlabel),pd.procendtai);
 
-            append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(pd.mangledname));
+	    if (target_info.system = system_powerpc64_linux) then
+	      procentry := '.' + pd.mangledname
+	    else 
+	      procentry := pd.mangledname;
+
+            append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry));
             append_labelentry(DW_AT_high_pc,procendlabel);
 
             (*
