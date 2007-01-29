@@ -1885,7 +1885,6 @@ implementation
           end;
 
         var
-          store_static : boolean;
           protsym  : tpropertysym;
           p2,p3  : tnode;
           srsym  : tsym;
@@ -2125,11 +2124,8 @@ implementation
                          begin
                            if token=_ID then
                              begin
-                               store_static:=allow_only_static;
-                               allow_only_static:=false;
                                classh:=tobjectdef(p1.resultdef);
                                searchsym_in_class(classh,classh,pattern,srsym,srsymtable);
-                               allow_only_static:=store_static;
                                if assigned(srsym) then
                                  begin
                                     check_hints(srsym,srsym.symoptions);

@@ -1173,12 +1173,6 @@ implementation
          if procdef.parast.symtablelevel>maxnesting then
            Message(parser_e_too_much_lexlevel);
 
-         { static is also important for local procedures !! }
-         if (po_staticmethod in procdef.procoptions) then
-           allow_only_static:=true
-         else if (procdef.parast.symtablelevel=normal_function_level) then
-           allow_only_static:=false;
-
     {$ifdef state_tracking}
 {    aktstate:=Tstate_storage.create;}
     {$endif state_tracking}
@@ -1280,9 +1274,6 @@ implementation
 {    aktstate.destroy;}
     {$endif state_tracking}
 
-         { reset to normal non static function }
-         if (procdef.parast.symtablelevel=normal_function_level) then
-           allow_only_static:=false;
          current_procinfo:=oldprocinfo;
 
          { Restore old state }

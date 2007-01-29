@@ -283,9 +283,6 @@ interface
          recompilations needed PM }
        simplify_ppu : boolean = true;
 
-       { should we allow non static members ? }
-       allow_only_static : boolean = false;
-
        Inside_asm_statement : boolean = false;
 
        global_unit_count : word = 0;
