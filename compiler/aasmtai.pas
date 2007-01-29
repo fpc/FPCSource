@@ -780,8 +780,7 @@ implementation
     constructor tailineinfo.create;
      begin
        inherited create;
-       if not(cs_gdb_valgrind in current_settings.globalswitches) then
-         fileinfo:=current_filepos;
+       fileinfo:=current_filepos;
      end;
 
 
