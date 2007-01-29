@@ -248,7 +248,6 @@ interface
                                            proc calls to proc loads in firstcalln }
        compile_level : word;
        resolving_forward : boolean;      { used to add forward reference as second ref }
-       inlining_procedure : boolean;     { are we inlining a procedure }
        exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
        aktexceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
        LinkLibraryAliases : TLinkStrMap;
@@ -1086,7 +1085,6 @@ implementation
         do_make:=true;
         compile_level:=0;
         DLLsource:=false;
-        inlining_procedure:=false;
         resolving_forward:=false;
         paratarget:=system_none;
         paratargetasm:=as_none;
