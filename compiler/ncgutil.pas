@@ -896,6 +896,14 @@ implementation
                   include(current_procinfo.flags,pi_do_call);
                   cg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vardef).len)
                 end
+              else if tparavarsym(p).vardef.typ = variantdef then
+                begin
+                  { this code is only executed before the code for the body and the entry/exit code is generated
+                    so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
+                  }
+                  include(current_procinfo.flags,pi_do_call);
+                  cg.g_copyvariant(list,href,localcopyloc.reference)
+                end
               else
                 begin
                   { pass proper alignment info }
@@ -1154,8 +1162,11 @@ implementation
              vs_value :
                if needs_inittable then
                  begin
-                   location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef));
-                   cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
+                   { variants are already handled by the call to fpc_variant_copy_overwrite }
+                   if tparavarsym(p).vardef.typ <> variantdef then begin
+                     location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef));
+                     cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
+                   end;
                  end;
              vs_out :
                begin

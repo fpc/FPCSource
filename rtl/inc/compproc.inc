@@ -258,6 +258,7 @@ Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); comp
 
 {$ifdef FPC_HAS_FEATURE_VARIANTS}
 procedure fpc_variant_copy(d,s : pointer);compilerproc;
+procedure fpc_variant_copy_overwrite(source, dest : pointer);compilerproc;
 procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); compilerproc;
 function fpc_variant_to_dynarray(const v : variant;typeinfo : pointer) : pointer;compilerproc;
 function fpc_dynarray_to_variant(dynarr : pointer;typeinfo : pointer) : variant;compilerproc;

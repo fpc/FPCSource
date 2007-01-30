@@ -385,6 +385,7 @@ unit cgobj;
 
           }
           procedure g_copyshortstring(list : TAsmList;const source,dest : treference;len:byte);
+          procedure g_copyvariant(list : TAsmList;const source,dest : treference);
 
           procedure g_incrrefcount(list : TAsmList;t: tdef; const ref: treference);
           procedure g_decrrefcount(list : TAsmList;t: tdef; const ref: treference);
@@ -2508,6 +2509,27 @@ implementation
         a_call_name(list,'FPC_SHORTSTR_ASSIGN');
         deallocallcpuregisters(list);
         cgpara3.done;
+        cgpara2.done;
+        cgpara1.done;
+      end;
+
+    procedure tcg.g_copyvariant(list : TAsmList;const source,dest : treference);
+      var
+        cgpara1,cgpara2 : TCGPara;
+      begin
+        cgpara1.init;
+        cgpara2.init;
+        paramanager.getintparaloc(pocall_default,1,cgpara1);
+        paramanager.getintparaloc(pocall_default,2,cgpara2);
+        paramanager.allocparaloc(list,cgpara2);
+        a_paramaddr_ref(list,dest,cgpara2);
+        paramanager.allocparaloc(list,cgpara1);
+        a_paramaddr_ref(list,source,cgpara1);
+        paramanager.freeparaloc(list,cgpara2);
+        paramanager.freeparaloc(list,cgpara1);
+        allocallcpuregisters(list);
+        a_call_name(list,'FPC_VARIANT_COPY_OVERWRITE');
+        deallocallcpuregisters(list);
         cgpara2.done;
         cgpara1.done;
       end;
