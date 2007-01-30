@@ -4028,10 +4028,4 @@ ptop$(EXEEXT): ptop.pp ptopu$(PPUEXT)
 ptopu$(PPUEXT): ptopu.pp
 ppdep$(EXEEXT): ppdep.pp
 unexport DATA2INC
-grab_vcsa$(EXEEXT): | ppdep$(EXEEXT)
-ppdep$(EXEEXT): | ptop$(EXEEXT)
-ptop$(EXEEXT): | postw32$(EXEEXT)
-postw32$(EXEEXT): | rstconv$(EXEEXT)
-rstconv$(EXEEXT): | data2inc$(EXEEXT)
-data2inc$(EXEEXT): | delp$(EXEEXT)
-delp$(EXEEXT): | bin2obj$(EXEEXT)
+.NOTPARALLEL:
