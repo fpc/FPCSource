@@ -1972,6 +1972,10 @@ Unit Rax86int;
               if instr.operands[i].opr.typ=OPR_NONE then
                 Message(asmr_e_syntax_error);
           end;
+        { e.g. for "push dword 1", "push word 6" }
+        if (instr.ops=1) and
+           (instr.operands[1].typesize<>0) then
+          instr.operands[1].setsize(instr.operands[1].typesize,false);
       end;
 
 
