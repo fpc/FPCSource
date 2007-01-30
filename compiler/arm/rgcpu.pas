@@ -58,6 +58,20 @@ unit rgcpu;
         l : tasmlabel;
         hreg : tregister;
       begin
+        { don't load spilled register between
+          mov lr,pc
+          mov pc,r4
+          but befure the mov lr,pc
+        }
+        if assigned(pos.previous) and
+          (pos.typ=ait_instruction) and
+          (taicpu(pos).opcode=A_MOV) and
+          (taicpu(pos).oper[0]^.typ=top_reg) and
+          (taicpu(pos).oper[0]^.reg=NR_R14) and
+          (taicpu(pos).oper[1]^.typ=top_reg) and
+          (taicpu(pos).oper[1]^.reg=NR_PC) then
+          pos:=tai(pos.previous);
+
         if abs(spilltemp.offset)>4095 then
           begin
             helplist:=TAsmList.create;
