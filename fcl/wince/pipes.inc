@@ -13,8 +13,18 @@
 
  **********************************************************************}
 
+// Unsupported for the moment...
+
 Function CreatePipeHandles (Var Inhandle,OutHandle : THandle) : Boolean;
-// No pipes under dos, sorry...
 begin
   Result := False;
 end;
+
+
+Function TInputPipeStream.GetNumBytesAvailable: DWord;
+
+begin
+  // Windows CE doesn´t have the API function PeekNamedPipe
+  Result := 0;
+end;
+

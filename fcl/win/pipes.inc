@@ -33,3 +33,11 @@ Function CreatePipeHandles (Var Inhandle,OutHandle : THandle) : Boolean;
 begin
   Result := CreatePipe (@Inhandle,@OutHandle,@piInheritablePipe,PipeBufSize);
 end;
+
+
+Function TInputPipeStream.GetNumBytesAvailable: DWord;
+begin
+  if not PeekNamedPipe(Handle, nil, 0, nil, @Result, nil) then
+    Result := 0;
+end;
+

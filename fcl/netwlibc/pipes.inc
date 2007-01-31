@@ -13,10 +13,18 @@
 
  **********************************************************************}
 
+// Unsupported for the moment...
 
 Function CreatePipeHandles (Var Inhandle,OutHandle : THandle) : Boolean;
 
 begin
   Result := false;  {todo}
+end;
+
+
+Function TInputPipeStream.GetNumBytesAvailable: DWord;
+
+begin
+  Result := 0;
 end;
 

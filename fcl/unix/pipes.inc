@@ -14,12 +14,19 @@
  **********************************************************************}
 
 Uses
-  Unix
-  ;
+  BaseUnix, Unix, TermIO;
 
 Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 
 begin
   Result := (AssignPipe (Inhandle,OutHandle)<>-1);
+end;
+
+
+Function TInputPipeStream.GetNumBytesAvailable: DWord;
+
+begin
+  if fpioctl(Handle, FIONREAD, @Result)<0 then
+    Result := 0;
 end;
 

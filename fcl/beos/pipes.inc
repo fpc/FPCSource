@@ -13,10 +13,18 @@
 
  **********************************************************************}
 
-// No pipes under dos, sorry...
+// No pipes under beos, sorry...
 
 Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 
 begin
   Result := False;
 end;
+
+
+Function TInputPipeStream.GetNumBytesAvailable: DWord;
+
+begin
+  Result := 0;
+end;
+

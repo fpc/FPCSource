@@ -28,13 +28,17 @@ Type
   EPipeSeek = Class (EPipeError);
   EPipeCreation = Class (EPipeError);
 
+  { TInputPipeStream }
+
   TInputPipeStream = Class(THandleStream)
     Private
       FPos : Int64;
+      function GetNumBytesAvailable: DWord;
     public
       Function Write (Const Buffer; Count : Longint) :Longint; Override;
       Function Seek (Offset : Longint;Origin : Word) : longint;override;
       Function Read (Var Buffer; Count : Longint) : longint; Override;
+      property NumBytesAvailable: DWord read GetNumBytesAvailable;
     end;
 
   TOutputPipeStream = Class(THandleStream)

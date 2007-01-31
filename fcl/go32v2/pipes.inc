@@ -20,3 +20,11 @@ Function CreatePipeHandles (Var Inhandle,OutHandle : THandle) : Boolean;
 begin
   Result := False;
 end;
+
+
+Function TInputPipeStream.GetNumBytesAvailable: DWord;
+
+begin
+  Result := 0;
+end;
+

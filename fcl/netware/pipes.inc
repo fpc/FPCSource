@@ -13,10 +13,18 @@
 
  **********************************************************************}
 
+// Unsupported for the moment...
 
 Function CreatePipeHandles (Var Inhandle,OutHandle : THandle) : Boolean;
 
 begin
   Result := false;  {dont know how to do that with netware clib}
+end;
+
+
+Function TInputPipeStream.GetNumBytesAvailable: DWord;
+
+begin
+  Result := 0;
 end;
 

@@ -24,3 +24,11 @@ Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 begin
   CreatePipeHandles := DosCreatePipe (InHandle, OutHandle, PipeBufSize) = 0;
 end;
+
+Function TInputPipeStream.GetNumBytesAvailable: DWord;
+
+begin
+  // TODO: find out if this is possible in OS/2
+  Result := 0;
+end;
+
