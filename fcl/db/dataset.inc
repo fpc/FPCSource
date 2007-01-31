@@ -46,7 +46,6 @@ var
   i: Integer;
 
 begin
-  if Fstate <> dsinactive then CloseCursor;
   Active:=False;
   FFieldDefs.Free;
   FFieldList.Free;
@@ -838,11 +837,11 @@ begin
     end
   else if not value and (Fstate <> dsinactive) then
     begin
-    DoBeforeClose;
+    if not (csDestroying in ComponentState) then DoBeforeClose;
     SetState(dsInactive);
     CloseCursor;
-    DoAfterClose;
-    end;
+    if not (csDestroying in ComponentState) then DoAfterClose;
+    end
 end;
 
 procedure TDataset.Loaded;
