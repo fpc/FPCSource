@@ -274,7 +274,7 @@ type
     FProviderFlags : TProviderFlags;
     Function GetIndex : longint;
     procedure SetAlignment(const AValue: TAlignMent);
-    procedure SetIndex(AValue: Integer);
+    procedure SetIndex(const AValue: Integer);
     Procedure SetDataset(AValue : TDataset);
     function GetDisplayText: String;
     function GetEditText: String;
@@ -305,6 +305,7 @@ type
     function GetOldValue: variant; virtual;
     function GetAsString: string; virtual;
     function GetCanModify: Boolean; virtual;
+    function GetClassDesc: String; virtual;
     function GetDataSize: Word; virtual;
     function GetDefaultWidth: Longint; virtual;
     function GetDisplayName : String;

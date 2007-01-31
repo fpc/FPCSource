@@ -474,7 +474,7 @@ end;
 function TField.GetAsString: string;
 
 begin
-  Raise AccessError(SString);
+  Result := GetClassDesc;
 end;
 
 function TField.GetOldValue: Variant;
@@ -543,6 +543,16 @@ begin
     If Result then
       Result:= DataSet.CanModify;
     end;
+end;
+
+function TField.GetClassDesc: String;
+var ClassN : string;
+begin
+  ClassN := copy(ClassName,2,pos('Field',ClassName)-2);
+  if isNull then
+    result := '(' + LowerCase(ClassN) + ')'
+   else
+    result := '(' + UpperCase(ClassN) + ')';
 end;
 
 function TField.GetData(Buffer: Pointer): Boolean;
@@ -637,7 +647,7 @@ begin
     end;
 end;
 
-procedure TField.SetIndex(AValue: Integer);
+procedure TField.SetIndex(const AValue: Integer);
 begin
   if FFields <> nil then FFields.SetFieldIndex(Self, AValue)
 end;
@@ -2228,7 +2238,7 @@ begin
         Free
       end
   else
-    Result := '(blob)';
+    Result := '';
 end;
 
 function TBlobField.GetAsVariant: Variant;
@@ -2280,7 +2290,7 @@ end;
 procedure TBlobField.GetText(var TheText: string; ADisplayText: Boolean);
 
 begin
-  TheText:=GetAsString;
+  TheText:=inherited GetAsString;
 end;
 
 
