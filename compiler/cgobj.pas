@@ -900,9 +900,14 @@ implementation
          hr : tregister;
       begin
          cgpara.check_simple_location;
-         hr:=getaddressregister(list);
-         a_loadaddr_ref_reg(list,r,hr);
-         a_param_reg(list,OS_ADDR,hr,cgpara);
+         if cgpara.location^.loc in [LOC_CREGISTER,LOC_REGISTER] then
+           a_loadaddr_ref_reg(list,r,cgpara.location^.register)
+         else
+           begin
+             hr:=getaddressregister(list);
+             a_loadaddr_ref_reg(list,r,hr);
+             a_param_reg(list,OS_ADDR,hr,cgpara);
+           end;
       end;
 
 
