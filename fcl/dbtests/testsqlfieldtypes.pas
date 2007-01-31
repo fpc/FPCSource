@@ -37,6 +37,7 @@ type
 
     procedure TestBlob;
     procedure TestChangeBlob;
+    procedure TestBlobGetText;
 
     procedure TestLargeRecordSize;
     procedure TestNumeric;
@@ -388,6 +389,7 @@ var s : string;
 
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID int,FT blob)');
+//  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (ID int,FT text)');
   TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For interbase
 
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (ID,FT) values (1,''Test deze blob'')');
@@ -426,6 +428,31 @@ begin
     end;
 end;
 
+procedure TTestFieldTypes.TestBlobGetText;
+begin
+  CreateTableWithFieldType(ftBlob,'BLOB');
+//  CreateTableWithFieldType(ftBlob,'TEXT');
+  TestFieldDeclaration(ftBlob,0);
+
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (Null)');
+
+//  TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For debug-purposes
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    Open;
+    AssertFalse(fields[0].IsNull);
+    AssertEquals('(BLOB)',fields[0].DisplayText);
+    AssertEquals('Test deze blob',fields[0].AsString);
+    Next;
+    AssertTrue(fields[0].IsNull);
+    AssertEquals('(blob)',fields[0].Text);
+    AssertEquals('',fields[0].AsString);
+    close;
+    end;
+end;
+
 
 procedure TTestFieldTypes.TestBlob;
 
@@ -433,8 +460,8 @@ var
   i             : byte;
 
 begin
-//  CreateTableWithFieldType(ftBlob,'BLOB');
-  CreateTableWithFieldType(ftBlob,'TEXT');
+  CreateTableWithFieldType(ftBlob,'BLOB');
+//  CreateTableWithFieldType(ftBlob,'TEXT');
   TestFieldDeclaration(ftBlob,0);
 
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
