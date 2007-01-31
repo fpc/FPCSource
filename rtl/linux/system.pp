@@ -300,16 +300,21 @@ var
   initialstkptr : Pointer;external name '__stkptr';
 begin
   SysResetFPU;
-  {$if defined(cpupowerpc)}
+{$if defined(cpupowerpc)}
   // some PPC kernels set the exception bits FE0/FE1 in the MSR to zero,
   // disabling all FPU exceptions. Enable them again.
   fpprctl(PR_SET_FPEXC, PR_FP_EXC_PRECISE);
-  {$endif}
+{$endif}
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(initialStkLen);
   StackBottom := initialstkptr - StackLength;
   { Set up signals handlers }
   InstallSignals;
+
+{$if defined(cpui386)}
+  fpc_cpucodeinit;
+{$endif cpui386}
+
   { Setup heap }
   InitHeap;
   SysInitExceptions;

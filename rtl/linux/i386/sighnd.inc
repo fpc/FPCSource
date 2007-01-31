@@ -64,7 +64,11 @@ begin
         end;
     SIGBUS:
         res:=214;
-    SIGILL,
+    SIGILL:
+        if sse_check then
+          res:=0
+        else
+          res:=216;
     SIGSEGV :
         res:=216;
   end;

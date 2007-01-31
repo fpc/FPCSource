@@ -19,6 +19,8 @@
 ****************************************************************************}
 var
   os_supports_sse : boolean;
+  { this variable is set to true, if currently an sse check is executed and no sig ill should be generated }
+  sse_check : boolean;
 
 {$asmmode intel}
 
@@ -1215,6 +1217,25 @@ Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
       end;
     softfloat_exception_flags:=0;
     softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
+  end;
+
+
+{ because of the brain dead sse detection on x86, this test is post poned }
+procedure fpc_cpucodeinit;
+  begin
+    os_supports_sse:=true;
+    sse_check:=true;
+    asm
+      { force an sse exception if no sse is supported, the exception handler sets
+        os_supports_sse to false then }
+      { don't change this instruction, the code above depends on its size }
+      movq %xmm0,%xmm0
+    end;
+    sse_check:=false;
+    has_sse_support:=sse_support;
+    has_mmx_support:=mmx_support;
+    SysResetFPU;
+    setup_fastmove;
   end;
 
 
