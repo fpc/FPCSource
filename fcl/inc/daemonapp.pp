@@ -340,6 +340,7 @@ Type
     // Customizable behaviour
     procedure CreateDaemonController(Var AController : TDaemonController); virtual;
     Procedure CreateServiceMapper(Var AMapper : TCustomDaemonMapper); virtual;
+    Procedure CreateDaemonInstance(Var ADaemon : TCustomDaemon; DaemonDef : TDaemonDef); virtual;
     Procedure RemoveController(AController : TDaemonController); virtual;
     procedure SetupLogger;
     procedure StopLogger;
@@ -359,15 +360,16 @@ Type
     Property GuiHandle : THandle Read FGUIHandle Write FGUIHandle;
     Property RunMode : TDaemonRunMode Read FRunMode;
   end;
+  TCustomDaemonApplicationClass = Class of TCustomDaemonApplication;
   
-  TDaemonApplication = Class(TCustomDaemonApplication)
-  end;
+  TDaemonApplication = Class(TCustomDaemonApplication);
 
   EDaemon = Class(Exception);
 
 Function Application : TCustomDaemonApplication;
 Procedure RegisterDaemonMapper(AMapperClass : TCustomDaemonMapperClass);
 Procedure RegisterDaemonClass(AClass : TCustomDaemonClass);
+Procedure RegisterDaemonApplicationClass(AClass : TCustomDaemonApplicationClass);
 Procedure DaemonError(Msg : String);
 Procedure DaemonError(Fmt : String; Args : Array of const);
 
@@ -386,7 +388,8 @@ Resourcestring
   SErrNoDaemonForStatus         = '%s: No daemon for status report';
   SErrNoDaemonDefForStatus      = '%s: No daemon definition for status report';
   SErrWindowClass               = 'Could not register window class';
-
+  SErrApplicationAlreadyCreated = 'An application instance of class %s was already created.';
+  
 { $define svcdebug}
 
 {$ifdef svcdebug}
@@ -407,11 +410,12 @@ implementation
 {$i daemonapp.inc}
 
 Var
-  AppInstance  : TCustomDaemonApplication;
-  MapperClass  : TCustomDaemonMapperClass;
-  DesignMapper : TCustomDaemonMapper;
+  AppInstance   : TCustomDaemonApplication;
+  MapperClass   : TCustomDaemonMapperClass;
+  DesignMapper  : TCustomDaemonMapper;
   DaemonClasses : TStringList;
-
+  AppClass      : TCustomDaemonApplicationClass;
+  
 {$ifdef svcdebug}
 Var
   FL : Text;
@@ -450,6 +454,14 @@ begin
 end;
 {$endif svcdebug}
 
+Procedure RegisterDaemonApplicationClass(AClass : TCustomDaemonApplicationClass);
+
+begin
+  If (AppInstance<>Nil) then
+    DaemonError(SErrApplicationAlreadyCreated,[AppInstance.ClassName]);
+  AppClass:=AClass;  
+end;
+
 Procedure RegisterDaemonClass(AClass : TCustomDaemonClass);
 
 Var
@@ -472,7 +484,9 @@ end;
 Procedure CreateDaemonApplication;
 
 begin
-  AppInstance:=TDaemonApplication.Create(Nil);
+  If (AppClass=Nil) then
+    AppClass:=TCustomDaemonApplication;
+  AppInstance:=AppClass.Create(Nil);
 end;
 
 Procedure DoneDaemonApplication;
@@ -877,6 +891,11 @@ begin
    inherited ShowException(E)
 end;
 
+Procedure TCustomDaemonApplication.CreateDaemonInstance(Var ADaemon : TCustomDaemon; DaemonDef : TDaemonDef); 
+
+begin
+  ADaemon:=DaemonDef.DaemonClass.CreateNew(Self,0);
+end;
 
 function TCustomDaemonApplication.CreateDaemon(DaemonDef: TDaemonDef): TCustomDaemon;
 
@@ -884,7 +903,7 @@ Var
   C : TDaemonController;
 
 begin
-  Result:=DaemonDef.DaemonClass.CreateNew(Self,0);
+  CreateDaemonInstance(Result,DaemonDef);
   CreateDaemonController(C);
   C.FDaemon:=Result;
   Result.FController:=C;
