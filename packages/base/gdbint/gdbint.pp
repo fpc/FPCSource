@@ -2502,7 +2502,7 @@ begin
 {$ifdef GDB_INIT_HAS_ARGV0}
   getmem(argv0,length(paramstr(0))+1);
   strpcopy(argv0,paramstr(0));
-  gdb_init(@argv0);
+  gdb_init(argv0);
   freemem(argv0,length(paramstr(0))+1);
 {$else not GDB_INIT_HAS_ARGV0}
   gdb_init;
