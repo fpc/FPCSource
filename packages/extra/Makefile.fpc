@@ -26,10 +26,9 @@ dirs_openbsd=unzip zlib \
              utmp bfd gdbm ncurses fpgtk \
              tcl imlib gnome1 openssl libcurl cairo
 # libcurl should work on Win32 too, but I haven't tested this. Skip it for now. MVC.
-dirs_win32=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw \
+dirs_win32=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk fftw \
              mad openal oggvorbis a52 libpng openssl
-dirs_win64=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk winunits fftw \
-             openssl
+dirs_win64=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk fftw openssl
 dirs_wince=unzip zlib tcl fftw
 dirs_os2=os2units \
          rexx \
