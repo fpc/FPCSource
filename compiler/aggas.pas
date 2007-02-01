@@ -1105,6 +1105,21 @@ implementation
                 inc(debugframecount);
                 exit;
               end;
+            sec_debug_line:
+              begin
+                result := '.section __DWARF,__debug_line,regular,debug';
+                exit;
+              end;
+            sec_debug_info:
+              begin
+                result := '.section __DWARF,__debug_info,regular,debug';
+                exit;
+              end;
+            sec_debug_abbrev:
+               begin
+                 result := '.section __DWARF,__debug_abbrev,regular,debug';
+                 exit;
+               end;
             sec_rodata:
               begin
                 result := '.const';
