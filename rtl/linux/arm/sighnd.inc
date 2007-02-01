@@ -16,7 +16,7 @@
  **********************************************************************}
 
 
-procedure SignalToRunerror(Sig: longint; _a2,_a3,_a4 : dword; SigContext: PSigInfo; uContext : PuContext); cdecl;
+procedure SignalToRunerror(Sig: longint; { _a2,_a3,_a4 : dword; } SigContext: PSigInfo; uContext : PuContext); cdecl;
 
 var
   res,fpustate : word;
