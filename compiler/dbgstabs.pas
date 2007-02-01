@@ -1030,12 +1030,18 @@ implementation
 
             { para types }
             if assigned(pd.parast) then
-              write_symtable_syms(templist,pd.parast);
+              begin
+                write_symtable_syms(templist,pd.parast);
+                write_symtable_defs(templist,pd.parast);
+              end;
             { local type defs and vars should not be written
               inside the main proc stab }
             if assigned(pd.localst) and
                (pd.localst.symtabletype=localsymtable) then
-              write_symtable_syms(templist,pd.localst);
+              begin
+                write_symtable_syms(templist,pd.localst);
+                write_symtable_defs(templist,pd.localst);
+              end;
 
             { after the endtai, because the ".size" must come before it }
             current_asmdata.asmlists[al_procedures].insertlistafter(pd.procendtai,templist);
