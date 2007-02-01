@@ -13,7 +13,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-procedure SignalToRunerror(Sig: cint; var info : tsiginfo_t;Var SigContext:SigContextRec); cdecl;
+procedure SignalToRunerror(Sig: cint; info : PSigInfo; SigContext:PSigContext); cdecl;
 
 var
   res : word;
@@ -23,7 +23,7 @@ begin
   case sig of
     SIGFPE :
       begin
-        Case Info.si_code Of
+        Case Info^.si_code Of
           FPE_FLTDIV,
           FPE_INTDIV : Res:=200;  { floating point divide by zero }
           FPE_FLTOVF : Res:=205;  { floating point overflow }
@@ -36,9 +36,9 @@ begin
         { FPU exceptions are completely disabled by the kernel if one occurred, it  }
         { seems this is necessary to be able to return to user mode. They can be    }
         { enabled by executing a sigreturn, however then the exception is triggered }
-        { triggered again immediately if we don't turn off the "exception occurred" }
-        { flags in fpscr                                                            }
-        SigContext.uc_mcontext^.fs.fpscr := SigContext.uc_mcontext^.fs.fpscr and not($fffe0700);
+        { again immediately if we don't turn off the "exception occurred" flags     }
+        { in fpscr                                                                  }
+        SigContext^.uc_mcontext^.fs.fpscr := SigContext^.uc_mcontext^.fs.fpscr and not($fffe0700);
       end;
     SIGILL,
     SIGBUS,
@@ -52,10 +52,10 @@ begin
   { return to trampoline }
   if res <> 0 then
     begin
-      SigContext.uc_mcontext^.ss.r3 := res;
-      SigContext.uc_mcontext^.ss.r4 := SigContext.uc_mcontext^.ss.srr0;
-      SigContext.uc_mcontext^.ss.r5 := SigContext.uc_mcontext^.ss.r1;
-      pointer(SigContext.uc_mcontext^.ss.srr0) := @HandleErrorAddrFrame;
+      SigContext^.uc_mcontext^.ss.r3 := res;
+      SigContext^.uc_mcontext^.ss.r4 := SigContext^.uc_mcontext^.ss.srr0;
+      SigContext^.uc_mcontext^.ss.r5 := SigContext^.uc_mcontext^.ss.r1;
+      pointer(SigContext^.uc_mcontext^.ss.srr0) := @HandleErrorAddrFrame;
     end;
 end;
 

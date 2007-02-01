@@ -189,7 +189,8 @@
     PSignalHandler  = ^SignalHandler;
     SignalRestorer  = Procedure;cdecl;
     PSignalRestorer = ^SignalRestorer;
-    SigActionHandler = procedure (Sig: cint; var info : tsiginfo_t;Var SigContext:SigContextRec); cdecl;
+    PSigInfo        = ^TSigInfo_t;
+    SigActionHandler = procedure (Sig: cint; info : psiginfo; SigContext:PSigContext); cdecl;
 
 
     SigActionRec = packed record
@@ -202,7 +203,7 @@
       Sa_Mask: sigset_t;
       Sa_Flags: cint;
    end;
-   PSigActionRec = ^SigActionRec;
+    PSigActionRec = ^SigActionRec;
 
   {
      Flags for sigprocmask:

@@ -78,6 +78,7 @@ const
 
 type sigset_t = array[0..3] of Longint;
 
+    psigcontext = ^sigcontextrec;
     PSigContextRec = ^SigContextRec;
     SigContextRec = record
        sc_mask      : sigset_t;          { signal mask to restore }
@@ -130,6 +131,7 @@ type sigset_t = array[0..3] of Longint;
             End;
 
 
+  PSigInfo   = ^SigInfo_t;
   PSigInfo_t = ^SigInfo_t;
   SigInfo_t = record
                 si_signo,                       { signal number }
@@ -150,7 +152,6 @@ type sigset_t = array[0..3] of Longint;
                 __spare         : array[0..6] of Longint; { gimme some slack }
                 end;
   TSigInfo = SigInfo_t;
-  PSigInfo = PSigInfo_t;
   TSigInfo_t = TSigInfo;
 
 
@@ -160,7 +161,7 @@ type sigset_t = array[0..3] of Longint;
   PSignalHandler  = ^SignalHandler;
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
-  sigActionHandler = procedure(Sig: Longint; var sininfo:tsiginfo_t;var SigContext: SigContextRec);cdecl;
+  sigActionHandler = procedure(Sig: Longint; sininfo:psiginfo; SigContext: PSigContext);cdecl;
 
   TSigset=sigset_t;
   sigset=tsigset;

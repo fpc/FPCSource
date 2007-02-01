@@ -609,6 +609,7 @@
       fs: i386_float_state_t;
     end;
 
+   psigcontext = ^sigcontextrec;
    psigcontextrec = ^sigcontextrec;
    sigcontextrec = record
      sc_onstack: cint;

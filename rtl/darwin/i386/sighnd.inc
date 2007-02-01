@@ -13,7 +13,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-procedure SignalToRunerror(Sig: cint; var info : tsiginfo_t;Var SigContext:SigContextRec); cdecl;
+procedure SignalToRunerror(Sig: cint; info : psiginfo; SigContext:PSigContext); cdecl;
 
 var
   res : word;
@@ -23,7 +23,7 @@ begin
   case sig of
     SIGFPE :
       begin
-        Case Info.si_code Of
+        Case Info^.si_code Of
           FPE_INTDIV,             { integer divide by zero -NOTIMP on Mac OS X 10.4.7 }
           FPE_FLTDIV : Res:=200;  { floating point divide by zero }
           FPE_FLTOVF : Res:=205;  { floating point overflow }
@@ -51,6 +51,6 @@ begin
   {$endif }
 
   if (res <> 0) then
-    HandleErrorAddrFrame(res,pointer(sigcontext.ts.eip),pointer(sigcontext.ts.ebp));
+    HandleErrorAddrFrame(res,pointer(sigcontext^.ts.eip),pointer(sigcontext^.ts.ebp));
 end;
 

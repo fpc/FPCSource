@@ -255,6 +255,7 @@
         vs: ppc_vector_state_t;
      end;
 
+     psigcontext = ^sigcontextrec;
      psigcontextrec = ^sigcontextrec;
      sigcontextrec = record
         uc_onstack : cint;

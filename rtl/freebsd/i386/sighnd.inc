@@ -13,7 +13,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-procedure SignalToRunerror(Sig: cint; var info : tsiginfo_t;Var SigContext:SigContextRec); cdecl;
+procedure SignalToRunerror(Sig: cint; info : psiginfo;  SigContext:PSigContext); cdecl;
 
 var
   res : word;
@@ -23,7 +23,7 @@ begin
   case sig of
     SIGFPE :
           begin
-            Case Info.si_code Of
+            Case Info^.si_code Of
                 FPE_INTDIV : Res:=200;  {integer divide fault. Div0?}
                 FPE_FLTOVF : Res:=205;  {Overflow trap}
                 FPE_FLTUND : Res:=206;  {Stack over/underflow}
@@ -46,33 +46,9 @@ begin
   if res<>0 then
    begin
 {$ifdef cpui386}
-  HandleErrorAddrFrame(res,Pointer(SigContext.sc_eip),pointer(SigContext.sc_ebp));
+  HandleErrorAddrFrame(res,Pointer(SigContext^.sc_eip),pointer(SigContext^.sc_ebp));
 {$else}
      HandleError(res);
 {$endif}
    end;
 end;
-{
-procedure SignalToRunerror(signo: cint); cdecl;
-var
-  res : word;
-begin
-    res:=0;
-
-    if signo = SIGFPE then
-     begin
-        res := 200;
-     end
-    else
-    if (signo = SIGILL) or (signo = SIGBUS) or (signo = SIGSEGV) then
-      begin
-        res := 216;
-      end;
-  { give runtime error at the position where the signal was raised }
-  if res<>0 then
-   begin
-     HandleError(res);
-   end;
-end;
-}
-
