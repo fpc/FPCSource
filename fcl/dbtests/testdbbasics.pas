@@ -61,6 +61,7 @@ type
     procedure TestLastAppendCancel;        // bug 5058
     procedure TestRecNo;                   // bug 5061
     procedure TestSetRecNo;                // bug 6919
+    procedure TestRequired;
   end;
 
   { TSQLTestSetup }
@@ -421,6 +422,20 @@ begin
     AssertEquals(15,fields[0].AsInteger);
     AssertEquals(15,RecNo);}
 
+    Close;
+    end;
+end;
+
+procedure TTestDBBasics.TestRequired;
+begin
+  with DBConnector.GetNDataset(2) do
+    begin
+    Open;
+    FieldByName('ID').Required := True;
+    Append;
+    AssertException(EDatabaseError,Post);
+    FieldByName('ID').AsInteger := 1000;
+    Post;
     Close;
     end;
 end;

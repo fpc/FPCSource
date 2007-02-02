@@ -1765,7 +1765,7 @@ Procedure TDataset.Post;
       With FFieldList[i] do
         // Required fields that are NOT autoinc !! Autoinc cannot be set !!
         if Required and not ReadOnly and
-           (FieldKind=fkData) and Not (DataType=ftAutoInc) then
+           (FieldKind=fkData) and Not (DataType=ftAutoInc) and IsNull then
           DatabaseErrorFmt(SNeedField,[DisplayName],Self);
   end;
 
