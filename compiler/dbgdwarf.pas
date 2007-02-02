@@ -220,15 +220,20 @@ interface
         function get_file_index(afile: tinputfile): Integer;
         procedure write_symtable_syms(st:TSymtable);
       protected
-        procedure set_use_64bit_headers(state: boolean);
-
         // set if we should use 64bit headers (dwarf3 and up)
         _use_64bit_headers: Boolean;
-        property use_64bit_headers: Boolean read _use_64bit_headers write set_use_64bit_headers;
         // set to ait_const32bit if use_64bit_headers is false, otherwise
         // to ait_const64bit
         offsetsymtype: taiconst_type;
+        // set if we generated any lineinfo at all. If not, we have to terminate
+        // when insertmoduleinfo is called.
+        generated_lineinfo: boolean;
+
         vardatadef: trecorddef;
+
+        procedure set_use_64bit_headers(state: boolean);
+        property use_64bit_headers: Boolean read _use_64bit_headers write set_use_64bit_headers;
+
         procedure append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
         procedure append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
@@ -271,6 +276,7 @@ interface
 
         procedure finish_children;
         procedure finish_entry;
+        procedure finish_lineinfo;
       public
         constructor Create;override;
         destructor Destroy;override;
@@ -679,6 +685,8 @@ implementation
         inherited Create;
         { 64bit headers are only supported for dwarf3 and up, so default off }
         use_64bit_headers := false;
+        { we haven't generated any lineinfo yet }
+        generated_lineinfo := false;
 
         dirlist := TFPHashObjectList.Create;
         { add current dir as first item (index=0) }
@@ -2023,6 +2031,10 @@ implementation
         current_asmdata.asmlists[al_start].insertlist(templist);
         templist.free;
 
+        { finalize line info if the unit doesn't contain any function/ }
+        { procedure/init/final code                                    }
+        finish_lineinfo;
+
         { debug line header }
         linelist := current_asmdata.asmlists[al_dwarf_line];
         new_section(linelist,sec_debug_line,'',0);
@@ -2332,6 +2344,8 @@ implementation
         prevlabel,
         currlabel     : tasmlabel;
       begin
+        { this function will always terminate the lineinfo block }
+        generated_lineinfo := true;
         FillChar(lastfileinfo,sizeof(lastfileinfo),0);
         currfuncname:=nil;
         currsectype:=sec_code;
@@ -2459,6 +2473,30 @@ implementation
         asmline.concat(tai_comment.Create(strpnew('###################')));
       end;
 
+
+    procedure TDebugInfoDwarf.finish_lineinfo;
+      begin
+        { only needed if no line info at all has been generated }
+        if generated_lineinfo then
+          exit;
+        { at least the Darwin linker is annoyed if you do not }
+        { finish the lineinfo section, or if it doesn't       }
+        { contain at least one set_address                    }
+        asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
+{$ifdef cpu64bit}
+        asmline.concat(tai_const.create_uleb128bit(9)); { 1 + 8 }
+        asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
+        asmline.concat(tai_const.create_64bit(0));
+{$else cpu64bit}
+        asmline.concat(tai_const.create_uleb128bit(5)); { 1 + 4 }
+        asmline.concat(tai_const.create_8bit(DW_LNE_set_address));
+        asmline.concat(tai_const.create_32bit(0));
+{$endif cpu64bit}
+        asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
+        asmline.concat(tai_const.Create_8bit(1));
+        asmline.concat(tai_const.Create_8bit(DW_LNE_end_sequence));
+        asmline.concat(tai_comment.Create(strpnew('###################')));
+      end;
 
 {****************************************************************************
                               TDebugInfoDwarf2
