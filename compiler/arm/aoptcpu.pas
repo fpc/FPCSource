@@ -28,22 +28,69 @@ Unit aoptcpu;
 
 Interface
 
-uses cpubase, aopt, aoptcpub;
+uses cpubase, aasmtai, aopt, aoptcpub;
 
 Type
   TCpuAsmOptimizer = class(TAsmOptimizer)
     { uses the same constructor as TAopObj }
+    function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     procedure PeepHoleOptPass2;override;
   End;
 
 Implementation
 
   uses
-    aasmbase,aasmtai,aasmcpu;
+    aasmbase,aasmcpu;
 
   function CanBeCond(p : tai) : boolean;
     begin
       result:=(p.typ=ait_instruction) and (taicpu(p).condition=C_None);
+    end;
+
+
+  function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
+    var
+      next1, next2: tai;
+      l1, l2, shlcount: longint;
+    begin
+      result := false;
+      case p.typ of
+        ait_instruction:
+          begin
+            case taicpu(p).opcode of
+              A_MOV:
+                begin
+                  { fold
+                    mov reg1,reg0, shift imm1
+                    mov reg1,reg1, shift imm2
+                    to
+                    mov reg1,reg0, shift imm1+imm2
+                  }
+                  if (taicpu(p).ops=3) and
+                     (taicpu(p).oper[0]^.typ = top_reg) and
+                     (taicpu(p).oper[2]^.typ = top_shifterop) and
+                     (taicpu(p).oper[2]^.shifterop^.rs = NR_NO) and
+                     getnextinstruction(p,next1) and
+                     (next1.typ = ait_instruction) and
+                     (taicpu(next1).opcode = A_MOV) and
+                     (taicpu(next1).ops=3) and
+                     (taicpu(next1).oper[0]^.typ = top_reg) and
+                     (taicpu(p).oper[0]^.reg=taicpu(next1).oper[0]^.reg) and
+                     (taicpu(next1).oper[1]^.typ = top_reg) and
+                     (taicpu(p).oper[0]^.reg=taicpu(next1).oper[1]^.reg) and
+                     (taicpu(next1).oper[2]^.typ = top_shifterop) and
+                     (taicpu(next1).oper[2]^.shifterop^.rs = NR_NO) and
+                     (taicpu(p).oper[2]^.shifterop^.shiftmode=taicpu(next1).oper[2]^.shifterop^.shiftmode) then
+                    begin
+                      inc(taicpu(p).oper[2]^.shifterop^.shiftimm,taicpu(next1).oper[2]^.shifterop^.shiftimm);
+                      asml.remove(next1);
+                      next1.free;
+                      result := true;
+                    end;
+                end;
+            end;
+          end;
+      end;
     end;
 
 
