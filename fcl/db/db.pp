@@ -63,6 +63,10 @@ type
   TProviderFlag = (pfInUpdate, pfInWhere, pfInKey, pfHidden);
   TProviderFlags = set of TProviderFlag;
 
+{ Part of DBCommon, but temporary defined here (bug 8206) }
+
+ TFieldMap = array[TFieldType] of Byte;
+
 { Forward declarations }
 
   TFieldDef = class;
