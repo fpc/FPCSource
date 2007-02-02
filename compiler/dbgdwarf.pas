@@ -1933,28 +1933,28 @@ implementation
         { insert .Ltext0 label }
         templist:=TAsmList.create;
         new_section(templist,sec_code,'',0);
-        templist.concat(tai_symbol.createname('.Ltext0',AT_DATA,0));
+        templist.concat(tai_symbol.createname(target_asm.labelprefix+'text0',AT_DATA,0));
         current_asmdata.asmlists[al_start].insertlist(templist);
         templist.free;
 
         { insert .Letext0 label }
         templist:=TAsmList.create;
         new_section(templist,sec_code,'',0);
-        templist.concat(tai_symbol.createname('.Letext0',AT_DATA,0));
+        templist.concat(tai_symbol.createname(target_asm.labelprefix+'etext0',AT_DATA,0));
         current_asmdata.asmlists[al_end].insertlist(templist);
         templist.free;
 
         { insert .Ldebug_abbrev0 label }
         templist:=TAsmList.create;
         new_section(templist,sec_debug_abbrev,'',0);
-        templist.concat(tai_symbol.createname('.Ldebug_abbrev0',AT_DATA,0));
+        templist.concat(tai_symbol.createname(target_asm.labelprefix+'debug_abbrev0',AT_DATA,0));
         current_asmdata.asmlists[al_start].insertlist(templist);
         templist.free;
 
         { insert .Ldebug_line0 label }
         templist:=TAsmList.create;
         new_section(templist,sec_debug_line,'',0);
-        templist.concat(tai_symbol.createname('.Ldebug_line0',AT_DATA,0));
+        templist.concat(tai_symbol.createname(target_asm.labelprefix+'debug_line0',AT_DATA,0));
         current_asmdata.asmlists[al_start].insertlist(templist);
         templist.free;
 
@@ -1969,11 +1969,11 @@ implementation
           begin
             linelist.concat(tai_const.create_32bit(longint($FFFFFFFF)));
             linelist.concat(tai_const.create_rel_sym(aitconst_64bit,
-              lbl,current_asmdata.RefAsmSymbol('.Ledebug_line0')));
+              lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_line0')));
           end
         else
           linelist.concat(tai_const.create_rel_sym(aitconst_32bit,
-            lbl,current_asmdata.RefAsmSymbol('.Ledebug_line0')));
+            lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_line0')));
         linelist.concat(tai_label.create(lbl));
 
         { version }
@@ -1983,10 +1983,10 @@ implementation
         current_asmdata.getlabel(lbl,alt_dbgfile);
         if use_64bit_headers then
           linelist.concat(tai_const.create_rel_sym(aitconst_64bit,
-            lbl,current_asmdata.RefAsmSymbol('.Lehdebug_line0')))
+            lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'ehdebug_line0')))
         else
           linelist.concat(tai_const.create_rel_sym(aitconst_32bit,
-            lbl,current_asmdata.RefAsmSymbol('.Lehdebug_line0')));
+            lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'ehdebug_line0')));
         linelist.concat(tai_label.create(lbl));
 
         { minimum_instruction_length }
@@ -2070,14 +2070,14 @@ implementation
         linelist.concat(tai_const.create_8bit(0));
 
         { end of debug line header }
-        linelist.concat(tai_symbol.createname('.Lehdebug_line0',AT_DATA,0));
+        linelist.concat(tai_symbol.createname(target_asm.labelprefix+'ehdebug_line0',AT_DATA,0));
         linelist.concat(tai_comment.Create(strpnew('=== header end ===')));
 
         { add line program }
         linelist.concatList(asmline);
 
         { end of debug line table }
-        linelist.concat(tai_symbol.createname('.Ledebug_line0',AT_DATA,0));
+        linelist.concat(tai_symbol.createname(target_asm.labelprefix+'edebug_line0',AT_DATA,0));
       end;
 
 
@@ -2142,7 +2142,7 @@ implementation
 
         { write start labels }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_section.create(sec_debug_info,'',0));
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.createname('.Ldebug_info0',AT_DATA,0));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.createname(target_asm.labelprefix+'debug_info0',AT_DATA,0));
 
         { start abbrev section }
         new_section(current_asmdata.asmlists[al_dwarf_abbrev],sec_debug_abbrev,'',0);
@@ -2154,11 +2154,11 @@ implementation
           begin
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(longint($FFFFFFFF)));
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(aitconst_64bit,
-              lenstartlabel,current_asmdata.RefAsmSymbol('.Ledebug_info0')));
+              lenstartlabel,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_info0')));
           end
         else
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(aitconst_32bit,
-            lenstartlabel,current_asmdata.RefAsmSymbol('.Ledebug_info0')));
+            lenstartlabel,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_info0')));
 
         current_asmdata.asmlists[al_dwarf_info].concat(tai_label.create(lenstartlabel));
         { version }
@@ -2166,10 +2166,10 @@ implementation
         { abbrev table (=relative from section start)}
         if use_64bit_headers then
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_64bit,
-            current_asmdata.RefAsmSymbol('.Ldebug_abbrev0')))
+            current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrev0')))
         else
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_32bit,
-            current_asmdata.RefAsmSymbol('.Ldebug_abbrev0')));
+            current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrev0')));
         { address size }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(aint)));
 
@@ -2182,9 +2182,9 @@ implementation
           DW_AT_identifier_case,DW_FORM_data1,DW_ID_case_insensitive]);
 
         { reference to line info section }
-        append_labelentry_dataptr(DW_AT_stmt_list,current_asmdata.RefAsmSymbol('.Ldebug_line0'));
-        append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol('.Ltext0'));
-        append_labelentry(DW_AT_high_pc,current_asmdata.RefAsmSymbol('.Letext0'));
+        append_labelentry_dataptr(DW_AT_stmt_list,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_line0'));
+        append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'text0'));
+        append_labelentry(DW_AT_high_pc,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'etext0'));
 
         finish_entry;
 
@@ -2222,7 +2222,7 @@ implementation
 
         { end of debug info table }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(0));
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.createname('.Ledebug_info0',AT_DATA,0));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.createname(target_asm.labelprefix+'edebug_info0',AT_DATA,0));
 
         { end of abbrev table }
         current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
