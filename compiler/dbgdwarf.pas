@@ -220,8 +220,14 @@ interface
         function get_file_index(afile: tinputfile): Integer;
         procedure write_symtable_syms(st:TSymtable);
       protected
+        procedure set_use_64bit_headers(state: boolean);
+
         // set if we should use 64bit headers (dwarf3 and up)
-        use_64bit_headers: Boolean;
+        _use_64bit_headers: Boolean;
+        property use_64bit_headers: Boolean read _use_64bit_headers write set_use_64bit_headers;
+        // set to ait_const32bit if use_64bit_headers is false, otherwise
+        // to ait_const64bit
+        offsetsymtype: taiconst_type;
         vardatadef: trecorddef;
         procedure append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
         procedure append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
@@ -603,6 +609,16 @@ implementation
                               TDebugInfoDwarf
 ****************************************************************************}
 
+    procedure TDebugInfoDwarf.set_use_64bit_headers(state: boolean);
+      begin
+         _use_64bit_headers:=state;
+         if not(state) then
+           offsetsymtype:=aitconst_32bit
+         else
+           offsetsymtype:=aitconst_64bit
+      end;
+
+
     function TDebugInfoDwarf.def_dwarf_lab(def:tdef) : tasmsymbol;
       begin
         { Keep track of used dwarf entries, this info is only usefull for dwarf entries
@@ -878,15 +894,10 @@ implementation
         }
         current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
         if use_64bit_headers then
-          begin
-            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_64bit,sym));
-          end
+          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)))
         else
-          begin
-            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_32bit,sym));
-          end;
+          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetsymtype,sym));
       end;
 
 
@@ -1966,14 +1977,9 @@ implementation
         { size }
         current_asmdata.getlabel(lbl,alt_dbgfile);
         if use_64bit_headers then
-          begin
-            linelist.concat(tai_const.create_32bit(longint($FFFFFFFF)));
-            linelist.concat(tai_const.create_rel_sym(aitconst_64bit,
-              lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_line0')));
-          end
-        else
-          linelist.concat(tai_const.create_rel_sym(aitconst_32bit,
-            lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_line0')));
+          linelist.concat(tai_const.create_32bit(longint($FFFFFFFF)));
+        linelist.concat(tai_const.create_rel_sym(offsetsymtype,
+          lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_line0')));
         linelist.concat(tai_label.create(lbl));
 
         { version }
@@ -1981,12 +1987,8 @@ implementation
 
         { header length }
         current_asmdata.getlabel(lbl,alt_dbgfile);
-        if use_64bit_headers then
-          linelist.concat(tai_const.create_rel_sym(aitconst_64bit,
-            lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'ehdebug_line0')))
-        else
-          linelist.concat(tai_const.create_rel_sym(aitconst_32bit,
-            lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'ehdebug_line0')));
+        linelist.concat(tai_const.create_rel_sym(offsetsymtype,
+          lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'ehdebug_line0')));
         linelist.concat(tai_label.create(lbl));
 
         { minimum_instruction_length }
@@ -2151,25 +2153,16 @@ implementation
         current_asmdata.getlabel(lenstartlabel,alt_dbgfile);
         { size }
         if use_64bit_headers then
-          begin
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(longint($FFFFFFFF)));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(aitconst_64bit,
-              lenstartlabel,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_info0')));
-          end
-        else
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(aitconst_32bit,
-            lenstartlabel,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_info0')));
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(longint($FFFFFFFF)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetsymtype,
+          lenstartlabel,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_info0')));
 
         current_asmdata.asmlists[al_dwarf_info].concat(tai_label.create(lenstartlabel));
         { version }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(dwarf_version));
         { abbrev table (=relative from section start)}
-        if use_64bit_headers then
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_64bit,
-            current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrev0')))
-        else
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(aitconst_32bit,
-            current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrev0')));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetsymtype,
+          current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrev0')));
         { address size }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(aint)));
 
