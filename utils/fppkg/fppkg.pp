@@ -11,119 +11,29 @@ uses
   // Repository handler objects
   fprepos, fpxmlrep,fpmktype, pkgropts,
   // Package Handler components
-  pkghandler, pkgmkconv, pkgdownload, pkgmessages;
-  
+  pkghandler, pkgmkconv, pkgdownload, pkgfpmake, pkgmessages;
+
 Type
-
-  TRunMode = (rmHelp,rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmDownload,rmUpdate);
-
   { TMakeTool }
 
   TMakeTool = Class(TCustomApplication)
   Private
     FDefaults: TPackagerOptions;
-    FConvertOnly,
-    FLogging : Boolean;
     FCompiler : String;
-    FRunMode : TRunMode;
-    FHaveMakefile : Boolean;
-    FHaveFpmake : Boolean;
-    FFPMakeSrc : String;
-    FFPMakeBin : String;
-    FVerbose: TVerbosities;
-    FPackages : TStrings;
-    Procedure Log(Msg : String);
-    Procedure Error(Msg : String);
-    Procedure Error(Fmt : String; Args : Array of const);
     Function GetCompiler : String;
+    procedure ShowUsage;
   Public
-    Procedure DownloadFile(Const URL,Dest : String);
     Function GetConfigFileName : String;
     Procedure LoadDefaults;
     Procedure ProcessCommandLine;
-    procedure CreateFPMake;
-    procedure CompileFPMake(Extra : Boolean);
-    Function RunFPMake : Integer;
     Procedure DoRun; Override;
-    Property Verbose : TVerbosities Read FVerbose Write FVerbose;
+    procedure ExecuteAction(const AAction:string;const Args:TActionArgs);
   end;
 
   EMakeToolError = Class(Exception);
 
 
 { TMakeTool }
-
-procedure TMakeTool.CompileFPMake(Extra: Boolean);
-
-Var
-  O,C : String;
-
-begin
-  C:=GetCompiler;
-  O:=FFPmakeSrc;
-  If Extra then
-    O:='-Fafpmkext '+O;
-  Log(SLogCompilingFPMake+C+' '+O);
-  If ExecuteProcess(C,O)<>0 then
-    Error(SErrFailedToCompileFPCMake)
-end;
-
-procedure TMakeTool.CreateFPMake;
-begin
-  Log(SLogGeneratingFPMake);
-  With TMakeFileConverter.Create(Nil) do
-    try
-      ConvertFile('Makefile.fpc','fpmake.pp');
-    finally
-      Free;
-    end;
-end;
-
-
-Function TMakeTool.RunFPMake : Integer;
-
-  Function MaybeQuote(Const S : String) : String;
-  
-  begin
-    If Pos(' ',S)=0 then
-      Result:=S
-    else
-      Result:='"'+S+'"';
-  end;
-  
-
-Var
-  I : integer;
-  D,O : String;
-
-begin
-  Log(SLogRunningFPMake);
-  D:=IncludeTrailingPathDelimiter(GetCurrentDir);
-  O:='';
-  For I:=1 to ParamCount do
-    begin
-    If (O<>'') then
-      O:=O+' ';
-    O:=O+MaybeQuote(ParamStr(I));
-    end;
-  Result:=ExecuteProcess(D+FFPMakeBin,O);
-end;
-
-procedure TMakeTool.Log(Msg: String);
-begin
-  If FLogging then
-    Writeln(stdErr,Msg);
-end;
-
-procedure TMakeTool.Error(Msg: String);
-begin
-  Raise EMakeToolError.Create(Msg);
-end;
-
-procedure TMakeTool.Error(Fmt: String; Args: array of const);
-begin
-  Raise EMakeToolError.CreateFmt(Fmt,Args);
-end;
 
 function TMakeTool.GetCompiler: String;
 begin
@@ -151,22 +61,16 @@ begin
     Result:=FCompiler
   else
     begin
-    Result:=FileSearch(FCompiler,GetEnvironmentVariable('PATH'));
+    Result:=FileSearch(FCompiler+ExeExt,GetEnvironmentVariable('PATH'));
     If (Result='') then
-      Result:=FCompiler;
+      Result:=FCompiler+ExeExt;
     end;
 end;
 
-procedure TMakeTool.DownloadFile(const URL, Dest: String);
-begin
-
-end;
 
 function TMakeTool.GetConfigFileName: String;
-
 var
   G : Boolean;
-
 begin
   if HasOption('C','config-file') then
     Result:=GetOptionValue('C','config-file')
@@ -181,10 +85,29 @@ begin
     end
 end;
 
+
 procedure TMakeTool.LoadDefaults;
 begin
+  Verbosity:=[vError,vInfo,vCommands,vDebug];
   FDefaults:=TPackagerOptions.Create;
   FDefaults.LoadFromFile(GetConfigFileName);
+end;
+
+
+procedure TMakeTool.ShowUsage;
+begin
+  Writeln('Usage: ',Paramstr(0),' [options] <action> <package>');
+  Writeln('Options:');
+  Writeln('  -r --compiler      Set compiler');
+  Writeln('  -h --help          This help');
+  Writeln('  -v --verbose       Set verbosity');
+  Writeln('Actions:');
+  Writeln('  update             Update available packages');
+  Writeln('  listpackages       List available packages');
+  Writeln('  build              Build package');
+  Writeln('  install            Install package');
+  Writeln('  download           Download package');
+  Writeln('  convertmk          Convert Makefile.fpc to fpmake.pp');
 end;
 
 
@@ -208,122 +131,133 @@ procedure TMakeTool.ProcessCommandLine;
   begin
     if (Length(ParamStr(Index))>1) and (Paramstr(Index)[2]<>'-') then
       begin
-      If Index<ParamCount then
-        begin
-        Inc(Index);
-        Result:=Paramstr(Index);
-        end
-      else
-        Error(SErrNeedArgument,[Index,ParamStr(Index)]);
+        If Index<ParamCount then
+          begin
+            Inc(Index);
+            Result:=Paramstr(Index);
+          end
+        else
+          Error(SErrNeedArgument,[Index,ParamStr(Index)]);
       end
     else If length(ParamStr(Index))>2 then
       begin
-      P:=Pos('=',Paramstr(Index));
-      If (P=0) then
-        Error(SErrNeedArgument,[Index,ParamStr(Index)])
-      else
-        begin
-        Result:=Paramstr(Index);
-        Delete(Result,1,P);
-        end;
+        P:=Pos('=',Paramstr(Index));
+        If (P=0) then
+          Error(SErrNeedArgument,[Index,ParamStr(Index)])
+        else
+          begin
+            Result:=Paramstr(Index);
+            Delete(Result,1,P);
+          end;
       end;
   end;
 
 Var
   I : Integer;
-  GlobalOpts : Boolean;
-  cmd : string;
-  
+  Action : string;
+  ParaPackages : TStringList;
+  HasAction : Boolean;
 begin
-  I:=0;
-  FLogging:=False;
-  FRunMode:=rmhelp;
-  FConvertOnly:=False;
-  GlobalOpts:=True;
-  FPackages:=TStringList.Create;
-  // We can't use the TCustomApplication option handling,
-  // because they cannot handle [general opts] [command] [cmd-opts] [args]
-  While (I<ParamCount) do
-    begin
-    Inc(I);
-    // Check options.
-    if CheckOption(I,'r','compiler') then
-      FDefaults.Compiler:=OptionArg(I)
-    else if CheckOption(I,'v','verbose') then
-      Include(FVerbose,StringToVerbosity(OptionArg(I)))
-    else if CheckOption(I,'h','help') then
-      FRunMode:=rmhelp
-    else if (Length(Paramstr(i))>0) and (Paramstr(I)[1]='-') then
-      Raise EMakeToolError.CreateFmt(SErrInvalidArgument,[I,ParamStr(i)])
-    else
-      If GlobalOpts then
-        begin
-        // It's a command.
-        Cmd:=Paramstr(I);
-        if (Cmd='convert') then
-          FConvertOnly:=True
-        else if (Cmd='compile') then
-          FRunMode:=rmCompile
-        else if (Cmd='build') then
-          FRunMode:=rmBuild
-        else if (Cmd='install') then
-          FRunMode:=rmInstall
-        else if (cmd='clean') then
-          FRunMode:=rmClean
-        else if (cmd='archive') then
-          FRunMode:=rmarchive
-        else if (cmd='download') then
-          FRunMode:=rmDownload
-        else if (cmd='update') then
-          FRunMode:=rmUpdate
+  try
+    I:=0;
+    HasAction:=false;
+    ParaPackages:=TStringList.Create;
+    // We can't use the TCustomApplication option handling,
+    // because they cannot handle [general opts] [command] [cmd-opts] [args]
+    While (I<ParamCount) do
+      begin
+        Inc(I);
+        // Check options.
+        if CheckOption(I,'r','compiler') then
+          FDefaults.Compiler:=OptionArg(I)
+        else if CheckOption(I,'v','verbose') then
+          Include(Verbosity,StringToVerbosity(OptionArg(I)))
+        else if CheckOption(I,'h','help') then
+          begin
+            ShowUsage;
+            halt(0);
+          end
+        else if (Length(Paramstr(i))>0) and (Paramstr(I)[1]='-') then
+          Raise EMakeToolError.CreateFmt(SErrInvalidArgument,[I,ParamStr(i)])
         else
-          Raise EMakeToolError.CreateFmt(SErrInvalidCommand,[Cmd]);
-        end
-      else // It's a package name.
+        // It's a command or target.
+          begin
+            if HasAction then
+              ParaPackages.Add(Paramstr(i))
+            else
+              begin
+                Action:=Paramstr(i);
+                HasAction:=true;
+              end;
+          end;
+      end;
+    if HasAction then
+      begin
+        if GetPkgHandler(Action)<>nil then
+          begin
+            for i:=0 to ParaPackages.Count-1 do
+              ActionStack.Push(Action,[ParaPackages[i]])
+          end
+        else
+          Raise EMakeToolError.CreateFmt(SErrInvalidCommand,[Action]);
+      end
+    else
+      ShowUsage;
+  finally
+    FreeAndNil(ParaPackages);
+  end;
+end;
+
+
+procedure TMakeTool.ExecuteAction(const AAction:string;const Args:TActionArgs);
+var
+  pkghandlerclass : TPackageHandlerClass;
+  i : integer;
+  logargs : string;
+begin
+  if vDebug in Verbosity then
+    begin
+      logargs:='';
+      for i:=Low(Args) to High(Args) do
         begin
-        FPackages.Add(Paramstr(i));
+          if logargs='' then
+            logargs:=Args[i]
+          else
+            logargs:=logargs+','+Args[i];
         end;
+      Log(vDebug,SLogRunAction,[AAction,logargs]);
+    end;
+  pkghandlerclass:=GetPkgHandler(AAction);
+  With pkghandlerclass.Create(FDefaults) do
+    try
+      Execute(Args);
+    finally
+      Free;
     end;
 end;
 
+
 procedure TMakeTool.DoRun;
-
-
+var
+  Action : string;
+  Args   : TActionArgs;
 begin
   LoadDefaults;
   Try
     ProcessCommandLine;
-    If FConvertOnly then
-      CreateFPMake
-    else
-      begin
-      FHaveMakefile:=FileExists('Makefile.fpc');
-      FFPMakeSrc:='fpmake.pp';
-      FHaveFpmake:=FileExists(FFPMakeSrc);
-      If Not FHaveFPMake then
-        begin
-        FHaveFPMake:=FileExists('fpmake.pas');
-        If FHaveFPMake then
-          FFPMakeSrc:='fpmake.pas';
-        end;
-      if Not (FHaveFPMake or FHaveMakeFile) then
-        Error(SErrMissingConfig);
-      If (Not FHaveFPMake) or (FileAge(FFPMakeSrc)<FileAge('Makefile.fpc')) then
-        CreateFPMake;
-    {$ifndef unix}
-      FFPMakeBin:='fpmake.exe';
-    {$else}
-      FFPMakeBin:='fpmake';
-    {$endif}
-      if FileAge(FFPMakeBin)<FileAge(FFPMakeSrc) then
-        CompileFPMake(FRunMode in [rmArchive,rmDownload]);
-      Halt(RunFPMake);
-      end;
+    
+    repeat
+      if not ActionStack.Pop(Action,Args) then
+        break;
+      ExecuteAction(Action,Args);
+    until false;
+    Terminate;
+    
   except
     On E : Exception do
       begin
-      Writeln(StdErr,Format(SErrRunning,[E.Message]));
-      Halt(1);
+        Writeln(StdErr,Format(SErrRunning,[E.Message]));
+        Halt(1);
       end;
   end;
 end;

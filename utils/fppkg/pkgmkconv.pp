@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils,pkghandler;
   { TMakeFileConverter }
-  
+
 Type
   TSectionType = (stNone,stPackage,stTarget,stclean,stinstall,stCompiler,
                   stDefault,stRequire,stRules,stPrerules);
@@ -39,14 +39,16 @@ Type
     Procedure StartInstaller(Src : TStrings);
     Procedure EndInstaller(Src : TStrings);
     Function GetLine (L : TStrings; Var I : Integer) : String;
-  Public
     procedure ConvertFile(const AFileName: String; Src: TStrings; Dir,OS : String);
     Procedure ConvertFile(Const Source,Dest: String);
+  Public
+    Function Execute(const Args:array of string):boolean;override;
   end;
+
 
 implementation
 
-uses typinfo;
+uses typinfo,pkgmessages;
 
 Function GetWord(var S : String; Sep : Char) : String;
 
@@ -680,6 +682,7 @@ Var
   L : TStrings;
 
 begin
+  Log(vInfo,SLogGeneratingFPMake);
   L:=TStringList.Create;
   Try
     StartInstaller(L);
@@ -691,5 +694,11 @@ begin
   end;
 end;
 
-end.
+function TMakeFileConverter.Execute(const Args:array of string):boolean;
+begin
+{$warning TODO Check arguments}
+  ConvertFile(Args[1],Args[2]);
+  result:=true;
+end;
 
+end.

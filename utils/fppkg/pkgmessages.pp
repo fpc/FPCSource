@@ -8,8 +8,11 @@ interface
 Resourcestring
   SErrInValidArgument        = 'Invalid command-line argument at position %d : %s';
   SErrNeedArgument           = 'Option at position %d (%s) needs an argument';
-  SErrMissingConfig          = 'Missing configuration Makefile.fpc or fpmake.pp';
+  SErrMissingFPMake          = 'Missing configuration fpmake.pp';
+  SErrMissingMakefilefpc     = 'Missing configuration Makefile.fpc';
   SErrRunning                = 'The FPC make tool encountered the following error: %s';
+  SErrActionAlreadyRegistered= 'Action "%s" is already registered';
+  SErrActionNotFound         = 'Action "%s" is not supported';
   SErrFailedToCompileFPCMake = 'Could not compile fpmake driver program';
   SErrNoFTPDownload          = 'This binary has no support for FTP downloads.';
   SErrNoHTTPDownload         = 'This binary has no support for HTTP downloads.';
@@ -25,10 +28,12 @@ Resourcestring
   SErrLoginFailed            = 'FTP LOGIN command failed.';
   SErrCWDFailed              = 'FTP CWD "%s" command failed.';  
   SErrGETFailed              = 'FTP GET "%s" command failed.';
+  
   SLogGeneratingFPMake       = 'Generating fpmake.pp';
   SLogCompilingFPMake        = 'Compiling fpmake.pp: ';
   SLogRunningFPMake          = 'Running fpmake';
-  
+  SLogRunAction              = 'Action: %s %s';
+
 implementation
 
 end.

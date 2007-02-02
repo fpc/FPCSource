@@ -39,7 +39,7 @@ Type
 implementation
 
 uses
-  pkgmessages, uriparser;
+  pkghandler,pkgmessages, uriparser;
 
 { TLNetDownloader }
 

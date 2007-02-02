@@ -21,7 +21,7 @@ Type
 
 implementation
 
-uses process,pkgmessages;
+uses process,pkghandler,pkgmessages;
 
 Constructor TWGetDownloader.Create(AOWner : TComponent); 
 

@@ -16,7 +16,15 @@ unit fprepos;
 
 interface
 
-uses classes,sysutils,streamcoll,contnrs,fpmktype;
+uses
+  classes,sysutils,
+  contnrs,
+{$ifdef ver2_0}
+  streamcoll20,
+{$else}
+  streamcoll,
+{$endif}
+  fpmktype;
 
 Const 
   StreamVersion   : Integer = 1;
