@@ -1177,7 +1177,7 @@ begin
       Res:=RunCompiler;
    end;
 
-  if Res then
+  if Res and (not Config.ShouldFail) then
    begin
      if (Config.NoRun) then
       begin
@@ -1195,7 +1195,7 @@ begin
       end
      else
       begin
-        if (not Config.ShouldFail) and DoExecute then
+        if DoExecute then
          begin
            if FileExists(TestOutputFilename(PPFile,'ppu')) or
               FileExists(TestOutputFilename(PPFile,'ppo')) or
