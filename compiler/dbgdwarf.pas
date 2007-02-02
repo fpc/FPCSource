@@ -1708,16 +1708,31 @@ implementation
           else
             tag:=DW_TAG_variable;
 
-          append_entry(tag,false,[
-            DW_AT_name,DW_FORM_string,symname(sym)+#0,
-            {
-            DW_AT_decl_file,DW_FORM_data1,0,
-            DW_AT_decl_line,DW_FORM_data1,
-            }
-            DW_AT_external,DW_FORM_flag,true,
-            { data continues below }
-            DW_AT_location,DW_FORM_block1,blocksize
-            ]);
+          if not(sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,
+                                   LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]) and
+             ((sym.owner.symtabletype = globalsymtable) or
+              (sp_static in sym.symoptions) or
+              (vo_is_public in sym.varoptions)) then
+            append_entry(tag,false,[
+              DW_AT_name,DW_FORM_string,symname(sym)+#0,
+              {
+              DW_AT_decl_file,DW_FORM_data1,0,
+              DW_AT_decl_line,DW_FORM_data1,
+              }
+              DW_AT_external,DW_FORM_flag,true,
+              { data continues below }
+              DW_AT_location,DW_FORM_block1,blocksize
+              ])
+          else
+            append_entry(tag,false,[
+              DW_AT_name,DW_FORM_string,symname(sym)+#0,
+              {
+              DW_AT_decl_file,DW_FORM_data1,0,
+              DW_AT_decl_line,DW_FORM_data1,
+              }
+              { data continues below }
+              DW_AT_location,DW_FORM_block1,blocksize
+              ]);
           { append block data }
           current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vardef));
