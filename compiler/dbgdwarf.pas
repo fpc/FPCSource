@@ -1571,7 +1571,8 @@ implementation
           begin
             current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Procdef '+pd.fullprocname(true))));
             append_entry(DW_TAG_subprogram,true,
-              [DW_AT_name,DW_FORM_string,symname(pd.procsym)+#0
+              [DW_AT_name,DW_FORM_string,symname(pd.procsym)+#0,
+               DW_AT_external,DW_FORM_flag,po_global in pd.procoptions
               { data continues below }
               { problem: base reg isn't known here
                 DW_AT_frame_base,DW_FORM_block1,1
