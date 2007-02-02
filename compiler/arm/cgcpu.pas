@@ -855,6 +855,7 @@ unit cgcpu;
                  begin
                    { only complicated references need an extra loadaddr }
                    if assigned(ref.symbol) or
+                     (ref.index<>NR_NO) or
                      (ref.offset<-4095) or
                      (ref.offset>4094) then
                      begin
@@ -883,6 +884,7 @@ unit cgcpu;
 
                    { only complicated references need an extra loadaddr }
                    if assigned(ref.symbol) or
+                     (ref.index<>NR_NO) or
                      (ref.offset<-4095) or
                      (ref.offset>4092) then
                      begin
