@@ -1138,7 +1138,7 @@ implementation
       begin
         intloadsize := packedbitsloadsize(sref.bitlen);
 
-{$ifdef cpurequiresproperalignment}
+{$if defined(cpurequiresproperalignment) and not defined(arm)}
         { may need to be split into several smaller loads/stores }
         if intloadsize <> sref.ref.alignment then
            internalerror(2006082011);
