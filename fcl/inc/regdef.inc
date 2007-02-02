@@ -59,6 +59,6 @@ Type
   LPSECURITY_ATTRIBUTES = ^SECURITY_ATTRIBUTES;
 
 
-  HKEY = Cardinal;
+  HKEY = THandle;
   PHKEY = ^HKEY;
 
