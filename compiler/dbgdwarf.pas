@@ -232,7 +232,9 @@ interface
         procedure append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
         procedure append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
-        procedure append_labelentry_dataptr(attr : tdwarf_attribute;sym : tasmsymbol);
+        procedure append_labelentry_dataptr_abs(attr : tdwarf_attribute;sym : tasmsymbol);
+        procedure append_labelentry_dataptr_rel(attr : tdwarf_attribute;sym,endsym : tasmsymbol);
+        procedure append_labelentry_dataptr_common(attr : tdwarf_attribute);
 
         procedure appenddef(def:tdef);
         procedure appenddef_ord(def:torddef); virtual;
@@ -629,28 +631,41 @@ implementation
         { Need a new label? }
         if not assigned(def.dwarf_lab) then
           begin
-            if (ds_dwarf_dbg_info_written in def.defstates) then
+            if not(tf_dwarf_relative_addresses in target_info.flags) then
               begin
-                if not assigned(def.typesym) then
-                  internalerror(200610011);
-                def.dwarf_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)));
-                def.dbg_state:=dbg_state_written;
+                if (ds_dwarf_dbg_info_written in def.defstates) then
+                  begin
+                    if not assigned(def.typesym) then
+                      internalerror(200610011);
+                    def.dwarf_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)));
+                    def.dbg_state:=dbg_state_written;
+                  end
+                else
+                  begin
+                    { Create an exported DBG symbol if we are generating a def defined in the
+                      globalsymtable of the current unit }
+                    if assigned(def.typesym) and
+                       (def.owner.symtabletype=globalsymtable) and
+                       (def.owner.iscurrentunit) then
+                      begin
+                        def.dwarf_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
+                        include(def.defstates,ds_dwarf_dbg_info_written);
+                      end
+                    else
+                      { The pointer typecast is needed to prevent a problem with range checking
+                        on when the typecast is changed to 'as' }
+                      current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_lab)));
+                
+                    if def.dbg_state=dbg_state_used then
+                      deftowritelist.Add(def);
+                  end;
               end
             else
               begin
-                { Create an exported DBG symbol if we are generating a def defined in the
-                  globalsymtable of the current unit }
-                if assigned(def.typesym) and
-                   (def.owner.symtabletype=globalsymtable) and
-                   (def.owner.iscurrentunit) then
-                  begin
-                    def.dwarf_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
-                    include(def.defstates,ds_dwarf_dbg_info_written);
-                  end
-                else
-                  { The pointer typecast is needed to prevent a problem with range checking
-                    on when the typecast is changed to 'as' }
-                  current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_lab)));
+                { The pointer typecast is needed to prevent a problem with range checking
+                  on when the typecast is changed to 'as' }
+                { addrlabel instead of datalabel because it must be a local one }
+                current_asmdata.getaddrlabel(TAsmLabel(pointer(def.dwarf_lab)));
                 if def.dbg_state=dbg_state_used then
                   deftowritelist.Add(def);
               end;
@@ -882,22 +897,49 @@ implementation
       begin
         current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
         current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref_addr)));
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym));
+        if not(tf_dwarf_relative_addresses in target_info.flags) then
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym))
+        else
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetsymtype,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_info0'),sym))
       end;
 
 
-    procedure TDebugInfoDwarf.append_labelentry_dataptr(attr : tdwarf_attribute;sym : tasmsymbol);
+    procedure TDebugInfoDwarf.append_labelentry_dataptr_common(attr : tdwarf_attribute);
       begin
-        {
-          used for writing dwarf lineptr, loclistptr, macptr and rangelistptr classes as FORM_dataN
-          The size of these depend on the header format
-        }
         current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
         if use_64bit_headers then
           current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)))
         else
           current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetsymtype,sym));
+      end;
+
+
+    procedure TDebugInfoDwarf.append_labelentry_dataptr_abs(attr : tdwarf_attribute;sym : tasmsymbol);
+      begin
+        {
+          used for writing dwarf lineptr, loclistptr, macptr and rangelistptr classes as FORM_dataN
+          The size of these depend on the header format
+          Must be relative to another symbol on tf_dwarf_relative_addresses
+          targets
+        }
+        if (tf_dwarf_relative_addresses in target_info.flags) then
+          { use append_labelentry_dataptr_rel instead }
+          internalerror(2007020210);
+        append_labelentry_dataptr_common(attr);
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetsymtype,sym))
+      end;
+
+
+    procedure TDebugInfoDwarf.append_labelentry_dataptr_rel(attr : tdwarf_attribute;sym,endsym : tasmsymbol);
+      begin
+        {
+          used for writing dwarf lineptr, loclistptr, macptr and rangelistptr classes as FORM_dataN
+          The size of these depend on the header format
+          Must be relative to another symbol on tf_dwarf_relative_addresses
+          targets
+        }
+        append_labelentry_dataptr_common(attr);
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetsymtype,sym,endsym));
       end;
 
 
@@ -1247,7 +1289,10 @@ implementation
                 slen:=255;
 
               { create a structure with two elements }
-              current_asmdata.getdatalabel(arr);
+              if not(tf_dwarf_relative_addresses in target_info.flags) then
+                current_asmdata.getdatalabel(arr)
+              else
+                current_asmdata.getaddrlabel(arr);
               append_entry(DW_TAG_structure_type,true,[
                 DW_AT_name,DW_FORM_string,'ShortString'#0,
                 DW_AT_byte_size,DW_FORM_data1,2*sizeof(aint)
@@ -1358,7 +1403,10 @@ implementation
         if def.is_methodpointer then
           begin
             { create a structure with two elements }
-            current_asmdata.getdatalabel(proc);
+            if not(tf_dwarf_relative_addresses in target_info.flags) then
+              current_asmdata.getdatalabel(proc)
+            else
+              current_asmdata.getaddrlabel(proc);
             append_entry(DW_TAG_structure_type,true,[
               DW_AT_byte_size,DW_FORM_data1,2*sizeof(aint)
             ]);
@@ -1958,6 +2006,9 @@ implementation
         { insert .Ldebug_abbrev0 label }
         templist:=TAsmList.create;
         new_section(templist,sec_debug_abbrev,'',0);
+        templist.concat(tai_symbol.createname(target_asm.labelprefix+'debug_abbrevsection0',AT_DATA,0));
+        { add any extra stuff which needs to be in the abbrev section, but before    }
+        { the actual abbreviations, in between the symbol above and below, i.e. here }
         templist.concat(tai_symbol.createname(target_asm.labelprefix+'debug_abbrev0',AT_DATA,0));
         current_asmdata.asmlists[al_start].insertlist(templist);
         templist.free;
@@ -1965,6 +2016,9 @@ implementation
         { insert .Ldebug_line0 label }
         templist:=TAsmList.create;
         new_section(templist,sec_debug_line,'',0);
+        templist.concat(tai_symbol.createname(target_asm.labelprefix+'debug_linesection0',AT_DATA,0));
+        { add any extra stuff which needs to be in the line section, but before  }
+        { the actual line info, in between the symbol above and below, i.e. here }
         templist.concat(tai_symbol.createname(target_asm.labelprefix+'debug_line0',AT_DATA,0));
         current_asmdata.asmlists[al_start].insertlist(templist);
         templist.free;
@@ -2161,8 +2215,14 @@ implementation
         { version }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(dwarf_version));
         { abbrev table (=relative from section start)}
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetsymtype,
-          current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrev0')));
+        if not(tf_dwarf_relative_addresses in target_info.flags) then
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetsymtype,
+            current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrev0')))
+        else
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetsymtype,
+            current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrevsection0'),
+            current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrev0')));
+
         { address size }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sizeof(aint)));
 
@@ -2175,7 +2235,12 @@ implementation
           DW_AT_identifier_case,DW_FORM_data1,DW_ID_case_insensitive]);
 
         { reference to line info section }
-        append_labelentry_dataptr(DW_AT_stmt_list,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_line0'));
+        if not(tf_dwarf_relative_addresses in target_info.flags) then
+          append_labelentry_dataptr_abs(DW_AT_stmt_list,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_line0'))
+        else
+          append_labelentry_dataptr_rel(DW_AT_stmt_list,
+            current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_linesection0'),
+            current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_line0'));
         append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'text0'));
         append_labelentry(DW_AT_high_pc,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'etext0'));
 
@@ -2330,7 +2395,10 @@ implementation
 
                     asmline.concat(tai_comment.Create(strpnew('['+tostr(currfileinfo.line)+':'+tostr(currfileinfo.column)+']')));
 
-                    if prevlabel = nil then
+                    if (prevlabel = nil) or
+                       { darwin's assembler cannot create an uleb128 of the difference }
+                       { between to symbols                                            }
+                       (target_info.system in [system_powerpc_darwin,system_powerpc64_darwin,system_i386_darwin]) then
                       begin
                         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
 {$ifdef cpu64bit}
@@ -2469,7 +2537,10 @@ implementation
           odt_dispinterface,
           odt_class:
             begin
-              current_asmdata.getdatalabel(obj);
+              if not(tf_dwarf_relative_addresses in target_info.flags) then
+                current_asmdata.getdatalabel(obj)
+              else
+                current_asmdata.getaddrlabel(obj);
               { implicit pointer }
               append_entry(DW_TAG_pointer_type,false,[]);
               append_labelentry_ref(DW_AT_type,obj);
@@ -2573,7 +2644,10 @@ implementation
         var
           obj : tasmlabel;
         begin
-          current_asmdata.getdatalabel(obj);
+          if not(tf_dwarf_relative_addresses in target_info.flags) then
+            current_asmdata.getdatalabel(obj)
+          else
+            current_asmdata.getaddrlabel(obj);
           { implicit pointer }
           append_entry(DW_TAG_pointer_type,false,[]);
           append_labelentry_ref(DW_AT_type,obj);
