@@ -63,10 +63,6 @@ type
   TProviderFlag = (pfInUpdate, pfInWhere, pfInKey, pfHidden);
   TProviderFlags = set of TProviderFlag;
 
-{ Part of DBCommon, but temporary defined here (bug 8206) }
-
- TFieldMap = array[TFieldType] of Byte;
-
 { Forward declarations }
 
   TFieldDef = class;
@@ -117,6 +113,10 @@ type
     ftWideString, ftLargeint, ftADT, ftArray, ftReference,
     ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
     ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd);
+
+{ Part of DBCommon, but temporary defined here (bug 8206) }
+
+ TFieldMap = array[TFieldType] of Byte;
 
 { TDateTimeRec }
 
