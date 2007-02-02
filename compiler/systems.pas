@@ -290,7 +290,8 @@ interface
             tf_p_ext_support,
             tf_has_dllscanner,
             tf_use_function_relative_addresses,
-            tf_winlikewidestring
+            tf_winlikewidestring,
+            tf_dwarf_relative_addresses
        );
 
        psysteminfo = ^tsysteminfo;
