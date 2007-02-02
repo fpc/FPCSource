@@ -904,11 +904,16 @@ implementation
     procedure TDebugInfoDwarf.append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
         current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref_addr)));
         if not(tf_dwarf_relative_addresses in target_info.flags) then
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym))
+          begin
+            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref_addr)));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym))
+          end
         else
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetsymtype,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_info0'),sym))
+          begin
+            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref4)));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetsymtype,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_info0'),sym));
+          end;
       end;
 
 
@@ -2490,13 +2495,21 @@ implementation
 
 
     procedure TDebugInfoDwarf.finish_lineinfo;
+      var
+        infile: tinputfile;
       begin
         { only needed if no line info at all has been generated }
         if generated_lineinfo then
           exit;
         { at least the Darwin linker is annoyed if you do not }
         { finish the lineinfo section, or if it doesn't       }
-        { contain at least one set_address                    }
+        { contain at least one file name and set_address      }
+        infile:=current_module.sourcefiles.get_file(1);
+        if not assigned(infile) then
+          internalerror(2006020211);
+        asmline.concat(tai_const.create_8bit(DW_LNS_set_file));
+        asmline.concat(tai_const.create_uleb128bit(get_file_index(infile)));
+
         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
 {$ifdef cpu64bit}
         asmline.concat(tai_const.create_uleb128bit(9)); { 1 + 8 }
