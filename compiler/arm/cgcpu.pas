@@ -853,9 +853,18 @@ unit cgcpu;
              case FromSize of
                OS_16,OS_S16:
                  begin
-                   tmpreg3:=getintregister(list,OS_INT);
-                   a_loadaddr_ref_reg(list,ref,tmpreg3);
-                   reference_reset_base(usedtmpref,tmpreg3,0);
+                   { only complicated references need an extra loadaddr }
+                   if assigned(ref.symbol) or
+                     (ref.offset<-4095) or
+                     (ref.offset>4094) then
+                     begin
+                       tmpreg3:=getintregister(list,OS_INT);
+                       a_loadaddr_ref_reg(list,ref,tmpreg3);
+                       reference_reset_base(usedtmpref,tmpreg3,0);
+                     end
+                   else
+                     usedtmpref:=ref;
+
                    shifterop_reset(so);so.shiftmode:=SM_LSL;so.shiftimm:=8;
                    tmpreg:=getintregister(list,OS_INT);
                    a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
@@ -871,10 +880,20 @@ unit cgcpu;
                  begin
                    tmpreg:=getintregister(list,OS_INT);
                    tmpreg2:=getintregister(list,OS_INT);
-                   tmpreg3:=getintregister(list,OS_INT);
+
+                   { only complicated references need an extra loadaddr }
+                   if assigned(ref.symbol) or
+                     (ref.offset<-4095) or
+                     (ref.offset>4092) then
+                     begin
+                       tmpreg3:=getintregister(list,OS_INT);
+                       a_loadaddr_ref_reg(list,ref,tmpreg3);
+                       reference_reset_base(usedtmpref,tmpreg3,0);
+                     end
+                   else
+                     usedtmpref:=ref;
+
                    shifterop_reset(so);so.shiftmode:=SM_LSL;so.shiftimm:=8;
-                   a_loadaddr_ref_reg(list,ref,tmpreg3);
-                   reference_reset_base(usedtmpref,tmpreg3,0);
                    a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,reg);
                    inc(usedtmpref.offset);
                    a_internal_load_ref_reg(list,OS_8,OS_8,usedtmpref,tmpreg);
