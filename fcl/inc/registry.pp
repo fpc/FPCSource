@@ -5,7 +5,7 @@ Unit registry;
 
 interface
 
-{$ifndef win32}
+{$ifndef windows}
 {$define XMLREG}
 {$endif}
 
