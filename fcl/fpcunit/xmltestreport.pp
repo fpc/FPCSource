@@ -61,6 +61,8 @@ type
     procedure StartTest(ATest: TTest); override;
     procedure EndTest(ATest: TTest); override;
     procedure WriteResult(aResult: TTestResult); override;
+    { A public property to the internal XML document }
+    property Document: TXMLDocument read FDoc;
   end;
 
 
