@@ -434,7 +434,7 @@ ifeq ($(FULL_TARGET),i386-netwlibc)
 override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree htmldefs testutils fpcunit eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio inicol pooledmm libtar streamcoll xmlreg registry  resolve ssockets syncobjs
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree htmldefs testutils fpcunit eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio inicol pooledmm libtar streamcoll xmlreg registry  process fileinfo resolve ssockets syncobjs simpleipc dbugmsg dbugintf daemonapp
+override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree htmldefs testutils fpcunit eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio inicol pooledmm libtar streamcoll xmlreg registry  process fileinfo resolve ssockets syncobjs simpleipc dbugmsg dbugintf
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree htmldefs testutils fpcunit eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio inicol pooledmm libtar streamcoll xmlreg registry
@@ -518,7 +518,7 @@ ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree htmldefs testutils fpcunit eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio inicol pooledmm libtar streamcoll xmlreg registry
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree htmldefs testutils fpcunit eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio inicol pooledmm libtar streamcoll xmlreg registry  process fileinfo resolve ssockets syncobjs simpleipc dbugmsg dbugintf daemonapp
+override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree htmldefs testutils fpcunit eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio inicol pooledmm libtar streamcoll xmlreg registry  process fileinfo resolve ssockets syncobjs simpleipc dbugmsg dbugintf
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree htmldefs testutils fpcunit eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio inicol pooledmm libtar streamcoll xmlreg registry
