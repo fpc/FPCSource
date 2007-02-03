@@ -38,7 +38,7 @@ Var
 begin
   SecurityAttributes := Nil;
   P:=PrepKey(Key);
-  Result:=RegCreateKeyEx(GetBaseKey(RelativeKey(Key)),
+  Result:=RegCreateKeyExA(GetBaseKey(RelativeKey(Key)),
                          P,
                          0,
                          '',
@@ -54,15 +54,14 @@ function TRegistry.DeleteKey(const Key: String): Boolean;
 
 Var
   P: PChar;
-
 begin
   P:=PRepKey(Key);
-  Result:=RegDeleteKey(GetBaseKey(RelativeKey(Key)),P)=ERROR_SUCCESS;
+  Result:=RegDeleteKeyA(GetBaseKey(RelativeKey(Key)),P)=ERROR_SUCCESS;
 end;
 
 function TRegistry.DeleteValue(const Name: String): Boolean;
 begin
-  Result := RegDeleteValue(fCurrentKey, @Name[1]) = ERROR_SUCCESS;
+  Result := RegDeleteValueA(fCurrentKey, @Name[1]) = ERROR_SUCCESS;
 end;
 
 function TRegistry.SysGetData(const Name: String; Buffer: Pointer;
@@ -73,8 +72,8 @@ Var
 
 begin
   P := @Name[1];
-  If RegQueryValueEx(fCurrentKey,P,Nil,
-                     @RD,Buffer,lpdword(@BufSize))<>ERROR_SUCCESS Then
+  If RegQueryValueExA(fCurrentKey,P,Nil,
+                      @RD,Buffer,lpdword(@BufSize))<>ERROR_SUCCESS Then
     Result:=-1
   else
     begin
@@ -100,7 +99,7 @@ Var
 begin
   P:=@ValueName[1];
   With Value do
-    Result:=RegQueryValueEx(fCurrentKey,P,Nil,lpdword(@RegData),Nil,lpdword(@DataSize))=ERROR_SUCCESS;
+    Result:=RegQueryValueExA(fCurrentKey,P,Nil,lpdword(@RegData),Nil,lpdword(@DataSize))=ERROR_SUCCESS;
   If Not Result Then
     begin
     Value.RegData := rdUnknown;
@@ -120,7 +119,7 @@ var
 begin
   FillChar(Value, SizeOf(Value), 0);
   With Value do
-    Result:=RegQueryInfoKey(CurrentKey,nil,nil,nil,lpdword(@NumSubKeys),
+    Result:=RegQueryInfoKeyA(CurrentKey,nil,nil,nil,lpdword(@NumSubKeys),
               lpdword(@MaxSubKeyLen),nil,lpdword(@NumValues),lpdword(@MaxValueLen),
               lpdword(@MaxDataLen),nil,@winFileTime)=ERROR_SUCCESS;
   if Result then
@@ -158,7 +157,7 @@ begin
   If CanCreate then
     begin
     Handle:=0;
-    Result:=RegCreateKeyEx(GetBaseKey(RelativeKey(Key)),P,0,'',
+    Result:=RegCreateKeyExA(GetBaseKey(RelativeKey(Key)),P,0,'',
 
                            REG_OPTION_NON_VOLATILE,
                            fAccess,SecurityAttributes,Handle,
@@ -166,7 +165,7 @@ begin
 
     end
   else
-    Result:=RegOpenKeyEx(GetBaseKey(RelativeKey(Key)),
+    Result:=RegOpenKeyExA(GetBaseKey(RelativeKey(Key)),
                          P,0,fAccess,Handle)=ERROR_SUCCESS;
   If Result then
     fCurrentKey:=Handle;
@@ -180,7 +179,7 @@ Var
 
 begin
   P:=PrepKey(Key);
-  Result := RegOpenKeyEx(GetBaseKey(RelativeKey(Key)),P,0,KEY_READ,Handle) = 0;
+  Result := RegOpenKeyExA(GetBaseKey(RelativeKey(Key)),P,0,KEY_READ,Handle) = 0;
   If Result Then
     fCurrentKey := Handle;
 end;
@@ -256,7 +255,7 @@ begin
        for I:=0 to Info.NumSubKeys-1 do
          begin
          L:=Info.MaxSubKeyLen+1;
-         RegEnumKeyEx(CurrentKey,I,P,L,Nil,Nil,Nil,Nil);
+         RegEnumKeyExA(CurrentKey,I,P,L,Nil,Nil,Nil,Nil);
          Strings.Add(StrPas(P));
          end;
      Finally
@@ -283,7 +282,7 @@ begin
        for I:=0 to Info.NumValues-1 do
          begin
          L:=Info.MaxValueLen+1;
-         RegEnumValue(CurrentKey,I,P,L,Nil,Nil,Nil,Nil);
+         RegEnumValueA(CurrentKey,I,P,L,Nil,Nil,Nil,Nil);
          Strings.Add(StrPas(P));
          end;
      Finally
@@ -309,7 +308,7 @@ begin
     rdBinary       : RegDataType:=REG_BINARY;
   end;
   P:=@Name[1];
-  Result:=RegSetValueEx(fCurrentKey,P,0,RegDataType,Buffer,BufSize)=ERROR_SUCCESS;
+  Result:=RegSetValueExA(fCurrentKey,P,0,RegDataType,Buffer,BufSize)=ERROR_SUCCESS;
 end;
 
 procedure TRegistry.RenameValue(const OldName, NewName: string);
