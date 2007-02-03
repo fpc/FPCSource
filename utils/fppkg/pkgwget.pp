@@ -4,18 +4,18 @@ unit pkgwget;
 
 interface
 
-uses Classes,pkgdownload;
+uses Classes,pkgdownload,pkgropts;
 
 Type 
   TWGetDownloader = Class(TBasePackageDownloader)
   Private 
     FWGet : String;
   Protected
+    Constructor Create(AOwner: TComponent; ADefaults:TPackagerOptions); override;
     Procedure WGetDownload(Const URL : String; Dest : TStream); virtual;
     Procedure FTPDownload(Const URL : String; Dest : TStream); override;
     Procedure HTTPDownload(Const URL : String; Dest : TStream); override;
  Public
-    Constructor Create(AOWner : TComponent); override;
     Property WGet : String Read FWGet Write FWGet; 
  end;   
 
@@ -23,7 +23,7 @@ implementation
 
 uses process,pkghandler,pkgmessages;
 
-Constructor TWGetDownloader.Create(AOWner : TComponent); 
+Constructor TWGetDownloader.Create(AOwner: TComponent; ADefaults:TPackagerOptions); 
 
 begin
   Inherited;

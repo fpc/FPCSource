@@ -234,7 +234,7 @@ const
                                                 'RenameTo', 'System', 'Features',
                                                 'PWD', 'HELP', 'LAST');
 
-procedure Writedbg(const ar: array of string);
+procedure Writedbg(const ar: array of const);
 {$ifdef debug}
 var
   i: Integer;

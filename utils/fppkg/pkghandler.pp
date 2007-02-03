@@ -48,7 +48,7 @@ Type
   Protected
     Procedure BackupFile(Const FileName : String);
   Public
-    Constructor Create(ADefaults:TPackagerOptions);
+    Constructor Create(AOwner: TComponent;ADefaults:TPackagerOptions); virtual;
     Function Execute(const Args:array of string):boolean; virtual; abstract;
     Property BackupFiles : Boolean Read FBackupFile Write FBackupFile;
     Property Defaults:TPackagerOptions Read FDefaults;
@@ -208,9 +208,9 @@ begin
     Error(SErrBackupFailed,[FileName,BFN]);
 end;
 
-constructor TPackageHandler.Create(ADefaults:TPackagerOptions);
+constructor TPackageHandler.Create(AOwner : TComponent; ADefaults:TPackagerOptions);
 begin
-  inherited Create(nil);
+  inherited Create(AOwner);
   FDefaults:=ADefaults;
 end;
 

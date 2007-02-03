@@ -4,7 +4,7 @@ unit pkglibcurl;
 
 interface
 
-uses Classes,pkgdownload;
+uses Classes,pkgdownload,pkghandler;
 
 Type 
   TLibCurlDownloader = Class(TBasePackageDownloader)

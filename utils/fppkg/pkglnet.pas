@@ -6,7 +6,7 @@ interface
 
 uses
   SysUtils, Classes,
-  lnet, lftp, lhttp, pkgdownload;
+  lnet, lftp, lhttp, pkgdownload,pkgropts;
 
 Type
 
@@ -33,7 +33,7 @@ Type
     procedure FTPDownload(Const URL : String; Dest : TStream); override;
     procedure HTTPDownload(Const URL : String; Dest : TStream); override;
    public
-    constructor Create(AOwner : TComponent); override;
+    constructor Create(AOwner : TComponent;ADefaults:TPackagerOptions); override;
   end;
 
 implementation
@@ -151,9 +151,9 @@ begin
   end;
 end;
 
-constructor TLNetDownloader.Create(AOwner: TComponent);
+constructor TLNetDownloader.Create(AOwner: TComponent;ADefaults:TPackagerOptions);
 begin
-  inherited Create(AOwner);
+  inherited Create(AOwner,ADefaults);
 
   FFTP:=TLFTPClient.Create(Self);
   FFTP.Timeout:=1000;

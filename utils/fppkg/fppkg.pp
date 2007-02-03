@@ -228,7 +228,7 @@ begin
       Log(vDebug,SLogRunAction,[AAction,logargs]);
     end;
   pkghandlerclass:=GetPkgHandler(AAction);
-  With pkghandlerclass.Create(FDefaults) do
+  With pkghandlerclass.Create(Self,FDefaults) do
     try
       Execute(Args);
     finally
