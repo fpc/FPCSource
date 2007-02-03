@@ -4,7 +4,7 @@
 #
 #   Hebrew (UTF-8) language file for Free Pascal Compiler
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
-#   Based on errore.msg of SVN revision 5473
+#   Based on errore.msg of SVN revision 6320
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -347,6 +347,9 @@ scanner_e_illegal_warn_state=02079_E_שימוש לא חוקי בהנחית $WARN
 % Only ON and OFF can be used as state with a \$warn compiler directive
 scan_e_only_packset=02080_E_ערך של אריזה לא חוקי
 % Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameter
+scan_w_pic_ignored=02081_W_מתעלם מהוראת PIC
+% Several targets like windows doesn't support and need the PIC directive so
+% it is ignored.
 % \end{description}
 #
 # Parser
@@ -413,7 +416,7 @@ parser_n_object_has_no_vmt=03023_N_האובייקט "$1" ללא VMT
 parser_e_illegal_parameter_list=03024_E_רשימת פרמטרים לא חוקית
 % You are calling a function with parameters that are of a different type than
 % the declared parameters of the function.
-parser_e_wrong_parameter_size=03026_E_צויין מספר שגוי של פרמטרים
+parser_e_wrong_parameter_size=03026_E_מספר שגוי של פרמטרים צוין עבור הקריאה ל "$1"
 % There is an error in the parameter list of the function or procedure,
 % the number of parameters is not correct.
 parser_e_overloaded_no_procedure=03027_E_מזהה המרובה שימוש "$1" אינו פונקציה
@@ -452,7 +455,7 @@ parser_e_double_caselabel=03037_E_הכזרת תווית כפולה בcase
 parser_e_case_lower_less_than_upper_bound=03038_E_הטווח הסופי קטן מהטווח ההתחלתי
 % The upper bound of a \var{case} label is less than the lower bound and this
 % is useless
-parser_e_type_const_not_possible=03039_E_הכרזת טיפוס קבועים של מחלקות אסורה
+parser_e_type_const_not_possible=03039_E_הכרזת טיפוס קבועים של מחלקות או ממשקים אסורה
 % You cannot declare a constant of type class or object.
 parser_e_no_overloaded_procvars=03040_E_משתנים של פונקציות מרובות שימוש אינם מורשות
 % You are trying to assign an overloaded function to a procedural variable.
@@ -1097,6 +1100,23 @@ parser_e_type_and_var_only_in_generics=03224_E_ניתן להשתמש ב VAR ו T
 % generics.
 parser_e_cant_create_generics_of_this_type=03225_E_הטיפוס אינו יכול להיות generic
 % Only Classes, Objects, Interfaces and Records are allowed to be used as generic
+parser_w_no_lineinfo_use_switch=03226_W_אין לטעון את הספרייה LINEINFO בצורה ידנית. על מנת להשתמש בספרייה יש להשתמש במתג -gl במקום
+% Do not use the LINEINFO unit directly, Use the \var{-gl} switch which automatically adds the
+% unit for reading the selected type of debugging information instead.
+parser_e_no_funcret_specified=03227_E_לא צויין טיפוס החזרה עבור הפונקציה "$1"
+% The first time you declare a function you have to declare it completely,
+% including all parameters and the result type.
+parser_e_special_onlygenerics=03228_E_השימוש בSpecialization מורשה רק כאשר משתמשים בטיפוסי generic
+% Types not being generics can't be specialized
+parser_e_no_generics_as_params=03229_E_לא ניתן להשתמש בgenerics בתור פרמטרים כאשר יש שימוש ב spezializing generics
+% When specializing a generic, only non-generic types can be used as parameters.
+parser_e_type_object_constants=03230_E_השימוש בקבועים של אובייקטים המכילים VMT אינו מורשה
+% If an object requires a VMT either because it contains a constructor or virtual methods,
+% it's not allowed to create constants of it. In TP and Delphi mode this is allowed
+% for compatibility reasons.
+parser_e_label_outside_proc=03231_E_שימוש בכתובת של תוויות המוכרזות מחוץ למתחם הנוכחי אימו מורשה
+% It isn't allowed to take the addresss of labels outside the
+% current procedure.
 % \end{description}
 #
 # Type Checking
@@ -1310,9 +1330,9 @@ type_h_smaller_possible_range_check=04049_H_גודל הטיפוס אינו מת�
 % this may cause a range-check error, or may lead to possible loss of data.
 type_e_cant_take_address_of_abstract_method=04050_E_לא ניתן לספק את כתובת המתודה המוגדרת כ abstract
 % An abstract method has no body, so the address of an abstract method can't be taken.
-type_e_operator_not_allowed=04051_E_האופרטור "$1" אינו יישים כאשר משתמשים בשילוב של האופרנדים "$2" ו "3"
-% You are trying an operator that is not available for the type of the
-% operands
+type_e_assignment_not_allowed=04051_E_לא ניתן לשייך את הערך לפרמטרים רשמיים ומערכים פתוחים
+% You are trying to assign a value to a formal (untyped var, const or out)
+% parameter, or to an open array.
 type_e_constant_expr_expected=04052_E_מצפה לביטוי קבוע
 % The compiler expects an constant expression, but gets a variable expression.
 type_e_operator_not_supported_for_types=04053_E_הפעולה "$1" אינה נתמכת לטיפוסים "$1" ו "$3"
@@ -1353,7 +1373,7 @@ type_e_no_packed_inittable=04064_E_אלמטים של מערך דחוס אינם 
 type_e_no_const_packed_record=04065_E_אין תמיכה לרשומות ואבייקטים קבועים ודחוסים
 % You cannot declare a (bit)packed array as a typed constant at this time.
 type_w_untyped_arithmetic_unportable=04066_W_חישוב "$1" על טיפוס לא מוגדר של מצביע אינו נתמך במצב {$T+}, אך ניתן להשתמש בtypecast
-% Addition/subtraction from untyped pointer may work differently in {$T+}, use typecast to typed pointer
+% Addition/subtraction from untyped pointer may work differently in \var{\{\$T+\}}, use typecast to typed pointer
 type_e_cant_take_address_of_local_subroutine=04076_E_לא ניתן לקחת את כתובת השיגרה המסומנת כמקומית
 % The address of a subroutine marked as local can't be taken.
 type_e_cant_export_local=04077_E_לא ניתן לייצא שיגרה המסומנת כמקומית בתוך יחידה
@@ -1525,7 +1545,9 @@ sym_h_function_result_uninitialized=05060_H_הערך המוחזר מהפונקצ
 sym_w_identifier_only_read=05061_W_המשתנה "$1" נקרא, אך מעולם לא קיבל תוכן
 % You have read the value of a variable, but nowhere assigned a value to
 % it.
-
+sym_h_abstract_method_list=05062_H_נמצאה מתודה מופשטת: $1
+% When getting a warning about constructing a class/object with abstract methods
+% you get this hint to find the affected method.
 % \end{description}
 #
 # Codegenerator
@@ -1640,17 +1662,22 @@ cg_e_break_not_allowed=06044_E_BREAK אינו מורשה
 cg_e_continue_not_allowed=06045_E_CONTINUE אינו מורשה
 % You're trying to use \var{continue} outside a loop construction.
 cg_f_unknown_compilerproc=06046_F_compilerproc "$1" לא ידוע. בדוק אם השתמש בספריית זמן הריצה הנכונה.
-% The compiler expects that the runtime library contains some subrountines. If you see this error
-% and you didn't mess with the runtime library, it's very likely that the runtime library
+% The compiler expects that the runtime library contains certain subroutines. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
 % that you removed a subroutine which the compiler needs for internal use.
+cg_f_unknown_system_type=06047_F_לא ניתן למצוא טיפוס מערכת "$1". בדוק האם אתה משתמש בספריית זמן הריצה עדכנית.
+% The compiler expects that the runtime library contains certain type definitions. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
+% you're using doesn't match the used compiler. If you changed the runtime library this error means
+% that you removed a type which the compiler needs for internal use.
 % \end{description}
 # EndOfTeX
 
 #
 # Assembler reader
 #
-# 07097 is the last used one
+# 07105 is the last used one
 #
 asmr_d_start_reading=07000_DL_מתחיל בסגנון מפרש אסמבלר $1
 % This informs you that an assembler block is being parsed
@@ -1866,6 +1893,7 @@ asmr_e_illegal_shifterop_syntax=07099_E_שגיאת תחביר בעת ניסיו�
 % asm
 %   orr     r2,r2,r2,lsl #8
 % end;
+% \end{verbatim}
 asmr_e_packed_element=07100_E_הכתובת של רכיב ארוז אינו נמצא בטווח של בית
 % Packed components (record fields and array elements) may start at an arbitrary
 % bit inside a byte. On CPU which do not support bit-addressable memory (which
@@ -1878,6 +1906,18 @@ asmr_w_unable_to_determine_reference_size_using_byte=07101_W_לא צויין ג�
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
 % it falls back to use BYTE as default.
+asmr_w_no_direct_ebp_for_parameter=07102_W_לא ניתן להשתמש ב+הסט(%ebp) במיקום הנוכי עבור הפרמטרים
+% Using direct 8(%ebp) reference for function/procedure parameters is invalid
+% if parameters are in registers.
+asmr_w_direct_ebp_for_parameter_regcall=07103_W_השימוש ב+הסט(%ebp) אינו תואם עם מוסכמות ה regcall
+% Using direct 8(%ebp) reference for function/procedure parameters is invalid
+% if parameters are in registers.
+asmr_w_direct_ebp_neg_offset=07104_W_השימוש ב-הסט(%ebp) אינו מומלץ עבור גישה למשתנים מקומיים
+% Using -8(%ebp) to access a local variable is not recommended
+asmr_w_direct_esp_neg_offset=07105_W_השימוש ב-הסט(%ebp) עלול לגרום לקריסה של התוכנית או לאיבוד המידע
+% Using -8(%esp) to access a local stack is not recommended, as
+% this stack portion can be overwritten by any function calls or interrupts.
+asmr_e_no_vmtoffset_possible=07106_E_השימוש ב VMTOffset חייב להגיע בשילוב של מתודות ווירטואליות ו "$1" אינו ווירטואלי
 % \end{verbatim}
 #
 # Assembler/binary writers
@@ -2220,7 +2260,7 @@ unit_u_skipping_reresolving_unit=10059_U_מדלג על טעינה מחודשת �
 #
 #  Options
 #
-# 11039 is the last used one
+# 11041 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -2291,6 +2331,9 @@ option_asm_forced=11022_W_התוכן של המאסף "$1" לא מסוגל ליצ
 % The assembler output selected can not generate
 % object files with the correct format. Therefore, the
 % default assembler for this target is used instead.
+option_confict_asm_debug=11041_W_סוג הפלט של המאסף שנבחר "$1" אינו יכול ליצור מידע עבור ניפוי שגיאות. מבטל ניפוי שגיאות
+% The assembler output selected can not generate
+% debugging information, debugging option is therefore disabled.
 option_using_file=11026_T_קורא אפשרויות מהקובץ $1
 % Options are also read from this file
 option_using_env=11027_T_קורא אפשרויות מהסביבה $1
@@ -2320,7 +2363,7 @@ option_config_is_dir=11040_F_נמצאה ספרייה במקום קובץ ההג�
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2006 by Florian Klaempfl
+Copyright (c) 1993-2007 by Florian Klaempfl
 ]
 
 #
@@ -2429,6 +2472,7 @@ S*2Aas_אסוף עם GNU AS
 *O2Dw_ישום PM
 **1e<x>_קובע נתיב לקובץ ריצה
 **1E_זהה ל -Cn
+**1fPIC_זהה ל -Cg
 **1F<x>_קובע שם קבצים ומיקומים:
 **2Fa<x>[,y]_קודם טוען את היחידות <x> ו [y] ראשונות, לפני ניתוח שורת ה uses
 **2Fc<x>_קובע קוד דף של קלט ל<x>
