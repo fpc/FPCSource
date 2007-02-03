@@ -743,7 +743,7 @@ implementation
         prolog.Free;
         new_section(current_asmdata.asmlists[al_end],sec_pdata,'',sizeof(aint));
         current_asmdata.asmlists[al_end].concat(Tai_const.Createname('FPC_EH_CODE_START', 0));
-        current_asmdata.asmlists[al_end].concat(Tai_const.Create_32bit($ffffff01));
+        current_asmdata.asmlists[al_end].concat(Tai_const.Create_32bit(longint($ffffff01)));
       end;
 
 (*

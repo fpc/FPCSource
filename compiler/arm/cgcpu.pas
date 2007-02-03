@@ -375,12 +375,12 @@ unit cgcpu;
             OP_ADD:
               begin
                 op:=OP_SUB;
-                a:=dword(-a);
+                a:=aint(dword(-a));
               end;
             OP_SUB:
               begin
                 op:=OP_ADD;
-                a:=dword(-a);
+                a:=aint(dword(-a));
               end
           end;
 
@@ -1557,7 +1557,7 @@ unit cgcpu;
         helpsize:aint;
         copysize:byte;
         cgsize:Tcgsize;
-        tmpregisters:array[1..maxtmpreg]of tregister;
+        tmpregisters:array[1..maxtmpreg] of tregister;
         tmpregi,tmpregi2:byte;
 
       { will never be called with count<=4 }
@@ -1653,7 +1653,7 @@ unit cgcpu;
                 reference_reset_base(srcref,srcreg,0);
               end;
 
-            while (len div  4 <> 0) and (tmpregi<=maxtmpreg) do
+            while (len div 4 <> 0) and (tmpregi<maxtmpreg) do
               begin
                 inc(tmpregi);
                 tmpregisters[tmpregi]:=getintregister(list,OS_32);
@@ -1990,7 +1990,7 @@ unit cgcpu;
                     end;
 
                   if is_shifter_const(hi(value),b) then
-                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SBC,regdst.reghi,regsrc.reghi,hi(value)),PF_S))
+                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SBC,regdst.reghi,regsrc.reghi,aint(hi(value))),PF_S))
                   else
                     begin
                       tmpreg:=cg.getintregister(list,OS_32);
@@ -2018,42 +2018,42 @@ unit cgcpu;
             case op of
               OP_AND,OP_OR,OP_XOR:
                 begin
-                  cg.a_op_const_reg_reg(list,op,OS_32,lo(value),regsrc.reglo,regdst.reglo);
-                  cg.a_op_const_reg_reg(list,op,OS_32,hi(value),regsrc.reghi,regdst.reghi);
+                  cg.a_op_const_reg_reg(list,op,OS_32,aint(lo(value)),regsrc.reglo,regdst.reglo);
+                  cg.a_op_const_reg_reg(list,op,OS_32,aint(hi(value)),regsrc.reghi,regdst.reghi);
                 end;
               OP_ADD:
                 begin
-                  if is_shifter_const(lo(value),b) then
-                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_ADD,regdst.reglo,regsrc.reglo,lo(value)),PF_S))
+                  if is_shifter_const(aint(lo(value)),b) then
+                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_ADD,regdst.reglo,regsrc.reglo,aint(lo(value))),PF_S))
                   else
                     begin
                       tmpreg:=cg.getintregister(list,OS_32);
-                      cg.a_load_const_reg(list,OS_32,lo(value),tmpreg);
+                      cg.a_load_const_reg(list,OS_32,aint(lo(value)),tmpreg);
                       list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_ADD,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
                     end;
 
-                  if is_shifter_const(hi(value),b) then
-                    list.concat(taicpu.op_reg_reg_const(A_ADC,regdst.reghi,regsrc.reghi,hi(value)))
+                  if is_shifter_const(aint(hi(value)),b) then
+                    list.concat(taicpu.op_reg_reg_const(A_ADC,regdst.reghi,regsrc.reghi,aint(hi(value))))
                   else
                     begin
                       tmpreg:=cg.getintregister(list,OS_32);
-                      cg.a_load_const_reg(list,OS_32,hi(value),tmpreg);
+                      cg.a_load_const_reg(list,OS_32,aint(hi(value)),tmpreg);
                       list.concat(taicpu.op_reg_reg_reg(A_ADC,regdst.reghi,regsrc.reghi,tmpreg));
                     end;
                 end;
               OP_SUB:
                 begin
-                  if is_shifter_const(lo(value),b) then
-                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,regdst.reglo,regsrc.reglo,lo(value)),PF_S))
+                  if is_shifter_const(aint(lo(value)),b) then
+                    list.concat(setoppostfix(taicpu.op_reg_reg_const(A_SUB,regdst.reglo,regsrc.reglo,aint(lo(value))),PF_S))
                   else
                     begin
                       tmpreg:=cg.getintregister(list,OS_32);
-                      cg.a_load_const_reg(list,OS_32,lo(value),tmpreg);
+                      cg.a_load_const_reg(list,OS_32,aint(lo(value)),tmpreg);
                       list.concat(setoppostfix(taicpu.op_reg_reg_reg(A_SUB,regdst.reglo,regsrc.reglo,tmpreg),PF_S));
                     end;
 
-                  if is_shifter_const(hi(value),b) then
-                    list.concat(taicpu.op_reg_reg_const(A_SBC,regdst.reghi,regsrc.reghi,hi(value)))
+                  if is_shifter_const(aint(hi(value)),b) then
+                    list.concat(taicpu.op_reg_reg_const(A_SBC,regdst.reghi,regsrc.reghi,aint(hi(value))))
                   else
                     begin
                       tmpreg:=cg.getintregister(list,OS_32);
