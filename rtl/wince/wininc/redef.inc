@@ -13,10 +13,6 @@
 
  **********************************************************************
 
-  Changes :
-
-  22/15/2005 : orinaudo@gmail.com,  WCE 4.21 SE, First release
-  02-09-2006 : updated
 }
 
 {$ifdef read_interface}
@@ -199,7 +195,8 @@ function RegCreateKeyExW(hKey: HKEY; lpSubKey: LPWSTR; Reserved: DWORD; lpClass:
 function RegEnumKeyEx(hKey: HKEY; dwIndex: DWORD; lpName: LPWSTR; var lpcbName: DWORD; lpReserved: Pointer; lpClass: LPWSTR; lpcbClass: PDWORD; lpftLastWriteTime: PFileTime): Longint; external KernelDLL name 'RegEnumKeyExW';
 function RegEnumKeyExW(hKey: HKEY; dwIndex: DWORD; lpName: LPWSTR; var lpcbName: DWORD; lpReserved: Pointer; lpClass: LPWSTR; lpcbClass: PDWORD; lpftLastWriteTime: PFileTime): Longint; external KernelDLL name 'RegEnumKeyExW';
 function RegEnumValue(hKey: HKEY; dwIndex: DWORD; lpValueName: PChar; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint; external KernelDLL name 'RegEnumValueW';
-function RegEnumValueW(hKey: HKEY; dwIndex: DWORD; lpValueName: PChar; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint; external KernelDLL name 'RegEnumValueW';
+//removed use RegEnumValueA instead
+//function RegEnumValueW(hKey: HKEY; dwIndex: DWORD; lpValueName: PChar; var lpcbValueName: DWORD; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint; external KernelDLL name 'RegEnumValueW';
 function RegisterClass(const lpWndClass: TWndClass): ATOM;external KernelDLL name 'RegisterClassW';
 function RegisterClassW(const lpWndClass: TWndClassW): ATOM; external KernelDLL name 'RegisterClassW';
 function RegOpenKeyEx(hKey: HKEY; lpSubKey: LPWSTR; ulOptions: DWORD; samDesired: REGSAM; var phkResult: HKEY): Longint; external KernelDLL name 'RegOpenKeyExW';
@@ -217,7 +214,7 @@ function WriteFile(hFile: THandle; const Buffer; nNumberOfBytesToWrite: DWORD; v
 
 (*
 !!! The following commented out part is copied from win32 redef.inc
-It is profided as reference. Functions which exists in wince should be corrected
+It is provided as reference. Functions which exists in wince should be corrected
 and moved from here to be available.
 
 
