@@ -7,7 +7,8 @@ name=utils
 version=2.0.0
 
 [target]
-dirs=fppkg fpcm tply h2pas fprcp dxegen fpdoc
+dirs=fpcm tply h2pas fprcp dxegen fpdoc
+# dirs=fppkg fpcm tply h2pas fprcp dxegen fpdoc
 programs=ppdep ptop rstconv data2inc delp bin2obj postw32
 programs_linux=grab_vcsa
 dirs_win32=fpmc fpcres
