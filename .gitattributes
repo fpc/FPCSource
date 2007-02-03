@@ -1099,6 +1099,7 @@ fcl/web/websession.pp svneol=native#text/plain
 fcl/web/webutil.pp svneol=native#text/plain
 fcl/web/wtagsimpl.inc svneol=native#text/plain
 fcl/web/wtagsintf.inc svneol=native#text/plain
+fcl/win/ServiceManager.pas -text
 fcl/win/daemonapp.inc svneol=native#text/plain
 fcl/win/eventlog.inc svneol=native#text/plain
 fcl/win/fclel.mc -text
