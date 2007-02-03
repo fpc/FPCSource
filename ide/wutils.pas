@@ -214,9 +214,6 @@ uses
 {$IFDEF OS2}
   DosCalls,
 {$ENDIF OS2}
-{$ifdef DEBUG}
-  fptools,
-{$endif DEBUG}
   Strings;
 
 {$ifndef NOOBJREG}
@@ -370,14 +367,12 @@ procedure ReadlnFromFile(var f : file; var S:string;
 {$ifdef DEBUG}
             s[0]:=chr(i);
             filename:=strpas(@(filerec(f).Name));
-            AddToolMessage(filename,'s='+s,1,1);
-            UpdateToolMessages;
+            DebugMessage(filename,'s='+s,1,1);
 {$endif DEBUG}
             i:=LastSpacePos;
 {$ifdef DEBUG}
             s[0]:=chr(i);
-            AddToolMessage(filename,'reduced to '+s,1,1);
-            UpdateToolMessages;
+            DebugMessage(filename,'reduced to '+s,1,1);
 {$endif DEBUG}
             system.seek(f,LastSpaceFilePos);
           end;
