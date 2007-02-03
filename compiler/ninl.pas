@@ -1583,8 +1583,9 @@ implementation
 
               in_length_x:
                 begin
-                  if not(is_special_array(left.resultdef)) or
-                    (left.resultdef.typ=orddef) then
+                  if ((left.resultdef.typ=arraydef) and
+                      not is_special_array(left.resultdef)) or
+                     (left.resultdef.typ=orddef) then
                     set_varstate(left,vs_read,[])
                   else
                     set_varstate(left,vs_read,[vsf_must_be_valid]);
