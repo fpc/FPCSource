@@ -15,6 +15,10 @@
 unit heaptrc;
 interface
 
+{$ifdef FPC_HEAPTRC_EXTRA}
+  {$define EXTRA}
+{$endif FPC_HEAPTRC_EXTRA}
+
 {$checkpointer off}
 {$goto on}
 
