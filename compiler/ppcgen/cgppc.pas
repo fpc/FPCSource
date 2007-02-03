@@ -50,14 +50,29 @@ unit cgppc;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
 
+        { overflow checking }
+        procedure g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef);override;
+
         { entry code }
         procedure g_profilecode(list: TAsmList); override;
+
+        procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
        protected
         function  get_darwin_call_stub(const s: string): tasmsymbol;
         procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
         function  fixref(list: TAsmList; var ref: treference): boolean; virtual; abstract;
         procedure a_load_store(list:TAsmList;op: tasmop;reg:tregister;ref: treference);virtual;abstract;
+
+        { creates the correct branch instruction for a given combination }
+        { of asmcondflags and destination addressing mode                }
+        procedure a_jmp(list: TAsmList; op: tasmop;
+                        c: tasmcondflag; crval: longint; l: tasmlabel);
      end;
+
+  const
+    TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlag = (C_NONE,C_EQ,C_GT,
+                         C_LT,C_GE,C_LE,C_NE,C_LE,C_LT,C_GE,C_GT);  
+
 
   implementation
 
@@ -322,6 +337,45 @@ unit cgppc;
     end;
 
 
+  procedure tcgppcgen.g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef);
+    var
+      hl : tasmlabel;
+      flags : TResFlags;
+    begin
+      if not(cs_check_overflow in current_settings.localswitches) then
+        exit;
+      current_asmdata.getjumplabel(hl);
+      if not ((def.typ=pointerdef) or
+             ((def.typ=orddef) and
+              (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
+                                        bool8bit,bool16bit,bool32bit,bool64bit]))) then
+        begin
+          if (current_settings.optimizecputype >= cpu_ppc970) or
+             (current_settings.cputype >= cpu_ppc970) then
+            begin
+              { ... instructions setting overflow flag ...
+              mfxerf R0
+              mtcrf 128, R0
+              ble cr0, label }
+              list.concat(taicpu.op_reg(A_MFXER, NR_R0));
+              list.concat(taicpu.op_const_reg(A_MTCRF, 128, NR_R0));
+              flags.cr := RS_CR0;
+              flags.flag := F_LE;
+              a_jmp_flags(list, flags, hl);
+            end
+          else
+            begin
+              list.concat(taicpu.op_reg(A_MCRXR,NR_CR7));
+              a_jmp(list,A_BC,C_NO,7,hl)
+            end;
+        end
+      else
+        a_jmp_cond(list,OC_AE,hl);
+      a_call_name(list,'FPC_OVERFLOW');
+      a_label(list,hl);
+    end;
+
+
   procedure tcgppcgen.g_profilecode(list: TAsmList);
     var
       paraloc1 : tcgpara;
@@ -340,6 +394,29 @@ unit cgppc;
           a_reg_dealloc(list,NR_R0);
         end;
     end;
+
+
+  procedure tcgppcgen.a_jmp_cond(list : TAsmList;cond : TOpCmp; l: tasmlabel);
+    begin
+      a_jmp(list,A_BC,TOpCmp2AsmCond[cond],0,l);
+    end;
+
+
+ procedure tcgppcgen.a_jmp(list: TAsmList; op: tasmop; c: tasmcondflag;
+             crval: longint; l: tasmlabel);
+   var
+     p: taicpu;
+
+   begin
+     p := taicpu.op_sym(op,l);
+     if op <> A_B then
+       create_cond_norm(c,crval,p.condition);
+     p.is_jmp := true;
+     list.concat(p)
+   end;
+
+
+
 
 end.
 

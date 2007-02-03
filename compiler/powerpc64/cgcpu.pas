@@ -99,10 +99,6 @@ type
     procedure g_concatcopy(list: TAsmList; const source, dest: treference;
       len: aint); override;
 
-    procedure g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef);
-      override;
-    procedure a_jmp_cond(list: TAsmList; cond: TOpCmp; l: tasmlabel);
-
     procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const
       labelname: string; ioffset: longint); override;
   private
@@ -128,11 +124,6 @@ type
     { contains the common code of a_load_reg_ref and a_load_ref_reg }
     procedure a_load_store(list: TAsmList; op: tasmop; reg: tregister;
       ref: treference); override;
-
-    { creates the correct branch instruction for a given combination }
-    { of asmcondflags and destination addressing mode                }
-    procedure a_jmp(list: TAsmList; op: tasmop;
-      c: tasmcondflag; crval: longint; l: tasmlabel);
 
     { returns the lowest numbered FP register in use, and the number of used FP registers
       for the current procedure }
@@ -168,9 +159,6 @@ const
   TShiftOpCG2AsmOpConst : array[boolean, OP_SAR..OP_SHR] of TAsmOp = (
     (A_SRAWI, A_SLWI, A_SRWI), (A_SRADI, A_SLDI, A_SRDI)
     );
-
-  TOpCmp2AsmCond: array[topcmp] of TAsmCondFlag = (C_NONE, C_EQ, C_GT,
-    C_LT, C_GE, C_LE, C_NE, C_LE, C_LT, C_GE, C_GT);
 
 implementation
 
@@ -1205,12 +1193,6 @@ begin
   a_jmp(list, A_BC, TOpCmp2AsmCond[cmp_op], 0, l);
 end;
 
-procedure tcgppc.a_jmp_cond(list: TAsmList; cond: TOpCmp; l: tasmlabel);
-
-begin
-  a_jmp(list, A_BC, TOpCmp2AsmCond[cond], 0, l);
-end;
-
 procedure tcgppc.a_jmp_name_direct(list : TAsmList; s : string; prependDot : boolean);
 var
   p: taicpu;
@@ -1859,35 +1841,6 @@ begin
 
 end;
 
-procedure tcgppc.g_overflowcheck(list: TAsmList; const l: tlocation; def:
-  tdef);
-var
-  hl: tasmlabel;
-  flags : TResFlags;
-begin
-  if not (cs_check_overflow in current_settings.localswitches) then
-    exit;
-  current_asmdata.getjumplabel(hl);
-  if not ((def.typ = pointerdef) or
-    ((def.typ = orddef) and
-    (torddef(def).ordtype in [u64bit, u16bit, u32bit, u8bit, uchar,
-    bool8bit, bool16bit, bool32bit]))) then
-  begin
-    { ... instructions setting overflow flag ...
-     mfxerf R0
-     mtcrf 128, R0
-     ble cr0, label }
-    list.concat(taicpu.op_reg(A_MFXER, NR_R0));
-    list.concat(taicpu.op_const_reg(A_MTCRF, 128, NR_R0));
-    flags.cr := RS_CR0;
-    flags.flag := F_LE;
-    a_jmp_flags(list, flags, hl);
-  end else
-    a_jmp_cond(list, OC_AE, hl);
-  a_call_name(list, 'FPC_OVERFLOW');
-  a_label(list, hl);
-end;
-
 procedure tcgppc.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const
   labelname: string; ioffset: longint);
 
@@ -2220,19 +2173,6 @@ begin
   end else begin
     list.concat(taicpu.op_reg_ref(op, reg, ref));
   end;
-end;
-
-procedure tcgppc.a_jmp(list: TAsmList; op: tasmop; c: tasmcondflag;
-  crval: longint; l: tasmlabel);
-var
-  p: taicpu;
-
-begin
-  p := taicpu.op_sym(op, current_asmdata.RefAsmSymbol(l.name));
-  if op <> A_B then
-    create_cond_norm(c, crval, p.condition);
-  p.is_jmp := true;
-  list.concat(p)
 end;
 
 function tcgppc.hasLargeOffset(const ref : TReference) : Boolean; {$ifdef ver2_0}inline;{$endif}

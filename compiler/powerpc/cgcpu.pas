@@ -63,7 +63,7 @@ unit cgcpu;
 
         procedure a_load_subsetreg_reg(list : TAsmList; subsetsize: tcgsize;
           tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister); override;
-       procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tcgsize; const fromsreg, tosreg: tsubsetregister); override;
+        procedure a_load_subsetreg_subsetreg(list: TAsmlist; fromsubsetsize, tosubsetsize: tcgsize; const fromsreg, tosreg: tsubsetregister); override;
 
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
@@ -85,12 +85,9 @@ unit cgcpu;
 
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);override;
 
-        procedure g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef); override;
         { find out whether a is of the form 11..00..11b or 00..11...00. If }
         { that's the case, we can use rlwinm to do an AND operation        }
         function get_rlwi_const(a: aint; var l1, l2: longint): boolean;
-
-        procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
@@ -123,11 +120,6 @@ unit cgcpu;
         procedure a_load_store(list:TAsmList;op: tasmop;reg:tregister;
                     ref: treference); override;
 
-        { creates the correct branch instruction for a given combination }
-        { of asmcondflags and destination addressing mode                }
-        procedure a_jmp(list: TAsmList; op: tasmop;
-                        c: tasmcondflag; crval: longint; l: tasmlabel);
-
         function save_regs(list : TAsmList):longint;
         procedure restore_regs(list : TAsmList);
      end;
@@ -147,9 +139,6 @@ const
   TOpCG2AsmOpConstHi: Array[topcg] of TAsmOp = (A_NONE,A_MR,A_ADDIS,A_ANDIS_,
                         A_DIVWU,A_DIVW, A_MULLW,A_MULLW,A_NONE,A_NONE,
                         A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS);
-
-  TOpCmp2AsmCond: Array[topcmp] of TAsmCondFlag = (C_NONE,C_EQ,C_GT,
-                       C_LT,C_GE,C_LE,C_NE,C_LE,C_LT,C_GE,C_GT);
 
   implementation
 
@@ -767,13 +756,6 @@ const
           list.concat(taicpu.op_reg_reg_reg(op,NR_CR0,reg2,reg1));
           a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],0,l);
         end;
-
-
-     procedure tcgppc.a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
-
-       begin
-         a_jmp(list,A_BC,TOpCmp2AsmCond[cond],0,l);
-       end;
 
 
     procedure tcgppc.a_jmp_name(list : TAsmList;const s : string);
@@ -1794,28 +1776,6 @@ const
       end;
 
 
-    procedure tcgppc.g_overflowcheck(list: TAsmList; const l: tlocation; def: tdef);
-      var
-         hl : tasmlabel;
-      begin
-         if not(cs_check_overflow in current_settings.localswitches) then
-          exit;
-         current_asmdata.getjumplabel(hl);
-         if not ((def.typ=pointerdef) or
-                ((def.typ=orddef) and
-                 (torddef(def).ordtype in [u64bit,u16bit,u32bit,u8bit,uchar,
-                                                  bool8bit,bool16bit,bool32bit,bool64bit]))) then
-           begin
-             list.concat(taicpu.op_reg(A_MCRXR,NR_CR7));
-             a_jmp(list,A_BC,C_NO,7,hl)
-           end
-         else
-           a_jmp_cond(list,OC_AE,hl);
-         a_call_name(list,'FPC_OVERFLOW');
-         a_label(list,hl);
-      end;
-
-
     procedure tcgppc.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
 
         procedure loadvmttor11;
@@ -2113,20 +2073,6 @@ const
             else
               list.concat(taicpu.op_reg_ref(op,reg,ref));
           end;
-      end;
-
-
-    procedure tcgppc.a_jmp(list: TAsmList; op: tasmop; c: tasmcondflag;
-                crval: longint; l: tasmlabel);
-      var
-        p: taicpu;
-
-      begin
-        p := taicpu.op_sym(op,l);
-        if op <> A_B then
-          create_cond_norm(c,crval,p.condition);
-        p.is_jmp := true;
-        list.concat(p)
       end;
 
 

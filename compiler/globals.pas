@@ -1169,10 +1169,12 @@ implementation
 {$endif m68k}
 {$ifdef powerpc}
         init_settings.cputype:=cpu_PPC604;
+        init_settings.optimizecputype:=cpu_ppc7400;
         init_settings.fputype:=fpu_standard;
 {$endif powerpc}
 {$ifdef POWERPC64}
         init_settings.cputype:=cpu_PPC970;
+        init_settings.optimizecputype:=cpu_ppc970;
         init_settings.fputype:=fpu_standard;
 {$endif POWERPC64}
 {$ifdef sparc}

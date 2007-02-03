@@ -32,8 +32,10 @@ Type
    { possible supported processors for this target }
    tcputype =
       (cpu_none,
-       cpu_ppc601,
-       cpu_ppc604
+       cpu_ppc604,
+       cpu_ppc750,
+       cpu_ppc7400,
+       cpu_ppc970
       );
 
    tfputype =
@@ -57,8 +59,10 @@ Const
    ];
 
    cputypestr : array[tcputype] of string[10] = ('',
-     '603',
-     '604'
+     '604',
+     '750',
+     '7400',
+     '970'
    );
 
    fputypestr : array[tfputype] of string[8] = ('',
