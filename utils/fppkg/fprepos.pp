@@ -173,10 +173,10 @@ Type
     Procedure SaveToFile(AFileName : String);
     Procedure Save;
     // Loading and Saving version numbers: List of Name=Value pairs.
-    Procedure LoadVersionsFromStream(Stream : TStream); virtual;
-    Procedure SaveVersionsToStream(Stream : TStream; InstalledVersions : Boolean); virtual;
-    Procedure LoadVersionsFromFile(AFileName : String);
-    Procedure SaveVersionsToFile(AFileName : String; InstalledVersions : Boolean);
+    Procedure LoadStatusFromStream(Stream : TStream); virtual;
+    Procedure SaveStatusToStream(Stream : TStream; InstalledStatus : Boolean); virtual;
+    Procedure LoadStatusFromFile(AFileName : String);
+    Procedure SaveStatusToFile(AFileName : String; InstalledStatus : Boolean);
     // Package management
     Function IndexOfPackage(PackageName : String) : Integer;
     Function FindPackage(PackageName : String) : TFPPackage;
@@ -646,7 +646,7 @@ begin
   SaveToFile(FFileName);
 end;
 
-procedure TFPRepository.LoadVersionsFromStream(Stream: TStream);
+procedure TFPRepository.LoadStatusFromStream(Stream: TStream);
 
 Var
   L : TStrings;
@@ -668,7 +668,7 @@ begin
   end;
 end;
 
-procedure TFPRepository.SaveVersionsToStream(Stream: TStream;InstalledVersions : Boolean);
+procedure TFPRepository.SaveStatusToStream(Stream: TStream;InstalledStatus : Boolean);
 
 Var
   L : TStrings;
@@ -677,7 +677,7 @@ Var
 begin
   L:=TStringList.Create;
   Try
-    If InstalledVersions then
+    If InstalledStatus then
       For I:=0 to PackageCount-1 do
         With Packages[i] do
           L.Add(Name+'='+InstalledVersion.AsString)
@@ -691,7 +691,7 @@ begin
   end;
 end;
 
-procedure TFPRepository.LoadVersionsFromFile(AFileName: String);
+procedure TFPRepository.LoadStatusFromFile(AFileName: String);
 
 Var
   F : TFileStream;
@@ -699,13 +699,13 @@ Var
 begin
   F:=TFileStream.Create(AFileName,fmOpenRead);
   Try
-    LoadVersionsFromStream(F);
+    LoadStatusFromStream(F);
   Finally
     F.Free;
   end;
 end;
 
-procedure TFPRepository.SaveVersionsToFile(AFileName: String; InstalledVersions : Boolean);
+procedure TFPRepository.SaveStatusToFile(AFileName: String; InstalledStatus : Boolean);
 
 Var
   F : TFileStream;
@@ -715,7 +715,7 @@ begin
     BackupFile(AFileName);
   F:=TFileStream.Create(AFileName,fmCreate);
   Try
-    SaveVersionsToStream(F,InstalledVersions);
+    SaveStatusToStream(F,InstalledStatus);
   Finally
     F.Free;
   end;

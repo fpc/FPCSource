@@ -24,42 +24,60 @@ Type
 
   TPackagerOptions = Class(TPersistent)
   private
+    FDirty: Boolean;
+    // Global options
     FRemoteMirrorsLocation : String;
     FLocalMirrorsLocation : String;
     FRemoteRepository : String;
     FLocalRepository : String;
-    FInstallDir : String;
-    FBuildDir : String;
-    FCompiler : String;
-    FCPU: TCPU;
-    FDirty: Boolean;
-    FOS: TOS;
+    FCompilerConfigDir,
+    FPackagesDir,
+    FBuildDir,
     FLocalDir : String;
+    FDefaultVerbosity,
+    FDefaultCompilerConfig : String;
+    // Compiler specific options
+    FCompiler : String;
+    FCompilerCPU: TCPU;
+    FCompilerOS: TOS;
+    FCompilerVersion : String;
+    FInstallDir : String;
     function GetOptString(Index: integer): String;
-    procedure SetCPU(const AValue: TCPU);
     procedure SetOptString(Index: integer; const AValue: String);
-    procedure SetOS(const AValue: TOS);
+    procedure SetCompilerCPU(const AValue: TCPU);
+    procedure SetCompilerOS(const AValue: TOS);
   protected
     Property LocalDir : String Read FLocalDir;
   Public
     Constructor Create;
-    Procedure InitDefaults;
-    Procedure LoadFromIni(Ini : TCustomIniFile); virtual;
-    Procedure SaveToIni(Ini : TCustomIniFile); virtual;
-    Procedure LoadFromFile(FileName : String);
-    Procedure SaveToFile(FileName : String);
+    Procedure InitGlobalDefaults;
+    Procedure LoadGlobalFromIni(Ini : TCustomIniFile); virtual;
+    Procedure SaveGlobalToIni(Ini : TCustomIniFile); virtual;
+    Procedure LoadGlobalFromFile(FileName : String);
+    Procedure SaveGlobalToFile(FileName : String);
+    Procedure InitCompilerDefaults;
+    Procedure LoadCompilerFromIni(Ini : TCustomIniFile); virtual;
+    Procedure SaveCompilerToIni(Ini : TCustomIniFile); virtual;
+    Procedure LoadCompilerFromFile(FileName : String);
+    Procedure SaveCompilerToFile(FileName : String);
     Property Dirty : Boolean Read FDirty;
+    function LocalVersions(CompilerConfig:String):string;
   Published
     Property RemoteMirrorsLocation : String Index 0 Read GetOptString Write SetOptString;
     Property LocalMirrorsLocation : String Index 1 Read GetOptString Write SetOptString;
     Property RemoteRepository : String Index 2 Read GetOptString Write SetOptString;
     Property LocalRepository : String Index 3 Read GetOptString Write SetOptString;
-    Property InstallDir : String Index 4 Read GetOptString Write SetOptString;
     Property BuildDir : String Index 5 Read GetOptString Write SetOptString;
     Property Compiler : String Index 6 Read GetOptString Write SetOptString;
-    Property Target : String Index 7 Read GetOptString Write SetOptString;
-    Property OS : TOS Read FOS Write SetOS;
-    Property CPU : TCPU Read FCPU Write SetCPU;
+    Property CompilerTarget : String Index 7 Read GetOptString Write SetOptString;
+    Property DefaultCompilerConfig : String Index 8 Read GetOptString Write SetOptString;
+    Property CompilerVersion : String Index 9 Read GetOptString Write SetOptString;
+    Property InstallDir : String Index 10 Read GetOptString Write SetOptString;
+    Property DefaultVerbosity : String Index 11 Read GetOptString Write SetOptString;
+    Property PackagesDir : String Index 12 Read GetOptString Write SetOptString;
+    Property CompilerConfigDir : String Index 13 Read GetOptString Write SetOptString;
+    Property CompilerOS : TOS Read FCompilerOS Write SetCompilerOS;
+    Property CompilerCPU : TCPU Read FCompilerCPU Write SetCompilerCPU;
   end;
 
 Const
@@ -72,26 +90,38 @@ Const
   DefaultUnixBuildDir = '/tmp/fppkg/';
   DefaultMirrors = 'mirrors.xml';
   DefaultRepository = 'repository.dat';
+  DefaultVersions   = 'versions.dat';
 
   // ini file keys
   SDefaults = 'Defaults';
 
+  // Global config
   KeyLocalMirrorsLocation  = 'LocalMirrors';
   KeyRemoteMirrorsLocation = 'RemoteMirrors';
   KeyRemoteRepository      = 'RemoteRepository';
   KeyLocalRepository       = 'LocalRepository';
-  KeyInstallDir            = 'InstallDir';
+  KeyDefaultConfig         = 'DefaultCompilerConfig';
+  KeyCompilerConfigDir     = 'CompilerConfigDir';
+  KeyPackagesDir           = 'PackagesDir';
   KeyBuildDir              = 'BuildDir';
+  KeyVerbosity             = 'Verbosity';
+  // Compiler dependent config
+  KeyInstallDir            = 'InstallDir';
   KeyCompiler              = 'Compiler' ;
-  KeyOS                    = 'OS';
-  KeyCPU                   = 'CPU';
+  KeyCompilerOS            = 'OS';
+  KeyCompilerCPU           = 'CPU';
+  KeyCompilerVersion       = 'Version';
 
 
 Implementation
 
+uses
 {$ifdef unix}
-uses baseunix;
+  baseunix
 {$endif}
+  pkghandler,
+  pkgmessages;
+  
 Function FixPath(S : String) : string;
 
 begin
@@ -104,6 +134,12 @@ end;
 
 { TPackagerOptions }
 
+constructor TPackagerOptions.Create;
+begin
+  InitGlobalDefaults;
+end;
+
+
 function TPackagerOptions.GetOptString(Index: integer): String;
 begin
   Case Index of
@@ -111,18 +147,16 @@ begin
     1 : Result:=FLocalMirrorsLocation;
     2 : Result:=FRemoteRepository;
     3 : Result:=FLocalRepository;
-    4 : Result:=FInstallDir;
     5 : Result:=FBuildDir;
     6 : Result:=FCompiler;
-    7 : Result:=MakeTargetString(CPU,OS);
+    7 : Result:=MakeTargetString(CompilerCPU,CompilerOS);
+    8 : Result:=FDefaultCompilerConfig;
+    9 : Result:=FCompilerVersion;
+   10 : Result:=FInstallDir;
+   11 : Result:=FDefaultVerbosity;
+   12 : Result:=FPackagesDir;
+   13 : Result:=FCompilerConfigDir;
   end;
-end;
-
-procedure TPackagerOptions.SetCPU(const AValue: TCPU);
-begin
-  if FCPU=AValue then exit;
-  FCPU:=AValue;
-  FDirty:=True;
 end;
 
 procedure TPackagerOptions.SetOptString(Index: integer; const AValue: String);
@@ -134,32 +168,46 @@ begin
     1 : FRemoteMirrorsLocation:=AValue;
     2 : FRemoteRepository:=AValue;
     3 : FLocalRepository:=AValue;
-    4 : FInstallDir:=FixPath(AValue);
     5 : FBuildDir:=FixPath(AValue);
     6 : FCompiler:=AValue;
-    7 : StringToCPUOS(AValue,FCPU,FOS);
+    7 : StringToCPUOS(AValue,FCompilerCPU,FCompilerOS);
+    8 : FDefaultCompilerConfig:=AValue;
+    9 : FCompilerVersion:=AValue;
+   10 : FInstallDir:=FixPath(AValue);
+   11 : FDefaultVerbosity:=AValue;
+   12 : FPackagesDir:=FixPath(AValue);
+   13 : FCompilerConfigDir:=FixPath(AValue);
   end;
   FDirty:=True;
 end;
 
-procedure TPackagerOptions.SetOS(const AValue: TOS);
+
+procedure TPackagerOptions.SetCompilerCPU(const AValue: TCPU);
 begin
-  if FOS=AValue then exit;
-  FOS:=AValue;
+  if FCompilerCPU=AValue then
+    exit;
+  FCompilerCPU:=AValue;
   FDirty:=True;
 end;
 
-constructor TPackagerOptions.Create;
+
+procedure TPackagerOptions.SetCompilerOS(const AValue: TOS);
 begin
-  InitDefaults;
+  if FCompilerOS=AValue then
+    exit;
+  FCompilerOS:=AValue;
+  FDirty:=True;
 end;
 
-Procedure TPackagerOptions.InitDefaults;
 
+function TPackagerOptions.LocalVersions(CompilerConfig:String):string;
 begin
-  FCPU:=StringToCPU(DefaultCPU);
-  FOS:=StringToOS(DefaultOS);
-  FCompiler:=DefaultCompiler;
+  Result:=ExtractFilePath(FLocalRepository)+'versions-'+CompilerConfig+'.dat';
+end;
+
+
+Procedure TPackagerOptions.InitGlobalDefaults;
+begin
   FRemoteMirrorsLocation:=DefaultMirrorsLocation;
   FRemoteRepository:=DefaultRemoteRepository;
 {$ifdef unix}
@@ -167,75 +215,153 @@ begin
     FLocalDir:=DefaultUnixPrefix
   else
     FLocalDir:=IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME'))+'.fppkg/';
-  FBuildDir:=DefaultUnixBuildDir;
 {$else}
   // Change as needed on all OS-es...
-  FLocalDir:=ExtractFilePath(Paramstr(0));
-  FBuildDir:=FLocalDir+'build'+PathDelim;
+  FLocalDir:=ExtractFilePath(Paramstr(0))+'fppkg'+PathDelim;
 {$endif}
+  FBuildDir:=FLocalDir+'build'+PathDelim;
+  FPackagesDir:=FLocalDir+'packages'+PathDelim;
+  FCompilerConfigDir:=FLocalDir+'config'+PathDelim;
   FLocalMirrorsLocation:=FLocalDir+DefaultMirrors;
   FLocalRepository:=FLocalDir+DefaultRepository;
+  FDefaultCompilerConfig:='default';
+  FDefaultVerbosity:='error,info,debug,commands';
 end;
 
-procedure TPackagerOptions.LoadFromIni(Ini: TCustomIniFile);
+
+Procedure TPackagerOptions.InitCompilerDefaults;
+begin
+  FCompiler:=FileSearch(DefaultCompiler+ExeExt,GetEnvironmentVariable('PATH'));
+  if FCompiler='' then
+    Error(SErrMissingFPC);
+{$warning TODO detect compiler version/target from -i options }
+  FCompilerVersion:='2.0.4';
+  FCompilerCPU:=StringToCPU(DefaultCPU);
+  FCompilerOS:=StringToOS(DefaultOS);
+  // Use the same algorithm as the compiler, see options.pas
+{$ifdef Unix}
+  FInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
+  if FInstallDir='' then
+    begin
+      if DirectoryExists('/usr/local/lib/fpc/'+FCompilerVersion) then
+        FInstallDir:='/usr/local/lib/fpc/'+FCompilerVersion+'/'
+      else
+        FInstallDir:='/usr/lib/fpc/'+FCompilerVersion+'/';
+    end;
+{$else unix}
+  FInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
+  if FInstallDir='' then
+    begin
+      FInstallDir:=ExtractFilePath(FCompiler)+'../';
+      if not(DirectoryExists(FInstallDir+'/units')) and
+         not(DirectoryExists(FInstallDir+'/rtl')) then
+        FInstallDir:=FInstallDir+'../';
+    end;
+{$endif unix}
+end;
 
 
-
+procedure TPackagerOptions.LoadGlobalFromIni(Ini: TCustomIniFile);
 begin
  With Ini do
    begin
-   FLocalMirrorsLocation:=ReadString(SDefaults,KeyLocalMirrorsLocation,FLocalMirrorsLocation);
-   FRemoteMirrorsLocation:=ReadString(SDefaults,KeyRemoteMirrorsLocation,FRemoteMirrorsLocation);
-   FRemoteRepository:=ReadString(SDefaults,KeyRemoteRepository,FRemoteRepository);
-   FLocalRepository:=ReadString(SDefaults,KeyLocalRepository,FLocalRepository);
-   FInstallDir:=FixPath(ReadString(SDefaults,KeyInstallDir,FInstallDir));
-   FBuildDir:=FixPath(ReadString(SDefaults,KeyBuildDir,FBuildDir));
-   FCompiler:=ReadString(SDefaults,KeyCompiler,FCompiler);
-   FOS:=StringToOS(ReadString(SDefaults,KeyOS,OSToString(OS)));
-   FCPU:=StringToCPU(ReadString(SDefaults,KeyCPU,CPUtoString(CPU)));
+     FLocalMirrorsLocation:=ReadString(SDefaults,KeyLocalMirrorsLocation,FLocalMirrorsLocation);
+     FRemoteMirrorsLocation:=ReadString(SDefaults,KeyRemoteMirrorsLocation,FRemoteMirrorsLocation);
+     FRemoteRepository:=ReadString(SDefaults,KeyRemoteRepository,FRemoteRepository);
+     FLocalRepository:=ReadString(SDefaults,KeyLocalRepository,FLocalRepository);
+     FBuildDir:=FixPath(ReadString(SDefaults,KeyBuildDir,FBuildDir));
+     FDefaultCompilerConfig:=ReadString(SDefaults,KeyDefaultConfig,FDefaultCompilerConfig);
    end;
-
 end;
 
-procedure TPackagerOptions.SaveToIni(Ini: TCustomIniFile);
+
+procedure TPackagerOptions.SaveGlobalToIni(Ini: TCustomIniFile);
 begin
  With Ini do
    begin
-   WriteString(SDefaults,KeyLocalMirrorsLocation,FLocalMirrorsLocation);
-   WriteString(SDefaults,KeyRemoteMirrorsLocation,FRemoteMirrorsLocation);
-   WriteString(SDefaults,KeyRemoteRepository,FRemoteRepository);
-   WriteString(SDefaults,KeyLocalRepository,FLocalRepository);
-   WriteString(SDefaults,KeyInstallDir,FInstallDir);
-   WriteString(SDefaults,KeyBuildDir,FBuildDir);
-   WriteString(SDefaults,KeyCompiler,FCompiler);
-   WriteString(SDefaults,KeyOS,OSToString(OS));
-   WriteString(SDefaults,KeyCPU,CPUtoString(CPU));
+     WriteString(SDefaults,KeyLocalMirrorsLocation,FLocalMirrorsLocation);
+     WriteString(SDefaults,KeyRemoteMirrorsLocation,FRemoteMirrorsLocation);
+     WriteString(SDefaults,KeyRemoteRepository,FRemoteRepository);
+     WriteString(SDefaults,KeyLocalRepository,FLocalRepository);
+     WriteString(SDefaults,KeyBuildDir,FBuildDir);
+     WriteString(SDefaults,KeyDefaultConfig,FDefaultCompilerConfig);
    end;
 end;
 
-procedure TPackagerOptions.LoadFromFile(FileName: String);
 
+procedure TPackagerOptions.LoadGlobalFromFile(FileName: String);
 Var
   Ini : TMemIniFile;
-
 begin
   Ini:=TMemIniFile.Create(FileName);
   try
-    LoadFromIni(Ini);
+    LoadGlobalFromIni(Ini);
   finally
     Ini.Free;
   end;
 end;
 
-procedure TPackagerOptions.SaveToFile(FileName: String);
 
+procedure TPackagerOptions.SaveGlobalToFile(FileName: String);
 Var
   Ini : TIniFile;
-
 begin
   Ini:=TIniFile.Create(FileName);
   try
-    SaveToIni(Ini);
+    SaveGlobalToIni(Ini);
+    Ini.UpdateFile;
+  finally
+    Ini.Free;
+  end;
+end;
+
+
+procedure TPackagerOptions.LoadCompilerFromIni(Ini: TCustomIniFile);
+begin
+ With Ini do
+   begin
+     FInstallDir:=FixPath(ReadString(SDefaults,KeyInstallDir,FInstallDir));
+     FCompiler:=ReadString(SDefaults,KeyCompiler,FCompiler);
+     FCompilerOS:=StringToOS(ReadString(SDefaults,KeyCompilerOS,OSToString(CompilerOS)));
+     FCompilerCPU:=StringToCPU(ReadString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU)));
+     FCompilerVersion:=ReadString(SDefaults,KeyCompilerVersion,FCompilerVersion);
+   end;
+end;
+
+
+procedure TPackagerOptions.SaveCompilerToIni(Ini: TCustomIniFile);
+begin
+ With Ini do
+   begin
+     WriteString(SDefaults,KeyInstallDir,FInstallDir);
+     WriteString(SDefaults,KeyCompiler,FCompiler);
+     WriteString(SDefaults,KeyCompilerOS,OSToString(CompilerOS));
+     WriteString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU));
+     WriteString(SDefaults,KeyCompilerVersion,FCompilerVersion);
+   end;
+end;
+
+
+procedure TPackagerOptions.LoadCompilerFromFile(FileName: String);
+Var
+  Ini : TMemIniFile;
+begin
+  Ini:=TMemIniFile.Create(FileName);
+  try
+    LoadCompilerFromIni(Ini);
+  finally
+    Ini.Free;
+  end;
+end;
+
+
+procedure TPackagerOptions.SaveCompilerToFile(FileName: String);
+Var
+  Ini : TIniFile;
+begin
+  Ini:=TIniFile.Create(FileName);
+  try
+    SaveCompilerToIni(Ini);
     Ini.UpdateFile;
   finally
     Ini.Free;

@@ -19,12 +19,15 @@ Type
   TMakeTool = Class(TCustomApplication)
   Private
     FDefaults: TPackagerOptions;
-    FCompiler : String;
-    Function GetCompiler : String;
+    FRepository : TFPRepository;
+    FCompilerConfig : String;
+    procedure LoadRepository;
+    procedure MaybeCreateLocalDirs;
     procedure ShowUsage;
   Public
     Function GetConfigFileName : String;
-    Procedure LoadDefaults;
+    Procedure LoadGlobalDefaults;
+    Procedure LoadCompilerDefaults;
     Procedure ProcessCommandLine;
     Procedure DoRun; Override;
     procedure ExecuteAction(const AAction:string;const Args:TActionArgs);
@@ -34,39 +37,6 @@ Type
 
 
 { TMakeTool }
-
-function TMakeTool.GetCompiler: String;
-begin
-  If (FCompiler='') then
-    begin
-    {$if defined(cpui386)}
-      FCompiler:='ppc386';
-    {$elseif defined(cpuAlpha)}
-      FCompiler:='ppcaxp';
-    {$elseif defined(cpusparc)}
-      FCompiler:='ppcsparc';
-    {$elseif defined(cpuarm)}
-      FCompiler:='ppcarm';
-    {$elseif defined(cpum68k)}
-      FCompiler:='ppcm68k';
-   {$elseif defined(cpux86_64)}
-      FCompiler:='ppcx64';
-    {$elseif defined(cpupowerpc)}
-      FCompiler:='ppcppc';
-    {$else}
-      {$Fatal Unknown architecture}
-    {$endif}
-    end;
-  If (ExtractFilePath(FCompiler)<>'') then
-    Result:=FCompiler
-  else
-    begin
-    Result:=FileSearch(FCompiler+ExeExt,GetEnvironmentVariable('PATH'));
-    If (Result='') then
-      Result:=FCompiler+ExeExt;
-    end;
-end;
-
 
 function TMakeTool.GetConfigFileName: String;
 var
@@ -86,11 +56,64 @@ begin
 end;
 
 
-procedure TMakeTool.LoadDefaults;
+procedure TMakeTool.LoadGlobalDefaults;
+var
+  SL : TStringList;
+  i : integer;
 begin
-  Verbosity:=[vError,vInfo,vCommands,vDebug];
   FDefaults:=TPackagerOptions.Create;
-  FDefaults.LoadFromFile(GetConfigFileName);
+  FDefaults.LoadGlobalFromFile(GetConfigFileName);
+  // Load default verbosity from config
+  SL:=TStringList.Create;
+  SL.CommaText:=FDefaults.DefaultVerbosity;
+  for i:=0 to SL.Count-1 do
+    Include(Verbosity,StringToVerbosity(SL[i]));
+  SL.Free;
+  FCompilerConfig:=FDefaults.DefaultCompilerConfig;
+end;
+
+
+procedure TMakeTool.MaybeCreateLocalDirs;
+begin
+  ForceDirectories(FDefaults.BuildDir);
+  ForceDirectories(FDefaults.PackagesDir);
+  ForceDirectories(FDefaults.CompilerConfigDir);
+end;
+
+
+procedure TMakeTool.LoadCompilerDefaults;
+var
+  S : String;
+begin
+  S:=FDefaults.CompilerConfigDir+FCompilerConfig;
+  if FileExists(S) then
+    begin
+      Log(vDebug,SLogLoadingCompilerConfig,[S]);
+      FDefaults.LoadCompilerFromFile(S)
+    end
+  else
+    begin
+      Log(vDebug,SLogGeneratingCompilerConfig,[S]);
+      FDefaults.InitCompilerDefaults;
+      FDefaults.SaveCompilerToFile(S);
+    end;
+end;
+
+
+procedure TMakeTool.LoadRepository;
+var
+  S : String;
+begin
+  FRepository:=TFPRepository.Create(Nil);
+  // Repository
+  Log(vDebug,SLogLoadingRepository,[FDefaults.LocalRepository]);
+  if FileExists(FDefaults.LocalRepository) then
+    FRepository.LoadFromFile(FDefaults.LocalRepository);
+  // Versions
+  S:=FDefaults.LocalVersions(FCompilerConfig);
+  Log(vDebug,SLogLoadingRepository,[S]);
+  if FileExists(S) then
+    FRepository.LoadStatusFromFile(S);
 end;
 
 
@@ -108,6 +131,7 @@ begin
   Writeln('  install            Install package');
   Writeln('  download           Download package');
   Writeln('  convertmk          Convert Makefile.fpc to fpmake.pp');
+  Halt(0);
 end;
 
 
@@ -191,6 +215,9 @@ begin
               end;
           end;
       end;
+    { Default "package" is current directory }
+    if (ParaPackages.Count=0) then
+      ParaPackages.Add('.');
     if HasAction then
       begin
         if GetPkgHandler(Action)<>nil then
@@ -242,9 +269,12 @@ var
   Action : string;
   Args   : TActionArgs;
 begin
-  LoadDefaults;
+  LoadGlobalDefaults;
   Try
     ProcessCommandLine;
+    MaybeCreateLocalDirs;
+    LoadCompilerDefaults;
+    LoadRepository;
     
     repeat
       if not ActionStack.Pop(Action,Args) then

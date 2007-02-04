@@ -8,6 +8,7 @@ interface
 Resourcestring
   SErrInValidArgument        = 'Invalid command-line argument at position %d : %s';
   SErrNeedArgument           = 'Option at position %d (%s) needs an argument';
+  SErrMissingFPC             = 'Could not find a fpc executable in the PATH';
   SErrMissingFPMake          = 'Missing configuration fpmake.pp';
   SErrMissingMakefilefpc     = 'Missing configuration Makefile.fpc';
   SErrRunning                = 'The FPC make tool encountered the following error: %s';
@@ -31,8 +32,14 @@ Resourcestring
   
   SLogGeneratingFPMake       = 'Generating fpmake.pp';
   SLogCompilingFPMake        = 'Compiling fpmake.pp: ';
+  SLogNotCompilingFPMake     = 'Skipping compiling of fpmake.pp, fpmake executable already exists';
   SLogRunningFPMake          = 'Running fpmake';
   SLogRunAction              = 'Action: %s %s';
+  SLogLoadingCompilerConfig  = 'Loading compiler configuration from "%s"';
+  SLogGeneratingCompilerConfig  = 'Generating default compiler configuration in "%s"';
+  SLogLoadingRepository      = 'Loading repository data from "%s"';
+  SLogLoadingVersions        = 'Loading versions data from "%s"';
+
 
 implementation
 

@@ -4,7 +4,7 @@ unit pkghandler;
 
 interface
 
-uses Classes,SysUtils, fpmktype, pkgropts;
+uses Classes,SysUtils, fpmktype, pkgropts, fprepos;
 
 Const
 {$ifdef unix}
@@ -45,15 +45,16 @@ Type
   private
     FBackupFile : Boolean;
     FDefaults   : TPackagerOptions;
+    function PackageBuildPath(APackage:TFPPackage):String;
   Protected
     Procedure BackupFile(Const FileName : String);
   Public
     Constructor Create(AOwner: TComponent;ADefaults:TPackagerOptions); virtual;
-    Function Execute(const Args:array of string):boolean; virtual; abstract;
+    Function Execute(const Args:TActionArgs):boolean; virtual; abstract;
     Property BackupFiles : Boolean Read FBackupFile Write FBackupFile;
     Property Defaults:TPackagerOptions Read FDefaults;
   end;
-  TPackageHandlerClass = class(TPackageHandler);
+  TPackageHandlerClass = class of TPackageHandler;
 
   EPackageHandler = Class(EInstallerError);
 
@@ -89,7 +90,7 @@ uses
   pkgmessages;
 
 var
-  PkgHandlerList : TFPHashObjectList;
+  PkgHandlerList : TFPHashList;
 
 procedure RegisterPkgHandler(const AAction:string;pkghandlerclass:TPackageHandlerClass);
 begin
@@ -199,6 +200,12 @@ end;
 
 { TPackageHandler }
 
+constructor TPackageHandler.Create(AOwner : TComponent; ADefaults:TPackagerOptions);
+begin
+  inherited Create(AOwner);
+  FDefaults:=ADefaults;
+end;
+
 procedure TPackageHandler.BackupFile(const FileName: String);
 Var
   BFN : String;
@@ -208,10 +215,12 @@ begin
     Error(SErrBackupFailed,[FileName,BFN]);
 end;
 
-constructor TPackageHandler.Create(AOwner : TComponent; ADefaults:TPackagerOptions);
+function TPackageHandler.PackageBuildPath(APackage:TFPPackage):String;
 begin
-  inherited Create(AOwner);
-  FDefaults:=ADefaults;
+  if APackage=nil then
+    Result:='.'
+  else
+    Result:=Defaults.BuildDir+APackage.Name;
 end;
 
 
@@ -275,7 +284,7 @@ end;
 
 
 initialization
-  PkgHandlerList:=TFPHashObjectList.Create(true);
+  PkgHandlerList:=TFPHashList.Create;
   ActionStack:=TActionStack.Create;
 finalization
   FreeAndNil(PkgHandlerList);

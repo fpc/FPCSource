@@ -42,7 +42,7 @@ Type
     procedure ConvertFile(const AFileName: String; Src: TStrings; Dir,OS : String);
     Procedure ConvertFile(Const Source,Dest: String);
   Public
-    Function Execute(const Args:array of string):boolean;override;
+    Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
 
@@ -694,7 +694,7 @@ begin
   end;
 end;
 
-function TMakeFileConverter.Execute(const Args:array of string):boolean;
+function TMakeFileConverter.Execute(const Args:TActionArgs):boolean;
 begin
 {$warning TODO Check arguments}
   ConvertFile(Args[1],Args[2]);

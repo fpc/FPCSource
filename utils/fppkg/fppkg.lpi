@@ -12,7 +12,7 @@
       <MainUnit Value="0"/>
       <IconPath Value=".\"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
+      <ActiveEditorIndexAtStart Value="17"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
@@ -32,25 +32,25 @@
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="20">
+    <Units Count="23">
       <Unit0>
         <Filename Value="fppkg.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="fppkg"/>
-        <CursorPos X="32" Y="231"/>
-        <TopLine Value="212"/>
+        <CursorPos X="14" Y="105"/>
+        <TopLine Value="76"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="33"/>
+        <UsageCount Value="43"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="pkgropts.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pkgropts"/>
-        <CursorPos X="19" Y="25"/>
-        <TopLine Value="22"/>
-        <EditorIndex Value="6"/>
-        <UsageCount Value="33"/>
+        <CursorPos X="31" Y="201"/>
+        <TopLine Value="184"/>
+        <EditorIndex Value="9"/>
+        <UsageCount Value="43"/>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
@@ -58,7 +58,7 @@
         <IsPartOfProject Value="True"/>
         <CursorPos X="64" Y="8"/>
         <TopLine Value="1"/>
-        <UsageCount Value="33"/>
+        <UsageCount Value="43"/>
       </Unit2>
       <Unit3>
         <Filename Value="fpmktype.pp"/>
@@ -66,8 +66,8 @@
         <UnitName Value="fpmktype"/>
         <CursorPos X="3" Y="41"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="9"/>
-        <UsageCount Value="33"/>
+        <EditorIndex Value="13"/>
+        <UsageCount Value="43"/>
         <Loaded Value="True"/>
       </Unit3>
       <Unit4>
@@ -77,43 +77,47 @@
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
         <EditorIndex Value="1"/>
-        <UsageCount Value="33"/>
+        <UsageCount Value="43"/>
         <Loaded Value="True"/>
       </Unit4>
       <Unit5>
         <Filename Value="fprepos.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="fprepos"/>
-        <CursorPos X="27" Y="28"/>
-        <TopLine Value="2"/>
+        <CursorPos X="5" Y="678"/>
+        <TopLine Value="666"/>
         <EditorIndex Value="5"/>
-        <UsageCount Value="33"/>
+        <UsageCount Value="43"/>
         <Loaded Value="True"/>
       </Unit5>
       <Unit6>
         <Filename Value="fpxmlrep.pp"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="33"/>
-        <SyntaxHighlighter Value="Text"/>
+        <UnitName Value="fpxmlrep"/>
+        <CursorPos X="1" Y="831"/>
+        <TopLine Value="794"/>
+        <EditorIndex Value="8"/>
+        <UsageCount Value="43"/>
+        <Loaded Value="True"/>
       </Unit6>
       <Unit7>
         <Filename Value="pkghandler.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pkghandler"/>
-        <CursorPos X="52" Y="51"/>
-        <TopLine Value="32"/>
-        <EditorIndex Value="13"/>
-        <UsageCount Value="33"/>
+        <CursorPos X="1" Y="115"/>
+        <TopLine Value="97"/>
+        <EditorIndex Value="17"/>
+        <UsageCount Value="43"/>
         <Loaded Value="True"/>
       </Unit7>
       <Unit8>
         <Filename Value="pkgmkconv.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pkgmkconv"/>
-        <CursorPos X="1" Y="46"/>
-        <TopLine Value="20"/>
-        <EditorIndex Value="11"/>
-        <UsageCount Value="33"/>
+        <CursorPos X="69" Y="697"/>
+        <TopLine Value="660"/>
+        <EditorIndex Value="15"/>
+        <UsageCount Value="43"/>
         <Loaded Value="True"/>
       </Unit8>
       <Unit9>
@@ -122,18 +126,18 @@
         <UnitName Value="pkgdownload"/>
         <CursorPos X="32" Y="18"/>
         <TopLine Value="5"/>
-        <EditorIndex Value="10"/>
-        <UsageCount Value="33"/>
+        <EditorIndex Value="14"/>
+        <UsageCount Value="43"/>
         <Loaded Value="True"/>
       </Unit9>
       <Unit10>
         <Filename Value="pkgmessages.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pkgmessages"/>
-        <CursorPos X="69" Y="12"/>
-        <TopLine Value="1"/>
-        <EditorIndex Value="8"/>
-        <UsageCount Value="33"/>
+        <CursorPos X="3" Y="43"/>
+        <TopLine Value="6"/>
+        <EditorIndex Value="12"/>
+        <UsageCount Value="43"/>
         <Loaded Value="True"/>
       </Unit10>
       <Unit11>
@@ -141,29 +145,29 @@
         <UnitName Value="streamcoll"/>
         <CursorPos X="66" Y="88"/>
         <TopLine Value="65"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="8"/>
       </Unit11>
       <Unit12>
         <Filename Value="streamcoll20.pp"/>
         <UnitName Value="streamcoll"/>
         <CursorPos X="3" Y="15"/>
         <TopLine Value="1"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="8"/>
       </Unit12>
       <Unit13>
         <Filename Value="..\..\..\fpc20\rtl\objpas\classes\classesh.inc"/>
-        <CursorPos X="17" Y="1345"/>
-        <TopLine Value="1326"/>
+        <CursorPos X="24" Y="518"/>
+        <TopLine Value="486"/>
         <EditorIndex Value="2"/>
-        <UsageCount Value="16"/>
+        <UsageCount Value="21"/>
         <Loaded Value="True"/>
       </Unit13>
       <Unit14>
         <Filename Value="..\..\..\fpc20\rtl\inc\objpash.inc"/>
         <CursorPos X="38" Y="277"/>
         <TopLine Value="269"/>
-        <EditorIndex Value="12"/>
-        <UsageCount Value="16"/>
+        <EditorIndex Value="16"/>
+        <UsageCount Value="21"/>
         <Loaded Value="True"/>
       </Unit14>
       <Unit15>
@@ -171,33 +175,33 @@
         <UnitName Value="contnrs"/>
         <CursorPos X="1" Y="19"/>
         <TopLine Value="1"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="8"/>
       </Unit15>
       <Unit16>
         <Filename Value="contnrs20.pp"/>
-        <UnitName Value="contnrs"/>
-        <CursorPos X="43" Y="32"/>
+        <UnitName Value="contnrs20"/>
+        <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
         <EditorIndex Value="3"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="15"/>
         <Loaded Value="True"/>
       </Unit16>
       <Unit17>
-        <Filename Value="pkgfpmake.pp"/>
-        <UnitName Value="pkgfpmake"/>
-        <CursorPos X="45" Y="85"/>
-        <TopLine Value="1"/>
-        <EditorIndex Value="7"/>
-        <UsageCount Value="15"/>
+        <Filename Value="pkgcommands.pp"/>
+        <UnitName Value="pkgcommands"/>
+        <CursorPos X="41" Y="62"/>
+        <TopLine Value="44"/>
+        <EditorIndex Value="11"/>
+        <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit17>
       <Unit18>
         <Filename Value="pkgwget.pp"/>
         <UnitName Value="pkgwget"/>
-        <CursorPos X="23" Y="6"/>
+        <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
         <EditorIndex Value="4"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="15"/>
         <Loaded Value="True"/>
       </Unit18>
       <Unit19>
@@ -205,129 +209,156 @@
         <UnitName Value="pkglnet"/>
         <CursorPos X="5" Y="140"/>
         <TopLine Value="103"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="9"/>
       </Unit19>
+      <Unit20>
+        <Filename Value="reptest.pp"/>
+        <UnitName Value="reptest"/>
+        <CursorPos X="1" Y="93"/>
+        <TopLine Value="59"/>
+        <EditorIndex Value="6"/>
+        <UsageCount Value="14"/>
+        <Loaded Value="True"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="rep2xml.lpr"/>
+        <UnitName Value="rep2xml"/>
+        <CursorPos X="26" Y="240"/>
+        <TopLine Value="221"/>
+        <EditorIndex Value="7"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="pkgfpmake.pp"/>
+        <UnitName Value="pkgfpmake"/>
+        <CursorPos X="5" Y="48"/>
+        <TopLine Value="34"/>
+        <EditorIndex Value="10"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit22>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="fppkg.pp"/>
-        <Caret Line="218" Column="42" TopLine="206"/>
+        <Filename Value="fprepos.pp"/>
+        <Caret Line="823" Column="5" TopLine="786"/>
       </Position1>
       <Position2>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="70" Column="18" TopLine="56"/>
+        <Filename Value="fprepos.pp"/>
+        <Caret Line="100" Column="35" TopLine="77"/>
       </Position2>
       <Position3>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="10" Column="5" TopLine="1"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="94" Column="18" TopLine="75"/>
       </Position3>
       <Position4>
-        <Filename Value="pkgmkconv.pp"/>
-        <Caret Line="679" Column="46" TopLine="666"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="225" Column="14" TopLine="206"/>
       </Position4>
       <Position5>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="67" Column="1" TopLine="39"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="33" Column="19" TopLine="14"/>
       </Position5>
       <Position6>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="28" Column="1" TopLine="8"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="152" Column="31" TopLine="133"/>
       </Position6>
       <Position7>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="43" Column="26" TopLine="24"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="174" Column="23" TopLine="155"/>
       </Position7>
       <Position8>
-        <Filename Value="pkgmessages.pp"/>
-        <Caret Line="11" Column="20" TopLine="1"/>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="94" Column="73" TopLine="75"/>
       </Position8>
       <Position9>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="51" Column="11" TopLine="32"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="224" Column="10" TopLine="206"/>
       </Position9>
       <Position10>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="35" Column="3" TopLine="20"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position10>
       <Position11>
-        <Filename Value="fppkg.pp"/>
-        <Caret Line="99" Column="19" TopLine="76"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="33" Column="1" TopLine="14"/>
       </Position11>
       <Position12>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="56" Column="6" TopLine="37"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="69" Column="1" TopLine="50"/>
       </Position12>
       <Position13>
-        <Filename Value="fppkg.pp"/>
-        <Caret Line="86" Column="26" TopLine="76"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="102" Column="1" TopLine="83"/>
       </Position13>
       <Position14>
-        <Filename Value="pkghandler.pp"/>
-        <Caret Line="47" Column="1" TopLine="22"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="149" Column="1" TopLine="130"/>
       </Position14>
       <Position15>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="56" Column="23" TopLine="37"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="170" Column="1" TopLine="151"/>
       </Position15>
       <Position16>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="58" Column="16" TopLine="39"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="265" Column="1" TopLine="246"/>
       </Position16>
       <Position17>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="74" Column="1" TopLine="55"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="279" Column="1" TopLine="260"/>
       </Position17>
       <Position18>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="25" Column="1" TopLine="1"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="49" Column="5" TopLine="37"/>
       </Position18>
       <Position19>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="105" Column="23" TopLine="75"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="205" Column="5" TopLine="163"/>
       </Position19>
       <Position20>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="89" Column="17" TopLine="70"/>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="94" Column="57" TopLine="75"/>
       </Position20>
       <Position21>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="100" Column="34" TopLine="71"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="64" Column="27" TopLine="45"/>
       </Position21>
       <Position22>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="86" Column="13" TopLine="70"/>
+        <Filename Value="pkgropts.pp"/>
+        <Caret Line="205" Column="28" TopLine="184"/>
       </Position22>
       <Position23>
         <Filename Value="fppkg.pp"/>
-        <Caret Line="29" Column="1" TopLine="20"/>
+        <Caret Line="25" Column="36" TopLine="24"/>
       </Position23>
       <Position24>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="90" Column="23" TopLine="71"/>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="84" Column="34" TopLine="59"/>
       </Position24>
       <Position25>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="88" Column="1" TopLine="72"/>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="30" Column="35" TopLine="11"/>
       </Position25>
       <Position26>
         <Filename Value="fppkg.pp"/>
-        <Caret Line="42" Column="25" TopLine="17"/>
+        <Caret Line="84" Column="41" TopLine="65"/>
       </Position26>
       <Position27>
-        <Filename Value="pkghandler.pp"/>
-        <Caret Line="51" Column="19" TopLine="42"/>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="148" Column="36" TopLine="124"/>
       </Position27>
       <Position28>
-        <Filename Value="pkghandler.pp"/>
-        <Caret Line="214" Column="24" TopLine="181"/>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="134" Column="14" TopLine="117"/>
       </Position28>
       <Position29>
         <Filename Value="fppkg.pp"/>
-        <Caret Line="233" Column="19" TopLine="199"/>
+        <Caret Line="128" Column="1" TopLine="102"/>
       </Position29>
       <Position30>
-        <Filename Value="fppkg.pp"/>
-        <Caret Line="231" Column="39" TopLine="214"/>
+        <Filename Value="pkghandler.pp"/>
+        <Caret Line="119" Column="27" TopLine="95"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
