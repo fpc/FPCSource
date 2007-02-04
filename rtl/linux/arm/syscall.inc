@@ -27,7 +27,10 @@ function FpSysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYS
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
+var
+  _r4 : dword;
 asm
+  str  r4,_r4
   swi  #0x900071
   cmn  r0,#126
   bls  .LDone
@@ -50,6 +53,7 @@ asm
 .Lthread_var:
   .word fpc_threadvar_relocate_proc
 .LDone:
+  ldr r4,_r4
 end ['r4'];
 
 
@@ -58,7 +62,10 @@ function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler;[public,alias:'
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
+var
+  _r4 : dword;
 asm
+  str  r4,_r4
   swi  #0x900071
   cmn  r0,#126
   bls  .LDone
@@ -81,6 +88,7 @@ asm
 .Lthread_var:
   .word fpc_threadvar_relocate_proc
 .LDone:
+  ldr r4,_r4
 end ['r4'];
 
 
@@ -89,7 +97,10 @@ function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler;[public,
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
+var
+  _r4 : dword;
 asm
+  str  r4,_r4
   swi  #0x900071
   cmn  r0,#126
   bls  .LDone
@@ -112,6 +123,7 @@ asm
 .Lthread_var:
   .word fpc_threadvar_relocate_proc
 .LDone:
+  ldr r4,_r4
 end ['r4'];
 
 
@@ -120,7 +132,10 @@ function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
+var
+  _r4 : dword;
 asm
+  str  r4,_r4
   swi  #0x900071
   cmn  r0,#126
   bls  .LDone
@@ -143,6 +158,7 @@ asm
 .Lthread_var:
   .word fpc_threadvar_relocate_proc
 .LDone:
+  ldr r4,_r4
 end ['r4'];
 
 
@@ -151,7 +167,10 @@ function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; asse
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
+var
+  _r4 : dword;
 asm
+  str  r4,_r4
   ldr  r4,param4
   swi  #0x900071
   cmn  r0,#126
@@ -175,6 +194,7 @@ asm
 .Lthread_var:
   .word fpc_threadvar_relocate_proc
 .LDone:
+  ldr r4,_r4
 end ['r4'];
 
 
@@ -183,7 +203,11 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResul
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
+var
+  _r4,_r5 : dword;
 asm
+  str  r4,_r4
+  str  r5,_r5
   ldr  r5,param5
   ldr  r4,param4
   swi  #0x900071
@@ -208,6 +232,8 @@ asm
 .Lthread_var:
   .word fpc_threadvar_relocate_proc
 .LDone:
+  ldr r4,_r4
+  ldr r5,_r5
 end ['r4','r5'];
 
 
@@ -216,7 +242,12 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TS
   This function puts the registers in place, does the call, and then
   copies back the registers as they are after the SysCall.
 }
+var
+  _r4,_r5,_r6 : dword;
 asm
+  str  r4,_r4
+  str  r5,_r5
+  str  r6,_r6
   ldr  r6,param6
   ldr  r5,param5
   ldr  r4,param4
@@ -242,6 +273,9 @@ asm
 .Lthread_var:
   .word fpc_threadvar_relocate_proc
 .LDone:
+  ldr r4,_r4
+  ldr r5,_r5
+  ldr r6,_r6
 end ['r4','r5','r6'];
 
 
