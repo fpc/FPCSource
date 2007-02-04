@@ -662,12 +662,14 @@ end;
 Function TCustomDaemon.Install : Boolean;
 begin
   Result:=True;
+  Application.SysInstallDaemon(Self);
 end;
 
 
 Function TCustomDaemon.UnInstall : Boolean;
 begin
   Result:=True;
+  Application.SysInstallDaemon(Self);
 end;
 
 function TCustomDaemon.HandleCustomCode(ACode: DWord): Boolean;
@@ -763,7 +765,7 @@ begin
         D:=CreateDaemon(DD);
         Try
           // Need to call this because of the before/after events.
-          D.Install;
+           D.Install;
         Finally
           D.Free;
         end;
@@ -795,7 +797,7 @@ begin
         D:=CreateDaemon(FMapper.DaemonDefs[i]);
         Try
           // Need to call this because of the before/after events.
-          D.UnInstall;
+          D.UnInstall 
         Finally
           D.Free;
         end;
