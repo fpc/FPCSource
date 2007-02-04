@@ -1509,13 +1509,13 @@ distclean: clean fpc_distclean
 digest : utils
 	-$(DIGEST) $(LOG)
 $(TEST_OUTPUTDIR)/dbdigest.cfg:
-	$(ECHOREDIR) "OS=$(TEST_OS_TARGET)" > $(TEST_OUTPUTDIR)/dbdigest.cfg
-	$(ECHOREDIR) "CPU=$(TEST_CPU_TARGET)" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
-	$(ECHOREDIR) "Version=$(TEST_FPC_VERSION)" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
-	$(ECHOREDIR) "LogFile=log" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
-	$(ECHOREDIR) "Submitter=$(TEST_USER)" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
-	$(ECHOREDIR) "Machine=$(TEST_HOSTNAME)" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
-	$(ECHOREDIR) "Comment=$(TEST_OPT)" >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) OS=$(TEST_OS_TARGET) > $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) CPU=$(TEST_CPU_TARGET) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) Version=$(TEST_FPC_VERSION) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) LogFile=log >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) Submitter=$(TEST_USER) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) Machine=$(TEST_HOSTNAME) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) Comment=$(TEST_OPT) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 ifndef inWinNT
 $(TEST_OUTPUTDIR)/tar.lst:
 	cd $(TEST_OUTPUTDIR) && find . -name '*.log' -o -name '*.elg' > tar.lst
@@ -1528,7 +1528,7 @@ endif
 	cd $(TEST_OUTPUTDIR) && tar cfz $(DB_TARGZ) --files-from=tar.lst
 else
 $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/dbdigest.cfg
-	cd $(TEST_OUTPUTDIR) && $(subst /,\,../../$(PREPUP)) $(DB_TARGZ)
+	cd $(TEST_OUTPUTDIR) && "../../$(PREPUP)" $(DB_TARGZ)
 endif
 uploadrun: $(TEST_OUTPUTDIR)/$(DB_TARGZ)
 ifdef inWinNT
