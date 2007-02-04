@@ -720,12 +720,19 @@ begin
         end;
       HeaderEnd(2);
       ParaGraphStart;
+      Q:=CreateDataset('');
+      Q.SQL.Text:='CREATE TEMPORARY TABLE tr1 like TESTRESULTS;';
+      Q.ExecSQL;
+      Q.SQL.Text:='CREATE TEMPORARY TABLE tr2 like TESTRESULTS;';
+      Q.ExecSQL;
+      Q.SQL.Text:='INSERT INTO tr1 SELECT * FROM TESTRESULTS WHERE TR_TESTRUN_FK='+FRunID+';';
+      Q.ExecSQL;
+      Q.SQL.Text:='INSERT INTO tr2 SELECT * FROM TESTRESULTS WHERE TR_TESTRUN_FK='+FCompareRunID+';';
+      Q.ExecSQL;
       S:='SELECT T_NAME as Filename,tr1.TR_SKIP as Run1_Skipped,'
          +'tr2.TR_SKIP as Run2_Skipped,tr1.TR_OK as Run1_OK,tr2.TR_OK as Run2_OK '
-        +'FROM TESTS,(select * from TESTRESULTS where TR_TESTRUN_FK='+FCompareRunID+') as tr2 '
-         +'LEFT JOIN (select * from TESTRESULTS where TR_TESTRUN_FK='+FRunID+') as tr1 '
-         +'USING (TR_TEST_FK) '
-        +'WHERE ((tr1.TR_SKIP IS NULL) or (%s(tr1.TR_OK<>tr2.TR_OK))) and (T_ID=tr2.TR_TEST_FK)';
+        +'FROM TESTS, tr2 LEFT JOIN tr1 USING (TR_TEST_FK) '
+        +'WHERE ((tr1.TR_SKIP IS NULL) or (%s(tr1.TR_OK<>tr2.TR_OK))) and (T_ID=tr2.TR_TEST_FK);';
       If FNoSkipped then
         begin
         S:=S+' and (tr2.TR_SKIP<>"+")';
@@ -742,7 +749,7 @@ begin
       FRunCount:=0;
       FRunSkipCount:=0;
       FRunFailedCount:=0;  
-      Q:=CreateDataset(Qry);
+      Q.SQL.Text:=Qry;
       With Q do
         try
           Open;
