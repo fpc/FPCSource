@@ -625,7 +625,8 @@ implementation
 
     procedure insertpcrelativedata(list,listtoinsert : TAsmList);
       var
-        curpos : longint;
+        curpos,
+        penalty,
         lastpos : longint;
         curop : longint;
         curtai : tai;
@@ -700,8 +701,26 @@ implementation
               if curtai.typ=ait_const then
                 inc(curpos);
 
+            { special case for case jump tables }
+            if assigned(curtai.next) and
+              (taicpu(curtai.next).typ=ait_instruction) and
+              (taicpu(curtai.next).opcode=A_LDR) and
+              (taicpu(curtai.next).oper[0]^.typ=top_reg) and
+              (taicpu(curtai.next).oper[0]^.reg=NR_PC) then
+              begin
+                penalty:=1;
+                hp:=tai(curtai.next);
+                while assigned(hp) and (hp.typ=ait_const) do
+                  begin
+                    inc(penalty);
+                    hp:=tai(hp.next);
+                  end;
+              end
+            else
+              penalty:=0;
+
             { split only at real instructions else the test below fails }
-            if ((curpos-lastpos)>1016) and (curtai.typ=ait_instruction) and
+            if ((curpos-lastpos+penalty)>1016) and (curtai.typ=ait_instruction) and
               (
                 { don't split loads of pc to lr and the following move }
                 not(
