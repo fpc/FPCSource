@@ -41,7 +41,7 @@ function RegSetValueExA(hKey:HKEY; lpValueName:LPCSTR; Reserved:DWORD; dwType:DW
 function LoadLibraryA(lpLibFileName:LPCSTR):HINST;
 var  ws: PWideChar;
 begin
-  ws:=StringToPWideChar(lpLibFileName);
+  ws:=PCharToPWideChar(lpLibFileName);
   Result:=Windows.LoadLibrary(ws);
   FreeMem(ws);
 end;
@@ -50,8 +50,8 @@ function RegCreateKeyExA(hKey:HKEY; lpSubKey:LPCSTR; Reserved:DWORD; lpClass:LPS
 var  lpwsSubKey,
      lpwsClass: PWideChar;
 begin
- lpwsSubKey:=StringToPWideChar(lpSubKey);
- lpwsClass:=StringToPWideChar(lpClass);
+ lpwsSubKey:=PCharToPWideChar(lpSubKey);
+ lpwsClass:=PCharToPWideChar(lpClass);
  Result:=RegCreateKeyExW(hKey,lpwsSubKey,Reserved,lpwsClass,dwOptions,samDesired,lpSecurityAttributes, hkResult,lpdwDisposition);
  FreeMem(lpwsClass); FreeMem(lpwsSubKey);
 end;
@@ -59,7 +59,7 @@ end;
 function RegDeleteKeyA(hKey:HKEY; lpSubKey:LPCSTR):LONG;
 var  lpwsSubKey: PWideChar;
 begin
- lpwsSubKey:=StringToPWideChar(lpSubKey);
+ lpwsSubKey:=PCharToPWideChar(lpSubKey);
  Result:=RegDeleteKeyW(hKey,lpwsSubKey);
  FreeMem(lpwsSubKey);
 end;
@@ -67,7 +67,7 @@ end;
 function RegDeleteValueA(hKey:HKEY; lpValueName:LPCSTR):LONG;
 var  lpwsValueName: PWideChar;
 begin
- lpwsValueName:=StringToPWideChar(lpValueName);
+ lpwsValueName:=PCharToPWideChar(lpValueName);
  Result:=RegDeleteValueW(hKey,lpwsValueName);
  FreeMem(lpwsValueName);
 end;
@@ -76,8 +76,8 @@ function RegEnumKeyExA(hKey:HKEY; dwIndex:DWORD; lpName:LPSTR; var cbName:DWORD;
 var  lpwsName,
      lpwsClass: PWideChar;
 begin
- lpwsName:=StringToPWideChar(lpName);
- lpwsClass:=StringToPWideChar(lpClass);
+ lpwsName:=PCharToPWideChar(lpName);
+ lpwsClass:=PCharToPWideChar(lpClass);
  Result:=RegEnumKeyExW(hKey, dwIndex, lpwsName, cbName, lpReserved, lpwsClass, lpcbClass, lpftLastWriteTime);
  FreeMem(lpwsName); FreeMem(lpwsClass);
 end;
@@ -85,7 +85,7 @@ end;
 function RegEnumValueA(hKey:HKEY; dwIndex:DWORD; lpValueName:LPSTR; var cbValueName: DWORD; lpReserved:LPDWORD;lpType:LPDWORD; lpData:pointer; lpcbData:LPDWORD):LONG;
 var  lpwsValueName: PWideChar;
 begin
- lpwsValueName:=StringToPWideChar(lpValueName);
+ lpwsValueName:=PCharToPWideChar(lpValueName);
  Result:=RegEnumValueW(hKey, dwIndex, lpwsValueName, @cbValueName, lpReserved, lpType, lpData, lpcbData);
  FreeMem(lpwsValueName);
 end;
@@ -93,7 +93,7 @@ end;
 function RegQueryValueExA(hKey:HKEY; lpValueName:LPCSTR; lpReserved:LPDWORD; lpType:LPDWORD; lpData:pointer;lpcbData:LPDWORD):LONG;
 var  lpwsValueName: PWideChar;
 begin
- lpwsValueName:=StringToPWideChar(lpValueName);
+ lpwsValueName:=PCharToPWideChar(lpValueName);
  Result:=RegQueryValueExW(hKey, lpwsValueName, lpReserved, lpType, lpData, lpcbData);
  FreeMem(lpwsValueName);
 end;
@@ -102,7 +102,7 @@ function RegQueryInfoKeyA(hKey:HKEY; lpClass:LPSTR; lpcbClass:LPDWORD; lpReserve
   lpcbMaxValueLen:LPDWORD;lpcbSecurityDescriptor:LPDWORD; lpftLastWriteTime:PFILETIME):LONG;
 var  lpwsClass: PWideChar;
 begin
- lpwsClass:=StringToPWideChar(lpClass);
+ lpwsClass:=PCharToPWideChar(lpClass);
  Result:=RegQueryInfoKeyW(hKey, lpwsClass, lpcbClass, lpReserved, lpcSubKeys , lpcbMaxSubKeyLen, lpcbMaxClassLen,
   lpcValues, lpcbMaxValueNameLen, lpcbMaxValueLen, lpcbSecurityDescriptor, lpftLastWriteTime);
  FreeMem(lpwsClass);
@@ -111,7 +111,7 @@ end;
 function RegOpenKeyExA(hKey:HKEY; lpSubKey:LPCSTR; ulOptions:DWORD; samDesired:REGSAM; var hkResult: HKEY):LONG;
 var  lpwsSubKey: PWideChar;
 begin
- lpwsSubKey:=StringToPWideChar(lpSubKey);
+ lpwsSubKey:=PCharToPWideChar(lpSubKey);
  Result:=RegOpenKeyExW(hKey, lpwsSubKey, ulOptions, samDesired, hkResult);
  FreeMem(lpwsSubKey);
 end;
@@ -119,7 +119,7 @@ end;
 function RegSetValueExA(hKey:HKEY; lpValueName:LPCSTR; Reserved:DWORD; dwType:DWORD; lpData:pointer;cbData:DWORD):LONG;
 var  lpwsValueName: PWideChar;
 begin
- lpwsValueName:=StringToPWideChar(lpValueName);
+ lpwsValueName:=PCharToPWideChar(lpValueName);
  Result:=RegSetValueExW(hKey, lpwsValueName, Reserved, dwType, lpData, cbData);
  FreeMem(lpwsValueName);
 end;

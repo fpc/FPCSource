@@ -1974,7 +1974,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(SYSTEMUNIT)$(PPUEXT)
 windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(WININC) windows.pp
-messages$(PPUEXT): messages.pp $(WININC)/messages.inc $(SYSTEMUNIT)$(PPUEXT)
+messages$(PPUEXT): messages.pp $(WININC)/messages.inc windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -I$(WININC) messages.pp
 winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
