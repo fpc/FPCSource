@@ -182,7 +182,8 @@ unit rgcpu;
               A_LDRH,
               A_STRH:
                 { don't mix up the framepointer and stackpointer with pre/post indexed operations }
-                if (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) then
+                if (taicpu(p).oper[1]^.typ=top_ref) and
+                  (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) then
                   begin
                     add_edge(getsupreg(taicpu(p).oper[1]^.ref^.base),getsupreg(current_procinfo.framepointer));
                     { FIXME: temp variable r is needed here to avoid Internal error 20060521 }
