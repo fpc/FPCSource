@@ -443,11 +443,7 @@ end;
 
 Procedure TMasterParamsDataLink.SetParams(AVAlue : TParams);  
 
-Var
-  N : String;
-
 begin
-  N:=DetailDataset.Name;
   FParams:=AValue;
   If (AValue<>Nil) then
     RefreshParamNames;

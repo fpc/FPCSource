@@ -87,7 +87,7 @@ type
   public
     constructor Create(NativeError, Context : String;
       ErrCode, PrevError : integer; E: Exception);
-    Destructor Destroy;
+    Destructor Destroy; override;
     property Context : String read FContext;
     property ErrorCode : integer read FErrorcode;
     property OriginalExcaption : Exception read FOriginalException;
@@ -156,7 +156,7 @@ type
     procedure SetDisplayName(const AValue: string); override;
   public
     constructor Create(AOwner: TFieldDefs; const AName: string;
-      ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint);
+      ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint); overload;
     destructor Destroy; override;
     procedure Assign(APersistent: TPersistent); override;
     function CreateField(AOwner: TComponent): TField;
@@ -191,12 +191,12 @@ type
     procedure Add(const AName: string; ADataType: TFieldType; ASize: Word);
     procedure Add(const AName: string; ADataType: TFieldType);
     Function AddFieldDef : TFieldDef;
-    procedure Assign(FieldDefs: TFieldDefs);
+    procedure Assign(FieldDefs: TFieldDefs); overload;
 //    procedure Clear;
 //    procedure Delete(Index: Longint);
     function Find(const AName: string): TFieldDef;
     function IndexOf(const AName: string): Longint;
-    procedure Update;
+    procedure Update; overload;
     Property HiddenFields : Boolean Read FHiddenFields Write FHiddenFields;
     property Items[Index: Longint]: TFieldDef read GetItem write SetItem; default;
     property Dataset: TDataset read GetDataset;
@@ -800,7 +800,7 @@ type
     procedure SetDescFields(const AValue: string);
   public
     constructor Create(Owner: TIndexDefs; const AName, TheFields: string;
-      TheOptions: TIndexOptions);
+      TheOptions: TIndexOptions); overload;
     destructor Destroy; override;
     property Expression: string read FExpression;
     property Fields: string read FFields write FFields;
@@ -824,14 +824,14 @@ type
     destructor Destroy; override;
     procedure Add(const Name, Fields: string; Options: TIndexOptions);
     Function AddIndexDef: TIndexDef;
-    procedure Assign(IndexDefs: TIndexDefs);
+    procedure Assign(IndexDefs: TIndexDefs); overload;
 //    procedure Clear;
     function Find(const IndexName: string): TIndexDef;
     function FindIndexForFields(const Fields: string): TIndexDef;
     function GetIndexForFields(const Fields: string;
       CaseInsensitive: Boolean): TIndexDef;
     function IndexOf(const Name: string): Longint;
-    procedure Update;
+    procedure Update; overload;
 //    property Count: Longint read FCount;
     Property Items[Index: Integer] : TIndexDef read GetItem write SetItem; default;
     property Updated: Boolean read FUpdated write FUpdated;
@@ -1869,6 +1869,7 @@ Destructor EUpdateError.Destroy;
 
 begin
   FOriginalException.Free;
+  Inherited;
 end;
 
 { TIndexDef }
