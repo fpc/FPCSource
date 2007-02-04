@@ -98,8 +98,8 @@ Implementation
   function MustBeLast(p : tai) : boolean;
     begin
       Result:=(p.typ=ait_instruction) and
-        ((taicpu(p).opcode in [A_BL,A_BLX,A_CMP,A_CMN,A_SWI,A_TEQ,A_TST]) or
-         ((taicpu(p).opcode=A_MOV) and (taicpu(p).oper[0]^.typ=top_reg) and (taicpu(p).oper[0]^.reg=NR_PC)) or
+        ((taicpu(p).opcode in [A_BL,A_BLX,A_CMP,A_CMN,A_SWI,A_TEQ,A_TST,A_CMF,A_CMFE,A_MSR]) or
+         ((taicpu(p).ops>=1) and (taicpu(p).oper[0]^.typ=top_reg) and (taicpu(p).oper[0]^.reg=NR_PC)) or
          (taicpu(p).oppostfix=PF_S));
     end;
 

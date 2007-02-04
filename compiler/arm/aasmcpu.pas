@@ -709,7 +709,7 @@ implementation
               (taicpu(curtai.next).oper[0]^.reg=NR_PC) then
               begin
                 penalty:=1;
-                hp:=tai(curtai.next);
+                hp:=tai(curtai.next.next);
                 while assigned(hp) and (hp.typ=ait_const) do
                   begin
                     inc(penalty);
