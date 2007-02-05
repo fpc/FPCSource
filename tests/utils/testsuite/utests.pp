@@ -732,7 +732,7 @@ begin
       S:='SELECT T_NAME as Filename,tr1.TR_SKIP as Run1_Skipped,'
          +'tr2.TR_SKIP as Run2_Skipped,tr1.TR_OK as Run1_OK,tr2.TR_OK as Run2_OK '
         +'FROM TESTS, tr2 LEFT JOIN tr1 USING (TR_TEST_FK) '
-        +'WHERE ((tr1.TR_SKIP IS NULL) or (%s(tr1.TR_OK<>tr2.TR_OK))) and (T_ID=tr2.TR_TEST_FK);';
+        +'WHERE ((tr1.TR_SKIP IS NULL) or (%s(tr1.TR_OK<>tr2.TR_OK))) and (T_ID=tr2.TR_TEST_FK)';
       If FNoSkipped then
         begin
         S:=S+' and (tr2.TR_SKIP<>"+")';
