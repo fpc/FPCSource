@@ -117,7 +117,7 @@ Implementation
 
 uses
 {$ifdef unix}
-  baseunix
+  baseunix,
 {$endif}
   pkghandler,
   pkgmessages;
