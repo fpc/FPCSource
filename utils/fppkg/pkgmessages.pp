@@ -11,7 +11,7 @@ Resourcestring
   SErrMissingFPC             = 'Could not find a fpc executable in the PATH';
   SErrMissingFPMake          = 'Missing configuration fpmake.pp';
   SErrMissingMakefilefpc     = 'Missing configuration Makefile.fpc';
-  SErrRunning                = 'The FPC make tool encountered the following error: %s';
+  SErrRunning                = 'The FPC make tool encountered the following error:';
   SErrActionAlreadyRegistered= 'Action "%s" is already registered';
   SErrActionNotFound         = 'Action "%s" is not supported';
   SErrFailedToCompileFPCMake = 'Could not compile fpmake driver program';
@@ -24,6 +24,7 @@ Resourcestring
   SErrDownloadFailed         = 'Download failed: %s';
   SErrInvalidVerbosity       = 'Invalid verbosity string: "%s"';
   SErrInvalidCommand         = 'Invalid command: %s';
+  SErrChangeDirFailed        = 'Could not change directory to "%s"';
   
   SErrHTTPGetFailed          = 'HTTP Download failed.';
   SErrLoginFailed            = 'FTP LOGIN command failed.';
@@ -31,10 +32,11 @@ Resourcestring
   SErrGETFailed              = 'FTP GET "%s" command failed.';
   
   SLogGeneratingFPMake       = 'Generating fpmake.pp';
-  SLogCompilingFPMake        = 'Compiling fpmake.pp: ';
   SLogNotCompilingFPMake     = 'Skipping compiling of fpmake.pp, fpmake executable already exists';
-  SLogRunningFPMake          = 'Running fpmake';
-  SLogRunAction              = 'Action: %s %s';
+  SLogCommandLineAction      = 'Adding action from commandline: "%s %s"';
+  SLogRunAction              = 'Action: "%s %s"';
+  SLogExecute                = 'Executing: "%s %s"';
+  SLogChangeDir              = 'CurrentDir: "%s"';
   SLogLoadingCompilerConfig  = 'Loading compiler configuration from "%s"';
   SLogGeneratingCompilerConfig  = 'Generating default compiler configuration in "%s"';
   SLogLoadingRepository      = 'Loading repository data from "%s"';

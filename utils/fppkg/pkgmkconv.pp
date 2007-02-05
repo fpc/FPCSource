@@ -117,11 +117,10 @@ begin
     begin
     Add('{$mode objfpc}{$H+}');
     Add('program fpmake;');
-
     Add('');
     Add(' { Generated automatically by '+ExtractFileName(Paramstr(0))+' on '+DateToStr(Sysutils.Date)+' }');
     Add('');
-    Add('uses fpmkunit;');
+    Add('uses fpmktype,fpmkunit;');
     Add('');
     Add('Var');
     Add('  T : TTarget;');
@@ -596,7 +595,7 @@ Var
   B : Boolean;
 
 begin
-  Writeln('Converting '+AFileName);
+  Log(vDebug,'Converting '+AFileName);
   T:=Nil;
   D:=Nil;
   S:=Nil;
@@ -618,8 +617,8 @@ begin
         J:=GetEnumValue(TypeInfo(TSectionType),'st'+Line);
         If (J=-1) then
           begin
-          FSection:=stNone;
-          Writeln(stdErr,'Unsupported section: ',Line);
+            FSection:=stNone;
+            Error('Unsupported section: '+Line);
           end
         else
           FSection:=TSectiontype(J);
@@ -696,9 +695,10 @@ end;
 
 function TMakeFileConverter.Execute(const Args:TActionArgs):boolean;
 begin
-{$warning TODO Check arguments}
-  ConvertFile(Args[1],Args[2]);
+  ConvertFile('Makefile.fpc','fpmake.pp');
   result:=true;
 end;
 
+begin
+  RegisterPkgHandler('convertmk',TMakeFileConverter);
 end.

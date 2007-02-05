@@ -10,7 +10,7 @@ uses
 type
   { TCommandUpdate }
 
-  TCommandBuild = Class(TPackagehandler)
+  TCommandUpdate = Class(TPackagehandler)
   Public
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
@@ -41,14 +41,20 @@ type
 implementation
 
 uses
-  pkgmessages;
+  pkgmessages,
+  fpmktype,
+  fprepos,
+  fpxmlrep;
   
 function TCommandUpdate.Execute(const Args:TActionArgs):boolean;
 Var
   X : TFPXMLRepositoryHandler;
   P : TFPPackage;
+  R : TFPRepository;
 begin
-  P:=Repository.AddPackage('FirstPackage');
+{$warning TODO remove this hack}
+  R:=TFPRepository.Create(nil);
+  P:=R.AddPackage('FirstPackage');
   P.Author:='Michael Van Canneyt';
   P.URL:='http://www.freepascal.org/packages/firstpackage.zip';
   P.Email:='michael@freepascal.org';
@@ -59,30 +65,31 @@ begin
   X:=TFPXMLRepositoryHandler.Create;
   With X do
     try
-      SaveToXml(Repository,'packages.xml');
+      SaveToXml(R,Defaults.LocalRepository);
     finally
       Free;
     end;
+  FreeAndNil(R);
 end;
 
 
 function TCommandDownload.Execute(const Args:TActionArgs):boolean;
 begin
-  ActionStack.Push('downloadpackage',Args);
+  ActionStack.Push(CurrentPackage,'downloadpackage',Args);
 end;
 
 
 function TCommandBuild.Execute(const Args:TActionArgs):boolean;
 begin
-  ActionStack.Push('fpmakebuild',Args);
-  ActionStack.Push('compilefpmake',Args);
+  ActionStack.Push(CurrentPackage,'fpmakebuild',Args);
+  ActionStack.Push(CurrentPackage,'compilefpmake',Args);
 end;
 
 
 function TCommandInstall.Execute(const Args:TActionArgs):boolean;
 begin
-  ActionStack.Push('fpmakeinstall',Args);
-  ActionStack.Push('build',Args);
+  ActionStack.Push(CurrentPackage,'fpmakeinstall',Args);
+  ActionStack.Push(CurrentPackage,'build',Args);
 end;
 
 

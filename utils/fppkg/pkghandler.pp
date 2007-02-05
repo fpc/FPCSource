@@ -22,6 +22,7 @@ Type
   TActionArgs = array of string;
 
   TActionStackItem = record
+    ActionPackage : TFPPackage;
     Action : string;
     Args   : TActionArgs;
   end;
@@ -33,9 +34,9 @@ Type
   public
     constructor Create;
     destructor Destroy;
-    procedure Push(const AAction:string;const Args:TActionArgs);
-    procedure Push(const AAction:string;const Args:array of string);
-    function  Pop(out AAction:string;out Args:TActionArgs):boolean;
+    procedure Push(APackage:TFPPackage;const AAction:string;const Args:TActionArgs);
+    procedure Push(APackage:TFPPackage;const AAction:string;const Args:array of string);
+    function  Pop(out APackage:TFPPackage;out AAction:string;out Args:TActionArgs):boolean;
   end;
 
 
@@ -45,14 +46,23 @@ Type
   private
     FBackupFile : Boolean;
     FDefaults   : TPackagerOptions;
-    function PackageBuildPath(APackage:TFPPackage):String;
+    FCurrentPackage : TFPPackage;
   Protected
+    Procedure Log(Level: TVerbosity;Msg : String);
+    Procedure Log(Level: TVerbosity;Fmt : String; const Args : array of const);
+    Procedure Error(Msg : String);
+    Procedure Error(Fmt : String; const Args : array of const);
     Procedure BackupFile(Const FileName : String);
+    Function ExecuteProcess(Const Prog,Args:String):Integer;
+    Procedure SetCurrentDir(Const ADir:String);
+    function PackageBuildPath:String;
   Public
-    Constructor Create(AOwner: TComponent;ADefaults:TPackagerOptions); virtual;
+    Constructor Create(AOwner: TComponent;ADefaults:TPackagerOptions;APackage:TFPPackage); virtual;
+    function PackageLogPrefix:String;
     Function Execute(const Args:TActionArgs):boolean; virtual; abstract;
     Property BackupFiles : Boolean Read FBackupFile Write FBackupFile;
     Property Defaults:TPackagerOptions Read FDefaults;
+    Property CurrentPackage:TFPPackage Read FCurrentPackage Write FCurrentPackage;
   end;
   TPackageHandlerClass = class of TPackageHandler;
 
@@ -200,10 +210,11 @@ end;
 
 { TPackageHandler }
 
-constructor TPackageHandler.Create(AOwner : TComponent; ADefaults:TPackagerOptions);
+constructor TPackageHandler.Create(AOwner : TComponent; ADefaults:TPackagerOptions;APackage:TFPPackage);
 begin
   inherited Create(AOwner);
   FDefaults:=ADefaults;
+  FCurrentPackage:=APackage;
 end;
 
 procedure TPackageHandler.BackupFile(const FileName: String);
@@ -215,12 +226,58 @@ begin
     Error(SErrBackupFailed,[FileName,BFN]);
 end;
 
-function TPackageHandler.PackageBuildPath(APackage:TFPPackage):String;
+
+Function TPackageHandler.ExecuteProcess(Const Prog,Args:String):Integer;
 begin
-  if APackage=nil then
+  Log(vCommands,SLogExecute,[Prog,Args]);
+  Result:=SysUtils.ExecuteProcess(Prog,Args);
+end;
+
+
+Procedure TPackageHandler.SetCurrentDir(Const ADir:String);
+begin
+  Log(vCommands,SLogChangeDir,[ADir]);
+  if not SysUtils.SetCurrentDir(ADir) then
+    Error(SErrChangeDirFailed,[ADir]);
+end;
+
+
+function TPackageHandler.PackageBuildPath:String;
+begin
+  if CurrentPackage=nil then
     Result:='.'
   else
-    Result:=Defaults.BuildDir+APackage.Name;
+    Result:=Defaults.BuildDir+CurrentPackage.Name;
+end;
+
+
+function TPackageHandler.PackageLogPrefix:String;
+begin
+  if assigned(CurrentPackage) then
+    Result:='['+CurrentPackage.Name+'] '
+  else
+    Result:='[<currentdir>] ';
+end;
+
+
+Procedure TPackageHandler.Log(Level:TVerbosity; Msg:String);
+begin
+  pkghandler.Log(Level,PackageLogPrefix+Msg);
+end;
+
+Procedure TPackageHandler.Log(Level:TVerbosity; Fmt:String; const Args:array of const);
+begin
+  pkghandler.Log(Level,PackageLogPrefix+Fmt,Args);
+end;
+
+Procedure TPackageHandler.Error(Msg:String);
+begin
+  pkghandler.Error(PackageLogPrefix+Msg);
+end;
+
+Procedure TPackageHandler.Error(Fmt:String; const Args:array of const);
+begin
+  pkghandler.Error(PackageLogPrefix+Fmt,Args);
 end;
 
 
@@ -238,18 +295,19 @@ begin
 end;
 
 
-procedure TActionStack.Push(const AAction:string;const Args:TActionArgs);
+procedure TActionStack.Push(APackage:TFPPackage;const AAction:string;const Args:TActionArgs);
 var
   ActionItem : PActionStackItem;
 begin
   New(ActionItem);
+  ActionItem^.ActionPackage:=APackage;
   ActionItem^.Action:=AAction;
   ActionItem^.Args:=Args;
   FList.Add(ActionItem);
 end;
 
 
-procedure TActionStack.Push(const AAction:string;const Args:array of string);
+procedure TActionStack.Push(APackage:TFPPackage;const AAction:string;const Args:array of string);
 var
   ActionArgs : TActionArgs;
   i : integer;
@@ -257,11 +315,11 @@ begin
   SetLength(ActionArgs,high(Args)+1);
   for i:=low(Args) to high(Args) do
     ActionArgs[i]:=Args[i];
-  Push(AAction,ActionArgs);
+  Push(APackage,AAction,ActionArgs);
 end;
 
 
-function TActionStack.Pop(out AAction:string;out Args:TActionArgs):boolean;
+function TActionStack.Pop(out APackage:TFPPackage;out AAction:string;out Args:TActionArgs):boolean;
 var
   ActionItem : PActionStackItem;
   Idx : integer;
@@ -274,6 +332,7 @@ begin
   ActionItem:=PActionStackItem(FList[Idx]);
   FList.Delete(Idx);
   // Copy contents and dispose stack item
+  APackage:=ActionItem^.ActionPackage;
   AAction:=ActionItem^.Action;
   Args:=ActionItem^.Args;
   dispose(ActionItem);

@@ -12,7 +12,7 @@ type
 
   TFPMakeCompiler = Class(TPackagehandler)
   Private
-    Procedure CompileFPMake(const ADir:string);
+    Procedure CompileFPMake;
   Public
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
@@ -21,16 +21,22 @@ type
   { TFPMakeRunner }
 
   TFPMakeRunner = Class(TPackagehandler)
-  Private
-    Function RunFPMake(const ADir:string) : Integer;
+  Protected
+    Function RunFPMake(const Command:string):Integer;
+  end;
+
+
+  { TFPMakeRunnerBuild }
+
+  TFPMakeRunnerBuild = Class(TFPMakeRunner)
   Public
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
 
-  { TFPMakeRunner }
+  { TFPMakeRunnerInstall }
 
-  TCommandBuild = Class(TPackagehandler)
+  TFPMakeRunnerInstall = Class(TFPMakeRunner)
   Public
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
@@ -43,33 +49,33 @@ uses
   
 { TFPMakeCompiler }
 
-Procedure TFPMakeCompiler.CompileFPMake(const ADir:string);
+Procedure TFPMakeCompiler.CompileFPMake;
 Var
-  D,O,C : String;
+  O,C : String;
   FPMakeBin,
   FPMakeSrc : string;
   HaveFpmake : boolean;
 begin
-  D:=IncludeTrailingPathDelimiter(ADir);
+  SetCurrentDir(PackageBuildPath);
   { Check for fpmake source }
-  FPMakeBin:=D+'fpmake'+ExeExt;
-  FPMakeSrc:=D+'fpmake.pp';
+  FPMakeBin:='fpmake'+ExeExt;
+  FPMakeSrc:='fpmake.pp';
   HaveFpmake:=FileExists(FPMakeSrc);
   If Not HaveFPMake then
     begin
-      HaveFPMake:=FileExists(D+'fpmake.pas');
+      HaveFPMake:=FileExists('fpmake.pas');
       If HaveFPMake then
-        FPMakeSrc:=D+'fpmake.pas';
+        FPMakeSrc:='fpmake.pas';
     end;
   { Need to compile fpmake executable? }
-  if FileAge(FPMakeBin)<FileAge(FPMakeSrc) then
+  if not FileExists(FPMakeBin) or
+     (FileAge(FPMakeBin)<FileAge(FPMakeSrc)) then
     begin
       if Not HaveFPMake then
         Error(SErrMissingFPMake);
       { Call compiler }
       C:=Defaults.Compiler;
       O:=FPmakeSrc;
-      Log(vCommands,SLogCompilingFPMake+C+' '+O);
       If ExecuteProcess(C,O)<>0 then
         Error(SErrFailedToCompileFPCMake)
     end
@@ -81,59 +87,40 @@ end;
 function TFPMakeCompiler.Execute(const Args:TActionArgs):boolean;
 begin
 {$warning TODO Check arguments}
-  CompileFPMake(Args[0]);
+  CompileFPMake;
   result:=true;
 end;
 
 
 { TFPMakeRunner }
 
-Function TFPMakeRunner.RunFPMake(const ADir:string) : Integer;
-
-  Function MaybeQuote(Const S : String) : String;
-  begin
-    If Pos(' ',S)=0 then
-      Result:=S
-    else
-      Result:='"'+S+'"';
-  end;
-
+Function TFPMakeRunner.RunFPMake(const Command:string) : Integer;
 Var
   I : integer;
-  FPMakeBin,
-  D,O : String;
+  FPMakeBin : string;
 begin
-  D:=IncludeTrailingPathDelimiter(ADir);
-  FPMakeBin:=D+'fpmake'+ExeExt;
-  O:='';
-  For I:=1 to ParamCount do
-    begin
-      If (O<>'') then
-        O:=O+' ';
-      O:=O+MaybeQuote(ParamStr(I));
-    end;
-  Log(vCommands,SLogRunningFPMake+FPMakeBin+' '+O);
-  Result:=ExecuteProcess(FPMakeBin,O);
+  FPMakeBin:='fpmake'+ExeExt;
+  SetCurrentDir(PackageBuildPath);
+  Result:=ExecuteProcess(FPMakeBin,Command);
 end;
 
 
-function TFPMakeRunner.Execute(const Args:TActionArgs):boolean;
+function TFPMakeRunnerBuild.Execute(const Args:TActionArgs):boolean;
 begin
-{$warning TODO Check arguments}
-  result:=(RunFPMake(Args[0])=0);
+  result:=(RunFPMake('--build')=0);
 end;
 
 
 
-function TCommandBuild.Execute(const Args:TActionArgs):boolean;
+function TFPMakeRunnerInstall.Execute(const Args:TActionArgs):boolean;
 begin
-  ActionStack.Push('fpmakebuild',[]);
-  ActionStack.Push('compilefpmake',[]);
+  result:=(RunFPMake('--install')=0);
 end;
+
 
 
 initialization
   RegisterPkgHandler('compilefpmake',TFPMakeCompiler);
-  RegisterPkgHandler('fpmakebuild',TFPMakeRunner);
-  RegisterPkgHandler('build',TCommandBuild);
+  RegisterPkgHandler('fpmakebuild',TFPMakeRunnerBuild);
+  RegisterPkgHandler('fpmakeinstall',TFPMakeRunnerInstall);
 end.

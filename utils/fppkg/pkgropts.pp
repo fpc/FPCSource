@@ -89,8 +89,8 @@ Const
   DefaultUnixPrefix = '/usr/local/lib/fpc/fppkg';
   DefaultUnixBuildDir = '/tmp/fppkg/';
   DefaultMirrors = 'mirrors.xml';
-  DefaultRepository = 'repository.dat';
-  DefaultVersions   = 'versions.dat';
+  DefaultRepository = 'packages.xml';
+  DefaultVersions   = 'versions-%s.dat';
 
   // ini file keys
   SDefaults = 'Defaults';
@@ -202,7 +202,7 @@ end;
 
 function TPackagerOptions.LocalVersions(CompilerConfig:String):string;
 begin
-  Result:=ExtractFilePath(FLocalRepository)+'versions-'+CompilerConfig+'.dat';
+  Result:=ExtractFilePath(FLocalRepository)+Format(DefaultVersions,[CompilerConfig]);
 end;
 
 
@@ -233,7 +233,7 @@ Procedure TPackagerOptions.InitCompilerDefaults;
 begin
   FCompiler:=FileSearch(DefaultCompiler+ExeExt,GetEnvironmentVariable('PATH'));
   if FCompiler='' then
-    Error(SErrMissingFPC);
+    Raise EPackageHandler.Create(SErrMissingFPC);
 {$warning TODO detect compiler version/target from -i options }
   FCompilerVersion:='2.0.4';
   FCompilerCPU:=StringToCPU(DefaultCPU);
