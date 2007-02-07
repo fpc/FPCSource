@@ -3071,6 +3071,7 @@ procedure SHAddToRecentDocs(_para1:UINT; _para2:LPCVOID); external KernelDLL nam
 function Shell_NotifyIcon(dwMessage: DWORD; lpData: PNotifyIconDataA): WINBOOL; external KernelDLL name 'Shell_NotifyIcon';
 function ShellExecuteEx(lpExecInfo:LPSHELLEXECUTEINFO):WINBOOL; external KernelDLL name 'ShellExecuteEx';
 function SHGetFileInfo(_para1:LPCTSTR; _para2:DWORD; var _para3:SHFILEINFO; _para4:UINT; _para5:UINT):DWORD; external KernelDLL name 'SHGetFileInfo';
+function SHGetFileInfoW(_para1:LPCTSTR; _para2:DWORD; var _para3:SHFILEINFO; _para4:UINT; _para5:UINT):DWORD; external KernelDLL name 'SHGetFileInfo';
 function ShowCaret(hWnd:HWND):WINBOOL; external KernelDLL name 'ShowCaret';
 function ShowCursor(bShow:WINBOOL):longint; external KernelDLL name 'ShowCursor';
 function ShowWindow(hWnd:HWND; nCmdShow:longint):WINBOOL; external KernelDLL name 'ShowWindow';

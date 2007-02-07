@@ -211,6 +211,8 @@ const
   DTN_WMKEYDOWNW      = DTN_FIRST + 16;
   DTN_FORMATW         = DTN_FIRST + 17;
   DTN_FORMATQUERYW    = DTN_FIRST + 18;
+  
+  DTN_USERSTRING     = DTN_USERSTRINGW;
 
   GDTR_MIN            = $0001;
   GDTR_MAX            = $0002;

@@ -2733,6 +2733,20 @@ Const
      HSHELL_WINDOWCREATED = 1;
      HSHELL_WINDOWDESTROYED = 2;
   { SHGetFileInfo  }
+  // supported SHGetFileInfo input flags
+     SHGFI_ICON              = $000000100;     // get icon
+     SHGFI_DISPLAYNAME       = $000000200;     // get display name
+     SHGFI_TYPENAME          = $000000400;     // get type name
+     SHGFI_ATTRIBUTES        = $000000800;     // get attributes
+     SHGFI_SYSICONINDEX      = $000004000;     // get system icon index
+     SHGFI_LARGEICON         = $000000000;     // get large icon
+     SHGFI_SMALLICON         = $000000001;     // get small icon
+     SHGFI_USEFILEATTRIBUTES = $000000010;     // use passed dwFileAttribute
+     SHGFI_PIDL              = $000000008;     // pszPath is a pidl
+// supported SHGetFileInfo output attributes
+     SFGAO_LINK              = $00010000;     // Shortcut (link)
+     SFGAO_READONLY          = $00040000;     // read-only
+     SFGAO_FOLDER            = $20000000;     // It's a folder.
   { SHGetSpecialFolderLocation  }
   { ShowWindow  }
      SW_HIDE = 0;

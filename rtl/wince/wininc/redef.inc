@@ -172,6 +172,10 @@ procedure GetLocalTime(var SystemTime: SYSTEMTIME); external KernelDLL name 'Get
 function GetMenuItemInfo(p1: HMENU; p2: UINT; p3: BOOL; var p4: TMenuItemInfo): BOOL; external KernelDLL name 'GetMenuItemInfoW';
 function GetMenuItemInfoW(p1: HMENU; p2: UINT; p3: BOOL; var p4: TMenuItemInfoW): BOOL; external KernelDLL name 'GetMenuItemInfoW';
 function GetMessage(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax: UINT): BOOL;external KernelDLL name 'GetMessageW';
+function GetOpenFileName(var OpenFile:TOPENFILENAMEW):WINBOOL; external KernelDLL name 'GetOpenFileNameW';
+function GetOpenFileNameW(var OpenFile:TOPENFILENAMEW):WINBOOL; external KernelDLL name 'GetOpenFileNameW';
+function GetSaveFileName(var OpenFile:TOPENFILENAMEW):WINBOOL; external KernelDLL name 'GetSaveFileNameW';
+function GetSaveFileNameW(var OpenFile:TOPENFILENAMEW):WINBOOL; external KernelDLL name 'GetSaveFileNameW';
 function GetScrollInfo(hWnd: HWND; BarFlag: Integer; var ScrollInfo: TScrollInfo): BOOL; external KernelDLL name 'GetScrollInfo';
 procedure GetSystemTime(var lpSystemTime:SYSTEMTIME); external KernelDLL name 'GetSystemTime';
 function GetTextExtentPoint32(DC: HDC; Str: LPWSTR; Count: Integer; var Size: TSize): BOOL;
@@ -206,6 +210,8 @@ function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external KernelDLL n
 function SetMenuItemInfo(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfo): BOOL; external KernelDLL name 'SetMenuItemInfoW';
 function SetMenuItemInfoW(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfoW): BOOL; external KernelDLL name 'SetMenuItemInfoW';
 function SetScrollInfo(hWnd: HWND; BarFlag: Integer; const ScrollInfo: TScrollInfo; Redraw: BOOL): Integer; external KernelDLL name 'SetScrollInfo';
+function SHFileOperation(const lpFileOp:SHFILEOPSTRUCTW): longint; external ShellDLL name 'SHFileOperationW';
+function SHFileOperationW(const lpFileOp:SHFILEOPSTRUCTW): longint; external ShellDLL name 'SHFileOperationW';
 function SystemTimeToFileTime(const lpSystemTime: TSystemTime; var lpFileTime: TFileTime): BOOL; external KernelDLL name 'SystemTimeToFileTime';
 function TranslateMessage(const lpMsg: TMsg): BOOL; external KernelDLL name 'TranslateMessage';
 function TryEnterCriticalSection(var CriticalSection : TRTLCriticalSection) : BOOL; external KernelDLL name 'TryEnterCriticalSection';

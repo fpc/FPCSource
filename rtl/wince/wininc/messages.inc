@@ -681,7 +681,7 @@
      TB_SETPARENT = 1061;
      TB_SETROWS = 1063;
      TB_SETSTATE = 1041;
-     TB_SETTOOLTIPS = 1060;
+     TB_SETTOOLTIPS = WM_USER + 81;
   { Track bar control  }
      TBM_CLEARSEL = 1043;
      TBM_CLEARTICS = 1033;

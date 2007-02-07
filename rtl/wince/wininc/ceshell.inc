@@ -178,12 +178,43 @@
 // consts
 //*****************************************************************************
 const
-   ShellDLL      = 'CEShell';
+  ShellDLL      = 'CEShell';
 
+  FO_MOVE           = $0001;
+  FO_COPY           = $0002;
+  FO_DELETE         = $0003;
+  FO_RENAME         = $0004;
 
+  FOF_MULTIDESTFILES         = $0001;
+  FOF_CONFIRMMOUSE           = $0002;
+  FOF_SILENT                 = $0004;  // don't create progress/report
+  FOF_RENAMEONCOLLISION      = $0008;
+  FOF_NOCONFIRMATION         = $0010;  // Don't prompt the user.
+  FOF_WANTMAPPINGHANDLE      = $0020;  // Fill in SHFILEOPSTRUCT.hNameMappings
+                                      // Must be freed using SHFreeNameMappings
+  FOF_ALLOWUNDO              = $0040;
+  FOF_FILESONLY              = $0080;  // on *.*, do only files
+  FOF_SIMPLEPROGRESS         = $0100;  // means don't show names of files
+  FOF_NOCONFIRMMKDIR         = $0200;  // don't confirm making any needed dirs
+  
 //*****************************************************************************
 // types
 //*****************************************************************************
+
+type
+{ IMalloc interface }
+
+  IMalloc = interface(IUnknown)
+    ['{00000002-0000-0000-C000-000000000046}']
+    function Alloc(cb: Longint): Pointer;
+    function Realloc(pv: Pointer; cb: Longint): Pointer;
+    procedure Free(pv: Pointer);
+    function GetSize(pv: Pointer): Longint;
+    function DidAlloc(pv: Pointer): Integer;
+    procedure HeapMinimize;
+  end;
+  LPMALLOC = ^IMalloc;
+  PMALLOC = ^IMalloc;
 
 //*****************************************************************************
 // functions
@@ -191,6 +222,8 @@ const
 function SHFileOperation(lpFileOp:LPSHFILEOPSTRUCTW): longint; external ShellDLL name 'SHFileOperationW';
 function SHFileOperationW(lpFileOp:LPSHFILEOPSTRUCTW): longint; external ShellDLL name 'SHFileOperationW';
 function SHGetPathFromIDList(_para1:LPCITEMIDLIST; _para2:LPTSTR):WINBOOL; external ShellDLL name 'SHGetPathFromIDList';
+function SHGetPathFromIDListW(_para1:LPCITEMIDLIST; _para2:LPTSTR):WINBOOL; external ShellDLL name 'SHGetPathFromIDList';
+function SHGetMalloc(var ppMalloc: LPMALLOC): HRESULT; external ShellDLL name 'SHGetMalloc';
 function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; var _para3:LPITEMIDLIST):HRESULT; external ShellDLL name 'SHGetSpecialFolderLocation';
 
 {$endif read_interface}
@@ -199,5 +232,3 @@ function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; var _para3:LPIT
 
 
 {$endif read_implementation}
-
-

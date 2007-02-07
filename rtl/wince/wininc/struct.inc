@@ -478,21 +478,6 @@
      TITEMIDLIST = ITEMIDLIST;
      PITEMIDLIST = ^ITEMIDLIST;
 
-     BROWSEINFO = record
-          hwndOwner : HWND;
-          pidlRoot : LPCITEMIDLIST;
-          pszDisplayName : LPSTR;
-          lpszTitle : LPCSTR;
-          ulFlags : UINT;
-          lpfn : BFFCALLBACK;
-          lParam : LPARAM;
-          iImage : longint;
-       end;
-     LPBROWSEINFO = ^BROWSEINFO;
-     _browseinfo = BROWSEINFO;
-     Tbrowseinfo = BROWSEINFO;
-     PBROWSEINFO = ^BROWSEINFO;
-
      FILETIME = record
           dwLowDateTime : DWORD;
           dwHighDateTime : DWORD;
@@ -5408,36 +5393,6 @@
      TOFSTRUCT = OFSTRUCT;
      POFSTRUCT = ^OFSTRUCT;
 
-     OPENFILENAME = record
-          lStructSize : DWORD;
-          hwndOwner : HWND;
-          hInstance : HINST;
-          lpstrFilter : LPCTSTR;
-          lpstrCustomFilter : LPTSTR;
-          nMaxCustFilter : DWORD;
-          nFilterIndex : DWORD;
-          lpstrFile : LPTSTR;
-          nMaxFile : DWORD;
-          lpstrFileTitle : LPTSTR;
-          nMaxFileTitle : DWORD;
-          lpstrInitialDir : LPCTSTR;
-          lpstrTitle : LPCTSTR;
-          Flags : DWORD;
-          nFileOffset : WORD;
-          nFileExtension : WORD;
-          lpstrDefExt : LPCTSTR;
-          lCustData : DWORD;
-          lpfnHook : LPOFNHOOKPROC;
-          lpTemplateName : LPCTSTR;
-       end;
-     LPOPENFILENAME = ^OPENFILENAME;
-     TOPENFILENAME = OPENFILENAME;
-     POPENFILENAME = ^OPENFILENAME;
-
-     tagOFN = OPENFILENAME;
-     TOFN = OPENFILENAME;
-     POFN = ^OPENFILENAME;
-
      OPENFILENAMEW = record     //+commdlg
           lStructSize : DWORD;
           hwndOwner : HWND;
@@ -5462,6 +5417,15 @@
        end;
      LPOPENFILENAMEW = ^OPENFILENAMEW; //+commdlg
      tagOFNW = OPENFILENAMEW; //+commdlg
+     LPOPENFILENAME = ^OPENFILENAMEW;
+     TOPENFILENAME = OPENFILENAMEW;
+     POPENFILENAME = ^OPENFILENAMEW;
+     TOPENFILENAMEW = OPENFILENAMEW;
+     POPENFILENAMEW = ^OPENFILENAMEW;
+
+     tagOFN = OPENFILENAMEW;
+     TOFN = OPENFILENAMEW;
+     POFN = ^OPENFILENAMEW;
 
      OFNOTIFY = record
           hdr : NMHDR;
@@ -6534,23 +6498,8 @@
      TFILEOPFLAGS = FILEOP_FLAGS;
      PFILEOPFLAGS = ^FILEOP_FLAGS;
 
-     SHFILEOPSTRUCT = record
-          hwnd : HWND;
-          wFunc : UINT;
-          pFrom : LPCSTR;
-          pTo : LPCSTR;
-          fFlags : FILEOP_FLAGS;
-          fAnyOperationsAborted : WINBOOL;
-          hNameMappings : LPVOID;
-          lpszProgressTitle : LPCSTR;
-       end;
-     LPSHFILEOPSTRUCT = ^SHFILEOPSTRUCT;
-     _SHFILEOPSTRUCT = SHFILEOPSTRUCT;
-     TSHFILEOPSTRUCT = SHFILEOPSTRUCT;
-     PSHFILEOPSTRUCT = ^SHFILEOPSTRUCT;
-
      SHFILEOPSTRUCTW = record //+shellapi
-          hwnd : HWND;
+          wnd : HWND;
           wFunc : UINT;
           pFrom : LPCWSTR;
           pTo : LPCWSTR;
@@ -6560,7 +6509,12 @@
           lpszProgressTitle : LPCWSTR;
        end;
      LPSHFILEOPSTRUCTW = ^SHFILEOPSTRUCTW;
-     
+     _SHFILEOPSTRUCT = SHFILEOPSTRUCTW;
+     TSHFILEOPSTRUCT = SHFILEOPSTRUCTW;
+     PSHFILEOPSTRUCT = ^SHFILEOPSTRUCTW;
+     TSHFILEOPSTRUCTW = SHFILEOPSTRUCTW;
+     PSHFILEOPSTRUCTW = ^SHFILEOPSTRUCTW;
+
      SHGNO = (SHGDN_NORMAL := 0,SHGDN_INFOLDER := 1,
        SHGDN_FORPARSING := $8000);
      tagSHGDN = SHGNO;
