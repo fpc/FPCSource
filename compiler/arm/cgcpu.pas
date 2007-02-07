@@ -857,7 +857,10 @@ unit cgcpu;
                    if assigned(ref.symbol) or
                      (ref.index<>NR_NO) or
                      (ref.offset<-4095) or
-                     (ref.offset>4094) then
+                     (ref.offset>4094) or
+                     { sometimes the compiler reused registers }
+                     (reg=ref.index) or
+                     (reg=ref.base) then
                      begin
                        tmpreg3:=getintregister(list,OS_INT);
                        a_loadaddr_ref_reg(list,ref,tmpreg3);
@@ -886,7 +889,10 @@ unit cgcpu;
                    if assigned(ref.symbol) or
                      (ref.index<>NR_NO) or
                      (ref.offset<-4095) or
-                     (ref.offset>4092) then
+                     (ref.offset>4092) or
+                     { sometimes the compiler reused registers }
+                     (reg=ref.index) or
+                     (reg=ref.base) then
                      begin
                        tmpreg3:=getintregister(list,OS_INT);
                        a_loadaddr_ref_reg(list,ref,tmpreg3);

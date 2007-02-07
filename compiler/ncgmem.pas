@@ -375,7 +375,7 @@ implementation
                    (tabstractrecordsymtable(vs.owner).usefieldalignment=1) then
                    location.reference.alignment:=1;
 {$endif SUPPORT_UNALIGNED}
-    
+
                end
              else if (vs.fieldoffset mod 8 = 0) and
                      (resultdef.packedbitsize mod 8 = 0) and
