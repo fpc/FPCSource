@@ -746,6 +746,7 @@ var r            : Integer;
     FailedCount  : integer;
     Response     : TResolverResponse;
     StoreRecBuf  : PBufRecLinkItem;
+    AUpdateErr   : EUpdateError;
 
 begin
   CheckBrowseMode;
@@ -771,13 +772,21 @@ begin
             Inc(FailedCount);
             if failedcount > word(MaxErrors) then Response := rrAbort
             else Response := rrSkip;
-            if assigned(FOnUpdateError) then FOnUpdateError(Self,Self,EUpdateError.Create(SOnUpdateError,E.Message,0,0,E),FUpdateBuffer[r].UpdateKind,Response)
-            else if Response = rrAbort then Raise EUpdateError.Create(SOnUpdateError,E.Message,0,0,E)
+            if assigned(FOnUpdateError) then
+              begin
+              AUpdateErr := EUpdateError.Create(SOnUpdateError,E.Message,0,0,Exception(AcquireExceptionObject));
+              FOnUpdateError(Self,Self,AUpdateErr,FUpdateBuffer[r].UpdateKind,Response);
+              AUpdateErr.Free;
+              if Response in [rrApply, rrIgnore] then dec(FailedCount);
+              if Response = rrApply then dec(r);
+              end
+            else if Response = rrAbort then
+              Raise EUpdateError.Create(SOnUpdateError,E.Message,0,0,Exception(AcquireExceptionObject));
             end
           else
             raise;
         end;
-        if response = rrApply then
+        if response in [rrApply, rrIgnore] then
           begin
           FreeRecordBuffer(FUpdateBuffer[r].OldValuesBuffer);
           FUpdateBuffer[r].BookmarkData := nil;
