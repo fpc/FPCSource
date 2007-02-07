@@ -467,8 +467,8 @@ implementation
                   location.register := cg.getintregister(current_asmdata.CurrAsmList, uopsize);
 
                   if (opsize >= OS_S8) or { = if signed }
-                     ((left.resultdef.typ=orddef)  and (torddef(left.resultdef).high >= tsetdef(right.resultdef).setmax)) or
-                     ((left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max >= tsetdef(right.resultdef).setmax)) then
+                     ((left.resultdef.typ=orddef)  and (torddef(left.resultdef).high > tsetdef(right.resultdef).setmax)) or
+                     ((left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max > tsetdef(right.resultdef).setmax)) then
                     begin
                       current_asmdata.getjumplabel(l);
                       current_asmdata.getjumplabel(l2);

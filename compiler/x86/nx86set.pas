@@ -428,8 +428,8 @@ implementation
                   location_freetemp(current_asmdata.CurrAsmList,left.location);
 
                   if (opsize >= OS_S8) or { = if signed }
-                    ((left.resultdef.typ=orddef)  and (torddef(left.resultdef).high >= tsetdef(right.resultdef).setmax)) or
-                    ((left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max >= tsetdef(right.resultdef).setmax)) then
+                    ((left.resultdef.typ=orddef)  and (torddef(left.resultdef).high > tsetdef(right.resultdef).setmax)) or
+                    ((left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max > tsetdef(right.resultdef).setmax)) then
                    begin
 
                     { we have to check if the value is < 0 or > setmax }

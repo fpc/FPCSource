@@ -1940,12 +1940,19 @@ begin
              write  (space,'     Element type : ');
              readderef;
              b:=getbyte;
+             // skip savesize
+             getaint;
              case tsettype(b) of
-               smallset : writeln(space,'  Set with 32 Elements');
-               normset  : writeln(space,'  Set with 256 Elements');
-               varset   : writeln(space,'  Set with ',getlongint,' Elements');
+               smallset : write(space,'  SmallSet');
+               normset  : write(space,'  NormalSet');
+               varset   : write(space,'  VarSet');
                else       writeln('!! Warning: Invalid set type ',b);
              end;
+             // set base
+             l:=getaint;
+             // set max
+             j:=getaint;
+             writeln(' with ',j-l,' elements');
            end;
 
          ibvariantdef :

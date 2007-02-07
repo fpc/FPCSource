@@ -2036,13 +2036,9 @@ implementation
          inherited ppuload(setdef,ppufile);
          ppufile.getderef(elementdefderef);
          settype:=tsettype(ppufile.getbyte);
-         case settype of
-           normset :
-             savesize:=ppufile.getaint;
-           varset,
-           smallset :
-             savesize:=ppufile.getlongint;
-         end;
+         savesize:=ppufile.getaint;
+         setbase:=ppufile.getaint;
+         setmax:=ppufile.getaint;
       end;
 
 
@@ -2060,13 +2056,9 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.putderef(elementdefderef);
          ppufile.putbyte(byte(settype));
-         case settype of
-           varset,
-           smallset:
-             ppufile.putlongint(savesize);
-           normset:
-             ppufile.putaint(savesize);
-         end;
+         ppufile.putaint(savesize);
+         ppufile.putaint(setbase);
+         ppufile.putaint(setmax);
          ppufile.writeentry(ibsetdef);
       end;
 
