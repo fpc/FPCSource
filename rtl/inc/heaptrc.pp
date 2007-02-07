@@ -942,6 +942,7 @@ begin
       end;
    end;
   writeln(ptext^,'pointer $',hexstr(ptrint(p),2*sizeof(pointer)),' does not point to valid memory block');
+  dump_error(p,ptext^);
   runerror(204);
 _exit:
 end;
