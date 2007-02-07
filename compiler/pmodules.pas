@@ -715,6 +715,7 @@ implementation
       var
         ps  : tprocsym;
         pd  : tprocdef;
+        store_pocall : tproccalloption;
       begin
         { there should be no current_procinfo available }
         if assigned(current_procinfo) then
@@ -734,7 +735,12 @@ implementation
         pd.forwarddef:=false;
         pd.setmangledname(target_info.cprefix+name);
         pd.aliasnames.insert(pd.mangledname);
+        { We should leave it as pocall_default
+          see webbug 8270 PM }
+        store_pocall:=current_settings.defproccall;
+        current_settings.defproccall:=pocall_default;
         handle_calling_convention(pd);
+        current_settings.defproccall:=store_pocall;
         { We don't need is a local symtable. Change it into the static
           symtable }
         pd.localst.free;
