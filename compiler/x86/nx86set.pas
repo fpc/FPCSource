@@ -185,7 +185,7 @@ implementation
           swapleftright;
 
          orgopsize := def_cgsize(left.resultdef);
-         opsize := OS_INT;
+         opsize := OS_32;
          if is_signed(left.resultdef) then
            opsize := tcgsize(ord(opsize)+(ord(OS_S8)-ord(OS_8)));
 
