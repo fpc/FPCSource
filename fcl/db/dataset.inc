@@ -505,16 +505,32 @@ var
   
 begin
   DT := aField.DataType;
-  case DT of
-    ftDate, ftTime, ftDateTime: TDateTime(aDest^) := DateTimeRecToDateTime(DT, TDateTimeRec(aSource^));
-    ftTimeStamp               : TTimeStamp(aDest^) := TTimeStamp(aSource^);
-//    ftBCD                     : ;
-//    ftFMTBCD                  : ;
-//    ftBytes                   : ;
-//    ftVarBytes                : ;
-//    ftWideString              : ;
+  if aToNative then
+    begin
+    case DT of
+      ftDate, ftTime, ftDateTime: TDateTimeRec(aDest^) := DateTimeToDateTimeRec(DT, TDateTime(aSource^));
+      ftTimeStamp               : TTimeStamp(aDest^) := TTimeStamp(aSource^);
+  //    ftBCD                     : ;
+      ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
+  //    ftBytes                   : ;
+  //    ftVarBytes                : ;
+  //    ftWideString              : ;
 
-  end;
+      end
+    end
+  else
+    begin
+    case DT of
+      ftDate, ftTime, ftDateTime: TDateTime(aDest^) := DateTimeRecToDateTime(DT, TDateTimeRec(aSource^));
+      ftTimeStamp               : TTimeStamp(aDest^) := TTimeStamp(aSource^);
+  //    ftBCD                     : ;
+      ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
+  //    ftBytes                   : ;
+  //    ftVarBytes                : ;
+  //    ftWideString              : ;
+
+      end
+    end
 end;
 
 function TDataSet.GetFieldData(Field: TField; Buffer: Pointer;
@@ -598,25 +614,30 @@ end;
 procedure TDataSet.SetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean);
 
-
 Var
-  DT : TFieldType;
-  DTRBuffer : TDateTimeRec;
+  AStatBuffer : Array[0..dsMaxStringSize] of Char;
+  ADynBuffer : pchar;
 
 begin
   if NativeFormat then
     SetFieldData(Field, Buffer)
   else
     begin
-    DT := Field.DataType;
-    case DT of
-      ftDate, ftTime, ftDateTime: begin
-                                  DTRBuffer := DateTimeToDateTimeRec(DT,TDateTime(buffer^));
-                                  SetFieldData(Field,@DTRBuffer);
-                                  end
+    if Field.DataSize <= dsMaxStringSize then
+      begin
+      DataConvert(Field,Buffer,@AStatBuffer,True);
+      SetfieldData(Field, @AStatBuffer);
+      end
     else
-      SetFieldData(Field, Buffer);
-    end; {case};
+      begin
+      GetMem(ADynBuffer,Field.DataSize);
+      try
+        DataConvert(Field,Buffer,@AStatBuffer,True);
+        SetfieldData(Field, @AStatBuffer);
+      finally
+        FreeMem(ADynBuffer);
+        end;
+      end;
     end;
 end;
 

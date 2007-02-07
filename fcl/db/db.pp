@@ -1800,7 +1800,7 @@ function SkipComments(var p: PChar; EscapeSlash, EscapeRepeat : Boolean) : boole
 
 implementation
 
-uses dbconst,typinfo;
+uses dbconst,typinfo, fmtbcd;
 
 { ---------------------------------------------------------------------
     Auxiliary functions
