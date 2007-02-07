@@ -1,0 +1,196 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2007 by contributors of the Free Pascal Compiler
+
+    Pascal system unit for the Symbian OS
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+unit System;
+
+interface
+
+{$ifdef SYSTEMDEBUG}
+  {$define SYSTEMEXCEPTIONDEBUG}
+{$endif SYSTEMDEBUG}
+
+{$ifdef cpui386}
+  {$define Set_i386_Exception_handler}
+{$endif cpui386}
+
+{$define DISABLE_NO_THREAD_MANAGER}
+
+{ include system-independent routine headers }
+{$I systemh.inc}
+
+const
+  LineEnding = #13#10;
+  LFNSupport = true;
+  DirectorySeparator = '\';
+  DriveSeparator = ':';
+  PathSeparator = ';';
+  { FileNameCaseSensitive is defined separately below }
+  maxExitCode = 65535;
+  MaxPathLen = 260;
+
+type
+   PEXCEPTION_FRAME = ^TEXCEPTION_FRAME;
+   TEXCEPTION_FRAME = record
+     next : PEXCEPTION_FRAME;
+     handler : pointer;
+   end;
+
+const
+{ Default filehandles }
+  UnusedHandle    : THandle = -1;
+  StdInputHandle  : THandle = 0;
+  StdOutputHandle : THandle = 0;
+  StdErrorHandle  : THandle = 0;
+
+  FileNameCaseSensitive : boolean = true;
+  CtrlZMarksEOF: boolean = true; (* #26 not considered as end of file *)
+
+  sLineBreak = LineEnding;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
+
+  { Thread count for DLL }
+  Thread_count : longint = 0;
+  System_exception_frame : PEXCEPTION_FRAME =nil;
+
+type
+  TStartupInfo=packed record
+    cb : longint;
+    lpReserved : Pointer;
+    lpDesktop : Pointer;
+    lpTitle : Pointer;
+    dwX : longint;
+    dwY : longint;
+    dwXSize : longint;
+    dwYSize : longint;
+    dwXCountChars : longint;
+    dwYCountChars : longint;
+    dwFillAttribute : longint;
+    dwFlags : longint;
+    wShowWindow : Word;
+    cbReserved2 : Word;
+    lpReserved2 : Pointer;
+    hStdInput : longint;
+    hStdOutput : longint;
+    hStdError : longint;
+  end;
+
+var
+{ C compatible arguments }
+  argc : longint;
+  argv : ppchar;
+{ Win32 Info }
+  startupinfo : tstartupinfo;
+  hprevinst,
+  MainInstance,
+  cmdshow     : longint;
+  DLLreason,DLLparam:longint;
+type
+  TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
+  TDLL_Entry_Hook = procedure (dllparam : longint);
+
+const
+  Dll_Process_Attach_Hook : TDLL_Process_Entry_Hook = nil;
+  Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
+  Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
+  Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
+
+implementation
+
+var
+  SysInstance: Longint; public name '_FPC_SysInstance';
+
+{ include system independent routines }
+{$I system.inc}
+
+{*****************************************************************************
+                              Parameter Handling
+*****************************************************************************}
+
+var
+  ModuleName : array[0..255] of char;
+
+function GetCommandFile:pchar;
+begin
+
+end;
+
+
+procedure setup_arguments;
+begin
+
+end;
+
+
+function paramcount : longint;
+begin
+  paramcount := argc - 1;
+end;
+
+function paramstr(l : longint) : string;
+begin
+  if (l>=0) and (l<argc) then
+    paramstr:=strpas(argv[l])
+  else
+    paramstr:='';
+end;
+
+
+procedure randomize;
+begin
+//  randseed:=GetTickCount;
+end;
+
+{*****************************************************************************
+                         Exit code and Entry Point
+*****************************************************************************}
+
+procedure PascalMain; stdcall; external name 'PASCALMAIN';
+procedure fpc_do_exit; stdcall; external name 'FPC_DO_EXIT';
+
+procedure SysInitStdIO;
+begin
+
+end;
+
+procedure _E32Startup; stdcall; public name '_E32Startup';
+begin
+  IsLibrary:=false;
+  
+  PascalMain;
+
+  { if we pass here there was no error }
+  fpc_do_exit;
+end;
+
+{*****************************************************************************
+                         Process routines
+*****************************************************************************}
+
+(* ProcessID cached to avoid repeated calls to GetCurrentProcess. *)
+
+var
+  ProcessID: SizeUInt;
+
+function GetProcessID: SizeUInt;
+begin
+  GetProcessID := ProcessID;
+end;
+
+function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
+begin
+  result := stklen;
+end;
+
+begin
+end.
