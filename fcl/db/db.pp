@@ -1150,6 +1150,7 @@ type
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint; virtual;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; virtual;
     procedure CursorPosChanged;
+    procedure DataConvert(aField: TField; aSource, aDest: Pointer; aToNative: Boolean); virtual;
     procedure Delete;
     procedure DisableControls;
     procedure Edit;

@@ -497,26 +497,53 @@ begin
   Result := False;
 end;
 
+procedure TDataSet.DataConvert(aField: TField; aSource, aDest: Pointer;
+  aToNative: Boolean);
+  
+var
+  DT : TFieldType;
+  
+begin
+  DT := aField.DataType;
+  case DT of
+    ftDate, ftTime, ftDateTime: TDateTime(aDest^) := DateTimeRecToDateTime(DT, TDateTimeRec(aSource^));
+    ftTimeStamp               : TTimeStamp(aDest^) := TTimeStamp(aSource^);
+//    ftBCD                     : ;
+//    ftFMTBCD                  : ;
+//    ftBytes                   : ;
+//    ftVarBytes                : ;
+//    ftWideString              : ;
+
+  end;
+end;
+
 function TDataSet.GetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean): Boolean;
 
 Var
-  DT : TFieldType;
-  DTRBuffer : TDateTimeRec;
+  AStatBuffer : Array[0..dsMaxStringSize] of Char;
+  ADynBuffer : pchar;
+
 begin
   If NativeFormat then
     Result:=GetFieldData(Field, Buffer)
   else
     begin
-    DT := Field.DataType;
-    case DT of
-      ftDate, ftTime, ftDateTime: begin
-                                  Result := GetfieldData(Field, @DTRBuffer);
-                                  TDateTime(buffer^) := DateTimeRecToDateTime(DT, DTRBuffer);
-                                  end
+    if Field.DataSize <= dsMaxStringSize then
+      begin
+      Result := GetfieldData(Field, @AStatBuffer);
+      if Result then DataConvert(Field,@AStatBuffer,Buffer,False);
+      end
     else
-      Result:=GetFieldData(Field, Buffer)
-    end;
+      begin
+      GetMem(ADynBuffer,Field.DataSize);
+      try
+        Result := GetfieldData(Field, ADynBuffer);
+        if Result then DataConvert(Field,ADynBuffer,Buffer,False);
+      finally
+        FreeMem(ADynBuffer);
+        end;
+      end;
     end;
 end;
 
