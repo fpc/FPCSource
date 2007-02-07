@@ -1453,8 +1453,8 @@ end;
 
 Procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo; const Value : TMethod);
 type
-  TSetMethodProcIndex=procedure(index:longint;p:PMethod) of object;
-  TSetMethodProc=procedure(p:PMethod) of object;
+  TSetMethodProcIndex=procedure(index:longint;p:TMethod) of object;
+  TSetMethodProc=procedure(p:TMethod) of object;
 var
   AMethod : TMethod;
 begin
@@ -1470,9 +1470,9 @@ begin
           AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Ptrint(PropInfo^.SetProc))^;
         AMethod.Data:=Instance;
         if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
-          TSetMethodProcIndex(AMethod)(PropInfo^.Index,@Value)
+          TSetMethodProcIndex(AMethod)(PropInfo^.Index,Value)
         else
-          TSetMethodProc(AMethod)(@Value);
+          TSetMethodProc(AMethod)(Value);
       end;
   end;
 end;
