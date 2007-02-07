@@ -151,8 +151,9 @@ implementation
       { be caught when range checking is on! (JM)                        }
       { cg.a_op_const_reg(list,OP_AND,31,bitnumber);                     }
 
-      if bitsize<>ressize then
+      if tcgsize2unsigned[bitsize]<>tcgsize2unsigned[ressize] then
         begin
+          internalerror(2007020401);
           { FIX ME! We're not allowed to modify the value register here! }
 
           { shift value register "bitnumber" bits to the right }
@@ -232,7 +233,7 @@ implementation
       begin
          { check if we can use smallset operation using btl which is limited
            to 32 bits, the left side may also not contain higher values !! }
-         use_small:=(tsetdef(right.resultdef).settype=smallset) and
+         use_small:=(tsetdef(right.resultdef).settype=smallset) and not is_signed(left.resultdef) and
                     ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high<=32) or
                      (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<=32));
 
@@ -262,17 +263,26 @@ implementation
          pleftreg   : tregister;
          setparts   : Tsetparts;
          opsize     : tcgsize;
+         uopsize    : tcgsize;
+         orgopsize  : tcgsize;
          genjumps,
          use_small  : boolean;
          i,numparts : byte;
-
+         l, l2      : tasmlabel;
+         needslabel : Boolean;
        begin
          { We check first if we can generate jumps, this can be done
            because the resultdef is already set in firstpass }
 
          genjumps := checkgenjumps(setparts,numparts,use_small);
 
-         opsize:=OS_32;
+         orgopsize := def_cgsize(left.resultdef);
+         uopsize := OS_INT;
+         if is_signed(left.resultdef) then
+           opsize := tcgsize(ord(uopsize)+(ord(OS_S8)-ord(OS_8)))
+         else
+           opsize := uopsize;
+         needslabel := false;
 
          { calculate both operators }
          { the complex one first }
@@ -307,7 +317,7 @@ implementation
               { use fact that a <= x <= b <=> aword(x-a) <= aword(b-a) }
               begin
                 { is the range different from all legal values? }
-                if (setparts[i].stop-setparts[i].start <> 255) then
+                if (setparts[i].stop-setparts[i].start <> 255) or not (orgopsize = OS_8) then
                   begin
                     { yes, is the lower bound <> 0? }
                     if (setparts[i].start <> 0) then
@@ -364,7 +374,7 @@ implementation
          {*****************************************************************}
           begin
             { location is always LOC_REGISTER }
-            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+            location_reset(location, LOC_REGISTER, uopsize{def_cgsize(resultdef)});
 
             { We will now generated code to check the set itself, no jmps,
               handle smallsets separate, because it allows faster checks }
@@ -373,17 +383,17 @@ implementation
                {****************************  SMALL SET **********************}
                if left.nodetype=ordconstn then
                 begin
-                  location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,true);
+                  location_force_reg(current_asmdata.CurrAsmList, right.location, uopsize, true);
                   location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
                   { first SHR the register }
-                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,opsize,tordconstnode(left).value and 31,right.location.register,location.register);
+                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, uopsize, tordconstnode(left).value and 31, right.location.register, location.register);
                   { then extract the lowest bit }
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,opsize,1,location.register);
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_AND, uopsize, 1, location.register);
                 end
                else
                 begin
                   location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
-                  location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,false);
+                  location_force_reg(current_asmdata.CurrAsmList, right.location, uopsize, false);
                   { allocate a register for the result }
                   location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
                   { emit bit test operation }
@@ -409,26 +419,30 @@ implementation
                   else
                     hr := left.location.register;
                   { load right in register }
-                  hr2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                  cg.a_load_const_reg(current_asmdata.CurrAsmList,opsize,right.location.value,hr2);
+                  hr2:=cg.getintregister(current_asmdata.CurrAsmList, uopsize);
+                  cg.a_load_const_reg(current_asmdata.CurrAsmList, uopsize, right.location.value, hr2);
 
                   { emit bit test operation }
-                  emit_bit_test_reg_reg(current_asmdata.CurrAsmList,left.location.size,left.location.register,hr2,opsize,hr2);
+                  emit_bit_test_reg_reg(current_asmdata.CurrAsmList, left.location.size, left.location.register, hr2, uopsize, hr2);
 
                   { if left > 31 then hr := 0 else hr := $ffffffff }
-                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,32,left.location.register,hr);
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,opsize,31,hr);
+                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SUB, uopsize, 32, left.location.register, hr);
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SAR, uopsize, 31, hr);
 
                   { if left > 31, then result := 0 else result := result of bit test }
-                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_AND,opsize,hr,hr2);
+                  cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_AND, uopsize, hr, hr2);
                   { allocate a register for the result }
                   location.register := cg.getintregister(current_asmdata.CurrAsmList,location.size);
-                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,location.size,hr2,location.register);
+                  cg.a_load_reg_reg(current_asmdata.CurrAsmList, uopsize, location.size, hr2, location.register);
                 end { of right.location.loc=LOC_CONSTANT }
                { do search in a normal set which could have >32 elementsm
                  but also used if the left side contains higher values > 32 }
                else if left.nodetype=ordconstn then
                 begin
+                  if (tordconstnode(left).value < 0) or ((tordconstnode(left).value shr 3) >= right.resultdef.size) then
+                    {should be caught earlier }
+                    internalerror(2007020402);
+
                   { use location.register as scratch register here }
                   if (target_info.endian = endian_little) then
                     inc(right.location.reference.offset,tordconstnode(left).value shr 3)
@@ -444,38 +458,73 @@ implementation
                 end
                else
                 begin
-                  location_force_reg(current_asmdata.CurrAsmList,left.location,OS_INT,true);
+                  location_force_reg(current_asmdata.CurrAsmList, left.location, opsize, true);
                   pleftreg := left.location.register;
 
                   location_freetemp(current_asmdata.CurrAsmList,left.location);
-                  hr := cg.getaddressregister(current_asmdata.CurrAsmList);
-                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,5,pleftreg,hr);
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_INT,2,hr);
 
-                  href := right.location.reference;
-                  if (href.base = NR_NO) then
-                    href.base := hr
-                  else if (right.location.reference.index = NR_NO) then
-                    href.index := hr
-                  else
-                    begin
-                      hr2 := cg.getaddressregister(current_asmdata.CurrAsmList);
-                      cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href, hr2);
-                      reference_reset_base(href,hr2,0);
-                      href.index := hr;
-                    end;
                   { allocate a register for the result }
-                  location.register := cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,opsize,opsize,href,location.register);
+                  location.register := cg.getintregister(current_asmdata.CurrAsmList, uopsize);
 
-                  hr := cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_AND,opsize,31,pleftreg,hr);
-                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SHR,opsize,hr,location.register);
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,opsize,1,location.register);
+                  if (opsize >= OS_S8) or { = if signed }
+                     ((left.resultdef.typ=orddef)  and (torddef(left.resultdef).high >= tsetdef(right.resultdef).setmax)) or
+                     ((left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max >= tsetdef(right.resultdef).setmax)) then
+                    begin
+                      current_asmdata.getjumplabel(l);
+                      current_asmdata.getjumplabel(l2);
+                      needslabel := True;
+
+                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_BE, tsetdef(right.resultdef).setmax, pleftreg, l);
+
+                      cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, 0, location.register);
+                      cg.a_jmp_always(current_asmdata.CurrAsmList, l2);
+
+                      cg.a_label(current_asmdata.CurrAsmList, l);
+                    end;
+
+                  case right.location.loc of
+                    LOC_REGISTER, LOC_CREGISTER :
+                      begin
+                        cg.a_load_reg_reg(current_asmdata.CurrAsmList, uopsize, uopsize, right.location.register, location.register);
+                      end;
+                    LOC_CREFERENCE, LOC_REFERENCE :
+                      begin
+                        hr := cg.getaddressregister(current_asmdata.CurrAsmList);
+                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, uopsize, 5, pleftreg, hr);
+                        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SHL, uopsize, 2, hr);
+
+                        href := right.location.reference;
+                        if (href.base = NR_NO) then
+                          href.base := hr
+                        else if (right.location.reference.index = NR_NO) then
+                          href.index := hr
+                        else
+                          begin
+                            hr2 := cg.getaddressregister(current_asmdata.CurrAsmList);
+                            cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, href, hr2);
+                            reference_reset_base(href, hr2, 0);
+                            href.index := hr;
+                          end;
+                        cg.a_load_ref_reg(current_asmdata.CurrAsmList, uopsize, uopsize, href, location.register);
+                      end
+                    else
+                      internalerror(2007020403);
+                  end;
+
+                  hr := cg.getintregister(current_asmdata.CurrAsmList, uopsize);
+                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_AND, uopsize, 31, pleftreg, hr);
+                  cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_SHR, uopsize, hr, location.register);
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_AND, uopsize, 1, location.register);
+
+                  if needslabel then
+                    cg.a_label(current_asmdata.CurrAsmList, l2);
                 end;
              end;
           end;
-          location_freetemp(current_asmdata.CurrAsmList,right.location);
+          location_freetemp(current_asmdata.CurrAsmList, right.location);
+
+          location.size := def_cgsize(resultdef);
+          location.register := cg.makeregsize(current_asmdata.CurrAsmList, location.register, location.size);
        end;
 
 {*****************************************************************************

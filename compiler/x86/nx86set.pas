@@ -87,6 +87,7 @@ implementation
          hreg,hreg2,
          pleftreg   : tregister;
          opsize     : tcgsize;
+         orgopsize  : tcgsize;
          setparts   : array[1..8] of Tsetpart;
          i,numparts : byte;
          adjustment : longint;
@@ -144,12 +145,6 @@ implementation
                      setparts[numparts].start:=setparts[numparts].stop;
                      setparts[numparts].stop:=i;
                      ranges := true;
-                     { there's only one compare per range anymore. Only a }
-                     { sub is added, but that's much faster than a        }
-                     { cmp/jcc combo so neglect its effect                }
-{                     inc(compares);
-                     if compares>maxcompares then
-                      exit; }
                    end
                   else
                    begin
@@ -165,8 +160,8 @@ implementation
            because the resultdef is already set in firstpass }
 
          { check if we can use smallset operation using btl which is limited
-           to 32 bits, the left side may also not contain higher values !! }
-         use_small:=(tsetdef(right.resultdef).settype=smallset) and
+           to 32 bits, the left side may also not contain higher values or be signed !! }
+         use_small:=(tsetdef(right.resultdef).settype=smallset) and not is_signed(left.resultdef) and
                     ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high<=32) or
                      (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<=32));
 
@@ -189,42 +184,31 @@ implementation
          if nf_swapped in flags then
           swapleftright;
 
+         orgopsize := def_cgsize(left.resultdef);
+         opsize := OS_INT;
+         if is_signed(left.resultdef) then
+           opsize := tcgsize(ord(opsize)+(ord(OS_S8)-ord(OS_8)));
+
          if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
-           location_force_reg(current_asmdata.CurrAsmList,left.location,OS_INT,true);
+           location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+
          if genjumps then
           begin
             { It gives us advantage to check for the set elements
               separately instead of using the SET_IN_BYTE procedure.
               To do: Build in support for LOC_JUMP }
 
-            opsize := def_cgsize(left.resultdef);
-            { If register is used, use only lower 8 bits }
+            { load and zero or sign extend as necessary }
             if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
              begin
-               { for ranges we always need a 32bit register, because then we }
-               { use the register as base in a reference (JM)                }
-               if ranges then
-                 begin
-                   pleftreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
-                   cg.a_load_reg_reg(current_asmdata.CurrAsmList,left.location.size,OS_INT,left.location.register,pleftreg);
-                   if opsize<>OS_INT then
-                     cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,255,pleftreg);
-                   opsize:=OS_INT;
-                 end
-               else
-                 { otherwise simply use the lower 8 bits (no "and" }
-                 { necessary this way) (JM)                        }
-                 begin
-                   pleftreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_8);
-                   opsize := OS_8;
-                 end;
+               pleftreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,opsize);
+               cg.a_load_reg_reg(current_asmdata.CurrAsmList,left.location.size,opsize,left.location.register,pleftreg);
              end
             else
              begin
                { load the value in a register }
-               pleftreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-               opsize:=OS_32;
-               cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,OS_32,left.location.reference,pleftreg);
+               pleftreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+               cg.a_load_ref_reg(current_asmdata.CurrAsmList,left.location.size,opsize,left.location.reference,pleftreg);
              end;
 
             { Get a label to jump to the end }
@@ -248,17 +232,16 @@ implementation
               { use fact that a <= x <= b <=> cardinal(x-a) <= cardinal(b-a) }
               begin
                 { is the range different from all legal values? }
-                if (setparts[i].stop-setparts[i].start <> 255) then
+                if (setparts[i].stop-setparts[i].start <> 255) or not (orgopsize = OS_8) then
                   begin
                     { yes, is the lower bound <> 0? }
                     if (setparts[i].start <> 0) then
                       begin
                         if (left.location.loc = LOC_CREGISTER) then
                           begin
-                            hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                            cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,OS_INT,pleftreg,hreg);
+                            hreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+                            cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,pleftreg,hreg);
                             pleftreg:=hreg;
-                            opsize:=OS_INT;
                           end;
                         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,setparts[i].start-adjustment,pleftreg);
                       end;
@@ -296,7 +279,7 @@ implementation
                 { if the last one was a range, the carry flag is already }
                 { set appropriately                                      }
                 not(setparts[numparts].range) then
-               current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
+                  current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
              { To compensate for not doing a second pass }
              right.location.reference.symbol:=nil;
              { Now place the end label }
@@ -384,15 +367,15 @@ implementation
 
                   { load constants to a register }
                   if left.nodetype=ordconstn then
-                    location_force_reg(current_asmdata.CurrAsmList,left.location,OS_INT,true);
+                    location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
 
                   case left.location.loc of
                      LOC_REGISTER,
                      LOC_CREGISTER:
                        begin
-                          hreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_32);
-                          cg.a_load_reg_reg(current_asmdata.CurrAsmList,left.location.size,OS_32,left.location.register,hreg);
-                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_32,OC_BE,31,hreg,l);
+                          hreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,opsize);
+                          cg.a_load_reg_reg(current_asmdata.CurrAsmList,left.location.size,opsize,left.location.register,hreg);
+                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,31,hreg,l);
                           { reset carry flag }
                           current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
                           cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
@@ -405,18 +388,7 @@ implementation
                        end;
                   else
                     begin
-{$ifdef CORRECT_SET_IN_FPC}
-                          if m_tp in current_settings.modeswitches then
-                            begin
-                              {***WARNING only correct if
-                                reference is 32 bits (PM) *****}
-                               emit_const_ref(A_CMP,S_L,31,reference_copy(left.location.reference));
-                            end
-                          else
-{$endif CORRECT_SET_IN_FPC}
-                            begin
-                               emit_const_ref(A_CMP,S_B,31,left.location.reference);
-                            end;
+                       emit_const_ref(A_CMP,TCGSize2OpSize[orgopsize],31,left.location.reference);
                        cg.a_jmp_flags(current_asmdata.CurrAsmList,F_BE,l);
                        { reset carry flag }
                        current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
@@ -434,9 +406,13 @@ implementation
                   cg.a_label(current_asmdata.CurrAsmList,l2);
                 end { of right.location.loc=LOC_CONSTANT }
                { do search in a normal set which could have >32 elementsm
-                 but also used if the left side contains higher values > 32 }
+                 but also used if the left side contains values > 32 or < 0 }
                else if left.nodetype=ordconstn then
                 begin
+                  if (tordconstnode(left).value < 0) or ((tordconstnode(left).value shr 3) >= right.resultdef.size) then
+                    {should be caught earlier }
+                    internalerror(2007020201);
+
                   location.resflags:=F_NE;
                   inc(right.location.reference.offset,tordconstnode(left).value shr 3);
                   emit_const_ref(A_TEST,S_B,1 shl (tordconstnode(left).value and 7),right.location.reference);
@@ -444,14 +420,57 @@ implementation
                else
                 begin
                   if (left.location.loc=LOC_REGISTER) then
-                    pleftreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_32)
+                    pleftreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,opsize)
                   else
-                    pleftreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_32,left.location,pleftreg);
+                    pleftreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
+
+                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,opsize,left.location,pleftreg);
                   location_freetemp(current_asmdata.CurrAsmList,left.location);
-                  emit_reg_ref(A_BT,S_L,pleftreg,right.location.reference);
-                  { tg.ungetiftemp(current_asmdata.CurrAsmList,right.location.reference) happens below }
-                  location.resflags:=F_C;
+
+                  if (opsize >= OS_S8) or { = if signed }
+                    ((left.resultdef.typ=orddef)  and (torddef(left.resultdef).high >= tsetdef(right.resultdef).setmax)) or
+                    ((left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max >= tsetdef(right.resultdef).setmax)) then
+                   begin
+
+                    { we have to check if the value is < 0 or > setmax }
+
+                    current_asmdata.getjumplabel(l);
+                    current_asmdata.getjumplabel(l2);
+
+                    { BE will be false for negative values }
+                    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_BE,tsetdef(right.resultdef).setmax,pleftreg,l);
+                    { reset carry flag }
+                    current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
+                    cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
+
+                    cg.a_label(current_asmdata.CurrAsmList,l);
+
+                    case right.location.loc of
+                      LOC_REGISTER, LOC_CREGISTER :
+                        emit_reg_reg(A_BT,S_L,pleftreg,right.location.register);
+                      LOC_CREFERENCE, LOC_REFERENCE :
+                        emit_reg_ref(A_BT,S_L,pleftreg,right.location.reference);
+                    else
+                      internalerror(2007020301);
+                    end;
+
+                    cg.a_label(current_asmdata.CurrAsmList,l2);
+
+                    location.resflags:=F_C;
+
+                   end
+                  else
+                   begin
+                      case right.location.loc of
+                        LOC_REGISTER, LOC_CREGISTER :
+                          emit_reg_reg(A_BT,S_L,pleftreg,right.location.register);
+                        LOC_CREFERENCE, LOC_REFERENCE :
+                          emit_reg_ref(A_BT,S_L,pleftreg,right.location.reference);
+                      else
+                        internalerror(2007020302);
+                      end;
+                      location.resflags:=F_C;
+                   end;
                 end;
              end;
           end;

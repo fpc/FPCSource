@@ -240,7 +240,7 @@ implementation
          if not assigned(left.resultdef) then
            internalerror(20021126);
 
-         if (m_fpc in current_settings.modeswitches) then
+         if (m_tp7 in current_settings.modeswitches) then
            begin
              { insert a hint that a range check error might occur on non-byte
                elements with the in operator.
@@ -254,18 +254,20 @@ implementation
                    (left.resultdef.typ = enumdef) and
                    (tenumdef(left.resultdef).maxval > 255)
                  )
-              then
+               then
                  CGMessage(type_h_in_range_check);
 
              { type conversion/check }
              if assigned(tsetdef(right.resultdef).elementdef) then
                inserttypeconv(left,tsetdef(right.resultdef).elementdef);
            end
-         else
+         else if not is_ordinal(left.resultdef) or (left.resultdef.size > uinttype.size) then
            begin
-             { insert explicit type conversion/check }
-             if assigned(tsetdef(right.resultdef).elementdef) then
-               inserttypeconv_internal(left,tsetdef(right.resultdef).elementdef);
+             CGMessage(type_h_in_range_check);
+             if is_signed(left.resultdef) then
+               inserttypeconv(left,sinttype)
+             else
+               inserttypeconv(left,uinttype);
            end;
 
          { empty set then return false }
@@ -280,21 +282,31 @@ implementation
           end;
 
          { constant evaluation }
-         if (left.nodetype=ordconstn) and (right.nodetype=setconstn) then
-          begin
-            t:=cordconstnode.create(byte(tordconstnode(left).value in Tsetconstnode(right).value_set^),
-               booltype,true);
-            typecheckpass(t);
-            result:=t;
-            exit;
-          end;
+         if (left.nodetype=ordconstn) then
+           begin
+             if (right.nodetype=setconstn) then
+               begin
+                 t:=cordconstnode.create(byte(tordconstnode(left).value in Tsetconstnode(right).value_set^),
+                   booltype,true);
+                 typecheckpass(t);
+                 result:=t;
+                 exit;
+               end
+             else
+               begin
+                 if (is_signed(left.resultdef) and (tordconstnode(left).value < 0)) or
+                    (TConstExprUInt(tordconstnode(left).value) > tsetdef(right.resultdef).setmax) then
+                   begin
+                     t:=cordconstnode.create(0, booltype, true);
+                     typecheckpass(t);
+                     result:=t;
+                     exit;
+                   end;
+               end;
+           end;
       end;
 
 
-    { Warning : This is the first pass for the generic version }
-    { the only difference is mainly the result location which  }
-    { is changed, compared to the i386 version.                }
-    { ALSO REGISTER ALLOC IS WRONG?                            }
     function tinnode.pass_1 : tnode;
       begin
          result:=nil;
@@ -316,8 +328,8 @@ implementation
            begin
               { a smallset needs maybe an misc. register }
               if (left.nodetype<>ordconstn) and
-                not(right.expectloc in [LOC_CREGISTER,LOC_REGISTER]) and
-                (right.registersint<1) then
+                 not(right.expectloc in [LOC_CREGISTER,LOC_REGISTER]) and
+                 (right.registersint<1) then
                 inc(registersint);
            end;
       end;
