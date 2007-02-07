@@ -20,7 +20,7 @@ begin
   a[$ffffffff]:=1;
   b[$ffffffff]:=2;
   c[$ffffffff]:=3;
-  if a+b+c<>6 then
+  if (a[$ffffffff]+b[$ffffffff]+c[$ffffffff])<>6 then
     halt(1);
   writeln(a[$ffffffff]);
   writeln(b[$ffffffff]);
