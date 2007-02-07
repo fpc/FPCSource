@@ -277,7 +277,7 @@ implementation
          genjumps := checkgenjumps(setparts,numparts,use_small);
 
          orgopsize := def_cgsize(left.resultdef);
-         uopsize := OS_INT;
+         uopsize := OS_32;
          if is_signed(left.resultdef) then
            opsize := tcgsize(ord(uopsize)+(ord(OS_S8)-ord(OS_8)))
          else
