@@ -1,4 +1,4 @@
-{%CPU=x86_64,ppc64}
+{%CPU=x86_64,powerpc64}
 program tb0528;
 
 {This program tests if huge arrays work on 64-bit systems. I got the idea
