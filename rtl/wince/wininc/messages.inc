@@ -644,8 +644,19 @@
      TB_ADDSTRINGA = 1052;
      TB_GETBUTTONTEXTA = 1069;
      TB_SAVERESTOREA = 1050;
-     TB_SETINDENT = WM_USER + 47;
-     TB_SETBUTTONWIDTH = WM_USER + 59;
+     TB_SETINDENT            = WM_USER + 47;
+     TB_SETIMAGELIST         = WM_USER + 48;
+     TB_GETIMAGELIST         = WM_USER + 49;
+     TB_LOADIMAGES           = WM_USER + 50;
+     TB_GETRECT              = WM_USER + 51;
+     TB_SETDISABLEDIMAGELIST = WM_USER + 54;
+     TB_GETDISABLEDIMAGELIST = WM_USER + 55;
+     TB_SETSTYLE             = WM_USER + 56;
+     TB_GETSTYLE             = WM_USER + 57;
+     TB_GETBUTTONSIZE        = WM_USER + 58;
+     TB_SETBUTTONWIDTH       = WM_USER + 59;
+     TB_SETMAXTEXTROWS       = WM_USER + 60;
+     TB_GETTEXTROWS          = WM_USER + 61;
 {$ifdef UNICODE}
 
   const
