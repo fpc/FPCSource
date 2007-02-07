@@ -7,6 +7,14 @@ interface
 uses cgiapp,sysutils,mysqlDB4,whtml,dbwhtml,db,
      Classes,ftFont,fpimage,fpimgcanv,fpWritePng,fpcanvas;
 
+{$ifndef TEST}
+const
+  CGI = 'testsuite.cgi';
+{$else TEST}
+const
+  CGI = 'testsuite-new.cgi';
+{$endif TEST}
+
 Type
   TTestSuite = Class(TCgiApplication)
   Private
@@ -15,6 +23,7 @@ Type
     FDB : TMySQLDatabase;
     FRunID,
     FCompareRunID,
+    FTestFileID,
     FVersion,
     FCPU,
     FOS  : String;
@@ -34,6 +43,7 @@ Type
                             Var Align : THTMLAlign; Var VAlign : THTMLValign;
                             Var CustomAttr : String) ;
     Procedure FormatFailedOverview(Sender : TObject; Var CellData : String);
+    Procedure FormatFileDetails(Sender: TObject; var CellData: String);
     Procedure DoDrawPie(Img : TFPCustomImage; Skipped,Failed,Total : Integer);
   Public
     Function CreateDataset(Qry : String) : TMySQLDataset;
@@ -45,18 +55,20 @@ Type
     Function GetOSName(ID : String) : String;
     Function GetCPUName(ID : String) : String;
     Function GetVersionName(ID : String) : String;
+    Function GetTestFileName(ID : String) : String;
     Function InitCGIVars : Integer;
     Procedure DoRun; override;
     Procedure EmitOverviewForm;
     Procedure ShowRunResults;
     Procedure ShowRunComparison;
+    Procedure ShowOneTest;
     Function ConnectToDB : Boolean;
     procedure DisconnectFromDB;
     Procedure EmitTitle(ATitle : String);
     Procedure ShowRunOverview;
     Procedure CreateRunPie;
     Function  ShowRunData : Boolean;
-    
+
   end;
 
 implementation
@@ -73,7 +85,7 @@ Const
 }
 
 Const
-  SDetailsURL = 'testsuite.cgi?action=1&run1id=%s';
+  SDetailsURL = CGI + '?action=1&run1id=%s';
 
 Procedure TTestSuite.DoRun;
 
@@ -82,12 +94,13 @@ begin
     Try
       Case InitCGIVars of
         0 : EmitOverviewForm;
-        1 : 
+        1 :
           if Length(FCompareRunID) = 0 then
             ShowRunResults
           else
             ShowRunComparison;
         2 : CreateRunPie;
+        3 : ShowOneTest;
       end;
     finally
         DisConnectFromDB;
@@ -146,6 +159,7 @@ begin
     S:=RequestVariables['TESTNOSKIPPED'];
   FNoSkipped:=(S='1');
   FCompareRunID:=RequestVariables['run2id'];
+  FTestFileID:=RequestVariables['testfileid'];
   FRunCount:=StrToIntDef(RequestVariables['PIETOTAL'],0);
   FRunSkipCount:=StrToIntDef(RequestVariables['PIESKIPPED'],0);
   FRunFailedCount:=StrToIntDef(RequestVariables['PIEFAILED'],0);
@@ -250,7 +264,7 @@ begin
     HeaderEnd(1);
     Write('Please specify search criteria:');
     ParagraphStart;
-    FormStart('testsuite.cgi','');
+    FormStart(CGI,'');
     TableStart(2,true);
     RowStart;
       CellStart;
@@ -370,7 +384,7 @@ Const
   SOverview = 'SELECT TU_ID as ID,TU_DATE as Date,TC_NAME as CPU,TO_NAME as OS,'+
                'TV_VERSION as Version,COUNT(TR_ID) as Count,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN) AS OK,'+
-               '(TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Failed,'+              
+               '(TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Failed,'+
                '(TU_SUCCESSFULLYFAILED+TU_SUCCESFULLYCOMPILED+TU_SUCCESSFULLYRUN+'+
                 'TU_FAILEDTOCOMPILE+TU_FAILEDTORUN+TU_FAILEDTOFAIL) as Total,'+
                'TU_SUBMITTER as Submitter, TU_MACHINE as Machine, TU_COMMENT as Comment '+
@@ -442,6 +456,13 @@ begin
     Result:=GetSingleTon('SELECT TO_NAME FROM TESTOS WHERE TO_ID='+ID);
 end;
 
+Function TTestSuite.GetTestFileName(ID : String) : String;
+
+begin
+  if (ID<>'') then
+    Result:=GetSingleTon('SELECT T_NAME FROM TESTS WHERE T_ID='+ID);
+end;
+
 Function TTestSuite.GetCPUName(ID : String) : String;
 
 begin
@@ -489,7 +510,7 @@ begin
       If Result then
         With FHTMLWriter do
           begin
-          FormStart('testsuite.cgi','get');
+          FormStart(CGI,'get');
           EmitHiddenVar('action', '1');
           TableStart(3,true);
           RowStart;
@@ -556,6 +577,8 @@ begin
           ParagraphStart;
           EmitCheckBox('noskipped','1',FNoSkipped);
           Write(' Hide skipped tests');
+          EmitCheckBox('failedonly','1',FonlyFailed);
+          Write(' Show only failed tests');
           ParagraphEnd;
           ParaGraphStart;
           EmitSubmitButton('','Show/Compare');
@@ -589,7 +612,7 @@ Var
   Qry : String;
   Q : TMySQLDataset;
   FL : String;
-  
+
 begin
   ConnectToDB;
   ContentType:='text/html';
@@ -624,7 +647,7 @@ begin
         end;
       HeaderEnd(2);
       ParaGraphStart;
-      S:='SELECT T_NAME as Filename,TR_SKIP as Skipped,TR_OK as OK'
+      S:='SELECT T_ID as Id,T_NAME as Filename,TR_SKIP as Skipped,TR_OK as OK'
         +' FROM TESTRESULTS,TESTS'
         +' WHERE (TR_TEST_FK=T_ID) AND (TR_TESTRUN_FK='+FRunID+') ';
       If FOnlyFailed then
@@ -639,7 +662,86 @@ begin
       end;
       FRunCount:=0;
       FRunSkipCount:=0;
-      FRunFailedCount:=0;  
+      FRunFailedCount:=0;
+      Q:=CreateDataset(Qry);
+      With Q do
+        try
+          Open;
+          Try
+            With CreateTableProducer(Q) do
+              Try
+                Border:=True;
+                FL:='Id,Filename';
+                If Not FNoSkipped then
+                  FL:=FL+',Skipped';
+                If Not FOnlyFailed then
+                  FL:=FL+',OK';
+                CreateColumns(FL);
+                OnGetRowAttributes:=@GetRunRowAttr;
+                TableColumns.ColumnByNAme('Filename').OnGetCellContents:=@FormatFileDetails;
+                //(TableColumns.Items[0] as TTableColumn).ActionURL:=ALink;
+                CreateTable(Response);
+              Finally
+                Free;
+              end;
+            Writeln('<p>Record count: ',Q.RecordCount,'</p>');
+          Finally
+            Close;
+          end;
+        finally
+          Free;
+        end;
+      If Not (FRunCount=0) and not (FNoSkipped or FOnlyFailed) then
+        begin
+        ParaGraphStart;
+        TagStart('IMG',Format('Src="'+CGI+'?action=2&pietotal=%d&piefailed=%d&pieskipped=%d"',[FRunCount,FRunFailedCount,FRunSkipCount]));
+        end;
+      end
+    else
+      Write('No data for test run with ID: '+FRunID);
+    end;
+end;
+
+Procedure TTestSuite.ShowOneTest;
+
+Var
+  S : String;
+  Qry : String;
+  Q : TMySQLDataset;
+  FL : String;
+
+begin
+  ConnectToDB;
+  ContentType:='text/html';
+  EmitContentType;
+  EmitTitle(Title+' : File '+GetTestFileName(FTestFileID)+' Results');
+  With FHTMLWriter do
+    begin
+    HeaderStart(1);
+    Write('Test suite results for test file '+GetTestFileName(FTestFileID));
+    HeaderEnd(1);
+    HeaderStart(2);
+    Write('Test run data : ');
+    HeaderEnd(2);
+    If ShowRunData then
+      begin
+      HeaderStart(2);
+      Write('Detailed test run results:');
+
+      FL:='';
+      HeaderEnd(2);
+      ParaGraphStart;
+      S:='SELECT *  FROM TESTS'
+        +' WHERE  (T_ID='+FTestFileID+') ';
+      Qry:=S;
+      If FDebug then
+        begin
+        Writeln('Query : '+Qry);
+        Flush(stdout);
+      end;
+      FRunCount:=0;
+      FRunSkipCount:=0;
+      FRunFailedCount:=0;
       Q:=CreateDataset(Qry);
       With Q do
         try
@@ -667,14 +769,9 @@ begin
         finally
           Free;
         end;
-      If Not (FRunCount=0) and not (FNoSkipped or FOnlyFailed) then
-        begin
-        ParaGraphStart;
-        TagStart('IMG',Format('Src="testsuite.cgi?action=2&pietotal=%d&piefailed=%d&pieskipped=%d"',[FRunCount,FRunFailedCount,FRunSkipCount]));
-        end;
       end
     else
-      Write('No data for test run with ID: '+FRunID);
+      Write('No data for test file with ID: '+FTestFileID);
     end;
 end;
 
@@ -685,7 +782,7 @@ Var
   Qry : String;
   Q : TMySQLDataset;
   FL : String;
-  
+
 begin
   ConnectToDB;
   ContentType:='text/html';
@@ -748,7 +845,7 @@ begin
         end;
       FRunCount:=0;
       FRunSkipCount:=0;
-      FRunFailedCount:=0;  
+      FRunFailedCount:=0;
       Q.SQL.Text:=Qry;
       With Q do
         try
@@ -777,7 +874,7 @@ begin
       If Not (FRunCount=0) and not (FNoSkipped or FOnlyFailed) then
         begin
         ParaGraphStart;
-        TagStart('IMG',Format('Src="testsuite.cgi?action=2&pietotal=%d&piefailed=%d&pieskipped=%d"',[FRunCount,FRunFailedCount,FRunSkipCount]));
+        TagStart('IMG',Format('Src="'+CGI+'?action=2&pietotal=%d&piefailed=%d&pieskipped=%d"',[FRunCount,FRunFailedCount,FRunSkipCount]));
         end;
       end
     else
@@ -787,7 +884,7 @@ end;
 
 procedure TTestSuite.GetRunRowAttr(Sender: TObject; var BGColor: String;
   var Align: THTMLAlign; var VAlign: THTMLValign; var CustomAttr: String);
-  
+
 Var
   P : TTableProducer;
   Skip1Field, Skip2Field, Run1Field, Run2Field : TField;
@@ -799,7 +896,7 @@ begin
     If (P.CurrentRow Mod 2)=0 then
       BGColor:='#EEEEEE'
     end
-  else 
+  else
     begin
     Skip1Field := P.Dataset.FindField('Skipped');
     if Skip1Field = nil then
@@ -808,14 +905,14 @@ begin
       Skip2Field := P.Dataset.FindField('Run2_Skipped');
       end
     else
-      Skip2Field := nil; 
+      Skip2Field := nil;
     Run1Field := P.Dataset.FindField('OK');
     if Run1Field = nil then
       Run1Field := P.Dataset.FindField('Run1_OK');
     Run2Field := P.Dataset.FindField('OK');
     if Run2Field = nil then
       Run2Field := P.Dataset.FindField('Run2_OK');
-    If (not FNoSkipped) and ((Skip1Field.AsString='+') 
+    If (not FNoSkipped) and ((Skip1Field.AsString='+')
         or ((Skip2Field <> nil) and (Skip2Field.AsString = '+'))) then
       begin
       Inc(FRunSkipCount);
@@ -850,24 +947,36 @@ begin
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
 end;
 
+procedure TTestSuite.FormatFileDetails(Sender: TObject; var CellData: String);
+
+Var
+  S: String;
+  P : TTableProducer;
+
+begin
+  P:=(Sender as TTableProducer);
+  S:=Format(CGI + '?action=3&run1id=%s&filenameid=%s',[FRunID,P.DataSet.FieldByName('Id').AsString]);
+  CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
+end;
+
 Procedure TTestSuite.CreateRunPie;
 
 Var
   I : TFPMemoryImage;
   M : TMemoryStream;
-  
+
 begin
   ftFont.InitEngine;
   FontMgr.SearchPath:='/usr/lib/X11/fonts/truetype';
   I:=TFPMemoryImage.Create(320,320);
   try
-    If FRunCount=0 Then 
+    If FRunCount=0 Then
       Raise Exception.Create('Invalid parameters passed to script: No total count');
     DoDrawPie(I,FRunSkipCount,FRunFailedCount,FRunCount);
     M:=TMemoryStream.Create;
     Try
       With TFPWriterPNG.Create do
-        try 
+        try
           UseAlpha:=True;
           ImageWrite(M,I);
         Finally
@@ -879,12 +988,12 @@ begin
       Response.CopyFrom(M,M.Size);
     Finally
       M.Free;
-    end;  
+    end;
   Finally
     I.Free;
-  end;    
+  end;
 end;
-  
+
 Procedure TTestSuite.DoDrawPie(Img : TFPCustomImage; Skipped,Failed,Total : Integer);
 
 Var
@@ -893,12 +1002,12 @@ Var
   A1,A2,FR,SR,PR : Double;
   R : TRect;
   F : TFreeTypeFont;
-  
+
   Procedure AddPie(X,Y,R : Integer; AStart,AStop : Double; Col : TFPColor);
 
   Var
     DX,Dy : Integer;
-  
+
   begin
     DX:=Round(R*Cos(A1));
     DY:=Round(R*Sin(A1));
@@ -911,15 +1020,15 @@ Var
     Cnv.Brush.FpColor:=Col;
     Cnv.FloodFill(X+DX,Y-DY);
   end;
-  
+
   Function FractionAngle(F,T : Integer): Double;
-  
+
   begin
     Result:=(2*Pi*(F/T))
   end;
-  
-  
-    
+
+
+
 begin
   F:=TFreeTypeFont.Create;
   With F do
@@ -945,9 +1054,9 @@ begin
   Cnv.Font:=F;
   // Writeln('Getting textwidth ');
   FH:=CNV.GetTextHeight('A');
-  If FH=0 then 
+  If FH=0 then
     FH:=14; // 3 * 14;
-  Inc(FH,3);  
+  Inc(FH,3);
   R.Top:=FH*4;
   R.Left:=0;
   R.Bottom:=H;
@@ -956,9 +1065,9 @@ begin
     R.Right:=CR
   else
     R.Right:=W;
-  Ra:=CR div 2;  
+  Ra:=CR div 2;
   // Writeln('Setting pen color');
-  Cnv.Pen.FPColor:=colBlack;  
+  Cnv.Pen.FPColor:=colBlack;
   // Writeln('Palette size : ',Img.Palette.Count);
   // Writeln('Setting brush style');
   cnv.brush.FPColor:=colRed;
