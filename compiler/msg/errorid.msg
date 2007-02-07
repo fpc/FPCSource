@@ -1,10 +1,10 @@
-#   $Id: errorid.msg,v 1.124 2006/06/29 02:52:50 zaenal Exp $
+#   $Id: errorid.msg,v 1.124 2007/01/26 02:52:50 zaenal Exp $
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2000 by the Free Pascal Development team
+#   Copyright (c) 1999-2007 by the Free Pascal Development team
 #
 #   Indonesian Language File for Free Pascal
 #   Contributed by Zaenal Mutaqin <ade999 at gmail.com>
-#   Based on errore.msg of SVN revision 3982
+#   Based on errore.msg of SVN revision 6205
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -48,8 +48,6 @@
 #
 # 01023 adalah yang terakhir digunakan
 #
-general_text_bytes_code=01019_byte kode
-general_text_bytes_data=01020_byte data
 # BeginOfTeX
 % \section{Pesan kompilator Umum}
 % Bagian ini memberikan pesan kompilator yang tidak fatal, tetapi 
@@ -113,13 +111,15 @@ general_i_note=01015_I_Catatan:
 % Prefix for Notes
 general_i_hint=01016_I_Petunjuk:
 % Prefix for Hints
-general_e_path_does_not_exist=01017_E_Path "$1" tidak ada
-% Path yang ditetapkan tidak ada.
-general_f_compilation_aborted=01018_F_Kompilasi dibatalkan
-% Kompilasi dibatalkan.
-general_i_number_of_warnings=01021_I_$1 perhatian ditemukan
-% Jumlah peringatan dimunculkan selama kompilasi.
-general_i_number_of_hints=01022_I_$1 petujuk ditemukan
+general_e_path_does_not_exist=01017_E_Path "$1" does not exist
+% The specified path does not exist.
+general_f_compilation_aborted=01018_F_Compilation aborted
+% Compilation was aborted.
+general_text_bytes_code=01019_byte kode
+general_text_bytes_data=01020_byte data
+general_i_number_of_warnings=01021_I_$1 warning(s) issued
+% Total number of warnings issued during compilation.
+general_i_number_of_hints=01022_I_$1 hint(s) issued
 % Total number of hints issued during compilation.
 general_i_number_of_notes=01023_I_$1 catatan ditemukan
 % Total number of notes issued during compilation.
@@ -343,6 +343,13 @@ scan_w_minstacksize_not_support=02077_W_MINSTACKSIZE tidak didukung oleh target 
 % The \var{\{\$MINSTACKSIZE\}} directive is not supported by the target OS
 scan_w_maxstacksize_not_support=02078_W_MAXSTACKSIZE tidak didukung oleh target OS
 % The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS
+scanner_e_illegal_warn_state=02079_E_Kondisi tidak benar untuk direktif $WARN
+% Only ON and OFF can be used as state with a \$warn compiler directive
+scan_e_only_packset=02080_E_Nilai set packing tidak benar
+% Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameter
+scan_w_pic_ignored=02081_W_PIC diretif diabaikan
+% Several targets like windows doesn't support and need the PIC directive so
+% it is ignored.
 % \end{description}
 #
 # Parser
@@ -878,9 +885,16 @@ parser_e_no_export_with_index_for_target=03163_E_Tidak bisa mengekspor dengan in
 % supported on this target.
 parser_e_no_export_of_variables_for_target=03164_E_Pengeksporan variabel tidak didukung pada $1
 % Exporting of variables is not supported on this target.
-parser_e_improper_guid_syntax=03165_E_Sintaks pengimpor GUID
-parser_w_interface_mapping_notfound=03168_W_Procedure yang dinamai "$1" tidak ditemukan yang cocok untuk mengimplementasikan $2.$3
-parser_e_interface_id_expected=03169_E_Pengenal antarmuka diharapkan
+parser_e_improper_guid_syntax=03165_E_Improper GUID syntax
+% The GUID indication does not have the proper syntax. It should be of the form
+% \begin{verbatim}
+% {XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}
+% \end{verbatim}
+% Where each \var{X} represents a hexadecimal digit.
+parser_w_interface_mapping_notfound=03168_W_Procedure bernama "$1" tidak ditemukan yang cukup untuk mengimplementasikan $2.$3
+% The compiler cannot find a suitable procedure which implements the given method of an interface.
+% A procedure with the same name is found, but the arguments do not match.
+parser_e_interface_id_expected=03169_E_pengenal interface diharapkan
 % This happens when the compiler scans a \var{class} declaration that contains
 % \var{interface} function name mapping code like this:
 % \begin{verbatim}
@@ -936,11 +950,21 @@ parser_e_no_procvarobj_const=03183_E_Tipe konstan dari tipe "procedure of object
 % 'procedure of object' type, because such a constant requires two addresses:
 % that of the method (which is known at compile time) and that of the object or
 % class instance it operates on (which can not be known at compile time).
-parser_e_default_value_only_one_para=03184_E_Nilai default hanya bisa ditempatkan ke satu parameter
-parser_e_default_value_expected_for_para=03185_E_Parameter default dibutuhkan untuk "$1"
-parser_w_unsupported_feature=03186_W_Penggunaan daru fitur yang tidak didukung!
+parser_e_default_value_only_one_para=03184_E_Nilai standar hanya bisa ditempatkan ke satu parameter
+% It is not possible to specify a default value for several parameters at once.
+% The following is invalid:
+% \begin{verbatim}
+% Procedure MyProcedure (A,B : Integer = 0);
+% \end{verbatim}
+% Sebaliknya, ini harus dideklarasikan sebagai
+% \begin{verbatim}
+% Procedure MyProcedure (A : Integer = 0; B : Integer = 0);
+% \end{verbatim}
+parser_e_default_value_expected_for_para=03185_E_Parameter standar diperlukan untuk "$1"
+% The specified parameter requires a default value.
+parser_w_unsupported_feature=03186_W_Penggunaan dari fitur yang tidak didukung!
 % You're trying to force the compiler into doing something it cannot do yet.
-parser_h_c_arrays_are_references=03187_H_C arrays dioper dengan referensi
+parser_h_c_arrays_are_references=03187_H_C arrays adalah referensi
 % Any array passed to a C functions is passed
 % by a pointer (i.e. by reference).
 parser_e_C_array_of_const_must_be_last=03188_E_C array of const harus merupakan argumen terakhir
@@ -951,9 +975,9 @@ parser_h_type_redef=03189_H_Redefinisi tipe "$1"
 % This is an indicator that a previously declared type is
 % being redefined as something else. This may, or may not
 % be, a cause for errors.
-parser_w_cdecl_has_no_high=03190_W_fungsi cdecl'ared tidak mempunyai parameter high
+parser_w_cdecl_has_no_high=03190_W_fungsi cdecl tidak mempunyai parameter high
 % Functions declared with cdecl modifier do not pass an extra implicit parameter.
-parser_w_cdecl_no_openstring=03191_W_fungsi cdecl'ared tidak mendukung strings terbuka
+parser_w_cdecl_no_openstring=03191_W_fungsi cdecl tidak mendukung strings terbuka
 % Openstring is not supported for cdecl'ared functions.
 parser_e_initialized_not_for_threadvar=03192_E_Tidak bisa menginisialisasi variabel yang dideklarasikan sebagai threadvar
 % Variables declared as threadvar can not be initialized with a default value.
@@ -1055,7 +1079,44 @@ parser_w_overridden_methods_not_same_ret=03218_W_Metode overridden harus mempuny
 % return type of interface methods, and even to change procedures into
 % functions, but the resulting code may crash depending on the types used
 % and the way the methods are called.
-parser_e_dispid_must_be_ord_const=03219_E_Dispatch IDs harus berupa konstan ordinal
+parser_e_dispid_must_be_ord_const=03219_E_Dispatch ID haruslah konstan ordinal
+parser_e_array_range_out_of_bounds=03220_E_Jangkauan array terlalu besar
+% Regardless of the size taken up by its elements, an array cannot have more
+% than high(ptrint) elements. Additionally, the range type must be a subrange
+% of ptrint.
+parser_e_packed_element_no_var_addr=03221_E_Alamat tidak bisa diambil dari elemen bit packed dan field record
+% If you declare an array or record as \var{packed} in Mac Pascal mode (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
+% be packed at the bit level. This means it becomes impossible to take addresses
+% of individual array elements or record fields. The only exception to this rule is in case of packed arrays elements
+% whose packed size is a multple of 8 bits.
+parser_e_packed_dynamic_open_array=03222_E_Array dinamis tidak bisa di-packed
+% Only regular (and possibly in the future also open) arrays can be packed
+parser_e_packed_element_no_loop=03223_E_Elemen bit packed array dan field record tidak bisa digunakan sebagai variabel loop
+% If you declare an array or record as \var{packed} in Mac Pascal mode (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
+% be packed at the bit level. For performance reasons, they cannot be
+% used as loop variables.
+parser_e_type_and_var_only_in_generics=03224_E_VAR dan TYPE dibolehkan hanya dalam generics
+% The usage of VAR and TYPE to declare new types inside an object is allowed only inside
+% generics.
+parser_e_cant_create_generics_of_this_type=03225_E_Tipe ini tidak bisa generic
+% Only Classes, Objects, Interfaces and Records are allowed to be used as generic
+parser_w_no_lineinfo_use_switch=03226_W_Jangan ambil unti LINEINFO secara manual, sebaliknya gunakan saklar kompilator -gl
+% Do not use the LINEINFO unit directly, Use the \var{-gl} switch which automatically adds the
+% unit for reading the selected type of debugging information instead.
+parser_e_no_funcret_specified=03227_E_Tidak ada tipe result fungsi untuk fungsi "$1"
+% The first time you declare a function you have to declare it completely,
+% including all parameters and the result type.
+parser_e_special_onlygenerics=03228_E_Specialization hanya didukung untuk tipe generic
+% Types not being generics can't be specialized
+parser_e_no_generics_as_params=03229_E_Generics tidak bisa digunakan sebagai parameter ketika menspesialkan generics
+% When specializing a generic, only non-generic types can be used as parameters.
+parser_e_type_object_constants=03230_E_Konstan obyek berisi VMT yang tidak diperbolehkan
+% If an object requires a VMT either because it contains a constructor or virtual methods,
+% it's not allowed to create constants of it. In TP and Delphi mode this is allowed
+% for compatibility reasons.
+parser_e_label_outside_proc=03231_E_Mengambil alamat label yang didefinisikan di luar lungkup tidak dibolehkan
+% It isn't allowed to take the addresss of labels outside the
+% current procedure.
 % \end{description}
 #
 # Type Checking
@@ -1198,8 +1259,14 @@ type_e_no_assign_to_const=04032_E_Tidak bisa menempatkan nilai ke variabel konst
 type_e_array_required=04033_E_Tipe array yang dibutuhkan
 % If you are accessing a variable using an index '[<x>]' then
 % the type must be an array. In FPC mode also a pointer is allowed.
-type_e_interface_type_expected=04034_E_tipe interface diharapkan, tapi didapat "$1"
-type_w_mixed_signed_unsigned=04035_W_Pencampuran ekspresi signed dan longwords menghasilkan 64bit
+type_e_interface_type_expected=04034_E_interface type expected, but got "$1"
+% The compiler expected to encounter an interface type name, but got something else.
+% The following code would provoke this error:
+% \begin{verbatim}
+% Type
+%   TMyStream = Class(TStream,Integer)
+% \end{verbatim}
+type_w_mixed_signed_unsigned=04035_W_Mixing signed expressions and longwords gives a 64bit result
 % If you divide (or calculate the modulus of) a signed expression by a longword (or vice versa),
 % or if you have overflow and/or range checking turned on and use an arithmetic
 % expression (+, -, *, div, mod) in which both signed numbers and longwords appear,
@@ -1229,9 +1296,12 @@ type_e_classes_not_related=04039_E_Tipe Class atau Object "$1" dan "$2" tidak be
 type_w_classes_not_related=04040_W_Tipe Class "$1" dan "$2" tidak berkaitan
 % There is a typecast from one class or object to another while the class/object
 % are not related. This will probably lead to errors
-type_e_class_or_interface_type_expected=04041_E_Tipe Class atau interface diharapkan, tapi didapat "$1"
-type_e_type_is_not_completly_defined=04042_E_Tipe "$1" tidak didefinisikan dengan lengkap
-type_w_string_too_long=04043_W_Literal String mempunyai lebih banyak karakter daripada panjang string pendek
+type_e_class_or_interface_type_expected=04041_E_Class atau interface type diharapkan, tapi didapat "$1"
+% The compiler expected a class or interface name, but got another type or identifier.
+type_e_type_is_not_completly_defined=04042_E_Type "$1" tidak sepenuhnya didefinisikan
+% This error occurs when a type is not complete: i.e. a pointer type which points to
+% an undefined type.
+type_w_string_too_long=04043_W_Literal string mempunyai banyak karakter daripada panjang string pendek
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring
 type_w_signed_unsigned_always_false=04044_W_Perbandingan selalu false karena jangkauan nilai
@@ -1290,8 +1360,27 @@ type_w_double_c_varargs=04059_W_Pengubahan nilai konstan real ke double untuk ar
 % pass a constant real value to a variable argument part of a C function, FPC
 % by default converts this constant to double as well. If you want to prevent
 % this from happening, add an explicit typecast around the constant.
-type_e_class_or_cominterface_type_expected=04058_E_Antarmuka class atau type diharapkan, tetapi didapat "$1"
-% Some operators like the AS operator are only appliable to classes or COM interfaces
+type_e_class_or_cominterface_type_expected=04060_E_Class atau COM interface type diharapkan, tapi didapat "$1"
+% Some operators like the AS operator are only appliable to classes or COM interfaces.
+type_e_no_const_packed_array=04061_E_Konstan packed arrays belum didukung
+% You cannot declare a (bit)packed array as a typed constant.
+type_e_got_expected_packed_array=04062_E_Tipe tidak kompatibel untuk arg no. $1: Didapat "$2" diharapkan "(Bit)Packed Array"
+% The compiler expects a (bit)packed array as the specified parameter
+type_e_got_expected_unpacked_array=04063_E_Tipe tidak kompatibel untuk arg no. $1: Didapat "$2" diharapkan "(not packed) Array"
+% The compiler expects a regular (i.e., not packed) array as the specified parameter
+type_e_no_packed_inittable=04064_E_Elemen packed arrays tidak boleh sebuah type yang perlu diinisialisasi
+% Support for packed arrays of types that need initialization (such as ansistrings, or records which contain ansistrings) is not yet implemented.
+type_e_no_const_packed_record=04065_E_Konstan packed records dan objects belum didukung
+% You cannot declare a (bit)packed array as a typed constant at this time.
+type_w_untyped_arithmetic_unportable=04066_W_Aritmetik "$1" pada pointer untyped tidak portable ke {$T+}, gunakan typecast
+% Addition/subtraction from untyped pointer may work differently in \var{\{\$T+\}}, use typecast to typed pointer
+type_e_cant_take_address_of_local_subroutine=04076_E_Tidak bisa mengambil alamat subrutin yang ditandai sebagai local
+% The address of a subroutine marked as local can't be taken.
+type_e_cant_export_local=04077_E_Tidak bisa mengekspor subroutin yang ditandai sebagai local dari sebuah unit
+% A subroutine marked as local can't be export from a unit.
+type_e_not_automatable=04078_E_Type tidak automatable: "$1"
+% Only byte, integer, longint, smallint, currency, single, double, ansistring,
+% widestring, tdatetime, variant, olevariant, wordbool and all interfaces are automatable.
 % \end{description}
 #
 # Symtable
@@ -1375,13 +1464,16 @@ sym_n_local_identifier_only_set=05027_N_Variabel lokal "$1" ditempati tapi tidak
 % implementation is declared, set but never used.
 sym_h_local_symbol_not_used=05028_H_Lokal $1 "$2" tidak digunakan
 % A local symbol is never used.
-sym_n_private_identifier_not_used=05029_N_Field private "$1.$2" tidak pernah digunakan
-sym_n_private_identifier_only_set=05030_N_Field private "$1.$2" ditempati tapi tidak pernah digunakan
-sym_n_private_method_not_used=05031_N_Metode Private "$1.$2" tidak pernah digunakan
+sym_n_private_identifier_not_used=05029_N_Field Private "$1.$2" tidak pernah dipakai
+% The indicated private field is defined, but is never used in the code.
+sym_n_private_identifier_only_set=05030_N_Field Private "$1.$2" ditempati tapi tidak pernah dipakai
+% The indicated private field is declared, assigned but never read.
+sym_n_private_method_not_used=05031_N_Metode Private "$1.$2" tidak pernah dipakai
+% The indicated private method is declared but is never used in the code.
 sym_e_set_expected=05032_E_Tipe Set diharapkan
 % The variable or expression is not of type \var{set}. This happens in an
 % \var{in} statement.
-sym_w_function_result_not_set=05033_W_Hasil Function kelihatannya bukan set
+sym_w_function_result_not_set=05033_W_Hasil fungsi kelihatannya bukan set
 % You can get this warning if the compiler thinks that a function return
 % value is not set. This will not be displayed for assembler procedures,
 % or procedures that contain assembler blocks.
@@ -1453,7 +1545,9 @@ sym_h_function_result_uninitialized=05060_H_Variabel hasil Function tidak diinis
 sym_w_identifier_only_read=05061_W_Variabel "$1" dibaca tapi tidak ada penempatan dimanapun
 % You have read the value of a variable, but nowhere assigned a value to
 % it.
-
+sym_h_abstract_method_list=05062_H_Ditemukan metode abstract: $1
+% When getting a warning about constructing a class/object with abstract methods
+% you get this hint to find the affected method.
 % \end{description}
 #
 # Codegenerator
@@ -1572,6 +1666,11 @@ cg_f_unknown_compilerproc=06046_F_Compilerproc "$1" tidak dikenal. Periksa apaka
 % and you didn't mess with the runtime library, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
 % that you removed a subroutine which the compiler needs for internal use.
+cg_f_unknown_system_type=06047_F_Tidak bisa menemukan system type "$1". Periksa apakan anda menggunakan run time library yang benar.
+% The compiler expects that the runtime library contains certain type definitions. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
+% you're using doesn't match the used compiler. If you changed the runtime library this error means
+% that you removed a type which the compiler needs for internal use.
 % \end{description}
 # EndOfTeX
 
@@ -1795,6 +1894,31 @@ asmr_e_illegal_shifterop_syntax=07099_E_Kesalahan sintaks ketika mencoba meminda
 %   orr     r2,r2,r2,lsl #8
 % end;
 % \end{verbatim}
+asmr_e_packed_element=07100_E_Alamat packed component tidak di batasan sebuah byte
+% Packed components (record fields and array elements) may start at an arbitrary
+% bit inside a byte. On CPU which do not support bit-addressable memory (which
+% includes all currently supported CPUs by FPC) you will therefore get an error
+% message when trying to index arrays with elements whose size is not a multiple
+% of 8 bits. The same goes for accessing record fields with such an address.
+% multiple of 8 bits.
+asmr_w_unable_to_determine_reference_size_using_byte=07101_W_Tidak ada ukuran ditetapkan dan tidak bisa menguji ukuran operand, menggunakan BYTE sebagai standar
+% You should specify explicitly a size for the reference, because
+% the compiler is unable to determine what size (byte,word,dword,etc.) it
+% should use for the reference. This warning is only used in Delphi mode where
+% it falls back to use BYTE as default.
+asmr_w_no_direct_ebp_for_parameter=07102_W_Penggunaan +offset(%ebp) untuk parameter tidak benar di sini
+% Using direct 8(%ebp) reference for function/procedure parameters is invalid
+% if parameters are in registers.
+asmr_w_direct_ebp_for_parameter_regcall=07103_W_Penggunaan +offset(%ebp) tidak kompatibel dengan konvensi regcall
+% Using direct 8(%ebp) reference for function/procedure parameters is invalid
+% if parameters are in registers.
+asmr_w_direct_ebp_neg_offset=07104_W_Penggunaan -offset(%ebp) tidak direkomendasikan untuk akses variabel lokal
+% Using -8(%ebp) to access a local variable is not recommended
+asmr_w_direct_esp_neg_offset=07105_W_Penggunaan -offset(%esp), nilai mungkin rusak
+% Using -8(%esp) to access a local stack is not recommended, as
+% this stack portion can be overwritten by any function calls or interrupts.
+asmr_e_no_vmtoffset_possible=07106_E_VMTOffset harus dikombinasikan dengan metode virtual, dan "$1" bukanlah virtual
+%
 #
 # Assembler/binary writers
 #
@@ -1837,8 +1961,10 @@ asmw_e_64bit_not_supported=08021_E_Asm: operan 64 Bit tidak didukung
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
-exec_w_source_os_redefined=09000_W_Sumber sistem operasi dideklarasikan ulang
-exec_i_assembling_pipe=09001_I_Merakit (pipe) $1
+exec_w_source_os_redefined=09000_W_Sumber sistem operasi didefinisikan ulang
+% The source operating system is redefined.
+exec_i_assembling_pipe=09001_I_Mengasembling (pipe) $1
+% Assembling using a pipe to an external assembler.
 exec_d_cant_create_asmfile=09002_E_Tidak bisa membuat file assembler: $1
 % The mentioned file can't be created. Check if you have got
 % access permissions to create this file
@@ -1848,16 +1974,23 @@ exec_e_cant_create_objectfile=09003_E_Tidak bisa membuat file obyek: $1
 exec_e_cant_create_archivefile=09004_E_Tidak bisa membuat file arsip: $1
 % The mentioned file can't be created. Check if you've
 % access permissions to create this file
-exec_e_assembler_not_found=09005_E_Assembler $1 tidak ditemukan, beralih ke perakitan eksternal
+exec_e_assembler_not_found=09005_E_Assembler $1 tidak ditemukan, beralih ke asembling eksternal
+% The assembler program was not found. The compiler will produce a script that
+% can be used to assemble and link the program.
 exec_t_using_assembler=09006_T_Menggunakan assembler: $1
-exec_e_error_while_assembling=09007_E_Kesalahan ketika merakit exitcode $1
+% Information message saying which assembler is being used.
+exec_e_error_while_assembling=09007_E_Kesalahan ketika mengasembling kode exit $1
 % There was an error while assembling the file using an external assembler.
 % Consult the documentation of the assembler tool to find out more information
 % on this error.
-exec_e_cant_call_assembler=09008_E_Tidak bisa memanggil assembler, kesalahan $1 beralih ke perakitan eksternal
-exec_i_assembling=09009_I_Perakitan $1
-exec_i_assembling_smart=09010_I_Perakitan dengan smartlinking $1
-exec_w_objfile_not_found=09011_W_Obyek $1 tidak ditemukan, Penggabungan bisa gagal !
+exec_e_cant_call_assembler=09008_E_Tidak bisa memanggil assembler, kesalahan $1 beralih ke asembling eksternal
+% An error occurred when calling an external assembler, The compiler will produce a script that
+% can be used to assemble and link the program.
+exec_i_assembling=09009_I_Mengasembling $1
+% An informational message stating which file is being assembled.
+exec_i_assembling_smart=09010_I_Mengasembling dengan smartlinking $1
+% An informational message stating which file is being assembled using smartlinking.
+exec_w_objfile_not_found=09011_W_Obyek $1 tidak ditemukan, Linking bisa gagal !
 % One of the object file is missing, and linking will probably fail.
 % Check your paths.
 exec_w_libfile_not_found=09012_W_Librari $1 tidak ditemukan, Penggabungan bisa gagal !
@@ -1866,33 +1999,67 @@ exec_w_libfile_not_found=09012_W_Librari $1 tidak ditemukan, Penggabungan bisa g
 exec_e_error_while_linking=09013_E_Kesalahan saat penggabungan
 % Generic error while linking.
 exec_e_cant_call_linker=09014_E_Tidak bisa memanggil linker, beralih ke penggabungan eksternal
-exec_i_linking=09015_I_Penggabungan $1
+% An error occurred when calling an external linker, The compiler will produce a script that
+% can be used to assemble and link the program.
+exec_i_linking=09015_I_Menggabungkan $1
+% An informational message, showing which program or library is being linked.
 exec_e_util_not_found=09016_E_Util $1 tidak ditemukan, beralih ke penggabungan eksternal
+% An external tool was not found, the compiler will produce a script that
+% can be used to assemble and link or postprocess the program.
 exec_t_using_util=09017_T_Menggunakan util $1
-exec_e_exe_not_supported=09018_E_Pembuatan Eksekutable tidak didukung
-exec_e_dll_not_supported=09019_E_Pembuatan librari Dinamis/Berbagi tidak didukung
-exec_i_closing_script=09020_I_Penutupan skrip $1
+% An informational message, showing which external program (usually a postprocessor) is being used.
+exec_e_exe_not_supported=09018_E_Pembuatan Executables tidak didukung
+% Creating executable programs is not supported for this platform, because it was
+% not yet implemented in the compiler.
+exec_e_dll_not_supported=09019_E_Pembuatan Dynamic/Shared Libraries tidak didukung
+% Creating dynamically loadable libraries is not supported for this platform, because it was
+% not yet implemented in the compiler.
+exec_i_closing_script=09020_I_Menutup naskah $1
+% Informational message showing when the external assembling an linking script is finished.
 exec_e_res_not_found=09021_E_resource kompilator tidak ditemukan, beralih ke mode eksternal
-exec_i_compilingresource=09022_I_Mengkompilasi resource $1
-exec_t_unit_not_static_linkable_switch_to_smart=09023_T_unit $1 todal bisa digabung secara statis, beralih ke penggabungan pintar
-exec_t_unit_not_smart_linkable_switch_to_static=09024_T_unit $1 tidak bisa digabung secara pintar, beralih ke penggabungan statis
-exec_t_unit_not_shared_linkable_switch_to_static=09025_T_unit $1 tidak bisa digabung berbagi, beralih ke penggabungan statik
-exec_e_unit_not_smart_or_static_linkable=09026_E_unit $1 tidak bisa digabungkan secara pintar atau statik
-exec_e_unit_not_shared_or_static_linkable=09027_E_unit $1 tidak bisa digabung berbagi atau statik
-exec_d_resbin_params=09028_D_Pemanggilan kompilator resource "$1" dengan "$2" sebagai baris perintah
+% An external resource compiler was not found, the compiler will produce a script that
+% can be used to assemble, compile resources and link or postprocess the program.
+exec_i_compilingresource=09022_I_Mengompilasi resource $1
+% An informational message, showing which resource is being compiled.
+exec_t_unit_not_static_linkable_switch_to_smart=09023_T_unit $1 tidak bisa digabung secara statis, beralih ke smart linking
+% Statical linking was requested, but a unit which is not statically linkable was used.
+exec_t_unit_not_smart_linkable_switch_to_static=09024_T_unit $1 tidak bisa di-smart linked, beralih ke penggabungan statis
+% Smart linking was requested, but a unit which is not smart-linkable was used.
+exec_t_unit_not_shared_linkable_switch_to_static=09025_T_unit $1 tidak bisa digabung berbagi, beralih ke penggabungan statis
+% Shared linking was requested, but a unit which is not shared-linkable  was used.
+exec_e_unit_not_smart_or_static_linkable=09026_E_unit $1 tidak bisa digabung smart maupun statis
+% Smart or static linking was requested, but a unit which cannot be used for either  was used.
+exec_e_unit_not_shared_or_static_linkable=09027_E_unit $1 tidak bisa digabung shared ataupun statis
+% Shared or static linking was requested, but a unit which cannot be used for either  was used.
+exec_d_resbin_params=09028_D_Memanggil kompilator resource "$1" dengan "$2" sebagai baris perintah
+% An informational message showing which command-line is used for the resource compiler.
 %\end{description}
 # EndOfTeX
 
 #
 # Executable information
 #
-execinfo_f_cant_process_executable=09128_F_Tidak bisa menuliskan proses eksekutabel $1
-execinfo_f_cant_open_executable=09129_F_Tidak bisa membuka eksekutabel$1
-execinfo_x_codesize=09130_X_Besar Kode: $1 byte
-execinfo_x_initdatasize=09131_X_Besar data yang diinisialisasi: $1 byte
-execinfo_x_uninitdatasize=09132_X_Besar data yang tidak diinisialisasi: $1 byte
-execinfo_x_stackreserve=09133_X_Ruang stack disediakan: $1 byte
-execinfo_x_stackcommit=09134_X_Ruang stack dipakai: $1 byte
+# BeginOfTeX
+% \section{Executable information messages.}
+% This section lists all messages that the compiler emits when an executable program is produced,
+% and only when the internal linker is used.
+% \begin{description}
+execinfo_f_cant_process_executable=09128_F_Tidak bisa memproses executable selanjutnya $1
+% Fatal error when the compiler is unable to post-process an executable.
+execinfo_f_cant_open_executable=09129_F_Tidak bisa membuka executable $1
+% Fatal error when the compiler cannot open the file for the executable.
+execinfo_x_codesize=09130_X_Ukuran Kode: $1 byte
+% Informational message showing the size of the produced code section.
+execinfo_x_initdatasize=09131_X_Ukuran data diinisialisasi: $1 byte
+% Informational message showing the size of the initialized data section.
+execinfo_x_uninitdatasize=09132_X_Ukuran data tidak diinisialisasi: $1 byte
+% Informational message showing the size of the uninitialized data section.
+execinfo_x_stackreserve=09133_X_Ruang Stack terpakai: $1 bytes
+% Informational message showing the stack size that the compiler reserved for the executable.
+execinfo_x_stackcommit=09134_X_Ruang Stack dikomit: $1 bytes
+% Informational message showing the stack size that the compiler committed for the executable.
+%\end{description}
+# EndOfTeX
 
 #
 # Pengambilan unit
@@ -1967,7 +2134,8 @@ unit_f_cant_find_ppu=10022_F_Tidak bisa menemukan unit $1
 % You tried to use a unit of which the PPU file isn't found by the
 % compiler. Check your configuration file for the unit paths
 unit_w_unit_name_error=10023_W_Unit $1 tidak ditemukan tapi $2 ada
-unit_f_unit_name_error=10024_F_Unit $1 mencari tapi $2 ditemukan
+% This error message is no longer used.
+unit_f_unit_name_error=10024_F_Unit $1 telah dicari tapi $2 yang ditemukan
 % Dos truncation of 8 letters for unit PPU files
 % may lead to problems when unit name is longer than 8 letters.
 unit_w_switch_us_missed=10025_W_Kompilkasi unit sistem memerlukan saklar -Us
@@ -1979,8 +2147,10 @@ unit_f_errors_in_unit=10026_F_Ada $1 kesalahan kompilasi modul, menghentikan
 unit_u_load_unit=10027_U_Diambil dari $1 ($2) unit $3
 % When you use the \var{-vu} flag, which unit is loaded from which unit is
 % shown.
-unit_u_recompile_crc_change=10028_U_Kompilasi ulang $1, checksum berubah untuk $2
-unit_u_recompile_source_found_alone=10029_U_Rekompilasi ulang $1, hanya sumber yang ditemukan
+unit_u_recompile_crc_change=10028_U_Recompiling $1, checksum changed for $2
+% The unit is recompiled because the checksum of a unit it depends on has
+% changed.
+unit_u_recompile_source_found_alone=10029_U_Recompiling $1, source found only
 % When you use the \var{-vu} flag, these messages tell you why the current
 % unit is recompiled.
 unit_u_recompile_staticlib_is_older=10030_U_Rekompilasi ulang unit, statik lib lebih lama dari ppufile
@@ -2022,10 +2192,8 @@ unit_u_check_time=10037_U_PPU memeriksa file $1 waktu $2
 unit_w_cant_compile_unit_with_changed_incfile=10040_W_tidak bisa mengkompilasi ulang unit $1, tetapi ditemukan file include yang diubah
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.
-unit_h_source_modified=10041_H_File $1 is lebih baru dari file Rilis PPU $2
-% A modified source file for a unit was found that was compiled with the
-% release flag (-Ur). The unit will not implicitly be recompiled because
-% this release flag is set.
+unit_u_source_modified=10041_U_File $1 is lebih baru dari file Rilis PPU $2
+% A modified source file for a unit was founde
 unit_u_ppu_invalid_fpumode=10042_U_Menggunakan unit yang tidak dikompilasi dengan mode FPU yang benar
 % Trying to compile code while using units which were not compiled with
 % the same floating point format mode. Either all code should be compiled
@@ -2092,7 +2260,7 @@ unit_u_skipping_reresolving_unit=10059_U_Melewati re-resolving unit $1, masih me
 #
 #  Options
 #
-# 11039 is the last used one
+# 11041 is the last used one
 #
 option_usage=11000_O_$1 [opsi] <fileinput> [opsi]
 # BeginOfTeX
@@ -2163,7 +2331,10 @@ option_asm_forced=11022_W_"$1" assembler menggunakan paksaan
 % The assembler output selected can not generate
 % object files with the correct format. Therefore, the
 % default assembler for this target is used instead.
-option_using_file=11026_T_Opsi pembacaan dari file $1
+option_confict_asm_debug=11041_W_Output Assembler yang dipilih "$1" tidak bisa menghasilkan info debug, debugging dimatikan
+% The assembler output selected can not generate
+% debugging information, debugging option is therefore disabled.
+option_using_file=11026_T_Membaca opsi dari file $1
 % Options are also read from this file
 option_using_env=11027_T_Opsi pembacaan dari lingkungan $1
 % Options are also read from this environment string
@@ -2262,14 +2433,14 @@ option_help_pages=11025_[
 3*2Anasmobj_file obj menggunakan Nasm
 3*2Amasm_file obj menggunakan Masm (Microsoft)
 3*2Atasm_file obj menggunakan Tasm (Borland)
-3*2Aelf_elf32 (Linux) menggunakan penulis internall
-3*2Acoff_coff (Go32v2) menggunakan penulis internall
-3*2Apecoff_pecoff (Win32) menggunakan penulis internall
+3*2Aelf_elf32 (Linux) menggunakan penulis internal
+3*2Acoff_coff (Go32v2) menggunakan penulis internal
+3*2Apecoff_pecoff (Win32) menggunakan penulis internal
 4*2Aas_himpun menggunakan GNU AS
 6*2Aas_Unix o-file menggunakan GNU AS
 6*2Agas_GNU Motorola assembler
-6*2Amit_Sintaks MIT (GAS lama)
-6*2Amot_Standar Motorola assembler
+6*2Amit_MIT Syntax (old GAS)
+6*2Amot_Standar assembler Motorola
 A*2Aas_himpun menggunakan GNU AS
 P*2Aas_himpun menggunakan GNU AS
 S*2Aas_himpun menggunakan GNU AS
@@ -2277,111 +2448,117 @@ S*2Aas_himpun menggunakan GNU AS
 **2bl_hasilkan info simbol lokal
 **1B_bangun semua modul
 **1C<x>_opsi pembuatan kode:
-**2Cc<x>_set konvensi pemanggilan default ke <x>
+**2Cc<x>_set konvensi pemanggilan standar ke <x>
 **2CD_buat juga librari dinamis (tidak didukung)
-**2Ce_Kompiilasi dengan opkode emulasi floating point
-**2Cf<x>_Pilih set instruksi fpu yang digunakan, lihat fpc -i untuk nilai yang mungkin
-**2Cg_Hasilkan kode PIC
+**2Ce_Kompilasi dengan opcode emulasi floating point
+**2Cf<x>_Pilih set instruksi yang digunakan, lihat fpc -i untuk nilai yang mungkin
+**2Cg_Buat kode PIC
 **2Ch<n>_<n> byte heap (antara 1023 dan 67107840)
-**2Ci_IO-pemeriksaan
+**2Ci_Pemeriksaan-IO
 **2Cn_abaikan tahap linking
 **2Co_periksa overflow dari operasi integer
 **2Cp<x>_pilih set instruksi, lihat fpc -i untuk nilai yang mungkin
+**2CP<x>=<y>_ seting packing
+**3CPPACKSET=<y>_ <y> set alikasi: 0, 1 atau DEFAULT atau NORMAL, 2, 4 dan 8
 **2Cr_pemeriksaan jangkauan
-**2CR_verifikasi keabsahan pemanggilan metode object
-**2Cs<n>_set besar stack ke <n>
+**2CR_verifikasi validitas pemanggilan metode object
+**2Cs<n>_set ukuran stack ke <n>
 **2Ct_pemeriksaan stack
 **2CX_buat juga librari smartlinked
-**1d<x>_definisikan simbol <x>
-**1D_hasilkan file DEF
+**1d<x>_medefinisikan simbol <x>
+**1D_buat file DEF
 **2Dd<x>_set deskripsi ke <x>
 **2Dv<x>_set versi DLL ke <x>
-*O2Dw_Aplikasi PM
-**1e<x>_set path ke eksekutabel
-**1E_sama dengan -Cn
+*O2Dw_aplikasi PM
+**1e<x>_set path ke executable
+**1E_sama seperti -Cn
+**1fPIC_sama seperti -Cg
 **1F<x>_set nama file dan path:
-**2Fa<x>[,y]_untuk sebuag program mengambil unit pertama <x> dan [y] sebelum penggunaan dioper
+**2Fa<x>[,y]_untuk memanggil program unit pertama <x> dan [y] sebelum uses diuraikan
 **2Fc<x>_set codepage input ke <x>
 **2FD<x>_set direktori dimana untuk mencari utilitas kompilator
 **2Fe<x>_alihkan output kesalahan ke <x>
 **2FE<x>_set path output exe/unit ke <x>
-**2Fi<x>_tambahkan <x> ke path include
-**2Fl<x>_tambahkan <x> ke path librari
-**2FL<x>_gunakan <x> sebagai linker dinamis
-**2Fo<x>_tambahkan <x> ke path object
-**2Fr<x>_ambil file pesan kesalahan <x>
-**2Fu<x>_tambahkan <x> ke path unit
-**2FU<x>_set path output unit ke <x>, kesampingkan -FE
-*g1g_hasilkan informasi debugger:
-*g2gc_hasilkan pemeriksaan untuk pointer
+**2Fi<x>_menambah <x> ke path include
+**2Fl<x>_menambah <x> ke path library
+**2FL<x>_menggunakan <x> sebagai linker dinamis
+**2Fo<x>_menambah <x> ke path object
+**2Fr<x>_mengambil file pesan kesalahan <x>
+**2Fu<x>_menambah <x> ke path unit
+**2FU<x>_set unit path output ke <x>, mengabaikan -FE
+*g1g_buat informasi debugger:
+*g2gc_buat pemeriksaan untuk pointer
 *g2gd_gunakan dbx
 *g2gg_gunakan gsym
-*g2gh_gunakan unit penelusur heap (untuk debug kebocoran memori)
-*g2gl_gunakan unit info baris untuk menampilkan info lebih banyak untuk penelusuran
-*g2gv_hasilkan program yang bisa ditelusuri dengan valgrind
-*g2gw_hasilkan info debug dwarf
+*g2gh_gunakan unit pelacak heap (untuk memeriksa kebocoran memori)
+*g2gl_gunakan unit info baris untuk menampilkan infor lebih untuk pelacakan balik
+*g2gt_buang variabel lokal (untuk mendeteksi uses tidak diinisialisasi)
+*g2gv_membuat program bisa dilacak dengan valgrind
+*g2gw_buat info debug dwarf
 **1i_informasi
-**2iD_mengembalikan tanggal kompilator
-**2iV_mengembalikan versi kompilator
-**2iSO_mengembalikan OS kompilator
-**2iSP_mengembalikan prosesor kompilator
-**2iTO_mengembalikan OS target
-**2iTP_mengembalikan prosesor target
-**1I<x>_tambahkan <x> ke path include
-**1k<x>_Operan <x> ke linker
+**2iD_kembailkan tanggal kompilator
+**2iV_kembailkan versi kompilator
+**2iW_kembailkan versi lengkap kompilator
+**2iSO_kembailkan OS kompilator
+**2iSP_kembailkan prosesor kompilator
+**2iTO_kembailkan target OS kompilator
+**2iTP_kembailkan prosesor target kompilator
+**1I<x>_menambah <x> ke path include
+**1k<x>_Pass <x> ke linker
 **1l_tulis logo
 **1M<x>_set mode bahasa ke <x>
-**2Mfpc_dialek free pascal (default)
-**2Mobjfpc_beberapa saklar ekstensi Delphi 2 hidup
-**2Mdelphi_mencoba untuk kompatibel Delphi
-**2Mtp_mencoba untuk kompatibel TP/BP 7.0
-**2Mgpc_mencoba untuk kompatibel gpc
-**2Mmacpas_mencoba untuk kompatibel dengan dialek pascal macintosh
-**1n_jangan baca file konfigurasi default
-**1N<x>_optimasi susunan node
-**2Nu_jangan gulung perulangan
-**1o<x>_ubah nama dari eksekutabel yang dihasilkan ke <x>
+**2Mfpc_dialek free pascal (standar)
+**2Mobjfpc_tukar beberapa ekstensi Delphi 2 pada
+**2Mdelphi_percobaan agar kompatibel Delphi
+**2Mtp_pervobaan agar kompatibel TP/BP 7.0
+**2Mgpc_percobaan agar kompatibel gpc
+**2Mmacpas_percobaan agar kompatibel ke dialek pascal macintosh
+**1n_jangan baca file konfig standar
+**1N<x>_optimasi node tree
+**2Nu_unroll loops
+**1o<x>_ubah nama executable yang dihasilkan ke <x>
 **1O<x>_optimasi:
 **2O-_matikan optimasi
-**2O1_tingkat 1 optimasi (cepat dan akrab debugger)
-**2O2_tingkat 2 optimasi (-O1 + optimasi cepat)
-**2O3_tingkat 3 optimasi (-O2 + optimasi lambat)
-**2Oa<x>=<y>_set penjajaran
-**2Oo[NO]<x>_hidupkan atau maukan optimasi, lihat fpc -i untuk nilai yang mungkin
+**2O1_level 1 optimasi (cepat dan akrab debugger)
+**2O2_level 2 optimasi (-O1 + optimasi cepat)
+**2O3_level 3 optimasi (-O2 + optimasi lambat)
+**2Oa<x>=<y>_set penajaran
+**2Oo[NO]<x>_hidupkan atau matikan optimasi, lihat fpc -i untuk nilai yang mungkin
 **2Op<x>_set target cpu untuk optimasi, lihat fpc -i untuk nilai yang mungkin
 **2Os_hasilkan kode lebih kecil
 **1pg_hasilkan kode profil untuk gprof (definisikan FPC_PROFILE)
 **1R<x>_gaya pembacaan assembler:
-**2Rdefault_gunakan assembler default
-3*2Ratt_baca gaya assembler AT&T
-3*2Rintel_baca gaya assembler intel
-6*2RMOT_baca gaya assembler motorola
+**2Rdefault_gunakan assembler standar
+3*2Ratt_baca assembler gaya AT&T
+3*2Rintel_baca assembler gaya Intel
+6*2RMOT_baca assembler gaya Motorola
 **1S<x>_opsi sintaks:
-**2S2_sama dengan -Mobjfpc
-**2Sc_dukung operator mirip C (*=,+=,/= and -=)
-**2Sa_sertakan kode asertasi.
-**2Sd_sama dengan\ -Mdelphi
-**2Se<x>_opsi kesalahan. <x> adalah kombinasi dari:
-**3*_<n> : kompilator berhenti setelah <n> kesalahan (default adalah 1)
+**2S2_sama seperti -Mobjfpc
+**2Sc_mendukung operator seperti (*=,+=,/= and -=)
+**2Sa_sertakan kode assertion.
+**2Sd_sama seperti -Mdelphi
+**2Se<x>_opsi kesalahan. <x> adalah kombinasi dari yang berikut:
+**3*_<n> : kompilator berhenti setelah <n> kesalahan (standarnya 1)
 **3*_w : kompilator berhenti juga setelah peringatan
 **3*_n : kompilator berhenti juga setelah catatan
 **3*_h : kompilator berhenti juga setelah petunjuk
 **2Sg_ijinkan LABEL dan GOTO
 **2Sh_Gunakan ansistrings
-**2Si_dukung gaya C++ INLINE
-**2Sk_ambil unit fpcylix
-**2SI<x>_set gaya antar muka ke <x>
-**3SIcom_Antarmuka kompatibel COM (default)
-**3SIcorba_Antarmuka kompatibel CORBA
+**2Si_Dukung C++ gaya INLINE
+**2Sk_ambil fpcylix unit
+**2SI<x>_set gaya interface ke <x>
+**3SIcom_kompatibel interface COM (standar)
+**3SIcorba_kompatibel interface CORBA
 **2Sm_dukung makro seperti C (global)
-**2So_sama dengan -Mtp
-**2Sp_sama dengan -Mgpc
+**2So_sama seperti -Mtp
+**2Sp_sama seperti -Mgpc
 **2Ss_nama constructor harus init (destructor harus done)
-**2St_ijinkan kunci kata statik dalam objects
+**2St_ijinkan kata kunci static dalam obyek
+**2Sx_hidupkan kata kunci exception (standar dalam mode Delphi/ObjFPC)
 **1s_jangan panggil assembler dan linker
-**2sh_Hasilkan skrip untuk link pada host
-**2st_Hasilkan skrip untuk link pada target
-**2sr_Lewati fase alokasi register (gunakan dengan -alr)
+**2sh_Hasilkan naskah untuk menyambung pada host
+**2st_Hasilkan naskah untuk menyambung pada target
+**2sr_Lewati tahap alokasi register (gunakan dengan -alr)
 **1T<x>_Target sistem operasi:
 3*2Temx_OS/2 via EMX (termasuk EMX/RSX extender)
 3*2Tfreebsd_FreeBSD
