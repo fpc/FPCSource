@@ -9,6 +9,11 @@ const
   LibDL = 'dl';
 {$endif}
 
+{$if defined(linux) and defined(cpuarm)}
+{ arm-linux seems to require this }
+{$linklib c}
+{$endif}
+
   RTLD_LAZY         = $001;
   RTLD_NOW          = $002;
   RTLD_BINDING_MASK = $003;
