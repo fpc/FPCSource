@@ -129,7 +129,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          function  getsize : longint;
+          function  getsize : aint;
           function  getpackedbitsize : longint;
           function  is_regvar(refpara: boolean):boolean;
           procedure trigger_notifications(what:Tnotification_flag);
@@ -231,7 +231,7 @@ interface
           constructor create(const n : string);
           destructor  destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
-          function  getsize : longint;
+          function  getsize : aint;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
@@ -880,7 +880,7 @@ implementation
       end;
 
 
-    function tpropertysym.getsize : longint;
+    function tpropertysym.getsize : aint;
       begin
          getsize:=0;
       end;
@@ -971,7 +971,7 @@ implementation
       end;
 
 
-    function tabstractvarsym.getsize : longint;
+    function tabstractvarsym.getsize : aint;
       begin
         if assigned(vardef) and
            ((vardef.typ<>arraydef) or

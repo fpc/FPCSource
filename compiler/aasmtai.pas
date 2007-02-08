@@ -369,9 +369,9 @@ interface
        tai_datablock = class(tailineinfo)
           is_global : boolean;
           sym       : tasmsymbol;
-          size      : longint;
-          constructor Create(const _name : string;_size : longint);
-          constructor Create_global(const _name : string;_size : longint);
+          size      : aint;
+          constructor Create(const _name : string;_size : aint);
+          constructor Create_global(const _name : string;_size : aint);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -854,7 +854,7 @@ implementation
                              TAI_DATABLOCK
  ****************************************************************************}
 
-    constructor tai_datablock.Create(const _name : string;_size : longint);
+    constructor tai_datablock.Create(const _name : string;_size : aint);
 
       begin
          inherited Create;
@@ -862,20 +862,20 @@ implementation
          sym:=current_asmdata.DefineAsmSymbol(_name,AB_LOCAL,AT_DATA);
          { keep things aligned }
          if _size<=0 then
-           _size:=4;
+           _size:=sizeof(aint);
          size:=_size;
          is_global:=false;
       end;
 
 
-    constructor tai_datablock.Create_global(const _name : string;_size : longint);
+    constructor tai_datablock.Create_global(const _name : string;_size : aint);
       begin
          inherited Create;
          typ:=ait_datablock;
          sym:=current_asmdata.DefineAsmSymbol(_name,AB_GLOBAL,AT_DATA);
          { keep things aligned }
          if _size<=0 then
-           _size:=4;
+           _size:=sizeof(aint);
          size:=_size;
          is_global:=true;
       end;
@@ -885,7 +885,7 @@ implementation
       begin
         inherited Create;
         sym:=ppufile.getasmsymbol;
-        size:=ppufile.getlongint;
+        size:=ppufile.getaint;
         is_global:=boolean(ppufile.getbyte);
       end;
 
@@ -894,7 +894,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putasmsymbol(sym);
-        ppufile.putlongint(size);
+        ppufile.putaint(size);
         ppufile.putbyte(byte(is_global));
       end;
 
