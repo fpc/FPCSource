@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings sysctl baseunix unixut
       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
       errors terminfo termio video crt mouse keyboard console \
       variants types sysctl dateutils convutils stdconvs \
-      sysconst cthreads strutils rtlconsts cwstring bsd
+      sysconst cthreads strutils rtlconsts cwstring bsd fmtbcd
 
 rsts=math varutils typinfo classes variants dateutils sysconst rtlconsts
 
