@@ -199,17 +199,8 @@ implementation
               To do: Build in support for LOC_JUMP }
 
             { load and zero or sign extend as necessary }
-            if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-             begin
-               pleftreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,opsize);
-               cg.a_load_reg_reg(current_asmdata.CurrAsmList,left.location.size,opsize,left.location.register,pleftreg);
-             end
-            else
-             begin
-               { load the value in a register }
-               pleftreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-               cg.a_load_ref_reg(current_asmdata.CurrAsmList,left.location.size,opsize,left.location.reference,pleftreg);
-             end;
+            location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
+            pleftreg:=left.location.register;
 
             { Get a label to jump to the end }
             location_reset(location,LOC_FLAGS,OS_NO);
@@ -237,12 +228,9 @@ implementation
                     { yes, is the lower bound <> 0? }
                     if (setparts[i].start <> 0) then
                       begin
-                        if (left.location.loc = LOC_CREGISTER) then
-                          begin
-                            hreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                            cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,pleftreg,hreg);
-                            pleftreg:=hreg;
-                          end;
+                        location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
+                        hreg:=left.location.register;
+                        pleftreg:=hreg;
                         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,setparts[i].start-adjustment,pleftreg);
                       end;
 
@@ -315,22 +303,8 @@ implementation
                 end
                else
                 begin
-                  case left.location.loc of
-                     LOC_REGISTER,
-                     LOC_CREGISTER:
-                       begin
-                          hreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_32);
-                          cg.a_load_reg_reg(current_asmdata.CurrAsmList,left.location.size,OS_32,left.location.register,hreg);
-                       end;
-                  else
-                    begin
-                      { the set element isn't never samller than a byte
-                        and because it's a small set we need only 5 bits
-                        but 8 bits are easier to load                    }
-                      hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,OS_32,left.location.reference,hreg);
-                    end;
-                  end;
+                  location_force_reg(current_asmdata.CurrAsmList,left.location,OS_32,true);
+                  hreg:=left.location.register;
 
                   case right.location.loc of
                     LOC_REGISTER,
@@ -419,13 +393,8 @@ implementation
                 end
                else
                 begin
-                  if (left.location.loc=LOC_REGISTER) then
-                    pleftreg:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,opsize)
-                  else
-                    pleftreg:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-
-                  cg.a_load_loc_reg(current_asmdata.CurrAsmList,opsize,left.location,pleftreg);
-                  location_freetemp(current_asmdata.CurrAsmList,left.location);
+                  location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
+                  pleftreg:=left.location.register;
 
                   if (opsize >= OS_S8) or { = if signed }
                     ((left.resultdef.typ=orddef)  and (torddef(left.resultdef).high > tsetdef(right.resultdef).setmax)) or
