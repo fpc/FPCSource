@@ -84,6 +84,9 @@ interface
           constructor create(l,r,_t1 : tnode);virtual;reintroduce;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
+          function simplify : tnode;override;
+         private
+          function internalsimplify(warn: boolean) : tnode;
        end;
        tifnodeclass = class of tifnode;
 
@@ -658,6 +661,42 @@ implementation
       end;
 
 
+    function tifnode.internalsimplify(warn: boolean) : tnode;
+      begin
+        result:=nil;
+        { optimize constant expressions }
+        if left.nodetype=ordconstn then
+          begin
+             if tordconstnode(left).value=1 then
+               begin
+                  if assigned(right) then
+                    result:=right
+                  else
+                    result:=cnothingnode.create;
+                  right:=nil;
+                  if warn and assigned(t1) then
+                    CGMessagePos(t1.fileinfo,cg_w_unreachable_code);
+               end
+             else
+               begin
+                  if assigned(t1) then
+                    result:=t1
+                  else
+                    result:=cnothingnode.create;
+                  t1:=nil;
+                  if warn and assigned(right) then
+                    CGMessagePos(right.fileinfo,cg_w_unreachable_code);
+               end;
+          end;
+      end;
+
+
+    function tifnode.simplify : tnode;
+      begin
+        result:=internalsimplify(false);
+      end;
+
+
     function tifnode.pass_typecheck:tnode;
       begin
          result:=nil;
@@ -685,31 +724,7 @@ implementation
              else
                Message1(type_e_boolean_expr_expected,left.resultdef.typename);
            end;
-
-         { optimize constant expressions }
-         if left.nodetype=ordconstn then
-           begin
-              if tordconstnode(left).value=1 then
-                begin
-                   if assigned(right) then
-                     result:=right
-                   else
-                     result:=cnothingnode.create;
-                   right:=nil;
-                   if assigned(t1) then
-                     CGMessagePos(t1.fileinfo,cg_w_unreachable_code);
-                end
-              else
-                begin
-                   if assigned(t1) then
-                     result:=t1
-                   else
-                     result:=cnothingnode.create;
-                   t1:=nil;
-                   if assigned(right) then
-                     CGMessagePos(right.fileinfo,cg_w_unreachable_code);
-                end;
-           end;
+         result:=internalsimplify(true);
       end;
 
 
