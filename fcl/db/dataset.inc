@@ -36,6 +36,7 @@ begin
   FBufferCount := 0;
   FEOF := True;
   FBOF := True;
+  FIsUniDirectional := False;
 end;
 
 
@@ -129,7 +130,7 @@ Function TDataset.BookmarkAvailable: Boolean;
 Const BookmarkStates = [dsBrowse,dsEdit,dsInsert];
 
 begin
-  Result:=(Not IsEmpty) and (State in BookmarkStates)
+  Result:=(Not IsEmpty) and  not FIsUniDirectional and (State in BookmarkStates)
           and (getBookMarkFlag(ActiveBuffer)=bfCurrent);
 end;
 
@@ -139,7 +140,7 @@ var
   I: Integer;
 begin
   FCalcBuffer := Buffer;
-  if (State <> dsInternalCalc) and (IsUniDirectional = False) then
+  if (State <> dsInternalCalc) and (FIsUniDirectional = False) then
   begin
     ClearCalcFields(CalcBuffer);
     for I := 0 to Fields.Count - 1 do
@@ -718,6 +719,7 @@ begin
 {$ifdef dsdebug}
   Writeln ('GetPriorRecord: Getting previous record');
 {$endif}
+  CheckBiDirectional;
   If FRecordCount>0 Then SetCurrentRecord(0);
   Result:=GetRecord(FBuffers[FBuffercount],gmPrior,True)=grOK;
   if result then
@@ -861,6 +863,11 @@ begin
     classes.ApplicationHandleException(self)
   else
     ShowException(ExceptObject,ExceptAddr);
+end;
+
+procedure TDataSet.SetUniDirectional(const Value: Boolean);
+begin
+  FIsUniDirectional := Value;
 end;
 
 Procedure TDataset.SetActive (Value : Boolean);
@@ -1065,7 +1072,7 @@ begin
       bfBOF : InternalFirst;
       bfEOF : InternalLast;
       end;
-    FCurrentRecord:=index;
+    if not FIsUniDirectional then FCurrentRecord:=index;
     end;
 end;
 
@@ -1097,6 +1104,7 @@ end;
 Procedure TDataset.SetFiltered(Value: Boolean);
 
 begin
+  if Value then CheckBiDirectional;
   FFiltered := value;
 end;
 
@@ -1537,17 +1545,26 @@ Procedure TDataset.First;
 
 
 begin
-  CheckBrowseMode;
-  DoBeforeScroll;
-  ClearBuffers;
-  try
-    InternalFirst;
-    GetNextRecords;
-  finally
-    FBOF:=True;
-    DataEvent(deDatasetChange,0);
-    DoAfterScroll;
-  end;
+  if not FBof then
+    begin
+    CheckBrowseMode;
+    DoBeforeScroll;
+    if FIsUniDirectional then
+      begin
+      Active := False;
+      Active := True;
+      end
+    else
+      ClearBuffers;
+    try
+      InternalFirst;
+      if not FIsUniDirectional then GetNextRecords;
+    finally
+      FBOF:=True;
+      DataEvent(deDatasetChange,0);
+      DoAfterScroll;
+      end;
+    end;
 end;
 
 Procedure TDataset.FreeBookmark(ABookmark: TBookmark);
@@ -1672,19 +1689,23 @@ end;
 Procedure TDataset.Last;
 
 begin
-  CheckBrowseMode;
-  DoBeforeScroll;
-  ClearBuffers;
-  try
-    InternalLast;
-    GetPriorRecords;
-    if FRecordCount>0 then
-      FActiveRecord:=FRecordCount-1
-  finally
-    FEOF:=true;
-    DataEvent(deDataSetChange, 0);
-    DoAfterScroll;
-  end;
+  CheckBiDirectional;
+  if not FEOF then
+    begin
+    CheckBrowseMode;
+    DoBeforeScroll;
+    ClearBuffers;
+    try
+      InternalLast;
+      GetPriorRecords;
+      if FRecordCount>0 then
+        FActiveRecord:=FRecordCount-1
+    finally
+      FEOF:=true;
+      DataEvent(deDataSetChange, 0);
+      DoAfterScroll;
+      end;
+    end;
 end;
 
 Function TDataset.MoveBy(Distance: Longint): Longint;
@@ -1883,7 +1904,7 @@ begin
 {$ifdef dsdebug}
     Writeln ('Resync called');
 {$endif}
-
+  CheckBiDirectional;
 // place the cursor of the underlying dataset to the active record
 //  SetCurrentRecord(FActiverecord);
 

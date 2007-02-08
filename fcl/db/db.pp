@@ -1131,6 +1131,7 @@ type
     function IsCursorOpen: Boolean; virtual; abstract;
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); virtual; abstract;
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
+    procedure SetUniDirectional(const Value: Boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1199,7 +1200,7 @@ type
 //    property Fields[Index: Longint]: TField read GetField write SetField;
     property Found: Boolean read FFound;
     property Modified: Boolean read FModified write SetModified;
-    property IsUniDirectional: Boolean read FIsUniDirectional write FIsUniDirectional default False;
+    property IsUniDirectional: Boolean read FIsUniDirectional default False;
     property RecordCount: Longint read GetRecordCount;
     property RecNo: Longint read GetRecNo write SetRecNo;
     property RecordSize: Word read GetRecordSize;
