@@ -159,15 +159,11 @@ implementation
        tempfreelist:=nil;
        templist:=nil;
        { we could create a new child class for this but I don't if it is worth the effort (FK) }
-{$ifdef powerpc}
+{$if defined(powerpc) or defined(powerpc64)}
        direction:=1;
-{$else powerpc}
-{$ifdef POWERPC64}
-       direction:=1;
-{$else POWERPC64}
+{$else}
        direction:=-1;
-{$endif POWERPC64}
-{$endif powerpc}
+{$endif}
      end;
 
 
