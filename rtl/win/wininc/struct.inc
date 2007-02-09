@@ -4831,6 +4831,32 @@
      TOFSTRUCT = OFSTRUCT;
      POFSTRUCT = ^OFSTRUCT;
 
+     OPENFILENAME_NT4 = record
+          lStructSize : DWORD;
+          hwndOwner : HWND;
+          hInstance : HINST;
+          lpstrFilter : LPCTSTR;
+          lpstrCustomFilter : LPTSTR;
+          nMaxCustFilter : DWORD;
+          nFilterIndex : DWORD;
+          lpstrFile : LPTSTR;
+          nMaxFile : DWORD;
+          lpstrFileTitle : LPTSTR;
+          nMaxFileTitle : DWORD;
+          lpstrInitialDir : LPCTSTR;
+          lpstrTitle : LPCTSTR;
+          Flags : DWORD;
+          nFileOffset : WORD;
+          nFileExtension : WORD;
+          lpstrDefExt : LPCTSTR;
+          lCustData : LPARAM;
+          lpfnHook : LPOFNHOOKPROC;
+          lpTemplateName : LPCTSTR;
+       end;
+     LPOPENFILENAME_NT4 = ^OPENFILENAME_NT4;
+     TOPENFILENAME_NT4 = OPENFILENAME_NT4;
+     POPENFILENAME_NT4 = ^OPENFILENAME_NT4;
+
      OPENFILENAME = record
           lStructSize : DWORD;
           hwndOwner : HWND;
@@ -4852,6 +4878,9 @@
           lCustData : LPARAM;
           lpfnHook : LPOFNHOOKPROC;
           lpTemplateName : LPCTSTR;
+          pvReserved : pointer;
+          dwreserved : dword;
+          FlagsEx    : dword; 
        end;
      LPOPENFILENAME = ^OPENFILENAME;
      TOPENFILENAME = OPENFILENAME;
