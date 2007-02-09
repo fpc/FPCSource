@@ -385,11 +385,11 @@ function FillConsoleOutputCharacterW(hConsoleOutput: THandle; cCharacter: WideCh
 //function FillRect(hDC: HDC; const lprc: TRect; hbr: HBRUSH): Integer; external 'user32' name 'FillRect';
 function FindFirstFile(lpFileName: PChar; var lpFindFileData: TWIN32FindData): THandle;external 'kernel32' name 'FindFirstFileA';
 function FindFirstFileA(lpFileName: LPCSTR; var lpFindFileData: TWIN32FindDataA): THandle; external 'kernel32' name 'FindFirstFileA';
-//function FindFirstFileW(lpFileName: LPWSTR; var lpFindFileData: TWIN32FindDataW): THandle; external 'kernel32' name 'FindFirstFileW';
+function FindFirstFileW(lpFileName: LPWSTR; var lpFindFileData: TWIN32FindDataW): THandle; external 'kernel32' name 'FindFirstFileW';
 //function FindFirstFreeAce(var pAcl: TACL; var pAce: Pointer): BOOL; external 'advapi32' name 'FindFirstFreeAce';
 function FindNextFile(hFindFile: THandle; var lpFindFileData: TWIN32FindData): BOOL;external 'kernel32' name 'FindNextFileA';
 function FindNextFileA(hFindFile: THandle; var lpFindFileData: TWIN32FindDataA): BOOL; external 'kernel32' name 'FindNextFileA';
-//function FindNextFileW(hFindFile: THandle; var lpFindFileData: TWIN32FindDataW): BOOL; external 'kernel32' name 'FindNextFileW';
+function FindNextFileW(hFindFile: THandle; var lpFindFileData: TWIN32FindDataW): BOOL; external 'kernel32' name 'FindNextFileW';
 //function FlushInstructionCache(hProcess: THandle; const lpBaseAddress: Pointer; dwSize: DWORD): BOOL; external 'kernel32' name 'FlushInstructionCache';
 //function FlushViewOfFile(const lpBaseAddress: Pointer; dwNumberOfBytesToFlush: DWORD): BOOL; external 'kernel32' name 'FlushViewOfFile';
 //function FrameRect(hDC: HDC; const lprc: TRect; hbr: HBRUSH): Integer; external 'user32' name 'FrameRect';
