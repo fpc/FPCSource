@@ -348,7 +348,6 @@ compiler/powerpc64/itcpugas.pas svneol=native#text/plain
 compiler/powerpc64/nppcadd.pas svneol=native#text/plain
 compiler/powerpc64/nppccal.pas svneol=native#text/plain
 compiler/powerpc64/nppccnv.pas svneol=native#text/plain
-compiler/powerpc64/nppcinl.pas -text
 compiler/powerpc64/nppcld.pas svneol=native#text/plain
 compiler/powerpc64/nppcmat.pas svneol=native#text/plain
 compiler/powerpc64/ppcins.dat -text

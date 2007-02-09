@@ -38,11 +38,12 @@ unit agppcgas;
     type
       TPPCGNUAssembler=class(TGNUassembler)
         constructor create(smart: boolean); override;
-        procedure WriteExtraHeader;override;
+        procedure WriteExtraHeader; override;
       end;
 
       TPPCAppleGNUAssembler=class(TAppleGNUassembler)
         constructor create(smart: boolean); override;
+        function MakeCmdLine: TCmdStr; override;
       end;
 
 
@@ -57,7 +58,7 @@ unit agppcgas;
        cutils,globals,verbose,
        cgbase,cgutils,systems,
        assemble,
-       itcpugas,
+       itcpugas,cpuinfo,
        aasmcpu;
 
 {****************************************************************************}
@@ -92,6 +93,19 @@ unit agppcgas;
         InstrWriter := TPPCInstrWriter.create(self);
       end;
 
+
+    function TPPCAppleGNUAssembler.MakeCmdLine: TCmdStr;
+      begin
+        result := inherited MakeCmdLine;
+        case current_settings.cputype of
+          cpu_PPC7400:
+            Replace(result,'$ARCH','ppc7400');
+          cpu_PPC970:
+            Replace(result,'$ARCH','ppc970');
+          else
+            Replace(result,'$ARCH','ppc')
+        end;
+      end;
 
 {****************************************************************************}
 {                  Helper routines for Instruction Writer                    }
@@ -389,7 +403,7 @@ unit agppcgas;
 
             idtxt  : 'AS-Darwin';
             asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM -arch ppc';
+            asmcmd : '-o $OBJ $ASM -arch $ARCH';
             supported_target : system_any;
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
