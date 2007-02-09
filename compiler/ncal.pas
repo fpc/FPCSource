@@ -1597,7 +1597,7 @@ implementation
                 if (procdefinition.proctypeoption=potype_destructor) then
                   if not(cnf_create_failed in callnodeflags) then
                     vmttree:=cpointerconstnode.create(1,voidpointertype)
-                  else 
+                  else
                     vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype)
                 else
                   begin
@@ -1749,6 +1749,16 @@ implementation
                    if not(assigned(procdefinition.owner.defowner)) then
                      internalerror(200309287);
                    hiddentree:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner));
+                 end
+              else
+               if vo_is_range_check in currpara.varoptions then
+                 begin
+                   hiddentree:=cordconstnode.create(Ord(cs_check_range in current_settings.localswitches),booltype,false);
+                 end
+              else
+               if vo_is_overflow_check in currpara.varoptions then
+                 begin
+                   hiddentree:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),booltype,false);
                  end;
               { add the hidden parameter }
               if not assigned(hiddentree) then
