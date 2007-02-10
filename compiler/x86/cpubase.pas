@@ -375,8 +375,13 @@ implementation
       begin
         case o of
           A_CALL,
+{$ifdef i386}
           A_JCXZ,
+{$endif i386}
           A_JECXZ,
+{$ifdef x86_64}
+          A_JRCXZ,
+{$endif x86_64}
           A_JMP,
           A_LOOP,
           A_LOOPE,

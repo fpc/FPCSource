@@ -318,6 +318,9 @@ interface
               begin
                 if not(
                        (op=A_JCXZ) or (op=A_JECXZ) or
+{$ifdef x86_64}
+                       (op=A_JRCXZ) or
+{$endif x86_64}
                        (op=A_LOOP) or (op=A_LOOPE) or
                        (op=A_LOOPNE) or (op=A_LOOPNZ) or
                        (op=A_LOOPZ)
