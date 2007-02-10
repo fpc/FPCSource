@@ -138,7 +138,8 @@ interface
              system_arm_embedded,       { 57 }
              system_powerpc64_embedded, { 58 }
              system_i386_symbian,       { 59 }
-             system_arm_symbian         { 60 }
+             system_arm_symbian,        { 60 }
+             system_x86_64_darwin       { 61 }
        );
 
        tasm = (as_none
@@ -795,6 +796,10 @@ begin
     default_target(system_x86_64_freebsd);
     {$define source_system_set}
    {$endif}
+   {$ifdef darwin}
+    default_target(system_x86_64_darwin);
+    {$define source_system_set}
+   {$endif}
    { default is linux }
    {$ifndef source_system_set}
     default_target(system_x86_64_linux);
@@ -820,12 +825,12 @@ begin
   {$ifdef cpupowerpc}
     default_target(source_info.system);
   {$else cpupowerpc}
-   {$ifdef linux}
-    default_target(system_powerpc_linux);
-   {$endif}
-   {$ifdef darwin}
-    default_target(system_powerpc_darwin);
-   {$endif}
+  {$ifdef linux}
+   default_target(system_powerpc_linux);
+  {$endif}
+  {$ifdef darwin}
+   default_target(system_powerpc_darwin);
+  {$endif}
   {$endif cpupowerpc}
 {$endif powerpc}
 {$ifdef POWERPC64}
@@ -834,6 +839,9 @@ begin
   {$else cpupowerpc64}
     default_target(system_powerpc64_linux);
   {$endif cpupowerpc64}
+  {$ifdef darwin}
+   default_target(system_powerpc64_darwin);
+  {$endif}
 {$endif POWERPC64}
 {$ifdef sparc}
   {$ifdef cpusparc}
