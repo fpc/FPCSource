@@ -1965,7 +1965,7 @@ implementation
         current_procinfo.procdef.procendtai:=tai(list.last);
 
         { finalisation marker for Mac OS X }
-        if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) and
+        if (target_info.system in systems_darwin) and
            (current_module.islibrary) and
            (((current_module.flags and uf_finalize)<>0) or
             (current_procinfo.procdef.proctypeoption = potype_proginit)) then
@@ -1980,7 +1980,7 @@ implementation
 
         if (current_procinfo.procdef.proctypeoption=potype_proginit) then
           begin
-           if (target_info.system in [system_powerpc_darwin,system_i386_darwin,system_powerpc_macos]) and
+           if (target_info.system in (systems_darwin+[system_powerpc_macos])) and
               not(current_module.islibrary) then
              begin
               list.concat(tai_section.create(sec_code,'',4));

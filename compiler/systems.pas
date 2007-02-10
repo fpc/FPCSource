@@ -142,6 +142,11 @@ interface
              system_x86_64_darwin       { 61 }
        );
 
+     const
+       systems_darwin = [system_powerpc_darwin,system_i386_darwin,
+                         system_powerpc64_darwin,system_x86_64_darwin];
+
+     type
        tasm = (as_none
              ,as_gas                   { standard gnu assembler }
              ,as_i386_as_aout

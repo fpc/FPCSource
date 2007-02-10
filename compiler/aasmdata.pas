@@ -282,7 +282,7 @@ implementation
         for hal:=low(TAsmListType) to high(TAsmListType) do
           AsmLists[hal]:=TAsmList.create;
         { PIC data }
-        if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+        if (target_info.system in systems_darwin) then
           AsmLists[al_picdata].concat(tai_directive.create(asd_non_lazy_symbol_pointer,''));
         { CFI }
         FAsmCFI:=CAsmCFI.Create;
