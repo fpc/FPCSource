@@ -85,11 +85,10 @@ type
     FDbfFile: TDbfFile;
     FFieldName: string;
     FExprWord: TExprWord;
-
-    procedure SetExprWord(NewExprWord: TExprWord);
   protected
     function GetFieldVal: Pointer; virtual; abstract;
     function GetFieldType: TExpressionType; virtual; abstract;
+    procedure SetExprWord(NewExprWord: TExprWord); virtual;
 
     property ExprWord: TExprWord read FExprWord write SetExprWord;
   public
@@ -111,7 +110,9 @@ type
 
     function GetFieldVal: Pointer; override;
     function GetFieldType: TExpressionType; override;
+    procedure SetExprWord(NewExprWord: TExprWord); override;
     procedure SetRawStringField(NewRaw: boolean);
+    procedure UpdateExprWord;
   public
     constructor Create(UseFieldDef: TDbfFieldDef; ADbfFile: TDbfFile);
     destructor Destroy; override;
@@ -187,7 +188,7 @@ end;
 
 procedure TFieldVar.SetExprWord(NewExprWord: TExprWord);
 begin
-  FExprWord.FixedLen := FFieldDef.Size;
+  FExprWord := NewExprWord;
 end;
 
 { TStringFieldVar }
@@ -234,18 +235,29 @@ begin
     FFieldVal := Src;
 end;
 
+procedure TStringFieldVar.SetExprWord(NewExprWord: TExprWord);
+begin
+  inherited;
+  UpdateExprWord;
+end;
+
+procedure TStringFieldVar.UpdateExprWord;
+begin
+  if FRawStringField then
+    FExprWord.FixedLen := FieldDef.Size
+  else
+    FExprWord.FixedLen := -1;
+end;
+
 procedure TStringFieldVar.SetRawStringField(NewRaw: boolean);
 begin
   if NewRaw = FRawStringField then exit;
   FRawStringField := NewRaw;
   if NewRaw then
-  begin
-    FExprWord.FixedLen := FieldDef.Size;
-    FreeMem(FFieldVal);
-  end else begin
-    FExprWord.FixedLen := -1;
+    FreeMem(FFieldVal)
+  else
     GetMem(FFieldVal, FieldDef.Size*3+1);
-  end;
+  UpdateExprWord;
 end;
 
 //--TFloatFieldVar-----------------------------------------------------------
@@ -473,35 +485,35 @@ begin
     ftString:
       begin
         TempFieldVar := TStringFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-        TempFieldVar.FExprWord := DefineStringVariable(VarName, TempFieldVar.FieldVal);
+        TempFieldVar.ExprWord := DefineStringVariable(VarName, TempFieldVar.FieldVal);
         TStringFieldVar(TempFieldVar).RawStringField := FRawStringFields;
       end;
     ftBoolean:
       begin
         TempFieldVar := TBooleanFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-        TempFieldVar.FExprWord := DefineBooleanVariable(VarName, TempFieldVar.FieldVal);
+        TempFieldVar.ExprWord := DefineBooleanVariable(VarName, TempFieldVar.FieldVal);
       end;
     ftFloat:
       begin
         TempFieldVar := TFloatFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-        TempFieldVar.FExprWord := DefineFloatVariable(VarName, TempFieldVar.FieldVal);
+        TempFieldVar.ExprWord := DefineFloatVariable(VarName, TempFieldVar.FieldVal);
       end;
     ftAutoInc, ftInteger, ftSmallInt:
       begin
         TempFieldVar := TIntegerFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-        TempFieldVar.FExprWord := DefineIntegerVariable(VarName, TempFieldVar.FieldVal);
+        TempFieldVar.ExprWord := DefineIntegerVariable(VarName, TempFieldVar.FieldVal);
       end;
 {$ifdef SUPPORT_INT64}
     ftLargeInt:
       begin
         TempFieldVar := TLargeIntFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-        TempFieldVar.FExprWord := DefineLargeIntVariable(VarName, TempFieldVar.FieldVal);
+        TempFieldVar.ExprWord := DefineLargeIntVariable(VarName, TempFieldVar.FieldVal);
       end;
 {$endif}
     ftDate, ftDateTime:
       begin
         TempFieldVar := TDateTimeFieldVar.Create(FieldInfo, TDbfFile(FDbfFile));
-        TempFieldVar.FExprWord := DefineDateTimeVariable(VarName, TempFieldVar.FieldVal);
+        TempFieldVar.ExprWord := DefineDateTimeVariable(VarName, TempFieldVar.FieldVal);
       end;
   else
     raise EDbfError.CreateFmt(STRING_INDEX_BASED_ON_INVALID_FIELD, [VarName]);

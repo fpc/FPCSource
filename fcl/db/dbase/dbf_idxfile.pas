@@ -628,12 +628,12 @@ var
 
 procedure IncWordLE(var AVariable: Word; Amount: Integer);
 begin
-  AVariable := SwapWordLE(SwapWordLE(AVariable + Amount));
+  AVariable := SwapWordLE(SwapWordLE(AVariable) + Amount);
 end;
 
 procedure IncIntLE(var AVariable: Integer; Amount: Integer);
 begin
-  AVariable := SwapIntLE(SwapIntLE(AVariable + Amount));
+  AVariable := SwapIntLE(SwapIntLE(AVariable) + Amount);
 end;
 
 //==========================================================
@@ -2106,7 +2106,7 @@ procedure TIndexFile.CalcKeyProperties;
 begin
   // now adjust keylen to align on DWORD boundaries
   PIndexHdr(FIndexHeader)^.KeyRecLen := SwapWordLE((SwapWordLE(
-    PIndexHdr(FIndexHeader)^.KeyLen) + FEntryHeaderSize + 3) and 3);
+    PIndexHdr(FIndexHeader)^.KeyLen) + FEntryHeaderSize + 3) and not 3);
   PIndexHdr(FIndexHeader)^.NumKeys := SwapWordLE((RecordSize - FPageHeaderSize) div 
     SwapWordLE(PIndexHdr(FIndexHeader)^.KeyRecLen));
 end;
