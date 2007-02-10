@@ -89,8 +89,6 @@ unit cgcpu;
         { that's the case, we can use rlwinm to do an AND operation        }
         function get_rlwi_const(a: aint; var l1, l2: longint): boolean;
 
-        procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-
       protected
        procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
       private
@@ -1773,78 +1771,6 @@ const
            a_load_reg_ref(list,OS_8,OS_8,NR_R0,dst);
            a_reg_dealloc(list,NR_R0);
          end;
-      end;
-
-
-    procedure tcgppc.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
-
-        procedure loadvmttor11;
-        var
-          href : treference;
-        begin
-          reference_reset_base(href,NR_R3,0);
-          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
-        end;
-
-        procedure op_onr11methodaddr;
-        var
-          href : treference;
-        begin
-          if (procdef.extnumber=$ffff) then
-            Internalerror(200006139);
-          { call/jmp  vmtoffs(%eax) ; method offs }
-          reference_reset_base(href,NR_R11,procdef._class.vmtmethodoffset(procdef.extnumber));
-          if not((longint(href.offset) >= low(smallint)) and
-                 (longint(href.offset) <= high(smallint))) then
-            begin
-              list.concat(taicpu.op_reg_reg_const(A_ADDIS,NR_R11,NR_R11,
-                smallint((href.offset shr 16)+ord(smallint(href.offset and $ffff) < 0))));
-              href.offset := smallint(href.offset and $ffff);
-            end;
-          list.concat(taicpu.op_reg_ref(A_LWZ,NR_R11,href));
-          list.concat(taicpu.op_reg(A_MTCTR,NR_R11));
-          list.concat(taicpu.op_none(A_BCTR));
-        end;
-
-      var
-        make_global : boolean;
-      begin
-        if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
-          Internalerror(200006137);
-        if not assigned(procdef._class) or
-           (procdef.procoptions*[po_classmethod, po_staticmethod,
-             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
-          Internalerror(200006138);
-        if procdef.owner.symtabletype<>ObjectSymtable then
-          Internalerror(200109191);
-
-        make_global:=false;
-        if (not current_module.is_unit) or
-           (cs_create_smart in current_settings.moduleswitches) or
-           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
-          make_global:=true;
-
-        if make_global then
-          List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
-        else
-          List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
-
-        { set param1 interface to self  }
-        g_adjust_self_value(list,procdef,ioffset);
-
-        { case 4 }
-        if po_virtualmethod in procdef.procoptions then
-          begin
-            loadvmttor11;
-            op_onr11methodaddr;
-          end
-        { case 0 }
-        else
-          if not(target_info.system = system_powerpc_darwin) then
-            list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)))
-          else
-            list.concat(taicpu.op_sym(A_B,get_darwin_call_stub(procdef.mangledname)));
-        List.concat(Tai_symbol_end.Createname(labelname));
       end;
 
 

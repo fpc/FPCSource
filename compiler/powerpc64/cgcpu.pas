@@ -99,8 +99,6 @@ type
     procedure g_concatcopy(list: TAsmList; const source, dest: treference;
       len: aint); override;
 
-    procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const
-      labelname: string; ioffset: longint); override;
   private
 
     procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
@@ -131,10 +129,6 @@ type
     { returns the lowest numbered GP register in use, and the number of used GP registers
       for the current procedure }
     procedure calcFirstUsedGPR(out firstgpr : TSuperRegister; out gprcount : aint);
-
-    { returns true if the offset of the given reference can not be represented by a 16 bit
-    immediate as required by some PowerPC instructions }
-    function hasLargeOffset(const ref : TReference) : Boolean; inline;
 
     { generates code to call a method with the given string name. The boolean options
      control code generation. If prependDot is true, a single dot character is prepended to
@@ -1205,8 +1199,17 @@ begin
 end;
 
 procedure tcgppc.a_jmp_name(list: TAsmList; const s: string);
+var
+  p: taicpu;
 begin
-  a_jmp_name_direct(list, s, true);
+  if (target_info.system = system_powerpc64_darwin) then
+    begin
+      p := taicpu.op_sym(A_B,get_darwin_call_stub(s));
+      p.is_jmp := true;
+      list.concat(p)
+    end
+  else
+    a_jmp_name_direct(list, s, true);
 end;
 
 procedure tcgppc.a_jmp_always(list: TAsmList; l: tasmlabel);
@@ -1841,83 +1844,6 @@ begin
 
 end;
 
-procedure tcgppc.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const
-  labelname: string; ioffset: longint);
-
-  procedure loadvmttor11;
-  var
-    href: treference;
-  begin
-    reference_reset_base(href, NR_R3, 0);
-    cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R11);
-  end;
-
-  procedure op_onr11methodaddr;
-  var
-    href: treference;
-  begin
-    if (procdef.extnumber = $FFFF) then
-      Internalerror(200006139);
-    { call/jmp  vmtoffs(%eax) ; method offs }
-    reference_reset_base(href, NR_R11,
-      procdef._class.vmtmethodoffset(procdef.extnumber));
-    if not (hasLargeOffset(href)) then begin
-      list.concat(taicpu.op_reg_reg_const(A_ADDIS, NR_R11, NR_R11,
-        smallint((href.offset shr 16) + ord(smallint(href.offset and $FFFF) <
-        0))));
-      href.offset := smallint(href.offset and $FFFF);
-    end else
-      { add support for offsets > 16 bit }
-      internalerror(200510201);
-    list.concat(taicpu.op_reg_ref(A_LD, NR_R11, href));
-    { the loaded reference is a function descriptor reference, so deref again
-     (at ofs 0 there's the real pointer) }
-    {$warning ts:TODO: update GOT reference}
-    reference_reset_base(href, NR_R11, 0);
-    list.concat(taicpu.op_reg_ref(A_LD, NR_R11, href));
-
-    list.concat(taicpu.op_reg(A_MTCTR, NR_R11));
-    list.concat(taicpu.op_none(A_BCTR));
-    { NOP needed for the linker...? }
-    list.concat(taicpu.op_none(A_NOP));
-  end;
-
-var
-  make_global: boolean;
-begin
-  if (not (procdef.proctypeoption in [potype_function, potype_procedure])) then
-    Internalerror(200006137);
-  if not assigned(procdef._class) or
-    (procdef.procoptions * [po_classmethod, po_staticmethod,
-    po_methodpointer, po_interrupt, po_iocheck] <> []) then
-    Internalerror(200006138);
-  if procdef.owner.symtabletype <> ObjectSymtable then
-    Internalerror(200109191);
-
-  make_global := false;
-  if (not current_module.is_unit) or
-    (cs_create_smart in current_settings.moduleswitches) or
-    (procdef.owner.defowner.owner.symtabletype = globalsymtable) then
-    make_global := true;
-
-  if make_global then
-    List.concat(Tai_symbol.Createname_global(labelname, AT_FUNCTION, 0))
-  else
-    List.concat(Tai_symbol.Createname(labelname, AT_FUNCTION, 0));
-
-  { set param1 interface to self  }
-  g_adjust_self_value(list, procdef, ioffset);
-
-  if po_virtualmethod in procdef.procoptions then begin
-    loadvmttor11;
-    op_onr11methodaddr;
-  end else
-    {$note ts:todo add GOT change?? - think not needed :) }
-    list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)));
-
-  List.concat(Tai_symbol_end.Createname(labelname));
-end;
-
 {***************** This is private property, keep out! :) *****************}
 
 procedure tcgppc.maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
@@ -2173,12 +2099,6 @@ begin
   end else begin
     list.concat(taicpu.op_reg_ref(op, reg, ref));
   end;
-end;
-
-function tcgppc.hasLargeOffset(const ref : TReference) : Boolean; {$ifdef ver2_0}inline;{$endif}
-begin
-  { this rather strange calculation is required because offsets of TReferences are unsigned }
-  result := aword(ref.offset-low(smallint)) > high(smallint)-low(smallint);
 end;
 
 procedure tcgppc.loadConstantPIC(list : TAsmList; size : TCGSize; a : aint; reg : TRegister);

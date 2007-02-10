@@ -57,6 +57,8 @@ unit cgppc;
         procedure g_profilecode(list: TAsmList); override;
 
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
+
+        procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
        protected
         function  get_darwin_call_stub(const s: string): tasmsymbol;
         procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
@@ -67,6 +69,11 @@ unit cgppc;
         { of asmcondflags and destination addressing mode                }
         procedure a_jmp(list: TAsmList; op: tasmop;
                         c: tasmcondflag; crval: longint; l: tasmlabel);
+
+        { returns true if the offset of the given reference can not be  }
+        { represented by a 16 bit immediate as required by some PowerPC }
+        { instructions                                                  }
+        function hasLargeOffset(const ref : TReference) : Boolean; inline;
      end;
 
   const
@@ -80,6 +87,12 @@ unit cgppc;
        globals,verbose,systems,cutils,
        symconst,symsym,fmodule,
        rgobj,tgobj,cpupi,procinfo,paramgr;
+
+
+    function tcgppcgen.hasLargeOffset(const ref : TReference) : Boolean;
+      begin
+        result := aword(ref.offset-low(smallint)) > high(smallint)-low(smallint);
+      end;
 
 
     procedure tcgppcgen.a_param_const(list: TAsmList; size: tcgsize; a: aint; const
@@ -416,6 +429,92 @@ unit cgppc;
    end;
 
 
+
+    procedure tcgppcgen.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
+
+        procedure loadvmttor11;
+        var
+          href : treference;
+        begin
+          reference_reset_base(href,NR_R3,0);
+          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
+        end;
+
+
+        procedure op_onr11methodaddr;
+        var
+          href : treference;
+        begin
+          if (procdef.extnumber=$ffff) then
+            Internalerror(200006139);
+          { call/jmp  vmtoffs(%eax) ; method offs }
+          reference_reset_base(href,NR_R11,procdef._class.vmtmethodoffset(procdef.extnumber));
+          if hasLargeOffset(href) then
+            begin
+{$ifdef cpu64}
+              if (longint(href.offset) <> href.offset) then
+                { add support for offsets > 32 bit }
+                internalerror(200510201);
+{$endif cpu64}
+              list.concat(taicpu.op_reg_reg_const(A_ADDIS,NR_R11,NR_R11,
+                smallint((href.offset shr 16)+ord(smallint(href.offset and $ffff) < 0))));
+              href.offset := smallint(href.offset and $ffff);
+            end;
+          a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
+          list.concat(taicpu.op_reg(A_MTCTR,NR_R11));
+          list.concat(taicpu.op_none(A_BCTR));
+          if (target_info.system = system_powerpc64_linux) then
+            { NOP needed for the linker...? }
+            list.concat(taicpu.op_none(A_NOP));
+        end;
+
+
+      var
+        make_global : boolean;
+      begin
+        if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
+          Internalerror(200006137);
+        if not assigned(procdef._class) or
+           (procdef.procoptions*[po_classmethod, po_staticmethod,
+             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
+          Internalerror(200006138);
+        if procdef.owner.symtabletype<>ObjectSymtable then
+          Internalerror(200109191);
+
+        make_global:=false;
+        if (not current_module.is_unit) or
+           (cs_create_smart in current_settings.moduleswitches) or
+           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
+          make_global:=true;
+
+        if make_global then
+          List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+        else
+          List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+
+        { set param1 interface to self  }
+        g_adjust_self_value(list,procdef,ioffset);
+
+        { case 4 }
+        if po_virtualmethod in procdef.procoptions then
+          begin
+            loadvmttor11;
+            op_onr11methodaddr;
+          end
+        { case 0 }
+        else
+          case target_info.system of
+            system_powerpc_darwin,
+            system_powerpc64_darwin:
+              list.concat(taicpu.op_sym(A_B,get_darwin_call_stub(procdef.mangledname)));
+            system_powerpc64_linux:
+              {$note ts:todo add GOT change?? - think not needed :) }
+              list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)));
+            else
+              list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)))
+          end;
+        List.concat(Tai_symbol_end.Createname(labelname));
+      end;
 
 
 end.
