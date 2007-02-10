@@ -135,7 +135,7 @@ implementation
                     that doesn't need spilling }
                   if (oper[0]^.typ=top_reg) and
                      (oper[1]^.typ=top_reg) and
-                     (getsupreg(oper[0]^.reg)<>getsupreg(oper[1]^.reg)) then
+                     (get_alias(getsupreg(oper[0]^.reg))<>get_alias(getsupreg(oper[1]^.reg))) then
                     begin
                       { One of the arguments shall be able to be replaced }
                       if (getregtype(oper[0]^.reg)=regtype) and
