@@ -1123,15 +1123,15 @@ implementation
          uniondef : trecorddef;
          hintsymoptions : tsymoptions;
          semicoloneaten: boolean;
-{$ifdef powerpc}
+{$if defined(powerpc) or defined(powerpc64)}
          tempdef: tdef;
          is_first_field: boolean;
-{$endif powerpc}
+{$endif powerpc or powerpc64}
       begin
          recst:=tabstractrecordsymtable(symtablestack.top);
-{$ifdef powerpc}
+{$if defined(powerpc) or defined(powerpc64)}
          is_first_field := true;
-{$endif powerpc}
+{$endif powerpc or powerpc64}
          old_current_object_option:=current_object_option;
          { all variables are public if not in a object declaration }
          if not(vd_object in options) then
