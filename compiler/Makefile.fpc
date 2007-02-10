@@ -350,6 +350,11 @@ msgtxt.inc: $(MSGFILE)
 
 msg: msgtxt.inc
 
+insdat: x86/x86ins.dat
+	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86ins.pp
+        cd x86; ../utils/mkx86ins; mv -f *.inc ../i386
+        cd x86;../utils/mkx86ins x86_64; mv -f *.inc ../x86_64
+
 # Make only the compiler
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
              $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
