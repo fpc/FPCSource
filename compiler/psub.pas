@@ -1021,12 +1021,9 @@ implementation
             current_filepos:=exitpos;
             gen_proc_symbol_end(templist);
             aktproccode.concatlist(templist);
-{$ifdef POWERPC}
+{$if defined(POWERPC) or defined(POWERPC64)}
             fixup_jmps(aktproccode);
-{$endif POWERPC}
-{$ifdef POWERPC64}
-            fixup_jmps(aktproccode);
-{$endif POWERPC64}
+{$endif}
             { insert line debuginfo }
             if (cs_debuginfo in current_settings.moduleswitches) or
                (cs_use_lineinfo in current_settings.globalswitches) then

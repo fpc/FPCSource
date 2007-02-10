@@ -11,6 +11,9 @@ interface
 {$endif}
 {$PACKRECORDS 4}
 
+uses
+  ctypes;
+
 const
   ZLIB_VERSION = '1.1.3';
 
@@ -110,9 +113,9 @@ function deflateParams(var strm:TZStream; level:longint; strategy:longint):longi
 function inflateSetDictionary(var strm:TZStream;dictionary : pbytef; dictLength:uInt):longint;cdecl;external libz name 'inflateSetDictionary';
 function inflateSync(var strm:TZStream):longint;cdecl;external libz name 'inflateSync';
 function inflateReset(var strm:TZStream):longint;cdecl;external libz name 'inflateReset';
-function compress(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong):longint;cdecl;external libz name 'compress';
-function compress2(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong; level:longint):longint;cdecl;external libz name 'compress2';
-function uncompress(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong):longint;cdecl;external libz name 'uncompress';
+function compress(dest:pbytef;destLen:puLongf; source : pbytef; sourceLen:uLong):cint;cdecl;external libz name 'compress';
+function compress2(dest:pbytef;destLen:puLongf; source : pbytef; sourceLen:uLong; level:cint):cint;cdecl;external libz name 'compress2';
+function uncompress(dest:pbytef;destLen:puLongf; source : pbytef; sourceLen:uLong):cint;cdecl;external libz name 'uncompress';
 function gzopen(path:pchar; mode:pchar):gzFile;cdecl;external libz name 'gzopen';
 function gzdopen(fd:longint; mode:pchar):gzFile;cdecl;external libz name 'gzdopen';
 function gzsetparams(thefile:gzFile; level:longint; strategy:longint):longint;cdecl;external libz name 'gzsetparams';
