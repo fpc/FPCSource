@@ -2503,7 +2503,7 @@
     opcode  : A_JCXZ;
     ops     : 1;
     optypes : (ot_immediate,ot_none,ot_none);
-    code    : #212#1#227#40;
+    code    : #200#1#227#40;
     flags   : if_8086
   ),
   (

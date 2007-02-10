@@ -1749,6 +1749,7 @@ implementation
 {$endif x86_64}
                 end;
               end;
+            200,
             212 :
               inc(len);
             214 :
@@ -1759,7 +1760,6 @@ implementation
                 rex:=rex or $48;
 {$endif x86_64}
               end;
-            200,
             201,
             202,
             211,
