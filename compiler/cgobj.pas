@@ -3195,7 +3195,8 @@ implementation
         result := NR_NO;
         case target_info.system of
           system_powerpc_darwin,
-          system_i386_darwin:
+          system_i386_darwin,
+          system_powerpc64_darwin:
             begin
               l:=current_asmdata.getasmsymbol('L'+symname+'$non_lazy_ptr');
               if not(assigned(l)) then
@@ -3203,7 +3204,11 @@ implementation
                   l:=current_asmdata.DefineAsmSymbol('L'+symname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
                   current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(l,0));
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_indirect_sym(current_asmdata.RefAsmSymbol(symname)));
+{$ifdef cpu64}
+                  current_asmdata.asmlists[al_picdata].concat(tai_const.create_64bit(0));
+{$else cpu64}
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_32bit(0));
+{$endif cpu64}
                 end;
               result := cg.getaddressregister(list);
               reference_reset_symbol(ref,l,0);
