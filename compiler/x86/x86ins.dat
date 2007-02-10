@@ -855,11 +855,16 @@ void                  \324\1\xCF                      8086
 
 [JCXZ]
 (Ch_RECX, Ch_None, Ch_None)
-imm                   \310\1\xE3\50                   8086
+imm                   \2\x67\xE3\50                   8086,NOX86_64
 
 [JECXZ]
 (Ch_RECX, Ch_None, Ch_None)
-imm                   \311\1\xE3\50                   386
+imm                   \1\xE3\50                       386,NOX86_64
+imm                   \2\x67\xE3\50                   X86_64
+
+[JRCXZ]
+(Ch_RECX, Ch_None, Ch_None)
+imm                   \1\xE3\50                       X86_64
 
 [JMP,jmpX]
 (Ch_ROp1, Ch_None, Ch_None)

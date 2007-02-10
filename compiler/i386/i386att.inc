@@ -163,6 +163,7 @@
 'iretw',
 'jcxz',
 'jecxz',
+'jrcxz',
 'jmp',
 'lahf',
 'lar',

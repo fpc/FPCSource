@@ -163,6 +163,7 @@
 (Ch: (Ch_All, Ch_None, Ch_None)),
 (Ch: (Ch_RECX, Ch_None, Ch_None)),
 (Ch: (Ch_RECX, Ch_None, Ch_None)),
+(Ch: (Ch_RECX, Ch_None, Ch_None)),
 (Ch: (Ch_ROp1, Ch_None, Ch_None)),
 (Ch: (Ch_WEAX, Ch_RFlags, Ch_None)),
 (Ch: (Ch_Wop2, Ch_None, Ch_None)),

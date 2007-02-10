@@ -2500,18 +2500,18 @@
     flags   : if_8086
   ),
   (
-    opcode  : A_JCXZ;
-    ops     : 1;
-    optypes : (ot_immediate,ot_none,ot_none);
-    code    : #200#1#227#40;
-    flags   : if_8086
-  ),
-  (
     opcode  : A_JECXZ;
     ops     : 1;
     optypes : (ot_immediate,ot_none,ot_none);
-    code    : #213#1#227#40;
-    flags   : if_386
+    code    : #2#103#227#40;
+    flags   : if_x86_64
+  ),
+  (
+    opcode  : A_JRCXZ;
+    ops     : 1;
+    optypes : (ot_immediate,ot_none,ot_none);
+    code    : #1#227#40;
+    flags   : if_x86_64
   ),
   (
     opcode  : A_JMP;

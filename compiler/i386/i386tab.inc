@@ -2517,15 +2517,15 @@
     opcode  : A_JCXZ;
     ops     : 1;
     optypes : (ot_immediate,ot_none,ot_none);
-    code    : #200#1#227#40;
-    flags   : if_8086
+    code    : #2#103#227#40;
+    flags   : if_8086 or if_nox86_64
   ),
   (
     opcode  : A_JECXZ;
     ops     : 1;
     optypes : (ot_immediate,ot_none,ot_none);
-    code    : #201#1#227#40;
-    flags   : if_386
+    code    : #1#227#40;
+    flags   : if_386 or if_nox86_64
   ),
   (
     opcode  : A_JMP;
