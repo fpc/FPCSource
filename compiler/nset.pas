@@ -261,13 +261,13 @@ implementation
              if assigned(tsetdef(right.resultdef).elementdef) then
                inserttypeconv(left,tsetdef(right.resultdef).elementdef);
            end
-         else if not is_ordinal(left.resultdef) or (left.resultdef.size > uinttype.size) then
+         else if not is_ordinal(left.resultdef) or (left.resultdef.size > u32inttype.size) then
            begin
              CGMessage(type_h_in_range_check);
              if is_signed(left.resultdef) then
-               inserttypeconv(left,sinttype)
+               inserttypeconv(left,s32inttype)
              else
-               inserttypeconv(left,uinttype);
+               inserttypeconv(left,u32inttype);
            end;
 
          { empty set then return false }
