@@ -18,6 +18,7 @@
 unit md5;
 
 {$mode objfpc}
+{$inline on}
 {$h+}
 
 interface
@@ -54,12 +55,30 @@ type
 
 
 (******************************************************************************
- * Raw functions
+ * Core raw functions
  ******************************************************************************)
 
 procedure MDInit(var Context: TMDContext; const Version: TMDVersion);
 procedure MDUpdate(var Context: TMDContext; var Buf; const BufLen: PtrUInt);
 procedure MDFinal(var Context: TMDContext; var Digest: TMDDigest);
+
+
+
+(******************************************************************************
+ * Dedicated raw functions
+ ******************************************************************************)
+
+procedure MD2Init(var Context: TMDContext); inline;
+procedure MD2Update(var Context: TMDContext; var Buf; const BufLen: PtrUInt); inline;
+procedure MD2Final(var Context: TMDContext; var Digest: TMDDigest); inline;
+
+procedure MD4Init(var Context: TMDContext); inline;
+procedure MD4Update(var Context: TMDContext; var Buf; const BufLen: PtrUInt); inline;
+procedure MD4Final(var Context: TMDContext; var Digest: TMDDigest); inline;
+
+procedure MD5Init(var Context: TMDContext); inline;
+procedure MD5Update(var Context: TMDContext; var Buf; const BufLen: PtrUInt); inline;
+procedure MD5Final(var Context: TMDContext; var Digest: TMDDigest); inline;
 
 
 
@@ -70,8 +89,37 @@ procedure MDFinal(var Context: TMDContext; var Digest: TMDDigest);
 function MDString(const S: String; const Version: TMDVersion): TMDDigest;
 function MDBuffer(var Buf; const BufLen: PtrUInt; const Version: TMDVersion): TMDDigest;
 function MDFile(const Filename: String; const Version: TMDVersion; const Bufsize: PtrUInt = MDDefBufSize): TMDDigest;
+
+
+
+(******************************************************************************
+ * Dedicated auxilary functions
+ ******************************************************************************)
+
+function MD2String(const S: String): TMDDigest; inline;
+function MD2Buffer(var Buf; const BufLen: PtrUInt): TMDDigest; inline;
+function MD2File(const Filename: String; const Bufsize: PtrUInt = MDDefBufSize): TMDDigest; inline;
+
+function MD4String(const S: String): TMDDigest; inline;
+function MD4Buffer(var Buf; const BufLen: PtrUInt): TMDDigest; inline;
+function MD4File(const Filename: String; const Bufsize: PtrUInt = MDDefBufSize): TMDDigest; inline;
+
+function MD5String(const S: String): TMDDigest; inline;
+function MD5Buffer(var Buf; const BufLen: PtrUInt): TMDDigest; inline;
+function MD5File(const Filename: String; const Bufsize: PtrUInt = MDDefBufSize): TMDDigest; inline;
+
+
+
+(******************************************************************************
+ * Helper functions
+ ******************************************************************************)
+
 function MDPrint(const Digest: TMDDigest): String;
 function MDMatch(const Digest1, Digest2: TMDDigest): Boolean;
+
+
+
+
 
 implementation
 
@@ -123,8 +171,8 @@ const
   31, 26, 219, 153, 141, 51, 159, 17, 131, 20
 );
 var
-  i: Integer;
-  j: Integer;
+  i: Cardinal;
+  j: Cardinal;
   t: Cardinal;
   x: array[0..47] of Byte;
 begin
@@ -418,6 +466,50 @@ begin
   FillChar(Context, SizeOf(TMDContext), 0);
 end;
 
+procedure MD2Init(var Context: TMDContext);
+begin
+  MDInit(Context, MD_VERSION_2);
+end;
+
+procedure MD2Update(var Context: TMDContext; var Buf; const BufLen: PtrUInt);
+begin
+  MDUpdate(Context, Buf, BufLen);
+end;
+
+procedure MD2Final(var Context: TMDContext; var Digest: TMDDigest);
+begin
+  MDFinal(Context, Digest);
+end;
+
+procedure MD4Init(var Context: TMDContext);
+begin
+  MDInit(Context, MD_VERSION_4);
+end;
+
+procedure MD4Update(var Context: TMDContext; var Buf; const BufLen: PtrUInt);
+begin
+  MDUpdate(Context, Buf, BufLen);
+end;
+
+procedure MD4Final(var Context: TMDContext; var Digest: TMDDigest);
+begin
+  MDFinal(Context, Digest);
+end;
+
+procedure MD5Init(var Context: TMDContext);
+begin
+  MDInit(Context, MD_VERSION_5);
+end;
+
+procedure MD5Update(var Context: TMDContext; var Buf; const BufLen: PtrUInt);
+begin
+  MDUpdate(Context, Buf, BufLen);
+end;
+
+procedure MD5Final(var Context: TMDContext; var Digest: TMDDigest);
+begin
+  MDFinal(Context, Digest);
+end;
 
 function MDString(const S: String; const Version: TMDVersion): TMDDigest;
 var
@@ -472,6 +564,50 @@ begin
   FileMode := ofm;
 end;
 
+function MD2String(const S: String): TMDDigest;
+begin
+  Result := MDString(S, MD_VERSION_2);
+end;
+
+function MD2Buffer(var Buf; const BufLen: PtrUInt): TMDDigest;
+begin
+  Result := MDBuffer(Buf, BufLen, MD_VERSION_2);
+end;
+
+function MD2File(const Filename: String; const Bufsize: PtrUInt): TMDDigest;
+begin
+  Result := MDFile(Filename, MD_VERSION_2, Bufsize);
+end;
+
+function MD4String(const S: String): TMDDigest;
+begin
+  Result := MDString(S, MD_VERSION_4);
+end;
+
+function MD4Buffer(var Buf; const BufLen: PtrUInt): TMDDigest;
+begin
+  Result := MDBuffer(Buf, BufLen, MD_VERSION_4);
+end;
+
+function MD4File(const Filename: String; const Bufsize: PtrUInt): TMDDigest;
+begin
+  Result := MDFile(Filename, MD_VERSION_4, Bufsize);
+end;
+
+function MD5String(const S: String): TMDDigest;
+begin
+  Result := MDString(S, MD_VERSION_5);
+end;
+
+function MD5Buffer(var Buf; const BufLen: PtrUInt): TMDDigest;
+begin
+  Result := MDBuffer(Buf, BufLen, MD_VERSION_5);
+end;
+
+function MD5File(const Filename: String; const Bufsize: PtrUInt): TMDDigest;
+begin
+  Result := MDFile(Filename, MD_VERSION_5, Bufsize);
+end;
 
 function MDPrint(const Digest: TMDDigest): String;
 var
@@ -482,7 +618,6 @@ begin
     Result := Result + HexStr(Digest[i],2);
   Result := LowerCase(Result);
 end;
-
 
 function MDMatch(const Digest1, Digest2: TMDDigest): Boolean;
 var
