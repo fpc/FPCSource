@@ -3205,11 +3205,11 @@ implementation
                   l:=current_asmdata.DefineAsmSymbol('L'+symname+'$non_lazy_ptr',AB_COMMON,AT_DATA);
                   current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(l,0));
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_indirect_sym(current_asmdata.RefAsmSymbol(symname)));
-{$ifdef cpu64}
+{$ifdef cpu64bit}
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_64bit(0));
-{$else cpu64}
+{$else cpu64bit}
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_32bit(0));
-{$endif cpu64}
+{$endif cpu64bit}
                 end;
               result := cg.getaddressregister(list);
               reference_reset_symbol(ref,l,0);
