@@ -1917,9 +1917,28 @@ begin
   list.concat(tai_comment.create(strpnew('fixref0 ' + ref2string(ref))));
   {$ENDIF EXTDEBUG}
 
+  if (target_info.system = system_powerpc64_darwin) and
+     assigned(ref.symbol) and
+     (ref.symbol.bind = AB_EXTERNAL) then
+    begin
+      tmpreg := g_indirect_sym_load(list,ref.symbol.name);
+      if (ref.base = NR_NO) then
+        ref.base := tmpreg
+      else if (ref.index = NR_NO) then
+        ref.index := tmpreg
+      else
+        begin
+          list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
+          ref.base := tmpreg;
+        end;
+      ref.symbol := nil;
+    end;
+
+
   { if we have to create PIC, add the symbol to the TOC/GOT }
   {$WARNING Hack for avoiding too long manglednames enabled!!}
-  if (cs_create_pic in current_settings.moduleswitches) and (assigned(ref.symbol) and
+  if (target_info.system <> system_powerpc64_darwin) and
+     (cs_create_pic in current_settings.moduleswitches) and (assigned(ref.symbol) and
     (length(ref.symbol.name) < MAX_GOT_SYMBOL_NAME_LENGTH_HACK)) then begin
     tmpreg := load_got_symbol(list, ref.symbol.name);
     if (ref.base = NR_NO) then
@@ -1962,6 +1981,13 @@ var
   tmpref: treference;
   largeOffset: Boolean;
 begin
+  if (target_info.system = system_powerpc64_darwin) then
+    begin
+      { darwin/ppc64 works with 32 bit relocatable symbol addresses }
+      inherited a_load_store(list,op,reg,ref);
+      exit
+    end;
+
   { at this point there must not be a combination of values in the ref treference
     which is not possible to directly map to instructions of the PowerPC architecture }
   if (ref.index <> NR_NO) and ((ref.offset <> 0) or (assigned(ref.symbol))) then

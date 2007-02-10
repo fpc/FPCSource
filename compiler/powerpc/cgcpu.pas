@@ -114,10 +114,6 @@ unit cgcpu;
         { instruction                                                      }
         function issimpleref(const ref: treference): boolean;
 
-        { contains the common code of a_load_reg_ref and a_load_ref_reg }
-        procedure a_load_store(list:TAsmList;op: tasmop;reg:tregister;
-                    ref: treference); override;
-
         function save_regs(list : TAsmList):longint;
         procedure restore_regs(list : TAsmList);
      end;
@@ -1905,100 +1901,6 @@ const
         l1 := l1 and 31;
         l2 := l2 and 31;
         get_rlwi_const := true;
-      end;
-
-
-    procedure tcgppc.a_load_store(list:TAsmList;op: tasmop;reg:tregister;
-       ref: treference);
-
-      var
-        tmpreg: tregister;
-        tmpref: treference;
-        largeOffset: Boolean;
-
-      begin
-        tmpreg := NR_NO;
-
-        if target_info.system = system_powerpc_macos then
-          begin
-            largeOffset:= (cardinal(ref.offset-low(smallint)) >
-                  high(smallint)-low(smallint));
-
-            if assigned(ref.symbol) then
-              begin {Load symbol's value}
-                tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-
-                reference_reset(tmpref);
-                tmpref.symbol := ref.symbol;
-                tmpref.base := NR_RTOC;
-
-                if macos_direct_globals then
-                  list.concat(taicpu.op_reg_ref(A_LA,tmpreg,tmpref))
-                else
-                  list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
-              end;
-
-            if largeOffset then
-              begin {Add hi part of offset}
-                reference_reset(tmpref);
-
-                if Smallint(Lo(ref.offset)) < 0 then
-                  tmpref.offset := Hi(ref.offset) + 1 {Compensate when lo part is negative}
-                else
-                  tmpref.offset := Hi(ref.offset);
-
-                if (tmpreg <> NR_NO) then
-                  list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg, tmpreg,tmpref))
-                else
-                  begin
-                    tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-                    list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
-                  end;
-              end;
-
-            if (tmpreg <> NR_NO) then
-              begin
-                {Add content of base register}
-                if ref.base <> NR_NO then
-                  list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,
-                    ref.base,tmpreg));
-
-                {Make ref ready to be used by op}
-                ref.symbol:= nil;
-                ref.base:= tmpreg;
-                if largeOffset then
-                  ref.offset := Smallint(Lo(ref.offset));
-
-                list.concat(taicpu.op_reg_ref(op,reg,ref));
-                //list.concat(tai_comment.create(strpnew('*** a_load_store indirect global')));
-              end
-            else
-              list.concat(taicpu.op_reg_ref(op,reg,ref));
-          end
-        else {if target_info.system <> system_powerpc_macos}
-          begin
-            if assigned(ref.symbol) or
-               (cardinal(ref.offset-low(smallint)) >
-                high(smallint)-low(smallint)) then
-              begin
-                tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-                reference_reset(tmpref);
-                tmpref.symbol := ref.symbol;
-                tmpref.relsymbol := ref.relsymbol;
-                tmpref.offset := ref.offset;
-                tmpref.refaddr := addr_hi;
-                if ref.base <> NR_NO then
-                  list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
-                    ref.base,tmpref))
-                else
-                  list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
-                ref.base := tmpreg;
-                ref.refaddr := addr_lo;
-                list.concat(taicpu.op_reg_ref(op,reg,ref));
-              end
-            else
-              list.concat(taicpu.op_reg_ref(op,reg,ref));
-          end;
       end;
 
 
