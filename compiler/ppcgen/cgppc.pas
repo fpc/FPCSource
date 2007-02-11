@@ -548,10 +548,14 @@ unit cgppc;
               href.offset := smallint(href.offset and $ffff);
             end;
           a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
+          if (target_info.system = system_powerpc64_linux) then
+            begin
+              reference_reset_base(href, NR_R11, 0);
+              a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R11);
+            end;
           list.concat(taicpu.op_reg(A_MTCTR,NR_R11));
           list.concat(taicpu.op_none(A_BCTR));
           if (target_info.system = system_powerpc64_linux) then
-            { NOP needed for the linker...? }
             list.concat(taicpu.op_none(A_NOP));
         end;
 
