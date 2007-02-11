@@ -81,7 +81,7 @@ type
     procedure DecompressBuf(const InBuf: Pointer; InBytes: Integer;
     OutEstimate: Integer; var OutBuf: Pointer; var OutBytes: Integer);
   public
-    constructor Create(ASource: TStream);
+    constructor Create(ASource: TStream; ASkipHeader : Boolean = False);
     destructor Destroy; override;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
@@ -306,11 +306,14 @@ end;
 
 // TDecompressionStream
 
-constructor TDecompressionStream.Create(ASource: TStream);
+constructor TDecompressionStream.Create(ASource: TStream; ASkipHeader : Boolean = False);
 begin
   inherited Create(ASource);
   FZRec.next_in := @FBuffer[0];
-  DecompressionCheck(inflateInit(FZRec));
+  If ASkipHeader then
+    DeCompressionCheck(inflateInit2(FZRec,-MAX_WBITS))
+  else
+    DeCompressionCheck(inflateInit(FZRec));
 end;
 
 destructor TDecompressionStream.Destroy;
@@ -351,10 +354,10 @@ begin
       Progress(Self);
     end;
     if DeCompressionCheck(inflate(FZRec, 0)) = Z_STREAM_END then
-	begin
-	  Result := Count - FZRec.avail_out;
-	  Exit;
-	end;
+        begin
+          Result := Count - FZRec.avail_out;
+          Exit;
+        end;
   end;
   Result := Count;
 end;
