@@ -36,6 +36,9 @@ const
   SOCK_SEQPACKET  = 5;               { sequential packet socket     }
 {$endif}
 
+  INVALID_SOCKET = -1;				 { To ease porting from Kylix libc}
+  SOCKET_ERROR = -1;                 { unit to sockets unit.}
+
   INADDR_ANY   = CARDINAL(0);
   INADDR_NONE  = CARDINAL($FFFFFFFF);
 
@@ -153,6 +156,8 @@ type
     sun_family    : sa_family_t;
     sun_path      : array[0..107] of char;
   end;
+
+  Tsocket=longint;  {To easy porting code from Kylix libc unit to sockets unit.}
 
 Var
   SocketError:cint;
