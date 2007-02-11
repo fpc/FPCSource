@@ -355,8 +355,8 @@ const
   PF_FIREFOX      = AF_FIREFOX;
   PF_UNKNOWN1     = AF_UNKNOWN1;
   PF_BAN          = AF_BAN;
-        PF_ATM          = AF_ATM;
-        PF_INET6        = AF_INET6;
+  PF_ATM          = AF_ATM;
+  PF_INET6        = AF_INET6;
 
   PF_MAX          = AF_MAX;
 
@@ -376,8 +376,20 @@ type
       0: (S_un_b: SunB);
       1: (S_un_w: SunW);
       2: (S_addr: u_long);
-  end;
+    end;
   in_addr = TInAddr;
+  
+  PIn6Addr = ^TIn6Addr;
+  TIn6Addr = record
+    case byte of
+      0: (u6_addr8  : array[0..15] of byte);
+      1: (u6_addr16 : array[0..7] of Word);
+      2: (u6_addr32 : array[0..3] of Cardinal);
+      3: (s6_addr8  : array[0..15] of shortint);
+      4: (s6_addr   : array[0..15] of shortint);
+      5: (s6_addr16 : array[0..7] of smallint);
+      6: (s6_addr32 : array[0..3] of LongInt);
+    end;
 
   PSockAddrIn = ^TSockAddrIn;
   TSockAddrIn = record
@@ -390,6 +402,16 @@ type
           sa_data: array[0..13] of Char)
   end;
   sockaddr_in = TSockAddrIn;
+  
+  PSockAddrIn6 = ^TSockAddrIn6;
+  TSockAddrIn6 = record
+    sin6_family   : u_short;
+    sin6_port     : u_short;
+    sin6_flowinfo : u_long;
+    sin6_addr     : TIn6Addr;
+    sin6_scope_id : u_long;
+  end;
+  sockaddr_in6 = TSockAddrIn6;
 
   { Structure used by kernel to store most addresses. }
 
