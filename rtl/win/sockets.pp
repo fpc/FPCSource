@@ -291,7 +291,7 @@ end;
 function fpWrite(handle : longint;Const bufptr;size : dword) : dword;
 begin
   fpWrite := dword(Winsock2.send(handle, bufptr, size, 0));
-  if fpWrite = dword(SOCKET_ERROR) then
+  if fpWrite = dword(winsock2.SOCKET_ERROR) then
   begin
     SocketError := WSAGetLastError;
     fpWrite := 0;
@@ -305,7 +305,7 @@ function fpRead(handle : longint;var bufptr;size : dword) : dword;
      d : dword;
 
   begin
-     if ioctlsocket(handle,FIONREAD,@d) = SOCKET_ERROR then
+     if ioctlsocket(handle,FIONREAD,@d) = winsock2.SOCKET_ERROR then
        begin
          SocketError:=WSAGetLastError;
          fpRead:=0;
@@ -316,7 +316,7 @@ function fpRead(handle : longint;var bufptr;size : dword) : dword;
          if size>d then
            size:=d;
          fpRead := dword(Winsock2.recv(handle, bufptr, size, 0));
-         if fpRead = dword(SOCKET_ERROR) then
+         if fpRead = dword(winsock2.SOCKET_ERROR) then
          begin
            SocketError:= WSAGetLastError;
            fpRead := 0;

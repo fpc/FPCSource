@@ -129,9 +129,13 @@ const
 
 { This is used instead of -1, since the
   TSocket type is unsigned.}
-
+{
+  Tsocket might be unsigned, but the sockets unit uses
+  signed types. So, we cannot use these constants, signed
+  ones are defined in socketh.inc.
   INVALID_SOCKET                = winsock2.INVALID_SOCKET;
   SOCKET_ERROR                  = winsock2.SOCKET_ERROR;
+}
 
 { Option flags per-socket. }
 
