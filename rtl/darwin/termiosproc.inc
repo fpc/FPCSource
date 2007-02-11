@@ -85,7 +85,7 @@ end;
 
 Function TCSetPGrp(fd,id:cint):cint;{$ifdef VER2_0}inline;{$endif}
 begin
-  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(id));
+  TCSetPGrp:=fpIOCtl(fd,TIOCSPGRP,pointer(ptrint(id)));
 end;
 
 
@@ -111,7 +111,7 @@ end;
 
 Function TCFlush(fd,qsel:cint):cint;  {$ifdef VER2_0}inline;{$endif}
 begin
-  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(qsel));
+  TCFlush:=fpIOCtl(fd,TIOCFLUSH,pointer(ptrint(qsel)));
 end;
 
 Function IsATTY (Handle:cint):cint;
