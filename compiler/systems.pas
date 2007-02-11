@@ -842,11 +842,12 @@ begin
   {$ifdef cpupowerpc64}
     default_target(source_info.system);
   {$else cpupowerpc64}
-    default_target(system_powerpc64_linux);
-  {$endif cpupowerpc64}
   {$ifdef darwin}
-   default_target(system_powerpc64_darwin);
-  {$endif}
+    default_target(system_powerpc64_darwin);
+  {$else darwin}
+    default_target(system_powerpc64_linux);
+  {$endif darwin}
+  {$endif cpupowerpc64}
 {$endif POWERPC64}
 {$ifdef sparc}
   {$ifdef cpusparc}
