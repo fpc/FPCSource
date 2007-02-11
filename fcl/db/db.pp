@@ -1072,6 +1072,7 @@ type
     function  GetRecordCount: Longint; virtual;
     function  GetRecNo: Longint; virtual;
     procedure InitFieldDefs; virtual;
+    procedure InitFieldDefsFromfields;
     procedure InitRecord(Buffer: PChar); virtual;
     procedure InternalCancel; virtual;
     procedure InternalEdit; virtual;

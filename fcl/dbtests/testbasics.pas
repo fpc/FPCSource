@@ -19,12 +19,14 @@ type
   protected
   published
     procedure TestParseSQL;
+    procedure TestInitFielddefsFromFields;
   end;
 
 implementation
 
 uses db, toolsunit;
 
+Type HackedDataset = class(TDataset);
 
 { TTestBasics }
 
@@ -89,6 +91,52 @@ begin
     params.ParseSQL('select * from table where "id  = :id\',true,True,True,psInterbase));
 
   Params.Free;
+end;
+
+procedure TTestBasics.TestInitFielddefsFromFields;
+
+var ds       : TDataset;
+    F1,F2,F3 : Tfield;
+    
+  Procedure CompareFieldAndFieldDef(Fld: TField; FldDef : TFieldDef);
+  
+  begin
+    AssertEquals(Fld.FieldName,FldDef.Name);
+    AssertEquals(Fld.Size,FldDef.Size);
+    AssertEquals(Fld.Required,FldDef.Required);
+    AssertTrue(Fld.DataType=FldDef.DataType);
+  end;
+    
+begin
+  ds := TDataset.Create(nil);
+
+  F1:=TStringField.Create(ds);
+  F1.Size := 10;
+  F1.Name := 'StringFld';
+  F1.FieldName := 'FStringFld';
+  F1.Required := false;
+  F1.Dataset:=ds;
+
+  F2:=TIntegerField.Create(ds);
+  F2.Name := 'IntegerFld';
+  F2.FieldName := 'FIntegerFld';
+  F2.Required := True;
+  F2.Dataset:=ds;
+
+  F3:=TBCDField.Create(ds);
+  F3.Name := 'BCDFld';
+  F3.FieldName := 'FBCDFld';
+  F3.Required := false;
+  F3.Dataset:=ds;
+  (f3 as TBCDField).Precision := 2;
+  
+  HackedDataset(ds).InitFieldDefsFromfields;
+  
+  AssertEquals(3,ds.FieldDefs.Count);
+  
+  CompareFieldAndFieldDef(F1,ds.FieldDefs[0]);
+  CompareFieldAndFieldDef(F2,ds.FieldDefs[1]);
+  CompareFieldAndFieldDef(F3,ds.FieldDefs[2]);
 end;
 
 initialization

@@ -775,6 +775,30 @@ begin
     end;
 end;
 
+procedure TDataSet.InitFieldDefsFromfields;
+var i : integer;
+begin
+  if FieldDefs.count = 0 then
+    begin
+    FieldDefs.BeginUpdate;
+    try
+      for i := 0 to Fields.Count-1 do with fields[i] do
+        begin
+        with TFieldDef.Create(FieldDefs,FieldName,DataType,Size,Required,i+1) do
+          begin
+          if Required then Attributes := attributes + [faRequired];
+          if ReadOnly then Attributes := attributes + [faReadOnly];
+          if DataType = ftBCD then precision := (fields[i] as TBCDField).Precision
+          // this must change if TFMTBcdfield is implemented
+          else if DataType = ftFMTBcd then precision := (fields[i] as TBCDField).Precision;
+          end;
+        end;
+    finally
+      FieldDefs.EndUpdate;
+      end;
+    end;
+end;
+
 Procedure TDataset.InitRecord(Buffer: PChar);
 
 begin
