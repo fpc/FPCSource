@@ -605,7 +605,7 @@ operator >=(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;
 
 operator <=(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
-     dest:=variantmanager.cmpop(op1,op2,opcmplt);
+     dest:=variantmanager.cmpop(op1,op2,opcmple);
   end;
 
 procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
