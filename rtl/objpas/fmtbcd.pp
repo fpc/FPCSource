@@ -49,6 +49,8 @@
 {$mode objfpc}
 {$h-}
 
+{$inline on}
+
 {$macro on}
 
 {$define BCDMaxDigits := 64 } { should be even }
