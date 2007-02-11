@@ -17,12 +17,21 @@ unit zipper;
 
 Interface
 
-Uses 
-   SysUtils,Classes, ZStream;
+Uses
+   SysUtils,Classes,Contnrs,ZStream;
 
 
 Const
-   LOCAL_FILE_HEADER_SIGNATURE = $04034B50;
+  { Signatures }
+{$ifdef FPC_BIG_ENDIAN}
+  END_OF_CENTRAL_DIR_SIGNATURE  = $504B0506;
+  LOCAL_FILE_HEADER_SIGNATURE   = $504B0304;
+  CENTRAL_FILE_HEADER_SIGNATURE = $504B0102;
+{$else FPC_BIG_ENDIAN}
+  END_OF_CENTRAL_DIR_SIGNATURE  = $06054B50;
+  LOCAL_FILE_HEADER_SIGNATURE   = $04034B50;
+  CENTRAL_FILE_HEADER_SIGNATURE = $02014B50;
+{$endif FPC_BIG_ENDIAN}
 
 Type
    Local_File_Header_Type = Packed Record
@@ -32,19 +41,15 @@ Type
      Compress_Method        :  Word;
      Last_Mod_Time          :  Word;
      Last_Mod_Date          :  Word;
-     Crc32                  :  LongInt;
+     Crc32                  :  LongWord;
      Compressed_Size        :  LongInt;
      Uncompressed_Size      :  LongInt;
      Filename_Length        :  Word;
      Extra_Field_Length     :  Word;
    end;
 
-{ Define the Central Directory record types }
+  { Define the Central Directory record types }
 
-Const
-   CENTRAL_FILE_HEADER_SIGNATURE = $02014B50;
-
-Type
   Central_File_Header_Type = Packed Record
     Signature            :  LongInt;
     MadeBy_Version       :  Word;
@@ -53,7 +58,7 @@ Type
     Compress_Method      :  Word;
     Last_Mod_Time        :  Word;
     Last_Mod_Date        :  Word;
-    Crc32                :  LongInt;
+    Crc32                :  LongWord;
     Compressed_Size      :  LongInt;
     Uncompressed_Size    :  LongInt;
     Filename_Length      :  Word;
@@ -65,10 +70,6 @@ Type
     Local_Header_Offset  :  LongInt;
   End;
 
-Const
-  END_OF_CENTRAL_DIR_SIGNATURE = $06054B50;
-
-Type
   End_of_Central_Dir_Type =  Packed Record
     Signature               :  LongInt;
     Disk_Number             :  Word;
@@ -81,7 +82,7 @@ Type
   end;
 
 Const
-  Crc_32_Tab : Array[0..255] of LongInt = (
+  Crc_32_Tab : Array[0..255] of LongWord = (
     $00000000, $77073096, $ee0e612c, $990951ba, $076dc419, $706af48f, $e963a535, $9e6495a3,
     $0edb8832, $79dcb8a4, $e0d5e91e, $97d2d988, $09b64c2b, $7eb17cbd, $e7b82d07, $90bf1d91,
     $1db71064, $6ab020f2, $f3b97148, $84be41de, $1adad47d, $6ddde4eb, $f4d4b551, $83d385c7,
@@ -123,39 +124,60 @@ Type
     Name : String;
     Size : LongInt;
     DateTime : TDateTime;
+    HdrPos : Longint;
   end;
 
   TProgressEvent = Procedure(Sender : TObject; Const Pct : Double) of object;
-  TOnEndOfFileEvent = Procedure(Sender : TObject; Const Ratio : Double) of object;   
+  TOnEndOfFileEvent = Procedure(Sender : TObject; Const Ratio : Double) of object;
   TOnStartFileEvent = Procedure(Sender : TObject; Const AFileName : String) of object;
-  
+
 Type
 
   { TCompressor }
   TCompressor = Class(TObject)
   Protected
-    FInFile     :  TStream;        { I/O file variables                         }
-    FOutFile    :  TStream;
-    FCrc32Val    :  LongInt;       { CRC calculation variable                   }
-    FBufferSize : Cardinal;
+    FInFile     : TStream;        { I/O file variables                         }
+    FOutFile    : TStream;
+    FCrc32Val   : LongWord;       { CRC calculation variable                   }
+    FBufferSize : LongWord;
     FOnPercent  : Integer;
     FOnProgress : TProgressEvent;
     Procedure UpdC32(Octet: Byte);
   Public
-    Constructor Create(AInFile, AOutFile : TStream; ABufSize : Cardinal); virtual;
+    Constructor Create(AInFile, AOutFile : TStream; ABufSize : LongWord); virtual;
     Procedure Compress; Virtual; Abstract;
     Class Function ZipID : Word; virtual; Abstract;
-    Property BufferSize : Cardinal read FBufferSize;
+    Property BufferSize : LongWord read FBufferSize;
     Property OnPercent : Integer Read FOnPercent Write FOnPercent;
     Property OnProgress : TProgressEvent Read FOnProgress Write FOnProgress;
-    Property Crc32Val : Longint Read FCrc32Val Write FCrc32Val;
+    Property Crc32Val : LongWord Read FCrc32Val Write FCrc32Val;
+  end;
+
+  { TDeCompressor }
+  TDeCompressor = Class(TObject)
+  Protected
+    FInFile     : TStream;        { I/O file variables                         }
+    FOutFile    : TStream;
+    FCrc32Val   : LongWord;       { CRC calculation variable                   }
+    FBufferSize : LongWord;
+    FOnPercent  : Integer;
+    FOnProgress : TProgressEvent;
+    Procedure UpdC32(Octet: Byte);
+  Public
+    Constructor Create(AInFile, AOutFile : TStream; ABufSize : LongWord); virtual;
+    Procedure DeCompress; Virtual; Abstract;
+    Class Function ZipID : Word; virtual; Abstract;
+    Property BufferSize : LongWord read FBufferSize;
+    Property OnPercent : Integer Read FOnPercent Write FOnPercent;
+    Property OnProgress : TProgressEvent Read FOnProgress Write FOnProgress;
+    Property Crc32Val : LongWord Read FCrc32Val Write FCrc32Val;
   end;
 
   { TShrinker }
-  
+
 Const
-   TABLESIZE   =   8191; 
-   FIRSTENTRY  =    257; 
+   TABLESIZE   =   8191;
+   FIRSTENTRY  =    257;
 
 Type
   CodeRec =  Packed Record
@@ -170,11 +192,11 @@ Type
   FreeListArray  =  Array[FIRSTENTRY..TABLESIZE] of Word;
 
   BufPtr      =  PByte;
-  
+
   TShrinker = Class(TCompressor)
   Private
-    FBufSize    : Cardinal;
-    MaxInBufIdx :  Cardinal;      { Count of valid chars in input buffer       }
+    FBufSize    : LongWord;
+    MaxInBufIdx :  LongWord;      { Count of valid chars in input buffer       }
     InputEof    :  Boolean;       { End of file indicator                      }
     CodeTable   :  TablePtr;      { Points to code table for LZW compression   }
     FreeList    :  FreeListPtr;   { Table of free code table entries           }
@@ -185,7 +207,7 @@ Type
     CodeSize    :  Byte;     { Size of codes (in bits) currently being written }
     MaxCode     :  Word;   { Largest code that can be written in CodeSize bits }
     InBufIdx,                     { Points to next char in buffer to be read   }
-    OutBufIdx   :  Cardinal;      { Points to next free space in output buffer }
+    OutBufIdx   :  LongWord;      { Points to next free space in output buffer }
     InBuf,                        { I/O buffers                                }
     OutBuf      :  BufPtr;
     FirstCh     :  Boolean;  { Flag indicating the START of a shrink operation }
@@ -206,27 +228,36 @@ Type
     Procedure Table_Add(Prefix : Word; Suffix : Byte);
     function  Table_Lookup(TargetPrefix : Smallint;
                            TargetSuffix : Byte;
-                           Var FoundAt  : Smallint) : Boolean;
+                           Out FoundAt  : Smallint) : Boolean;
     Procedure Shrink(Suffix : Smallint);
     Procedure ProcessLine(Const Source : String);
     Procedure DoOnProgress(Const Pct : Double); Virtual;
   Public
-    Constructor Create(AInFile, AOutFile : TStream; ABufSize : Cardinal); override;
+    Constructor Create(AInFile, AOutFile : TStream; ABufSize : LongWord); override;
     Destructor Destroy; override;
     Procedure Compress; override;
     Class Function ZipID : Word; override;
   end;
-  
+
   { TDeflater }
 
   TDeflater = Class(TCompressor)
   private
     FCompressionLevel: TCompressionlevel;
   Public
-    Constructor Create(AInFile, AOutFile : TStream; ABufSize : Cardinal);override;
+    Constructor Create(AInFile, AOutFile : TStream; ABufSize : LongWord);override;
     Procedure Compress; override;
     Class Function ZipID : Word; override;
     Property CompressionLevel : TCompressionlevel Read FCompressionLevel Write FCompressionLevel;
+  end;
+
+  { TInflater }
+
+  TInflater = Class(TDeCompressor)
+  Public
+    Constructor Create(AInFile, AOutFile : TStream; ABufSize : LongWord);override;
+    Procedure DeCompress; override;
+    Class Function ZipID : Word; override;
   end;
 
   { TZipper }
@@ -234,7 +265,7 @@ Type
   TZipper = Class(TObject)
   Private
     FZipping    : Boolean;
-    FBufSize    : Cardinal;
+    FBufSize    : LongWord;
     FFileName   :  String;         { Name of resulting Zip file                 }
     FFiles      : TStrings;
     FInMemSize  : Integer;
@@ -243,33 +274,32 @@ Type
     LocalHdr    : Local_File_Header_Type;
     CentralHdr  : Central_File_Header_Type;
     EndHdr      : End_of_Central_Dir_Type;
-
     FOnPercent  : LongInt;
     FOnProgress : TProgressEvent;
-    FOnEndOfFile : TOnEndOfFileEvent;   
+    FOnEndOfFile : TOnEndOfFileEvent;
     FOnStartFile : TOnStartFileEvent;
-  Protected  
+  Protected
     Procedure OpenOutput;
     Procedure CloseOutput;
     Procedure CloseInput;
     Procedure StartZipFile(Item : TZipItem);
-    Function  UpdateZipHeader(Item : TZipItem; FZip : TStream; ACRC : Integer;AMethod : Word) : Boolean;
+    Function  UpdateZipHeader(Item : TZipItem; FZip : TStream; ACRC : LongWord;AMethod : Word) : Boolean;
     Procedure BuildZipDirectory;
     Procedure DoEndOfFile;
     Procedure ZipOneFile(Item : TZipItem); virtual;
     Function  OpenInput(InFileName : String) : Boolean;
     Procedure GetFileInfo;
-    Procedure SetBufSize(Value : Cardinal);
+    Procedure SetBufSize(Value : LongWord);
     Procedure SetFileName(Value : String);
     Function CreateCompressor(Item : TZipItem; AinFile,AZipStream : TStream) : TCompressor; virtual;
   Public
     Constructor Create;
-    Destructor Destroy;
+    Destructor Destroy;override;
     Procedure ZipAllFiles; virtual;
     Procedure ZipFiles(AFileName : String; FileList : TStrings);
     Procedure Clear;
   Public
-    Property BufferSize : Cardinal Read FBufSize Write SetBufSize;
+    Property BufferSize : LongWord Read FBufSize Write SetBufSize;
     Property OnPercent : Integer Read FOnPercent Write FOnPercent;
     Property OnProgress : TProgressEvent Read FOnProgress Write FOnProgress;
     Property OnStartFile : TOnStartFileEvent Read FOnStartFile Write FOnStartFile;
@@ -279,19 +309,75 @@ Type
     Property InMemSize : Integer Read FInMemSize Write FInMemSize;
   end;
 
+  { TYbZipper }
+
+  { TUnZipper }
+
+  TUnZipper = Class(TObject)
+  Private
+    FUnZipping  : Boolean;
+    FBufSize    : LongWord;
+    FFileName   :  String;         { Name of resulting Zip file                 }
+    FOutputPath : String;
+    FFiles      : TStrings;
+    FZipEntries : TFPObjectList;
+    FOutFile    : TFileStream;
+    FZipFile     : TFileStream;     { I/O file variables                         }
+    LocalHdr    : Local_File_Header_Type;
+    CentralHdr  : Central_File_Header_Type;
+    EndHdr      : End_of_Central_Dir_Type;
+
+    FOnPercent  : LongInt;
+    FOnProgress : TProgressEvent;
+    FOnEndOfFile : TOnEndOfFileEvent;
+    FOnStartFile : TOnStartFileEvent;
+  Protected
+    Procedure OpenInput;
+    Procedure CloseOutput;
+    Procedure CloseInput;
+    Procedure ReadZipHeader(Item : TZipItem; out ACRC : LongWord;out AMethod : Word);
+    Procedure ReadZipDirectory;
+    Procedure DoEndOfFile;
+    Procedure UnZipOneFile(Item : TZipItem); virtual;
+    Function  OpenOutput(OutFileName : String) : Boolean;
+    Procedure SetBufSize(Value : LongWord);
+    Procedure SetFileName(Value : String);
+    Procedure SetOutputPath(Value:String);
+    Function CreateDeCompressor(Item : TZipItem; AMethod : Word;AZipFile,AOutFile : TStream) : TDeCompressor; virtual;
+  Public
+    Constructor Create;
+    Destructor Destroy;override;
+    Procedure UnZipAllFiles; virtual;
+    Procedure UnZipFiles(AFileName : String; FileList : TStrings);
+    Procedure UnZipAllFiles(AFileName : String);
+    Procedure Clear;
+  Public
+    Property BufferSize : LongWord Read FBufSize Write SetBufSize;
+    Property OnPercent : Integer Read FOnPercent Write FOnPercent;
+    Property OnProgress : TProgressEvent Read FOnProgress Write FOnProgress;
+    Property OnStartFile : TOnStartFileEvent Read FOnStartFile Write FOnStartFile;
+    Property OnEndFile : TOnEndOfFileEvent Read FOnEndOfFile Write FOnEndOfFile;
+    Property FileName : String Read FFileName Write SetFileName;
+    Property OutputPath : String Read FOutputPath Write SetOutputPath;
+    Property Files : TStrings Read FFiles;
+  end;
+
   EZipError = Class(Exception);
 
 Implementation
 
 ResourceString
-  SErrBufsizeChange = 'Changing buffer size is not allowed while zipping';
-  SErrOutputFileChange = 'Changing output file name is not allowed while zipping';
+  SErrBufsizeChange = 'Changing buffer size is not allowed while (un)zipping';
+  SErrFileChange = 'Changing output file name is not allowed while (un)zipping';
+  SErrInvalidCRC = 'Invalid CRC checksum while unzipping %s';
+  SErrCorruptZIP = 'Corrupt ZIP file %s';
+  SErrUnsupportedCompressionFormat = 'Unsupported compression format %d';
 
 { ---------------------------------------------------------------------
     Auxiliary
   ---------------------------------------------------------------------}
-  
-Procedure DateTimeToZipDateTime(DT : TDateTime; Var ZD,ZT : Word);
+
+Procedure DateTimeToZipDateTime(DT : TDateTime; out ZD,ZT : Word);
 
 Var
   Y,M,D,H,N,S,MS : Word;
@@ -304,10 +390,46 @@ begin
   ZT:=(S div 2)+(32*N)+(2048*h);
 end;
 
+Procedure ZipDateTimeToDateTime(ZD,ZT : Word;out DT : TDateTime);
+
+Var
+  Y,M,D,H,N,S,MS : Word;
+
+begin
+  MS:=0;
+  S:=(ZT and 31) shl 1;
+  N:=(ZT shr 5) and 63;
+  H:=(ZT shr 12) and 31;
+  D:=ZD and 31;
+  M:=(ZD shr 5) and 15;
+  Y:=((ZD shr 9) and 127)+1980;
+  DT:=ComposeDateTime(EncodeDate(Y,M,D),EncodeTime(H,N,S,MS));
+end;
+
+{ ---------------------------------------------------------------------
+    TDeCompressor
+  ---------------------------------------------------------------------}
+
+
+Procedure TDeCompressor.UpdC32(Octet: Byte);
+
+Begin
+  FCrc32Val := Crc_32_Tab[Byte(FCrc32Val XOR LongInt(Octet))] XOR ((FCrc32Val SHR 8) AND $00FFFFFF);
+end;
+
+constructor TDeCompressor.Create(AInFile, AOutFile: TStream; ABufSize: LongWord);
+begin
+  FinFile:=AInFile;
+  FoutFile:=AOutFile;
+  FBufferSize:=ABufSize;
+  CRC32Val:=$FFFFFFFF;
+end;
+
+
 { ---------------------------------------------------------------------
     TCompressor
   ---------------------------------------------------------------------}
-  
+
 
 Procedure TCompressor.UpdC32(Octet: Byte);
 
@@ -315,7 +437,7 @@ Begin
   FCrc32Val := Crc_32_Tab[Byte(FCrc32Val XOR LongInt(Octet))] XOR ((FCrc32Val SHR 8) AND $00FFFFFF);
 end;
 
-constructor TCompressor.Create(AInFile, AOutFile: TStream; ABufSize: Cardinal);
+constructor TCompressor.Create(AInFile, AOutFile: TStream; ABufSize: LongWord);
 begin
   FinFile:=AInFile;
   FoutFile:=AOutFile;
@@ -327,8 +449,8 @@ end;
 { ---------------------------------------------------------------------
     TDeflater
   ---------------------------------------------------------------------}
-  
-constructor TDeflater.Create(AInFile, AOutFile: TStream; ABufSize: Cardinal);
+
+constructor TDeflater.Create(AInFile, AOutFile: TStream; ABufSize: LongWord);
 begin
   Inherited;
   FCompressionLevel:=clDefault;
@@ -341,7 +463,7 @@ Var
   Buf : PByte;
   I,Count,NewCount : Integer;
   C : TCompressionStream;
-  
+
 begin
   CRC32Val:=$FFFFFFFF;
   Buf:=GetMem(FBufferSize);
@@ -371,6 +493,50 @@ begin
 end;
 
 { ---------------------------------------------------------------------
+    TInflater
+  ---------------------------------------------------------------------}
+
+constructor TInflater.Create(AInFile, AOutFile: TStream; ABufSize: LongWord);
+begin
+  Inherited;
+end;
+
+
+procedure TInflater.DeCompress;
+
+Var
+  Buf : PByte;
+  I,Count : Integer;
+  C : TDeCompressionStream;
+
+begin
+  CRC32Val:=$FFFFFFFF;
+  Buf:=GetMem(FBufferSize);
+  Try
+    C:=TDeCompressionStream.Create(FInFile,True);
+    Try
+      Repeat
+        Count:=C.Read(Buf^,FBufferSize);
+        For I:=0 to Count-1 do
+          UpdC32(Buf[i]);
+        FOutFile.Write(Buf^,Count);
+      Until (Count=0);
+    Finally
+      C.Free;
+    end;
+  Finally
+    FreeMem(Buf);
+  end;
+  Crc32Val:=NOT Crc32Val;
+end;
+
+class function TInflater.ZipID: Word;
+begin
+  Result:=8;
+end;
+
+
+{ ---------------------------------------------------------------------
     TShrinker
   ---------------------------------------------------------------------}
 
@@ -384,7 +550,7 @@ Const
    CLEARCODE   =      2;        { Code indicating code table has been cleared      }
    STDATTR     =    $23;        { Standard file attribute for DOS Find First/Next  }
 
-constructor TShrinker.Create(AInFile, AOutFile : TStream; ABufSize : Cardinal);
+constructor TShrinker.Create(AInFile, AOutFile : TStream; ABufSize : LongWord);
 begin
   Inherited;
   FBufSize:=ABufSize;
@@ -442,6 +608,13 @@ begin
 end;
 
 
+Procedure TShrinker.DoOnProgress(Const Pct: Double);
+
+begin
+  If Assigned(FOnProgress) then
+    FOnProgress(Self,Pct);
+end;
+
 
 Procedure TShrinker.FillInputBuffer;
 
@@ -481,22 +654,22 @@ End;
 
 procedure TShrinker.PutCode(Code : Smallint);
 
-var 
+var
   ACode : LongInt;
   XSize : Smallint;
-    
+
 begin
-  if (Code=-1) then 
+  if (Code=-1) then
     begin
     if BitsUsed>0 then
       PutChar(SaveByte);
     end
-  else 
+  else
     begin
     ACode := Longint(Code);
     XSize := CodeSize+BitsUsed;
     ACode := (ACode shl BitsUsed) or SaveByte;
-    while (XSize div 8) > 0 do 
+    while (XSize div 8) > 0 do
       begin
       PutChar(Lo(ACode));
       ACode := ACode shr 8;
@@ -513,9 +686,9 @@ Procedure TShrinker.InitializeCodeTable;
 Var
    I  :  Word;
 Begin
-   For I := 0 to TableSize do 
+   For I := 0 to TableSize do
      begin
-     With CodeTable^[I] do 
+     With CodeTable^[I] do
        begin
        Child := -1;
        Sibling := -1;
@@ -619,18 +792,18 @@ end;
 
 function TShrinker.Table_Lookup(    TargetPrefix : Smallint;
                           TargetSuffix : Byte;
-                      Var FoundAt      : Smallint   ) : Boolean;
+                      Out FoundAt      : Smallint   ) : Boolean;
 
 var TempPrefix : Smallint;
 
 begin
   TempPrefix := TargetPrefix;
   Table_lookup := False;
-  if CodeTable^[TempPrefix].Child <> -1 then 
+  if CodeTable^[TempPrefix].Child <> -1 then
     begin
     TempPrefix := CodeTable^[TempPrefix].Child;
     repeat
-      if CodeTable^[TempPrefix].Suffix = TargetSuffix then 
+      if CodeTable^[TempPrefix].Suffix = TargetSuffix then
         begin
         Table_lookup := True;
         break;
@@ -640,9 +813,9 @@ begin
       TempPrefix := CodeTable^[TempPrefix].Sibling;
     until False;
   end;
-  if Table_Lookup then 
+  if Table_Lookup then
     FoundAt := TempPrefix
-  else 
+  else
     FoundAt := -1;
 end;
 
@@ -650,10 +823,10 @@ Procedure TShrinker.Shrink(Suffix : Smallint);
 
 Const
   LastCode : Smallint = 0;
-  
+
 Var
   WhereFound : Smallint;
-   
+
 Begin
   If FirstCh then
     begin
@@ -729,7 +902,7 @@ end;
 { ---------------------------------------------------------------------
     TZipper
   ---------------------------------------------------------------------}
-  
+
 
 Procedure TZipper.GetFileInfo;
 
@@ -737,7 +910,7 @@ Var
    Info : TSearchRec;
    I       : Word;
    NewNode : TZipItem;
-   
+
 
 Begin
    For I := 0 to FFiles.Count-1 do
@@ -805,7 +978,7 @@ Begin
 End;
 
 
-Function TZipper.UpdateZipHeader(Item : TZipItem; FZip : TStream; ACRC : Integer; AMethod : Word) : Boolean;
+Function TZipper.UpdateZipHeader(Item : TZipItem; FZip : TStream; ACRC : LongWord; AMethod : Word) : Boolean;
 
 Begin
   With LocalHdr do
@@ -833,7 +1006,7 @@ Var
    CenDirPos : LongInt;
    Entries   : Word;
    ZFileName  : ShortString;
-   
+
 Begin
    Entries := 0;
    CenDirPos := FOutFile.Position;
@@ -845,7 +1018,7 @@ Begin
      FOutFile.ReadBuffer(ZFileName[1], LocalHdr.FileName_Length);
      SavePos := FOutFile.Position;
      FillChar(CentralHdr,SizeOf(CentralHdr),0);
-     With CentralHdr do 
+     With CentralHdr do
        begin
        Signature := CENTRAL_FILE_HEADER_SIGNATURE;
        MadeBy_Version := LocalHdr.Extract_Version_Reqd;
@@ -868,7 +1041,7 @@ Begin
    Until LocalHdr.Signature = CENTRAL_FILE_HEADER_SIGNATURE;
    FOutFile.Seek(0,soFromEnd);
    FillChar(EndHdr,SizeOf(EndHdr),0);
-   With EndHdr do 
+   With EndHdr do
      begin
      Signature := END_OF_CENTRAL_DIR_SIGNATURE;
      Disk_Number := 0;
@@ -895,7 +1068,7 @@ Var
   ZMethod : Word;
   ZipStream : TStream;
   TmpFileName : String;
-  
+
 Begin
   OpenInput(Item.Path+Item.Name);
   Try
@@ -934,22 +1107,14 @@ Begin
     end;
   Finally
     CloseInput;
-  end;  
+  end;
 end;
-
-Procedure TShrinker.DoOnProgress(Const Pct: Double);
-
-begin
-  If Assigned(FOnProgress) then
-    FOnProgress(Self,Pct);
-end;
-
 
 Procedure TZipper.ZipAllFiles;
 Var
    Item : TZipItem;
    I : Integer;
-   
+
 Begin
   FZipping:=True;
   Try
@@ -970,8 +1135,8 @@ Begin
   end;
 end;
 
-  
-Procedure TZipper.SetBufSize(Value : Cardinal);
+
+Procedure TZipper.SetBufSize(Value : LongWord);
 
 begin
   If FZipping then
@@ -984,7 +1149,7 @@ Procedure TZipper.SetFileName(Value : String);
 
 begin
   If FZipping then
-    Raise EZipError.Create(SErrOutputFileChange);
+    Raise EZipError.Create(SErrFileChange);
   FFileName:=Value;
 end;
 
@@ -1028,14 +1193,258 @@ Var
 begin
   For I:=0 to FFiles.Count-1 do
     FFiles.Objects[i].Free;
-  FFiles.Clear;  
+  FFiles.Clear;
 end;
 
 Destructor TZipper.Destroy;
- 
+
 begin
   Clear;
   FreeAndNil(FFiles);
+  Inherited;
+end;
+
+
+{ ---------------------------------------------------------------------
+    TUnZipper
+  ---------------------------------------------------------------------}
+
+Procedure TUnZipper.OpenInput;
+
+Begin
+  FZipFile:=TFileStream.Create(FFileName,fmOpenRead);
+End;
+
+
+Function TUnZipper.OpenOutput(OutFileName : String) : Boolean;
+
+Begin
+  FOutFile:=TFileStream.Create(OutFileName,fmCreate);
+  Result:=True;
+  If Assigned(FOnStartFile) then
+    FOnStartFile(Self,OutFileName);
+End;
+
+
+Procedure TUnZipper.CloseOutput;
+
+Begin
+  FreeAndNil(FOutFile);
+end;
+
+
+Procedure TUnZipper.CloseInput;
+
+Begin
+  FreeAndNil(FZipFile);
+end;
+
+
+Procedure TUnZipper.ReadZipHeader(Item : TZipItem; out ACRC : LongWord; out AMethod : Word);
+
+Begin
+  FZipFile.Seek(Item.HdrPos,soFromBeginning);
+  FZipFile.ReadBuffer(LocalHdr,SizeOf(LocalHdr));
+  With LocalHdr do
+    begin
+      SetLength(Item.Name,Filename_Length);
+      FZipFile.ReadBuffer(Item.Name[1],Filename_Length);
+      FZipFile.Seek(Extra_Field_Length,soCurrent);
+      Item.Size:=Uncompressed_Size;
+      ZipDateTimeToDateTime(Last_Mod_Date,Last_Mod_Time,Item.DateTime);
+      ACrc:=Crc32;
+      AMethod:=Compress_method;
+    end;
+End;
+
+
+Procedure TUnZipper.ReadZipDirectory;
+
+Var
+   i,
+   EndHdrPos,
+   CenDirPos : LongInt;
+   NewNode   : TZipItem;
+Begin
+   EndHdrPos:=FZipFile.Size-SizeOf(EndHdr);
+   if EndHdrPos < 0 then
+     raise EZipError.CreateFmt(SErrCorruptZIP,[FZipFile.FileName]);
+   FZipFile.Seek(EndHdrPos,soFromBeginning);
+   FZipFile.ReadBuffer(EndHdr, SizeOf(EndHdr));
+   With EndHdr do
+     begin
+       if Signature <> END_OF_CENTRAL_DIR_SIGNATURE then
+         raise EZipError.CreateFmt(SErrCorruptZIP,[FZipFile.FileName]);
+       CenDirPos:=Start_Disk_Offset;
+     end;
+   FZipFile.Seek(CenDirPos,soFrombeginning);
+   for i:=0 to EndHdr.Entries_This_Disk-1 do
+     begin
+       FZipFile.ReadBuffer(CentralHdr, SizeOf(CentralHdr));
+       With CentralHdr do
+         begin
+           if Signature<>CENTRAL_FILE_HEADER_SIGNATURE then
+             raise EZipError.CreateFmt(SErrCorruptZIP,[FZipFile.FileName]);
+           NewNode:=TZipItem.Create;
+           NewNode.HdrPos := Local_Header_Offset;
+           SetLength(NewNode.Name,Filename_Length);
+           FZipFile.ReadBuffer(NewNode.Name[1],Filename_Length);
+           FZipFile.Seek(Extra_Field_Length+File_Comment_Length,soCurrent);
+           FZipEntries.Add(NewNode);
+         end;
+     end;
+end;
+
+Function TUnZipper.CreateDeCompressor(Item : TZipItem; AMethod : Word;AZipFile,AOutFile : TStream) : TDeCompressor;
+var
+  Count : Int64;
+begin
+  case AMethod of
+    8 :
+      Result:=TInflater.Create(AZipFile,AOutFile,FBufSize);
+  else
+    raise EZipError.CreateFmt(SErrUnsupportedCompressionFormat,[AMethod]);
+  end;
+end;
+
+Procedure TUnZipper.UnZipOneFile(Item : TZipItem);
+
+Var
+  Count : Longint;
+  CRC : LongWord;
+  ZMethod : Word;
+Begin
+  Try
+    ReadZipHeader(Item,CRC,ZMethod);
+    OpenOutput(FOutputPath+Item.Name);
+    if ZMethod=0 then
+      begin
+        Count:=FOutFile.CopyFrom(FZipFile,LocalHdr.Compressed_Size);
+{$warning TODO: Implement CRC Check}
+      end
+    else
+      With CreateDecompressor(Item, ZMethod, FZipFile, FOutFile) do
+        Try
+          OnProgress:=Self.OnProgress;
+          OnPercent:=Self.OnPercent;
+          DeCompress;
+          if CRC<>Crc32Val then
+            raise EZipError.CreateFmt(SErrInvalidCRC,[Item.Name]);
+        Finally
+          Free;
+        end;
+  Finally
+    CloseOutput;
+  end;
+end;
+
+
+Procedure TUnZipper.UnZipAllFiles;
+Var
+   Item : TZipItem;
+   I : Integer;
+
+Begin
+  FUnZipping:=True;
+  Try
+    OpenInput;
+    Try
+      ReadZipDirectory;
+      For I:=0 to FZipEntries.Count-1 do
+        begin
+          Item:=FZipEntries[i] as TZipItem;
+          UnZipOneFile(Item);
+        end;
+    Finally
+       CloseInput;
+    end;
+  finally
+    FUnZipping:=False;
+  end;
+end;
+
+
+Procedure TUnZipper.SetBufSize(Value : LongWord);
+
+begin
+  If FUnZipping then
+    Raise EZipError.Create(SErrBufsizeChange);
+  If Value>=DefaultBufSize then
+    FBufSize:=Value;
+end;
+
+Procedure TUnZipper.SetFileName(Value : String);
+
+begin
+  If FUnZipping then
+    Raise EZipError.Create(SErrFileChange);
+  FFileName:=Value;
+end;
+
+Procedure TUnZipper.SetOutputPath(Value:String);
+begin
+  If FUnZipping then
+    Raise EZipError.Create(SErrFileChange);
+  FOutputPath:=Value;
+end;
+
+Procedure TUnZipper.UnZipFiles(AFileName : String; FileList : TStrings);
+
+begin
+  FFiles.Assign(FileList);
+  FFileName:=AFileName;
+  UnZipAllFiles;
+end;
+
+Procedure TUnZipper.UnZipAllFiles(AFileName : String);
+
+begin
+  FFileName:=AFileName;
+  UnZipAllFiles;
+end;
+
+Procedure TUnZipper.DoEndOfFile;
+
+Var
+  ComprPct : Double;
+
+begin
+  If (LocalHdr.Uncompressed_Size>0) then
+    ComprPct := (100.0 * (LocalHdr.Uncompressed_Size - LocalHdr.Compressed_Size)) / LocalHdr.Uncompressed_Size
+  else
+    ComprPct := 0;
+  If Assigned(FOnEndOfFile) then
+    FOnEndOfFile(Self,ComprPct);
+end;
+
+Constructor TUnZipper.Create;
+
+begin
+  FBufSize:=DefaultBufSize;
+  FFiles:=TStringList.Create;
+  FZipEntries:=TFPObjectList.Create(true);
+  TStringlist(FFiles).Sorted:=True;
+  FOnPercent:=1;
+end;
+
+Procedure TUnZipper.Clear;
+
+Var
+  I : Integer;
+
+begin
+  For I:=0 to FFiles.Count-1 do
+    FFiles.Objects[i].Free;
+  FFiles.Clear;
+  FZipEntries.Clear;
+end;
+
+Destructor TUnZipper.Destroy;
+
+begin
+  Clear;
+  FreeAndNil(FFiles);
+  FreeAndNil(FZipEntries);
   Inherited;
 end;
 
