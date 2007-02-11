@@ -102,10 +102,33 @@ httpsvlt.pp: fpasync$(PPUEXT) fpsock$(PPUEXT) httpbase$(PPUEXT) servlets$(PPUEXT
 
 xmlrpc.pp: avl_tree$(PPUEXT) fpasync$(PPUEXT) dom$(PPUEXT) httpclient$(PPUEXT) httpsvlt$(PPUEXT) xml
 
+xml_all: avl_tree$(PPUEXT) htmldefs$(PPUEXT)
+xml_debug: avl_tree$(PPUEXT) htmldefs$(PPUEXT)
+xml_smart: avl_tree$(PPUEXT) htmldefs$(PPUEXT)
+xml_release: avl_tree$(PPUEXT) htmldefs$(PPUEXT)
+xml_shared: avl_tree$(PPUEXT) htmldefs$(PPUEXT)
+
+fpcunit_all: fpcunit$(PPUEXT) xml_all
+fpcunit_debug: fpcunit$(PPUEXT) xml_debug
+fpcunit_smart: fpcunit$(PPUEXT) xml_smart
+fpcunit_release: fpcunit$(PPUEXT) xml_release
+fpcunit_shared: fpcunit$(PPUEXT) xml_shared
+
 net_all: passrc_all xml_all
 net_debug: passrc_debug xml_debug
 net_smart: passrc_smart xml_smart
 net_release: passrc_release xml_release
 net_shared: passrc_shared xml_shared
-net_examples: hash_examples hash_examples
+
+web_all: db_all dbugintf$(PPUEXT) custapp$(PPUEXT) iostream$(PPUEXT) xml_all
+web_debug: db_debug dbugintf$(PPUEXT) custapp$(PPUEXT) iostream$(PPUEXT) xml_debug
+web_smart: db_smart dbugintf$(PPUEXT) custapp$(PPUEXT) iostream$(PPUEXT) xml_smart
+web_release: db_release dbugintf$(PPUEXT) custapp$(PPUEXT) iostream$(PPUEXT) xml_release
+web_shared: db_shared dbugintf$(PPUEXT) custapp$(PPUEXT) iostream$(PPUEXT) xml_shared
+
+db_all: whtml$(PPUEXT)
+db_debug: whtml$(PPUEXT)
+db_smart: whtml$(PPUEXT)
+db_release: whtml$(PPUEXT)
+db_shared: whtml$(PPUEXT)
 
