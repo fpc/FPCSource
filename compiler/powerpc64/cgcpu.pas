@@ -663,11 +663,11 @@ procedure tcgppc.a_load_const_reg(list: TAsmList; size: TCGSize; a: aint;
   begin
     if (lo(a) = 0) and (hi(a) <> 0) then begin
       { load only upper 32 bits, and shift }
-      load32bitconstant(list, size, hi(a), reg);
+      load32bitconstant(list, size, longint(hi(a)), reg);
       list.concat(taicpu.op_reg_reg_const(A_SLDI, reg, reg, 32));
     end else begin
       { load lower 32 bits }
-      extendssign := load32bitconstant(list, size, lo(a), reg);
+      extendssign := load32bitconstant(list, size, longint(lo(a)), reg);
       if (extendssign) and (hi(a) = 0) then
         { if upper 32 bits are zero, but loading the lower 32 bit resulted in automatic
           sign extension, clear those bits }
@@ -683,7 +683,7 @@ procedure tcgppc.a_load_const_reg(list: TAsmList; size: TCGSize; a: aint;
           - loading the lower 32 bits resulted in 0 in the upper 32 bits, and the upper
            32 bits should contain 0 }
         a_reg_alloc(list, NR_R0);
-        load32bitconstantR0(list, size, hi(a));
+        load32bitconstantR0(list, size, longint(hi(a)));
         { combine both registers }
         list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, reg, NR_R0, 32, 0));
         a_reg_dealloc(list, NR_R0);
@@ -954,7 +954,7 @@ var
       end else begin
         getmagic_unsignedN(sizeof(aWord)*8, a, u_magic, u_add, u_shift);
         { load magic in divreg }
-        cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, u_magic, divreg);
+        cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, aint(u_magic), divreg);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULHDU, dst, src, divreg));
         if (u_add) then begin
           cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, dst, src, divreg);
@@ -1982,6 +1982,31 @@ end;
 
 procedure tcgppc.a_load_store(list: TAsmList; op: tasmop; reg: tregister;
   ref: treference);
+
+  procedure maybefixup64bitoffset;
+    var
+      tmpreg: tregister;
+    begin
+      { for some instructions we need to check that the offset is divisible by at
+       least four. If not, add the bytes which are "off" to the base register and
+       adjust the offset accordingly }
+      case op of
+        A_LD, A_LDU, A_STD, A_STDU, A_LWA :
+           if ((ref.offset mod 4) <> 0) then begin
+            tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+    
+            if (ref.base <> NR_NO) then begin
+              a_op_const_reg_reg(list, OP_ADD, OS_ADDR, ref.offset mod 4, ref.base, tmpreg);
+              ref.base := tmpreg;
+            end else begin
+              list.concat(taicpu.op_reg_const(A_LI, tmpreg, ref.offset mod 4));
+              ref.base := tmpreg;
+            end;
+            ref.offset := (ref.offset div 4) * 4;
+          end;
+      end;
+    end;
+
 var
   tmpreg, tmpreg2: tregister;
   tmpref: treference;
@@ -1990,6 +2015,7 @@ begin
   if (target_info.system = system_powerpc64_darwin) then
     begin
       { darwin/ppc64 works with 32 bit relocatable symbol addresses }
+      maybefixup64bitoffset;
       inherited a_load_store(list,op,reg,ref);
       exit
     end;
@@ -2011,24 +2037,7 @@ begin
     exit;
   end;
 
-  { for some instructions we need to check that the offset is divisible by at
-   least four. If not, add the bytes which are "off" to the base register and
-   adjust the offset accordingly }
-  case op of
-    A_LD, A_LDU, A_STD, A_STDU, A_LWA :
-       if ((ref.offset mod 4) <> 0) then begin
-        tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-
-        if (ref.base <> NR_NO) then begin
-          a_op_const_reg_reg(list, OP_ADD, OS_ADDR, ref.offset mod 4, ref.base, tmpreg);
-          ref.base := tmpreg;
-        end else begin
-          list.concat(taicpu.op_reg_const(A_LI, tmpreg, ref.offset mod 4));
-          ref.base := tmpreg;
-        end;
-        ref.offset := (ref.offset div 4) * 4;
-      end;
-  end;
+  maybefixup64bitoffset;
   {$IFDEF EXTDEBUG}
   list.concat(tai_comment.create(strpnew('a_load_store1 ' + BoolToStr(ref.refaddr = addr_pic))));
   {$ENDIF EXTDEBUG}
