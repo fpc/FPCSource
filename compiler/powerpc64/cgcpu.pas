@@ -1624,6 +1624,12 @@ var
   tempreg : TRegister;
 
 begin
+  if (target_info.system = system_powerpc64_darwin) then
+    begin
+      inherited a_loadaddr_ref_reg(list,ref,r);
+      exit;
+    end;
+
   ref2 := ref;
   fixref(list, ref2);
   { load a symbol }

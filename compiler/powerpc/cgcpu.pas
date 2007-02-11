@@ -81,8 +81,6 @@ unit cgcpu;
         procedure g_save_standard_registers(list:TAsmList); override;
         procedure g_restore_standard_registers(list:TAsmList); override;
 
-        procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
-
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);override;
 
         { find out whether a is of the form 11..00..11b or 00..11...00. If }
@@ -1496,88 +1494,6 @@ const
         list.concat(taicpu.op_none(A_BLR));
       end;
 
-
-     procedure tcgppc.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
-
-       var
-         ref2, tmpref: treference;
-
-       begin
-         ref2 := ref;
-         fixref(list,ref2);
-         if assigned(ref2.symbol) then
-           begin
-             if target_info.system = system_powerpc_macos then
-               begin
-                 if macos_direct_globals then
-                   begin
-                     reference_reset(tmpref);
-                     tmpref.offset := ref2.offset;
-                     tmpref.symbol := ref2.symbol;
-                     tmpref.base := NR_NO;
-                     list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,NR_RTOC,tmpref));
-                   end
-                 else
-                   begin
-                     reference_reset(tmpref);
-                     tmpref.symbol := ref2.symbol;
-                     tmpref.offset := 0;
-                     tmpref.base := NR_RTOC;
-                     list.concat(taicpu.op_reg_ref(A_LWZ,r,tmpref));
-
-                     if ref2.offset <> 0 then
-                       begin
-                         reference_reset(tmpref);
-                         tmpref.offset := ref2.offset;
-                         tmpref.base:= r;
-                         list.concat(taicpu.op_reg_ref(A_LA,r,tmpref));
-                       end;
-                   end;
-
-                 if ref2.base <> NR_NO then
-                   list.concat(taicpu.op_reg_reg_reg(A_ADD,r,r,ref2.base));
-
-                 //list.concat(tai_comment.create(strpnew('*** a_loadaddr_ref_reg')));
-               end
-             else
-               begin
-
-                 { add the symbol's value to the base of the reference, and if the }
-                 { reference doesn't have a base, create one                       }
-                 reference_reset(tmpref);
-                 tmpref.offset := ref2.offset;
-                 tmpref.symbol := ref2.symbol;
-                 tmpref.relsymbol := ref2.relsymbol;
-                 tmpref.refaddr := addr_hi;
-                 if ref2.base<> NR_NO then
-                   begin
-                     list.concat(taicpu.op_reg_reg_ref(A_ADDIS,r,
-                       ref2.base,tmpref));
-                   end
-                 else
-                   list.concat(taicpu.op_reg_ref(A_LIS,r,tmpref));
-                 tmpref.base := NR_NO;
-                 tmpref.refaddr := addr_lo;
-                 { can be folded with one of the next instructions by the }
-                 { optimizer probably                                     }
-                 list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,r,tmpref));
-               end
-           end
-         else if ref2.offset <> 0 Then
-           if ref2.base <> NR_NO then
-             a_op_const_reg_reg(list,OP_ADD,OS_32,ref2.offset,ref2.base,r)
-           { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never}
-           { occurs, so now only ref.offset has to be loaded                         }
-           else
-             a_load_const_reg(list,OS_32,ref2.offset,r)
-         else if ref2.index <> NR_NO Then
-           list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref2.base,ref2.index))
-         else if (ref2.base <> NR_NO) and
-                 (r <> ref2.base) then
-           a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref2.base,r)
-         else
-           list.concat(taicpu.op_reg_const(A_LI,r,0));
-       end;
 
 { ************* concatcopy ************ }
 
