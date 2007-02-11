@@ -1067,12 +1067,12 @@ begin
 {$ifdef DSdebug}
     Writeln ('Setting current record to',index);
 {$endif}
-    Case GetBookMarkFlag(FBuffers[Index]) of
+    if not FIsUniDirectional then Case GetBookMarkFlag(FBuffers[Index]) of
       bfCurrent : InternalSetToRecord(FBuffers[Index]);
       bfBOF : InternalFirst;
       bfEOF : InternalLast;
       end;
-    if not FIsUniDirectional then FCurrentRecord:=index;
+    FCurrentRecord:=index;
     end;
 end;
 
@@ -1545,25 +1545,22 @@ Procedure TDataset.First;
 
 
 begin
-  if not FBof then
+  CheckBrowseMode;
+  DoBeforeScroll;
+  if not FIsUniDirectional then
+    ClearBuffers
+  else if not FBof then
     begin
-    CheckBrowseMode;
-    DoBeforeScroll;
-    if FIsUniDirectional then
-      begin
-      Active := False;
-      Active := True;
-      end
-    else
-      ClearBuffers;
-    try
-      InternalFirst;
-      if not FIsUniDirectional then GetNextRecords;
-    finally
-      FBOF:=True;
-      DataEvent(deDatasetChange,0);
-      DoAfterScroll;
-      end;
+    Active := False;
+    Active := True;
+    end;
+  try
+    InternalFirst;
+    if not FIsUniDirectional then GetNextRecords;
+  finally
+    FBOF:=True;
+    DataEvent(deDatasetChange,0);
+    DoAfterScroll;
     end;
 end;
 
@@ -1690,21 +1687,18 @@ Procedure TDataset.Last;
 
 begin
   CheckBiDirectional;
-  if not FEOF then
-    begin
-    CheckBrowseMode;
-    DoBeforeScroll;
-    ClearBuffers;
-    try
-      InternalLast;
-      GetPriorRecords;
-      if FRecordCount>0 then
-        FActiveRecord:=FRecordCount-1
-    finally
-      FEOF:=true;
-      DataEvent(deDataSetChange, 0);
-      DoAfterScroll;
-      end;
+  CheckBrowseMode;
+  DoBeforeScroll;
+  ClearBuffers;
+  try
+    InternalLast;
+    GetPriorRecords;
+    if FRecordCount>0 then
+      FActiveRecord:=FRecordCount-1
+  finally
+    FEOF:=true;
+    DataEvent(deDataSetChange, 0);
+    DoAfterScroll;
     end;
 end;
 
@@ -1904,7 +1898,7 @@ begin
 {$ifdef dsdebug}
     Writeln ('Resync called');
 {$endif}
-  CheckBiDirectional;
+  if FIsUnidirectional then Exit;
 // place the cursor of the underlying dataset to the active record
 //  SetCurrentRecord(FActiverecord);
 
