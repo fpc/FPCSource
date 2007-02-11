@@ -159,6 +159,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function dogetcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
+          function  pass_1 : tnode;override;
           procedure get_paratype;
           procedure insert_typeconv(do_count : boolean);
           procedure det_registers;
@@ -743,9 +744,18 @@ implementation
          result:=n;
       end;
 
-    procedure tcallparanode.insertintolist(l : tnodelist);
 
+    procedure tcallparanode.insertintolist(l : tnodelist);
       begin
+      end;
+
+
+    function tcallparanode.pass_1 : tnode;
+      begin
+        firstpass(left);
+        if assigned(right) then
+          firstpass(right);
+        result:=nil;
       end;
 
 

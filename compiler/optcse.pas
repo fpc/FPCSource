@@ -43,7 +43,8 @@ unit optcse;
       symtype,symdef;
 
     const
-      cseinvariant : set of tnodetype = [loadn,addn,muln,subn,divn,andn,orn,xorn,notn,vecn,derefn];
+      cseinvariant : set of tnodetype = [loadn,addn,muln,subn,divn,slashn,modn,andn,orn,xorn,notn,vecn,
+        derefn,equaln,unequaln,ltn,gtn,lten,gten,typeconvn,subscriptn];
 
     function searchsubdomain(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
@@ -69,7 +70,7 @@ unit optcse;
     function collectnodes(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
         { node worth to add? }
-        if node_complexity(n)>1 then
+        if (node_complexity(n)>1) and (tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) then
           begin
             plists(arg)^.nodelist.Add(n);
             plists(arg)^.locationlist.Add(@n);
@@ -88,7 +89,9 @@ unit optcse;
         i,j : aint;
         def : tstoreddef;
         nodes : tblocknode;
+        creates,
         statements : tstatementnode;
+        hp : ttempcreatenode;
       begin
         result:=fen_false;
         if n.nodetype in cseinvariant then
@@ -119,7 +122,10 @@ unit optcse;
                       if tnode(lists.nodelist[i]).isequal(tnode(lists.nodelist[j])) then
                         begin
                           if not(assigned(statements)) then
-                            nodes:=internalstatements(statements);
+                            begin
+                              nodes:=internalstatements(statements);
+                              addstatement(statements,internalstatements(creates));
+                            end;
 {$ifdef csedebug}
                           writeln('    ====     ');
                           printnode(output,tnode(lists.nodelist[i]));
@@ -140,7 +146,11 @@ unit optcse;
                             begin
                               templist[i]:=ctempcreatenode.create(def,def.size,tt_persistent,
                                 def.is_intregable or def.is_fpuregable);
-                              addstatement(statements,tnode(templist[i]));
+                              addstatement(creates,tnode(templist[i]));
+
+                              { properties can't be passed by var }
+                              hp:=ttempcreatenode(templist[i]);
+                              do_firstpass(tnode(hp));
 
                               addstatement(statements,cassignmentnode.create(ctemprefnode.create(ttempcreatenode(templist[i])),
                                 tnode(lists.nodelist[i])));

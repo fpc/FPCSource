@@ -582,7 +582,14 @@ implementation
                     result := NODE_COMPLEXITY_INF;
                   exit;
                 end;
-              subscriptn,
+              subscriptn:
+                begin
+                  if is_class_or_interface(tunarynode(p).left.resultdef) then
+                    inc(result);
+                  if (result = NODE_COMPLEXITY_INF) then
+                    exit;
+                  p := tunarynode(p).left;
+                end;
               blockn:
                 p := tunarynode(p).left;
               derefn :
