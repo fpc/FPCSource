@@ -22,7 +22,7 @@ examples=rep2xml
 rsts=fprepos fpxmlrep fppkg
 
 [compiler]
-unitdir=lnet
+unitdir=$(FCL20) lnet
 includedir=lnet/sys
 
 [install]
@@ -33,6 +33,12 @@ fpcdir=../..
 
 [require]
 packages=fcl libcurl
+
+[prerules]
+# Compatibility to compile with 2.0.x
+ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
+FCL20=fcl20
+endif
 
 [rules]
 .NOTPARALLEL:

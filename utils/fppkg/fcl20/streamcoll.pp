@@ -17,7 +17,7 @@
 
 {$mode objfpc}
 {$h+}
-unit streamcoll20;
+unit streamcoll;
 
 interface
 
