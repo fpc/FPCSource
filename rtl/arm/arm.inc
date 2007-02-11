@@ -133,21 +133,20 @@ asm
 end;
 
 
-(*
 {$define FPC_SYSTEM_HAS_MOVE}
 procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
 asm
-	// count <=0 ?
-	cmp r2,#0
-	movle pc,lr
-	// overlap?
-	cmp r2,r1
-	bls .Lnoverlap
-	add r3,r0,r2
-	cmp r3,r2
-	bls .Lnooverlap
-	// overlap, copy backward
-.Loverlapped
+  // count <=0 ?
+  cmp r2,#0
+  movle pc,lr
+  // overlap?
+  cmp r1,r0
+  bls .Lnooverlap
+  add r3,r0,r2
+  cmp r3,r1
+  bls .Lnooverlap
+  // overlap, copy backward
+.Loverlapped:
   subs r2,r2,#1
   ldrb r3,[r0,r2]
   strb r3,[r1,r2]
@@ -155,16 +154,17 @@ asm
   mov pc,lr
 .Lnooverlap:
   // less then 16 bytes to copy?
-  cmp r2,#16
+  cmp r2,#8
   // yes, the forget about the whole optimizations
   // and do a bytewise copy
   blt .Lbyteloop
 
-  // both uneven aligned?
-  eor r3,r0,r1
-  tst r3,#1
+  // both aligned?
+  orr r3,r0,r1
+  tst r3,#3
 
-  bne .Ldifferentaligned
+  bne .Lbyteloop
+(*
   // yes, then align
   // alignment to 4 byte boundries is enough
   ldrb ip,[r0],#1
@@ -181,21 +181,23 @@ asm
   orrs r3,r0,r1
   tst r3,#7
   bne .Ldwordloop
-.Lqwordloop:
-  sub r2,r2,#8
-  ldmia r0!,{r3,ip}
-  stmia r1!,{r3,ip}
-
-
-
+*)
+.Ldwordloop:
+  sub r2,r2,#4
+  ldr r3,[r0],#4
+  cmp r2,#4
+  str r3,[r1],#4
+  bcs .Ldwordloop
+  cmp r2,#0
+  moveq pc,lr
 .Lbyteloop:
+  subs r2,r2,#1
   ldrb r3,[r0],#1
   strb r3,[r1],#1
-  subs r2,r2,#1
   bne .Lbyteloop
   mov pc,lr
 end;
-*)
+
 
 var
   fpc_system_lock: longint; export name 'fpc_system_lock';
