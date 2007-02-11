@@ -6274,6 +6274,10 @@ tests/test/cg/obj/darwin/powerpc/ctest.o -text
 tests/test/cg/obj/darwin/powerpc/tcext3.o -text
 tests/test/cg/obj/darwin/powerpc/tcext4.o -text
 tests/test/cg/obj/darwin/powerpc/tcext5.o -text
+tests/test/cg/obj/darwin/powerpc64/ctest.o -text
+tests/test/cg/obj/darwin/powerpc64/tcext3.o -text
+tests/test/cg/obj/darwin/powerpc64/tcext4.o -text
+tests/test/cg/obj/darwin/powerpc64/tcext5.o -text
 tests/test/cg/obj/freebsd/i386/ctest.o -text
 tests/test/cg/obj/freebsd/i386/tcext3.o -text
 tests/test/cg/obj/freebsd/i386/tcext4.o -text
