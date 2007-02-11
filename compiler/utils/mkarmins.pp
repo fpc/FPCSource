@@ -20,7 +20,6 @@ const
 var
    s : string;
    i : longint;
-   x86_64 : boolean;
 
     function lower(const s : string) : string;
     {

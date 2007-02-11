@@ -237,8 +237,8 @@ reg32,mem32         \320\301\1\x13\110            ARM7
 reg32,reg32,reg32,reg32  \x15\x00\x20\x90               ARM7
 
 [MOVcc]
-reg32,shifterop              \x8\x0\0xd                   ARM7
-reg32,immshifter             \x8\x0\0xd                  ARM7
+; reg32,shifterop              \x8\x0\0xd                   ARM7
+; reg32,immshifter             \x8\x0\0xd                  ARM7
 ; reg32,reg32,reg32        \x9\x1\xA0                     ARM7
 ; reg32,reg32,imm          \xA\x1\xA0                     ARM7
 ; reg32,imm                \xB\x3\xA0                     ARM7
@@ -266,10 +266,10 @@ fpureg,fpureg              \xF2                      FPA
 fpureg,immfpu              \xF2                      FPA
 
 [MVNcc]
-reg32,reg32         \x8\x0\0xf                     ARM7
-reg32,reg32,reg32   \x9\x1\xE0                     ARM7
-reg32,reg32,imm     \xA\x1\xE0                     ARM7
-reg32,imm           \xB\x3\xE0                     ARM7
+; reg32,reg32         \x8\x0\0xf                     ARM7
+; reg32,reg32,reg32   \x9\x1\xE0                     ARM7
+; reg32,reg32,imm     \xA\x1\xE0                     ARM7
+; reg32,imm           \xB\x3\xE0                     ARM7
 
 [ORRcc]
 reg32,reg32,reg32        \4\x1\x80                     ARM7
@@ -391,4 +391,55 @@ reg32,reg32,reg32,reg32  \x16\x00\xA0\x90		 ARM7
 reg32,reg32,reg32,reg32  \x16\x00\x80\x90		 ARM7
 
 [WFScc]
+
+; EDSP instructions
+[LDRDcc]
+
+[MCRRcc]
+
+[MRRCcc]
+
+[PLD]
+
+[QADDcc]
+
+[QDADDcc]
+
+[QDSUBcc]
+
+[QSUBcc]
+
+[SMLABBcc]
+
+[SMLABTcc]
+
+[SMLATBcc]
+
+[SMLATTcc]
+
+[SMLALBBcc]
+
+[SMLALBTcc]
+
+[SMLALTBcc]
+
+[SMLALTTcc]
+
+[SMLAWBcc]
+
+[SMLAWTcc]
+
+[SMULBBcc]
+
+[SMULBTcc]
+
+[SMULTBcc]
+
+[SMULTTcc]
+
+[SMULWBcc]
+
+[SMULWTcc]
+
+[STRDcc]
 

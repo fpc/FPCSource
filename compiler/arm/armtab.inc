@@ -400,20 +400,6 @@
     flags   : if_arm7
   ),
   (
-    opcode  : A_MOV;
-    ops     : 2;
-    optypes : (ot_reg32,ot_shifterop,ot_none,ot_none);
-    code    : #8#1#160;
-    flags   : if_arm7
-  ),
-  (
-    opcode  : A_MOV;
-    ops     : 2;
-    optypes : (ot_reg32,ot_immediateshifter,ot_none,ot_none);
-    code    : #8#1#160;
-    flags   : if_arm7
-  ),
-  (
     opcode  : A_MUL;
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none);
@@ -433,34 +419,6 @@
     optypes : (ot_fpureg,ot_immediatefpu,ot_none,ot_none);
     code    : #242;
     flags   : if_fpa
-  ),
-  (
-    opcode  : A_MVN;
-    ops     : 2;
-    optypes : (ot_reg32,ot_reg32,ot_none,ot_none);
-    code    : #8#1#224;
-    flags   : if_arm7
-  ),
-  (
-    opcode  : A_MVN;
-    ops     : 3;
-    optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none);
-    code    : #9#1#224;
-    flags   : if_arm7
-  ),
-  (
-    opcode  : A_MVN;
-    ops     : 3;
-    optypes : (ot_reg32,ot_reg32,ot_immediate,ot_none);
-    code    : #10#1#224;
-    flags   : if_arm7
-  ),
-  (
-    opcode  : A_MVN;
-    ops     : 2;
-    optypes : (ot_reg32,ot_immediate,ot_none,ot_none);
-    code    : #11#3#224;
-    flags   : if_arm7
   ),
   (
     opcode  : A_ORR;

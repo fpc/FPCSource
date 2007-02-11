@@ -3083,10 +3083,14 @@ msgtxt.inc: $(MSGFILE)
 	$(MAKE) $(MSG2INC)
 	$(MSG2INC) $(MSGFILE) msg msg
 msg: msgtxt.inc
-insdat: x86/x86ins.dat
+insdatx86 : x86/x86ins.dat
 	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86ins.pp
 	cd x86; ../utils/mkx86ins; mv -f *.inc ../i386
 	cd x86;../utils/mkx86ins x86_64; mv -f *.inc ../x86_64
+insdatarm : arm/armins.dat
+	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmins.pp
+	cd arm; ../utils/mkarmins
+insdat: insdatx86 insdatarm
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
 	     $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
 	     $(wildcard $(PPC_TARGET)/*.pas) $(wildcard $(PPC_TARGET)/*.inc)
