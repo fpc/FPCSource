@@ -4368,8 +4368,10 @@ rtl/darwin/errnostr.inc -text
 rtl/darwin/i386/sig_cpu.inc -text
 rtl/darwin/i386/sighnd.inc -text
 rtl/darwin/pmutext.inc svneol=native#text/plain
-rtl/darwin/powerpc/sig_cpu.inc svneol=native#text/plain
-rtl/darwin/powerpc/sighnd.inc svneol=native#text/plain
+rtl/darwin/powerpc64/sig_cpu.inc svneol=native#text/plain
+rtl/darwin/powerpc64/sighnd.inc svneol=native#text/plain
+rtl/darwin/ppcgen/ppchnd.inc svneol=native#text/plain
+rtl/darwin/ppcgen/sig_ppc.inc svneol=native#text/plain
 rtl/darwin/pthread.inc svneol=native#text/plain
 rtl/darwin/ptypes.inc svneol=native#text/plain
 rtl/darwin/signal.inc svneol=native#text/plain
