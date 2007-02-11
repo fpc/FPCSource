@@ -32,8 +32,7 @@ Type
     FLocalRepository : String;
     FCompilerConfigDir,
     FPackagesDir,
-    FBuildDir,
-    FLocalDir : String;
+    FBuildDir : String;
     FDefaultVerbosity,
     FDefaultCompilerConfig : String;
     // Compiler specific options
@@ -46,8 +45,6 @@ Type
     procedure SetOptString(Index: integer; const AValue: String);
     procedure SetCompilerCPU(const AValue: TCPU);
     procedure SetCompilerOS(const AValue: TOS);
-  protected
-    Property LocalDir : String Read FLocalDir;
   Public
     Constructor Create;
     Procedure InitGlobalDefaults;
@@ -100,10 +97,10 @@ Const
   KeyRemoteMirrorsLocation = 'RemoteMirrors';
   KeyRemoteRepository      = 'RemoteRepository';
   KeyLocalRepository       = 'LocalRepository';
-  KeyDefaultConfig         = 'DefaultCompilerConfig';
   KeyCompilerConfigDir     = 'CompilerConfigDir';
   KeyPackagesDir           = 'PackagesDir';
   KeyBuildDir              = 'BuildDir';
+  KeyCompilerConfig        = 'CompilerConfig';
   KeyVerbosity             = 'Verbosity';
   // Compiler dependent config
   KeyInstallDir            = 'InstallDir';
@@ -207,23 +204,28 @@ end;
 
 
 Procedure TPackagerOptions.InitGlobalDefaults;
+var
+  LocalDir : String;
 begin
-  FRemoteMirrorsLocation:=DefaultMirrorsLocation;
-  FRemoteRepository:=DefaultRemoteRepository;
 {$ifdef unix}
   if (fpGetUID=0) then
-    FLocalDir:=DefaultUnixPrefix
+    LocalDir:=DefaultUnixPrefix
   else
-    FLocalDir:=IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME'))+'.fppkg/';
+    LocalDir:=IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME'))+'.fppkg/';
 {$else}
   // Change as needed on all OS-es...
-  FLocalDir:=ExtractFilePath(Paramstr(0))+'fppkg'+PathDelim;
+  LocalDir:=ExtractFilePath(Paramstr(0))+'fppkg'+PathDelim;
 {$endif}
-  FBuildDir:=FLocalDir+'build'+PathDelim;
-  FPackagesDir:=FLocalDir+'packages'+PathDelim;
-  FCompilerConfigDir:=FLocalDir+'config'+PathDelim;
-  FLocalMirrorsLocation:=FLocalDir+DefaultMirrors;
-  FLocalRepository:=FLocalDir+DefaultRepository;
+  // Directories
+  FBuildDir:=LocalDir+'build'+PathDelim;
+  FPackagesDir:=LocalDir+'packages'+PathDelim;
+  FCompilerConfigDir:=LocalDir+'config'+PathDelim;
+  FLocalMirrorsLocation:=LocalDir+DefaultMirrors;
+  FLocalRepository:=LocalDir+DefaultRepository;
+  // Remote
+  FRemoteMirrorsLocation:=DefaultMirrorsLocation;
+  FRemoteRepository:=DefaultRemoteRepository;
+  // Other config
   FDefaultCompilerConfig:='default';
   FDefaultVerbosity:='error,info,debug,commands';
 end;
@@ -270,7 +272,10 @@ begin
      FRemoteRepository:=ReadString(SDefaults,KeyRemoteRepository,FRemoteRepository);
      FLocalRepository:=ReadString(SDefaults,KeyLocalRepository,FLocalRepository);
      FBuildDir:=FixPath(ReadString(SDefaults,KeyBuildDir,FBuildDir));
-     FDefaultCompilerConfig:=ReadString(SDefaults,KeyDefaultConfig,FDefaultCompilerConfig);
+     FPackagesDir:=FixPath(ReadString(SDefaults,KeyPackagesDir,FPackagesDir));
+     FCompilerConfigDir:=FixPath(ReadString(SDefaults,KeyCompilerConfigDir,FCompilerConfigDir));
+     FDefaultCompilerConfig:=ReadString(SDefaults,KeyCompilerConfig,FDefaultCompilerConfig);
+     FDefaultVerbosity:=ReadString(SDefaults,KeyVerbosity,FDefaultVerbosity);
    end;
 end;
 
@@ -279,12 +284,15 @@ procedure TPackagerOptions.SaveGlobalToIni(Ini: TCustomIniFile);
 begin
  With Ini do
    begin
+     WriteString(SDefaults,KeyBuildDir,FBuildDir);
+     WriteString(SDefaults,KeyPackagesDir,FPackagesDir);
+     WriteString(SDefaults,KeyCompilerConfigDir,FCompilerConfigDir);
+     WriteString(SDefaults,KeyLocalRepository,FLocalRepository);
      WriteString(SDefaults,KeyLocalMirrorsLocation,FLocalMirrorsLocation);
      WriteString(SDefaults,KeyRemoteMirrorsLocation,FRemoteMirrorsLocation);
      WriteString(SDefaults,KeyRemoteRepository,FRemoteRepository);
-     WriteString(SDefaults,KeyLocalRepository,FLocalRepository);
-     WriteString(SDefaults,KeyBuildDir,FBuildDir);
-     WriteString(SDefaults,KeyDefaultConfig,FDefaultCompilerConfig);
+     WriteString(SDefaults,KeyCompilerConfig,FDefaultCompilerConfig);
+     WriteString(SDefaults,KeyVerbosity,FDefaultVerbosity);
    end;
 end;
 

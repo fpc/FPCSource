@@ -37,7 +37,9 @@ Resourcestring
   SLogRunAction              = 'Action: "%s %s"';
   SLogExecute                = 'Executing: "%s %s"';
   SLogChangeDir              = 'CurrentDir: "%s"';
+  SLogLoadingGlobalConfig    = 'Loading global configuration from "%s"';
   SLogLoadingCompilerConfig  = 'Loading compiler configuration from "%s"';
+  SLogGeneratingGlobalConfig = 'Generating default global configuration in "%s"';
   SLogGeneratingCompilerConfig  = 'Generating default compiler configuration in "%s"';
   SLogLoadingRepository      = 'Loading repository data from "%s"';
   SLogLoadingVersions        = 'Loading versions data from "%s"';

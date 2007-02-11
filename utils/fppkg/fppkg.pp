@@ -71,9 +71,21 @@ procedure TMakeTool.LoadGlobalDefaults;
 var
   SL : TStringList;
   i : integer;
+  cfgfile : String;
+  GeneratedConfig : boolean;
 begin
+  cfgfile:=GetConfigFileName;
+  GeneratedConfig:=false;
   FDefaults:=TPackagerOptions.Create;
-  FDefaults.LoadGlobalFromFile(GetConfigFileName);
+  // Load file or create new default configuration
+  if FileExists(cfgfile) then
+    FDefaults.LoadGlobalFromFile(cfgfile)
+  else
+    begin
+      ForceDirectories(ExtractFilePath(cfgfile));
+      FDefaults.SaveGlobalToFile(cfgfile);
+      GeneratedConfig:=true;
+    end;
   // Load default verbosity from config
   SL:=TStringList.Create;
   SL.CommaText:=FDefaults.DefaultVerbosity;
@@ -81,6 +93,11 @@ begin
     Include(Verbosity,StringToVerbosity(SL[i]));
   SL.Free;
   FCompilerConfig:=FDefaults.DefaultCompilerConfig;
+  // Tracing of what we've done above, need to be done after the verbosity is set
+  if GeneratedConfig then
+    Log(vDebug,SLogGeneratingGlobalConfig,[cfgfile])
+  else
+    Log(vDebug,SLogLoadingGlobalConfig,[cfgfile])
 end;
 
 
@@ -141,7 +158,7 @@ procedure TMakeTool.ShowUsage;
 begin
   Writeln('Usage: ',Paramstr(0),' [options] <action> <package>');
   Writeln('Options:');
-  Writeln('  -r --compiler      Set compiler');
+  Writeln('  -c --config        Set compiler configuration to use');
   Writeln('  -h --help          This help');
   Writeln('  -v --verbose       Set verbosity');
   Writeln('Actions:');
@@ -217,8 +234,8 @@ begin
     begin
       Inc(I);
       // Check options.
-      if CheckOption(I,'r','compiler') then
-        FDefaults.Compiler:=OptionArg(I)
+      if CheckOption(I,'c','config') then
+        FCompilerConfig:=OptionArg(I)
       else if CheckOption(I,'v','verbose') then
         Include(Verbosity,StringToVerbosity(OptionArg(I)))
       else if CheckOption(I,'h','help') then
