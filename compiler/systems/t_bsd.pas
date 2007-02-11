@@ -662,9 +662,16 @@ initialization
   RegisterImport(system_powerpc_darwin,timportlibdarwin);
   RegisterExport(system_powerpc_darwin,texportlibbsd);
   RegisterTarget(system_powerpc_darwin_info);
+
   RegisterExternalLinker(system_powerpc_netbsd_info,TLinkerBSD);
   RegisterImport(system_powerpc_netbsd,timportlibbsd);
   RegisterExport(system_powerpc_netbsd,texportlibbsd);
   RegisterTarget(system_powerpc_netbsd_info);
 {$endif powerpc}
+{$ifdef powerpc64}
+  RegisterExternalLinker(system_powerpc64_darwin_info,TLinkerBSD);
+  RegisterImport(system_powerpc64_darwin,timportlibdarwin);
+  RegisterExport(system_powerpc64_darwin,texportlibbsd);
+  RegisterTarget(system_powerpc64_darwin_info);
+{$endif powerpc64}
 end.
