@@ -84,8 +84,6 @@
 
 { $smartlink on}
 
-{ $define some_inlines} { disable this to disallow INLNE }
-
 {$define some_packed} { enable this to keep some local structures PACKED }
 
 { $define as_object} { to define the tBCD record as object instead;
@@ -126,12 +124,6 @@
   {$ifdef real10}
     {$undef real10}
   {$endif}
-{$endif}
-
-{$ifdef some_inlines}
-  {$define make_inline := inline;}
-{$else}
-  {$define make_inline := (**)}
 {$endif}
 
 {$ifdef some_packed}
@@ -240,15 +232,15 @@ INTERFACE
 
 { Utility functions for TBCD access }
 
-  function BCDPrecision ( const BCD : tBCD ) : Word; make_Inline
+  function BCDPrecision ( const BCD : tBCD ) : Word; Inline;
 
-  function BCDScale ( const BCD : tBCD ) : Word; make_Inline
+  function BCDScale ( const BCD : tBCD ) : Word; Inline;
 
-  function IsBCDNegative ( const BCD : tBCD ) : Boolean; make_Inline
+  function IsBCDNegative ( const BCD : tBCD ) : Boolean; Inline;
 
 { BCD Arithmetic}
 
-  procedure BCDNegate ( var BCD : tBCD ); make_Inline
+  procedure BCDNegate ( var BCD : tBCD ); Inline;
 
 { !!!!!!!!!! most routines are intentionally NOT inline !!!!!!!!!! }
 
@@ -272,16 +264,16 @@ INTERFACE
 
   procedure BCDMultiply ( const BCDIn : tBCD;
                           const DoubleIn : myRealtype;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   procedure BCDMultiply ( const BCDIn : tBCD;
                         const StringIn : FmtBCDStringtype;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
 { !!! params changed to const, shouldn't give a problem }
   procedure BCDMultiply ( const StringIn1,
                                 StringIn2 : FmtBCDStringtype;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
   procedure BCDDivide ( const Dividend,
                               Divisor : tBCD;
@@ -289,16 +281,16 @@ INTERFACE
 
   procedure BCDDivide ( const Dividend : tBCD;
                         const Divisor : myRealtype;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
   procedure BCDDivide ( const Dividend : tBCD;
                         const Divisor : FmtBCDStringtype;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
 { !!! params changed to const, shouldn't give a problem }
   procedure BCDDivide ( const Dividend,
                               Divisor : FmtBCDStringtype;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
 { TBCD variant creation utils }
   procedure VarFmtBCDCreate (   var aDest : Variant;
@@ -326,7 +318,7 @@ INTERFACE
   function TryStrToBCD ( const aValue : FmtBCDStringtype;
                            var BCD : tBCD ) : Boolean;
 
-  function DoubleToBCD ( const aValue : myRealtype ) : tBCD; make_Inline
+  function DoubleToBCD ( const aValue : myRealtype ) : tBCD; Inline;
 
   procedure DoubleToBCD ( const aValue : myRealtype;
                             var BCD : tBCD );
@@ -368,12 +360,12 @@ INTERFACE
 
 {$ifdef additional_routines}
 
-  function CurrToBCD ( const Curr : currency ) : tBCD; make_Inline
+  function CurrToBCD ( const Curr : currency ) : tBCD; Inline;
 
 {$ifdef comproutines}
-  function CompToBCD ( const Curr : Comp ) : tBCD; make_Inline
+  function CompToBCD ( const Curr : Comp ) : tBCD; Inline;
 
-  function BCDToComp ( const BCD : tBCD ) : Comp; make_Inline
+  function BCDToComp ( const BCD : tBCD ) : Comp; Inline;
 {$endif}
 
   procedure BCDAdd ( const BCDIn : tBCD;
@@ -382,45 +374,45 @@ INTERFACE
 
   procedure BCDAdd ( const IntIn : myInttype;
                      const BCDIn : tBCD;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
   procedure BCDAdd ( const BCDIn : tBCD;
                      const DoubleIn : myRealtype;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
   procedure BCDAdd ( const DoubleIn : myRealtype;
                      const BCDIn : tBCD;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
   procedure BCDAdd ( const BCDIn : tBCD;
                      const Currin : currency;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
   procedure BCDAdd ( const Currin : currency;
                      const BCDIn : tBCD;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
 {$ifdef comproutines}
   procedure BCDAdd ( const BCDIn : tBCD;
                      const Compin : Comp;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
   procedure BCDAdd ( const Compin : Comp;
                      const BCDIn : tBCD;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 {$endif}
 
   procedure BCDAdd ( const BCDIn : tBCD;
                      const StringIn : FmtBCDStringtype;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
   procedure BCDAdd ( const StringIn : FmtBCDStringtype;
                      const BCDIn : tBCD;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
   procedure BCDAdd ( const StringIn1,
                            StringIn2 : FmtBCDStringtype;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
   procedure BCDSubtract ( const BCDIn : tBCD;
                           const IntIn : myInttype;
@@ -428,45 +420,45 @@ INTERFACE
 
   procedure BCDSubtract ( const IntIn : myInttype;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   procedure BCDSubtract ( const BCDIn : tBCD;
                           const DoubleIn : myRealtype;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   procedure BCDSubtract ( const DoubleIn : myRealtype;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   procedure BCDSubtract ( const BCDIn : tBCD;
                           const Currin : currency;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   procedure BCDSubtract ( const Currin : currency;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
 {$ifdef comproutines}
   procedure BCDSubtract ( const BCDIn : tBCD;
                           const Compin : Comp;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   procedure BCDSubtract ( const Compin : Comp;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 {$endif}
 
   procedure BCDSubtract ( const BCDIn : tBCD;
                           const StringIn : FmtBCDStringtype;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   procedure BCDSubtract ( const StringIn : FmtBCDStringtype;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   procedure BCDSubtract ( const StringIn1,
                                 StringIn2 : FmtBCDStringtype;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
   procedure BCDMultiply ( const BCDIn : tBCD;
                           const IntIn : myInttype;
@@ -474,300 +466,300 @@ INTERFACE
 
   procedure BCDMultiply ( const IntIn : myInttype;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   procedure BCDMultiply ( const DoubleIn : myRealtype;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   procedure BCDMultiply ( const BCDIn : tBCD;
                           const Currin : currency;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   procedure BCDMultiply ( const Currin : currency;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
 {$ifdef comproutines}
   procedure BCDMultiply ( const BCDIn : tBCD;
                           const Compin : Comp;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   procedure BCDMultiply ( const Compin : Comp;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 {$endif}
 
   procedure BCDMultiply ( const StringIn : FmtBCDStringtype;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   procedure BCDDivide ( const Dividend : tBCD;
                         const Divisor : myInttype;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
   procedure BCDDivide ( const Dividend : myInttype;
                         const Divisor : tBCD;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
   procedure BCDDivide ( const Dividend : myRealtype;
                         const Divisor : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   procedure BCDDivide ( const BCDIn : tBCD;
                         const Currin : currency;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
   procedure BCDDivide ( const Currin : currency;
                         const BCDIn : tBCD;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
 {$ifdef comproutines}
   procedure BCDDivide ( const BCDIn : tBCD;
                         const Compin : Comp;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
   procedure BCDDivide ( const Compin : Comp;
                         const BCDIn : tBCD;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 {$endif}
 
   procedure BCDDivide ( const Dividend : FmtBCDStringtype;
                         const Divisor : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
   operator = ( const BCD1,
-                     BCD2 : tBCD ) z : Boolean; make_Inline
+                     BCD2 : tBCD ) z : Boolean; Inline;
 
   operator < ( const BCD1,
-                     BCD2 : tBCD ) z : Boolean; make_Inline
+                     BCD2 : tBCD ) z : Boolean; Inline;
 
   operator > ( const BCD1,
-                     BCD2 : tBCD ) z : Boolean; make_Inline
+                     BCD2 : tBCD ) z : Boolean; Inline;
 
   operator <= ( const BCD1,
-                      BCD2 : tBCD ) z : Boolean; make_Inline
+                      BCD2 : tBCD ) z : Boolean; Inline;
   operator >= ( const BCD1,
-                      BCD2 : tBCD ) z : Boolean; make_Inline
+                      BCD2 : tBCD ) z : Boolean; Inline;
 
 (* ########################            not allowed: why?
   operator + ( const BCD : tBCD ) z : tBCD; make_Inline
 ##################################################### *)
 
-  operator - ( const BCD : tBCD ) z : tBCD; make_Inline
+  operator - ( const BCD : tBCD ) z : tBCD; Inline;
 
   operator + ( const BCD1,
-                     BCD2 : tBCD ) z : tBCD; make_Inline
+                     BCD2 : tBCD ) z : tBCD; Inline;
 
   operator + ( const BCD : tBCD;
-               const i : myInttype ) z : tBCD; make_Inline
+               const i : myInttype ) z : tBCD; Inline;
 
   operator + ( const i : myInttype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
   operator + ( const BCD : tBCD;
-               const r : myRealtype ) z : tBCD; make_Inline
+               const r : myRealtype ) z : tBCD; Inline;
 
   operator + ( const r : myRealtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
   operator + ( const BCD : tBCD;
-               const c : currency ) z : tBCD; make_Inline
+               const c : currency ) z : tBCD; Inline;
 
   operator + ( const c : currency;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
 {$ifdef comproutines}
   operator + ( const BCD : tBCD;
-               const c : Comp ) z : tBCD; make_Inline
+               const c : Comp ) z : tBCD; Inline;
 
   operator + ( const c : Comp;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 {$endif}
 
   operator + ( const BCD : tBCD;
-               const s : FmtBCDStringtype ) z : tBCD; make_Inline
+               const s : FmtBCDStringtype ) z : tBCD; Inline;
 
   operator + ( const s : FmtBCDStringtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
   operator - ( const BCD1,
-                     BCD2 : tBCD ) z : tBCD; make_Inline
+                     BCD2 : tBCD ) z : tBCD; Inline;
 
   operator - ( const BCD : tBCD;
-               const i : myInttype ) z : tBCD; make_Inline
+               const i : myInttype ) z : tBCD; Inline;
 
   operator - ( const i : myInttype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
   operator - ( const BCD : tBCD;
-               const r : myRealtype ) z : tBCD; make_Inline
+               const r : myRealtype ) z : tBCD; Inline;
 
   operator - ( const r : myRealtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
   operator - ( const BCD : tBCD;
-               const c : currency ) z : tBCD; make_Inline
+               const c : currency ) z : tBCD; Inline;
 
   operator - ( const c : currency;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
 {$ifdef comproutines}
   operator - ( const BCD : tBCD;
-               const c : Comp ) z : tBCD; make_Inline
+               const c : Comp ) z : tBCD; Inline;
 
   operator - ( const c : Comp;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 {$endif}
 
   operator - ( const BCD : tBCD;
-               const s : FmtBCDStringtype ) z : tBCD; make_Inline
+               const s : FmtBCDStringtype ) z : tBCD; Inline;
 
   operator - ( const s : FmtBCDStringtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
   operator * ( const BCD1,
-                     BCD2 : tBCD ) z : tBCD; make_Inline
+                     BCD2 : tBCD ) z : tBCD; Inline;
 
   operator * ( const BCD : tBCD;
-               const i : myInttype ) z : tBCD; make_Inline
+               const i : myInttype ) z : tBCD; Inline;
 
   operator * ( const i : myInttype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
   operator * ( const BCD : tBCD;
-               const r : myRealtype ) z : tBCD; make_Inline
+               const r : myRealtype ) z : tBCD; Inline;
 
   operator * ( const r : myRealtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
   operator * ( const BCD : tBCD;
-               const c : currency ) z : tBCD; make_Inline
+               const c : currency ) z : tBCD; Inline;
 
   operator * ( const c : currency;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
 {$ifdef comproutines}
   operator * ( const BCD : tBCD;
-               const c : Comp ) z : tBCD; make_Inline
+               const c : Comp ) z : tBCD; Inline;
 
   operator * ( const c : Comp;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 {$endif}
 
   operator * ( const BCD : tBCD;
-               const s : FmtBCDStringtype ) z : tBCD; make_Inline
+               const s : FmtBCDStringtype ) z : tBCD; Inline;
 
   operator * ( const s : FmtBCDStringtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
   operator / ( const BCD1,
-                     BCD2 : tBCD ) z : tBCD; make_Inline
+                     BCD2 : tBCD ) z : tBCD; Inline;
 
   operator / ( const BCD : tBCD;
-               const i : myInttype ) z : tBCD; make_Inline
+               const i : myInttype ) z : tBCD; Inline;
 
   operator / ( const i : myInttype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
   operator / ( const BCD : tBCD;
-               const r : myRealtype ) z : tBCD; make_Inline
+               const r : myRealtype ) z : tBCD; Inline;
 
   operator / ( const r : myRealtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
   operator / ( const BCD : tBCD;
-               const c : currency ) z : tBCD; make_Inline
+               const c : currency ) z : tBCD; Inline;
 
   operator / ( const c : currency;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
 {$ifdef comproutines}
   operator / ( const BCD : tBCD;
-               const c : Comp ) z : tBCD; make_Inline
+               const c : Comp ) z : tBCD; Inline;
 
   operator / ( const c : Comp;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 {$endif}
 
   operator / ( const BCD : tBCD;
-               const s : FmtBCDStringtype ) z : tBCD; make_Inline
+               const s : FmtBCDStringtype ) z : tBCD; Inline;
 
   operator / ( const s : FmtBCDStringtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
-  operator := ( const i : Byte ) z : tBCD; make_Inline
+  operator := ( const i : Byte ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : Byte; make_Inline
+  operator := ( const BCD : tBCD ) z : Byte; Inline;
 
-  operator := ( const i : Word ) z : tBCD; make_Inline
+  operator := ( const i : Word ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : Word; make_Inline
+  operator := ( const BCD : tBCD ) z : Word; Inline;
 
-  operator := ( const i : longword ) z : tBCD; make_Inline
+  operator := ( const i : longword ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : longword; make_Inline
+  operator := ( const BCD : tBCD ) z : longword; Inline;
 
 {$if declared ( qword ) }
-  operator := ( const i : qword ) z : tBCD; make_Inline
+  operator := ( const i : qword ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : qword; make_Inline
+  operator := ( const BCD : tBCD ) z : qword; Inline;
 {$endif}
 
-  operator := ( const i : ShortInt ) z : tBCD; make_Inline
+  operator := ( const i : ShortInt ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : ShortInt; make_Inline
+  operator := ( const BCD : tBCD ) z : ShortInt; Inline;
 
-  operator := ( const i : smallint ) z : tBCD; make_Inline
+  operator := ( const i : smallint ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : smallint; make_Inline
+  operator := ( const BCD : tBCD ) z : smallint; Inline;
 
-  operator := ( const i : LongInt ) z : tBCD; make_Inline
+  operator := ( const i : LongInt ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : LongInt; make_Inline
+  operator := ( const BCD : tBCD ) z : LongInt; Inline;
 
 {$if declared ( int64 ) }
-  operator := ( const i : int64 ) z : tBCD; make_Inline
+  operator := ( const i : int64 ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : int64; make_Inline
+  operator := ( const BCD : tBCD ) z : int64; Inline;
 {$endif}
 
-  operator := ( const r : Single ) z : tBCD; make_Inline
+  operator := ( const r : Single ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : Single; make_Inline
+  operator := ( const BCD : tBCD ) z : Single; Inline;
 
-  operator := ( const r : Double ) z : tBCD; make_Inline
+  operator := ( const r : Double ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : Double; make_Inline
+  operator := ( const BCD : tBCD ) z : Double; Inline;
 
 {$if sizeof ( extended ) <> sizeof ( double )}
-  operator := ( const r : Extended ) z : tBCD; make_Inline
+  operator := ( const r : Extended ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : Extended; make_Inline
+  operator := ( const BCD : tBCD ) z : Extended; Inline;
 {$endif}
 
-  operator := ( const c : currency ) z : tBCD; make_Inline
+  operator := ( const c : currency ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : currency; make_Inline
+  operator := ( const BCD : tBCD ) z : currency; Inline;
 
 {$ifdef comproutines}
-  operator := ( const c : Comp ) z : tBCD; make_Inline
+  operator := ( const c : Comp ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : Comp; make_Inline
+  operator := ( const BCD : tBCD ) z : Comp; Inline;
 {$endif}
 
-  operator := ( const s : string ) z : tBCD; make_Inline
+  operator := ( const s : string ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : string; make_Inline
+  operator := ( const BCD : tBCD ) z : string; Inline;
 
-  operator := ( const s : AnsiString ) z : tBCD; make_Inline
+  operator := ( const s : AnsiString ) z : tBCD; Inline;
 
-  operator := ( const BCD : tBCD ) z : AnsiString; make_Inline
+  operator := ( const BCD : tBCD ) z : AnsiString; Inline;
 
 {$endif}
 
-  function __get_null : tBCD; make_Inline
-  function __get_one : tBCD; make_Inline
+  function __get_null : tBCD; Inline;
+  function __get_one : tBCD; Inline;
 
   PROPERTY
     NullBCD : tBCD Read __get_null;
@@ -850,13 +842,13 @@ IMPLEMENTATION
     NullBCD_ : tBCD;
     OneBCD_ : tBCD;
 
-  function __get_null : tBCD; make_Inline
+  function __get_null : tBCD; Inline;
 
     begin
       __get_null := NullBCD_;
      end;
 
-  function __get_one : tBCD; make_Inline
+  function __get_one : tBCD; Inline;
 
     begin
       __get_one := OneBCD_;
@@ -1190,13 +1182,13 @@ IMPLEMENTATION
        end;
      end;
 
-  function BCDPrecision ( const BCD : tBCD ) : Word; make_Inline
+  function BCDPrecision ( const BCD : tBCD ) : Word; Inline;
 
     begin
       BCDPrecision := BCD.Precision;
      end;
 
-  function BCDScale ( const BCD : tBCD ) : Word; make_Inline
+  function BCDScale ( const BCD : tBCD ) : Word; Inline;
 
     begin
 {$ifndef bigger_BCD}
@@ -1206,7 +1198,7 @@ IMPLEMENTATION
 {$endif}
      end;
 
-  function IsBCDNegative ( const BCD : tBCD ) : Boolean; make_Inline
+  function IsBCDNegative ( const BCD : tBCD ) : Boolean; Inline;
 
     begin
 {$ifndef bigger_BCD}
@@ -1218,7 +1210,7 @@ IMPLEMENTATION
 
 { BCD Arithmetic}
 
-  procedure BCDNegate ( var BCD : tBCD ); make_Inline
+  procedure BCDNegate ( var BCD : tBCD ); Inline;
 
     begin
 { with-statement geht nicht !!
@@ -1555,7 +1547,7 @@ IMPLEMENTATION
       DecimalPoint := dp;
      end;
 
-  function DoubleToBCD ( const aValue : myRealtype ) : tBCD; make_Inline
+  function DoubleToBCD ( const aValue : myRealtype ) : tBCD; Inline;
 
     begin
       DoubleToBCD ( aValue, result );
@@ -1645,7 +1637,7 @@ IMPLEMENTATION
      end;
 
 {$ifdef comproutines}
-  function CompToBCD ( const Curr : Comp ) : tBCD; make_Inline
+  function CompToBCD ( const Curr : Comp ) : tBCD; Inline;
 
     var
       cc : int64 absolute Curr;
@@ -1654,7 +1646,7 @@ IMPLEMENTATION
       result := IntegerToBCD ( cc );
      end;
 
-  function BCDToComp ( const BCD : tBCD ) : Comp; make_Inline
+  function BCDToComp ( const BCD : tBCD ) : Comp; Inline;
 
     var
       zz : record
@@ -2099,7 +2091,7 @@ writeln;
 
   procedure BCDMultiply ( const BCDIn : tBCD;
                           const DoubleIn : myRealtype;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDMultiply ( BCDIn, DoubleToBCD ( DoubleIn ), BCDout );
@@ -2107,7 +2099,7 @@ writeln;
 
   procedure BCDMultiply ( const BCDIn : tBCD;
                           const StringIn : FmtBCDStringtype;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDMultiply ( BCDIn, StrToBCD ( StringIn ), BCDout );
@@ -2115,7 +2107,7 @@ writeln;
 
   procedure BCDMultiply ( const StringIn1,
                                 StringIn2 : FmtBCDStringtype;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDMultiply ( StrToBCD ( StringIn1 ), StrToBCD ( StringIn2 ), BCDout );
@@ -2366,7 +2358,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
 
   procedure BCDDivide ( const Dividend,
                               Divisor : FmtBCDStringtype;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
     begin
       BCDDivide ( StrToBCD ( Dividend ), StrToBCD ( Divisor ), BCDout );
@@ -2374,7 +2366,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
 
   procedure BCDDivide ( const Dividend : tBCD;
                         const Divisor : myRealtype;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
     begin
       BCDDivide ( Dividend, DoubleToBCD ( Divisor ), BCDout );
@@ -2382,7 +2374,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
 
   procedure BCDDivide ( const Dividend : tBCD;
                         const Divisor : FmtBCDStringtype;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
     begin
       BCDDivide ( Dividend, StrToBCD ( Divisor ), BCDout );
@@ -2462,7 +2454,7 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
 
 {$ifdef additional_routines}
 
-  function CurrToBCD ( const Curr : currency ) : tBCD; make_Inline
+  function CurrToBCD ( const Curr : currency ) : tBCD; Inline;
 
     begin
       CurrToBCD ( Curr, result );
@@ -2645,7 +2637,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDAdd ( const IntIn : myInttype;
                      const BCDIn : tBCD;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
     begin
       BCDAdd ( BCDIn, IntIn, BCDout );
@@ -2653,7 +2645,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDAdd ( const BCDIn : tBCD;
                      const DoubleIn : myRealtype;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
     begin
       BCDAdd ( BCDIn, DoubleToBCD ( DoubleIn ), BCDout );
@@ -2661,7 +2653,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDAdd ( const DoubleIn : myRealtype;
                      const BCDIn : tBCD;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
     begin
       BCDAdd ( DoubleToBCD ( DoubleIn ), BCDIn, BCDout );
@@ -2669,7 +2661,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDAdd ( const BCDIn : tBCD;
                      const Currin : currency;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
     begin
       BCDAdd ( BCDIn, CurrToBCD ( Currin ), BCDout );
@@ -2677,7 +2669,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDAdd ( const Currin : currency;
                      const BCDIn : tBCD;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
     begin
       BCDAdd ( CurrToBCD ( Currin ), BCDIn, BCDout );
@@ -2686,7 +2678,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 {$ifdef comproutines}
   procedure BCDAdd ( const BCDIn : tBCD;
                      const Compin : Comp;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
     begin
       BCDAdd ( BCDIn, CompToBCD ( Compin ), BCDout );
@@ -2694,7 +2686,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDAdd ( const Compin : Comp;
                      const BCDIn : tBCD;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
     begin
       BCDAdd ( CompToBCD ( Compin ), BCDIn, BCDout );
@@ -2703,7 +2695,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDAdd ( const BCDIn : tBCD;
                      const StringIn : FmtBCDStringtype;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
     begin
       BCDAdd ( BCDIn, StrToBCD ( StringIn ), BCDout );
@@ -2711,7 +2703,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDAdd ( const StringIn : FmtBCDStringtype;
                      const BCDIn : tBCD;
-                       var BCDout : tBCD ); make_Inline
+                       var BCDout : tBCD ); Inline;
 
     begin
       BCDAdd ( StrToBCD ( StringIn ), BCDIn, BCDout );
@@ -2719,7 +2711,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDAdd ( const StringIn1,
                            StringIn2 : FmtBCDStringtype;
-                     var BCDout : tBCD ); make_Inline
+                     var BCDout : tBCD ); Inline;
 
     begin
       BCDAdd ( StrToBCD ( StringIn1 ), StrToBCD ( StringIn2 ), BCDout );
@@ -2727,7 +2719,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDSubtract ( const IntIn : myInttype;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDSubtract ( BCDIn, IntIn, BCDout );
@@ -2736,7 +2728,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDSubtract ( const BCDIn : tBCD;
                           const DoubleIn : myRealtype;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDSubtract ( BCDIn, DoubleToBCD ( DoubleIn ), BCDout );
@@ -2744,7 +2736,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDSubtract ( const DoubleIn : myRealtype;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDSubtract ( DoubleToBCD ( DoubleIn ), BCDIn, BCDout );
@@ -2752,7 +2744,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDSubtract ( const BCDIn : tBCD;
                           const Currin : currency;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDSubtract ( BCDIn, CurrToBCD ( Currin ), BCDout );
@@ -2760,7 +2752,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDSubtract ( const Currin : currency;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDSubtract ( CurrToBCD ( Currin ), BCDIn, BCDout );
@@ -2769,7 +2761,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 {$ifdef comproutines}
   procedure BCDSubtract ( const BCDIn : tBCD;
                           const Compin : Comp;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDSubtract ( BCDIn, CompToBCD ( Compin ), BCDout );
@@ -2777,7 +2769,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDSubtract ( const Compin : Comp;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDSubtract ( CompToBCD ( Compin ), BCDIn, BCDout );
@@ -2786,7 +2778,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDSubtract ( const BCDIn : tBCD;
                           const StringIn : FmtBCDStringtype;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDSubtract ( BCDIn, StrToBCD ( StringIn ), BCDout );
@@ -2794,7 +2786,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDSubtract ( const StringIn : FmtBCDStringtype;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDSubtract ( StrToBCD ( StringIn ), BCDIn, BCDout );
@@ -2802,7 +2794,7 @@ write(direct);dumpbcd(bcdin);write('[',intin,']');
 
   procedure BCDSubtract ( const StringIn1,
                                 StringIn2 : FmtBCDStringtype;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDSubtract ( StrToBCD ( StringIn1 ), StrToBCD ( StringIn2 ), BCDout );
@@ -2911,7 +2903,7 @@ writeln;
 
   procedure BCDMultiply ( const IntIn : myInttype;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDMultiply ( BCDIn, IntIn, BCDout );
@@ -2919,7 +2911,7 @@ writeln;
 
   procedure BCDMultiply ( const DoubleIn : myRealtype;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDMultiply ( DoubleToBCD ( DoubleIn ), BCDIn, BCDout );
@@ -2927,7 +2919,7 @@ writeln;
 
   procedure BCDMultiply ( const BCDIn : tBCD;
                           const Currin : currency;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDMultiply ( BCDIn, CurrToBCD ( Currin ), BCDout );
@@ -2935,7 +2927,7 @@ writeln;
 
   procedure BCDMultiply ( const Currin : currency;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDMultiply ( CurrToBCD ( Currin ), BCDIn, BCDout );
@@ -2944,7 +2936,7 @@ writeln;
 {$ifdef comproutines}
   procedure BCDMultiply ( const BCDIn : tBCD;
                           const Compin : Comp;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDMultiply ( BCDIn, CompToBCD ( Compin ), BCDout );
@@ -2952,7 +2944,7 @@ writeln;
 
   procedure BCDMultiply ( const Compin : Comp;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDMultiply ( CompToBCD ( Compin ), BCDIn, BCDout );
@@ -2961,7 +2953,7 @@ writeln;
 
   procedure BCDMultiply ( const StringIn : FmtBCDStringtype;
                           const BCDIn : tBCD;
-                            var BCDout : tBCD ); make_Inline
+                            var BCDout : tBCD ); Inline;
 
     begin
       BCDMultiply ( StrToBCD ( StringIn ), BCDIn, BCDout );
@@ -2969,7 +2961,7 @@ writeln;
 
   procedure BCDDivide ( const Dividend : tBCD;
                         const Divisor : myInttype;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
     begin
       BCDDivide ( Dividend, IntegerToBCD ( Divisor ), BCDout );
@@ -2977,7 +2969,7 @@ writeln;
 
   procedure BCDDivide ( const Dividend : myInttype;
                         const Divisor : tBCD;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
     begin
       BCDDivide ( IntegerToBCD ( Dividend ), Divisor, BCDout );
@@ -2985,7 +2977,7 @@ writeln;
 
   procedure BCDDivide ( const Dividend : myRealtype;
                         const Divisor : tBCD;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
     begin
       BCDDivide ( DoubleToBCD ( Dividend ), Divisor, BCDout );
@@ -2993,7 +2985,7 @@ writeln;
 
   procedure BCDDivide ( const BCDIn : tBCD;
                         const Currin : currency;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
     begin
       BCDDivide ( BCDIn, CurrToBCD ( Currin ), BCDout );
@@ -3001,7 +2993,7 @@ writeln;
 
   procedure BCDDivide ( const Currin : currency;
                         const BCDIn : tBCD;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
     begin
       BCDDivide ( CurrToBCD ( Currin ), BCDIn, BCDout );
@@ -3010,7 +3002,7 @@ writeln;
 {$ifdef comproutines}
   procedure BCDDivide ( const BCDIn : tBCD;
                         const Compin : Comp;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
     begin
       BCDDivide ( BCDIn, CompToBCD ( Compin ), BCDout );
@@ -3018,7 +3010,7 @@ writeln;
 
   procedure BCDDivide ( const Compin : Comp;
                         const BCDIn : tBCD;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
     begin
       BCDDivide ( CompToBCD ( Compin ), BCDIn, BCDout );
@@ -3027,56 +3019,56 @@ writeln;
 
   procedure BCDDivide ( const Dividend : FmtBCDStringtype;
                         const Divisor : tBCD;
-                          var BCDout : tBCD ); make_Inline
+                          var BCDout : tBCD ); Inline;
 
     begin
       BCDDivide ( StrToBCD ( Dividend ), Divisor, BCDout );
      end;
 
   operator = ( const BCD1,
-                     BCD2 : tBCD ) z : Boolean; make_Inline
+                     BCD2 : tBCD ) z : Boolean; Inline;
 
     begin
       z := BCDCompare ( BCD1, BCD2 ) = 0;
      end;
 
   operator < ( const BCD1,
-                     BCD2 : tBCD ) z : Boolean; make_Inline
+                     BCD2 : tBCD ) z : Boolean; Inline;
 
     begin
       z := BCDCompare ( BCD1, BCD2 ) < 0;
      end;
 
   operator > ( const BCD1,
-                     BCD2 : tBCD ) z : Boolean; make_Inline
+                     BCD2 : tBCD ) z : Boolean; Inline;
 
     begin
       z := BCDCompare ( BCD1, BCD2 ) > 0;
      end;
 
   operator <= ( const BCD1,
-                      BCD2 : tBCD ) z : Boolean; make_Inline
+                      BCD2 : tBCD ) z : Boolean; Inline;
 
     begin
       z := BCDCompare ( BCD1, BCD2 ) <= 0;
      end;
 
   operator >= ( const BCD1,
-                      BCD2 : tBCD ) z : Boolean; make_Inline
+                      BCD2 : tBCD ) z : Boolean; Inline;
 
     begin
       z := BCDCompare ( BCD1, BCD2 ) >= 0;
      end;
 
 (* ########################            not allowed: why?
-  operator + ( const BCD : tBCD ) z : tBCD; make_Inline
+  operator + ( const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       z := bcd;
      end;
 ##################################################### *)
 
-  operator - ( const BCD : tBCD ) z : tBCD; make_Inline
+  operator - ( const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       z := BCD;
@@ -3084,49 +3076,49 @@ writeln;
      end;
 
   operator + ( const BCD1,
-                     BCD2 : tBCD ) z : tBCD; make_Inline
+                     BCD2 : tBCD ) z : tBCD; Inline;
 
     begin
       BCDAdd ( BCD1, BCD2, z );
      end;
 
   operator + ( const BCD : tBCD;
-               const i : myInttype ) z : tBCD; make_Inline
+               const i : myInttype ) z : tBCD; Inline;
 
     begin
       BCDAdd ( BCD, i, z );
      end;
 
   operator + ( const i : myInttype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDAdd ( i, BCD, z );
      end;
 
   operator + ( const BCD : tBCD;
-               const r : myRealtype ) z : tBCD; make_Inline
+               const r : myRealtype ) z : tBCD; Inline;
 
     begin
       BCDAdd ( BCD, DoubleToBCD ( r ), z );
      end;
 
   operator + ( const r : myRealtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDAdd ( DoubleToBCD ( r ), BCD, z );
      end;
 
   operator + ( const BCD : tBCD;
-               const c : currency ) z : tBCD; make_Inline
+               const c : currency ) z : tBCD; Inline;
 
     begin
       BCDAdd ( BCD, CurrToBCD ( c ), z );
      end;
 
   operator + ( const c : currency;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDAdd ( CurrToBCD ( c ), BCD, z );
@@ -3134,14 +3126,14 @@ writeln;
 
 {$ifdef comproutines}
   operator + ( const BCD : tBCD;
-               const c : Comp ) z : tBCD; make_Inline
+               const c : Comp ) z : tBCD; Inline;
 
     begin
       BCDAdd ( BCD, CompToBCD ( c ), z );
      end;
 
   operator + ( const c : Comp;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDAdd ( CompToBCD ( c ), BCD, z );
@@ -3149,35 +3141,35 @@ writeln;
 {$endif}
 
   operator + ( const BCD : tBCD;
-               const s : FmtBCDStringtype ) z : tBCD; make_Inline
+               const s : FmtBCDStringtype ) z : tBCD; Inline;
 
     begin
       BCDAdd ( BCD, StrToBCD ( s ), z );
      end;
 
   operator + ( const s : FmtBCDStringtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDAdd ( StrToBCD ( s ), BCD, z );
      end;
 
   operator - ( const BCD1,
-                     BCD2 : tBCD ) z : tBCD; make_Inline
+                     BCD2 : tBCD ) z : tBCD; Inline;
 
     begin
       BCDSubtract ( BCD1, BCD2, z );
      end;
 
   operator - ( const BCD : tBCD;
-               const i : myInttype ) z : tBCD; make_Inline
+               const i : myInttype ) z : tBCD; Inline;
 
     begin
       BCDSubtract ( BCD, i, z );
      end;
 
   operator - ( const i : myInttype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDSubtract ( BCD, i, z );
@@ -3185,28 +3177,28 @@ writeln;
      end;
 
   operator - ( const BCD : tBCD;
-               const r : myRealtype ) z : tBCD; make_Inline
+               const r : myRealtype ) z : tBCD; Inline;
 
     begin
       BCDSubtract ( BCD, DoubleToBCD ( r ), z );
      end;
 
   operator - ( const r : myRealtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDSubtract ( DoubleToBCD ( r ), BCD, z );
      end;
 
   operator - ( const BCD : tBCD;
-               const c : currency ) z : tBCD; make_Inline
+               const c : currency ) z : tBCD; Inline;
 
     begin
       BCDSubtract ( BCD, CurrToBCD ( c ), z );
      end;
 
   operator - ( const c : currency;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDSubtract ( CurrToBCD ( c ), BCD, z );
@@ -3214,14 +3206,14 @@ writeln;
 
 {$ifdef comproutines}
   operator - ( const BCD : tBCD;
-               const c : Comp ) z : tBCD; make_Inline
+               const c : Comp ) z : tBCD; Inline;
 
     begin
       BCDSubtract ( BCD, CompToBCD ( c ), z );
      end;
 
   operator - ( const c : Comp;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDSubtract ( CompToBCD ( c ), BCD, z );
@@ -3229,63 +3221,63 @@ writeln;
 {$endif}
 
   operator - ( const BCD : tBCD;
-               const s : FmtBCDStringtype ) z : tBCD; make_Inline
+               const s : FmtBCDStringtype ) z : tBCD; Inline;
 
     begin
       BCDSubtract ( BCD, StrToBCD ( s ), z );
      end;
 
   operator - ( const s : FmtBCDStringtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDSubtract ( StrToBCD ( s ), BCD, z );
      end;
 
   operator * ( const BCD1,
-                     BCD2 : tBCD ) z : tBCD; make_Inline
+                     BCD2 : tBCD ) z : tBCD; Inline;
 
     begin
       BCDMultiply ( BCD1, BCD2, z );
      end;
 
   operator * ( const BCD : tBCD;
-               const i : myInttype ) z : tBCD; make_Inline
+               const i : myInttype ) z : tBCD; Inline;
 
     begin
       BCDMultiply ( BCD, i, z );
      end;
 
   operator * ( const i : myInttype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDMultiply ( BCD, i, z );
      end;
 
   operator * ( const BCD : tBCD;
-               const r : myRealtype ) z : tBCD; make_Inline
+               const r : myRealtype ) z : tBCD; Inline;
 
     begin
       BCDMultiply ( BCD, DoubleToBCD ( r ), z );
      end;
 
   operator * ( const r : myRealtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDMultiply ( DoubleToBCD ( r ), BCD, z );
      end;
 
   operator * ( const BCD : tBCD;
-               const c : currency ) z : tBCD; make_Inline
+               const c : currency ) z : tBCD; Inline;
 
     begin
       BCDMultiply ( BCD, CurrToBCD ( c ), z );
      end;
 
   operator * ( const c : currency;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDMultiply ( CurrToBCD ( c ), BCD, z );
@@ -3293,14 +3285,14 @@ writeln;
 
 {$ifdef comproutines}
   operator * ( const BCD : tBCD;
-               const c : Comp ) z : tBCD; make_Inline
+               const c : Comp ) z : tBCD; Inline;
 
     begin
       BCDMultiply ( BCD, CompToBCD ( c ), z );
      end;
 
   operator * ( const c : Comp;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDMultiply ( CompToBCD ( c ), BCD, z );
@@ -3308,63 +3300,63 @@ writeln;
 {$endif}
 
   operator * ( const BCD : tBCD;
-               const s : FmtBCDStringtype ) z : tBCD; make_Inline
+               const s : FmtBCDStringtype ) z : tBCD; Inline;
 
     begin
       BCDMultiply ( BCD, StrToBCD ( s ), z );
      end;
 
   operator * ( const s : FmtBCDStringtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDMultiply ( StrToBCD ( s ), BCD, z );
      end;
 
   operator / ( const BCD1,
-                     BCD2 : tBCD ) z : tBCD; make_Inline
+                     BCD2 : tBCD ) z : tBCD; Inline;
 
     begin
       BCDDivide ( BCD1, BCD2, z );
      end;
 
   operator / ( const BCD : tBCD;
-               const i : myInttype ) z : tBCD; make_Inline
+               const i : myInttype ) z : tBCD; Inline;
 
     begin
       BCDDivide ( BCD, i, z );
      end;
 
   operator / ( const i : myInttype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDDivide ( IntegerToBCD ( i ), BCD, z );
      end;
 
   operator / ( const BCD : tBCD;
-               const r : myRealtype ) z : tBCD; make_Inline
+               const r : myRealtype ) z : tBCD; Inline;
 
     begin
       BCDDivide ( BCD, DoubleToBCD ( r ), z );
      end;
 
   operator / ( const r : myRealtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDDivide ( DoubleToBCD ( r ), BCD, z );
      end;
 
   operator / ( const BCD : tBCD;
-               const c : currency ) z : tBCD; make_Inline
+               const c : currency ) z : tBCD; Inline;
 
     begin
       BCDDivide ( BCD, CurrToBCD ( c ), z );
      end;
 
   operator / ( const c : currency;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDDivide ( CurrToBCD ( c ), BCD, z );
@@ -3372,14 +3364,14 @@ writeln;
 
 {$ifdef comproutines}
   operator / ( const BCD : tBCD;
-               const c : Comp ) z : tBCD; make_Inline
+               const c : Comp ) z : tBCD; Inline;
 
     begin
       BCDDivide ( BCD, CompToBCD ( c ), z );
      end;
 
   operator / ( const c : Comp;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDDivide ( CompToBCD ( c ), BCD, z );
@@ -3387,164 +3379,164 @@ writeln;
 {$endif}
 
   operator / ( const BCD : tBCD;
-               const s : FmtBCDStringtype ) z : tBCD; make_Inline
+               const s : FmtBCDStringtype ) z : tBCD; Inline;
 
     begin
       BCDDivide ( BCD, StrToBCD ( s ), z );
      end;
 
   operator / ( const s : FmtBCDStringtype;
-               const BCD : tBCD ) z : tBCD; make_Inline
+               const BCD : tBCD ) z : tBCD; Inline;
 
     begin
       BCDDivide ( StrToBCD ( s ), BCD, z );
      end;
 
-  operator := ( const i : Byte ) z : tBCD; make_Inline
+  operator := ( const i : Byte ) z : tBCD; Inline;
 
     begin
       z := IntegerToBCD ( myInttype ( i ) );
      end;
 
-  operator := ( const BCD : tBCD ) z : Byte; make_Inline
+  operator := ( const BCD : tBCD ) z : Byte; Inline;
 
     begin
       z := BCDToInteger ( BCD );
      end;
 
-  operator := ( const i : Word ) z : tBCD; make_Inline
+  operator := ( const i : Word ) z : tBCD; Inline;
 
     begin
       z := IntegerToBCD ( myInttype ( i ) );
      end;
 
-  operator := ( const BCD : tBCD ) z : Word; make_Inline
+  operator := ( const BCD : tBCD ) z : Word; Inline;
 
     begin
       z := BCDToInteger ( BCD );
      end;
 
-  operator := ( const i : longword ) z : tBCD; make_Inline
+  operator := ( const i : longword ) z : tBCD; Inline;
 
     begin
       z := IntegerToBCD ( myInttype ( i ) );
      end;
 
-  operator := ( const BCD : tBCD ) z : longword; make_Inline
+  operator := ( const BCD : tBCD ) z : longword; Inline;
 
     begin
       z := BCDToInteger ( BCD );
      end;
 
 {$if declared ( qword ) }
-  operator := ( const i : qword ) z : tBCD; make_Inline
+  operator := ( const i : qword ) z : tBCD; Inline;
 
     begin
       z := IntegerToBCD ( myInttype ( i ) );
      end;
 
-  operator := ( const BCD : tBCD ) z : qword; make_Inline
+  operator := ( const BCD : tBCD ) z : qword; Inline;
 
     begin
       z := BCDToInteger ( BCD );
      end;
 {$endif}
 
-  operator := ( const i : ShortInt ) z : tBCD; make_Inline
+  operator := ( const i : ShortInt ) z : tBCD; Inline;
 
     begin
       z := IntegerToBCD ( myInttype ( i ) );
      end;
 
-  operator := ( const BCD : tBCD ) z : ShortInt; make_Inline
+  operator := ( const BCD : tBCD ) z : ShortInt; Inline;
 
     begin
       z := BCDToInteger ( BCD );
      end;
 
-  operator := ( const i : smallint ) z : tBCD; make_Inline
+  operator := ( const i : smallint ) z : tBCD; Inline;
 
     begin
       z := IntegerToBCD ( myInttype ( i ) );
      end;
 
-  operator := ( const BCD : tBCD ) z : smallint; make_Inline
+  operator := ( const BCD : tBCD ) z : smallint; Inline;
 
     begin
       z := BCDToInteger ( BCD );
      end;
 
-  operator := ( const i : LongInt ) z : tBCD; make_Inline
+  operator := ( const i : LongInt ) z : tBCD; Inline;
 
     begin
       z := IntegerToBCD ( myInttype ( i ) );
      end;
 
-  operator := ( const BCD : tBCD ) z : LongInt; make_Inline
+  operator := ( const BCD : tBCD ) z : LongInt; Inline;
 
     begin
       z := BCDToInteger ( BCD );
      end;
 
 {$if declared ( int64 ) }
-  operator := ( const i : int64 ) z : tBCD; make_Inline
+  operator := ( const i : int64 ) z : tBCD; Inline;
 
     begin
       z := IntegerToBCD ( myInttype ( i ) );
      end;
 
-  operator := ( const BCD : tBCD ) z : int64; make_Inline
+  operator := ( const BCD : tBCD ) z : int64; Inline;
 
     begin
       z := BCDToInteger ( BCD );
      end;
 {$endif}
 
-  operator := ( const r : Single ) z : tBCD; make_Inline
+  operator := ( const r : Single ) z : tBCD; Inline;
 
     begin
       z := DoubleToBCD ( myRealtype ( r ) );
      end;
 
-  operator := ( const BCD : tBCD ) z : Single; make_Inline
+  operator := ( const BCD : tBCD ) z : Single; Inline;
 
     begin
       z := BCDToDouble ( BCD );
      end;
 
-  operator := ( const r : Double ) z : tBCD; make_Inline
+  operator := ( const r : Double ) z : tBCD; Inline;
 
     begin
       z := DoubleToBCD ( myRealtype ( r ) );
      end;
 
-  operator := ( const BCD : tBCD ) z : Double; make_Inline
+  operator := ( const BCD : tBCD ) z : Double; Inline;
 
     begin
       z := BCDToDouble ( BCD );
      end;
 
 {$if sizeof ( extended ) <> sizeof ( double )}
-  operator := ( const r : Extended ) z : tBCD; make_Inline
+  operator := ( const r : Extended ) z : tBCD; Inline;
 
     begin
       z := DoubleToBCD ( {myRealtype (} r {)} );
      end;
 
-  operator := ( const BCD : tBCD ) z : Extended; make_Inline
+  operator := ( const BCD : tBCD ) z : Extended; Inline;
 
     begin
       z := BCDToDouble ( BCD );
      end;
 {$endif}
 
-  operator := ( const c : currency ) z : tBCD; make_Inline
+  operator := ( const c : currency ) z : tBCD; Inline;
 
     begin
       CurrToBCD ( c, z );
      end;
 
-  operator := ( const BCD : tBCD ) z : currency; make_Inline
+  operator := ( const BCD : tBCD ) z : currency; Inline;
 
     begin
       BCDToCurr ( BCD, z );
@@ -3555,7 +3547,7 @@ writeln;
 {$undef makedirect}
 
 {$ifdef makedirect}
-  operator := ( const c : Comp ) z : tBCD; make_Inline
+  operator := ( const c : Comp ) z : tBCD; Inline;
 
     var
       cc : int64 absolute c;
@@ -3569,7 +3561,7 @@ writeln;
 {$define version3}         { I wasn't able to reduce the problem, sorry }
 
 {$ifdef version1}
-  operator := ( const BCD : tBCD ) z : Comp; make_Inline
+  operator := ( const BCD : tBCD ) z : Comp; Inline;
 
     var
       zz : Comp absolute z;
@@ -3580,7 +3572,7 @@ writeln;
 {$endif}
 
 {$ifdef version2}
-  operator := ( const BCD : tBCD ) z : Comp; make_Inline
+  operator := ( const BCD : tBCD ) z : Comp; Inline;
 
     var
       zz : int64;
@@ -3593,7 +3585,7 @@ writeln;
 {$endif}
 
 {$ifdef version3}
-  operator := ( const BCD : tBCD ) z : Comp; make_Inline
+  operator := ( const BCD : tBCD ) z : Comp; Inline;
 
     var
       zz : record
@@ -3609,13 +3601,13 @@ writeln;
 {$endif}
 
 {$else}
-  operator := ( const c : Comp ) z : tBCD; make_Inline
+  operator := ( const c : Comp ) z : tBCD; Inline;
 
     begin
       z := CompToBCD ( c );
      end;
 
-  operator := ( const BCD : tBCD ) z : Comp; make_Inline
+  operator := ( const BCD : tBCD ) z : Comp; Inline;
 
     begin
       z := BCDToComp ( BCD );
@@ -3624,25 +3616,25 @@ writeln;
 
 {$endif}
 
-  operator := ( const s : string ) z : tBCD; make_Inline
+  operator := ( const s : string ) z : tBCD; Inline;
 
     begin
       z := StrToBCD ( s );
      end;
 
-  operator := ( const BCD : tBCD ) z : string; make_Inline
+  operator := ( const BCD : tBCD ) z : string; Inline;
 
     begin
       z := BCDToStr ( BCD );
      end;
 
-  operator := ( const s : AnsiString ) z : tBCD; make_Inline
+  operator := ( const s : AnsiString ) z : tBCD; Inline;
 
     begin
       z := StrToBCD ( s );
      end;
 
-  operator := ( const BCD : tBCD ) z : AnsiString; make_Inline
+  operator := ( const BCD : tBCD ) z : AnsiString; Inline;
 
     begin
       z := BCDToStr ( BCD );
