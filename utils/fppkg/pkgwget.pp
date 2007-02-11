@@ -1,14 +1,14 @@
 {$mode objfpc}
 {$h+}
-unit pkgwget; 
+unit pkgwget;
 
 interface
 
 uses Classes,pkgdownload,pkgropts,fprepos;
 
-Type 
+Type
   TWGetDownloader = Class(TBasePackageDownloader)
-  Private 
+  Private
     FWGet : String;
   Protected
     Constructor Create(AOwner: TComponent; ADefaults:TPackagerOptions; APackage: TFPPackage); override;
@@ -16,8 +16,8 @@ Type
     Procedure FTPDownload(Const URL : String; Dest : TStream); override;
     Procedure HTTPDownload(Const URL : String; Dest : TStream); override;
  Public
-    Property WGet : String Read FWGet Write FWGet; 
- end;   
+    Property WGet : String Read FWGet Write FWGet;
+ end;
 
 implementation
 
@@ -29,20 +29,20 @@ begin
   Inherited;
   wget:='wget';
 end;
-    
+
 
 Procedure TWGetDownloader.WGetDownload(Const URL : String; Dest : TStream);
 
 Var
   Buffer : Array[0..4096] of byte;
   Count : Integer;
-  
+
 begin
   With TProcess.Create(Self) do
     try
       CommandLine:=WGet+' -q --output-document=- '+url;
       Options:=[poUsePipes,poNoConsole];
-      Execute; 
+      Execute;
       While Running do
         begin
         Count:=Output.Read(Buffer,SizeOf(Buffer));
@@ -62,7 +62,7 @@ begin
   WGetDownload(URL,Dest);
 end;
 
-Procedure TWGetDownloader.HTTPDownload(Const URL : String; Dest : TStream); 
+Procedure TWGetDownloader.HTTPDownload(Const URL : String; Dest : TStream);
 
 begin
   WGetDownload(URL,Dest);

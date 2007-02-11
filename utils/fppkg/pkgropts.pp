@@ -78,13 +78,8 @@ Type
   end;
 
 Const
-  DefaultCPU = {$I %FPCTARGETCPU%};
-  DefaultOS  = {$I %FPCTARGETOS%};
   DefaultMirrorsLocation  = 'http://www.freepascal.org/repository/mirrors.xml';
-  DefaultCompiler = 'fpc';
   DefaultRemoteRepository = 'fpc';
-  DefaultUnixPrefix = '/usr/local/lib/fpc/fppkg';
-  DefaultUnixBuildDir = '/tmp/fppkg/';
   DefaultMirrors = 'mirrors.xml';
   DefaultRepository = 'packages.xml';
   DefaultVersions   = 'versions-%s.dat';
@@ -118,7 +113,7 @@ uses
 {$endif}
   pkghandler,
   pkgmessages;
-  
+
 Function FixPath(S : String) : string;
 
 begin
@@ -207,9 +202,15 @@ Procedure TPackagerOptions.InitGlobalDefaults;
 var
   LocalDir : String;
 begin
+  // Retrieve Local fppkg directory
 {$ifdef unix}
   if (fpGetUID=0) then
-    LocalDir:=DefaultUnixPrefix
+    begin
+      if DirectoryExists('/usr/local/lib/fpc') then
+        LocalDir:='/usr/local/lib/fpc/fppkg/'
+      else
+        LocalDir:='/usr/lib/fpc/fppkg/';
+    end
   else
     LocalDir:=IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME'))+'.fppkg/';
 {$else}
@@ -233,13 +234,13 @@ end;
 
 Procedure TPackagerOptions.InitCompilerDefaults;
 begin
-  FCompiler:=FileSearch(DefaultCompiler+ExeExt,GetEnvironmentVariable('PATH'));
+  FCompiler:=FileSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
   if FCompiler='' then
     Raise EPackageHandler.Create(SErrMissingFPC);
 {$warning TODO detect compiler version/target from -i options }
   FCompilerVersion:='2.0.4';
-  FCompilerCPU:=StringToCPU(DefaultCPU);
-  FCompilerOS:=StringToOS(DefaultOS);
+  FCompilerCPU:=StringToCPU({$I %FPCTARGETCPU%});
+  FCompilerOS:=StringToOS({$I %FPCTARGETOS%});
   // Use the same algorithm as the compiler, see options.pas
 {$ifdef Unix}
   FInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));

@@ -8255,6 +8255,7 @@ utils/fppkg/lnet/sys/lkqueueeventerh.inc svneol=native#text/plain
 utils/fppkg/lnet/sys/lspawnfcgiunix.inc svneol=native#text/plain
 utils/fppkg/lnet/sys/lspawnfcgiwin.inc svneol=native#text/plain
 utils/fppkg/lnet/sys/osunits.inc svneol=native#text/plain
+utils/fppkg/pkgarchive.pp svneol=native#text/plain
 utils/fppkg/pkgcommands.pp svneol=native#text/plain
 utils/fppkg/pkgdownload.pp svneol=native#text/plain
 utils/fppkg/pkgfpmake.pp svneol=native#text/plain

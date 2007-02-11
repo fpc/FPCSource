@@ -9,10 +9,10 @@ uses
 {$endif}
   Classes, SysUtils, TypInfo, custapp,
   // Repository handler objects
-  fprepos, fpxmlrep,fpmktype, pkgropts,
+  fprepos, fpxmlrep,fpmktype, pkgmessages, pkgropts,
   // Package Handler components
   pkghandler, pkgmkconv, pkgdownload,
-  pkgfpmake, pkgmessages, pkgcommands
+  pkgarchive, pkgfpmake, pkgcommands
   // Downloaders
 {$if defined(unix) or defined(windows)}
   ,pkgwget
@@ -329,14 +329,14 @@ begin
     LoadCompilerDefaults;
     LoadRepository;
     GenerateParaActions;
-    
+
     repeat
       if not ActionStack.Pop(ActionPackage,Action,Args) then
         break;
       ExecuteAction(ActionPackage,Action,Args);
     until false;
     Terminate;
-    
+
   except
     On E : Exception do
       begin

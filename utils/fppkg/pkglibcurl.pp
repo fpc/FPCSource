@@ -1,18 +1,18 @@
 {$mode objfpc}
 {$h+}
-unit pkglibcurl; 
+unit pkglibcurl;
 
 interface
 
 uses Classes,pkgdownload,pkghandler;
 
-Type 
+Type
   TLibCurlDownloader = Class(TBasePackageDownloader)
   Protected
     Procedure LibCurlDownload(Const URL : String; Dest : TStream);
     Procedure FTPDownload(Const URL : String; Dest : TStream); override;
     Procedure HTTPDownload(Const URL : String; Dest : TStream); override;
- end;   
+ end;
 
 implementation
 
@@ -29,7 +29,7 @@ Procedure TLibCurlDownloader.LibCurlDownload(Const URL : String; Dest : TStream)
 Var
   HCurl : PCurl;
   ErrorBuffer : Array[0..CURL_ERROR_SIZE] of char;
-  
+
 begin
   hCurl:= curl_easy_init;
   if Assigned(hCurl) then
@@ -44,7 +44,7 @@ begin
       curl_easy_cleanup(hCurl);
     end
   else
-    Raise Exception.Create('Failed to initialize Curl');  
+    Raise Exception.Create('Failed to initialize Curl');
 end;
 
 
@@ -54,7 +54,7 @@ begin
   LibCurlDownload(URL,Dest);
 end;
 
-Procedure TLibCurlDownloader.HTTPDownload(Const URL : String; Dest : TStream); 
+Procedure TLibCurlDownloader.HTTPDownload(Const URL : String; Dest : TStream);
 
 begin
   LibCurlDownload(URL,Dest);

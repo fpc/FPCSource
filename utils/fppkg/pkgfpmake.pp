@@ -46,7 +46,7 @@ implementation
 
 uses
   pkgmessages;
-  
+
 { TFPMakeCompiler }
 
 Procedure TFPMakeCompiler.CompileFPMake;

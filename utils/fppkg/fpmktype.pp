@@ -14,16 +14,16 @@ Type
   TOS = (Amiga,Atari,Darwin,FreeBSD,Go32v2,Linux,MacOS,MorphOS,NetBSD,
          Netware,NetwLibc,OpenBSD,OS2,PalmOS,Solaris,Win32,Win64,wince,Emx);
   TOSes = Set of TOS;
-  
+
   TCPU = (Arm,I386,PPC,SPARC,X86_64,m68k);
   TCPUS = Set of TCPU;
-  
+
   TCompilerMode = (FPC,TP,ObjFPC,Delphi,MacPas);
   TCompilerModes = Set of TCompilerMode;
-  
+
   TTargetType = (ttUnit,ttProgram,ttExampleUnit,ttExampleProgram);
   TTargetTypes = set of TTargetType;
-  
+
   TTargetState = (tsNeutral,tsCompiling,tsCompiled,tsInstalled);
   TTargetStates = Set of TTargetState;
 
@@ -35,7 +35,7 @@ Type
                 caBeforeArchive,caAfterArchive,
                 caBeforeClean,caAfterClean,
                 caBeforeDownload,caAfterDownload);
-  
+
   TLogEvent = Procedure (Level : TVerboseLevel; Const Msg : String) of Object;
 
   EInstallerError = Class(Exception);

@@ -1,13 +1,13 @@
 program testdownload;
 
-uses 
+uses
   Classes,
   pkgwget, // Including this sets the Downloaderclass. Replace with downloader you want...
   pkgdownload;
 
 Var
   F : TFileStream;
-  
+
 begin
   F:=TFileStream.Create('fpc.html',fmcreate);
   Try

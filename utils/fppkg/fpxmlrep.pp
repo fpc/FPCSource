@@ -18,7 +18,7 @@ interface
 
 uses
   Classes, SysUtils, dom, fprepos, fpmktype;
-  
+
 Type
 
   { TFPXMLRepositoryHandler }
@@ -81,7 +81,7 @@ Type
   end;
 
   EXMLPackage = Class(EPackage);
-  
+
 implementation
 
 uses xmlwrite,xmlread,typinfo;
@@ -115,7 +115,7 @@ ResourceString
   SErrInvalidXMLDocument = 'Wrong root tag in XML document. Expected "%s", got "%s".';
   SErrUnknownPackageNode = 'Unknown XML tag ("%s") encountered while reading package "%s".';
   SErrInvalidDependencyXML = 'Invalid XMl encountered when reading dependency.';
-  
+
 { TFPXMLRepositoryHandler }
 
 function TFPXMLRepositoryHandler.VersionToXML(V : TFPVersion;
@@ -139,10 +139,10 @@ end;
 
 function TFPXMLRepositoryHandler.DependencyToXML(D: TFPDependency;
   XML: TXMLDocument; Parent : TDomNode_WithChildren): TDomElement;
-  
+
 Var
   E : TDOMElement;
-  
+
 begin
   Result:=XML.CreateElement(SNodeDependency);
   Try
@@ -166,7 +166,7 @@ function TFPXMLRepositoryHandler.DependenciesToXML(DS: TFPDependencies;
 
 Var
   I : Integer;
-   
+
 begin
   If (DS.Count>0) then
     begin
@@ -201,7 +201,7 @@ begin
 end;
 
 function TFPXMLRepositoryHandler.GetNextElement(Start: TDomNode): TDomElement;
-  
+
 begin
   Result:=Nil;
   While (Start<>Nil) and (Start.NodeType<>ELEMENT_NODE) do
@@ -269,7 +269,7 @@ begin
         ES[SAttrName]:=GetEnumName(TypeInfo(TOS),Ord(O));
         E.AppendChild(ES);
         end;
-    // CPUs    
+    // CPUs
     E:=XML.CreateElement(SNodeCPUs);
     Result.AppendChild(E);
     For C:=Low(TCPU) to High(TCPU) do
@@ -293,7 +293,7 @@ function TFPXMLRepositoryHandler.PackagesToXML(PS: TFPPackages;
 
 Var
   I : Integer;
-  
+
 begin
   Result:=XML.CreateElement(SNodePackages);
   Try
@@ -312,11 +312,11 @@ end;
 
 function TFPXMLRepositoryHandler.RepositoryToXML(R: TFPRepository;
   XML: TXMLDocument; Parent : TDomNode_WithChildren): TDomElement;
-  
+
 Var
   I : Integer;
   P : TDomElement;
-  
+
 begin
   Result:=XML.CreateElement(sNodeRepository);
   Try
@@ -518,19 +518,19 @@ begin
 end;
 
 procedure TFPXMLRepositoryHandler.XMLToDependencies(E: TDomElement; DS: TFPDependencies);
-  
+
 begin
   CheckNodeType(E,SNodeDependencies);
   DoXMLToDependencies(E,DS)
 end;
-  
+
 procedure TFPXMLRepositoryHandler.DoXMLToDependencies(E: TDomElement;
   DS: TFPDependencies);
-  
+
 Var
   DN : TDomElement;
   D : TFPDependency;
-  
+
 begin
   DN:=FindNextElement(E.FirstChild,SNodeDependency);
   While (DN<>Nil) do
@@ -662,7 +662,7 @@ procedure TFPXMLRepositoryHandler.DoXMLToRepository(E: TDomElement; R: TFPReposi
 Var
   PSN,PN : TDomElement;
   P : TFPPackage;
-  
+
 begin
   PSN:=FindNextElement(E.FirstChild,SNodePackages);
   If (PSN<>Nil) then
@@ -698,7 +698,7 @@ end;
 
 procedure TFPXMLRepositoryHandler.LoadFromXml(DS: TFPDependencies;
   Stream: TStream);
-  
+
 Var
   XML : TXMLDocument;
 
@@ -728,7 +728,7 @@ begin
 end;
 
 procedure TFPXMLRepositoryHandler.LoadFromXml(PS: TFPPackages; Stream: TStream);
-  
+
 Var
   XML : TXMLDocument;
 
@@ -758,7 +758,7 @@ begin
 end;
 
 procedure TFPXMLRepositoryHandler.LoadFromXml(D: TFPDependency; FileName: String);
-  
+
 Var
   F : TFileStream;
 
@@ -814,10 +814,10 @@ begin
 end;
 
 procedure TFPXMLRepositoryHandler.LoadFromXml(R: TFPRepository; FileName: String);
-  
+
 Var
   F : TFileStream;
-  
+
 begin
   F:=TFileStream.Create(FileName,fmOpenRead);
   try

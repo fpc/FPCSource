@@ -14,16 +14,16 @@ Type
 
   TOS = fpmktype.TOS;
   TOSes = fpmktype.TOSes;
-  
+
   TCPU = fpmkType.TCPU;
   TCPUS = fpmktype.TCPUS;
-  
+
   TCompilerMode = fpmktype.TCompilerMode;
   TCompilerModes = fpmktype.TCompilerModes;
-  
+
   TTargetType = fpmktype.TTargetType;
   TTargetTypes = fpmktype.TTargetTypes;
-  
+
   TTargetState = fpmktype.TTargetState;
   TTargetStates = fpmktype.TTargetStates;
 
@@ -31,9 +31,9 @@ Type
   TVerboseLevels = fpmktype.TVerboseLevels;
 
   TLogEvent = fpmktype.TLogEvent;
-  
+
   TRunMode = (rmHelp,rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmManifest);
-  
+
   { TNamedItem }
 
   TNamedItem = Class(TCollectionItem)
@@ -42,8 +42,8 @@ Type
     procedure SetName(const AValue: String);virtual;
   Public
     property Name : String Read FName Write SetName;
-  end;  
-  
+  end;
+
   { TNamedCollection }
 
   TNamedCollection = Class(TCollection)
@@ -54,9 +54,9 @@ Type
     Function ItemByName(AName : String) : TNamedItem;
     Property UniqueNames : Boolean Read FUniqueNames;
   end;
-  
+
   { TNamedItemList }
-  
+
   TNamedItemList = Class(TList)
   private
     function GetNamedItem(Index : Integer): TNamedItem;
@@ -66,7 +66,7 @@ Type
     Function ItemByName(ANAme : String) : TNamedItem;
     Property NamedItems[Index : Integer] : TNamedItem Read GetNamedItem Write SetNamedItem; default;
   end;
-  
+
   TCommandAt = fpmktype.TCommandAt;
 
   { TCommand }
@@ -90,7 +90,7 @@ Type
     Property BeforeCommand : TNotifyEvent Read FBeforeCommand Write FBeforeCommand;
     Property AfterCommand : TNotifyEvent Read FAfterCommand Write FAfterCommand;
   end;
-  
+
   { TCommands }
 
   TCommands = Class(TNamedCollection)
@@ -213,9 +213,9 @@ Type
     Property DefaultOS : TOSes Read FDefaultOS Write FDefaultOS;
     Property DefaultCPU : TCPUs Read FDefaultCPU Write FDefaultCPU;
   end;
-  
+
   { TPackage }
-  
+
   TPackage = Class(TNamedItem) // Maybe descend from/use TTarget ?
   private
     FAfterArchive: TNotifyEvent;
@@ -324,7 +324,7 @@ Type
   end;
 
   { TDefaults }
-  
+
   TDefaults = Class(TPersistent)
   Private
     FArchive: String;
@@ -571,14 +571,14 @@ Type
     FValue : String;
     Constructor Create(AValue : String);
   end;
-  
+
   { TFunctionItem }
 
   TFunctionItem = Class(TObject)
     FFunc : TReplaceFunction;
     Constructor Create(AFunc : TReplaceFunction);
   end;
-  
+
   { TDictionary }
 
   TDictionary = Class(TComponent)
@@ -604,7 +604,7 @@ Type
 // Constants are in the file as for fpmktype.
 
 {$i fpmkcnst.inc}
- 
+
 
 Type
   TArchiveEvent = Procedure (Const AFileName : String; List : TStrings) of Object;
@@ -672,7 +672,7 @@ ResourceString
   SWarnFailedToSetTime  = 'Warning: Failed to set timestamp on file : %s';
   SWarnFailedToGetTime  = 'Warning: Failed to get timestamp from file : %s';
   SWarnFileDoesNotExist = 'Warning: File "%s" does not exist';
-  
+
   // Log messages
   SLogEnterDir           = 'Entering directory: %s';
   SLogCompilingPackage   = 'Compiling package : %s';
@@ -896,7 +896,7 @@ function FixPath (APath : String) : String;
 
 Var
   P : PChar;
-  
+
 begin
   Result:=APath;
   If (result<>'') then
@@ -1370,8 +1370,8 @@ Var
   L : TStrings;
   Line : String;
   I,P,PC : Integer;
-  
-  
+
+
 begin
   L:=TStringList.Create;
   Try
@@ -1486,10 +1486,10 @@ end;
 Function QuoteXML(S : String) : string;
 
   Procedure W(Var J : Integer; Var R : String; T : String);
-  
+
   Var
     I: integer;
-  
+
   begin
     If J+Length(T)>Length(R) then
       SetLength(R,J+Length(T));
@@ -1508,8 +1508,8 @@ const
   gtStr = '&gt;';
 
 Var
-  I,J : Integer; 
- 
+  I,J : Integer;
+
 begin
   SetLength(Result,Length(S));
   J:=0;
@@ -1526,24 +1526,24 @@ begin
        #13: wrtStr('&#xD;');}
     else
       Result[J]:=S[i];
-    end;  
-    If (J=Length(Result)) and (I<Length(S)) then  
+    end;
+    If (J=Length(Result)) and (I<Length(S)) then
       SetLength(Result,J+Length(S)-I);
     end;
-  If J<>Length(Result) then  
-    SetLength(Result,J);  
+  If J<>Length(Result) then
+    SetLength(Result,J);
 end;
-                                              
-                  
+
+
 
 Procedure TPackage.GetManifest(Manifest : TStrings);
-  
+
 
 Var
   S : String;
   Release,Minor,Major : Word;
   i : integer;
-  
+
 begin
   With Manifest do
     begin
@@ -1567,7 +1567,7 @@ begin
           end;
         Add('</dependencies>');
         end;
-      end;  
+      end;
     Add('</package>');
     end;
 end;
@@ -1722,7 +1722,7 @@ begin
           L.LoadFromFile(FN);
           Result:=L.Text;
         Finally
-          L.Free;  
+          L.Free;
         end;
         end;
       end;
@@ -2012,13 +2012,13 @@ end;
 procedure TInstaller.Usage(FMT: String; Args: array of const);
 
   Procedure WriteCmd(C: Char; LC : String; Msg : String);
-  
+
   begin
     Writeln(stderr,'-',C,'  --',LC,'   ',MSG);
   end;
-  
+
   Procedure WriteOption(C: Char; LC : String; Msg : String);
-  
+
   begin
     Writeln(stderr,'-',C,'  --',LC,'=',SValue,'  ',MSG);
   end;
@@ -2078,7 +2078,7 @@ procedure TInstaller.Manifest;
 Var
   L : TStrings;
   I : Integer;
-  
+
 begin
   L:=TStringList.Create;
   Try
@@ -2088,7 +2088,7 @@ begin
       Writeln(L[i]);
   Finally
     L.Free;
-  end;    
+  end;
 end;
 
 constructor TInstaller.Create(AOWner: TComponent);
@@ -2208,7 +2208,7 @@ Var
   Fin,FOut : TFileStream;
   Count : Int64;
   A : Integer;
-  
+
 begin
   Log(vlCommand,SLogCopyingFile,[Src,Dest]);
   FIn:=TFileStream.Create(Src,fmopenRead);
@@ -2395,7 +2395,7 @@ Function TBuildEngine.FileNewer(Src,Dest : String) : Boolean;
 Var
   DS,DD : Longint;
   D1,D2 : TDateTime;
-  
+
 begin
   DS:=FileAge(Src);
   DD:=FileAge(Dest);
@@ -2414,7 +2414,7 @@ Var
   I : Integer;
   Cmd,O : String;
   E : Boolean;
-  
+
 begin
   For I:=0 to Commands.Count-1 do
     begin
@@ -2463,7 +2463,7 @@ begin
           ((Target.CPU=[]) or (Defaults.CPU in Target.CPU))
           and
           ((Target.OS=[]) or (Defaults.OS in Target.OS));
-  If not Result then  
+  If not Result then
     begin
     log(vldebug,'Target is not a unit or program');
     If Not ((Target.CPU=[]) or (Defaults.CPU in Target.CPU)) then
@@ -2571,7 +2571,7 @@ Function TBuildEngine.GetCompiler : String;
 
 Var
   S : String;
-  
+
 begin
   // Cache in FCompiler for speed.
   If (FCompiler='') then
@@ -2591,7 +2591,7 @@ procedure TBuildEngine.Compile(Target: TTarget);
 
 Var
   S : String;
-  
+
 begin
   if Target.State in [tsNeutral,tsCompiling] then
     begin
@@ -2630,8 +2630,8 @@ begin
         begin
         If (T.State=tsCompiling) then
           Log(vlWarning,SWarnCircularDependency,[Target.Name,T.Name])
-        else 
-          Compile(T) 
+        else
+          Compile(T)
         end
       else if Not FileExists(Target.Dependencies[i]) then
         Error(SErrDepUnknownTarget,[Target.Name,Target.Dependencies[i]]);
@@ -2715,7 +2715,7 @@ procedure TBuildEngine.Compile(APackage: TPackage);
 Var
   T : TTarget;
   I : Integer;
-  
+
 begin
   Log(vlInfo,SLogCompilingPackage,[APackage.Name]);
   FCurrentPackage:=APackage;
@@ -2859,7 +2859,7 @@ procedure TBuildEngine.Archive(APackage: TPackage);
 Var
   L : TStrings;
   A,S,C,O : String;
-  
+
 begin
   Log(vlInfo,SLogArchivingPackage,[APackage.Name]);
   DoBeforeArchive(Apackage);
@@ -2896,7 +2896,7 @@ procedure TBuildEngine.Clean(APackage: TPackage);
 Var
   O : String;
   List : TStringList;
-  
+
 begin
   Log(vlInfo,SLogCleaningPackage,[APackage.Name]);
   DoBeforeClean(Apackage);
@@ -3038,14 +3038,14 @@ Procedure TBuildEngine.GetManifest(Packages : TPackages; Manifest : TStrings);
 
 Var
   I : Integer;
-  
+
 begin
   If Assigned(BeforeManifest) then
     BeforeManifest(Self);
-  Manifest.Add('<packages>');  
+  Manifest.Add('<packages>');
   For I:=0 to Packages.Count-1 do
     GetManifest(Packages.PackageItems[i],Manifest);
-  Manifest.Add('</packages>');  
+  Manifest.Add('</packages>');
   If Assigned(AfterManifest) then
     AfterManifest(Self);
 end;
@@ -3085,7 +3085,7 @@ function TTarget.GetStrings(AIndex: integer): TStrings;
       S:=TStringList.Create;
     Result:=S;
   end;
-  
+
 begin
   Result:=Nil;
   Case AIndex Of
@@ -3278,7 +3278,7 @@ end;
 Var
   DefInstaller : TInstaller = Nil;
   DefDictionary : TDictionary = Nil;
-  
+
 Function Installer : TInstaller;
 
 begin
@@ -3353,7 +3353,7 @@ end;
 
 procedure TDictionary.AddFunction(const AName: String;
   FReplacement: TReplaceFunction);
-  
+
 Var
   I : Integer;
 
@@ -3392,7 +3392,7 @@ function TDictionary.GetValue(const AName,Args: String): String;
 Var
   O : TObject;
   I : Integer;
-  
+
 begin
   I:=Flist.IndexOf(AName);
   If (I=-1) then

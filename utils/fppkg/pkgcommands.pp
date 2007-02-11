@@ -83,6 +83,10 @@ function TCommandBuild.Execute(const Args:TActionArgs):boolean;
 begin
   ActionStack.Push(CurrentPackage,'fpmakebuild',Args);
   ActionStack.Push(CurrentPackage,'compilefpmake',Args);
+  if not DirectoryExists(PackageBuildPath) then
+    ActionStack.Push(CurrentPackage,'unziparchive',Args);
+  if not FileExists(PackageArchive) then
+    ActionStack.Push(CurrentPackage,'downloadpackage',Args);
 end;
 
 

@@ -56,6 +56,7 @@ Type
     Function ExecuteProcess(Const Prog,Args:String):Integer;
     Procedure SetCurrentDir(Const ADir:String);
     function PackageBuildPath:String;
+    function PackageArchive:String;
   Public
     Constructor Create(AOwner: TComponent;ADefaults:TPackagerOptions;APackage:TFPPackage); virtual;
     function PackageLogPrefix:String;
@@ -86,17 +87,14 @@ function maybequoted(const s:ansistring):ansistring;
 var
   Verbosity : TVerbosities;
   ActionStack : TActionStack;
-  
+
 
 Implementation
 
 uses
   typinfo,
-{$ifdef ver2_0}
-  contnrs20,
-{$else ver2_0}
   contnrs,
-{$endif ver2_0}
+  uriparser,
   pkgmessages;
 
 var
@@ -248,6 +246,15 @@ begin
     Result:='.'
   else
     Result:=Defaults.BuildDir+CurrentPackage.Name;
+end;
+
+
+function TPackageHandler.PackageArchive:String;
+var
+  URI : TURI;
+begin
+  URI:=ParseURI(CurrentPackage.URL);
+  Result:=Defaults.PackagesDir+URI.Document;
 end;
 
 

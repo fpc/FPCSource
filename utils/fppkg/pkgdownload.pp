@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, pkghandler;
-  
+
 Type
 
   { TBasePackageDownloader }
@@ -48,7 +48,7 @@ Var
   URI : TURI;
   FN : String;
   F : TFileStream;
-  
+
 begin
   URI:=ParseURI(URL);
   FN:=URI.Path+'/'+URI.Document;
@@ -83,7 +83,7 @@ procedure TBasePackageDownloader.Download(const URL: String; Dest: TStream);
 Var
   URI : TURI;
   P : String;
-  
+
 begin
   URI:=ParseURI(URL);
   P:=URI.Protocol;

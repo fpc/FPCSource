@@ -19,14 +19,10 @@ interface
 uses
   classes,sysutils,
   contnrs,
-{$ifdef ver2_0}
-  streamcoll20,
-{$else}
   streamcoll,
-{$endif}
   fpmktype;
 
-Const 
+Const
   StreamVersion   : Integer = 1;
   StreamSignature = $FEEF;
 
@@ -54,7 +50,7 @@ Type
    Property Minor : Word Read FMinor Write FMinor;
    Property Suffix : string Read FSuffix Write FSuffix;
   end;
-  
+
   { TFPDependency }
 
   TFPDependency = Class(TStreamCollectionItem)
@@ -72,7 +68,7 @@ Type
     Property PackageName : String Read FPackageName Write FPackageName;
     Property MinVersion : TFPVersion Read FMinVersion Write SetMinVersion;
   end;
-  
+
   { TFPDepencencies }
 
   { TFPDependencies }
@@ -158,8 +154,8 @@ Type
     FPackages : TFPPackages;
     function GetPackage(Index : Integer): TFPPackage;
     function GetPackageCount: Integer;
-  Protected 
-    Property PackageCollection : TFPPackages Read FPackages;    
+  Protected
+    Property PackageCollection : TFPPackages Read FPackages;
     procedure CreatePackages; virtual;
     Procedure BackupFile(AFileName : String); virtual;
     Procedure DoGetPackageDependencies(PackageName : String; List : TStringList; Level : Integer); virtual;
@@ -213,7 +209,7 @@ ResourceString
   SErrDuplicatePackageName = 'Duplicate package name : "%s"';
   SErrMaxLevelExceeded     = 'Maximum number of dependency levels exceeded (%d) at package "%s".';
 
-  
+
 { TFPVersion }
 
 function TFPVersion.GetAsString: String;
@@ -231,10 +227,10 @@ end;
 procedure TFPVersion.SetAsString(const AValue: String);
 
   Function NextDigit(sep : Char; var V : string) : integer;
-  
+
   Var
     P : Integer;
-  
+
   begin
     P:=Pos(Sep,V);
     If (P=0) then
@@ -249,7 +245,7 @@ procedure TFPVersion.SetAsString(const AValue: String);
 Var
   P : Integer;
   V : String;
-  
+
 begin
   Release:=0;
   Major:=0;
@@ -367,7 +363,7 @@ Var
   O : TOSes;
   C : TCPUs;
   I,J,Count : Integer;
-  
+
 begin
   Version.AsString:=ReadString(Stream);
   Name:=ReadString(Stream);
@@ -380,20 +376,20 @@ begin
   O:=[];
   For I:=1 to Count do
     begin
-    J:=GetEnumValue(TypeInfo(TOS),ReadString(Stream)); 
+    J:=GetEnumValue(TypeInfo(TOS),ReadString(Stream));
     If (J<>-1) then
       Include(O,TOS(J));
-    end;    
-  OSEs:=O;  
+    end;
+  OSEs:=O;
   Count:=ReadInteger(Stream);
   C:=[];
   For I:=1 to Count do
     begin
-    J:=GetEnumValue(TypeInfo(TCPU),ReadString(Stream)); 
+    J:=GetEnumValue(TypeInfo(TCPU),ReadString(Stream));
     If (J<>-1) then
       Include(C,TCPU(J));
-    end;    
-  CPUS:=C;  
+    end;
+  CPUS:=C;
   FreeAndNil(FDependencies);
   B:=ReadBoolean(Stream);
   If B then
@@ -409,7 +405,7 @@ Var
   Count : Integer;
   O : TOS;
   C : TCPU;
-  
+
 begin
   WriteString(Stream,Version.AsString);
   WriteString(Stream,Name);
@@ -428,7 +424,7 @@ begin
   For O:=Low(TOS) to High(TOS) do
     If O in OSes then
       WriteString(Stream,GetEnumName(TypeInfo(TOS),Ord(O)));
-  // CPUs    
+  // CPUs
   Count:=0;
   For C:=Low(TCPU) to High(TCPU) do
     If C in CPUS then
@@ -796,7 +792,7 @@ procedure TFPRepository.GetPackageDependencies(PackageName: String;
 Var
   L : TStringList;
   I : Integer;
-  
+
 begin
   L:=TStringList.Create;
   Try

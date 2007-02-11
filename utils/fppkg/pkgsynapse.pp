@@ -1,17 +1,17 @@
 {$mode objfpc}
 {$h+}
-unit pkgsynapse; 
+unit pkgsynapse;
 
 interface
 
 uses Classes,pkgdownload;
 
-Type 
+Type
   TSynapseDownloader = Class(TBasePackageDownloader)
   Protected
     Procedure FTPDownload(Const URL : String; Dest : TStream); override;
     Procedure HTTPDownload(Const URL : String; Dest : TStream); override;
- end;   
+ end;
 
 implementation
 
@@ -23,7 +23,7 @@ Var
   URI : TURI;
   FN : String;
   F : TFileStream;
-  
+
 begin
   // Download in temporary file.
   FN:=GetTempFileName();
@@ -45,7 +45,7 @@ begin
         DirectFile:=True;
         If (URI.Path<>'') then
           if not ChangeWorkingDir(URI.Path) then
-            Error(SErrCWDFailed,[URI.PATH]); 
+            Error(SErrCWDFailed,[URI.PATH]);
         BinaryMode:=True;
         If Not RetrieveFile(URI.Document, False) then
            Error(SErrGETFailed,[URI.Document]);
@@ -66,7 +66,7 @@ begin
   end;
 end;
 
-Procedure TSynapseDownloader.HTTPDownload(Const URL : String; Dest : TStream); 
+Procedure TSynapseDownloader.HTTPDownload(Const URL : String; Dest : TStream);
 
 begin
   If Not HttpGetBinary(URL,Dest) then

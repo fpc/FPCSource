@@ -1,22 +1,22 @@
 {$mode objfpc}
 {$h+}
-unit pkgoCurl; 
+unit pkgoCurl;
 
 interface
 
 uses Classes,pkgdownload;
 
-Type 
+Type
   TOCurlDownloader = Class(TBasePackageDownloader)
-  Private 
+  Private
     FCurl : String;
   Protected
     Procedure OCurlDownload(Const URL : String; Dest : TStream); virtual;
     Procedure FTPDownload(Const URL : String; Dest : TStream); override;
     Procedure HTTPDownload(Const URL : String; Dest : TStream); override;
  Public
-    Property Curl : String Read FCurl Write FCurl; 
- end;   
+    Property Curl : String Read FCurl Write FCurl;
+ end;
 
 implementation
 
@@ -62,7 +62,7 @@ begin
   OCurlDownload(URL,Dest);
 end;
 
-Procedure TOCurlDownloader.HTTPDownload(Const URL : String; Dest : TStream); 
+Procedure TOCurlDownloader.HTTPDownload(Const URL : String; Dest : TStream);
 
 begin
   OCurlDownload(URL,Dest);
