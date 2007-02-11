@@ -47,7 +47,6 @@ interface
 
     tforeachprocmethod = (pm_preprocess,pm_postprocess);
 
-
     foreachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult of object;
     staticforeachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult;
 
