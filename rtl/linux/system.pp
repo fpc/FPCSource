@@ -311,7 +311,7 @@ begin
   { Set up signals handlers }
   InstallSignals;
 
-{$if defined(cpui386)}
+{$if defined(cpui386) or defined(cpuarm)}
   fpc_cpucodeinit;
 {$endif cpui386}
 

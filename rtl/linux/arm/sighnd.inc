@@ -28,7 +28,14 @@ begin
           { don't know how to find the different causes, maybe via xer? }
           res := 207;
         end;
-    SIGILL,
+    SIGILL:
+        if in_edsp_test then
+          begin
+            res:=0;
+            cpu_has_edsp:=false;
+          end
+        else
+          res:=216;
     SIGSEGV :
         res:=216;
     SIGBUS:

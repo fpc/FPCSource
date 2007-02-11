@@ -17,6 +17,12 @@
 
 {$asmmode gas}
 
+const
+  cpu_has_edsp : boolean = false;
+  in_edsp_test : boolean = false;
+var
+  moveproc : pointer;
+
 procedure fpc_cpuinit;
 begin
 {$if not(defined(wince)) and not(defined(gba)) and not(defined(nds))}
@@ -134,7 +140,78 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
+procedure Move_pld(const source;var dest;count:longint);assembler;nostackframe;
+asm
+  pld [r0]
+  pld [r1]
+  // count <=0 ?
+  cmp r2,#0
+  movle pc,lr
+  // overlap?
+  cmp r1,r0
+  bls .Lnooverlap
+  add r3,r0,r2
+  cmp r3,r1
+  bls .Lnooverlap
+  // overlap, copy backward
+.Loverlapped:
+  subs r2,r2,#1
+  ldrb r3,[r0,r2]
+  strb r3,[r1,r2]
+  bne .Loverlapped
+  mov pc,lr
+.Lnooverlap:
+  // less then 16 bytes to copy?
+  cmp r2,#8
+  // yes, the forget about the whole optimizations
+  // and do a bytewise copy
+  blt .Lbyteloop
+
+  // both aligned?
+  orr r3,r0,r1
+  tst r3,#3
+
+  bne .Lbyteloop
+(*
+  // yes, then align
+  // alignment to 4 byte boundries is enough
+  ldrb ip,[r0],#1
+  sub r2,r2,#1
+  stb ip,[r1],#1
+  tst r3,#2
+  bne .Ldifferentaligned
+  ldrh ip,[r0],#2
+  sub r2,r2,#2
+  sth ip,[r1],#2
+
+.Ldifferentaligned
+  // qword aligned?
+  orrs r3,r0,r1
+  tst r3,#7
+  bne .Ldwordloop
+*)
+  pld [r0,#32]
+  pld [r1,#32]
+.Ldwordloop:
+  sub r2,r2,#4
+  ldr r3,[r0],#4
+  // preload
+  pld [r0,#64]
+  pld [r1,#64]
+  cmp r2,#4
+  str r3,[r1],#4
+  bcs .Ldwordloop
+  cmp r2,#0
+  moveq pc,lr
+.Lbyteloop:
+  subs r2,r2,#1
+  ldrb r3,[r0],#1
+  strb r3,[r1],#1
+  bne .Lbyteloop
+  mov pc,lr
+end;
+
+procedure Move_blended(const source;var dest;count:longint);assembler;nostackframe;
 asm
   // count <=0 ?
   cmp r2,#0
@@ -196,6 +273,15 @@ asm
   strb r3,[r1],#1
   bne .Lbyteloop
   mov pc,lr
+end;
+
+
+procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
+asm
+  ldr ip,.Lmoveproc
+  ldr pc,[ip]
+.Lmoveproc:
+  .long moveproc
 end;
 
 
@@ -311,4 +397,19 @@ end;
 procedure inclocked(var l: longint); inline;
 begin
   InterLockedIncrement(l);
+end;
+
+
+procedure fpc_cpucodeinit;
+begin
+  cpu_has_edsp:=true;
+  in_edsp_test:=true;
+  asm
+    pld [r0]
+  end;
+  in_edsp_test:=false;
+  if cpu_has_edsp then
+    moveproc:=@move_pld
+  else
+    moveproc:=@move_blended;
 end;

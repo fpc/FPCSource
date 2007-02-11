@@ -66,7 +66,10 @@ begin
         res:=214;
     SIGILL:
         if sse_check then
-          res:=0
+          begin
+            os_supports_sse:=false;
+            res:=0;
+          end
         else
           res:=216;
     SIGSEGV :
