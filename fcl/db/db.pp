@@ -438,6 +438,7 @@ type
     constructor Create(AOwner: TComponent); override;
     property FixedChar : Boolean read FFixedChar write FFixedChar;
     property Transliterate: Boolean read FTransliterate write FTransliterate;
+    property Value: String read GetAsString write SetAsString;
   published
     property Size default 20;
   end;
@@ -517,7 +518,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : largeint) : Boolean;
-    property Value: Longint read GetAsLongint write SetAsLongint;
+    property Value: Largeint read GetAsLargeint write SetAsLargeint;
   published
     property MaxValue: Largeint read FMaxValue write SetMaxValue default 0;
     property MinValue: Largeint read FMinValue write SetMinValue default 0;
@@ -712,7 +713,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     Function CheckRange(AValue : Currency) : Boolean;
-    property Value: Longint read GetAsLongint write SetAsLongint;
+    property Value: Currency read GetAscurrency write SetAscurrency;
   published
     property Precision: Longint read FPrecision write FPrecision;
     property Currency: Boolean read FCurrency write FCurrency;
