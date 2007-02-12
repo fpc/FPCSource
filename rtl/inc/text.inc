@@ -915,16 +915,19 @@ Function ReadPCharLen(var f:Text;s:pchar;maxlen:longint):longint;
 var
   sPos,len : Longint;
   p,q,startp,maxp : pchar;
-  stop_chars:array[0..3] of char;
+  stop_chars:array[0..2] of char;
   end_of_string:boolean;
 Begin
   {Avoid use of ctrlZmarkseof in the inner loop.}
   stop_chars[0]:=#13;
-  stop_chars[1]:=#10;
-  stop_chars[2]:=#0;
+{ #10 must be always the last valid element in stop_chars - see below. }
   if ctrlZmarkseof then
-    stop_chars[2]:=#26;
-  stop_chars[3]:=#0;
+   begin
+    stop_chars[1]:=#26;
+    stop_chars[2]:=#10;
+   end
+  else
+   stop_chars[1]:=#10;
   ReadPCharLen:=0;
   If not CheckRead(f) then
     exit;
@@ -950,9 +953,11 @@ Begin
     while p<maxp do
       begin
         q:=@stop_chars[0];
-        while (q^<>#0) and (p^<>q^) do
+{ The following line relies on the fact that stop_chars array
+  is always initialized to have #10 as the last valid element. }
+        while (q^<>#10) and (p^<>q^) do
           inc(q);
-        if p^=q^ then 
+        if p^=q^ then
           begin
             end_of_string:=true;
             break;
