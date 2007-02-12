@@ -78,7 +78,7 @@ type
 
     function MySQLFieldToFieldType(AType: enum_field_types; ASize: Integer;
          var NewType: TFieldType; var NewSize: Integer): Boolean;
-    function MySQLDataSize(AType: enum_field_types; ASize: Integer): Integer;
+    function MySQLDataSize(AType: enum_field_types; ASize,AAltSize : Integer): Integer;
     function MySQLWriteFieldData(AType: enum_field_types; ASize: Integer; Source: PChar;
        Dest: PChar): Integer;
 
@@ -154,6 +154,9 @@ type
 
   EMySQLError = Class(Exception);
 
+const
+  Support_Blob : boolean = true;
+
 implementation
 
 Resourcestring
@@ -227,7 +230,7 @@ end;
 function TMySQLDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 
 var
-  I, FC: Integer;
+  I, FC, Len: Integer;
   fld: PMYSQL_FIELD;
   CurBuf: PChar;
 
@@ -238,22 +241,23 @@ begin
   for I := 0 to FC-1 do
     begin
     fld := mysql_fetch_field_direct(FMYSQLRES, I);
+    Len := MySQLDataSize(fld^.ftype, fld^.length,fld^.max_length);
     if Field.FieldName = fld^.name then
       begin
-      Move(CurBuf^, PChar(Buffer)^, MySQLDataSize(fld^.ftype, fld^.length));
+      Move(CurBuf^, PChar(Buffer)^, Len);
       if Field.DataType in [ftString{, ftWideString}] then
         begin
         Result := PChar(buffer)^ <> #0;
         if Result then
           // Terminate string (necessary for enum fields)
-          PChar(buffer)[fld^.length] := #0;
+          PChar(buffer)[Len] := #0;
         end
       else
         Result := True;
       break;
       end
     else
-      Inc(CurBuf, MySQLDataSize(fld^.ftype, fld^.length));
+      Inc(CurBuf, Len);
     end;
 end;
 
@@ -361,9 +365,9 @@ procedure TMySQLDataset.InternalInitFieldDefs;
 
 var
   I, FC: Integer;
-  field: PMYSQL_FIELD;
+  Field: PMYSQL_FIELD;
   DFT: TFieldType;
-  DFS: Integer;
+  DFS, Len: Integer;
   WasClosed: Boolean;
 
 begin
@@ -381,8 +385,9 @@ begin
       FC := mysql_num_fields(FMYSQLRES);
       for I := 0 to FC-1 do
         begin
-        field := mysql_fetch_field_direct(FMYSQLRES, I);
-        if MySQLFieldToFieldType(field^.ftype, field^.length, DFT, DFS) then
+        Field := mysql_fetch_field_direct(FMYSQLRES, I);
+        Len := MySqlDataSize(Field^.FType, Field^.length, Field^.max_length);
+        if MySQLFieldToFieldType(Field^.ftype, len, DFT, DFS) then
             TFieldDef.Create(FieldDefs, field^.name, DFT, DFS, False, I+1);
         end;
     finally
@@ -482,6 +487,7 @@ end;
 
 function TMySQLDataset.MySQLFieldToFieldType(AType: enum_field_types; ASize: Integer;
    var NewType: TFieldType; var NewSize: Integer): Boolean;
+
 begin
   Result := True;
   case AType of
@@ -511,13 +517,25 @@ begin
       NewType := ftTime;
       NewSize := 0;
       end;
+    FIELD_TYPE_BLOB :
+        begin
+          if Support_blob then
+            begin
+              NewType := ftString;
+              NewSize := ASize;
+            end
+          else
+            Result := false;
+        end;  
     FIELD_TYPE_VAR_STRING, FIELD_TYPE_STRING, FIELD_TYPE_ENUM, FIELD_TYPE_SET:
       begin
-      NewType := ftString;
-      NewSize := ASize;
+        NewType := ftString;
+        NewSize := ASize;
       end;
   else
-    Result := False;
+    begin
+      Result := False;
+    end;  
   end;
 end;
 
@@ -531,7 +549,7 @@ begin
   for I := 0 to FC-1 do
     begin
     field := mysql_fetch_field_direct(FMYSQLRES, I);
-    FRecordSize := FRecordSize + MySQLDataSize(field^.ftype, field^.length);
+    FRecordSize := FRecordSize + MySQLDataSize(field^.ftype, field^.length,field^.max_length);
     end;
   FBufferSize := FRecordSize + SizeOf(TMySQLDatasetBookmark);
 end;
@@ -539,7 +557,7 @@ end;
 procedure TMySQLDataset.LoadBufferFromData(Buffer: PChar);
 
 var
-  I, FC, CT: Integer;
+  I, FC, CT, Len: Integer;
   field: PMYSQL_FIELD;
   row: TMYSQL_ROW;
 
@@ -552,7 +570,8 @@ begin
   for I := 0 to FC-1 do
     begin
     field := mysql_fetch_field_direct(FMYSQLRES, I);
-    CT := MySQLWriteFieldData(field^.ftype, field^.length, row^, Buffer);
+    Len := MySqlDataSize(field^.ftype, field^.length, field^.max_length);
+    CT := MySQLWriteFieldData(field^.ftype, Len, row^, Buffer);
     Inc(Buffer, CT);
     Inc(row);
     end;
@@ -560,7 +579,7 @@ end;
 
 
 function TMySQLDataset.MySQLDataSize(AType: enum_field_types;
-  ASize: Integer): Integer;
+  ASize,AAltSize: Integer): Integer;
 begin
   Result := 0;
   case AType of
@@ -577,9 +596,20 @@ begin
       begin
       Result := SizeOf(TDateTime);
       end;
+    FIELD_TYPE_BLOB:
+          begin
+            if Support_blob then
+              begin
+                Result:= ASize;
+                if (AAltSize>=0) and (AAltSize<ASize) then
+                  Result:=AAltSize;
+              end    
+            else
+              Result:=0;
+          end;
     FIELD_TYPE_VAR_STRING, FIELD_TYPE_STRING, FIELD_TYPE_ENUM, FIELD_TYPE_SET:
       begin
-      Result := ASize;
+         Result := ASize;
       end;
   end;
 end;
@@ -650,6 +680,19 @@ begin
         VD := 0;
       Move(VD, Dest^, Result);
       end;
+    FIELD_TYPE_BLOB:
+          begin
+            if Support_blob then
+              begin
+                Result:= ASize;
+                if Source <> '' then
+                  Move(Source^, Dest^, Result)
+                else
+                  Dest^ := #0;
+              end
+            else
+              Result:=0;
+          end;
     FIELD_TYPE_VAR_STRING, FIELD_TYPE_STRING, FIELD_TYPE_ENUM, FIELD_TYPE_SET:
       begin
       Result := ASize;
