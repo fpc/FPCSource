@@ -115,10 +115,12 @@ type
     function ReadDateTime(const Section, Ident: string; Default: TDateTime): TDateTime; virtual;
     function ReadFloat(const Section, Ident: string; Default: Double): Double; virtual;
     function ReadTime(const Section, Ident: string; Default: TDateTime): TDateTime; virtual;
+    function ReadBinaryStream(const Section, Name: string; Value: TStream): Integer;
     procedure WriteDate(const Section, Ident: string; Value: TDateTime); virtual;
     procedure WriteDateTime(const Section, Ident: string; Value: TDateTime); virtual;
     procedure WriteFloat(const Section, Ident: string; Value: Double); virtual;
     procedure WriteTime(const Section, Ident: string; Value: TDateTime); virtual;
+    procedure WriteBinaryStream(const Section, Name: string; Value: TStream); 
     procedure ReadSection(const Section: string; Strings: TStrings); virtual; abstract;
     procedure ReadSections(Strings: TStrings); virtual; abstract;
     procedure ReadSectionValues(const Section: string; Strings: TStrings); virtual; abstract;
@@ -453,6 +455,78 @@ begin
   oSection := FSectionList.SectionByName(Section,CaseSensitive);
   if oSection <> nil then
     Result := (oSection.KeyList.KeyByName(Ident,CaseSensitive) <> nil);
+end;
+
+function TCustomIniFile.ReadBinaryStream(const Section, Name: string; Value: TStream): Integer;
+
+Var
+  M : TMemoryStream;
+  S : String;
+  PB,PR : PByte;
+  PC : PChar;
+  H : String[3];
+  i,l2,code : Integer;
+
+
+begin
+  S:=ReadString(Section,Name,'');
+  Setlength(H,3);
+  H[1]:='$';
+  Result:=Length(S) div 2;
+  If Result>0 then
+    begin
+    GetMem(PR,Result);
+    Try
+      PC:=PChar(S);
+      PB:=PR;
+      For I:=1 to Result do
+        begin
+        H[2]:=PC[0];
+        H[3]:=PC[1];
+        Val(H,PB^,code);
+        Inc(PC,2);
+        Inc(PB);
+        end;
+      Value.WriteBuffer(PR^,Result);
+    finally
+      FreeMem(PR);
+    end;
+    end;
+end;
+
+procedure TCustomInifile.WriteBinaryStream(const Section, Name: string; Value: TStream);
+
+
+Var
+  M : TMemoryStream;
+  S : String;
+  PB : PByte;
+  PC : PChar;
+  H : String[2];
+  i : Integer;
+
+begin
+  M:=TMemoryStream.Create;
+  Try
+    M.CopyFrom(Value,0);
+    SetLength(S,M.Size*2);
+    If (length(S)>0) then
+      begin
+      PB:=M.Memory;
+      PC:=PChar(S);
+      For I:=1 to Length(S) do
+        begin
+        H:=HexStr(PB^,2);
+        PC[0]:=H[1];
+        PC[1]:=H[2];
+        Inc(PC,2);
+        Inc(PB);
+        end;
+      end;
+    WriteString(Section,Name,S);
+  Finally
+    M.Free;
+  end;
 end;
 
 { TIniFile }
