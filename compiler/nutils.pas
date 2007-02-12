@@ -592,6 +592,7 @@ implementation
                 end;
               blockn:
                 p := tunarynode(p).left;
+              notn,
               derefn :
                 begin
                   inc(result);
@@ -619,11 +620,14 @@ implementation
                     end;
                   p := tbinarynode(p).right;
                 end;
-              { better: make muln/divn/modn more expensive }
               addn,subn,orn,andn,xorn,muln,divn,modn,symdifn,
+              shln,shrn,
+              equaln,unequaln,gtn,gten,ltn,lten,
               assignn:
                 begin
                   inc(result,node_complexity(tbinarynode(p).left)+1);
+                  if (p.nodetype in [muln,divn,modn]) then
+                    inc(result,5);
                   if (result >= NODE_COMPLEXITY_INF) then
                     begin
                       result := NODE_COMPLEXITY_INF;
