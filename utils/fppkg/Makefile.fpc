@@ -25,6 +25,10 @@ rsts=fprepos fpxmlrep fppkg
 unitdir=$(FCL20) lnet
 includedir=lnet/sys
 
+[clean]
+units=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer \
+  pkgarchive pkgcommands pkgfpmake pkgmessages
+
 [install]
 fpcpackage=y
 
@@ -38,6 +42,7 @@ packages=fcl libcurl
 # Compatibility to compile with 2.0.x
 ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
 FCL20=fcl20
+FCL20UNITS=zstream contnrs streamcoll zipper
 endif
 
 [rules]

@@ -234,6 +234,7 @@ override PACKAGE_NAME=fppkg
 override PACKAGE_VERSION=2.0.0
 ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
 FCL20=fcl20
+FCL20UNITS=zstream contnrs streamcoll zipper
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_PROGRAMS+=fppkg
@@ -726,6 +727,129 @@ override TARGET_EXAMPLES+=rep2xml
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 override TARGET_EXAMPLES+=rep2xml
+endif
+ifeq ($(FULL_TARGET),i386-linux)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-go32v2)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-win32)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-os2)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-freebsd)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-beos)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-netbsd)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-solaris)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-qnx)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-netware)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-openbsd)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-wdosx)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-darwin)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-emx)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-watcom)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-netwlibc)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),i386-wince)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),m68k-linux)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),m68k-freebsd)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),m68k-netbsd)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),m68k-amiga)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),m68k-atari)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),m68k-openbsd)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),m68k-palmos)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),powerpc-linux)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),powerpc-netbsd)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),powerpc-amiga)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),powerpc-macos)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),powerpc-darwin)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),powerpc-morphos)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),sparc-linux)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),sparc-netbsd)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),sparc-solaris)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),x86_64-linux)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),x86_64-freebsd)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),x86_64-win64)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),arm-linux)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),arm-palmos)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),arm-wince)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),arm-gba)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
+endif
+ifeq ($(FULL_TARGET),powerpc64-linux)
+override CLEAN_UNITS+=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer pkgarchive pkgcommands pkgfpmake pkgmessages
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
