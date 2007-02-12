@@ -110,6 +110,8 @@ type
     procedure AddError(ATest: TTest; AError: TTestFailure);
     procedure StartTest(ATest: TTest);
     procedure EndTest(ATest: TTest);
+    procedure StartTestSuite(ATestSuite: TTestSuite);
+    procedure EndTestSuite(ATestSuite: TTestSuite);
     procedure AddExpectedLine(ALine: string);
     procedure Verify(ActualList: TStrings);
   end;
@@ -517,7 +519,7 @@ end;
 
 procedure TAssertTest.TestFailEqualsBoolean;
 begin
-  InterceptFailure(@FailEqualsBoolean, ' expected: <TRUE> but was: <FALSE>');
+  InterceptFailure(@FailEqualsBoolean, ' expected: <True> but was: <False>');
 end;
 
 procedure TAssertTest.TestFailEqualsChar;
@@ -610,6 +612,14 @@ end;
 procedure TMockListener.EndTest(ATest: TTest);
 begin
   FList.Add('Ended: ' + ATest.TestName)
+end;
+
+procedure TMockListener.StartTestSuite(ATestSuite: TTestSuite);
+begin
+end;
+    
+procedure TMockListener.EndTestSuite(ATestSuite: TTestSuite);
+begin
 end;
 
 procedure TMockListener.AddExpectedLine(ALine: string);

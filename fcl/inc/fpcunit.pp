@@ -547,7 +547,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: boolean);
 begin
-  AssertTrue(AMessage + ComparisonMsg(BoolToStr(Expected), BoolToStr(Actual)), Expected = Actual);
+  AssertTrue(AMessage + ComparisonMsg(BoolToStr(Expected, true), BoolToStr(Actual, true)), Expected = Actual);
 end;
 
 
