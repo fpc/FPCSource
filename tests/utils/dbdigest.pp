@@ -409,6 +409,16 @@ end;
 Function GetLog(FN : String) : String;
 
 begin
+  FN:=ChangeFileExt(FN,'.log');
+  If FileExists(FN) then
+    Result:=GetFileContents(FN)
+  else
+    Result:='';
+end;
+
+Function GetExecuteLog(FN : String) : String;
+
+begin
   FN:=ChangeFileExt(FN,'.elg');
   If FileExists(FN) then
     Result:=GetFileContents(FN)
@@ -445,7 +455,11 @@ begin
         If (ID<>-1) then
           begin
           If Not (TestOK[TS] or TestSkipped[TS]) then
-            TestLog:=GetLog(Line)
+            begin
+              TestLog:=GetExecuteLog(Line);
+              if pos(failed_to_compile,TestLog)=1 then
+                TestLog:=GetLog(Line);
+            end  
           else
             TestLog:='';
           AddTestResult(ID,TestRunID,Ord(TS),TestOK[TS],TestSkipped[TS],TestLog);
