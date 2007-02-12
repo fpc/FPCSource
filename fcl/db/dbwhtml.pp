@@ -598,8 +598,8 @@ begin
   If Assigned(FContents) then
     begin
     SetLength(Result,FContents.Size);
-    If (FContents.Size>0) then
-      Move(FContents,Result[1],FContents.Size);
+    If (FContents.Size>0) and assigned(FContents.Memory) then
+      Move(FContents.Memory^,Result[1],FContents.Size);
     end;
 end;
 
