@@ -139,7 +139,9 @@ asm
 end;
 
 
+{$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
+{$define FPC_SYSTEM_FPC_MOVE}
 procedure Move_pld(const source;var dest;count:longint);assembler;nostackframe;
 asm
   pld [r0]
@@ -284,6 +286,7 @@ asm
   .long moveproc
 end;
 
+{$endif FPC_SYSTEM_HAS_MOVE}
 
 var
   fpc_system_lock: longint; export name 'fpc_system_lock';
@@ -399,7 +402,6 @@ begin
   InterLockedIncrement(l);
 end;
 
-
 procedure fpc_cpucodeinit;
 begin
   cpu_has_edsp:=true;
@@ -408,8 +410,10 @@ begin
     pld [r0]
   end;
   in_edsp_test:=false;
+{$ifdef FPC_SYSTEM_FPC_MOVE}
   if cpu_has_edsp then
     moveproc:=@move_pld
   else
     moveproc:=@move_blended;
+{$endif FPC_SYSTEM_FPC_MOVE}
 end;
