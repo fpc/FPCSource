@@ -31,7 +31,7 @@ interface
 const
  LineEnding = #10;
  LFNSupport = true;
- CtrlZMarksEOF: boolean = false; 
+ CtrlZMarksEOF: boolean = false;
  DirectorySeparator = '/';
  DriveSeparator = ':';
  PathSeparator = ';';
@@ -42,7 +42,7 @@ const
 
  sLineBreak : string[1] = LineEnding;
  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
-  
+
 const
   UnusedHandle    = $ffff;
   StdInputHandle  = 0;
@@ -71,7 +71,6 @@ implementation
 {$define FPC_SYSTEM_HAS_extractFloat64Frac0}
 {$define FPC_SYSTEM_HAS_extractFloat64Frac1}
 {$define FPC_SYSTEM_HAS_extractFloat64Exp}
-{$define FPC_SYSTEM_HAS_extractFloat64Frac}
 {$define FPC_SYSTEM_HAS_extractFloat64Sign}
 {$define FPC_SYSTEM_HAS_ExtractFloat32Frac}
 {$define FPC_SYSTEM_HAS_extractFloat32Exp}
@@ -142,7 +141,7 @@ begin
   freeoslistcount:=1;
   freeoslist:=pointer($2040000);
   fillchar(freeoslist^,sizeof(freeoslist^),0);
-  freeoslist^.size:=$40000; 
+  freeoslist^.size:=$40000;
   fillchar(internal_status,sizeof(internal_status),0);
 }
 end;
