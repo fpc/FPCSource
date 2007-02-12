@@ -841,9 +841,21 @@ implementation
             insertdef(list,tpointerdef(def).pointeddef);
           setdef :
             insertdef(list,tsetdef(def).elementdef);
-          procvardef,
+          procvardef :
+            begin
+              insertdef(list,tprocvardef(def).returndef);
+              if assigned(tprocvardef(def).parast) then
+                write_symtable_defs(list,tprocvardef(def).parast);
+            end;
           procdef :
-            insertdef(list,tabstractprocdef(def).returndef);
+            begin
+              insertdef(list,tprocdef(def).returndef);
+              if assigned(tprocdef(def).parast) then
+                write_symtable_defs(list,tprocdef(def).parast);
+              if assigned(tprocdef(def).localst) and
+                 (tprocdef(def).localst.symtabletype=localsymtable) then
+                write_symtable_defs(list,tprocdef(def).localst);
+            end;
           arraydef :
             begin
               insertdef(list,tarraydef(def).rangedef);
@@ -959,6 +971,9 @@ implementation
       begin
         if assigned(pd.procstarttai) then
           begin
+            { mark as used, so also the local and para defs will be written }
+            pd.dbg_state:=dbg_state_used;
+
             templist:=TAsmList.create;
 
             { end of procedure }
@@ -1030,18 +1045,12 @@ implementation
 
             { para types }
             if assigned(pd.parast) then
-              begin
-                write_symtable_syms(templist,pd.parast);
-                write_symtable_defs(templist,pd.parast);
-              end;
+              write_symtable_syms(templist,pd.parast);
             { local type defs and vars should not be written
               inside the main proc stab }
             if assigned(pd.localst) and
                (pd.localst.symtabletype=localsymtable) then
-              begin
-                write_symtable_syms(templist,pd.localst);
-                write_symtable_defs(templist,pd.localst);
-              end;
+              write_symtable_syms(templist,pd.localst);
 
             { after the endtai, because the ".size" must come before it }
             current_asmdata.asmlists[al_procedures].insertlistafter(pd.procendtai,templist);
