@@ -79,7 +79,12 @@ begin
   n := FDoc.CreateElement('Test');
   n['Name'] := ATest.TestName;
   n['Result'] := 'OK';
-  TDOMElement(FSuitePath[FSuitePath.Count -1]).AppendChild(n);
+  if FSuitePath.Count > 0 then
+  //test is included in a suite
+    TDOMElement(FSuitePath[FSuitePath.Count -1]).AppendChild(n)
+  else
+  //no suite to append so append directly to the listing node
+    FListing.AppendChild(n);
   FCurrentTest := n;
 end;
 
