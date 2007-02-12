@@ -2307,8 +2307,11 @@ implementation
 
     function tarraydef.alignment : shortint;
       begin
+         { alignment of dyn. arrays doesn't depend on the element size }
+         if (ado_IsDynamicArray in arrayoptions) then
+           alignment:=size_2_align(sizeof(aint))
          { alignment is the size of the elements }
-         if (elementdef.typ in [arraydef,recorddef]) or
+         else if (elementdef.typ in [arraydef,recorddef]) or
            ((elementdef.typ=objectdef) and
              is_object(elementdef)) then
            alignment:=elementdef.alignment
