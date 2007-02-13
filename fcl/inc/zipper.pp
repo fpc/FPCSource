@@ -1313,10 +1313,14 @@ Var
   Count : Longint;
   CRC : LongWord;
   ZMethod : Word;
+  OutputFileName : string;
 Begin
   Try
     ReadZipHeader(Item,CRC,ZMethod);
-    OpenOutput(FOutputPath+Item.Name);
+    OutputFileName:=Item.Name;
+    if FOutputPath<>'' then
+      OutputFileName:=IncludeTrailingPathDelimiter(FOutputPath)+OutputFileName;
+    OpenOutput(OutputFileName);  
     if ZMethod=0 then
       begin
         Count:=FOutFile.CopyFrom(FZipFile,LocalHdr.Compressed_Size);
