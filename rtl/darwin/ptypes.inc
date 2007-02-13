@@ -34,7 +34,7 @@ type
     TGid     = gid_t;
     pGid     = ^gid_t;
 
-    ino_t    = clong;           { used for file serial numbers }
+    ino_t    = cuint32;         { used for file serial numbers }
     TIno     = ino_t;
     pIno     = ^ino_t;
 
