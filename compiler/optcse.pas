@@ -86,7 +86,7 @@ unit optcse;
         csedomain : boolean;
         lists : tlists;
         templist : tfplist;
-        i,j : aint;
+        i,j : longint;
         def : tstoreddef;
         nodes : tblocknode;
         creates,
