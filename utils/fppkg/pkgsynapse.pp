@@ -7,7 +7,7 @@ interface
 uses Classes,pkgdownload;
 
 Type
-  TSynapseDownloader = Class(TBasePackageDownloader)
+  TSynapseDownloader = Class(TBaseDownloader)
   Protected
     Procedure FTPDownload(Const URL : String; Dest : TStream); override;
     Procedure HTTPDownload(Const URL : String; Dest : TStream); override;

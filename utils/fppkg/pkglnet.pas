@@ -12,7 +12,7 @@ Type
 
   { TLNetDownloader }
 
-  TLNetDownloader = Class(TBasePackageDownloader)
+  TLNetDownloader = Class(TBaseDownloader)
    private
     FQuit: Boolean;
     FFTP: TLFTPClient;
@@ -33,7 +33,7 @@ Type
     procedure FTPDownload(Const URL : String; Dest : TStream); override;
     procedure HTTPDownload(Const URL : String; Dest : TStream); override;
    public
-    constructor Create(AOwner : TComponent;ADefaults:TPackagerOptions; APackage:TFPPackage); override;
+    constructor Create(AOwner : TComponent); override;
   end;
 
 implementation
@@ -105,14 +105,14 @@ begin
   Try
     { parse URL }
     URI:=ParseURI(URL);
-    
+
     if URI.Port = 0 then
       URI.Port := 21;
-      
+
     FFTP.Connect(URI.Host, URI.Port);
     while not FFTP.Connected and not FQuit do
       FFTP.CallAction;
-      
+
     if not FQuit then begin
       FFTP.Authenticate(URI.Username, URI.Password);
       FFTP.ChangeDirectory(URI.Path);
@@ -133,7 +133,7 @@ begin
   Try
     { parse aURL }
     URI := ParseURI(URL);
-    
+
     if URI.Port = 0 then
       URI.Port := 80;
 
@@ -146,14 +146,14 @@ begin
     FQuit:=False;
     while not FQuit do
       FHTTP.CallAction;
-  Finally  
+  Finally
     FOutStream:=nil; // to be sure
   end;
 end;
 
-constructor TLNetDownloader.Create(AOwner: TComponent;ADefaults:TPackagerOptions; APackage:TFPPackage);
+constructor TLNetDownloader.Create(AOwner: TComponent);
 begin
-  inherited Create(AOwner,ADefaults,APackage);
+  inherited;
 
   FFTP:=TLFTPClient.Create(Self);
   FFTP.Timeout:=1000;

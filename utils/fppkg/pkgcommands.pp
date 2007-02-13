@@ -14,7 +14,7 @@ type
   Public
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
-  
+
   { TCommandDownload }
 
   TCommandDownload = Class(TPackagehandler)
@@ -45,7 +45,7 @@ uses
   fpmktype,
   fprepos,
   fpxmlrep;
-  
+
 function TCommandUpdate.Execute(const Args:TActionArgs):boolean;
 Var
   X : TFPXMLRepositoryHandler;
@@ -83,10 +83,13 @@ function TCommandBuild.Execute(const Args:TActionArgs):boolean;
 begin
   ActionStack.Push(CurrentPackage,'fpmakebuild',Args);
   ActionStack.Push(CurrentPackage,'compilefpmake',Args);
-  if not DirectoryExists(PackageBuildPath) then
-    ActionStack.Push(CurrentPackage,'unziparchive',Args);
-  if not FileExists(PackageArchive) then
-    ActionStack.Push(CurrentPackage,'downloadpackage',Args);
+  if assigned(CurrentPackage) then
+    begin
+      if not DirectoryExists(PackageBuildPath) then
+        ActionStack.Push(CurrentPackage,'unziparchive',Args);
+      if not FileExists(PackageArchive) then
+        ActionStack.Push(CurrentPackage,'downloadpackage',Args);
+    end;
 end;
 
 

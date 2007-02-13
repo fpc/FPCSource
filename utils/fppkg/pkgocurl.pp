@@ -7,7 +7,7 @@ interface
 uses Classes,pkgdownload;
 
 Type
-  TOCurlDownloader = Class(TBasePackageDownloader)
+  TOCurlDownloader = Class(TBaseDownloader)
   Private
     FCurl : String;
   Protected

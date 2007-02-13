@@ -44,7 +44,6 @@ Type
 
   TPackageHandler = Class(TComponent)
   private
-    FBackupFile : Boolean;
     FDefaults   : TPackagerOptions;
     FCurrentPackage : TFPPackage;
   Protected
@@ -52,7 +51,6 @@ Type
     Procedure Log(Level: TVerbosity;Fmt : String; const Args : array of const);
     Procedure Error(Msg : String);
     Procedure Error(Fmt : String; const Args : array of const);
-    Procedure BackupFile(Const FileName : String);
     Function ExecuteProcess(Const Prog,Args:String):Integer;
     Procedure SetCurrentDir(Const ADir:String);
     function PackageBuildPath:String;
@@ -61,7 +59,6 @@ Type
     Constructor Create(AOwner: TComponent;ADefaults:TPackagerOptions;APackage:TFPPackage); virtual;
     function PackageLogPrefix:String;
     Function Execute(const Args:TActionArgs):boolean; virtual; abstract;
-    Property BackupFiles : Boolean Read FBackupFile Write FBackupFile;
     Property Defaults:TPackagerOptions Read FDefaults;
     Property CurrentPackage:TFPPackage Read FCurrentPackage Write FCurrentPackage;
   end;
@@ -214,16 +211,6 @@ begin
   FDefaults:=ADefaults;
   FCurrentPackage:=APackage;
 end;
-
-procedure TPackageHandler.BackupFile(const FileName: String);
-Var
-  BFN : String;
-begin
-  BFN:=FileName+'.bak';
-  If not RenameFile(FileName,BFN) then
-    Error(SErrBackupFailed,[FileName,BFN]);
-end;
-
 
 Function TPackageHandler.ExecuteProcess(Const Prog,Args:String):Integer;
 begin

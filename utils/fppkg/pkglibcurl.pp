@@ -7,7 +7,7 @@ interface
 uses Classes,pkgdownload,pkghandler;
 
 Type
-  TLibCurlDownloader = Class(TBasePackageDownloader)
+  TLibCurlDownloader = Class(TBaseDownloader)
   Protected
     Procedure LibCurlDownload(Const URL : String; Dest : TStream);
     Procedure FTPDownload(Const URL : String; Dest : TStream); override;

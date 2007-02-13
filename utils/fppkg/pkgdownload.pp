@@ -9,10 +9,13 @@ uses
 
 Type
 
-  { TBasePackageDownloader }
+  { TBaseDownloader }
 
-  TBasePackageDownloader = Class(TPackageHandler)
+  TBaseDownloader = Class(TComponent)
+  Private
+    FBackupFile : Boolean;
   Protected
+    Procedure BackupFile(Const FileName : String);
     // Needs overriding.
     Procedure FTPDownload(Const URL : String; Dest : TStream); Virtual;
     Procedure HTTPDownload(Const URL : String; Dest : TStream); Virtual;
@@ -20,29 +23,46 @@ Type
   Public
     Procedure Download(Const URL,DestFileName : String);
     Procedure Download(Const URL : String; Dest : TStream);
+    Property BackupFiles : Boolean Read FBackupFile Write FBackupFile;
   end;
-  TBasePackageDownloaderClass = Class of TBasePackageDownloader;
+  TBaseDownloaderClass = Class of TBaseDownloader;
+
+  { TDownloadPackage }
+
+  TDownloadPackage = Class(TPackagehandler)
+  Public
+    Function Execute(const Args:TActionArgs):boolean;override;
+  end;
 
 Var
-  DownloaderClass : TBasePackageDownloaderClass;
+  DownloaderClass : TBaseDownloaderClass;
 
 implementation
 
 uses pkgmessages,uriparser;
 
-{ TBasePackageDownloader }
+{ TBaseDownloader }
 
-procedure TBasePackageDownloader.FTPDownload(const URL: String; Dest: TStream);
+procedure TBaseDownloader.BackupFile(const FileName: String);
+Var
+  BFN : String;
+begin
+  BFN:=FileName+'.bak';
+  If not RenameFile(FileName,BFN) then
+    Error(SErrBackupFailed,[FileName,BFN]);
+end;
+
+procedure TBaseDownloader.FTPDownload(const URL: String; Dest: TStream);
 begin
   Error(SErrNoFTPDownload);
 end;
 
-procedure TBasePackageDownloader.HTTPDownload(const URL: String; Dest: TStream);
+procedure TBaseDownloader.HTTPDownload(const URL: String; Dest: TStream);
 begin
   Error(SErrNoHTTPDownload);
 end;
 
-procedure TBasePackageDownloader.FileDownload(const URL: String; Dest: TStream);
+procedure TBaseDownloader.FileDownload(const URL: String; Dest: TStream);
 
 Var
   URI : TURI;
@@ -62,7 +82,7 @@ begin
   end;
 end;
 
-procedure TBasePackageDownloader.Download(const URL, DestFileName: String);
+procedure TBaseDownloader.Download(const URL, DestFileName: String);
 
 Var
   F : TFileStream;
@@ -78,7 +98,7 @@ begin
   end;
 end;
 
-procedure TBasePackageDownloader.Download(const URL: String; Dest: TStream);
+procedure TBaseDownloader.Download(const URL: String; Dest: TStream);
 
 Var
   URI : TURI;
@@ -97,9 +117,24 @@ begin
     Error(SErrUnknownProtocol,[P]);
 end;
 
+
+{ TDownloadPackage }
+
+function TDownloadPackage.Execute(const Args:TActionArgs):boolean;
+begin
+  with DownloaderClass.Create(nil) do
+    try
+      Download(CurrentPackage.URL,PackageArchive);
+    finally
+      Free;
+    end;
+end;
+
+
 initialization
   // Default value.
-  DownloaderClass := TBasePackageDownloader;
+  DownloaderClass := TBaseDownloader;
 
+  RegisterPkgHandler('downloadpackage',TDownloadPackage);
 end.
 

@@ -7,11 +7,11 @@ interface
 uses Classes,pkgdownload,pkgropts,fprepos;
 
 Type
-  TWGetDownloader = Class(TBasePackageDownloader)
+  TWGetDownloader = Class(TBaseDownloader)
   Private
     FWGet : String;
   Protected
-    Constructor Create(AOwner: TComponent; ADefaults:TPackagerOptions; APackage: TFPPackage); override;
+    Constructor Create(AOwner: TComponent); override;
     Procedure WGetDownload(Const URL : String; Dest : TStream); virtual;
     Procedure FTPDownload(Const URL : String; Dest : TStream); override;
     Procedure HTTPDownload(Const URL : String; Dest : TStream); override;
@@ -23,7 +23,7 @@ implementation
 
 uses process,pkghandler,pkgmessages;
 
-Constructor TWGetDownloader.Create(AOwner: TComponent; ADefaults:TPackagerOptions; APackage: TFPPackage);
+Constructor TWGetDownloader.Create(AOwner: TComponent);
 
 begin
   Inherited;
