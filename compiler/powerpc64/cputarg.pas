@@ -63,6 +63,10 @@ implementation
 **************************************}
 
 { stabs debug info are not supported, so do not include them here}
+{ they are supported on darwin/ppc64 }
+  {$ifndef NoDbgDwarf}
+      ,dbgstabs
+  {$endif NoDbgDwarf}
   {$ifndef NoDbgDwarf}
       ,dbgdwarf
   {$endif NoDbgDwarf}
