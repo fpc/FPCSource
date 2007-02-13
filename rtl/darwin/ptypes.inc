@@ -54,12 +54,12 @@ type
     TPid     = pid_t;
     pPid     = ^pid_t;
 
-    size_t   = cuint32;         { as definied in the C standard}
+    size_t   = culong;          { as definied in the C standard}
     TSize    = size_t;
     pSize    = ^size_t;
     psize_t  = ^size_t;
 
-    ssize_t  = cint32;          { used by function for returning number of bytes }
+    ssize_t  = clong;           { used by function for returning number of bytes }
     TsSize   = ssize_t;
     psSize   = ^ssize_t;
 
@@ -139,22 +139,24 @@ type
      tstatfs = record
           otype : cint16;
           oflags : cint16;
-          bsize : cint32;
-          iosize : cint32;
-          blocks : cint32;
-          bfree : cint32;
-          bavail : cint32;
-          files : cint32;
-          ffree : cint32;
+          bsize : clong;
+          iosize : clong;
+          blocks : clong;
+          bfree : clong;
+          bavail : clong;
+          files : clong;
+          ffree : clong;
           fsid : fsid_t;
           fowner : uid_t;
           reserved1 : cint16;
           ftype : cint16;
-          fflags : cint32;
-          reserved2 : array[0..1] of cint32;
+          fflags : clong;
+          reserved2 : array[0..1] of clong;
           fstypename : array[0..(MFSNAMELEN)-1] of char;
           mountpoint : array[0..(MNAMELEN)-1] of char;
           mntfromname : array[0..(MNAMELEN)-1] of char;
+          f_reserved3: char;
+          reserved4: array[0..3] of clong;
        end;
     pstatfs = ^tstatfs;
 
