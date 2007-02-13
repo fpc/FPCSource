@@ -809,7 +809,7 @@ function GetEnhMetaFileHeader(_para1:HENHMETAFILE; _para2:UINT; _para3:LPENHMETA
 function GetEnhMetaFilePaletteEntries(_para1:HENHMETAFILE; _para2:UINT; _para3:LPPALETTEENTRY):UINT; external 'gdi32' name 'GetEnhMetaFilePaletteEntries';
 function GetEnhMetaFileBits(_para1:HENHMETAFILE; _para2:UINT; _para3:LPBYTE): UINT; external 'gdi32' name 'GetEnhMetaFileBits';
 function GetWinMetaFileBits(_para1:HENHMETAFILE; _para2:UINT; _para3:LPBYTE; _para4:wINT; _para5:HDC):UINT; external 'gdi32' name 'GetWinMetaFileBits';
-function PlayEnhMetaFile(_para1:HDC; _para2:HENHMETAFILE; var _para3:RECT):WINBOOL; external 'gdi32' name 'PlayEnhMetaFile';
+function PlayEnhMetaFile(_para1:HDC; _para2:HENHMETAFILE; const _para3:RECT):WINBOOL; external 'gdi32' name 'PlayEnhMetaFile';
 function PlayEnhMetaFileRecord(_para1:HDC; _para2:LPHANDLETABLE; var _para3:ENHMETARECORD; _para4:UINT):WINBOOL; external 'gdi32' name 'PlayEnhMetaFileRecord';
 function SetEnhMetaFileBits(_para1:UINT; var _para2:BYTE):HENHMETAFILE; external 'gdi32' name 'SetEnhMetaFileBits';
 function SetWinMetaFileBits(_para1:UINT; var _para2:BYTE; _para3:HDC; var _para4:METAFILEPICT):HENHMETAFILE; external 'gdi32' name 'SetWinMetaFileBits';

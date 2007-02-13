@@ -102,6 +102,16 @@ const
   CP_UTF7 = 65000;
   CP_UTF8 = 65001;
   CREATE_NO_WINDOW = $08000000;
+  
+  VK_ATTN = 246;
+  VK_CRSEL = 247;
+  VK_EXSEL = 248;
+  VK_EREOF = 249;
+  VK_PLAY = 250;
+  VK_ZOOM = 251;
+  VK_NONAME = 252;
+  VK_PA1 = 253;
+  VK_OEM_CLEAR = 254;
 
 const
   { Severity values }
@@ -812,6 +822,7 @@ function SetDeviceGammaRamp(DC: HDC; var Ramp): BOOL; external 'gdi32' name 'Set
 function SetDIBColorTable(DC: HDC; p2, p3: UINT; var RGBQuadSTructs): UINT; external 'gdi32' name 'SetDIBColorTable';
 function SetDIBits(DC: HDC; Bitmap: HBITMAP; StartScan, NumScans: UINT; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT): Integer; external 'gdi32' name 'SetDIBits';
 //function SetDIBitsToDevice(DC: HDC; DestX, DestY: Integer; Width, Height: DWORD; SrcX, SrcY: Integer; nStartScan, NumScans: UINT; Bits: Pointer; var BitsInfo: TBitmapInfo; Usage: UINT): Integer; external 'gdi32' name 'SetDIBitsToDevice';
+function SetEnhMetaFileBits(_para1:UINT; _para2:pointer):HENHMETAFILE; external 'gdi32' name 'SetEnhMetaFileBits';
 function SetFileTime(hFile:HANDLE; var lpCreationTime:FILETIME; var lpLastAccessTime:FILETIME; var lpLastWriteTime:FILETIME):WINBOOL; external 'kernel32' name 'SetFileTime';
 //function SetKeyboardState(var KeyState: TKeyboardState): BOOL; external 'user32' name 'SetKeyboardState';
 //function SetLocalTime(const lpSystemTime: TSystemTime): BOOL; external 'kernel32' name 'SetLocalTime';
