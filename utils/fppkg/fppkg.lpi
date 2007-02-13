@@ -12,7 +12,7 @@
       <MainUnit Value="0"/>
       <IconPath Value=".\"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="10"/>
+      <ActiveEditorIndexAtStart Value="3"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
@@ -28,18 +28,19 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
+        <CommandLineParams Value="build hash"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="35">
+    <Units Count="36">
       <Unit0>
         <Filename Value="fppkg.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="fppkg"/>
-        <CursorPos X="1" Y="85"/>
-        <TopLine Value="58"/>
+        <CursorPos X="41" Y="147"/>
+        <TopLine Value="171"/>
         <EditorIndex Value="0"/>
-        <UsageCount Value="68"/>
+        <UsageCount Value="73"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
@@ -48,14 +49,14 @@
         <UnitName Value="pkgoptions"/>
         <CursorPos X="41" Y="18"/>
         <TopLine Value="1"/>
-        <UsageCount Value="68"/>
+        <UsageCount Value="73"/>
       </Unit1>
       <Unit2>
         <Filename Value="fpmkcnst.inc"/>
         <IsPartOfProject Value="True"/>
         <CursorPos X="64" Y="8"/>
         <TopLine Value="1"/>
-        <UsageCount Value="68"/>
+        <UsageCount Value="73"/>
       </Unit2>
       <Unit3>
         <Filename Value="fpmktype.pp"/>
@@ -63,8 +64,8 @@
         <UnitName Value="fpmktype"/>
         <CursorPos X="3" Y="41"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="9"/>
-        <UsageCount Value="68"/>
+        <EditorIndex Value="6"/>
+        <UsageCount Value="73"/>
         <Loaded Value="True"/>
       </Unit3>
       <Unit4>
@@ -73,32 +74,36 @@
         <UnitName Value="fpmkunit"/>
         <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
-        <UsageCount Value="68"/>
+        <UsageCount Value="73"/>
       </Unit4>
       <Unit5>
         <Filename Value="fprepos.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="fprepos"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
-        <UsageCount Value="68"/>
+        <CursorPos X="21" Y="368"/>
+        <TopLine Value="356"/>
+        <EditorIndex Value="8"/>
+        <UsageCount Value="73"/>
+        <Loaded Value="True"/>
       </Unit5>
       <Unit6>
         <Filename Value="fpxmlrep.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="fpxmlrep"/>
-        <CursorPos X="1" Y="1"/>
-        <TopLine Value="1"/>
-        <UsageCount Value="68"/>
+        <CursorPos X="33" Y="259"/>
+        <TopLine Value="245"/>
+        <EditorIndex Value="9"/>
+        <UsageCount Value="73"/>
+        <Loaded Value="True"/>
       </Unit6>
       <Unit7>
         <Filename Value="pkghandler.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pkghandler"/>
-        <CursorPos X="125" Y="197"/>
-        <TopLine Value="175"/>
+        <CursorPos X="10" Y="167"/>
+        <TopLine Value="153"/>
         <EditorIndex Value="1"/>
-        <UsageCount Value="68"/>
+        <UsageCount Value="73"/>
         <Loaded Value="True"/>
       </Unit7>
       <Unit8>
@@ -107,28 +112,26 @@
         <UnitName Value="pkgmkconv"/>
         <CursorPos X="14" Y="53"/>
         <TopLine Value="29"/>
-        <EditorIndex Value="3"/>
-        <UsageCount Value="68"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="73"/>
       </Unit8>
       <Unit9>
         <Filename Value="pkgdownload.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pkgdownload"/>
-        <CursorPos X="14" Y="44"/>
-        <TopLine Value="28"/>
-        <EditorIndex Value="4"/>
-        <UsageCount Value="68"/>
+        <CursorPos X="18" Y="88"/>
+        <TopLine Value="71"/>
+        <EditorIndex Value="2"/>
+        <UsageCount Value="73"/>
         <Loaded Value="True"/>
       </Unit9>
       <Unit10>
         <Filename Value="pkgmessages.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pkgmessages"/>
-        <CursorPos X="55" Y="14"/>
-        <TopLine Value="1"/>
-        <EditorIndex Value="8"/>
-        <UsageCount Value="68"/>
+        <CursorPos X="1" Y="29"/>
+        <TopLine Value="27"/>
+        <EditorIndex Value="5"/>
+        <UsageCount Value="73"/>
         <Loaded Value="True"/>
       </Unit10>
       <Unit11>
@@ -174,20 +177,18 @@
       <Unit17>
         <Filename Value="pkgcommands.pp"/>
         <UnitName Value="pkgcommands"/>
-        <CursorPos X="28" Y="50"/>
-        <TopLine Value="1"/>
-        <EditorIndex Value="7"/>
-        <UsageCount Value="32"/>
+        <CursorPos X="1" Y="73"/>
+        <TopLine Value="54"/>
+        <EditorIndex Value="4"/>
+        <UsageCount Value="35"/>
         <Loaded Value="True"/>
       </Unit17>
       <Unit18>
         <Filename Value="pkgwget.pp"/>
         <UnitName Value="pkgwget"/>
-        <CursorPos X="14" Y="26"/>
+        <CursorPos X="18" Y="25"/>
         <TopLine Value="15"/>
-        <EditorIndex Value="2"/>
-        <UsageCount Value="27"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="29"/>
       </Unit18>
       <Unit19>
         <Filename Value="pkglnet.pas"/>
@@ -213,10 +214,10 @@
       <Unit22>
         <Filename Value="pkgarchive.pp"/>
         <UnitName Value="pkgarchive"/>
-        <CursorPos X="14" Y="27"/>
-        <TopLine Value="1"/>
-        <EditorIndex Value="5"/>
-        <UsageCount Value="23"/>
+        <CursorPos X="1" Y="70"/>
+        <TopLine Value="56"/>
+        <EditorIndex Value="3"/>
+        <UsageCount Value="26"/>
         <Loaded Value="True"/>
       </Unit22>
       <Unit23>
@@ -277,158 +278,163 @@
         <UnitName Value="pkgfpmake"/>
         <CursorPos X="48" Y="58"/>
         <TopLine Value="47"/>
-        <EditorIndex Value="6"/>
-        <UsageCount Value="12"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="14"/>
       </Unit31>
       <Unit32>
         <Filename Value="pkglnet.pp"/>
         <UnitName Value="pkglnet"/>
-        <CursorPos X="45" Y="16"/>
+        <CursorPos X="1" Y="1"/>
         <TopLine Value="1"/>
-        <EditorIndex Value="12"/>
-        <UsageCount Value="11"/>
+        <EditorIndex Value="11"/>
+        <UsageCount Value="13"/>
         <Loaded Value="True"/>
       </Unit32>
       <Unit33>
         <Filename Value="pkgoptions.pp"/>
         <UnitName Value="pkgoptions"/>
-        <CursorPos X="1" Y="300"/>
-        <TopLine Value="286"/>
-        <EditorIndex Value="10"/>
-        <UsageCount Value="11"/>
+        <CursorPos X="2" Y="193"/>
+        <TopLine Value="187"/>
+        <EditorIndex Value="7"/>
+        <UsageCount Value="13"/>
         <Loaded Value="True"/>
       </Unit33>
       <Unit34>
         <Filename Value="pkgglobals.pp"/>
         <UnitName Value="pkgglobals"/>
-        <CursorPos X="23" Y="81"/>
-        <TopLine Value="118"/>
-        <EditorIndex Value="11"/>
-        <UsageCount Value="11"/>
+        <CursorPos X="1" Y="87"/>
+        <TopLine Value="73"/>
+        <EditorIndex Value="10"/>
+        <UsageCount Value="13"/>
         <Loaded Value="True"/>
       </Unit34>
+      <Unit35>
+        <Filename Value="../../../fpc20/packages/base/netdb/uriparser.pp"/>
+        <UnitName Value="URIParser"/>
+        <CursorPos X="1" Y="193"/>
+        <TopLine Value="189"/>
+        <UsageCount Value="10"/>
+      </Unit35>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="pkghandler.pp"/>
-        <Caret Line="10" Column="1" TopLine="1"/>
+        <Caret Line="163" Column="5" TopLine="126"/>
       </Position1>
       <Position2>
-        <Filename Value="pkghandler.pp"/>
-        <Caret Line="59" Column="36" TopLine="45"/>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="130" Column="16" TopLine="116"/>
       </Position2>
       <Position3>
-        <Filename Value="pkgmkconv.pp"/>
-        <Caret Line="131" Column="36" TopLine="97"/>
+        <Filename Value="pkgarchive.pp"/>
+        <Caret Line="27" Column="14" TopLine="46"/>
       </Position3>
       <Position4>
-        <Filename Value="pkgmkconv.pp"/>
-        <Caret Line="584" Column="7" TopLine="569"/>
+        <Filename Value="pkgcommands.pp"/>
+        <Caret Line="60" Column="36" TopLine="50"/>
       </Position4>
       <Position5>
-        <Filename Value="pkgdownload.pp"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="pkgcommands.pp"/>
+        <Caret Line="58" Column="1" TopLine="44"/>
       </Position5>
       <Position6>
-        <Filename Value="pkgarchive.pp"/>
-        <Caret Line="61" Column="32" TopLine="50"/>
+        <Filename Value="pkgoptions.pp"/>
+        <Caret Line="64" Column="22" TopLine="41"/>
       </Position6>
       <Position7>
-        <Filename Value="pkgarchive.pp"/>
-        <Caret Line="67" Column="28" TopLine="54"/>
+        <Filename Value="pkgoptions.pp"/>
+        <Caret Line="110" Column="27" TopLine="96"/>
       </Position7>
       <Position8>
-        <Filename Value="pkgfpmake.pp"/>
-        <Caret Line="89" Column="1" TopLine="59"/>
+        <Filename Value="pkgoptions.pp"/>
+        <Caret Line="137" Column="39" TopLine="123"/>
       </Position8>
       <Position9>
-        <Filename Value="pkgcommands.pp"/>
-        <Caret Line="88" Column="21" TopLine="68"/>
+        <Filename Value="pkgoptions.pp"/>
+        <Caret Line="159" Column="31" TopLine="145"/>
       </Position9>
       <Position10>
-        <Filename Value="pkgcommands.pp"/>
-        <Caret Line="45" Column="14" TopLine="39"/>
+        <Filename Value="pkgoptions.pp"/>
+        <Caret Line="232" Column="25" TopLine="218"/>
       </Position10>
       <Position11>
-        <Filename Value="pkgcommands.pp"/>
-        <Caret Line="64" Column="1" TopLine="46"/>
+        <Filename Value="pkgoptions.pp"/>
+        <Caret Line="96" Column="16" TopLine="90"/>
       </Position11>
       <Position12>
-        <Filename Value="pkgcommands.pp"/>
-        <Caret Line="46" Column="14" TopLine="41"/>
+        <Filename Value="pkgoptions.pp"/>
+        <Caret Line="45" Column="41" TopLine="44"/>
       </Position12>
       <Position13>
-        <Filename Value="pkghandler.pp"/>
-        <Caret Line="185" Column="39" TopLine="172"/>
+        <Filename Value="pkgcommands.pp"/>
+        <Caret Line="53" Column="72" TopLine="50"/>
       </Position13>
       <Position14>
         <Filename Value="pkgcommands.pp"/>
-        <Caret Line="80" Column="50" TopLine="66"/>
+        <Caret Line="47" Column="15" TopLine="39"/>
       </Position14>
       <Position15>
         <Filename Value="pkgcommands.pp"/>
-        <Caret Line="87" Column="3" TopLine="66"/>
+        <Caret Line="59" Column="33" TopLine="45"/>
       </Position15>
       <Position16>
-        <Filename Value="pkgcommands.pp"/>
-        <Caret Line="81" Column="35" TopLine="72"/>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="85" Column="1" TopLine="58"/>
       </Position16>
       <Position17>
-        <Filename Value="pkgcommands.pp"/>
-        <Caret Line="83" Column="14" TopLine="69"/>
+        <Filename Value="fppkg.pp"/>
+        <Caret Line="149" Column="20" TopLine="135"/>
       </Position17>
       <Position18>
-        <Filename Value="pkghandler.pp"/>
-        <Caret Line="73" Column="1" TopLine="73"/>
+        <Filename Value="pkgmessages.pp"/>
+        <Caret Line="41" Column="18" TopLine="26"/>
       </Position18>
       <Position19>
-        <Filename Value="pkghandler.pp"/>
-        <Caret Line="197" Column="5" TopLine="164"/>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="91" Column="13" TopLine="78"/>
       </Position19>
       <Position20>
-        <Filename Value="pkgwget.pp"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="pkgdownload.pp"/>
+        <Caret Line="86" Column="1" TopLine="78"/>
       </Position20>
       <Position21>
-        <Filename Value="fppkg.pp"/>
-        <Caret Line="6" Column="38" TopLine="1"/>
+        <Filename Value="pkghandler.pp"/>
+        <Caret Line="106" Column="21" TopLine="93"/>
       </Position21>
       <Position22>
-        <Filename Value="fppkg.pp"/>
-        <Caret Line="14" Column="1" TopLine="7"/>
+        <Filename Value="pkgarchive.pp"/>
+        <Caret Line="62" Column="1" TopLine="48"/>
       </Position22>
       <Position23>
-        <Filename Value="fppkg.pp"/>
-        <Caret Line="45" Column="1" TopLine="31"/>
+        <Filename Value="pkgarchive.pp"/>
+        <Caret Line="73" Column="67" TopLine="50"/>
       </Position23>
       <Position24>
-        <Filename Value="fppkg.pp"/>
-        <Caret Line="312" Column="18" TopLine="298"/>
+        <Filename Value="pkgarchive.pp"/>
+        <Caret Line="67" Column="30" TopLine="54"/>
       </Position24>
       <Position25>
-        <Filename Value="pkgoptions.pp"/>
-        <Caret Line="299" Column="14" TopLine="286"/>
+        <Filename Value="pkgglobals.pp"/>
+        <Caret Line="87" Column="1" TopLine="73"/>
       </Position25>
       <Position26>
-        <Filename Value="fppkg.pp"/>
-        <Caret Line="313" Column="34" TopLine="298"/>
+        <Filename Value="pkgarchive.pp"/>
+        <Caret Line="62" Column="1" TopLine="48"/>
       </Position26>
       <Position27>
-        <Filename Value="pkgoptions.pp"/>
-        <Caret Line="62" Column="97" TopLine="46"/>
+        <Filename Value="pkgarchive.pp"/>
+        <Caret Line="64" Column="1" TopLine="50"/>
       </Position27>
       <Position28>
-        <Filename Value="pkgoptions.pp"/>
-        <Caret Line="369" Column="24" TopLine="349"/>
+        <Filename Value="pkgarchive.pp"/>
+        <Caret Line="67" Column="1" TopLine="53"/>
       </Position28>
       <Position29>
-        <Filename Value="pkgoptions.pp"/>
-        <Caret Line="308" Column="68" TopLine="286"/>
+        <Filename Value="pkgarchive.pp"/>
+        <Caret Line="68" Column="1" TopLine="54"/>
       </Position29>
       <Position30>
-        <Filename Value="pkgoptions.pp"/>
-        <Caret Line="301" Column="43" TopLine="286"/>
+        <Filename Value="pkgarchive.pp"/>
+        <Caret Line="69" Column="1" TopLine="55"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -463,6 +469,17 @@
     </Other>
   </CompilerOptions>
   <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Source Value="pkgarchive.pp"/>
+        <Line Value="62"/>
+      </Item1>
+    </BreakPoints>
+    <Watches Count="1">
+      <Item1>
+        <Expression Value="builddir"/>
+      </Item1>
+    </Watches>
     <Exceptions Count="2">
       <Item1>
         <Name Value="ECodetoolError"/>

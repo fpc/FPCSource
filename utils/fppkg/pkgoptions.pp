@@ -58,7 +58,9 @@ Type
     Procedure LoadCompilerFromFile(FileName : String);
     Procedure SaveCompilerToFile(FileName : String);
     Property Dirty : Boolean Read FDirty;
-    function LocalVersions(CompilerConfig:String):string;
+    function RemotePackagesFile:string;
+    function LocalPackagesFile:string;
+    function LocalVersionsFile(CompilerConfig:String):string;
   Published
     Property RemoteMirrorsLocation : String Index 0 Read GetOptString Write SetOptString;
     Property LocalMirrorsLocation : String Index 1 Read GetOptString Write SetOptString;
@@ -90,11 +92,16 @@ uses
   pkgmessages;
 
 Const
-  DefaultMirrorsLocation  = 'http://www.freepascal.org/repository/mirrors.xml';
-  DefaultRemoteRepository = 'fpc';
-  DefaultMirrors = 'mirrors.xml';
-  DefaultRepository = 'packages.xml';
-  DefaultVersions   = 'versions-%s.dat';
+  DefaultMirrorFile       = 'mirrors.xml';
+  DefaultPackagesFile     = 'packages.xml';
+  DefaultVersionsFile     = 'versions-%s.dat';
+  DefaultMirrorsLocation  = 'http://www.freepascal.org/repository/'+DefaultMirrorFile;
+{$warning TODO use real repository}
+{$ifdef unix}
+  DefaultRemoteRepository = 'file://'+{$I %HOME%}+'/repository/';
+{$else}
+  DefaultRemoteRepository = 'c:/repository/';
+{$endif}
 
   // ini file keys
   SDefaults = 'Defaults';
@@ -185,9 +192,21 @@ begin
 end;
 
 
-function TPackagerOptions.LocalVersions(CompilerConfig:String):string;
+function TPackagerOptions.RemotePackagesFile:string;
 begin
-  Result:=ExtractFilePath(FLocalRepository)+Format(DefaultVersions,[CompilerConfig]);
+  Result:=FRemoteRepository+DefaultPackagesFile;
+end;
+
+
+function TPackagerOptions.LocalPackagesFile:string;
+begin
+  Result:=FLocalRepository+DefaultPackagesFile;
+end;
+
+
+function TPackagerOptions.LocalVersionsFile(CompilerConfig:String):string;
+begin
+  Result:=FLocalRepository+Format(DefaultVersionsFile,[CompilerConfig]);
 end;
 
 
@@ -214,8 +233,8 @@ begin
   FBuildDir:=LocalDir+'build'+PathDelim;
   FPackagesDir:=LocalDir+'packages'+PathDelim;
   FCompilerConfigDir:=LocalDir+'config'+PathDelim;
-  FLocalMirrorsLocation:=LocalDir+DefaultMirrors;
-  FLocalRepository:=LocalDir+DefaultRepository;
+  FLocalMirrorsLocation:=LocalDir+DefaultMirrorFile;
+  FLocalRepository:=LocalDir;
   // Remote
   FRemoteMirrorsLocation:=DefaultMirrorsLocation;
   FRemoteRepository:=DefaultRemoteRepository;

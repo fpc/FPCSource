@@ -38,13 +38,14 @@ Resourcestring
   SLogRunAction              = 'Action: "%s %s"';
   SLogExecute                = 'Executing: "%s %s"';
   SLogChangeDir              = 'CurrentDir: "%s"';
+  SLogDownloading            = 'Downloading "%s" to "%s"';
   SLogUnzippping             = 'Unzipping "%s"';
   SLogLoadingGlobalConfig    = 'Loading global configuration from "%s"';
   SLogLoadingCompilerConfig  = 'Loading compiler configuration from "%s"';
   SLogGeneratingGlobalConfig = 'Generating default global configuration in "%s"';
   SLogGeneratingCompilerConfig  = 'Generating default compiler configuration in "%s"';
-  SLogLoadingRepository      = 'Loading repository data from "%s"';
-  SLogLoadingVersions        = 'Loading versions data from "%s"';
+  SLogLoadingPackagesFile    = 'Loading packages information from "%s"';
+  SLogLoadingVersionsFile    = 'Loading local versions information from "%s"';
 
 
 implementation

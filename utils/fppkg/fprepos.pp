@@ -91,7 +91,8 @@ Type
     FEmail: String;
     FLicense: String;
     FName: String;
-    FURL: String;
+    FExternalURL: String;
+    FFileName: String;
     FVersion: TFPVersion;
     FInstalledVersion: TFPVersion;
     FDependencies : TFPDependencies;
@@ -99,6 +100,7 @@ Type
     FCPUs : TCPUS;
     function GetDependencies: TFPDependencies;
     function GetHasDependencies: Boolean;
+    function GetFileName: String;
     procedure SetName(const AValue: String);
     procedure SetVersion(const AValue: TFPVersion);
   Protected
@@ -119,7 +121,8 @@ Type
     Property InstalledVersion : TFPVersion Read FInstalledVersion Write FInstalledVersion;
     Property License : String Read FLicense Write FLicense;
     Property Description : String Read FDescription Write FDescription;
-    Property URL : String Read FURL Write FURL;
+    Property ExternalURL : String Read FExternalURL Write FExternalURL;
+    Property FileName : String Read GetFileName Write FFileName;
     Property Email : String Read FEmail Write FEmail;
     Property OSes : TOSes Read FOSes Write FOses;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
@@ -198,7 +201,9 @@ Const
 
 Implementation
 
-uses typinfo;
+uses
+  typinfo,
+  uriparser;
 
 ResourceString
 
@@ -356,6 +361,19 @@ begin
   Result:=Assigned(FDependencies) and (FDependencies.Count>0);
 end;
 
+function TFPPackage.GetFileName: String;
+var
+  URI : TURI;
+begin
+  if FFileName='' then
+    begin
+      URI:=ParseURI(ExternalURL);
+      Result:=URI.Document;
+    end
+  else
+    Result:=FFileName;
+end;
+
 procedure TFPPackage.LoadFromStream(Stream: TStream; Streamversion : Integer);
 
 Var
@@ -370,7 +388,8 @@ begin
   Author:=ReadString(Stream);
   License:=ReadString(Stream);
   Description:=ReadString(Stream);
-  URL:=ReadString(Stream);
+  ExternalURL:=ReadString(Stream);
+  FileName:=ReadString(Stream);
   Email:=ReadString(Stream);
   Count:=ReadInteger(Stream);
   O:=[];
@@ -412,7 +431,8 @@ begin
   WriteString(Stream,Author);
   WriteString(Stream,License);
   WriteString(Stream,Description);
-  WriteString(Stream,URL);
+  WriteString(Stream,ExternalURL);
+  WriteString(Stream,FileName);
   WriteString(Stream,Email);
   { Write it like this, makes error checking easier when reading. }
   // OSes
@@ -453,7 +473,8 @@ begin
     Author:=P.Author;
     Version:=P.Version;
     Description:=P.Description;
-    URL:=P.URL;
+    ExternalURL:=P.ExternalURL;
+    FileName:=P.FileName;
     InstalledVersion:=P.Installedversion;
     If P.HasDependencies then
       Dependencies.Assign(P.Dependencies)

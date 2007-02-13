@@ -37,12 +37,27 @@ Type
 Var
   DownloaderClass : TBaseDownloaderClass;
 
+procedure DownloadFile(const RemoteFile,LocalFile:String);
+
+
 implementation
 
 uses
   uriparser,
   pkgglobals,
   pkgmessages;
+
+
+procedure DownloadFile(const RemoteFile,LocalFile:String);
+begin
+  with DownloaderClass.Create(nil) do
+    try
+      Download(RemoteFile,LocalFile);
+    finally
+      Free;
+    end;
+end;
+
 
 { TBaseDownloader }
 
@@ -68,13 +83,11 @@ end;
 procedure TBaseDownloader.FileDownload(const URL: String; Dest: TStream);
 
 Var
-  URI : TURI;
   FN : String;
   F : TFileStream;
 
 begin
-  URI:=ParseURI(URL);
-  FN:=URI.Path+'/'+URI.Document;
+  URIToFilename(URL,FN);
   If Not FileExists(FN) then
     Error(SErrNoSuchFile,[FN]);
   F:=TFileStream.Create(FN,fmOpenRead);
@@ -91,6 +104,7 @@ Var
   F : TFileStream;
 
 begin
+  Log(vCommands,SLogDownloading,[URL,DestFileName]);
   If FileExists(DestFileName) and BackupFiles then
     BackupFile(DestFileName);
   F:=TFileStream.Create(DestFileName,fmCreate);
@@ -127,7 +141,7 @@ function TDownloadPackage.Execute(const Args:TActionArgs):boolean;
 begin
   with DownloaderClass.Create(nil) do
     try
-      Download(CurrentPackage.URL,PackageArchive);
+      Download(PackageRemoteArchive,PackageLocalArchive);
     finally
       Free;
     end;

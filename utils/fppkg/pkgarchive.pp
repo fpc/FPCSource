@@ -58,13 +58,14 @@ Var
   BuildDir : string;
   ArchiveFile : String;
 begin
-  ArchiveFile:=PackageArchive;
+  ArchiveFile:=PackageLocalArchive;
   BuildDir:=PackageBuildPath;
   { Remove existing builddir }
   if DirectoryExists(BuildDir) then
     DeleteDir(BuildDir);
   { Unzip Archive }
-//  SetCurrentDir(PackageBuildPath);
+  ForceDirectories(BuildDir);
+  SetCurrentDir(BuildDir);
   With TUnZipper.Create do
     try
       Log(vCommands,SLogUnzippping,[ArchiveFile]);

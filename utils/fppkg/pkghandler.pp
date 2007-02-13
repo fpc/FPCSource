@@ -48,7 +48,8 @@ type
     Function ExecuteProcess(Const Prog,Args:String):Integer;
     Procedure SetCurrentDir(Const ADir:String);
     function PackageBuildPath:String;
-    function PackageArchive:String;
+    function PackageRemoteArchive: String;
+    function PackageLocalArchive:String;
   Public
     Constructor Create(AOwner:TComponent;APackage:TFPPackage); virtual;
     function PackageLogPrefix:String;
@@ -112,7 +113,7 @@ begin
           else
             logargs:=logargs+','+Args[i];
         end;
-      Log(vDebug,PackageLogPrefix+SLogRunAction,[AAction,logargs]);
+      Log(vDebug,SLogRunAction,[AAction,logargs]);
       Execute(Args);
     finally
       Free;
@@ -151,13 +152,21 @@ begin
     Result:=Defaults.BuildDir+CurrentPackage.Name;
 end;
 
-
-function TPackageHandler.PackageArchive:String;
-var
-  URI : TURI;
+function TPackageHandler.PackageRemoteArchive: String;
 begin
-  URI:=ParseURI(CurrentPackage.URL);
-  Result:=Defaults.PackagesDir+URI.Document;
+  if not assigned(CurrentPackage) then
+    Error(SErrNoPackageSpecified);
+  if CurrentPackage.ExternalURL<>'' then
+    Result:=CurrentPackage.ExternalURL
+  else
+    Result:=Defaults.RemoteRepository+CurrentPackage.FileName;
+end;
+
+function TPackageHandler.PackageLocalArchive: String;
+begin
+  if not assigned(CurrentPackage) then
+    Error(SErrNoPackageSpecified);
+  Result:=Defaults.PackagesDir+CurrentPackage.FileName;
 end;
 
 
