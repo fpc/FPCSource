@@ -41,7 +41,6 @@ Type
 
   TCursorName = Class(TSQLCursor)
   protected
-    FQMySQL : PMySQL;
     FRes: PMYSQL_RES;                   { Record pointer }
     FNeedData : Boolean;
     FStatement : String;
@@ -77,8 +76,8 @@ Type
     procedure DoInternalDisconnect; override;
     function GetHandle : pointer; override;
 
-    function GetAsSQLText(Field : TField) : string; overload; virtual;
-    function GetAsSQLText(Param : TParam) : string; overload; virtual;
+    function GetAsSQLText(Field : TField) : string; overload; override;
+    function GetAsSQLText(Param : TParam) : string; overload; override;
 
     Function AllocateCursorHandle : TSQLCursor; override;
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); override;
@@ -354,19 +353,12 @@ begin
       FStatement := AParams.ParseSQL(FStatement,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psSimulated,paramBinding,ParamReplaceString);
     if FStatementType=stSelect then
       FNeedData:=True;
-    ConnectMySQL(FQMySQL,FMySQL^.host,FMySQL^.user,FMySQL^.passwd);
-    if mysql_select_db(FQMySQL,pchar(DatabaseName))<>0 then
-      MySQLError(FQMySQL,SErrDatabaseSelectFailed,Self);
     end
 end;
 
 procedure TConnectionName.UnPrepareStatement(cursor: TSQLCursor);
 begin
-  With Cursor as TCursorName do
-    begin
-    mysql_close(FQMySQL);
-    FQMysql := nil;
-    end;
+  // do nothing
 end;
 
 procedure TConnectionName.FreeFldBuffers(cursor: TSQLCursor);
@@ -378,11 +370,6 @@ begin
   C:=Cursor as TCursorName;
   if c.FStatementType=stSelect then
     c.FNeedData:=False;
-  if (c.FQMySQL <> Nil) then
-    begin
-    mysql_close(c.FQMySQL);
-    c.FQMySQL:=Nil;
-    end;
   If (C.FRes<>Nil) then
     begin
     Mysql_free_result(C.FRes);
@@ -406,14 +393,14 @@ begin
     if Assigned(AParams) and (AParams.count > 0) then
       for i := 0 to AParams.count -1 do
         C.FStatement := stringreplace(C.FStatement,C.ParamReplaceString+inttostr(AParams[i].Index+1),GetAsSQLText(AParams[i]),[rfReplaceAll,rfIgnoreCase]);
-    if mysql_query(c.FQMySQL,Pchar(C.FStatement))<>0 then
-      MySQLError(c.FQMYSQL,Format(SErrExecuting,[StrPas(mysql_error(c.FQMySQL))]),Self)
+    if mysql_query(FMySQL,Pchar(C.FStatement))<>0 then
+      MySQLError(FMYSQL,Format(SErrExecuting,[StrPas(mysql_error(FMySQL))]),Self)
     else
       begin
-      C.RowsAffected := mysql_affected_rows(c.FQMYSQL);
-      C.LastInsertID := mysql_insert_id(c.FQMYSQL);
+      C.RowsAffected := mysql_affected_rows(FMYSQL);
+      C.LastInsertID := mysql_insert_id(FMYSQL);
       if C.FNeedData then
-        C.FRes:=mysql_use_result(c.FQMySQL);
+        C.FRes:=mysql_store_result(FMySQL);
       end;
     end;
 end;
@@ -493,7 +480,7 @@ begin
   If (C.FRes=Nil) then
     begin
 //    Writeln('res is nil');
-    MySQLError(c.FQMySQL,SErrNoQueryResult,Self);
+    MySQLError(FMySQL,SErrNoQueryResult,Self);
     end;
 //  Writeln('MySQL: have result');
   FC:=mysql_num_fields(C.FRes);
@@ -541,7 +528,7 @@ begin
   if C.Row=nil then
      begin
   //   Writeln('LoadFieldsFromBuffer: row=nil');
-     MySQLError(c.FQMySQL,SErrFetchingData,Self);
+     MySQLError(FMySQL,SErrFetchingData,Self);
      end;
   Row:=C.Row;
   
