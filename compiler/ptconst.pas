@@ -64,35 +64,38 @@ implementation
                    if is_constboolnode(n) then
                      list.concat(Tai_const.Create_8bit(byte(tordconstnode(n).value)))
                    else
-                     Message(parser_e_illegal_expression);
+                     IncompatibleTypes(n.resultdef, def);
                 end;
               bool16bit :
                 begin
                    if is_constboolnode(n) then
                      list.concat(Tai_const.Create_16bit(word(tordconstnode(n).value)))
                    else
-                     Message(parser_e_illegal_expression);
+                     IncompatibleTypes(n.resultdef, def);
                 end;
               bool32bit :
                 begin
                    if is_constboolnode(n) then
                      list.concat(Tai_const.Create_32bit(longint(tordconstnode(n).value)))
                    else
-                     Message(parser_e_illegal_expression);
+                     IncompatibleTypes(n.resultdef, def);
                 end;
               bool64bit :
                 begin
                    if is_constboolnode(n) then
                      list.concat(Tai_const.Create_64bit(int64(tordconstnode(n).value)))
                    else
-                     Message(parser_e_illegal_expression);
+                     IncompatibleTypes(n.resultdef, def);
                 end;
               uchar :
                 begin
-                   if is_constcharnode(n) then
+                   if is_constcharnode(n) or
+                     ((m_delphi in current_settings.modeswitches) and
+                      is_constwidecharnode(n) and
+                      (tordconstnode(n).value <= 255)) then
                      list.concat(Tai_const.Create_8bit(byte(tordconstnode(n).value)))
                    else
-                     Message(parser_e_illegal_expression);
+                     IncompatibleTypes(n.resultdef, def);
                 end;
               uwidechar :
                 begin
@@ -101,7 +104,7 @@ implementation
                    if is_constwidecharnode(n) then
                      list.concat(Tai_const.Create_16bit(word(tordconstnode(n).value)))
                    else
-                     Message(parser_e_illegal_expression);
+                     IncompatibleTypes(n.resultdef, def);
                 end;
               s8bit,u8bit,
               u16bit,s16bit,
@@ -123,7 +126,7 @@ implementation
                        end;
                      end
                    else
-                     Message(parser_e_illegal_expression);
+                     IncompatibleTypes(n.resultdef, def);
                 end;
               scurrency:
                 begin
@@ -135,7 +138,7 @@ implementation
                    else
                      begin
                        intvalue:=0;
-                       Message(parser_e_illegal_expression);
+                       IncompatibleTypes(n.resultdef, def);
                      end;
                   list.concat(Tai_const.Create_64bit(intvalue));
                 end;
@@ -156,7 +159,7 @@ implementation
           else if is_constintnode(n) then
             value:=tordconstnode(n).value
           else
-            Message(parser_e_illegal_expression);
+            IncompatibleTypes(n.resultdef, def);
 
           case def.floattype of
              s32real :
@@ -193,13 +196,13 @@ implementation
             loadvmtaddrn:
               begin
                 if not Tobjectdef(tclassrefdef(n.resultdef).pointeddef).is_related(tobjectdef(def.pointeddef)) then
-                  message(parser_e_illegal_expression);
+                  IncompatibleTypes(n.resultdef, def);
                 list.concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(Tobjectdef(tclassrefdef(n.resultdef).pointeddef).vmt_mangledname)));
               end;
              niln:
                list.concat(Tai_const.Create_sym(nil));
              else
-               Message(parser_e_illegal_expression);
+               IncompatibleTypes(n.resultdef, def);
           end;
           n.free;
         end;
@@ -281,7 +284,7 @@ implementation
                   if is_constcharnode(p) then
                     current_asmdata.asmlists[al_const].concat(Tai_string.Create(char(byte(tordconstnode(p).value))+#0))
                 else
-                  message(parser_e_illegal_expression);
+                  IncompatibleTypes(p.resultdef, def);
             end
           { maybe pwidechar ? }
           else
@@ -307,7 +310,7 @@ implementation
                      end;
                   end
                 else
-                  Message(parser_e_illegal_expression);
+                  IncompatibleTypes(p.resultdef, def);
             end
           else
             if (p.nodetype=addrn) or
