@@ -4,19 +4,13 @@ unit pkghandler;
 
 interface
 
-uses Classes,SysUtils, fpmktype, pkgropts, fprepos;
+uses
+  Classes,SysUtils,
+  pkgglobals,
+  pkgoptions,
+  fprepos;
 
-Const
-{$ifdef unix}
-  ExeExt = '';
-{$else unix}
-  ExeExt = '.exe';
-{$endif unix}
-
-Type
-  TVerbosity = (vError,vInfo,vCommands,vDebug);
-  TVerbosities = Set of TVerbosity;
-
+type
   { TActionStack }
 
   TActionArgs = array of string;
@@ -33,7 +27,7 @@ Type
     FList : TFPList;
   public
     constructor Create;
-    destructor Destroy;
+    destructor Destroy;override;
     procedure Push(APackage:TFPPackage;const AAction:string;const Args:TActionArgs);
     procedure Push(APackage:TFPPackage;const AAction:string;const Args:array of string);
     function  Pop(out APackage:TFPPackage;out AAction:string;out Args:TActionArgs):boolean;
@@ -44,46 +38,31 @@ Type
 
   TPackageHandler = Class(TComponent)
   private
-    FDefaults   : TPackagerOptions;
     FCurrentPackage : TFPPackage;
   Protected
     Procedure Log(Level: TVerbosity;Msg : String);
     Procedure Log(Level: TVerbosity;Fmt : String; const Args : array of const);
     Procedure Error(Msg : String);
     Procedure Error(Fmt : String; const Args : array of const);
+    procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs);
     Function ExecuteProcess(Const Prog,Args:String):Integer;
     Procedure SetCurrentDir(Const ADir:String);
     function PackageBuildPath:String;
     function PackageArchive:String;
   Public
-    Constructor Create(AOwner: TComponent;ADefaults:TPackagerOptions;APackage:TFPPackage); virtual;
+    Constructor Create(AOwner:TComponent;APackage:TFPPackage); virtual;
     function PackageLogPrefix:String;
     Function Execute(const Args:TActionArgs):boolean; virtual; abstract;
-    Property Defaults:TPackagerOptions Read FDefaults;
     Property CurrentPackage:TFPPackage Read FCurrentPackage Write FCurrentPackage;
   end;
   TPackageHandlerClass = class of TPackageHandler;
 
-  EPackageHandler = Class(EInstallerError);
+  EPackageHandler = Class(Exception);
 
 // Actions/PkgHandler
 procedure RegisterPkgHandler(const AAction:string;pkghandlerclass:TPackageHandlerClass);
 function GetPkgHandler(const AAction:string):TPackageHandlerClass;
-
-// Logging
-Function StringToVerbosity (S : String) : TVerbosity;
-Function VerbosityToString (V : TVerbosity): String;
-Procedure Log(Level: TVerbosity;Msg : String);
-Procedure Log(Level: TVerbosity;Fmt : String; const Args : array of const);
-Procedure Error(Msg : String);
-Procedure Error(Fmt : String; const Args : array of const);
-
-// Utils
-function maybequoted(const s:ansistring):ansistring;
-
-var
-  Verbosity : TVerbosities;
-  ActionStack : TActionStack;
+procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs);
 
 
 Implementation
@@ -116,99 +95,36 @@ begin
 end;
 
 
-function StringToVerbosity(S: String): TVerbosity;
-Var
-  I : integer;
-begin
-  I:=GetEnumValue(TypeInfo(TVerbosity),'v'+S);
-  If (I<>-1) then
-    Result:=TVerbosity(I)
-  else
-    Raise EPackageHandler.CreateFmt(SErrInvalidVerbosity,[S]);
-end;
-
-Function VerbosityToString (V : TVerbosity): String;
-begin
-  Result:=GetEnumName(TypeInfo(TVerbosity),Integer(V));
-  Delete(Result,1,1);// Delete 'v'
-end;
-
-
-procedure Log(Level:TVerbosity;Msg: String);
-begin
-  if Level in Verbosity then
-    Writeln(stdErr,Msg);
-end;
-
-
-Procedure Log(Level:TVerbosity; Fmt:String; const Args:array of const);
-begin
-  Log(Level,Format(Fmt,Args));
-end;
-
-
-procedure Error(Msg: String);
-begin
-  Raise EPackageHandler.Create(Msg);
-end;
-
-
-procedure Error(Fmt: String; const Args: array of const);
-begin
-  Raise EPackageHandler.CreateFmt(Fmt,Args);
-end;
-
-
-function maybequoted(const s:ansistring):ansistring;
-const
-  {$IFDEF MSWINDOWS}
-    FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
-                       '{', '}', '''', '`', '~'];
-  {$ELSE}
-    FORBIDDEN_CHARS = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
-                       '{', '}', '''', ':', '\', '`', '~'];
-  {$ENDIF}
+procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs);
 var
-  s1 : ansistring;
-  i  : integer;
-  quoted : boolean;
+  pkghandlerclass : TPackageHandlerClass;
+  i : integer;
+  logargs : string;
 begin
-  quoted:=false;
-  s1:='"';
-  for i:=1 to length(s) do
-   begin
-     case s[i] of
-       '"' :
-         begin
-           quoted:=true;
-           s1:=s1+'\"';
-         end;
-       ' ',
-       #128..#255 :
-         begin
-           quoted:=true;
-           s1:=s1+s[i];
-         end;
-       else begin
-         if s[i] in FORBIDDEN_CHARS then
-           quoted:=True;
-         s1:=s1+s[i];
-       end;
-     end;
-   end;
-  if quoted then
-    maybequoted:=s1+'"'
-  else
-    maybequoted:=s;
+  pkghandlerclass:=GetPkgHandler(AAction);
+  With pkghandlerclass.Create(nil,APackage) do
+    try
+      logargs:='';
+      for i:=Low(Args) to High(Args) do
+        begin
+          if logargs='' then
+            logargs:=Args[i]
+          else
+            logargs:=logargs+','+Args[i];
+        end;
+      Log(vDebug,PackageLogPrefix+SLogRunAction,[AAction,logargs]);
+      Execute(Args);
+    finally
+      Free;
+    end;
 end;
 
 
 { TPackageHandler }
 
-constructor TPackageHandler.Create(AOwner : TComponent; ADefaults:TPackagerOptions;APackage:TFPPackage);
+constructor TPackageHandler.Create(AOwner:TComponent;APackage:TFPPackage);
 begin
   inherited Create(AOwner);
-  FDefaults:=ADefaults;
   FCurrentPackage:=APackage;
 end;
 
@@ -256,22 +172,31 @@ end;
 
 Procedure TPackageHandler.Log(Level:TVerbosity; Msg:String);
 begin
-  pkghandler.Log(Level,PackageLogPrefix+Msg);
+  pkgglobals.Log(Level,PackageLogPrefix+Msg);
 end;
+
 
 Procedure TPackageHandler.Log(Level:TVerbosity; Fmt:String; const Args:array of const);
 begin
-  pkghandler.Log(Level,PackageLogPrefix+Fmt,Args);
+  pkgglobals.Log(Level,PackageLogPrefix+Fmt,Args);
 end;
+
 
 Procedure TPackageHandler.Error(Msg:String);
 begin
-  pkghandler.Error(PackageLogPrefix+Msg);
+  pkgglobals.Error(PackageLogPrefix+Msg);
 end;
+
 
 Procedure TPackageHandler.Error(Fmt:String; const Args:array of const);
 begin
-  pkghandler.Error(PackageLogPrefix+Fmt,Args);
+  pkgglobals.Error(PackageLogPrefix+Fmt,Args);
+end;
+
+
+procedure TPackageHandler.ExecuteAction(APackage: TFPPackage; const AAction: string; const Args: TActionArgs);
+begin
+  pkghandler.ExecuteAction(APackage,AAction,Args);
 end;
 
 
@@ -334,12 +259,8 @@ begin
 end;
 
 
-
-
 initialization
   PkgHandlerList:=TFPHashList.Create;
-  ActionStack:=TActionStack.Create;
 finalization
   FreeAndNil(PkgHandlerList);
-  FreeAndNil(ActionStack);
 end.

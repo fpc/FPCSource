@@ -8,7 +8,8 @@ version=2.0.0
 
 [target]
 programs=fppkg
-units=fpmktype fpmkunit fprepos fpxmlrep pkgropts pkghandler pkgmkconv pkgdownload
+units=fpmktype fpmkunit fprepos fpxmlrep
+implicitunits=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 units_linux=pkgwget  pkglnet pkglibcurl
 units_freebsd=pkgwget pkglnet pkglibcurl
 units_netbsd=pkgwget pkglnet pkglibcurl
@@ -19,15 +20,14 @@ units_win32=pkgwget pkglnet
 units_win64=pkgwget pkglnet
 units_wince=pkgwget pkglnet
 examples=rep2xml
-rsts=fprepos fpxmlrep fppkg
+rsts=fprepos fpxmlrep pkgmessages
 
 [compiler]
 unitdir=$(FCL20) lnet
 includedir=lnet/sys
 
 [clean]
-units=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer \
-  pkgarchive pkgcommands pkgfpmake pkgmessages
+units=$(FCL20UNITS) lCommon lControlStack lEvents lTelnet lftp lhttp lhttputil lnet lstrbuffer
 
 [install]
 fpcpackage=y

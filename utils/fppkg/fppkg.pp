@@ -9,9 +9,10 @@ uses
 {$endif}
   Classes, SysUtils, TypInfo, custapp,
   // Repository handler objects
-  fprepos, fpxmlrep,fpmktype, pkgmessages, pkgropts,
+  fprepos, fpxmlrep,
+  pkgmessages, pkgglobals, pkgoptions,
   // Package Handler components
-  pkghandler, pkgmkconv, pkgdownload,
+  pkghandler,pkgmkconv, pkgdownload,
   pkgarchive, pkgfpmake, pkgcommands
   // Downloaders
 {$if defined(unix) or defined(windows)}
@@ -24,9 +25,9 @@ Type
 
   TMakeTool = Class(TCustomApplication)
   Private
+    ActionStack : TActionStack;
     ParaAction : string;
     ParaPackages : TStringList;
-    FDefaults: TPackagerOptions;
     FRepository : TFPRepository;
     FCompilerConfig : String;
     procedure GenerateParaActions;
@@ -41,7 +42,6 @@ Type
     Procedure LoadCompilerDefaults;
     Procedure ProcessCommandLine;
     Procedure DoRun; Override;
-    procedure ExecuteAction(APackage:TFPPackage; const AAction:string; const Args:TActionArgs);
   end;
 
   EMakeToolError = Class(Exception);
@@ -76,23 +76,22 @@ var
 begin
   cfgfile:=GetConfigFileName;
   GeneratedConfig:=false;
-  FDefaults:=TPackagerOptions.Create;
   // Load file or create new default configuration
   if FileExists(cfgfile) then
-    FDefaults.LoadGlobalFromFile(cfgfile)
+    Defaults.LoadGlobalFromFile(cfgfile)
   else
     begin
       ForceDirectories(ExtractFilePath(cfgfile));
-      FDefaults.SaveGlobalToFile(cfgfile);
+      Defaults.SaveGlobalToFile(cfgfile);
       GeneratedConfig:=true;
     end;
   // Load default verbosity from config
   SL:=TStringList.Create;
-  SL.CommaText:=FDefaults.DefaultVerbosity;
+  SL.CommaText:=Defaults.DefaultVerbosity;
   for i:=0 to SL.Count-1 do
     Include(Verbosity,StringToVerbosity(SL[i]));
   SL.Free;
-  FCompilerConfig:=FDefaults.DefaultCompilerConfig;
+  FCompilerConfig:=Defaults.DefaultCompilerConfig;
   // Tracing of what we've done above, need to be done after the verbosity is set
   if GeneratedConfig then
     Log(vDebug,SLogGeneratingGlobalConfig,[cfgfile])
@@ -103,9 +102,9 @@ end;
 
 procedure TMakeTool.MaybeCreateLocalDirs;
 begin
-  ForceDirectories(FDefaults.BuildDir);
-  ForceDirectories(FDefaults.PackagesDir);
-  ForceDirectories(FDefaults.CompilerConfigDir);
+  ForceDirectories(Defaults.BuildDir);
+  ForceDirectories(Defaults.PackagesDir);
+  ForceDirectories(Defaults.CompilerConfigDir);
 end;
 
 
@@ -113,17 +112,17 @@ procedure TMakeTool.LoadCompilerDefaults;
 var
   S : String;
 begin
-  S:=FDefaults.CompilerConfigDir+FCompilerConfig;
+  S:=Defaults.CompilerConfigDir+FCompilerConfig;
   if FileExists(S) then
     begin
       Log(vDebug,SLogLoadingCompilerConfig,[S]);
-      FDefaults.LoadCompilerFromFile(S)
+      Defaults.LoadCompilerFromFile(S)
     end
   else
     begin
       Log(vDebug,SLogGeneratingCompilerConfig,[S]);
-      FDefaults.InitCompilerDefaults;
-      FDefaults.SaveCompilerToFile(S);
+      Defaults.InitCompilerDefaults;
+      Defaults.SaveCompilerToFile(S);
     end;
 end;
 
@@ -135,19 +134,19 @@ var
 begin
   FRepository:=TFPRepository.Create(Nil);
   // Repository
-  Log(vDebug,SLogLoadingRepository,[FDefaults.LocalRepository]);
-  if FileExists(FDefaults.LocalRepository) then
+  Log(vDebug,SLogLoadingRepository,[Defaults.LocalRepository]);
+  if FileExists(Defaults.LocalRepository) then
     begin
       X:=TFPXMLRepositoryHandler.Create;
       With X do
         try
-          LoadFromXml(FRepository,FDefaults.LocalRepository);
+          LoadFromXml(FRepository,Defaults.LocalRepository);
         finally
           Free;
         end;
     end;
   // Versions
-  S:=FDefaults.LocalVersions(FCompilerConfig);
+  S:=Defaults.LocalVersions(FCompilerConfig);
   Log(vDebug,SLogLoadingVersions,[S]);
   if FileExists(S) then
     FRepository.LoadStatusFromFile(S);
@@ -175,11 +174,13 @@ Constructor TMakeTool.Create;
 begin
   inherited Create(nil);
   ParaPackages:=TStringList.Create;
+  ActionStack:=TActionStack.Create;
 end;
 
 
 Destructor TMakeTool.Destroy;
 begin
+  FreeAndNil(ActionStack);
   FreeAndNil(ParaPackages);
   inherited Destroy;
 end;
@@ -289,31 +290,6 @@ begin
 end;
 
 
-procedure TMakeTool.ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs);
-var
-  pkghandlerclass : TPackageHandlerClass;
-  i : integer;
-  logargs : string;
-begin
-  pkghandlerclass:=GetPkgHandler(AAction);
-  With pkghandlerclass.Create(Self,FDefaults,APackage) do
-    try
-      logargs:='';
-      for i:=Low(Args) to High(Args) do
-        begin
-          if logargs='' then
-            logargs:=Args[i]
-          else
-            logargs:=logargs+','+Args[i];
-        end;
-      Log(vDebug,PackageLogPrefix+SLogRunAction,[AAction,logargs]);
-      Execute(Args);
-    finally
-      Free;
-    end;
-end;
-
-
 procedure TMakeTool.DoRun;
 var
   Action : string;
@@ -333,7 +309,7 @@ begin
     repeat
       if not ActionStack.Pop(ActionPackage,Action,Args) then
         break;
-      ExecuteAction(ActionPackage,Action,Args);
+      pkghandler.ExecuteAction(ActionPackage,Action,Args);
     until false;
     Terminate;
 

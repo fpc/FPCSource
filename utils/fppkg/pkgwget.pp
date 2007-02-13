@@ -4,7 +4,7 @@ unit pkgwget;
 
 interface
 
-uses Classes,pkgdownload,pkgropts,fprepos;
+uses Classes,pkgdownload,pkgoptions,fprepos;
 
 Type
   TWGetDownloader = Class(TBaseDownloader)
@@ -21,7 +21,10 @@ Type
 
 implementation
 
-uses process,pkghandler,pkgmessages;
+uses
+  process,
+  pkgglobals,
+  pkgmessages;
 
 Constructor TWGetDownloader.Create(AOwner: TComponent);
 

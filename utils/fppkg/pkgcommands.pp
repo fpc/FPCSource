@@ -42,6 +42,8 @@ implementation
 
 uses
   pkgmessages,
+  pkgglobals,
+  pkgoptions,
   fpmktype,
   fprepos,
   fpxmlrep;
@@ -75,28 +77,31 @@ end;
 
 function TCommandDownload.Execute(const Args:TActionArgs):boolean;
 begin
-  ActionStack.Push(CurrentPackage,'downloadpackage',Args);
+  if not assigned(CurrentPackage) then
+    Error(SErrNoPackageSpecified);
+  if not FileExists(PackageArchive) then
+    ExecuteAction(CurrentPackage,'downloadpackage',Args);
 end;
 
 
 function TCommandBuild.Execute(const Args:TActionArgs):boolean;
 begin
-  ActionStack.Push(CurrentPackage,'fpmakebuild',Args);
-  ActionStack.Push(CurrentPackage,'compilefpmake',Args);
   if assigned(CurrentPackage) then
     begin
-      if not DirectoryExists(PackageBuildPath) then
-        ActionStack.Push(CurrentPackage,'unziparchive',Args);
       if not FileExists(PackageArchive) then
-        ActionStack.Push(CurrentPackage,'downloadpackage',Args);
+        ExecuteAction(CurrentPackage,'downloadpackage',Args);
+      if not DirectoryExists(PackageBuildPath) then
+        ExecuteAction(CurrentPackage,'unziparchive',Args);
     end;
+  ExecuteAction(CurrentPackage,'fpmakebuild',Args);
+  ExecuteAction(CurrentPackage,'compilefpmake',Args);
 end;
 
 
 function TCommandInstall.Execute(const Args:TActionArgs):boolean;
 begin
-  ActionStack.Push(CurrentPackage,'fpmakeinstall',Args);
-  ActionStack.Push(CurrentPackage,'build',Args);
+  ExecuteAction(CurrentPackage,'build',Args);
+  ExecuteAction(CurrentPackage,'fpmakeinstall',Args);
 end;
 
 

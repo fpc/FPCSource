@@ -12,7 +12,7 @@
  **********************************************************************}
 {$mode objfpc}
 {$h+}
-unit pkgropts;
+unit pkgoptions;
 
 interface
 
@@ -77,6 +77,18 @@ Type
     Property CompilerCPU : TCPU Read FCompilerCPU Write SetCompilerCPU;
   end;
 
+var
+  Defaults : TPackagerOptions;
+    
+Implementation
+
+uses
+{$ifdef unix}
+  baseunix,
+{$endif}
+  pkgglobals,
+  pkgmessages;
+
 Const
   DefaultMirrorsLocation  = 'http://www.freepascal.org/repository/mirrors.xml';
   DefaultRemoteRepository = 'fpc';
@@ -103,25 +115,6 @@ Const
   KeyCompilerOS            = 'OS';
   KeyCompilerCPU           = 'CPU';
   KeyCompilerVersion       = 'Version';
-
-
-Implementation
-
-uses
-{$ifdef unix}
-  baseunix,
-{$endif}
-  pkghandler,
-  pkgmessages;
-
-Function FixPath(S : String) : string;
-
-begin
-  If (S<>'') then
-    Result:=IncludeTrailingPathDelimiter(S)
-  else
-    Result:='';
-end;
 
 
 { TPackagerOptions }
@@ -236,7 +229,7 @@ Procedure TPackagerOptions.InitCompilerDefaults;
 begin
   FCompiler:=FileSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
   if FCompiler='' then
-    Raise EPackageHandler.Create(SErrMissingFPC);
+    Raise EPackagerError.Create(SErrMissingFPC);
 {$warning TODO detect compiler version/target from -i options }
   FCompilerVersion:='2.0.4';
   FCompilerCPU:=StringToCPU({$I %FPCTARGETCPU%});
@@ -377,4 +370,8 @@ begin
   end;
 end;
 
+initialization
+  Defaults:=TPackagerOptions.Create;
+finalization
+  FreeAndNil(Defaults);
 end.

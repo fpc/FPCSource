@@ -4,7 +4,7 @@ unit pkglibcurl;
 
 interface
 
-uses Classes,pkgdownload,pkghandler;
+uses Classes,pkgdownload;
 
 Type
   TLibCurlDownloader = Class(TBaseDownloader)
@@ -16,7 +16,7 @@ Type
 
 implementation
 
-uses sysutils,uriparser,libcurl,pkgmessages,unixtype;
+uses sysutils,uriparser,libcurl,pkgmessages,pkgglobals,unixtype;
 
 Function DoStreamWrite(Ptr : Pointer; Size : size_t; nmemb: size_t; Data : Pointer) : size_t;cdecl;
 

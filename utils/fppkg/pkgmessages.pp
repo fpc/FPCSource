@@ -11,6 +11,7 @@ Resourcestring
   SErrMissingFPC             = 'Could not find a fpc executable in the PATH';
   SErrMissingFPMake          = 'Missing configuration fpmake.pp';
   SErrMissingMakefilefpc     = 'Missing configuration Makefile.fpc';
+  SErrNoPackageSpecified     = 'No package specified';
   SErrRunning                = 'The FPC make tool encountered the following error:';
   SErrActionAlreadyRegistered= 'Action "%s" is already registered';
   SErrActionNotFound         = 'Action "%s" is not supported';

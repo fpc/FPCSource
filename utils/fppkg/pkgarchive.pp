@@ -24,6 +24,7 @@ implementation
 uses
   zipper,
   uriparser,
+  pkgglobals,
   pkgmessages;
 
 Procedure DeleteDir(const ADir:string);

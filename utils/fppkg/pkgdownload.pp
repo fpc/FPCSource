@@ -39,7 +39,10 @@ Var
 
 implementation
 
-uses pkgmessages,uriparser;
+uses
+  uriparser,
+  pkgglobals,
+  pkgmessages;
 
 { TBaseDownloader }
 

@@ -45,6 +45,8 @@ type
 implementation
 
 uses
+  pkgoptions,
+  pkgglobals,
   pkgmessages;
 
 { TFPMakeCompiler }

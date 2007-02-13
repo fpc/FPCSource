@@ -48,7 +48,10 @@ Type
 
 implementation
 
-uses typinfo,pkgmessages;
+uses
+  TypInfo,
+  pkgglobals,
+  pkgmessages;
 
 Function GetWord(var S : String; Sep : Char) : String;
 

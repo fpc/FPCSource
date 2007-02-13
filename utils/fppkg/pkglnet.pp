@@ -6,7 +6,7 @@ interface
 
 uses
   SysUtils, Classes,
-  lnet, lftp, lhttp, pkgdownload,pkgropts, fprepos;
+  lnet, lftp, lhttp, pkgdownload,pkgoptions, fprepos;
 
 Type
 
@@ -39,7 +39,9 @@ Type
 implementation
 
 uses
-  pkghandler,pkgmessages, uriparser;
+  uriparser,
+  pkgglobals,
+  pkgmessages;
 
 { TLNetDownloader }
 
