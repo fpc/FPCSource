@@ -27,10 +27,14 @@ type
     procedure RunTest; override;
   published
   
+    procedure TestUpdateIndexDefs;
+    procedure TestGetIndexDefs;
     procedure TestDoubleQuoteEscapeComments;
     procedure TestpfInUpdateFlag; // bug 7565
     procedure TestInt;
     procedure TestScript;
+
+    procedure TestTemporaryTable;
 
     procedure TestParametersAndDates;
     procedure TestExceptionOnsecondClose;
@@ -60,6 +64,8 @@ type
 implementation
 
 uses sqldbtoolsunit,toolsunit, variants, sqldb, bufdataset;
+
+Type HackedDataset = class(TDataset);
 
 const
   testFloatValuesCount = 21;
@@ -827,6 +833,63 @@ procedure TTestFieldTypes.RunTest;
 begin
 //  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
+end;
+
+procedure TTestFieldTypes.TestUpdateIndexDefs;
+var ds : TSQLQuery;
+begin
+  ds := DBConnector.GetNDataset(1) as TSQLQuery;
+  ds.Prepare;
+  ds.IndexDefs.Update;
+  AssertEquals(1,ds.IndexDefs.count);
+  AssertEquals('ID',ds.indexdefs[0].Fields);
+  Asserttrue(ds.indexdefs[0].Options=[ixPrimary,ixUnique]);
+  ds.IndexDefs.Update;
+  AssertEquals(1,ds.IndexDefs.count);
+  AssertEquals('ID',ds.indexdefs[0].Fields);
+  Asserttrue(ds.indexdefs[0].Options=[ixPrimary,ixUnique]);
+end;
+
+procedure TTestFieldTypes.TestTemporaryTable;
+begin
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    SQL.Clear;
+    SQL.Add('CREATE TEMPORARY TABLE TEMP1 (id int)');
+    ExecSQL;
+    SQL.Text :=  'INSERT INTO TEMP1(id) values (5)';
+    ExecSQL;
+    SQL.Text := 'SELECT * FROM TEMP1';
+    Open;
+    AssertEquals(5,fields[0].AsInteger);
+    Close;
+    end;
+end;
+
+procedure TTestFieldTypes.TestGetIndexDefs;
+
+var ds : TSQLQuery;
+    inddefs : TIndexDefs;
+
+begin
+  ds := DBConnector.GetNDataset(1) as TSQLQuery;
+  ds.Open;
+  AssertEquals(1,ds.IndexDefs.count);
+  inddefs := HackedDataset(ds).GetIndexDefs(ds.IndexDefs,[ixPrimary]);
+  AssertEquals(1,inddefs.count);
+  AssertEquals('ID',inddefs[0].Fields);
+  Asserttrue(inddefs[0].Options=[ixPrimary,ixUnique]);
+  inddefs.Free;
+
+  inddefs := HackedDataset(ds).GetIndexDefs(ds.IndexDefs,[ixPrimary,ixUnique]);
+  AssertEquals(1,inddefs.count);
+  AssertEquals('ID',inddefs[0].Fields);
+  Asserttrue(inddefs[0].Options=[ixPrimary,ixUnique]);
+  inddefs.Free;
+
+  inddefs := HackedDataset(ds).GetIndexDefs(ds.IndexDefs,[ixDescending]);
+  AssertEquals(0,inddefs.count);
+  inddefs.Free;
 end;
 
 procedure TTestFieldTypes.TestDoubleQuoteEscapeComments;
