@@ -41,7 +41,10 @@ begin
     try
       repeat
         if (Info.Attr and faDirectory)=faDirectory then
-          DeleteDir(ADir+PathDelim+Info.Name)
+          begin
+            if (Info.Name<>'.') and (Info.Name<>'..') then
+              DeleteDir(ADir+PathDelim+Info.Name)
+          end
         else
           DeleteFile(ADir+PathDelim+Info.Name);
       until FindNext(Info)<>0;
@@ -60,12 +63,15 @@ Var
 begin
   ArchiveFile:=PackageLocalArchive;
   BuildDir:=PackageBuildPath;
-  { Remove existing builddir }
+  { Download file if it doesn't exists yet }
+  if not FileExists(ArchiveFile) then
+    ExecuteAction(CurrentPackage,'downloadpackage');
+  { Create builddir, remove it first if needed }
   if DirectoryExists(BuildDir) then
     DeleteDir(BuildDir);
-  { Unzip Archive }
   ForceDirectories(BuildDir);
   SetCurrentDir(BuildDir);
+  { Unzip Archive }
   With TUnZipper.Create do
     try
       Log(vCommands,SLogUnzippping,[ArchiveFile]);

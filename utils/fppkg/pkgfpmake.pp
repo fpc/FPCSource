@@ -101,6 +101,9 @@ Var
   I : integer;
   FPMakeBin : string;
 begin
+  { Maybe compile fpmake executable? }
+  ExecuteAction(CurrentPackage,'compilefpmake');
+  { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
   SetCurrentDir(PackageBuildPath);
   Result:=ExecuteProcess(FPMakeBin,Command);

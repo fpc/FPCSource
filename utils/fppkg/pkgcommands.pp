@@ -22,6 +22,13 @@ type
     Function Execute(const Args:TActionArgs):boolean;override;
   end;
 
+  { TCommandUnzip }
+
+  TCommandUnzip = Class(TPackagehandler)
+  Public
+    Function Execute(const Args:TActionArgs):boolean;override;
+  end;
+
   { TCommandBuild }
 
   TCommandBuild = Class(TPackagehandler)
@@ -61,17 +68,22 @@ begin
 end;
 
 
+function TCommandUnzip.Execute(const Args:TActionArgs):boolean;
+begin
+  if not assigned(CurrentPackage) then
+    Error(SErrNoPackageSpecified);
+  ExecuteAction(CurrentPackage,'unziparchive',Args);
+end;
+
+
 function TCommandBuild.Execute(const Args:TActionArgs):boolean;
 begin
   if assigned(CurrentPackage) then
     begin
-      if not FileExists(PackageLocalArchive) then
-        ExecuteAction(CurrentPackage,'downloadpackage',Args);
       if not DirectoryExists(PackageBuildPath) then
         ExecuteAction(CurrentPackage,'unziparchive',Args);
     end;
   ExecuteAction(CurrentPackage,'fpmakebuild',Args);
-  ExecuteAction(CurrentPackage,'compilefpmake',Args);
 end;
 
 
@@ -85,6 +97,7 @@ end;
 initialization
   RegisterPkgHandler('update',TCommandUpdate);
   RegisterPkgHandler('download',TCommandDownload);
+  RegisterPkgHandler('unzip',TCommandUnzip);
   RegisterPkgHandler('build',TCommandBuild);
   RegisterPkgHandler('install',TCommandInstall);
 end.

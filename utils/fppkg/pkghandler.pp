@@ -44,7 +44,7 @@ type
     Procedure Log(Level: TVerbosity;Fmt : String; const Args : array of const);
     Procedure Error(Msg : String);
     Procedure Error(Fmt : String; const Args : array of const);
-    procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs);
+    procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil);
     Function ExecuteProcess(Const Prog,Args:String):Integer;
     Procedure SetCurrentDir(Const ADir:String);
     function PackageBuildPath:String;
@@ -63,7 +63,7 @@ type
 // Actions/PkgHandler
 procedure RegisterPkgHandler(const AAction:string;pkghandlerclass:TPackageHandlerClass);
 function GetPkgHandler(const AAction:string):TPackageHandlerClass;
-procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs);
+procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil);
 
 
 Implementation
@@ -96,7 +96,7 @@ begin
 end;
 
 
-procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs);
+procedure ExecuteAction(APackage:TFPPackage;const AAction:string;const Args:TActionArgs=nil);
 var
   pkghandlerclass : TPackageHandlerClass;
   i : integer;
@@ -203,7 +203,7 @@ begin
 end;
 
 
-procedure TPackageHandler.ExecuteAction(APackage: TFPPackage; const AAction: string; const Args: TActionArgs);
+procedure TPackageHandler.ExecuteAction(APackage: TFPPackage; const AAction: string; const Args: TActionArgs=nil);
 begin
   pkghandler.ExecuteAction(APackage,AAction,Args);
 end;
