@@ -797,13 +797,16 @@ type
     FOptions : TIndexOptions;
     FSource : String;
   protected
+    procedure Assign(Source: TPersistent); override;
+    function GetExpression: string;
     procedure SetCaseInsFields(const AValue: string); virtual;
     procedure SetDescFields(const AValue: string);
+    procedure SetExpression(const AValue: string);
   public
     constructor Create(Owner: TIndexDefs; const AName, TheFields: string;
       TheOptions: TIndexOptions); overload;
     destructor Destroy; override;
-    property Expression: string read FExpression;
+    property Expression: string read GetExpression write SetExpression;
     property Fields: string read FFields write FFields;
     property CaseInsFields: string read FCaseinsFields write SetCaseInsFields;
     property DescFields: string read FDescFields write SetDescFields;
@@ -825,15 +828,12 @@ type
     destructor Destroy; override;
     procedure Add(const Name, Fields: string; Options: TIndexOptions);
     Function AddIndexDef: TIndexDef;
-    procedure Assign(IndexDefs: TIndexDefs); overload;
-//    procedure Clear;
     function Find(const IndexName: string): TIndexDef;
     function FindIndexForFields(const Fields: string): TIndexDef;
     function GetIndexForFields(const Fields: string;
       CaseInsensitive: Boolean): TIndexDef;
     function IndexOf(const Name: string): Longint;
     procedure Update; overload;
-//    property Count: Longint read FCount;
     Property Items[Index: Integer] : TIndexDef read GetItem write SetItem; default;
     property Updated: Boolean read FUpdated write FUpdated;
   end;
@@ -1065,6 +1065,7 @@ type
     Function  GetfieldCount : Integer;
     function  GetFieldValues(fieldname : string) : Variant; virtual;
     function  GetIsIndexField(Field: TField): Boolean; virtual;
+    function  GetIndexDefs(IndexDefs : TIndexDefs; IndexTypes : TIndexOptions) : TIndexDefs;
     function  GetNextRecords: Longint; virtual;
     function  GetNextRecord: Boolean; virtual;
     function  GetPriorRecords: Longint; virtual;
@@ -1885,6 +1886,35 @@ begin
   FDescFields:=AValue;
 end;
 
+procedure TIndexDef.Assign(Source: TPersistent);
+var idef : TIndexDef;
+begin
+  idef := nil;
+  if Source is TIndexDef then idef := Source as TIndexDef;
+  if Assigned(idef) then
+     begin
+     FName := idef.Name;
+     FFields := idef.Fields;
+     FOptions := idef.Options;
+     FCaseinsFields := idef.CaseInsFields;
+     FDescFields := idef.DescFields;
+     FSource := idef.Source;
+     FExpression := idef.Expression;
+     end
+  else
+    inherited Assign(Source);
+end;
+
+function TIndexDef.GetExpression: string;
+begin
+  Result := FExpression;
+end;
+
+procedure TIndexDef.SetExpression(const AValue: string);
+begin
+  FExpression := AValue;
+end;
+
 procedure TIndexDef.SetCaseInsFields(const AValue: string);
 begin
   if FCaseinsFields=AValue then exit;
@@ -1949,19 +1979,6 @@ procedure TIndexDefs.Add(const Name, Fields: string; Options: TIndexOptions);
 begin
   TIndexDef.Create(Self,Name,Fields,Options);
 end;
-
-
-procedure TIndexDefs.Assign(IndexDefs: TIndexDefs);
-
-begin
-  //!! To be implemented
-end;
-
-{procedure TIndexDefs.Clear;
-
-begin
-  //!! To be implemented
-end;}
 
 function TIndexDefs.Find(const IndexName: string): TIndexDef;
 var i: integer;

@@ -660,6 +660,40 @@ begin
   //!! To be implemented
 end;
 
+function TDataSet.GetIndexDefs(IndexDefs: TIndexDefs; IndexTypes: TIndexOptions
+  ): TIndexDefs;
+  
+var i,f : integer;
+    IndexFields : TStrings;
+    
+begin
+  IndexDefs.Update;
+  Result := TIndexDefs.Create(Self);
+  Result.Assign(IndexDefs);
+  i := 0;
+  IndexFields := TStringList.Create;
+  while i < result.Count do
+    begin
+    if (not ((IndexTypes = []) and (result[i].Options = []))) and
+       ((IndexTypes * result[i].Options) = []) then
+      begin
+      result.Delete(i);
+      dec(i);
+      end
+    else
+      begin
+      ExtractStrings([';'],[' '],pchar(result[i].Fields),Indexfields);
+      for f := 0 to IndexFields.Count-1 do if FindField(Indexfields[f]) = nil then
+        begin
+        result.Delete(i);
+        dec(i);
+        break;
+        end;
+      end;
+    inc(i);
+    end;
+  IndexFields.Free;
+end;
 
 Function TDataset.GetNextRecord: Boolean;
 
