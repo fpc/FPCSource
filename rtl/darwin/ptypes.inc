@@ -84,9 +84,11 @@ type
     TSocklen = socklen_t;
     pSocklen = ^socklen_t;
 
+    suseconds_t = cint32;
+
     timeval = record
-        tv_sec: cint;
-        tv_usec: cint;
+        tv_sec: time_t;
+        tv_usec: suseconds_t;
     end;
     ptimeval = ^timeval;
     TTimeVal = timeval;
@@ -124,7 +126,7 @@ type
 
 
   const
-     _PTHREAD_MUTEX_DEFAULT             = _PTHREAD_MUTEX_NORMAL;
+     _PTHREAD_MUTEX_DEFAULT    = _PTHREAD_MUTEX_NORMAL;
      _MUTEX_TYPE_FAST          = _PTHREAD_MUTEX_NORMAL;
      _MUTEX_TYPE_COUNTING_FAST = _PTHREAD_MUTEX_RECURSIVE;
 
@@ -161,14 +163,14 @@ type
     pstatfs = ^tstatfs;
 
    pthread_t            = pointer;
-   pthread_attr_t       = record sig: clong; opaque: array[0..36-1] of byte; end;
+   pthread_attr_t       = record sig: clong; opaque: array[0..{$ifdef cpu64}56{$else}36{$endif}-1] of byte; end;
    pthread_mutex_t      = {$i pmutext.inc}
    pthread_mutexattr_t  = record sig: clong; opaque: array[0..8-1] of byte; end;
-   pthread_cond_t       = record sig: clong; opaque: array[0..24-1] of byte; end;
-   pthread_condattr_t   = record sig: clong; opaque: array[0..4-1] of byte; end;
-   pthread_key_t        = clong;
-   pthread_rwlock_t             = record sig: clong; opaque: array[0..124-1] of byte; end;
-   pthread_rwlockattr_t = record sig: clong; opaque: array[0..12-1] of byte; end;
+   pthread_cond_t       = record sig: clong; opaque: array[0..{$ifdef cpu64}40{$else}24{$endif}-1] of byte; end;
+   pthread_condattr_t   = record sig: clong; opaque: array[0..{$ifdef cpu64}8{$else}4{$endif}-1] of byte; end;
+   pthread_key_t        = culong;
+   pthread_rwlock_t     = record sig: clong; opaque: array[0..{$ifdef cpu64}192{$else}124{$endif}-1] of byte; end;
+   pthread_rwlockattr_t = record sig: clong; opaque: array[0..{$ifdef cpu64}16{$else}12{$endif}-1] of byte; end;
 
    sem_t                = cint;
 
@@ -178,5 +180,4 @@ Const
   Prio_Process = 0;
   Prio_PGrp    = 1;
   Prio_User    = 2;
-
 
