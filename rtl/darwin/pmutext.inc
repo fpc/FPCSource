@@ -15,4 +15,4 @@
 { definition of pthread_mutex_t, because needed in both ptypes.inc and }
 { in sysosh.inc                                                        }
 
-record sig: {$ifdef cpu64}int64{$else}longint{$endif}; opaque: array[0..40-1] of byte; end;
+record sig: {$ifdef cpu64}int64{$else}longint{$endif}; opaque: array[0..{$ifdef cpu64}56{$else}40{$endif}-1] of byte; end;
