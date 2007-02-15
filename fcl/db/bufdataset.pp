@@ -150,7 +150,6 @@ type
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual; abstract;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual; abstract;
-    procedure LoadBlobIntoStream(Field: TField;AStream: TStream); virtual; abstract;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); virtual; abstract;
 
   public

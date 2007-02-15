@@ -90,7 +90,6 @@ type
     procedure AddFieldDefs(cursor:TSQLCursor; FieldDefs:TFieldDefs); override;
     function Fetch(cursor:TSQLCursor):boolean; override;
     function LoadField(cursor:TSQLCursor; FieldDef:TFieldDef; buffer:pointer; out CreateBlob : boolean):boolean; override;
-    procedure LoadBlobIntoStream(Field: TField;AStream: TStream;cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
     procedure FreeFldBuffers(cursor:TSQLCursor); override;
     // - UpdateIndexDefs
     procedure UpdateIndexDefs(var IndexDefs:TIndexDefs; TableName:string); override;
@@ -648,17 +647,6 @@ begin
   Result:=StrLenOrInd<>SQL_NULL_DATA; // Result indicates whether the value is non-null
 
 //  writeln(Format('Field.Size: %d; StrLenOrInd: %d',[FieldDef.Size, StrLenOrInd]));
-end;
-
-procedure TODBCConnection.LoadBlobIntoStream(Field: TField;AStream: TStream;cursor: TSQLCursor;ATransaction : TSQLTransaction);
-
-var
-  ODBCCursor: TODBCCursor;
-  BlobMemoryStream: TMemoryStream;
-begin
-  Field.GetData(@BlobMemoryStream);
-  if BlobMemoryStream<>nil then
-//    AStream.LoadFromStream(BlobMemoryStream);
 end;
 
 procedure TODBCConnection.FreeFldBuffers(cursor: TSQLCursor);

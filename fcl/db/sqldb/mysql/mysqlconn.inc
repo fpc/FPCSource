@@ -5,7 +5,7 @@
 interface
 
 uses
-  Classes, SysUtils,sqldb,db,dynlibs,
+  Classes, SysUtils,bufdataset,sqldb,db,dynlibs,
 {$IfDef mysql50}
   mysql50dyn;
   {$DEFINE TConnectionName:=TMySQL50Connection}
@@ -70,7 +70,7 @@ Type
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
     function MySQLDataType(AType: enum_field_types; ASize, ADecimals: Integer; var NewType: TFieldType; var NewSize: Integer): Boolean;
-    function MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType; BlobStrings: TStringList ;Source, Dest: PChar): Boolean;
+    function MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType; Source, Dest: PChar; out CreateBlob : boolean): Boolean;
     // SQLConnection methods
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -90,6 +90,7 @@ Type
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); override;
     function Fetch(cursor : TSQLCursor) : boolean; override;
     function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
@@ -523,7 +524,6 @@ var
 
 begin
 //  Writeln('LoadFieldsFromBuffer');
-  CreateBlob := False;
   C:=Cursor as TCursorName;
   if C.Row=nil then
      begin
@@ -535,7 +535,28 @@ begin
   inc(Row,c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
   field := mysql_fetch_field_direct(C.FRES, c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
 
-  Result := MySQLWriteData(field^.ftype, field^.length, FieldDef.DataType, c.FBlobStrings, Row^, Buffer);
+  Result := MySQLWriteData(field^.ftype, field^.length, FieldDef.DataType, Row^, Buffer, CreateBlob);
+end;
+
+procedure TConnectionName.LoadBlobIntoBuffer(FieldDef: TFieldDef;
+  ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
+var
+  row : MYSQL_ROW;
+  C : TCursorName;
+  li : longint;
+begin
+  C:=Cursor as TCursorName;
+  if C.Row=nil then
+    MySQLError(FMySQL,SErrFetchingData,Self);
+  Row:=C.Row;
+
+  inc(Row,c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
+
+  li := strlen(pchar(row^));
+
+  ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer,li);
+  Move(pchar(row^)^, ABlobBuf^.BlobBuffer^.Buffer^, li);
+  ABlobBuf^.BlobBuffer^.Size := li;
 end;
 
 function InternalStrToFloat(S: string): Extended;
@@ -650,7 +671,7 @@ begin
   Result := Result + EncodeTime(EH, EN, ES, 0);;
 end;
 
-function TConnectionName.MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType; BlobStrings: TStringList; Source, Dest: PChar): Boolean;
+function TConnectionName.MySQLWriteData(AType: enum_field_types;ASize: Integer; AFieldType: TFieldType; Source, Dest: PChar; out CreateBlob : boolean): Boolean;
 
 var
   VI: Integer;
@@ -661,6 +682,7 @@ var
 
 begin
   Result := False;
+  CreateBlob := False;
   if Source = Nil then
     exit;
   Src:=StrPas(Source);
@@ -748,12 +770,7 @@ begin
         Dest^ := #0;
       end;
     FIELD_TYPE_BLOB:
-      begin
-      // The data is stored in the TStringlist BlobStrings and it's index is
-      // stored in the record-buffer.
-      vi := BlobStrings.Add(Src);
-      Move(VI, Dest^, SizeOf(Integer));
-      end
+      CreateBlob := True;
   end;
   Result := True;
 end;

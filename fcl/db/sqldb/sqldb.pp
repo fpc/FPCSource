@@ -47,10 +47,6 @@ type
     FPrepared      : Boolean;
     FInitFieldDef  : Boolean;
     FStatementType : TStatementType;
-    FBlobStrings   : TStringList;   // list of strings in which the blob-fields are stored
-  public
-    constructor Create; virtual;
-    destructor Destroy; override;
   end;
 
 
@@ -108,7 +104,6 @@ type
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); virtual;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
-    procedure LoadBlobIntoStream(Field: TField;AStream: TStream;cursor: TSQLCursor;ATransaction : TSQLTransaction); virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
   public
     property Handle: Pointer read GetHandle;
@@ -236,7 +231,6 @@ type
     procedure SetServerFilterText(const Value: string); virtual;
     Function GetDataSource : TDatasource; override;
     Procedure SetDataSource(AValue : TDatasource); 
-    procedure LoadBlobIntoStream(Field: TField;AStream: TStream); override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
   public
     procedure Prepare; virtual;
@@ -496,31 +490,13 @@ end;
 
 procedure TSQLConnection.FreeFldBuffers(cursor: TSQLCursor);
 begin
-  cursor.FBlobStrings.Clear;
+  // empty
 end;
 
 function TSQLConnection.GetSchemaInfoSQL( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string;
 
 begin
   DatabaseError(SMetadataUnavailable);
-end;
-
-procedure TSQLConnection.LoadBlobIntoStream(Field: TField;AStream: TStream; cursor: TSQLCursor;ATransaction : TSQLTransaction);
-
-var blobId  : pinteger;
-    BlobBuf : TBufBlobField;
-    s       : string;
-
-begin
-{  if not field.getData(@BlobBuf) then
-    exit;
-  blobId := @BlobBuf.BufBlobId;
-
-  s := cursor.FBlobStrings.Strings[blobid^];
-
-  AStream.WriteBuffer(s[1],length(s));
-
-  AStream.seek(0,soFromBeginning);}
 end;
 
 procedure TSQLConnection.CreateDB;
@@ -1323,12 +1299,6 @@ begin
   SQL.Add((DataBase as tsqlconnection).GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaPattern));
 end;
 
-procedure TSQLQuery.LoadBlobIntoStream(Field: TField;AStream: TStream);
-
-begin
-  (DataBase as tsqlconnection).LoadBlobIntoStream(Field, AStream, FCursor,(Transaction as tsqltransaction));
-end;
-
 procedure TSQLQuery.LoadBlobIntoBuffer(FieldDef: TFieldDef;
   ABlobBuf: PBufBlobField);
 begin
@@ -1448,20 +1418,6 @@ begin
     end;
 
   until pBufPos^ = #0;
-end;
-
-{ TSQLCursor }
-
-constructor TSQLCursor.Create;
-begin
-  FBlobStrings := TStringList.Create;
-  inherited;
-end;
-
-destructor TSQLCursor.Destroy;
-begin
-  FBlobStrings.Free;
-  inherited Destroy;
 end;
 
 end.
