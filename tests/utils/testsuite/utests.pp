@@ -4,7 +4,7 @@ unit utests;
 
 interface
 
-uses cgiapp,sysutils,mysqlDB4,whtml,dbwhtml,db,
+uses cgiapp,sysutils,mysql41conn,sqldb,whtml,dbwhtml,db,
      Classes,ftFont,fpimage,fpimgcanv,fpWritePng,fpcanvas;
 
 {$ifndef TEST}
@@ -20,7 +20,8 @@ Type
   Private
     FHTMLWriter : THtmlWriter;
     FComboBoxProducer : TComboBoxProducer;
-    FDB : TMySQLDatabase;
+    FDB : TSQLConnection;
+    FTrans : TSQLTransaction;
     FRunID,
     FCompareRunID,
     FTestFileID,
@@ -46,7 +47,7 @@ Type
     Procedure FormatFileDetails(Sender: TObject; var CellData: String);
     Procedure DoDrawPie(Img : TFPCustomImage; Skipped,Failed,Total : Integer);
   Public
-    Function CreateDataset(Qry : String) : TMySQLDataset;
+    Function CreateDataset(Qry : String) : TSQLQuery;
     Function CreateTableProducer(DS : TDataset) :TTableProducer;
     Procedure DefaultTableFromQuery(Qry,ALink : String; IncludeRecordCount : Boolean);
     Procedure ComboBoxFromQuery(Const ComboName,Qry : String);
@@ -172,11 +173,14 @@ Function TTestSuite.ConnectToDB : Boolean;
 
 begin
   Result:=False;
-  FDB:=TMySQLDatabase.Create(Self);
+  FDB:=TMySQL41Connection.Create(Self);
   FDB.HostName:=DefHost;
   FDB.DatabaseName:=DefDatabase;
   FDB.UserName:=DefDBUser;
   FDB.Password:=DefPassword;
+  FTrans := TSQLTransaction.Create(nil);
+  FTrans.DataBase := FDB;
+  FDB.Transaction := FTrans;
   FDB.Connected:=True;
   Result:=True;
 end;
@@ -189,6 +193,7 @@ begin
     if (FDB.Connected) then
       FDB.Connected:=False;
     FreeAndNil(FDB);
+    FreeAndNil(FTrans);
     end;
 end;
 
@@ -201,12 +206,13 @@ end;
 Procedure TTestSuite.ComboBoxFromQuery(Const ComboName,Qry,Value : String);
 
 Var
-  Q : TMySQLDataset;
+  Q : TSQLQuery;
 
 begin
-  Q:=TMySQLDataset.Create(Self);
+  Q:=TSQLQuery.Create(Self);
   try
     Q.Database:=FDB;
+    Q.Transaction:=FTrans;
     Q.SQL.Text:=Qry;
     Q.Open;
     FComboboxProducer.Dataset:=Q;
@@ -223,13 +229,14 @@ end;
 Function TTestSuite.GetSingleton(Const Qry : String) : String;
 
 Var
-  Q : TMySQLDataset;
+  Q : TSQLQuery;
 
 begin
   Result:='';
-  Q:=TMySQLDataset.Create(Self);
+  Q:=TSQLQuery.Create(Self);
   try
     Q.Database:=FDB;
+    Q.Transaction:=FTrans;
     Q.SQL.Text:=Qry;
     Q.Open;
     Try
@@ -325,13 +332,14 @@ begin
 end;
 
 
-Function TTestSuite.CreateDataset(Qry : String) : TMySQLDataset;
+Function TTestSuite.CreateDataset(Qry : String) : TSQLQuery;
 
 begin
-  Result:=TMySQLdataset.Create(Self);
+  Result:=TSQLQuery.Create(Self);
   With Result do
     begin
     Database:=FDB;
+    Transaction := FTrans;
     SQL.Text:=Qry;
     end;
 end;
@@ -346,7 +354,7 @@ end;
 Procedure TTestSuite.DefaultTableFromQuery(Qry,Alink : String; IncludeRecordCount : Boolean);
 
 Var
-  Q : TMySQLDataset;
+  Q : TSQLQuery;
 
 begin
   If FDebug then
@@ -401,7 +409,7 @@ Const
 
 Var
   S,A,Qry : String;
-  Q : TMySQLDataset;
+  Q : TSQLQuery;
 
 begin
    S:='';
@@ -490,7 +498,7 @@ Const
 
 
 Var
-  Q1,Q2 : TmYSQLDataset;
+  Q1,Q2 : TSQLQuery;
   F : TField;
   Date1, Date2: TDateTime;
 begin
@@ -610,7 +618,7 @@ Procedure TTestSuite.ShowRunResults;
 Var
   S : String;
   Qry : String;
-  Q : TMySQLDataset;
+  Q : TSQLQuery;
   FL : String;
 
 begin
@@ -707,7 +715,7 @@ Procedure TTestSuite.ShowOneTest;
 Var
   S : String;
   Qry : String;
-  Q : TMySQLDataset;
+  Q : TSQLQuery;
   FL : String;
 
 begin
@@ -780,7 +788,7 @@ Procedure TTestSuite.ShowRunComparison;
 Var
   S : String;
   Qry : String;
-  Q : TMySQLDataset;
+  Q : TSQLQuery;
   FL : String;
 
 begin
