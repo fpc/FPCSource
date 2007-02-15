@@ -1451,7 +1451,8 @@ begin
   end;
 
   { create stack frame }
-  if (not nostackframe) and (localsize > 0) then begin
+  if (not nostackframe) and (localsize > 0) and
+     tppcprocinfo(current_procinfo).needstackframe then begin
     if (localsize <= high(smallint)) then begin
       reference_reset_base(href, NR_STACK_POINTER_REG, -localsize);
       a_load_store(list, A_STDU, NR_STACK_POINTER_REG, href);
@@ -1580,7 +1581,8 @@ begin
   { CR register not supported }
 
   { restore stack pointer }
-  if (not nostackframe) and (localsize > 0) then begin
+  if (not nostackframe) and (localsize > 0) and
+    tppcprocinfo(current_procinfo).needstackframe then begin
     if (localsize <= high(smallint)) then begin
       list.concat(taicpu.op_reg_reg_const(A_ADDI, NR_STACK_POINTER_REG, NR_STACK_POINTER_REG, localsize));
     end else begin
