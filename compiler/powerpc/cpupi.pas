@@ -34,6 +34,8 @@ unit cpupi;
 
     type
        tppcprocinfo = class(tcgprocinfo)
+          needstackframe: boolean;
+
           { offset where the frame pointer from the outer procedure is stored. }
           parent_framepointer_offset : longint;
           constructor create(aparent:tprocinfo);override;
@@ -167,11 +169,17 @@ unit cpupi;
                  ((32-first_save_int_reg)*4+(32-first_save_fpu_reg)*8 <= 220)) or
                 ((target_info.abi = abi_powerpc_sysv) and
                  (first_save_int_reg + first_save_fpu_reg = 64))) then
-              { don't allocate a stack frame }
-              result := (32-first_save_int_reg)*4+(32-first_save_fpu_reg)*8
+              begin
+                { don't allocate a stack frame }
+                result := (32-first_save_int_reg)*4+(32-first_save_fpu_reg)*8;
+                needstackframe := false;
+              end
             else
-              result := (32-first_save_int_reg)*4+(32-first_save_fpu_reg)*8+tg.lasttemp;
-            result := align(result,16);
+              begin
+                result := (32-first_save_int_reg)*4+(32-first_save_fpu_reg)*8+tg.lasttemp;
+                result := align(result,16);
+                needstackframe := result<>0;
+              end;
           end
         else
           result := align(tg.lasttemp,16);
