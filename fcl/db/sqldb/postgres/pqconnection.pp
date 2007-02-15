@@ -579,7 +579,6 @@ procedure TPQConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs)
 var
   i         : integer;
   size      : integer;
-  st        : string;
   fieldtype : tfieldtype;
   nFields   : integer;
 
@@ -617,8 +616,6 @@ end;
 
 function TPQConnection.Fetch(cursor : TSQLCursor) : boolean;
 
-var st : string;
-
 begin
   with cursor as TPQCursor do
     begin
@@ -644,7 +641,6 @@ var
   dbl           : pdouble;
   cur           : currency;
   NumericRecord : ^TNumericRecord;
-  s             : string;
 
 begin
   Createblob := False;
