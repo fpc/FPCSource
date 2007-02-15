@@ -877,7 +877,7 @@ implementation
                  orddef :
                    begin
                      { char constant to zero terminated string constant }
-                     if (fromtreetype=ordconstn) then
+                     if (fromtreetype in [ordconstn,arrayconstructorn]) then
                       begin
                         if (is_char(def_from) or is_widechar(def_from)) and
                            (is_pchar(def_to) or is_pwidechar(def_to)) then
