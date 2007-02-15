@@ -2501,7 +2501,11 @@ implementation
       begin
         { only needed if no line info at all has been generated }
         if generated_lineinfo then
-          exit;
+          begin
+            { reset for next module compilation }
+            generated_lineinfo:=false;
+            exit;
+          end;
         { at least the Darwin linker is annoyed if you do not }
         { finish the lineinfo section, or if it doesn't       }
         { contain at least one file name and set_address      }
