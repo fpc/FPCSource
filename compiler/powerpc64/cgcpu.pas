@@ -405,7 +405,7 @@ begin
       RS_R9, RS_R10, RS_R11, RS_R12, RS_R31, RS_R30, RS_R29,
       RS_R28, RS_R27, RS_R26, RS_R25, RS_R24, RS_R23, RS_R22,
       RS_R21, RS_R20, RS_R19, RS_R18, RS_R17, RS_R16, RS_R15,
-      RS_R14, RS_R13], first_int_imreg, []);
+      RS_R14], first_int_imreg, []);
   rg[R_FPUREGISTER] := trgcpu.create(R_FPUREGISTER, R_SUBNONE,
     [RS_F0, RS_F1, RS_F2, RS_F3, RS_F4, RS_F5, RS_F6, RS_F7, RS_F8, RS_F9,
     RS_F10, RS_F11, RS_F12, RS_F13, RS_F31, RS_F30, RS_F29, RS_F28, RS_F27,
