@@ -33,6 +33,8 @@ uses
 
 type
   tppcprocinfo = class(tcgprocinfo)
+    needstackframe: boolean;
+
     { offset where the frame pointer from the outer procedure is stored. }
     parent_framepointer_offset: longint;
     constructor create(aparent: tprocinfo); override;
@@ -100,9 +102,13 @@ begin
     if (pi_do_call in flags) or (tg.lasttemp <> tg.firsttemp) or
       (result > RED_ZONE_SIZE) {or (cs_profile in init_settings.moduleswitches)} then begin
       result := align(result + tg.lasttemp, ELF_STACK_ALIGN);
-    end;
-  end else
+      needstackframe:=true;
+    end else
+      needstackframe:=false;
+  end else begin
     result := align(tg.lasttemp, ELF_STACK_ALIGN);
+    needstackframe:=result<>0;
+  end;
 end;
 
 begin
