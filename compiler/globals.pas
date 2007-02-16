@@ -63,8 +63,10 @@ interface
           m_property,m_default_inline,m_except];
        tpmodeswitches     : tmodeswitches=
          [m_tp7,m_all,m_tp_procvar,m_duplicate_names];
+{$ifdef gpc_mode}
        gpcmodeswitches    : tmodeswitches=
          [m_gpc,m_all,m_tp_procvar];
+{$endif}
        macmodeswitches : tmodeswitches=
          [m_mac,m_all,m_result,m_cvar_support,m_mac_procvar];
 

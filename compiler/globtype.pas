@@ -180,7 +180,8 @@ interface
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,m_all, { needed for keyword }
          { generic }
-         m_fpc,m_objfpc,m_delphi,m_tp7,m_gpc,m_mac,
+         m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,
+         {$ifdef fpc_mode}m_gpc,{$endif}
          { more specific }
          m_class,               { delphi class model }
          m_objpas,              { load objpas unit }

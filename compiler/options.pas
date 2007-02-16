@@ -1069,8 +1069,10 @@ begin
                          include(init_settings.moduleswitches,cs_support_macro);
                        'o' : //an alternative to -Mtp
                          SetCompileMode('TP',true);
+{$ifdef gpc_mode}
                        'p' : //an alternative to -Mgpc
                          SetCompileMode('GPC',true);
+{$endif}
                        's' :
                          include(init_settings.globalswitches,cs_constructor_name);
                        't' :

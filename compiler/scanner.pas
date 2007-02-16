@@ -282,9 +282,11 @@ implementation
           current_settings.modeswitches:=objfpcmodeswitches;
           { TODO: enable this for 2.3/2.9 }
           //  include(current_settings.localswitches, cs_typed_addresses);
-        end else
-         if s='GPC' then
+        end 
+{$ifdef gpc_mode}
+        else if s='GPC' then
           current_settings.modeswitches:=gpcmodeswitches
+{$endif}
         else
          if s='MACPAS' then
           current_settings.modeswitches:=macmodeswitches
@@ -379,8 +381,10 @@ implementation
               undef_system_macro('FPC_TP')
             else if (m_objfpc in oldmodeswitches) then
               undef_system_macro('FPC_OBJFPC')
+{$ifdef gpc_mode}
             else if (m_gpc in oldmodeswitches) then
               undef_system_macro('FPC_GPC')
+{$endif}
             else if (m_mac in oldmodeswitches) then
               undef_system_macro('FPC_MACPAS');
 
@@ -391,8 +395,10 @@ implementation
               def_system_macro('FPC_TP')
             else if (m_objfpc in current_settings.modeswitches) then
               def_system_macro('FPC_OBJFPC')
+{$ifdef gpc_mode}
             else if (m_gpc in current_settings.modeswitches) then
               def_system_macro('FPC_GPC')
+{$endif}
             else if (m_mac in current_settings.modeswitches) then
               def_system_macro('FPC_MACPAS');
          end;
