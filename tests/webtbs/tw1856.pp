@@ -19,7 +19,7 @@ var
 begin
  setlength(flow, 10);
  setlength(flow, 1);
- flow[1]:=TFlowItem.Create;
+ flow[0]:=TFlowItem.Create;
 
  { release }
  setlength(flow, 0);
