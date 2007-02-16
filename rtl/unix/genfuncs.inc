@@ -23,7 +23,7 @@ var
   pp,p : ppchar;
 //  temp : string; !! Never pass a local var back!!
 begin
-  getmem(pp,4*4);
+  getmem(pp,4*sizeof(pointer));
   p:=pp;
   p^:=@Shell[1];
   inc(p);
