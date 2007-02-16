@@ -110,3 +110,6 @@
 
 { openssl }
 {$i openssl/fpmake.inc}
+
+{ pcap }
+{$i pcap/fpmake.inc}

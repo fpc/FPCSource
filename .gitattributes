@@ -3677,6 +3677,11 @@ packages/extra/palmunits/uicontrols.pp svneol=native#text/plain
 packages/extra/palmunits/uiresources.pp svneol=native#text/plain
 packages/extra/palmunits/vfsmgr.pp svneol=native#text/plain
 packages/extra/palmunits/window.pp svneol=native#text/plain
+packages/extra/pcap/Makefile svneol=native#text/plain
+packages/extra/pcap/Makefile.fpc svneol=native#text/plain
+packages/extra/pcap/fpmake.inc svneol=native#text/plain
+packages/extra/pcap/fpmake.pp svneol=native#text/plain
+packages/extra/pcap/pcap.pp svneol=native#text/plain
 packages/extra/ptc/Makefile -text
 packages/extra/ptc/Makefile.fpc -text
 packages/extra/ptc/aread.inc -text

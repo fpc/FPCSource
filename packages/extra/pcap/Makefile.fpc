@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for pcap bindings
+#
+
+[package]
+name=pcap
+version=1.0.0
+
+[target]
+units=pcap
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+[rules]
+.NOTPARALLEL:
