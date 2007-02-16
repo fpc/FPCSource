@@ -1821,7 +1821,7 @@ implementation
 
             { get temp for array of indicies,
               we set the real size later }
-            temp:=ctempcreatenode.create(sinttype,4,tt_persistent,false);
+            temp:=ctempcreatenode.create(s32inttype,4,tt_persistent,false);
             addstatement(newstatement,temp);
 
             countindices:=0;
@@ -1829,12 +1829,12 @@ implementation
               p4:=comp_expr(true);
 
               addstatement(newstatement,cassignmentnode.create(
-                ctemprefnode.create_offset(temp,countindices*sinttype.size),p4));
+                ctemprefnode.create_offset(temp,countindices*s32inttype.size),p4));
                inc(countindices);
             until not try_to_consume(_COMMA);
 
             { set real size }
-            temp.size:=countindices*sinttype.size;
+            temp.size:=countindices*s32inttype.size;
 
             consume(_RECKKLAMMER);
 
@@ -1846,7 +1846,7 @@ implementation
 
                 { create call to fpc_vararray_put }
                 paras:=ccallparanode.create(cordconstnode.create
-                      (countindices,sinttype,true),
+                      (countindices,s32inttype,true),
                    ccallparanode.create(caddrnode.create_internal
                   (ctemprefnode.create(temp)),
                    ccallparanode.create(ctypeconvnode.create_internal(p4,cvarianttype),
@@ -1864,7 +1864,7 @@ implementation
 
                 { create call to fpc_vararray_get }
                 paras:=ccallparanode.create(cordconstnode.create
-                      (countindices,sinttype,true),
+                      (countindices,s32inttype,true),
                    ccallparanode.create(caddrnode.create_internal
                   (ctemprefnode.create(temp)),
                    ccallparanode.create(p1,

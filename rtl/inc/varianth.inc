@@ -55,16 +55,16 @@ type
    pvararraybound = ^tvararraybound;
    pvararray = ^tvararray;
 
-   tvararraybound = packed record
+   tvararraybound = record
      elementcount,lowbound  : longint;
    end;
 
    tvararrayboundarray = array[0..0] of tvararraybound;
-   tvararraycoorarray = array[0..0] of SizeInt;
+   tvararraycoorarray = array[0..0] of Longint;
 
-   tvararray = packed record
+   tvararray = record
       dimcount,flags : word;
-      elementsize : ptrint;
+      elementsize : longint;
       lockcount : longint;
       data : pointer;
       bounds : tvararrayboundarray;
