@@ -885,6 +885,7 @@ implementation
         { set procdef options }
         pd.proctypeoption:=potype;
         pd.proccalloption:=pocall_default;
+        include(pd.procoptions,po_hascallingconvention);
         pd.forwarddef:=false;
         pd.setmangledname(target_info.cprefix+name);
         pd.aliasnames.insert(pd.mangledname);
