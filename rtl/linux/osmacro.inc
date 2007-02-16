@@ -90,9 +90,9 @@ end;
 
 
 {$ifdef FPC_USE_LIBC}
-function __fxstat(__ver,filedes : cint; var __stat: tstat): cint; cdecl; external clib name '__fxstat';
-function __xstat(__ver : cint;FileName: PChar; var __stat: tstat): cint; cdecl; external clib name '__xstat';
-function __lxstat(__ver : cint; FileName: PChar; var __stat: tstat): cint; cdecl; external clib name '__lxstat';
+function __fxstat(__ver,filedes : cint; var __stat: tstat): cint; cdecl; external clib name '__fxstat'+suffix64bit;
+function __xstat(__ver : cint;FileName: PChar; var __stat: tstat): cint; cdecl; external clib name '__xstat'+suffix64bit;
+function __lxstat(__ver : cint; FileName: PChar; var __stat: tstat): cint; cdecl; external clib name '__lxstat'+suffix64bit;
 {
 function __fxstat64(__ver : cint; FileDes: Integer; var __stat: tstat): cint; cdecl; external clib name '__fxstat64';
 function __xstat64(__ver : cint; FileName: PChar; var __stat: tstat): cint; cdecl; external clib name '__xstat64';
@@ -116,5 +116,12 @@ function  FpStat(path: pchar; var buf : stat): cint;inline;
   begin
     __xstat(_STAT_VER,path,buf);
   end;
+
+{$ifndef fs32bit}
+function  FpOpen    (path: pchar; flags : cint; mode: TMode):cint; inline;
+  begin
+    FpOpen:=__fpopen(path, flags or O_LARGEFILE, mode);
+  end;
+{$endif}
 
 {$endif FPC_USE_LIBC}

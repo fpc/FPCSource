@@ -57,7 +57,6 @@ end;
 
 {$I errno.inc}                          // error numbers
 {$I ostypes.inc}                        // c-types, unix base types, unix base structures
-{$I osmacro.inc}
 
 {$ifdef FPC_USE_LIBC}
   {$Linklib c}
@@ -69,6 +68,7 @@ end;
   {$I ossysc.inc}
 {$endif}
 
+{$I osmacro.inc}
 
 {*****************************************************************************
                             Error conversion

@@ -20,7 +20,9 @@
 {***********************************************************************}
 
 { Introduced defines
-    - fs64bit   (should be on if libc switches to a 64-bit system.
+    - fs32bit, should be on if libc only supports sizeof(off_t)=4
+               we assume one typically compiles C applications with 
+               #define _FILE_OFFSET_BITS 64
 
 All three tested systems (PPC,Alpha,2x i386) gave the same POSIX limits,
 and all three 32-bit systems returned completely identical types too
@@ -65,7 +67,7 @@ Type
     TnLink   = nlink_t;
     pnLink   = ^nlink_t;
 
-{$if not defined(FPC_USE_LIBC) or defined(fs64bit)}
+{$if not defined(fs32bit)}
     off_t    = cint64;          { used for file sizes          }
 {$else}
     off_t    = cint;

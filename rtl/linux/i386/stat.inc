@@ -41,26 +41,37 @@
 {$packrecords C}
   Stat =  Record  // No unix typing because of differences
                               // kernel <->libc
-    st_dev     : int64;
+    st_dev     : dev_t;
     pad1       : word;
-    st_ino     : longint;
-    st_mode,
-    st_nlink,
-    st_uid,
-    st_gid        : longint;
-    st_rdev       : int64;
-    pad2          : word;
-    st_size,
-    st_blksize,
-    st_blocks,
+{$ifdef fs32bit}
+    st_ino     : ino_t;
+{$else}
+    __st_ino   : ino_t;
+{$endif}    
+    st_mode    : mode_t;
+    st_nlink   : nlink_t;
+    st_uid     : uid_t;
+    st_gid     : gid_t;
+    st_rdev    : dev_t;
+    pad2       : word;
+    st_size    : off_t;
+    st_blksize : blksize_t;
+{$ifdef fs32bit}
+    st_blocks  : blkcnt_t;
+{$else}    
+    st_blocks  : blkcnt64_t;
+{$endif}    
     st_atime,
-    unused1,
+    st_atime_nsec,
     st_mtime,
-    unused2,
+    st_mtime_nsec,
     st_ctime,
-    unused3,
-    unused4,
-    unused5   : longint;
+    st_ctime_nsec : culong;
+{$ifdef fs32bit}
+    unused4, unused5: culong;
+{$else}    
+    st_ino     : ino64_t;
+{$endif}    
   end;
 
 

@@ -63,15 +63,16 @@
         st_uid     : uid_t;
         st_gid     : gid_t;
         st_rdev    : cULongLong;
+        __pad2     : cushort;
         st_size    : cLongLong;
         st_blksize : cULong;
-        st_blocks  : cULong;
+        st_blocks  : cULongLong;
         st_atime,
-        __unused1,
+        st_atime_nsec,
         st_mtime,
-        __unused2,
+        st_mtime_nsec,
         st_ctime,
-        __unused3,
+        st_ctime_nsec,
         __unused4,
         __unused5  : cULong);
       1: (
@@ -82,9 +83,10 @@
         uid    : uid_t;
         gid    : gid_t;
         rdev   : cULongLong;
+        __pad2_: cushort;
         size   : cLongLong;
-        blksize,
-        blocks,
+        blksize: cULong;
+        blocks : cULongLong;
         atime,
         __unused1_dummy,
         mtime,

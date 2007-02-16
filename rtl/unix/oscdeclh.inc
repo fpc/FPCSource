@@ -24,6 +24,13 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
      TFilDes = Array [0..1] of cInt;
      pFilDes = ^TFilDes;
 
+const
+{$if defined(linux) and defined(cpu32) and not defined(fs32bit)}
+    suffix64bit = '64';
+{$else}    
+    suffix64bit = '';
+{$endif}    
+
     function  FpAccess  (pathname : pchar; amode : cint): cint; cdecl; external clib name 'access';
     function  FpChdir   (path : pchar): cint; cdecl; external clib name 'chdir';
     function  FpClose   (fd : cint): cint; cdecl; external clib name 'close';
@@ -34,14 +41,20 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  FpExecve  (path : pchar; argv : ppchar; envp: ppchar): cint; cdecl; external clib name 'execve';
     function  FpFork  : TPid; cdecl; external clib name 'fork';
     function  FpvFork  : TPid; cdecl; external clib name 'vfork';
-    function  FpFtruncate(fd : cint; flength : TOff): cint; cdecl; external clib name 'ftruncate';
-    function  FpLseek   (fd : cint; offset : TOff; whence : cint): TOff; cdecl; external clib name 'lseek';
+    function  FpFtruncate(fd : cint; flength : TOff): cint; cdecl; external clib name 'ftruncate'+suffix64bit;
+    function  FpLseek   (fd : cint; offset : TOff; whence : cint): TOff; cdecl; external clib name 'lseek'+suffix64bit;
     function  FpMkdir   (path : pchar; mode: TMode):cint; cdecl; external clib name 'mkdir';
-    function  FpOpen    (path: pchar; flags : cint; mode: TMode):cint; cdecl; external clib name 'open';
+    function  FpOpen    (path: pchar; flags : cint; mode: TMode):cint;
+{$if defined(linux) and not defined(fs32bit)}
+    { we need a wrapper for linux to automatically pass O_LARGEFILE with flags }
+                                              {$ifdef FPC_IS_SYSTEM}forward;{$endif} inline;
+    function  __FpOpen  (path: pchar; flags : cint; mode: TMode):cint; 
+{$endif}
+                                                                        cdecl; external clib name 'open';
     function  FpOpendir (dirname : pchar): pdir; cdecl; external clib name 'opendir';
     function  FpRead    (fd: cint; buf: pchar; nbytes : TSize): TSSize; cdecl; external clib name 'read';
-    function  FpReaddir (dirp : pdir) : pdirent;cdecl; external clib name 'readdir';
-    Function  FpReaddir    (var dirp : Dir) : pDirent;cdecl; external clib name 'readdir';
+    function  FpReaddir (dirp : pdir) : pdirent;cdecl; external clib name 'readdir'+suffix64bit;
+    Function  FpReaddir (var dirp : Dir) : pDirent;cdecl; external clib name 'readdir'+suffix64bit;
     function  FpRename  (old : pchar; newpath: pchar): cint; cdecl;external clib name 'rename';
     function  FpRmdir   (path : pchar): cint; cdecl; external clib name 'rmdir';
     function  FpSigaction (sig: cint;var act : sigactionrec; var oact : sigactionrec): cint; cdecl; external clib name 'sigaction';
@@ -59,7 +72,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  FpWaitpid (pid : TPid; stat_loc : pcint; options: cint): TPid; cdecl; external clib name 'waitpid';
     function  FpWrite   (fd: cint;buf:pchar; nbytes : TSize): TSSize; cdecl; external clib name 'write';
     procedure FpExit    (status : cint); cdecl; external clib name '_exit';
-    function  fpmmap    (addr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;ofs:off_t):pointer; cdecl; external clib name 'mmap';
+    function  fpmmap    (addr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;ofs:off_t):pointer; cdecl; external clib name 'mmap'+suffix64bit;
     function  fpmunmap  (addr:pointer;len:size_t):cint; cdecl; external clib name 'munmap';
     function  FpIOCtl   (Handle:cint;Ndx: culong;Data: Pointer):cint; cdecl; external clib name 'ioctl';
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external clib name 'select';
@@ -109,14 +122,14 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     function  FpStat      (path: pchar; var buf : stat): cint;inline;
 {$endif FPC_IS_SYSTEM}
 {$else linux}
-    function  FpFstat   (fd : cint; var sb : stat): cint; cdecl; external clib name 'fstat';
-    Function  fpLstat       (path:pchar;Info:pstat):cint;     cdecl; external clib name 'lstat';
-    function  FpStat      (path: pchar; var buf : stat): cint; cdecl; external clib name 'stat';
+    function  FpFstat   (fd : cint; var sb : stat): cint; cdecl; external clib name 'fstat'+suffix64bit;
+    Function  fpLstat   (path:pchar;Info:pstat):cint;     cdecl; external clib name 'lstat'+suffix64bit;
+    function  FpStat    (path: pchar; var buf : stat): cint; cdecl; external clib name 'stat'+suffix64bit;
 {$endif linux}
 
-    Function  FpPRead      (fd : cInt; buf: pChar; nbytes : TSize; offset:Toff): TSsize;   cdecl; external clib name 'pread';
+    Function  FpPRead      (fd : cInt; buf: pChar; nbytes : TSize; offset:Toff): TSsize;   cdecl; external clib name 'pread'+suffix64bit;
     function  FpReadV	   (fd: cint; const iov : piovec; iovcnt : cint):TSSize;  cdecl; external clib name 'readv';
-    Function  FpPWrite     (fd : cInt; buf:pChar; nbytes : TSize; offset:Toff): TSSize;  cdecl; external clib name 'pwrite';
+    Function  FpPWrite     (fd : cInt; buf:pChar; nbytes : TSize; offset:Toff): TSSize;  cdecl; external clib name 'pwrite'+suffix64bit;
     function  FpWriteV	   (fd: cint; const iov : piovec; iovcnt : cint):TSSize;  cdecl; external clib name 'writev';
 
 {$ifdef linux}

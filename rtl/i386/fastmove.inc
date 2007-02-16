@@ -857,10 +857,4 @@ procedure setup_fastmove;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {$endif  FPC_SYSTEM_HAS_MOVE}
 
-{$else}
-
-procedure setup_fastmove;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-  end;
-
 {$endif}

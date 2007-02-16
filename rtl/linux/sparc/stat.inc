@@ -12,6 +12,8 @@
 
  **********************************************************************}
 
+{$IFNDEF FPC_USE_LIBC}
+
   Stat = packed record  // No unix typing because of differences
     st_dev    : culonglong;
     st_ino    : culonglong;
@@ -34,4 +36,33 @@
     __unused4 : cuint;
     __unused5 : cuint;
   end;
+
+{$ELSE FPC_USE_LIBC}
+
+{$PACKRECORDS C}
+
+  Stat = record
+    case byte of
+      st_dev     : cULongLong;
+      st_ino     : cULongLong;
+      st_mode    : mode_t;
+      st_nlink   : nlink_t;
+      st_uid     : uid_t;
+      st_gid     : gid_t;
+      st_rdev    : cULongLong;
+      __pad2     : cushort;
+      st_size    : cLongLong;
+      st_blksize : cULong;
+      st_blocks  : cULongLong;
+      st_atime,
+      st_atime_nsec,
+      st_mtime,
+      st_mtime_nsec,
+      st_ctime,
+      st_ctime_nsec,
+      __unused4,
+      __unused5  : cULong;
+  end;
+
+{$ENDIF FPC_USE_LIBC}
 

@@ -94,7 +94,7 @@ function mmx_support : boolean;
        mmx_support:=false;
   end;
 
-{$if not defined(INTERNALMOVEFILLCHAR) and not defined(Darwin)}
+{$if not defined(INTERNALMOVEFILLCHAR) and not defined(FPC_SYSTEM_HAS_MOVE)}
 {$define USE_FASTMOVE}
 {$i fastmove.inc}
 {$endif INTERNALMOVEFILLCHAR}
@@ -1227,7 +1227,7 @@ procedure fpc_cpucodeinit;
     has_sse_support:=sse_support;
     has_mmx_support:=mmx_support;
     SysResetFPU;
-{$ifndef darwin}
+{$ifdef USE_FASTMOVE}
     setup_fastmove;
 {$endif}
   end;
