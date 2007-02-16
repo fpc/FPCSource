@@ -25,6 +25,8 @@ Uses classes,sysutils;
 
 type Trtferrorhandler = Procedure (s : string) of object;
 
+{ TRTFParser }
+
 TRTFParser = class(TObject)
   private
     FOnRTFError : TRTFerrorHandler;
@@ -47,6 +49,7 @@ TRTFParser = class(TObject)
     ccb : array [0..rtfMaxClass] of TRTFFuncPtr;                { class callbacks }
     dcb : array [0..rtfMaxDestination] of TRTFFuncPtr;  { destination callbacks }
     readHook : TRTFFUNCPTR;
+    FTokenClass: Integer;
     Procedure Error (msg : String);
     Procedure LookupInit ;
     Procedure ReadFontTbl ;
@@ -465,6 +468,7 @@ FrtfClass   := rtfUnknown;
 FrtfParam   := rtfNoParam;
 rtfTextBuf := '';
 rtfTextLen := 0;
+FTokenClass := rtfUnknown;
 
 { get first character, which may be a pushback from previous token }
 
@@ -549,6 +553,7 @@ if ( not isalpha (c)) then
     End;
    { control symbol }
    Lookup (rtfTextBuf); { sets class, major, minor }
+   FTokenClass:=rtfControl;
    exit;
   End;
 { control word }
@@ -566,6 +571,7 @@ while (isalpha (c)) do
 if (c<>EOF) then
   delete(rtfTextBuf,length(rtfTextbuf),1);
 Lookup (rtfTextBuf);    { sets class, major, minor }
+FTokenClass:=rtfControl;
 if (c <>EOF) then
   rtfTextBuf:=rtfTextBuf+chr(c);
 { Should be looking at first digit of parameter if there
@@ -809,22 +815,24 @@ While true do
   FstyleList := sp;
   if not CheckCM (rtfGroup, rtfBeginGroup) then
      Error ('SSErr - missing {');
-  while GetToken=rtfControl do
+  while (GetToken=rtfControl) or (FTokenClass=rtfControl) do
     Begin
+    if rtfClass=rtfUnknown then
+      continue;
     if (CheckMM (rtfParAttr, rtfStyleNum)) then
       Begin
       sp^.rtfSNum:=rtfParam;
-      break;
+      continue;
       End;
     if (CheckMM (rtfStyleAttr, rtfBasedOn)) then
       Begin
       sp^.rtfSBasedOn:=rtfParam;
-      break;
+      continue;
       End;
     if (CheckMM (rtfStyleAttr, rtfNext)) then
       Begin
       sp^.rtfSNextPar:=rtfParam;
-      break;
+      Continue;
       End;
     new(sep);
     if sep=nil then
@@ -840,11 +848,12 @@ While true do
        sepLast^.rtfNextSE:=sep;
     sep^.rtfNextSE:=nil;
     sepLast:=sep;
-    End;
+  End;
   if sp^.rtfSNextPar=-1 then            { \snext not given }
     sp^.rtfSNextPar:=sp^.rtfSNum;       { next is itself }
   if rtfClass<>rtfText then
      Error ('SSErr - missing style name');
+  Bp:='';
   while rtfClass=rtfText do
     Begin
     if rtfMajor=ord(';') then
@@ -1040,7 +1049,6 @@ Procedure TRTFParser.Error (msg : String);
 begin
   if assigned(onrtferror) then onrtferror(msg);
 end;
-
 { ---------------------------------------------------------------------
        Token comparison routines
   ---------------------------------------------------------------------}
