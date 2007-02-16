@@ -6976,6 +6976,7 @@ tests/utils/testsuite/testsuite.pp svneol=native#text/plain
 tests/utils/testsuite/testsuite.sql svneol=native#text/plain
 tests/utils/testsuite/utests.pp svneol=native#text/plain
 tests/utils/testu.pp svneol=native#text/plain
+tests/utils/tresults.pp svneol=native#text/plain
 tests/utils/variants/genvartests.pp svneol=native#text/plain
 tests/utils/variants/processtests.sh svneol=native#text/plain
 tests/webtbf/tw0744.pp svneol=native#text/plain
