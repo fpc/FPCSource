@@ -182,7 +182,10 @@ unit cpupi;
               end;
           end
         else
-          result := align(tg.lasttemp,16);
+          begin
+            result := align(tg.lasttemp,16);
+            needstackframe:=result<>0;
+          end;
       end;
 
 
