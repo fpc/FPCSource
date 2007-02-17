@@ -1,6 +1,9 @@
 { %VERSION=1.1 }
 program testv5;
 
+{$ifopt R+}
+  {$define skip_range_error_tests}
+{$endif }
 uses variants,varutils;
 
 Procedure TestLongInt(I : Longint);
@@ -119,14 +122,6 @@ begin
   TestByte(0);
   TestInt64(0);
   TestQWord(0);
-  TestLongint(-1);
-  TestSmallInt(-1);
-  TestShortInt(-1);
-  TestCardinal(-1);
-  TestWord(-1);
-  TestByte(-1);
-  TestInt64(-1);
-  TestQWord(-1);
   TestLongint(1);
   TestSmallInt(1);
   TestShortInt(1);
@@ -135,4 +130,14 @@ begin
   TestByte(1);
   TestInt64(1);
   TestQWord(1);
+  TestLongint(-1);
+  TestSmallInt(-1);
+  TestShortInt(-1);
+  TestInt64(-1);
+{$ifndef skip_range_error_tests}
+  TestCardinal(-1);
+  TestWord(-1);
+  TestByte(-1);
+  TestQWord(-1);
+{$endif ndef skip_range_error_tests}
 end.
