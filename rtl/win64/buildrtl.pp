@@ -11,7 +11,8 @@ unit buildrtl;
       strutils, dateutils, varutils, variants, typinfo, fgl, classes,
       convutils, stdconvs, charset, ucomplex, getopts,
       winevent, sockets, printer,
-      video, mouse, keyboard, fmtbcd;
+      video, mouse, keyboard, fmtbcd,
+      sharemem;
 
   implementation
 
