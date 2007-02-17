@@ -994,10 +994,12 @@ implementation
              until not try_to_consume(_COMMA);
              consume(_COLON);
 
+{$ifdef gpc_mode}
              if (m_gpc in current_settings.modeswitches) and
                 (token=_ID) and
                 (orgpattern='__asmname__') then
                read_gpc_name(sc);
+{$endif}
 
              { read variable type def }
              read_anon_type(hdef,false);
