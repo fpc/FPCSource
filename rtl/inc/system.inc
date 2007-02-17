@@ -723,7 +723,7 @@ Begin
   pstdout:=@stdout;
   If erroraddr<>nil Then
    Begin
-     Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(PtrInt(Erroraddr),sizeof(PtrInt)*2));
+     Writeln(pstdout^,'Runtime error ',Errorcode,' at $',hexstr(erroraddr));
      { to get a nice symify }
      Writeln(pstdout^,BackTraceStrFunc(Erroraddr));
      dump_stack(pstdout^,ErrorBase);
@@ -782,7 +782,7 @@ end;
 
 function SysBackTraceStr (Addr: Pointer): ShortString;
 begin
-  SysBackTraceStr:='  $'+HexStr(Ptrint(addr),sizeof(PtrInt)*2);
+  SysBackTraceStr:='  $'+hexstr(addr);
 end;
 
 
