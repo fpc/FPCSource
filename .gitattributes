@@ -4828,7 +4828,6 @@ rtl/nds/sysfile.inc -text
 rtl/nds/sysheap.inc -text
 rtl/nds/sysos.inc -text
 rtl/nds/sysosh.inc -text
-rtl/nds/system.pp -text
 rtl/nds/systhrd.inc -text
 rtl/nds/sysutils.pp -text
 rtl/nds/tthread.inc -text

@@ -19,6 +19,7 @@ interface
 
 {$define __ARM__} (* For future usage! *)
 {$define FPC_IS_SYSTEM}
+{$define USE_NOTHREADMANAGER}
 
 {$i gbabiosh.inc}
 
@@ -81,11 +82,11 @@ implementation
 
 {$i gbabios.inc}
 
-
+{$ifdef FPC_HAS_FEATURE_PROCESSES}
 function GetProcessID: SizeUInt;
 begin
 end;
-
+{$endif}
 
 
 {*****************************************************************************
@@ -118,12 +119,14 @@ procedure randomize;
 begin
 end;
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
 end;
+{$endif}
 
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
@@ -170,5 +173,4 @@ begin
 
   InitSystemThreads;
   initvariantmanager;
-  initwidestringmanager;
 end.

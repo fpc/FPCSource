@@ -80,11 +80,11 @@ implementation
 
 {$i ndsbios.inc}
 
-
+{$ifdef FPC_HAS_FEATURE_PROCESSES}
 function GetProcessID: SizeUInt;
 begin
 end;
-
+{$endif}
 
 
 {*****************************************************************************
@@ -117,12 +117,14 @@ procedure randomize;
 begin
 end;
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
 end;
+{$endif}
 
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
