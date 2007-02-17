@@ -5,6 +5,7 @@ unit utests;
 interface
 
 uses cgiapp,sysutils,mysql41conn,sqldb,whtml,dbwhtml,db,
+     tresults,
      Classes,ftFont,fpimage,fpimgcanv,fpWritePng,fpcanvas;
 
 {$ifndef TEST}
@@ -25,6 +26,7 @@ Type
     FRunID,
     FCompareRunID,
     FTestFileID,
+    FTestFileName,
     FVersion,
     FCPU,
     FOS  : String;
@@ -35,7 +37,8 @@ Type
     FRunSkipCount,
     FRunFailedCount,
     FRunCount : Integer;
-    FAction : Integer;
+    FAction,
+    FLimit : Integer;
     FTestLastDays : Integer;
     Procedure GetOverviewRowAttr(Sender : TObject; Var BGColor : String;
                                    Var Align : THTMLAlign; Var VAlign : THTMLValign;
@@ -44,7 +47,9 @@ Type
                             Var Align : THTMLAlign; Var VAlign : THTMLValign;
                             Var CustomAttr : String) ;
     Procedure FormatFailedOverview(Sender : TObject; Var CellData : String);
+    Procedure FormatTestRunOverview(Sender : TObject; Var CellData : String);
     Procedure FormatFileDetails(Sender: TObject; var CellData: String);
+    Procedure FormatTestResult(Sender: TObject; var CellData: String);
     Procedure DoDrawPie(Img : TFPCustomImage; Skipped,Failed,Total : Integer);
   Public
     Function CreateDataset(Qry : String) : TSQLQuery;
@@ -66,6 +71,7 @@ Type
     Function ConnectToDB : Boolean;
     procedure DisconnectFromDB;
     Procedure EmitTitle(ATitle : String);
+    Procedure EmitEnd;
     Procedure ShowRunOverview;
     Procedure CreateRunPie;
     Function  ShowRunData : Boolean;
@@ -104,7 +110,8 @@ begin
         3 : ShowOneTest;
       end;
     finally
-        DisConnectFromDB;
+      EmitEnd; 
+      DisConnectFromDB;
     end;
   Finally
     Terminate;
@@ -126,6 +133,10 @@ begin
   if Length(S) = 0 then
     S:=RequestVariables['TESTACTION'];
   FAction:=StrToIntDef(S,0);
+  S:=RequestVariables['limit'];
+  if Length(S) = 0 then
+    S:=RequestVariables['TESTLIMIT'];
+  FLimit:=StrToIntDef(S,50);
   FVersion:=RequestVariables['version'];
   if Length(FVersion) = 0 then
     FVersion:=RequestVariables['TESTVERSION'];
@@ -161,6 +172,7 @@ begin
   FNoSkipped:=(S='1');
   FCompareRunID:=RequestVariables['run2id'];
   FTestFileID:=RequestVariables['testfileid'];
+  FTestFileName:=RequestVariables['testfilename'];
   FRunCount:=StrToIntDef(RequestVariables['PIETOTAL'],0);
   FRunSkipCount:=StrToIntDef(RequestVariables['PIESKIPPED'],0);
   FRunFailedCount:=StrToIntDef(RequestVariables['PIEFAILED'],0);
@@ -233,6 +245,11 @@ Var
 
 begin
   Result:='';
+  if FDEbug then
+    begin
+      system.Writeln('Query=',Qry);
+      system.flush(output);
+    end;
   Q:=TSQLQuery.Create(Self);
   try
     Q.Database:=FDB;
@@ -240,6 +257,12 @@ begin
     Q.SQL.Text:=Qry;
     Q.Open;
     Try
+      if FDebug and (Q.FieldCount<>1) then
+        begin
+          system.Writeln('GetSingleton number of fields is not 1, but ',
+            Q.FieldCount);
+          system.flush(output);
+        end;
       If Not (Q.EOF and Q.BOF) then
         Result:=Q.Fields[0].AsString;
     Finally
@@ -320,6 +343,10 @@ begin
     FormEnd;
     end;
   ShowRunOverview;
+end;
+
+procedure TTestSuite.EmitEnd;
+begin  
   AddResponseLn('</BODY>');
   AddResponseLn('</HTML>');
 end;
@@ -378,7 +405,7 @@ begin
             Free;
           end;
         If IncludeRecordCount then
-          Writeln('<p>Record count: ',Q.RecordCount,'</p>');
+          FHTMLWriter.DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
       Finally
         Close;
       end;
@@ -404,7 +431,7 @@ Const
                '(TR_TESTRUN_FK=TU_ID) '+
                '%s '+
               'GROUP BY TU_ID '+
-              'ORDER BY TU_ID DESC LIMIT 50';
+              'ORDER BY TU_ID DESC LIMIT %d';
 
 
 Var
@@ -428,7 +455,7 @@ begin
      A:=A+'&failedonly=1';
    If FNoSkipped then
      A:=A+'&noskipped=1';
-  Qry:=Format(SOverview,[S]);
+  Qry:=Format(SOverview,[S,FLimit]);
   If FDebug then
     Writeln('Query : '+Qry);
   Q:=CreateDataset(Qry);
@@ -447,7 +474,7 @@ begin
           Finally
             Free;
           end;
-        Writeln('<p>Record count: ',Q.RecordCount,'</p>');
+        FHTMLWriter.DumpLn(Format('<p>Record count: %d</p>',[Q.RecordCount]));
       Finally
         Close;
       end;
@@ -585,8 +612,10 @@ begin
           ParagraphStart;
           EmitCheckBox('noskipped','1',FNoSkipped);
           Write(' Hide skipped tests');
+	  ParagraphEnd;
+	  ParagraphStart;
           EmitCheckBox('failedonly','1',FonlyFailed);
-          Write(' Show only failed tests');
+          Write(' Hide successful tests');
           ParagraphEnd;
           ParaGraphStart;
           EmitSubmitButton('','Show/Compare');
@@ -655,13 +684,16 @@ begin
         end;
       HeaderEnd(2);
       ParaGraphStart;
-      S:='SELECT T_ID as Id,T_NAME as Filename,TR_SKIP as Skipped,TR_OK as OK'
+      S:='SELECT T_ID as Id,T_NAME as Filename,TR_SKIP as Skipped'
+        +',TR_OK as OK,TR_RESULT as Result'
         +' FROM TESTRESULTS,TESTS'
         +' WHERE (TR_TEST_FK=T_ID) AND (TR_TESTRUN_FK='+FRunID+') ';
+        
       If FOnlyFailed then
         S:=S+' AND (TR_OK="-")';
       If FNoSkipped then
         S:=S+' AND (TR_SKIP="-")';
+      S:=S+' ORDER BY TR_ID ';
       Qry:=S;
       If FDebug then
         begin
@@ -684,15 +716,19 @@ begin
                   FL:=FL+',Skipped';
                 If Not FOnlyFailed then
                   FL:=FL+',OK';
+                FL:=FL+',Result';
                 CreateColumns(FL);
                 OnGetRowAttributes:=@GetRunRowAttr;
-                TableColumns.ColumnByNAme('Filename').OnGetCellContents:=@FormatFileDetails;
+                TableColumns.ColumnByNAme('Filename').OnGetCellContents:=
+                  @FormatFileDetails;
+                TableColumns.ColumnByNAme('Result').OnGetCellContents:=
+                  @FormatTestResult;
                 //(TableColumns.Items[0] as TTableColumn).ActionURL:=ALink;
                 CreateTable(Response);
               Finally
                 Free;
               end;
-            Writeln('<p>Record count: ',Q.RecordCount,'</p>');
+            DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
           Finally
             Close;
           end;
@@ -716,34 +752,106 @@ Var
   S : String;
   Qry : String;
   Q : TSQLQuery;
-  FL : String;
-
+  i : longint;
+  FieldName,FieldValue,
+  Log,Comment,Source : String;
+  Res : Boolean;
 begin
   ConnectToDB;
   ContentType:='text/html';
   EmitContentType;
-  EmitTitle(Title+' : File '+GetTestFileName(FTestFileID)+' Results');
+  if FTestFileID='' then
+    FTestFileID:=GetSingleton('SELECT T_ID FROM TESTS WHERE T_NAME LIKE ''%'+
+     FTestFileName+'%''');
+  if FTestFileID<>'' then
+    FTestFileName:=GetTestFileName(FTestFileID);
+  EmitTitle(Title+' : File '+FTestFileName+' Results');
   With FHTMLWriter do
     begin
     HeaderStart(1);
-    Write('Test suite results for test file '+GetTestFileName(FTestFileID));
+    Write('Test suite results for test file '+FTestFileName);
     HeaderEnd(1);
     HeaderStart(2);
     Write('Test run data : ');
     HeaderEnd(2);
-    If ShowRunData then
+    if FRunID<>'' then
       begin
+        Res:=ShowRunData;
+        Res:=true;
+      end
+    else 
+      begin
+        // This is useless as it is now
+        // It should be integrated into a form probably PM 
+        Write('Only failed tests');
+        EmitCheckBox('failedonly','1',FonlyFailed);
+        Write('Hide skipped tests');
+        EmitCheckBox('noskipped','1',FNoSkipped);
+        Res:=true;
+      end;
+    If Res then
+      begin
+      HeaderStart(2);
+      Write('Test file "'+FTestFileName+'" information:');
+      HeaderEnd(2);
+      ParaGraphStart;
+      if FTestFileID<>'' then
+        S:='SELECT * FROM TESTS WHERE T_ID='+FTestFileID
+      else
+        S:='SELECT * FROM TESTS WHERE T_NAME='+FTestFileName;
+      Q:=CreateDataSet(S);
+      With Q do
+        Try
+          Open;
+          Try
+            For i:=0 to FieldCount-1 do
+              begin
+                FieldValue:=Fields[i].AsString;
+                FieldName:=Fields[i].DisplayName;
+                
+                if (FieldValue<>'') and (FieldValue<>'-') and 
+                   (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
+                  begin
+                    if (FieldValue='+') then
+                      Write('Flag ');
+                    Write(FieldName);
+                    Write(' ');
+                    if FieldValue='+' then
+                      Write(' set')
+                    else
+                      Write(FieldValue);
+                    DumpLn('<BR>');
+                  end;
+              end;
+           
+          Finally
+            Close;
+          end;
+        Finally
+          Free;
+        end;
+      ParaGraphEnd;  
       HeaderStart(2);
       Write('Detailed test run results:');
 
-      FL:='';
       HeaderEnd(2);
       ParaGraphStart;
-      S:='SELECT *  FROM TESTS'
-        +' WHERE  (T_ID='+FTestFileID+') ';
+      S:='SELECT TR_ID,TR_TESTRUN_FK,TR_TEST_FK,TR_OK, TR_SKIP,TR_RESULT '
+      //S:='SELECT * '
+        +' FROM TESTRESULTS '
+        +' WHERE  (TR_TEST_FK='+FTestFileID+')';
+      If FOnlyFailed then
+        S:=S+' AND (TR_OK="-")';
+      if Fcomparerunid<>'' then
+        S:=S+' AND ((TR_TESTRUN_FK='+Frunid+') OR '+
+             '(TR_TESTRUN_FK='+Fcomparerunid+'))'
+      else if Frunid<>'' then
+        S:=S+' AND (TR_TESTRUN_FK='+Frunid+')'
+      else
+         S:=S+' ORDER BY TR_TESTRUN_FK DESC LIMIT '+IntToStr(FLimit);
       Qry:=S;
       If FDebug then
-        begin
+      begin
         Writeln('Query : '+Qry);
         Flush(stdout);
       end;
@@ -758,28 +866,110 @@ begin
             With CreateTableProducer(Q) do
               Try
                 Border:=True;
-                FL:='Filename';
-                If Not FNoSkipped then
-                  FL:=FL+',Skipped';
-                If Not FOnlyFailed then
-                  FL:=FL+',OK';
-                CreateColumns(FL);
-                OnGetRowAttributes:=@GetRunRowAttr;
+                //FL:='TR_ID,TR_TESTRUN_FK,T_NAME,T_CPU,T_VERSION';
+                CreateColumns(Nil);
+                TableColumns.ColumnByNAme('TR_TESTRUN_FK').OnGetCellContents:=
+                  @FormatTestRunOverview;
+                //OnGetRowAttributes:=@GetRunRowAttr;
+                TableColumns.ColumnByNAme('TR_RESULT').OnGetCellContents:=
+                  @FormatTestResult;
                 //(TableColumns.Items[0] as TTableColumn).ActionURL:=ALink;
                 CreateTable(Response);
               Finally
                 Free;
               end;
-            Writeln('<p>Record count: ',Q.RecordCount,'</p>');
+           DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
           Finally
             Close;
           end;
         finally
           Free;
         end;
-      end
+             //If FDebug then
+            if FRunId<>'' then
+              begin
+                log:=''; 
+                Try
+                log:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
+                     +') and (TR_TESTRUN_FK='+frunid+')');
+                if Log<>'' then
+                  begin
+                    HeaderStart(2);
+                    Write('Log of '+FRunId+':');
+                    HeaderEnd(2);
+                    PreformatStart;
+                    system.Write(Log);
+                    system.flush(output);
+                    PreformatEnd;
+                  end;
+                Finally
+                  if Log='' then
+                    begin
+                      HeaderStart(2);
+                      Write('No log.');
+                      HeaderEnd(2);
+                    end;  
+                end;  
+              end;  
+            if FCompareRunId<>'' then
+              begin
+                log:=''; 
+                Try
+                log:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
+                     +') and (TR_TESTRUN_FK='+fcomparerunid+')');
+                if Log<>'' then
+                  begin
+                    HeaderStart(2);
+                    Write('Log of '+FCompareRunId+':');
+                    HeaderEnd(2);
+                    PreformatStart;
+                    system.Write(Log);
+                    system.flush(output);
+                    PreformatEnd;
+                  end;
+                Finally
+                  if Log='' then
+                    begin
+                      HeaderStart(2);
+                      Write('No alternate log.');
+                      HeaderEnd(2);
+                    end;  
+                end;  
+              end;  
+            if FDebug then
+              Write('After Log.');
+            Source:='';
+            Try  
+            Source:=getsingleton('select T_SOURCE from TESTS where T_ID='+ftestfileid);
+            if Source<>'' then
+              begin
+                HeaderStart(2);
+                Write('Source:');
+                HeaderEnd(2);
+                PreformatStart;
+                system.Write(Source);
+                system.flush(output);
+                PreformatEnd;
+              end;
+            Finally 
+            if Source='' then
+              begin
+                HeaderStart(3);
+                DumpLn('<P>No Source.</P>');
+                DumpLn('Link to CVS view of '+
+                  '<A HREF="http://www.freepascal.org'+
+                  '/cgi-bin/viewcvs.cgi/trunk/tests/'+
+                  FTestFileName+'?view=markup'+
+                  '" TARGET="_blank"> '+FTestFileName+'</A> source. ');
+                HeaderEnd(3);
+              end;  
+            end;  
+             if FDebug then
+              Write('After Source.');
+    end
     else
-      Write('No data for test file with ID: '+FTestFileID);
+      Write(Format('No data for test file with ID: %s',[FTestFileID]));
+      
     end;
 end;
 
@@ -830,14 +1020,19 @@ begin
       Q.ExecSQL;
       Q.SQL.Text:='CREATE TEMPORARY TABLE tr2 like TESTRESULTS;';
       Q.ExecSQL;
-      Q.SQL.Text:='INSERT INTO tr1 SELECT * FROM TESTRESULTS WHERE TR_TESTRUN_FK='+FRunID+';';
+      Q.SQL.Text:='INSERT INTO tr1 SELECT * FROM TESTRESULTS '+
+        'WHERE TR_TESTRUN_FK='+FRunID+';';
       Q.ExecSQL;
-      Q.SQL.Text:='INSERT INTO tr2 SELECT * FROM TESTRESULTS WHERE TR_TESTRUN_FK='+FCompareRunID+';';
+      Q.SQL.Text:='INSERT INTO tr2 SELECT * FROM TESTRESULTS '+
+        'WHERE TR_TESTRUN_FK='+FCompareRunID+';';
       Q.ExecSQL;
-      S:='SELECT T_NAME as Filename,tr1.TR_SKIP as Run1_Skipped,'
-         +'tr2.TR_SKIP as Run2_Skipped,tr1.TR_OK as Run1_OK,tr2.TR_OK as Run2_OK '
-        +'FROM TESTS, tr2 LEFT JOIN tr1 USING (TR_TEST_FK) '
-        +'WHERE ((tr1.TR_SKIP IS NULL) or (%s(tr1.TR_OK<>tr2.TR_OK))) and (T_ID=tr2.TR_TEST_FK)';
+      S:='SELECT T_ID as Id,T_NAME as Filename,tr1.TR_SKIP as Run1_Skipped,'
+         +'tr2.TR_SKIP as Run2_Skipped,tr1.TR_OK as Run1_OK,'
+         +'tr2.TR_OK as Run2_OK, tr1.TR_Result as Run1_Result,'
+         +'tr2.TR_RESULT as Run2_Result '
+         +'FROM TESTS, tr2 LEFT JOIN tr1 USING (TR_TEST_FK) '
+         +'WHERE ((tr1.TR_SKIP IS NULL) or (%s(tr1.TR_OK<>tr2.TR_OK)))'
+         +'and (T_ID=tr2.TR_TEST_FK)';
       If FNoSkipped then
         begin
         S:=S+' and (tr2.TR_SKIP<>"+")';
@@ -865,8 +1060,15 @@ begin
                 FL:='Filename,Run1_OK,Run2_OK';
                 If Not FNoSkipped then
                   FL:=FL+',Run1_Skipped,Run2_Skipped';
+                FL:=FL+',Run1_Result,Run2_Result';
                 CreateColumns(FL);
                 OnGetRowAttributes:=@GetRunRowAttr;
+                TableColumns.ColumnByNAme('Run1_Result').OnGetCellContents:=
+                  @FormatTestResult;
+                TableColumns.ColumnByNAme('Run2_Result').OnGetCellContents:=
+                  @FormatTestResult;
+                TableColumns.ColumnByNAme('Filename').OnGetCellContents:=
+                 @FormatFileDetails;
                 //(TableColumns.Items[0] as TTableColumn).ActionURL:=ALink;
                 CreateTable(Response);
               Finally
@@ -955,6 +1157,22 @@ begin
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
 end;
 
+procedure TTestSuite.FormatTestRunOverview(Sender: TObject; var CellData: String);
+
+Var
+  S: String;
+  P : TTableProducer;
+
+begin
+  P:=(Sender as TTableProducer);
+  S:=Format(SDetailsURL,[P.DataSet.FieldByName('TR_TESTRUN_FK').AsString]);
+  if FOnlyFailed then
+    S:=S+'&failedonly=1';
+  if FNoSkipped then
+    S:=S+'&noskipped=1';
+  CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
+end;
+
 procedure TTestSuite.FormatFileDetails(Sender: TObject; var CellData: String);
 
 Var
@@ -963,8 +1181,31 @@ Var
 
 begin
   P:=(Sender as TTableProducer);
-  S:=Format(CGI + '?action=3&run1id=%s&filenameid=%s',[FRunID,P.DataSet.FieldByName('Id').AsString]);
+  if FCompareRunID<>'' then
+    S:=Format(CGI + '?action=3&run1id=%s&run2id=%s&testfileid=%s',
+       [FRunID,FCompareRunID,P.DataSet.FieldByName('Id').AsString])
+  else 
+    S:=Format(CGI + '?action=3&run1id=%s&testfileid=%s',
+       [FRunID,P.DataSet.FieldByName('Id').AsString]);
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
+end;
+
+procedure TTestSuite.FormatTestResult(Sender: TObject; var CellData: String);
+
+Var
+  Res : longint;
+  Error:word;
+  TS : TTestStatus;
+  P : TTableProducer;
+begin
+  P:=(Sender as TTableProducer);
+  Val(CellData,Res,Error);
+  if (Error=0) and (Res>=longint(FirstStatus)) and
+     (Res<=longint(LastStatus)) then
+    begin   
+      TS:=TTestStatus(Res);
+      CellData:=StatusText[TS];
+    end;
 end;
 
 Procedure TTestSuite.CreateRunPie;
