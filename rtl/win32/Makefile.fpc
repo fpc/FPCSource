@@ -98,7 +98,7 @@ wdllprt0$(OEXT) : wdllprt0.as
 wcygprt0$(OEXT) : wcygprt0.as
 
 #
-# System Units (System, Objpas, Strings)
+# Unit specific rules
 #
 
 system$(PPUEXT) : system.pp $(SYSDEPS)
