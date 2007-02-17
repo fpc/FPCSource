@@ -1198,8 +1198,7 @@ implementation
         LinkLibraryOrder   :=TLinkStrMap.Create;
 
         { enable all features by default }
-        for i:=low(tfeature) to high(tfeature) do
-          include(features,i);
+        features:=[low(Tfeature)..high(Tfeature)];
      end;
 
 end.
