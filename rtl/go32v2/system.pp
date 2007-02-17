@@ -27,7 +27,7 @@ interface
 {$ifndef NO_EXCEPTIONS_IN_SYSTEM}
 {$define EXCEPTIONS_IN_SYSTEM}
 {$endif NO_EXCEPTIONS_IN_SYSTEM}
-
+{$define USE_NOTHREADMANAGER}
 
 { include system-independent routine headers }
 
@@ -648,11 +648,12 @@ Begin
    FileNameCaseSensitive:=true;
 { Reset IO Error }
   InOutRes:=0;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   InitSystemThreads;
+{$endif}
 {$ifdef  EXCEPTIONS_IN_SYSTEM}
   InitDPMIExcp;
   InstallDefaultHandlers;
 {$endif  EXCEPTIONS_IN_SYSTEM}
   initvariantmanager;
-  initwidestringmanager;
 End.
