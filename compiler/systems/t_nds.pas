@@ -367,7 +367,7 @@ begin
         add('		. = ALIGN(4);   /* REQUIRED. LD is flaky without it. */');
         add('	} >ewram = 0xff');
         add('	.jcr            : { KEEP (*(.jcr)) } >ewram = 0');
-        add('	.got            : { *(.got.plt) *(.got) } >ewram = 0');
+        add('	.got            : { *(.got.plt) *(.got) *(.rel.got) } >ewram = 0');
         add('');
         add('	.ewram ALIGN(4) : ');
         add('	{');
@@ -490,13 +490,10 @@ begin
         add('');
         add('MEMORY {');
         add('');
-        add('	rom	: ORIGIN = 0x08000000, LENGTH = 32M');
-        add('	iwram	: ORIGIN = 0x03800000, LENGTH = 64K');
-        add('	ewram	: ORIGIN = 0x02040000, LENGTH = 4M');
+        add('	rom	  : ORIGIN = 0x08000000, LENGTH = 32M');
+        add('	iwram : ORIGIN = 0x037f8000, LENGTH = 96K');
         add('}');
         add('');
-        add('__ewram_start	=	ORIGIN(ewram);');
-        add('__eheap_end	=	ORIGIN(ewram)+ LENGTH(ewram);');
         add('__iwram_start	=	ORIGIN(iwram);');
         add('__iwram_top	=	ORIGIN(iwram)+ LENGTH(iwram);');
         add('__sp_irq	=	__iwram_top - 0x60;');
