@@ -162,6 +162,7 @@ begin
   fake_heap_end := pchar(0);
 { Set up signals handlers }
 
+  fpc_cpucodeinit;
 { Setup heap }
   InitHeap;
   SysInitExceptions;

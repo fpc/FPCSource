@@ -1791,6 +1791,9 @@ rtl/freebsd/x86_64/*.ppu
 rtl/freebsd/x86_64/*.s
 rtl/freebsd/x86_64/fpcmade.*
 rtl/freebsd/x86_64/units
+rtl/gba/backup
+rtl/gba/build_rtl.bat
+rtl/gba/build_rtl_EABI.bat
 rtl/go32v2/*.bak
 rtl/go32v2/*.exe
 rtl/go32v2/*.o

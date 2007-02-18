@@ -11,15 +11,15 @@ _start:
 	b	rom_header_end
 
 	.fill   156,1,0			@ Nintendo Logo Character Data (8000004h)
-	.fill	16,1,0			  @ Game Title
+	.fill	16,1,0			@ Game Title
 	.byte   0x30,0x31		@ Maker Code (80000B0h)
-	.byte   0x96			  @ Fixed Value (80000B2h)
-	.byte   0x00			  @ Main Unit Code (80000B3h)
-	.byte   0x00			  @ Device Type (80000B4h)
-	.fill	7,1,0			    @ unused
-	.byte	0x00			    @ Software Version No (80000BCh)
-	.byte	0xf0			    @ Complement Check (80000BDh)
-	.byte	0x00,0x00    	@ Checksum (80000BEh)
+	.byte   0x96			@ Fixed Value (80000B2h)
+	.byte   0x00			@ Main Unit Code (80000B3h)
+	.byte   0x00			@ Device Type (80000B4h)
+	.fill	7,1,0			@ unused
+	.byte	0x00			@ Software Version No (80000BCh)
+	.byte	0xf0			@ Complement Check (80000BDh)
+	.byte	0x00,0x00    		@ Checksum (80000BEh)
 
 @---------------------------------------------------------------------------------
 rom_header_end:
@@ -86,7 +86,7 @@ start_vector:
 	ldr	r3, =__end__			@ last ewram address
 	sub	r3, r2				@ r3= actual binary size
 	mov	r6, r2				@ r6= 0x02000000
-	lsl	r1, r2, #2			@ r1= 0x08000000 
+	lsl	r1, r2, #2			@ r1= 0x08000000
 
 	bl	CopyMem
 
@@ -157,16 +157,6 @@ CIW0Skip:
 	bl	CopyMemChk
 
 @---------------------------------------------------------------------------------
-@ Copy external work ram overlay 0 (ewram0 section) from LMA to VMA (ROM to RAM)
-@---------------------------------------------------------------------------------
-	ldr	r2, =__load_stop_ewram0
-	ldr	r1, =__load_start_ewram0
-	sub	r3, r2, r1			@ Is there any data to copy?
-	beq	CEW0Skip			@ no
-
-	ldr	r2, =__ewram_overlay_start
-	bl	CopyMem
-@---------------------------------------------------------------------------------
 CEW0Skip:
 @---------------------------------------------------------------------------------
 @ set heap end
@@ -177,7 +167,7 @@ CEW0Skip:
 @---------------------------------------------------------------------------------
 @ global constructors
 @---------------------------------------------------------------------------------
-	ldr	r3, =_init
+	ldr	r3, =__libc_init_array
 	bl	_call_via_r3
 @---------------------------------------------------------------------------------
 @ Jump to user code
