@@ -266,10 +266,12 @@ procedure TIDEApp.Print;
     if assigned(P) then
       begin
         assign(f,d);
+{$I-}
         rewrite(f);
+{$I+}
         if ioresult<>0 then
           begin
-            MessageBox(#3+msg_PrintError,nil,mferror+mfokbutton);
+            MessageBox(#3+msg_printernotopened,nil,mferror+mfokbutton);
             exit;
           end;
         for i:=0 to P^.Editor^.Core^.GetLineCount-1 do

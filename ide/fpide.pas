@@ -460,6 +460,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 msg_confirmsourcediradd = 'Directory %s is not in search path for source files. '+
                                          'Should we add it ?';
                 msg_quitconfirm         = 'Do You really want to quit?';
+                msg_printernotopened = 'Can''t open printer,'#13#3'check device name in "print setup"';
                 msg_printerror = 'Error while printing';
                 msg_impossibletoreachcursor = 'Impossible to reach current cursor';
                 msg_impossibletosetbreakpoint = 'Impossible to set breakpoints here';
