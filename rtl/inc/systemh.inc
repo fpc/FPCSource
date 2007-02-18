@@ -357,7 +357,7 @@ const
   InitProc : Pointer = nil;
 
 var
-  ExitCode    : Word; public name 'operatingsystem_result';
+  ExitCode    : Longint; public name 'operatingsystem_result';
   RandSeed    : Cardinal;
   { Delphi compatibility }
   IsLibrary : boolean = false;
