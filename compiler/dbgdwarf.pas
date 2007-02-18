@@ -217,6 +217,8 @@ interface
         asmline: TAsmList;
 
         function def_dwarf_lab(def:tdef) : tasmsymbol;
+        function def_dwarf_ref_lab(def:tdef) : tasmsymbol;
+        function def_dwarf_class_struct_lab(def:tobjectdef) : tasmsymbol;
         function get_file_index(afile: tinputfile): Integer;
         procedure write_symtable_syms(st:TSymtable);
       protected
@@ -233,6 +235,8 @@ interface
 
         procedure set_use_64bit_headers(state: boolean);
         property use_64bit_headers: Boolean read _use_64bit_headers write set_use_64bit_headers;
+
+        procedure set_def_dwarf_labs(def:tdef);
 
         procedure append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
         procedure append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
@@ -328,7 +332,7 @@ implementation
     uses
       cutils,cfileutils,
       version,globtype,globals,verbose,systems,
-      cpubase,cgbase,
+      cpubase,cgbase,paramgr,
       fmodule,
       defutil,symconst,symtable
       ;
@@ -627,7 +631,7 @@ implementation
       end;
 
 
-    function TDebugInfoDwarf.def_dwarf_lab(def:tdef) : tasmsymbol;
+    procedure TDebugInfoDwarf.set_def_dwarf_labs(def:tdef);
       begin
         { Keep track of used dwarf entries, this info is only usefull for dwarf entries
           referenced by the symbols. Definitions will always include all
@@ -644,6 +648,7 @@ implementation
                     if not assigned(def.typesym) then
                       internalerror(200610011);
                     def.dwarf_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)));
+                    def.dwarf_ref_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBGREF',def.owner,symname(def.typesym)));
                     if is_class_or_interface_or_dispinterface(def) then
                       tobjectdef(def).dwarf_struct_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym)));
                     def.dbg_state:=dbg_state_written;
@@ -657,6 +662,7 @@ implementation
                        (def.owner.iscurrentunit) then
                       begin
                         def.dwarf_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
+                        def.dwarf_ref_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBGREF',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
                         if is_class_or_interface_or_dispinterface(def) then
                           tobjectdef(def).dwarf_struct_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
                         include(def.defstates,ds_dwarf_dbg_info_written);
@@ -666,6 +672,7 @@ implementation
                         { The pointer typecast is needed to prevent a problem with range checking
                           on when the typecast is changed to 'as' }
                         current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_lab)));
+                        current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_ref_lab)));
                         if is_class_or_interface_or_dispinterface(def) then
                           current_asmdata.getdatalabel(TAsmLabel(pointer(tobjectdef(def).dwarf_struct_lab)));
                       end;
@@ -677,6 +684,7 @@ implementation
                   on when the typecast is changed to 'as' }
                 { addrlabel instead of datalabel because it must be a local one }
                 current_asmdata.getaddrlabel(TAsmLabel(pointer(def.dwarf_lab)));
+                current_asmdata.getaddrlabel(TAsmLabel(pointer(def.dwarf_ref_lab)));
                 if is_class_or_interface_or_dispinterface(def) then
                   current_asmdata.getaddrlabel(TAsmLabel(pointer(tobjectdef(def).dwarf_struct_lab)));
               end;
@@ -684,7 +692,24 @@ implementation
               deftowritelist.Add(def);
             defnumberlist.Add(def);
           end;
+      end;
+
+    function TDebugInfoDwarf.def_dwarf_lab(def: tdef): tasmsymbol;
+      begin
+        set_def_dwarf_labs(def);
         result:=def.dwarf_lab;
+      end;
+
+    function TDebugInfoDwarf.def_dwarf_class_struct_lab(def: tobjectdef): tasmsymbol;
+      begin
+        set_def_dwarf_labs(def);
+        result:=def.dwarf_struct_lab;
+      end;
+
+    function TDebugInfoDwarf.def_dwarf_ref_lab(def: tdef): tasmsymbol;
+      begin
+        set_def_dwarf_labs(def);
+        result:=def.dwarf_ref_lab;
       end;
 
     constructor TDebugInfoDwarf.Create;
@@ -1479,6 +1504,7 @@ implementation
         def.dbg_state := dbg_state_writing;
 
         current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Definition '+def.typename)));
+
         labsym:=def_dwarf_lab(def);
         if ds_dwarf_dbg_info_written in def.defstates then
           current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(labsym,0))
@@ -1519,6 +1545,17 @@ implementation
         else
           internalerror(200601281);
         end;
+
+        { create a derived reference type for pass-by-reference parameters }
+        { (gdb doesn't support DW_AT_variable_parameter yet)               }
+        labsym:=def_dwarf_ref_lab(def);
+        if ds_dwarf_dbg_info_written in def.defstates then
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(labsym,0))
+        else
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
+        append_entry(DW_TAG_reference_type,false,[]);
+        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
+        finish_entry;
 
         def.dbg_state := dbg_state_written;
       end;
@@ -1736,6 +1773,22 @@ implementation
               { data continues below }
               DW_AT_location,DW_FORM_block1,blocksize
               ])
+{$ifdef gdb_supports_DW_AT_variable_parameter}
+          else if (sym.typ=paravarsym) and
+              paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
+              not(vo_has_local_copy in sym.varoptions) and
+              not is_open_string(sym.vardef) then
+            append_entry(tag,false,[
+              DW_AT_name,DW_FORM_string,symname(sym)+#0,
+              DW_AT_variable_parameter,DW_FORM_flag,true,
+              {
+              DW_AT_decl_file,DW_FORM_data1,0,
+              DW_AT_decl_line,DW_FORM_data1,
+              }
+              { data continues below }
+              DW_AT_location,DW_FORM_block1,blocksize
+              ])
+{$endif gdb_supports_DW_AT_variable_parameter}
           else
             append_entry(tag,false,[
               DW_AT_name,DW_FORM_string,symname(sym)+#0,
@@ -1748,7 +1801,15 @@ implementation
               ]);
           { append block data }
           current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vardef));
+{$ifndef gdb_supports_DW_AT_variable_parameter}
+          if (sym.typ=paravarsym) and
+              paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
+              not(vo_has_local_copy in sym.varoptions) and
+              not is_open_string(sym.vardef) then
+            append_labelentry_ref(DW_AT_type,def_dwarf_ref_lab(sym.vardef))
+          else
+{$endif not gdb_supports_DW_AT_variable_parameter}
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vardef));
 
           templist.free;
 
@@ -2595,9 +2656,8 @@ implementation
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
               if (def.childof.dbg_state=dbg_state_unused) then
                 def.childof.dbg_state:=dbg_state_used;
-              def_dwarf_lab(def.childof);
               if is_class_or_interface_or_dispinterface(def) then
-                append_labelentry_ref(DW_AT_type,def.childof.dwarf_struct_lab)
+                append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def.childof))
               else
                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.childof));
               finish_entry;
@@ -2639,13 +2699,13 @@ implementation
             begin
               { implicit pointer }
               append_entry(DW_TAG_pointer_type,false,[]);
-              append_labelentry_ref(DW_AT_type,def.dwarf_struct_lab);
+              append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def));
               finish_entry;
 
               if not(tf_dwarf_relative_addresses in target_info.flags) then
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(def.dwarf_struct_lab,0))
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(def_dwarf_class_struct_lab(def),0))
               else
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(def.dwarf_struct_lab,0));
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(def_dwarf_class_struct_lab(def),0));
               doappend;
             end;
           else
