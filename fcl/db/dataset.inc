@@ -511,8 +511,9 @@ begin
     case DT of
       ftDate, ftTime, ftDateTime: TDateTimeRec(aDest^) := DateTimeToDateTimeRec(DT, TDateTime(aSource^));
       ftTimeStamp               : TTimeStamp(aDest^) := TTimeStamp(aSource^);
-      ftBCD                     : tBCD(aDest^) := CurrToBCD(Currency(aSource^));
+      ftBCD                     : TBCD(aDest^) := CurrToBCD(Currency(aSource^));
       ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
+  // See notes from mantis bug-report 7204 for more information
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
   //    ftWideString              : ;
@@ -524,7 +525,7 @@ begin
     case DT of
       ftDate, ftTime, ftDateTime: TDateTime(aDest^) := DateTimeRecToDateTime(DT, TDateTimeRec(aSource^));
       ftTimeStamp               : TTimeStamp(aDest^) := TTimeStamp(aSource^);
-  //    ftBCD                     : ;
+      ftBCD                     : BCDToCurr(TBCD(aSource^),Currency(aDest^));
       ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
