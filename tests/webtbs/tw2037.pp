@@ -3,6 +3,8 @@
 { e-mail: david@avimark.net }
 program tw2037;
 
+{$R-}
+
 const
   FILE_FLAG_WRITE_THROUGH = -2147483648;
   FILE_ATTRIBUTE_NORMAL = 128;
