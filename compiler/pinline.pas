@@ -391,7 +391,7 @@ implementation
             if tpointerdef(p1.resultdef).pointeddef.needs_inittable then
              begin
                para := ccallparanode.create(caddrnode.create_internal(crttinode.create
-                          (tstoreddef(tpointerdef(p1.resultdef).pointeddef),initrtti)),
+                          (tstoreddef(tpointerdef(p1.resultdef).pointeddef),initrtti,rdt_normal)),
                        ccallparanode.create(ctemprefnode.create
                           (temp),nil));
                addstatement(newstatement,ccallnode.createintern('fpc_initialize',para));
@@ -563,7 +563,7 @@ implementation
                    ccallparanode.create(cordconstnode.create
                       (counter,s32inttype,true),
                    ccallparanode.create(caddrnode.create_internal
-                      (crttinode.create(tstoreddef(destppn.resultdef),initrtti)),
+                      (crttinode.create(tstoreddef(destppn.resultdef),initrtti,rdt_normal)),
                    ccallparanode.create(ctypeconvnode.create_internal(destppn,voidpointertype),nil))));
             addstatement(newstatement,ccallnode.createintern('fpc_dynarray_setlength',npara));
             addstatement(newstatement,ctempdeletenode.create(temp));
@@ -657,7 +657,7 @@ implementation
                   ccallparanode.create(ctypeconvnode.create
                      (ppn.left,s32inttype),
                   ccallparanode.create(caddrnode.create_internal
-                     (crttinode.create(tstoreddef(destppn.left.resultdef),initrtti)),
+                     (crttinode.create(tstoreddef(destppn.left.resultdef),initrtti,rdt_normal)),
                   ccallparanode.create(caddrnode.create_internal
                      (destppn.left),nil))));
            newblock:=ccallnode.createintern('fpc_finalize_array',npara);
@@ -750,7 +750,7 @@ implementation
             npara:=ccallparanode.create(highppn,
                    ccallparanode.create(lowppn,
                    ccallparanode.create(caddrnode.create_internal
-                      (crttinode.create(tstoreddef(ppn.left.resultdef),initrtti)),
+                      (crttinode.create(tstoreddef(ppn.left.resultdef),initrtti,rdt_normal)),
                    ccallparanode.create
                       (ctypeconvnode.create_internal(ppn.left,voidpointertype),nil))));
             copynode:=ccallnode.createinternres('fpc_dynarray_copy',npara,ppn.left.resultdef);

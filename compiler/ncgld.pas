@@ -1059,7 +1059,14 @@ implementation
     procedure tcgrttinode.pass_generate_code;
       begin
         location_reset(location,LOC_CREFERENCE,OS_NO);
-        location.reference.symbol:=RTTIWriter.get_rtti_label(rttidef,rttitype);
+        case rttidatatype of
+          rdt_normal:
+            location.reference.symbol:=RTTIWriter.get_rtti_label(rttidef,rttitype);
+          rdt_o2s:
+            location.reference.symbol:=RTTIWriter.get_rtti_label_o2s(rttidef,rttitype);
+          rdt_s2o:
+            location.reference.symbol:=RTTIWriter.get_rtti_label_s2o(rttidef,rttitype);
+        end;
       end;
 
 

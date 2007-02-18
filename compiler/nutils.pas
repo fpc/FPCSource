@@ -498,7 +498,7 @@ implementation
                   ccallparanode.create(
                       caddrnode.create_internal(
                           crttinode.create(
-                              tstoreddef(p.resultdef),initrtti)),
+                              tstoreddef(p.resultdef),initrtti,rdt_normal)),
                   ccallparanode.create(
                       caddrnode.create_internal(p),
                   nil)));
@@ -541,7 +541,7 @@ implementation
                 ccallparanode.create(
                     caddrnode.create_internal(
                         crttinode.create(
-                            tstoreddef(p.resultdef),initrtti)),
+                            tstoreddef(p.resultdef),initrtti,rdt_normal)),
                 ccallparanode.create(
                     caddrnode.create_internal(p),
                 nil)));
