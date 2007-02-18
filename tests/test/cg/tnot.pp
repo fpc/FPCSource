@@ -79,6 +79,9 @@ Begin
    longres := $7F7F7F7F;
    longres := not longres;
    Write('Value should be $80808080...');
+
+   { the following test give range check errors }
+   {$R-}
    test(longres,$80808080);
 
    { CURRENT NODE : REGISTER }
