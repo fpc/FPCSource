@@ -224,6 +224,7 @@ interface
 
        tobjectdef = class(tabstractrecorddef)
        public
+          dwarf_struct_lab : tasmsymbol;
           childof        : tobjectdef;
           childofderef   : tderef;
           objname,

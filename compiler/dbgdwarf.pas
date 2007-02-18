@@ -644,6 +644,8 @@ implementation
                     if not assigned(def.typesym) then
                       internalerror(200610011);
                     def.dwarf_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)));
+                    if is_class_or_interface_or_dispinterface(def) then
+                      tobjectdef(def).dwarf_struct_lab:=current_asmdata.RefAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym)));
                     def.dbg_state:=dbg_state_written;
                   end
                 else
@@ -655,15 +657,18 @@ implementation
                        (def.owner.iscurrentunit) then
                       begin
                         def.dwarf_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
+                        if is_class_or_interface_or_dispinterface(def) then
+                          tobjectdef(def).dwarf_struct_lab:=current_asmdata.DefineAsmSymbol(make_mangledname('DBG2',def.owner,symname(def.typesym)),AB_GLOBAL,AT_DATA);
                         include(def.defstates,ds_dwarf_dbg_info_written);
                       end
                     else
-                      { The pointer typecast is needed to prevent a problem with range checking
-                        on when the typecast is changed to 'as' }
-                      current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_lab)));
-                
-                    if def.dbg_state=dbg_state_used then
-                      deftowritelist.Add(def);
+                      begin
+                        { The pointer typecast is needed to prevent a problem with range checking
+                          on when the typecast is changed to 'as' }
+                        current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_lab)));
+                        if is_class_or_interface_or_dispinterface(def) then
+                          current_asmdata.getdatalabel(TAsmLabel(pointer(tobjectdef(def).dwarf_struct_lab)));
+                      end;
                   end;
               end
             else
@@ -672,9 +677,11 @@ implementation
                   on when the typecast is changed to 'as' }
                 { addrlabel instead of datalabel because it must be a local one }
                 current_asmdata.getaddrlabel(TAsmLabel(pointer(def.dwarf_lab)));
-                if def.dbg_state=dbg_state_used then
-                  deftowritelist.Add(def);
+                if is_class_or_interface_or_dispinterface(def) then
+                  current_asmdata.getaddrlabel(TAsmLabel(pointer(tobjectdef(def).dwarf_struct_lab)));
               end;
+            if def.dbg_state=dbg_state_used then
+              deftowritelist.Add(def);
             defnumberlist.Add(def);
           end;
         result:=def.dwarf_lab;
@@ -2571,11 +2578,11 @@ implementation
           if assigned(def.objname) then
             append_entry(DW_TAG_structure_type,true,[
               DW_AT_name,DW_FORM_string,def.objname^+#0,
-              DW_AT_byte_size,DW_FORM_udata,def.size
+              DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize
               ])
           else
             append_entry(DW_TAG_structure_type,true,[
-              DW_AT_byte_size,DW_FORM_udata,def.size
+              DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize
               ]);
           finish_entry;
           if assigned(def.childof) then
@@ -2586,7 +2593,13 @@ implementation
               ]);
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.childof));
+              if (def.childof.dbg_state=dbg_state_unused) then
+                def.childof.dbg_state:=dbg_state_used;
+              def_dwarf_lab(def.childof);
+              if is_class_or_interface_or_dispinterface(def) then
+                append_labelentry_ref(DW_AT_type,def.childof.dwarf_struct_lab)
+              else
+                append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.childof));
               finish_entry;
             end;
 
@@ -2594,9 +2607,6 @@ implementation
           finish_children;
         end;
 
-
-      var
-        obj : tasmlabel;
 
       begin
         case def.objecttype of
@@ -2608,16 +2618,15 @@ implementation
           odt_dispinterface,
           odt_class:
             begin
-              if not(tf_dwarf_relative_addresses in target_info.flags) then
-                current_asmdata.getdatalabel(obj)
-              else
-                current_asmdata.getaddrlabel(obj);
               { implicit pointer }
               append_entry(DW_TAG_pointer_type,false,[]);
-              append_labelentry_ref(DW_AT_type,obj);
+              append_labelentry_ref(DW_AT_type,def.dwarf_struct_lab);
               finish_entry;
 
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(obj,0));
+              if not(tf_dwarf_relative_addresses in target_info.flags) then
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(def.dwarf_struct_lab,0))
+              else
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(def.dwarf_struct_lab,0));
               doappend;
             end;
           else
