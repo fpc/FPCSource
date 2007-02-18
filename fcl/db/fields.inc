@@ -1554,6 +1554,12 @@ end;
 
 { TFloatField }
 
+procedure TFloatField.SetCurrency(const AValue: Boolean);
+begin
+  if FCurrency=AValue then exit;
+  FCurrency:=AValue;
+end;
+
 function TFloatField.GetAsFloat: Double;
 
 begin
@@ -1600,6 +1606,8 @@ procedure TFloatField.GetText(var TheText: string; ADisplayText: Boolean);
 Var
     fmt : string;
     E : Double;
+    Digits : integer;
+    ff: TFloatFormat;
 
 begin
   TheText:='';
@@ -1608,11 +1616,24 @@ begin
     Fmt:=FDisplayFormat
   else
     Fmt:=FEditFormat;
+    
+  Digits := 0;
+  if not FCurrency then
+    ff := ffGeneral
+  else
+    begin
+    Digits := CurrencyDecimals;
+    if ADisplayText then
+      ff := ffCurrency
+    else
+      ff := ffFixed;
+    end;
+
 
   If fmt<>'' then
     TheText:=FormatFloat(fmt,E)
   else
-    TheText:=FloatToStrF(E,ffgeneral,FPrecision,0);
+    TheText:=FloatToStrF(E,ff,FPrecision,Digits);
 end;
 
 procedure TFloatField.SetAsFloat(AValue: Double);
@@ -1676,34 +1697,8 @@ Constructor TCurrencyField.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   SetDataType(ftCurrency);
+  Currency := True;
 end;
-
-procedure TCurrencyField.GetText(var TheText: string; ADisplayText: Boolean);
-
-Var
-    fmt : string;
-    ff: TFloatFormat;
-    E : Double;
-
-begin
-  TheText:='';
-  If Not GetData(@E) then exit;
-  If ADisplayText or (Length(FEditFormat) = 0) Then
-    Fmt:=FDisplayFormat
-  else
-    Fmt:=FEditFormat;
-
-  if ADisplayText then
-    ff := ffCurrency
-  else
-    ff := ffFixed;
-
-  If fmt<>'' then
-    TheText:=FormatFloat(fmt, E)
-  else
-    TheText:=FloatToStrF(E, ff, FPrecision, CurrencyDecimals);
-end;
-
 
 { TBooleanField }
 

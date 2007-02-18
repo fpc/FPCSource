@@ -555,9 +555,11 @@ type
 
   TFloatField = class(TNumericField)
   private
+    FCurrency: Boolean;
     FMaxValue : Double;
     FMinValue : Double;
     FPrecision : Longint;
+    procedure SetCurrency(const AValue: Boolean);
   protected
     function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
@@ -575,6 +577,7 @@ type
     property Value: Double read GetAsFloat write SetAsFloat;
 
   published
+    property Currency: Boolean read FCurrency write SetCurrency;
     property MaxValue: Double read FMaxValue write FMaxValue;
     property MinValue: Double read FMinValue write FMinValue;
     property Precision: Longint read FPrecision write FPrecision default 15;
@@ -585,7 +588,6 @@ type
   TCurrencyField = class(TFloatField)
   public
     constructor Create(AOwner: TComponent); override;
-    procedure GetText(var TheText: string; ADisplayText: Boolean); override;
   end;
 
 { TBooleanField }
@@ -1756,7 +1758,7 @@ const
       { ftWord} TLongintField,
       { ftBoolean} TBooleanField,
       { ftFloat} TFloatField,
-      { ftCurrency} Nil,
+      { ftCurrency} TCurrencyField,
       { ftBCD} TBCDField,
       { ftDate} TDateField,
       { ftTime} TTimeField,
