@@ -2602,6 +2602,25 @@ implementation
                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.childof));
               finish_entry;
             end;
+          if (oo_has_vmt in def.objectoptions) and
+             (not assigned(def.childof) or
+              not(oo_has_vmt in def.childof.objectoptions)) then
+            begin
+              { vmt field }
+              append_entry(DW_TAG_member,false,[
+                  DW_AT_artificial,DW_FORM_flag,true,
+                  DW_AT_name,DW_FORM_string,'_vptr$'+def.objname^+#0,
+                  DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(def.vmt_offset)
+              ]);
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(def.vmt_offset));
+              { should be changed into a pointer to a function returning an }
+              { int and with TAG_unspecified_parameters                     }
+              if (voidpointertype.dbg_state=dbg_state_unused) then
+                voidpointertype.dbg_state:=dbg_state_used;
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(voidpointertype));
+              finish_entry;
+            end;
 
           def.symtable.symList.ForEachCall(@enum_membersyms_callback,nil);
           finish_children;
