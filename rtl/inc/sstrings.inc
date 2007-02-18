@@ -881,7 +881,7 @@ end;
        base : byte;
        negative : boolean;
 
-  const maxint64=int64($7fffffffffffffff);
+  const maxint64=qword($7fffffffffffffff);
         maxqword=qword($ffffffffffffffff);
 
   begin
@@ -928,7 +928,7 @@ end;
        base : byte;
        negative : boolean;
 
-  const maxqword=word($ffffffffffffffff);
+  const maxqword=qword($ffffffffffffffff);
 
   begin
     fpc_val_qword_shortstr:=0;
