@@ -4,9 +4,15 @@
 {$MODE DELPHI}
 {$endif}
 
+{ Range and overflow checks need to be off }
+
+{$Q-}
+{$R-}
+
 const Inf=1/0;
       NaN=0/0;
       MinusInf=-Inf;
+
 var
   s : string;
   error : boolean;
