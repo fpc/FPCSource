@@ -1426,13 +1426,56 @@ type
     property Active : boolean read FActive write setactive;
   end;
 
-  { TDatabase }
+    { TCustomConnection }
 
   TLoginEvent = procedure(Sender: TObject; Username, Password: string) of object;
 
+  TCustomConnection = class(TComponent)
+  private
+    FAfterConnect: TNotifyEvent;
+    FAfterDisconnect: TNotifyEvent;
+    FBeforeConnect: TNotifyEvent;
+    FBeforeDisconnect: TNotifyEvent;
+    FLoginPrompt: Boolean;
+    FOnLogin: TLoginEvent;
+    FStreamedConnected: Boolean;
+    procedure SetAfterConnect(const AValue: TNotifyEvent);
+    procedure SetAfterDisconnect(const AValue: TNotifyEvent);
+    procedure SetBeforeConnect(const AValue: TNotifyEvent);
+    procedure SetBeforeDisconnect(const AValue: TNotifyEvent);
+  protected
+    procedure DoConnect; virtual;
+    procedure DoDisconnect; virtual;
+    function GetConnected : boolean; virtual;
+    Function GetDataset(Index : longint) : TDataset; virtual;
+    Function GetDataSetCount : Longint; virtual;
+    procedure InternalHandleException; virtual;
+    procedure Loaded; override;
+    procedure SetConnected (Value : boolean); virtual;
+  public
+    procedure Close;
+    destructor Destroy; override;
+    procedure Open;
+    property DataSetCount: Longint read GetDataSetCount;
+    property DataSets[Index: Longint]: TDataSet read GetDataSet;
+  published
+    property Connected: Boolean read GetConnected write SetConnected;
+    property LoginPrompt: Boolean read FLoginPrompt write FLoginPrompt;
+    property Streamedconnected: Boolean read FStreamedConnected write FStreamedConnected;
+
+    property AfterConnect : TNotifyEvent read FAfterConnect write SetAfterConnect;
+    property AfterDisconnect : TNotifyEvent read FAfterDisconnect write SetAfterDisconnect;
+    property BeforeConnect : TNotifyEvent read FBeforeConnect write SetBeforeConnect;
+    property BeforeDisconnect : TNotifyEvent read FBeforeDisconnect write SetBeforeDisconnect;
+    property OnLogin: TLoginEvent read FOnLogin write FOnLogin;
+  end;
+
+
+  { TDatabase }
+
   TDatabaseClass = Class Of TDatabase;
 
-  TDatabase = class(TComponent)
+  TDatabase = class(TCustomConnection)
   private
     FConnected : Boolean;
     FDataBaseName : String;
@@ -1440,16 +1483,11 @@ type
     FTransactions : TList;
     FDirectory : String;
     FKeepConnection : Boolean;
-    FLoginPrompt : Boolean;
-    FOnLogin : TLoginEvent;
     FParams : TStrings;
     FSQLBased : Boolean;
     FOpenAfterRead : boolean;
-    Function GetDataSetCount : Longint;
     Function GetTransactionCount : Longint;
-    Function GetDataset(Index : longint) : TDBDataset;
     Function GetTransaction(Index : longint) : TDBTransaction;
-    procedure SetConnected (Value : boolean);
     procedure RegisterDataset (DS : TDBDataset);
     procedure RegisterTransaction (TA : TDBTransaction);
     procedure UnRegisterDataset (DS : TDBDataset);
@@ -1459,22 +1497,21 @@ type
   protected
     Procedure CheckConnected;
     Procedure CheckDisConnected;
-    procedure InternalHandleException; virtual;
-    procedure Loaded; override;
+    procedure DoConnect; override;
+    procedure DoDisconnect; override;
+    function GetConnected : boolean; override;
+    Function GetDataset(Index : longint) : TDataset; override;
+    Function GetDataSetCount : Longint; override;
     Procedure DoInternalConnect; Virtual;Abstract;
     Procedure DoInternalDisConnect; Virtual;Abstract;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Close;
-    procedure Open;
     procedure CloseDataSets;
     procedure CloseTransactions;
 //    procedure ApplyUpdates;
     procedure StartTransaction; virtual; abstract;
     procedure EndTransaction; virtual; abstract;
-    property DataSetCount: Longint read GetDataSetCount;
-    property DataSets[Index: Longint]: TDBDataSet read GetDataSet;
     property TransactionCount: Longint read GetTransactionCount;
     property Transactions[Index: Longint]: TDBTransaction read GetTransaction;
     property Directory: string read FDirectory write FDirectory;
@@ -1483,38 +1520,8 @@ type
     property Connected: Boolean read FConnected write SetConnected;
     property DatabaseName: string read FDatabaseName write FDatabaseName;
     property KeepConnection: Boolean read FKeepConnection write FKeepConnection;
-    property LoginPrompt: Boolean read FLoginPrompt write FLoginPrompt;
     property Params : TStrings read FParams Write FParams;
-    property OnLogin: TLoginEvent read FOnLogin write FOnLogin;
   end;
-
-    { TCustomConnection }
-
-  TCustomConnection = class(TDatabase)
-  private
-    FAfterConnect: TNotifyEvent;
-    FAfterDisconnect: TNotifyEvent;
-    FBeforeConnect: TNotifyEvent;
-    FBeforeDisconnect: TNotifyEvent;
-    procedure SetAfterConnect(const AValue: TNotifyEvent);
-    procedure SetAfterDisconnect(const AValue: TNotifyEvent);
-    procedure SetBeforeConnect(const AValue: TNotifyEvent);
-    procedure SetBeforeDisconnect(const AValue: TNotifyEvent);
-  protected
-    procedure DoInternalConnect; override;
-    procedure DoInternalDisconnect; override;
-    procedure DoConnect; virtual;
-    procedure DoDisconnect; virtual;
-    function GetConnected : boolean; virtual;
-    procedure StartTransaction; override;
-    procedure EndTransaction; override;
-  published
-    property AfterConnect : TNotifyEvent read FAfterConnect write SetAfterConnect;
-    property BeforeConnect : TNotifyEvent read FBeforeConnect write SetBeforeConnect;
-    property AfterDisconnect : TNotifyEvent read FAfterDisconnect write SetAfterDisconnect;
-    property BeforeDisconnect : TNotifyEvent read FBeforeDisconnect write SetBeforeDisconnect;
-  end;
-
 
 
   { TParam }
@@ -1761,9 +1768,9 @@ const
       { ftMemo} TMemoField,
       { ftGraphic} TGraphicField,
       { ftFmtMemo} TMemoField,
-      { ftParadoxOle} Nil,
-      { ftDBaseOle} Nil,
-      { ftTypedBinary} Nil,
+      { ftParadoxOle} TBlobField,
+      { ftDBaseOle} TBlobField,
+      { ftTypedBinary} TBlobField,
       { ftCursor} Nil,
       { ftFixedChar} TStringField,
       { ftWideString} Nil,

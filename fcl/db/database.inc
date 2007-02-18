@@ -32,60 +32,25 @@ begin
     DatabaseError(SConnected,Self);
 end;
 
-Procedure TDatabase.InternalHandleException;
-
+procedure TDatabase.DoConnect;
 begin
-  if assigned(classes.ApplicationHandleException) then
-    classes.ApplicationHandleException(self)
-  else
-    ShowException(ExceptObject,ExceptAddr);
+  DoInternalConnect;
+  FConnected := True;
 end;
 
-procedure TDataBase.Loaded;
-
+procedure TDatabase.DoDisconnect;
 begin
-  inherited;
-  try
-    if FOpenAfterRead then
-      SetConnected(true);
-  except
-    if csDesigning in Componentstate then
-      InternalHandleException
-    else
-      raise;
-  end;
+  Closedatasets;
+  Closetransactions;
+  DoInternalDisConnect;
+  if csloading in ComponentState then
+    FOpenAfterRead := false;
+  FConnected := False;
 end;
 
-procedure TDataBase.SetConnected (Value : boolean);
-
+function TDatabase.GetConnected: boolean;
 begin
-  If Value<>FConnected then
-    begin
-    If Value then
-      begin
-      if csReading in ComponentState then
-        begin
-        FOpenAfterRead := true;
-        exit;
-        end
-      else
-//        try
-          DoInternalConnect;
-//        except
-//          on e: EDatabaseError do DoInternalDisconnect;
-      //    raise;
-//        end; {try}
-      end
-    else
-      begin
-      Closedatasets;
-      Closetransactions;
-      DoInternalDisConnect;
-      if csloading in ComponentState then
-        FOpenAfterRead := false;
-      end;
-    FConnected:=Value;
-    end;
+  Result:= FConnected;
 end;
 
 constructor TDatabase.Create(AOwner: TComponent);
@@ -109,12 +74,6 @@ begin
   Inherited Destroy;
 end;
 
-procedure TDatabase.Close;
-
-begin
-  Connected:=False;
-end;
-
 procedure TDatabase.CloseDataSets;
 
 Var I : longint;
@@ -123,7 +82,7 @@ begin
   If Assigned(FDatasets) then
     begin
     For I:=FDatasets.Count-1 downto 0 do
-      TDBDataset(FDatasets[i]).Close;
+      TDataset(FDatasets[i]).Close;
     end;
 end;
 
@@ -159,13 +118,6 @@ begin
       TDBTransaction(FTransactions[i]).Database:=Nil;
 end;
 
-procedure TDatabase.Open;
-
-begin
-  Connected:=True;
-end;
-
-
 Function TDatabase.GetDataSetCount : Longint;
 
 begin
@@ -184,11 +136,11 @@ begin
     Result:=0;
 end;
 
-Function TDatabase.GetDataset(Index : longint) : TDBDataset;
+Function TDatabase.GetDataset(Index : longint) : TDataset;
 
 begin
   If Assigned(FDatasets) then
-    Result:=TDBDataset(FDatasets[Index])
+    Result:=TDataset(FDatasets[Index])
   else
     DatabaseError(SNoDatasets);
 end;
@@ -475,6 +427,24 @@ begin
   FAfterConnect:=AValue;
 end;
 
+function TCustomConnection.GetDataSet(Index: Longint): TDataSet;
+begin
+  Result := nil;
+end;
+
+function TCustomConnection.GetDataSetCount: Longint;
+begin
+  Result := 0;
+end;
+
+procedure TCustomConnection.InternalHandleException;
+begin
+  if assigned(classes.ApplicationHandleException) then
+    classes.ApplicationHandleException(self)
+  else
+    ShowException(ExceptObject,ExceptAddr);
+end;
+
 procedure TCustomConnection.SetAfterDisconnect(const AValue: TNotifyEvent);
 begin
   if FAfterDisconnect=AValue then exit;
@@ -487,28 +457,43 @@ begin
   FBeforeConnect:=AValue;
 end;
 
+procedure TCustomConnection.SetConnected(Value: boolean);
+begin
+  If Value<>Connected then
+    begin
+    If Value then
+      begin
+      if csReading in ComponentState then
+        begin
+        FStreamedConnected := true;
+        exit;
+        end
+      else
+        begin
+        if Assigned(BeforeConnect) then
+          BeforeConnect(self);
+        if FLoginPrompt then if assigned(FOnLogin) then
+          FOnLogin(self,'','');
+        DoConnect;
+        if Assigned(AfterConnect) then
+          AfterConnect(self);
+        end;
+      end
+    else
+      begin
+      if Assigned(BeforeDisconnect) then
+        BeforeDisconnect(self);
+      DoDisconnect;
+      if Assigned(AfterDisconnect) then
+        AfterDisconnect(self);
+      end;
+    end;
+end;
+
 procedure TCustomConnection.SetBeforeDisconnect(const AValue: TNotifyEvent);
 begin
   if FBeforeDisconnect=AValue then exit;
   FBeforeDisconnect:=AValue;
-end;
-
-procedure TCustomConnection.DoInternalConnect;
-begin
-  if Assigned(BeforeConnect) then
-    BeforeConnect(self);
-  DoConnect;
-  if Assigned(AfterConnect) then
-    AfterConnect(self);
-end;
-
-procedure TCustomConnection.DoInternalDisconnect;
-begin
-  if Assigned(BeforeDisconnect) then
-    BeforeDisconnect(self);
-  DoDisconnect;
-  if Assigned(AfterDisconnect) then
-    AfterDisconnect(self);
 end;
 
 procedure TCustomConnection.DoConnect;
@@ -526,19 +511,36 @@ end;
 function TCustomConnection.GetConnected: boolean;
 
 begin
-  Result := Connected;
+  Result := False;
 end;
 
-procedure TCustomConnection.StartTransaction;
-
+procedure TCustomConnection.Loaded;
 begin
-  // Do nothing yet
+  inherited Loaded;
+  try
+    if FStreamedConnected then
+      SetConnected(true);
+  except
+    if csDesigning in Componentstate then
+      InternalHandleException
+    else
+      raise;
+  end;
 end;
 
-procedure TCustomConnection.EndTransaction;
-
+procedure TCustomConnection.Close;
 begin
-  // Do nothing yet
+  Connected := False;
 end;
 
+destructor TCustomConnection.Destroy;
+begin
+  Connected:=False;
+  Inherited Destroy;
+end;
+
+procedure TCustomConnection.Open;
+begin
+  Connected := True;
+end;
 
