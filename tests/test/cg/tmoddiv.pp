@@ -144,6 +144,8 @@ begin
   Write('Value should be -1...');
   test(longres, -1);
 
+  { the following test give range check errors }
+  {$R-}
   { special tests for results }
   Writeln('special numeric values tests...');
   longres := $7FFFFFFF;
