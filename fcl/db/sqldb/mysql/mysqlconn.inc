@@ -544,6 +544,7 @@ var
   row : MYSQL_ROW;
   C : TCursorName;
   li : longint;
+  Lengths : PDWord;
 begin
   C:=Cursor as TCursorName;
   if C.Row=nil then
@@ -552,7 +553,8 @@ begin
 
   inc(Row,c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]);
 
-  li := strlen(pchar(row^));
+  Lengths := mysql_fetch_lengths(c.FRes);
+  li := Lengths[c.MapDSRowToMSQLRow[FieldDef.FieldNo-1]];
 
   ReAllocMem(ABlobBuf^.BlobBuffer^.Buffer,li);
   Move(pchar(row^)^, ABlobBuf^.BlobBuffer^.Buffer^, li);
