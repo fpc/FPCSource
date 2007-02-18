@@ -511,7 +511,7 @@ begin
     case DT of
       ftDate, ftTime, ftDateTime: TDateTimeRec(aDest^) := DateTimeToDateTimeRec(DT, TDateTime(aSource^));
       ftTimeStamp               : TTimeStamp(aDest^) := TTimeStamp(aSource^);
-  //    ftBCD                     : ;
+      ftBCD                     : tBCD(aDest^) := CurrToBCD(Currency(aSource^));
       ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
