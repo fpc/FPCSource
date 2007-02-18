@@ -408,10 +408,15 @@ begin
  i := 1000000000;
  k := i;
  i := i * 10;
+ { The next statement would create an overflow }
+ {$Q-}
  j := 1000000000 - i;
  k := k - i;
  if j <> k then
    result := false;
+
+ { The next statement would create an range check error }
+ {$R-}
  if j <> (1000000000-(qword(1000000000) * 10)) then
    result := false;
  j := (qword(1) shl 33);
