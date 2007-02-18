@@ -110,9 +110,9 @@ implementation
 var
   SysInstance : Longint;public name '_FPC_SysInstance';
 
-{$ifdef i386}
+{$ifdef CPUI386}
 {$define HAS_RESOURCES}
-{$i win32res.inc}
+{$i winres.inc}
 {$endif}
 
 { used by wstrings.inc because wstrings.inc is included before sysos.inc

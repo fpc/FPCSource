@@ -106,10 +106,8 @@ implementation
 var
   SysInstance : Longint;public;
 
-{$ifdef i386}
 {$define HAS_RESOURCES}
-{$i win32res.inc}
-{$endif}
+{$i winres.inc}
 
 { used by wstrings.inc because wstrings.inc is included before sysos.inc
   this is put here (FK) }

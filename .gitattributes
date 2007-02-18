@@ -5359,6 +5359,7 @@ rtl/win/wininc/struct.inc svneol=native#text/plain
 rtl/win/wininc/unidef.inc svneol=native#text/plain
 rtl/win/wininc/unidef.sed -text
 rtl/win/wininc/unifun.inc svneol=native#text/plain
+rtl/win/winres.inc svneol=native#text/plain
 rtl/win/winsock.pp svneol=native#text/plain
 rtl/win/winsock2.pp svneol=native#text/plain
 rtl/win32/Makefile svneol=native#text/plain
@@ -5375,7 +5376,6 @@ rtl/win32/sysinitpas.pp svneol=native#text/plain
 rtl/win32/system.pp svneol=native#text/plain
 rtl/win32/wcygprt0.as -text
 rtl/win32/wdllprt0.as -text
-rtl/win32/win32res.inc svneol=native#text/plain
 rtl/win32/windows.pp svneol=native#text/plain
 rtl/win32/winsysut.pp svneol=native#text/plain
 rtl/win32/wprt0.as -text
@@ -8042,6 +8042,7 @@ tests/webtbs/tw8232.pp svneol=native#text/plain
 tests/webtbs/tw8258.pp svneol=native#text/plain
 tests/webtbs/tw8258a.pp svneol=native#text/plain
 tests/webtbs/tw8264.pp svneol=native#text/plain
+tests/webtbs/tw8304.pp svneol=native#text/plain
 tests/webtbs/tw8312.pp svneol=native#text/plain
 tests/webtbs/ub1873.pp svneol=native#text/plain
 tests/webtbs/ub1883.pp svneol=native#text/plain
