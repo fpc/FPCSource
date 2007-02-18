@@ -724,6 +724,7 @@ implementation
           vs.varstate:=vs_initialised;
         end;
 
+{$ifdef gpc_mode}
         procedure read_gpc_name(sc : TFPObjectList);
         var
           vs : tabstractnormalvarsym;
@@ -742,6 +743,7 @@ implementation
           else
             Message(parser_e_no_local_var_external);
         end;
+{$endif}
 
         procedure read_absolute(sc : TFPObjectList);
         var
