@@ -144,7 +144,7 @@ begin
      begin
        if target_info.res<>res_none then
          begin
-           resourcefile:=TResourceFile(resinfos[target_info.res]^.resourcefileclass).create(current_module.ResourceFiles.getfirst);
+           resourcefile:=TResourceFile(resinfos[target_info.res]^.resourcefileclass.create(current_module.ResourceFiles.getfirst));
            resourcefile.compile;
            resourcefile.free;
          end
