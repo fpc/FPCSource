@@ -92,7 +92,11 @@ end;
 procedure _FPC_libc_haltproc; assembler; nostackframe; public name '_haltproc';
 asm
 .Lhaltproc:
+{$if sizeof(ExitCode)=2}
   movzwl  ExitCode,%ebx
+{$else}
+  mov     ExitCode,%ebx
+{$endif}
   pushl   %ebx
   call    libc_exit
   xorl    %eax,%eax

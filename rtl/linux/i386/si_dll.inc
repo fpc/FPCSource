@@ -87,7 +87,11 @@ asm
 {$ifdef FPC_PIC}
   pushl   %ebx
   movl    ExitCode@GOT(%ebx),%ebx
+{$if sizeof(ExitCode)=2}
   movzwl  (%ebx),%ebx
+{$else}
+  mov     (%ebx),%ebx
+{$endif}
 {$endif}
   int     $0x80
   jmp     .Lhaltproc

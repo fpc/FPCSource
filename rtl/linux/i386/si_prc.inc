@@ -70,10 +70,18 @@ procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
 asm
 .Lhaltproc:
   movl    syscall_nr_exit_group,%eax
+{$if sizeof(ExitCode)=2}  
   movzwl  ExitCode,%ebx
+{$else}
+  mov     ExitCode,%ebx
+{$endif}
   int     $0x80
   movl    syscall_nr_exit,%eax
+{$if sizeof(ExitCode)=2}  
   movzwl  ExitCode,%ebx
+{$else}
+  mov     ExitCode,%ebx
+{$endif}
   int     $0x80
   jmp     .Lhaltproc
 end;

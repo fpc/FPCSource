@@ -131,7 +131,11 @@ end;
 
 procedure _FPC_libc21_gprof_haltproc; assembler; nostackframe; public name '_haltproc';
 asm
+{$if sizeof(ExitCode)=2}
   movzwl  ExitCode,%eax
+{$else}
+  mov     ExitCode,%eax
+{$endif}
 
   movl    libc21_fpc_ret,%edx         { return to libc }
   movl    libc21_fpc_ret_ebx,%ebx
