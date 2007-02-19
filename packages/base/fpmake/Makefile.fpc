@@ -1,0 +1,22 @@
+#
+#   Makefile.fpc for fppkg
+#
+
+[package]
+name=fpmake
+version=2.0.0
+
+[target]
+units=fpmktype fpmkunit
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
+fpmkunit$(PPUEXT) : fpmkunit.pp fpmkcnst.inc fpmktype$(PPUEXT)
+
+fpmktype$(PPUEXT) : fpmktype.pp fpmkcnst.inc
