@@ -235,6 +235,9 @@ override PACKAGE_VERSION=2.0.0
 ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
 FCL20=fcl20
 FCL20UNITS=zstream contnrs streamcoll zipper
+else
+PKGCURL=pkglibcurl
+LIBCURL=libcurl
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_PROGRAMS+=fppkg
@@ -390,310 +393,229 @@ ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_PROGRAMS+=fppkg
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget  pkglnet pkglibcurl
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget  pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet pkglibcurl
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet pkglibcurl
+override TARGET_UNITS+=pkgwget pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet pkglibcurl
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet pkglibcurl
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet pkglibcurl
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget  pkglnet pkglibcurl
+override TARGET_UNITS+=pkgwget  pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet pkglibcurl
+override TARGET_UNITS+=pkgwget pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet pkglibcurl
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet pkglibcurl
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget  pkglnet pkglibcurl
+override TARGET_UNITS+=pkgwget  pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet pkglibcurl
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet pkglibcurl
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget  pkglnet pkglibcurl
+override TARGET_UNITS+=pkgwget  pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet pkglibcurl
+override TARGET_UNITS+=pkgwget pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet pkglibcurl
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget  pkglnet pkglibcurl
+override TARGET_UNITS+=pkgwget  pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet pkglibcurl
+override TARGET_UNITS+=pkgwget pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget  pkglnet pkglibcurl
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget  pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget pkglnet
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget pkglnet
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep  pkgwget  pkglnet pkglibcurl
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=fpmktype fpmkunit fprepos fpxmlrep
+override TARGET_UNITS+=pkgwget  pkglnet $(PKGCURL)
 endif
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_IMPLICITUNITS+=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+override TARGET_IMPLICITUNITS+=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_RSTS+=fprepos fpxmlrep pkgmessages
@@ -2239,7 +2161,7 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl fcl libcurl
+override REQUIRE_PACKAGES=rtl fcl fpmake $(LIBCURL)
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
@@ -2248,7 +2170,8 @@ REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_PTHREADS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2262,7 +2185,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2273,7 +2197,8 @@ REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_WINUNITS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2288,7 +2213,8 @@ REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
@@ -2299,7 +2225,8 @@ REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_PTHREADS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2313,7 +2240,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2324,7 +2252,8 @@ REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2341,7 +2270,8 @@ REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_PTHREADS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
@@ -2349,7 +2279,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2358,7 +2289,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2369,7 +2301,8 @@ REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2383,7 +2316,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2395,7 +2329,8 @@ REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_PTHREADS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2410,7 +2345,8 @@ REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
@@ -2418,7 +2354,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2427,7 +2364,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2437,7 +2375,8 @@ REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2448,7 +2387,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2457,7 +2397,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2469,7 +2410,8 @@ REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_PTHREADS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2486,7 +2428,8 @@ REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_PTHREADS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2502,7 +2445,8 @@ REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2516,7 +2460,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2525,7 +2470,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2536,7 +2482,8 @@ REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2550,7 +2497,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2559,7 +2507,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2571,7 +2520,8 @@ REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_PTHREADS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2587,7 +2537,8 @@ REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2601,7 +2552,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2610,7 +2562,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2622,7 +2575,8 @@ REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_PTHREADS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2636,7 +2590,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2645,7 +2600,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2657,7 +2613,8 @@ REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_PTHREADS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2673,7 +2630,8 @@ REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2690,7 +2648,8 @@ REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_PTHREADS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
@@ -2698,7 +2657,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2710,7 +2670,8 @@ REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_PTHREADS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2727,7 +2688,8 @@ REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_PTHREADS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2743,7 +2705,8 @@ REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_WINUNITS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
@@ -2751,7 +2714,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2763,7 +2727,8 @@ REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_PTHREADS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2777,7 +2742,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2787,7 +2753,8 @@ REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2798,7 +2765,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2807,7 +2775,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2816,7 +2785,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2825,7 +2795,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -2837,7 +2808,8 @@ REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_LIBASYNC=1
 REQUIRE_PACKAGES_PTHREADS=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_PASJPEG=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_POSTGRES=1
@@ -2851,7 +2823,8 @@ REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_HASH=1
 REQUIRE_PACKAGES_PASZLIB=1
 REQUIRE_PACKAGES_FCL=1
-REQUIRE_PACKAGES_LIBCURL=1
+REQUIRE_PACKAGES_FPMAKE=1
+REQUIRE_PACKAGES_=1
 REQUIRE_PACKAGES_NETDB=1
 REQUIRE_PACKAGES_PASJPEG=1
 endif
@@ -3037,30 +3010,56 @@ ifdef UNITDIR_FCL
 override COMPILER_UNITDIR+=$(UNITDIR_FCL)
 endif
 endif
-ifdef REQUIRE_PACKAGES_LIBCURL
-PACKAGEDIR_LIBCURL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /libcurl/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_LIBCURL),)
-ifneq ($(wildcard $(PACKAGEDIR_LIBCURL)/units/$(TARGETSUFFIX)),)
-UNITDIR_LIBCURL=$(PACKAGEDIR_LIBCURL)/units/$(TARGETSUFFIX)
+ifdef REQUIRE_PACKAGES_FPMAKE
+PACKAGEDIR_FPMAKE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fpmake/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FPMAKE),)
+ifneq ($(wildcard $(PACKAGEDIR_FPMAKE)/units/$(TARGETSUFFIX)),)
+UNITDIR_FPMAKE=$(PACKAGEDIR_FPMAKE)/units/$(TARGETSUFFIX)
 else
-UNITDIR_LIBCURL=$(PACKAGEDIR_LIBCURL)
+UNITDIR_FPMAKE=$(PACKAGEDIR_FPMAKE)
 endif
 ifdef CHECKDEPEND
-$(PACKAGEDIR_LIBCURL)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_LIBCURL) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_LIBCURL)/$(FPCMADE)
+$(PACKAGEDIR_FPMAKE)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_FPMAKE) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_FPMAKE)/$(FPCMADE)
 endif
 else
-PACKAGEDIR_LIBCURL=
-UNITDIR_LIBCURL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /libcurl/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_LIBCURL),)
-UNITDIR_LIBCURL:=$(firstword $(UNITDIR_LIBCURL))
+PACKAGEDIR_FPMAKE=
+UNITDIR_FPMAKE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fpmake/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FPMAKE),)
+UNITDIR_FPMAKE:=$(firstword $(UNITDIR_FPMAKE))
 else
-UNITDIR_LIBCURL=
+UNITDIR_FPMAKE=
 endif
 endif
-ifdef UNITDIR_LIBCURL
-override COMPILER_UNITDIR+=$(UNITDIR_LIBCURL)
+ifdef UNITDIR_FPMAKE
+override COMPILER_UNITDIR+=$(UNITDIR_FPMAKE)
+endif
+endif
+ifdef REQUIRE_PACKAGES_
+PACKAGEDIR_:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /$/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_),)
+ifneq ($(wildcard $(PACKAGEDIR_)/units/$(TARGETSUFFIX)),)
+UNITDIR_=$(PACKAGEDIR_)/units/$(TARGETSUFFIX)
+else
+UNITDIR_=$(PACKAGEDIR_)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_=
+UNITDIR_:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /$/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_),)
+UNITDIR_:=$(firstword $(UNITDIR_))
+else
+UNITDIR_=
+endif
+endif
+ifdef UNITDIR_
+override COMPILER_UNITDIR+=$(UNITDIR_)
 endif
 endif
 ifdef REQUIRE_PACKAGES_PASJPEG
@@ -3897,5 +3896,3 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 .NOTPARALLEL:
-fpmkunit$(PPUEXT) : fpmkunit.pp fpmkcnst.inc fpmktype$(PPUEXT)
-fpmktype$(PPUEXT) : fpmktype.pp fpmkcnst.inc

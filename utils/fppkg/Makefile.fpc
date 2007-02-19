@@ -8,14 +8,13 @@ version=2.0.0
 
 [target]
 programs=fppkg
-units=fpmktype fpmkunit fprepos fpxmlrep
-implicitunits=pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
-units_linux=pkgwget  pkglnet pkglibcurl
-units_freebsd=pkgwget pkglnet pkglibcurl
-units_netbsd=pkgwget pkglnet pkglibcurl
-units_openbsd=pkgwget pkglnet pkglibcurl
-units_darwin=pkgwget pkglnet pkglibcurl
-units_solaris=pkgwget pkglnet pkglibcurl
+implicitunits=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgarchive pkgfpmake pkgcommands
+units_linux=pkgwget  pkglnet $(PKGCURL)
+units_freebsd=pkgwget pkglnet $(PKGCURL)
+units_netbsd=pkgwget pkglnet $(PKGCURL)
+units_openbsd=pkgwget pkglnet $(PKGCURL)
+units_darwin=pkgwget pkglnet $(PKGCURL)
+units_solaris=pkgwget pkglnet $(PKGCURL)
 units_win32=pkgwget pkglnet
 units_win64=pkgwget pkglnet
 units_wince=pkgwget pkglnet
@@ -36,17 +35,17 @@ fpcpackage=y
 fpcdir=../..
 
 [require]
-packages=fcl libcurl
+packages=fcl fpmake $(LIBCURL)
 
 [prerules]
 # Compatibility to compile with 2.0.x
 ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
 FCL20=fcl20
 FCL20UNITS=zstream contnrs streamcoll zipper
+else
+PKGCURL=pkglibcurl
+LIBCURL=libcurl
 endif
 
 [rules]
 .NOTPARALLEL:
-fpmkunit$(PPUEXT) : fpmkunit.pp fpmkcnst.inc fpmktype$(PPUEXT)
-
-fpmktype$(PPUEXT) : fpmktype.pp fpmkcnst.inc
