@@ -140,7 +140,16 @@ unit cpupara;
                loc1:=LOC_REFERENCE;
            stringdef:
              if is_shortstring(p) or is_longstring(p) then
-               loc1:=LOC_REFERENCE
+               begin
+                 { handle long and shortstrings like arrays }
+                 { win64 abi }
+                 if ((target_info.system=system_x86_64_win64) and (p.size<=8)) or
+                   { linux abi }
+                   ((target_info.system<>system_x86_64_win64) and (p.size<=16)) then
+                   loc1:=LOC_REGISTER
+                 else
+                   loc1:=LOC_REFERENCE;
+               end
              else
                loc1:=LOC_REGISTER;
            setdef:
