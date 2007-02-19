@@ -8,31 +8,7 @@ Interface
 uses SysUtils,Classes,fpmktype;
 
 Type
-  // aliases for easy use and backwards compatibility.
-  TFileType = fpmktype.TFileType;
-  TFileTypes = fpmktype.TFileTypes;
-
-  TOS = fpmktype.TOS;
-  TOSes = fpmktype.TOSes;
-
-  TCPU = fpmkType.TCPU;
-  TCPUS = fpmktype.TCPUS;
-
-  TCompilerMode = fpmktype.TCompilerMode;
-  TCompilerModes = fpmktype.TCompilerModes;
-
-  TTargetType = fpmktype.TTargetType;
-  TTargetTypes = fpmktype.TTargetTypes;
-
-  TTargetState = fpmktype.TTargetState;
-  TTargetStates = fpmktype.TTargetStates;
-
-  TVerboseLevel = fpmktype.TVerboseLevel;
-  TVerboseLevels = fpmktype.TVerboseLevels;
-
-  TLogEvent = fpmktype.TLogEvent;
-
-  TRunMode = (rmHelp,rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmManifest);
+  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmManifest);
 
   { TNamedItem }
 
@@ -336,6 +312,7 @@ Type
     FCPU: TCPU;
     FOS: TOS;
     FMode : TCompilerMode;
+    FCompilerVersion : String;
     FPrefix: String;
     FBaseInstallDir,
     FUnitInstallDir,
@@ -362,6 +339,7 @@ Type
     Constructor Create;
     Procedure InitDefaults;
     Procedure Assign(ASource : TPersistent);override;
+    procedure CompilerDefaults;
     Procedure LocalInit(Const AFileName : String);
     Procedure LoadFromFile(Const AFileName : String);
     Procedure SaveToFile(Const AFileName : String);
@@ -689,7 +667,7 @@ ResourceString
 
   // Help messages for usage
   SValue              = 'Value';
-  SHelpUSage          = 'command [options]';
+  SHelpUsage          = 'Usage: %s command [options]';
   SHelpCommand        = 'Where command is one of the following:';
   SHelpCompile        = 'Compile all units in the package(s).';
   SHelpBuild          = 'Build all units in the package(s).';
@@ -1132,13 +1110,7 @@ begin
   If (FCompiler<>'') then
     Result:=FCompiler
   else
-    Case CPU of
-      i386    : Result:='ppc386';
-      PowerPC : Result:='ppcppc';
-      sparc   : Result:='ppcsparc';
-      arm     : Result:='ppcarm';
-      x86_64  : Result:='ppcx64';
-    end;
+    Result:='fpc';
 end;
 
 function TDefaults.GetDocInstallDir: String;
@@ -1166,7 +1138,7 @@ end;
 function TDefaults.GetUnitInstallDir: String;
 begin
   If (FUnitInstallDir<>'') then
-    Result:=FBinInstallDir
+    Result:=FUnitInstallDir
   else
     If UnixPaths then
       Result:=BaseInstallDir+PathDelim+'units'+PathDelim+Target
@@ -1232,10 +1204,6 @@ begin
   {$else}
   UnixPaths:=False;
   {$endif}
-  // Code to init defaults for compiled platform.
-  CPU:=StringToCPU({$I %FPCTARGETCPU%});
-  OS:=StringToOS({$I %FPCTARGETOS%});
-  Compiler:='ppc386';
 end;
 
 procedure TDefaults.Assign(ASource: TPersistent);
@@ -1298,8 +1266,43 @@ begin
       end;
     end;
   If (FN<>'') and FileExists(FN) then
-    LoadFromFile(FN)
-  // Code to find local config file and load it using LoadFromFile.
+    LoadFromFile(FN);
+end;
+
+
+procedure TDefaults.CompilerDefaults;
+begin
+  if Compiler<>'' then
+    Compiler:='fpc';
+  if CPU=cpuNone then
+    CPU:=StringToCPU({$I %FPCTARGETCPU%});
+  if OS=osNone then
+    OS:=StringToOS({$I %FPCTARGETOS%});
+  if FCompilerVersion='' then
+    FCompilerVersion:='2.0.4';
+  if (FBaseInstallDir='') and (FPrefix='') then
+    begin
+      // Use the same algorithm as the compiler, see options.pas
+{$ifdef Unix}
+      FBaseInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
+      if FBaseInstallDir='' then
+        begin
+          FBaseInstallDir:='/usr/local/lib/fpc/'+FCompilerVersion;
+          if not DirectoryExists(FBaseInstallDir) and
+             DirectoryExists('/usr/lib/fpc/'+FCompilerVersion) then
+            FBaseInstallDir:='/usr/lib/fpc/'+FCompilerVersion;
+        end;
+{$else unix}
+      FBaseInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
+      if FBaseInstallDir='' then
+        begin
+          FBaseInstallDir:=ExtractFilePath(FCompiler)+'..';
+          if not(DirectoryExists(FBaseInstallDir+'/units')) and
+             not(DirectoryExists(FBaseInstallDir+'/rtl')) then
+            FBaseInstallDir:=FBaseInstallDir+'..';
+        end;
+{$endif unix}
+    end;
 end;
 
 procedure TDefaults.LoadFromFile(Const AFileName: String);
@@ -1914,6 +1917,16 @@ procedure TInstaller.AnalyzeOptions;
     Result:=(O='-'+short) or (O='--'+long) or (copy(O,1,Length(Long)+3)=('--'+long+'='));
   end;
 
+  Function CheckCommand(Index : Integer;Short,Long : String): Boolean;
+
+  var
+    O : String;
+
+  begin
+    O:=Paramstr(Index);
+    Result:=(O='-'+short) or (O=long);
+  end;
+
   Function OptionArg(Var Index : Integer) : String;
 
   Var
@@ -1955,20 +1968,20 @@ begin
   While (I<ParamCount) do
     begin
     Inc(I);
-    if Checkoption(I,'m','compile') then
+    if CheckCommand(I,'m','compile') then
       FRunMode:=rmCompile
-    else if Checkoption(I,'b','build') then
+    else if CheckCommand(I,'b','build') then
       FRunMode:=rmBuild
-    else if CheckOption(I,'i','install') then
+    else if CheckCommand(I,'i','install') then
       FRunMode:=rmInstall
-    else if CheckOption(I,'c','clean') then
+    else if CheckCommand(I,'c','clean') then
       FRunMode:=rmClean
-    else if CheckOption(I,'a','archive') then
+    else if CheckCommand(I,'a','archive') then
       FRunMode:=rmarchive
-    else if CheckOption(I,'h','help') then
-      FRunMode:=rmHelp
-    else if CheckOption(I,'M','manifest') then
+    else if CheckCommand(I,'M','manifest') then
       FRunMode:=rmManifest
+    else if CheckOption(I,'h','help') then
+      Usage('',[])
     else if Checkoption(I,'C','CPU') then
       Defaults.CPU:=StringToCPU(OptionArg(I))
     else if Checkoption(I,'O','OS') then
@@ -2002,6 +2015,7 @@ begin
     end;
   If Not NoDefaults then
     Defaults.LocalInit(DefaultsFileName);
+  Defaults.CompilerDefaults;
 {$ifdef debug}
   FLogLevels:=AllMessages;
 {$endif}
@@ -2011,45 +2025,52 @@ end;
 
 procedure TInstaller.Usage(FMT: String; Args: array of const);
 
-  Procedure WriteCmd(C: Char; LC : String; Msg : String);
+  Procedure WriteCmd(LC : String; Msg : String);
 
   begin
-    Writeln(stderr,'-',C,'  --',LC,'   ',MSG);
+    Writeln(stderr,Format(' %-12s %s',[LC,MSG]));
   end;
 
   Procedure WriteOption(C: Char; LC : String; Msg : String);
 
   begin
-    Writeln(stderr,'-',C,'  --',LC,'=',SValue,'  ',MSG);
+    Writeln(stderr,Format(' -%s --%-16s %s',[C,LC,MSG]));
+  end;
+
+  Procedure WriteArgOption(C: Char; LC : String; Msg : String);
+
+  begin
+    Writeln(stderr,Format(' -%s --%-20s %s',[C,LC+'='+SValue,MSG]));
   end;
 
 begin
   If (FMT<>'') then
     Writeln(stderr,Format(Fmt,Args));
-  Writeln(stderr,ExtractFileName(Paramstr(0)),' usage: ');
-  Writeln(stderr,SHelpUsage);
+  Writeln(stderr,Format(SHelpUsage,[Paramstr(0)]));
   Writeln(stderr,SHelpCommand);
-  WriteCmd('m','compile',SHelpCompile);
-  WriteCmd('b','build',SHelpBuild);
-  WriteCmd('i','install',SHelpInstall);
-  WriteCmd('c','clean',SHelpClean);
-  WriteCmd('a','archive',SHelpArchive);
-  WriteCmd('h','help',SHelpHelp);
-  WriteCmd('M','manifest',SHelpManifest);
+  WriteCmd('compile',SHelpCompile);
+  WriteCmd('build',SHelpBuild);
+  WriteCmd('install',SHelpInstall);
+  WriteCmd('clean',SHelpClean);
+  WriteCmd('archive',SHelpArchive);
+  WriteCmd('manifest',SHelpManifest);
   Writeln(stderr,SHelpCmdOptions);
-  WriteCmd('l','list-commands',SHelpList);
-  WriteCmd('n','nodefaults',SHelpNoDefaults);
-  WriteCmd('v','verbose',SHelpVerbose);
-  WriteOption('C','CPU',SHelpCPU);
-  WriteOption('O','OS',SHelpOS);
-  WriteOption('t','target',SHelpTarget);
-  WriteOption('P','prefix',SHelpPrefix);
-  WriteOption('B','baseinstalldir',SHelpBaseInstalldir);
-  WriteOption('r','compiler',SHelpCompiler);
-  WriteOption('f','config',SHelpConfig);
+  WriteOption('h','help',SHelpHelp);
+  WriteOption('l','list-commands',SHelpList);
+  WriteOption('n','nodefaults',SHelpNoDefaults);
+  WriteOption('v','verbose',SHelpVerbose);
+  WriteArgOption('C','CPU',SHelpCPU);
+  WriteArgOption('O','OS',SHelpOS);
+  WriteArgOption('t','target',SHelpTarget);
+  WriteArgOption('P','prefix',SHelpPrefix);
+  WriteArgOption('B','baseinstalldir',SHelpBaseInstalldir);
+  WriteArgOption('r','compiler',SHelpCompiler);
+  WriteArgOption('f','config',SHelpConfig);
   Writeln(stderr,'');
   If (FMT<>'') then
-    halt(1);
+    halt(1)
+  else
+    halt(0);
 end;
 
 procedure TInstaller.Compile(Force: Boolean);
@@ -2118,13 +2139,9 @@ Function TInstaller.Run : Boolean;
 begin
   Result:=True;
   try
-    If RunMode<>rmHelp then
-      begin
-      CheckPackages;
-      CreateBuildEngine;
-      end;
+    CheckPackages;
+    CreateBuildEngine;
     Case RunMode of
-      rmHelp    : Usage('',[]);
       rmCompile : Compile(False);
       rmBuild   : Compile(True);
       rmInstall : Install;
@@ -2539,9 +2556,9 @@ begin
     Result:='-FE.' // Make this relative to target directory.
   else
     Result:='-FU'+RD;
-  If Target.Mode<>fpc then
+  If Target.Mode<>cmFPC then
     Result:=Result+' -M'+ModeToString(Target.Mode)
-  else If Defaults.Mode<>fpc then
+  else If Defaults.Mode<>cmFPC then
     Result:=Result+' -M'+ModeToString(Defaults.Mode);
   If (Defaults.Options<>'') then
     Result:=Result+' '+Defaults.Options;
@@ -2782,7 +2799,6 @@ end;
 Procedure TBuildEngine.InstallPackageFiles(APAckage : TPackage; tt : TTargetType; Const Src,Dest : String);
 
 Var
-  I : Integer;
   List : TStringList;
 
 begin
@@ -2858,7 +2874,7 @@ procedure TBuildEngine.Archive(APackage: TPackage);
 
 Var
   L : TStrings;
-  A,S,C,O : String;
+  A : String;
 
 begin
   Log(vlInfo,SLogArchivingPackage,[APackage.Name]);
@@ -3129,7 +3145,7 @@ end;
 
 function TTarget.GetProgramFileName(AnOS : TOS): String;
 begin
-  if AnOS in [dos,win32,os2] then
+  if AnOS in [Go32v2,Win32,Win64,OS2] then
     Result:=Name+ExeExt
   else
     Result:=Name;
@@ -3152,11 +3168,10 @@ end;
 
 function TTarget.GetOutputFileName(AOs: TOS): String;
 begin
-  Result:=Name;
   if TargetType in UnitTargets then
-    Result:=Result+UnitExt
-  else if AOs in [Win32,dos,OS2] then
-    Result:=Result+ExeExt
+    Result:=GetUnitFileName
+  else
+    Result:=GetProgramFileName(AOs);
 end;
 
 
@@ -3409,8 +3424,7 @@ function TDictionary.ReplaceStrings(Const ASource: String): String;
 
 Var
   S,FN,FV : String;
-  I,P: Integer;
-  O : TObject;
+  P: Integer;
 
 begin
   Result:='';

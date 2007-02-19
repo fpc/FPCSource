@@ -11,14 +11,14 @@ Type
                ftSharedLibrary);
   TFileTypes = set of TFileType;
 
-  TOS = (Amiga,Atari,Darwin,FreeBSD,Go32v2,Linux,MacOS,MorphOS,NetBSD,
-         Netware,NetwLibc,OpenBSD,OS2,PalmOS,Solaris,Win32,Win64,wince,Emx);
+  TOS = (osNone,Amiga,Atari,Darwin,FreeBSD,Go32v2,Linux,MacOS,MorphOS,NetBSD,
+         Netware,NetwLibc,OpenBSD,OS2,PalmOS,Solaris,Win32,Win64,WinCE,Emx);
   TOSes = Set of TOS;
 
-  TCPU = (Arm,I386,PPC,SPARC,X86_64,m68k);
+  TCPU = (cpuNone,Arm,I386,PPC,SPARC,X86_64,M68K,PPC64);
   TCPUS = Set of TCPU;
 
-  TCompilerMode = (FPC,TP,ObjFPC,Delphi,MacPas);
+  TCompilerMode = (cmFPC,cmTP,cmObjFPC,cmDelphi,cmMacPas);
   TCompilerModes = Set of TCompilerMode;
 
   TTargetType = (ttUnit,ttProgram,ttExampleUnit,ttExampleProgram);

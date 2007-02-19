@@ -1,8 +1,10 @@
 Const
   // Aliases
-  AmD64   = X86_64;
+  Amd64   = X86_64;
   PowerPC = PPC;
-  dos = go32v2;
+  PowerPC64 = PPC64;
+  DOS = Go32v2;
+  MacOSX = Darwin;
 
   AllOSs  = [Low(TOS)..High(TOS)];
   AllCPUs = [Low(TCPU)..High(TCPU)];
@@ -21,6 +23,7 @@ Const
   ExeExt  = '.exe';
   ZipExt  = '.zip';
 
+{
   // Targets
   i386_Linux = 'i386-linux';
   i386_Win32 = 'i386-win32';
@@ -38,9 +41,9 @@ Const
   arm_linux = 'arm-linux';
   ppc_macos = 'ppc-macos';
   ppc_darwin = 'ppc-darwin';
+}
 
   UnitTargets = [ttUnit,ttExampleUnit];
   ProgramTargets = [ttProgram,ttExampleProgram];
-
 
   AllMessages = [vlError,vlWarning,vlInfo,vlCompare,vlCommand];
