@@ -924,6 +924,25 @@ begin
     ShowException(ExceptObject,ExceptAddr);
 end;
 
+procedure TDataSet.InternalPost;
+
+  Procedure Checkrequired;
+
+  Var I : longint;
+
+  begin
+    For I:=0 to FFieldList.Count-1 do
+      With FFieldList[i] do
+        // Required fields that are NOT autoinc !! Autoinc cannot be set !!
+        if Required and not ReadOnly and
+           (FieldKind=fkData) and Not (DataType=ftAutoInc) and IsNull then
+          DatabaseErrorFmt(SNeedField,[DisplayName],Self);
+  end;
+
+begin
+  Checkrequired;
+end;
+
 procedure TDataSet.SetUniDirectional(const Value: Boolean);
 begin
   FIsUniDirectional := Value;
@@ -1878,19 +1897,6 @@ end;
 
 Procedure TDataset.Post;
 
-  Procedure Checkrequired;
-
-    Var I : longint;
-
-  begin
-    For I:=0 to FFieldList.Count-1 do
-      With FFieldList[i] do
-        // Required fields that are NOT autoinc !! Autoinc cannot be set !!
-        if Required and not ReadOnly and
-           (FieldKind=fkData) and Not (DataType=ftAutoInc) and IsNull then
-          DatabaseErrorFmt(SNeedField,[DisplayName],Self);
-  end;
-
 begin
   if State in [dsEdit,dsInsert] then
     begin
@@ -1899,7 +1905,6 @@ begin
 {$ifdef dsdebug}
     writeln ('Post: checking required fields');
 {$endif}
-    CheckRequired;
     DoBeforePost;
     If Not TryDoing(@InternalPost,OnPostError) then exit;
     cursorposchanged;

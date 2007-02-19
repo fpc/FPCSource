@@ -1131,7 +1131,7 @@ type
     procedure InternalInitRecord(Buffer: PChar); virtual; abstract;
     procedure InternalLast; virtual; abstract;
     procedure InternalOpen; virtual; abstract;
-    procedure InternalPost; virtual; abstract;
+    procedure InternalPost; virtual;
     procedure InternalSetToRecord(Buffer: PChar); virtual; abstract;
     function IsCursorOpen: Boolean; virtual; abstract;
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); virtual; abstract;

@@ -847,6 +847,7 @@ Var tmpRecBuffer : PBufRecLinkItem;
     NullMask     : pbyte;
 
 begin
+  inherited InternalPost;
   if assigned(FUpdateBlobBuffers) then for i:=0 to length(FUpdateBlobBuffers)-1 do
    if assigned(FUpdateBlobBuffers[i]) and (FUpdateBlobBuffers[i]^.FieldNo>0) then
     begin
