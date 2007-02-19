@@ -161,6 +161,7 @@ uses
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
+         constructor op_ref(op : tasmop;const _op1 : treference);
          constructor op_const(op : tasmop;_op1 : longint);
 
          constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
@@ -295,6 +296,15 @@ implementation
     constructor taicpu.op_none(op : tasmop);
       begin
          inherited create(op);
+      end;
+
+
+    { for pld }
+    constructor taicpu.op_ref(op : tasmop;const _op1 : treference);
+      begin
+         inherited create(op);
+         ops:=1;
+         loadref(0,_op1);
       end;
 
 

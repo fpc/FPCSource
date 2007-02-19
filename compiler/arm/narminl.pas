@@ -48,6 +48,7 @@ interface
         procedure second_cos_real; override;
         procedure second_sin_real; override;
         }
+        procedure second_prefetch; override;
       private
         procedure load_fpu_location;
       end;
@@ -58,6 +59,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,fmodule,
+      cpuinfo,
       symconst,symdef,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,cgutils,
@@ -210,6 +212,30 @@ implementation
         current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SIN,location.register,location.register),get_fpu_postfix(resultdef)));
       end;
     }
+
+    procedure tarminlinenode.second_prefetch;
+      var
+        ref : treference;
+        r : tregister;
+      begin
+        if current_settings.cputype>=cpu_armv5 then
+          begin
+            secondpass(left);
+            case left.location.loc of
+              LOC_CREFERENCE,
+              LOC_REFERENCE:
+                begin
+                  r:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
+                  cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
+                  reference_reset_base(ref,r,0);
+                  { since the address might be nil we can't use ldr for older cpus }
+                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_PLD,ref));
+                end;
+              else
+                internalerror(200402021);
+            end;
+          end;
+      end;
 
 begin
   cinlinenode:=tarminlinenode;
