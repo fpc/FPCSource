@@ -63,7 +63,7 @@ end;
 
 procedure test_global_var;
 var
-  y : integer absolute system.exitcode;
+  y : longint absolute system.exitcode;
 begin
   y := 315;
 end;
