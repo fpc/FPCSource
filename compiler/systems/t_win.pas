@@ -31,7 +31,7 @@ interface
        symconst,symdef,symsym,
        script,gendef,
        cpubase,
-       import,export,link,cgobj,i_win;
+       import,export,link,comprsrc,cgobj,i_win;
 
 
     const
@@ -88,6 +88,10 @@ interface
         procedure CheckDLLFunc(const dllname,funcname:string);
       public
         function Scan(const binname:string):boolean;override;
+      end;
+
+
+      TWinResourceFile = class(TResourceFile)
       end;
 
 
@@ -1718,7 +1722,7 @@ initialization
   RegisterImport(system_i386_win32,TImportLibWin);
   RegisterExport(system_i386_win32,TExportLibWin);
   RegisterDLLScanner(system_i386_win32,TDLLScannerWin);
-  RegisterRes(res_gnu_windres_info);
+  RegisterRes(res_gnu_windres_info,TWinResourceFile);
   RegisterTarget(system_i386_win32_info);
   { WinCE }
   RegisterExternalLinker(system_i386_wince_info,TExternalLinkerWin);
@@ -1733,7 +1737,7 @@ initialization
   RegisterImport(system_x86_64_win64,TImportLibWin);
   RegisterExport(system_x86_64_win64,TExportLibWin);
   RegisterDLLScanner(system_x86_64_win64,TDLLScannerWin);
-  RegisterRes(res_gnu_windres_info);
+  RegisterRes(res_gnu_windres_info,TWinResourceFile);
   RegisterTarget(system_x64_win64_info);
 {$endif x86_64}
 {$ifdef arm}
@@ -1741,7 +1745,7 @@ initialization
   RegisterInternalLinker(system_arm_wince_info,TInternalLinkerWin);
   RegisterImport(system_arm_wince,TImportLibWin);
   RegisterExport(system_arm_wince,TExportLibWin);
-  RegisterRes(res_gnu_wince_windres_info);
+  RegisterRes(res_gnu_wince_windres_info,TWinResourceFile);
   RegisterTarget(system_arm_wince_info);
 {$endif arm}
 end.

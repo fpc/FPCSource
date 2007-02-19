@@ -72,6 +72,7 @@ implementation
     fmodule,
     aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,
     cgbase,cgobj,cgutils,ogbase,ncgutil,
+    comprsrc,
     i_linux
     ;
 
@@ -891,7 +892,7 @@ initialization
   RegisterImport(system_i386_linux,timportliblinux);
   RegisterExport(system_i386_linux,texportliblinux);
   RegisterTarget(system_i386_linux_info);
-  RegisterRes(res_elf32_info);
+  RegisterRes(res_elf32_info,TResourceFile);
 
   RegisterExternalLinker(system_x86_6432_linux_info,TLinkerLinux);
   RegisterImport(system_x86_6432_linux,timportliblinux);
@@ -927,7 +928,7 @@ initialization
   RegisterImport(system_x86_64_linux,timportliblinux);
   RegisterExport(system_x86_64_linux,texportliblinux);
   RegisterTarget(system_x86_64_linux_info);
-  RegisterRes(res_elf64_info);
+  RegisterRes(res_elf64_info,TResourceFile);
 {$endif x86_64}
 {$ifdef SPARC}
   RegisterExternalLinker(system_sparc_linux_info,TLinkerLinux);

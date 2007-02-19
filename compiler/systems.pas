@@ -215,6 +215,12 @@ interface
        TAbstractAssemblerClass = class of TAbstractAssembler;
 
 
+       TAbstractResourceFile = class
+         constructor create(const fn : ansistring);virtual;abstract;
+       end;
+       TAbstractResourceFileClass = class of TAbstractResourceFile;
+
+
        palignmentinfo = ^talignmentinfo;
        talignmentinfo = record
          procalign,
@@ -263,6 +269,7 @@ interface
           id      : tres;
           resbin  : string[8];
           rescmd  : string[50];
+          resourcefileclass : TAbstractResourceFileClass;
        end;
 
        pdbginfo = ^tdbginfo;
@@ -414,7 +421,7 @@ interface
     procedure UpdateAlignment(var d:talignmentinfo;const s:talignmentinfo);
 
     procedure RegisterTarget(const r:tsysteminfo);
-    procedure RegisterRes(const r:tresinfo);
+    procedure RegisterRes(const r:tresinfo; rcf : TAbstractResourceFileClass);
     procedure RegisterAr(const r:tarinfo);
     { Register the external linker. This routine is called to setup the
       class to use for the linker. It returns the tsysteminfo structure
@@ -658,7 +665,7 @@ begin
 end;
 
 
-procedure RegisterRes(const r:tresinfo);
+procedure RegisterRes(const r:tresinfo; rcf : TAbstractResourceFileClass);
 var
   t : tres;
 begin
@@ -668,6 +675,7 @@ begin
   else
     Getmem(resinfos[t],sizeof(tresinfo));
   resinfos[t]^:=r;
+  resinfos[t]^.resourcefileclass:=rcf;
 end;
 
 

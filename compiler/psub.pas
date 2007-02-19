@@ -816,7 +816,7 @@ implementation
                      tg.direction:=1;
                    end;
                end;
-            
+
 {$endif}
             { Create register allocator }
             cg.init_register_allocators;

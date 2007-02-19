@@ -41,7 +41,7 @@ implementation
      cutils,cfileutils,cclasses,
      globtype,comphook,systems,symconst,symsym,symdef,
      globals,verbose,fmodule,script,ogbase,
-     import,link,i_emx,ppu;
+     comprsrc,import,link,i_emx,ppu;
 
   type
     TImportLibEMX=class(timportlib)
@@ -526,6 +526,6 @@ end;
 initialization
   RegisterExternalLinker(system_i386_emx_info,TLinkerEMX);
   RegisterImport(system_i386_emx,TImportLibEMX);
-  RegisterRes(res_emxbind_info);
+  RegisterRes(res_emxbind_info,TResourceFile);
   RegisterTarget(system_i386_emx_info);
 end.

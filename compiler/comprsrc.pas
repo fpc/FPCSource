@@ -25,15 +25,17 @@ unit comprsrc;
 
 interface
 
+  uses
+    Systems;
+
 type
-   presourcefile=^tresourcefile;
-   tresourcefile=object
+   tresourcefile = class(TAbstractResourceFile)
    private
-      fname : string;
+      fname : ansistring;
    public
-      constructor Init(const fn:string);
-      destructor Done;
-      procedure  Compile;virtual;
+      constructor Create(const fn : ansistring);override;
+      procedure Compile;virtual;
+      procedure PostProcessResourcefile(const s : ansistring);virtual;
    end;
 
 procedure CompileResourceFiles;
@@ -43,7 +45,7 @@ implementation
 
 uses
   SysUtils,
-  Systems,cutils,cfileutils,
+  cutils,cfileutils,
   Globtype,Globals,Verbose,Fmodule,
   Script;
 
@@ -51,13 +53,13 @@ uses
                               TRESOURCEFILE
 ****************************************************************************}
 
-constructor tresourcefile.init(const fn:string);
+constructor tresourcefile.create(const fn : ansistring);
 begin
   fname:=fn;
 end;
 
 
-destructor tresourcefile.done;
+procedure tresourcefile.PostProcessResourcefile(const s : ansistring);
 begin
 end;
 
@@ -121,6 +123,7 @@ begin
        end
      end;
     end;
+  PostProcessResourcefile(maybequoted(resobj));
   { Update asmres when externmode is set }
   if cs_link_nolink in current_settings.globalswitches then
     AsmRes.AddLinkCommand(resbin,s,'');
@@ -131,7 +134,7 @@ end;
 
 procedure CompileResourceFiles;
 var
-  hr : presourcefile;
+  resourcefile : tresourcefile;
 begin
   { OS/2 (EMX) must be processed elsewhere (in the linking/binding stage).
     same with MacOS}
@@ -141,9 +144,9 @@ begin
      begin
        if target_info.res<>res_none then
          begin
-           hr:=new(presourcefile,init(current_module.ResourceFiles.getfirst));
-           hr^.compile;
-           dispose(hr,done);
+           resourcefile:=TResourceFile(resinfos[target_info.res]^.resourcefileclass).create(current_module.ResourceFiles.getfirst);
+           resourcefile.compile;
+           resourcefile.free;
          end
        else
          Message(scan_e_resourcefiles_not_supported);

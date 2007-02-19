@@ -45,7 +45,8 @@ implementation
     uses
        SysUtils,
        cutils,cfileutils,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_palmos;
+       globtype,globals,systems,verbose,script,fmodule,i_palmos,
+       comprsrc;
 
 {****************************************************************************
                                TLinkerPalmOS
@@ -208,10 +209,10 @@ end;
 initialization
 {$ifdef m68k}
   RegisterTarget(system_m68k_palmos_info);
-  RegisterRes(res_m68k_palmos_info);
+  RegisterRes(res_m68k_palmos_info,TResourceFile);
 {$endif m68k}
 {$ifdef arm}
   RegisterTarget(system_arm_palmos_info);
-  RegisterRes(res_arm_palmos_info);
+  RegisterRes(res_arm_palmos_info,TResourceFile);
 {$endif arm}
 end.
