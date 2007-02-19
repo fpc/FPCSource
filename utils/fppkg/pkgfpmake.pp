@@ -76,8 +76,8 @@ begin
       if Not HaveFPMake then
         Error(SErrMissingFPMake);
       { Call compiler }
-      C:=Defaults.Compiler;
-      O:=FPmakeSrc;
+      C:=Defaults.FPMakeCompiler;
+      O:='-vi -n -Fu'+Defaults.FPMakeUnitDir+' -Fu'+Defaults.FPMakeUnitDir+'..'+PathDelim+'rtl'+PathDelim+' '+FPmakeSrc;
       If ExecuteProcess(C,O)<>0 then
         Error(SErrFailedToCompileFPCMake)
     end
@@ -112,14 +112,14 @@ end;
 
 function TFPMakeRunnerBuild.Execute(const Args:TActionArgs):boolean;
 begin
-  result:=(RunFPMake('--build')=0);
+  result:=(RunFPMake('build')=0);
 end;
 
 
 
 function TFPMakeRunnerInstall.Execute(const Args:TActionArgs):boolean;
 begin
-  result:=(RunFPMake('--install')=0);
+  result:=(RunFPMake('install')=0);
 end;
 
 

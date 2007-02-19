@@ -41,6 +41,9 @@ Type
     FCompilerOS: TOS;
     FCompilerVersion : String;
     FInstallDir : String;
+    // Compiler settings for compiling FPMake.pp
+    FFPMakeCompiler : String;
+    FFPMakeUnitDir : String;
     function GetOptString(Index: integer): String;
     procedure SetOptString(Index: integer; const AValue: String);
     procedure SetCompilerCPU(const AValue: TCPU);
@@ -75,6 +78,8 @@ Type
     Property DefaultVerbosity : String Index 11 Read GetOptString Write SetOptString;
     Property PackagesDir : String Index 12 Read GetOptString Write SetOptString;
     Property CompilerConfigDir : String Index 13 Read GetOptString Write SetOptString;
+    Property FPMakeCompiler : String Index 14 Read GetOptString Write SetOptString;
+    Property FPMakeUnitDir : String Index 15 Read GetOptString Write SetOptString;
     Property CompilerOS : TOS Read FCompilerOS Write SetCompilerOS;
     Property CompilerCPU : TCPU Read FCompilerCPU Write SetCompilerCPU;
   end;
@@ -122,6 +127,8 @@ Const
   KeyCompilerOS            = 'OS';
   KeyCompilerCPU           = 'CPU';
   KeyCompilerVersion       = 'Version';
+  KeyFPMakeCompiler        = 'FPMakeCompiler';
+  KeyFPMakeUnitDir         = 'FPMakeUnitDir';
 
 
 { TPackagerOptions }
@@ -148,6 +155,8 @@ begin
    11 : Result:=FDefaultVerbosity;
    12 : Result:=FPackagesDir;
    13 : Result:=FCompilerConfigDir;
+   14 : Result:=FFPMakeCompiler;
+   15 : Result:=FFPMakeUnitDir;
   end;
 end;
 
@@ -169,6 +178,8 @@ begin
    11 : FDefaultVerbosity:=AValue;
    12 : FPackagesDir:=FixPath(AValue);
    13 : FCompilerConfigDir:=FixPath(AValue);
+   14 : FFPMakeCompiler:=AValue;
+   15 : FFPMakeUnitDir:=FixPath(AValue);
   end;
   FDirty:=True;
 end;
@@ -208,7 +219,6 @@ function TPackagerOptions.LocalVersionsFile(CompilerConfig:String):string;
 begin
   Result:=FLocalRepository+Format(DefaultVersionsFile,[CompilerConfig]);
 end;
-
 
 Procedure TPackagerOptions.InitGlobalDefaults;
 var
@@ -258,9 +268,9 @@ begin
   FInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
   if FInstallDir='' then
     begin
-      if DirectoryExists('/usr/local/lib/fpc/'+FCompilerVersion) then
-        FInstallDir:='/usr/local/lib/fpc/'+FCompilerVersion+'/'
-      else
+      FInstallDir:='/usr/local/lib/fpc/'+FCompilerVersion+'/';
+      if not DirectoryExists(FInstallDir) and
+         DirectoryExists('/usr/lib/fpc/'+FCompilerVersion) then
         FInstallDir:='/usr/lib/fpc/'+FCompilerVersion+'/';
     end;
 {$else unix}
@@ -273,6 +283,9 @@ begin
         FInstallDir:=FInstallDir+'../';
     end;
 {$endif unix}
+  // Detect directory where fpmake units are located
+  FFPMakeCompiler:=FCompiler;
+  FFPMakeUnitDir:=FInstallDir+'units'+PathDelim+CompilerTarget+PathDelim+'fpmake'+PathDelim;
 end;
 
 
@@ -346,6 +359,8 @@ begin
      FCompilerOS:=StringToOS(ReadString(SDefaults,KeyCompilerOS,OSToString(CompilerOS)));
      FCompilerCPU:=StringToCPU(ReadString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU)));
      FCompilerVersion:=ReadString(SDefaults,KeyCompilerVersion,FCompilerVersion);
+     FFPMakeCompiler:=ReadString(SDefaults,KeyFPMakeCompiler,FFPMakeCompiler);
+     FFPMakeUnitDir:=FixPath(ReadString(SDefaults,KeyFPMakeUnitDir,FFPMakeUnitDir));
    end;
 end;
 
@@ -359,6 +374,8 @@ begin
      WriteString(SDefaults,KeyCompilerOS,OSToString(CompilerOS));
      WriteString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU));
      WriteString(SDefaults,KeyCompilerVersion,FCompilerVersion);
+     WriteString(SDefaults,KeyFPMakeCompiler,FFPMakeCompiler);
+     WriteString(SDefaults,KeyFPMakeUnitDir,FFPMakeUnitDir);
    end;
 end;
 

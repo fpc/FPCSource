@@ -297,8 +297,8 @@ var
   Args   : TActionArgs;
   OldCurrDir : String;
 begin
-  LoadGlobalDefaults;
   OldCurrDir:=GetCurrentDir;
+  LoadGlobalDefaults;
   Try
     ProcessCommandLine;
     MaybeCreateLocalDirs;
