@@ -1605,11 +1605,12 @@ implementation
 
     procedure TDebugInfoDwarf.appendprocdef(pd:tprocdef);
       var
-        procendlabel : tasmlabel;
+        procendlabel   : tasmlabel;
+        funcrettype    : tasmsymbol;
         mangled_length : longint;
-        procentry : String;
-        p : pchar;
-        hs : string;
+        p              : pchar;
+        procentry      : string;
+        dreg           : byte;
       begin
         if assigned(pd.procstarttai) then
           begin
@@ -1640,27 +1641,35 @@ implementation
             append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry));
             append_labelentry(DW_AT_high_pc,procendlabel);
 
-            (*
             if assigned(pd.funcretsym) and
                (tabstractnormalvarsym(pd.funcretsym).refs>0) then
               begin
                 if tabstractnormalvarsym(pd.funcretsym).localloc.loc=LOC_REFERENCE then
                   begin
-{$warning Need to add gdb support for ret in param register calling}
+                    finish_entry;
+
                     if paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
-                      hs:='X*'
+                      funcrettype:=def_dwarf_ref_lab(pd.returndef)
                     else
-                      hs:='X';
-                    templist.concat(Tai_stab.create(stab_stabs,strpnew(
-                       '"'+pd.procsym.name+':'+hs+def_stab_number(pd.returndef)+'",'+
-                       tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
-                    if (m_result in current_settings.modeswitches) then
-                      templist.concat(Tai_stab.create(stab_stabs,strpnew(
-                         '"RESULT:'+hs+def_stab_number(pd.returndef)+'",'+
-                         tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
+                      funcrettype:=def_dwarf_lab(pd.returndef);
+
+                    append_entry(DW_TAG_formal_parameter,false,[
+                      DW_AT_name,DW_FORM_string,pd.procsym.name+#0,
+                      {
+                      DW_AT_decl_file,DW_FORM_data1,0,
+                      DW_AT_decl_line,DW_FORM_data1,
+                      }
+                      { data continues below }
+                      DW_AT_location,DW_FORM_block1,1+Lengthsleb128(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset)
+                    ]);
+
+                    { append block data }
+                    dreg:=dwarf_reg(tabstractnormalvarsym(pd.funcretsym).localloc.reference.base);
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset));
+                    append_labelentry_ref(DW_AT_type,funcrettype);
                   end;
               end;
-            *)
 
             finish_entry;
 (*
