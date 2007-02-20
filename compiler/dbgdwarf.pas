@@ -641,7 +641,7 @@ implementation
         { Need a new label? }
         if not assigned(def.dwarf_lab) then
           begin
-            if not(tf_dwarf_relative_addresses in target_info.flags) then
+            if not(tf_dwarf_only_local_labels in target_info.flags) then
               begin
                 if (ds_dwarf_dbg_info_written in def.defstates) then
                   begin
@@ -936,7 +936,7 @@ implementation
     procedure TDebugInfoDwarf.append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
         current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
-        if not(tf_dwarf_relative_addresses in target_info.flags) then
+        if not(tf_dwarf_only_local_labels in target_info.flags) then
           begin
             current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref_addr)));
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym))
@@ -1334,7 +1334,7 @@ implementation
                 slen:=255;
 
               { create a structure with two elements }
-              if not(tf_dwarf_relative_addresses in target_info.flags) then
+              if not(tf_dwarf_only_local_labels in target_info.flags) then
                 current_asmdata.getdatalabel(arr)
               else
                 current_asmdata.getaddrlabel(arr);
@@ -1448,7 +1448,7 @@ implementation
         if def.is_methodpointer then
           begin
             { create a structure with two elements }
-            if not(tf_dwarf_relative_addresses in target_info.flags) then
+            if not(tf_dwarf_only_local_labels in target_info.flags) then
               current_asmdata.getdatalabel(proc)
             else
               current_asmdata.getaddrlabel(proc);
@@ -2711,7 +2711,7 @@ implementation
               append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def));
               finish_entry;
 
-              if not(tf_dwarf_relative_addresses in target_info.flags) then
+              if not(tf_dwarf_only_local_labels in target_info.flags) then
                 current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(def_dwarf_class_struct_lab(def),0))
               else
                 current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(def_dwarf_class_struct_lab(def),0));
@@ -2728,16 +2728,15 @@ implementation
           http://sources.redhat.com/ml/gdb-patches/2005-05/msg00278.html (FK) }
 
         if assigned(def.typesym) then
-          append_entry(DW_TAG_base_type,false,[
+          append_entry(DW_TAG_set_type,false,[
             DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-            DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
             DW_AT_byte_size,DW_FORM_data2,def.size
             ])
         else
-          append_entry(DW_TAG_base_type,false,[
-            DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+          append_entry(DW_TAG_set_type,false,[
             DW_AT_byte_size,DW_FORM_data2,def.size
             ]);
+        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
         finish_entry;
       end;
 
@@ -2812,7 +2811,7 @@ implementation
         var
           obj : tasmlabel;
         begin
-          if not(tf_dwarf_relative_addresses in target_info.flags) then
+          if not(tf_dwarf_only_local_labels in target_info.flags) then
             current_asmdata.getdatalabel(obj)
           else
             current_asmdata.getaddrlabel(obj);
