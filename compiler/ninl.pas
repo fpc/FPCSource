@@ -464,6 +464,11 @@ implementation
                       readfunctype:=u64inttype;
                     end;
 {$endif cpu64bit}
+                  scurrency:
+                    begin
+                      name := procprefixes[do_read]+'currency'
+                      readfunctype:=s64currencytype;
+                    end;
                   bool8bit,
                   bool16bit,
                   bool32bit,
