@@ -35,7 +35,7 @@ fpcpackage=y
 fpcdir=../..
 
 [require]
-packages=fcl fpmake $(LIBCURL)
+packages=fcl fpmake libcurl
 
 [prerules]
 # Compatibility to compile with 2.0.x
@@ -44,7 +44,6 @@ FCL20=fcl20
 FCL20UNITS=zstream contnrs streamcoll zipper
 else
 PKGCURL=pkglibcurl
-LIBCURL=libcurl
 endif
 
 [rules]
