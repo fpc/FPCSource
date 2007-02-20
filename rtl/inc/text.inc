@@ -1193,7 +1193,7 @@ end;
 procedure fpc_read_text_enum(str2ordindex:pointer;var t:text;out ordinal:longint); iocheck; [Public,Alias:'FPC_READ_TEXT_ENUM'];compilerproc;
 
 var s:string;
-    code:longint;
+    code:valsint;
 
 begin
   if not checkread(t) then
