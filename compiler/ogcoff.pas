@@ -271,6 +271,19 @@ interface
     type
       Treaddllproc = procedure(const dllname,funcname:string) of object;
 
+    const
+{$ifdef i386}
+       COFF_MAGIC       = $14c;
+       COFF_OPT_MAGIC   = $10b;
+{$endif i386}
+{$ifdef arm}
+       COFF_MAGIC       = $1c0;
+       COFF_OPT_MAGIC   = $10b;
+{$endif arm}
+{$ifdef x86_64}
+       COFF_MAGIC       = $8664;
+       COFF_OPT_MAGIC   = $20b;
+{$endif x86_64}
     function ReadDLLImports(const dllname:string;readdllproc:Treaddllproc):boolean;
 
 implementation
@@ -287,19 +300,6 @@ implementation
        ;
 
     const
-{$ifdef i386}
-       COFF_MAGIC       = $14c;
-       COFF_OPT_MAGIC   = $10b;
-{$endif i386}
-{$ifdef arm}
-       COFF_MAGIC       = $1c0;
-       COFF_OPT_MAGIC   = $10b;
-{$endif arm}
-{$ifdef x86_64}
-       COFF_MAGIC       = $8664;
-       COFF_OPT_MAGIC   = $20b;
-{$endif x86_64}
-
        COFF_FLAG_NORELOCS = $0001;
        COFF_FLAG_EXE      = $0002;
        COFF_FLAG_NOLINES  = $0004;

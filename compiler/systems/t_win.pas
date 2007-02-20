@@ -92,6 +92,7 @@ interface
 
 
       TWinResourceFile = class(TResourceFile)
+        procedure PostProcessResourcefile(const s : ansistring);override;
       end;
 
 
@@ -1708,6 +1709,25 @@ implementation
           current_module.dllscannerinputlist.Pack;
         result:=importfound;
       end;
+
+
+{****************************************************************************
+                            TWinResourceFile
+****************************************************************************}
+
+procedure TWinResourceFile.PostProcessResourcefile(const s : ansistring);
+var
+  f : file;
+  w : word;
+begin
+{$ifdef arm}
+  assign(f,s);
+  reset(f,1);
+  w:=COFF_MAGIC;
+  blockwrite(f,w,2);
+  close(f);
+{$endif arm}
+end;
 
 
 {*****************************************************************************
