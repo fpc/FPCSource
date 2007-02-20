@@ -909,11 +909,11 @@ implementation
           else
             inc(st);
           {$ifdef cpurequiresproperalignment}
-          align(st,sizeof(Tconstptruint);
+          align(st,sizeof(Tconstptruint));
           {$endif}
           inc(st);
           {$ifdef cpurequiresproperalignment}
-          align(st,sizeof(Tconstptruint);
+          align(st,sizeof(Tconstptruint));
           {$endif}
           inc(st,8+sizeof(aint));
           { write rtti data }
@@ -1017,11 +1017,11 @@ implementation
           else
             inc(st);
           {$ifdef cpurequiresproperalignment}
-          align(st,sizeof(Tconstptruint);
+          align(st,sizeof(Tconstptruint));
           {$endif}
           inc(st);
           {$ifdef cpurequiresproperalignment}
-          align(st,sizeof(Tconstptruint);
+          align(st,sizeof(Tconstptruint));
           {$endif}
           inc(st,8+sizeof(aint));
           { write rtti data }
