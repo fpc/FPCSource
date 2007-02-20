@@ -49,6 +49,46 @@ implementation
 
 {$maxfpuregisters 0}
 
+    { bitpacks "value" as bitpacked value of bitsize "packedbitsize" and     }
+    { loadsize "loadbitsize" into "curval", which has already been filled up }
+    { to "curbitoffset", and stores the spillover if any into "nextval".     }
+    { It also updates curbitoffset to reflect how many bits of currval are   }
+    { now used (can be > packedbitsize in case of spillover)                 }
+    procedure bitpackval(value: aword; var curval: aword; out nextval: aword; loadbitsize, packedbitsize: byte; var curbitoffset: smallint);
+      var
+        tmpval: aword;
+        shiftcount: longint;
+      begin
+        { 1 shl 32/64 = 1 on i386/x86_64 }
+        if (loadbitsize<>AintBits) then
+          tmpval:=(aword(1) shl loadbitsize) - 1
+        else
+          tmpval:=aword(-1);
+        if (target_info.endian=endian_big) then
+          begin
+            { bitpacked format: left-aligned (i.e., "big endian bitness") }
+            curval:=curval or (((value shl (loadbitsize-packedbitsize)) shr curbitoffset) and tmpval);
+            shiftcount:=((loadbitsize-packedbitsize)-curbitoffset);
+            { carry-over to the next element? }
+            if (shiftcount<0) then
+              nextval:=(value and ((aword(1) shl (-shiftcount))-1)) shl
+                       (loadbitsize+shiftcount)
+            else
+              nextval:=0;
+          end
+        else
+          begin
+            { bitpacked format: right aligned (i.e., "little endian bitness") }
+            curval:=curval or ((value shl curbitoffset) and tmpval);
+            { carry-over to the next element? }
+            if (curbitoffset+packedbitsize>loadbitsize) then
+              nextval:=value shr (loadbitsize-curbitoffset)
+            else
+              nextval:=0;
+          end;
+        inc(curbitoffset,packedbitsize);
+      end;
+
     { this procedure reads typed constants }
     procedure read_typed_const_data(list:tasmlist;def:tdef);
 
@@ -608,6 +648,96 @@ implementation
           n.free;
         end;
 
+
+        procedure flush_packed_value(list: tasmlist; var curval, nextval: aword; loadbitsize: byte; var curbitoffset: smallint);
+          begin
+            { these values have to be byte swapped when cross-compiling }
+            { from one endianess to another, but this will be done      }
+            { automatically by the assembler writer                     }
+            case loadbitsize of
+              8:  list.concat(tai_const.create_8bit(curval));
+              16: list.concat(tai_const.create_16bit(curval));
+              32: list.concat(tai_const.create_32bit(curval));
+              64: list.concat(tai_const.create_64bit(curval));
+              else
+                internalerror(2007022011);
+            end;
+            curval:=nextval;
+            nextval:=0;
+            dec(curbitoffset,loadbitsize);
+          end;
+
+
+        { parse a single constant and add it to the packed const info  }
+        { represented by curval etc (see explanation of bitpackval for }
+        { what the different parameters mean)                          }
+        function parse_single_packed_const(list: tasmlist; def: tdef; var curval: aword; out nextval: aword; loadbitsize, packedbitsize: byte; var curbitoffset: smallint): boolean;
+          var
+            n : tnode;
+          begin
+            result:=true;
+            n:=comp_expr(true);
+            if (n.nodetype <> ordconstn) or
+               not equal_defs(n.resultdef,def) and
+               not is_subequal(n.resultdef,def) then
+              begin
+                n.free;
+                incompatibletypes(n.resultdef,def);
+                consume_all_until(_SEMICOLON);
+                result:=false;
+                exit;
+              end;
+            bitpackval(tordconstnode(n).value,curval,nextval,loadbitsize,packedbitsize,curbitoffset);
+            if (curbitoffset>=loadbitsize) then
+              flush_packed_value(list,curval,nextval,loadbitsize,curbitoffset);
+            n.free;
+          end;
+
+
+        { parses a packed array constant }
+        procedure parse_packed_array_def(list: tasmlist; def: tarraydef);
+          var
+            i : aint;
+            loadmask: aword;
+            curval, nextval: aword;
+            curbitoffset: smallint;
+            packedbitsize,
+            loadbitsize: byte;
+          begin
+            if not(def.elementdef.typ in [orddef,enumdef]) then
+              internalerror(2007022010);
+            { begin of the array }
+            consume(_LKLAMMER);
+            packedbitsize:=def.elepackedbitsize;
+            loadbitsize:=packedbitsloadsize(packedbitsize)*8;
+            { 1 shl 32/64 = 1 on i386/x86_64 }
+            if (loadbitsize*8 <> sizeof(aword)) then
+              loadmask:=aword(1) shl loadbitsize
+            else
+              loadmask:=aword(-1);
+            curval:=0;
+            curbitoffset:=0;
+            i:=def.lowrange;
+            { can't use for-loop, fails when cross-compiling from }
+            { 32 to 64 bit because i is then 64 bit               }
+            while (i<def.highrange) do
+              begin
+                { get next item of the packed array }
+                if not parse_single_packed_const(list,def.elementdef,curval,nextval,loadbitsize,packedbitsize,curbitoffset) then
+                  exit;
+                consume(_COMMA);
+                inc(i);
+              end;
+            { final item }
+            if not parse_single_packed_const(list,def.elementdef,curval,nextval,loadbitsize,packedbitsize,curbitoffset) then
+              exit;
+            { flush final incomplete value if necessary }
+            if (curbitoffset <> 0) then
+              flush_packed_value(list,curval,nextval,loadbitsize,curbitoffset);
+            consume(_RKLAMMER);
+          end;
+
+
         procedure parse_arraydef(list:tasmlist;def:tarraydef);
         var
           n : tnode;
@@ -623,11 +753,11 @@ implementation
               consume(_NIL);
               list.concat(Tai_const.Create_sym(nil));
             end
-          { no packed array constants supported }
-          else if is_packed_array(def) then
+          { packed array constant }
+          else if is_packed_array(def) and
+                  (def.elepackedbitsize mod 8 <> 0)  then
             begin
-              Message(type_e_no_const_packed_array);
-              consume_all_until(_RKLAMMER);
+              parse_packed_array_def(list,def);
             end
           { normal array const between brackets }
           else if try_to_consume(_LKLAMMER) then
