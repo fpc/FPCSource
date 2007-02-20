@@ -696,7 +696,7 @@ Begin
   Write_Str(Len,t,s);
 End;
 
-procedure fpc_write_text_enum(typinfo,o2sindex:pointer;len:sizeint;var t:text;ordinal:longint); iocheck; [Public,Alias:'FPC_WRITE_TEXT_ENUM']; compilerproc;
+procedure fpc_write_text_enum(typinfo,ord2strindex:pointer;len:sizeint;var t:text;ordinal:longint); iocheck; [Public,Alias:'FPC_WRITE_TEXT_ENUM']; compilerproc;
 
 type  Ptypeinfo=^Ttypeinfo;
       Ttypeinfo=record
@@ -732,7 +732,7 @@ begin
         inoutres:=103;
       exit;
     end;
-  if Pcardinal(o2sindex)^=0 then
+  if Pcardinal(ord2strindex)^=0 then
     begin
       {The compiler did generate a lookup table.}
       with Penuminfo(Pbyte(typinfo)+2+length(Ptypeinfo(typinfo)^.name))^ do
@@ -745,7 +745,7 @@ begin
           dec(ordinal,minvalue);
         end;
       {Get the address of the string.}
-      p:=Pshortstring((PPpointer(o2sindex)+1+ordinal)^);
+      p:=Pshortstring((PPpointer(ord2strindex)+1+ordinal)^);
       if p=nil then
         begin
           inoutres:=107;      {Invalid ordinal value for this enum.}
@@ -756,10 +756,10 @@ begin
   else
     begin
       {The compiler did generate a sorted array of (ordvalue,Pstring) tuples.}
-      sorted_array:=pointer(Pcardinal(o2sindex)+2);
+      sorted_array:=pointer(Pcardinal(ord2strindex)+2);
       {Use a binary search to get the string.}
       l:=0;
-      h:=(Pcardinal(o2sindex)+1)^-1;
+      h:=(Pcardinal(ord2strindex)+1)^-1;
       repeat
         m:=(l+h) div 2;
         if ordinal>sorted_array[m].o then
@@ -1190,7 +1190,7 @@ begin
    InOutRes:=106;
 end;
 
-procedure fpc_read_text_enum(s2oindex:pointer;var t:text;out ordinal:longint); iocheck; [Public,Alias:'FPC_READ_TEXT_ENUM'];compilerproc;
+procedure fpc_read_text_enum(str2ordindex:pointer;var t:text;out ordinal:longint); iocheck; [Public,Alias:'FPC_READ_TEXT_ENUM'];compilerproc;
 
 var s:string;
     code:longint;
@@ -1206,7 +1206,7 @@ begin
         exit;
       ReadNumeric(t,s);
     end;
-  ordinal:=fpc_val_enum_shortstr(s2oindex,s,code);
+  ordinal:=fpc_val_enum_shortstr(str2ordindex,s,code);
   if code<>0 then
    InOutRes:=106;
 end;

@@ -863,12 +863,12 @@ begin
   s:=ss;
 end;
 
-procedure fpc_ansistr_enum(ordinal,len:sizeint;typinfo,o2sindex:pointer;out s:shortstring);[public,alias:'FPC_ANSISTR_ENUM'];compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+procedure fpc_ansistr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);[public,alias:'FPC_ANSISTR_ENUM'];compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
 
 var ss:shortstring;
 
 begin
-  fpc_shortstr_enum(ordinal,len,typinfo,o2sindex,ss);
+  fpc_shortstr_enum(ordinal,len,typinfo,ord2strindex,ss);
   s:=ss;
 end;
 

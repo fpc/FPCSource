@@ -385,7 +385,7 @@ begin
   str_real(len,fr,d,treal_type(rt),s);
 end;
 
-procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,o2sindex:pointer;out s:shortstring);[public,alias:'FPC_SHORTSTR_ENUM'];compilerproc;
+procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);[public,alias:'FPC_SHORTSTR_ENUM'];compilerproc;
 
 type  Ptypeinfo=^Ttypeinfo;
       Ttypeinfo=record
@@ -415,7 +415,7 @@ var e:Penuminfo;
 label error;
 
 begin
-  if Pcardinal(o2sindex)^=0 then
+  if Pcardinal(ord2strindex)^=0 then
     begin
       {The compiler did generate a lookup table.}
       with Penuminfo(Pbyte(typinfo)+2+length(Ptypeinfo(typinfo)^.name))^ do 
@@ -425,7 +425,7 @@ begin
           dec(ordinal,minvalue);
         end;
       {Get the address of the string.}
-      p:=Pshortstring((PPpointer(o2sindex)+1+ordinal)^);
+      p:=Pshortstring((PPpointer(ord2strindex)+1+ordinal)^);
       if p=nil then
         goto error;      {Invalid ordinal value for this enum.}
       s:=p^;
@@ -433,10 +433,10 @@ begin
   else
     begin
       {The compiler did generate a sorted array of (ordvalue,Pstring) tuples.}
-      sorted_array:=pointer(Pcardinal(o2sindex)+2);
+      sorted_array:=pointer(Pcardinal(ord2strindex)+2);
       {Use a binary search to get the string.}
       l:=0;
-      h:=(Pcardinal(o2sindex)+1)^-1;
+      h:=(Pcardinal(ord2strindex)+1)^-1;
       repeat
         m:=(l+h) div 2;
         if ordinal>sorted_array[m].o then
@@ -465,7 +465,7 @@ error:
 end;
 
 { also define alias for internal use in the system unit }
-procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,o2sindex:pointer;out s:shortstring);external name 'FPC_SHORTSTR_ENUM';
+procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);external name 'FPC_SHORTSTR_ENUM';
 
 procedure fpc_shortstr_currency(c : currency; len,f : SizeInt; out s : shortstring);[public,alias:'FPC_SHORTSTR_CURRENCY']; compilerproc;
 const
@@ -1088,7 +1088,7 @@ begin
   code:=0;
 end;
 
-function fpc_val_enum_shortstr(s2oindex:pointer;const s:shortstring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_SHORTSTR']; compilerproc;
+function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_SHORTSTR']; compilerproc;
 
 type  Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
         o:longint;
@@ -1109,10 +1109,10 @@ begin
   while (spaces<=length(s)) and (s[spaces]=' ')  do
     inc(spaces);
   t:=upcase(copy(s,spaces,255));
-  sorted_array:=pointer(Pcardinal(s2oindex)+1);
+  sorted_array:=pointer(Pcardinal(str2ordindex)+1);
   {Use a binary search to get the string.}
   l:=1;
-  h:=Pcardinal(s2oindex)^;
+  h:=Pcardinal(str2ordindex)^;
   repeat
     m:=(l+h) div 2;
     if t>upcase(sorted_array[m-1].s^) then
@@ -1139,7 +1139,7 @@ error:
 end;
 
 {Redeclare fpc_val_enum_shortstr for internal use in the system unit.}
-function fpc_val_enum_shortstr(s2oindex:pointer;const s:shortstring;out code:valsint):longint;external name 'FPC_VAL_ENUM_SHORTSTR';
+function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code:valsint):longint;external name 'FPC_VAL_ENUM_SHORTSTR';
 
 function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : ValSInt): currency; [public, alias:'FPC_VAL_CURRENCY_SHORTSTR']; compilerproc;
 const

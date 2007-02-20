@@ -1163,7 +1163,7 @@ begin
     end;
 end;
 
-function fpc_val_enum_widestr(s2oindex:pointer;const s:widestring;out code:valsint):longint;compilerproc;
+function fpc_val_enum_widestr(str2ordindex:pointer;const s:widestring;out code:valsint):longint;compilerproc;
 
 var ss:shortstring;
 
@@ -1266,12 +1266,12 @@ begin
   s:=ss;
 end;
 
-procedure fpc_widestr_enum(ordinal,len:sizeint;typinfo,o2sindex:pointer;out s:widestring);compilerproc;
+procedure fpc_widestr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:widestring);compilerproc;
 
 var ss:shortstring;
 
 begin
-  fpc_shortstr_enum(ordinal,len,typinfo,o2sindex,ss);
+  fpc_shortstr_enum(ordinal,len,typinfo,ord2strindex,ss);
   s:=ss;
 end;
 
