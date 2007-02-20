@@ -468,6 +468,7 @@ implementation
                     begin
                       name := procprefixes[do_read]+'currency';
                       readfunctype:=s64currencytype;
+                      is_real:=true;
                     end;
                   bool8bit,
                   bool16bit,
