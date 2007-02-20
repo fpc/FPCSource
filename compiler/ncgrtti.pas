@@ -51,8 +51,8 @@ interface
       public
         procedure write_rtti(def:tdef;rt:trttitype);
         function  get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
-        function  get_rtti_label_o2s(def:tdef;rt:trttitype):tasmsymbol;
-        function  get_rtti_label_s2o(def:tdef;rt:trttitype):tasmsymbol;
+        function  get_rtti_label_ord2str(def:tdef;rt:trttitype):tasmsymbol;
+        function  get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
       end;
 
     var
@@ -1114,12 +1114,12 @@ implementation
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
       end;
 
-    function TRTTIWriter.get_rtti_label_o2s(def:tdef;rt:trttitype):tasmsymbol;
+    function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_o2s');
       end;
 
-    function TRTTIWriter.get_rtti_label_s2o(def:tdef;rt:trttitype):tasmsymbol;
+    function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_s2o');
       end;

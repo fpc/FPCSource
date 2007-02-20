@@ -260,7 +260,7 @@ implementation
             {Insert a reference to the typinfo.}
             newparas.right:=Ccallparanode.create(
               Caddrnode.create_internal(
-                Crttinode.create(Tenumdef(source.left.resultdef),fullrtti,rdt_o2s)
+                Crttinode.create(Tenumdef(source.left.resultdef),fullrtti,rdt_ord2str)
               ),
               newparas.right);
             {Insert a type conversion from the enumeration to longint.}
@@ -588,7 +588,7 @@ implementation
                       {Insert a reference to the typinfo.}
                       indexpara:=Ccallparanode.create(
                         Caddrnode.create_internal(
-                         Crttinode.create(Tenumdef(para.left.resultdef),fullrtti,rdt_o2s)
+                         Crttinode.create(Tenumdef(para.left.resultdef),fullrtti,rdt_ord2str)
                         ),
                         indexpara);
                       {Insert a type conversion to to convert the enum to longint.}
@@ -603,7 +603,7 @@ implementation
                     begin
                       {Insert a reference to the string2ord index.}
                       indexpara:=Ccallparanode.create(Caddrnode.create_internal(
-                        Crttinode.create(Tenumdef(para.left.resultdef),fullrtti,rdt_s2o)
+                        Crttinode.create(Tenumdef(para.left.resultdef),fullrtti,rdt_str2ord)
                       ),nil);
                       {Insert a type conversion to to convert the enum to longint.}
                       para.left:=Ctypeconvnode.create_internal(para.left,s32inttype);
@@ -1137,7 +1137,7 @@ implementation
             begin
               suffix:='enum_';
               sizepara:=Ccallparanode.create(Caddrnode.create_internal(
-                Crttinode.create(Tenumdef(destpara.resultdef),fullrtti,rdt_s2o)
+                Crttinode.create(Tenumdef(destpara.resultdef),fullrtti,rdt_str2ord)
               ),nil);
             end;
         end;

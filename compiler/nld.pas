@@ -33,7 +33,7 @@ interface
        symconst,symbase,symtype,symsym,symdef;
 
     type
-       Trttidatatype=(rdt_normal,rdt_o2s,rdt_s2o);
+       Trttidatatype=(rdt_normal,rdt_ord2str,rdt_str2ord);
 
        tloadnode = class(tunarynode)
        protected

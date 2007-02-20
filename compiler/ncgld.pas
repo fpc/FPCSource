@@ -1062,10 +1062,10 @@ implementation
         case rttidatatype of
           rdt_normal:
             location.reference.symbol:=RTTIWriter.get_rtti_label(rttidef,rttitype);
-          rdt_o2s:
-            location.reference.symbol:=RTTIWriter.get_rtti_label_o2s(rttidef,rttitype);
-          rdt_s2o:
-            location.reference.symbol:=RTTIWriter.get_rtti_label_s2o(rttidef,rttitype);
+          rdt_ord2str:
+            location.reference.symbol:=RTTIWriter.get_rtti_label_ord2str(rttidef,rttitype);
+          rdt_str2ord:
+            location.reference.symbol:=RTTIWriter.get_rtti_label_str2ord(rttidef,rttitype);
         end;
       end;
 
