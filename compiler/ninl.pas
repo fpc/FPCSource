@@ -466,7 +466,7 @@ implementation
 {$endif cpu64bit}
                   scurrency:
                     begin
-                      name := procprefixes[do_read]+'currency'
+                      name := procprefixes[do_read]+'currency';
                       readfunctype:=s64currencytype;
                     end;
                   bool8bit,
