@@ -983,6 +983,8 @@ end;
   {$ifdef win32}
     StoreInherit:=ExecInheritsHandles;
     ExecInheritsHandles:=true;
+    { Avoid dialog boxes if dll loading fails }
+    SetErrorMode(SEM_FAILCRITICALERRORS);
   {$endif win32}
     DosError:=0;
     If UseComSpec then
@@ -1000,6 +1002,7 @@ end;
       end;
   {$ifdef win32}
     ExecInheritsHandles:=StoreInherit;
+    SetErrorMode(0);
   {$endif win32}
     IOStatus:=DosError;
     ExecuteResult:=DosExitCode;
