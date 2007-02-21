@@ -124,7 +124,9 @@
          VTable      : Pointer;
          IOffset     : PtrInt;
          IIDStr      : pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
-         IType       : tinterfaceentrytype;
+         case boolean of
+           true      : (IType       : tinterfaceentrytype);
+           false     : (__pad_dummy : pointer);
        end;
 
        pinterfacetable = ^tinterfacetable;
