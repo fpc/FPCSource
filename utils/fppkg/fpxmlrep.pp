@@ -637,17 +637,17 @@ end;
 procedure TFPXMLRepositoryHandler.DoXMLToPackages(E: TDomElement; PS: TFPPackages);
 
 Var
-  PSN,PN : TDomElement;
+  PN : TDomElement;
   P : TFPPackage;
 
 begin
-  PN:=FindNextElement(PSN.FirstChild,SNodePackage);
+  PN:=FindNextElement(E.FirstChild,SNodePackage);
   While (PN<>Nil) do
     begin
     P:=PS.AddPackage('');
     try
       DoXMLToPackage(PN,P);
-    except
+    finally
       P.Free;
     end;
     PN:=FindNextElement(PN.NextSibling,SNodePackage);
@@ -677,7 +677,7 @@ begin
       P:=R.AddPackage('');
       try
         DoXMLToPackage(PN,P);
-      except
+      finally
         P.Free;
       end;
       PN:=FindNextElement(PN.NextSibling,SNodePackage);

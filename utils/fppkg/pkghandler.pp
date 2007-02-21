@@ -48,8 +48,9 @@ type
     Function ExecuteProcess(Const Prog,Args:String):Integer;
     Procedure SetCurrentDir(Const ADir:String);
     function PackageBuildPath:String;
-    function PackageRemoteArchive: String;
+    function PackageRemoteArchive:String;
     function PackageLocalArchive:String;
+    function PackageManifestFile:String;
   Public
     Constructor Create(AOwner:TComponent;APackage:TFPPackage); virtual;
     function PackageLogPrefix:String;
@@ -167,6 +168,12 @@ begin
   if not assigned(CurrentPackage) then
     Error(SErrNoPackageSpecified);
   Result:=Defaults.PackagesDir+CurrentPackage.FileName;
+end;
+
+
+function TPackageHandler.PackageManifestFile: String;
+begin
+  Result:='manifest.xml';
 end;
 
 

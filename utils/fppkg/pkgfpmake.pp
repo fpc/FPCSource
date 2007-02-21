@@ -42,6 +42,14 @@ type
   end;
 
 
+  { TFPMakeRunnerManifest }
+
+  TFPMakeRunnerManifest = Class(TFPMakeRunner)
+  Public
+    Function Execute(const Args:TActionArgs):boolean;override;
+  end;
+
+
 implementation
 
 uses
@@ -54,6 +62,8 @@ uses
 Procedure TFPMakeCompiler.CompileFPMake;
 Var
   O,C : String;
+  RTLDir,
+  FPPkgDir,
   FPMakeBin,
   FPMakeSrc : string;
   HaveFpmake : boolean;
@@ -75,9 +85,21 @@ begin
     begin
       if Not HaveFPMake then
         Error(SErrMissingFPMake);
+      { Detect installed units directories }
+      if not DirectoryExists(Defaults.FPMakeUnitDir) then
+        Error(SErrMissingDirectory,[Defaults.FPMakeUnitDir]);
+      RTLDir:=Defaults.FPMakeUnitDir+'..'+PathDelim+'rtl'+PathDelim;
+      if not DirectoryExists(RTLDir) then
+        Error(SErrMissingDirectory,[RTLDir]);
+      FPPkgDir:=Defaults.FPMakeUnitDir+'..'+PathDelim+'fppkg'+PathDelim;
+      if not DirectoryExists(FPPkgDir) then
+        FPPkgDir:='';
       { Call compiler }
       C:=Defaults.FPMakeCompiler;
-      O:='-vi -n -Fu'+Defaults.FPMakeUnitDir+' -Fu'+Defaults.FPMakeUnitDir+'..'+PathDelim+'rtl'+PathDelim+' '+FPmakeSrc;
+      O:='-vi -n -Fu'+Defaults.FPMakeUnitDir+' -Fu'+RTLDir;
+//      if FPPkgDir<>'' then
+//        O:=O+' -Fu'+FPPkgDir+' -Fafpmkpkg';
+      O:=O+' '+FPmakeSrc;
       If ExecuteProcess(C,O)<>0 then
         Error(SErrFailedToCompileFPCMake)
     end
@@ -123,9 +145,17 @@ begin
 end;
 
 
+function TFPMakeRunnerManifest.Execute(const Args:TActionArgs):boolean;
+begin
+  result:=(RunFPMake('manifest')=0);
+end;
+
+
+
 
 initialization
   RegisterPkgHandler('compilefpmake',TFPMakeCompiler);
   RegisterPkgHandler('fpmakebuild',TFPMakeRunnerBuild);
   RegisterPkgHandler('fpmakeinstall',TFPMakeRunnerInstall);
+  RegisterPkgHandler('fpmakemanifest',TFPMakeRunnerManifest);
 end.

@@ -71,8 +71,6 @@ Type
 
   { TFPDepencencies }
 
-  { TFPDependencies }
-
   TFPDependencies = Class(TStreamCollection)
   private
     function GetDependency(Index : Integer): TFPDependency;

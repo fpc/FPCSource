@@ -18,10 +18,21 @@ type
   end;
 
 
+  { TCreateArchive }
+
+  TCreateArchive = Class(TPackagehandler)
+  Private
+    Procedure CreateArchive;
+  Public
+    Function Execute(const Args:TActionArgs):boolean;override;
+  end;
+
 
 implementation
 
 uses
+  fprepos,
+  fpxmlrep,
   zipper,
   uriparser,
   pkgglobals,
@@ -54,7 +65,7 @@ begin
 end;
 
 
-{ TFPMakeCompiler }
+{ TUnzipArchive }
 
 Procedure TUnzipArchive.UnzipArchive;
 Var
@@ -91,6 +102,48 @@ begin
 end;
 
 
+{ TCreateArchive }
+
+procedure TCreateArchive.CreateArchive;
+var
+  P : TFPPackage;
+  PS : TFPPackages;
+  X : TFPXMLRepositoryHandler;
+  i : integer;
+begin
+  if assigned(CurrentPackage) then
+    Error(SErrOnlyLocalDir);
+  { Generate manifest.xml if it doesn't exists yet }
+  if not FileExists(PackageManifestFile) then
+    ExecuteAction(CurrentPackage,'fpmakemanifest');
+
+
+  PS:=TFPPackages.Create(TFPPackage);
+  X:=TFPXMLRepositoryHandler.Create;
+  With X do
+    try
+      LoadFromXml(PS,PackageManifestFile);
+    finally
+      Free;
+    end;
+
+  for i:=0 to PS.Count-1 do
+    begin
+      P:=PS[i];
+      Writeln(P.Name);
+      Writeln(P.FileName);
+    end;
+end;
+
+
+function TCreateArchive.Execute(const Args: TActionArgs): boolean;
+begin
+  CreateArchive;
+  Result:=true;
+end;
+
+
 initialization
   RegisterPkgHandler('unziparchive',TUnzipArchive);
+  RegisterPkgHandler('createarchive',TCreateArchive);
 end.
