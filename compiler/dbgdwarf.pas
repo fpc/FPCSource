@@ -2728,15 +2728,16 @@ implementation
           http://sources.redhat.com/ml/gdb-patches/2005-05/msg00278.html (FK) }
 
         if assigned(def.typesym) then
-          append_entry(DW_TAG_set_type,false,[
+          append_entry(DW_TAG_base_type,false,[
             DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
+            DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
             DW_AT_byte_size,DW_FORM_data2,def.size
             ])
         else
-          append_entry(DW_TAG_set_type,false,[
+          append_entry(DW_TAG_base_type,false,[
+            DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
             DW_AT_byte_size,DW_FORM_data2,def.size
             ]);
-        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
         finish_entry;
       end;
 
