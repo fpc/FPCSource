@@ -990,13 +990,16 @@ implementation
                     is_constintnode(right) and
                     (tordconstnode(right).value >= 0) then
                    inserttypeconv(right,u32inttype);
-                 { when one of the operand is signed perform
+                 { when one of the operand is signed or the operation is subn then perform
                    the operation in 64bit, can't use rd/ld here because there
-                   could be already typeconvs inserted }
+                   could be already typeconvs inserted.
+                   This is compatible with the code below for other unsigned types (PFV) }
                  if is_signed(left.resultdef) or
-                    is_signed(right.resultdef) then
+                    is_signed(right.resultdef) or 
+                    (nodetype=subn) then
                    begin
-                     CGMessage(type_w_mixed_signed_unsigned);
+                     if nodetype<>subn then
+                       CGMessage(type_w_mixed_signed_unsigned);
                      inserttypeconv(left,s64inttype);
                      inserttypeconv(right,s64inttype);
                    end

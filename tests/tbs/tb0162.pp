@@ -75,13 +75,14 @@ begin
       doerror(8);
   end;
 
-
+  // The calculation will be done in int64 and
+  // give a rangecheck instead of a overflow
   c := 0;
   try
     c := c-1;
     doerror(9);
   except
-    on eintoverflow do
+    on erangecheck do
       ;
     else
       doerror(10);
