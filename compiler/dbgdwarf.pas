@@ -1321,76 +1321,76 @@ implementation
 
 
     procedure TDebugInfoDwarf.appenddef_string(def:tstringdef);
-      var
-        slen : aint;
-        arr : tasmlabel;
+
+      procedure addnormalstringdef(const name: shortstring; lendef: tdef; maxlen: cardinal);
+        var
+          slen : aint;
+          arr : tasmlabel;
+        begin
+          { fix length of openshortstring }
+          slen:=def.len;
+          if slen=0 then
+            slen:=maxlen;
+
+          { create a structure with two elements }
+          if not(tf_dwarf_only_local_labels in target_info.flags) then
+            current_asmdata.getdatalabel(arr)
+          else
+            current_asmdata.getaddrlabel(arr);
+          append_entry(DW_TAG_structure_type,true,[
+            DW_AT_name,DW_FORM_string,name+#0,
+            DW_AT_byte_size,DW_FORM_data1,2*sizeof(aint)
+            ]);
+          finish_entry;
+
+          { length entry }
+          append_entry(DW_TAG_member,false,[
+            DW_AT_name,DW_FORM_string,'Length'#0,
+            DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(0)
+            ]);
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(lendef));
+          finish_entry;
+
+          { string data entry }
+          append_entry(DW_TAG_member,false,[
+            DW_AT_name,DW_FORM_string,'Data'#0,
+            DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(1)
+            ]);
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(lendef.size));
+          append_labelentry_ref(DW_AT_type,arr);
+          finish_entry;
+
+          finish_children;
+
+          { now the data array }
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(arr,0));
+          append_entry(DW_TAG_array_type,true,[
+            DW_AT_byte_size,DW_FORM_udata,def.size,
+            DW_AT_stride_size,DW_FORM_udata,1*8
+            ]);
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(cchartype));
+          finish_entry;
+          append_entry(DW_TAG_subrange_type,false,[
+            DW_AT_lower_bound,DW_FORM_udata,0,
+            DW_AT_upper_bound,DW_FORM_udata,slen
+            ]);
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(lendef));
+          finish_entry;
+          finish_children;
+        end;
+
       begin
         case def.stringtype of
           st_shortstring:
             begin
-              { fix length of openshortstring }
-              slen:=def.len;
-              if slen=0 then
-                slen:=255;
-
-              { create a structure with two elements }
-              if not(tf_dwarf_only_local_labels in target_info.flags) then
-                current_asmdata.getdatalabel(arr)
-              else
-                current_asmdata.getaddrlabel(arr);
-              append_entry(DW_TAG_structure_type,true,[
-                DW_AT_name,DW_FORM_string,'ShortString'#0,
-                DW_AT_byte_size,DW_FORM_data1,2*sizeof(aint)
-              ]);
-              finish_entry;
-
-              { length entry }
-              append_entry(DW_TAG_member,false,[
-                DW_AT_name,DW_FORM_string,'Length'#0,
-                DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(0)
-                ]);
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(u8inttype));
-              finish_entry;
-
-              { string data entry }
-              append_entry(DW_TAG_member,false,[
-                DW_AT_name,DW_FORM_string,'Data'#0,
-                DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(1)
-                ]);
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(1));
-              append_labelentry_ref(DW_AT_type,arr);
-              finish_entry;
-
-              finish_children;
-
-              { now the data array }
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(arr,0));
-              append_entry(DW_TAG_array_type,true,[
-                DW_AT_byte_size,DW_FORM_udata,def.size,
-                DW_AT_stride_size,DW_FORM_udata,1*8
-                ]);
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(cchartype));
-              finish_entry;
-              append_entry(DW_TAG_subrange_type,false,[
-                DW_AT_lower_bound,DW_FORM_udata,0,
-                DW_AT_upper_bound,DW_FORM_udata,slen
-                ]);
-              append_labelentry_ref(DW_AT_type,def_dwarf_lab(u8inttype));
-              finish_entry;
-              finish_children;
+              addnormalstringdef('ShortString',u8inttype,255);
             end;
           st_longstring:
             begin
-            {
-              charst:=def_stab_number(cchartype);
-              bytest:=def_stab_number(u8inttype);
-              longst:=def_stab_number(u32inttype);
-              result:=def_stabstr_evaluate(def,'s$1length:$2,0,32;dummy:$6,32,8;st:ar$2;1;$3;$4,40,$5;;',
-                          [tostr(def.len+5),longst,tostr(def.len),charst,tostr(def.len*8),bytest]);
-            }
+              addnormalstringdef('LongString',u32inttype,$ffffffff);
            end;
          st_ansistring:
            begin
