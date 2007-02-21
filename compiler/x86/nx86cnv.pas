@@ -241,15 +241,17 @@ implementation
 
                    { Get sign bit }
                    if (left.location.loc=LOC_REGISTER) then
-                     emit_const_reg(A_BT,S_Q,63,left.location.register)
+                     begin
+                       emit_const_reg(A_BT,S_Q,63,left.location.register);
+                       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_Q,left.location.register,location.register));
+                     end                       
                    else
                      begin
                        inc(left.location.reference.offset,4);
                        emit_const_ref(A_BT,S_L,31,left.location.reference);
                        dec(left.location.reference.offset,4);
+                       current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,S_Q,left.location.reference,location.register));
                      end;
-
-                   current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,S_Q,left.location.reference,location.register));
 
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
