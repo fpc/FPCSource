@@ -27,6 +27,9 @@ Type
   TTargetState = (tsNeutral,tsCompiling,tsCompiled,tsInstalled);
   TTargetStates = Set of TTargetState;
 
+  TSourceType = (stDoc,stSrc,stExample,stTest);
+  TSourceTypes = set of TSourceType;
+
   TVerboseLevel = (vlError,vlWarning,vlInfo,vlCompare,vlCommand,vldebug);
   TVerboseLevels = Set of TVerboseLevel;
 

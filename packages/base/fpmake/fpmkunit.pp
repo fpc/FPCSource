@@ -8,7 +8,7 @@ Interface
 uses SysUtils,Classes,fpmktype;
 
 Type
-  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmManifest);
+  TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmManifest,rmListSources);
 
   { TNamedItem }
 
@@ -130,6 +130,7 @@ Type
     Function GetOutputFileName (AOs : TOS) : String; Virtual;
     procedure SetName(const AValue: String);override;
     Procedure GetCleanFiles(List : TStrings; APrefix : String; AnOS : TOS); virtual;
+    Procedure GetSourceFiles(List : TStrings; APrefix : String; AnOS : TOS); virtual;
     Procedure GetInstallFiles(List : TStrings; APrefix : String; AnOS : TOS); virtual;
     Procedure GetArchiveFiles(List : TStrings; APrefix : String; AnOS : TOS); virtual;
     Property HasUnitPath : Boolean Index 0 Read GetHasStrings;
@@ -190,6 +191,32 @@ Type
     Property DefaultCPU : TCPUs Read FDefaultCPU Write FDefaultCPU;
   end;
 
+  { TSource }
+
+  TSource = Class(TNamedItem)
+  private
+    FSourceType: TSourceType;
+  Public
+    Constructor Create(ACollection : TCollection); override;
+    Destructor Destroy; override;
+    procedure GetSourceFiles(List: TStrings);
+    Property SourceType : TSourceType Read FSourceType Write FSourceType;
+  end;
+
+  { TSources }
+
+  TSources = Class(TNamedCollection)
+  private
+    function GetSourceItem(Index : Integer): TSource;
+    procedure SetSourceItem(Index : Integer; const AValue: TSource);
+  public
+    Function AddDocFiles(AFiles : String) : TSource;
+    Function AddSrcFiles(AFiles : String) : TSource;
+    Function AddExampleFiles(AFiles : String) : TSource;
+    Function AddTestFiles(AFiles : String) : TSource;
+    Property SourceItems[Index : Integer] : TSource Read GetSourceItem Write SetSourceItem;default;
+  end;
+
   { TPackage }
 
   TPackage = Class(TNamedItem) // Maybe descend from/use TTarget ?
@@ -215,17 +242,20 @@ Type
     FOS: TOses;
     FTargetState: TTargetState;
     FTargets: TTargets;
+    FSources: TSources;
     FDirectory: String;
     FOptions: String;
+    FFileName: String;
     FAuthor: String;
     FLicense: String;
-    FURL: String;
+    FExternalURL: String;
     FVersion: String;
     FEmail : String;
     FCommands : TCommands;
     FDescriptionFile : String;
     FDescription : String;
     Function GetDescription : string;
+    Function GetFileName : string;
     function GetCommands: TCommands;
     function GetHasCommands: Boolean;
     function GetHasStrings(AIndex: integer): Boolean;
@@ -241,9 +271,11 @@ Type
     Procedure GetCleanFiles(List : TStrings; Const APrefix : String; AOS : TOS); virtual;
     procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;Const APrefix : String; AOS : TOS);
     Procedure GetArchiveFiles(List : TStrings; Const APrefix : String; AOS : TOS); virtual;
+    Procedure GetSourceFiles(List : TStrings); virtual;
     Procedure GetManifest(Manifest : TStrings);
     Property Version : String Read FVersion Write FVersion;
-    Property URL : String Read FURL Write FURL;
+    Property FileName : String Read GetFileName Write FFileName;
+    Property ExternalURL : String Read FExternalURL Write FExternalURL;
     Property Email : String Read FEmail Write FEmail;
     Property Author : String Read FAuthor Write FAuthor;
     Property License : String Read FLicense Write FLicense;
@@ -273,6 +305,7 @@ Type
     Property Commands : TCommands Read GetCommands Write SetCommands;
     Property State : TTargetState Read FTargetState;
     Property Targets : TTargets Read FTargets;
+    Property Sources : TSources Read FSources;
     // events
     Property BeforeCompile : TNotifyEvent Read FBeforeCompile Write FBeforeCompile;
     Property AfterCompile : TNotifyEvent Read FAfterCompile Write FAfterCompile;
@@ -447,6 +480,7 @@ Type
     Procedure Archive(APackage : TPackage);
     Procedure Clean(APackage : TPackage);
     Procedure FixDependencies(APackage : TPackage);
+    Procedure GetSourceFiles(APackage : TPackage; List : TStrings);
     Procedure GetManifest(APackage : TPackage; Manifest : TStrings);
     procedure CheckExternalPackage(Const APackageName : String);
     procedure CreateOutputDir(APackage: TPackage);
@@ -455,6 +489,7 @@ Type
     Procedure Install(Packages : TPackages);
     Procedure Archive(Packages : TPackages);
     Procedure Clean(Packages : TPackages);
+    Procedure GetSourceFiles(Packages : TPackages;List : TStrings);
     Procedure GetManifest(Packages : TPackages; Manifest : TStrings);
     Property ListMode : Boolean Read FListMode Write FListMode;
     Property ForceCompile : Boolean Read FForceCompile Write FForceCompile;
@@ -490,6 +525,7 @@ Type
     function GetStrings(AIndex : Integer): TStrings;
     function GetOSes: TOSes;
     function GetTargets: TTargets;
+    function GetSources: TSources;
     procedure SetDefaultPackage(const AValue: TPackage);
     procedure SetDefaults(const AValue: TDefaults);
     procedure SetStrings(AIndex : Integer; const AValue: TStrings);
@@ -509,6 +545,7 @@ Type
     Procedure Install; virtual;
     Procedure Archive; virtual;
     Procedure Manifest; virtual;
+    Procedure GetSourceFiles; virtual;
     Property BuildEngine : TBuildEngine Read FBuildEngine;
   Public
     Constructor Create(AOWner : TComponent); override;
@@ -529,16 +566,18 @@ Type
     Property ListMode : Boolean Read FListMode;
     // Default Package redirects.
     Property Targets : TTargets Read GetTargets;
+    Property Sources : TSources Read GetSources;
     Property OS: TOSes Read GetOSes Write SetOses;
     Property Author : String Index 0 Read GetPackageString Write SetPackageString;
     Property Directory : String Index 1 Read GetPackageString Write SetPackageString;
     Property License : String Index 2 Read GetPackageString Write SetPackageString;
     Property Options : String Index 3 Read GetPackageString Write SetPackageString;
-    Property URL : String Index 4 Read GetPackageString Write SetPackageString;
+    Property ExternalURL : String Index 4 Read GetPackageString Write SetPackageString;
     Property Email : String Index 5 Read GetPackageString Write SetPackageString;
     Property Description: String Index 6 Read GetPackageString Write SetPackageString;
     Property DescriptionFileName: String Index 7 Read GetPackageString Write SetPackageString;
     Property Version : String Index 8 Read GetPackageString Write SetPackageString;
+    Property FileName : String Index 9 Read GetPackageString Write SetPackageString;
   end;
 
   TReplaceFunction = Function (Const AName,Args : String) : String of Object;
@@ -1041,6 +1080,49 @@ begin
   ApplyDefaults(Result);
 end;
 
+
+{ TSources }
+
+function TSources.GetSourceItem(Index : Integer): TSource;
+begin
+  Result:=TSource(Items[Index]);
+end;
+
+
+procedure TSources.SetSourceItem(Index : Integer; const AValue: TSource);
+begin
+  Items[Index]:=AValue;
+end;
+
+
+function TSources.AddDocFiles(AFiles : String) : TSource;
+begin
+  Result:=Add as TSource;
+  Result.Name:=AFiles;
+  Result.SourceType:=stDoc;
+end;
+
+
+function TSources.AddSrcFiles(AFiles : String) : TSource;
+begin
+  Result:=Add as TSource;
+  Result.Name:=AFiles;
+  Result.SourceType:=stSrc;
+end;
+
+function TSources.AddExampleFiles(AFiles : String) : TSource;
+begin
+  Result:=Add as TSource;
+  Result.Name:=AFiles;
+  Result.SourceType:=stExample;
+end;
+
+function TSources.AddTestFiles(AFiles : String) : TSource;
+begin
+  Result:=Add as TSource;
+  Result.Name:=AFiles;
+  Result.SourceType:=stTest;
+end;
 
 { TNamedItemList }
 
@@ -1545,31 +1627,30 @@ Procedure TPackage.GetManifest(Manifest : TStrings);
 Var
   S : String;
   Release,Minor,Major : Word;
-  i : integer;
-
+  i : Integer;
 begin
   With Manifest do
     begin
     Add(Format('<package name="%s">',[QuoteXml(Name)]));
     SplitVersion(Version,Release,Minor,Major,S);
     Add(Format('<version release="%d" major="%d" minor="%d" suffix="%s"/>',[Release,Minor,Major,QuoteXMl(S)]));
+    Add(Format('<filename>%s</filename>',[QuoteXml(FileName)]));
     Add(Format('<author>%s</author>',[QuoteXml(Author)]));
-    Add(Format('<url>%s</url>',[QuoteXml(URL)]));
+    if ExternalURL<>'' then
+      Add(Format('<externalurl>%s</externalurl>',[QuoteXml(ExternalURL)]));
     Add(Format('<email>%s</email>',[QuoteXMl(Email)]));
     S:=Description;
     If (S<>'') then
       Add(Format('<description>%s</description>',[QuoteXML(S)]));
     if HasDependencies then
       begin
-      If (Dependencies.Count>0) then
-        begin
-        Add('<dependencies>');
-        for I:=0 to Dependencies.Count-1 do
+        If (Dependencies.Count>0) then
           begin
-          Add(Format('<dependency><package packagename=""/></dependency>',[QuoteXML(Dependencies[i])]));
+            Add('<dependencies>');
+            for I:=0 to Dependencies.Count-1 do
+              Add(Format('<dependency><package packagename="%s"/></dependency>',[QuoteXML(Dependencies[i])]));
+            Add('</dependencies>');
           end;
-        Add('</dependencies>');
-        end;
       end;
     Add('</package>');
     end;
@@ -1624,6 +1705,7 @@ Var
 begin
   inherited Create(ACollection);
   FTargets:=TTargets.Create(TTarget);
+  FSources:=TSources.Create(TSource);
   L:=TStringList.Create;
   FDependencies:=L;
   FInstallFiles:=TStringList.Create;
@@ -1640,6 +1722,7 @@ begin
   FreeAndNil(FIncludePath);
   FreeAndNil(FObjectPath);
   FreeAndNil(FUnitPath);
+  FreeAndNil(FSources);
   FreeAndNil(FTargets);
   inherited destroy;
 end;
@@ -1670,6 +1753,17 @@ begin
   AddStrings(List,CleanFiles,APrefix);
   For I:=0 to FTargets.Count-1 do
     FTargets.TargetItems[I].GetCleanFiles(List,APrefix,AOS);
+end;
+
+procedure TPackage.GetSourceFiles(List: TStrings);
+
+Var
+  I : Integer;
+
+begin
+  // AddStrings(List,SourceFiles,APrefix);
+  For I:=0 to FSources.Count-1 do
+    FSources.SourceItems[I].GetSourceFiles(List);
 end;
 
 procedure TPackage.GetInstallFiles(List: TStrings;Types : TTargetTypes;Const APrefix : String; AOS : TOS);
@@ -1732,6 +1826,15 @@ begin
 end;
 
 
+Function TPackage.GetFileName : string;
+begin
+  If (FFileName<>'') then
+    Result:=FFileName
+  else
+    Result:=Name+'-'+Version+'.zip';
+end;
+
+
 { TPackages }
 
 function TPackages.GetPackage(AName : String): TPackage;
@@ -1783,11 +1886,12 @@ begin
     1 : Result:=P.Directory;
     2 : Result:=P.License;
     3 : Result:=P.Options;
-    4 : Result:=P.URL;
+    4 : Result:=P.ExternalURL;
     5 : Result:=P.Email;
     6 : Result:=P.Description;
     7 : Result:=P.DescriptionFile;
     8 : Result:=P.Version;
+    9 : Result:=P.FileName;
   end;
 end;
 
@@ -1805,11 +1909,12 @@ begin
     1 : P.Directory:=AValue;
     2 : P.License:=AValue;
     3 : P.Options:=AValue;
-    4 : P.URL:=AValue;
+    4 : P.ExternalURL:=AValue;
     5 : P.Email:=AValue;
     6 : P.Description:=AValue;
     7 : P.DescriptionFile:=AValue;
     8 : P.Version:=AValue;
+    9 : P.FileName:=AValue;
   end;
 end;
 
@@ -1824,6 +1929,12 @@ function TInstaller.GetTargets: TTargets;
 begin
   CheckDefaultPackage;
   Result:=DefaultPackage.Targets;
+end;
+
+function TInstaller.GetSources: TSources;
+begin
+  CheckDefaultPackage;
+  Result:=DefaultPackage.Sources;
 end;
 
 procedure TInstaller.SetDefaultPackage(const AValue: TPackage);
@@ -1980,6 +2091,8 @@ begin
       FRunMode:=rmarchive
     else if CheckCommand(I,'M','manifest') then
       FRunMode:=rmManifest
+    else if CheckCommand(I,'M','listsources') then
+      FRunMode:=rmListSources
     else if CheckOption(I,'h','help') then
       Usage('',[])
     else if Checkoption(I,'C','CPU') then
@@ -2098,19 +2211,34 @@ procedure TInstaller.Manifest;
 
 Var
   L : TStrings;
-  I : Integer;
-
 begin
   L:=TStringList.Create;
   Try
+    Log(vlCommand,'Generating manifest.xml');
     L.Add('<?xml version="1.0"?>');
     BuildEngine.GetManifest(FPackages,L);
-    For I:=0 to L.Count-1 do
-      Writeln(L[i]);
+    L.SaveToFile('manifest.xml');
   Finally
     L.Free;
   end;
 end;
+
+procedure TInstaller.GetSourceFiles;
+
+Var
+  L : TStrings;
+begin
+  L:=TStringList.Create;
+  Try
+    Log(vlCommand,'Generating sources.xml');
+    L.Add('<?xml version="1.0"?>');
+    BuildEngine.GetSourceFiles(FPackages,L);
+    L.SaveToFile('sources.xml');
+  Finally
+    L.Free;
+  end;
+end;
+
 
 constructor TInstaller.Create(AOWner: TComponent);
 begin
@@ -2148,6 +2276,7 @@ begin
       rmArchive : Archive;
       rmClean    : Clean;
       rmManifest : Manifest;
+      rmListSources : GetSourceFiles;
     end;
   except
     On E : Exception do
@@ -2956,6 +3085,24 @@ begin
     end;
 end;
 
+Procedure TBuildEngine.GetSourceFiles(APackage : TPackage; List : TStrings);
+var
+  L : TStrings;
+  i : integer;
+begin
+  try
+    L:=TStringList.Create;
+    APackage.GetSourceFiles(L);
+    List.Add(Format('<sources packagename=%s>',[APackage.Name]));
+    for i:=0 to L.Count-1 do
+      List.Add(Format('<source>%s</source>',[L[i]]));
+    List.Add('</sources>');
+  finally
+    L.Free;
+  end;
+end;
+
+
 Procedure TBuildEngine.GetManifest(APackage : TPackage; Manifest : TStrings);
 
 begin
@@ -3064,6 +3211,19 @@ begin
   Manifest.Add('</packages>');
   If Assigned(AfterManifest) then
     AfterManifest(Self);
+end;
+
+
+Procedure TBuildEngine.GetSourceFiles(Packages : TPackages; List : TStrings);
+
+Var
+  I : Integer;
+
+begin
+  List.Add('<packages>');
+  For I:=0 to Packages.Count-1 do
+    GetSourceFiles(Packages.PackageItems[i],List);
+  List.Add('</packages>');
 end;
 
 
@@ -3207,6 +3367,21 @@ begin
     end;
 end;
 
+procedure TTarget.GetSourceFiles(List: TStrings; APrefix : String; AnOS : TOS);
+begin
+  If (OS=[]) or (AnOS in OS) then
+    begin
+    List.Add(APrefix+ObjectFileName);
+    If (TargetType in [ttUnit,ttExampleUnit]) then
+      List.Add(APrefix+UnitFileName)
+    else If (TargetType in [ttProgram,ttExampleProgram]) then
+      List.Add(APrefix+GetProgramFileName(AnOS));
+    If ResourceStrings then
+      List.Add(APrefix+RSTFileName);
+    // Maybe add later ?  AddStrings(List,CleanFiles);
+    end;
+end;
+
 procedure TTarget.GetInstallFiles(List: TStrings; APrefix : String; AnOS : TOS);
 begin
   If (OS=[]) or (AnOS in OS) then
@@ -3232,6 +3407,23 @@ begin
     end;
 end;
 
+
+{ TSource }
+
+constructor TSource.Create(ACollection: TCollection);
+begin
+  inherited Create(ACollection);
+end;
+
+destructor TSource.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TSource.GetSourceFiles(List: TStrings);
+begin
+  List.Add(Name);
+end;
 
 
 { TCommands }
