@@ -632,7 +632,7 @@ begin
       FD := TFieldDef.Create(FieldDefs, SQLDA^.SQLVar[x].AliasName, TransType,
          TransLen, False, (x + 1));
       if TransType = ftBCD then FD.precision := SQLDA^.SQLVar[x].SQLLen;
-      FD.DisplayName := SQLDA^.SQLVar[x].AliasName;
+//      FD.DisplayName := SQLDA^.SQLVar[x].AliasName;
       FieldBinding[FD.FieldNo-1] := x;
       end;
     end;
@@ -994,7 +994,7 @@ begin
     If qry.fields[4].asstring = 'PRIMARY KEY' then options := options + [ixPrimary];
     If qry.fields[2].asinteger = 1 then options := options + [ixUnique];
     qry.next;
-    while (name = qry.fields[0].asstring) and (not qry.eof) do
+    while (name = trim(qry.fields[0].asstring)) and (not qry.eof) do
       begin
       Fields := Fields + ';' + trim(qry.Fields[3].asstring);
       qry.next;

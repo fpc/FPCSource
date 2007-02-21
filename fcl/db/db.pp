@@ -132,9 +132,39 @@ type
   TFieldAttribute = (faHiddenCol, faReadonly, faRequired, faLink, faUnNamed, faFixed);
   TFieldAttributes = set of TFieldAttribute;
 
+  { TNamedItem }
+
+  TNamedItem = class(TCollectionItem)
+  private
+    FName: string;
+  protected
+    function GetDisplayName: string; override;
+    procedure SetDisplayName(const AValue: string); override;
+  public
+    property Name : string read FName write SetDisplayName;
+    property DisplayName : string read GetDisplayName;
+  end;
+
+  { TDefCollection }
+
+  TDefCollection = class(TOwnedCollection)
+  private
+    FDataset: TDataset;
+    FUpdated: boolean;
+  protected
+    procedure SetItemName(AItem: TCollectionItem); override;
+  public
+    constructor create(ADataset: TDataset; AOwner: TPersistent; AClass: TCollectionItemClass);
+    function Find(const AName: string): TNamedItem;
+    procedure GetItemNames(List: TStrings);
+    function IndexOf(const AName: string): Longint;
+    property Dataset: TDataset read FDataset;
+    property Updated: boolean read FUpdated write FUpdated;
+  end;
+
   { TFieldDef }
 
-  TFieldDef = class(TCollectionItem)
+  TFieldDef = class(TNamedItem)
   Private
     FDataType : TFieldType;
     FFieldNo : Longint;
@@ -142,8 +172,6 @@ type
     FPrecision : Longint;
     FRequired : Boolean;
     FSize : Word;
-    FName : String;
-    FDisplayName : String;
     FAttributes : TFieldAttributes;
     Function GetFieldClass : TFieldClass;
     procedure SetAttributes(AValue: TFieldAttributes);
@@ -151,9 +179,6 @@ type
     procedure SetPrecision(const AValue: Longint);
     procedure SetSize(const AValue: Word);
     procedure SetRequired(const AValue: Boolean);
-  protected
-    function GetDisplayName: string; override;
-    procedure SetDisplayName(const AValue: string); override;
   public
     constructor Create(AOwner: TFieldDefs; const AName: string;
       ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint); overload;
@@ -166,8 +191,6 @@ type
     property Required: Boolean read FRequired write SetRequired;
   Published
     property Attributes: TFieldAttributes read FAttributes write SetAttributes default [];
-    property Name: string read FName write FName; // Must move to TNamedItem
-    property DisplayName : string read FDisplayName write FDisplayName; // Must move to TNamedItem
     property DataType: TFieldType read FDataType write SetDataType;
     property Precision: Longint read FPrecision write SetPrecision;
     property Size: Word read FSize write SetSize;
@@ -175,15 +198,11 @@ type
 
 { TFieldDefs }
 
-  TFieldDefs = class(TOwnedCollection)
+  TFieldDefs = class(TDefCollection)
   private
-    FUpdated: Boolean;
     FHiddenFields : Boolean;
     function GetItem(Index: Longint): TFieldDef;
-    function GetDataset: TDataset;
     procedure SetItem(Index: Longint; const AValue: TFieldDef);
-  protected
-    procedure SetItemName(AItem: TCollectionItem); override;
   public
     constructor Create(ADataSet: TDataSet);
 //    destructor Destroy; override;
@@ -194,13 +213,9 @@ type
     procedure Assign(FieldDefs: TFieldDefs); overload;
 //    procedure Clear;
 //    procedure Delete(Index: Longint);
-    function Find(const AName: string): TFieldDef;
-    function IndexOf(const AName: string): Longint;
     procedure Update; overload;
     Property HiddenFields : Boolean Read FHiddenFields Write FHiddenFields;
     property Items[Index: Longint]: TFieldDef read GetItem write SetItem; default;
-    property Dataset: TDataset read GetDataset;
-    property Updated: Boolean read FUpdated write FUpdated;
   end;
 
 { TField }
@@ -789,13 +804,12 @@ type
     ixExpression, ixNonMaintained);
   TIndexOptions = set of TIndexOption;
 
-  TIndexDef = class(TCollectionItem)
+  TIndexDef = class(TNamedItem)
   Private
     FCaseinsFields: string;
     FDescFields: string;
     FExpression : String;
     FFields : String;
-    FName : String;
     FOptions : TIndexOptions;
     FSource : String;
   protected
@@ -812,21 +826,18 @@ type
     property Fields: string read FFields write FFields;
     property CaseInsFields: string read FCaseinsFields write SetCaseInsFields;
     property DescFields: string read FDescFields write SetDescFields;
-    property Name: string read FName write FName;
     property Options: TIndexOptions read FOptions write FOptions;
     property Source: string read FSource write FSource;
   end;
 
 { TIndexDefs }
 
-  TIndexDefs = class(TOwnedCollection)
+  TIndexDefs = class(TDefCollection)
   Private
-    FUpDated : Boolean;
-    FDataset : Tdataset;
     Function  GetItem(Index: Integer): TIndexDef;
     Procedure SetItem(Index: Integer; Value: TIndexDef);
   public
-    constructor Create(DataSet: TDataSet); overload;
+    constructor Create(ADataSet: TDataSet); overload;
     destructor Destroy; override;
     procedure Add(const Name, Fields: string; Options: TIndexOptions);
     Function AddIndexDef: TIndexDef;
@@ -834,10 +845,8 @@ type
     function FindIndexForFields(const Fields: string): TIndexDef;
     function GetIndexForFields(const Fields: string;
       CaseInsensitive: Boolean): TIndexDef;
-    function IndexOf(const Name: string): Longint;
     procedure Update; overload;
     Property Items[Index: Integer] : TIndexDef read GetItem write SetItem; default;
-    property Updated: Boolean read FUpdated write FUpdated;
   end;
 
 { TCheckConstraint }
@@ -1886,6 +1895,71 @@ begin
   Inherited;
 end;
 
+{ TNamedItem }
+
+function TNamedItem.GetDisplayName: string;
+begin
+  Result := FName;
+end;
+
+procedure TNamedItem.SetDisplayName(const AValue: string);
+begin
+  if FName=AValue then exit;
+  if (AValue <> '') and
+     (Collection is TOwnedCollection) and
+     (TFieldDefs(Collection).IndexOf(AValue) >= 0) then
+     DatabaseErrorFmt(SDuplicateName, [AValue, Collection.ClassName]);
+  FName:=AValue;
+  inherited SetDisplayName(AValue);
+end;
+
+{ TDefCollection }
+
+procedure TDefCollection.SetItemName(AItem: TCollectionItem);
+begin
+  with AItem as TNamedItem do
+    if Name = '' then
+      Name := Dataset.Name + Copy(ClassName, 2, 5) + IntToStr(ID+1)
+  else inherited SetItemName(AItem);
+end;
+
+constructor TDefCollection.create(ADataset: TDataset; AOwner: TPersistent;
+  AClass: TCollectionItemClass);
+begin
+  inherited Create(AOwner,AClass);
+  FDataset := ADataset;
+end;
+
+function TDefCollection.Find(const AName: string): TNamedItem;
+var i: integer;
+begin
+  Result := Nil;
+  for i := 0 to Count - 1 do if AnsiSameText(TNamedItem(Items[i]).Name, AName) then
+    begin
+    Result := TNamedItem(Items[i]);
+    Break;
+    end;
+end;
+
+procedure TDefCollection.GetItemNames(List: TStrings);
+var i: LongInt;
+begin
+  for i := 0 to Count - 1 do
+    List.Add(TNamedItem(Items[i]).Name);
+end;
+
+function TDefCollection.IndexOf(const AName: string): Longint;
+var i: LongInt;
+begin
+  Result := -1;
+  for i := 0 to Count - 1 do
+    if AnsiSameText(TNamedItem(Items[i]).Name, AName) then
+    begin
+    Result := i;
+    Break;
+    end;
+end;
+
 { TIndexDef }
 
 procedure TIndexDef.SetDescFields(const AValue: string);
@@ -1935,8 +2009,8 @@ constructor TIndexDef.Create(Owner: TIndexDefs; const AName, TheFields: string;
       TheOptions: TIndexOptions);
 
 begin
-  inherited create(Owner);
   FName := aname;
+  inherited create(Owner);
   FFields := TheFields;
   FOptions := TheOptions;
 end;
@@ -1962,11 +2036,10 @@ begin
   Inherited SetItem(Index,Value);
 end;
 
-constructor TIndexDefs.Create(DataSet: TDataSet);
+constructor TIndexDefs.Create(ADataSet: TDataSet);
 
 begin
-  FDataset := Dataset;
-  inherited create(Dataset, TIndexDef);
+  inherited create(ADataset, Owner, TIndexDef);
 end;
 
 
@@ -1990,14 +2063,8 @@ begin
 end;
 
 function TIndexDefs.Find(const IndexName: string): TIndexDef;
-var i: integer;
 begin
-  Result := Nil;
-  for i := 0 to Count - 1 do
-    if AnsiSameText(Items[i].Name, IndexName) then begin
-      Result := Items[i];
-      Break;
-    end;
+  Result := (inherited Find(IndexName)) as TIndexDef;
   if (Result=Nil) Then
     DatabaseErrorFmt(SIndexNotFound, [IndexName], FDataSet);
 end;
@@ -2039,26 +2106,14 @@ begin
   Result := Last;
 end;
 
-
-function TIndexDefs.IndexOf(const Name: string): Longint;
-
-var i: LongInt;
-begin
-  Result := -1;
-  for i := 0 to Count - 1 do
-    if AnsiSameText(Items[i].Name, Name) then
-    begin
-      Result := i;
-      Break;
-    end;
-end;
-
-
 procedure TIndexDefs.Update;
 
 begin
-  if assigned(Fdataset) then
-    Fdataset.UpdateIndexDefs;
+  if (not updated) and assigned(Dataset) then
+    begin
+    Dataset.UpdateIndexDefs;
+    updated := True;
+    end;
 end;
 
 { TCheckConstraint }

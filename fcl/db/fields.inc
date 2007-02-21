@@ -32,12 +32,11 @@ Constructor TFieldDef.Create(AOwner: TFieldDefs; const AName: string;
       ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint);
 
 begin
-  Inherited Create(AOwner);
 {$ifdef dsdebug }
   Writeln('TFieldDef.Create : ',Aname,'(',AFieldNo,')');
 {$endif}
-  FName:=Aname;
-  FDisplayName := '';
+  Name:=Aname;
+  Inherited Create(AOwner);
   FDatatype:=ADatatype;
   FSize:=ASize;
   FRequired:=ARequired;
@@ -88,7 +87,7 @@ begin
     Result.Size:=FSize;
     Result.Required:=FRequired;
     Result.FFieldName:=FName;
-    Result.FDisplayLabel:=FDisplayName;
+    Result.FDisplayLabel:=DisplayName;
     Result.FFieldNo:=Self.FieldNo;
     Result.SetFieldType(DataType);
     Result.FReadOnly:= (faReadOnly in Attributes);
@@ -136,22 +135,6 @@ procedure TFieldDef.SetRequired(const AValue: Boolean);
 begin
   FRequired := AValue;
   Changed(False);
-end;
-
-function TFieldDef.GetDisplayName: string;
-begin
-  Result := FDisplayName;
-  if Result = '' then
-    Result := Fname;
-end;
-
-procedure TFieldDef.SetDisplayName(const AValue: string);
-begin
-  if (AValue <> '') and (AnsiCompareText(AValue, DisplayName) <> 0) and
-    (Collection is TOwnedCollection) and
-    (TFieldDefs(Collection).IndexOf(AValue) >= 0) then
-    DatabaseErrorFmt(SDuplicateName, [AValue, Collection.ClassName]);
-  FName := AValue;
 end;
 
 Function TFieldDef.GetFieldClass : TFieldClass;
@@ -215,28 +198,14 @@ begin
   Result := TFieldDef(inherited Items[Index]);
 end;
 
-function TFieldDefs.GetDataset: TDataset;
-begin
-  Result := TDataset(GetOwner);
-end;
-
 procedure TFieldDefs.SetItem(Index: Longint; const AValue: TFieldDef);
 begin
   inherited Items[Index] := AValue;
 end;
 
-procedure TFieldDefs.SetItemName(AItem: TCollectionItem);
-begin
-  if AItem is TFieldDef then
-    with AItem as TFieldDef do
-      if Name = '' then
-        Name := Dataset.Name + Copy(ClassName, 2, 5) + IntToStr(ID+1)
-  else inherited SetItemName(AItem);
-end;
-
 constructor TFieldDefs.Create(ADataset: TDataset);
 begin
-  Inherited Create(TPersistent(ADataset), TFieldDef);
+  Inherited Create(ADataset, Owner, TFieldDef);
 end;
 
 procedure TFieldDefs.Assign(FieldDefs: TFieldDefs);
@@ -262,35 +231,14 @@ begin
 end;
 }
 
-function TFieldDefs.Find(const AName: string): TFieldDef;
-
-Var I : longint;
-
-begin
-  I:=IndexOf(AName);
-  If I=-1 Then
-    DataBaseErrorFmt(SUnknownField,[AName,DataSet.Name]);
-  Result:=Items[i];
-end;
-
-function TFieldDefs.IndexOf(const AName: string): Longint;
-
-Var I : longint;
-
-begin
-  For I:=0 to Count-1 do
-    If AnsiCompareText(Items[I].Name,AName)=0 then
-      begin
-      Result:=I;
-      Exit;
-      end;
-  Result:=-1;
-end;
-
 procedure TFieldDefs.Update;
 
 begin
-  DataSet.InitFieldDefs;
+  if not Updated then
+    begin
+    DataSet.InitFieldDefs;
+    Updated := True;
+    end;
 end;
 
 Function TFieldDefs.AddFieldDef : TFieldDef;
