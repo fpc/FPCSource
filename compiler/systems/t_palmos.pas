@@ -158,7 +158,7 @@ end;
 
 function TLinkerPalmOS.MakeExecutable:boolean;
 var
-  binstr  : TPathStr;
+  binstr,
   cmdstr  : TCmdStr;
   success : boolean;
   StripStr : string[40];

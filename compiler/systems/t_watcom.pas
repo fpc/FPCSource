@@ -133,7 +133,7 @@ end;
 
 function TLinkerWatcom.MakeExecutable:boolean;
 var
-  binstr : String;
+  binstr,
   cmdstr  : TCmdStr;
   success : boolean;
   StripStr : string[40];

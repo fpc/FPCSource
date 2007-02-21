@@ -1278,7 +1278,7 @@ implementation
     function TExternalLinkerWin.MakeExecutable:boolean;
       var
         MapStr,
-        binstr : String;
+        binstr,
         cmdstr  : TCmdStr;
         success : boolean;
         cmds,i       : longint;
@@ -1382,7 +1382,7 @@ implementation
     Function TExternalLinkerWin.MakeSharedLibrary:boolean;
       var
         MapStr,
-        binstr : String;
+        binstr,
         cmdstr  : TCmdStr;
         success : boolean;
         cmds,

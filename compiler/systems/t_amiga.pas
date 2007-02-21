@@ -198,7 +198,7 @@ end;
 
 function TLinkerAmiga.MakeAmigaPPCExe: boolean;
 var
-  BinStr  : string;
+  BinStr,
   CmdStr  : TCmdStr;
   StripStr: string[40];
 begin

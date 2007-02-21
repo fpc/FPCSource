@@ -183,7 +183,7 @@ end;
 
 function TLinkerMPW.MakeExecutable:boolean;
 var
-  binstr  : string;
+  binstr,
   cmdstr  : TCmdStr;
   success : boolean;
   DynLinkStr : string[60];

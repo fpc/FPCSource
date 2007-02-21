@@ -32,20 +32,20 @@ uses
 
 type
   TScript=class
-    fn   : string[100];
+    fn   : TCmdStr;
     data : TCmdStrList;
     executable : boolean;
-    constructor Create(const s:string);
-    constructor CreateExec(const s:string);
+    constructor Create(const s:TCmdStr);
+    constructor CreateExec(const s:TCmdStr);
     destructor Destroy;override;
-    procedure AddStart(const s:string);
-    procedure Add(const s:string);
+    procedure AddStart(const s:TCmdStr);
+    procedure Add(const s:TCmdStr);
     Function  Empty:boolean;
     procedure WriteToDisk;virtual;
   end;
 
   TAsmScript = class (TScript)
-    Constructor Create(Const ScriptName : String); virtual;
+    Constructor Create(Const ScriptName : TCmdStr); virtual;
     Procedure AddAsmCommand (Const Command, Options,FileName : TCmdStr);virtual;abstract;
     Procedure AddLinkCommand (Const Command, Options, FileName : TCmdStr);virtual;abstract;
     Procedure AddDeleteCommand (Const FileName : TCmdStr);virtual;abstract;
@@ -62,7 +62,7 @@ type
   end;
 
   TAsmScriptAmiga = class (TAsmScript)
-    Constructor Create (Const ScriptName : String); override;
+    Constructor Create (Const ScriptName : TCmdStr); override;
     Procedure AddAsmCommand (Const Command, Options,FileName : TCmdStr);override;
     Procedure AddLinkCommand (Const Command, Options, FileName : TCmdStr);override;
     Procedure AddDeleteCommand (Const FileName : TCmdStr);override;
@@ -71,7 +71,7 @@ type
   end;
 
   TAsmScriptUnix = class (TAsmScript)
-    Constructor Create (Const ScriptName : String);override;
+    Constructor Create (Const ScriptName : TCmdStr);override;
     Procedure AddAsmCommand (Const Command, Options,FileName : TCmdStr);override;
     Procedure AddLinkCommand (Const Command, Options, FileName : TCmdStr);override;
     Procedure AddDeleteCommand (Const FileName : TCmdStr);override;
@@ -90,10 +90,10 @@ type
 
   TLinkRes = Class (TScript)
     section: string[30];
-    procedure Add(const s:ansistring);
-    procedure AddFileName(const s:ansistring);
-    procedure EndSection(const s:ansistring);
-    procedure StartSection(const s:ansistring);
+    procedure Add(const s:TCmdStr);
+    procedure AddFileName(const s:TCmdStr);
+    procedure EndSection(const s:TCmdStr);
+    procedure StartSection(const s:TCmdStr);
   end;
 
 var
@@ -176,7 +176,7 @@ procedure TScript.WriteToDisk;
 var
   t : file;
   i : longint;
-  s : ansistring;
+  s : TCmdStr;
   le: string[2];
 
 begin

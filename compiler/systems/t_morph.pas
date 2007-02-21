@@ -201,7 +201,7 @@ end;
 
 function TLinkerMorphOS.MakeExecutable:boolean;
 var
-  binstr  : string;
+  binstr,
   cmdstr  : TCmdStr;
   success : boolean;
   StripStr: string[40];

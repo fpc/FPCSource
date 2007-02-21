@@ -527,8 +527,8 @@ Const
 
 function TLinkerNetwlibc.MakeNetwareLoadableModule (isLib : boolean):boolean;
 var
-  binstr : String;
-  cmdstr : TcmdStr;
+  binstr,
+  cmdstr : TCmdStr;
   xdcname : string;
   success  : boolean;
   StripStr : string[2];

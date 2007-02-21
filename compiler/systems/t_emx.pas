@@ -449,7 +449,7 @@ end;
 
 function TLinkerEMX.MakeExecutable:boolean;
 var
-  binstr : String;
+  binstr,
   cmdstr  : TCmdStr;
   success : boolean;
   i       : longint;

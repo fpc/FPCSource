@@ -51,18 +51,18 @@ interface
       private
         FDirectoryEntries : TFPHashList;
       public
-        constructor Create(AList:TFPHashObjectList;const AName:string);
+        constructor Create(AList:TFPHashObjectList;const AName:TCmdStr);
         destructor  destroy;override;
         procedure Reload;
-        function FileExists(const AName:string):boolean;
-        function DirectoryExists(const AName:string):boolean;
+        function FileExists(const AName:TCmdStr):boolean;
+        function DirectoryExists(const AName:TCmdStr):boolean;
         property DirectoryEntries:TFPHashList read FDirectoryEntries;
       end;
 
       TCachedSearchRec = record
-        Name       : string;
+        Name       : TCmdStr;
         Attr       : byte;
-        Pattern    : string;
+        Pattern    : TCmdStr;
         CachedDir  : TCachedDirectory;
         EntryIndex : longint;
       end;
@@ -70,13 +70,13 @@ interface
       TDirectoryCache = class
       private
         FDirectories : TFPHashObjectList;
-        function GetDirectory(const ADir:string):TCachedDirectory;
+        function GetDirectory(const ADir:TCmdStr):TCachedDirectory;
       public
         constructor Create;
         destructor  destroy;override;
-        function FileExists(const AName:string):boolean;
-        function DirectoryExists(const AName:string):boolean;
-        function FindFirst(const APattern:string;var Res:TCachedSearchRec):boolean;
+        function FileExists(const AName:TCmdStr):boolean;
+        function DirectoryExists(const AName:TCmdStr):boolean;
+        function FindFirst(const APattern:TCmdStr;var Res:TCachedSearchRec):boolean;
         function FindNext(var Res:TCachedSearchRec):boolean;
         function FindClose(var Res:TCachedSearchRec):boolean;
       end;
@@ -88,26 +88,26 @@ interface
         function  FindFile(const f : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
       end;
 
-    function  bstoslash(const s : string) : string;
+    function  bstoslash(const s : TCmdStr) : TCmdStr;
     {Gives the absolute path to the current directory}
-    function  GetCurrentDir:string;
+    function  GetCurrentDir:TCmdStr;
     {Gives the relative path to the current directory,
      with a trailing dir separator. E. g. on unix ./ }
-    function CurDirRelPath(systeminfo: tsysteminfo): string;
-    function  path_absolute(const s : string) : boolean;
-    Function  PathExists (const F : String;allowcache:boolean) : Boolean;
-    Function  FileExists (const F : String;allowcache:boolean) : Boolean;
+    function CurDirRelPath(systeminfo: tsysteminfo): TCmdStr;
+    function  path_absolute(const s : TCmdStr) : boolean;
+    Function  PathExists (const F : TCmdStr;allowcache:boolean) : Boolean;
+    Function  FileExists (const F : TCmdStr;allowcache:boolean) : Boolean;
     function  FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
-    Function  RemoveDir(d:string):boolean;
-    Function  FixPath(s:string;allowdot:boolean):string;
-    function  FixFileName(const s:string):string;
-    function  TargetFixPath(s:string;allowdot:boolean):string;
-    function  TargetFixFileName(const s:string):string;
-    procedure SplitBinCmd(const s:string;var bstr: String;var cstr:TCmdStr);
+    Function  RemoveDir(d:TCmdStr):boolean;
+    Function  FixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
+    function  FixFileName(const s:TCmdStr):TCmdStr;
+    function  TargetFixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
+    function  TargetFixFileName(const s:TCmdStr):TCmdStr;
+    procedure SplitBinCmd(const s:TCmdStr;var bstr: TCmdStr;var cstr:TCmdStr);
     function  FindFile(const f : TCmdStr;path : TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
     function  FindFilePchar(const f : TCmdStr;path : pchar;allowcache:boolean;var foundfile:TCmdStr):boolean;
     function  FindExe(const bin:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
-    function  GetShortName(const n:string):string;
+    function  GetShortName(const n:TCmdStr):TCmdStr;
 
     procedure InitFileUtils;
     procedure DoneFileUtils;
@@ -127,7 +127,7 @@ implementation
                            TCachedDirectory
 ****************************************************************************}
 
-    constructor TCachedDirectory.create(AList:TFPHashObjectList;const AName:string);
+    constructor TCachedDirectory.create(AList:TFPHashObjectList;const AName:TCmdStr);
       begin
         inherited create(AList,AName);
         FDirectoryEntries:=TFPHashList.Create;
@@ -164,7 +164,7 @@ implementation
       end;
 
 
-    function TCachedDirectory.FileExists(const AName:string):boolean;
+    function TCachedDirectory.FileExists(const AName:TCmdStr):boolean;
       var
         Attr : Longint;
       begin
@@ -179,7 +179,7 @@ implementation
       end;
 
 
-    function TCachedDirectory.DirectoryExists(const AName:string):boolean;
+    function TCachedDirectory.DirectoryExists(const AName:TCmdStr):boolean;
       var
         Attr : Longint;
       begin
@@ -212,10 +212,10 @@ implementation
       end;
 
 
-    function TDirectoryCache.GetDirectory(const ADir:string):TCachedDirectory;
+    function TDirectoryCache.GetDirectory(const ADir:TCmdStr):TCachedDirectory;
       var
         CachedDir : TCachedDirectory;
-        DirName   : string;
+        DirName   : TCmdStr;
       begin
         if ADir='' then
           DirName:='.'
@@ -231,7 +231,7 @@ implementation
       end;
 
 
-    function TDirectoryCache.FileExists(const AName:string):boolean;
+    function TDirectoryCache.FileExists(const AName:TCmdStr):boolean;
       var
         CachedDir : TCachedDirectory;
       begin
@@ -242,7 +242,7 @@ implementation
       end;
 
 
-    function TDirectoryCache.DirectoryExists(const AName:string):boolean;
+    function TDirectoryCache.DirectoryExists(const AName:TCmdStr):boolean;
       var
         CachedDir : TCachedDirectory;
       begin
@@ -253,7 +253,7 @@ implementation
       end;
 
 
-    function TDirectoryCache.FindFirst(const APattern:string;var Res:TCachedSearchRec):boolean;
+    function TDirectoryCache.FindFirst(const APattern:TCmdStr;var Res:TCachedSearchRec):boolean;
       begin
         Res.Pattern:=ExtractFileName(APattern);
         Res.CachedDir:=GetDirectory(ExtractFilePath(APattern));
@@ -290,26 +290,26 @@ implementation
                                    Utils
 ****************************************************************************}
 
-    function bstoslash(const s : string) : string;
+    function bstoslash(const s : TCmdStr) : TCmdStr;
     {
-      return string s with all \ changed into /
+      return TCmdStr s with all \ changed into /
     }
       var
          i : longint;
       begin
+        setlength(bstoslash,length(s));
         for i:=1to length(s) do
          if s[i]='\' then
           bstoslash[i]:='/'
          else
           bstoslash[i]:=s[i];
-         bstoslash[0]:=s[0];
       end;
 
 
    {Gives the absolute path to the current directory}
      var
-       CachedCurrentDir : string;
-   function GetCurrentDir:string;
+       CachedCurrentDir : TCmdStr;
+   function GetCurrentDir:TCmdStr;
      begin
        if CachedCurrentDir='' then
          begin
@@ -321,7 +321,7 @@ implementation
 
    {Gives the relative path to the current directory,
     with a trailing dir separator. E. g. on unix ./ }
-   function CurDirRelPath(systeminfo: tsysteminfo): string;
+   function CurDirRelPath(systeminfo: tsysteminfo): TCmdStr;
 
    begin
      if systeminfo.system <> system_powerpc_macos then
@@ -331,7 +331,7 @@ implementation
    end;
 
 
-   function path_absolute(const s : string) : boolean;
+   function path_absolute(const s : TCmdStr) : boolean;
    {
      is path s an absolute path?
    }
@@ -352,7 +352,7 @@ implementation
 {$endif unix}
      end;
 
-    Function FileExists ( Const F : String;allowcache:boolean) : Boolean;
+    Function FileExists ( Const F : TCmdStr;allowcache:boolean) : Boolean;
       begin
 {$ifdef usedircache}
         if allowcache then
@@ -372,7 +372,7 @@ implementation
 
     function FileExistsNonCase(const path,fn:TCmdStr;allowcache:boolean;var foundfile:TCmdStr):boolean;
       var
-        fn2 : string;
+        fn2 : TCmdStr;
       begin
         result:=false;
         if tf_files_case_sensitive in source_info.flags then
@@ -439,10 +439,10 @@ implementation
       end;
 
 
-    Function PathExists (const F : String;allowcache:boolean) : Boolean;
+    Function PathExists (const F : TCmdStr;allowcache:boolean) : Boolean;
       Var
         i: longint;
-        hs : string;
+        hs : TCmdStr;
       begin
         if F = '' then
           begin
@@ -463,7 +463,7 @@ implementation
       end;
 
 
-    Function RemoveDir(d:string):boolean;
+    Function RemoveDir(d:TCmdStr):boolean;
       begin
         if d[length(d)]=source_info.DirSep then
          Delete(d,length(d),1);
@@ -474,7 +474,7 @@ implementation
       end;
 
 
-    Function FixPath(s:string;allowdot:boolean):string;
+    Function FixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
       var
         i : longint;
       begin
@@ -500,9 +500,9 @@ implementation
   {Actually the version in macutils.pp could be used,
    but that would not work for crosscompiling, so this is a slightly modified
    version of it.}
-  function TranslatePathToMac (const path: string; mpw: Boolean): string;
+  function TranslatePathToMac (const path: TCmdStr; mpw: Boolean): TCmdStr;
 
-    function GetVolumeIdentifier: string;
+    function GetVolumeIdentifier: TCmdStr;
 
     begin
       GetVolumeIdentifier := '{Boot}'
@@ -623,7 +623,7 @@ implementation
   end;
 
 
-   function FixFileName(const s:string):string;
+   function FixFileName(const s:TCmdStr):TCmdStr;
      var
        i      : longint;
      begin
@@ -633,6 +633,7 @@ implementation
         if (tf_files_case_aware in source_info.flags) or
            (tf_files_case_sensitive in source_info.flags) then
         begin
+          setlength(FixFileName,length(s));
           for i:=1 to length(s) do
            begin
              case s[i] of
@@ -642,10 +643,10 @@ implementation
                  FixFileName[i]:=s[i];
              end;
            end;
-          FixFileName[0]:=s[0];
         end
        else
         begin
+          setlength(FixFileName,length(s));
           for i:=1 to length(s) do
            begin
              case s[i] of
@@ -657,12 +658,11 @@ implementation
                   FixFileName[i]:=s[i];
              end;
            end;
-          FixFileName[0]:=s[0];
         end;
      end;
 
 
-    Function TargetFixPath(s:string;allowdot:boolean):string;
+    Function TargetFixPath(s:TCmdStr;allowdot:boolean):TCmdStr;
       var
         i : longint;
       begin
@@ -686,7 +686,7 @@ implementation
       end;
 
 
-   function TargetFixFileName(const s:string):string;
+   function TargetFixFileName(const s:TCmdStr):TCmdStr;
      var
        i : longint;
      begin
@@ -696,6 +696,7 @@ implementation
         if (tf_files_case_aware in target_info.flags) or
            (tf_files_case_sensitive in target_info.flags) then
          begin
+           setlength(TargetFixFileName,length(s));
            for i:=1 to length(s) do
            begin
              case s[i] of
@@ -705,10 +706,10 @@ implementation
                  TargetFixFileName[i]:=s[i];
              end;
            end;
-           TargetFixFileName[0]:=s[0];
          end
        else
          begin
+           setlength(TargetFixFileName,length(s));
            for i:=1 to length(s) do
            begin
              case s[i] of
@@ -720,12 +721,11 @@ implementation
                   TargetFixFileName[i]:=s[i];
              end;
            end;
-           TargetFixFileName[0]:=s[0];
          end;
      end;
 
 
-   procedure SplitBinCmd(const s:string;var bstr:String;var cstr:TCmdStr);
+   procedure SplitBinCmd(const s:TCmdStr;var bstr:TCmdStr;var cstr:TCmdStr);
      var
        i : longint;
      begin
@@ -897,7 +897,7 @@ implementation
 
    procedure TSearchPathList.AddList(list:TSearchPathList;addfirst:boolean);
      var
-       s : string;
+       s : TCmdStr;
        hl : TSearchPathList;
        hp,hp2 : TCmdStrListItem;
      begin
@@ -1002,7 +1002,7 @@ implementation
              startpc:=pc;
              while (pc^<>sepch) and (pc^<>';') and (pc^<>#0) do
               inc(pc);
-			 SetLength(singlepathstring, pc-startpc);
+             SetLength(singlepathstring, pc-startpc);
              move(startpc^,singlepathstring[1],pc-startpc);            
              singlepathstring:=FixPath(ExpandFileName(singlepathstring),false);
              result:=FileExistsNonCase(singlepathstring,f,allowcache,FoundFile);
@@ -1037,15 +1037,15 @@ implementation
      end;
 
 
-    function GetShortName(const n:string):string;
+    function GetShortName(const n:TCmdStr):TCmdStr;
 {$ifdef win32}
       var
-        hs,hs2 : string;
+        hs,hs2 : TCmdStr;
         i : longint;
 {$endif}
 {$if defined(go32v2) or defined(watcom)}
       var
-        hs : string;
+        hs : TCmdStr;
 {$endif}
       begin
         GetShortName:=n;

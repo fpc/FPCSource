@@ -357,8 +357,8 @@ end;
 
 function TLinkerBeOS.MakeExecutable:boolean;
 var
-  binstr : String;
-  cmdstr  : TcmdStr;
+  binstr,
+  cmdstr  : TCmdStr;
   success : boolean;
   DynLinkStr : string[60];
   StaticStr,
@@ -408,7 +408,7 @@ end;
 
 Function TLinkerBeOS.MakeSharedLibrary:boolean;
 var
-  binstr : String;
+  binstr,
   cmdstr  : TCmdStr;
   success : boolean;
   DynLinkStr : string[60];

@@ -218,7 +218,7 @@ end;
 
 function TlinkerEmbedded.MakeExecutable:boolean;
 var
-  binstr  : string;
+  binstr,
   cmdstr  : TCmdStr;
   success : boolean;
   StaticStr,

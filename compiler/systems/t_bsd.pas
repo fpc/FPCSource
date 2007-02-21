@@ -499,7 +499,7 @@ end;
 
 function TLinkerBSD.MakeExecutable:boolean;
 var
-  binstr : String;
+  binstr,
   cmdstr  : TCmdStr;
   success : boolean;
   DynLinkStr : string[60];
@@ -574,7 +574,7 @@ var
   InitStr,
   FiniStr,
   SoNameStr : string[80];
-  binstr : String;
+  binstr,
   cmdstr  : TCmdStr;
   success : boolean;
 begin

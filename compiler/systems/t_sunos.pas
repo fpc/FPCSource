@@ -371,7 +371,7 @@ end;
 
 function TLinkersolaris.MakeExecutable:boolean;
 var
-  binstr : String;
+  binstr,
   cmdstr  : TCmdStr;
   success : boolean;
   DynLinkStr : string[60];
@@ -417,7 +417,7 @@ end;
 
 Function TLinkersolaris.MakeSharedLibrary:boolean;
 var
-  binstr : String;
+  binstr,
   cmdstr  : TCmdStr;
   success : boolean;
 begin

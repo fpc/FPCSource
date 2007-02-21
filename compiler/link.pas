@@ -55,12 +55,12 @@ interface
          Constructor Create;virtual;
          Destructor Destroy;override;
          procedure AddModuleFiles(hp:tmodule);
-         Procedure AddObject(const S,unitpath : String;isunit:boolean);
-         Procedure AddStaticLibrary(const S : String);
-         Procedure AddSharedLibrary(S : String);
-         Procedure AddStaticCLibrary(const S : String);
-         Procedure AddSharedCLibrary(S : String);
-         procedure AddImportSymbol(const libname,symname:string;OrdNr: longint;isvar:boolean);virtual;
+         Procedure AddObject(const S,unitpath : TCmdStr;isunit:boolean);
+         Procedure AddStaticLibrary(const S : TCmdStr);
+         Procedure AddSharedLibrary(S : TCmdStr);
+         Procedure AddStaticCLibrary(const S : TCmdStr);
+         Procedure AddSharedCLibrary(S : TCmdStr);
+         procedure AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);virtual;
          Procedure InitSysInitUnitName;virtual;
          Function  MakeExecutable:boolean;virtual;
          Function  MakeSharedLibrary:boolean;virtual;
@@ -75,7 +75,7 @@ interface
          Info : TLinkerInfo;
          Constructor Create;override;
          Destructor Destroy;override;
-         Function  FindUtil(const s:string):String;
+         Function  FindUtil(const s:TCmdStr):TCmdStr;
          Function  DoExec(const command:TCmdStr; para:TCmdStr;showinfo,useshell:boolean):boolean;
          procedure SetDefaultInfo;virtual;
          Function  MakeStaticLibrary:boolean;override;
@@ -88,13 +88,13 @@ interface
          { Libraries }
          FStaticLibraryList : TFPHashObjectList;
          FImportLibraryList : TFPHashObjectList;
-         procedure Load_ReadObject(const para:string);
-         procedure Load_ReadStaticLibrary(const para:string);
+         procedure Load_ReadObject(const para:TCmdStr);
+         procedure Load_ReadStaticLibrary(const para:TCmdStr);
          procedure ParseScript_Load;
          procedure ParseScript_Order;
          procedure ParseScript_CalcPos;
          procedure PrintLinkerScript;
-         function  RunLinkScript(const outputname:string):boolean;
+         function  RunLinkScript(const outputname:TCmdStr):boolean;
       protected
          property CObjInput:TObjInputClass read FCObjInput write FCObjInput;
          property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
@@ -108,15 +108,15 @@ interface
          Destructor Destroy;override;
          Function  MakeExecutable:boolean;override;
          Function  MakeSharedLibrary:boolean;override;
-         procedure AddImportSymbol(const libname,symname:string;OrdNr: longint;isvar:boolean);override;
+         procedure AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);override;
        end;
 
     var
       Linker  : TLinker;
 
-    function FindObjectFile(s : string;const unitpath:string;isunit:boolean) : string;
-    function FindLibraryFile(s:string;const prefix,ext:string;var foundfile : TCmdStr) : boolean;
-    function FindDLL(const s:string;var founddll:TCmdStr):boolean;
+    function FindObjectFile(s : TCmdStr;const unitpath:TCmdStr;isunit:boolean) : TCmdStr;
+    function FindLibraryFile(s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
+    function FindDLL(const s:TCmdStr;var founddll:TCmdStr):boolean;
 
     procedure InitLinker;
     procedure DoneLinker;
@@ -138,7 +138,7 @@ Implementation
 *****************************************************************************}
 
     { searches an object file }
-    function FindObjectFile(s:string;const unitpath:string;isunit:boolean) : string;
+    function FindObjectFile(s:TCmdStr;const unitpath:TCmdStr;isunit:boolean) : TCmdStr;
       var
         found : boolean;
         foundfile : TCmdStr;
@@ -206,9 +206,9 @@ Implementation
 
 
     { searches a (windows) DLL file }
-    function FindDLL(const s:string;var founddll:TCmdStr):boolean;
+    function FindDLL(const s:TCmdStr;var founddll:TCmdStr):boolean;
       var
-        sysdir : string;
+        sysdir : TCmdStr;
         Found : boolean;
       begin
         Found:=false;
@@ -234,10 +234,10 @@ Implementation
 
 
     { searches an library file }
-    function FindLibraryFile(s:string;const prefix,ext:string;var foundfile : TCmdStr) : boolean;
+    function FindLibraryFile(s:TCmdStr;const prefix,ext:TCmdStr;var foundfile : TCmdStr) : boolean;
       var
         found : boolean;
-        paths : string;
+        paths : TCmdStr;
       begin
         findlibraryfile:=false;
         foundfile:=s;
@@ -400,18 +400,18 @@ Implementation
       end;
 
 
-    procedure TLinker.AddImportSymbol(const libname,symname:string;OrdNr: longint;isvar:boolean);
+    procedure TLinker.AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);
       begin
       end;
 
 
-    Procedure TLinker.AddObject(const S,unitpath : String;isunit:boolean);
+    Procedure TLinker.AddObject(const S,unitpath : TCmdStr;isunit:boolean);
       begin
         ObjectFiles.Concat(FindObjectFile(s,unitpath,isunit));
       end;
 
 
-    Procedure TLinker.AddSharedLibrary(S:String);
+    Procedure TLinker.AddSharedLibrary(S:TCmdStr);
       begin
         if s='' then
           exit;
@@ -426,7 +426,7 @@ Implementation
       end;
 
 
-    Procedure TLinker.AddStaticLibrary(const S:String);
+    Procedure TLinker.AddStaticLibrary(const S:TCmdStr);
       var
         ns : TCmdStr;
         found : boolean;
@@ -440,7 +440,7 @@ Implementation
       end;
 
 
-    Procedure TLinker.AddSharedCLibrary(S:String);
+    Procedure TLinker.AddSharedCLibrary(S:TCmdStr);
       begin
         if s='' then
           exit;
@@ -455,7 +455,7 @@ Implementation
       end;
 
 
-    Procedure TLinker.AddStaticCLibrary(const S:String);
+    Procedure TLinker.AddStaticCLibrary(const S:TCmdStr);
       var
         ns : TCmdStr;
         found : boolean;
@@ -469,7 +469,7 @@ Implementation
       end;
 
 
-    procedure AddImportSymbol(const libname,symname:string;OrdNr: longint;isvar:boolean);
+    procedure AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);
       begin
       end;
 
@@ -581,11 +581,11 @@ Implementation
       end;
 
 
-    Function TExternalLinker.FindUtil(const s:string):string;
+    Function TExternalLinker.FindUtil(const s:TCmdStr):TCmdStr;
       var
         Found    : boolean;
         FoundBin : TCmdStr;
-        UtilExe  : string;
+        UtilExe  : TCmdStr;
       begin
         if cs_link_on_target in current_settings.globalswitches then
           begin
@@ -656,7 +656,7 @@ Implementation
 
     Function TExternalLinker.MakeStaticLibrary:boolean;
 
-        function GetNextFiles(const maxCmdLength : AInt; var item : TCmdStrListItem) : ansistring;
+        function GetNextFiles(const maxCmdLength : AInt; var item : TCmdStrListItem) : TCmdStr;
           begin
             result := '';
             while (assigned(item) and ((length(result) + length(item.str) + 1) < maxCmdLength)) do begin
@@ -666,12 +666,12 @@ Implementation
           end;
 
       var
-        binstr, scriptfile : string;
-        success : boolean;
+        binstr, scriptfile : TCmdStr;
         cmdstr, nextcmd, smartpath : TCmdStr;
         current : TCmdStrListItem;
         script: Text;
         scripted_ar : boolean;
+        success : boolean;
       begin
         MakeStaticLibrary:=false;
       { remove the library, to be sure that it is rewritten }
@@ -782,7 +782,7 @@ Implementation
       end;
 
 
-    procedure TInternalLinker.AddImportSymbol(const libname,symname:string;OrdNr: longint;isvar:boolean);
+    procedure TInternalLinker.AddImportSymbol(const libname,symname:TCmdStr;OrdNr: longint;isvar:boolean);
       var
         ImportLibrary : TImportLibrary;
         ImportSymbol  : TFPHashObject;
@@ -796,12 +796,12 @@ Implementation
       end;
 
 
-    procedure TInternalLinker.Load_ReadObject(const para:string);
+    procedure TInternalLinker.Load_ReadObject(const para:TCmdStr);
       var
         objdata   : TObjData;
         objinput  : TObjinput;
         objreader : TObjectReader;
-        fn        : string;
+        fn        : TCmdStr;
       begin
         fn:=FindObjectFile(para,'',false);
         Comment(V_Tried,'Reading object '+fn);
@@ -819,7 +819,7 @@ Implementation
       end;
 
 
-    procedure TInternalLinker.Load_ReadStaticLibrary(const para:string);
+    procedure TInternalLinker.Load_ReadStaticLibrary(const para:TCmdStr);
       var
         objreader : TObjectReader;
       begin
@@ -837,7 +837,7 @@ Implementation
       var
         s,
         para,
-        keyword : string;
+        keyword : String;
         hp : TCmdStrListItem;
       begin
         exeoutput.Load_Start;
@@ -870,7 +870,7 @@ Implementation
       var
         s,
         para,
-        keyword : string;
+        keyword : String;
         hp : TCmdStrListItem;
       begin
         exeoutput.Order_Start;
@@ -902,7 +902,7 @@ Implementation
       var
         s,
         para,
-        keyword : string;
+        keyword : String;
         hp : TCmdStrListItem;
       begin
         exeoutput.CalcPos_Start;
@@ -944,7 +944,7 @@ Implementation
       end;
 
 
-    function TInternalLinker.RunLinkScript(const outputname:string):boolean;
+    function TInternalLinker.RunLinkScript(const outputname:TCmdStr):boolean;
       label
         myexit;
       var
