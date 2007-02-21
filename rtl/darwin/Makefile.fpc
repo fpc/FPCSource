@@ -146,7 +146,7 @@ unix$(PPUEXT) : unixtype$(PPUEXT) baseunix$(PPUEXT) unixutil$(PPUEXT) strings$(P
 
 unixutil$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 
-dynlibs$(PPUEXT) : dl$(PPUEXT)
+dynlibs$(PPUEXT) : dl$(PPUEXT) objpas$(PPUEXT)
 
 ctypes$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 
