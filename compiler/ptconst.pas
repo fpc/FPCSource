@@ -698,7 +698,6 @@ implementation
         procedure parse_packed_array_def(list: tasmlist; def: tarraydef);
           var
             i : aint;
-            loadmask: aword;
             curval, nextval: aword;
             curbitoffset: smallint;
             packedbitsize,
@@ -710,11 +709,6 @@ implementation
             consume(_LKLAMMER);
             packedbitsize:=def.elepackedbitsize;
             loadbitsize:=packedbitsloadsize(packedbitsize)*8;
-            { 1 shl 32/64 = 1 on i386/x86_64 }
-            if (loadbitsize*8 <> sizeof(aword)) then
-              loadmask:=aword(1) shl loadbitsize
-            else
-              loadmask:=aword(-1);
             curval:=0;
             curbitoffset:=0;
             i:=def.lowrange;
