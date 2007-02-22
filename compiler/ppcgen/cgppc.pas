@@ -314,7 +314,8 @@ unit cgppc;
       restbits := (sref.bitlen - (loadbitsize - sref.startbit));
       a_op_const_reg(list,OP_SHL,OS_INT,restbits,valuereg);
       { mask other bits }
-      a_op_const_reg(list,OP_AND,OS_INT,(1 shl sref.bitlen)-1,valuereg);
+      if (sref.bitlen <> AIntBits) then
+        a_op_const_reg(list,OP_AND,OS_INT,(aword(1) shl sref.bitlen)-1,valuereg);
       { use subsetreg routine, it may have been overridden with an optimized version }
       fromsreg.subsetreg := extra_value_reg;
       fromsreg.subsetregsize := OS_INT;
