@@ -1,3 +1,4 @@
+{$mode delphi}
 program test;
 
 const
