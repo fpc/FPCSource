@@ -499,6 +499,7 @@ begin
   Inherited;
   if Assigned(Params) and Assigned(DetailDataset) and DetailDataset.Active then
     begin
+    DetailDataSet.CheckBrowseMode;
     DetailDataset.Close;
     DetailDataset.Open;
     end;
