@@ -1045,16 +1045,18 @@ implementation
 {$endif}
 {$if defined(go32v2) or defined(watcom)}
       var
-        hs : TCmdStr;
+        hs : shortstring;
 {$endif}
       begin
         GetShortName:=n;
 {$ifdef win32}
         hs:=n+#0;
-        i:=Windows.GetShortPathName(@hs[1],@hs2[1],high(hs2));
-        if (i>0) and (i<=high(hs2)) then
+        { may become longer in case of e.g. ".a" -> "a~1" or so }
+        setlength(hs2,length(hs)*2);
+        i:=Windows.GetShortPathName(@hs[1],@hs2[1],length(hs)*2);
+        if (i>0) and (i<=length(hs)*2) then
           begin
-            hs2[0]:=chr(strlen(@hs2[1]));
+            setlength(hs2,strlen(@hs2[1]));
             GetShortName:=hs2;
           end;
 {$endif}
