@@ -899,8 +899,17 @@ implementation
                        It is also used by the compiler internally for inc(pointer,ordinal) }
                      if (eq=te_incompatible) and
                         not is_void(def_from) and
-                        (cdo_explicit in cdoptions) or
-			(cdo_internal in cdoptions) then
+			(
+                         (
+			  (cdo_explicit in cdoptions) and
+			  (
+			   (m_delphi in current_settings.modeswitches) or
+			   { Don't allow pchar(char) in fpc modes }
+			   is_integer(def_from)
+			  )
+			 ) or 
+			 (cdo_internal in cdoptions)
+			) then
                        begin
                          doconv:=tc_int_2_int;
                          eq:=te_convert_l1;
