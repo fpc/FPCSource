@@ -2046,6 +2046,7 @@ packages/base/sqlite/fpmake.inc svneol=native#text/plain
 packages/base/sqlite/fpmake.pp svneol=native#text/plain
 packages/base/sqlite/sqlite.pp svneol=native#text/plain
 packages/base/sqlite/sqlite3.pp svneol=native#text/plain
+packages/base/sqlite/sqlite3db.pas svneol=native#text/x-pascal
 packages/base/sqlite/sqlitedb.pas svneol=native#text/plain
 packages/base/sqlite/test.pas svneol=native#text/plain
 packages/base/sqlite/testapiv3x.README -text
