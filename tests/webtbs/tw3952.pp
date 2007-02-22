@@ -9,6 +9,6 @@ var
 begin
   X := 0;
   P := nil;
-  P := Pointer(PtrUInt(P) + X - 12);
-  P := Pointer(PtrUInt(P) + X + 12);
+  P := Pointer(P + X - 12);
+  P := Pointer(P + X + 12);
 end.
