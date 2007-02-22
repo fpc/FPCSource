@@ -75,20 +75,6 @@ begin
       doerror(8);
   end;
 
-  // The calculation will be done in int64 and
-  // give a rangecheck instead of a overflow
-  c := 0;
-  try
-    c := c-1;
-    doerror(9);
-  except
-    on erangecheck do
-      ;
-    else
-      doerror(10);
-  end;
-
-
   c := high(cardinal);
   try
     c := c+1;
@@ -125,7 +111,6 @@ begin
 {$endif CPU64}
 
 {$ifdef fpc}
-{$ifndef ver1_0}
 
   n := high(int64);
   try
@@ -226,7 +211,6 @@ begin
       doerror(32);
   end;
 
-{$endif ver1_0}
 {$endif fpc}
 
 End.
