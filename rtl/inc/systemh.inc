@@ -223,7 +223,7 @@ Type
   PAnsiChar           = PChar;
   PPAnsiChar          = PPChar;
 
-  UCS4Char            = type LongWord;
+  UCS4Char            = type 0..$10ffff;
   PUCS4Char           = ^UCS4Char;
   TUCS4CharArray      = array[0..$effffff] of UCS4Char;
   PUCS4CharArray      = ^TUCS4CharArray;
