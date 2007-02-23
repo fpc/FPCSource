@@ -3316,6 +3316,49 @@ type
 	function RevokeActiveObject(dwRegister: culong; pvReserved: Pointer) : HResult; external oleaut32dll name 'RevokeActiveObject';
 	function GetActiveObject(const clsid: TCLSID; pvReserved: Pointer; out unk: IUnknown) : HResult; external oleaut32dll name 'GetActiveObject';
   
+function Succeeded(Res: HResult) : Boolean;inline;
+function Failed(Res: HResult) : Boolean;inline;
+function ResultCode(Res: HResult) : Longint;inline;
+function ResultFacility(Res: HResult): Longint;inline;
+function ResultSeverity(Res: HResult): Longint;inline;
+function MakeResult(Severity, Facility, Code: Longint): HResult;inline;
+
 implementation
+
+function Succeeded(Res: HResult) : Boolean;inline;
+  begin
+    Result := Res and $80000000 = 0;
+  end;
+
+
+function Failed(Res: HResult) : Boolean;inline;
+  begin
+    Result := Res and $80000000 <> 0;
+  end;
+
+
+function ResultCode(Res: HResult) : Longint;inline;
+  begin
+    Result := Res and $0000FFFF;
+  end;
+
+
+function ResultFacility(Res: HResult): Longint;inline;
+  begin
+    Result := (Res shr 16) and $00001FFF;
+  end;
+
+
+function ResultSeverity(Res: HResult): Longint;inline;
+  begin
+    Result := Res shr 31;
+  end;
+
+
+function MakeResult(Severity, Facility, Code: Longint): HResult;inline;
+  begin
+    Result := (Severity shl 31) or (Facility shl 16) or Code;
+  end;
+
 
 end.

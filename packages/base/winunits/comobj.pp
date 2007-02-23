@@ -192,11 +192,14 @@ implementation
        flags:=CLSCTX_LOCAL_SERVER or CLSCTX_REMOTE_SERVER or CLSCTX_INPROC_SERVER;
 
        { actually a remote call? }
-       size:=sizeof(localhost);
+{$ifndef wince}  
+       //roozbeh although there is a way to retrive computer name...HKLM\Ident\Name..but are they same?
+	     size:=sizeof(localhost);
        if (MachineName<>'') and
           (not(GetComputerNameW(localhost,size)) or
           (WideCompareText(localhost,MachineName)<>0)) then
            flags:=CLSCTX_REMOTE_SERVER;
+{$endif}   
 
        OleCheck(CoCreateInstanceEx(ClassID,nil,flags,@server,1,@mqi));
        OleCheck(mqi.hr);
@@ -468,7 +471,13 @@ implementation
       	    inc(Names,NameLen+1);
             inc(NameCount);
       	  end;
-      	res:=DispatchInterface.GetIDsOfNames(GUID_NULL,NamesArray,NameCount,GetThreadLocale,IDs);
+      	res:=DispatchInterface.GetIDsOfNames(GUID_NULL,NamesArray,NameCount,
+{$ifdef wince}
+		     LOCALE_SYSTEM_DEFAULT
+{$else wince}
+         GetThreadLocale
+{$endif wince}
+         ,IDs);
 {$ifdef DEBUG_COMDISPATCH}
         writeln('SearchIDs: GetIDsOfNames result = ',hexstr(res,SizeOf(HRESULT)*2));
         for i:=0 to Count-1 do
@@ -635,4 +644,5 @@ finalization
   if Initialized then
     CoUninitialize;
 end.
+
 
