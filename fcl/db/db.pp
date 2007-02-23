@@ -1848,8 +1848,12 @@ uses dbconst,typinfo, fmtbcd;
 { ---------------------------------------------------------------------
     Auxiliary functions
   ---------------------------------------------------------------------}
-
-
+{$ifndef fpc}
+Function VarIsClear(const V: Variant): Boolean;
+begin
+  Result:=VarIsEmpty(V);
+end;
+{$endif}
 
 Procedure DatabaseError (Const Msg : String);
 
