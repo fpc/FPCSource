@@ -1157,7 +1157,7 @@ implementation
           internalerror(2006081312);
 
         extra_load :=
-          (intloadsize <> 1) and
+          (sref.bitlen <> 1) and
           ((sref.bitindexreg <> NR_NO) or
            (byte(sref.startbit+sref.bitlen) > byte(intloadsize*8)));
       end;
