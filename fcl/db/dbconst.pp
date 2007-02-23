@@ -59,7 +59,7 @@ Resourcestring
   SNotAFloat               = '"%s" is not a valid float';
   SNotAninteger            = '"%s" is not a valid integer';
   SNotConnected            = 'Operation cannot be performed on an disconnected database';
-  SNotInEditState          = 'Operation not allowed, dataset "%s" is not in an edit state.';
+  SNotEditing              = 'Operation not allowed, dataset "%s" is not in an edit or insert state.';
   SParameterNotFound       = 'Parameter "%s" not found';
   SRangeError              = '%f is not between %f and %f for %s';
   SReadOnlyField           = 'Field %s cannot be modified, it is read-only.';
@@ -89,6 +89,12 @@ Resourcestring
   SNoUpdateFields          = 'There are no fields found to include in the update- or insert-clause';
   SNotSupported            = 'Operation is not supported by this type of database';
   SDBCreateDropFailed      = 'Creation or dropping of database failed';
+// These are added for Delphi-compatilility, but not used by the fcl:
+  SFieldIndexError         = 'Field index out of range';
+  SIndexFieldMissing       = 'Cannot access index field ''%s''';
+  SNoFieldIndexes          = 'No index currently active';
+  SNotIndexField           = 'Field ''%s'' is not indexed and cannot be modified';
+
 
 Implementation
 

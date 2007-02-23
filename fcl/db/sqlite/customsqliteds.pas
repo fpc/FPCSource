@@ -411,7 +411,7 @@ begin
   begin
     if not (State in [dsEdit, dsInsert]) then
     begin
-      DatabaseErrorFmt(SNotInEditState,[Name],Self);
+      DatabaseErrorFmt(SNotEditing,[Name],Self);
       Exit;
     end;
     StrDispose(FCacheItem^.Row[Field.FieldNo - 1]);
@@ -1050,7 +1050,7 @@ var
 begin
   if not (State in [dsEdit, dsInsert]) then
   begin
-    DatabaseErrorFmt(SNotInEditState,[Name],Self);
+    DatabaseErrorFmt(SNotEditing,[Name],Self);
     Exit;
   end;
   StrDispose(FCacheItem^.Row[Pred(Field.FieldNo)]);

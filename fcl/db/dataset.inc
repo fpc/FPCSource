@@ -1922,7 +1922,7 @@ begin
     DoAfterPost;
     end
   else
-    DatabaseErrorFmt(SNotInEditState, [Name], Self);
+    DatabaseErrorFmt(SNotEditing, [Name], Self);
 end;
 
 Procedure TDataset.Prior;
@@ -2076,7 +2076,7 @@ Procedure TDataset.UpdateRecord;
 
 begin
   if not (State in dsEditModes) then
-    DatabaseErrorFmt(SNotInEditState, [Name], Self);
+    DatabaseErrorFmt(SNotEditing, [Name], Self);
   DataEvent(deUpdateRecord, 0);
 end;
 

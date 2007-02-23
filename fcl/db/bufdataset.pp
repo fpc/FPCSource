@@ -599,7 +599,7 @@ var CurrBuff : pointer;
 begin
   if not (state in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
     begin
-    DatabaseErrorFmt(SNotInEditState,[Name],self);
+    DatabaseErrorFmt(SNotEditing,[Name],self);
     exit;
     end;
   if state = dsFilter then  // Set the value into the 'temporary' FLastRecBuf buffer for Locate and Lookup
@@ -1139,7 +1139,7 @@ begin
     begin
     if not (state in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
       begin
-      DatabaseErrorFmt(SNotInEditState,[Name],self);
+      DatabaseErrorFmt(SNotEditing,[Name],self);
       exit;
       end;
 
