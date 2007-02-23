@@ -406,7 +406,7 @@ Function fpLstat(path:pchar;Info:pstat):cint;
 }
 
 begin
- fpLStat:=do_syscall(syscall_nr_lstat,TSysParam(path),TSysParam(info));
+ fpLStat:=do_syscall(syscall_nr_lstat64,TSysParam(path),TSysParam(info));
 end;
 
 Function fpLstat(Filename: ansistring;Info:pstat):cint;
@@ -415,7 +415,7 @@ Function fpLstat(Filename: ansistring;Info:pstat):cint;
 }
 
 begin
- fpLStat:=do_syscall(syscall_nr_lstat,TSysParam(pchar(filename)),TSysParam(info));
+ fpLStat:=do_syscall(syscall_nr_lstat64,TSysParam(pchar(filename)),TSysParam(info));
 end;
 
 
