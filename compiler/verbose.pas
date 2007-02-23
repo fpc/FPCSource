@@ -401,7 +401,7 @@ var
              lastfileidx:=current_filepos.fileindex
            else
              lastfileidx:=0;
-           lastmoduleidx:=compiling_module.unit_index;
+           lastmoduleidx:=module.unit_index;
          end;
         if assigned(module) then
           status.compiling_current:=(compiling_module.state in [ms_compile,ms_second_compile]);
