@@ -16,12 +16,28 @@
  **********************************************************************}
 unit db;
 
+{$ifdef fpc}
 {$mode objfpc}
+{$endif}
+
 {$h+}
 
 interface
 
-uses Classes,Sysutils,Variants;
+uses Classes,Sysutils
+{$ifdef fpc}
+,Variants
+{$endif}
+// For compilation with Delphi. (Morfik)
+{$ifdef bpc}
+{$ifndef VER100} //d3
+{$ifndef VER120} //d4
+{$ifndef VER130} //d5
+,Variants
+{$endif VER120}
+{$endif VER130}
+{$endif VER100}
+{$endif};
 
 const
 
@@ -181,7 +197,7 @@ type
     procedure SetRequired(const AValue: Boolean);
   public
     constructor Create(AOwner: TFieldDefs; const AName: string;
-      ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint); overload;
+      ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint); {$ifdef fpc}overload;{$else}reintroduce;{$endif}
     destructor Destroy; override;
     procedure Assign(APersistent: TPersistent); override;
     function CreateField(AOwner: TComponent): TField;
@@ -206,14 +222,14 @@ type
   public
     constructor Create(ADataSet: TDataSet);
 //    destructor Destroy; override;
-    procedure Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean);
-    procedure Add(const AName: string; ADataType: TFieldType; ASize: Word);
-    procedure Add(const AName: string; ADataType: TFieldType);
+    procedure Add(const AName: string; ADataType: TFieldType; ASize: Word; ARequired: Boolean); overload;
+    procedure Add(const AName: string; ADataType: TFieldType; ASize: Word); overload;
+    procedure Add(const AName: string; ADataType: TFieldType); overload;
     Function AddFieldDef : TFieldDef;
-    procedure Assign(FieldDefs: TFieldDefs); overload;
+    procedure Assign(FieldDefs: TFieldDefs); {$ifdef fpc}overload;{$else}reintroduce;{$endif}
 //    procedure Clear;
 //    procedure Delete(Index: Longint);
-    procedure Update; overload;
+    procedure Update; {$ifdef fpc}overload;{$else}reintroduce;{$endif}
     Property HiddenFields : Boolean Read FHiddenFields Write FHiddenFields;
     property Items[Index: Longint]: TFieldDef read GetItem write SetItem; default;
   end;
@@ -359,13 +375,13 @@ type
     procedure AssignValue(const AValue: TVarRec);
     procedure Clear; virtual;
     procedure FocusControl;
-    function GetData(Buffer: Pointer): Boolean;
-    function GetData(Buffer: Pointer; NativeFormat : Boolean): Boolean;
+    function GetData(Buffer: Pointer): Boolean; overload;
+    function GetData(Buffer: Pointer; NativeFormat : Boolean): Boolean; overload;
     class function IsBlob: Boolean; virtual;
     function IsValidChar(InputChar: Char): Boolean; virtual;
     procedure RefreshLookupList;
-    procedure SetData(Buffer: Pointer);
-    procedure SetData(Buffer: Pointer; NativeFormat : Boolean);
+    procedure SetData(Buffer: Pointer); overload;
+    procedure SetData(Buffer: Pointer; NativeFormat : Boolean); overload;
     procedure SetFieldType(AValue: TFieldType); virtual;
     procedure Validate(Buffer: Pointer);
     property AsBoolean: Boolean read GetAsBoolean write SetAsBoolean;
@@ -841,11 +857,12 @@ type
     destructor Destroy; override;
     procedure Add(const Name, Fields: string; Options: TIndexOptions);
     Function AddIndexDef: TIndexDef;
+//    procedure Clear;
     function Find(const IndexName: string): TIndexDef;
     function FindIndexForFields(const Fields: string): TIndexDef;
     function GetIndexForFields(const Fields: string;
       CaseInsensitive: Boolean): TIndexDef;
-    procedure Update; overload;
+    procedure Update; {$ifdef fpc}overload;{$else}reintroduce;{$endif}
     Property Items[Index: Integer] : TIndexDef read GetItem write SetItem; default;
   end;
 
@@ -957,7 +974,12 @@ type
     var Accept: Boolean) of object;
 
   TDatasetClass = Class of TDataset;
+{$ifdef fpc}
   TBufferArray = ^pchar;
+{$else}
+  TTBufferArray = array[0..MaxInt div sizeof(pchar) - 1] of pchar;
+  TBufferArray = ^TTBufferArray;
+{$endif}  
 
   TDataSet = class(TComponent)
   Private
@@ -1659,10 +1681,10 @@ type
     Procedure GetParamList(List: TList; const ParamNames: string);
     Function  IsEqual(Value: TParams): Boolean;
     Function  ParamByName(const Value: string): TParam;
-    Function  ParseSQL(SQL: String; DoCreate: Boolean): String;
+    Function  ParseSQL(SQL: String; DoCreate: Boolean): String; overload;
     Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle): String; overload;
     Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding): String; overload;
-    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding; var ReplaceString : string): String;
+    Function  ParseSQL(SQL: String; DoCreate, EscapeSlash, EscapeRepeat : Boolean; ParameterStyle : TParamStyle; var ParamBinding: TParambinding; var ReplaceString : string): String; overload;
     Procedure RemoveParam(Value: TParam);
     Procedure CopyParamValuesFromDataset(ADataset : TDataset; CopyBound : Boolean);
     Property Dataset : TDataset Read GetDataset;
@@ -1806,11 +1828,10 @@ const
 
 { Auxiliary functions }
 
-Procedure DatabaseError (Const Msg : String);
-Procedure DatabaseError (Const Msg : String; Comp : TComponent);
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of Const);
-Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const;
-                            Comp : TComponent);
+Procedure DatabaseError (Const Msg : String); overload;
+Procedure DatabaseError (Const Msg : String; Comp : TComponent); overload;
+Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of Const); overload;
+Procedure DatabaseErrorFmt (Const Fmt : String; Args : Array Of const; Comp : TComponent); overload;
 Function ExtractFieldName(Const Fields: String; var Pos: Integer): String;
 Function DateTimeRecToDateTime(DT: TFieldType; Data: TDateTimeRec): TDateTime;
 Function DateTimeToDateTimeRec(DT: TFieldType; Data: TDateTime): TDateTimeRec;

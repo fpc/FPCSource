@@ -659,6 +659,7 @@ Function TDataset.GetIsIndexField(Field: TField): Boolean;
 
 begin
   //!! To be implemented
+  Result:=False;
 end;
 
 function TDataSet.GetIndexDefs(IndexDefs: TIndexDefs; IndexTypes: TIndexOptions
@@ -918,9 +919,11 @@ end;
 Procedure TDataset.InternalHandleException;
 
 begin
+{$ifdef fpc} 
   if assigned(classes.ApplicationHandleException) then
     classes.ApplicationHandleException(self)
   else
+{$endif}
     ShowException(ExceptObject,ExceptAddr);
 end;
 
@@ -1401,7 +1404,11 @@ begin
 {$endif}
     DoBeforeDelete;
     DoBeforeScroll;
+{$ifdef fpc}
     If Not TryDoing(@InternalDelete,OnPostError) then exit;
+{$else}
+    If Not TryDoing(InternalDelete,OnPostError) then exit;
+{$endif}
 {$ifdef dsdebug}
     writeln ('Delete: Internaldelete succeeded');
 {$endif}
@@ -1549,8 +1556,11 @@ begin
     Exit;
     end;
   DoBeforeEdit;
-  If Not TryDoing(@InternalEdit,OnEditError) then
-    exit;
+{$ifdef fpc}  
+  If Not TryDoing(@InternalEdit,OnEditError) then exit;
+{$else}
+  If Not TryDoing(InternalEdit,OnEditError) then exit;
+{$endif}
   GetCalcFields(ActiveBuffer);
   SetState(dsedit);
   DataEvent(deRecordChange,0);
@@ -1595,6 +1605,7 @@ Function TDataset.FindFirst: Boolean;
 
 
 begin
+  Result:=False;
   //!! To be implemented
 end;
 
@@ -1602,6 +1613,7 @@ Function TDataset.FindLast: Boolean;
 
 
 begin
+  Result:=False;
   //!! To be implemented
 end;
 
@@ -1609,6 +1621,7 @@ Function TDataset.FindNext: Boolean;
 
 
 begin
+  Result:=False;
   //!! To be implemented
 end;
 
@@ -1616,6 +1629,7 @@ Function TDataset.FindPrior: Boolean;
 
 
 begin
+  Result:=False;
   //!! To be implemented
 end;
 
@@ -1906,7 +1920,11 @@ begin
     writeln ('Post: checking required fields');
 {$endif}
     DoBeforePost;
+{$ifdef fpc}
     If Not TryDoing(@InternalPost,OnPostError) then exit;
+{$else}
+    If Not TryDoing(InternalPost,OnPostError) then exit;
+{$endif}    
     cursorposchanged;
 {$ifdef dsdebug}
     writeln ('Post: Internalpost succeeded');
@@ -2022,6 +2040,7 @@ Function TDataset.Translate(Src, Dest: PChar; ToOem: Boolean): Integer;
 
 begin
   strcopy(dest,src);
+  Result:=StrLen(dest);
 end;
 
 Function Tdataset.TryDoing (P : TDataOperation; Ev : TDatasetErrorEvent) : Boolean;

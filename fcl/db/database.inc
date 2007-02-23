@@ -142,7 +142,10 @@ begin
   If Assigned(FDatasets) then
     Result:=TDataset(FDatasets[Index])
   else
+    begin
+    result := nil;
     DatabaseError(SNoDatasets);
+    end;
 end;
 
 Function TDatabase.GetTransaction(Index : longint) : TDBtransaction;
@@ -151,7 +154,10 @@ begin
   If Assigned(FTransactions) then
     Result:=TDBTransaction(FTransactions[Index])
   else
+    begin
+    result := nil;
     DatabaseError(SNoTransactions);
+    end;
 end;
 
 procedure TDatabase.RegisterDataset (DS : TDBDataset);
@@ -284,9 +290,11 @@ end;
 Procedure TDBTransaction.InternalHandleException;
 
 begin
+  {$ifdef fpc}
   if assigned(classes.ApplicationHandleException) then
     classes.ApplicationHandleException(self)
   else
+  {$endif}
     ShowException(ExceptObject,ExceptAddr);
 end;
 
@@ -414,7 +422,10 @@ begin
   If Assigned(FDatasets) then
     Result:=TDBDataset(FDatasets[Index])
   else
+  begin
+    result := nil;
     DatabaseError(SNoDatasets);
+  end;
 end;
 
 { ---------------------------------------------------------------------
