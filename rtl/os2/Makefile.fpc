@@ -141,7 +141,7 @@ sockets$(PPUEXT) : sockets.pas so32dll$(PPUEXT) ctypes$(PPUEXT) $(SYSTEMUNIT)$(P
 
 pmbidi$(PPUEXT) : pmbidi.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pp doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pas doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # TP7 Compatible RTL Units

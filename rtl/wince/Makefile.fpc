@@ -130,7 +130,7 @@ sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMUNIT)$(P
 
 #winmouse$(PPUEXT) : winmouse.pp $(SYSTEMUNIT)$(PPUEXT) windows$(PPUEXT) graph$(PPUEXT)
 
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pp windows$(PPUEXT)
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pas windows$(PPUEXT)
 
 #
 # TP7 Compatible RTL Units

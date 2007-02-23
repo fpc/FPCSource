@@ -136,7 +136,7 @@ winsock$(PPUEXT) : winsock.pp $(SYSTEMUNIT)$(PPUEXT)
 sockets$(PPUEXT) : sockets.pp netware$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                    $(INC)/sockets.inc $(INC)/socketsh.inc
 
-#dynlibs$(PPUEXT) : $(INC)/dynlibs.pp windows$(PPUEXT)
+#dynlibs$(PPUEXT) : $(INC)/dynlibs.pas windows$(PPUEXT)
 
 initc$(PPUEXT) : initc.pp $(SYSTEMUNIT)$(PPUEXT)
 

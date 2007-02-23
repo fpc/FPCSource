@@ -12,8 +12,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
+{$IFDEF FPC}
 {$MODE OBJFPC}
+{$ENDIF}
 
 unit dynlibs;
 
