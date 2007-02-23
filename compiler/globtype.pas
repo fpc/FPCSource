@@ -125,7 +125,7 @@ interface
          cs_support_vectors,
          { debuginfo }
          cs_use_heaptrc,cs_use_lineinfo,
-         cs_gdb_valgrind,cs_no_regalloc,
+         cs_gdb_valgrind,cs_no_regalloc,cs_stabs_preservecase,
          { assembling }
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
          cs_asm_regalloc,cs_asm_tempalloc,cs_asm_nodes,

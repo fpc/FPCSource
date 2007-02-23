@@ -791,6 +791,13 @@ begin
                          else
                            include(init_settings.globalswitches,cs_use_lineinfo);
                        end;
+                     'p' : 
+                       begin
+                         if UnsetBool(More, j) then
+                           exclude(init_settings.globalswitches,cs_stabs_preservecase)
+                         else
+                           include(init_settings.globalswitches,cs_stabs_preservecase);
+                       end;  
                      's' :
                        begin
                          paratargetdbg:=dbg_stabs;

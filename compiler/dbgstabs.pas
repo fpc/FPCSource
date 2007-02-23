@@ -92,6 +92,22 @@ implementation
       aasmbase,procinfo,
       finput,fmodule,ppu;
 
+    function GetSymName(Sym : TSymEntry) : string;
+    begin
+      if Not (cs_stabs_preservecase in current_settings.globalswitches) then
+        result := Sym.Name
+      else
+        result := Sym.RealName;
+    end;
+
+    function GetSymTableName(SymTable : TSymTable) : string;
+    begin
+      if Not (cs_stabs_preservecase in current_settings.globalswitches) then
+        result := SymTable.Name^
+      else
+        result := SymTable.RealName^;
+    end;
+
     const
       memsizeinc = 512;
 
@@ -298,7 +314,7 @@ implementation
         else if s='sym_name' then
           begin
             if assigned(def.typesym) then
-               result:=Ttypesym(def.typesym).name;
+               result:=GetSymName(Ttypesym(def.typesym));
           end
         else if s='N_LSYM' then
           result:=tostr(N_LSYM)
@@ -335,7 +351,7 @@ implementation
             { open arrays made overflows !! }
             if varsize>$fffffff then
               varsize:=$fffffff;
-            newrec:=def_stabstr_evaluate(nil,'$1:$2,$3,$4;',[tfieldvarsym(p).name,
+            newrec:=def_stabstr_evaluate(nil,'$1:$2,$3,$4;',[GetSymName(tfieldvarsym(p)),
                                      spec+def_stab_number(tfieldvarsym(p).vardef),
                                      tostr(tfieldvarsym(p).fieldoffset*8),tostr(varsize*8)]);
             if state^.stabsize+strlen(newrec)>=state^.staballoc-256 then
@@ -408,8 +424,8 @@ implementation
                     there is no sym attached to data !!! }
                     if assigned(Parasym.vardef.typesym) then
                       begin
-                        arglength := length(Parasym.vardef.typesym.name);
-                        argnames := argnames + tostr(arglength)+Parasym.vardef.typesym.name;
+                        arglength := length(GetSymName(Parasym.vardef.typesym));
+                        argnames := argnames + tostr(arglength)+GetSymName(Parasym.vardef.typesym);
                       end
                     else
                       argnames:=argnames+'11unnamedtype';
@@ -423,7 +439,7 @@ implementation
              sp:='1'
            else
              sp:='2';
-           newrec:=def_stabstr_evaluate(nil,'$1::$2=##$3;:$4;$5A$6;',[tsym(p).name,def_stab_number(pd),
+           newrec:=def_stabstr_evaluate(nil,'$1::$2=##$3;:$4;$5A$6;',[GetSymName(tsym(p)),def_stab_number(pd),
                                     def_stab_number(pd.returndef),argnames,sp,
                                     virtualind]);
            { get spare place for a string at the end }
@@ -503,7 +519,7 @@ implementation
             stl:=strlen(st);
             while assigned(p) do
               begin
-                s :=p.name+':'+tostr(p.value)+',';
+                s :=GetSymName(p)+':'+tostr(p.value)+',';
                 { place for the ending ';' also }
                 if (stl+length(s)+1>=memsize) then
                   begin
@@ -609,7 +625,7 @@ implementation
             stabsstr : string;
             p : pchar;
           begin
-            obj := def.procsym.name;
+            obj := GetSymName(def.procsym);
             info := '';
             if (po_global in def.procoptions) then
               RType := 'F'
@@ -618,12 +634,12 @@ implementation
             if assigned(def.owner) then
              begin
                if (def.owner.symtabletype = objecTSymtable) then
-                 obj := def.owner.name^+'__'+def.procsym.name;
+                 obj := GetSymTableName(def.owner)+'__'+GetSymName(def.procsym);
                if not(cs_gdb_valgrind in current_settings.globalswitches) and
                   (def.owner.symtabletype=localsymtable) and
                   assigned(def.owner.defowner) and
                   assigned(tprocdef(def.owner.defowner).procsym) then
-                 info := ','+def.procsym.name+','+tprocdef(def.owner.defowner).procsym.name;
+                 info := ','+GetSymName(def.procsym)+','+GetSymName(tprocdef(def.owner.defowner).procsym);
              end;
             stabsstr:=def.mangledname;
             getmem(p,length(stabsstr)+255);
@@ -909,7 +925,7 @@ implementation
               if (oo_has_vmt in tobjectdef(def).objectoptions) and
                  assigned(def.owner) and
                  assigned(def.owner.name) then
-                list.concat(Tai_stab.create(stab_stabs,strpnew('"vmt_'+def.owner.name^+tobjectdef(def).objname^+':S'+
+                list.concat(Tai_stab.create(stab_stabs,strpnew('"vmt_'+GetSymTableName(def.owner)+tobjectdef(def).objname^+':S'+
                        def_stab_number(vmttype)+'",'+tostr(N_STSYM)+',0,0,'+tobjectdef(def).vmt_mangledname)));
             end;
           procdef :
@@ -946,7 +962,7 @@ implementation
           staticsymtable :
             list.concat(tai_comment.Create(strpnew('Defs - Begin Staticsymtable')));
           globalsymtable :
-            list.concat(tai_comment.Create(strpnew('Defs - Begin unit '+st.name^+' has index '+tostr(st.moduleid))));
+            list.concat(tai_comment.Create(strpnew('Defs - Begin unit '+GetSymTableName(st)+' has index '+tostr(st.moduleid))));
         end;
         old_writing_def_stabs:=writing_def_stabs;
         writing_def_stabs:=true;
@@ -956,7 +972,7 @@ implementation
           staticsymtable :
             list.concat(tai_comment.Create(strpnew('Defs - End Staticsymtable')));
           globalsymtable :
-            list.concat(tai_comment.Create(strpnew('Defs - End unit '+st.name^+' has index '+tostr(st.moduleid))));
+            list.concat(tai_comment.Create(strpnew('Defs - End unit '+GetSymTableName(st)+' has index '+tostr(st.moduleid))));
         end;
       end;
 
@@ -992,7 +1008,7 @@ implementation
                     else
                       hs:='X';
                     templist.concat(Tai_stab.create(stab_stabs,strpnew(
-                       '"'+pd.procsym.name+':'+hs+def_stab_number(pd.returndef)+'",'+
+                       '"'+GetSymName(pd.procsym)+':'+hs+def_stab_number(pd.returndef)+'",'+
                        tostr(N_tsym)+',0,0,'+tostr(tabstractnormalvarsym(pd.funcretsym).localloc.reference.offset))));
                     if (m_result in current_settings.modeswitches) then
                       templist.concat(Tai_stab.create(stab_stabs,strpnew(
@@ -1071,11 +1087,11 @@ implementation
         sym:=tsym(arg);
         result:='';
         if s='name' then
-          result:=sym.name
+          result:=GetSymName(sym)
         else if s='mangledname' then
           result:=sym.mangledname
         else if s='ownername' then
-          result:=sym.owner.name^
+          result:=GetSymTableName(sym.owner)
         else if s='line' then
           result:=tostr(sym.fileinfo.line)
         else if s='N_LSYM' then
@@ -1370,7 +1386,7 @@ implementation
           staticsymtable :
             list.concat(tai_comment.Create(strpnew('Syms - Begin Staticsymtable')));
           globalsymtable :
-            list.concat(tai_comment.Create(strpnew('Syms - Begin unit '+st.name^+' has index '+tostr(st.moduleid))));
+            list.concat(tai_comment.Create(strpnew('Syms - Begin unit '+GetSymTableName(st)+' has index '+tostr(st.moduleid))));
         end;
         for i:=0 to st.SymList.Count-1 do
           begin
@@ -1383,7 +1399,7 @@ implementation
           staticsymtable :
             list.concat(tai_comment.Create(strpnew('Syms - End Staticsymtable')));
           globalsymtable :
-            list.concat(tai_comment.Create(strpnew('Syms - End unit '+st.name^+' has index '+tostr(st.moduleid))));
+            list.concat(tai_comment.Create(strpnew('Syms - End unit '+GetSymTableName(st)+' has index '+tostr(st.moduleid))));
         end;
       end;
 
@@ -1409,7 +1425,7 @@ implementation
         { include symbol that will be referenced from the main to be sure to
           include this debuginfo .o file }
         current_module.flags:=current_module.flags or uf_has_debuginfo;
-        new_section(current_asmdata.asmlists[al_stabs],sec_data,current_module.localsymtable.name^,0);
+        new_section(current_asmdata.asmlists[al_stabs],sec_data,GetSymTableName(current_module.localsymtable),0);
         current_asmdata.asmlists[al_stabs].concat(tai_symbol.Createname_global(make_mangledname('DEBUGINFO',current_module.localsymtable,''),AT_DATA,0));
 
         { first write all global/local symbols. This will flag all required tdefs  }
