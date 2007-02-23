@@ -54,7 +54,9 @@
   const
      ANYSIZE_ARRAY = 1;               //~winnt, moved from define to compile SID
   type
-     ATOM = word;                     //windef
+
+     MAKEINTRESOURCE = pwidechar;
+	 ATOM = word;                     //windef
      TAtom = ATOM;
 
      WINBOOL = longbool;
@@ -461,9 +463,6 @@
   { argument types are unknown }
   function MAKEINTATOM(i : longint) : LPTSTR;
 
-  { was #define dname(params) def_expr }
-  { argument types are unknown }
-  function MAKEINTRESOURCE(i : longint) : LPTSTR;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -859,12 +858,6 @@ type
        MAKEINTATOM:=LPTSTR(DWORD(WORD(i)));
     end;
 
-  { was #define dname(params) def_expr }
-  { argument types are unknown }
-  function MAKEINTRESOURCE(i : longint) : LPTSTR;
-    begin
-       MAKEINTRESOURCE:=LPTSTR(DWORD(WORD(i)));
-    end;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -991,4 +984,5 @@ type
     end;
 
 {$endif read_implementation}
+
 

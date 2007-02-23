@@ -3,7 +3,12 @@ type
   TResourceHandle = Cardinal;
   HMODULE = Cardinal;
   HGLOBAL = Cardinal;
+{$ifdef UNICODE}
+  {roozbeh : maybe it shoud be moved after ifndef mswindows,as there is one declared in wince,base.inc}
+  MAKEINTRESOURCE = pwidechar;
+{$else}
   MAKEINTRESOURCE = pchar;
+{$endif}  
   
 {$ifndef MSWINDOWS }
 { windows has this in the windows unit. It probably would better
