@@ -1861,8 +1861,8 @@ packages/base/odbc/README -text
 packages/base/odbc/fpmake.inc svneol=native#text/plain
 packages/base/odbc/fpmake.pp svneol=native#text/plain
 packages/base/odbc/odbcsql.inc svneol=native#text/plain
-packages/base/odbc/odbcsql.pp svneol=native#text/plain
-packages/base/odbc/odbcsqldyn.pp svneol=native#text/plain
+packages/base/odbc/odbcsql.pas svneol=native#text/plain
+packages/base/odbc/odbcsqldyn.pas svneol=native#text/plain
 packages/base/odbc/testodbc.mdb -text
 packages/base/odbc/testodbc.pp svneol=native#text/plain
 packages/base/oracle/Makefile svneol=native#text/plain

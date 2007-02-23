@@ -1,13 +1,23 @@
-
+{$ifdef fpc}
 {$mode objfpc}
-{$h+}
 {$macro on}
+{$endif}
 
+{$h+}
+
+{$ifdef fpc}
  // define ODBC version 3.51 by default
 {$define ODBCVER:=$0351}
 {$if ODBCVER >= $0300}
   {$define ODBCVER3}
 {$endif}
+{$if ODBCVER >= $0350}
+  {$define ODBCVER35}
+{$endif}
+{$else fpc}
+  {$define ODBCVER3}
+  {$define ODBCVER35}
+{$endif fpc}
 
 interface
 
@@ -161,7 +171,7 @@ const
   {$endif}
   
   { Unicode data type codes }
-  {$if ODBCVER <= $0300}
+  {$ifndef ODBCVER3}
   SQL_UNICODE             = -95;
   SQL_UNICODE_VARCHAR     = -96;
   SQL_UNICODE_LONGVARCHAR = -97;
@@ -223,8 +233,8 @@ const
   SQL_C_USHORT   =  SQL_C_SHORT+SQL_UNSIGNED_OFFSET; // UNSIGNED SMALLINT
   SQL_C_UTINYINT =  SQL_TINYINT+SQL_UNSIGNED_OFFSET; // UNSIGNED TINYINT
   SQL_C_BOOKMARK = SQL_C_ULONG; // BOOKMARK
-
-{$if ODBCVER >= $0350}
+  
+{$ifdef ODBCVER35}
   SQL_C_GUID    = SQL_GUID;
 {$endif}
 
@@ -238,7 +248,8 @@ const
   SQL_C_VARBOOKMARK = SQL_C_BINARY;
 {$endif}
 
-  SQL_NO_TOTAL   = -4;
+ SQL_API_SQLDESCRIBEPARAM=58;
+ SQL_NO_TOTAL   = -4;
 
 type
   SQL_DATE_STRUCT = packed record
@@ -1016,176 +1027,176 @@ const
 {$ifdef DYNLOADINGODBC}
 
 type   tSQLAllocHandle =function(HandleType: SQLSMALLINT;
-           InputHandle:SQLHANDLE;Var OutputHandlePtr: SQLHANDLE):SQLRETURN;extdecl;
+           InputHandle:SQLHANDLE;Var OutputHandlePtr: SQLHANDLE):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   tSQLSetEnvAttr=function (EnvironmentHandle:SQLHENV;
            Attribute:SQLINTEGER;Value:SQLPOINTER;
-           StringLength:SQLINTEGER):SQLRETURN;extdecl;
+           StringLength:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLFreeHandle=function (HandleType:SQLSMALLINT;
-           Handle:SQLHANDLE):SQLRETURN;extdecl;
+           Handle:SQLHANDLE):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLGetDiagRec=function (HandleType:SQLSMALLINT;
            Handle:SQLHANDLE;RecNumber:SQLSMALLINT;
            Sqlstate:PSQLCHAR;var NativeError:SQLINTEGER;
            MessageText:PSQLCHAR;BufferLength:SQLSMALLINT;
-           var TextLength:SQLSMALLINT ):SQLRETURN;extdecl;
+           var TextLength:SQLSMALLINT ):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
            
 type   TSQLGetDiagField=function (HandleType:SQLSMALLINT;
            Handle:SQLHANDLE;RecNumber:SQLSMALLINT;
            DiagIdentifier:SQLSMALLINT;DiagInfoPtr:SQLPOINTER;
-           BufferLength:SQLSMALLINT;var StringLengthPtr:SQLSMALLINT):SQLRETURN;extdecl;
+           BufferLength:SQLSMALLINT;var StringLengthPtr:SQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLConnect=function (ConnectionHandle:SQLHDBC;
            ServerName:PSQLCHAR;NameLength1:SQLSMALLINT;
            UserName:PSQLCHAR;NameLength2:SQLSMALLINT;
-           Authentication:PSQLCHAR;NameLength3:SQLSMALLINT):SQLRETURN;extdecl;
+           Authentication:PSQLCHAR;NameLength3:SQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
-type   TSQLDisconnect=function(ConnectionHandle:SQLHDBC):SQLRETURN;extdecl;
+type   TSQLDisconnect=function(ConnectionHandle:SQLHDBC):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLDriverConnect=function (hdbc: SQLHDBC;
            hwnd: SQLHWND;szCsin: PChar;
            szCLen: SQLSMALLINT;szCsout: PChar;
            cbCSMax: SQLSMALLINT;Var cbCsOut: SQLSMALLINT;
-           f: SQLUSMALLINT):SQLRETURN;extdecl;
+           f: SQLUSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLExecDirect=function (StatementHandle:SQLHSTMT;
-           StatementText:PSQLCHAR;TextLength:SQLINTEGER):SQLRETURN;extdecl;
+           StatementText:PSQLCHAR;TextLength:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLPrepare=function (StatementHandle:SQLHSTMT;
-           StatementText:PSQLCHAR;TextLength:SQLINTEGER):SQLRETURN;extdecl;
+           StatementText:PSQLCHAR;TextLength:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
-type   TSQLCloseCursor=function (StatementHandle:SQLHSTMT):SQLRETURN;extdecl;
+type   TSQLCloseCursor=function (StatementHandle:SQLHSTMT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
-type   TSQLExecute=function (StatementHandle:SQLHSTMT):SQLRETURN;extdecl;
+type   TSQLExecute=function (StatementHandle:SQLHSTMT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
-type   TSQLFetch=function (StatementHandle:SQLHSTMT):SQLRETURN;extdecl;
+type   TSQLFetch=function (StatementHandle:SQLHSTMT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLNumResultCols=function (StatementHandle:SQLHSTMT;
-           var ColumnCount:SQLSMALLINT):SQLRETURN;extdecl;
+           var ColumnCount:SQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLDescribeCol=function (StatementHandle:SQLHSTMT;
            ColumnNumber:SQLUSMALLINT;ColumnName:PSQLCHAR;
            BufferLength:SQLSMALLINT;var NameLength:SQLSMALLINT;
            var DataType:SQLSMALLINT;var ColumnSize:SQLUINTEGER;
-           var DecimalDigits:SQLSMALLINT;var Nullable:SQLSMALLINT):SQLRETURN;extdecl;
+           var DecimalDigits:SQLSMALLINT;var Nullable:SQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLFetchScroll=function (StatementHandle:SQLHSTMT;
-           FetchOrientation:SQLSMALLINT;FetchOffset:SQLINTEGER):SQLRETURN;extdecl;
+           FetchOrientation:SQLSMALLINT;FetchOffset:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLExtendedFetch=function (hstmt:SQLHSTMT;
            fFetchType:SQLUSMALLINT;irow:SQLINTEGER;
-           pcrow:PSQLUINTEGER;rgfRowStatus:PSQLUSMALLINT):SQLRETURN;extdecl;
+           pcrow:PSQLUINTEGER;rgfRowStatus:PSQLUSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLGetData=function (StatementHandle:SQLHSTMT;
            ColumnNumber:SQLUSMALLINT;TargetType:SQLSMALLINT;
            TargetValue:SQLPOINTER;BufferLength:SQLINTEGER;
-           StrLen_or_Ind:PSQLINTEGER):SQLRETURN;extdecl;
+           StrLen_or_Ind:PSQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLSetStmtAttr=function (StatementHandle:SQLHSTMT;
            Attribute:SQLINTEGER;Value:SQLPOINTER;
-           StringLength:SQLINTEGER):SQLRETURN;extdecl;
+           StringLength:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLGetStmtAttr=function (StatementHandle:SQLHSTMT;
            Attribute:SQLINTEGER;Value:SQLPOINTER;
-           BufferLength:SQLINTEGER;StringLength:PSQLINTEGER):SQLRETURN;extdecl;
+           BufferLength:SQLINTEGER;StringLength:PSQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   tSQLGetInfo=function (ConnectionHandle:SQLHDBC;
            InfoType:SQLUSMALLINT;InfoValue:SQLPOINTER;
-           BufferLength:SQLSMALLINT;StringLength:PSQLSMALLINT):SQLRETURN;extdecl;
+           BufferLength:SQLSMALLINT;StringLength:PSQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLBulkOperations=function (StatementHandle: SQLHSTMT;
-           Operation:SQLSMALLINT):SQLRETURN;extdecl;
+           Operation:SQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLPutData=function (StatementHandle:SQLHSTMT;
-           Data:SQLPOINTER;StrLen_or_Ind:SQLINTEGER):SQLRETURN;extdecl;
+           Data:SQLPOINTER;StrLen_or_Ind:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLBindCol=function (StatementHandle:SQLHSTMT;
            ColumnNumber:SQLUSMALLINT;TargetType:SQLSMALLINT;
            TargetValue:SQLPOINTER;BufferLength:SQLINTEGER;
-           StrLen_or_Ind:PSQLINTEGER):SQLRETURN;extdecl;
+           StrLen_or_Ind:PSQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLSetPos=function (hstmt:SQLHSTMT;
            irow:SQLUSMALLINT;fOption:SQLUSMALLINT;
-           fLock:SQLUSMALLINT):SQLRETURN;extdecl;
+           fLock:SQLUSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLDataSources=function (EnvironmentHandle:SQLHENV;
            Direction:SQLUSMALLINT;ServerName:PSQLCHAR;
            BufferLength1:SQLSMALLINT;NameLength1:PSQLSMALLINT;
            Description:PSQLCHAR;BufferLength2:SQLSMALLINT;
-           NameLength2:PSQLSMALLINT):SQLRETURN;extdecl;
+           NameLength2:PSQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLDrivers=function (EnvironmentHandle:SQLHENV;
            Direction:SQLUSMALLINT;DriverDescription:PSQLCHAR;
            BufferLength1:SQLSMALLINT;DescriptionLength1:PSQLSMALLINT;
            DriverAttributes:PSQLCHAR;BufferLength2:SQLSMALLINT;
-           AttributesLength2:PSQLSMALLINT):SQLRETURN;extdecl;
+           AttributesLength2:PSQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLSetConnectAttr=function (ConnectionHandle:SQLHDBC;
            Attribute:SQLINTEGER; Value:SQLPOINTER;
-           StringLength:SQLINTEGER):SQLRETURN;extdecl;
+           StringLength:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLGetCursorName=function (StatementHandle:SQLHSTMT;
            CursorName:PSQLCHAR; BufferLength:SQLSMALLINT;
-           NameLength:PSQLSMALLINT):SQLRETURN;extdecl;
+           NameLength:PSQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLSetCursorName=function (StatementHandle:SQLHSTMT;
-           CursorName:PSQLCHAR; NameLength:SQLSMALLINT):SQLRETURN;extdecl;
+           CursorName:PSQLCHAR; NameLength:SQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLRowCount=function (StatementHandle:SQLHSTMT;
-           Var RowCount:SQLINTEGER):SQLRETURN;extdecl;
+           Var RowCount:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLBindParameter=function (hstmt:SQLHSTMT;
            ipar:SQLUSMALLINT;fParamType:SQLSMALLINT;
            fCType:SQLSMALLINT;fSqlType:SQLSMALLINT;
            cbColDef:SQLUINTEGER;ibScale:SQLSMALLINT;
            rgbValue:SQLPOINTER;cbValueMax:SQLINTEGER;
-           pcbValue:PSQLINTEGER):SQLRETURN;extdecl;
+           pcbValue:PSQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLFreeStmt=function (StatementHandle:SQLHSTMT;
-           Option:SQLUSMALLINT):SQLRETURN;extdecl;
+           Option:SQLUSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLColAttribute=function (StatementHandle:SQLHSTMT;
            ColumnNumber:SQLUSMALLINT;FieldIdentifier:SQLUSMALLINT;
            CharacterAttribute:PSQLCHAR;BufferLength:SQLSMALLINT;
-           StringLength:PSQLSMALLINT;NumericAttribute:SQLPOINTER):SQLRETURN;extdecl;
+           StringLength:PSQLSMALLINT;NumericAttribute:SQLPOINTER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLEndTran=function (HandleType:SQLSMALLINT;
-           Handle:SQLHANDLE;CompletionType:SQLSMALLINT):SQLRETURN;extdecl;
+           Handle:SQLHANDLE;CompletionType:SQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLTables=function ( hstmt : SQLHSTMT;
            szTableQualifier : PSQLCHAR;cbTableQualifier : SQLSMALLINT;
            szTableOwner : PSQLCHAR;cbTableOwner : SQLSMALLINT;
            szTableName : PSQLCHAR;cbTableName : SQLSMALLINT;
-           szTableType : PSQLCHAR;cbTableType : SQLSMALLINT ) : SQLRETURN; extdecl;
+           szTableType : PSQLCHAR;cbTableType : SQLSMALLINT ) : SQLRETURN; {$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLColumns=function ( hstmt : SQLHSTMT;
            szTableQualifier : PSQLCHAR;cbTableQualifier : SQLSMALLINT;
            szTableOwner : PSQLCHAR;cbTableOwner : SQLSMALLINT;
            szTableName : PSQLCHAR;cbTableName : SQLSMALLINT;
-           szColumnName : PSQLCHAR;cbColumnName : SQLSMALLINT ) : SQLRETURN; extdecl;
+           szColumnName : PSQLCHAR;cbColumnName : SQLSMALLINT ) : SQLRETURN; {$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLSpecialColumns=function (StatementHandle:SQLHSTMT;
            IdentifierType:SQLUSMALLINT;CatalogName:PSQLCHAR;
            NameLength1:SQLSMALLINT;SchemaName:PSQLCHAR;
            NameLength2:SQLSMALLINT;TableName:PSQLCHAR;
            NameLength3:SQLSMALLINT;Scope:SQLUSMALLINT;
-           Nullable:SQLUSMALLINT) : SQLRETURN; extdecl;
+           Nullable:SQLUSMALLINT) : SQLRETURN; {$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLProcedures=function ( hstmt : SQLHSTMT;
            szTableQualifier : PSQLCHAR;cbTableQualifier : SQLSMALLINT;
            szTableOwner : PSQLCHAR;cbTableOwner : SQLSMALLINT;
-           szTableName : PSQLCHAR;cbTableName : SQLSMALLINT ) : SQLRETURN; extdecl;
+           szTableName : PSQLCHAR;cbTableName : SQLSMALLINT ) : SQLRETURN; {$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 type   TSQLPrimaryKeys=function (hstmt : SQLHSTMT;
            CatalogName:PSQLCHAR;NameLength1:SQLSMALLINT;
            SchemaName:PSQLCHAR;NameLength2:SQLSMALLINT;
-           TableName:PSQLCHAR;NameLength3:SQLSMALLINT ):SQLRETURN;extdecl;
+           TableName:PSQLCHAR;NameLength3:SQLSMALLINT ):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};
 type   TSQLProcedureColumns = function(hstmt: SQLHSTMT;
            CatalogName: PSQLCHAR; NameLength1: SQLSMALLINT;
            SchemaName: PSQLCHAR; NameLength2: SQLSMALLINT;
            ProcName: PSQLCHAR; NameLength3: SQLSMALLINT;
-           ColumnName: PSQLCHAR; NameLength4: SQLSMALLINT): SQLRETURN; extdecl;
+           ColumnName: PSQLCHAR; NameLength4: SQLSMALLINT): SQLRETURN; {$ifdef fpc} extdecl {$else} stdcall {$endif};
 
 var    SQLAllocHandle:tSQLAllocHandle;
 var    SQLSetEnvAttr:tSQLSetEnvAttr;
@@ -1235,21 +1246,21 @@ var    odbcversion:word;
   function SQLAllocHandle(
                HandleType: SQLSMALLINT;
                InputHandle:SQLHANDLE;
-               Var OutputHandlePtr: SQLHANDLE):SQLRETURN;extdecl;external odbclib;
+               Var OutputHandlePtr: SQLHANDLE):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
   function SQLSetEnvAttr(
                EnvironmentHandle:SQLHENV;
                Attribute:        SQLINTEGER;
                Value:            SQLPOINTER;
-               StringLength:     SQLINTEGER):SQLRETURN;extdecl;external odbclib;
+               StringLength:     SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLGetEnvAttr(
                EnvironmentHandle:SQLHENV;
                Attribute:SQLINTEGER;
                Value:SQLPOINTER;
                BufferLength:SQLINTEGER;
-               StringLength:PSQLINTEGER):SQLRETURN;extdecl;external odbclib;
+               StringLength:PSQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLFreeHandle(
                HandleType: SQLSMALLINT;
-               Handle:     SQLHANDLE):SQLRETURN;extdecl;external odbclib;
+               Handle:     SQLHANDLE):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLGetDiagRec(
                HandleType:   SQLSMALLINT;
                Handle:       SQLHANDLE;
@@ -1258,7 +1269,7 @@ var    odbcversion:word;
                var NativeError: SQLINTEGER;
                MessageText:     PSQLCHAR;
                BufferLength:    SQLSMALLINT;
-               var TextLength:  SQLSMALLINT ):SQLRETURN;extdecl;external odbclib;
+               var TextLength:  SQLSMALLINT ):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLGetDiagField(
                HandleType:SQLSMALLINT;
                Handle:SQLHANDLE;
@@ -1266,15 +1277,15 @@ var    odbcversion:word;
                DiagIdentifier:SQLSMALLINT;
                DiagInfoPtr:SQLPOINTER;
                BufferLength:SQLSMALLINT;
-               var StringLengthPtr:SQLSMALLINT ):SQLRETURN;extdecl;external odbclib;
+               var StringLengthPtr:SQLSMALLINT ):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLConnect(
                ConnectionHandle:SQLHDBC;
                ServerName:PSQLCHAR;    NameLength1:SQLSMALLINT;
                UserName:PSQLCHAR;      NameLength2:SQLSMALLINT;
                Authentication:PSQLCHAR;NameLength3:SQLSMALLINT
-              ):SQLRETURN;extdecl;external odbclib;
+              ):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLDisconnect(
-               ConnectionHandle:SQLHDBC):SQLRETURN;extdecl;external odbclib;
+               ConnectionHandle:SQLHDBC):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLDriverConnect(
                hdbc: SQLHDBC;
                hwnd: SQLHWND;
@@ -1283,31 +1294,31 @@ var    odbcversion:word;
                szCsout: PChar;
                cbCSMax: SQLSMALLINT;
                Var cbCsOut: SQLSMALLINT;
-               f: SQLUSMALLINT):SQLRETURN;extdecl;external odbclib;
+               f: SQLUSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLBrowseConnect(
                hdbc : SQLHDBC;
                szConnStrIn :PSQLCHAR;
                cbConnStrIn: SQLSMALLINT;
                szConnStrOut : PSQLCHAR;
                cbConnStrOutMax : SQLSMALLINT;
-               Var cbConnStrOut : SQLSMALLINT) : SQLRETURN;extdecl;external odbclib;
+               Var cbConnStrOut : SQLSMALLINT) : SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLExecDirect(
                StatementHandle:SQLHSTMT;
                StatementText:  PSQLCHAR;
-               TextLength:     SQLINTEGER):SQLRETURN;extdecl;external odbclib;
+               TextLength:     SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLPrepare(
                StatementHandle:SQLHSTMT;
                StatementText:PSQLCHAR;
-               TextLength:SQLINTEGER):SQLRETURN;extdecl;external odbclib;
+               TextLength:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLCloseCursor(
-               StatementHandle:SQLHSTMT):SQLRETURN;extdecl;external odbclib;
+               StatementHandle:SQLHSTMT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLExecute(
-               StatementHandle:SQLHSTMT):SQLRETURN;extdecl;external odbclib;
+               StatementHandle:SQLHSTMT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLFetch(
-               StatementHandle:SQLHSTMT):SQLRETURN;extdecl;external odbclib;
+               StatementHandle:SQLHSTMT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLNumResultCols(
                StatementHandle:SQLHSTMT;
-               var ColumnCount:SQLSMALLINT):SQLRETURN;extdecl;external odbclib;
+               var ColumnCount:SQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLDescribeCol(
                StatementHandle:SQLHSTMT;
                ColumnNumber:SQLUSMALLINT;
@@ -1317,60 +1328,60 @@ var    odbcversion:word;
                var DataType:SQLSMALLINT;
                var ColumnSize:SQLUINTEGER;
                var DecimalDigits:SQLSMALLINT;
-               var Nullable:SQLSMALLINT):SQLRETURN;extdecl;external odbclib;
+               var Nullable:SQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLFetchScroll(
                StatementHandle:SQLHSTMT;
                FetchOrientation:SQLSMALLINT;
-               FetchOffset:SQLINTEGER):SQLRETURN;extdecl;external odbclib;
+               FetchOffset:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLExtendedFetch(
                hstmt:SQLHSTMT;
                fFetchType:SQLUSMALLINT;
                irow:SQLINTEGER;
                pcrow:PSQLUINTEGER;
-               rgfRowStatus:PSQLUSMALLINT):SQLRETURN;extdecl;external odbclib;
+               rgfRowStatus:PSQLUSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLGetData(
                StatementHandle:SQLHSTMT;
                ColumnNumber:SQLUSMALLINT;
                TargetType:SQLSMALLINT;
                TargetValue:SQLPOINTER;
                BufferLength:SQLINTEGER;
-               StrLen_or_Ind:PSQLINTEGER):SQLRETURN;extdecl;external odbclib;
+               StrLen_or_Ind:PSQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLSetStmtAttr(
                StatementHandle:SQLHSTMT;
                Attribute:SQLINTEGER;
                Value:SQLPOINTER;
-               StringLength:SQLINTEGER):SQLRETURN;extdecl;external odbclib;
+               StringLength:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLGetStmtAttr(
                StatementHandle:SQLHSTMT;
                Attribute:SQLINTEGER;
                Value:SQLPOINTER;
                BufferLength:SQLINTEGER;
-               StringLength:PSQLINTEGER):SQLRETURN;extdecl;external odbclib;
+               StringLength:PSQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLGetInfo(
                ConnectionHandle:SQLHDBC;
                InfoType:SQLUSMALLINT;
                InfoValue:SQLPOINTER;
                BufferLength:SQLSMALLINT;
-               StringLength:PSQLSMALLINT):SQLRETURN;extdecl;external odbclib;
+               StringLength:PSQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLBulkOperations(
                StatementHandle: SQLHSTMT;
-               Operation:SQLSMALLINT):SQLRETURN;extdecl;external odbclib;
+               Operation:SQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLPutData(
                StatementHandle:SQLHSTMT;
                Data:SQLPOINTER;
-               StrLen_or_Ind:SQLINTEGER):SQLRETURN;extdecl;external odbclib;
+               StrLen_or_Ind:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLBindCol(
                StatementHandle:SQLHSTMT;
                ColumnNumber:SQLUSMALLINT;
                TargetType:SQLSMALLINT;
                TargetValue:SQLPOINTER;
                BufferLength:SQLINTEGER;
-               StrLen_or_Ind:PSQLINTEGER):SQLRETURN;extdecl;external odbclib;
+               StrLen_or_Ind:PSQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLSetPos(
                hstmt:SQLHSTMT;
                irow:SQLUSMALLINT;
                fOption:SQLUSMALLINT;
-               fLock:SQLUSMALLINT):SQLRETURN;extdecl;external odbclib;
+               fLock:SQLUSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLDataSources(
                EnvironmentHandle:SQLHENV;
                Direction:SQLUSMALLINT;
@@ -1379,7 +1390,7 @@ var    odbcversion:word;
                NameLength1:PSQLSMALLINT;
                Description:PSQLCHAR;
                BufferLength2:SQLSMALLINT;
-               NameLength2:PSQLSMALLINT):SQLRETURN;extdecl;external odbclib;
+               NameLength2:PSQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLDrivers(
                EnvironmentHandle:SQLHENV;
                Direction:SQLUSMALLINT;
@@ -1388,22 +1399,22 @@ var    odbcversion:word;
                DescriptionLength1:PSQLSMALLINT;
                DriverAttributes:PSQLCHAR;
                BufferLength2:SQLSMALLINT;
-               AttributesLength2:PSQLSMALLINT):SQLRETURN;extdecl;external odbclib;
+               AttributesLength2:PSQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLSetConnectAttr(
                ConnectionHandle:SQLHDBC;
                Attribute:SQLINTEGER; Value:SQLPOINTER;
-               StringLength:SQLINTEGER):SQLRETURN;extdecl;external odbclib;
+               StringLength:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLGetCursorName(
                StatementHandle:SQLHSTMT;
                CursorName:PSQLCHAR; BufferLength:SQLSMALLINT;
-               NameLength:PSQLSMALLINT):SQLRETURN;extdecl;external odbclib;
+               NameLength:PSQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLSetCursorName(
                StatementHandle:SQLHSTMT;
                CursorName:PSQLCHAR; NameLength:SQLSMALLINT
-               ):SQLRETURN;extdecl;external odbclib;
+               ):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLRowCount(
                StatementHandle:SQLHSTMT;
-               Var RowCount:SQLINTEGER):SQLRETURN;extdecl;external odbclib;
+               Var RowCount:SQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLBindParameter(
                hstmt:SQLHSTMT;
                ipar:SQLUSMALLINT;
@@ -1414,10 +1425,10 @@ var    odbcversion:word;
                ibScale:SQLSMALLINT;
                rgbValue:SQLPOINTER;
                cbValueMax:SQLINTEGER;
-               pcbValue:PSQLINTEGER):SQLRETURN;extdecl;external odbclib;
+               pcbValue:PSQLINTEGER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLFreeStmt(
                StatementHandle:SQLHSTMT;
-               Option:SQLUSMALLINT):SQLRETURN;extdecl;external odbclib;
+               Option:SQLUSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLColAttribute (
                StatementHandle:SQLHSTMT;
                ColumnNumber:SQLUSMALLINT;
@@ -1425,12 +1436,12 @@ var    odbcversion:word;
                CharacterAttribute:PSQLCHAR;
                BufferLength:SQLSMALLINT;
                StringLength:PSQLSMALLINT;
-               NumericAttribute:SQLPOINTER):SQLRETURN;extdecl;external odbclib;
+               NumericAttribute:SQLPOINTER):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
 {$ifdef ODBCVER3}
    function SQLEndTran(
                HandleType:SQLSMALLINT;
                Handle:SQLHANDLE;
-               CompletionType:SQLSMALLINT):SQLRETURN;extdecl;external odbclib;
+               CompletionType:SQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
 {$endif}
    function SQLTables( hstmt : SQLHSTMT;
                 szTableQualifier : PSQLCHAR;
@@ -1440,7 +1451,7 @@ var    odbcversion:word;
                 szTableName : PSQLCHAR;
                 cbTableName : SQLSMALLINT;
                 szTableType : PSQLCHAR;
-                cbTableType : SQLSMALLINT ) : SQLRETURN; extdecl; external odbclib;
+                cbTableType : SQLSMALLINT ) : SQLRETURN; {$ifdef fpc} extdecl {$else} stdcall {$endif}; external odbclib;
    function SQLColumns( hstmt : SQLHSTMT;
                 szTableQualifier : PSQLCHAR;
                 cbTableQualifier : SQLSMALLINT;
@@ -1449,7 +1460,7 @@ var    odbcversion:word;
                 szTableName : PSQLCHAR;
                 cbTableName : SQLSMALLINT;
                 szColumnName : PSQLCHAR;
-                cbColumnName : SQLSMALLINT ) : SQLRETURN; extdecl; external odbclib;
+                cbColumnName : SQLSMALLINT ) : SQLRETURN; {$ifdef fpc} extdecl {$else} stdcall {$endif}; external odbclib;
    function SQLSpecialColumns(StatementHandle:SQLHSTMT;
                 IdentifierType:SQLUSMALLINT;
                 CatalogName:PSQLCHAR;
@@ -1459,24 +1470,24 @@ var    odbcversion:word;
                 TableName:PSQLCHAR;
                 NameLength3:SQLSMALLINT;
                 Scope:SQLUSMALLINT;
-                Nullable:SQLUSMALLINT) : SQLRETURN; extdecl; external odbclib;
+                Nullable:SQLUSMALLINT) : SQLRETURN; {$ifdef fpc} extdecl {$else} stdcall {$endif}; external odbclib;
    function SQLProcedures( hstmt : SQLHSTMT;
                 szTableQualifier : PSQLCHAR;
                 cbTableQualifier : SQLSMALLINT;
                 szTableOwner : PSQLCHAR;
                 cbTableOwner : SQLSMALLINT;
                 szTableName : PSQLCHAR;
-                cbTableName : SQLSMALLINT ) : SQLRETURN; extdecl; external odbclib;
+                cbTableName : SQLSMALLINT ) : SQLRETURN; {$ifdef fpc} extdecl {$else} stdcall {$endif}; external odbclib;
    function SQLPrimaryKeys(hstmt : SQLHSTMT;
                 CatalogName:PSQLCHAR;NameLength1:SQLSMALLINT;
                 SchemaName:PSQLCHAR;NameLength2:SQLSMALLINT;
                 TableName:PSQLCHAR;
-                NameLength3:SQLSMALLINT):SQLRETURN;extdecl;external odbclib;
+                NameLength3:SQLSMALLINT):SQLRETURN;{$ifdef fpc} extdecl {$else} stdcall {$endif};external odbclib;
    function SQLProcedureColumns(hstmt: SQLHSTMT;
                 CatalogName: PSQLCHAR; NameLength1: SQLSMALLINT;
                 SchemaName: PSQLCHAR; NameLength2: SQLSMALLINT;
                 ProcName: PSQLCHAR; NameLength3: SQLSMALLINT;
-                ColumnName: PSQLCHAR; NameLength4: SQLSMALLINT): SQLRETURN; extdecl;
+                ColumnName: PSQLCHAR; NameLength4: SQLSMALLINT): SQLRETURN; {$ifdef fpc} extdecl {$else} stdcall {$endif};
                 external odbclib;
 {$endif}
 // This function always load dynamic
@@ -1514,6 +1525,7 @@ begin
       Raise EInOutError.Create('Can not load ODBC client. Is it installed? ('+odbclib+')');
       end;
 
+{$ifdef fpc}
     pointer(SQLAllocHandle) := GetProcedureAddress(ODBCLibraryHandle,'SQLAllocHandle');
     pointer(SQLSetEnvAttr) := GetProcedureAddress(ODBCLibraryHandle,'SQLSetEnvAttr');
     pointer(SQLFreeHandle) := GetProcedureAddress(ODBCLibraryHandle,'SQLFreeHandle');
@@ -1555,7 +1567,51 @@ begin
     pointer(SQLTables) := GetProcedureAddress(ODBCLibraryHandle,'SQLTables');
     pointer(SQLPrimaryKeys) := GetProcedureAddress(ODBCLibraryHandle,'SQLPrimaryKeys');
     pointer(SQLProcedureColumns) := GetProcedureAddress(ODBCLibraryHandle,'SQLProcedureColumns');
-
+{$else}
+    SQLAllocHandle := GetProcedureAddress(ODBCLibraryHandle,'SQLAllocHandle');
+    SQLSetEnvAttr := GetProcedureAddress(ODBCLibraryHandle,'SQLSetEnvAttr');
+    SQLFreeHandle := GetProcedureAddress(ODBCLibraryHandle,'SQLFreeHandle');
+    SQLGetInfo := GetProcedureAddress(ODBCLibraryHandle,'SQLGetInfo');
+    SQLProcedures := GetProcedureAddress(ODBCLibraryHandle,'SQLProcedures');
+    SQLColumns := GetProcedureAddress(ODBCLibraryHandle,'SQLColumns');
+    SQLSpecialColumns := GetProcedureAddress(ODBCLibraryHandle,'SQLSpecialColumns');
+    SQLGetDiagRec := GetProcedureAddress(ODBCLibraryHandle,'SQLGetDiagRec');
+    SQLGetDiagField := GetProcedureAddress(ODBCLibraryHandle,'SQLGetDiagField');
+    SQLConnect := GetProcedureAddress(ODBCLibraryHandle,'SQLConnect');
+    SQLDisconnect := GetProcedureAddress(ODBCLibraryHandle,'SQLDisconnect');
+    SQLDriverConnect := GetProcedureAddress(ODBCLibraryHandle,'SQLDriverConnect');
+    SQLExecDirect := GetProcedureAddress(ODBCLibraryHandle,'SQLExecDirect');
+    SQLPrepare := GetProcedureAddress(ODBCLibraryHandle,'SQLPrepare');
+    SQLCloseCursor := GetProcedureAddress(ODBCLibraryHandle,'SQLCloseCursor');
+    SQLExecute := GetProcedureAddress(ODBCLibraryHandle,'SQLExecute');
+    SQLFetch := GetProcedureAddress(ODBCLibraryHandle,'SQLFetch');
+    SQLNumResultCols := GetProcedureAddress(ODBCLibraryHandle,'SQLNumResultCols');
+    SQLDescribeCol := GetProcedureAddress(ODBCLibraryHandle,'SQLDescribeCol');
+    SQLFetchScroll := GetProcedureAddress(ODBCLibraryHandle,'SQLFetchScroll');
+    SQLExtendedFetch := GetProcedureAddress(ODBCLibraryHandle,'SQLExtendedFetch');
+    SQLGetData := GetProcedureAddress(ODBCLibraryHandle,'SQLGetData');
+    SQLSetStmtAttr := GetProcedureAddress(ODBCLibraryHandle,'SQLSetStmtAttr');
+    SQLGetStmtAttr := GetProcedureAddress(ODBCLibraryHandle,'SQLGetStmtAttr');
+    SQLBulkOperations := GetProcedureAddress(ODBCLibraryHandle,'SQLBulkOperations');
+    SQLPutData := GetProcedureAddress(ODBCLibraryHandle,'SQLPutData');
+    SQLBindCol := GetProcedureAddress(ODBCLibraryHandle,'SQLBindCol');
+    SQLSetPos := GetProcedureAddress(ODBCLibraryHandle,'SQLSetPos');
+    SQLDataSources := GetProcedureAddress(ODBCLibraryHandle,'SQLDataSources');
+    SQLDrivers := GetProcedureAddress(ODBCLibraryHandle,'SQLDrivers');
+    SQLSetConnectAttr := GetProcedureAddress(ODBCLibraryHandle,'SQLSetConnectAttr');
+    SQLGetCursorName := GetProcedureAddress(ODBCLibraryHandle,'SQLGetCursorName');
+    SQLSetCursorName := GetProcedureAddress(ODBCLibraryHandle,'SQLSetCursorName');
+    SQLRowCount := GetProcedureAddress(ODBCLibraryHandle,'SQLRowCount');
+    SQLBindParameter := GetProcedureAddress(ODBCLibraryHandle,'SQLBindParameter');
+    SQLGetFunctions := GetProcedureAddress(ODBCLibraryHandle,'SQLGetFunctions');
+    SQLDescribeParam :=GetProcedureAddress(ODBCLibraryHandle,'SQLDescribeParam');
+    SQLFreeStmt := GetProcedureAddress(ODBCLibraryHandle,'SQLFreeStmt');
+    SQLColAttribute := GetProcedureAddress(ODBCLibraryHandle,'SQLColAttribute');
+    SQLEndTran := GetProcedureAddress(ODBCLibraryHandle,'SQLEndTran');
+    SQLTables := GetProcedureAddress(ODBCLibraryHandle,'SQLTables');
+    SQLPrimaryKeys := GetProcedureAddress(ODBCLibraryHandle,'SQLPrimaryKeys');
+    SQLProcedureColumns := GetProcedureAddress(ODBCLibraryHandle,'SQLProcedureColumns');
+{$endif}
     end;
 end;
 
