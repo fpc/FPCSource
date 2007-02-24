@@ -2273,8 +2273,11 @@ begin
     include(init_settings.globalswitches,cs_link_extern);
 
   { turn off stripping if compiling with debuginfo or profile }
-  if (cs_debuginfo in init_settings.moduleswitches) or
-     (cs_profile in init_settings.moduleswitches) then
+  if (
+      (cs_debuginfo in init_settings.moduleswitches) or
+      (cs_profile in init_settings.moduleswitches)
+     ) and
+     not(cs_link_separate_dbg_file in init_settings.globalswitches) then
     exclude(init_settings.globalswitches,cs_link_strip);
 
   { force fpu emulation on arm/wince, arm/gba and arm/nds}
