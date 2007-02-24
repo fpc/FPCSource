@@ -1319,6 +1319,10 @@ implementation
           set_varstate(target.left,vs_written,[]);
           { index in the unpacked array is read and must be valid }
           set_varstate(index.left,vs_read,[vsf_must_be_valid]);
+          { if the size of the arrays is 0 (array of empty records), }
+          { do nothing                                               }
+          if (source.resultdef.size = 0) then
+            result:=cnothingnode.create;
         end;
 
 
