@@ -723,6 +723,7 @@ begin
        '0'..'9' : u:=Ord(S[Code])-Ord('0');
        'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
        'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+       #0 : break;
      else
       u:=16;
      end;
@@ -774,6 +775,7 @@ begin
        '0'..'9' : u:=Ord(S[Code])-Ord('0');
        'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
        'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+       #0 : break;
      else
       u:=16;
      end;
@@ -833,6 +835,7 @@ end;
          '0'..'9' : u:=Ord(S[Code])-Ord('0');
          'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
          'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+         #0 : break;
        else
         u:=16;
        end;
@@ -882,6 +885,7 @@ end;
          '0'..'9' : u:=Ord(S[Code])-Ord('0');
          'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
          'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+         #0 : break;
        else
         u:=16;
        end;
