@@ -20,7 +20,7 @@ const
 
 type
   PEventState = pointer;
-  PRTLEvent   = pointer;   // Windows=thandle, other=pointer to record.
+  PRTLEvent   = type pointer;   // Windows=thandle, other=pointer to record.
   TThreadFunc = function(parameter : pointer) : ptrint;
   trtlmethod  = procedure of object;
 
@@ -102,7 +102,6 @@ Function GetThreadManager(Var TM : TThreadManager) : Boolean;
 Function SetThreadManager(Const NewTM : TThreadManager; Var OldTM : TThreadManager) : Boolean;
 Function SetThreadManager(Const NewTM : TThreadManager) : Boolean;
 {$ifndef DISABLE_NO_THREAD_MANAGER}
-Procedure SetNoThreadManager;
 {$endif DISABLE_NO_THREAD_MANAGER}
 // Needs to be exported, so the manager can call it.
 procedure InitThreadVars(RelocProc : Pointer);
