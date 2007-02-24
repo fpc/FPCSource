@@ -755,9 +755,13 @@ function Validate28 : Boolean;
 const
  VALIDATENO : Cardinal = 28;
 
+var
+  c: char;
 begin
   WriteLn('Validate28');
- GlobalStrValidate28 := #0;
+ c:=#0;
+ // make sure the statement after this does not write to a read-only location
+ GlobalStrValidate28 := c;
  PInteger(Integer(GlobalStrValidate28)-4)^ := 0; //Set Length to 0
  try
   StrToInt(GlobalStrValidate28);
@@ -1354,6 +1358,19 @@ const
 
 begin
   WriteLn('Validate42');
+ Result := False;
+ try
+   S := #0;
+   I := StrToInt(S);
+ except
+  Result := True;
+ end;
+ if not Result then
+   begin
+     Writeln('#0 is not recognized as an invalid integer');
+     halt(1);
+   end;
+
  try
   Result := True;
   S := '0'#0;
