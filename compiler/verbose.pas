@@ -403,8 +403,9 @@ var
              lastfileidx:=0;
            lastmoduleidx:=module.unit_index;
          end;
-        if assigned(module) then
-          status.compiling_current:=(compiling_module.state in [ms_compile,ms_second_compile]);
+        status.compiling_current:=assigned(compiling_module) and
+                                  (module=compiling_module) and
+                                  (compiling_module.state in [ms_compile,ms_second_compile]);
       end;
 
 
