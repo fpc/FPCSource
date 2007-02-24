@@ -1,6 +1,25 @@
+# german translation file of fp-docs.
+# Copyright (C) 2005 Free Software Foundation, Inc.
+# Holger Wansing <h.wansing@onlinehome.de>, 2005.
+# 
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: fp-docs-mk 2.0.0-4\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2005-12-28 22:54+0100\n"
+"PO-Revision-Date: 2006-01-03 12:20+0100\n"
+"Last-Translator: Holger Wansing <h.wansing@onlinehome.de>\n"
+"Language-Team: German <debian-l10n-german@lists.debian.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: "
+
 #: fpdocmk:stitle
 msgid "FPDocMK - Makefile.fpc processor for Free Pascal Documentation Tool"
-msgstr "FPDocMK - Makefile.fpc-Prozessor für das Free-Pascal-Documentationstool"
+msgstr "FPDocMK - Makefile.fpc-Prozessor für das "
+"Free-Pascal-Dokumentationswerkzeug"
 
 #: fpdocmk:scopyright
 msgid "(c) 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org"
@@ -8,23 +27,25 @@ msgstr "(c) 2003 Areca Systems GmbH / Sebastian Günther, sg@freepascal.org"
 
 #: fpdocmk:scmdlinehelp
 msgid "See documentation for usage."
-msgstr ""
+msgstr "Lesen Sie die Dokumentation für Infos zur Benutzung."
 
 #: fpdocmk:scmdlineinvalidoption
 msgid "Ignoring unknown option \"%s\""
-msgstr ""
+msgstr "Ignoriere unbekannte Option »%s«"
 
 #: fpdocmk:scmdlineinvalidformat
 msgid "Invalid format \"%s\" specified"
-msgstr ""
+msgstr "Ungültiges Format »%s« gewählt"
 
 #: fpdocmk:scmdlineoutputoptionmissing
 msgid "Need an output path or filename, please specify one with --output=<filename>"
-msgstr "Benötige einen Ausgabepfad oder -Dateinamen, bitte geben Sie einen mit --output=<dateiname> an"
+msgstr "Benötige einen Ausgabepfad oder -dateinamen; "
+"bitte geben Sie mit --output=<dateiname> einen an."
 
 #: fpdocmk:sneedpackagename
 msgid "No package name specified. Please specify one using the --package option."
-msgstr ""
+msgstr "Kein Paketname gewählt. Bitte geben Sie mit der Option --package "
+"einen an."
 
 #: fpdocmk:sdone
 msgid "Done."

@@ -1,3 +1,21 @@
+# german translation file of fp-docs.
+# Copyright (C) 2005 Free Software Foundation, Inc.
+# Holger Wansing <h.wansing@onlinehome.de>, 2005.
+# 
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: fp-docs 2.0.0-4\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2005-12-28 15:40+0100\n"
+"PO-Revision-Date: 2006-01-14 13:47+0100\n"
+"Last-Translator: Holger Wansing <h.wansing@onlinehome.de>\n"
+"Language-Team: German <debian-l10n-german@lists.debian.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: "
+
 #: fpdocstr:sptreeelement
 msgid "Generic element"
 msgstr "Generisches Element"
@@ -32,11 +50,11 @@ msgstr "Alias-Typ"
 
 #: fpdocstr:sptreetypealiastype
 msgid "\"type\" alias type"
-msgstr "\"type\" Alias-Type"
+msgstr "Alias-Typ »type«"
 
 #: fpdocstr:sptreeclassoftype
 msgid "\"class of\" type"
-msgstr "\"class of\" Typ"
+msgstr "»class-of«-Typ"
 
 #: fpdocstr:sptreerangetype
 msgid "Range type"
@@ -72,7 +90,7 @@ msgstr "Argument"
 
 #: fpdocstr:sptreeproceduretype
 msgid "Procedure type"
-msgstr "Prozedur-Typ"
+msgstr "Prozedurtyp"
 
 #: fpdocstr:sptreeresultelement
 msgid "Function result"
@@ -84,7 +102,7 @@ msgstr "Funktionstyp"
 
 #: fpdocstr:sptreetyperef
 msgid "Type reference"
-msgstr "Typ-Verweis"
+msgstr "Typreferenz"
 
 #: fpdocstr:sptreevariable
 msgid "Variable"
@@ -112,7 +130,7 @@ msgstr "Funktion"
 
 #: fpdocstr:sptreeconstructor
 msgid "Constructor"
-msgstr "Konstruktur"
+msgstr "Konstruktor"
 
 #: fpdocstr:sptreedestructor
 msgid "Destructor"
@@ -120,7 +138,7 @@ msgstr "Destruktor"
 
 #: fpdocstr:sdocpackagetitle
 msgid "Reference for package '%s'"
-msgstr "Referenz für das Paket '%s'"
+msgstr "Referenz für das Paket »%s«"
 
 #: fpdocstr:sdocprograms
 msgid "Programs"
@@ -132,7 +150,7 @@ msgstr "Units"
 
 #: fpdocdef:sdocunittitle
 msgid "Reference for unit '%s'"
-msgstr "Referenz für Unit '%s'"
+msgstr "Referenz für Unit »%s«"
 
 #: fpdocdef:sdocinterfacesection
 msgid "Interface section"
@@ -140,7 +158,7 @@ msgstr "Interface-Abschnitt"
 
 #: fpdocdef:sdocimplementationsection
 msgid "Implementation section"
-msgstr "Implementation-Abschnitt"
+msgstr "Implementations-Abschnitt"
 
 #: fpdocdef:sdocusedunits
 msgid "Used units"
@@ -148,7 +166,7 @@ msgstr "Verwendete Units"
 
 #: fpdocdef:sdocusedunitsbyunitxy
 msgid "Used units by unit '%s'"
-msgstr "Von Unit '%s' verwendete Units"
+msgstr "Von Unit »%s« verwendete Units"
 
 #: fpdocdef:sdocconststypesvars
 msgid "Constants, types and variables"
@@ -210,10 +228,6 @@ msgstr "Beispiel"
 msgid "Arguments"
 msgstr "Argumente"
 
-#: fpdocdef:sdocfunctionresult
-msgid "Function result"
-msgstr "Funktionsergebnis"
-
 #: fpdocstr:sdocremark
 msgid "Remark:   "
 msgstr "Bemerkung:   "
@@ -234,10 +248,6 @@ msgstr "Seite"
 msgid "Method"
 msgstr "Methode"
 
-#: fpdocstr:sdocproperty
-msgid "Property"
-msgstr "Eigenschaft"
-
 #: fpdocstr:sdocaccess
 msgid "Access"
 msgstr "Zugriff"
@@ -245,7 +255,6 @@ msgstr "Zugriff"
 #: fpdocstr:sdocinheritance
 msgid "Inheritance"
 msgstr "Vererbung"
-
 
 #: fpdocstr:sdocproperties
 msgid "Properties"
