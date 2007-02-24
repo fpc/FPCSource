@@ -49,45 +49,125 @@ implementation
 
 {$maxfpuregisters 0}
 
-    { bitpacks "value" as bitpacked value of bitsize "packedbitsize" and     }
-    { loadsize "loadbitsize" into "curval", which has already been filled up }
-    { to "curbitoffset", and stores the spillover if any into "nextval".     }
-    { It also updates curbitoffset to reflect how many bits of currval are   }
-    { now used (can be > packedbitsize in case of spillover)                 }
-    procedure bitpackval(value: aword; var curval: aword; out nextval: aword; loadbitsize, packedbitsize: byte; var curbitoffset: smallint);
+{*****************************************************************************
+                          Bitpacked value helpers
+*****************************************************************************}
+
+    type
+      tbitpackedval = record
+        curval, nextval: aword;
+        curbitoffset: smallint;
+        loadbitsize,packedbitsize: byte;
+      end;
+
+
+    procedure initbitpackval(out bp: tbitpackedval; packedbitsize: byte);
+      begin
+        bp.curval:=0;
+        bp.nextval:=0;
+        bp.curbitoffset:=0;
+        bp.packedbitsize:=packedbitsize;
+        bp.loadbitsize:=packedbitsloadsize(bp.packedbitsize)*8;
+      end;
+
+
+{$ifopt r+}
+{$defined rangeon}
+{$r-}
+{$endif}
+
+{$ifopt q+}
+{$define overflowon}
+{$q-}
+{$endif}
+    { (values between quotes below refer to fields of bp; fields not         }
+    {  mentioned are unused by this routine)                                 }
+    { bitpacks "value" as bitpacked value of bitsize "packedbitsize" into    }
+    { "curval", which has already been filled up to "curbitoffset", and      }
+    { stores the spillover if any into "nextval". It also updates            }
+    { curbitoffset to reflect how many bits of currval are now used (can be  }
+    { > AIntBits in case of spillover)                                       }
+    procedure bitpackval(value: aword; var bp: tbitpackedval);
       var
-        tmpval: aword;
         shiftcount: longint;
       begin
-        { 1 shl 32/64 = 1 on i386/x86_64 }
-        if (loadbitsize<>AintBits) then
-          tmpval:=(aword(1) shl loadbitsize) - 1
-        else
-          tmpval:=aword(-1);
         if (target_info.endian=endian_big) then
           begin
             { bitpacked format: left-aligned (i.e., "big endian bitness") }
-            curval:=curval or (((value shl (loadbitsize-packedbitsize)) shr curbitoffset) and tmpval);
-            shiftcount:=((loadbitsize-packedbitsize)-curbitoffset);
+            bp.curval:=bp.curval or ((value shl (AIntBits-bp.packedbitsize)) shr bp.curbitoffset);
+            shiftcount:=((AIntBits-bp.packedbitsize)-bp.curbitoffset);
             { carry-over to the next element? }
             if (shiftcount<0) then
-              nextval:=(value and ((aword(1) shl (-shiftcount))-1)) shl
-                       (loadbitsize+shiftcount)
-            else
-              nextval:=0;
+              bp.nextval:=(value and ((aword(1) shl (-shiftcount))-1)) shl
+                          (AIntBits+shiftcount)
           end
         else
           begin
             { bitpacked format: right aligned (i.e., "little endian bitness") }
-            curval:=curval or ((value shl curbitoffset) and tmpval);
+            bp.curval:=bp.curval or (value shl bp.curbitoffset);
             { carry-over to the next element? }
-            if (curbitoffset+packedbitsize>loadbitsize) then
-              nextval:=value shr (loadbitsize-curbitoffset)
-            else
-              nextval:=0;
+            if (bp.curbitoffset+bp.packedbitsize>AIntBits) then
+              bp.nextval:=value shr (AIntBits-bp.curbitoffset)
           end;
-        inc(curbitoffset,packedbitsize);
+        inc(bp.curbitoffset,bp.packedbitsize);
       end;
+
+{$ifdef rangeon}
+{$r+}
+{$undef rangeon}
+{$endif}
+
+{$ifdef overflowon}
+{$q+}
+{$undef overflowon}
+{$endif}
+
+
+    procedure flush_packed_value(list: tasmlist; var bp: tbitpackedval);
+      var
+        bitstowrite: longint;
+        writeval : byte;
+      begin
+        { these values have to be byte swapped when cross-compiling }
+        { from one endianess to another, but this will be done      }
+        { automatically by the assembler writer                     }
+        if (bp.curbitoffset < AIntBits) then
+          begin
+            { forced flush -> write multiple of loadsize }
+            bitstowrite:=align(bp.curbitoffset,bp.loadbitsize);
+            bp.curbitoffset:=0;
+          end
+        else
+          begin
+            bitstowrite:=AIntBits;
+            dec(bp.curbitoffset,AIntBits);
+          end;
+        while (bitstowrite>=8) do
+          begin
+            if (target_info.endian=endian_little) then
+              begin
+                { write lowest byte }
+                writeval:=byte(bp.curval);
+                bp.curval:=bp.curval shr 8;
+              end
+            else
+              begin
+                { write highest byte }
+                writeval:=bp.curval shr (AIntBits-8);
+                bp.curval:=(bp.curval and (not($ff shl (AIntBits-8)))) shl 8;
+              end;
+            list.concat(tai_const.create_8bit(writeval));
+            dec(bitstowrite,8);
+          end;
+        bp.curval:=bp.nextval;
+        bp.nextval:=0;
+      end;
+
+
+{*****************************************************************************
+                             read typed const
+*****************************************************************************}
+
 
     { this procedure reads typed constants }
     procedure read_typed_const_data(list:tasmlist;def:tdef);
@@ -649,29 +729,10 @@ implementation
         end;
 
 
-        procedure flush_packed_value(list: tasmlist; var curval, nextval: aword; loadbitsize: byte; var curbitoffset: smallint);
-          begin
-            { these values have to be byte swapped when cross-compiling }
-            { from one endianess to another, but this will be done      }
-            { automatically by the assembler writer                     }
-            case loadbitsize of
-              8:  list.concat(tai_const.create_8bit(curval));
-              16: list.concat(tai_const.create_16bit(curval));
-              32: list.concat(tai_const.create_32bit(curval));
-              64: list.concat(tai_const.create_64bit(curval));
-              else
-                internalerror(2007022011);
-            end;
-            curval:=nextval;
-            nextval:=0;
-            dec(curbitoffset,loadbitsize);
-          end;
-
-
         { parse a single constant and add it to the packed const info  }
         { represented by curval etc (see explanation of bitpackval for }
         { what the different parameters mean)                          }
-        function parse_single_packed_const(list: tasmlist; def: tdef; var curval: aword; out nextval: aword; loadbitsize, packedbitsize: byte; var curbitoffset: smallint): boolean;
+        function parse_single_packed_const(list: tasmlist; def: tdef; var bp: tbitpackedval): boolean;
           var
             n : tnode;
           begin
@@ -687,9 +748,9 @@ implementation
                 result:=false;
                 exit;
               end;
-            bitpackval(tordconstnode(n).value,curval,nextval,loadbitsize,packedbitsize,curbitoffset);
-            if (curbitoffset>=loadbitsize) then
-              flush_packed_value(list,curval,nextval,loadbitsize,curbitoffset);
+            bitpackval(tordconstnode(n).value,bp);
+            if (bp.curbitoffset>=AIntBits) then
+              flush_packed_value(list,bp);
             n.free;
           end;
 
@@ -697,37 +758,31 @@ implementation
         { parses a packed array constant }
         procedure parse_packed_array_def(list: tasmlist; def: tarraydef);
           var
-            i : aint;
-            curval, nextval: aword;
-            curbitoffset: smallint;
-            packedbitsize,
-            loadbitsize: byte;
+            i  : aint;
+            bp : tbitpackedval;
           begin
             if not(def.elementdef.typ in [orddef,enumdef]) then
               internalerror(2007022010);
             { begin of the array }
             consume(_LKLAMMER);
-            packedbitsize:=def.elepackedbitsize;
-            loadbitsize:=packedbitsloadsize(packedbitsize)*8;
-            curval:=0;
-            curbitoffset:=0;
+            initbitpackval(bp,def.elepackedbitsize);
             i:=def.lowrange;
             { can't use for-loop, fails when cross-compiling from }
             { 32 to 64 bit because i is then 64 bit               }
             while (i<def.highrange) do
               begin
                 { get next item of the packed array }
-                if not parse_single_packed_const(list,def.elementdef,curval,nextval,loadbitsize,packedbitsize,curbitoffset) then
+                if not parse_single_packed_const(list,def.elementdef,bp) then
                   exit;
                 consume(_COMMA);
                 inc(i);
               end;
             { final item }
-            if not parse_single_packed_const(list,def.elementdef,curval,nextval,loadbitsize,packedbitsize,curbitoffset) then
+            if not parse_single_packed_const(list,def.elementdef,bp) then
               exit;
             { flush final incomplete value if necessary }
-            if (curbitoffset <> 0) then
-              flush_packed_value(list,curval,nextval,loadbitsize,curbitoffset);
+            if (bp.curbitoffset <> 0) then
+              flush_packed_value(list,bp);
             consume(_RKLAMMER);
           end;
 
@@ -886,15 +941,12 @@ implementation
           hs      : string;
           sorg,s  : TIDString;
           tmpguid : tguid;
-          curroffset  : aint;
-          error   : boolean;
+          curroffset,
+          fillbytes  : aint;
+          bp   : tbitpackedval;
+          error,
+          is_packed: boolean;
         begin
-          { no packed record support }
-          if is_packed_record_or_object(def) then
-            begin
-              Message(type_e_no_const_packed_record);
-              exit;
-            end;
           { GUID }
           if (def=rec_tguid) and
              ((token=_CSTRING) or (token=_CCHAR) or (token=_ID)) then
@@ -919,6 +971,16 @@ implementation
                 Message(parser_e_illegal_expression);
               n.free;
               exit;
+            end;
+          { bitpacked record? }
+          is_packed:=is_packed_record_or_object(def);
+          if (is_packed) then
+            begin
+              { loadbitsize = 8, bitpacked records are always padded to    }
+              { a multiple of a byte. packedbitsize will be set separately }
+              { for each field                                             }
+              initbitpackval(bp,0);
+              bp.loadbitsize:=8;
             end;
           { normal record }
           consume(_LKLAMMER);
@@ -982,31 +1044,62 @@ implementation
                 consume_all_until(_SEMICOLON)
               else
                 begin
-
                   { if needed fill (alignment) }
                   if tfieldvarsym(srsym).fieldoffset>curroffset then
-                     for i:=1 to tfieldvarsym(srsym).fieldoffset-curroffset do
-                       list.concat(Tai_const.Create_8bit(0));
+                    begin
+                      if not(is_packed) then
+                        fillbytes:=tfieldvarsym(srsym).fieldoffset-curroffset
+                      else
+                        begin
+                          flush_packed_value(list,bp);
+                          { curoffset is now aligned to the next byte }
+                          curroffset:=align(curroffset,8);
+                          { offsets are in bits in this case }
+                          fillbytes:=(tfieldvarsym(srsym).fieldoffset-curroffset) div 8;
+                        end;
+                      for i:=1 to fillbytes do
+                        list.concat(Tai_const.Create_8bit(0))
+                    end;
 
-                   { new position }
-                   curroffset:=tfieldvarsym(srsym).fieldoffset+tfieldvarsym(srsym).vardef.size;
-
-                   { read the data }
-                   read_typed_const_data(list,tfieldvarsym(srsym).vardef);
-
-                   { keep previous field for checking whether whole }
-                   { record was initialized (JM)                    }
-                   recsym := srsym;
-                   { goto next field }
-                   inc(symidx);
-                   if symidx<def.symtable.SymList.Count then
-                     srsym:=tsym(def.symtable.SymList[symidx])
+                  { new position }
+                  curroffset:=tfieldvarsym(srsym).fieldoffset;
+                  if not(is_packed) then
+                    inc(curroffset,tfieldvarsym(srsym).vardef.size)
                    else
-                     srsym:=nil;
+                     inc(curroffset,tfieldvarsym(srsym).vardef.packedbitsize);
 
-                   if token=_SEMICOLON then
-                     consume(_SEMICOLON)
-                   else break;
+                  { read the data }
+                  if not(is_packed) or
+                     { only orddefs and enumdefs are bitpacked, as in gcc/gpc }
+                     not(tfieldvarsym(srsym).vardef.typ in [orddef,enumdef]) then
+                    begin
+                      if is_packed then
+                        begin
+                          flush_packed_value(list,bp);
+                          curroffset:=align(curroffset,8);
+                        end;          
+                      read_typed_const_data(list,tfieldvarsym(srsym).vardef);
+                    end
+                  else
+                    begin
+                      bp.packedbitsize:=tfieldvarsym(srsym).vardef.packedbitsize;
+                      parse_single_packed_const(list,tfieldvarsym(srsym).vardef,bp);
+                    end;
+
+                  { keep previous field for checking whether whole }
+                  { record was initialized (JM)                    }
+                  recsym := srsym;
+                  { goto next field }
+                  inc(symidx);
+                  if symidx<def.symtable.SymList.Count then
+                    srsym:=tsym(def.symtable.SymList[symidx])
+                  else
+                    srsym:=nil;
+
+                  if token=_SEMICOLON then
+                    consume(_SEMICOLON)
+                  else
+                    break;
                 end;
             end;
 
@@ -1019,7 +1112,15 @@ implementation
              ) then
             Message1(parser_w_skipped_fields_after,sorg);
 
-          for i:=1 to def.size-curroffset do
+          if not(is_packed) then
+            fillbytes:=def.size-curroffset
+          else
+            begin
+              flush_packed_value(list,bp);
+              curroffset:=align(curroffset,8);
+              fillbytes:=def.size-(curroffset div 8);
+            end;
+          for i:=1 to fillbytes do
             list.concat(Tai_const.Create_8bit(0));
 
           consume(_RKLAMMER);
