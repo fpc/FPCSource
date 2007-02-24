@@ -1674,8 +1674,9 @@ const pemagic : array[0..3] of byte = (
         with TCoffObjSection(p) do
           begin
             { Skip debug sections }
-            if (cs_link_strip in current_settings.globalswitches) and
-               (oso_debug in secoptions) then
+            if (oso_debug in secoptions)  and
+               (cs_link_strip in current_settings.globalswitches) and
+               not(cs_link_separate_dbg_file in current_settings.globalswitches) then
               exit;
 
             if assigned(data) then
@@ -1696,8 +1697,9 @@ const pemagic : array[0..3] of byte = (
         with TCoffObjSection(p) do
           begin
             { Skip debug sections }
-            if (cs_link_strip in current_settings.globalswitches) and
-               (oso_debug in secoptions) then
+            if (oso_debug in secoptions)  and
+               (cs_link_strip in current_settings.globalswitches) and
+               not(cs_link_separate_dbg_file in current_settings.globalswitches) then
               exit;
 
             if coffrelocs>0 then
@@ -2033,27 +2035,14 @@ const pemagic : array[0..3] of byte = (
 
 
     procedure tcoffexeoutput.CalcPos_Symbols;
-      var
-        i : longint;
-        sym : TExeSymbol;
       begin
+        inherited CalcPos_Symbols;
         nsyms:=0;
         sympos:=0;
-        if not(cs_link_strip in current_settings.globalswitches) then
-         begin
-           { Removing unused symbols }
-           for i:=0 to ExeSymbolList.Count-1 do
-             begin
-               sym:=TExeSymbol(ExeSymbolList[i]);
-               if not sym.ObjSymbol.objsection.Used then
-                 ExeSymbolList[i]:=nil;
-             end;
-           ExeSymbolList.Pack;
-           { Calculating symbols position and size }
-           nsyms:=ExeSymbolList.Count;
-           sympos:=CurrDataPos;
-           inc(CurrDataPos,sizeof(coffsymbol)*nsyms);
-         end;
+        { Calculating symbols position and size }
+        nsyms:=ExeSymbolList.Count;
+        sympos:=CurrDataPos;
+        inc(CurrDataPos,sizeof(coffsymbol)*nsyms);
       end;
 
 
@@ -2195,18 +2184,18 @@ const pemagic : array[0..3] of byte = (
         ExeSectionList.ForEachCall(@ExeSectionList_write_header,nil);
         { Section data }
         ExeSectionList.ForEachCall(@ExeSectionList_write_data,nil);
-        { Optional ObjSymbols }
+        { Optional Symbols }
         if not(cs_link_strip in current_settings.globalswitches) then
-         begin
-           if SymPos<>FWriter.Size then
-             internalerror(200602252);
-           { ObjSymbols }
-           ExeSymbolList.ForEachCall(@globalsyms_write_symbol,nil);
-           { Strings }
-           i:=FCoffStrs.size+4;
-           FWriter.write(i,4);
-           FWriter.writearray(FCoffStrs);
-         end;
+          begin
+            if SymPos<>FWriter.Size then
+              internalerror(200602252);
+            { ObjSymbols }
+            ExeSymbolList.ForEachCall(@globalsyms_write_symbol,nil);
+            { Strings }
+            i:=FCoffStrs.size+4;
+            FWriter.write(i,4);
+            FWriter.writearray(FCoffStrs);
+          end;
         { Release }
         FCoffStrs.Free;
         FCoffSyms.Free;

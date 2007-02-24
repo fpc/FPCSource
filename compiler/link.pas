@@ -990,6 +990,8 @@ Implementation
           goto myexit;
 
         exeoutput.WriteExeFile(outputname);
+        if cs_link_separate_dbg_file in current_settings.globalswitches then
+          exeoutput.WriteDbgFile(ChangeFileExt(outputname,'.dbg'));
 
 {$warning TODO fixed section names}
         status.codesize:=exeoutput.findexesection('.text').size;

@@ -389,6 +389,7 @@ interface
         FCExeSection      : TExeSectionClass;
         FCurrExeSec       : TExeSection;
         FExeSectionList   : TFPHashObjectList;
+        FDebugSectionList : TFPHashObjectList;
         Fzeronr           : longint;
         { Symbols }
         FExeSymbolList    : TFPHashObjectList;
@@ -428,8 +429,8 @@ interface
         procedure Order_Start;virtual;
         procedure Order_End;virtual;
         procedure Order_ExeSection(const aname:string);virtual;
-        procedure Order_Align(const aname:string);virtual;
-        procedure Order_Zeros(const aname:string);virtual;
+        procedure Order_Align(const avalue:string);virtual;
+        procedure Order_Zeros(const avalue:string);virtual;
         procedure Order_Symbol(const aname:string);virtual;
         procedure Order_EndExeSection;virtual;
         procedure Order_ObjSection(const aname:string);virtual;
@@ -448,9 +449,11 @@ interface
         procedure RemoveUnreferencedSections;
         procedure RemoveEmptySections;
         procedure GenerateLibraryImports(ImportLibraryList:TFPHashObjectList);virtual;
+        function  writedbgfile(const fn:string):boolean;
         function  writeexefile(const fn:string):boolean;
         property Writer:TObjectWriter read FWriter;
         property ExeSectionList:TFPHashObjectList read FExeSectionList;
+        property DebugSectionList:TFPHashObjectList read FDebugSectionList;
         property ObjDataList:TFPObjectList read FObjDataList;
         property ExeSymbolList:TFPHashObjectList read FExeSymbolList;
         property UnresolvedExeSymbols:TFPObjectList read FUnresolvedExeSymbols;
@@ -1372,6 +1375,7 @@ implementation
         FEntryName:='start';
         { sections }
         FExeSectionList:=TFPHashObjectList.Create(true);
+        FDebugSectionList:=TFPHashObjectList.Create(true);
         FImageBase:=0;
         SectionMemAlign:=$1000;
         SectionDataAlign:=$200;
@@ -1388,15 +1392,97 @@ implementation
         CommonObjSymbols.free;
         ExeVTableList.free;
         FExeSectionList.free;
+        FDebugSectionList.free;
         ObjDatalist.free;
         FWriter.free;
         inherited destroy;
       end;
 
 
+    function TExeOutput.writedbgfile(const fn:string):boolean;
+      var
+        ObjWriter : TObjectwriter;
+        exesec    : TExeSection;
+        objsec    : TObjSection;
+        header    : string[6];
+        s         : string;
+        i,j,
+        seccnt,
+        secstart  : longint;
+      begin
+        result:=false;
+        {
+          File layout:
+            <header>           6 bytes
+            <section count>    4 bytes
+            (
+              <section offset> 4 bytes
+              <section name>   asciiz
+              ...
+            )
+            (
+              <section data>
+              ...
+            )
+        }
+        header:='FPCDBG';
+        { Calculate file offsets }
+        secstart:=length(header)+sizeof(seccnt);
+        for i:=0 to DebugSectionList.Count-1 do
+          begin
+            exesec:=TExeSection(DebugSectionList[i]);
+            inc(secstart,sizeof(secstart)+length(exesec.Name)+1);
+          end;
+        for i:=0 to DebugSectionList.Count-1 do
+          begin
+            exesec:=TExeSection(DebugSectionList[i]);
+            exesec.DataPos:=secstart;
+            for j:=0 to exesec.ObjSectionList.Count-1 do
+              begin
+                objsec:=TObjSection(exesec.ObjSectionList[j]);
+                inc(secstart,objsec.size);
+              end;
+          end;
+        { Create file }
+        ObjWriter:=TObjectwriter.Create;
+        if not ObjWriter.createfile(fn) then
+          begin
+            ObjWriter.Free;
+            exit;
+          end;
+        { Header }
+        ObjWriter.Write(header[1], Length(header));
+        seccnt:=DebugSectionList.Count;
+        ObjWriter.Write(seccnt,sizeof(seccnt));
+        for i:=0 to DebugSectionList.Count-1 do
+          begin
+            exesec:=TExeSection(DebugSectionList[i]);
+            ObjWriter.Write(exesec.DataPos,sizeof(secstart));
+            s:=exesec.Name;
+            ObjWriter.Write(s[1],length(s));
+            ObjWriter.writezeros(1);
+          end;
+        { Write section data }
+        for i:=0 to DebugSectionList.Count-1 do
+          begin
+            exesec:=TExeSection(DebugSectionList[i]);
+            if exesec.DataPos<>ObjWriter.ObjSize then
+              internalerror(200702241);
+            for j:=0 to exesec.ObjSectionList.Count-1 do
+              begin
+                objsec:=TObjSection(exesec.ObjSectionList[j]);
+                ObjWriter.writearray(objsec.data);
+              end;
+          end;
+        ObjWriter.Free;
+        result:=true;
+      end;
+
+
     function TExeOutput.writeexefile(const fn:string):boolean;
       begin
         result:=false;
+
         if FWriter.createfile(fn) then
          begin
            { Only write the .o if there are no errors }
@@ -1458,6 +1544,8 @@ implementation
         exesym : TExeSymbol;
       begin
         val(avalue,ImageBase,code);
+        if code<>0 then
+          Comment(V_Error,'Invalid number '+avalue);
         { Create __image_base__ symbol, create the symbol
           in a section with adress 0 and at offset 0 }
         objsec:=internalObjData.createsection('*__image_base__',0,[]);
@@ -1560,13 +1648,15 @@ implementation
       end;
 
 
-    procedure TExeOutput.Order_Align(const aname:string);
+    procedure TExeOutput.Order_Align(const avalue:string);
       var
         code     : integer;
         alignval : shortint;
         objsec   : TObjSection;
       begin
-        val(aname,alignval,code);
+        val(avalue,alignval,code);
+        if code<>0 then
+          Comment(V_Error,'Invalid number '+avalue);
         if alignval<=0 then
           exit;
         { Create an empty section with the required aligning }
@@ -1576,14 +1666,16 @@ implementation
       end;
 
 
-    procedure TExeOutput.Order_Zeros(const aname:string);
+    procedure TExeOutput.Order_Zeros(const avalue:string);
       var
         zeros : array[0..1023] of byte;
         code  : integer;
         len   : longint;
         objsec : TObjSection;
       begin
-        val(aname,len,code);
+        val(avalue,len,code);
+        if code<>0 then
+          Comment(V_Error,'Invalid number '+avalue);
         if len<=0 then
           exit;
         if len>sizeof(zeros) then
@@ -1609,6 +1701,7 @@ implementation
         { Alignment of ExeSection }
         CurrMemPos:=align(CurrMemPos,SectionMemAlign);
         CurrExeSec.MemPos:=CurrMemPos;
+
         if (oso_Data in currexesec.SecOptions) then
           begin
             CurrDataPos:=align(CurrDataPos,SectionDataAlign);
@@ -1619,6 +1712,7 @@ implementation
         for i:=0 to CurrExeSec.ObjSectionList.Count-1 do
           begin
             objsec:=TObjSection(CurrExeSec.ObjSectionList[i]);
+
             { Position in memory }
             objsec.setmempos(CurrMemPos);
             { Position in File }
@@ -1658,7 +1752,18 @@ implementation
 
 
     procedure TExeOutput.CalcPos_Symbols;
+      var
+        i : longint;
+        sym : TExeSymbol;
       begin
+        { Removing unused symbols }
+        for i:=0 to ExeSymbolList.Count-1 do
+          begin
+            sym:=TExeSymbol(ExeSymbolList[i]);
+            if not sym.ObjSymbol.objsection.Used then
+              ExeSymbolList[i]:=nil;
+          end;
+        ExeSymbolList.Pack;
       end;
 
 
@@ -2214,17 +2319,30 @@ implementation
         for i:=0 to ExeSectionList.Count-1 do
           begin
             exesec:=TExeSection(ExeSectionList[i]);
-            if not(oso_keep in exesec.SecOptions) and
-                (
-                 (exesec.ObjSectionlist.count=0) or
-                 (
-                  (cs_link_strip in current_settings.globalswitches) and
-                  (oso_debug in exesec.SecOptions)
-                 )
-               ) then
+
+            if (cs_link_separate_dbg_file in current_settings.globalswitches) and
+               (oso_debug in exesec.SecOptions) then
               begin
-                Comment(V_Debug,'Deleting empty section '+exesec.name);
+                Comment(V_Debug,'Adding debug section '+exesec.name+' to debugfile');
+                ExeSectionList.OwnsObjects:=false;
                 ExeSectionList[i]:=nil;
+                ExeSectionList.OwnsObjects:=true;
+                DebugSectionList.Add(exesec.Name,exesec);
+              end
+            else
+              begin
+                if not(oso_keep in exesec.SecOptions) and
+                    (
+                     (exesec.ObjSectionlist.count=0) or
+                     (
+                      (cs_link_strip in current_settings.globalswitches) and
+                      (oso_debug in exesec.SecOptions)
+                     )
+                   ) then
+                  begin
+                    Comment(V_Debug,'Deleting empty section '+exesec.name);
+                    ExeSectionList[i]:=nil;
+                  end;
               end;
           end;
         ExeSectionList.Pack;
@@ -2396,24 +2514,31 @@ implementation
 
 
     procedure TExeOutput.FixupRelocations;
-      var
-        i,j     : longint;
-        exesec  : TExeSection;
-        objsec  : TObjSection;
+
+        procedure FixupSectionList(List:TFPHashObjectList);
+        var
+          i,j     : longint;
+          exesec  : TExeSection;
+          objsec  : TObjSection;
+        begin
+          for i:=0 to List.Count-1 do
+            begin
+              exesec:=TExeSection(List[i]);
+              if not assigned(exesec) then
+                continue;
+              for j:=0 to exesec.ObjSectionlist.count-1 do
+                begin
+                  objsec:=TObjSection(exesec.ObjSectionlist[j]);
+                  if not objsec.Used then
+                    internalerror(200603301);
+                  objsec.FixupRelocs;
+                end;
+            end;
+        end;
+
       begin
-        for i:=0 to ExeSectionList.Count-1 do
-          begin
-            exesec:=TExeSection(ExeSectionList[i]);
-            if not assigned(exesec) then
-              continue;
-            for j:=0 to exesec.ObjSectionlist.count-1 do
-              begin
-                objsec:=TObjSection(exesec.ObjSectionlist[j]);
-                if not objsec.Used then
-                  internalerror(200603301);
-                objsec.FixupRelocs;
-              end;
-          end;
+        FixupSectionList(ExeSectionList);
+        FixupSectionList(DebugSectionList);
       end;
 
 
