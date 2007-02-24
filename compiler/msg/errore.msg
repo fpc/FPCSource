@@ -398,7 +398,7 @@ parser_n_only_one_destructor=03020_N_Class should have one destructor only
 parser_e_no_local_objects=03021_E_Local class definitions are not allowed
 % Classes must be defined globally. They cannot be defined inside a
 % procedure or function
-parser_f_no_anonym_objects=03022_F_Anonym class definitions are not allowed
+parser_f_no_anonym_objects=03022_F_Anonymous class definitions are not allowed
 % An invalid object (class) declaration was encountered, i.e. an
 % object or class without methods that isn't derived from another object or
 % class. For example:
@@ -1115,6 +1115,19 @@ parser_e_type_object_constants=03230_E_Constants of objects containing a VMT are
 parser_e_label_outside_proc=03231_E_Taking the address of labels defined outside the current scope isn't allowed
 % It isn't allowed to take the addresss of labels outside the
 % current procedure.
+parser_f_no_anonymous_specializations=03232_F_Anonymous generic specializations are not allowed
+% Something like
+% \begin{verbatim}
+% var
+%   MyLinkedList: specialize TLinkedList<TFixedString15>;
+% \end{verbatim}
+% is not allowed. Declare a specialized type first:
+% \begin{verbatim}
+% type
+%   TMyLinkedList = specialize TLinkedList<TFixedString15>;
+% var
+%   MyLinkedList: TMyLinkedList
+% \end{verbatim}
 % \end{description}
 #
 # Type Checking

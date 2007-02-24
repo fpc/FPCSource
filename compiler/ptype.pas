@@ -265,6 +265,8 @@ implementation
                  begin
                    if try_to_consume(_SPECIALIZE) then
                      begin
+                       if block_type<>bt_type then
+                         Message(parser_f_no_anonymous_specializations);
                        block_type:=bt_specialize;
                        again:=true;
                      end
@@ -351,7 +353,11 @@ implementation
              end;
            { Generate a specialization? }
            if try_to_consume(_SPECIALIZE) then
-             block_type:=bt_specialize;
+             begin
+               if name='' then
+                 Message(parser_f_no_anonymous_specializations);
+               block_type:=bt_specialize;
+             end;
            { we can't accept a equal in type }
            pt1:=comp_expr(false);
            if (block_type<>bt_specialize) and
