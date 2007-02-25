@@ -1684,6 +1684,9 @@ cg_f_unknown_system_type=06047_F_Cannot find system type "$1". Check if you use 
 % and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
 % that you removed a type which the compiler needs for internal use.
+cg_h_inherited_ignored=06048_H_Inherited call to abstract method ignored
+% This messages appears only in Delphi mode when you call an abstract method
+% of a parent class via \var{inherited;}. The call is then ignored.
 % \end{description}
 # EndOfTeX
 

@@ -1597,7 +1597,7 @@ implementation
                 if (procdefinition.proctypeoption=potype_destructor) then
                   if not(cnf_create_failed in callnodeflags) then
                     vmttree:=cpointerconstnode.create(1,voidpointertype)
-                  else 
+                  else
                     vmttree:=cpointerconstnode.create(TConstPtrUInt(-1),voidpointertype)
                 else
                   begin
@@ -2121,7 +2121,17 @@ implementation
               of a runtime error }
             if (cnf_inherited in callnodeflags) and
                (po_abstractmethod in procdefinition.procoptions) then
-              CGMessage(cg_e_cant_call_abstract_method);
+              begin
+                if (m_delphi in current_settings.modeswitches) and
+                  (cnf_anon_inherited in callnodeflags) then
+                  begin
+                    CGMessage(cg_h_inherited_ignored);
+                    result:=cnothingnode.create;
+                    exit;
+                  end
+                else
+                  CGMessage(cg_e_cant_call_abstract_method);
+              end;
 
             { if an inherited con- or destructor should be  }
             { called in a con- or destructor then a warning }
