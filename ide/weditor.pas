@@ -5927,6 +5927,10 @@ begin
   begin
     LineNo:='1';
     Lines:=GetLineCount;
+    {Linecount can be 0, but in that case there still is a cursor blinking in top
+     of the window, which will become line 1 as soon as sometype hits a key.}
+    if lines=0 then
+      lines:=1;
     if EditorDialog(edGotoLine, @GotoRec) <> cmCancel then
     begin
       Lock;

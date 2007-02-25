@@ -35,6 +35,9 @@ begin
   new(expr_input,init(r,255));
   insert(expr_input);
 
+  r.assign(size.x-20,3,size.x-18,4);
+  insert(new(Phistory,init(r,expr_input,hidEvaluate)));
+
   r.assign(2,2,size.x-20,3);
   new(l,init(r,'E~x~pression:',expr_input));
   insert(l);
