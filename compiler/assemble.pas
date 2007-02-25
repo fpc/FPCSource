@@ -276,7 +276,6 @@ Implementation
         end;
 
       var
-        dir : TSearchRec;
         hs  : string;
       begin
         if PathExists(s,false) then
@@ -713,6 +712,8 @@ Implementation
                     end;
                   hs[0]:=chr(len);
                   val(hs,exprvalue,code);
+                  if code<>0 then
+                    internalerror(200702251);
                 end;
               '.','_',
               'A'..'Z',
@@ -918,9 +919,14 @@ Implementation
                end;
              ait_datablock :
                begin
-                 ObjData.allocalign(used_align(size_2_align(Tai_datablock(hp).size),0,ObjData.CurrObjSec.secalign));
-                 ObjData.SymbolDefine(Tai_datablock(hp).sym);
-                 ObjData.alloc(Tai_datablock(hp).size);
+                 if Tai_datablock(hp).is_global then
+                   ObjData.SymbolDefine(Tai_datablock(hp).sym)
+                 else
+                   begin
+                     ObjData.allocalign(used_align(size_2_align(Tai_datablock(hp).size),0,ObjData.CurrObjSec.secalign));
+                     ObjData.SymbolDefine(Tai_datablock(hp).sym);
+                     ObjData.alloc(Tai_datablock(hp).size);
+                   end;
                end;
              ait_real_80bit :
                ObjData.alloc(10);
@@ -979,10 +985,19 @@ Implementation
                begin
                  if (oso_data in ObjData.CurrObjSec.secoptions) then
                    Message(asmw_e_alloc_data_only_in_bss);
-                 ObjData.allocalign(used_align(size_2_align(Tai_datablock(hp).size),0,ObjData.CurrObjSec.secalign));
-                 objsym:=ObjData.SymbolDefine(Tai_datablock(hp).sym);
-                 objsym.size:=Tai_datablock(hp).size;
-                 ObjData.alloc(Tai_datablock(hp).size);
+                 if Tai_datablock(hp).is_global then
+                   begin
+                     objsym:=ObjData.SymbolDefine(Tai_datablock(hp).sym);
+                     objsym.size:=Tai_datablock(hp).size;
+                     objsym.bind:=AB_COMMON;
+                   end
+                 else
+                   begin
+                     ObjData.allocalign(used_align(size_2_align(Tai_datablock(hp).size),0,ObjData.CurrObjSec.secalign));
+                     objsym:=ObjData.SymbolDefine(Tai_datablock(hp).sym);
+                     objsym.size:=Tai_datablock(hp).size;
+                     ObjData.alloc(Tai_datablock(hp).size);
+                   end;
                end;
              ait_real_80bit :
                ObjData.alloc(10);
@@ -1074,9 +1089,12 @@ Implementation
                end;
              ait_datablock :
                begin
-                 ObjData.allocalign(used_align(size_2_align(Tai_datablock(hp).size),0,ObjData.CurrObjSec.secalign));
                  ObjOutput.exportsymbol(ObjData.SymbolRef(Tai_datablock(hp).sym));
-                 ObjData.alloc(Tai_datablock(hp).size);
+                 if not Tai_datablock(hp).is_global then
+                   begin
+                     ObjData.allocalign(used_align(size_2_align(Tai_datablock(hp).size),0,ObjData.CurrObjSec.secalign));
+                     ObjData.alloc(Tai_datablock(hp).size);
+                   end;
                end;
              ait_real_80bit :
                ObjData.writebytes(Tai_real_80bit(hp).value,10);
