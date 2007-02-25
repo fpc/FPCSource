@@ -1153,22 +1153,14 @@ implementation
     function ttypeconvnode.typecheck_set_to_set : tnode;
       begin
         result:=nil;
-        { because is_equal only checks the basetype for sets we need to
-          check here if we are loading a smallset into a normalset }
-        if (resultdef.typ=setdef) and
-           (left.resultdef.typ=setdef) and
-           ((tsetdef(resultdef).setmax<>tsetdef(left.resultdef).setmax) or
-            (tsetdef(resultdef).setbase<>tsetdef(left.resultdef).setbase)) then
-          begin
-            { constant sets can be converted by changing the type only }
-            if (left.nodetype=setconstn) then
-             begin
-               left.resultdef:=resultdef;
-               result:=left;
-               left:=nil;
-               exit;
-             end;
-          end;
+        { constant sets can be converted by changing the type only }
+        if (left.nodetype=setconstn) then
+         begin
+           left.resultdef:=resultdef;
+           result:=left;
+           left:=nil;
+           exit;
+         end;
       end;
 
 
