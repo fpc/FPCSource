@@ -70,6 +70,7 @@ interface
           function typecheck_cstring_to_int : tnode;
           function typecheck_char_to_char : tnode;
           function typecheck_arrayconstructor_to_set : tnode;
+          function typecheck_set_to_set : tnode;
           function typecheck_pchar_to_string : tnode;
           function typecheck_interface_to_guid : tnode;
           function typecheck_dynarray_to_openarray : tnode;
@@ -99,7 +100,7 @@ interface
           function first_int_to_bool : tnode;virtual;
           function first_bool_to_bool : tnode;virtual;
           function first_proc_to_procvar : tnode;virtual;
-          function first_load_smallset : tnode;virtual;
+          function first_set_to_set : tnode;virtual;
           function first_cord_to_pointer : tnode;virtual;
           function first_ansistring_to_pchar : tnode;virtual;
           function first_arrayconstructor_to_set : tnode;virtual;
@@ -125,12 +126,12 @@ interface
           function _first_int_to_bool : tnode;
           function _first_bool_to_bool : tnode;
           function _first_proc_to_procvar : tnode;
-          function _first_load_smallset : tnode;
           function _first_cord_to_pointer : tnode;
           function _first_ansistring_to_pchar : tnode;
           function _first_arrayconstructor_to_set : tnode;
           function _first_class_to_intf : tnode;
           function _first_char_to_char : tnode;
+          function _first_set_to_set : tnode;
 
           procedure _second_int_to_int;virtual;
           procedure _second_string_to_string;virtual;
@@ -148,7 +149,7 @@ interface
           procedure _second_bool_to_int;virtual;
           procedure _second_int_to_bool;virtual;
           procedure _second_bool_to_bool;virtual;
-          procedure _second_load_smallset;virtual;
+          procedure _second_set_to_set;virtual;
           procedure _second_ansistring_to_pchar;virtual;
           procedure _second_class_to_intf;virtual;
           procedure _second_char_to_char;virtual;
@@ -170,7 +171,7 @@ interface
           procedure second_bool_to_int;virtual;abstract;
           procedure second_int_to_bool;virtual;abstract;
           procedure second_bool_to_bool;virtual;abstract;
-          procedure second_load_smallset;virtual;abstract;
+          procedure second_set_to_set;virtual;abstract;
           procedure second_ansistring_to_pchar;virtual;abstract;
           procedure second_class_to_intf;virtual;abstract;
           procedure second_char_to_char;virtual;abstract;
@@ -703,13 +704,12 @@ implementation
           'tc_real_2_currency',
           'tc_proc_2_procvar',
           'tc_arrayconstructor_2_set',
-          'tc_load_smallset',
+          'tc_set_2_set',
           'tc_cord_2_pointer',
           'tc_intf_2_string',
           'tc_intf_2_guid',
           'tc_class_2_intf',
           'tc_char_2_char',
-          'tc_normal_2_smallset',
           'tc_dynarray_2_openarray',
           'tc_pwchar_2_string',
           'tc_variant_2_dynarray',
@@ -1135,10 +1135,8 @@ implementation
 
 
     function ttypeconvnode.typecheck_arrayconstructor_to_set : tnode;
-
       var
         hp : tnode;
-
       begin
         result:=nil;
         if left.nodetype<>arrayconstructorn then
@@ -1152,8 +1150,29 @@ implementation
       end;
 
 
-    function ttypeconvnode.typecheck_pchar_to_string : tnode;
+    function ttypeconvnode.typecheck_set_to_set : tnode;
+      begin
+        result:=nil;
+        { because is_equal only checks the basetype for sets we need to
+          check here if we are loading a smallset into a normalset }
+        if (resultdef.typ=setdef) and
+           (left.resultdef.typ=setdef) and
+           ((tsetdef(resultdef).setmax<>tsetdef(left.resultdef).setmax) or
+            (tsetdef(resultdef).setbase<>tsetdef(left.resultdef).setbase)) then
+          begin
+            { constant sets can be converted by changing the type only }
+            if (left.nodetype=setconstn) then
+             begin
+               left.resultdef:=resultdef;
+               result:=left;
+               left:=nil;
+               exit;
+             end;
+          end;
+      end;
 
+
+    function ttypeconvnode.typecheck_pchar_to_string : tnode;
       begin
         result := ccallnode.createinternres(
           'fpc_pchar_to_'+tstringdef(resultdef).stringtypname,
@@ -1163,7 +1182,6 @@ implementation
 
 
     function ttypeconvnode.typecheck_interface_to_guid : tnode;
-
       begin
         if assigned(tobjectdef(left.resultdef).iidguid) then
           result:=cguidconstnode.create(tobjectdef(left.resultdef).iidguid^);
@@ -1171,7 +1189,6 @@ implementation
 
 
     function ttypeconvnode.typecheck_dynarray_to_openarray : tnode;
-
       begin
         { a dynamic array is a pointer to an array, so to convert it to }
         { an open array, we have to dereference it (JM)                 }
@@ -1186,7 +1203,6 @@ implementation
 
 
     function ttypeconvnode.typecheck_pwchar_to_string : tnode;
-
       begin
         result := ccallnode.createinternres(
           'fpc_pwidechar_to_'+tstringdef(resultdef).stringtypname,
@@ -1196,7 +1212,6 @@ implementation
 
 
     function ttypeconvnode.typecheck_variant_to_dynarray : tnode;
-
       begin
         result := ccallnode.createinternres(
           'fpc_variant_to_dynarray',
@@ -1209,7 +1224,6 @@ implementation
 
 
     function ttypeconvnode.typecheck_dynarray_to_variant : tnode;
-
       begin
         result := ccallnode.createinternres(
           'fpc_dynarray_to_variant',
@@ -1411,13 +1425,12 @@ implementation
           { real_2_currency } @ttypeconvnode.typecheck_real_to_currency,
           { proc_2_procvar } @ttypeconvnode.typecheck_proc_to_procvar,
           { arrayconstructor_2_set } @ttypeconvnode.typecheck_arrayconstructor_to_set,
-          { load_smallset } nil,
+          { set_to_set } @ttypeconvnode.typecheck_set_to_set,
           { cord_2_pointer } @ttypeconvnode.typecheck_cord_to_pointer,
           { intf_2_string } nil,
           { intf_2_guid } @ttypeconvnode.typecheck_interface_to_guid,
           { class_2_intf } nil,
           { char_2_char } @ttypeconvnode.typecheck_char_to_char,
-          { normal_2_smallset} nil,
           { dynarray_2_openarray} @ttypeconvnode.typecheck_dynarray_to_openarray,
           { pwchar_2_string} @ttypeconvnode.typecheck_pwchar_to_string,
           { variant_2_dynarray} @ttypeconvnode.typecheck_variant_to_dynarray,
@@ -1508,42 +1521,17 @@ implementation
                   if assigned(result) then
                     exit;
 
-                  { because is_equal only checks the basetype for sets we need to
-                    check here if we are loading a smallset into a normalset }
-                  if (resultdef.typ=setdef) and
-                     (left.resultdef.typ=setdef) and
-                     ((tsetdef(resultdef).settype = smallset) xor
-                      (tsetdef(left.resultdef).settype = smallset)) then
-                    begin
-                      { constant sets can be converted by changing the type only }
-                      if (left.nodetype=setconstn) then
-                       begin
-                         left.resultdef:=resultdef;
-                         result:=left;
-                         left:=nil;
-                         exit;
-                       end;
-
-                      if (tsetdef(resultdef).settype <> smallset) then
-                       convtype:=tc_load_smallset
-                      else
-                       convtype := tc_normal_2_smallset;
-                      exit;
-                    end
-                  else
+                  { Only leave when there is no conversion to do.
+                    We can still need to call a conversion routine,
+                    like the routine to convert a stringconstnode }
+                  if convtype in [tc_equal,tc_not_possible] then
                    begin
-                     { Only leave when there is no conversion to do.
-                       We can still need to call a conversion routine,
-                       like the routine to convert a stringconstnode }
-                     if convtype in [tc_equal,tc_not_possible] then
-                      begin
-                        left.resultdef:=resultdef;
-                        if (nf_explicit in flags) and (left.nodetype = addrn) then
-                          include(left.flags, nf_typedaddr);
-                        result:=left;
-                        left:=nil;
-                        exit;
-                      end;
+                     left.resultdef:=resultdef;
+                     if (nf_explicit in flags) and (left.nodetype = addrn) then
+                       include(left.flags, nf_typedaddr);
+                     result:=left;
+                     left:=nil;
+                     exit;
                    end;
                 end;
 
@@ -1887,8 +1875,7 @@ implementation
       end;
 
 
-      procedure Ttypeconvnode.mark_write;
-
+    procedure Ttypeconvnode.mark_write;
       begin
         left.mark_write;
       end;
@@ -2245,21 +2232,26 @@ implementation
       end;
 
 
-    function ttypeconvnode.first_load_smallset : tnode;
+    function ttypeconvnode.first_set_to_set : tnode;
       var
         srsym: ttypesym;
         newstatement : tstatementnode;
         temp    : ttempcreatenode;
       begin
-        { old small set code }
-        if left.resultdef.size=4 then
+        { in theory, we should do range checking here,
+          but Delphi doesn't do it either (FK) }
+
+        if left.nodetype=setconstn then
           begin
-            srsym:=search_system_type('FPC_SMALL_SET');
-            result :=
-              ccallnode.createinternres('fpc_set_load_small',
-                ccallparanode.create(ctypeconvnode.create_internal(left,srsym.typedef),nil),resultdef);
+            left.resultdef:=resultdef;
+            result:=left;
           end
+        { equal sets for the code generator? }
+        else if (left.resultdef.size=resultdef.size) and
+          (tsetdef(left.resultdef).setbase=tsetdef(resultdef).setbase) then
+          result:=left
         else
+        // if is_varset(resultdef) then
           begin
             result:=internalstatements(newstatement);
 
@@ -2276,13 +2268,21 @@ implementation
             addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
             addstatement(newstatement,ctemprefnode.create(temp));
           end;
+        {
+        else
+          begin
+            srsym:=search_system_type('FPC_SMALL_SET');
+            result :=
+              ccallnode.createinternres('fpc_set_load_small',
+                ccallparanode.create(ctypeconvnode.create_internal(left,srsym.typedef),nil),resultdef);
+          end;
+        }
         { reused }
-        left := nil;
+        left:=nil;
       end;
 
 
     function ttypeconvnode.first_ansistring_to_pchar : tnode;
-
       begin
          first_ansistring_to_pchar:=nil;
          expectloc:=LOC_REGISTER;
@@ -2297,8 +2297,8 @@ implementation
         internalerror(200104022);
       end;
 
-    function ttypeconvnode.first_class_to_intf : tnode;
 
+    function ttypeconvnode.first_class_to_intf : tnode;
       begin
          first_class_to_intf:=nil;
          expectloc:=LOC_REGISTER;
@@ -2381,9 +2381,9 @@ implementation
          result:=first_proc_to_procvar;
       end;
 
-    function ttypeconvnode._first_load_smallset : tnode;
+    function ttypeconvnode._first_set_to_set : tnode;
       begin
-         result:=first_load_smallset;
+         result:=first_set_to_set;
       end;
 
     function ttypeconvnode._first_cord_to_pointer : tnode;
@@ -2439,7 +2439,7 @@ implementation
            nil, { removed in typecheck_real_to_currency }
            @ttypeconvnode._first_proc_to_procvar,
            @ttypeconvnode._first_arrayconstructor_to_set,
-           @ttypeconvnode._first_load_smallset,
+           @ttypeconvnode._first_set_to_set,
            @ttypeconvnode._first_cord_to_pointer,
            @ttypeconvnode._first_nothing,
            @ttypeconvnode._first_nothing,
@@ -2453,18 +2453,15 @@ implementation
            nil,
            nil,
            nil,
-           nil,
            nil
          );
       type
          tprocedureofobject = function : tnode of object;
-
       var
          r : packed record
                 proc : pointer;
                 obj : pointer;
              end;
-
       begin
          { this is a little bit dirty but it works }
          { and should be quite portable too        }
@@ -2626,9 +2623,10 @@ implementation
         second_bool_to_bool;
       end;
 
-    procedure ttypeconvnode._second_load_smallset;
+
+    procedure ttypeconvnode._second_set_to_set;
       begin
-        second_load_smallset;
+        second_set_to_set;
       end;
 
 
@@ -2683,13 +2681,12 @@ implementation
            @ttypeconvnode._second_nothing, { real_to_currency, handled in resultdef pass }
            @ttypeconvnode._second_proc_to_procvar,
            @ttypeconvnode._second_nothing, { arrayconstructor_to_set }
-           @ttypeconvnode._second_nothing, { second_load_smallset, handled in first pass }
+           @ttypeconvnode._second_nothing, { second_set_to_set, handled in first pass }
            @ttypeconvnode._second_cord_to_pointer,
            @ttypeconvnode._second_nothing, { interface 2 string }
            @ttypeconvnode._second_nothing, { interface 2 guid   }
            @ttypeconvnode._second_class_to_intf,
            @ttypeconvnode._second_char_to_char,
-           @ttypeconvnode._second_nothing,  { normal_2_smallset }
            @ttypeconvnode._second_nothing,  { dynarray_2_openarray }
            @ttypeconvnode._second_nothing,  { pwchar_2_string }
            @ttypeconvnode._second_nothing,  { variant_2_dynarray }
@@ -2901,7 +2898,6 @@ implementation
 
 
     function tasnode.dogetcopy: tnode;
-
       begin
         result := inherited dogetcopy;
         if assigned(call) then
@@ -2912,7 +2908,6 @@ implementation
 
 
     function tasnode.pass_1 : tnode;
-
       var
         procname: string;
       begin

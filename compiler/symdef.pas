@@ -2006,7 +2006,7 @@ implementation
       begin
          inherited create(setdef);
          elementdef:=def;
-         // setbase:=low;
+         setbase:=0;
          setmax:=high;
          if high<32 then
            begin

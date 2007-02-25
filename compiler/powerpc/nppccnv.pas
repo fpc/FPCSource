@@ -46,7 +46,7 @@ interface
          { procedure second_proc_to_procvar;override; }
          { procedure second_bool_to_int;override; }
          { procedure second_int_to_bool;override; }
-         { procedure second_load_smallset;override;  }
+         { procedure second_set_to_set;override;  }
          { procedure second_ansistring_to_pchar;override; }
          { procedure second_pchar_to_string;override; }
          { procedure second_class_to_intf;override; }

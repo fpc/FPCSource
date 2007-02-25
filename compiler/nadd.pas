@@ -995,7 +995,7 @@ implementation
                    could be already typeconvs inserted.
                    This is compatible with the code below for other unsigned types (PFV) }
                  if is_signed(left.resultdef) or
-                    is_signed(right.resultdef) or 
+                    is_signed(right.resultdef) or
                     (nodetype=subn) then
                    begin
                      if nodetype<>subn then
@@ -1081,44 +1081,29 @@ implementation
             if (nodetype=addn) and (rd.typ<>setdef) then
              begin
                if (rt=setelementn) then
-                begin
-                  if not(equal_defs(tsetdef(ld).elementdef,rd)) then
-                   CGMessage(type_e_set_element_are_not_comp);
-                end
+                 begin
+                   if not(equal_defs(tsetdef(ld).elementdef,rd)) then
+                     inserttypeconv(right,tsetdef(ld).elementdef);
+                 end
                else
-                CGMessage(type_e_mismatch)
+                 CGMessage(type_e_mismatch)
              end
             else
              begin
                if not(nodetype in [addn,subn,symdifn,muln,equaln,unequaln,lten,gten]) then
                 CGMessage(type_e_set_operation_unknown);
-               { right def must be a also be set }
-               if (rd.typ<>setdef) or not(equal_defs(rd,ld)) then
-                CGMessage(type_e_set_element_are_not_comp);
+               { if the right side is also a setdef then the settype must
+                 be the same as the left setdef }
+               if (rd.typ=setdef) and
+                  not(equal_defs(ld,rd)) then
+                begin
+                  if is_varset(rd) then
+                    inserttypeconv(left,right.resultdef)
+                  else
+                    inserttypeconv(right,left.resultdef);
+                end;
              end;
 
-            { ranges require normsets }
-            if (tsetdef(ld).settype=smallset) and
-               (rt=setelementn) and
-               assigned(tsetelementnode(right).right) then
-             begin
-               { generate a temporary normset def, it'll be destroyed
-                 when the symtable is unloaded }
-               inserttypeconv(left,tsetdef.create(tsetdef(ld).elementdef,255));
-             end;
-
-            { if the right side is also a setdef then the settype must
-              be the same as the left setdef }
-            if (rd.typ=setdef) and
-               (tsetdef(ld).settype<>tsetdef(rd).settype) then
-             begin
-               { when right is a normset we need to typecast both
-                 to normsets }
-               if (tsetdef(rd).settype=normset) then
-                inserttypeconv(left,right.resultdef)
-               else
-                inserttypeconv(right,left.resultdef);
-             end;
           end
          { pointer comparision and subtraction }
          else if (
@@ -2286,6 +2271,8 @@ implementation
 {$endif addstringopt}
          lt,rt   : tnodetype;
          rd,ld   : tdef;
+         newstatement : tstatementnode;
+         temp    : ttempcreatenode;
       begin
          result:=nil;
 
@@ -2423,7 +2410,7 @@ implementation
            else array constructor can be seen as array of char (PFV) }
          else if (ld.typ=setdef) then
            begin
-             if tsetdef(ld).settype=smallset then
+             if not(is_varset(ld)) then
                begin
                  if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
                    expectloc:=LOC_FLAGS
@@ -2431,7 +2418,47 @@ implementation
                    expectloc:=LOC_REGISTER;
                  { are we adding set elements ? }
                  if right.nodetype=setelementn then
-                   calcregisters(self,2,0,0)
+                   begin
+                     { add range?
+                       the smallset code can't handle set ranges }
+                     if assigned(tsetelementnode(right).right) then
+                       begin
+                         result:=internalstatements(newstatement);
+
+                         { create temp for result }
+                         temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
+                         addstatement(newstatement,temp);
+
+                         { add a range or a single element? }
+                         if assigned(tsetelementnode(right).right) then
+                           addstatement(newstatement,ccallnode.createintern('fpc_varset_set_range',
+                             ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false),
+                             ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).right,sinttype),
+                             ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype),
+                             ccallparanode.create(ctemprefnode.create(temp),
+                             ccallparanode.create(left,nil))))))
+                           )
+                         else
+                           addstatement(newstatement,ccallnode.createintern('fpc_varset_set',
+                             ccallparanode.create(cordconstnode.create(resultdef.size,sinttype,false),
+                             ccallparanode.create(ctypeconvnode.create_internal(tsetelementnode(right).left,sinttype),
+                             ccallparanode.create(ctemprefnode.create(temp),
+                             ccallparanode.create(left,nil)))))
+                           );
+                         { remove reused parts from original node }
+                         tsetelementnode(right).right:=nil;
+                         tsetelementnode(right).left:=nil;
+                         left:=nil;
+                         { the last statement should return the value as
+                           location and type, this is done be referencing the
+                           temp and converting it first from a persistent temp to
+                           normal temp }
+                         addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+                         addstatement(newstatement,ctemprefnode.create(temp));
+                       end
+                     else
+                       calcregisters(self,2,0,0)
+                   end
                  else
                    calcregisters(self,1,0,0);
                end

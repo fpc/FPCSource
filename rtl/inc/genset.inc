@@ -211,10 +211,12 @@ function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_
 
 {$ifndef FPC_SYSTEM_HAS_FPC_VARSET_LOAD_SMALL}
 {
-  load a normal set p from a smallset l
+  convert sets
 }
 procedure fpc_varset_load(const l;sourcesize : longint;var dest;size : ptrint); compilerproc;
   begin
+    if sourcesize>size then
+      sourcesize:=size;
     move(l,plongint(@dest)^,sourcesize);
     FillChar((@dest+sourcesize)^,size-sourcesize,0);
   end;

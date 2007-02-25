@@ -64,13 +64,12 @@ interface
           tc_real_2_currency,
           tc_proc_2_procvar,
           tc_arrayconstructor_2_set,
-          tc_load_smallset,
+          tc_set_to_set,
           tc_cord_2_pointer,
           tc_intf_2_string,
           tc_intf_2_guid,
           tc_class_2_intf,
           tc_char_2_char,
-          tc_normal_2_smallset,
           tc_dynarray_2_openarray,
           tc_pwchar_2_string,
           tc_variant_2_dynarray,
@@ -907,7 +906,7 @@ implementation
 			   { Don't allow pchar(char) in fpc modes }
 			   is_integer(def_from)
 			  )
-			 ) or 
+			 ) or
 			 (cdo_internal in cdoptions)
 			) then
                        begin
@@ -1060,13 +1059,23 @@ implementation
                      if assigned(tsetdef(def_from).elementdef) and
                         assigned(tsetdef(def_to).elementdef) then
                       begin
-                        { sets with the same element base type are equal }
-                        if is_subequal(tsetdef(def_from).elementdef,tsetdef(def_to).elementdef) then
-                         eq:=te_equal;
+                        { sets with the same element base type and the same range are equal }
+                        if equal_defs(tsetdef(def_from).elementdef,tsetdef(def_to).elementdef) and
+                          (tsetdef(def_from).setbase=tsetdef(def_to).setbase) and
+                          (tsetdef(def_from).setmax=tsetdef(def_to).setmax) then
+                          eq:=te_equal
+                        else if is_subequal(tsetdef(def_from).elementdef,tsetdef(def_to).elementdef) then
+                          begin
+                            eq:=te_convert_l1;
+                            doconv:=tc_set_to_set;
+                          end;
                       end
                      else
-                      { empty set is compatible with everything }
-                      eq:=te_equal;
+                      begin
+                        { empty set is compatible with everything }
+                        eq:=te_convert_l1;
+                        doconv:=tc_set_to_set;
+                      end;
                    end;
                  arraydef :
                    begin
