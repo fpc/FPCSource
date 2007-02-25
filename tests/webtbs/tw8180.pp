@@ -1,5 +1,7 @@
 { %recompile }
 
+{$mode objfpc}
+
 uses uw8180;
 
 type
