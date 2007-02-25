@@ -344,10 +344,10 @@ interface
 
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
-    function var_align(siz: shortint): shortint;
+    function var_align(siz: longint): shortint;
     {# Routine to get the required alignment for size of data, which will
        be placed in data/const segment, according to the current alignment requirements }
-    function const_align(siz: shortint): shortint;
+    function const_align(siz: longint): shortint;
 
 implementation
 
@@ -1000,14 +1000,14 @@ implementation
       end;
 
 
-    function var_align(siz: shortint): shortint;
+    function var_align(siz: longint): shortint;
       begin
         siz := size_2_align(siz);
         var_align := used_align(siz,current_settings.alignment.varalignmin,current_settings.alignment.varalignmax);
       end;
 
 
-    function const_align(siz: shortint): shortint;
+    function const_align(siz: longint): shortint;
       begin
         siz := size_2_align(siz);
         const_align := used_align(siz,current_settings.alignment.constalignmin,current_settings.alignment.constalignmax);
