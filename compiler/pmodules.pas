@@ -1236,10 +1236,7 @@ implementation
          if islibrary then
            begin
               consume(_LIBRARY);
-              stringdispose(current_module.modulename);
-              stringdispose(current_module.realmodulename);
-              current_module.modulename:=stringdup(pattern);
-              current_module.realmodulename:=stringdup(orgpattern);
+              current_module.setmodulename(orgpattern);
               current_module.islibrary:=true;
               exportlib.preparelib(orgpattern);
 
@@ -1254,10 +1251,7 @@ implementation
            if token=_PROGRAM then
             begin
               consume(_PROGRAM);
-              stringdispose(current_module.modulename);
-              stringdispose(current_module.realmodulename);
-              current_module.modulename:=stringdup(pattern);
-              current_module.realmodulename:=stringdup(orgpattern);
+              current_module.setmodulename(orgpattern);
               if (target_info.system in system_unit_program_exports) then
                 exportlib.preparelib(orgpattern);
               consume(_ID);
