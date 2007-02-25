@@ -14,6 +14,8 @@
 
  **********************************************************************}
 
+{$MODE objfpc}
+{$H+}
 
 unit XPath;
 
@@ -322,7 +324,7 @@ type
 
   TXPathScannerState = class
   private
-    FCurData: PChar;
+    FCurData: PWideChar;
     FCurToken: TXPathToken;
     FCurTokenString: DOMString;
     FDoUnget: Boolean;
@@ -330,7 +332,7 @@ type
 
   TXPathScanner = class
   private
-    FExpressionString, FCurData: PChar;  // !!!: Change to PWideChar in future
+    FExpressionString, FCurData: PWideChar;
     FCurToken: TXPathToken;
     FCurTokenString: DOMString;
     FDoUnget: Boolean;
@@ -459,16 +461,20 @@ var
   Child: TDOMNode;
 begin
   case Node.NodeType of
-    DOCUMENT_NODE, DOCUMENT_FRAGMENT_NODE, ELEMENT_NODE:
+    DOCUMENT_NODE, DOCUMENT_FRAGMENT_NODE{, ELEMENT_NODE}:
       begin
         SetLength(Result, 0);
         Child := Node.FirstChild;
         while Assigned(Child) do
         begin
+	  if Result <> '' then
+	    Result := Result + LineEnding;
           Result := Result + NodeToText(Child);
           Child := Child.NextSibling;
         end;
       end;
+    ELEMENT_NODE:
+      Result := Node.NodeName;
     ATTRIBUTE_NODE, PROCESSING_INSTRUCTION_NODE, COMMENT_NODE, TEXT_NODE,
       CDATA_SECTION_NODE, ENTITY_REFERENCE_NODE:
       Result := Node.NodeValue;
@@ -956,7 +962,7 @@ var
   var
     Node, Node2: TDOMNode;
     Attr: TDOMNamedNodeMap;
-    i, j, k: Integer;
+    i, j: Integer;
     DoAdd: Boolean;
 
     NewContext: TXPathContext;
@@ -1062,7 +1068,6 @@ var
         DoNodeTest(AContext.ContextNode);
     end;
 
-
     { Filter the nodes of this step using the predicates: The current
       node set (StepNodes) is filtered, all passed nodes will be added
       to NewStepNodes. After one filter has been applied, NewStepNodes
@@ -1148,7 +1153,9 @@ begin
         NewContext.Free;
       end;
     end else
+    begin
       EvaluateStep(FFirstStep, AContext);
+    end;
   except
     ResultNodeSet.Free;
     raise;
@@ -1234,11 +1241,21 @@ begin
 end;
 
 function TXPathNodeSetVariable.AsText: DOMString;
+var
+  i: Integer;
 begin
   if FValue.Count = 0 then
     SetLength(Result, 0)
   else
-    Result := NodeToText(TDOMNode(FValue[0]));
+  begin
+    Result := '';
+    for i := 0 to FValue.Count - 1 do
+    begin
+      if i > 0 then
+        Result := Result + LineEnding;
+      Result := Result + NodeToText(TDOMNode(FValue[i]));
+    end;
+  end;
 end;
 
 
@@ -1338,7 +1355,7 @@ end;
 constructor TXPathScanner.Create(const AExpressionString: DOMString);
 begin
   inherited Create;
-  FExpressionString := PChar(AExpressionString);
+  FExpressionString := PWideChar(AExpressionString);
   FCurData := FExpressionString;
 end;
 
@@ -2009,21 +2026,26 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
   var
     IsAbsolute, NeedColonColon: Boolean;
     FirstStep, CurStep, NextStep: TStep;
+    NextToken: TXPathToken;
   begin
     IsAbsolute := False;
     CurStep := nil;
+    Result := nil;
 
     case AScanner.NextToken of
       tkSlash:          // [2] AbsoluteLocationPath, first case
         begin
-          IsAbsolute := True;
-          if not (AScanner.NextToken in
-            [tkDot, tkDotDot, tkAsterisk, tkAt, tkIdentifier]) then
-          begin
-            AScanner.UngetToken;
+	  NextToken := AScanner.NextToken;
+	  AScanner.UngetToken;
+	  if NextToken = tkEndOfStream then
+	  begin
+            CurStep := TStep.Create;
+            CurStep.Axis := axisSelf;
+            CurStep.NodeTestType := ntAnyNode;
+	  end else if not (NextToken in
+            [tkDot, tkDotDot, tkAsterisk, tkAt, tkIdentifier, tkEndOfStream]) then
             exit;
-          end;
-          AScanner.UngetToken;
+          IsAbsolute := True;
         end;
       tkSlashSlash:     // [10] AbbreviatedAbsoluteLocationPath
         begin
@@ -2043,31 +2065,32 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
     FirstStep := CurStep;
     while True do
     begin
-      NextStep := TStep.Create;
-      if Assigned(CurStep) then
-        CurStep.NextStep := NextStep
-      else
-        FirstStep := NextStep;
-      CurStep := NextStep;
+      NextToken := AScanner.NextToken;
+      if NextToken <> tkEndOfStream then
+      begin
+        NextStep := TStep.Create;
+        if Assigned(CurStep) then
+          CurStep.NextStep := NextStep
+        else
+          FirstStep := NextStep;
+        CurStep := NextStep;
+      end;
 
       // Parse [4] Step
-      case AScanner.NextToken of
+      case NextToken of
         tkDot:          // [12] Abbreviated step, first case
           begin
             CurStep.Axis := axisSelf;
             CurStep.NodeTestType := ntAnyNode;
           end;
-        tkDotDot:               // [12] Abbreviated step, second case
+        tkDotDot:	// [12] Abbreviated step, second case
           begin
             CurStep.Axis := axisParent;
             CurStep.NodeTestType := ntAnyNode;
           end;
-        else
-        begin
-          AScanner.UngetToken;
-
-          // Parse [5] AxisSpecifier
-          case AScanner.NextToken of
+        else		// Parse [5] AxisSpecifier
+	begin
+	  case NextToken of
             tkAt:               // [13] AbbreviatedAxisSpecifier
               CurStep.Axis := axisAttribute;
             tkIdentifier:       // [5] AxisName '::'
@@ -2112,7 +2135,8 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
             else
             begin
               AScanner.UngetToken;
-              CurStep.Axis := axisChild;
+	      if NextToken <> tkEndOfStream then
+                CurStep.Axis := axisChild;
             end;
           end;
 
@@ -2155,6 +2179,7 @@ constructor TXPathExpression.Create(AScanner: TXPathScanner;
                   CurStep.NodeTestString := AScanner.CurTokenString;
                 end;
               end;
+	    tkEndOfStream:	// Enable support of "/" and "//" as path
             else
               Error(SParserInvalidNodeTest);
           end;
