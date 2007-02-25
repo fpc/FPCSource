@@ -2221,9 +2221,9 @@ option_help_pages=11025_[
 **0*_+ schakelt optie aan, - af
 **1a_De compiler verwijdert gegenereerd assemblerbestand niet
 **2al_Toon broncode in assemblerbestand
-**2ar_Toon register allocatie/release informatie in assemblerbestand
-**2at_Toon tijdelijke allocatie/release informatie in assemblerbestand
-**1b_genereer browser info
+**2ar_Toon registerreservering/-vrijgave in assemblerbestand
+**2at_Toon reservering/vrijgave van tijdelijke ruimte in assemblerbestand
+**1b_genereer browserinfo
 **2bl_genereer info voor lokale symbolen info
 **1B_Bouw alle modules
 **1C_Codegeneratie opties
@@ -2233,8 +2233,8 @@ option_help_pages=11025_[
 **2Cn_Laat linken achterwege
 **2Co_Controleer overflow van integeroperaties
 **2Cr_Bereikcontrole (range check)
-**2Cs<n>_Stel stack grootte in op <n>
-**2Ct_Stack controle
+**2Cs<n>_Stel stackgrootte in op <n>
+**2Ct_Stackcontrole
 3*2CS_Cre‰er dynamische bibliotheek
 3*2Cx_Gebruik slim linken
 **1d<x>_definieer het symbool <x>
@@ -2273,8 +2273,8 @@ option_help_pages=11025_[
 **1o<x>_Stel de naam van het applicatiebestand in op <x>
 **1pg_genereer profile code voor gprof
 *L1P_Gebruik pipes in plaats van tijdelijke assembler bestanden
-**1S_Syntax instellingen
-**2S2_Stel Delphi 2 uitbreidingen in
+**1S_Syntaxisinstellingen
+**2S2_Schakel Delphi-2-uitbreidingen in
 **2Sc_Ondersteun operatoren als in C (*=,+=,/= en -=)
 **2sa_Voeg assertion code toe
 **2S2_Tracht Delphi compatibel te zijn
@@ -2283,10 +2283,10 @@ option_help_pages=11025_[
 **2Sh_Gebruik ansistrings
 **2Si_Ondersteun INLINE
 **2Sm_Ondersteun macros zoals in C (globaal)
-**2So_Probeer TP/BP 7.0 compatibel te zijn
-**2Sp_Probeer GNU Pascal compatibel te zijn
+**2So_Probeer TP/BP-7.0-compatibel te zijn
+**2Sp_Probeer GNU-Pascal-compatibel te zijn
 **2Ss_Constructor naam moet init zijn (destructor moet done zijn)
-**2St_Sta static sleutelwoord toe in objecten
+**2St_Sta het sleutelwoord "static" toe in objecten
 **1s_Roep assembler en linker niet op (slechts met -a)
 **1sh_Genereer een script om op het hostplatform te linken
 **1sr_Voer geen registertoewijzing uit (optimalizaties worden uitgeschakeld)
@@ -2303,7 +2303,7 @@ option_help_pages=11025_[
 **2*_i : Toon algemene informatie    p : Toon gecompileerde routines
 **2*_l : Toon regelnummers           c : Toon voorwaardelijken
 **2*_a : Toon alles                  0 : Toon alleen fouten
-**2*_b : Toon alle procedures        r : Rhide/GCC compatibiliteit modus
+**2*_b : Toon alle procedures        r : Rhide-/GCC-compatibiliteitsmodus
 **2*_    declaraties indien een     x : Executable informatie (alleen Win32)
 **2*_    fout optreedt
 **1X_applicatie instellingen
@@ -2324,13 +2324,13 @@ option_help_pages=11025_[
 3*2Acoff_coff (Go32v2) met interne assembler
 3*2Apecoff_pecoff (Win32) met interne assembler
 3*1R<x>_Geef de grammatica voor de assemblerlezer op:
-3*2Ratt_Lees assembler in AT&T stijl
-3*2Rintel_Lees assembler in Intel stijl
+3*2Ratt_Lees assembler in AT&T-stijl
+3*2Rintel_Lees assembler in Intelstijl
 3*2Rdirect_Kopieer assemblercode rechtstreeks naar assemblerbestand
 3*1O<x>_optimalizaties
 3*2Og_Genereer kleinere code
 3*2OG_Genereerd snellere code (standaard)
-3*2Or_Houdt zekere variabelen in registers (Nog steeds BUGGY!!!)
+3*2Or_Houdt zekere variabelen in registers
 3*2Ou_Probeer onzekere optimalizaties (zie documentatie)
 3*2O1_Niveau 1 optimalizaties (snelle optimizaties)
 3*2O2_Niveau 2 optimalizaties (-O1 + tragere optimizaties)
@@ -2340,24 +2340,24 @@ option_help_pages=11025_[
 3*3Op2_Stel doelprocessor in op Pentium/PentiumMMX (tm)
 3*3Op3_Stel doelprocessor in op PPro/PII/c6x86/K6 (tm)
 6*1T<x>_Doel besturingssysteem:
-3*2TGO32V2_version 2 of DJ Delorie DOS extender
+3*2TGO32V2_versie 2 of DJ Delorie DOS-extender
 3*2TLINUX_Linux
 3*2TOS2_OS/2 / eComStation
-3*2TWIN32_Windows 32 Bit
-3*1W<x>_Win32 Doel opties
+3*2TWIN32_Windows 32-bit
+3*1W<x>_Opties voor het Win32-doelplatform
 3*2WB<x>_Stel Image base in op (hexadecimale) waarde <x>
 3*2WC_Maak een console applicatie
 3*2WD_Gebruik DEFFILE om functies van bibliotheek of applicatie te exporteren
 3*2WG_Maak een grafische applicatie
-3*2WN_Genereer geen relocatie code (nodig voor debuggen)
-3*2WR_Genereer relocatie code
+3*2WN_Genereer geen relocatiecode (nodig voor debuggen)
+3*2WR_Genereer relocatiecode
 6*1A_output formaat
 6*2Aas_Unix o-bestand met GNU AS
-6*2Agas_GNU Motorola assembler
+6*2Agas_GNU Motorola-assembler
 6*2Amit_MIT Syntax (oude GAS)
-6*2Amot_Standaard Motorola assembler
+6*2Amot_Standaard Motorola-assembler
 6*1O_optimizaties
-6*2Oa_Gebruik de optimizaties
+6*2Oa_Gebruik de optimisaties
 6*2Og_Genereer kleinere code
 6*2OG_Genereer snellere code (standaard)
 6*2Ox_Optimizeer maximaal (nog steeds BUGGY!!!)
