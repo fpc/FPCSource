@@ -238,8 +238,7 @@ begin
   with Info do
    begin
      ExeCmd[1]:='ld '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE $RES';
-     { use -Bsymbolic to avoid shadowing }
-     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES -E -Bsymbolic';
+     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES -E';
      DllCmd[2]:='strip --strip-unneeded $EXE';
 {$ifdef m68k}
      libctype:=glibc2;
