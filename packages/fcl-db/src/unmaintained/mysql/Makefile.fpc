@@ -3,7 +3,7 @@
 #
 
 [package]
-main=fcl
+main=fcl-db
 
 [target]
 units=mysqldb4 mysqldb3
@@ -23,7 +23,7 @@ options=-S2
 fpcpackage=y
 
 [default]
-fpcdir=../../../..
+fpcdir=../../../../..
 
 [rules]
 .NOTPARALLEL:

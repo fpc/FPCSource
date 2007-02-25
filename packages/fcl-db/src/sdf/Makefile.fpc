@@ -3,7 +3,7 @@
 #
 
 [package]
-main=fcl
+main=fcl-db
 
 [target]
 units=sdfdata
@@ -13,7 +13,7 @@ examples=testsdf testfix
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../../../..
 
 [rules]
 .NOTPARALLEL:

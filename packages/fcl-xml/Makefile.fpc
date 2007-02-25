@@ -3,17 +3,19 @@
 #
 
 [package]
-main=fcl
+name=fcl-xml
+version=2.0.0
 
 [target]
 units=sax dom sax_html dom_html xmlcfg xmlread xmlstreaming xmlwrite xhtml htmwrite xpath
 rsts=sax xpath
 
 [require]
-packages=netdb
+packages=netdb fcl-base
 
 [compiler]
 options=-S2h
+sourcedir=src
 
 [install]
 fpcpackage=y

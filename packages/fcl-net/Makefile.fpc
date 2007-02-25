@@ -3,7 +3,8 @@
 #
 
 [package]
-main=fcl
+name=fcl-net
+version=2.0.0
 
 [target]
 units=servlets
@@ -21,14 +22,14 @@ rsts_freebsd=fpsock httpsvlt mkxmlrpc
 rsts_darwin=fpsock httpsvlt mkxmlrpc
 rsts_netbsd=fpsock httpsvlt mkxmlrpc
 rsts_openbsd=fpsock httpsvlt mkxmlrpc
-exampledirs_linux=tests
-exampledirs_freebsd=tests
-exampledirs_darwin=tests
-exampledirs_netbsd=tests
-exampledirs_openbsd=tests
+#exampledirs_linux=tests
+#exampledirs_freebsd=tests
+#exampledirs_darwin=tests
+#exampledirs_netbsd=tests
+#exampledirs_openbsd=tests
 
 [require]
-packages=netdb 
+packages=netdb fcl-base fcl-xml fcl-passrc
 
 packages_linux=libasync 
 packages_freebsd=libasync 
@@ -39,6 +40,7 @@ packages_openbsd=libasync
 
 [compiler]
 options=-S2h
+sourcedir=src
 
 [install]
 fpcpackage=y

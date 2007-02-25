@@ -1,12 +1,10 @@
 #
-#   Makefile.fpc for FCL net units
+#   Makefile.fpc for FCL image units
 #
 
 [package]
-main=fcl
-
-[require]
-packages=paszlib pasjpeg hash
+name=fcl-image
+version=2.0.0
 
 [target]
 units=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm \
@@ -20,6 +18,13 @@ units_freebsd=freetypeh freetype ftfont
 units_darwin=freetypeh freetype ftfont
 rsts=pscanvas
 examples=imgconv
+
+[require]
+packages=pasjpeg fcl-base
+
+[compiler]
+options=-S2h
+sourcedir=src
 
 [install]
 fpcpackage=y

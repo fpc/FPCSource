@@ -3,7 +3,7 @@
 #
 
 [package]
-main=fcl
+main=fcl-db
 
 [target]
 units_i386=dbf
@@ -16,7 +16,7 @@ examples_x86_64=testdbf
 options=-S2 -Sh
 
 [default]
-fpcdir=../../..
+fpcdir=../../../..
 
 [install]
 fpcpackage=y

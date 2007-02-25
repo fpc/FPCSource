@@ -3,7 +3,7 @@
 #
 
 [package]
-main=fcl
+main=fcl-db
 
 [target]
 units=memds
@@ -14,7 +14,7 @@ rsts=memds
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../../../..
 
 [rules]
 .NOTPARALLEL:

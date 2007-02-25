@@ -3,7 +3,7 @@
 #
 
 [package]
-main=fcl
+main=fcl-db
 
 [target]
 units=customsqliteds sqliteds sqlite3ds
@@ -15,7 +15,7 @@ packages=sqlite
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../../../..
 
 [rules]
 .NOTPARALLEL:

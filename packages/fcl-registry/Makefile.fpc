@@ -1,0 +1,26 @@
+#
+#   Makefile.fpc for Registry for FCL
+#
+
+[package]
+name=fcl-registry
+version=2.0.0
+
+[target]
+units=xmlreg registry
+
+[require]
+packages=fcl-xml
+
+[compiler]
+options=-S2h
+sourcedir=src
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

@@ -144,13 +144,6 @@ compiler/x86_64/*.ppu
 compiler/x86_64/*.s
 compiler/x86_64/fpcmade.*
 compiler/x86_64/units
-fcl/*.bak
-fcl/*.exe
-fcl/*.o
-fcl/*.ppu
-fcl/*.s
-fcl/fpcmade.*
-fcl/units
 /fpcmade.*
 fv/*.bak
 fv/*.exe

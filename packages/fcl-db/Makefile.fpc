@@ -1,0 +1,38 @@
+#
+#   Makefile.fpc for TDataSet for FCL
+#
+
+[package]
+name=fcl-db
+version=2.0.0
+
+[target]
+dirs=src/sdf src/memds src/sqldb src/unmaintained
+dirs_linux=src/dbase src/sqlite
+dirs_freebsd=src/dbase src/sqlite
+dirs_darwin=src/sqlite
+dirs_netbsd=src/sqlite
+dirs_openbsd=src/sqlite
+dirs_win32=src/dbase src/sqlite
+dirs_win64=src/dbase
+dirs_wince=src/dbase src/sqlite
+units=dbconst db dbwhtml bufdataset_parser bufdataset
+rsts=dbwhtml dbconst
+
+[require]
+packages=fcl-base
+
+[compiler]
+options=-S2h
+unitdir=src/dbase
+sourcedir=src
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+
+[rules]
+.NOTPARALLEL:

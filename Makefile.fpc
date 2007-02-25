@@ -7,7 +7,7 @@ name=fpc
 version=2.1.1
 
 [target]
-dirs=compiler rtl utils fcl fv packages ide installer
+dirs=compiler rtl utils fv packages ide installer
 
 [require]
 nortl=y
@@ -209,8 +209,9 @@ compiler_cycle:
 # Packages
 #######################################
 
-.PHONY: packages_base_all packages_extra_all \
-        packages_base_smart packages_extra_smart
+.PHONY: packages_base_all packages_base_smart packages_base_shared \
+        packages_fcl_all packages_fcl_smart packages_fcl_shared \
+        packages_extra_all packages_extra_smart packages_extra_shared
 
 packages_base_all:
         $(MAKE) -C packages base_all
@@ -220,6 +221,15 @@ packages_base_smart:
 
 packages_base_shared:
         $(MAKE) -C packages base_shared
+
+packages_fcl_all:
+        $(MAKE) -C packages fcl_all
+
+packages_fcl_smart:
+        $(MAKE) -C packages fcl_smart
+
+packages_fcl_shared:
+        $(MAKE) -C packages fcl_shared
 
 packages_extra_all:
         $(MAKE) -C packages extra_all
@@ -252,7 +262,6 @@ $(BUILDSTAMP):
 # clean
         $(MAKE) rtl_clean $(CLEANOPTS)
         $(MAKE) packages_clean $(CLEANOPTS)
-        $(MAKE) fcl_clean $(CLEANOPTS)
 ifdef FV
         $(MAKE) fv_clean $(CLEANOPTS)
 endif
@@ -263,7 +272,7 @@ endif
 # build everything
         $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) packages_base_$(ALLTARGET) $(BUILDOPTS)
-        $(MAKE) fcl_$(ALLTARGET) $(BUILDOPTS)
+        $(MAKE) packages_fcl_$(ALLTARGET) $(BUILDOPTS)
 ifdef FV
         $(MAKE) fv_$(ALLTARGET) $(BUILDOPTS)
 endif
@@ -285,7 +294,6 @@ installbase:
 
 installother:
         $(MAKE) packages_$(INSTALLTARGET) $(INSTALLOPTS)
-        $(MAKE) fcl_$(INSTALLTARGET) $(INSTALLOPTS)
 ifdef FV
         $(MAKE) fv_$(INSTALLTARGET) $(INSTALLOPTS)
 endif
@@ -299,7 +307,6 @@ zipinstallbase:
 
 zipinstallother:
         $(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
-        $(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
 ifdef FV
         $(MAKE) fv_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGUNITSPRE)
 endif

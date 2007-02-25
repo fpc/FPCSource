@@ -3,7 +3,8 @@
 #
 
 [package]
-main=fcl
+name=fcl-passrc
+version=2.0.0
 
 [target]
 units=pastree pscanner pparser paswrite
@@ -11,6 +12,7 @@ rsts=pscanner pparser pastree
 
 [compiler]
 options=-S2h
+sourcedir=src
 
 [install]
 fpcpackage=y

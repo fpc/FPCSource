@@ -4,7 +4,7 @@
 
 
 [package]
-main=fcl
+main=fcl-db
 
 [target]
 units=ddg_rec ddg_ds
@@ -16,7 +16,7 @@ options=-S2
 fpcpackage=y
 
 [default]
-fpcdir=../../../..
+fpcdir=../../../../..
 
 [rules]
 .NOTPARALLEL:

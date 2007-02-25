@@ -3,7 +3,7 @@
 #
 
 [package]
-main=fcl
+main=fcl-db
 
 [target]
 units=fpodbc
@@ -24,7 +24,7 @@ options=-S2
 fpcpackage=y
 
 [default]
-fpcdir=../../../..
+fpcdir=../../../../..
 
 [rules]
 .NOTPARALLEL:

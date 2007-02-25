@@ -1,17 +1,22 @@
 #
-#   Makefile.fpc for TDataSet for FCL
+#   Makefile.fpc for FCL Web components
 #
 
 [package]
-main=fcl
+name=fcl-web
+version=2.0.0
 
 [target]
 units=httpdefs fphttp custcgi fpcgi fptemplate fphtml websession fpweb \
       htmlelements  htmlwriter webutil fpdatasetform
 rsts=fpcgi fphtml fpweb htmlwriter websession
 
+[require]
+packages=fcl-base fcl-xml fcl-db
+
 [compiler]
-options=-S2
+options=-S2h
+sourcedir=src
 
 [install]
 fpcpackage=y

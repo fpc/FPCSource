@@ -3,7 +3,7 @@
 #
 
 [package]
-main=fcl
+main=fcl-db
 
 [target]
 dirs=ddg
@@ -22,7 +22,7 @@ options=-S2
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../../../..
 
 
 [rules]
