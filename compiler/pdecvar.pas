@@ -757,6 +757,8 @@ implementation
           vs:=tabstractvarsym(sc[0]);
           if sc.count>1 then
             Message(parser_e_absolute_only_one_var);
+          if vo_is_typed_const in vs.varoptions then
+            Message(parser_e_initialized_not_for_external);
           { parse the rest }
           pt:=expr;
           { check allowed absolute types }
@@ -847,7 +849,6 @@ implementation
               Message(parser_e_no_local_var_external);
               exit;
             end;
-
           { defaults }
           is_dll:=false;
           is_cdecl:=false;
@@ -934,6 +935,8 @@ implementation
             add it to the externals }
           if is_external_var then
             begin
+              if vo_is_typed_const in vs.varoptions then
+                Message(parser_e_initialized_not_for_external);
               include(vs.varoptions,vo_is_external);
               vs.varregable := vr_none;
               if is_dll then
@@ -953,6 +956,7 @@ implementation
          hdef : tdef;
          i    : longint;
          semicoloneaten,
+         allowdefaultvalue,
          hasdefaultvalue : boolean;
          old_current_object_option : tsymoptions;
          hintsymoptions  : tsymoptions;
@@ -972,6 +976,7 @@ implementation
            begin
              semicoloneaten:=false;
              hasdefaultvalue:=false;
+             allowdefaultvalue:=true;
              sc.clear;
              repeat
                if (token = _ID) then
@@ -1017,7 +1022,18 @@ implementation
 
              { check for absolute }
              if try_to_consume(_ABSOLUTE) then
-               read_absolute(sc);
+               begin
+                 read_absolute(sc);
+                 allowdefaultvalue:=false;
+               end;
+
+             { Check for EXTERNAL etc directives before a semicolon }
+             if (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) then
+               begin
+                 read_public_and_external(sc);
+                 allowdefaultvalue:=false;
+                 semicoloneaten:=true;
+               end;
 
              { try to parse the hint directives }
              hintsymoptions:=[];
@@ -1029,7 +1045,8 @@ implementation
                end;
 
              { Handling of Delphi typed const = initialized vars }
-             if (token=_EQUAL) and
+             if allowdefaultvalue and
+                (token=_EQUAL) and
                 not(m_tp7 in current_settings.modeswitches) and
                 (symtablestack.top.symtabletype<>parasymtable) then
                begin
@@ -1068,8 +1085,7 @@ implementation
                end;
 
              { Check for EXTERNAL etc directives or, in macpas, if cs_external_var is set}
-             if (not hasdefaultvalue) and
-                (
+             if (
                  (
                   (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) and
                   (m_cvar_support in current_settings.modeswitches)
