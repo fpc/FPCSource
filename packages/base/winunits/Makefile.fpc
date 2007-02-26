@@ -58,5 +58,8 @@ fpcpackage=y
 [default]
 fpcdir=../../..
 
+[compiler]
+options=-Ur
+
 [rules]
 .NOTPARALLEL:
