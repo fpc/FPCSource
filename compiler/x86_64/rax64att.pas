@@ -65,7 +65,7 @@ const
           );
 
   { Added to be compatible with i386 }
-  asmmode_x86_64_gas_info : tasmmodeinfo =
+  asmmode_x86_64_att_info : tasmmodeinfo =
           (
             id    : asmmode_x86_64_gas;
             idtxt : 'ATT';
@@ -81,5 +81,6 @@ const
 
 initialization
   RegisterAsmMode(asmmode_x86_64_gas_info);
+  RegisterAsmMode(asmmode_x86_64_att_info);
   RegisterAsmMode(asmmode_x86_64_standard_info);
 end.
