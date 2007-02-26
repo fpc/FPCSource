@@ -2641,6 +2641,7 @@ begin
     begin
     If (LoadedLibrary<>LibraryName) then
       Raise EInoutError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+    inc(RefCount);
     Result:=True;
     end;  
 end;
