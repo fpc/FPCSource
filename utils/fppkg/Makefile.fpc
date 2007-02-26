@@ -35,7 +35,7 @@ fpcpackage=y
 fpcdir=../..
 
 [require]
-packages=fcl fpmake libcurl
+packages=fcl-base fcl-xml fpmake libcurl
 
 [prerules]
 # Compatibility to compile with 2.0.x

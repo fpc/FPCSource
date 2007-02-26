@@ -2,7 +2,7 @@
 #   Makefile.fpc for cairo
 #
 [require]
-packages=x11 fcl 
+packages=x11 fcl-image
 
 [package]
 name=cairo

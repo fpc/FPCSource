@@ -45,10 +45,11 @@ rtl : rtl-stamp.$(FULL_TARGET)
 
 DUMMYINSTALLDIR=$(BASEDIR)/tmp
 INSTALLOPT=INSTALL_PREFIX=$(DUMMYINSTALLDIR) INSTALL_UNITDIR=$(BASEDIR)/$(COMPILER_TARGETDIR)
+FPCUNITDIR=../../packages/fcl-fpcunit/src
 
 fpcunit-stamp.$(FULL_TARGET):
- 	$(TESTCOMPILER) -Fu$(BASEDIR)/$(COMPILER_TARGETDIR) ../../fcl/inc/testutils
-        $(TESTCOMPILER) -Fu$(BASEDIR)/$(COMPILER_TARGETDIR) ../../fcl/inc/fpcunit
+ 	$(TESTCOMPILER) -Fu$(BASEDIR)/$(COMPILER_TARGETDIR) $(FPCUNITDIR)/testutils
+        $(TESTCOMPILER) -Fu$(BASEDIR)/$(COMPILER_TARGETDIR) $(FPCUNITDIR)/fpcunit
         $(ECHO) Compiled > fpcunit-stamp.$(FULL_TARGET)
 
 cleanfpcunit:
