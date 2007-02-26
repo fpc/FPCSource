@@ -13,7 +13,7 @@
 
  **********************************************************************}
 
-uses windows,registry;
+uses windows;
 
 Function TEventLog.DefaultFileName : String;
 
@@ -70,7 +70,7 @@ end;
 Function TEventLog.RegisterMessageFile(AFileName : String) : Boolean;
 
 Const
-  SKeyEventLog = '\SYSTEM\CurrentControlSet\Services\EventLog\Application\%s';
+  SKeyEventLog = 'SYSTEM\CurrentControlSet\Services\EventLog\Application\%s';
   SKeyCategoryCount       = 'CategoryCount';
   SKeyEventMessageFile    = 'EventMessageFile';
   SKeyCategoryMessageFile = 'CategoryMessageFile';
@@ -78,29 +78,31 @@ Const
 
 Var
   ELKey : String;
-  R : TRegistry;
-
+  Handle : HKey;
+  SecurityAttributes: Pointer; //LPSECURITY_ATTRIBUTES;
+  Value,
+  Disposition : Dword;
 begin
+  SecurityAttributes:=nil;
   CheckIdentification;
   If AFileName='' then
     AFileName:=ParamStr(0);
-  R:=TRegistry.Create;
-  Try
-    R.RootKey:=HKEY_LOCAL_MACHINE;
-    ELKey:=Format(SKeyEventLog,[IDentification]);
-    Result:=R.OpenKey(ELKey,True);
-    If Result then
-      try
-        R.WriteInteger(SKeyCategoryCount,4);
-        R.WriteString(SKeyCategoryMessageFile,AFileName);
-        R.WriteString(SKeyEventMessageFile,AFileName);
-        R.WriteInteger(SKeyTypesSupported,7);
-      except
-        Result:=False;
-      end
-  Finally
-   R.Free;
-  end;
+  ELKey:=Format(SKeyEventLog,[IDentification]);
+  Result:=RegCreateKeyExA(HKEY_LOCAL_MACHINE,
+                          PChar(ELKey),0,'',
+                          REG_OPTION_NON_VOLATILE,
+                          KEY_ALL_ACCESS,
+                          SecurityAttributes,Handle,
+                          pdword(@Disposition))=ERROR_SUCCESS;
+  If Result then
+    begin
+      Value:=4;
+      Result:=Result and (RegSetValueExA(Handle,PChar(SKeyCategoryCount),0,REG_DWORD,@Value,sizeof(DWORD))=ERROR_SUCCESS);
+      Value:=7;
+      Result:=Result and (RegSetValueExA(Handle,PChar(SKeyTypesSupported),0,REG_DWORD,@Value,sizeof(DWORD))=ERROR_SUCCESS);
+      Result:=Result and (RegSetValueExA(Handle,PChar(SKeyCategoryMessageFile),0,REG_SZ,@AFileName[1],Length(AFileName))=ERROR_SUCCESS);
+      Result:=Result and (RegSetValueExA(Handle,PChar(SKeyEventMessageFile),0,REG_SZ,@AFileName[1],Length(AFileName))=ERROR_SUCCESS);
+    end;
 end;
 
 function TEventLog.MapTypeToCategory(EventType: TEventType): Word;
