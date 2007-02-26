@@ -255,7 +255,7 @@ implementation
           objdata.free;
         end;
 
-        procedure AddImport(const afuncname:string;ordnr:longint;isvar:boolean);
+        procedure AddImport(const afuncname,mangledname:string;ordnr:longint;isvar:boolean);
         const
 {$ifdef x86_64}
           jmpopcode : array[0..2] of byte = (
@@ -311,7 +311,7 @@ implementation
           objdata.writebytes(emptyint,align(objdata.CurrObjSec.size,2)-objdata.CurrObjSec.size);
           { idata4, import lookup table }
           objdata.SetSection(idata4objsection);
-          if afuncname<>'' then
+          if mangledname<>'' then
             begin
               objdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
               if target_info.system=system_x86_64_win64 then
@@ -336,9 +336,9 @@ implementation
           { idata5, import address table }
           objdata.SetSection(idata5objsection);
           if isvar then
-            implabel:=objdata.SymbolDefine(afuncname,AB_GLOBAL,AT_DATA)
+            implabel:=objdata.SymbolDefine(mangledname,AB_GLOBAL,AT_DATA)
           else
-            idata5label:=objdata.SymbolDefine(asmprefix+'_'+afuncname,AB_LOCAL,AT_DATA);
+            idata5label:=objdata.SymbolDefine(asmprefix+'_'+mangledname,AB_LOCAL,AT_DATA);
           objdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
           if target_info.system=system_x86_64_win64 then
             objdata.writebytes(emptyint,sizeof(emptyint));
@@ -346,8 +346,8 @@ implementation
           if not isvar then
             begin
               objdata.SetSection(textobjsection);
-              if afuncname <> '' then
-                implabel:=objdata.SymbolDefine(afuncname,AB_GLOBAL,AT_FUNCTION)
+              if mangledname <> '' then
+                implabel:=objdata.SymbolDefine(mangledname,AB_GLOBAL,AT_FUNCTION)
               else
                 implabel:=objdata.SymbolDefine(basedllname+'_index_'+tostr(ordnr),AB_GLOBAL,AT_FUNCTION);
               objdata.writebytes(jmpopcode,sizeof(jmpopcode));
@@ -378,7 +378,7 @@ implementation
             for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
               begin
                 ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
-                AddImport(ImportSymbol.Name,ImportSymbol.OrdNr,ImportSymbol.IsVar);
+                AddImport(ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
               end;
             EndImport;
           end;
@@ -489,7 +489,7 @@ implementation
                     { place jump in al_procedures }
                     new_section(current_asmdata.asmlists[al_imports],sec_code,'',0);
                     if ImportSymbol.Name <> '' then
-                      current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.Name,AT_FUNCTION,0))
+                      current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.MangledName,AT_FUNCTION,0))
                     else
                       current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ExtractFileName(ImportLibrary.Name)+'_index_'+tostr(ImportSymbol.ordnr),AT_FUNCTION,0));
                     current_asmdata.asmlists[al_imports].concat(tai_function_name.create(''));
@@ -510,14 +510,14 @@ implementation
                     new_section(current_asmdata.asmlists[al_imports],sec_idata5,'',0);
                     if (cs_debuginfo in current_settings.moduleswitches) then
                       begin
-                        if ImportSymbol.Name<>'' then
+                        if ImportSymbol.MangledName<>'' then
                           begin
-                            importname:='__imp_'+ImportSymbol.Name;
+                            importname:='__imp_'+ImportSymbol.MangledName;
                             suffix:=0;
                             while assigned(current_asmdata.getasmsymbol(importname)) do
                               begin
                                 inc(suffix);
-                                importname:='__imp_'+ImportSymbol.Name+'_'+tostr(suffix);
+                                importname:='__imp_'+ImportSymbol.MangledName+'_'+tostr(suffix);
                               end;
                             current_asmdata.asmlists[al_imports].concat(tai_symbol.createname(importname,AT_FUNCTION,4));
                           end
@@ -536,7 +536,7 @@ implementation
                      current_asmdata.asmlists[al_imports].concat(Tai_label.Create(l4));
                   end
                 else
-                  current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.Name,AT_DATA,0));
+                  current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ImportSymbol.MangledName,AT_DATA,0));
                 current_asmdata.asmlists[al_imports].concat(Tai_const.Create_rva_sym(TAsmLabel(Importlabels[j])));
                 if target_info.system=system_x86_64_win64 then
                   current_asmdata.asmlists[al_imports].concat(Tai_const.Create_32bit(0));

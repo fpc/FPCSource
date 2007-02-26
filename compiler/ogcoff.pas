@@ -2290,7 +2290,7 @@ const pemagic : array[0..3] of byte = (
             internalobjdata.writebytes(emptyint,sizeof(emptyint));
         end;
 
-        function AddImport(const afuncname:string; AOrdNr:longint;isvar:boolean):TObjSymbol;
+        function AddImport(const afuncname,amangledname:string; AOrdNr:longint;isvar:boolean):TObjSymbol;
         const
 {$ifdef x86_64}
           jmpopcode : array[0..2] of byte = (
@@ -2327,7 +2327,7 @@ const pemagic : array[0..3] of byte = (
 
           with internalobjdata do
             begin
-              secname:=basedllname+'_i_'+afuncname;
+              secname:=basedllname+'_i_'+amangledname;
               textobjsection:=createsection(sectionname(sec_code,secname,secorder_default),current_settings.alignment.procalign,sectiontype2options(sec_code) - [oso_keep]);
               idata4objsection:=createsection(sec_idata4, secname);
               idata5objsection:=createsection(sec_idata5, secname);
@@ -2377,9 +2377,9 @@ const pemagic : array[0..3] of byte = (
           internalobjdata.writereloc(0,0,idata2label,RELOC_NONE);
           { section data }
           if isvar then
-            result:=internalobjdata.SymbolDefine(afuncname,AB_GLOBAL,AT_DATA)
+            result:=internalobjdata.SymbolDefine(amangledname,AB_GLOBAL,AT_DATA)
           else
-            idata5label:=internalobjdata.SymbolDefine('__imp_'+afuncname,AB_LOCAL,AT_DATA);
+            idata5label:=internalobjdata.SymbolDefine('__imp_'+amangledname,AB_LOCAL,AT_DATA);
           internalobjdata.writereloc(0,sizeof(longint),idata6label,RELOC_RVA);
           if target_info.system=system_x86_64_win64 then
             internalobjdata.writebytes(emptyint,sizeof(emptyint));
@@ -2387,7 +2387,7 @@ const pemagic : array[0..3] of byte = (
           if not isvar then
             begin
               internalobjdata.SetSection(textobjsection);
-              result:=internalobjdata.SymbolDefine('_'+afuncname,AB_GLOBAL,AT_FUNCTION);
+              result:=internalobjdata.SymbolDefine('_'+amangledname,AB_GLOBAL,AT_FUNCTION);
               internalobjdata.writebytes(jmpopcode,sizeof(jmpopcode));
               internalobjdata.writereloc(0,sizeof(longint),idata5label,RELOC_ABSOLUTE32);
               internalobjdata.writebytes(nopopcodes,align(internalobjdata.CurrObjSec.size,sizeof(nopopcodes))-internalobjdata.CurrObjSec.size);
@@ -2411,13 +2411,13 @@ const pemagic : array[0..3] of byte = (
             for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
               begin
                 ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
-                exesym:=TExeSymbol(ExeSymbolList.Find(ImportSymbol.Name));
+                exesym:=TExeSymbol(ExeSymbolList.Find(ImportSymbol.MangledName));
                 if assigned(exesym) and
                    (exesym.State<>symstate_defined) then
                   begin
                     if not assigned(idata2objsection) then
                       StartImport(ImportLibrary.Name);
-                    exesym.objsymbol:=AddImport(ImportSymbol.Name,ImportSymbol.OrdNr,ImportSymbol.IsVar);
+                    exesym.objsymbol:=AddImport(ImportSymbol.Name,ImportSymbol.MangledName,ImportSymbol.OrdNr,ImportSymbol.IsVar);
                     exesym.State:=symstate_defined;
                   end;
               end;

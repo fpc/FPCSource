@@ -2180,7 +2180,12 @@ const
                   begin
                     s:=proc_get_importname(pd);
                     if s<>'' then
-                      pd.setmangledname(s);
+                      begin
+                        { Replace ? and @ in import name }
+                        Replace(s,'?','$_q_$');
+                        Replace(s,'@','$_a_$');
+                        pd.setmangledname(s);
+                      end;
                   end;
               end
             else

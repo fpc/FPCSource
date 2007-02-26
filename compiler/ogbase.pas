@@ -376,9 +376,11 @@ interface
       private
         FOrdNr  : longint;
         FIsVar  : boolean;
+        FMangledName : string;
       public
         constructor create(AList:TFPHashObjectList;const AName:string;AOrdNr:longint;AIsVar:boolean);
         property OrdNr: longint read FOrdNr;
+        property MangledName: string read FMangledName;
         property IsVar: boolean read FIsVar;
       end;
 
@@ -1353,6 +1355,10 @@ implementation
         inherited Create(AList, AName);
         FOrdNr:=AOrdNr;
         FIsVar:=AIsVar;
+        FMangledName:=AName;
+        { Replace ? and @ in import name }
+        Replace(FMangledName,'?','$_q_$');
+        Replace(FMangledName,'@','$_a_$');
       end;
 
 
