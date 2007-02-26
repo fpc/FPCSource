@@ -2,7 +2,7 @@
 #   Makefile.fpc for fpgtk
 #
 [require]
-packages=fcl gtk
+packages=fcl-base gtk
 
 [package]
 name=fpgtk

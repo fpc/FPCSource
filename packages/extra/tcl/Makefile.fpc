@@ -11,7 +11,7 @@ examples=tcl_demo
 
 [require]
 libc=y
-packages=fcl
+packages=fcl-base
 
 [install]
 fpcpackage=y
