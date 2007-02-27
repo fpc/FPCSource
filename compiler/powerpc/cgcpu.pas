@@ -1,4 +1,4 @@
-    {
+{
     Copyright (c) 1998-2002 by Florian Klaempfl
 
     This unit implements the code generator for the PowerPC
@@ -1047,6 +1047,7 @@ const
 *)
 
         if (not nostackframe) and
+           tppcprocinfo(current_procinfo).needstackframe and
            (localsize <> 0) then
           begin
             if (localsize <= high(smallint)) then
@@ -1110,6 +1111,7 @@ const
         { is translated into a move, which is then registered with the register }
         { allocator, causing a crash                                            }
         if (not nostackframe) and
+           tppcprocinfo(current_procinfo).needstackframe and
            (localsize <> 0) then
           a_op_const_reg(list,OP_ADD,OS_ADDR,localsize,NR_R1);
 
