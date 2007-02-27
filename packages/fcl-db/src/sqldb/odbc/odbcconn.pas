@@ -124,6 +124,14 @@ type
     // currently empty; perhaps we can add fields here later that describe the error instead of one simple message string
   end;
 
+  { TODBCConnectionDef }
+
+  TODBCConnectionDef = Class(TConnectionDef)
+    Class Function TypeName : String; override;
+    Class Function ConnectionClass : TSQLConnectionClass; override;
+    Class Function Description : String; override;
+  end;
+
 implementation
 
 uses
@@ -893,12 +901,28 @@ begin
   end;
 end;
 
-{ finalization }
+
+class function TODBCConnectionDef.TypeName: String;
+begin
+  Result:='ODBC';
+end;
+
+class function TODBCConnectionDef.ConnectionClass: TSQLConnectionClass;
+begin
+  Result:=TODBCConnection;
+end;
+
+class function TODBCConnectionDef.Description: String;
+begin
+  Result:='Connect to any database via an ODBC driver';
+end;
+
+initialization
+  RegisterConnection(TODBCConnectionDef);
 
 finalization
-
+  UnRegisterConnection(TODBCConnectionDef);
   if Assigned(DefaultEnvironment) then
     DefaultEnvironment.Free;
-
 end.
 

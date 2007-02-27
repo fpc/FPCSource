@@ -72,11 +72,10 @@ type
     FCharSet             : string;
     FRole                : String;
 
-    procedure SetTransaction(Value : TSQLTransaction);
     procedure GetDBInfo(const SchemaType : TSchemaType; const SchemaObjectName, ReturnField : string; List: TStrings);
   protected
     FConnOptions         : TConnOptions;
-
+    procedure SetTransaction(Value : TSQLTransaction);virtual;
     function StrToStatementType(s : string) : TStatementType; virtual;
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
@@ -311,6 +310,68 @@ type
     Property DataBase : TDatabase Read FDatabase Write SetDatabase;
     Property Transaction : TDBTransaction Read FTransaction Write SetTransaction;
   end;
+
+  { TSQLConnector }
+
+  TSQLConnector = Class(TSQLConnection)
+  private
+    FProxy : TSQLConnection;
+    FConnectorType: String;
+    procedure SetConnectorType(const AValue: String);
+  protected
+    procedure SetTransaction(Value : TSQLTransaction);override;
+    procedure DoInternalConnect; override;
+    procedure DoInternalDisconnect; override;
+    Procedure CheckProxy;
+    Procedure CreateProxy; virtual;
+    Procedure FreeProxy; virtual;
+    function StrToStatementType(s : string) : TStatementType; override;
+    function GetAsSQLText(Field : TField) : string; overload; override;
+    function GetAsSQLText(Param : TParam) : string; overload; override;
+    function GetHandle : pointer; override;
+
+    Function AllocateCursorHandle : TSQLCursor; override;
+    Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); override;
+    Function AllocateTransactionHandle : TSQLHandle; override;
+
+    procedure PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams); override;
+    procedure Execute(cursor: TSQLCursor;atransaction:tSQLtransaction; AParams : TParams); override;
+    function Fetch(cursor : TSQLCursor) : boolean; override;
+    procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); override;
+    procedure UnPrepareStatement(cursor : TSQLCursor); override;
+
+    procedure FreeFldBuffers(cursor : TSQLCursor); override;
+    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
+    function GetTransactionHandle(trans : TSQLHandle): pointer; override;
+    function Commit(trans : TSQLHandle) : boolean; override;
+    function RollBack(trans : TSQLHandle) : boolean; override;
+    function StartdbTransaction(trans : TSQLHandle; aParams : string) : boolean; override;
+    procedure CommitRetaining(trans : TSQLHandle); override;
+    procedure RollBackRetaining(trans : TSQLHandle); override;
+    procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
+    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
+    procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
+    Property Proxy : TSQLConnection Read FProxy;
+  Published
+    Property ConnectorType : String Read FConnectorType Write SetConnectorType;
+  end;
+
+  TSQLConnectionClass = Class of TSQLConnection;
+
+  { TConnectionDef }
+
+  TConnectionDef = Class(TPersistent)
+    Class Function TypeName : String; virtual;
+    Class Function ConnectionClass : TSQLConnectionClass; virtual;
+    Class Function Description : String; virtual;
+    Procedure ApplyParams(Params : TStrings; AConnection : TSQLConnection); virtual;
+  end;
+  TConnectionDefClass = class of TConnectionDef;
+
+Procedure RegisterConnection(Def : TConnectionDefClass);
+Procedure UnRegisterConnection(Def : TConnectionDefClass);
+Procedure UnRegisterConnection(ConnectionName : String);
+Procedure GetConnectionList(List : TSTrings);
 
 implementation
 
@@ -1426,4 +1487,342 @@ begin
   until pBufPos^ = #0;
 end;
 
+{ Connection definitions }
+
+Var
+  ConnDefs : TStringList;
+
+Procedure CheckDefs;
+
+begin
+  If (ConnDefs=Nil) then
+    begin
+    ConnDefs:=TStringList.Create;
+    ConnDefs.Sorted:=True;
+    ConnDefs.Duplicates:=dupError;
+    end;
+end;
+
+Procedure DoneDefs;
+
+Var
+  I : Integer;
+
+
+begin
+  If Assigned(ConnDefs) then
+    begin
+    For I:=ConnDefs.Count-1 downto 0 do
+      begin
+      ConnDefs.Objects[i].Free;
+      ConnDefs.Delete(I);
+      end;
+    FreeAndNil(ConnDefs);
+    end;
+end;
+
+
+Function GetConnectionDef(ConnectorName : String) : TConnectionDef;
+
+Var
+  I : Integer;
+
+begin
+  CheckDefs;
+  I:=ConnDefs.IndexOf(ConnectorName);
+  If (I<>-1) then
+    Result:=TConnectionDef(ConnDefs.Objects[i])
+  else
+    Result:=Nil;
+end;
+
+procedure RegisterConnection(Def: TConnectionDefClass);
+
+Var
+  I : Integer;
+
+begin
+  CheckDefs;
+  I:=ConnDefs.IndexOf(Def.TypeName);
+  If (I=-1) then
+    ConnDefs.AddObject(Def.TypeName,Def.Create)
+  else
+    begin
+    ConnDefs.Objects[I].Free;
+    ConnDefs.Objects[I]:=Def.Create;
+    end;
+end;
+
+procedure UnRegisterConnection(Def: TConnectionDefClass);
+begin
+  UnRegisterConnection(Def.TypeName);
+end;
+
+procedure UnRegisterConnection(ConnectionName: String);
+
+Var
+  I : Integer;
+
+begin
+  if (ConnDefs<>Nil) then
+    begin
+    I:=ConnDefs.IndexOf(ConnectionName);
+    If (I<>-1) then
+      begin
+      ConnDefs.Objects[I].Free;
+      ConnDefs.Delete(I);
+      end;
+    end;
+end;
+
+procedure GetConnectionList(List: TSTrings);
+begin
+  CheckDefs;
+  List.Text:=ConnDefs.Text;
+end;
+
+{ TSQLConnector }
+
+procedure TSQLConnector.SetConnectorType(const AValue: String);
+begin
+  if FConnectorType<>AValue then
+    begin
+    CheckDisconnected;
+    If Assigned(FProxy) then
+      FreeProxy;
+    FConnectorType:=AValue;
+    end;
+end;
+
+procedure TSQLConnector.SetTransaction(Value: TSQLTransaction);
+begin
+  inherited SetTransaction(Value);
+  If Assigned(FProxy) and (FProxy.Transaction<>Value) then
+    FProxy.Transaction:=Value;
+end;
+
+procedure TSQLConnector.DoInternalConnect;
+
+Var
+  D : TConnectionDef;
+
+begin
+  inherited DoInternalConnect;
+  CreateProxy;
+  FProxy.DatabaseName:=Self.DatabaseName;
+  FProxy.HostName:=Self.HostName;
+  FProxy.UserName:=Self.UserName;
+  FProxy.Password:=Self.Password;
+  FProxy.Transaction:=Self.Transaction;
+  D:=GetConnectionDef(ConnectorType);
+  D.ApplyParams(Params,FProxy);
+  FProxy.Connected:=True;
+end;
+
+procedure TSQLConnector.DoInternalDisconnect;
+begin
+  FProxy.Connected:=False;
+  inherited DoInternalDisconnect;
+end;
+
+procedure TSQLConnector.CheckProxy;
+begin
+  If (FProxy=Nil) then
+    CreateProxy;
+end;
+
+procedure TSQLConnector.CreateProxy;
+
+Var
+  D : TConnectionDef;
+
+begin
+  D:=GetConnectionDef(ConnectorType);
+  If (D=Nil) then
+    DatabaseErrorFmt(SErrUnknownConnectorType,[ConnectorType],Self);
+  FProxy:=D.ConnectionClass.Create(Self);
+end;
+
+procedure TSQLConnector.FreeProxy;
+begin
+  FProxy.Connected:=False;
+  FreeAndNil(FProxy);
+end;
+
+function TSQLConnector.StrToStatementType(s: string): TStatementType;
+begin
+  CheckProxy;
+  Result:=FProxy.StrToStatementType(s);
+end;
+
+function TSQLConnector.GetAsSQLText(Field: TField): string;
+begin
+  CheckProxy;
+  Result:=FProxy.GetAsSQLText(Field);
+end;
+
+function TSQLConnector.GetAsSQLText(Param: TParam): string;
+begin
+  CheckProxy;
+  Result:=FProxy.GetAsSQLText(Param);
+end;
+
+function TSQLConnector.GetHandle: pointer;
+begin
+  CheckProxy;
+  Result:=FProxy.GetHandle;
+end;
+
+function TSQLConnector.AllocateCursorHandle: TSQLCursor;
+begin
+  CheckProxy;
+  Result:=FProxy.AllocateCursorHandle;
+end;
+
+procedure TSQLConnector.DeAllocateCursorHandle(var cursor: TSQLCursor);
+begin
+  CheckProxy;
+  FProxy.DeAllocateCursorHandle(cursor);
+end;
+
+function TSQLConnector.AllocateTransactionHandle: TSQLHandle;
+begin
+  CheckProxy;
+  Result:=FProxy.AllocateTransactionHandle;
+end;
+
+procedure TSQLConnector.PrepareStatement(cursor: TSQLCursor;
+  ATransaction: TSQLTransaction; buf: string; AParams: TParams);
+begin
+  CheckProxy;
+  FProxy.PrepareStatement(cursor, ATransaction, buf, AParams);
+end;
+
+procedure TSQLConnector.Execute(cursor: TSQLCursor;
+  atransaction: tSQLtransaction; AParams: TParams);
+begin
+  CheckProxy;
+  FProxy.Execute(cursor, atransaction, AParams);
+end;
+
+function TSQLConnector.Fetch(cursor: TSQLCursor): boolean;
+begin
+  CheckProxy;
+  Result:=FProxy.Fetch(cursor);
+end;
+
+procedure TSQLConnector.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TfieldDefs
+  );
+begin
+  CheckProxy;
+  FProxy.AddFieldDefs(cursor, FieldDefs);
+end;
+
+procedure TSQLConnector.UnPrepareStatement(cursor: TSQLCursor);
+begin
+  CheckProxy;
+  FProxy.UnPrepareStatement(cursor);
+end;
+
+procedure TSQLConnector.FreeFldBuffers(cursor: TSQLCursor);
+begin
+  CheckProxy;
+  FProxy.FreeFldBuffers(cursor);
+end;
+
+function TSQLConnector.LoadField(cursor: TSQLCursor; FieldDef: TfieldDef;
+  buffer: pointer; out CreateBlob: boolean): boolean;
+begin
+  CheckProxy;
+  Result:=FProxy.LoadField(cursor, FieldDef, buffer, CreateBlob);
+end;
+
+function TSQLConnector.GetTransactionHandle(trans: TSQLHandle): pointer;
+begin
+  CheckProxy;
+  Result:=FProxy.GetTransactionHandle(trans);
+end;
+
+function TSQLConnector.Commit(trans: TSQLHandle): boolean;
+begin
+  CheckProxy;
+  Result:=FProxy.Commit(trans);
+end;
+
+function TSQLConnector.RollBack(trans: TSQLHandle): boolean;
+begin
+  CheckProxy;
+  Result:=FProxy.RollBack(trans);
+end;
+
+function TSQLConnector.StartdbTransaction(trans: TSQLHandle; aParams: string
+  ): boolean;
+begin
+  CheckProxy;
+  Result:=FProxy.StartdbTransaction(trans, aParams);
+end;
+
+procedure TSQLConnector.CommitRetaining(trans: TSQLHandle);
+begin
+  CheckProxy;
+  FProxy.CommitRetaining(trans);
+end;
+
+procedure TSQLConnector.RollBackRetaining(trans: TSQLHandle);
+begin
+  CheckProxy;
+  FProxy.RollBackRetaining(trans);
+end;
+
+procedure TSQLConnector.UpdateIndexDefs(var IndexDefs: TIndexDefs;
+  TableName: string);
+begin
+  CheckProxy;
+  FProxy.UpdateIndexDefs(IndexDefs, TableName);
+end;
+
+function TSQLConnector.GetSchemaInfoSQL(SchemaType: TSchemaType;
+  SchemaObjectName, SchemaPattern: string): string;
+begin
+  CheckProxy;
+  Result:=FProxy.GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaPattern
+    );
+end;
+
+procedure TSQLConnector.LoadBlobIntoBuffer(FieldDef: TFieldDef;
+  ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction: TSQLTransaction);
+begin
+  CheckProxy;
+  FProxy.LoadBlobIntoBuffer(FieldDef, ABlobBuf, cursor, ATransaction);
+end;
+
+
+{ TConnectionDef }
+
+
+class function TConnectionDef.TypeName: String;
+begin
+  Result:='';
+end;
+
+class function TConnectionDef.ConnectionClass: TSQLConnectionClass;
+begin
+  Result:=Nil;
+end;
+
+class function TConnectionDef.Description: String;
+begin
+  Result:='';
+end;
+
+procedure TConnectionDef.ApplyParams(Params: TStrings;
+  AConnection: TSQLConnection);
+begin
+  AConnection.Params.Assign(Params);
+end;
+
+Initialization
+
+Finalization
+  DoneDefs;
 end.

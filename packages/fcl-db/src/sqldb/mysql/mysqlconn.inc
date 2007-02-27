@@ -9,25 +9,44 @@ uses
 {$IfDef mysql50}
   mysql50dyn;
   {$DEFINE TConnectionName:=TMySQL50Connection}
+  {$DEFINE TMySQLConnectionDef:=TMySQL50ConnectionDef}
   {$DEFINE TTransactionName:=TMySQL50Transaction}
   {$DEFINE TCursorName:=TMySQL50Cursor}
 {$ELSE}
   {$IfDef mysql41}
     mysql41dyn;
     {$DEFINE TConnectionName:=TMySQL41Connection}
+    {$DEFINE TMySQLConnectionDef:=TMySQL41ConnectionDef}
     {$DEFINE TTransactionName:=TMySQL41Transaction}
     {$DEFINE TCursorName:=TMySQL41Cursor}
   {$ELSE}
     {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
       mysql40dyn;
       {$DEFINE TConnectionName:=TMySQLConnection}
+      {$DEFINE TMySQLConnectionDef:=TMySQL40ConnectionDef}
       {$DEFINE TTransactionName:=TMySQLTransaction}
       {$DEFINE TCursorName:=TMySQLCursor}
     {$ELSE}
       mysql40dyn;
       {$DEFINE TConnectionName:=TMySQL40Connection}
+      {$DEFINE TMySQLConnectionDef:=TMySQL40ConnectionDef}
       {$DEFINE TTransactionName:=TMySQL40Transaction}
       {$DEFINE TCursorName:=TMySQL40Cursor}
+    {$EndIf}
+  {$EndIf}
+{$EndIf}
+
+Const
+{$IfDef mysql50}
+  MySQLVersion = '5.0';
+{$ELSE}
+  {$IfDef mysql41}
+    MySQLVersion = '4.1';
+  {$ELSE}
+    {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+      MySQLVersion = '4.0';
+    {$ELSE}
+      MySQLVersion = '4.0';
     {$EndIf}
   {$EndIf}
 {$EndIf}
@@ -115,6 +134,15 @@ Type
     property Params;
     property OnLogin;
   end;
+
+  { TMySQLConnectionDef }
+
+  TMySQLConnectionDef = Class(TConnectionDef)
+    Class Function TypeName : String; override;
+    Class Function ConnectionClass : TSQLConnectionClass; override;
+    Class Function Description : String; override;
+  end;
+
 
   EMySQLError = Class(Exception);
 
@@ -849,4 +877,25 @@ begin
   // Do nothing
 end;
 
+{ TMySQLConnectionDef }
+
+class function TMySQLConnectionDef.TypeName: String;
+begin
+  Result:='MySQL '+MySQLVersion;
+end;
+
+class function TMySQLConnectionDef.ConnectionClass: TSQLConnectionClass;
+begin
+  Result:=TConnectionName;
+end;
+
+class function TMySQLConnectionDef.Description: String;
+begin
+  Result:='Connect to a MySQL '+MySQLVersion+'database directly via the client library';
+end;
+
+initialization
+  RegisterConnection(TMySQLConnectionDef);
+finalization
+  UnRegisterConnection(TMySQLConnectionDef);
 end.

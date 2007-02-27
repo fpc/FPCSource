@@ -101,7 +101,15 @@ type
     property Params;
     property OnLogin;
   end;
-
+  
+  { TIBConnectionDef }
+  
+  TIBConnectionDef = Class(TConnectionDef)
+    Class Function TypeName : String; override;
+    Class Function ConnectionClass : TSQLConnectionClass; override;
+    Class Function Description : String; override;
+  end;
+                  
 implementation
 
 uses strutils;
@@ -1117,4 +1125,26 @@ begin
     CheckError('TIBConnection.CreateBlobStream isc_get_segment', FStatus);
 end;
 
+{ TIBConnectionDef }
+
+class function TIBConnectionDef.TypeName: String;
+begin
+  Result:='Firebird';
+end;
+  
+class function TIBConnectionDef.ConnectionClass: TSQLConnectionClass;
+begin
+  Result:=TIBConnection;
+end;
+    
+class function TIBConnectionDef.Description: String;
+begin
+  Result:='Connect to Firebird/Interbase directly via the client library';
+end;
+
+initialization
+  RegisterConnection(TIBConnectionDef);
+
+finalization
+  UnRegisterConnection(TIBConnectionDef);
 end.

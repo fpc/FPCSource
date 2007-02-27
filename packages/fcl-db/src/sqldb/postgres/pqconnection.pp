@@ -77,6 +77,15 @@ type
     property OnLogin;
   end;
 
+  { TPQConnectionDef }
+
+  TPQConnectionDef = Class(TConnectionDef)
+    Class Function TypeName : String; override;
+    Class Function ConnectionClass : TSQLConnectionClass; override;
+    Class Function Description : String; override;
+  end;
+
+
 implementation
 
 uses math;
@@ -840,4 +849,25 @@ begin
     end;
 end;
 
+{ TPQConnectionDef }
+
+class function TPQConnectionDef.TypeName: String;
+begin
+  Result:='PostGreSQL';
+end;
+
+class function TPQConnectionDef.ConnectionClass: TSQLConnectionClass;
+begin
+  Result:=TPQConnection;
+end;
+
+class function TPQConnectionDef.Description: String;
+begin
+  Result:='Connect to a PostGreSQL database directly via the client library';
+end;
+
+initialization
+  RegisterConnection(TPQConnectionDef);
+finalization
+  UnRegisterConnection(TPQConnectionDef);
 end.

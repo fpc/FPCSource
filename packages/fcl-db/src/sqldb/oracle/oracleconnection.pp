@@ -73,6 +73,12 @@ type
     constructor Create(AOwner : TComponent); override;
   end;
 
+  TOracleConnectionDef = Class(TConnectionDef)
+    Class Function TypeName : String; override;
+    Class Function ConnectionClass : TSQLConnectionClass; override;
+    Class Function Description : String; override;
+  end;
+
 implementation
 
 uses math;
@@ -486,5 +492,26 @@ begin
   FUserMem := nil;
 end;
 
+{ TOracleConnectionDef }
+
+class function TOracleConnectionDef.TypeName: String;
+begin
+  Result:='Oracle';
+end;
+
+class function TOracleConnectionDef.ConnectionClass: TSQLConnectionClass;
+begin
+  Result:=TOracleConnection;
+end;
+
+class function TOracleConnectionDef.Description: String;
+begin
+  Result:='Connect to an Oracle database directly via the client library';
+end;
+
+initialization
+  RegisterConnection(TOracleConnectionDef);
+finalization
+  RegisterConnection(TOracleConnectionDef);
 end.
 
