@@ -3,7 +3,7 @@
 #
 
 [target]
-dirs=base extra fcl-base fcl-db fcl-fpcunit fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml 
+dirs=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 
 [install]
 fpcpackage=y
