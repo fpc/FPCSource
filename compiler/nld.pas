@@ -907,6 +907,8 @@ implementation
         hp    : tarrayconstructornode;
         len   : longint;
         varia : boolean;
+        eq    : tequaltype;
+        hnodetype : tnodetype;
       begin
         result:=nil;
 
@@ -924,6 +926,7 @@ implementation
 
       { only pass left tree, right tree contains next construct if any }
         hdef:=nil;
+        hnodetype:=errorn;
         len:=0;
         varia:=false;
         if assigned(left) then
@@ -934,10 +937,27 @@ implementation
               typecheckpass(hp.left);
               set_varstate(hp.left,vs_read,[vsf_must_be_valid]);
               if (hdef=nil) then
-               hdef:=hp.left.resultdef
+                begin
+                  hdef:=hp.left.resultdef;
+                  hnodetype:=hp.left.nodetype;
+                end
               else
                begin
-                 if (not varia) and (not equal_defs(hdef,hp.left.resultdef)) then
+                 { If we got a niln we don't know the type yet and need to take the
+                   type of the next array element.
+                   This is to handle things like [nil,tclass,tclass], see also tw8371 (PFV) }
+                 if hnodetype=niln then
+                   begin
+                     eq:=compare_defs(hp.left.resultdef,hdef,hnodetype);
+                     if eq>te_incompatible then
+                       begin
+                         hdef:=hp.left.resultdef;
+                         hnodetype:=hp.left.nodetype;
+                       end;
+                   end
+                 else
+                   eq:=compare_defs(hdef,hp.left.resultdef,hp.left.nodetype);
+                 if (not varia) and (eq<te_equal) then
                    begin
                      { If both are integers we need to take the type that can hold both
                        defs }
