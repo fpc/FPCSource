@@ -609,7 +609,7 @@ implementation
                        asmwrite(#9'.lcomm'#9);
                        asmwrite(tai_datablock(hp).sym.name);
                        asmwrite(','+tostr(tai_datablock(hp).size));
-                       if not(target_info.system in [system_arm_linux,system_i386_win32]) then
+                       if not(target_info.system in [system_arm_linux,system_i386_win32,system_arm_wince]) then
                          asmwrite(','+tostr(last_align));
                        asmwriteln('');
                      end
@@ -625,7 +625,7 @@ implementation
                        asmwrite(#9'.comm'#9);
                        asmwrite(tai_datablock(hp).sym.name);
                        asmwrite(','+tostr(tai_datablock(hp).size));
-                       if not(target_info.system in [system_arm_linux,system_i386_win32]) then
+                       if not(target_info.system in [system_arm_linux,system_i386_win32,system_arm_wince]) then
                          asmwrite(','+tostr(last_align));
                        asmwriteln('');
                      end
@@ -634,7 +634,7 @@ implementation
                        asmwrite(#9'.lcomm'#9);
                        asmwrite(tai_datablock(hp).sym.name);
                        asmwrite(','+tostr(tai_datablock(hp).size));
-                       if not(target_info.system in [system_arm_linux,system_i386_win32]) then
+                       if not(target_info.system in [system_arm_linux,system_i386_win32,system_arm_wince]) then
                          asmwrite(','+tostr(last_align));
                        asmwriteln('');
                      end;
