@@ -1225,7 +1225,7 @@ implementation
         SetVariable('FPCDIR',s,false);
         { PACKAGESDIR }
         if GetVariable('PACKAGESDIR',false)='' then
-         SetVariable('PACKAGESDIR','$(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra',false);
+         SetVariable('PACKAGESDIR','$(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra $(FPCDIR)/packages',false);
         { UNITSDIR }
         if GetVariable('UNITSDIR',false)='' then
          SetVariable('UNITSDIR','$(FPCDIR)/units/$(FULLTARGET)',false);
