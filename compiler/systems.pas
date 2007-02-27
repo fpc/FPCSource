@@ -66,6 +66,7 @@ interface
             ,asmmode_x86_64_gas
             ,asmmode_m68k_mot
             ,asmmode_x86_64_intel
+            ,asmmode_x86_64_att
        );
 
      (* IMPORTANT NOTE:

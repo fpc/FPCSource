@@ -67,7 +67,7 @@ const
   { Added to be compatible with i386 }
   asmmode_x86_64_att_info : tasmmodeinfo =
           (
-            id    : asmmode_x86_64_gas;
+            id    : asmmode_x86_64_att;
             idtxt : 'ATT';
             casmreader : tx8664attreader;
           );
