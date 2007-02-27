@@ -73,9 +73,15 @@
 
 {$IFNDEF KYLIX}
   var
+    {$IFDEF WIN32}
+    g_thread_functions_for_glib_use : TGThreadFunctions; external gliblib name 'g_thread_functions_for_glib_use';
+    g_thread_use_default_impl       : gboolean; external gliblib name 'g_thread_use_default_impl';
+    g_threads_got_initialized       : gboolean; external gliblib name 'g_threads_got_initialized';
+    {$ELSE}
     g_thread_functions_for_glib_use : TGThreadFunctions;cvar;external;      // ?????
     g_thread_use_default_impl       : gboolean;cvar;external;
     g_threads_got_initialized       : gboolean;cvar;external;
+    {$ENDIF}
 {$ENDIF}
 
 

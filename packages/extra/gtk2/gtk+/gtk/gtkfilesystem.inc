@@ -332,11 +332,9 @@ begin
    gtk_file_path_copy:=gtk_file_path_new_dup(gtk_file_path_get_string(path));
 end;
 
-function strcmp (str1, str2: pchar): longint; cdecl; external;
-
 function gtk_file_path_compare(path1,path2 : PGtkFilePath) : longint;
 begin
-   gtk_file_path_compare:=strcmp(gtk_file_path_get_string(path1),gtk_file_path_get_string(path2));
+   gtk_file_path_compare:=StrComp(gtk_file_path_get_string(path1),gtk_file_path_get_string(path2));
 end;
 
 

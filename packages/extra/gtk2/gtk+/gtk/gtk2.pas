@@ -132,6 +132,9 @@ type
 
 implementation
 
+uses
+  SysUtils;
+
 {$IFDEF FPC}
 { There is a bug in the compiler. If an external variable is not used, it will
   create code, that can be relocated by the linker.

@@ -178,7 +178,11 @@ function gdk_event_send_client_message_for_display(display:PGdkDisplay; event:PG
 {$IFNDEF KYLIX}
 { Threading }
 var
+  {$IFDEF WIN32}
+  gdk_threads_mutex : PGMutex; external gdklib name 'gdk_threads_mutex';
+  {$ELSE}
   gdk_threads_mutex : PGMutex; cvar; external;
+  {$ENDIF}
 {$ENDIF}
 
 procedure gdk_threads_enter; cdecl; external gdklib;
