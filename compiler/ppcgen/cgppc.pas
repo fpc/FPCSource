@@ -312,26 +312,29 @@ unit cgppc;
       restbits: byte;
     begin
       restbits := (sref.bitlen - (loadbitsize - sref.startbit));
-      a_op_const_reg(list,OP_SHL,OS_INT,restbits,valuereg);
-      { mask other bits }
-      if (sref.bitlen <> AIntBits) then
-        a_op_const_reg(list,OP_AND,OS_INT,(aword(1) shl sref.bitlen)-1,valuereg);
+      if (subsetsize in [OS_S8..OS_S128]) then
+        begin
+         { sign extend }
+         a_op_const_reg(list,OP_SHL,OS_INT,AIntBits-loadbitsize+sref.startbit,valuereg);
+         a_op_const_reg(list,OP_SAR,OS_INT,AIntBits-sref.bitlen,valuereg);
+        end
+      else
+        begin
+          a_op_const_reg(list,OP_SHL,OS_INT,restbits,valuereg);
+          { mask other bits }
+          if (sref.bitlen <> AIntBits) then
+            a_op_const_reg(list,OP_AND,OS_INT,(aword(1) shl sref.bitlen)-1,valuereg);
+        end;
       { use subsetreg routine, it may have been overridden with an optimized version }
       fromsreg.subsetreg := extra_value_reg;
       fromsreg.subsetregsize := OS_INT;
       { subsetregs always count bits from right to left }
-      if (target_info.endian = endian_big) then
-        fromsreg.startbit := loadbitsize-restbits
-      else
-        fromsreg.startbit := 0;
+      fromsreg.startbit := loadbitsize-restbits;
       fromsreg.bitlen := restbits;
   
       tosreg.subsetreg := valuereg;
       tosreg.subsetregsize := OS_INT;
-      if (target_info.endian = endian_big) then
-        tosreg.startbit := 0
-      else
-        tosreg.startbit := loadbitsize-sref.startbit;
+      tosreg.startbit := 0;
       tosreg.bitlen := restbits;
   
       a_load_subsetreg_subsetreg(list,subsetsize,subsetsize,fromsreg,tosreg);

@@ -417,11 +417,17 @@ const
              list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,destreg,
                sreg.subsetreg,(32-sreg.startbit) and 31,32-sreg.bitlen,31));
              { types with a negative lower bound are always a base type (8, 16, 32 bits) }
-             if ((sreg.bitlen mod 8) = 0) then
-               begin
-                 a_load_reg_reg(list,tcgsize2unsigned[subsetsize],subsetsize,destreg,destreg);
-                 a_load_reg_reg(list,subsetsize,tosize,destreg,destreg);
-               end;
+             if (subsetsize in [OS_S8..OS_S128]) then
+               if ((sreg.bitlen mod 8) = 0) then
+                 begin
+                   a_load_reg_reg(list,tcgsize2unsigned[subsetsize],subsetsize,destreg,destreg);
+                   a_load_reg_reg(list,subsetsize,tosize,destreg,destreg);
+                 end
+               else
+                 begin
+                   a_op_const_reg(list,OP_SHL,OS_INT,32-sreg.bitlen,destreg);
+                   a_op_const_reg(list,OP_SAR,OS_INT,32-sreg.bitlen,destreg);
+                 end;
            end
          else
            a_load_reg_reg(list,subsetsize,tosize,sreg.subsetreg,destreg);

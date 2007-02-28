@@ -917,10 +917,12 @@ implementation
 
 {$ifopt r+}
 {$define rangeon}
+{$r-}
 {$endif}
 
 {$ifopt q+}
 {$define overflowon}
+{$q-}
 {$endif}
 
    procedure tcg.a_load_subsetreg_reg(list : TAsmList; subsetsize, tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister);
@@ -930,15 +932,25 @@ implementation
        stopbit: byte;
      begin
        tmpreg:=getintregister(list,sreg.subsetregsize);
-       a_op_const_reg_reg(list,OP_SHR,sreg.subsetregsize,sreg.startbit,sreg.subsetreg,tmpreg);
-       stopbit := sreg.startbit + sreg.bitlen;
-       // on x86(64), 1 shl 32(64) = 1 instead of 0
-       // use aword to prevent overflow with 1 shl 31
-       if (stopbit - sreg.startbit <> AIntBits) then
-         bitmask := (aword(1) shl (stopbit - sreg.startbit)) - 1
+       if (subsetsize in [OS_S8..OS_S128]) then
+         begin
+           { sign extend in case the value has a bitsize mod 8 <> 0 }
+           { both instructions will be optimized away if not        }
+           a_op_const_reg_reg(list,OP_SHL,sreg.subsetregsize,(tcgsize2size[sreg.subsetregsize]*8)-sreg.startbit-sreg.bitlen,sreg.subsetreg,tmpreg);
+           a_op_const_reg(list,OP_SAR,sreg.subsetregsize,(tcgsize2size[sreg.subsetregsize]*8)-sreg.bitlen,tmpreg);
+         end
        else
-         bitmask := high(aword);
-       a_op_const_reg(list,OP_AND,sreg.subsetregsize,aint(bitmask),tmpreg);
+         begin
+           a_op_const_reg_reg(list,OP_SHR,sreg.subsetregsize,sreg.startbit,sreg.subsetreg,tmpreg);
+           stopbit := sreg.startbit + sreg.bitlen;
+           // on x86(64), 1 shl 32(64) = 1 instead of 0
+           // use aword to prevent overflow with 1 shl 31
+           if (stopbit - sreg.startbit <> AIntBits) then
+             bitmask := (aword(1) shl (stopbit - sreg.startbit)) - 1
+           else
+             bitmask := high(aword);
+           a_op_const_reg(list,OP_AND,sreg.subsetregsize,aint(bitmask),tmpreg);
+         end;
        tmpreg := makeregsize(list,tmpreg,subsetsize);
        a_load_reg_reg(list,tcgsize2unsigned[subsetsize],subsetsize,tmpreg,tmpreg);
        a_load_reg_reg(list,subsetsize,tosize,tmpreg,destreg);
@@ -1081,7 +1093,7 @@ implementation
 (*
   Subsetrefs are used for (bit)packed arrays and (bit)packed records stored
   in memory. They are like a regular reference, but contain an extra bit
-  offset (either constant -startbit- or variable -bitindexreg, always OS_INT)
+  offset (either constant -startbit- or variable -bitindexreg-, always OS_INT)
   and a bit length (always constant).
 
   Bit packed values are stored differently in memory depending on whether we
@@ -1101,7 +1113,7 @@ implementation
   the right, but the bits in the next byte are all more significant than
   those in the previous byte (e.g., the 222 in the first byte are the low
   three bits of that value, while the 22 in the second byte are the upper
-  three bits.
+  two bits.
 
   Big endian, 9 bit values:
     11111111 12222222 22333333 33344444 ...
@@ -1171,20 +1183,37 @@ implementation
           begin
             { valuereg contains the upper bits, extra_value_reg the lower }
             restbits := (sref.bitlen - (loadbitsize - sref.startbit));
-            a_op_const_reg(list,OP_SHL,OS_INT,restbits,valuereg);
-            { mask other bits }
-            if (sref.bitlen <> AIntBits) then
-              a_op_const_reg(list,OP_AND,OS_INT,aint((aword(1) shl sref.bitlen)-1),valuereg);
+            if (subsetsize in [OS_S8..OS_S128]) then
+              begin
+                { sign extend }
+                a_op_const_reg(list,OP_SHL,OS_INT,AIntBits-loadbitsize+sref.startbit,valuereg);
+                a_op_const_reg(list,OP_SAR,OS_INT,AIntBits-sref.bitlen,valuereg);
+              end
+            else
+              begin
+                a_op_const_reg(list,OP_SHL,OS_INT,restbits,valuereg);
+                { mask other bits }
+                if (sref.bitlen <> AIntBits) then
+                  a_op_const_reg(list,OP_AND,OS_INT,aint((aword(1) shl sref.bitlen)-1),valuereg);
+              end;
             a_op_const_reg(list,OP_SHR,OS_INT,loadbitsize-restbits,extra_value_reg)
           end
         else
           begin
             { valuereg contains the lower bits, extra_value_reg the upper }
             a_op_const_reg(list,OP_SHR,OS_INT,sref.startbit,valuereg);
-            a_op_const_reg(list,OP_SHL,OS_INT,loadbitsize-sref.startbit,extra_value_reg);
-            { mask other bits }
-            if (sref.bitlen <> AIntBits) then
-              a_op_const_reg(list,OP_AND,OS_INT,aint((aword(1) shl sref.bitlen)-1),extra_value_reg);
+            if (subsetsize in [OS_S8..OS_S128]) then
+              begin
+                a_op_const_reg(list,OP_SHL,OS_INT,AIntBits-sref.bitlen+loadbitsize-sref.startbit,extra_value_reg);
+                a_op_const_reg(list,OP_SAR,OS_INT,AIntBits-sref.bitlen,extra_value_reg);
+              end
+            else
+              begin
+                a_op_const_reg(list,OP_SHL,OS_INT,loadbitsize-sref.startbit,extra_value_reg);
+                { mask other bits }
+                if (sref.bitlen <> AIntBits) then
+                  a_op_const_reg(list,OP_AND,OS_INT,aint((aword(1) shl sref.bitlen)-1),extra_value_reg);
+              end;
           end;
         { merge }
         a_op_reg_reg(list,OP_OR,OS_INT,extra_value_reg,valuereg);
@@ -1203,10 +1232,18 @@ implementation
 
             { get the data in valuereg in the right place }
             a_op_reg_reg(list,OP_SHL,OS_INT,sref.bitindexreg,valuereg);
-            a_op_const_reg(list,OP_SHR,OS_INT,loadbitsize-sref.bitlen,valuereg);
-            if (loadbitsize <> AIntBits) then
-              { mask left over bits }
-              a_op_const_reg(list,OP_AND,OS_INT,aint((aword(1) shl sref.bitlen)-1),valuereg);
+            if (subsetsize in [OS_S8..OS_S128]) then
+              begin
+                a_op_const_reg(list,OP_SHL,OS_INT,AIntBits-loadbitsize,valuereg);
+                a_op_const_reg(list,OP_SAR,OS_INT,AIntBits-sref.bitlen,valuereg)
+              end
+            else
+              begin
+                a_op_const_reg(list,OP_SHR,OS_INT,loadbitsize-sref.bitlen,valuereg);
+                if (loadbitsize <> AIntBits) then
+                  { mask left over bits }
+                  a_op_const_reg(list,OP_AND,OS_INT,aint((aword(1) shl sref.bitlen)-1),valuereg);
+              end;
             tmpreg := getintregister(list,OS_INT);
             { the bits in extra_value_reg (if any) start at the most significant bit =>         }
             { extra_value_reg must be shr by (loadbitsize-sref.bitlen)+(loadsize-sref.bitindex) }
@@ -1245,8 +1282,14 @@ implementation
 {$endif x86}
             { merge }
             a_op_reg_reg(list,OP_OR,OS_INT,extra_value_reg,valuereg);
-            { mask other bits }
-            a_op_const_reg(list,OP_AND,OS_INT,aint((aword(1) shl sref.bitlen)-1),valuereg);
+            { sign extend or mask other bits }
+            if (subsetsize in [OS_S8..OS_S128]) then
+              begin
+                a_op_const_reg(list,OP_SHL,OS_INT,AIntBits-sref.bitlen,valuereg);
+                a_op_const_reg(list,OP_SAR,OS_INT,AIntBits-sref.bitlen,valuereg);
+              end
+            else
+              a_op_const_reg(list,OP_AND,OS_INT,aint((aword(1) shl sref.bitlen)-1),valuereg);
           end;
       end;
 
@@ -1292,12 +1335,27 @@ implementation
                 if (target_info.endian = endian_big) then
                   begin
                     a_op_reg_reg(list,OP_SHL,OS_INT,sref.bitindexreg,valuereg);
-                    a_op_const_reg(list,OP_SHR,OS_INT,loadbitsize-sref.bitlen,valuereg);
+                    if (subsetsize in [OS_S8..OS_S128]) then
+                      begin
+                        { sign extend to entire register }
+                        a_op_const_reg(list,OP_SHL,OS_INT,AIntBits-loadbitsize,valuereg);
+                        a_op_const_reg(list,OP_SAR,OS_INT,AIntBits-sref.bitlen,valuereg);
+                      end
+                    else
+                      a_op_const_reg(list,OP_SHR,OS_INT,loadbitsize-sref.bitlen,valuereg);
                   end
                 else
-                  a_op_reg_reg(list,OP_SHR,OS_INT,sref.bitindexreg,valuereg);
-                { mask other bits }
-                a_op_const_reg(list,OP_AND,OS_INT,aint((aword(1) shl sref.bitlen)-1),valuereg);
+                  begin
+                    a_op_reg_reg(list,OP_SHR,OS_INT,sref.bitindexreg,valuereg);
+                    if (subsetsize in [OS_S8..OS_S128]) then
+                      begin
+                        a_op_const_reg(list,OP_SHL,OS_INT,AIntBits-sref.bitlen,valuereg);
+                        a_op_const_reg(list,OP_SAR,OS_INT,AIntBits-sref.bitlen,valuereg);
+                      end
+                  end;
+                { mask other bits/sign extend }
+                if not(subsetsize in [OS_S8..OS_S128]) then
+                  a_op_const_reg(list,OP_AND,OS_INT,aint((aword(1) shl sref.bitlen)-1),valuereg);
               end
           end
         else
@@ -1320,22 +1378,11 @@ implementation
           end;
 
         { store in destination }
-          { (types with a negative lower bound are always a base type (8, 16, 32, 64 bits) }
-        if ((sref.bitlen mod 8) = 0) then
-          begin
-            { since we know all necessary bits are already masked, avoid unnecessary }
-            { zero-extensions                                                        }
-            valuereg := makeregsize(list,valuereg,tosize);
-            a_load_reg_reg(list,tcgsize2unsigned[tosize],tosize,valuereg,destreg)
-          end
-        else
-          begin
-            { avoid unnecessary sign extension and zeroing }
-            valuereg := makeregsize(list,valuereg,OS_INT);
-            destreg := makeregsize(list,destreg,OS_INT);
-            a_load_reg_reg(list,OS_INT,OS_INT,valuereg,destreg);
-            destreg := makeregsize(list,destreg,tosize);
-          end
+        { avoid unnecessary sign extension and zeroing }
+        valuereg := makeregsize(list,valuereg,OS_INT);
+        destreg := makeregsize(list,destreg,OS_INT);
+        a_load_reg_reg(list,OS_INT,OS_INT,valuereg,destreg);
+        destreg := makeregsize(list,destreg,tosize);
       end;
 
 
@@ -1541,16 +1588,14 @@ implementation
                     if (target_info.endian = endian_big) then
                       begin
                         a_op_const_reg(list,OP_SHL,OS_INT,loadbitsize-sref.bitlen,tmpreg);
-                        if not(slopt in [SL_REGNOSRCMASK,SL_SETMAX]) and
-                           (loadbitsize <> AIntBits) then
+                        if not(slopt in [SL_REGNOSRCMASK,SL_SETMAX]) then
                           { mask left over bits }
                           a_op_const_reg(list,OP_AND,OS_INT,aint(((aword(1) shl sref.bitlen)-1) shl (loadbitsize-sref.bitlen)),tmpreg);
                         a_op_reg_reg(list,OP_SHR,OS_INT,sref.bitindexreg,tmpreg);
                       end
                     else
                       begin
-                        if not(slopt in [SL_REGNOSRCMASK,SL_SETMAX]) and
-                           (loadbitsize <> AIntBits) then
+                        if not(slopt in [SL_REGNOSRCMASK,SL_SETMAX]) then
                           { mask left over bits }
                           a_op_const_reg(list,OP_AND,OS_INT,aint((aword(1) shl sref.bitlen)-1),tmpreg);
                         a_op_reg_reg(list,OP_SHL,OS_INT,sref.bitindexreg,tmpreg);
@@ -1669,11 +1714,14 @@ implementation
         tmpreg: tregister;
         slopt: tsubsetloadopt;
       begin
+        { perform masking of the source value in advance }
         slopt := SL_REGNOSRCMASK;
+        if (sref.bitlen <> AIntBits) then
+          aword(a) := aword(a) and ((aword(1) shl sref.bitlen) -1); 
         if (
             { broken x86 "x shl regbitsize = x" }
             ((sref.bitlen <> AIntBits) and
-             (aword(a) = (aword(1) shl sref.bitlen) -1)) or
+             ((aword(a) and ((aword(1) shl sref.bitlen) -1)) = (aword(1) shl sref.bitlen) -1)) or
             ((sref.bitlen = AIntBits) and
              (a = -1))
            ) then
