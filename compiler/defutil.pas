@@ -437,7 +437,7 @@ implementation
       begin
          case def.typ of
            orddef :
-             result:=(torddef(def).ordtype in [s8bit,s16bit,s32bit,s64bit,scurrency]);
+             result:=torddef(def).low < 0;
            enumdef :
              result:=tenumdef(def).min < 0;
            arraydef :
