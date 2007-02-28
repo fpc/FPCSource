@@ -42,12 +42,26 @@ Type
 Function Sysinfo(var Info:TSysinfo):Boolean; {$ifdef FPC_USE_LIBC} cdecl; external name 'sysinfo'; {$endif}
 
 Const
-  CSIGNAL       = $000000ff; // signal mask to be sent at exit
-  CLONE_VM      = $00000100; // set if VM shared between processes
-  CLONE_FS      = $00000200; // set if fs info shared between processes
-  CLONE_FILES   = $00000400; // set if open files shared between processes
-  CLONE_SIGHAND = $00000800; // set if signal handlers shared
-  CLONE_PID     = $00001000; // set if pid shared
+  CSIGNAL              = $000000ff; // signal mask to be sent at exit
+  CLONE_VM             = $00000100; // set if VM shared between processes
+  CLONE_FS             = $00000200; // set if fs info shared between processes
+  CLONE_FILES          = $00000400; // set if open files shared between processes
+  CLONE_SIGHAND        = $00000800; // set if signal handlers shared
+  CLONE_PID            = $00001000; // set if pid shared
+  CLONE_PTRACE         = $00002000; // Set if tracing continues on the child.
+  CLONE_VFORK          = $00004000; // Set if the parent wants the child to wake it up on mm_release.
+  CLONE_PARENT         = $00008000; // Set if we want to have the same parent as the cloner.
+  CLONE_THREAD         = $00010000; // Set to add to same thread group.
+  CLONE_NEWNS          = $00020000; // Set to create new namespace.
+  CLONE_SYSVSEM        = $00040000; // Set to shared SVID SEM_UNDO semantics.
+  CLONE_SETTLS         = $00080000; // Set TLS info.
+  CLONE_PARENT_SETTID  = $00100000; // Store TID in userlevel buffer before MM copy.
+  CLONE_CHILD_CLEARTID = $00200000; // Register exit futex and memory location to clear.
+  CLONE_DETACHED       = $00400000; // Create clone detached.
+  CLONE_UNTRACED       = $00800000; // Set if the tracing process can't force CLONE_PTRACE on this clone.
+  CLONE_CHILD_SETTID   = $01000000; // Store TID in userlevel buffer in the child.
+  CLONE_STOPPED        = $02000000; // Start in stopped state.
+
 
   EPOLLIN  = $01; { The associated file is available for read(2) operations. }
   EPOLLPRI = $02; { There is urgent data available for read(2) operations. }

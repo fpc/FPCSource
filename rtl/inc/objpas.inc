@@ -745,7 +745,8 @@
 
       begin
          NewInstance:=inherited NewInstance;
-         TInterfacedObject(NewInstance).frefcount:=1;
+         if NewInstance<>nil then
+           TInterfacedObject(NewInstance).frefcount:=1;
       end;
       
 {****************************************************************************
