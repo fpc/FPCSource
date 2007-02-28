@@ -1331,21 +1331,23 @@ implementation
 
     function tenumdef.packedbitsize: aint;
       var
+        sizeval: tconstexprint;
         power: longint;
       begin
         result := 0;
-        if (minval < 0) then
-          result := inherited packedbitsize
+        if (minval >= 0) and
+           (maxval <= 1) then
+          result := 1
         else
           begin
-            if (maxval <= 1) then
-              result := 1
+            if (minval>=0) then
+              sizeval:=maxval
             else
-              begin
-                { 256 must become 512 etc. }
-                nextpowerof2(maxval+1,power);
-                result := power;
-              end;
+              { don't count 0 twice }
+              sizeval:=(cutils.max(-minval,maxval)*2)-1;
+            { 256 must become 512 etc. }
+            nextpowerof2(sizeval+1,power);
+            result := power;
           end;
       end;
 
@@ -1496,26 +1498,32 @@ implementation
 
     function torddef.packedbitsize: aint;
       var
+        sizeval: tconstexprint;
         power: longint;
       begin
         result := 0;
         if ordtype = uvoid then
           exit;
-        if (low < 0) then
-          result := inherited packedbitsize
+
+        if (low >= 0) and
+           (high <= 1) then
+          result := 1
+        else if (ordtype = u64bit) or
+                ((ordtype = s64bit) and
+                 ((low <= (system.low(int64) div 2)) or
+                  (high > (system.high(int64) div 2)))) then
+          result := 64
         else
           begin
-            if (high <= 1) then
-              result := 1
-            else if (ordtype = u64bit) then
-              result := 64
+            if (low>=0) then
+              sizeval:=high
             else
-              begin
-                { 256 must become 512 etc. }
-                nextpowerof2(high+1,power);
-                result := power;
-              end;
-          end;
+              { don't count 0 twice }
+              sizeval:=(cutils.max(-low,high)*2)-1;
+            { 256 must become 512 etc. }
+            nextpowerof2(sizeval+1,power);
+            result := power;
+         end;
       end;
 
 

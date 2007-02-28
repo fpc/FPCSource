@@ -8,7 +8,8 @@ Type TRecord = packed Record
                  a, b, c, d, e, f, g, h, i: Boolean
                end;
 
-Var ARecord:TRecord = (False, True, True, True, False, True, False, False, True);
+Var ARecord:TRecord = (a: False; b: True; c: True; d: True; e: False;
+                       f: True; g: False; h: False; i: True);
     s: Integer;
 
 Implementation
