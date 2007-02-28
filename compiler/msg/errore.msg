@@ -1128,9 +1128,9 @@ parser_f_no_anonymous_specializations=03232_F_Anonymous generic specializations 
 % var
 %   MyLinkedList: TMyLinkedList
 % \end{verbatim}
-% \end{description}
 parser_e_initialized_not_for_external=03233_E_Cannot initialize variables declared as external
 % Variables declared as external can not be initialized with a default value.
+% \end{description}
 #
 # Type Checking
 #
