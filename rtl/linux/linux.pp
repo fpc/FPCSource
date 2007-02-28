@@ -63,6 +63,40 @@ Const
   CLONE_STOPPED        = $02000000; // Start in stopped state.
 
 
+  FUTEX_WAIT            = 0;
+  FUTEX_WAKE            = 1;
+  FUTEX_FD              = 2;
+  FUTEX_REQUEUE         = 3;
+  FUTEX_CMP_REQUEUE     = 4;
+  FUTEX_WAKE_OP         = 5;
+  FUTEX_LOCK_PI         = 6;
+  FUTEX_UNLOCK_PI       = 7;
+  FUTEX_TRYLOCK_PI      = 8;
+
+  FUTEX_OP_SET          = 0;   // *(int *)UADDR2 = OPARG;
+  FUTEX_OP_ADD          = 1;   // *(int *)UADDR2 += OPARG;
+  FUTEX_OP_OR           = 2;   // *(int *)UADDR2 |= OPARG;
+  FUTEX_OP_ANDN         = 3;   // *(int *)UADDR2 &= ~OPARG;
+  FUTEX_OP_XOR          = 4;   // *(int *)UADDR2 ^= OPARG;
+
+  FUTEX_OP_OPARG_SHIFT  = 8;   // Use (1 << OPARG) instead of OPARG.
+
+  FUTEX_OP_CMP_EQ       = 0;   // if (oldval == CMPARG) wake
+  FUTEX_OP_CMP_NE       = 1;   // if (oldval != CMPARG) wake
+  FUTEX_OP_CMP_LT       = 2;   // if (oldval < CMPARG) wake
+  FUTEX_OP_CMP_LE       = 3;   // if (oldval <= CMPARG) wake
+  FUTEX_OP_CMP_GT       = 4;   // if (oldval > CMPARG) wake
+  FUTEX_OP_CMP_GE       = 5;   // if (oldval >= CMPARG) wake
+
+{ FUTEX_WAKE_OP will perform atomically
+   int oldval = *(int *)UADDR2;
+   *(int *)UADDR2 = oldval OP OPARG;
+   if (oldval CMP CMPARG)
+     wake UADDR2; }
+
+function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; inline;
+
+const
   EPOLLIN  = $01; { The associated file is available for read(2) operations. }
   EPOLLPRI = $02; { There is urgent data available for read(2) operations. }
   EPOLLOUT = $04; { The associated file is available for write(2) operations. }
@@ -247,6 +281,11 @@ begin
   end;
   *)
 {$endif cpum68k}
+end;
+
+function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; inline;
+begin
+  FUTEX_OP := ((op and $F) shl 28) or ((cmp and $F) shl 24) or ((oparg and $FFF) shl 12) or (cmparg and $FFF);
 end;
 
 function epoll_create(size: cint): cint;
