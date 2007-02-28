@@ -94,6 +94,7 @@ Resourcestring
   SIndexFieldMissing       = 'Cannot access index field ''%s''';
   SNoFieldIndexes          = 'No index currently active';
   SNotIndexField           = 'Field ''%s'' is not indexed and cannot be modified';
+  SErrUnknownConnectorType = 'Unknown connector type';
 
 
 Implementation
