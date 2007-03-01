@@ -19,6 +19,7 @@ var
 procedure tc.execute;
 begin
   { avoid deadlocks/bugs from causing this test to never quit }
+  waiting:=true;
   sleep(1000*20);
   halt(1);
 end;
@@ -26,7 +27,7 @@ end;
 
 begin
   tc.create(false);
-  event := BasicEventCreate(nil,false,false,'bla');;
+  event := BasicEventCreate(nil,false,false,'bla');
   basiceventSetEvent(event);
   if (basiceventWaitFor(cardinal(-1),event) <> 0) then
     begin
@@ -43,4 +44,7 @@ begin
       writeln('error');
       halt(1);
     end;
+  BasicEventDestroy(event);
+  while not waiting do
+    sleep(10);
 end.
