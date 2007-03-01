@@ -94,7 +94,7 @@ Const
    if (oldval CMP CMPARG)
      wake UADDR2; }
 
-function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; inline;
+function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {inline;}
 
 const
   EPOLLIN  = $01; { The associated file is available for read(2) operations. }
@@ -283,7 +283,7 @@ begin
 {$endif cpum68k}
 end;
 
-function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; inline;
+function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint;
 begin
   FUTEX_OP := ((op and $F) shl 28) or ((cmp and $F) shl 24) or ((oparg and $FFF) shl 12) or (cmparg and $FFF);
 end;

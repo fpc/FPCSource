@@ -159,6 +159,11 @@ const
   MAP_FIXED     = $10;         { Interpret addr exactly }
 //  MAP_ANONYMOUS = $20;         { don't use a file }
 
+{ Flags to `msync'.  }
+  MS_ASYNC        = 1;               { Sync memory asynchronously.  }
+  MS_SYNC         = 4;               { Synchronous memory sync.  }
+  MS_INVALIDATE   = 2;               { Invalidate the caches.  }
+
 {$ifdef Linux}
   MAP_GROWSDOWN  = $100;       { stack-like segment }
   MAP_DENYWRITE  = $800;       { ETXTBSY }
