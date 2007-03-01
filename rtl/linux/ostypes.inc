@@ -67,7 +67,7 @@ TYPE
                {$endif}
                end;
   TUtsName   = UtsName;
-  PUtsName   = TUtsName;
+  PUtsName   = ^TUtsName;
 
 
 { Definition of (kernel) stat type }
