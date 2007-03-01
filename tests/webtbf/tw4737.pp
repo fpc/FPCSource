@@ -1,5 +1,7 @@
 { %fail }
-{ %OPT=-Seh -vh}
+{ %OPT=-Sewnh -vh}
+{ changed -Seh to -Sewnh because -Cr option
+  changes the hint into a warning PM }
 
 var a:int64;
 i:integer;
