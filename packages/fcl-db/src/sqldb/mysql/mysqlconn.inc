@@ -831,11 +831,11 @@ begin
     If Name = 'PRIMARY' then options := options + [ixPrimary];
     If qry.fieldbyname('Non_unique').asinteger = 0 then options := options + [ixUnique];
     qry.next;
-{    while (name = qry.fields[0].asstring) and (not qry.eof) do
+    while (name = trim(qry.fieldbyname('Key_name').asstring)) and (not qry.eof) do
       begin
-      Fields := Fields + ';' + trim(qry.Fields[2].asstring);
+      Fields := Fields + ';' + trim(qry.fieldbyname('Column_name').asstring);
       qry.next;
-      end;}
+      end;
     end;
   qry.close;
   qry.free;
