@@ -775,41 +775,49 @@ begin
 {$ifdef i386}
   {$ifdef cpu86}
     default_target(source_info.system);
+    {$define default_target_set}
   {$else cpu86}
    {$ifdef linux}
     default_target(system_i386_linux);
+    {$define default_target_set}
    {$endif}
    {$ifdef freebsd}
     default_target(system_i386_freebsd);
+    {$define default_target_set}
    {$endif}
    {$ifdef darwin}
     default_target(system_i386_darwin);
+    {$define default_target_set}
    {$endif}
   {$endif cpu86}
+  { default is linux }
+  {$ifndef default_target_set}
+   default_target(system_i386_linux);
+  {$endif default_target_set}
 {$endif i386}
 
 {$ifdef x86_64}
   {$ifdef cpux86_64}
     default_target(source_info.system);
-    {$define source_system_set}
+    {$define default_target_set}
   {$else cpux86_64}
    {$ifdef MSWindows}
     default_target(system_x86_64_win64);
-    {$define source_system_set}
+    {$define default_target_set}
    {$endif}
    {$ifdef linux}
     default_target(system_x86_64_linux);
-    {$define source_system_set}
+    {$define default_target_set}
    {$endif}
    {$ifdef freebsd}
     default_target(system_x86_64_freebsd);
-    {$define source_system_set}
+    {$define default_target_set}
    {$endif}
-   { default is linux }
-   {$ifndef source_system_set}
-    default_target(system_x86_64_linux);
-   {$endif source_system_set}
   {$endif cpux86_64}
+  { default is linux }
+  {$ifndef default_target_set}
+   default_target(system_x86_64_linux);
+  {$endif default_target_set}
 {$endif x86_64}
 
 {$ifdef m68k}
@@ -819,6 +827,7 @@ begin
     default_target(system_m68k_linux);
   {$endif cpu68}
 {$endif m68k}
+
 {$ifdef alpha}
   {$ifdef cpualpha}
     default_target(source_info.system);
@@ -826,25 +835,36 @@ begin
     default_target(system_alpha_linux);
   {$endif cpualpha}
 {$endif alpha}
+
 {$ifdef powerpc}
   {$ifdef cpupowerpc}
     default_target(source_info.system);
+    {$define default_target_set}
   {$else cpupowerpc}
    {$ifdef linux}
     default_target(system_powerpc_linux);
+    {$define default_target_set}
    {$endif}
    {$ifdef darwin}
     default_target(system_powerpc_darwin);
+    {$define default_target_set}
    {$endif}
   {$endif cpupowerpc}
+  {$ifndef default_target_set}
+    default_target(system_powerpc_linux);
+  {$endif default_target_set}
 {$endif powerpc}
+
 {$ifdef POWERPC64}
   {$ifdef cpupowerpc64}
     default_target(source_info.system);
+    {$define default_target_set}
   {$else cpupowerpc64}
     default_target(system_powerpc64_linux);
+    {$define default_target_set}
   {$endif cpupowerpc64}
 {$endif POWERPC64}
+
 {$ifdef sparc}
   {$ifdef cpusparc}
     default_target(source_info.system);
@@ -852,6 +872,7 @@ begin
     default_target(system_sparc_linux);
   {$endif cpusparc}
 {$endif sparc}
+
 {$ifdef arm}
   {$ifdef cpuarm}
     default_target(source_info.system);
