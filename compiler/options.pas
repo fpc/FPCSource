@@ -2281,8 +2281,12 @@ begin
     exclude(init_settings.globalswitches,cs_link_strip);
 
   { force fpu emulation on arm/wince, arm/gba and arm/nds}
-  if target_info.system in [system_arm_wince,system_arm_gba,system_m68k_amiga,
-    system_m68k_linux,system_arm_nds] then
+  if (target_info.system in [system_arm_wince,system_arm_gba,system_m68k_amiga,
+    system_m68k_linux,system_arm_nds])
+{$ifdef arm}
+    or (init_settings.fputype=fpu_soft)
+{$endif arm}
+  then
     include(init_settings.moduleswitches,cs_fp_emulation);
 
 {$ifdef ARM}
