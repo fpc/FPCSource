@@ -19,7 +19,7 @@
 program debugserver;
 
 Uses
-  msgintf,debugserverintf,linux,classes,sysutils,getopts,systemlog;
+  msgintf,debugserverintf,baseunix,classes,sysutils,getopts,systemlog;
 
 resourcestring
   SUnknownOption = 'Unknown option : %s';
@@ -54,13 +54,13 @@ Var
 
 begin
   Result:=0;
-  fd_zero(AFDS);
+  fpfd_zero(AFDS);
   For I:=0 to FClients.Count-1 do
     With TClient(FClients[i]) do
       begin
       If Handle>Result then
         Result:=Handle;
-      fd_set(Handle,AFDS);
+      fpfd_set(Handle,AFDS);
       end;
   Inc(Result);
 end;
@@ -75,13 +75,13 @@ Var
 begin
   Repeat
     maxfds:=GetFDS(ReadFDS);
-    TimeOut.sec:=0;
-    TimeOut.usec:=10000;
-    Maxfds:=Select(maxfds,@ReadFDS,Nil,Nil,@TimeOut);
+    TimeOut.tv_sec:=0;
+    TimeOut.tv_usec:=10000;
+    Maxfds:=fpSelect(maxfds,@ReadFDS,Nil,Nil,@TimeOut);
     If MaxFds>0 then
       begin
       For I:=FClients.Count-1 downto 0 do
-        If FD_IsSet(TClient(FClients[i]).Handle,ReadFDS) then
+        If fpFD_IsSet(TClient(FClients[i]).Handle,ReadFDS)<>0 then
           ReadMessage(TClient(FClients[i]).Handle);
       end;
     // Check for new connection.
@@ -97,7 +97,7 @@ Var
 begin
   tv.tv_sec:=1;
   tv.tv_nsec:=0;
-  nanosleep(tv,tr);
+  fpnanosleep(@tv,@tr);
 end;
 
 Procedure HandleConnections;
@@ -120,15 +120,15 @@ Var
 Procedure HandleSig(Sig : Longint); Cdecl;
 
 Var
-  OH : SignalHandler;
+  OH : Signalhandler;
 
 begin
   Quit:=True;
   Case Sig of
-    SIGHUP  : OH:=OldHUPHandler.handler.sh;
-    SIGTERM : OH:=OldTERMHandler.handler.sh;
-    SIGQUIT : OH:=OldQUITHandler.handler.sh;
-    SIGINT  : OH:=OldINTHandler.handler.sh;
+    SIGHUP  : OH:=signalhandler(OldHUPHandler.sa_handler);
+    SIGTERM : OH:=signalhandler(OldTERMHandler.sa_handler);
+    SIGQUIT : OH:=signalhandler(OldQUITHandler.sa_handler);
+    SIGINT  : OH:=signalhandler(OldINTHandler.sa_handler);
   else
     OH:=Nil;
   end;
@@ -143,12 +143,14 @@ Procedure SetupSignals;
   Var
     Act : SigActionRec;
   begin
-    Act.handler.sh:=@HandleSig;
-    Act.sa_mask:=0;
+    signalhandler(Act.sa_handler):=@HandleSig;
+    fpsigemptyset(act.sa_mask);
     Act.SA_FLAGS:=0;
-    Act.Sa_restorer:=Nil;
-    SigAction(Sig,@Act,@OH);
-    If LinuxError<>0 then
+
+{$ifdef linux} // ???
+     Act.Sa_restorer:=Nil;
+  {$endif}
+    if fpSigAction(Sig,@Act,@OH)=-1 then
       begin
       Writeln(stderr,SErrFailedToSetSignalHandler);
       Halt(1)
@@ -209,7 +211,7 @@ Var
   Prefix : String;
 
 begin
- prefix:=format('DebugServer[%d] ',[GetPID]);
+ prefix:=format('DebugServer[%d] ',[fpGetPID]);
  OpenLog(pchar(prefix),LOG_NOWAIT,LOG_DEBUG);
 end;
 

@@ -23,7 +23,7 @@ interface
 
 uses
 {$ifdef fpc}
-   linux,
+   baseunix,
 {$else}
    Libc,
 {$endif}
@@ -222,7 +222,7 @@ begin
 {$else}
       tv.tv_sec:=1;
       tv.tv_nsec:=0;
-      nanosleep(tv,tr);
+      fpnanosleep(@tv,@tr);
 {$endif}
       end;
 {$ifdef fpc}
@@ -251,7 +251,7 @@ begin
   end;
   Msg.MsgType:=lctIdentify;
   Msg.MsgTimeStamp:=Now;
-  Msg.Msg:=Format(SProcessID,[getPID,ExtractFileName(Paramstr(0))]);
+  Msg.Msg:=Format(SProcessID,[fpgetPID,ExtractFileName(Paramstr(0))]);
   WriteMessage(REsult,Msg);
 end;
 

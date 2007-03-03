@@ -19,7 +19,7 @@ unit debugserverintf;
 Interface
 
 Uses
-  msgintf,linux,classes,sockets,sysutils;
+  msgintf,baseunix,classes,sockets,sysutils;
 
 Const
   MsgTypes : Array[-1..3] of string =
@@ -116,9 +116,9 @@ begin
   FSocket:=Socket(AF_UNIX,SOCK_STREAM,0);
   If FSocket<0 Then
     Raise Exception.Create(SErrSocketFailed);
-  Flags:=FCntl(FSOCket,F_GETFL);
-  Flags:=Flags or Open_NONBLOCK;
-  FCntl(FSocket,F_SETFL,Flags);
+  Flags:=fpFCntl(FSOCket,F_GETFL);
+  Flags:=Flags or O_NONBLOCK;
+  fpFCntl(FSocket,F_SETFL,Flags);
   Str2UnixSockAddr(FFilename,FUnixAddr,AddrLen);
   If Not Bind(FSocket,FUnixAddr,AddrLen) then
      Raise Exception.CreateFmt(SErrBindFailed,[FFileName]);
@@ -165,9 +165,9 @@ begin
   FSocket:=Socket(AF_INET,SOCK_STREAM,0);
   If FSocket<0 Then
     Raise Exception.Create(SErrSocketFailed);
-  Flags:=FCntl(FSocket,F_GETFL);
-  Flags:=Flags or Open_NONBLOCK;
-  FCntl(FSocket,F_SETFL,Flags);
+  Flags:=fpFCntl(FSocket,F_GETFL);
+  Flags:=Flags or O_NONBLOCK;
+  fpFCntl(FSocket,F_SETFL,Flags);
   FInetAddr.Family := AF_INET;
   Writeln('Using port : ',APort);
   FInetAddr.Port := Swap(APort);
@@ -243,7 +243,7 @@ begin
     L:=SizeOf(ClientAddr);
     Result:=Accept(FSocket,ClientAddr,L);
     If (Result<0) Then
-      if (Errno<>SYS_EWOULDBLOCK) then
+      if (Errno<>ESYSEAgain) then
         Raise Exception.CreateFmt(SErrAcceptFailed,[FSocket])
       else
         Result:=-1
