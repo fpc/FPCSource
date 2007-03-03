@@ -4,7 +4,7 @@
 #
 #   Hebrew (UTF-8) language file for Free Pascal Compiler
 #   Contributed by Ido Kanner <idokan at gmail.com> and Dotan Kamber <kamberd at yahoo.com>
-#   Based on errore.msg of SVN revision 6320
+#   Based on errore.msg of SVN revision 6685
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -1114,9 +1114,23 @@ parser_e_type_object_constants=03230_E_השימוש בקבועים של אובי
 % If an object requires a VMT either because it contains a constructor or virtual methods,
 % it's not allowed to create constants of it. In TP and Delphi mode this is allowed
 % for compatibility reasons.
-parser_e_label_outside_proc=03231_E_שימוש בכתובת של תוויות המוכרזות מחוץ למתחם הנוכחי אימו מורשה
+parser_e_label_outside_proc=03231_E_שימוש בכתובת של תוויות המוכרזות מחוץ למתחם הנוכחי אינו מורשה
 % It isn't allowed to take the addresss of labels outside the
 % current procedure.
+parser_f_no_anonymous_specializations=03232_F_פירוט של generic אנונימי אינו מורשה
+% Something like
+% \begin{verbatim}
+% var
+%   MyLinkedList: specialize TLinkedList<TFixedString15>;
+% \end{verbatim}
+% is not allowed. Declare a specialized type first:
+% \begin{verbatim}
+% type
+%   TMyLinkedList = specialize TLinkedList<TFixedString15>;
+% var
+%   MyLinkedList: TMyLinkedList
+parser_e_initialized_not_for_external=03233_E_לא ניתן לאתחל ערך ברירת מחדל למשתנים המוגדרים כexternal
+% Variables declared as external can not be initialized with a default value.
 % \end{description}
 #
 # Type Checking
@@ -1671,6 +1685,9 @@ cg_f_unknown_system_type=06047_F_לא ניתן למצוא טיפוס מערכת 
 % and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
 % that you removed a type which the compiler needs for internal use.
+cg_h_inherited_ignored=06048_H_מתעלם מהשימוש בinherited במתודה מסוג abstract
+% This messages appears only in Delphi mode when you call an abstract method
+% of a parent class via \var{inherited;}. The call is then ignored.
 % \end{description}
 # EndOfTeX
 
@@ -2492,6 +2509,7 @@ S*2Aas_אסוף עם GNU AS
 *g2gg_משתמש ב gsym
 *g2gh_משתמש ביחידה לזיהוי מצבורים (לניפוי שגיאות של דליפות זכרון)
 *g2gl_השתמש ביחידת מידע של שורה להציג מידע נוסף לbacktraces
+*g2gp_משמר גודל שמות סמלי הstabs
 *g2gt_לכלך משתנים מקומיים (לזיהוי מידע לא מאותחל)
 *g2gv_מייצר תוכנות עם יכולת מעקב של valgrind
 *g2gw_מייצר מידע לניפוי שגיאות לdwarf
