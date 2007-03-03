@@ -1824,8 +1824,8 @@ Var
           Inc(Fmt);
           End;
       Else
-        { This was 'if not SQ or DQ'. Looked wrong... }
-        If Not SQ Or DQ Then
+       { if not in quotes, then interpret}
+        If Not (SQ Or DQ) Then
           Begin
           Case Fmt[0] Of
             '0':
@@ -1900,7 +1900,9 @@ Var
           Else { Case }
             Inc(Fmt);
           End; { Case }
-          End; { Begin }
+          End  { Begin }
+        Else
+          Inc(Fmt); 
       End; { Case }
       End; { While .. Begin }
   End;
