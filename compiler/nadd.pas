@@ -1086,7 +1086,17 @@ implementation
                      inserttypeconv(right,tsetdef(ld).elementdef);
                  end
                else
-                 CGMessage(type_e_mismatch)
+                 CGMessage(type_e_mismatch);
+               { ranges require normsets on big endian system }
+               if (target_info.endian=endian_big) and
+                  (tsetdef(ld).size<>32) and
+                  (rt=setelementn) and
+                  assigned(tsetelementnode(right).right) then
+                begin
+                  { generate a temporary normset def, it'll be destroyed
+                    when the symtable is unloaded }
+                  inserttypeconv(left,tsetdef.create(tsetdef(ld).elementdef,255));
+                end;
              end
             else
              begin
@@ -1102,8 +1112,7 @@ implementation
                   else
                     inserttypeconv(right,left.resultdef);
                 end;
-             end;
-
+            end;
           end
          { pointer comparision and subtraction }
          else if (
@@ -2447,6 +2456,7 @@ implementation
                              ccallparanode.create(ctemprefnode.create(temp),
                              ccallparanode.create(left,nil)))))
                            );
+
                          { remove reused parts from original node }
                          tsetelementnode(right).right:=nil;
                          tsetelementnode(right).left:=nil;
