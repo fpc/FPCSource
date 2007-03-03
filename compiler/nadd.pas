@@ -1097,7 +1097,7 @@ implementation
                if (rd.typ=setdef) and
                   not(equal_defs(ld,rd)) then
                 begin
-                  if is_varset(rd) then
+                  if is_varset(rd) or is_normalset(rd) then
                     inserttypeconv(left,right.resultdef)
                   else
                     inserttypeconv(right,left.resultdef);
@@ -1760,7 +1760,9 @@ implementation
         newstatement : tstatementnode;
         temp    : ttempcreatenode;
       begin
-        if is_varset(left.resultdef) or is_varset(right.resultdef) then
+        if (is_varset(left.resultdef) or is_varset(right.resultdef)) and
+          not(is_normalset(left.resultdef)) and
+          not(is_normalset(right.resultdef)) then
           begin
             case nodetype of
               equaln,unequaln,lten,gten:
@@ -2410,7 +2412,7 @@ implementation
            else array constructor can be seen as array of char (PFV) }
          else if (ld.typ=setdef) then
            begin
-             if not(is_varset(ld)) then
+             if not(is_varset(ld)) and not(is_normalset(ld)) then
                begin
                  if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
                    expectloc:=LOC_FLAGS

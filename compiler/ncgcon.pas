@@ -524,7 +524,7 @@ implementation
         else
           indexadjust := 3;
         { small sets are loaded as constants }
-        if not(is_varset(resultdef)) then
+        if not(is_varset(resultdef)) and not(is_normalset(resultdef)) then
          begin
            location_reset(location,LOC_CONSTANT,int_cgsize(resultdef.size));
            location.value:=pLongint(value_set)^;

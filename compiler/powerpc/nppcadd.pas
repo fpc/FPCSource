@@ -778,7 +778,7 @@ interface
              begin
                { normalsets are already handled in pass1 }
                if (tsetdef(left.resultdef).settype<>smallset) then
-                internalerror(200109041);
+                internalerror(200109042);
                second_addsmallset;
                exit;
              end;
@@ -822,7 +822,7 @@ interface
          checkoverflow:=
            (nodetype in [addn,subn,muln]) and
            (cs_check_overflow in current_settings.localswitches) and
-           (left.resultdef.typ<>pointerdef) and 
+           (left.resultdef.typ<>pointerdef) and
            (right.resultdef.typ<>pointerdef);
 
          load_left_right(cmpop, checkoverflow);
