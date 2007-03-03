@@ -39,7 +39,7 @@ function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult;  oldfpccall; exte
 function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; oldfpccall; external name 'FPC_SYSCALL3';
 function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; oldfpccall; external name 'FPC_SYSCALL4';
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  oldfpccall; external name 'FPC_SYSCALL5';
-{$ifdef notsupported}
+{.$ifdef notsupported}
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult;  oldfpccall; external name 'FPC_SYSCALL6';
-{$endif notsupported}
+{.$endif notsupported}
 

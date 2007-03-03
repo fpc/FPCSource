@@ -232,19 +232,22 @@ asm
 .LSyscOK:
 end;
 
-{$ifdef notsupported}
+{.$ifdef notsupported}
 { Only 5 params are pushed, so it'll not work as expected (PFV) }
 function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6 : TSysParam):TSysResult; assembler; oldfpccall;[public,alias:'FPC_SYSCALL6'];
 
 asm
 { load the registers... }
+  push %ebp
   movl sysnr,%eax
   movl param1,%ebx
   movl param2,%ecx
   movl param3,%edx
   movl param4,%esi
   movl param5,%edi
+  movl param6,%ebp
   int $0x80
+  pop  %ebp
   cmpl  $-4095,%eax
   jb   .LSyscOK
   negl  %eax
@@ -271,7 +274,7 @@ asm
   movl  $-1,%eax
 .LSyscOK:
 end;
-{$endif notsupported}
+{.$endif notsupported}
 
 {No debugging for syslinux include !}
 {$IFDEF SYS_LINUX}
