@@ -1880,7 +1880,7 @@ implementation
         s: string;
       begin
          if name = '' then
-           internalerror(2004121201);
+           internalerror(2004121202);
          s:= upper(name);
          mac:=tmacro(search_macro(s));
          if not assigned(mac) then
@@ -1903,7 +1903,7 @@ implementation
         s: string;
       begin
         if name = '' then
-          internalerror(2004121201);
+          internalerror(2004121203);
          s:= upper(name);
          mac:=tmacro(search_macro(s));
          if not assigned(mac) then
@@ -1934,7 +1934,7 @@ implementation
         s: string;
       begin
         if name = '' then
-          internalerror(2004121201);
+          internalerror(2004121204);
          s:= upper(name);
          mac:=tmacro(search_macro(s));
          if not assigned(mac) then
@@ -1966,7 +1966,7 @@ implementation
         s: string;
       begin
          if name = '' then
-           internalerror(2004121201);
+           internalerror(2004121205);
          s:= upper(name);
          mac:=tmacro(search_macro(s));
          if not assigned(mac) then
