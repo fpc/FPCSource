@@ -1359,6 +1359,10 @@ implementation
            if force_init_final then
              finalize_procinfo:=gen_implicit_initfinal(uf_finalize,current_module.localsymtable);
 
+         { all labels must be defined before generating code }
+         if Errorcount=0 then
+           tstoredsymtable(current_module.localsymtable).checklabels;
+
          { See remark in unit init/final }
          main_procinfo.generate_code;
          main_procinfo.resetprocdef;
@@ -1387,7 +1391,6 @@ implementation
              tstoredsymtable(current_module.localsymtable).allsymbolsused;
              tstoredsymtable(current_module.localsymtable).allprivatesused;
              tstoredsymtable(current_module.localsymtable).check_forwards;
-             tstoredsymtable(current_module.localsymtable).checklabels;
              tstoredsymtable(current_module.localsymtable).unchain_overloaded;
 
              current_module.allunitsused;
