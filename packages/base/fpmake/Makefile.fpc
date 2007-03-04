@@ -13,7 +13,7 @@ units=fpmktype fpmkunit
 fpcpackage=y
 
 [default]
-fpcdir=../..
+fpcdir=../../..
 
 [rules]
 .NOTPARALLEL:
