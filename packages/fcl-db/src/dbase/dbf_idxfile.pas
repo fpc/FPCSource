@@ -106,9 +106,11 @@ type
     FLowBracket: Integer;               //  = FLowIndex if FPageNo = FLowPage
     FLowIndex: Integer;
     FLowPage: Integer;
+    FLowPageTemp: Integer;
     FHighBracket: Integer;              //  = FHighIndex if FPageNo = FHighPage
     FHighIndex: Integer;
     FHighPage: Integer;
+    FHighPageTemp: Integer;
 
     procedure LocalInsert(RecNo: Integer; Buffer: PChar; LowerPageNo: Integer);
     procedure LocalDelete;
@@ -164,6 +166,8 @@ type
     procedure RecalcWeight;
     procedure UpdateWeight;
     procedure Flush;
+    procedure SaveBracket;
+    procedure RestoreBracket;
 
     property Key: PChar read GetKeyData;
     property Entry: Pointer read FEntry;
@@ -224,6 +228,7 @@ type
 {$endif}
   protected
     FIndexName: string;
+    FLastError: string;
     FParsers: array[0..MaxIndexes-1] of TDbfIndexParser;
     FIndexHeaders: array[0..MaxIndexes-1] of Pointer;
     FIndexHeaderModified: array[0..MaxIndexes-1] of Boolean;
@@ -242,6 +247,7 @@ type
     FTagOffset: Integer;
     FHeaderPageNo: Integer;
     FSelectedIndex: Integer;
+    FRangeIndex: Integer;
     FIsDescending: Boolean;
     FUniqueMode: TIndexUniqueType;
     FModifyMode: TIndexModifyMode;
@@ -270,6 +276,7 @@ type
     function  GetNewPageNo: Integer;
     procedure TouchHeader(AHeader: Pointer);
     function  CreateTempFile(BaseName: string): TPagedFile;
+    procedure ConstructInsertErrorMsg;
     procedure WriteIndexHeader(AIndex: Integer);
     procedure SelectIndexVars(AIndex: Integer);
     procedure CalcKeyProperties;
@@ -278,11 +285,12 @@ type
     function  CalcTagOffset(AIndex: Integer): Pointer;
 
     function  FindKey(AInsert: boolean): Integer;
-    procedure InsertKey(Buffer: PChar);
+    function  InsertKey(Buffer: PChar): Boolean;
     procedure DeleteKey(Buffer: PChar);
-    procedure InsertCurrent;
+    function  InsertCurrent: Boolean;
     procedure DeleteCurrent;
-    procedure UpdateCurrent(PrevBuffer, NewBuffer: PChar);
+    function  UpdateCurrent(PrevBuffer, NewBuffer: PChar): Boolean;
+    function  UpdateIndex(Index: Integer; PrevBuffer, NewBuffer: PChar): Boolean;
     procedure ReadIndexes;
     procedure Resync(Relative: boolean);
     procedure ResyncRoot;
@@ -329,12 +337,12 @@ type
     procedure AddNewLevel;
     procedure UnlockHeader;
     procedure InsertError;
-    procedure Insert(RecNo: Integer; Buffer: PChar);
-    procedure Update(RecNo: Integer; PrevBuffer, NewBuffer: PChar);
+    function  Insert(RecNo: Integer; Buffer: PChar): Boolean;
+    function  Update(RecNo: Integer; PrevBuffer, NewBuffer: PChar): Boolean;
     procedure Delete(RecNo: Integer; Buffer: PChar);
     function  CheckKeyViolation(Buffer: PChar): Boolean;
     procedure RecordDeleted(RecNo: Integer; Buffer: PChar);
-    procedure RecordRecalled(RecNo: Integer; Buffer: PChar);
+    function  RecordRecalled(RecNo: Integer; Buffer: PChar): Boolean;
     procedure DeleteIndex(const AIndexName: string);
     procedure RepageFile;
     procedure CompactFile;
@@ -345,6 +353,8 @@ type
     function  SearchKey(Key: PChar; SearchType: TSearchKeyType): Boolean;
     function  Find(RecNo: Integer; Buffer: PChar): Integer;
     function  IndexOf(const AIndexName: string): Integer;
+    procedure DisableRange;
+    procedure EnableRange;
 
     procedure GetIndexNames(const AList: TStrings);
     procedure GetIndexInfo(const AIndexName: string; IndexDef: TDbfIndexDef);
@@ -633,7 +643,7 @@ end;
 
 procedure IncIntLE(var AVariable: Integer; Amount: Integer);
 begin
-  AVariable := SwapIntLE(SwapIntLE(AVariable) + Amount);
+  AVariable := SwapIntLE(DWord(Integer(SwapIntLE(AVariable)) + Amount));
 end;
 
 //==========================================================
@@ -656,9 +666,8 @@ begin
   EnumSystemLocales(@LocaleCallBack, LCID_SUPPORTED);
 end;
 
-//==========================================================
-//============ TIndexPage
-//==========================================================
+{ TIndexPage }
+
 constructor TIndexPage.Create(Parent: TIndexFile);
 begin
   FIndexFile := Parent;
@@ -1386,6 +1395,18 @@ begin
     FLowerPage.RecurLast;
 end;
 
+procedure TIndexPage.SaveBracket;
+begin
+  FLowPageTemp := FLowPage;
+  FHighPageTemp := FHighPage;
+end;
+
+procedure TIndexPage.RestoreBracket;
+begin
+  FLowPage := FLowPageTemp;
+  FHighPage := FHighPageTemp;
+end;
+
 //==============================================================================
 //============ Mdx specific access routines
 //==============================================================================
@@ -1733,6 +1754,7 @@ begin
   FUpdateMode := umCurrent;
   FModifyMode := mmNormal;
   FTempMode := TDbfFile(ADbfFile).TempMode;
+  FRangeIndex := -1;
   SelectIndexVars(-1);
   for I := 0 to MaxIndexes - 1 do
   begin
@@ -2772,9 +2794,9 @@ begin
     UnlockPage(0);
 end;
 
-procedure TIndexFile.Insert(RecNo: Integer; Buffer: PChar); {override;}
+function TIndexFile.Insert(RecNo: Integer; Buffer: PChar): Boolean; {override;}
 var
-  I, curSel: Integer;
+  I, curSel, count: Integer;
 begin
   // check if updating all or only current
   FUserRecNo := RecNo;
@@ -2782,15 +2804,28 @@ begin
   begin
     // remember currently selected index
     curSel := FSelectedIndex;
-    for I := 0 to SwapWordLE(PMdxHdr(Header)^.TagsUsed) - 1 do
+    Result := true;
+    I := 0;
+    count := SwapWordLE(PMdxHdr(Header)^.TagsUsed);
+    while I < count do
     begin
       SelectIndexVars(I);
-      InsertKey(Buffer);
+      Result := InsertKey(Buffer);
+      if not Result then
+      begin
+        while I > 0 do
+        begin
+          Dec(I);
+          DeleteKey(Buffer);
+        end;
+        break;
+      end;
+      Inc(I);
     end;
     // restore previous selected index
     SelectIndexVars(curSel);
   end else begin
-    InsertKey(Buffer);
+    Result := InsertKey(Buffer);
   end;
 
   // check range, disabled by insert
@@ -2949,8 +2984,9 @@ begin
     TranslateString(GetACP, FCodePage, Result, Result, KeyLen);
 end;
 
-procedure TIndexFile.InsertKey(Buffer: PChar);
+function TIndexFile.InsertKey(Buffer: PChar): boolean;
 begin
+  Result := true;
   // ignore deleted records
   if (FModifyMode = mmNormal) and (FUniqueMode = iuDistinct) and (Buffer^ = '*') then
     exit;
@@ -2960,16 +2996,17 @@ begin
     // get key from buffer
     FUserKey := ExtractKeyFromBuffer(Buffer);
     // patch through
-    InsertCurrent;
+    Result := InsertCurrent;
   end;
 end;
 
-procedure TIndexFile.InsertCurrent;
+function TIndexFile.InsertCurrent: boolean;
   // insert in current index
   // assumes: FUserKey is an OEM key
 begin
   // only insert if not recalling or mode = distinct
   // modify = mmDeleteRecall /\ unique <> distinct -> key already present
+  Result := true;
   if (FModifyMode <> mmDeleteRecall) or (FUniqueMode = iuDistinct) then
   begin
     // temporarily remove range to find correct location of key
@@ -2989,20 +3026,31 @@ begin
       begin
         // raising -> reset modify mode
         FModifyMode := mmNormal;
-        InsertError;
+        ConstructInsertErrorMsg;
+        Result := false;
       end;
     end;
   end;
 end;
 
-procedure TIndexFile.InsertError;
+procedure TIndexFile.ConstructInsertErrorMsg;
 var
   InfoKey: string;
 begin
-  // prepare info for user
+  if Length(FLastError) > 0 then exit;
   InfoKey := FUserKey;
   SetLength(InfoKey, KeyLen);
-  raise EDbfError.CreateFmt(STRING_KEY_VIOLATION, [GetName, PhysicalRecNo, TrimRight(InfoKey)]);
+  FLastError := Format(STRING_KEY_VIOLATION, [GetName,
+    PhysicalRecNo, TrimRight(InfoKey)]);
+end;
+
+procedure TIndexFile.InsertError;
+var
+  errorStr: string;
+begin
+  errorStr := FLastError;
+  FLastError := '';
+  raise EDbfError.Create(errorStr);
 end;
 
 procedure TIndexFile.Delete(RecNo: Integer; Buffer: PChar);
@@ -3059,9 +3107,15 @@ begin
   end;
 end;
 
-procedure TIndexFile.Update(RecNo: Integer; PrevBuffer, NewBuffer: PChar);
+function TIndexFile.UpdateIndex(Index: Integer; PrevBuffer, NewBuffer: PChar): Boolean;
+begin
+  SelectIndexVars(Index);
+  Result := UpdateCurrent(PrevBuffer, NewBuffer);
+end;
+
+function TIndexFile.Update(RecNo: Integer; PrevBuffer, NewBuffer: PChar): Boolean;
 var
-  I, curSel: Integer;
+  I, curSel, count: Integer;
 begin
   // check if updating all or only current
   FUserRecNo := RecNo;
@@ -3069,42 +3123,60 @@ begin
   begin
     // remember currently selected index
     curSel := FSelectedIndex;
-    for I := 0 to SwapWordLE(PMdxHdr(Header)^.TagsUsed) - 1 do
+    Result := true;
+    I := 0;
+    count := SwapWordLE(PMdxHdr(Header)^.TagsUsed);
+    while I < count do
     begin
-      SelectIndexVars(I);
-      UpdateCurrent(PrevBuffer, NewBuffer);
+      Result := UpdateIndex(I, PrevBuffer, NewBuffer);
+      if not Result then
+      begin
+        // rollback updates to previous indexes
+        while I > 0 do
+        begin
+          Dec(I);
+          UpdateIndex(I, NewBuffer, PrevBuffer);
+        end;
+        break;
+      end;
+      Inc(I);
     end;
     // restore previous selected index
     SelectIndexVars(curSel);
   end else begin
-    UpdateCurrent(PrevBuffer, NewBuffer);
+    Result := UpdateCurrent(PrevBuffer, NewBuffer);
   end;
   // check range, disabled by delete/insert
   if (FRoot.LowPage = 0) and (FRoot.HighPage = 0) then
     ResyncRange(true);
 end;
 
-procedure TIndexFile.UpdateCurrent(PrevBuffer, NewBuffer: PChar);
+function TIndexFile.UpdateCurrent(PrevBuffer, NewBuffer: PChar): boolean;
 var
+  InsertKey, DeleteKey: PChar;
   TempBuffer: array [0..100] of Char;
 begin
+  Result := true;
   if FCanEdit and (PIndexHdr(FIndexHeader)^.KeyLen <> 0) then
   begin
-    // get key from newbuffer
-    FUserKey := ExtractKeyFromBuffer(NewBuffer);
-    Move(FUserKey^, TempBuffer, SwapWordLE(PIndexHdr(FIndexHeader)^.KeyLen));
-    // get key from prevbuffer
-    FUserKey := ExtractKeyFromBuffer(PrevBuffer);
+    DeleteKey := ExtractKeyFromBuffer(PrevBuffer);
+    Move(DeleteKey^, TempBuffer, SwapWordLE(PIndexHdr(FIndexHeader)^.KeyLen));
+    DeleteKey := @TempBuffer[0];
+    InsertKey := ExtractKeyFromBuffer(NewBuffer);
 
     // compare to see if anything changed
-    if CompareKey(@TempBuffer[0]) <> 0 then
+    if CompareKeys(DeleteKey, InsertKey) <> 0 then
     begin
-      // first set userkey to key to delete
-      // FUserKey = KeyFrom(PrevBuffer)
+      FUserKey := DeleteKey;
       DeleteCurrent;
-      // now set userkey to key to insert
-      FUserKey := @TempBuffer[0];
-      InsertCurrent;
+      FUserKey := InsertKey;
+      Result := InsertCurrent;
+      if not Result then
+      begin
+        FUserKey := DeleteKey;
+        InsertCurrent;
+        FUserKey := InsertKey;
+      end;
     end;
   end;
 end;
@@ -3333,11 +3405,11 @@ begin
   FModifyMode := mmNormal;
 end;
 
-procedure TIndexFile.RecordRecalled(RecNo: Integer; Buffer: PChar);
+function TIndexFile.RecordRecalled(RecNo: Integer; Buffer: PChar): Boolean;
 begin
   // are we distinct -> then reinsert record in index
   FModifyMode := mmDeleteRecall;
-  Insert(RecNo, Buffer);
+  Result := Insert(RecNo, Buffer);
   FModifyMode := mmNormal;
 end;
 
@@ -3664,6 +3736,30 @@ begin
   until TempPage = nil;
 end;
 
+procedure TIndexFile.DisableRange;
+var
+  TempPage: TIndexPage;
+begin
+  TempPage := FRoot;
+  repeat
+    TempPage.SaveBracket;
+    TempPage := TempPage.LowerPage;
+  until TempPage = nil;
+  CancelRange;
+end;
+
+procedure TIndexFile.EnableRange;
+var
+  TempPage: TIndexPage;
+begin
+  TempPage := FRoot;
+  repeat
+    TempPage.RestoreBracket;
+    TempPage := TempPage.LowerPage;
+  until TempPage = nil;
+  FRangeActive := true;
+end;
+
 function MemComp(P1, P2: Pointer; const Length: Integer): Integer;
 var
   I: Integer;
@@ -3781,9 +3877,22 @@ begin
     found := IndexOf(AIndexName);
   end else
     found := 0;
+  // if changing index, range is N/A anymore
+  if FRangeActive and (found <> FSelectedIndex) then
+  begin
+    FRangeIndex := FSelectedIndex;
+    DisableRange;
+  end;
   // we can now select by index
   if found >= 0 then
+  begin
     SelectIndexVars(found);
+    if found = FRangeIndex then
+    begin
+      EnableRange;
+      FRangeIndex := -1;
+    end;
+  end;
 end;
 
 function TIndexFile.CalcTagOffset(AIndex: Integer): Pointer;

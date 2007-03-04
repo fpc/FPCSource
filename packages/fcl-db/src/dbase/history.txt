@@ -40,6 +40,8 @@ V6.9.1
 - fix index result too long bug
 - add support for big endian
 - fix non-raw string field filter
+- fix index inserts/updates to be reverted on key violations
+- allow lookups to ignore active filter
 
 ------------------------
 V6.9.0

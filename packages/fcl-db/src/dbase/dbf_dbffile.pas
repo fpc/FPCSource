@@ -2359,27 +2359,22 @@ begin
 end;
 
 function TDbfFile.Insert(Buffer: PChar): integer;
+type
+  TErrorContext = (ecNone, ecInsert, ecWriteIndex, ecWriteDbf);
 var
   newRecord: Integer;
   lIndex: TIndexFile;
-  error: Boolean;
 
-  procedure RollBackIndexesAndRaise(HighIndex: Integer; IndexError: Boolean);
+  procedure RollBackIndexesAndRaise(Count: Integer; ErrorContext: TErrorContext);
   var
     errorMsg: string;
     I: Integer;
   begin
     // rollback committed indexes
-    error := IndexError;
-    for I := 0 to HighIndex do
+    for I := 0 to Count-1 do
     begin
       lIndex := TIndexFile(FIndexFiles.Items[I]);
       lIndex.Delete(newRecord, Buffer);
-      if lIndex.WriteError then
-      begin
-        lIndex.ResetError;
-        error := true;
-      end;
     end;
 
     // reset any dbf file error
@@ -2387,15 +2382,17 @@ var
 
     // if part of indexes committed -> always index error msg
     // if error while rolling back index -> index error msg
-    if error then
-      errorMsg := STRING_WRITE_INDEX_ERROR
-    else
-      errorMsg := STRING_WRITE_ERROR;
+    case ErrorContext of
+      ecInsert: begin TIndexFile(FIndexFiles.Items[Count]).InsertError; exit; end;
+      ecWriteIndex: errorMsg := STRING_WRITE_INDEX_ERROR;
+      ecWriteDbf: errorMsg := STRING_WRITE_ERROR;
+    end;
     raise EDbfWriteError.Create(errorMsg);
   end;
 
 var
   I: Integer;
+  error: TErrorContext;
 begin
   // get new record index
   Result := 0;
@@ -2405,34 +2402,24 @@ begin
     Inc(newRecord);
   // write autoinc value
   ApplyAutoIncToBuffer(Buffer);
-  // check indexes -> possible key violation
-  I := 0; error := false;
-  while (I < FIndexFiles.Count) and not error do
+  error := ecNone;
+  I := 0;
+  while I < FIndexFiles.Count do
   begin
     lIndex := TIndexFile(FIndexFiles.Items[I]);
-    error := lIndex.CheckKeyViolation(Buffer);
-    Inc(I);
-  end;
-  // error occured while inserting? -> abort
-  if error then
-  begin
-    UnlockPage(newRecord);
-    lIndex.InsertError;
-    // don't have to exit -- unreachable code
-  end;
-
-  // no key violation, insert record into index(es)
-  for I := 0 to FIndexFiles.Count-1 do
-  begin
-    lIndex := TIndexFile(FIndexFiles.Items[I]);
-    lIndex.Insert(newRecord, Buffer);
+    if not lIndex.Insert(newRecord, Buffer) then
+      error := ecInsert;
     if lIndex.WriteError then
+      error := ecWriteIndex;
+    if error <> ecNone then
     begin
       // if there's an index write error, I shouldn't
       // try to write the dbf header and the new record,
       // but raise an exception right away
-      RollBackIndexesAndRaise(I, True);
+      UnlockPage(newRecord);
+      RollBackIndexesAndRaise(I, ecWriteIndex);
     end;
+    Inc(I);
   end;
 
   // indexes ok -> continue inserting
@@ -2455,7 +2442,8 @@ begin
     // At this point I should "roll back"
     // the already written index records.
     // if this fails, I'm in deep trouble!
-    RollbackIndexesAndRaise(FIndexFiles.Count-1, False);
+    UnlockPage(newRecord);
+    RollbackIndexesAndRaise(FIndexFiles.Count, ecWriteDbf);
   end;
 
   // write locking info
@@ -2479,7 +2467,7 @@ begin
     WriteHeader;
     UnlockPage(0);
     // roll back indexes too
-    RollbackIndexesAndRaise(FIndexFiles.Count-1, False);
+    RollbackIndexesAndRaise(FIndexFiles.Count, ecWriteDbf);
   end else
     Result := newRecord;
 end;
@@ -2533,13 +2521,26 @@ end;
 procedure TDbfFile.UnlockRecord(RecNo: Integer; Buffer: PChar);
 var
   I: Integer;
-  lIndex: TIndexFile;
+  lIndex, lErrorIndex: TIndexFile;
 begin
   // update indexes, possible key violation
-  for I := 0 to FIndexFiles.Count - 1 do
+  I := 0;
+  while I < FIndexFiles.Count do
   begin
     lIndex := TIndexFile(FIndexFiles.Items[I]);
-    lIndex.Update(RecNo, FPrevBuffer, Buffer);
+    if not lIndex.Update(RecNo, FPrevBuffer, Buffer) then
+    begin
+      // error -> rollback
+      lErrorIndex := lIndex;
+      while I > 0 do
+      begin
+        Dec(I);
+        lIndex := TIndexFile(FIndexFiles.Items[I]);
+        lIndex.Update(RecNo, Buffer, FPrevBuffer);
+      end;
+      lErrorIndex.InsertError;
+    end;
+    Inc(I);
   end;
   // write new record buffer, all keys ok
   WriteRecord(RecNo, Buffer);
@@ -2563,13 +2564,24 @@ end;
 procedure TDbfFile.RecordRecalled(RecNo: Integer; Buffer: PChar);
 var
   I: Integer;
-  lIndex: TIndexFile;
+  lIndex, lErrorIndex: TIndexFile;
 begin
   // notify indexes: record recalled
-  for I := 0 to FIndexFiles.Count - 1 do
+  I := 0;
+  while I < FIndexFiles.Count do
   begin
     lIndex := TIndexFile(FIndexFiles.Items[I]);
-    lIndex.RecordRecalled(RecNo, Buffer);
+    if not lIndex.RecordRecalled(RecNo, Buffer) then
+    begin
+      lErrorIndex := lIndex;
+      while I > 0 do
+      begin
+        Dec(I);
+        lIndex.RecordDeleted(RecNo, Buffer);
+      end;
+      lErrorIndex.InsertError;
+    end;
+    Inc(I);
   end;
 end;
 
