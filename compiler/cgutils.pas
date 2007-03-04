@@ -214,7 +214,7 @@ uses
     function use_fixed_stack: boolean;
       begin
 {$ifdef i386}
-        result := (target_info.system = system_i386_darwin);
+        result := (target_info.system in [system_i386_darwin,system_x86_64_darwin]);
 {$else i386}
 {$ifdef cputargethasfixedstack}
         result := true;

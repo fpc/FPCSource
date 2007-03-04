@@ -27,12 +27,13 @@ unit ncgld;
 interface
 
     uses
-      node,nld;
+      node,nld,cgutils;
 
     type
        tcgloadnode = class(tloadnode)
           procedure pass_generate_code;override;
           procedure generate_picvaraccess;virtual;
+          procedure changereflocation(const ref: treference);
        end;
 
        tcgassignmentnode = class(tassignmentnode)
@@ -54,6 +55,7 @@ implementation
       cutils,
       systems,
       verbose,globtype,globals,
+      nutils,
       symconst,symtype,symdef,symsym,defutil,paramgr,
       ncnv,ncon,nmem,nbas,ncgrtti,
       aasmbase,aasmtai,aasmdata,aasmcpu,
@@ -61,8 +63,118 @@ implementation
       procinfo,
       cpubase,parabase,
       tgobj,ncgutil,
-      cgutils,cgobj,
+      cgobj,
       ncgbas,ncgflw;
+
+{*****************************************************************************
+                   SSA (for memory temps) support
+*****************************************************************************}
+
+    type
+      preplacerefrec = ^treplacerefrec;
+      treplacerefrec = record
+        old, new: preference;
+        ressym: tsym;
+      end;
+
+    function doreplaceref(var n: tnode; para: pointer): foreachnoderesult;
+      var
+        rr: preplacerefrec absolute para;
+      begin
+        result := fen_false;
+        case n.nodetype of
+          loadn:
+            begin
+                 { regular variable }
+              if (tabstractvarsym(tloadnode(n).symtableentry).varoptions * [vo_is_dll_var, vo_is_thread_var] = []) and
+                 not assigned(tloadnode(n).left) and
+                 { not function result, or no exit in function }
+                 (((tloadnode(n).symtableentry <> rr^.ressym) and
+                   not(vo_is_funcret in tabstractvarsym(tloadnode(n).symtableentry).varoptions)) or
+                  not(fc_exit in flowcontrol)) and
+                 { stored in memory... }
+                 (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.loc in [LOC_REFERENCE]) and
+                 { ... at the place we are looking for }
+                 references_equal(tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.reference,rr^.old^) then
+                begin
+                  { relocate variable }
+                  tcgloadnode(n).changereflocation(rr^.new^);
+                  result := fen_norecurse_true;
+                end;
+            end;
+          temprefn:
+            begin
+              if (ttemprefnode(n).tempinfo^.valid) and
+                 { memory temp... }
+                 (ttemprefnode(n).tempinfo^.location.loc in [LOC_REFERENCE]) and
+                 { ... at the place we are looking for }
+                 references_equal(ttemprefnode(n).tempinfo^.location.reference,rr^.old^) then
+                begin
+                  { relocate the temp }
+                  tcgtemprefnode(n).changelocation(rr^.new^);
+                  result := fen_norecurse_true;
+                end;
+            end;
+          { optimize the searching a bit }
+          derefn,addrn,
+          calln,inlinen,casen,
+          addn,subn,muln,
+          andn,orn,xorn,
+          ltn,lten,gtn,gten,equaln,unequaln,
+          slashn,divn,shrn,shln,notn,
+          inn,
+          asn,isn:
+            result := fen_norecurse_false;
+        end;
+      end;
+
+
+    function maybechangetemp(list: TAsmList; var n: tnode; const newref: treference): boolean;
+      var
+        rr: treplacerefrec;
+      begin
+        result := false;
+
+           { only do for -O2 or higher (breaks debugging since }
+           { variables move to different memory locations)     }
+        if not(cs_opt_level2 in current_settings.optimizerswitches) or
+           { must be a copy to a memory location ... }
+           (n.location.loc <> LOC_REFERENCE) or
+           { not inside a control flow statement and no goto's in sight }
+           ([fc_inflowcontrol,fc_gotolabel] * flowcontrol <> []) or
+           { source and destination are temps (= not global variables) }
+           not tg.istemp(n.location.reference) or
+           not tg.istemp(newref) or
+           { and both point to the start of a temp, and the source is a }
+           { non-persistent temp (otherwise we need some kind of copy-  }
+           { on-write support in case later on both are still used)     }
+           (tg.gettypeoftemp(newref) <> tt_normal) or
+           not (tg.gettypeoftemp(n.location.reference) in [tt_normal,tt_persistent]) or
+           { and both have the same size }
+           (tg.sizeoftemp(current_asmdata.CurrAsmList,newref) <> tg.sizeoftemp(current_asmdata.CurrAsmList,n.location.reference)) then
+          exit;
+
+        { find the source of the old reference (loadnode or tempnode) }
+        { and replace it with the new reference                       }
+        rr.old := @n.location.reference;
+        rr.new := @newref;
+        rr.ressym := nil;
+
+        if (current_procinfo.procdef.funcretloc[calleeside].loc<>LOC_VOID) and
+           assigned(current_procinfo.procdef.funcretsym) and
+           (tabstractvarsym(current_procinfo.procdef.funcretsym).refs <> 0) then
+          if (current_procinfo.procdef.proctypeoption=potype_constructor) then
+            rr.ressym:=tsym(current_procinfo.procdef.parast.Find('self'))
+         else
+            rr.ressym:=current_procinfo.procdef.funcretsym;
+
+        { if source not found, don't do anything }
+        if not foreachnodestatic(n,@doreplaceref,@rr) then
+          exit;
+
+        n.location.reference := newref;
+        result:=true;
+      end;
 
 {*****************************************************************************
                              SecondLoad
@@ -74,6 +186,24 @@ implementation
         location.reference.base:=current_procinfo.got;
         location.reference.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname+'@GOT');
 {$endif sparc}
+      end;
+
+
+    procedure tcgloadnode.changereflocation(const ref: treference);
+      var
+        oldtemptype: ttemptype;
+      begin
+        if (location.loc<>LOC_REFERENCE) then
+          internalerror(2007020812);
+        if not tg.istemp(location.reference) then
+          internalerror(2007020813);
+        oldtemptype:=tg.gettypeoftemp(location.reference);
+        if (oldtemptype = tt_persistent) then
+          tg.ChangeTempType(current_asmdata.CurrAsmList,location.reference,tt_normal);
+        tg.ungettemp(current_asmdata.CurrAsmList,location.reference);
+        location.reference:=ref;
+        tg.ChangeTempType(current_asmdata.CurrAsmList,location.reference,oldtemptype);
+        tabstractnormalvarsym(symtableentry).localloc:=location;
       end;
 
 
@@ -451,26 +581,7 @@ implementation
 
         releaseright:=true;
 
-        { optimize temp to temp copies }
-{$ifdef old_append_str}
-        if (left.nodetype = temprefn) and
-           { we may store certain temps in registers in the future, then this }
-           { optimization will have to be adapted                             }
-           (left.location.loc = LOC_REFERENCE) and
-           (right.location.loc = LOC_REFERENCE) and
-           tg.istemp(right.location.reference) and
-           (tg.sizeoftemp(current_asmdata.CurrAsmList,right.location.reference) = tg.sizeoftemp(current_asmdata.CurrAsmList,left.location.reference)) then
-          begin
-            { in theory, we should also make sure the left temp type is   }
-            { already more or less of the same kind (ie. we must not      }
-            { assign an ansistring to a normaltemp). In practice, the     }
-            { assignment node will have already taken care of this for us }
-            tcgtemprefnode(left).changelocation(right.location.reference);
-          end
         { shortstring assignments are handled separately }
-        else
-{$endif old_append_str}
-
         if is_shortstring(left.resultdef) then
           begin
             {
@@ -525,6 +636,13 @@ implementation
               end
             else
               internalerror(200204249);
+          end
+       { try to reuse memory locations instead of copying }
+           { copy to a memory location ... }
+        else if (right.location.loc = LOC_REFERENCE) and
+           maybechangetemp(current_asmdata.CurrAsmList,left,right.location.reference) then
+          begin
+            { if it worked, we're done }
           end
         else
           begin
@@ -941,7 +1059,14 @@ implementation
     procedure tcgrttinode.pass_generate_code;
       begin
         location_reset(location,LOC_CREFERENCE,OS_NO);
-        location.reference.symbol:=RTTIWriter.get_rtti_label(rttidef,rttitype);
+        case rttidatatype of
+          rdt_normal:
+            location.reference.symbol:=RTTIWriter.get_rtti_label(rttidef,rttitype);
+          rdt_ord2str:
+            location.reference.symbol:=RTTIWriter.get_rtti_label_ord2str(rttidef,rttitype);
+          rdt_str2ord:
+            location.reference.symbol:=RTTIWriter.get_rtti_label_str2ord(rttidef,rttitype);
+        end;
       end;
 
 

@@ -1,7 +1,7 @@
 {
     Copyright (c) 2001-2002 by Peter Vreman
 
-    Includes the powerpc dependent target units
+    Includes the powerpc64 dependent target units
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,9 @@ implementation
     {$ifndef NOTARGETLINUX}
       ,t_linux
     {$endif}
+    {$ifndef NOTARGETBSD}
+      ,t_bsd
+    {$endif}
 
 {**************************************
              Assemblers
@@ -60,6 +63,10 @@ implementation
 **************************************}
 
 { stabs debug info are not supported, so do not include them here}
+{ they are supported on darwin/ppc64 }
+  {$ifndef NoDbgDwarf}
+      ,dbgstabs
+  {$endif NoDbgDwarf}
   {$ifndef NoDbgDwarf}
       ,dbgdwarf
   {$endif NoDbgDwarf}

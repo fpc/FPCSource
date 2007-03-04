@@ -52,6 +52,8 @@ asm
   ld r3, -8(r1)
 end;
 
+{$ifndef FPC_SYSTEM_HAS_ROUND}
+
 {$define FPC_SYSTEM_HAS_ROUND}
 function fpc_round_real(d : valreal) : int64; compilerproc;assembler; nostackframe;
 { exactly the same as trunc, except that one fctiwz has become fctiw }
@@ -62,6 +64,7 @@ asm
   stfd  f1, -8(r1)
   ld r3, -8(r1)
 end;
+{$endif not FPC_SYSTEM_HAS_ROUND}
 
 {****************************************************************************
                          Int to real helpers
@@ -90,11 +93,15 @@ const
 var
   temp1, temp2: qword;
 asm
+{$ifndef darwin}
   // load 2^32 into f4
   lis   r4, longint_to_real_helper@highesta
   ori   r4, r4, longint_to_real_helper@highera
   sldi  r4, r4, 32
   oris  r4, r4, longint_to_real_helper@ha
+{$else darwin}
+  lis   r4, longint_to_real_helper@ha
+{$endif darwin}
   lfd   f4, longint_to_real_helper@l(r4)
 
   rldicl r4,r3,32,32  // isolate high half

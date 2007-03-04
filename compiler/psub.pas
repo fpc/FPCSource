@@ -102,7 +102,8 @@ implementation
        { codegen }
        tgobj,cgbase,cgobj,dbgbase,
        ncgutil,regvars,
-       opttail
+       opttail,
+       optcse
 {$if defined(arm) or defined(powerpc) or defined(powerpc64)}
        ,aasmcpu
 {$endif arm}
@@ -753,6 +754,9 @@ implementation
         if (cs_opt_tailrecursion in current_settings.optimizerswitches) and
           (pi_is_recursive in flags) then
           do_opttail(code,procdef);
+
+        if cs_opt_nodecse in current_settings.optimizerswitches then
+          do_optcse(code);
 
         { add implicit entry and exit code }
         add_entry_exit_code;

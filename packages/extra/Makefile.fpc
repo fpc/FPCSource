@@ -53,7 +53,9 @@ dirs_darwin= unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms libpng libgd \
              utmp bfd gdbm ncurses fpgtk tcl imlib gnome1 \
-             univint openssl libcurl cairo
+             openssl libcurl cairo
+dirs_powerpc_darwin=univint
+dirs_i386_darwin=univint
 dirs_solaris= unzip zlib fftw \
              x11 opengl gtk gtk2 syslog \
              forms svgalib ggi libpng libgd \

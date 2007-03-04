@@ -159,6 +159,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function dogetcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
+          function  pass_1 : tnode;override;
           procedure get_paratype;
           procedure insert_typeconv(do_count : boolean);
           procedure det_registers;
@@ -743,9 +744,18 @@ implementation
          result:=n;
       end;
 
-    procedure tcallparanode.insertintolist(l : tnodelist);
 
+    procedure tcallparanode.insertintolist(l : tnodelist);
       begin
+      end;
+
+
+    function tcallparanode.pass_1 : tnode;
+      begin
+        firstpass(left);
+        if assigned(right) then
+          firstpass(right);
+        result:=nil;
       end;
 
 
@@ -1749,6 +1759,16 @@ implementation
                    if not(assigned(procdefinition.owner.defowner)) then
                      internalerror(200309287);
                    hiddentree:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner));
+                 end
+              else
+               if vo_is_range_check in currpara.varoptions then
+                 begin
+                   hiddentree:=cordconstnode.create(Ord(cs_check_range in current_settings.localswitches),booltype,false);
+                 end
+              else
+               if vo_is_overflow_check in currpara.varoptions then
+                 begin
+                   hiddentree:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),booltype,false);
                  end;
               { add the hidden parameter }
               if not assigned(hiddentree) then

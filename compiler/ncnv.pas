@@ -1207,7 +1207,7 @@ implementation
       begin
         result := ccallnode.createinternres(
           'fpc_variant_to_dynarray',
-          ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti)),
+          ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal)),
             ccallparanode.create(left,nil)
           ),resultdef);
         typecheckpass(result);
@@ -1219,7 +1219,7 @@ implementation
       begin
         result := ccallnode.createinternres(
           'fpc_dynarray_to_variant',
-          ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(left.resultdef),initrtti)),
+          ccallparanode.create(caddrnode.create_internal(crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
             ccallparanode.create(ctypeconvnode.create_explicit(left,voidpointertype),nil)
           ),resultdef);
         typecheckpass(result);
@@ -1312,7 +1312,7 @@ implementation
                ccallparanode.create(cordconstnode.create
                   (1,s32inttype,true),
                ccallparanode.create(caddrnode.create_internal
-                  (crttinode.create(tstoreddef(resultdef),initrtti)),
+                  (crttinode.create(tstoreddef(resultdef),initrtti,rdt_normal)),
                ccallparanode.create(
                  ctypeconvnode.create_internal(
                    ctemprefnode.create(temp),voidpointertype),

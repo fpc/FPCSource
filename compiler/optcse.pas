@@ -23,14 +23,177 @@ unit optcse;
 
 {$i fpcdefs.inc}
 
+{ $define csedebug}
+
   interface
 
-    procedure docse(rootnode : tnode);
+    uses
+      node;
+
+    function do_optcse(var rootnode : tnode) : tnode;
 
   implementation
 
-    procedure docse(rootnode : tnode);
+    uses
+      globtype,
+      cclasses,
+      nutils,
+      nbas,nld,
+      pass_1,
+      symtype,symdef;
+
+    const
+      cseinvariant : set of tnodetype = [loadn,addn,muln,subn,divn,slashn,modn,andn,orn,xorn,notn,vecn,
+        derefn,equaln,unequaln,ltn,gtn,lten,gten,typeconvn,subscriptn];
+
+    function searchsubdomain(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
+        if not(n.nodetype in cseinvariant) then
+          begin
+            pboolean(arg)^:=false;
+            result:=fen_norecurse_true;
+          end
+        else
+          result:=fen_true;
+      end;
+
+    type
+      tlists = record
+        nodelist : tfplist;
+        locationlist : tfplist;
+      end;
+
+      plists = ^tlists;
+      pnode = ^tnode;
+
+
+    function collectnodes(var n:tnode; arg: pointer) : foreachnoderesult;
+      begin
+        { node worth to add? }
+        if (node_complexity(n)>1) and (tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) then
+          begin
+            plists(arg)^.nodelist.Add(n);
+            plists(arg)^.locationlist.Add(@n);
+            result:=fen_false;
+          end
+        else
+          result:=fen_norecurse_false;
+      end;
+
+
+    function searchcsedomain(var n: tnode; arg: pointer) : foreachnoderesult;
+      var
+        csedomain : boolean;
+        lists : tlists;
+        templist : tfplist;
+        i,j : longint;
+        def : tstoreddef;
+        nodes : tblocknode;
+        creates,
+        statements : tstatementnode;
+        hp : ttempcreatenode;
+      begin
+        result:=fen_false;
+        if n.nodetype in cseinvariant then
+          begin
+            csedomain:=true;
+            foreachnodestatic(pm_postprocess,n,@searchsubdomain,@csedomain);
+            { found a cse domain }
+            if csedomain then
+              begin
+                statements:=nil;
+                result:=fen_norecurse_true;
+{$ifdef csedebug}
+                writeln('============ cse domain ==================');
+                printnode(output,n);
+{$endif csedebug}
+
+                lists.nodelist:=tfplist.create;
+                lists.locationlist:=tfplist.create;
+                foreachnodestatic(pm_postprocess,n,@collectnodes,@lists);
+
+                templist:=tfplist.create;
+                templist.count:=lists.nodelist.count;
+
+                { this is poorly coded, just comparing every node with all other nodes }
+                for i:=0 to lists.nodelist.count-1 do
+                  for j:=i+1 to lists.nodelist.count-1 do
+                    begin
+                      if tnode(lists.nodelist[i]).isequal(tnode(lists.nodelist[j])) then
+                        begin
+                          if not(assigned(statements)) then
+                            begin
+                              nodes:=internalstatements(statements);
+                              addstatement(statements,internalstatements(creates));
+                            end;
+{$ifdef csedebug}
+                          writeln('    ====     ');
+                          printnode(output,tnode(lists.nodelist[i]));
+                          writeln('    equals   ');
+                          printnode(output,tnode(lists.nodelist[j]));
+                          writeln('    ====     ');
+{$endif csedebug}
+
+                          def:=tstoreddef(tnode(lists.nodelist[i]).resultdef);
+                          if assigned(templist[i])  then
+                            begin
+                              templist[j]:=templist[i];
+                              pnode(lists.locationlist[j])^.free;
+                              pnode(lists.locationlist[j])^:=ctemprefnode.create(ttempcreatenode(templist[j]));
+                              do_firstpass(pnode(lists.locationlist[j])^);
+                            end
+                          else
+                            begin
+                              templist[i]:=ctempcreatenode.create(def,def.size,tt_persistent,
+                                def.is_intregable or def.is_fpuregable);
+                              addstatement(creates,tnode(templist[i]));
+
+                              { properties can't be passed by var }
+                              hp:=ttempcreatenode(templist[i]);
+                              do_firstpass(tnode(hp));
+
+                              addstatement(statements,cassignmentnode.create(ctemprefnode.create(ttempcreatenode(templist[i])),
+                                tnode(lists.nodelist[i])));
+                              pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[i]));
+                              do_firstpass(pnode(lists.locationlist[i])^);
+
+                              templist[j]:=templist[i];
+
+                              pnode(lists.locationlist[j])^.free;
+                              pnode(lists.locationlist[j])^:=ctemprefnode.create(ttempcreatenode(templist[j]));
+                              do_firstpass(pnode(lists.locationlist[j])^);
+{$ifdef csedebug}
+                              printnode(output,statements);
+{$endif csedebug}
+                            end;
+                        end;
+                    end;
+                if assigned(statements) then
+                  begin
+                    addstatement(statements,n);
+                    n:=nodes;
+                    do_firstpass(n);
+{$ifdef csedebug}
+                    printnode(output,nodes);
+{$endif csedebug}
+                  end;
+{$ifdef csedebug}
+                writeln('nodes: ',lists.nodelist.count);
+                writeln('==========================================');
+{$endif csedebug}
+                lists.nodelist.free;
+                lists.locationlist.free;
+                templist.free;
+              end
+          end;
+      end;
+
+
+    function do_optcse(var rootnode : tnode) : tnode;
+      begin
+        foreachnodestatic(pm_postprocess,rootnode,@searchcsedomain,nil);
+        result:=nil;
+(*
         { create a linear list of nodes }
 
         { create hash values }
@@ -74,6 +237,7 @@ unit optcse;
                   delete the temp. }
               end;
           end;
+*)
       end;
 
 end.

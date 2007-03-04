@@ -696,6 +696,92 @@ Begin
   Write_Str(Len,t,s);
 End;
 
+procedure fpc_write_text_enum(typinfo,ord2strindex:pointer;len:sizeint;var t:text;ordinal:longint); iocheck; [Public,Alias:'FPC_WRITE_TEXT_ENUM']; compilerproc;
+
+type  Ptypeinfo=^Ttypeinfo;
+      Ttypeinfo=record
+        kind:byte;
+        name:shortstring;
+       end;
+
+      Penuminfo=^Tenuminfo;
+      Tenuminfo={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+        ordtype:byte;
+        minvalue,maxvalue:longint;
+        basetype:pointer;
+        namelist:shortstring;
+      end;
+
+      Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+        o:longint;
+        s:Pstring;
+      end;
+
+var e:Penuminfo;
+    p:Pstring;
+    l,h,m:cardinal;
+    sorted_array:^Tsorted_array;
+    s:string;
+
+begin
+  if textrec(t).mode<>fmoutput then
+    begin
+      if textrec(t).mode=fminput then
+        inoutres:=105
+      else
+        inoutres:=103;
+      exit;
+    end;
+  if Pcardinal(ord2strindex)^=0 then
+    begin
+      {The compiler did generate a lookup table.}
+      with Penuminfo(Pbyte(typinfo)+2+length(Ptypeinfo(typinfo)^.name))^ do
+        begin
+          if (ordinal<minvalue) or (ordinal>maxvalue) then
+            begin
+              inoutres:=107;  {Invalid ordinal value for this enum.}
+              exit;
+            end;
+          dec(ordinal,minvalue);
+        end;
+      {Get the address of the string.}
+      p:=Pshortstring((PPpointer(ord2strindex)+1+ordinal)^);
+      if p=nil then
+        begin
+          inoutres:=107;      {Invalid ordinal value for this enum.}
+          exit;
+        end;
+      s:=p^;
+    end
+  else
+    begin
+      {The compiler did generate a sorted array of (ordvalue,Pstring) tuples.}
+      sorted_array:=pointer(Pcardinal(ord2strindex)+2);
+      {Use a binary search to get the string.}
+      l:=0;
+      h:=(Pcardinal(ord2strindex)+1)^-1;
+      repeat
+        m:=(l+h) div 2;
+        if ordinal>sorted_array[m].o then
+          l:=m+1
+        else if ordinal<sorted_array[m].o then
+          h:=m-1
+        else
+          break;
+        if l>h then
+          begin
+            inoutres:=107;      {Invalid ordinal value for this enum.}
+            exit;
+          end;
+      until false;
+      s:=sorted_array[m].s^;
+    end;
+  fpc_writeBuffer(t,s[1],length(s));
+  {Pad the string with spaces if necessary.}
+  if len>length(s) then
+    fpc_writeblanks(t,len-length(s));
+end;
+
 {$ifdef FPC_HAS_STR_CURRENCY}
 Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Currency); iocheck; [Public,Alias:'FPC_WRITE_TEXT_CURRENCY']; compilerproc;
 var
@@ -1109,6 +1195,26 @@ begin
    InOutRes:=106;
 end;
 
+procedure fpc_read_text_enum(str2ordindex:pointer;var t:text;out ordinal:longint); iocheck; [Public,Alias:'FPC_READ_TEXT_ENUM'];compilerproc;
+
+var s:string;
+    code:valsint;
+
+begin
+  if not checkread(t) then
+    exit;
+  s:='';
+  if ignorespaces(t) then
+    begin
+      { When spaces were found and we are now at EOF, then we return 0 }
+      if (TextRec(t).BufPos>=TextRec(t).BufEnd) then
+        exit;
+      ReadNumeric(t,s);
+    end;
+  ordinal:=fpc_val_enum_shortstr(str2ordindex,s,code);
+  if code<>0 then
+   InOutRes:=106;
+end;
 
 procedure fpc_Read_Text_Currency(var f : Text; out v : Currency); iocheck; [Public,Alias:'FPC_READ_TEXT_CURRENCY']; compilerproc;
 var

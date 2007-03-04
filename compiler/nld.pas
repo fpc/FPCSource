@@ -33,6 +33,8 @@ interface
        symconst,symbase,symtype,symsym,symdef;
 
     type
+       Trttidatatype=(rdt_normal,rdt_ord2str,rdt_str2ord);
+
        tloadnode = class(tunarynode)
        protected
           procdef : tprocdef;
@@ -116,7 +118,8 @@ interface
           rttitype : trttitype;
           rttidef : tstoreddef;
           rttidefderef : tderef;
-          constructor create(def:tstoreddef;rt:trttitype);virtual;
+          rttidatatype : Trttidatatype;
+          constructor create(def:tstoreddef;rt:trttitype;dt:Trttidatatype);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -595,7 +598,7 @@ implementation
            (right.nodetype=niln) then
          begin
            hp:=ccallparanode.create(caddrnode.create_internal
-                   (crttinode.create(tstoreddef(left.resultdef),initrtti)),
+                   (crttinode.create(tstoreddef(left.resultdef),initrtti,rdt_normal)),
                ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),nil));
            result := ccallnode.createintern('fpc_dynarray_clear',hp);
            left:=nil;
@@ -1162,11 +1165,12 @@ implementation
 *****************************************************************************}
 
 
-    constructor trttinode.create(def:tstoreddef;rt:trttitype);
+    constructor trttinode.create(def:tstoreddef;rt:trttitype;dt:Trttidatatype);
       begin
          inherited create(rttin);
          rttidef:=def;
          rttitype:=rt;
+         rttidatatype:=dt;
       end;
 
 

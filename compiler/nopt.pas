@@ -359,7 +359,6 @@ begin
     end;
 end;
 
-
 begin
   caddsstringcharoptnode := taddsstringcharoptnode;
   caddsstringcsstringoptnode := taddsstringcsstringoptnode;

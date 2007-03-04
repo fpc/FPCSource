@@ -147,6 +147,11 @@ begin
   { initialize handler                    }
   act.sa_handler :=@SignalToRunError;
   act.sa_flags:=SA_SIGINFO;
+{$if defined(darwin) and defined(cpu64)}
+  act.sa_flags:=SA_SIGINFO or SA_64REGSET;
+{$else}
+  act.sa_flags:=SA_SIGINFO;
+{$endif}
   FpSigAction(SIGFPE,act,oldact);
   FpSigAction(SIGSEGV,act,oldact);
   FpSigAction(SIGBUS,act,oldact);

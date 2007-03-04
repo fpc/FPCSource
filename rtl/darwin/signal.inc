@@ -66,11 +66,13 @@
     SA_NOCLDSTOP = 8;
     SA_ONSTACK   = $001; { take signal on signal stack }
     SA_RESTART   = $002; { restart system call on signal return }
+    SA_DISABLE   = $004; { disable taking signals on alternate stack }
     SA_RESETHAND = $004; { reset to SIG_DFL when taking signal }
     SA_NODEFER   = $010; { don't mask the signal we're delivering }
     SA_NOCLDWAIT = $020; { don't keep zombies around }
     SA_SIGINFO   = $040; { signal handler with SA_SIGINFO args }
     SA_USERTRAMP = $100; { SUNOS compat: Do not bounce off kernel's sigtramp }
+    SA_64REGSET  = $200; { SUNOS compat: Do not bounce off kernel's sigtramp }
 
   { hangup  }
      SIGHUP = 1;
@@ -173,15 +175,15 @@
     Sigset=sigset_t;
     PSigSet = ^TSigSet;
 
-{$ifdef cpupowerpc}
-    {$include powerpc/sig_cpu.inc}    { SigContextRec }
-{$else cpupowerpc}
+{$if defined(cpupowerpc) or defined(cpupowerpc64)}
+    {$include ppcgen/sig_ppc.inc}    { SigContextRec }
+{$else cpupowerpc or cpupowerpc64}
 {$ifdef cpui386}
     {$include i386/sig_cpu.inc}       { SigContextRec }
 {$else cpui386}
     {$error Unsupported cpu type!}
 {$endif cpui386}
-{$endif cpupowerpc}
+{$endif cpupowerpc or cpupowerpc64}
 
 
 
@@ -223,11 +225,11 @@ const
   type
      sigaltstack = record
   { signal stack base  }
-          ss_sp : ^char;
+          ss_sp : pchar;
   { signal stack length  }
-          ss_size : longint;
+          ss_size : clong;
   { SA_DISABLE and/or SA_ONSTACK  }
-          ss_flags : longint;
+          ss_flags : cint;
        end;
 
   { minimum allowable stack  }
@@ -245,11 +247,11 @@ const
   type
      sigvec = record
   { signal handler  }
-          sv_handler : procedure ;
+          sv_handler : procedure(para: cint);
   { signal mask to apply  }
-          sv_mask : longint;
+          sv_mask : cint;
   { see signal options below  }
-          sv_flags : longint;
+          sv_flags : cint;
        end;
 
 
@@ -268,6 +270,3 @@ const
      FPE_FLTSUB    =  6;  { subscript out of range -NOTIMP on Mac OS X 10.4.7 }
      FPE_INTDIV    =  7;  { integer divide by zero -NOTIMP on Mac OS X 10.4.7 }
      FPE_INTOVF    =  8;  { integer overflow -NOTIMP on Mac OS X 10.4.7 }
-
-
-

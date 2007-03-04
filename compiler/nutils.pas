@@ -47,7 +47,6 @@ interface
 
     tforeachprocmethod = (pm_preprocess,pm_postprocess);
 
-
     foreachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult of object;
     staticforeachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult;
 
@@ -499,7 +498,7 @@ implementation
                   ccallparanode.create(
                       caddrnode.create_internal(
                           crttinode.create(
-                              tstoreddef(p.resultdef),initrtti)),
+                              tstoreddef(p.resultdef),initrtti,rdt_normal)),
                   ccallparanode.create(
                       caddrnode.create_internal(p),
                   nil)));
@@ -542,7 +541,7 @@ implementation
                 ccallparanode.create(
                     caddrnode.create_internal(
                         crttinode.create(
-                            tstoreddef(p.resultdef),initrtti)),
+                            tstoreddef(p.resultdef),initrtti,rdt_normal)),
                 ccallparanode.create(
                     caddrnode.create_internal(p),
                 nil)));
@@ -583,9 +582,17 @@ implementation
                     result := NODE_COMPLEXITY_INF;
                   exit;
                 end;
-              subscriptn,
+              subscriptn:
+                begin
+                  if is_class_or_interface(tunarynode(p).left.resultdef) then
+                    inc(result);
+                  if (result = NODE_COMPLEXITY_INF) then
+                    exit;
+                  p := tunarynode(p).left;
+                end;
               blockn:
                 p := tunarynode(p).left;
+              notn,
               derefn :
                 begin
                   inc(result);
@@ -613,11 +620,14 @@ implementation
                     end;
                   p := tbinarynode(p).right;
                 end;
-              { better: make muln/divn/modn more expensive }
               addn,subn,orn,andn,xorn,muln,divn,modn,symdifn,
+              shln,shrn,
+              equaln,unequaln,gtn,gten,ltn,lten,
               assignn:
                 begin
                   inc(result,node_complexity(tbinarynode(p).left)+1);
+                  if (p.nodetype in [muln,divn,modn]) then
+                    inc(result,5);
                   if (result >= NODE_COMPLEXITY_INF) then
                     begin
                       result := NODE_COMPLEXITY_INF;

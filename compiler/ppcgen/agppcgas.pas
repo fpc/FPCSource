@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Florian Klaempfl
 
-    This unit implements an asm for the PowerPC
+    This unit the GAS asm writers for PowerPC/PowerPC64
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,87 +19,65 @@
 
  ****************************************************************************
 }
-{ This unit implements the GNU Assembler writer for the PowerPC
-}
+
+{****************************************************************************}
+{                  Helper routines for Instruction Writer                    }
+{****************************************************************************}
 
 unit agppcgas;
 
 {$i fpcdefs.inc}
 
   interface
-
+  
     uses
        aasmbase,
        aasmtai,aasmdata,
        aggas,
-       cpubase,
+       cpubase,cgutils,
        globtype;
 
-    type
-      TPPCGNUAssembler=class(TGNUassembler)
-        constructor create(smart: boolean); override;
-        procedure WriteExtraHeader;override;
-      end;
+  type
+    TPPCInstrWriter=class(TCPUInstrWriter)
+       procedure WriteInstruction(hp : tai);override;
+    end;
 
-      TPPCAppleGNUAssembler=class(TAppleGNUassembler)
-        constructor create(smart: boolean); override;
-      end;
+    TPPCGNUAssembler=class(TGNUassembler)
+      constructor create(smart: boolean); override;
+      procedure WriteExtraHeader; override;
+    end;
 
+    TPPCAppleGNUAssembler=class(TAppleGNUassembler)
+      constructor create(smart: boolean); override;
+      function MakeCmdLine: TCmdStr; override;
+    end;
 
-     TPPCInstrWriter=class(TCPUInstrWriter)
-        procedure WriteInstruction(hp : tai);override;
-     end;
-
+    function getreferencestring(var ref : treference) : string;
+    function getopstr_jmp(const o:toper) : string;
+    function getopstr(const o:toper) : string;
+    function branchmode(o: tasmop): string[4];
+    function cond2str(op: tasmop; c: tasmcond): string;  
 
   implementation
 
     uses
        cutils,globals,verbose,
-       cgbase,cgutils,systems,
+       cgbase,systems,
        assemble,
-       itcpugas,
+       itcpugas,cpuinfo,
        aasmcpu;
 
-{****************************************************************************}
-{                         GNU PPC Assembler writer                           }
-{****************************************************************************}
-
-    constructor TPPCGNUAssembler.create(smart: boolean);
-      begin
-        inherited create(smart);
-        InstrWriter := TPPCInstrWriter.create(self);
-      end;
-
-
-    procedure TPPCGNUAssembler.WriteExtraHeader;
-      var
-         i : longint;
-      begin
-        for i:=0 to 31 do
-          AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
-        for i:=0 to 31 do
-          AsmWriteln(#9'.set'#9'f'+tostr(i)+','+tostr(i));
-      end;
-
-
-{****************************************************************************}
-{                      GNU/Apple PPC Assembler writer                        }
-{****************************************************************************}
-
-    constructor TPPCAppleGNUAssembler.create(smart: boolean);
-      begin
-        inherited create(smart);
-        InstrWriter := TPPCInstrWriter.create(self);
-      end;
-
-
-{****************************************************************************}
-{                  Helper routines for Instruction Writer                    }
-{****************************************************************************}
-
-  const
-    refaddr2str: array[trefaddr] of string[3] = ('','','@ha','@l','');
-    refaddr2str_darwin: array[trefaddr] of string[4] = ('','','ha16','lo16','');
+{$ifdef cpu64bit}
+    const
+      refaddr2str: array[trefaddr] of string[9] = ('', '', 'ha16','lo16','', '@l', '@h', '@higher', '@highest', '@ha', '@highera', '@highesta');
+      verbose_refaddrs = [addr_lo,addr_hi,addr_low, addr_high, addr_higher, addr_highest, addr_higha, addr_highera, addr_highesta];
+      refaddr2str_darwin: array[trefaddr] of string[4] = ('','','ha16','lo16','','@err', '@err', '@err', '@err', '@err', '@err', '@err');
+{$else cpu64bit}
+    const
+      refaddr2str: array[trefaddr] of string[3] = ('','','@ha','@l','');
+      refaddr2str_darwin: array[trefaddr] of string[4] = ('','','ha16','lo16','');
+      verbose_refaddrs = [addr_lo,addr_hi];
+{$endif cpu64bit}
 
 
     function getreferencestring(var ref : treference) : string;
@@ -110,12 +88,12 @@ unit agppcgas;
         begin
           if ((offset < -32768) or (offset > 32767)) and
              (refaddr = addr_no) then
-            internalerror(19991);
+            internalerror(2006052501);
           if (refaddr = addr_no) then
             s := ''
           else
             begin
-              if target_info.system = system_powerpc_darwin then
+              if target_info.system in [system_powerpc_darwin,system_powerpc64_darwin] then
                 s := refaddr2str_darwin[refaddr]
               else
                 s :='';
@@ -138,12 +116,15 @@ unit agppcgas;
                 s:=s+tostr(offset);
             end;
 
-           if (refaddr in [addr_lo,addr_hi]) then
+           if (refaddr in verbose_refaddrs) then
              begin
                s := s+')';
-               if (target_info.system <> system_powerpc_darwin) then
+               if not(target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) then
                  s := s+refaddr2str[refaddr];
              end;
+{$ifdef cpu64bit}
+           if (refaddr = addr_pic) then s := s + ')';
+{$endif cpu64bit}
 
            if (index=NR_NO) and (base<>NR_NO) then
              begin
@@ -159,12 +140,12 @@ unit agppcgas;
                if (offset=0) then
                  s:=s+gas_regname(base)+','+gas_regname(index)
                else
-                 internalerror(19992);
+                 internalerror(2006052502);
              end;
         end;
       getreferencestring:=s;
     end;
-
+    
 
     function getopstr_jmp(const o:toper) : string;
     var
@@ -195,6 +176,7 @@ unit agppcgas;
       end;
     end;
 
+
     function getopstr(const o:toper) : string;
     var
       hs : string;
@@ -222,6 +204,7 @@ unit agppcgas;
       end;
     end;
 
+
     function branchmode(o: tasmop): string[4];
       var tempstr: string[4];
       begin
@@ -238,6 +221,7 @@ unit agppcgas;
         end;
         branchmode := tempstr;
       end;
+
 
     function cond2str(op: tasmop; c: tasmcond): string;
     { note: no checking is performed whether the given combination of }
@@ -364,37 +348,97 @@ unit agppcgas;
       owner.AsmWriteLn(s);
     end;
 
+
+{****************************************************************************}
+{                         GNU PPC Assembler writer                           }
+{****************************************************************************}
+
+    constructor TPPCGNUAssembler.create(smart: boolean);
+      begin
+        inherited create(smart);
+        InstrWriter := TPPCInstrWriter.create(self);
+      end;
+
+
+    procedure TPPCGNUAssembler.WriteExtraHeader;
+      var
+         i : longint;
+      begin
+        for i:=0 to 31 do
+          AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
+        for i:=0 to 31 do
+          AsmWriteln(#9'.set'#9'f'+tostr(i)+','+tostr(i));
+      end;
+
+
+{****************************************************************************}
+{                      GNU/Apple PPC Assembler writer                        }
+{****************************************************************************}
+
+    constructor TPPCAppleGNUAssembler.create(smart: boolean);
+      begin
+        inherited create(smart);
+        InstrWriter := TPPCInstrWriter.create(self);
+      end;
+
+
+    function TPPCAppleGNUAssembler.MakeCmdLine: TCmdStr;
+      begin
+        result := inherited MakeCmdLine;
+{$ifdef cpu64bit}
+        Replace(result,'$ARCH','ppc64')
+{$else cpu64bit}
+        case current_settings.cputype of
+          cpu_PPC7400:
+            Replace(result,'$ARCH','ppc7400');
+          cpu_PPC970:
+            Replace(result,'$ARCH','ppc970');
+          else
+            Replace(result,'$ARCH','ppc')
+        end;
+{$endif cpu64bit}
+      end;
+
+
+
+
+
 {*****************************************************************************
                                   Initialize
 *****************************************************************************}
 
-    const
-       as_ppc_gas_info : tasminfo =
-          (
-            id     : as_gas;
+  const
+    as_ppc_gas_info : tasminfo =
+       (
+         id     : as_gas;
 
-            idtxt  : 'AS';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : system_any;
-            flags : [af_allowdirect,af_needar,af_smartlink_sections];
-            labelprefix : '.L';
-            comment : '# ';
-          );
+         idtxt  : 'AS';
+         asmbin : 'as';
+{$ifdef cpu64bit}
+         asmcmd : '-o $OBJ $ASM';
+{$else cpu64bit}
+         asmcmd: '-a64 -o $OBJ $ASM';
+{$endif cpu64bit}
+         supported_target : system_any;
+         flags : [af_allowdirect,af_needar,af_smartlink_sections];
+         labelprefix : '.L';
+         comment : '# ';
+       );
 
 
-       as_ppc_gas_darwin_powerpc_info : tasminfo =
-          (
-            id     : as_darwin;
+    as_ppc_gas_darwin_powerpc_info : tasminfo =
+       (
+         id     : as_darwin;
 
-            idtxt  : 'AS-Darwin';
-            asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM -arch ppc';
-            supported_target : system_any;
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
-            labelprefix : 'L';
-            comment : '# ';
-          );
+         idtxt  : 'AS-Darwin';
+         asmbin : 'as';
+         asmcmd : '-o $OBJ $ASM -arch $ARCH';
+         supported_target : system_any;
+         flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+         labelprefix : 'L';
+         comment : '# ';
+       );
+
 
 begin
   RegisterAssembler(as_ppc_gas_info,TPPCGNUAssembler);

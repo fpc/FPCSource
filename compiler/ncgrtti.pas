@@ -39,6 +39,7 @@ interface
         function  fields_count(st:tsymtable;rt:trttitype):longint;
         procedure fields_write_rtti(st:tsymtable;rt:trttitype);
         procedure fields_write_rtti_data(st:tsymtable;rt:trttitype);
+        procedure write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
         procedure published_write_rtti(st:tsymtable;rt:trttitype);
         function  published_properties_count(st:tsymtable):longint;
         procedure published_properties_write_rtti_data(propnamelist:TFPHashObjectList;st:tsymtable);
@@ -50,6 +51,8 @@ interface
       public
         procedure write_rtti(def:tdef;rt:trttitype);
         function  get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
+        function  get_rtti_label_ord2str(def:tdef;rt:trttitype):tasmsymbol;
+        function  get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
       end;
 
     var
@@ -389,7 +392,7 @@ implementation
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkEnumeration));
           write_rtti_name(def);
 {$ifdef cpurequiresproperalignment}
-          current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+          current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
           case longint(def.size) of
             1 :
@@ -400,7 +403,7 @@ implementation
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otULong));
           end;
 {$ifdef cpurequiresproperalignment}
-          current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
+          current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.min));
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.max));
@@ -821,6 +824,235 @@ implementation
         end;
       end;
 
+    procedure TRTTIWriter.write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
+
+        procedure enumdef_rtti_ord2stringindex(def:Tenumdef);
+
+        var rttilab:Tasmsymbol;
+            t:Tenumsym;
+            syms:^Tenumsym;
+            offsets:^longint;
+            sym_count,sym_alloc:longint;
+            h,i,p,o,st:longint;
+            mode:(lookup,search); {Modify with care, ordinal value of enum is written.}
+            r:single;             {Must be real type because of integer overflow risk.}
+
+        begin
+          {Random access needed, put in array.}
+          getmem(syms,64*sizeof(Tenumsym));
+          getmem(offsets,64*sizeof(longint));
+          sym_count:=0;
+          sym_alloc:=64;
+          st:=0;
+          t:=Tenumsym(def.firstenum);
+          while assigned(t) do
+            begin
+              if sym_count>=sym_alloc then
+                begin
+                  reallocmem(syms,2*sym_alloc*sizeof(Tenumsym));
+                  reallocmem(offsets,2*sym_alloc*sizeof(longint));
+                  sym_alloc:=sym_alloc*2;
+                end;
+              syms[sym_count]:=t;
+              offsets[sym_count]:=st;
+              inc(sym_count);
+              st:=st+length(t.realname)+1;
+              t:=t.nextenum;
+            end;
+          {Sort the syms by enum value}
+          if sym_count>=2 then
+            begin
+              p:=1;
+              while 2*p<sym_count do
+                p:=2*p;
+              while p<>0 do
+                begin
+                  for h:=p to sym_count-1 do
+                    begin
+                      i:=h;
+                      t:=syms[i];
+                      o:=offsets[i];
+                      repeat
+                        if syms[i-p].value<=t.value then
+                          break;
+                        syms[i]:=syms[i-p];
+                        offsets[i]:=offsets[i-p];
+                        dec(i,p);
+                      until i<p;
+                      syms[i]:=t;
+                      offsets[i]:=o;
+                    end;
+                  p:=p shr 1;
+                end;
+            end;
+          {Decide wether a lookup array is size efficient.}
+          mode:=lookup;
+          if sym_count>0 then
+            begin
+              i:=1;
+              r:=0;
+              h:=syms[0].value; {Next expected enum value is min.}
+              while i<sym_count do
+                begin
+                  {Calculate size of hole between values. Avoid integer overflows.}
+                  r:=r+(single(syms[i].value)-single(h))-1;
+                  h:=syms[i].value;
+                  inc(i);
+                end;
+              if r>sym_count then
+                mode:=search; {Don't waste more than 50% space.}
+            end;
+          {Calculate start of string table.}
+          st:=1;
+          if assigned(def.typesym) then
+            inc(st,length(def.typesym.realname)+1)
+          else
+            inc(st);
+          {$ifdef cpurequiresproperalignment}
+          align(st,sizeof(Tconstptruint));
+          {$endif}
+          inc(st);
+          {$ifdef cpurequiresproperalignment}
+          align(st,sizeof(Tconstptruint));
+          {$endif}
+          inc(st,8+sizeof(aint));
+          { write rtti data }
+          with current_asmdata do
+            begin
+              rttilab:=defineasmsymbol(Tstoreddef(def).rtti_mangledname(rt)+'_o2s',AB_GLOBAL,AT_DATA);
+              maybe_new_object_file(asmlists[al_rtti]);
+              new_section(asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(aint)));
+              asmlists[al_rtti].concat(Tai_symbol.create_global(rttilab,0));
+              asmlists[al_rtti].concat(Tai_const.create_32bit(longint(mode)));
+              if mode=lookup then
+                begin
+                  o:=syms[0].value;  {Start with min value.}
+                  for i:=0 to sym_count-1 do
+                    begin
+                      while o<syms[i].value do
+                        begin
+                          asmlists[al_rtti].concat(Tai_const.create_aint(0));
+                          inc(o);
+                        end;
+                      inc(o);
+                      asmlists[al_rtti].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
+                    end;
+                end
+              else
+                begin
+                  asmlists[al_rtti].concat(Tai_const.create_32bit(sym_count));
+                  for i:=0 to sym_count-1 do
+                    begin
+                      asmlists[al_rtti].concat(Tai_const.create_32bit(syms[i].value));
+                      asmlists[al_rtti].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
+                    end;
+                end;
+              asmlists[al_rtti].concat(Tai_symbol_end.create(rttilab));
+            end;
+          dispose(syms);
+          dispose(offsets);
+        end;
+
+        procedure enumdef_rtti_string2ordindex(def:Tenumdef);
+
+        var rttilab:Tasmsymbol;
+            t:Tenumsym;
+            syms:^Tenumsym;
+            offsets:^longint;
+            sym_count,sym_alloc:longint;
+            h,i,p,o,st:longint;
+
+        begin
+          {Random access needed, put in array.}
+          getmem(syms,64*sizeof(Tenumsym));
+          getmem(offsets,64*sizeof(longint));
+          sym_count:=0;
+          sym_alloc:=64;
+          st:=0;
+          t:=Tenumsym(def.firstenum);
+          while assigned(t) do
+            begin
+              if sym_count>=sym_alloc then
+                begin
+                  reallocmem(syms,2*sym_alloc*sizeof(Tenumsym));
+                  reallocmem(offsets,2*sym_alloc*sizeof(longint));
+                  sym_alloc:=sym_alloc*2;
+                end;
+              syms[sym_count]:=t;
+              offsets[sym_count]:=st;
+              inc(sym_count);
+              st:=st+length(t.realname)+1;
+              t:=t.nextenum;
+            end;
+          {Sort the syms by enum name}
+          if sym_count>=2 then
+            begin
+              p:=1;
+              while 2*p<sym_count do
+                p:=2*p;
+              while p<>0 do
+                begin
+                  for h:=p to sym_count-1 do
+                    begin
+                      i:=h;
+                      t:=syms[i];
+                      o:=offsets[i];
+                      repeat
+                        if syms[i-p].name<=t.name then
+                          break;
+                        syms[i]:=syms[i-p];
+                        offsets[i]:=offsets[i-p];
+                        dec(i,p);
+                      until i<p;
+                      syms[i]:=t;
+                      offsets[i]:=o;
+                    end;
+                  p:=p shr 1;
+                end;
+            end;
+          {Calculate start of string table.}
+          st:=1;
+          if assigned(def.typesym) then
+            inc(st,length(def.typesym.realname)+1)
+          else
+            inc(st);
+          {$ifdef cpurequiresproperalignment}
+          align(st,sizeof(Tconstptruint));
+          {$endif}
+          inc(st);
+          {$ifdef cpurequiresproperalignment}
+          align(st,sizeof(Tconstptruint));
+          {$endif}
+          inc(st,8+sizeof(aint));
+          { write rtti data }
+          with current_asmdata do
+            begin
+              rttilab:=defineasmsymbol(Tstoreddef(def).rtti_mangledname(rt)+'_s2o',AB_GLOBAL,AT_DATA);
+              maybe_new_object_file(asmlists[al_rtti]);
+              new_section(asmlists[al_rtti],sec_rodata,rttilab.name,const_align(sizeof(aint)));
+              asmlists[al_rtti].concat(Tai_symbol.create_global(rttilab,0));
+              asmlists[al_rtti].concat(Tai_const.create_32bit(sym_count));
+              for i:=0 to sym_count-1 do
+                begin
+                  asmlists[al_rtti].concat(Tai_const.create_32bit(syms[i].value));
+                  asmlists[al_rtti].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
+                end;
+              asmlists[al_rtti].concat(Tai_symbol_end.create(rttilab));
+            end;
+          dispose(syms);
+          dispose(offsets);
+        end;
+
+    begin
+      case def.typ of
+        enumdef:
+          if rt=fullrtti then
+            begin
+              enumdef_rtti_ord2stringindex(Tenumdef(def));
+              enumdef_rtti_string2ordindex(Tenumdef(def));
+            end;
+      end;
+    end;
 
     procedure TRTTIWriter.write_child_rtti_data(def:tdef;rt:trttitype);
       begin
@@ -873,12 +1105,23 @@ implementation
         current_asmdata.asmlists[al_rtti].concat(Tai_symbol.Create_global(rttilab,0));
         write_rtti_data(def,rt);
         current_asmdata.asmlists[al_rtti].concat(Tai_symbol_end.Create(rttilab));
+        write_rtti_extrasyms(def,rt,rttilab);
       end;
 
 
     function TRTTIWriter.get_rtti_label(def:tdef;rt:trttitype):tasmsymbol;
       begin
         result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt));
+      end;
+
+    function TRTTIWriter.get_rtti_label_ord2str(def:tdef;rt:trttitype):tasmsymbol;
+      begin
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_o2s');
+      end;
+
+    function TRTTIWriter.get_rtti_label_str2ord(def:tdef;rt:trttitype):tasmsymbol;
+      begin
+        result:=current_asmdata.RefAsmSymbol(def.rtti_mangledname(rt)+'_s2o');
       end;
 
 end.

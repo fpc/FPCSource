@@ -919,7 +919,7 @@ implementation
           if is_cdecl or
              (
               is_dll and
-              (target_info.system in [system_powerpc_darwin,system_i386_darwin])
+              (target_info.system in systems_darwin)
              ) then
             C_Name := target_info.Cprefix+C_Name;
 
@@ -1143,15 +1143,15 @@ implementation
          uniondef : trecorddef;
          hintsymoptions : tsymoptions;
          semicoloneaten: boolean;
-{$ifdef powerpc}
+{$if defined(powerpc) or defined(powerpc64)}
          tempdef: tdef;
          is_first_field: boolean;
-{$endif powerpc}
+{$endif powerpc or powerpc64}
       begin
          recst:=tabstractrecordsymtable(symtablestack.top);
-{$ifdef powerpc}
+{$if defined(powerpc) or defined(powerpc64)}
          is_first_field := true;
-{$endif powerpc}
+{$endif powerpc or powerpc64}
          old_current_object_option:=current_object_option;
          { all variables are public if not in a object declaration }
          if not(vd_object in options) then
@@ -1191,7 +1191,7 @@ implementation
              if maybe_parse_proc_directives(hdef) then
                semicoloneaten:=true;
 
-{$ifdef powerpc}
+{$if defined(powerpc) or defined(powerpc64)}
              { from gcc/gcc/config/rs6000/rs6000.h:
               /* APPLE LOCAL begin Macintosh alignment 2002-1-22 ff */
               /* Return the alignment of a struct based on the Macintosh PowerPC
@@ -1202,7 +1202,7 @@ implementation
                  (32-bit) alignment, in which case the alignment is determined by
                  the alignment of the first field.  */
              }
-             if (target_info.system in [system_powerpc_darwin, system_powerpc_macos]) and
+             if (target_info.system in [system_powerpc_darwin, system_powerpc_macos, system_powerpc64_darwin]) and
                 is_first_field and
                 (symtablestack.top.symtabletype = recordsymtable) and
                 (trecordsymtable(symtablestack.top).usefieldalignment = -1) then
@@ -1220,7 +1220,7 @@ implementation
                    trecordsymtable(symtablestack.top).padalignment := maxpadalign;
                  is_first_field := false;
                end;
-{$endif powerpc}
+{$endif powerpc or powerpc64}
 
              { types that use init/final are not allowed in variant parts, but
                classes are allowed }
@@ -1388,14 +1388,14 @@ implementation
               unionsymtable.datasize:=maxsize;
               unionsymtable.fieldalignment:=maxalignment;
               unionsymtable.addalignmentpadding;
-{$ifdef powerpc}
+{$if defined(powerpc) or defined(powerpc64)}
               { parent inherits the alignment padding if the variant is the first "field" of the parent record/variant }
-              if (target_info.system in [system_powerpc_darwin, system_powerpc_macos]) and
+              if (target_info.system in [system_powerpc_darwin, system_powerpc_macos, system_powerpc64_darwin]) and
                  is_first_field and
                  (recst.usefieldalignment = -1) and
                  (maxpadalign > recst.padalignment) then
                 recst.padalignment:=maxpadalign;
-{$endif powerpc}
+{$endif powerpc or powerpc64}
               { Align the offset where the union symtable is added }
               if (recst.usefieldalignment=-1) then
                 usedalign:=used_align(unionsymtable.recordalignment,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign)

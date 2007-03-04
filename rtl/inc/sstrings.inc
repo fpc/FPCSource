@@ -356,20 +356,20 @@ end;
 
 {$ifndef CPU64}
 
-  procedure fpc_shortstr_qword(v : qword;len : longint;out s : shortstring);[public,alias:'FPC_SHORTSTR_QWORD']; compilerproc;
-    begin
-       int_str(v,s);
-       if length(s)<len then
-         s:=space(len-length(s))+s;
-    end;
+procedure fpc_shortstr_qword(v : qword;len : longint;out s : shortstring);[public,alias:'FPC_SHORTSTR_QWORD']; compilerproc;
+begin
+  int_str(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
 
 
-  procedure fpc_shortstr_int64(v : int64;len : longint;out s : shortstring);[public,alias:'FPC_SHORTSTR_INT64'];  compilerproc;
-    begin
-       int_str(v,s);
-       if length(s)<len then
-         s:=space(len-length(s))+s;
-    end;
+procedure fpc_shortstr_int64(v : int64;len : longint;out s : shortstring);[public,alias:'FPC_SHORTSTR_INT64'];  compilerproc;
+begin
+  int_str(v,s);
+  if length(s)<len then
+    s:=space(len-length(s))+s;
+end;
 
 {$endif CPU64}
 
@@ -380,12 +380,94 @@ end;
 
 {$I real2str.inc}
 
-procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT']; compilerproc;
+procedure fpc_shortstr_float(d : ValReal;len,fr,rt : SizeInt;out s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT']; compilerproc;
 begin
   str_real(len,fr,d,treal_type(rt),s);
 end;
 
-procedure fpc_ShortStr_Currency(c : currency; len,f : SizeInt; out s : shortstring);[public,alias:'FPC_SHORTSTR_CURRENCY']; compilerproc;
+procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);[public,alias:'FPC_SHORTSTR_ENUM'];compilerproc;
+
+type  Ptypeinfo=^Ttypeinfo;
+      Ttypeinfo=record
+        kind:byte;
+        name:shortstring;
+       end;
+
+      Penuminfo=^Tenuminfo;
+      Tenuminfo={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+        ordtype:byte;
+        minvalue,maxvalue:longint;
+        basetype:pointer;
+        namelist:shortstring;
+      end;
+
+      Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+        o:longint;
+        s:Pstring;
+      end;
+
+var e:Penuminfo;
+    p:Pstring;
+    l,h,m:cardinal;
+    sorted_array:^Tsorted_array;
+    i,spaces:byte;
+
+label error;
+
+begin
+  if Pcardinal(ord2strindex)^=0 then
+    begin
+      {The compiler did generate a lookup table.}
+      with Penuminfo(Pbyte(typinfo)+2+length(Ptypeinfo(typinfo)^.name))^ do 
+        begin
+          if (ordinal<minvalue) or (ordinal>maxvalue) then
+            goto error;  {Invalid ordinal value for this enum.}
+          dec(ordinal,minvalue);
+        end;
+      {Get the address of the string.}
+      p:=Pshortstring((PPpointer(ord2strindex)+1+ordinal)^);
+      if p=nil then
+        goto error;      {Invalid ordinal value for this enum.}
+      s:=p^;
+    end
+  else
+    begin
+      {The compiler did generate a sorted array of (ordvalue,Pstring) tuples.}
+      sorted_array:=pointer(Pcardinal(ord2strindex)+2);
+      {Use a binary search to get the string.}
+      l:=0;
+      h:=(Pcardinal(ord2strindex)+1)^-1;
+      repeat
+        m:=(l+h) div 2;
+        if ordinal>sorted_array[m].o then
+          l:=m+1
+        else if ordinal<sorted_array[m].o then
+          h:=m-1
+        else
+          break;
+        if l>h then
+          goto error; {Ordinal value not found? Kaboom.}
+      until false;
+      s:=sorted_array[m].s^;
+    end;
+  {Pad the string with spaces if necessary.}
+  if len>length(s) then
+    begin
+      spaces:=len-length(s);
+      for i:=1 to spaces do
+        s[length(s)+i]:=' ';
+      inc(byte(s[0]),spaces);
+    end;
+  exit;
+error:
+  {Call runtime error in a central place, this saves space.}
+  runerror(107);
+end;
+
+{ also define alias for internal use in the system unit }
+procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);external name 'FPC_SHORTSTR_ENUM';
+
+procedure fpc_shortstr_currency(c : currency; len,f : SizeInt; out s : shortstring);[public,alias:'FPC_SHORTSTR_CURRENCY']; compilerproc;
 const
   MinLen = 8; { Minimal string length in scientific format }
 
@@ -796,15 +878,13 @@ end;
 {$ifndef CPU64}
 
   Function fpc_val_int64_shortstr(Const S: ShortString; out Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR']; compilerproc;
-   type
-     QWordRec = packed record
-       l1,l2: longint;
-     end;
 
-    var
-       u, temp, prev, maxint64, maxqword : qword;
+  var  u, temp, prev : qword;
        base : byte;
        negative : boolean;
+
+  const maxint64=qword($7fffffffffffffff);
+        maxqword=qword($ffffffffffffffff);
 
   begin
     fpc_val_int64_shortstr := 0;
@@ -812,22 +892,6 @@ end;
     Code:=InitVal(s,negative,base);
     if Code>length(s) then
      exit;
-    { high(int64) produces 0 in version 1.0 (JM) }
-    with qwordrec(maxint64) do
-      begin
-{$ifdef ENDIAN_LITTLE}
-        l1 := longint($ffffffff);
-        l2 := $7fffffff;
-{$else ENDIAN_LITTLE}
-        l1 := $7fffffff;
-        l2 := longint($ffffffff);
-{$endif ENDIAN_LITTLE}
-      end;
-    with qwordrec(maxqword) do
-      begin
-        l1 := longint($ffffffff);
-        l2 := longint($ffffffff);
-      end;
 
     while Code<=Length(s) do
      begin
@@ -862,23 +926,18 @@ end;
 
 
   Function fpc_val_qword_shortstr(Const S: ShortString; out Code: ValSInt): QWord; [public, alias:'FPC_VAL_QWORD_SHORTSTR']; compilerproc;
-    type qwordrec = packed record
-      l1,l2: longint;
-    end;
-    var
-       u, prev, maxqword: QWord;
+
+  var  u, prev: QWord;
        base : byte;
        negative : boolean;
+
+  const maxqword=qword($ffffffffffffffff);
+
   begin
     fpc_val_qword_shortstr:=0;
     Code:=InitVal(s,negative,base);
     If Negative or (Code>length(s)) Then
       Exit;
-    with qwordrec(maxqword) do
-      begin
-        l1 := longint($ffffffff);
-        l2 := longint($ffffffff);
-      end;
     while Code<=Length(s) do
      begin
        case s[Code] of
@@ -1033,8 +1092,60 @@ begin
   code:=0;
 end;
 
+function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_SHORTSTR']; compilerproc;
 
-Function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : ValSInt): currency; [public, alias:'FPC_VAL_CURRENCY_SHORTSTR']; compilerproc;
+type  Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+        o:longint;
+        s:Pstring;
+      end;
+
+var l,h,m:cardinal;
+    sorted_array:^Tsorted_array;
+    spaces:byte;
+    t:shortstring;
+
+label error;
+
+begin
+  {Val for numbers accepts spaces at the start, so lets do the same
+   for enums. Skip spaces at the start of the string.}
+  spaces:=1;
+  while (spaces<=length(s)) and (s[spaces]=' ')  do
+    inc(spaces);
+  t:=upcase(copy(s,spaces,255));
+  sorted_array:=pointer(Pcardinal(str2ordindex)+1);
+  {Use a binary search to get the string.}
+  l:=1;
+  h:=Pcardinal(str2ordindex)^;
+  repeat
+    m:=(l+h) div 2;
+    if t>upcase(sorted_array[m-1].s^) then
+      l:=m+1
+    else if t<upcase(sorted_array[m-1].s^) then
+      h:=m-1
+    else
+      break;
+    if l>h then
+      goto error;
+  until false;
+  fpc_val_enum_shortstr:=sorted_array[m-1].o;
+  exit;
+error:
+  {Not found. Find first error position. Take care of the string length.}
+  code:=1;
+  while (code<=length(s)) and (s[code]=sorted_array[m].s^[code]) do
+    inc(code);
+  if code>length(s) then
+    code:=length(s)+1;
+  inc(code,spaces-1); {Add skipped spaces again.}
+  {The result of val in case of error is undefined, don't assign a function
+   result.}
+end;
+
+{Redeclare fpc_val_enum_shortstr for internal use in the system unit.}
+function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code:valsint):longint;external name 'FPC_VAL_ENUM_SHORTSTR';
+
+function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : ValSInt): currency; [public, alias:'FPC_VAL_CURRENCY_SHORTSTR']; compilerproc;
 const
   MaxInt64 : Int64  = $7FFFFFFFFFFFFFFF;
   Int64Edge : Int64 = ($7FFFFFFFFFFFFFFF - 10) div 10;

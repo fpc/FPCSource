@@ -2083,7 +2083,7 @@ Function KDSETMODE(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSETMODE:=FpIoctl(fd,nr_KDSETMODE,pointer(param1))=0;
+ KDSETMODE:=FpIoctl(fd,nr_KDSETMODE,pointer(ptrint(param1)))=0;
 end;
 
 Function KDSBORDER(fd:longint;param1 : longint):boolean;
@@ -2091,7 +2091,7 @@ Function KDSBORDER(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSBORDER:=FpIoctl(fd,nr_KDSBORDER,pointer(param1))=0;
+ KDSBORDER:=FpIoctl(fd,nr_KDSBORDER,pointer(ptrint(param1)))=0;
 end;
 
 Function KDRASTER(fd:longint;var param1 : scr_size_t):boolean;
@@ -2310,7 +2310,7 @@ Function CONS_SETWINORG(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- CONS_SETWINORG:=FpIoctl(fd,nr_CONS_SETWINORG,pointer(param1))=0;
+ CONS_SETWINORG:=FpIoctl(fd,nr_CONS_SETWINORG,pointer(ptrint(param1)))=0;
 end;
 
 Function CONS_SETKBD(fd:longint;param1 : longint):boolean;
@@ -2318,7 +2318,7 @@ Function CONS_SETKBD(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- CONS_SETKBD:=FpIoctl(fd,nr_CONS_SETKBD,pointer(param1))=0;
+ CONS_SETKBD:=FpIoctl(fd,nr_CONS_SETKBD,pointer(ptrint(param1)))=0;
 end;
 
 Function CONS_RELKBD(fd:longint):boolean;
@@ -2377,7 +2377,7 @@ Function VT_RELDISP(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- VT_RELDISP:=FpIoctl(fd,nr_VT_RELDISP,pointer(param1))=0;
+ VT_RELDISP:=FpIoctl(fd,nr_VT_RELDISP,pointer(ptrint(param1)))=0;
 end;
 
 Function VT_ACTIVATE(fd:longint;param1 : longint):boolean;
@@ -2385,7 +2385,7 @@ Function VT_ACTIVATE(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- VT_ACTIVATE:=FpIoctl(fd,nr_VT_ACTIVATE,pointer(param1))=0;
+ VT_ACTIVATE:=FpIoctl(fd,nr_VT_ACTIVATE,pointer(ptrint(param1)))=0;
 end;
 
 Function VT_WAITACTIVE(fd:longint;param1 : longint):boolean;
@@ -2393,7 +2393,7 @@ Function VT_WAITACTIVE(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- VT_WAITACTIVE:=FpIoctl(fd,nr_VT_WAITACTIVE,pointer(param1))=0;
+ VT_WAITACTIVE:=FpIoctl(fd,nr_VT_WAITACTIVE,pointer(ptrint(param1)))=0;
 end;
 
 Function VT_GETACTIVE(fd:longint;var param1 : longint):boolean;
@@ -3152,7 +3152,7 @@ Function KDSKBMODE(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSKBMODE:=FpIoctl(fd,nr_KDSKBMODE,pointer(param1))=0;
+ KDSKBMODE:=FpIoctl(fd,nr_KDSKBMODE,pointer(ptrint(param1)))=0;
 end;
 
 Function KDMKTONE(fd:longint;param1 : longint):boolean;
@@ -3160,7 +3160,7 @@ Function KDMKTONE(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDMKTONE:=FpIoctl(fd,nr_KDMKTONE,pointer(param1))=0;
+ KDMKTONE:=FpIoctl(fd,nr_KDMKTONE,pointer(ptrint(param1)))=0;
 end;
 
 {$ifndef definconsole}
@@ -3176,7 +3176,7 @@ Function KDSETMODE(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSETMODE:=FpIoctl(fd,nr_KDSETMODE,pointer(param1))=0;
+ KDSETMODE:=FpIoctl(fd,nr_KDSETMODE,pointer(ptrint(param1)))=0;
 end;
 
 Function KDSBORDER(fd:longint;param1 : longint):boolean;
@@ -3184,7 +3184,7 @@ Function KDSBORDER(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSBORDER:=FpIoctl(fd,nr_KDSBORDER,pointer(param1))=0;
+ KDSBORDER:=FpIoctl(fd,nr_KDSBORDER,pointer(ptrint(param1)))=0;
 end;
 {$endif}
 Function KDGKBSTATE(fd:longint;var param1 : longint):boolean;
@@ -3199,7 +3199,7 @@ Function KDSKBSTATE(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSKBSTATE:=FpIoctl(fd,nr_KDSKBSTATE,pointer(param1))=0;
+ KDSKBSTATE:=FpIoctl(fd,nr_KDSKBSTATE,pointer(ptrint(param1)))=0;
 end;
 
 Function KDENABIO(fd:longint):boolean;
@@ -3223,7 +3223,7 @@ Function KIOCSOUND(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KIOCSOUND:=FpIoctl(fd,nr_KIOCSOUND,pointer(param1))=0;
+ KIOCSOUND:=FpIoctl(fd,nr_KIOCSOUND,pointer(ptrint(param1)))=0;
 end;
 
 Function KDGKBTYPE(fd:longint;var param1 : longint):boolean;
@@ -3245,7 +3245,7 @@ Function KDSETLED(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSETLED:=FpIoctl(fd,nr_KDSETLED,pointer(param1))=0;
+ KDSETLED:=FpIoctl(fd,nr_KDSETLED,pointer(ptrint(param1)))=0;
 end;
 
 Function KDSETRAD(fd:longint;param1 : longint):boolean;
@@ -3253,7 +3253,7 @@ Function KDSETRAD(fd:longint;param1 : longint):boolean;
  }
 
 Begin
- KDSETRAD:=FpIoctl(fd,nr_KDSETRAD,pointer(param1))=0;
+ KDSETRAD:=FpIoctl(fd,nr_KDSETRAD,pointer(ptrint(param1)))=0;
 end;
 {$ifndef definconsole}
 

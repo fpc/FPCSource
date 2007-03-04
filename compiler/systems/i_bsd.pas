@@ -512,6 +512,69 @@ unit i_bsd;
             abi         : abi_default;
           );
 
+
+
+       system_powerpc64_darwin_info  : tsysteminfo =
+          (
+            system       : system_powerpc64_darwin;
+            name         : 'Darwin for PowerPC64';
+            shortname    : 'Darwin';
+            flags        : [tf_p_ext_support,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels];
+            cpu          : cpu_powerpc64;
+            unit_env     : 'BSDUNITS';
+            extradefines : 'UNIX;BSD;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.dylib';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.dylib';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            Cprefix      : '_';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_darwin;
+            assemextern  : as_darwin;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 16;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 4;
+                constalignmax   : 8;
+                varalignmin     : 4;
+                varalignmax     : 8;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 8
+              );
+            first_parm_offset : 48;
+            stacksize   : 262144;
+            abi : abi_powerpc_aix;
+          );
+
+
+
   implementation
 
 initialization
@@ -539,12 +602,17 @@ initialization
      set_source_info(system_m68k_NetBSD_info);
   {$endif NetBSD}
 {$endif cpu68}
-{$ifdef cpupowerpc}
+{$ifdef cpupowerpc32}
   {$ifdef Darwin}
      set_source_info(system_powerpc_darwin_info);
   {$endif Darwin}
   {$ifdef NetBSD}
      set_source_info(system_powerpc_netbsd_info);
   {$endif}
-{$endif cpu68}
+{$endif cpupowerpc32}
+{$ifdef cpupowerpc64}
+  {$ifdef Darwin}
+     set_source_info(system_powerpc64_darwin_info);
+  {$endif Darwin}
+{$endif powerpc64}
 end.

@@ -715,22 +715,37 @@ implementation
     procedure Tcginlinenode.second_get_caller_frame;
 
     var frame_ref:Treference;
+        frame_reg:Tregister;
+        use_frame_pointer:boolean;
 
     begin
-      if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+      if left<>nil then
         begin
-          location_reset(location,LOC_CREGISTER,OS_ADDR);
-          location.register:=NR_FRAME_POINTER_REG;
-{          location_reset(location,LOC_REGISTER,OS_ADDR);
-          location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-          cg.a_load_reg_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,NR_FRAME_POINTER_REG,location.register);}
+          secondpass(left);
+          if left.location.loc=LOC_CONSTANT then
+            use_frame_pointer:=true
+          else
+            begin
+              location_force_reg(current_asmdata.currasmlist,left.location,OS_ADDR,false);
+              frame_reg:=left.location.register;
+              use_frame_pointer:=false;
+            end
         end
       else
         begin
-          location_reset(location,LOC_REGISTER,OS_ADDR);
-          location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-          reference_reset_base(frame_ref,current_procinfo.framepointer,0);
-          cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
+          use_frame_pointer:=current_procinfo.framepointer=NR_STACK_POINTER_REG;
+          frame_reg:=current_procinfo.framepointer;
+        end;
+
+      if use_frame_pointer then
+        begin
+          location_reset(location,LOC_CREGISTER,OS_ADDR);
+          location.register:=NR_FRAME_POINTER_REG;
+        end
+      else
+        begin
+          location_reset(location,LOC_REFERENCE,OS_ADDR);
+          location.reference.base:=frame_reg;
         end;
     end;
 
@@ -743,7 +758,7 @@ implementation
         begin
           location_reset(location,LOC_REGISTER,OS_ADDR);
           location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-          reference_reset_base(frame_ref,NR_STACK_POINTER_REG,0);
+          reference_reset_base(frame_ref,NR_STACK_POINTER_REG,{current_procinfo.calc_stackframe_size}tg.lasttemp);
           cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
         end
       else

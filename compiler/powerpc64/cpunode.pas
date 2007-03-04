@@ -40,7 +40,7 @@ uses
   //       nppcflw,
   //       nppcmem,
   ngppcset,
-  ngppcinl, nppcinl,
+  ngppcinl,
   //       nppcopt,
   nppcmat,
   nppccnv,

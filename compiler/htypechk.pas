@@ -157,11 +157,12 @@ interface
 implementation
 
     uses
+       sysutils,
        globtype,systems,
        cutils,cclasses,verbose,
        symtable,
        defutil,defcmp,
-       nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,
+       nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,ncon,
        cgbase,procinfo
        ;
 
@@ -358,9 +359,41 @@ implementation
         eq : tequaltype;
         conv : tconverttype;
         pd : tprocdef;
+        oldcount,
+        count: longint;
+        parasym : tparavarsym;
       begin
         result:=false;
-        case pf.parast.SymList.count of
+        count := pf.parast.SymList.count;
+
+        oldcount:=count;
+        while count > 0 do
+          begin
+            parasym:=tparavarsym(pf.parast.SymList[count-1]);
+            if is_boolean(parasym.vardef) then
+              begin
+                if parasym.name='RANGECHECK' then
+                  begin
+                    Include(parasym.varoptions, vo_is_hidden_para);
+                    Include(parasym.varoptions, vo_is_range_check);
+                    Dec(count);
+                  end
+                else if parasym.name='OVERFLOWCHECK' then
+                  begin
+                    Include(parasym.varoptions, vo_is_hidden_para);
+                    Include(parasym.varoptions, vo_is_overflow_check);
+                    Dec(count);
+                  end
+                else
+                  break;
+              end
+            else
+              break;
+          end;
+        if count<>oldcount then
+          pf.calcparas;
+
+        case count of
           1 : begin
                 ld:=tparavarsym(pf.parast.SymList[0]).vardef;
                 { assignment is a special case }

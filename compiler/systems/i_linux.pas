@@ -338,7 +338,7 @@ unit i_linux;
               );
             first_parm_offset : 8;
             stacksize    : 10*1024*1024;
-            abi : abi_default
+            abi : abi_powerpc_sysv
           );
 
        system_alpha_linux_info : tsysteminfo =

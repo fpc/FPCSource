@@ -2510,7 +2510,7 @@ implementation
                     if (prevlabel = nil) or
                        { darwin's assembler cannot create an uleb128 of the difference }
                        { between to symbols                                            }
-                       (target_info.system in [system_powerpc_darwin,system_powerpc64_darwin,system_i386_darwin]) then
+                       (target_info.system in systems_darwin) then
                       begin
                         asmline.concat(tai_const.create_8bit(DW_LNS_extended_op));
 {$ifdef cpu64bit}

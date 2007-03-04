@@ -34,8 +34,10 @@ interface
             so that the code generator will actually generate
             these nodes.
           }
+          function first_sqrt_real: tnode; override;
           function first_abs_real: tnode; override;
           function first_sqr_real: tnode; override;
+          procedure second_sqrt_real; override;
           procedure second_abs_real; override;
           procedure second_sqr_real; override;
           procedure second_prefetch;override;
@@ -51,7 +53,7 @@ implementation
       symconst,symdef,
       defutil,
       cgbase,pass_2,
-      cpubase,ncgutil,
+      cpubase,cpuinfo,ncgutil,
       cgutils,cgobj,rgobj;
 
 
@@ -59,7 +61,21 @@ implementation
                               tgppcinlinenode
 *****************************************************************************}
 
-     function tgppcinlinenode.first_abs_real : tnode;
+    function tgppcinlinenode.first_sqrt_real : tnode;
+      begin
+        if (current_settings.cputype >= cpu_PPC970) then
+          begin
+            expectloc:=LOC_FPUREGISTER;
+            registersint:=left.registersint;
+            registersfpu:=max(left.registersfpu,1);
+            first_sqrt_real := nil;
+          end
+        else
+          result:=inherited first_sqrt_real;
+      end;
+
+    
+    function tgppcinlinenode.first_abs_real : tnode;
       begin
         expectloc:=LOC_FPUREGISTER;
         registersint:=left.registersint;
@@ -69,6 +85,7 @@ implementation
 {$endif SUPPORT_MMX}
         first_abs_real := nil;
       end;
+
 
      function tgppcinlinenode.first_sqr_real : tnode;
       begin
@@ -82,15 +99,34 @@ implementation
       end;
 
 
-       { load the FPU into the an fpu register }
-       procedure tgppcinlinenode.load_fpu_location;
-         begin
-           location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-           secondpass(left);
-           location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
-           location.loc := LOC_FPUREGISTER;
-           location.register := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
-         end;
+     { load the FPU into the an fpu register }
+     procedure tgppcinlinenode.load_fpu_location;
+       begin
+         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+         secondpass(left);
+         location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+         location.loc := LOC_FPUREGISTER;
+         location.register := cg.getfpuregister(current_asmdata.CurrAsmList,OS_F64);
+       end;
+
+
+    procedure tgppcinlinenode.second_sqrt_real;
+      begin
+        if (current_settings.cputype < cpu_PPC970) then
+          internalerror(2007020910);
+        location.loc:=LOC_FPUREGISTER;
+        load_fpu_location;
+        case left.location.size of
+          OS_F32:
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRTS,location.register,
+              left.location.register));
+          OS_F64:
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FSQRT,location.register,
+              left.location.register));
+          else
+            inherited;
+        end;
+      end;
 
 
      procedure tgppcinlinenode.second_abs_real;
@@ -100,6 +136,7 @@ implementation
          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FABS,location.register,
            left.location.register));
        end;
+
 
      procedure tgppcinlinenode.second_sqr_real;
        var

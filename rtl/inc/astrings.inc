@@ -863,6 +863,14 @@ begin
   s:=ss;
 end;
 
+procedure fpc_ansistr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);[public,alias:'FPC_ANSISTR_ENUM'];compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}
+
+var ss:shortstring;
+
+begin
+  fpc_shortstr_enum(ordinal,len,typinfo,ord2strindex,ss);
+  s:=ss;
+end;
 
 {$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring);[public,alias:'FPC_ANSISTR_CURRENCY']; compilerproc; {$IFNDEF VER2_0} Inline; {$ENDIF}

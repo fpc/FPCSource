@@ -607,7 +607,7 @@ implementation
         secname : string;
       begin
         if (cs_create_pic in current_settings.moduleswitches) and
-           not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+           not(target_info.system in systems_darwin) then
           secname:=secnames_pic[atype]
         else
           secname:=secnames[atype];

@@ -99,8 +99,6 @@ type
     procedure g_concatcopy(list: TAsmList; const source, dest: treference;
       len: aint); override;
 
-    procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const
-      labelname: string; ioffset: longint); override;
   private
 
     procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); override;
@@ -131,10 +129,6 @@ type
     { returns the lowest numbered GP register in use, and the number of used GP registers
       for the current procedure }
     procedure calcFirstUsedGPR(out firstgpr : TSuperRegister; out gprcount : aint);
-
-    { returns true if the offset of the given reference can not be represented by a 16 bit
-    immediate as required by some PowerPC instructions }
-    function hasLargeOffset(const ref : TReference) : Boolean; inline;
 
     { generates code to call a method with the given string name. The boolean options
      control code generation. If prependDot is true, a single dot character is prepended to
@@ -177,7 +171,7 @@ end;
 
 function cgsize2string(const size : TCgSize) : string;
 const
-  cgsize_strings : array[TCgSize] of string[7] = (
+  cgsize_strings : array[TCgSize] of string[8] = (
     'OS_NO', 'OS_8', 'OS_16', 'OS_32', 'OS_64', 'OS_128', 'OS_S8', 'OS_S16', 'OS_S32',
     'OS_S64', 'OS_S128', 'OS_F32', 'OS_F64', 'OS_F80', 'OS_C64', 'OS_F128',
     'OS_M8', 'OS_M16', 'OS_M32', 'OS_M64', 'OS_M128', 'OS_MS8', 'OS_MS16', 'OS_MS32',
@@ -400,17 +394,26 @@ end;
 procedure tcgppc.init_register_allocators;
 begin
   inherited init_register_allocators;
-  rg[R_INTREGISTER] := trgcpu.create(R_INTREGISTER, R_SUBWHOLE,
-    [RS_R3, RS_R4, RS_R5, RS_R6, RS_R7, RS_R8,
-      RS_R9, RS_R10, RS_R11, RS_R12, RS_R31, RS_R30, RS_R29,
-      RS_R28, RS_R27, RS_R26, RS_R25, RS_R24, RS_R23, RS_R22,
-      RS_R21, RS_R20, RS_R19, RS_R18, RS_R17, RS_R16, RS_R15,
-      RS_R14], first_int_imreg, []);
+  if (target_info.system <> system_powerpc64_darwin) then
+    rg[R_INTREGISTER] := trgcpu.create(R_INTREGISTER, R_SUBWHOLE,
+      [RS_R3, RS_R4, RS_R5, RS_R6, RS_R7, RS_R8,
+       RS_R9, RS_R10, RS_R11, RS_R12, RS_R31, RS_R30, RS_R29,
+       RS_R28, RS_R27, RS_R26, RS_R25, RS_R24, RS_R23, RS_R22,
+       RS_R21, RS_R20, RS_R19, RS_R18, RS_R17, RS_R16, RS_R15,
+       RS_R14, RS_R13], first_int_imreg, [])
+  else
+    { special for darwin/ppc64: r2 available volatile, r13 = tls }
+    rg[R_INTREGISTER] := trgcpu.create(R_INTREGISTER, R_SUBWHOLE,
+      [RS_R2, RS_R3, RS_R4, RS_R5, RS_R6, RS_R7, RS_R8,
+       RS_R9, RS_R10, RS_R11, RS_R12, RS_R31, RS_R30, RS_R29,
+       RS_R28, RS_R27, RS_R26, RS_R25, RS_R24, RS_R23, RS_R22,
+       RS_R21, RS_R20, RS_R19, RS_R18, RS_R17, RS_R16, RS_R15,
+       RS_R14], first_int_imreg, []);	
   rg[R_FPUREGISTER] := trgcpu.create(R_FPUREGISTER, R_SUBNONE,
     [RS_F0, RS_F1, RS_F2, RS_F3, RS_F4, RS_F5, RS_F6, RS_F7, RS_F8, RS_F9,
-    RS_F10, RS_F11, RS_F12, RS_F13, RS_F31, RS_F30, RS_F29, RS_F28, RS_F27,
-      RS_F26, RS_F25, RS_F24, RS_F23, RS_F22, RS_F21, RS_F20, RS_F19, RS_F18,
-      RS_F17, RS_F16, RS_F15, RS_F14], first_fpu_imreg, []);
+     RS_F10, RS_F11, RS_F12, RS_F13, RS_F31, RS_F30, RS_F29, RS_F28, RS_F27,
+     RS_F26, RS_F25, RS_F24, RS_F23, RS_F22, RS_F21, RS_F20, RS_F19, RS_F18,
+     RS_F17, RS_F16, RS_F15, RS_F14], first_fpu_imreg, []);
 {$WARNING FIX ME}
   rg[R_MMREGISTER] := trgcpu.create(R_MMREGISTER, R_SUBNONE,
     [RS_M0, RS_M1, RS_M2], first_mm_imreg, []);
@@ -669,11 +672,11 @@ procedure tcgppc.a_load_const_reg(list: TAsmList; size: TCGSize; a: aint;
   begin
     if (lo(a) = 0) and (hi(a) <> 0) then begin
       { load only upper 32 bits, and shift }
-      load32bitconstant(list, size, hi(a), reg);
+      load32bitconstant(list, size, longint(hi(a)), reg);
       list.concat(taicpu.op_reg_reg_const(A_SLDI, reg, reg, 32));
     end else begin
       { load lower 32 bits }
-      extendssign := load32bitconstant(list, size, lo(a), reg);
+      extendssign := load32bitconstant(list, size, longint(lo(a)), reg);
       if (extendssign) and (hi(a) = 0) then
         { if upper 32 bits are zero, but loading the lower 32 bit resulted in automatic
           sign extension, clear those bits }
@@ -689,7 +692,7 @@ procedure tcgppc.a_load_const_reg(list: TAsmList; size: TCGSize; a: aint;
           - loading the lower 32 bits resulted in 0 in the upper 32 bits, and the upper
            32 bits should contain 0 }
         a_reg_alloc(list, NR_R0);
-        load32bitconstantR0(list, size, hi(a));
+        load32bitconstantR0(list, size, longint(hi(a)));
         { combine both registers }
         list.concat(taicpu.op_reg_reg_const_const(A_RLDIMI, reg, NR_R0, 32, 0));
         a_reg_dealloc(list, NR_R0);
@@ -968,7 +971,7 @@ var
       end else begin
         getmagic_unsignedN(sizeof(aWord)*8, a, u_magic, u_add, u_shift);
         { load magic in divreg }
-        cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, u_magic, divreg);
+        cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, aint(u_magic), divreg);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_MULHDU, dst, src, divreg));
         if (u_add) then begin
           cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, dst, src, divreg);
@@ -1213,8 +1216,17 @@ begin
 end;
 
 procedure tcgppc.a_jmp_name(list: TAsmList; const s: string);
+var
+  p: taicpu;
 begin
-  a_jmp_name_direct(list, s, true);
+  if (target_info.system = system_powerpc64_darwin) then
+    begin
+      p := taicpu.op_sym(A_B,get_darwin_call_stub(s));
+      p.is_jmp := true;
+      list.concat(p)
+    end
+  else
+    a_jmp_name_direct(list, s, true);
 end;
 
 procedure tcgppc.a_jmp_always(list: TAsmList; l: tasmlabel);
@@ -1631,6 +1643,12 @@ var
   tempreg : TRegister;
 
 begin
+  if (target_info.system = system_powerpc64_darwin) then
+    begin
+      inherited a_loadaddr_ref_reg(list,ref,r);
+      exit;
+    end;
+
   ref2 := ref;
   fixref(list, ref2);
   { load a symbol }
@@ -1851,83 +1869,6 @@ begin
 
 end;
 
-procedure tcgppc.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const
-  labelname: string; ioffset: longint);
-
-  procedure loadvmttor11;
-  var
-    href: treference;
-  begin
-    reference_reset_base(href, NR_R3, 0);
-    cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R11);
-  end;
-
-  procedure op_onr11methodaddr;
-  var
-    href: treference;
-  begin
-    if (procdef.extnumber = $FFFF) then
-      Internalerror(200006139);
-    { call/jmp  vmtoffs(%eax) ; method offs }
-    reference_reset_base(href, NR_R11,
-      procdef._class.vmtmethodoffset(procdef.extnumber));
-    if not (hasLargeOffset(href)) then begin
-      list.concat(taicpu.op_reg_reg_const(A_ADDIS, NR_R11, NR_R11,
-        smallint((href.offset shr 16) + ord(smallint(href.offset and $FFFF) <
-        0))));
-      href.offset := smallint(href.offset and $FFFF);
-    end else
-      { add support for offsets > 16 bit }
-      internalerror(200510201);
-    list.concat(taicpu.op_reg_ref(A_LD, NR_R11, href));
-    { the loaded reference is a function descriptor reference, so deref again
-     (at ofs 0 there's the real pointer) }
-    {$warning ts:TODO: update GOT reference}
-    reference_reset_base(href, NR_R11, 0);
-    list.concat(taicpu.op_reg_ref(A_LD, NR_R11, href));
-
-    list.concat(taicpu.op_reg(A_MTCTR, NR_R11));
-    list.concat(taicpu.op_none(A_BCTR));
-    { NOP needed for the linker...? }
-    list.concat(taicpu.op_none(A_NOP));
-  end;
-
-var
-  make_global: boolean;
-begin
-  if (not (procdef.proctypeoption in [potype_function, potype_procedure])) then
-    Internalerror(200006137);
-  if not assigned(procdef._class) or
-    (procdef.procoptions * [po_classmethod, po_staticmethod,
-    po_methodpointer, po_interrupt, po_iocheck] <> []) then
-    Internalerror(200006138);
-  if procdef.owner.symtabletype <> ObjectSymtable then
-    Internalerror(200109191);
-
-  make_global := false;
-  if (not current_module.is_unit) or
-    (cs_create_smart in current_settings.moduleswitches) or
-    (procdef.owner.defowner.owner.symtabletype = globalsymtable) then
-    make_global := true;
-
-  if make_global then
-    List.concat(Tai_symbol.Createname_global(labelname, AT_FUNCTION, 0))
-  else
-    List.concat(Tai_symbol.Createname(labelname, AT_FUNCTION, 0));
-
-  { set param1 interface to self  }
-  g_adjust_self_value(list, procdef, ioffset);
-
-  if po_virtualmethod in procdef.procoptions then begin
-    loadvmttor11;
-    op_onr11methodaddr;
-  end else
-    {$note ts:todo add GOT change?? - think not needed :) }
-    list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)));
-
-  List.concat(Tai_symbol_end.Createname(labelname));
-end;
-
 {***************** This is private property, keep out! :) *****************}
 
 procedure tcgppc.maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
@@ -2001,9 +1942,28 @@ begin
   list.concat(tai_comment.create(strpnew('fixref0 ' + ref2string(ref))));
   {$ENDIF EXTDEBUG}
 
+  if (target_info.system = system_powerpc64_darwin) and
+     assigned(ref.symbol) and
+     (ref.symbol.bind = AB_EXTERNAL) then
+    begin
+      tmpreg := g_indirect_sym_load(list,ref.symbol.name);
+      if (ref.base = NR_NO) then
+        ref.base := tmpreg
+      else if (ref.index = NR_NO) then
+        ref.index := tmpreg
+      else
+        begin
+          list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
+          ref.base := tmpreg;
+        end;
+      ref.symbol := nil;
+    end;
+
+
   { if we have to create PIC, add the symbol to the TOC/GOT }
   {$WARNING Hack for avoiding too long manglednames enabled!!}
-  if (cs_create_pic in current_settings.moduleswitches) and (assigned(ref.symbol) and
+  if (target_info.system <> system_powerpc64_darwin) and
+     (cs_create_pic in current_settings.moduleswitches) and (assigned(ref.symbol) and
     (length(ref.symbol.name) < MAX_GOT_SYMBOL_NAME_LENGTH_HACK)) then begin
     tmpreg := load_got_symbol(list, ref.symbol.name);
     if (ref.base = NR_NO) then
@@ -2041,11 +2001,44 @@ end;
 
 procedure tcgppc.a_load_store(list: TAsmList; op: tasmop; reg: tregister;
   ref: treference);
+
+  procedure maybefixup64bitoffset;
+    var
+      tmpreg: tregister;
+    begin
+      { for some instructions we need to check that the offset is divisible by at
+       least four. If not, add the bytes which are "off" to the base register and
+       adjust the offset accordingly }
+      case op of
+        A_LD, A_LDU, A_STD, A_STDU, A_LWA :
+           if ((ref.offset mod 4) <> 0) then begin
+            tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
+    
+            if (ref.base <> NR_NO) then begin
+              a_op_const_reg_reg(list, OP_ADD, OS_ADDR, ref.offset mod 4, ref.base, tmpreg);
+              ref.base := tmpreg;
+            end else begin
+              list.concat(taicpu.op_reg_const(A_LI, tmpreg, ref.offset mod 4));
+              ref.base := tmpreg;
+            end;
+            ref.offset := (ref.offset div 4) * 4;
+          end;
+      end;
+    end;
+
 var
   tmpreg, tmpreg2: tregister;
   tmpref: treference;
   largeOffset: Boolean;
 begin
+  if (target_info.system = system_powerpc64_darwin) then
+    begin
+      { darwin/ppc64 works with 32 bit relocatable symbol addresses }
+      maybefixup64bitoffset;
+      inherited a_load_store(list,op,reg,ref);
+      exit
+    end;
+
   { at this point there must not be a combination of values in the ref treference
     which is not possible to directly map to instructions of the PowerPC architecture }
   if (ref.index <> NR_NO) and ((ref.offset <> 0) or (assigned(ref.symbol))) then
@@ -2063,24 +2056,7 @@ begin
     exit;
   end;
 
-  { for some instructions we need to check that the offset is divisible by at
-   least four. If not, add the bytes which are "off" to the base register and
-   adjust the offset accordingly }
-  case op of
-    A_LD, A_LDU, A_STD, A_STDU, A_LWA :
-       if ((ref.offset mod 4) <> 0) then begin
-        tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-
-        if (ref.base <> NR_NO) then begin
-          a_op_const_reg_reg(list, OP_ADD, OS_ADDR, ref.offset mod 4, ref.base, tmpreg);
-          ref.base := tmpreg;
-        end else begin
-          list.concat(taicpu.op_reg_const(A_LI, tmpreg, ref.offset mod 4));
-          ref.base := tmpreg;
-        end;
-        ref.offset := (ref.offset div 4) * 4;
-      end;
-  end;
+  maybefixup64bitoffset;
   {$IFDEF EXTDEBUG}
   list.concat(tai_comment.create(strpnew('a_load_store1 ' + BoolToStr(ref.refaddr = addr_pic))));
   {$ENDIF EXTDEBUG}
@@ -2183,12 +2159,6 @@ begin
   end else begin
     list.concat(taicpu.op_reg_ref(op, reg, ref));
   end;
-end;
-
-function tcgppc.hasLargeOffset(const ref : TReference) : Boolean; {$ifdef ver2_0}inline;{$endif}
-begin
-  { this rather strange calculation is required because offsets of TReferences are unsigned }
-  result := aword(ref.offset-low(smallint)) > high(smallint)-low(smallint);
 end;
 
 procedure tcgppc.loadConstantPIC(list : TAsmList; size : TCGSize; a : aint; reg : TRegister);

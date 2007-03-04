@@ -284,7 +284,7 @@ implementation
         secname : string;
       begin
         if (cs_create_pic in current_settings.moduleswitches) and
-           not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+           not(target_info.system in systems_darwin) then
           secname:=secnames_pic[atype]
         else
           secname:=secnames[atype];
@@ -306,7 +306,7 @@ implementation
         { For bss we need to set some flags that are target dependent,
           it is easier to disable it for smartlinking. It doesn't take up
           filespace }
-        if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) and
+        if not(target_info.system in systems_darwin) and
            use_smartlink_section and
            (aname<>'') and
            (atype <> sec_toc) and
@@ -338,7 +338,9 @@ implementation
          system_m68k_amiga,  { amiga has old GNU AS (2.14), which blews up from .section (KB) }
          system_m68k_linux: ;
          system_powerpc_darwin,
-         system_i386_darwin:
+         system_i386_darwin,
+         system_powerpc64_darwin,
+         system_x86_64_darwin:
            begin
              if (atype = sec_stub) then
                AsmWrite('.section ');
@@ -358,10 +360,12 @@ implementation
                 { there are processor-independent shortcuts available    }
                 { for this, namely .symbol_stub and .picsymbol_stub, but }
                 { they don't work and gcc doesn't use them either...     }
-                system_powerpc_darwin:
+                system_powerpc_darwin,
+                system_powerpc64_darwin:
                   AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
                 system_i386_darwin:
                   AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
+                { darwin/x86-64 uses RIP-based GOT addressing }
                 else
                   internalerror(2006031101);
               end;
@@ -547,7 +551,7 @@ implementation
              begin
                if tai_align_abstract(hp).aligntype>1 then
                  begin
-                   if not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+                   if not(target_info.system in systems_darwin) then
                      begin
                        AsmWrite(#9'.balign '+tostr(tai_align_abstract(hp).aligntype));
                        if tai_align_abstract(hp).use_op then
@@ -585,7 +589,7 @@ implementation
 
            ait_datablock :
              begin
-               if target_info.system in [system_powerpc_darwin,system_i386_darwin] then
+               if (target_info.system in systems_darwin) then
                  begin
                    {On Mac OS X you can't have common symbols in a shared
                     library, since those are in the TEXT section and the text section is
@@ -678,7 +682,7 @@ implementation
                  aitconst_rva_symbol,
                  aitconst_indirect_symbol :
                    begin
-                     if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) and
+                     if (target_info.system in systems_darwin) and
                         (tai_const(hp).consttype in [aitconst_uleb128bit,aitconst_sleb128bit]) then
                        begin
                          AsmWrite(ait_const2str[aitconst_8bit]);
@@ -699,7 +703,7 @@ implementation
                              begin
                                if assigned(tai_const(hp).endsym) then
                                  begin
-                                   if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+                                   if (target_info.system in systems_darwin) then
                                      begin
                                        s := NextSetLabel;
                                        t := #9'.set '+s+','+tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name;
@@ -1076,7 +1080,7 @@ implementation
       Result doesn't work properly yet due to a bug in Apple's linker
 
       if (cs_create_smart in current_settings.moduleswitches) and
-         (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+         (target_info.system in systems_darwin) then
         AsmWriteLn(#9'.subsections_via_symbols');
 }
 
@@ -1094,7 +1098,7 @@ implementation
 
     function TAppleGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       begin
-        if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+        if (target_info.system in systems_darwin) then
           case atype of
             sec_bss:
               { all bss (lcomm) symbols are automatically put in the right }

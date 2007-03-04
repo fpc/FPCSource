@@ -353,7 +353,9 @@ type
     vo_has_explicit_paraloc,
     vo_is_syscall_lib,
     vo_has_mangledname,
-    vo_is_typed_const
+    vo_is_typed_const,
+    vo_is_range_check,
+    vo_is_overflow_check
   );
   tvaroptions=set of tvaroption;
 

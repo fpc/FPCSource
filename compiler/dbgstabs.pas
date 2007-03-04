@@ -1573,7 +1573,7 @@ implementation
           exit;
         list.concat(Tai_section.create(sec_fpc,'links',0));
         { make sure the debuginfo doesn't get stripped out }
-        if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+        if (target_info.system in systems_darwin) then
           begin
             dbgtable:=tai_symbol.createname('DEBUGINFOTABLE',AT_DATA,0);
             list.concat(tai_directive.create(asd_no_dead_strip,dbgtable.sym.name));

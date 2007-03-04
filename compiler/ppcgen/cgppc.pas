@@ -45,6 +45,8 @@ unit cgppc;
         procedure a_load_reg_ref(list: TAsmList; fromsize, tosize: TCGSize;
           reg: tregister; const ref: treference); override;
 
+        procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
+
         { fpu move instructions }
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
@@ -57,16 +59,24 @@ unit cgppc;
         procedure g_profilecode(list: TAsmList); override;
 
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
+
+        procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
        protected
         function  get_darwin_call_stub(const s: string): tasmsymbol;
         procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
         function  fixref(list: TAsmList; var ref: treference): boolean; virtual; abstract;
-        procedure a_load_store(list:TAsmList;op: tasmop;reg:tregister;ref: treference);virtual;abstract;
+        { contains the common code of a_load_reg_ref and a_load_ref_reg }
+        procedure a_load_store(list:TAsmList;op: tasmop;reg:tregister;ref: treference);virtual;
 
         { creates the correct branch instruction for a given combination }
         { of asmcondflags and destination addressing mode                }
         procedure a_jmp(list: TAsmList; op: tasmop;
                         c: tasmcondflag; crval: longint; l: tasmlabel);
+
+        { returns true if the offset of the given reference can not be  }
+        { represented by a 16 bit immediate as required by some PowerPC }
+        { instructions                                                  }
+        function hasLargeOffset(const ref : TReference) : Boolean; inline;
      end;
 
   const
@@ -80,6 +90,12 @@ unit cgppc;
        globals,verbose,systems,cutils,
        symconst,symsym,fmodule,
        rgobj,tgobj,cpupi,procinfo,paramgr;
+
+
+    function tcgppcgen.hasLargeOffset(const ref : TReference) : Boolean;
+      begin
+        result := aword(ref.offset-low(smallint)) > high(smallint)-low(smallint);
+      end;
 
 
     procedure tcgppcgen.a_param_const(list: TAsmList; size: tcgsize; a: aint; const
@@ -171,6 +187,90 @@ unit cgppc;
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         current_asmdata.asmlists[al_imports].concat(tai_const.createname('dyld_stub_binding_helper',0));
       end;
+
+
+     procedure tcgppcgen.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
+
+       var
+         ref2, tmpref: treference;
+
+       begin
+         ref2 := ref;
+         fixref(list,ref2);
+         if assigned(ref2.symbol) then
+           begin
+             if target_info.system = system_powerpc_macos then
+               begin
+                 if macos_direct_globals then
+                   begin
+                     reference_reset(tmpref);
+                     tmpref.offset := ref2.offset;
+                     tmpref.symbol := ref2.symbol;
+                     tmpref.base := NR_NO;
+                     list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,NR_RTOC,tmpref));
+                   end
+                 else
+                   begin
+                     reference_reset(tmpref);
+                     tmpref.symbol := ref2.symbol;
+                     tmpref.offset := 0;
+                     tmpref.base := NR_RTOC;
+                     list.concat(taicpu.op_reg_ref(A_LWZ,r,tmpref));
+
+                     if ref2.offset <> 0 then
+                       begin
+                         reference_reset(tmpref);
+                         tmpref.offset := ref2.offset;
+                         tmpref.base:= r;
+                         list.concat(taicpu.op_reg_ref(A_LA,r,tmpref));
+                       end;
+                   end;
+
+                 if ref2.base <> NR_NO then
+                   list.concat(taicpu.op_reg_reg_reg(A_ADD,r,r,ref2.base));
+
+                 //list.concat(tai_comment.create(strpnew('*** a_loadaddr_ref_reg')));
+               end
+             else
+               begin
+
+                 { add the symbol's value to the base of the reference, and if the }
+                 { reference doesn't have a base, create one                       }
+                 reference_reset(tmpref);
+                 tmpref.offset := ref2.offset;
+                 tmpref.symbol := ref2.symbol;
+                 tmpref.relsymbol := ref2.relsymbol;
+                 tmpref.refaddr := addr_hi;
+                 if ref2.base<> NR_NO then
+                   begin
+                     list.concat(taicpu.op_reg_reg_ref(A_ADDIS,r,
+                       ref2.base,tmpref));
+                   end
+                 else
+                   list.concat(taicpu.op_reg_ref(A_LIS,r,tmpref));
+                 tmpref.base := NR_NO;
+                 tmpref.refaddr := addr_lo;
+                 { can be folded with one of the next instructions by the }
+                 { optimizer probably                                     }
+                 list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,r,tmpref));
+               end
+           end
+         else if ref2.offset <> 0 Then
+           if ref2.base <> NR_NO then
+             a_op_const_reg_reg(list,OP_ADD,OS_ADDR,ref2.offset,ref2.base,r)
+           { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never}
+           { occurs, so now only ref.offset has to be loaded                         }
+           else
+             a_load_const_reg(list,OS_ADDR,ref2.offset,r)
+         else if ref2.index <> NR_NO Then
+           list.concat(taicpu.op_reg_reg_reg(A_ADD,r,ref2.base,ref2.index))
+         else if (ref2.base <> NR_NO) and
+                 (r <> ref2.base) then
+           a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref2.base,r)
+         else
+           list.concat(taicpu.op_reg_const(A_LI,r,0));
+       end;
+
 
 
     { calling a procedure by address }
@@ -420,6 +520,188 @@ unit cgppc;
    end;
 
 
+
+    procedure tcgppcgen.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
+
+        procedure loadvmttor11;
+        var
+          href : treference;
+        begin
+          reference_reset_base(href,NR_R3,0);
+          cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
+        end;
+
+
+        procedure op_onr11methodaddr;
+        var
+          href : treference;
+        begin
+          if (procdef.extnumber=$ffff) then
+            Internalerror(200006139);
+          { call/jmp  vmtoffs(%eax) ; method offs }
+          reference_reset_base(href,NR_R11,procdef._class.vmtmethodoffset(procdef.extnumber));
+          if hasLargeOffset(href) then
+            begin
+{$ifdef cpu64}
+              if (longint(href.offset) <> href.offset) then
+                { add support for offsets > 32 bit }
+                internalerror(200510201);
+{$endif cpu64}
+              list.concat(taicpu.op_reg_reg_const(A_ADDIS,NR_R11,NR_R11,
+                smallint((href.offset shr 16)+ord(smallint(href.offset and $ffff) < 0))));
+              href.offset := smallint(href.offset and $ffff);
+            end;
+          a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
+          if (target_info.system = system_powerpc64_linux) then
+            begin
+              reference_reset_base(href, NR_R11, 0);
+              a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R11);
+            end;
+          list.concat(taicpu.op_reg(A_MTCTR,NR_R11));
+          list.concat(taicpu.op_none(A_BCTR));
+          if (target_info.system = system_powerpc64_linux) then
+            list.concat(taicpu.op_none(A_NOP));
+        end;
+
+
+      var
+        make_global : boolean;
+      begin
+        if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
+          Internalerror(200006137);
+        if not assigned(procdef._class) or
+           (procdef.procoptions*[po_classmethod, po_staticmethod,
+             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
+          Internalerror(200006138);
+        if procdef.owner.symtabletype<>ObjectSymtable then
+          Internalerror(200109191);
+
+        make_global:=false;
+        if (not current_module.is_unit) or
+           (cs_create_smart in current_settings.moduleswitches) or
+           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
+          make_global:=true;
+
+        if make_global then
+          List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+        else
+          List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+
+        { set param1 interface to self  }
+        g_adjust_self_value(list,procdef,ioffset);
+
+        { case 4 }
+        if po_virtualmethod in procdef.procoptions then
+          begin
+            loadvmttor11;
+            op_onr11methodaddr;
+          end
+        { case 0 }
+        else
+          case target_info.system of
+            system_powerpc_darwin,
+            system_powerpc64_darwin:
+              list.concat(taicpu.op_sym(A_B,get_darwin_call_stub(procdef.mangledname)));
+            system_powerpc64_linux:
+              {$note ts:todo add GOT change?? - think not needed :) }
+              list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)));
+            else
+              list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)))
+          end;
+        List.concat(Tai_symbol_end.Createname(labelname));
+      end;
+
+
+    procedure tcgppcgen.a_load_store(list:TAsmList;op: tasmop;reg:tregister;
+       ref: treference);
+
+      var
+        tmpreg: tregister;
+        tmpref: treference;
+        largeOffset: Boolean;
+
+      begin
+        tmpreg := NR_NO;
+        largeOffset:= hasLargeOffset(ref);
+
+        if target_info.system = system_powerpc_macos then
+          begin
+
+            if assigned(ref.symbol) then
+              begin {Load symbol's value}
+                tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
+
+                reference_reset(tmpref);
+                tmpref.symbol := ref.symbol;
+                tmpref.base := NR_RTOC;
+
+                if macos_direct_globals then
+                  list.concat(taicpu.op_reg_ref(A_LA,tmpreg,tmpref))
+                else
+                  list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
+              end;
+
+            if largeOffset then
+              begin {Add hi part of offset}
+                reference_reset(tmpref);
+
+                if Smallint(Lo(ref.offset)) < 0 then
+                  tmpref.offset := Hi(ref.offset) + 1 {Compensate when lo part is negative}
+                else
+                  tmpref.offset := Hi(ref.offset);
+
+                if (tmpreg <> NR_NO) then
+                  list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg, tmpreg,tmpref))
+                else
+                  begin
+                    tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
+                    list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
+                  end;
+              end;
+
+            if (tmpreg <> NR_NO) then
+              begin
+                {Add content of base register}
+                if ref.base <> NR_NO then
+                  list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,
+                    ref.base,tmpreg));
+
+                {Make ref ready to be used by op}
+                ref.symbol:= nil;
+                ref.base:= tmpreg;
+                if largeOffset then
+                  ref.offset := Smallint(Lo(ref.offset));
+
+                list.concat(taicpu.op_reg_ref(op,reg,ref));
+                //list.concat(tai_comment.create(strpnew('*** a_load_store indirect global')));
+              end
+            else
+              list.concat(taicpu.op_reg_ref(op,reg,ref));
+          end
+        else {if target_info.system <> system_powerpc_macos}
+          begin
+            if assigned(ref.symbol) or
+               largeOffset then
+              begin
+                tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
+                reference_reset(tmpref);
+                tmpref.symbol := ref.symbol;
+                tmpref.relsymbol := ref.relsymbol;
+                tmpref.offset := ref.offset;
+                tmpref.refaddr := addr_hi;
+                if ref.base <> NR_NO then
+                  list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
+                    ref.base,tmpref))
+                else
+                  list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
+                ref.base := tmpreg;
+                ref.refaddr := addr_lo;
+                list.concat(taicpu.op_reg_ref(op,reg,ref));
+              end
+            else
+              list.concat(taicpu.op_reg_ref(op,reg,ref));
+          end;
+      end;
 
 
 end.

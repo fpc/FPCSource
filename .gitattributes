@@ -297,7 +297,6 @@ compiler/pexports.pas svneol=native#text/plain
 compiler/pexpr.pas svneol=native#text/plain
 compiler/pinline.pas svneol=native#text/plain
 compiler/pmodules.pas svneol=native#text/plain
-compiler/powerpc/agppcgas.pas svneol=native#text/plain
 compiler/powerpc/agppcmpw.pas svneol=native#text/plain
 compiler/powerpc/aoptcpu.pas svneol=native#text/plain
 compiler/powerpc/aoptcpub.pas svneol=native#text/plain
@@ -332,7 +331,6 @@ compiler/powerpc/rppcsri.inc svneol=native#text/plain
 compiler/powerpc/rppcstab.inc svneol=native#text/plain
 compiler/powerpc/rppcstd.inc svneol=native#text/plain
 compiler/powerpc/rppcsup.inc svneol=native#text/plain
-compiler/powerpc64/agppcgas.pas svneol=native#text/plain
 compiler/powerpc64/aoptcpu.pas svneol=native#text/plain
 compiler/powerpc64/aoptcpub.pas svneol=native#text/plain
 compiler/powerpc64/aoptcpuc.pas svneol=native#text/plain
@@ -348,7 +346,6 @@ compiler/powerpc64/itcpugas.pas svneol=native#text/plain
 compiler/powerpc64/nppcadd.pas svneol=native#text/plain
 compiler/powerpc64/nppccal.pas svneol=native#text/plain
 compiler/powerpc64/nppccnv.pas svneol=native#text/plain
-compiler/powerpc64/nppcinl.pas -text
 compiler/powerpc64/nppcld.pas svneol=native#text/plain
 compiler/powerpc64/nppcmat.pas svneol=native#text/plain
 compiler/powerpc64/ppcins.dat -text
@@ -378,6 +375,7 @@ compiler/ppc.dof -text
 compiler/ppc68k.lpi svneol=native#text/plain
 compiler/ppcarm.lpi svneol=native#text/plain
 compiler/ppcgen/aasmcpu.pas svneol=native#text/plain
+compiler/ppcgen/agppcgas.pas svneol=native#text/plain
 compiler/ppcgen/cgppc.pas svneol=native#text/plain
 compiler/ppcgen/ngppcadd.pas svneol=native#text/plain
 compiler/ppcgen/ngppccnv.pas svneol=native#text/plain
@@ -4364,6 +4362,10 @@ rtl/darwin/i386/sighnd.inc -text
 rtl/darwin/pmutext.inc svneol=native#text/plain
 rtl/darwin/powerpc/sig_cpu.inc svneol=native#text/plain
 rtl/darwin/powerpc/sighnd.inc svneol=native#text/plain
+rtl/darwin/powerpc64/sig_cpu.inc svneol=native#text/plain
+rtl/darwin/powerpc64/sighnd.inc svneol=native#text/plain
+rtl/darwin/ppcgen/ppchnd.inc svneol=native#text/plain
+rtl/darwin/ppcgen/sig_ppc.inc svneol=native#text/plain
 rtl/darwin/pthread.inc svneol=native#text/plain
 rtl/darwin/ptypes.inc svneol=native#text/plain
 rtl/darwin/signal.inc svneol=native#text/plain
@@ -6268,6 +6270,10 @@ tests/test/cg/obj/darwin/powerpc/ctest.o -text
 tests/test/cg/obj/darwin/powerpc/tcext3.o -text
 tests/test/cg/obj/darwin/powerpc/tcext4.o -text
 tests/test/cg/obj/darwin/powerpc/tcext5.o -text
+tests/test/cg/obj/darwin/powerpc64/ctest.o -text
+tests/test/cg/obj/darwin/powerpc64/tcext3.o -text
+tests/test/cg/obj/darwin/powerpc64/tcext4.o -text
+tests/test/cg/obj/darwin/powerpc64/tcext5.o -text
 tests/test/cg/obj/freebsd/i386/ctest.o -text
 tests/test/cg/obj/freebsd/i386/tcext3.o -text
 tests/test/cg/obj/freebsd/i386/tcext4.o -text
@@ -8050,6 +8056,8 @@ tests/webtbs/tw8232.pp svneol=native#text/plain
 tests/webtbs/tw8258.pp svneol=native#text/plain
 tests/webtbs/tw8258a.pp svneol=native#text/plain
 tests/webtbs/tw8264.pp svneol=native#text/plain
+tests/webtbs/tw8282.pp svneol=native#text/plain
+tests/webtbs/tw8283.pp svneol=native#text/plain
 tests/webtbs/tw8304.pp svneol=native#text/plain
 tests/webtbs/tw8312.pp svneol=native#text/plain
 tests/webtbs/tw8321.pp svneol=native#text/plain

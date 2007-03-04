@@ -86,6 +86,7 @@ unit tgobj;
 
           function sizeoftemp(list: TAsmList; const ref: treference): longint;
           function changetemptype(list: TAsmList; const ref:treference;temptype:ttemptype):boolean;
+          function gettypeoftemp(const ref:treference): ttemptype;
 
           {# Returns TRUE if the reference ref is allocated in temporary volatile memory space,
              otherwise returns FALSE.
@@ -559,7 +560,7 @@ implementation
       end;
 
 
-    function ttgobj.ChangeTempType(list: TAsmList; const ref:treference;temptype:ttemptype):boolean;
+    function ttgobj.changetemptype(list: tasmList; const ref:treference; temptype:ttemptype):boolean;
       var
         hp : ptemprecord;
       begin
@@ -597,6 +598,27 @@ implementation
             ' at pos '+tostr(ref.offset)+ ' not found !');
          list.concat(tai_tempalloc.allocinfo(ref.offset,0,'temp not found'));
 {$endif}
+      end;
+
+
+    function ttgobj.gettypeoftemp(const ref:treference): ttemptype;
+      var
+        hp : ptemprecord;
+      begin
+         hp:=templist;
+         while assigned(hp) do
+          begin
+            if (hp^.pos=ref.offset) then
+             begin
+               if hp^.temptype<>tt_free then
+                 result:=hp^.temptype
+               else
+                 internalerror(2007020810);
+               exit;
+             end;
+            hp:=hp^.next;
+          end;
+        result:=tt_none;
       end;
 
 
