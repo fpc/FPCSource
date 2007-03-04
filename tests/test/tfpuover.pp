@@ -18,7 +18,7 @@ begin
 { Explanation a addnote needs the same number of fpu regs
   that the max fpu need of left and right node, unless
   these two numbers are equal:
-  this is the reason of the symetric form of this test code PM }
+  this is the reason of the symmetric form of this test code PM }
   z:=((((x+y)*(x-y))+((x+y)*(x-y)))+(((x+y)*(x-y))+((x+y)*(x-y)))+
       (((x+y)*(x-y))+((x+y)*(x-y)))+(((x+y)*(x-y))+((x+y)*(x-y))))+
      ((((x+y)*(x-y))+((x+y)*(x-y)))+(((x+y)*(x-y))+((x+y)*(x-y)))+
