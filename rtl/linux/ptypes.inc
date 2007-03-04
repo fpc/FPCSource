@@ -114,7 +114,7 @@ Type
     pSockLen = ^socklen_t;
 
   timeval     = packed record
-                 tv_sec,
+                 tv_sec:time_t;
                  tv_usec:clong;
                 end;
   ptimeval    = ^timeval;
