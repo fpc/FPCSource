@@ -127,12 +127,22 @@ var
 (* 4 .. detached (background) OS/2 process *)
   ApplicationType: cardinal;
 
+const
+ HeapAllocFlags: cardinal = $53; (* Compatible to VP/2 *)
+ (* mfPag_Commit or mfObj_Tile or mfPag_Write or mfPag_Read *)
+
+function ReadUseHighMem: boolean;
+
+procedure WriteUseHighMem (B: boolean);
+
 (* Is allocation of memory above 512 MB address limit allowed? Initialized *)
 (* during initialization of system unit according to capabilities of the   *)
 (* underlying OS/2 version, can be overridden by user - heap is allocated  *)
 (* for all threads, so the setting isn't declared as a threadvar and       *)
 (* should be only changed at the beginning of the main thread if needed.   *)
-  UseHighMem: boolean;
+property 
+  UseHighMem: boolean read ReadUseHighMem write WriteUseHighMem;
+(* UseHighMem is provided for compatibility with 2.0.x. *)
 
 const
 (* Are file sizes > 2 GB (64-bit) supported on the current system? *)
@@ -170,12 +180,6 @@ asm
     decl %eax
 end {['EAX']};
 
-function args:pointer;assembler;
-asm
-  movl argv,%eax
-end {['EAX']};
-
-
 function paramstr(l:longint):string;
 
 var p:^Pchar;
@@ -183,7 +187,7 @@ var p:^Pchar;
 begin
   if (l>=0) and (l<=paramcount) then
   begin
-    p:=args;
+    p:=argv;
     paramstr:=strpas(p[l]);
   end
     else paramstr:='';
@@ -789,23 +793,4 @@ begin
 {$IFDEF EXTDUMPGROW}
 {    Int_HeapSize := high (cardinal);}
 {$ENDIF EXTDUMPGROW}
-    RC := DosAllocMem (P, 4096, $403);
-    if RC = 87 then
-(* Using of high memory address space (> 512 MB) *)
-(* is not supported on this system.              *)
-     UseHighMem := false
-    else
-     begin
-      UseHighMem := true;
-      if RC <> 0 then
-       begin
-        Str (RC, ErrStr);
-        ErrStr := 'Error during heap initialization (DosAllocMem - ' + ErrStr + ')!!'#13#10;
-        if IsConsole then
-         DosWrite (2, @ErrStr [1], Length (ErrStr), RC);
-        HandleError (204);
-       end
-      else
-       DosFreeMem (P);
-     end;
 end.
