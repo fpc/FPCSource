@@ -16,7 +16,7 @@ targetdir=../../$(OS_TARGET)
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../../../..
 
 [rules]
 .NOTPARALLEL:

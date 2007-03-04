@@ -12,7 +12,7 @@ rsts=frmabout frmmain frmoptions msgcomp
 units=frmmain msgcomp frmabout frmoptions
 
 [require]
-packages=fcl fpgtk
+packages=fcl-base fpgtk
 
 [compiler]
 
