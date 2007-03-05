@@ -102,12 +102,49 @@ type
             FileAlloc:cardinal;         {Amount of space the file really
                                          occupies on disk.}
             AttrFile:cardinal;          {Attributes of file.}
-            cbList:longint;             {Size of the file's extended attributes.}
+            cbList:cardinal;            {Size of the file's extended attributes.}
             Name:shortstring;           {Also possible to use as ASCIIZ.
                                          The byte following the last string
                                          character is always zero.}
         end;
         PFileFindBuf4=^TFileFindBuf4;
+
+        TFileFindBuf3L=object(TFileStatus)
+            NextEntryOffset: cardinal;  {Offset of next entry}
+            DateCreation,               {Date of file creation.}
+            TimeCreation,               {Time of file creation.}
+            DateLastAccess,             {Date of last access to file.}
+            TimeLastAccess,             {Time of last access to file.}
+            DateLastWrite,              {Date of last modification of file.}
+            TimeLastWrite:word;         {Time of last modification of file.}
+            FileSize,                   {Size of file.}
+            FileAlloc:int64;            {Amount of space the file really
+                                         occupies on disk.}
+            AttrFile:cardinal;          {Attributes of file.}
+            Name:shortstring;           {Also possible to use as ASCIIZ.
+                                         The byte following the last string
+                                         character is always zero.}
+        end;
+        PFileFindBuf3L=^TFileFindBuf3L;
+
+        TFileFindBuf4L=object(TFileStatus)
+            NextEntryOffset: cardinal;  {Offset of next entry}
+            DateCreation,               {Date of file creation.}
+            TimeCreation,               {Time of file creation.}
+            DateLastAccess,             {Date of last access to file.}
+            TimeLastAccess,             {Time of last access to file.}
+            DateLastWrite,              {Date of last modification of file.}
+            TimeLastWrite:word;         {Time of last modification of file.}
+            FileSize,                   {Size of file.}
+            FileAlloc:int64;            {Amount of space the file really
+                                         occupies on disk.}
+            AttrFile:cardinal;          {Attributes of file.}
+            cbList:cardinal;            {Size of the file's extended attributes.}
+            Name:shortstring;           {Also possible to use as ASCIIZ.
+                                         The byte following the last string
+                                         character is always zero.}
+        end;
+        PFileFindBuf4L=^TFileFindBuf4L;
 
  TFSInfo = record
             case word of
@@ -373,11 +410,6 @@ function DosSetPathInfo(FileName:PChar;InfoLevel:cardinal;
                         Options:cardinal):cardinal; cdecl;
     external 'DOSCALLS' index 219;
 
-function DosOpen(FileName:PChar;var Handle: THandle; var Action: cardinal;
-                 InitSize,Attrib,OpenFlags,FileMode:cardinal;
-                 EA:Pointer):cardinal; cdecl;
-    external 'DOSCALLS' index 273;
-
 function DosClose(Handle: THandle): cardinal; cdecl;
     external 'DOSCALLS' index 257;
 
@@ -388,13 +420,6 @@ function DosRead(Handle:THandle; var Buffer; Count: cardinal;
 function DosWrite(Handle: THandle; Buffer: pointer; Count: cardinal;
                                       var ActCount: cardinal): cardinal; cdecl;
     external 'DOSCALLS' index 282;
-
-function DosSetFilePtr(Handle: THandle; Pos: longint; Method: cardinal;
-                                     var PosActual: cardinal): cardinal; cdecl;
-    external 'DOSCALLS' index 256;
-
-function DosSetFileSize (Handle: THandle; Size: cardinal): cardinal; cdecl;
-    external 'DOSCALLS' index 272;
 
 procedure DosSleep (MSec: cardinal); cdecl; external 'DOSCALLS' index 229;
 
@@ -455,14 +480,14 @@ const
  FindResvdMask = $00003737; {Allowed bits in attribute
                              specification for DosFindFirst call.}
 
-function FileOpen (const FileName: string; Mode: integer): longint;
+function FileOpen (const FileName: string; Mode: integer): THandle;
 Var
   Handle: THandle;
   Rc, Action: cardinal;
 begin
 (* DenyNone if sharing not specified. *)
   if Mode and 112 = 0 then Mode:=Mode or 64;
-  Rc:=DosOpen(PChar (FileName), Handle, Action, 0, 0, 1, Mode, nil);
+  Rc:=Sys_DosOpenL(PChar (FileName), Handle, Action, 0, 0, 1, Mode, nil);
   If Rc=0 then
     FileOpen:=Handle
   else
@@ -470,27 +495,27 @@ begin
     //should return feInvalidHandle(=-1) if fail, other negative returned value are no more errors
 end;
 
-function FileCreate (const FileName: string): longint;
+function FileCreate (const FileName: string): THandle;
 Const
   Mode = ofReadWrite or faCreate or doDenyRW;   (* Sharing to DenyAll *)
 Var
   Handle: THandle;
   RC, Action: cardinal;
 Begin
-  RC:=DosOpen(PChar (FileName), Handle, Action, 0, 0, $12, Mode, Nil);
+  RC:=Sys_DosOpenL(PChar (FileName), Handle, Action, 0, 0, $12, Mode, Nil);
   If RC=0 then
     FileCreate:=Handle
   else
-    FileCreate:=-RC;
+    FileCreate:=feInvalidHandle;
 End;
 
-function FileCreate (const FileName: string; Mode: integer): longint;
+function FileCreate (const FileName: string; Mode: integer): THandle;
 begin
  FileCreate := FileCreate(FileName);
 end;
 
 
-function FileRead (Handle: longint; var Buffer; Count: longint): longint;
+function FileRead (Handle: THandle; var Buffer; Count: longint): longint;
 Var
   T: cardinal;
 begin
@@ -498,7 +523,7 @@ begin
   FileRead := longint (T);
 end;
 
-function FileWrite (Handle: longint; const Buffer; Count: longint): longint;
+function FileWrite (Handle: THandle; const Buffer; Count: longint): longint;
 Var
   T: cardinal;
 begin
@@ -506,30 +531,35 @@ begin
   FileWrite := longint (T);
 end;
 
-function FileSeek (Handle, FOffset, Origin: longint): longint;
+function FileSeek (Handle: THandle; FOffset, Origin: longint): longint;
 var
-  npos: cardinal;
+  NPos: int64;
 begin
-  if DosSetFilePtr (Handle, FOffset, Origin, npos) = 0 Then
-    FileSeek:= longint (npos)
+  if (Sys_DosSetFilePtrL (Handle, FOffset, Origin, NPos) = 0)
+                                               and (NPos < high (longint)) then
+    FileSeek:= longint (NPos)
   else
     FileSeek:=-1;
 end;
 
-function FileSeek (Handle: longint; FOffset: Int64; Origin: Longint): Int64;
+function FileSeek (Handle: THandle; FOffset: Int64; Origin: Longint): Int64;
+var
+  NPos: int64;
 begin
-  {$warning need to add 64bit call }
-  Result:=FileSeek(Handle,Longint(Foffset),Longint(Origin));
+  if Sys_DosSetFilePtrL (Handle, FOffset, Origin, NPos) = 0 then
+    FileSeek:= NPos
+  else
+    FileSeek:=-1;
 end;
 
-procedure FileClose (Handle: longint);
+procedure FileClose (Handle: THandle);
 begin
   DosClose(Handle);
 end;
 
-function FileTruncate (Handle, Size: longint): boolean;
+function FileTruncate (Handle: THandle; Size: longint): boolean;
 begin
-  FileTruncate:=DosSetFileSize(Handle, Size)=0;
+  FileTruncate:=Sys_DosSetFileSizeL(Handle, Size)=0;
   FileSeek(Handle, 0, 2);
 end;
 
@@ -626,7 +656,7 @@ begin
   F.FindHandle := 0;
 end;
 
-function FileGetDate (Handle: longint): longint;
+function FileGetDate (Handle: THandle): longint;
 var
   FStat: TFileStatus3;
   Time: Longint;
@@ -642,7 +672,7 @@ begin
   FileGetDate:=Time;
 end;
 
-function FileSetDate (Handle, Age: longint): longint;
+function FileSetDate (Handle: THandle; Age: longint): longint;
 var
   FStat: PFileStatus3;
   RC: cardinal;
