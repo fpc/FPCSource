@@ -1,7 +1,7 @@
 {%TARGET=linux,freebsd,darwin}
 program tb0524;
 
-uses sockets,baseunix;
+uses sockets,baseunix,sysutils;
 
 const port=6667;
 
@@ -94,15 +94,13 @@ begin
    shutdown(s,2);
 end;
 
-var i:longint;
-
 begin
   if fpfork=0 then
     do_server
   else
     begin
       {Give server some time to start.}
-      for i:=1 to 1000000 do;
+      sleep(2000);
       do_client;
     end;
 end.
