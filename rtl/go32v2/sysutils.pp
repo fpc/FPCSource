@@ -240,18 +240,23 @@ begin
 end;
 
 
-Function FileTruncate (Handle,Size: Longint) : boolean;
+Function FileTruncate (Handle: THandle; Size: Int64) : boolean;
 var
   regs : trealregs;
 begin
-  FileSeek(Handle,Size,0);
-  Regs.realecx := 0;
-  Regs.realedx := tb_offset;
-  Regs.ds := tb_segment;
-  Regs.ebx := Handle;
-  Regs.eax:=$4000;
-  RealIntr($21, Regs);
-  FileTruncate:=(regs.realflags and carryflag)=0;
+  if Size > high (longint) then
+   FileTruncate := false
+  else
+   begin
+    FileSeek(Handle,Size,0);
+    Regs.realecx := 0;
+    Regs.realedx := tb_offset;
+    Regs.ds := tb_segment;
+    Regs.ebx := Handle;
+    Regs.eax:=$4000;
+    RealIntr($21, Regs);
+    FileTruncate:=(regs.realflags and carryflag)=0;
+   end;
 end;
 
 

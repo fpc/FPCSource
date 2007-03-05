@@ -102,7 +102,7 @@ begin
 end;
 
 
-function FileTruncate(Handle, Size: LongInt): Boolean;
+function FileTruncate(Handle: THandle; Size: Int64): Boolean;
 begin
   result := false;
 end;

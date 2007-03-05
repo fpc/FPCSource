@@ -238,10 +238,14 @@ begin
   fpclose(Handle);
 end;
 
-Function FileTruncate (Handle,Size: Longint) : boolean;
+Function FileTruncate (Handle: THandle; Size: Int64) : boolean;
 
 begin
-  FileTruncate:=fpftruncate(Handle,Size)>=0;
+  if Size > high (longint) then exit;
+   FileTruncate := false
+{$WARNING Support for 64-bit FS to be added!}
+  else
+   FileTruncate:=fpftruncate(Handle,Size)>=0;
 end;
 
 Function UnixToWinAge(UnixAge : time_t): Longint;

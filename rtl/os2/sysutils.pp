@@ -557,7 +557,7 @@ begin
   DosClose(Handle);
 end;
 
-function FileTruncate (Handle: THandle; Size: longint): boolean;
+function FileTruncate (Handle: THandle; Size: Int64): boolean;
 begin
   FileTruncate:=Sys_DosSetFileSizeL(Handle, Size)=0;
   FileSeek(Handle, 0, 2);

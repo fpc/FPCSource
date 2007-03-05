@@ -206,11 +206,15 @@ begin
 end;
 
 
-function FileTruncate(Handle, Size: LongInt): Boolean;
+function FileTruncate(Handle: THandle; Size: Int64): Boolean;
 var
   dosResult: LongInt;
 begin
   FileTruncate:=False;
+  
+  if Size > high (longint) then exit;
+{$WARNING Possible support for 64-bit FS to be checked!}
+
   if (Handle<=0) then exit;
 
   dosResult:=SetFileSize(Handle, Size, OFFSET_BEGINNING);

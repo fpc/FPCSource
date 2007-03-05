@@ -142,9 +142,13 @@ begin
   libc.fpclose(Handle);
 end;
 
-Function FileTruncate (Handle : THandle; Size: Longint) : boolean;
+Function FileTruncate (Handle : THandle; Size: Int64) : boolean;
 begin
-  FileTruncate:=(libc.fpchsize(Handle,Size) = 0);
+  if Size > high (longint) then
+   FileTruncate := false
+{$WARNING Possible support for 64-bit FS to be checked!}
+  else
+   FileTruncate:=(libc.fpchsize(Handle,Size) = 0);
 end;
 
 Function FileLock (Handle : THandle; FOffset,FLen : Longint) : Longint;

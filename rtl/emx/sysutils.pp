@@ -513,15 +513,19 @@ begin
 end;
 
 
-function FileTruncate (Handle, Size: longint): boolean; assembler;
+function FileTruncate (Handle: THandle; Size: Int64): boolean; assembler;
 asm
  push ebx
 {$IFDEF REGCALL}
  mov ebx, eax
 {$ELSE REGCALL}
  mov ebx, Handle
- mov edx, Size
 {$ENDIF REGCALL}
+ mov edx, dword ptr Size
+ mov eax, dword ptr Size+4
+ or eax, eax
+ mov eax, 0
+ jz @FTruncEnd  (* file sizes > 4 GB not supported with EMX *)
  mov eax, 7F25h
  push ebx
  call syscall

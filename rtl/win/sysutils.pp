@@ -272,11 +272,15 @@ begin
 end;
 
 
-Function FileTruncate (Handle : THandle;Size: Longint) : boolean;
+Function FileTruncate (Handle : THandle;Size: Int64) : boolean;
 begin
+{
   Result:=longint(SetFilePointer(handle,Size,nil,FILE_BEGIN))<>-1;
-  If Result then
-    Result:=SetEndOfFile(handle);
+}
+  if FileSeek (Handle, Size, FILE_BEGIN) = Size then
+   Result:=SetEndOfFile(handle)
+  else
+   Result := false;
 end;
 
 Function DosToWinTime (DTime:longint;Var Wtime : TFileTime):longbool;

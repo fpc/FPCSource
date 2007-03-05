@@ -79,7 +79,7 @@ Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : Longint;
 Function FileSeek (Handle : THandle; FOffset, Origin: Longint) : Longint;
 Function FileSeek (Handle : THandle; FOffset: Int64; Origin: Longint) : Int64;
 Procedure FileClose (Handle : THandle);
-Function FileTruncate (Handle : THandle;Size: Longint) : boolean;
+Function FileTruncate (Handle : THandle;Size: Int64) : boolean;
 Function FileAge (Const FileName : String): Longint;
 Function FileExists (Const FileName : String) : Boolean;
 Function DirectoryExists (Const Directory : String) : Boolean;
