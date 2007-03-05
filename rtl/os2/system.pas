@@ -153,6 +153,33 @@ procedure SetDefaultOS2FileType (FType: ShortString);
 
 procedure SetDefaultOS2Creator (Creator: ShortString);
 
+type
+  TDosOpenL = function (FileName: PChar; var Handle: THandle;
+                        var Action: cardinal; InitSize: int64;
+                        Attrib, OpenFlags, FileMode: cardinal;
+                                                 EA: pointer): cardinal; cdecl;
+
+  TDosSetFilePtrL = function (Handle: THandle; Pos: int64; Method: cardinal;
+                                        var PosActual: int64): cardinal; cdecl;
+
+  TDosSetFileSizeL = function (Handle: THandle; Size: int64): cardinal; cdecl;
+
+
+function DummyDosOpenL (FileName: PChar; var Handle: THandle;
+                        var Action: cardinal; InitSize: int64;
+                        Attrib, OpenFlags, FileMode: cardinal;
+                                                 EA: pointer): cardinal; cdecl;
+
+function DummyDosSetFilePtrL (Handle: THandle; Pos: int64; Method: cardinal;
+                                        var PosActual: int64): cardinal; cdecl;
+
+function DummyDosSetFileSizeL (Handle: THandle; Size: int64): cardinal; cdecl;
+
+
+const
+  Sys_DosOpenL: TDosOpenL = @DummyDosOpenL;
+  Sys_DosSetFilePtrL: TDosSetFilePtrL = @DummyDosSetFilePtrL;
+  Sys_DosSetFileSizeL: TDosSetFileSizeL = @DummyDosSetFileSizeL;
 
 
 implementation
@@ -750,15 +777,15 @@ begin
       begin
         if DosQueryProcAddr (DosCallsHandle, OrdDosOpenL, nil, P) = 0 then
           begin
-            DosOpenL := TDosOpenL (P);
+            Sys_DosOpenL := TDosOpenL (P);
             if DosQueryProcAddr (DosCallsHandle, OrdDosSetFilePtrL, nil, P) = 0
                                                                            then
               begin
-                DosSetFilePtrL := TDosSetFilePtrL (P);
+                Sys_DosSetFilePtrL := TDosSetFilePtrL (P);
                 if DosQueryProcAddr (DosCallsHandle, OrdDosSetFileSizeL, nil,
                                                                     P) = 0 then
                   begin
-                    DosSetFileSizeL := TDosSetFileSizeL (P);
+                    Sys_DosSetFileSizeL := TDosSetFileSizeL (P);
                     FSApi64 := true;
                   end;
               end;

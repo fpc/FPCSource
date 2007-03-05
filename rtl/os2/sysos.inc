@@ -125,6 +125,8 @@ function DosGetDateTime(var Buf:TSysDateTime): cardinal; cdecl;
     external 'DOSCALLS' index 230;
 
 
+{
+Already declared in interface part:
 type
   TDosOpenL = function (FileName: PChar; var Handle: THandle;
                         var Action: cardinal; InitSize: int64;
@@ -135,7 +137,7 @@ type
                                         var PosActual: int64): cardinal; cdecl;
 
   TDosSetFileSizeL = function (Handle: THandle; Size: int64): cardinal; cdecl;
-
+}
 
 function DummyDosOpenL (FileName: PChar; var Handle: THandle;
                         var Action: cardinal; InitSize: int64;
@@ -164,10 +166,6 @@ end;
 
 
 const
-  DosOpenL: TDosOpenL = @DummyDosOpenL;
-  DosSetFilePtrL: TDosSetFilePtrL = @DummyDosSetFilePtrL;
-  DosSetFileSizeL: TDosSetFileSizeL = @DummyDosSetFileSizeL;
-
   OrdDosOpenL = 981;
   OrdDosSetFilePtrL = 988;
   OrdDosSetFileSizeL = 989;
