@@ -47,6 +47,10 @@ var
   Int_HeapSize: cardinal;
 {$ENDIF EXTDUMPGROW}
 
+const
+ IntHeapAllocFlags = $53;
+ (* mfPag_Commit or mfObj_Tile or mfPag_Write or mfPag_Read *)
+
 {function GetHeapSize: longint; assembler;
 asm
   movl Int_HeapSize, %eax
@@ -69,7 +73,10 @@ begin
    WriteLn ('Trying to grow heap by ', Size, ' to ', Int_HeapSize);
 {$ENDIF}
 
-  RC := DosAllocMem (P, Size, HeapAllocFlags);
+  if UseHighMem then
+   RC := DosAllocMem (P, Size, IntHeapAllocFlags or $400)
+  else
+   RC := DosAllocMem (P, Size, IntHeapAllocFlags);
   if RC = 0 then
    begin
 {$IFDEF EXTDUMPGROW}
@@ -123,19 +130,4 @@ begin
     WriteLn ('Total allocated memory is ', Int_HeapSize);
    end;
 {$ENDIF EXTDUMPGROW}
-end;
-
-
-function ReadUseHighMem: boolean;
-begin
- ReadUseHighMem := HeapAllocFlags and $400 = $400;
-end;
-
-
-procedure WriteUseHighMem (B: boolean);
-begin
- if B then
-  HeapAllocFlags := HeapAllocFlags or $400
- else
-  HeapAllocFlags := HeapAllocFlags and not ($400);
 end;

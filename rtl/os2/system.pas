@@ -128,21 +128,12 @@ var
   ApplicationType: cardinal;
 
 const
- HeapAllocFlags: cardinal = $53; (* Compatible to VP/2 *)
- (* mfPag_Commit or mfObj_Tile or mfPag_Write or mfPag_Read *)
-
-function ReadUseHighMem: boolean;
-
-procedure WriteUseHighMem (B: boolean);
-
 (* Is allocation of memory above 512 MB address limit allowed? Initialized *)
 (* during initialization of system unit according to capabilities of the   *)
 (* underlying OS/2 version, can be overridden by user - heap is allocated  *)
 (* for all threads, so the setting isn't declared as a threadvar and       *)
 (* should be only changed at the beginning of the main thread if needed.   *)
-property 
-  UseHighMem: boolean read ReadUseHighMem write WriteUseHighMem;
-(* UseHighMem is provided for compatibility with 2.0.x. *)
+  UseHighMem: boolean;
   StackTop : PtrUInt;
 
 
