@@ -241,12 +241,11 @@ end;
 Function FileTruncate (Handle: THandle; Size: Int64) : boolean;
 
 begin
-{$if defined(linux) and defined(fs32bit)}
-  if Size > high (longint) then
-   FileTruncate := false
+  if (SizeOf (TOff) < 8)   (* fpFTruncate only supporting signed 32-bit size *)
+                         and (Size > high (longint)) then
+    FileTruncate := false
   else
-{$endif}
-   FileTruncate:=fpftruncate(Handle,Size)>=0;
+    FileTruncate:=fpftruncate(Handle,Size)>=0;
 end;
 
 Function UnixToWinAge(UnixAge : time_t): Longint;
