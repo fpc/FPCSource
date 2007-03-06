@@ -133,7 +133,9 @@ const
 (* underlying OS/2 version, can be overridden by user - heap is allocated  *)
 (* for all threads, so the setting isn't declared as a threadvar and       *)
 (* should be only changed at the beginning of the main thread if needed.   *)
-  UseHighMem: boolean;
+  UseHighMem: boolean = false;
+
+var
   StackTop : PtrUInt;
 
 
