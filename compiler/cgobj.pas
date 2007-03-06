@@ -1150,11 +1150,12 @@ implementation
       begin
         intloadsize := packedbitsloadsize(sref.bitlen);
 
-{$if defined(cpurequiresproperalignment) and not defined(arm)}
+{$if not defined(arm)}
         { may need to be split into several smaller loads/stores }
-        if intloadsize <> sref.ref.alignment then
-           internalerror(2006082011);
-{$endif cpurequiresproperalignment}
+        if (tf_requires_proper_alignment in target_info.flags) and
+           (intloadsize <> sref.ref.alignment) then
+          internalerror(2006082011);
+{$endif not defined(arm)}
 
         if (intloadsize = 0) then
           internalerror(2006081310);

@@ -63,7 +63,7 @@ implementation
 
     uses
        cutils,
-       globals,globtype,verbose,
+       globals,globtype,verbose,systems,
        fmodule,
        symsym,
        aasmtai,aasmdata
@@ -334,9 +334,8 @@ implementation
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(proctypesinfo));
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(tpropertysym(sym).realname)));
                 current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(tpropertysym(sym).realname));
-{$ifdef cpurequiresproperalignment}
-                current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+                if (tf_requires_proper_alignment in target_info.flags) then
+                  current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
              end;
           end;
       end;
@@ -378,9 +377,8 @@ implementation
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkSString));
                  write_rtti_name(def);
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(def.len));
-{$ifdef cpurequiresproperalignment}
-                 current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+                 if (tf_requires_proper_alignment in target_info.flags) then
+                   current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
               end;
           end;
         end;
@@ -391,9 +389,8 @@ implementation
         begin
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkEnumeration));
           write_rtti_name(def);
-{$ifdef cpurequiresproperalignment}
-          current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+          if (tf_requires_proper_alignment in target_info.flags) then
+            current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUInt)));
           case longint(def.size) of
             1 :
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otUByte));
@@ -402,9 +399,8 @@ implementation
             4 :
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otULong));
           end;
-{$ifdef cpurequiresproperalignment}
-          current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+          if (tf_requires_proper_alignment in target_info.flags) then
+            current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUInt)));
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.min));
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.max));
           if assigned(def.basedef) then
@@ -433,13 +429,11 @@ implementation
                otUByte,otUWord,otUByte);
           begin
             write_rtti_name(def);
-{$ifdef cpurequiresproperalignment}
-            current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+            if (tf_requires_proper_alignment in target_info.flags) then
+              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(byte(trans[def.ordtype])));
-{$ifdef cpurequiresproperalignment}
-           current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+            if (tf_requires_proper_alignment in target_info.flags) then
+              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(longint(def.low)));
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(longint(def.high)));
           end;
@@ -450,9 +444,8 @@ implementation
               begin
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkInt64));
                 write_rtti_name(def);
-{$ifdef cpurequiresproperalignment}
-                current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+                if (tf_requires_proper_alignment in target_info.flags) then
+                  current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
                 { low }
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit(int64($80000000) shl 32));
                 { high }
@@ -462,9 +455,8 @@ implementation
               begin
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkQWord));
                 write_rtti_name(def);
-{$ifdef cpurequiresproperalignment}
-                current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+                if (tf_requires_proper_alignment in target_info.flags) then
+                  current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
                 { low }
                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_64bit(0));
                 { high }
@@ -502,9 +494,8 @@ implementation
         begin
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkFloat));
            write_rtti_name(def);
-{$ifdef cpurequiresproperalignment}
-           current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+           if (tf_requires_proper_alignment in target_info.flags) then
+             current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(translate[def.floattype]));
         end;
 
@@ -513,13 +504,11 @@ implementation
         begin
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkSet));
            write_rtti_name(def);
-{$ifdef cpurequiresproperalignment}
-           current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+           if (tf_requires_proper_alignment in target_info.flags) then
+             current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otULong));
-{$ifdef cpurequiresproperalignment}
-           current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+           if (tf_requires_proper_alignment in target_info.flags) then
+             current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)));
         end;
 
@@ -531,9 +520,8 @@ implementation
            else
              current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkarray));
            write_rtti_name(def);
-{$ifdef cpurequiresproperalignment}
-           current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+           if (tf_requires_proper_alignment in target_info.flags) then
+             current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
            { size of elements }
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_aint(def.elesize));
            if not(ado_IsDynamicArray in def.arrayoptions) then
@@ -550,9 +538,8 @@ implementation
         begin
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkrecord));
            write_rtti_name(def);
-{$ifdef cpurequiresproperalignment}
-           current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+           if (tf_requires_proper_alignment in target_info.flags) then
+             current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.size));
            fieldcnt:=fields_count(def.symtable,rt);
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(fieldcnt));
@@ -594,9 +581,8 @@ implementation
                { write method id and name }
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkmethod));
                write_rtti_name(def);
-{$ifdef cpurequiresproperalignment}
-               current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+               if (tf_requires_proper_alignment in target_info.flags) then
+                 current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
 
                { write kind of method (can only be function or procedure)}
                if def.returndef = voidtype then
@@ -670,15 +656,13 @@ implementation
             { write unit name }
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
             current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(current_module.realmodulename^));
-{$ifdef cpurequiresproperalignment}
-            current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+            if (tf_requires_proper_alignment in target_info.flags) then
+              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
 
             { write published properties for this object }
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(published_properties_count(def.symtable)));
-{$ifdef cpurequiresproperalignment}
-            current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+            if (tf_requires_proper_alignment in target_info.flags) then
+              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
             published_properties_write_rtti_data(propnamelist,def.symtable);
 
             propnamelist.free;
@@ -714,9 +698,8 @@ implementation
               ifDispInterface,
               ifDispatch, }
               ));
-{$ifdef cpurequiresproperalignment}
-            current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+            if (tf_requires_proper_alignment in target_info.flags) then
+              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(longint(def.iidguid^.D1)));
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(def.iidguid^.D2));
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_16bit(def.iidguid^.D3));
@@ -726,9 +709,8 @@ implementation
             { write unit name }
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
             current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(current_module.realmodulename^));
-{$ifdef cpurequiresproperalignment}
-            current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+            if (tf_requires_proper_alignment in target_info.flags) then
+              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
 
             { write iidstr }
             if assigned(def.iidstr) then
@@ -738,9 +720,8 @@ implementation
               end
             else
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
-{$ifdef cpurequiresproperalignment}
-            current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+            if (tf_requires_proper_alignment in target_info.flags) then
+              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
 
             { write published properties for this object }
             published_properties_write_rtti_data(propnamelist,def.symtable);
@@ -765,9 +746,8 @@ implementation
            { generate the name }
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(def.objrealname^)));
            current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(def.objrealname^));
-{$ifdef cpurequiresproperalignment}
-           current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-{$endif cpurequiresproperalignment}
+           if (tf_requires_proper_alignment in target_info.flags) then
+             current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
 
            case rt of
              initrtti :
@@ -908,13 +888,11 @@ implementation
             inc(st,length(def.typesym.realname)+1)
           else
             inc(st);
-          {$ifdef cpurequiresproperalignment}
-          align(st,sizeof(Tconstptruint));
-          {$endif}
+          if (tf_requires_proper_alignment in target_info.flags) then
+            align(st,sizeof(Tconstptruint));
           inc(st);
-          {$ifdef cpurequiresproperalignment}
-          align(st,sizeof(Tconstptruint));
-          {$endif}
+          if (tf_requires_proper_alignment in target_info.flags) then
+            align(st,sizeof(Tconstptruint));
           inc(st,8+sizeof(aint));
           { write rtti data }
           with current_asmdata do
@@ -1016,13 +994,11 @@ implementation
             inc(st,length(def.typesym.realname)+1)
           else
             inc(st);
-          {$ifdef cpurequiresproperalignment}
-          align(st,sizeof(Tconstptruint));
-          {$endif}
+          if (tf_requires_proper_alignment in target_info.flags) then
+            align(st,sizeof(Tconstptruint));
           inc(st);
-          {$ifdef cpurequiresproperalignment}
-          align(st,sizeof(Tconstptruint));
-          {$endif}
+          if (tf_requires_proper_alignment in target_info.flags) then
+            align(st,sizeof(Tconstptruint));
           inc(st,8+sizeof(aint));
           { write rtti data }
           with current_asmdata do

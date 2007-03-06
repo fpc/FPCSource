@@ -33,7 +33,7 @@ unit i_nds;
             name         : 'Nintendo DS';
             shortname    : 'nds';
             flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses
-	                          ,tf_smartlink_sections];
+	                          ,tf_smartlink_sections,tf_requires_proper_alignment];
             cpu          : cpu_arm;
             unit_env     : '';
             extradefines : '';

@@ -74,7 +74,6 @@
 {$ifdef sparc}
   {$define cpuflags}
   {$define cputargethasfixedstack}
-  {$define cpurequiresproperalignment}
 {$endif sparc}
 
 {$ifdef powerpc}
@@ -88,7 +87,6 @@
   {$define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpumm}
-  {$define cpurequiresproperalignment}
 {$endif powerpc64}
 
 {$ifdef arm}
@@ -96,7 +94,6 @@
   {$define cpufpemu}
   {$define cpuneedsdiv32helper}
   {$define cputargethasfixedstack}
-  {$define cpurequiresproperalignment}
 {$endif arm}
 
 {$ifdef m68k}

@@ -1232,12 +1232,11 @@ implementation
             alignment:=size_2_align(savesize);
           st_longstring,
           st_shortstring:
-{$ifdef cpurequiresproperalignment}
-            { char to string accesses byte 0 and 1 with one word access }
-            alignment:=size_2_align(2);
-{$else cpurequiresproperalignment}
-            alignment:=size_2_align(1);
-{$endif cpurequiresproperalignment}
+            if (tf_requires_proper_alignment in target_info.flags) then
+              { char to string accesses byte 0 and 1 with one word access }
+              alignment:=size_2_align(2)
+            else
+              alignment:=size_2_align(1);
           else
             internalerror(200412301);
         end;
@@ -3856,9 +3855,8 @@ implementation
              tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,
                  tObjectSymtable(symtable).fieldalignment);
 
-{$ifdef cpurequiresproperalignment}
-             tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(aint));
-{$endif cpurequiresproperalignment}
+             if (tf_requires_proper_alignment in target_info.flags) then
+               tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(aint));
 
              vmt_offset:=tObjectSymtable(symtable).datasize;
              inc(tObjectSymtable(symtable).datasize,sizeof(aint));

@@ -306,7 +306,8 @@ interface
             tf_use_function_relative_addresses,
             tf_winlikewidestring,
             tf_dwarf_relative_addresses,         // use offsets where the Dwarf spec requires this instead of absolute addresses (the latter is needed by Linux binutils)
-            tf_dwarf_only_local_labels           // only use local labels inside the Dwarf debug_info section (needed for e.g. Darwin)
+            tf_dwarf_only_local_labels,          // only use local labels inside the Dwarf debug_info section (needed for e.g. Darwin)
+            tf_requires_proper_alignment
        );
 
        psysteminfo = ^tsysteminfo;

@@ -2018,7 +2018,6 @@ begin
   def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
-  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
 {$endif}
 {$ifdef iA64}
   def_system_macro('CPUIA64');
@@ -2053,7 +2052,6 @@ begin
   def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
-  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
 {$endif}
 {$ifdef vis}
   def_system_macro('CPUVIS');
@@ -2068,7 +2066,6 @@ begin
   def_system_macro('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
   def_system_macro('FPC_CURRENCY_IS_INT64');
   def_system_macro('FPC_COMP_IS_INT64');
-  def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
 {$endif arm}
 
   if source_info.system<>target_info.system then
@@ -2079,6 +2076,9 @@ begin
 
   if tf_winlikewidestring in target_info.flags then
     def_system_macro('FPC_WINLIKEWIDESTRING');
+
+  if (tf_requires_proper_alignment in target_info.flags) then
+    def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
 
   { read configuration file }
   if (not disable_configfile) and
@@ -2092,6 +2092,17 @@ begin
     end
   else
     read_configfile := false;
+
+  { the config file may have changed the target }
+  if (tf_winlikewidestring in target_info.flags) then
+    def_system_macro('FPC_WINLIKEWIDESTRING')
+  else
+    undef_system_macro('FPC_WINLIKEWIDESTRING');
+
+  if (tf_requires_proper_alignment in target_info.flags) then
+    def_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT')
+  else
+    undef_system_macro('FPC_REQUIRES_PROPER_ALIGNMENT');
 
 { Read commandline and configfile }
   param_file:='';
