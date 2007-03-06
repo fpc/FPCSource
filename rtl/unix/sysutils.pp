@@ -241,10 +241,11 @@ end;
 Function FileTruncate (Handle: THandle; Size: Int64) : boolean;
 
 begin
+{$if defined(linux) and defined(fs32bit)}
   if Size > high (longint) then
    FileTruncate := false
-{$WARNING Support for 64-bit FS to be added!}
   else
+{$endif}
    FileTruncate:=fpftruncate(Handle,Size)>=0;
 end;
 
