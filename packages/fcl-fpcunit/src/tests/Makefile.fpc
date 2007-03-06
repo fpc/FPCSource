@@ -8,9 +8,12 @@ main=fcl
 [target]
 units=asserttest frameworktest suitetest
 
+[require]
+packages=fcl-base fcl-xml fcl-fpcunit
+
 [compiler]
 options=-S2h
-targetdir=../../$(OS_TARGET)
+#targetdir=../../$(OS_TARGET)
 
 [install]
 fpcpackage=y

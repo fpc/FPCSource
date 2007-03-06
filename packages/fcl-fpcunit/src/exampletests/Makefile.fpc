@@ -5,12 +5,15 @@
 [package]
 main=fcl
 
+[require]
+packages=fcl-base fcl-xml fcl-fpcunit
+
 [target]
 units=fpcunittests  money  moneytest testmockobject
 
 [compiler]
 options=-S2h
-targetdir=../../$(OS_TARGET)
+# targetdir=../../$(OS_TARGET)
 
 [install]
 fpcpackage=y
