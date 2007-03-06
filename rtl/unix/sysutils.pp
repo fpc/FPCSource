@@ -241,7 +241,7 @@ end;
 Function FileTruncate (Handle: THandle; Size: Int64) : boolean;
 
 begin
-  if Size > high (longint) then exit;
+  if Size > high (longint) then
    FileTruncate := false
 {$WARNING Support for 64-bit FS to be added!}
   else
