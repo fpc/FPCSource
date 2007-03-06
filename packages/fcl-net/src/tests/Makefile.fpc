@@ -3,7 +3,7 @@
 #
 
 [require]
-packages=fcl
+packages=fcl-base fcl-xml fcl-net
 
 [target]
 programs=rpcserv rpccli
@@ -16,7 +16,7 @@ options=-S2h
 fpcpackage=y
 
 [default]
-fpcdir=../../..
+fpcdir=../../../..
 
 
 [rules]
