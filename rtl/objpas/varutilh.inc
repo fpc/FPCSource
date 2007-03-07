@@ -48,25 +48,39 @@ function SafeArrayUnlock(psa: PVarArray): HRESULT; stdcall;
 
 { Conversion routines NOT in windows oleaut }
 
-Function VariantToSmallInt(Const VargSrc : TVarData) : SmallInt;
-Function VariantToLongint(Const VargSrc : TVarData) : Longint;
-Function VariantToShortint(Const VargSrc : TVarData) : ShortInt;
-Function VariantToCardinal(Const VargSrc : TVarData) : Cardinal;
-Function VariantToSingle(Const VargSrc : TVarData) : Single;
-Function VariantToDouble(Const VargSrc : TVarData) : Double;
-Function VariantToCurrency(Const VargSrc : TVarData) : Currency;
-Function VariantToDate(Const VargSrc : TVarData) : TDateTime;
-Function VariantToBoolean(Const VargSrc : TVarData) : Boolean;
-Function VariantToByte(Const VargSrc : TVarData) : Byte;
-Function VariantToInt64(Const VargSrc : TVarData ) : Int64;
-Function VariantToQWord(Const VargSrc : TVarData ) : Qword;
-Function VariantToWideString(Const VargSrc : TVarData) : WideString;
-Function VariantToAnsiString(Const VargSrc : TVarData) : AnsiString;
-Function VariantToShortString(Const VargSrc : TVarData) : ShortString;
+function VariantToSmallInt(const VargSrc : TVarData) : SmallInt;
+function VariantToLongint(const VargSrc : TVarData) : Longint;
+function VariantToShortint(const VargSrc : TVarData) : ShortInt;
+function VariantToCardinal(const VargSrc : TVarData) : Cardinal;
+function VariantToSingle(const VargSrc : TVarData) : Single;
+function VariantToDouble(const VargSrc : TVarData) : Double;
+function VariantToCurrency(const VargSrc : TVarData) : Currency;
+function VariantToDate(const VargSrc : TVarData) : TDateTime;
+function VariantToBoolean(const VargSrc : TVarData) : Boolean;
+function VariantToByte(const VargSrc : TVarData) : Byte;
+function VariantToInt64(const VargSrc : TVarData ) : Int64;
+function VariantToQWord(const VargSrc : TVarData ) : Qword;
+function VariantToWideString(const VargSrc : TVarData) : WideString;
+function VariantToAnsiString(const VargSrc : TVarData) : AnsiString;
+function VariantToShortString(const VargSrc : TVarData) : ShortString;
 
 {Debug routines }
-Procedure DumpVariant(Const VArgSrc : TVarData);
-Procedure DumpVariant(Var F : Text; Const VArgSrc : TVarData);
+procedure DumpVariant(const VSrc : Variant);
+procedure DumpVariant(const aName: string; const VSrc : Variant);
+procedure DumpVariant(var F : Text; const VSrc : Variant);
+procedure DumpVariant(var F : Text; const aName: string; const VSrc : Variant);
+
+procedure DumpVariant(const VArgSrc : TVarData);
+procedure DumpVariant(const aName: string; const VArgSrc : TVarData);
+procedure DumpVariant(var F : Text; const VArgSrc : TVarData);
+procedure DumpVariant(var F : Text; const aName: string; const VArgSrc : TVarData);
+
+
+
+{$IFDEF DEBUG_VARUTILS}
+var
+  __DEBUG_VARUTILS: Boolean;
+{$ENDIF}
 
 
 {$i varerror.inc}
@@ -78,5 +92,8 @@ const
   ARR_UNKNOWN       = $0200;
   ARR_DISPATCH      = $0400;
   ARR_VARIANT       = $0800;
+
+  VAR_LOCALE_USER_DEFAULT = $400; // = Windows.LOCALE_USER_DEFAULT
+
 
 
