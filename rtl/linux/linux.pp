@@ -24,7 +24,7 @@ interface
 uses
   ctypes;
 
-Type
+type
   TSysinfo = packed record
     uptime    : longint;
     loads     : array[1..3] of longint;
@@ -39,9 +39,9 @@ Type
   end;
   PSysInfo = ^TSysInfo;
 
-Function Sysinfo(var Info:TSysinfo):Boolean; {$ifdef FPC_USE_LIBC} cdecl; external name 'sysinfo'; {$endif}
+function Sysinfo(var Info:TSysinfo):Boolean; {$ifdef FPC_USE_LIBC} cdecl; external name 'sysinfo'; {$endif}
 
-Const
+const
   CSIGNAL              = $000000ff; // signal mask to be sent at exit
   CLONE_VM             = $00000100; // set if VM shared between processes
   CLONE_FS             = $00000200; // set if fs info shared between processes
@@ -94,7 +94,7 @@ Const
    if (oldval CMP CMPARG)
      wake UADDR2; }
 
-function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {inline;}
+function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
 
 const
   EPOLLIN  = $01; { The associated file is available for read(2) operations. }
@@ -160,10 +160,39 @@ const
   KD_TEXT0        = 2;    {obsolete}
   KD_TEXT1        = 3;    {obsolete}
 
+type
+  TCloneFunc = function(args:pointer):longint;cdecl;
 
+//function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
+
+const
+  (* Maximum number of LDT entries supported. *)
+  LDT_ENTRIES     = 8192;
+  (* The size of each LDT entry. *)
+  LDT_ENTRY_SIZE  = 8;
+
+  MODIFY_LDT_CONTENTS_DATA       = 0;
+  MODIFY_LDT_CONTENTS_STACK      = 1;
+  MODIFY_LDT_CONTENTS_CODE       = 2;
 
 type
-  TCloneFunc=function(args:pointer):longint;cdecl;
+  user_desc = record
+    entry_number  : cuint;
+    base_addr     : cuint;
+    limit         : cuint;
+    flags         : cuint8;
+
+{   unsigned int  seg_32bit:1;
+    unsigned int  contents:2;
+    unsigned int  read_exec_only:1;
+    unsigned int  limit_in_pages:1;
+    unsigned int  seg_not_present:1;
+    unsigned int  useable:1;}
+  end;
+
+type
+  TUser_Desc = user_desc;
+  PUser_Desc = ^user_desc;
 
   EPoll_Data = record
     case integer of
@@ -172,6 +201,7 @@ type
       2: (u32: cuint);
       3: (u64: cuint64);
   end;
+
   TEPoll_Data =  Epoll_Data;
   PEPoll_Data = ^Epoll_Data;
 
@@ -179,10 +209,9 @@ type
     Events: cuint32;
     Data  : TEpoll_Data;
   end;
+
   TEPoll_Event =  Epoll_Event;
   PEpoll_Event = ^Epoll_Event;
-
-function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
 
 { open an epoll file descriptor }
 function epoll_create(size: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'epoll_create'; {$endif}
@@ -194,96 +223,14 @@ function epoll_wait(epfd: cint; events: pepoll_event; maxevents, timeout: cint):
 implementation
 
 {$ifndef FPC_USE_LIBC}
-Uses Syscall;
+uses Syscall;
 
-Function Sysinfo(var Info:TSysinfo):Boolean;
-{
-  Get system info
-}
-Begin
-  Sysinfo:=do_SysCall(SysCall_nr_Sysinfo,TSysParam(@info))=0;
-End;
-
-function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
-
+function Sysinfo(var Info: TSysinfo): Boolean;
 begin
-  if (pointer(func)=nil) or (sp=nil) then
-   exit(-1); // give an error result
-{$ifdef cpui386}
-{$ASMMODE ATT}
-  asm
-        { Insert the argument onto the new stack. }
-        movl    sp,%ecx
-        subl    $8,%ecx
-        movl    args,%eax
-        movl    %eax,4(%ecx)
-
-        { Save the function pointer as the zeroth argument.
-          It will be popped off in the child in the ebx frobbing below. }
-        movl    func,%eax
-        movl    %eax,0(%ecx)
-
-        { Do the system call }
-        pushl   %ebx
-        movl    flags,%ebx
-        movl    SysCall_nr_clone,%eax
-        int     $0x80
-        popl    %ebx
-        test    %eax,%eax
-        jnz     .Lclone_end
-
-        { We're in the new thread }
-        subl    %ebp,%ebp       { terminate the stack frame }
-        call    *%ebx
-        { exit process }
-        movl    %eax,%ebx
-        movl    $1,%eax
-        int     $0x80
-
-.Lclone_end:
-        movl    %eax,__RESULT
-  end;
-{$endif cpui386}
-{$ifdef cpum68k}
-  { No yet translated, my m68k assembler is too weak for such things PM }
-(*
-  asm
-        { Insert the argument onto the new stack. }
-        movl    sp,%ecx
-        subl    $8,%ecx
-        movl    args,%eax
-        movl    %eax,4(%ecx)
-
-        { Save the function pointer as the zeroth argument.
-          It will be popped off in the child in the ebx frobbing below. }
-        movl    func,%eax
-        movl    %eax,0(%ecx)
-
-        { Do the system call }
-        pushl   %ebx
-        movl    flags,%ebx
-        movl    SysCall_nr_clone,%eax
-        int     $0x80
-        popl    %ebx
-        test    %eax,%eax
-        jnz     .Lclone_end
-
-        { We're in the new thread }
-        subl    %ebp,%ebp       { terminate the stack frame }
-        call    *%ebx
-        { exit process }
-        movl    %eax,%ebx
-        movl    $1,%eax
-        int     $0x80
-
-.Lclone_end:
-        movl    %eax,__RESULT
-  end;
-  *)
-{$endif cpum68k}
+  Sysinfo := do_SysCall(SysCall_nr_Sysinfo,TSysParam(@info))=0;
 end;
 
-function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint;
+function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   FUTEX_OP := ((op and $F) shl 28) or ((cmp and $F) shl 24) or ((oparg and $FFF) shl 12) or (cmparg and $FFF);
 end;
