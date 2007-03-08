@@ -1974,7 +1974,13 @@ implementation
 
               { Convert tp procvars when not expecting a procvar }
               if (def_to.typ<>procvardef) and
-                 (currpt.left.resultdef.typ=procvardef) then
+                 (currpt.left.resultdef.typ=procvardef) and
+                 { Only convert to call when there is no overload or the return type
+                   is equal to the expected type. }
+                 (
+                  (count=1) or
+                  equal_defs(tprocvardef(currpt.left.resultdef).returndef,def_to)
+                 ) then
                 begin
                   releasecurrpt:=true;
                   currpt:=tcallparanode(pt.getcopy);
