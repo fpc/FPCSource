@@ -4252,8 +4252,10 @@ packages/fcl-xml/src/xhtml.pp svneol=native#text/plain
 packages/fcl-xml/src/xmlcfg.pp svneol=native#text/plain
 packages/fcl-xml/src/xmlread.pp svneol=native#text/plain
 packages/fcl-xml/src/xmlstreaming.pp svneol=native#text/plain
+packages/fcl-xml/src/xmlutils.pp svneol=native#text/plain
 packages/fcl-xml/src/xmlwrite.pp svneol=native#text/plain
 packages/fcl-xml/src/xpath.pp svneol=native#text/plain
+packages/fcl-xml/tests/xmlts.pp svneol=native#text/plain
 packages/fpmake.pp svneol=native#text/plain
 rtl/COPYING -text
 rtl/COPYING.FPC -text

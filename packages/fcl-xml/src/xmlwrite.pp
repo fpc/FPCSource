@@ -44,7 +44,6 @@ implementation
 uses SysUtils;
 
 type
-  TCharacters = set of Char;
   TSpecialCharCallback = procedure(c: WideChar) of object;
 
   TXMLWriter = class(TObject)
@@ -64,7 +63,7 @@ type
     procedure wrtLineEnd; {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
     procedure wrtQuotedLiteral(const ws: WideString);
-    procedure ConvWrite(const s: WideString; const SpecialChars: TCharacters;
+    procedure ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
       const SpecialCharCallback: TSpecialCharCallback);
     procedure AttrSpecialCharCallback(c: WideChar);
     procedure TextNodeSpecialCharCallback(c: WideChar);
@@ -297,7 +296,7 @@ const
   AttrSpecialChars = ['<', '"', '&', #9, #10, #13];
   TextSpecialChars = ['<', '>', '&'];
 
-procedure TXMLWriter.ConvWrite(const s: WideString; const SpecialChars: TCharacters;
+procedure TXMLWriter.ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
   const SpecialCharCallback: TSpecialCharCallback);
 var
   StartPos, EndPos: Integer;
@@ -362,6 +361,7 @@ begin
     COMMENT_NODE:                VisitComment(node);
     DOCUMENT_NODE:               VisitDocument(node);
     DOCUMENT_TYPE_NODE:          VisitDocumentType(node);
+    ENTITY_NODE,
     DOCUMENT_FRAGMENT_NODE:      VisitFragment(node);
   end;
 end;
@@ -384,7 +384,8 @@ begin
     for i := 0 to node.Attributes.Length - 1 do
     begin
       attr := node.Attributes.Item[i];
-      VisitAttribute(attr);
+      if TDOMAttr(attr).Specified then
+        VisitAttribute(attr);
     end;
   Child := node.FirstChild;
   if Child = nil then
@@ -532,18 +533,19 @@ procedure TXMLWriter.VisitDocumentType(Node: TDOMNode);
 begin
   wrtStr('<!DOCTYPE ');
   wrtStr(Node.NodeName);
+  wrtChr(' ');
   with TDOMDocumentType(Node) do
   begin
     if PublicID <> '' then
     begin
-      wrtStr(' PUBLIC ');
+      wrtStr('PUBLIC ');
       wrtQuotedLiteral(PublicID);
       wrtChr(' ');
       wrtQuotedLiteral(SystemID);
     end
     else if SystemID <> '' then
     begin
-      wrtStr(' SYSTEM ');
+      wrtStr('SYSTEM ');
       wrtQuotedLiteral(SystemID);
     end;
     if InternalSubset <> '' then
@@ -560,6 +562,7 @@ procedure TXMLWriter.VisitFragment(Node: TDOMNode);
 var
   Child: TDOMNode;
 begin
+  // TODO: TextDecl is probably needed
   // Fragment itself should not be written, only its children should...
   Child := Node.FirstChild;
   while Assigned(Child) do
