@@ -190,7 +190,11 @@ End;
 
 Function Swap (X : Integer) : Integer;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  swap:=(X and $ff) shl 8 + (X shr 8)
+  { the extra 'and $ff' in the right term is necessary because the  }
+  { 'X shr 8' is turned into "longint(X) shr 8", so if x < 0 then   }
+  { the sign bits from the upper 16 bits are shifted in rather than }
+  { zeroes. Another bug for TP/Delphi compatibility...              }
+  swap:=(X and $ff) shl 8 + ((X shr 8) and $ff)
 End;
 
 Function swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
