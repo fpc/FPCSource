@@ -486,9 +486,9 @@ asm
         lock
         cmpxchgl        %r8d,(%rcx)
 {$else win64}
-        movl            %esi,%eax
+        movl            %edx,%eax
         lock
-        cmpxchgl        %edx,(%rdi)
+        cmpxchgl        %esi,(%rdi)
 {$endif win64}
 end;
 
@@ -558,9 +558,9 @@ asm
         lock
         cmpxchgq        %r8d,(%rcx)
 {$else win64}
-        movq            %rsi,%rax
+        movq            %rdx,%rax
         lock
-        cmpxchgq        %rdx,(%rdi)
+        cmpxchgq        %rsi,(%rdi)
 {$endif win64}
 end;
 
