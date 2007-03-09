@@ -1615,8 +1615,8 @@ begin
    17,                     {'Alignment Check',}
    18,                     {'Machine Check',}
    19,                     {'SSE FP error'}
-   SIGSEGV,SIGTRAP,SIGTIMR,SIGINT,SIGQUIT
-    : ErrorOfSig:=216;
+   SIGSEGV,SIGTRAP,SIGTIMR,SIGINT,SIGQUIT,SIGILL:
+     ErrorOfSig:=216;
   end;
   if assigned(djgpp_exception_state_ptr) then
     Begin
