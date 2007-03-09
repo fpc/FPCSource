@@ -1,17 +1,16 @@
 #
-#   Makefile.fpc for SDL bindings
+#   Makefile.fpc for libsmpeg bindings
 #
 
 [package]
-name=sdl
+name=smpeg
 version=1.0.0
 
 [require]
 libc=y
-packages=pthreads x11 smpeg
 
 [target]
-units=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+units=smpeg
 
 [install]
 fpcpackage=y

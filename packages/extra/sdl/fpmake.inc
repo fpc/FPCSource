@@ -7,6 +7,7 @@
     OS:=[linux,netbsd,freebsd,openbsd,win32];
     Dependencies.Add('pthreads');
     Dependencies.Add('x11');
+    Dependencies.Add('smpeg');
     T:=Targets.AddUnit('sdl');
     T:=Targets.AddUnit('sdl_image');
     T:=Targets.AddUnit('sdl_mixer');

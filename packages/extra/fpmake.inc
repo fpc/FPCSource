@@ -116,3 +116,6 @@
 
 { sdl }
 {$i sdl/fpmake.inc}
+
+{ smpeg }
+{$ smpeg/fpmake.inc}

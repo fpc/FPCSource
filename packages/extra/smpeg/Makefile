@@ -230,163 +230,163 @@ ifeq ($(UNITSDIR),)
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
-override PACKAGE_NAME=sdl
+override PACKAGE_NAME=smpeg
 override PACKAGE_VERSION=1.0.0
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+override TARGET_UNITS+=smpeg
 endif
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
@@ -1167,318 +1167,162 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl pthreads x11 smpeg
+override REQUIRE_PACKAGES=rtl 
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_PTHREADS=1
-REQUIRE_PACKAGES_X11=1
-REQUIRE_PACKAGES_SMPEG=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
@@ -1504,84 +1348,6 @@ endif
 endif
 ifdef UNITDIR_RTL
 override COMPILER_UNITDIR+=$(UNITDIR_RTL)
-endif
-endif
-ifdef REQUIRE_PACKAGES_PTHREADS
-PACKAGEDIR_PTHREADS:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /pthreads/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_PTHREADS),)
-ifneq ($(wildcard $(PACKAGEDIR_PTHREADS)/units/$(TARGETSUFFIX)),)
-UNITDIR_PTHREADS=$(PACKAGEDIR_PTHREADS)/units/$(TARGETSUFFIX)
-else
-UNITDIR_PTHREADS=$(PACKAGEDIR_PTHREADS)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_PTHREADS)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_PTHREADS) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_PTHREADS)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_PTHREADS=
-UNITDIR_PTHREADS:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /pthreads/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_PTHREADS),)
-UNITDIR_PTHREADS:=$(firstword $(UNITDIR_PTHREADS))
-else
-UNITDIR_PTHREADS=
-endif
-endif
-ifdef UNITDIR_PTHREADS
-override COMPILER_UNITDIR+=$(UNITDIR_PTHREADS)
-endif
-endif
-ifdef REQUIRE_PACKAGES_X11
-PACKAGEDIR_X11:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /x11/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_X11),)
-ifneq ($(wildcard $(PACKAGEDIR_X11)/units/$(TARGETSUFFIX)),)
-UNITDIR_X11=$(PACKAGEDIR_X11)/units/$(TARGETSUFFIX)
-else
-UNITDIR_X11=$(PACKAGEDIR_X11)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_X11)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_X11) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_X11)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_X11=
-UNITDIR_X11:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /x11/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_X11),)
-UNITDIR_X11:=$(firstword $(UNITDIR_X11))
-else
-UNITDIR_X11=
-endif
-endif
-ifdef UNITDIR_X11
-override COMPILER_UNITDIR+=$(UNITDIR_X11)
-endif
-endif
-ifdef REQUIRE_PACKAGES_SMPEG
-PACKAGEDIR_SMPEG:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /smpeg/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_SMPEG),)
-ifneq ($(wildcard $(PACKAGEDIR_SMPEG)/units/$(TARGETSUFFIX)),)
-UNITDIR_SMPEG=$(PACKAGEDIR_SMPEG)/units/$(TARGETSUFFIX)
-else
-UNITDIR_SMPEG=$(PACKAGEDIR_SMPEG)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_SMPEG)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_SMPEG) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_SMPEG)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_SMPEG=
-UNITDIR_SMPEG:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /smpeg/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_SMPEG),)
-UNITDIR_SMPEG:=$(firstword $(UNITDIR_SMPEG))
-else
-UNITDIR_SMPEG=
-endif
-endif
-ifdef UNITDIR_SMPEG
-override COMPILER_UNITDIR+=$(UNITDIR_SMPEG)
 endif
 endif
 ifndef NOCPUDEF
