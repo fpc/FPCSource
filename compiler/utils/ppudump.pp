@@ -1651,7 +1651,7 @@ type
     uvoid,
     u8bit,u16bit,u32bit,u64bit,
     s8bit,s16bit,s32bit,s64bit,
-    bool8bit,bool16bit,bool32bit,
+    bool8bit,bool16bit,bool32bit,bool64bit,
     uchar,uwidechar,scurrency
   );
   tobjecttyp = (odt_none,
@@ -1708,6 +1708,7 @@ begin
                bool8bit  : writeln('bool8bit');
                bool16bit : writeln('bool16bit');
                bool32bit : writeln('bool32bit');
+               bool64bit : writeln('bool64bit');
                uchar     : writeln('uchar');
                uwidechar : writeln('uwidechar');
                scurrency : writeln('ucurrency');
