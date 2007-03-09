@@ -515,23 +515,9 @@ const
               begin
                 case op of
                   OP_OR:
-                    case size of
-                      OS_8, OS_S8:
-                        list.concat(taicpu.op_reg_const(A_LI,dst,255));
-                      OS_16, OS_S16:
-                        a_load_const_reg(list,OS_16,65535,dst);
-                      else
-                        list.concat(taicpu.op_reg_const(A_LI,dst,-1));
-                    end;
+                    list.concat(taicpu.op_reg_const(A_LI,dst,-1));
                   OP_XOR:
-                    case size of
-                      OS_8, OS_S8:
-                        list.concat(taicpu.op_reg_reg_const(A_XORI,dst,src,255));
-                      OS_16, OS_S16:
-                        list.concat(taicpu.op_reg_reg_const(A_XORI,dst,src,65535));
-                      else
-                        list.concat(taicpu.op_reg_reg(A_NOT,dst,src));
-                    end;
+                    list.concat(taicpu.op_reg_reg(A_NOT,dst,src));
                   OP_AND:
                     a_load_reg_reg(list,size,size,src,dst);
                 end;
