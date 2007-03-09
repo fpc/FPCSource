@@ -126,10 +126,7 @@ unit smpeg;
 }
 {******************************************************************************}
 
-//{$I jedi-sdl.inc}
-
-{$mode delphi}
-{$packrecords C}
+{$I jedi-sdl.inc}
 
 interface
 

@@ -8,10 +8,10 @@ version=1.0.0
 
 [require]
 libc=y
-packages=pthreads x11 smpeg
+packages=pthreads x11
 
 [target]
-units=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net
+units=sdl sdl_image sdl_mixer sdl_ttf sdl_gfx sdl_net smpeg
 
 [install]
 fpcpackage=y

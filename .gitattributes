@@ -3349,12 +3349,8 @@ packages/extra/sdl/sdlwebftp.pas svneol=native#text/plain
 packages/extra/sdl/sdlwebhttp.pas svneol=native#text/plain
 packages/extra/sdl/sdlwindow.pas svneol=native#text/plain
 packages/extra/sdl/sfont.pas svneol=native#text/plain
+packages/extra/sdl/smpeg.pas svneol=native#text/plain
 packages/extra/sdl/userpreferences.pas svneol=native#text/plain
-packages/extra/smpeg/Makefile svneol=native#text/plain
-packages/extra/smpeg/Makefile.fpc svneol=native#text/plain
-packages/extra/smpeg/fpmake.inc svneol=native#text/plain
-packages/extra/smpeg/fpmake.pp svneol=native#text/plain
-packages/extra/smpeg/smpeg.pas svneol=native#text/plain
 packages/extra/sndfile/Makefile svneol=native#text/plain
 packages/extra/sndfile/Makefile.fpc svneol=native#text/plain
 packages/extra/sndfile/README -text

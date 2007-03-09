@@ -14,4 +14,5 @@
     T:=Targets.AddUnit('sdl_ttf');
     T:=Targets.AddUnit('sdl_gfx');
     T:=Targets.AddUnit('sdl_net');
+    T:=Targets.AddUnit('smpeg');
     EndPackage;
