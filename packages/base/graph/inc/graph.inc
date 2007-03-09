@@ -1394,7 +1394,7 @@ end;
      { save state of arc information }
      { because it is not needed for  }
      { a circle call.                }
-     move(ArcCall,OriginalArcInfo, sizeof(ArcCall));
+     System.move(ArcCall,OriginalArcInfo, sizeof(ArcCall));
      if LineInfo.Thickness = Normwidth then
        begin
              OldWriteMode := CurrentWriteMode;
@@ -1404,7 +1404,7 @@ end;
      if LineInfo.Thickness = Normwidth then
          CurrentWriteMode := OldWriteMode;
      { restore arc information }
-     move(OriginalArcInfo, ArcCall,sizeof(ArcCall));
+     System.move(OriginalArcInfo, ArcCall,sizeof(ArcCall));
  end;
 
  procedure SectorPL(x1,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
@@ -2060,7 +2060,7 @@ end;
    for c := 1 to installedfonts do
      with fonts[c] Do
      If assigned(instr) Then
-       Freemem(instr,instrlength);
+       System.Freemem(instr,instrlength);
    { release memory allocated for modelist }
    list := ModeList;
    while assigned(list) do

@@ -158,7 +158,7 @@ end;
     if not assigned(ModeList) then
       begin
         new(ModeList);
-        move(mode, ModeList^, sizeof(Mode));
+        System.move(mode, ModeList^, sizeof(Mode));
       end
     else
       begin
@@ -168,7 +168,7 @@ end;
           list:=list^.next;
         new(NewLst);
         list^.next := NewLst;
-        move(mode, NewLst^, sizeof(Mode));
+        System.move(mode, NewLst^, sizeof(Mode));
       end;
 
   end;

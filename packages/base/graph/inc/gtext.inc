@@ -89,6 +89,64 @@
 {                         Internal support routines                         }
 {***************************************************************************}
 
+{$ifdef FPC_BIG_ENDIAN}
+procedure swap_fheader(var h: tfheader);
+(*
+      TFHeader = packed record
+         header_size: word;    {* Version 2.0 Header Format        *}
+         font_name: array[1..4] of char;
+         font_size: word;      {* Size in byte of file        *}
+         font_major: byte;     {* Driver Version Information    *}
+         font_minor: byte;
+         min_major: byte;      {* BGI Revision Information         *}
+         min_minor: byte;
+      end;
+*)
+begin
+  with h do
+    begin
+      header_size := swap(header_size);
+      font_size := swap(font_size);
+    end;
+end;
+
+procedure swap_header(var h: theader);
+(*
+      THeader = packed record
+        Signature:  char;     { signature byte                        }
+        Nr_chars:   smallint;  { number of characters in file          }
+        Reserved:   byte;
+        First_char: byte;     { first character in file               }
+        cdefs :     smallint;  { offset to character definitions       }
+        scan_flag:  byte;     { TRUE if char is scanable              }
+        org_to_cap: shortint;     { Height from origin to top of capitol  }
+        org_to_base:shortint;     { Height from origin to baseline        }
+        org_to_dec: shortint;     { Height from origin to bot of decender }
+        _reserved: array[1..4] of char;
+        Unused: byte;
+      end;
+*)
+begin
+  with h do
+    begin
+      nr_chars := swap(nr_chars);
+      cdefs := swap(cdefs);
+    end;
+end;
+
+
+procedure swap_offsets(var t: toffsettable; start, len: longint);
+(*
+      TOffsetTable =array[0..MaxChars] of smallint;
+*)
+var
+  i: longint;
+begin
+  for i := start to start+len-1 do
+    t[i]:=Swap(t[i]);
+end;
+{$endif FPC_BIG_ENDIAN}
+
 
 function ConvertString(const OrigString: String): String;
 var
@@ -292,30 +350,37 @@ end;
               hp:=pchar(font);
               { Move to EOF in prefix header }
               while (hp[i] <> chr($1a)) do Inc(i);
-              move(hp[i+1],FHeader,sizeof(FHeader));
-              move(hp[Prefix_Size],header,sizeof(Header));
+              System.move(hp[i+1],FHeader,sizeof(FHeader));
+              System.move(hp[Prefix_Size],header,sizeof(Header));
+{$ifdef FPC_BIG_ENDIAN}
+              swap_fheader(fheader);
+              swap_header(header);
+{$endif FPC_BIG_ENDIAN}
               { check if the font name is already allocated? }
               i:=Prefix_Size+sizeof(Header);
               for b:=1 to installedfonts do
                 begin
                    if fonts[b].name=FHeader.Font_name then
                      begin
-                        move(FHeader,fonts[b].PHeader,sizeof(FHeader));
-                        move(Header,fonts[b].Header,sizeof(Header));
-                        move(hp[i],Fonts[b].Offsets[Fonts[b].Header.First_Char],Fonts[b].Header.Nr_chars*sizeof(smallint));
+                        System.move(FHeader,fonts[b].PHeader,sizeof(FHeader));
+                        System.move(Header,fonts[b].Header,sizeof(Header));
+                        System.move(hp[i],Fonts[b].Offsets[Fonts[b].Header.First_Char],Fonts[b].Header.Nr_chars*sizeof(smallint));
+{$ifdef FPC_BIG_ENDIAN}
+                        swap_offsets(Fonts[b].Offsets,Fonts[b].Header.First_Char,Fonts[b].Header.Nr_chars);
+{$endif FPC_BIG_ENDIAN}
                         Inc(i,Fonts[b].Header.Nr_chars*sizeof(smallint));
-                        move(hp[i],Fonts[b].Widths[Fonts[b].Header.First_Char],Fonts[b].Header.Nr_chars*sizeof(byte));
+                        System.move(hp[i],Fonts[b].Widths[Fonts[b].Header.First_Char],Fonts[b].Header.Nr_chars*sizeof(byte));
                         Inc(i,Fonts[b].Header.Nr_chars*sizeof(byte));
                         counter:=Fonts[b].PHeader.font_size+PREFIX_SIZE-i;
                         { allocate also space for null }
                         GetMem(FontData,Counter+1);
-                        move(hp[i],FontData^,Counter);
+                        System.move(hp[i],FontData^,Counter);
                         { Null terminate the string }
                         FontData[counter+1] := #0;
                         if fonts[b].header.Signature<> SIGNATURE then
                           begin
                             _graphResult:=grInvalidFont;
-                            Freemem(FontData, Counter+1);
+                            System.Freemem(FontData, Counter+1);
                             exit;
                           end;
                         fonts[b].instr:=FontData;
@@ -743,10 +808,17 @@ end;
               hp:=Prefix;
               i:=0;
               while (hp[i] <> chr($1a)) do Inc(i);
-              move(hp[i+1],fonts[font].PHeader,sizeof(TFHeader));
+              System.move(hp[i+1],fonts[font].PHeader,sizeof(TFHeader));
               (* Read in the Header file  *)
               BlockRead(F,fonts[font].Header,Sizeof(THeader));
+{$ifdef FPC_BIG_ENDIAN}
+              swap_fheader(fonts[font].PHeader);
+              swap_header(fonts[font].Header);
+{$endif FPC_BIG_ENDIAN}
               BlockRead(F,Fonts[font].Offsets[Fonts[font].Header.First_Char],Fonts[font].Header.Nr_chars*sizeof(smallint));
+{$ifdef FPC_BIG_ENDIAN}
+              swap_offsets(Fonts[font].Offsets,Fonts[font].Header.First_Char,Fonts[font].Header.Nr_chars);
+{$endif FPC_BIG_ENDIAN}
               {*        Load the character width table into memory.                     *}
               BlockRead(F,Fonts[font].Widths[Fonts[font].Header.First_Char],Fonts[font].Header.Nr_chars*sizeof(byte));
               {*        Determine the length of the stroke database.                    *}
@@ -765,7 +837,7 @@ end;
              begin
                 _graphResult:=grInvalidFont;
                 Currenttextinfo.font:=DefaultFont;
-                Freemem(FontData, Length+1);
+                System.Freemem(FontData, Length+1);
                 exit;
              end;
              fonts[font].instr:=FontData;
@@ -776,7 +848,7 @@ end;
                 begin
                    _graphresult:=grInvalidFont;
                    Currenttextinfo.font:=DefaultFont;
-                   Freemem(FontData, Length+1);
+                   System.Freemem(FontData, Length+1);
                 end;
               close(f);
            end;
