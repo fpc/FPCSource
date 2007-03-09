@@ -1165,6 +1165,26 @@ asm
 end;
 
 
+function InterlockedCompareExchange64(var Target: int64; NewValue: int64; Comperand: int64): int64; assembler;
+asm
+        pushl       %ebx
+        pushl       %edi
+{$ifdef REGCALL}
+        movl        %eax,%edi
+{$else}
+        movl        Target,%edi
+{$endif}
+        movl        Comperand+4,%edx
+        movl        Comperand+0,%eax
+        movl        NewValue+4,%ecx
+        movl        NewValue+0,%ebx
+        lock cmpxchg8b (%edi)
+        pop         %edi
+        pop         %ebx
+end;
+
+
+
 
 {****************************************************************************
                                   FPU
