@@ -63,7 +63,9 @@ unit cpupi;
           this extra memory should hurt less than generating all local contants with offsets
           >256 as non shifter constants }
         if tg.direction = -1 then
-          tg.setfirsttemp(-12-28);
+          tg.setfirsttemp(-12-28)
+        else
+          tg.setfirsttemp(maxpushedparasize);
       end;
 
 
