@@ -113,3 +113,6 @@
 
 { pcap }
 {$i pcap/fpmake.inc}
+
+{ sdl }
+{$i sdl/fpmake.inc}

@@ -3317,6 +3317,30 @@ packages/extra/rexx/test/Makefile svneol=native#text/plain
 packages/extra/rexx/test/Makefile.fpc svneol=native#text/plain
 packages/extra/rexx/test/backward.fnc -text
 packages/extra/rexx/test/callrexx.pas svneol=native#text/plain
+packages/extra/sdl/Makefile.fpc -text
+packages/extra/sdl/README -text
+packages/extra/sdl/fpmake.inc svneol=native#text/plain
+packages/extra/sdl/fpmake.pp svneol=native#text/plain
+packages/extra/sdl/jedi-sdl.inc svneol=native#text/plain
+packages/extra/sdl/libxmlparser.pas svneol=native#text/plain
+packages/extra/sdl/logger.pas svneol=native#text/plain
+packages/extra/sdl/moduleloader.pas svneol=native#text/plain
+packages/extra/sdl/registryuserpreferences.pas svneol=native#text/plain
+packages/extra/sdl/sdl.pas svneol=native#text/plain
+packages/extra/sdl/sdl_cpuinfo.pas svneol=native#text/plain
+packages/extra/sdl/sdl_gfx.pas -text svneol=unset#text/plain
+packages/extra/sdl/sdl_image.pas -text svneol=unset#text/plain
+packages/extra/sdl/sdl_mixer.pas -text svneol=unset#text/plain
+packages/extra/sdl/sdlfilter.pas svneol=native#text/plain
+packages/extra/sdl/sdlgameinterface.pas svneol=native#text/plain
+packages/extra/sdl/sdli386utils.pas svneol=native#text/plain
+packages/extra/sdl/sdlinput.pas svneol=native#text/plain
+packages/extra/sdl/sdlstreams.pas svneol=native#text/plain
+packages/extra/sdl/sdlticks.pas svneol=native#text/plain
+packages/extra/sdl/sdlutils.pas svneol=native#text/plain
+packages/extra/sdl/sdlwindow.pas svneol=native#text/plain
+packages/extra/sdl/smpeg.pas svneol=native#text/plain
+packages/extra/sdl/userpreferences.pas svneol=native#text/plain
 packages/extra/sndfile/Makefile svneol=native#text/plain
 packages/extra/sndfile/Makefile.fpc svneol=native#text/plain
 packages/extra/sndfile/README -text
