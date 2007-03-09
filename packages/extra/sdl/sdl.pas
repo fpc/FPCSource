@@ -2954,6 +2954,11 @@ cdecl; external {$IFDEF __GPC__}name 'SDL_GetGammaRamp'{$ELSE} SDLLibName{$ENDIF
   emulation. }
 
 
+function SDL_GetPixel(Surface: PSDL_Surface; const x, y: integer): SInt32; {$ifdef fpc} inline; {$endif}
+
+procedure SDL_PutPixel(Surface: PSDL_Surface; const x, y: integer; pixel: UInt32); {$ifdef fpc} inline; {$endif}
+
+
 function SDL_SetColors(surface: PSDL_Surface; colors: PSDL_Color; firstcolor : Integer; ncolors: Integer) : Integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_SetColors'{$ELSE} SDLLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_SetColors}
@@ -3848,6 +3853,51 @@ begin
   {$IFNDEF WIN32}
   SDL_Error(SDL_ENOMEM);
   {$ENDIF}
+end;
+
+function SDL_GetPixel(Surface: PSDL_Surface; const x, y: integer): SInt32;{$ifdef fpc} inline; {$endif}
+var bits: PByte;
+    Bpp: UInt32;
+    r, g, b: byte;
+begin
+  assert(x>=0);
+  assert(x<Surface^.w);
+  SDL_GetPixel:=-1;
+  Bpp:=Surface^.Format^.BytesPerPixel;
+  bits:=PByte(Surface^.Pixels) + Word(Y) * Word(Surface^.Pitch) + Word(X) * Bpp;
+  case Bpp of
+    1: SDL_GetPixel:=(PByte(Surface^.Pixels) + Y * Surface^.Pitch + X)^;
+    2: SDL_GetPixel:=(PWord(Surface^.Pixels) + Y * Surface^.Pitch div 2 + X)^;
+    3: begin
+          r:=(bits + Surface^.Format^.RShift div 8)^;
+          g:=(bits + Surface^.Format^.GShift div 8)^;
+          b:=(bits + Surface^.Format^.BShift div 8)^;
+          SDL_GetPixel:=SDL_MapRGB(Surface^.Format, r, g, b);
+       end;
+    4: SDL_GetPixel:=(PCardinal(Surface^.Pixels) + Y * Surface^.Pitch div 4 + X)^;
+  end;
+end;
+
+procedure SDL_PutPixel(Surface: PSDL_Surface; const x, y: integer; pixel: UInt32); {$ifdef fpc} inline; {$endif}
+var bits: PByte;
+    Bpp: UInt32;
+    r, g, b: byte;
+begin
+  assert(x>=0);
+  assert(x<Surface^.w);
+  Bpp:=Surface^.Format^.BytesPerPixel;
+  bits:=PByte(Surface^.Pixels) + Word(Y) * Word(Surface^.Pitch) + Word(X) * Bpp;
+  case Bpp of
+    1: PUInt32(PByte(Surface^.Pixels) + Y * Surface^.Pitch + X)^:=Pixel;
+    2: PUint32(PWord(Surface^.Pixels) + Y * Surface^.Pitch div 2 + X)^:=Pixel;
+    3: begin
+          SDL_GetRGB(pixel, Surface^.Format, @r, @g, @b);
+          (bits + Surface^.Format^.RShift div 8)^:=r;
+          (bits + Surface^.Format^.GShift div 8)^:=g;
+          (bits + Surface^.Format^.BShift div 8)^:=b;
+       end;
+    4: (PCardinal(Surface^.Pixels) + Y * Surface^.Pitch div 4 + X)^:=Pixel;
+  end;
 end;
 
 function SDL_RWSeek(context: PSDL_RWops; offset: Integer; whence: Integer) : Integer;
