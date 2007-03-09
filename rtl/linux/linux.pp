@@ -166,34 +166,34 @@ type
 //function Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
 
 const
-  (* Maximum number of LDT entries supported. *)
-  LDT_ENTRIES     = 8192;
-  (* The size of each LDT entry. *)
-  LDT_ENTRY_SIZE  = 8;
-
   MODIFY_LDT_CONTENTS_DATA       = 0;
   MODIFY_LDT_CONTENTS_STACK      = 1;
   MODIFY_LDT_CONTENTS_CODE       = 2;
 
+{ Flags for user_desc.flags }
+  UD_SEG_32BIT            = $01;
+  UD_CONTENTS_DATA        = MODIFY_LDT_CONTENTS_DATA  shl 1;
+  UD_CONTENTS_STACK       = MODIFY_LDT_CONTENTS_STACK shl 1;
+  UD_CONTENTS_CODE        = MODIFY_LDT_CONTENTS_CODE  shl 1;
+  UD_READ_EXEC_ONLY       = $08;
+  UD_LIMIT_IN_PAGES       = $10;
+  UD_SEG_NOT_PRESENT      = $20;
+  UD_USEABLE              = $40;
+  UD_LM                   = $80;
+
 type
   user_desc = record
-    entry_number  : cuint;
-    base_addr     : cuint;
+    entry_number  : cint;
+    base_addr     : pointer;
     limit         : cuint;
-    flags         : cuint8;
-
-{   unsigned int  seg_32bit:1;
-    unsigned int  contents:2;
-    unsigned int  read_exec_only:1;
-    unsigned int  limit_in_pages:1;
-    unsigned int  seg_not_present:1;
-    unsigned int  useable:1;}
+    flags         : cuint;
   end;
 
-type
   TUser_Desc = user_desc;
   PUser_Desc = ^user_desc;
 
+
+type
   EPoll_Data = record
     case integer of
       0: (ptr: pointer);
@@ -242,7 +242,7 @@ end;
 
 function epoll_ctl(epfd, op, fd: cint; event: pepoll_event): cint;
 begin
-  epoll_ctl := do_syscall(syscall_nr_epoll_ctl, tsysparam(epfd), 
+  epoll_ctl := do_syscall(syscall_nr_epoll_ctl, tsysparam(epfd),
     tsysparam(op), tsysparam(fd), tsysparam(event));
 end;
 
