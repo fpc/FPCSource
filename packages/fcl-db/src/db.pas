@@ -1786,7 +1786,7 @@ const
       { ftString} TStringField,
       { ftSmallint} TSmallIntField,
       { ftInteger} TLongintField,
-      { ftWord} TLongintField,
+      { ftWord} TWordField,
       { ftBoolean} TBooleanField,
       { ftFloat} TFloatField,
       { ftCurrency} TCurrencyField,
