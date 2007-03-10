@@ -47,8 +47,6 @@ const
    StdBufferSize = 4096;   { Buffer size for FloodFill }
 
 type
-
-
   tinttable = array[0..16383] of smallint;
   pinttable = ^tinttable;
 
@@ -1864,31 +1862,23 @@ end;
      FillPattern:=FillpatternTable[UserFill];
    end;
 
-
-
-
-
-
   procedure DrawPoly(numpoints : word;var polypoints);
-
-      type
-            ppointtype = ^pointtype;
-        pt = array[0..16000] of pointtype;
-
-      var
-            i : longint;
-
+    type
+      ppointtype = ^pointtype;
+      pt = array[0..16000] of pointtype;
+    var
+      i : longint;
     begin
-         if numpoints < 2 then
-           begin
-             _GraphResult := grError;
-             exit;
-           end;
-         for i:=0 to numpoints-2 do
-           line(pt(polypoints)[i].x,
-                pt(polypoints)[i].y,
-                pt(polypoints)[i+1].x,
-                pt(polypoints)[i+1].y);
+      if numpoints < 2 then
+        begin
+          _GraphResult := grError;
+          exit;
+        end;
+      for i:=0 to numpoints-2 do
+        line(pt(polypoints)[i].x,
+             pt(polypoints)[i].y,
+             pt(polypoints)[i+1].x,
+             pt(polypoints)[i+1].y);
     end;
 
 
@@ -1984,8 +1974,7 @@ end;
     DriverName:=InternalDriverName;   { DOS Graphics driver }
 
     if (Graphdriver=Detect)
-       or (GraphMode = detectMode)
-       then
+       or (GraphMode = detectMode) then
       begin
         internDetectGraph(GraphDriver,GraphMode,true);
         If _GraphResult = grNotDetected then Exit;
@@ -2001,7 +1990,7 @@ end;
         { Actually set the graph mode...}
         if firstCallOfInitgraph then
           begin
-        SaveVideoState;
+            SaveVideoState;
             firstCallOfInitgraph := false;
           end;
         SetGraphMode(GraphMode);
@@ -2026,7 +2015,7 @@ end;
 
            if firstCallOfInitgraph then
              begin
-           SaveVideoState;
+               SaveVideoState;
                firstCallOfInitgraph := false;
              end;
            SetGraphMode(GraphMode);
@@ -2059,8 +2048,8 @@ end;
    { release memory allocated for fonts }
    for c := 1 to installedfonts do
      with fonts[c] Do
-     If assigned(instr) Then
-       System.Freemem(instr,instrlength);
+       If assigned(instr) Then
+         System.Freemem(instr,instrlength);
    { release memory allocated for modelist }
    list := ModeList;
    while assigned(list) do

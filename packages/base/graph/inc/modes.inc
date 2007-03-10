@@ -132,10 +132,7 @@ end;
               logln('Adding resolution '+strf(modenr)+' for drivernr '+strf(drivernr)+
                 ' ('+strf(mode.maxx)+'x'+strf(mode.maxy)+')');
 {$endif logging}
-              if assigned(list) then
-                newLst^.next := list^.next
-              else
-                newLst^.next := nil;
+              newLst^.next := list;
               if assigned(prev) then
                 prev^.next := newLst
               else
@@ -170,7 +167,6 @@ end;
         list^.next := NewLst;
         System.move(mode, NewLst^, sizeof(Mode));
       end;
-
   end;
 
 
