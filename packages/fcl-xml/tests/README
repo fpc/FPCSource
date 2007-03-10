@@ -1,0 +1,35 @@
+Test runner for w3.org XML compliance suite
+-------------------------------------------
+
+The xmlts is intended to run the XML compliance suite from W3.org.
+The suite includes 2500+ tests. It may be downloaded from
+http://www.w3.org/XML/Test/xmlts20031210.zip  (approx. 1.7 mBytes)
+After compiling xmlts.pp, run it with the following command line:
+
+xmlts <path-to-xmlconf.xml> <report-filename> [-t template.xml] [-v]
+
+Two required commandline parameters include path to test database file and report
+filename. Optionally, you may specify validating mode with -v switch and report
+template filename with -t (by default, 'template.xml' is used).
+The test suite includes several test databases (all named 'xmlconf.xml'). There is
+master database located in root dir, and several individual databases in different
+subdirs.
+
+for example, to run all tests included into the suite in non-validating mode, use:
+
+xmlts xmlconf/xmlconf.xml myreport.html
+
+Report is produced in xhtml format, use your favourite browser to view it.
+
+As of 10.03.2007, the xml package does not support namespaces yet, so you might wish
+to exclude namespace tests. To do this, edit xmlconf/xmlconf.xml file and comment out
+two lines at the bottom which reference 'eduni-ns10' and 'eduni-ns11' testsuites.
+
+(The last lines should look like:
+
+    &eduni-xml11;
+<!--    &eduni-ns10; -->
+<!--    &eduni-ns11; -->
+
+</TESTSUITE>
+)
