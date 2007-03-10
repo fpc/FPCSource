@@ -33,13 +33,10 @@ Type
 
   TSysParam  = Longint;
 
-function Do_SysCall(sysnr:TSysParam):TSysResult;  oldfpccall; external name 'FPC_SYSCALL0';
-function Do_SysCall(sysnr,param1:TSysParam):TSysResult; oldfpccall; external name 'FPC_SYSCALL1';
-function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult;  oldfpccall; external name 'FPC_SYSCALL2';
-function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; oldfpccall; external name 'FPC_SYSCALL3';
-function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; oldfpccall; external name 'FPC_SYSCALL4';
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult;  oldfpccall; external name 'FPC_SYSCALL5';
-{.$ifdef notsupported}
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult;  oldfpccall; external name 'FPC_SYSCALL6';
-{.$endif notsupported}
-
+function Do_SysCall(sysnr:TSysParam):TSysResult; register; external name 'FPC_SYSCALL0';
+function Do_SysCall(sysnr,param1:TSysParam):TSysResult; register; external name 'FPC_SYSCALL1';
+function Do_SysCall(sysnr,param1,param2:TSysParam):TSysResult; register; external name 'FPC_SYSCALL2';
+function Do_SysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; register; external name 'FPC_SYSCALL3';
+function Do_SysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; register; external name 'FPC_SYSCALL4';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; register; external name 'FPC_SYSCALL5';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; register; external name 'FPC_SYSCALL6';
