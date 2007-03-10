@@ -1,0 +1,485 @@
+<!DOCTYPE html PUBLIC
+    "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "doc/xhtml1-transitional.dtd">
+<!--
+#
+# $Id: template.xml,v 1.3 2000/07/15 19:12:14 dbrownell Exp $
+#
+# Copyright (c) 1999-2000 by David Brownell.  All Rights Reserved.
+#
+# This program is free software; you may use, copy, modify, and
+# redistribute it under the terms of the LICENSE with which it was
+# originally distributed.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# LICENSE for more details.
+#
+-->
+
+<!--
+    This document is a template for the output of a test report.
+    It uses processing instructions to flag where the certain
+    types of test reporting data should be placed.  That's in
+    roughly three categories:
+
+    - Report identification ... identifying the XML processor,
+      when the test was run, and so on.  These are integrated
+      using processing instructions
+
+	<?run-id VALUE?>
+
+      where VALUE is "name", "date", "type", "general-entities",
+      "parameter-entities", and some other values.
+
+    - Tests which always mean the same thing ... for example,
+      all processors must accept all valid documents, reject
+      everything that isn't well-formed, and may handle "optional"
+      errors in a variety of manners.
+
+	<?table valid?> or <?table not-wf?> etc
+    
+      The "table" PI causes a set of table rows to be emitted.
+    
+    - The "invalid" test cases are interpreted differently
+      depending on whether the processor validates or not;
+      this requires a conditional feature, and also calls for
+      the table to be generated differently.
+
+	<?if validating?> or <?if nonvalidating?>
+	<?table invalid positive?>
+	<?table invalid negative?>
+	<?endif?>
+    
+      As a positive test, results without a diagnostic are not
+      printed; as a negative test, they are printed (so diagnostics
+      can be analyzed).
+
+      NOTE:  if/endif do not nest!!  They must have the same
+      parent node !!
+    
+    The intent of the template is to let the boilerplate change
+    more readily, including organization of the report.  Some
+    parts of the report are not readily changed; these include
+    some table style features that don't appear to be controllable
+    through the style sheet, column ordering, and labels for the
+    diagnostics which are constructed by the test harness.
+
+    Also, do try to make sure that this template remains valid
+    to the "transitional" level of XHTML.  The use of "bgcolor"
+    attributes and "center" tags are the main reasons this isn't
+    "strict" (HTML 4.0).  Perhaps one could trust CSS that far,
+    but not all browsers handle CSS, even that well.
+-->
+
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+    <title><?run-id name?> XML <?run-id type?> Processor</title>
+    <meta http-equiv="Content-Type" content="text/html; CHARSET=utf-8"/>	
+</head><body bgcolor="#eeeeff">
+
+<h1>XML Processor Conformance Report:<br/>
+<em><?run-id name?></em></h1>
+
+<p> This document is the output of an
+<a href="http://xmlconf.sourceforge.net/">XML test harness</a>.
+It reports on the conformance of the following
+XML 1.0 processor configuration: </p>
+
+<center><table bgcolor="#ffffff" cellpadding="4" border="1">
+    <tr>
+	<td bgcolor="#ffffcc">XML Processor</td>
+	<td><?run-id description?></td>
+	</tr>
+    <tr>
+	<td bgcolor="#ffffcc">Parser Class</td>
+	<td><?run-id name?></td>
+	</tr>
+    <tr>
+	<td bgcolor="#ffffcc">Processing Mode</td>
+	<td><?run-id type?></td>
+	</tr>
+    <tr>
+	<td bgcolor="#ffffcc">General Entities</td>
+	<td><?run-id general-entities?></td>
+	</tr>
+    <tr>
+	<td bgcolor="#ffffcc">Parameter Entities</td>
+	<td><?run-id parameter-entities?></td>
+	</tr>
+</table></center>
+
+<p> The results were as reported through the parser's API to
+this particular test harness and execution environment: </p>
+
+<center><table bgcolor="#ffffff" cellpadding="4" border="1">
+    <tr>
+	<td bgcolor="#ffffcc">Test Run Date</td>
+	<td><?run-id date?></td>
+	</tr>
+    <tr>
+	<td bgcolor="#ffffcc">Harness and Version</td>
+	<td><?run-id harness?><br/><?run-id version?></td>
+	</tr>
+    <tr>
+	<td bgcolor="#ffffcc">Runtime Environment</td>
+	<td><?run-id java?></td>
+	</tr>
+    <tr>
+	<td bgcolor="#ffffcc">Host OS Info</td>
+	<td><?run-id os?></td>
+	</tr>
+    <tr>
+	<td bgcolor="#ffffcc">Suite of Testcases</td>
+	<td><?run-id testsuite?></td>
+	</tr>
+</table></center>
+
+<p> An summary of test results follows.  To know the actual test status,
+<b>someone must examine the result of each passed negative test</b>
+(and informative test) to make sure it failed for the right reason.
+That examination may cause the counts of failed tests to increase
+(and passed tests to decrease), changing a provisional "conforms" status
+to a "does not conform".  </p>
+
+<center><table bgcolor="#ffffff" cellpadding="4" border="1">
+    <tr>
+	<td bgcolor="#ffffcc">Status</td>
+	<td><?run-id status?></td>
+	</tr>
+    <tr>
+	<td bgcolor="#ffffcc">Total Passed Tests (provisional)</td>
+	<td><?run-id passed?></td>
+	</tr>
+    <tr>
+	<td bgcolor="#ffffcc">Passed Negative Tests (provisional)</td>
+	<td><?run-id passed-negative?></td>
+	</tr>
+    <tr>
+	<td bgcolor="#ffffcc">Failed Tests (provisional)</td>
+	<td><?run-id failed?></td>
+	</tr>
+    <tr>
+	<td bgcolor="#ffffcc">Tests Skipped</td>
+	<td><?run-id skipped?></td>
+	</tr>
+</table></center>
+
+<p> Sections of this report are:
+<a href="#explanation">Explanation of Tables</a>;
+<a href="#positive">Positive Tests</a>, cases where this processor should
+report no errors;
+<a href="#negative">Negative Tests</a>, documents for which this processor
+must report the known errors; and
+<a href="#optional">Informative Tests</a>, documents with errors which
+processors are not required to report. </p>
+
+<p> <em> <b>NOTE:</b> The OASIS/NIST test suite is currently in draft state,
+and can't actually be used without modifications to the configuration file,
+which is used both to generate the test documentation published at the
+OASIS/NIST site and to operate this test harness.  In some cases, test
+cases may need to be reclassified; this would affect results attributed
+to parsers.  Accordingly, treat these results as preliminary.</em></p>
+
+<hr/><h2><a name="explanation">
+Explanation of Tables
+</a></h2>
+
+<p>Sections presenting test results are composed largely of tables, with
+explanations focussing on exactly what those tables indicate.  Diagnostics
+for failed tests are presented in italics, with a cherry colored background,
+to highlight the result.  Diagnostics for succesful tests should as a rule
+only exist for negative tests.  Initial parenthesized comments typically
+come from the test harness. </p>
+
+<p> Some such comments indicate the reporting category defined in the XML
+specification.  Some low-fidelity processor APIs don't expose recoverable
+errors, which can make validation work awkward.</p>
+
+<dl>
+    <dt><b>(fatal)</b></dt>
+	<dd>The diagnostic was reported as a fatal error.  Such errors are
+	primarily well-formedness errors, such as the violation of XML 1.0
+	syntax rules or of well formedness constraints.
+	<em>In some underfeatured parser APIs, this may be the
+	only kind of error that gets reported.</em>
+	</dd>
+    <dt><b>(error)</b></dt>
+	<dd>The diagnostic was reported as a recoverable error.  Such
+	errors primarily used to report validation errors, which are all
+	violations of validity constraints, but some other errors are also
+	classed as nonfatal.</dd>
+    <dt><b>(warning)</b></dt>
+	<dd>The diagnostic was reported as a warning; warnings are purely
+	informative and may be emitted in a number of cases identified by
+	the XML 1.0 specification (as well as in other cases).</dd>
+</dl>
+
+<p> Other such comments may indicate other categories of conformance issue.
+For example, some errors relate to problematic implementation of SAX;
+and in exceptional cases, the harness can be forced to report a failure
+on some test. </p>
+
+<dl>
+    <dt><b>(thrown <em>classname</em>) ... abnormal</b></dt>
+	<dd>The named exception was directly thrown.  <em>If the exception
+	is a SAXException (or a subclass thereof) this suggests an error in
+	the parser</em> (violating the SAX API specification) since it should
+	normally have used the SAX ErrorHandler instead.</dd>
+    <dt><b>(odd <em>classname</em>) ... abnormal</b></dt>
+	<dd> After the identified exception was reported through the
+	ErrorHandler, an exception of the named class was thrown directly.
+	<em>This suggests an error in the parser</em>, since the parser 
+	either failed to continue after an error (or warning) which is
+	required to be continuable, or else it did not pass the exception
+	thrown by the application back to the application. </dd>
+    <dt><b>(EXCEPTION - DIRECTED FAILURE) ... abnormal</b></dt>
+	<dd> This test case was explicitly failed by the test operator;
+	the test was not run.  This may be done in the case of parsers with
+	severe bugs which completely prevented handling the test case,
+	typically because the parser seems to "hang" by entering an
+	infinite loop.</dd>
+</dl>
+
+<p> In all cases, negative tests that appear to pass (diagnostics presented
+with a white background) must be individually examined in the report below.
+The diagnostic provided by the processor must correspond to the description
+of the test provided; if the processor does not report the matching error,
+the seeming "pass" is in fact an error of a type the test harness could
+not detect or report.  That error is either a conformance bug, or an error
+in the diagnostic being produced; or, rarely, both.</p>
+
+<?if nonvalidating?>
+<p> Nonvalidating processors may skip some tests if the tests require
+processing a class of external entities (general, parameter, or both)
+which that processor is known not to handle.  If processor handling of
+entities is not known, all such tests are skipped, in order to prevent
+misreporting.  </p>
+<?endif?>
+
+<hr/><h2><a name="positive">
+Positive Tests
+</a> </h2>
+
+<p> All conformant XML 1.0 processors must accept "valid" input documents
+without reporting any errors, and moreover must report the correct output
+data to the application when processing those documents.  Nonvalidating
+processors
+<?if nonvalidating?>
+<em>(such as this one)</em>
+<?endif?>
+must also accept "invalid" input documents without reporting any errors.
+These are called "Positive Tests" because they ensure that the processor
+just "does the right thing" without reporting any problems. </p>
+
+<p> In the interest of brevity, the only tests listed here are those which
+produce diagnostics of some kind, such as test failures.  In some cases,
+warnings may be reported when processing these documents, but these do not
+indicate failures.</p>
+
+<p> No interpretation of these results is necessary; every "error" or
+"fatal" message presented here is an XML conformance failure.  Maintainers
+of an XML processor will generally want to fix their software so that it
+conforms fully to the XML specification. </p>
+
+
+
+<h3> Valid Documents </h3>
+
+<p> All XML processors must accept all valid documents.  This group
+of tests must accordingly produce no test failures. </p>
+
+<table id="valid" width="100%" bgcolor="#ffffff" cellpadding="4" border="1">
+    <tr>
+	<td bgcolor="#ffffcc">Section and [Rules]</td>
+	<td bgcolor="#ffffcc">Test ID</td>
+	<td bgcolor="#ffffcc">Description</td>
+	<td bgcolor="#ffffcc">Diagnostic</td>
+	</tr>
+    <?table valid?>
+</table>
+
+<h3> Output Tests </h3>
+
+<p> The XML specification places requirements on the data which is reported
+by XML processors to applications.
+<!-- XXX address infoset implications for XML conformance ... -->
+This data flows through the processor API ... or it is not available,
+so the processor is in those respects nonconformant.
+For example, SAX1 did not report external entities which were not
+included; but SAX2 does.
+These output tests verify conformance with the specification by
+recording that data and comparing it with what is required for conformance
+with the XML 1.0 specification.  </p>
+
+<p> At this writing, the OASIS output tests have several categories of
+known omissions (or weak output test coverage).  These include: </p> <ul>
+
+<li>No output tests address the additional requirements which validating
+processors must satisfy.  That is, reporting which whitespace is ignorable,
+and reporting declarations of unparsed entities. </li>
+
+<li>Only a few output tests have been provided which address the
+requirement to report NOTATION declarations, and some of those
+appear to be missing. </li>
+
+<li>No tests address the requirement to report external entities
+which were not included.</li>
+
+</ul>
+
+<p> Note that output tests automatically fail in cases where the processor
+failed to parse the (valid) input document used to generate the
+output data.</p>
+
+<p>In some test harnessses, the output tests are unreliable because
+they can't directly compare the parser output against reference data.
+Such issues should be noted in the documentation for that harness.  </p>
+
+<p> Also, and not a bug, in some cases these diagnostics may seem like
+they say two equivalent results are not equal.  The issue is that some
+differences, often those in reported whitespace, aren't easily visible
+in this report.  HTML hides many such differences (because it normalizes
+whitespace before displaying it), and the method used to display the
+differing results may also mask some issues.  </p>
+
+<table id="valid-output" width="100%" bgcolor="#ffffff" cellpadding="4" border="1">
+    <tr>
+	<td bgcolor="#ffffcc">Test ID</td>
+	<td bgcolor="#ffffcc">Diagnostic</td>
+	</tr>
+    <?table valid output?>
+</table>
+
+<?if nonvalidating?>
+<h3> Invalid Documents </h3>
+
+<p> As noted above, nonvalidating processors must accept all documents
+which are well formed, but invalid.  This same behavior would be delivered
+by a validating processor, if the application chose to continue processing
+after receiving each report of a validity error, and not report such
+validity errors.  (These tests are run as "negative" tests for validating
+processors, since in those cases it is important that the correct validity
+errors be reported and that they be reported at the correct level.) </p>
+
+<table id="invalid-positive" width="100%" bgcolor="#ffffff" cellpadding="4" border="1">
+    <tr>
+	<td bgcolor="#ffffcc">Section and [Rules]</td>
+	<td bgcolor="#ffffcc">Test ID</td>
+	<td bgcolor="#ffffcc">Description</td>
+	<td bgcolor="#ffffcc">Diagnostic</td>
+	</tr>
+    <?table invalid positive?>
+</table>
+<?endif?>
+
+<h2><a name="negative">
+Negative Tests
+</a></h2>
+
+<p> All conformant XML 1.0 processors must reject documents which are not
+well-formed.  In addition, validating processors
+<?if validating?>
+<em>(such as this one)</em>
+<?endif?>
+must report the validity errors for invalid documents.
+These are called <em>Negative Tests</em> because the test is intended
+to establish that errors are reported when they should be.
+</p>
+
+<p> Moreover, the processor must both fail for the appropriate reason (given
+by the parser diagnostic) and must report an error at the right level ("error"
+or "fatal").  If both criteria were not considered, a processor which failed
+frequently (such as by failing to parse any document at all) would appear to
+pass a large number of conformance tests   Unfortunately, the test driver can
+only tell whether the error was reported at the right level.  It can't
+determine whether the processor failed for the right reason. </p>
+
+<p> That's where a person to interpret these test results is critical.  Such
+a person analyses the diagnostics, reported here, for negative tests not
+already known to be failures (for not reporting an error, or reporting one
+at the wrong level).  If the diagnostic reported for such tests doesn't match
+the failure from the test description, there is an error in the diagnostic or
+in the processor's XML conformance (or sometimes in both).  </p>
+
+<p> For this processor, <b><?run-id passed-negative?> diagnostics must be
+examined</b> to get an accurate evaluation of its negative test status.</p>
+
+<?if validating?>
+<h3> Invalid Documents </h3>
+
+<p> Validating processors must correctly report "error" diagnostics
+for all documents which are well formed but invalid.  Such errors must
+also be, "at user option", recoverable so that the validating parser
+may be used in a nonvalidating mode by ignoring all validity errors.
+<em>Some parser APIs do not support recoverability.</em>
+Such issues should be noted in the documentation for the API, and
+for its test harness.
+</p>
+
+<table id="invalid-negative" width="100%" bgcolor="#ffffff" cellpadding="4" border="1">
+    <tr>
+	<td bgcolor="#ffffcc">Section and [Rules]</td>
+	<td bgcolor="#ffffcc">Test ID</td>
+	<td bgcolor="#ffffcc">Description</td>
+	<td bgcolor="#ffffcc">Diagnostic</td>
+	</tr>
+    <?table invalid negative?>
+</table>
+<?endif?>
+
+<h3> Documents which are not Well-Formed </h3>
+
+<p> All XML processors must correctly reject (with a "fatal"
+error) all XML documents which are not well-formed.
+<?if nonvalidating?>
+(Nonvalidating processors may skip some of these tests, if
+they require handling of a type of external entity which the
+processor ignores.  Such skipped tests are not reported.)
+<?endif?>
+</p>
+
+<table id="not-wf" width="100%" bgcolor="#ffffff" cellpadding="4" border="1">
+    <tr>
+	<td bgcolor="#ffffcc">Section and [Rules]</td>
+	<td bgcolor="#ffffcc">Test ID</td>
+	<td bgcolor="#ffffcc">Description</td>
+	<td bgcolor="#ffffcc">Diagnostic</td>
+	</tr>
+    <?table not-wf?>
+</table>
+
+<h2><a name="optional">
+Informative Tests
+</a></h2>
+
+<p> Certain XML documents are specified to be errors, but the handling
+of those documents is not fully determined by the XML 1.0 specification.
+As a rule, these errors may be reported in any manner whatsoever, or
+completely ignored, without consequence in terms of conformance to the
+XML 1.0 specification.  And some of these documents don't have errors;
+documents in encodings other than UTF-8 and UTF-16 are legal, but not
+all processors are required to parse them.  </p>
+
+<p>Such "optional" errors are listed here for informational purposes, since
+processors which ignore such errors may cause document creators to create
+documents which are not accepted by all conformant XML 1.0 processors.
+(And of course, processors which produce incorrect diagnostics for such
+cases should be avoided.) </p>
+
+<table id="error" width="100%" bgcolor="#ffffff" cellpadding="4" border="1">
+    <tr>
+	<td bgcolor="#ffffcc">Section and [Rules]</td>
+	<td bgcolor="#ffffcc">Test ID</td>
+	<td bgcolor="#ffffcc">Description</td>
+	<td bgcolor="#ffffcc">Diagnostic</td>
+	</tr>
+	<?table error?>
+</table>
+
+
+<p> This report was produced by Free Software from
+<a href="http://xmlconf.sourceforge.net/">http://xmlconf.sourceforge.net</a>,
+and you should be able to reproduce these results yourself. </p>
+
+</body></html>
