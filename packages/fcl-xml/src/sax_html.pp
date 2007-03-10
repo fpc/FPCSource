@@ -29,7 +29,7 @@ unit SAX_HTML;
 
 interface
 
-uses SysUtils, Classes, SAX, DOM, DOM_HTML;
+uses SysUtils, Classes, SAX, DOM, DOM_HTML,htmldefs;
 
 type
 
@@ -111,7 +111,6 @@ procedure ReadHTMLFragment(AParentNode: TDOMNode; var f: TStream);
 
 implementation
 
-uses HTMLDefs;
 
 const
   WhitespaceChars = [#9, #10, #13, ' '];

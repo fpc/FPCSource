@@ -26,7 +26,20 @@ uses
   SysUtils, Classes, DOM;
 
 type
-  EXMLReadError = class(Exception);
+  TErrorSeverity = (esWarning, esError, esFatal);
+
+  EXMLReadError = class(Exception)
+  private
+    FSeverity: TErrorSeverity;
+    FErrorMessage: string;
+    FLine: Integer;
+    FLinePos: Integer;
+  public
+    property Severity: TErrorSeverity read FSeverity;
+    property ErrorMessage: string read FErrorMessage;
+    property Line: Integer read FLine;
+    property LinePos: Integer read FLinePos;
+  end;
 
 procedure ReadXMLFile(out ADoc: TXMLDocument; const AFilename: String); overload;
 procedure ReadXMLFile(out ADoc: TXMLDocument; var f: Text); overload;
@@ -43,97 +56,135 @@ procedure ReadDTDFile(out ADoc: TXMLDocument; var f: Text); overload;
 procedure ReadDTDFile(out ADoc: TXMLDocument; var f: TStream); overload;
 procedure ReadDTDFile(out ADoc: TXMLDocument; var f: TStream; const ABaseURI: String); overload;
 
+type
+  TDOMParseOptions = class(TObject)
+  private
+    FValidate: Boolean;
+    FPreserveWhitespace: Boolean;
+    FExpandEntities: Boolean;
+    FIgnoreComments: Boolean;
+    FCDSectionsAsText: Boolean;
+  public
+    property Validate: Boolean read FValidate write FValidate;
+    property PreserveWhitespace: Boolean read FPreserveWhitespace write FPreserveWhitespace;
+    property ExpandEntities: Boolean read FExpandEntities write FExpandEntities;
+    property IgnoreComments: Boolean read FIgnoreComments write FIgnoreComments;
+    property CDSectionsAsText: Boolean read FCDSectionsAsText write FCDSectionsAsText;
+  end;
+
+  // NOTE: DOM 3 LS ACTION_TYPE enumeration starts at 1
+  TXMLContextAction = (xaAppendAsChildren, xaReplaceChildren, xaInsertBefore,
+                       xaInsertAfter, xaReplace);
+
+  TXMLErrorEvent = procedure(Error: EXMLReadError) of object;
+
+  // This may be augmented with ByteOffset, UTF8Offset, etc.
+  TLocation = record
+    Line: Integer;
+    LinePos: Integer;
+  end;
+
+  TXMLInputSource = class(TObject)
+  private
+    FStream: TStream;
+    FStringData: string;
+//    FBaseURI: WideString;
+    FSystemID: WideString;
+    FPublicID: WideString;
+//    FEncoding: string;
+  public
+    constructor Create(AStream: TStream); overload;
+    constructor Create(const AStringData: string); overload;
+    property Stream: TStream read FStream;
+    property StringData: string read FStringData;
+//    property BaseURI: WideString read FBaseURI write FBaseURI;
+    property SystemID: WideString read FSystemID write FSystemID;
+    property PublicID: WideString read FPublicID write FPublicID;
+//    property Encoding: string read FEncoding write FEncoding;
+  end;
+
+  TDOMParser = class(TObject)
+  private
+    FOptions: TDOMParseOptions;
+    FOnError: TXMLErrorEvent;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Parse(Src: TXMLInputSource; out ADoc: TXMLDocument);
+    procedure ParseUri(const URI: WideString; out ADoc: TXMLDocument);
+    function ParseWithContext(Src: TXMLInputSource; Context: TDOMNode;
+      Action: TXMLContextAction): TDOMNode;
+    property Options: TDOMParseOptions read FOptions;
+    property OnError: TXMLErrorEvent read FOnError write FOnError;
+  end;
+
+
 // =======================================================
 
 implementation
 
 uses
-  UriParser;
-
-type
-  TSetOfChar = set of Char;
+  UriParser, xmlutils;
 
 const
-  Letter = ['A'..'Z', 'a'..'z'];
-  Digit = ['0'..'9'];
   PubidChars: TSetOfChar = [' ', #13, #10, 'a'..'z', 'A'..'Z', '0'..'9',
     '-', '''', '(', ')', '+', ',', '.', '/', ':', '=', '?', ';', '!', '*',
     '#', '@', '$', '_', '%'];
 
 type
   TDOMNotationEx = class(TDOMNotation);
-  TDOMAttrEx = class(TDOMAttr);
-
-  TXMLInputSource = class;
+  TDOMDocumentTypeEx = class(TDOMDocumentType);
   TDOMElementDef = class;
+  TDOMAttrDef = class;
 
   TDOMEntityEx = class(TDOMEntity)
   protected
-    FInternal: Boolean;
+    FExternallyDeclared: Boolean;
     FResolved: Boolean;
     FOnStack: Boolean;
     FReplacementText: DOMString;
+    FStartLocation: TLocation;
   end;
 
-  // TODO: Do I need PEMap in DocType? Maybe move it to Reader itself?
-  // (memory usage - they are not needed after parsing)
-  TDOMDocumentTypeEx = class(TDOMDocumentType)
-  private
-    FHasPERefs: Boolean;
-    FPEMap: TDOMNamedNodeMap;
-    FElementDefs: TDOMNamedNodeMap;
-    function GetPEMap: TDOMNamedNodeMap;
-    function GetElementDefs: TDOMNamedNodeMap;
-  protected
-    property PEMap: TDOMNamedNodeMap read GetPEMap;
-    property ElementDefs: TDOMNamedNodeMap read GetElementDefs;
-    property HasPERefs: Boolean read FHasPERefs write FHasPERefs;
-  public
-    destructor Destroy; override;
-  end;
-
-  TXMLReader = class;
   TDecoder = class;
   TDecoderRef = class of TDecoder;
 
-  TXMLInputSource = class
+  TXMLCharSource = class(TObject)
   private
     FBuf: PChar;
     FBufEnd: PChar;
     FEof: Boolean;
     FSurrogate: WideChar;
-    FReader: TXMLReader;
-    FParent: TXMLInputSource;
+    FReader: TObject;   // weak reference
+    FParent: TXMLCharSource;
     FEntity: TObject;   // weak reference
     FCursor: TObject;   // weak reference
-    FLine: Integer;
-    FColumn: Integer;
+    FSavedLocation: TLocation;
     FSystemID: WideString;
     FPublicID: WideString;
     function GetSystemID: WideString;
     function GetPublicID: WideString;
-  protected
-    procedure FetchData; virtual;
   public
     constructor Create(const AData: WideString);
     function NextChar: WideChar; virtual;
     procedure Initialize; virtual;
-    procedure SetEncoding(const AEncoding: string); virtual;
+    function SetEncoding(const AEncoding: string): Boolean; virtual;
     property SystemID: WideString read GetSystemID write FSystemID;
     property PublicID: WideString read GetPublicID write FPublicID;
   end;
 
-  TXMLDecodingSource = class(TXMLInputSource)
+  TXMLDecodingSource = class(TXMLCharSource)
   private
     FDecoder: TDecoder;
     FSeenCR: Boolean;
     function InternalNextChar: WideChar;
-    procedure DecodingError(const Msg: string); overload;
-    procedure DecodingError(const Msg: string; const Args: array of const); overload;
+    procedure DecodingError(const Msg: string);
+  protected
+    procedure FetchData; virtual;
   public
     destructor Destroy; override;
     function NextChar: WideChar; override;
-    procedure SetEncoding(const AEncoding: string); override;
+    function SetEncoding(const AEncoding: string): Boolean; override;
     procedure Initialize; override;
   end;
 
@@ -195,51 +246,120 @@ type
     MaxLength: Integer;
   end;
 
-  TEntityResolveEvent = procedure(const PubID, SysID: WideString; var Source: TXMLInputSource) of object;
+  PWideStrWrapper = ^TWideStrWrapper;
+  TWideStrWrapper = record
+    Value: WideString;
+  end;
+
   TDeclType = (dtNone, dtXml, dtText);
+
+  TCPType = (ctName, ctChoice, ctSeq);
+  TCPQuant = (cqOnce, cqZeroOrOnce, cqZeroOrMore, cqOnceOrMore);
+
+  TContentParticle = class(TObject)
+  private
+    FParent: TContentParticle;
+    FChildren: TList;
+    function InternalMatch(List: TList; var Index: Integer): Boolean;
+    function GetChildCount: Integer;
+    function GetChild(Index: Integer): TContentParticle;
+  public
+    CPType: TCPType;
+    CPQuant: TCPQuant;
+    Name: WideString;
+    constructor Create;
+    destructor Destroy; override;
+    function Add: TContentParticle;
+    function MatchNodeList(List: TList; var Index: Integer): Boolean;
+    property ChildCount: Integer read GetChildCount;
+    property Children[Index: Integer]: TContentParticle read GetChild;
+  end;
+
+  // This class is intended to store context information during parsing
+  // However, right now it's written to validate completely parsed elements
+  TElementValidator = class(TObject)
+  private
+    FParent: TElementValidator;
+    // to be deleted
+    FList: TList;
+    FElementDef: TDOMElementDef;
+    FIndex: Integer;
+    FChildElementCount: Integer;
+    FCurCP: TContentParticle;
+    FAmbiguous: Boolean;
+  public
+    constructor Create(aElDef: TDOMElementDef);
+    destructor Destroy; override;
+    // to be deleted
+    procedure AddElement(aNode: TDOMElement);
+    // to be deleted
+    function Match: Boolean;
+    function IsElementAllowed(const aName: DOMString): Boolean;
+    property Parent: TElementValidator read FParent write FParent;
+  end;
 
   TXMLReader = class
   private
-    FSource: TXMLInputSource;
+    FSource: TXMLCharSource;
+    FCtrl: TDOMParser;
     FCurChar: WideChar;
-    FWhitespace: Boolean;
     FXML11: Boolean;
+    FIntSubset: Boolean;
+    FDtdParsed: Boolean;
+    FInsideRoot: Boolean;
+    FRecognizePE: Boolean;
+    FHavePERefs: Boolean;
+    FDocNotValid: Boolean;
     FValue: TWideCharBuf;
     FName: TWideCharBuf;
     FCopyBuf: PWideCharBuf;
-    FIntSubset: Boolean;
     FAllowedDecl: TDeclType;
-    FDtdParsed: Boolean;
-    FRecognizePE: Boolean;
+    FLocation: TLocation;
+    FTokenStart: TLocation;
     FStandalone: Boolean;          // property of Doc ?
-    FInvalid: Boolean;
-    // TODO: This array must be stored globally, not per instance
     FNamePages: PByteArray;
     FForbiddenAscii: TSetOfChar;
     FDocType: TDOMDocumentTypeEx;  // a shortcut
-    FEntityLevel: Integer;
+    FPEMap: TDOMNamedNodeMap;
+    FIDRefs: TList;
+
+    FValidate: Boolean;            // parsing options, copy of FCtrl.Options
     FPreserveWhitespace: Boolean;
-    FCreateEntityRefs: Boolean;
+    FExpandEntities: Boolean;
+    FIgnoreComments: Boolean;
+    FCDSectionsAsText: Boolean;
+
     procedure RaiseExpectedQmark;
     procedure GetChar;
     procedure GetCharRaw;
-    procedure Unget(wc: WideChar);
-    procedure Initialize(ASource: TXMLInputSource);
-    procedure InitializeRoot(ASource: TXMLInputSource);
+    procedure UngetCurChar;
+    procedure Initialize(ASource: TXMLCharSource);
+    procedure InitializeRoot(ASource: TXMLCharSource);
     procedure DoParseAttValue(Delim: WideChar);
     procedure DoParseFragment;
-    procedure DoParseExtSubset(ASource: TXMLInputSource);
+    procedure DoParseExtSubset(ASource: TXMLCharSource);
     function ContextPush(AEntity: TDOMEntityEx): Boolean;
     function ContextPop: Boolean;
     procedure XML11_BuildTables;
     function  XML11_CheckName: Boolean;
+    procedure ParseQuantity(CP: TContentParticle);
+    procedure MarkTokenStart;
+    function ValidateAttrSyntax(AttrDef: TDOMAttrDef; const aValue: WideString): Boolean;
+    procedure AddIdRef(Buf: PWideChar; Length: Integer);
+    procedure ClearIdRefs;
+    procedure ValidateIdRefs;
+    procedure StandaloneError;
+    procedure CallErrorHandler(E: EXMLReadError);
   protected
     FCursor: TDOMNode;
+    // TODO: probably TObjectList
+    FValStack: TList;    // validation: keep track of models
 
-    procedure RaiseExc(const descr: String); overload;
-    procedure RaiseExc(const descr: string; const args: array of const); overload;
-    procedure RaiseExc(Expected: WideChar); overload;
+    procedure FatalError(const descr: String; AtTokenStart: Boolean=False); overload;
+    procedure FatalError(const descr: string; const args: array of const; AtTokenStart: Boolean=False); overload;
+    procedure FatalError(Expected: WideChar); overload;
     function  SkipWhitespace: Boolean;
+    function  SkipWhitespaceRaw: Boolean;
     procedure ExpectWhitespace;
     procedure ExpectString(const s: String);
     procedure ExpectChar(wc: WideChar);
@@ -255,14 +375,13 @@ type
     function SkipQuotedLiteral: Boolean;
     procedure ExpectAttValue;                                           // [10]
     procedure SkipPubidLiteral;                                         // [12]
-    procedure SkipSystemLiteral(out Literal: WideString; Required: Boolean);
+    procedure SkipSystemLiteral(out Literal: WideString);
     procedure ParseComment;                                             // [15]
     procedure ParsePI;                                                  // [16]
     procedure ParseCDSect;                                              // [18]
     procedure ParseXmlOrTextDecl(TextDecl: Boolean);
     function  ParseEq: Boolean;                                         // [25]
     procedure ExpectEq;
-    procedure ParseMisc;                                                // [27]
     procedure ParseDoctypeDecl;                                         // [28]
     procedure ParseMarkupDecl;                                          // [29]
     procedure ParseElement;                                             // [39]
@@ -277,57 +396,72 @@ type
       SysIdOptional: Boolean): Boolean;
     procedure ProcessTextAndRefs;
 
-    procedure AssertPENesting(CurrentLevel: Integer);
+    procedure BadPENesting;
     procedure ParseEntityDecl;
     procedure ParseEntityDeclValue(Delim: WideChar);
     procedure ParseAttlistDecl;
-    procedure ExpectChoiceOrSeq;
-    procedure ParseMixedOrChildren;
+    procedure ExpectChoiceOrSeq(CP: TContentParticle);
     procedure ParseElementDecl;
     procedure ParseNotationDecl;
-    function ResolveEntity(const SystemID, PublicID: WideString; out Source: TXMLInputSource): Boolean;
+    function ResolveEntity(const SystemID, PublicID: WideString; out Source: TXMLCharSource): Boolean;
     procedure ProcessDefaultAttributes(Element: TDOMElement);
+
+    procedure PushVC(aElDef: TDOMElementDef);
+    procedure PopVC;
+    function  CurrentElementDef: TDOMElementDef;
+    procedure ValidateElement(Element: TDOMElement);
+    procedure ValidateDTD;
     procedure ValidationError(const Msg: string; const args: array of const);
+    procedure CheckNotation(const Name: WideString);
+    // Some SAX-alike stuff (at a very early stage)
+    procedure DoText(ch: PWideChar; Count: Integer; Whitespace: Boolean=False);
+    procedure DoComment(ch: PWideChar; Count: Integer);
+    procedure DoCDSect(ch: PWideChar; Count: Integer);
+    procedure DoNotationDecl(const aName, aPubID, aSysID: WideString);
   public
     doc: TDOMDocument;
-    constructor Create;
+    constructor Create; overload;
+    constructor Create(AParser: TDOMParser); overload;
     destructor Destroy; override;
-    procedure ProcessXML(ASource: TXMLInputSource);                // [1]
-    procedure ProcessFragment(ASource: TXMLInputSource; AOwner: TDOMNode);
-    procedure ProcessDTD(ASource: TXMLInputSource);               // ([29])
+    procedure ProcessXML(ASource: TXMLCharSource);                // [1]
+    procedure ProcessFragment(ASource: TXMLCharSource; AOwner: TDOMNode);
+    procedure ProcessDTD(ASource: TXMLCharSource);               // ([29])
   end;
 
-  // AttDef/ElementDef support
-  TAttrDataType = (
-    DT_CDATA,
-    DT_ID,
-    DT_IDREF,
-    DT_IDREFS,
-    DT_ENTITY,
-    DT_ENTITIES,
-    DT_NMTOKEN,
-    DT_NMTOKENS,
-    DT_NOTATION
-  );
+  // Attribute/Element declarations
 
   TAttrDefault = (
-    AD_IMPLIED,
-    AD_DEFAULT,
-    AD_REQUIRED,
-    AD_FIXED
+    adImplied,
+    adDefault,
+    adRequired,
+    adFixed
+  );
+
+  TElementContentType = (
+    ctEmpty,
+    ctAny,
+    ctMixed,
+    ctChildren
   );
 
   TDOMAttrDef = class(TDOMAttr)
   protected
-    FDataType: TAttrDataType;
+    FExternallyDeclared: Boolean;
     FDefault: TAttrDefault;
-    // FEnumeration: TWideStringList? array of WideStrings?
+    FEnumeration: array of WideString;
+    function AddEnumToken(const aValue: WideString): Boolean;
+    function HasEnumToken(const aValue: WideString): Boolean;
   end;
 
-  TDOMElementDef = class(TDOMElement);
-
-
-{$i names.inc}
+  TDOMElementDef = class(TDOMElement)
+  public
+    FExternallyDeclared: Boolean;
+    ContentType: TElementContentType;
+    HasElementDecl: Boolean;
+    RootCP: TContentParticle;
+    constructor Create(aOwner: TDOMDocument);
+    destructor Destroy; override;
+  end;
 
 // TODO: List of registered/supported decoders
 function FindDecoder(const Encoding: string): TDecoderRef;
@@ -343,12 +477,12 @@ procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
 begin
   ABuffer.MaxLength := ALength;
   ABuffer.Length := 0;
-  ABuffer.Buffer:=AllocMem(ABuffer.MaxLength*SizeOf(WideChar));
+  ABuffer.Buffer := AllocMem(ABuffer.MaxLength*SizeOf(WideChar));
 end;
 
 procedure BufAppend(var ABuffer: TWideCharBuf; wc: WideChar);
 var
-  OldLength : integer;
+  OldLength: Integer;
 begin
   if ABuffer.Length >= ABuffer.MaxLength then
   begin
@@ -361,67 +495,102 @@ begin
   Inc(ABuffer.Length);
 end;
 
-function IsValidEncName(const s: WideString): Boolean;
-var
-  I: Integer;
+{ TXMLInputSource }
+
+constructor TXMLInputSource.Create(AStream: TStream);
 begin
-  Result := False;
-  if (s = '') or (s[1] > #255) or not (char(s[1]) in ['A'..'Z', 'a'..'z']) then
-    Exit;
-  for I := 2 to Length(s) do
-    if (s[I] > #255) or not (char(s[I]) in ['A'..'Z', 'a'..'z', '0'..'9', '.', '_', '-']) then
-      Exit;
-  Result := True;
+  inherited Create;
+  FStream := AStream;
 end;
 
-{ TDOMDocumentTypeEx }
-
-destructor TDOMDocumentTypeEx.Destroy;
+constructor TXMLInputSource.Create(const AStringData: string);
 begin
-  FPEMap.Free;
-  FElementDefs.Free;
+  inherited Create;
+  FStringData := AStringData;
+end;
+
+{ TDOMParser }
+
+constructor TDOMParser.Create;
+begin
+  FOptions := TDOMParseOptions.Create;
+end;
+
+destructor TDOMParser.Destroy;
+begin
+  FOptions.Free;
   inherited Destroy;
 end;
 
-function TDOMDocumentTypeEx.GetElementDefs: TDOMNamedNodeMap;
+procedure TDOMParser.Parse(Src: TXMLInputSource; out ADoc: TXMLDocument);
+var
+  InputSrc: TXMLCharSource;
 begin
-  if FElementDefs = nil then
-    FElementDefs := TDOMNamedNodeMap.Create(Self, ELEMENT_NODE);
-  Result := FElementDefs;
+  with TXMLReader.Create(Self) do
+  try
+    InputSrc := nil;
+    if Assigned(Src) then
+    begin
+      if Assigned(Src.FStream) then
+        InputSrc := TXMLStreamInputSource.Create(Src.FStream, False)
+      else if Src.FStringData <> '' then
+        InputSrc := TXMLStreamInputSource.Create(TStringStream.Create(Src.FStringData), True)
+      else if (Src.SystemID <> '') then
+        ResolveEntity(Src.SystemID, Src.PublicID, InputSrc);
+    end;
+    if Assigned(InputSrc) then
+      ProcessXML(InputSrc)
+    else
+      FatalError('No input source specified');
+  finally
+    ADoc := TXMLDocument(doc);
+    Free;
+  end;
 end;
 
-function TDOMDocumentTypeEx.GetPEMap: TDOMNamedNodeMap;
+procedure TDOMParser.ParseUri(const URI: WideString; out ADoc: TXMLDocument);
+var
+  Src: TXMLCharSource;
 begin
-  if FPEMap = nil then
-    FPEMap := TDOMNamedNodeMap.Create(Self, ENTITY_NODE);
-  Result := FPEMap;
+  ADoc := nil;
+  with TXMLReader.Create(Self) do
+  try
+    if ResolveEntity(URI, '', Src) then
+      ProcessXML(Src);
+  finally
+    ADoc := TXMLDocument(doc);
+    Free;
+  end;
 end;
 
+function TDOMParser.ParseWithContext(Src: TXMLInputSource;
+  Context: TDOMNode; Action: TXMLContextAction): TDOMNode;
+begin
+  // TODO: implement
+  Result := nil;
+end;
 
 // TODO: These classes still cannot be considered as the final solution...
 
 { TXMLInputSource }
 
-constructor TXMLInputSource.Create(const AData: WideString);
+constructor TXMLCharSource.Create(const AData: WideString);
 begin
   inherited Create;
   FBuf := PChar(PWideChar(AData));
   FBufEnd := FBuf + Length(AData) * sizeof(WideChar);
 end;
 
-procedure TXMLInputSource.Initialize;
+procedure TXMLCharSource.Initialize;
 begin
-  FLine := 1;
-  FColumn := 0;
 end;
 
-function TXMLInputSource.NextChar: WideChar;
+function TXMLCharSource.NextChar: WideChar;
 begin
-  if FSurrogate <> #0 then
-  begin
-    Result := FSurrogate;
-    FSurrogate := #0;
-  end
+  Result := FSurrogate;
+  FSurrogate := #0;
+  if Result <> #0 then
+    Exit
   else if FBufEnd <= FBuf then
   begin
     Result := #0;
@@ -432,38 +601,14 @@ begin
     Result := PWideChar(FBuf)^;
     Inc(FBuf, sizeof(WideChar));
   end;
-  // TODO: Column counting - surrogate pair is a single char!
-  if Result = #10 then
-  begin
-    Inc(FLine);
-    FColumn := 0;
-  end
-  else
-    Inc(FColumn);
 end;
 
-procedure TXMLDecodingSource.DecodingError(const Msg: string);
+function TXMLCharSource.SetEncoding(const AEncoding: string): Boolean;
 begin
-  FReader.RaiseExc(Msg);
+  Result := True; // always succeed
 end;
 
-procedure TXMLDecodingSource.DecodingError(const Msg: string;
-  const Args: array of const);
-begin
-  FReader.RaiseExc(Msg, Args);
-end;
-
-procedure TXMLInputSource.FetchData;
-begin
-  FEof := True;
-end;
-
-procedure TXMLInputSource.SetEncoding(const AEncoding: string);
-begin
-  // do nothing
-end;
-
-function TXMLInputSource.GetPublicID: WideString;
+function TXMLCharSource.GetPublicID: WideString;
 begin
   if FPublicID <> '' then
     Result := FPublicID
@@ -473,7 +618,7 @@ begin
     Result := '';
 end;
 
-function TXMLInputSource.GetSystemID: WideString;
+function TXMLCharSource.GetSystemID: WideString;
 begin
   if FSystemID <> '' then
     Result := FSystemID
@@ -491,21 +636,27 @@ begin
   inherited Destroy;
 end;
 
+procedure TXMLDecodingSource.DecodingError(const Msg: string);
+begin
+  TXMLReader(FReader).FatalError(Msg);
+end;
+
+procedure TXMLDecodingSource.FetchData;
+begin
+  FEof := True;
+end;
+
 function TXMLDecodingSource.InternalNextChar: WideChar;
 begin
   // TODO: find a place for it, finally...
-  if FSurrogate <> #0 then
-  begin
-    Result := FSurrogate;
-    FSurrogate := #0;
+  Result := FSurrogate;
+  FSurrogate := #0;
+  if Result <> #0 then
     Exit;
-  end;
   if FBufEnd <= FBuf then
     FetchData;
   if not FEof then
-    Result := FDecoder.DecodeNext
-  else
-    Result := #0;
+    Result := FDecoder.DecodeNext;
 end;
 
 function TXMLDecodingSource.NextChar: WideChar;
@@ -513,7 +664,7 @@ begin
   Result := InternalNextChar;
   if FSeenCR then
   begin
-    if (Result = #10) or ((Result = #$85) and FReader.FXML11) then
+    if (Result = #10) or ((Result = #$85) and TXMLReader(FReader).FXML11) then
       Result := InternalNextChar;
     FSeenCR := False;
   end;
@@ -524,21 +675,12 @@ begin
          end;
 
     #$85, #$2028:
-      if FReader.FXML11 then
+      if TXMLReader(FReader).FXML11 then
         Result := #10;
   end;
-  if (Result < #256) and (char(Result) in FReader.FForbiddenAscii) or
-    ((ord(Result) or 1) = $FFFF) then
+  if (Result < #256) and (char(Result) in TXMLReader(FReader).FForbiddenAscii) or
+    (Result >= #$FFFE) then
     DecodingError('Invalid character');
-
-  // TODO: Column counting - surrogate pair is a single char!
-  if Result = #10 then
-  begin
-    Inc(FLine);
-    FColumn := 0;
-  end
-  else
-    Inc(FColumn);
 end;
 
 procedure TXMLDecodingSource.Initialize;
@@ -570,20 +712,19 @@ begin
   FDecoder := TUTF8Decoder.Create(Self);
 end;
 
-procedure TXMLDecodingSource.SetEncoding(const AEncoding: string);
+function TXMLDecodingSource.SetEncoding(const AEncoding: string): Boolean;
 var
   NewDecoder: TDecoderRef;
 begin
+  Result := True;
   if FDecoder.Supports(AEncoding) then // no change needed
     Exit;
   // hardcoded stuff - special case of UCS2
   if FDecoder is TUCS2Decoder then
   begin
     // check for 'UTF-16LE' or 'UTF-16BE'
-    if SameText(AEncoding, TUCS2Decoder(FDecoder).FEncoding) then
-      Exit
-    else
-      DecodingError('Current encoding cannot be switched to ''%s''', [AEncoding]);
+    Result := SameText(AEncoding, TUCS2Decoder(FDecoder).FEncoding);
+    Exit;
   end;
   NewDecoder := FindDecoder(AEncoding);
   if Assigned(NewDecoder) then
@@ -592,7 +733,7 @@ begin
     FDecoder := NewDecoder.Create(Self);
   end
   else
-    DecodingError('Encoding ''%s'' is not supported', [AEncoding]);
+    Result := False;
 end;
 
 
@@ -725,16 +866,16 @@ begin
     Inc(FBuf);
     if Result < #$80 then
       Exit;
-    if Byte(Result) and $40 = 0 then
-      DecodingError('Invalid UTF8 sequence start byte');
+    if Word(Result) and $40 = 0 then
+      DecodingError('Invalid UTF-8 sequence start byte');
     bc := 1;
-    if Byte(Result) and $20 <> 0 then
+    if Word(Result) and $20 <> 0 then
     begin
       Inc(bc);
-      if Byte(Result) and $10 <> 0 then
+      if Word(Result) and $10 <> 0 then
       begin
         Inc(bc);
-        if Byte(Result) and $8 <> 0 then
+        if Word(Result) and $8 <> 0 then
           DecodingError('UCS4 character out of supported range');
       end;
     end;
@@ -747,7 +888,7 @@ begin
     while bc > 0 do
     begin
       if ord(FBuf[0]) and $C0 <> $80 then
-        DecodingError('Invalid byte in UTF8 sequence');
+        DecodingError('Invalid byte in UTF-8 sequence');
       Value := (Value shl 6) or (Cardinal(FBuf[0]) and $3F);
       Inc(FBuf);
       Dec(bc);
@@ -755,7 +896,7 @@ begin
     Value := Value and MaxCode[I];
     // RFC2279 check
     if Value <= MaxCode[I-1] then
-      DecodingError('Invalid UTF8 sequence');
+      DecodingError('Invalid UTF-8 sequence');
     case Value of
       0..$D7FF, $E000..$FFFF:
         begin
@@ -780,17 +921,27 @@ end;
 
 { TXMLReader }
 
-function TXMLReader.ResolveEntity(const SystemID, PublicID: WideString; out Source: TXMLInputSource): Boolean;
+procedure TXMLReader.MarkTokenStart;
+begin
+  FTokenStart := FLocation;
+end;
+
+function TXMLReader.ResolveEntity(const SystemID, PublicID: WideString; out Source: TXMLCharSource): Boolean;
 var
   AbsSysID: WideString;
   Filename: string;
   Stream: TStream;
 begin
-  Result := False;
+  Result := True;
+  if Assigned(FSource) then
+    Result := ResolveRelativeURI(FSource.SystemID, SystemID, AbsSysID)
+  else
+    AbsSysID := SystemID;
 
-  if ResolveRelativeURI(FSource.SystemID, SystemID, AbsSysID) then
+  if Result then
   begin
     Source := nil;
+    Result := False;
     // TODO: alternative resolvers
     if URIToFilename(AbsSysID, Filename) then
     begin
@@ -808,94 +959,122 @@ begin
   end;
 end;
 
-procedure TXMLReader.InitializeRoot(ASource: TXMLInputSource);
+procedure TXMLReader.InitializeRoot(ASource: TXMLCharSource);
 begin
   Initialize(ASource);
   GetChar;
   // TODO: presence of BOM must prevent UTF-8 encoding from being changed
-  CheckForChar(#$FEFF);   // skip BOM, if one is present
+  if CheckForChar(#$FEFF) then    // skip BOM, if one is present
+    Dec(FLocation.LinePos);
 end;
 
 
-procedure TXMLReader.Initialize(ASource: TXMLInputSource);
+procedure TXMLReader.Initialize(ASource: TXMLCharSource);
 begin
   FSource := ASource;
   FSource.FReader := Self;
+  FLocation.Line := 1;
+  FLocation.LinePos := 0;   // TODO: or 1?
   FSource.Initialize;
 end;
 
 procedure TXMLReader.GetCharRaw;
 begin
   FCurChar := FSource.NextChar;
-  FWhitespace := (FCurChar = #32) or (FCurChar = #10) or
-                  (FCurChar = #9) or (FCurChar = #13);
-  // Used for handling the internal DTD subset
-  if Assigned(FCopyBuf) and (FSource.FParent = nil) then
-    BufAppend(FCopyBuf^, FCurChar);
+  if FCurChar = #10 then
+  begin
+    Inc(FLocation.Line);
+    FLocation.LinePos := 0;
+  end
+  else
+    Inc(FLocation.LinePos);
 end;
 
 procedure TXMLReader.GetChar;
 begin
   GetCharRaw;
+  // Used for handling the internal DTD subset
+  if Assigned(FCopyBuf) and (FSource.FParent = nil) then
+    BufAppend(FCopyBuf^, FCurChar);
   if not FRecognizePE then
     Exit;
   if (FCurChar = #0) and ContextPop then
   begin
-    Unget(FCurChar);
+    UngetCurChar;
     FCurChar := #32;
-    FWhitespace := True;
   end
   else if FCurChar = '%' then
   begin
-    FCurChar := FSource.NextChar;
+    GetCharRaw;
     if not CheckName then
     begin
-      Unget(FCurChar);
+      UngetCurChar;
       FCurChar := '%';
       Exit;
     end;
     if FCurChar = ';' then // "%pe1;%pe2" - must not recognize pe2 immediately!
       GetCharRaw
     else
-      RaiseExc(WideChar(';'));
+      FatalError(WideChar(';'));
     StartPE;
     FCurChar := #32;
-    FWhitespace := True;
   end;
 end;
 
-procedure TXMLReader.Unget(wc: WideChar);
+procedure TXMLReader.UngetCurChar;
 begin
-  FSource.FSurrogate := wc;
+  FSource.FSurrogate := FCurChar;
 end;
 
 procedure TXMLReader.RaiseExpectedQmark;
 begin
-  RaiseExc('Expected single or double quote');
+  FatalError('Expected single or double quote');
 end;
 
-procedure TXMLReader.RaiseExc(Expected: WideChar);
+procedure TXMLReader.FatalError(Expected: WideChar);
 begin
 // FIX: don't output what is found - anything may be found, including exploits...
-  RaiseExc('Expected "%1s"', [string(Expected)]);
+  FatalError('Expected "%1s"', [string(Expected)]);
 end;
 
-procedure TXMLReader.RaiseExc(const descr: String);
+procedure TXMLReader.FatalError(const descr: String; AtTokenStart: Boolean);
+var
+  RealLocation: ^TLocation;
+  E: EXMLReadError;
 begin
-  raise EXMLReadError.CreateFmt('In ''%s'' (line %d pos %d): %s', [FSource.SystemID, FSource.FLine, FSource.FColumn, descr]);
+  if AtTokenStart then
+    RealLocation := @FTokenStart
+  else
+    RealLocation := @FLocation;
+  E := EXMLReadError.CreateFmt('In ''%s'' (line %d pos %d): %s', [FSource.SystemID, RealLocation^.Line, RealLocation^.LinePos, descr]);
+  E.FSeverity := esFatal;
+  E.FErrorMessage := descr;
+  E.FLine := RealLocation^.Line;
+  E.FLinePos := RealLocation^.LinePos;
+  CallErrorHandler(E);
 end;
 
-procedure TXMLReader.RaiseExc(const descr: string; const args: array of const);
+procedure TXMLReader.FatalError(const descr: string; const args: array of const; AtTokenStart: Boolean);
 begin
-  RaiseExc(Format(descr, args));
+  FatalError(Format(descr, args), AtTokenStart);
 end;
 
 function TXMLReader.SkipWhitespace: Boolean;
 begin
   Result := False;
-  while FWhitespace do
+  while (FCurChar = #32) or (FCurChar = #10) or (FCurChar = #9) or (FCurChar = #13) do
   begin
     GetChar;
+    Result := True;
+  end;
+end;
+
+function TXMLReader.SkipWhitespaceRaw: Boolean;
+begin
+  Result := False;
+  while (FCurChar = #32) or (FCurChar = #10) or (FCurChar = #9) or (FCurChar = #13) do
+  begin
+    GetCharRaw;
     Result := True;
   end;
 end;
@@ -903,7 +1082,7 @@ end;
 procedure TXMLReader.ExpectWhitespace;
 begin
   if not SkipWhitespace then
-    RaiseExc('Expected whitespace');
+    FatalError('Expected whitespace');
 end;
 
 procedure TXMLReader.ExpectChar(wc: WideChar);
@@ -911,7 +1090,7 @@ begin
   if FCurChar = wc then
     GetChar
   else
-    RaiseExc(wc);
+    FatalError(wc);
 end;
 
 procedure TXMLReader.ExpectString(const s: String);
@@ -921,7 +1100,7 @@ begin
   for I := 1 to Length(s) do
   begin
     if FCurChar <> WideChar(s[i]) then
-      RaiseExc('Expected "%s"', [s]);
+      FatalError('Expected "%s"', [s]);
     GetChar;
   end;
 end;
@@ -952,83 +1131,83 @@ end;
 constructor TXMLReader.Create;
 begin
   inherited Create;
-  // Naming bitmap: Point to static data for XML 1.0,
-  // and allocate buffer in XML11_BuildTables when necessary.
-  FNamePages := @NamePages;
   BufAllocate(FName, 128);
   BufAllocate(FValue, 512);
+  FIDRefs := TList.Create;
+  FValStack := TList.Create;
+
+  // Set char rules to XML 1.0
+  FNamePages := @NamePages;
   FForbiddenAscii := [#1..#8, #11..#12, #14..#31];
-  // TODO: put under user control
-  FPreserveWhitespace := True;
-  FCreateEntityRefs := True;
+end;
+
+constructor TXMLReader.Create(AParser: TDOMParser);
+begin
+  Create;
+  FCtrl := AParser;
+  FValidate := FCtrl.Options.Validate;
+  FPreserveWhitespace := FCtrl.Options.PreserveWhitespace;
+  FExpandEntities := FCtrl.Options.ExpandEntities;
+  FCDSectionsAsText := FCtrl.Options.CDSectionsAsText;
+  FIgnoreComments := FCtrl.Options.IgnoreComments;
 end;
 
 destructor TXMLReader.Destroy;
+var
+  I: Integer;
 begin
-  if FXML11 then
-    FreeMem(FNamePages);
   FreeMem(FName.Buffer);
   FreeMem(FValue.Buffer);
   while ContextPop do;     // clean input stack
   FSource.Free;
+  FPEMap.Free;
+  for I := FValStack.Count-1 downto 0 do
+    TObject(FValStack[I]).Free;
+  FValStack.Free;
+  ClearIDRefs;
+  FIDRefs.Free;
   inherited Destroy;
 end;
 
 procedure TXMLReader.XML11_BuildTables;
-var
-  I: Integer;
 begin
-  if not FXML11 then
-    GetMem(FNamePages, 512);
+  FNamePages := Xml11NamePages;
   FXML11 := True;
-  for I := 0 to 255 do
-    FNamePages^[I] := ord(Byte(I) in Xml11HighPages);
-  FNamePages^[0] := 2;
-  FNamePages^[3] := $2c;
-  FNamePages^[$20] := $2a;
-  FNamePages^[$21] := $2b;
-  FNamePages^[$2f] := $29;
-  FNamePages^[$30] := $2d;
-  FNamePages^[$fd] := $28;
-
-  Move(FNamePages^, FNamePages^[256], 256);
-  FNamePages^[$100] := $19;
-  FNamePages^[$103] := $2E;
-  FNamePages^[$120] := $2F;
   FForbiddenAscii := [#1..#8, #11..#12, #14..#31, #$7F..#$84, #$86..#$9F];
 end;
 
-
-procedure TXMLReader.ProcessXML(ASource: TXMLInputSource);
+procedure TXMLReader.ProcessXML(ASource: TXMLCharSource);
 begin
   doc := TXMLDocument.Create;
   FCursor := doc;
   InitializeRoot(ASource);
-
   FAllowedDecl := dtXml;
-  ParseMisc;
-  FDtdParsed := True;
-  if FDocType = nil then
-    ValidationError('Missing DTD', []);
-  if CheckName then
-    ParseElement
-  else
-    RaiseExc('Expected element');
-  ParseMisc;
-  if Assigned(FDocType) and (doc.DocumentElement.TagName <> FDocType.Name) then
-    ValidationError('DTD name does not match root element', []);
+  DoParseFragment;              // case FCurChar <> #0 is handled
 
-  if FCurChar <> #0 then
-    RaiseExc('Text after end of document element found');
+  if doc.DocumentElement = nil then
+    FatalError('Root element is missing');
+
+  if FValidate then
+  begin
+    if Assigned(FDocType) then
+    begin
+      if doc.DocumentElement.TagName <> FDocType.Name then
+        ValidationError('DTD name does not match root element', []);
+      ValidateIdRefs;
+    end
+    else
+      ValidationError('Missing DTD', []);
+  end;
 end;
 
-procedure TXMLReader.ProcessFragment(ASource: TXMLInputSource; AOwner: TDOMNode);
+procedure TXMLReader.ProcessFragment(ASource: TXMLCharSource; AOwner: TDOMNode);
 begin
   doc := AOwner.OwnerDocument;
   FCursor := AOwner;
   InitializeRoot(ASource);
   FXML11 := doc.InheritsFrom(TXMLDocument) and (TXMLDocument(doc).XMLVersion = '1.1');
   FAllowedDecl := dtText;
+  FInsideRoot := True;
   DoParseFragment;
 end;
 
@@ -1038,7 +1217,8 @@ begin
   if (FCurChar >= #$D800) and (FCurChar <= #$DB7F) then
   begin
     BufAppend(FName, FCurChar);
-    GetCharRaw;
+    // TODO: do I need to update Location here???
+    FCurChar := FSource.NextChar;
     Result := (FCurChar >= #$DC00) and (FCurChar <= #$DFFF);
   end
   else
@@ -1073,7 +1253,11 @@ end;
 
 procedure TXMLReader.RaiseNameNotFound;
 begin
-  RaiseExc('Name starts with invalid character');
+  // Coming at no cost, this allows more user-friendly error messages
+  if (FCurChar = #32) or (FCurChar = #10) or (FCurChar = #9) or (FCurChar = #13) then
+    FatalError('Whitespace is not allowed here')
+  else
+    FatalError('Name starts with invalid character');
 end;
 
 function TXMLReader.ExpectName: WideString;
@@ -1110,6 +1294,7 @@ function TXMLReader.ParseCharRef: Boolean;           // [66]
 var
   Value: Integer;
 begin
+  GetCharRaw;   // skip '&'
   Result := FCurChar = '#';
   if Result then
   begin
@@ -1143,7 +1328,7 @@ begin
         if FXML11 then
           BufAppend(FValue, WideChar(Value))
         else
-          RaiseExc('Invalid character reference');
+          FatalError('Invalid character reference');
       $09, $0A, $0D, $20..$D7FF, $E000..$FFFD:
         BufAppend(FValue, WideChar(Value));
       $10000..$10FFFF:
@@ -1152,7 +1337,7 @@ begin
           BufAppend(FValue, WideChar($DC00 xor (Value and $3FF)));
         end;
     else
-      RaiseExc('Invalid character reference');
+      FatalError('Invalid character reference');
     end;
   end;
 end;
@@ -1165,17 +1350,16 @@ begin
   while (FCurChar <> Delim) and (FCurChar <> #0) do
   begin
     if FCurChar = '<' then
-      RaiseExc('Literal "<" in attribute value')
+      FatalError('Character ''<'' is not allowed in attribute value')
     else if FCurChar <> '&' then
     begin
-      if FWhitespace then
+      if (FCurChar = #10) or (FCurChar = #9) or (FCurChar = #13) then
         FCurChar := #32;
       BufAppend(FValue, FCurChar);
       GetCharRaw;
     end
     else
     begin
-      GetCharRaw; // skip '&'
       if ParseCharRef then
         Continue;
 
@@ -1184,12 +1368,12 @@ begin
       begin
         if FValue.Length > 0 then
         begin
-          FCursor.AppendChild(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length));
+          DoText(FValue.Buffer, FValue.Length);
           FValue.Length := 0;
         end;
 
         if RefNode.SystemID <> '' then
-          RaiseExc('External entity reference is not allowed in attribute value');
+          FatalError('External entity reference is not allowed in attribute value', True);
 
         IncludeEntity(RefNode, True);
       end;
@@ -1197,22 +1381,24 @@ begin
   end; // while
   if FValue.Length > 0 then
   begin
-    FCursor.AppendChild(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length));
+    DoText(FValue.Buffer, FValue.Length);
     FValue.Length := 0;
   end;
 end;
 
 procedure TXMLReader.DoParseFragment;
 begin
+  // SAX: ContentHandler.StartDocument() - here?
   ParseContent;
   if FCurChar <> #0 then
-    RaiseExc('Closing tag not allowed here');
+    FatalError('Closing tag is not allowed here');
+  // SAX: ContentHandler.EndDocument() - here? or somewhere in destructor?  
 end;
 
 
 function TXMLReader.ContextPush(AEntity: TDOMEntityEx): Boolean;
 var
-  Src: TXMLInputSource;
+  Src: TXMLCharSource;
 begin
   if AEntity.SystemID <> '' then
   begin
@@ -1227,35 +1413,37 @@ begin
     FAllowedDecl := dtText;
   end
   else
-    Src := TXMLInputSource.Create(AEntity.FReplacementText);
+    Src := TXMLCharSource.Create(AEntity.FReplacementText);
 
   AEntity.FOnStack := True;
   Src.FEntity := AEntity;
 
   Src.FParent := FSource;
   Src.FCursor := FCursor;
-  Unget(FCurChar);             // remember FCurChar in previous context
+  UngetCurChar;             // remember FCurChar and current location in previous context
+  Src.FSavedLocation := FLocation;
 
-  Inc(FEntityLevel);
   Initialize(Src);
   Result := True;
 end;
 
 function TXMLReader.ContextPop: Boolean;
 var
-  Src: TXMLInputSource;
+  Src: TXMLCharSource;
+  TmpLocation: TLocation;
 begin
   Result := Assigned(FSource.FParent);
   if Result then
   begin
     Src := FSource.FParent;
+    TmpLocation := FSource.FSavedLocation;
     if Assigned(FSource.FEntity) then
       TDOMEntityEx(FSource.FEntity).FOnStack := False;
     FCursor := TDOMNode(FSource.FCursor);
     FSource.Free;
     FSource := Src;
-    Dec(FEntityLevel);
     GetChar;                       // re-classify - case of "%pe1;%pe2;"
+    FLocation := TmpLocation;
   end;
 end;
 
@@ -1266,12 +1454,13 @@ begin
   if not AEntity.FResolved then
   begin
     if AEntity.FOnStack then
-      RaiseExc('Entity ''%s'' recursively references itself', [AEntity.NodeName]);
+      FatalError('Entity ''%s'' recursively references itself', [AEntity.NodeName]);
 
     if ContextPush(AEntity) then
     begin
       GetCharRaw;
-      CheckForChar(#$FEFF);
+      if CheckForChar(#$FEFF) then
+        Dec(FLocation.LinePos);
 
       FCursor := AEntity;         // build child node tree for the entity
       try
@@ -1287,7 +1476,7 @@ begin
     end;
   end;
   Node := FCursor;
-  if FCreateEntityRefs or (not AEntity.FResolved) then
+  if (not FExpandEntities) or (not AEntity.FResolved) then
   begin
     Node := doc.CreateEntityReference(AEntity.NodeName);
     FCursor.AppendChild(Node);
@@ -1307,7 +1496,9 @@ var
   PEnt: TDOMEntityEx;
 begin
   SetString(PEName, FName.Buffer, FName.Length);
-  PEnt := FDocType.PEMap.GetNamedItem(PEName) as TDOMEntityEx;
+  PEnt := nil;
+  if Assigned(FPEMap) then
+    PEnt := FPEMap.GetNamedItem(PEName) as TDOMEntityEx;
   if PEnt = nil then    // TODO -cVC: Referencing undefined PE
   begin                 // (These are classified as 'optional errors'...)
 //    ValidationError('Undefined parameter entity referenced: %s', [PEName]);
@@ -1315,7 +1506,7 @@ begin
   end;
 
   if PEnt.FOnStack then
-    RaiseExc('Entity ''%%%s'' recursively references itself', [PEnt.NodeName]);
+    FatalError('Entity ''%%%s'' recursively references itself', [PEnt.NodeName]);
 
   ContextPush(PEnt);
 end;
@@ -1326,6 +1517,7 @@ var
   Predef: WideChar;
 begin
   Result := nil;
+  MarkTokenStart;
   RefName := ExpectName;
   ExpectChar(';');
   Predef := ResolvePredefined(RefName);
@@ -1338,17 +1530,17 @@ begin
 
     if Result = nil then
     begin
-      if FStandalone or (FDocType = nil) or not (FDocType.HasPERefs or (FDocType.SystemID <> '')) then
-        RaiseExc('Undefined entity ''%s'' referenced', [RefName])
+      if FStandalone or (FDocType = nil) or not (FHavePERefs or (FDocType.SystemID <> '')) then
+        FatalError('Reference to undefined entity ''%s''', [RefName], True)
       else
         ValidationError('Undefined entity ''%s'' referenced', [RefName]);
     end
     else
     begin
-      if FStandalone and (not Result.FInternal) then
-        RaiseExc('Standalone constraint violation');
+      if FStandalone and Result.FExternallyDeclared then
+        FatalError('Standalone constraint violation', True);
       if Result.NotationName <> '' then
-        RaiseExc('Reference to unparsed entity ''%s''', [RefName]);
+        FatalError('Reference to unparsed entity ''%s''', [RefName], True);
     end;
   end;
 end;
@@ -1356,43 +1548,43 @@ end;
 procedure TXMLReader.ProcessTextAndRefs;
 var
   nonWs: Boolean;
-  last: WideChar;
   RefNode: TDOMEntityEx;
 begin
   FValue.Length := 0;
   nonWs := False;
-  FAllowedDecl := dtNone;
+  MarkTokenStart;
   while (FCurChar <> '<') and (FCurChar <> #0) do
   begin
     if FCurChar <> '&' then
     begin
-      if not FWhitespace then
+      if (FCurChar <> #32) and (FCurChar <> #10) and (FCurChar <> #9) and (FCurChar <> #13) then
         nonWs := True;
       BufAppend(FValue, FCurChar);
       if FCurChar = '>' then
         with FValue do
-          if (Length >= 3) and
-          (Buffer[Length-2] = ']') and (Buffer[Length-3] = ']') then
-             RaiseExc('Literal '']]>'' is not allowed in text');
+          if (Length >= 3) and (Buffer[Length-2] = ']') and (Buffer[Length-3] = ']') then
+          begin
+            Dec(FLocation.LinePos, 2);
+            FatalError('Literal '']]>'' is not allowed in text');
+          end;
       GetCharRaw;
     end
     else
     begin
-      GetCharRaw; // skip '&'
+      if not FInsideRoot then
+        FatalError('Illegal at document level');
       if ParseCharRef then
       begin
-        last := FValue.Buffer[FValue.Length-1];
-        if (last <> #9) and (last <> #10) and (last <> #13) and (last <> #32) then
-          nonWs := True;
+        nonWs := True; // CharRef to whitespace is not considered whitespace
         Continue;
       end;
-      nonWs := True;
       RefNode := ParseReference;
       if Assigned(RefNode) then
       begin
         if (nonWs or FPreserveWhitespace) and (FValue.Length > 0)  then
         begin
-          FCursor.AppendChild(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length));
+          // 'Reference illegal at root' is checked above, no need to check here
+          DoText(FValue.Buffer, FValue.Length, not nonWs);
           FValue.Length := 0;
           nonWs := False;
         end;
@@ -1400,11 +1592,16 @@ begin
       end;
     end;
   end; // while
-  if (nonWs or FPreserveWhitespace) and (FValue.Length > 0)  then
+  if FInsideRoot then
   begin
-    FCursor.AppendChild(doc.CreateTextNodeBuf(FValue.Buffer, FValue.Length));
-    FValue.Length := 0;
-  end;
+    if (nonWs or FPreserveWhitespace) and (FValue.Length > 0)  then
+    begin
+      DoText(FValue.Buffer, FValue.Length, not nonWs);
+      FValue.Length := 0;
+    end;
+  end
+  else if nonWs then
+    FatalError('Illegal at document level', True);
 end;
 
 procedure TXMLReader.ExpectAttValue;    // [10]
@@ -1429,6 +1626,7 @@ begin
   begin
     Delim := FCurChar;
     GetCharRaw;  // skip quote
+    MarkTokenStart;
     FValue.Length := 0;
     while (FCurChar <> Delim) and (FCurChar <> #0) do
     begin
@@ -1442,28 +1640,35 @@ end;
 procedure TXMLReader.SkipPubidLiteral;                 // [12]
 var
   I: Integer;
+  wc: WideChar;
 begin
   if SkipQuotedLiteral then
   begin
     for I := 0 to FValue.Length-1 do
-      if (FValue.Buffer[I] > #255) or not (Char(FValue.Buffer[I]) in PubidChars) then
-        RaiseExc('Illegal Public ID literal')
+    begin
+      wc := FValue.Buffer[I];
+      if (wc > #255) or not (Char(wc) in PubidChars) then
+        FatalError('Illegal Public ID literal', True);
+      if (wc = #10) or (wc = #13) then
+        FValue.Buffer[I] := #32;
+    end;
   end
   else
     RaiseExpectedQMark;
 end;
 
-procedure TXMLReader.SkipSystemLiteral(out Literal: WideString; Required: Boolean);
+procedure TXMLReader.SkipSystemLiteral(out Literal: WideString);
 begin
   if SkipQuotedLiteral then
     SetString(Literal, FValue.Buffer, FValue.Length)
-  else if Required then
+  else
     RaiseExpectedQMark;
 end;
 
 procedure TXMLReader.ParseComment;    // [15]
 begin
   ExpectString('--');
+  MarkTokenStart;
   FValue.Length := 0;
   repeat
     BufAppend(FValue, FCurChar);
@@ -1472,14 +1677,13 @@ begin
       if (Length >= 2) and (Buffer[Length-1] = '-') and
       (Buffer[Length-2] = '-') then
       begin
-        Dec(Length, 2);
-        if Assigned(FCursor) then
-          FCursor.AppendChild(doc.CreateCommentBuf(Buffer, Length));
         ExpectChar('>');
+        Dec(Length, 2);
+        DoComment(Buffer, Length);
         Exit;
       end;
   until FCurChar = #0;
-  RaiseExc('Unterminated comment');
+  FatalError('Unterminated comment', True);
 end;
 
 procedure TXMLReader.ParsePI;                    // [16]
@@ -1487,6 +1691,7 @@ var
   Name, Value: WideString;
 begin
   GetCharRaw;      // skip '?'
+  MarkTokenStart;
   Name := ExpectName;
 
   with FName do
@@ -1496,21 +1701,21 @@ begin
      ((Buffer[2] = 'L') or (Buffer[2] = 'l')) then
   begin
     if Name <> 'xml' then
-      RaiseExc('''xml'' is a reserved word; it must be lowercase');
-    if FAllowedDecl <> dtNone then
+      FatalError('''xml'' is a reserved word; it must be lowercase', True);
+
+    // Declaration is allowed only at the very beginning of the _external_ entity
+    if (FTokenStart.Line = 1) and (FTokenStart.LinePos = 3) and (FSource.FSystemID <> '') then
     begin
       ParseXmlOrTextDecl(FAllowedDecl = dtText);
-      FAllowedDecl := dtNone;
       Exit;
     end
     else
-      RaiseExc('XML declaration not allowed here');
+      FatalError('XML declaration is not allowed here', True);
   end;
 
   if FCurChar <> '?' then
     ExpectWhitespace;
 
-  FAllowedDecl := dtNone;
   FValue.Length := 0;
   repeat
     BufAppend(FValue, FCurChar);
@@ -1521,12 +1726,13 @@ begin
       begin
         Dec(Length, 2);
         SetString(Value, Buffer, Length);
+        // SAX: ContentHandler.ProcessingInstruction(Name, Value);
         if Assigned(FCursor) then
           FCursor.AppendChild(Doc.CreateProcessingInstruction(Name, Value));
         Exit;
       end;
   until FCurChar = #0;
-  RaiseExc('Unterminated processing instruction');
+  FatalError('Unterminated processing instruction', True);
 end;
 
 
@@ -1542,12 +1748,12 @@ begin
   begin
     ExpectString('version');                              // [24]
     ExpectEq;
-    SkipSystemLiteral(TmpStr, True);
+    SkipSystemLiteral(TmpStr);
     IsXML11 := False;
     if TmpStr = '1.1' then     // Checking for bad chars is implied
       IsXML11 := True
     else if TmpStr <> '1.0' then
-      RaiseExc('Illegal version number');
+      FatalError('Illegal version number', True);
 
     if not TextDecl then
     begin
@@ -1558,7 +1764,7 @@ begin
     end
     else   // parsing external entity
       if IsXML11 and not FXML11 then
-        RaiseExc('XML 1.0 document cannot invoke XML 1.1 entities');
+        FatalError('XML 1.0 document cannot invoke XML 1.1 entities', True);
 
     if FCurChar <> '?' then
       ExpectWhitespace;
@@ -1569,12 +1775,13 @@ begin
   begin
     ExpectString('encoding');
     ExpectEq;
-    SkipSystemLiteral(TmpStr, True);
+    SkipSystemLiteral(TmpStr);
 
-    if not IsValidEncName(TmpStr) then
-      RaiseExc('Illegal encoding name');
+    if not IsValidXmlEncoding(TmpStr) then
+      FatalError('Illegal encoding name', True);
 
-    FSource.SetEncoding(TmpStr);  // <-- Wide2Ansi conversion here
+    if not FSource.SetEncoding(TmpStr) then  // <-- Wide2Ansi conversion here
+      FatalError('Encoding ''%s'' is not supported', [TmpStr], True);
     // getting here means that specified encoding is supported
     // TODO: maybe assign the 'preferred' encoding name?
     if not TextDecl and doc.InheritsFrom(TXMLDocument) then
@@ -1589,12 +1796,12 @@ begin
   begin
     ExpectString('standalone');
     ExpectEq;
-    SkipSystemLiteral(TmpStr, True);
+    SkipSystemLiteral(TmpStr);
     if TmpStr = 'yes' then
       FStandalone := True
     else if TmpStr <> 'no' then
-      RaiseExc('Only "yes" or "no" are permitted as values of "standalone"');
-    SkipWhitespace;
+      FatalError('Only "yes" or "no" are permitted as values of "standalone"', True);
+    SkipWhitespaceRaw;
   end;
 
   ExpectString('?>');
@@ -1603,17 +1810,15 @@ end;
 procedure TXMLReader.ParseDoctypeDecl;    // [28]
 var
   IntSubset: TWideCharBuf;
-  Src, OldSrc: TXMLInputSource;
+  Src, OldSrc: TXMLCharSource;
 begin
-  FAllowedDecl := dtNone;
-
   if FDtdParsed then
-    RaiseExc('Markup declaration not allowed here');
+    FatalError('Markup declaration is not allowed here');
 
-  ExpectString('DOCTYPE');  // gives possibly incorrect error message
+  ExpectString('DOCTYPE');
   ExpectWhitespace;
 
-  FDocType := TDOMDocumentTypeEx.Create(doc);
+  FDocType := TDOMDocumentTypeEx(TDOMDocumentType.Create(doc));
   FDtdParsed := True;
 { To comply with certain output tests, we must insert PIs coming from internal
   subset before DocType node. This looks very synthetic, but let it be...
@@ -1622,7 +1827,7 @@ begin
     FDocType.FName := ExpectName;
     ExpectWhitespace;
     ParseExternalID(FDocType.FSystemID, FDocType.FPublicID, False);
-    SkipWhitespace;
+    SkipWhitespaceRaw;
 
     if FCurChar = '[' then
     begin
@@ -1640,132 +1845,102 @@ begin
         FCopyBuf := nil;
         FreeMem(IntSubset.Buffer);
       end;
-      SkipWhitespace;
+      SkipWhitespaceRaw;
     end;
     ExpectChar('>');
 
-    if FDocType.SystemID <> '' then
+    if (FDocType.SystemID <> '') and ResolveEntity(FDocType.SystemID, FDocType.PublicID, Src) then
     begin
-      if ResolveEntity(FDocType.SystemID, FDocType.PublicID, Src) then
-      begin
-        OldSrc := FSource;
-        Unget(FCurChar);
-        FCursor := nil;
-        try
-          DoParseExtSubset(Src);
-        finally
-          while ContextPop do;   // Cleanup after possible exceptions
-          FSource.Free;
-          FSource := OldSrc;
-          GetChar;
-          FCursor := Doc;
-        end;
+      // DTD parsing code assumes that FSource is RootSource,
+      // therefore we cannot use ContextPush here...
+      OldSrc := FSource;
+      UngetCurChar;
+      FCursor := nil;
+      try
+        DoParseExtSubset(Src);
+      finally
+        while ContextPop do;   // Cleanup after possible exceptions
+        FSource.Free;
+        FSource := OldSrc;
+        GetChar;
+        FCursor := Doc;
       end;
     end;
   finally
     doc.AppendChild(FDocType);
   end;
-end;
-
-procedure TXMLReader.ParseMisc;
-begin
-  repeat
-    if SkipWhitespace then
-      FAllowedDecl := dtNone;
-    if not CheckForChar('<') then
-      Break;
-    if CheckForChar('!') then
-    begin
-      FAllowedDecl := dtNone;
-      if FCurChar = '-' then
-        ParseComment
-      else
-        ParseDoctypeDecl;
-    end
-    else
-      if FCurChar = '?' then
-        ParsePI
-      else
-        Break;
-  until FCurChar = #0;
-  FAllowedDecl := dtNone;
+  ValidateDTD;  
 end;
 
 function TXMLReader.ParseEq: Boolean;    // [25]
 begin
-  while FWhitespace do GetCharRaw;
+  SkipWhitespaceRaw;
   Result := FCurChar = '=';
   if Result then
   begin
     GetCharRaw;
-    while FWhitespace do GetCharRaw;
+    SkipWhitespaceRaw;
   end;
 end;
 
 procedure TXMLReader.ExpectEq;
 begin
   if not ParseEq then
-    RaiseExc('Expected "="');
+    FatalError('Expected "="');
 end;
 
 
 { DTD stuff }
 
-procedure TXMLReader.AssertPENesting(CurrentLevel: Integer);
+procedure TXMLReader.BadPENesting;
 begin
-  if CurrentLevel <> FEntityLevel then
-    ValidationError('Parameter entities must be properly nested', []);
+  ValidationError('Parameter entities must be properly nested', []);
 end;
 
-// content model
+procedure TXMLReader.StandaloneError;
+begin
+  ValidationError('Standalone constriant violation', []);
+end;
 
-type
-  TElementContentType = (
-    ctEmpty,
-    ctAny,
-    ctMixed,
-    ctName,
-    ctChoice,
-    ctSeq
-  );
+procedure TXMLReader.CheckNotation(const Name: WideString);
+begin
+  if FDocType.Notations.GetNamedItem(Name) = nil then
+    ValidationError('Notation ''%s'' is not declared', [Name]);
+end;
 
-  TElementContentQuant = (
-    cqNone,
-    cqOpt,
-    cqReq,
-    cqPlus
-  );
+procedure TXMLReader.ParseQuantity(CP: TContentParticle);
+begin
+  if CheckForChar('?') then
+    CP.CPQuant := cqZeroOrOnce
+  else if CheckForChar('*') then
+    CP.CPQuant := cqZeroOrMore
+  else if CheckForChar('+') then
+    CP.CPQuant := cqOnceOrMore;
+end;
 
-{
-  TElementContent = record
-    ContentType: TElementContentType;
-    ContentQuant: TElementContentQuant;
-    Name: WideString;
-    Children: array of TElementContent;
-  end;
-}
-
-procedure TXMLReader.ExpectChoiceOrSeq();                  // [49], [50]
+procedure TXMLReader.ExpectChoiceOrSeq(CP: TContentParticle);                  // [49], [50]
 var
   Delim: WideChar;
-  PELevel: Integer;
+  CurrentEntity: TObject;
+  CurrentCP: TContentParticle;
 begin
   Delim := #0;
   repeat
+    CurrentCP := CP.Add;
     SkipWhitespace;
     if FCurChar = '(' then
     begin
-      PELevel := FEntityLevel;
+      CurrentEntity := FSource.FEntity;
       GetChar;
-      ExpectChoiceOrSeq;
-      AssertPENesting(PELevel);
+      ExpectChoiceOrSeq(CurrentCP);
+      if CurrentEntity <> FSource.FEntity then
+        BadPENesting;
       GetChar;
     end
     else
-      SkipName;
-    if CheckForChar('?') then
-    else if CheckForChar('*') then
-    else if CheckForChar('+') then;
+      CurrentCP.Name := ExpectName;
+
+    ParseQuantity(CurrentCP);
 
     SkipWhitespace;
     if FCurChar = ')' then
@@ -1775,93 +1950,115 @@ begin
       if (FCurChar = '|') or (FCurChar = ',') then
         Delim := FCurChar
       else
-        RaiseExc('Expected "|" or ","');
+        FatalError('Expected "|" or ","');
     end
     else
       if FCurChar <> Delim then
-        RaiseExc(Delim);
+        FatalError(Delim);
     GetChar; // skip delimiter
   until False;
-end;
-
-procedure TXMLReader.ParseMixedOrChildren;
-var
-  PELevel: Integer;
-  NeedAsterisk: Boolean;
-begin
-  PELevel := FEntityLevel;
-  GetChar;     // starting bracket
-  SkipWhitespace;
-  if CheckForChar('#') then       // Mixed section [51]
-  begin
-    ExpectString('PCDATA');
-    SkipWhitespace;
-    NeedAsterisk := False;
-    while FCurChar <> ')' do
-    begin
-      ExpectChar('|');
-      NeedAsterisk := True;
-      SkipWhitespace;
-      SkipName;
-      SkipWhitespace;
-    end;
-    AssertPENesting(PELevel);
-    GetChar;
-    if NeedAsterisk then
-      ExpectChar('*')
-    else
-      CheckForChar('*');
-  end
-  else       // Parse Children section [47]
-  begin
-    ExpectChoiceOrSeq;
-    AssertPENesting(PELevel);
-    GetChar;
-    if CheckForChar('?') then
-    else if CheckForChar('*') then
-    else if CheckForChar('+') then;
-  end;
+  if Delim = '|' then
+    CP.CPType := ctChoice
+  else
+    CP.CPType := ctSeq;    // '(foo)' is a sequence!
 end;
 
 procedure TXMLReader.ParseElementDecl;            // [45]
+var
+  ElName: WideString;
+  ElDef: TDOMElementDef;
+  NeedAsterisk: Boolean;
+  CurrentCP: TContentParticle;
+  CurrentEntity: TObject;
+  I: Integer;
 begin
-  SkipName;
+  ElName := ExpectName;
   ExpectWhitespace;
+  ElDef := TDOMElementDef(FDocType.ElementDefs.GetNamedItem(ElName));
+  if Assigned(ElDef) and ElDef.HasElementDecl then
+    ValidationError('Duplicate declaration of element ''%s''', [ElName]);
+  if ElDef = nil then
+  begin
+    ElDef := TDOMElementDef.Create(doc);
+    ElDef.FNodeName := ElName;
+    FDocType.ElementDefs.SetNamedItem(ElDef);
+  end;
+  ElDef.FExternallyDeclared := not (FIntSubset and (FSource.FParent = nil));
+  ElDef.HasElementDecl := True;
 
-   // Get contentspec [46]
   if FCurChar = 'E' then
-    ExpectString('EMPTY')
+  begin
+    ExpectString('EMPTY');
+    ElDef.ContentType := ctEmpty;
+  end
   else if FCurChar = 'A' then
-    ExpectString('ANY')
+  begin
+    ExpectString('ANY');
+    ElDef.ContentType := ctAny;
+  end
   else if FCurChar = '(' then
-    ParseMixedOrChildren
+  begin
+    CurrentEntity := FSource.FEntity;
+    GetChar;     // starting bracket
+    SkipWhitespace;
+    if FCurChar = '#' then       // Mixed section [51]
+    begin
+      ExpectString('#PCDATA');
+      SkipWhitespace;
+      ElDef.ContentType := ctMixed;
+      NeedAsterisk := False;
+      while FCurChar <> ')' do
+      begin
+        ExpectChar('|');
+        NeedAsterisk := True;
+        SkipWhitespace;
+
+        CurrentCP := ElDef.RootCP.Add;
+        CurrentCP.Name := ExpectName;
+        // TODO: rethink this
+        for I := ElDef.RootCP.ChildCount-2 downto 0 do
+          if CurrentCP.Name = ElDef.RootCP.Children[I].Name then
+            ValidationError('Duplicate token in mixed section', []);
+        SkipWhitespace;
+      end;
+      if CurrentEntity <> FSource.FEntity then
+        BadPENesting;
+      GetChar;
+      // TODO: does this asterisk have any real meaning?
+      if NeedAsterisk then
+      begin
+        ExpectChar('*');
+        ElDef.RootCP.CPQuant := cqZeroOrMore;
+      end
+      else
+        if CheckForChar('*') then
+          ElDef.RootCP.CPQuant := cqZeroOrMore;
+    end
+    else       // Children section [47]
+    begin
+      ElDef.ContentType := ctChildren;
+      ExpectChoiceOrSeq(ElDef.RootCP);
+      if CurrentEntity <> FSource.FEntity then
+        BadPENesting;
+      GetChar;
+      ParseQuantity(ElDef.RootCP);
+    end;
+  end
   else
-    RaiseExc('Invalid content specification');
+    FatalError('Invalid content specification');
+  // SAX: DeclHandler.ElementDecl(name, model);
 end;
 
 
 procedure TXMLReader.ParseNotationDecl;        // [82]
 var
-  Notation: TDOMNotationEx;
+  Name, SysID, PubID: WideString;
 begin
-  Notation := TDOMNotationEx(TDOMNotation.Create(Doc));
-  try
-    Notation.FName := ExpectName;
-    ExpectWhitespace;
-    if not ParseExternalID(Notation.FSystemID, Notation.FPublicID, True) then
-      RaiseExc('Expected external or public ID');
-  except
-    Notation.Free;
-    raise;
-  end;
-
-  if FDocType.Notations.GetNamedItem(Notation.FName) = nil then
-    FDocType.Notations.SetNamedItem(Notation)
-  else
-  begin
-    ValidationError('Duplicate notation declaration: %s', [Notation.FName]);
-    Notation.Free;
-  end;
+  Name := ExpectName;
+  ExpectWhitespace;
+  if not ParseExternalID(SysID, PubID, True) then
+    FatalError('Expected external or public ID');
+  DoNotationDecl(Name, PubID, SysID);
 end;
 
 procedure TXMLReader.ParseAttlistDecl;         // [52]
@@ -1876,7 +2073,7 @@ begin
   ElDef := TDOMElementDef(FDocType.ElementDefs.GetNamedItem(Token));
   if ElDef = nil then
   begin
-    // TODO -cVC: must distinguish ElementDef created here from one explicitly declared
+    // DONE -cVC: must distinguish ElementDef created here from one explicitly declared
     ElDef := TDOMElementDef.Create(doc);
     ElDef.FNodeName := Token;
     FDocType.ElementDefs.SetNamedItem(ElDef);
@@ -1884,36 +2081,38 @@ begin
   SkipWhitespace;
   while FCurChar <> '>' do
   begin
-    SkipWhitespace;                     { !!! }
     AttDef := TDOMAttrDef.Create(doc);
+    AttDef.FExternallyDeclared := not (FIntSubset and (FSource.FParent = nil));
     try
       AttDef.FName := ExpectName;
       ExpectWhitespace;
       Token := GetString(['A'..'Z']);     // Get AttType [54], [55], [56]
       if Token = 'CDATA' then
-        AttDef.FDataType := DT_CDATA
+        AttDef.FDataType := dtCdata
       else if Token = 'ID' then
-        AttDef.FDataType := DT_ID
+        AttDef.FDataType := dtId
       else if Token = 'IDREF' then
-        AttDef.FDataType := DT_IDREF
+        AttDef.FDataType := dtIdRef
       else if Token = 'IDREFS' then
-        AttDef.FDataType := DT_IDREFS
+        AttDef.FDataType := dtIdRefs
       else if Token = 'ENTITY' then
-        AttDef.FDataType := DT_ENTITY
+        AttDef.FDataType := dtEntity
       else if Token = 'ENTITIES' then
-        AttDef.FDataType := DT_ENTITIES
+        AttDef.FDataType := dtEntities
       else if Token = 'NMTOKEN' then
-        AttDef.FDataType := DT_NMTOKEN
+        AttDef.FDataType := dtNmToken
       else if Token = 'NMTOKENS' then
-        AttDef.FDataType := DT_NMTOKENS
+        AttDef.FDataType := dtNmTokens
       else if Token = 'NOTATION' then     // [57], [58]
       begin
-        AttDef.FDataType := DT_NOTATION;
+        AttDef.FDataType := dtNotation;
         ExpectWhitespace;
         ExpectChar('(');
         repeat
           SkipWhitespace;
-          SkipName;
+          MarkTokenStart;
+          if not AttDef.AddEnumToken(ExpectName) then
+            ValidationError('Duplicate token in NOTATION attribute declaration',[]);
           SkipWhitespace;
         until not CheckForChar('|');
         ExpectChar(')');
@@ -1921,58 +2120,60 @@ begin
       else
       if CheckForChar('(') then     // [59]
       begin
-        AttDef.FDataType := DT_NMTOKEN;
+        AttDef.FDataType := dtNmToken;
         repeat
           SkipWhitespace;
+          MarkTokenStart;
           if not CheckNmToken then
             RaiseNameNotFound;      // not completely correct error message
+          SetString(Token, FName.Buffer, FName.Length);
+          if not AttDef.AddEnumToken(Token) then
+            ValidationError('Duplicate token in enumerated attibute declaration', []);
           SkipWhitespace;
         until not CheckForChar('|');
         ExpectChar(')');
       end else
-        RaiseExc('Invalid tokenized type');
+        FatalError('Illegal attribute type', True);
 
       ExpectWhitespace;
 
-      // Get DefaultDecl [60]
       ValueRequired := False;
+      MarkTokenStart;
       if CheckForChar('#') then
       begin
         Token := GetString(['A'..'Z']);
         if Token = 'REQUIRED' then
-          AttDef.FDefault := AD_REQUIRED
+          AttDef.FDefault := adRequired
         else if Token = 'IMPLIED' then
-          AttDef.FDefault := AD_IMPLIED
+          AttDef.FDefault := adImplied
         else if Token = 'FIXED' then
         begin
-          AttDef.FDefault := AD_FIXED;
+          AttDef.FDefault := adFixed;
           ExpectWhitespace;
           ValueRequired := True;
         end
         else
-          RaiseExc('Illegal attribute default');
+          FatalError('Illegal attribute default', True);
       end
       else
       begin
-        AttDef.FDefault := AD_DEFAULT;
+        AttDef.FDefault := adDefault;
         ValueRequired := True;
       end;
-
+      
       if ValueRequired then
       begin
         SaveCurNode := FCursor;
         FCursor := AttDef;
-// tricky moment, no tests for that
-{       FRecognizePE := False;  }        // TODO: shall it really be disabled?
+// See comments to valid-sa-094: PE expansion should be disabled in AttDef.
+// ExpectAttValue() does not recognize PEs anyway, so setting FRecognizePEs isn't needed
         try
           ExpectAttValue;
         finally
           FCursor := SaveCurNode;
-{          FRecognizePE := not FIntSubset; }
         end;
-        if AttDef.FDataType = DT_ID then
-          ValidationError('Attributes of type ID must not have a default value',[]);
       end;
+      // SAX: DeclHandler.AttributeDecl(...)
 
       // First declaration is binding, subsequent should be ignored
       if Assigned(ElDef.GetAttributeNode(AttDef.Name)) then
@@ -1990,7 +2191,7 @@ end;
 procedure TXMLReader.ParseEntityDeclValue(Delim: WideChar);   // [9]
 var
   I: Integer;
-  Src: TXMLInputSource;
+  Src: TXMLCharSource;
 begin
   Src := FSource;
   // "Included in literal": process until delimiter hit IN SAME context
@@ -1998,13 +2199,12 @@ begin
   if ParsePEReference then
   begin
     if FIntSubset and (FSource.FParent = nil) then
-      RaiseExc('PE references in internal subset not allowed inside declarations');
+      FatalError('PE references in internal subset are not allowed inside declarations', True);
     StartPE;
     GetCharRaw;
   end
   else if FCurChar = '&' then  // CharRefs: include, EntityRefs: bypass
   begin
-    GetCharRaw;
     if not ParseCharRef then
     begin
       BufAppend(FValue, '&');
@@ -2037,12 +2237,14 @@ begin
   begin
     ExpectWhitespace;
     NDataAllowed := False;
-    Map := FDocType.PEMap;
+    if FPEMap = nil then
+      FPEMap := TDOMNamedNodeMap.Create(FDocType, ENTITY_NODE);
+    Map := FPEMap;
   end;
 
   Entity := TDOMEntityEx.Create(Doc);
   try
-    Entity.FInternal := FIntSubset and (FSource.FParent = nil);
+    Entity.FExternallyDeclared := not (FIntSubset and (FSource.FParent = nil));
     Entity.FName := ExpectName;
     ExpectWhitespace;
 
@@ -2050,6 +2252,7 @@ begin
     begin
       NDataAllowed := False;
       Delim := FCurChar;
+      Entity.FStartLocation := FLocation;
       FRecognizePE := False;   // PERef right after delimiter should not be recognized
       GetCharRaw;              // at char level - we process it 'manually'
       FValue.Length := 0;
@@ -2059,7 +2262,7 @@ begin
     end
     else
       if not ParseExternalID(Entity.FSystemID, Entity.FPublicID, False) then
-        RaiseExc('Expected entity value or external ID');
+        FatalError('Expected entity value or external ID');
 
     if NDataAllowed then                // [76]
     begin
@@ -2070,10 +2273,8 @@ begin
         ExpectString('NDATA');
         ExpectWhitespace;
         SkipName;
-        // TODO -cVC: Notation declared. Here or after all has been read?
         SetString(Entity.FNotationName, FName.Buffer, FName.Length);
-        if FDocType.Notations.GetNamedItem(Entity.NotationName) = nil then
-          ValidationError('Reference to undeclared notation ''%s''', [Entity.NotationName]);
+        // SAX: DTDHandler.UnparsedEntityDecl(...);
       end;
     end;
   except
@@ -2094,19 +2295,16 @@ var
   Token: WideString;
   IncludeLevel: Integer;
   IgnoreLevel: Integer;
-  PELevel: Integer;
+  CurrentEntity: TObject;
 begin
   IncludeLevel := 0;
   IgnoreLevel := 0;
   repeat
-    if SkipWhitespace then
-      FAllowedDecl := dtNone;
+    SkipWhitespace;
 
     if ParsePEReference then     // PERef between declarations should always be recognized
     begin
-      FAllowedDecl := dtNone;
-      if Assigned(FDocType) then
-        FDocType.HasPERefs := True;
+      FHavePERefs := True;
       StartPE;
       GetChar;
       Continue;
@@ -2125,18 +2323,17 @@ begin
     if FCurChar <> '<' then
       Break;
 
-    PELevel := FEntityLevel;
-    GetCharRaw;
+    CurrentEntity := FSource.FEntity;
+    GetChar;
 
     if CheckForChar('!') then
     begin
-      FAllowedDecl := dtNone;
       if FCurChar = '-' then
         ParseComment
       else if FCurChar = '[' then
       begin
         if FIntSubset and (FSource.FParent = nil) then
-          RaiseExc('Conditional sections not allowed in internal subset');
+          FatalError('Conditional sections are not allowed in internal subset');
 
         FRecognizePE := not FIntSubset;
         GetChar; // skip '['
@@ -2149,8 +2346,9 @@ begin
         else if Token = 'IGNORE' then
           IgnoreLevel := 1
         else
-          RaiseExc('Expected "INCLUDE" or "IGNORE"');
-        AssertPENesting(PELevel);
+          FatalError('Expected "INCLUDE" or "IGNORE"');
+        if CurrentEntity <> FSource.FEntity then
+          BadPENesting;
         ExpectChar('[');
         if IgnoreLevel > 0 then
         repeat
@@ -2165,6 +2363,7 @@ begin
       else
       begin
         FRecognizePE := not FIntSubset;
+        MarkTokenStart;
         Token := GetString(['A'..'Z']);
         ExpectWhitespace;
         if Token = 'ELEMENT' then
@@ -2176,7 +2375,7 @@ begin
         else if Token = 'NOTATION' then
           ParseNotationDecl
         else
-          RaiseExc('Illegal markup declaration');
+          FatalError('Illegal markup declaration', True);
 
         SkipWhitespace;
         FRecognizePE := False;  // ! Don't auto-pop context on last markup delimiter
@@ -2186,29 +2385,31 @@ begin
   MarkupDecl starting in PE and ending in root is a WFC [28a]
   MarkupDecl starting in root but ending in PE is a VC (erratum 2e-14)
 }
-      if PELevel > FEntityLevel then
-        RaiseExc('Parameter entities must be properly nested')
-      else
-        AssertPENesting(PELevel);
+      // TODO: what if statrs in PE1 and ends in PE2, and other cases? 
+      if CurrentEntity <> FSource.FEntity then
+        if Assigned(FSource.FEntity) then { ends in PE }
+          BadPENesting
+        else
+          FatalError('Parameter entities must be properly nested');
     end
     else if FCurChar = '?' then
       ParsePI;
   until False;
   FRecognizePE := False;
   if (IncludeLevel > 0) or (IgnoreLevel > 0) then
-    RaiseExc('Conditional section not closed');
+    FatalError('Conditional section is not closed');
 end;
 
-procedure TXMLReader.DoParseExtSubset(ASource: TXMLInputSource);
+procedure TXMLReader.DoParseExtSubset(ASource: TXMLCharSource);
 begin
   InitializeRoot(ASource);
   FAllowedDecl := dtText;
   ParseMarkupDecl;
   if FCurChar <> #0 then
-    RaiseExc('Illegal character in DTD');
+    FatalError('Illegal character in DTD');
 end;
 
-procedure TXMLReader.ProcessDTD(ASource: TXMLInputSource);
+procedure TXMLReader.ProcessDTD(ASource: TXMLCharSource);
 begin
   doc := TXMLDocument.Create;
   FDocType := TDOMDocumentTypeEx.Create(doc);
@@ -2219,10 +2420,11 @@ begin
 end;
 
 procedure TXMLReader.ParseCDSect;               // [18]
-var
-  name: WideString;
 begin
   ExpectString('[CDATA[');
+  MarkTokenStart;
+  if not FInsideRoot then
+    FatalError('Illegal at document level');
   FValue.Length := 0;
   repeat
     BufAppend(FValue, FCurChar);
@@ -2231,13 +2433,11 @@ begin
       if (Length >= 3) and (Buffer[Length-1] = '>') and
       (Buffer[Length-2] = ']') and (Buffer[Length-3] = ']') then
     begin
-      Dec(Length, 3);
-      SetString(name, Buffer, Length);
-      FCursor.AppendChild(doc.CreateCDATASection(name));
+      DoCDSect(Buffer, Length-3);
       Exit;
     end;
   until FCurChar = #0;
-  RaiseExc('Unterminated CDATA section');
+  FatalError('Unterminated CDATA section', True);
 end;
 
 procedure TXMLReader.ParseContent;
@@ -2246,18 +2446,18 @@ begin
     if FCurChar = '<' then
     begin
       GetCharRaw;
+      MarkTokenStart;      
       if CheckName then
         ParseElement
       else if FCurChar = '!' then
       begin
         GetCharRaw;
-        FAllowedDecl := dtNone;
         if FCurChar = '[' then
           ParseCDSect
         else if FCurChar = '-' then
           ParseComment
         else
-          ParseDoctypeDecl; // actually will raise error
+          ParseDoctypeDecl;
       end
       else if FCurChar = '?' then
         ParsePI
@@ -2273,102 +2473,223 @@ end;
 procedure TXMLReader.ParseElement;    // [39] [40] [44]
 var
   NewElem: TDOMElement;
+  ElDef: TDOMElementDef;
+  ElVal: TElementValidator;
   IsEmpty: Boolean;
   attr, OldAttr: TDOMNode;
 begin
+  if (FCursor = doc) and Assigned(doc.DocumentElement) then
+    FatalError('Only one top-level element allowed', True)
+  else
+    FInsideRoot := True;
+
   NewElem := doc.CreateElementBuf(FName.Buffer, FName.Length);
+  // First check if NewElem is allowed in this context
+  if FValStack.Count > 0 then
+    ElVal := TElementValidator(FValStack.Last)
+  else
+    ElVal := nil;
+  if FValidate and Assigned(ElVal) and not ElVal.IsElementAllowed(NewElem.TagName) then
+    ValidationError('Element ''%s'' is not allowed in this context',[NewElem.TagName]);
+
   FCursor.AppendChild(NewElem);
-  Assert(NewElem.ParentNode = FCursor, 'AppendChild did not set ParentNode');
-  FCursor := NewElem;
+
+  // Then update ElementDef - it is needed to process attributes
+  ElDef := nil;
+  if Assigned(FDocType) then
+    ElDef := TDOMElementDef(FDocType.ElementDefs.GetNamedItem(NewElem.TagName));
 
   IsEmpty := False;
-  while FCurChar <> '>' do
+  if SkipWhitespaceRaw then
   begin
-    if FCurChar = '/' then
+    while (FCurChar <> '>') and (FCurChar <> '/') do
     begin
-      GetCharRaw;
-      IsEmpty := True;
-      FCursor := FCursor.ParentNode;
-      Break;
-    end;
+      MarkTokenStart;
+      ExpectName;
+      attr := doc.CreateAttributeBuf(FName.Buffer, FName.Length);
 
-    // Get Attribute [41]
-    ExpectWhitespace;
-    if not CheckName then  // allow stuff like <element >, <element />
-      Continue;
-
-    attr := doc.CreateAttributeBuf(FName.Buffer, FName.Length);
-
-    // !!cannot use TDOMElement.SetAttributeNode because it will free old attribute
-    OldAttr := NewElem.Attributes.SetNamedItem(Attr);
-    if Assigned(OldAttr) then
-    begin
-      OldAttr.Free;
-      RaiseExc('Duplicate attribute');
-    end;
-    ExpectEq;
-    Assert(TDOMAttr(attr).OwnerElement = NewElem, 'DOMAttr.OwnerElement not set correctly');
-    FCursor := attr;
-    ExpectAttValue;
-    FCursor := NewElem;
+      // !!cannot use TDOMElement.SetAttributeNode because it will free old attribute
+      OldAttr := NewElem.Attributes.SetNamedItem(Attr);
+      if Assigned(OldAttr) then
+      begin
+        OldAttr.Free;
+        FatalError('Duplicate attribute', True);
+      end;
+      ExpectEq;
+      FCursor := attr;
+      ExpectAttValue;
+      if (FCurChar <> '>') and (FCurChar <> '/') then
+        ExpectWhitespace;
+    end;   // while
+  end;
+  if FCurChar = '/' then
+  begin
+    IsEmpty := True;
+    GetCharRaw;
   end;
   ExpectChar('>');
-  ProcessDefaultAttributes(NewElem);
+
+  PushVC(ElDef);
+  // SAX: ContentHandler.StartElement(...)
+  // SAX: ContentHandler.StartPrefixMapping(...)
 
   if not IsEmpty then
   begin
-   if not FPreserveWhitespace then   // critical for testsuite compliance
-      SkipWhitespace;
+    FCursor := NewElem;
+    if not FPreserveWhitespace then   // critical for testsuite compliance
+      SkipWhitespaceRaw;
     ParseContent;
     if FCurChar = '/' then         // Get ETag [42]
     begin
       GetCharRaw;
+      MarkTokenStart;
       if ExpectName <> NewElem.TagName then
-        RaiseExc('Unmatching element end tag (expected "</%s>")', [NewElem.TagName]);
-      SkipWhitespace;
+        FatalError('Unmatching element end tag (expected "</%s>")', [NewElem.TagName], True);
+      SkipWhitespaceRaw;
       ExpectChar('>');
-      FCursor := FCursor.ParentNode;
     end
     else if FCurChar <> #0 then
       RaiseNameNotFound
     else // End of stream in content
-      RaiseExc('Document element not closed');
+      FatalError('Closing tag is missing for ''%s''', [NewElem.TagName]);
   end;
+  // SAX: ContentHandler.EndElement(...)
+  // SAX: ContentHandler.EndPrefixMapping(...)
+  FCursor := NewElem.ParentNode;
+  if FCursor = doc then
+    FInsideRoot := False;
+  ProcessDefaultAttributes(NewElem);
+  if FValidate then
+    ValidateElement(NewElem);
+  PopVC;
+end;
+
+procedure TXMLReader.AddIdRef(Buf: PWideChar; Length: Integer);
+var
+  w: PWideStrWrapper;
+begin
+  New(w);
+  SetString(w^.Value, Buf, Length);
+  FIDRefs.Add(w);
+end;
+
+procedure TXMLReader.ClearIdRefs;
+var
+  I: Integer;
+begin
+  for I := 0 to FIDRefs.Count-1 do
+    Dispose(PWideStrWrapper(FIDRefs.List^[I]));
+  FIDRefs.Clear;  
+end;
+
+procedure TXMLReader.ValidateIdRefs;
+var
+  I: Integer;
+begin
+  for I := 0 to FIDRefs.Count-1 do
+    if Doc.GetElementById(PWideStrWrapper(FIDRefs.List^[I])^.Value) = nil then
+      ValidationError('The ID ''%s'' does not match any element', [PWideStrWrapper(FIDRefs.List^[I])^.Value]);
+  ClearIDRefs;
 end;
 
 procedure TXMLReader.ProcessDefaultAttributes(Element: TDOMElement);
 var
-  I: Integer;
+  I, L, StartPos, EndPos: Integer;
   ElDef: TDOMElementDef;
-  AttDefs: TDOMNamedNodeMap;
+  Map: TDOMNamedNodeMap;
   AttDef: TDOMAttrDef;
-  Attr: TDOMAttrEx;
-  Spec: Boolean;
+  Attr: TDOMAttr;
+  AttValue: WideString;
+  Entity: TDOMEntity;
 begin
-  if Assigned(FDocType) then
+  ElDef := CurrentElementDef;
+  if Assigned(ElDef) and ElDef.HasAttributes then
   begin
-    ElDef := TDOMElementDef(FDocType.ElementDefs.GetNamedItem(Element.TagName));
-    if Assigned(ElDef) and ElDef.HasAttributes then
+    Map := ElDef.Attributes;
+
+    for I := 0 to Map.Length-1 do
     begin
-      AttDefs := ElDef.Attributes;
-      for I := 0 to AttDefs.Length-1 do
+      AttDef := Map[I] as TDOMAttrDef;
+
+      Attr := Element.GetAttributeNode(AttDef.Name);
+      if Attr = nil then
       begin
-        AttDef := AttDefs[I] as TDOMAttrDef;
-        Spec := True;
-        // no validity checking yet; just append default values
-        Attr := TDOMAttrEx(Element.GetAttributeNode(AttDef.Name));
-        if (AttDef.FDefault in [AD_DEFAULT, AD_FIXED]) and (Attr = nil) then
-        begin
-          Attr := TDOMAttrEx(AttDef.CloneNode(True));
-          Element.SetAttributeNode(Attr);
-          Spec := False;
+        // attribute needs defaulting
+        case AttDef.FDefault of
+          adDefault, adFixed: begin
+            if FStandalone and AttDef.FExternallyDeclared then
+              StandaloneError;
+            // Cloning TDOMAttrDef creates TDOMAttr. DataType is copied.
+            Attr := TDOMAttr(AttDef.CloneNode(True));
+            TDOMAttrDef(Attr).FSpecified := False;  // Dirty hack...
+            TDOMAttrDef(Attr).FDeclared := True;
+            Element.SetAttributeNode(Attr);
+          end;
+          adRequired:  ValidationError('Required attribute ''%s'' of element ''%s'' is missing',[AttDef.Name, Element.TagName])
         end;
-        if Assigned(Attr) then
-        begin
-          Attr.FSpecified := Spec;
-          Attr.FNormalize := (AttDef.FDataType <> DT_CDATA);
+      end
+      else
+      begin
+        TDOMAttrDef(Attr).FDeclared := True;
+        AttValue := Attr.Value; // unnormalized
+        // now assign DataType so that value is correctly normalized
+        TDOMAttrDef(Attr).FDataType := AttDef.FDataType;
+        if FStandalone and AttDef.FExternallyDeclared and (Attr.Value <> AttValue) then
+          StandaloneError;
+        AttValue := Attr.Value; // recalculate
+        // TODO: what about normalization of AttDef.Value? (Currently it IS normalized)
+        if (AttDef.FDefault = adFixed) and (AttDef.Value <> AttValue) then
+          ValidationError('Value of attribute ''%s'' does not match its fixed default',[AttDef.Name]);
+
+        if not ValidateAttrSyntax(AttDef, AttValue) then
+          ValidationError('Attribute ''%s'' type mismatch', [AttDef.Name]);
+      end;
+
+      if Attr = nil then
+        Continue;
+      L := Length(AttValue);
+      case Attr.DataType of
+        dtId: if not Doc.AddID(Attr) then
+                ValidationError('The ID ''%s'' is not unique', [AttValue]);
+
+        dtIdRef, dtIdRefs: begin
+          StartPos := 1;
+          while StartPos <= L do
+          begin
+            EndPos := StartPos;
+            while (EndPos <= L) and (AttValue[EndPos] <> #32) do
+              Inc(EndPos);
+
+            AddIdRef(@AttValue[StartPos], EndPos-StartPos);
+            StartPos := EndPos + 1;
+          end;
+        end;
+
+        dtEntity, dtEntities: begin
+          StartPos := 1;
+          while StartPos <= L do
+          begin
+            EndPos := StartPos;
+            while (EndPos <= L) and (AttValue[EndPos] <> #32) do
+              Inc(EndPos);
+            Entity := TDOMEntity(FDocType.Entities.GetNamedItem(Copy(AttValue, StartPos, EndPos-StartPos)));
+            if (Entity = nil) or (Entity.NotationName = '') then
+              ValidationError('Attribute ''%s'' type mismatch', [Attr.Name]);
+            StartPos := EndPos + 1;
+          end;
         end;
       end;
+    end;
+  end;
+  // Now report undeclared attributes
+  if Assigned(FDocType) and Element.HasAttributes then
+  begin
+    Map := Element.Attributes;
+    for I := 0 to Map.Length-1 do
+    begin
+      Attr := TDOMAttr(Map[I]);
+      if not TDOMAttrDef(Attr).FDeclared then
+        ValidationError('Using undeclared attribute ''%s'' on element ''%s''',[Attr.Name, Element.TagName]);
     end;
   end;
 end;
@@ -2378,6 +2699,7 @@ begin
   Result := CheckForChar('%');
   if Result then
   begin
+    MarkTokenStart;
     SkipName;
     ExpectChar(';');
   end;
@@ -2390,7 +2712,7 @@ begin
   begin
     ExpectString('SYSTEM');
     ExpectWhitespace;
-    SkipSystemLiteral(SysID, True);
+    SkipSystemLiteral(SysID);
     Result := True;
   end
   else if FCurChar = 'P' then
@@ -2399,35 +2721,513 @@ begin
     ExpectWhitespace;
     SkipPubidLiteral;
     SetString(PubID, FValue.Buffer, FValue.Length);
+    NormalizeSpaces(PubID);
     if SysIdOptional then
     begin
       SkipWhitespace;
-      SkipSystemLiteral(SysID, False);
+      if SkipQuotedLiteral then
+        SetString(SysID, FValue.Buffer, FValue.Length);
     end
     else
     begin
       ExpectWhitespace;
-      SkipSystemLiteral(SysID, True);
+      SkipSystemLiteral(SysID);
     end;
     Result := True;
   end else
     Result := False;
 end;
 
-procedure TXMLReader.ValidationError(const Msg: string;
-  const args: array of const);
+procedure TXMLReader.ValidationError(const Msg: string; const Args: array of const);
+var
+  E: EXMLReadError;
 begin
-  // TODO: just a stub now
-  FInvalid := True;
+  if not FValidate then
+    Exit;
+  FDocNotValid := True;
+  E := EXMLReadError.CreateFmt(Msg, Args);
+  // TODO -cErrorReporting: No location for validity errors is reported yet
+  E.FErrorMessage := E.Message;
+  E.FSeverity := esError;
+  CallErrorHandler(E);
+  // if user handler raises exception, control won't get here
+  E.Free;
 end;
 
+procedure TXMLReader.CallErrorHandler(E: EXMLReadError);
+begin
+  try
+    if Assigned(FCtrl) and Assigned(FCtrl.FOnError) then
+      FCtrl.FOnError(E);
+    if E.Severity = esFatal then
+      raise E;
+  except
+    if ExceptObject <> E then
+      E.Free;
+    raise;
+  end;
+end;
+
+function TXMLReader.ValidateAttrSyntax(AttrDef: TDOMAttrDef; const aValue: WideString): Boolean;
+begin
+  case AttrDef.FDataType of
+    dtId, dtIdRef, dtEntity: Result := IsXmlName(aValue, FXML11);
+    dtIdRefs, dtEntities: Result := IsXmlNames(aValue, FXML11);
+    dtNmToken: Result := IsXmlNmToken(aValue, FXML11) and AttrDef.HasEnumToken(aValue);
+    dtNmTokens: Result := IsXmlNmTokens(aValue, FXML11);
+    // IsXmlName() not necessary - enum is never empty and contains valid names
+    dtNotation: Result := AttrDef.HasEnumToken(aValue);
+  else
+    Result := True;
+  end;
+end;
+
+procedure TXMLReader.ValidateElement(Element: TDOMElement);
+var
+  ElDef: TDOMElementDef;
+  elv: TElementValidator;
+
+  procedure Traverse(node: TDOMNode);
+  var
+    cur: TDOMNode;
+  begin
+    cur := node.FirstChild;
+    while Assigned(cur) do
+    begin
+      case cur.NodeType of
+        ELEMENT_NODE:
+          elv.AddElement(TDOMElement(cur));
+        ENTITY_REFERENCE_NODE:
+          Traverse(cur);
+        TEXT_NODE: 
+          begin
+            if not TDOMText(cur).MayBeIgnorable then
+              ValidationError('Character data is not allowed in element-only content',[])
+            else
+              if FStandalone and ElDef.FExternallyDeclared then
+                StandaloneError;
+        end;
+      end;
+      cur := cur.NextSibling;
+    end;
+  end;
+
+begin
+  ElDef := CurrentElementDef;
+  if Assigned(ElDef) and ElDef.HasElementDecl then
+  begin
+    case ElDef.ContentType of
+      ctEmpty: begin
+        if Element.HasChildNodes then
+          ValidationError('Element ''%s'' was declared empty but has content', [Element.TagName]);
+      end;
+      ctChildren: begin
+        elv := TElementValidator(FValStack.Last);
+        try
+          Traverse(Element);
+          if not elv.Match then
+            ValidationError('Content of element ''%s'' does not match its declaration',[Element.TagName]);
+        finally
+          elv.FList.Clear;
+        end;
+      end;
+    end;
+  end
+  else // if no DocType, a corresponding error will be reported.
+    if Assigned(FDocType) then
+      ValidationError('Using undeclared element ''%s''',[Element.TagName]);
+end;
+
+// TODO: this should be method of TDOMDocumentTypeEx, but we must pass ErrorHandler in... 
+procedure TXMLReader.ValidateDTD;
+var
+  I, J, K: Integer;
+  Entity: TDOMEntity;
+  ElDef: TDOMElementDef;
+  AttDef: TDOMAttrDef;
+  IdFound, NotationFound, HasDefault: Boolean;
+begin
+  for I := 0 to FDocType.Entities.Length-1 do
+  begin
+    Entity := TDOMEntity(FDocType.Entities[I]);
+    if (Entity.NotationName <> '') then
+      CheckNotation(Entity.NotationName);
+  end;
+
+  if Assigned(FDocType.FElementDefs) then
+  begin
+    for I := 0 to FDocType.FElementDefs.Length-1 do
+    begin
+      ElDef := TDOMElementDef(FDocType.FElementDefs[I]);
+      // XML spec permits ATTLIST declarations without corresponding ELEMENT.
+      // Such ATTLISTs are useless for validation, so here we might skip or even
+      // delete all ElDefs that have HasElementDecl=False. However, doing so
+      // breaks some stupid tests, namely sun/id04.
+{
+      if not ElDef.HasElementDecl then
+        Continue;
+}
+      if not ElDef.HasAttributes then
+        Continue;
+      IdFound := False;
+      NotationFound := False;
+      for J := 0 to ElDef.Attributes.Length-1 do
+      begin
+        AttDef := TDOMAttrDef(ElDef.Attributes[J]);
+        HasDefault := AttDef.FDefault in [adDefault, adFixed];
+        case AttDef.FDataType of
+        dtId: begin
+          if IdFound then
+            ValidationError('Only one attribute of type ID is allowed per element',[]);
+          IdFound := True;
+          if HasDefault then
+            ValidationError('An attribute of type ID cannot have a default value',[]);
+          end;
+        dtNotation: begin
+            for K := 0 to Length(AttDef.FEnumeration)-1 do
+              CheckNotation(AttDef.FEnumeration[K]);
+            if NotationFound then
+              ValidationError('Only one attribute of type NOTATION is allowed per element',[]);
+            NotationFound := True;
+            if ElDef.ContentType = ctEmpty then
+              ValidationError('NOTATION attributes are not allowed on EMPTY elements',[]);
+          end;
+        end; // case
+        if HasDefault and not ValidateAttrSyntax(AttDef, AttDef.NodeValue) then
+          ValidationError('Illegal attribute default', []);
+      end;
+    end;
+  end;
+end;
+
+procedure TXMLReader.DoText(ch: PWideChar; Count: Integer; Whitespace: Boolean);
+var
+  TextNode: TDOMText;
+begin
+  // Validating filter part (disabled for the following two reasons):
+  // TODO: per SAX, attribute text should not go here.
+  //       ElDefStack is invalid in this case, and we fail...
+  // TODO: for testing whitespace CharRefs, they are contained in internal entities.
+  //       Parsing first reports them to Entity, and then they are cloned to real parent
+  //       so this method isn't called :(
+{
+  if FCursor.NodeType in [ELEMENT_NODE, ENTITY_REFERENCE_NODE] then
+  begin
+    ElDef := CurrentElementDef;
+    if Assigned(ElDef) and (ElDef.ContentType = ctChildren) then
+    begin
+      if not Whitespace then
+         ValidationError('Character data is not allowed in element-only content',[])
+      else
+         if FStandalone and ElDef.FExternallyDeclared then
+           StandaloneError;
+    end;
+  end;
+}
+  // Document builder part
+  TextNode := Doc.CreateTextNodeBuf(ch, Count);
+  TextNode.MayBeIgnorable := Whitespace;
+  FCursor.AppendChild(TextNode);
+end;
+
+procedure TXMLReader.DoComment(ch: PWideChar; Count: Integer);
+var
+  ElDef: TDOMElementDef;
+begin
+  // validation filter part
+  if FValidate then
+  begin
+    ElDef := CurrentElementDef;
+    if Assigned(ElDef) and (ElDef.ContentType = ctEmpty) then
+      ValidationError('Comments are not allowed within EMPTY elements', []);
+  end;    
+
+  // DOM builder part
+  if (not FIgnoreComments) and Assigned(FCursor) then
+    FCursor.AppendChild(Doc.CreateCommentBuf(ch, Count));
+end;
+
+procedure TXMLReader.DoCDSect(ch: PWideChar; Count: Integer);
+var
+  s: WideString;
+  ElDef: TDOMElementDef;
+begin
+  if FValidate then
+  begin
+    ElDef := CurrentElementDef;
+    if Assigned(ElDef) and (ElDef.ContentType = ctChildren) then
+      ValidationError('CDATA sections are not allowed in element-only content',[]);
+  end;    
+  if not FCDSectionsAsText then
+  begin
+    SetString(s, ch, Count);
+    // SAX: LexicalHandler.StartCDATA;
+    // SAX: ContentHandler.Characters(...);
+    FCursor.AppendChild(doc.CreateCDATASection(s));
+    // SAX: LexicalHandler.EndCDATA;
+  end
+  else
+    FCursor.AppendChild(doc.CreateTextNodeBuf(ch, Count));
+end;
+
+procedure TXMLReader.DoNotationDecl(const aName, aPubID, aSysID: WideString);
+var
+  Notation: TDOMNotationEx;
+begin
+  if FDocType.Notations.GetNamedItem(aName) = nil then
+  begin
+    Notation := TDOMNotationEx(TDOMNotation.Create(doc));
+    Notation.FName := aName;
+    Notation.FPublicID := aPubID;
+    Notation.FSystemID := aSysID;
+    FDocType.Notations.SetNamedItem(Notation);
+  end
+  else
+    ValidationError('Duplicate notation declaration: ''%s''', [aName]);
+end;
+
+procedure TXMLReader.PushVC(aElDef: TDOMElementDef);
+begin
+  FValStack.Add(TElementValidator.Create(aElDef));
+end;
+
+procedure TXMLReader.PopVC;
+var
+  Validator: TObject;
+begin
+  with FValStack do
+  begin
+    Validator := TObject(Last);
+    Delete(Count-1);
+    Validator.Free;
+  end;
+end;
+
+function TXMLReader.CurrentElementDef: TDOMElementDef;
+begin
+  if FValStack.Count > 0 then
+    Result := TElementValidator(FValStack.Last).FElementDef
+  else
+    Result := nil;
+end;
+
+{ TDOMAttrDef }
+
+function TDOMAttrDef.AddEnumToken(const aValue: WideString): Boolean;
+var
+  I, L: Integer;
+begin
+  // TODO: this implementaion is the slowest possible...
+  Result := False;
+  L := Length(FEnumeration);
+  for I := 0 to L-1 do
+  begin
+    if aValue = FEnumeration[I] then
+      Exit;
+  end;
+  SetLength(FEnumeration, L+1);
+  FEnumeration[L] := aValue;
+  Result := True;
+end;
+
+function TDOMAttrDef.HasEnumToken(const aValue: WideString): Boolean;
+var
+  I: Integer;
+begin
+  Result := True;
+  if Length(FEnumeration) = 0 then
+    Exit;
+  for I := 0 to Length(FEnumeration)-1 do
+  begin
+    if FEnumeration[I] = aValue then
+      Exit;
+  end;
+  Result := False;
+end;
+
+{ TElementValidator }
+
+procedure TElementValidator.AddElement(aNode: TDOMElement);
+begin
+  FList.Add(aNode);
+end;
+
+constructor TElementValidator.Create(aElDef: TDOMElementDef);
+begin
+  inherited Create;
+  FElementDef := aElDef;
+  if Assigned(FElementDef) then
+    FCurCP := FElementDef.RootCP;
+  FList := TList.Create;
+end;
+
+destructor TElementValidator.Destroy;
+begin
+  FList.Free;
+  inherited Destroy;
+end;
+
+function TElementValidator.IsElementAllowed(const aName: DOMString): Boolean;
+var
+  I: Integer;
+begin
+  Inc(FChildElementCount);
+  Result := True;
+  // if element is not declared, non-validity has been already reported, no need to report again...
+  if FElementDef = nil then
+    Exit;
+  { for mixed content type it is easy }
+  if FElementDef.ContentType = ctMixed then
+  begin
+    for I := 0 to FElementDef.RootCP.ChildCount-1 do
+    begin
+      if aName = FElementDef.RootCP.Children[I].Name then
+        Exit;
+    end;
+    Result := False;
+    Exit;
+  end;
+  { for empty, even more easier }
+  if FElementDef.ContentType = ctEmpty then
+  begin
+    Result := False;
+    Exit;
+  end;
 
 
+end;
+
+function TElementValidator.Match: Boolean;
+begin
+  FIndex := 0;
+  Result := (FElementDef.RootCP.MatchNodeList(FList, FIndex)) and (FIndex = FList.Count);
+end;
+
+{ TContentParticle }
+
+function TContentParticle.Add: TContentParticle;
+begin
+  Result := TContentParticle.Create;
+  Result.FParent := Self;
+  FChildren.Add(Result);
+end;
+
+constructor TContentParticle.Create;
+begin
+  inherited Create;
+  FChildren := TList.Create;
+end;
+
+destructor TContentParticle.Destroy;
+var
+  I: Integer;
+begin
+  for I := FChildren.Count-1 downto 0 do
+    TObject(FChildren[I]).Free;
+  FChildren.Free;
+  inherited Destroy;
+end;
+
+function TContentParticle.GetChild(Index: Integer): TContentParticle;
+begin
+  Result := TContentParticle(FChildren[Index]);
+end;
+
+function TContentParticle.GetChildCount: Integer;
+begin
+  Result := FChildren.Count;
+end;
+
+function TContentParticle.InternalMatch(List: TList; var Index: Integer): Boolean;
+var
+  I: Integer;
+  TempIndex, RestIndex, MatchNumber: Integer;
+begin
+  if CPType = ctName then
+  begin
+    Result := (Index < List.Count) and (TDOMElement(List[Index]).TagName = Name);
+    if Result then
+      Inc(Index);
+  end
+  else if CPType = ctChoice then
+  begin
+    RestIndex := Index;
+    Result := False;
+    MatchNumber := 0;
+    for I := 0 to ChildCount-1 do
+    begin
+      TempIndex := Index;
+      if Children[I].MatchNodeList(List, TempIndex) then
+      begin
+        Result := True;
+        if Index <> TempIndex then  // Do not count matching empty expressions
+        begin
+          Inc(MatchNumber);
+          if MatchNumber > 1 then
+            Break;
+          RestIndex := TempIndex;
+        end;
+      end else if MatchNumber > 1 then Break;
+    end;
+
+    if Result then
+      Index := RestIndex;
+  end
+  else // ctSeq
+  begin
+    MatchNumber := 0;
+    TempIndex := Index;
+    Result := False;
+    for I := 0 to ChildCount-1 do
+    begin
+      Result := Children[I].MatchNodeList(List, TempIndex);
+      if not Result then Break;
+    end;
+
+    if Result then
+      Index := TempIndex;
+    if MatchNumber > 1 then
+      Result := False;
+  end;
+end;
+
+function TContentParticle.MatchNodeList(List: TList; var Index: Integer): Boolean;
+var
+  Saved: Integer;
+begin
+  Result := InternalMatch(List, Index) or not (CPQuant in [cqOnce, cqOnceOrMore]);
+  if Result and (CPQuant in [cqZeroOrMore, cqOnceOrMore]) then
+  begin
+    Saved := Index;
+    while Index < List.Count do
+    begin
+      if not InternalMatch(List, Saved) or (Index = Saved) then
+        Break;
+      Index := Saved;
+    end;
+  end;
+end;
+
+{ TDOMElementDef }
+
+constructor TDOMElementDef.Create(aOwner: TDOMDocument);
+begin
+  inherited Create(aOwner);
+  RootCP := TContentParticle.Create;
+end;
+
+destructor TDOMElementDef.Destroy;
+begin
+  RootCP.Free;
+  inherited Destroy;
+end;
+
+{ plain calls }
 
 procedure ReadXMLFile(out ADoc: TXMLDocument; var f: Text);
 var
   Reader: TXMLReader;
-  Src: TXMLInputSource;
+  Src: TXMLCharSource;
 begin
   ADoc := nil;
   Src := TXMLFileInputSource.Create(f);
@@ -2444,7 +3244,7 @@ end;
 procedure ReadXMLFile(out ADoc: TXMLDocument; var f: TStream; const ABaseURI: String);
 var
   Reader: TXMLReader;
-  Src: TXMLInputSource;
+  Src: TXMLCharSource;
 begin
   ADoc := nil;
   Reader := TXMLReader.Create;
@@ -2479,7 +3279,7 @@ end;
 procedure ReadXMLFragment(AParentNode: TDOMNode; var f: Text);
 var
   Reader: TXMLReader;
-  Src: TXMLInputSource;
+  Src: TXMLCharSource;
 begin
   Reader := TXMLReader.Create;
   try
@@ -2494,7 +3294,7 @@ end;
 procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream; const ABaseURI: String);
 var
   Reader: TXMLReader;
-  Src: TXMLInputSource;
+  Src: TXMLCharSource;
 begin
   Reader := TXMLReader.Create;
   try
@@ -2527,7 +3327,7 @@ end;
 procedure ReadDTDFile(out ADoc: TXMLDocument; var f: Text);
 var
   Reader: TXMLReader;
-  Src: TXMLInputSource;
+  Src: TXMLCharSource;
 begin
   ADoc := nil;
   Reader := TXMLReader.Create;
@@ -2544,7 +3344,7 @@ end;
 procedure ReadDTDFile(out ADoc: TXMLDocument; var f: TStream; const ABaseURI: String);
 var
   Reader: TXMLReader;
-  Src: TXMLInputSource;
+  Src: TXMLCharSource;
 begin
   ADoc := nil;
   Reader := TXMLReader.Create;
@@ -2575,6 +3375,8 @@ begin
     Stream.Free;
   end;
 end;
+
+
 
 
 end.
