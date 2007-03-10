@@ -38,6 +38,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaBtHDef.pas,v 1.10 2005/09/03 14:27:47 marquardt Exp $
 
 unit JwaBtHDef;
 
@@ -52,7 +53,7 @@ unit JwaBtHDef;
 interface
 
 uses
-  JwaWinType, JwaBthSdpDef;
+  JwaWindows, JwaBthSdpDef;
 
 const
   GUID_BTHPORT_DEVICE_INTERFACE: TGUID =     '{0850302A-B344-4FDA-9BE9-90576B8D46F0}';

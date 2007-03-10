@@ -40,21 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaRpcNtErr.pas,v 1.7 2005/09/06 16:36:50 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaRpcNtErr;
 
 {$WEAKPACKAGEUNIT}
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "RpcNtErr.h"'}
-{$HPPEMIT ''}
-
 {$I jediapilib.inc}
 
 interface
 
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFNDEF JWARPC_PAS}
 uses
-  JwaWinError;
+  JwaWinError, JwaWinType;
+{$ENDIF !JWARPC_PAS}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "RpcNtErr.h"'}
+{$HPPEMIT ''}
 
 {*********************************************************/
 /**               Microsoft LAN Manager                 **/
@@ -107,6 +116,15 @@ const
   RPC_X_INVALID_PIPE_OPERATION     = RPC_X_WRONG_PIPE_ORDER;
   {$EXTERNALSYM RPC_X_INVALID_PIPE_OPERATION}
 
-implementation
+{$ENDIF JWA_INTERFACESECTION}
 
+{$IFNDEF JWA_INCLUDEMODE}
+implementation
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

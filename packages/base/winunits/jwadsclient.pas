@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaDSClient.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaDSClient;
 
@@ -54,7 +55,7 @@ unit JwaDSClient;
 interface
 
 uses
-  JwaAdsTLB, JwaWinType;
+  JwaAdsTLB, JwaWindows;
 
 //---------------------------------------------------------------------------//
 // CLSIDs exposed for the dsclient.
@@ -682,13 +683,8 @@ procedure DsGetFriendlyClassName(pszObjectClass, pszBuffer: LPWSTR;
 
 implementation
 
-const
-  dsuiext = 'dsuiext.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

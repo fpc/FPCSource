@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaSpOrder.pas,v 1.7 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaSpOrder;
 
@@ -54,7 +55,7 @@ unit JwaSpOrder;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
   
 function WSCWriteProviderOrder(lpwdCatalogEntryId: LPDWORD; dwNumberOfEntries: DWORD): Integer; stdcall;
 {$EXTERNALSYM WSCWriteProviderOrder}
@@ -72,8 +73,8 @@ type
 
 implementation
 
-const
-  sporderlib = 'sporder.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

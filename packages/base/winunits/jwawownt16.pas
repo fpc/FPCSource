@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWowNT16.pas,v 1.7 2005/09/06 16:36:51 marquardt Exp $
 
 unit JwaWowNT16;
 
@@ -52,12 +53,12 @@ unit JwaWowNT16;
 {$I jediapilib.inc}
 
 // (rom) get rid of warnings about "index" directive
-{ $WARN SYMBOL_PLATFORM OFF}
+{$WARN SYMBOL_PLATFORM OFF}
 
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //
 // 16:16 -> 0:32 Pointer translation.
@@ -173,8 +174,8 @@ const
 
 implementation
 
-const
-  wow16lib = 'kernel32.dll';
+uses
+  JwaWinDLLNames;
 
 //function CallProcEx32W; external wow16lib index 517;
 

@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaSvcGuid.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaSvcGuid;
 
@@ -57,7 +58,7 @@ uses
   {$IFDEF USE_DELPHI_TYPES}
   Windows;
   {$ELSE}
-  JwaWinType;
+  JwaWindows;
   {$ENDIF USE_DELPHI_TYPES}
 
 //  Defines GUIDs for well-known services including:

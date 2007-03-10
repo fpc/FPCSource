@@ -40,44 +40,25 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinsock2.pas,v 1.14 2005/09/08 07:49:25 marquardt Exp $
 
 unit JwaWinsock2;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "winsock2.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaQos, JwaWinType, JwaWinBase, JwaWinError, JwaWinNT;
+  JwaQos, JwaWindows;
 
-type // TODO
-  ULONG_PTR = ULONG;
-  DWORD_PTR = DWORD;
-  PPChar = ^PChar;
-  {$NODEFINE PPChar}
-  HANDLE = THandle;
-  {$NODEFINE HANDLE}
-  LPHANDLE = ^THandle;
-  {$NODEFINE LPHANDLE}
-  LPBYTE = ^BYTE;
-  {$NODEFINE LPBYTE}
-  LPVOID = Pointer;
-  {$NODEFINE LPVOID}
-  USHORT = Word;
-  {$NODEFINE USHORT}
-  UCHAR = Byte;
-  {$NODEFINE UCHAR}
-  ULONG = Cardinal;
-  {$NODEFINE ULONG}
+{$HPPEMIT ''}
+{$HPPEMIT '#include "winsock2.h"'}
+{$HPPEMIT ''}
 
 //#include <pshpack4.h>
-{$ALIGN ON}
+{$ALIGN 4}
 
 // Winsock2.h -- definitions to be used with the WinSock 2 DLL and
 //               WinSock 2 applications.
@@ -2774,13 +2755,8 @@ function WSAGETSELECTERROR(lParam: DWORD): WORD;
 
 implementation
 
-const
-  ws2_32 = 'ws2_32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 procedure FD_CLR(fd: TSocket; var fdset: TFdSet);
 var

@@ -42,6 +42,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaMsTask.pas,v 1.8 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaMsTask;
 
@@ -56,7 +57,7 @@ unit JwaMsTask;
 interface
 
 uses
-  JwaWinBase, JwaWinType, JwaPrSht;
+  JwaWindows, JwaPrSht;
 
 const
   TASK_SUNDAY = $1;
@@ -404,3 +405,4 @@ const
 implementation
 
 end.
+

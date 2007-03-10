@@ -40,18 +40,25 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaCdErr.pas,v 1.6 2005/09/04 07:02:38 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaCdErr;
 
 {$WEAKPACKAGEUNIT}
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "cderr.h"'}
-{$HPPEMIT ''}
-
 {$I jediapilib.inc}
 
 interface
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "cderr.h"'}
+{$HPPEMIT ''}
 
 const
   CDERR_DIALOGFAILURE = $FFFF;
@@ -135,6 +142,15 @@ const
   CCERR_CHOOSECOLORCODES = $5000;
   {$EXTERNALSYM CCERR_CHOOSECOLORCODES}
 
-implementation
+{$ENDIF JWA_INTERFACESECTION}
 
+{$IFNDEF JWA_INCLUDEMODE}
+implementation
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

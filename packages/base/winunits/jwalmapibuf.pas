@@ -40,21 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaLmApiBuf.pas,v 1.9 2005/09/07 09:54:54 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaLmApiBuf;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "lmapibuf.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaLmCons, JwaWinType;
+  JwaWindows, JwaLmCons;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "lmapibuf.h"'}
+{$HPPEMIT ''}
 
 //
 // Function Prototypes
@@ -77,7 +84,18 @@ function NetApiBufferSize(Buffer: LPVOID; var ByteCount: DWORD): NET_API_STATUS;
 function NetapipBufferAllocate(ByteCount: DWORD; var Buffer: LPVOID): NET_API_STATUS; stdcall;
 {$EXTERNALSYM NetapipBufferAllocate}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
+
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -156,4 +174,8 @@ function NetapipBufferAllocate; external netapi32 name 'NetapipBufferAllocate';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

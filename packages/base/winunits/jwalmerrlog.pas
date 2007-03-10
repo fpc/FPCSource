@@ -40,21 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaLmErrLog.pas,v 1.10 2005/09/07 09:54:54 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaLmErrLog;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "lmerrlog.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaLmCons, JwaWinType;
+  JwaWindows, JwaLmCons;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "lmerrlog.h"'}
+{$HPPEMIT ''}
 
 //
 // Data Structures - Config
@@ -2133,7 +2140,18 @@ const
      * service on this machine and verify that this event log no longer appears.
      *)
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
+
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -2184,4 +2202,8 @@ function NetErrorLogWrite; external netapi32 name 'NetErrorLogWrite';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

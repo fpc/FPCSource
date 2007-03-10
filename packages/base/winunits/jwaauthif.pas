@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaAuthif.pas,v 1.6 2005/09/03 14:27:47 marquardt Exp $
 
 unit JwaAuthif;
 
@@ -54,7 +55,7 @@ unit JwaAuthif;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //
 //  Enumerates the attribute types that are passed to the extension DLL.  The

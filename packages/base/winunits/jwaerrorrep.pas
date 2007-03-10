@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaErrorRep.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaErrorRep;
 
@@ -54,7 +55,7 @@ unit JwaErrorRep;
 interface
 
 uses
-  JwaWinBase, JwaWinType;
+  JwaWindows;
 
 type
   tagEFaultRepRetVal = (
@@ -93,13 +94,8 @@ type
 
 implementation
 
-const
-  faultreplib = 'faultrep.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

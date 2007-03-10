@@ -40,14 +40,13 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinGDI.pas,v 1.12 2005/09/06 16:36:50 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaWinGDI;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinGDI.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
@@ -55,6 +54,14 @@ interface
 
 uses
   JwaWinNT, JwaWinType;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinGDI.h"'}
+{$HPPEMIT ''}
 
 // Binary raster ops
 
@@ -4642,6 +4649,7 @@ function DescribePixelFormat(hdc: HDC; iPixelFormat: Integer; nBytes: UINT; ppfd
 
 // mode selections for the device mode function
 
+{$IFNDEF JWA_INCLUDEMODE}
 const
   DM_UPDATE = 1;
   {$EXTERNALSYM DM_UPDATE}
@@ -4742,9 +4750,10 @@ const
   {$EXTERNALSYM DC_MEDIATYPENAMES}
   DC_MEDIATYPES     = 35;
   {$EXTERNALSYM DC_MEDIATYPES}
+{$ENDIF !JWA_INCLUDEMODE}
 
 // bit fields of the return value (DWORD) for DC_TRUETYPE
-
+const
   DCTT_BITMAP           = $0000001;
   {$EXTERNALSYM DCTT_BITMAP}
   DCTT_DOWNLOAD         = $0000002;
@@ -7764,18 +7773,18 @@ const
 function wglSwapMultipleBuffers(fuCount: UINT; lpBuffers: LPWGLSWAP): DWORD; stdcall;
 {$EXTERNALSYM wglSwapMultipleBuffers}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
 
-const
-  gdi32 = 'gdi32.dll';
-  msimg32 = 'msimg32.dll';
-  winspool32 = 'winspool32.drv';
-  opengl32 = 'opengl32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 function MAKEROP4(Fore, Back: DWORD): DWORD;
 begin
@@ -13604,4 +13613,8 @@ function wglSwapMultipleBuffers; external opengl32 name 'wglSwapMultipleBuffers'
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

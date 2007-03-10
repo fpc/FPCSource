@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaIoEvent.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaIoEvent;
 
@@ -54,7 +55,7 @@ unit JwaIoEvent;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //
 //  Label change event.  This event is signalled upon successful completion

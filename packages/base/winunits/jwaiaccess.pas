@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaIAccess.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaIAccess;
 
@@ -54,7 +55,7 @@ unit JwaIAccess;
 interface
 
 uses
-  JwaAccCtrl, JwaWinType;
+  JwaAccCtrl, JwaWindows;
 
 {****************************************************************************
  *  Storage access control interface
@@ -112,3 +113,4 @@ type
 implementation
 
 end.
+

@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaFaxMmc.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaFaxMmc;
 
@@ -54,7 +55,7 @@ unit JwaFaxMmc;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 type
   OLESTR = WideString; // todo 

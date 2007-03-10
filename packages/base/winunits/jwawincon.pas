@@ -40,14 +40,13 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinCon.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaWinCon;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinCon.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
@@ -55,6 +54,14 @@ interface
 
 uses
   JwaWinBase, JwaWinType;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinCon.h"'}
+{$HPPEMIT ''}
 
 type
   PCOORD = ^COORD;
@@ -242,8 +249,7 @@ type
 const
   KEY_EVENT                = $0001; // Event contains key event record
   {$EXTERNALSYM KEY_EVENT}
-  MOUSE_EVENT              = $0002; // Event contains mouse event record
-  {$EXTERNALSYM MOUSE_EVENT}
+  _MOUSE_EVENT             = $0002; {Delphi: renamed} // Event contains mouse event record
   WINDOW_BUFFER_SIZE_EVENT = $0004; // Event contains window change event record
   {$EXTERNALSYM WINDOW_BUFFER_SIZE_EVENT}
   MENU_EVENT               = $0008; // Event contains menu event record
@@ -711,15 +717,18 @@ function GetConsoleAliasExesW(ExeNameBuffer: LPWSTR; ExeNameBufferLength: DWORD)
 function GetConsoleAliasExes(ExeNameBuffer: LPTSTR; ExeNameBufferLength: DWORD): DWORD; stdcall;
 {$EXTERNALSYM GetConsoleAliasExes}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
 
-const
-  kernel32 = 'kernel32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -1988,4 +1997,11 @@ function GetConsoleAliasExes; external kernel32 name 'GetConsoleAliasExes' + AWS
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}
+
+
+

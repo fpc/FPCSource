@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaAdtGen.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaAdtGen;
 
@@ -54,7 +55,7 @@ unit JwaAdtGen;
 interface
 
 uses
-  JwaWinNT, JwaWinType;
+  JwaWindows;
 
 //
 // type of audit 
@@ -435,8 +436,8 @@ const
 
 implementation
 
-const
-  authzlib = 'authz.dll';
+uses
+  JwaWinDLLNames;
 
 // (rom) MACRO implementation
 function ApExtractType(TypeFlags: DWORD): AUDIT_PARAM_TYPE;

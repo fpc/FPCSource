@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaSensAPI.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaSensAPI;
 
@@ -54,7 +55,7 @@ unit JwaSensAPI;
 interface
 
 uses
-  JwaWinNT, JwaWinType;
+  JwaWindows;
 
 const
   NETWORK_ALIVE_LAN  = $00000001;
@@ -91,13 +92,8 @@ function IsNetworkAlive(out lpdwFlags: DWORD): BOOL; stdcall;
 
 implementation
 
-const
-  sensapilib = 'sensapi.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

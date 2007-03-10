@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinSafer.pas,v 1.9 2005/09/08 07:49:25 marquardt Exp $
 
 unit JwaWinSafer;
 
@@ -54,7 +55,7 @@ unit JwaWinSafer;
 interface
 
 uses
-  JwaWinCrypt, JwaWinType;
+  JwaWindows;
 
 //
 // Opaque datatype for representing handles to Safer objects.
@@ -146,7 +147,8 @@ const
 // Code image information structure passed to SaferIdentifyLevel.
 //
 
-// #include <pshpack8.h> todo
+// (rom) handled by $A+ in jediapilib.inc
+// #include <pshpack8.h>
 
 type
   _SAFER_CODE_PROPERTIES = record
@@ -361,7 +363,8 @@ type
 // Structures and enums used by the SaferGet/SetLevelInformation APIs.
 //
 
-// #include <pshpack8.h> todo
+// (rom) handled by $A+ in jediapilib.inc
+// #include <pshpack8.h>
 
   _SAFER_IDENTIFICATION_TYPES = (
     SaferIdentityDefault,
@@ -549,8 +552,8 @@ function SaferiIsExecutableFileType(szFullPathname: LPCWSTR; bFromShellExecute: 
 
 implementation
 
-const
-  advapi32 = 'advapi32.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

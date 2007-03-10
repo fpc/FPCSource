@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaImageHlp.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaImageHlp;
 
@@ -54,7 +55,7 @@ unit JwaImageHlp;
 interface
 
 uses
-  Windows, JwaWinBase, JwaWinNT, JwaWinType;
+  Windows, JwaWindows;
 
 const
   IMAGE_SEPARATION = 64*1024;
@@ -2743,13 +2744,8 @@ function MiniDumpReadDumpStream(BaseOfDump: PVOID; StreamNumber: ULONG; var Dir:
 
 implementation
 
-const
-  ImageHlpLib = 'imagehlp.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 procedure Address32To64(a32: LPADDRESS; a64: LPADDRESS64);
 begin

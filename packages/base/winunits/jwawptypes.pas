@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWPTypes.pas,v 1.5 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaWPTypes;
 
@@ -54,7 +55,7 @@ unit JwaWPTypes;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //
 // Site info structures

@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaDSGetDc.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaDSGetDc;
 
@@ -54,7 +55,7 @@ unit JwaDSGetDc;
 interface
 
 uses
-  JwaNtSecApi, JwaWinNT, JwaWinType;
+  JwaNtSecApi, JwaWindows;
 
 //
 // Structure definitions
@@ -519,13 +520,8 @@ procedure DsGetDcClose(GetDcContextHandle: HANDLE); stdcall;
 
 implementation
 
-const
-  netapi32 = 'netapi32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

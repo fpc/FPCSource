@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWPApi.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaWPApi;
 
@@ -54,7 +55,7 @@ unit JwaWPApi;
 interface
 
 uses
-  JwaWPTypes, JwaWinType;
+  JwaWPTypes, JwaWindows;
 
 //
 // Flags
@@ -181,13 +182,8 @@ function WpGetErrorString(uErrCode: UINT; wsOutputBuf: LPTSTR; var pdwBufLen: DW
 
 implementation
 
-const
-  wpapilib = 'wpapi.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

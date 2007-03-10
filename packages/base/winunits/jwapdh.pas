@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaPdh.pas,v 1.12 2005/09/08 07:49:25 marquardt Exp $
 
 unit JwaPdh;
 
@@ -54,7 +55,7 @@ unit JwaPdh;
 interface
 
 uses
-  JwaWinBase, JwaWinType, JwaWinPerf;
+  JwaWindows;
 
 type
   PDH_STATUS = DWORD;
@@ -745,18 +746,16 @@ function PdhMakeCounterPath(pCounterPathElements: PPDH_COUNTER_PATH_ELEMENTS;
   szFullPathBuffer: LPTSTR; var pcchBufferSize: DWORD; dwFlags: DWORD): PDH_STATUS; stdcall;
 {$EXTERNALSYM PdhMakeCounterPath}
 
-// todo shouldn't pCounterPathElements be a pointer to ...?
-
 function PdhParseCounterPathA(szFullPathBuffer: LPCSTR;
-  pCounterPathElements: PDH_COUNTER_PATH_ELEMENTS_A; var pdwBufferSize: DWORD;
+  pCounterPathElements: PPDH_COUNTER_PATH_ELEMENTS_A; var pdwBufferSize: DWORD;
   dwFlags: DWORD): PDH_STATUS; stdcall;
 {$EXTERNALSYM PdhParseCounterPathA}
 function PdhParseCounterPathW(szFullPathBuffer: LPCWSTR;
-  pCounterPathElements: PDH_COUNTER_PATH_ELEMENTS_W; var pdwBufferSize: DWORD;
+  pCounterPathElements: PPDH_COUNTER_PATH_ELEMENTS_W; var pdwBufferSize: DWORD;
   dwFlags: DWORD): PDH_STATUS; stdcall;
 {$EXTERNALSYM PdhParseCounterPathW}
 function PdhParseCounterPath(szFullPathBuffer: LPCTSTR;
-  pCounterPathElements: PDH_COUNTER_PATH_ELEMENTS; var pdwBufferSize: DWORD;
+  pCounterPathElements: PPDH_COUNTER_PATH_ELEMENTS; var pdwBufferSize: DWORD;
   dwFlags: DWORD): PDH_STATUS; stdcall;
 {$EXTERNALSYM PdhParseCounterPath}
 
@@ -1264,13 +1263,8 @@ function PdhSetLogSetRunID(hLog: PDH_HLOG; RunId: Integer): PDH_STATUS; stdcall;
 
 implementation
 
-const
-  PdhLib = 'pdh.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 function IsSuccessSeverity(ErrorCode: Longint): Boolean;
 begin

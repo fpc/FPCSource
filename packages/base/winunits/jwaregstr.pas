@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaRegStr.pas,v 1.8 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaRegStr;
 
@@ -56,7 +57,7 @@ interface
 {.$DEFINE NEC_98}
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 const
 

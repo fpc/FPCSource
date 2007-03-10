@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaSnmp.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaSnmp;
 
@@ -54,7 +55,7 @@ unit JwaSnmp;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 type
   PAsnOctetString = ^TAsnOctetString;
@@ -571,10 +572,7 @@ const
 implementation
 
 uses
-  JwaWinBase;
-
-const
-  snmpapilib = 'snmpapi.dll';
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

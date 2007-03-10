@@ -40,21 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaLmShare.pas,v 1.10 2005/09/07 09:54:54 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaLmShare;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "lmshare.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaLmCons, JwaWinNT, JwaWinType;
+  JwaWindows, JwaLmCons;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "lmshare.h"'}
+{$HPPEMIT ''}
 
 //
 // Function Prototypes - Share
@@ -575,7 +582,18 @@ const
   PERM_FILE_CREATE = $4; // user has create access
   {$EXTERNALSYM PERM_FILE_CREATE}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
+
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -794,4 +812,8 @@ function NetFileGetInfo; external netapi32 name 'NetFileGetInfo';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

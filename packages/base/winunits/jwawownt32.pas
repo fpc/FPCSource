@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWowNT32.pas,v 1.7 2005/09/06 16:36:51 marquardt Exp $
 
 unit JwaWowNT32;
 
@@ -54,7 +55,7 @@ unit JwaWowNT32;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //
 // 16:16 -> 0:32 Pointer translation.
@@ -335,8 +336,8 @@ function WOWCallback16Ex(vpfn16, dwFlags, cbArgs: DWORD; pArgs: PVOID; pdwRetCod
 
 implementation
 
-const
-  wow32lib = 'wow32.dll';
+uses
+  JwaWinDLLNames;
 
 function HWND_32(h16: WORD): HANDLE;
 begin

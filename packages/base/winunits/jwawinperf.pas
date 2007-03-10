@@ -40,22 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinPerf.pas,v 1.6 2005/09/04 16:25:57 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaWinPerf;
 
 {$WEAKPACKAGEUNIT}
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinPerf.h"'}
-{$HPPEMIT ''}
-
 {$I jediapilib.inc}
-
 
 interface
 
 uses
   JwaWinBase, JwaWinType;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinPerf.h"'}
+{$HPPEMIT ''}
 
 //  Header file for the Performance Monitor data.
 //
@@ -877,6 +883,15 @@ const
   WINPERF_LOG_VERBOSE   = 3;          // Report everything
   {$EXTERNALSYM WINPERF_LOG_VERBOSE}
 
-implementation
+{$ENDIF JWA_INTERFACESECTION}
 
+{$IFNDEF JWA_INCLUDEMODE}
+implementation
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

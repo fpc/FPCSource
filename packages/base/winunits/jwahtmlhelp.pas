@@ -43,6 +43,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaHtmlHelp.pas,v 1.12 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaHtmlHelp;
 
@@ -67,7 +68,7 @@ uses
   {$IFDEF HAS_UNIT_VARIANTS}
   Variants,
   {$ENDIF HAS_UNIT_VARIANTS}
-  JwaWinType, JwaWinUser;
+  JwaWindows;
 
 // Commands to pass to HtmlHelp()
 
@@ -400,7 +401,7 @@ type
   PHHPopup = ^THHPopup;
   tagHH_POPUP = packed record
     cbStruct: Integer;                     // sizeof this structure
-    hinst_: HINSTANCE;                     // instance handle for string resource
+    hinst_: HINST;                         // instance handle for string resource
     idString: UINT;                        // string resource id, or text id if pszFile is specified in HtmlHelp call
     pszText: LPCTSTR;                      // used if idString is zero
     pt: POINT;                             // top center of popup window
@@ -739,17 +740,11 @@ type
 
 implementation
 
-{$IFDEF DYNAMIC_LINK}
 uses
-  JwaWinBase, JwaWinError, JwaWinNT, JwaWinReg;
-{$ENDIF DYNAMIC_LINK}
-
-const
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+  {$IFDEF DYNAMIC_LINK}
+  JwaWindows, JwaWinReg,
+  {$ENDIF DYNAMIC_LINK}
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -817,9 +812,6 @@ begin
 end;
 
 {$ELSE}
-
-const
-  hhctrl = 'hhctrl.ocx';
 
 function HtmlHelpA; external hhctrl name 'HtmlHelpA';
 function HtmlHelpW; external hhctrl name 'HtmlHelpW';

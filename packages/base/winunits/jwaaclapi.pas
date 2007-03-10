@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaAclApi.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaAclApi;
 
@@ -54,7 +55,7 @@ unit JwaAclApi;
 interface
 
 uses
-  JwaAccCtrl, JwaWinNT, JwaWinType;
+  JwaAccCtrl, JwaWindows;
 
 //
 // Progress Function:
@@ -353,13 +354,8 @@ function GetMultipleTrustee(pTrustee: PTRUSTEE): PTRUSTEE; stdcall;
 
 implementation
 
-const
-  aclapilib = 'advapi32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

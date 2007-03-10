@@ -40,21 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaRpcSsl.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaRpcSsl;
 
 {$WEAKPACKAGEUNIT}
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "rpcssl.h"'}
-{$HPPEMIT ''}
-
 {$I jediapilib.inc}
 
 interface
 
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFNDEF JWARPC_PAS}
 uses
-  JwaRpc, JwaWinCrypt, JwaWinType;
+  JwaWinCrypt, JwaWinType;
+{$ENDIF !JWARPC_PAS}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "rpcssl.h"'}
+{$HPPEMIT ''}
 
 function RpcCertGeneratePrincipalNameW(Context: PCCERT_CONTEXT; Flags: DWORD; out pBuffer: PWideChar): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcCertGeneratePrincipalNameW}
@@ -63,15 +72,18 @@ function RpcCertGeneratePrincipalNameA(Context: PCCERT_CONTEXT; Flags: DWORD; ou
 function RpcCertGeneratePrincipalName(Context: PCCERT_CONTEXT; Flags: DWORD; out pBuffer: PTCHAR): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcCertGeneratePrincipalName}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
 
-const
-  rpclib = 'rpcrt4.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -122,4 +134,8 @@ function RpcCertGeneratePrincipalName; external rpclib name 'RpcCertGeneratePrin
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

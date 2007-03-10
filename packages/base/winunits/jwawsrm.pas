@@ -36,6 +36,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWsrm.pas,v 1.6 2005/09/03 14:27:49 marquardt Exp $
 
 unit JwaWsrm;
 
@@ -50,7 +51,7 @@ unit JwaWsrm;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 (*
 **  wsrm.h - winsock extension for Reliable Multicast (RMCast) Transport

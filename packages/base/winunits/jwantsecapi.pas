@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaNtSecApi.pas,v 1.13 2005/09/08 07:49:25 marquardt Exp $
 
 unit JwaNtSecApi;
 
@@ -54,7 +55,7 @@ unit JwaNtSecApi;
 interface
 
 uses
-  JwaWinType, JwaNtStatus, JwaWinNT;
+  JwaWindows;
 
 //
 // Security operation mode of the system is held in a control
@@ -2780,8 +2781,6 @@ const
   KRB_NT_MS_PRINCIPAL_AND_ID = -129; // nt4 style name with sid
   {$EXTERNALSYM KRB_NT_MS_PRINCIPAL_AND_ID}
 
-// todo #define KERB_IS_MS_PRINCIPAL(_x_) (((_x_) <= KRB_NT_MS_PRINCIPAL) || ((_x_) >= KRB_NT_ENTERPRISE_PRINCIPAL))
-
   MICROSOFT_KERBEROS_NAME_A = 'Kerberos';
   {$EXTERNALSYM MICROSOFT_KERBEROS_NAME_A}
   MICROSOFT_KERBEROS_NAME_W = WideString('Kerberos');
@@ -2795,6 +2794,8 @@ const
   {$EXTERNALSYM MICROSOFT_KERBEROS_NAME}
   {$ENDIF UNICODE}
 
+function KERB_IS_MS_PRINCIPAL(X: Integer): BOOL;
+
 /////////////////////////////////////////////////////////////////////////
 //
 // Quality of protection parameters for MakeSignature / EncryptMessage
@@ -2805,7 +2806,7 @@ const
 // This flag indicates to EncryptMessage that the message is not to actually
 // be encrypted, but a header/trailer are to be produced.
 //
-
+const
   KERB_WRAP_NO_ENCRYPT = DWORD($80000001);
   {$EXTERNALSYM KERB_WRAP_NO_ENCRYPT}
 
@@ -3541,13 +3542,17 @@ const
 
 implementation
 
-const
-  secur32 = 'secur32.dll';
-  advapi32 = 'advapi32.dll';
+uses
+  JwaWinDLLNames;
 
 function LSA_SUCCESS(Error: NTSTATUS): BOOL;
 begin
  Result := LONG(Error) > 0;
+end;
+
+function KERB_IS_MS_PRINCIPAL(X: Integer): BOOL;
+begin
+  Result := (X <= KRB_NT_MS_PRINCIPAL) or (X >= KRB_NT_ENTERPRISE_PRINCIPAL);
 end;
 
 {$IFDEF DYNAMIC_LINK}

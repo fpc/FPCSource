@@ -40,10 +40,18 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaNtDsApi.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaNtDsApi;
 
 {$WEAKPACKAGEUNIT}
+
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaWindows, JwaSchedule;
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "ntdsapi.h"'}
@@ -56,13 +64,6 @@ unit JwaNtDsApi;
 {$HPPEMIT 'typedef PPDS_REPSYNCALL_ERRINFOA PPDS_REPSYNCALL_ERRINFO'}
 {$HPPEMIT '#endif'}
 {$HPPEMIT ''}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWinBase, JwaWinType, JwaWinNT, JwaWinNLS, JwaRpcDce, JwaSchedule;
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //
@@ -3247,13 +3248,8 @@ function DsIsMangledDn(pszDn: LPCTSTR; eDsMangleFor: DS_MANGLE_FOR): BOOL; stdca
 
 implementation
 
-const
-  ntdsapilib = 'ntdsapi.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 function NTDSCONN_IGNORE_SCHEDULE(_options_: DWORD): DWORD;
 begin

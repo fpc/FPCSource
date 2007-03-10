@@ -40,23 +40,24 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaActiveDS.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaActiveDS;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "activeds.h"'}
-{$HPPEMIT ''}
-{$HPPEMIT 'typedef GUID REFIID'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  ActiveX {TODO}, JwaAdsTLB, JwaWinNT, JwaWinType, JwaWinUser;
+  JwaActiveX, JwaAdsTLB, JwaWindows;
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "activeds.h"'}
+{$HPPEMIT ''}
+{$HPPEMIT 'typedef GUID REFIID'}
+{$HPPEMIT ''}
 
 type
   REFIID = GUID;
@@ -852,9 +853,8 @@ function ADsPropCheckIfWritable(pwzAttr: PWSTR; pWritableAttrs: PADS_ATTR_INFO):
 
 implementation
 
-const
-  adslib = 'activeds.dll';
-  dsprop = 'dsprop.dll';
+uses
+  JwaWinDLLNames;
 
 // adshlp.h
 

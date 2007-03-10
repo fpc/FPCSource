@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaPatchWiz.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaPatchWiz;
 
@@ -54,7 +55,7 @@ unit JwaPatchWiz;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
   (* PATCHWIZ.H - public header file for PATCHWIZ.DLL *)
 
@@ -373,13 +374,8 @@ function UiCreatePatchPackage(szwPcpPath, szwPatchPath, szwLogPath: LPTSTR; hwnd
 
 implementation
 
-const
-  patchwiz = 'patchwiz.dll'; // mvb Installed in Samples\SysMgmt\Msi\Patching
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

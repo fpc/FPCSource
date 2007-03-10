@@ -40,21 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinSock.pas,v 1.9 2005/09/06 16:36:51 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaWinSock;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "winsock.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWinType, JwaWinBase;
+  JwaWinBase, JwaWinType;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "winsock.h"'}
+{$HPPEMIT ''}
 
 (*
  * Basic system type definitions, taken from the BSD file sys/types.h.
@@ -883,6 +890,7 @@ const
  * the "normal"
  *)
 
+{$IFNDEF JWA_INCLUDEMODE}
   WSABASEERR = 10000;
   {$EXTERNALSYM WSABASEERR}
 
@@ -1026,6 +1034,8 @@ const
 
   WSANO_DATA = WSABASEERR + 1004;
   {$EXTERNALSYM WSANO_DATA}
+
+{$ENDIF !JWA_INCLUDEMODE}
 
 (*
  * Compatibility macros.
@@ -1368,10 +1378,18 @@ function WSAGETSELECTEVENT(lParam: DWORD): WORD;
 function WSAGETSELECTERROR(lParam: DWORD): WORD;
 {$EXTERNALSYM WSAGETSELECTERROR}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
 
-const
-  wsock32 = 'wsock32.dll';
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 procedure FD_CLR(fd: TSocket; var fdset: TFdSet);
 var
@@ -2222,4 +2240,8 @@ procedure GetAcceptExSockaddrs; external wsock32 name 'GetAcceptExSockaddrs';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

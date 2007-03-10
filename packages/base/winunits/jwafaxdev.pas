@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaFaxDev.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaFaxDev;
 
@@ -54,7 +55,7 @@ unit JwaFaxDev;
 interface
 
 uses
-  JwaWinType, JwaPrSht;
+  JwaWindows, JwaPrSht;
 
 //
 // FAX status constants

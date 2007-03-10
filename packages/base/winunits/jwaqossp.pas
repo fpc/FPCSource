@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaQosSp.pas,v 1.9 2005/09/08 07:49:25 marquardt Exp $
 
 unit JwaQosSp;
 
@@ -54,12 +55,7 @@ unit JwaQosSp;
 interface
 
 uses
-  {$IFDEF USE_DELPHI_TYPES}
-  Windows,
-  {$ELSE}
-  JwaWinType,
-  {$ENDIF USE_DELPHI_TYPES}
-  JwaWinSock2, JwaQos;
+  JwaWindows, JwaQos;
 
 (*
  * Definition of object Types
@@ -1014,6 +1010,18 @@ const
 implementation
 
 end.
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

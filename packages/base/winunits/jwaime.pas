@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaIme.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaIme;
 
@@ -54,7 +55,7 @@ unit JwaIme;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 const
   IME_MAXPROCESS = 32;
@@ -392,13 +393,8 @@ type
 
 implementation
 
-const
-  imelib = 'user32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

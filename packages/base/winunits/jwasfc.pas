@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaSfc.pas,v 1.7 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaSfc;
 
@@ -54,7 +55,7 @@ unit JwaSfc;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 const
   SFC_DISABLE_NORMAL        = 0;
@@ -112,8 +113,8 @@ function SfpVerifyFile(pszFileName: LPCSTR; pszError: LPSTR; dwErrSize: DWORD): 
 
 implementation
 
-const
-  Sfclib = 'sfc.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

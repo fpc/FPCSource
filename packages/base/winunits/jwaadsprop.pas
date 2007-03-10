@@ -40,21 +40,22 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaAdsProp.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaAdsProp;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "adsprop.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  ActiveX {TODO}, JwaAdsTLB, JwaWinUser, JwaWinType;
+  JwaAdsTLB, JwaWindows;
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "adsprop.h"'}
+{$HPPEMIT ''}
 
 //  Windows NT Active Directory Service Property Pages
 //
@@ -277,8 +278,8 @@ function ADsPropShowErrorDialog(hNotifyObj: HWND; hPage: HWND): BOOL; stdcall;
 
 implementation
 
-const
-  dsprop = 'dsprop.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

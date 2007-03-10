@@ -40,21 +40,22 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaAdsHlp.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaAdsHlp;
 
 {$WEAKPACKAGEUNIT}
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "adshlp.h"'}
-{$HPPEMIT ''}
-
 {$I jediapilib.inc}
 
 interface
 
+{$HPPEMIT ''}
+{$HPPEMIT '#include "adshlp.h"'}
+{$HPPEMIT ''}
+
 uses
-  ActiveX {TODO}, JwaAdsTLB, JwaWinType, JwaWinNT;
+  JwaActiveX, JwaAdsTLB, JwaWindows;
 
 function ADsGetObject(lpszPathName: LPCWSTR; const riid: TGUID; out ppObject: Pointer): HRESULT; stdcall;
 {$EXTERNALSYM ADsGetObject}
@@ -161,8 +162,8 @@ function SecurityDescriptorToBinarySD(vVarSecDes: VARIANT;
 
 implementation
 
-const
-  adslib = 'activeds.dll';
+uses
+  JwaWinDLLNames;
 
 //procedure ADsFreeAllErrorRecords
 

@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaMsiDefs.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaMsiDefs;
 
@@ -54,7 +55,7 @@ unit JwaMsiDefs;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //------------------------------------------------------------------------------
 // INSTALLER PROPERTY DEFINITIONS

@@ -40,21 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaLmUse.pas,v 1.9 2005/09/07 09:54:54 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaLmUse;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "lmuse.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaLmCons, JwaWinType;
+  JwaWindows, JwaLmCons;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "lmuse.h"'}
+{$HPPEMIT ''}
 
 //
 // Function Prototypes
@@ -217,7 +224,18 @@ const
   USE_DEFAULT_CREDENTIALS = $4; // No explicit credentials passed to NetUseAdd
   {$EXTERNALSYM USE_DEFAULT_CREDENTIALS}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
+
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -282,4 +300,8 @@ function NetUseGetInfo; external netapi32 name 'NetUseGetInfo';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

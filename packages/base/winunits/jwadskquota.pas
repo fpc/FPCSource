@@ -40,21 +40,22 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaDskQuota.pas,v 1.7 2005/09/03 13:12:10 marquardt Exp $
 
 unit JwaDskQuota;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "DskQuota.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  ActiveX {TODO}, JwaWinNT, JwaWinType;
+  JwaActiveX, JwaWindows;
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "DskQuota.h"'}
+{$HPPEMIT ''}
 
 const
 

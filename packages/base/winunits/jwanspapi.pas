@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaNspApi.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaNspAPI;
 
@@ -54,7 +55,7 @@ unit JwaNspAPI;
 interface
 
 uses
-  JwaWinType, JwaWinSock2;
+  JwaWindows, JwaWinSock2;
 
 //
 // Service categories
@@ -933,13 +934,8 @@ function GetService(dwNameSpace: DWORD; const lpGuid: TGUID; lpServiceName: LPTS
 
 implementation
 
-const
-  nsplib = 'wsock32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

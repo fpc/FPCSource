@@ -40,6 +40,9 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaLmConfig.pas,v 1.11 2005/09/07 09:54:54 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaLmConfig;
 
@@ -50,7 +53,11 @@ unit JwaLmConfig;
 interface
 
 uses
-  JwaLmCons, JwaWinType;
+  JwaWindows, JwaLmCons;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "lmconfig.h"'}
@@ -108,7 +115,18 @@ type
   TConfigInfo0 = CONFIG_INFO_0;
   PConfigInfo0 = PCONFIG_INFO_0;  
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
+
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -187,4 +205,8 @@ function NetUnregisterDomainNameChangeNotification; external netapi32 name 'NetU
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

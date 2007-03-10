@@ -1,4 +1,3 @@
-
 {******************************************************************************}
 {                                                                              }
 { System Event Notification Services API interface Unit for Object Pascal      }
@@ -41,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaSensEvts.pas,v 1.5 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaSensEvts;
 
@@ -55,7 +55,7 @@ unit JwaSensEvts;
 interface
 
 uses
-  JwaWinNT, JwaWinType;
+  JwaWindows;
 
 //
 // SENS Events Type library
@@ -91,11 +91,11 @@ type
 
   ISensNetwork = interface (IDispatch)
   ['{d597bab1-5b9f-11d1-8dd2-00aa004abd5e}']
-    function ConnectionMade(bstrConnection: WideString; ulType: ULONG; lpQOCInfo: LPSENS_QOCINFO): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 1; {$endif}
-    function ConnectionMadeNoQOCInfo(bstrConnection: WideString; ulType: ULONG): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 2; {$endif}
-    function ConnectionLost(bstrConnection: WideString; ulType: ULONG): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 3; {$endif}
-    function DestinationReachable(bstrDestination, bstrConnection: WideString; ulType: ULONG; lpQOCInfo: LPSENS_QOCINFO): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 4; {$endif}
-    function DestinationReachableNoQOCInfo(bstrDestination, bstrConnection: WideString; ulType: ULONG): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 5; {$endif}
+    function ConnectionMade(bstrConnection: WideString; ulType: ULONG; lpQOCInfo: LPSENS_QOCINFO): HRESULT; stdcall; dispid 1;
+    function ConnectionMadeNoQOCInfo(bstrConnection: WideString; ulType: ULONG): HRESULT; stdcall; dispid 2;
+    function ConnectionLost(bstrConnection: WideString; ulType: ULONG): HRESULT; stdcall; dispid 3;
+    function DestinationReachable(bstrDestination, bstrConnection: WideString; ulType: ULONG; lpQOCInfo: LPSENS_QOCINFO): HRESULT; stdcall; dispid 4;
+    function DestinationReachableNoQOCInfo(bstrDestination, bstrConnection: WideString; ulType: ULONG): HRESULT; stdcall; dispid 5;
   end;
   {$EXTERNALSYM ISensNetwork}
 
@@ -105,9 +105,9 @@ type
 
   ISensOnNow = interface (IDispatch)
   ['{d597bab2-5b9f-11d1-8dd2-00aa004abd5e}']
-    function OnACPower: HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 1; {$endif}
-    function OnBatteryPower(dwBatteryLifePercent: DWORD): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 2; {$endif}
-    function BatteryLow(dwBatteryLifePercent: DWORD): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 3; {$endif}
+    function OnACPower: HRESULT; stdcall; dispid 1;
+    function OnBatteryPower(dwBatteryLifePercent: DWORD): HRESULT; stdcall; dispid 2;
+    function BatteryLow(dwBatteryLifePercent: DWORD): HRESULT; stdcall; dispid 3;
   end;
   {$EXTERNALSYM ISensOnNow}
 
@@ -117,13 +117,13 @@ type
 
   ISensLogon = interface (IDispatch)
   ['{d597bab3-5b9f-11d1-8dd2-00aa004abd5e}']
-    function Logon(bstrUserName: WideString): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 1;  {$endif}
-    function Logoff(bstrUserName: WideString): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 2; {$endif}
-    function StartShell(bstrUserName: WideString): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 3; {$endif}
-    function DisplayLock(bstrUserName: WideString): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 4;{$endif}
-    function DisplayUnlock(bstrUserName: WideString): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 5;{$endif}
-    function StartScreenSaver(bstrUserName: WideString): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 6;{$endif}
-    function StopScreenSaver(bstrUserName: WideString): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 7;{$endif}
+    function Logon(bstrUserName: WideString): HRESULT; stdcall; dispid 1;
+    function Logoff(bstrUserName: WideString): HRESULT; stdcall; dispid 2;
+    function StartShell(bstrUserName: WideString): HRESULT; stdcall; dispid 3;
+    function DisplayLock(bstrUserName: WideString): HRESULT; stdcall; dispid 4;
+    function DisplayUnlock(bstrUserName: WideString): HRESULT; stdcall; dispid 5;
+    function StartScreenSaver(bstrUserName: WideString): HRESULT; stdcall; dispid 6;
+    function StopScreenSaver(bstrUserName: WideString): HRESULT; stdcall; dispid 7;
   end;
   {$EXTERNALSYM ISensLogon}
 
@@ -133,11 +133,11 @@ type
 
   ISensLogon2 = interface (IDispatch)
   ['{d597bab4-5b9f-11d1-8dd2-00aa004abd5e}']
-    function Logon(bstrUserName: WideString; dwSessionId: DWORD): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 1; {$endif}
-    function Logoff(bstrUserName: WideString; dwSessionId: DWORD): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 2;{$endif}
-    function SessionDisconnect(bstrUserName: WideString; dwSessionId: DWORD): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 3;{$endif}
-    function SessionReconnect(bstrUserName: WideString; dwSessionId: DWORD): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 4; {$endif}
-    function PostShell(bstrUserName: WideString; dwSessionId: DWORD): HRESULT; stdcall; {$IFDEF SUPPORTS_DISPID} dispid 5; {$endif}
+    function Logon(bstrUserName: WideString; dwSessionId: DWORD): HRESULT; stdcall; dispid 1;
+    function Logoff(bstrUserName: WideString; dwSessionId: DWORD): HRESULT; stdcall; dispid 2;
+    function SessionDisconnect(bstrUserName: WideString; dwSessionId: DWORD): HRESULT; stdcall; dispid 3;
+    function SessionReconnect(bstrUserName: WideString; dwSessionId: DWORD): HRESULT; stdcall; dispid 4;
+    function PostShell(bstrUserName: WideString; dwSessionId: DWORD): HRESULT; stdcall; dispid 5;
   end;
   {$EXTERNALSYM ISensLogon2}
 

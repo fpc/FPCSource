@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaQosName.pas,v 1.7 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaQosName;
 
@@ -57,7 +58,7 @@ uses
   {$IFDEF USE_DELPHI_TYPES}
   Windows,
   {$ELSE}
-  JwaWinType,
+  JwaWindows,
   {$ENDIF USE_DELPHI_TYPES}
   JwaWinSock2;
 

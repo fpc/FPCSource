@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinDNS.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 {******************************************************************}
 { Notes (TODO):                                                    }
@@ -64,7 +65,7 @@ unit JwaWinDNS;
 interface
 
 uses
-  JwaWinsock2, JwaWinType, JwaWS2atm;
+  JwaWinsock2, JwaWindows, JwaWS2atm;
 
 type
   IN6_ADDR = Pointer; // todo
@@ -1817,13 +1818,8 @@ function DnsExtractRecordsFromMessage_UTF8(pDnsBuffer: PDNS_MESSAGE_BUFFER; wMes
 
 implementation
 
-const
-  dnsapi = 'dnsapi.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 procedure INLINE_WORD_FLIP(var Out_: WORD; In_: WORD);
 begin

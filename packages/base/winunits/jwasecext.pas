@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaSecExt.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaSecExt;
 
@@ -54,7 +55,7 @@ unit JwaSecExt;
 interface
 
 uses
-  JwaSSPI, JwaWinType;
+  JwaSSPI, JwaWindows;
 
 //
 // Extended Name APIs for ADS
@@ -180,13 +181,8 @@ function TranslateName(lpAccountName: LPCTSTR; AccountNameFormat,
 
 implementation
 
-const
-  secur32 = 'secur32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

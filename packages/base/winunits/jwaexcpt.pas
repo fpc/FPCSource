@@ -40,14 +40,13 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaExcpt.pas,v 1.7 2005/09/04 07:02:38 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaExcpt;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "excpt.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
@@ -55,6 +54,14 @@ interface
 
 uses
   JwaWinType;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "excpt.h"'}
+{$HPPEMIT ''}
 
 // This file contains the definitions and prototypes for the compiler-
 // dependent intrinsics, support functions and keywords which implement
@@ -87,6 +94,15 @@ const
   EXCEPTION_CONTINUE_EXECUTION   = DWORD(-1);
   {$EXTERNALSYM EXCEPTION_CONTINUE_EXECUTION}
 
-implementation
+{$ENDIF JWA_INTERFACESECTION}
 
+{$IFNDEF JWA_INCLUDEMODE}
+implementation
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

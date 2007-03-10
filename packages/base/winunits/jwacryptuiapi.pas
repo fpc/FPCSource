@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaCryptUIApi.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaCryptUIApi;
 
@@ -54,7 +55,7 @@ unit JwaCryptUIApi;
 interface
 
 uses
-  JwaWinCrypt, JwaWinType;
+  JwaWindows;
 
 // #include <pshpack8.h>
 
@@ -115,8 +116,8 @@ const
 
 implementation
 
-const
-  cryptuiapi = 'cryptui.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

@@ -40,21 +40,22 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinFax.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaWinFax;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "winfax.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWinType, JwaWinError, JwaWinBase, JwaWinNT;
+  JwaWindows;
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "winfax.h"'}
+{$HPPEMIT ''}
 
 //
 // FAX ERROR CODES
@@ -1496,13 +1497,8 @@ const
 
 implementation
 
-const
-  winfax = 'winfax.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 function FaxConnectFaxServerA; external winfax name 'FaxConnectFaxServerA';
 function FaxConnectFaxServerW; external winfax name 'FaxConnectFaxServerW';

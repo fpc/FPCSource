@@ -40,21 +40,22 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaNtDsBMsg.pas,v 1.7 2005/09/03 16:10:31 marquardt Exp $
 
 unit JwaNtDsBMsg;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "NtDsBMsg.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWinError, JwaWinType;
+  JwaWindows;
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "NtDsBMsg.h"'}
+{$HPPEMIT ''}
 
 //
 // Windows NT Directory Service Backup/Restore API error codes

@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWPPstMsg.pas,v 1.5 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaWPPstMsg;
 
@@ -54,7 +55,7 @@ unit JwaWPPstMsg;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //
 //  Values are 32 bit values layed out as follows:

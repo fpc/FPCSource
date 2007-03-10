@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaQosPol.pas,v 1.6 2005/09/08 07:49:25 marquardt Exp $
 
 unit JwaQosPol;
 
@@ -54,7 +55,7 @@ unit JwaQosPol;
 interface
 
 uses
-  JwaWinSock2;
+  JwaWindows;
 
 const
   PE_TYPE_APPID = 3;            // policy element contains Application Identity

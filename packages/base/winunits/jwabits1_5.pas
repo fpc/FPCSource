@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaBits1_5.pas,v 1.7 2005/09/03 14:27:47 marquardt Exp $
 
 unit JwaBits1_5;
 
@@ -54,7 +55,7 @@ unit JwaBits1_5;
 interface
 
 uses
-  JwaWinBase, JwaWinType, JwaBits;
+  JwaWindows, JwaBits;
 
 type
   _BG_JOB_REPLY_PROGRESS = record

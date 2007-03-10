@@ -40,6 +40,9 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaLmJoin.pas,v 1.11 2005/09/07 09:54:54 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaLmJoin;
 
@@ -50,7 +53,11 @@ unit JwaLmJoin;
 interface
 
 uses
-  JwaLmCons, JwaWinType;
+  JwaWindows, JwaLmCons;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "lmjoin.h"'}
@@ -213,7 +220,18 @@ type
 function NetEnumerateComputerNames(Server: LPCWSTR; NameType: NET_COMPUTER_NAME_TYPE; Reserved: ULONG; EntryCount: PDWORD; var ComputerNames: LPLPWSTR): NET_API_STATUS; stdcall;
 {$EXTERNALSYM NetEnumerateComputerNames}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
+
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -362,4 +380,8 @@ function NetEnumerateComputerNames; external netapi32 name 'NetEnumerateComputer
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

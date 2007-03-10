@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaAF_Irda.pas,v 1.6 2005/09/08 07:49:25 marquardt Exp $
 
 unit JwaAF_Irda;
 
@@ -54,7 +55,7 @@ unit JwaAF_Irda;
 interface
 
 uses
-  JwaWinSock2;
+  JwaWindows;
 
 //
 // Winsock1.1, IrDA1.1, WindowsNT5.0, Windows98 and WindowsCE1.0.

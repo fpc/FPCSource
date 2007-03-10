@@ -40,21 +40,22 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinCred.pas,v 1.12 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaWinCred;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "wincred.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaLmCons, JwaWinBase, JwaWinError, JwaWinType, JwaNtSecApi;
+  JwaLmCons, JwaWindows, JwaNtSecApi;
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "wincred.h"'}
+{$HPPEMIT ''}
 
 type
   PCtxtHandle = PSecHandle;
@@ -787,14 +788,8 @@ function CredUIReadSSOCredW(pszRealm: LPCWSTR; out ppszUsername: PWSTR): DWORD; 
 
 implementation
 
-const
-  credapi = 'advapi32.dll';
-  credui = 'credui.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 function CREDUIP_IS_USER_PASSWORD_ERROR(_Status: NTSTATUS): BOOL;
 begin

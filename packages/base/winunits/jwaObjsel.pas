@@ -40,21 +40,22 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaObjSel.pas,v 1.6 2005/09/03 13:12:10 marquardt Exp $
 
 unit JwaObjSel;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "ObjSel.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  ActiveX {TODO}, JwaWinType;
+  JwaActiveX, JwaWindows;
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "ObjSel.h"'}
+{$HPPEMIT ''}
 
 //  Contents:   Object Picker Dialog public header
 

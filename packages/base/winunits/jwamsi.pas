@@ -42,6 +42,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaMsi.pas,v 1.15 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaMsi;
 
@@ -52,7 +53,7 @@ unit JwaMsi;
 interface
 
 uses
-  JwaWinType, JwaWinCrypt { for PCCERT_CONTEXT };
+  JwaWindows;
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "msi.h"'}
@@ -1342,13 +1343,8 @@ const
 
 implementation
 
-const
-  msilib = 'msi.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaIpInfoId.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaIpInfoId;
 
@@ -54,7 +55,7 @@ unit JwaIpInfoId;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 const
   IP_ROUTER_MANAGER_VERSION = 1;

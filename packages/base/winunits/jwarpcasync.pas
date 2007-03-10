@@ -40,10 +40,26 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaRpcASync.pas,v 1.11 2005/09/06 16:36:50 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaRpcASync;
 
 {$WEAKPACKAGEUNIT}
+
+{$I jediapilib.inc}
+
+interface
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFNDEF JWARPC_PAS}
+uses
+  JwaWinBase, JwaWinType, JwaRpcDce;
+{$ENDIF !JWARPC_PAS}
+
+{$IFDEF JWA_INTERFACESECTION}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "RpcAsync.h"'}
@@ -51,13 +67,6 @@ unit JwaRpcASync;
 {$HPPEMIT 'typedef RPC_EXTENDED_ERROR_INFO* PRPC_EXTENDED_ERROR_INFO'}
 {$HPPEMIT 'typedef RPC_ERROR_ENUM_HANDLE* PRPC_ERROR_ENUM_HANDLE'}
 {$HPPEMIT ''}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaRpc, JwaRpcDce, JwaWinBase, JwaWinNT, JwaWinType;
 
 type
   _RPC_NOTIFICATION_TYPES = (
@@ -366,15 +375,18 @@ type
   {$EXTERNALSYM RPC_CALL_ATTRIBUTES}
   TRpcCallAttributes = RPC_CALL_ATTRIBUTES;
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
 
-const
-  rpclib = 'rpc4rt.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 function RpcAsyncGetCallHandle(var pAsync: RPC_ASYNC_STATE): Pointer;
 begin
@@ -710,4 +722,8 @@ function RpcServerInqCallAttributes; external rpclib name 'RpcServerInqCallAttri
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

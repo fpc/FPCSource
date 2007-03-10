@@ -40,22 +40,23 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaCmnQuery.pas,v 1.8 2005/09/03 13:12:10 marquardt Exp $
 
 unit JwaCmnQuery;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "cmnquery.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  ActiveX, // IPersist todo objidl, ocidl
-  JwaWinUser, JwaWinType;
+  JwaActiveX, // IPersist todo objidl, ocidl
+  JwaWindows;
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "cmnquery.h"'}
+{$HPPEMIT ''}
 
 const
   IID_IQueryForm: TGUID = (D1:$8cfcee30; D2:$39bd; D3:$11d0; D4:($b8, $d1, $0, $a0, $24, $ab, $2d, $bb));
@@ -139,7 +140,7 @@ type
     cbStruct: DWORD;
     dwFlags: DWORD;
     pPageProc: Pointer{LPCQPAGEPROC};
-    hInstance: HINSTANCE;
+    hInstance: HINST;
     idPageName: Integer;
     idPageTemplate: Integer;
     pDlgProc: DLGPROC;

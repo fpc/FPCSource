@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWtsApi32.pas,v 1.10 2005/09/06 16:36:51 marquardt Exp $
 
 unit JwaWtsApi32;
 
@@ -48,7 +49,7 @@ unit JwaWtsApi32;
 interface
 
 uses
-  JwaWinNT, JwaWinType;
+  JwaWindows;
 
 //   Windows Terminal Server public APIs
 //
@@ -712,13 +713,8 @@ function WTSQueryUserToken(SessionId: ULONG; var phToken: HANDLE): BOOL; stdcall
 
 implementation
 
-const
-  wtsapi = 'wtsapi32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaSceSvc.pas,v 1.3 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaSceSvc;
 
@@ -56,7 +57,7 @@ unit JwaSceSvc;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 type
   SCESTATUS = DWORD;

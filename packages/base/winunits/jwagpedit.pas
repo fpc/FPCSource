@@ -40,21 +40,22 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaGPEdit.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaGPEdit;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "GPEdit.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  ActiveX {TODO}, JwaPrSht, JwaWinType;
+  JwaActiveX, JwaPrSht, JwaWindows;
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "GPEdit.h"'}
+{$HPPEMIT ''}
 
 type
   LPOLESTR = POleStr;
@@ -852,8 +853,8 @@ function ExportRSoPData(lpNameSpace, lpFileName: LPOLESTR): HRESULT; stdcall;
 
 implementation
 
-const
-  gpeditlib = 'gpedit.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

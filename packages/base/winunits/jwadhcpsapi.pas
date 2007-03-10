@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaDhcpsApi.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaDhcpsApi;
 
@@ -54,7 +55,7 @@ unit JwaDhcpsApi;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 type
   DHCP_IP_ADDRESS = DWORD;
@@ -441,8 +442,8 @@ procedure DhcpRpcFreeMemory(BufferPointer: PVOID); stdcall;
 
 implementation
 
-const
-  dhcplib = 'dhcpsapi.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

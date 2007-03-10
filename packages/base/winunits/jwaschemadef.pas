@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaSchemaDef.pas,v 1.5 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaSchemaDef;
 
@@ -54,7 +55,7 @@ unit JwaSchemaDef;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 const
   SCHEMADEF_VERSION = 1;    // defines the exported func(s) implemented

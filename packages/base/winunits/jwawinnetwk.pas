@@ -40,21 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinNetWk.pas,v 1.11 2005/09/06 16:36:51 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaWinNetWk;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinNetWk.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWinError, JwaWinType;
+  JwaWinType, JwaWinError;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinNetWk.h"'}
+{$HPPEMIT ''}
 
 //
 // Network types
@@ -976,15 +983,18 @@ function MultinetGetConnectionPerformance(const lpNetResource: NETRESOURCE;
   var lpNetConnectInfoStruct: NETCONNECTINFOSTRUCT): DWORD; stdcall;
 {$EXTERNALSYM MultinetGetConnectionPerformance}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
 
-const
-  mpr = 'mpr.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -993,7 +1003,7 @@ var
 
 function WNetAddConnectionA;
 begin
-  GetProcedureAddress(_WNetAddConnectionA, mpr, 'WNetAddConnectionA');
+  GetProcedureAddress(_WNetAddConnectionA, mprlib, 'WNetAddConnectionA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1006,7 +1016,7 @@ var
 
 function WNetAddConnectionW;
 begin
-  GetProcedureAddress(_WNetAddConnectionW, mpr, 'WNetAddConnectionW');
+  GetProcedureAddress(_WNetAddConnectionW, mprlib, 'WNetAddConnectionW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1019,7 +1029,7 @@ var
 
 function WNetAddConnection;
 begin
-  GetProcedureAddress(_WNetAddConnection, mpr, 'WNetAddConnection' + AWSuffix);
+  GetProcedureAddress(_WNetAddConnection, mprlib, 'WNetAddConnection' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1032,7 +1042,7 @@ var
 
 function WNetAddConnection2A;
 begin
-  GetProcedureAddress(_WNetAddConnection2A, mpr, 'WNetAddConnection2A');
+  GetProcedureAddress(_WNetAddConnection2A, mprlib, 'WNetAddConnection2A');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1045,7 +1055,7 @@ var
 
 function WNetAddConnection2W;
 begin
-  GetProcedureAddress(_WNetAddConnection2W, mpr, 'WNetAddConnection2W');
+  GetProcedureAddress(_WNetAddConnection2W, mprlib, 'WNetAddConnection2W');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1058,7 +1068,7 @@ var
 
 function WNetAddConnection2;
 begin
-  GetProcedureAddress(_WNetAddConnection2, mpr, 'WNetAddConnection2' + AWSuffix);
+  GetProcedureAddress(_WNetAddConnection2, mprlib, 'WNetAddConnection2' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1071,7 +1081,7 @@ var
 
 function WNetAddConnection3A;
 begin
-  GetProcedureAddress(_WNetAddConnection3A, mpr, 'WNetAddConnection3A');
+  GetProcedureAddress(_WNetAddConnection3A, mprlib, 'WNetAddConnection3A');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1084,7 +1094,7 @@ var
 
 function WNetAddConnection3W;
 begin
-  GetProcedureAddress(_WNetAddConnection3W, mpr, 'WNetAddConnection3W');
+  GetProcedureAddress(_WNetAddConnection3W, mprlib, 'WNetAddConnection3W');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1097,7 +1107,7 @@ var
 
 function WNetAddConnection3;
 begin
-  GetProcedureAddress(_WNetAddConnection3, mpr, 'WNetAddConnection3' + AWSuffix);
+  GetProcedureAddress(_WNetAddConnection3, mprlib, 'WNetAddConnection3' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1110,7 +1120,7 @@ var
 
 function WNetCancelConnectionA;
 begin
-  GetProcedureAddress(_WNetCancelConnectionA, mpr, 'WNetCancelConnectionA');
+  GetProcedureAddress(_WNetCancelConnectionA, mprlib, 'WNetCancelConnectionA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1123,7 +1133,7 @@ var
 
 function WNetCancelConnectionW;
 begin
-  GetProcedureAddress(_WNetCancelConnectionW, mpr, 'WNetCancelConnectionW');
+  GetProcedureAddress(_WNetCancelConnectionW, mprlib, 'WNetCancelConnectionW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1136,7 +1146,7 @@ var
 
 function WNetCancelConnection;
 begin
-  GetProcedureAddress(_WNetCancelConnection, mpr, 'WNetCancelConnection' + AWSuffix);
+  GetProcedureAddress(_WNetCancelConnection, mprlib, 'WNetCancelConnection' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1149,7 +1159,7 @@ var
 
 function WNetCancelConnection2A;
 begin
-  GetProcedureAddress(_WNetCancelConnection2A, mpr, 'WNetCancelConnection2A');
+  GetProcedureAddress(_WNetCancelConnection2A, mprlib, 'WNetCancelConnection2A');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1162,7 +1172,7 @@ var
 
 function WNetCancelConnection2W;
 begin
-  GetProcedureAddress(_WNetCancelConnection2W, mpr, 'WNetCancelConnection2W');
+  GetProcedureAddress(_WNetCancelConnection2W, mprlib, 'WNetCancelConnection2W');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1175,7 +1185,7 @@ var
 
 function WNetCancelConnection2;
 begin
-  GetProcedureAddress(_WNetCancelConnection2, mpr, 'WNetCancelConnection2' + AWSuffix);
+  GetProcedureAddress(_WNetCancelConnection2, mprlib, 'WNetCancelConnection2' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1188,7 +1198,7 @@ var
 
 function WNetGetConnectionA;
 begin
-  GetProcedureAddress(_WNetGetConnectionA, mpr, 'WNetGetConnectionA');
+  GetProcedureAddress(_WNetGetConnectionA, mprlib, 'WNetGetConnectionA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1201,7 +1211,7 @@ var
 
 function WNetGetConnectionW;
 begin
-  GetProcedureAddress(_WNetGetConnectionW, mpr, 'WNetGetConnectionW');
+  GetProcedureAddress(_WNetGetConnectionW, mprlib, 'WNetGetConnectionW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1214,7 +1224,7 @@ var
 
 function WNetGetConnection;
 begin
-  GetProcedureAddress(_WNetGetConnection, mpr, 'WNetGetConnection' + AWSuffix);
+  GetProcedureAddress(_WNetGetConnection, mprlib, 'WNetGetConnection' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1227,7 +1237,7 @@ var
 
 function WNetRestoreConnectionA;
 begin
-  GetProcedureAddress(_WNetRestoreConnectionA, mpr, 'WNetRestoreConnectionA');
+  GetProcedureAddress(_WNetRestoreConnectionA, mprlib, 'WNetRestoreConnectionA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1240,7 +1250,7 @@ var
 
 function WNetRestoreConnectionW;
 begin
-  GetProcedureAddress(_WNetRestoreConnectionW, mpr, 'WNetRestoreConnectionW');
+  GetProcedureAddress(_WNetRestoreConnectionW, mprlib, 'WNetRestoreConnectionW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1253,7 +1263,7 @@ var
 
 function WNetRestoreConnection;
 begin
-  GetProcedureAddress(_WNetRestoreConnection, mpr, 'WNetRestoreConnection' + AWSuffix);
+  GetProcedureAddress(_WNetRestoreConnection, mprlib, 'WNetRestoreConnection' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1266,7 +1276,7 @@ var
 
 function WNetUseConnectionA;
 begin
-  GetProcedureAddress(_WNetUseConnectionA, mpr, 'WNetUseConnectionA');
+  GetProcedureAddress(_WNetUseConnectionA, mprlib, 'WNetUseConnectionA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1279,7 +1289,7 @@ var
 
 function WNetUseConnectionW;
 begin
-  GetProcedureAddress(_WNetUseConnectionW, mpr, 'WNetUseConnectionW');
+  GetProcedureAddress(_WNetUseConnectionW, mprlib, 'WNetUseConnectionW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1292,7 +1302,7 @@ var
 
 function WNetUseConnection;
 begin
-  GetProcedureAddress(_WNetUseConnection, mpr, 'WNetUseConnection' + AWSuffix);
+  GetProcedureAddress(_WNetUseConnection, mprlib, 'WNetUseConnection' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1305,7 +1315,7 @@ var
 
 function WNetConnectionDialog;
 begin
-  GetProcedureAddress(_WNetConnectionDialog, mpr, 'WNetConnectionDialog');
+  GetProcedureAddress(_WNetConnectionDialog, mprlib, 'WNetConnectionDialog');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1318,7 +1328,7 @@ var
 
 function WNetDisconnectDialog;
 begin
-  GetProcedureAddress(_WNetDisconnectDialog, mpr, 'WNetDisconnectDialog');
+  GetProcedureAddress(_WNetDisconnectDialog, mprlib, 'WNetDisconnectDialog');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1331,7 +1341,7 @@ var
 
 function WNetConnectionDialog1A;
 begin
-  GetProcedureAddress(_WNetConnectionDialog1A, mpr, 'WNetConnectionDialog1A');
+  GetProcedureAddress(_WNetConnectionDialog1A, mprlib, 'WNetConnectionDialog1A');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1344,7 +1354,7 @@ var
 
 function WNetConnectionDialog1W;
 begin
-  GetProcedureAddress(_WNetConnectionDialog1W, mpr, 'WNetConnectionDialog1W');
+  GetProcedureAddress(_WNetConnectionDialog1W, mprlib, 'WNetConnectionDialog1W');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1357,7 +1367,7 @@ var
 
 function WNetConnectionDialog1;
 begin
-  GetProcedureAddress(_WNetConnectionDialog1, mpr, 'WNetConnectionDialog1' + AWSuffix);
+  GetProcedureAddress(_WNetConnectionDialog1, mprlib, 'WNetConnectionDialog1' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1370,7 +1380,7 @@ var
 
 function WNetDisconnectDialog1A;
 begin
-  GetProcedureAddress(_WNetDisconnectDialog1A, mpr, 'WNetDisconnectDialog1A');
+  GetProcedureAddress(_WNetDisconnectDialog1A, mprlib, 'WNetDisconnectDialog1A');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1383,7 +1393,7 @@ var
 
 function WNetDisconnectDialog1W;
 begin
-  GetProcedureAddress(_WNetDisconnectDialog1W, mpr, 'WNetDisconnectDialog1W');
+  GetProcedureAddress(_WNetDisconnectDialog1W, mprlib, 'WNetDisconnectDialog1W');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1396,7 +1406,7 @@ var
 
 function WNetDisconnectDialog1;
 begin
-  GetProcedureAddress(_WNetDisconnectDialog1, mpr, 'WNetDisconnectDialog1' + AWSuffix);
+  GetProcedureAddress(_WNetDisconnectDialog1, mprlib, 'WNetDisconnectDialog1' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1409,7 +1419,7 @@ var
 
 function WNetOpenEnumA;
 begin
-  GetProcedureAddress(_WNetOpenEnumA, mpr, 'WNetOpenEnumA');
+  GetProcedureAddress(_WNetOpenEnumA, mprlib, 'WNetOpenEnumA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1422,7 +1432,7 @@ var
 
 function WNetOpenEnumW;
 begin
-  GetProcedureAddress(_WNetOpenEnumW, mpr, 'WNetOpenEnumW');
+  GetProcedureAddress(_WNetOpenEnumW, mprlib, 'WNetOpenEnumW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1435,7 +1445,7 @@ var
 
 function WNetOpenEnum;
 begin
-  GetProcedureAddress(_WNetOpenEnum, mpr, 'WNetOpenEnum' + AWSuffix);
+  GetProcedureAddress(_WNetOpenEnum, mprlib, 'WNetOpenEnum' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1448,7 +1458,7 @@ var
 
 function WNetEnumResourceA;
 begin
-  GetProcedureAddress(_WNetEnumResourceA, mpr, 'WNetEnumResourceA');
+  GetProcedureAddress(_WNetEnumResourceA, mprlib, 'WNetEnumResourceA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1461,7 +1471,7 @@ var
 
 function WNetEnumResourceW;
 begin
-  GetProcedureAddress(_WNetEnumResourceW, mpr, 'WNetEnumResourceW');
+  GetProcedureAddress(_WNetEnumResourceW, mprlib, 'WNetEnumResourceW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1474,7 +1484,7 @@ var
 
 function WNetEnumResource;
 begin
-  GetProcedureAddress(_WNetEnumResource, mpr, 'WNetEnumResource' + AWSuffix);
+  GetProcedureAddress(_WNetEnumResource, mprlib, 'WNetEnumResource' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1487,7 +1497,7 @@ var
 
 function WNetCloseEnum;
 begin
-  GetProcedureAddress(_WNetCloseEnum, mpr, 'WNetCloseEnum');
+  GetProcedureAddress(_WNetCloseEnum, mprlib, 'WNetCloseEnum');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1500,7 +1510,7 @@ var
 
 function WNetGetResourceParentA;
 begin
-  GetProcedureAddress(_WNetGetResourceParentA, mpr, 'WNetGetResourceParentA');
+  GetProcedureAddress(_WNetGetResourceParentA, mprlib, 'WNetGetResourceParentA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1513,7 +1523,7 @@ var
 
 function WNetGetResourceParentW;
 begin
-  GetProcedureAddress(_WNetGetResourceParentW, mpr, 'WNetGetResourceParentW');
+  GetProcedureAddress(_WNetGetResourceParentW, mprlib, 'WNetGetResourceParentW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1526,7 +1536,7 @@ var
 
 function WNetGetResourceParent;
 begin
-  GetProcedureAddress(_WNetGetResourceParent, mpr, 'WNetGetResourceParent' + AWSuffix);
+  GetProcedureAddress(_WNetGetResourceParent, mprlib, 'WNetGetResourceParent' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1539,7 +1549,7 @@ var
 
 function WNetGetResourceInformationA;
 begin
-  GetProcedureAddress(_WNetGetResourceInformationA, mpr, 'WNetGetResourceInformationA');
+  GetProcedureAddress(_WNetGetResourceInformationA, mprlib, 'WNetGetResourceInformationA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1552,7 +1562,7 @@ var
 
 function WNetGetResourceInformationW;
 begin
-  GetProcedureAddress(_WNetGetResourceInformationW, mpr, 'WNetGetResourceInformationW');
+  GetProcedureAddress(_WNetGetResourceInformationW, mprlib, 'WNetGetResourceInformationW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1565,7 +1575,7 @@ var
 
 function WNetGetResourceInformation;
 begin
-  GetProcedureAddress(_WNetGetResourceInformation, mpr, 'WNetGetResourceInformation' + AWSuffix);
+  GetProcedureAddress(_WNetGetResourceInformation, mprlib, 'WNetGetResourceInformation' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1578,7 +1588,7 @@ var
 
 function WNetGetUniversalNameA;
 begin
-  GetProcedureAddress(_WNetGetUniversalNameA, mpr, 'WNetGetUniversalNameA');
+  GetProcedureAddress(_WNetGetUniversalNameA, mprlib, 'WNetGetUniversalNameA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1591,7 +1601,7 @@ var
 
 function WNetGetUniversalNameW;
 begin
-  GetProcedureAddress(_WNetGetUniversalNameW, mpr, 'WNetGetUniversalNameW');
+  GetProcedureAddress(_WNetGetUniversalNameW, mprlib, 'WNetGetUniversalNameW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1604,7 +1614,7 @@ var
 
 function WNetGetUniversalName;
 begin
-  GetProcedureAddress(_WNetGetUniversalName, mpr, 'WNetGetUniversalName' + AWSuffix);
+  GetProcedureAddress(_WNetGetUniversalName, mprlib, 'WNetGetUniversalName' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1617,7 +1627,7 @@ var
 
 function WNetGetUserA;
 begin
-  GetProcedureAddress(_WNetGetUserA, mpr, 'WNetGetUserA');
+  GetProcedureAddress(_WNetGetUserA, mprlib, 'WNetGetUserA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1630,7 +1640,7 @@ var
 
 function WNetGetUserW;
 begin
-  GetProcedureAddress(_WNetGetUserW, mpr, 'WNetGetUserW');
+  GetProcedureAddress(_WNetGetUserW, mprlib, 'WNetGetUserW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1643,7 +1653,7 @@ var
 
 function WNetGetUser;
 begin
-  GetProcedureAddress(_WNetGetUser, mpr, 'WNetGetUser' + AWSuffix);
+  GetProcedureAddress(_WNetGetUser, mprlib, 'WNetGetUser' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1656,7 +1666,7 @@ var
 
 function WNetGetProviderNameA;
 begin
-  GetProcedureAddress(_WNetGetProviderNameA, mpr, 'WNetGetProviderNameA');
+  GetProcedureAddress(_WNetGetProviderNameA, mprlib, 'WNetGetProviderNameA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1669,7 +1679,7 @@ var
 
 function WNetGetProviderNameW;
 begin
-  GetProcedureAddress(_WNetGetProviderNameW, mpr, 'WNetGetProviderNameW');
+  GetProcedureAddress(_WNetGetProviderNameW, mprlib, 'WNetGetProviderNameW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1682,7 +1692,7 @@ var
 
 function WNetGetProviderName;
 begin
-  GetProcedureAddress(_WNetGetProviderName, mpr, 'WNetGetProviderName' + AWSuffix);
+  GetProcedureAddress(_WNetGetProviderName, mprlib, 'WNetGetProviderName' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1695,7 +1705,7 @@ var
 
 function WNetGetNetworkInformationA;
 begin
-  GetProcedureAddress(_WNetGetNetworkInformationA, mpr, 'WNetGetNetworkInformationA');
+  GetProcedureAddress(_WNetGetNetworkInformationA, mprlib, 'WNetGetNetworkInformationA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1708,7 +1718,7 @@ var
 
 function WNetGetNetworkInformationW;
 begin
-  GetProcedureAddress(_WNetGetNetworkInformationW, mpr, 'WNetGetNetworkInformationW');
+  GetProcedureAddress(_WNetGetNetworkInformationW, mprlib, 'WNetGetNetworkInformationW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1721,7 +1731,7 @@ var
 
 function WNetGetNetworkInformation;
 begin
-  GetProcedureAddress(_WNetGetNetworkInformation, mpr, 'WNetGetNetworkInformation' + AWSuffix);
+  GetProcedureAddress(_WNetGetNetworkInformation, mprlib, 'WNetGetNetworkInformation' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1734,7 +1744,7 @@ var
 
 function WNetGetLastErrorA;
 begin
-  GetProcedureAddress(_WNetGetLastErrorA, mpr, 'WNetGetLastErrorA');
+  GetProcedureAddress(_WNetGetLastErrorA, mprlib, 'WNetGetLastErrorA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1747,7 +1757,7 @@ var
 
 function WNetGetLastErrorW;
 begin
-  GetProcedureAddress(_WNetGetLastErrorW, mpr, 'WNetGetLastErrorW');
+  GetProcedureAddress(_WNetGetLastErrorW, mprlib, 'WNetGetLastErrorW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1760,7 +1770,7 @@ var
 
 function WNetGetLastError;
 begin
-  GetProcedureAddress(_WNetGetLastError, mpr, 'WNetGetLastError' + AWSuffix);
+  GetProcedureAddress(_WNetGetLastError, mprlib, 'WNetGetLastError' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1773,7 +1783,7 @@ var
 
 function MultinetGetConnectionPerformanceA;
 begin
-  GetProcedureAddress(_MultinetGetConnectionPerfA, mpr, 'MultinetGetConnectionPerformanceA');
+  GetProcedureAddress(_MultinetGetConnectionPerfA, mprlib, 'MultinetGetConnectionPerformanceA');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1786,7 +1796,7 @@ var
 
 function MultinetGetConnectionPerformanceW;
 begin
-  GetProcedureAddress(_MultinetGetConnectionPerfW, mpr, 'MultinetGetConnectionPerformanceW');
+  GetProcedureAddress(_MultinetGetConnectionPerfW, mprlib, 'MultinetGetConnectionPerformanceW');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1799,7 +1809,7 @@ var
 
 function MultinetGetConnectionPerformance;
 begin
-  GetProcedureAddress(_MultinetGetConnectionPerf, mpr, 'MultinetGetConnectionPerformance' + AWSuffix);
+  GetProcedureAddress(_MultinetGetConnectionPerf, mprlib, 'MultinetGetConnectionPerformance' + AWSuffix);
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -1809,70 +1819,74 @@ end;
 
 {$ELSE}
 
-function WNetAddConnectionA; external mpr name 'WNetAddConnectionA';
-function WNetAddConnectionW; external mpr name 'WNetAddConnectionW';
-function WNetAddConnection; external mpr name 'WNetAddConnection' + AWSuffix;
-function WNetAddConnection2A; external mpr name 'WNetAddConnection2A';
-function WNetAddConnection2W; external mpr name 'WNetAddConnection2W';
-function WNetAddConnection2; external mpr name 'WNetAddConnection2' + AWSuffix;
-function WNetAddConnection3A; external mpr name 'WNetAddConnection3A';
-function WNetAddConnection3W; external mpr name 'WNetAddConnection3W';
-function WNetAddConnection3; external mpr name 'WNetAddConnection3' + AWSuffix;
-function WNetCancelConnectionA; external mpr name 'WNetCancelConnectionA';
-function WNetCancelConnectionW; external mpr name 'WNetCancelConnectionW';
-function WNetCancelConnection; external mpr name 'WNetCancelConnection' + AWSuffix;
-function WNetCancelConnection2A; external mpr name 'WNetCancelConnection2A';
-function WNetCancelConnection2W; external mpr name 'WNetCancelConnection2W';
-function WNetCancelConnection2; external mpr name 'WNetCancelConnection2' + AWSuffix;
-function WNetGetConnectionA; external mpr name 'WNetGetConnectionA';
-function WNetGetConnectionW; external mpr name 'WNetGetConnectionW';
-function WNetGetConnection; external mpr name 'WNetGetConnection' + AWSuffix;
-function WNetRestoreConnectionA; external mpr name 'WNetRestoreConnectionA';
-function WNetRestoreConnectionW; external mpr name 'WNetRestoreConnectionW';
-function WNetRestoreConnection; external mpr name 'WNetRestoreConnection' + AWSuffix;
-function WNetUseConnectionA; external mpr name 'WNetUseConnectionA';
-function WNetUseConnectionW; external mpr name 'WNetUseConnectionW';
-function WNetUseConnection; external mpr name 'WNetUseConnection' + AWSuffix;
-function WNetConnectionDialog; external mpr name 'WNetConnectionDialog';
-function WNetDisconnectDialog; external mpr name 'WNetDisconnectDialog';
-function WNetConnectionDialog1A; external mpr name 'WNetConnectionDialog1A';
-function WNetConnectionDialog1W; external mpr name 'WNetConnectionDialog1W';
-function WNetConnectionDialog1; external mpr name 'WNetConnectionDialog1' + AWSuffix;
-function WNetDisconnectDialog1A; external mpr name 'WNetDisconnectDialog1A';
-function WNetDisconnectDialog1W; external mpr name 'WNetDisconnectDialog1W';
-function WNetDisconnectDialog1; external mpr name 'WNetDisconnectDialog1' + AWSuffix;
-function WNetOpenEnumA; external mpr name 'WNetOpenEnumA';
-function WNetOpenEnumW; external mpr name 'WNetOpenEnumW';
-function WNetOpenEnum; external mpr name 'WNetOpenEnum' + AWSuffix;
-function WNetEnumResourceA; external mpr name 'WNetEnumResourceA';
-function WNetEnumResourceW; external mpr name 'WNetEnumResourceW';
-function WNetEnumResource; external mpr name 'WNetEnumResource' + AWSuffix;
-function WNetCloseEnum; external mpr name 'WNetCloseEnum';
-function WNetGetResourceParentA; external mpr name 'WNetGetResourceParentA';
-function WNetGetResourceParentW; external mpr name 'WNetGetResourceParentW';
-function WNetGetResourceParent; external mpr name 'WNetGetResourceParent' + AWSuffix;
-function WNetGetResourceInformationA; external mpr name 'WNetGetResourceInformationA';
-function WNetGetResourceInformationW; external mpr name 'WNetGetResourceInformationW';
-function WNetGetResourceInformation; external mpr name 'WNetGetResourceInformation' + AWSuffix;
-function WNetGetUniversalNameA; external mpr name 'WNetGetUniversalNameA';
-function WNetGetUniversalNameW; external mpr name 'WNetGetUniversalNameW';
-function WNetGetUniversalName; external mpr name 'WNetGetUniversalName' + AWSuffix;
-function WNetGetUserA; external mpr name 'WNetGetUserA';
-function WNetGetUserW; external mpr name 'WNetGetUserW';
-function WNetGetUser; external mpr name 'WNetGetUser' + AWSuffix;
-function WNetGetProviderNameA; external mpr name 'WNetGetProviderNameA';
-function WNetGetProviderNameW; external mpr name 'WNetGetProviderNameW';
-function WNetGetProviderName; external mpr name 'WNetGetProviderName' + AWSuffix;
-function WNetGetNetworkInformationA; external mpr name 'WNetGetNetworkInformationA';
-function WNetGetNetworkInformationW; external mpr name 'WNetGetNetworkInformationW';
-function WNetGetNetworkInformation; external mpr name 'WNetGetNetworkInformation' + AWSuffix;
-function WNetGetLastErrorA; external mpr name 'WNetGetLastErrorA';
-function WNetGetLastErrorW; external mpr name 'WNetGetLastErrorW';
-function WNetGetLastError; external mpr name 'WNetGetLastError' + AWSuffix;
-function MultinetGetConnectionPerformanceA; external mpr name 'MultinetGetConnectionPerformanceA';
-function MultinetGetConnectionPerformanceW; external mpr name 'MultinetGetConnectionPerformanceW';
-function MultinetGetConnectionPerformance; external mpr name 'MultinetGetConnectionPerformance' + AWSuffix;
+function WNetAddConnectionA; external mprlib name 'WNetAddConnectionA';
+function WNetAddConnectionW; external mprlib name 'WNetAddConnectionW';
+function WNetAddConnection; external mprlib name 'WNetAddConnection' + AWSuffix;
+function WNetAddConnection2A; external mprlib name 'WNetAddConnection2A';
+function WNetAddConnection2W; external mprlib name 'WNetAddConnection2W';
+function WNetAddConnection2; external mprlib name 'WNetAddConnection2' + AWSuffix;
+function WNetAddConnection3A; external mprlib name 'WNetAddConnection3A';
+function WNetAddConnection3W; external mprlib name 'WNetAddConnection3W';
+function WNetAddConnection3; external mprlib name 'WNetAddConnection3' + AWSuffix;
+function WNetCancelConnectionA; external mprlib name 'WNetCancelConnectionA';
+function WNetCancelConnectionW; external mprlib name 'WNetCancelConnectionW';
+function WNetCancelConnection; external mprlib name 'WNetCancelConnection' + AWSuffix;
+function WNetCancelConnection2A; external mprlib name 'WNetCancelConnection2A';
+function WNetCancelConnection2W; external mprlib name 'WNetCancelConnection2W';
+function WNetCancelConnection2; external mprlib name 'WNetCancelConnection2' + AWSuffix;
+function WNetGetConnectionA; external mprlib name 'WNetGetConnectionA';
+function WNetGetConnectionW; external mprlib name 'WNetGetConnectionW';
+function WNetGetConnection; external mprlib name 'WNetGetConnection' + AWSuffix;
+function WNetRestoreConnectionA; external mprlib name 'WNetRestoreConnectionA';
+function WNetRestoreConnectionW; external mprlib name 'WNetRestoreConnectionW';
+function WNetRestoreConnection; external mprlib name 'WNetRestoreConnection' + AWSuffix;
+function WNetUseConnectionA; external mprlib name 'WNetUseConnectionA';
+function WNetUseConnectionW; external mprlib name 'WNetUseConnectionW';
+function WNetUseConnection; external mprlib name 'WNetUseConnection' + AWSuffix;
+function WNetConnectionDialog; external mprlib name 'WNetConnectionDialog';
+function WNetDisconnectDialog; external mprlib name 'WNetDisconnectDialog';
+function WNetConnectionDialog1A; external mprlib name 'WNetConnectionDialog1A';
+function WNetConnectionDialog1W; external mprlib name 'WNetConnectionDialog1W';
+function WNetConnectionDialog1; external mprlib name 'WNetConnectionDialog1' + AWSuffix;
+function WNetDisconnectDialog1A; external mprlib name 'WNetDisconnectDialog1A';
+function WNetDisconnectDialog1W; external mprlib name 'WNetDisconnectDialog1W';
+function WNetDisconnectDialog1; external mprlib name 'WNetDisconnectDialog1' + AWSuffix;
+function WNetOpenEnumA; external mprlib name 'WNetOpenEnumA';
+function WNetOpenEnumW; external mprlib name 'WNetOpenEnumW';
+function WNetOpenEnum; external mprlib name 'WNetOpenEnum' + AWSuffix;
+function WNetEnumResourceA; external mprlib name 'WNetEnumResourceA';
+function WNetEnumResourceW; external mprlib name 'WNetEnumResourceW';
+function WNetEnumResource; external mprlib name 'WNetEnumResource' + AWSuffix;
+function WNetCloseEnum; external mprlib name 'WNetCloseEnum';
+function WNetGetResourceParentA; external mprlib name 'WNetGetResourceParentA';
+function WNetGetResourceParentW; external mprlib name 'WNetGetResourceParentW';
+function WNetGetResourceParent; external mprlib name 'WNetGetResourceParent' + AWSuffix;
+function WNetGetResourceInformationA; external mprlib name 'WNetGetResourceInformationA';
+function WNetGetResourceInformationW; external mprlib name 'WNetGetResourceInformationW';
+function WNetGetResourceInformation; external mprlib name 'WNetGetResourceInformation' + AWSuffix;
+function WNetGetUniversalNameA; external mprlib name 'WNetGetUniversalNameA';
+function WNetGetUniversalNameW; external mprlib name 'WNetGetUniversalNameW';
+function WNetGetUniversalName; external mprlib name 'WNetGetUniversalName' + AWSuffix;
+function WNetGetUserA; external mprlib name 'WNetGetUserA';
+function WNetGetUserW; external mprlib name 'WNetGetUserW';
+function WNetGetUser; external mprlib name 'WNetGetUser' + AWSuffix;
+function WNetGetProviderNameA; external mprlib name 'WNetGetProviderNameA';
+function WNetGetProviderNameW; external mprlib name 'WNetGetProviderNameW';
+function WNetGetProviderName; external mprlib name 'WNetGetProviderName' + AWSuffix;
+function WNetGetNetworkInformationA; external mprlib name 'WNetGetNetworkInformationA';
+function WNetGetNetworkInformationW; external mprlib name 'WNetGetNetworkInformationW';
+function WNetGetNetworkInformation; external mprlib name 'WNetGetNetworkInformation' + AWSuffix;
+function WNetGetLastErrorA; external mprlib name 'WNetGetLastErrorA';
+function WNetGetLastErrorW; external mprlib name 'WNetGetLastErrorW';
+function WNetGetLastError; external mprlib name 'WNetGetLastError' + AWSuffix;
+function MultinetGetConnectionPerformanceA; external mprlib name 'MultinetGetConnectionPerformanceA';
+function MultinetGetConnectionPerformanceW; external mprlib name 'MultinetGetConnectionPerformanceW';
+function MultinetGetConnectionPerformance; external mprlib name 'MultinetGetConnectionPerformance' + AWSuffix;
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

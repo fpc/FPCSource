@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaLpmApi.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaLpmApi;
 
@@ -54,7 +55,7 @@ unit JwaLpmApi;
 interface
 
 uses
-  JwaWinSock2, JwaWinType;
+  JwaWinSock2, JwaWindows;
 
 type
   FLOAT = Single;
@@ -1490,8 +1491,8 @@ procedure LPM_CommitResv(RsvpSession: PRsvpSession; FlowInstalledIntf: PRsvpHop;
 
 implementation
 
-const
-  lpmlib = 'msidlpm.dll';
+uses
+  JwaWinDLLNames;
 
 function ObjLength(const x: TRsvpObjHdr): USHORT;
 begin

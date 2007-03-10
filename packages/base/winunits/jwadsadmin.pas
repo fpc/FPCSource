@@ -40,21 +40,22 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaDSAdmin.pas,v 1.6 2005/09/03 13:12:10 marquardt Exp $
 
 unit JwaDSAdmin;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "dsadmin.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  ActiveX {TODO}, JwaAdsTLB, JwaPrSht, JwaWinType;
+  JwaActiveX, JwaAdsTLB, JwaPrSht, JwaWindows;
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "dsadmin.h"'}
+{$HPPEMIT ''}
 
 //
 // CoClass for the Object creation dialog object

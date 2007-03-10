@@ -42,6 +42,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaHhError.pas,v 1.8 2005/09/03 16:10:30 marquardt Exp $
 
 unit JwaHhError;
 
@@ -52,7 +53,7 @@ interface
 {$I jediapilib.inc}
 
 uses
-  JwaWinType, JwaWinError;
+  JwaWindows;
 
 // Published: http://support.microsoft.com/default.aspx?scid=kb;en-us;297768
 

@@ -40,10 +40,18 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaUserEnv.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaUserEnv;
 
 {$WEAKPACKAGEUNIT}
+
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaActiveX, JwaProfInfo, JwaWbemCli, JwaWindows;
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "userenv.h"'}
@@ -57,14 +65,6 @@ unit JwaUserEnv;
 {$HPPEMIT 'typedef PPGROUP_POLICY_OBJECTA PPGROUP_POLICY_OBJECT'}
 {$HPPEMIT 'typedef #endif'}
 {$HPPEMIT ''}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  ActiveX, {TODO}
-  JwaProfInfo, JwaWbemCli, JwaWinType, JWaWinBase, JwaWinNT;
 
 //=============================================================================
 //
@@ -1203,13 +1203,8 @@ const
 
 implementation
 
-const
-  userenvlib = 'userenv.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

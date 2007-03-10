@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaTlHelp32.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaTlHelp32;
 
@@ -54,7 +55,7 @@ unit JwaTlHelp32;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 const
   MAX_MODULE_NAME32 = 255;
@@ -347,13 +348,8 @@ function Module32Next(hSnapshot: HANDLE; var lpme: MODULEENTRY32): BOOL; stdcall
 
 implementation
 
-const
-  kernel32 = 'kernel32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = '';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

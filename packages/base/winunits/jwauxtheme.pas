@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaUxTheme.pas,v 1.9 2005/09/08 07:49:25 marquardt Exp $
 
 unit JwaUxTheme;
 
@@ -54,10 +55,10 @@ unit JwaUxTheme;
 interface
 
 uses
-  JwaWinType, JwaWinGDI;
+  JwaWindows;
 
 type
-  HIMAGELIST = HANDLE; // TODO TEMPORARY
+  HIMAGELIST = Pointer; // TODO
 
 type
   HTHEME = HANDLE;          // handle to a section of theme data for class
@@ -1106,8 +1107,8 @@ function DrawThemeBackgroundEx(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Inte
 
 implementation
 
-const
-  themelib = 'uxtheme.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

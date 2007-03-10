@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaSchedule.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaSchedule;
 
@@ -54,7 +55,7 @@ unit JwaSchedule;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //
 // The DS and FRS use the same structure to represent different schedules.

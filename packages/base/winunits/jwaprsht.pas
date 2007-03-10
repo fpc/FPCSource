@@ -40,23 +40,24 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaPrSht.pas,v 1.12 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaPrSht;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "ntdsapi.h"'}
-{$HPPEMIT ''}
-{$HPPEMIT 'typedef PHPROPSHEETPAGE  *HPROPSHEETPAGE'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWinNT, JwaWinUser, JwaWinType;
+  JwaWindows;
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "ntdsapi.h"'}
+{$HPPEMIT ''}
+{$HPPEMIT 'typedef PHPROPSHEETPAGE  *HPROPSHEETPAGE'}
+{$HPPEMIT ''}
 
 //#ifndef CCSIZEOF_STRUCT
 //#define CCSIZEOF_STRUCT(structname, member)  (((int)((LPBYTE)(&((structname*)0)->member) - ((LPBYTE)((structname*)0)))) + sizeof(((structname*)0)->member))
@@ -137,7 +138,7 @@ type
   _PROPSHEETPAGEA = record
     dwSize: DWORD;
     dwFlags: DWORD;
-    hInstance: HINSTANCE;
+    hInstance: HINST;
     u: record
     case Integer of
       0: (pszTemplate: LPCSTR);
@@ -171,7 +172,7 @@ type
   _PROPSHEETPAGEW = record
     dwSize: DWORD;
     dwFlags: DWORD;
-    hInstance: HINSTANCE;
+    hInstance: HINST;
     u: record
     case Integer of
       0: (pszTemplate: LPCWSTR);
@@ -311,7 +312,7 @@ type
     dwSize: DWORD;
     dwFlags: DWORD;
     hwndParent: HWND;
-    hInstance: HINSTANCE;
+    hInstance: HINST;
     u: record
     case Integer of
       0: (hIcon: HICON);
@@ -358,7 +359,7 @@ type
     dwSize: DWORD;
     dwFlags: DWORD;
     hwndParent: HWND;
-    hInstance: HINSTANCE;
+    hInstance: HINST;
     u: record
     case Integer of
       0: (hIcon: HICON);
@@ -788,13 +789,8 @@ const
 
 implementation
 
-const
-  comctl32 = 'comctl32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 function PropSheet_SetCurSel(hPropSheetDlg: HWND; hPage: HPROPSHEETPAGE; Index: Integer): BOOL;
 begin

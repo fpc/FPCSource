@@ -38,6 +38,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaBluetoothAPIs.pas,v 1.11 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaBluetoothAPIs;
 
@@ -52,7 +53,7 @@ unit JwaBluetoothAPIs;
 interface
 
 uses
-  JwaWinType, JwaWinBase, JwaBthSdpDef;
+  JwaWindows, JwaBthSdpDef;
 
 const
   BLUETOOTH_MAX_NAME_SIZE            = 248;
@@ -1587,8 +1588,8 @@ function BluetoothEnumAttributes(
 
 implementation
 
-const
-  btapi = 'irprops.cpl';
+uses
+  JwaWinDLLNames;
 
 // (rom) MACRO implementation
 function BluetoothEnumAttributes(pSDPStream: PBYTE; cbStreamSize: ULONG;
