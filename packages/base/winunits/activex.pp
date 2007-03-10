@@ -2836,182 +2836,182 @@ type
      OLECREATE_LEAVERUNNING = $00000001;
   { pull the MIDL generated header  }
 
-  function OleBuildVersion:DWORD;cdecl;external 'ole32.dll' name 'OleBuildVersion';
+  function OleBuildVersion:DWORD;stdcall;external 'ole32.dll' name 'OleBuildVersion';
 
   { helper functions  }
-  function ReadClassStg(pStg:IStorage; pclsid:PCLSID):WINOLEAPI;cdecl;external 'ole32.dll' name 'ReadClassStg';
+  function ReadClassStg(pStg:IStorage; pclsid:PCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'ReadClassStg';
 
-  function WriteClassStg(pStg:IStorage;const rclsid:TLCID):WINOLEAPI;cdecl;external 'ole32.dll' name 'WriteClassStg';
+  function WriteClassStg(pStg:IStorage;const rclsid:TLCID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WriteClassStg';
 
-  function ReadClassStm(pStm:IStream; pclsid:PCLSID):WINOLEAPI;cdecl;external 'ole32.dll' name 'ReadClassStm';
+  function ReadClassStm(pStm:IStream; pclsid:PCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'ReadClassStm';
 
-  function WriteClassStm(pStm:IStream;const rclsid:TLCID):WINOLEAPI;cdecl;external 'ole32.dll' name 'WriteClassStm';
+  function WriteClassStm(pStm:IStream;const rclsid:TLCID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WriteClassStm';
 
-  function WriteFmtUserTypeStg(pstg:IStorage; cf:CLIPFORMAT; lpszUserType:LPOLESTR):WINOLEAPI;cdecl;external 'ole32.dll' name 'WriteFmtUserTypeStg';
+  function WriteFmtUserTypeStg(pstg:IStorage; cf:CLIPFORMAT; lpszUserType:LPOLESTR):WINOLEAPI;stdcall;external 'ole32.dll' name 'WriteFmtUserTypeStg';
 
-  function ReadFmtUserTypeStg(pstg:IStorage; pcf:PCLIPFORMAT;out lplpszUserType:POleStr):WINOLEAPI;cdecl;external 'ole32.dll' name 'ReadFmtUserTypeStg';
+  function ReadFmtUserTypeStg(pstg:IStorage; pcf:PCLIPFORMAT;out lplpszUserType:POleStr):WINOLEAPI;stdcall;external 'ole32.dll' name 'ReadFmtUserTypeStg';
 
   { init/term  }
-  function OleInitialize(pvReserved:LPVOID):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleInitialize';
+  function OleInitialize(pvReserved:LPVOID):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleInitialize';
 
-  procedure OleUninitialize;cdecl;external 'ole32.dll' name 'OleUninitialize';
+  procedure OleUninitialize;stdcall;external 'ole32.dll' name 'OleUninitialize';
 
   { APIs to query whether (Embedded/Linked) object can be created from
      the data object  }
-  function OleQueryLinkFromData(pSrcDataObject:IDataObject):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleQueryLinkFromData';
+  function OleQueryLinkFromData(pSrcDataObject:IDataObject):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleQueryLinkFromData';
 
-  function OleQueryCreateFromData(pSrcDataObject:IDataObject):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleQueryCreateFromData';
+  function OleQueryCreateFromData(pSrcDataObject:IDataObject):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleQueryCreateFromData';
 
   { Object creation APIs  } function OleCreate(const rclsid:TLCID; const riid:TIID;
   renderopt:DWORD; pFormatEtc:LPFORMATETC; pClientSite:IOleClientSite;
-  pStg:IStorage; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name
+  pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name
   'OleCreate';
 
   function OleCreateEx(const rclsid:TLCID; const riid:TIID; dwFlags:DWORD; renderopt:DWORD; cFormats:ULONG;
              rgAdvf:PDWORD; rgFormatEtc:LPFORMATETC; lpAdviseSink:IAdviseSink; rgdwConnection:PDWORD; pClientSite:IOleClientSite;
-             pStg:IStorage; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleCreateEx';
+             pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateEx';
 
   function OleCreateFromData(pSrcDataObj:IDataObject; const riid:TIID; renderopt:DWORD; pFormatEtc:LPFORMATETC; pClientSite:IOleClientSite;
-             pStg:IStorage; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleCreateFromData';
+             pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateFromData';
 
   function OleCreateFromDataEx(pSrcDataObj:IDataObject; const riid:TIID; dwFlags:DWORD; renderopt:DWORD; cFormats:ULONG;
              rgAdvf:PDWORD; rgFormatEtc:LPFORMATETC; lpAdviseSink:IAdviseSink; rgdwConnection:PDWORD; pClientSite:IOleClientSite;
-             pStg:IStorage; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleCreateFromDataEx';
+             pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateFromDataEx';
 
   function OleCreateLinkFromData(pSrcDataObj:IDataObject; const riid:TIID; renderopt:DWORD; pFormatEtc:LPFORMATETC; pClientSite:IOleClientSite;
-             pStg:IStorage; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleCreateLinkFromData';
+             pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateLinkFromData';
 
   function OleCreateLinkFromDataEx(pSrcDataObj:IDataObject; const riid:TIID; dwFlags:DWORD; renderopt:DWORD; cFormats:ULONG;
              rgAdvf:PDWORD; rgFormatEtc:LPFORMATETC; lpAdviseSink:IAdviseSink; rgdwConnection:PDWORD; pClientSite:IOleClientSite;
-             pStg:IStorage; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleCreateLinkFromDataEx';
+             pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateLinkFromDataEx';
 
   function OleCreateStaticFromData(pSrcDataObj:IDataObject; const iid:TIID; renderopt:DWORD; pFormatEtc:LPFORMATETC; pClientSite:IOleClientSite;
-             pStg:IStorage; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleCreateStaticFromData';
+             pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateStaticFromData';
 
   function OleCreateLink(pmkLinkSrc:IMoniker; constriid:TIID; renderopt:DWORD; lpFormatEtc:LPFORMATETC; pClientSite:IOleClientSite;
-             pStg:IStorage; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleCreateLink';
+             pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateLink';
 
   function OleCreateLinkEx(pmkLinkSrc:IMoniker; const riid:TIID; dwFlags:DWORD; renderopt:DWORD; cFormats:ULONG;
              rgAdvf:PDWORD; rgFormatEtc:LPFORMATETC; lpAdviseSink:IAdviseSink; rgdwConnection:PDWORD; pClientSite:IOleClientSite;
-             pStg:IStorage; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleCreateLinkEx';
+             pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateLinkEx';
 
   function OleCreateLinkToFile(lpszFileName:POleStr; const riid:TIID; renderopt:DWORD; lpFormatEtc:LPFORMATETC; pClientSite:IOleClientSite;
-             pStg:IStorage; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleCreateLinkToFile';
+             pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateLinkToFile';
 
   function OleCreateLinkToFileEx(lpszFileName:POleStr; const riid:TIID; dwFlags:DWORD; renderopt:DWORD; cFormats:ULONG;
              rgAdvf:PDWORD; rgFormatEtc:LPFORMATETC; lpAdviseSink:IAdviseSink; rgdwConnection:PDWORD; pClientSite:IOleClientSite;
-             pStg:IStorage; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleCreateLinkToFileEx';
+             pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateLinkToFileEx';
 
   function OleCreateFromFile(const rclsid:TLCID; lpszFileName:POleStr; const riid:TIID; renderopt:DWORD; lpFormatEtc:LPFORMATETC;
-             pClientSite:IOleClientSite; pStg:IStorage; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleCreateFromFile';
+             pClientSite:IOleClientSite; pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateFromFile';
 
   function OleCreateFromFileEx(const rclsid:TLCID; lpszFileName:POleStr; const riid:TIID; dwFlags:DWORD; renderopt:DWORD;
              cFormats:ULONG; rgAdvf:PDWORD; rgFormatEtc:LPFORMATETC; lpAdviseSink:IAdviseSink; rgdwConnection:PDWORD;
-             pClientSite:IOleClientSite; pStg:IStorage; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleCreateFromFileEx';
+             pClientSite:IOleClientSite; pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateFromFileEx';
 
-  function OleLoad(pStg:IStorage; const riid:TIID; pClientSite:IOleClientSite; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleLoad';
+  function OleLoad(pStg:IStorage; const riid:TIID; pClientSite:IOleClientSite; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleLoad';
 
-  function OleSave(pPS:IPersistStorage; pStg:IStorage; fSameAsLoad:BOOL):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleSave';
+  function OleSave(pPS:IPersistStorage; pStg:IStorage; fSameAsLoad:BOOL):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleSave';
 
-  function OleLoadFromStream(pStm:IStream; const iidInterface:TIID; out ppvObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleLoadFromStream';
+  function OleLoadFromStream(pStm:IStream; const iidInterface:TIID; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleLoadFromStream';
 
-  function OleSaveToStream(pPStm:IPersistStream; pStm:IStream):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleSaveToStream';
+  function OleSaveToStream(pPStm:IPersistStream; pStm:IStream):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleSaveToStream';
 
-  function OleSetContainedObject(pUnknown:IUnknown; fContained:BOOL):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleSetContainedObject';
+  function OleSetContainedObject(pUnknown:IUnknown; fContained:BOOL):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleSetContainedObject';
 
-  function OleNoteObjectVisible(pUnknown:IUnknown; fVisible:BOOL):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleNoteObjectVisible';
+  function OleNoteObjectVisible(pUnknown:IUnknown; fVisible:BOOL):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleNoteObjectVisible';
 
   { Drag/Drop APIs  }
-  function RegisterDragDrop(hwnd:HWND; pDropTarget:IDropTarget):WINOLEAPI;cdecl;external 'ole32.dll' name 'RegisterDragDrop';
+  function RegisterDragDrop(hwnd:HWND; pDropTarget:IDropTarget):WINOLEAPI;stdcall;external 'ole32.dll' name 'RegisterDragDrop';
 
-  function RevokeDragDrop(hwnd:HWND):WINOLEAPI;cdecl;external 'ole32.dll' name 'RevokeDragDrop';
+  function RevokeDragDrop(hwnd:HWND):WINOLEAPI;stdcall;external 'ole32.dll' name 'RevokeDragDrop';
 
-  function DoDragDrop(pDataObj:IDataObject; pDropSource:IDropSource; dwOKEffects:DWORD; pdwEffect:LPDWORD):WINOLEAPI;cdecl;external 'ole32.dll' name 'DoDragDrop';
+  function DoDragDrop(pDataObj:IDataObject; pDropSource:IDropSource; dwOKEffects:DWORD; pdwEffect:LPDWORD):WINOLEAPI;stdcall;external 'ole32.dll' name 'DoDragDrop';
 
   { Clipboard APIs  }
-  function OleSetClipboard(pDataObj:IDataObject):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleSetClipboard';
+  function OleSetClipboard(pDataObj:IDataObject):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleSetClipboard';
 
-  function OleGetClipboard(out ppDataObj:IDataObject):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleGetClipboard';
+  function OleGetClipboard(out ppDataObj:IDataObject):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleGetClipboard';
 
-  function OleFlushClipboard:WINOLEAPI;cdecl;external 'ole32.dll' name 'OleFlushClipboard';
+  function OleFlushClipboard:WINOLEAPI;stdcall;external 'ole32.dll' name 'OleFlushClipboard';
 
-  function OleIsCurrentClipboard(pDataObj:IDataObject):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleIsCurrentClipboard';
+  function OleIsCurrentClipboard(pDataObj:IDataObject):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleIsCurrentClipboard';
 
 type
   HOLEMENU = HMenu;
 
   { InPlace Editing APIs  }
-  function OleCreateMenuDescriptor(hmenuCombined:HMENU; lpMenuWidths:LPOLEMENUGROUPWIDTHS):HOLEMENU;cdecl;external 'ole32.dll' name 'OleCreateMenuDescriptor';
+  function OleCreateMenuDescriptor(hmenuCombined:HMENU; lpMenuWidths:LPOLEMENUGROUPWIDTHS):HOLEMENU;stdcall;external 'ole32.dll' name 'OleCreateMenuDescriptor';
 
-  function OleSetMenuDescriptor(holemenu:HOLEMENU; hwndFrame:HWND; hwndActiveObject:HWND; lpFrame:IOleInPlaceFrame; lpActiveObj:IOleInPlaceActiveObject):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleSetMenuDescriptor';
+  function OleSetMenuDescriptor(holemenu:HOLEMENU; hwndFrame:HWND; hwndActiveObject:HWND; lpFrame:IOleInPlaceFrame; lpActiveObj:IOleInPlaceActiveObject):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleSetMenuDescriptor';
 
-  function OleDestroyMenuDescriptor(holemenu:HOLEMENU):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleDestroyMenuDescriptor';
+  function OleDestroyMenuDescriptor(holemenu:HOLEMENU):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleDestroyMenuDescriptor';
 
-  function OleTranslateAccelerator(lpFrame:IOleInPlaceFrame; lpFrameInfo:TOleInPlaceFrameInfo; lpmsg:LPMSG):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleTranslateAccelerator';
+  function OleTranslateAccelerator(lpFrame:IOleInPlaceFrame; lpFrameInfo:TOleInPlaceFrameInfo; lpmsg:LPMSG):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleTranslateAccelerator';
 
   { Helper APIs  }
-  function OleDuplicateData(hSrc:HANDLE; cfFormat:CLIPFORMAT; uiFlags:UINT):HANDLE;cdecl;external 'ole32.dll' name 'OleDuplicateData';
+  function OleDuplicateData(hSrc:HANDLE; cfFormat:CLIPFORMAT; uiFlags:UINT):HANDLE;stdcall;external 'ole32.dll' name 'OleDuplicateData';
 
-  function OleDraw(pUnknown:IUnknown; dwAspect:DWORD; hdcDraw:HDC;const lprcBounds:TRect):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleDraw';
+  function OleDraw(pUnknown:IUnknown; dwAspect:DWORD; hdcDraw:HDC;const lprcBounds:TRect):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleDraw';
 
-  function OleRun(pUnknown:IUnknown):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleRun';
+  function OleRun(pUnknown:IUnknown):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRun';
 
-  function OleIsRunning(pObject:IOleObject):BOOL;cdecl;external 'ole32.dll' name 'OleIsRunning';
+  function OleIsRunning(pObject:IOleObject):BOOL;stdcall;external 'ole32.dll' name 'OleIsRunning';
 
-  function OleLockRunning(pUnknown:IUnknown; fLock:BOOL; fLastUnlockCloses:BOOL):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleLockRunning';
+  function OleLockRunning(pUnknown:IUnknown; fLock:BOOL; fLastUnlockCloses:BOOL):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleLockRunning';
 
-  procedure ReleaseStgMedium(_para1:LPSTGMEDIUM);cdecl;external 'ole32.dll' name 'ReleaseStgMedium';
+  procedure ReleaseStgMedium(_para1:LPSTGMEDIUM);stdcall;external 'ole32.dll' name 'ReleaseStgMedium';
 
-  function CreateOleAdviseHolder(out ppOAHolder:IOleAdviseHolder):WINOLEAPI;cdecl;external 'ole32.dll' name 'CreateOleAdviseHolder';
+  function CreateOleAdviseHolder(out ppOAHolder:IOleAdviseHolder):WINOLEAPI;stdcall;external 'ole32.dll' name 'CreateOleAdviseHolder';
 
-  function OleCreateDefaultHandler(const clsid:TLCID; pUnkOuter:IUnknown; const riid:TIID; out lplpObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleCreateDefaultHandler';
+  function OleCreateDefaultHandler(const clsid:TLCID; pUnkOuter:IUnknown; const riid:TIID; out lplpObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateDefaultHandler';
 
   function OleCreateEmbeddingHelper(const clsid:TLCID; pUnkOuter:IUnknown; flags:DWORD; pCF:IClassFactory; const riid:TIID;
-             out lplpObj):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleCreateEmbeddingHelper';
+             out lplpObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateEmbeddingHelper';
 
-  function IsAccelerator(hAccel:HACCEL; cAccelEntries:longint; lpMsg:LPMSG; lpwCmd:PWORD):BOOL;cdecl;external 'ole32.dll' name 'IsAccelerator';
+  function IsAccelerator(hAccel:HACCEL; cAccelEntries:longint; lpMsg:LPMSG; lpwCmd:PWORD):BOOL;stdcall;external 'ole32.dll' name 'IsAccelerator';
 
   { Icon extraction Helper APIs  }
-  function OleGetIconOfFile(lpszPath:LPOLESTR; fUseFileAsLabel:BOOL):HGLOBAL;cdecl;external 'ole32.dll' name 'OleGetIconOfFile';
+  function OleGetIconOfFile(lpszPath:LPOLESTR; fUseFileAsLabel:BOOL):HGLOBAL;stdcall;external 'ole32.dll' name 'OleGetIconOfFile';
 
-  function OleGetIconOfClass(const rclsid:TLCID; lpszLabel:LPOLESTR; fUseTypeAsLabel:BOOL):HGLOBAL;cdecl;external 'ole32.dll' name 'OleGetIconOfClass';
+  function OleGetIconOfClass(const rclsid:TLCID; lpszLabel:LPOLESTR; fUseTypeAsLabel:BOOL):HGLOBAL;stdcall;external 'ole32.dll' name 'OleGetIconOfClass';
 
-  function OleMetafilePictFromIconAndLabel(hIcon:HICON; lpszLabel:LPOLESTR; lpszSourceFile:LPOLESTR; iIconIndex:UINT):HGLOBAL;cdecl;external 'ole32.dll' name 'OleMetafilePictFromIconAndLabel';
+  function OleMetafilePictFromIconAndLabel(hIcon:HICON; lpszLabel:LPOLESTR; lpszSourceFile:LPOLESTR; iIconIndex:UINT):HGLOBAL;stdcall;external 'ole32.dll' name 'OleMetafilePictFromIconAndLabel';
 
   { Registration Database Helper APIs  }
-  function OleRegGetUserType(const clsid:TLCID; dwFormOfType:DWORD;out pszUserType:POleStr):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleRegGetUserType';
+  function OleRegGetUserType(const clsid:TLCID; dwFormOfType:DWORD;out pszUserType:POleStr):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegGetUserType';
 
-  function OleRegGetMiscStatus(const clsid:TLCID; dwAspect:DWORD; pdwStatus:PDWORD):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleRegGetMiscStatus';
+  function OleRegGetMiscStatus(const clsid:TLCID; dwAspect:DWORD; pdwStatus:PDWORD):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegGetMiscStatus';
 
-  function OleRegEnumFormatEtc(const clsid:TLCID; dwDirection:DWORD;out ppenum:IEnumFormatEtc):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleRegEnumFormatEtc';
+  function OleRegEnumFormatEtc(const clsid:TLCID; dwDirection:DWORD;out ppenum:IEnumFormatEtc):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegEnumFormatEtc';
 
-  function OleRegEnumVerbs(const clsid:TLCID;out ppenum:IEnumOLEVERB):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleRegEnumVerbs';
+  function OleRegEnumVerbs(const clsid:TLCID;out ppenum:IEnumOLEVERB):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRegEnumVerbs';
 
 {$ifdef _MAC}
   { WlmOLE helper APIs  }
 
-  function WlmOleCheckoutMacInterface(pUnk:IUnknown; out ppv):WINOLEAPI;cdecl;external 'ole32.dll' name 'WlmOleCheckoutMacInterface';
+  function WlmOleCheckoutMacInterface(pUnk:IUnknown; out ppv):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleCheckoutMacInterface';
 
-  function WlmOleCheckinMacInterface(pUnk:IUnknown):WINOLEAPI;cdecl;external 'ole32.dll' name 'WlmOleCheckinMacInterface';
+  function WlmOleCheckinMacInterface(pUnk:IUnknown):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleCheckinMacInterface';
 
-  function WlmOleWrapMacInterface(pUnk:IUnknown; const riid:TIID; out ppv):WINOLEAPI;cdecl;external 'ole32.dll' name 'WlmOleWrapMacInterface';
+  function WlmOleWrapMacInterface(pUnk:IUnknown; const riid:TIID; out ppv):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleWrapMacInterface';
 
-  function WlmOleUnwrapMacInterface(pv:LPVOID):WINOLEAPI;cdecl;external 'ole32.dll' name 'WlmOleUnwrapMacInterface';
+  function WlmOleUnwrapMacInterface(pv:LPVOID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleUnwrapMacInterface';
 
-  function WlmOleCheckoutWinInterface(pUnk:LPVOID; ppv:PIUnknown):WINOLEAPI;cdecl;external 'ole32.dll' name 'WlmOleCheckoutWinInterface';
+  function WlmOleCheckoutWinInterface(pUnk:LPVOID; ppv:PIUnknown):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleCheckoutWinInterface';
 
-  function WlmOleCheckinWinInterface(pUnk:LPVOID):WINOLEAPI;cdecl;external 'ole32.dll' name 'WlmOleCheckinWinInterface';
+  function WlmOleCheckinWinInterface(pUnk:LPVOID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleCheckinWinInterface';
 
-  function WlmOleWrapWinInterface(pUnk:LPVOID; const riid:TIID; ppv:PIUnknown):WINOLEAPI;cdecl;external 'ole32.dll' name 'WlmOleWrapWinInterface';
+  function WlmOleWrapWinInterface(pUnk:LPVOID; const riid:TIID; ppv:PIUnknown):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleWrapWinInterface';
 
-  function WlmOleUnwrapWinInterface(pv:LPVOID):WINOLEAPI;cdecl;external 'ole32.dll' name 'WlmOleUnwrapWinInterface';
+  function WlmOleUnwrapWinInterface(pv:LPVOID):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleUnwrapWinInterface';
 
-  procedure WlmOleVersion;cdecl;external 'ole32.dll' name 'WlmOleVersion';
+  procedure WlmOleVersion;stdcall;external 'ole32.dll' name 'WlmOleVersion';
 
-  procedure WlmOleSetInPlaceWindow(hwnd:HWND);cdecl;external 'ole32.dll' name 'WlmOleSetInPlaceWindow';
+  procedure WlmOleSetInPlaceWindow(hwnd:HWND);stdcall;external 'ole32.dll' name 'WlmOleSetInPlaceWindow';
 
   { typedef HRESULT (STDAPICALLTYPE* OLEWRAPPROC) (TIID riid, LPVOID* ppvWin, LPVOID* ppvMac); }
-  function WlmOleRegisterUserWrap(procNew:OLEWRAPPROC; pprocOld:POLEWRAPPROC):WINOLEAPI;cdecl;external 'ole32.dll' name 'WlmOleRegisterUserWrap';
+  function WlmOleRegisterUserWrap(procNew:OLEWRAPPROC; pprocOld:POLEWRAPPROC):WINOLEAPI;stdcall;external 'ole32.dll' name 'WlmOleRegisterUserWrap';
 
 {$endif}
   { OLE 1.0 conversion APIS  }
@@ -3033,29 +3033,29 @@ type
      OLESTREAM = _OLESTREAM;
 (* Const before type ignored *)
 
-  function OleConvertOLESTREAMToIStorage(_lpolestream:LPOLESTREAM; pstg:IStorage; ptd:PDVTARGETDEVICE):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleConvertOLESTREAMToIStorage';
+  function OleConvertOLESTREAMToIStorage(_lpolestream:LPOLESTREAM; pstg:IStorage; ptd:PDVTARGETDEVICE):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleConvertOLESTREAMToIStorage';
 
-  function OleConvertIStorageToOLESTREAM(pstg:IStorage; lpolestream:LPOLESTREAM):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleConvertIStorageToOLESTREAM';
+  function OleConvertIStorageToOLESTREAM(pstg:IStorage; lpolestream:LPOLESTREAM):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleConvertIStorageToOLESTREAM';
 
   { Storage Utility APIs  }
-  function GetHGlobalFromILockBytes(plkbyt:ILockBytes;out phglobal:HGLOBAL):WINOLEAPI;cdecl;external 'ole32.dll' name 'GetHGlobalFromILockBytes';
+  function GetHGlobalFromILockBytes(plkbyt:ILockBytes;out phglobal:HGLOBAL):WINOLEAPI;stdcall;external 'ole32.dll' name 'GetHGlobalFromILockBytes';
 
-  function CreateILockBytesOnHGlobal(hGlobal:HGLOBAL; fDeleteOnRelease:BOOL;out pplkbyt:ILockBytes):WINOLEAPI;cdecl;external 'ole32.dll' name 'CreateILockBytesOnHGlobal';
+  function CreateILockBytesOnHGlobal(hGlobal:HGLOBAL; fDeleteOnRelease:BOOL;out pplkbyt:ILockBytes):WINOLEAPI;stdcall;external 'ole32.dll' name 'CreateILockBytesOnHGlobal';
 
-  function GetHGlobalFromStream(pstm:IStream;out phglobal:HGLOBAL):WINOLEAPI;cdecl;external 'ole32.dll' name 'GetHGlobalFromStream';
+  function GetHGlobalFromStream(pstm:IStream;out phglobal:HGLOBAL):WINOLEAPI;stdcall;external 'ole32.dll' name 'GetHGlobalFromStream';
 
-  function CreateStreamOnHGlobal(hGlobal:HGLOBAL; fDeleteOnRelease:BOOL;out stm:IStream):WINOLEAPI;cdecl;external 'ole32.dll' name 'CreateStreamOnHGlobal';
+  function CreateStreamOnHGlobal(hGlobal:HGLOBAL; fDeleteOnRelease:BOOL;out stm:IStream):WINOLEAPI;stdcall;external 'ole32.dll' name 'CreateStreamOnHGlobal';
 
   { ConvertTo APIS  }
-  function OleDoAutoConvert(pStg:IStorage; pClsidNew:LPCLSID):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleDoAutoConvert';
+  function OleDoAutoConvert(pStg:IStorage; pClsidNew:LPCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleDoAutoConvert';
 
-  function OleGetAutoConvert(const clsidOld:TLCID; pClsidNew:LPCLSID):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleGetAutoConvert';
+  function OleGetAutoConvert(const clsidOld:TLCID; pClsidNew:LPCLSID):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleGetAutoConvert';
 
-  function OleSetAutoConvert(const clsidOld:TLCID; clsidNew:TLCID):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleSetAutoConvert';
+  function OleSetAutoConvert(const clsidOld:TLCID; clsidNew:TLCID):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleSetAutoConvert';
 
-  function GetConvertStg(pStg:IStorage):WINOLEAPI;cdecl;external 'ole32.dll' name 'GetConvertStg';
+  function GetConvertStg(pStg:IStorage):WINOLEAPI;stdcall;external 'ole32.dll' name 'GetConvertStg';
 
-  function SetConvertStg(pStg:IStorage; fConvert:BOOL):WINOLEAPI;cdecl;external 'ole32.dll' name 'SetConvertStg';
+  function SetConvertStg(pStg:IStorage; fConvert:BOOL):WINOLEAPI;stdcall;external 'ole32.dll' name 'SetConvertStg';
 
   { Presentation data to OLESTREAM }
   {      format }
@@ -3064,7 +3064,7 @@ type
   {      size bytes }
   {      bits }
   function OleConvertIStorageToOLESTREAMEx(pstg:IStorage; cfFormat:CLIPFORMAT; lWidth:LONG; lHeight:LONG; dwSize:DWORD;
-             pmedium:LPSTGMEDIUM; polestm:LPOLESTREAM):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleConvertIStorageToOLESTREAMEx';
+             pmedium:LPSTGMEDIUM; polestm:LPOLESTREAM):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleConvertIStorageToOLESTREAMEx';
 
   { Presentation data from OLESTREAM }
   {      format }
@@ -3072,7 +3072,7 @@ type
   {      height }
   {      size bytes }
   function OleConvertOLESTREAMToIStorageEx(polestm:LPOLESTREAM; pstg:IStorage; pcfFormat:PCLIPFORMAT; plwWidth:PLONG; plHeight:PLONG;
-             pdwSize:PDWORD; pmedium:LPSTGMEDIUM):WINOLEAPI;cdecl;external 'ole32.dll' name 'OleConvertOLESTREAMToIStorageEx';
+             pdwSize:PDWORD; pmedium:LPSTGMEDIUM):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleConvertOLESTREAMToIStorageEx';
 
 
 const
