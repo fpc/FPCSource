@@ -527,6 +527,8 @@ function ifthen(val:boolean;const iftrue:String ; const iffalse:String ='') :Str
 
 function CompareValue ( const A, B  : Integer) : TValueRelationship; inline;
 function CompareValue ( const A, B  : Int64) : TValueRelationship; inline;
+function CompareValue ( const A, B  : QWord) : TValueRelationship; inline;
+
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function CompareValue ( const A, B : Single; delta : Single = 0.0 ) : TValueRelationship; inline;
 {$endif}
@@ -2293,6 +2295,17 @@ begin
 end;
 
 function CompareValue ( const A, B  : Int64) : TValueRelationship;
+
+begin
+  result:=GreaterThanValue;
+  if a=b then
+    result:=EqualsValue
+  else
+   if a<b then
+     result:=LessThanValue;
+end;
+
+function CompareValue ( const A, B : QWord) : TValueRelationship;
 
 begin
   result:=GreaterThanValue;
