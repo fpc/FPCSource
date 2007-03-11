@@ -1,6 +1,12 @@
 program concurrencyds;
+
 {$Mode ObjFpc}
+{$H+}
 {$define DEBUGHEAP}
+
+//To test the sqlite3 version replace sqliteds by sqlite3ds
+//  and TSqliteDataset by TSqlite3Dataset
+
 uses
 {$ifdef DEBUGHEAP}
   Heaptrc,
@@ -8,38 +14,52 @@ uses
 {$ifdef Linux}
   cmem,
 {$endif}
-  crt,sysutils,SqliteDS;
+  sysutils,sqliteds, inifiles;
+  
+const
+  SQLITEDS_TESTS_INI_FILE = 'sqlitedstests.ini';
+  DEFAULT_TABLENAME = 'tabletest';
+  DEFAULT_FILENAME = 'test.db';
+
+  FieldNames: array [0..10] of String =
+  (
+  'Integer',
+  'String',
+  'Boolean',
+  'Float',
+  'Word',
+  'Date',
+  'DateTime',
+  'Time',
+  'LargeInt',
+  'AutoInc',
+  'Currency'  
+  );
 
 var
-  dsOne,dsTwo:TSQliteDataset;
+  dsArray: array [0..10] of TSqliteDataset;
+  ini:TIniFile;
+  i: Integer;
 
 begin
   {$ifdef DEBUGHEAP}
-  SetHeapTraceOutput('heaplog.txt');
+  SetHeapTraceOutput(ExtractFileName(ParamStr(0))+'.heap.log');
   {$endif}
-  dsOne:=TsqliteDataset.Create(nil);
-  dsTwo:=TsqliteDataset.Create(nil);
-  dsOne.FileName:='New.db';
-  dsTwo.FileName:='New.db';
-  dsOne.TableName:='NewTable';
-  dsTwo.TableName:='NewTable';
-  dsOne.Sql:= 'SELECT Code FROM NewTable';
-  dsTwo.Sql:= 'SELECT Name FROM NewTable';
-  dsOne.Open;
-  dsTwo.Open;
-  writeln('Sqlite Return after opening dsTwo: ',dsTwo.SqliteReturnString);
-  dsOne.First;
-  dsTwo.First;
-  WriteLn('Code: ',dsOne.FieldByName('Code').AsInteger);
-  WriteLn('Name: ',dsTwo.FieldByName('Name').AsString);
-  dsOne.Next;
-  dsTwo.Next;
-  WriteLn('Code: ',dsOne.FieldByName('Code').AsInteger);
-  WriteLn('Name: ',dsTwo.FieldByName('Name').AsString);
-  dsOne.Close;
-  dsTwo.Close;
-  dsOne.Destroy;
-  dsTwo.Destroy;
-  Readkey;
-  exit;
+  ini:=TIniFile.Create(SQLITEDS_TESTS_INI_FILE);
+  for i:= 0 to 10 do
+  begin
+    dsArray[i] := TSqliteDataset.Create(nil);
+    with dsArray[i] do
+    begin
+      FileName:=ini.ReadString('testinfo','filename',DEFAULT_FILENAME);
+      TableName:=ini.ReadString('testinfo','tablename',DEFAULT_TABLENAME);
+      //Each dataset will retrieve only one field of the same table
+      Sql:='Select '+FieldNames[i]+ ' from '+ TableName;
+      Open;
+      WriteLn('Value of Field ',FieldNames[i],' : ',FieldByName(FieldNames[i]).AsString);
+    end;
+  end;
+  ini.Destroy;
+  for i:= 0 to 10 do
+    dsArray[i].Destroy;
 end.
