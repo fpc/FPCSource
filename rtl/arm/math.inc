@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-{$ifndef WINCE}
+{$if defined(FPUFPA) or defined(FPUFPA10) or defined(FPUFPA11)}
     {$define FPC_SYSTEM_HAS_ABS}
     function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
     begin
@@ -36,6 +36,7 @@
       runerror(207);
       result:=0;
     end;
+{$endif}
     (* atn isn't supported by the linux fpe it seems
     {$define FPC_SYSTEM_HAS_ARCTAN}
     function fpc_arctan_real(d : extended) : extended;compilerproc;
@@ -72,4 +73,3 @@
       result:=0;
     end;
     *)
-{$endif WINCE}
