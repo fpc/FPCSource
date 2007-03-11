@@ -9,6 +9,8 @@ program tb0532;
   - Reset doesn't allow writing to the device.
 }
 
+{$I+}
+
 var null:text;
 
 begin
