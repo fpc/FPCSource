@@ -705,10 +705,10 @@ implementation
               longint([
 {$endif USE_PACKSET1}
                 TCompilerIntfFlag(ord(ifHasGuid)*ord(assigned(def.iidguid))),
-                TCompilerIntfFlag(ord(ifHasStrGUID)*ord(assigned(def.iidstr)))
+                TCompilerIntfFlag(ord(ifHasStrGUID)*ord(assigned(def.iidstr))),
+                TCompilerIntfFlag(ord(ifDispInterface)*ord(def.objecttype=odt_dispinterface))
               ])
               {
-              ifDispInterface,
               ifDispatch, }
               ));
 {$ifdef cpurequiresproperalignment}
@@ -751,6 +751,7 @@ implementation
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkclass));
              odt_object:
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkobject));
+             odt_dispinterface,
              odt_interfacecom:
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkinterface));
              odt_interfacecorba:
