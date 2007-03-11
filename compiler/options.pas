@@ -2059,7 +2059,6 @@ begin
 {$endif}
 {$ifdef arm}
   def_system_macro('CPUARM');
-  def_system_macro('FPUFPA');
   def_system_macro('CPU32');
   def_system_macro('FPC_HAS_TYPE_DOUBLE');
   def_system_macro('FPC_HAS_TYPE_SINGLE');
@@ -2159,6 +2158,8 @@ begin
 
   { CPU Define }
   def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
+
+  def_system_macro('FPU'+fputypestr[init_settings.fputype]);
 { Check file to compile }
   if param_file='' then
    begin

@@ -383,10 +383,10 @@ implementation
     procedure dir_fputype;
       begin
         current_scanner.skipspace;
-        { current_scanner.undef_macro('FPU'+fputypestr[current_settings.fputype]); }
+        undef_system_macro('FPU'+fputypestr[current_settings.fputype]);
         if not(SetFPUType(upper(current_scanner.readcomment),current_settings.fputype)) then
           comment(V_Error,'Illegal FPU type');
-        { current_scanner.def_macro('FPU'+fputypestr[current_settings.fputype]); }
+        def_system_macro('FPU'+fputypestr[current_settings.fputype]);
      end;
 
     procedure dir_goto;
