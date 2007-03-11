@@ -482,9 +482,9 @@ end;
 function InterLockedCompareExchange(var Target: longint; NewValue, Comperand : longint): longint; assembler;
 asm
 {$ifdef win64}
-        movl            %edx,%eax
+        movl            %r8d,%eax
         lock
-        cmpxchgl        %r8d,(%rcx)
+        cmpxchgl        %edx,(%rcx)
 {$else win64}
         movl            %edx,%eax
         lock
@@ -554,9 +554,9 @@ end;
 function InterLockedCompareExchange64(var Target: int64; NewValue, Comperand : int64): int64; assembler;
 asm
 {$ifdef win64}
-        movq            %rdx,%rax
+        movq            %r8,%rax
         lock
-        cmpxchgq        %r8d,(%rcx)
+        cmpxchgq        %rdx,(%rcx)
 {$else win64}
         movq            %rdx,%rax
         lock
