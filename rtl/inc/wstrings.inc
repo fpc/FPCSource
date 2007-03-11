@@ -238,11 +238,11 @@ Procedure fpc_WideStr_Incr_Ref(Var S : Pointer);[Public,Alias:'FPC_WIDESTR_INCR_
       exit;
 {$ifdef FPC_WINLIKEWIDESTRING}
     p:=NewWidestring(length(WideString(S)));
-    move(s^,p^,length(WideString(s)+1)*sizeof(widechar)); // double nul also
+    move(s^,p^,(length(WideString(s))+1)*sizeof(widechar)); // double #0 too
     s:=p;
 {$else FPC_WINLIKEWIDESTRING}
     { Let's be paranoid : Constant string ??}
-    If PWideRec(S-WideFirstOff)^.Ref<0 then 
+    If PWideRec(S-WideFirstOff)^.Ref<0 then
       exit;
     inclocked(PWideRec(S-WideFirstOff)^.Ref);
 {$endif FPC_WINLIKEWIDESTRING}
@@ -378,7 +378,7 @@ begin
   if S2<>nil then
     begin
       S1:=NewWidestring(length(WideString(S2)));
-      move(s2^,s1^,length(WideString(s1))*sizeof(widechar));
+      move(s2^,s1^,(length(WideString(s1))+1)*sizeof(widechar));
     end
   else
     S1:=nil;
