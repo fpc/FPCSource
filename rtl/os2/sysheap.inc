@@ -69,47 +69,20 @@ begin
    WriteLn ('Trying to grow heap by ', Size, ' to ', Int_HeapSize);
 {$ENDIF}
 
-  if UseHighMem then
-   RC := DosAllocMem (P, Size, $403)
-  else
-   RC := DosAllocMem (P, Size, 3);
+  RC := DosAllocMem (P, Size, HeapAllocFlags);
   if RC = 0 then
    begin
 {$IFDEF EXTDUMPGROW}
-  if Int_HeapSize <> high (cardinal) then
-    WriteLn ('DosAllocMem returned memory at ', cardinal (P));
+    if Int_HeapSize <> high (cardinal) then
+     WriteLn ('DosAllocMem returned memory at ', cardinal (P));
 {$ENDIF}
-    RC := DosSetMem (P, Size, $410);
-    if RC = 0 then
-     begin
+    SysOSAlloc := P;
 {$IFDEF EXTDUMPGROW}
-      if Int_HeapSize <> high (cardinal) then
-       WriteLn ('New heap at ', cardinal (P));
-{$ENDIF EXTDUMPGROW}
-      SysOSAlloc := P;
-{$IFDEF EXTDUMPGROW}
-      if Int_HeapSize = high (cardinal) then
-       Int_HeapSize := Size
-      else
-       Inc (Int_HeapSize, Size);
-{$ENDIF EXTDUMPGROW}
-     end
+    if Int_HeapSize = high (cardinal) then
+     Int_HeapSize := Size
     else
-     begin
-{$IFDEF EXTDUMPGROW}
-      if Int_HeapSize <> high (cardinal) then
-       begin
-        WriteLn ('Error ', RC, ' in DosSetMem while trying to commit memory!');
-{      if Int_HeapSize = high (cardinal) then
-        WriteLn ('No allocated memory comitted yet!')
-       else
-}
-        WriteLn ('Total allocated memory is ', Int_HeapSize);
-       end;
+     Inc (Int_HeapSize, Size);
 {$ENDIF EXTDUMPGROW}
-      RC := DosFreeMem (P);
-      SysOSAlloc := nil;
-     end;
    end
   else
    begin
@@ -131,34 +104,38 @@ end;
 {$define HAS_SYSOSFREE}
 
 procedure SysOSFree (P: pointer; Size: PtrInt);
+{$IFDEF EXTDUMPGROW}
 var
   RC: cardinal;
+{$ENDIF EXTDUMPGROW}
 begin
 {$IFDEF EXTDUMPGROW}
   WriteLn ('Trying to free memory!');
   WriteLn ('Total allocated memory is ', Int_HeapSize);
   Dec (Int_HeapSize, Size);
+  RC :=
 {$ENDIF EXTDUMPGROW}
-  RC := DosSetMem (P, Size, $20);
-  if RC = 0 then
-   begin
-    RC := DosFreeMem (P);
+        DosFreeMem (P);
 {$IFDEF EXTDUMPGROW}
-    if RC <> 0 then
-     begin
-      WriteLn ('Error ', RC, ' during memory deallocation (DosFreeMem)!');
-      WriteLn ('Total allocated memory is ', Int_HeapSize);
-     end;
-{$ENDIF EXTDUMPGROW}
-   end
-{$IFDEF EXTDUMPGROW}
-  else
+  if RC <> 0 then
    begin
-    WriteLn ('Error ', RC, ' in DosSetMem while trying to decommit memory!');
+    WriteLn ('Error ', RC, ' during memory deallocation (DosFreeMem)!');
     WriteLn ('Total allocated memory is ', Int_HeapSize);
    end;
 {$ENDIF EXTDUMPGROW}
 end;
 
 
+function ReadUseHighMem: boolean;
+begin
+ ReadUseHighMem := HeapAllocFlags and $400 = $400;
+end;
 
+
+procedure WriteUseHighMem (B: boolean);
+begin
+ if B then
+  HeapAllocFlags := HeapAllocFlags or $400
+ else
+  HeapAllocFlags := HeapAllocFlags and not ($400);
+end;
