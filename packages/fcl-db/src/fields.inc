@@ -336,11 +336,7 @@ begin
       vtWideString:
         AsString := WideString(VWideString);
       vtInt64:
-{$ifdef fpc}
         Self.Value := VInt64^;
-{$else}
-        Self.Value := Integer(VInt64^);// Definitely wrong result !! MVC.
-{$endif}        
     else
       Error;
     end;
@@ -1313,11 +1309,7 @@ Var L : Largeint;
 
 begin
   If GetValue(L) then
-{$ifdef fpc}
     Result:=L
-{$else}
-    Result:=Integer(L); // Wrong result MVC.
-{$endif}    
   else
     Result:=Null;
 end;
@@ -1416,11 +1408,7 @@ end;
 
 procedure TLargeintField.SetVarValue(const AValue: Variant);
 begin
-{$ifdef fpc}
   SetAsLargeint(AValue);
-{$else}
-  SetAsLargeint(Integer(AValue));
-{$endif}
 end;
 
 Function TLargeintField.CheckRange(AValue : largeint) : Boolean;

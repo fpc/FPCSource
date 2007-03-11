@@ -16,28 +16,13 @@
  **********************************************************************}
 unit db;
 
-{$ifdef fpc}
 {$mode objfpc}
-{$endif}
 
 {$h+}
 
 interface
 
-uses Classes,Sysutils
-{$ifdef fpc}
-,Variants
-{$endif}
-// For compilation with Delphi. (Morfik)
-{$ifdef bpc}
-{$ifndef VER100} //d3
-{$ifndef VER120} //d4
-{$ifndef VER130} //d5
-,Variants
-{$endif VER120}
-{$endif VER130}
-{$endif VER100}
-{$endif};
+uses Classes,Sysutils,Variants;
 
 const
 
@@ -197,7 +182,7 @@ type
     procedure SetRequired(const AValue: Boolean);
   public
     constructor Create(AOwner: TFieldDefs; const AName: string;
-      ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint); {$ifdef fpc}overload;{$else}reintroduce;{$endif}
+      ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint); overload;
     destructor Destroy; override;
     procedure Assign(APersistent: TPersistent); override;
     function CreateField(AOwner: TComponent): TField;
@@ -226,10 +211,10 @@ type
     procedure Add(const AName: string; ADataType: TFieldType; ASize: Word); overload;
     procedure Add(const AName: string; ADataType: TFieldType); overload;
     Function AddFieldDef : TFieldDef;
-    procedure Assign(FieldDefs: TFieldDefs); {$ifdef fpc}overload;{$else}reintroduce;{$endif}
+    procedure Assign(FieldDefs: TFieldDefs); overload;
 //    procedure Clear;
 //    procedure Delete(Index: Longint);
-    procedure Update; {$ifdef fpc}overload;{$else}reintroduce;{$endif}
+    procedure Update; overload;
     Property HiddenFields : Boolean Read FHiddenFields Write FHiddenFields;
     property Items[Index: Longint]: TFieldDef read GetItem write SetItem; default;
   end;
@@ -857,12 +842,11 @@ type
     destructor Destroy; override;
     procedure Add(const Name, Fields: string; Options: TIndexOptions);
     Function AddIndexDef: TIndexDef;
-//    procedure Clear;
     function Find(const IndexName: string): TIndexDef;
     function FindIndexForFields(const Fields: string): TIndexDef;
     function GetIndexForFields(const Fields: string;
       CaseInsensitive: Boolean): TIndexDef;
-    procedure Update; {$ifdef fpc}overload;{$else}reintroduce;{$endif}
+    procedure Update; overload;
     Property Items[Index: Integer] : TIndexDef read GetItem write SetItem; default;
   end;
 
@@ -974,12 +958,7 @@ type
     var Accept: Boolean) of object;
 
   TDatasetClass = Class of TDataset;
-{$ifdef fpc}
   TBufferArray = ^pchar;
-{$else}
-  TTBufferArray = array[0..MaxInt div sizeof(pchar) - 1] of pchar;
-  TBufferArray = ^TTBufferArray;
-{$endif}  
 
   TDataSet = class(TComponent)
   Private
@@ -1848,12 +1827,6 @@ uses dbconst,typinfo, fmtbcd;
 { ---------------------------------------------------------------------
     Auxiliary functions
   ---------------------------------------------------------------------}
-{$ifndef fpc}
-Function VarIsClear(const V: Variant): Boolean;
-begin
-  Result:=VarIsEmpty(V);
-end;
-{$endif}
 
 Procedure DatabaseError (Const Msg : String);
 
