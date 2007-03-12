@@ -20,8 +20,6 @@
 const
   cpu_has_edsp : boolean = false;
   in_edsp_test : boolean = false;
-var
-  moveproc : pointer;
 
 procedure fpc_cpuinit;
 begin
@@ -277,6 +275,9 @@ asm
   mov pc,lr
 end;
 
+
+const
+  moveproc : pointer = @move_blended;
 
 procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
 asm
