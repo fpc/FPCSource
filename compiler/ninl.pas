@@ -1419,9 +1419,9 @@ implementation
                  (index.left.nodetype = ordconstn) and
                  not is_special_array(unpackedarraydef) then
                 begin
-                  testrange(unpackedarraydef,tordconstnode(index.left).value,false);
+                  testrange(index.left.resultdef,unpackedarraydef,tordconstnode(index.left).value,false);
                   tempindex := tordconstnode(index.left).value + packedarraydef.highrange-packedarraydef.lowrange;
-                  testrange(unpackedarraydef,tempindex,false);
+                  testrange(index.left.resultdef,unpackedarraydef,tempindex,false);
                 end;
             end;
 

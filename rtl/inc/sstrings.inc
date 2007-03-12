@@ -879,7 +879,7 @@ end;
 
   Function fpc_val_int64_shortstr(Const S: ShortString; out Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR']; compilerproc;
 
-  var  u, temp, prev : qword;
+  var  u, temp, prev, maxprevvalue, maxnewvalue : qword;
        base : byte;
        negative : boolean;
 
@@ -892,6 +892,11 @@ end;
     Code:=InitVal(s,negative,base);
     if Code>length(s) then
      exit;
+    maxprevvalue := maxqword div base;
+    if (base = 10) then
+      maxnewvalue := maxint64 + ord(negative)
+    else
+      maxnewvalue := maxqword;
 
     while Code<=Length(s) do
      begin
@@ -904,13 +909,10 @@ end;
         u:=16;
        end;
        Prev:=Temp;
-       Temp:=Temp*Int64(base);
+       Temp:=Temp*qword(base);
      If (u >= base) or
-        ((base = 10) and
-         (maxint64-temp+ord(negative) < u)) or
-        ((base <> 10) and
-         (qword(maxqword-temp) < u)) or
-        (prev > maxqword div qword(base)) Then
+        (qword(maxnewvalue-u) < temp) or
+        (prev > maxprevvalue) Then
        Begin
          fpc_val_int64_shortstr := 0;
          Exit

@@ -1830,10 +1830,10 @@ implementation
                       not(convtype=tc_char_2_char) then
                 begin
                    { replace the resultdef and recheck the range }
-                   left.resultdef:=resultdef;
                    if ([nf_explicit,nf_internal] * flags <> []) then
                      include(left.flags, nf_explicit);
-                   testrange(left.resultdef,tordconstnode(left).value,(nf_explicit in flags));
+                   testrange(left.resultdef,resultdef,tordconstnode(left).value,(nf_explicit in flags));
+                   left.resultdef:=resultdef;
                    result:=left;
                    left:=nil;
                    exit;

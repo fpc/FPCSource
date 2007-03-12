@@ -233,7 +233,7 @@ implementation
                 begin
                    if is_constintnode(n) then
                      begin
-                       testrange(def,tordconstnode(n).value,false);
+                       testrange(n.resultdef,def,tordconstnode(n).value,false);
                        case def.size of
                          1 :
                            list.concat(Tai_const.Create_8bit(byte(tordconstnode(n).value)));

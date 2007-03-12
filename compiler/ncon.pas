@@ -623,7 +623,7 @@ implementation
         resultdef:=typedef;
         { only do range checking when explicitly asked for it }
         if rangecheck then
-           testrange(resultdef,value,false);
+           testrange(resultdef,resultdef,value,false);
       end;
 
     function tordconstnode.pass_1 : tnode;

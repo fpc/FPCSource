@@ -198,10 +198,10 @@ interface
     {# Returns true, if def is a 64 bit type }
     function is_64bit(def : tdef) : boolean;
 
-    {# If @var(l) isn't in the range of def a range check error (if not explicit) is generated and
+    {# If @var(l) isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range
     }
-    procedure testrange(def : tdef;var l : tconstexprint;explicit:boolean);
+    procedure testrange(fromdef, todef : tdef;var l : tconstexprint;explicit:boolean);
 
     {# Returns the range of def, where @var(l) is the low-range and @var(h) is
       the high-range.
@@ -693,9 +693,9 @@ implementation
       end;
 
 
-    { if l isn't in the range of def a range check error (if not explicit) is generated and
+    { if l isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range }
-    procedure testrange(def : tdef;var l : tconstexprint;explicit:boolean);
+    procedure testrange(fromdef, todef : tdef;var l : tconstexprint;explicit:boolean);
       var
          lv,hv: TConstExprInt;
          error: boolean;
@@ -703,9 +703,14 @@ implementation
          error := false;
          { for 64 bit types we need only to check if it is less than }
          { zero, if def is a qword node                              }
-         if is_64bitint(def) then
+         if is_64bitint(todef) then
            begin
-              if (l<0) and (torddef(def).ordtype=u64bit) then
+              if (l<0) and
+                 (torddef(todef).ordtype=u64bit) and
+                 { since tconstexprint is an int64, values > high(int64) will }
+                 { always be stored as negative numbers                       }
+                 (not is_64bitint(fromdef) or
+                  (torddef(fromdef).ordtype<>u64bit)) then
                 begin
                    { don't zero the result, because it may come from hex notation
                      like $ffffffffffffffff! (JM)
@@ -722,12 +727,12 @@ implementation
            end
          else
            begin
-              getrange(def,lv,hv);
+              getrange(todef,lv,hv);
               if (l<lv) or (l>hv) then
                 begin
                    if not explicit then
                     begin
-                      if ((def.typ=enumdef) and
+                      if ((todef.typ=enumdef) and
                           { delphi allows range check errors in
                            enumeration type casts FK }
                           not(m_delphi in current_settings.modeswitches)) or
@@ -742,16 +747,16 @@ implementation
          if error then
           begin
              { Fix the value to fit in the allocated space for this type of variable }
-             case longint(def.size) of
+             case longint(todef.size) of
                1: l := l and $ff;
                2: l := l and $ffff;
                { work around sign extension bug (to be fixed) (JM) }
                4: l := l and (int64($fffffff) shl 4 + $f);
              end;
              { do sign extension if necessary (JM) }
-             if is_signed(def) then
+             if is_signed(todef) then
               begin
-                case longint(def.size) of
+                case longint(todef.size) of
                   1: l := shortint(l);
                   2: l := smallint(l);
                   4: l := longint(l);
