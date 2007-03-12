@@ -737,6 +737,7 @@ implementation
         temp:Ttempcreatenode;
 
     begin
+      found_error:=false;
       para:=Tcallparanode(params);
       do_read:=inlinenumber in [in_read_x,in_readln_x];
       { add the typesize to the filepara }
