@@ -44,7 +44,9 @@ unit optcse;
 
     const
       cseinvariant : set of tnodetype = [loadn,addn,muln,subn,divn,slashn,modn,andn,orn,xorn,notn,vecn,
-        derefn,equaln,unequaln,ltn,gtn,lten,gten,typeconvn,subscriptn];
+        derefn,equaln,unequaln,ltn,gtn,lten,gten,typeconvn,subscriptn,
+        inn,symdifn,shrn,shln,ordconstn,realconstn,unaryminusn,pointerconstn,stringconstn,setconstn,
+        isn,asn,starstarn,nothingn];
 
     function searchsubdomain(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
