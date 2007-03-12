@@ -524,7 +524,8 @@ unit i_linux;
             system       : system_arm_Linux;
             name         : 'Linux for ARM';
             shortname    : 'Linux';
-            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_requires_proper_alignment];
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_use_function_relative_addresses,tf_requires_proper_alignment,tf_smartlink_sections];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
