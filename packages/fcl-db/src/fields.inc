@@ -1052,20 +1052,26 @@ end;
 
 procedure TStringField.SetAsString(const AValue: string);
 
-Const NullByte : char = #0;
-
 var Buf      : TStringFieldBuffer;
 
 begin
   IF Length(AValue)=0 then
-    SetData(@NullByte)
+    begin
+    Buf := #0;
+    SetData(@buf);
+    end
   else if FTransliterate then
     begin
     DataSet.Translate(@AValue[1],Buf,True);
     SetData(@buf);
     end
   else
-    SetData(@AValue[1]);
+    begin
+    // The data is copied into the buffer, since some TDataset descendents copy
+    // the whole buffer-length in SetData. (See bug 8477)
+    Buf := AValue;
+    SetData(@Buf);
+    end;
 end;
 
 procedure TStringField.SetVarValue(const AValue: Variant);
