@@ -371,7 +371,14 @@ begin
 {$endif cpuarm}
   if add_tail then
     inc(allocsize,sizeof(ptrint));
+  { if ReturnNilIfGrowHeapFails is true
+    SysGetMem can return nil }
   p:=SysGetMem(allocsize);
+  if (p=nil) then
+    begin
+      TraceGetMem:=nil;
+      exit;
+    end;
   pp:=pheap_mem_info(p);
   inc(p,sizeof(theap_mem_info));
 { Create the info block }
