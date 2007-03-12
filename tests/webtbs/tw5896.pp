@@ -1,4 +1,4 @@
-{ $mode delphi}
+{$mode delphi}
 type
   tc1 = class
     procedure p;virtual;abstract;
