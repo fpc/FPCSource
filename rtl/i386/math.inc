@@ -34,7 +34,7 @@
         fnstcw (%esp)
         popl %eax
       end;
-      
+
 
     procedure SetSSECSR(w : dword);
       var
@@ -45,8 +45,8 @@
           ldmxcsr _w
         end;
       end;
-    
-    
+
+
     function GetSSECSR : dword;
       var
         _w : dword;
@@ -191,31 +191,27 @@
       end;
 
 
-
     {$define FPC_SYSTEM_HAS_TRUNC}
     function fpc_trunc_real(d : ValReal) : int64;assembler;compilerproc;
-      var
-        oldcw,
-        newcw : word;
-        res   : int64;
       asm
-        fnstcw oldcw
-        fwait
-        movw oldcw,%cx
-        orw $0x0f00,%cx
-        movw %cx,newcw
-        fldcw newcw
+        subl $12,%esp
         fldt d
-        fistpq res
+        fnstcw (%esp)
+        movw (%esp),%cx
+        orw $0x0f00,(%esp)
+        fldcw (%esp)
+        movw %cx,(%esp)
+        fistpq 4(%esp)
+        fldcw (%esp)
         fwait
-        movl res,%eax
-        movl res+4,%edx
-        fldcw oldcw
+        movl 4(%esp),%eax
+        movl 8(%esp),%edx
       end;
 
 
     {$define FPC_SYSTEM_HAS_ROUND}
-    function fpc_round_real(d : ValReal) : int64;assembler;compilerproc;
+    { keep for bootstrapping with 2.0.x }
+    function fpc_round_real(d : ValReal) : int64;compilerproc;assembler;
       var
         res   : int64;
       asm
@@ -225,7 +221,7 @@
         movl res,%eax
         movl res+4,%edx
       end;
-
+    
 
     {$define FPC_SYSTEM_HAS_POWER}
    function power(bas,expo : ValReal) : ValReal;

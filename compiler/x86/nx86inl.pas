@@ -42,16 +42,20 @@ interface
           function first_ln_real: tnode; override;
           function first_cos_real: tnode; override;
           function first_sin_real: tnode; override;
+          function first_round_real: tnode; override;
+          function first_trunc_real: tnode; override;
           { second pass override to generate these nodes }
           procedure second_IncludeExclude;override;
           procedure second_pi; override;
           procedure second_arctan_real; override;
           procedure second_abs_real; override;
+          procedure second_round_real; override;
           procedure second_sqr_real; override;
           procedure second_sqrt_real; override;
           procedure second_ln_real; override;
           procedure second_cos_real; override;
           procedure second_sin_real; override;
+          procedure second_trunc_real; override;
 
           procedure second_prefetch;override;
        private
@@ -62,7 +66,7 @@ implementation
 
     uses
       systems,
-      globals,
+      globtype,globals,
       cutils,verbose,
       symconst,
       defutil,
@@ -71,6 +75,7 @@ implementation
       cgbase,pass_2,
       cpuinfo,cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,ncgutil,
+      tgobj,
       cga,cgutils,cgx86,cgobj;
 
 
@@ -172,6 +177,35 @@ implementation
       end;
 
 
+     function tx86inlinenode.first_round_real : tnode;
+      begin
+        expectloc:=LOC_FPUREGISTER;
+        registersint:=left.registersint;
+        registersfpu:=max(left.registersfpu,1);
+{$ifdef SUPPORT_MMX}
+        registersmmx:=left.registersmmx;
+{$endif SUPPORT_MMX}
+        result:=nil;
+      end;
+
+
+     function tx86inlinenode.first_trunc_real: tnode;
+       begin
+         if cs_opt_size in current_settings.optimizerswitches then
+           result:=inherited
+         else
+           begin
+             expectloc:=LOC_FPUREGISTER;
+             registersint:=left.registersint;
+             registersfpu:=max(left.registersfpu,1);
+{$ifdef SUPPORT_MMX}
+             registersmmx:=left.registersmmx;
+{$endif SUPPORT_MMX}
+             result:=nil;
+           end;
+       end;
+
+
      procedure tx86inlinenode.second_Pi;
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
@@ -246,6 +280,71 @@ implementation
        end;
 
 
+     procedure tx86inlinenode.second_round_real;
+       var
+         href : treference;
+       begin
+       {
+         if use_sse(left.resultdef) then
+           begin
+             secondpass(left);
+             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+             location.loc:=LOC_REFERENCE;
+             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_const(A_PSHUFD,S_XMM,location.left.register,location.left.register))
+             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_const(A_PSHUFD,S_XMM,location.left.register,location.left.register))
+
+             tg.GetTempTyped(current_asmdata.CurrAsmList,left.resultdef,tt_normal,location.reference);
+           end
+         else
+       }
+          begin
+             load_fpu_location;
+             location.loc:=LOC_REFERENCE;
+             tg.GetTempTyped(current_asmdata.CurrAsmList,resultdef,tt_normal,location.reference);
+             emit_ref(A_FISTP,S_Q,location.reference);
+             emit_none(A_FWAIT,S_NO);
+           end;
+       end;
+
+
+     procedure tx86inlinenode.second_trunc_real;
+       var
+         href : treference;
+         oldcw : treference;
+         tempreg : tregister;
+       begin
+       {
+         if use_sse(left.resultdef) then
+           begin
+             secondpass(left);
+             location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
+             location.loc:=LOC_REFERENCE;
+             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_const(A_PSHUFD,S_XMM,location.left.register,location.left.register))
+             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_const(A_PSHUFD,S_XMM,location.left.register,location.left.register))
+
+             tg.GetTempTyped(current_asmdata.CurrAsmList,left.resultdef,tt_normal,location.reference);
+           end
+         else
+       }
+          begin
+            tg.GetTemp(current_asmdata.CurrAsmList,2,tt_normal,oldcw);
+            emit_ref(A_FNSTCW,S_NO,oldcw);
+            tempreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_16);
+            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,oldcw,tempreg);
+            emit_const_ref(A_OR,S_W,$0f00,oldcw);
+            load_fpu_location;
+            emit_ref(A_FLDCW,S_NO,oldcw);
+            location.loc:=LOC_REFERENCE;
+            tg.GetTempTyped(current_asmdata.CurrAsmList,resultdef,tt_normal,location.reference);
+            cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_16,OS_16,tempreg,oldcw);
+            emit_ref(A_FISTP,S_Q,location.reference);
+            emit_ref(A_FLDCW,S_NO,oldcw);
+            emit_none(A_FWAIT,S_NO);
+            tg.UnGetTemp(current_asmdata.CurrAsmList,oldcw);
+           end;
+       end;
+
+
      procedure tx86inlinenode.second_sqr_real;
 
        begin
@@ -262,6 +361,7 @@ implementation
              emit_reg_reg(A_FMUL,S_NO,NR_ST0,NR_ST0);
            end;
        end;
+
 
      procedure tx86inlinenode.second_sqrt_real;
        begin

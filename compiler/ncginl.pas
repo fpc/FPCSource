@@ -51,6 +51,8 @@ interface
           procedure second_get_caller_frame;virtual;
           procedure second_get_caller_addr;virtual;
           procedure second_prefetch; virtual;
+          procedure second_round_real; virtual;
+          procedure second_trunc_real; virtual;
        end;
 
 implementation
@@ -107,6 +109,10 @@ implementation
               second_arctan_real;
             in_abs_real:
               second_abs_real;
+            in_round_real:
+              second_round_real;
+            in_trunc_real:
+              second_trunc_real;
             in_sqr_real:
               second_sqr_real;
             in_sqrt_real:
@@ -649,6 +655,15 @@ implementation
         internalerror(20020718);
       end;
 
+    procedure tcginlinenode.second_round_real;
+      begin
+        internalerror(20020718);
+      end;
+
+    procedure tcginlinenode.second_trunc_real;
+      begin
+        internalerror(20020718);
+      end;
 
     procedure tcginlinenode.second_sqr_real;
       begin
