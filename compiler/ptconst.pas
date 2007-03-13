@@ -72,7 +72,7 @@ implementation
 
 
 {$ifopt r+}
-{$defined rangeon}
+{$define rangeon}
 {$r-}
 {$endif}
 
