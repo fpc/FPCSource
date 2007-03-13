@@ -6777,6 +6777,7 @@ tests/test/tinline3.pp svneol=native#text/plain
 tests/test/tinline4.pp svneol=native#text/plain
 tests/test/tinline5.pp -text
 tests/test/tinline6.pp svneol=native#text/plain
+tests/test/tinline7.pp svneol=native#text/plain
 tests/test/tint2str1.pp svneol=native#text/plain
 tests/test/tint2str2.pp svneol=native#text/plain
 tests/test/tint641.pp svneol=native#text/plain

@@ -71,6 +71,7 @@ interface
           function  replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
           procedure createlocaltemps(p:TObject;arg:pointer);
           function  pass1_inline:tnode;
+          function  getfuncretassignment(inlineblock: tblocknode): tnode;
        protected
           pushedparasize : longint;
        public
@@ -2628,6 +2629,62 @@ implementation
       end;
 
 
+    function tcallnode.getfuncretassignment(inlineblock: tblocknode): tnode;
+      var
+        hp: tstatementnode;
+        resassign: tnode;
+      begin
+        result:=nil;
+        if not assigned(funcretnode) or
+           not(cnf_return_value_used in callnodeflags) then
+        exit;
+
+        { tempcreatenode for the function result }
+        hp:=tstatementnode(inlineblock.left);
+        if not(assigned(hp)) or
+           (hp.left.nodetype <> tempcreaten) then
+          exit;
+
+        { assignment to the result }
+        hp:=tstatementnode(hp.right);
+        if not(assigned(hp)) or
+           (hp.left.nodetype<>assignn) or
+           { left must be function result }
+           (not(tassignmentnode(hp.left).left.isequal(funcretnode)) and
+            { can have extra type conversion due to absolute mapping }
+            { of <fucntionname> on function result var               }
+            not((tassignmentnode(hp.left).left.nodetype = typeconvn) and
+                (ttypeconvnode(tassignmentnode(hp.left).left).convtype = tc_equal) and
+                (ttypeconvnode(tassignmentnode(hp.left).left).left.isequal(funcretnode)))) or
+           { right must be a constant (mainly to avoid trying to reuse    }
+           { local temps which may already be freed afterwards once these }
+           { checks are made looser)                                      }
+           not is_constnode(tassignmentnode(hp.left).right) then
+          exit
+        else
+          resassign:=hp.left;
+
+        { tempdelete to normal of the function result }
+        hp:=tstatementnode(hp.right);
+        if not(assigned(hp)) or
+           (hp.left.nodetype <> tempdeleten) then
+          exit;
+        
+        { the function result once more }
+        hp:=tstatementnode(hp.right);
+        if not(assigned(hp)) or
+           not(hp.left.isequal(funcretnode)) then
+          exit;
+
+        { should be the end }
+        if assigned(hp.right) then
+          exit;
+
+        { we made it! }
+        result:=tassignmentnode(resassign).right.getcopy;
+        firstpass(result);
+      end;
+
 
     function tcallnode.pass1_inline:tnode;
       var
@@ -2676,11 +2733,22 @@ implementation
         exclude(procdefinition.procoptions,po_inline);
 
         dosimplify(createblock);
-
         firstpass(createblock);
         include(procdefinition.procoptions,po_inline);
-        { return inlined block }
-        result := createblock;
+
+        { if all that's left of the inlined function is an constant       }
+        { assignment to the result, replace the whole block with what's   }
+        { assigned to the result. There will also be a tempcreatenode for }
+        { the function result itself though, so ignore it. The statement/ }
+        { blocknode simplification code will have removed all nothingn-   }
+        { statements empty nested blocks, so we don't have to care about  }
+        { those                                                           }
+        result := getfuncretassignment(createblock);
+        if assigned(result) then
+          createblock.free
+        else
+          { return inlined block }
+          result := createblock;
 
 {$ifdef DEBUGINLINE}
         writeln;

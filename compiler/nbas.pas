@@ -70,6 +70,7 @@ interface
 
        tstatementnode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
+          function simplify : tnode; override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           procedure printnodetree(var t:text);override;
@@ -81,6 +82,7 @@ interface
        tblocknode = class(tunarynode)
           constructor create(l : tnode);virtual;
           destructor destroy; override;
+          function simplify : tnode; override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
 {$ifdef state_tracking}
@@ -307,6 +309,58 @@ implementation
          inherited create(statementn,l,r);
       end;
 
+
+    function tstatementnode.simplify : tnode;
+      begin
+        result:=nil;
+        { these "optimizations" are only to make it more easy to recognise    }
+        { blocknodes which at the end of inlining only contain one single     }
+        { statement. Simplifying inside blocknode.simplify could be dangerous }
+        { because if the main blocknode which makes up a procedure/function   }
+        { body were replaced with a statementn/nothingn, this could cause     }
+        { problems elsewhere in the compiler which expects a blocknode        }
+
+        { remove next statement if it's a nothing-statement (since if it's }
+        { the last, it won't remove itself -- see next simplification)     }
+        while assigned(right) and
+              (tstatementnode(right).left.nodetype = nothingn) do
+          begin
+            result:=tstatementnode(right).right;
+            tstatementnode(right).right:=nil;
+            right.free;
+            right:=result;
+            result:=nil;
+          end;
+
+        { Remove initial nothingn if there are other statements. If there }
+        { are no other statements, returning nil doesn't help (will be    }
+        { interpreted as "can't be simplified") and replacing the         }
+        { statementnode with a nothingnode cannot be done (because it's   }
+        { possible this statementnode is a child of a blocknode, and      }
+        { blocknodes are expected to only contain statementnodes)         }
+        if (left.nodetype = nothingn) and
+           assigned(right) then
+          begin
+            result:=right;
+            right:=nil;
+            exit;
+          end;
+
+        { if the current statement contains a block with one statement, }
+        { replace the current statement with that block's statement     }
+        if (left.nodetype = blockn) and
+           assigned(tblocknode(left).left) and
+           not assigned(tstatementnode(tblocknode(left).left).right) then
+          begin
+            result:=tblocknode(left).left;
+            tstatementnode(result).right:=right;
+            right:=nil;
+            tblocknode(left).left:=nil;
+            exit;
+          end;
+      end;
+
+
     function tstatementnode.pass_typecheck:tnode;
       begin
          result:=nil;
@@ -386,6 +440,31 @@ implementation
           end;
         inherited destroy;
       end;
+
+
+    function tblocknode.simplify: tnode;
+      var
+        hp, next: tstatementnode;
+      begin
+        result := nil;
+        { Warning: never replace a blocknode with another node type,      }
+        {  since the block may be the main block of a procedure/function/ }
+        {  main program body, and those nodes should always be blocknodes }
+        {  since that's what the compiler expects elsewhere.              }
+
+        { if the current block contains only one statement, and   }
+        { this one statement only contains another block, replace }
+        { this block with that other block.                       }
+        if assigned(left) and
+           not assigned(tstatementnode(left).right) and
+           (tstatementnode(left).left.nodetype = blockn) then
+          begin
+            result:=tstatementnode(left).left;
+            tstatementnode(left).left:=nil;
+            exit;
+          end;
+      end;
+
 
     function tblocknode.pass_typecheck:tnode;
       var

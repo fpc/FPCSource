@@ -170,7 +170,19 @@ implementation
                     firstpass(hp);
                     { switch to new node }
                     p:=hp;
-                  end;
+                  end
+                 else
+                   begin
+                     { inlining happens in pass_1 and can cause new }
+                     { simplify opportunities                       }
+                     hp:=p.simplify;
+                     if assigned(hp) then
+                       begin
+                         p.free;
+                         firstpass(hp);
+                         p:=hp;
+                       end;
+                   end;
                  if codegenerror then
                   include(p.flags,nf_error)
                  else
