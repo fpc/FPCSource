@@ -839,9 +839,9 @@ begin
   if PropInfo^.PropType^.Kind in [tkInt64,tkQword
   { why do we have to handle classes here, see also below? (FK) }
 {$ifdef cpu64}
-    ,tkInterface,
-    ,tkInterfaceRaw,
-    ,tkDynArray,
+    ,tkInterface
+    ,tkInterfaceRaw
+    ,tkDynArray
     ,tkClass
 {$endif cpu64}
     ] then
