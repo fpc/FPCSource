@@ -51,7 +51,7 @@ implementation
        systems,
        { symtable }
        symconst,symbase,symtype,symtable,defutil,defcmp,
-       fmodule,
+       fmodule,htypechk,
        { pass 1 }
        node,pass_1,aasmdata,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nmem,
@@ -814,6 +814,14 @@ implementation
                   abssym.fileinfo:=vs.fileinfo;
                   abssym.abstyp:=tovar;
                   abssym.ref:=node_to_propaccesslist(pt);
+                  { if the sizes are different, can't be a regvar since you }
+                  { can't be "absolute upper 8 bits of a register" (except  }
+                  { if its a record field of the same size of a record      }
+                  { regvar, but in that case pt.resultdef.size will have    }
+                  { the same size since it refers to the field and not to   }
+                  { the whole record -- which is why we use pt and not hp)  }
+                  if (vs.vardef.size <> pt.resultdef.size) then
+                    make_not_regable(pt,vr_addr);
                 end
               else
                 Message(parser_e_absolute_only_to_var_or_const);
