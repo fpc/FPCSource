@@ -52,6 +52,12 @@ interface
       fmodule,finput,verbose,cpuinfo,cgbase
       ;
 
+    type
+{$ifdef cpuextended}
+      t80bitarray = array[0..9] of byte;
+{$endif cpuextended}
+      t64bitarray = array[0..7] of byte;
+      t32bitarray = array[0..3] of byte;
     const
       line_length = 64;
 
@@ -143,6 +149,44 @@ interface
           delete(hs,p,1);
          extended2str:=lower(hs);
       end;
+
+
+  { convert floating point values }
+  { to correct endian             }
+  procedure swap64bitarray(var t: t64bitarray);
+    var
+     b: byte;
+    begin
+      b:= t[7];
+      t[7] := t[0];
+      t[0] := b;
+
+      b := t[6];
+      t[6] := t[1];
+      t[1] := b;
+
+      b:= t[5];
+      t[5] := t[2];
+      t[2] := b;
+
+      b:= t[4];
+      t[4] := t[3];
+      t[3] := b;
+   end;
+
+
+   procedure swap32bitarray(var t: t32bitarray);
+    var
+     b: byte;
+    begin
+      b:= t[1];
+      t[1]:= t[2];
+      t[2]:= b;
+
+      b:= t[0];
+      t[0]:= t[3];
+      t[3]:= b;
+    end;
 
 
     function comp2str(d : bestreal) : string;
@@ -298,7 +342,8 @@ interface
                   if o.ref^.offset>0 then
                    asmwrite('+');
                   asmwrite(tostr(o.ref^.offset));
-                end;
+
+                  end;
             end;
           else
             internalerror(10001);
@@ -346,8 +391,8 @@ interface
 
     const
       ait_const2str : array[aitconst_128bit..aitconst_indirect_symbol] of string[20]=(
-        #9'DDQ'#9,#9'DQ'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
-        #9'FIXMESLEB',#9'FIXEMEULEB',
+        #9'FIXME_128BIT'#9,#9'FIXME_64BIT'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
+        #9'FIXME_SLEB128BIT'#9,#9'FIXME_ULEB128BIT'#9,
         #9'RVA'#9,#9'FIXMEINDIRECT'#9
       );
 
@@ -386,6 +431,10 @@ interface
       end;
 
     procedure T386NasmAssembler.WriteTree(p:TAsmList);
+{$ifdef cpuextended}
+    type
+      t80bitarray = array[0..9] of byte;
+{$endif cpuextended}
     var
       s : string;
       hp       : tai;
@@ -397,6 +446,12 @@ interface
       consttype : taiconst_type;
       do_line,
       quoted   : boolean;
+      co       : comp;
+      sin      : single;
+      d        : double;
+{$ifdef cpuextended}
+      e        : extended;
+{$endif cpuextended}
     begin
       if not assigned(p) then
        exit;
@@ -518,10 +573,21 @@ interface
              begin
                consttype:=tai_const(hp).consttype;
                case consttype of
+                 aitconst_64bit :
+                    begin
+                      if assigned(tai_const(hp).sym) then
+                        internalerror(200404292);
+                      AsmWrite(ait_const2str[aitconst_32bit]);
+                      AsmWrite(tostr(longint(lo(tai_const(hp).value))));
+                      AsmWrite(',');
+                      AsmWrite(tostr(longint(hi(tai_const(hp).value))));
+                      AsmLn;
+                    end;
                  aitconst_uleb128bit,
                  aitconst_sleb128bit,
-                 aitconst_128bit,
-                 aitconst_64bit,
+                 aitconst_128bit:
+                    begin
+                    end;
                  aitconst_32bit,
                  aitconst_16bit,
                  aitconst_8bit,
@@ -557,17 +623,107 @@ interface
                end;
              end;
 
-           ait_real_32bit :
-             AsmWriteLn(#9#9'DD'#9+single2str(tai_real_32bit(hp).value));
-
-           ait_real_64bit :
-             AsmWriteLn(#9#9'DQ'#9+double2str(tai_real_64bit(hp).value));
-
+{$if defined(cpuextended) and defined(FPC_HAS_TYPE_EXTENDED)}
+           ait_real_80bit :
+             begin
+               if do_line then
+                AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_real_80bit(hp).value));
+             { Make sure e is a extended type, bestreal could be
+               a different type (bestreal) !! (PFV) }
+               e:=tai_real_80bit(hp).value;
+               AsmWrite(#9#9'DB'#9);
+               for i:=0 to 9 do
+                begin
+                  if i<>0 then
+                   AsmWrite(',');
+                  AsmWrite(tostr(t80bitarray(e)[i]));
+                end;
+               AsmLn;
+             end;
+{$else cpuextended}
            ait_real_80bit :
              AsmWriteLn(#9#9'DT'#9+extended2str(tai_real_80bit(hp).value));
+{$endif cpuextended}
 
+           // ait_real_64bit :
+           //   AsmWriteLn(#9#9'DQ'#9+double2str(tai_real_64bit(hp).value));
+           ait_real_64bit :
+             begin
+               if do_line then
+                AsmWriteLn(target_asm.comment+'value: '+double2str(tai_real_64bit(hp).value));
+               d:=tai_real_64bit(hp).value;
+               { swap the values to correct endian if required }
+               if source_info.endian <> target_info.endian then
+                 swap64bitarray(t64bitarray(d));
+               AsmWrite(#9#9'DB'#9);
+{$ifdef arm}
+{ on a real arm cpu, it's already hi/lo swapped }
+{$ifndef cpuarm}
+               if tai_real_64bit(hp).formatoptions=fo_hiloswapped then
+                 begin
+                   for i:=4 to 7 do
+                     begin
+                       if i<>4 then
+                         AsmWrite(',');
+                       AsmWrite(tostr(t64bitarray(d)[i]));
+                     end;
+                   for i:=0 to 3 do
+                     begin
+                       AsmWrite(',');
+                       AsmWrite(tostr(t64bitarray(d)[i]));
+                     end;
+                 end
+               else
+{$endif cpuarm}
+{$endif arm}
+                 begin
+                   for i:=0 to 7 do
+                     begin
+                       if i<>0 then
+                         AsmWrite(',');
+                       AsmWrite(tostr(t64bitarray(d)[i]));
+                     end;
+                 end;
+               AsmLn;
+             end;
+           // ait_real_32bit :
+           //   AsmWriteLn(#9#9'DD'#9+single2str(tai_real_32bit(hp).value));
+           ait_real_32bit :
+             begin
+               if do_line then
+                 AsmWriteLn(target_asm.comment+'value: '+single2str(tai_real_32bit(hp).value));
+               sin:=tai_real_32bit(hp).value;
+               { swap the values to correct endian if required }
+               if source_info.endian <> target_info.endian then
+                 swap32bitarray(t32bitarray(sin));
+               AsmWrite(#9#9'DB'#9);
+               for i:=0 to 3 do
+                begin
+                  if i<>0 then
+                    AsmWrite(',');
+                  AsmWrite(tostr(t32bitarray(sin)[i]));
+                end;
+               AsmLn;
+             end;
+           // ait_comp_64bit :
+           //   AsmWriteLn(#9#9'DQ'#9+comp2str(tai_real_80bit(hp).value));
            ait_comp_64bit :
-             AsmWriteLn(#9#9'DQ'#9+comp2str(tai_real_80bit(hp).value));
+             begin
+               if do_line then
+                AsmWriteLn(target_asm.comment+'value: '+extended2str(tai_comp_64bit(hp).value));
+               AsmWrite(#9#9'DB'#9);
+               co:=comp(tai_comp_64bit(hp).value);
+               { swap the values to correct endian if required }
+               if source_info.endian <> target_info.endian then
+                 swap64bitarray(t64bitarray(co));
+               for i:=0 to 7 do
+                begin
+                  if i<>0 then
+                   AsmWrite(',');
+                  AsmWrite(tostr(t64bitarray(co)[i]));
+                end;
+               AsmLn;
+             end;
 
            ait_string :
              begin
