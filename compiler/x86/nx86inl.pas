@@ -298,11 +298,11 @@ implementation
          else
        }
           begin
-             load_fpu_location;
-             location.loc:=LOC_REFERENCE;
-             tg.GetTempTyped(current_asmdata.CurrAsmList,resultdef,tt_normal,location.reference);
-             emit_ref(A_FISTP,S_Q,location.reference);
-             emit_none(A_FWAIT,S_NO);
+            load_fpu_location;
+            location_reset(location,LOC_REFERENCE,OS_64);
+            tg.GetTempTyped(current_asmdata.CurrAsmList,resultdef,tt_normal,location.reference);
+            emit_ref(A_FISTP,S_Q,location.reference);
+            emit_none(A_FWAIT,S_NO);
            end;
        end;
 
@@ -334,7 +334,7 @@ implementation
             emit_const_ref(A_OR,S_W,$0f00,oldcw);
             load_fpu_location;
             emit_ref(A_FLDCW,S_NO,oldcw);
-            location.loc:=LOC_REFERENCE;
+            location_reset(location,LOC_REFERENCE,OS_64);
             tg.GetTempTyped(current_asmdata.CurrAsmList,resultdef,tt_normal,location.reference);
             cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_16,OS_16,tempreg,oldcw);
             emit_ref(A_FISTP,S_Q,location.reference);
