@@ -7,7 +7,7 @@ name=fcl-xml
 version=2.0.0
 
 [target]
-units=sax xmlutils dom sax_html dom_html xmlcfg xmlread xmlstreaming xmlwrite xhtml htmwrite xpath
+units=htmldefs sax xmlutils dom sax_html dom_html xmlcfg xmlread xmlstreaming xmlwrite xhtml htmwrite xpath
 rsts=sax xpath
 
 [require]
