@@ -1450,10 +1450,11 @@ begin
 
   { determine whether we need to save the link register }
   needslinkreg :=
-    ((not (po_assembler in current_procinfo.procdef.procoptions)) and
-      ((pi_do_call in current_procinfo.flags) or (cs_profile in init_settings.moduleswitches))) or
-    ((cs_opt_size in current_settings.optimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
-    ([cs_lineinfo, cs_debuginfo] * current_settings.moduleswitches <> []);
+    not(nostackframe) and
+    (((not (po_assembler in current_procinfo.procdef.procoptions)) and
+       ((pi_do_call in current_procinfo.flags) or (cs_profile in init_settings.moduleswitches))) or
+     ((cs_opt_size in current_settings.optimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
+     ([cs_lineinfo, cs_debuginfo] * current_settings.moduleswitches <> []));
 
   a_reg_alloc(list, NR_STACK_POINTER_REG);
   a_reg_alloc(list, NR_R0);
@@ -1590,10 +1591,11 @@ begin
 
   { determine whether we need to restore the link register }
   needslinkreg :=
-    ((not (po_assembler in current_procinfo.procdef.procoptions)) and
-      ((pi_do_call in current_procinfo.flags) or (cs_profile in init_settings.moduleswitches))) or
-    ((cs_opt_size in current_settings.optimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
-    ([cs_lineinfo, cs_debuginfo] * current_settings.moduleswitches <> []);
+    not(nostackframe) and
+    (((not (po_assembler in current_procinfo.procdef.procoptions)) and
+       ((pi_do_call in current_procinfo.flags) or (cs_profile in init_settings.moduleswitches))) or
+     ((cs_opt_size in current_settings.optimizerswitches) and ((fprcount > 0) or (gprcount > 0))) or
+     ([cs_lineinfo, cs_debuginfo] * current_settings.moduleswitches <> []));
 
   { calculate stack frame }
   localsize := tppcprocinfo(current_procinfo).calc_stackframe_size(
