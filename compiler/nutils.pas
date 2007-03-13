@@ -682,6 +682,7 @@ implementation
         if assigned(hn) then
           begin
             treechanged:=true;
+            n.free;
             n:=hn;
             typecheckpass(n);
           end;
