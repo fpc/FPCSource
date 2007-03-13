@@ -325,6 +325,8 @@ begin
           end;
         subn:
           begin
+            if (nf_swapped in flags) then
+              swapleftright;
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUB, location.register,
               left.location.register, right.location.register));
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMPLD,
