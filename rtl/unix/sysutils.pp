@@ -911,6 +911,11 @@ Begin
   { We're in the parent, let's wait. }
   result:=WaitProcess(pid); // WaitPid and result-convert
 
+  {$ifdef FPC_USE_FPEXEC}
+  if Comline<>'' Then
+    freemem(cmdline2);
+  {$endif}
+
   if (result<0) or (result=127) then
     begin
     E:=EOSError.CreateFmt(SExecuteProcessFailed,[Path,result]);
