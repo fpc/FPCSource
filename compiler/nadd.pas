@@ -151,50 +151,6 @@ implementation
         b       : boolean;
       begin
         result:=nil;
-        { is one a real float, then both need to be floats, this
-          need to be done before the constant folding so constant
-          operation on a float and int are also handled }
-        resultrealdef:=pbestrealtype^;
-        if (right.resultdef.typ=floatdef) or (left.resultdef.typ=floatdef) then
-         begin
-           { when both floattypes are already equal then use that
-             floattype for results }
-           if (right.resultdef.typ=floatdef) and
-              (left.resultdef.typ=floatdef) and
-              (tfloatdef(left.resultdef).floattype=tfloatdef(right.resultdef).floattype) then
-             resultrealdef:=left.resultdef
-           { when there is a currency type then use currency, but
-             only when currency is defined as float }
-           else
-            if (is_currency(right.resultdef) or
-                is_currency(left.resultdef)) and
-               ((s64currencytype.typ = floatdef) or
-                (nodetype <> slashn)) then
-             begin
-               resultrealdef:=s64currencytype;
-               inserttypeconv(right,resultrealdef);
-               inserttypeconv(left,resultrealdef);
-             end
-           else
-            begin
-              resultrealdef:=getbestreal(left.resultdef,right.resultdef);
-              inserttypeconv(right,resultrealdef);
-              inserttypeconv(left,resultrealdef);
-            end;
-         end;
-
-        { If both operands are constant and there is a widechar
-          or widestring then convert everything to widestring. This
-          allows constant folding like char+widechar }
-        if is_constnode(right) and is_constnode(left) and
-           (is_widestring(right.resultdef) or
-            is_widestring(left.resultdef) or
-            is_widechar(right.resultdef) or
-            is_widechar(left.resultdef)) then
-          begin
-            inserttypeconv(right,cwidestringtype);
-            inserttypeconv(left,cwidestringtype);
-          end;
 
         { load easier access variables }
         rd:=right.resultdef;
@@ -746,6 +702,51 @@ implementation
                 right:=ctypeconvnode.create_internal(right,sinttype);
                 typecheckpass(right);
               end;
+          end;
+
+        { is one a real float, then both need to be floats, this
+          need to be done before the constant folding so constant
+          operation on a float and int are also handled }
+        resultrealdef:=pbestrealtype^;
+        if (right.resultdef.typ=floatdef) or (left.resultdef.typ=floatdef) then
+         begin
+           { when both floattypes are already equal then use that
+             floattype for results }
+           if (right.resultdef.typ=floatdef) and
+              (left.resultdef.typ=floatdef) and
+              (tfloatdef(left.resultdef).floattype=tfloatdef(right.resultdef).floattype) then
+             resultrealdef:=left.resultdef
+           { when there is a currency type then use currency, but
+             only when currency is defined as float }
+           else
+            if (is_currency(right.resultdef) or
+                is_currency(left.resultdef)) and
+               ((s64currencytype.typ = floatdef) or
+                (nodetype <> slashn)) then
+             begin
+               resultrealdef:=s64currencytype;
+               inserttypeconv(right,resultrealdef);
+               inserttypeconv(left,resultrealdef);
+             end
+           else
+            begin
+              resultrealdef:=getbestreal(left.resultdef,right.resultdef);
+              inserttypeconv(right,resultrealdef);
+              inserttypeconv(left,resultrealdef);
+            end;
+         end;
+
+        { If both operands are constant and there is a widechar
+          or widestring then convert everything to widestring. This
+          allows constant folding like char+widechar }
+        if is_constnode(right) and is_constnode(left) and
+           (is_widestring(right.resultdef) or
+            is_widestring(left.resultdef) or
+            is_widechar(right.resultdef) or
+            is_widechar(left.resultdef)) then
+          begin
+            inserttypeconv(right,cwidestringtype);
+            inserttypeconv(left,cwidestringtype);
           end;
 
          result:=simplify;
