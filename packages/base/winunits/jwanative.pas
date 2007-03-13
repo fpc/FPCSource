@@ -3959,7 +3959,7 @@ function  NtContinue(
 function  ZwContinue(Context: PCONTEXT; TestAlert: BOOLEAN): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-// 
+//
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtCreateChannel(
@@ -4523,7 +4523,7 @@ function  NtIsSystemResumeAutomatic(): BOOLEAN; stdcall; {$IFNDEF RTDL}external 
 function  ZwIsSystemResumeAutomatic(): BOOLEAN; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-// 
+//
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtListenChannel(
@@ -4683,7 +4683,7 @@ function  ZwNotifyChangeMultipleKeys(KeyHandle: HANDLE; Flags: ULONG; KeyObjectA
     WatchSubtree: BOOLEAN; Buffer: PVOID; BufferLength: ULONG; Asynchronous: BOOLEAN): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-// 
+//
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtOpenChannel(
@@ -5453,7 +5453,7 @@ function  NtReplyWaitReplyPort(
 function  ZwReplyWaitReplyPort(PortHandle: HANDLE; ReplyMessage: PPORT_MESSAGE): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-// 
+//
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtReplyWaitSendChannel(
@@ -5569,7 +5569,7 @@ function  ZwSecureConnectPort(PortHandle: PHANDLE; PortName: PUNICODE_STRING; Se
     ConnectData: PVOID; ConnectDataLength: PULONG): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-// 
+//
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtSendWaitReplyChannel(
@@ -5581,7 +5581,7 @@ function  NtSendWaitReplyChannel(
 function  ZwSendWaitReplyChannel(x: PVOID; y: PVOID; z: PVOID; z2: PVOID): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-// 
+//
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtSetContextChannel(
@@ -8173,26 +8173,44 @@ end;
 
 // Own function to retrieve the process's heap handle
 
-function NtpGetProcessHeap(): HANDLE; 
+function NtpGetProcessHeap(): HANDLE;
 asm
+{$ifdef cpu386}
   mov   EAX, FS:[018h]            // EAX now holds the TEB address
   mov   EAX, [EAX+030h]           // TEB+$30 holds the PEB address
-  mov   EAX, DWORD PTR [EAX+018h] // PEB+$30 holds the ProcessHeap's handle
+  mov   EAX, DWORD PTR [EAX+24] // PEB+$30 holds the ProcessHeap's handle
+{$endif cpu386}
+{$ifdef cpux86_64}
+  mov   RAX, GS:[48]              // EAX now holds the TEB address
+  mov   RAX, [RAX+060h]           // TEB+$30 holds the PEB address
+  mov   RAX, DWORD PTR [RAX+48]   // PEB+$30 holds the ProcessHeap's handle
+{$endif cpux86_64}
 end;
 
 // Own function to retrieve the thread environment block (TEB) pointer
 
 function NtpCurrentTeb(): PTEB;
 asm
-  mov   EAX, FS:[018h]
+{$ifdef cpu386}
+  mov   EAX, FS:[24]
+{$endif cpu386}
+{$ifdef cpux86_64}
+  mov   RAX, GS:[48]
+{$endif cpux86_64}
 end;
 
 // Own function to retrieve the process environment block (PEB) pointer
 
 function RtlpGetCurrentPeb(): PPEB;
 asm
-  mov   EAX, FS:[018h]
+{$ifdef cpu386}
+  mov   EAX, FS:[24]
   mov   EAX, [EAX+030h]
+{$endif cpu386}
+{$ifdef cpux86_64}
+  mov   RAX, GS:[24]
+  mov   RAX, [RAX+060h]
+{$endif cpux86_64}
 end;
 
 (* Own function to swap bytes in 16bit values
@@ -8202,6 +8220,9 @@ end;
 
 function RtlUshortByteSwap(Source: USHORT): USHORT;
 asm
+{$ifdef cpux86_64}
+  mov   CX, AX
+{$endif cpux86_64}
   rol   AX, 08h
 end;
 
@@ -8212,8 +8233,10 @@ end;
 
 function RtlUlongByteSwap(Source: ULONG): ULONG;
 asm
-  // This is not written as mnemonics to be compatible with D4!
-  db    0Fh, 0C8h       // "bswap EAX" can only be executed on 486+!!!
+{$ifdef cpux86_64}
+  mov   ECX, EAX
+{$endif cpux86_64}
+  bswap EAX
 (*
 // Does the same but perhaps slower ...
                         // Source = $11223344
@@ -8230,12 +8253,18 @@ end;
 
 function RtlUlonglongByteSwap(Source: ULONGLONG): ULONGLONG;
 asm
+{$ifdef cpu386}
   mov   EAX, [ESP+0Ch]  // Get the high part of the ULONGLONG into EAX
   mov   EDX, [ESP+08h]  // Get the low part of the ULONGLONG into EDX
   // This is not written as mnemonics to be compatible with D4!
   db    0Fh, 0C8h       // "bswap EAX" can only be executed on 486+!!!
   db    0Fh, 0CAh       // "bswap EDX" can only be executed on 486+!!!
   // High part returns in EDX, low part in EAX
+{$endif cpu386}
+{$ifdef cpux86_64}
+  MOV   RCX,RAX
+  BSWAP EAX
+{$endif cpux86_64}
 end;
 
 // Resembles the RtlValidateUnicodeString() function available from Windows XP
