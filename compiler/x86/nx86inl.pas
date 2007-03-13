@@ -179,7 +179,7 @@ implementation
 
      function tx86inlinenode.first_round_real : tnode;
       begin
-        expectloc:=LOC_FPUREGISTER;
+        expectloc:=LOC_REFERENCE;
         registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -195,7 +195,7 @@ implementation
            result:=inherited
          else
            begin
-             expectloc:=LOC_FPUREGISTER;
+             expectloc:=LOC_REFERENCE;
              registersint:=left.registersint;
              registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
