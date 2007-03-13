@@ -796,15 +796,13 @@ end;
 {$ifndef CPU64}
 
   Function fpc_val_int64_shortstr(Const S: ShortString; out Code: ValSInt): Int64; [public, alias:'FPC_VAL_INT64_SHORTSTR']; compilerproc;
-   type
-     QWordRec = packed record
-       l1,l2: longint;
-     end;
 
-    var
-       u, temp, prev, maxint64, maxqword : qword;
+  var  u, temp, prev, maxprevvalue, maxnewvalue : qword;
        base : byte;
        negative : boolean;
+
+  const maxint64=qword($7fffffffffffffff);
+        maxqword=qword($ffffffffffffffff);
 
   begin
     fpc_val_int64_shortstr := 0;
@@ -812,22 +810,11 @@ end;
     Code:=InitVal(s,negative,base);
     if Code>length(s) then
      exit;
-    { high(int64) produces 0 in version 1.0 (JM) }
-    with qwordrec(maxint64) do
-      begin
-{$ifdef ENDIAN_LITTLE}
-        l1 := longint($ffffffff);
-        l2 := $7fffffff;
-{$else ENDIAN_LITTLE}
-        l1 := $7fffffff;
-        l2 := longint($ffffffff);
-{$endif ENDIAN_LITTLE}
-      end;
-    with qwordrec(maxqword) do
-      begin
-        l1 := longint($ffffffff);
-        l2 := longint($ffffffff);
-      end;
+    maxprevvalue := maxqword div base;
+    if (base = 10) then
+      maxnewvalue := maxint64 + ord(negative)
+    else
+      maxnewvalue := maxqword;
 
     while Code<=Length(s) do
      begin
@@ -840,13 +827,10 @@ end;
         u:=16;
        end;
        Prev:=Temp;
-       Temp:=Temp*Int64(base);
+       Temp:=Temp*qword(base);
      If (u >= base) or
-        ((base = 10) and
-         (maxint64-temp+ord(negative) < u)) or
-        ((base <> 10) and
-         (qword(maxqword-temp) < u)) or
-        (prev > maxqword div qword(base)) Then
+        (qword(maxnewvalue-u) < temp) or
+        (prev > maxprevvalue) Then
        Begin
          fpc_val_int64_shortstr := 0;
          Exit

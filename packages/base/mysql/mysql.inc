@@ -298,7 +298,7 @@ uses
        PNET = ^NET;
 
     const
-       packet_error : culong = not(0);
+       packet_error : culong = culong(not(0));
 
     type
        enum_field_types = (MYSQL_TYPE_DECIMAL,MYSQL_TYPE_TINY,
@@ -521,7 +521,7 @@ uses
 {$endif}
 
     const
-       NULL_LENGTH : dword = not(0); // For net_store_length
+       NULL_LENGTH : dword = dword(not(0)); // For net_store_length
 
     const
        MYSQL_STMT_HEADER = 4;

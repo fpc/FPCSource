@@ -2459,7 +2459,10 @@ implementation
                         consume(_INTCONST);
                         p1:=crealconstnode.create(d,pbestrealtype^);
                      end;
-                 end;
+                 end
+               else
+                 { the necessary range checking has already been done by val }
+                 tordconstnode(p1).rangecheck:=false;
              end;
 
            _REALNUMBER :

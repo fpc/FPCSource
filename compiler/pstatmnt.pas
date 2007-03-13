@@ -183,8 +183,8 @@ implementation
                         CGMessage(parser_e_case_lower_less_than_upper_bound);
                       if not casedeferror then
                        begin
-                         testrange(casedef,hl1,false);
-                         testrange(casedef,hl2,false);
+                         testrange(casedef,casedef,hl1,false);
+                         testrange(casedef,casedef,hl2,false);
                        end;
                     end
                   else
@@ -198,7 +198,7 @@ implementation
                     CGMessage(parser_e_case_mismatch);
                   hl1:=get_ordinal_value(p);
                   if not casedeferror then
-                    testrange(casedef,hl1,false);
+                    testrange(casedef,casedef,hl1,false);
                   casenode.addlabel(blockid,hl1,hl1);
                end;
              p.free;

@@ -280,7 +280,12 @@ implementation
            3,5,7,9,10,12,16:
              result := 2;
   {$ifdef cpu64bit}
-           11,13,14,15,17..26,28,32:
+           { performance penalty for unaligned 8 byte access is much   }
+           { higher than for unaligned 4 byte access, at least on ppc, }
+           { so use 4 bytes even in some cases where a value could     }
+           { always loaded using a single 8 byte load (e.g. in case of }
+           { 28 bit values)                                            }
+           11,13,14,15,17..32:
              result := 4;
            else
              result := 8;

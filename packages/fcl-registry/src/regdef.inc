@@ -1,12 +1,36 @@
+Type
+  LPDWORD = ^DWord;
+  LPVOID  = Pointer;
+  WINBOOL = LongBool;
+  LPCSTR  = PChar;
+  LPSTR   = Pchar;
+  LONG    = LongInt;
+  LPBYTE  = ^Byte;
+
+  ACCESS_MASK = DWORD;
+       REGSAM = ACCESS_MASK;
+
+  SECURITY_ATTRIBUTES = record
+    nLength : DWORD;
+    lpSecurityDescriptor : LPVOID;
+    bInheritHandle : WINBOOL;
+  end;
+  LPSECURITY_ATTRIBUTES = ^SECURITY_ATTRIBUTES;
+
+
+  HKEY = THandle;
+  PHKEY = ^HKEY;
+
+
 
 Const
-  HKEY_CLASSES_ROOT     = $80000000;
-  HKEY_CURRENT_USER     = $80000001;
-  HKEY_LOCAL_MACHINE    = $80000002;
-  HKEY_USERS            = $80000003;
-  HKEY_PERFORMANCE_DATA = $80000004;
-  HKEY_CURRENT_CONFIG   = $80000005;
-  HKEY_DYN_DATA         = $80000006;
+  HKEY_CLASSES_ROOT     = HKEY($80000000);
+  HKEY_CURRENT_USER     = HKEY($80000001);
+  HKEY_LOCAL_MACHINE    = HKEY($80000002);
+  HKEY_USERS            = HKEY($80000003);
+  HKEY_PERFORMANCE_DATA = HKEY($80000004);
+  HKEY_CURRENT_CONFIG   = HKEY($80000005);
+  HKEY_DYN_DATA         = HKEY($80000006);
 
   KEY_ALL_ACCESS         = $F003F;
   KEY_CREATE_LINK        = 32;
@@ -39,26 +63,4 @@ Const
 
   ERROR_SUCCESS = 0;
 
-Type
-  LPDWORD = ^DWord;
-  LPVOID  = Pointer;
-  WINBOOL = LongBool;
-  LPCSTR  = PChar;
-  LPSTR   = Pchar;
-  LONG    = LongInt;
-  LPBYTE  = ^Byte;
-
-  ACCESS_MASK = DWORD;
-       REGSAM = ACCESS_MASK;
-
-  SECURITY_ATTRIBUTES = record
-    nLength : DWORD;
-    lpSecurityDescriptor : LPVOID;
-    bInheritHandle : WINBOOL;
-  end;
-  LPSECURITY_ATTRIBUTES = ^SECURITY_ATTRIBUTES;
-
-
-  HKEY = THandle;
-  PHKEY = ^HKEY;
 
