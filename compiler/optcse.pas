@@ -212,7 +212,7 @@ unit optcse;
             j:=i+1;
             { collect equal nodes }
             while (j<=nodelist.length-1) and
-              nodelist[i].docompare(nodelist[j]) do
+              nodelist[i].isequal(nodelist[j]) do
               inc(j);
             dec(j);
             if j>i then
