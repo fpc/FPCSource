@@ -616,17 +616,3 @@ begin
 end;
 
 end.
-
-
-{
-  $Log: htmldefs.pp,v $
-  Revision 1.2  2006/01/03 23:33:23  lukvdl
-  + TH: properties forgotten added
-
-  Revision 1.1  2005/11/22 21:04:37  michael
-  + Initial import
-
-  Revision 1.4  2005/02/14 17:13:18  peter
-    * truncate log
-
-}
