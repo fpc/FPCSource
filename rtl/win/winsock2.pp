@@ -10,7 +10,9 @@
 
 unit WinSock2;
 
+{$ifndef NO_SMART_LINK}
 {$smartlink on}
+{$endif}
 
 interface
 
@@ -378,7 +380,7 @@ type
       2: (S_addr: u_long);
     end;
   in_addr = TInAddr;
-  
+
   PIn6Addr = ^TIn6Addr;
   TIn6Addr = record
     case byte of
@@ -402,7 +404,7 @@ type
           sa_data: array[0..13] of Char)
   end;
   sockaddr_in = TSockAddrIn;
-  
+
   PSockAddrIn6 = ^TSockAddrIn6;
   TSockAddrIn6 = record
     sin6_family   : u_short;

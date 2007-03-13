@@ -14,7 +14,9 @@
 
  **********************************************************************}
 
+{$ifndef NO_SMART_LINK}
 {$smartlink on}
+{$endif}
 unit winsock;
 
   interface
