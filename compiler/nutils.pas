@@ -556,7 +556,7 @@ implementation
     function node_complexity(p: tnode): cardinal;
       begin
         result := 0;
-        while true do
+        while assigned(p) do
           begin
             case p.nodetype of
               temprefn,
@@ -629,6 +629,7 @@ implementation
               tempdeleten,
               ordconstn,
               pointerconstn,
+              nothingn,
               niln:
                 exit;
               else
@@ -672,6 +673,7 @@ implementation
         if assigned(hn) then
           begin
             treechanged:=true;
+            n.free;
             n:=hn;
             typecheckpass(n);
           end;

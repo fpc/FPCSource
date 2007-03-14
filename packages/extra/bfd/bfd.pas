@@ -1928,7 +1928,7 @@ is in practice already 0 *)
   ); { bfd_error }
 
 const
-  BFD_NO_MORE_SYMBOLS: symindex = not symindex(0);
+  BFD_NO_MORE_SYMBOLS: symindex = symindex(not symindex(0));
 
   bfd_mach_m68000 = 1;
   bfd_mach_m68008 = 2;

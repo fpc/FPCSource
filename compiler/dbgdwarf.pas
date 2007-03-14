@@ -1322,13 +1322,14 @@ implementation
 
     procedure TDebugInfoDwarf.appenddef_string(def:tstringdef);
 
-      procedure addnormalstringdef(const name: shortstring; lendef: tdef; maxlen: cardinal);
+      procedure addnormalstringdef(const name: shortstring; lendef: tdef; maxlen: aword);
         var
-          slen : aint;
+          { maxlen can be > high(int64) }
+          slen : aword;
           arr : tasmlabel;
         begin
           { fix length of openshortstring }
-          slen:=def.len;
+          slen:=aword(def.len);
           if slen=0 then
             slen:=maxlen;
 
@@ -1390,7 +1391,11 @@ implementation
             end;
           st_longstring:
             begin
-              addnormalstringdef('LongString',u32inttype,$ffffffff);
+{$ifdef cpu64bit}
+              addnormalstringdef('LongString',u64inttype,qword(-1));
+{$else cpu64bit}
+              addnormalstringdef('LongString',u32inttype,cardinal(-1));
+{$endif cpu64bit}
            end;
          st_ansistring:
            begin
@@ -1945,10 +1950,13 @@ implementation
 
       procedure TDebugInfoDwarf.appendsym_type(sym: ttypesym);
         begin
-          append_entry(DW_TAG_typedef,false,[
-            DW_AT_name,DW_FORM_string,symname(sym)+#0
-          ]);
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.typedef));
+          if not(df_generic in sym.typedef.defoptions) then
+            begin
+              append_entry(DW_TAG_typedef,false,[
+                DW_AT_name,DW_FORM_string,symname(sym)+#0
+              ]);
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.typedef));
+            end;
           finish_entry;
 
           (* Moved fom append sym, do we need this (MWE)
