@@ -32,7 +32,7 @@ type    complex_single=record
 
         fftw_plan_single=type pointer;
 
-        fftw_sign=(fftw_backward=1,fftw_forward=$ffffffff);
+        fftw_sign=(fftw_forward=-1,fftw_backward=1);
 
         fftw_flag=(fftw_measure,            {generated optimized algorithm}
                    fftw_destroy_input,      {default}
