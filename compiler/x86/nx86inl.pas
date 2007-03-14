@@ -310,7 +310,7 @@ implementation
      procedure tx86inlinenode.second_trunc_real;
        var
          href : treference;
-         oldcw : treference;
+         oldcw,newcw : treference;
          tempreg : tregister;
        begin
        {
@@ -328,19 +328,19 @@ implementation
        }
           begin
             tg.GetTemp(current_asmdata.CurrAsmList,2,tt_normal,oldcw);
+            tg.GetTemp(current_asmdata.CurrAsmList,2,tt_normal,newcw);
+            emit_ref(A_FNSTCW,S_NO,newcw);
             emit_ref(A_FNSTCW,S_NO,oldcw);
-            tempreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_16);
-            cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_16,OS_16,oldcw,tempreg);
-            emit_const_ref(A_OR,S_W,$0f00,oldcw);
+            emit_const_ref(A_OR,S_W,$0f00,newcw);
             load_fpu_location;
-            emit_ref(A_FLDCW,S_NO,oldcw);
+            emit_ref(A_FLDCW,S_NO,newcw);
             location_reset(location,LOC_REFERENCE,OS_64);
             tg.GetTempTyped(current_asmdata.CurrAsmList,resultdef,tt_normal,location.reference);
-            cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_16,OS_16,tempreg,oldcw);
             emit_ref(A_FISTP,S_Q,location.reference);
             emit_ref(A_FLDCW,S_NO,oldcw);
             emit_none(A_FWAIT,S_NO);
             tg.UnGetTemp(current_asmdata.CurrAsmList,oldcw);
+            tg.UnGetTemp(current_asmdata.CurrAsmList,newcw);
            end;
        end;
 
