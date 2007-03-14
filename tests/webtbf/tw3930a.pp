@@ -1,3 +1,11 @@
+{ %fail }
+
+{ Gives under Kylix:
+
+tw3930a.pp(22) Error: Incompatible types: 'TMyStringList' and 'TStringList'
+
+}
+
 {$ifdef fpc}
 {$mode objfpc}
 {$endif}
@@ -11,10 +19,7 @@ var
   list : TMyStringList;
 
 begin
-  TMyStringList.Create.Free;
-  if pointer(TMyStringList)<>pointer(TStringList) then
-    halt(1);
-  writeln('ok');
+  list:=TMyStringList.Create;
 end.
 
     
