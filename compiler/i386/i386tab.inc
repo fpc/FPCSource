@@ -8831,7 +8831,7 @@
     opcode  : A_CVTSD2SI;
     ops     : 2;
     optypes : (ot_reg32 or ot_bits64,ot_xmmreg,ot_none);
-    code    : #211#1#242#208#2#15#45#72;
+    code    : #1#242#208#2#15#45#72;
     flags   : if_willamette or if_sse2
   ),
   (
@@ -8859,7 +8859,7 @@
     opcode  : A_CVTSI2SD;
     ops     : 2;
     optypes : (ot_xmmreg,ot_reg32 or ot_bits64,ot_none);
-    code    : #211#1#242#209#2#15#42#72;
+    code    : #1#242#209#2#15#42#72;
     flags   : if_willamette or if_sse2
   ),
   (
@@ -8929,7 +8929,7 @@
     opcode  : A_CVTTSD2SI;
     ops     : 2;
     optypes : (ot_reg32 or ot_bits64,ot_xmmreg,ot_none);
-    code    : #211#1#242#208#2#15#44#72;
+    code    : #1#242#208#2#15#44#72;
     flags   : if_willamette or if_sse2
   ),
   (

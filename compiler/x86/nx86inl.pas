@@ -284,22 +284,27 @@ implementation
        var
          href : treference;
        begin
-       {
+{$ifdef x86_64}
          if use_sse(left.resultdef) then
            begin
              secondpass(left);
              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
-             location.loc:=LOC_REFERENCE;
-             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_const(A_PSHUFD,S_XMM,location.left.register,location.left.register))
-             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_const(A_PSHUFD,S_XMM,location.left.register,location.left.register))
-
-             tg.GetTempTyped(current_asmdata.CurrAsmList,left.resultdef,tt_normal,location.reference);
+             location_reset(location,LOC_REGISTER,OS_S64);
+             location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_S64);
+             case left.location.size of
+               OS_F32:
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSS2SI,S_Q,left.location.register,location.register));
+               OS_F64:
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSD2SI,S_Q,left.location.register,location.register));
+               else
+                 internalerror(2007031402);
+             end;
            end
          else
-       }
+{$endif x86_64}
           begin
             load_fpu_location;
-            location_reset(location,LOC_REFERENCE,OS_64);
+            location_reset(location,LOC_REFERENCE,OS_S64);
             tg.GetTempTyped(current_asmdata.CurrAsmList,resultdef,tt_normal,location.reference);
             emit_ref(A_FISTP,S_IQ,location.reference);
             emit_none(A_FWAIT,S_NO);
@@ -313,19 +318,24 @@ implementation
          oldcw,newcw : treference;
          tempreg : tregister;
        begin
-       {
+{$ifdef x86_64}
          if use_sse(left.resultdef) then
            begin
              secondpass(left);
              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
-             location.loc:=LOC_REFERENCE;
-             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_const(A_PSHUFD,S_XMM,location.left.register,location.left.register))
-             current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg_const(A_PSHUFD,S_XMM,location.left.register,location.left.register))
-
-             tg.GetTempTyped(current_asmdata.CurrAsmList,left.resultdef,tt_normal,location.reference);
+             location_reset(location,LOC_REGISTER,OS_S64);
+             location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_S64);
+             case left.location.size of
+               OS_F32:
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSS2SI,S_Q,left.location.register,location.register));
+               OS_F64:
+                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSD2SI,S_Q,left.location.register,location.register));
+               else
+                 internalerror(2007031401);
+             end;
            end
          else
-       }
+{$endif x86_64}
           begin
             tg.GetTemp(current_asmdata.CurrAsmList,2,tt_normal,oldcw);
             tg.GetTemp(current_asmdata.CurrAsmList,2,tt_normal,newcw);
@@ -334,7 +344,7 @@ implementation
             emit_const_ref(A_OR,S_W,$0f00,newcw);
             load_fpu_location;
             emit_ref(A_FLDCW,S_NO,newcw);
-            location_reset(location,LOC_REFERENCE,OS_64);
+            location_reset(location,LOC_REFERENCE,OS_S64);
             tg.GetTempTyped(current_asmdata.CurrAsmList,resultdef,tt_normal,location.reference);
             emit_ref(A_FISTP,S_IQ,location.reference);
             emit_ref(A_FLDCW,S_NO,oldcw);

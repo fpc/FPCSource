@@ -2116,9 +2116,10 @@ implementation
                   else
                     begin
                       set_varstate(left,vs_read,[vsf_must_be_valid]);
-                      { for direct rounding, no best real type cast should be necessary
-                      inserttypeconv(left,pbestrealtype^);
-                      }
+                      { for direct float rounding, no best real type cast should be necessary }
+                      if not((left.resultdef.typ=floatdef) and
+                        (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,s128real])) then
+                        inserttypeconv(left,pbestrealtype^);
                       resultdef:=s64inttype;
                     end;
                 end;
@@ -2139,9 +2140,10 @@ implementation
                   else
                     begin
                       set_varstate(left,vs_read,[vsf_must_be_valid]);
-                      { for direct rounding, no best real type cast should be necessary
-                      inserttypeconv(left,pbestrealtype^);
-                      }
+                      { for direct float rounding, no best real type cast should be necessary }
+                      if not((left.resultdef.typ=floatdef) and
+                        (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,s128real])) then
+                        inserttypeconv(left,pbestrealtype^);
                       resultdef:=s64inttype;
                     end;
                 end;
