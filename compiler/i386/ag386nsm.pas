@@ -208,6 +208,7 @@ interface
            S_B : sizestr:='byte ';
            S_W : sizestr:='word ';
            S_L : sizestr:='dword ';
+           S_Q : sizestr:='qword ';
            S_IS : sizestr:='word ';
            S_IL : sizestr:='dword ';
            S_IQ : sizestr:='qword ';
