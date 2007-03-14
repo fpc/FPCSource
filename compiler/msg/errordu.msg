@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at physik.uni-halle.de>
 #
-#   Based on errore.msg of SVN revision 5313
+#   Based on errore.msg of SVN revision 6685
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
@@ -348,6 +348,9 @@ scanner_e_illegal_warn_state=02079_E_Ungültiger Wert für die $WARN Direktive
 % Only ON and OFF can be used as state with a \$warn compiler directive
 scan_e_only_packset=02080_E_Ungültiger Wert für das set packing
 % Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameter
+scan_w_pic_ignored=02081_W_PIC Direktive wird ignoriert
+% Several targets like windows do not support the PIC directive and need it to be
+% ignored.
 % \end{description}
 #
 # Parser
@@ -414,7 +417,7 @@ parser_n_object_has_no_vmt=03023_N_Das Objekt "$1" besitzt keine VMT
 parser_e_illegal_parameter_list=03024_E_Ungültige Parameterliste
 % You are calling a function with parameters that are of a different type than
 % the declared parameters of the function.
-parser_e_wrong_parameter_size=03026_E_Falsche Parameterzahl angegeben
+parser_e_wrong_parameter_size=03026_E_Falsche Anzahl an Parameter im Aufruf von "$1" angegeben
 % There is an error in the parameter list of the function or procedure,
 % the number of parameters is not correct.
 parser_e_overloaded_no_procedure=03027_E_Bezeichner $1 ist keine Funktion, overload nicht möglich
@@ -453,7 +456,7 @@ parser_e_double_caselabel=03037_E_doppelter CASE-Wert
 parser_e_case_lower_less_than_upper_bound=03038_E_Obere Grenze der CASE-Bereichsangabe ist kleiner als untere Grenze
 % The upper bound of a \var{case} label is less than the lower bound and this
 % is useless
-parser_e_type_const_not_possible=03039_E_Klassen sind als typisierte Konstanten unzulässig
+parser_e_type_const_not_possible=03039_E_Klassen oder Interfaces 03229_Esind als typisierte Konstanten unzulässig
 % You cannot declare a constant of type class or object.
 parser_e_no_overloaded_procvars=03040_E_Funktionsvariablen von Overload-Funktionen sind unzulässig
 % You are trying to assign an overloaded function to a procedural variable.
@@ -1098,6 +1101,38 @@ parser_e_type_and_var_only_in_generics=03224_E_VAR und TYPE sind nur innerhalb "
 % generics.
 parser_e_cant_create_generics_of_this_type=03225_E_Dieser Typ kann nicht "generic" sein
 % Only Classes, Objects, Interfaces and Records are allowed to be used as generic
+parser_w_no_lineinfo_use_switch=03226_W_Die LINEINFO Unit nicht manuell laden. Verwende statt dessen den Compilerschalter -gl
+% Do not use the LINEINFO unit directly, Use the \var{-gl} switch which automatically adds the
+% unit for reading the selected type of debugging information instead.
+parser_e_no_funcret_specified=03227_E_Kein FunKtionsergebnistyp für Funktion "$1" angegeben
+% The first time you declare a function you have to declare it completely,
+% including all parameters and the result type.
+parser_e_special_onlygenerics=03228_E_Spezialisierung wird nur für generische Typen unterstützt
+% Types not being generics can't be specialized
+parser_e_no_generics_as_params=03229_E_Generische Typen können bei der Spezialisierung generischer Typen nicht als Parameter benutzt werden
+% When specializing a generic, only non-generic types can be used as parameters.
+parser_e_type_object_constants=03230_E_Konstanten eines Objekts, das ein VMT enthält, sind unzulässig
+% If an object requires a VMT either because it contains a constructor or virtual methods,
+% it's not allowed to create constants of it. In TP and Delphi mode this is allowed
+% for compatibility reasons.
+parser_e_label_outside_proc=03231_E_Die Address von Labels, die ausserhalb des aktuellen Scopes definiert wurden, können nicht verwendet werden
+% It isn't allowed to take the addresss of labels outside the
+% current procedure.
+parser_f_no_anonymous_specializations=03232_F_Anonyme generische Spezialisierungen sind unzulässig
+% Something like
+% \begin{verbatim}
+% var
+%   MyLinkedList: specialize TLinkedList<TFixedString15>;
+% \end{verbatim}
+% is not allowed. Declare a specialized type first:
+% \begin{verbatim}
+% type
+%   TMyLinkedList = specialize TLinkedList<TFixedString15>;
+% var
+%   MyLinkedList: TMyLinkedList
+% \end{verbatim}
+parser_e_initialized_not_for_external=03233_E_Extern deklarierte Variablen können nicht intialisiert werden 
+% Variables declared as external can not be initialized with a default value.
 % \end{description}
 #
 # Type Checking
@@ -1311,9 +1346,9 @@ type_h_smaller_possible_range_check=04049_H_Unpassende Typgrössen, Gefahr des D
 % this may cause a range-check error, or may lead to possible loss of data.
 type_e_cant_take_address_of_abstract_method=04050_E_Die Adresse einer abstrakten Methode kann nicht verwendet werden
 % An abstract method has no body, so the address of an abstract method can't be taken.
-type_e_operator_not_allowed=04051_E_Der Operator "$1" passt nicht zu der Kombination aus aus Operanden mit den Typen "$2" und "$3"
-% You are trying an operator that is not available for the type of the
-% operands
+type_e_assignment_not_allowed=04051_E_Zuweisungen auf formale Parameter und offene Arrays sind nicht möglich
+% You are trying to assign a value to a formal (untyped var, const or out)
+% parameter, or to an open array.
 type_e_constant_expr_expected=04052_E_Konstanter Ausdruck erwartet
 % The compiler expects an constant expression, but gets a variable expression.
 type_e_operator_not_supported_for_types=04053_E_Operation "$1" wird für die Typen "$2" und "$3" nicht unterstützt
@@ -1354,7 +1389,7 @@ type_e_no_packed_inittable=04064_E_Elemente von packed Arrays können nicht von 
 type_e_no_const_packed_record=04065_E_Konstante packed Records und Objekte werden noch nicht unterstützt
 % You cannot declare a (bit)packed array as a typed constant at this time.
 type_w_untyped_arithmetic_unportable=04066_W_Arithmetik "$1" mit typenlosem Pointer ist nicht portierbar nach {$T+}, schlage typecast vor
-% Addition/subtraction from untyped pointer may work differently in {$T+}, use typecast to typed pointer
+% Addition/subtraction from untyped pointer may work differently in \var{\{\$T+\}}, use typecast to typed pointer
 type_e_cant_take_address_of_local_subroutine=04076_E_Die Address einer Subroutine, die als local markiert ist, kann nicht verwendet werden
 % The address of a subroutine marked as local can't be taken.
 type_e_cant_export_local=04077_E_Eine Subroutine, die aus einer Unit als local markiert ist, kann nicht exportiert werden
@@ -1526,7 +1561,9 @@ sym_h_function_result_uninitialized=05060_H_Die Ergebnisvariable der Funktion sc
 sym_w_identifier_only_read=05061_W_Die Variable "$1" wird gelesen, obwohl ihr aber noch kein Wert zugewiesen wurde
 % You have read the value of a variable, but nowhere assigned a value to
 % it.
-
+sym_h_abstract_method_list=05062_H_Abstrakte Method "$1" gefunden 
+% When getting a warning about constructing a class/object with abstract methods
+% you get this hint to find the affected method.
 % \end{description}
 #
 # Codegenerator
@@ -1641,17 +1678,25 @@ cg_e_break_not_allowed=06044_E_BREAK nicht zulässig
 cg_e_continue_not_allowed=06045_E_CONTINUE nicht zulässig
 % You're trying to use \var{continue} outside a loop construction.
 cg_f_unknown_compilerproc=06046_F_Unbekannte Compiler-Prozedur "$1". Überprüfe, ob die korrekte Laufzeit-Bibliothek verwendet wird.
-% The compiler expects that the runtime library contains some subrountines. If you see this error
-% and you didn't mess with the runtime library, it's very likely that the runtime library
+% The compiler expects that the runtime library contains certain subroutines. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
 % that you removed a subroutine which the compiler needs for internal use.
+cg_f_unknown_system_type=06047_F_Systemtyp "$1" konnte nicht gefunden werden. Überprüfe ob die korrekte Laufzeit-Bibliothek verwendet wird.
+% The compiler expects that the runtime library contains certain type definitions. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
+% you're using doesn't match the used compiler. If you changed the runtime library this error means
+% that you removed a type which the compiler needs for internal use.
+cg_h_inherited_ignored=06048_H_Geerbter Aufruf einer abstrakten Methode ignoriert
+% This messages appears only in Delphi mode when you call an abstract method
+% of a parent class via \var{inherited;}. The call is then ignored.
 % \end{description}
 # EndOfTeX
 
 #
 # Assembler reader
 #
-# 07097 is the last used one
+# 07105 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starte $1 Stil Assembler Parsen
 % This informs you that an assembler block is being parsed
@@ -1867,6 +1912,7 @@ asmr_e_illegal_shifterop_syntax=07099_E_Syntax Fehler beim Analysieren eines shi
 % asm
 %   orr     r2,r2,r2,lsl #8
 % end;
+% \end{verbatim}
 asmr_e_packed_element=07100_E_Die Adresse der packed Komponente ist nicht an einer Byte Grenze
 % Packed components (record fields and array elements) may start at an arbitrary
 % bit inside a byte. On CPU which do not support bit-addressable memory (which
@@ -1879,7 +1925,19 @@ asmr_w_unable_to_determine_reference_size_using_byte=07101_W_Grösse nicht angeg
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
 % it falls back to use BYTE as default.
-% \end{verbatim}
+asmr_w_no_direct_ebp_for_parameter=07102_W_Die Verwendung von +offset(%ebp) für Parameter ist hier ungültig
+% Using direct 8(%ebp) reference for function/procedure parameters is invalid
+% if parameters are in registers.
+asmr_w_direct_ebp_for_parameter_regcall=07103_W_Die Verwendung von +offset(%ebp) ist nicht mit der regcall Konvention kompatibel
+% Using direct 8(%ebp) reference for function/procedure parameters is invalid
+% if parameters are in registers.
+asmr_w_direct_ebp_neg_offset=07104_W_Die Verwendung von -offset(%ebp) wird für den Zugriff auf lokale Variablen nicht empfohlen
+% Using -8(%ebp) to access a local variable is not recommended
+asmr_w_direct_esp_neg_offset=07105_W_Verwendung von -offset(%esp); Zugriff kann einen Crash oder Datenverlust auslösen
+% Using -8(%esp) to access a local stack is not recommended, as
+% this stack portion can be overwritten by any function calls or interrupts.
+asmr_e_no_vmtoffset_possible=07106_E_VMTOffset muss in Kombination mit einer virtuellen Methode verwendet werden; "$1" ist aber nicht virtuell
+%
 #
 # Assembler/binary writers
 #
@@ -2221,7 +2279,7 @@ unit_u_skipping_reresolving_unit=10059_U_Erneutes Resolving der Unit $1 wird üb
 #
 #  Options
 #
-# 11039 is the last used one
+# 11041 is the last used one
 #
 option_usage=11000_O_$1 [Optionen] <Eingabedatei> [Optionen]
 # BeginOfTeX
@@ -2313,6 +2371,9 @@ option_found_file=11035_D_Name der Quelldatei "$1" gefunden
 option_code_page_not_available=11039_E_Unbekannte code page
 option_config_is_dir=11040_F_Konfigurationsdatei $1 ist ein Verzeichnis
 % Directories can not be used as configuration files.
+option_confict_asm_debug=11041_W_Die gewählte Assembler-Ausgabe "$1" kann kein Debug-Info erzeugen, Debugging ist ausgeschaltet
+% The assembler output selected can not generate
+% debugging information, debugging option is therefore disabled.
 %\end{description}
 # EndOfTeX
 
@@ -2321,7 +2382,7 @@ option_config_is_dir=11040_F_Konfigurationsdatei $1 ist ein Verzeichnis
 #
 option_logo=11023_[
 Free Pascal Compiler Version $FPCFULLVERSION [$FPCDATE] für $FPCTARGET
-Copyright (c) 1993-2006 Florian Klämpfl
+Copyright (c) 1993-2007 Florian Klämpfl
 ]
 
 #
@@ -2430,6 +2491,7 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 *O2Dw_erzeuge PM-Anwendung
 **1e<x>_setze Pfad zur ausführbaren Datei
 **1E_genau wie -Cn
+**1fPIC_genau wie -Cg
 **1F<x>_Dateinamen und Pfade:
 **2Fa<x>[,y]_ein Program soll die Units <x> und [y] laden, bevor uses analysiert wird
 **2Fc<x>_setze die Eingabe-Codepage zu <x>
@@ -2449,6 +2511,7 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 *g2gg_Verwende gsym
 *g2gh_Heaptrace-Unit einbinden
 *g2gl_line info Unit einbinden, um mehr backtrace Informationen anzuzeigen
+*g2gp_erhalte Gross/Kleinschreibung in Stabs-Symbolnamen
 *g2gt_lösche lokale Variablen (um eine Verwendung ohne Initialisierung zu finden)
 *g2gv_erzeuge ein mit valgrind verfolgbares (traceable) Programm
 *g2gw_erzeuge dwarf Informationen

@@ -346,8 +346,8 @@ scanner_e_illegal_warn_state=02079_E_Illegal state for $WARN directive
 scan_e_only_packset=02080_E_Illegal set packing value
 % Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameter
 scan_w_pic_ignored=02081_W_PIC directive ignored
-% Several targets like windows doesn't support and need the PIC directive so
-% it is ignored.
+% Several targets like windows do not support the PIC directive and need it to be
+% ignored.
 % \end{description}
 #
 # Parser
@@ -2347,9 +2347,6 @@ option_asm_forced=11022_W_"$1" assembler use forced
 % The assembler output selected can not generate
 % object files with the correct format. Therefore, the
 % default assembler for this target is used instead.
-option_confict_asm_debug=11041_W_Assembler output selected "$1" cannot generate debug info, debugging disabled
-% The assembler output selected can not generate
-% debugging information, debugging option is therefore disabled.
 option_using_file=11026_T_Reading options from file $1
 % Options are also read from this file
 option_using_env=11027_T_Reading options from environment $1
@@ -2371,6 +2368,9 @@ option_found_file=11035_D_found source file name "$1"
 option_code_page_not_available=11039_E_Unknown code page
 option_config_is_dir=11040_F_Config file $1 is a directory
 % Directories can not be used as configuration files.
+option_confict_asm_debug=11041_W_Assembler output selected "$1" cannot generate debug info, debugging disabled
+% The assembler output selected can not generate
+% debugging information, debugging option is therefore disabled.
 %\end{description}
 # EndOfTeX
 
