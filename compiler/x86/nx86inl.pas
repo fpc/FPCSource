@@ -197,9 +197,9 @@ implementation
 
      function tx86inlinenode.first_trunc_real: tnode;
        begin
-         if (cs_opt_size in current_settings.optimizerswitches) and
+         if (cs_opt_size in current_settings.optimizerswitches)
 {$ifdef x86_64}
-           not(use_sse(left.resultdef))
+           and not(use_sse(left.resultdef))
 {$endif x86_64}
            then
            result:=inherited
