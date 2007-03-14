@@ -353,7 +353,7 @@ implementation
               varsize:=$fffffff;
             newrec:=def_stabstr_evaluate(nil,'$1:$2,$3,$4;',[GetSymName(tfieldvarsym(p)),
                                      spec+def_stab_number(tfieldvarsym(p).vardef),
-                                     tostr(tfieldvarsym(p).fieldoffset*8),tostr(varsize*8)]);
+                                     tostr(TConstExprInt(tfieldvarsym(p).fieldoffset)*8),tostr(varsize*8)]);
             if state^.stabsize+strlen(newrec)>=state^.staballoc-256 then
               begin
                 inc(state^.staballoc,strlen(newrec)+64);
