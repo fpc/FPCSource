@@ -23,10 +23,13 @@
 
 { some dummy types necessary to have generic resulttypes for certain compilerprocs }
 type
-  { normally the array shall be maxlongint big, but that will confuse
-    the debugger }
-  fpc_big_chararray = array[0..1023] of char;
-  fpc_big_widechararray = array[0..1023] of widechar;
+  { normally the array should be maxlongint big, but that will confuse
+    the debugger. The compiler will set the correct size of the array
+    internally. It's now set to 0..0 because when compiling with -gt,
+    the entire array will be trashed, so it must not be defined larger
+    than the minimal size (otherwise we can trash other memory) }
+  fpc_big_chararray = array[0..0] of char;
+  fpc_big_widechararray = array[0..0] of widechar;
   fpc_small_set = longint;
   fpc_normal_set = array[0..7] of longint;
 

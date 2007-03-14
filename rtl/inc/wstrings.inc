@@ -676,8 +676,12 @@ begin
   len := length(temp);
   if len > arraysize then
     len := arraysize;
+{$r-}
   move(temp[1],fpc_widestr_to_chararray[0],len);
   fillchar(fpc_widestr_to_chararray[len],arraysize-len,0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
 end;
 
 
@@ -690,10 +694,14 @@ begin
   len := length(src);
   if len > arraysize then
     len := arraysize;
+{$r-}
   { make sure we don't try to access element 1 of the ansistring if it's nil }
   if len > 0 then
     move(src[1],fpc_widestr_to_widechararray[0],len*SizeOf(WideChar));
   fillchar(fpc_widestr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
 end;
 
 
@@ -712,8 +720,12 @@ begin
   if len > arraysize then
     len := arraysize;
 
+{$r-}
   move(temp[1],fpc_ansistr_to_widechararray[0],len*sizeof(widechar));
   fillchar(fpc_ansistr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
 end;
 
 function fpc_shortstr_to_widechararray(arraysize: SizeInt; const src: ShortString): fpc_big_widechararray;[public,alias: 'FPC_SHORTSTR_TO_WIDECHARARRAY']; compilerproc;
@@ -728,8 +740,12 @@ begin
   len := length(temp);
   if len > arraysize then
     len := arraysize;
+{$r-}
   move(temp[1],fpc_shortstr_to_widechararray[0],len*sizeof(widechar));
   fillchar(fpc_shortstr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
 end;
 
 Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt;[Public,Alias : 'FPC_WIDESTR_COMPARE']; compilerproc;

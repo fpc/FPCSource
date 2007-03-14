@@ -769,10 +769,14 @@ begin
   len := length(src);
   if len > arraysize then
     len := arraysize;
+{$r-}
   { make sure we don't access char 1 if length is 0 (JM) }
   if len > 0 then
     move(src[1],fpc_shortstr_to_chararray[0],len);
   fillchar(fpc_shortstr_to_chararray[len],arraysize-len,0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
 end;
 
 {$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_TO_CHARARRAY}
