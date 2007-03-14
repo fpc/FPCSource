@@ -13,15 +13,6 @@
 
  **********************************************************************}
 
-{$UNDEF RANGECHECKINGOFF}
-{$IFOPT R-} {$DEFINE RANGECHECKINGOFF}    {$ENDIF}
-{R+}
-
-{$UNDEF OVERFLOWCHECKINGOFF}
-{$IFOPT Q-} {$DEFINE OVERFLOWCHECKINGOFF} {$ENDIF}
-{Q+}
-
-
 Resourcestring
 
   SNoWidestrings = 'No widestrings supported';
@@ -1237,10 +1228,6 @@ Function VariantToShortString(const VargSrc : TVarData) : ShortString;
 begin
   Result:=VariantToAnsiString(VargSrc);
 end;
-
-{$IFDEF RANGECHECKINGOFF}    {R-} {$ENDIF}
-{$IFDEF OVERFLOWCHECKINGOFF} {Q-} {$ENDIF}
-
 
 { ---------------------------------------------------------------------
     Some debug routines
