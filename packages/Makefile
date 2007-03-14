@@ -234,19 +234,19 @@ ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
@@ -255,37 +255,37 @@ ifeq ($(FULL_TARGET),i386-solaris)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
@@ -297,19 +297,19 @@ ifeq ($(FULL_TARGET),m68k-netbsd)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
@@ -318,19 +318,19 @@ ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
@@ -342,7 +342,7 @@ ifeq ($(FULL_TARGET),sparc-solaris)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
@@ -354,28 +354,28 @@ ifeq ($(FULL_TARGET),x86_64-win64)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
@@ -384,7 +384,7 @@ ifeq ($(FULL_TARGET),powerpc64-darwin)
 override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+override TARGET_DIRS+=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages
@@ -1482,7 +1482,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1508,7 +1507,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1534,7 +1532,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1573,7 +1570,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1586,7 +1582,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1612,7 +1607,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1638,7 +1632,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1651,7 +1644,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1664,7 +1656,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1690,7 +1681,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1703,7 +1693,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1755,7 +1744,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1768,7 +1756,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1794,7 +1781,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1807,7 +1793,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1846,7 +1831,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1859,7 +1843,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1885,7 +1868,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1898,7 +1880,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -1950,7 +1931,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -2002,7 +1982,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -2028,7 +2007,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -2054,7 +2032,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -2067,7 +2044,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -2080,7 +2056,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -2093,7 +2068,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
@@ -2132,7 +2106,6 @@ TARGET_DIRS_FCL-IMAGE=1
 TARGET_DIRS_FCL-NET=1
 TARGET_DIRS_FCL-PASSRC=1
 TARGET_DIRS_FCL-REGISTRY=1
-TARGET_DIRS_FCL-WEB=1
 TARGET_DIRS_FCL-XML=1
 TARGET_DIRS_FCL-FPCUNIT=1
 TARGET_DIRS_EXTRA=1
