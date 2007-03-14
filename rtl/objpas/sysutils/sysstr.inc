@@ -2641,7 +2641,7 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
   function GetInt(unsigned : boolean=false) : Integer;
     begin
       s1 := '';
-      while (s[n] = ' ')  and (Length(s) > n) do
+      while (Length(s) > n) and (s[n] = ' ') do
         inc(n);
       { read sign }
       if (Length(s)>= n) and (s[n] in ['+', '-']) then
@@ -2659,8 +2659,8 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
             end;
         end;
       { read numbers }
-      while (s[n] in ['0'..'9'])
-        and (Length(s) >= n) do
+      while (Length(s) >= n) and
+            (s[n] in ['0'..'9']) do
         begin
           s1 := s1+s[n];
           inc(n);
@@ -2672,10 +2672,10 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
   function GetFloat : Integer;
     begin
       s1 := '';
-      while (s[n] = ' ')  and (Length(s) > n) do
+      while (Length(s) > n) and (s[n] = ' ')  do
         inc(n);
-      while (s[n] in ['0'..'9', '+', '-', '.', 'e', 'E'])
-        and (Length(s) >= n) do
+      while (Length(s) >= n) and
+            (s[n] in ['0'..'9', '+', '-', '.', 'e', 'E']) do
         begin
           s1 := s1+s[n];
           inc(n);
@@ -2687,9 +2687,9 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
   function GetString : Integer;
     begin
       s1 := '';
-      while (s[n] = ' ')  and (Length(s) > n) do
+      while (Length(s) > n) and (s[n] = ' ') do
         inc(n);
-      while (s[n] <> ' ') and (Length(s) >= n) do
+      while (Length(s) >= n) and (s[n] <> ' ')do
         begin
           s1 := s1+s[n];
           inc(n);
@@ -2700,7 +2700,7 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
 
   function ScanStr(c : Char) : Boolean;
     begin
-      while (s[n] <> c) and (Length(s) > n) do
+      while (Length(s) > n) and (s[n] <> c) do
         inc(n);
       inc(n);
       If (n <= Length(s)) then
@@ -2716,7 +2716,7 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
       while true do
         begin
 
-          while (fmt[m] = ' ') and (Length(fmt) > m) do
+          while (Length(fmt) > m) and (fmt[m] = ' ') do
             inc(m);
 
           if (m >= Length(fmt)) then
