@@ -703,7 +703,6 @@ const
   option_switch_bin_to_src_assembler=11020;
   option_incompatible_asm=11021;
   option_asm_forced=11022;
-  option_confict_asm_debug=11041;
   option_using_file=11026;
   option_using_env=11027;
   option_handling_option=11028;
@@ -717,6 +716,7 @@ const
   option_found_file=11035;
   option_code_page_not_available=11039;
   option_config_is_dir=11040;
+  option_confict_asm_debug=11041;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;

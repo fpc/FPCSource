@@ -774,21 +774,21 @@ const msgtxt : array[0..000179,1..240] of char=(
   '11020_N_Switc','hing assembler to default source writing assembler'#000+
   '11021_W_Assembler output selected "$1" is not compatible with "$2"'#000+
   '11022_W_"$1" assembler use forced'#000+
-  '11041_W_Assembler output selected "$1" cannot generate debug info, deb'+
-  'ugging disabled'#000+
-  '11','026_T_Reading options from file $1'#000+
+  '11026_T_Reading options from file $1'#000+
   '11027_T_Reading options from environment $1'#000+
-  '11028_D_Handling option "$1"'#000+
+  '11028_D','_Handling option "$1"'#000+
   '11029__*** press enter ***'#000+
   '11030_H_Start of reading config file $1'#000+
   '11031_H_End of reading config file $1'#000+
-  '11032_D_interpreting option',' "$1"'#000+
+  '11032_D_interpreting option "$1"'#000+
   '11036_D_interpreting firstpass option "$1"'#000+
-  '11033_D_interpreting file option "$1"'#000+
+  '11033_D_interpreting file option "$1"',#000+
   '11034_D_Reading config file "$1"'#000+
   '11035_D_found source file name "$1"'#000+
   '11039_E_Unknown code page'#000+
   '11040_F_Config file $1 is a directory'#000+
+  '11041_W_Assembler output selected "$1" cannot generate debug info, deb'+
+  'ugging disabled'#000+
   '11023_Free Pascal Co','mpiler version $FPCFULLVERSION [$FPCDATE] for $F'+
   'PCCPU'#010+
   'Copyright (c) 1993-2007 by Florian Klaempfl'#000+
