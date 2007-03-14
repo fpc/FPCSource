@@ -179,7 +179,13 @@ implementation
 
      function tx86inlinenode.first_round_real : tnode;
       begin
-        expectloc:=LOC_REFERENCE;
+{$ifdef x86_64}
+        if use_sse(left.resultdef) then
+          expectloc:=LOC_REGISTER
+        else
+{$else x86_64}
+          expectloc:=LOC_REFERENCE;
+{$endif x86_64}
         registersint:=left.registersint;
         registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
@@ -191,11 +197,21 @@ implementation
 
      function tx86inlinenode.first_trunc_real: tnode;
        begin
-         if cs_opt_size in current_settings.optimizerswitches then
+         if (cs_opt_size in current_settings.optimizerswitches) and
+{$ifdef x86_64}
+           not(use_sse(left.resultdef))
+{$endif x86_64}
+           then
            result:=inherited
          else
            begin
-             expectloc:=LOC_REFERENCE;
+{$ifdef x86_64}
+             if use_sse(left.resultdef) then
+               expectloc:=LOC_REGISTER
+             else
+{$else x86_64}
+               expectloc:=LOC_REFERENCE;
+{$endif x86_64}
              registersint:=left.registersint;
              registersfpu:=max(left.registersfpu,1);
 {$ifdef SUPPORT_MMX}
