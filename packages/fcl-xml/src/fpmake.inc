@@ -16,3 +16,5 @@ T:=Targets.AddUnit('xhtml');
 T:=Targets.AddUnit('htmldefs');
 T:=Targets.AddUnit('htmwrite');
 T:=Targets.AddUnit('xpath');
+T:=Targets.AddUnit('htmlelements');
+T:=Targets.AddUnit('htmlwriter');

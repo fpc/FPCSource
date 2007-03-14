@@ -7,8 +7,8 @@ name=fcl-xml
 version=2.0.0
 
 [target]
-units=htmldefs sax xmlutils dom sax_html dom_html xmlcfg xmlread xmlstreaming xmlwrite xhtml htmwrite xpath
-rsts=sax xpath
+units=htmldefs sax xmlutils dom sax_html dom_html xmlcfg xmlread xmlstreaming xmlwrite xhtml htmwrite xpath htmlelements htmlwriter
+rsts=sax xpath htmlwriter
 
 [require]
 packages=netdb fcl-base
