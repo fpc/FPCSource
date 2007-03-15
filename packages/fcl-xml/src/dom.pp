@@ -1218,7 +1218,7 @@ var AVLNode: TAVLTreeNode;
 begin
   Result:=nil;
   if FChildNodeTree<>nil then begin
-    AVLNode:=FChildNodeTree.FindKey(Pointer(ANodeName),
+    AVLNode:=FChildNodeTree.FindKey(Pointer(@ANodeName),
                                     @CompareDOMStringWithDOMNode);
     if AVLNode<>nil then
       Result:=TDOMNode(AVLNode.Data);
