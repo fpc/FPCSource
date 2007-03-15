@@ -308,7 +308,7 @@ type
     Result := Result + ')';
   end;
 
-  function GetParseValueFnName(PasType: TPasType): String;
+  function GetParseValueFnName(PasType: TPasElement): String;
   var
     s: String;
   begin
