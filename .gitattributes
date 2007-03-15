@@ -4821,6 +4821,7 @@ rtl/morphos/hardware.pas svneol=native#text/plain
 rtl/morphos/inputevent.pas svneol=native#text/plain
 rtl/morphos/intuition.pas svneol=native#text/plain
 rtl/morphos/keyboard.pp svneol=native#text/plain
+rtl/morphos/keymap.pas svneol=native#text/plain
 rtl/morphos/kvm.pp svneol=native#text/plain
 rtl/morphos/layers.pas svneol=native#text/plain
 rtl/morphos/mouse.pp svneol=native#text/plain

@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       sysutils classes fgl strutils math typinfo varutils \
       charset ucomplex getopts matrix fmtbcd \
       variants types rtlconsts sysconst dateutil objects \
-      exec timer doslib utility hardware inputevent graphics layers \
+      exec timer doslib utility hardware inputevent keymap graphics layers \
       intuition aboxlib mui \
 # these units are here, because they depend on system interface units above
       kvm video keyboard mouse \
