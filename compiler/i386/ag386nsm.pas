@@ -41,6 +41,7 @@ interface
         procedure WriteTree(p:TAsmList);override;
         procedure WriteAsmList;override;
         procedure WriteExternals;
+        procedure WriteSmartExternals;
       end;
 
 
@@ -253,6 +254,54 @@ interface
       end;
 
 
+    type
+      PExternChain = ^TExternChain;
+
+      TExternChain = Record
+        psym : pshortstring;
+        is_defined : boolean;
+        next : PExternChain;
+      end;
+
+    const
+      FEC : PExternChain = nil;
+
+    procedure AddSymbol(symname : string; defined : boolean);
+    var
+       EC : PExternChain;
+    begin
+      EC:=FEC;
+      while assigned(EC) do
+        begin
+          if EC^.psym^=symname then
+            begin
+              if defined then
+                EC^.is_defined:=true;
+              exit;
+            end;
+          EC:=EC^.next;
+        end;
+      New(EC);
+      EC^.next:=FEC;
+      FEC:=EC;
+      FEC^.psym:=stringdup(symname);
+      FEC^.is_defined := defined;
+    end;
+
+    procedure FreeExternChainList;
+    var
+       EC : PExternChain;
+    begin
+      EC:=FEC;
+      while assigned(EC) do
+        begin
+          FEC:=EC^.next;
+          stringdispose(EC^.psym);
+          Dispose(EC);
+          EC:=FEC;
+        end;
+    end;
+
 {****************************************************************************
                                T386NasmAssembler
  ****************************************************************************}
@@ -270,6 +319,8 @@ interface
            if assigned(symbol) then
             begin
               AsmWrite(symbol.name);
+              if SmartAsm then
+                AddSymbol(symbol.name,false);
               first:=false;
             end;
            if (base<>NR_NO) then
@@ -325,7 +376,7 @@ interface
                   if not ((opcode = A_LEA) or (opcode = A_LGS) or
                           (opcode = A_LSS) or (opcode = A_LFS) or
                           (opcode = A_LES) or (opcode = A_LDS) or
-                          (opcode = A_SHR) or (opcode = A_SHL) or
+                         // (opcode = A_SHR) or (opcode = A_SHL) or
                           (opcode = A_SAR) or (opcode = A_SAL) or
                           (opcode = A_OUT) or (opcode = A_IN)) then
                     AsmWrite(sizestr(s,dest));
@@ -336,6 +387,8 @@ interface
                   asmwrite('dword ');
                   if assigned(o.ref^.symbol) then
                    begin
+                    if SmartAsm then
+                      AddSymbol(o.ref^.symbol.name,false);
                     asmwrite(o.ref^.symbol.name);
                     if o.ref^.offset=0 then
                       exit;
@@ -373,6 +426,8 @@ interface
                       ) then
                   AsmWrite('NEAR ');
                 AsmWrite(o.ref^.symbol.name);
+                if SmartAsm then
+                  AddSymbol(o.ref^.symbol.name,false);
                 if o.ref^.offset>0 then
                  AsmWrite('+'+tostr(o.ref^.offset))
                 else
@@ -385,6 +440,7 @@ interface
             internalerror(10001);
         end;
       end;
+
 
 
     var
@@ -567,6 +623,8 @@ interface
                   AsmWriteLn(tai_datablock(hp).sym.name);
                 end;
                AsmWrite(PadTabs(tai_datablock(hp).sym.name,':'));
+               if SmartAsm then
+                 AddSymbol(tai_datablock(hp).sym.name,true);
                AsmWriteLn('RESB'#9+tostr(tai_datablock(hp).size));
              end;
 
@@ -600,6 +658,12 @@ interface
                      repeat
                        if assigned(tai_const(hp).sym) then
                          begin
+                           if SmartAsm then
+                             begin
+                               AddSymbol(tai_const(hp).sym.name,false);
+                               if assigned(tai_const(hp).endsym) then
+                                 AddSymbol(tai_const(hp).endsym.name,false);
+                             end;
                            if assigned(tai_const(hp).endsym) then
                              s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
                            else
@@ -807,6 +871,8 @@ interface
              begin
                if tai_label(hp).labsym.is_used then
                 AsmWriteLn(tai_label(hp).labsym.name+':');
+               if SmartAsm then
+                 AddSymbol(tai_label(hp).labsym.name,true);
              end;
 
            ait_symbol :
@@ -817,6 +883,8 @@ interface
                   AsmWriteLn(tai_symbol(hp).sym.name);
                 end;
                AsmWrite(tai_symbol(hp).sym.name);
+               if SmartAsm then
+                 AddSymbol(tai_symbol(hp).sym.name,true);
                if assigned(hp.next) and not(tai(hp.next).typ in
                   [ait_const,
                    ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
@@ -884,25 +952,33 @@ interface
 
            ait_cutobject :
              begin
-             { only reset buffer if nothing has changed }
-               if AsmSize=AsmStartSize then
-                AsmClear
-               else
+               if SmartAsm then
                 begin
-                  AsmClose;
-                  DoAssemble;
-                  AsmCreate(tai_cutobject(hp).place);
-                end;
-             { avoid empty files }
-               while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
-                begin
-                  if tai(hp.next).typ=ait_section then
-                    lasTSectype:=tai_section(hp.next).sectype;
-                  hp:=tai(hp.next);
-                end;
-               if lasTSectype<>sec_none then
-                 WriteSection(lasTSectype,'');
-               AsmStartSize:=AsmSize;
+                 { only reset buffer if nothing has changed }
+                 if AsmSize=AsmStartSize then
+                  AsmClear
+                 else
+                  begin
+                    if SmartAsm then
+                      begin
+                        WriteSmartExternals;
+                        FreeExternChainList;
+                      end;
+                    AsmClose;
+                    DoAssemble;
+                    AsmCreate(tai_cutobject(hp).place);
+                  end;
+               { avoid empty files }
+                 while assigned(hp.next) and (tai(hp.next).typ in [ait_cutobject,ait_section,ait_comment]) do
+                  begin
+                    if tai(hp.next).typ=ait_section then
+                      lasTSectype:=tai_section(hp.next).sectype;
+                    hp:=tai(hp.next);
+                  end;
+                 if lasTSectype<>sec_none then
+                   WriteSection(lasTSectype,'');
+                 AsmStartSize:=AsmSize;
+               end;
              end;
 
            ait_marker :
@@ -922,7 +998,13 @@ interface
                    internalerror(200509191);
                end;
                if assigned(tai_directive(hp).name) then
-                 AsmWrite(tai_directive(hp).name^);
+                 begin
+
+                   if SmartAsm then
+                     AddSymbol(tai_directive(hp).name^,false);
+
+                   AsmWrite(tai_directive(hp).name^);
+                 end;
                AsmLn;
              end;
 
@@ -944,6 +1026,19 @@ interface
             sym:=TAsmSymbol(current_asmdata.AsmSymbolDict[i]);
             if sym.bind=AB_EXTERNAL then
               AsmWriteln('EXTERN'#9+sym.name);
+          end;
+      end;
+
+    procedure T386NasmAssembler.WriteSmartExternals;
+      var
+        EC : PExternChain;
+      begin
+        EC:=FEC;
+        while assigned(EC) do
+          begin
+            if not EC^.is_defined then
+              AsmWriteln('EXTERN'#9+EC^.psym^);
+            EC:=EC^.next;
           end;
       end;
 
@@ -974,6 +1069,11 @@ interface
         end;
 
       AsmLn;
+      if SmartAsm then
+        begin
+          WriteSmartExternals;
+          FreeExternChainList;
+        end;
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
        comment(v_info,'Done writing nasm-styled assembler output for '+current_module.mainsource^);
