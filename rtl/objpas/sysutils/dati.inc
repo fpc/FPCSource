@@ -264,8 +264,8 @@ end;
 
 function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer = 1 ): TDateTime;
 var
+  TempMonth, S: Integer;
   Year, Month, Day : word;
-  S : Integer;
 begin
   If NumberOfMonths>=0 then
     s:=1
@@ -273,13 +273,14 @@ begin
     s:=-1;
   DecodeDate(DateTime, Year, Month, Day);
   inc(Year,(NumberOfMonths div 12));
-  inc(Month,(NumberOfMonths mod 12)-1); // Mod result always positive
-  if Month>11 then
+  TempMonth:=Month+(NumberOfMonths mod 12)-1;
+  if (TempMonth>11) or
+     (TempMonth<0) then
    begin
-     Dec(Month, S*12);
+     Dec(TempMonth, S*12);
      Inc(Year, S);
    end;
-  Inc(Month);                            {   Months from 1 to 12   }
+  Month:=TempMonth+1;          {   Months from 1 to 12   }
   If (Day>MonthDays[IsLeapYear(Year)][Month]) then
     Day:=MonthDays[IsLeapYear(Year)][Month];
   result := Frac(DateTime) + DoEncodeDate(Year, Month, Day);

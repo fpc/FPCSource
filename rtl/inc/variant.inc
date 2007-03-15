@@ -462,7 +462,7 @@ end;
 {$ifndef VER2_0}
 operator :=(const source : variant) dest : real;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  dest:=comp(variantmanager.vartoreal(source));
+  dest:=variantmanager.vartoreal(source);
 end;
 {$endif VER2_0}
 

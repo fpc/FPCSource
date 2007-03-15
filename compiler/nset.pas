@@ -286,8 +286,17 @@ implementation
            begin
              if (right.nodetype=setconstn) then
                begin
-                 t:=cordconstnode.create(byte(tordconstnode(left).value in Tsetconstnode(right).value_set^),
-                   booltype,true);
+                 { tordconstnode.value is int64 -> signed -> the expression }
+                 { below will be converted to longint on 32 bit systems due }
+                 { to the rule above -> will give range check error if      }
+                 { value > high(longint) if we don't take the signedness    }
+                 { into account                                             }
+                 if is_signed(left.resultdef) then
+                   t:=cordconstnode.create(byte(tordconstnode(left).value in Tsetconstnode(right).value_set^),
+                     booltype,true)
+                 else
+                   t:=cordconstnode.create(byte(TConstExprUInt(tordconstnode(left).value) in Tsetconstnode(right).value_set^),
+                     booltype,true);                   
                  typecheckpass(t);
                  result:=t;
                  exit;
