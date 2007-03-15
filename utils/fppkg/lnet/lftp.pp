@@ -35,7 +35,7 @@ type
   TLFTP = class;
   TLFTPClient = class;
 
-  TLFTPStatus = (fsNone, fsCon, fsAuth, fsPass, fsPasv, fsPort, fsList, fsRetr,
+  TLFTPStatus = (fsNone, fsCon, fsUser, fsPass, fsPasv, fsPort, fsList, fsRetr,
                  fsStor, fsType, fsCWD, fsMKD, fsRMD, fsDEL, fsRNFR, fsRNTO,
                  fsSYS, fsFeat, fsPWD, fsHelp, fsLast);
                  
@@ -153,6 +153,9 @@ type
 
     procedure PasvPort;
 
+    function User(const aUserName: string): Boolean;
+    function Password(const aPassword: string): Boolean;
+
     procedure SendChunk(const Event: Boolean);
 
     procedure ExecuteFrontCommand;
@@ -166,13 +169,11 @@ type
     function Send(const aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; override;
     function SendMessage(const msg: string; aSocket: TLSocket = nil): Integer; override;
     
-    function Connect(const aHost: string; const aPort: Word = 21): Boolean; virtual;
-    function Connect: Boolean; virtual;
+    function Connect(const aHost: string; const aPort: Word = 21): Boolean; virtual; overload;
+    function Connect: Boolean; virtual; overload;
     
     function Authenticate(const aUsername, aPassword: string): Boolean;
     
-    function SendPassword(const aPassword: string): Boolean;
-
     function GetData(var aData; const aSize: Integer): Integer;
     function GetDataMessage: string;
     
@@ -594,7 +595,7 @@ begin
                      end;
                  end;
 
-        fsAuth : case x of
+        fsUser : case x of
                    230:
                      begin
                        FStatusFlags[FStatus.First.Status] := True;
@@ -602,7 +603,11 @@ begin
                        FStatus.Remove;
                      end;
                    331,
-                   332: SendPassword(FPassword);
+                   332:
+                     begin
+                       FStatus.Remove;
+                       Password(FPassword);
+                     end;
                    else
                      begin
                        FStatusFlags[FStatus.First.Status] := False;
@@ -660,7 +665,7 @@ begin
                  end;
 
         fsRetr : case x of
-                   150: begin { Do nothing } end;
+                   125, 150: begin { Do nothing } end;
                    226:
                      begin
                        Eventize(FStatus.First.Status, True);
@@ -676,7 +681,7 @@ begin
                  end;
 
         fsStor : case x of
-                   150: SendFile;
+                   125, 150: SendFile;
                    
                    226:
                      begin
@@ -706,7 +711,7 @@ begin
                  end;
                  
         fsList : case x of
-                   150: begin end;
+                   125, 150: begin { do nothing } end;
                    226:
                      begin
                        Eventize(FStatus.First.Status, True);
@@ -816,6 +821,26 @@ begin
   end;
 end;
 
+function TLFTPClient.User(const aUserName: string): Boolean;
+begin
+  Result := not FPipeLine;
+  if CanContinue(fsUser, aUserName, '') then begin
+    FControl.SendMessage('USER ' + aUserName + FLE);
+    FStatus.Insert(MakeStatusRec(fsUser, '', ''));
+    Result := True;
+  end;
+end;
+
+function TLFTPClient.Password(const aPassword: string): Boolean;
+begin
+  Result := not FPipeLine;
+  if CanContinue(fsPass, aPassword, '') then begin
+    FControl.SendMessage('PASS ' + aPassword + FLE);
+    FStatus.Insert(MakeStatusRec(fsPass, '', ''));
+    Result := True;
+  end;
+end;
+
 procedure TLFTPClient.SendChunk(const Event: Boolean);
 var
   Buf: array[0..65535] of Byte;
@@ -846,8 +871,8 @@ begin
   with FCommandFront.First do
     case Status of
       fsNone : Exit;
-      fsAuth : Authenticate(Args[1], Args[2]);
-      fsPass : SendPassword(Args[1]);
+      fsUser : User(Args[1]);
+      fsPass : Password(Args[1]);
       fsList : List(Args[1]);
       fsRetr : Retrieve(Args[1]);
       fsStor : Put(Args[1]);
@@ -929,25 +954,9 @@ end;
 
 function TLFTPClient.Authenticate(const aUsername, aPassword: string): Boolean;
 begin
-  Result := not FPipeLine;
-  if CanContinue(fsAuth, aUserName, aPassword) then begin
-    FPassword := aPassword;
-    FControl.SendMessage('USER ' + aUserName + FLE + 'PASS ' + aPassword + FLE);
-    FStatus.Insert(MakeStatusRec(fsAuth, '', ''));
-    Result := True;
-  end;
+  FPassword := aPassWord;
+  Result := User(aUserName);
 end;
-
-function TLFTPClient.SendPassword(const aPassword: string): Boolean;
-begin
-  Result := not FPipeLine;
-  if CanContinue(fsPass, aPassword, '') then begin
-    FControl.SendMessage('PASS ' + aPassword + FLE);
-    FStatus.Insert(MakeStatusRec(fsPass, '', ''));
-    Result := True;
-  end;
-end;
-
 
 function TLFTPClient.Retrieve(const FileName: string): Boolean;
 begin

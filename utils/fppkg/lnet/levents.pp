@@ -202,7 +202,7 @@ uses
 procedure TLHandle.SetIgnoreError(const aValue: Boolean);
 begin
   if FIgnoreError <> aValue then begin
-    FIgnoreError:=aValue;
+    FIgnoreError := aValue;
     if Assigned(FEventer) then
       FEventer.HandleIgnoreError(Self);
   end;
@@ -211,7 +211,7 @@ end;
 procedure TLHandle.SetIgnoreWrite(const aValue: Boolean);
 begin
   if FIgnoreWrite <> aValue then begin
-    FIgnoreWrite:=aValue;
+    FIgnoreWrite := aValue;
     if Assigned(FEventer) then
       FEventer.HandleIgnoreWrite(Self);
   end;
@@ -220,7 +220,7 @@ end;
 procedure TLHandle.SetIgnoreRead(const aValue: Boolean);
 begin
   if FIgnoreRead <> aValue then begin
-    FIgnoreRead:=aValue;
+    FIgnoreRead := aValue;
     if Assigned(FEventer) then
       FEventer.HandleIgnoreRead(Self);
   end;
@@ -228,19 +228,19 @@ end;
 
 constructor TLHandle.Create;
 begin
-  FOnRead:=nil;
-  FOnWrite:=nil;
-  FOnError:=nil;
-  FUserData:=nil;
-  FEventer:=nil;
-  FPrev:=nil;
-  FNext:=nil;
-  FFreeNext:=nil;
-  FFreeing:=False;
-  FDispose:=False;
-  FIgnoreWrite:=False;
-  FIgnoreRead:=False;
-  FIgnoreError:=False;
+  FOnRead := nil;
+  FOnWrite := nil;
+  FOnError := nil;
+  FUserData := nil;
+  FEventer := nil;
+  FPrev := nil;
+  FNext := nil;
+  FFreeNext := nil;
+  FFreeing := False;
+  FDispose := False;
+  FIgnoreWrite := False;
+  FIgnoreRead := False;
+  FIgnoreError := False;
 end;
 
 destructor TLHandle.Destroy;
@@ -291,12 +291,12 @@ end;
 
 constructor TLEventer.Create;
 begin
-  FRoot:=nil;
-  FFreeRoot:=nil;
-  FFreeIter:=nil;
-  FInLoop:=False;
-  FCount:=0;
-  FReferences:=1;
+  FRoot := nil;
+  FFreeRoot := nil;
+  FFreeIter := nil;
+  FInLoop := False;
+  FCount := 0;
+  FReferences := 1;
 end;
 
 destructor TLEventer.Destroy;
@@ -306,7 +306,7 @@ end;
 
 function TLEventer.GetTimeout: DWord;
 begin
-  Result:=0;
+  Result := 0;
 end;
 
 procedure TLEventer.SetTimeout(const Value: DWord);
@@ -323,13 +323,13 @@ end;
 procedure TLEventer.AddForFree(aHandle: TLHandle);
 begin
   if not aHandle.FFreeing then begin
-    aHandle.FFreeing:=True;
+    aHandle.FFreeing := True;
     if not Assigned(FFreeIter) then begin
-      FFreeIter:=aHandle;
-      FFreeRoot:=aHandle;
+      FFreeIter := aHandle;
+      FFreeRoot := aHandle;
     end else begin
-      FFreeIter.FreeNext:=aHandle;
-      FFreeIter:=aHandle;
+      FFreeIter.FreeNext := aHandle;
+      FFreeIter := aHandle;
     end;
   end;
 end;
@@ -338,14 +338,14 @@ procedure TLEventer.FreeHandles;
 var
   Temp, Temp2: TLHandle;
 begin
-  Temp:=FFreeRoot;
+  Temp := FFreeRoot;
   while Assigned(Temp) do begin
-    Temp2:=Temp.FreeNext;
+    Temp2 := Temp.FreeNext;
     Temp.Free;
-    Temp:=Temp2;
+    Temp := Temp2;
   end;
-  FFreeRoot:=nil;
-  FFreeIter:=nil;
+  FFreeRoot := nil;
+  FFreeIter := nil;
 end;
 
 procedure TLEventer.HandleIgnoreError(aHandle: TLHandle);
@@ -365,42 +365,42 @@ end;
 
 function TLEventer.GetInternalData(aHandle: TLHandle): Pointer;
 begin
-  Result:=aHandle.FInternalData;
+  Result := aHandle.FInternalData;
 end;
 
 procedure TLEventer.SetInternalData(aHandle: TLHandle; const aData: Pointer);
 begin
-  aHandle.FInternalData:=aData;
+  aHandle.FInternalData := aData;
 end;
 
 procedure TLEventer.SetHandleEventer(aHandle: TLHandle);
 begin
-  aHandle.FEventer:=Self;
+  aHandle.FEventer := Self;
 end;
 
 function TLEventer.AddHandle(aHandle: TLHandle): Boolean;
 begin
-  Result:=False;
+  Result := False;
   if not Assigned(aHandle.FEventer) then begin
     if not Assigned(FRoot) then begin
-      FRoot:=aHandle;
+      FRoot := aHandle;
     end else begin
       if Assigned(FRoot.FNext) then begin
-        FRoot.FNext.FPrev:=aHandle;
-        aHandle.FNext:=FRoot.FNext;
+        FRoot.FNext.FPrev := aHandle;
+        aHandle.FNext := FRoot.FNext;
       end;
-      FRoot.FNext:=aHandle;
-      aHandle.FPrev:=FRoot;
+      FRoot.FNext := aHandle;
+      aHandle.FPrev := FRoot;
     end;
-    aHandle.FEventer:=Self;
+    aHandle.FEventer := Self;
     Inc(FCount);
-    Result:=True;
+    Result := True;
   end;
 end;
 
 function TLEventer.CallAction: Boolean;
 begin
-  Result:=True;
+  Result := True;
   // override in ancestor
 end;
 
@@ -412,16 +412,16 @@ end;
 procedure TLEventer.UnplugHandle(aHandle: TLHandle);
 begin
   if aHandle.FEventer = Self then begin
-    aHandle.FEventer:=nil; // avoid recursive AV
+    aHandle.FEventer := nil; // avoid recursive AV
     if Assigned(aHandle.FPrev) then begin
-      aHandle.FPrev.FNext:=aHandle.FNext;
+      aHandle.FPrev.FNext := aHandle.FNext;
       if Assigned(aHandle.FNext) then
-        aHandle.FNext.FPrev:=aHandle.FPrev;
+        aHandle.FNext.FPrev := aHandle.FPrev;
     end else if Assigned(aHandle.FNext) then begin
-      aHandle.FNext.FPrev:=aHandle.FPrev;
+      aHandle.FNext.FPrev := aHandle.FPrev;
       if aHandle = FRoot then
-        FRoot:=aHandle.FNext;
-    end else FRoot:=nil;
+        FRoot := aHandle.FNext;
+    end else FRoot := nil;
     if FCount > 0 then
       Dec(FCount);
   end;
@@ -430,22 +430,22 @@ end;
 procedure TLEventer.LoadFromEventer(aEventer: TLEventer);
 begin
   Clear;
-  FRoot:=aEventer.FRoot;
-  FOnError:=aEventer.FOnError;
+  FRoot := aEventer.FRoot;
+  FOnError := aEventer.FOnError;
 end;
 
 procedure TLEventer.Clear;
 var
   Temp1, Temp2: TLHandle;
 begin
-  Temp1:=FRoot;
-  Temp2:=FRoot;
+  Temp1 := FRoot;
+  Temp2 := FRoot;
   while Assigned(Temp2) do begin
-    Temp1:=Temp2;
-    Temp2:=Temp1.FNext;
+    Temp1 := Temp2;
+    Temp2 := Temp1.FNext;
     Temp1.Free;
   end;
-  FRoot:=nil;
+  FRoot := nil;
 end;
 
 procedure TLEventer.AddRef;
@@ -466,19 +466,19 @@ end;
 constructor TLSelectEventer.Create;
 begin
   inherited Create;
-  FTimeout.tv_sec:=0;
-  FTimeout.tv_usec:=0;
+  FTimeout.tv_sec := 0;
+  FTimeout.tv_usec := 0;
 end;
 
 function TLSelectEventer.GetTimeout: DWord;
 begin
-  Result:=(FTimeout.tv_sec * 1000) + FTimeout.tv_usec;
+  Result := (FTimeout.tv_sec * 1000) + FTimeout.tv_usec;
 end;
 
 procedure TLSelectEventer.SetTimeout(const Value: DWord);
 begin
-  FTimeout.tv_sec:=Value div 1000;
-  FTimeout.tv_usec:=Value mod 1000;
+  FTimeout.tv_sec := Value div 1000;
+  FTimeout.tv_usec := Value mod 1000;
 end;
 
 procedure TLSelectEventer.ClearSets;
@@ -494,61 +494,64 @@ var
   MaxHandle, n: Integer;
   TempTime: TTimeVal;
 begin
-  if Assigned(FRoot) then begin
-    FInLoop:=True;
-    Temp:=FRoot;
-    MaxHandle:=0;
-    ClearSets;
-    while Assigned(Temp) do begin
-      if  (not Temp.FDispose       )  // handle still valid
-      and (   (not Temp.IgnoreWrite)  // check write or
-           or (not Temp.IgnoreRead )  // check read or
-           or (not Temp.IgnoreError)) // check for errors
-      then begin
-        if not Temp.IgnoreWrite then
-          fpFD_SET(Temp.FHandle, FWriteFDSet);
-        if not Temp.IgnoreRead then
-          fpFD_SET(Temp.FHandle, FReadFDSet);
-        if not Temp.IgnoreError then
-          fpFD_SET(Temp.FHandle, FErrorFDSet);
-        if Temp.FHandle > MaxHandle then
-          MaxHandle:=Temp.FHandle;
-      end;
-      Temp2:=Temp;
-      Temp:=Temp.FNext;
-      if Temp2.FDispose then
-        Temp2.Free;
-    end;
-
-    TempTime:=FTimeout;
-    n:=fpSelect(MaxHandle + 1, @FReadFDSet, @FWriteFDSet, @FErrorFDSet, @TempTime);
-    
-    if n < 0 then
-      Bail('Error on select', LSocketError);
-    Result:=n > 0;
-    
-    if Result then begin
-      Temp:=FRoot;
-      while Assigned(Temp) do begin
-        if not Temp.FDispose and (fpFD_ISSET(Temp.FHandle, FWriteFDSet) <> 0) then
-          if Assigned(Temp.FOnWrite) and not Temp.IgnoreWrite then
-            Temp.FOnWrite(Temp);
-        if not Temp.FDispose and (fpFD_ISSET(Temp.FHandle, FReadFDSet) <> 0) then
-          if Assigned(Temp.FOnRead) and not Temp.IgnoreRead then
-            Temp.FOnRead(Temp);
-        if not Temp.FDispose and (fpFD_ISSET(Temp.FHandle, FErrorFDSet) <> 0) then
-          if Assigned(Temp.FOnError) and not Temp.IgnoreError then
-            Temp.FOnError(Temp, 'Handle error' + LStrError(LSocketError));
-        Temp2:=Temp;
-        Temp:=Temp.FNext;
-        if Temp2.FDispose then
-          AddForFree(Temp2);
-      end;
-    end;
-    FInLoop:=False;
-    if Assigned(FFreeRoot) then
-      FreeHandles;
+  if not Assigned(FRoot) then begin
+    Sleep(FTimeout.tv_sec * 1000 + FTimeout.tv_usec div 1000);
+    Exit;
   end;
+
+  FInLoop := True;
+  Temp := FRoot;
+  MaxHandle := 0;
+  ClearSets;
+  while Assigned(Temp) do begin
+    if  (not Temp.FDispose       )  // handle still valid
+    and (   (not Temp.IgnoreWrite)  // check write or
+         or (not Temp.IgnoreRead )  // check read or
+         or (not Temp.IgnoreError)) // check for errors
+    then begin
+      if not Temp.IgnoreWrite then
+        fpFD_SET(Temp.FHandle, FWriteFDSet);
+      if not Temp.IgnoreRead then
+        fpFD_SET(Temp.FHandle, FReadFDSet);
+      if not Temp.IgnoreError then
+        fpFD_SET(Temp.FHandle, FErrorFDSet);
+      if Temp.FHandle > MaxHandle then
+        MaxHandle := Temp.FHandle;
+    end;
+    Temp2 := Temp;
+    Temp := Temp.FNext;
+    if Temp2.FDispose then
+      Temp2.Free;
+  end;
+
+  TempTime := FTimeout;
+  n := fpSelect(MaxHandle + 1, @FReadFDSet, @FWriteFDSet, @FErrorFDSet, @TempTime);
+  
+  if n < 0 then
+    Bail('Error on select', LSocketError);
+  Result := n > 0;
+  
+  if Result then begin
+    Temp := FRoot;
+    while Assigned(Temp) do begin
+      if not Temp.FDispose and (fpFD_ISSET(Temp.FHandle, FWriteFDSet) <> 0) then
+        if Assigned(Temp.FOnWrite) and not Temp.IgnoreWrite then
+          Temp.FOnWrite(Temp);
+      if not Temp.FDispose and (fpFD_ISSET(Temp.FHandle, FReadFDSet) <> 0) then
+        if Assigned(Temp.FOnRead) and not Temp.IgnoreRead then
+          Temp.FOnRead(Temp);
+      if not Temp.FDispose and (fpFD_ISSET(Temp.FHandle, FErrorFDSet) <> 0) then
+        if Assigned(Temp.FOnError) and not Temp.IgnoreError then
+          Temp.FOnError(Temp, 'Handle error' + LStrError(LSocketError));
+      Temp2 := Temp;
+      Temp := Temp.FNext;
+      if Temp2.FDispose then
+        AddForFree(Temp2);
+    end;
+  end;
+  FInLoop := False;
+  if Assigned(FFreeRoot) then
+    FreeHandles;
 end;
 
 {$i sys/lkqueueeventer.inc}
@@ -558,7 +561,7 @@ end;
 
 function BestEventerClass: TLEventerClass;
 begin
-  Result:=TLSelectEventer;
+  Result := TLSelectEventer;
 end;
 
 {$endif}

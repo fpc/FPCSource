@@ -266,10 +266,11 @@ type
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
     
-    function Connect(const Address: string; const APort: Word): Boolean; virtual;
-    function Connect: Boolean; virtual;
+    function Connect(const Address: string; const APort: Word): Boolean; virtual; overload;
+    function Connect: Boolean; virtual; overload;
     
-    function Listen(const APort: Word; const AIntf: string = LADDR_ANY): Boolean; virtual; abstract;
+    function Listen(const APort: Word; const AIntf: string = LADDR_ANY): Boolean; virtual; abstract; overload;
+    function Listen: Boolean; virtual; overload;
     
     function Get(var aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; virtual; abstract;
     function GetMessage(out msg: string; aSocket: TLSocket = nil): Integer; virtual; abstract;
@@ -682,6 +683,11 @@ end;
 function TLConnection.Connect: Boolean;
 begin
   Result := Connect(FHost, FPort);
+end;
+
+function TLConnection.Listen: Boolean;
+begin
+  Result := Listen(FPort, FHost);
 end;
 
 function TLConnection.InitSocket(aSocket: TLSocket): TLSocket;

@@ -91,11 +91,11 @@ const
   
   procedure FillAddressInfo(var aAddrInfo: TInetSockAddr; const aFamily: sa_family_t;
                             const Address: string; const aPort: Word); inline;
-
+                            
 implementation
 
 uses
-  lNet
+  StrUtils, lNet
   
 {$IFNDEF UNIX}
 
@@ -107,14 +107,14 @@ var
   Tmp: string;
   TmpW: widestring;
 begin
-  Result:='[' + IntToStr(Ernum) + '] ';
+  Result := '[' + IntToStr(Ernum) + '] ';
   if USEUtf8 then begin
     SetLength(TmpW, 256);
     SetLength(TmpW, FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM or
                                    FORMAT_MESSAGE_IGNORE_INSERTS or
                                    FORMAT_MESSAGE_ARGUMENT_ARRAY,
                                    nil, Ernum, 0, @TmpW[1], 256, nil));
-    Tmp:=UTF8Encode(TmpW);
+    Tmp := UTF8Encode(TmpW);
   end else begin
     SetLength(Tmp, 256);
     SetLength(Tmp, FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM or
@@ -124,7 +124,7 @@ begin
   end;
   if Length(Tmp) > 2 then
     Delete(Tmp, Length(Tmp)-1, 2);
-  Result:=Tmp;
+  Result := Tmp;
 end;
 
 function TZSeconds: integer; inline;
@@ -143,37 +143,37 @@ end;
   
 function LStrError(const Ernum: Longint; const UseUTF8: Boolean = False): string;
 begin
-  Result:=IntToStr(Ernum); // TODO: fix for non-windows winsock users
+  Result := IntToStr(Ernum); // TODO: fix for non-windows winsock users
 end;
 
 function TZSeconds: integer; inline;
 begin
-  Result:=0; // todo: fix for non-windows non unix
+  Result := 0; // todo: fix for non-windows non unix
 end;
 
 {$ENDIF}
 
 function LSocketError: Longint;
 begin
-  Result:=WSAGetLastError;
+  Result := WSAGetLastError;
 end;
 
 function CleanError(const Ernum: Longint): Byte;
 begin
-  Result:=Byte(Ernum - 10000);
+  Result := Byte(Ernum - 10000);
 end;
 
 function fpSelect(const nfds: Integer; const readfds, writefds, exceptfds: PFDSet;
                   const timeout: PTimeVal): Longint; inline;
 begin
-  Result:=Select(nfds, readfds, writefds, exceptfds, timeout);
+  Result := Select(nfds, readfds, writefds, exceptfds, timeout);
 end;
 
 function fpFD_ISSET(const Socket: Longint; var FDSet: TFDSet): Integer; inline;
 begin
-  Result:=0;
+  Result := 0;
   if FD_ISSET(Socket, FDSet) then
-    Result:=1;
+    Result := 1;
 end;
 
 procedure fpFD_SET(const Socket: Longint; var FDSet: TFDSet); inline;
@@ -191,12 +191,12 @@ var
   HE: PHostEnt;
   Addr: DWord;
 begin
-  Result:='';
-  HE:=nil;
-  Addr:=inet_addr(PChar(Address));
-  HE:=gethostbyaddr(@Addr, SizeOf(Addr), AF_INET);
+  Result := '';
+  HE := nil;
+  Addr := inet_addr(PChar(Address));
+  HE := gethostbyaddr(@Addr, SizeOf(Addr), AF_INET);
   if Assigned(HE) then
-    Result:=HE^.h_name;
+    Result := HE^.h_name;
 end;
 
 function GetHostIP(const Name: string): string;
@@ -204,12 +204,12 @@ var
   HE: PHostEnt;
   P: PDWord;
 begin
-  Result:='';
-  HE:=nil;
-  HE:=gethostbyname(PChar(Name));
+  Result := '';
+  HE := nil;
+  HE := gethostbyname(PChar(Name));
   if Assigned(HE) then begin
-    P:=Pointer(HE^.h_addr_list[0]);
-    Result:=NetAddrToStr(P^);
+    P := Pointer(HE^.h_addr_list[0]);
+    Result := NetAddrToStr(P^);
   end;
 end;
 
@@ -219,15 +219,15 @@ const
 var
   opt: DWord;
 begin
-  opt:=BlockAr[aValue];
+  opt := BlockAr[aValue];
   if ioctlsocket(aHandle, FIONBIO, opt) = SOCKET_ERROR then
     Exit(False);
-  Result:=True;
+  Result := True;
 end;
 
 function IsBlockError(const anError: Integer): Boolean; inline;
 begin
-  Result:=anError = WSAEWOULDBLOCK;
+  Result := anError = WSAEWOULDBLOCK;
 end;
 
 {$ELSE}
@@ -238,62 +238,62 @@ end;
 
 function LStrError(const Ernum: Longint; const UseUTF8: Boolean = False): string;
 begin
-  Result:='[' + IntToStr(Ernum) + '] ' + Errors.StrError(Ernum);
+  Result := '[' + IntToStr(Ernum) + '] ' + Errors.StrError(Ernum);
 end;
 
 function LSocketError: Longint;
 begin
-  Result:=fpgeterrno;
+  Result := fpgeterrno;
 end;
 
 function CleanError(const Ernum: Longint): Longint; inline;
 begin
-  Result:=Byte(Ernum);
+  Result := Byte(Ernum);
 end;
 
 function GetHostName(const Address: string): string;
 var
   HE: THostEntry;
 begin
-  Result:='';
+  Result := '';
   if GetHostbyAddr(in_addr(StrToHostAddr(Address)), HE) then
-    Result:=HE.Name
+    Result := HE.Name
   else if ResolveHostbyAddr(in_addr(StrToHostAddr(Address)), HE) then
-    Result:=HE.Name;
+    Result := HE.Name;
 end;
 
 function GetHostIP(const Name: string): string;
 var
   HE: THostEntry;
 begin
-  Result:='';
+  Result := '';
   if GetHostByName(Name, HE) then
-    Result:=HostAddrToStr(Cardinal(HE.Addr)) // for localhost
+    Result := HostAddrToStr(Cardinal(HE.Addr)) // for localhost
   else if ResolveHostByName(Name, HE) then
-    Result:=NetAddrToStr(Cardinal(HE.Addr));
+    Result := NetAddrToStr(Cardinal(HE.Addr));
 end;
 
 function SetBlocking(const aHandle: Integer; const aValue: Boolean): Boolean;
 var
   opt: cInt;
 begin
-  opt:=fpfcntl(aHandle, F_GETFL);
+  opt := fpfcntl(aHandle, F_GETFL);
   if opt = SOCKET_ERROR then
     Exit(False);
     
   if aValue then
-    opt:=opt and not O_NONBLOCK
+    opt := opt and not O_NONBLOCK
   else
-    opt:=opt or O_NONBLOCK;
+    opt := opt or O_NONBLOCK;
 
   if fpfcntl(aHandle, F_SETFL, opt) = SOCKET_ERROR then
     Exit(False);
-  Result:=True;
+  Result := True;
 end;
 
 function IsBlockError(const anError: Integer): Boolean; inline;
 begin
-  Result:=(anError = ESysEWOULDBLOCK) or (anError = ESysENOBUFS);
+  Result := (anError = ESysEWOULDBLOCK) or (anError = ESysENOBUFS);
 end;
 
 function TZSeconds: Integer; inline;
@@ -305,34 +305,35 @@ end;
 
 function StrToHostAddr(const IP: string): Cardinal; inline;
 begin
-  Result:=Cardinal(Sockets.StrToHostAddr(IP));
+  Result := Cardinal(Sockets.StrToHostAddr(IP));
 end;
 
 function HostAddrToStr(const Entry: Cardinal): string; inline;
 begin
-  Result:=Sockets.HostAddrToStr(in_addr(Entry));
+  Result := Sockets.HostAddrToStr(in_addr(Entry));
 end;
 
 function StrToNetAddr(const IP: string): Cardinal; inline;
 begin
-  Result:=Cardinal(Sockets.StrToNetAddr(IP));
+  Result := Cardinal(Sockets.StrToNetAddr(IP));
 end;
 
 function NetAddrToStr(const Entry: Cardinal): string; inline;
 begin
-  Result:=Sockets.NetAddrToStr(in_addr(Entry));
+  Result := Sockets.NetAddrToStr(in_addr(Entry));
 end;
 
 procedure FillAddressInfo(var aAddrInfo: TInetSockAddr; const aFamily: sa_family_t;
   const Address: string; const aPort: Word); inline;
 begin
-  aAddrInfo.family:=AF_INET;
-  aAddrInfo.Port:=htons(aPort);
-  aAddrInfo.Addr:=StrToNetAddr(Address);
+  aAddrInfo.family := AF_INET;
+  aAddrInfo.Port := htons(aPort);
+  aAddrInfo.Addr := StrToNetAddr(Address);
   
   if (Address <> LADDR_ANY) and (aAddrInfo.Addr = 0) then
-    aAddrInfo.Addr:=StrToNetAddr(GetHostIP(Address));
+    aAddrInfo.Addr := StrToNetAddr(GetHostIP(Address));
 end;
+
 
 end.
 
