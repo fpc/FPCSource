@@ -1924,6 +1924,8 @@ type
     UnusedBits3: UInt8; // Unused at this point
     video_mem: UInt32; // The total amount of video memory (in K)
     vfmt: PSDL_PixelFormat; // Value: The format of the video surface
+    current_w: Integer;	// Value: The current video mode width
+    current_h: Integer;	// Value: The current video mode height
   end;
 
   // The YUV hardware video overlay
@@ -1956,7 +1958,9 @@ type
     SDL_GL_ACCUM_ALPHA_SIZE,
     SDL_GL_STEREO,
     SDL_GL_MULTISAMPLEBUFFERS,
-    SDL_GL_MULTISAMPLESAMPLES);
+    SDL_GL_MULTISAMPLESAMPLES,
+    SDL_GL_ACCELERATED_VISUAL,
+    SDL_GL_SWAP_CONTROL);
 
 
 
@@ -3533,6 +3537,11 @@ cdecl; external {$IFDEF __GPC__}name 'SDL_EnableUNICODE'{$ELSE} SDLLibName{$ENDI
 function SDL_EnableKeyRepeat(delay: Integer; interval: Integer): Integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_EnableKeyRepeat'{$ELSE} SDLLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_EnableKeyRepeat}
+
+procedure SDL_GetKeyRepeat(delay: Integer; interval: Integer);
+cdecl; external {$IFDEF __GPC__}name 'SDL_GetKeyRepeat'{$ELSE} SDLLibName{$ENDIF __GPC__};
+{$EXTERNALSYM SDL_GetKeyRepeat}
+
 
 { Get a snapshot of the current state of the keyboard.
   Returns an array of keystates, indexed by the SDLK_* syms.
