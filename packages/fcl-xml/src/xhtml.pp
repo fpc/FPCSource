@@ -26,9 +26,9 @@ uses DOM, DOM_HTML;
 
 type
 
-  TXHTMLTitleElement = class(TDOMElement);
+  TXHTMLTitleElement = class(THTMLTitleElement);
 
-  TXHTMLHeadElement = class(TDOMElement)
+  TXHTMLHeadElement = class(THTMLHeadElement)
   private
     function GetTitleElement: TXHTMLTitleElement;
   public
@@ -36,7 +36,7 @@ type
     property TitleElement: TXHTMLTitleElement read GetTitleElement;
   end;
 
-  TXHTMLBodyElement = class(TDOMElement);
+  TXHTMLBodyElement = class(THTMLBodyElement);
 
 
   TXHTMLType = (xhtmlStrict, xhtmlTransitional);
