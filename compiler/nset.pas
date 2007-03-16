@@ -272,19 +272,13 @@ implementation
          else if assigned(tsetdef(right.resultdef).elementdef) and
                  not(is_integer(tsetdef(right.resultdef).elementdef) and
                      is_integer(left.resultdef)) then
-           begin
-             { Dummy type conversion to check things like                }
-             { 'char in set_of_byte'. Can't use is_subequal because that }
-             { will fail for 'widechar in set_of_char'                   }
-             { Can't use the type conversion for integers because then   }
-             { "longint in set_of_byte" will give a range check error    }
-             { instead of false                                          }
-             { Use a copy of left in case the typeconv node would modify }
-             { left directly (since we need the original left)           }
-             t := ctypeconvnode.create(left.getcopy,tsetdef(right.resultdef).elementdef);
-             typecheckpass(t);
-             t.free;
-           end;
+            { Type conversion to check things like 'char in set_of_byte'. }
+            { Can't use is_subequal because that will fail for            }
+            { 'widechar in set_of_char'                                   }
+            { Can't use the type conversion for integers because then     }
+            { "longint in set_of_byte" will give a range check error      }
+            { instead of false                                            }
+            inserttypeconv(left,tsetdef(right.resultdef).elementdef);
 
          { empty set then return false }
          if not assigned(tsetdef(right.resultdef).elementdef) or
