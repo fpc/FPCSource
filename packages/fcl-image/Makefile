@@ -254,7 +254,7 @@ ifeq ($(FULL_TARGET),i386-netbsd)
 override TARGET_UNITS+=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer extinterpolation
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer extinterpolation
+override TARGET_UNITS+=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer extinterpolation  freetypeh freetype ftfont
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 override TARGET_UNITS+=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer extinterpolation
@@ -341,7 +341,7 @@ ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_UNITS+=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer extinterpolation
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer extinterpolation
+override TARGET_UNITS+=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer extinterpolation  freetypeh freetype ftfont
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 override TARGET_UNITS+=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer extinterpolation

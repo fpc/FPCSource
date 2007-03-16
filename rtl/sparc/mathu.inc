@@ -21,7 +21,6 @@ function GetRoundMode: TFPURoundingMode;
     result:=TFPURoundingMode(get_fsr shr 30);
   end;
 
-
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
   begin
     set_fsr((get_fsr and $3fffffff) or (dword(RoundMode) shl 30));
@@ -108,6 +107,8 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 
     { update control register contents }
     set_fsr(fsr);
+
+    softfloat_exception_mask:=dword(Mask);
   end;
 
 

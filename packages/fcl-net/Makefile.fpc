@@ -15,6 +15,7 @@ units_openbsd=fpsock httpbase httpclient httpsvlt xmlrpc
 programs_linux=mkxmlrpc
 programs_freebsd=mkxmlrpc
 programs_darwin=mkxmlrpc
+programs_solaris=mkxmlrpc
 programs_netbsd=mkxmlrpc
 programs_openbsd=mkxmlrpc
 rsts_linux=fpsock httpsvlt mkxmlrpc

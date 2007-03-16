@@ -241,6 +241,9 @@ endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 override TARGET_PROGRAMS+=mkxmlrpc
 endif
+ifeq ($(FULL_TARGET),i386-solaris)
+override TARGET_PROGRAMS+=mkxmlrpc
+endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 override TARGET_PROGRAMS+=mkxmlrpc
 endif
@@ -272,6 +275,9 @@ ifeq ($(FULL_TARGET),sparc-linux)
 override TARGET_PROGRAMS+=mkxmlrpc
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
+override TARGET_PROGRAMS+=mkxmlrpc
+endif
+ifeq ($(FULL_TARGET),sparc-solaris)
 override TARGET_PROGRAMS+=mkxmlrpc
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
