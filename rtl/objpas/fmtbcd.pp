@@ -1633,10 +1633,9 @@ IMPLEMENTATION
 {$else}
       BCD.Places := 4;
 {$endif}
-      if Decimals <> 4 then
-        Result := NormalizeBCD ( BCD, BCD, Precision, Decimals )
-      else
-        CurrToBCD := True;
+      CurrToBCD := False;
+      if Decimals <> 4
+        then NormalizeBCD ( BCD, BCD, Precision, Decimals );
      end;
 
 {$ifdef comproutines}

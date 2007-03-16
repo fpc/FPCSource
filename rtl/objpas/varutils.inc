@@ -17,7 +17,7 @@
     Some general stuff: Error handling and so on.
   ---------------------------------------------------------------------}
 
-{ we do ugly things with tvararray here }
+{ we so ugly things with tvararray here }
 {$RANGECHECKS OFF}
 
 Procedure SetUnlockResult (P : PVarArray; Res : HResult);
@@ -758,6 +758,4 @@ begin
   else
     Result:=psa^.ElementSize;
 end;
-
-
 
