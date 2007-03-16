@@ -533,6 +533,15 @@ begin
     Result:=FValue;
 end;
 
+function TParam.GetAsWideString: WideString;
+begin
+  if IsNull then
+    Result := ''
+  else
+    Result := FValue;
+end;
+
+
 Function TParam.GetAsVariant: Variant;
 begin
   if IsNull then
@@ -629,8 +638,17 @@ end;
 Procedure TParam.SetAsString(const AValue: string);
 begin
   FValue:=AValue;
-  FDataType:=ftString;
+  if FDataType <> ftFixedChar then
+    FDataType := ftString;
 end;
+
+procedure TParam.SetAsWideString(const aValue: WideString);
+begin
+  FValue := aValue;
+  if FDataType <> ftFixedWideChar then
+    FDataType := ftWideString;
+end;
+
 
 Procedure TParam.SetAsTime(const AValue: TDateTime);
 begin
@@ -816,18 +834,26 @@ Procedure TParam.AssignFieldValue(Field: TField; const AValue: Variant);
 begin
   If Assigned(Field) then
     begin
+
     if (Field.DataType = ftString) and TStringField(Field).FixedChar then
-      DataType:=ftFixedChar
+      DataType := ftFixedChar
     else if (Field.DataType = ftMemo) and (Field.Size > 255) then
-      DataType:=ftString
+      DataType := ftString
+    else if (Field.DataType = ftWideString) and TWideStringField(Field).FixedChar then
+      DataType := ftFixedWideChar
+    else if (Field.DataType = ftWideMemo) and (Field.Size > 255) then
+      DataType := ftWideString
     else
-      DataType:=Field.DataType;
+      DataType := Field.DataType;
+
     if VarIsNull(AValue) then
       Clear
     else
       Value:=AValue;
+
     Size:=Field.DataSize;
     FBound:=True;
+
     end;
 end;
 
@@ -839,9 +865,10 @@ end;
 Procedure TParam.GetData(Buffer: Pointer);
 
 Var
-  P : Pointer;
-  S : String;
-
+  P  : Pointer;
+  S  : String;
+  ws : WideString;
+  l  : Integer;
 begin
   case FDataType of
     ftUnknown  : DatabaseErrorFmt(SUnknownParamFieldType,[Name],DataSet);
@@ -860,6 +887,15 @@ begin
       S:=AsString;
       StrMove(PChar(Buffer),Pchar(S),Length(S)+1);
       end;
+    ftWideString,
+    ftWideMemo: begin
+      ws := GetAsWideString;
+      l := Length(ws);
+      if l > 0 then
+        Move(ws[1], Buffer, Succ(l)*2)
+      else
+        PWideChar(Buffer)^ := #0
+    end;
     ftTime     : PInteger(Buffer)^:=DateTimeToTimeStamp(AsTime).Time;
     ftDate     : PInteger(Buffer)^:=DateTimeToTimeStamp(AsTime).Date;
     ftDateTime : PDouble(Buffer)^:=TimeStampToMSecs(DateTimeToTimeStamp(AsDateTime));

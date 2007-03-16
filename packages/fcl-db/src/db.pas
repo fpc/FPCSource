@@ -110,10 +110,10 @@ type
   TFieldType = (ftUnknown, ftString, ftSmallint, ftInteger, ftWord,
     ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate,  ftTime, ftDateTime,
     ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo,
-    ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar,
+    ftParadoxOle, ftDBaseOle, ftTypedBinary, ftWideMemo, ftCursor, ftFixedChar,
     ftWideString, ftLargeint, ftADT, ftArray, ftReference,
     ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
-    ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd);
+    ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar);
 
 { Part of DBCommon, but temporary defined here (bug 8206) }
 
@@ -324,6 +324,7 @@ type
     function GetAsVariant: variant; virtual;
     function GetOldValue: variant; virtual;
     function GetAsString: string; virtual;
+    function GetAsWideString: WideString; virtual;
     function GetCanModify: Boolean; virtual;
     function GetClassDesc: String; virtual;
     function GetDataSize: Word; virtual;
@@ -347,6 +348,7 @@ type
     procedure SetAsLargeint(AValue: Largeint); virtual;
     procedure SetAsVariant(AValue: variant); virtual;
     procedure SetAsString(const AValue: string); virtual;
+    procedure SetAsWideString(const aValue: WideString); virtual;
     procedure SetDataType(AValue: TFieldType);
     procedure SetNewValue(const AValue: Variant);
     procedure SetSize(AValue: Word); virtual;
@@ -377,6 +379,7 @@ type
     property AsLargeInt: LargeInt read GetAsLargeInt write SetAsLargeInt;
     property AsInteger: Integer read GetAsInteger write SetAsInteger;
     property AsString: string read GetAsString write SetAsString;
+    property AsWideString: WideString read GetAsWideString write SetAsWideString;
     property AsVariant: variant read GetAsVariant write SetAsVariant;
     property AttributeSet: string read FAttributeSet write FAttributeSet;
     property Calculated: Boolean read FCalculated write FCalculated;
@@ -458,6 +461,30 @@ type
   published
     property Size default 20;
   end;
+
+{ TWideStringField }
+
+  TWideStringField = class(TStringField)
+  protected
+    class procedure CheckTypeSize(aValue: Integer); override;
+
+    function GetValue(var aValue: WideString): Boolean;
+
+    function GetAsString: string; override;
+    procedure SetAsString(const aValue: string); override;
+
+    function GetAsVariant: Variant; override;
+    procedure SetVarValue(const aValue: Variant); override;
+
+    function GetAsWideString: WideString; override;
+    procedure SetAsWideString(const aValue: WideString); override;
+
+    function GetDataSize: Word; override;
+  public
+    constructor Create(aOwner: TComponent); override;
+    property Value: WideString read GetAsWideString write SetAsWideString;
+  end;
+
 
 { TNumericField }
   TNumericField = class(TField)
@@ -593,7 +620,7 @@ type
     property Value: Double read GetAsFloat write SetAsFloat;
 
   published
-    property Currency: Boolean read FCurrency write SetCurrency;
+    property Currency: Boolean read FCurrency write SetCurrency default False;
     property MaxValue: Double read FMaxValue write FMaxValue;
     property MinValue: Double read FMinValue write FMinValue;
     property Precision: Longint read FPrecision write FPrecision default 15;
@@ -604,6 +631,8 @@ type
   TCurrencyField = class(TFloatField)
   public
     constructor Create(AOwner: TComponent); override;
+  published
+    property Currency default True;
   end;
 
 { TBooleanField }
@@ -742,7 +771,7 @@ type
 
 { TBlobField }
   TBlobStreamMode = (bmRead, bmWrite, bmReadWrite);
-  TBlobType = ftBlob..ftTypedBinary;
+  TBlobType = ftBlob..ftWideMemo;
 
   TBlobField = class(TField)
   private
@@ -762,6 +791,8 @@ type
     procedure SetAsString(const AValue: string); override;
     procedure SetText(const AValue: string); override;
     procedure SetVarValue(const AValue: Variant); override;
+    function GetAsWideString: WideString; override;
+    procedure SetAsWideString(const aValue: WideString); override;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Assign(Source: TPersistent); override;
@@ -784,17 +815,82 @@ type
 { TMemoField }
 
   TMemoField = class(TBlobField)
+  protected
+    function GetAsWideString: WideString; override;
+    procedure SetAsWideString(const aValue: WideString); override;
   public
     constructor Create(AOwner: TComponent); override;
   published
     property Transliterate default True;
   end;
 
+{ TWideMemoField }
+
+  TWideMemoField = class(TBlobField)
+  protected
+    function GetAsVariant: Variant; override;
+    procedure SetVarValue(const AValue: Variant); override;
+
+    function GetAsString: string; override;
+    procedure SetAsString(const aValue: string); override;
+  public
+    constructor Create(aOwner: TComponent); override;
+    property Value: WideString read GetAsWideString write SetAsWideString;
+  published
+  end;
+
+
 { TGraphicField }
 
   TGraphicField = class(TBlobField)
   public
     constructor Create(AOwner: TComponent); override;
+  end;
+
+{ TVariantField }
+
+  TVariantField = class(TField)
+  protected
+    class procedure CheckTypeSize(aValue: Integer); override;
+
+    function GetAsBoolean: Boolean; override;
+    procedure SetAsBoolean(aValue: Boolean); override;
+
+    function GetAsDateTime: TDateTime; override;
+    procedure SetAsDateTime(aValue: TDateTime); override;
+
+    function GetAsFloat: Double; override;
+    procedure SetAsFloat(aValue: Double); override;
+
+    function GetAsInteger: Longint; override;
+    procedure SetAsInteger(aValue: Longint); override;
+
+    function GetAsString: string; override;
+    procedure SetAsString(const aValue: string); override;
+
+    function GetAsWideString: WideString; override;
+    procedure SetAsWideString(const aValue: WideString); override;
+
+    function GetAsVariant: Variant; override;
+    procedure SetVarValue(const aValue: Variant); override;
+
+    function GetDefaultWidth: Integer; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+{ TGuidField }
+
+  TGuidField = class(TStringField)
+  protected
+    class procedure CheckTypeSize(AValue: Longint); override;
+    function GetDefaultWidth: Longint; override;
+
+    function GetAsGuid: TGUID;
+    procedure SetAsGuid(const aValue: TGUID);
+  public
+    constructor Create(AOwner: TComponent); override;
+    property AsGuid: TGUID read GetAsGuid write SetAsGuid;
   end;
 
 { TIndexDef }
@@ -1593,6 +1689,8 @@ type
     Procedure SetAsWord(AValue: LongInt);
     Procedure SetDataType(AValue: TFieldType);
     Procedure SetText(const AValue: string);
+    function GetAsWideString: WideString;
+    procedure SetAsWideString(const aValue: WideString);
   public
     constructor Create(ACollection: TCollection); overload; override;
     constructor Create(AParams: TParams; AParamType: TParamType); reintroduce; overload;
@@ -1627,6 +1725,7 @@ type
     Property NativeStr : string read FNativeStr write FNativeStr;
     Property Text : string read GetAsString write SetText;
     Property Value : Variant read GetAsVariant write SetAsVariant stored IsParamStored;
+    property AsWideString: WideString read GetAsWideString write SetAsWideString;
   published
     Property DataType : TFieldType read FDataType write SetDataType;
     Property Name : string read FName write FName;
@@ -1691,7 +1790,8 @@ const
     varDate, varDate, varDate, varOleStr, varOleStr, varInteger, varOleStr,
     varOleStr, varOleStr, varOleStr, varOleStr, varOleStr, varOleStr, varError,
     varOleStr, varOleStr, varError, varError, varError, varError, varError,
-    varOleStr, varOleStr, varVariant, varUnknown, varDispatch, varOleStr, varOleStr,varOleStr);
+    varOleStr, varOleStr, varVariant, varUnknown, varDispatch, varOleStr,
+    varOleStr,varOleStr, varOleStr,varOleStr);
 
 
 Const
@@ -1734,7 +1834,9 @@ Const
       'IDispatch',
       'Guid',
       'TimeStamp',
-      'FMTBcd'
+      'FMTBcd',
+      'FixedWideChar',
+      'WideMemo'
     );
     { 'Unknown',
       'String',
@@ -1779,13 +1881,14 @@ const
       { ftBlob} TBlobField,
       { ftMemo} TMemoField,
       { ftGraphic} TGraphicField,
-      { ftFmtMemo} TMemoField,
+      { ftFmtMemo} TBlobField,
       { ftParadoxOle} TBlobField,
       { ftDBaseOle} TBlobField,
       { ftTypedBinary} TBlobField,
+      { ftWideMemo} TWideMemoField,
       { ftCursor} Nil,
       { ftFixedChar} TStringField,
-      { ftWideString} Nil,
+      { ftWideString} TWideStringField,
       { ftLargeint} TLargeIntField,
       { ftADT} Nil,
       { ftArray} Nil,
@@ -1793,12 +1896,13 @@ const
       { ftDataSet} Nil,
       { ftOraBlob} TBlobField,
       { ftOraClob} TMemoField,
-      { ftVariant} Nil,
+      { ftVariant} TVariantField,
       { ftInterface} Nil,
       { ftIDispatch} Nil,
-      { ftGuid} Nil,
+      { ftGuid} TGuidField,
       { ftTimeStamp} Nil,
-      { ftFMTBcd} Nil
+      { ftFMTBcd} Nil,
+      { ftFixedWideString} TWideStringField
     );
 
   dsEditModes = [dsEdit, dsInsert, dsSetKey];

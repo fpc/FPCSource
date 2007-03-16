@@ -329,12 +329,12 @@ begin
           Error;
       vtAnsiString:
         AsString := string(VAnsiString);
-//      vtCurrency:
-//        AsCurrency := VCurrency^;
+      vtCurrency:
+        AsCurrency := VCurrency^;
       vtVariant:
         if not VarIsClear(VVariant^) then Self.Value := VVariant^;
       vtWideString:
-        AsString := WideString(VWideString);
+        AsWideString := WideString(VWideString);
       vtInt64:
         Self.Value := VInt64^;
     else
@@ -423,6 +423,11 @@ function TField.GetAsString: string;
 
 begin
   Result := GetClassDesc;
+end;
+
+function TField.GetAsWideString: WideString;
+begin
+  Result := GetAsString;
 end;
 
 function TField.GetOldValue: Variant;
@@ -746,6 +751,12 @@ begin
   Raise AccessError(SString);
 end;
 
+procedure TField.SetAsWideString(const aValue: WideString);
+begin
+  SetAsString(aValue);
+end;
+
+
 procedure TField.SetData(Buffer: Pointer);
 
 begin
@@ -789,7 +800,7 @@ end;
 procedure TField.SetFieldType(AValue: TFieldType);
 
 begin
-  //!! To be implemented
+  { empty }
 end;
 
 procedure TField.SetParentComponent(AParent: TComponent);
@@ -1078,6 +1089,91 @@ procedure TStringField.SetVarValue(const AValue: Variant);
 begin
   SetAsString(AValue);
 end;
+
+{ ---------------------------------------------------------------------
+    TWideStringField
+  ---------------------------------------------------------------------}
+
+class procedure TWideStringField.CheckTypeSize(aValue: Integer);
+begin
+  if aValue <= 0 then
+    DatabaseErrorFmt(SInvalidFieldSize,[aValue]);
+end;
+
+constructor TWideStringField.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  SetDataType(ftWideString);
+end;
+
+function TWideStringField.GetValue(var aValue: WideString): Boolean;
+var
+  FixBuffer : array[0..dsMaxStringSize div 2] of WideChar;
+  DynBuffer : array of WideChar;
+  Buffer    : PWideChar;
+begin
+  if DataSize <= dsMaxStringSize then begin
+    Result := GetData(@FixBuffer, False);
+    aValue := FixBuffer;
+  end else begin
+    SetLength(DynBuffer, Succ(Size));
+    Buffer := PWideChar(DynBuffer);
+    Result := GetData(Buffer, False);
+    if Result then
+      aValue := Buffer;
+  end;
+end;
+
+function TWideStringField.GetAsString: string;
+begin
+  Result := GetAsWideString;
+end;
+
+procedure TWideStringField.SetAsString(const aValue: string);
+begin
+  SetAsWideString(aValue);
+end;
+
+function TWideStringField.GetAsVariant: Variant;
+var
+  ws: WideString;
+begin
+  if GetValue(ws) then
+    Result := ws
+  else
+    Result := Null;
+end;
+
+procedure TWideStringField.SetVarValue(const aValue: Variant);
+begin
+  SetAsWideString(aValue);
+end;
+
+function TWideStringField.GetAsWideString: WideString;
+begin
+  if not GetValue(Result) then
+    Result := '';
+end;
+
+procedure TWideStringField.SetAsWideString(const aValue: WideString);
+const
+  NullWideChar : WideChar = #0;
+var
+  Buffer : PWideChar;
+begin
+  if Length(aValue)>0 then
+    Buffer := PWideChar(@aValue[1])
+  else
+    Buffer := @NullWideChar;
+  SetData(Buffer, False);
+end;
+
+function TWideStringField.GetDataSize: Word;
+begin
+  Result :=
+    (Size + 1) * 2;
+end;
+
 
 { ---------------------------------------------------------------------
     TNumericField
@@ -2175,14 +2271,37 @@ end;
 
 function TBlobField.GetAsString: string;
 var
-  Stream: TStream;
+  Stream : TStream;
+  Len    : Integer;
 begin
   Stream := GetBlobStream(bmRead);
   if Stream <> nil then
     With Stream do
       try
-        SetLength(Result,Size);
-        ReadBuffer(Pointer(Result)^,Size);
+        Len := Size;
+        SetLength(Result, Len);
+        if Len > 0 then
+          ReadBuffer(Result[1], Len);
+      finally
+        Free
+      end
+  else
+    Result := '';
+end;
+
+function TBlobField.GetAsWideString: WideString;
+var
+  Stream : TStream;
+  Len    : Integer;
+begin
+  Stream := GetBlobStream(bmRead);
+  if Stream <> nil then
+    With Stream do
+      try
+        Len := Size;
+        SetLength(Result,Len div 2);
+        if Len > 0 then
+          ReadBuffer(Result[1] ,Len);
       finally
         Free
       end
@@ -2244,11 +2363,29 @@ end;
 
 
 procedure TBlobField.SetAsString(const AValue: string);
-
+var
+  Len : Integer;
 begin
   With GetBlobStream(bmwrite) do
     try
-      WriteBuffer(Pointer(Avalue)^,Length(Avalue));
+      Len := Length(Avalue);
+      if Len > 0 then
+        WriteBuffer(aValue[1], Len);
+    finally
+      Free;
+    end;
+end;
+
+
+procedure TBlobField.SetAsWideString(const AValue: WideString);
+var
+  Len : Integer;
+begin
+  With GetBlobStream(bmwrite) do
+    try
+      Len := Length(Avalue) * 2;
+      if Len > 0 then
+        WriteBuffer(aValue[1], Len);
     finally
       Free;
     end;
@@ -2349,15 +2486,12 @@ begin
   end;
 end;
 
-
 procedure TBlobField.SetFieldType(AValue: TFieldType);
 
 begin
   If AValue in [Low(TBlobType)..High(TBlobType)] then
     SetDatatype(Avalue);
 end;
-
-
 
 { TMemoField }
 
@@ -2368,6 +2502,51 @@ begin
   SetDataType(ftMemo);
 end;
 
+function TMemoField.GetAsWideString: WideString;
+begin
+  Result := GetAsString;
+end;
+
+procedure TMemoField.SetAsWideString(const aValue: WideString);
+begin
+  SetAsString(aValue);
+end;
+
+{ TWideMemoField }
+
+constructor TWideMemoField.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  SetDataType(ftWideMemo);
+end;
+
+function TWideMemoField.GetAsString: string;
+begin
+  Result := GetAsWideString;
+end;
+
+procedure TWideMemoField.SetAsString(const aValue: string);
+begin
+  SetAsWideString(aValue);
+end;
+
+function TWideMemoField.GetAsVariant: Variant;
+
+Var s : string;
+
+begin
+  if not GetIsNull then
+    begin
+    s := GetAsWideString;
+    result := s;
+    end
+  else result := Null;
+end;
+
+procedure TWideMemoField.SetVarValue(const AValue: Variant);
+begin
+  SetAsWideString(AValue);
+end;
 
 { TGraphicField }
 
@@ -2376,6 +2555,133 @@ constructor TGraphicField.Create(AOwner: TComponent);
 begin
   Inherited Create(AOwner);
   SetDataType(ftGraphic);
+end;
+
+{ TGuidField }
+
+constructor TGuidField.Create(AOwner: TComponent);
+begin
+  Size := 38;
+  inherited Create(AOwner);
+  SetDataType(ftGuid);
+end;
+
+class procedure TGuidField.CheckTypeSize(AValue: LongInt);
+begin
+  if aValue <> 38 then
+    DatabaseErrorFmt(SInvalidFieldSize,[AValue]);
+end;
+
+function TGuidField.GetAsGuid: TGUID;
+const
+  nullguid: TGUID = '{00000000-0000-0000-0000-000000000000}';
+var
+  S: string;
+begin
+  S := GetAsString;
+  if S = '' then
+    Result := nullguid
+  else
+    Result := StringToGuid(S);
+end;
+
+function TGuidField.GetDefaultWidth: LongInt;
+begin
+  Result := 38;
+end;
+
+procedure TGuidField.SetAsGuid(const aValue: TGUID);
+begin
+  SetAsString(GuidToString(aValue));
+end;
+
+function TVariantField.GetDefaultWidth: Integer;
+begin
+  Result := 15;
+end;
+
+{ TVariantField }
+
+constructor TVariantField.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  SetDataType(ftVariant);
+end;
+
+class procedure TVariantField.CheckTypeSize(aValue: Integer);
+begin
+  { empty }
+end;
+
+function TVariantField.GetAsBoolean: Boolean;
+begin
+  Result := GetAsVariant;
+end;
+
+function TVariantField.GetAsDateTime: TDateTime;
+begin
+  Result := GetAsVariant;
+end;
+
+function TVariantField.GetAsFloat: Double;
+begin
+  Result := GetAsVariant;
+end;
+
+function TVariantField.GetAsInteger: Longint;
+begin
+  Result := GetAsVariant;
+end;
+
+function TVariantField.GetAsString: string;
+begin
+  Result := VarToStr(GetAsVariant);
+end;
+
+function TVariantField.GetAsWideString: WideString;
+begin
+  Result := VarToWideStr(GetAsVariant);
+end;
+
+function TVariantField.GetAsVariant: Variant;
+begin
+  if not GetData(@Result) then
+    Result := Null;
+end;
+
+procedure TVariantField.SetAsBoolean(aValue: Boolean);
+begin
+  SetVarValue(aValue);
+end;
+
+procedure TVariantField.SetAsDateTime(aValue: TDateTime);
+begin
+  SetVarValue(aValue);
+end;
+
+procedure TVariantField.SetAsFloat(aValue: Double);
+begin
+  SetVarValue(aValue);
+end;
+
+procedure TVariantField.SetAsInteger(aValue: Longint);
+begin
+  SetVarValue(aValue);
+end;
+
+procedure TVariantField.SetAsString(const aValue: string);
+begin
+  SetVarValue(aValue);
+end;
+
+procedure TVariantField.SetAsWideString(const aValue: WideString);
+begin
+  SetVarValue(aValue);
+end;
+
+procedure TVariantField.SetVarValue(const aValue: Variant);
+begin
+  SetData(@aValue);
 end;
 
 
