@@ -83,8 +83,26 @@ procedure BClr(var i: cardinal; j: cardinal); {$ifdef systeminline}inline;{$endi
 procedure BClr(var i: int64; j: cardinal); {$ifdef systeminline}inline;{$endif}
 procedure BClr(var i: qword; j: cardinal); {$ifdef systeminline}inline;{$endif}
 
+function BRotL(i: longint; j: cardinal): longint; {$ifdef systeminline}inline;{$endif}
+function BRotL(i,j: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+function BRotL(i: int64; j: cardinal): int64; {$ifdef systeminline}inline;{$endif}
+function BRotL(i: qword; j: cardinal): qword; {$ifdef systeminline}inline;{$endif}
+
+function BRotR(i: longint; j: cardinal): longint; {$ifdef systeminline}inline;{$endif}
+function BRotR(i,j: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+function BRotR(i: int64; j: cardinal): int64; {$ifdef systeminline}inline;{$endif}
+function BRotR(i: qword; j: cardinal): qword; {$ifdef systeminline}inline;{$endif}
+
+function BNot(i: longint): longint; {$ifdef systeminline}inline;{$endif}
+function BNot(i: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+function BNot(i: int64): int64; {$ifdef systeminline}inline;{$endif}
+function BNot(i: qword): qword; {$ifdef systeminline}inline;{$endif}
+
 
 implementation
+
+{$r-}
+{$q-}
 
 
 function FCC(const literal: string): LongWord; {$ifdef systeminline}inline;{$endif}
@@ -302,6 +320,67 @@ procedure BClr(var i: qword; j: cardinal); {$ifdef systeminline}inline;{$endif}
 begin
   i := i and not (qword(1) shl j);
 end;
+
+function BRotL(i: longint; j: cardinal): longint; {$ifdef systeminline}inline;{$endif}
+begin
+  result := (i shl j) or (i shr (32-j));
+end;
+
+function BRotL(i,j: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+begin
+  result := (i shl j) or (i shr (32-j));
+end;
+
+function BRotL(i: int64; j: cardinal): int64; {$ifdef systeminline}inline;{$endif}
+begin
+  result := (i shl j) or (i shr (64-j));
+end;
+
+function BRotL(i: qword; j: cardinal): qword; {$ifdef systeminline}inline;{$endif}
+begin
+  result := (i shl j) or (i shr (64-j));
+end;
+
+function BRotR(i: longint; j: cardinal): longint; {$ifdef systeminline}inline;{$endif}
+begin
+  result := (i shr j) or (i shl (32-j));
+end;
+
+function BRotR(i,j: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+begin
+  result := (i shr j) or (i shl (32-j));
+end;
+
+function BRotR(i: int64; j: cardinal): int64; {$ifdef systeminline}inline;{$endif}
+begin
+  result := (i shr j) or (i shl (64-j));
+end;
+
+function BRotR(i: qword; j: cardinal): qword; {$ifdef systeminline}inline;{$endif}
+begin
+  result := (i shr j) or (i shl (64-j));
+end;
+
+function BNot(i: longint): longint; {$ifdef systeminline}inline;{$endif}
+begin
+  result := not(i);
+end;
+
+function BNot(i: cardinal): cardinal; {$ifdef systeminline}inline;{$endif}
+begin
+  result := not(i);
+end;
+
+function BNot(i: int64): int64; {$ifdef systeminline}inline;{$endif}
+begin
+  result := not(i);
+end;
+
+function BNot(i: qword): qword; {$ifdef systeminline}inline;{$endif}
+begin
+  result := not(i);
+end;
+
 
 {$ifdef cpupowerpc}
 begin
