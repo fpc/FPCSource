@@ -110,10 +110,10 @@ type
   TFieldType = (ftUnknown, ftString, ftSmallint, ftInteger, ftWord,
     ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate,  ftTime, ftDateTime,
     ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo,
-    ftParadoxOle, ftDBaseOle, ftTypedBinary, ftWideMemo, ftCursor, ftFixedChar,
+    ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar,
     ftWideString, ftLargeint, ftADT, ftArray, ftReference,
     ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
-    ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar);
+    ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo);
 
 { Part of DBCommon, but temporary defined here (bug 8206) }
 
@@ -1885,7 +1885,6 @@ const
       { ftParadoxOle} TBlobField,
       { ftDBaseOle} TBlobField,
       { ftTypedBinary} TBlobField,
-      { ftWideMemo} TWideMemoField,
       { ftCursor} Nil,
       { ftFixedChar} TStringField,
       { ftWideString} TWideStringField,
@@ -1902,7 +1901,8 @@ const
       { ftGuid} TGuidField,
       { ftTimeStamp} Nil,
       { ftFMTBcd} Nil,
-      { ftFixedWideString} TWideStringField
+      { ftFixedWideString} TWideStringField,
+      { ftWideMemo} TWideMemoField
     );
 
   dsEditModes = [dsEdit, dsInsert, dsSetKey];
