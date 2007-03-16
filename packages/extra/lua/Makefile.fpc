@@ -1,0 +1,32 @@
+#
+#   Makefile.fpc for BFD library
+#
+
+[package]
+name=bfd
+version=2.3
+
+[target]
+units=lua lualib lauxlib
+examples=
+
+[require]
+package=rtl
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+[shared]
+build=n
+
+[rules]
+.NOTPARALLEL:
+
+lua$(PPUEXT) : lua.pas
+
+lualib$(PPUEXT) : lualib.pas lua$(PPUEXT)
+
+lauxlib$(PPUEXT) : lauxlib.pas lua$(PPUEXT)

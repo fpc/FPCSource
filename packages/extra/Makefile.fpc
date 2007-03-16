@@ -9,7 +9,8 @@ dirs_linux=unzip zlib fftw \
            imlib gnome1 fpgtk newt uuid \
            ldap openal mad oggvorbis a52 \
            modplug dts openssl pcap libcurl cairo sdl
-dirs_i386_linux=unixutil
+dirs_i386_linux=unixutil lua
+dirs_i386_win32=lua
 dirs_netbsd=unzip zlib \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \
@@ -27,7 +28,7 @@ dirs_openbsd=unzip zlib \
              tcl imlib gnome1 openssl pcap libcurl cairo sdl
 # libcurl should work on Win32 too, but I haven't tested this. Skip it for now. MVC.
 dirs_win32=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk fftw \
-             mad openal oggvorbis a52 libpng openssl pcap sdl
+             mad openal oggvorbis a52 libpng openssl pcap sdl lua
 dirs_win64=unzip opengl gtk gtk2 zlib tcl cdrom fpgtk fftw openssl sdl
 dirs_wince=unzip zlib tcl fftw
 dirs_os2=os2units \
