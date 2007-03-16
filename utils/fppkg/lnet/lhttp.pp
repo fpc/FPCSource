@@ -1894,6 +1894,7 @@ var
 begin
   inherited Create(AOwner);
 
+  FPort := 80; // default port
   SocketClass := TLHTTPServerSocket;
   if TZSeconds >= 0 then
     TZSign := '+'
@@ -2168,9 +2169,9 @@ end;
 
 constructor TLHTTPClient.Create(AOwner: TComponent);
 begin
-  FPort:=80;
   inherited;
 
+  FPort := 80;
   SocketClass := TLHTTPClientSocket;
   FRequest.Method := hmGet;
   FHeaderOut.ExtraHeaders := InitStringBuffer(256);

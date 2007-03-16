@@ -8,10 +8,10 @@ constructor TLKQueueEventer.Create;
 begin
   inherited Create;
   Inflate;
-  FFreeSlot:=0;
-  FTimeout.tv_sec:=0;
-  FTimeout.tv_nsec:=0;
-  FQueue:=KQueue;
+  FFreeSlot := 0;
+  FTimeout.tv_sec := 0;
+  FTimeout.tv_nsec := 0;
+  FQueue := KQueue;
   if FQueue < 0 then
     raise Exception.Create('Unable to create kqueue');
 end;
@@ -24,13 +24,13 @@ end;
 
 function TLKQueueEventer.GetTimeout: DWord;
 begin
-  Result:=FTimeout.tv_sec + FTimeout.tv_nsec * 1000 * 1000;
+  Result := FTimeout.tv_sec + FTimeout.tv_nsec * 1000 * 1000;
 end;
 
 procedure TLKQueueEventer.SetTimeout(const Value: DWord);
 begin
-  FTimeout.tv_sec:=Value div 1000;
-  FTimeout.tv_nsec:=(Value mod 1000) * 1000;
+  FTimeout.tv_sec := Value div 1000;
+  FTimeout.tv_nsec := (Value mod 1000) * 1000;
 end;
 
 procedure TLKQueueEventer.HandleIgnoreRead(aHandle: TLHandle);
@@ -51,7 +51,7 @@ const
 var
   OldLength: Integer;
 begin
-  OldLength:=Length(FChanges);
+  OldLength := Length(FChanges);
   if OldLength > 1 then begin
     SetLength(FChanges, Sqr(OldLength));
     SetLength(FEvents, Sqr(OldLength));
@@ -63,7 +63,7 @@ end;
 
 function TLKQueueEventer.AddHandle(aHandle: TLHandle): Boolean;
 begin
-  Result:=inherited AddHandle(aHandle);
+  Result := inherited AddHandle(aHandle);
 
   if FFreeSlot > Length(FChanges) then
     Inflate;
@@ -85,16 +85,16 @@ var
   i, n: Integer;
   Temp: TLHandle;
 begin
-  n:=KEvent(FQueue, @FChanges[0], FFreeSlot,
+  n := KEvent(FQueue, @FChanges[0], FFreeSlot,
             @FEvents[0], Length(FEvents), @FTimeout);
-  FFreeSlot:=0;
+  FFreeSlot := 0;
   if n < 0 then
     Bail('Error on kqueue: ', LSocketError);
-  Result:=n > 0;
+  Result := n > 0;
   if Result then begin
-    FInLoop:=True;
-    for i:=0 to n-1 do begin
-      Temp:=TLHandle(FEvents[i].uData);
+    FInLoop := True;
+    for i := 0 to n-1 do begin
+      Temp := TLHandle(FEvents[i].uData);
       
       if  (not Temp.FDispose)
       and (FEvents[i].Filter = EVFILT_WRITE) then
@@ -114,7 +114,7 @@ begin
       if Temp.FDispose then
         AddForFree(Temp);
     end;
-    FInLoop:=False;
+    FInLoop := False;
     if Assigned(FFreeRoot) then
       FreeHandles;
   end;
@@ -122,7 +122,7 @@ end;
 
 function BestEventerClass: TLEventerClass;
 begin
-  Result:=TLKQueueEventer;
+  Result := TLKQueueEventer;
 end;
 
 {$endif} // BSD

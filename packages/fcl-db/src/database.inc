@@ -290,11 +290,9 @@ end;
 Procedure TDBTransaction.InternalHandleException;
 
 begin
-  {$ifdef fpc}
   if assigned(classes.ApplicationHandleException) then
     classes.ApplicationHandleException(self)
   else
-  {$endif}
     ShowException(ExceptObject,ExceptAddr);
 end;
 

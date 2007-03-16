@@ -441,7 +441,7 @@ begin
           TrLen := SQLLen;
       end;
     SQL_SHORT :
-        TrType := ftInteger;
+        TrType := ftSmallint;
     SQL_LONG :
       begin
         LensSet := True;
@@ -816,6 +816,11 @@ begin
         ftLargeint :
           begin
             FillByte(buffer^,sizeof(LargeInt),0);
+            Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
+          end;
+        ftSmallint :
+          begin
+            FillByte(buffer^,sizeof(Smallint),0);
             Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
           end;
         ftDate, ftTime, ftDateTime:

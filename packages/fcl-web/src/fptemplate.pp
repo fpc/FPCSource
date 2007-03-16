@@ -433,7 +433,7 @@ begin
     Try
       P:=CreateParser;
       Try
-        If (F=Nil) then
+        If (F<>Nil) then
           begin
           P.ParseStream(F,S);
           Result:=S.DataString;

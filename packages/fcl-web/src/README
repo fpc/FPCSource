@@ -3,10 +3,6 @@ Although it is non-visual, it is geared towards use in Lazarus.
 
 Architecture:
 
-htmldefs
---------
-(in ../inc) contains basic HTML declarations.
-
 httpdefs
 --------
 contains the basic HTTP system definitions: 
@@ -106,45 +102,7 @@ THTMLDatasetSelectProducer
 TCustomHTMLModule:
   TCustomHTTPModule descendent which produces HTML content only.
 
-htmlelements
-------------
-
-Implements a DOM for HTML content. Contains a TDOMElement descendent for
-all valid HTML 4.1 tags.
-
-THtmlCustomElement:
-  Basis for all HTML tag elements.
-THTMLDocument:
-  TDOMDocument descendent
-THTMLIDElement:
-  element representing <ID> tag 
-
-All tags are in tagsintf.inc.
-
-htmlwriter
-----------
-
-Implements a verified HTML producer.
-
-THTMLwriter:
-  This is a class which allows to write certified correct HTML.
-  It works using the DOM for HTML.
-  It also has forms support.
-
-Writing HTML is done as follows:
-
-  StartBold;
-  Write('This text is bold');
-  EndBold;
-or
-  Bold('This text is bold');
-
-But the following is also possible
-  Bold(Center('Bold centered text'));
-
-Open tags will be closed automatically.
-
-wtagsintf.inc contains all possible tags.
+Note that classes for HTML document creation come from package fcl-xml.
 
 fpdatasetform
 -------------
@@ -159,7 +117,6 @@ THTMLDatasetFormProducer
 THTMLDatasetFormGridProducer
   Creates a grid with data from a TDataset
   Complicated table formatting is possible.
-
 
 custcgi:
 --------

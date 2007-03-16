@@ -29,7 +29,7 @@ unit lsmtp;
 interface
 
 uses
-  Classes, lNet, lEvents, lCommon;
+  Classes, Contnrs, lNet, lEvents, lCommon;
   
 type
   TLSMTP = class;
@@ -52,6 +52,61 @@ type
 
   TLSMTPClientStatusEvent = procedure (aSocket: TLSocket;
                                        const aStatus: TLSMTPStatus) of object;
+                                       
+  { TAttachment }
+
+  TAttachment = class
+   protected
+    FData: TStringList;
+    function GetAsText: string; virtual;
+   public
+    constructor Create;
+    destructor Destroy; override;
+    function LoadFromFile(const aFileName: string): Boolean;
+   public
+    property AsText: string read GetAsText;
+  end;
+  
+  { TAttachmentList }
+
+  TAttachmentList = class
+   protected
+    FItems: TFPObjectList;
+    function GetCount: Integer;
+    function GetItem(i: Integer): TAttachment;
+    procedure SetItem(i: Integer; const AValue: TAttachment);
+   public
+    constructor Create;
+    destructor Destroy; override;
+    function Add(anAttachment: TAttachment): Integer;
+    function AddFromFile(const aFileName: string): Integer;
+    function Remove(anAttachment: TAttachment): Integer;
+    procedure Delete(const i: Integer);
+    procedure Clear;
+   public
+    property Count: Integer read GetCount;
+    property Items[i: Integer]: TAttachment read GetItem write SetItem; default;
+  end;
+
+  { TMail }
+
+  TMail = class
+   protected
+    FMailText: string;
+    FRecipients: string;
+    FSender: string;
+    FSubject: string;
+    FAttachments: TAttachmentList;
+   public
+    constructor Create;
+    destructor Destroy; override;
+   public
+    property Attachments: TAttachmentList read FAttachments;
+    property MailText: string read FMailText write FMailText;
+    property Sender: string read FSender write FSender;
+    property Recipients: string read FRecipients write FRecipients;
+    property Subject: string read FSubject write FSubject;
+  end;
 
   TLSMTP = class(TLComponent)
    protected
@@ -114,13 +169,15 @@ type
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
     
-    function Connect(const aHost: string; const aPort: Word = 25): Boolean; virtual;
-    function Connect: Boolean; virtual;
+    function Connect(const aHost: string; const aPort: Word = 25): Boolean; virtual; overload;
+    function Connect: Boolean; virtual; overload;
     
     function Get(var aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; virtual;
     function GetMessage(out msg: string; aSocket: TLSocket = nil): Integer; virtual;
 
     procedure SendMail(const From, Recipients, Subject, Msg: string);
+    procedure SendMail(aMail: TMail);
+    
     procedure Helo(aHost: string = '');
     procedure Ehlo(aHost: string = '');
     procedure Mail(const From: string);
@@ -452,6 +509,12 @@ begin
   end;
 end;
 
+procedure TLSMTPClient.SendMail(aMail: TMail);
+begin
+  // TODO: incorporate attachments + encoding
+  SendMail(aMail.Sender, aMail.Recipients, aMail.Subject, aMail.MailText);
+end;
+
 procedure TLSMTPClient.Helo(aHost: string = '');
 begin
   if Length(Host) = 0 then
@@ -524,6 +587,101 @@ end;
 procedure TLSMTPClient.CallAction;
 begin
   FConnection.CallAction;
+end;
+
+{ TMail }
+
+constructor TMail.Create;
+begin
+
+end;
+
+destructor TMail.Destroy;
+begin
+
+end;
+
+{ TAttachment }
+
+function TAttachment.GetAsText: string;
+begin
+  Result := '';
+  raise Exception.Create('Not yet implemented');
+end;
+
+constructor TAttachment.Create;
+begin
+  FData := TStringList.Create;
+end;
+
+destructor TAttachment.Destroy;
+begin
+  FData.Free;
+  inherited Destroy;
+end;
+
+function TAttachment.LoadFromFile(const aFileName: string): Boolean;
+begin
+  Result := False;
+  raise Exception.Create('Not yet implemented');
+end;
+
+{ TAttachmentList }
+
+function TAttachmentList.GetCount: Integer;
+begin
+  Result := FItems.Count;
+end;
+
+function TAttachmentList.GetItem(i: Integer): TAttachment;
+begin
+  Result := TAttachment(FItems[i]);
+end;
+
+procedure TAttachmentList.SetItem(i: Integer; const AValue: TAttachment);
+begin
+  FItems[i] := aValue;
+end;
+
+constructor TAttachmentList.Create;
+begin
+  FItems := TFPObjectList.Create(True);
+end;
+
+destructor TAttachmentList.Destroy;
+begin
+  FItems.Free;
+  inherited Destroy;
+end;
+
+function TAttachmentList.Add(anAttachment: TAttachment): Integer;
+begin
+  Result := FItems.Add(anAttachment);
+end;
+
+function TAttachmentList.AddFromFile(const aFileName: string): Integer;
+var
+  Tmp: TAttachment;
+begin
+  Tmp := TAttachment.Create;
+  
+  if Tmp.LoadFromFile(aFileName) then
+    Result := FItems.Add(Tmp);
+end;
+
+function TAttachmentList.Remove(anAttachment: TAttachment): Integer;
+begin
+  Result := FItems.Remove(anAttachment);
+end;
+
+procedure TAttachmentList.Delete(const i: Integer);
+begin
+  FItems.Delete(i);
+end;
+
+procedure TAttachmentList.Clear;
+begin
+  FItems.Clear;
 end;
 
 end.

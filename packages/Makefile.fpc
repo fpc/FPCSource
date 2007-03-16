@@ -3,7 +3,16 @@
 #
 
 [target]
-dirs=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-web fcl-xml fcl-fpcunit extra
+dirs=base fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit extra
+dirs_freebsd=fcl-web
+dirs_darwin=fcl-web
+dirs_solaris=fcl-web
+dirs_netbsd=fcl-web
+dirs_openbsd=fcl-web
+dirs_linux=fcl-web
+dirs_win32=fcl-web
+dirs_win64=fcl-web
+dirs_wince=fcl-web
 
 [install]
 fpcpackage=y

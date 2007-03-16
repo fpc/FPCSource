@@ -513,11 +513,7 @@ begin
   If IsNull then
     Result:=0
   else
-{$ifdef fpc}
     Result:=FValue;
-{$else}
-    Result:=Integer(FValue);
-{$endif}    
 end;
 
 
@@ -622,11 +618,7 @@ end;
 
 Procedure TParam.SetAsLargeInt(AValue: LargeInt);
 begin
-{$ifdef fpc}
   FValue:=AValue;
-{$else}
-  FValue:=integer(AValue);
-{$endif}  
   FDataType:=ftLargeint;
 end;
 
@@ -672,27 +664,19 @@ begin
     case VarType(Value) of
       varBoolean  : FDataType:=ftBoolean;
       varSmallint,
-{$ifdef fpc}
       varShortInt,
-{$endif}
       varByte     : FDataType:=ftSmallInt;
-{$ifdef fpc}
       varWord,
-{$endif}      
       varInteger  : FDataType:=ftInteger;
       varCurrency : FDataType:=ftCurrency;
-{$ifdef fpc}
       varLongWord,
-{$endif}
       varSingle,
       varDouble   : FDataType:=ftFloat;
       varDate     : FDataType:=ftDateTime;
       varString,
       varOleStr   : if (FDataType<>ftFixedChar) then
                       FDataType:=ftString;
-{$ifdef fpc}
       varInt64    : FDataType:=ftLargeInt;
-{$endif}      
     else
       FDataType:=ftUnknown;
     end;

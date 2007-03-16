@@ -336,11 +336,7 @@ begin
       vtWideString:
         AsWideString := WideString(VWideString);
       vtInt64:
-{$ifdef fpc}
         Self.Value := VInt64^;
-{$else}
-        Self.Value := Integer(VInt64^);// Definitely wrong result !! MVC.
-{$endif}        
     else
       Error;
     end;
@@ -1067,20 +1063,26 @@ end;
 
 procedure TStringField.SetAsString(const AValue: string);
 
-Const NullByte : char = #0;
-
 var Buf      : TStringFieldBuffer;
 
 begin
   IF Length(AValue)=0 then
-    SetData(@NullByte)
+    begin
+    Buf := #0;
+    SetData(@buf);
+    end
   else if FTransliterate then
     begin
     DataSet.Translate(@AValue[1],Buf,True);
     SetData(@buf);
     end
   else
-    SetData(@AValue[1]);
+    begin
+    // The data is copied into the buffer, since some TDataset descendents copy
+    // the whole buffer-length in SetData. (See bug 8477)
+    Buf := AValue;
+    SetData(@Buf);
+    end;
 end;
 
 procedure TStringField.SetVarValue(const AValue: Variant);
@@ -1409,11 +1411,7 @@ Var L : Largeint;
 
 begin
   If GetValue(L) then
-{$ifdef fpc}
     Result:=L
-{$else}
-    Result:=Integer(L); // Wrong result MVC.
-{$endif}    
   else
     Result:=Null;
 end;
@@ -1512,11 +1510,7 @@ end;
 
 procedure TLargeintField.SetVarValue(const AValue: Variant);
 begin
-{$ifdef fpc}
   SetAsLargeint(AValue);
-{$else}
-  SetAsLargeint(Integer(AValue));
-{$endif}
 end;
 
 Function TLargeintField.CheckRange(AValue : largeint) : Boolean;

@@ -8,8 +8,8 @@ version=2.0.0
 
 [target]
 units=httpdefs fphttp custcgi fpcgi fptemplate fphtml websession fpweb \
-      htmlelements  htmlwriter webutil fpdatasetform
-rsts=fpcgi fphtml fpweb htmlwriter websession
+      webutil fpdatasetform
+rsts=fpcgi fphtml fpweb websession
 
 [require]
 packages=fcl-base fcl-xml fcl-db

@@ -1,6 +1,12 @@
 program testds;
+
 {$Mode ObjFpc}
+{$H+}
 {$define DEBUGHEAP}
+
+//To test the sqlite3 version replace sqliteds by sqlite3ds
+//  and TSqliteDataset by TSqlite3Dataset
+
 uses
 {$ifdef DEBUGHEAP}
   Heaptrc,
@@ -8,103 +14,91 @@ uses
 {$ifdef Linux}
   cmem,
 {$endif}
-  crt,sysutils,db,SqliteDS;
+  crt,sysutils,db,sqliteds,IniFiles;
+
+const
+  SQLITEDS_TESTS_INI_FILE = 'sqlitedstests.ini';
+  DEFAULT_TABLENAME = 'tabletest';
+  DEFAULT_FILENAME = 'test.db';
 
 var
-  dsTest:TSQliteDataset;
-  I:Integer;
-
-Procedure DumpField(F : Tfield);
-
-begin
-  With F do
-    begin
-    Writeln ('FieldName : ',FieldName);
-    Writeln ('FieldNo   : ',FieldNo);
-    Writeln ('Index     : ',Index);
-    Writeln ('DataSize  : ',DataSize);
-    Writeln ('Size      : ',Size);
-    Writeln ('DataType  : ',FieldTypeNames[DataType]);
-    Writeln ('Class     : ',ClassName);
-    Writeln ('Required  : ',required);
-    Writeln ('ReadOnly  : ',ReadOnly);
-    Writeln ('Visible   : ',Visible);
-    end;
-  writeln('-------- Press a key to continue ----------');
-  readkey;
-end;
+  dsTest:TSqliteDataset;
+  ini: TIniFile;
 
 begin
   {$ifdef DEBUGHEAP}
-  SetHeapTraceOutput('heaplog.txt');
+  SetHeapTraceOutput(ExtractFileName(ParamStr(0))+'.heap.log');
   {$endif}
-  dsTest:=TsqliteDataset.Create(nil);
+  dsTest:=TSqliteDataset.Create(nil);
   with dsTest do
-  Begin
-    FileName:='New.db';
-    TableName:='NewTable';
-    SQL:='SELECT _ROWID_,* from NewTable';
+  begin
+    //Load Database properties from a inifile
+    ini:=TIniFile.Create(SQLITEDS_TESTS_INI_FILE);
+    FileName:=ini.ReadString('testinfo','filename',DEFAULT_FILENAME);
+    TableName:=ini.ReadString('testinfo','tablename',DEFAULT_TABLENAME);
+    ini.Destroy;
+    //Calling Open with an empty SQL, is the same of setting SQL to 'SELECT * from [TableName]';
     Open;
-    //writeln('SqliteReturnString after Open: ',SqliteReturnString);
-    //readkey;
-    Writeln ('Fields count : ',FieldCount);
-    WriteLn('============DumpFields ============');
-    For I:=0 to FieldCount-1 do
-      DumpField(Fields[i]);
     writeln('Push a key to test -Edit-');
-    readkey;
-    clrscr;
-    WriteLn('Old Code:',FieldbyName('Code').AsInteger);
-    WriteLn('Old Name:',FieldbyName('Name').AsString);
-    FieldbyName('Code').AsInteger:=12345;
-    FieldbyName('Name').AsString:='Record Edited in TestDs.pas';
-    WriteLn('New Code:',FieldbyName('Code').AsInteger);
-    WriteLn('New Name:',FieldbyName('Name').AsString);
-    writeln('Push a key to test -Append-');
-    readkey;
-    clrscr;
-    Append;
-    FieldbyName('Code').AsInteger:=22222;
-    FieldbyName('Name').AsString:='This will be deleted';
+    Readkey;
+    ClrScr;
+    WriteLn('Old Integer:',FieldbyName('Integer').AsInteger);
+    WriteLn('Old String:',FieldbyName('String').AsString);
+    Edit;
+    FieldbyName('Integer').AsInteger:=12345;
+    FieldbyName('String').AsString:='Record Edited in TestDs.pas';
     Post;
-    WriteLn('First Record Appended - Code:',FieldbyName('Code').AsInteger);
-    WriteLn('First Record Appended - Name:',FieldbyName('Name').AsString);
+    WriteLn('New Integer:',FieldbyName('Integer').AsInteger);
+    WriteLn('New String:',FieldbyName('String').AsString);
+
+    WriteLn('Push a key to test -Append-');
+    ReadKey;
+    ClrScr;
     Append;
-    FieldbyName('Code').AsInteger:=3333;
-    FieldbyName('Name').AsString:='This will stay';
+    FieldbyName('Integer').AsInteger:=22222;
+    FieldbyName('String').AsString:='This will be deleted';
     Post;
-    WriteLn('Second Record Appended - Code:',FieldbyName('Code').AsInteger);
-    WriteLn('Second Record Appended - Name:',FieldbyName('Name').AsString);
-    writeln('Push a key to test -Delete-');
-    readkey;
-    clrscr;
+    WriteLn('First Record Appended - Integer:',FieldbyName('Integer').AsInteger);
+    WriteLn('First Record Appended - String:',FieldbyName('String').AsString);
+    Append;
+    FieldbyName('Integer').AsInteger:=3333;
+    FieldbyName('String').AsString:='This will stay';
+    Post;
+    WriteLn('Second Record Appended - Integer:',FieldbyName('Integer').AsInteger);
+    WriteLn('Second Record Appended - String:',FieldbyName('String').AsString);
+
+    WriteLn('Push a key to test -Delete-');
+    ReadKey;
+    ClrScr;
     Prior;
     WriteLn('Current record:');
-    Writeln('RowId:',Fields[0].AsInteger);
-    WriteLn('Code: ',FieldbyName('Code').AsInteger);
-    WriteLn('Name: ',FieldbyName('Name').AsString);
-    if FieldbyName('Code').AsInteger = 22222 then
+    WriteLn('Integer: ',FieldbyName('Integer').AsInteger);
+    WriteLn('String: ',FieldbyName('String').AsString);
+    if FieldbyName('Integer').AsInteger = 22222 then
+    begin
       Writeln('This record should be deleted');
-    Delete;
+      Delete;
+    end;
     WriteLn('After Delete:');
-    Writeln('RowId:',Fields[0].AsInteger);
-    WriteLn('Code: ',FieldbyName('Code').AsInteger);
-    WriteLn('Name: ',FieldbyName('Name').AsString);
+    WriteLn('Integer: ',FieldbyName('Integer').AsInteger);
+    WriteLn('String: ',FieldbyName('String').AsString);
 
     WriteLn('Try to find record with code = 22222');
     First;
-    While Not Eof do
+    while not Eof do
     begin
-      if FieldbyName('Code').AsInteger = 22222 then
-        Writeln('Record Found: It Should Not Occur')
+      if FieldByName('Integer').AsInteger = 22222 then
+        Writeln('Record Found Manually: It''s a bug')
       else
-        Writeln('Record NOT Found: It''s OK');
+        Writeln('Record NOT Found Manually: It''s OK');
       Next;
     end;
-    readkey;
+    if Locate('Integer',22222,[]) then
+      WriteLn('Record Found Using Locate: It''s a bug')
+    else
+      WriteLn('Record Not Found Using Locate: It''s OK');
     ApplyUpdates;
-    writeln('SqliteReturnString after ApplyUpdates: ',SqliteReturnString);
-    Close;
+    writeln('ReturnString after ApplyUpdates: ',ReturnString);
     Destroy;
   end;
 end.
