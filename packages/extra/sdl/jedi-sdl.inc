@@ -119,7 +119,7 @@
   {$ELSE}
      {$DEFINE __OS_DOS__}
   {$ENDIF}
-  {$IFDEF WIN32}
+  {$IFDEF windows}
    {$DEFINE UseWin}
   {$ENDIF}
 
@@ -129,13 +129,13 @@
     {$DEFINE OS_BigMem}
  {$ENDIF OS2}
 
-{$IFDEF Win32}
+{$IFDEF windows}
   {$DEFINE OS_BigMem}
-{$ELSE Win32}
+{$ELSE windows}
   {$IFDEF ver70}
     {$DEFINE assembler}
   {$ENDIF} { use 16-bit assembler! }
-{$ENDIF Win32}
+{$ENDIF windows}
 
 { ************************** dos/dos-like platforms **************}
 {$IFDEF Windows}

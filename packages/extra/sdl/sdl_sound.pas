@@ -91,13 +91,13 @@ unit sdl_sound;
 interface
 
 uses
-{$IFDEF WIN32}
+{$IFDEF windows}
   Windows,
 {$ENDIF}
   sdl;
 
 const
-{$IFDEF WIN32}
+{$IFDEF windows}
   SDLSoundLibName = 'SDL_sound.dll';
 {$ENDIF}
 

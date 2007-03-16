@@ -145,7 +145,7 @@ uses
   sdl;
 
 const
-{$IFDEF WIN32}
+{$IFDEF windows}
   SDL_MixerLibName = 'SDL_mixer.dll';
 {$ENDIF}
 

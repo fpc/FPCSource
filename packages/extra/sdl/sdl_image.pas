@@ -108,7 +108,8 @@ unit sdl_image;
 }  
 {******************************************************************************}
 
-{$I jedi-sdl.inc}
+{$I jedi-sdl.inc}
+
 interface
 
 uses
@@ -118,7 +119,7 @@ uses
   sdl;
 
 const
-{$IFDEF WIN32}
+{$IFDEF windows}
   SDL_ImageLibName =  'SDL_Image.dll';
 {$ENDIF}
 

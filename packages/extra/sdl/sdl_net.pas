@@ -120,7 +120,7 @@ uses
   gpc,
 {$ENDIF}
 
-{$IFDEF WIN32}
+{$IFDEF windows}
 {$IFNDEF __GPC__}
   Windows,
 {$ENDIF}
@@ -128,7 +128,7 @@ uses
   sdl;
 
 const
-{$IFDEF WIN32}
+{$IFDEF windows}
   SDLNetLibName = 'SDL_net.dll';
 {$ENDIF}
 
@@ -192,7 +192,7 @@ type
   PTCPSocket = ^TTCPSocket;
   TTCPSocket = record
     ready : integer;
-{$IFDEF WIN32}
+{$IFDEF windows}
     channel : integer;
 {$ENDIF}
 {$IFDEF UNIX}
@@ -215,7 +215,7 @@ type
   PUDPSocket = ^TUDPSocket;
   TUDPSocket = record
     ready : integer;
-{$IFDEF WIN32}
+{$IFDEF windows}
     channel : integer;
 {$ENDIF}
 {$IFDEF UNIX}
@@ -242,7 +242,7 @@ type
   PSDLNet_Socket = ^TSDLNet_Socket;
   TSDLNet_Socket = record
     ready : integer;
-{$IFDEF WIN32}
+{$IFDEF windows}
     channel : integer;
 {$ENDIF}
 {$IFDEF UNIX}

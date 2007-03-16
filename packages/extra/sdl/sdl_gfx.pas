@@ -20,7 +20,7 @@ uses
   sdl;
 
 const
-{$IFDEF WIN32}
+{$IFDEF windows}
   SDLgfxLibName = 'SDL_gfx.dll';
 {$ENDIF}
 

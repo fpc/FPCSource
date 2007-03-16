@@ -127,13 +127,13 @@ unit sdl_ttf;
 interface
 
 uses
-{$IFDEF WIN32}
+{$IFDEF windows}
   Windows,
 {$ENDIF}
   sdl;
 
 const
-{$IFDEF WIN32}
+{$IFDEF windows}
   SDLttfLibName = 'SDL_ttf.dll';
 {$ENDIF}
 

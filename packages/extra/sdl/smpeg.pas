@@ -138,7 +138,7 @@ uses
   sdl;
 
 const
-{$IFDEF WIN32}
+{$IFDEF windows}
   SmpegLibName = 'smpeg.dll';
 {$ENDIF}
 

@@ -39,7 +39,7 @@ unit sdlsprites;
 interface
 
 uses
-{$IFDEF WIN32}
+{$IFDEF windows}
   Windows,
 {$ENDIF}
   Classes,

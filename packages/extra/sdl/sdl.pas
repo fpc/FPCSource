@@ -244,7 +244,7 @@ unit sdl;
 interface
 
 uses
-{$IFDEF WIN32}
+{$IFDEF windows}
   Windows;
 {$ENDIF}
 
@@ -265,7 +265,7 @@ uses
 {$ENDIF}
 
 const
-{$IFDEF WIN32}
+{$IFDEF windows}
   SDLLibName = 'SDL.dll';
 {$ENDIF}
 
@@ -1660,7 +1660,7 @@ type
  {$ENDIF}
 
 // The windows custom event structure
-{$IFDEF Win32}
+{$IFDEF windows}
   PSDL_SysWMmsg = ^TSDL_SysWMmsg;
   TSDL_SysWMmsg = record
     version: TSDL_version;
@@ -1695,7 +1695,7 @@ type
 {$ENDIF}
 
 // The Windows custom window manager information structure
-{$IFDEF Win32}
+{$IFDEF windows}
   PSDL_SysWMinfo = ^TSDL_SysWMinfo;
   TSDL_SysWMinfo = record
     version : TSDL_version;
@@ -1824,7 +1824,7 @@ type
     alpha: UInt8; // Alpha value information (per-surface alpha)
   end;
 
-{$IFDEF WIN32}
+{$IFDEF windows}
   {PPrivate_hwdata = ^TPrivate_hwdata;
   TPrivate_hwdata = record
     dd_surface : IDIRECTDRAWSURFACE3;
@@ -1972,7 +1972,7 @@ type
 
 // SDL_mutex.h types
 
-{$IFDEF WIN32}
+{$IFDEF windows}
   PSDL_Mutex = ^TSDL_Mutex;
   TSDL_Mutex = record
     id: THANDLE;
@@ -1997,8 +1997,8 @@ type
 {$ENDIF}
 
 PSDL_semaphore = ^TSDL_semaphore;
-{$IFDEF WIN32}
-  // Win32 or Machintosh
+{$IFDEF windows}
+  // windows or Machintosh
   TSDL_semaphore = record
     id: THANDLE;
     count: UInt32;
@@ -2050,7 +2050,7 @@ PSDL_semaphore = ^TSDL_semaphore;
   end;
 
   // SDL_thread.h types
-{$IFDEF WIN32}
+{$IFDEF windows}
   TSYS_ThreadHandle = THandle;
 {$ENDIF}
 
@@ -2140,7 +2140,7 @@ procedure SDL_Quit;
 cdecl; external {$IFDEF __GPC__}name 'SDL_Quit'{$ELSE} SDLLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_Quit}
 
-{$IFDEF WIN32}
+{$IFDEF windows}
 // This should be called from your WinMain() function, if any
 function SDL_RegisterApp(name: PChar; style: UInt32; h_Inst: Pointer): Integer;
 cdecl; external {$IFDEF __GPC__}name 'SDL_RegisterApp'{$ELSE} SDLLibName{$ENDIF __GPC__};
@@ -2177,7 +2177,7 @@ procedure SDL_ClearError;
 cdecl; external {$IFDEF __GPC__}name 'SDL_ClearError'{$ELSE} SDLLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_ClearError}
 
-{$IFNDEF WIN32}
+{$IFNDEF windows}
 procedure SDL_Error(Code: TSDL_errorcode);
 cdecl; external {$IFDEF __GPC__}name 'SDL_Error'{$ELSE} SDLLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDL_Error}
@@ -2766,7 +2766,7 @@ cdecl; external {$IFDEF __GPC__}name 'SDL_Linked_Version'{$ELSE} SDLLibName{$END
   Note that event handling is activated by this routine.
 
   If you use both sound and video in your application, you need to call
-  SDL_Init() before opening the sound device, otherwise under Win32 DirectX,
+  SDL_Init() before opening the sound device, otherwise under windows DirectX,
   you won't be able to set full-screen display modes. }
 
 function SDL_VideoInit(driver_name: PChar; flags: UInt32): Integer;
@@ -3739,7 +3739,7 @@ cdecl; external {$IFDEF __GPC__}name 'SDL_KillThread'{$ELSE} SDLLibName{$ENDIF _
 {------------------------------------------------------------------------------}
 { Get Environment Routines                                                     }
 {------------------------------------------------------------------------------}
-{$IFDEF WIN32}
+{$IFDEF windows}
 function _putenv( const variable : Pchar ): integer;
 cdecl;
 {$ENDIF}
@@ -3761,7 +3761,7 @@ function SDL_putenv(const variable: PChar): integer;
 //function putenv(const variable: PChar): integer;
 //{$EXTERNALSYM putenv}
 
-{$IFDEF WIN32}
+{$IFDEF windows}
 {$IFNDEF __GPC__}
 function getenv( const name : Pchar ): PChar; cdecl;
 {$ENDIF}
@@ -3850,7 +3850,7 @@ end;
 
 procedure SDL_OutOfMemory;
 begin
-  {$IFNDEF WIN32}
+  {$IFNDEF windows}
   SDL_Error(SDL_ENOMEM);
   {$ENDIF}
 end;
@@ -4016,7 +4016,7 @@ begin
   Result := SDL_mutexV(mutex);
 end;
 
-{$IFDEF WIN32}
+{$IFDEF windows}
 function _putenv( const variable : Pchar ): Integer;
 cdecl; external {$IFDEF __GPC__}name '_putenv'{$ELSE} 'MSVCRT.DLL'{$ENDIF __GPC__};
 {$ENDIF}
@@ -4024,7 +4024,7 @@ cdecl; external {$IFDEF __GPC__}name '_putenv'{$ELSE} 'MSVCRT.DLL'{$ENDIF __GPC_
 
 function SDL_putenv(const variable: PChar): Integer;
 begin
-  {$IFDEF WIN32}
+  {$IFDEF windows}
   Result := _putenv(variable);
   {$ENDIF}
 
@@ -4037,7 +4037,7 @@ begin
   {$ENDIF}
 end;
 
-{$IFDEF WIN32}
+{$IFDEF windows}
 {$IFNDEF __GPC__}
 function getenv( const name : Pchar ): PChar;
 cdecl; external {$IFDEF __GPC__}name 'getenv'{$ELSE} 'MSVCRT.DLL'{$ENDIF};
@@ -4046,7 +4046,7 @@ cdecl; external {$IFDEF __GPC__}name 'getenv'{$ELSE} 'MSVCRT.DLL'{$ENDIF};
 
 function SDL_getenv(const name: PChar): PChar;
 begin
-  {$IFDEF WIN32}
+  {$IFDEF windows}
 
   {$IFDEF __GPC__}
   Result := getenv( string( name ) );
