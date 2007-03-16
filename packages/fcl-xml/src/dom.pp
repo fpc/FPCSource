@@ -993,7 +993,7 @@ end;
 
 function CompareDOMNodeWithDOMNode(Node1, Node2: Pointer): integer;
 begin
-  Result := TDOMNode(Node1).CompareName(TDOMNode(Node2).NodeName);
+  Result := TDOMNode(Node2).CompareName(TDOMNode(Node1).NodeName);
 end;
 
 function CompareDOMStringWithDOMNode(AKey, ANode: Pointer): integer;
