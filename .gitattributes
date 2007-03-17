@@ -6227,6 +6227,7 @@ tests/tbs/tb0530.pp svneol=native#text/plain
 tests/tbs/tb0531.pp svneol=native#text/plain
 tests/tbs/tb0532.pp svneol=native#text/x-pascal
 tests/tbs/tb0533.pp svneol=native#text/plain
+tests/tbs/tb0534.pp svneol=native#text/plain
 tests/tbs/ub0060.pp svneol=native#text/plain
 tests/tbs/ub0069.pp svneol=native#text/plain
 tests/tbs/ub0119.pp svneol=native#text/plain
