@@ -1701,7 +1701,8 @@ implementation
               in_length_x:
                 begin
                   if ((left.resultdef.typ=arraydef) and
-                      not is_special_array(left.resultdef)) or
+                      (not is_special_array(left.resultdef) or
+                       is_open_array(left.resultdef))) or
                      (left.resultdef.typ=orddef) then
                     set_varstate(left,vs_read,[])
                   else
