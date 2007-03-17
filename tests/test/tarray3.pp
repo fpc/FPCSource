@@ -1,5 +1,4 @@
-{ %KNOWNRUNERROR=1 Known array of char problems }
-
+{$j+}
 {$P+}
 
 type
@@ -62,7 +61,8 @@ const
       Error('string length too big in calling var arg');
   end;
 
-{$P-}
+{ is global switch, can't turn off here }
+{P-}
   procedure testvarconv2(var st : string4);
   begin
     Writeln('st=',st);
@@ -95,8 +95,10 @@ begin
   Writeln('Testing if "',car4_1,'" is equal to "',cst4_1,'"');
   if car4_1<>cst4_1 then
     error('Comparison of array of char and string don''t work');
+{$ifdef test_known_problems}
   if string4(car6_2)<>'efgh' then
     error('typcasting to shorter strings leads to problems');
+{$endif}
   ar4_2:='Test';
   ar4_1:=cst6_2;
   if ar4_2<>'Test' then
@@ -109,7 +111,7 @@ begin
   if ar6_1='AB'#0't'#0'T' then
     Error('assigning strings to array of char does not zero end of array if string is shorter');
   if ar6_1='AB'#0#0#0#0 then
-    writeln('assigning shorter strings to array of char does zero  fo tserarray')
+    writeln('assigning shorter strings to array of char does zero rest of array')
   else
     error('assigning "AB" to ar6_1 gives '+ar6_1);
 {$endif}
@@ -132,24 +134,34 @@ begin
   testvalueconv(pc);
 {$endif def FPC this is not allowed in BP !}
   testconstconv('AB');
+{$ifdef test_known_problems}
   testconstconv('ABCDEFG');
+{$endif}
   testconstconv(st4_1);
+{$ifdef test_known_problems}
   testconstconv(cst6_2);
+{$endif}
 {$ifdef FPC this is not allowed in BP !}
+{$ifdef test_known_problems}
   testconstconv(pc);
+{$endif}
 {$endif def FPC this is not allowed in BP !}
   testvarconv(st4_2);
   testvarconv(cst4_1);
 {$ifdef FPC this is not allowed in BP !}
+{$ifdef test_known_problems}
   testvarconv(st6_1);
   testvarconv(cst8_1);
+{$endif}
 {$endif def FPC this is not allowed in BP !}
   { testvarconv(pc); this one fails at compilation }
   testvarconv2(st4_2);
   testvarconv2(cst4_1);
 {$ifdef FPC this is not allowed in BP !}
+{$ifdef test_known_problems}
   testvarconv2(st6_1);
   testvarconv2(cst8_1);
+{$endif}
 {$endif def FPC this is not allowed in BP !}
   if has_errors then
     begin
