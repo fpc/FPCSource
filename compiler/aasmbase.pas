@@ -78,7 +78,12 @@ interface
          sec_debug_info,
          sec_debug_line,
          sec_debug_abbrev,
-         { ELF resources }
+         { Yury: "sec_fpc is intended for storing fpc specific data
+                  which must be recognized and processed specially by linker.
+                  Currently fpc version string, dummy links to stab sections
+                  and elf resources are stored in .fpc sections."
+                  "If special .fpc section cannot be used on some target,
+                  .text can be used instead." }
          sec_fpc,
          { Table of contents section }
          sec_toc,
