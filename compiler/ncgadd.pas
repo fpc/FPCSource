@@ -232,11 +232,11 @@ interface
     procedure tcgaddnode.second_opsmallset;
       begin
         { when a setdef is passed, it has to be a smallset }
-        if ((left.resultdef.typ=setdef) and
-            (tsetdef(left.resultdef).settype<>smallset)) or
-           ((right.resultdef.typ=setdef) and
-            (tsetdef(right.resultdef).settype<>smallset)) then
-          internalerror(200203301);
+        if is_varset(left.resultdef) or
+          is_normalset(left.resultdef) or
+          is_varset(right.resultdef) or
+          is_normalset(right.resultdef) then
+          internalerror(200203302);
 
         if nodetype in [equaln,unequaln,gtn,gten,lten,ltn] then
           second_cmpsmallset
@@ -769,7 +769,8 @@ interface
             begin
               {Normalsets are already handled in pass1 if mmx
                should not be used.}
-              if (tsetdef(left.resultdef).settype<>smallset) then
+              if is_varset(tsetdef(left.resultdef)) or
+                is_normalset(tsetdef(left.resultdef)) then
                 begin
 {$ifdef SUPPORT_MMX}
                 {$ifdef i386}
