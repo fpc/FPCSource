@@ -1,231 +1,213 @@
 {$INCLUDE xunikey.inc}
 
-Constructor TX11Display.Create;
+Constructor TX11Display.Create(ADisplay : PDisplay; AScreen : Integer; Const AFlags : TX11Flags);
 
 Begin
-  m_disp := Nil;
-  m_colours := Nil;
-  m_cmap := 0;
-  m_flags := [];
-  m_width := 0;
-  m_height := 0;
-  m_functionkeys := Nil;
-  m_normalkeys := Nil;
-  m_copy := Nil;
-  m_clear := Nil;
-  m_palette := Nil;
-  m_clip := Nil;
-  m_area := Nil;
-  m_format := Nil;
-  FEventQueue := Nil;
-  
-  m_copy := TPTCCopy.Create;
-  m_clear := TPTCClear.Create;
-  m_palette := TPTCPalette.Create;
-  m_clip := TPTCArea.Create;
-  m_area := TPTCArea.Create;
-  m_format := TPTCFormat.Create;
+  FFlags := AFlags;
+
+  FDisplay := ADisplay;
+  FScreen := AScreen;
+
+  FCopy := TPTCCopy.Create;
+  FClear := TPTCClear.Create;
+  FPalette := TPTCPalette.Create;
+  FClip := TPTCArea.Create;
+  FArea := TPTCArea.Create;
+  FFormat := TPTCFormat.Create;
   FEventQueue := TEventQueue.Create;
-  
-  setKeyMapping;
+
+  SetKeyMapping;
 End;
 
 Destructor TX11Display.Destroy;
 
 Begin
   { Just close the display, everything else is done by the subclasses }
-  If (m_disp <> Nil) And (Not (PTC_X11_LEAVE_DISPLAY In m_flags)) Then
+  If (FDisplay <> Nil) And (Not (PTC_X11_LEAVE_DISPLAY In FFlags)) Then
   Begin
-    XFlush(m_disp);
-    XCloseDisplay(m_disp);
-    m_disp := Nil;
+    XFlush(FDisplay);
+    XCloseDisplay(FDisplay);
+    FDisplay := Nil;
   End;
-  FreeMemAndNil(m_normalkeys);
-  FreeMemAndNil(m_functionkeys);
-  
-  m_copy.Free;
-  m_clear.Free;
-  m_palette.Free;
-  m_clip.Free;
-  m_area.Free;
-  m_format.Free;
+  FreeMemAndNil(FNormalKeys);
+  FreeMemAndNil(FFunctionKeys);
+
+  FCopy.Free;
+  FClear.Free;
+  FPalette.Free;
+  FClip.Free;
+  FArea.Free;
+  FFormat.Free;
   FEventQueue.Free;
-  
+
   Inherited Destroy;
 End;
 
-Procedure TX11Display.load(Const pixels : Pointer; _width, _height, _pitch : Integer;
-                           Const _format : TPTCFormat; Const _palette : TPTCPalette);
+Procedure TX11Display.Load(Const APixels : Pointer; AWidth, AHeight, APitch : Integer;
+                           Const AFormat : TPTCFormat; Const APalette : TPTCPalette);
 Var
   Area_ : TPTCArea;
   console_pixels : Pointer;
 
 Begin
-  If clip.Equals(area) Then
+  If Clip.Equals(Area) Then
   Begin
-    console_pixels := lock;
     Try
+      console_pixels := Lock;
       Try
-	m_copy.request(_format, format);
-	m_copy.palette(_palette, palette);
-	m_copy.copy(pixels, 0, 0, _width, _height, _pitch, console_pixels, 0, 0,
-		    width, height, pitch);
-      Except
-	On error : TPTCError Do
-	Begin
-	  Raise TPTCError.Create('failed to load pixels to console', error);
-	End;
+        FCopy.Request(AFormat, Format);
+        FCopy.Palette(APalette, Palette);
+        FCopy.Copy(APixels, 0, 0, AWidth, AHeight, APitch, console_pixels, 0, 0,
+                    Width, Height, Pitch);
+      Finally
+        Unlock;
       End;
-    Finally
-      unlock;
+    Except
+      On error : TPTCError Do
+        Raise TPTCError.Create('failed to load pixels to console', error);
     End;
   End
   Else
   Begin
     Area_ := TPTCArea.Create(0, 0, width, height);
     Try
-      load(pixels, _width, _height, _pitch, _format, _palette, Area_, area);
+      Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, Area_, Area);
     Finally
       Area_.Free;
     End;
   End;
 End;
 
-Procedure TX11Display.load(Const pixels : Pointer; _width, _height, _pitch : Integer;
-                           Const _format : TPTCFormat; Const _palette : TPTCPalette;
-                           Const source, destination : TPTCArea);
+Procedure TX11Display.Load(Const APixels : Pointer; AWidth, AHeight, APitch : Integer;
+                           Const AFormat : TPTCFormat; Const APalette : TPTCPalette;
+                           Const ASource, ADestination : TPTCArea);
 Var
   console_pixels : Pointer;
   clipped_source, clipped_destination : TPTCArea;
   tmp : TPTCArea;
 
 Begin
+  clipped_source := Nil;
   clipped_destination := Nil;
-  clipped_source := TPTCArea.Create;
   Try
-    clipped_destination := TPTCArea.Create;
-    console_pixels := lock;
+    console_pixels := Lock;
     Try
+      clipped_source := TPTCArea.Create;
+      clipped_destination := TPTCArea.Create;
+      tmp := TPTCArea.Create(0, 0, AWidth, AHeight);
       Try
-	tmp := TPTCArea.Create(0, 0, _width, _height);
-	Try
-	  TPTCClipper.clip(source, tmp, clipped_source, destination, clip, clipped_destination);
-	Finally
-	  tmp.Free;
-	End;
-	m_copy.request(_format, format);
-	m_copy.palette(_palette, palette);
-	m_copy.copy(pixels, clipped_source.left, clipped_source.top, clipped_source.width, clipped_source.height, _pitch,
-		    console_pixels, clipped_destination.left, clipped_destination.top, clipped_destination.width, clipped_destination.height, pitch);
-      Except
-	On error:TPTCError Do
-	Begin
-	  Raise TPTCError.Create('failed to load pixels to console area', error);
-	End;
+        TPTCClipper.Clip(ASource, tmp, clipped_source, ADestination, Clip, clipped_destination);
+      Finally
+        tmp.Free;
       End;
+      FCopy.request(AFormat, Format);
+      FCopy.palette(APalette, Palette);
+      FCopy.copy(APixels, clipped_source.left, clipped_source.top, clipped_source.width, clipped_source.height, APitch,
+                 console_pixels, clipped_destination.left, clipped_destination.top, clipped_destination.width, clipped_destination.height, Pitch);
     Finally
-      unlock;
+      Unlock;
+      clipped_source.Free;
+      clipped_destination.Free;
     End;
-  Finally
-    clipped_source.Free;
-    clipped_destination.Free;
+  Except
+    On error : TPTCError Do
+      Raise TPTCError.Create('failed to load pixels to console area', error);
   End;
 End;
 
-Procedure TX11Display.save(pixels : Pointer; _width, _height, _pitch : Integer;
-                           Const _format : TPTCFormat; Const _palette : TPTCPalette);
+Procedure TX11Display.Save(APixels : Pointer; AWidth, AHeight, APitch : Integer;
+                           Const AFormat : TPTCFormat; Const APalette : TPTCPalette);
 
 Begin
 End;
 
-Procedure TX11Display.save(pixels : Pointer; _width, _height, _pitch : Integer;
-                           Const _format : TPTCFormat; Const _palette : TPTCPalette;
-		           Const source, destination : TPTCArea);
+Procedure TX11Display.Save(APixels : Pointer; AWidth, AHeight, APitch : Integer;
+                           Const AFormat : TPTCFormat; Const APalette : TPTCPalette;
+                           Const ASource, ADestination : TPTCArea);
 
 Begin
 End;
 
-Procedure TX11Display.clear(Const color : TPTCColor);
+Procedure TX11Display.Clear(Const AColor : TPTCColor);
 
 Begin
 End;
 
-Procedure TX11Display.clear(Const color : TPTCColor; Const _area : TPTCArea);
+Procedure TX11Display.Clear(Const AColor : TPTCColor; Const AArea : TPTCArea);
 
 Begin
 End;
 
-Function TX11Display.palette : TPTCPalette;
+Function TX11Display.Palette : TPTCPalette;
 
 Begin
-  {...}
-  palette := m_palette;
+  Result := FPalette;
 End;
 
-Procedure TX11Display.clip(Const _area : TPTCArea);
+Procedure TX11Display.Clip(Const AArea : TPTCArea);
 
 Begin
-  m_clip.ASSign(_area);
+  FClip.Assign(AArea);
 End;
 
-Function TX11Display.width : Integer;
+Function TX11Display.GetWidth : Integer;
 
 Begin
-  width := m_width;
+  Result := FWidth;
 End;
 
-Function TX11Display.height : Integer;
+Function TX11Display.GetHeight : Integer;
 
 Begin
-  height := m_height;
+  Result := FHeight;
 End;
 
-Function TX11Display.clip : TPTCArea;
+Function TX11Display.Clip : TPTCArea;
 
 Begin
-  clip := m_clip;
+  Result := FClip;
 End;
 
-Function TX11Display.area : TPTCArea;
+Function TX11Display.GetArea : TPTCArea;
 
 Var
   tmp : TPTCArea;
 
 Begin
-  tmp := TPTCArea.Create(0, 0, m_width, m_height);
+  tmp := TPTCArea.Create(0, 0, FWidth, FHeight);
   Try
-    m_area.ASSign(tmp);
+    FArea.Assign(tmp);
   Finally
     tmp.Free;
   End;
-  area := m_area;
+  Result := FArea;
 End;
 
-Function TX11Display.format : TPTCFormat;
+Function TX11Display.GetFormat : TPTCFormat;
 
 Begin
-  format := m_format;
+  Result := FFormat;
 End;
 
-Procedure TX11Display.flags(_flags : TX11Flags);
+Procedure TX11Display.SetFlags(AFlags : TX11Flags);
 
 Begin
-  m_flags := _flags;
+  FFlags := AFlags;
 End;
 
-Function TX11Display.getX11Display : PDisplay;
+Function TX11Display.GetX11Display : PDisplay;
 
 Begin
-  getX11Display := m_disp;
+  Result := FDisplay;
 End;
 
-Function TX11Display.getX11Screen : Integer;
+Function TX11Display.GetX11Screen : Integer;
 
 Begin
-  getX11Screen := m_screen;
+  Result := FScreen;
 End;
 
-Function TX11Display.getFormat(Const _format : TPTCFormat) : TPTCFormat;
+Function TX11Display.GetX11Format(Const AFormat : TPTCFormat) : TPTCFormat;
 
 Var
   tmp_depth : Integer;
@@ -234,160 +216,161 @@ Var
   pfv : PXPixmapFormatValues;
 
 Begin
-  getFormat := Nil;
-  
+  Result := Nil;
+
   { Check if our screen has the same format available. I hate how X }
   { keeps bits_per_pixel and depth different }
-  tmp_depth := (PXPrivDisplay(m_disp))^.screens[m_screen].root_depth;
-  
-  pfv := XListPixmapFormats(m_disp, @numfound);
+  tmp_depth := DisplayPlanes(FDisplay, FScreen);
+
+  pfv := XListPixmapFormats(FDisplay, @numfound);
   Try
     For i := 0 To numfound - 1 Do
     Begin
       If pfv[i].depth = tmp_depth Then
       Begin
         tmp_depth := pfv[i].bits_per_pixel;
+        Break;
       End;
     End;
   Finally
     XFree(pfv);
   End;
-  
-  If (tmp_depth = 8) And _format.indexed Then
-    getFormat := TPTCFormat.Create(8)
+
+  If (tmp_depth = 8) And AFormat.Indexed Then
+    Result := TPTCFormat.Create(8)
   Else
-    If (tmp_depth = 8) And _format.direct Then
-      getFormat := TPTCFormat.Create(8, $E0, $1C, $03)
+    If (tmp_depth = 8) And AFormat.Direct Then
+      Result := TPTCFormat.Create(8, $E0, $1C, $03)
     Else
-      getFormat := TPTCFormat.Create(tmp_depth,
-                                     (PXPrivDisplay(m_disp))^.screens[m_screen].root_visual^.red_mask,
-				     (PXPrivDisplay(m_disp))^.screens[m_screen].root_visual^.green_mask,
-				     (PXPrivDisplay(m_disp))^.screens[m_screen].root_visual^.blue_mask);
+      Result := TPTCFormat.Create(tmp_depth,
+                                 DefaultVisual(FDisplay, FScreen)^.red_mask,
+                                 DefaultVisual(FDisplay, FScreen)^.green_mask,
+                                 DefaultVisual(FDisplay, FScreen)^.blue_mask);
 End;
 
-Procedure TX11Display.setKeyMapping;
+Procedure TX11Display.SetKeyMapping;
 
 Var
   _I : Integer;
 
 Begin
-  FreeMemAndNil(m_functionkeys);
-  FreeMemAndNil(m_normalkeys);
-  m_functionkeys := GetMem(256 * SizeOf(Integer));
-  m_normalkeys := GetMem(256 * SizeOf(Integer));
-  
+  FreeMemAndNil(FFunctionKeys);
+  FreeMemAndNil(FNormalKeys);
+  FFunctionKeys := GetMem(256 * SizeOf(Integer));
+  FNormalKeys := GetMem(256 * SizeOf(Integer));
+
   For _I := 0 To 255 Do
   Begin
-    m_functionkeys[_I] := Integer(PTCKEY_UNDEFINED);
-    m_normalkeys[_I] := Integer(PTCKEY_UNDEFINED);
+    FFunctionKeys[_I] := Integer(PTCKEY_UNDEFINED);
+    FNormalKeys[_I] := Integer(PTCKEY_UNDEFINED);
   End;
-  
+
   { Assign function key indices from X definitions }
-  m_functionkeys[$FF And XK_BackSpace] := Integer(PTCKEY_BACKSPACE);
-  m_functionkeys[$FF And XK_Tab] := Integer(PTCKEY_TAB);
-  m_functionkeys[$FF And XK_Clear] := Integer(PTCKEY_CLEAR);
-  m_functionkeys[$FF And XK_Return] := Integer(PTCKEY_ENTER);
-  m_functionkeys[$FF And XK_Pause] := Integer(PTCKEY_PAUSE);
-  m_functionkeys[$FF And XK_Scroll_Lock] := Integer(PTCKEY_SCROLLLOCK);
-  m_functionkeys[$FF And XK_Escape] := Integer(PTCKEY_ESCAPE);
-  m_functionkeys[$FF And XK_Delete] := Integer(PTCKEY_DELETE);
+  FFunctionKeys[$FF And XK_BackSpace] := Integer(PTCKEY_BACKSPACE);
+  FFunctionKeys[$FF And XK_Tab] := Integer(PTCKEY_TAB);
+  FFunctionKeys[$FF And XK_Clear] := Integer(PTCKEY_CLEAR);
+  FFunctionKeys[$FF And XK_Return] := Integer(PTCKEY_ENTER);
+  FFunctionKeys[$FF And XK_Pause] := Integer(PTCKEY_PAUSE);
+  FFunctionKeys[$FF And XK_Scroll_Lock] := Integer(PTCKEY_SCROLLLOCK);
+  FFunctionKeys[$FF And XK_Escape] := Integer(PTCKEY_ESCAPE);
+  FFunctionKeys[$FF And XK_Delete] := Integer(PTCKEY_DELETE);
 
-  m_functionkeys[$FF And XK_Kanji] := Integer(PTCKEY_KANJI);
-  
-  m_functionkeys[$FF And XK_Home] := Integer(PTCKEY_HOME);
-  m_functionkeys[$FF And XK_Left] := Integer(PTCKEY_LEFT);
-  m_functionkeys[$FF And XK_Up] := Integer(PTCKEY_UP);
-  m_functionkeys[$FF And XK_Right] := Integer(PTCKEY_RIGHT);
-  m_functionkeys[$FF And XK_Down] := Integer(PTCKEY_DOWN);
-  m_functionkeys[$FF And XK_Page_Up] := Integer(PTCKEY_PAGEUP);
-  m_functionkeys[$FF And XK_Page_Down] := Integer(PTCKEY_PAGEDOWN);
-  m_functionkeys[$FF And XK_End] := Integer(PTCKEY_END);
-  
-  m_functionkeys[$FF And XK_Print] := Integer(PTCKEY_PRINTSCREEN);
-  m_functionkeys[$FF And XK_Insert] := Integer(PTCKEY_INSERT);
-  m_functionkeys[$FF And XK_Num_Lock] := Integer(PTCKEY_NUMLOCK);
+  FFunctionKeys[$FF And XK_Kanji] := Integer(PTCKEY_KANJI);
 
-  m_functionkeys[$FF And XK_KP_0] := Integer(PTCKEY_NUMPAD0);
-  m_functionkeys[$FF And XK_KP_1] := Integer(PTCKEY_NUMPAD1);
-  m_functionkeys[$FF And XK_KP_2] := Integer(PTCKEY_NUMPAD2);
-  m_functionkeys[$FF And XK_KP_3] := Integer(PTCKEY_NUMPAD3);
-  m_functionkeys[$FF And XK_KP_4] := Integer(PTCKEY_NUMPAD4);
-  m_functionkeys[$FF And XK_KP_5] := Integer(PTCKEY_NUMPAD5);
-  m_functionkeys[$FF And XK_KP_6] := Integer(PTCKEY_NUMPAD6);
-  m_functionkeys[$FF And XK_KP_7] := Integer(PTCKEY_NUMPAD7);
-  m_functionkeys[$FF And XK_KP_8] := Integer(PTCKEY_NUMPAD8);
-  m_functionkeys[$FF And XK_KP_9] := Integer(PTCKEY_NUMPAD9);
+  FFunctionKeys[$FF And XK_Home] := Integer(PTCKEY_HOME);
+  FFunctionKeys[$FF And XK_Left] := Integer(PTCKEY_LEFT);
+  FFunctionKeys[$FF And XK_Up] := Integer(PTCKEY_UP);
+  FFunctionKeys[$FF And XK_Right] := Integer(PTCKEY_RIGHT);
+  FFunctionKeys[$FF And XK_Down] := Integer(PTCKEY_DOWN);
+  FFunctionKeys[$FF And XK_Page_Up] := Integer(PTCKEY_PAGEUP);
+  FFunctionKeys[$FF And XK_Page_Down] := Integer(PTCKEY_PAGEDOWN);
+  FFunctionKeys[$FF And XK_End] := Integer(PTCKEY_END);
 
-  m_functionkeys[$FF And XK_F1] := Integer(PTCKEY_F1);
-  m_functionkeys[$FF And XK_F2] := Integer(PTCKEY_F2);
-  m_functionkeys[$FF And XK_F3] := Integer(PTCKEY_F3);
-  m_functionkeys[$FF And XK_F4] := Integer(PTCKEY_F4);
-  m_functionkeys[$FF And XK_F5] := Integer(PTCKEY_F5);
-  m_functionkeys[$FF And XK_F6] := Integer(PTCKEY_F6);
-  m_functionkeys[$FF And XK_F7] := Integer(PTCKEY_F7);
-  m_functionkeys[$FF And XK_F8] := Integer(PTCKEY_F8);
-  m_functionkeys[$FF And XK_F9] := Integer(PTCKEY_F9);
-  m_functionkeys[$FF And XK_F10] := Integer(PTCKEY_F10);
-  m_functionkeys[$FF And XK_F11] := Integer(PTCKEY_F11);
-  m_functionkeys[$FF And XK_F12] := Integer(PTCKEY_F12);
+  FFunctionKeys[$FF And XK_Print] := Integer(PTCKEY_PRINTSCREEN);
+  FFunctionKeys[$FF And XK_Insert] := Integer(PTCKEY_INSERT);
+  FFunctionKeys[$FF And XK_Num_Lock] := Integer(PTCKEY_NUMLOCK);
 
-  m_functionkeys[$FF And XK_Shift_L] := Integer(PTCKEY_SHIFT);
-  m_functionkeys[$FF And XK_Shift_R] := Integer(PTCKEY_SHIFT);
-  m_functionkeys[$FF And XK_Control_L] := Integer(PTCKEY_CONTROL);
-  m_functionkeys[$FF And XK_Control_R] := Integer(PTCKEY_CONTROL);
-  m_functionkeys[$FF And XK_Caps_Lock] := Integer(PTCKEY_CAPSLOCK);
-  m_functionkeys[$FF And XK_Meta_L] := Integer(PTCKEY_META);
-  m_functionkeys[$FF And XK_Meta_R] := Integer(PTCKEY_META);
-  m_functionkeys[$FF And XK_Alt_L] := Integer(PTCKEY_ALT);
-  m_functionkeys[$FF And XK_Alt_R] := Integer(PTCKEY_ALT);
+  FFunctionKeys[$FF And XK_KP_0] := Integer(PTCKEY_NUMPAD0);
+  FFunctionKeys[$FF And XK_KP_1] := Integer(PTCKEY_NUMPAD1);
+  FFunctionKeys[$FF And XK_KP_2] := Integer(PTCKEY_NUMPAD2);
+  FFunctionKeys[$FF And XK_KP_3] := Integer(PTCKEY_NUMPAD3);
+  FFunctionKeys[$FF And XK_KP_4] := Integer(PTCKEY_NUMPAD4);
+  FFunctionKeys[$FF And XK_KP_5] := Integer(PTCKEY_NUMPAD5);
+  FFunctionKeys[$FF And XK_KP_6] := Integer(PTCKEY_NUMPAD6);
+  FFunctionKeys[$FF And XK_KP_7] := Integer(PTCKEY_NUMPAD7);
+  FFunctionKeys[$FF And XK_KP_8] := Integer(PTCKEY_NUMPAD8);
+  FFunctionKeys[$FF And XK_KP_9] := Integer(PTCKEY_NUMPAD9);
+
+  FFunctionKeys[$FF And XK_F1] := Integer(PTCKEY_F1);
+  FFunctionKeys[$FF And XK_F2] := Integer(PTCKEY_F2);
+  FFunctionKeys[$FF And XK_F3] := Integer(PTCKEY_F3);
+  FFunctionKeys[$FF And XK_F4] := Integer(PTCKEY_F4);
+  FFunctionKeys[$FF And XK_F5] := Integer(PTCKEY_F5);
+  FFunctionKeys[$FF And XK_F6] := Integer(PTCKEY_F6);
+  FFunctionKeys[$FF And XK_F7] := Integer(PTCKEY_F7);
+  FFunctionKeys[$FF And XK_F8] := Integer(PTCKEY_F8);
+  FFunctionKeys[$FF And XK_F9] := Integer(PTCKEY_F9);
+  FFunctionKeys[$FF And XK_F10] := Integer(PTCKEY_F10);
+  FFunctionKeys[$FF And XK_F11] := Integer(PTCKEY_F11);
+  FFunctionKeys[$FF And XK_F12] := Integer(PTCKEY_F12);
+
+  FFunctionKeys[$FF And XK_Shift_L] := Integer(PTCKEY_SHIFT);
+  FFunctionKeys[$FF And XK_Shift_R] := Integer(PTCKEY_SHIFT);
+  FFunctionKeys[$FF And XK_Control_L] := Integer(PTCKEY_CONTROL);
+  FFunctionKeys[$FF And XK_Control_R] := Integer(PTCKEY_CONTROL);
+  FFunctionKeys[$FF And XK_Caps_Lock] := Integer(PTCKEY_CAPSLOCK);
+  FFunctionKeys[$FF And XK_Meta_L] := Integer(PTCKEY_META);
+  FFunctionKeys[$FF And XK_Meta_R] := Integer(PTCKEY_META);
+  FFunctionKeys[$FF And XK_Alt_L] := Integer(PTCKEY_ALT);
+  FFunctionKeys[$FF And XK_Alt_R] := Integer(PTCKEY_ALT);
 
   { Assign normal key indices }
-  m_normalkeys[$FF And XK_space] := Integer(PTCKEY_SPACE);
-  m_normalkeys[$FF And XK_comma] := Integer(PTCKEY_COMMA);
-  m_normalkeys[$FF And XK_minus] := Integer(PTCKEY_SUBTRACT);
-  m_normalkeys[$FF And XK_period] := Integer(PTCKEY_PERIOD);
-  m_normalkeys[$FF And XK_slash] := Integer(PTCKEY_SLASH);
-  m_normalkeys[$FF And XK_0] := Integer(PTCKEY_ZERO);
-  m_normalkeys[$FF And XK_1] := Integer(PTCKEY_ONE);
-  m_normalkeys[$FF And XK_2] := Integer(PTCKEY_TWO);
-  m_normalkeys[$FF And XK_3] := Integer(PTCKEY_THREE);
-  m_normalkeys[$FF And XK_4] := Integer(PTCKEY_FOUR);
-  m_normalkeys[$FF And XK_5] := Integer(PTCKEY_FIVE);
-  m_normalkeys[$FF And XK_6] := Integer(PTCKEY_SIX);
-  m_normalkeys[$FF And XK_7] := Integer(PTCKEY_SEVEN);
-  m_normalkeys[$FF And XK_8] := Integer(PTCKEY_EIGHT);
-  m_normalkeys[$FF And XK_9] := Integer(PTCKEY_NINE);
-  m_normalkeys[$FF And XK_semicolon] := Integer(PTCKEY_SEMICOLON);
-  m_normalkeys[$FF And XK_equal] := Integer(PTCKEY_EQUALS);
+  FNormalKeys[$FF And XK_space] := Integer(PTCKEY_SPACE);
+  FNormalKeys[$FF And XK_comma] := Integer(PTCKEY_COMMA);
+  FNormalKeys[$FF And XK_minus] := Integer(PTCKEY_SUBTRACT);
+  FNormalKeys[$FF And XK_period] := Integer(PTCKEY_PERIOD);
+  FNormalKeys[$FF And XK_slash] := Integer(PTCKEY_SLASH);
+  FNormalKeys[$FF And XK_0] := Integer(PTCKEY_ZERO);
+  FNormalKeys[$FF And XK_1] := Integer(PTCKEY_ONE);
+  FNormalKeys[$FF And XK_2] := Integer(PTCKEY_TWO);
+  FNormalKeys[$FF And XK_3] := Integer(PTCKEY_THREE);
+  FNormalKeys[$FF And XK_4] := Integer(PTCKEY_FOUR);
+  FNormalKeys[$FF And XK_5] := Integer(PTCKEY_FIVE);
+  FNormalKeys[$FF And XK_6] := Integer(PTCKEY_SIX);
+  FNormalKeys[$FF And XK_7] := Integer(PTCKEY_SEVEN);
+  FNormalKeys[$FF And XK_8] := Integer(PTCKEY_EIGHT);
+  FNormalKeys[$FF And XK_9] := Integer(PTCKEY_NINE);
+  FNormalKeys[$FF And XK_semicolon] := Integer(PTCKEY_SEMICOLON);
+  FNormalKeys[$FF And XK_equal] := Integer(PTCKEY_EQUALS);
 
-  m_normalkeys[$FF And XK_bracketleft] := Integer(PTCKEY_OPENBRACKET);
-  m_normalkeys[$FF And XK_backslash] := Integer(PTCKEY_BACKSLASH);
-  m_normalkeys[$FF And XK_bracketright] := Integer(PTCKEY_CLOSEBRACKET);
+  FNormalKeys[$FF And XK_bracketleft] := Integer(PTCKEY_OPENBRACKET);
+  FNormalKeys[$FF And XK_backslash] := Integer(PTCKEY_BACKSLASH);
+  FNormalKeys[$FF And XK_bracketright] := Integer(PTCKEY_CLOSEBRACKET);
 
-  m_normalkeys[$FF And XK_a] := Integer(PTCKEY_A);
-  m_normalkeys[$FF And XK_b] := Integer(PTCKEY_B);
-  m_normalkeys[$FF And XK_c] := Integer(PTCKEY_C);
-  m_normalkeys[$FF And XK_d] := Integer(PTCKEY_D);
-  m_normalkeys[$FF And XK_e] := Integer(PTCKEY_E);
-  m_normalkeys[$FF And XK_f] := Integer(PTCKEY_F);
-  m_normalkeys[$FF And XK_g] := Integer(PTCKEY_G);
-  m_normalkeys[$FF And XK_h] := Integer(PTCKEY_H);
-  m_normalkeys[$FF And XK_i] := Integer(PTCKEY_I);
-  m_normalkeys[$FF And XK_j] := Integer(PTCKEY_J);
-  m_normalkeys[$FF And XK_k] := Integer(PTCKEY_K);
-  m_normalkeys[$FF And XK_l] := Integer(PTCKEY_L);
-  m_normalkeys[$FF And XK_m] := Integer(PTCKEY_M);
-  m_normalkeys[$FF And XK_n] := Integer(PTCKEY_N);
-  m_normalkeys[$FF And XK_o] := Integer(PTCKEY_O);
-  m_normalkeys[$FF And XK_p] := Integer(PTCKEY_P);
-  m_normalkeys[$FF And XK_q] := Integer(PTCKEY_Q);
-  m_normalkeys[$FF And XK_r] := Integer(PTCKEY_R);
-  m_normalkeys[$FF And XK_s] := Integer(PTCKEY_S);
-  m_normalkeys[$FF And XK_t] := Integer(PTCKEY_T);
-  m_normalkeys[$FF And XK_u] := Integer(PTCKEY_U);
-  m_normalkeys[$FF And XK_v] := Integer(PTCKEY_V);
-  m_normalkeys[$FF And XK_w] := Integer(PTCKEY_W);
-  m_normalkeys[$FF And XK_x] := Integer(PTCKEY_X);
-  m_normalkeys[$FF And XK_y] := Integer(PTCKEY_Y);
-  m_normalkeys[$FF And XK_z] := Integer(PTCKEY_Z);
+  FNormalKeys[$FF And XK_a] := Integer(PTCKEY_A);
+  FNormalKeys[$FF And XK_b] := Integer(PTCKEY_B);
+  FNormalKeys[$FF And XK_c] := Integer(PTCKEY_C);
+  FNormalKeys[$FF And XK_d] := Integer(PTCKEY_D);
+  FNormalKeys[$FF And XK_e] := Integer(PTCKEY_E);
+  FNormalKeys[$FF And XK_f] := Integer(PTCKEY_F);
+  FNormalKeys[$FF And XK_g] := Integer(PTCKEY_G);
+  FNormalKeys[$FF And XK_h] := Integer(PTCKEY_H);
+  FNormalKeys[$FF And XK_i] := Integer(PTCKEY_I);
+  FNormalKeys[$FF And XK_j] := Integer(PTCKEY_J);
+  FNormalKeys[$FF And XK_k] := Integer(PTCKEY_K);
+  FNormalKeys[$FF And XK_l] := Integer(PTCKEY_L);
+  FNormalKeys[$FF And XK_m] := Integer(PTCKEY_M);
+  FNormalKeys[$FF And XK_n] := Integer(PTCKEY_N);
+  FNormalKeys[$FF And XK_o] := Integer(PTCKEY_O);
+  FNormalKeys[$FF And XK_p] := Integer(PTCKEY_P);
+  FNormalKeys[$FF And XK_q] := Integer(PTCKEY_Q);
+  FNormalKeys[$FF And XK_r] := Integer(PTCKEY_R);
+  FNormalKeys[$FF And XK_s] := Integer(PTCKEY_S);
+  FNormalKeys[$FF And XK_t] := Integer(PTCKEY_T);
+  FNormalKeys[$FF And XK_u] := Integer(PTCKEY_U);
+  FNormalKeys[$FF And XK_v] := Integer(PTCKEY_V);
+  FNormalKeys[$FF And XK_w] := Integer(PTCKEY_W);
+  FNormalKeys[$FF And XK_x] := Integer(PTCKEY_X);
+  FNormalKeys[$FF And XK_y] := Integer(PTCKEY_Y);
+  FNormalKeys[$FF And XK_z] := Integer(PTCKEY_Z);
 End;

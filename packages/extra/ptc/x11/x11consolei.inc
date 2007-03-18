@@ -4,21 +4,21 @@ Var
   s : AnsiString;
 
 Begin
-  x11disp := Nil;
-  m_flags := [];
-  FillChar(m_modes, SizeOf(m_modes), 0);
-  m_title := '';
-  
-  m_modes[0] := TPTCMode.Create;
-  
-  configure('/usr/share/ptcpas/ptcpas.conf');
+  Inherited Create;
+
+  { default flags }
+  FFlags := [PTC_X11_TRY_XSHM, PTC_X11_TRY_XF86VIDMODE];
+
+  FTitle := '';
+
+  Configure('/usr/share/ptcpas/ptcpas.conf');
   s := fpgetenv('HOME');
   If s = '' Then
     s := '/';
   If s[Length(s)] <> '/' Then
     s := s + '/';
   s := s + '.ptcpas.conf';
-  configure(s);
+  Configure(s);
 End;
 
 Destructor TX11Console.Destroy;
@@ -27,22 +27,21 @@ Var
   I : Integer;
 
 Begin
-  close;
-  m_title := '';
-  FreeAndNil(x11disp);
-  For I := Low(m_modes) To High(m_modes) Do
-    FreeAndNil(m_modes[I]);
+  Close;
+  FreeAndNil(FX11Display);
+  For I := Low(FModes) To High(FModes) Do
+    FreeAndNil(FModes[I]);
   Inherited Destroy;
 End;
 
-Procedure TX11Console.configure(Const _file : String);
+Procedure TX11Console.Configure(Const AFileName : String);
 
 Var
   F : Text;
   S : String;
 
 Begin
-  ASSignFile(F, _file);
+  AssignFile(F, AFileName);
   {$I-}
   Reset(F);
   {$I+}
@@ -55,421 +54,477 @@ Begin
     {$I+}
     If IOResult <> 0 Then
       Break;
-    option(S);
+    Option(S);
   End;
   CloseFile(F);
 End;
 
-Function TX11Console.option(Const _option : String) : Boolean;
+Function TX11Console.Option(Const AOption : String) : Boolean;
 
 Begin
-  option := True;
-  If _option = 'default output' Then
+  Result := True;
+  If AOption = 'default output' Then
   Begin
     { default is windowed for now }
-    m_flags := m_flags - [PTC_X11_FULLSCREEN];
+    FFlags := FFlags - [PTC_X11_FULLSCREEN];
     Exit;
   End;
-  If _option = 'windowed output' Then
+  If AOption = 'windowed output' Then
   Begin
-    m_flags := m_flags - [PTC_X11_FULLSCREEN];
+    FFlags := FFlags - [PTC_X11_FULLSCREEN];
     Exit;
   End;
-  If _option = 'fullscreen output' Then
+  If AOption = 'fullscreen output' Then
   Begin
-    m_flags := m_flags + [PTC_X11_FULLSCREEN];
+    FFlags := FFlags + [PTC_X11_FULLSCREEN];
     Exit;
   End;
-  If _option = 'leave window open' Then
+  If AOption = 'leave window open' Then
   Begin
-    m_flags := m_flags + [PTC_X11_LEAVE_WINDOW];
+    FFlags := FFlags + [PTC_X11_LEAVE_WINDOW];
     Exit;
   End;
-  If _option = 'leave display open' Then
+  If AOption = 'leave display open' Then
   Begin
-    m_flags := m_flags + [PTC_X11_LEAVE_DISPLAY];
+    FFlags := FFlags + [PTC_X11_LEAVE_DISPLAY];
     Exit;
   End;
-  If _option = 'dga pedantic init' Then
+  If AOption = 'dga' Then
   Begin
-    m_flags := m_flags + [PTC_X11_PEDANTIC_DGA, PTC_X11_TRY_DGA];
+    FFlags := FFlags + [PTC_X11_TRY_DGA];
     Exit;
   End;
-  If _option = 'dga' Then
+  If AOption = 'dga off' Then
   Begin
-    m_flags := m_flags + [PTC_X11_TRY_DGA];
+    FFlags := FFlags - [PTC_X11_TRY_DGA];
     Exit;
   End;
-  If _option = 'dga off' Then
+  If AOption = 'xf86vidmode' Then
   Begin
-    m_flags := m_flags - [PTC_X11_TRY_DGA];
+    FFlags := FFlags + [PTC_X11_TRY_XF86VIDMODE];
     Exit;
   End;
-  If _option = 'default cursor' Then
+  If AOption = 'xf86vidmode off' Then
   Begin
-    m_flags := m_flags - [PTC_X11_FULLSCREEN_CURSOR_VISIBLE, PTC_X11_WINDOWED_CURSOR_INVISIBLE];
+    FFlags := FFlags - [PTC_X11_TRY_XF86VIDMODE];
+    Exit;
+  End;
+  If AOption = 'xrandr' Then
+  Begin
+    FFlags := FFlags + [PTC_X11_TRY_XRANDR];
+    Exit;
+  End;
+  If AOption = 'xrandr off' Then
+  Begin
+    FFlags := FFlags - [PTC_X11_TRY_XRANDR];
+    Exit;
+  End;
+  If AOption = 'xshm' Then
+  Begin
+    FFlags := FFlags + [PTC_X11_TRY_XSHM];
+    Exit;
+  End;
+  If AOption = 'xshm off' Then
+  Begin
+    FFlags := FFlags - [PTC_X11_TRY_XSHM];
+    Exit;
+  End;
+  If AOption = 'default cursor' Then
+  Begin
+    FFlags := FFlags - [PTC_X11_FULLSCREEN_CURSOR_VISIBLE, PTC_X11_WINDOWED_CURSOR_INVISIBLE];
     UpdateCursor;
     Exit;
   End;
-  If _option = 'show cursor' Then
+  If AOption = 'show cursor' Then
   Begin
-    m_flags := (m_flags - [PTC_X11_WINDOWED_CURSOR_INVISIBLE]) + [PTC_X11_FULLSCREEN_CURSOR_VISIBLE];
+    FFlags := (FFlags - [PTC_X11_WINDOWED_CURSOR_INVISIBLE]) + [PTC_X11_FULLSCREEN_CURSOR_VISIBLE];
     UpdateCursor;
     Exit;
   End;
-  If _option = 'hide cursor' Then
+  If AOption = 'hide cursor' Then
   Begin
-    m_flags := (m_flags - [PTC_X11_FULLSCREEN_CURSOR_VISIBLE]) + [PTC_X11_WINDOWED_CURSOR_INVISIBLE];
+    FFlags := (FFlags - [PTC_X11_FULLSCREEN_CURSOR_VISIBLE]) + [PTC_X11_WINDOWED_CURSOR_INVISIBLE];
     UpdateCursor;
     Exit;
   End;
-  If x11disp <> Nil Then
-    option := x11disp.m_copy.option(_option)
+  If AOption = 'enable logging' Then
+  Begin
+    LOG_enabled := True;
+    Result := True;
+    Exit;
+  End;
+  If AOption = 'disable logging' Then
+  Begin
+    LOG_enabled := False;
+    Result := True;
+    Exit;
+  End;
+
+  If Assigned(FX11Display) Then
+    Result := FX11Display.FCopy.Option(AOption)
   Else
-    option := False;
+    Result := False;
 End;
 
-Function TX11Console.modes : PPTCMode;
+Function TX11Console.Modes : PPTCMode;
+
+Var
+  I : Integer;
 
 Begin
-  modes := @m_modes;
+  For I := Low(FModes) To High(FModes) Do
+    FreeAndNil(FModes[I]);
+
+  If FX11Display = Nil Then
+    FX11Display := CreateDisplay;
+
+  FX11Display.GetModes(FModes);
+
+  Result := @FModes[0];
 End;
 
 {TODO: Find current pixel depth}
-Procedure TX11Console.open(Const _title : String; _pages : Integer);
+Procedure TX11Console.Open(Const ATitle : String; APages : Integer = 0);
 
 Var
   tmp : TPTCFormat;
 
 Begin
-  setTitle(_title);
   tmp := TPTCFormat.Create(32, $FF0000, $FF00, $FF);
   Try
-    open(_title, tmp, _pages);
+    Open(ATitle, tmp, APages);
   Finally
     tmp.Free;
   End;
 End;
 
-Procedure TX11Console.open(Const _title : String; Const _format : TPTCFormat;
-		           _pages : Integer);
+Procedure TX11Console.Open(Const ATitle : String; Const AFormat : TPTCFormat;
+                           APages : Integer = 0);
 
 Begin
-  setTitle(_title);
-  open(_title, 640, 480, _format, _pages);
+  Open(ATitle, 640, 480, AFormat, APages);
 End;
 
-Procedure TX11Console.open(Const _title : String; _width, _height : Integer;
-		           Const _format : TPTCFormat; _pages : Integer);
+Procedure TX11Console.Open(Const ATitle : String; Const AMode : TPTCMode;
+                           APages : Integer = 0);
+
+Begin
+  Open(ATitle, AMode.Width, AMode.Height, AMode.Format, APages);
+End;
+
+Function TX11Console.CreateDisplay : TX11Display;
 
 Var
-  disp : PDisplay;
+  display : PDisplay;
   screen : Integer;
 
 Begin
-  close;
-  setTitle(_title);
-  
   { Check if we can open an X display }
-  disp := XOpenDisplay(Nil);
-  If disp = Nil Then
+  display := XOpenDisplay(Nil);
+  If display = Nil Then
     Raise TPTCError.Create('Cannot open X display');
-  
+
   { DefaultScreen should be fine }
-  screen := DefaultScreen(disp);
-  
-  FreeAndNil(x11disp);
-  
-  {ifndef HAVE_DGA}
-  
-  If (PTC_X11_TRY_DGA In m_flags) Then
+  screen := DefaultScreen(display);
+
+  {$IFDEF ENABLE_X11_EXTENSION_XF86DGA2}
+  If PTC_X11_TRY_DGA In FFlags Then
   Begin
     Try
-      x11disp := TX11DGADisplay.Create;
-      x11disp.flags(m_flags + [PTC_X11_LEAVE_DISPLAY]);
-      x11disp.open(_title, _width, _height, _format, disp, screen);
-      x11disp.flags(m_flags);
+      Result := TX11DGA2Display.Create(display, screen, FFlags + [PTC_X11_LEAVE_DISPLAY]);
+      Result.SetFlags(FFlags);
+      Exit;
     Except
-      FreeAndNil(x11disp);
+      LOG('DGA 2.0 failed');
     End;
   End;
-  
-  If x11disp = Nil Then
+  {$ENDIF ENABLE_X11_EXTENSION_XF86DGA2}
+
+  {$IFDEF ENABLE_X11_EXTENSION_XF86DGA1}
+  If PTC_X11_TRY_DGA In FFlags Then
   Begin
-    x11disp := TX11WindowDisplay.Create;
-    x11disp.flags(m_flags);
-    x11disp.open(_title, _width, _height, _format, disp, screen);
+    Try
+      Result := TX11DGA1Display.Create(display, screen, FFlags + [PTC_X11_LEAVE_DISPLAY]);
+      Result.SetFlags(FFlags);
+    Except
+      LOG('DGA 1.0 failed');
+    End;
   End;
-  
+  {$ENDIF ENABLE_X11_EXTENSION_XF86DGA1}
+
+  Result := TX11WindowDisplay.Create(display, screen, FFlags);
+End;
+
+Procedure TX11Console.Open(Const ATitle : String; AWidth, AHeight : Integer;
+                           Const AFormat : TPTCFormat; APages : Integer = 0);
+
+Begin
+  Close;
+  FTitle := ATitle;
+
+  If FX11Display = Nil Then
+    FX11Display := CreateDisplay;
+  FX11Display.Open(ATitle, AWidth, AHeight, AFormat);
+
   UpdateCursor;
 End;
 
-Procedure TX11Console.open(Const _title : String; Const _mode : TPTCMode;
-		           _pages : Integer);
+Procedure TX11Console.Close;
 
 Begin
-  setTitle(_title);
+  FreeAndNil(FX11Display);
 End;
 
-Procedure TX11Console.close;
+Procedure TX11Console.Flush;
 
 Begin
-  FreeAndNil(x11disp);
+  Update;
 End;
 
-Procedure TX11Console.flush;
+Procedure TX11Console.Finish;
 
 Begin
-  update;
+  Update;
 End;
 
-Procedure TX11Console.finish;
+Procedure TX11Console.Update;
 
 Begin
-  update;
+  FX11Display.Update;
 End;
 
-Procedure TX11Console.update;
+Procedure TX11Console.Update(Const AArea : TPTCArea);
 
 Begin
-  x11disp.update;
+  FX11Display.Update(AArea);
 End;
 
-Procedure TX11Console.update(Const _area : TPTCArea);
+Function TX11Console.NextEvent(Var AEvent : TPTCEvent; AWait : Boolean; Const AEventMask : TPTCEventMask) : Boolean;
 
 Begin
-  x11disp.update(_area);
+  Result := FX11Display.NextEvent(AEvent, AWait, AEventMask);
 End;
 
-Function TX11Console.NextEvent(Var event : TPTCEvent; wait : Boolean; Const EventMask : TPTCEventMask) : Boolean;
+Function TX11Console.PeekEvent(AWait : Boolean; Const AEventMask : TPTCEventMask) : TPTCEvent;
 
 Begin
-  Result := x11disp.NextEvent(event, wait, EventMask);
+  Result := FX11Display.PeekEvent(AWait, AEventMask);
 End;
 
-Function TX11Console.PeekEvent(wait : Boolean; Const EventMask : TPTCEventMask) : TPTCEvent;
-
-Begin
-  Result := x11disp.PeekEvent(wait, EventMask);
-End;
-
-Procedure TX11Console.copy(Var surface : TPTCBaseSurface);
+Procedure TX11Console.Copy(Var ASurface : TPTCBaseSurface);
 
 Begin
   {todo!...}
 End;
 
-Procedure TX11Console.copy(Var surface : TPTCBaseSurface;
-		           Const source, destination : TPTCArea);
+Procedure TX11Console.Copy(Var ASurface : TPTCBaseSurface;
+                           Const ASource, ADestination : TPTCArea);
 
 Begin
   {todo!...}
 End;
 
-Function TX11Console.lock : Pointer;
+Function TX11Console.Lock : Pointer;
 
 Begin
-  lock := x11disp.lock;
+  Result := FX11Display.Lock;
 End;
 
-Procedure TX11Console.unlock;
+Procedure TX11Console.Unlock;
 
 Begin
-  x11disp.unlock;
+  FX11Display.Unlock;
 End;
 
-Procedure TX11Console.load(Const pixels : Pointer;
-		           _width, _height, _pitch : Integer;
-		           Const _format : TPTCFormat;
-		           Const _palette : TPTCPalette);
+Procedure TX11Console.Load(Const APixels : Pointer;
+                           AWidth, AHeight, APitch : Integer;
+                           Const AFormat : TPTCFormat;
+                           Const APalette : TPTCPalette);
 
 Begin
-  x11disp.load(pixels, _width, _height, _pitch, _format, _palette);
+  FX11Display.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette);
 End;
 
-Procedure TX11Console.load(Const pixels : Pointer;
-		           _width, _height, _pitch : Integer;
-		           Const _format : TPTCFormat;
-		           Const _palette : TPTCPalette;
-		           Const source, destination : TPTCArea);
+Procedure TX11Console.Load(Const APixels : Pointer;
+                           AWidth, AHeight, APitch : Integer;
+                           Const AFormat : TPTCFormat;
+                           Const APalette : TPTCPalette;
+                           Const ASource, ADestination : TPTCArea);
 
 Begin
-  x11disp.load(pixels, _width, _height, _pitch, _format, _palette, source, destination);
+  FX11Display.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, ASource, ADestination);
 End;
 
-Procedure TX11Console.save(pixels : Pointer;
-		           _width, _height, _pitch : Integer;
-		           Const _format : TPTCFormat;
-		           Const _palette : TPTCPalette);
-
-Begin
-  {todo!...}
-End;
-
-Procedure TX11Console.save(pixels : Pointer;
-		           _width, _height, _pitch : Integer;
-		           Const _format : TPTCFormat;
-		           Const _palette : TPTCPalette;
-		           Const source, destination : TPTCArea);
+Procedure TX11Console.Save(APixels : Pointer;
+                           AWidth, AHeight, APitch : Integer;
+                           Const AFormat : TPTCFormat;
+                           Const APalette : TPTCPalette);
 
 Begin
   {todo!...}
 End;
 
-Procedure TX11Console.clear;
+Procedure TX11Console.Save(APixels : Pointer;
+                           AWidth, AHeight, APitch : Integer;
+                           Const AFormat : TPTCFormat;
+                           Const APalette : TPTCPalette;
+                           Const ASource, ADestination : TPTCArea);
+
+Begin
+  {todo!...}
+End;
+
+Procedure TX11Console.Clear;
 
 Var
   tmp : TPTCColor;
 
 Begin
-  If format.direct Then
+  If Format.Direct Then
     tmp := TPTCColor.Create(0, 0, 0, 0)
   Else
     tmp := TPTCColor.Create(0);
   Try
-    clear(tmp);
+    Clear(tmp);
   Finally
     tmp.Free;
   End;
 End;
 
-Procedure TX11Console.clear(Const color : TPTCColor);
+Procedure TX11Console.Clear(Const AColor : TPTCColor);
 
 Begin
-  x11disp.clear(color);
+  FX11Display.Clear(AColor);
 End;
 
-Procedure TX11Console.clear(Const color : TPTCColor;
-		            Const _area : TPTCArea);
+Procedure TX11Console.Clear(Const AColor : TPTCColor;
+                            Const AArea : TPTCArea);
 
 Begin
-  x11disp.clear(color, _area);
+  FX11Display.Clear(AColor, AArea);
 End;
 
-Procedure TX11Console.palette(Const _palette : TPTCPalette);
+Procedure TX11Console.Palette(Const APalette : TPTCPalette);
 
 Begin
-  x11disp.palette(_palette);
+  FX11Display.Palette(APalette);
 End;
 
-Function TX11Console.palette : TPTCPalette;
+Function TX11Console.Palette : TPTCPalette;
 
 Begin
-  palette := x11disp.palette;
+  Result := FX11Display.Palette;
 End;
 
-Procedure TX11Console.clip(Const _area : TPTCArea);
+Procedure TX11Console.Clip(Const AArea : TPTCArea);
 
 Begin
-  x11disp.clip(_area);
+  FX11Display.Clip(AArea);
 End;
 
-Function TX11Console.width : Integer;
+Function TX11Console.GetWidth : Integer;
 
 Begin
-  width := x11disp.width;
+  Result := FX11Display.Width;
 End;
 
-Function TX11Console.height : Integer;
+Function TX11Console.GetHeight : Integer;
 
 Begin
-  height := x11disp.height;
+  Result := FX11Display.Height;
 End;
 
-Function TX11Console.pitch : Integer;
+Function TX11Console.GetPitch : Integer;
 
 Begin
-  pitch := x11disp.pitch;
+  Result := FX11Display.Pitch;
 End;
 
-Function TX11Console.pages : Integer;
+Function TX11Console.GetPages : Integer;
 
 Begin
-  pages := 1;
+  Result := 2;
 End;
 
-Function TX11Console.area : TPTCArea;
+Function TX11Console.GetArea : TPTCArea;
 
 Begin
-  area := x11disp.area;
+  Result := FX11Display.Area;
 End;
 
-Function TX11Console.clip : TPTCArea;
+Function TX11Console.Clip : TPTCArea;
 
 Begin
-  clip := x11disp.clip;
+  Result := FX11Display.Clip;
 End;
 
-Function TX11Console.format : TPTCFormat;
+Function TX11Console.GetFormat : TPTCFormat;
 
 Begin
-  format := x11disp.format;
+  Result := FX11Display.Format;
 End;
 
-Function TX11Console.name : String;
+Function TX11Console.GetName : String;
 
 Begin
-  name := 'X11';
+  Result := 'X11';
 End;
 
-Function TX11Console.title : String;
+Function TX11Console.GetTitle : String;
 
 Begin
-  title := m_title;
+  Result := FTitle;
 End;
 
-Function TX11Console.information : String;
-
-Var
-  s : String;
+Function TX11Console.GetInformation : String;
 
 Begin
-  If x11disp = Nil Then
+  If FX11Display = Nil Then
     Exit('PTC X11');
-  information := 'PTC X11, ';
-  If x11disp.isFullScreen Then
-    information := information + 'fullscreen '
+  Result := 'PTC X11, ';
+  If FX11Display.IsFullScreen Then
+    Result := Result + 'fullscreen '
   Else
-    information := information + 'windowed ';
-  If x11disp Is TX11WindowDisplay Then
+    Result := Result + 'windowed ';
+
+  { TODO: use virtual methods, instead of "is" }
+  If FX11Display Is TX11WindowDisplay Then
   Begin
-    If TX11WindowDisplay(x11disp).m_primary <> Nil Then
-    Begin
-    {$IFDEF HAVE_X11_EXTENSIONS_XSHM}
-      If TX11WindowDisplay(x11disp).m_primary Is TX11SHMImage Then
-        information := information + '(MIT-Shm) '
-      Else
-    {$ENDIF HAVE_X11_EXTENSIONS_XSHM}
-        information := information + '(XImage) ';
-    End
+    If TX11WindowDisplay(FX11Display).FPrimary <> Nil Then
+      Result := Result + '(' + TX11WindowDisplay(FX11Display).FPrimary.Name + ') '
     Else
-      information := information + '';
+      Result := Result + '';
   End
   Else
-    information := information + '(DGA) ';
-  information := information + 'mode, ';
-  Str(x11disp.width, s);
-  information := information + s + 'x';
-  Str(x11disp.height, s);
-  information := information + s + ', ';
-  Str(x11disp.format.bits, s);
-  information := information + s + ' bit';
+  Begin
+    {$IFDEF ENABLE_X11_EXTENSION_XF86DGA2}
+    If FX11Display Is TX11DGA2Display Then
+      Result := Result + '(DGA) '
+    Else
+    {$ENDIF ENABLE_X11_EXTENSION_XF86DGA2}
+    {$IFDEF ENABLE_X11_EXTENSION_XF86DGA1}
+    If FX11Display Is TX11DGA1Display Then
+      Result := Result + '(DGA) '
+    Else
+    {$ENDIF ENABLE_X11_EXTENSION_XF86DGA1}
+    Begin
+      {...}
+    End;
+  End;
+  Result := Result + 'mode, ' +
+            IntToStr(FX11Display.Width) + 'x' +
+            IntToStr(FX11Display.Height) + ', ' +
+            IntToStr(FX11Display.Format.Bits) + ' bit';
 End;
 
 Procedure TX11Console.UpdateCursor;
 
 Begin
-  If Assigned(x11disp) Then
+  If Assigned(FX11Display) Then
   Begin
-    If x11disp.isFullScreen Then
-      x11disp.SetCursor(PTC_X11_FULLSCREEN_CURSOR_VISIBLE In m_flags)
+    If FX11Display.IsFullScreen Then
+      FX11Display.SetCursor(PTC_X11_FULLSCREEN_CURSOR_VISIBLE In FFlags)
     Else
-      x11disp.SetCursor(Not (PTC_X11_WINDOWED_CURSOR_INVISIBLE In m_flags));
+      FX11Display.SetCursor(Not (PTC_X11_WINDOWED_CURSOR_INVISIBLE In FFlags));
   End;
-End;
-
-Procedure TX11Console.setTitle(_title : String);
-
-Begin
-  m_title := _title;
 End;

@@ -20,44 +20,48 @@
 
 Type
   TPTCBaseSurface=Class(TObject)
+  Private
+    Function GetWidth : Integer; Virtual; Abstract;
+    Function GetHeight : Integer; Virtual; Abstract;
+    Function GetPitch : Integer; Virtual; Abstract;
+    Function GetArea : TPTCArea; Virtual; Abstract;
+    Function GetFormat : TPTCFormat; Virtual; Abstract;
   Public
-{    Constructor Create;}
-{    Destructor Destroy; Override;}
-    Procedure copy(Var surface : TPTCBaseSurface); Virtual; Abstract;
-    Procedure copy(Var surface : TPTCBaseSurface;
-                   Const source, destination : TPTCArea); Virtual; Abstract;
-    Function lock : Pointer; Virtual; Abstract;
-    Procedure unlock; Virtual; Abstract;
-    Procedure load(Const pixels : Pointer;
-                   _width, _height, _pitch : Integer;
-                   Const _format : TPTCFormat;
-                   Const _palette : TPTCPalette); Virtual; Abstract;
-    Procedure load(Const pixels : Pointer;
-                   _width, _height, _pitch : Integer;
-                   Const _format : TPTCFormat;
-                   Const _palette : TPTCPalette;
-                   Const source, destination : TPTCArea); Virtual; Abstract;
-    Procedure save(pixels : Pointer;
-                   _width, _height, _pitch : Integer;
-                   Const _format : TPTCFormat;
-                   Const _palette : TPTCPalette); Virtual; Abstract;
-    Procedure save(pixels : Pointer;
-                   _width, _height, _pitch : Integer;
-                   Const _format : TPTCFormat;
-                   Const _palette : TPTCPalette;
-                   Const source, destination : TPTCArea); Virtual; Abstract;
-    Procedure clear; Virtual; Abstract;
-    Procedure clear(Const color : TPTCColor); Virtual; Abstract;
-    Procedure clear(Const color : TPTCColor;
-                    Const _area : TPTCArea); Virtual; Abstract;
-    Procedure palette(Const _palette : TPTCPalette); Virtual; Abstract;
-    Function palette : TPTCPalette; Virtual; Abstract;
-    Procedure clip(Const _area : TPTCArea); Virtual; Abstract;
-    Function width : Integer; Virtual; Abstract;
-    Function height : Integer; Virtual; Abstract;
-    Function pitch : Integer; Virtual; Abstract;
-    Function area : TPTCArea; Virtual; Abstract;
-    Function clip : TPTCArea; Virtual; Abstract;
-    Function format : TPTCFormat; Virtual; Abstract;
-    Function option(Const _option : String) : Boolean; Virtual; Abstract;
+    Procedure Copy(Var ASurface : TPTCBaseSurface); Virtual; Abstract;
+    Procedure Copy(Var ASurface : TPTCBaseSurface;
+                   Const ASource, ADestination : TPTCArea); Virtual; Abstract;
+    Function Lock : Pointer; Virtual; Abstract;
+    Procedure Unlock; Virtual; Abstract;
+    Procedure Load(Const APixels : Pointer;
+                   AWidth, AHeight, APitch : Integer;
+                   Const AFormat : TPTCFormat;
+                   Const APalette : TPTCPalette); Virtual; Abstract;
+    Procedure Load(Const APixels : Pointer;
+                   AWidth, AHeight, APitch : Integer;
+                   Const AFormat : TPTCFormat;
+                   Const APalette : TPTCPalette;
+                   Const ASource, ADestination : TPTCArea); Virtual; Abstract;
+    Procedure Save(APixels : Pointer;
+                   AWidth, AHeight, APitch : Integer;
+                   Const AFormat : TPTCFormat;
+                   Const APalette : TPTCPalette); Virtual; Abstract;
+    Procedure Save(APixels : Pointer;
+                   AWidth, AHeight, APitch : Integer;
+                   Const AFormat : TPTCFormat;
+                   Const APalette : TPTCPalette;
+                   Const ASource, ADestination : TPTCArea); Virtual; Abstract;
+    Procedure Clear; Virtual; Abstract;
+    Procedure Clear(Const AColor : TPTCColor); Virtual; Abstract;
+    Procedure Clear(Const AColor : TPTCColor;
+                    Const AArea : TPTCArea); Virtual; Abstract;
+    Procedure Palette(Const APalette : TPTCPalette); Virtual; Abstract;
+    Procedure Clip(Const AArea : TPTCArea); Virtual; Abstract;
+    Function Option(Const AOption : String) : Boolean; Virtual; Abstract;
+    Function Clip : TPTCArea; Virtual; Abstract;
+    Function Palette : TPTCPalette; Virtual; Abstract;
+    Property Width : Integer Read GetWidth;
+    Property Height : Integer Read GetHeight;
+    Property Pitch : Integer Read GetPitch;
+    Property Area : TPTCArea Read GetArea;
+    Property Format : TPTCFormat Read GetFormat;
   End;

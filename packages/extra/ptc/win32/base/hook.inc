@@ -60,14 +60,14 @@ Begin
       { check for lookup window match }
       If TWin32Hook_m_registry[i].window = hwnd Then
       Begin
-	{ setup cached lookup }
-	TWin32Hook_m_cached := @TWin32Hook_m_registry[i];
+        { setup cached lookup }
+        TWin32Hook_m_cached := @TWin32Hook_m_registry[i];
 
-	{ setup lookup }
-	lookup := TWin32Hook_m_cached;
+        { setup lookup }
+        lookup := TWin32Hook_m_cached;
 
-	{ break }
-	Break;
+        { break }
+        Break;
       End;
 {$IFDEF DEBUG}
     { check for search failure }
@@ -211,33 +211,33 @@ Begin
     Begin
       { search for Self }
       For i := 0 To TWin32Hook_m_registry[index].count Do
-	{ check hook }
-	If TWin32Hook_m_registry[index].hook[i] = Self Then
-	Begin
-	  { remove this hook (quite inefficient for high count...) }
-	  For j := i To TWin32Hook_m_registry[index].count - 2 Do
-	    TWin32Hook_m_registry[index].hook[j] :=
-	      TWin32Hook_m_registry[index].hook[j + 1];
+        { check hook }
+        If TWin32Hook_m_registry[index].hook[i] = Self Then
+        Begin
+          { remove this hook (quite inefficient for high count...) }
+          For j := i To TWin32Hook_m_registry[index].count - 2 Do
+            TWin32Hook_m_registry[index].hook[j] :=
+              TWin32Hook_m_registry[index].hook[j + 1];
 
-	  { decrease hook count }
-	  Dec(TWin32Hook_m_registry[index].count);
+          { decrease hook count }
+          Dec(TWin32Hook_m_registry[index].count);
 
-	  { break }
-	  Break;
-	End;
+          { break }
+          Break;
+        End;
 
       { check remaining hook count }
       If TWin32Hook_m_registry[index].count = 0 Then
       Begin
-	{ restore original window procedure }
-	SetWindowLong(window, GWL_WNDPROC, TWin32Hook_m_registry[i].wndproc);
+        { restore original window procedure }
+        SetWindowLong(window, GWL_WNDPROC, TWin32Hook_m_registry[i].wndproc);
 
-	{ remove this lookup (quite inefficient for high count...) }
-	For i := index To TWin32Hook_m_count - 2 Do
-	  TWin32Hook_m_registry[i] := TWin32Hook_m_registry[i + 1];
+        { remove this lookup (quite inefficient for high count...) }
+        For i := index To TWin32Hook_m_count - 2 Do
+          TWin32Hook_m_registry[i] := TWin32Hook_m_registry[i + 1];
 
-	{ decrease count }
-	Dec(TWin32Hook_m_count);
+        { decrease count }
+        Dec(TWin32Hook_m_count);
       End;
 
       { break }

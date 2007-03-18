@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -19,43 +19,35 @@
 }
 
 Type
-  TWin32Keyboard = Class(TWin32Hook)
+  TWin32Mouse = Class(TWin32Hook)
   Private
     { window procedure }
     Function WndProc(hWnd : HWND; message : DWord; wParam : WPARAM; lParam : LPARAM) : LRESULT; Override;
 
-    { internal key functions }
-{    Procedure insert(_key : TPTCKeyEvent);
-    Function remove : TPTCKeyEvent;
-    Function ready : Boolean;}
-
-    { data }
-{    m_key : Boolean;}
-    m_multithreaded : Boolean;
-    m_event : TWin32Event;
-    m_monitor : TWin32Monitor;
     FEventQueue : TEventQueue;
 
+    FFullScreen : Boolean;
+
+    { the actual image area, inside the window (top left and bottom right corner) }
+    FWindowX1, FWindowY1, FWindowX2, FWindowY2 : Integer;
+
+    { console resolution
+      - mouse cursor position as seen by the user must always be in range:
+        [0..FConsoleWidth-1, 0..FConsoleHeight-1] }
+    FConsoleWidth, FConsoleHeight : Integer;
+
+    FPreviousMouseButtonState : TPTCMouseButtonState;
+    FPreviousMouseX, FPreviousMouseY : Integer; { for calculating the deltas }
+    FPreviousMousePositionSaved : Boolean; { true, if FPreviousMouseX,
+           FPreviousMouseY and FPreviousMouseButtonState contain valid values }
+
     { flag data }
-    m_enabled : Boolean;
-
-    { modifiers }
-    m_alt : Boolean;
-    m_shift : Boolean;
-    m_control : Boolean;
-
-    { key buffer }
-{    m_head : Integer;
-    m_tail : Integer;
-    m_buffer : Array[0..1023] Of TPTCKeyEvent;}
+    FEnabled : Boolean;
   Public
     { setup }
-    Constructor Create(window : HWND; thread : DWord; multithreaded : Boolean; EventQueue : TEventQueue);
-    Destructor Destroy; Override;
+    Constructor Create(window : HWND; thread : DWord; multithreaded : Boolean; EventQueue : TEventQueue; FullScreen : Boolean; ConsoleWidth, ConsoleHeight : Integer);
 
-    { input }
-{    Function internal_PeekKey(window : TWin32Window; k : TPTCKeyEvent) : Boolean;
-    Procedure internal_ReadKey(window : TWin32Window; k : TPTCKeyEvent);}
+    Procedure SetWindowArea(WindowX1, WindowY1, WindowX2, WindowY2 : Integer);
 
     { control }
     Procedure enable;

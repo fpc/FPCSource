@@ -45,28 +45,28 @@ Begin
   End;
 End;
 
-Procedure TPTCBaseConsole.ReadKey(Var k : TPTCKeyEvent);
+Procedure TPTCBaseConsole.ReadKey(Var AKey : TPTCKeyEvent);
 
 Var
   ev : TPTCEvent;
 
 Begin
-  ev := k;
+  ev := AKey;
   Try
     Repeat
       NextEvent(ev, True, [PTCKeyEvent]);
     Until FReleaseEnabled Or (ev As TPTCKeyEvent).Press;
   Finally
-    k := ev As TPTCKeyEvent;
+    AKey := ev As TPTCKeyEvent;
   End;
 End;
 
-Function TPTCBaseConsole.PeekKey(Var k : TPTCKeyEvent) : Boolean;
+Function TPTCBaseConsole.PeekKey(Var AKey : TPTCKeyEvent) : Boolean;
 
 Begin
   If KeyPressed Then
   Begin
-    ReadKey(k);
+    ReadKey(AKey);
     Result := True;
   End
   Else

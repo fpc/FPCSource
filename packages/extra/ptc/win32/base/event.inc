@@ -34,7 +34,7 @@ Destructor TWin32Event.Destroy;
 Begin
   { close handle }
   CloseHandle(m_event);
-  
+
   Inherited Destroy;
 End;
 

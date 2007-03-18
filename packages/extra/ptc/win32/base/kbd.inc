@@ -18,7 +18,7 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-Constructor TWin32Keyboard.Create(window : HWND; thread : DWord; multithreaded : Boolean);
+Constructor TWin32Keyboard.Create(window : HWND; thread : DWord; multithreaded : Boolean; EventQueue : TEventQueue);
 
 Begin
   m_monitor := Nil;
@@ -27,21 +27,17 @@ Begin
   m_monitor := TWin32Monitor.Create;
   m_event := TWin32Event.Create;
 
-  { defaults }
-  m_key := False;
-  m_head := 0;
-  m_tail := 0;
-
   { setup defaults }
   m_alt := False;
   m_shift := False;
   m_control := False;
 
+  { setup data }
+  FEventQueue := EventQueue;
+  m_multithreaded := multithreaded;
+
   { enable buffering }
   m_enabled := True;
-
-  { setup data }
-  m_multithreaded := multithreaded;
 End;
 
 Destructor TWin32Keyboard.Destroy;
@@ -52,7 +48,7 @@ Begin
   Inherited Destroy;
 End;
 
-Function TWin32Keyboard.internal_PeekKey(window : TWin32Window; k : TPTCKey) : Boolean;
+(*Function TWin32Keyboard.internal_PeekKey(window : TWin32Window; k : TPTCKeyEvent) : Boolean;
 
 Begin
   { check enabled flag }
@@ -71,28 +67,28 @@ Begin
 
   { is a key ready? }
   Result := ready;
-  
+
   If Result = True Then
-    k.ASSign(m_buffer[m_tail]);
+    k.Assign(m_buffer[m_tail]);
 
   { leave monitor if multithreaded }
   If m_multithreaded Then
     m_monitor.leave;
 End;
 
-Procedure TWin32Keyboard.internal_ReadKey(window : TWin32Window; k : TPTCKey);
+Procedure TWin32Keyboard.internal_ReadKey(window : TWin32Window; k : TPTCKeyEvent);
 
 Var
-  read : TPTCKey;
+  read : TPTCKeyEvent;
 
 Begin
   read := Nil;
-  
+
   Try
     { check enabled flag }
     If Not m_enabled Then
     Begin
-      read := TPTCKey.Create;
+      read := TPTCKeyEvent.Create;
       Exit;
     End;
 
@@ -130,10 +126,10 @@ Begin
     End;
   Finally
     If Assigned(read) Then
-      k.ASSign(read);
+      k.Assign(read);
     read.Free;
   End;
-End;
+End;*)
 
 Procedure TWin32Keyboard.enable;
 
@@ -218,7 +214,7 @@ Begin
     { handle key repeat count }
     For i := 1 To lParam And $FFFF Do
       { create and insert key object }
-      insert(TPTCKey.Create(wParam, uni, m_alt, m_shift, m_control, press));
+      FEventQueue.AddEvent(TPTCKeyEvent.Create(wParam, uni, m_alt, m_shift, m_control, press));
 
     { check multithreaded flag }
     If m_multithreaded Then
@@ -246,7 +242,7 @@ Begin
             m_control := False;*)
 End;
 
-Procedure TWin32Keyboard.insert(_key : TPTCKey);
+(*Procedure TWin32Keyboard.insert(_key : TPTCKeyEvent);
 
 Begin
   { check for overflow }
@@ -265,7 +261,7 @@ Begin
   End;
 End;
 
-Function TWin32Keyboard.remove : TPTCKey;
+Function TWin32Keyboard.remove : TPTCKeyEvent;
 
 Begin
   { return key data from tail }
@@ -284,3 +280,4 @@ Function TWin32Keyboard.ready : Boolean;
 Begin
   ready := m_head <> m_tail;
 End;
+*)

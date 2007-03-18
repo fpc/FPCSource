@@ -1,14 +1,46 @@
+{
+    Free Pascal port of the OpenPTC C++ library.
+    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Original C++ version by Glenn Fiedler (ptc@gaffer.org)
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
 Type
-  TX11Console = Class(TPTCBaseConsole)
+  TGDIConsole = Class(TPTCBaseConsole)
   Private
-    FX11Display : TX11Display;
+    FWindow : TWin32Window;
+    FWin32DIB : TWin32DIB;
+    FKeyboard : TWin32Keyboard;
+    FMouse : TWin32Mouse;
+
+    FCopy : TPTCCopy;
+    FClear : TPTCClear;
+    FEventQueue : TEventQueue;
+    FArea : TPTCArea;
+    FClip : TPTCArea;
+    FPalette : TPTCPalette;
+
+    FOpen : Boolean;
+    FLocked : Boolean;
+
     FTitle : String;
-    FFlags : TX11Flags;
-    FModes : Array Of TPTCMode;
 
-    Procedure UpdateCursor;
-
-    Function CreateDisplay : TX11Display; { Factory method }
+    FDefaultWidth : Integer;
+    FDefaultHeight : Integer;
+    FDefaultFormat : TPTCFormat;
 
     Function GetWidth : Integer; Override;
     Function GetHeight : Integer; Override;
@@ -19,6 +51,9 @@ Type
     Function GetName : String; Override;
     Function GetTitle : String; Override;
     Function GetInformation : String; Override;
+
+    Procedure CheckOpen(    AMessage : String);
+    Procedure CheckUnlocked(AMessage : String);
   Public
     Constructor Create; Override;
     Destructor Destroy; Override;

@@ -22,36 +22,40 @@ Type
   TPTCBaseConsole=Class(TPTCBaseSurface)
   Private
     FReleaseEnabled : Boolean;
+    Function GetPages : Integer; Virtual; Abstract;
+    Function GetName : String; Virtual; Abstract;
+    Function GetTitle : String; Virtual; Abstract;
+    Function GetInformation : String; Virtual; Abstract;
   Public
-    Constructor Create;
-    Procedure configure(Const _file : String); Virtual; Abstract;
-    Function modes : PPTCMode; Virtual; Abstract;
-    Procedure open(Const _title : String; _pages : Integer = 0); Overload; Virtual; Abstract;
-    Procedure open(Const _title : String; Const _format : TPTCFormat;
-                   _pages : Integer = 0); Overload; Virtual; Abstract;
-    Procedure open(Const _title : String; _width, _height : Integer;
-                   Const _format : TPTCFormat; _pages : Integer = 0); Overload; Virtual; Abstract;
-    Procedure open(Const _title : String; Const _mode : TPTCMode;
-                   _pages : Integer = 0); Overload; Virtual; Abstract;
-    Procedure close; Virtual; Abstract;
-    Procedure flush; Virtual; Abstract;
-    Procedure finish; Virtual; Abstract;
-    Procedure update; Virtual; Abstract;
-    Procedure update(Const _area : TPTCArea); Virtual; Abstract;
-    
+    Constructor Create; Virtual;
+    Procedure Configure(Const AFileName : String); Virtual; Abstract;
+    Function Modes : PPTCMode; Virtual; Abstract;
+    Procedure Open(Const ATitle : String; APages : Integer = 0); Overload; Virtual; Abstract;
+    Procedure Open(Const ATitle : String; Const AFormat : TPTCFormat;
+                   APages : Integer = 0); Overload; Virtual; Abstract;
+    Procedure Open(Const ATitle : String; AWidth, AHeight : Integer;
+                   Const AFormat : TPTCFormat; APages : Integer = 0); Overload; Virtual; Abstract;
+    Procedure Open(Const ATitle : String; Const AMode : TPTCMode;
+                   APages : Integer = 0); Overload; Virtual; Abstract;
+    Procedure Close; Virtual; Abstract;
+    Procedure Flush; Virtual; Abstract;
+    Procedure Finish; Virtual; Abstract;
+    Procedure Update; Virtual; Abstract;
+    Procedure Update(Const AArea : TPTCArea); Virtual; Abstract;
+
     { event handling }
-    Function NextEvent(Var event : TPTCEvent; wait : Boolean; Const EventMask : TPTCEventMask) : Boolean; Virtual; Abstract;
-    Function PeekEvent(wait : Boolean; Const EventMask : TPTCEventMask) : TPTCEvent; Virtual; Abstract;
-    
+    Function NextEvent(Var AEvent : TPTCEvent; AWait : Boolean; Const AEventMask : TPTCEventMask) : Boolean; Virtual; Abstract;
+    Function PeekEvent(AWait : Boolean; Const AEventMask : TPTCEventMask) : TPTCEvent; Virtual; Abstract;
+
     { key handling }
     Function KeyPressed : Boolean;
-    Function PeekKey(Var k : TPTCKeyEvent) : Boolean;
-    Procedure ReadKey(Var k : TPTCKeyEvent);
+    Function PeekKey(Var AKey : TPTCKeyEvent) : Boolean;
+    Procedure ReadKey(Var AKey : TPTCKeyEvent);
     Procedure ReadKey;
     Property KeyReleaseEnabled : Boolean Read FReleaseEnabled Write FReleaseEnabled;
-    
-    Function pages : Integer; Virtual; Abstract;
-    Function name : String; Virtual; Abstract;
-    Function title : String; Virtual; Abstract;
-    Function information : String; Virtual; Abstract;
+
+    Property Pages : Integer Read GetPages;
+    Property Name : String Read GetName;
+    Property Title : String Read GetTitle;
+    Property Information : String Read GetInformation;
   End;

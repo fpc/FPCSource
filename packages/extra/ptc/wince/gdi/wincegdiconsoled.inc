@@ -1,14 +1,29 @@
 Type
-  TX11Console = Class(TPTCBaseConsole)
+  TWinCEGDIConsole = Class(TPTCBaseConsole)
   Private
-    FX11Display : TX11Display;
+    FWindow : TWinCEWindow;
+    FBitmap : HBitmap;
+    FBitmapInfo : TWinCEBitmapInfo;
+    FBitmapPixels : Pointer;
+    FKeyboard : TWinCEKeyboard;
+    FMouse : TWinCEMouse;
+
+    FCopy : TPTCCopy;
+    FClear : TPTCClear;
+    FArea : TPTCArea;
+    FClip : TPTCArea;
+    FEventQueue : TEventQueue;
+
+    FOpen : Boolean;
+    FLocked : Boolean;
+
     FTitle : String;
-    FFlags : TX11Flags;
-    FModes : Array Of TPTCMode;
 
-    Procedure UpdateCursor;
+    FDefaultWidth : Integer;
+    FDefaultHeight : Integer;
+    FDefaultFormat : TPTCFormat;
 
-    Function CreateDisplay : TX11Display; { Factory method }
+    Function WndProc(Ahwnd : HWND; AuMsg : UINT; AwParam : WPARAM; AlParam : LPARAM) : LRESULT;
 
     Function GetWidth : Integer; Override;
     Function GetHeight : Integer; Override;
@@ -19,6 +34,9 @@ Type
     Function GetName : String; Override;
     Function GetTitle : String; Override;
     Function GetInformation : String; Override;
+
+    Procedure CheckOpen(    AMessage : String);
+    Procedure CheckUnlocked(AMessage : String);
   Public
     Constructor Create; Override;
     Destructor Destroy; Override;

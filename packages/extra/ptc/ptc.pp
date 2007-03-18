@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -20,13 +20,22 @@
 
 {$MODE objfpc}
 {$MACRO ON}
-{$DEFINE PTC_LOGGING}
 {$UNDEF ENABLE_C_API}
 
 {$H+}
 
 {$IFDEF UNIX}
-{$DEFINE HAVE_X11_EXTENSIONS_XSHM}
+
+  { X11 extensions we want to enable at compile time }
+  {$INCLUDE x11/extensions.inc}
+
+  {$IFDEF ENABLE_X11_EXTENSION_XF86DGA1}
+    {$DEFINE ENABLE_X11_EXTENSION_XF86DGA}
+  {$ENDIF ENABLE_X11_EXTENSION_XF86DGA1}
+  {$IFDEF ENABLE_X11_EXTENSION_XF86DGA2}
+    {$DEFINE ENABLE_X11_EXTENSION_XF86DGA}
+  {$ENDIF ENABLE_X11_EXTENSION_XF86DGA2}
+
 {$ENDIF UNIX}
 
 Unit ptc;
@@ -40,7 +49,6 @@ Uses
 
 Const
   PTCPAS_VERSION = 'PTCPas 0.99.7';
-{  PTC_WIN32_VERSION = 'OpenPTC Win32 1.0.18';}
 
 Type
   PUint8  = ^Uint8;
@@ -59,31 +67,8 @@ Type
   Sint16 = SmallInt;
   Sint32 = LongInt;
   Sint64 = Int64;
-  {to be deprecated}
-{  Pint32 = ^int32;
-  int32 = Uint32;
-  Pshort16 = ^short16;
-  short16 = Uint16;
-  Pchar8 = ^char8;
-  char8 = Uint8;}
-  {/to be deprecated}
-{$INCLUDE aread.inc}
-{$INCLUDE colord.inc}
-{$INCLUDE formatd.inc}
-{$INCLUDE eventd.inc}
-{$INCLUDE keyd.inc}
-{$INCLUDE moused.inc}
-{$INCLUDE moded.inc}
-{$INCLUDE paletted.inc}
-{$INCLUDE cleard.inc}
-{$INCLUDE copyd.inc}
-{$INCLUDE clipperd.inc}
-{$INCLUDE basesurd.inc}
-{$INCLUDE surfaced.inc}
-{$INCLUDE basecond.inc}
-{$INCLUDE consoled.inc}
-{$INCLUDE errord.inc}
-{$INCLUDE timerd.inc}
+
+{$INCLUDE core/coreinterface.inc}
 
 {$IFNDEF FPDOC}
 
@@ -114,18 +99,32 @@ Uses
   textfx2, vesa, vga, cga, timeunit, crt, go32, mouse33h;
 {$ENDIF GO32V2}
 
-{$IFDEF WIN32}
+{$IFDEF Win32}
 Uses
-  Windows, DirectDraw;
-{$ENDIF WIN32}
+  Windows, p_ddraw;
+{$ENDIF Win32}
+
+{$IFDEF WinCE}
+Uses
+  Windows, p_gx;
+{$ENDIF WinCE}
 
 {$IFDEF UNIX}
 Uses
-  BaseUnix, Unix, ctypes, x, xlib, xutil, xatom, keysym,
-  xf86vmode, xf86dga,
-  {$IFDEF HAVE_X11_EXTENSIONS_XSHM}
-  xshm, ipc;
-  {$ENDIF HAVE_X11_EXTENSIONS_XSHM}
+  BaseUnix, Unix, ctypes, x, xlib, xutil, xatom, keysym
+  {$IFDEF ENABLE_X11_EXTENSION_XRANDR}
+  , xrandr
+  {$ENDIF ENABLE_X11_EXTENSION_XRANDR}
+  {$IFDEF ENABLE_X11_EXTENSION_XF86VIDMODE}
+  , xf86vmode
+  {$ENDIF ENABLE_X11_EXTENSION_XF86VIDMODE}
+  {$IFDEF ENABLE_X11_EXTENSION_XF86DGA}
+  , xf86dga
+  {$ENDIF ENABLE_X11_EXTENSION_XF86DGA}
+  {$IFDEF ENABLE_X11_EXTENSION_XSHM}
+  , xshm, ipc
+  {$ENDIF ENABLE_X11_EXTENSION_XSHM}
+  ;
 {$ENDIF UNIX}
 
 { this little procedure is not a good reason to include the whole sysutils
@@ -153,46 +152,36 @@ Begin
     FreeMem(tmp);
 End;
 
-{$INCLUDE log.inc}
+Function IntToStr(Value : Integer) : String;
+
+Begin
+  System.Str(Value, Result);
+End;
+
+Function IntToStr(Value : Int64) : String;
+
+Begin
+  System.Str(Value, Result);
+End;
+
+Function IntToStr(Value : QWord) : String;
+Begin
+  System.Str(Value, Result);
+End;
+
+{$INCLUDE core/log.inc}
 
 {$IFDEF WIN32}
 {$INCLUDE win32/base/cursor.inc}
 {$ENDIF WIN32}
 
-{$INCLUDE errori.inc}
-{$INCLUDE areai.inc}
-{$INCLUDE colori.inc}
-{$INCLUDE formati.inc}
-{$INCLUDE eventi.inc}
-{$INCLUDE keyi.inc}
-{$INCLUDE mousei.inc}
-{$INCLUDE modei.inc}
-{$INCLUDE palettei.inc}
-{$INCLUDE cleari.inc}
-{$INCLUDE copyi.inc}
-{$INCLUDE clipperi.inc}
-{$INCLUDE basesuri.inc}
-{$INCLUDE baseconi.inc}
-{$INCLUDE surfacei.inc}
-{$INCLUDE timeri.inc}
+{$INCLUDE core/coreimplementation.inc}
 
 {$IFDEF GO32V2}
-{$INCLUDE dos/base/kbdd.inc}
-{$INCLUDE dos/base/moused.inc}
-{$INCLUDE dos/vesa/consoled.inc}
-{$INCLUDE dos/fakemode/consoled.inc}
-{$INCLUDE dos/textfx2/consoled.inc}
-{$INCLUDE dos/cga/consoled.inc}
-
-{$INCLUDE dos/base/kbd.inc}
-{$INCLUDE dos/base/mousei.inc}
-{$INCLUDE dos/vesa/console.inc}
-{$INCLUDE dos/fakemode/console.inc}
-{$INCLUDE dos/textfx2/console.inc}
-{$INCLUDE dos/cga/console.inc}
+{$INCLUDE dos/includes.inc}
 {$ENDIF GO32V2}
 
-{$IFDEF WIN32}
+{$IFDEF Win32}
 {$INCLUDE win32/base/monitord.inc}
 {$INCLUDE win32/base/eventd.inc}
 {$INCLUDE win32/base/windowd.inc}
@@ -203,7 +192,9 @@ End;
 {$INCLUDE win32/directx/libraryd.inc}
 {$INCLUDE win32/directx/displayd.inc}
 {$INCLUDE win32/directx/primaryd.inc}
-{$INCLUDE win32/directx/consoled.inc}
+{$INCLUDE win32/directx/directxconsoled.inc}
+{$INCLUDE win32/gdi/win32dibd.inc}
+{$INCLUDE win32/gdi/gdiconsoled.inc}
 
 {$INCLUDE win32/base/monitor.inc}
 {$INCLUDE win32/base/event.inc}
@@ -212,32 +203,25 @@ End;
 {$INCLUDE win32/base/kbd.inc}
 {$INCLUDE win32/base/mousei.inc}
 {$INCLUDE win32/directx/check.inc}
-{$INCLUDE win32/directx/translte.inc}
+{$INCLUDE win32/directx/translate.inc}
 {$INCLUDE win32/directx/hook.inc}
 {$INCLUDE win32/directx/library.inc}
 {$INCLUDE win32/directx/display.inc}
 {$INCLUDE win32/directx/primary.inc}
-{$INCLUDE win32/directx/console.inc}
-{$ENDIF WIN32}
+{$INCLUDE win32/directx/directxconsolei.inc}
+{$INCLUDE win32/gdi/win32dibi.inc}
+{$INCLUDE win32/gdi/gdiconsolei.inc}
+{$ENDIF Win32}
+
+{$IFDEF WinCE}
+{$INCLUDE wince/includes.inc}
+{$ENDIF WinCE}
 
 {$IFDEF UNIX}
-{$INCLUDE x11/modesd.inc}
-{$INCLUDE x11/imaged.inc}
-{$INCLUDE x11/displayd.inc}
-{$INCLUDE x11/windowd.inc}
-{$INCLUDE x11/dgadispd.inc}
-{$INCLUDE x11/consoled.inc}
-
-{$INCLUDE x11/check.inc}
-{$INCLUDE x11/modesi.inc}
-{$INCLUDE x11/imagei.inc}
-{$INCLUDE x11/displayi.inc}
-{$INCLUDE x11/windowi.inc}
-{$INCLUDE x11/dgadispi.inc}
-{$INCLUDE x11/consolei.inc}
+{$INCLUDE x11/includes.inc}
 {$ENDIF UNIX}
 
-{$INCLUDE consolei.inc}
+{$INCLUDE core/consolei.inc}
 
 {$IFDEF ENABLE_C_API}
 {$INCLUDE c_api/except.pp}

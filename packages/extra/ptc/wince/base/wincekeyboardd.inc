@@ -18,14 +18,27 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{Constructor TPTCBaseSurface.Create;
+Type
+  TWinCEKeyboard = Class(TObject)
+  Private
+    { data }
+    FEventQueue : TEventQueue;
 
-Begin
-End;
-}
-{Destructor TPTCBaseSurface.Destroy;
+    { flag data }
+    m_enabled : Boolean;
 
-Begin
-  Inherited Destroy;
-End;
-}
+    { modifiers }
+    m_alt : Boolean;
+    m_shift : Boolean;
+    m_control : Boolean;
+  Public
+    { setup }
+    Constructor Create(EventQueue : TEventQueue);
+
+    { window procedure }
+    Function WndProc(hWnd : HWND; message : DWord; wParam : WPARAM; lParam : LPARAM) : LRESULT;
+
+    { control }
+    Procedure enable;
+    Procedure disable;
+  End;
