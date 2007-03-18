@@ -24,60 +24,44 @@ Begin
   FReleaseEnabled := False;
 End;
 
-Procedure TPTCBaseConsole.open(Const _title : String);{ Overload;}
-
-Begin
-  open(_title, 0);
-End;
-
-Procedure TPTCBaseConsole.open(Const _title : String; Const _format : TPTCFormat);{ Overload;}
-
-Begin
-  open(_title, _format, 0);
-End;
-
-Procedure TPTCBaseConsole.open(Const _title : String; _width, _height : Integer;
-                               Const _format : TPTCFormat);{ Overload;}
-
-Begin
-  open(_title, _width, _height, _format, 0);
-End;
-
-Procedure TPTCBaseConsole.open(Const _title : String; Const _mode : TPTCMode);{ Overload;}
-
-Begin
-  open(_title, _mode, 0);
-End;
-
 Function TPTCBaseConsole.KeyPressed : Boolean;
 
 Var
-  k : TPTCKey;
+  k, kpeek : TPTCEvent;
 
 Begin
-  k := TPTCKey.Create;
+  k := Nil;
   Try
     Repeat
-      If internal_PeekKey(k) = False Then
+      kpeek := PeekEvent(False, [PTCKeyEvent]);
+      If kpeek = Nil Then
         Exit(False);
-      If FReleaseEnabled Or k.Press Then
+      If FReleaseEnabled Or (kpeek As TPTCKeyEvent).Press Then
         Exit(True);
-      internal_ReadKey(k);
+      NextEvent(k, False, [PTCKeyEvent]);
     Until False;
   Finally
     k.Free;
   End;
 End;
 
-Procedure TPTCBaseConsole.ReadKey(k : TPTCKey);
+Procedure TPTCBaseConsole.ReadKey(Var k : TPTCKeyEvent);
+
+Var
+  ev : TPTCEvent;
 
 Begin
-  Repeat
-    internal_ReadKey(k);
-  Until FReleaseEnabled Or k.Press;
+  ev := k;
+  Try
+    Repeat
+      NextEvent(ev, True, [PTCKeyEvent]);
+    Until FReleaseEnabled Or (ev As TPTCKeyEvent).Press;
+  Finally
+    k := ev As TPTCKeyEvent;
+  End;
 End;
 
-Function TPTCBaseConsole.PeekKey(k : TPTCKey) : Boolean;
+Function TPTCBaseConsole.PeekKey(Var k : TPTCKeyEvent) : Boolean;
 
 Begin
   If KeyPressed Then
@@ -92,10 +76,10 @@ End;
 Procedure TPTCBaseConsole.ReadKey;
 
 Var
-  k : TPTCKey;
+  k : TPTCKeyEvent;
 
 Begin
-  k := TPTCKey.Create;
+  k := TPTCKeyEvent.Create;
   Try
     ReadKey(k);
   Finally

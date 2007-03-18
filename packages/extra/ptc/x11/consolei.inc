@@ -5,19 +5,19 @@ Var
 
 Begin
   x11disp := Nil;
-  m_flags := 0;
+  m_flags := [];
   FillChar(m_modes, SizeOf(m_modes), 0);
   m_title := '';
   
   m_modes[0] := TPTCMode.Create;
   
-  configure('/usr/share/ptc/ptc.conf');
+  configure('/usr/share/ptcpas/ptcpas.conf');
   s := fpgetenv('HOME');
   If s = '' Then
     s := '/';
   If s[Length(s)] <> '/' Then
     s := s + '/';
-  s := s + '.ptc.conf';
+  s := s + '.ptcpas.conf';
   configure(s);
 End;
 
@@ -64,24 +64,63 @@ Function TX11Console.option(Const _option : String) : Boolean;
 
 Begin
   option := True;
-  If _option = 'dga pedantic init' Then
+  If _option = 'default output' Then
   Begin
-    m_flags := m_flags Or PTC_X11_PEDANTIC_DGA;
+    { default is windowed for now }
+    m_flags := m_flags - [PTC_X11_FULLSCREEN];
     Exit;
   End;
-  If _option = 'dga off' Then
+  If _option = 'windowed output' Then
   Begin
-    m_flags := m_flags Or PTC_X11_NODGA;
+    m_flags := m_flags - [PTC_X11_FULLSCREEN];
+    Exit;
+  End;
+  If _option = 'fullscreen output' Then
+  Begin
+    m_flags := m_flags + [PTC_X11_FULLSCREEN];
     Exit;
   End;
   If _option = 'leave window open' Then
   Begin
-    m_flags := m_flags Or PTC_X11_LEAVE_WINDOW;
+    m_flags := m_flags + [PTC_X11_LEAVE_WINDOW];
     Exit;
   End;
   If _option = 'leave display open' Then
   Begin
-    m_flags := m_flags Or PTC_X11_LEAVE_DISPLAY;
+    m_flags := m_flags + [PTC_X11_LEAVE_DISPLAY];
+    Exit;
+  End;
+  If _option = 'dga pedantic init' Then
+  Begin
+    m_flags := m_flags + [PTC_X11_PEDANTIC_DGA, PTC_X11_TRY_DGA];
+    Exit;
+  End;
+  If _option = 'dga' Then
+  Begin
+    m_flags := m_flags + [PTC_X11_TRY_DGA];
+    Exit;
+  End;
+  If _option = 'dga off' Then
+  Begin
+    m_flags := m_flags - [PTC_X11_TRY_DGA];
+    Exit;
+  End;
+  If _option = 'default cursor' Then
+  Begin
+    m_flags := m_flags - [PTC_X11_FULLSCREEN_CURSOR_VISIBLE, PTC_X11_WINDOWED_CURSOR_INVISIBLE];
+    UpdateCursor;
+    Exit;
+  End;
+  If _option = 'show cursor' Then
+  Begin
+    m_flags := (m_flags - [PTC_X11_WINDOWED_CURSOR_INVISIBLE]) + [PTC_X11_FULLSCREEN_CURSOR_VISIBLE];
+    UpdateCursor;
+    Exit;
+  End;
+  If _option = 'hide cursor' Then
+  Begin
+    m_flags := (m_flags - [PTC_X11_FULLSCREEN_CURSOR_VISIBLE]) + [PTC_X11_WINDOWED_CURSOR_INVISIBLE];
+    UpdateCursor;
     Exit;
   End;
   If x11disp <> Nil Then
@@ -143,11 +182,11 @@ Begin
   
   {ifndef HAVE_DGA}
   
-  If (m_flags And PTC_X11_NODGA) = 0 Then
+  If (PTC_X11_TRY_DGA In m_flags) Then
   Begin
     Try
       x11disp := TX11DGADisplay.Create;
-      x11disp.flags(m_flags Or PTC_X11_LEAVE_DISPLAY);
+      x11disp.flags(m_flags + [PTC_X11_LEAVE_DISPLAY]);
       x11disp.open(_title, _width, _height, _format, disp, screen);
       x11disp.flags(m_flags);
     Except
@@ -161,6 +200,8 @@ Begin
     x11disp.flags(m_flags);
     x11disp.open(_title, _width, _height, _format, disp, screen);
   End;
+  
+  UpdateCursor;
 End;
 
 Procedure TX11Console.open(Const _title : String; Const _mode : TPTCMode;
@@ -200,16 +241,16 @@ Begin
   x11disp.update(_area);
 End;
 
-Procedure TX11Console.internal_ReadKey(k : TPTCKey);
+Function TX11Console.NextEvent(Var event : TPTCEvent; wait : Boolean; Const EventMask : TPTCEventMask) : Boolean;
 
 Begin
-  x11disp.internal_ReadKey(k);
+  Result := x11disp.NextEvent(event, wait, EventMask);
 End;
 
-Function TX11Console.internal_PeekKey(k : TPTCKey) : Boolean;
+Function TX11Console.PeekEvent(wait : Boolean; Const EventMask : TPTCEventMask) : TPTCEvent;
 
 Begin
-  Result := x11disp.internal_PeekKey(k);
+  Result := x11disp.PeekEvent(wait, EventMask);
 End;
 
 Procedure TX11Console.copy(Var surface : TPTCBaseSurface);
@@ -386,29 +427,45 @@ Begin
   If x11disp = Nil Then
     Exit('PTC X11');
   information := 'PTC X11, ';
+  If x11disp.isFullScreen Then
+    information := information + 'fullscreen '
+  Else
+    information := information + 'windowed ';
   If x11disp Is TX11WindowDisplay Then
   Begin
     If TX11WindowDisplay(x11disp).m_primary <> Nil Then
     Begin
     {$IFDEF HAVE_X11_EXTENSIONS_XSHM}
       If TX11WindowDisplay(x11disp).m_primary Is TX11SHMImage Then
-        information := information + 'windowed (MIT-Shm) mode'
+        information := information + '(MIT-Shm) '
       Else
     {$ENDIF HAVE_X11_EXTENSIONS_XSHM}
-        information := information + 'windowed (XImage) mode';
+        information := information + '(XImage) ';
     End
     Else
-      information := information + 'windowed mode';
+      information := information + '';
   End
   Else
-    information := information + 'direct graphics access (DGA) mode';
-  information := information + ', ';
+    information := information + '(DGA) ';
+  information := information + 'mode, ';
   Str(x11disp.width, s);
   information := information + s + 'x';
   Str(x11disp.height, s);
   information := information + s + ', ';
   Str(x11disp.format.bits, s);
   information := information + s + ' bit';
+End;
+
+Procedure TX11Console.UpdateCursor;
+
+Begin
+  If Assigned(x11disp) Then
+  Begin
+    If x11disp.isFullScreen Then
+      x11disp.SetCursor(PTC_X11_FULLSCREEN_CURSOR_VISIBLE In m_flags)
+    Else
+      x11disp.SetCursor(Not (PTC_X11_WINDOWED_CURSOR_INVISIBLE In m_flags));
+  End;
 End;
 
 Procedure TX11Console.setTitle(_title : String);

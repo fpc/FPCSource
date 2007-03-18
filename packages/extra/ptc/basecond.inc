@@ -20,41 +20,38 @@
 
 Type
   TPTCBaseConsole=Class(TPTCBaseSurface)
-  Protected
+  Private
     FReleaseEnabled : Boolean;
-    
-    Procedure internal_ReadKey(k : TPTCKey); Virtual; Abstract;
-    Function internal_PeekKey(k : TPTCKey) : Boolean; Virtual; Abstract;
   Public
     Constructor Create;
     Procedure configure(Const _file : String); Virtual; Abstract;
     Function modes : PPTCMode; Virtual; Abstract;
-    Procedure open(Const _title : String; _pages : Integer); Overload; Virtual; Abstract;
+    Procedure open(Const _title : String; _pages : Integer = 0); Overload; Virtual; Abstract;
     Procedure open(Const _title : String; Const _format : TPTCFormat;
-                   _pages : Integer); Overload; Virtual; Abstract;
+                   _pages : Integer = 0); Overload; Virtual; Abstract;
     Procedure open(Const _title : String; _width, _height : Integer;
-                   Const _format : TPTCFormat; _pages : Integer); Overload; Virtual; Abstract;
+                   Const _format : TPTCFormat; _pages : Integer = 0); Overload; Virtual; Abstract;
     Procedure open(Const _title : String; Const _mode : TPTCMode;
-                   _pages : Integer); Overload; Virtual; Abstract;
-    {pages=0}
-    Procedure open(Const _title : String); Overload; Virtual;
-    Procedure open(Const _title : String; Const _format : TPTCFormat); Overload; Virtual;
-    Procedure open(Const _title : String; _width, _height : Integer;
-                   Const _format : TPTCFormat); Overload; Virtual;
-    Procedure open(Const _title : String; Const _mode : TPTCMode); Overload; Virtual;
-    {/pages=0}
+                   _pages : Integer = 0); Overload; Virtual; Abstract;
     Procedure close; Virtual; Abstract;
     Procedure flush; Virtual; Abstract;
     Procedure finish; Virtual; Abstract;
     Procedure update; Virtual; Abstract;
     Procedure update(Const _area : TPTCArea); Virtual; Abstract;
+    
+    { event handling }
+    Function NextEvent(Var event : TPTCEvent; wait : Boolean; Const EventMask : TPTCEventMask) : Boolean; Virtual; Abstract;
+    Function PeekEvent(wait : Boolean; Const EventMask : TPTCEventMask) : TPTCEvent; Virtual; Abstract;
+    
+    { key handling }
     Function KeyPressed : Boolean;
-    Function PeekKey(k : TPTCKey) : Boolean;
-    Procedure ReadKey(k : TPTCKey);
+    Function PeekKey(Var k : TPTCKeyEvent) : Boolean;
+    Procedure ReadKey(Var k : TPTCKeyEvent);
     Procedure ReadKey;
+    Property KeyReleaseEnabled : Boolean Read FReleaseEnabled Write FReleaseEnabled;
+    
     Function pages : Integer; Virtual; Abstract;
     Function name : String; Virtual; Abstract;
     Function title : String; Virtual; Abstract;
     Function information : String; Virtual; Abstract;
-    Property KeyReleaseEnabled : Boolean Read FReleaseEnabled Write FReleaseEnabled;
   End;

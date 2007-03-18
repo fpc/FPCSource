@@ -70,7 +70,7 @@ Begin
            (vml^.vdisplay = modeinfo[i]^.vdisplay) Then
         Begin
           previousmode := i;
-          Break;
+	  Break;
         End;
       End;
     Finally
@@ -86,7 +86,7 @@ Begin
   { Find a video mode to set }
   
   { Normal modesetting first, find exactly matching mode }
-  If (m_flags And PTC_X11_PEDANTIC_DGA) = 0 Then
+  If Not (PTC_X11_PEDANTIC_DGA In m_flags) Then
   Begin
     found := False;
     For i := 0 To num_modeinfo - 1 Do
@@ -94,11 +94,11 @@ Begin
       If (modeinfo[i]^.hdisplay = _width) And (modeinfo[i]^.vdisplay = _height) Then
       Begin
         If Not XF86VidModeSwitchToMode(m_disp, m_screen, modeinfo[i]) Then
-          Raise TPTCError.Create('Error switching to requested video mode');
-        m_destx := 0;
-        m_desty := 0;
-        found := True;
-        Break;
+	  Raise TPTCError.Create('Error switching to requested video mode');
+	m_destx := 0;
+	m_desty := 0;
+	found := True;
+	Break;
       End;
     End;
     If Not found Then
@@ -115,7 +115,7 @@ Begin
          (modeinfo[i]^.vdisplay >= _height) Then
       Begin
         found_mode := i;
-        Break;
+	Break;
       End;
     End;
     
@@ -127,7 +127,7 @@ Begin
            (modeinfo[i]^.vdisplay = _height) Then
         Begin
           found_mode := i;
-          Break;
+	  Break;
         End;
       End;
     
@@ -139,13 +139,15 @@ Begin
     Begin
       If (modeinfo[i]^.hdisplay >= _width) And (modeinfo[i]^.vdisplay >= _height) Then
       Begin
-        d_x := sqr(modeinfo[i]^.hdisplay - _width);
-        d_y := sqr(modeinfo[i]^.vdisplay - _height);
-        If (d_x + d_y) < min_diff Then
-        Begin
-          min_diff := d_x + d_y;
-          found_mode := i;
-        End;
+        d_x := modeinfo[i]^.hdisplay - _width;
+	d_x *= d_x;
+	d_y := modeinfo[i]^.vdisplay - _height;
+	d_y *= d_y;
+	If (d_x + d_y) < min_diff Then
+	Begin
+	  min_diff := d_x + d_y;
+	  found_mode := i;
+	End;
       End;
     End;
     
@@ -170,7 +172,7 @@ Begin
   XGrabKeyboard(m_disp, root, True, GrabModeAsync, GrabModeAsync, CurrentTime);
   XGrabPointer(m_disp, root, True, PointerMotionMask Or ButtonPressMask Or
                ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None,
-               CurrentTime);
+	       CurrentTime);
   XFlush(m_disp);
   
   { Get Display information }
@@ -320,62 +322,149 @@ Procedure TX11DGADisplay.update(Const _area : TPTCArea);
 Begin
 End;
 
-Procedure TX11DGADisplay.internal_ReadKey(k : TPTCKey);
+Procedure TX11DGADisplay.HandleEvents;
 
 Var
   e : TXEvent;
-  sym : TKeySym;
-  press : Boolean;
-  alt, shift, ctrl : Boolean;
-  uni : Integer;
-  tmpkey : TPTCKey;
+  NewFocus : Boolean;
+  NewFocusSpecified : Boolean;
 
-Begin
-  XMaskEvent(m_disp, KeyPressMask Or KeyReleaseMask, @e); { Blocks and waits }
-  If (e._type <> KeyPress) And (e._type <> KeyRelease) Then
-    Raise TPTCError.Create('XMaskEvent returned event <> KeyPress/KeyRelease');
+  Function UsefulEventsPending : Boolean;
   
-{  XLookupString(@e.xkey, Nil, 0, @sym, Nil);}
-  sym := XLookupKeySym(@e.xkey, 0);
-  uni := X11ConvertKeySymToUnicode(sym);
-  alt := (e.xkey.state And Mod1Mask) <> 0;
-  shift := (e.xkey.state And ShiftMask) <> 0;
-  ctrl := (e.xkey.state And ControlMask) <> 0;
-  If e._type = KeyPress Then
-    press := True
-  Else
-    press := False;
-
-  tmpkey := Nil;
-  Try
-    Case sym Shr 8 Of
-      0 : tmpkey := TPTCKey.Create(m_normalkeys[sym And $FF], uni, alt, shift, ctrl, press);
-      $FF : tmpkey := TPTCKey.Create(m_functionkeys[sym And $FF], uni, alt, shift, ctrl, press);
-      Else
-        tmpkey := TPTCKey.Create;
+  Var
+    tmpEvent : TXEvent;
+  
+  Begin
+    If XCheckTypedEvent(m_disp, ClientMessage, @tmpEvent) Then
+    Begin
+      Result := True;
+      XPutBackEvent(m_disp, @tmpEvent);
+      Exit;
     End;
-    k.ASSign(tmpkey);
-  Finally
-    tmpkey.Free;
+    
+    If XCheckMaskEvent(m_disp, FocusChangeMask Or
+                       KeyPressMask Or KeyReleaseMask Or
+		       ButtonPressMask Or ButtonReleaseMask Or
+		       PointerMotionMask Or ExposureMask, @tmpEvent) Then
+    Begin
+      Result := True;
+      XPutBackEvent(m_disp, @tmpEvent);
+      Exit;
+    End;
+    
+    Result := False;
   End;
-End;
 
-Function TX11DGADisplay.internal_PeekKey(k : TPTCKey) : Boolean;
+  Procedure HandleKeyEvent;
+  
+  Var
+    sym : TKeySym;
+    sym_modded : TKeySym; { modifiers like shift are taken into account here }
+    press : Boolean;
+    alt, shift, ctrl : Boolean;
+    uni : Integer;
+    key : TPTCKeyEvent;
+    buf : Array[1..16] Of Char;
+  
+  Begin
+    sym := XLookupKeySym(@e.xkey, 0);
+    XLookupString(@e.xkey, @buf, SizeOf(buf), @sym_modded, Nil);
+    uni := X11ConvertKeySymToUnicode(sym_modded);
+    alt := (e.xkey.state And Mod1Mask) <> 0;
+    shift := (e.xkey.state And ShiftMask) <> 0;
+    ctrl := (e.xkey.state And ControlMask) <> 0;
+    If e._type = KeyPress Then
+      press := True
+    Else
+      press := False;
 
-Var
-  e : TXEvent;
+    key := Nil;
+    Case sym Shr 8 Of
+      0 : key := TPTCKeyEvent.Create(m_normalkeys[sym And $FF], uni, alt, shift, ctrl, press);
+      $FF : key := TPTCKeyEvent.Create(m_functionkeys[sym And $FF], uni, alt, shift, ctrl, press);
+      Else
+        key := TPTCKeyEvent.Create;
+    End;
+    FEventQueue.AddEvent(key);
+  End;
 
 Begin
-  If XCheckMaskEvent(m_disp, KeyPressMask Or KeyReleaseMask, @e) Then
+  NewFocusSpecified := False;
+  While UsefulEventsPending Do
   Begin
-    XPutBackEvent(m_disp, @e); { Simulate "normal" kbhit behaviour }
-    XPutBackEvent(m_disp, @e); { i.e. leave the buffer intact }
-    internal_ReadKey(k);
-    Result := True;
-  End
-  Else
-    Result := False;
+    XNextEvent(m_disp, @e);
+    Case e._type Of
+      FocusIn : Begin
+        NewFocus := True;
+	NewFocusSpecified := True;
+      End;
+      FocusOut : Begin
+        NewFocus := False;
+	NewFocusSpecified := True;
+      End;
+      ClientMessage : Begin
+{        If (e.xclient.format = 32) And (TAtom(e.xclient.data.l[0]) = m_atom_close) Then
+          Halt(0);}
+      End;
+      Expose : Begin
+        {...}
+      End;
+      KeyPress, KeyRelease : HandleKeyEvent;
+      ButtonPress, ButtonRelease : Begin
+        {...}
+      End;
+      MotionNotify : Begin
+        {...}
+      End;
+    End;
+  End;
+//  HandleChangeFocus(NewFocus);
 End;
+
+Function TX11DGADisplay.NextEvent(Var event : TPTCEvent; wait : Boolean; Const EventMask : TPTCEventMask) : Boolean;
+
+Var
+  tmpEvent : TXEvent;
+
+Begin
+  FreeAndNil(event);
+  Repeat
+    { process all events from the X queue and put them on our FEventQueue }
+    HandleEvents;
+    
+    { try to find an event that matches the EventMask }
+    event := FEventQueue.NextEvent(EventMask);
+    
+    If wait And (event = Nil) Then
+    Begin
+      { if the X event queue is empty, block until an event is received }
+      XPeekEvent(m_disp, @tmpEvent);
+    End;
+  Until (Not Wait) Or (event <> Nil);
+  Result := event <> Nil;
+End;
+
+Function TX11DGADisplay.PeekEvent(wait : Boolean; Const EventMask : TPTCEventMask) : TPTCEvent;
+
+Var
+  tmpEvent : TXEvent;
+
+Begin
+  Repeat
+    { process all events from the X queue and put them on our FEventQueue }
+    HandleEvents;
+    
+    { try to find an event that matches the EventMask }
+    Result := FEventQueue.PeekEvent(EventMask);
+    
+    If wait And (Result = Nil) Then
+    Begin
+      { if the X event queue is empty, block until an event is received }
+      XPeekEvent(m_disp, @tmpEvent);
+    End;
+  Until (Not Wait) Or (Result <> Nil);
+End;
+
 
 Function TX11DGADisplay.lock : Pointer;
 
@@ -392,7 +481,7 @@ End;
 Procedure TX11DGADisplay.palette(Const _palette : TPTCPalette);
 
 Var
-  pal : Pint32;
+  pal : PUint32;
   i : Integer;
 
 Begin
@@ -422,5 +511,18 @@ End;
 Function TX11DGADisplay.getX11Window : TWindow;
 
 Begin
-  getX11Window := DefaultRootWindow(m_disp);
+  Result := DefaultRootWindow(m_disp);
+End;
+
+Function TX11DGADisplay.isFullScreen : Boolean;
+
+Begin
+  { DGA is always fullscreen }
+  Result := True;
+End;
+
+Procedure TX11DGADisplay.SetCursor(visible : Boolean);
+
+Begin
+  {nothing... raise exception if visible=true?}
 End;

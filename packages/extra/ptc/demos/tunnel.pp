@@ -23,11 +23,11 @@ Type
     Constructor Create;
     Destructor Destroy; Override;
     Procedure setup;
-    Procedure draw(buffer : Pint32; t : Single);
+    Procedure draw(buffer : PUint32; t : Single);
     Private
     { tunnel data }
-    tunnel : Pint32;
-    texture : Pchar8;
+    tunnel : PUint32;
+    texture : PUint8;
   End;
 
 Constructor TTunnel.Create;
@@ -37,8 +37,8 @@ Begin
   texture := Nil;
   
   { allocate tables }
-  tunnel := GetMem(320*200*SizeOf(int32));
-  texture := GetMem(256*256*2*SizeOf(char8));
+  tunnel := GetMem(320*200*SizeOf(Uint32));
+  texture := GetMem(256*256*2*SizeOf(Uint8));
 
   { setup }
   setup;
@@ -106,11 +106,11 @@ Begin
   End;
 End;
 
-Procedure TTunnel.draw(buffer : Pint32; t : Single);
+Procedure TTunnel.draw(buffer : PUint32; t : Single);
 
 Var
   x, y : Integer;
-  scroll : int32;
+  scroll : Uint32;
   i : Integer;
 
 Begin
@@ -133,7 +133,7 @@ Var
   surface : TPTCSurface;
   TheTunnel : TTunnel;
   time, delta : Single;
-  buffer : Pint32;
+  buffer : PUint32;
 
 Begin
   format := Nil;

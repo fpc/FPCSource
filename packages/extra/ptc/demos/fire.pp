@@ -15,7 +15,7 @@ Program Fire;
 Uses
   ptc;
 
-Function pack(r, g, b : int32) : int32;
+Function pack(r, g, b : Uint32) : Uint32;
 
 Begin
   { pack color integer }
@@ -25,50 +25,53 @@ End;
 Procedure generate(palette : TPTCPalette);
 
 Var
-  data : Pint32;
+  data : PUint32;
   i, c : Integer;
 
 Begin
   { lock palette data }
   data := palette.lock;
 
-  { black to red }
-  i := 0;
-  c := 0;
-  While i < 64 Do
-  Begin
-    data[i] := pack(c, 0, 0);
-    Inc(c, 4);
-    Inc(i);
-  End;
+  Try
+    { black to red }
+    i := 0;
+    c := 0;
+    While i < 64 Do
+    Begin
+      data[i] := pack(c, 0, 0);
+      Inc(c, 4);
+      Inc(i);
+    End;
 
-  { red to yellow }
-  c := 0;
-  While i < 128 Do
-  Begin
-    data[i] := pack(255, c, 0);
-    Inc(c, 4);
-    Inc(i);
-  End;
+    { red to yellow }
+    c := 0;
+    While i < 128 Do
+    Begin
+      data[i] := pack(255, c, 0);
+      Inc(c, 4);
+      Inc(i);
+    End;
 
-  { yellow to white }
-  c := 0;
-  While i < {192}128 Do
-  Begin
-    data[i] := pack(255, 255, c);
-    Inc(c, 4);
-    Inc(i);
-  End;
+    { yellow to white }
+    c := 0;
+    While i < {192}128 Do
+    Begin
+      data[i] := pack(255, 255, c);
+      Inc(c, 4);
+      Inc(i);
+    End;
 
-  { white }
-  While i < 256 Do
-  Begin
-    data[i] := pack(255, 255, 255);
-    Inc(i);
-  End;
+    { white }
+    While i < 256 Do
+    Begin
+      data[i] := pack(255, 255, 255);
+      Inc(i);
+    End;
 
-  { unlock palette }
-  palette.unlock;
+  Finally
+    { unlock palette }
+    palette.unlock;
+  End;
 End;
 
 Var
@@ -78,11 +81,11 @@ Var
   palette : TPTCPalette;
   state : Integer;
   intensity : Single;
-  pixels, pixel, p : Pchar8;
+  pixels, pixel, p : PUint8;
   width, height : Integer;
   x, y : Integer;
-  top, bottom, c1, c2 : int32;
-  generator : Pchar8;
+  top, bottom, c1, c2 : Uint32;
+  generator : PUint8;
   color : Integer;
   area : TPTCArea;
 

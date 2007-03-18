@@ -6,7 +6,7 @@ Begin
   m_disp := Nil;
   m_colours := Nil;
   m_cmap := 0;
-  m_flags := 0;
+  m_flags := [];
   m_width := 0;
   m_height := 0;
   m_functionkeys := Nil;
@@ -17,6 +17,7 @@ Begin
   m_clip := Nil;
   m_area := Nil;
   m_format := Nil;
+  FEventQueue := Nil;
   
   m_copy := TPTCCopy.Create;
   m_clear := TPTCClear.Create;
@@ -24,6 +25,7 @@ Begin
   m_clip := TPTCArea.Create;
   m_area := TPTCArea.Create;
   m_format := TPTCFormat.Create;
+  FEventQueue := TEventQueue.Create;
   
   setKeyMapping;
 End;
@@ -31,22 +33,15 @@ End;
 Destructor TX11Display.Destroy;
 
 Begin
-//  Writeln('lll1');
   { Just close the display, everything else is done by the subclasses }
-  If (m_disp <> Nil) And ((m_flags And PTC_X11_LEAVE_DISPLAY) = 0) Then
+  If (m_disp <> Nil) And (Not (PTC_X11_LEAVE_DISPLAY In m_flags)) Then
   Begin
-//    Writeln('lalalalala1');
     XFlush(m_disp);
-//    Writeln('lalalalala2');
     XCloseDisplay(m_disp);
-//    Writeln('lalalalala3');
     m_disp := Nil;
-//    Writeln('lalalalala4');
   End;
-//  Writeln('lll2');
   FreeMemAndNil(m_normalkeys);
   FreeMemAndNil(m_functionkeys);
-//  Writeln('lll3');
   
   m_copy.Free;
   m_clear.Free;
@@ -54,6 +49,7 @@ Begin
   m_clip.Free;
   m_area.Free;
   m_format.Free;
+  FEventQueue.Free;
   
   Inherited Destroy;
 End;
@@ -211,7 +207,7 @@ Begin
   format := m_format;
 End;
 
-Procedure TX11Display.flags(_flags : LongInt);
+Procedure TX11Display.flags(_flags : TX11Flags);
 
 Begin
   m_flags := _flags;

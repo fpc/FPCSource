@@ -18,7 +18,13 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-Constructor TPTCKey.Create;
+Function TPTCKeyEvent.GetType : TPTCEventType;
+
+Begin
+  Result := PTCKeyEvent;
+End;
+
+Constructor TPTCKeyEvent.Create;
 
 Begin
   m_code := Integer(PTCKEY_UNDEFINED);
@@ -29,7 +35,7 @@ Begin
   m_press := True;
 End;
 
-Constructor TPTCKey.Create(_code : Integer);
+Constructor TPTCKeyEvent.Create(_code : Integer);
 
 Begin
   m_code := _code;
@@ -40,7 +46,7 @@ Begin
   m_press := True;
 End;
 
-Constructor TPTCKey.Create(_code, _unicode : Integer);
+Constructor TPTCKeyEvent.Create(_code, _unicode : Integer);
 
 Begin
   m_code := _code;
@@ -51,7 +57,7 @@ Begin
   m_press := True;
 End;
 
-Constructor TPTCKey.Create(_code, _unicode : Integer; _press : Boolean);
+Constructor TPTCKeyEvent.Create(_code, _unicode : Integer; _press : Boolean);
 
 Begin
   m_code := _code;
@@ -62,7 +68,7 @@ Begin
   m_press := _press;
 End;
 
-Constructor TPTCKey.Create(_code : Integer; _alt, _shift, _control : Boolean);
+Constructor TPTCKeyEvent.Create(_code : Integer; _alt, _shift, _control : Boolean);
 
 Begin
   m_code := _code;
@@ -73,7 +79,7 @@ Begin
   m_press := True;
 End;
 
-Constructor TPTCKey.Create(_code : Integer; _alt, _shift, _control, _press : Boolean);
+Constructor TPTCKeyEvent.Create(_code : Integer; _alt, _shift, _control, _press : Boolean);
 
 Begin
   m_code := _code;
@@ -84,7 +90,7 @@ Begin
   m_press := _press;
 End;
 
-Constructor TPTCKey.Create(_code, _unicode : Integer; _alt, _shift, _control : Boolean);
+Constructor TPTCKeyEvent.Create(_code, _unicode : Integer; _alt, _shift, _control : Boolean);
 
 Begin
   m_code := _code;
@@ -95,7 +101,7 @@ Begin
   m_press := True;
 End;
 
-Constructor TPTCKey.Create(_code, _unicode : Integer;
+Constructor TPTCKeyEvent.Create(_code, _unicode : Integer;
                            _alt, _shift, _control, _press : Boolean);
 
 Begin
@@ -107,19 +113,19 @@ Begin
   m_press := _press;
 End;
 
-Constructor TPTCKey.Create(Const key : TPTCKey);
+Constructor TPTCKeyEvent.Create(Const key : TPTCKeyEvent);
 
 Begin
   ASSign(key);
 End;
 
-Destructor TPTCKey.Destroy;
+Destructor TPTCKeyEvent.Destroy;
 
 Begin
   Inherited Destroy;
 End;
 
-Procedure TPTCKey.Assign(Const key : TPTCKey);
+Procedure TPTCKeyEvent.Assign(Const key : TPTCKeyEvent);
 
 Begin
   If Self = key Then
@@ -133,7 +139,7 @@ Begin
   m_press := key.press;
 End;
 
-Function TPTCKey.Equals(Const key : TPTCKey) : Boolean;
+Function TPTCKeyEvent.Equals(Const key : TPTCKeyEvent) : Boolean;
 
 Begin
   Equals := (m_code = key.m_code) And (m_unicode = key.m_unicode) And
@@ -141,7 +147,7 @@ Begin
             (m_control = key.m_control) And (m_press = key.m_press);
 End;
 
-Function TPTCKey.GetRelease : Boolean;
+Function TPTCKeyEvent.GetRelease : Boolean;
 
 Begin
   GetRelease := Not m_press;

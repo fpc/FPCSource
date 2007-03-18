@@ -34,16 +34,16 @@ Begin
   For I := Low(m_modes) To High(m_modes) Do
     m_modes[I] := TPTCMode.Create;
   {$IFDEF UNIX}
-  configure('/usr/share/ptc/ptc.conf');
+  configure('/usr/share/ptcpas/ptcpas.conf');
   s := fpgetenv('HOME');
   If s = '' Then
     s := '/';
   If s[Length(s)] <> '/' Then
     s := s + '/';
-  s := s + '.ptc.conf';
+  s := s + '.ptcpas.conf';
   configure(s);
   {$ELSE UNIX}
-  configure('ptc.cfg');
+  configure('ptcpas.cfg');
   {$ENDIF UNIX}
 End;
 
@@ -447,20 +447,6 @@ Begin
   console.update(_area);
 End;
 
-Procedure TPTCConsole.internal_ReadKey(k : TPTCKey);
-
-Begin
-  check;
-  console.internal_ReadKey(k);
-End;
-
-Function TPTCConsole.internal_PeekKey(k : TPTCKey) : Boolean;
-
-Begin
-  check;
-  Result := console.internal_PeekKey(k);
-End;
-
 Procedure TPTCConsole.copy(Var surface : TPTCBaseSurface);
 
 Begin
@@ -658,6 +644,20 @@ Begin
   information := console.information;
 End;
 
+Function TPTCConsole.NextEvent(Var event : TPTCEvent; wait : Boolean; Const EventMask : TPTCEventMask) : Boolean;
+
+Begin
+  check;
+  Result := console.NextEvent(event, wait, EventMask);
+End;
+
+Function TPTCConsole.PeekEvent(wait : Boolean; Const EventMask : TPTCEventMask) : TPTCEvent;
+
+Begin
+  check;
+  Result := console.PeekEvent(wait, EventMask);
+End;
+
 Function TPTCConsole.ConsoleCreate(index : Integer) : TPTCBaseConsole;
 
 Begin
@@ -718,36 +718,8 @@ End;
 Procedure TPTCConsole.check;
 
 Begin
-  {$IFDEF DEBUG}
+  { $IFDEF DEBUG}
   If console = Nil Then
     Raise TPTCError.Create('console is not open (core)');
-  {$ENDIF DEBUG}
+  { $ENDIF DEBUG}
 End;
-
-{$WARNING this should be removed for fpc 1.1}
-{pages=0}
-Procedure TPTCConsole.open(Const _title : String);
-
-Begin
-  open(_title, 0);
-End;
-
-Procedure TPTCConsole.open(Const _title : String; Const _format : TPTCFormat);
-
-Begin
-  open(_title, _format, 0);
-End;
-
-Procedure TPTCConsole.open(Const _title : String; _width, _height : Integer;
-                           Const _format : TPTCFormat);
-
-Begin
-  open(_title, _width, _height, _format, 0);
-End;
-
-Procedure TPTCConsole.open(Const _title : String; Const _mode : TPTCMode);
-
-Begin
-  open(_title, _mode, 0);
-End;
-{/pages=0}

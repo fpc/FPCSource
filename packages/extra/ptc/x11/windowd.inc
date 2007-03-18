@@ -1,9 +1,14 @@
 Type
   TX11WindowDisplay = Class(TX11Display)
   Private
-    Procedure internal_ReadKey(k : TPTCKey); Override;
-    Function internal_PeekKey(k : TPTCKey) : Boolean; Override;
+    Function NextEvent(Var event : TPTCEvent; wait : Boolean; Const EventMask : TPTCEventMask) : Boolean; Override;
+    Function PeekEvent(wait : Boolean; Const EventMask : TPTCEventMask) : TPTCEvent; Override;
     
+    Procedure EnterFullScreen;
+    Procedure LeaveFullScreen;
+    Procedure internal_ShowCursor(visible : Boolean);
+    Procedure HandleChangeFocus(NewFocus : Boolean);
+    Procedure HandleEvents;
     Function createImage(disp : PDisplay; screen, _width, _height : Integer;
                          _format : TPTCFormat) : TX11Image; { Factory method }
     Procedure createColormap; { Register colour maps }
@@ -15,7 +20,18 @@ Type
     m_gc : TGC;
     m_atom_close : TAtom; { X Atom for close window button }
     m_keypressed : Boolean; { Key pressed since the last call to key() ? }
-{    m_keylast : TPTCKey;} { Last key pressed (scancode) }
+{    m_keylast : TPTCKeyEvent;} { Last key pressed (scancode) }
+    FCursorVisible : Boolean;
+    FX11InvisibleCursor : TCursor; { Blank cursor }
+    FFullScreen : Boolean; { Keeps a snapshot of the PTC_X11_FULLSCREEN option
+                             taken at the time 'open' was called }
+    FFocus : Boolean;
+    FModeSwitcher : TX11Modes;
+    
+    FPreviousMouseButtonState : TPTCMouseButtonState;
+    FPreviousMouseX, FPreviousMouseY : Integer; { for calculating the deltas }
+    FPreviousMousePositionSaved : Boolean; { true, if FPreviousMouseX,
+           FPreviousMouseY and FPreviousMouseButtonState contain valid values }
   Public
     Constructor Create;
     Destructor Destroy; Override;
@@ -32,4 +48,6 @@ Type
     Function pitch : Integer; Override;
     Function getX11Window : TWindow; Override;
     Function getX11GC : TGC; Virtual;
+    Function isFullScreen : Boolean; Override;
+    Procedure SetCursor(visible : Boolean); Override;
   End;

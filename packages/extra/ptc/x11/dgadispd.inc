@@ -1,8 +1,10 @@
 Type
   TX11DGADisplay = Class(TX11Display)
   Private
-    Procedure internal_ReadKey(k : TPTCKey); Override;
-    Function internal_PeekKey(k : TPTCKey) : Boolean; Override;
+    Function NextEvent(Var event : TPTCEvent; wait : Boolean; Const EventMask : TPTCEventMask) : Boolean; Override;
+    Function PeekEvent(wait : Boolean; Const EventMask : TPTCEventMask) : TPTCEvent; Override;
+    
+    Procedure HandleEvents;
     
     modeinfo : PPXF86VidModeModeInfo;
     num_modeinfo : Integer;
@@ -33,4 +35,6 @@ Type
     Procedure palette(Const _palette : TPTCPalette); Override;
     Function pitch : Integer; Override;
     Function getX11Window : TWindow; Override;
+    Function isFullScreen : Boolean; Override;
+    Procedure SetCursor(visible : Boolean); Override;
   End;

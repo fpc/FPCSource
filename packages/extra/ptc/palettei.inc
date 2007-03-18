@@ -21,7 +21,7 @@
 Constructor TPTCPalette.Create;
 
 Var
-  zero : Array[0..255] Of int32;
+  zero : Array[0..255] Of Uint32;
 
 Begin
   m_locked := False;
@@ -34,7 +34,7 @@ Begin
   load(zero);
 End;
 
-Constructor TPTCPalette.Create(Const _data : Array Of int32);
+Constructor TPTCPalette.Create(Const _data : Array Of Uint32);
 
 Begin
   m_locked := False;
@@ -82,7 +82,7 @@ Begin
   Equals := CompareDWord(Hermes_PaletteGet(m_handle)^, Hermes_PaletteGet(palette.m_handle)^, 1024 Div 4) = 0;
 End;
 
-Function TPTCPalette.lock : Pint32;
+Function TPTCPalette.lock : PUint32;
 
 Begin
   If m_locked Then
@@ -99,7 +99,7 @@ Begin
   m_locked := False;
 End;
 
-Procedure TPTCPalette.load(Const _data : Array Of int32);
+Procedure TPTCPalette.load(Const _data : Array Of Uint32);
 
 Begin
   Hermes_PaletteSet(m_handle, @_data);
@@ -111,7 +111,7 @@ Begin
   Hermes_PaletteSet(m_handle, _data);
 End;
 
-Procedure TPTCPalette.save(Var _data : Array Of int32);
+Procedure TPTCPalette.save(Var _data : Array Of Uint32);
 
 Begin
   Move(Hermes_PaletteGet(m_handle)^, _data, 1024);
@@ -123,7 +123,7 @@ Begin
   Move(Hermes_PaletteGet(m_handle)^, _data^, 1024);
 End;
 
-Function TPTCPalette.data : Pint32;
+Function TPTCPalette.data : PUint32;
 
 Begin
   data := Hermes_PaletteGet(m_handle);

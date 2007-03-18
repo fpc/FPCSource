@@ -1,21 +1,12 @@
-Const
-  PTC_X11_NODGA = 1;
-  PTC_X11_LEAVE_DISPLAY = 2;
-  PTC_X11_LEAVE_WINDOW = 4;
-  PTC_X11_PEDANTIC_DGA = 8;
-  PTC_X11_DITHER = 16;
-
 Type
   TX11Console = Class(TPTCBaseConsole)
   Private
     Procedure setTitle(_title : String);
+    Procedure UpdateCursor;
     x11disp : TX11Display;
     m_title : String;
-    m_flags : LongInt;
+    m_flags : TX11Flags;
     m_modes : Array[0..255] Of TPTCMode;
-  Protected
-    Procedure internal_ReadKey(k : TPTCKey); Override;
-    Function internal_PeekKey(k : TPTCKey) : Boolean; Override;
   Public
     Constructor Create;
     Destructor Destroy; Override;
@@ -74,4 +65,6 @@ Type
     Function name : String; Override;
     Function title : String; Override;
     Function information : String; Override;
+    Function NextEvent(Var event : TPTCEvent; wait : Boolean; Const EventMask : TPTCEventMask) : Boolean; Override;
+    Function PeekEvent(wait : Boolean; Const EventMask : TPTCEventMask) : TPTCEvent; Override;
   End;

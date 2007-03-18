@@ -1,8 +1,19 @@
 Type
+  TX11FlagsEnum = (PTC_X11_FULLSCREEN,
+                   PTC_X11_LEAVE_DISPLAY,
+                   PTC_X11_LEAVE_WINDOW,
+		   PTC_X11_TRY_DGA,
+                   PTC_X11_PEDANTIC_DGA,
+                   PTC_X11_DITHER,
+                   PTC_X11_FULLSCREEN_CURSOR_VISIBLE,
+                   PTC_X11_WINDOWED_CURSOR_INVISIBLE);
+  TX11Flags = Set Of TX11FlagsEnum;
+
+Type
   TX11Display = Class(TObject)
   Protected
-    Procedure internal_ReadKey(k : TPTCKey); Virtual; Abstract;
-    Function internal_PeekKey(k : TPTCKey) : Boolean; Virtual; Abstract;
+    Function NextEvent(Var event : TPTCEvent; wait : Boolean; Const EventMask : TPTCEventMask) : Boolean; Virtual; Abstract;
+    Function PeekEvent(wait : Boolean; Const EventMask : TPTCEventMask) : TPTCEvent; Virtual; Abstract;
     
     Function getFormat(Const _format : TPTCFormat) : TPTCFormat;
     
@@ -17,7 +28,9 @@ Type
     m_area : TPTCArea;
     m_clip : TPTCArea;
     
-    m_flags : LongInt;
+    FEventQueue : TEventQueue;
+    
+    m_flags : TX11Flags;
     m_width, m_height : DWord;
     m_format : TPTCFormat;
     
@@ -77,6 +90,9 @@ Type
     { console clip area }
     Procedure clip(Const _area : TPTCArea);
     
+    { cursor control }
+    Procedure SetCursor(visible : Boolean); Virtual; Abstract;
+    
     { Data access }
     Function width : Integer;
     Function height : Integer;
@@ -85,8 +101,10 @@ Type
     Function area : TPTCArea;
     Function format : TPTCFormat;
     
+    Function isFullScreen : Boolean; Virtual; Abstract;
+    
     { Set flags (only used internally now!) }
-    Procedure flags(_flags : LongInt);
+    Procedure flags(_flags : TX11Flags);
     
     { X11 helper functions for your enjoyment }
     

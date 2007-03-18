@@ -25,16 +25,16 @@ Type
     m_handle : THermesHandle;
   Public
     Constructor Create;
-    Constructor Create(Const _data : Array Of int32);
+    Constructor Create(Const _data : Array Of Uint32);
     Constructor Create(Const palette : TPTCPalette);
     Destructor Destroy; Override;
     Procedure Assign(Const palette : TPTCPalette);
     Function Equals(Const palette : TPTCPalette) : Boolean;
-    Function lock : Pint32;
+    Function lock : PUint32;
     Procedure unlock;
-    Procedure load(Const _data : Array Of int32);
+    Procedure load(Const _data : Array Of Uint32);
     Procedure load(_data : Pointer);
-    Procedure save(Var _data : Array Of int32);
+    Procedure save(Var _data : Array Of Uint32);
     Procedure save(_data : Pointer);
-    Function data : Pint32;
+    Function data : PUint32;
   End;

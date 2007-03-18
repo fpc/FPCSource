@@ -27,8 +27,8 @@ Const
   FOV : Integer = 256; { half of the xy field of view (This is based on the 0-2048 convention) }
 
 Var
-  HMap : Array[0..256*256 - 1] Of char8; { Height field }
-  CMap : Array[0..256*256 - 1] Of char8; { Color map }
+  HMap : Array[0..256*256 - 1] Of Uint8; { Height field }
+  CMap : Array[0..256*256 - 1] Of Uint8; { Color map }
 
   lasty, { Last pixel drawn on a given column }
   lastc : Array[0..SCREENWIDTH - 1] Of Integer; { Color of last pixel on a column }
@@ -144,12 +144,12 @@ End;
  for the distance. x0,y0,x1,y1 are 16.16 fixed point numbers and the
  scaling factor is a 16.8 fixed point value.
 }
-Procedure Line(x0, y0, x1, y1, hy, s : Integer; surface_buffer : Pint32; fadeout : Integer);
+Procedure Line(x0, y0, x1, y1, hy, s : Integer; surface_buffer : PUint32; fadeout : Integer);
 
 Var
   sx, sy, i, a, b, u0, u1, v0, v1, h0, h1, h2, h3, h, c, y : Integer;
   coord_x, coord_y, sc, cc, currentColor : Integer;
-  pixel : Pint32;
+  pixel : PUint32;
 
 Begin
   { Compute xy speed }
@@ -232,7 +232,7 @@ Begin
 End;
 
 { Draw the view from the point x0,y0 (16.16) looking at angle a }
-Procedure View(x0, y0, angle, height : Integer; surface_buffer : Pint32);
+Procedure View(x0, y0, angle, height : Integer; surface_buffer : PUint32);
 
 Var
   d, u0, a, v0, u1, v1, h0, h1, h2, h3 : Integer;
@@ -283,8 +283,8 @@ Var
   console : TPTCConsole;
   surface : TPTCSurface;
   timer : TPTCTimer;
-  key : TPTCKey;
-  pixels : Pint32;
+  key : TPTCKeyEvent;
+  pixels : PUint32;
   Done : Boolean;
 
   x0, y0 : Integer;
@@ -301,7 +301,7 @@ Begin
   key := Nil;
   Try
     Try
-      key := TPTCKey.Create;
+      key := TPTCKeyEvent.Create;
       format := TPTCFormat.Create(32, $00FF0000, $0000FF00, $000000FF);
       console := TPTCConsole.Create;
       console.open('Land demo', SCREENWIDTH, SCREENHEIGHT, format);

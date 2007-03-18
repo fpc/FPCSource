@@ -27,31 +27,19 @@ Type
     console : TPTCBaseConsole;
     m_modes : Array[0..1023] Of TPTCMode;
     hacky_option_console_flag : Boolean;
-  Protected
-    Procedure internal_ReadKey(k : TPTCKey); Override;
-    Function internal_PeekKey(k : TPTCKey) : Boolean; Override;
   Public
     Constructor Create;
     Destructor Destroy; Override;
     Procedure configure(Const _file : String); Override;
     Function option(Const _option : String) : Boolean; Override;
     Function modes : PPTCMode; Override;
-    Procedure open(Const _title : String; _pages : Integer); Overload; Override;
+    Procedure open(Const _title : String; _pages : Integer = 0); Overload; Override;
     Procedure open(Const _title : String; Const _format : TPTCFormat;
-                   _pages : Integer); Overload; Override;
+                   _pages : Integer = 0); Overload; Override;
     Procedure open(Const _title : String; _width, _height : Integer;
-                   Const _format : TPTCFormat; _pages : Integer); Overload; Override;
+                   Const _format : TPTCFormat; _pages : Integer = 0); Overload; Override;
     Procedure open(Const _title : String; Const _mode : TPTCMode;
-                   _pages : Integer); Overload; Override;
-
-    {$WARNING this should be removed for fpc 1.1}
-    {pages=0}
-    Procedure open(Const _title : String); Overload; Override;
-    Procedure open(Const _title : String; Const _format : TPTCFormat); Overload; Override;
-    Procedure open(Const _title : String; _width, _height : Integer;
-                   Const _format : TPTCFormat); Overload; Override;
-    Procedure open(Const _title : String; Const _mode : TPTCMode); Overload; Override;
-    {/pages=0}
+                   _pages : Integer = 0); Overload; Override;
 
     Procedure close; Override;
     Procedure flush; Override;
@@ -98,4 +86,6 @@ Type
     Function name : String; Override;
     Function title : String; Override;
     Function information : String; Override;
+    Function NextEvent(Var event : TPTCEvent; wait : Boolean; Const EventMask : TPTCEventMask) : Boolean; Override;
+    Function PeekEvent(wait : Boolean; Const EventMask : TPTCEventMask) : TPTCEvent; Override;
   End;

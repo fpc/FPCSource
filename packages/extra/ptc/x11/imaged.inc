@@ -15,7 +15,7 @@ Type
   End;
   TX11NormalImage = Class(TX11Image)
   Private
-    m_pixels : Pchar8;
+    m_pixels : PUint8;
   Public
     Constructor Create(display : PDisplay; screen, width, height : Integer; format : TPTCFormat);
     Destructor Destroy; Override;
