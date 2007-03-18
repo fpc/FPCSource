@@ -68,7 +68,7 @@ Type
   Sint32 = LongInt;
   Sint64 = Int64;
 
-{$INCLUDE core/coreinterface.inc}
+{$INCLUDE coreinterface.inc}
 
 {$IFNDEF FPDOC}
 
@@ -169,13 +169,13 @@ Begin
   System.Str(Value, Result);
 End;
 
-{$INCLUDE core/log.inc}
+{$INCLUDE log.inc}
 
 {$IFDEF WIN32}
 {$INCLUDE win32/base/cursor.inc}
 {$ENDIF WIN32}
 
-{$INCLUDE core/coreimplementation.inc}
+{$INCLUDE coreimplementation.inc}
 
 {$IFDEF GO32V2}
 {$INCLUDE dos/includes.inc}
@@ -221,7 +221,7 @@ End;
 {$INCLUDE x11/includes.inc}
 {$ENDIF UNIX}
 
-{$INCLUDE core/consolei.inc}
+{$INCLUDE consolei.inc}
 
 {$IFDEF ENABLE_C_API}
 {$INCLUDE c_api/except.pp}
