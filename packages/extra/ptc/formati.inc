@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -22,72 +22,54 @@ Constructor TPTCFormat.Create;
 
 Begin
   { defaults }
-  Fformat.r := 0;
-  Fformat.g := 0;
-  Fformat.b := 0;
-  Fformat.a := 0;
-  Fformat.bits := 0;
-  Fformat.indexed := False;
+  FFormat.r := 0;
+  FFormat.g := 0;
+  FFormat.b := 0;
+  FFormat.a := 0;
+  FFormat.bits := 0;
+  FFormat.indexed := False;
 
   { initialize hermes }
   If Not Hermes_Init Then
     Raise TPTCError.Create('could not initialize hermes');
 End;
 
-Constructor TPTCFormat.Create(_bits : Integer);
+Constructor TPTCFormat.Create(ABits : Integer);
 
 Begin
   { check bits per pixel }
-  If _bits <> 8 Then
+  If ABits <> 8 Then
     Raise TPTCError.Create('unsupported bits per pixel');
 
   { indexed color }
-  Fformat.r := 0;
-  Fformat.g := 0;
-  Fformat.b := 0;
-  Fformat.a := 0;
-  Fformat.bits := _bits;
-  Fformat.indexed := True;
+  FFormat.r := 0;
+  FFormat.g := 0;
+  FFormat.b := 0;
+  FFormat.a := 0;
+  FFormat.bits := ABits;
+  FFormat.indexed := True;
 
   { initialize hermes }
   If Not Hermes_Init Then
     Raise TPTCError.Create('could not initialize hermes');
 End;
 
-Constructor TPTCFormat.Create(_bits : Integer; _r, _g, _b, _a : int32);
+Constructor TPTCFormat.Create(ABits : Integer;
+                              ARedMask, AGreenMask, ABlueMask : Uint32;
+                              AAlphaMask : Uint32 = 0);
 
 Begin
   { check bits per pixel }
-  If ((_bits And 7) <> 0) Or (_bits <= 0) Or (_bits > 32) Then
+  If ((ABits And 7) <> 0) Or (ABits <= 0) Or (ABits > 32) Then
     Raise TPTCError.Create('unsupported bits per pixel');
 
   { direct color }
-  Fformat.r := _r;
-  Fformat.g := _g;
-  Fformat.b := _b;
-  Fformat.a := _a;
-  Fformat.bits := _bits;
-  Fformat.indexed := False;
-
-  { initialize hermes }
-  If Not Hermes_Init Then
-    Raise TPTCError.Create('could not initialize hermes');
-End;
-
-Constructor TPTCFormat.Create(_bits : Integer; _r, _g, _b : int32);
-
-Begin
-  { check bits per pixel }
-  If ((_bits And 7) <> 0) Or (_bits <= 0) Or (_bits > 32) Then
-    Raise TPTCError.Create('unsupported bits per pixel');
-
-  { direct color }
-  Fformat.r := _r;
-  Fformat.g := _g;
-  Fformat.b := _b;
-  Fformat.a := 0;
-  Fformat.bits := _bits;
-  Fformat.indexed := False;
+  FFormat.r := ARedMask;
+  FFormat.g := AGreenMask;
+  FFormat.b := ABlueMask;
+  FFormat.a := AAlphaMask;
+  FFormat.bits := ABits;
+  FFormat.indexed := False;
 
   { initialize hermes }
   If Not Hermes_Init Then
@@ -101,9 +83,10 @@ Begin
   If Not Hermes_Init Then
     Raise TPTCError.Create('could not initialize hermes');
 
-  Hermes_FormatCopy(@format.Fformat, @Fformat)
+  Hermes_FormatCopy(@format.FFormat, @FFormat)
 End;
 
+{$INFO TODO: check what happens if Hermes_Init blows up in the constructor...}
 Destructor TPTCFormat.Destroy;
 
 Begin
@@ -115,24 +98,24 @@ Procedure TPTCFormat.Assign(Const format : TPTCFormat);
 
 Begin
   If Self = format Then
-    Raise TPTCError.Create('self assignment is not allowed');
-  Hermes_FormatCopy(@format.Fformat, @Fformat)
+    Exit;
+  Hermes_FormatCopy(@format.Fformat, @Fformat);
 End;
 
 Function TPTCFormat.Equals(Const format : TPTCFormat) : Boolean;
 
 Begin
-  Equals := Hermes_FormatEquals(@format.Fformat, @Fformat);
+  Result := Hermes_FormatEquals(@format.FFormat, @FFormat);
 End;
 
-Function TPTCFormat.direct : Boolean;
+Function TPTCFormat.GetDirect : Boolean;
 
 Begin
-  direct := Not Fformat.indexed;
+  Result := Not FFormat.indexed;
 End;
 
-Function TPTCFormat.bytes : Integer;
+Function TPTCFormat.GetBytes : Integer;
 
 Begin
-  bytes := Fformat.bits Shr 3;
+  Result := FFormat.bits Shr 3;
 End;

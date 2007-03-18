@@ -47,7 +47,7 @@ Constructor TPTCTimer.Create(Const timer : TPTCTimer);
 
 Begin
   internal_init_timer;
-  ASSign(timer);
+  Assign(timer);
 End;
 
 Destructor TPTCTimer.Destroy;
@@ -74,8 +74,8 @@ Function TPTCTimer.Equals(Const timer : TPTCTimer) : Boolean;
 
 Begin
   Equals := (m_old = timer.m_old) And (m_time = timer.m_time) And
-	    (m_start = timer.m_start) And (m_current = timer.m_current) And
-	    (m_running = timer.m_running);
+            (m_start = timer.m_start) And (m_current = timer.m_current) And
+            (m_running = timer.m_running);
 End;
 
 Procedure TPTCTimer.settime(_time : Double);
@@ -144,14 +144,17 @@ Function TPTCTimer.resolution : Double;
 
 Begin
   {$IFDEF GO32V2}
-  resolution := TimerResolution;
+  Result := TimerResolution;
   {$ENDIF GO32V2}
-  {$IFDEF WIN32}
-  resolution := 1 / m_frequency;
-{  resolution := 1 / 1000;}
-  {$ENDIF WIN32}
+  {$IFDEF Win32}
+  Result := 1 / m_frequency;
+{  Result := 1 / 1000;}
+  {$ENDIF Win32}
+  {$IFDEF WinCE}
+  Result := 1 / 1000;
+  {$ENDIF WinCE}
   {$IFDEF UNIX}
-  resolution := 1 / 1000000;
+  Result := 1 / 1000000;
   {$ENDIF UNIX}
 End;
 
@@ -177,7 +180,7 @@ Begin
 End;
 {$ENDIF GO32V2}
 
-{$IFDEF WIN32}
+{$IFDEF Win32}
 Function TPTCTimer.clock : Double;
 
 Var
@@ -188,7 +191,15 @@ Begin
   clock := _time / m_frequency;
 {  clock := timeGetTime / 1000;}
 End;
-{$ENDIF WIN32}
+{$ENDIF Win32}
+
+{$IFDEF WinCE}
+Function TPTCTimer.clock : Double;
+
+Begin
+  Result := GetTickCount / 1000;
+End;
+{$ENDIF WinCE}
 
 {$IFDEF UNIX}
 Function TPTCTimer.clock : Double;

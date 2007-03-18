@@ -18,6 +18,47 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
+Const
+ {$IFDEF GO32V2}
+  ConsoleTypesNumber = 4;
+ {$ENDIF GO32V2}
+ {$IFDEF Win32}
+  ConsoleTypesNumber = 2;
+ {$ENDIF Win32}
+ {$IFDEF WinCE}
+  ConsoleTypesNumber = 2;
+ {$ENDIF WinCE}
+ {$IFDEF UNIX}
+  ConsoleTypesNumber = 1;
+ {$ENDIF UNIX}
+  ConsoleTypes : Array[0..ConsoleTypesNumber - 1] Of
+    Record
+      ConsoleClass : Class Of TPTCBaseConsole;
+      Names : Array[1..2] Of String;
+    End =
+  (
+  {$IFDEF GO32V2}
+   (ConsoleClass : TVESAConsole;      Names : ('VESA', '')),
+   (ConsoleClass : TVGAConsole;       Names : ('VGA', 'Fakemode')),
+   (ConsoleClass : TCGAConsole;       Names : ('CGA', '')),
+   (ConsoleClass : TTEXTFX2Console;   Names : ('TEXTFX2', 'Text'))
+  {$ENDIF GO32V2}
+
+  {$IFDEF Win32}
+   (ConsoleClass : TDirectXConsole;   Names : ('DirectX', '')),
+   (ConsoleClass : TGDIConsole;       Names : ('GDI', ''))
+  {$ENDIF Win32}
+
+  {$IFDEF WinCE}
+   (ConsoleClass : TWinCEGAPIConsole; Names : ('GAPI', '')),
+   (ConsoleClass : TWinCEGDIConsole;  Names : ('GDI', ''))
+  {$ENDIF WinCE}
+
+  {$IFDEF UNIX}
+   (ConsoleClass : TX11Console;       Names : ('X11', ''))
+  {$ENDIF UNIX}
+  );
+
 Constructor TPTCConsole.Create;
 
 Var
@@ -33,18 +74,29 @@ Begin
   FillChar(m_modes, SizeOf(m_modes), 0);
   For I := Low(m_modes) To High(m_modes) Do
     m_modes[I] := TPTCMode.Create;
+
   {$IFDEF UNIX}
-  configure('/usr/share/ptcpas/ptcpas.conf');
-  s := fpgetenv('HOME');
-  If s = '' Then
-    s := '/';
-  If s[Length(s)] <> '/' Then
-    s := s + '/';
-  s := s + '.ptcpas.conf';
-  configure(s);
-  {$ELSE UNIX}
-  configure('ptcpas.cfg');
+    configure('/usr/share/ptcpas/ptcpas.conf');
+    s := fpgetenv('HOME');
+    If s = '' Then
+      s := '/';
+    If s[Length(s)] <> '/' Then
+      s := s + '/';
+    s := s + '.ptcpas.conf';
+    configure(s);
   {$ENDIF UNIX}
+
+  {$IFDEF Win32}
+    configure('ptcpas.cfg');
+  {$ENDIF Win32}
+
+  {$IFDEF GO32V2}
+    configure('ptcpas.cfg');
+  {$ENDIF GO32V2}
+
+  {$IFDEF WinCE}
+  {todo: configure WinCE}
+  {$ENDIF WinCE}
 End;
 
 Destructor TPTCConsole.Destroy;
@@ -67,7 +119,7 @@ Var
   S : String;
 
 Begin
-  ASSignFile(F, _file);
+  AssignFile(F, _file);
   {$I-}
   Reset(F);
   {$I+}
@@ -88,7 +140,6 @@ End;
 Function TPTCConsole.option(Const _option : String) : Boolean;
 
 Begin
-{$IFDEF PTC_LOGGING}
   If _option = 'enable logging' Then
   Begin
     LOG_enabled := True;
@@ -101,7 +152,6 @@ Begin
     option := True;
     Exit;
   End;
-{$ENDIF PTC_LOGGING}
 
   If Assigned(console) Then
     option := console.option(_option)
@@ -152,7 +202,7 @@ Begin
         local := 0;
         While _modes[local].valid Do
         Begin
-          m_modes[mode].ASSign(_modes[local]);
+          m_modes[mode].Assign(_modes[local]);
           Inc(local);
           Inc(mode);
         End;
@@ -164,7 +214,7 @@ Begin
     { todo: strip duplicate modes from list? }
     tmp := TPTCMode.Create;
     Try
-      m_modes[mode].ASSign(tmp);
+      m_modes[mode].Assign(tmp);
     Finally
       tmp.Free;
     End;
@@ -213,7 +263,7 @@ Begin
         On error : TPTCError Do Begin
           tmp := TPTCError.Create(error.message, composite);
           Try
-            composite.ASSign(tmp);
+            composite.Assign(tmp);
           Finally
             tmp.Free;
           End;
@@ -273,7 +323,7 @@ Begin
         On error : TPTCError Do Begin
           tmp := TPTCError.Create(error.message, composite);
           Try
-            composite.ASSign(tmp);
+            composite.Assign(tmp);
           Finally
             tmp.Free;
           End;
@@ -333,7 +383,7 @@ Begin
         On error : TPTCError Do Begin
           tmp := TPTCError.Create(error.message, composite);
           Try
-            composite.ASSign(tmp);
+            composite.Assign(tmp);
           Finally
             tmp.Free;
           End;
@@ -393,7 +443,7 @@ Begin
         On error : TPTCError Do Begin
           tmp := TPTCError.Create(error.message, composite);
           Try
-            composite.ASSign(tmp);
+            composite.Assign(tmp);
           Finally
             tmp.Free;
           End;
@@ -549,99 +599,99 @@ Begin
   console.palette(_palette);
 End;
 
-Function TPTCConsole.palette : TPTCPalette;
+Function TPTCConsole.Palette : TPTCPalette;
 
 Begin
   check;
-  palette := console.palette;
+  Result := console.Palette;
 End;
 
-Procedure TPTCConsole.clip(Const _area : TPTCArea);
+Procedure TPTCConsole.Clip(Const _area : TPTCArea);
 
 Begin
   check;
   console.clip(_area);
 End;
 
-Function TPTCConsole.width : Integer;
+Function TPTCConsole.GetWidth : Integer;
 
 Begin
   check;
-  width := console.width;
+  Result := console.GetWidth;
 End;
 
-Function TPTCConsole.height : Integer;
+Function TPTCConsole.GetHeight : Integer;
 
 Begin
   check;
-  height := console.height;
+  Result := console.GetHeight;
 End;
 
-Function TPTCConsole.pitch : Integer;
+Function TPTCConsole.GetPitch : Integer;
 
 Begin
   check;
-  pitch := console.pitch;
+  Result := console.GetPitch;
 End;
 
-Function TPTCConsole.pages : Integer;
+Function TPTCConsole.GetPages : Integer;
 
 Begin
   check;
-  pages := console.pages;
+  Result := console.GetPages;
 End;
 
-Function TPTCConsole.area : TPTCArea;
+Function TPTCConsole.GetArea : TPTCArea;
 
 Begin
   check;
-  area := console.area;
+  Result := console.GetArea;
 End;
 
-Function TPTCConsole.clip : TPTCArea;
+Function TPTCConsole.Clip : TPTCArea;
 
 Begin
   check;
-  clip := console.clip;
+  Result := console.Clip;
 End;
 
-Function TPTCConsole.format : TPTCFormat;
+Function TPTCConsole.GetFormat : TPTCFormat;
 
 Begin
   check;
-  format := console.format;
+  Result := console.GetFormat;
 End;
 
-Function TPTCConsole.name : String;
+Function TPTCConsole.GetName : String;
 
 Begin
-  name := '';
+  Result := '';
   If Assigned(console) Then
-    name := console.name
+    Result := console.GetName
   Else
 {$IFDEF GO32V2}
-    name := 'DOS';
+    Result := 'DOS';
 {$ENDIF GO32V2}
 {$IFDEF WIN32}
-    name := 'Win32';
+    Result := 'Win32';
 {$ENDIF WIN32}
 {$IFDEF LINUX}
-    name := 'Linux';
+    Result := 'Linux';
 {$ENDIF LINUX}
 End;
 
-Function TPTCConsole.title : String;
+Function TPTCConsole.GetTitle : String;
 
 Begin
   check;
-  title := console.title;
+  Result := console.GetTitle;
 End;
 
-Function TPTCConsole.information : String;
+Function TPTCConsole.GetInformation : String;
 
 Begin
   check;
-  information := console.information;
+  Result := console.GetInformation;
 End;
 
 Function TPTCConsole.NextEvent(Var event : TPTCEvent; wait : Boolean; Const EventMask : TPTCEventMask) : Boolean;
@@ -661,58 +711,37 @@ End;
 Function TPTCConsole.ConsoleCreate(index : Integer) : TPTCBaseConsole;
 
 Begin
-  {$IFDEF GO32V2}
-  Case index Of
-    0 : ConsoleCreate := VESAConsole.Create;
-    1 : ConsoleCreate := VGAConsole.Create;
-    2 : ConsoleCreate := CGAConsole.Create;
-    3 : ConsoleCreate := TEXTFX2Console.Create;
-    Else
-      ConsoleCreate := Nil;
-  End;
-  {$ENDIF GO32V2}
-  {$IFDEF WIN32}
-  Case index Of
-    0 : ConsoleCreate := TDirectXConsole.Create;
-    Else
-      ConsoleCreate := Nil;
-  End;
-  {$ENDIF WIN32}
-  {$IFDEF UNIX}
-  Case index Of
-    0 : ConsoleCreate := TX11Console.Create;
-    Else
-      ConsoleCreate := Nil;
-  End;
-  {$ENDIF UNIX}
-  If ConsoleCreate <> Nil Then
-    ConsoleCreate.KeyReleaseEnabled := KeyReleaseEnabled;
+  Result := Nil;
+  If (index >= Low(ConsoleTypes)) And (index <= High(ConsoleTypes)) Then
+    Result := ConsoleTypes[index].ConsoleClass.Create;
+
+  If Result <> Nil Then
+    Result.KeyReleaseEnabled := KeyReleaseEnabled;
 End;
 
-Function TPTCConsole.ConsoleCreate(Const _name : String) : TPTCBaseConsole;
+Function TPTCConsole.ConsoleCreate(Const AName : String) : TPTCBaseConsole;
+
+Var
+  I, J : Integer;
 
 Begin
-  ConsoleCreate := Nil;
-  {$IFDEF GO32V2}
-  If _name = 'VESA' Then
-    ConsoleCreate := VESAConsole.Create;
-  If (_name = 'VGA') Or (_name = 'Fakemode') Then
-    ConsoleCreate := VGAConsole.Create;
-  If (_name = 'TEXTFX2') Or (_name = 'Text') Then
-    ConsoleCreate := TEXTFX2Console.Create;
-  If _name = 'CGA' Then
-    ConsoleCreate := CGAConsole.Create;
-  {$ENDIF GO32V2}
-  {$IFDEF WIN32}
-  If _name = 'DirectX' Then
-    ConsoleCreate := TDirectXConsole.Create;
-  {$ENDIF WIN32}
-  {$IFDEF UNIX}
-  If _name = 'X11' Then
-    ConsoleCreate := TX11Console.Create;
-  {$ENDIF UNIX}
-  If ConsoleCreate <> Nil Then
-    ConsoleCreate.KeyReleaseEnabled := KeyReleaseEnabled;
+  Result := Nil;
+
+  If AName = '' Then
+    Exit;
+
+  For I := Low(ConsoleTypes) To High(ConsoleTypes) Do
+    For J := Low(ConsoleTypes[I].Names) To High(ConsoleTypes[I].Names) Do
+      If AName = ConsoleTypes[I].Names[J] Then
+      Begin
+        Result := ConsoleTypes[I].ConsoleClass.Create;
+
+        If Result <> Nil Then
+        Begin
+          Result.KeyReleaseEnabled := KeyReleaseEnabled;
+          Exit;
+        End;
+      End;
 End;
 
 Procedure TPTCConsole.check;

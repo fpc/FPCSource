@@ -266,10 +266,10 @@ Begin
   m_palette.load(_palette.data^);
 End;
 
-Function TPTCSurface.palette : TPTCPalette;
+Function TPTCSurface.Palette : TPTCPalette;
 
 Begin
-  palette := m_palette;
+  Result := m_palette;
 End;
 
 Procedure TPTCSurface.clip(Const _area : TPTCArea);
@@ -280,50 +280,50 @@ Var
 Begin
   tmp := TPTCClipper.clip(_area, m_area);
   Try
-    m_clip.ASSign(tmp);
+    m_clip.Assign(tmp);
   Finally
     tmp.Free;
   End;
 End;
 
-Function TPTCSurface.width : Integer;
+Function TPTCSurface.GetWidth : Integer;
 
 Begin
-  width := m_width;
+  Result := m_width;
 End;
 
-Function TPTCSurface.height : Integer;
+Function TPTCSurface.GetHeight : Integer;
 
 Begin
-  height := m_height;
+  Result := m_height;
 End;
 
-Function TPTCSurface.pitch : Integer;
+Function TPTCSurface.GetPitch : Integer;
 
 Begin
-  pitch := m_pitch;
+  Result := m_pitch;
 End;
 
-Function TPTCSurface.area : TPTCArea;
+Function TPTCSurface.GetArea : TPTCArea;
 
 Begin
-  area := m_area;
+  Result := m_area;
 End;
 
-Function TPTCSurface.clip : TPTCArea;
+Function TPTCSurface.Clip : TPTCArea;
 
 Begin
-  clip := m_clip;
+  Result := m_clip;
 End;
 
-Function TPTCSurface.format : TPTCFormat;
+Function TPTCSurface.GetFormat : TPTCFormat;
 
 Begin
-  format := m_format;
+  Result := m_format;
 End;
 
 Function TPTCSurface.option(Const _option : String) : Boolean;
 
 Begin
-  option := m_copy.option(_option);
+  Result := m_copy.option(_option);
 End;

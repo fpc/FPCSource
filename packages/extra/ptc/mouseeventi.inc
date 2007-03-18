@@ -18,22 +18,36 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-Type
-  TPTCArea=Class(TObject)
-  Private
-    FLeft, FTop, FRight, FBottom : Integer;
-    Function GetWidth : Integer;
-    Function GetHeight : Integer;
-  Public
-    Constructor Create;
-    Constructor Create(ALeft, ATop, ARight, ABottom : Integer);
-    Constructor Create(Const AArea : TPTCArea);
-    Procedure Assign(Const AArea : TPTCArea);
-    Function Equals(Const AArea : TPTCArea) : Boolean;
-    Property Left : Integer Read FLeft;
-    Property Top : Integer Read FTop;
-    Property Right : Integer Read FRight;
-    Property Bottom : Integer Read FBottom;
-    Property Width : Integer Read GetWidth;
-    Property Height : Integer Read GetHeight;
-  End;
+Function TPTCMouseEvent.GetType : TPTCEventType;
+
+Begin
+  Result := PTCMouseEvent;
+End;
+
+Constructor TPTCMouseEvent.Create(AX, AY, ADeltaX, ADeltaY : Integer; AButtonState : TPTCMouseButtonState);
+
+Begin
+  FX := AX;
+  FY := AY;
+  FDeltaX := ADeltaX;
+  FDeltaY := ADeltaY;
+  FButtonState := AButtonState;
+End;
+
+Constructor TPTCMouseButtonEvent.Create(AX, AY, ADeltaX, ADeltaY : Integer; AButtonState : TPTCMouseButtonState; APress : Boolean; AButton : TPTCMouseButton);
+
+Begin
+  If APress Xor (AButton In AButtonState) Then
+    Raise TPTCError.Create('Invalid ButtonState');
+
+  Inherited Create(AX, AY, ADeltaX, ADeltaY, AButtonState);
+
+  FPress := APress;
+  FButton := AButton;
+End;
+
+Function TPTCMouseButtonEvent.GetRelease : Boolean;
+
+Begin
+  Result := Not FPress;
+End;

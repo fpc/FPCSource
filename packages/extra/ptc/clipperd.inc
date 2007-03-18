@@ -18,14 +18,13 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{ $INLINE ON}
 Type
   TPTCClipper=Class(TObject)
   Public
     { clip a single area against clip area }
-    Function clip(Const _area, _clip : TPTCArea) : TPTCArea;
+    Class Function Clip(Const AArea, AClip : TPTCArea) : TPTCArea;
     { clip source and destination areas against source and destination clip areas }
-    Procedure clip(Const source, clip_source, clipped_source,
-                   destination, clip_destination,
-                   clipped_destination : TPTCArea);
+    Class Procedure Clip(Const ASource, AClipSource, AClippedSource,
+                         ADestination, AClipDestination,
+                         AClippedDestination : TPTCArea);
   End;

@@ -19,58 +19,45 @@
 }
 
 Type
-  TPTCSurface=Class(TPTCBaseSurface)
-  Private
-    {data}
-    m_width : Integer;
-    m_height : Integer;
-    m_pitch : Integer;
-    m_area : TPTCArea;
-    m_clip : TPTCArea;
-    m_format : TPTCFormat;
-    m_locked : Boolean;
-    m_pixels : Pointer;
-    {objects}
-    m_copy : TPTCCopy;
-    m_clear : TPTCClear;
-    m_palette : TPTCPalette;
+  TPTCBaseSurface=Class(TObject)
   Public
-    Constructor Create(_width, _height : Integer; Const _format : TPTCFormat);
-    Destructor Destroy; Override;
-    Procedure copy(Var surface : TPTCBaseSurface); Override;
+{    Constructor Create;}
+{    Destructor Destroy; Override;}
+    Procedure copy(Var surface : TPTCBaseSurface); Virtual; Abstract;
     Procedure copy(Var surface : TPTCBaseSurface;
-                   Const source, destination : TPTCArea); Override;
-    Function lock : Pointer; Override;
-    Procedure unlock; Override;
+                   Const source, destination : TPTCArea); Virtual; Abstract;
+    Function lock : Pointer; Virtual; Abstract;
+    Procedure unlock; Virtual; Abstract;
     Procedure load(Const pixels : Pointer;
                    _width, _height, _pitch : Integer;
                    Const _format : TPTCFormat;
-                   Const _palette : TPTCPalette); Override;
+                   Const _palette : TPTCPalette); Virtual; Abstract;
     Procedure load(Const pixels : Pointer;
                    _width, _height, _pitch : Integer;
                    Const _format : TPTCFormat;
                    Const _palette : TPTCPalette;
-                   Const source, destination : TPTCArea); Override;
+                   Const source, destination : TPTCArea); Virtual; Abstract;
     Procedure save(pixels : Pointer;
                    _width, _height, _pitch : Integer;
                    Const _format : TPTCFormat;
-                   Const _palette : TPTCPalette); Override;
+                   Const _palette : TPTCPalette); Virtual; Abstract;
     Procedure save(pixels : Pointer;
                    _width, _height, _pitch : Integer;
                    Const _format : TPTCFormat;
                    Const _palette : TPTCPalette;
-                   Const source, destination : TPTCArea); Override;
-    Procedure clear; Override;
-    Procedure clear(Const color : TPTCColor); Override;
-    Procedure clear(Const color : TPTCColor; Const _area : TPTCArea); Override;
-    Procedure palette(Const _palette : TPTCPalette); Override;
-    Function Palette : TPTCPalette; Override;
-    Procedure clip(Const _area : TPTCArea); Override;
-    Function GetWidth : Integer; Override;
-    Function GetHeight : Integer; Override;
-    Function GetPitch : Integer; Override;
-    Function GetArea : TPTCArea; Override;
-    Function Clip : TPTCArea; Override;
-    Function GetFormat : TPTCFormat; Override;
-    Function option(Const _option : String) : Boolean; Override;
+                   Const source, destination : TPTCArea); Virtual; Abstract;
+    Procedure clear; Virtual; Abstract;
+    Procedure clear(Const color : TPTCColor); Virtual; Abstract;
+    Procedure clear(Const color : TPTCColor;
+                    Const _area : TPTCArea); Virtual; Abstract;
+    Procedure palette(Const _palette : TPTCPalette); Virtual; Abstract;
+    Function palette : TPTCPalette; Virtual; Abstract;
+    Procedure clip(Const _area : TPTCArea); Virtual; Abstract;
+    Function width : Integer; Virtual; Abstract;
+    Function height : Integer; Virtual; Abstract;
+    Function pitch : Integer; Virtual; Abstract;
+    Function area : TPTCArea; Virtual; Abstract;
+    Function clip : TPTCArea; Virtual; Abstract;
+    Function format : TPTCFormat; Virtual; Abstract;
+    Function option(Const _option : String) : Boolean; Virtual; Abstract;
   End;

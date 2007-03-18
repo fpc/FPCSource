@@ -55,7 +55,7 @@ Begin
   m_handle := Hermes_PaletteInstance;
   If m_handle = 0 Then
     Raise TPTCError.Create('could not create hermes palette instance');
-  ASSign(palette);
+  Assign(palette);
 End;
 
 Destructor TPTCPalette.Destroy;

@@ -22,13 +22,13 @@ Type
   TPTCConsole=Class(TPTCBaseConsole)
   Private
     Function ConsoleCreate(index : Integer) : TPTCBaseConsole;
-    Function ConsoleCreate(Const _name : String) : TPTCBaseConsole;
+    Function ConsoleCreate(Const AName : String) : TPTCBaseConsole;
     Procedure check;
     console : TPTCBaseConsole;
     m_modes : Array[0..1023] Of TPTCMode;
     hacky_option_console_flag : Boolean;
   Public
-    Constructor Create;
+    Constructor Create; Override;
     Destructor Destroy; Override;
     Procedure configure(Const _file : String); Override;
     Function option(Const _option : String) : Boolean; Override;
@@ -74,18 +74,18 @@ Type
     Procedure clear(Const color : TPTCColor;
                     Const _area : TPTCArea); Override;
     Procedure palette(Const _palette : TPTCPalette); Override;
-    Function palette : TPTCPalette; Override;
-    Procedure clip(Const _area : TPTCArea); Override;
-    Function width : Integer; Override;
-    Function height : Integer; Override;
-    Function pitch : Integer; Override;
-    Function pages : Integer; Override;
-    Function area : TPTCArea; Override;
-    Function clip : TPTCArea; Override;
-    Function format : TPTCFormat; Override;
-    Function name : String; Override;
-    Function title : String; Override;
-    Function information : String; Override;
+    Function Palette : TPTCPalette; Override;
+    Procedure Clip(Const _area : TPTCArea); Override;
+    Function GetWidth : Integer; Override;
+    Function GetHeight : Integer; Override;
+    Function GetPitch : Integer; Override;
+    Function GetPages : Integer; Override;
+    Function GetArea : TPTCArea; Override;
+    Function Clip : TPTCArea; Override;
+    Function GetFormat : TPTCFormat; Override;
+    Function GetName : String; Override;
+    Function GetTitle : String; Override;
+    Function GetInformation : String; Override;
     Function NextEvent(Var event : TPTCEvent; wait : Boolean; Const EventMask : TPTCEventMask) : Boolean; Override;
     Function PeekEvent(wait : Boolean; Const EventMask : TPTCEventMask) : TPTCEvent; Override;
   End;

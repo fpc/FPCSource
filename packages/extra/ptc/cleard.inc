@@ -21,11 +21,13 @@
 Type
   TPTCClear=Class(TObject)
   Private
-    Fhandle : THermesHandle;
-    Fformat : TPTCFormat;
+    FHandle : THermesHandle;
+    FFormat : TPTCFormat;
   Public
     Constructor Create;
     Destructor Destroy; Override;
-    Procedure request(Const format : TPTCFormat);
-    Procedure clear(pixels : Pointer; x, y, width, height, pitch : Integer; Const color : TPTCColor);
+    Procedure Request(Const AFormat : TPTCFormat);
+    Procedure Clear(APixels : Pointer;
+                    AX, AY, AWidth, AHeight, APitch : Integer;
+                    Const AColor : TPTCColor);
   End;

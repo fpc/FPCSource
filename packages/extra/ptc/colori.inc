@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -21,89 +21,71 @@
 Constructor TPTCColor.Create;
 
 Begin
-  m_indexed := False;
-  m_direct := False;
-  m_index := 0;
-  m_r := 0;
-  m_g := 0;
-  m_b := 0;
-  m_a := 1;
+  FIndexed := False;
+  FDirect  := False;
+  FIndex   := 0;
+  FRed     := 0;
+  FGreen   := 0;
+  FBlue    := 0;
+  FAlpha   := 1;
 End;
 
-Constructor TPTCColor.Create(_index : Integer);
+Constructor TPTCColor.Create(AIndex : Integer);
 
 Begin
-  m_indexed := True;
-  m_direct := False;
-  m_index := _index;
-  m_r := 0;
-  m_g := 0;
-  m_b := 0;
-  m_a := 1;
+  FIndexed := True;
+  FDirect  := False;
+  FIndex   := AIndex;
+  FRed     := 0;
+  FGreen   := 0;
+  FBlue    := 0;
+  FAlpha   := 1;
 End;
 
-Constructor TPTCColor.Create(_r, _g, _b, _a : Real);
+Constructor TPTCColor.Create(ARed, AGreen, ABlue : Single; AAlpha : Single = 1);
 
 Begin
-  m_indexed := False;
-  m_direct := True;
-  m_index := 0;
-  m_r := _r;
-  m_g := _g;
-  m_b := _b;
-  m_a := _a;
+  FIndexed := False;
+  FDirect  := True;
+  FIndex   := 0;
+  FRed     := ARed;
+  FGreen   := AGreen;
+  FBlue    := ABlue;
+  FAlpha   := AAlpha;
 End;
 
-Constructor TPTCColor.Create(_r, _g, _b : Real);
+Constructor TPTCColor.Create(Const AColor : TPTCColor);
 
 Begin
-  m_indexed := False;
-  m_direct := True;
-  m_index := 0;
-  m_r := _r;
-  m_g := _g;
-  m_b := _b;
-  m_a := 1;
+  FIndex   := AColor.FIndex;
+  FRed     := AColor.FRed;
+  FGreen   := AColor.FGreen;
+  FBlue    := AColor.FBlue;
+  FAlpha   := AColor.FAlpha;
+  FDirect  := AColor.FDirect;
+  FIndexed := AColor.FIndexed;
 End;
 
-Constructor TPTCColor.Create(Const color : TPTCColor);
+Procedure TPTCColor.Assign(Const AColor : TPTCColor);
 
 Begin
-  ASSign(color);
+  FIndex   := AColor.FIndex;
+  FRed     := AColor.FRed;
+  FGreen   := AColor.FGreen;
+  FBlue    := AColor.FBlue;
+  FAlpha   := AColor.FAlpha;
+  FDirect  := AColor.FDirect;
+  FIndexed := AColor.FIndexed;
 End;
 
-Destructor TPTCColor.Destroy;
+Function TPTCColor.Equals(Const AColor : TPTCColor) : Boolean;
 
 Begin
-  Inherited Destroy;
-End;
-
-Procedure TPTCColor.Assign(Const color : TPTCColor);
-
-Begin
-  If Self = color Then
-    Raise TPTCError.Create('self assignment is not allowed');
-  m_index := color.index;
-  m_r := color.r;
-  m_g := color.g;
-  m_b := color.b;
-  m_a := color.a;
-  m_direct := color.direct;
-  m_indexed := color.indexed;
-End;
-
-Function TPTCColor.Equals(Const color : TPTCColor) : Boolean;
-
-Begin
-  If m_direct And color.m_direct Then
-    If (m_r = color.m_r) And (m_g = color.m_g) And
-       (m_b = color.m_b) And (m_a = color.m_a) Then
-      Equals := True
-    Else
-      Equals := False
-  Else
-    If m_index = color.m_index Then
-      Equals := True
-    Else
-      Equals := False;
+  Result := (FIndexed = AColor.FIndexed) And
+            (FDirect  = AColor.FDirect) And
+            (FIndex   = AColor.FIndex) And
+            (FRed     = AColor.FRed) And
+            (FGreen   = AColor.FGreen) And
+            (FBlue    = AColor.FBlue) And
+            (FAlpha   = AColor.FAlpha);
 End;

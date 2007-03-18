@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2006  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -21,24 +21,22 @@
 Type
   TPTCColor=Class(TObject)
   Private
-    m_index : Integer;
-    m_r, m_g, m_b, m_a : Single;
-    m_direct : Boolean;
-    m_indexed : Boolean;
+    FIndex : Integer;
+    FRed, FGreen, FBlue, FAlpha : Single;
+    FDirect : Boolean;
+    FIndexed : Boolean;
   Public
     Constructor Create;
-    Constructor Create(_index : Integer);
-    Constructor Create(_r, _g, _b, _a : Real);
-    Constructor Create(_r, _g, _b : Real);
-    Constructor Create(Const color : TPTCColor);
-    Destructor Destroy; Override;
-    Procedure Assign(Const color : TPTCColor);
-    Function Equals(Const color : TPTCColor) : Boolean;
-    Property index : Integer read m_index;
-    Property r : Single read m_r;
-    Property g : Single read m_g;
-    Property b : Single read m_b;
-    Property a : Single read m_a;
-    Property direct : Boolean read m_direct;
-    Property indexed : Boolean read m_indexed;
+    Constructor Create(AIndex : Integer);
+    Constructor Create(ARed, AGreen, ABlue : Single; AAlpha : Single = 1);
+    Constructor Create(Const AColor : TPTCColor);
+    Procedure Assign(Const AColor : TPTCColor);
+    Function Equals(Const AColor : TPTCColor) : Boolean;
+    Property Index : Integer Read FIndex;
+    Property R : Single Read FRed;
+    Property G : Single Read FGreen;
+    Property B : Single Read FBlue;
+    Property A : Single Read FAlpha;
+    Property Direct : Boolean Read FDirect;
+    Property Indexed : Boolean Read FIndexed;
   End;
