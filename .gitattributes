@@ -797,6 +797,7 @@ packages/base/graph/inc/gtext.inc svneol=native#text/plain
 packages/base/graph/inc/makefile.inc svneol=native#text/plain
 packages/base/graph/inc/modes.inc svneol=native#text/plain
 packages/base/graph/inc/palette.inc svneol=native#text/plain
+packages/base/graph/ptcgraph.pp svneol=native#text/x-pascal
 packages/base/graph/unix/ggigraph.pp svneol=native#text/plain
 packages/base/graph/unix/graph.pp svneol=native#text/plain
 packages/base/graph/unix/graph16.inc svneol=native#text/plain
