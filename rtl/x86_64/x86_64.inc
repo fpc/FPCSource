@@ -595,11 +595,12 @@ const
 Procedure SysResetFPU;
 begin
   asm
-{$ifndef WIN64}
+{ Win64 uses the fpu for ln etc. so we've to reset it as well
+  $ifndef WIN64}
     { initialize fpu }
     fninit
     fwait
-{$endif WIN64}
+{ $endif WIN64}
 {$ifdef FPC_PIC}
     movq fpucw@GOTPCREL(%rip),%rax
     fldcw (%rax)
