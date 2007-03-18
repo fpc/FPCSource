@@ -2176,11 +2176,11 @@ implementation
               end;
             219 :
               begin
+                bytes[0]:=$f3;
+                objdata.writebytes(bytes,1);
 {$ifdef x86_64}
                 maybewriterex;
 {$endif x86_64}
-                bytes[0]:=$f3;
-                objdata.writebytes(bytes,1);
               end;
             220 :
               begin

@@ -7158,14 +7158,14 @@
     opcode  : A_CVTSS2SI;
     ops     : 2;
     optypes : (ot_reg32 or ot_bits64,ot_memory,ot_none);
-    code    : #193#219#208#2#15#45#72;
+    code    : #219#193#208#2#15#45#72;
     flags   : if_katmai or if_sse
   ),
   (
     opcode  : A_CVTSS2SI;
     ops     : 2;
     optypes : (ot_reg32 or ot_bits64,ot_xmmreg,ot_none);
-    code    : #211#219#208#2#15#45#72;
+    code    : #219#211#208#2#15#45#72;
     flags   : if_katmai or if_sse
   ),
   (
@@ -7186,14 +7186,14 @@
     opcode  : A_CVTTSS2SI;
     ops     : 2;
     optypes : (ot_reg32 or ot_bits64,ot_memory,ot_none);
-    code    : #193#219#208#2#15#44#72;
+    code    : #219#193#208#2#15#44#72;
     flags   : if_katmai or if_sse
   ),
   (
     opcode  : A_CVTTSS2SI;
     ops     : 2;
     optypes : (ot_reg32 or ot_bits64,ot_xmmreg,ot_none);
-    code    : #211#219#208#2#15#44#72;
+    code    : #219#211#208#2#15#44#72;
     flags   : if_katmai or if_sse
   ),
   (
