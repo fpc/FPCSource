@@ -1,7 +1,7 @@
 { Old file: tbs0333.pp }
 {  }
 
-{$if not(defined(CPUI386)) and not(defined(CPUX86_64))}
+{$if (not(defined(CPUI386)) and not(defined(CPUX86_64))) or defined(FPC_COMP_IS_INT64)}
   {$define COMP_IS_INT64}
 {$endif}
 
