@@ -778,6 +778,10 @@ implementation
 
     function ttypeconvnode.typecheck_string_to_chararray : tnode;
       var
+        newblock : tblocknode;
+        newstat  : tstatementnode;
+        restemp  : ttempcreatenode;
+        pchtemp  : pchar;
         arrsize  : aint;
         chartype : string[8];
       begin
@@ -795,7 +799,18 @@ implementation
                constant directly. This is handled in ncgcnv }
              if (arrsize>=tstringconstnode(left).len) and
                 is_char(tarraydef(resultdef).elementdef) then
-               exit;
+               begin
+                 { pad the constant string with #0 to the array len }
+                 { (2.0.x compatible)                               }
+                 if (arrsize>tstringconstnode(left).len) then
+                   begin
+                     pchtemp:=concatansistrings(tstringconstnode(left).value_str,pchar(StringOfChar(#0,arrsize-tstringconstnode(left).len)),tstringconstnode(left).len,arrsize-tstringconstnode(left).len);
+                     left.free;
+                     left:=cstringconstnode.createpchar(pchtemp,arrsize);
+                     typecheckpass(left);
+                   end;
+                 exit;
+               end;
              { Convert to wide/short/ansistring and call default helper }
              if is_widechar(tarraydef(resultdef).elementdef) then
                inserttypeconv(left,cwidestringtype)
@@ -811,11 +826,16 @@ implementation
           chartype:='widechar'
         else
           chartype:='char';
-        result := ccallnode.createinternres(
-          'fpc_'+tstringdef(left.resultdef).stringtypname+
+        newblock:=internalstatements(newstat);
+        restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+        addstatement(newstat,restemp);
+        addstatement(newstat,ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+
           '_to_'+chartype+'array',ccallparanode.create(left,ccallparanode.create(
-          cordconstnode.create(arrsize,s32inttype,true),nil)),resultdef);
-        left := nil;
+          ctemprefnode.create(restemp),nil))));
+        addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
+        addstatement(newstat,ctemprefnode.create(restemp));
+        result:=newblock;
+        left:=nil;
       end;
 
 

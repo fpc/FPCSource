@@ -409,6 +409,7 @@ begin
   Move (arr[0],Pointer(fpc_CharArray_To_AnsiStr)^,i);
 end;
 
+{$ifndef FPC_STRTOCHARARRAYPROC}
 
 { note: inside the compiler, the resulttype is modified to be the length }
 { of the actual chararray to which we convert (JM)                       }
@@ -430,7 +431,27 @@ begin
 {$endif}
 end;
 
+{$else ndef FPC_STRTOCHARARRAYPROC}
 
+procedure  fpc_ansistr_to_chararray(out res: array of char; const src: ansistring); compilerproc;
+var
+  len: SizeInt;
+begin
+  len := length(src);
+  if len > length(res) then
+    len := length(res);
+{$r-}
+  { make sure we don't try to access element 1 of the ansistring if it's nil }
+  if len > 0 then
+    move(src[1],res[0],len);
+  { fpc_big_chararray is defined as array[0..0], see compproc.inc why }
+  fillchar(res[len],length(res)-len,0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
+end;
+
+{$endif ndef FPC_STRTOCHARARRAYPROC}
 
 Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): SizeInt;[Public,Alias : 'FPC_ANSISTR_COMPARE'];  compilerproc;
 {

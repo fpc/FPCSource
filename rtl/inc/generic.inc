@@ -760,6 +760,8 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_TO_CHARARRAY}
 
+{$ifndef FPC_STRTOCHARARRAYPROC}
+
 { inside the compiler, the resulttype is modified to that of the actual }
 { chararray we're converting to (JM)                                    }
 function fpc_shortstr_to_chararray(arraysize: longint; const src: ShortString): fpc_big_chararray;[public,alias: 'FPC_SHORTSTR_TO_CHARARRAY']; compilerproc;
@@ -778,6 +780,27 @@ begin
 {$r+}
 {$endif}
 end;
+
+{$else ndef FPC_STRTOCHARARRAYPROC}
+
+procedure fpc_shortstr_to_chararray(out res: array of char; const src: ShortString); compilerproc;
+var
+  len: longint;
+begin
+  len := length(src);
+  if len > length(res) then
+    len := length(res);
+{$r-}
+  { make sure we don't access char 1 if length is 0 (JM) }
+  if len > 0 then
+    move(src[1],res[0],len);
+  fillchar(res[len],length(res)-len,0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
+end;
+
+{$endif ndef FPC_STRTOCHARARRAYPROC}
 
 {$endif FPC_SYSTEM_HAS_FPC_SHORTSTR_TO_CHARARRAY}
 

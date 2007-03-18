@@ -28,8 +28,10 @@ type
     internally. It's now set to 0..0 because when compiling with -gt,
     the entire array will be trashed, so it must not be defined larger
     than the minimal size (otherwise we can trash other memory) }
+{$ifndef FPC_STRTOCHARARRAYPROC}
   fpc_big_chararray = array[0..0] of char;
   fpc_big_widechararray = array[0..0] of widechar;
+{$endif ndef FPC_STRTOCHARARRAYPROC}
   fpc_small_set = longint;
   fpc_normal_set = array[0..7] of longint;
 
@@ -57,7 +59,11 @@ function fpc_pchar_length(p:pchar):longint; compilerproc;
 function fpc_pwidechar_length(p:pwidechar):longint; compilerproc;
 
 function fpc_chararray_to_shortstr(const arr: array of char; zerobased: boolean = true):shortstring; compilerproc;
+{$ifndef FPC_STRTOCHARARRAYPROC}
 function fpc_shortstr_to_chararray(arraysize: longint; const src: ShortString): fpc_big_chararray; compilerproc;
+{$else ndef FPC_STRTOCHARARRAYPROC}
+procedure fpc_shortstr_to_chararray(out res: array of char; const src: ShortString); compilerproc;
+{$endif ndef FPC_STRTOCHARARRAYPROC}
 
 Function  fpc_shortstr_Copy(const s:shortstring;index:SizeInt;count:SizeInt):shortstring;compilerproc;
 function  fpc_char_copy(c:char;index : SizeInt;count : SizeInt): shortstring;compilerproc;
@@ -176,7 +182,11 @@ Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; compilerp
 Function fpc_Char_To_AnsiStr(const c : Char): AnsiString; compilerproc;
 Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; compilerproc;
 Function fpc_CharArray_To_AnsiStr(const arr: array of char; zerobased: boolean = true): ansistring; compilerproc;
+{$ifndef FPC_STRTOCHARARRAYPROC}
 function fpc_ansistr_to_chararray(arraysize: SizeInt; const src: ansistring): fpc_big_chararray; compilerproc;
+{$else ndef FPC_STRTOCHARARRAYPROC}
+procedure fpc_ansistr_to_chararray(out res: array of char; const src: ansistring)compilerproc;
+{$endif ndef FPC_STRTOCHARARRAYPROC}
 Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): SizeInt; compilerproc;
 Function fpc_AnsiStr_Compare_equal(const S1,S2 : AnsiString): SizeInt; compilerproc;
 Procedure fpc_AnsiStr_CheckZero(p : pointer); compilerproc;
@@ -210,13 +220,20 @@ Procedure fpc_WideStr_Concat_multi (Var DestS : Widestring;const sarr:array of W
 Function fpc_Char_To_WideStr(const c : WideChar): WideString; compilerproc;
 Function fpc_PChar_To_WideStr(const p : pchar): WideString; compilerproc;
 Function fpc_CharArray_To_WideStr(const arr: array of char; zerobased: boolean = true): WideString; compilerproc;
+{$ifndef FPC_STRTOCHARARRAYPROC}
 function fpc_widestr_to_chararray(arraysize: SizeInt; const src: WideString): fpc_big_chararray; compilerproc;
-Function fpc_WideCharArray_To_ShortStr(const arr: array of widechar; zerobased: boolean = true): shortstring; compilerproc;
 Function fpc_shortstr_to_widechararray(arraysize: SizeInt; const src: ShortString): fpc_big_widechararray; compilerproc;
-Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; zerobased: boolean = true): AnsiString; compilerproc;
 Function fpc_ansistr_to_widechararray(arraysize: SizeInt; const src: AnsiString): fpc_big_widechararray; compilerproc;
-Function fpc_WideCharArray_To_WideStr(const arr: array of widechar; zerobased: boolean = true): WideString; compilerproc;
 Function fpc_widestr_to_widechararray(arraysize: SizeInt; const src: WideString): fpc_big_widechararray; compilerproc;
+{$else ndef FPC_STRTOCHARARRAYPROC}
+procedure fpc_widestr_to_chararray(out res: array of char; const src: WideString); compilerproc;
+procedure fpc_shortstr_to_widechararray(out res: array of widechar; const src: ShortString); compilerproc;
+procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: AnsiString); compilerproc;
+procedure fpc_widestr_to_widechararray(out res: array of widechar; const src: WideString); compilerproc;
+{$endif ndef FPC_STRTOCHARARRAYPROC}
+Function fpc_WideCharArray_To_ShortStr(const arr: array of widechar; zerobased: boolean = true): shortstring; compilerproc;
+Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; zerobased: boolean = true): AnsiString; compilerproc;
+Function fpc_WideCharArray_To_WideStr(const arr: array of widechar; zerobased: boolean = true): WideString; compilerproc;
 Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt; compilerproc;
 Function fpc_WideStr_Compare_equal(const S1,S2 : WideString): SizeInt; compilerproc;
 Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
