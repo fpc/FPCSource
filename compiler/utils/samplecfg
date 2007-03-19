@@ -122,6 +122,19 @@ case $HOSTOS in
    
 esac
 
+case `arch` in
+  i386)
+    # Cross-binutils are not needed to compile for x86_64 on an i386 system
+    CPUCROSSIFDEF='#IFNDEF CPUAMD64'
+    CPUCROSSENDIF='#ENDIF'
+  ;;
+  x86_64)
+    # Cross-binutils are not needed to compile for i386 on an x86_64 system
+    CPUCROSSIFDEF='#IFNDEF CPUI386'
+    CPUCROSSENDIF='#ENDIF'
+  ;;
+esac
+
 # set right path to FPC with $fpcversion
 FPCPATH=`dirname "$1"`/\$fpcversion
 
@@ -164,9 +177,11 @@ cat <<EOFCFG > $thefile
 #ENDIF
 
 # set binutils prefix
+$CPUCROSSIFDEF
 #IFDEF FPC_CROSSCOMPILING
   -XP\$fpctarget-
 #ENDIF
+$CPUCROSSENDIF
 
 # ----------------
 # Parsing switches
