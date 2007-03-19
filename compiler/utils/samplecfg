@@ -122,16 +122,28 @@ case $HOSTOS in
    
 esac
 
+CPUCROSSIFDEF1="#DEFINE NEEDCROSSBINUTILS"
+CPUCROSSIFDEF2=""
+
 case `arch` in
-  i386)
-    # Cross-binutils are not needed to compile for x86_64 on an i386 system
-    CPUCROSSIFDEF='#IFNDEF CPUAMD64'
-    CPUCROSSENDIF='#ENDIF'
-  ;;
-  x86_64)
+  i386|x86_64)
     # Cross-binutils are not needed to compile for i386 on an x86_64 system
-    CPUCROSSIFDEF='#IFNDEF CPUI386'
-    CPUCROSSENDIF='#ENDIF'
+    CPUCROSSIFDEF1="
+#IFNDEF CPUI386
+#IFNDEF CPUAMD64
+#DEFINE NEEDCROSSBINUTILS
+#ENDIF
+#ENDIF
+"
+    CPUCROSSIFDEF2="
+#IFNDEF $HOSTOS
+#DEFINE NEEDCROSSBINUTILS
+#ENDIF
+"
+  ;;
+  *)
+    CPUCROSSIFDEF1="#DEFINE NEEDCROSSBINUTILS"
+    CPUCROSSIFDEF2=""
   ;;
 esac
 
@@ -177,11 +189,14 @@ cat <<EOFCFG > $thefile
 #ENDIF
 
 # set binutils prefix
-$CPUCROSSIFDEF
+$CPUCROSSIFDEF1
+$CPUCROSSIFDEF2
+
 #IFDEF FPC_CROSSCOMPILING
+#IFDEF NEEDCROSSBINUTILS
   -XP\$fpctarget-
+#ENDIF NEEDCROSSBINUTILS
 #ENDIF
-$CPUCROSSENDIF
 
 # ----------------
 # Parsing switches
