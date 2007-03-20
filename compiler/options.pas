@@ -2158,10 +2158,6 @@ begin
       def_system_macro('FPC_ABI_AIX');
   end;
 
-  { CPU Define }
-  def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
-
-  def_system_macro('FPU'+fputypestr[init_settings.fputype]);
 { Check file to compile }
   if param_file='' then
    begin
@@ -2301,7 +2297,17 @@ begin
     or (init_settings.fputype=fpu_soft)
 {$endif arm}
   then
-    include(init_settings.moduleswitches,cs_fp_emulation);
+    begin
+      include(init_settings.moduleswitches,cs_fp_emulation);
+      { cs_fp_emulation and fpu_soft are equal on arm }
+      init_settings.fputype:=fpu_soft;
+    end;
+
+
+  { now we can defined cpu and cpu type }
+  def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
+
+  def_system_macro('FPU'+fputypestr[init_settings.fputype]);
 
 {$ifdef ARM}
   { define FPC_DOUBLE_HILO_SWAPPED if needed to properly handle doubles in RTL }
