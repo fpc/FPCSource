@@ -82,6 +82,11 @@ interface
        end;
 
 
+      TAoutGNUAssembler=class(TGNUAssembler)
+        function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
+       end;
+
+
 implementation
 
     uses
@@ -1138,6 +1143,51 @@ implementation
               end;
           end;
         result := inherited sectionname(atype,aname,aorder);
+      end;
+
+
+{****************************************************************************}
+{                       a.out/GNU Assembler writer                           }
+{****************************************************************************}
+
+    function TAoutGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
+    const
+(* Translation table - replace unsupported section types with basic ones. *)
+        SecXTable: array[TAsmSectionType] of TAsmSectionType = (
+         sec_none,
+         sec_code,
+         sec_data,
+         sec_data (* sec_rodata *),
+         sec_bss,
+         sec_data (* sec_threadvar *),
+         { used for wince exception handling }
+         sec_code (* sec_pdata *),
+         { used for darwin import stubs }
+         sec_code (* sec_stub *),
+         { stabs }
+         sec_stab,sec_stabstr,
+         { win32 }
+         sec_data (* sec_idata2 *),
+         sec_data (* sec_idata4 *),
+         sec_data (* sec_idata5 *),
+         sec_data (* sec_idata6 *),
+         sec_data (* sec_idata7 *),
+         sec_data (* sec_edata *),
+         { C++ exception handling unwinding (uses dwarf) }
+         sec_eh_frame,
+         { dwarf }
+         sec_debug_frame,
+         sec_debug_info,
+         sec_debug_line,
+         sec_debug_abbrev,
+         { ELF resources (+ references to stabs debug information sections) }
+         sec_code (* sec_fpc *),
+         { Table of contents section }
+         sec_code (* sec_toc *),
+         sec_code (* sec_init *)
+        );
+      begin
+        Result := inherited SectionName (SecXTable [AType], AName, AOrder);
       end;
 
 

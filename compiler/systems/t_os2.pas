@@ -284,21 +284,29 @@ procedure AddImport(const module:string;index:longint;const name:string);
  module     = Name of DLL to import from.
  index      = Index of function in DLL. Use 0 to import by name.
  name       = Name of function in DLL. Ignored when index=0;}
+(*
 var tmp1,tmp2,tmp3:string;
+*)
+var tmp1,tmp3:string;
     sym_mcount,sym_import:longint;
     fixup_mcount,fixup_import:longint;
-    func : string;
 begin
     aout_init;
+(*
     tmp2:=func;
     if profile_flag and not (copy(func,1,4)='_16_') then
+*)
+    if profile_flag and not (copy(Name,1,4)='_16_') then
         begin
             {sym_entry:=aout_sym(func,n_text+n_ext,0,0,aout_text_size);}
             sym_mcount:=aout_sym('__mcount',n_ext,0,0,0);
             {Use, say, "_$U_DosRead" for "DosRead" to import the
              non-profiled function.}
+(*
             tmp2:='__$U_'+func;
             sym_import:=aout_sym(tmp2,n_ext,0,0,0);
+*)
+            sym_import:=aout_sym(name,n_ext,0,0,0);
             aout_text_byte($55);    {push ebp}
             aout_text_byte($89);    {mov ebp, esp}
             aout_text_byte($e5);
@@ -315,14 +323,24 @@ begin
         end;
     str(seq_no,tmp1);
     tmp1:='IMPORT#'+tmp1;
+(*
     if name='' then
+*)
+    if index<>0 then
         begin
             str(index,tmp3);
+(*
             tmp3:=func+'='+module+'.'+tmp3;
+*)
+            tmp3:=Name+'='+module+'.'+tmp3;
         end
     else
+        tmp3:=Name+'='+module+'.'+name;
+(*
         tmp3:=func+'='+module+'.'+name;
     aout_sym(tmp2,n_imp1+n_ext,0,0,0);
+*)
+    aout_sym(Name,n_imp1+n_ext,0,0,0);
     aout_sym(tmp3,n_imp2+n_ext,0,0,0);
     aout_finish;
     write_ar(tmp1,aout_size);
@@ -340,22 +358,24 @@ end;
           ImportLibrary : TImportLibrary;
           ImportSymbol  : TImportSymbol;
       begin
+        LibName:=FixFileName(Current_Module.RealModuleName^ + Target_Info.StaticCLibExt);
+        seq_no:=1;
+        current_module.linkotherstaticlibs.add(libname,link_always);
+        assign(out_file,current_module.outputpath^+libname);
+        rewrite(out_file,1);
+        blockwrite(out_file,ar_magic,sizeof(ar_magic));
+
         for i:=0 to current_module.ImportLibraryList.Count-1 do
           begin
             ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
-            LibName:=FixFileName(ImportLibrary.Name + Target_Info.StaticCLibExt);
-            seq_no:=1;
-            current_module.linkotherstaticlibs.add(libname,link_always);
-            assign(out_file,current_module.outputpath^+libname);
-            rewrite(out_file,1);
-            blockwrite(out_file,ar_magic,sizeof(ar_magic));
+{            LibName:=FixFileName(ImportLibrary.Name + Target_Info.StaticCLibExt);}
             for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
               begin
                 ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);
-                AddImport(ImportLibrary.Name,ImportSymbol.OrdNr,ImportSymbol.Name);
+                AddImport(ChangeFileExt(ExtractFileName(ImportLibrary.Name),''),ImportSymbol.OrdNr,ImportSymbol.Name);
               end;
-            close(out_file);
          end;
+         close(out_file);
       end;
 
 
