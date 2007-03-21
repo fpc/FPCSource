@@ -182,9 +182,9 @@ const
   UD_LM                   = $80;
 
 type
-  user_desc = record
+  user_desc = packed record
     entry_number  : cint;
-    base_addr     : pointer;
+    base_addr     : cuint;
     limit         : cuint;
     flags         : cuint;
   end;
