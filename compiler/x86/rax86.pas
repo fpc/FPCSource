@@ -387,6 +387,8 @@ begin
           A_MOVD : { movd is a move from a mmx register to a
                      32 bit register or memory, so no opsize is correct here PM }
             exit;
+          A_MOVQ :
+            opsize:=S_IQ;
           A_OUT :
             opsize:=tx86operand(operands[1]).opsize;
           else
