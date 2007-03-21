@@ -147,6 +147,18 @@ case `arch` in
   ;;
 esac
 
+# darwin->darwin does not need cross binutils
+case $HOSTOS in
+  darwin)
+    CPUCROSSIFDEF2="
+#ifdef darwin
+#undef NEEDCROSSBINUTILS
+#endif
+"
+  ;;
+esac
+
+
 # set right path to FPC with $fpcversion
 FPCPATH=`dirname "$1"`/\$fpcversion
 
