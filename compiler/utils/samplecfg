@@ -126,7 +126,7 @@ CPUCROSSIFDEF1="#DEFINE NEEDCROSSBINUTILS"
 CPUCROSSIFDEF2=""
 
 case `arch` in
-  i386|x86_64)
+  i?86|x86_64)
     # Cross-binutils are not needed to compile for i386 on an x86_64 system
     CPUCROSSIFDEF1="
 #IFNDEF CPUI386
