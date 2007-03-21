@@ -425,10 +425,22 @@ begin
       { try to add crti and crtbegin if linking to C }
       if linklibc then
        begin
-         if librarysearchpath.FindFile('crtbegin.o',false,s) then
-          AddFileName(s);
+         { x86_64 requires this to use entry/exit code with pic,
+           see also issue #8210 regarding a discussion
+           no idea about the other non i386 CPUs (FK)
+         }
+{$ifdef x86_64}
+         if current_module.islibrary then
+           begin
+             if librarysearchpath.FindFile('crtbeginS.o',false,s) then
+               AddFileName(s);
+           end
+         else
+{$endif x86_64}
+           if librarysearchpath.FindFile('crtbegin.o',false,s) then
+             AddFileName(s);
          if librarysearchpath.FindFile('crti.o',false,s) then
-          AddFileName(s);
+           AddFileName(s);
        end;
       { main objectfiles }
       while not ObjectFiles.Empty do
@@ -490,7 +502,17 @@ begin
       { objects which must be at the end }
       if linklibc and (libctype<>uclibc) then
        begin
-         found1:=librarysearchpath.FindFile('crtend.o',false,s1);
+         { x86_64 requires this to use entry/exit code with pic,
+           see also issue #8210 regarding a discussion
+           no idea about the other non i386 CPUs (FK)
+         }
+{$ifdef x86_64}
+         if current_module.islibrary then
+           found1:=librarysearchpath.FindFile('crtendS.o',false,s1)
+         else
+{$else x86_64}
+           found1:=librarysearchpath.FindFile('crtend.o',false,s1);
+{$endif x86_64}
          found2:=librarysearchpath.FindFile('crtn.o',false,s2);
          if found1 or found2 then
           begin
