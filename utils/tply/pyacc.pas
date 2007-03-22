@@ -106,7 +106,8 @@ program Yacc;
 uses
 {$IFDEF Debug}
 {$IFDEF DPMI}
-  YaccChk,
+  { YaccChk, removed as obsolete,
+    YaccChk source not available anymore PM }
 {$ENDIF}
 {$ENDIF}
   YaccLib, YaccBase, YaccMsgs, YaccSem, YaccTabl, YaccPars;
