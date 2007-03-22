@@ -207,14 +207,6 @@ function IsZero(const A: Extended): Boolean;inline;
 
 function IsNan(const d : Double): Boolean;
 function IsInfinite(const d : Double): Boolean;
-{$ifdef FPC_HAS_TYPE_EXTENDED}
-function IsNan(const E : Extended): Boolean;
-function IsInfinite(const E : Extended): Boolean;
-{$endif FPC_HAS_TYPE_EXTENDED}
-{$ifdef FPC_HAS_TYPE_SINGLE}
-function IsNan(const s : Single): Boolean;
-function IsInfinite(const s : Single): Boolean;
-{$endif FPC_HAS_TYPE_SINGLE}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SameValue(const A, B: Extended): Boolean;inline;
@@ -2117,72 +2109,6 @@ function IsInfinite(const d : Double): Boolean;
     Result:=expMaximal and fraczero;
   end;
 
-{$ifdef FPC_HAS_TYPE_EXTENDED}
-type
-  TSplitExtended = packed record
-    case byte of
-      0: (bytes: Array[0..9] of byte);
-      1: (words: Array[0..4] of word);
-      2: (cards: Array[0..1] of cardinal; w: word);
-  end;
-
-function IsNan(const E : Extended): Boolean;
-
-var
-  fraczero, expMaximal: boolean;
-
-begin
-  expMaximal := (TSplitExtended(e).w and $7fff) = 32767;
-  fraczero :=  (TSplitExtended(e).cards[0] = 0) and
-                ((TSplitExtended(e).cards[1] and $7fffffff) = 0);
-  Result:=expMaximal and not FracZero;                        
-end;
-
-function IsInfinite(const E : Extended): Boolean;
-
-Var
-  fraczero, expMaximal: boolean;
-
-begin
-  expMaximal := (TSplitExtended(e).w and $7fff) = 32767;
-  fraczero := (TSplitExtended(e).cards[0] = 0) and
-              ((TSplitExtended(e).cards[1] and $7fffffff) = 0);
-  Result:=expMaximal and fraczero;
-end;
-{$endif FPC_HAS_TYPE_EXTENDED}
-
-{$ifdef FPC_HAS_TYPE_SINGLE}
-type
-  TSplitSingle = packed record
-    case byte of
-      0: (bytes: Array[0..3] of byte);
-      1: (words: Array[0..1] of word);
-      2: (cards: Array[0..0] of cardinal);
-  end;
-                          
-function IsNan(const s : Single): Boolean;
-
-Var
-  fraczero, expMaximal: boolean;
-  
-begin
-  expMaximal := ((TSplitSingle(s).words[1] shr 7) and $ff) = 255;
-  fraczero := (TSplitSingle(s).cards[0] and $7fffff = 0);
-  Result:=expMaximal and not fraczero;
-end;
-
-function IsInfinite(const s : Single): Boolean;
-
-Var
-  fraczero, expMaximal: boolean;
-  
-begin
-  expMaximal := ((TSplitSingle(s).words[1] shr 7) and $ff) = 255;
-  fraczero := (TSplitSingle(s).cards[0] and $7fffff = 0);
-  Result:=expMaximal and fraczero;
-end;
-
-{$endif}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SameValue(const A, B: Extended; Epsilon: Extended): Boolean;
