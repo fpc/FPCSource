@@ -40,26 +40,41 @@ package=makedos.zip,GNU ~U~tilities (needed for Makefile usage)
 # Dos 6
 package=gdbdos.zip,GNU ~D~ebugger for Go32v2
 # Dos 7
-package=ufcldos.zip,~F~ree Component Libary (FCL)
-# Dos 8
 package=ugdbintdos.zip[ugdbdos.zip],GDB Interfacing units
-# Dos 9
+# Dos 8
 package=upaszlibdos.zip[upzldos.zip],PasZLib units
-# Dos 10
+# Dos 9
 package=uregexprdos.zip[uregdos.zip],Regular expression units
-# Dos 11
+# Dos 10
 package=uunzipdos.zip[uzipdos.zip],Unzip units
-# Dos 12
+# Dos 11
 package=unetdbdos.zip[undbdos.zip],NetDB units
-# Dos 13
+# Dos 12
 package=upasjpegdos.zip[upjpdos.zip],Pas~J~PEG units
-# Dos 14
+# Dos 13
 package=uhashdos.zip,Hash calculation units
-# Dos 15
+# Dos 14
 package=ufvdos.zip,Free ~V~ision (FV)
-# Dos 16
+# Dos 15
 package=ugraphdos.zip[ugrphdos.zip],Unit Graph
-
+# Dos 16
+package=ufclbdos.zip,Free Component Libary (FCL) - base part
+# Dos 17
+package=ufclddos.zip,Free Component Libary (FCL) - datasets
+# Dos 18
+package=ufcludos.zip,Free Component Libary (FCL) - FPCUnit
+# Dos 19
+package=ufclidos.zip,Free Component Libary (FCL) - images
+# Dos 20
+package=ufclndos.zip,Free Component Libary (FCL) - network
+# Dos 21
+package=ufclpdos.zip,Free Component Libary (FCL) - Pascal source processing
+# Dos 22
+package=ufclrdos.zip,Free Component Libary (FCL) - registry
+# Dos 23
+package=ufclxdos.zip,Free Component Libary (FCL) - XML
+# Dos 24
+package=ufclwdos.zip,Free Component Libary (FCL) - Web
 
 #
 # Win32 packages
@@ -86,7 +101,7 @@ package=make.i386-win32.zip,GNU ~U~tilities (needed for Makefile usage)
 # Win32 6
 package=gdb.i386-win32.zip,GNU ~D~ebugger for Win32
 # Win32 7
-package=units-fcl.i386-win32.zip,~F~ree Component Libary (FCL)
+package=units-fv.i386-win32.zip,Free ~V~ision (FV)
 # Win32 8
 package=units-fpgtk.i386-win32.zip,fpGTK units
 # Win32 9
@@ -105,6 +120,18 @@ package=units-graph.i386-win32.zip,Unit Graph
 package=units-fftw.i386-win32.zip,FFTW interface unit
 # Win32 16
 package=units-postgres.i386-win32.zip,PostGreSQL interface units
+# Win32 17
+package=units-httpd-1.3.i386-win32.zip,HTTPD 1.3 interface units
+# Win32 18
+package=units-httpd-2.0.i386-win32.zip,HTTPD 2.0 interface units
+# Win32 19
+package=units-httpd-2.2.i386-win32.zip,HTTPD 2.2 interface units
+# Win32 20
+package=units-oggvorbis.i386-win32.zip,OGG Vorbis interface units
+# Win32 21
+package=units-openal.i386-win32.zip,OpenAL interface units
+# Win32 22
+package=units-openssl.i386-win32.zip,OpenSSL interface units
 
 #
 # Win32 packages 2nd part
@@ -115,30 +142,46 @@ filecheck=*.i386-win32.zip
 package=units-opengl.i386-win32.zip,OpenGL units
 # Win32-2 2
 package=units-gtk.i386-win32.zip,GTK units
-# Win32-2 4
+# Win32-2 3
 package=units-ibase.i386-win32.zip,Interbase interface units
-# Win32-2 5
+# Win32-2 4
 package=units-mysql.i386-win32.zip,MySQL interface units
-# Win32-2 6
+# Win32-2 5
 package=units-gdbint.i386-win32.zip,GDB Interfacing units
-# Win32-2 7
+# Win32-2 6
 package=units-paszlib.i386-win32.zip,PasZLib units
-# Win32-2 8
+# Win32-2 7
 package=units-regexpr.i386-win32.zip,Regular expression units
-# Win32-2 9
+# Win32-2 8
 package=units-unzip.i386-win32.zip,Unzip units
-# Win32-2 10
+# Win32-2 9
 package=units-zlib.i386-win32.zip,ZLib interface units
-# Win32-2 11
+# Win32-2 10
 package=units-netdb.i386-win32.zip,NetDB units
-# Win32-2 12
+# Win32-2 11
 package=units-pasjpeg.i386-win32.zip,Pas~J~PEG units
-# Win32-2 13
+# Win32-2 12
 package=units-hash.i386-win32.zip,Hash calculation units
-# Win32-2 14
-package=units-fv.i386-win32.zip,Free ~V~ision (FV)
-# Win32-2 15
+# Win32-2 13
 package=units-oracle.i386-win32.zip,Oracle interface units
+# Win32-2 14
+package=units-fcl-base.i386-win32.zip,Free Component Libary (FCL) - base part
+# Win32-2 15
+package=units-fcl-db.i386-win32.zip,Free Component Libary (FCL) - datasets
+# Win32-2 16
+package=units-fcl-fpcunit.i386-win32.zip,Free Component Libary (FCL) - FPCUnit
+# Win32-2 17
+package=units-fcl-image.i386-win32.zip,Free Component Libary (FCL) - images
+# Win32-2 18
+package=units-fcl-net.i386-win32.zip,Free Component Libary (FCL) - network
+# Win32-2 19
+package=units-fcl-passrc.i386-win32.zip,Free Component Libary (FCL) - Pascal sources processing
+# Win32-2 20
+package=units-fcl-registry.i386-win32.zip,Free Component Libary (FCL) - registry
+# Win32-2 21
+package=units-fcl-web.i386-win32.zip,Free Component Libary (FCL) - Web
+# Win32-2 22
+package=units-fcl-xml.i386-win32.zip,Free Component Libary (FCL) - XML
 
 #
 # OS/2 packages
@@ -164,17 +207,33 @@ package=makeos2.zip,GNU ~U~tilities (needed for Makefile usage)
 # OS/2 6
 package=gdbos2.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 # OS/2 7
-package=ufclos2.zip,~F~ree Component Library (FCL)
-# OS/2 9
 package=ufvos2.zip,Free ~V~ision (FV)
-# OS/2 10
+# OS/2 8
 package=uclkdllos2.zip[uclkos2.zip],CLKDLL interface unit (eCS 1.1+)
-# OS/2 11
+# OS/2 9
 package=ulvmos2.zip,LVM interface unit (OS/2 v4.5 / eCS)
-# OS/2 12
+# OS/2 10
 package=upasjpegos2.zip[upjpos2.zip],Pas~J~PEG units
-# OS/2 13
+# OS/2 11
 package=uhashos2.zip,Hash calculation units
+# OS/2 12
+package=ufclbos2.zip,Free Component Library (FCL) - base part
+# OS/2 13
+package=ufcldos2.zip,Free Component Library (FCL) - datasets
+# OS/2 14
+package=ufcluos2.zip,Free Component Library (FCL) - FPCUnit
+# OS/2 15
+package=ufclios2.zip,Free Component Library (FCL) - images
+# OS/2 16
+package=ufclnos2.zip,Free Component Library (FCL) - network
+# OS/2 17
+package=ufclpos2.zip,Free Component Library (FCL) - Pascal sources processing
+# OS/2 18
+package=ufclros2.zip,Free Component Library (FCL) - registry
+# OS/2 19
+package=ufclxos2.zip,Free Component Library (FCL) - XML
+# OS/2 20
+#package=ufclwos2.zip,Free Component Library (FCL) - Web
 
 
 #
@@ -240,17 +299,33 @@ package=makeemx.zip,GNU ~U~tilities (needed for Makefile usage)
 # EMX 6
 package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 # EMX 7
-package=ufclemx.zip,~F~ree Component Library (FCL)
-# EMX 9
 package=ufvemx.zip,Free ~V~ision (FV)
-# EMX 10
+# EMX 8
 package=uclkdllemx.zip[uclkemx.zip],CLKDLL interface unit (eCS 1.1+)
-# EMX 11
+# EMX 9
 package=ulvmemx.zip,LVM interface unit (OS/2 v4.5 / eCS)
-# EMX 12
+# EMX 10
 package=upasjpegemx.zip[upjpemx.zip],Pas~J~PEG units
-# EMX 13
+# EMX 11
 package=uhashemx.zip,Hash calculation units
+# EMX 12
+package=ufclbos2.zip,Free Component Library (FCL) - base part
+# EMX 13
+package=ufcldos2.zip,Free Component Library (FCL) - datasets
+# EMX 14
+package=ufcluos2.zip,Free Component Library (FCL) - FPCUnit
+# EMX 15
+package=ufclios2.zip,Free Component Library (FCL) - images
+# EMX 16
+package=ufclnos2.zip,Free Component Library (FCL) - network
+# EMX 17
+package=ufclpos2.zip,Free Component Library (FCL) - Pascal sources processing
+# EMX 18
+package=ufclros2.zip,Free Component Library (FCL) - registry
+# EMX 19
+package=ufclxos2.zip,Free Component Library (FCL) - XML
+# EMX 20
+#package=ufclwos2.zip,Free Component Library (FCL) - Web
 
 
 #
@@ -318,7 +393,7 @@ package=compiler.source.zip[compsrc.zip],~C~ompiler sources
 # Source 3
 package=rtl.source.zip[rtlsrc.zip],Run time library sources
 # Source 4
-package=fcl.source.zip[fclsrc.zip],~F~ree component library (FCL) sources
+package=units-graph.source.zip[ugrphsrc.zip],Unit Graph
 # Source 5
 package=utils.source.zip[utilsrc.zip],~U~tils sources
 # Source 6
@@ -392,13 +467,41 @@ package=units-winunits.source.zip[uwinsrc.zip],Extended Windows API interface un
 # Source-3 2
 package=units-tcl.source.zip[utclsrc.zip],TCL interface units
 # Source-3 3
-package=units-graph.source.zip[ugrphsrc.zip],Unit Graph
+package=units-oracle.source.zip[uorasrc.zip],Oracle interface units
 # Source-3 4
 package=units-hash.source.zip[uhashsrc.zip],Hash calculation units
 # Source-3 5
 package=units-fftw.source.zip[ufftwsrc.zip],FFTW interface unit
 # Source-3 6
-package=units-oracle.source.zip[uorasrc.zip],Oracle interface units
+package=fcl-base.source.zip[ufclbsrc.zip],Free component library (FCL) sources - base part
+# Source-3 7
+package=fcl-db.source.zip[ufcldsrc.zip],Free component library (FCL) sources - datasets
+# Source-3 8
+package=fcl-fpcunit.source.zip[ufclusrc.zip],Free component library (FCL) sources - FPCUnit
+# Source-3 9
+package=fcl-image.source.zip[ufclisrc.zip],Free component library (FCL) sources - images
+# Source-3 10
+package=fcl-net.source.zip[ufclnsrc.zip],Free component library (FCL) sources - network
+# Source-3 11
+package=fcl-passrc.source.zip[ufclpsrc.zip],Free component library (FCL) sources - Pascal source processing
+# Source-3 12
+package=fcl-registry.source.zip[ufclrsrc.zip],Free component library (FCL) sources - registry
+# Source-3 13
+package=fcl-xml.source.zip[ufclxsrc.zip],Free component library (FCL) sources - XML files
+# Source-3 14
+package=fcl-web.source.zip[ufclwsrc.zip],Free component library (FCL) sources - Web
+# Source-3 15
+package=httpd-1.3.source.zip[uhd13src.zip],HTTPD 1.3 interface units
+# Source-3 16
+package=httpd-2.0.source.zip[uhd20src.zip],HTTPD 2.0 interface units
+# Source-3 17
+package=httpd-2.2.source.zip[uhd22src.zip],HTTPD 2.2 interface units
+# Source-3 18
+package=oggvorbis.source.zip[uoggvsrc.zip],OGG Vorbis interface units
+# Source-3 19
+package=openal.source.zip[uoalsrc.zip],OpenAL interface units
+# Source-3 20
+package=openssl.source.zip[uosslsrc.zip],OpenSSL interface units
 
 defaultcfg=
 #
