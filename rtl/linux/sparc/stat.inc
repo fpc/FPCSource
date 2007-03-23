@@ -56,7 +56,7 @@
       st_ctime  : cuint;
       st_ctime_nsec : cuint;
       __unused4_ : cuint;
-      __unused5_ : cuint;
+      __unused5_ : cuint);
   end;
 
 {$ELSE FPC_USE_LIBC}
@@ -65,14 +65,35 @@
 
   Stat = record
     case byte of
-      st_dev     : cULongLong;
+     0:
+      (dev     : cULongLong;
+      ino     : cULongLong;
+      mode    : mode_t;
+      nlink   : nlink_t;
+      uid     : uid_t;
+      gid     : gid_t;
+      rdev    : cULongLong;
+      __pad2  : cushort;
+      size    : cLongLong;
+      blksize : cULong;
+      blocks  : cULongLong;
+      atime,
+      atime_nsec,
+      mtime,
+      mtime_nsec,
+      ctime,
+      ctime_nsec,
+      __unused4,
+      __unused5  : cULong);
+     1:
+      (st_dev    : cULongLong;
       st_ino     : cULongLong;
       st_mode    : mode_t;
       st_nlink   : nlink_t;
       st_uid     : uid_t;
       st_gid     : gid_t;
       st_rdev    : cULongLong;
-      __pad2     : cushort;
+      __pad2_    : cushort;
       st_size    : cLongLong;
       st_blksize : cULong;
       st_blocks  : cULongLong;
@@ -82,8 +103,8 @@
       st_mtime_nsec,
       st_ctime,
       st_ctime_nsec,
-      __unused4,
-      __unused5  : cULong;
+      __unused4_,
+      __unused5-) : cULong);
   end;
 
 {$ENDIF FPC_USE_LIBC}
