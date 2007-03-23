@@ -35,7 +35,7 @@ unit nx86add;
       protected
         function  getresflags(unsigned : boolean) : tresflags;
         procedure left_must_be_reg(opsize:TCGSize;noswap:boolean);
-        procedure left_and_right_must_be_fpureg;
+        procedure check_left_and_right_fpureg(force_fpureg: boolean);
         procedure emit_op_right_left(op:TAsmOp;opsize:TCgSize);
         procedure emit_generic_code(op:TAsmOp;opsize:TCgSize;unsigned,extra_not,mboverflow:boolean);
 
@@ -212,25 +212,31 @@ unit nx86add;
        end;
 
 
-    procedure tx86addnode.left_and_right_must_be_fpureg;
+    procedure tx86addnode.check_left_and_right_fpureg(force_fpureg: boolean);
       begin
         if (right.location.loc<>LOC_FPUREGISTER) then
          begin
-           location_force_fpureg(current_asmdata.CurrAsmList,right.location,false);
-           if (left.location.loc<>LOC_FPUREGISTER) then
-             location_force_fpureg(current_asmdata.CurrAsmList,left.location,false)
-           else
-             { left was on the stack => swap }
-             toggleflag(nf_swapped);
+           if (force_fpureg) then
+             begin
+               location_force_fpureg(current_asmdata.CurrAsmList,right.location,false);
+                if (left.location.loc<>LOC_FPUREGISTER) then
+                  location_force_fpureg(current_asmdata.CurrAsmList,left.location,false)
+                else
+                  { left was on the stack => swap }
+                  toggleflag(nf_swapped);
+             end
          end
         { the nominator in st0 }
         else if (left.location.loc<>LOC_FPUREGISTER) then
-          location_force_fpureg(current_asmdata.CurrAsmList,left.location,false)
+          begin
+            if (force_fpureg) then
+              location_force_fpureg(current_asmdata.CurrAsmList,left.location,false)
+          end
         else
-         begin
-           { fpu operands are always in the wrong order on the stack }
-           toggleflag(nf_swapped);
-         end;
+          begin
+            { fpu operands are always in the wrong order on the stack }
+            toggleflag(nf_swapped);
+          end;
       end;
 
 
@@ -700,8 +706,16 @@ unit nx86add;
         op : topcg;
       begin
         pass_left_right;
+        check_left_and_right_fpureg(false);
+
         if (nf_swapped in flags) then
-          swapleftright;
+          { can't use swapleftright if both are on the fpu stack, since then }
+          { both are "R_ST" -> nothing would change -> manually switch       }
+          if (left.location.loc = LOC_FPUREGISTER) and
+             (right.location.loc = LOC_FPUREGISTER) then
+            emit_none(A_FXCH,S_NO)
+          else
+            swapleftright;
 
         case nodetype of
           addn :
@@ -885,7 +899,7 @@ unit nx86add;
             internalerror(2003042214);
         end;
 
-        left_and_right_must_be_fpureg;
+        check_left_and_right_fpureg(true);
 
         { if we swaped the tree nodes, then use the reverse operator }
         if nf_swapped in flags then
@@ -915,7 +929,7 @@ unit nx86add;
           end;
 
         pass_left_right;
-        left_and_right_must_be_fpureg;
+        check_left_and_right_fpureg(true);
 
 {$ifndef x86_64}
         if current_settings.cputype<cpu_Pentium2 then
