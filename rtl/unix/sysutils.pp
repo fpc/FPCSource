@@ -267,7 +267,7 @@ begin
   If  fpstat (FileName,Info)<0 then
     exit(-1)
   else
-    Result:=UnixToWinAge(info.st_mtime);
+    Result:=UnixToWinAge(info.mtime);
 end;
 
 
@@ -285,7 +285,7 @@ Function DirectoryExists (Const Directory : String) : Boolean;
 Var Info : Stat;
 
 begin
-  DirectoryExists:=(fpstat(Directory,Info)>=0) and fpS_ISDIR(Info.st_mode);
+  DirectoryExists:=(fpstat(Directory,Info)>=0) and fpS_ISDIR(Info.mode);
 end;
 
 
@@ -293,15 +293,15 @@ Function LinuxToWinAttr (FN : Pchar; Const Info : Stat) : Longint;
 
 begin
   Result:=faArchive;
-  If fpS_ISDIR(Info.st_mode) then
+  If fpS_ISDIR(Info.mode) then
     Result:=Result or faDirectory;
   If (FN[0]='.') and (not (FN[1] in [#0,'.']))  then
     Result:=Result or faHidden;
-  If (Info.st_Mode and S_IWUSR)=0 Then
+  If (Info.Mode and S_IWUSR)=0 Then
      Result:=Result or faReadOnly;
-  If fpS_ISSOCK(Info.st_mode) or fpS_ISBLK(Info.st_mode) or fpS_ISCHR(Info.st_mode) or fpS_ISFIFO(Info.st_mode) Then
+  If fpS_ISSOCK(Info.mode) or fpS_ISBLK(Info.mode) or fpS_ISCHR(Info.mode) or fpS_ISFIFO(Info.mode) Then
      Result:=Result or faSysFile;
-  If fpS_ISLNK(Info.st_mode) Then
+  If fpS_ISLNK(Info.mode) Then
     Result:=Result or faSymLink;
 end;
 
@@ -430,9 +430,9 @@ begin
    Begin
      f.Name:=ExtractFileName(s);
      f.Attr:=WinAttr;
-     f.Size:=st.st_Size;
-     f.Mode:=st.st_mode;
-     f.Time:=UnixToWinAge(st.st_mtime);
+     f.Size:=st.Size;
+     f.Mode:=st.mode;
+     f.Time:=UnixToWinAge(st.mtime);
      result:=true;
    End;
 end;
@@ -537,7 +537,7 @@ begin
   If (fpFStat(Handle,Info))<0 then
     Result:=-1
   else
-    Result:=Info.st_Mtime;
+    Result:=Info.Mtime;
 end;
 
 

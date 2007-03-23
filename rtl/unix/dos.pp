@@ -31,7 +31,8 @@ Type
     DirPtr     : Pointer;     {directory pointer for reading directory}
     SearchType : Byte;        {0=normal, 1=open will close, 2=only 1 file}
     SearchAttr : Byte;        {attribute we are searching for}
-    Fill       : Array[1..03] of Byte; {future use}
+    Mode       : Word;
+    Fill       : Array[1..1] of Byte; {future use}
   {End of fill}
     Attr       : Byte;        {attribute of found file}
     Time       : LongInt;     {last modify date of found file}
@@ -558,26 +559,27 @@ begin
   FindGetFileInfo:=false;
   if not fpstat(s,st)>=0 then
    exit;
-  info.FSize:=st.st_Size;
-  info.FMTime:=st.st_mtime;
-  if (st.st_mode and STAT_IFMT)=STAT_IFDIR then
+  info.FSize:=st.size;
+  info.FMTime:=st.mtime;
+  if (st.mode and STAT_IFMT)=STAT_IFDIR then
    info.fmode:=$10
   else
    info.fmode:=$0;
-  if (st.st_mode and STAT_IWUSR)=0 then
+  if (st.mode and STAT_IWUSR)=0 then
    info.fmode:=info.fmode or 1;
   if s[f.NamePos+1]='.' then
    info.fmode:=info.fmode or $2;
 
-  If ((Info.FMode and Not(f.searchattr))=0) Then
-   Begin
+  if Info.FMode and Not(f.searchattr)=0 Then
+   begin
      f.Name:=Copy(s,f.NamePos+1,255);
      f.Attr:=Info.FMode;
+     f.Mode:=word(st.mode);
      f.Size:=Info.FSize;
      UnixDateToDT(Info.FMTime, DT);
      PackTime(DT,f.Time);
      FindGetFileInfo:=true;
-   End;
+   end;
 end;
 
 
@@ -755,7 +757,7 @@ Function FSearch(path : pathstr;dirlist : string) : pathstr;
 Var
   info : BaseUnix.stat;
 Begin
-  if (length(Path)>0) and (path[1]='/') and (fpStat(path,info)>=0) and (not fpS_ISDIR(Info.st_Mode)) then
+  if (length(Path)>0) and (path[1]='/') and (fpStat(path,info)>=0) and (not fpS_ISDIR(Info.mode)) then
     FSearch:=path
   else
     FSearch:=Unix.FSearch(path,dirlist);
@@ -774,7 +776,7 @@ Begin
      exit;
    end
   else
-   LinAttr:=Info.st_Mode;
+   LinAttr:=Info.mode;
   if fpS_ISDIR(LinAttr) then
    Attr:=$10
   else
@@ -798,7 +800,7 @@ Begin
      exit
    end
   else
-   UnixDateToDT(Info.st_mTime,DT);
+   UnixDateToDT(Info.mTime,DT);
   PackTime(DT,Time);
 End;
 
