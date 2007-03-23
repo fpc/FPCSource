@@ -15,26 +15,48 @@
 {$IFNDEF FPC_USE_LIBC}
 
   Stat = packed record  // No unix typing because of differences
-    st_dev    : culonglong;
-    st_ino    : culonglong;
-    st_mode   : cuint;
-    st_nlink  : cuint;
-    st_uid    : cuint;
-    st_gid    : cuint;
-    st_rdev   : culonglong;
-    __pad3    : array[0..7] of cuchar;
-    st_size   : clonglong;
-    st_blksize: cuint;
-    __pad4    : array[0..7] of cuchar;
-    st_blocks : cuint;
-    st_atime  : cuint;
-    st_atime_nsec : cuint;
-    st_mtime  : cuint;
-    st_mtime_nsec : cuint;
-    st_ctime  : cuint;
-    st_ctime_nsec : cuint;
-    __unused4 : cuint;
-    __unused5 : cuint;
+    0:
+      (dev   : culonglong;
+      ino    : culonglong;
+      mode   : cuint;
+      nlink  : cuint;
+      uid    : cuint;
+      gid    : cuint;
+      rdev   : culonglong;
+      __pad3 : array[0..7] of cuchar;
+      size   : clonglong;
+      blksize: cuint;
+      __pad4 : array[0..7] of cuchar;
+      blocks : cuint;
+      atime  : cuint;
+      atime_nsec : cuint;
+      mtime  : cuint;
+      mtime_nsec : cuint;
+      ctime  : cuint;
+      ctime_nsec : cuint;
+      __unused4 : cuint;
+      __unused5 : cuint);
+    1:
+      (st_dev    : culonglong;
+      st_ino    : culonglong;
+      st_mode   : cuint;
+      st_nlink  : cuint;
+      st_uid    : cuint;
+      st_gid    : cuint;
+      st_rdev   : culonglong;
+      __pad3_   : array[0..7] of cuchar;
+      st_size   : clonglong;
+      st_blksize: cuint;
+      __pad4_   : array[0..7] of cuchar;
+      st_blocks : cuint;
+      st_atime  : cuint;
+      st_atime_nsec : cuint;
+      st_mtime  : cuint;
+      st_mtime_nsec : cuint;
+      st_ctime  : cuint;
+      st_ctime_nsec : cuint;
+      __unused4_ : cuint;
+      __unused5_ : cuint;
   end;
 
 {$ELSE FPC_USE_LIBC}
