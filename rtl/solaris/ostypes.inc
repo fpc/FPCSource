@@ -40,27 +40,51 @@ TYPE
 
    { file characteristics services }
    stat = packed record { verify the alignment of the members }
-     st_dev : dev_t;
-     st_pad1 : array[1..3] of longint;  { reserve for dev expansion }
-     st_ino : ino_t;
-     st_mode : mode_t;
-     st_nlink : nlink_t;
-     st_uid : uid_t;
-     st_gid : gid_t;
-     st_rdev : dev_t;
-     st_pad2 : array[1..2] of longint;
-     st_size : off_t;
-     st_pad3 : longint;   {* reserve pad for future off_t expansion *}
-     st_atime : time_t;
-     st_atimens : longint;    { access time nanosecond field         }
-     st_mtime : time_t;
-     st_mtimens : longint;    { modification time nanosecond field   }
-     st_ctime : time_t;
-     st_ctimens : longint;    { modification time nanosecond field   }
-     st_blksize : blksize_t;
-     st_blocks : blkcnt_t;
-     st_fstype : array[0..ST_FSTYPSZ-1] of char;
-     st_pad4 : array[1..8] of longint;
+     case byte of
+       0:
+         (dev : dev_t;
+         pad1 : array[1..3] of longint;  { reserve for dev expansion }
+         ino : ino_t;
+         mode : mode_t;
+         nlink : nlink_t;
+         uid : uid_t;
+         gid : gid_t;
+         rdev : dev_t;
+         pad2 : array[1..2] of longint;
+         size : off_t;
+         pad3 : longint;   {* reserve pad for future off_t expansion *}
+         atime : time_t;
+         atimens : longint;    { access time nanosecond field         }
+         mtime : time_t;
+         mtimens : longint;    { modification time nanosecond field   }
+         ctime : time_t;
+         ctimens : longint;    { modification time nanosecond field   }
+         blksize : blksize_t;
+         blocks : blkcnt_t;
+         fstype : array[0..ST_FSTYPSZ-1] of char;
+         pad4 : array[1..8] of longint);
+       1:
+         (st_dev : dev_t;
+         st_pad1 : array[1..3] of longint;  { reserve for dev expansion }
+         st_ino : ino_t;
+         st_mode : mode_t;
+         st_nlink : nlink_t;
+         st_uid : uid_t;
+         st_gid : gid_t;
+         st_rdev : dev_t;
+         st_pad2 : array[1..2] of longint;
+         st_size : off_t;
+         st_pad3 : longint;   {* reserve pad for future off_t expansion *}
+         st_atime : time_t;
+         st_atimens : longint;    { access time nanosecond field         }
+         st_mtime : time_t;
+         st_mtimens : longint;    { modification time nanosecond field   }
+         st_ctime : time_t;
+         st_ctimens : longint;    { modification time nanosecond field   }
+         st_blksize : blksize_t;
+         st_blocks : blkcnt_t;
+         st_fstype : array[0..ST_FSTYPSZ-1] of char;
+         st_pad4 : array[1..8] of longint);
    end;
    TStat             = Stat;
    PStat             = ^Stat;

@@ -59,34 +59,65 @@ TYPE
 
   { file characteristics services }
    stat    = record { the types are real}
-        st_dev        : dev_t;             // inode's device
-        st_ino        : ino_t;             // inode's number
-        st_mode       : mode_t;            // inode protection mode
-        st_nlink      : nlink_t;           // number of hard links
-        st_uid        : uid_t;             // user ID of the file's owner
-        st_gid        : gid_t;             // group ID of the file's group
-        st_rdev       : dev_t;             // device type
-        st_atime      : time_t;            // time of last access
-        st_atimensec  : clong;             // nsec of last access
-        st_mtime      : time_t;            // time of last data modification
-        st_mtimensec  : clong;             // nsec of last data modification
-        st_ctime      : time_t;            // time of last file status change
-        st_ctimensec  : clong;             // nsec of last file status change
+     case byte of
+       0:
+         (dev        : dev_t;            // inode's device
+         ino        : ino_t;             // inode's number
+         mode       : mode_t;            // inode protection mode
+         nlink      : nlink_t;           // number of hard links
+         uid        : uid_t;             // user ID of the file's owner
+         gid        : gid_t;             // group ID of the file's group
+         rdev       : dev_t;             // device type
+         atime      : time_t;            // time of last access
+         atimensec  : clong;             // nsec of last access
+         mtime      : time_t;            // time of last data modification
+         mtimensec  : clong;             // nsec of last data modification
+         ctime      : time_t;            // time of last file status change
+         ctimensec  : clong;             // nsec of last file status change
 {$ifdef netbsdPowerpc}
-        st_padd1              : cint;
+         padd1              : cint;
 {$endif}
-        st_size       : off_t;             // file size, in bytes
-        st_blocks     : cint64;            // blocks allocated for file
-        st_blksize    : cuint32;           // optimal blocksize for I/O
-        st_flags      : cuint32;           // user defined flags for file
-        st_gen        : cuint32;           // file generation number
+         size       : off_t;             // file size, in bytes
+         blocks     : cint64;            // blocks allocated for file
+         blksize    : cuint32;           // optimal blocksize for I/O
+         flags      : cuint32;           // user defined flags for file
+         gen        : cuint32;           // file generation number
 {$ifdef netbsdPowerpc}
-        st_padd2              : cint;
+         padd2              : cint;
 {$endif}
 {$ifndef NetBSD}
-        st_lspare     : cint32;
+         lspare     : cint32;
 {$endif}
-        st_qspare     : array[0..1] Of cint64;
+         qspare     : array[0..1] Of cint64;);
+       1:
+         (st_dev        : dev_t;            // inode's device
+         st_ino        : ino_t;             // inode's number
+         st_mode       : mode_t;            // inode protection mode
+         st_nlink      : nlink_t;           // number of hard links
+         st_uid        : uid_t;             // user ID of the file's owner
+         st_gid        : gid_t;             // group ID of the file's group
+         st_rdev       : dev_t;             // device type
+         st_atime      : time_t;            // time of last access
+         st_atimensec  : clong;             // nsec of last access
+         st_mtime      : time_t;            // time of last data modification
+         st_mtimensec  : clong;             // nsec of last data modification
+         st_ctime      : time_t;            // time of last file status change
+         st_ctimensec  : clong;             // nsec of last file status change
+{$ifdef netbsdPowerpc}
+         st_padd1              : cint;
+{$endif}
+         st_size       : off_t;             // file size, in bytes
+         st_blocks     : cint64;            // blocks allocated for file
+         st_blksize    : cuint32;           // optimal blocksize for I/O
+         st_flags      : cuint32;           // user defined flags for file
+         st_gen        : cuint32;           // file generation number
+{$ifdef netbsdPowerpc}
+         st_padd2              : cint;
+{$endif}
+{$ifndef NetBSD}
+         st_lspare     : cint32;
+{$endif}
+         st_qspare     : array[0..1] Of cint64;);
    end;
    TStat = stat;
    pStat = ^stat;

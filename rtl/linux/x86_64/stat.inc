@@ -15,27 +15,49 @@
 {$ifndef FPC_USE_LIBC} // kernel record
 
   stat = packed record  // No unix typing because of differences
-    st_dev    : culong;
-    st_ino    : culong;
-    st_nlink  : culong;
+    case byte of
+      0:
+        (dev,
+        ino,
+        nlink  : qword;
 
-    st_mode   : cuint;
-    st_uid    : cuint;
-    st_gid    : cuint;
-    __pad0    : cuint;
-    st_rdev   : culong;
-    st_size   : clong;
-    st_blksize: clong;
-    st_blocks : clong;
+        mode,
+        uid,
+        gid,
+        __pad0 : cardinal;
+        rdev   : qword;
+        size,
+        blksize,
+        blocks : int64;
 
-    st_atime  : culong;
-    st_atime_nsec : culong;
-    st_mtime  : culong;
-    st_mtime_nsec : culong;
-    st_ctime  : culong;
-    st_ctime_nsec : culong;
+        atime,
+        atime_nsec,
+        mtime,
+        mtime_nsec,
+        ctime,
+        ctime_nsec : qword
+        __unused  : array[0..2] of qword);
+      1:
+        (st_dev,
+        st_ino,
+        st_nlink  : qword;
 
-    __unused  : array[0..2] of clong;
+        st_mode,
+        st_uid,
+        st_gid,
+        __pad0    : cardinal;
+        st_rdev   : qword;
+        st_size,
+        st_blksize,
+        st_blocks : int64;
+
+        st_atime,
+        st_atime_nsec,
+        st_mtime,
+        st_mtime_nsec,
+        st_ctime,
+        st_ctime_nsec : qword;
+        __unused  : array[0..2] of qword;);
   end;
 
 {$else}

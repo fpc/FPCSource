@@ -26,26 +26,49 @@
 {$IFNDEF FPC_USE_LIBC}
 
   Stat = record  // No unix typing because of differences
-    st_dev    : culonglong;
-    st_ino    : culonglong;
-    st_mode   : cuint;
-    st_nlink  : cuint;
-    st_uid    : cuint;
-    st_gid    : cuint;
-    st_rdev   : culonglong;
-    __pad2    : cushort;
-    st_size   : clonglong;
-    st_blksize: clong;
+    case byte of
+      0:
+        (dev    : culonglong;
+        ino    : culonglong;
+        mode   : cuint;
+        nlink  : cuint;
+        uid    : cuint;
+        gid    : cuint;
+        rdev   : culonglong;
+        __pad2 : cushort;
+        size   : clonglong;
+        blksize: clong;
 
-    st_blocks : clonglong;
-    st_atime  : clong;
-    st_atime_nsec : culong;
-    st_mtime  : clong;
-    st_mtime_nsec : culong;
-    st_ctime  : clong;
-    __unused3 : culong;
-    __unused4 : culong;
-    __unused5 : culong;
+        blocks : clonglong;
+        atime  : clong;
+        atime_nsec : culong;
+        mtime  : clong;
+        mtime_nsec : culong;
+        ctime  : clong;
+        __unused3 : culong;
+        __unused4 : culong;
+        __unused5 : culong;);
+      1:
+        (st_dev    : culonglong;
+        st_ino    : culonglong;
+        st_mode   : cuint;
+        st_nlink  : cuint;
+        st_uid    : cuint;
+        st_gid    : cuint;
+        st_rdev   : culonglong;
+        __pad2_    : cushort;
+        st_size   : clonglong;
+        st_blksize: clong;
+
+        st_blocks : clonglong;
+        st_atime  : clong;
+        st_atime_nsec : culong;
+        st_mtime  : clong;
+        st_mtime_nsec : culong;
+        st_ctime  : clong;
+        __unused3_ : culong;
+        __unused4_ : culong;
+        __unused5_ : culong;);
   end;
 
 {$ELSE FPC_USE_LIBC}
