@@ -671,7 +671,7 @@ Implementation
           result:=(code=0);
         end;
 
-        function consumeoffset(var p:pchar;out relocsym:tobjsymbol;out value:longint):boolean;
+        function consumeoffset(var p:pchar;out relocsym:tobjsymbol;out value,symvalue:longint):boolean;
         var
           hs        : string;
           len,
@@ -680,12 +680,19 @@ Implementation
           sym       : tobjsymbol;
           exprvalue : longint;
           gotmin,
+          have_first_symbol,
+          have_second_symbol,
+          have_sym_address,
           dosub     : boolean;
         begin
           result:=false;
           value:=0;
+          symvalue:=0;
           relocsym:=nil;
           gotmin:=false;
+          have_first_symbol:=false;
+          have_second_symbol:=false;
+          have_sym_address:=false;
           repeat
             dosub:=false;
             exprvalue:=0;
@@ -728,16 +735,36 @@ Implementation
                   move(pstart^,hs[1],len);
                   hs[0]:=chr(len);
                   sym:=objdata.symbolref(hs);
+                  have_first_symbol:=true;
                   { Second symbol? }
                   if assigned(relocsym) then
                     begin
+                      if have_second_symbol then
+                        internalerror(2007032201);
+
+                      have_second_symbol:=true;
+                      if not have_sym_address then
+                        internalerror(2007032202);
+                      { second symbol should substracted to first }
+                      if not dosub then
+                        internalerror(2007032203);
                       if (relocsym.objsection<>sym.objsection) then
                         internalerror(2005091810);
                       relocsym:=nil;
+                      symvalue:=symvalue-sym.address;
                     end
                   else
-                    relocsym:=sym;
-                  exprvalue:=sym.address;
+                    begin
+                      relocsym:=sym;
+                      if assigned(sym.objsection) then
+                        begin
+                          { first symbol should be + }
+                          if not have_sym_address and dosub then
+                            internalerror(2007032204);
+                          have_sym_address:=true;
+                          symvalue:=sym.address;
+                        end;
+                    end;
                 end;
               '+' :
                 begin
@@ -765,21 +792,25 @@ Implementation
       var
         stabstrlen,
         ofs,
+        symaddr,
         nline,
         nidx,
         nother,
         i         : longint;
         stab      : TObjStabEntry;
         relocsym  : TObjSymbol;
-        pstr,
+        pstr,pstart,
         pcurr,
         pendquote : pchar;
         oldsec    : TObjSection;
         reltype   : TObjRelocationType;
       begin
         pcurr:=nil;
+        pstart:=p;
         pstr:=nil;
         pendquote:=nil;
+        relocsym:=nil;
+        ofs:=0;
 
         { Parse string part }
         if (p[0]='"') then
@@ -820,15 +851,10 @@ Implementation
             if not consumenumber(pcurr,nline) then
               internalerror(200509186);
             if consumecomma(pcurr) then
-              consumeoffset(pcurr,relocsym,ofs)
-            else
-              begin
-                ofs:=0;
-                relocsym:=nil;
-              end;
+              consumeoffset(pcurr,relocsym,ofs,symaddr);
             if assigned(relocsym) and
                (relocsym.bind<>AB_LOCAL) then
-              ofs:=0;
+              symaddr:=0;
 
             { Generate stab entry }
             if assigned(pstr) and (pstr[0]<>#0) then
@@ -863,7 +889,7 @@ Implementation
             stab.ntype:=byte(nidx);
             stab.ndesc:=word(nline);
             stab.nother:=byte(nother);
-            stab.nvalue:=ofs;
+            stab.nvalue:=ofs+symaddr;
 
             { Write the stab first without the value field. Then
               write a the value field with relocation }
