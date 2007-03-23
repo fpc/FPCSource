@@ -133,5 +133,5 @@ const
     function  FpWriteV	   (fd: cint; const iov : piovec; iovcnt : cint):TSSize;  cdecl; external clib name 'writev';
 
 {$ifdef linux}
-    function  FpPrCtl(options : cInt; const args : ptrint) : cint; cdecl; external clib name 'prctl';
+    function  FpPrCtl(options : cInt; const args : ptruint) : cint; cdecl; external clib name 'prctl';
 {$endif}
