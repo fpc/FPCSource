@@ -109,7 +109,7 @@ type
                 dd_size   : integer;
                 dd_buf    : pdirent;
                 {The following are used in libc, but NOT in the linux kernel sources ??}
-                dd_nextoff: longint;
+                dd_nextoff: cardinal;
                 dd_max : integer; {size of buf. Irrelevant, as buf is of type dirent}
                 dd_lock   : pointer;
                end;
