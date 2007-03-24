@@ -270,7 +270,7 @@ procedure TXMLConfig.Loaded;
 begin
   inherited Loaded;
   if Length(Filename) > 0 then
-    SetFilename(Filename);              // Load the XML config file
+    DoSetFilename(Filename,True);              // Load the XML config file
 end;
 
 // TODO: copied from dom.pp, make public there and delete here
