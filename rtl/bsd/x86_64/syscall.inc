@@ -22,16 +22,16 @@
 - More 6 and 7 param dosyscall because of the __syscall problem
 }
 
-{$ASMMODE GAS}
+{ASMMODE GAS}
 
-function do_sysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL0'];
+function fpsysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL0'];
 
 asm
   movq sysnr, %rax        { Syscall number -> rax.  }
   syscall                 { Do the system call. }
   jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
   movq  %rax,%rcx
-  movq  FPC_THREADVAR_RELOCATE,%rax
+  movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
   movq  %rcx,Errno+8
@@ -44,11 +44,11 @@ asm
   movq  %rcx,(%rax)
 .LNoThread:
   movq  $-1,%rax
-  movq  rax,%rdx
+  movq  %rax,%rdx
 .LSyscOK:
 end;
 
-function do_sysCall(sysnr,param1 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
+function fpsysCall(sysnr,param1 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL1'];
 
 asm
   movq sysnr, %rax        { Syscall number -> rax.  }
@@ -56,7 +56,7 @@ asm
   syscall                 { Do the system call. }
   jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
   movq  %rax,%rcx
-  movq  FPC_THREADVAR_RELOCATE,%rax
+  movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
   movq  %rcx,Errno+8
@@ -69,11 +69,11 @@ asm
   movq  %rcx,(%rax)
 .LNoThread:
   movq  $-1,%rax
-  movq  rax,%rdx
+  movq  %rax,%rdx
 .LSyscOK:
 end;
 
-function do_sysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL2'];
+function fpsysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL2'];
 
 asm
   movq sysnr, %rax        { Syscall number -> rax.  }
@@ -83,7 +83,7 @@ asm
   syscall                 { Do the system call. }
   jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
   movq  %rax,%rcx
-  movq  FPC_THREADVAR_RELOCATE,%rax
+  movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
   movq  %rcx,Errno+8
@@ -96,11 +96,11 @@ asm
   movq  %rcx,(%rax)
 .LNoThread:
   movq  $-1,%rax
-  movq  rax,%rdx
+  movq  %rax,%rdx
 .LSyscOK:
 end;
 
-function do_sysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
+function fpsysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL3'];
 
 asm
   movq sysnr, %rax        { Syscall number -> rax.  }
@@ -111,7 +111,7 @@ asm
   syscall                 { Do the system call. }
   jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
   movq  %rax,%rcx
-  movq  FPC_THREADVAR_RELOCATE,%rax
+  movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
   movq  %rcx,Errno+8
@@ -124,11 +124,11 @@ asm
   movq  %rcx,(%rax)
 .LNoThread:
   movq  $-1,%rax
-  movq  rax,%rdx
+  movq  %rax,%rdx
 .LSyscOK:
 end;
 
-function do_sysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL4'];
+function fpsysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL4'];
 
 asm
   movq sysnr, %rax        { Syscall number -> rax.  }
@@ -140,7 +140,7 @@ asm
   syscall                 { Do the system call. }
   jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
   movq  %rax,%rcx
-  movq  FPC_THREADVAR_RELOCATE,%rax
+  movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
   movq  %rcx,Errno+8
@@ -153,11 +153,11 @@ asm
   movq  %rcx,(%rax)
 .LNoThread:
   movq  $-1,%rax
-  movq  rax,%rdx
+  movq  %rax,%rdx
 .LSyscOK:
 end;
 
-function do_sysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
+function fpsysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
 
 asm
   movq sysnr, %rax        { Syscall number -> rax.  }
@@ -170,7 +170,7 @@ asm
   syscall                 { Do the system call. }
   jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
   movq  %rax,%rcx
-  movq  FPC_THREADVAR_RELOCATE,%rax
+  movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
   movq  %rcx,Errno+8
@@ -183,12 +183,12 @@ asm
   movq  %rcx,(%rax)
 .LNoThread:
   movq  $-1,%rax
-  movq  rax,%rdx
+  movq  %rax,%rdx
 .LSyscOK:
 end;
 
 
-function do_sysCall(sysnr,param1,param2,param3,param4,param5,param6 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL6'];
+function fpsysCall(sysnr,param1,param2,param3,param4,param5,param6 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL6'];
 
 asm
   movq sysnr, %rax        { Syscall number -> rax.  }
@@ -202,7 +202,7 @@ asm
   syscall                 { Do the system call. }
   jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
   movq  %rax,%rcx
-  movq  FPC_THREADVAR_RELOCATE,%rax
+  movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
   movq  %rcx,Errno+8
@@ -215,16 +215,51 @@ asm
   movq  %rcx,(%rax)
 .LNoThread:
   movq  $-1,%rax
-  movq  rax,%rdx
+  movq  %rax,%rdx
 .LSyscOK:
 end;
+
+function fpsysCall(sysnr,param1,param2,param3,param4,param5,param6,param7 : TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL7'];
+
+asm
+  mov param7,%rax
+  pushq %rax
+  movq sysnr, %rax        { Syscall number -> rax.  }
+  movq param1, %rdi         { shift arg1 - arg6. }
+  movq param2, %rsi
+  movq param3, %rdx
+  movq param4, %r10
+  movq param5, %r8
+  movq param6, %r9
+  mov %rcx,%r10
+  syscall                 { Do the system call. }
+  jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
+  movq  %rax,%rcx
+  movq  fpc_threadvar_relocate_proc,%rax
+  testq %rax,%rax
+  jne   .LThread
+  movq  %rcx,Errno+8
+  jmp   .LNoThread
+.LThread:
+  pushq %rcx
+  pushq Errno
+  call  *%rax
+  popq  %rcx
+  movq  %rcx,(%rax)
+.LNoThread:
+  movq  $-1,%rax
+  movq  %rax,%rdx
+.LSyscOK:
+  popq %rax
+end;
+
 
 procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
     asm
      syscall
      jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
      movq  %rax,%rcx
-     movq  FPC_THREADVAR_RELOCATE,%rax
+     movq  fpc_threadvar_relocate_proc,%rax
      testq %rax,%rax
      jne   .LThread
      movq  %rcx,Errno+8
@@ -237,11 +272,12 @@ procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
      movq  %rcx,(%rax)
    .LNoThread:
      movq  $-1,%rax
-     movq  rax,%rdx
+     movq  %rax,%rdx
    .LSyscOK:
 end;
 
-function do__sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7,Param8:TSysParam):TSysResult; oldfpccall; external name 'FPC_DOSYS8';
+
+function fp_sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7,Param8:TSysParam):TSysResult; assembler;assembler;[public,alias:'FPC_DOSYS8'];
 // Hmm, we have to do something different :)
 
 asm
@@ -249,10 +285,9 @@ asm
   push %rax
   movq param7,%rax
   push %rax
-  movq $syscall_nr__syscall,  %rax
+  movq $198,  %rax
   mov %rcx,%r10
   call actualsyscall
   add $16,%rsp
 end;
-
 

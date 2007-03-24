@@ -71,23 +71,36 @@ FreeBSD: same implementation as NetBSD.
 }
 
 begin
-  Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,TSysParam(fd),0,lo(Offset),{0} hi(offset),Whence);
+  {$ifdef CPU64}
+    Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,TSysParam(fd),0,Offset,whence);
+  {$else}
+    Fplseek:=do_syscall(syscall_nr___syscall,syscall_nr_lseek,0,TSysParam(fd),0,lo(Offset),{0} hi(offset),Whence);
+  {$endif}
 end;
 
 function Fpftruncate(fd : cint; flength : off_t): cint; [public, alias : 'FPC_SYSC_FTRUNCATE'];
 
 begin
- Fpftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,0,lo(flength),hi(flength));
+ {$ifdef CPU64}
+   Fpftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate, fd  ,0   ,flength);
+ {$else}
+   Fpftruncate:=Do_syscall(syscall_nr___syscall,syscall_nr_ftruncate,0,fd,0,lo(flength),hi(flength));
+ {$endif}
+
 end;
 
 
 Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; [public, alias:  'FPC_SYSC_MMAP'];
 
 begin
-  Fpmmap:=pointer(longint(do_syscall(syscall_nr_mmap,TSysParam(Start),Len,Prot,Flags,fd,
+ {$ifdef CPU64}
+  Fpmmap:=pointer(ptruint(do__syscall(TSysParam(syscall_nr_mmap),TSysParam(Start),TSysParam(Len),TSysParam(Prot),TSysParam(Flags),TSysParam(fd),TSysParam(offst),0,0)));
+{$else}
+  Fpmmap:=pointer(ptruint(do_syscall(syscall_nr_mmap,TSysParam(Start),Len,Prot,Flags,fd,
         {$ifdef FPC_BIG_ENDIAN}    hi(offst),lo(offst){$endif}
         {$ifdef FPC_LITTLE_ENDIAN} lo(offst),hi(offst){$endif},0
         )));
+{$endif}
 end;
 
 {$endif}
