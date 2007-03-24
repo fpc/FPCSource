@@ -102,7 +102,7 @@ unit i_bsd;
             flags        : [tf_needs_symbol_size,tf_pic_uses_got,tf_files_case_sensitive,tf_use_function_relative_addresses{,tf_smartlink_sections}];
             cpu          : cpu_x86_64;
             unit_env     : 'BSDUNITS';
-            extradefines : 'UNIX;HASUNIX';
+            extradefines : 'UNIX;HASUNIX;BSD';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
