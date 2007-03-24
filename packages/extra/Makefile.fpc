@@ -8,8 +8,9 @@ dirs_linux=unzip zlib fftw \
            utmp bfd gdbm ncurses tcl cdrom \
            imlib gnome1 fpgtk newt uuid \
            ldap openal mad oggvorbis a52 \
-           modplug dts openssl pcap libcurl cairo sdl
-dirs_i386_linux=unixutil lua
+           modplug dts openssl pcap libcurl cairo sdl \
+           unixutil
+dirs_i386_linux=lua
 dirs_i386_win32=lua
 dirs_netbsd=unzip zlib \
             x11 opengl gtk syslog \
