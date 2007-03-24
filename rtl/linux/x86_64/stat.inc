@@ -45,7 +45,7 @@
         st_mode,
         st_uid,
         st_gid,
-        __pad0    : cardinal;
+        __pad1    : cardinal;
         st_rdev   : qword;
         st_size,
         st_blksize,
@@ -57,7 +57,7 @@
         st_mtime_nsec,
         st_ctime,
         st_ctime_nsec : qword;
-        __unused  : array[0..2] of qword;);
+        __unused2  : array[0..2] of qword;);
   end;
 
 {$else}
