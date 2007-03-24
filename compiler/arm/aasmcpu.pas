@@ -643,12 +643,14 @@ implementation
         curdatatai,hp,hp2 : tai;
         curdata : TAsmList;
         l : tasmlabel;
+        doinsert,
         removeref : boolean;
       begin
         curdata:=TAsmList.create;
         lastpos:=-1;
         curpos:=0;
         curtai:=tai(list.first);
+        doinsert:=false;
         while assigned(curtai) do
           begin
             { instruction? }
@@ -729,8 +731,11 @@ implementation
             else
               penalty:=0;
 
+            { don't miss an insert }
+            doinsert:=doinsert or (curpos-lastpos+penalty>1016);
+
             { split only at real instructions else the test below fails }
-            if ((curpos-lastpos+penalty)>1016) and (curtai.typ=ait_instruction) and
+            if doinsert and (curtai.typ=ait_instruction) and
               (
                 { don't split loads of pc to lr and the following move }
                 not(
@@ -743,6 +748,7 @@ implementation
               ) then
               begin
                 lastpos:=curpos;
+                doinsert:=false;
                 hp:=tai(curtai.next);
                 current_asmdata.getjumplabel(l);
                 curdata.insert(taicpu.op_sym(A_B,l));
