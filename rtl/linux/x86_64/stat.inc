@@ -35,7 +35,7 @@
         mtime,
         mtime_nsec,
         ctime,
-        ctime_nsec : qword
+        ctime_nsec : qword;
         __unused  : array[0..2] of qword);
       1:
         (st_dev,
