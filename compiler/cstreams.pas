@@ -417,7 +417,10 @@ begin
   {$I-}
    case Origin of
      soFromBeginning :
-       System.Seek(FHandle,Offset);
+       begin
+         System.Seek(FHandle,Offset);
+         l:=Offset;
+       end;
      soFromCurrent :
        begin
          l:=System.FilePos(FHandle);
@@ -435,7 +438,7 @@ begin
    end;
   {$I+}
   CStreamError:=IOResult;
-  Result:=CStreamError;
+  Result:=l;
 end;
 
 
