@@ -308,7 +308,10 @@ implementation
                   location_copy(location,left.location);
                   inverse_flags(location.resflags);
                 end;
-              LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE :
+              LOC_REGISTER, LOC_CREGISTER,
+              LOC_REFERENCE, LOC_CREFERENCE,
+              LOC_SUBSETREG, LOC_CSUBSETREG,
+              LOC_SUBSETREF, LOC_CSUBSETREF:
                 begin
                   location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),true);
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const_reg(A_SUBcc,left.location.register,0,NR_G0));

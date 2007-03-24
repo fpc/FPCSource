@@ -744,6 +744,9 @@ begin
   DataSize := 4;
   case TypeInfo^.Kind of
 {$ifdef cpu64}
+    tkInterface,
+    tkInterfaceRaw,
+    tkDynArray,
     tkClass:
       DataSize:=8;
 {$endif cpu64}
@@ -836,6 +839,9 @@ begin
   if PropInfo^.PropType^.Kind in [tkInt64,tkQword
   { why do we have to handle classes here, see also below? (FK) }
 {$ifdef cpu64}
+    ,tkInterface,
+    ,tkInterfaceRaw,
+    ,tkDynArray,
     ,tkClass
 {$endif cpu64}
     ] then
