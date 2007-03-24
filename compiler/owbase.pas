@@ -214,7 +214,7 @@ end;
 
 constructor tobjectreader.create;
 begin
-  getmem(buf,bufsize);
+  buf:=nil;
   bufidx:=0;
   bufmax:=0;
   opened:=false;
@@ -225,7 +225,7 @@ destructor tobjectreader.destroy;
 begin
   if opened then
    closefile;
-  freemem(buf,bufsize);
+  freemem(buf);
 end;
 
 
@@ -238,8 +238,11 @@ begin
        Comment(V_Error,'Can''t open object file: '+fn);
        exit;
     end;
+  getmem(buf,f.Size);
+  f.read(buf^,f.Size);
+  bufmax:=f.Size;
+  f.free;
   bufidx:=0;
-  bufmax:=0;
   opened:=true;
   openfile:=true;
 end;
@@ -247,7 +250,6 @@ end;
 
 procedure tobjectreader.closefile;
 begin
-  f.free;
   opened:=false;
   bufidx:=0;
   bufmax:=0;
@@ -256,91 +258,29 @@ end;
 
 function tobjectreader.readbuf:boolean;
 begin
-  bufmax:=f.read(buf^,bufsize);
-  bufidx:=0;
-  readbuf:=(bufmax>0);
+  result:=true;
 end;
 
 
 procedure tobjectreader.seek(len:longint);
 begin
-  f.seek(len,soFromBeginning);
-  bufidx:=0;
-  bufmax:=0;
+  bufidx:=len;
 end;
 
 
 function tobjectreader.read(out b;len:longint):boolean;
-var
-  p   : pchar;
-  lenleft,
-  bufleft,
-  idx : longint;
 begin
-  result:=false;
-  if bufmax=0 then
-   if not readbuf then
-    exit;
-  p:=pchar(@b);
-  idx:=0;
-  lenleft:=len;
-  while lenleft>0 do
-   begin
-     bufleft:=bufmax-bufidx;
-     if lenleft>bufleft then
-      begin
-        move(buf[bufidx],p[idx],bufleft);
-        dec(lenleft,bufleft);
-        inc(idx,bufleft);
-        inc(bufidx,bufleft);
-        if not readbuf then
-         exit;
-      end
-     else
-      begin
-        move(buf[bufidx],p[idx],lenleft);
-        inc(bufidx,lenleft);
-        inc(idx,lenleft);
-        break;
-      end;
-   end;
-  result:=(idx=len);
+  move(buf[bufidx],b,len);
+  inc(bufidx,len);
+  result:=true;
 end;
 
 
 function tobjectreader.readarray(a:TDynamicArray;len:longint):boolean;
-var
-  orglen,
-  bufleft,
-  idx : longint;
 begin
-  readarray:=false;
-  if bufmax=0 then
-   if not readbuf then
-    exit;
-  orglen:=len;
-      idx:=0;
-  while len>0 do
-   begin
-     bufleft:=bufmax-bufidx;
-     if len>bufleft then
-      begin
-        a.Write(buf[bufidx],bufleft);
-        dec(len,bufleft);
-        inc(idx,bufleft);
-        inc(bufidx,bufleft);
-        if not readbuf then
-         exit;
-      end
-     else
-      begin
-        a.Write(buf[bufidx],len);
-        inc(bufidx,len);
-        inc(idx,len);
-        break;
-      end;
-   end;
-  readarray:=(idx=orglen);
+  a.write(buf[bufidx],len);
+  inc(bufidx,len);
+  result:=true;
 end;
 
 function tobjectreader.getfilename : string;
