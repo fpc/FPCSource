@@ -300,7 +300,7 @@ procedure TXMLConfig.Loaded;
 begin
   inherited Loaded;
   if Length(Filename) > 0 then
-    SetFilename(Filename);              // Load the XML config file
+    SetFilename(Filename, true);              // Load the XML config file
 end;
 
 function TXMLConfig.FindNode(const APath: String;
