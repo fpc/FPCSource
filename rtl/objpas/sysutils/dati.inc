@@ -481,7 +481,16 @@ while (i < 5) and (TimeValues[i] <> -1) do begin
    end ;
 If (i<5) and (TimeValues[I]=-1) then
   TimeValues[I]:=0;
-if PM and (TimeValues[0] <> 12) then Inc(TimeValues[0], 12);
+if PM then
+  begin
+  if (TimeValues[0] <> 12) then 
+    Inc(TimeValues[0], 12);
+  end
+else
+  begin
+  if (TimeValues[0]=12) then
+    TimeValues[0]:=0;
+  end;   
 result := EncodeTime(TimeValues[0], TimeValues[1], TimeValues[2], TimeValues[3]);
 end ;
 
