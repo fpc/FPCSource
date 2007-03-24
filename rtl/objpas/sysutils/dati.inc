@@ -300,14 +300,14 @@ begin
   result := FormatDateTime('ddddd', Date);
 end ;
 
-{  TimeToStr returns a string representation of Time using ShortTimeFormat   }
+{  TimeToStr returns a string representation of Time using LongTimeFormat   }
 
 function TimeToStr(Time: TDateTime): string;
 begin
-  result := FormatDateTime('t', Time);
+  result := FormatDateTime('tt', Time);
 end ;
 
-{   DateTimeToStr returns a string representation of DateTime using ShortDateTimeFormat   }
+{   DateTimeToStr returns a string representation of DateTime using LongDateTimeFormat   }
 
 function DateTimeToStr(DateTime: TDateTime): string;
 begin
@@ -695,7 +695,7 @@ var
                        if (Hour<>0) or (Minute<>0) or (Second<>0) then
                         begin
                           StoreString(' ');
-                          StoreFormat(TimeReformat(ShortTimeFormat));
+                          StoreFormat(TimeReformat(LongTimeFormat));
                         end;
                      end;
                 end;
