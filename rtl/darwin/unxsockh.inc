@@ -125,6 +125,9 @@ Const
         SO_OOBINLINE     =$0100;        { leave received OOB data in line }
         SO_REUSEPORT     =$0200;        { allow local address & port reuse }
         SO_TIMESTAMP     =$0400;        { timestamp received dgram traffic }
+        SO_ACCEPTFILTER  =$1000;        { there is an accept filter }
+        SO_DONTTRUNC     =$2000;        { APPLE: Retain unread data (ATOMIC proto) }
+        SO_WANTMORE      =$4000;        { APPLE: Want OOB in MSG_FLAG on receive }
 
 {
  * Additional options, not kept in so_options.
@@ -137,6 +140,13 @@ Const
         SO_RCVTIMEO      =$1006;        { receive timeout }
         SO_ERROR         =$1007;        { get error status and clear }
         SO_TYPE          =$1008;        { get socket type }
+
+        SO_NREAD         =$1020;        { APPLE: get 1st-packet byte count }
+        SO_NKE           =$1021;        { APPLE: Install socket-level NKE }
+        SO_NOSIGPIPE     =$1022;        { APPLE: No SIGPIPE on EPIPE }
+        SO_NOADDRERR     =$1023;        { APPLE: Returns EADDRNOTAVAIL when src is not available anymore }
+        SO_NWRITE        =$1024;        { APPLE: Get number of bytes currently in send socket buffer }
+        SO_LINGER_SEC    =$1080;        { linger on close if data present (in seconds) }
 
 
         SHUT_RD         =0;             { shut down the reading side }
@@ -256,14 +266,14 @@ Const
 
       	IPPROTO_DONE		=257;
 
-        IPV6_OPTIONS		= 1;  { buf/ip6_opts; set/get IP6 options }
-        IPV6_RECVOPTS		= 5;  { bool; receive all IP6 opts w/dgram }
-        IPV6_RECVRETOPTS	= 6;  { bool; receive IP6 opts for response }
-        IPV6_RECVDSTADDR	= 7;  { bool; receive IP6 dst addr w/dgram }
-        IPV6_RETOPTS		= 8;  { ip6_opts; set/get IP6 options }
-        IPV6_SOCKOPT_RESERVED1	= 3;  { reserved for future use }
-        IPV6_UNICAST_HOPS	= 4;  { int; IP6 hops }
-        IPV6_MULTICAST_IF	= 9;  { __uint8_t; set/get IP6 multicast i/f  }
+        IPV6_OPTIONS		= 1; { buf/ip6_opts; set/get IP6 options }
+        IPV6_RECVOPTS		= 5; { bool; receive all IP6 opts w/dgram }
+        IPV6_RECVRETOPTS	= 6; { bool; receive IP6 opts for response }
+        IPV6_RECVDSTADDR	= 7; { bool; receive IP6 dst addr w/dgram }
+        IPV6_RETOPTS		= 8; { ip6_opts; set/get IP6 options }
+        IPV6_SOCKOPT_RESERVED1	= 3; { reserved for future use }
+        IPV6_UNICAST_HOPS	= 4; { int; IP6 hops }
+        IPV6_MULTICAST_IF	= 9; { __uint8_t; set/get IP6 multicast i/f  }
         IPV6_MULTICAST_HOPS	=10; { __uint8_t; set/get IP6 multicast hops }
         IPV6_MULTICAST_LOOP	=11; { __uint8_t; set/get IP6 mcast loopback }
         IPV6_JOIN_GROUP		=12; { ip6_mreq; join a group membership }
@@ -290,10 +300,10 @@ Const
       	IP_RECVDSTADDR		=  7;    { bool; receive IP dst addr w/dgram }
       	IP_RETOPTS		=  8;    { ip_opts; set/get IP options }
       	IP_MULTICAST_IF		=  9;    { u_char; set/get IP multicast i/f  }
-      	IP_MULTICAST_TTL	= 10;   { u_char; set/get IP multicast ttl }
-      	IP_MULTICAST_LOOP	= 11;   { u_char; set/get IP multicast loopback }
-      	IP_ADD_MEMBERSHIP	= 12;   { ip_mreq; add an IP group membership }
-      	IP_DROP_MEMBERSHIP	= 13;   { ip_mreq; drop an IP group membership }
+      	IP_MULTICAST_TTL	= 10;    { u_char; set/get IP multicast ttl }
+      	IP_MULTICAST_LOOP	= 11;    { u_char; set/get IP multicast loopback }
+      	IP_ADD_MEMBERSHIP	= 12;    { ip_mreq; add an IP group membership }
+      	IP_DROP_MEMBERSHIP	= 13;    { ip_mreq; drop an IP group membership }
 
   { Flags for send, recv etc. }
   MSG_OOB        = $0001;              { Process out-of-band data}
@@ -305,8 +315,8 @@ Const
   MSG_WAITALL    = $0040;              { Wait for a full request }
   MSG_DONTWAIT   = $0080;              { Non-blocking I/O }
   MSG_EOF        = $0100;
-  MSG_WAITSTREAM = $0200;	             { wait up to full request.. may return partial }
-  MSG_FLUSH 	   = $0400;              { Start of 'hold' seq; dump so_temp }
+  MSG_WAITSTREAM = $0200;              { wait up to full request.. may return partial }
+  MSG_FLUSH 	 = $0400;              { Start of 'hold' seq; dump so_temp }
   MSG_HOLD       = $0800;              { Hold frag in so_temp }
   MSG_SEND       = $1000;              { Send the packet in so_temp }
   MSG_HAVEMORE   = $2000;              { Data ready to be read }
