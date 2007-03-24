@@ -16,14 +16,14 @@
     case byte of
       0:
         (dev    : qword;
-        __pad0  : array[0..3] of byte;
+        __pad0  : array[0..1] of byte;
         __ino,
         mode,
         nlink,
         uid,
         gid     : cardinal;
         rdev    : qword;
-        __pad3  : array[0..3] of byte;
+        __pad3  : array[0..1] of byte;
         size    : qword;
         blksize : cardinal;
         blocks  : qword;
@@ -36,14 +36,14 @@
         ino    : qword);
       1:
         (st_dev   : qword;
-        __pad0_   : array[0..3] of byte;
+        __pad0_   : array[0..1] of byte;
         __st_ino_,
         st_mode,
         st_nlink,
         st_uid,
         st_gid    : cardinal;
         st_rdev   : qword;
-        __pad3_   : array[0..3] of byte;
+        __pad3_   : array[0..1] of byte;
         st_size   : qword;
         st_blksize: cardinal;
         st_blocks : qword;
