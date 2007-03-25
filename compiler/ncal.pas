@@ -614,7 +614,7 @@ implementation
                       temp:=Tvecnode(p).right;
                       Tvecnode(p).right:=l.getcopy;
 
-					  {Typecheckpass can only be performed *after* the l.getcopy since it
+                      {Typecheckpass can only be performed *after* the l.getcopy since it
                        can modify the tree, and l is in the hightree.}
                       typecheckpass(hightree);
 
