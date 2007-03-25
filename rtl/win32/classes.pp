@@ -26,6 +26,9 @@ uses
   rtlconsts,
   sysutils,
   types,
+{$ifdef FPC_TESTGENERICS}
+  fgl,
+{$endif}
   typinfo,
   windows;
 

@@ -80,15 +80,22 @@ type
 
 {$ifndef VER2_0}
 
+const
+  MaxGListSize = MaxInt div 1024;
+
+type
   generic TFPGList<T> = class(TFPSList)
   type public
     TCompareFunc = function(const Item1, Item2: T): Integer;
+    TTypeList = array[0..MaxGListSize] of T;
+    PTypeList = ^TTypeList;
     PT = ^T;
   var protected
     FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
     function  Get(Index: Integer): T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
     function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
     procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
   public
@@ -104,6 +111,7 @@ type
     function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
+    property List: PTypeList read GetList;
   end;
 
 {$endif}
@@ -557,6 +565,11 @@ end;
 function TFPGList.Get(Index: Integer): T;
 begin
   Result := T(inherited Get(Index)^);
+end;
+
+function TFPGList.GetList: PTypeList;
+begin
+  Result := PTypeList(FList);
 end;
 
 function TFPGList.ItemPtrCompare(Item1, Item2: Pointer): Integer;

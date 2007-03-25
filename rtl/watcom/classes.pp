@@ -25,6 +25,9 @@ interface
 uses
   typinfo,
   rtlconsts,
+{$ifdef FPC_TESTGENERICS}
+  fgl,
+{$endif}
   sysutils;
 
 {$i classesh.inc}
