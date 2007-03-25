@@ -179,7 +179,7 @@ begin
         dirp^.dd_size := bytes;
         dirp^.dd_nextoff := 0;
       end;
-    dp := pdirent(ptrint(dirp^.dd_buf)+dirp^.dd_nextoff);
+    dp := Pdirent(ptruint(dirp^.dd_buf)+dirp^.dd_nextoff);
     inc(dirp^.dd_nextoff,dp^.d_reclen);
     inc(dirp^.dd_loc,dp^.d_reclen);
   until dp^.d_fileno <> 0; // Don't show deleted files
@@ -271,7 +271,7 @@ function Fpsigaction(sig: cint; new_action, old_action: psigactionrec): cint; [p
 begin
 {$ifdef cpusparc}
   { Sparc has an extra stub parameter }
-  Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(new_action),TSysParam(old_action),TSysParam(PtrInt(@Fprt_sigreturn_stub)-8),TSysParam(8));
+  Fpsigaction:=do_syscall(syscall_nr_rt_sigaction,TSysParam(sig),TSysParam(new_action),TSysParam(old_action),TSysParam(ptruint(@Fprt_sigreturn_stub)-8),TSysParam(8));
 {$else cpusparc}
 {$ifdef NEED_USER_TRAMPOLINE}
   if new_action <> nil then
@@ -582,7 +582,7 @@ end;
 
 {$if defined(cpupowerpc)}
 { fpprctl() call }
-function fpprctl(option : cint; const arg : ptrint) : cint;
+function fpprctl(option : cint; const arg : ptruint) : cint;
 begin
   fpprctl := do_syscall(syscall_nr_prctl, option, arg);
 end;
