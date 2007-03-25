@@ -32,6 +32,10 @@ Type
 // 64-bit machines don't have only 64-bit params.
 
   TSysParam  = Longint;
+  
+var
+  psysinfo: LongWord;
+  sysenter_supported: LongInt = 0;
 
 function Do_SysCall(sysnr:TSysParam):TSysResult; register; external name 'FPC_SYSCALL0';
 function Do_SysCall(sysnr,param1:TSysParam):TSysResult; register; external name 'FPC_SYSCALL1';

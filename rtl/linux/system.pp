@@ -227,7 +227,6 @@ begin
   reenable_signal:=geterrno=0;
 end;
 
-
 // signal handler is arch dependant due to processorexception to language
 // exception translation
 
@@ -299,6 +298,10 @@ end;
 var
   initialstkptr : Pointer;external name '__stkptr';
 begin
+{$IFDEF i386}
+  InitSyscallIntf;
+{$ENDIF}
+
   SysResetFPU;
 {$if defined(cpupowerpc)}
   // some PPC kernels set the exception bits FE0/FE1 in the MSR to zero,

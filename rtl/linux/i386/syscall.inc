@@ -17,13 +17,74 @@
 
 {$ASMMODE ATT}
 
+{*************************SYSENTER CODE********************************}
+
+{ included by system.pp in linux rtl }
+const
+  AT_NULL         = 0;
+{* Pointer to the global system page used for system calls and other
+   nice things.  *}
+  AT_SYSINFO      = 32;
+  AT_SYSINFO_EHDR = 33;
+
+type
+  TAuxiliaryValue = cuInt32;
+
+  TInternalUnion = record
+    a_val: cuint32;           //* Integer value */
+      {* We use to have pointer elements added here.  We cannot do that,
+         though, since it does not work when using 32-bit definitions
+         on 64-bit platforms and vice versa.  *}
+  end;
+
+  Elf32_auxv_t = record
+    a_type: cuint32;              //* Entry type */
+    a_un: TInternalUnion;
+  end;
+  TElf32AuxiliaryVector = Elf32_auxv_t;
+  PElf32AuxiliaryVector = ^TElf32AuxiliaryVector;
+
+procedure InitSyscallIntf;
+var
+  ep: PPChar;
+  auxv: PElf32AuxiliaryVector;
+begin
+
+  psysinfo := 0;
+  ep := envp;
+  while ep^ <> nil do
+    Inc(ep);
+
+  Inc(ep);
+
+  auxv := PElf32AuxiliaryVector(ep);
+
+  repeat
+    if auxv^.a_type = AT_SYSINFO then begin
+      psysinfo := auxv^.a_un.a_val;
+      if psysinfo <> 0 then
+        sysenter_supported := 1; // descision factor in asm syscall routines
+      Break;
+    end;
+    Inc(auxv);
+  until auxv^.a_type = AT_NULL;
+end;
+
+{***********************SYSENTER CODE END******************************}
+
 Procedure fpc_geteipasebx;[external name 'fpc_geteipasebx'];
 
 function FpSysCall(sysnr:TSysParam):TSysResult; assembler; register; [public,alias:'FPC_SYSCALL0'];
 { Var sysnr located in register eax }
 asm
 //      movl  sysnr,%eax
-        int   $0x80
+        cmp  $0, sysenter_supported
+        jne  .LSysEnter
+        int $0x80
+        jmp   .LTail
+  .LSysEnter:
+        call psysinfo
+  .LTail:
         cmpl  $-4095,%eax
         jb    .LSyscOK
         negl  %eax
@@ -39,7 +100,13 @@ asm
         movl  %ebx,%ecx
 //      movl  sysnr,%eax
         movl  %edx,%ebx
+        cmp   $0, sysenter_supported
+        jne   .LSysEnter
         int   $0x80
+        jmp   .LTail
+  .LSysEnter:
+        call psysinfo
+  .LTail:
         movl  %ecx,%ebx
         cmpl  $-4095,%eax
         jb    .LSyscOK
@@ -58,7 +125,13 @@ asm
 //      movl  sysnr,%eax
         movl  %edx,%ebx
 //      movl  param2,%ecx
+        cmp   $0, sysenter_supported
+        jne   .LSysEnter
         int   $0x80
+        jmp   .LTail
+  .LSysEnter:
+        call psysinfo
+  .LTail:
         pop   %ebx
         cmpl  $-4095,%eax
         jb    .LSyscOK
@@ -79,7 +152,13 @@ asm
         movl  %edx,%ebx
 //      movl  param2,%ecx
         movl  param3,%edx
+        cmp   $0, sysenter_supported
+        jne   .LSysEnter
         int   $0x80
+        jmp   .LTail
+  .LSysEnter:
+        call psysinfo
+  .LTail:
         pop   %ebx
         cmpl  $-4095,%eax
         jb    .LSyscOK
@@ -103,7 +182,13 @@ asm
 //      movl  param2,%ecx
         movl  param3,%edx
         movl  param4,%esi
+        cmp   $0, sysenter_supported
+        jne   .LSysEnter
         int   $0x80
+        jmp  .LTail
+  .LSysEnter:
+        call psysinfo
+  .LTail:
         pop   %esi
         pop   %ebx
         cmpl  $-4095,%eax
@@ -131,7 +216,13 @@ asm
         movl  param3,%edx
         movl  param4,%esi
         movl  param5,%edi
+        cmp   $0, sysenter_supported
+        jne   .LSysEnter
         int   $0x80
+        jmp   .LTail
+  .LSysEnter:
+        call psysinfo
+  .LTail:
         pop   %edi
         pop   %esi
         pop   %ebx
@@ -163,7 +254,13 @@ asm
         movl  param4,%esi
         movl  param5,%edi
         movl  param6,%ebp
+        cmp   $0, sysenter_supported
+        jne   .LSysEnter
         int   $0x80
+        jmp   .LTail
+  .LSysEnter:
+        call psysinfo
+  .LTail:
         pop   %ebp
         pop   %edi
         pop   %esi
