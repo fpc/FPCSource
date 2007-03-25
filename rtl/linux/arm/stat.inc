@@ -33,7 +33,7 @@
       mtime_nsec : culong;
       ctime  : culong;
       ctime_nsec : culong;
-      ino    : culonglong;)
+      ino    : culonglong;);
     1:
       (st_dev    : culonglong;
       __pad0_    : array[0..3] of cuchar;
@@ -55,4 +55,3 @@
       st_ctime_nsec : culong;
       st_ino    : culonglong);
   end;
-
