@@ -608,18 +608,23 @@ implementation
                         end;
                       {In the procedure the array range is 0..(upper_bound-lower_bound).}
                       hightree:=caddnode.create(subn,r,l);
-                      typecheckpass(hightree);
 
                       {Replace the rangnode in the tree by its lower_bound, and
                        dispose the rangenode.}
                       temp:=Tvecnode(p).right;
                       Tvecnode(p).right:=l.getcopy;
+
+					  {Typecheckpass can only be performed *after* the l.getcopy since it
+                       can modify the tree, and l is in the hightree.}
+                      typecheckpass(hightree);
+
                       with Trangenode(temp) do
                         begin
                           left:=nil;
                           right:=nil;
                         end;
                       temp.free;
+
                       {Tree changed from p[l..h] to p[l], recalculate resultdef.}
                       p.resultdef:=nil;
                       typecheckpass(p);
