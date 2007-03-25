@@ -59,4 +59,8 @@ unit sysinitpas;
       DLL_Entry;
     end;
 
+    procedure asm_exit;stdcall;public name 'asm_exit';
+      begin
+      end;
+
 end.

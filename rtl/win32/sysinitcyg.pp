@@ -99,4 +99,8 @@ unit sysinitcyg;
         Cygwin_crt0(@CMainDLL);
       end;
 
+    procedure asm_exit;stdcall;public name 'asm_exit';
+      begin
+      end;
+
 end.

@@ -25,16 +25,20 @@ unit sysinitgprof;
     {$linklib user32}
     {$linklib kernel32}
 
+    const
+      monstarted : dword = 0;
+
     var
       SysInstance : Longint;external name '_FPC_SysInstance';
+      stext : record end;external name '__text_start__';
       etext : record end;external name 'etext';
-      monstarted : dword;
 
     procedure EXE_Entry; external name '_FPC_EXE_Entry';
     function DLL_Entry : longbool; external name '_FPC_DLL_Entry';
 
     procedure Cygwin_crt0(p : pointer);cdecl;external name 'cygwin_crt0';
     procedure __main;cdecl;external name '__main';
+    procedure _mcleanup;cdecl;external name '_mcleanup';
 
     procedure monstartup(main,etext : pointer);cdecl;external name 'monstartup';
 
@@ -46,7 +50,7 @@ unit sysinitgprof;
         if monstarted=0 then
           begin
             inc(monstarted);
-            monstartup(@CMainExe,@etext);
+            monstartup(@stext,@etext);
           end;
       end;
 
@@ -56,7 +60,7 @@ unit sysinitgprof;
         if monstarted=0 then
           begin
             inc(monstarted);
-            monstartup(@CMainDLL,@etext);
+            monstartup(@stext,@etext);
           end;
       end;
 
@@ -132,6 +136,12 @@ unit sysinitgprof;
           andl   $0xfffffff0,%esp
         end;
         Cygwin_crt0(@CMainDLL);
+      end;
+
+
+    procedure asm_exit;stdcall;public name 'asm_exit';
+      begin
+        _mcleanup;
       end;
 
 end.
