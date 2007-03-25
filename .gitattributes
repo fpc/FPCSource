@@ -6707,6 +6707,7 @@ tests/test/tarray3.pp svneol=native#text/plain
 tests/test/tarray4.pp svneol=native#text/plain
 tests/test/tarray5.pp svneol=native#text/plain
 tests/test/tarray6.pp svneol=native#text/plain
+tests/test/tarray7.pp svneol=native#text/x-pascal
 tests/test/tasmread.pp svneol=native#text/plain
 tests/test/tasout.pp svneol=native#text/plain
 tests/test/tbopr.pp svneol=native#text/plain
