@@ -559,27 +559,27 @@ begin
   FindGetFileInfo:=false;
   if not fpstat(s,st)>=0 then
    exit;
-  info.FSize:=st.size;
-  info.FMTime:=st.mtime;
-  if (st.mode and STAT_IFMT)=STAT_IFDIR then
+  info.FSize:=st.st_Size;
+  info.FMTime:=st.st_mtime;
+  if (st.st_mode and STAT_IFMT)=STAT_IFDIR then
    info.fmode:=$10
   else
    info.fmode:=$0;
-  if (st.mode and STAT_IWUSR)=0 then
+  if (st.st_mode and STAT_IWUSR)=0 then
    info.fmode:=info.fmode or 1;
   if s[f.NamePos+1]='.' then
    info.fmode:=info.fmode or $2;
 
-  if Info.FMode and Not(f.searchattr)=0 Then
-   begin
+  If ((Info.FMode and Not(f.searchattr))=0) Then
+   Begin
      f.Name:=Copy(s,f.NamePos+1,255);
      f.Attr:=Info.FMode;
-     f.Mode:=word(st.mode);
      f.Size:=Info.FSize;
+     f.mode:=st.st_mode;
      UnixDateToDT(Info.FMTime, DT);
      PackTime(DT,f.Time);
      FindGetFileInfo:=true;
-   end;
+   End;
 end;
 
 
@@ -757,7 +757,7 @@ Function FSearch(path : pathstr;dirlist : string) : pathstr;
 Var
   info : BaseUnix.stat;
 Begin
-  if (length(Path)>0) and (path[1]='/') and (fpStat(path,info)>=0) and (not fpS_ISDIR(Info.mode)) then
+  if (length(Path)>0) and (path[1]='/') and (fpStat(path,info)>=0) and (not fpS_ISDIR(Info.st_Mode)) then
     FSearch:=path
   else
     FSearch:=Unix.FSearch(path,dirlist);
@@ -776,7 +776,7 @@ Begin
      exit;
    end
   else
-   LinAttr:=Info.mode;
+   LinAttr:=Info.st_Mode;
   if fpS_ISDIR(LinAttr) then
    Attr:=$10
   else
@@ -800,7 +800,7 @@ Begin
      exit
    end
   else
-   UnixDateToDT(Info.mTime,DT);
+   UnixDateToDT(Info.st_mTime,DT);
   PackTime(DT,Time);
 End;
 
