@@ -23,5 +23,6 @@ begin
 end;
   
 begin
+  LongTimeFormat:='hh:nn:ss';
   CheckTime;
 end.
