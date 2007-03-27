@@ -671,7 +671,7 @@ Implementation
           result:=(code=0);
         end;
 
-        function consumeoffset(var p:pchar;out relocsym:tobjsymbol;out value,symvalue:longint):boolean;
+        function consumeoffset(var p:pchar;out relocsym:tobjsymbol;out value:longint):boolean;
         var
           hs        : string;
           len,
@@ -682,17 +682,14 @@ Implementation
           gotmin,
           have_first_symbol,
           have_second_symbol,
-          have_sym_address,
           dosub     : boolean;
         begin
           result:=false;
           value:=0;
-          symvalue:=0;
           relocsym:=nil;
           gotmin:=false;
           have_first_symbol:=false;
           have_second_symbol:=false;
-          have_sym_address:=false;
           repeat
             dosub:=false;
             exprvalue:=0;
@@ -741,17 +738,17 @@ Implementation
                     begin
                       if have_second_symbol then
                         internalerror(2007032201);
-
                       have_second_symbol:=true;
-                      if not have_sym_address then
+                      if not have_first_symbol then
                         internalerror(2007032202);
                       { second symbol should substracted to first }
                       if not dosub then
                         internalerror(2007032203);
                       if (relocsym.objsection<>sym.objsection) then
                         internalerror(2005091810);
+                      exprvalue:=relocsym.address-sym.address;
                       relocsym:=nil;
-                      symvalue:=symvalue-sym.address;
+                      dosub:=false;
                     end
                   else
                     begin
@@ -759,10 +756,9 @@ Implementation
                       if assigned(sym.objsection) then
                         begin
                           { first symbol should be + }
-                          if not have_sym_address and dosub then
+                          if not have_first_symbol and dosub then
                             internalerror(2007032204);
-                          have_sym_address:=true;
-                          symvalue:=sym.address;
+                          have_first_symbol:=true;
                         end;
                     end;
                 end;
@@ -787,26 +783,22 @@ Implementation
           result:=true;
         end;
 
-      const
-        N_Function = $24; { function or const }
       var
         stabstrlen,
         ofs,
-        symaddr,
         nline,
         nidx,
         nother,
         i         : longint;
         stab      : TObjStabEntry;
         relocsym  : TObjSymbol;
-        pstr,pstart,
+        pstr,
         pcurr,
         pendquote : pchar;
         oldsec    : TObjSection;
         reltype   : TObjRelocationType;
       begin
         pcurr:=nil;
-        pstart:=p;
         pstr:=nil;
         pendquote:=nil;
         relocsym:=nil;
@@ -851,10 +843,7 @@ Implementation
             if not consumenumber(pcurr,nline) then
               internalerror(200509186);
             if consumecomma(pcurr) then
-              consumeoffset(pcurr,relocsym,ofs,symaddr);
-            if assigned(relocsym) and
-               (relocsym.bind<>AB_LOCAL) then
-              symaddr:=0;
+              consumeoffset(pcurr,relocsym,ofs);
 
             { Generate stab entry }
             if assigned(pstr) and (pstr[0]<>#0) then
@@ -889,7 +878,7 @@ Implementation
             stab.ntype:=byte(nidx);
             stab.ndesc:=word(nline);
             stab.nother:=byte(nother);
-            stab.nvalue:=ofs+symaddr;
+            stab.nvalue:=ofs;
 
             { Write the stab first without the value field. Then
               write a the value field with relocation }
