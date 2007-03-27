@@ -6731,6 +6731,7 @@ tests/test/tenum2.pp svneol=native#text/plain
 tests/test/testcmem.pp svneol=native#text/plain
 tests/test/testda1.pp svneol=native#text/plain
 tests/test/testfpuc.pp svneol=native#text/plain
+tests/test/testmem.pp -text
 tests/test/testmovd.pp svneol=native#text/plain
 tests/test/tests.pp svneol=native#text/plain
 tests/test/testsse2.pp svneol=native#text/plain
@@ -6907,6 +6908,7 @@ tests/test/tstrreal1.pp svneol=native#text/plain
 tests/test/tstrreal2.pp svneol=native#text/plain
 tests/test/tstrreal3.pp -text
 tests/test/tsubdecl.pp svneol=native#text/plain
+tests/test/ttestmem.pp -text
 tests/test/tugeneric7.pp svneol=native#text/plain
 tests/test/tunaligned1.pp svneol=native#text/plain
 tests/test/tunit1.pp svneol=native#text/plain
