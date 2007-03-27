@@ -58,7 +58,7 @@ var
 const
   Everything_ok : boolean = true;
 begin
-  cmd:='testmem'+ExeSuffix;
+  cmd:='targ1a'+ExeSuffix;
   arg:='';
   first_wrong:=-1;
   for i:=0 to MAX do
