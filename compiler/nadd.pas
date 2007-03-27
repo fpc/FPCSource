@@ -1149,10 +1149,10 @@ implementation
              begin
                if not(nodetype in [addn,subn,symdifn,muln,equaln,unequaln,lten,gten]) then
                 CGMessage(type_e_set_operation_unknown);
-               { if the right side is also a setdef then the settype must
-                 be the same as the left setdef }
-               if (rd.typ=setdef) and
-                  not(equal_defs(ld,rd)) then
+               { make operands the same setdef, if right is a normalset or varset then
+                 force the left side to be the same. General fallback also for non-set nodes
+                 is to convert right to a set }
+               if not(equal_defs(ld,rd)) then
                 begin
                   if is_varset(rd) or is_normalset(rd) then
                     inserttypeconv(left,right.resultdef)
