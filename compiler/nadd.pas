@@ -384,6 +384,52 @@ implementation
              exit;
           end;
 
+        { Add,Sub,Mul with constant 0 or 1?  }
+        if is_constintnode(right) then
+          begin
+            if tordconstnode(right).value = 0 then
+              begin
+                case nodetype of
+                  addn,subn:
+                   result := left.getcopy;
+                  muln:
+                   result:=cordconstnode.create(0,left.resultdef,true);
+                end;
+              end
+            else if tordconstnode(right).value = 1 then
+              begin
+                case nodetype of
+                  muln:
+                   result := left.getcopy;
+                end;
+              end;
+            if assigned(result) then
+              exit;
+          end;
+        if is_constintnode(left) then
+          begin
+            if tordconstnode(left).value = 0 then
+              begin
+                case nodetype of
+                  addn:
+                   result := right.getcopy;
+                  subn:
+                   result := cunaryminusnode.create(right.getcopy);
+                  muln:
+                   result:=cordconstnode.create(0,right.resultdef,true);
+                end;
+              end
+            else if tordconstnode(left).value = 1 then
+              begin
+                case nodetype of
+                  muln:
+                   result := right.getcopy;
+                end;
+              end;
+            if assigned(result) then
+              exit;
+          end;
+
       { both real constants ? }
         if (lt=realconstn) and (rt=realconstn) then
           begin
