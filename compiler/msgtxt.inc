@@ -319,7 +319,7 @@ const msgtxt : array[0..000179,1..240] of char=(
   '03200_E_32 Bit-Integer or pointer variable expected'#000+
   '03201_E_Goto statements aren'#039't',' allowed between different procedu'+
   'res'#000+
-  '03202_F_Procedure too complex, it requires too much registers'#000+
+  '03202_F_Procedure too complex, it requires too many registers'#000+
   '03203_E_Illegal expression'#000+
   '03204_E_Invalid integer expression'#000+
   '03205_E_Illegal qualifier'#000+
