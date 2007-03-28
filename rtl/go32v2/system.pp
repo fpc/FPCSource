@@ -171,7 +171,7 @@ var
   useproxy : boolean;
   hp       : ppchar;
   doscmd   : string[129];  { Dos commandline copied from PSP, max is 128 chars +1 for terminating zero }
-  arglen,
+  arglen,cmdlen,
   count   : longint;
   argstart,
   pc,arg  : pchar;
@@ -231,12 +231,13 @@ begin
   move(dos_argv0^,argv[count]^,argv0len+1);
   inc(count);
   { setup cmdline variable }
-  cmdline:=Getmem(argv0len+length(doscmd)+2);
+  cmdlen:=argv0len+length(doscmd)+2;
+  cmdline:=Getmem(cmdlen);
   move(dos_argv0^,cmdline^,argv0len);
   cmdline[argv0len]:=' ';
   inc(argv0len);
   move(doscmd[1],cmdline[argv0len],length(doscmd));
-  cmdline[argv0len+length(doscmd)+1]:=#0;
+  cmdline[cmdlen-1]:=#0;
   { parse dos commandline }
   pc:=@doscmd[1];
   while pc^<>#0 do
