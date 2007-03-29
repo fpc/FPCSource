@@ -1152,19 +1152,32 @@ Implementation
                          ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
                      end;
                    aitconst_rva_symbol :
-                     { PE32+? }
-                     if target_info.system=system_x86_64_win64 then
-                       ObjData.writereloc(Tai_const(hp).value,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA)
-                     else
-                       ObjData.writereloc(Tai_const(hp).value,sizeof(aint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA);
-                   aitconst_uleb128bit :
                      begin
-                       leblen:=EncodeUleb128(Tai_const(hp).value,lebbuf);
-                       ObjData.writebytes(lebbuf,leblen);
+                       { PE32+? }
+                       if target_info.system=system_x86_64_win64 then
+                         ObjData.writereloc(Tai_const(hp).value,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA)
+                       else
+                         ObjData.writereloc(Tai_const(hp).value,sizeof(aint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA);
                      end;
+                   aitconst_uleb128bit,
                    aitconst_sleb128bit :
                      begin
-                       leblen:=EncodeSleb128(Tai_const(hp).value,lebbuf);
+                       if assigned(tai_const(hp).sym) then
+                         begin
+                           if not assigned(tai_const(hp).endsym) then
+                             internalerror(200703291);
+                           objsym:=Objdata.SymbolRef(tai_const(hp).sym);
+                           objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
+                           if objsymend.objsection<>objsym.objsection then
+                             internalerror(200703292);
+                           v:=objsymend.address-objsym.address+Tai_const(hp).value;
+                         end
+                       else
+                         v:=Tai_const(hp).value;
+                       if tai_const(hp).consttype=aitconst_uleb128bit then
+                         leblen:=EncodeUleb128(v,lebbuf)
+                       else
+                         leblen:=EncodeSleb128(v,lebbuf);
                        ObjData.writebytes(lebbuf,leblen);
                      end;
                    else
