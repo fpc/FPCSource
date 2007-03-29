@@ -1021,7 +1021,7 @@ parser_e_goto_outside_proc=03201_E_Goto statements aren't allowed between differ
 % ...
 %
 % \end{verbatim}
-parser_f_too_complex_proc=03202_F_Procedure too complex, it requires too much registers
+parser_f_too_complex_proc=03202_F_Procedure too complex, it requires too many registers
 % Your procedure body is too long for the compiler. You should split the
 % procedure into multiple smaller procedures.
 parser_e_illegal_expression=03203_E_Illegal expression

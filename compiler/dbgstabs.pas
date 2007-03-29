@@ -737,7 +737,7 @@ implementation
           recorddef :
             result:=recorddef_stabstr(trecorddef(def));
           variantdef :
-            result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
+            result:=def_stabstr_evaluate(def,'${numberstring};',[]);
           pointerdef :
             result:=strpnew('*'+def_stab_number(tpointerdef(def).pointeddef));
           classrefdef :
@@ -745,7 +745,7 @@ implementation
           setdef :
             result:=def_stabstr_evaluate(def,'@s$1;S$2',[tostr(def.size*8),def_stab_number(tsetdef(def).elementdef)]);
           formaldef :
-            result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
+            result:=def_stabstr_evaluate(def,'${numberstring};',[]);
           arraydef :
             if not is_packed_array(def) then
               result:=def_stabstr_evaluate(def,'ar$1;$2;$3;$4',[def_stab_number(tarraydef(def).rangedef),
@@ -765,7 +765,7 @@ implementation
           objectdef :
             result:=objectdef_stabstr(tobjectdef(def));
           undefineddef :
-            result:=def_stabstr_evaluate(def,'formal${numberstring};',[]);
+            result:=def_stabstr_evaluate(def,'${numberstring};',[]);
         end;
         if result=nil then
           internalerror(200512203);
@@ -1259,9 +1259,9 @@ implementation
                 if paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
                    not(vo_has_local_copy in sym.varoptions) and
                    not is_open_string(sym.vardef) then
-                  st := 'v'+st { should be 'i' but 'i' doesn't work }
+                  c:='v' { should be 'i' but 'i' doesn't work }
                 else
-                  st := 'p'+st;
+                  c:='p';
                 case sym.localloc.loc of
                   LOC_REGISTER,
                   LOC_CREGISTER,
@@ -1270,16 +1270,24 @@ implementation
                   LOC_FPUREGISTER,
                   LOC_CFPUREGISTER :
                     begin
+                      if c='p' then
+                        c:='R'
+                      else
+                        c:='a';
+                      st:=c+st;
                       regidx:=findreg_by_number(sym.localloc.register);
                       { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
                       { this is the register order for GDB}
                       if regidx<>0 then
-                        result:=sym_stabstr_evaluate(sym,'"${name}:r$1",${N_RSYM},0,${line},$2',[st,tostr(longint(regstabs_table[regidx]))]);
+                        result:=sym_stabstr_evaluate(sym,'"${name}:$1",${N_RSYM},0,${line},$2',[st,tostr(longint(regstabs_table[regidx]))]);
                     end;
                   LOC_REFERENCE :
-                    { offset to ebp => will not work if the framepointer is esp
-                      so some optimizing will make things harder to debug }
-                    result:=sym_stabstr_evaluate(sym,'"${name}:$1",${N_TSYM},0,${line},$2',[st,tostr(sym.localloc.reference.offset)])
+                    begin
+                      st:=c+st;
+                      { offset to ebp => will not work if the framepointer is esp
+                        so some optimizing will make things harder to debug }
+                      result:=sym_stabstr_evaluate(sym,'"${name}:$1",${N_TSYM},0,${line},$2',[st,tostr(sym.localloc.reference.offset)])
+                    end;
                   else
                     internalerror(2003091814);
                 end;

@@ -948,7 +948,7 @@ implementation
         do_localswitch(cs_mmx_saturation);
       end;
 
-    procedure dir_savefpuexceptions;
+    procedure dir_safefpuexceptions;
       begin
         do_localswitch(cs_fpu_fwait);
       end;
@@ -1304,7 +1304,7 @@ implementation
         AddDirective('REFERENCEINFO',directive_all, @dir_referenceinfo);
         AddDirective('RESOURCE',directive_all, @dir_resource);
         AddDirective('SATURATION',directive_all, @dir_saturation);
-        AddDirective('SAVEFPUEXCEPTIONS',directive_all, @dir_savefpuexceptions);
+        AddDirective('SAFEFPUEXCEPTIONS',directive_all, @dir_safefpuexceptions);
         AddDirective('SETPEFLAGS', directive_all, @dir_setpeflags);
         AddDirective('SCREENNAME',directive_all, @dir_screenname);
         AddDirective('SMARTLINK',directive_all, @dir_smartlink);

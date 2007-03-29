@@ -428,6 +428,52 @@ implementation
              exit;
           end;
 
+        { Add,Sub,Mul with constant 0 or 1?  }
+        if is_constintnode(right) then
+          begin
+            if tordconstnode(right).value = 0 then
+              begin
+                case nodetype of
+                  addn,subn:
+                   result := left.getcopy;
+                  muln:
+                   result:=cordconstnode.create(0,left.resultdef,true);
+                end;
+              end
+            else if tordconstnode(right).value = 1 then
+              begin
+                case nodetype of
+                  muln:
+                   result := left.getcopy;
+                end;
+              end;
+            if assigned(result) then
+              exit;
+          end;
+        if is_constintnode(left) then
+          begin
+            if tordconstnode(left).value = 0 then
+              begin
+                case nodetype of
+                  addn:
+                   result := right.getcopy;
+                  subn:
+                   result := cunaryminusnode.create(right.getcopy);
+                  muln:
+                   result:=cordconstnode.create(0,right.resultdef,true);
+                end;
+              end
+            else if tordconstnode(left).value = 1 then
+              begin
+                case nodetype of
+                  muln:
+                   result := right.getcopy;
+                end;
+              end;
+            if assigned(result) then
+              exit;
+          end;
+
       { both real constants ? }
         if (lt=realconstn) and (rt=realconstn) then
           begin
@@ -1102,10 +1148,10 @@ implementation
              begin
                if not(nodetype in [addn,subn,symdifn,muln,equaln,unequaln,lten,gten]) then
                 CGMessage(type_e_set_operation_unknown);
-               { if the right side is also a setdef then the settype must
-                 be the same as the left setdef }
-               if (rd.typ=setdef) and
-                  not(equal_defs(ld,rd)) then
+               { make operands the same setdef, if right is a normalset or varset then
+                 force the left side to be the same. General fallback also for non-set nodes
+                 is to convert right to a set }
+               if not(equal_defs(ld,rd)) then
                 begin
                   if is_varset(rd) or is_normalset(rd) then
                     inserttypeconv(left,right.resultdef)

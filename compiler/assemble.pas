@@ -680,12 +680,16 @@ Implementation
           sym       : tobjsymbol;
           exprvalue : longint;
           gotmin,
+          have_first_symbol,
+          have_second_symbol,
           dosub     : boolean;
         begin
           result:=false;
           value:=0;
           relocsym:=nil;
           gotmin:=false;
+          have_first_symbol:=false;
+          have_second_symbol:=false;
           repeat
             dosub:=false;
             exprvalue:=0;
@@ -728,16 +732,35 @@ Implementation
                   move(pstart^,hs[1],len);
                   hs[0]:=chr(len);
                   sym:=objdata.symbolref(hs);
+                  have_first_symbol:=true;
                   { Second symbol? }
                   if assigned(relocsym) then
                     begin
+                      if have_second_symbol then
+                        internalerror(2007032201);
+                      have_second_symbol:=true;
+                      if not have_first_symbol then
+                        internalerror(2007032202);
+                      { second symbol should substracted to first }
+                      if not dosub then
+                        internalerror(2007032203);
                       if (relocsym.objsection<>sym.objsection) then
                         internalerror(2005091810);
+                      exprvalue:=relocsym.address-sym.address;
                       relocsym:=nil;
+                      dosub:=false;
                     end
                   else
-                    relocsym:=sym;
-                  exprvalue:=sym.address;
+                    begin
+                      relocsym:=sym;
+                      if assigned(sym.objsection) then
+                        begin
+                          { first symbol should be + }
+                          if not have_first_symbol and dosub then
+                            internalerror(2007032204);
+                          have_first_symbol:=true;
+                        end;
+                    end;
                 end;
               '+' :
                 begin
@@ -760,8 +783,6 @@ Implementation
           result:=true;
         end;
 
-      const
-        N_Function = $24; { function or const }
       var
         stabstrlen,
         ofs,
@@ -780,6 +801,8 @@ Implementation
         pcurr:=nil;
         pstr:=nil;
         pendquote:=nil;
+        relocsym:=nil;
+        ofs:=0;
 
         { Parse string part }
         if (p[0]='"') then
@@ -820,15 +843,7 @@ Implementation
             if not consumenumber(pcurr,nline) then
               internalerror(200509186);
             if consumecomma(pcurr) then
-              consumeoffset(pcurr,relocsym,ofs)
-            else
-              begin
-                ofs:=0;
-                relocsym:=nil;
-              end;
-            if assigned(relocsym) and
-               (relocsym.bind<>AB_LOCAL) then
-              ofs:=0;
+              consumeoffset(pcurr,relocsym,ofs);
 
             { Generate stab entry }
             if assigned(pstr) and (pstr[0]<>#0) then
@@ -1137,19 +1152,32 @@ Implementation
                          ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
                      end;
                    aitconst_rva_symbol :
-                     { PE32+? }
-                     if target_info.system=system_x86_64_win64 then
-                       ObjData.writereloc(Tai_const(hp).value,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA)
-                     else
-                       ObjData.writereloc(Tai_const(hp).value,sizeof(aint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA);
-                   aitconst_uleb128bit :
                      begin
-                       leblen:=EncodeUleb128(Tai_const(hp).value,lebbuf);
-                       ObjData.writebytes(lebbuf,leblen);
+                       { PE32+? }
+                       if target_info.system=system_x86_64_win64 then
+                         ObjData.writereloc(Tai_const(hp).value,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA)
+                       else
+                         ObjData.writereloc(Tai_const(hp).value,sizeof(aint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA);
                      end;
+                   aitconst_uleb128bit,
                    aitconst_sleb128bit :
                      begin
-                       leblen:=EncodeSleb128(Tai_const(hp).value,lebbuf);
+                       if assigned(tai_const(hp).sym) then
+                         begin
+                           if not assigned(tai_const(hp).endsym) then
+                             internalerror(200703291);
+                           objsym:=Objdata.SymbolRef(tai_const(hp).sym);
+                           objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
+                           if objsymend.objsection<>objsym.objsection then
+                             internalerror(200703292);
+                           v:=objsymend.address-objsym.address+Tai_const(hp).value;
+                         end
+                       else
+                         v:=Tai_const(hp).value;
+                       if tai_const(hp).consttype=aitconst_uleb128bit then
+                         leblen:=EncodeUleb128(v,lebbuf)
+                       else
+                         leblen:=EncodeSleb128(v,lebbuf);
                        ObjData.writebytes(lebbuf,leblen);
                      end;
                    else
