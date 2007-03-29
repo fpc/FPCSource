@@ -15,26 +15,48 @@
 {$IFNDEF FPC_USE_LIBC}
 
   Stat = packed record  // No unix typing because of differences
-    st_dev    : culonglong;
-    st_ino    : culonglong;
-    st_mode   : cuint;
-    st_nlink  : cuint;
-    st_uid    : cuint;
-    st_gid    : cuint;
-    st_rdev   : culonglong;
-    __pad3    : array[0..7] of cuchar;
-    st_size   : clonglong;
-    st_blksize: cuint;
-    __pad4    : array[0..7] of cuchar;
-    st_blocks : cuint;
-    st_atime  : cuint;
-    st_atime_nsec : cuint;
-    st_mtime  : cuint;
-    st_mtime_nsec : cuint;
-    st_ctime  : cuint;
-    st_ctime_nsec : cuint;
-    __unused4 : cuint;
-    __unused5 : cuint;
+    0:
+      (dev   : culonglong;
+      ino    : culonglong;
+      mode   : cuint;
+      nlink  : cuint;
+      uid    : cuint;
+      gid    : cuint;
+      rdev   : culonglong;
+      __pad3 : array[0..7] of cuchar;
+      size   : clonglong;
+      blksize: cuint;
+      __pad4 : array[0..7] of cuchar;
+      blocks : cuint;
+      atime  : cuint;
+      atime_nsec : cuint;
+      mtime  : cuint;
+      mtime_nsec : cuint;
+      ctime  : cuint;
+      ctime_nsec : cuint;
+      __unused4 : cuint;
+      __unused5 : cuint);
+    1:
+      (st_dev    : culonglong;
+      st_ino    : culonglong;
+      st_mode   : cuint;
+      st_nlink  : cuint;
+      st_uid    : cuint;
+      st_gid    : cuint;
+      st_rdev   : culonglong;
+      __pad3_   : array[0..7] of cuchar;
+      st_size   : clonglong;
+      st_blksize: cuint;
+      __pad4_   : array[0..7] of cuchar;
+      st_blocks : cuint;
+      st_atime  : cuint;
+      st_atime_nsec : cuint;
+      st_mtime  : cuint;
+      st_mtime_nsec : cuint;
+      st_ctime  : cuint;
+      st_ctime_nsec : cuint;
+      __unused4_ : cuint;
+      __unused5_ : cuint);
   end;
 
 {$ELSE FPC_USE_LIBC}
@@ -43,14 +65,35 @@
 
   Stat = record
     case byte of
-      st_dev     : cULongLong;
+     0:
+      (dev     : cULongLong;
+      ino     : cULongLong;
+      mode    : mode_t;
+      nlink   : nlink_t;
+      uid     : uid_t;
+      gid     : gid_t;
+      rdev    : cULongLong;
+      __pad2  : cushort;
+      size    : cLongLong;
+      blksize : cULong;
+      blocks  : cULongLong;
+      atime,
+      atime_nsec,
+      mtime,
+      mtime_nsec,
+      ctime,
+      ctime_nsec,
+      __unused4,
+      __unused5  : cULong);
+     1:
+      (st_dev    : cULongLong;
       st_ino     : cULongLong;
       st_mode    : mode_t;
       st_nlink   : nlink_t;
       st_uid     : uid_t;
       st_gid     : gid_t;
       st_rdev    : cULongLong;
-      __pad2     : cushort;
+      __pad2_    : cushort;
       st_size    : cLongLong;
       st_blksize : cULong;
       st_blocks  : cULongLong;
@@ -60,8 +103,8 @@
       st_mtime_nsec,
       st_ctime,
       st_ctime_nsec,
-      __unused4,
-      __unused5  : cULong;
+      __unused4_,
+      __unused5-) : cULong);
   end;
 
 {$ENDIF FPC_USE_LIBC}
