@@ -385,7 +385,7 @@ implementation
           end;
 
         { Add,Sub,Mul with constant 0 or 1?  }
-        if is_constintnode(right) then
+        if is_constintnode(right) and is_integer(left.resultdef) then
           begin
             if tordconstnode(right).value = 0 then
               begin
@@ -406,7 +406,7 @@ implementation
             if assigned(result) then
               exit;
           end;
-        if is_constintnode(left) then
+        if is_constintnode(left) and is_integer(right.resultdef) then
           begin
             if tordconstnode(left).value = 0 then
               begin
