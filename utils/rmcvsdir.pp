@@ -8,7 +8,7 @@ procedure deltree(const dirname : string);
 
   begin
      writeln('Deleting ',dirname);
-     if findfirst(dirname+'/*.*',faanyfile,rec)=0 then
+     if findfirst(dirname+'/*.*',faanyfile or fadirectory,rec)=0 then
        begin
           repeat
             if (rec.attr and fadirectory)<>0 then
@@ -34,7 +34,7 @@ procedure searchcvsdir(const dirname : string);
 
   begin
      writeln('Searching ',dirname);
-     if findfirst(dirname+'/*.*',faanyfile,rec)=0 then
+     if findfirst(dirname+'/*.*',faanyfile or fadirectory,rec)=0 then
        begin
           repeat
             if (rec.attr and fadirectory)<>0 then
