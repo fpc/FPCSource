@@ -125,6 +125,10 @@ implementation
             insertdef(TAsmList(arg),pd.returndef);
             if (po_virtualmethod in pd.procoptions) then
               insertdef(TAsmList(arg),pd._class);
+            if assigned(pd.parast) then
+              write_symtable_defs(TAsmList(arg),pd.parast);
+            if assigned(pd.localst) then
+              write_symtable_defs(TAsmList(arg),pd.localst);
           end;
       end;
 
