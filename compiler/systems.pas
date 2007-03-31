@@ -898,7 +898,11 @@ begin
   {$ifdef cpuarm}
     default_target(source_info.system);
   {$else cpuarm}
+  {$ifdef WINDOWS}
+    default_target(system_arm_wince);
+  {$else WINDOWS}
     default_target(system_arm_linux);
+  {$endif WINDOWS}
   {$endif cpuarm}
 {$endif arm}
 end;
