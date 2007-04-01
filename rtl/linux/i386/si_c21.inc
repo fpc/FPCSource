@@ -36,7 +36,6 @@
 var
   libc21_fpc_ret, libc21_fpc_ret_ebx, libc21_fpc_ret_ebp: ptrint; { return address to libc }
 
-procedure libc_atexit; external name '__libc_atexit';
 procedure libc_exit; external name '__libc_exit';
 procedure libc_init; external name '__libc_init';
 procedure libc_setfpucw; external name '__setfpucw';
