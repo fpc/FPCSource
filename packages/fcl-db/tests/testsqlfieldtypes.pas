@@ -26,10 +26,11 @@ type
     procedure TearDown; override;
     procedure RunTest; override;
   published
-  
     procedure TestUpdateIndexDefs;
+    procedure TestSetBlobAsMemoParam;
+    procedure TestSetBlobAsStringParam;
     procedure TestGetIndexDefs;
-    procedure TestDoubleQuoteEscapeComments;
+    procedure TestDblQuoteEscComments;
     procedure TestpfInUpdateFlag; // bug 7565
     procedure TestInt;
     procedure TestScript;
@@ -37,7 +38,7 @@ type
     procedure TestTemporaryTable;
 
     procedure TestParametersAndDates;
-    procedure TestExceptionOnsecondClose;
+    procedure TestExceptOnsecClose;
 
     procedure TestBlob;
     procedure TestChangeBlob;
@@ -131,7 +132,7 @@ begin
     AFld1 := TIntegerField.Create(ds);
     AFld1.FieldName := 'ID';
     AFld1.DataSet := ds;
-    AFld1.ProviderFlags := [pfInKey];
+    AFld1.ProviderFlags := AFld1.ProviderFlags + [pfInKey];
 
     AFld2 := TStringField.Create(ds);
     AFld2.FieldName := 'NAME';
@@ -455,6 +456,34 @@ begin
     AssertTrue(fields[0].IsNull);
     AssertEquals('(blob)',fields[0].Text);
     AssertEquals('',fields[0].AsString);
+    close;
+    end;
+end;
+
+procedure TTestFieldTypes.TestSetBlobAsStringParam;
+
+var
+  i             : byte;
+  ASQL          : TSQLQuery;
+
+begin
+  CreateTableWithFieldType(ftBlob,'BLOB');
+//  CreateTableWithFieldType(ftBlob,'TEXT');
+  TestFieldDeclaration(ftBlob,0);
+
+  ASQL := DBConnector.GetNDataset(True,1) as tsqlquery;
+  with ASql  do
+    begin
+    sql.Text := 'insert into FPDEV2 (FT) values (:BlobParam)';
+    Params.ParamByName('blobParam').AsString := 'Test deze BLob';
+    ExecSQL;
+    end;
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    Open;
+    if not eof then
+      AssertEquals('Test deze BLob',fields[0].AsString);
     close;
     end;
 end;
@@ -850,6 +879,34 @@ begin
   Asserttrue(ds.indexdefs[0].Options=[ixPrimary,ixUnique]);
 end;
 
+procedure TTestFieldTypes.TestSetBlobAsMemoParam;
+var
+  i             : byte;
+  ASQL          : TSQLQuery;
+
+begin
+  CreateTableWithFieldType(ftBlob,'BLOB');
+//  CreateTableWithFieldType(ftBlob,'TEXT');
+  TestFieldDeclaration(ftBlob,0);
+
+  ASQL := DBConnector.GetNDataset(True,1) as tsqlquery;
+  with ASql  do
+    begin
+    sql.Text := 'insert into FPDEV2 (FT) values (:BlobParam)';
+    Params.ParamByName('blobParam').AsMemo := 'Test deze BLob';
+    ExecSQL;
+    end;
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    Open;
+    if not eof then
+      AssertEquals('Test deze BLob',fields[0].AsString);
+    close;
+    end;
+
+end;
+
 procedure TTestFieldTypes.TestTemporaryTable;
 begin
   with TSQLDBConnector(DBConnector).Query do
@@ -892,7 +949,7 @@ begin
   inddefs.Free;
 end;
 
-procedure TTestFieldTypes.TestDoubleQuoteEscapeComments;
+procedure TTestFieldTypes.TestDblQuoteEscComments;
 begin
   with TSQLDBConnector(DBConnector).Query do
     begin
@@ -925,7 +982,7 @@ begin
     end
 end;
 
-procedure TTestFieldTypes.TestExceptionOnsecondClose;
+procedure TTestFieldTypes.TestExceptOnsecClose;
 begin
   with TSQLDBConnector(DBConnector).Query do
     begin
