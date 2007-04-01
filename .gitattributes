@@ -1513,6 +1513,7 @@ packages/base/winunits/comconst.pp svneol=native#text/plain
 packages/base/winunits/commctrl.pp svneol=native#text/plain
 packages/base/winunits/comobj.pp svneol=native#text/plain
 packages/base/winunits/examples/OOHelper.pp svneol=native#text/plain
+packages/base/winunits/examples/OOTest.pp -text svneol=unset#text/plain
 packages/base/winunits/examples/testcom1.pp svneol=native#text/plain
 packages/base/winunits/examples/testcom2.pp svneol=native#text/plain
 packages/base/winunits/examples/testver.pp svneol=native#text/plain
