@@ -2333,7 +2333,7 @@ netware$(PPUEXT) : netware.pp $(SYSTEMUNIT)$(PPUEXT)
 winsock$(PPUEXT) : winsock.pp $(SYSTEMUNIT)$(PPUEXT)
 sockets$(PPUEXT) : sockets.pp netware$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 		   $(INC)/sockets.inc $(INC)/socketsh.inc
-initc$(PPUEXT) : initc.pp $(SYSTEMUNIT)$(PPUEXT)
+initc$(PPUEXT) : initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) nwserv$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT)
 objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)

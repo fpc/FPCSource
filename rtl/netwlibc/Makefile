@@ -2333,7 +2333,7 @@ nwsnut$(PPUEXT) : nwsnut.pp ../netware/nwsnut.pp libc$(PPUEXT) $(SYSTEMUNIT)$(PP
 sockets$(PPUEXT) : sockets.pp winsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 		   $(INC)/sockets.inc $(INC)/socketsh.inc
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-initc$(PPUEXT) : initc.pp libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+initc$(PPUEXT) : initc.pp ctypes$(PPUEXT) libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 dos$(PPUEXT) : dos.pp libc.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 crt$(PPUEXT) : crt.pp libc.pp $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) dos$(PPUEXT)
 objects$(PPUEXT) : $(INC)/objects.pp $(SYSTEMUNIT)$(PPUEXT)
