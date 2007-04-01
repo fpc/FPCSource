@@ -24,7 +24,7 @@
 }
 {$mode objfpc}
 {$H+}
-{$DEFINE CGIDEBUG}
+{ $DEFINE CGIDEBUG}
 unit HTTPDefs;
 
 interface
@@ -197,6 +197,8 @@ type
     Function LoadFromStream(Stream : TStream; IncludeCommand : Boolean) : integer;
     Function LoadFromStrings(Strings: TStrings; IncludeCommand : Boolean) : integer; virtual;
     // Common access
+    // This is an internal table. We should try to get rid of it,
+    // It requires a lot of duplication.
     property FieldCount: Integer read GetFieldCount;
     property Fields[AIndex: Integer]: String read GetSetField;
     property FieldNames[AIndex: Integer]: String read GetSetFieldName;
@@ -673,7 +675,7 @@ var
 begin
   I:=GetFieldNameIndex(AName);
   If (I<>0) then
-    Result:=FFields[i];
+    Result:=self.GetFieldValue(i);
 end;
 
 Function THTTPHeader.LoadFromStream(Stream: TStream; IncludeCommand : Boolean) : Integer;

@@ -64,11 +64,16 @@ Type
   THandlerPriority = (hpFirst,hpMiddle,hpLast);
   TGetModuleEvent = Procedure (Sender : TObject; ARequest : TRequest;
                                Var ModuleClass : TCustomHTTPModuleClass) of object;
-
+  TBeforeRequestEvent = Procedure(Sender : TObject; Const AHandler : String;
+                                  Var AllowRequest : Boolean) of object;
 
   TCustomApacheApplication = Class(TCustomApplication)
   private
+    FAdministrator: String;
     FBaseLocation: String;
+    FBeforeRequest: TBeforeRequestEvent;
+    FEmail: String;
+    FHandlerName: String;
     FModuleName: String;
     FOnGetModule: TGetModuleEvent;
     FAllowDefaultModule: Boolean;
@@ -77,11 +82,20 @@ Type
     FModuleRecord : PModule;
     function GetModules(Index: integer): TStrings;
     procedure SetModules(Index: integer; const AValue: TStrings);
+    procedure ShowRequestException(R: TResponse; E: Exception);
   Protected
     Function ProcessRequest(P : PRequest_Rec) : Integer; virtual;
     Function GetModuleName(ARequest : TRequest) : string;
     function FindModule(ModuleClass : TCustomHTTPModuleClass): TCustomHTTPModule;
     Procedure DoRun; override;
+    Function AllowRequest(P : PRequest_Rec) : Boolean; virtual;
+  Public
+    Constructor Create(AOwner : TComponent); override;
+    Procedure SetModuleRecord(Var ModuleRecord : Module);
+    Procedure Initialize; override;
+    Procedure ShowException(E : Exception); override;
+    Procedure CreateForm(AClass : TComponentClass; Var Reference : TComponent);
+    Procedure handleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
     Property OnGetModule : TGetModuleEvent Read FOnGetModule Write FOnGetModule;
     Property AllowDefaultModule : Boolean Read FAllowDefaultModule Write FAllowDefaultModule;
     Property HandlerPriority : THandlerPriority Read FPriority Write FPriority default hpMiddle;
@@ -89,12 +103,10 @@ Type
     Property AfterModules : TStrings Index 1 Read GetModules Write SetModules;
     Property BaseLocation : String Read FBaseLocation Write FBaseLocation;
     Property ModuleName : String Read FModuleName Write FModuleName;
-  Public
-    Constructor Create(AOwner : TComponent); override;
-    Procedure SetModuleRecord(Var ModuleRecord : Module);
-    Procedure Initialize; override;
-    Procedure CreateForm(AClass : TComponentClass; Var Reference : TComponent);
-    Procedure handleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
+    Property HandlerName : String Read FHandlerName Write FHandlerName;
+    Property BeforeRequest : TBeforeRequestEvent Read FBeforeRequest Write FBeforeRequest;
+    Property Email : String Read FEmail Write FEmail;
+    Property Administrator : String Read FAdministrator Write FAdministrator;
   end;
 
   TApacheApplication = Class(TCustomApacheApplication)
@@ -105,6 +117,7 @@ Type
     Property AllowDefaultModule;
     Property OnGetModule;
     Property BaseLocation;
+    Property ModuleName;
   end;
   
 
@@ -114,7 +127,7 @@ Var
   Application : TCustomApacheApplication = Nil;
   ShowCleanUpErrors : Boolean = False;
   AlternateHandler : ap_hook_handler_t = Nil;
-  
+
 Implementation
 
 resourcestring
@@ -122,11 +135,16 @@ resourcestring
   SErrNoModuleForRequest = 'Could not determine HTTP module for request "%s"';
   SErrNoModuleRecord = 'No module record location set.';
   SErrNoModuleName = 'No module name set';
+  SModuleError  = 'Module Error';
+  SAppEncounteredError = 'The application encountered the following error:';
+  SError     = 'Error: ';
+  SNotify    = 'Notify: ';
 
 const
   HPRIO : Array[THandlerPriority] of Integer
         = (APR_HOOK_FIRST,APR_HOOK_MIDDLE,APR_HOOK_LAST);
-  
+
+
 Procedure InitApache;
 
 begin
@@ -147,10 +165,13 @@ end;
 Function DefaultApacheHandler(P : PRequest_Rec) : integer;cdecl;
 
 begin
-  If (@AlternateHandler<>Nil) then
+  If (AlternateHandler<>Nil) then
     Result:=AlterNateHandler(P)
   else
-    Result:=Application.ProcessRequest(P);
+    If Application.AllowRequest(P) then
+      Result:=Application.ProcessRequest(P)
+    else
+      Result:=DECLINED;
 end;
 
 Procedure RegisterApacheHooks(P: PApr_pool_t);cdecl;
@@ -198,6 +219,7 @@ begin
     Try
       HandleRequest(Req,Resp);
     Finally
+      Result:=OK;
       Resp.Free;
     end;
   Finally
@@ -209,10 +231,7 @@ function TCustomApacheApplication.GetModuleName(Arequest: TRequest): string;
 
 
 begin
-  If (ARequest is TApacheRequest) then
-    Result:=StrPas(TApacheRequest(ARequest).ApacheRequest^.handler)
-  else
-    Result:=ARequest.GetNextPathInfo;
+  Result:=ARequest.GetNextPathInfo;
 end;
 
 function TCustomApacheApplication.FindModule(ModuleClass : TCustomHTTPModuleClass): TCustomHTTPModule;
@@ -235,6 +254,18 @@ begin
   inherited DoRun;
 end;
 
+function TCustomApacheApplication.AllowRequest(P: PRequest_Rec): Boolean;
+
+Var
+  Hn : String;
+
+begin
+  HN:=StrPas(p^.Handler);
+  Result:=CompareText(HN,FHandlerName)=0;
+  If Assigned(FBeforeRequest) then
+    FBeforeRequest(Self,HN,Result);
+end;
+
 constructor TCustomApacheApplication.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -244,10 +275,12 @@ end;
 
 procedure TCustomApacheApplication.SetModuleRecord(var ModuleRecord: Module);
 begin
-  FModuleRecord:=@FModuleRecord;
+  FModuleRecord:=@ModuleRecord;
+  FillChar(ModuleRecord,SizeOf(ModuleRecord),0);
 end;
 
 procedure TCustomApacheApplication.Initialize;
+
 begin
   If (FModuleRecord=nil) then
     Raise EFPApacheError.Create(SErrNoModuleRecord);
@@ -257,6 +290,58 @@ begin
   If (StrPas(FModuleRecord^.name)<>FModuleName) then
     FModuleRecord^.Name:=PChar(FModuleName);
   FModuleRecord^.register_hooks:=@RegisterApacheHooks;
+end;
+
+procedure TCustomApacheApplication.ShowRequestException(R : TResponse; E: Exception);
+
+Var
+ TheEmail : String;
+ FrameCount: integer;
+ Frames: PPointer;
+ FrameNumber:Integer;
+ S : TStrings;
+
+begin
+  If not R.HeadersSent then
+    begin
+    R.ContentType:='text/html';
+    R.SendHeaders;
+    end;
+  If (R.ContentType='text/html') then
+    begin
+    S:=TStringList.Create;
+    Try
+      With S do
+        begin
+        Add('<html><head><title>'+Title+': '+SModuleError+'</title></head>'+LineEnding);
+        Add('<body>');
+        Add('<center><hr><h1>'+Title+': ERROR</h1><hr></center><br><br>');
+        Add(SAppEncounteredError+'<br>');
+        Add('<ul>');
+        Add('<li>'+SError+' <b>'+E.Message+'</b>');
+        Add('<li> Stack trace:<br>');
+        Add(BackTraceStrFunc(ExceptAddr)+'<br>');
+        FrameCount:=ExceptFrameCount;
+        Frames:=ExceptFrames;
+        for FrameNumber := 0 to FrameCount-1 do
+          Add(BackTraceStrFunc(Frames[FrameNumber])+'<br>');
+        Add('</ul><hr>');
+        TheEmail:=Email;
+        If (TheEmail<>'') then
+          Add('<h5><p><i>'+SNotify+Administrator+': <a href="mailto:'+TheEmail+'">'+TheEmail+'</a></i></p></h5>');
+        Add('</body></html>');
+        end;
+      R.Content:=S.Text;
+      R.SendContent;
+    Finally
+      FreeAndNil(S);
+    end;
+    end;
+end;
+
+procedure TCustomApacheApplication.ShowException(E: Exception);
+begin
+  ap_log_error(pchar(FModuleName),0,APLOG_ERR,0,Nil,'module: %s',[Pchar(E.Message)]);
 end;
 
 procedure TCustomApacheApplication.CreateForm(AClass: TComponentClass;
@@ -274,27 +359,34 @@ Var
   MI : TModuleItem;
   
 begin
-  MC:=Nil;
-  If (OnGetModule<>Nil) then
-    OnGetModule(Self,ARequest,MC);
-  If (MC=Nil) then
-    begin
-    MN:=GetModuleName(ARequest);
-    If (MN='') and Not AllowDefaultModule then
-      Raise EFPApacheError.Create(SErrNoModuleNameForRequest);
-    MI:=ModuleFactory.FindModule(MN);
-    If (MI=Nil) and (ModuleFactory.Count=1) then
-      MI:=ModuleFactory[0];
-    if (MI=Nil) then
+  try
+    MC:=Nil;
+    If (OnGetModule<>Nil) then
+      OnGetModule(Self,ARequest,MC);
+    If (MC=Nil) then
       begin
-      Raise EFPApacheError.CreateFmt(SErrNoModuleForRequest,[MN]);
+      MN:=GetModuleName(ARequest);
+      If (MN='') and Not AllowDefaultModule then
+        Raise EFPApacheError.Create(SErrNoModuleNameForRequest);
+      MI:=ModuleFactory.FindModule(MN);
+      If (MI=Nil) and (ModuleFactory.Count=1) then
+        MI:=ModuleFactory[0];
+      if (MI=Nil) then
+        begin
+        Raise EFPApacheError.CreateFmt(SErrNoModuleForRequest,[MN]);
+        end;
+      MC:=MI.ModuleClass;
+      M:=FindModule(MC); // Check if a module exists already
       end;
-    MC:=MI.ModuleClass;
-    M:=FindModule(MC); // Check if a module exists already
-    end;
-  If (M=Nil) then
-    M:=MC.Create(Self);
-  M.HandleRequest(ARequest,AResponse);
+    If (M=Nil) then
+      begin
+      M:=MC.Create(Self);
+      end;
+    M.HandleRequest(ARequest,AResponse);
+  except
+    On E : Exception do
+      ShowRequestException(AResponse,E);
+  end;
 end;
 
 { TApacheRequest }
@@ -307,6 +399,7 @@ var
   I : Integer;
   
 begin
+
   Result:='';
   If (Index in [1..NoHTTPFields]) then
     begin
@@ -375,6 +468,7 @@ begin
       SetLength(FContent,Len);
       P:=PChar(FContent);
       Left:=Len;
+      Count:=0;
       Repeat
         Bytes:=ap_get_client_block(FRequest,P,MinS(10*1024,Left));
         Dec(Left,Bytes);
@@ -388,8 +482,20 @@ begin
 end;
 
 procedure TApacheRequest.InitFromRequest;
-begin
 
+Var
+  I : Integer;
+  S : String;
+  
+begin
+  // This fills the internal table. We should try
+  // to get rid of it.
+  For I:=0 to NoHTTPFields do
+    begin
+    S:=GetFieldValue(i);
+    If (S<>'') then
+      SetFieldValue(I,S);
+    end;
 end;
 
 Constructor TApacheRequest.CreateReq(App : TCustomApacheApplication; ARequest : PRequest_rec);
@@ -431,6 +537,9 @@ Var
   I : Integer;
 
 begin
+  S:=ContentType;
+  If (S<>'') then
+    FRequest^.content_type:=apr_pstrdup(FRequest^.pool,Pchar(S));
   If (ContentStream<>Nil) then
     SendStream(Contentstream)
   else

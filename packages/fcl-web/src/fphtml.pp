@@ -38,7 +38,6 @@ type
     Function ProduceContent : String; override; // Here to test the output. Replace to protected after tests
     property ParentElement : THTMLCustomElement read FElement write FElement;
     property Writer : THTMLWriter read FWriter write SetWriter;
-  published
     Property HTMLDocument : THTMLDocument read FDocument write SetDocument;
   end;
 
