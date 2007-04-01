@@ -143,3 +143,12 @@ TCGIApplication:
   to create a TCustomHTTPModuleClass to handle the request.
 
 It contains an Application instance which handles everything.
+
+fpApache:
+---------
+  Apache Module support.
+
+TCustomApacheApplication:
+  Uses fpweb to create TCustomHTTPModuleClass instances to 
+  handle the request. 
+
