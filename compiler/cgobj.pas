@@ -207,9 +207,11 @@ unit cgobj;
           procedure a_load_const_ref(list : TAsmList;size : tcgsize;a : aint;const ref : treference);virtual;
           procedure a_load_const_loc(list : TAsmList;a : aint;const loc : tlocation);
           procedure a_load_reg_ref(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);virtual; abstract;
+          procedure a_load_reg_ref_unaligned(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);virtual;
           procedure a_load_reg_reg(list : TAsmList;fromsize,tosize : tcgsize;reg1,reg2 : tregister);virtual; abstract;
           procedure a_load_reg_loc(list : TAsmList;fromsize : tcgsize;reg : tregister;const loc: tlocation);
           procedure a_load_ref_reg(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);virtual; abstract;
+          procedure a_load_ref_reg_unaligned(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);virtual;
           procedure a_load_ref_ref(list : TAsmList;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);virtual;
           procedure a_load_loc_reg(list : TAsmList;tosize: tcgsize; const loc: tlocation; reg : tregister);
           procedure a_load_loc_ref(list : TAsmList;tosize: tcgsize; const loc: tlocation; const ref : treference);
@@ -1718,7 +1720,7 @@ implementation
         { perform masking of the source value in advance }
         slopt := SL_REGNOSRCMASK;
         if (sref.bitlen <> AIntBits) then
-          aword(a) := aword(a) and ((aword(1) shl sref.bitlen) -1); 
+          aword(a) := aword(a) and ((aword(1) shl sref.bitlen) -1);
         if (
             { broken x86 "x shl regbitsize = x" }
             ((sref.bitlen <> AIntBits) and
@@ -1782,6 +1784,101 @@ implementation
 {$q+}
 {$undef overflowon}
 {$endif}
+
+    procedure tcg.a_load_reg_ref_unaligned(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);
+      var
+        tmpref : treference;
+        tmpreg : tregister;
+        i : longint;
+      begin
+        if ref.alignment<>0 then
+          begin
+            tmpref:=ref;
+            case FromSize of
+              OS_16,OS_S16:
+                begin
+                  if target_info.endian=endian_big then
+                    inc(tmpref.offset);
+                  a_load_reg_ref(list,OS_8,OS_8,register,Ref);
+                  a_op_const_reg(list,OP_SHR,OS_8,8,register);
+                  if target_info.endian=endian_big then
+                    dec(tmpref.offset)
+                  else
+                    inc(tmpref.offset);
+                  a_load_reg_ref(list,OS_8,OS_8,register,Ref);
+                end;
+              OS_32,OS_S32:
+                begin
+                  if target_info.endian=endian_big then
+                    inc(tmpref.offset,3);
+                  a_load_reg_ref(list,OS_8,OS_8,register,Ref);
+                  for i:=1 to 3 do
+                    begin
+                      a_op_const_reg(list,OP_SHR,OS_8,8,register);
+                      if target_info.endian=endian_big then
+                        dec(tmpref.offset)
+                      else
+                        inc(tmpref.offset);
+                      a_load_reg_ref(list,OS_8,OS_8,register,Ref);
+                    end;
+                end
+              else
+                a_load_reg_ref(list,fromsize,tosize,register,ref);
+            end;
+          end
+        else
+          a_load_reg_ref(list,fromsize,tosize,register,ref);
+      end;
+
+
+    procedure tcg.a_load_ref_reg_unaligned(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);
+      var
+        tmpref : treference;
+        tmpreg : tregister;
+        i : longint;
+      begin
+        if ref.alignment<>0 then
+          begin
+            tmpref:=ref;
+            case FromSize of
+              OS_16,OS_S16:
+                begin
+                  if target_info.endian=endian_little then
+                    inc(tmpref.offset);
+                  a_load_ref_reg(list,OS_8,OS_8,Ref,register);
+                  a_op_const_reg(list,OP_SHL,OS_8,8,register);
+                  if target_info.endian=endian_little then
+                    dec(tmpref.offset)
+                  else
+                    inc(tmpref.offset);
+                  tmpreg:=getintregister(list,OS_INT);
+                  a_load_ref_reg(list,OS_8,OS_16,Ref,tmpreg);
+                  a_op_reg_reg(list,OP_OR,OS_16,tmpreg,register);
+                end;
+              OS_32,OS_S32:
+                begin
+                  if target_info.endian=endian_little then
+                    inc(tmpref.offset,3);
+                  a_load_ref_reg(list,OS_8,OS_8,Ref,register);
+                  for i:=1 to 3 do
+                    begin
+                      a_op_const_reg(list,OP_SHL,OS_8,8,register);
+                      if target_info.endian=endian_little then
+                        dec(tmpref.offset)
+                      else
+                        inc(tmpref.offset);
+                      tmpreg:=getintregister(list,OS_INT);
+                      a_load_ref_reg(list,OS_8,OS_32,Ref,tmpreg);
+                      a_op_reg_reg(list,OP_OR,OS_32,tmpreg,register);
+                    end;
+                end
+              else
+                a_load_ref_reg(list,fromsize,tosize,ref,register);
+            end;
+          end
+        else
+          a_load_ref_reg(list,fromsize,tosize,ref,register);
+      end;
 
 
     procedure tcg.a_load_ref_ref(list : TAsmList;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);
