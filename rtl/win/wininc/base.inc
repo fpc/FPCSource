@@ -337,6 +337,10 @@
    Macros
  }
 
+  MakeIntResourceA = PAnsiChar;
+  MakeIntResourceW = PWideChar;
+  MakeIntResource = MakeIntResourceA;
+
   { was #define dname(params) def_expr }
   { argument types are unknown }
   function GetBValue(rgb : longint) : BYTE;
@@ -414,10 +418,6 @@
   { was #define dname(params) def_expr }
   { argument types are unknown }
   function MAKEINTATOM(i : longint) : LPTSTR;
-
-  { was #define dname(params) def_expr }
-  { argument types are unknown }
-  function MAKEINTRESOURCE(i : longint) : LPTSTR;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -825,12 +825,6 @@ type
        MAKEINTATOM:=LPTSTR(ULONG_PTR(WORD(i)));
     end;
 
-  { was #define dname(params) def_expr }
-  { argument types are unknown }
-  function MAKEINTRESOURCE(i : longint) : LPTSTR;
-    begin
-       MAKEINTRESOURCE:=LPTSTR(ULONG_PTR(WORD(i)));
-    end;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
