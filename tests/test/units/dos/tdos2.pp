@@ -530,6 +530,7 @@ Begin
 {$IFDEF FPC}
  FindClose(Search);
 {$ENDIF}
+
  if not FoundDir then
    WriteLn(s+'FAILURE. Did not find '+TestDir+' directory')
  else
@@ -545,10 +546,6 @@ Begin
    WriteLn(s+'FAILURE. Did not find special '+TestFName1+' directory')
  else
    WriteLn(s+'Success.');
-
-{$IFDEF FPC}
- FindClose(Search);
-{$ENDIF}
 
 {$ifdef go32v2}
  s:='Searching using ??? wildcard (normal files + all special files)...';
