@@ -18,6 +18,7 @@
 unit libc;
 interface
 
+
 { Netware libc interface
   Translated from c ndk Armin Diehl 2004/09/02 }
 {$endif}
@@ -28,14 +29,14 @@ const
 
 { Pointers to basic pascal types, inserted by h2pas conversion program.}
 Type
-{$ifndef INCLUDED_FROM_SYSTEM}
+{ $ifndef INCLUDED_FROM_SYSTEM - (always available in 2.0.x and above - TH)
   PLongint  = ^Longint;
   PSmallInt = ^SmallInt;
   PByte     = ^Byte;
   PWord     = ^Word;
   PDWord    = ^DWord;
   PDouble   = ^Double;
-{$endif}
+$endif}
   PPPChar   = ^PPChar;
   void      = pointer;
   cint      = longint;
