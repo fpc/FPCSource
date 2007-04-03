@@ -5254,6 +5254,7 @@ rtl/symbian/sysdir.inc svneol=native#text/plain
 rtl/symbian/sysfile.inc svneol=native#text/plain
 rtl/symbian/sysheap.inc svneol=native#text/plain
 rtl/symbian/sysos.inc svneol=native#text/plain
+rtl/symbian/sysosh.inc svneol=native#text/plain
 rtl/symbian/system.pp svneol=native#text/plain
 rtl/symbian/systhrd.inc svneol=native#text/plain
 rtl/ucmaps/8859-1.txt svneol=native#text/plain

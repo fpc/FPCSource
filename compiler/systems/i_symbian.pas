@@ -58,7 +58,7 @@ unit i_symbian;
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
-            assem        : as_i386_pecoff;
+            assem        : as_gas;
             assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
