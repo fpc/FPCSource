@@ -216,9 +216,13 @@ end;
 
 procedure TConnectionName.ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
 
+Var
+  Port : Cardinal;
+
 begin
   HMySQL := mysql_init(HMySQL);
-  HMySQL:=mysql_real_connect(HMySQL,PChar(H),PChar(U),Pchar(P),Nil,0,Nil,0);
+  Port:=Abs(StrToIntDef(Params.Values['Port'],0));
+  HMySQL:=mysql_real_connect(HMySQL,PChar(H),PChar(U),Pchar(P),Nil,Port,Nil,0);
   If (HMySQL=Nil) then
     MySQlError(Nil,SErrServerConnectFailed,Self);
 end;
