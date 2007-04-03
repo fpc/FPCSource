@@ -807,19 +807,15 @@ begin
 end;
 
 procedure tcgppc.a_load_subsetreg_reg(list : TAsmList; subsetsize, tosize: tcgsize; const sreg: tsubsetregister; destreg: tregister);
-var
-  extrdi_startbit : byte;
 begin
   {$ifdef extdebug}
   list.concat(tai_comment.create(strpnew('a_load_subsetreg_reg subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + intToStr(sreg.startbit) + ' tosize = ' + cgsize2string(tosize))));
   {$endif}
-  { calculate the correct startbit for the extrdi instruction, do the extraction if required and then
-    extend the sign correctly. (The latter is actually required only for signed subsets and if that
-   subset is not >= the tosize). }
-  extrdi_startbit := 64 - (sreg.bitlen + sreg.startbit);
+  { do the extraction if required and then extend the sign correctly. (The latter is actually required only for signed subsets 
+  and if that subset is not >= the tosize). }
   if (sreg.startbit <> 0) or
-     (sreg.bitlen <> tcgsize2size[subsetsize]*8) then begin
-    list.concat(taicpu.op_reg_reg_const_const(A_EXTRDI, destreg, sreg.subsetreg, sreg.bitlen, extrdi_startbit));
+     (sreg.bitlen <> tcgsize2size[subsetsize]*8) then begin 
+    list.concat(taicpu.op_reg_reg_const_const(A_RLDICL, destreg, sreg.subsetreg, (64 - sreg.startbit) and 63, 64 - sreg.bitlen));
     if (subsetsize in [OS_S8..OS_S128]) then
       if ((sreg.bitlen mod 8) = 0) then begin
         a_load_reg_reg(list, tcgsize2unsigned[subsetsize], subsetsize, destreg, destreg);
