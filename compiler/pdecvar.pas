@@ -814,13 +814,17 @@ implementation
                   abssym.fileinfo:=vs.fileinfo;
                   abssym.abstyp:=tovar;
                   abssym.ref:=node_to_propaccesslist(pt);
+
                   { if the sizes are different, can't be a regvar since you }
                   { can't be "absolute upper 8 bits of a register" (except  }
                   { if its a record field of the same size of a record      }
                   { regvar, but in that case pt.resultdef.size will have    }
                   { the same size since it refers to the field and not to   }
                   { the whole record -- which is why we use pt and not hp)  }
-                  if (vs.vardef.size <> pt.resultdef.size) then
+
+                  { we can't take the size of an open array }
+                  if is_open_array(pt.resultdef) or
+                     (vs.vardef.size <> pt.resultdef.size) then
                     make_not_regable(pt,vr_addr);
                 end
               else
