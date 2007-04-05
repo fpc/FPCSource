@@ -15,6 +15,7 @@
 {$IFNDEF FPC_USE_LIBC}
 
   Stat = packed record  // No unix typing because of differences
+    case byte of
     0:
       (dev   : culonglong;
       ino    : culonglong;
