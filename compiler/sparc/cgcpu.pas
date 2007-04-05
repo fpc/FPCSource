@@ -505,25 +505,32 @@ implementation
       begin
         if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
           fromsize := tosize;
-        case fromsize of
-          OS_S8:
-            Op:=A_LDSB;{Load Signed Byte}
-          OS_8:
-            Op:=A_LDUB;{Load Unsigned Byte}
-          OS_S16:
-            Op:=A_LDSH;{Load Signed Halfword}
-          OS_16:
-            Op:=A_LDUH;{Load Unsigned Halfword}
-          OS_S32,
-          OS_32:
-            Op:=A_LD;{Load Word}
-          OS_S64,
-          OS_64:
-            Op:=A_LDD;{Load a Long Word}
-          else
-            InternalError(2002122101);
-        end;
-        handle_load_store(list,false,op,reg,ref);
+         if Ref.alignment<>0 then
+           begin
+             a_load_ref_reg_unaligned(list,FromSize,ToSize,ref,reg);
+           end
+         else
+           begin
+             case fromsize of
+               OS_S8:
+                 Op:=A_LDSB;{Load Signed Byte}
+               OS_8:
+                 Op:=A_LDUB;{Load Unsigned Byte}
+               OS_S16:
+                 Op:=A_LDSH;{Load Signed Halfword}
+               OS_16:
+                 Op:=A_LDUH;{Load Unsigned Halfword}
+               OS_S32,
+               OS_32:
+                 Op:=A_LD;{Load Word}
+               OS_S64,
+               OS_64:
+                 Op:=A_LDD;{Load a Long Word}
+               else
+                 InternalError(2002122101);
+             end;
+             handle_load_store(list,false,op,reg,ref);
+           end;
       end;
 
 

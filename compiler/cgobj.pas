@@ -1152,12 +1152,12 @@ implementation
       begin
         intloadsize := packedbitsloadsize(sref.bitlen);
 
-{$if not defined(arm)}
+{$if not(defined(arm)) and not(defined(sparc))}
         { may need to be split into several smaller loads/stores }
         if (tf_requires_proper_alignment in target_info.flags) and
            (intloadsize <> sref.ref.alignment) then
           internalerror(2006082011);
-{$endif not defined(arm)}
+{$endif not(defined(arm)) and not(defined(sparc))}
 
         if (intloadsize = 0) then
           internalerror(2006081310);
@@ -1794,24 +1794,26 @@ implementation
         if ref.alignment<>0 then
           begin
             tmpref:=ref;
+            { we take care of the alignment now }
+            tmpref.alignment:=0;
             case FromSize of
               OS_16,OS_S16:
                 begin
                   if target_info.endian=endian_big then
                     inc(tmpref.offset);
-                  a_load_reg_ref(list,OS_8,OS_8,register,Ref);
+                  a_load_reg_ref(list,OS_8,OS_8,register,tmpref);
                   a_op_const_reg(list,OP_SHR,OS_8,8,register);
                   if target_info.endian=endian_big then
                     dec(tmpref.offset)
                   else
                     inc(tmpref.offset);
-                  a_load_reg_ref(list,OS_8,OS_8,register,Ref);
+                  a_load_reg_ref(list,OS_8,OS_8,register,tmpref);
                 end;
               OS_32,OS_S32:
                 begin
                   if target_info.endian=endian_big then
                     inc(tmpref.offset,3);
-                  a_load_reg_ref(list,OS_8,OS_8,register,Ref);
+                  a_load_reg_ref(list,OS_8,OS_8,register,tmpref);
                   for i:=1 to 3 do
                     begin
                       a_op_const_reg(list,OP_SHR,OS_8,8,register);
@@ -1819,11 +1821,11 @@ implementation
                         dec(tmpref.offset)
                       else
                         inc(tmpref.offset);
-                      a_load_reg_ref(list,OS_8,OS_8,register,Ref);
+                      a_load_reg_ref(list,OS_8,OS_8,register,tmpref);
                     end;
                 end
               else
-                a_load_reg_ref(list,fromsize,tosize,register,ref);
+                a_load_reg_ref(list,fromsize,tosize,register,tmpref);
             end;
           end
         else
@@ -1840,26 +1842,28 @@ implementation
         if ref.alignment<>0 then
           begin
             tmpref:=ref;
+            { we take care of the alignment now }
+            tmpref.alignment:=0;
             case FromSize of
               OS_16,OS_S16:
                 begin
                   if target_info.endian=endian_little then
                     inc(tmpref.offset);
-                  a_load_ref_reg(list,OS_8,OS_8,Ref,register);
+                  a_load_ref_reg(list,OS_8,OS_8,tmpref,register);
                   a_op_const_reg(list,OP_SHL,OS_8,8,register);
                   if target_info.endian=endian_little then
                     dec(tmpref.offset)
                   else
                     inc(tmpref.offset);
                   tmpreg:=getintregister(list,OS_INT);
-                  a_load_ref_reg(list,OS_8,OS_16,Ref,tmpreg);
+                  a_load_ref_reg(list,OS_8,OS_16,tmpref,tmpreg);
                   a_op_reg_reg(list,OP_OR,OS_16,tmpreg,register);
                 end;
               OS_32,OS_S32:
                 begin
                   if target_info.endian=endian_little then
                     inc(tmpref.offset,3);
-                  a_load_ref_reg(list,OS_8,OS_8,Ref,register);
+                  a_load_ref_reg(list,OS_8,OS_8,tmpref,register);
                   for i:=1 to 3 do
                     begin
                       a_op_const_reg(list,OP_SHL,OS_8,8,register);
@@ -1868,12 +1872,12 @@ implementation
                       else
                         inc(tmpref.offset);
                       tmpreg:=getintregister(list,OS_INT);
-                      a_load_ref_reg(list,OS_8,OS_32,Ref,tmpreg);
+                      a_load_ref_reg(list,OS_8,OS_32,tmpref,tmpreg);
                       a_op_reg_reg(list,OP_OR,OS_32,tmpreg,register);
                     end;
                 end
               else
-                a_load_ref_reg(list,fromsize,tosize,ref,register);
+                a_load_ref_reg(list,fromsize,tosize,tmpref,register);
             end;
           end
         else
