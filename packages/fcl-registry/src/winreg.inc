@@ -24,7 +24,7 @@ end;
 Function RelativeKey(Const S : String) : Boolean;
 
 begin
-  Result:=(S[1]<>'\')
+  Result:=(S='') or (S[1]<>'\')
 end;
 
 
@@ -107,10 +107,20 @@ begin
     end
 end;
 
+
 function TRegistry.GetKey(const Key: String): HKEY;
+var
+  S : string;
+  Rel : Boolean;
 begin
-  Result := FCurrentKey;
+  Result:=0;
+  S:=Key;
+  Rel:=RelativeKey(S);
+  if not(Rel) then 
+    Delete(S,1,1);
+  RegOpenKeyEx(GetBaseKey(Rel),PChar(S),0,FAccess,Result);
 end;
+
 
 function TRegistry.GetKeyInfo(var Value: TRegKeyInfo): Boolean;
 var
@@ -129,19 +139,33 @@ begin
   end;
 end;
 
+
 function TRegistry.KeyExists(const Key: string): Boolean;
-
-Var
-  Value : TRegKeyInfo;
-
+var
+  KeyHandle : HKEY;
+  OldAccess : LONG;
 begin
-  Result :=GetKeyInfo(Value);
+  Result:=false;
+  OldAccess:=FAccess;
+  try
+    FAccess:=KEY_QUERY_VALUE or KEY_ENUMERATE_SUB_KEYS or STANDARD_RIGHTS_READ;
+    KeyHandle:=GetKey(Key);
+    if KeyHandle<>0 then
+      begin
+        RegCloseKey(KeyHandle);
+        Result:=true;
+      end;
+  finally
+    FAccess:=OldAccess;
+  end;
 end;
+
 
 function TRegistry.LoadKey(const Key, FileName: string): Boolean;
 begin
   Result := False;
 end;
+
 
 function TRegistry.OpenKey(const Key: string; CanCreate: Boolean): Boolean;
 
