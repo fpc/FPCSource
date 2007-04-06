@@ -104,6 +104,7 @@ implementation
                     else
                       begin
                         Message1(parser_e_illegal_field_or_method,orgpattern);
+                        def:=generrordef;
                         result:=false;
                       end;
                   end;
@@ -111,6 +112,7 @@ implementation
                else
                 begin
                   Message1(parser_e_illegal_field_or_method,orgpattern);
+                  def:=generrordef;
                   result:=false;
                 end;
                consume(_ID);
