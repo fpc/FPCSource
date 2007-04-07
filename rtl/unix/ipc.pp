@@ -22,7 +22,7 @@ Unit ipc;
 
 interface
 
-Uses BaseUnix;
+Uses BaseUnix,UnixType;
 
 { ----------------------------------------------------------------------
   General IPC stuff
@@ -135,8 +135,8 @@ Type
     shm_atime : time_t;
     shm_dtime : time_t;
     shm_ctime : time_t;
-    shm_cpid  : pid_t;
-    shm_lpid  : pid_t;
+    shm_cpid  : ipc_pid_t;
+    shm_lpid  : ipc_pid_t;
     shm_nattch : word;
     shm_npages : word;
     shm_pages  : Pointer;
