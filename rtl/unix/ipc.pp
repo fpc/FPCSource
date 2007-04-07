@@ -252,8 +252,8 @@ type
     msg_cbytes : word;
     msg_qnum   : word;
     msg_qbytes : word;
-    msg_lspid  : pid_t;
-    msg_lrpid  : pid_t;
+    msg_lspid  : ipc_pid_t;
+    msg_lrpid  : ipc_pid_t;
   end;
 {$else}
   PMSQid_ds = ^TMSQid_ds;
