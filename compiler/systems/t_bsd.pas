@@ -329,11 +329,13 @@ begin
     begin
       { for darwin: always link dynamically against libc }
       linklibc := true;
+{$ifdef MACOSX104ORHIGHER}
       { not sure what this is for, but gcc always links against it }
       if not(cs_profile in current_settings.moduleswitches) then
         AddSharedLibrary('SystemStubs')
       else
         AddSharedLibrary('SystemStubs_profile');
+{$endif MACOSX104ORHIGHER}
       reorder:=reorderentries;
       if not(isdll) then
         if not(cs_profile in current_settings.moduleswitches) then
