@@ -116,9 +116,13 @@ begin
   Result:=0;
   S:=Key;
   Rel:=RelativeKey(S);
-  if not(Rel) then 
+  if not(Rel) then
     Delete(S,1,1);
+{$ifdef WinCE}
+  RegOpenKeyEx(GetBaseKey(Rel),PWideChar(WideString(S)),0,FAccess,Result);
+{$else WinCE}
   RegOpenKeyEx(GetBaseKey(Rel),PChar(S),0,FAccess,Result);
+{$endif WinCE}
 end;
 
 
