@@ -59,7 +59,11 @@ Type
     TIno64   = ino64_t;
     pIno64   = ^ino64_t;
 
+{$ifdef cpu64}
+    mode_t   = cint;         { used for file attributes     }
+{$else cpu64}
     mode_t   = cuint32;         { used for file attributes     }
+{$endif cpu64}
     TMode    = mode_t;
     pMode    = ^mode_t;
 

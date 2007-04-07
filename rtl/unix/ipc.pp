@@ -13,6 +13,11 @@
 
  **********************************************************************}
 
+{$ifdef linux}
+{$ifdef FPC_USE_LIBC}
+  {$fatal This unit must be completely overhauled for use with libc on linux}
+{$endif}
+{$endif linux}
 Unit ipc;
 
 interface
@@ -31,7 +36,7 @@ Type
    {$IFDEF FreeBSD}
    TKey   = clong;
    {$ELSE}
-   TKey   = longint;
+   TKey   = cint;
    {$ENDIF}
    key_t  = TKey;
 
@@ -49,9 +54,9 @@ Const
   IPC_EXCL   =  2 shl 9;  { fail if key exists }
   IPC_NOWAIT =  4 shl 9;  { return error on wait }
 
-  {$IF DEFINED(FreeBSD) or DEFINED(Linux)}
+{$if defined(FreeBSD) or defined(Linux)}
   IPC_PRIVATE : TKey = 0;
-  {$ENDIF}
+{$endif}
 
   { Actions for ctl calls }
 
@@ -62,7 +67,7 @@ Const
 
 type
   PIPC_Perm = ^TIPC_Perm;
-  {$ifdef FreeBSD}
+{$ifdef FreeBSD}
   TIPC_Perm = record
         cuid  : cushort;  { creator user id }
         cgid  : cushort;  { creator group id }
@@ -71,18 +76,34 @@ type
         mode  : cushort;  { r/w permission }
         seq   : cushort;  { sequence # (to generate unique msg/sem/shm id) }
         key   : key_t;    { user specified msg/sem/shm key }
-        End;
-  {$else} // linux
+  End;
+{$else} // linux
+{$ifdef cpux86_64}
   TIPC_Perm = record
         key   : TKey;
-        uid,
-        gid,
-        cuid,
-        cgid,
-        mode,
-        seq   : Word;
-        End;
-  {$endif}
+        uid   : uid_t;
+        gid   : gid_t;
+        cuid  : uid_t;
+        cgid  : gid_t;
+        mode  : mode_t;
+        __pad1    : cushort;
+        seq       : cushort;
+        __pad2    : cushort;
+        __unused1 : culong;
+        __unused2 : culong;
+  End;
+{$else cpux86_64}  
+  TIPC_Perm = record
+        key   : TKey;
+        uid   : uid_t;
+        gid   : gid_t;
+        cuid  : uid_t;
+        cgid  : gid_t;
+        mode  : mode_t;
+        seq   : cushort;
+  End;
+{$endif cpux86_64}
+{$endif}
 
 { Function to generate a IPC key. }
 Function ftok (Path : pchar;  ID : cint) : TKey;
@@ -94,19 +115,34 @@ Function ftok (Path : pchar;  ID : cint) : TKey;
 Type
   PShmid_DS = ^TShmid_ds;
 {$ifdef linux}
+{$ifdef cpux86_64}
   TShmid_ds = record
     shm_perm  : TIPC_Perm;
-    shm_segsz : longint;
-    shm_atime : longint;
-    shm_dtime : longint;
-    shm_ctime : longint;
-    shm_cpid  : word;
-    shm_lpid  : word;
-    shm_nattch : integer;
+    shm_segsz : size_t;
+    shm_atime : time_t;
+    shm_dtime : time_t;
+    shm_ctime : time_t;
+    shm_cpid  : pid_t;
+    shm_lpid  : pid_t;
+    shm_nattch : culong;
+    __unused4 : culong;
+    __unused5 : culong;
+  end;
+{$else cpux86_64}  
+  TShmid_ds = record
+    shm_perm  : TIPC_Perm;
+    shm_segsz : cint;
+    shm_atime : time_t;
+    shm_dtime : time_t;
+    shm_ctime : time_t;
+    shm_cpid  : pid_t;
+    shm_lpid  : pid_t;
+    shm_nattch : word;
     shm_npages : word;
     shm_pages  : Pointer;
     attaches   : pointer;
   end;
+{$endif cpux86_64}  
 {$else} // FreeBSD checked
   TShmid_ds = record
     shm_perm  : TIPC_Perm;
@@ -155,7 +191,7 @@ type            // the shm*info kind is "kernel" only.
     shmall : cint;
   end;
 
-{$ifdef FreeBSD}
+{$if defined(freebsd) or defined(linux)}
   PSHM_info = ^TSHM_info;
   TSHM_info = record
     used_ids : cint;
@@ -210,16 +246,14 @@ type
     msg_perm   : TIPC_perm;
     msg_first  : PMsg;
     msg_last   : PMsg;
-    msg_stime  : Longint;
-    msg_rtime  : Longint;
-    msg_ctime  : Longint;
-    wwait      : Pointer;
-    rwait      : pointer;
+    msg_stime  : time_t;
+    msg_rtime  : time_t;
+    msg_ctime  : time_t;
     msg_cbytes : word;
     msg_qnum   : word;
     msg_qbytes : word;
-    msg_lspid  : word;
-    msg_lrpid  : word;
+    msg_lspid  : pid_t;
+    msg_lrpid  : pid_t;
   end;
 {$else}
   PMSQid_ds = ^TMSQid_ds;
@@ -244,21 +278,21 @@ type
 
   PMSGbuf = ^TMSGbuf;
   TMSGbuf = record              // called mymsg on freebsd and SVID manual
-    mtype : longint;
+    mtype : clong;
     mtext : array[0..0] of char;
   end;
 
 {$ifdef linux}
   PMSGinfo = ^TMSGinfo;
   TMSGinfo = record
-    msgpool : Longint;
-    msgmap  : Longint;
-    msgmax  : Longint;
-    msgmnb  : Longint;
-    msgmni  : Longint;
-    msgssz  : Longint;
-    msgtql  : Longint;
-    msgseg  : Word;
+    msgpool : cint;
+    msgmap  : cint;
+    msgmax  : cint;
+    msgmnb  : cint;
+    msgmni  : cint;
+    msgssz  : cint;
+    msgtql  : cint;
+    msgseg  : cushort;
   end;
 {$else}
   PMSGinfo = ^TMSGinfo;
@@ -320,13 +354,13 @@ type
   PSEMid_ds = ^TSEMid_ds;
   TSEMid_ds = record
     sem_perm : tipc_perm;
-    sem_otime : longint;
-    sem_ctime : longint;
+    sem_otime : time_t;
+    sem_ctime : time_t;
     sem_base         : pointer;
     sem_pending      : pointer;
     sem_pending_last : pointer;
     undo             : pointer;
-    sem_nsems : word;
+    sem_nsems : cushort;
   end;
 {$else}
 
