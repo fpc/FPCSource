@@ -8000,13 +8000,13 @@ tests/webtbs/tw4635.pp svneol=native#text/plain
 tests/webtbs/tw4640.pp svneol=native#text/plain
 tests/webtbs/tw4669.pp svneol=native#text/plain
 tests/webtbs/tw4675.pp svneol=native#text/plain
-tests/webtbs/tw4678.pp -text
+tests/webtbs/tw4678.pp svneol=native#text/plain
 tests/webtbs/tw4700.pp svneol=native#text/plain
-tests/webtbs/tw4704.pp -text
+tests/webtbs/tw4704.pp svneol=native#text/plain
 tests/webtbs/tw4705.pp svneol=native#text/plain
 tests/webtbs/tw4722.pp svneol=native#text/plain
 tests/webtbs/tw4763.pp svneol=native#text/plain
-tests/webtbs/tw4768.pp -text
+tests/webtbs/tw4768.pp svneol=native#text/plain
 tests/webtbs/tw4778.pp svneol=native#text/plain
 tests/webtbs/tw4789.pp svneol=native#text/plain
 tests/webtbs/tw4809.pp svneol=native#text/plain
@@ -8015,8 +8015,8 @@ tests/webtbs/tw4881.pp svneol=native#text/plain
 tests/webtbs/tw4893a.pp svneol=native#text/plain
 tests/webtbs/tw4893b.pp svneol=native#text/plain
 tests/webtbs/tw4893c.pp svneol=native#text/plain
-tests/webtbs/tw4898.pp -text
-tests/webtbs/tw4902.pp -text
+tests/webtbs/tw4898.pp svneol=native#text/plain
+tests/webtbs/tw4902.pp svneol=native#text/plain
 tests/webtbs/tw4922.pp svneol=native#text/plain
 tests/webtbs/tw4925.pp svneol=native#text/plain
 tests/webtbs/tw4950.pp svneol=native#text/plain
@@ -8027,14 +8027,14 @@ tests/webtbs/tw5015.pp svneol=native#text/plain
 tests/webtbs/tw5023.pp svneol=native#text/plain
 tests/webtbs/tw5036.pp svneol=native#text/plain
 tests/webtbs/tw5082.pp -text svneol=unset#text/plain
-tests/webtbs/tw5086.pp -text
-tests/webtbs/tw5094.pp -text
+tests/webtbs/tw5086.pp svneol=native#text/plain
+tests/webtbs/tw5094.pp svneol=native#text/plain
 tests/webtbs/tw5100.pp svneol=native#text/plain
 tests/webtbs/tw5100a.pp svneol=native#text/plain
 tests/webtbs/tw5641.pp svneol=native#text/plain
 tests/webtbs/tw5896.pp svneol=native#text/plain
 tests/webtbs/tw6129.pp svneol=native#text/plain
-tests/webtbs/tw6184.pp -text
+tests/webtbs/tw6184.pp svneol=native#text/plain
 tests/webtbs/tw6203.pp svneol=native#text/plain
 tests/webtbs/tw6435.pp svneol=native#text/plain
 tests/webtbs/tw6491.pp svneol=native#text/plain
@@ -8059,7 +8059,7 @@ tests/webtbs/tw7071.pp svneol=native#text/plain
 tests/webtbs/tw7100.pp svneol=native#text/plain
 tests/webtbs/tw7104.pp svneol=native#text/plain
 tests/webtbs/tw7105.pp svneol=native#text/plain
-tests/webtbs/tw7143.pp -text
+tests/webtbs/tw7143.pp svneol=native#text/plain
 tests/webtbs/tw7161.pp svneol=native#text/plain
 tests/webtbs/tw7173.pp svneol=native#text/plain
 tests/webtbs/tw7179.pp svneol=native#text/plain
@@ -8067,7 +8067,7 @@ tests/webtbs/tw7195.pp svneol=native#text/plain
 tests/webtbs/tw7200.pp svneol=native#text/plain
 tests/webtbs/tw7227.pp svneol=native#text/plain
 tests/webtbs/tw7242.pp svneol=native#text/plain
-tests/webtbs/tw7262.pp -text
+tests/webtbs/tw7262.pp svneol=native#text/plain
 tests/webtbs/tw7276.pp svneol=native#text/plain
 tests/webtbs/tw7281.pp svneol=native#text/plain
 tests/webtbs/tw7285.pp svneol=native#text/plain
@@ -8128,7 +8128,7 @@ tests/webtbs/tw8199.pp svneol=native#text/plain
 tests/webtbs/tw8222.pp svneol=native#text/plain
 tests/webtbs/tw8222a.pp svneol=native#text/plain
 tests/webtbs/tw8222b.pp svneol=native#text/plain
-tests/webtbs/tw8225.pp -text
+tests/webtbs/tw8225.pp svneol=native#text/plain
 tests/webtbs/tw8229.pp svneol=native#text/plain
 tests/webtbs/tw8232.pp svneol=native#text/plain
 tests/webtbs/tw8258.pp svneol=native#text/plain
@@ -8146,7 +8146,7 @@ tests/webtbs/tw8462.pp svneol=native#text/plain
 tests/webtbs/tw8513.pp svneol=native#text/plain
 tests/webtbs/tw8525.pp svneol=native#text/plain
 tests/webtbs/tw8573.pp svneol=native#text/plain
-tests/webtbs/tw8615.pp -text
+tests/webtbs/tw8615.pp svneol=native#text/plain
 tests/webtbs/ub1873.pp svneol=native#text/plain
 tests/webtbs/ub1883.pp svneol=native#text/plain
 tests/webtbs/uw0555.pp svneol=native#text/plain
