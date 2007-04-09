@@ -99,7 +99,9 @@ unit i_bsd;
             system       : system_x86_64_freebsd;
             name         : 'FreeBSD for x86-64';
             shortname    : 'FreeBSD';
-            flags        : [tf_needs_symbol_size,tf_pic_uses_got,tf_files_case_sensitive,tf_use_function_relative_addresses{,tf_smartlink_sections}];
+            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,{Linux: tf_library_needs_pic,}tf_needs_symbol_type,
+                            tf_files_case_sensitive,tf_use_function_relative_addresses
+                                {	tf_pic_uses_got,tf_smartlink_sections}];
             cpu          : cpu_x86_64;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;HASUNIX;BSD';
@@ -124,13 +126,13 @@ unit i_bsd;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_gas;
+            assem        : as_x86_64_elf64;
             assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
             res          : res_none;
-            dbg          : dbg_stabs;
+            dbg          : dbg_dwarf2;            //dbg_stabs;
             script       : script_unix;
             endian       : endian_little;
             alignment    :
@@ -141,11 +143,11 @@ unit i_bsd;
                 constalignmin   : 0;
                 constalignmax   : 8;
                 varalignmin     : 0;
-                varalignmax     : 8;
+                varalignmax     : 16;
                 localalignmin   : 4;
-                localalignmax   : 8;
+                localalignmax   : 16;
                 recordalignmin  : 0;
-                recordalignmax  : 8;
+                recordalignmax  : 16;
                 maxCrecordalign : 8
               );
             first_parm_offset : 16;
