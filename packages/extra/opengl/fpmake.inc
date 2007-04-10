@@ -4,7 +4,7 @@
     {$ELSEIF defined(EXTRAPACKAGES)}
     Directory:='opengl';
     {$ENDIF}
-    OS:=[linux,netbsd,freebsd,openbsd,win32,darwin];
+    OS:=[linux,netbsd,freebsd,openbsd,win32,darwin,win64];
     Dependencies.Add('x11');
     T:=Targets.AddUnit('gl');
     T:=Targets.AddUnit('glu');

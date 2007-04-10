@@ -99,11 +99,11 @@ type
   GLUquadricObj = GLUquadric;           PGLUquadricObj = PGLUquadric;
   GLUtesselatorObj = GLUtesselator;     PGLUtesselatorObj = PGLUtesselator;
   GLUtriangulatorObj = GLUtesselator;   PGLUtriangulatorObj = PGLUtesselator;
-  
+
   TGLUnurbs = GLUnurbs;
   TGLUquadric = GLUquadric;
   TGLUtesselator = GLUtesselator;
-  
+
   TGLUnurbsObj = GLUnurbsObj;
   TGLUquadricObj = GLUquadricObj;
   TGLUtesselatorObj = GLUtesselatorObj;
@@ -478,7 +478,7 @@ end;
 {$ELSE MORPHOS}
 var
   MethodName: string = '';
-  
+
   function GetGLuProcAddress(Lib: PtrInt; ProcName: PChar): Pointer;
   begin
     MethodName:=ProcName;
@@ -553,7 +553,7 @@ end;
 
 initialization
 
-  {$IFDEF Win32}
+  {$IFDEF Windows}
   LoadGLu('glu32.dll');
   {$ELSE}
   {$ifdef darwin}
