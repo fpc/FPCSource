@@ -1155,8 +1155,8 @@
   { EnumProtocols  }
   { EnumResLangProc  }
      RT_ACCELERATOR = MAKEINTRESOURCE(9);
-	 RT_BITMAP = MAKEINTRESOURCE(2);
-	 RT_DIALOG = MAKEINTRESOURCE(5);
+     RT_BITMAP = MAKEINTRESOURCE(2);
+     RT_DIALOG = MAKEINTRESOURCE(5);
      RT_FONT = MAKEINTRESOURCE(8);
      RT_FONTDIR = MAKEINTRESOURCE(7);
      RT_MENU = MAKEINTRESOURCE(4);
@@ -2070,7 +2070,7 @@
      ICC_TOOLTIP_CLASSES   = $00001000; // Tooltip static & button
      ICC_CAPEDIT_CLASS     = $00002000; // All-caps edit control
      ICC_FE_CLASSES        = $40000000; // FE specific input subclasses
-     
+
   { InitializeSecurityDescriptor  }
      SECURITY_DESCRIPTOR_REVISION = 1;
   { IsTextUnicode  }
@@ -2860,7 +2860,7 @@
      STILL_ACTIVE = $103;
 
   { kfuncs consts }  //+kfuncs
-  
+
     {$ifdef CPUARM}
       PUserKData = $FFFFC800;
     {$else}
@@ -2892,7 +2892,7 @@
 
      TLS_FUNCALLOC    = 0;
      TLS_FUNCFREE     = 1;
-     
+
   { COMMPROP structure  }
      SP_SERIALCOMM = $1;
      BAUD_075 = $1;
@@ -3813,7 +3813,7 @@
      LVIS_SELECTED = 2;
      LVIS_OVERLAYMASK = 3840;
      LVIS_STATEIMAGEMASK = 61440;
-     
+
      // progress bar styles
      PBS_SMOOTH              = 01;
      PBS_VERTICAL            = 04;
@@ -4871,7 +4871,7 @@
      VK_RMENU = 165;
   { ImmGetVirtualKey  }
      VK_PROCESSKEY = 229;
-     
+
      // these constants are xda-specific:
      VK_TOUCHPAD   = $01; // VK_LBUTTON
      VK_ANSWER     = $72; // VK_F5

@@ -47,10 +47,6 @@ Type
     TkDev    = KDev_t;          // kernel and glibc. This is kernel.
     pkDev    = ^kdev_t;
 
-    gid_t    = cuint32;         { used for group IDs           }
-    TGid     = gid_t;
-    pGid     = ^gid_t;
-
     ino_t    = clong;           { used for file serial numbers }
     TIno     = ino_t;
     pIno     = ^ino_t;
@@ -59,7 +55,11 @@ Type
     TIno64   = ino64_t;
     pIno64   = ^ino64_t;
 
-    mode_t   = cuint32;         { used for file attributes     }
+{$ifdef cpu64}
+    mode_t   = cint;         { used for file attributes     }
+{$else cpu64}
+    mode_t   = cushort;      { used for file attributes     }
+{$endif cpu64}
     TMode    = mode_t;
     pMode    = ^mode_t;
 
@@ -75,7 +75,7 @@ Type
     TOff     = off_t;
     pOff     = ^off_t;
 
-    pid_t    = cint32;          { used as process identifier   }
+    pid_t    = cint;          { used as process identifier   }
     TPid     = pid_t;
     pPid     = ^pid_t;
 
@@ -105,9 +105,20 @@ Type
     wchar_t   = widechar;
     pwchar_t  = ^wchar_t;
 
-    uid_t    = cuint32;         { used for user ID type        }
+{$ifdef cpu64}
+    uid_t    = cuint;         { used for user ID type        }
+    gid_t    = cuint;         { used for group IDs           }
+    ipc_pid_t = cint;
+{$else cpu64}
+    uid_t    = cushort;         { used for user ID type        }
+    gid_t    = cushort;         { used for group IDs           }
+    ipc_pid_t = cushort;
+{$endif cpu64}
     TUid     = uid_t;
     pUid     = ^uid_t;
+    TGid     = gid_t;
+    pGid     = ^gid_t;
+
 
     socklen_t= cuint32;
     TSockLen = socklen_t;

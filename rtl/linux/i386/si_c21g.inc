@@ -43,7 +43,7 @@ var
 
 procedure gmon_monstartup; external name 'monstartup';
 
-procedure libc_atexit; external name '__libc_atexit';
+procedure libc_atexit; external name 'atexit';
 procedure libc_exit; external name '__libc_exit';
 procedure libc_init; external name '__libc_init';
 procedure libc_setfpucw; external name '__setfpucw';

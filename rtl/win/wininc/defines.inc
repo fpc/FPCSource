@@ -1139,61 +1139,37 @@
   { EnumPrinters  }
   { EnumProtocols  }
   { EnumResLangProc  }
-    { was #define dname def_expr }
-    function RT_ACCELERATOR : LPTSTR;
-      { return type might be wrong }
 
-    { was #define dname def_expr }
-    function RT_BITMAP : LPTSTR;
-      { return type might be wrong }
 
-    { was #define dname def_expr }
-    function RT_DIALOG : LPTSTR;
-      { return type might be wrong }
+  //
+  // Predefined Resource Types
+  //
+  const
+    RT_CURSOR       = MAKEINTRESOURCE(1);
+    RT_BITMAP       = MAKEINTRESOURCE(2);
+    RT_ICON         = MAKEINTRESOURCE(3);
+    RT_MENU         = MAKEINTRESOURCE(4);
+    RT_DIALOG       = MAKEINTRESOURCE(5);
+    RT_STRING       = MAKEINTRESOURCE(6);
+    RT_FONTDIR      = MAKEINTRESOURCE(7);
+    RT_FONT         = MAKEINTRESOURCE(8);
+    RT_ACCELERATOR  = MAKEINTRESOURCE(9);
+    RT_RCDATA       = MAKEINTRESOURCE(10);
+    RT_MESSAGETABLE = MAKEINTRESOURCE(11);
 
-    { was #define dname def_expr }
-    function RT_FONT : LPTSTR;
-      { return type might be wrong }
+    DIFFERENCE = 11;
 
-    { was #define dname def_expr }
-    function RT_FONTDIR : LPTSTR;
-      { return type might be wrong }
+    RT_GROUP_CURSOR = MAKEINTRESOURCE(ULONG_PTR(RT_CURSOR) + DIFFERENCE);
+    RT_GROUP_ICON = MAKEINTRESOURCE(ULONG_PTR(RT_ICON) + DIFFERENCE);
+    RT_VERSION    = MAKEINTRESOURCE(16);
+    RT_DLGINCLUDE = MAKEINTRESOURCE(17);
+    RT_PLUGPLAY   = MAKEINTRESOURCE(19);
+    RT_VXD        = MAKEINTRESOURCE(20);
+    RT_ANICURSOR  = MAKEINTRESOURCE(21);
+    RT_ANIICON    = MAKEINTRESOURCE(22);
+    RT_HTML       = MAKEINTRESOURCE(23);
+    RT_MANIFEST   = MAKEINTRESOURCE(24);
 
-    { was #define dname def_expr }
-    function RT_MENU : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function RT_RCDATA : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function RT_STRING : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function RT_MESSAGETABLE : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function RT_CURSOR : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function RT_GROUP_CURSOR : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function RT_ICON : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function RT_GROUP_ICON : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function RT_VERSION : LPTSTR;
-      { return type might be wrong }
 
   { EnumServicesStatus  }
 
@@ -2534,7 +2510,7 @@ Const
      LOCALE_RETURN_NUMBER  = $20000000;   // return number instead
      LOCALE_SISO639LANGNAME = $59;
      LOCALE_SISO3166CTRYNAME = $5A;
- 
+
   { Calendar Type Information  }
      CAL_ICALINTVALUE = 1;
      CAL_IYEAROFFSETRANGE = 3;
@@ -5400,8 +5376,8 @@ Const
   DECLARE_HANDLE(HANDLE);
   #endif
    *)
-   
-   
+
+
   const
      EXCEPTION_READ_FAULT    = 0; // Access violation was caused by a read
      EXCEPTION_WRITE_FAULT   = 1; // Access violation was caused by a write
@@ -5565,104 +5541,6 @@ const
     function UNICODE_NULL : WCHAR;
       begin
          UNICODE_NULL:=#0;
-      end;
-
-    { was #define dname def_expr }
-    function RT_ACCELERATOR : LPTSTR;
-      { return type might be wrong }
-      begin
-         RT_ACCELERATOR:=MAKEINTRESOURCE(9);
-      end;
-
-    { was #define dname def_expr }
-    function RT_BITMAP : LPTSTR;
-      { return type might be wrong }
-      begin
-         RT_BITMAP:=MAKEINTRESOURCE(2);
-      end;
-
-    { was #define dname def_expr }
-    function RT_DIALOG : LPTSTR;
-      { return type might be wrong }
-      begin
-         RT_DIALOG:=MAKEINTRESOURCE(5);
-      end;
-
-    { was #define dname def_expr }
-    function RT_FONT : LPTSTR;
-      { return type might be wrong }
-      begin
-         RT_FONT:=MAKEINTRESOURCE(8);
-      end;
-
-    { was #define dname def_expr }
-    function RT_FONTDIR : LPTSTR;
-      { return type might be wrong }
-      begin
-         RT_FONTDIR:=MAKEINTRESOURCE(7);
-      end;
-
-    { was #define dname def_expr }
-    function RT_MENU : LPTSTR;
-      { return type might be wrong }
-      begin
-         RT_MENU:=MAKEINTRESOURCE(4);
-      end;
-
-    { was #define dname def_expr }
-    function RT_RCDATA : LPTSTR;
-      { return type might be wrong }
-      begin
-         RT_RCDATA:=MAKEINTRESOURCE(10);
-      end;
-
-    { was #define dname def_expr }
-    function RT_STRING : LPTSTR;
-      { return type might be wrong }
-      begin
-         RT_STRING:=MAKEINTRESOURCE(6);
-      end;
-
-    { was #define dname def_expr }
-    function RT_MESSAGETABLE : LPTSTR;
-      { return type might be wrong }
-      begin
-         RT_MESSAGETABLE:=MAKEINTRESOURCE(11);
-      end;
-
-    { was #define dname def_expr }
-    function RT_CURSOR : LPTSTR;
-      { return type might be wrong }
-      begin
-         RT_CURSOR:=MAKEINTRESOURCE(1);
-      end;
-
-    { was #define dname def_expr }
-    function RT_GROUP_CURSOR : LPTSTR;
-      { return type might be wrong }
-      begin
-         RT_GROUP_CURSOR:=MAKEINTRESOURCE(12);
-      end;
-
-    { was #define dname def_expr }
-    function RT_ICON : LPTSTR;
-      { return type might be wrong }
-      begin
-         RT_ICON:=MAKEINTRESOURCE(3);
-      end;
-
-    { was #define dname def_expr }
-    function RT_GROUP_ICON : LPTSTR;
-      { return type might be wrong }
-      begin
-         RT_GROUP_ICON:=MAKEINTRESOURCE(13);
-      end;
-
-    { was #define dname def_expr }
-    function RT_VERSION : LPTSTR;
-      { return type might be wrong }
-      begin
-         RT_VERSION:=MAKEINTRESOURCE(16);
       end;
 
     { was #define dname def_expr }

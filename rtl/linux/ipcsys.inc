@@ -28,7 +28,7 @@ end;
 
 function shmget(key: Tkey; size:cint; flag:cint):cint;
 begin
-  shmget:=do_syscall (syscall_nr_SHMGET,TSysParam(key),TSysParam(size),TSysParam(flag),TSysParam(0));
+  shmget:=do_syscall (syscall_nr_SHMGET,TSysParam(key),TSysParam(size),TSysParam(flag));
 end;
 
 function shmat (shmid:cint; shmaddr:pointer; shmflg:cint): pointer;
@@ -38,17 +38,17 @@ end;
 
 function shmdt (shmaddr:pointer): cint;
 begin
-  shmdt:=do_syscall(syscall_nr_SHMDT,TSysParam(0),TSysParam(0),TSysParam(0),TSysParam(shmaddr));
+  shmdt:=do_syscall(syscall_nr_SHMDT,TSysParam(shmaddr));
 end;
 
 function shmctl(shmid:cint; cmd:cint; buf: pshmid_ds): cint;
 begin
- shmctl:=do_syscall(syscall_nr_SHMCTL,TSysParam(shmid),TSysParam(cmd),TSysParam(0),TSysParam(buf));
+ shmctl:=do_syscall(syscall_nr_SHMCTL,TSysParam(shmid),TSysParam(cmd),TSysParam(buf));
 end;
 
 function msgget(key:Tkey; msgflg:cint):cint;
 begin
-  msgget:=do_syscall(syscall_nr_MSGGET,TSysParam(key),TSysParam(msgflg),TSysParam(0),TSysParam(0));
+  msgget:=do_syscall(syscall_nr_MSGGET,TSysParam(key),TSysParam(msgflg));
 end;
 
 function msgsnd(msqid:cint; msgp: pmsgbuf; msgsz: size_t; msgflg:cint):cint;
@@ -72,17 +72,17 @@ end;
 
 Function msgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint;
 begin
-  msgctl:=do_syscall(syscall_nr_MSGCTL,TSysParam(msqid),TSysParam(cmd),TSysParam(0),TSysParam(buf));
+  msgctl:=do_syscall(syscall_nr_MSGCTL,TSysParam(msqid),TSysParam(cmd),TSysParam(buf));
 end;
 
 Function semget(key:Tkey; nsems:cint; semflg:cint): cint;
 begin
-  semget:=do_syscall (syscall_nr_SEMGET,TSysParam(key),TSysParam(nsems),TSysParam(semflg),TSysParam(0));
+  semget:=do_syscall (syscall_nr_SEMGET,TSysParam(key),TSysParam(nsems),TSysParam(semflg));
 end;
 
 Function semop(semid:cint; sops: psembuf; nsops:cuint): cint;
 begin
-  semop:=do_syscall (syscall_nr_SEMOP,TSysParam(semid),TSysParam(nsops),TSysParam(0),TSysParam(sops));
+  semop:=do_syscall (syscall_nr_SEMOP,TSysParam(semid),TSysParam(sops),TSysParam(nsops));
 end;
 
 Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): cint;
