@@ -54,6 +54,7 @@ interface
         procedure a_call_name(list:TAsmList;const s:string);override;
         procedure a_call_reg(list:TAsmList;Reg:TRegister);override;
         { General purpose instructions }
+        procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
         procedure a_op_const_reg(list:TAsmList;Op:TOpCG;size:tcgsize;a:aint;reg:TRegister);override;
         procedure a_op_reg_reg(list:TAsmList;Op:TOpCG;size:TCGSize;src, dst:TRegister);override;
         procedure a_op_const_reg_reg(list:TAsmList;op:TOpCg;size:tcgsize;a:aint;src, dst:tregister);override;
@@ -739,6 +740,16 @@ implementation
        end;
 
 
+    procedure tcgsparc.maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
+      const
+        overflowops = [OP_MUL,OP_SHL,OP_ADD,OP_SUB,OP_NOT,OP_NEG];
+      begin
+        if (op in overflowops) and
+           (size in [OS_8,OS_S8,OS_16,OS_S16]) then
+          a_load_reg_reg(list,OS_32,size,dst,dst);
+      end;
+
+
     procedure TCgSparc.a_op_const_reg(list:TAsmList;Op:TOpCG;size:tcgsize;a:aint;reg:TRegister);
       begin
         if Op in [OP_NEG,OP_NOT] then
@@ -747,6 +758,7 @@ implementation
           list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],reg,NR_G0,reg))
         else
           handle_reg_const_reg(list,TOpCG2AsmOp[op],reg,a,reg);
+        maybeadjustresult(list,op,size,reg);
       end;
 
 
@@ -772,6 +784,7 @@ implementation
           else
             list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],dst,src,dst));
         end;
+        maybeadjustresult(list,op,size,dst);
       end;
 
 
@@ -801,12 +814,14 @@ implementation
             end;
         end;
         handle_reg_const_reg(list,TOpCG2AsmOp[op],src,a,dst);
+        maybeadjustresult(list,op,size,dst);
       end;
 
 
     procedure TCgSparc.a_op_reg_reg_reg(list:TAsmList;op:TOpCg;size:tcgsize;src1, src2, dst:tregister);
       begin
         list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],src2,src1,dst));
+        maybeadjustresult(list,op,size,dst);
       end;
 
 
@@ -852,7 +867,8 @@ implementation
             end;
           end
         else
-          handle_reg_const_reg(list,TOpCG2AsmOp[op],src,a,dst)
+          handle_reg_const_reg(list,TOpCG2AsmOp[op],src,a,dst);
+        maybeadjustresult(list,op,size,dst);
       end;
 
 
@@ -886,7 +902,8 @@ implementation
             end;
           end
         else
-          list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],src2,src1,dst))
+          list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],src2,src1,dst));
+        maybeadjustresult(list,op,size,dst);
       end;
 
 
