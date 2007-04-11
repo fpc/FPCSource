@@ -44,7 +44,7 @@ Abstract:
 
 {$MODE Delphi}
 {$MACRO ON}
-{$IFDEF MSWindows}
+{$IFDEF Windows}
   {$DEFINE extdecl := stdcall}
 {$ELSE}
   {$DEFINE extdecl := cdecl}
