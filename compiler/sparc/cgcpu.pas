@@ -578,12 +578,27 @@ implementation
           begin
             if reg1<>reg2 then
               begin
-                { same size, only a register mov required }
-                instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
-                list.Concat(instr);
-                { Notify the register allocator that we have written a move instruction so
-                  it can try to eliminate it. }
-                add_move_instruction(instr);
+                if tcgsize2size[tosize] > tcgsize2size[fromsize] then
+                  begin
+                    list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,24,reg2));
+                    case fromsize of
+                    OS_8,
+                    OS_16 :
+                      list.concat(taicpu.op_reg_const_reg(A_SRL,reg2,24,reg2));
+                    OS_S8,
+                    OS_S16 :
+                      list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,24,reg2));
+                    end;
+                  end
+                else
+                  begin
+                    { same size, only a register mov required }
+                    instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
+                    list.Concat(instr);
+                    { Notify the register allocator that we have written a move instruction so
+                     it can try to eliminate it. }
+                    add_move_instruction(instr);
+                  end;
               end;
           end;
       end;
