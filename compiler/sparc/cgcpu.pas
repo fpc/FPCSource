@@ -580,14 +580,27 @@ implementation
               begin
                 if tcgsize2size[tosize] > tcgsize2size[fromsize] then
                   begin
-                    list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,24,reg2));
                     case fromsize of
-                    OS_8,
-                    OS_16 :
-                      list.concat(taicpu.op_reg_const_reg(A_SRL,reg2,24,reg2));
-                    OS_S8,
-                    OS_S16 :
-                      list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,24,reg2));
+                      OS_8:
+                        begin
+                          list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,24,reg2));
+                          list.concat(taicpu.op_reg_const_reg(A_SRL,reg2,24,reg2));
+                        end;
+                      OS_16 :
+                        begin
+                          list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,16,reg2));
+                          list.concat(taicpu.op_reg_const_reg(A_SRL,reg2,16,reg2));
+                        end;
+                      OS_S8:
+                        begin
+                          list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,24,reg2));
+                          list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,24,reg2));
+                        end;
+                      OS_S16 :
+                        begin
+                          list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,16,reg2));
+                          list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,16,reg2));
+                        end;
                     end;
                   end
                 else
