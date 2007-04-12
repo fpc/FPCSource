@@ -308,6 +308,7 @@ type
   function sem_trywait(__sem:Psem_t):cint;cdecl;external libthreads;
   function sem_post(__sem:Psem_t):cint;cdecl;external libthreads;
   function sem_getvalue(__sem:Psem_t; __sval:pcint):cint;cdecl;external libthreads;
+  function sem_timedwait(__sem: Psem_t; __abstime: Ptimespec):cint;cdecl; external libthreads;
 
 { ---------------------------------------------------------------------
      Overloaded versions with var args instead of pointers
