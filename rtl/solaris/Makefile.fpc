@@ -37,7 +37,7 @@ fpcdir=../..
 target=solaris
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(UNIXINC) $(OSPROCINC) $(POSIXINC)
+includedir=$(INC) $(PROCINC) $(UNIXINC) $(OSPROCINC) 
 sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(COMMON)
 
 
@@ -57,7 +57,6 @@ INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 OSPROCINC=$(RTL)/solaris/$(CPU_TARGET)
-POSIXINC=$(RTL)/posix
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 
