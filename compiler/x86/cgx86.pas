@@ -102,7 +102,6 @@ unit cgx86;
         procedure g_concatcopy(list : TAsmList;const source,dest : treference;len : aint);override;
 
         { entry/exit code helpers }
-        procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);override;
         procedure g_profilecode(list : TAsmList);override;
         procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
@@ -491,7 +490,7 @@ unit cgx86;
               end;
             OS_F80 :
               begin
-                  op:=A_FSTP; 
+                  op:=A_FSTP;
                   s:=S_FX;
                end;
             OS_C64 :
@@ -1712,17 +1711,6 @@ unit cgx86;
 {****************************************************************************
                               Entry/Exit Code Helpers
 ****************************************************************************}
-
-    procedure tcgx86.g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
-      begin
-        if (use_fixed_stack) then
-          begin
-            inherited g_releasevaluepara_openarray(list,l);
-            exit;
-          end;
-        { Nothing to release }
-      end;
-
 
     procedure tcgx86.g_profilecode(list : TAsmList);
 

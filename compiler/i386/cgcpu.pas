@@ -46,6 +46,7 @@ unit cgcpu;
 
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);override;
+        procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);override;
 
         procedure g_exception_reason_save(list : TAsmList; const href : treference);override;
         procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: aint);override;
@@ -441,6 +442,17 @@ unit cgcpu;
         { patch the new address, but don't use a_load_reg_reg, that will add a move instruction
           that can confuse the reg allocator }
         list.concat(Taicpu.Op_reg_reg(A_MOV,S_L,NR_ESP,destreg));
+      end;
+
+
+    procedure tcg386.g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
+      begin
+        if use_fixed_stack then
+          begin
+            inherited g_releasevaluepara_openarray(list,l);
+            exit;
+          end;
+        { Nothing to release }
       end;
 
 
