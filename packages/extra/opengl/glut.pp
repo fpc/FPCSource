@@ -135,7 +135,7 @@ const
   GLUT_NORMAL                     = 0;
   GLUT_OVERLAY                    = 1;
 
-{$ifdef win32}
+{$ifdef Windows}
   // Stroke font constants (use these in GLUT program).
   GLUT_STROKE_ROMAN               = Pointer(0);
   GLUT_STROKE_MONO_ROMAN          = Pointer(1);
@@ -148,7 +148,7 @@ const
   GLUT_BITMAP_HELVETICA_10        = Pointer(6);
   GLUT_BITMAP_HELVETICA_12        = Pointer(7);
   GLUT_BITMAP_HELVETICA_18        = Pointer(8);
-{$else win32}
+{$else Windows}
 var
   // Stroke font constants (use these in GLUT program).
   GLUT_STROKE_ROMAN               : Pointer;
@@ -164,7 +164,7 @@ var
   GLUT_BITMAP_HELVETICA_18        : Pointer;
 
 const
-{$endif win32}
+{$endif Windows}
 
   // glutGet parameters.
   GLUT_WINDOW_X                   = 100;
@@ -735,7 +735,7 @@ begin
     @glutEnterGameMode := GetGLutProcAddress(hDLL, 'glutEnterGameMode');
     @glutLeaveGameMode := GetGLutProcAddress(hDLL, 'glutLeaveGameMode');
     @glutGameModeGet := GetGLutProcAddress(hDLL, 'glutGameModeGet');
-{$ifndef win32}
+{$ifndef Windows}
     GLUT_STROKE_ROMAN := GetGLutProcAddress(hDll, 'glutStrokeRoman');
     GLUT_STROKE_MONO_ROMAN := GetGLutProcAddress(hDll,'glutStrokeMonoRoman');
     GLUT_BITMAP_9_BY_15 := GetGLutProcAddress(hDll, 'glutBitmap9By15');
@@ -745,7 +745,7 @@ begin
     GLUT_BITMAP_HELVETICA_10 := GetGLutProcAddress(hDll, 'glutBitmapHelvetica10');
     GLUT_BITMAP_HELVETICA_12 := GetGLutProcAddress(hDll, 'glutBitmapHelvetica12');
     GLUT_BITMAP_HELVETICA_18 := GetGLutProcAddress(hDll, 'glutBitmapHelvetica18');
-{$endif win32}
+{$endif Windows}
   except
     raise Exception.Create('Could not load ' + MethodName + ' from ' + dll);
   end;
@@ -754,7 +754,7 @@ end;
 
 initialization
 
-  {$IFDEF Win32}
+  {$IFDEF Windows}
   LoadGlut('glut32.dll');
   {$ELSE}
   {$ifdef darwin}

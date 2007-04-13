@@ -62,15 +62,15 @@ interface
 
 uses
   SysUtils,
-  {$IFDEF Win32}
+  {$IFDEF Windows}
   Windows, dynlibs
-  {$ELSE Win32}
+  {$ELSE Windows}
   {$IFDEF MorphOS}
   TinyGL
   {$ELSE MorphOS}
   dynlibs
   {$ENDIF MorphOS}
-  {$ENDIF Win32};
+  {$ENDIF Windows};
 
 {$IFNDEF MORPHOS}
 var
@@ -94,7 +94,7 @@ type
   GLclampd   = Double;        PGLclampd   = ^GLclampd;
 { GLvoid     = void; }        PGLvoid     = Pointer;
                               PPGLvoid    = ^PGLvoid;
-                              
+
   TGLenum     = GLenum;
   TGLboolean  = GLboolean;
   TGLbitfield = GLbitfield;
@@ -1531,7 +1531,7 @@ var
   glVertex4sv: procedure(const v: PGLshort); extdecl;
   glVertexPointer: procedure(size: GLint; atype: GLenum; stride: GLsizei; const pointer: Pointer); extdecl;
   glViewport: procedure(x, y: GLint; width, height: GLsizei); extdecl;
-  {$IFDEF Win32}
+  {$IFDEF Windows}
   ChoosePixelFormat: function(DC: HDC; p2: PPixelFormatDescriptor): Integer; extdecl;
   {$ENDIF}
 {$ENDIF MORPHOS}
@@ -1573,7 +1573,7 @@ procedure FreeOpenGL;
 
 implementation
 
-{$ifdef win32}
+{$ifdef windows}
 function WinChoosePixelFormat(DC: HDC; p2: PPixelFormatDescriptor): Integer; extdecl; external 'gdi32' name 'ChoosePixelFormat';
 {$endif}
 
@@ -1928,7 +1928,7 @@ begin
   @glVertex4sv := nil;
   @glVertexPointer := nil;
   @glViewport := nil;
-  {$IFDEF Win32}
+  {$IFDEF Windows}
   @ChoosePixelFormat := nil;
   {$ENDIF}
 
@@ -2299,7 +2299,7 @@ begin
     raise Exception.Create('Failed loading ' + MethodName +' from ' + dll);
   end;
 
-  {$IFDEF Win32}
+  {$IFDEF Windows}
   try
     @ChoosePixelFormat := GetGLProcAddress(LibGL, 'ChoosePixelFormat');
     if not Assigned(ChoosePixelFormat) then
@@ -2319,7 +2319,7 @@ initialization
   Set8087CW($133F);
   {$endif x86}
 
-  {$IFDEF Win32}
+  {$IFDEF Windows}
   LoadOpenGL('opengl32.dll');
   {$ELSE}
   {$ifdef darwin}
