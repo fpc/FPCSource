@@ -7,7 +7,7 @@
 
 {$MACRO ON}
 {$MODE Delphi}
-{$IFDEF Win32}
+{$IFDEF Windows}
   {$DEFINE extdecl:=stdcall }
 {$ELSE}
   {$DEFINE extdecl:=cdecl }
@@ -27,7 +27,7 @@ interface
 
 uses
   SysUtils,
-  {$IFDEF Win32}
+  {$IFDEF Windows}
   Windows,
   {$ELSE}
   dynlibs,
