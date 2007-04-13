@@ -1222,17 +1222,17 @@ implementation
               location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vardef));
               cg.g_decrrefcount(list,tparavarsym(p).vardef,href);
             end;
-         end
-        else
-         if (tparavarsym(p).varspez=vs_value) and
-            (is_open_array(tparavarsym(p).vardef) or
-             is_array_of_const(tparavarsym(p).vardef)) then
-           begin
-             { cdecl functions don't have a high pointer so it is not possible to generate
-               a local copy }
-             if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
-               cg.g_releasevaluepara_openarray(list,tparavarsym(p).localloc);
-           end;
+         end;
+        { open arrays can contain elements requiring init/final code, so the else has been removed here }
+        if (tparavarsym(p).varspez=vs_value) and
+           (is_open_array(tparavarsym(p).vardef) or
+            is_array_of_const(tparavarsym(p).vardef)) then
+          begin
+            { cdecl functions don't have a high pointer so it is not possible to generate
+              a local copy }
+            if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+              cg.g_releasevaluepara_openarray(list,tparavarsym(p).localloc);
+          end;
       end;
 
 
