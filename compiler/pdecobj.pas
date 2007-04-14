@@ -420,8 +420,12 @@ implementation
                          end;
                      odt_interfacecorba,
                      odt_interfacecom:
-                       if not(is_interface(childof)) then
-                         Message(parser_e_mix_of_classes_and_objects);
+                       begin
+                         if not(is_interface(childof)) then
+                           Message(parser_e_mix_of_classes_and_objects);
+                         classtype:=childof.objecttype;
+                         aktobjectdef.objecttype:=classtype;
+                       end;
                      odt_cppclass:
                        if not(is_cppclass(childof)) then
                          Message(parser_e_mix_of_classes_and_objects);
