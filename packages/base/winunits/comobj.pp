@@ -192,14 +192,14 @@ implementation
        flags:=CLSCTX_LOCAL_SERVER or CLSCTX_REMOTE_SERVER or CLSCTX_INPROC_SERVER;
 
        { actually a remote call? }
-{$ifndef wince}  
+{$ifndef wince}
        //roozbeh although there is a way to retrive computer name...HKLM\Ident\Name..but are they same?
 	     size:=sizeof(localhost);
        if (MachineName<>'') and
           (not(GetComputerNameW(localhost,size)) or
           (WideCompareText(localhost,MachineName)<>0)) then
            flags:=CLSCTX_REMOTE_SERVER;
-{$endif}   
+{$endif}
 
        OleCheck(CoCreateInstanceEx(ClassID,nil,flags,@server,1,@mqi));
        OleCheck(mqi.hr);
@@ -274,7 +274,7 @@ implementation
           raise EOleSysError.Create('',Status,0);
       end;
 
-{ $define DEBUG_COMDISPATCH}
+{$define DEBUG_COMDISPATCH}
     procedure DispatchInvoke(const Dispatch: IDispatch; CallDesc: PCallDesc;
       DispIDs: PDispIDList; Params: Pointer; Result: PVariant);
 
@@ -324,9 +324,22 @@ implementation
                         inc(PPointer(Params));
                       end;
                     varVariant:
+                      begin
 {$ifdef DEBUG_COMDISPATCH}
-                      writeln('Unimplemented ref variant dispatch');
+                        writeln('Got ref. variant containing type: ',PVarData(PPointer(Params)^)^.VType);
 {$endif DEBUG_COMDISPATCH}
+                        if PVarData(PPointer(Params)^)^.VType=varString then
+                          begin
+{$ifdef DEBUG_COMDISPATCH}
+                            writeln('  Casting nested varString: ',Ansistring(PVarData(Params^)^.vString));
+{$endif DEBUG_COMDISPATCH}
+                            VarCast(PVariant(Params^)^,PVariant(Params^)^,varOleStr);
+                          end;
+
+                        Arguments[i].VType:=varVariant or varByRef;
+                        Arguments[i].VPointer:=PPointer(Params)^;
+                        inc(PPointer(Params));
+                      end
                     else
                       begin
 {$ifdef DEBUG_COMDISPATCH}
