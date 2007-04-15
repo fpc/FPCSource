@@ -30,7 +30,8 @@ interface
        globtype,globals,
        cpubase,cgbase,cgutils,
        aasmbase,
-       symtype;
+       symtype,
+       optbase;
 
     type
        tnodetype = (
@@ -264,165 +265,167 @@ interface
        tnodelist = class
        end;
 
-       { later (for the newcg) tnode will inherit from tlinkedlist_item }
-       tnode = class
-       public
-          { type of this node }
-          nodetype : tnodetype;
-          { type of the current code block, general/const/type }
-          blocktype : tblock_type;
-          { expected location of the result of this node (pass1) }
-          expectloc : tcgloc;
-          { the location of the result of this node (pass2) }
-          location : tlocation;
-          { the parent node of this is node    }
-          { this field is set by concattolist  }
-          parent : tnode;
-          { there are some properties about the node stored }
-          flags  : tnodeflags;
-          ppuidx : longint;
-          { the number of registers needed to evalute the node }
-          registersint,registersfpu,registersmm : longint;  { must be longint !!!! }
+      pnode = ^tnode;
+      { basic class for the intermediated representation fpc uses }
+      tnode = class
+      public
+         { type of this node }
+         nodetype : tnodetype;
+         { type of the current code block, general/const/type }
+         blocktype : tblock_type;
+         { expected location of the result of this node (pass1) }
+         expectloc : tcgloc;
+         { the location of the result of this node (pass2) }
+         location : tlocation;
+         { the parent node of this is node    }
+         { this field is set by concattolist  }
+         parent : tnode;
+         { there are some properties about the node stored }
+         flags  : tnodeflags;
+         ppuidx : longint;
+         { the number of registers needed to evalute the node }
+         registersint,registersfpu,registersmm : longint;  { must be longint !!!! }
 {$ifdef SUPPORT_MMX}
-          registersmmx  : longint;
+         registersmmx  : longint;
 {$endif SUPPORT_MMX}
-          resultdef     : tdef;
-          resultdefderef : tderef;
-          fileinfo      : tfileposinfo;
-          localswitches : tlocalswitches;
+         resultdef     : tdef;
+         resultdefderef : tderef;
+         fileinfo      : tfileposinfo;
+         localswitches : tlocalswitches;
+         optinfo : poptinfo;
 {$ifdef extdebug}
-          maxfirstpasscount,
-          firstpasscount : longint;
+         maxfirstpasscount,
+         firstpasscount : longint;
 {$endif extdebug}
-          constructor create(t:tnodetype);
-          { this constructor is only for creating copies of class }
-          { the fields are copied by getcopy                      }
-          constructor createforcopy;
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);virtual;
-          destructor destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);virtual;
-          procedure buildderefimpl;virtual;
-          procedure derefimpl;virtual;
-          procedure derefnode;virtual;
+         constructor create(t:tnodetype);
+         { this constructor is only for creating copies of class }
+         { the fields are copied by getcopy                      }
+         constructor createforcopy;
+         constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);virtual;
+         destructor destroy;override;
+         procedure ppuwrite(ppufile:tcompilerppufile);virtual;
+         procedure buildderefimpl;virtual;
+         procedure derefimpl;virtual;
+         procedure derefnode;virtual;
 
-          { toggles the flag }
-          procedure toggleflag(f : tnodeflag);
+         { toggles the flag }
+         procedure toggleflag(f : tnodeflag);
 
-          { the 1.1 code generator may override pass_1 }
-          { and it need not to implement det_* then    }
-          { 1.1: pass_1 returns a value<>0 if the node has been transformed }
-          { 2.0: runs pass_typecheck and det_temp                           }
-          function pass_1 : tnode;virtual;abstract;
-          { dermines the resultdef of the node }
-          function pass_typecheck : tnode;virtual;abstract;
+         { the 1.1 code generator may override pass_1 }
+         { and it need not to implement det_* then    }
+         { 1.1: pass_1 returns a value<>0 if the node has been transformed }
+         { 2.0: runs pass_typecheck and det_temp                           }
+         function pass_1 : tnode;virtual;abstract;
+         { dermines the resultdef of the node }
+         function pass_typecheck : tnode;virtual;abstract;
 
-          { tries to simplify the node, returns a value <>nil if a simplified
-            node has been created }
-          function simplify : tnode;virtual;
+         { tries to simplify the node, returns a value <>nil if a simplified
+           node has been created }
+         function simplify : tnode;virtual;
 {$ifdef state_tracking}
-          { Does optimizations by keeping track of the variable states
-            in a procedure }
-          function track_state_pass(exec_known:boolean):boolean;virtual;
+         { Does optimizations by keeping track of the variable states
+           in a procedure }
+         function track_state_pass(exec_known:boolean):boolean;virtual;
 {$endif}
-          { For a t1:=t2 tree, mark the part of the tree t1 that gets
-            written to (normally the loadnode) as write access. }
-          procedure mark_write;virtual;
-          { dermines the number of necessary temp. locations to evaluate
-            the node }
-          procedure det_temp;virtual;abstract;
+         { For a t1:=t2 tree, mark the part of the tree t1 that gets
+           written to (normally the loadnode) as write access. }
+         procedure mark_write;virtual;
+         { dermines the number of necessary temp. locations to evaluate
+           the node }
+         procedure det_temp;virtual;abstract;
 
-          procedure pass_generate_code;virtual;abstract;
+         procedure pass_generate_code;virtual;abstract;
 
-          { comparing of nodes }
-          function isequal(p : tnode) : boolean;
-          { to implement comparisation, override this method }
-          function docompare(p : tnode) : boolean;virtual;
-          { wrapper for getcopy }
-          function getcopy : tnode;
+         { comparing of nodes }
+         function isequal(p : tnode) : boolean;
+         { to implement comparisation, override this method }
+         function docompare(p : tnode) : boolean;virtual;
+         { wrapper for getcopy }
+         function getcopy : tnode;
 
-          { does the real copying of a node }
-          function dogetcopy : tnode;virtual;
+         { does the real copying of a node }
+         function dogetcopy : tnode;virtual;
 
-          procedure insertintolist(l : tnodelist);virtual;
-          { writes a node for debugging purpose, shouldn't be called }
-          { direct, because there is no test for nil, use printnode  }
-          { to write a complete tree }
-          procedure printnodeinfo(var t:text);virtual;
-          procedure printnodedata(var t:text);virtual;
-          procedure printnodetree(var t:text);virtual;
-          procedure concattolist(l : tlinkedlist);virtual;
-          function ischild(p : tnode) : boolean;virtual;
-       end;
+         procedure insertintolist(l : tnodelist);virtual;
+         { writes a node for debugging purpose, shouldn't be called }
+         { direct, because there is no test for nil, use printnode  }
+         { to write a complete tree }
+         procedure printnodeinfo(var t:text);virtual;
+         procedure printnodedata(var t:text);virtual;
+         procedure printnodetree(var t:text);virtual;
+         procedure concattolist(l : tlinkedlist);virtual;
+         function ischild(p : tnode) : boolean;virtual;
+      end;
 
-       tnodeclass = class of tnode;
+      tnodeclass = class of tnode;
 
-       tnodeclassarray = array[tnodetype] of tnodeclass;
+      tnodeclassarray = array[tnodetype] of tnodeclass;
 
-       { this node is the anchestor for all nodes with at least   }
-       { one child, you have to use it if you want to use         }
-       { true- and current_procinfo.CurrFalseLabel                                     }
-       punarynode = ^tunarynode;
-       tunarynode = class(tnode)
-          left : tnode;
-          constructor create(t:tnodetype;l : tnode);
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
-          destructor destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderefimpl;override;
-          procedure derefimpl;override;
-          procedure derefnode;override;
-          procedure concattolist(l : tlinkedlist);override;
-          function ischild(p : tnode) : boolean;override;
-          function docompare(p : tnode) : boolean;override;
-          function dogetcopy : tnode;override;
-          procedure insertintolist(l : tnodelist);override;
-          procedure left_max;
-          procedure printnodedata(var t:text);override;
-       end;
+      { this node is the anchestor for all nodes with at least   }
+      { one child, you have to use it if you want to use         }
+      { true- and current_procinfo.CurrFalseLabel                                     }
+      punarynode = ^tunarynode;
+      tunarynode = class(tnode)
+         left : tnode;
+         constructor create(t:tnodetype;l : tnode);
+         constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+         destructor destroy;override;
+         procedure ppuwrite(ppufile:tcompilerppufile);override;
+         procedure buildderefimpl;override;
+         procedure derefimpl;override;
+         procedure derefnode;override;
+         procedure concattolist(l : tlinkedlist);override;
+         function ischild(p : tnode) : boolean;override;
+         function docompare(p : tnode) : boolean;override;
+         function dogetcopy : tnode;override;
+         procedure insertintolist(l : tnodelist);override;
+         procedure left_max;
+         procedure printnodedata(var t:text);override;
+      end;
 
-       pbinarynode = ^tbinarynode;
-       tbinarynode = class(tunarynode)
-          right : tnode;
-          constructor create(t:tnodetype;l,r : tnode);
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
-          destructor destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderefimpl;override;
-          procedure derefimpl;override;
-          procedure derefnode;override;
-          procedure concattolist(l : tlinkedlist);override;
-          function ischild(p : tnode) : boolean;override;
-          function docompare(p : tnode) : boolean;override;
-          procedure swapleftright;
-          function dogetcopy : tnode;override;
-          procedure insertintolist(l : tnodelist);override;
-          procedure left_right_max;
-          procedure printnodedata(var t:text);override;
-          procedure printnodelist(var t:text);
-       end;
+      pbinarynode = ^tbinarynode;
+      tbinarynode = class(tunarynode)
+         right : tnode;
+         constructor create(t:tnodetype;l,r : tnode);
+         constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+         destructor destroy;override;
+         procedure ppuwrite(ppufile:tcompilerppufile);override;
+         procedure buildderefimpl;override;
+         procedure derefimpl;override;
+         procedure derefnode;override;
+         procedure concattolist(l : tlinkedlist);override;
+         function ischild(p : tnode) : boolean;override;
+         function docompare(p : tnode) : boolean;override;
+         procedure swapleftright;
+         function dogetcopy : tnode;override;
+         procedure insertintolist(l : tnodelist);override;
+         procedure left_right_max;
+         procedure printnodedata(var t:text);override;
+         procedure printnodelist(var t:text);
+      end;
 
-       ptertiarynode = ^ttertiarynode;
-       ttertiarynode = class(tbinarynode)
-          third : tnode;
-          constructor create(_t:tnodetype;l,r,t : tnode);
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
-          destructor destroy;override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure buildderefimpl;override;
-          procedure derefimpl;override;
-          procedure derefnode;override;
-          procedure concattolist(l : tlinkedlist);override;
-          function ischild(p : tnode) : boolean;override;
-          function docompare(p : tnode) : boolean;override;
-          function dogetcopy : tnode;override;
-          procedure insertintolist(l : tnodelist);override;
-          procedure printnodedata(var t:text);override;
-       end;
+      ptertiarynode = ^ttertiarynode;
+      ttertiarynode = class(tbinarynode)
+         third : tnode;
+         constructor create(_t:tnodetype;l,r,t : tnode);
+         constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+         destructor destroy;override;
+         procedure ppuwrite(ppufile:tcompilerppufile);override;
+         procedure buildderefimpl;override;
+         procedure derefimpl;override;
+         procedure derefnode;override;
+         procedure concattolist(l : tlinkedlist);override;
+         function ischild(p : tnode) : boolean;override;
+         function docompare(p : tnode) : boolean;override;
+         function dogetcopy : tnode;override;
+         procedure insertintolist(l : tnodelist);override;
+         procedure printnodedata(var t:text);override;
+      end;
 
-       tbinopnode = class(tbinarynode)
-          constructor create(t:tnodetype;l,r : tnode);virtual;
-          function docompare(p : tnode) : boolean;override;
-       end;
+      tbinopnode = class(tbinarynode)
+         constructor create(t:tnodetype;l,r : tnode);virtual;
+         function docompare(p : tnode) : boolean;override;
+      end;
 
     var
       { array with all class types for tnodes }

@@ -66,8 +66,6 @@ unit optcse;
       end;
 
       plists = ^tlists;
-      pnode = ^tnode;
-
 
     function collectnodes(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
