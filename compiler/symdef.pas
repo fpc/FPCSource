@@ -112,6 +112,7 @@ interface
           function getcopy : tstoreddef;override;
           function GetTypeName:string;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          function  getvardef:longint;override;
           procedure setsize;
           function is_publishable : boolean;override;
           function needs_inittable : boolean;override;
@@ -1843,6 +1844,12 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(varianttype));
          ppufile.writeentry(ibvariantdef);
+      end;
+
+
+    function tvariantdef.getvardef : longint;
+      begin
+        Result:=varVariant;
       end;
 
 
