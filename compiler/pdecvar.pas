@@ -1181,13 +1181,13 @@ implementation
             not((vd_object in options) and
                 (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
            begin
-             sorg:=orgpattern;
              semicoloneaten:=false;
              sc.clear;
              repeat
+               sorg:=orgpattern;
                if try_to_consume(_ID) then
                  begin
-                   vs:=tfieldvarsym.create(orgpattern,vs_value,generrordef,[]);
+                   vs:=tfieldvarsym.create(sorg,vs_value,generrordef,[]);
                    sc.add(vs);
                    recst.insert(vs);
                  end;
