@@ -274,7 +274,7 @@ implementation
           raise EOleSysError.Create('',Status,0);
       end;
 
-{$define DEBUG_COMDISPATCH}
+{ $define DEBUG_COMDISPATCH}
     procedure DispatchInvoke(const Dispatch: IDispatch; CallDesc: PCallDesc;
       DispIDs: PDispIDList; Params: Pointer; Result: PVariant);
 
