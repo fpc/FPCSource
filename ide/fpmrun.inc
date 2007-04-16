@@ -271,7 +271,11 @@ begin
     end
 {$ifndef NODEBUG}
   else
-    Debugger^.Continue
+    begin
+      if AskRecompileIfModified then
+        exit;
+      Debugger^.Continue;
+    end;
 {$endif}
   ;
 end;
