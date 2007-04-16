@@ -1,6 +1,6 @@
 { %norun }
 { %cpu=x86_64,i386,powerpc,sparc}
-{ %skiptarget = macos }
+{ %skiptarget = go32v2,macos }
 { execute this test only on reasonable fast cpus }
 library lib;
 const

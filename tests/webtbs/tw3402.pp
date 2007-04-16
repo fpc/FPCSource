@@ -1,4 +1,5 @@
 { %norun }
+{ %skiptarget=go32v2 }
 { %opt=-Cg }
 
 { Source provided for Free Pascal Bug Report 3402 }
