@@ -628,6 +628,7 @@ var
   allocsize,
   movesize,
   i  : ptrint;
+  oldbp,
   bp : pointer;
   pl : pdword;
   pp : pheap_mem_info;
@@ -745,7 +746,10 @@ begin
   for i:=1 to tracesize do
    begin
      pp^.calls[i]:=get_caller_addr(bp);
+     oldbp:=bp;
      bp:=get_caller_frame(bp);
+     if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
+       bp:=nil;
    end;
   { regenerate signature }
   if usecrc then
