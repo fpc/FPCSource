@@ -5746,6 +5746,8 @@ tests/tbf/tb0195.pp svneol=native#text/plain
 tests/tbf/tb0196.pp svneol=native#text/plain
 tests/tbf/tb0197.pp svneol=native#text/plain
 tests/tbf/tb0198.pp svneol=native#text/plain
+tests/tbf/tb0199.pp -text
+tests/tbf/tb0199a.pp -text
 tests/tbf/ub0115.pp svneol=native#text/plain
 tests/tbf/ub0149.pp svneol=native#text/plain
 tests/tbf/ub0158a.pp svneol=native#text/plain
