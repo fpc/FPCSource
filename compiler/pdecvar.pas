@@ -1185,12 +1185,13 @@ implementation
              sc.clear;
              repeat
                sorg:=orgpattern;
-               if try_to_consume(_ID) then
+               if token=_ID then
                  begin
                    vs:=tfieldvarsym.create(sorg,vs_value,generrordef,[]);
                    sc.add(vs);
                    recst.insert(vs);
                  end;
+               consume(_ID);
              until not try_to_consume(_COMMA);
              consume(_COLON);
 
