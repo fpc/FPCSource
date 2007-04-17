@@ -506,7 +506,14 @@ implementation
            write_rtti_name(def);
            if (tf_requires_proper_alignment in target_info.flags) then
              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otULong));
+           case def.size of
+             1:
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otUByte));
+             2:
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otUWord));
+             4:
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otULong));
+           end;
            if (tf_requires_proper_alignment in target_info.flags) then
              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)));

@@ -2094,7 +2094,7 @@ implementation
 
     function tsetdef.is_publishable : boolean;
       begin
-         is_publishable:=(settype=smallset);
+         is_publishable:=savesize in [1,2,4];
       end;
 
 

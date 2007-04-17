@@ -84,7 +84,7 @@ unit typinfo;
          case TTypeKind of
             tkUnKnown,tkLString,tkWString,tkAString,tkVariant:
               ();
-            tkInteger,tkChar,tkEnumeration,tkWChar:
+            tkInteger,tkChar,tkEnumeration,tkWChar,tkSet:
               (OrdType : TOrdType;
                case TTypeKind of
                   tkInteger,tkChar,tkEnumeration,tkBool,tkWChar : (
@@ -754,6 +754,7 @@ begin
       DataSize:=1;
     tkWChar:
       DataSize:=2;
+    tkSet,
     tkEnumeration,
     tkInteger:
       begin
