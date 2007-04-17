@@ -1801,27 +1801,35 @@ implementation
                 begin
                   if target_info.endian=endian_big then
                     inc(tmpref.offset);
+                  register:=makeregsize(list,register,OS_8);
                   a_load_reg_ref(list,OS_8,OS_8,register,tmpref);
-                  a_op_const_reg(list,OP_SHR,OS_8,8,register);
+                  register:=makeregsize(list,register,OS_16);
+                  a_op_const_reg(list,OP_SHR,OS_16,8,register);
                   if target_info.endian=endian_big then
                     dec(tmpref.offset)
                   else
                     inc(tmpref.offset);
+                  register:=makeregsize(list,register,OS_8);
                   a_load_reg_ref(list,OS_8,OS_8,register,tmpref);
+                  register:=makeregsize(list,register,OS_16);
                 end;
               OS_32,OS_S32:
                 begin
                   if target_info.endian=endian_big then
                     inc(tmpref.offset,3);
+                  register:=makeregsize(list,register,OS_8);
                   a_load_reg_ref(list,OS_8,OS_8,register,tmpref);
+                  register:=makeregsize(list,register,OS_32);
                   for i:=1 to 3 do
                     begin
-                      a_op_const_reg(list,OP_SHR,OS_8,8,register);
+                      a_op_const_reg(list,OP_SHR,OS_32,8,register);
                       if target_info.endian=endian_big then
                         dec(tmpref.offset)
                       else
                         inc(tmpref.offset);
+                      register:=makeregsize(list,register,OS_8);
                       a_load_reg_ref(list,OS_8,OS_8,register,tmpref);
+                      register:=makeregsize(list,register,OS_32);
                     end;
                 end
               else
@@ -1849,13 +1857,15 @@ implementation
                 begin
                   if target_info.endian=endian_little then
                     inc(tmpref.offset);
+                  register:=makeregsize(list,register,OS_8);
                   a_load_ref_reg(list,OS_8,OS_8,tmpref,register);
-                  a_op_const_reg(list,OP_SHL,OS_8,8,register);
+                  register:=makeregsize(list,register,OS_16);
+                  a_op_const_reg(list,OP_SHL,OS_16,8,register);
                   if target_info.endian=endian_little then
                     dec(tmpref.offset)
                   else
                     inc(tmpref.offset);
-                  tmpreg:=getintregister(list,OS_INT);
+                  tmpreg:=getintregister(list,OS_16);
                   a_load_ref_reg(list,OS_8,OS_16,tmpref,tmpreg);
                   a_op_reg_reg(list,OP_OR,OS_16,tmpreg,register);
                 end;
@@ -1863,15 +1873,17 @@ implementation
                 begin
                   if target_info.endian=endian_little then
                     inc(tmpref.offset,3);
+                  register:=makeregsize(list,register,OS_8);
                   a_load_ref_reg(list,OS_8,OS_8,tmpref,register);
+                  register:=makeregsize(list,register,OS_32);
                   for i:=1 to 3 do
                     begin
-                      a_op_const_reg(list,OP_SHL,OS_8,8,register);
+                      a_op_const_reg(list,OP_SHL,OS_32,8,register);
                       if target_info.endian=endian_little then
                         dec(tmpref.offset)
                       else
                         inc(tmpref.offset);
-                      tmpreg:=getintregister(list,OS_INT);
+                      tmpreg:=getintregister(list,OS_32);
                       a_load_ref_reg(list,OS_8,OS_32,tmpref,tmpreg);
                       a_op_reg_reg(list,OP_OR,OS_32,tmpreg,register);
                     end;
