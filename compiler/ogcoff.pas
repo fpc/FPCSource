@@ -2288,6 +2288,9 @@ const pemagic : array[0..3] of byte = (
           internalobjdata.writebytes(emptyint,sizeof(emptyint));
           if target_info.system=system_x86_64_win64 then
             internalobjdata.writebytes(emptyint,sizeof(emptyint));
+          { be sure that this will not be removed }
+          idata4objsection.SecOptions:=idata4objsection.SecOptions + [oso_keep];
+          idata5objsection.SecOptions:=idata5objsection.SecOptions + [oso_keep];
         end;
 
         function AddImport(const afuncname,amangledname:string; AOrdNr:longint;isvar:boolean):TObjSymbol;
