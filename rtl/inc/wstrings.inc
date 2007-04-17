@@ -662,6 +662,8 @@ begin
   PWideChar(Pointer(@fpc_WideCharArray_To_WideStr[1])+i*sizeof(WideChar))^:=#0;
 end;
 
+{$ifndef FPC_STRTOCHARARRAYPROC}
+
 { inside the compiler, the resulttype is modified to that of the actual }
 { chararray we're converting to (JM)                                    }
 function fpc_widestr_to_chararray(arraysize: SizeInt; const src: WideString): fpc_big_chararray;[public,alias: 'FPC_WIDESTR_TO_CHARARRAY']; compilerproc;
@@ -676,8 +678,12 @@ begin
   len := length(temp);
   if len > arraysize then
     len := arraysize;
+{$r-}
   move(temp[1],fpc_widestr_to_chararray[0],len);
   fillchar(fpc_widestr_to_chararray[len],arraysize-len,0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
 end;
 
 
@@ -690,10 +696,14 @@ begin
   len := length(src);
   if len > arraysize then
     len := arraysize;
+{$r-}
   { make sure we don't try to access element 1 of the ansistring if it's nil }
   if len > 0 then
     move(src[1],fpc_widestr_to_widechararray[0],len*SizeOf(WideChar));
   fillchar(fpc_widestr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
 end;
 
 
@@ -712,8 +722,12 @@ begin
   if len > arraysize then
     len := arraysize;
 
+{$r-}
   move(temp[1],fpc_ansistr_to_widechararray[0],len*sizeof(widechar));
   fillchar(fpc_ansistr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
 end;
 
 function fpc_shortstr_to_widechararray(arraysize: SizeInt; const src: ShortString): fpc_big_widechararray;[public,alias: 'FPC_SHORTSTR_TO_WIDECHARARRAY']; compilerproc;
@@ -728,9 +742,97 @@ begin
   len := length(temp);
   if len > arraysize then
     len := arraysize;
+{$r-}
   move(temp[1],fpc_shortstr_to_widechararray[0],len*sizeof(widechar));
   fillchar(fpc_shortstr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
 end;
+
+{$else ndef FPC_STRTOCHARARRAYPROC}
+
+procedure fpc_widestr_to_chararray(out res: array of char; const src: WideString); compilerproc;
+var
+  len: SizeInt;
+  temp: ansistring;
+begin
+  len := length(src);
+  { make sure we don't dereference src if it can be nil (JM) }
+  if len > 0 then
+    widestringmanager.wide2ansimoveproc(pwidechar(@src[1]),temp,len);
+  len := length(temp);
+  if len > length(res) then
+    len := length(res);
+{$r-}
+  move(temp[1],res[0],len);
+  fillchar(res[len],length(res)-len,0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
+end;
+
+
+procedure fpc_widestr_to_widechararray(out res: array of widechar; const src: WideString); compilerproc;
+var
+  len: SizeInt;
+begin
+  len := length(src);
+  if len > length(res) then
+    len := length(res);
+{$r-}
+  { make sure we don't try to access element 1 of the ansistring if it's nil }
+  if len > 0 then
+    move(src[1],res[0],len*SizeOf(WideChar));
+  fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
+end;
+
+
+procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: AnsiString); compilerproc;
+var
+  len: SizeInt;
+  temp: widestring;
+begin
+  len := length(src);
+  { make sure we don't dereference src if it can be nil (JM) }
+  if len > 0 then
+    widestringmanager.ansi2widemoveproc(pchar(@src[1]),temp,len);
+  len := length(temp);
+  if len > length(res) then
+    len := length(res);
+
+{$r-}
+  move(temp[1],res[0],len*sizeof(widechar));
+  fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
+end;
+
+procedure fpc_shortstr_to_widechararray(out res: array of widechar; const src: ShortString); compilerproc;
+var
+  len: longint;
+  temp : widestring;
+begin
+  len := length(src);
+  { make sure we don't access char 1 if length is 0 (JM) }
+  if len > 0 then
+    widestringmanager.ansi2widemoveproc(pchar(@src[1]),temp,len);
+  len := length(temp);
+  if len > length(res) then
+    len := length(res);
+{$r-}
+  move(temp[1],res[0],len*sizeof(widechar));
+  fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
+end;
+
+{$endif ndef FPC_STRTOCHARARRAYPROC}
 
 Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt;[Public,Alias : 'FPC_WIDESTR_COMPARE']; compilerproc;
 {

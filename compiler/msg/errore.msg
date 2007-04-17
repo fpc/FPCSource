@@ -2600,9 +2600,9 @@ S*2Aas_assemble using GNU AS
 A*2Tlinux_Linux
 A*2Twince_Windows CE
 P*2Tamiga_AmigaOS on PowerPC
-P*2Tdarwin_Darwin and MacOS X on PowerPC
+P*2Tdarwin_Darwin and Mac OS X on PowerPC
 P*2Tlinux_Linux on PowerPC
-P*2Tmacos_MacOS (classic) on PowerPC
+P*2Tmacos_Mac OS (classic) on PowerPC
 P*2Tmorphos_MorphOS
 S*2Tlinux_Linux
 **1u<x>_undefines the symbol <x>
@@ -2630,9 +2630,9 @@ S*2Tlinux_Linux
 3*2WG_Specify graphic type application
 3*2WN_Do not generate relocation code (necessary for debugging)
 3*2WR_Generate relocation code
-P*2WC_Specify console type application (MacOS only)
-P*2WG_Specify graphic type application (MacOS only)
-P*2WT_Specify tool type application (MPW tool, MacOS only)
+P*2WC_Specify console type application (Mac OS only)
+P*2WG_Specify graphic type application (Mac OS only)
+P*2WT_Specify tool type application (MPW tool, Mac OS only)
 **1X_executable options:
 **2Xc_pass --shared to the linker (Unix only)
 **2Xd_don't use standard library search path (needed for cross compile)
