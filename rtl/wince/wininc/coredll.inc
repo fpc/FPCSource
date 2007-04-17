@@ -2761,7 +2761,7 @@ function IntersectRect(lprcDst:LPRECT; var lprcSrc1:RECT; var lprcSrc2:RECT):WIN
 function InvalidateRect(hWnd:HWND; var lpRect:RECT; bErase:WINBOOL):WINBOOL; external KernelDLL name 'InvalidateRect';
 function InvalidateRect(hWnd:HWND;lpRect:LPRECT; bErase:WINBOOL):WINBOOL; external KernelDLL name 'InvalidateRect';
 function InvalidateRgn(hWnd:HWND; hRgn:HRGN; bErase:WINBOOL):WINBOOL; external KernelDLL name 'InvalidateRgn';
-function InvertRect(hDC:HDC; var lprc:RECT):WINBOOL; external KernelDLL name 'InvertRect';
+function InvertRect(hDC:HDC; const lprc:RECT):WINBOOL; external KernelDLL name 'InvertRect';
 function IsBadReadPtr(lp:LPVOID; ucb:UINT):WINBOOL; external Kerneldll name 'IsBadReadPtr';
 function IsBadWritePtr(lp:LPVOID; ucb:UINT):WINBOOL; external Kerneldll name 'IsBadWritePtr';
 function IsBadCodePtr(lpfn:FARPROC):WINBOOL; external Kerneldll name 'IsBadCodePtr';
