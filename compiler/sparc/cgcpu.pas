@@ -539,81 +539,47 @@ implementation
       var
         instr : taicpu;
       begin
-        if (tcgsize2size[tosize]<tcgsize2size[fromsize]) or
-           (
-            (tcgsize2size[tosize] = tcgsize2size[fromsize]) and
-            (tosize <> fromsize) and
-            not(fromsize in [OS_32,OS_S32])
-           ) then
-          begin
-            case tosize of
-              OS_8 :
-                a_op_const_reg_reg(list,OP_AND,tosize,$ff,reg1,reg2);
-              OS_16 :
-                a_op_const_reg_reg(list,OP_AND,tosize,$ffff,reg1,reg2);
-              OS_32,
-              OS_S32 :
-                begin
-                  instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
-                  list.Concat(instr);
-                  { Notify the register allocator that we have written a move instruction so
-                   it can try to eliminate it. }
-                  add_move_instruction(instr);
-                end;
-              OS_S8 :
-                begin
-                  list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,24,reg2));
-                  list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,24,reg2));
-                end;
-              OS_S16 :
-                begin
-                  list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,16,reg2));
-                  list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,16,reg2));
-                end;
-              else
-                internalerror(2002090901);
-            end;
-          end
-        else
-          begin
-            if reg1<>reg2 then
-              begin
-                if tcgsize2size[tosize] > tcgsize2size[fromsize] then
-                  begin
-                    case fromsize of
-                      OS_8:
-                        begin
-                          list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,24,reg2));
-                          list.concat(taicpu.op_reg_const_reg(A_SRL,reg2,24,reg2));
-                        end;
-                      OS_16 :
-                        begin
-                          list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,16,reg2));
-                          list.concat(taicpu.op_reg_const_reg(A_SRL,reg2,16,reg2));
-                        end;
-                      OS_S8:
-                        begin
-                          list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,24,reg2));
-                          list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,24,reg2));
-                        end;
-                      OS_S16 :
-                        begin
-                          list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,16,reg2));
-                          list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,16,reg2));
-                        end;
-                    end;
-                  end
-                else
-                  begin
-                    { same size, only a register mov required }
-                    instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
-                    list.Concat(instr);
-                    { Notify the register allocator that we have written a move instruction so
-                     it can try to eliminate it. }
-                    add_move_instruction(instr);
-                  end;
-              end;
-          end;
+         if (tcgsize2size[fromsize] > tcgsize2size[tosize]) or
+            ((tcgsize2size[fromsize] = tcgsize2size[tosize]) and
+             (fromsize <> tosize)) or
+            { needs to mask out the sign in the top 16 bits }
+            ((fromsize = OS_S8) and
+             (tosize = OS_16)) then
+           case tosize of
+             OS_8 :
+               a_op_const_reg_reg(list,OP_AND,tosize,$ff,reg1,reg2);
+             OS_16 :
+               a_op_const_reg_reg(list,OP_AND,tosize,$ffff,reg1,reg2);
+             OS_32,
+             OS_S32 :
+               begin
+                 instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
+                 list.Concat(instr);
+                 { Notify the register allocator that we have written a move instruction so
+                  it can try to eliminate it. }
+                 add_move_instruction(instr);
+               end;
+             OS_S8 :
+               begin
+                 list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,24,reg2));
+                 list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,24,reg2));
+               end;
+             OS_S16 :
+               begin
+                 list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,16,reg2));
+                 list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,16,reg2));
+               end;
+             else
+               internalerror(2002090901);
+           end
+         else
+           begin
+             instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
+             list.Concat(instr);
+             { Notify the register allocator that we have written a move instruction so
+              it can try to eliminate it. }
+             add_move_instruction(instr);
+           end;
       end;
 
 
