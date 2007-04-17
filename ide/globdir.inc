@@ -30,6 +30,8 @@
   {$define SUPPORTREDIR}
   {$define WinClipSupported}
   {$define HasSignal}
+  {$define SignalIsFunction}
+  {$define SignalIsCdecl}
   {$define FSCaseInsensitive}
   {$define HasSysMsgUnit}
   {$ifdef DEBUG}
@@ -42,6 +44,7 @@
   {$define SUPPORTREDIR}
   {$undef WinClipSupported}
   {$define HasSignal}
+  {$define SignalIsCdecl}
   {$define HasSysMsgUnit}
 {$endif}
 
@@ -51,6 +54,7 @@
   {$define SUPPORTREDIR}
   {$undef WinClipSupported}
   {$define HasSignal}
+  {$define SignalIsCdecl}
   {$define HasSysMsgUnit}
 {$endif}
 
@@ -59,6 +63,7 @@
   {$define SUPPORTREDIR}
   {$undef WinClipSupported}
   {$define HasSignal}
+  {$define SignalIsCdecl}
   {$define HasSysMsgUnit}
 {$endif}
 
@@ -67,6 +72,7 @@
   {$define SUPPORTREDIR}
   {$undef WinClipSupported}
   {$define HasSignal}
+  {$define SignalIsCdecl}
   {$define HasSysMsgUnit}
 {$endif}
 
@@ -76,6 +82,8 @@
   {$define WinClipSupported}
   {$ifdef win32}
     {$define HasSignal}
+    {$define SignalIsFunction}
+    {$define SignalIsCdecl}
   {$endif}
   {$define FSCaseInsensitive}
   {$define HasSysMsgUnit}

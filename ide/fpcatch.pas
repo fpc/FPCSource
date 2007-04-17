@@ -131,11 +131,15 @@ end;
 {$endif DEBUG}
 
 {$ifdef HasSignal}
-{$ifdef Unix}
+{$ifndef SignalIsFunction}
 Procedure Catchsignal(Sig : Longint);cdecl;
-{$else}
-Function Catchsignal(Sig : longint):longint;
-{$endif}
+{$else SignalIsFunction}
+  {$ifdef SignalIsCdecl}
+  Function Catchsignal(Sig : longint):longint; cdecl;
+  {$else not SignalIsCdecl}
+  Function Catchsignal(Sig : longint):longint;
+  {$endif not SignalIsCdecl}
+{$endif SignalIsFunction}
 var MustQuit: boolean;
 begin
   case Sig of
@@ -205,9 +209,9 @@ begin
                 end;
              end;
   end;
-{$ifndef Unix}
+{$ifdef SignalIsFunction}
   CatchSignal:=0;
-{$endif}
+{$endif SignalIsFunction}
 end;
 {$endif def HasSignal}
 
@@ -248,7 +252,7 @@ begin
 {$endif go32v2}
 {$ifdef HasSignal}
 {$ifndef TP}
-  NewSignal:=SignalHandler(@CatchSignal);
+  NewSignal:=@CatchSignal;
 {$else TP}
   NewSignal:=SignalHandler(CatchSignal);
 {$endif TP}
