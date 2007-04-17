@@ -605,7 +605,7 @@ begin
       add('    KEEP (*(.fpc .fpc.version .fpc.links))');
       add('    KEEP (*(.gnu.linkonce.d.*personality*))');
       add('  }');
-      add('  _edata = .;');
+      add('  PROVIDE (_edata = .);');
       add('  PROVIDE (edata = .);');
     {$ifdef zsegment_threadvars}
       add('  _z = .;');
@@ -627,7 +627,7 @@ begin
       add('   . = ALIGN(32 / 8);');
       add('  }');
       add('  . = ALIGN(32 / 8);');
-      add('  _end = .;');
+      add('  PROVIDE (_end = .);');
       add('  PROVIDE (end = .);');
       {Stabs debugging sections.}
       add('  .stab          0 : { *(.stab) }');
@@ -735,7 +735,7 @@ begin
       add('    KEEP (*(.fpc .fpc.version .fpc.links))');
       add('    KEEP (*(.gnu.linkonce.d.*personality*))');
       add('  }');
-      add('  _edata = .;');
+      add('  PROVIDE (_edata = .);');
       add('  PROVIDE (edata = .);');
     {$ifdef zsegment_threadvars}
       add('  _z = .;');
@@ -757,7 +757,7 @@ begin
       add('   . = ALIGN(32 / 8);');
       add('  }');
       add('  . = ALIGN(32 / 8);');
-      add('  _end = .;');
+      add('  PROVIDE (_end = .);');
       add('  PROVIDE (end = .);');
       {Stabs debugging sections.}
       add('  .stab          0 : { *(.stab) }');
