@@ -111,6 +111,7 @@ type
       procedure DocDefExp; virtual;
       procedure DocTable(Entered: boolean); virtual;
       procedure DocTableRow(Entered: boolean); virtual;
+      procedure DocTableHeaderItem(Entered: boolean); virtual;
       procedure DocTableItem(Entered: boolean); virtual;
       procedure DocHorizontalRuler; virtual;
     public
@@ -1025,6 +1026,13 @@ begin
         end;
     end;
 end;
+
+procedure THTMLTopicRenderer.DocTableHeaderItem(Entered: boolean);
+begin
+  { Treat as a normal item }
+  DocTableItem(Entered);
+end;
+
 
 procedure THTMLTopicRenderer.DocHorizontalRuler;
 var OAlign: TParagraphAlign;
