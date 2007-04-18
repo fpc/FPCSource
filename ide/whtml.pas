@@ -810,8 +810,32 @@ begin
 end;
 
 procedure THTMLParser.DocTable(Entered: boolean);
+var
+  S: String;
 begin
+  if Entered then
+    begin
+      if DocGetTagParam('CLASS',S) then
+        if S='bar' then
+          begin
+            DisableCrossIndexing:=true;
+{$ifdef DEBUG}
+          DebugMessage(GetFileName,'Bar table found, cross indexing disabled ',Line,LinePos);
+{$endif DEBUG}
+          end;
+    end
+  else
+    begin
+{$ifdef DEBUG}
+      if DisableCrossIndexing then
+        begin
+          DebugMessage(GetFileName,'Bar table end found',Line,LinePos);
+        end;
+{$endif DEBUG}
+      DisableCrossIndexing:=false;
+    end;
 end;
+
 
 procedure THTMLParser.DocTableRow(Entered: boolean);
 begin

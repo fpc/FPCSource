@@ -62,6 +62,7 @@ type
       GlobalOffset,
       GlobalTextBegin : sw_word;
       WithBorder : boolean;
+      IsBar : boolean;
       FirstLine : PTableLine;
       LastLine : PTableLine;
       PreviousTable : PTable;
@@ -262,6 +263,7 @@ begin
   LastLine:=nil;
 
   WithBorder:=false;
+  IsBar:=false;
 end;
 
 procedure TTable.AddLine(PL : PTableLine);
@@ -938,7 +940,7 @@ end;
 procedure THTMLTopicRenderer.DocTable(Entered: boolean);
 var
   ATable : PTable;
-  Border : String;
+  Param : String;
 begin
   if AnyCharsInLine then
     begin
@@ -951,9 +953,12 @@ begin
       New(ATable,Init(CurrentTable));
       CurrentTable:=ATable;
       CurrentTable^.Renderer:=@Self;
-      if DocGetTagParam('BORDER',border) then
-        if Border<>'0' then
+      if DocGetTagParam('BORDER',Param) then
+        if Param<>'0' then
           CurrentTable^.WithBorder:=true;
+      if DocGetTagParam('CLASS',Param) then
+        if Param='bar' then
+          CurrentTable^.IsBar:=true;
     end
   else
     begin
