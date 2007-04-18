@@ -3,6 +3,8 @@ const
   HasErrors : boolean = false;
   Silent : boolean = false;
   CheckVal : boolean = true;
+  SuccessCount : longint = 0;
+  FailCount : longint = 0;
 
 type
   TCharSet = set of char;
@@ -56,7 +58,9 @@ procedure TestVal(comment,s : string; ExpectedRes : ValTestType; expected : long
 var
   i : longint;
   err,err1 : word;
+  OK : boolean;
 begin
+  OK:=false;
   if not silent and (Comment<>'') then
     Writeln(Comment);
   Val(s,i,err);
@@ -70,6 +74,7 @@ begin
         end
       else
         begin
+          OK:=true;
           if not silent then
             Writeln('Correct: string ',Display(s),
               ' is a not valid input for val function');
@@ -79,6 +84,7 @@ begin
     begin
       if err=0 then
         begin
+          OK:=true;
           if not silent then
             Writeln('Correct: string ',Display(s),
               ' is a valid input for val function');
@@ -105,6 +111,7 @@ begin
           Val(Copy(s,1,err1-1),i,err);
           if err=0 then
             begin
+              OK:=true;
               if not silent then
                 Writeln('Correct: string ',Display(s),
                   ' is a valid input for val function up to position ',err1);
@@ -120,10 +127,15 @@ begin
     end;
   if (err=0) and CheckVal and (i<>expected) then
     begin
+      OK:=false;
       Writeln('Error: string ',Display(s),
         ' value is ',i,' <> ',expected);
           HasErrors:=true;
     end;
+  if OK then
+    inc(SuccessCount)
+  else
+    inc(FailCount);
 end;
 
 Procedure TestBase(Const Prefix : string;ValidChars : TCharSet);
@@ -283,9 +295,9 @@ begin
 
   if HasErrors then
     begin
-      Writeln('At least one test failed');
+      Writeln(FailCount,' tests failed over ',SuccessCount+FailCount);
       Halt(1);
     end
   else
-    Writeln('All tests succeeded');
+    Writeln('All tests succeeded count=',SuccessCount);
 end.
