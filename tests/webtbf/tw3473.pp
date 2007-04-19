@@ -1,6 +1,7 @@
 { %fail }
 
-{$mode delphi}
+{ $mode delphi}
+{$mode objfpc}
 type
   TA = class
     procedure douseful; virtual; abstract;
@@ -14,7 +15,11 @@ type
 
 procedure TB.douseful;
 begin
-  { This should give an error, comaptible with Kylix }
+  { This should give an error, comaptible with Kylix
+
+    Delphi eats this
+    FP shouldn't by default
+    (FK) }
   inherited;
 end;
 
