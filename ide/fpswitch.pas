@@ -184,6 +184,8 @@ var
 procedure WriteSwitches(const fn:string);
 procedure ReadSwitches(const fn:string);
 
+procedure UpdateAsmOutputSwitches;
+
 { initialize }
 procedure InitSwitches;
 procedure SetDefaultSwitches;
@@ -267,15 +269,23 @@ const
       opt_listsource = '~L~ist source';
       opt_listregisterallocation = 'list ~r~egister allocation';
       opt_listtempallocation = 'list ~t~emp allocation';
+      opt_listnodeallocation = 'list ~n~ode allocation';
+      opt_useasmpipe = 'use ~p~ipe with assembler';
       opt_usedefaultas = 'Use ~d~efault output';
       opt_usegnuas = 'Use ~G~NU as';
       opt_usenasmcoff = 'Use ~N~ASM coff';
-      opt_usenasmelf = 'Use NASM ~e~lf';
+      opt_usenasmwin32 = 'Use NASM ~w~in32';
+      opt_usenasmwdosx= 'Use ~N~ASM w~d~osx';
+      opt_usenasmelf = 'Use NASM el~f~';
+      opt_usenasmbeos = 'Use NASM ~b~eos';
       opt_usenasmobj = 'Use NASM ~o~bj';
       opt_usemasm = 'Use ~M~ASM';
       opt_usetasm = 'Use ~T~ASM';
-      opt_usecoff = 'Use ~c~off';
-      opt_usepecoff = 'Use ~p~ecoff';
+      opt_usewasm = 'Use ~W~ASM';
+      opt_usecoff = 'Use internal ~c~off';
+      opt_usepecoff = 'Use internal ~p~ecoff';
+      opt_usepecoffwdosx = 'Use internal pewdos~x~';
+      opt_useelf= 'Use internal ~e~lf';
       { Browser options }
       opt_nobrowser = 'N~o~ browser';
       opt_globalonlybrowser = 'Only Glob~a~l browser';
@@ -1064,6 +1074,63 @@ begin
 end;
 
 {*****************************************************************************
+             AsmOutputInitialize
+*****************************************************************************}
+
+procedure UpdateAsmOutputSwitches;
+var
+  ta : tasm;
+  st : string;
+begin
+  if assigned(AsmOutputSwitches) then
+    dispose(AsmOutputSwitches,Done);
+  New(AsmOutputSwitches,InitSelect('A'));
+  with AsmOutputSwitches^ do
+   begin
+
+     AddDefaultSelect(opt_usedefaultas);
+     for ta:=low(tasm) to high(tasm) do
+       if assigned(asminfos[ta]) and
+         ((asminfos[ta]^.supported_target=target_info.system) or
+         (asminfos[ta]^.supported_target=system_any)) then
+         begin
+           st:='Asm '+asminfos[ta]^.idtxt;
+           if asminfos[ta]^.idtxt='AS' then
+             st:=opt_usegnuas;
+{$ifdef I386}
+           if asminfos[ta]^.idtxt='NASMCOFF' then
+             st:=opt_usenasmcoff;
+           if asminfos[ta]^.idtxt='NASMOBJ' then
+             st:=opt_usenasmobj;
+           if asminfos[ta]^.idtxt='NASMWIN32' then
+             st:=opt_usenasmwin32;
+           if asminfos[ta]^.idtxt='NASMWDOSX' then
+             st:=opt_usenasmwdosx;
+           if asminfos[ta]^.idtxt='NASMELF' then
+             st:=opt_usenasmelf;
+           if asminfos[ta]^.idtxt='NASMBEOS' then
+             st:=opt_usenasmbeos;
+           if asminfos[ta]^.idtxt='MASM' then
+             st:=opt_usemasm;
+           if asminfos[ta]^.idtxt='TASM' then
+             st:=opt_usetasm;
+           if asminfos[ta]^.idtxt='WASM' then
+             st:=opt_usewasm;
+           if asminfos[ta]^.idtxt='COFF' then
+             st:=opt_usecoff;
+           if asminfos[ta]^.idtxt='PECOFF' then
+             st:=opt_usepecoff;
+           if asminfos[ta]^.idtxt='PEWDOSX' then
+             st:=opt_usepecoffwdosx;
+           if asminfos[ta]^.idtxt='ELF' then
+             st:=opt_useelf;
+{$endif I386}
+           AddSelectItem(st,asminfos[ta]^.idtxt,idNone);
+         end;
+   end;
+end;
+
+{*****************************************************************************
              Initialize
 *****************************************************************************}
 
@@ -1185,22 +1252,10 @@ begin
      AddBooleanItem(opt_listsource,'l',idNone);
      AddBooleanItem(opt_listregisterallocation,'r',idNone);
      AddBooleanItem(opt_listtempallocation,'t',idNone);
+     AddBooleanItem(opt_listnodeallocation,'n',idNone);
+     AddBooleanItem(opt_useasmpipe,'p',idNone);
    end;
-  New(AsmOutputSwitches,InitSelect('A'));
-  with AsmOutputSwitches^ do
-   begin
-     AddDefaultSelect(opt_usedefaultas);
-     AddSelectItem(opt_usegnuas,'as',idNone);
-{$ifdef I386}
-     AddSelectItem(opt_usenasmcoff,'nasmcoff',idNone);
-     AddSelectItem(opt_usenasmelf,'nasmelf',idNone);
-     AddSelectItem(opt_usenasmobj,'nasmobj',idNone);
-     AddSelectItem(opt_usemasm,'masm',idNone);
-     AddSelectItem(opt_usetasm,'tasm',idNone);
-     AddSelectItem(opt_usecoff,'coff',idNone);
-     AddSelectItem(opt_usepecoff,'pecoff',idNone);
-{$endif I386}
-   end;
+  UpdateAsmOutputSwitches;
   New(BrowserSwitches,InitSelect('b'));
   with BrowserSwitches^ do
    begin
