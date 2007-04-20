@@ -138,7 +138,7 @@ sockets$(PPUEXT) : sockets.pp netware$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 
 #dynlibs$(PPUEXT) : $(INC)/dynlibs.pas windows$(PPUEXT)
 
-initc$(PPUEXT) : initc.pp $(SYSTEMUNIT)$(PPUEXT)
+initc$(PPUEXT) : initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 
 #

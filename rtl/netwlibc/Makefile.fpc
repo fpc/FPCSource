@@ -148,7 +148,7 @@ sockets$(PPUEXT) : sockets.pp winsock$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pas libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-initc$(PPUEXT) : initc.pp libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+initc$(PPUEXT) : initc.pp ctypes$(PPUEXT) libc$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 
 #
