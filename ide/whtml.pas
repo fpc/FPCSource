@@ -103,10 +103,10 @@ type
       procedure   DocDiv(Entered: boolean); virtual;
       procedure   DocList(Entered: boolean); virtual;
       procedure   DocOrderedList(Entered: boolean); virtual;
-      procedure   DocListItem; virtual;
+      procedure   DocListItem(Entered: boolean); virtual;
       procedure   DocDefList(Entered: boolean); virtual;
-      procedure   DocDefTerm; virtual;
-      procedure   DocDefExp; virtual;
+      procedure   DocDefTerm(Entered: boolean); virtual;
+      procedure   DocDefExp(Entered: boolean); virtual;
       procedure   DocTable(Entered: boolean); virtual;
       procedure   DocTableRow(Entered: boolean); virtual;
       procedure   DocTableHeaderItem(Entered: boolean); virtual;
@@ -593,11 +593,11 @@ begin
   { Unordered & ordered lists }
   if (ETagName='UL') then DocList(NotEndTag) else
   if (ETagName='OL') then DocOrderedList(NotEndTag) else
-  if (UTagName='LI') then DocListItem else
+  if (ETagName='LI') then DocListItem(NotEndTag) else
   { Definition list }
   if (ETagName='DL') then DocDefList(NotEndTag) else
-  if (UTagName='DT') then DocDefTerm else
-  if (UTagName='DD') then DocDefExp else
+  if (ETagName='DT') then DocDefTerm(NotEndTag) else
+  if (ETagName='DD') then DocDefExp(NotEndTag) else
   { Table }
   if (ETagName='TABLE') then DocTable(NotEndTag) else
   if (ETagName='TR') then DocTableRow(NotEndTag) else
@@ -793,7 +793,7 @@ procedure THTMLParser.DocOrderedList(Entered: boolean);
 begin
 end;
 
-procedure THTMLParser.DocListItem;
+procedure THTMLParser.DocListItem(Entered: boolean);
 begin
 end;
 
@@ -801,11 +801,11 @@ procedure THTMLParser.DocDefList(Entered: boolean);
 begin
 end;
 
-procedure THTMLParser.DocDefTerm;
+procedure THTMLParser.DocDefTerm(Entered: boolean);
 begin
 end;
 
-procedure THTMLParser.DocDefExp;
+procedure THTMLParser.DocDefExp(Entered: boolean);
 begin
 end;
 

@@ -106,10 +106,10 @@ type
       procedure DocSpan(Entered: boolean); virtual;
       procedure DocList(Entered: boolean); virtual;
       procedure DocOrderedList(Entered: boolean); virtual;
-      procedure DocListItem; virtual;
+      procedure DocListItem(Entered: boolean); virtual;
       procedure DocDefList(Entered: boolean); virtual;
-      procedure DocDefTerm; virtual;
-      procedure DocDefExp; virtual;
+      procedure DocDefTerm(Entered: boolean); virtual;
+      procedure DocDefExp(Entered: boolean); virtual;
       procedure DocTable(Entered: boolean); virtual;
       procedure DocTableRow(Entered: boolean); virtual;
       procedure DocTableHeaderItem(Entered: boolean); virtual;
@@ -127,6 +127,7 @@ type
       InAnchor: boolean;
       InParagraph: boolean;
       InPreformatted: boolean;
+      InDefExp: boolean;
       TopicTitle: string;
       Indent: integer;
       AnyCharsInLine: boolean;
@@ -311,6 +312,9 @@ var
   TextBegin,TextEnd : sw_word;
   i,j,k,Length : sw_word;
 begin
+  { do nothing for single cell tables }
+  if (NumCols=1) and (NumLines=1) then
+    exit;
   GetMem(ColLengthArray,Sizeof(sw_word)*NumCols);
   FillChar(ColLengthArray^,Sizeof(sw_word)*NumCols,#0);
   GetMem(RowSizeArray,Sizeof(sw_word)*NumLines);
@@ -906,8 +910,10 @@ begin
   DocList(Entered);
 end;
 
-procedure THTMLTopicRenderer.DocListItem;
+procedure THTMLTopicRenderer.DocListItem(Entered: boolean);
 begin
+  if not Entered then
+    exit;
   if AnyCharsInLine then
     DocBreak;
   AddText('þ'+hscLineStart);
@@ -922,19 +928,32 @@ begin
   else
     begin
       if AnyCharsInLine then DocBreak;
+      InDefExp:=false;
     end;
 end;
 
-procedure THTMLTopicRenderer.DocDefTerm;
+procedure THTMLTopicRenderer.DocDefTerm(Entered: boolean);
 begin
+  if not Entered then
+    exit;
   DocBreak;
 end;
 
-procedure THTMLTopicRenderer.DocDefExp;
+procedure THTMLTopicRenderer.DocDefExp(Entered: boolean);
 begin
-  Inc(Indent,DefIndent);
-  DocBreak;
-  Dec(Indent,DefIndent);
+  if not Entered then
+    begin
+      if InDefExp then
+        Dec(Indent,DefIndent);
+      InDefExp:=false;
+    end
+  else
+    begin
+      if not InDefExp then
+        Inc(Indent,DefIndent);
+      InDefExp:=true;
+      DocBreak;
+    end;
 end;
 
 procedure THTMLTopicRenderer.DocTable(Entered: boolean);
