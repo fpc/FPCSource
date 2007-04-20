@@ -228,6 +228,10 @@ const
   CondAsmOp: array[0..CondAsmOps - 1] of TasmOp = (
     A_BC, A_TW, A_TWI
     );
+  CondAsmOpStr:array[0..CondAsmOps-1] of string[7]=(
+    'B','TW','TWI'
+    );
+
 
   {*****************************************************************************
                                      Flags
