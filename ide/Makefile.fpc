@@ -33,6 +33,16 @@ fpcdir=..
 # Automatic detection if libgdb.a is present
 #
 
+# set default value for PPC_TARGET
+ifndef PPC_TARGET
+PPC_TARGET=$(CPU_TARGET)
+endif
+
+# do not add -d$(CPU_TARGET)
+override NOCPUDEF=1
+# Use PPC_TARGET instead
+override FPCOPT+= -d$(PPC_TARGET)
+
 ifndef NOGDB
 
 # Try to find GDB library
