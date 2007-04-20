@@ -58,7 +58,7 @@ uses
         a_fsel, a_fsel_, a_fsqrt, a_fsqrt_, a_fsqrts, a_fsqrts_, a_fsub, a_fsub_,
         a_fsubs, a_fsubs_, a_icbi, a_isync, a_lbz, a_lbzu, a_lbzux, a_lbzx,
         a_lfd, a_lfdu, a_lfdux, a_lfdx, a_lfs, a_lfsu, a_lfsux, a_lfsx, a_lha,
-        a_lhau, a_lhaux, a_lhax, a_hbrx, a_lhz, a_lhzu, a_lhzux, a_lhzx, a_lmw,
+        a_lhau, a_lhaux, a_lhax, a_lhbrx, a_lhz, a_lhzu, a_lhzux, a_lhzx, a_lmw,
         a_lswi, a_lswx, a_lwarx, a_lwbrx, a_lwz, a_lwzu, a_lwzux, a_lwzx, a_mcrf,
         a_mcrfs, a_mcrxr, a_mfcr, a_mffs, a_mffs_, a_mfmsr, a_mfspr, a_mfsr,
         a_mfsrin, a_mftb, a_mtcrf, a_mtfsb0, a_mtfsb1, a_mtfsf, a_mtfsf_,
