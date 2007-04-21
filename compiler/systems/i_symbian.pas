@@ -33,7 +33,7 @@ unit i_symbian;
             name         : 'Symbian OS for i386';
             shortname    : 'Symbian';
             flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses
-                            ,tf_smartlink_sections{,tf_section_threadvars}{,tf_needs_dwarf_cfi},tf_winlikewidestring];
+                            {,tf_smartlink_sections,tf_section_threadvars}{,tf_needs_dwarf_cfi},tf_winlikewidestring];
             cpu          : cpu_i386;
             unit_env     : 'SYMBIANUNITS';
             extradefines : 'UNIX;SYMBIAN';
