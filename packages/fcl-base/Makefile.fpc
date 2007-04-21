@@ -19,6 +19,8 @@ packages_win64=netdb winunits
 packages_wince=netdb
 packages_os2=netdb
 packages_emx=netdb
+packages_netware=netdb
+packages_netwlibc=netdb
 
 # clean package units
 [clean]
