@@ -3350,10 +3350,13 @@ implementation
          i    : integer;
 
       begin
+        { outdated gcc 2.x name mangling scheme }
+{$ifdef NAMEMANGLING_GCC2}
+
          s := procsym.realname;
          if procsym.owner.symtabletype=ObjectSymtable then
            begin
-              s2:=upper(tobjectdef(procsym.owner.defowner).typesym.realname);
+              s2:=upper(tobjectdef(procsym.owner.defowner).objrealname^);
               case proctypeoption of
                  potype_destructor:
                    s:='_$_'+tostr(length(s2))+s2;
@@ -3370,6 +3373,44 @@ implementation
 
          { concat modifiers }
          { !!!!! }
+
+         { now we handle the parameters }
+         if maxparacount>0 then
+           begin
+             for i:=0 to paras.count-1 do
+               begin
+                 hp:=tparavarsym(paras[i]);
+                 s2:=getcppparaname(hp.vardef);
+                 if hp.varspez in [vs_var,vs_out] then
+                   s2:='R'+s2;
+                 s:=s+s2;
+               end;
+           end
+         else
+           s:=s+'v';
+         cplusplusmangledname:=s;
+{$endif NAMEMANGLING_GCC2}
+
+         { gcc 3.x name mangling scheme }
+         if procsym.owner.symtabletype=ObjectSymtable then
+           begin
+             s:='_ZN';
+
+             s2:=tobjectdef(procsym.owner.defowner).objrealname^;
+             s:=s+tostr(length(s2))+s2;
+             case proctypeoption of
+                potype_constructor:
+                  s:=s+'C1';
+                potype_destructor:
+                  s:=s+'D1';
+                else
+                  s:=s+tostr(length(procsym.realname))+procsym.realname;
+             end;
+
+             s:=s+'E';
+           end
+         else
+           s:=procsym.realname;
 
          { now we handle the parameters }
          if maxparacount>0 then
@@ -3991,6 +4032,8 @@ implementation
               needs_inittable:=is_related(interface_iunknown);
             odt_object:
               needs_inittable:=tObjectSymtable(symtable).needs_init_final;
+            odt_cppclass:
+              needs_inittable:=false;
             else
               internalerror(200108267);
          end;
