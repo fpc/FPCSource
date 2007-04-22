@@ -38,7 +38,8 @@ interface
         pd_notobject,    { directive can not be used object declaration }
         pd_notobjintf,   { directive can not be used interface declaration }
         pd_notprocvar,   { directive can not be used procvar declaration }
-        pd_dispinterface { directive can be used with dispinterface methods }
+        pd_dispinterface,{ directive can be used with dispinterface methods }
+        pd_cppobject     { directive can be used with cppclass }
       );
       tpdflags=set of tpdflag;
 
@@ -165,7 +166,7 @@ implementation
                 current_tokenpos:=tprocdef(pd).fileinfo;
 
                 { Generate VMT variable for constructor/destructor }
-                if pd.proctypeoption in [potype_constructor,potype_destructor] then
+                if (pd.proctypeoption in [potype_constructor,potype_destructor]) and not(is_cppclass(tprocdef(pd)._class)) then
                  begin
                    { can't use classrefdef as type because inheriting
                      will then always file because of a type mismatch }
@@ -1652,12 +1653,13 @@ const
       mutexclpo     : [po_external,po_interrupt,po_inline]
     ),(
       idtok:_EXTERNAL;
-      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf];
+      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject];
       handler  : @pd_external;
       pocall   : pocall_none;
       pooption : [po_external];
       mutexclpocall : [pocall_internproc,pocall_syscall];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      { allowed for external cpp classes }
+      mutexclpotype : [{potype_constructor,potype_destructor}];
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
     ),(
       idtok:_FAR;
@@ -2006,7 +2008,9 @@ const
         { check if method and directive not for object, like public.
           This needs to be checked also for procvars }
         if (pd_notobject in proc_direcdata[p].pd_flags) and
-           (symtablestack.top.symtabletype=ObjectSymtable) then
+           (symtablestack.top.symtabletype=ObjectSymtable) and
+           { directive allowed for cpp classes? }
+           not(is_cppclass(tdef(symtablestack.top.defowner)) and (pd_cppobject in proc_direcdata[p].pd_flags)) then
            exit;
 
         { Conflicts between directives ? }
