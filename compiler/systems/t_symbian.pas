@@ -34,7 +34,7 @@ interface
        import,export,link,cgobj,t_win, i_symbian;
 
     type
-	  TInternalLinkerSymbian = class(TInternalLinker)
+      TInternalLinkerSymbian = class(TInternalLinker)
         constructor create; override;
         procedure DefaultLinkScript; override;
         procedure InitSysInitUnitName; override;
@@ -180,7 +180,7 @@ implementation
     begin
       sysinitunit := 'sysinitpas';
     end;
-	  
+
 {*****************************************************************************
                                      Initialize
 *****************************************************************************}
