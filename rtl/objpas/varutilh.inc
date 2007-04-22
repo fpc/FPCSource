@@ -15,6 +15,13 @@
 
  **********************************************************************}
 
+Type
+	  TVarTypeToElementInfo = Record
+ 				   Validbase   : Boolean;	// COM basetype?
+				   ValidElement: Boolean;       // allowable in varrarray ?	
+				   Size	       : Longint;	// elementsize
+				   Flags       : Word;		// see below
+				  end;				
 
 { Variant functions }
 function VariantChangeTypeEx(var VargDest: TVarData; const VargSrc: TVarData; LCID: Integer; Flags: Word; VarType: Word): HRESULT; stdcall;
@@ -95,5 +102,27 @@ const
 
   VAR_LOCALE_USER_DEFAULT = $400; // = Windows.LOCALE_USER_DEFAULT
 
-
-
+  // only the byval types.
+  CVarTypeToElementInfo : array[varempty..varqword] of TVarTypeToElementInfo = (
+   {varempty    }     (Validbase :  true     ;ValidElement:  true    ;Size:     0       ;Flags :  ARR_NONE),
+   {varnull     }     (Validbase :  true     ;ValidElement:  true    ;Size:     0       ;Flags :  ARR_NONE),
+   {varsmallint }     (Validbase :  true     ;ValidElement:  true    ;Size:     2       ;Flags :  ARR_NONE),
+   {varinteger  }     (Validbase :  true     ;ValidElement:  true    ;Size:     4       ;Flags :  ARR_NONE),
+   {varsingle   }     (Validbase :  true     ;ValidElement:  true    ;Size:     4       ;Flags :  ARR_NONE),
+   {vardouble   }     (Validbase :  true     ;ValidElement:  true    ;Size:     8       ;Flags :  ARR_NONE),
+   {varcurrency }     (Validbase :  true     ;ValidElement:  true    ;Size:     8       ;Flags :  ARR_NONE),
+   {vardate     }     (Validbase :  true     ;ValidElement:  true    ;Size:     8       ;Flags :  ARR_NONE),
+   {varolestr   }     (Validbase :  true     ;ValidElement:  true    ;Size:     4       ;Flags :  ARR_OLESTR),
+   {vardispatch }     (Validbase :  true     ;ValidElement:  true    ;Size:     4       ;Flags :  ARR_DISPATCH),
+   {varerror    }     (Validbase :  true     ;ValidElement:  true    ;Size:     4       ;Flags :  ARR_NONE),
+   {varboolean  }     (Validbase :  true     ;ValidElement:  true    ;Size:     2       ;Flags :  ARR_NONE),
+   {varvariant  }     (Validbase :  true     ;ValidElement:  true    ;Size:    16       ;Flags :  ARR_NONE),
+   {varunknown  }     (Validbase :  true     ;ValidElement:  true    ;Size:     4       ;Flags :  ARR_VARIANT),
+   {vardecimal  }     (Validbase :  false    ;ValidElement:  true    ;Size:    14       ;Flags :  ARR_UNKNOWN),
+   {varunused1}	      (ValidBase :  false    ;ValidElement:  false    ;Size:    4       ;Flags :  ARR_NONE), 	
+   {varshortint }     (Validbase :  true     ;ValidElement:  true    ;Size:     1       ;Flags :  ARR_NONE),
+   {varbyte     }     (Validbase :  true     ;ValidElement:  true    ;Size:     1       ;Flags :  ARR_NONE),
+   {varword     }     (Validbase :  true     ;ValidElement:  true    ;Size:     2       ;Flags :  ARR_NONE),
+   {varlongword }     (Validbase :  true     ;ValidElement:  true    ;Size:     4       ;Flags :  ARR_NONE),
+   {varint64    }     (Validbase :  true     ;ValidElement:  true    ;Size:     8       ;Flags :  ARR_NONE),
+   {varqword    }     (Validbase :  true     ;ValidElement:  true    ;Size:     8       ;Flags :  ARR_NONE));
