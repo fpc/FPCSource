@@ -1,7 +1,8 @@
 {
-    Copyright (c) 1998-2002 by Peter Vreman
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2007 by contributors of the Free Pascal Compiler
 
-    This unit implements support information structures for win32
+    This unit implements support information structures for symbian os
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,11 +33,12 @@ unit i_symbian;
             system       : system_i386_SYMBIAN;
             name         : 'Symbian OS for i386';
             shortname    : 'Symbian';
-            flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses
-                            {,tf_smartlink_sections,tf_section_threadvars}{,tf_needs_dwarf_cfi},tf_winlikewidestring];
+            flags        : [tf_files_case_aware, tf_has_dllscanner,
+                            tf_use_function_relative_addresses,
+                            tf_winlikewidestring];
             cpu          : cpu_i386;
             unit_env     : 'SYMBIANUNITS';
-            extradefines : 'UNIX;SYMBIAN';
+            extradefines : 'SYMBIAN';
             exeext       : '.exe';
             defext       : '.def';
             scriptext    : '.bat';

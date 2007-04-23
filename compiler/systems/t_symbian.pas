@@ -1,8 +1,9 @@
 {
-    Copyright (c) 1998-2002 by Peter Vreman
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2007 by contributors of the Free Pascal Compiler
 
     This unit implements support import,export,link routines
-    for the (i386) Win32 target
+    for the Symbian OS target
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +32,7 @@ interface
        symconst,symdef,symsym,
        script,gendef,
        cpubase,
-       import,export,link,cgobj,t_win, i_symbian;
+       import,export,link,cgobj, i_symbian;
 
     type
       TInternalLinkerSymbian = class(TInternalLinker)
@@ -46,7 +47,7 @@ implementation
     SysUtils,
     cfileutils,
     cpuinfo,cgutils,dbgbase,
-    owar,ogbase,ogcoff;
+    owar,ogbase,ogcoff, t_win;
 
 {****************************************************************************
                             TInternalLinkerSymbian
@@ -187,8 +188,7 @@ implementation
 
 initialization
 {$ifdef i386}
-  RegisterExternalLinker(system_i386_symbian_info,TExternalLinkerWin);
-  RegisterInternalLinker(system_i386_symbian_info,TInternalLinkerSymbian);
+  RegisterInternalLinker(system_i386_symbian_info,TExternalLinkerWin);
   RegisterImport(system_i386_symbian,TImportLibWin);
   RegisterExport(system_i386_symbian,TExportLibWin);
   RegisterDLLScanner(system_i386_symbian,TDLLScannerWin);

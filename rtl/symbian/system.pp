@@ -168,13 +168,16 @@ var
     to check if the call stack can be written on exceptions }
   _SS : Cardinal;
 
+procedure pascalmain; external name 'PASCALMAIN';
+
+{ Entry point for the pascal code }
 function Pascal_E32Main: Integer; cdecl; [public, alias: '_Pascal_E32Main'];
 var
   ST : pointer;
 begin
   IsLibrary := false;
 
-//  PascalMain;
+  PascalMain;
 
   { if we pass here there was no error }
   system_exit;

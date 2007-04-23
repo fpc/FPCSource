@@ -5255,6 +5255,9 @@ rtl/sparc/strings.inc svneol=native#text/plain
 rtl/sparc/stringss.inc svneol=native#text/plain
 rtl/symbian/Makefile svneol=native#text/plain
 rtl/symbian/Makefile.fpc svneol=native#text/plain
+rtl/symbian/bindings/pbeexe.cpp -text
+rtl/symbian/buildrtl.pp -text
+rtl/symbian/symbian.pas -text
 rtl/symbian/sysdir.inc svneol=native#text/plain
 rtl/symbian/sysfile.inc svneol=native#text/plain
 rtl/symbian/sysheap.inc svneol=native#text/plain
