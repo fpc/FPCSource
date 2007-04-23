@@ -418,7 +418,7 @@ begin
   if Pcardinal(ord2strindex)^=0 then
     begin
       {The compiler did generate a lookup table.}
-      with Penuminfo(Pbyte(typinfo)+2+length(Ptypeinfo(typinfo)^.name))^ do 
+      with Penuminfo(Pbyte(typinfo)+2+length(Ptypeinfo(typinfo)^.name))^ do
         begin
           if (ordinal<minvalue) or (ordinal>maxvalue) then
             goto error;  {Invalid ordinal value for this enum.}
@@ -760,14 +760,14 @@ begin
             end;
       '%' : begin
               base:=2;
-              inc(code);              
+              inc(code);
             end;
       '&' : begin
               Base:=8;
-              inc(code);              
+              inc(code);
             end;
       '0' : begin
-              if (code < length(s)) and (s[code+1] in ['x', 'X']) then 
+              if (code < length(s)) and (s[code+1] in ['x', 'X']) then
               begin
                 inc(code, 2);
                 base := 16;
@@ -794,6 +794,12 @@ begin
   Code:=InitVal(s,negative,base);
   if Code>length(s) then
    exit;
+  if (s[Code]=#0) then
+    begin
+      if (Code>1) and (s[Code-1]='0') then
+        Code:=0;
+      exit;
+    end;
   maxPrevValue := ValUInt(MaxUIntValue) div ValUInt(Base);
   if (base = 10) then
     maxNewValue := MaxSIntValue + ord(negative)
@@ -851,6 +857,12 @@ begin
   Code:=InitVal(s,negative,base);
   If Negative or (Code>length(s)) Then
     Exit;
+  if (s[Code]=#0) then
+    begin
+      if (Code>1) and (s[Code-1]='0') then
+        Code:=0;
+      exit;
+    end;
   while Code<=Length(s) do
    begin
      case s[Code] of
@@ -892,6 +904,12 @@ end;
     Code:=InitVal(s,negative,base);
     if Code>length(s) then
      exit;
+    if (s[Code]=#0) then
+      begin
+        if (Code>1) and (s[Code-1]='0') then
+          Code:=0;
+        exit;
+      end;
     maxprevvalue := maxqword div base;
     if (base = 10) then
       maxnewvalue := maxint64 + ord(negative)
@@ -940,6 +958,12 @@ end;
     Code:=InitVal(s,negative,base);
     If Negative or (Code>length(s)) Then
       Exit;
+    if (s[Code]=#0) then
+      begin
+        if (Code>1) and (s[Code-1]='0') then
+          Code:=0;
+        exit;
+      end;
     while Code<=Length(s) do
      begin
        case s[Code] of
