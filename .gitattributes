@@ -6621,6 +6621,8 @@ tests/test/taddstr1.pp svneol=native#text/plain
 tests/test/talign.pp svneol=native#text/plain
 tests/test/talign1.pp svneol=native#text/plain
 tests/test/talign2.pp svneol=native#text/plain
+tests/test/targ1a.pp -text
+tests/test/targ1b.pp -text
 tests/test/tarray1.pp svneol=native#text/plain
 tests/test/tarray2.pp svneol=native#text/plain
 tests/test/tarray3.pp svneol=native#text/plain
