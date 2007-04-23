@@ -9,6 +9,9 @@ function TestAllval2 : boolean;
 
 implementation
 
+uses
+  tvalc;
+
 type
   IntegerType = dword;
 
@@ -17,9 +20,6 @@ type
 
 function TestAllval2 : boolean;
 begin
-  if (paramcount>0) and
-     (paramstr(1)='verbose') then
-       silent:=false;
   Writeln('Test val for dword type');
   TestAllval2:=TestAll;
 end;

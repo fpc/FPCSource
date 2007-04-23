@@ -9,6 +9,9 @@ function TestAllval3 : boolean;
 
 implementation
 
+uses
+  tvalc;
+
 type
   IntegerType = int64;
 
@@ -17,9 +20,6 @@ type
 
 function TestAllval3 : boolean;
 begin
-  if (paramcount>0) and
-     (paramstr(1)='verbose') then
-       silent:=false;
   Writeln('Test val for int64 type');
   TestAllval3:=TestAll;
 end;

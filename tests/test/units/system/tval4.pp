@@ -9,6 +9,9 @@ function TestAllval4 : boolean;
 
 implementation
 
+uses
+  tvalc;
+
 type
   IntegerType = qword;
 
@@ -17,9 +20,6 @@ type
 
 function TestAllval4 : boolean;
 begin
-  if (paramcount>0) and
-     (paramstr(1)='verbose') then
-       silent:=false;
   Writeln('Test val for qword type');
   TestAllval4:=TestAll;
 end;
