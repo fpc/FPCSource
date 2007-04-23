@@ -119,7 +119,8 @@ Const
                 rtfIComment             = 34;
                 rtfIVersion             = 35;
                 rtfIDoccomm             = 36;
-                rtfMaxDestination       = 37    { highest dest + 1 };
+                rtfICompany             = 37;  (* Added *)
+                rtfMaxDestination       = 38    { highest dest + 1 };
 
         rtfFontFamily   = 4;
                 rtfFFNil                = 0;
@@ -258,9 +259,11 @@ Const
                 rtfRowGapH              = 8;
                 rtfRowHt                = 9;
                 rtfRowLeftEdge          = 10;
-                rtfCellPos              = 11;
-                rtfMergeRngFirst        = 12;
-                rtfMergePrevious        = 13;
+                rtfRowHeader            = 11;  (* Added *)
+                rtfCellPos              = 12;
+                rtfCellBackColor        = 13;  (* Added *)
+                rtfMergeRngFirst        = 14;
+                rtfMergePrevious        = 15;
 
         rtfParAttr      = 11;
                 rtfParDef               = 0;
@@ -463,7 +466,7 @@ Type
    (all valid minor numbers are >= 0).
   ---------------------------------------------------------------------}
 
-Const rtfKey : Array [0..281] of TRTFKey =
+Const rtfKey : Array [0..284] of TRTFKey =
 (
 ( rtfKMajor: RTFSPECIALCHAR; rtfKMinor : rtfCURHEADPICT; rtfKStr  : 'chpict'; rtfKhash :        0),
 ( rtfKMajor: rtfSpecialChar; rtfKMinor:         rtfCurHeadDate; rtfKstr : 'chdate'; rtfkHash : 0),
@@ -471,6 +474,8 @@ Const rtfKey : Array [0..281] of TRTFKey =
 ( rtfKMajor: rtfSpecialChar; rtfKMinor:         rtfCurHeadPage; rtfKstr : 'chpgn'; rtfkHash : 0),
 ( rtfKMajor: rtfSpecialChar; rtfKMinor:         rtfCurFNote; rtfKstr : 'chftn'; rtfkHash : 0),
 ( rtfKMajor: rtfSpecialChar; rtfKMinor:         rtfCurAnnotRef; rtfKstr : 'chatn'; rtfkHash : 0),
+( rtfKMajor: rtfSpecialChar; rtfKMinor:         rtfAnnotation; rtfKstr : 'annotation'; rtfkHash : 0),  (* Moved to here *)
+( rtfKMajor: rtfSpecialChar; rtfKMinor:         rtfAnnotID; rtfKstr : 'atnid'; rtfkHash : 0),  (* Moved to here *)
 ( rtfKMajor: rtfSpecialChar; rtfKMinor:         rtfFNoteSep; rtfKstr : 'chftnsep'; rtfkHash : 0),
 ( rtfKMajor: rtfSpecialChar; rtfKMinor:         rtfFNoteCont; rtfKstr : 'chftnsepc'; rtfkHash : 0),
 ( rtfKMajor: rtfSpecialChar; rtfKMinor:         rtfFormula; rtfKstr : '|'; rtfkHash : 0),
@@ -679,8 +684,10 @@ Const rtfKey : Array [0..281] of TRTFKey =
 ( rtfKMajor: rtfDestination; rtfKMinor:         rtfStyleSheet; rtfKstr : 'stylesheet'; rtfkHash : 0),
 ( rtfKMajor: rtfDestination; rtfKMinor:         rtfFontTbl; rtfKstr : 'fonttbl'; rtfkHash : 0),
 ( rtfKMajor: rtfDestination; rtfKMinor:         rtfColorTbl; rtfKstr : 'colortbl'; rtfkHash : 0),
+(*
 ( rtfKMajor: rtfDestination; rtfKMinor:         rtfAnnotation; rtfKstr : 'annotation'; rtfkHash : 0),
 ( rtfKMajor: rtfDestination; rtfKMinor:         rtfAnnotID; rtfKstr : 'atnid'; rtfkHash : 0),
+*)
 ( rtfKMajor: rtfDestination; rtfKMinor:         rtfField; rtfKstr : 'field'; rtfkHash : 0),
 ( rtfKMajor: rtfDestination; rtfKMinor:         rtfFieldInst; rtfKstr : 'fldinst'; rtfkHash : 0),
 ( rtfKMajor: rtfDestination; rtfKMinor:         rtfFieldResult; rtfKstr : 'fldrslt'; rtfkHash : 0),
@@ -700,6 +707,7 @@ Const rtfKey : Array [0..281] of TRTFKey =
 ( rtfKMajor: rtfDestination; rtfKMinor:         rtfIComment; rtfKstr : 'comment'; rtfkHash : 0),
 ( rtfKMajor: rtfDestination; rtfKMinor:         rtfIVersion; rtfKstr : 'version'; rtfkHash : 0),
 ( rtfKMajor: rtfDestination; rtfKMinor:         rtfIDoccomm; rtfKstr : 'doccomm'; rtfkHash : 0),
+( rtfKMajor: rtfDestination; rtfKMinor:         rtfICompany; rtfKstr : 'company'; rtfkHash : 0),  (* Added *)
 
 ( rtfKMajor: rtfTOCAttr; rtfKMinor:     rtfTOCType; rtfKstr : 'tcf'; rtfkHash : 0),
 ( rtfKMajor: rtfTOCAttr; rtfKMinor:     rtfTOCLevel; rtfKstr : 'tcl'; rtfkHash : 0),
@@ -732,7 +740,9 @@ Const rtfKey : Array [0..281] of TRTFKey =
 ( rtfKMajor: rtfTblAttr; rtfKMinor:     rtfRowGapH; rtfKstr : 'trgaph'; rtfkHash : 0),
 ( rtfKMajor: rtfTblAttr; rtfKMinor:     rtfRowHt; rtfKstr : 'trrh'; rtfkHash : 0),
 ( rtfKMajor: rtfTblAttr; rtfKMinor:     rtfRowLeftEdge; rtfKstr : 'trleft'; rtfkHash : 0),
+( rtfKMajor: rtfTblAttr; rtfKMinor:     rtfRowHeader; rtfKstr : 'trhdr'; rtfkHash : 0),  (* Added *)
 ( rtfKMajor: rtfTblAttr; rtfKMinor:     rtfCellPos; rtfKstr : 'cellx'; rtfkHash : 0),
+( rtfKMajor: rtfTblAttr; rtfKMinor:     rtfCellBackColor; rtfKstr : 'clcbpat'; rtfkHash : 0),  (* Added *)
 ( rtfKMajor: rtfTblAttr; rtfKMinor:     rtfMergeRngFirst; rtfKstr : 'clmgf'; rtfkHash : 0),
 ( rtfKMajor: rtfTblAttr; rtfKMinor:     rtfMergePrevious; rtfKstr : 'clmrg'; rtfkHash : 0),
 
