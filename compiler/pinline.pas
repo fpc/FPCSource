@@ -206,7 +206,10 @@ implementation
                 { For new(var,constructor) we need to take a copy because
                   p is also used in the assignmentn below }
                 if is_new then
-                  p2:=cderefnode.create(p.getcopy)
+                  begin
+                    p2:=cderefnode.create(p.getcopy);
+                    include(p2.flags,nf_no_checkpointer);
+                  end
                 else
                   p2:=cderefnode.create(p);
                 do_typecheckpass(p2);
