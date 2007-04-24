@@ -1640,7 +1640,7 @@ implementation
 
 	    if (target_info.system = system_powerpc64_linux) then
 	      procentry := '.' + pd.mangledname
-	    else 
+	    else
 	      procentry := pd.mangledname;
 
             append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry));
@@ -1852,7 +1852,7 @@ implementation
             DW_AT_name,DW_FORM_string,symname(sym)+#0
             ]);
           { for string constants, constdef isn't set because they have no real type }
-          if not(sym.consttyp in [conststring,constresourcestring]) then
+          if not(sym.consttyp in [conststring,constresourcestring,constwstring]) then
             append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.constdef));
           current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_AT_const_value)));
           case sym.consttyp of
