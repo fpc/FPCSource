@@ -906,6 +906,8 @@ implementation
       var
         s,s2,
         ibase : TCmdStr;
+        secname,
+        secnames : string;
       begin
         with LinkScript do
           begin
@@ -1007,21 +1009,17 @@ implementation
             Concat('  OBJSECTION .idata$6*');
             Concat('  OBJSECTION .idata$7*');
             Concat('ENDEXESECTION');
-            Concat('EXESECTION .edata');
-            Concat('  OBJSECTION .edata*');
-            Concat('ENDEXESECTION');
-            Concat('EXESECTION .rsrc');
-            Concat('  OBJSECTION .rsrc*');
-            Concat('ENDEXESECTION');
-            Concat('EXESECTION .reloc');
-            Concat('  OBJSECTION .reloc');
-            Concat('ENDEXESECTION');
-            Concat('EXESECTION .stab');
-            Concat('  OBJSECTION .stab');
-            Concat('ENDEXESECTION');
-            Concat('EXESECTION .stabstr');
-            Concat('  OBJSECTION .stabstr');
-            Concat('ENDEXESECTION');
+            secnames:='.edata,.rsrc,.reloc,.stab,.stabstr,'+
+                      '.debug_aranges,.debug_pubnames,.debug_info,.debug_abbrev,.debug_line,.debug_frame,.debug_str,.debug_loc,'+
+                      '.debug_macinfo,.debug_weaknames,.debug_funcnames,.debug_typenames,.debug_varnames,.debug_ranges';
+            repeat
+              secname:=gettoken(secnames,',');
+              if secname='' then
+                break;
+              Concat('EXESECTION '+secname);
+              Concat('  OBJSECTION '+secname+'*');
+              Concat('ENDEXESECTION');
+            until false;
             Concat('STABS');
             Concat('SYMBOLS');
           end;
