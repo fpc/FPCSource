@@ -1939,12 +1939,22 @@ const pemagic : array[0..3] of byte = (
 
     procedure TCoffexeoutput.ExeSectionList_write_header(p:TObject;arg:pointer);
       var
-        sechdr    : tcoffsechdr;
+        sechdr   : tcoffsechdr;
+        s        : string;
+        strpos   : Aint;
       begin
         with tExeSection(p) do
           begin
             fillchar(sechdr,sizeof(sechdr),0);
-            move(name[1],sechdr.name,length(name));
+            s:=name;
+            if length(s)>8 then
+             begin
+               strpos:=FCoffStrs.size+4;
+               FCoffStrs.writestr(s);
+               FCoffStrs.writestr(#0);
+               s:='/'+ToStr(strpos);
+             end;
+            move(s[1],sechdr.name,length(s));
             sechdr.rvaofs:=mempos;
             if win32 then
               sechdr.vsize:=Size
