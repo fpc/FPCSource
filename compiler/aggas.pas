@@ -212,7 +212,7 @@ implementation
       ait_const2str : array[aitconst_128bit..aitconst_indirect_symbol] of string[20]=(
         #9'.fixme128'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9,#9'.byte'#9,
         #9'.sleb128'#9,#9'.uleb128'#9,
-        #9'.rva'#9,#9'.indirect_symbol'#9
+        #9'.rva'#9,#9'.secrel32'#9,#9'.indirect_symbol'#9
       );
 
 {****************************************************************************}
@@ -685,6 +685,7 @@ implementation
                  aitconst_16bit,
                  aitconst_8bit,
                  aitconst_rva_symbol,
+                 aitconst_secrel32_symbol,
                  aitconst_indirect_symbol :
                    begin
                      if (target_info.system in systems_darwin) and
@@ -746,7 +747,9 @@ implementation
                        end;
                       AsmLn;
                    end;
-                 end;
+                 else
+                   internalerror(200704251);
+               end;
              end;
 
            { the "and defined(FPC_HAS_TYPE_EXTENDED)" isn't optimal but currently the only solution

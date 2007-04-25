@@ -425,9 +425,13 @@ implementation
        IMAGE_REL_ARM_SECTION       = $000E;     { Section table index }
        IMAGE_REL_ARM_SECREL        = $000F;     { Offset within section }
 {$endif arm}
-       R_DIR32 = 6;
-       R_IMAGEBASE = 7;
-       R_PCRLONG = 20;
+
+{$ifdef i386}
+       IMAGE_REL_I386_DIR32 = 6;
+       IMAGE_REL_I386_IMAGEBASE = 7;
+       IMAGE_REL_I386_SECREL32 = 11;
+       IMAGE_REL_I386_PCRLONG = 20;
+{$endif i386}
 
        { .reloc section fixup types }
        IMAGE_REL_BASED_HIGHLOW     = 3;  { Applies the delta to the 32-bit field at Offset. }
@@ -818,6 +822,13 @@ const pemagic : array[0..3] of byte = (
 {$endif arm}
                     inc(address,relocval);
                 end;
+              RELOC_SECREL32 :
+                begin
+                  { fixup address when the symbol was known in defined object }
+                  if (relocsec.objdata=objdata) then
+                    dec(address,TCoffObjSection(relocsec).mempos);
+                  inc(address,relocval);
+                end;
 {$ifdef arm}
               RELOC_RELATIVE_24:
                 begin
@@ -1174,14 +1185,18 @@ const pemagic : array[0..3] of byte = (
 
               RELOC_RVA :
                 rel.reloctype:=IMAGE_REL_ARM_ADDR32NB;
+              RELOC_SECREL32 :
+                rel.reloctype:=IMAGE_REL_ARM_SECREL;
 {$endif arm}
 {$ifdef i386}
               RELOC_RELATIVE :
-                rel.reloctype:=R_PCRLONG;
+                rel.reloctype:=IMAGE_REL_I386_PCRLONG;
               RELOC_ABSOLUTE :
-                rel.reloctype:=R_DIR32;
+                rel.reloctype:=IMAGE_REL_I386_DIR32;
               RELOC_RVA :
-                rel.reloctype:=R_IMAGEBASE;
+                rel.reloctype:=IMAGE_REL_I386_IMAGEBASE;
+              RELOC_SECREL32 :
+                rel.reloctype:=IMAGE_REL_I386_SECREL32;
 {$endif i386}
 {$ifdef x86_64}
               RELOC_RELATIVE :
@@ -1202,6 +1217,8 @@ const pemagic : array[0..3] of byte = (
                 rel.reloctype:=IMAGE_REL_AMD64_REL32_4;
               RELOC_RELATIVE_5 :
                 rel.reloctype:=IMAGE_REL_AMD64_REL32_5;
+              RELOC_SECREL32 :
+                rel.reloctype:=IMAGE_REL_AMD64_SECREL;
 {$endif x86_64}
               else
                 internalerror(200603312);
@@ -1497,12 +1514,14 @@ const pemagic : array[0..3] of byte = (
                rel_type:=RELOC_RELATIVE_24;
 {$endif arm}
 {$ifdef i386}
-             R_PCRLONG :
+             IMAGE_REL_I386_PCRLONG :
                rel_type:=RELOC_RELATIVE;
-             R_DIR32 :
+             IMAGE_REL_I386_DIR32 :
                rel_type:=RELOC_ABSOLUTE;
-             R_IMAGEBASE :
+             IMAGE_REL_I386_IMAGEBASE :
                rel_type:=RELOC_RVA;
+             IMAGE_REL_I386_SECREL32 :
+               rel_type:=RELOC_SECREL32;
 {$endif i386}
 {$ifdef x86_64}
              IMAGE_REL_AMD64_REL32:

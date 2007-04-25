@@ -450,7 +450,7 @@ interface
       ait_const2str : array[aitconst_128bit..aitconst_indirect_symbol] of string[20]=(
         #9'FIXME_128BIT'#9,#9'FIXME_64BIT'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
         #9'FIXME_SLEB128BIT'#9,#9'FIXME_ULEB128BIT'#9,
-        #9'RVA'#9,#9'FIXMEINDIRECT'#9
+        #9'RVA'#9,#9'SECREL32'#9,#9'FIXMEINDIRECT'#9
       );
 
     procedure T386NasmAssembler.WriteSection(atype:TAsmSectiontype;const aname:string);
@@ -651,6 +651,7 @@ interface
                  aitconst_16bit,
                  aitconst_8bit,
                  aitconst_rva_symbol,
+                 aitconst_secrel32_symbol,
                  aitconst_indirect_symbol :
                    begin
                      AsmWrite(ait_const2str[tai_const(hp).consttype]);
@@ -685,6 +686,8 @@ interface
                      until false;
                      AsmLn;
                    end;
+                 else
+                   internalerror(200704252);
                end;
              end;
 
