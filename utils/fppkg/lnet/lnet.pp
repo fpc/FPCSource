@@ -567,7 +567,7 @@ end;
 
 function TLSocket.GetPeerPort: Word;
 begin
-  Result := FPeerAddress.sin_port;
+  Result := ntohs(FPeerAddress.sin_port);
 end;
 
 function TLSocket.Listen(const APort: Word; const AIntf: string = LADDR_ANY): Boolean;
@@ -910,7 +910,7 @@ begin
     FillAddressInfo(FRootSock.FPeerAddress, AF_INET, s, p);
   end else
     FillAddressInfo(FRootSock.FPeerAddress, AF_INET, Address,
-                                            FRootSock.FPeerAddress.Port);
+                                            FRootSock.PeerPort);
 end;
 
 function TLUdp.InitSocket(aSocket: TLSocket): TLSocket;
