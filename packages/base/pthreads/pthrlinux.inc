@@ -64,6 +64,7 @@ Const
   PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP = 2;
   PTHREAD_RWLOCK_DEFAULT_NP = PTHREAD_RWLOCK_PREFER_WRITER_NP;
 
+
   _SIGSET_NWORDS  = 1024 div (8 * SizeOf(LongWord));
 
 type
@@ -79,13 +80,13 @@ type
   PSize_t = ^Size_t;
 
   // From scheduler.
-
+{ already in unix type
   timespec =  record
     tv_sec: cint;
     tv_nsec: cint;
   end;
   TTimeSpec = timespec;
-  PTimeSpec = ^TTimeSpec;
+  PTimeSpec = ^TTimeSpec; }
 
   // procedural types used in parameters to pthread functions
 
@@ -94,9 +95,7 @@ type
   TInitOnceProc = Procedure;cdecl;
   TForkHandler = procedure; cdecl;
 
-  TThreadID = pthread_t;
   PPTHREAD_T = ^PTHREAD_T;
-  PThreadID = ^TThreadID;
 
   _PTHREAD_DESCR = Pointer;
   TPTHREAD_DESCR = _PTHREAD_DESCR;
