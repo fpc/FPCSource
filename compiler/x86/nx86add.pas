@@ -334,11 +334,14 @@ unit nx86add;
         op     : TAsmOp;
         extra_not,
         noswap : boolean;
+        all_member_optimization:boolean;
+
       begin
         pass_left_right;
 
         noswap:=false;
         extra_not:=false;
+        all_member_optimization:=false;
         opsize:=int_cgsize(resultdef.size);
         case nodetype of
           addn :
@@ -371,6 +374,10 @@ unit nx86add;
           subn :
             begin
               op:=A_AND;
+              if (not(nf_swapped in flags) and (left.location.loc=LOC_CONSTANT) and (left.location.value=-1)) or
+                  ((nf_swapped in flags) and (right.location.loc=LOC_CONSTANT) and (right.location.value=-1)) then
+                all_member_optimization:=true;
+
               if (not(nf_swapped in flags)) and
                  (right.location.loc=LOC_CONSTANT) then
                 right.location.value := not(right.location.value)
@@ -389,13 +396,30 @@ unit nx86add;
           else
             internalerror(2003042215);
         end;
-        { left must be a register }
-        left_must_be_reg(opsize,noswap);
-        emit_generic_code(op,opsize,true,extra_not,false);
-        location_freetemp(current_asmdata.CurrAsmList,right.location);
+        if all_member_optimization then
+          begin
+            { right.location is a LOC_REGISTER }
+            { when swapped another result register }
+            if nf_swapped in flags then
+              begin
+                { newly swapped also set swapped flag }
+                location_swap(left.location,right.location);
+                toggleflag(nf_swapped);
+              end;
+            location_force_reg(current_asmdata.currAsmList,right.location,opsize,false);
+            emit_reg(A_NOT,TCGSize2Opsize[opsize],right.location.register);
+            location:=right.location;
+          end
+        else
+          begin
+            { left must be a register }
+            left_must_be_reg(opsize,noswap);
+            emit_generic_code(op,opsize,true,extra_not,false);
+            location_freetemp(current_asmdata.CurrAsmList,right.location);
 
-        { left is always a register and contains the result }
-        location:=left.location;
+            { left is always a register and contains the result }
+            location:=left.location;
+          end;
 
         { fix the changed opsize we did above because of the missing btsb }
         if opsize<>int_cgsize(resultdef.size) then
