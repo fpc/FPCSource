@@ -398,8 +398,7 @@ unit nx86add;
         end;
         if all_member_optimization then
           begin
-            { right.location is a LOC_REGISTER }
-            { when swapped another result register }
+            {A set expression [0..31]-x can be implemented with a simple NOT.}
             if nf_swapped in flags then
               begin
                 { newly swapped also set swapped flag }
