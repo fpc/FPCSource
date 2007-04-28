@@ -111,6 +111,11 @@ implementation
 
 
     function trgx86.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
+
+    {Decide wether a "replace" spill is possible, i.e. wether we can replace a register
+     in an instruction by a memory reference. For example, in "mov ireg26d,0", the imaginary
+     register ireg26d can be replaced by a memory reference.}
+
       var
         replaceoper : longint;
       begin
@@ -146,69 +151,87 @@ implementation
                            (get_alias(getsupreg(oper[1]^.reg))=orgreg) then
                           replaceoper:=1
                       else
-                        internalerror(200410106);
-                      case replaceoper of
-                        0 :
-                          begin
-                            { Some instructions don't allow memory references
-                              for source }
-                            case instr.opcode of
-                              A_BT,
-                              A_BTS,
-                              A_BTC,
-                              A_BTR :
-                                replaceoper:=-1;
-                            end;
-                          end;
-                        1 :
-                          begin
-                            { Some instructions don't allow memory references
-                              for destination }
-                            case instr.opcode of
-                              A_MOVZX,
-                              A_MOVSX,
-                              A_MULSS,
-                              A_MULSD,
-                              A_SUBSS,
-                              A_SUBSD,
-                              A_ADDSD,
-                              A_ADDSS,
-                              A_DIVSD,
-                              A_DIVSS,
-                              A_SHLD,
-                              A_SHRD,
-                              A_CVTDQ2PD,
-                              A_CVTDQ2PS,
-                              A_CVTPD2DQ,
-                              A_CVTPD2PI,
-                              A_CVTPD2PS,
-                              A_CVTPI2PD,
-                              A_CVTPS2DQ,
-                              A_CVTPS2PD,
-                              A_CVTSD2SI,
-                              A_CVTSD2SS,
-                              A_CVTSI2SD,
-                              A_CVTSS2SD,
-                              A_CVTTPD2PI,
-                              A_CVTTPD2DQ,
-                              A_CVTTPS2DQ,
-                              A_CVTTSD2SI,
-                              A_CVTPI2PS,
-                              A_CVTPS2PI,
-                              A_CVTSI2SS,
-                              A_CVTSS2SI,
-                              A_CVTTPS2PI,
-                              A_CVTTSS2SI,
-                              A_IMUL,
-                              A_XORPD,
-                              A_XORPS,
-                              A_ORPD,
-                              A_ORPS,
-                              A_ANDPD,
-                              A_ANDPS:
-                                replaceoper:=-1;
-                            end;
-                          end;
+                        internalerror(200704281);
+                    end;
+                  if (oper[0]^.typ=top_reg) and
+                     (oper[1]^.typ=top_const) then
+                    begin
+                      if (getregtype(oper[0]^.reg)=regtype) and
+                         (get_alias(getsupreg(oper[0]^.reg))=orgreg) then
+                        replaceoper:=0
+                      else
+                        internalerror(200704282);
+                    end;
+                  if (oper[0]^.typ=top_const) and
+                     (oper[1]^.typ=top_reg) then
+                    begin
+                      if (getregtype(oper[1]^.reg)=regtype) and
+                         (get_alias(getsupreg(oper[1]^.reg))=orgreg) then
+                        replaceoper:=1
+                      else
+                        internalerror(200704283);
+                    end;
+                  case replaceoper of
+                    0 :
+                      begin
+                        { Some instructions don't allow memory references
+                          for source }
+                        case instr.opcode of
+                          A_BT,
+                          A_BTS,
+                          A_BTC,
+                          A_BTR :
+                            replaceoper:=-1;
+                        end;
+                      end;
+                    1 :
+                      begin
+                        { Some instructions don't allow memory references
+                          for destination }
+                        case instr.opcode of
+                          A_MOVZX,
+                          A_MOVSX,
+                          A_MULSS,
+                          A_MULSD,
+                          A_SUBSS,
+                          A_SUBSD,
+                          A_ADDSD,
+                          A_ADDSS,
+                          A_DIVSD,
+                          A_DIVSS,
+                          A_SHLD,
+                          A_SHRD,
+                          A_CVTDQ2PD,
+                          A_CVTDQ2PS,
+                          A_CVTPD2DQ,
+                          A_CVTPD2PI,
+                          A_CVTPD2PS,
+                          A_CVTPI2PD,
+                          A_CVTPS2DQ,
+                          A_CVTPS2PD,
+                          A_CVTSD2SI,
+                          A_CVTSD2SS,
+                          A_CVTSI2SD,
+                          A_CVTSS2SD,
+                          A_CVTTPD2PI,
+                          A_CVTTPD2DQ,
+                          A_CVTTPS2DQ,
+                          A_CVTTSD2SI,
+                          A_CVTPI2PS,
+                          A_CVTPS2PI,
+                          A_CVTSI2SS,
+                          A_CVTSS2SI,
+                          A_CVTTPS2PI,
+                          A_CVTTSS2SI,
+                          A_IMUL,
+                          A_XORPD,
+                          A_XORPS,
+                          A_ORPD,
+                          A_ORPS,
+                          A_ANDPD,
+                          A_ANDPS:
+                            replaceoper:=-1;
+                        end;
                       end;
                     end;
                 end;
