@@ -145,30 +145,26 @@ const
      inWindows: boolean;
 
 {$ifndef tp}
-  procedure seg_bytemove(sseg : word;source : longint;dseg : word;dest : longint;count : longint);
-
-    begin
-       asm
-          push edi
-          push esi
-          push es
-          push ds
-          cld
-          mov ecx,count
-          mov esi,source
-          mov edi,dest
-          mov ax,dseg
-          mov es,ax
-          mov ax,sseg
-          mov ds,ax
-          rep movsb
-          pop ds
-          pop es
-          pop esi
-          pop edi
-       end ['ECX','EAX']
-    end;
-
+  Procedure seg_bytemove(sseg : word;source : longint;dseg : word;dest : longint;count : longint); assembler;
+    asm
+      push edi
+      push esi
+      push es
+      push ds
+      cld
+      mov ecx,count
+      mov esi,source
+      mov edi,dest
+      mov ax,dseg
+      mov es,ax
+      mov ax,sseg
+      mov ds,ax
+      rep movsb
+      pop ds
+      pop es
+      pop esi
+      pop edi
+    end ['ECX','EAX'];
 {$endif tp}
 
  Procedure CallInt10(val_ax : word); assembler;
@@ -189,7 +185,7 @@ const
       pop esi
       pop ebp
 {$endif fpc}
-   end;
+   end ['EAX'];
 
  {************************************************************************}
  {*                     4-bit planar VGA mode routines                   *}
@@ -254,11 +250,8 @@ const
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
 {$else asmgraph}
       asm
-        push ebx
-        push edi
  {$ifndef fpc}
         mov  es, [SegA000]
- {$endif fpc}
         { enable the set / reset function and load the color }
         mov  dx, 3ceh
         mov  ax, 0f01h
@@ -277,7 +270,6 @@ const
         mov  al, 80h
         shr  al, cl
         out  dx, ax
- {$ifndef fpc}
         { get the x index and divide by 8 for 16-color }
         mov  ax,[X]
         shr  ax,3
@@ -303,6 +295,29 @@ const
         mov  ax,0001h
         out  dx,ax
  {$else fpc}
+        push eax
+        push ebx
+        push ecx
+        push edx
+        push edi
+        { enable the set / reset function and load the color }
+        mov  dx, 3ceh
+        mov  ax, 0f01h
+        out  dx, ax
+        { setup set/reset register }
+        mov  ax, [Pixel]
+        shl  ax, 8
+        out  dx, ax
+        { setup the bit mask register }
+        mov  al, 8
+        out  dx, al
+        inc  dx
+        { load the bitmask register }
+        mov  cx, [X]
+        and  cx, 0007h
+        mov  al, 80h
+        shr  al, cl
+        out  dx, ax
         { get the x index and divide by 8 for 16-color }
         movzx eax,[X]
         shr  eax,3
@@ -327,9 +342,12 @@ const
         { restore enable set/reset register }
         mov  ax,0001h
         out  dx,ax
- {$endif fpc}
         pop edi
+        pop edx
+        pop ecx
         pop ebx
+        pop eax
+ {$endif fpc}
       end;
 {$endif asmgraph}
    end;
@@ -424,9 +442,11 @@ const
       xor   ah,ah
       mov   @Result, ax
   {$else fpc}
-      push esi
-      push edi
+      push eax
       push ebx
+      push ecx
+      push edx
+      push esi
       movzx eax, [X]          { Get X address                    }
       push  eax
       shr   eax, 3
@@ -490,9 +510,11 @@ const
       mov   al,ah            { 16-bit pixel in AX   }
       xor   ah,ah
       mov   @Result, ax
-      pop ebx
-      pop edi
       pop esi
+      pop edx
+      pop ecx
+      pop ebx
+      pop eax
   {$endif fpc}
     end;
 {$endif asmgraph}
@@ -719,9 +741,11 @@ End;
       mov  ax,0001h
       out  dx,ax
   {$else fpc}
-      push esi
-      push edi
+      push eax
       push ebx
+      push ecx
+      push edx
+      push edi
       { enable the set / reset function and load the color }
       mov  dx, 3ceh
       mov  ax, 0f01h
@@ -764,9 +788,11 @@ End;
       { restore enable set/reset register }
       mov  ax,0001h
       out  dx,ax
-      pop ebx
       pop edi
-      pop esi
+      pop edx
+      pop ecx
+      pop ebx
+      pop eax
   {$endif fpc}
     end;
 {$endif asmgraph}
@@ -1029,7 +1055,7 @@ End;
       mov al,0dh
       out dx,al
       in  al,dx
-    end;
+    end ['EDX','EAX'];
   end;
 
  procedure SetActive200(page: word); {$ifndef fpc}far;{$endif fpc}
@@ -1064,7 +1090,7 @@ End;
       pop esi
       pop ebp
 {$endif fpc}
-    end;
+    end ['EAX'];
   end;
 
  procedure SetActive350(page: word); {$ifndef fpc}far;{$endif fpc}
@@ -1125,8 +1151,10 @@ End;
   {$else fpc}
   assembler;
   asm
-      push edi
+      push eax
       push ebx
+      push ecx
+      push edi
 {$IFDEF REGCALL}
       movsx  edi, ax
       movsx  ebx, dx
@@ -1158,8 +1186,10 @@ End;
       add    edi, ebx
       mov    fs:[edi+ebx*4+$a0000], al
 @putpix320done:
-      pop ebx
       pop edi
+      pop ecx
+      pop ebx
+      pop eax
 {$endif fpc}
  end;
 
@@ -1185,8 +1215,11 @@ End;
   {$else fpc}
   assembler;
   asm
-    push edi
+    push eax
     push ebx
+    push ecx
+    push edx
+    push edi
 {$IFDEF REGCALL}
     movsx  edi, ax
     movsx  ebx, dx
@@ -1202,8 +1235,11 @@ End;
     shl    ebx, 6
     add    edi, ebx
     movzx  ax, byte ptr fs:[edi+ebx*4+$a0000]
-    pop ebx
     pop edi
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
  {$endif fpc}
   end;
 
@@ -1245,8 +1281,9 @@ End;
     @MovMode:
       mov    es:[di], al
   {$else fpc}
-      push edi
+      push eax
       push ebx
+      push edi
 {$IFDEF REGCALL}
       movzx  edi, ax
       movzx  ebx, dx
@@ -1263,8 +1300,9 @@ End;
       xor    al, fs:[edi+ebx*4+$a0000]
      @MovMode:
       mov    fs:[edi+ebx*4+$a0000], al
-      pop ebx
       pop edi
+      pop ebx
+      pop eax
 {$endif fpc}
   end;
 {$endif asmgraph}
@@ -1308,10 +1346,16 @@ const CrtAddress: word = 0;
   @L2:
 {$ifdef fpc}
      push ebp
+     push esi
+     push edi
+     push ebx
 {$EndIf fpc}
      INT  10h
 {$ifdef fpc}
-    pop ebp
+     pop ebx
+     pop edi
+     pop esi
+     pop ebp
 {$EndIf fpc}
      MOV DX,03C4h   {select memory-mode-register at sequencer Port    }
      MOV AL,04
@@ -1336,8 +1380,10 @@ const CrtAddress: word = 0;
      CLD
      REP STOSW
 {$else fpc}
-      push edi
+     push eax
+     push ecx
      push es
+     push edi
      push fs
      mov edi, $a0000
      pop es
@@ -1345,8 +1391,10 @@ const CrtAddress: word = 0;
      mov ecx, 4000h
      cld
      rep stosd
-     pop es
      pop edi
+     pop es
+     pop ecx
+     pop eax
 {$EndIf fpc}
      MOV DX,CRTAddress  {address the underline-location-register at }
      MOV AL,14h         {the CRT-controller Port, read out the according      }
@@ -1362,7 +1410,7 @@ const CrtAddress: word = 0;
      IN  AL,DX
      OR  AL,40h     {bit 6 := 1: memory access scheme=linear bit array      }
      OUT DX,AL
-  end ['ESI','EDI','EBX','EAX'];
+  end ['EDX','EBX','EAX'];
  end;
 
 
@@ -1405,10 +1453,12 @@ const CrtAddress: word = 0;
     mov al, ES:[DI]
     xor ah, ah
     mov @Result, ax
-  end;
   {$else fpc}
-      push edi
-      push ebx
+     push eax  
+     push ebx
+     push ecx
+     push edx
+     push edi
      movzx edi,[Y]                   ; (* DI = Y coordinate                 *)
      (* Multiply by 80 start *)
      mov ebx, edi
@@ -1431,10 +1481,13 @@ const CrtAddress: word = 0;
    (* End selection of plane *)
     mov ax, fs:[edi+$a0000]
     mov @Result, ax
-    pop ebx
     pop edi
-   end ['ESI','EDI','EBX','EAX'];
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
   {$endif fpc}
+   end;
 {$endif asmgraph}
  end;
 
@@ -1445,6 +1498,9 @@ const CrtAddress: word = 0;
    (* Select where the left corner of the screen will be *)
    { By Matt Pritchard }
     asm
+     push ax
+     push cx
+     push dx
 {$IFDEF REGCALL}
      mov cx, ax
 {$ENDIF REGCALL}
@@ -1488,6 +1544,9 @@ const CrtAddress: word = 0;
      AND     AL, VERT_RETRACE    { Vertical Retrace Start?        }
      JZ      @DP_WAIT1           { If Not, wait for it            }
     { Now Set Display Starting Address                     }
+     pop dx
+     pop cx
+     pop ax
   end;
 
 {$ifdef fpc}
@@ -1539,6 +1598,12 @@ const CrtAddress: word = 0;
     Mem[SegA000:offset] := color;
 {$else asmgraph}
      asm
+      push ax
+      push bx
+      push cx
+      push dx
+      push es
+      push di
       mov di,[Y]                   ; (* DI = Y coordinate                 *)
       (* Multiply by 80 start *)
       mov bx, di
@@ -1567,6 +1632,12 @@ const CrtAddress: word = 0;
       xor al,ah             { xor it and return value into AL }
     @MovMode:
       mov es:[di], al
+      pop di
+      pop es
+      pop dx
+      pop cx
+      pop bx
+      pop ax
     end;
 {$endif asmgraph}
   end;
@@ -1605,6 +1676,12 @@ const CrtAddress: word = 0;
 { note: still needs or/and/notput support !!!!! (JM) }
  Assembler;
  asm
+   push ax
+   push bx
+   push cx
+   push dx
+   push es
+   push di
 {$IFDEF REGCALL}
    mov cl, al
    mov di, dx
@@ -1638,6 +1715,12 @@ const CrtAddress: word = 0;
    xor al,ah             { xor it and return value into AL }
  @MovMode:
    mov es:[di], al
+   pop di
+   pop es
+   pop dx
+   pop cx
+   pop bx
+   pop ax
  end;
 {$endif asmgraph}
 
@@ -1673,13 +1756,19 @@ const CrtAddress: word = 0;
       mov  ah,0fh
 {$ifdef fpc}
       push ebp
+      push esi
+      push edi
+      push ebx
 {$endif fpc}
       int  10h
 {$ifdef fpc}
+      pop ebx
+      pop edi
+      pop esi
       pop ebp
 {$endif fpc}
       mov  [VideoMode], al
-    end;
+    end ['EAX'];
     { saving/restoring video state screws up Windows (JM) }
     if inWindows then
       exit;
@@ -1688,18 +1777,26 @@ const CrtAddress: word = 0;
       mov  ax, 1C00h       { get buffer size to save state }
       mov  cx, 00000111b   { Save DAC / Data areas / Hardware states }
 {$ifdef fpc}
+      push ebx
       push ebp
+      push esi
+      push edi
 {$endif fpc}
       int  10h
 {$ifdef fpc}
+      pop edi
+      pop esi
       pop ebp
 {$endif fpc}
       mov  [StateSize], bx
+{$ifdef fpc}
+      pop ebx
+{$endif fpc}
       cmp  al,01ch
       jnz  @notok
       mov  [SaveSupPorted],TRUE
      @notok:
-    end;
+    end ['ECX','EAX'];
     if SaveSupPorted then
       begin
 
@@ -1748,12 +1845,18 @@ const CrtAddress: word = 0;
       mov  al,[VideoMode]
 {$ifdef fpc}
       push ebp
+      push esi
+      push edi
+      push ebx
 {$endif fpc}
       int  10h
 {$ifdef fpc}
+      pop ebx
+      pop edi
+      pop esi
       pop ebp
 {$endif fpc}
-     end;
+     end ['EAX'];
      { then restore all state information }
 {$ifndef fpc}
      if assigned(SavePtr) and (SaveSupPorted=TRUE) then
@@ -1907,6 +2010,8 @@ const CrtAddress: word = 0;
         { on some hardware - there is a snow like effect       }
         { when changing the palette register directly          }
         { so we wait for a vertical retrace start period.      }
+        push ax
+        push dx
         mov dx, $03da
       @1:
         in    al, dx          { Get input status register    }
@@ -1935,6 +2040,8 @@ const CrtAddress: word = 0;
         mov ax, [BlueValue] { Get RedValue                      }
         shr ax, 2
         out dx, al
+        pop dx
+        pop ax
       end
     End;
 
@@ -2033,30 +2140,28 @@ const CrtAddress: word = 0;
      { check if Hercules adapter supPorted ... }
      { check if EGA adapter supPorted...       }
      asm
-{$ifdef fpc}
-       push esi
-       push edi
-       push ebx
-{$endif fpc}
        mov ah,12h
        mov bx,0FF10h
 {$ifdef fpc}
+       push ebx
        push ebp
+       push esi
+       push edi
 {$endif fpc}
        int 10h              { get EGA information }
 {$ifdef fpc}
+       pop edi
+       pop esi
        pop ebp
 {$endif fpc}
        cmp bh,0ffh
+{$ifdef fpc}
+       pop ebx
+{$endif fpc}
        jz  @noega
        mov [EGADetected],TRUE
      @noega:
-{$ifdef fpc}
-       pop ebx
-       pop edi
-       pop esi
-{$endif fpc}
-     end;
+     end ['EBX','EAX'];
 {$ifdef logging}
      LogLn('EGA detected: '+strf(Longint(EGADetected)));
 {$endif logging}
@@ -2064,17 +2169,18 @@ const CrtAddress: word = 0;
      if EGADetected then
        begin
         asm
+         mov ax,1a00h
 {$ifdef fpc}
+         push ebp
          push esi
          push edi
          push ebx
 {$endif fpc}
-         mov ax,1a00h
-{$ifdef fpc}
-         push ebp
-{$endif fpc}
          int 10h            { get display combination code...}
 {$ifdef fpc}
+         pop ebx
+         pop edi
+         pop esi
          pop ebp
 {$endif fpc}
          cmp al,1ah         { check if supPorted...          }
@@ -2083,17 +2189,24 @@ const CrtAddress: word = 0;
          mov ax,1c00h       { get state size for save...     }
                             { ... all imPortant data         }
          mov cx,07h
+{$ifdef fpc}
+         push ebp
+         push esi
+         push edi
+         push ebx
+{$endif fpc}
          int 10h
+{$ifdef fpc}
+         pop ebx
+         pop edi
+         pop esi
+         pop ebp
+{$endif fpc}
          cmp al,1ch         { success?                       }
          jne @novga
          mov [VGADetected],TRUE
         @novga:
-{$ifdef fpc}
-       pop ebx
-       pop edi
-       pop esi
-{$endif fpc}
-        end;
+        end ['ECX','EAX'];
        end;
 {$ifdef logging}
        LogLn('VGA detected: '+strf(Longint(VGADetected)));
@@ -2810,14 +2923,20 @@ begin
     mov  ax,$160a
 {$ifdef fpc}
     push ebp
+    push esi
+    push edi
+    push ebx
 {$endif fpc}
     int  $2f
 {$ifdef fpc}
+    pop ebx
+    pop edi
+    pop esi
     pop ebp
 {$endif fpc}
     test ax,ax
     sete al
     mov  inWindows,al
-  end ['ESI','EDI','EBX','EAX'];
+  end ['EAX'];
   InitializeGraph;
 end.

@@ -353,12 +353,18 @@ end;
 {$ENDIF REGCALL}
 {$ifdef fpc}
      push ebp
+     push esi
+     push edi
+     push ebx
 {$endif fpc}
      int  10h
 {$ifdef fpc}
+     pop ebx
+     pop edi
+     pop esi
      pop ebp
 {$endif fpc}
-   end;
+   end ['EDX','EBX','EAX'];
 
   {********************************************************}
   { There are two routines for setting banks. This may in  }
@@ -2260,16 +2266,22 @@ Const
     mov bx,mode
 {$ifdef fpc}
     push ebp
+    push esi
+    push edi
+    push ebx
 {$endif fpc}
     int 10h
 {$ifdef fpc}
+    pop ebx
+    pop edi
+    pop esi
     pop ebp
 {$endif fpc}
     sub ax,004Fh
     cmp ax,1
     sbb al,al
     mov res,al
-   end;
+   end ['EBX','EAX'];
    if not res then
      _GraphResult := GrNotDetected
    else _GraphResult := grOk;
@@ -2281,10 +2293,15 @@ Const
    asm  {return -1 if error}
     mov ax,4F03h
 {$ifdef fpc}
+    push ebx
     push ebp
+    push esi
+    push edi
 {$endif fpc}
     int 10h
 {$ifdef fpc}
+    pop edi
+    pop esi
     pop ebp
 {$endif fpc}
     cmp ax,004Fh
@@ -2294,7 +2311,10 @@ Const
   @@OK:
     mov ax,bx
   @@X:
-   end;
+{$ifdef fpc}
+    pop ebx
+{$endif fpc}
+   end ['EAX'];
 *)
 
 
@@ -2476,13 +2496,19 @@ Const
       mov  ah,0fh
 {$ifdef fpc}
       push ebp
+      push esi
+      push edi
+      push ebx
 {$endif fpc}
       int  10h
 {$ifdef fpc}
+      pop ebx
+      pop edi
+      pop esi
       pop ebp
 {$endif fpc}
       mov  [VideoMode], al
-    end;
+    end ['EAX'];
     { saving/restoring video state screws up Windows (JM) }
     if inWindows then
       exit;
@@ -2495,18 +2521,26 @@ Const
       mov  dx, 00h
       mov  cx, 00001111b   { Save DAC / Data areas / Hardware states }
 {$ifdef fpc}
+      push ebx
       push ebp
+      push esi
+      push edi
 {$endif fpc}
       int  10h
 {$ifdef fpc}
+      pop edi
+      pop esi
       pop ebp
 {$endif fpc}
       mov  [StateSize], bx
+{$ifdef fpc}
+      pop ebx
+{$endif fpc}
       cmp  al,04fh
       jnz  @notok
       mov  [SaveSupported],TRUE
      @notok:
-    end;
+    end ['EDX','ECX','EAX'];
     regs.eax := $4f04;
     regs.edx := $0000;
     regs.ecx := $000F;
@@ -2567,12 +2601,18 @@ Const
       mov  al,[VideoMode]
 {$ifdef fpc}
       push ebp
+      push esi
+      push edi
+      push ebx
 {$endif fpc}
       int  10h
 {$ifdef fpc}
+      pop ebx
+      pop edi
+      pop esi
       pop ebp
 {$endif fpc}
-     end;
+     end ['EAX'];
      { then restore all state information }
 {$ifndef fpc}
      if assigned(SavePtr) and (SaveSupported=TRUE) then
@@ -2719,12 +2759,18 @@ Const
       mov dx, [NewStartVisible]  { new scanline }
 {$ifdef fpc}
       push    ebp
+      push    esi
+      push    edi
+      push    ebx
 {$endif}
       int     10h
 {$ifdef fpc}
+      pop     ebx
+      pop     edi
+      pop     esi
       pop     ebp
 {$endif}
-    end;
+    end ['EDX','ECX','EBX','EAX'];
   end;
 
  procedure SetActiveVESA(page: word); {$ifndef fpc}far;{$endif fpc}
