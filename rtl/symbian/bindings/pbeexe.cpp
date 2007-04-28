@@ -1,30 +1,59 @@
-// pbeexe.cpp
+/*
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2007 by contributors of the Free Pascal Compiler
+
+    pbeexe.cpp
+
+    This file is part of the Pascal interface for the c++ API on Symbian OS
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************/
 #include <e32std.h>
+#include <e32base.h>
 
 extern "C"
 {
 
 /* Pascal Entry point declaration */
-int Pascal_E32Main();
+long int Pascal_E32Main();
 
-/* class User : public UserHeap */
+/*******************************************************************
+*  File e32std.h
+*******************************************************************/
 
-/* User::InfoPrint */
-void User_InfoPrint()
+/*******************************************************************
+*  Class User
+*******************************************************************/
+
+/*******************************************************************
+*  User::InfoPrint
+*******************************************************************/
+TInt User_InfoPrint(const char* aString)
 {
-     // Define a non-modifiable compile time allocated
-     // descriptor (Symbian OS string)
-     _LIT(KQHelloWorldString, "My Hello World");
-     // show an indication
-     User::InfoPrint(KQHelloWorldString);
+    TPtrC8 pStr(reinterpret_cast<const TUint8*>(aString));
+    HBufC* buf = HBufC::New(pStr.Length());
+    if (buf == NULL)
+   	{
+    	return KErrNoMemory;
+    }
+    buf->Des().Copy(pStr);
+    User::InfoPrint(*buf);
+    return KErrNone;
 }
 
-}
 
-/* Symbian OS Entry Point */
+} /* extern "C" */
+
+/*******************************************************************
+*  Symbian OS Entry Point
+*******************************************************************/
 TInt E32Main()
 {
-     Pascal_E32Main();
-
-     return KErrNone;
+     return Pascal_E32Main();
 }

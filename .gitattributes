@@ -5257,6 +5257,8 @@ rtl/symbian/Makefile svneol=native#text/plain
 rtl/symbian/Makefile.fpc svneol=native#text/plain
 rtl/symbian/bindings/pbeexe.cpp -text
 rtl/symbian/buildrtl.pp -text
+rtl/symbian/e32def.inc -text
+rtl/symbian/e32err.inc -text
 rtl/symbian/symbian.pas -text
 rtl/symbian/sysdir.inc svneol=native#text/plain
 rtl/symbian/sysfile.inc svneol=native#text/plain
