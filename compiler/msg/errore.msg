@@ -1131,7 +1131,7 @@ parser_f_no_anonymous_specializations=03232_F_Anonymous generic specializations 
 parser_e_initialized_not_for_external=03233_E_Cannot initialize variables declared as external
 % Variables declared as external can not be initialized with a default value.
 parser_e_illegal_function_result=03234_E_Illegal function result type
-% Some types like file types can not used as function result
+% Some types like file types can not be used as function result.
 % \end{description}
 #
 # Type Checking
