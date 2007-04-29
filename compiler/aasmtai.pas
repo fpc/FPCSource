@@ -98,6 +98,7 @@ interface
           aitconst_uleb128bit,
           { win32 only }
           aitconst_rva_symbol,
+          aitconst_secrel32_symbol,
           { darwin only }
           aitconst_indirect_symbol
         );

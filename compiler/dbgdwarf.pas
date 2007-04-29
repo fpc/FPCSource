@@ -226,7 +226,8 @@ interface
         _use_64bit_headers: Boolean;
         // set to ait_const32bit if use_64bit_headers is false, otherwise
         // to ait_const64bit
-        offsetsymtype: taiconst_type;
+        offsetreltype,
+        offsetabstype : taiconst_type;
         // set if we generated any lineinfo at all. If not, we have to terminate
         // when insertmoduleinfo is called.
         generated_lineinfo: boolean;
@@ -625,9 +626,18 @@ implementation
       begin
          _use_64bit_headers:=state;
          if not(state) then
-           offsetsymtype:=aitconst_32bit
+           begin
+             if (target_info.system in system_windows+system_wince) then
+               offsetabstype:=aitconst_secrel32_symbol
+             else
+               offsetabstype:=aitconst_32bit;
+             offsetreltype:=aitconst_32bit;
+           end
          else
-           offsetsymtype:=aitconst_64bit
+           begin
+             offsetreltype:=aitconst_64bit;
+             offsetabstype:=aitconst_64bit;
+           end;
       end;
 
 
@@ -944,7 +954,7 @@ implementation
         else
           begin
             current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref4)));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetsymtype,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_info0'),sym));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_info0'),sym));
           end;
       end;
 
@@ -971,7 +981,7 @@ implementation
           { use append_labelentry_dataptr_rel instead }
           internalerror(2007020210);
         append_labelentry_dataptr_common(attr);
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetsymtype,sym))
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,sym))
       end;
 
 
@@ -984,7 +994,7 @@ implementation
           targets
         }
         append_labelentry_dataptr_common(attr);
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetsymtype,sym,endsym));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,sym,endsym));
       end;
 
 
@@ -2150,7 +2160,7 @@ implementation
         current_asmdata.getlabel(lbl,alt_dbgfile);
         if use_64bit_headers then
           linelist.concat(tai_const.create_32bit(longint($FFFFFFFF)));
-        linelist.concat(tai_const.create_rel_sym(offsetsymtype,
+        linelist.concat(tai_const.create_rel_sym(offsetreltype,
           lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_line0')));
         linelist.concat(tai_label.create(lbl));
 
@@ -2159,7 +2169,7 @@ implementation
 
         { header length }
         current_asmdata.getlabel(lbl,alt_dbgfile);
-        linelist.concat(tai_const.create_rel_sym(offsetsymtype,
+        linelist.concat(tai_const.create_rel_sym(offsetreltype,
           lbl,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'ehdebug_line0')));
         linelist.concat(tai_label.create(lbl));
 
@@ -2326,7 +2336,7 @@ implementation
         { size }
         if use_64bit_headers then
           current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(longint($FFFFFFFF)));
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetsymtype,
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,
           lenstartlabel,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'edebug_info0')));
 
         current_asmdata.asmlists[al_dwarf_info].concat(tai_label.create(lenstartlabel));
@@ -2334,10 +2344,10 @@ implementation
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(dwarf_version));
         { abbrev table (=relative from section start)}
         if not(tf_dwarf_relative_addresses in target_info.flags) then
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetsymtype,
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_type_sym(offsetabstype,
             current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrev0')))
         else
-          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetsymtype,
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,
             current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrevsection0'),
             current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_abbrev0')));
 

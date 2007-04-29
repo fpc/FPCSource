@@ -1159,6 +1159,11 @@ Implementation
                        else
                          ObjData.writereloc(Tai_const(hp).value,sizeof(aint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_RVA);
                      end;
+                   aitconst_secrel32_symbol :
+                     begin
+                       { Required for DWARF2 support under Windows }
+                       ObjData.writereloc(Tai_const(hp).value,sizeof(longint),Objdata.SymbolRef(tai_const(hp).sym),RELOC_SECREL32);
+                     end;
                    aitconst_uleb128bit,
                    aitconst_sleb128bit :
                      begin
