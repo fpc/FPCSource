@@ -157,7 +157,7 @@ type
     sun_path      : array[0..107] of char;
   end;
 
-  Tsocket=longint;  {To easy porting code from Kylix libc unit to sockets unit.}
+  Tsocket=longint;   {To easy porting code from Kylix libc unit to sockets unit.}
 
 Var
   SocketError:cint;
@@ -179,34 +179,33 @@ function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optle
 function  fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
 
 {Basic Socket Functions}
-Function Socket(Domain,SocketType,Protocol:Longint):Longint;
-Function CloseSocket(Sock:Longint):Longint;
-Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
-Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
-Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
-Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr; var AddrLen : longInt) : longint;
-Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
-Function Listen (Sock,MaxConnect:Longint):Boolean;
-Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
-Function Connect(Sock:Longint;Const Addr;Addrlen:Longint):boolean;
-Function Shutdown(Sock:Longint;How:Longint):Longint;
-Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
-Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
-Function SetSocketOptions(Sock,Level,OptName:Longint;const OptVal;optlen:longint):Longint;
-Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
-Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
+Function Socket(Domain,SocketType,Protocol:Longint):Longint; deprecated;
+Function CloseSocket(Sock:Longint):Longint; // vote is still out on this one
+Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint; deprecated;
+Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint; deprecated;
+Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint; deprecated;
+Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr; var AddrLen : longInt) : longint;deprecated; 
+Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;deprecated;
+Function Listen (Sock,MaxConnect:Longint):Boolean;deprecated;
+Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;deprecated;
+Function Connect(Sock:Longint;Const Addr;Addrlen:Longint):boolean;deprecated;
+Function Shutdown(Sock:Longint;How:Longint):Longint;deprecated;
+Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;deprecated;
+Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;deprecated;
+Function SetSocketOptions(Sock,Level,OptName:Longint;const OptVal;optlen:longint):Longint;deprecated;
+Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;deprecated;
+Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;deprecated;
 
 {Text Support}
-Procedure Sock2Text(Sock:Longint;Var SockIn,SockOut:Text);
+Procedure Sock2Text(Sock:Longint;Var SockIn,SockOut:Text);deprecated;
 
 {Untyped File Support}
-Procedure Sock2File(Sock:Longint;Var SockIn,SockOut:File);
+Procedure Sock2File(Sock:Longint;Var SockIn,SockOut:File);deprecated;
 
-{Better Pascal Calling, Overloaded Functions!}
-Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:File):Boolean;
-Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;
-Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;
-Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):Boolean;
+Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:File):Boolean; deprecated;
+Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;deprecated;
+Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:text):Boolean; deprecated;
+Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):Boolean;deprecated;
 
 
 { Utility routines}
