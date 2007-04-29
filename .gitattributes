@@ -5538,6 +5538,7 @@ tests/bench/shootout/src/binarytrees.pp svneol=native#text/plain
 tests/bench/shootout/src/hello.pp svneol=native#text/plain
 tests/bench/shootout/src/knucleotide.pp svneol=native#text/plain
 tests/bench/shootout/src/mandelbrot.pp svneol=native#text/plain
+tests/bench/shootout/src/meteorshower.pp svneol=native#text/x-pascal
 tests/bench/shootout/src/nsieve.pp svneol=native#text/plain
 tests/bench/shootout/src/partialsums.pp svneol=native#text/plain
 tests/bench/shootout/src/recursive.pp svneol=native#text/plain
