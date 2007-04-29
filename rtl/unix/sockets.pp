@@ -38,27 +38,27 @@ type
                   end;
 
 const
-  EsockEINTR            = EsysEINTR;
+  EsockEINTR            = EsysEINTR;   
   EsockEBADF            = EsysEBADF;
   EsockEFAULT           = EsysEFAULT;
   EsockEINVAL           = EsysEINVAL;
-  EsockEACCESS         = ESysEAcces;
-  EsockEMFILE          = ESysEmfile;
-  EsockEMSGSIZE        = ESysEMsgSize;
-  EsockENOBUFS         = ESysENoBufs;
-  EsockENOTCONN        = ESysENotConn;
-  EsockENOTSOCK        = ESysENotSock;
-  EsockEPROTONOSUPPORT = ESysEProtoNoSupport;
-  EsockEWOULDBLOCK     = ESysEWouldBlock;
+  EsockEACCESS          = ESysEAcces;
+  EsockEMFILE           = ESysEmfile;
+  EsockEMSGSIZE         = ESysEMsgSize;
+  EsockENOBUFS          = ESysENoBufs;
+  EsockENOTCONN         = ESysENotConn;
+  EsockENOTSOCK         = ESysENotSock;
+  EsockEPROTONOSUPPORT  = ESysEProtoNoSupport;
+  EsockEWOULDBLOCK      = ESysEWouldBlock;
 
 
 { unix socket specific functions }
-Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint);
-Function Bind(Sock:longint;const addr:string):boolean;
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean;
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean;
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
+Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint); deprecated;
+Function Bind(Sock:longint;const addr:string):boolean; deprecated;
+Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean; deprecated;
+Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean; deprecated;
+Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;    deprecated;
+Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;    deprecated;
 
 //function  fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; maybelibc
 //function  fpbind      (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  maybelibc
