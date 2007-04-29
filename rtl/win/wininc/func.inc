@@ -597,7 +597,7 @@ function SetSysColors(cElements:longint; var lpaElements:wINT; var lpaRgbValues:
 function DrawFocusRect(hDC:HDC; var lprc:RECT):WINBOOL; external 'user32' name 'DrawFocusRect';
 function FillRect(hDC:HDC; const lprc:RECT; hbr:HBRUSH):longint; external 'user32' name 'FillRect';
 function FrameRect(hDC:HDC; var lprc:RECT; hbr:HBRUSH):longint; external 'user32' name 'FrameRect';
-function InvertRect(hDC:HDC; var lprc:RECT):WINBOOL; external 'user32' name 'InvertRect';
+function InvertRect(hDC:HDC; const lprc:RECT):WINBOOL; external 'user32' name 'InvertRect';
 function SetRect(lprc:LPRECT; xLeft:longint; yTop:longint; xRight:longint; yBottom:longint):WINBOOL; external 'user32' name 'SetRect';
 function SetRectEmpty(lprc:LPRECT):WINBOOL; external 'user32' name 'SetRectEmpty';
 function CopyRect(lprcDst:LPRECT; var lprcSrc:RECT):WINBOOL; external 'user32' name 'CopyRect';

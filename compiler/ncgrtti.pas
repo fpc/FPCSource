@@ -513,7 +513,14 @@ implementation
 {$ifdef cpurequiresproperalignment}
            current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
-           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otULong));
+           case def.size of
+             1:
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otUByte));
+             2:
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otUWord));
+             4:
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otULong));
+           end;
 {$ifdef cpurequiresproperalignment}
            current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
 {$endif cpurequiresproperalignment}
