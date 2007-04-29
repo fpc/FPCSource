@@ -1009,7 +1009,7 @@ implementation
             Concat('  OBJSECTION .idata$6*');
             Concat('  OBJSECTION .idata$7*');
             Concat('ENDEXESECTION');
-            secnames:='.edata,.rsrc,.reloc,.stab,.stabstr,'+
+            secnames:='.edata,.rsrc,.reloc,'+
                       '.debug_aranges,.debug_pubnames,.debug_info,.debug_abbrev,.debug_line,.debug_frame,.debug_str,.debug_loc,'+
                       '.debug_macinfo,.debug_weaknames,.debug_funcnames,.debug_typenames,.debug_varnames,.debug_ranges';
             repeat
@@ -1020,6 +1020,13 @@ implementation
               Concat('  OBJSECTION '+secname+'*');
               Concat('ENDEXESECTION');
             until false;
+            { Can't use the generic rules, because that will add also .stabstr to .stab }
+            Concat('EXESECTION .stab');
+            Concat('  OBJSECTION .stab');
+            Concat('ENDEXESECTION');
+            Concat('EXESECTION .stabstr');
+            Concat('  OBJSECTION .stabstr');
+            Concat('ENDEXESECTION');
             Concat('STABS');
             Concat('SYMBOLS');
           end;
