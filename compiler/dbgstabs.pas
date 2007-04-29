@@ -1233,10 +1233,13 @@ implementation
                   begin
                     if (sym.localloc.loc=LOC_REFERENCE) then
                       result:=sym_stabstr_evaluate(sym,'"pvmt:p$1",${N_TSYM},0,0,$2',
-                        [def_stab_number(pvmttype),tostr(sym.localloc.reference.offset)]);
-      (*            else
-                      result:=sym_stabstr_evaluate(sym,'"pvmt:r$1",${N_RSYM},0,0,$2',
-                        [def_stab_number(pvmttype),tostr(regstabs_table[regidx])]) *)
+                        [def_stab_number(pvmttype),tostr(sym.localloc.reference.offset)])
+                    else
+                      begin
+                        regidx:=findreg_by_number(sym.localloc.register);
+                        result:=sym_stabstr_evaluate(sym,'"pvmt:r$1",${N_RSYM},0,0,$2',
+                          [def_stab_number(pvmttype),tostr(regstabs_table[regidx])]);
+                      end
                     end
                 else
                   begin
@@ -1246,10 +1249,13 @@ implementation
                       c:='p';
                     if (sym.localloc.loc=LOC_REFERENCE) then
                       result:=sym_stabstr_evaluate(sym,'"$$t:$1",${N_TSYM},0,0,$2',
-                            [c+def_stab_number(tprocdef(sym.owner.defowner)._class),tostr(sym.localloc.reference.offset)]);
-      (*            else
-                      result:=sym_stabstr_evaluate(sym,'"$$t:r$1",${N_RSYM},0,0,$2',
-                            [c+def_stab_number(tprocdef(sym.owner.defowner)._class),tostr(regstabs_table[regidx])]); *)
+                            [c+def_stab_number(tprocdef(sym.owner.defowner)._class),tostr(sym.localloc.reference.offset)])
+                    else
+                      begin
+                        regidx:=findreg_by_number(sym.localloc.register);
+                        result:=sym_stabstr_evaluate(sym,'"$$t:r$1",${N_RSYM},0,0,$2',
+                            [c+def_stab_number(tprocdef(sym.owner.defowner)._class),tostr(regstabs_table[regidx])]);
+                      end
                   end;
               end
             else
