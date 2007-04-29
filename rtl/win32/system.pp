@@ -311,6 +311,7 @@ procedure remove_exception_handlers;forward;
 procedure PascalMain;stdcall;external name 'PASCALMAIN';
 procedure fpc_do_exit;stdcall;external name 'FPC_DO_EXIT';
 Procedure ExitDLL(Exitcode : longint); forward;
+procedure asm_exit;stdcall;external name 'asm_exit';
 
 Procedure system_exit;
 begin
@@ -330,6 +331,12 @@ begin
      { now handled, FPK }
    end;
   remove_exception_handlers;
+
+  { in 2.0 asm_exit does an exitprocess }
+{$ifndef ver2_0}
+  { do cleanup required by the startup code }
+  asm_exit;
+{$endif ver2_0}
 
   { call exitprocess, with cleanup as required }
   ExitProcess(exitcode);

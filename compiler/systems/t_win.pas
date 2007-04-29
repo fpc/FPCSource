@@ -960,6 +960,7 @@ implementation
             Concat('IMAGEBASE $' + ibase);
             Concat('HEADER');
             Concat('EXESECTION .text');
+            Concat('  SYMBOL __text_start__');
             Concat('  OBJSECTION .text*');
             Concat('  SYMBOL ___CTOR_LIST__');
             Concat('  SYMBOL __CTOR_LIST__');
