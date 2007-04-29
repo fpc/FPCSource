@@ -156,7 +156,7 @@ endif
 ifndef CROSSCOMPILE
 ifneq ($(wildcard ide),)
 ifneq ($(wildcard fv),)
-IDETARGETS=go32v2 win32 linux freebsd os2 emx
+IDETARGETS=go32v2 win32 linux freebsd os2 emx darwin
 ifneq ($(findstring $(OS_TARGET),$(IDETARGETS)),)
 IDE=1
 endif
