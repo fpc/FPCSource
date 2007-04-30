@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for DB TestFramework
+#
+
+[package]
+main=fcl
+
+[target]
+examples=regtestframework
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+
+[rules]
+.NOTPARALLEL:

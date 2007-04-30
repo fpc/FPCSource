@@ -4192,6 +4192,10 @@ packages/fcl-registry/src/registry.pp svneol=native#text/plain
 packages/fcl-registry/src/winreg.inc svneol=native#text/plain
 packages/fcl-registry/src/xmlreg.pp svneol=native#text/plain
 packages/fcl-registry/src/xregreg.inc svneol=native#text/plain
+packages/fcl-registry/tests/Makefile svneol=native#text/plain
+packages/fcl-registry/tests/Makefile.fpc -text
+packages/fcl-registry/tests/regtestframework.pp -text
+packages/fcl-registry/tests/testbasics.pp svneol=native#text/plain
 packages/fcl-web/Makefile svneol=native#text/plain
 packages/fcl-web/Makefile.fpc svneol=native#text/plain
 packages/fcl-web/src/README svneol=native#text/plain
