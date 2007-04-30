@@ -36,11 +36,11 @@
 const
 {$ifdef CPU64}
   blocksize    = 32;  { at least size of freerecord }
-  blockshift     = 5;   { shr value for blocksize=2^blockshift}
+  blockshift   = 5;   { shr value for blocksize=2^blockshift}
   maxblocksize = 512+blocksize; { 1024+8 needed for heaprecord }
 {$else}
   blocksize    = 16;  { at least size of freerecord }
-  blockshift     = 4;   { shr value for blocksize=2^blockshift}
+  blockshift   = 4;   { shr value for blocksize=2^blockshift}
   maxblocksize = 512+blocksize; { 1024+8 needed for heaprecord }
 {$endif}
   maxblockindex = maxblocksize div blocksize; { highest index in array of lists of memchunks }
@@ -94,6 +94,35 @@ const
   );
 
 {$ifndef HAS_MEMORYMANAGER}
+
+{ 
+  We use 'fixed' size chunks for small allocations,
+  and os chunks with variable sized blocks for big
+  allocations.
+
+  * a block is an area allocated by user
+  * a chunk is a block plus our bookkeeping
+  * an os chunk is a collection of chunks
+
+  Memory layout:
+    fixed:                         < chunk size > [ ... user data ... ]
+    variable:  < prev chunk size > < chunk size > [ ... user data ... ]
+
+  When all chunks in an os chunk are free, we keep a few around
+  but otherwise it will be freed to the OS.
+
+  Fixed os chunks can be converted to variable os chunks and back
+  (if not too big). To prevent repeated conversion overhead in case
+  of user freeing/allocing same or a small set of sizes, we only do
+  the conversion to the new fixed os chunk size format after we
+  reuse the os chunk for another fixed size, or variable. Note that
+  while the fixed size os chunk is on the freeoslist, it is also 
+  still present in a freelists_fixed, therefore we can easily remove 
+  the os chunk from the freeoslist if this size is needed again; we 
+  don't need to search freeoslist in alloc_oschunk, since it won't
+  be present anymore if alloc_oschunk is reached.
+}
+
 type
   poschunk = ^toschunk;
   toschunk = record
@@ -146,7 +175,6 @@ var
   internal_status : TFPCHeapStatus;
 
   freelists_fixed    : tfreelists;
-  freelists_free_chunk : array[1..maxblockindex] of boolean;
   freelist_var       : pmemchunk_var;
   freeoslist         : poschunk;
   freeoslistcount    : dword;
@@ -530,6 +558,23 @@ begin
   freelist_var := pmc;
 end;
 
+{$ifdef HEAP_DEBUG}
+
+function find_fixed_mc(chunkindex: ptrint; pmc: pmemchunk_fixed): boolean;
+var
+  pmc_temp: pmemchunk_fixed;
+begin
+  pmc_temp := freelists_fixed[chunkindex];
+  while pmc_temp <> nil do
+  begin
+    if pmc_temp = pmc then exit(true);
+    pmc_temp := pmc_temp^.next_fixed;
+  end;
+  result := false;
+end;
+
+{$endif}
+
 procedure remove_from_list_fixed(blockindex: ptrint; pmc: pmemchunk_fixed); inline;
 begin
   if assigned(pmc^.next_fixed) then
@@ -550,20 +595,37 @@ begin
     freelist_var := pmc^.next_var;
 end;
 
-procedure append_to_oslist(poc: poschunk);
+procedure remove_all_from_list_fixed(chunksize: ptrint; poc: poschunk);
+var
+  pmc: pmemchunk_fixed;
+  i, size: ptrint;
+  chunkindex: ptrint;
+begin
+  size := poc^.size;
+  i := fixedfirstoffset;
+  chunkindex := chunksize shr blockshift;
+  repeat
+    pmc := pmemchunk_fixed(pointer(poc)+i);
+    remove_from_list_fixed(chunkindex, pmc);
+    inc(i, chunksize);
+  until i > size - chunksize;
+end;
+
+procedure append_to_oslist(poc: poschunk; chunksize: ptrint);
 begin
   { decide whether to free block or add to list }
 {$ifdef HAS_SYSOSFREE}
   if (freeoslistcount >= MaxKeptOSChunks) or
      (poc^.size > growheapsize2) then
     begin
+      if chunksize <> 0 then
+        remove_all_from_list_fixed(chunksize, poc);
       dec(internal_status.currheapsize, poc^.size);
       SysOSFree(poc, poc^.size);
     end
   else
     begin
 {$endif}
-      poc^.prev := nil;
       poc^.next := freeoslist;
       if freeoslist <> nil then
         freeoslist^.prev := poc;
@@ -575,14 +637,29 @@ begin
 end;
 
 procedure remove_from_oslist(poc: poschunk);
+  { poc does not have to actually be on the oslist }
 begin
+  if not assigned(poc^.prev) then
+    if not assigned(poc^.next) then
+      if freeoslist = poc then
+        freeoslist := nil
+      else
+        exit
+    else
+      freeoslist := poc^.next
+  else
+    poc^.prev^.next := poc^.next;
   if assigned(poc^.next) then
     poc^.next^.prev := poc^.prev;
-  if assigned(poc^.prev) then
-    poc^.prev^.next := poc^.next
-  else
-    freeoslist := poc^.next;
   dec(freeoslistcount);
+  poc^.prev := nil;
+  poc^.next := nil;
+end;
+
+procedure clear_oschunk_on_freelist_fixed_flag(poc: poschunk); inline;
+  { prevent thinking this os chunk is on the fixed freelists }
+begin
+  pmemchunk_fixed(pointer(poc) + fixedfirstoffset)^.size := 0;
 end;
 
 procedure append_to_oslist_var(pmc: pmemchunk_var);
@@ -592,22 +669,8 @@ begin
   // block eligable for freeing
   poc := pointer(pmc)-varfirstoffset;
   remove_from_list_var(pmc);
-  append_to_oslist(poc);
-end;
-
-procedure append_to_oslist_fixed(chunkindex, chunksize: ptrint; poc: poschunk);
-var
-  pmc: pmemchunk_fixed;
-  i, size: ptrint;
-begin
-  size := poc^.size;
-  i := fixedfirstoffset;
-  repeat
-    pmc := pmemchunk_fixed(pointer(poc)+i);
-    remove_from_list_fixed(chunkindex, pmc);
-    inc(i, chunksize);
-  until i > size - chunksize;
-  append_to_oslist(poc);
+  clear_oschunk_on_freelist_fixed_flag(poc);
+  append_to_oslist(poc, 0);
 end;
 
 {*****************************************************************************
@@ -762,6 +825,9 @@ begin
         begin
           size := poc^.size;
           remove_from_oslist(poc);
+          pmc := pmemchunk_fixed(pointer(poc)+fixedfirstoffset);
+          if pmc^.size <> 0 then
+            remove_all_from_list_fixed(pmc^.size and fixedsizemask, poc);
           break;
         end;
       poc := poc^.next;
@@ -813,6 +879,10 @@ begin
               HandleError(203);
           end;
       end;
+      { prevent thinking this os chunk is on some freelist }
+      clear_oschunk_on_freelist_fixed_flag(poc);
+      poc^.prev := nil;
+      poc^.next := nil;
       { set the total new heap size }
       inc(internal_status.currheapsize,size);
       if internal_status.currheapsize>internal_status.maxheapsize then
@@ -894,8 +964,8 @@ begin
   if assigned(pmc_next) then
     pmc_next^.prev_fixed := nil;
   poc := poschunk(pointer(pmc) - (pmc^.size shr fixedoffsetshift));
-  if (poc^.used = 0) then
-    freelists_free_chunk[chunkindex] := false;
+  if poc^.used = 0 then
+    remove_from_oslist(poc);
   inc(poc^.used);
   { statistics }
   inc(internal_status.currheapused,chunksize);
@@ -1020,10 +1090,7 @@ begin
       if poc^.used=-1 then
         HandleError(204);
       { osblock can be freed? }
-      if freelists_free_chunk[chunkindex] then
-        append_to_oslist_fixed(chunkindex, chunksize, poc)
-      else
-        freelists_free_chunk[chunkindex] := true;
+      append_to_oslist(poc, chunksize);
     end;
   result := chunksize;
 end;
@@ -1288,7 +1355,6 @@ end;
 procedure InitHeap;
 begin
   FillChar(freelists_fixed,sizeof(tfreelists),0);
-  FillChar(freelists_free_chunk,sizeof(freelists_free_chunk),0);
   freelist_var := nil;
   freeoslist := nil;
   freeoslistcount := 0;
@@ -1303,13 +1369,6 @@ var
   i : longint;
 begin
 {$ifdef HAS_SYSOSFREE}
-  for i:=low(freelists_free_chunk) to high(freelists_free_chunk) do
-    if freelists_free_chunk[i] then
-    begin
-      pmc := freelists_fixed[i];
-      poc := poschunk(pointer(pmc)-(pmc^.size shr fixedoffsetshift));
-      SysOSFree(poc,poc^.size);
-    end;
   while assigned(freeoslist) do
     begin
       poc:=freeoslist^.next;
