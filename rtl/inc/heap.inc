@@ -597,18 +597,16 @@ end;
 
 procedure remove_all_from_list_fixed(chunksize: ptrint; poc: poschunk);
 var
-  pmc: pmemchunk_fixed;
-  i, size: ptrint;
+  pmc, pmc_end: pmemchunk_fixed;
   chunkindex: ptrint;
 begin
-  size := poc^.size;
-  i := fixedfirstoffset;
+  pmc := pmemchunk_fixed(pointer(poc)+fixedfirstoffset);
+  pmc_end := pmemchunk_fixed(pointer(poc)+poc^.size-chunksize);
   chunkindex := chunksize shr blockshift;
   repeat
-    pmc := pmemchunk_fixed(pointer(poc)+i);
     remove_from_list_fixed(chunkindex, pmc);
-    inc(i, chunksize);
-  until i > size - chunksize;
+    pmc := pointer(pmc)+chunksize;
+  until pmc > pmc_end;
 end;
 
 procedure append_to_oslist(poc: poschunk; chunksize: ptrint);
@@ -907,15 +905,12 @@ begin
       pmc^.prev_fixed := nil;
       repeat
         pmc^.size := fixedsizeflag or chunksize or (i shl fixedoffsetshift);
-        pmc^.next_fixed := pointer(pmc)+chunksize;
         inc(i, chunksize);
-        if i <= size - chunksize then
-          begin
-            pmc := pmemchunk_fixed(pointer(pmc)+chunksize);
-            pmc^.prev_fixed := pointer(pmc)-chunksize;
-          end
-        else
-          break;
+        if i > size - chunksize then break;
+        pmc_next := pmemchunk_fixed(pointer(pmc)+chunksize);
+        pmc^.next_fixed := pmc_next;
+        pmc_next^.prev_fixed := pmc;
+        pmc := pmc_next;
       until false;
       pmc_next := freelists_fixed[chunkindex];
       pmc^.next_fixed := pmc_next;
@@ -948,13 +943,12 @@ begin
   { try to find a block in one of the freelists per size }
   chunkindex := chunksize shr blockshift;
   pmc := freelists_fixed[chunkindex];
-  result:=nil;
   { no free blocks ? }
   if not assigned(pmc) then
     begin
       pmc := alloc_oschunk(chunkindex, chunksize);
       if not assigned(pmc) then
-        exit;
+        exit(nil);
     end;
   { get a pointer to the block we should return }
   result := pointer(pmc)+sizeof(tmemchunk_fixed_hdr);
@@ -963,6 +957,7 @@ begin
   freelists_fixed[chunkindex] := pmc_next;
   if assigned(pmc_next) then
     pmc_next^.prev_fixed := nil;
+  { remove oschunk from free list in case we recycle it }
   poc := poschunk(pointer(pmc) - (pmc^.size shr fixedoffsetshift));
   if poc^.used = 0 then
     remove_from_oslist(poc);
