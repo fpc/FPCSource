@@ -28,6 +28,12 @@ unit sysinitcyg;
     procedure Cygwin_crt0(p : pointer);cdecl;external name 'cygwin_crt0';
     procedure __main;cdecl;external name '__main';
 
+    const
+      STD_INPUT_HANDLE = dword(-10);
+
+    function GetStdHandle(nStdHandle:DWORD) : THandle; stdcall; external 'kernel32' name 'GetStdHandle';
+    function GetConsoleMode(hConsoleHandle: THandle; var lpMode: DWORD): Boolean; stdcall; external 'kernel32' name 'GetConsoleMode';
+
     procedure CMainEXE;cdecl;
       begin
         asm
@@ -57,6 +63,10 @@ unit sysinitcyg;
           subl   $0x8,%esp
           andl   $0xfffffff0,%esp
         end;
+        { it seems cygwin messed around with the console mode so we've to
+          store the startup console mode before cygwin can do anything (FK)
+        }
+        GetConsoleMode(GetStdHandle((Std_Input_Handle)),StartupConsoleMode);
         Cygwin_crt0(@CMainEXE);
       end;
 

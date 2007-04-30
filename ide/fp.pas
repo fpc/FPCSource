@@ -30,6 +30,9 @@ program FP;
 (**********************************************************************)
 
 uses
+{$ifdef Windows}
+  windows,
+{$endif Windows}
 {$ifndef NODEBUG}
 {$ifdef Windows}
   fpcygwin,
@@ -523,9 +526,13 @@ BEGIN
 {$ifdef VESA}
   DoneVESAScreenModes;
 {$endif}
-{$ifdef unix}
+{$if defined(unix)}
   Keyboard.RestoreStartMode;
-{$endif unix}
+{$endif defined(unix)}
+{$if defined(windows)}
+  writeln(hexstr(StartupConsoleMode,8));
+  SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
+{$endif defined(windows)}
   StreamError:=nil;
 {$ifdef DEBUG}
   if CloseImmediately then

@@ -95,6 +95,8 @@ var
   MainInstance,
   cmdshow     : longint;
   DLLreason,DLLparam:longint;
+  StartupConsoleMode : DWORD;
+
 type
   TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
   TDLL_Entry_Hook = procedure (dllparam : longint);
