@@ -9,6 +9,7 @@ library testmodule;
 *  Assembler code to export variables on UNIXes
 *******************************************************************}
 uses
+ httpd,
  minimain in 'minimain.pas';
 
 var

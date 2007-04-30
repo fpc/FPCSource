@@ -25,8 +25,8 @@ begin
   end;
 
   { The following line just prints a message to the errorlog }
-  ap_log_error(APLOG_MARK, APLOG_NOERRNO or APLOG_NOTICE, 0, r^.server,
-   'mod_hello: %s', 'Before content is output');
+  ap_log_error('me',1, APLOG_NOERRNO or APLOG_NOTICE, 0, r^.server,
+   'mod_hello: %s', ['Before content is output']);
 
   { We set the content type before doing anything else }
   ap_set_content_type(r, 'text/html');
