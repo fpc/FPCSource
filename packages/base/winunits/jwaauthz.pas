@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaAuthz.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaAuthz;
 
@@ -54,7 +55,7 @@ unit JwaAuthz;
 interface
 
 uses
-  JwaWinNT, JwaWinType;
+  JwaWindows;
 
 //
 // Flags which may be used at the time of client context creation using a sid.
@@ -467,8 +468,8 @@ AuthzReportSecurityEventFromParams(
 
 implementation
 
-const
-  authzlib = 'authz.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

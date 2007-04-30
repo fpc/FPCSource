@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinIoctl.pas,v 1.7 2005/09/03 14:27:49 marquardt Exp $
 
 unit JwaWinIoctl;
 
@@ -54,7 +55,7 @@ unit JwaWinIoctl;
 interface
 
 uses
-  JwaWinNT, JwaWinType;
+  JwaWindows;
 
 //
 // Device interface class GUIDs.

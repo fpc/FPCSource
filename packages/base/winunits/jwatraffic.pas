@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaTraffic.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaTraffic;
 
@@ -54,7 +55,7 @@ unit JwaTraffic;
 interface
 
 uses
-  JwaWinType, JwaQos;
+  JwaWindows, JwaQos;
 
 //---------------------------------------------------------------------------
 //
@@ -542,13 +543,8 @@ function TcGetFlowName(FlowHandle: HANDLE; StrSize: ULONG; pFlowName: LPTSTR): U
 
 implementation
 
-const
-  trafficlib = 'traffic.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

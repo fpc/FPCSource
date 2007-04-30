@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWPSpiHlp.pas,v 1.5 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaWPSpiHlp;
 
@@ -54,7 +55,7 @@ unit JwaWPSpiHlp;
 interface
 
 uses
-  JwaWPTypes, JwaWinType;
+  JwaWPTypes, JwaWindows;
 
 //
 // Flags

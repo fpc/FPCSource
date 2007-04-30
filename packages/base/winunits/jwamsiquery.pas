@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaMsiQuery.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaMsiQuery;
 
@@ -54,7 +55,7 @@ unit JwaMsiQuery;
 interface
 
 uses
-  JwaMsi, JwaWinBase, JwaWinType;
+  JwaMsi, JwaWindows;
 
 (*****************************************************************************\
 *                                                                             *
@@ -1061,13 +1062,8 @@ function MsiGetLastErrorRecord: MSIHANDLE; stdcall;
 
 implementation
 
-const
-  msilib = 'msi.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

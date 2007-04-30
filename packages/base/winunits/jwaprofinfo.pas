@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaProfInfo.pas,v 1.6 2005/09/03 13:12:10 marquardt Exp $
 
 unit JwaProfInfo;
 
@@ -54,7 +55,7 @@ unit JwaProfInfo;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 type
   LPPROFILEINFOA = ^PROFILEINFOA;

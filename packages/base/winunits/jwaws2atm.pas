@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWS2atm.pas,v 1.5 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaWS2atm;
 
@@ -54,7 +55,7 @@ unit JwaWS2atm;
 interface
 
 uses
-  JwaWinType, JwaWinSock2;
+  JwaWindows, JwaWinSock2;
 
 //#include <pshpack4.h>
 

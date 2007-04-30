@@ -41,6 +41,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaSrRestorePtApi.pas,v 1.7 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaSrRestorePtApi;
 
@@ -55,7 +56,7 @@ unit JwaSrRestorePtApi;
 interface
 
 uses
-  JwaWinNT, JwaWinType;
+  JwaWindows;
 
 //
 // Type of Event
@@ -224,13 +225,8 @@ function SRSetRestorePoint(pRestorePtSpec: PRESTOREPOINTINFO; pSMgrStatus: PSTAT
 
 implementation
 
-const
-  srclient = 'srclient.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -296,3 +292,4 @@ function SRRemoveRestorePoint; external srclient name 'SRRemoveRestorePoint';
 {$ENDIF DYNAMIC_LINK}
 
 end.
+

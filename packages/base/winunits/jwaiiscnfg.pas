@@ -44,16 +44,16 @@ unit JwaIisCnfg;
 
 {$WEAKPACKAGEUNIT}
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "iiscnfg.h"'}
-{$HPPEMIT ''}
-
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "iiscnfg.h"'}
+{$HPPEMIT ''}
 
 //
 // Paths
@@ -1770,3 +1770,4 @@ end;
 }
 
 end.
+

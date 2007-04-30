@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaSspi.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaSspi;
 
@@ -57,7 +58,7 @@ unit JwaSspi;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //
 // Determine environment:
@@ -2292,13 +2293,8 @@ function DeleteSecurityPackage(pszPackageName: PSEC_CHAR): SECURITY_STATUS; stdc
 
 implementation
 
-const
-  secur32 = 'secur32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 procedure SecInvalidateHandle(var x: SecHandle);
 begin

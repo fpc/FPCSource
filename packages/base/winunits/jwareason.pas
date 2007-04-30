@@ -40,14 +40,13 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaReason.pas,v 1.8 2005/09/04 07:02:38 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaReason;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinReg.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
@@ -55,6 +54,14 @@ interface
 
 uses
   JwaWinType;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinReg.h"'}
+{$HPPEMIT ''}
 
 // Reason flags
 
@@ -230,6 +237,15 @@ const
   MAX_NUM_REASONS = 256;
   {$EXTERNALSYM MAX_NUM_REASONS}
 
-implementation
+{$ENDIF JWA_INTERFACESECTION}
 
+{$IFNDEF JWA_INCLUDEMODE}
+implementation
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

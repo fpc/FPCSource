@@ -46,7 +46,7 @@
 {                                                                              }
 {******************************************************************************}
 
-// Last modified: $Date: 2005/04/04 07:56:11 $
+// Last modified: $Date: 2005/04/15 08:19:38 $
 // For history see end of file
 
 (*
@@ -263,7 +263,8 @@
   SUPPORTS_WIDECHAR             Compiler supports the WideChar type (D2+)
   SUPPORTS_WIDESTRING           Compiler supports the WideString type (D3+/BCB3+)
   SUPPORTS_INTERFACE            Compiler supports interfaces (D3+/BCB3+)
-  SUPPORTS_DISPINTERFACE        Compiler supports dispinterfaces (D3+/BCB3+)
+  SUPPORTS_DISPINTERFACE        Compiler supports dispatch interfaces (D3+/BCB3+)
+  SUPPORTS_DISPID               Compiler supports dispatch ids (D3+/BCB3+/FPC)
   SUPPORTS_EXTSYM               Compiler supports the $EXTERNALSYM directive (D4+/BCB3+)
   SUPPORTS_NODEFINE             Compiler supports the $NODEFINE directive (D4+/BCB3+)
   SUPPORTS_LONGWORD             Compiler supports the LongWord type (unsigned 32 bit) (D4+/BCB4+)
@@ -276,6 +277,7 @@
   SUPPORTS_PLATFORM             Compiler supports the platform directive (D6+/BCB6+)
   SUPPORTS_LIBRARY              Compiler supports the library directive (D6+/BCB6+)
   SUPPORTS_LOCAL                Compiler supports the local directive (D6+/BCB6+)
+  SUPPORTS_INLINE               Compiler supports the inline directive (D9+)
   ACCEPT_DEPRECATED             Compiler supports or ignore the deprecated directive (D6/BCB6/FPC)
   ACCEPT_PLATFORM               Compiler supports or ignore the platform directive (D6+/BCB6+)
   ACCEPT_LIBRARY                Compiler supports or ignore the library directive (D6+/BCB6+)
@@ -829,12 +831,18 @@
 {------------------------------------------------------------------------------}
 
 {$IFDEF FPC}
-  {$MODE Delphi}
+  {$IFDEF  VER1_0}
+     Please use FPC 1.1 or later to compile this.
+  {$ELSE}
     {$DEFINE SUPPORTS_OUTPARAMS}
     {$DEFINE SUPPORTS_WIDECHAR}
     {$DEFINE SUPPORTS_WIDESTRING}
-    {$DEFINE SUPPORTS_INTERFACE}
-    {$DEFINE SUPPORTS_VARIANT}
+    {$IFDEF HASINTF}
+      {$DEFINE SUPPORTS_INTERFACE}
+    {$ENDIF}
+    {$IFDEF HASVARIANT}
+      {$DEFINE SUPPORTS_VARIANT}
+    {$ENDIF}
     {$IFDEF FPC_HAS_TYPE_SINGLE}
       {$DEFINE SUPPORTS_SINGLE}
     {$ENDIF}
@@ -844,7 +852,9 @@
     {$IFDEF FPC_HAS_TYPE_EXTENDED}
       {$DEFINE SUPPORTS_EXTENDED}
     {$ENDIF}
-    {$DEFINE SUPPORTS_CURRENCY}
+    {$IFDEF HASCURRENCY}
+      {$DEFINE SUPPORTS_CURRENCY}
+    {$ENDIF}
     {$DEFINE SUPPORTS_THREADVAR}
     {$DEFINE SUPPORTS_CONSTPARAMS}
     {$DEFINE SUPPORTS_LONGWORD}
@@ -852,6 +862,7 @@
     {$DEFINE SUPPORTS_DYNAMICARRAYS}
     {$DEFINE SUPPORTS_DEFAULTPARAMS}
     {$DEFINE SUPPORTS_OVERLOAD}
+    {$DEFINE SUPPORTS_INLINE}
     {$DEFINE ACCEPT_DEPRECATED}
     {$DEFINE ACCEPT_PLATFORM}
     {$DEFINE ACCEPT_LIBRARY}
@@ -867,12 +878,18 @@
     {$DEFINE HAS_UNIT_TYPES}
     {$DEFINE HAS_UNIT_VARIANTS}
     {$DEFINE HAS_UNIT_STRUTILS}
+    {$DEFINE HAS_UNIT_RTLCONSTS}
 
     {$DEFINE XPLATFORM_RTL}
-
+    {$DEFINE NOVCL}  // mostly around oleserver etc.
+    {$if (FPC_VERSION>2) or ((FPC_VERSION=2) and (fpc_release>=1))}
+    {$DEFINE SUPPORTS_DISPINTERFACE }
+    {$DEFINE SUPPORTS_IMPLEMENTS }
+    {$ELSE}
     {$UNDEF SUPPORTS_DISPINTERFACE}
-    {$UNDEF SUPPORTS_DISPID} // is used outside of dispinterfaces
     {$UNDEF SUPPORTS_IMPLEMENTS}
+    {$ENDIF}
+
     {$UNDEF SUPPORTS_UNSAFE_WARNINGS}
   {$ENDIF}
 {$ENDIF FPC}
@@ -934,6 +951,10 @@
 {$IFDEF COMPILER7_UP}
   {$DEFINE SUPPORTS_UNSAFE_WARNINGS}
 {$ENDIF COMPILER7_UP}
+
+{$IFDEF COMPILER9_UP}
+  {$DEFINE SUPPORTS_INLINE}
+{$ENDIF COMPILER9_UP}
 
 {$IFDEF RTL140_UP}
   {$IFDEF LINUX}
@@ -1011,22 +1032,31 @@
 
 // History:
 
-
-// Revision 1.1  2005/04/04 07:56:11  marco
-//  * Jedi Windows Api initial import
+// $Log: jedi.inc,v $
+// Revision 1.3  2005/04/15 08:19:38  marquardt
+// fixed HAS_UNIT_RTLCONSTS declaration for FPC
 //
-// Revision 1.1  2004/11/11 09:39:29  marquardt
-// added several directory trees, added jedi.inc to files, misc style changes
+// Revision 1.2  2005/04/15 07:49:33  marquardt
+// updated to match newest version of JVCL
 //
-// Revision 1.19  2004/11/06 02:11:20  mthoma
-// history cleaning.
+// Revision 1.12  2005/02/22 07:37:21  marquardt
+// introduced SUPPORTS_INLINE
 //
-// Revision 1.18  2004/08/10 02:52:02  rrossmair
-// - moved {$ENDIF ~JEDI_INC} to EOF.
+// Revision 1.11  2005/01/06 18:54:49  marquardt
+// updated to match JCL version of file
 //
-// Revision 1.17  2004/08/09 06:38:08  peter3
+// Revision 1.10  2004/08/09 06:40:54  marquardt
+// add JvWStrUtils.pas as JclWideStrings.pas to JCL
+//
+// Revision 1.9  2004/08/08 20:13:05  peter3
+// - Missing ENDIF added
+//
+// Revision 1.8  2004/08/08 16:04:17  peter3
 // - D8 support added
 // - D9 support added (guesswork)
+//
+// Revision 1.7  2004/07/30 07:33:34  marquardt
+// inc files on JCL level, minor cleanings
 //
 // Revision 1.16  2004/07/29 17:12:28  rrossmair
 // fixed comment ("KYLIXX_UP from KYLIXX mappings")

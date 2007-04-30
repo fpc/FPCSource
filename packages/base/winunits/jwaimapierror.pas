@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaImapiError.pas,v 1.7 2005/09/03 16:10:31 marquardt Exp $
 
 unit JwaImapiError;
 
@@ -47,14 +48,14 @@ interface
 
 {$WEAKPACKAGEUNIT}
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "imapi.h"'}
-{$HPPEMIT ''}
-
 {$I jediapilib.inc}
 
 uses
-  JwaWinError, JwaWinType;
+  JwaWindows;
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "imapi.h"'}
+{$HPPEMIT ''}
 
 const
   IMAPI_S_PROPERTIESIGNORED     = HRESULT((SEVERITY_SUCCESS shl 31) or (FACILITY_ITF shl 16) or $200);

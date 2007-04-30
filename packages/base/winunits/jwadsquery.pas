@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaDSQuery.pas,v 1.8 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaDSQuery;
 
@@ -54,7 +55,7 @@ unit JwaDSQuery;
 interface
 
 uses
-  JwaCmnQuery, JwaWinType;
+  JwaCmnQuery, JwaWindows;
 
 const
   CLSID_DsQuery: TGUID = (D1:$8a23e65e; D2:$31c2; D3:$11d0; D4:($89, $1c, $0, $a0, $24, $ab, $2d, $bb));
@@ -162,7 +163,7 @@ type
   DSQUERYPARAMS = record
     cbStruct: DWORD;
     dwFlags: DWORD;
-    hInstance: HINSTANCE; // instance handle used for string extraction
+    hInstance: HINST; // instance handle used for string extraction
     offsetQuery: LONG; // offset to LDAP filter string
     iColumns: LONG; // column count
     dwReserved: DWORD; // reserved field for this query

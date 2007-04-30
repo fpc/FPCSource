@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWSNwLink.pas,v 1.5 2005/09/08 07:49:25 marquardt Exp $
 
 unit JwaWSNwLink;
 
@@ -54,7 +55,7 @@ unit JwaWSNwLink;
 interface
 
 uses
-  JwaWinSock2;
+  JwaWindows;
 
 //  Microsoft Windows
 //  Copyright (C) Microsoft Corporation, 1992-1999.

@@ -29,6 +29,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinLDAP.pas,v 1.6 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaWinLDAP;
 
@@ -2516,8 +2517,8 @@ const
 
 implementation
 
-const
-  LDAPLib = 'wldap32.dll';
+uses
+  JwaWinDLLNames;
 
 function ldap_openA; external LDAPLib name 'ldap_openA';
 function ldap_openW; external LDAPLib name 'ldap_openW';
@@ -2760,3 +2761,4 @@ begin
 end;
 
 end.
+

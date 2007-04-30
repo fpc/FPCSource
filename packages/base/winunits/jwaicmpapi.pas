@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaIcmpApi.pas,v 1.14 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaIcmpApi;
 
@@ -54,7 +55,7 @@ unit JwaIcmpApi;
 interface
 
 uses
-  JwaWinType, JwaIpExport, JwaNative, JwaWS2tcpip;
+  JwaWindows, JwaIpExport, JwaWS2tcpip, JwaWinternl;
 
 //    Declarations for the Win32 ICMP Echo request API.
 
@@ -272,6 +273,7 @@ function IcmpSendEcho2(
   ReplyBuffer: LPVOID;
   ReplySize: DWORD;
   Timeout: DWORD): DWORD; stdcall;
+{$EXTERNALSYM IcmpSendEcho2}
 
 function Icmp6SendEcho2(
   IcmpHandle: HANDLE;
@@ -286,6 +288,7 @@ function Icmp6SendEcho2(
   ReplyBuffer: LPVOID;
   ReplySize: DWORD;
   Timeout: DWORD): DWORD; stdcall;
+{$EXTERNALSYM Icmp6SendEcho2}
 
 //++
 //
@@ -319,8 +322,8 @@ function Icmp6ParseReplies(ReplyBuffer: LPVOID; ReplySize: DWORD): DWORD; stdcal
 
 implementation
 
-const
-  icmplib = 'iphlpapi.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

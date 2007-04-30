@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaLoadPerf.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaLoadPerf;
 
@@ -50,7 +51,7 @@ unit JwaLoadPerf;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 // flags for dwFlags Argument
 
@@ -125,13 +126,8 @@ function RestorePerfRegistryFromFileW(szFileName: LPCWSTR; szLangId: LPCWSTR): D
 
 implementation
 
-const
-  loadperflib = 'loadperf.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

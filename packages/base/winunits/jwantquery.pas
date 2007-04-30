@@ -40,35 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaNtQuery.pas,v 1.11 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaNtQuery;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "ntquery.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  ActiveX, ComObj, {TODO}
-  JwaWinType;
+  JwaActiveX, JwaWindows;
 
-{$IFDEF FPC}
-Type
-  PROPID = CARDINAL;
-  PROPVARIANT=VARIANT;
-{$ENDIF}
+{$HPPEMIT ''}
+{$HPPEMIT '#include "ntquery.h"'}
+{$HPPEMIT ''}
 
 type
   // TODO STUBS  see CmdTree.h (cmdtree.idl)
   IFilter = Pointer;
   IUnkown = Pointer;
   ICommand = Pointer;
-  PPWCHAR = ^PWCHAR;
   REFIID = TGUID; // also in ActiveDS
   DBID = Pointer;
   DBCOMMANDTREE = Pointer;
@@ -494,13 +487,8 @@ function CIRestrictionToFullTree(const pTree: DBCOMMANDTREE; pwszColumns,
 
 implementation
 
-const
-  querylib = 'query.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 function QUERY_FILL_STATUS(x: DWORD): DWORD;
 begin

@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaTmSchema.pas,v 1.5 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaTmSchema;
 
@@ -54,7 +55,7 @@ unit JwaTmSchema;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //-----------------------------------------------------------------
 //   TmSchema.h - Theme Manager schema (properties, parts, etc)

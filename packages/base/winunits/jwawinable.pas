@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinAble.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaWinAble;
 
@@ -54,7 +55,7 @@ unit JwaWinAble;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //
 // This gets GUI information out of context.  If you pass in a NULL thread ID,
@@ -608,13 +609,8 @@ const
 
 implementation
 
-const
-  user32 = 'user32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

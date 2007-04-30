@@ -40,27 +40,23 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaImapi.pas,v 1.7 2005/09/03 13:12:10 marquardt Exp $
 
 unit JwaImapi;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "imapi.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  ActiveX {todo},
-  JwaWinType;
+  JwaActiveX, JwaWindows;
 
-{$IFDEF FPC}
-Type
-  IPropertyStorage = interface end;
-{$ENDIF}
+{$HPPEMIT ''}
+{$HPPEMIT '#include "imapi.h"'}
+{$HPPEMIT ''}
+
 //
 // interface IDiscRecorder
 //
@@ -122,7 +118,6 @@ const
   IID_IDiscRecorder: TGUID = '{85AC9776-CA88-4cf2-894E-09598C078A41}';
   {$EXTERNALSYM IID_IDiscRecorder}
 
-
 type
   IDiscRecorder = interface(IUnknown)
   ['{85AC9776-CA88-4cf2-894E-09598C078A41}']
@@ -151,7 +146,6 @@ type
 const
   IID_IEnumDiscRecorders: TGUID = '{9B1921E1-54AC-11d3-9144-00104BA11C5E}';
   {$EXTERNALSYM IID_IEnumDiscRecorders}
-
 
 type
   IEnumDiscRecorders = interface(IUnknown)
@@ -210,7 +204,6 @@ type
 const
   IID_IJolietDiscMaster: TGUID = '{E3BC42CE-4E5C-11D3-9144-00104BA11C5E}';
   {$EXTERNALSYM IID_IJolietDiscMaster}
-
 
 type
   IJolietDiscMaster = interface(IUnknown)

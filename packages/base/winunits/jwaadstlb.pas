@@ -1,3 +1,4 @@
+// $Id: JwaAdsTLB.pas,v 1.5 2005/09/03 13:12:10 marquardt Exp $
 
 unit JwaAdsTLB;
 
@@ -73,7 +74,7 @@ unit JwaAdsTLB;
 interface
 {$i jediapilib.inc}
 uses
-  Windows, ActiveX, Classes {$IFNDEF NOVCL} ,Graphics, OleServer, OleCtrls, StdVCL {$ENDIF} ;
+  Windows, ActiveX, Classes {$IFNDEF NOVCL} , Graphics, OleServer, OleCtrls, StdVCL {$ENDIF} ;
 
 {$IFDEF FPC}
 Type

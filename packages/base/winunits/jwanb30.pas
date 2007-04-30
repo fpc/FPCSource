@@ -40,14 +40,13 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaNb30.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaNb30;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "Nb30.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
@@ -55,6 +54,14 @@ interface
 
 uses
   JwaWinType;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "Nb30.h"'}
+{$HPPEMIT ''}
 
 (****************************************************************
  *                                                              *
@@ -488,7 +495,18 @@ function Netbios(pncb: PNCB): UCHAR; stdcall;
 
 // #define NCB_POST void CALLBACK
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
+
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -497,7 +515,7 @@ var
 
 function Netbios;
 begin
-  GetProcedureAddress(_Netbios, 'netapi32.dll', 'Netbios');
+  GetProcedureAddress(_Netbios, netapi32, 'Netbios');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -507,8 +525,12 @@ end;
 
 {$ELSE}
 
-function Netbios; external 'netapi32.dll' name 'Netbios';
+function Netbios; external netapi32 name 'Netbios';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

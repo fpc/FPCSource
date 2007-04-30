@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWS2tcpip.pas,v 1.10 2005/09/08 07:49:25 marquardt Exp $
 
 unit JwaWS2tcpip;
 
@@ -54,7 +55,7 @@ unit JwaWS2tcpip;
 interface
 
 uses
-  JwaWinSock2, JwaWinType;
+  JwaWinSock2, JwaWindows;
 
 //
 // WS2TCPIP.H - WinSock2 Extension for TCP/IP protocols
@@ -534,9 +535,6 @@ const
 
 implementation
 
-uses
-  SysUtils, JwaWinBase, JwaWinNT;
-
 function IP_MSFILTER_SIZE(numsrc: Integer): Integer;
 begin
   Result := SizeOf(ip_msfilter) - SizeOf(in_addr) + (numsrc * SizeOf(in_addr));
@@ -590,8 +588,12 @@ begin
 end;
 
 function IN6_ADDR_EQUAL(const a, b: in6_addr): Boolean;
+var
+  I: Integer;
 begin
-  Result := CompareMem(@a, @b, SizeOf(in6_addr));
+  Result := True;
+  for I := Low(a.Word) to High(a.Word) do
+    Result := (a.Word[I] = b.Word[I]) and Result;
 end;
 
 function IN6_IS_ADDR_UNSPECIFIED(const a: in6_addr): boolean;

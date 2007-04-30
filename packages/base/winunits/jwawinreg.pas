@@ -40,14 +40,13 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinReg.pas,v 1.11 2005/09/06 16:36:51 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaWinReg;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinReg.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
@@ -55,6 +54,14 @@ interface
 
 uses
   JwaReason, JwaWinBase, JwaWinNT, JwaWinType;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinReg.h"'}
+{$HPPEMIT ''}
 
 //
 // Requested Key access mask type.
@@ -526,15 +533,18 @@ function RegSaveKeyEx(hKey: HKEY; lpFile: LPCTSTR;
 function Wow64Win32ApiEntry(dwFuncNumber, dwFlag, dwRes: DWORD): LONG; stdcall;
 {$EXTERNALSYM Wow64Win32ApiEntry}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
 
-const
-  advapi32 = 'advapi32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 type
   TRegNotifyChangeKeyValue = function(hKey: HKEY; bWatchSubtree: LongBool; dwNotifyFilter: DWORD; hEvent: HANDLE; fAsynchronus: LongBool): LONG; stdcall;
@@ -1734,4 +1744,8 @@ function Wow64Win32ApiEntry; external advapi32 name 'Wow64Win32ApiEntry';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaQos.pas,v 1.7 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaQos;
 
@@ -54,7 +55,7 @@ unit JwaQos;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 type
   ULONG = Cardinal;

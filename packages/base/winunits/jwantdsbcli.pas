@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaNtDsbCli.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaNtDsbCli;
 
@@ -54,7 +55,7 @@ unit JwaNtDsbCli;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 const
   g_wszBackupAnnotation = 'NTDS Backup Interface';
@@ -627,13 +628,8 @@ function DsSetAuthIdentity(szUserName, szDomainName, szPassword: LPCTSTR): HRESU
 
 implementation
 
-const
-  ntdsbclilib = 'ntdsbclilib.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

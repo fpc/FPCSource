@@ -40,10 +40,24 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinEFS.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaWinEFS;
 
 {$WEAKPACKAGEUNIT}
+
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaWinBase, JwaWinNT, JwaWinType;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "WinEFS.h"'}
@@ -53,16 +67,11 @@ unit JwaWinEFS;
 {$HPPEMIT 'typedef PENCRYPTION_CERTIFICATE_HASH_LIST *PPENCRYPTION_CERTIFICATE_HASH_LIST'}
 {$HPPEMIT ''}
 
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWinBase, JwaWinNT, JwaWinType;
-
+{$IFNDEF JWA_INCLUDEMODE}
 type
   ALG_ID = Cardinal;
   {$EXTERNALSYM ALG_ID}
+{$ENDIF !JWA_INCLUDEMODE}
 
 //
 //  Encoded Certificate
@@ -226,10 +235,18 @@ function DuplicateEncryptionInfoFile(SrcFileName, DstFileName: LPCWSTR; dwCreati
   dwAttributes: DWORD; lpSecurityAttributes: LPSECURITY_ATTRIBUTES): DWORD; stdcall;
 {$EXTERNALSYM DuplicateEncryptionInfoFile}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
 
-const
-  advapi32 = 'advapi32.dll';
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -350,4 +367,8 @@ function DuplicateEncryptionInfoFile; external advapi32 name 'DuplicateEncryptio
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

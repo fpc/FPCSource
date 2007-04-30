@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaDsSec.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaDsSec;
 
@@ -54,7 +55,7 @@ unit JwaDsSec;
 interface
 
 uses
-  JwaWinType, JwaWinNT, JwaPrSht;
+  JwaWindows, JwaPrSht;
 
 //+---------------------------------------------------------------------------
 //
@@ -147,8 +148,8 @@ type
 
 implementation
 
-const
-  dssec = 'dssec.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

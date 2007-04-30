@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaSisBkUp.pas,v 1.7 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaSisBkUp;
 
@@ -54,7 +55,7 @@ unit JwaSisBkUp;
 interface
 
 uses
-  JwaWinNT, JwaWinType;
+  JwaWindows;
 
 function SisCreateBackupStructure(volumeRoot: PWCHAR; var sisBackupStructure: PVOID; var commonStoreRootPathname: PWCHAR;
   countOfCommonStoreFilesToBackup: PULONG; var commonStoreFilesToBackup: PWCHAR): BOOL; stdcall;
@@ -127,8 +128,8 @@ type
 
 implementation
 
-const
-  sisbkuplib = 'sisbkup.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

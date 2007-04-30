@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaBatClass.pas,v 1.6 2005/09/03 14:27:47 marquardt Exp $
 
 unit JwaBatClass;
 
@@ -54,7 +55,7 @@ unit JwaBatClass;
 interface
 
 uses
-  JwaWinIoctl, JwaWinType;
+  JwaWinIoctl, JwaWindows;
 
 //
 // Battery device GUID

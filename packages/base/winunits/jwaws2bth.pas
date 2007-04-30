@@ -38,6 +38,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWs2Bth.pas,v 1.9 2005/09/03 14:27:49 marquardt Exp $
 
 unit JwaWs2Bth;
 
@@ -52,7 +53,7 @@ unit JwaWs2Bth;
 interface
 
 uses
-  JwaWinType, JwaBthSdpDef, JwaBlueToothApis, JwaBthDef;
+  JwaWindows, JwaBthSdpDef, JwaBlueToothApis, JwaBthDef;
 
 const
   BT_PORT_ANY = -1;
@@ -77,8 +78,8 @@ const
   {$EXTERNALSYM NS_BTH}
 
 type
-  _SOCKADDR_BTH = record
-    addressFamily: Word; // Always AF_BTH
+  _SOCKADDR_BTH = packed record
+    addressFamily: Word;   // Always AF_BTH
     btAddr: BTH_ADDR;      // Bluetooth device address
     serviceClassId: TGUID; // [OPTIONAL] system will query SDP for port
     port: ULONG;           // RFCOMM channel or L2CAP PSM
@@ -159,7 +160,7 @@ const
 //
 
 type
-  _BTH_SET_SERVICE = record
+  _BTH_SET_SERVICE = packed record
 
     //
     // This version number will change when/if the binary format of
@@ -233,7 +234,7 @@ const
 //
 
 type
-  _BTH_QUERY_DEVICE = record
+  _BTH_QUERY_DEVICE = packed record
     LAP: ULONG;
     length: UCHAR;
   end;
@@ -250,7 +251,7 @@ type
 // Passed in BLOB of !LUP_CONTAINERS (service) search
 //
 
-  _BTH_QUERY_SERVICE = record
+  _BTH_QUERY_SERVICE = packed record
     _type: ULONG;
     serviceHandle: ULONG;
     uuids: array[0..MAX_UUIDS_IN_QUERY - 1] of SdpQueryUuid;
@@ -350,7 +351,7 @@ const
 //MSC_SET_BREAK_LENGTH(b, l) ((b) = ((b)&0x3) | (((l)&0xf) << 4))
 
 type
-  _RFCOMM_MSC_DATA = record
+  _RFCOMM_MSC_DATA = packed record
     Signals: UCHAR;
     Break: UCHAR;
   end;
@@ -377,7 +378,7 @@ const
   {$EXTERNALSYM RLS_FRAMING}
 
 type
-  _RFCOMM_RLS_DATA = record
+  _RFCOMM_RLS_DATA = packed record
     LineStatus: UCHAR;
   end;
   {$EXTERNALSYM _RFCOMM_RLS_DATA}
@@ -479,7 +480,7 @@ const
   {$EXTERNALSYM RPN_PARAM_RTC_OUT}
 
 type
-  _RFCOMM_RPN_DATA = record
+  _RFCOMM_RPN_DATA = packed record
     Baud: UCHAR;
     Data: UCHAR;
     FlowControl: UCHAR;
@@ -511,7 +512,7 @@ const
   {$EXTERNALSYM RFCOMM_CMD_RPN_RESPONSE}
 
 type
-  _RFCOMM_COMMAND = record
+  _RFCOMM_COMMAND = packed record
     CmdType: ULONG;          // one of RFCOMM_CMD_*
     case Integer of
       0: (MSC: RFCOMM_MSC_DATA);
@@ -532,7 +533,7 @@ type
 //
 
 type
-  _BTH_PING_REQ = record
+  _BTH_PING_REQ = packed record
     btAddr: BTH_ADDR;
     dataLen: UCHAR;
     data: array [0..MAX_L2CAP_PING_DATA_LENGTH - 1] of UCHAR;
@@ -545,7 +546,7 @@ type
   TBthPingReq = BTH_PING_REQ;
   PBthPingReq = PBTH_PING_REQ;
 
-  _BTH_PING_RSP = record
+  _BTH_PING_RSP = packed record
     dataLen: UCHAR;
     data: array [0..MAX_L2CAP_PING_DATA_LENGTH - 1] of UCHAR;
   end;
@@ -557,7 +558,7 @@ type
   TBthPingRsp = BTH_PING_RSP;
   PBthPingRsp = PBTH_PING_RSP;
 
-  _BTH_INFO_REQ = record
+  _BTH_INFO_REQ = packed record
     btAddr: BTH_ADDR;
     infoType: Word;
   end;
@@ -569,7 +570,7 @@ type
   TBthInfoReq = BTH_INFO_REQ;
   PBthInfoReq = PBTH_INFO_REQ;
 
-  _BTH_INFO_RSP = record
+  _BTH_INFO_RSP = packed record
     result: Word;
     dataLen: UCHAR;
     case Integer of

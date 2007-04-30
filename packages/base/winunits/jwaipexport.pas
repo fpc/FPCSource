@@ -43,6 +43,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaIpExport.pas,v 1.8 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaIpExport;
 
@@ -57,7 +58,7 @@ unit JwaIpExport;
 interface
 
 uses
-  JwaWinType, JwaWS2tcpip;
+  JwaWindows, JwaWS2tcpip;
 
 //
 // IP type definitions.

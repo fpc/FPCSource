@@ -40,26 +40,22 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWbemCli.pas,v 1.6 2005/09/03 13:12:10 marquardt Exp $
 
 unit JwaWbemCli;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "wbemcli.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  ActiveX,
-  JwaWinType;
+  JwaActiveX, JwaWindows;
 
-{$IFDEF FPC}
-Type PSafeArray=PVarArray;
-{$ENDIF}
+{$HPPEMIT ''}
+{$HPPEMIT '#include "wbemcli.h"'}
+{$HPPEMIT ''}
 
 type
   tag_WBEM_GENUS_TYPE = DWORD;
@@ -877,7 +873,7 @@ const
   {$EXTERNALSYM WBEMMOF_E_ERROR_INVALID_INCLUDE_FILE}
   WBEMMOF_E_INVALID_DELETECLASS_SYNTAX = DWORD($80044031);
   {$EXTERNALSYM WBEMMOF_E_INVALID_DELETECLASS_SYNTAX}
-
+  
 //const
 //EXTERN_C const IID LIBID_WbemClient_v1;
 
@@ -919,7 +915,7 @@ const
 
 type
   // forward declarations
-
+  
   IWbemQualifierSet = interface;
   IWbemContext = interface;
   IWbemCallResult = interface;

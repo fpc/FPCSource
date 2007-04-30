@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaDhcpCSdk.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaDhcpCSdk;
 
@@ -54,7 +55,7 @@ unit JwaDhcpCSdk;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //
 // DHCP Standard Options.
@@ -337,8 +338,8 @@ function DhcpRemoveDNSRegistrations: DWORD; stdcall;
 
 implementation
 
-const
-  dhcpapi = 'dhcpcsvc.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

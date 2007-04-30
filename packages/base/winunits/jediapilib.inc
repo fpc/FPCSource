@@ -35,14 +35,24 @@
 { For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html }
 {                                                                              }
 {******************************************************************************}
-{$ifndef FPC}
-{$A+}
-{$endif FPC}
-{$Z4}
+{$A+,Z4}
 
 // This file is intended for C header conversions.
 // It defines several mutually exclusive IFDEFs which determine
 // the Windows version the API conversion is usable with.
+
+{$I jedi.inc}
+
+{$IFNDEF JEDI_INC}
+ALERT_jedi_inc_incompatible
+// secure against old versions of jedi.inc.
+{$ENDIF !JEDI_INC}
+
+// activate standalone feature for files
+{$IFNDEF JWA_INCLUDEMODE}
+{$DEFINE JWA_INTERFACESECTION}
+{$DEFINE JWA_IMPLEMENTATIONSECTION}
+{$ENDIF !JWA_INCLUDEMODE}
 
 // Global switch to enable dynamic linking of some APIs
 {.DEFINE DYNAMIC_LINK}
@@ -50,14 +60,6 @@
   {$STACKFRAMES ON}
   {$WARNINGS OFF}
 {$ENDIF DYNAMIC_LINK}
-
-// allow FPC compat without any extra params.
-{$ifdef FPC}
-{$MODE Delphi}
-{$DEFINE NOVCL}
-{$else}
-{$DEFINE SUPPORTS_DISPID}
-{$ENDIF}
 
 // Global switch to make UNICODE versions of API functions default
 {.DEFINE UNICODE}

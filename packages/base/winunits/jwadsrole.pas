@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaDSRole.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaDSRole;
 
@@ -54,7 +55,7 @@ unit JwaDSRole;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //
 // Domain information
@@ -174,8 +175,8 @@ procedure DsRoleFreeMemory(Buffer: PVOID); stdcall;
 
 implementation
 
-const
-  netapi32 = 'netapi32.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

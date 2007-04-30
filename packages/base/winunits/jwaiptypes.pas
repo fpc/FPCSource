@@ -43,6 +43,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaIpTypes.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaIpTypes;
 
@@ -57,7 +58,7 @@ unit JwaIpTypes;
 interface
 
 uses
-  JwaWinsock2, JwaWinType;
+  JwaWinsock2, JwaWindows;
 
 type
   // #include <time.h>  // TODO

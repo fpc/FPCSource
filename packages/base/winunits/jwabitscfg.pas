@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaBitscfg.pas,v 1.7 2005/09/03 14:27:47 marquardt Exp $
 
 unit JwaBitscfg;
 
@@ -54,7 +55,7 @@ unit JwaBitscfg;
 interface
 
 uses
-  JwaWinBase, JwaWinType;
+  JwaWindows;
 
 const
   IID_IBITSExtensionSetup: TGUID = '{29cfbbf7-09e4-4b97-b0bc-f2287e3d8eb3}';

@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaAclUI.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaAclUI;
 
@@ -54,7 +55,7 @@ unit JwaAclUI;
 interface
 
 uses
-  JwaAccCtrl, JwaWinNT, JwaWinUser, JwaWinType;
+  JwaAccCtrl, JwaWindows;
 
 //
 // ISecurityInformation interface
@@ -90,7 +91,7 @@ type
   {$EXTERNALSYM PSI_OBJECT_INFO}
   _SI_OBJECT_INFO = record
     dwFlags: DWORD;
-    hInstance: HINSTANCE;  // resources (e.g. strings) reside here
+    hInstance: HINST;      // resources (e.g. strings) reside here
     pszServerName: LPWSTR; // must be present
     pszObjectName: LPWSTR; // must be present
     pszPageTitle: LPWSTR;  // only valid if SI_PAGE_TITLE is set
@@ -332,8 +333,8 @@ function EditSecurity(hwndOwner: HWND; psi: LPSECURITYINFO): BOOL; stdcall;
 
 implementation
 
-const
-  acluilib = 'aclui.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

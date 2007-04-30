@@ -40,25 +40,72 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaRpc.pas,v 1.8 2005/09/07 07:04:44 marquardt Exp $
+
+{$IFNDEF JWAWINDOWS_PAS}
 
 unit JwaRpc;
 
 {$WEAKPACKAGEUNIT}
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "Rpc.h"'}
-{$HPPEMIT ''}
+{$DEFINE JWA_INCLUDEMODE}
 
 {$I jediapilib.inc}
 
 interface
 
-type
-  I_RPC_HANDLE = Pointer;
-  {$EXTERNALSYM I_RPC_HANDLE}
-  RPC_STATUS = Longint;
-  {$EXTERNALSYM RPC_STATUS}
+uses
+  JwaWinBase, JwaWinError, JwaWinType, JwaWinCrypt;
+
+{$DEFINE JWA_INTERFACESECTION}
+
+{$ENDIF !JWAWINDOWS_PAS}
+
+{$DEFINE JWARPC_PAS}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "Rpc.h"'}
+{$HPPEMIT ''}
+
+{$I JwaRpcDce.pas}
+{$I JwaRpcNsi.pas}
+{$I JwaRpcNtErr.pas}
+{$I JwaRpcASync.pas}
+{$I JwaRpcSsl.pas}
+
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWAWINDOWS_PAS}
+{$UNDEF JWA_INTERFACESECTION}
+{$ENDIF !JWAWINDOWS_PAS}
+
+{$IFNDEF JWAWINDOWS_PAS}
 
 implementation
 
+{$DEFINE JWA_IMPLEMENTATIONSECTION}
+
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWAWINDOWS_PAS}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
+
+{$I JwaRpcDce.pas}
+{$I JwaRpcNsi.pas}
+{$I JwaRpcNtErr.pas}
+{$I JwaRpcASync.pas}
+{$I JwaRpcSsl.pas}
+
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWAWINDOWS_PAS}
+{$UNDEF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF !JWAWINDOWS_PAS}
+
+{$IFNDEF JWAWINDOWS_PAS}
 end.
+{$ENDIF !JWAWINDOWS_PAS}

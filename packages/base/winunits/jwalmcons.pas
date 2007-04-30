@@ -40,24 +40,28 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaLmCons.pas,v 1.10 2005/09/07 09:54:54 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaLmCons;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "lm.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWinType, JwaLmErr;
+  JwaWindows, JwaLmErr;
 
-const
-  NetApi32 = 'netapi32.dll';
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "lm.h"'}
+{$HPPEMIT ''}
 
 //
 // NOTE:  Lengths of strings are given as the maximum lengths of the
@@ -357,6 +361,15 @@ const
   MAX_LANMAN_MESSAGE_ID = 5899;
   {$EXTERNALSYM MAX_LANMAN_MESSAGE_ID}
 
-implementation
+{$ENDIF JWA_INTERFACESECTION}
 
+{$IFNDEF JWA_INCLUDEMODE}
+implementation
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

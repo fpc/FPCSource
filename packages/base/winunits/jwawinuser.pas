@@ -40,14 +40,13 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinUser.pas,v 1.16 2005/09/06 16:36:51 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaWinUser;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "WinUser.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
@@ -55,6 +54,14 @@ interface
 
 uses
   JwaWinBase, JwaWinGDI, JwaWinNT, JwaWinType;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "WinUser.h"'}
+{$HPPEMIT ''}
 
 const
   UINT_MAX = UINT($FFFFFFFF); // from limits.h TODO
@@ -89,7 +96,7 @@ type
   {$EXTERNALSYM LPMENUTEMPLATE}
   {$ENDIF UNICODE}
 
-  WNDPROC = function(hWnd: HWND; uMsg: UINT; lParam: WPARAM; wParam: LPARAM): LRESULT;
+  WNDPROC = function(hWnd: HWND; uMsg: UINT; lParam: WPARAM; wParam: LPARAM): LRESULT; stdcall;
   {$EXTERNALSYM WNDPROC}
 
   DLGPROC = function(hwndDlg: HWND; wMsg: UINT; wParam: WPARAM; lParam: LPARAM): INT_PTR; stdcall;
@@ -1204,7 +1211,7 @@ const
   FAPPCOMMAND_MASK  = $F000;
   {$EXTERNALSYM FAPPCOMMAND_MASK}
 
-function GET_APPCOMMAND_LPARAM(lParam: LPARAM): Shortint;
+function GET_APPCOMMAND_LPARAM(lParam: LPARAM): WORD;
 {$EXTERNALSYM GET_APPCOMMAND_LPARAM}
 
 function GET_DEVICE_LPARAM(lParam: LPARAM): WORD;
@@ -1749,7 +1756,7 @@ type
     lpfnWndProc: WNDPROC;
     cbClsExtra: Integer;
     cbWndExtra: Integer;
-    hInstance: HINSTANCE;
+    hInstance: HINST;
     hIcon: HICON;
     hCursor: HCURSOR;
     hbrBackground: HBRUSH;
@@ -1775,7 +1782,7 @@ type
     lpfnWndProc: WNDPROC;
     cbClsExtra: Integer;
     cbWndExtra: Integer;
-    hInstance: HINSTANCE;
+    hInstance: HINST;
     hIcon: HICON;
     hCursor: HCURSOR;
     hbrBackground: HBRUSH;
@@ -1819,7 +1826,7 @@ type
     lpfnWndProc: WNDPROC;
     cbClsExtra: Integer;
     cbWndExtra: Integer;
-    hInstance: HINSTANCE;
+    hInstance: HINST;
     hIcon: HICON;
     hCursor: HCURSOR;
     hbrBackground: HBRUSH;
@@ -1841,7 +1848,7 @@ type
     lpfnWndProc: WNDPROC;
     cbClsExtra: Integer;
     cbWndExtra: Integer;
-    hInstance: HINSTANCE;
+    hInstance: HINST;
     hIcon: HICON;
     hCursor: HCURSOR;
     hbrBackground: HBRUSH;
@@ -3441,7 +3448,7 @@ type
   {$EXTERNALSYM LPCREATESTRUCTA}
   tagCREATESTRUCTA = record
     lpCreateParams: LPVOID;
-    hInstance: HINSTANCE;
+    hInstance: HINST;
     hMenu: HMENU;
     hwndParent: HWND;
     cy: Integer;
@@ -3463,7 +3470,7 @@ type
   {$EXTERNALSYM LPCREATESTRUCTW}
   tagCREATESTRUCTW = record
     lpCreateParams: LPVOID;
-    hInstance: HINSTANCE;
+    hInstance: HINST;
     hMenu: HMENU;
     hwndParent: HWND;
     cy: Integer;
@@ -4121,20 +4128,20 @@ function RegisterClassW(const lpWndClass: WNDCLASSW): ATOM; stdcall;
 function RegisterClass(const lpWndClass: WNDCLASS): ATOM; stdcall;
 {$EXTERNALSYM RegisterClass}
 
-function UnregisterClassA(lpClassName: LPCSTR; hInstance: HINSTANCE): BOOL; stdcall;
+function UnregisterClassA(lpClassName: LPCSTR; hInstance: HINST): BOOL; stdcall;
 {$EXTERNALSYM UnregisterClassA}
-function UnregisterClassW(lpClassName: LPCWSTR; hInstance: HINSTANCE): BOOL; stdcall;
+function UnregisterClassW(lpClassName: LPCWSTR; hInstance: HINST): BOOL; stdcall;
 {$EXTERNALSYM UnregisterClassW}
-function UnregisterClass(lpClassName: LPCTSTR; hInstance: HINSTANCE): BOOL; stdcall;
+function UnregisterClass(lpClassName: LPCTSTR; hInstance: HINST): BOOL; stdcall;
 {$EXTERNALSYM UnregisterClass}
 
-function GetClassInfoA(hInstance: HINSTANCE; lpClassName: LPCSTR;
+function GetClassInfoA(hInstance: HINST; lpClassName: LPCSTR;
   var lpWndClass: WNDCLASSA): BOOL; stdcall;
 {$EXTERNALSYM GetClassInfoA}
-function GetClassInfoW(hInstance: HINSTANCE; lpClassName: LPCWSTR;
+function GetClassInfoW(hInstance: HINST; lpClassName: LPCWSTR;
   var lpWndClass: WNDCLASSW): BOOL; stdcall;
 {$EXTERNALSYM GetClassInfoW}
-function GetClassInfo(hInstance: HINSTANCE; lpClassName: LPCTSTR;
+function GetClassInfo(hInstance: HINST; lpClassName: LPCTSTR;
   var lpWndClass: WNDCLASS): BOOL; stdcall;
 {$EXTERNALSYM GetClassInfo}
 
@@ -4145,11 +4152,11 @@ function RegisterClassExW(const lpwcx: WNDCLASSEXW): ATOM; stdcall;
 function RegisterClassEx(const lpwcx: WNDCLASSEX): ATOM; stdcall;
 {$EXTERNALSYM RegisterClassEx}
 
-function GetClassInfoExA(hinst: HINSTANCE; lpszClass: LPCSTR; var lpwcx: WNDCLASSEXA): BOOL; stdcall;
+function GetClassInfoExA(hinst: HINST; lpszClass: LPCSTR; var lpwcx: WNDCLASSEXA): BOOL; stdcall;
 {$EXTERNALSYM GetClassInfoExA}
-function GetClassInfoExW(hinst: HINSTANCE; lpszClass: LPCWSTR; var lpwcx: WNDCLASSEXW): BOOL; stdcall;
+function GetClassInfoExW(hinst: HINST; lpszClass: LPCWSTR; var lpwcx: WNDCLASSEXW): BOOL; stdcall;
 {$EXTERNALSYM GetClassInfoExW}
-function GetClassInfoEx(hinst: HINSTANCE; lpszClass: LPCTSTR; var lpwcx: WNDCLASSEX): BOOL; stdcall;
+function GetClassInfoEx(hinst: HINST; lpszClass: LPCTSTR; var lpwcx: WNDCLASSEX): BOOL; stdcall;
 {$EXTERNALSYM GetClassInfoEx}
 
 const
@@ -4170,28 +4177,28 @@ type
 
 function CreateWindowExA(dwExStyle: DWORD; lpClassName, lpWindowName: LPCSTR;
   dwStyle: DWORD; X, Y, nWidth, nHeight: Integer; hWndParent: HWND;
-  hMenu: HMENU; hInstance: HINSTANCE; lpParam: LPVOID): HWND; stdcall;
+  hMenu: HMENU; hInstance: HINST; lpParam: LPVOID): HWND; stdcall;
 {$EXTERNALSYM CreateWindowExA}
 function CreateWindowExW(dwExStyle: DWORD; lpClassName, lpWindowName: LPCWSTR;
   dwStyle: DWORD; X, Y, nWidth, nHeight: Integer; hWndParent: HWND;
-  hMenu: HMENU; hInstance: HINSTANCE; lpParam: LPVOID): HWND; stdcall;
+  hMenu: HMENU; hInstance: HINST; lpParam: LPVOID): HWND; stdcall;
 {$EXTERNALSYM CreateWindowExW}
 function CreateWindowEx(dwExStyle: DWORD; lpClassName, lpWindowName: LPCTSTR;
   dwStyle: DWORD; X, Y, nWidth, nHeight: Integer; hWndParent: HWND;
-  hMenu: HMENU; hInstance: HINSTANCE; lpParam: LPVOID): HWND; stdcall;
+  hMenu: HMENU; hInstance: HINST; lpParam: LPVOID): HWND; stdcall;
 {$EXTERNALSYM CreateWindowEx}
 
 function CreateWindowA(lpClassName, lpWindowName: LPCSTR; dwStyle: DWORD;
   x, y, nWidth, nHeight: Integer; hWndParent: HWND; hMenu: HMENU;
-  hInstance: HINSTANCE; lpParam: LPVOID): HWND;
+  hInstance: HINST; lpParam: LPVOID): HWND;
 {$EXTERNALSYM CreateWindowA}
 function CreateWindowW(lpClassName, lpWindowName: LPCWSTR; dwStyle: DWORD;
   x, y, nWidth, nHeight: Integer; hWndParent: HWND; hMenu: HMENU;
-  hInstance: HINSTANCE; lpParam: LPVOID): HWND;
+  hInstance: HINST; lpParam: LPVOID): HWND;
 {$EXTERNALSYM CreateWindowW}
 function CreateWindow(lpClassName, lpWindowName: LPCTSTR; dwStyle: DWORD;
   x, y, nWidth, nHeight: Integer; hWndParent: HWND; hMenu: HMENU;
-  hInstance: HINSTANCE; lpParam: LPVOID): HWND;
+  hInstance: HINST; lpParam: LPVOID): HWND;
 {$EXTERNALSYM CreateWindow}
 
 function IsWindow(hWnd: HWND): BOOL; stdcall;
@@ -4463,86 +4470,86 @@ type
 
 // #include <poppack.h> // Resume normal packing//
 
-function CreateDialogParamA(hInstance: HINSTANCE; lpTemplateName: LPCSTR;
+function CreateDialogParamA(hInstance: HINST; lpTemplateName: LPCSTR;
   hWndParent: HWND; lpDialogFunc: DLGPROC; dwInitParam: LPARAM): HWND; stdcall;
 {$EXTERNALSYM CreateDialogParamA}
-function CreateDialogParamW(hInstance: HINSTANCE; lpTemplateName: LPCWSTR;
+function CreateDialogParamW(hInstance: HINST; lpTemplateName: LPCWSTR;
   hWndParent: HWND; lpDialogFunc: DLGPROC; dwInitParam: LPARAM): HWND; stdcall;
 {$EXTERNALSYM CreateDialogParamW}
-function CreateDialogParam(hInstance: HINSTANCE; lpTemplateName: LPCTSTR;
+function CreateDialogParam(hInstance: HINST; lpTemplateName: LPCTSTR;
   hWndParent: HWND; lpDialogFunc: DLGPROC; dwInitParam: LPARAM): HWND; stdcall;
 {$EXTERNALSYM CreateDialogParam}
 
-function CreateDialogIndirectParamA(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE;
+function CreateDialogIndirectParamA(hInstance: HINST; const lpTemplate: DLGTEMPLATE;
   hWndParent: HWND; lpDialogFunc: DLGPROC; dwInitParam: LPARAM): HWND; stdcall;
 {$EXTERNALSYM CreateDialogIndirectParamA}
-function CreateDialogIndirectParamW(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE;
+function CreateDialogIndirectParamW(hInstance: HINST; const lpTemplate: DLGTEMPLATE;
   hWndParent: HWND; lpDialogFunc: DLGPROC; dwInitParam: LPARAM): HWND; stdcall;
 {$EXTERNALSYM CreateDialogIndirectParamW}
-function CreateDialogIndirectParam(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE;
+function CreateDialogIndirectParam(hInstance: HINST; const lpTemplate: DLGTEMPLATE;
   hWndParent: HWND; lpDialogFunc: DLGPROC; dwInitParam: LPARAM): HWND; stdcall;
 {$EXTERNALSYM CreateDialogIndirectParam}
 
-function CreateDialogA(hInstance: HINSTANCE; lpName: LPCSTR; hWndParent: HWND;
+function CreateDialogA(hInstance: HINST; lpName: LPCSTR; hWndParent: HWND;
   lpDialogFunc: DLGPROC): HWND;
 {$EXTERNALSYM CreateDialogA}
-function CreateDialogW(hInstance: HINSTANCE; lpName: LPCWSTR; hWndParent: HWND;
+function CreateDialogW(hInstance: HINST; lpName: LPCWSTR; hWndParent: HWND;
   lpDialogFunc: DLGPROC): HWND;
 {$EXTERNALSYM CreateDialogW}
-function CreateDialog(hInstance: HINSTANCE; lpName: LPCTSTR; hWndParent: HWND;
+function CreateDialog(hInstance: HINST; lpName: LPCTSTR; hWndParent: HWND;
   lpDialogFunc: DLGPROC): HWND;
 {$EXTERNALSYM CreateDialog}
 
-function CreateDialogIndirectA(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE;
+function CreateDialogIndirectA(hInstance: HINST; const lpTemplate: DLGTEMPLATE;
   hWndParent: HWND; lpDialogFunc: DLGPROC): HWND;
 {$EXTERNALSYM CreateDialogIndirectA}
-function CreateDialogIndirectW(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE;
+function CreateDialogIndirectW(hInstance: HINST; const lpTemplate: DLGTEMPLATE;
   hWndParent: HWND; lpDialogFunc: DLGPROC): HWND;
 {$EXTERNALSYM CreateDialogIndirectW}
-function CreateDialogIndirect(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE;
+function CreateDialogIndirect(hInstance: HINST; const lpTemplate: DLGTEMPLATE;
   hWndParent: HWND; lpDialogFunc: DLGPROC): HWND;
 {$EXTERNALSYM CreateDialogIndirect}
 
-function DialogBoxParamA(hInstance: HINSTANCE; lpTemplateName: LPCSTR;
+function DialogBoxParamA(hInstance: HINST; lpTemplateName: LPCSTR;
   hWndParent: HWND; lpDialogFunc: DLGPROC; dwInitParam: LPARAM): INT_PTR; stdcall;
 {$EXTERNALSYM DialogBoxParamA}
-function DialogBoxParamW(hInstance: HINSTANCE; lpTemplateName: LPCWSTR;
+function DialogBoxParamW(hInstance: HINST; lpTemplateName: LPCWSTR;
   hWndParent: HWND; lpDialogFunc: DLGPROC; dwInitParam: LPARAM): INT_PTR; stdcall;
 {$EXTERNALSYM DialogBoxParamW}
-function DialogBoxParam(hInstance: HINSTANCE; lpTemplateName: LPCTSTR;
+function DialogBoxParam(hInstance: HINST; lpTemplateName: LPCTSTR;
   hWndParent: HWND; lpDialogFunc: DLGPROC; dwInitParam: LPARAM): INT_PTR; stdcall;
 {$EXTERNALSYM DialogBoxParam}
 
-function DialogBoxIndirectParamA(hInstance: HINSTANCE;
+function DialogBoxIndirectParamA(hInstance: HINST;
   const hDialogTemplate: DLGTEMPLATE; hWndParent: HWND; lpDialogFunc: DLGPROC;
   dwInitParam: LPARAM): INT_PTR; stdcall;
 {$EXTERNALSYM DialogBoxIndirectParamA}
-function DialogBoxIndirectParamW(hInstance: HINSTANCE;
+function DialogBoxIndirectParamW(hInstance: HINST;
   const hDialogTemplate: DLGTEMPLATE; hWndParent: HWND; lpDialogFunc: DLGPROC;
   dwInitParam: LPARAM): INT_PTR; stdcall;
 {$EXTERNALSYM DialogBoxIndirectParamW}
-function DialogBoxIndirectParam(hInstance: HINSTANCE;
+function DialogBoxIndirectParam(hInstance: HINST;
   const hDialogTemplate: DLGTEMPLATE; hWndParent: HWND; lpDialogFunc: DLGPROC;
   dwInitParam: LPARAM): INT_PTR; stdcall;
 {$EXTERNALSYM DialogBoxIndirectParam}
 
-function DialogBoxA(hInstance: HINSTANCE; lpTemplate: LPCSTR; hWndParent: HWND;
+function DialogBoxA(hInstance: HINST; lpTemplate: LPCSTR; hWndParent: HWND;
   lpDialogFunc: DLGPROC): INT_PTR;
 {$EXTERNALSYM DialogBoxA}
-function DialogBoxW(hInstance: HINSTANCE; lpTemplate: LPCWSTR; hWndParent: HWND;
+function DialogBoxW(hInstance: HINST; lpTemplate: LPCWSTR; hWndParent: HWND;
   lpDialogFunc: DLGPROC): INT_PTR;
 {$EXTERNALSYM DialogBoxW}
-function DialogBox(hInstance: HINSTANCE; lpTemplate: LPCTSTR; hWndParent: HWND;
+function DialogBox(hInstance: HINST; lpTemplate: LPCTSTR; hWndParent: HWND;
   lpDialogFunc: DLGPROC): INT_PTR;
 {$EXTERNALSYM DialogBox}
 
-function DialogBoxIndirectA(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE;
+function DialogBoxIndirectA(hInstance: HINST; const lpTemplate: DLGTEMPLATE;
   hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
 {$EXTERNALSYM DialogBoxIndirectA}
-function DialogBoxIndirectW(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE;
+function DialogBoxIndirectW(hInstance: HINST; const lpTemplate: DLGTEMPLATE;
   hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
 {$EXTERNALSYM DialogBoxIndirectW}
-function DialogBoxIndirect(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE;
+function DialogBoxIndirect(hInstance: HINST; const lpTemplate: DLGTEMPLATE;
   hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
 {$EXTERNALSYM DialogBoxIndirect}
 
@@ -5099,11 +5106,11 @@ function EnableWindow(hWnd: HWND; bEnable: BOOL): BOOL; stdcall;
 function IsWindowEnabled(hWnd: HWND): BOOL; stdcall;
 {$EXTERNALSYM IsWindowEnabled}
 
-function LoadAcceleratorsA(hInstance: HINSTANCE; lpTableName: LPCSTR): HACCEL; stdcall;
+function LoadAcceleratorsA(hInstance: HINST; lpTableName: LPCSTR): HACCEL; stdcall;
 {$EXTERNALSYM LoadAcceleratorsA}
-function LoadAcceleratorsW(hInstance: HINSTANCE; lpTableName: LPCWSTR): HACCEL; stdcall;
+function LoadAcceleratorsW(hInstance: HINST; lpTableName: LPCWSTR): HACCEL; stdcall;
 {$EXTERNALSYM LoadAcceleratorsW}
-function LoadAccelerators(hInstance: HINSTANCE; lpTableName: LPCTSTR): HACCEL; stdcall;
+function LoadAccelerators(hInstance: HINST; lpTableName: LPCTSTR): HACCEL; stdcall;
 {$EXTERNALSYM LoadAccelerators}
 
 function CreateAcceleratorTableA(lpaccl: LPACCEL; cEntries: Integer): HACCEL; stdcall;
@@ -5347,11 +5354,11 @@ const
 function GetSystemMetrics(nIndex: Integer): Integer; stdcall;
 {$EXTERNALSYM GetSystemMetrics}
 
-function LoadMenuA(hInstance: HINSTANCE; lpMenuName: LPCSTR): HMENU; stdcall;
+function LoadMenuA(hInstance: HINST; lpMenuName: LPCSTR): HMENU; stdcall;
 {$EXTERNALSYM LoadMenuA}
-function LoadMenuW(hInstance: HINSTANCE; lpMenuName: LPCWSTR): HMENU; stdcall;
+function LoadMenuW(hInstance: HINST; lpMenuName: LPCWSTR): HMENU; stdcall;
 {$EXTERNALSYM LoadMenuW}
-function LoadMenu(hInstance: HINSTANCE; lpMenuName: LPCTSTR): HMENU; stdcall;
+function LoadMenu(hInstance: HINST; lpMenuName: LPCTSTR): HMENU; stdcall;
 {$EXTERNALSYM LoadMenu}
 
 function LoadMenuIndirectA(lpMenuTemplate: LPMENUTEMPLATEA): HMENU; stdcall;
@@ -6474,7 +6481,7 @@ type
   tagMSGBOXPARAMSA = record
     cbSize: UINT;
     hwndOwner: HWND;
-    hInstance: HINSTANCE;
+    hInstance: HINST;
     lpszText: LPCSTR;
     lpszCaption: LPCSTR;
     dwStyle: DWORD;
@@ -6494,7 +6501,7 @@ type
   tagMSGBOXPARAMSW = record
     cbSize: UINT;
     hwndOwner: HWND;
-    hInstance: HINSTANCE;
+    hInstance: HINST;
     lpszText: LPCWSTR;
     lpszCaption: LPCWSTR;
     dwStyle: DWORD;
@@ -6944,13 +6951,13 @@ function SetWindowsHook(nFilterType: Integer; pfnFilterProc: HOOKPROC): HHOOK; s
 function UnhookWindowsHook(nCode: Integer; pfnFilterProc: HOOKPROC): BOOL; stdcall;
 {$EXTERNALSYM UnhookWindowsHook}
 
-function SetWindowsHookExA(idHook: Integer; lpfn: HOOKPROC; hmod: HINSTANCE;
+function SetWindowsHookExA(idHook: Integer; lpfn: HOOKPROC; hmod: HINST;
   dwThreadId: DWORD): HHOOK; stdcall;
 {$EXTERNALSYM SetWindowsHookExA}
-function SetWindowsHookExW(idHook: Integer; lpfn: HOOKPROC; hmod: HINSTANCE;
+function SetWindowsHookExW(idHook: Integer; lpfn: HOOKPROC; hmod: HINST;
   dwThreadId: DWORD): HHOOK; stdcall;
 {$EXTERNALSYM SetWindowsHookExW}
-function SetWindowsHookEx(idHook: Integer; lpfn: HOOKPROC; hmod: HINSTANCE;
+function SetWindowsHookEx(idHook: Integer; lpfn: HOOKPROC; hmod: HINST;
   dwThreadId: DWORD): HHOOK; stdcall;
 {$EXTERNALSYM SetWindowsHookEx}
 
@@ -7162,18 +7169,18 @@ const
 // Resource Loading Routines
 //
 
-function LoadBitmapA(hInstance: HINSTANCE; lpBitmapName: LPCSTR): HBITMAP; stdcall;
+function LoadBitmapA(hInstance: HINST; lpBitmapName: LPCSTR): HBITMAP; stdcall;
 {$EXTERNALSYM LoadBitmapA}
-function LoadBitmapW(hInstance: HINSTANCE; lpBitmapName: LPCWSTR): HBITMAP; stdcall;
+function LoadBitmapW(hInstance: HINST; lpBitmapName: LPCWSTR): HBITMAP; stdcall;
 {$EXTERNALSYM LoadBitmapW}
-function LoadBitmap(hInstance: HINSTANCE; lpBitmapName: LPCTSTR): HBITMAP; stdcall;
+function LoadBitmap(hInstance: HINST; lpBitmapName: LPCTSTR): HBITMAP; stdcall;
 {$EXTERNALSYM LoadBitmap}
 
-function LoadCursorA(hInstance: HINSTANCE; lpCursorName: LPCSTR): HCURSOR; stdcall;
+function LoadCursorA(hInstance: HINST; lpCursorName: LPCSTR): HCURSOR; stdcall;
 {$EXTERNALSYM LoadCursorA}
-function LoadCursorW(hInstance: HINSTANCE; lpCursorName: LPCWSTR): HCURSOR; stdcall;
+function LoadCursorW(hInstance: HINST; lpCursorName: LPCWSTR): HCURSOR; stdcall;
 {$EXTERNALSYM LoadCursorW}
-function LoadCursor(hInstance: HINSTANCE; lpCursorName: LPCTSTR): HCURSOR; stdcall;
+function LoadCursor(hInstance: HINST; lpCursorName: LPCTSTR): HCURSOR; stdcall;
 {$EXTERNALSYM LoadCursor}
 
 function LoadCursorFromFileA(lpFileName: LPCSTR): HCURSOR; stdcall;
@@ -7183,7 +7190,7 @@ function LoadCursorFromFileW(lpFileName: LPCWSTR): HCURSOR; stdcall;
 function LoadCursorFromFile(lpFileName: LPCTSTR): HCURSOR; stdcall;
 {$EXTERNALSYM LoadCursorFromFile}
 
-function CreateCursor(hInst: HINSTANCE; xHotSpot, yHotSpot, nWidth, nHeight: Integer;
+function CreateCursor(hInst: HINST; xHotSpot, yHotSpot, nWidth, nHeight: Integer;
   pvANDPlane: PVOID; pvXORPlane: PVOID): HCURSOR; stdcall;
 {$EXTERNALSYM CreateCursor}
 
@@ -7248,11 +7255,11 @@ type
   {$EXTERNALSYM ICONINFO}
   TIconInfo = ICONINFO;
 
-function LoadIconA(hInstance: HINSTANCE; lpIconName: LPCSTR): HICON; stdcall;
+function LoadIconA(hInstance: HINST; lpIconName: LPCSTR): HICON; stdcall;
 {$EXTERNALSYM LoadIconA}
-function LoadIconW(hInstance: HINSTANCE; lpIconName: LPCWSTR): HICON; stdcall;
+function LoadIconW(hInstance: HINST; lpIconName: LPCWSTR): HICON; stdcall;
 {$EXTERNALSYM LoadIconW}
-function LoadIcon(hInstance: HINSTANCE; lpIconName: LPCTSTR): HICON; stdcall;
+function LoadIcon(hInstance: HINST; lpIconName: LPCTSTR): HICON; stdcall;
 {$EXTERNALSYM LoadIcon}
 
 function PrivateExtractIconsA(szFileName: LPCSTR; nIconIndex, cxIcon, cyIcon: Integer; var phicon: HICON;
@@ -7265,7 +7272,7 @@ function PrivateExtractIcons(szFileName: LPCTSTR; nIconIndex, cxIcon, cyIcon: In
   var piconid: UINT; nIcons, flags: UINT): UINT; stdcall;
 {$EXTERNALSYM PrivateExtractIcons}
 
-function CreateIcon(hInstance: HINSTANCE; nWidth, nHeight: Integer; cPlanes,
+function CreateIcon(hInstance: HINST; nWidth, nHeight: Integer; cPlanes,
   cBitsPixel: BYTE; lpbANDbits: LPBYTE; lpbXORbits: LPBYTE): HICON; stdcall;
 {$EXTERNALSYM CreateIcon}
 
@@ -7344,13 +7351,13 @@ const
   LR_SHARED           = $8000;
   {$EXTERNALSYM LR_SHARED}
 
-function LoadImageA(hinst: HINSTANCE; lpszName: LPCSTR; uType: UINT;
+function LoadImageA(hinst: HINST; lpszName: LPCSTR; uType: UINT;
   cxDesired, cyDesired: Integer; fuLoad: UINT): HANDLE; stdcall;
 {$EXTERNALSYM LoadImageA}
-function LoadImageW(hinst: HINSTANCE; lpszName: LPCWSTR; uType: UINT;
+function LoadImageW(hinst: HINST; lpszName: LPCWSTR; uType: UINT;
   cxDesired, cyDesired: Integer; fuLoad: UINT): HANDLE; stdcall;
 {$EXTERNALSYM LoadImageW}
-function LoadImage(hinst: HINSTANCE; lpszName: LPCTSTR; uType: UINT;
+function LoadImage(hinst: HINST; lpszName: LPCTSTR; uType: UINT;
   cxDesired, cyDesired: Integer; fuLoad: UINT): HANDLE; stdcall;
 {$EXTERNALSYM LoadImage}
 
@@ -7545,13 +7552,13 @@ const
   IDI_INFORMATION = IDI_ASTERISK;
   {$EXTERNALSYM IDI_INFORMATION}
 
-function LoadStringA(hInstance: HINSTANCE; uID: UINT; lpBuffer: LPSTR;
+function LoadStringA(hInstance: HINST; uID: UINT; lpBuffer: LPSTR;
   nBufferMax: Integer): Integer; stdcall;
 {$EXTERNALSYM LoadStringA}
-function LoadStringW(hInstance: HINSTANCE; uID: UINT; lpBuffer: LPWSTR;
+function LoadStringW(hInstance: HINST; uID: UINT; lpBuffer: LPWSTR;
   nBufferMax: Integer): Integer; stdcall;
 {$EXTERNALSYM LoadStringW}
-function LoadString(hInstance: HINSTANCE; uID: UINT; lpBuffer: LPTSTR;
+function LoadString(hInstance: HINST; uID: UINT; lpBuffer: LPTSTR;
   nBufferMax: Integer): Integer; stdcall;
 {$EXTERNALSYM LoadString}
 
@@ -8695,15 +8702,15 @@ function ArrangeIconicWindows(hWnd: HWND): UINT; stdcall;
 {$EXTERNALSYM ArrangeIconicWindows}
 
 function CreateMDIWindowA(lpClassName, lpWindowName: LPCSTR; dwStyle: DWORD;
-  X, Y, nWidth, nHeight: Integer; hWndParent: HWND; hInstance: HINSTANCE;
+  X, Y, nWidth, nHeight: Integer; hWndParent: HWND; hInstance: HINST;
   lParam: LPARAM): HWND; stdcall;
 {$EXTERNALSYM CreateMDIWindowA}
 function CreateMDIWindowW(lpClassName, lpWindowName: LPCWSTR; dwStyle: DWORD;
-  X, Y, nWidth, nHeight: Integer; hWndParent: HWND; hInstance: HINSTANCE;
+  X, Y, nWidth, nHeight: Integer; hWndParent: HWND; hInstance: HINST;
   lParam: LPARAM): HWND; stdcall;
 {$EXTERNALSYM CreateMDIWindowW}
 function CreateMDIWindow(lpClassName, lpWindowName: LPCTSTR; dwStyle: DWORD;
-  X, Y, nWidth, nHeight: Integer; hWndParent: HWND; hInstance: HINSTANCE;
+  X, Y, nWidth, nHeight: Integer; hWndParent: HWND; hInstance: HINST;
   lParam: LPARAM): HWND; stdcall;
 {$EXTERNALSYM CreateMDIWindow}
 
@@ -10053,8 +10060,10 @@ const
   MONITORINFOF_PRIMARY = $00000001;
   {$EXTERNALSYM MONITORINFOF_PRIMARY}
 
+  {$IFNDEF JWA_INCLUDEMODE}
   CCHDEVICENAME = 32;
   {$EXTERNALSYM CCHDEVICENAME}
+  {$ENDIF !JWA_INCLUDEMODE}
 
 type
   LPMONITORINFO = ^MONITORINFO;
@@ -11548,15 +11557,18 @@ function GetRawInputDeviceList(pRawInputDeviceList: PRAWINPUTDEVICELIST; var pui
 function DefRawInputProc(paRawInput: PRAWINPUT; nInput: Integer; cbSizeHeader: UINT): LRESULT; stdcall;
 {$EXTERNALSYM DefRawInputProc}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
 
-const
-  user32 = 'user32.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 function IS_INTRESOURCE(wInteger: WORD): BOOL;
 begin
@@ -11585,9 +11597,9 @@ end;
 
 {$IFDEF WIN2000_UP}
 
-function GET_APPCOMMAND_LPARAM(lParam: LPARAM): Shortint;
+function GET_APPCOMMAND_LPARAM(lParam: LPARAM): WORD;
 begin
-  Result := Shortint(HIWORD(lParam) and not FAPPCOMMAND_MASK);
+  Result := WORD(HIWORD(lParam) and not FAPPCOMMAND_MASK);
 end;
 
 function GET_DEVICE_LPARAM(lParam: LPARAM): WORD;
@@ -11653,7 +11665,7 @@ end;
 
 function CreateWindowA(lpClassName: LPCSTR; lpWindowName: LPCSTR; dwStyle: DWORD;
   x, y, nWidth, nHeight: Integer; hWndParent: HWND; hMenu: HMENU;
-  hInstance: HINSTANCE; lpParam: LPVOID): HWND;
+  hInstance: HINST; lpParam: LPVOID): HWND;
 begin
   Result := CreateWindowExA(0, lpClassName, lpWindowName, dwStyle, x, y,
     nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
@@ -11661,7 +11673,7 @@ end;
 
 function CreateWindowW(lpClassName: LPCWSTR; lpWindowName: LPCWSTR; dwStyle: DWORD;
   x, y, nWidth, nHeight: Integer; hWndParent: HWND; hMenu: HMENU;
-  hInstance: HINSTANCE; lpParam: LPVOID): HWND;
+  hInstance: HINST; lpParam: LPVOID): HWND;
 begin
   Result := CreateWindowExW(0, lpClassName, lpWindowName, dwStyle, x, y,
     nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
@@ -11669,7 +11681,7 @@ end;
 
 function CreateWindow(lpClassName: LPCTSTR; lpWindowName: LPCTSTR; dwStyle: DWORD;
   x, y, nWidth, nHeight: Integer; hWndParent: HWND; hMenu: HMENU;
-  hInstance: HINSTANCE; lpParam: LPVOID): HWND;
+  hInstance: HINST; lpParam: LPVOID): HWND;
 begin
   {$IFDEF UNICODE}
   Result := CreateWindowExW(0, lpClassName, lpWindowName, dwStyle, x, y,
@@ -11680,17 +11692,17 @@ begin
   {$ENDIF UNICODE}
 end;
 
-function CreateDialogA(hInstance: HINSTANCE; lpName: LPCSTR; hWndParent: HWND; lpDialogFunc: DLGPROC): HWND;
+function CreateDialogA(hInstance: HINST; lpName: LPCSTR; hWndParent: HWND; lpDialogFunc: DLGPROC): HWND;
 begin
   Result := CreateDialogParamA(hInstance, lpName, hWndParent, lpDialogFunc, 0);
 end;
 
-function CreateDialogW(hInstance: HINSTANCE; lpName: LPCWSTR; hWndParent: HWND; lpDialogFunc: DLGPROC): HWND;
+function CreateDialogW(hInstance: HINST; lpName: LPCWSTR; hWndParent: HWND; lpDialogFunc: DLGPROC): HWND;
 begin
   Result := CreateDialogParamW(hInstance, lpName, hWndParent, lpDialogFunc, 0);
 end;
 
-function CreateDialog(hInstance: HINSTANCE; lpName: LPCTSTR; hWndParent: HWND; lpDialogFunc: DLGPROC): HWND;
+function CreateDialog(hInstance: HINST; lpName: LPCTSTR; hWndParent: HWND; lpDialogFunc: DLGPROC): HWND;
 begin
   {$IFDEF UNICODE}
   Result := CreateDialogParamW(hInstance, lpName, hWndParent, lpDialogFunc, 0);
@@ -11699,19 +11711,19 @@ begin
   {$ENDIF UNICODE}
 end;
 
-function CreateDialogIndirectA(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE;
+function CreateDialogIndirectA(hInstance: HINST; const lpTemplate: DLGTEMPLATE;
   hWndParent: HWND; lpDialogFunc: DLGPROC): HWND;
 begin
   Result := CreateDialogIndirectParamA(hInstance, lpTemplate, hWndParent, lpDialogFunc, 0);
 end;
 
-function CreateDialogIndirectW(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE;
+function CreateDialogIndirectW(hInstance: HINST; const lpTemplate: DLGTEMPLATE;
   hWndParent: HWND; lpDialogFunc: DLGPROC): HWND;
 begin
   Result := CreateDialogIndirectParamW(hInstance, lpTemplate, hWndParent, lpDialogFunc, 0);
 end;
 
-function CreateDialogIndirect(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE;
+function CreateDialogIndirect(hInstance: HINST; const lpTemplate: DLGTEMPLATE;
   hWndParent: HWND; lpDialogFunc: DLGPROC): HWND;
 begin
   {$IFDEF UNICODE}
@@ -11721,17 +11733,17 @@ begin
   {$ENDIF UNICODE}
 end;
 
-function DialogBoxA(hInstance: HINSTANCE; lpTemplate: LPCSTR; hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
+function DialogBoxA(hInstance: HINST; lpTemplate: LPCSTR; hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
 begin
   Result := DialogBoxParamA(hInstance, lpTemplate, hWndParent, lpDialogFunc, 0);
 end;
 
-function DialogBoxW(hInstance: HINSTANCE; lpTemplate: LPCWSTR; hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
+function DialogBoxW(hInstance: HINST; lpTemplate: LPCWSTR; hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
 begin
   Result := DialogBoxParamW(hInstance, lpTemplate, hWndParent, lpDialogFunc, 0);
 end;
 
-function DialogBox(hInstance: HINSTANCE; lpTemplate: LPCTSTR; hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
+function DialogBox(hInstance: HINST; lpTemplate: LPCTSTR; hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
 begin
   {$IFDEF UNICODE}
   Result := DialogBoxParamW(hInstance, lpTemplate, hWndParent, lpDialogFunc, 0);
@@ -11740,17 +11752,17 @@ begin
   {$ENDIF UNICODE}
 end;
 
-function DialogBoxIndirectA(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE; hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
+function DialogBoxIndirectA(hInstance: HINST; const lpTemplate: DLGTEMPLATE; hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
 begin
   Result := DialogBoxIndirectParamA(hInstance, lpTemplate, hWndParent, lpDialogFunc, 0);
 end;
 
-function DialogBoxIndirectW(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE; hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
+function DialogBoxIndirectW(hInstance: HINST; const lpTemplate: DLGTEMPLATE; hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
 begin
   Result := DialogBoxIndirectParamW(hInstance, lpTemplate, hWndParent, lpDialogFunc, 0);
 end;
 
-function DialogBoxIndirect(hInstance: HINSTANCE; const lpTemplate: DLGTEMPLATE; hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
+function DialogBoxIndirect(hInstance: HINST; const lpTemplate: DLGTEMPLATE; hWndParent: HWND; lpDialogFunc: DLGPROC): INT_PTR;
 begin
   {$IFDEF UNICODE}
   Result := DialogBoxIndirectParamW(hInstance, lpTemplate, hWndParent, lpDialogFunc, 0);
@@ -21891,4 +21903,8 @@ function DefRawInputProc; external user32 name 'DefRawInputProc';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

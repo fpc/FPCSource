@@ -36,10 +36,18 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaAccCtrl.pas,v 1.7 2005/09/03 14:27:47 marquardt Exp $
 
 unit JwaAccCtrl;
 
 {$WEAKPACKAGEUNIT}
+
+{$I jediapilib.inc}
+
+interface
+
+uses
+  JwaWindows;
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include "aclapi.h"'}
@@ -52,13 +60,6 @@ unit JwaAccCtrl;
 {$HPPEMIT 'typedef PPTRUSTEE_A PPTRUSTEE'}
 {$HPPEMIT '#endif'}
 {$HPPEMIT ''}
-
-{$I jediapilib.inc}
-
-interface
-
-uses
-  JwaWinNT, JwaWinType;
 
 (* Dependencies
 // winnt
@@ -1215,9 +1216,6 @@ type
 
 implementation
 
-uses
-  JwaWinBase;
-
 // (rom) MACRO implementation
 function AccFree(hMem: HLOCAL): HLOCAL;
 begin
@@ -1225,3 +1223,4 @@ begin
 end;
 
 end.
+

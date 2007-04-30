@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWmiStr.pas,v 1.5 2005/09/03 14:27:49 marquardt Exp $
 
 unit JwaWmiStr;
 
@@ -54,7 +55,7 @@ unit JwaWmiStr;
 interface
 
 uses
-  JwaWinType, JwaWinNT;
+  JwaWindows;
 
 //
 // WNODE definition

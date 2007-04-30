@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaFaxExt.pas,v 1.7 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaFaxExt;
 
@@ -54,7 +55,7 @@ unit JwaFaxExt;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 {************************************
 *                                   *
@@ -81,7 +82,7 @@ type
 // Prototype of FaxExtSetData
 //
 
-  PFAX_EXT_SET_DATA = function(hInst: HINSTANCE; dwDeviceId: DWORD; DevIdSrc: FAX_ENUM_DEVICE_ID_SOURCE; lpcwstrDataGUID: LPCWSTR; pData: LPBYTE; dwDataSize: DWORD): DWORD; stdcall;
+  PFAX_EXT_SET_DATA = function(hInst: HINST; dwDeviceId: DWORD; DevIdSrc: FAX_ENUM_DEVICE_ID_SOURCE; lpcwstrDataGUID: LPCWSTR; pData: LPBYTE; dwDataSize: DWORD): DWORD; stdcall;
   {$EXTERNALSYM PFAX_EXT_SET_DATA}
 
   PFAX_EXT_CONFIG_CHANGE = function(dwDeviceId: DWORD; lpcwstrDataGUID: LPCWSTR; lpData: LPBYTE; dwDataSize: DWORD): HRESULT; stdcall;
@@ -91,7 +92,7 @@ type
 // Prototype of FaxExtRegisterForEvents 
 //
 
-  PFAX_EXT_REGISTER_FOR_EVENTS = function(hInst: HINSTANCE; dwDeviceId: DWORD; DevIdSrc: FAX_ENUM_DEVICE_ID_SOURCE; lpcwstrDataGUID: LPCWSTR; lpConfigChangeCallback: PFAX_EXT_CONFIG_CHANGE): HANDLE; stdcall;
+  PFAX_EXT_REGISTER_FOR_EVENTS = function(hInst: HINST; dwDeviceId: DWORD; DevIdSrc: FAX_ENUM_DEVICE_ID_SOURCE; lpcwstrDataGUID: LPCWSTR; lpConfigChangeCallback: PFAX_EXT_CONFIG_CHANGE): HANDLE; stdcall;
   {$EXTERNALSYM PFAX_EXT_REGISTER_FOR_EVENTS}
 
 //

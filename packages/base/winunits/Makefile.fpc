@@ -45,11 +45,13 @@ implicitunits=winver mmsystem comobj comconst ole2 activex shellapi shlobj olese
  jwawpcrsmsg jwawpftpmsg jwawppstmsg jwawpspihlp jwawptypes \
  jwawpwizmsg jwaws2atm jwaws2bth jwaws2dnet jwaws2spi jwaws2tcpip \
  jwawshisotp jwawsnetbs jwawsnwlink jwawtsapi32 jwazmouse jwasensevts \
- jwaadstlb jwanative shfolder richedit
+ jwaadstlb jwanative shfolder richedit jwawindows jwacarderr jwaactivex \
+ jwawindllnames jwawinternl
+
 
 examples=examples
 
-rsts = jwawintype
+rsts = jwawintype comconst
 
 [install]
 buildunit=buildjwa

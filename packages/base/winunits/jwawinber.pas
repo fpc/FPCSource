@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinBer.pas,v 1.6 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaWinBer;
 
@@ -54,7 +55,7 @@ unit JwaWinBer;
 interface
 
 uses
-  JwaWinLDAP, JwaWinType;
+  JwaWinLDAP, JwaWindows;
 
 const
   LBER_ERROR   = DWORD($ffffffff);
@@ -361,8 +362,8 @@ contain the following characters:
 
 implementation
 
-const
-  winberapi = 'wldap32.dll';
+uses
+  JwaWinDLLNames;
 
 function ber_init; external winberapi name 'ber_init';
 procedure ber_free; external winberapi name 'ber_free';

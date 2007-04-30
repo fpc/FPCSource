@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaMSWSock.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaMSWSock;
 
@@ -54,7 +55,7 @@ unit JwaMSWSock;
 interface
 
 uses
-  JwaWinType, JwaWinBase, JwaWinSock2;
+  JwaWindows, JwaWinSock2;
 
 //
 // Options for connect and disconnect data and options.  Used only by
@@ -576,8 +577,8 @@ const
 
 implementation
 
-const
-  mswsocklib = 'mswsock.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

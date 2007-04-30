@@ -40,6 +40,9 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinCrypt.pas,v 1.13 2005/09/06 16:36:50 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaWinCrypt;
 
@@ -50,7 +53,11 @@ unit JwaWinCrypt;
 interface
 
 uses
-  JwaWinBase, JwaWinType;
+  JwaWindows;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
 
 {$HPPEMIT ''}
 {$HPPEMIT '#include <WinCrypt.h>'}
@@ -15948,17 +15955,18 @@ const
 //          dwError is set to CERT_E_UNTRUSTEDCA.
 //--------------------------------------------------------------------------
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
 
-const
-  crypt32 = 'crypt32.dll';
-  advapi32 = 'advapi32.dll';
-  softpub = 'softpub.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 function GET_ALG_CLASS(x: DWORD): DWORD;
 begin
@@ -19646,4 +19654,8 @@ function CertVerifyCertificateChainPolicy; external crypt32 name 'CertVerifyCert
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

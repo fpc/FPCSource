@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaBits.pas,v 1.7 2005/09/03 14:27:47 marquardt Exp $
 
 unit JwaBits;
 
@@ -54,7 +55,7 @@ unit JwaBits;
 interface
 
 uses
-  JwaWinBase, JwaWinType, JwaBitsMsg;
+  JwaWindows, JwaBitsMsg;
 
 const
   BG_SIZE_UNKNOWN = Int64(-1);

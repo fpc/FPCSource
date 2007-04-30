@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaLmDFS.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaLmDFS;
 
@@ -54,7 +55,7 @@ unit JwaLmDFS;
 interface
 
 uses
-  JwaLmCons, JwaWinType;
+  JwaWindows, JwaLmCons;
 
 //
 // DFS Volume state
@@ -481,6 +482,9 @@ function NetDfsRename(Path: LPWSTR; NewPath: LPWSTR): NET_API_STATUS; stdcall;
 {$EXTERNALSYM NetDfsRename}
 
 implementation
+
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

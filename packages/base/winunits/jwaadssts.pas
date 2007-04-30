@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaAdssts.pas,v 1.6 2005/09/03 14:27:47 marquardt Exp $
 
 unit JwaAdssts;
 
@@ -54,7 +55,7 @@ unit JwaAdssts;
 interface
 
 uses
-  JwaWinNT;
+  JwaWindows;
 
 //  Contents:   Status Codes for ADS objects
 

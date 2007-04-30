@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaPsApi.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaPsApi;
 
@@ -54,7 +55,7 @@ unit JwaPsApi;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 function EnumProcesses(lpidProcess: LPDWORD; cb: DWORD; var cbNeeded: DWORD): BOOL; stdcall;
 {$EXTERNALSYM EnumProcesses}
@@ -293,13 +294,8 @@ function GetProcessImageFileName(hProcess: HANDLE; lpImageFileName: LPTSTR;
 
 implementation
 
-const
-  PsapiLib = 'psapi.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

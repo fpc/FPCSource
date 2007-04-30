@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaLmSName.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaLmSName;
 
@@ -54,7 +55,7 @@ unit JwaLmSName;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //
 //  Standard LAN Manager service names.

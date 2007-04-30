@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWS2spi.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaWS2spi;
 
@@ -54,7 +55,7 @@ unit JwaWS2spi;
 interface
 
 uses
-  JwaWinType, JwaWinSock2;
+  JwaWindows, JwaWinSock2;
 
 (*
  * Ensure structures are packed consistently.
@@ -776,9 +777,8 @@ type
 
 implementation
 
-const
-  ws2_32 = 'ws2_32.dll';
-  qosname = 'qosname.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

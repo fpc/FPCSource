@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinWlx.pas,v 1.10 2005/09/06 16:36:51 marquardt Exp $
 
 unit JwaWinWlx;
 
@@ -54,7 +55,7 @@ unit JwaWinWlx;
 interface
 
 uses
-  JwaWinType, JwaWinUser, JwaWinNT;
+  JwaWindows;
 
 //    WLX == WinLogon eXtension
 //
@@ -1064,8 +1065,8 @@ implementation
 
 {$IFDEF MSGINA_IMPORT}
 
-const
-  msgina = 'msgina.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

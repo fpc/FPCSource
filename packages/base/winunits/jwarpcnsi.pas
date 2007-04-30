@@ -40,21 +40,30 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaRpcNsi.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaRpcNsi;
 
 {$WEAKPACKAGEUNIT}
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "RpcNsi.h"'}
-{$HPPEMIT ''}
-
 {$I jediapilib.inc}
 
 interface
 
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFNDEF JWARPC_PAS}
 uses
-  JwaWinType, JwaRpc, JwaRpcDce;
+  JwaWinType, JwaRpcDce;
+{$ENDIF !JWARPC_PAS}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "RpcNsi.h"'}
+{$HPPEMIT ''}
 
 type
   RPC_NS_HANDLE = Pointer;
@@ -354,15 +363,18 @@ function RpcNsBindingImportDone(var ImportContext: RPC_NS_HANDLE): RPC_STATUS; s
 function RpcNsBindingSelect(BindingVec: PRPC_BINDING_VECTOR; var Binding: RPC_BINDING_HANDLE): RPC_STATUS; stdcall;
 {$EXTERNALSYM RpcNsBindingSelect}
 
+{$ENDIF JWA_INTERFACESECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
+
 implementation
 
-const
-  rpcns4 = 'rpcns4.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFDEF DYNAMIC_LINK}
 
@@ -1463,4 +1475,8 @@ function RpcNsBindingSelect; external rpcns4 name 'RpcNsBindingSelect';
 
 {$ENDIF DYNAMIC_LINK}
 
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

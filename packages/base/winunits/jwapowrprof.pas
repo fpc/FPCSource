@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaPowrProf.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaPowrProf;
 
@@ -54,7 +55,7 @@ unit JwaPowrProf;
 interface
 
 uses
-  JwaWinNT, JwaWinType;
+  JwaWindows;
 
 // Registry storage structures for the GLOBAL_POWER_POLICY data. There are two
 // structures, GLOBAL_MACHINE_POWER_POLICY and GLOBAL_USER_POWER_POLICY. the
@@ -231,7 +232,7 @@ const
 // Prototype for EnumPwrSchemes callback proceedures.
 
 type
-  PWRSCHEMESENUMPROC = function(uiIndex: UINT; dwName: DWORD; sName: LPTSTR; dwDesc: DWORD; sDesc: LPTSTR; pp: PPOWER_POLICY; lParam: LPARAM): ByteBool; stdcall;
+  PWRSCHEMESENUMPROC = function(uiIndex: UINT; dwName: DWORD; sName: LPWSTR; dwDesc: DWORD; sDesc: LPWSTR; pp: PPOWER_POLICY; lParam: LPARAM): ByteBool; stdcall;
   {$EXTERNALSYM PWRSCHEMESENUMPROC}
   PFNNTINITIATEPWRACTION = function(pPowerAction: POWER_ACTION; SystemPowerState: SYSTEM_POWER_STATE; u: ULONG; b: ByteBool): ByteBool; stdcall;
   {$EXTERNALSYM PFNNTINITIATEPWRACTION}
@@ -246,7 +247,7 @@ function ReadGlobalPwrPolicy(var pGlobalPowerPolicy: GLOBAL_POWER_POLICY): ByteB
 {$EXTERNALSYM ReadGlobalPwrPolicy}
 function ReadPwrScheme(uiID: UINT; var pPowerPolicy: POWER_POLICY): ByteBool; stdcall;
 {$EXTERNALSYM ReadPwrScheme}
-function WritePwrScheme(puiID: PUINT; lpszName, lpszDescription: LPTSTR; const pPowerPolicy: POWER_POLICY): ByteBool; stdcall;
+function WritePwrScheme(puiID: PUINT; lpszName, lpszDescription: LPWSTR; const pPowerPolicy: POWER_POLICY): ByteBool; stdcall;
 {$EXTERNALSYM WritePwrScheme}
 function WriteGlobalPwrPolicy(const pGlobalPowerPolicy: GLOBAL_POWER_POLICY): ByteBool; stdcall;
 {$EXTERNALSYM WriteGlobalPwrPolicy}
@@ -284,8 +285,8 @@ function CallNtPowerInformation(InformationLeveL: POWER_INFORMATION_LEVEL; lpInp
 
 implementation
 
-const
-  powrproflib = 'powrprof.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaDbt.pas,v 1.7 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaDbt;
 
@@ -54,7 +55,7 @@ unit JwaDbt;
 interface
 
 uses
-  JwaWinType, JwaWinUser;
+  JwaWindows;
 
 //
 // BroadcastSpecialMessage constants.

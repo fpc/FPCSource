@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaIAdmExt.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaIAdmExt;
 
@@ -54,7 +55,7 @@ unit JwaIAdmExt;
 interface
 
 uses
-  JwaIisCnfg, JwaWinType;
+  JwaIisCnfg, JwaWindows;
 
 //
 // The Main Interface. All extensions must support this interface.
@@ -126,3 +127,4 @@ type
 implementation
 
 end.
+

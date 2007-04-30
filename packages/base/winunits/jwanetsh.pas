@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaNetSh.pas,v 1.10 2005/09/08 07:49:25 marquardt Exp $
 
 unit JwaNetSh;
 
@@ -54,7 +55,7 @@ unit JwaNetSh;
 interface
 
 uses
-  JwaWinNT, JwaWinType;
+  JwaWindows;
 
 // This file contains definitions which are needed by all NetSh helper DLLs.
 
@@ -209,7 +210,7 @@ type
 
 // Macros
 
-(* TODO
+(* (rom) not convertible  token pasting is specific to the C preprocessor
 #define CREATE_CMD_ENTRY(t,f)            {CMD_##t, f, HLP_##t, HLP_##t##_EX, CMD_FLAG_PRIVATE, NULL}
 #define CREATE_CMD_ENTRY_EX(t,f,i)       {CMD_##t, f, HLP_##t, HLP_##t##_EX, i, NULL}
 #define CREATE_CMD_ENTRY_EX_VER(t,f,i,v) {CMD_##t, f, HLP_##t, HLP_##t##_EX, i, v}
@@ -218,6 +219,7 @@ type
 #define CREATE_CMD_GROUP_ENTRY_EX(t,s,i)       {CMD_##t, HLP_##t, sizeof(s)/sizeof(CMD_ENTRY), i, s, NULL }
 #define CREATE_CMD_GROUP_ENTRY_EX_VER(t,s,i,v) {CMD_##t, HLP_##t, sizeof(s)/sizeof(CMD_ENTRY), i, s, v }
 
+(rom) not convertible  call by name is specific to the C preprocessor
 #define NUM_TOKENS_IN_TABLE(TokenArray) sizeof(TokenArray)/sizeof(TOKEN_VALUE)
 #define NUM_TAGS_IN_TABLE(TagsArray)    sizeof(TagsArray)/sizeof(TAG_TYPE)
 *)
@@ -433,8 +435,8 @@ function RegisterHelper(const pguidParentContext: TGUID; pfnRegisterSubContext: 
 
 implementation
 
-const
-  netsh = 'netsh.exe'; 
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

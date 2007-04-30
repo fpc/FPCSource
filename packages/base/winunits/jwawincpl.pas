@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaWinCpl.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaWinCpl;
 
@@ -54,7 +55,7 @@ unit JwaWinCpl;
 interface
 
 uses
-  JwaWinUser, JwaWinType;
+  JwaWindows;
 
 //
 // General rules for being installed in the Control Panel:

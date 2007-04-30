@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaAtalkWsh.pas,v 1.7 2005/09/08 07:49:25 marquardt Exp $
 
 unit JwaAtalkWsh;
 
@@ -54,7 +55,7 @@ interface
 {$I jediapilib.inc}
 
 uses
-  JwaWinSock2;
+  JwaWindows;
 
 //
 //  All protocol types should be specified in the Decimal base

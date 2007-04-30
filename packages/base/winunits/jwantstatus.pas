@@ -40,14 +40,13 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaNtStatus.pas,v 1.6 2005/08/31 05:57:47 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaNtStatus;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "ntstatus.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
@@ -55,6 +54,14 @@ interface
 
 uses
   JwaWinType;
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "ntstatus.h"'}
+{$HPPEMIT ''}
 
 /////////////////////////////////////////////////////////////////////////
 //
@@ -10585,6 +10592,15 @@ const
   STATUS_PNP_IRQ_TRANSLATION_FAILED = NTSTATUS($C0040037);
   {$EXTERNALSYM STATUS_PNP_IRQ_TRANSLATION_FAILED}
 
-implementation
+{$ENDIF JWA_INTERFACESECTION}
 
+{$IFNDEF JWA_INCLUDEMODE}
+implementation
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

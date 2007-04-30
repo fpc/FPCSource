@@ -43,21 +43,22 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaIpHlpApi.pas,v 1.9 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaIpHlpApi;
 
 {$WEAKPACKAGEUNIT}
-
-{$HPPEMIT ''}
-{$HPPEMIT '#include "iphlpapi.h"'}
-{$HPPEMIT ''}
 
 {$I jediapilib.inc}
 
 interface
 
 uses
-  JwaIpExport, JwaIpRtrMib, JwaIpTypes, JwaWinType, JwaWinBase, JwaWinSock;
+  JwaIpExport, JwaIpRtrMib, JwaIpTypes, JwaWindows;
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "iphlpapi.h"'}
+{$HPPEMIT ''}
 
 //////////////////////////////////////////////////////////////////////////////
 //                                                                          //
@@ -387,8 +388,8 @@ function GetIpErrorString(ErrorCode: IP_STATUS; Buffer: PWCHAR; var Size: DWORD)
 
 implementation
 
-const
-  iphlpapilib = 'iphlpapi.dll';
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

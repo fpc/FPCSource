@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaPatchApi.pas,v 1.10 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaPatchApi;
 
@@ -54,7 +55,7 @@ unit JwaPatchApi;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 //
 //  The following constants can be combined and used as the OptionFlags
@@ -421,13 +422,8 @@ function GetFilePatchSignature(FileName: LPCTSTR; OptionFlags: ULONG; OptionData
 
 implementation
 
-const
-  patchapi = 'mspatcha.dll';
-  {$IFDEF UNICODE}
-  AWSuffix = 'W';
-  {$ELSE}
-  AWSuffix = 'A';
-  {$ENDIF UNICODE}
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

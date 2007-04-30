@@ -38,8 +38,9 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaBthSdpDef.pas,v 1.1 2005/09/05 06:29:33 marquardt Exp $
 
-unit JWaBthSdpDef;
+unit JwaBthSdpDef;
 
 {$WEAKPACKAGEUNIT}
 
@@ -52,7 +53,7 @@ unit JWaBthSdpDef;
 interface
 
 uses
-  JwaWinType;
+  JwaWindows;
 
 type
   SDP_LARGE_INTEGER_16 = record

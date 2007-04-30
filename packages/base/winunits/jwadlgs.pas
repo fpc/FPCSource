@@ -40,18 +40,25 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaDlgs.pas,v 1.7 2005/09/01 09:39:07 marquardt Exp $
+
+{$IFNDEF JWA_INCLUDEMODE}
 
 unit JwaDlgs;
 
 {$WEAKPACKAGEUNIT}
 
-{$HPPEMIT ''}
-{$HPPEMIT '#include "dlgs.h"'}
-{$HPPEMIT ''}
-
 {$I jediapilib.inc}
 
 interface
+
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_INTERFACESECTION}
+
+{$HPPEMIT ''}
+{$HPPEMIT '#include "dlgs.h"'}
+{$HPPEMIT ''}
 
 //
 //  Constant Declarations.
@@ -491,6 +498,15 @@ type
   CRGB = tagCRGB;
   {$EXTERNALSYM CRGB}
 
-implementation
+{$ENDIF JWA_INTERFACESECTION}
 
+{$IFNDEF JWA_INCLUDEMODE}
+implementation
+{$ENDIF !JWA_INCLUDEMODE}
+
+{$IFDEF JWA_IMPLEMENTATIONSECTION}
+{$ENDIF JWA_IMPLEMENTATIONSECTION}
+
+{$IFNDEF JWA_INCLUDEMODE}
 end.
+{$ENDIF !JWA_INCLUDEMODE}

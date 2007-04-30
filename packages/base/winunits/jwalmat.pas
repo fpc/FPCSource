@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaLmAt.pas,v 1.8 2005/09/06 16:36:50 marquardt Exp $
 
 unit JwaLmAt;
 
@@ -54,7 +55,7 @@ unit JwaLmAt;
 interface
 
 uses
-  JwaLmCons, JwaWinType;
+  JwaWindows, JwaLmCons;
 
 //
 //  The following bits are used with Flags field in structures below.
@@ -157,6 +158,9 @@ function NetScheduleJobGetInfo(Servername: LPCWSTR; JobId: DWORD; var PointerToB
 {$EXTERNALSYM NetScheduleJobGetInfo}
 
 implementation
+
+uses
+  JwaWinDLLNames;
 
 {$IFDEF DYNAMIC_LINK}
 

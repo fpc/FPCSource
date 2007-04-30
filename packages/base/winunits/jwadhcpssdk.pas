@@ -40,6 +40,7 @@
 {                                                                              }
 {******************************************************************************}
 
+// $Id: JwaDhcpSSdk.pas,v 1.6 2005/09/03 14:27:48 marquardt Exp $
 
 unit JwaDhcpSSdk;
 
@@ -56,7 +57,7 @@ unit JwaDhcpSSdk;
 interface
 
 uses
-  JwaWinNT, JwaWinType;
+  JwaWindows;
 
 //  This structure could change any day.  This will be accurate only for version 0 -- which
 //  has to be checked for by any CalloutDLL that is hooking onto the DhcpHandleOptionsHook.
