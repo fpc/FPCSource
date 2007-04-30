@@ -24,7 +24,7 @@
 }
 {$mode objfpc}
 {$H+}
-{$DEFINE CGIDEBUG}
+{ $DEFINE CGIDEBUG}
 unit HTTPDefs;
 
 interface
@@ -75,10 +75,10 @@ const
 
 
 Type
-  TTHttpFields = Array[1..NoHTTPFields] of string; 
+  THttpFields = Array[1..NoHTTPFields] of string;
 
 Const
-  HTTPFieldNames : TTHttpFields
+  HTTPFieldNames : THttpFields
              = (fieldAccept, fieldAcceptCharset, fieldAcceptEncoding, 
                 fieldAcceptLanguage, fieldAuthorization, fieldConnection,
                 fieldContentEncoding, fieldContentLanguage, fieldContentLength,
@@ -172,7 +172,7 @@ type
     FContentFields: TStrings;
     FCookieFields: TStrings;
     FHTTPVersion : String;
-    FFields : TTHttpFields;
+    FFields : THttpFields;
     FQueryFields: TStrings;
     function GetSetField(AIndex: Integer): String;
     function GetSetFieldName(AIndex: Integer): String;
@@ -197,6 +197,8 @@ type
     Function LoadFromStream(Stream : TStream; IncludeCommand : Boolean) : integer;
     Function LoadFromStrings(Strings: TStrings; IncludeCommand : Boolean) : integer; virtual;
     // Common access
+    // This is an internal table. We should try to get rid of it,
+    // It requires a lot of duplication.
     property FieldCount: Integer read GetFieldCount;
     property Fields[AIndex: Integer]: String read GetSetField;
     property FieldNames[AIndex: Integer]: String read GetSetFieldName;
@@ -212,7 +214,7 @@ type
     property Connection: String Index 6 Read GetFieldValue Write SetFieldValue;
     property ContentEncoding: String Index 7 Read GetFieldValue Write SetFieldValue;
     property ContentLanguage: String Index 8 Read GetFieldValue Write SetFieldValue;
-    property ContentLength: Integer Read GetContentLength Write SetContentLength;
+    property ContentLength: Integer Read GetContentLength Write SetContentLength; // Index 9
     property ContentType: String Index 10 Read GetFieldValue Write SetFieldValue;
     property Cookie: String Index 11 Read GetFieldValue Write SetFieldValue;
     property Date: String Index 12 Read GetFieldValue Write SetFieldValue;
@@ -241,6 +243,11 @@ type
     Property HTTPIfModifiedSince : String Index 15 read GetFieldValue Write SetFieldValue; // Maybe change to TDateTime ??
     Property HTTPReferer : String Index 19 read GetFieldValue Write SetFieldValue;
     Property HTTPUserAgent : String Index 23 read GetFieldValue Write SetFieldValue;
+    Property Method : String Index 31 read GetFieldValue Write SetFieldValue;
+    Property URL : String Index 32 read GetFieldValue Write SetFieldValue;
+    Property Query : String Index 33 read GetFieldValue Write SetFieldValue;
+    Property Host : String Index 34 Read GetFieldValue Write SetFieldValue;
+    Property Content : String Index 35 Read GetFieldValue Write SetFieldValue;
     // Lists
     Property CookieFields : TStrings Read FCookieFields Write SetCookieFields;
     Property ContentFields: TStrings read FContentFields;
@@ -259,12 +266,13 @@ type
     FFiles : TUploadedFiles;
     FReturnedPathInfo : String;
     procedure ParseFirstHeaderLine(const line: String);override;
-    function  GetFirstHeaderLine: String;
+    function GetFirstHeaderLine: String;
   Protected
     Procedure ProcessMultiPart(Stream : TStream; Const Boundary : String); virtual;
     Procedure ProcessQueryString(Const FQueryString : String); virtual;
     procedure ProcessURLEncoded(Stream : TStream); virtual;
     Function  GetTempUploadFileName : String; virtual;
+    Property ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
   public
     constructor Create; override;
     destructor destroy; override;
@@ -667,7 +675,7 @@ var
 begin
   I:=GetFieldNameIndex(AName);
   If (I<>0) then
-    Result:=FFields[i];
+    Result:=self.GetFieldValue(i);
 end;
 
 Function THTTPHeader.LoadFromStream(Stream: TStream; IncludeCommand : Boolean) : Integer;

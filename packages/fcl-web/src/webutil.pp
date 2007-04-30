@@ -70,6 +70,11 @@ begin
     AddNV('RemoteHost',RemoteHost);
     AddNV('ScriptName',ScriptName);
     AddNV('ServerPort',IntToStr(ServerPort));
+    AddNV('Method',Method);
+    AddNV('URL',URL);
+    AddNV('Query',Query);
+    AddNV('Host',Host);
+    AddNV('Content',Content);
     Add('</TABLE><P>');
     // Additional headers
     If (QueryFields.Count>0) then
