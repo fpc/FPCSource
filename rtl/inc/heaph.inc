@@ -62,7 +62,7 @@ procedure SetMemoryMutexManager(var MutexMgr: TMemoryMutexManager);
 
 { Variables }
 const
-  MaxKeptOSChunks: DWord = 3; { if more than MaxKeptOSChunks are free, the heap manager will release
+  MaxKeptOSChunks: DWord = 4; { if more than MaxKeptOSChunks are free, the heap manager will release
                               chunks back to the OS }
   growheapsizesmall : ptrint=32*1024; { fixed-size small blocks will grow with 32k }
   growheapsize1 : ptrint=256*1024;  { < 256k will grow with 256k }
