@@ -1,3 +1,6 @@
+
+{$mode objfpc}
+
 program TestGetSetProp;
 {$APPTYPE CONSOLE}{$PACKSET 1}
 
