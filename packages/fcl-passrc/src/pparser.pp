@@ -1552,20 +1552,27 @@ end;
 
 procedure TPasParser.ParseProperty(Element:TPasElement);
 
+  procedure MaybeReadFullyQualifiedIdentifier(Var r : String);
+  
+  begin
+    while True do 
+      begin
+      NextToken;
+      if CurToken = tkDot then 
+        begin
+        ExpectIdentifier;
+        R:=R + '.' + CurTokenString;
+        end 
+      else
+        break;
+      end;
+  end;
+
   function GetAccessorName: String;
   begin
     ExpectIdentifier;
     Result := CurTokenString;
-
-    while True do begin
-      NextToken;
-      if CurToken = tkDot then begin
-        ExpectIdentifier;
-        Result := Result + '.' + CurTokenString;
-      end else
-        break;
-    end;
-	
+    MaybeReadFullyQualifiedIdentifier(Result);
     if CurToken = tkSquaredBraceOpen then begin
       Result := Result + '[';
       NextToken;
@@ -1576,9 +1583,8 @@ procedure TPasParser.ParseProperty(Element:TPasElement);
       Result := Result + ']';
     end else 
       UngetToken;
-  
+    MaybeReadFullyQualifiedIdentifier(Result);  
 //    writeln(Result);
-
   end;
 
 begin

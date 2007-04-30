@@ -3858,6 +3858,7 @@ packages/fcl-base/tests/b64dec.pp svneol=native#text/plain
 packages/fcl-base/tests/b64enc.pp svneol=native#text/plain
 packages/fcl-base/tests/b64test.pp svneol=native#text/plain
 packages/fcl-base/tests/b64test2.pp svneol=native#text/plain
+packages/fcl-base/tests/base64decodingtestcase.pas svneol=native#text/plain
 packages/fcl-base/tests/cachetest.pp svneol=native#text/plain
 packages/fcl-base/tests/cfgtest.pp svneol=native#text/plain
 packages/fcl-base/tests/daemon.pp svneol=native#text/plain
