@@ -170,7 +170,7 @@ unit JwaNative;
 interface
 {$INCLUDE jediapilib.inc}
 uses
-  JwaWindows;
+  JwaWinType, JwaWinBase, JwaNTStatus, JwaWinNT;
 
 {$WEAKPACKAGEUNIT}
 

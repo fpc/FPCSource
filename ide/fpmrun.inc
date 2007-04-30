@@ -99,7 +99,8 @@ begin
      else
       Debugger^.TraceNext;
     end;}
-  Debugger^.AnnotateError;
+  if Debugger^.IsRunning then
+    Debugger^.AnnotateError;
 {$else NODEBUG}
   NoDebugger;
 {$endif NODEBUG}
