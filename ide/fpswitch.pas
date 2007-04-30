@@ -1190,8 +1190,8 @@ begin
   with AsmOutputSwitches^ do
    begin
      AddDefaultSelect(opt_usedefaultas);
-{$ifdef I386}
      AddSelectItem(opt_usegnuas,'as',idNone);
+{$ifdef I386}
      AddSelectItem(opt_usenasmcoff,'nasmcoff',idNone);
      AddSelectItem(opt_usenasmelf,'nasmelf',idNone);
      AddSelectItem(opt_usenasmobj,'nasmobj',idNone);
