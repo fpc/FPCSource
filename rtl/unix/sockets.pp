@@ -37,10 +37,20 @@ type
                   path:array[0..107] of char;    //104 total for freebsd.
                   end;
 
-const EsockEINTR  = EsysEINTR;
-      EsockEBADF  = EsysEBADF;
-      EsockEFAULT = EsysEFAULT;
-      EsockEINVAL = EsysEINVAL;
+const
+  EsockEINTR            = EsysEINTR;
+  EsockEBADF            = EsysEBADF;
+  EsockEFAULT           = EsysEFAULT;
+  EsockEINVAL           = EsysEINVAL;
+  EsocksEACCESS         = ESysEAcces;
+  EsocksEMFILE          = ESysEmfile;
+  EsocksEMSGSIZE        = ESysEMsgSize;
+  EsocksENOBUFS         = ESysENoBufs;
+  EsocksENOTCONN        = ESysENotConn;
+  EsocksENOTSOCK        = ESysENotSock;
+  EsocksEPROTONOSUPPORT = ESysEProtoNoSupport;
+  EsocksEWOULDBLOCK     = ESysEWouldBlock;
+
 
 { unix socket specific functions }
 Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint);
