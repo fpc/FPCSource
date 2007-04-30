@@ -41,9 +41,9 @@ type
     procedure TestAppendOnEmptyDataset;
     procedure TestInsertOnEmptyDataset;
 
-    procedure TestBufDatasetCancelUpdates; //bug 6938
+    procedure TestBufDatasetCancelUpd; //bug 6938
     procedure TestEofAfterFirst;           //bug 7211
-    procedure TestBufDatasetCancelUpdates1;
+    procedure TestBufDatasetCancelUpd1;
     procedure TestDoubleClose;
     procedure TestCalculatedField;
     procedure TestAssignFieldftString;
@@ -787,7 +787,7 @@ begin
   AParam.Free;
 end;
 
-procedure TTestDBBasics.TestBufDatasetCancelUpdates;
+procedure TTestDBBasics.TestBufDatasetCancelUpd;
 var i : byte;
 begin
   if not (DBConnector.GetNDataset(5) is TBufDataset) then
@@ -902,7 +902,7 @@ begin
   end;
 end;
 
-procedure TTestDBBasics.TestBufDatasetCancelUpdates1;
+procedure TTestDBBasics.TestBufDatasetCancelUpd1;
 var i : byte;
 begin
   if not (DBConnector.GetNDataset(5) is TBufDataset) then
