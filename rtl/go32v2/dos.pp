@@ -189,11 +189,9 @@ var
     ls : longint;
   begin
      paste_to_dos:=false;
-     if current_dos_buffer_pos+length(src)+3>transfer_buffer+tb_size then
-      RunError(217);
-
      ls:=Length(src)-n;
-
+     if current_dos_buffer_pos+ls+3>transfer_buffer+tb_size then
+      RunError(217);
      getmem(c,ls+3);
      move(src[n],c^,ls+1);
      if cr then
@@ -575,7 +573,7 @@ end;
 
 procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
 var
-  path0 : array[0..256] of char;
+  path0 : array[0..255] of char;
 begin
   doserror:=0;
   strpcopy(path0,path);
