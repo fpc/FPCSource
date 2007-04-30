@@ -40,14 +40,14 @@ const
   EsockEBADF            = WSAEBADF;
   EsockEFAULT           = WSAEFAULT;
   EsockEINVAL           = WSAEINVAL;
-  EsocksEACCESS         = WSAEACCES;
-  EsocksEMFILE          = WSAEMFILE;
-  EsocksEMSGSIZE        = WSAEMSGSIZE;
-  EsocksENOBUFS         = WSAENOBUFS;
-  EsocksENOTCONN        = WSAENOTCONN;
-  EsocksENOTSOCK        = WSAENOTSOCK;
-  EsocksEPROTONOSUPPORT = WSAEPROTONOSUPPORT;
-  EsocksEWOULDBLOCK     = WSAEWOULDBLOCK;
+  EsockEACCESS         = WSAEACCES;
+  EsockEMFILE          = WSAEMFILE;
+  EsockEMSGSIZE        = WSAEMSGSIZE;
+  EsockENOBUFS         = WSAENOBUFS;
+  EsockENOTCONN        = WSAENOTCONN;
+  EsockENOTSOCK        = WSAENOTSOCK;
+  EsockEPROTONOSUPPORT = WSAEPROTONOSUPPORT;
+  EsockEWOULDBLOCK     = WSAEWOULDBLOCK;
 
 {$i netwsockh.inc}
 {$i socketsh.inc}

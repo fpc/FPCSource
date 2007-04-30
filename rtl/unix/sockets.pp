@@ -42,14 +42,14 @@ const
   EsockEBADF            = EsysEBADF;
   EsockEFAULT           = EsysEFAULT;
   EsockEINVAL           = EsysEINVAL;
-  EsocksEACCESS         = ESysEAcces;
-  EsocksEMFILE          = ESysEmfile;
-  EsocksEMSGSIZE        = ESysEMsgSize;
-  EsocksENOBUFS         = ESysENoBufs;
-  EsocksENOTCONN        = ESysENotConn;
-  EsocksENOTSOCK        = ESysENotSock;
-  EsocksEPROTONOSUPPORT = ESysEProtoNoSupport;
-  EsocksEWOULDBLOCK     = ESysEWouldBlock;
+  EsockEACCESS         = ESysEAcces;
+  EsockEMFILE          = ESysEmfile;
+  EsockEMSGSIZE        = ESysEMsgSize;
+  EsockENOBUFS         = ESysENoBufs;
+  EsockENOTCONN        = ESysENotConn;
+  EsockENOTSOCK        = ESysENotSock;
+  EsockEPROTONOSUPPORT = ESysEProtoNoSupport;
+  EsockEWOULDBLOCK     = ESysEWouldBlock;
 
 
 { unix socket specific functions }

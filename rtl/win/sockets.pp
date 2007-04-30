@@ -28,18 +28,18 @@ Type
   psocklen= ^tsocklen;
 
 const
-  EsockEINTR            = WSAEINTR;
-  EsockEBADF            = WSAEBADF;
-  EsockEFAULT           = WSAEFAULT;
-  EsockEINVAL           = WSAEINVAL;
-  EsocksEACCESS         = WSAEACCES;
-  EsocksEMFILE          = WSAEMFILE;
-  EsocksEMSGSIZE        = WSAEMSGSIZE;
-  EsocksENOBUFS         = WSAENOBUFS;
-  EsocksENOTCONN        = WSAENOTCONN;
-  EsocksENOTSOCK        = WSAENOTSOCK;
-  EsocksEPROTONOSUPPORT = WSAEPROTONOSUPPORT;
-  EsocksEWOULDBLOCK     = WSAEWOULDBLOCK;
+  EsockEINTR           = WSAEINTR;
+  EsockEBADF           = WSAEBADF;
+  EsockEFAULT          = WSAEFAULT;
+  EsockEINVAL          = WSAEINVAL;
+  EsockEACCESS         = WSAEACCES;
+  EsockEMFILE          = WSAEMFILE;
+  EsockEMSGSIZE        = WSAEMSGSIZE;
+  EsockENOBUFS         = WSAENOBUFS;
+  EsockENOTCONN        = WSAENOTCONN;
+  EsockENOTSOCK        = WSAENOTSOCK;
+  EsockEPROTONOSUPPORT = WSAEPROTONOSUPPORT;
+  EsockEWOULDBLOCK     = WSAEWOULDBLOCK;
 
 {$i socketsh.inc}
 {$i fpwinsockh.inc}
