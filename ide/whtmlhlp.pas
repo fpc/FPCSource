@@ -62,6 +62,7 @@ type
       GlobalOffset,
       GlobalTextBegin : sw_word;
       WithBorder : boolean;
+      IsBar : boolean;
       FirstLine : PTableLine;
       LastLine : PTableLine;
       PreviousTable : PTable;
@@ -105,12 +106,13 @@ type
       procedure DocSpan(Entered: boolean); virtual;
       procedure DocList(Entered: boolean); virtual;
       procedure DocOrderedList(Entered: boolean); virtual;
-      procedure DocListItem; virtual;
+      procedure DocListItem(Entered: boolean); virtual;
       procedure DocDefList(Entered: boolean); virtual;
-      procedure DocDefTerm; virtual;
-      procedure DocDefExp; virtual;
+      procedure DocDefTerm(Entered: boolean); virtual;
+      procedure DocDefExp(Entered: boolean); virtual;
       procedure DocTable(Entered: boolean); virtual;
       procedure DocTableRow(Entered: boolean); virtual;
+      procedure DocTableHeaderItem(Entered: boolean); virtual;
       procedure DocTableItem(Entered: boolean); virtual;
       procedure DocHorizontalRuler; virtual;
     public
@@ -125,6 +127,7 @@ type
       InAnchor: boolean;
       InParagraph: boolean;
       InPreformatted: boolean;
+      InDefExp: boolean;
       TopicTitle: string;
       Indent: integer;
       AnyCharsInLine: boolean;
@@ -261,6 +264,7 @@ begin
   LastLine:=nil;
 
   WithBorder:=false;
+  IsBar:=false;
 end;
 
 procedure TTable.AddLine(PL : PTableLine);
@@ -308,6 +312,9 @@ var
   TextBegin,TextEnd : sw_word;
   i,j,k,Length : sw_word;
 begin
+  { do nothing for single cell tables }
+  if (NumCols=1) and (NumLines=1) then
+    exit;
   GetMem(ColLengthArray,Sizeof(sw_word)*NumCols);
   FillChar(ColLengthArray^,Sizeof(sw_word)*NumCols,#0);
   GetMem(RowSizeArray,Sizeof(sw_word)*NumLines);
@@ -903,8 +910,10 @@ begin
   DocList(Entered);
 end;
 
-procedure THTMLTopicRenderer.DocListItem;
+procedure THTMLTopicRenderer.DocListItem(Entered: boolean);
 begin
+  if not Entered then
+    exit;
   if AnyCharsInLine then
     DocBreak;
   AddText('þ'+hscLineStart);
@@ -919,25 +928,38 @@ begin
   else
     begin
       if AnyCharsInLine then DocBreak;
+      InDefExp:=false;
     end;
 end;
 
-procedure THTMLTopicRenderer.DocDefTerm;
+procedure THTMLTopicRenderer.DocDefTerm(Entered: boolean);
 begin
+  if not Entered then
+    exit;
   DocBreak;
 end;
 
-procedure THTMLTopicRenderer.DocDefExp;
+procedure THTMLTopicRenderer.DocDefExp(Entered: boolean);
 begin
-  Inc(Indent,DefIndent);
-  DocBreak;
-  Dec(Indent,DefIndent);
+  if not Entered then
+    begin
+      if InDefExp then
+        Dec(Indent,DefIndent);
+      InDefExp:=false;
+    end
+  else
+    begin
+      if not InDefExp then
+        Inc(Indent,DefIndent);
+      InDefExp:=true;
+      DocBreak;
+    end;
 end;
 
 procedure THTMLTopicRenderer.DocTable(Entered: boolean);
 var
   ATable : PTable;
-  Border : String;
+  Param : String;
 begin
   if AnyCharsInLine then
     begin
@@ -950,9 +972,12 @@ begin
       New(ATable,Init(CurrentTable));
       CurrentTable:=ATable;
       CurrentTable^.Renderer:=@Self;
-      if DocGetTagParam('BORDER',border) then
-        if Border<>'0' then
+      if DocGetTagParam('BORDER',Param) then
+        if Param<>'0' then
           CurrentTable^.WithBorder:=true;
+      if DocGetTagParam('CLASS',Param) then
+        if Param='bar' then
+          CurrentTable^.IsBar:=true;
     end
   else
     begin
@@ -1025,6 +1050,13 @@ begin
         end;
     end;
 end;
+
+procedure THTMLTopicRenderer.DocTableHeaderItem(Entered: boolean);
+begin
+  { Treat as a normal item }
+  DocTableItem(Entered);
+end;
+
 
 procedure THTMLTopicRenderer.DocHorizontalRuler;
 var OAlign: TParagraphAlign;

@@ -542,8 +542,12 @@ uses
   Video,Strings,Keyboard,Validate,
   globtype,Tokens,Version,
   systems,cpubase,
+  itcpugas,
   {$if defined(I386) or defined(x64_86)}
      rax86,
+  {$endif}
+  {$ifdef m68k}
+     ag68kgas,
   {$endif}
 {$ifdef USE_EXTERNAL_COMPILER}
    fpintf, { superseeds version_string of version unit }
@@ -946,47 +950,68 @@ begin
   GetReservedWord:=S;
 end;
 
+
+{$ifdef powerpc}
+  {$define USE_TasmCondFlag}
+  {$define Use_gas_op2str}
+{$endif}
+{$ifdef powerpc64}
+  {$define USE_TasmCondFlag}
+  {$define Use_gas_op2str}
+{$endif}
+{$ifdef i386}
+  {$define USE_TasmCond}
+  {$define Use_std_op2str}
+{$endif}
+{$ifdef m68k}
+  {$define USE_None}
+  {$define Use_gas_op2str}
+{$endif}
+
 function GetAsmReservedWordCount: integer;
 begin
   GetAsmReservedWordCount:=ord(lastop) - ord(firstop)
-{$ifndef x86_64}
-{$ifndef powerpc}
-{$ifndef powerpc64}
-{$ifndef arm}
+{$ifdef Use_TasmCond}
     + CondAsmOps*(ord(high(TasmCond))-ord(low(TasmCond)));
-{$else arm}
-   { the arm has an incredible amount of combinations of opcodes,
-     we've to solve this different }
-   ;
-{$endif arm}
-{$else powerpc64}
-   + CondAsmOps*(ord(high(TAsmCondFlag))-ord(low(TAsmCondFlag)));
-{$endif powerpc64}
-{$else powerpc}
-   + CondAsmOps*(ord(high(TAsmCondFlag))-ord(low(TAsmCondFlag)));
-{$endif powerpc}
-{$endif x86_64}
+{$endif Use_TasmCond}
+{$ifdef Use_TasmCondFlag}
+    + CondAsmOps*(ord(high(TasmCondFlag))-ord(low(TasmCondFlag)));
+{$endif Use_TasmCondFlag}
+{$ifdef Use_None}
+    ;
+{$endif Use_None}
 end;
 
 
+{$define NOASM}
 function GetAsmReservedWord(Index: integer): string;
 var
   CondNum,CondOpNum : integer;
 begin
-{$ifdef I386}
-  if index <= ord(lastop) - ord(firstop) then
-    GetAsmReservedWord:=std_op2str[tasmop(Index+ord(firstop))]
-  else
-    begin
-      index:=index - (ord(lastop) - ord(firstop) );
-      CondOpNum:= index div (ord(high(TasmCond))-ord(low(TasmCond)));
-      CondNum:=index - (CondOpNum * (ord(high(TasmCond))-ord(low(TasmCond))));
-      GetAsmReservedWord:=CondAsmOpStr[CondOpNum]+cond2str[TasmCond(CondNum+ord(low(TAsmCond))+1)];
-    end;
-{$else not I386}
 {$ifdef m68k}
+{$undef NOASM}
   if index <= ord(lastop) - ord(firstop) then
-    GetAsmReservedWord:=mot_op2str[tasmop(Index+ord(firstop))]
+    GetAsmReservedWord:=gas_op2str[tasmop(Index+ord(firstop))]
+  else
+    GetAsmReservedWord:='';
+  (*
+    begin
+      index:=index - (ord(lastop) - ord(firstop) );
+      CondOpNum:= index div (ord(high(TasmCond))-ord(low(TasmCond)));
+      CondNum:=index - (CondOpNum * (ord(high(TasmCond))-ord(low(TasmCond))));
+      GetAsmReservedWord:=CondAsmOpStr[CondOpNum]+cond2str[TasmCond(CondNum+ord(low(TAsmCond))+1)];
+    end;
+    *)
+{$else not m68k}
+  if index <= ord(lastop) - ord(firstop) then
+{$ifdef Use_gas_op2str}
+    GetAsmReservedWord:=gas_op2str[tasmop(Index+ord(firstop))]
+{$endif Use_gas_op2str}
+{$ifdef Use_std_op2str}
+    GetAsmReservedWord:=std_op2str[tasmop(Index+ord(firstop))]
+{$endif Use_std_op2str}
+{$ifdef Use_TASMCond}
+{$undef NOASM}
   else
     begin
       index:=index - (ord(lastop) - ord(firstop) );
@@ -994,10 +1019,21 @@ begin
       CondNum:=index - (CondOpNum * (ord(high(TasmCond))-ord(low(TasmCond))));
       GetAsmReservedWord:=CondAsmOpStr[CondOpNum]+cond2str[TasmCond(CondNum+ord(low(TAsmCond))+1)];
     end;
-{$else not m68k}
+{$endif Use_TASMCond}
+{$ifdef Use_TASMCondFlag}
+{$undef NOASM}
+  else
+    begin
+      index:=index - (ord(lastop) - ord(firstop) );
+      CondOpNum:= index div (ord(high(TasmCondFlag))-ord(low(TasmCondFlag)));
+      CondNum:=index - (CondOpNum * (ord(high(TasmCondFlag))-ord(low(TasmCondFlag))));
+      GetAsmReservedWord:=CondAsmOpStr[CondOpNum]+AsmCondFlag2Str[TasmCondFlag(CondNum+ord(low(TAsmCondFlag))+1)];
+    end;
+{$endif Use_TASMCond}
+{$endif not m68k}
+{$ifdef NOASM}
   GetAsmReservedWord:='';
-{$endif m68k}
-{$endif I386}
+{$endif NOASM}
 end;
 
 procedure InitReservedWords;

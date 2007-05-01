@@ -259,6 +259,7 @@ begin
     Dec(R2.B.X,4);
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
+    UpdateAsmOutputSwitches;
     for I:=Count-1 downto 0 do
       Items:=NewSItem(AsmOutputSwitches^.ItemName(I), Items);
     New(RB6, Init(R2, Items));

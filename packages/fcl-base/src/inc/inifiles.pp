@@ -514,7 +514,7 @@ begin
       begin
       PB:=M.Memory;
       PC:=PChar(S);
-      For I:=1 to Length(S) do
+      For I:=1 to Length(S) div 2 do
         begin
         H:=HexStr(PB^,2);
         PC[0]:=H[1];
