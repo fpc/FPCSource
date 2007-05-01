@@ -1128,9 +1128,9 @@ end;
 
 function TPasFileType.GetDeclaration (full : boolean) : string;
 begin
-  Result:='File of ';
+  Result:='File';
   If Assigned(Eltype) then
-    Result:=Result+ElType.Name;
+    Result:=Result+' of '+ElType.Name;
   If Full Then
     Result:=Name+' = '+Result;
 end;
