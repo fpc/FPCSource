@@ -335,20 +335,9 @@ begin
 end;
 
 function TCustomIniFile.ReadInteger(const Section, Ident: string; Default: Longint): Longint;
-var
-  s: string;
 begin
-  Result := Default;
-  s := ReadString(Section, Ident, '');
-  if s > '' then try
-    // convert hex string
-    if Pos('0X', UpperCase(s)) = 1 then
-      s := '$' + Copy(s, 3, Length(s) - 2);
-    Result := StrToInt(s);
-  except
-    on EConvertError do
-    else raise;
-  end;
+  // StrToInfDef() supports hex numbers prefixed with '0x' via val()
+  Result := StrToIntDef(ReadString(Section, Ident, ''), Default);
 end;
 
 procedure TCustomIniFile.WriteInteger(const Section, Ident: string; Value: Longint);
