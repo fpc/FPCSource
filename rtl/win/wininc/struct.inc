@@ -3273,7 +3273,7 @@
 
      NMHDR = record
           hwndFrom : HWND;
-          idFrom : UINT;
+          idFrom : UINT_PTR;
           code : UINT;
        end;
      tagNMHDR = NMHDR;
