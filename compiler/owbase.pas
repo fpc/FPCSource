@@ -224,8 +224,7 @@ end;
 destructor tobjectreader.destroy;
 begin
   if opened then
-   closefile;
-  freemem(buf);
+    closefile;
 end;
 
 
@@ -253,12 +252,13 @@ begin
   opened:=false;
   bufidx:=0;
   bufmax:=0;
+  freemem(buf);
 end;
 
 
 function tobjectreader.readbuf:boolean;
 begin
-  result:=true;
+  result:=bufidx<bufmax;
 end;
 
 
@@ -270,17 +270,27 @@ end;
 
 function tobjectreader.read(out b;len:longint):boolean;
 begin
+  result:=true;
+  if bufidx+len>bufmax then
+    begin
+      result:=false;
+      len:=bufmax-bufidx;
+    end;
   move(buf[bufidx],b,len);
   inc(bufidx,len);
-  result:=true;
 end;
 
 
 function tobjectreader.readarray(a:TDynamicArray;len:longint):boolean;
 begin
+  result:=true;
+  if bufidx+len>bufmax then
+    begin
+      result:=false;
+      len:=bufmax-bufidx;
+    end;
   a.write(buf[bufidx],len);
   inc(bufidx,len);
-  result:=true;
 end;
 
 function tobjectreader.getfilename : string;
