@@ -5781,7 +5781,9 @@ const
 
   WM_APP                        = $8000;
 
-
+  // ShellExecuteEx mask
+  SEE_MASK_NOCLOSEPROCESS =  $00000040;
+  SEE_MASK_FLAG_NO_UI     =  $00000400;
 
 {$endif read_interface}
 

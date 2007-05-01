@@ -2417,7 +2417,7 @@ function DisableThreadLibraryCalls(hLibModule:HMODULE):WINBOOL; external KernelD
 function DispatchMessage(lpMsg:LPMSG):LONG; external KernelDLL name 'DispatchMessageW';
 function DispatchMessageW(lpMsg:LPMSG):LONG; external KernelDLL name 'DispatchMessageW';
 function DrawEdge(hdc:HDC; qrc:LPRECT; edge:UINT; grfFlags:UINT):WINBOOL; external KernelDLL name 'DrawEdge';
-function DrawFocusRect(hDC:HDC; var lprc:RECT):WINBOOL; external KernelDLL name 'DrawFocusRect';
+function DrawFocusRect(hDC:HDC; const lprc:RECT):WINBOOL; external KernelDLL name 'DrawFocusRect';
 function DrawFrameControl(_para1:HDC; _para2:LPRECT; _para3:UINT; _para4:UINT):WINBOOL; external KernelDLL name 'DrawFrameControl';
 function DrawIcon(hDC:HDC; X:longint; Y:longint; hIcon:HICON):WINBOOL;
 function DrawIconEx(hdc:HDC; xLeft:longint; yTop:longint; hIcon:HICON; cxWidth:longint;cyWidth:longint; istepIfAniCur:UINT; hbrFlickerFreeDraw:HBRUSH; diFlags:UINT):WINBOOL; external KernelDLL name 'DrawIconEx';

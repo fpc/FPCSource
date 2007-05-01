@@ -180,6 +180,7 @@ function GetScrollInfo(hWnd: HWND; BarFlag: Integer; var ScrollInfo: TScrollInfo
 procedure GetSystemTime(var lpSystemTime:SYSTEMTIME); external KernelDLL name 'GetSystemTime';
 function GetTextExtentPoint32(DC: HDC; Str: LPWSTR; Count: Integer; var Size: TSize): BOOL;
 function GetTextExtentPoint32W(DC: HDC; Str: LPWSTR; Count: Integer; var Size: TSize): BOOL;
+function GetTextMetrics(DC: HDC; var TM: TTextMetric): BOOL;external KernelDLL name 'GetTextMetricsW';
 function GetVersionEx(var lpVersionInformation: TOSVersionInfo): BOOL;external KernelDLL name 'GetVersionExW';
 function GetVersionExW(var lpVersionInformation: TOSVersionInfoW): BOOL; external KernelDLL name 'GetVersionExW';
 function GetWindowRect(hWnd: HWND; var lpRect: TRect): BOOL; external KernelDLL name 'GetWindowRect';
@@ -193,6 +194,7 @@ function OffsetRect(var lprc: TRect; dx, dy: Integer): BOOL; external KernelDLL 
 function PeekMessage(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL;external KernelDLL name 'PeekMessageW';
 function PeekMessageW(var lpMsg: TMsg; hWnd: HWND; wMsgFilterMin, wMsgFilterMax, wRemoveMsg: UINT): BOOL; external KernelDLL name 'PeekMessageW';
 function Polygon(DC: HDC; var Points; Count: Integer): BOOL; external KernelDLL name 'Polygon';
+function PtInRect(const lprc:TRect; pt:POINT):WINBOOL; external KernelDLL name 'PtInRect';
 function ReadFile(hFile: THandle; var Buffer; nNumberOfBytesToRead: DWORD; var lpNumberOfBytesRead: DWORD; lpOverlapped: POverlapped): BOOL; external KernelDLL name 'ReadFile';
 function RegCreateKeyEx(hKey: HKEY; lpSubKey: LPWSTR; Reserved: DWORD; lpClass: LPWSTR; dwOptions: DWORD; samDesired: REGSAM; lpSecurityAttributes: PSecurityAttributes; var phkResult: HKEY; lpdwDisposition: PDWORD): Longint; external KERNELDLL name 'RegCreateKeyExW';
 function RegCreateKeyExW(hKey: HKEY; lpSubKey: LPWSTR; Reserved: DWORD; lpClass: LPWSTR; dwOptions: DWORD; samDesired: REGSAM; lpSecurityAttributes: PSecurityAttributes; var phkResult: HKEY; lpdwDisposition: PDWORD): Longint; external KERNELDLL name 'RegCreateKeyExW';
@@ -209,6 +211,7 @@ function SetFileTime(hFile:HANDLE; var lpCreationTime:FILETIME; var lpLastAccess
 function SetLocalTime(var lpSystemTime:SYSTEMTIME):WINBOOL; external KernelDLL name 'SetLocalTime';
 function SetMenuItemInfo(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfo): BOOL; external KernelDLL name 'SetMenuItemInfoW';
 function SetMenuItemInfoW(p1: HMENU; p2: UINT; p3: BOOL; const p4: TMenuItemInfoW): BOOL; external KernelDLL name 'SetMenuItemInfoW';
+function SetRect(var lprc:TRect; xLeft:longint; yTop:longint; xRight:longint; yBottom:longint):WINBOOL; external KernelDLL name 'SetRect';
 function SetScrollInfo(hWnd: HWND; BarFlag: Integer; const ScrollInfo: TScrollInfo; Redraw: BOOL): Integer; external KernelDLL name 'SetScrollInfo';
 function SHFileOperation(const lpFileOp:SHFILEOPSTRUCTW): longint; external ShellDLL name 'SHFileOperationW';
 function SHFileOperationW(const lpFileOp:SHFILEOPSTRUCTW): longint; external ShellDLL name 'SHFileOperationW';
@@ -622,9 +625,6 @@ function GetTextExtentPoint32W(DC: HDC; Str: LPWSTR; Count: Integer; var Size: T
 function GetTextExtentPointA(DC: HDC; Str: LPCSTR; Count: Integer; var Size: TSize): BOOL; external 'gdi32' name 'GetTextExtentPointA';
 //function GetTextExtentPointI(DC: HDC; p2: PWORD; p3: Integer; var p4: TSize): BOOL;external 'gdi32' name 'GetTextExtentPointI';
 function GetTextExtentPointW(DC: HDC; Str: LPWSTR; Count: Integer; var Size: TSize): BOOL; external 'gdi32' name 'GetTextExtentPointW';
-function GetTextMetrics(DC: HDC; var TM: TTextMetric): BOOL;external 'gdi32' name 'GetTextMetricsA';
-//function GetTextMetricsA(DC: HDC; var TM: TTextMetricA): BOOL; external 'gdi32' name 'GetTextMetricsA';
-//function GetTextMetricsW(DC: HDC; var TM: TTextMetricW): BOOL; external 'gdi32' name 'GetTextMetricsW';
 function GetThreadContext(hThread: THandle; var lpContext: TContext): BOOL; external 'kernel32' name 'GetThreadContext';
 {$ifdef support_smartlink}
 function GetThreadPriorityBoost(hThread: THandle; var DisablePriorityBoost: Bool): BOOL;external 'kernel32' name 'GetThreadPriorityBoost';
@@ -753,7 +753,6 @@ function PrivilegeCheck(ClientToken: THandle; const RequiredPrivileges: TPrivile
 function PrivilegedServiceAuditAlarm(SubsystemName, ServiceName: PChar; ClientToken: THandle; var Privileges: TPrivilegeSet; AccessGranted: BOOL): BOOL;external 'advapi32' name 'PrivilegedServiceAuditAlarmA';
 function PrivilegedServiceAuditAlarmA(SubsystemName, ServiceName: LPCSTR; ClientToken: THandle; var Privileges: TPrivilegeSet; AccessGranted: BOOL): BOOL; external 'advapi32' name 'PrivilegedServiceAuditAlarmA';
 function PrivilegedServiceAuditAlarmW(SubsystemName, ServiceName: LPWSTR; ClientToken: THandle; var Privileges: TPrivilegeSet; AccessGranted: BOOL): BOOL; external 'advapi32' name 'PrivilegedServiceAuditAlarmW';
-//function PtInRect(const lprc: TRect; pt: TPoint): BOOL; external 'user32' name 'PtInRect';
 function QueryPerformanceCounter(var lpPerformanceCount: TLargeInteger): BOOL; external 'kernel32' name 'QueryPerformanceCounter';
 function QueryPerformanceFrequency(var lpFrequency: TLargeInteger): BOOL; external 'kernel32' name 'QueryPerformanceFrequency';
 //function QueryRecoveryAgents(p1: PChar; var p2: Pointer; var p3: TRecoveryAgentInformation): DWORD;external 'kernel32' name 'QueryRecoveryAgentsA';
@@ -858,7 +857,6 @@ function SetPaletteEntries(Palette: HPALETTE; StartIndex, NumEntries: UINT; var 
 //  external 'advapi32' name 'SetPrivateObjectSecurity';
 //function SetPrivateObjectSecurityEx(SecurityInformation: SECURITY_INFORMATION; ModificationDescriptor: PSecurityDescriptor; var ObjectsSecurityDescriptor: PSecurityDescriptor; AutoInheritFlags: ULONG;
 //  const GenericMapping: TGenericMapping; Token: THandle): BOOL;external 'advapi32' name 'SetPrivateObjectSecurityEx';
-function SetRect(var lprc: TRect; xLeft, yTop, xRight, yBottom: Integer): BOOL; external 'user32' name 'SetRect';
 function SetRectEmpty(var lprc: TRect): BOOL; external 'user32' name 'SetRectEmpty';
 function SetSysColors(cElements: Integer; const lpaElements; const lpaRgbValues): BOOL; external 'user32' name 'SetSysColors';
 //function SetSystemTime(const lpSystemTime: TSystemTime): BOOL; external 'kernel32' name 'SetSystemTime';
