@@ -1088,6 +1088,8 @@ implementation
                 end;
             end;
         end;
+        if pd.returndef.typ=filedef then
+          message(parser_e_illegal_function_result);
         { support procedure proc stdcall export; }
         if not(check_proc_directive(false)) then
           consume(_SEMICOLON);

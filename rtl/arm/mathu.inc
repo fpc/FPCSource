@@ -212,7 +212,7 @@ end;
 }
 
 
-{$if not(defined(gba)) and not(defined(nds))}
+{$if not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
 const
   _FPU_MASK_IM  =  $00010000;      { invalid operation      }
   _FPU_MASK_ZM  =  $00020000;      { divide by zero         }
@@ -263,7 +263,7 @@ function GetExceptionMask: TFPUExceptionMask;
   var
     cw : dword;
   begin
-{$if not(defined(gba)) and not(defined(nds))}
+{$if not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
     Result:=[];
     cw:=FPU_GetCW;
 
@@ -294,7 +294,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   var
     cw : dword;
   begin
-{$if not(defined(gba)) and not(defined(nds))}
+{$if not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
     cw:=FPU_GetCW or _FPU_MASK_ALL;
 
     if exInvalidOp in Mask then

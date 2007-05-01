@@ -23,7 +23,7 @@ const
 
 procedure fpc_cpuinit;
 begin
-{$if not(defined(wince)) and not(defined(gba)) and not(defined(nds))}
+{$if not(defined(wince)) and not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
   asm
     rfs r0
     and r0,r0,#0xffe0ffff
