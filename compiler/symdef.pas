@@ -3876,10 +3876,13 @@ implementation
              if not (objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]) then
                begin
                   { add the data of the anchestor class }
-                  inc(tObjectSymtable(symtable).datasize,tObjectSymtable(c.symtable).datasize);
+                  tObjectSymtable(symtable).datasize:=
+                    tObjectSymtable(symtable).datasize+
+                    tObjectSymtable(c.symtable).datasize;
                   if (oo_has_vmt in objectoptions) and
                      (oo_has_vmt in c.objectoptions) then
-                    dec(tObjectSymtable(symtable).datasize,sizeof(aint));
+                    tObjectSymtable(symtable).datasize:=
+                      tObjectSymtable(symtable).datasize-sizeof(aint);
                   { if parent has a vmt field then
                     the offset is the same for the child PM }
                   if (oo_has_vmt in c.objectoptions) or is_class(self) then
@@ -3907,7 +3910,8 @@ implementation
                tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(aint));
 
              vmt_offset:=tObjectSymtable(symtable).datasize;
-             inc(tObjectSymtable(symtable).datasize,sizeof(aint));
+             tObjectSymtable(symtable).datasize:=
+               tObjectSymtable(symtable).datasize+sizeof(aint);
              include(objectoptions,oo_has_vmt);
           end;
      end;
