@@ -182,6 +182,7 @@ var
   freelists_fixed    : tfreelists;
   freelist_var       : pmemchunk_var;
   freeoslist         : poschunk;
+  freeoslistend      : poschunk;
   freeoslistcount    : dword;
 
 {$endif HAS_MEMORYMANAGER}
@@ -639,7 +640,10 @@ begin
   else
     begin
 {$endif}
-      poc^.next := freeoslist;
+      if freeoslistend = nil then
+        freeoslistend := poc
+      else
+        freeoslistend^.next := poc;
       freeoslist := poc;
       inc(freeoslistcount);
 {$ifdef HAS_SYSOSFREE}
@@ -823,6 +827,8 @@ begin
           freeoslist := poc
         else
           prev_poc^.next := poc;
+        if poc = nil then
+          freeoslistend := nil;
         continue;
       end;
       pocsize := poc^.size and sizemask;
@@ -834,6 +840,8 @@ begin
             freeoslist := poc^.next
           else
             prev_poc^.next := poc^.next;
+          if poc^.next = nil then
+            freeoslistend := nil;
           dec(freeoslistcount);
           pmc := pmemchunk_fixed(pointer(poc)+fixedfirstoffset);
           if pmc^.size <> 0 then
@@ -1390,6 +1398,7 @@ begin
       dec(freeoslistcount);
       freeoslist:=poc;
     end;
+  freeoslistend:=nil;
 {$endif HAS_SYSOSFREE}
   { release mutex }
   MemoryMutexManager.MutexDone;
