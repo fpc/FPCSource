@@ -142,7 +142,9 @@ const
 
 type
 	USBReference						= SInt32;
+	USBReference_GAP_Private_field_type_fix	= USBReference; { used as field type when a record declaration contains a USBReference field identifier }
 	USBDeviceRef						= USBReference;
+	USBDeviceRef_GAP_Private_field_type_fix	= USBDeviceRef; { used as field type when a record declaration contains a USBDeviceRef field identifier }
 	USBDeviceRefPtr						= ^USBDeviceRef;
 	USBInterfaceRef						= USBReference;
 	USBPipeRef							= USBReference;
@@ -150,6 +152,7 @@ type
 	USBPipeState						= UInt32;
 	USBCount							= UInt32;
 	USBFlags							= UInt32;
+	USBFlags_GAP_Private_field_type_fix	= USBFlags; { used as field type when a record declaration contains a USBFlags field identifier }
 	USBRequest							= UInt8;
 	USBDirection						= UInt8;
 	USBRqRecipient						= UInt8;
@@ -195,8 +198,10 @@ type
 	USBPBPtr = ^USBPB;
 {$ifc TYPED_FUNCTION_POINTERS}
 	USBCompletion = procedure(pb: USBPBPtr);
+	USBCompletion_GAP_Private_field_type_fix = USBCompletion; { used as field type when a record declaration contains a USBCompletion field identifier }
 {$elsec}
 	USBCompletion = ProcPtr;
+	USBCompletion_GAP_Private_field_type_fix = USBCompletion; { used as field type when a record declaration contains a USBCompletion field identifier }
 {$endc}
 
 	USBVariantBitsPtr = ^USBVariantBits;
@@ -221,13 +226,13 @@ type
 		reserved1:				UInt16;
 		reserved2:				UInt32;
 		usbStatus:				OSStatus;
-		usbCompletion:			USBCompletion;
+		usbCompletion:			USBCompletion_GAP_Private_field_type_fix;
 		usbRefcon:				UInt32;
-		usbReference:			USBReference;
+		usbReference:			USBReference_GAP_Private_field_type_fix;
 		usbBuffer:				Ptr;
 		usbReqCount:			USBCount;
 		usbActCount:			USBCount;
-		usbFlags:				USBFlags;
+		usbFlags:				USBFlags_GAP_Private_field_type_fix;
 		usb:					USBVariantBits;
 		usbFrame:				UInt32;
 		usbClassType:			UInt8;
@@ -1154,7 +1159,7 @@ type
 		pbVersion:				UInt16;
 		usbDeviceNotification:	SInt8;
 		reserved1:				SInt8;									{  needed because of 2-byte 68k alignment }
-		usbDeviceRef:			USBDeviceRef;
+		usbDeviceRef:			USBDeviceRef_GAP_Private_field_type_fix;
 		usbClass:				UInt16;
 		usbSubClass:			UInt16;
 		usbProtocol:			UInt16;
@@ -1636,8 +1641,10 @@ const
 
 type
 	USBDriverDescVersion				= UInt32;
+	USBDriverDescVersion_GAP_Private_field_type_fix	= USBDriverDescVersion; { used as field type when a record declaration contains a USBDriverDescVersion field identifier }
 	{   Driver Loading Options }
 	USBDriverLoadingOptions 	= UInt32;
+	USBDriverLoadingOptions_GAP_Private_field_type_fix = USBDriverLoadingOptions; { used as field type when a record declaration contains a USBDriverLoadingOptions field identifier }
 const
 	kUSBDoNotMatchGenericDevice	= $00000001;					{  Driver's VendorID must match Device's VendorID }
 	kUSBDoNotMatchInterface		= $00000002;					{  Do not load this driver as an interface driver. }
@@ -1655,6 +1662,7 @@ type
 		usbDeviceReleaseNumber:	UInt16;									{  Release Number of Device }
 		usbDeviceProtocol:		UInt16;									{  Protocol Info. }
 	end;
+	USBDeviceInfo_GAP_Private_field_type_fix = USBDeviceInfo; { used as field type when a record declaration contains a USBDeviceInfo field identifier }
 
 	USBInterfaceInfoPtr = ^USBInterfaceInfo;
 	USBInterfaceInfo = record
@@ -1665,6 +1673,7 @@ type
 		usbInterfaceProtocol:	SInt8;									{  Interface Protocol }
 		pad:					SInt8
 	end;
+	USBInterfaceInfo_GAP_Private_field_type_fix = USBInterfaceInfo; { used as field type when a record declaration contains a USBInterfaceInfo field identifier }
 
 	USBDriverTypePtr = ^USBDriverType;
 	USBDriverType = record
@@ -1673,15 +1682,16 @@ type
 		usbDriverSubClass:		SInt8;									{  Module type }
 		usbDriverVersion:		NumVersion;								{  Class driver version number. }
 	end;
+	USBDriverType_GAP_Private_field_type_fix = USBDriverType; { used as field type when a record declaration contains a USBDriverType field identifier }
 
 	USBDriverDescriptionPtr = ^USBDriverDescription;
 	USBDriverDescription = record
 		usbDriverDescSignature:	OSType;									{  Signature field of this structure. }
-		usbDriverDescVersion:	USBDriverDescVersion;					{  Version of this data structure. }
-		usbDeviceInfo:			USBDeviceInfo;							{  Product & Vendor Info }
-		usbInterfaceInfo:		USBInterfaceInfo;						{  Interface info }
-		usbDriverType:			USBDriverType;							{  Driver Info. }
-		usbDriverLoadingOptions: USBDriverLoadingOptions;				{  Options for class driver loading. }
+		usbDriverDescVersion:	USBDriverDescVersion_GAP_Private_field_type_fix; {  Version of this data structure. }
+		usbDeviceInfo:			USBDeviceInfo_GAP_Private_field_type_fix; {  Product & Vendor Info }
+		usbInterfaceInfo:		USBInterfaceInfo_GAP_Private_field_type_fix; {  Interface info }
+		usbDriverType:			USBDriverType_GAP_Private_field_type_fix; {  Driver Info. }
+		usbDriverLoadingOptions: USBDriverLoadingOptions_GAP_Private_field_type_fix; {  Options for class driver loading. }
 	end;
 
 	{
@@ -1760,6 +1770,7 @@ const
 
 type
 	USBShimDescVersion 			= UInt32;
+	USBShimDescVersion_GAP_Private_field_type_fix = USBShimDescVersion; { used as field type when a record declaration contains a USBShimDescVersion field identifier }
 const
 	kCurrentUSBShimDescVers		= $0100;
 
@@ -1775,7 +1786,7 @@ type
 	USBShimDescriptionPtr = ^USBShimDescription;
 	USBShimDescription = record
 		usbShimDescSignature:	OSType;									{  Signature field of this structure. }
-		usbShimDescVersion:		USBShimDescVersion;						{  Version of this data structure. }
+		usbShimDescVersion:		USBShimDescVersion_GAP_Private_field_type_fix; {  Version of this data structure. }
 		usbDriverLoadingOptions: USBShimLoadingOptions;					{  Options for shim loading. }
 		libraryName:			Str63;									{  For optional shared library registration }
 	end;

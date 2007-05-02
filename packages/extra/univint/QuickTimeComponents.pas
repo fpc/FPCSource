@@ -289,7 +289,7 @@ const
 type
 	SCSpatialSettingsPtr = ^SCSpatialSettings;
 	SCSpatialSettings = record
-		codecType:				CodecType;
+		codecType:				CodecType_GAP_Private_field_type_fix;
 		codec:					CodecComponent;
 		depth:					SInt16;
 		spatialQuality:			CodecQ;
@@ -722,6 +722,7 @@ type
 		numFrames:				SInt8;									{  frames/sec for timecode (eg. 30) OR frames/tick for counter mode }
 		padding:				SInt8;									{  unused padding byte }
 	end;
+	TimeCodeDef_GAP_Private_field_type_fix = TimeCodeDef; { used as field type when a record declaration contains a TimeCodeDef field identifier }
 
 
 const
@@ -761,7 +762,7 @@ type
 		resvd2:					SInt16;
 		dataRefIndex:			SInt16;
 		flags:					SInt32;								{  timecode specific stuff }
-		timeCodeDef:			TimeCodeDef;
+		timeCodeDef:			TimeCodeDef_GAP_Private_field_type_fix;
 		srcRef:					array [0..0] of SInt32;
 	end;
 
@@ -4091,7 +4092,7 @@ type
 			number:				SInt32;									{     The value when valueKind is attributeValueKindInteger or attributeValueKindPercent }
 			);
 		1: (
-			boolean:			boolean;								{     The value when valueKind is attributeValueKindBoolean or attributeValueKindOnOff }
+			boolean:			boolean_GAP_Private_field_type_fix;		{     The value when valueKind is attributeValueKindBoolean or attributeValueKindOnOff }
 			);
 		2: (
 			color:				RGBColor;								{     The value when valueKind is attributeValueKindColor }

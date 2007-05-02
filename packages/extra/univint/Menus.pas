@@ -819,10 +819,12 @@ type
 	MenuID = SInt16;
 type
 	MenuItemIndex = UInt16;
+	MenuItemIndex_GAP_Private_field_type_fix = MenuItemIndex; { used as field type when a record declaration contains a MenuItemIndex field identifier }
 	MenuItemIndexPtr = ^MenuItemIndex;
 	MenuCommand = UInt32;
 type
 	MenuRef = ^SInt32; { an opaque 32-bit type }
+	MenuRef_GAP_Private_field_type_fix = MenuRef; { used as field type when a record declaration contains a MenuRef field identifier }
 	MenuRefPtr = ^MenuRef;
 { MenuHandle is old name for MenuRef}
 type
@@ -1281,7 +1283,7 @@ type
 		cmdKey: UniChar;
 		cmdKeyGlyph: UInt32;
 		cmdKeyModifiers: UInt32;
-		style: Style;
+		style: Style_GAP_Private_field_type_fix;
 		enabled: Boolean;
 		iconEnabled: Boolean;
 		filler1: SInt8;

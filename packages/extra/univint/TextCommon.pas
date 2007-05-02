@@ -429,6 +429,7 @@ const
 
 type
 	TextEncoding						= UInt32;
+	TextEncoding_GAP_Private_field_type_fix = TextEncoding; { used as field type when a record declaration contains a TextEncoding field identifier }
 	TextEncodingPtr						= ^TextEncoding; { when a VAR xx: TextEncoding parameter can be nil, it is changed to xx: TextEncodingPtr }
 	{  name part selector for GetTextEncodingName }
 	TextEncodingNameSelector			= UInt32;
@@ -445,7 +446,7 @@ type
 	TextEncodingRunPtr = ^TextEncodingRun;
 	TextEncodingRun = record
 		offset:					ByteOffset;
-		textEncoding:			TextEncoding;
+		textEncoding:			TextEncoding_GAP_Private_field_type_fix;
 	end;
 
 	ConstTextEncodingRunPtr				= ^TextEncodingRun;

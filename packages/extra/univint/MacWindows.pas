@@ -141,6 +141,7 @@ type
  }
 type
 	WindowClass = UInt32;
+	WindowClass_GAP_Private_field_type_fix = WindowClass; { used as field type when a record declaration contains a WindowClass field identifier }
 const
 {
    * An alert window is used when the application needs the user's
@@ -393,6 +394,7 @@ const
 
 type
 	WindowAttributes = UInt32;
+	WindowAttributes_GAP_Private_field_type_fix = WindowAttributes; { used as field type when a record declaration contains a WindowAttributes field identifier }
 
 {
  *  Summary:
@@ -809,6 +811,7 @@ const
  }
 type
 	WindowPositionMethod = UInt32;
+	WindowPositionMethod_GAP_Private_field_type_fix = WindowPositionMethod; { used as field type when a record declaration contains a WindowPositionMethod field identifier }
 const
 {
    * Centers the window on the main screen.
@@ -1246,7 +1249,7 @@ type
 		windowZoomRect: Rect;         { location on screen when zoomed out}
 		windowRefCon: UInt32;           { the refcon - __avoid saving stale pointers here__  }
 		windowStateFlags: UInt32;       { window state bit flags}
-		windowPositionMethod: WindowPositionMethod; { method last used by RepositionWindow to position the window (if any)}
+		windowPositionMethod: WindowPositionMethod_GAP_Private_field_type_fix; { method last used by RepositionWindow to position the window (if any)}
 
 		windowDefinitionVersion: UInt32;
 		case SInt16 of
@@ -1255,8 +1258,8 @@ type
 			windowHasCloseBox:	Boolean;
 		   );
 		1: (
-			windowClass:		WindowClass;							{  the class }
-			windowAttributes:	WindowAttributes;						{  the attributes }
+			windowClass:		WindowClass_GAP_Private_field_type_fix;	{  the class }
+			windowAttributes:	WindowAttributes_GAP_Private_field_type_fix;						{  the attributes }
 		   );
 	end;
 {  the window manager stores the default collection items using these IDs}

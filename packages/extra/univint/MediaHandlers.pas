@@ -186,7 +186,7 @@ type
 		trackDuration:			TimeValue;
 		mediaDuration:			TimeValue;
 		effectiveRate:			Fixed;
-		timeBase:				TimeBase;
+		timeBase:				TimeBase_GAP_Private_field_type_fix;
 		volume:					SInt16;
 		width:					Fixed;
 		height:					Fixed;
@@ -224,12 +224,12 @@ type
 
 	QTCustomActionTargetRecordPtr = ^QTCustomActionTargetRecord;
 	QTCustomActionTargetRecord = record
-		movie:					Movie;
+		movie:					Movie_GAP_Private_field_type_fix;
 		doMCActionCallbackProc:	DoMCActionUPP;
 		callBackRefcon:			SInt32;
-		track:					Track;
+		track:					Track_GAP_Private_field_type_fix;
 		trackObjectRefCon:		SInt32;
-		defaultTrack:			Track;
+		defaultTrack:			Track_GAP_Private_field_type_fix;
 		defaultObjectRefCon:	SInt32;
 		reserved1:				SInt32;
 		reserved2:				SInt32;

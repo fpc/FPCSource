@@ -379,13 +379,13 @@ type
 			resID:				SInt16;
 			);
 		1: (
-			cIconHandle:		CIconHandle;
+			cIconHandle:		CIconHandle_GAP_Private_field_type_fix;
 			);
 		2: (
 			iconSuite:			Handle;
 			);
 		3: (
-			iconRef:			IconRef;
+			iconRef:			IconRef_GAP_Private_field_type_fix;
 			);
 		4: (
 			picture:			PicHandle;
@@ -729,7 +729,7 @@ type
 	ControlDataAccessRec = record
 		tag: ResType;
 		part: ResType;
-		size: Size;
+		size: Size_GAP_Private_field_type_fix;
 		dataPtr: Ptr;
 	end;
 type

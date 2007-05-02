@@ -326,6 +326,7 @@ const
 
 type
 	CodecType							= OSType;
+	CodecType_GAP_Private_field_type_fix = CodecType; { used as field type when a record declaration contains a CodecType field identifier }
 	CodecFlags							= UInt16;
 	CodecQ								= UInt32;
 

@@ -190,7 +190,7 @@ end;
 
 function CFSwapInt64( arg: UInt64 ): UInt64; inline;
 begin
-	CFSwapInt64 := (CFSwapInt32( arg and $FFFFFFFF ) shl 32) or CFSwapInt32( (arg shr 32) and $FFFFFFFF );
+	CFSwapInt64 := (UInt64(CFSwapInt32( arg and $FFFFFFFF )) shl 32) or CFSwapInt32( (arg shr 32) and $FFFFFFFF );
 end;
 
 {$ifc TARGET_RT_BIG_ENDIAN}

@@ -353,7 +353,7 @@ type
 	QTVRCursorRecord = record
 		theType:				UInt16;									{  field was previously named "type" }
 		rsrcID:					SInt16;
-		handle:					Handle;
+		handle:					Handle_GAP_Private_field_type_fix;
 	end;
 
 	QTVRFloatPointPtr = ^QTVRFloatPoint;
