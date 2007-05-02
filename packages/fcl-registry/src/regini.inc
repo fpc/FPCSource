@@ -104,7 +104,8 @@ begin
 	Result := Default;
 	if not OpenKey(fPath+Section,false) then Exit;
 	try
-  	Result := inherited ReadBool(Ident);
+    if ValueExists(Ident) then
+	    Result := inherited ReadBool(Ident);
 	finally
 	  CloseKey;
 	end;
@@ -115,7 +116,8 @@ begin
   Result := Default;
   if not OpenKey(fPath+Section,false) then Exit;
   try
-    Result := inherited ReadInteger(Ident);
+    if ValueExists(Ident) then
+      Result := inherited ReadInteger(Ident);
   finally
     CloseKey;
   end;
@@ -126,7 +128,8 @@ begin
   Result := Default;
   if not OpenKey(fPath+Section,false) then Exit;
   try
-    Result := inherited ReadString(Ident);
+    if ValueExists(Ident) then
+      Result := inherited ReadString(Ident);
   finally
     CloseKey;
   end;
