@@ -212,6 +212,7 @@ const
 
 type
 	DriverDescVersion					= UInt32;
+	DriverDescVersion_GAP_Private_field_type_fix = DriverDescVersion; { used as field type when a record declaration contains a DriverDescVersion field identifier }
 	{	  The Driver Description 	}
 
 const
@@ -226,7 +227,7 @@ type
 	DriverDescriptionPtr = ^DriverDescription;
 	DriverDescription = record
 		driverDescSignature:	OSType;									{  Signature field of this structure }
-		driverDescVersion:		DriverDescVersion;						{  Version of this data structure }
+		driverDescVersion:		DriverDescVersion_GAP_Private_field_type_fix; {  Version of this data structure }
 		driverType:				MacDriverType;							{  Type of Driver }
 		driverOSRuntimeInfo:	DriverOSRuntime;						{  OS Runtime Requirements of Driver }
 		driverServices:			DriverOSService;						{  Apple Service API Membership }

@@ -9303,8 +9303,8 @@ type
 	HICommand = record
 		attributes: UInt32;
 		commandID: UInt32;
-		menuRef: MenuRef;
-		menuItemIndex: MenuItemIndex;
+		menuRef: MenuRef_GAP_Private_field_type_fix;
+		menuItemIndex: MenuItemIndex_GAP_Private_field_type_fix;
 	end;
 	HICommandPtr = ^HICommand;
 type
@@ -9319,8 +9319,8 @@ type
 			window: WindowRef;
 		);
 		2: (
-			menuRef: MenuRef;
-			menuItemIndex: MenuItemIndex;
+			menuRef: MenuRef_GAP_Private_field_type_fix;
+			menuItemIndex: MenuItemIndex_GAP_Private_field_type_fix;
 		 );
 	end;
 	HICommandExtendedPtr = ^HICommandExtended;

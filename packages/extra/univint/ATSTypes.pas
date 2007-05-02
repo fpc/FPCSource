@@ -386,6 +386,7 @@ type
 	end;
 
 	GlyphID								= ATSGlyphRef;
+	GlyphID_GAP_Private_field_type_fix	= GlyphID; { used as field type when a record declaration contains a GlyphID field identifier }
 	GlyphIDPtr = ^GlyphID;
 {$ALIGN MAC68K}
 

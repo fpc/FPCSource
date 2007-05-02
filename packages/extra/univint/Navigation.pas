@@ -563,10 +563,10 @@ const
 type
 	NavTypeListPtr = ^NavTypeList;
 	NavTypeList = record
-		componentSignature:		OSType;
+		componentSignature:		OSType_GAP_Private_field_type_fix;
 		reserved:				SInt16;
 		osTypeCount:			SInt16;
-		osType:					array [0..0] of OSType;
+		osType:					array [0..0] of OSType_GAP_Private_field_type_fix;
 	end;
 
 	NavTypeListHandle					= ^NavTypeListPtr;

@@ -293,7 +293,9 @@ type
 	Ptr = ^SInt8;
 	PtrPtr = ^Ptr;       
 	Handle = ^Ptr;
+	Handle_GAP_Private_field_type_fix = Handle; { used as field type when a record declaration contains a Handle field identifier }
 	Size = SInt32;
+	Size_GAP_Private_field_type_fix = Size; { used as field type when a record declaration contains a Size field identifier }
 	SizePtr = ^Size;
 	UnivPtr = Pointer;
 	UnivPtrPtr = ^UnivPtr;
@@ -351,6 +353,7 @@ type
  	RegionCodePtr = ^RegionCode;
 	FourCharCode = UInt32;
 	OSType = FourCharCode;
+	OSType_GAP_Private_field_type_fix = OSType; { used as field type when a record declaration contains a OSType field identifier }
 	ResType = FourCharCode;
 	OSTypePtr = ^OSType;
 	ResTypePtr = ^ResType;
@@ -367,6 +370,7 @@ type
 type
 { "Boolean", "true", and "false" are built into the Pascal language }
 	BooleanPtr = ^Boolean;
+	boolean_GAP_Private_field_type_fix = boolean; { used as field type when a record declaration contains a boolean field identifier }
 {*******************************************************************************
 
     Function Pointer Types
@@ -612,6 +616,7 @@ const
 
 type
 	Style = SInt8;
+	Style_GAP_Private_field_type_fix = Style; { used as field type when a record declaration contains a Style field identifier }
 	StyleParameter = SInt16;
 	StyleField = Style;
 
@@ -631,11 +636,13 @@ type
 type
 	TimeValue = SInt32;
 	TimeScale = SInt32;
+	TimeScale_GAP_Private_field_type_fix = TimeScale; { used as field type when a record declaration contains a TimeScale field identifier }
 	CompTimeValue = wide;
 	CompTimeValuePtr = ^CompTimeValue;
 	TimeValue64 = SInt64;
 	TimeValue64Ptr = ^TimeValue64;
 	TimeBase = ^SInt32; { an opaque 32-bit type }
+	TimeBase_GAP_Private_field_type_fix = TimeBase; { used as field type when a record declaration contains a TimeBase field identifier }
 	TimeBasePtr = ^TimeBase;
 	TimeRecord = record
 		value: CompTimeValue;                  { units (duration or absolute) }

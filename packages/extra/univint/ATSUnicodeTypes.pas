@@ -1021,7 +1021,7 @@ type
    * kGlyphCollectionGID). For Adobe glyph collections, this value
    * represents a CID
    }
-		glyphID: GlyphID;
+		glyphID: GlyphID_GAP_Private_field_type_fix;
 	end;
 	ATSUGlyphSelectorPtr = ^ATSUGlyphSelector;
 
@@ -1100,7 +1100,7 @@ type
  }
 type
 	ATSUGlyphInfo = record
-		glyphID: GlyphID;
+		glyphID: GlyphID_GAP_Private_field_type_fix;
 		reserved: UInt16;
 		layoutFlags: UInt32;
 		charIndex: UniCharArrayOffset;

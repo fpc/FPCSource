@@ -403,7 +403,7 @@ type
 		height:					Fixed;
 		matrix:					MatrixRecord;
 		gWorld:					CGrafPtr;
-		gdHandle:				GDHandle;
+		gdHandle:				GDHandle_GAP_Private_field_type_fix;
 		clip:					RgnHandle;
 		graphicsMode:			SInt16;
 		opColor:				RGBColor;
@@ -557,7 +557,7 @@ type
 		dataLength:				UInt32;
 		editList:				QTSEditListHandle;
 		flags:					SInt32;
-		timeScale:				TimeScale;								{  set to 0 for default timescale  }
+		timeScale:				TimeScale_GAP_Private_field_type_fix;	{  set to 0 for default timescale  }
 		mediaParams:			QTSMediaParamsPtr;
 		notificationProc:		QTSNotificationUPP;
 		notificationRefCon:		Ptr;
@@ -568,7 +568,7 @@ type
 		version:				UInt32;
 		editList:				QTSEditListHandle;
 		flags:					SInt32;
-		timeScale:				TimeScale;								{  set to 0 for default timescale  }
+		timeScale:				TimeScale_GAP_Private_field_type_fix;	{  set to 0 for default timescale  }
 		mediaParams:			QTSMediaParamsPtr;
 		notificationProc:		QTSNotificationUPP;
 		notificationRefCon:		Ptr;
@@ -1624,7 +1624,7 @@ type
 	QTSDurationAtomPtr = ^QTSDurationAtom;
 	QTSDurationAtom = record
 		versionAndFlags:		SInt32;
-		timeScale:				TimeScale;
+		timeScale:				TimeScale_GAP_Private_field_type_fix;
 		duration:				TimeValue64;
 	end;
 

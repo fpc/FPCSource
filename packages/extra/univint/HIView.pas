@@ -557,7 +557,7 @@ type
 			iconSuite: IconSuiteRef;
 			);
 		1: (
-			iconRef: IconRef;
+			iconRef: IconRef_GAP_Private_field_type_fix;
 			);
 		2: (
 			imageRef: CGImageRef;

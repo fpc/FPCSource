@@ -1390,6 +1390,7 @@ type
 	GDevicePtr = ^GDevice;
 	GDPtr								= ^GDevice;
 	GDHandle							= ^GDPtr;
+	GDHandle_GAP_Private_field_type_fix	= GDHandle; { used as field type when a record declaration contains a GDHandle field identifier }
 	GDHandlePtr							= ^GDHandle; { when a VAR xx: GDHandle parameter can be nil, it is changed to xx: GDHandlePtr }
 	GDevice = record
 		gdRefNum:				SInt16;								{ driver's unit number }
