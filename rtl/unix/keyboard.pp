@@ -870,8 +870,10 @@ const key_sequences:array[0..278] of key_sequence=(
        (char:0;scan:kbDown;st:#27'OB'),          {xterm}
        (char:0;scan:kbRight;st:#27'OC'),         {xterm}
        (char:0;scan:kbLeft;st:#27'OD'),          {xterm}
+(* Already recognized above as F11!
        (char:0;scan:kbShiftF1;st:#27'[23~'),     {rxvt}
        (char:0;scan:kbShiftF2;st:#27'[24~'),     {rxvt}
+*)
        (char:0;scan:kbShiftF3;st:#27'[25~'),     {linux,rxvt}
        (char:0;scan:kbShiftF4;st:#27'[26~'),     {linux,rxvt}
        (char:0;scan:kbShiftF5;st:#27'[28~'),     {linux,rxvt}
