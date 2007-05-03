@@ -530,24 +530,40 @@ implementation
               if procdefinition.funcretloc[callerside].loc<>LOC_REGISTER then
                 internalerror(200409261);
 
-              { the FUNCTION_RESULT_REG is already allocated }
-              if getsupreg(procdefinition.funcretloc[callerside].register)<first_int_imreg then
-                cg.ungetcpuregister(current_asmdata.CurrAsmList,procdefinition.funcretloc[callerside].register);
-              if not assigned(funcretnode) then
+              retloc:=procdefinition.funcretloc[callerside];
+{$ifndef cpu64bit}
+              if cgsize in [OS_64,OS_S64] then
                 begin
+                  { the function result registers are already allocated }
+                  if getsupreg(retloc.register64.reglo)<first_int_imreg then
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register64.reglo);
+                  retloc.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,procdefinition.funcretloc[callerside].register64.reglo,retloc.register64.reglo);
+                  if getsupreg(retloc.register64.reghi)<first_int_imreg then
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register64.reghi);
+                  retloc.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,procdefinition.funcretloc[callerside].register64.reghi,retloc.register64.reghi);
+                end
+              else
+{$endif cpu64bit}
+                begin
+                  { the FUNCTION_RESULT_REG is already allocated }
+                  if getsupreg(retloc.register)<first_int_imreg then
+                    cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register);
+
                   { reg_ref could generate two instrcutions and allocate a register so we've to
                     save the result first before releasing it }
-                  hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,procdefinition.funcretloc[callerside].register,hregister);
+                  retloc.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,procdefinition.funcretloc[callerside].register,retloc.register);
+                end;
 
-                  location_reset(location,LOC_REFERENCE,OS_ADDR);
+              if not assigned(funcretnode) then
+                begin
+                  location_reset(location,LOC_REFERENCE,cgsize);
                   location.reference:=refcountedtemp;
-                  cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hregister,location.reference);
                 end
               else
                 begin
-                  hregister := cg.getaddressregister(current_asmdata.CurrAsmList);
-                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,procdefinition.funcretloc[callerside].register,hregister);
                   { in case of a regular funcretnode with ret_in_param, the }
                   { original funcretnode isn't touched -> make sure it's    }
                   { the same here (not sure if it's necessary)              }
@@ -556,8 +572,13 @@ implementation
                   location := tempnode.location;
                   tempnode.free;
                   cg.g_decrrefcount(current_asmdata.CurrAsmList,resultdef,location.reference);
-                  cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hregister,location.reference);
                end;
+{$ifndef cpu64bit}
+              if cgsize in [OS_64,OS_S64] then
+                cg64.a_load64_reg_ref(current_asmdata.CurrAsmList,retloc.register64,location.reference)
+              else
+{$endif}
+                cg.a_load_reg_ref(current_asmdata.CurrAsmList,cgsize,cgsize,retloc.register,location.reference);
             end
         else
           { normal (ordinal,float,pointer) result value }
