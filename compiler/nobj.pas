@@ -659,7 +659,7 @@ implementation
                   begin
                     datasize:=align(datasize,sizeof(aint));
                     ImplIntf.Ioffset:=datasize;
-                    inc(datasize,sizeof(aint));
+                    datasize:=datasize+sizeof(aint);
                   end;
               end;
           end;

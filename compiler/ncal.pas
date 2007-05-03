@@ -169,7 +169,6 @@ interface
           function docompare(p: tnode): boolean; override;
           procedure printnodetree(var t:text);override;
 
-          property value : tnode read left write left;
           property nextpara : tnode read right write right;
           property parametername : tnode read third write third;
        end;
@@ -267,9 +266,9 @@ implementation
       procedure increase_paramssize;
         begin
           { for now we pass everything by reference
-          case para.value.resultdef.typ of
+          case para.left.resultdef.typ of
             variantdef:
-              inc(paramssize,para.value.resultdef.size);
+              inc(paramssize,para.left.resultdef.size);
             else
           }
               inc(paramssize,sizeof(voidpointertype.size ));
@@ -301,41 +300,41 @@ implementation
         while assigned(para) do
           begin
             inc(paracount);
-            typecheckpass(para.value);
+            typecheckpass(para.left);
 
             { insert some extra casts }
-            if is_constintnode(para.value) and not(is_64bitint(para.value.resultdef)) then
+            if is_constintnode(para.left) and not(is_64bitint(para.left.resultdef)) then
               begin
-                para.value:=ctypeconvnode.create_internal(para.value,s32inttype);
-                typecheckpass(para.value);
+                para.left:=ctypeconvnode.create_internal(para.left,s32inttype);
+                typecheckpass(para.left);
               end
-            else if para.value.nodetype=stringconstn then
+            else if para.left.nodetype=stringconstn then
               begin
-                para.value:=ctypeconvnode.create_internal(para.value,cwidestringtype);
-                typecheckpass(para.value);
+                para.left:=ctypeconvnode.create_internal(para.left,cwidestringtype);
+                typecheckpass(para.left);
               end
             { force automatable boolean type }
-            else if is_boolean(para.value.resultdef) then
+            else if is_boolean(para.left.resultdef) then
               begin
-                para.value:=ctypeconvnode.create_internal(para.value,bool16type);
-                typecheckpass(para.value);
+                para.left:=ctypeconvnode.create_internal(para.left,bool16type);
+                typecheckpass(para.left);
               end
             { force automatable float type }
-            else if is_extended(para.value.resultdef) then
+            else if is_extended(para.left.resultdef) then
               begin
-                para.value:=ctypeconvnode.create_internal(para.value,s64floattype);
-                typecheckpass(para.value);
+                para.left:=ctypeconvnode.create_internal(para.left,s64floattype);
+                typecheckpass(para.left);
               end;
 
             if assigned(para.parametername) then
               begin
-                typecheckpass(para.value);
+                typecheckpass(para.left);
                 inc(namedparacount);
               end;
 
-            if para.value.nodetype<>nothingn then
-              if not is_automatable(para.value.resultdef) then
-                CGMessagePos1(para.value.fileinfo,type_e_not_automatable,para.value.resultdef.typename);
+            if para.left.nodetype<>nothingn then
+              if not is_automatable(para.left.resultdef) then
+                CGMessagePos1(para.left.fileinfo,type_e_not_automatable,para.left.resultdef.typename);
 
             { we've to know the parameter size to allocate the temp. space }
             increase_paramssize;
@@ -370,20 +369,20 @@ implementation
                   internalerror(200611041);
               end;
 
-            dispatchbyref:=para.value.resultdef.typ in [variantdef];
+            dispatchbyref:=para.left.resultdef.typ in [variantdef];
             { assign the argument/parameter to the temporary location }
 
-            if para.value.nodetype<>nothingn then
+            if para.left.nodetype<>nothingn then
               if dispatchbyref then
                 addstatement(statements,cassignmentnode.create(
                   ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
                     caddrnode.create(ctemprefnode.create(params)),
                     cordconstnode.create(paramssize,ptruinttype,false)
                   )),voidpointertype),
-                  ctypeconvnode.create_internal(caddrnode.create_internal(para.value),voidpointertype)))
+                  ctypeconvnode.create_internal(caddrnode.create_internal(para.left),voidpointertype)))
               else
                 begin
-                  case para.value.resultdef.size of
+                  case para.left.resultdef.size of
                     1..4:
                       assignmenttype:=u32inttype;
                     8:
@@ -396,20 +395,20 @@ implementation
                       caddrnode.create(ctemprefnode.create(params)),
                       cordconstnode.create(paramssize,ptruinttype,false)
                     )),assignmenttype),
-                    ctypeconvnode.create_internal(para.value,assignmenttype)));
+                    ctypeconvnode.create_internal(para.left,assignmenttype)));
                 end;
 
-            if is_ansistring(para.value.resultdef) then
+            if is_ansistring(para.left.resultdef) then
               calldesc.argtypes[currargpos]:=varStrArg
             else
-              calldesc.argtypes[currargpos]:=para.value.resultdef.getvardef;
+              calldesc.argtypes[currargpos]:=para.left.resultdef.getvardef;
 
             if dispatchbyref then
               calldesc.argtypes[currargpos]:=calldesc.argtypes[currargpos] or $80;
 
             increase_paramssize;
 
-            para.value:=nil;
+            para.left:=nil;
             inc(currargpos);
             para:=tcallparanode(para.nextpara);
           end;

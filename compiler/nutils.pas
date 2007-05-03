@@ -132,7 +132,8 @@ implementation
             result := foreachnode(tloopnode(n).t2,f,arg) or result;
           end;
         raisen:
-          result := foreachnode(traisenode(n).frametree,f,arg) or result;
+          { frame tree }
+          result := foreachnode(traisenode(n).third,f,arg) or result;
         casen:
           begin
             for i := 0 to tcasenode(n).blocks.count-1 do
@@ -179,7 +180,8 @@ implementation
               result := foreachnodestatic(procmethod,tloopnode(n).t2,f,arg) or result;
             end;
           raisen:
-            result := foreachnodestatic(traisenode(n).frametree,f,arg) or result;
+            { frame tree }
+            result := foreachnodestatic(traisenode(n).third,f,arg) or result;
           casen:
             begin
               for i := 0 to tcasenode(n).blocks.count-1 do

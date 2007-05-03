@@ -406,8 +406,6 @@ interface
         FObjDataList  : TFPObjectList;
         { Position calculation }
         FImageBase    : aint;
-        FCurrDataPos,
-        FCurrMemPos   : aint;
       protected
         { writer }
         FWriter : TObjectwriter;
@@ -420,6 +418,8 @@ interface
         property CExeSection:TExeSectionClass read FCExeSection write FCExeSection;
         property CObjData:TObjDataClass read FCObjData write FCObjData;
       public
+        CurrDataPos,
+        CurrMemPos   : aint;
         IsSharedLibrary : boolean;
         constructor create;virtual;
         destructor  destroy;override;
@@ -467,8 +467,6 @@ interface
         property EntryName:string read FEntryName write FEntryName;
         property ImageBase:aint read FImageBase write FImageBase;
         property CurrExeSec:TExeSection read FCurrExeSec;
-        property CurrDataPos:aint read FCurrDataPos write FCurrDataPos;
-        property CurrMemPos:aint read FCurrMemPos write FCurrMemPos;
       end;
       TExeOutputClass=class of TExeOutput;
 

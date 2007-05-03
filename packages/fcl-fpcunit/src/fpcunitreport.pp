@@ -38,16 +38,12 @@ type
 
   TSuiteResults = class(TObject)
   private
-    FRuns: integer;
-    FErrors: integer;
-    FFailures: integer;
-    FIgnores: integer;
     FStartTime: TDateTime;
   public
-    property Runs: integer read FRuns write FRuns;
-    property Ignores: integer read FIgnores write FIgnores;
-    property Errors: integer read FErrors write FErrors;
-    property Failures: integer read FFailures write FFailures;
+    Runs: integer;
+    Failures: integer;
+    Errors: integer;
+    Ignores: integer;
     property StartTime: TDateTime read FStartTime write FStartTime;
   end;
 

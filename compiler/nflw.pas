@@ -169,8 +169,6 @@ interface
           constructor create(l,taddr,tframe:tnode);virtual;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
-
-          property frametree : tnode read third write third;
        end;
        traisenodeclass = class of traisenode;
 
@@ -1258,10 +1256,10 @@ implementation
                  typecheckpass(right);
                  inserttypeconv(right,voidpointertype);
                  { frame }
-                 if assigned(frametree) then
+                 if assigned(third) then
                   begin
-                    typecheckpass(frametree);
-                    inserttypeconv(frametree,voidpointertype);
+                    typecheckpass(third);
+                    inserttypeconv(third,voidpointertype);
                   end;
                end;
            end;
@@ -1283,8 +1281,8 @@ implementation
                  { addr }
                  firstpass(right);
                  { frame }
-                 if assigned(frametree) then
-                  firstpass(frametree);
+                 if assigned(third) then
+                  firstpass(third);
                end;
               left_right_max;
            end;

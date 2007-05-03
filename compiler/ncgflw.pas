@@ -893,8 +893,9 @@ implementation
               { multiple parameters? }
               if assigned(right) then
                 begin
-                  if assigned(frametree) then
-                    secondpass(frametree);
+                  { frame tree }
+                  if assigned(third) then
+                    secondpass(third);
                   secondpass(right);
                 end;
               secondpass(left);
@@ -905,8 +906,9 @@ implementation
               if assigned(right) then
                 begin
                   paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc3);
-                  if assigned(frametree) then
-                    cg.a_param_loc(current_asmdata.CurrAsmList,frametree.location,paraloc3)
+                  { frame tree }
+                  if assigned(third) then
+                    cg.a_param_loc(current_asmdata.CurrAsmList,third.location,paraloc3)
                   else
                     cg.a_param_const(current_asmdata.CurrAsmList,OS_INT,0,paraloc3);
                   { push address }
