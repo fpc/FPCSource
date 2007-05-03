@@ -57,6 +57,7 @@ type
     f      : TCFileStream;
     opened : boolean;
     buf    : pchar;
+    ffilename : string;
     bufidx,
     bufmax : longint;
     function readbuf:boolean;
@@ -217,6 +218,7 @@ begin
   buf:=nil;
   bufidx:=0;
   bufmax:=0;
+  ffilename:='';
   opened:=false;
 end;
 
@@ -237,6 +239,7 @@ begin
        Comment(V_Error,'Can''t open object file: '+fn);
        exit;
     end;
+  ffilename:=fn;
   getmem(buf,f.Size);
   f.read(buf^,f.Size);
   bufmax:=f.Size;
@@ -295,7 +298,7 @@ end;
 
 function tobjectreader.getfilename : string;
   begin
-    result:=f.filename;
+    result:=ffilename;
   end;
 
 end.
