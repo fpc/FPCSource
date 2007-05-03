@@ -117,7 +117,7 @@ implementation
      register ireg26d can be replaced by a memory reference.}
 
       var
-        replaceoper : longint;
+        n,replaceoper : longint;
       begin
         result:=false;
         with instr do
@@ -134,40 +134,46 @@ implementation
                     end;
                 end;
               2,3 :
-                begin
+                begin 
                   { We can handle opcodes with 2 and 3 operands the same way. The opcodes
                     with 3 registers are shrd/shld, where the 3rd operand is const or CL,
-                    that doesn't need spilling }
-                  if (oper[0]^.typ=top_reg) and
-                     (oper[1]^.typ=top_reg) and
-                     (get_alias(getsupreg(oper[0]^.reg))<>get_alias(getsupreg(oper[1]^.reg))) then
+                    that doesn't need spilling.
+                    However, due to AT&T order inside the compiler, the 3rd operand is
+                    numbered 0, so look at operand no. 1 and 2 if we have 3 operands by
+                    adding a "n". }
+                  n:=0;
+                  if ops=3 then
+                    n:=1;
+                  if (oper[n+0]^.typ=top_reg) and
+                     (oper[n+1]^.typ=top_reg) and
+                     (get_alias(getsupreg(oper[n+0]^.reg))<>get_alias(getsupreg(oper[n+1]^.reg))) then
                     begin
                       { One of the arguments shall be able to be replaced }
-                      if (getregtype(oper[0]^.reg)=regtype) and
-                         (get_alias(getsupreg(oper[0]^.reg))=orgreg) then
-                        replaceoper:=0
+                      if (getregtype(oper[n+0]^.reg)=regtype) and
+                         (get_alias(getsupreg(oper[n+0]^.reg))=orgreg) then
+                        replaceoper:=0+n
                       else
-                        if (getregtype(oper[1]^.reg)=regtype) and
-                           (get_alias(getsupreg(oper[1]^.reg))=orgreg) then
-                          replaceoper:=1
+                        if (getregtype(oper[n+1]^.reg)=regtype) and
+                           (get_alias(getsupreg(oper[n+1]^.reg))=orgreg) then
+                          replaceoper:=1+n
                       else
                         internalerror(200704281);
                     end;
-                  if (oper[0]^.typ=top_reg) and
-                     (oper[1]^.typ=top_const) then
+                  if (oper[n+0]^.typ=top_reg) and
+                     (oper[n+1]^.typ=top_const) then
                     begin
-                      if (getregtype(oper[0]^.reg)=regtype) and
-                         (get_alias(getsupreg(oper[0]^.reg))=orgreg) then
-                        replaceoper:=0
+                      if (getregtype(oper[0+n]^.reg)=regtype) and
+                         (get_alias(getsupreg(oper[0+n]^.reg))=orgreg) then
+                        replaceoper:=0+n
                       else
                         internalerror(200704282);
                     end;
-                  if (oper[0]^.typ=top_const) and
-                     (oper[1]^.typ=top_reg) then
+                  if (oper[n+0]^.typ=top_const) and
+                     (oper[n+1]^.typ=top_reg) then
                     begin
-                      if (getregtype(oper[1]^.reg)=regtype) and
-                         (get_alias(getsupreg(oper[1]^.reg))=orgreg) then
-                        replaceoper:=1
+                      if (getregtype(oper[1+n]^.reg)=regtype) and
+                         (get_alias(getsupreg(oper[1+n]^.reg))=orgreg) then
+                        replaceoper:=1+n
                       else
                         internalerror(200704283);
                     end;
