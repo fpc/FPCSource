@@ -1251,9 +1251,10 @@ type_e_no_method_and_procedure_not_compatible=04026_E_Method (variable) and Proc
 type_e_wrong_math_argument=04027_E_Illegal constant passed to internal math function
 % The constant argument passed to a ln or sqrt function is out of
 % the definition range of these functions.
-type_e_no_addr_of_constant=04028_E_Can't get the address of constants
-% It is not possible to get the address of a constant, because they
-% aren't stored in memory, you can try making it a typed constant.
+type_e_no_addr_of_constant=04028_E_Can't take the address of constant expressions
+% It is not possible to get the address of a constant expression, because they
+% aren't stored in memory. You can try making it a typed constant. This error
+% can also be displayed if you try to pass a property to a var parameter.
 type_e_argument_cant_be_assigned=04029_E_Argument can't be assigned to
 % Only expressions which can be on the left side of an
 % assignment can be passed as call by reference argument
