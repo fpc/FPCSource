@@ -38,6 +38,7 @@ procedure PASCALMAIN; external name 'PASCALMAIN';
 {******************************************************************************
                         Shared library start/halt
  ******************************************************************************}
+{$asmmode ATT}
 
 procedure _FPC_shared_lib_start(argc : dword;argv,envp : pointer); cdecl; public name '_start';
 begin

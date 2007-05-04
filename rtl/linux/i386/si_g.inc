@@ -51,6 +51,7 @@ procedure PASCALMAIN; external name 'PASCALMAIN';
 {******************************************************************************
                        Process + profiling start/halt
  ******************************************************************************}
+{$asmmode ATT}
 
 procedure _FPC_proc_gprof_start; assembler; nostackframe; public name '_start';
 asm

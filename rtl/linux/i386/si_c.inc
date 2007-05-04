@@ -50,6 +50,7 @@ procedure PASCALMAIN; external name 'PASCALMAIN';
 {******************************************************************************
                           C library start/halt
  ******************************************************************************}
+{$asmmode ATT}
 
 procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
 asm
