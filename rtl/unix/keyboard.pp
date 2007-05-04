@@ -739,7 +739,7 @@ type  key_sequence=packed record
         st:string[7];
       end;
 
-const key_sequences:array[0..278] of key_sequence=(
+const key_sequences:array[0..276] of key_sequence=(
        (char:0;scan:kbAltA;st:#27'A'),
        (char:0;scan:kbAltA;st:#27'a'),
        (char:0;scan:kbAltB;st:#27'B'),
