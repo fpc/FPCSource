@@ -22,133 +22,20 @@ Uses BaseUnix,UnixType;
 {$endif}
 
 {$i aliasptp.inc}
+{$i unxconst.inc} { Get Types and Constants only exported in this unit }
 
-{ Get Types and Constants only exported in this unit }
-{$i unxconst.inc}
-
-// We init to zero to be able to put timezone stuff under IFDEF, and still
-// keep the code working.
-// We can't do this hear, since unixutil functions access this.
-
-// var
-//  Tzseconds : Longint = 0;
-
-
-{********************
-      File
-********************}
+{**  File handling **}
 
 Const
   P_IN  = 1;                    // pipes (?)
   P_OUT = 2;
 
-Const
   LOCK_SH = 1;                  // flock constants ?
   LOCK_EX = 2;
   LOCK_UN = 8;
   LOCK_NB = 4;
 
-Type
-  Tpipe = baseunix.tfildes;     // compability.
-
-{******************************************************************************
-                            Procedure/Functions
-******************************************************************************}
-
-{**************************
-     Time/Date Handling
-***************************}
-
-var
-  tzdaylight : boolean;
-  tzname     : array[boolean] of pchar;
-
-{$IFNDEF DONT_READ_TIMEZONE}  // allows to disable linking in and trying for platforms
-                       // it doesn't (yet) work for.
-
-{ timezone support }
-procedure GetLocalTimezone(timer:cint;var leap_correct,leap_hit:cint);
-procedure GetLocalTimezone(timer:cint);
-procedure ReadTimezoneFile(fn:string);
-function  GetTimezoneFile:string;
-{$ENDIF}
-
-{**************************
-     Process Handling
-***************************}
-
-//
-// These are much better, in nearly all ways.
-//
-
-function FpExecLE (Const PathName:AnsiString;const S:Array Of AnsiString;MyEnv:ppchar):cint;
-function FpExecL(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
-function FpExecLP(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
-function FpExecV(Const PathName:AnsiString;args:ppchar):cint;
-function FpExecVP(Const PathName:AnsiString;args:ppchar):cint;
-function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
-
-Function Shell   (const Command:String):cint;     deprecated;
-Function Shell   (const Command:AnsiString):cint; deprecated;
-Function fpSystem(const Command:string):cint;
-Function fpSystem(const Command:AnsiString):cint;
-
-Function WaitProcess (Pid:cint):cint; 
-{ like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
-
-Function WIFSTOPPED (Status: Integer): Boolean;
-Function W_EXITCODE (ReturnCode, Signal: Integer): Integer;
-Function W_STOPCODE (Signal: Integer): Integer;
-
-{**************************
-     File Handling
-***************************}
-
-{$ifndef FPC_USE_LIBC} // defined using cdecl for libc.
-Function  fsync (fd : cint) : cint;
-Function  fpFlock   (fd,mode : cint)   : cint ;
-Function  fStatFS (Fd: cint;Var Info:tstatfs):cint;
-Function  StatFS  (Path:pchar;Var Info:tstatfs):cint;
-{$endif}
-
-Function  fpFlock   (var T : text;mode : cint) : cint;
-Function  fpFlock   (var F : File;mode : cint) : cint;
-
-Function  SelectText (var T:Text;TimeOut :PTimeVal):cint; deprecated;
-Function  SelectText (var T:Text;TimeOut :cint):cint; deprecated;
-
-{**************************
-   Directory Handling
-***************************}
-
-procedure SeekDir(p:pdir;loc:clong);
-function  TellDir(p:pdir):TOff;
-
-{**************************
-    Pipe/Fifo/Stream
-***************************}
-
-Function AssignPipe  (var pipe_in,pipe_out:cint):cint;
-Function AssignPipe  (var pipe_in,pipe_out:text):cint;
-Function AssignPipe  (var pipe_in,pipe_out:file):cint;
-//Function PClose      (Var F:text) : cint;
-//Function PClose      (Var F:file) : cint;
-Function POpen       (var F:text;const Prog:Ansistring;rw:char):cint;
-Function POpen       (var F:file;const Prog:Ansistring;rw:char):cint;
-Function AssignStream(Var StreamIn,Streamout:text;Const Prog:ansiString;const args : array of ansistring) : cint;
-Function AssignStream(Var StreamIn,Streamout,streamerr:text;Const Prog:ansiString;const args : array of ansistring) : cint;
-
-Function  GetDomainName:String;
-Function  GetHostName:String;
-
-
-{**************************
-     Memory functions
-***************************}
-
-Const
 // The portable MAP_* and PROT_ constants are exported from unit Unix for compability.
-
   PROT_READ  = baseunix.PROT_READ;             { page can be read }
   PROT_WRITE = baseunix.PROT_WRITE;             { page can be written }
   PROT_EXEC  = baseunix.PROT_EXEC;             { page can be executed }
@@ -160,10 +47,88 @@ Const
   MAP_TYPE      = baseunix.MAP_TYPE;          { Mask for type of mapping }
   MAP_FIXED     = baseunix.MAP_FIXED;         { Interpret addr exactly }
 
-{ Flags to `msync'.  }
+{ Flags to `msync'.  There is non msync() call in this unit? }
   MS_ASYNC        = 1;               { Sync memory asynchronously.  }
   MS_SYNC         = 4;               { Synchronous memory sync.  }
   MS_INVALIDATE   = 2;               { Invalidate the caches.  }
+
+Type
+  Tpipe = baseunix.tfildes;     // compability.
+
+{** Time/Date Handling **}
+
+var
+  tzdaylight : boolean;
+  tzname     : array[boolean] of pchar;
+
+{************     Procedure/Functions     ************)
+
+{$IFNDEF DONT_READ_TIMEZONE}  // allows to disable linking in and trying for platforms
+                       // it doesn't (yet) work for.
+
+{ timezone support }
+procedure GetLocalTimezone(timer:cint;var leap_correct,leap_hit:cint);
+procedure GetLocalTimezone(timer:cint);
+procedure ReadTimezoneFile(fn:string);
+function  GetTimezoneFile:string;
+{$ENDIF}
+
+{**  Process Handling  **}
+
+function FpExecLE (Const PathName:AnsiString;const S:Array Of AnsiString;MyEnv:ppchar):cint;
+function FpExecL  (Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+function FpExecLP (Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+function FpExecV  (Const PathName:AnsiString;args:ppchar):cint;
+function FpExecVP (Const PathName:AnsiString;args:ppchar):cint;
+function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
+
+Function Shell   (const Command:String):cint;     deprecated;
+Function Shell   (const Command:AnsiString):cint; deprecated;
+Function fpSystem(const Command:string):cint;
+Function fpSystem(const Command:AnsiString):cint;
+
+Function WaitProcess (Pid:cint):cint; 
+
+Function WIFSTOPPED (Status: Integer): Boolean;
+Function W_EXITCODE (ReturnCode, Signal: Integer): Integer;
+Function W_STOPCODE (Signal: Integer): Integer;
+
+{**      File Handling     **}
+
+{$ifndef FPC_USE_LIBC} // defined using cdecl for libc.
+// some of these are formally listed as deprecated, but specially statfs will remain for a while, no rush.
+Function  fsync (fd : cint) : cint; deprecated;	
+Function  fpFlock   (fd,mode : cint)   : cint ;
+Function  fStatFS (Fd: cint;Var Info:tstatfs):cint; deprecated;
+Function  StatFS  (Path:pchar;Var Info:tstatfs):cint; deprecated;
+{$endif}
+
+Function  fpfStatFS (Fd: cint; Info:pstatfs):cint;
+Function  fpStatFS  (Path:pchar; Info:pstatfs):cint;
+Function  fpfsync (fd : cint) : cint;
+
+Function  fpFlock   (var T : text;mode : cint) : cint;
+Function  fpFlock   (var F : File;mode : cint) : cint;
+
+Function  SelectText (var T:Text;TimeOut :PTimeVal):cint; deprecated;
+Function  SelectText (var T:Text;TimeOut :cint):cint; deprecated;
+
+{**  Directory Handling  **}
+
+procedure SeekDir(p:pdir;loc:clong);
+function  TellDir(p:pdir):TOff;
+
+{**     Pipe/Fifo/Stream     **}
+
+Function AssignPipe  (var pipe_in,pipe_out:cint):cint;
+Function AssignPipe  (var pipe_in,pipe_out:text):cint;
+Function AssignPipe  (var pipe_in,pipe_out:file):cint;
+Function POpen       (var F:text;const Prog:Ansistring;rw:char):cint;
+Function POpen       (var F:file;const Prog:Ansistring;rw:char):cint;
+Function AssignStream(Var StreamIn,Streamout:text;Const Prog:ansiString;const args : array of ansistring) : cint;
+Function AssignStream(Var StreamIn,Streamout,streamerr:text;Const Prog:ansiString;const args : array of ansistring) : cint;
+Function  GetDomainName:String; deprecated; // because linux only.
+Function  GetHostName:String;
 
 {**************************
     Utility functions
@@ -177,7 +142,7 @@ Type
 Function  FSearch  (const path:AnsiString;dirlist:Ansistring;CurrentDirStrategy:TFSearchOption):AnsiString;
 Function  FSearch  (const path:AnsiString;dirlist:AnsiString):AnsiString;
 
-procedure SigRaise (sig:integer);
+procedure SigRaise (sig:integer); deprecated;
 
 {$ifdef FPC_USE_LIBC}
   const clib = 'c';
@@ -1267,7 +1232,6 @@ begin
   fpKill(fpGetPid,Sig);
 end;
 
-
 {******************************************************************************
                              Utility calls
 ******************************************************************************}
@@ -1336,9 +1300,22 @@ Begin
  FSearch:=FSearch(path,dirlist,CurrentDirectoryFirst);
 End;
 
-{--------------------------------
-      Stat.Mode Macro's
---------------------------------}
+Function  fpfStatFS (Fd: cint; Info:pstatfs):cint;
+begin
+  fpfstatfs:=fstatfs(fd,info^);
+end;
+
+Function  fpStatFS  (Path:pchar; Info:pstatfs):cint;
+
+begin
+  fpstatfs:=statfs(Path,info^);
+end;
+
+Function  fpfsync (fd : cint) : cint;
+
+begin
+  fpfsync:=fsync(fd);
+end;
 
 Initialization
 {$IFNDEF DONT_READ_TIMEZONE}
