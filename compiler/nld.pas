@@ -695,6 +695,22 @@ implementation
         { call helpers for windows widestrings, they aren't ref. counted }
         if (tf_winlikewidestring in target_info.flags) and is_widestring(left.resultdef) then
          begin
+           { The first argument of fpc_widestr_assign is a var parameter. Properties cannot   }
+           { be passed to var or out parameters, because in that case setters/getters are not }
+           { used. Further, if we would allow it in case there are no getters or setters, you }
+           { would need source changes in case these are introduced later on, thus defeating  }
+           { part of the transparency advantages of properties. In this particular case,      }
+           { however:                                                                         }
+           {   a) if there is a setter, this code will not be used since then the assignment  }
+           {      will be converted to a procedure call                                       }
+           {   b) the getter is irrelevant, because fpc_widestr_assign must always decrease   }
+           {      the refcount of the field to which we are writing                           }
+           {   c) source code changes are not required if a setter is added/removed, because  }
+           {      this transformation is handled at compile time                              }
+           {  -> we can remove the nf_isproperty flag (if any) from left, so that in case it  }
+           {     is a property which refers to a field without a setter call, we will not get }
+           {     an error about trying to pass a property as a var parameter                  }
+           exclude(left.flags,nf_isproperty);
            hp:=ccallparanode.create(ctypeconvnode.create_internal(right,voidpointertype),
                ccallparanode.create(ctypeconvnode.create_internal(left,voidpointertype),
                nil));
