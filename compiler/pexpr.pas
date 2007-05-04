@@ -2803,8 +2803,6 @@ implementation
                  p1:=caddnode.create(xorn,p1,p2);
                _ASSIGNMENT :
                  p1:=cassignmentnode.create(p1,p2);
-               _CARET :
-                 p1:=caddnode.create(caretn,p1,p2);
                _UNEQUAL :
                  p1:=caddnode.create(unequaln,p1,p2);
              end;

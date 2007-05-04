@@ -467,7 +467,6 @@ implementation
         nodeclass[onn]:=connode;
         nodeclass[isn]:=cisnode;
         nodeclass[asn]:=casnode;
-        nodeclass[caretn]:=caddnode;
         nodeclass[starstarn]:=caddnode;
         nodeclass[arrayconstructorn]:=carrayconstructornode;
         nodeclass[arrayconstructorrangen]:=carrayconstructorrangenode;

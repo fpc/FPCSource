@@ -97,7 +97,6 @@ interface
           onn,              {For an on statement in exception code}
           isn,              {Represents the is operator}
           asn,              {Represents the as typecast}
-          caretn,           {Represents the ^ operator}
           starstarn,        {Represents the ** operator exponentiation }
           arrayconstructorn, {Construction node for [...] parsing}
           arrayconstructorrangen, {Range element to allow sets in array construction tree}
@@ -179,7 +178,6 @@ interface
           'onn',
           'isn',
           'asn',
-          'caretn',
           'starstarn',
           'arrayconstructn',
           'arrayconstructrangen',
