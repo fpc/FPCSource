@@ -395,16 +395,16 @@ procedure tcgppc.init_register_allocators;
 begin
   inherited init_register_allocators;
   if (target_info.system <> system_powerpc64_darwin) then
-    rg[R_INTREGISTER] := trgcpu.create(R_INTREGISTER, R_SUBWHOLE,
-      [RS_R3, RS_R4, RS_R5, RS_R6, RS_R7, RS_R8,
+    rg[R_INTREGISTER] := trgintcpu.create(R_INTREGISTER, R_SUBWHOLE,
+      [{$ifdef user0} RS_R0, {$endif} RS_R3, RS_R4, RS_R5, RS_R6, RS_R7, RS_R8,
        RS_R9, RS_R10, RS_R11, RS_R12, RS_R31, RS_R30, RS_R29,
        RS_R28, RS_R27, RS_R26, RS_R25, RS_R24, RS_R23, RS_R22,
        RS_R21, RS_R20, RS_R19, RS_R18, RS_R17, RS_R16, RS_R15,
        RS_R14, RS_R13], first_int_imreg, [])
   else
     { special for darwin/ppc64: r2 available volatile, r13 = tls }
-    rg[R_INTREGISTER] := trgcpu.create(R_INTREGISTER, R_SUBWHOLE,
-      [RS_R2, RS_R3, RS_R4, RS_R5, RS_R6, RS_R7, RS_R8,
+    rg[R_INTREGISTER] := trgintcpu.create(R_INTREGISTER, R_SUBWHOLE,
+      [{$ifdef user0} RS_R0, {$endif} RS_R2, RS_R3, RS_R4, RS_R5, RS_R6, RS_R7, RS_R8,
        RS_R9, RS_R10, RS_R11, RS_R12, RS_R31, RS_R30, RS_R29,
        RS_R28, RS_R27, RS_R26, RS_R25, RS_R24, RS_R23, RS_R22,
        RS_R21, RS_R20, RS_R19, RS_R18, RS_R17, RS_R16, RS_R15,
