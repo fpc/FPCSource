@@ -176,10 +176,9 @@ implementation
                              begin
                                if (p.nodetype=ordconstn) then
                                  begin
-                                   if compare_defs(p.resultdef,tarraydef(def).rangedef,nothingn)>=te_equal then
-                                     idx:=tordconstnode(p).value
-                                   else
-                                     IncompatibleTypes(p.resultdef,tarraydef(def).rangedef);
+                                   { type/range checking }
+                                   inserttypeconv(p,tarraydef(def).rangedef);
+                                   idx:=tordconstnode(p).value
                                  end
                                else
                                 Message(type_e_ordinal_expr_expected)
