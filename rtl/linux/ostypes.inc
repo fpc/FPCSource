@@ -236,7 +236,9 @@ CONST
   S_IFSOCK= 49152; { socket }
 
   { Constansts for MMAP }
+ {$IFDEF FPC_IS_SYSTEM}
   MAP_PRIVATE   =2;
+ {$ENDIF}
   MAP_ANONYMOUS =$20;
 
 

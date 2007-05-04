@@ -146,46 +146,25 @@ Function  GetHostName:String;
      Memory functions
 ***************************}
 
-const
-  PROT_READ  = $1;             { page can be read }
-  PROT_WRITE = $2;             { page can be written }
-  PROT_EXEC  = $4;             { page can be executed }
-  PROT_NONE  = $0;             { page can not be accessed }
+Const
+// The portable MAP_* and PROT_ constants are exported from unit Unix for compability.
 
-  MAP_FAILED    = pointer(-1); { mmap() has failed }
-  MAP_SHARED    = $1;          { Share changes }
-//  MAP_PRIVATE   = $2;          { Changes are private }
-  MAP_TYPE      = $f;          { Mask for type of mapping }
-  MAP_FIXED     = $10;         { Interpret addr exactly }
-//  MAP_ANONYMOUS = $20;         { don't use a file }
+  PROT_READ  = baseunix.PROT_READ;             { page can be read }
+  PROT_WRITE = baseunix.PROT_WRITE;             { page can be written }
+  PROT_EXEC  = baseunix.PROT_EXEC;             { page can be executed }
+  PROT_NONE  = baseunix.PROT_NONE;             { page can not be accessed }
+
+  MAP_FAILED    = baseunix.MAP_FAILED;	      { mmap() failed }
+  MAP_SHARED    = baseunix.MAP_SHARED;        { Share changes }
+  MAP_PRIVATE   = baseunix.MAP_PRIVATE;       { Changes are private }
+  MAP_TYPE      = baseunix.MAP_TYPE;          { Mask for type of mapping }
+  MAP_FIXED     = baseunix.MAP_FIXED;         { Interpret addr exactly }
 
 { Flags to `msync'.  }
   MS_ASYNC        = 1;               { Sync memory asynchronously.  }
   MS_SYNC         = 4;               { Synchronous memory sync.  }
   MS_INVALIDATE   = 2;               { Invalidate the caches.  }
 
-{$ifdef Linux}
-  MAP_GROWSDOWN  = $100;       { stack-like segment }
-  MAP_DENYWRITE  = $800;       { ETXTBSY }
-  MAP_EXECUTABLE = $1000;      { mark it as an executable }
-  MAP_LOCKED     = $2000;      { pages are locked }
-  MAP_NORESERVE  = $4000;      { don't check for reservations }
-{$else}
-  {$ifdef FreeBSD}
-  // FreeBSD defines MAP_COPY=MAP_PRIVATE=$2;
-  MAP_FILE         = $0000;  { map from file (default) }
-  MAP_ANON         = $1000;  { allocated from memory, swap space }
-
-  MAP_RENAME       = $0020; { Sun: rename private pages to file }
-  MAP_NORESERVE    = $0040; { Sun: don't reserve needed swap area }
-  MAP_INHERIT      = $0080; { region is retained after exec }
-  MAP_NOEXTEND     = $0100; { for MAP_FILE, don't change file size }
-  MAP_HASSEMAPHORE = $0200; { region may contain semaphores }
-  MAP_STACK        = $0400; { region grows down, like a stack }
-  MAP_NOSYNC       = $0800; { page to but do not sync underlying file}
-  MAP_NOCORE       = $20000;{ dont include these pages in a coredump}
-  {$endif}
-{$endif}
 {**************************
     Utility functions
 ***************************}

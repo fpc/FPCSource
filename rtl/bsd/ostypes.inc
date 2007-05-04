@@ -322,7 +322,9 @@ Type
  
 CONST
  { Constansts for MMAP }
+{$ifdef FPC_IS_SYSTEM}
   MAP_PRIVATE   =2;
+{$endif}
   MAP_ANONYMOUS =$1000;
 
     {*************************************************************************}
