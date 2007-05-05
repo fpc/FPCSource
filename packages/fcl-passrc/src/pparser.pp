@@ -1584,7 +1584,7 @@ procedure TPasParser.ParseProperty(Element:TPasElement);
     end else 
       UngetToken;
     //MaybeReadFullyQualifiedIdentifier(Result);  
-    writeln(Result);
+    //writeln(Result);
   end;
 
 begin
