@@ -530,7 +530,6 @@ BEGIN
   Keyboard.RestoreStartMode;
 {$endif defined(unix)}
 {$if defined(windows)}
-  writeln(hexstr(StartupConsoleMode,8));
   SetConsoleMode(GetStdHandle(cardinal(Std_Input_Handle)),StartupConsoleMode);
 {$endif defined(windows)}
   StreamError:=nil;
