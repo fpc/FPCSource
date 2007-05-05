@@ -61,7 +61,7 @@ var
   tzdaylight : boolean;
   tzname     : array[boolean] of pchar;
 
-{************     Procedure/Functions     ************)
+{************     Procedure/Functions     ************}
 
 {$IFNDEF DONT_READ_TIMEZONE}  // allows to disable linking in and trying for platforms
                        // it doesn't (yet) work for.
@@ -130,9 +130,7 @@ Function AssignStream(Var StreamIn,Streamout,streamerr:text;Const Prog:ansiStrin
 Function  GetDomainName:String; deprecated; // because linux only.
 Function  GetHostName:String;
 
-{**************************
-    Utility functions
-***************************}
+{** Utility functions  **}
 
 Type
         TFSearchOption  = (NoCurrentDirectory,
