@@ -1583,8 +1583,8 @@ procedure TPasParser.ParseProperty(Element:TPasElement);
       Result := Result + ']';
     end else 
       UngetToken;
-    MaybeReadFullyQualifiedIdentifier(Result);  
-//    writeln(Result);
+    //MaybeReadFullyQualifiedIdentifier(Result);  
+    writeln(Result);
   end;
 
 begin
