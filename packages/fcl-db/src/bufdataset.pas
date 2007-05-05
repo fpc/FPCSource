@@ -118,6 +118,7 @@ type
   protected
     function GetNewBlobBuffer : PBlobBuffer;
     function GetNewWriteBlobBuffer : PBlobBuffer;
+    procedure FreeBlobBuffer(var ABlobBuffer: PBlobBuffer);
     procedure SetRecNo(Value: Longint); override;
     function  GetRecNo: Longint; override;
     function GetChangeCount: integer; virtual;
@@ -276,6 +277,11 @@ begin
       end;
     end;
   SetLength(FUpdateBuffer,0);
+  
+  for r := 0 to High(FBlobBuffers) do
+    FreeBlobBuffer(FBlobBuffers[r]);
+  for r := 0 to High(FUpdateBlobBuffers) do
+    FreeBlobBuffer(FUpdateBlobBuffers[r]);
 
   FFirstRecBuf:= nil;
   SetLength(FFieldBufPositions,0);
@@ -468,7 +474,10 @@ function TBufDataset.GetFieldSize(FieldDef : TFieldDef) : longint;
 begin
   case FieldDef.DataType of
     ftString,
+      ftGuid,
       ftFixedChar: result := FieldDef.Size + 1;
+    ftFixedWideChar,
+      ftWideString:result := (FieldDef.Size + 1)*2;
     ftSmallint,
       ftInteger,
       ftword     : result := sizeof(longint);
@@ -479,7 +488,16 @@ begin
     ftTime,
       ftDate,
       ftDateTime : result := sizeof(TDateTime);
-    ftBlob       : result := sizeof(TBufBlobField)
+    ftBlob,
+      ftMemo,
+      ftGraphic,
+      ftFmtMemo,
+      ftParadoxOle,
+      ftDBaseOle,
+      ftTypedBinary,
+      ftOraBlob,
+      ftOraClob,
+      ftWideMemo : result := sizeof(TBufBlobField)
   else Result := 10
   end;
 
@@ -1052,6 +1070,14 @@ begin
   fillbyte(ABlobBuffer^,sizeof(ABlobBuffer^),0);
   FUpdateBlobBuffers[high(FUpdateBlobBuffers)] := ABlobBuffer;
   result := ABlobBuffer;
+end;
+
+procedure TBufDataset.FreeBlobBuffer(var ABlobBuffer: PBlobBuffer);
+
+begin
+  if not Assigned(ABlobBuffer) then Exit;
+  FreeMem(ABlobBuffer^.Buffer, ABlobBuffer^.Size);
+  FreeMem(ABlobBuffer, SizeOf(TBlobBuffer));
 end;
 
 function TBufBlobStream.Seek(Offset: Longint; Origin: Word): Longint;
