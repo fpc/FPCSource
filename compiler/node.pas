@@ -278,6 +278,12 @@ interface
          { the parent node of this is node    }
          { this field is set by concattolist  }
          parent : tnode;
+         { next node in control flow on the same block level, i.e.
+           for loop nodes, this is the next node after the end of the loop,
+           same for if and case, if this field is nil, the next node is the procedure exit,
+           for the last node in a loop this is set to the loop header
+           this field is set only for control flow nodes }
+         successor : tnode;
          { there are some properties about the node stored }
          flags  : tnodeflags;
          ppuidx : longint;
