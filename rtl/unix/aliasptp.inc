@@ -81,3 +81,7 @@ CONST
     SIG_MAXSIG    = UnixType.SIG_MAXSIG;
 //   wordsinsigset = UnixType.wordsinsigset;
 
+    PRIO_PROCESS  = UnixType.PRIO_PROCESS;
+    PRIO_PGRP	  = UnixType.PRIO_PGRP;
+    PRIO_USER	  = UnixType.PRIO_USER;
+
