@@ -417,6 +417,7 @@ interface
         function  writeData:boolean;virtual;abstract;
         property CExeSection:TExeSectionClass read FCExeSection write FCExeSection;
         property CObjData:TObjDataClass read FCObjData write FCObjData;
+        procedure Order_ObjSectionList(ObjSectionList : TFPObjectList);virtual;
       public
         CurrDataPos,
         CurrMemPos   : aint;
@@ -738,84 +739,11 @@ implementation
 
 
     function  TObjSection.FullName:string;
-      var
-        SecIdata2,
-        SecIdata4,
-        SecIData6,
-        SecIdata7: TObjSection;
-        p : pchar;
-        l,IData6Pos : longint;
-        Idata6Name,dllname : shortstring;
       begin
         if not assigned(FCachedFullName) then
           begin
             if assigned(ObjData) then
-              begin
-                { C import libs are not yet ordered by import names
-                  and the objct name does not follow the same order
-                  as the import names, but idata$4 must be
-                  ordered alphabetically PM }
-                SecIdata2:=ObjData.findsection('.idata$2');
-                SecIdata4:=ObjData.findsection('.idata$4');
-                SecIdata6:=ObjData.findsection('.idata$6');
-                SecIdata7:=ObjData.findsection('.idata$7');
-                if (assigned(SecIdata7) and assigned(SecIdata4) and
-                     (Secidata4.Size=4)) or
-                   (assigned(SecIData2)) then
-                  begin
-                    if assigned(secidata6) then
-                      begin
-                        idata6Pos:=SecIdata6.Data.Pos;
-                        SecIdata6.Data.Seek(2);
-                        l:=idata6Pos-2;
-                        if l>255 then
-                          l:=255;
-                        IData6Name[0]:=chr(l);
-                        SecIdata6.Data.Read(IData6Name[1],l);
-                        SecIdata6.Data.Seek(idata6Pos);
-                      end
-                    else
-                      IData6Name:='<empty>';
-                    if assigned(SecIdata2) and
-                       (SecIdata2.ObjSymbolDefines.count=1) then
-                      begin
-                        dllname:=TObjSymbol(SecIdata2.ObjSymbolDefines.Last).name;
-                        if pos('__head_',dllname)=1 then
-                          dllname:=copy(dllname,8,length(dllname));
-                        while (pos('_',dllname)=1) do
-                          delete(dllname,1,1);
-                        dllname:=dllname+' head';
-                      end
-                    else if (SecIdata7.size=4) and
-                       (SecIdata7.ObjRelocations.count=1) and
-                       assigned(TObjRelocation(SecIdata7.ObjRelocations.Last).symbol) then
-                      begin
-                          dllname:=TObjRelocation(SecIdata7.ObjRelocations.Last).symbol.name;
-                        if pos('__head_',dllname)=1 then
-                          dllname:=copy(dllname,8,length(dllname));
-                        while (pos('_',dllname)=1) do
-                          delete(dllname,1,1);
-                        dllname:=dllname+' import';
-                      end
-                    else if (SecIdata7.ObjSymbolDefines.count=1) then
-                      begin
-                        dllname:=TObjSymbol(SecIdata7.ObjSymbolDefines.Last).name;
-                        if pos('_iname',dllname)>0 then
-                          dllname:=copy(dllname,1,pos('_iname',dllname)-1);
-                        while (pos('_',dllname)=1) do
-                          delete(dllname,1,1);
-                        dllname:=dllname+' tail';
-                      end
-                    else
-                      dllname:=ObjData.Name;
-                    FCachedFullName:=stringdup(dllName+'('+Idata6Name+')');
-                    if assigned(exemap) then
-                      exemap.Add(ObjData.Name+'('+Name+') replaced by '+
-                       FCachedFullName^);
-                  end
-                else
-                  FCachedFullName:=stringdup(ObjData.Name+'('+Name+')')
-              end
+              FCachedFullName:=stringdup(ObjData.Name+'('+Name+')')
             else
               FCachedFullName:=stringdup(Name);
           end;
@@ -1673,15 +1601,6 @@ implementation
       end;
 
 
-    function ObjSectionNameCompare(Item1, Item2: Pointer): Integer;
-      var
-        I1 : TObjSection absolute Item1;
-        I2 : TObjSection absolute Item2;
-      begin
-        Result:=CompareStr(I1.FullName,I2.FullName);
-      end;
-
-
     procedure TExeOutput.Order_ObjSection(const aname:string);
       var
         i,j     : longint;
@@ -1703,10 +1622,9 @@ implementation
                   TmpObjSectionList.Add(objsec);
               end;
           end;
-        { Sort list if needed }
-        if (CurrExeSec.Name='.idata') then
-          TmpObjSectionList.Sort(@ObjSectionNameCompare);
-        { Add the (sorted) list to the current ExeSection }
+        { Order list if needed }
+        Order_ObjSectionList(TmpObjSectionList);
+        { Add the (ordered) list to the current ExeSection }
         for i:=0 to TmpObjSectionList.Count-1 do
           begin
             objsec:=TObjSection(TmpObjSectionList[i]);
@@ -1716,6 +1634,11 @@ implementation
       end;
 
 
+    procedure TExeOutput.Order_ObjSectionList(ObjSectionList : TFPObjectList);
+      begin
+      end;
+      
+      
     procedure TExeOutput.Order_Symbol(const aname:string);
       var
         ObjSection : TObjSection;

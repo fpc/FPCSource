@@ -233,6 +233,7 @@ interface
          procedure CalcPos_Header;override;
          procedure CalcPos_Symbols;override;
          function writedata:boolean;override;
+         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList);override;
        public
          constructor createcoff(awin32:boolean);
        end;
@@ -1813,13 +1814,20 @@ const pemagic : array[0..3] of byte = (
                    djdecodesechdrflags(secname,sechdr.flags);
                    secalign:=sizeof(aint);
                  end;
-{$warning TODO idata keep can maybe replaced with grouping of text and idata}
-               if (Copy(secname,1,6)='.idata') or
-                  (Copy(secname,1,6)='.edata') or
-                  (Copy(secname,1,5)='.rsrc') or
-                  (Copy(secname,1,6)='.pdata') or
-                  (Copy(secname,1,4)='.fpc') then
-                 include(secoptions,oso_keep);
+               if (Length(secname)>3) and (secname[2] in ['e','f','i','p','r']) then
+                 begin
+                   if (Copy(secname,1,6)='.edata') or
+                      (Copy(secname,1,5)='.rsrc') or
+                      (Copy(secname,1,6)='.pdata') or
+                      (Copy(secname,1,4)='.fpc') then
+                     include(secoptions,oso_keep);
+                   if (Copy(secname,1,6)='.idata') then
+                     begin
+  {$warning TODO idata keep can maybe replaced with grouping of text and idata}
+                       include(secoptions,oso_keep);
+                       secname:=secname + '.' + ExtractFileName(InputFileName);
+                     end;
+                 end;
                objsec:=TCoffObjSection(createsection(secname,secalign,secoptions,false));
                FSecTbl^[i]:=objsec;
                if not win32 then
@@ -2229,6 +2237,21 @@ const pemagic : array[0..3] of byte = (
         FCoffStrs.Free;
         FCoffSyms.Free;
         result:=true;
+      end;
+
+
+    function IdataObjSectionCompare(Item1, Item2: Pointer): Integer;
+      var
+        I1 : TObjSection absolute Item1;
+        I2 : TObjSection absolute Item2;
+      begin
+        Result:=CompareStr(I1.Name,I2.Name);
+      end;
+
+    procedure TCoffexeoutput.Order_ObjSectionList(ObjSectionList: TFPObjectList);
+      begin
+        if CurrExeSec.Name = '.idata' then
+          ObjSectionList.Sort(@IdataObjSectionCompare);
       end;
 
 
