@@ -59,7 +59,7 @@ var
   DisableProtected,
   DisablePrivate,
   DisableFunctionResults: Boolean;
- 
+
   EmitClassSeparator: Boolean;
   PackageName, OutputName: String;
   f: Text;
@@ -87,14 +87,14 @@ function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
         If (PT<>Nil) and ((PT is TPasProcedure) or (PT is TPasProcedure))   then
           PP:=PT.Parent
         else
-          PP:=Nil;  
+          PP:=Nil;
         If (PP<>Nil) and (PP is TPasClassType) then
           begin
           ParentVisible:=((not DisablePrivate or (PT.Visibility<>visPrivate)) and
                          (not DisableProtected or (PT.Visibility<>visProtected)));
           end;
-        end;  
-      end;         
+        end;
+      end;
     Result:=Assigned(AParent) and (Length(AName) > 0) and
             (ParentVisible and (not DisableArguments or (APasElement.ClassType <> TPasArgument))) and
             (ParentVisible and (not DisableFunctionResults or (APasElement.ClassType <> TPasResultElement))) and
@@ -380,13 +380,20 @@ begin
          WriteLn(f, '</module> <!-- ', Module.Name, ' -->');
          WriteLn(f, '');
        except
-        on e:EFileNotFoundError do
+         on e:EFileNotFoundError do
            begin
              Writeln(StdErr,' file ', e.message, ' not found');
              close(f);
              Halt(1);
            end;
-         end;
+         on e:EParserError do
+           begin
+             Writeln(StdErr,'', e.filename,'(',e.row,',',e.column,') Fatal: ',e.message);
+             close(f);
+             Halt(1);
+           end;
+       end;
+
       finally
         Engine.Free;
        end;

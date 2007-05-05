@@ -25,10 +25,17 @@ unit sysinitpas;
     procedure EXE_Entry; external name '_FPC_EXE_Entry';
     function DLL_entry : longbool; external name '_FPC_DLL_Entry';
 
+    const
+      STD_INPUT_HANDLE = dword(-10);
+
+    function GetStdHandle(nStdHandle:DWORD) : THandle; stdcall; external 'kernel32' name 'GetStdHandle';
+    function GetConsoleMode(hConsoleHandle: THandle; var lpMode: DWORD): Boolean; stdcall; external 'kernel32' name 'GetConsoleMode';
 
     procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
     begin
       IsConsole:=true;
+      { do it like it is necessary for the startup code linking against cygwin }
+      GetConsoleMode(GetStdHandle((Std_Input_Handle)),StartupConsoleMode);
       Exe_entry;
     end;
 
