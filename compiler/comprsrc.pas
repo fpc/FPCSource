@@ -89,9 +89,9 @@ begin
      current_settings.globalswitches:=current_settings.globalswitches+[cs_link_nolink];
    end;
   srcfilepath:=ExtractFilePath(current_module.mainsource^);
+  resobj:=current_module.outputpath^+ChangeFileExt(ExtractFileName(fname),target_info.resobjext);
   if not path_absolute(fname) then
     fname:=srcfilepath+fname;
-  resobj:=ChangeFileExt(fname,target_info.resobjext);
   s:=target_res.rescmd;
   ObjUsed:=(pos('$OBJ',s)>0);
   Replace(s,'$OBJ',maybequoted(resobj));
