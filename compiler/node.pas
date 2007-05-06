@@ -203,6 +203,7 @@ interface
          nf_pass1_done,
          nf_write,       { Node is written to            }
          nf_isproperty,
+         nf_processing,
 
          { taddrnode }
          nf_typedaddr,
@@ -250,6 +251,7 @@ interface
 
          { tblocknode }
          nf_block_with_exit
+
        );
 
        tnodeflags = set of tnodeflag;
@@ -359,6 +361,9 @@ interface
          procedure printnodetree(var t:text);virtual;
          procedure concattolist(l : tlinkedlist);virtual;
          function ischild(p : tnode) : boolean;virtual;
+
+         { ensures that the optimizer info record is allocated }
+         function allocoptinfo : poptinfo;inline;
       end;
 
       tnodeclass = class of tnode;
@@ -775,6 +780,8 @@ implementation
          if firstpasscount>maxfirstpasscount then
             maxfirstpasscount:=firstpasscount;
 {$endif EXTDEBUG}
+         if assigned(optinfo) then
+           dispose(optinfo);
       end;
 
 
@@ -904,6 +911,14 @@ implementation
       begin
       end;
 
+
+    { ensures that the optimizer info record is allocated }
+    function tnode.allocoptinfo : poptinfo;inline;
+      begin
+        if not(assigned(optinfo)) then
+          new(optinfo);
+        result:=optinfo;
+      end;
 
 {****************************************************************************
                                  TUNARYNODE

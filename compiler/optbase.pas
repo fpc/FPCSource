@@ -29,17 +29,127 @@ unit optbase;
       globtype;
 
     type
+      { this should maybe replaced by a spare set,
+        using a dyn. array makes assignments cheap }
       tdfaset = array of byte;
 
       toptinfo = record
         { index of the current node inside the dfa sets, aword(-1) if no entry }
         index : aword;
-        defined_nodes : tdfaset;
-        used_nodes : tdfaset;
+        def : tdfaset;
+        use : tdfaset;
+        life : tdfaset;
       end;
 
       poptinfo = ^toptinfo;
 
+    { basic set operations for dfa sets }
+    procedure TDFASetInclude(var s : tdfaset;e : integer);
+    procedure TDFASetExclude(var s : tdfaset;e : integer);
+    function TDFASetIn(const s : tdfaset;e : integer) : boolean;
+    procedure TDFASetUnion(var d : tdfaset;const s1,s2 : tdfaset);
+    procedure TDFASetIntersect(var d : tdfaset;const s1,s2 : tdfaset);
+    procedure TDFASetDiff(var d : tdfaset;const s1,s2 : tdfaset);
+    function DFASetNotEqual(const s1,s2 : tdfaset) : boolean;
+
   implementation
+
+    uses
+      cutils;
+
+    procedure TDFASetInclude(var s : tdfaset;e : integer);
+      var
+        e8 : Integer;
+      begin
+        e8:=e div 8;
+        if e8>high(s) then
+          SetLength(s,e8+1);
+        s[e8]:=s[e8] or (1 shl (e mod 8));
+      end;
+
+
+    procedure TDFASetExclude(var s : tdfaset;e : integer);
+      var
+        e8 : Integer;
+      begin
+        e8:=e div 8;
+        if e8>high(s) then
+          SetLength(s,e8+1);
+        s[e8]:=s[e8] and not(1 shl (e mod 8));
+      end;
+
+
+    function TDFASetIn(const s : tdfaset;e : integer) : boolean;
+      var
+        e8 : Integer;
+      begin
+        result:=false;
+        e8:=e div 8;
+        if e8>high(s) then
+          exit;
+        result:=(s[e8] and (1 shl (e mod 8)))<>0;
+      end;
+
+
+    procedure TDFASetUnion(var d : tdfaset;const s1,s2 : tdfaset);
+      var
+        i : integer;
+      begin
+        SetLength(d,max(Length(s1),Length(s2)));
+        for i:=0 to high(s1) do
+          d[i]:=s1[i];
+        for i:=0 to high(s2) do
+          d[i]:=d[i] or s2[i];
+      end;
+
+
+    procedure TDFASetIntersect(var d : tdfaset;const s1,s2 : tdfaset);
+      var
+        i : integer;
+      begin
+        SetLength(d,min(Length(s1),Length(s2)));
+        for i:=0 to min(high(s1),high(s2)) do
+          d[i]:=s1[i] and s2[i];
+      end;
+
+
+    procedure TDFASetDiff(var d : tdfaset;const s1,s2 : tdfaset);
+      var
+        i : integer;
+      begin
+        SetLength(d,min(Length(s1),Length(s2)));
+        for i:=0 to min(high(s1),high(s2)) do
+          d[i]:=s1[i] and not(s2[i]);
+      end;
+
+
+    function DFASetNotEqual(const s1,s2 : tdfaset) : boolean;
+      var
+        i : integer;
+      begin
+        result:=true;
+        { one set could be larger than the other }
+        if length(s1)>length(s2) then
+          begin
+            for i:=0 to high(s2) do
+              if s1[i]<>s2[i] then
+                exit;
+            { check remaining part being zero }
+            for i:=length(s2) to high(s1) do
+              if s1[i]<>0 then
+                exit;
+          end
+        else
+          begin
+            for i:=0 to high(s1) do
+              if s1[i]<>s2[i] then
+                exit;
+            { check remaining part being zero }
+            for i:=length(s1) to high(s2) do
+              if s2[i]<>0 then
+                exit;
+          end;
+        result:=false;
+      end;
 
 end.

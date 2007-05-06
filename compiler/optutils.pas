@@ -28,12 +28,85 @@ unit optutils;
     uses
       node;
 
+    type
+      { this implementation should be really improved,
+        its purpose is to find equal nodes }
+      TIndexedNodeSet = class(TFPList)
+        function Add(node : tnode) : boolean;
+        function Includes(node : tnode) : tnode;
+        function Remove(node : tnode) : boolean;
+      end;
+
+      TNodeMap = class(TNodeSet)
+        function (node : tnode) : boolean;
+      end;
+
     procedure SetNodeSucessors(p : tnode);
 
   implementation
 
     uses
       nbas,nflw;
+
+    function TIndexedNodeSet.Add(node : tnode) : boolean;
+      var
+        i : Integer;
+        p : tnode;
+      begin
+        node.allocoptinfo;
+        p:=Includes(node);
+        if assigned(p) then
+          begin
+            result:=false;
+            node.optinfo^.index:=p.optinfo^.index;
+          end
+        else
+          begin
+            i:=Add(node);
+            node.optinfo^.index:=i;
+            result:=true;
+          end
+      end;
+
+
+    function TIndexedNodeSet.Includes(node : tnode) : tnode;
+      var
+        i : longint;
+      begin
+        for i:=0 to FCount-1 do
+          if tnode(FList^[i]).isequal(node) then
+            begin
+              result:=tnode(FList^[i]);
+              exit;
+            end;
+        result:=nil;
+      end;
+
+
+    function TIndexedNodeSet.Remove(node : tnode) : boolean;
+      var
+        p : tnode;
+      begin
+        result:=false;
+        p:=Includes(node);
+        if assigned(p) then
+          begin
+            if Remove(p)<>-1 then
+              result:=true;
+          end;
+      end;
+
+
+    procedure PrintIndexedNodeSet(f : text;s : TIndexedNodeSet);
+      begin
+        for i:=0 to high(s) do
+          begin
+            writeln(f,'=============================== Node ',i,' ===============================');
+            printnode(f,s[i]);
+            writeln(f);
+          end;
+      end;
+
 
     procedure SetNodeSucessors(p : tnode);
       var
