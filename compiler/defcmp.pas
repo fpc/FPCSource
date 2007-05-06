@@ -914,6 +914,24 @@ implementation
                          eq:=te_convert_l1;
                        end;
                    end;
+{
+                 enumdef :
+                   begin
+                     { allow explicit typecasts from enums to pointer.
+		       Support for delphi compatibility
+                     }
+                     if (eq=te_incompatible) and
+                        (((cdo_explicit in cdoptions) and
+                          (m_delphi in current_settings.modeswitches)
+ 		         ) or
+			 (cdo_internal in cdoptions)
+			) then
+                       begin
+                         doconv:=tc_int_2_int;
+                         eq:=te_convert_l1;
+                       end;
+                   end;
+}
                  arraydef :
                    begin
                      { string constant (which can be part of array constructor)

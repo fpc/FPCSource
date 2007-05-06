@@ -19,6 +19,10 @@
 
  ****************************************************************************
 }
+
+{ $define DEBUG_DFA}
+
+{ this unit implements routines to perform dfa }
 unit optdfa;
 
 {$i fpcdefs.inc}
@@ -32,18 +36,21 @@ unit optdfa;
       if the tree has been changed without updating dfa }
     procedure resetdfainfo(node : tnode);
 
-    procedure createoptinfo(node : tnode);
+    procedure createdfainfo(node : tnode);
 
   implementation
 
     uses
       globtype,globals,
+      verbose,
       cpuinfo,
+      symdef,
       nutils,
       nbas,nflw,ncon,ninl,ncal,
-      optutils;
+      optbase,optutils;
 
 
+    (*
     function initnodes(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
         { node worth to add? }
@@ -56,7 +63,7 @@ unit optdfa;
         else
           result:=fen_norecurse_false;
       end;
-
+    *)
 
     {
       x:=f;         read: [f]
@@ -85,61 +92,104 @@ unit optdfa;
 
     type
       tdfainfo = record
-        use : TDFASet;
-        def : TDFASet;
+        use : PDFASet;
+        def : PDFASet;
         map : TIndexedNodeSet
       end;
+      pdfainfo = ^tdfainfo;
 
-    procedure AddDefUse(s : TDFASet;m : ;n : tnode);
+    function AddDefUse(var n: tnode; arg: pointer): foreachnoderesult;
       begin
-        while true do
-          begin
-            case n.nodetype of
-              typeconvn:
-                n:=ttypeconvnode(n).left;
-              loadn:
-                begin
-                  m.Add(n);
-                  TDFASetInclude(s,n.optinfo^.index);
-                end;
+        case n.nodetype of
+          loadn:
+            begin
+              pdfainfo(arg)^.map.Add(n);
+              if nf_write in n.flags then
+                DFASetInclude(pdfainfo(arg)^.def^,n.optinfo^.index)
               else
-                internalerror(2007050601);
+                DFASetInclude(pdfainfo(arg)^.use^,n.optinfo^.index);
+              {
+              write('Use Set: ');
+              PrintDFASet(output,pdfainfo(arg)^.use^);
+              write(' Def Set: ');
+              PrintDFASet(output,pdfainfo(arg)^.def^);
+              writeln;
+              }
             end;
-          end;
+        end;
+        result:=fen_false;
       end;
 
 
-    procedure CreateLifeInfo(node : tnode);
+    procedure CreateLifeInfo(node : tnode;map : TIndexedNodeSet);
 
       var
         changed : boolean;
 
       procedure CreateInfo(node : tnode);
 
+        { update life entry of a node with l, set changed if this changes
+          life info for the node
+        }
         procedure updatelifeinfo(n : tnode;l : TDFASet);
+          var
+            b : boolean;
           begin
-            changed:=changed or DFASetNotEqual(l,n.life);
-            node.life:=l;
+            b:=DFASetNotEqual(l,n.optinfo^.life);
+            {
+            if b then
+              begin
+                printnode(output,n);
+                printdfaset(output,l);
+                writeln;
+                printdfaset(output,n.optinfo^.life);
+                writeln;
+              end;
+            }
+            changed:=changed or b;
+            node.optinfo^.life:=l;
           end;
 
         procedure calclife(n : tnode);
           var
-            l : TDFANode;
+            l : TDFASet;
           begin
-            if assigned(successor) then
+            n.allocoptinfo;
+            if assigned(n.successor) then
               begin
-                DFASetDiff(l,successor.optinfo^.life,n.optinfo^.def);
+                {
+                write('Successor Life: ');
+                printdfaset(output,n.successor.optinfo^.life);
+                writeln;
+                write('Def.');
+                printdfaset(output,n.optinfo^.def);
+                writeln;
+                }
+                { ensure we can access optinfo }
+                DFASetDiff(l,n.successor.optinfo^.life,n.optinfo^.def);
+                {
+                printdfaset(output,l);
+                writeln;
+                }
                 DFASetIncludeSet(l,n.optinfo^.use);
-                updatelifeinfo(n,l);
+                DFASetIncludeSet(l,n.optinfo^.life);
               end
-          end
+            else
+              l:=n.optinfo^.use;
+            updatelifeinfo(n,l);
+          end;
 
         var
           dfainfo : tdfainfo;
+          l : TDFASet;
+
         begin
+          if node=nil then
+            exit;
+
           if nf_processing in node.flags then
             exit;
-          include(node,nf_processing);
+          include(node.flags,nf_processing);
 
           if assigned(node.successor) then
             CreateInfo(node.successor);
@@ -147,20 +197,36 @@ unit optdfa;
           { life:=succesorlive-definition+use }
 
           case node.nodetype of
-            whilen:
+            whilerepeatn:
               begin
-                { first, do things as usual, get life information from the successor }
+                calclife(node);
+                if lnf_testatbegin in twhilerepeatnode(node).loopflags then
+                  begin
+                    { first, do things as usual, get life information from the successor }
+                    node.allocoptinfo;
+                    if not(assigned(node.optinfo^.def)) and
+                       not(assigned(node.optinfo^.use)) then
+                      begin
+                        dfainfo.use:=@node.optinfo^.use;
+                        dfainfo.def:=@node.optinfo^.def;
+                        dfainfo.map:=map;
+                        foreachnodestatic(pm_postprocess,twhilerepeatnode(node).left,@AddDefUse,@dfainfo);
+                      end;
+                    calclife(node);
 
-                { life:=succesorlive-definition+use }
+                    { now iterate through the loop }
+                    CreateInfo(twhilerepeatnode(node).right);
 
-                { now iterate through the loop }
-                CreateInfo(twhilenode(node).left);
+                    { update while node }
+                    { life:=life+use+right.life }
+                    l:=node.optinfo^.life;
+                    DFASetIncludeSet(l,node.optinfo^.use);
+                    DFASetIncludeSet(l,twhilerepeatnode(node).right.optinfo^.life);
+                    UpdateLifeInfo(node,l);
 
-                { update while node }
-                { life:=life+left.life }
-
-                { ... and a second iteration for fast convergence }
-                CreateInfo(twhilenode(node).left);
+                    { ... and a second iteration for fast convergence }
+                    CreateInfo(twhilerepeatnode(node).right);
+                  end;
               end;
             statementn:
               begin
@@ -168,30 +234,58 @@ unit optdfa;
                 case tstatementnode(node).statement.nodetype of
                   assignn:
                     begin
-                      tstatementnode(node).allocoptinfo;
-                      if not(assigned(tstatementnode(node).optinfo^.def)) or
-                        not(assigned(tstatementnode(node).optinfo^.use)) then
+                      node.allocoptinfo;
+                      if not(assigned(node.optinfo^.def)) and
+                        not(assigned(node.optinfo^.use)) then
                         begin
-                          dfainfo.use:=tstatementnode(node).optinfo^.use;
-                          dfainfo.def:=tstatementnode(node).optinfo^.def;
-                          Foreach
+                          dfainfo.use:=@node.optinfo^.use;
+                          dfainfo.def:=@node.optinfo^.def;
+                          dfainfo.map:=map;
+                          foreachnodestatic(pm_postprocess,tstatementnode(node).left,@AddDefUse,@dfainfo);
                         end;
                       calclife(node);
                     end;
+                  else
+                    begin
+                      { nested statement }
+                      CreateInfo(tstatementnode(node).statement);
+                      { inherit info }
+                      node.allocoptinfo;
+                      node.optinfo^.life:=tstatementnode(node).statement.optinfo^.life;
+                    end;
                 end;
+              end;
+            blockn:
+              begin
+                CreateInfo(tblocknode(node).statements);
+                node.allocoptinfo;
+                if assigned(tblocknode(node).statements) then
+                  node.optinfo^.life:=tblocknode(node).statements.optinfo^.life;
               end;
             else
               internalerror(2007050502);
           end;
 
-          exclude(node,nf_processing);
+          exclude(node.flags,nf_processing);
         end;
 
+      var
+        runs : integer;
+
       begin
+        runs:=0;
         repeat
+          inc(runs);
           changed:=false;
           CreateInfo(node);
+{$ifdef DEBUG_DFA}
+          PrintIndexedNodeSet(output,map);
+          PrintDFAInfo(output,node);
+{$endif DEBUG_DFA}
         until not(changed);
+{$ifdef DEBUG_DFA}
+        writeln('DFA solver iterations: ',runs);
+{$endif DEBUG_DFA}
       end;
 
 
@@ -203,13 +297,17 @@ unit optdfa;
 
 
     procedure createdfainfo(node : tnode);
+      var
+        map : TIndexedNodeSet;
       begin
+        map:=TIndexedNodeSet.Create;
         { add controll flow information }
         SetNodeSucessors(node);
 
         { now, collect life information }
-        CreateLifeInfo(node);
-      end;
+        CreateLifeInfo(node,map);
 
+        map.free;
+      end;
 
 end.

@@ -32,6 +32,7 @@ unit optbase;
       { this should maybe replaced by a spare set,
         using a dyn. array makes assignments cheap }
       tdfaset = array of byte;
+      PDFASet = ^TDFASet;
 
       toptinfo = record
         { index of the current node inside the dfa sets, aword(-1) if no entry }
@@ -44,31 +45,69 @@ unit optbase;
       poptinfo = ^toptinfo;
 
     { basic set operations for dfa sets }
-    procedure TDFASetInclude(var s : tdfaset;e : integer);
-    procedure TDFASetExclude(var s : tdfaset;e : integer);
-    function TDFASetIn(const s : tdfaset;e : integer) : boolean;
-    procedure TDFASetUnion(var d : tdfaset;const s1,s2 : tdfaset);
-    procedure TDFASetIntersect(var d : tdfaset;const s1,s2 : tdfaset);
-    procedure TDFASetDiff(var d : tdfaset;const s1,s2 : tdfaset);
+
+    { add e to s }
+    procedure DFASetInclude(var s : tdfaset;e : integer);
+
+    { add s to d }
+    procedure DFASetIncludeSet(var d : tdfaset;const s : tdfaset);
+
+    { remove e from s }
+    procedure DFASetExclude(var s : tdfaset;e : integer);
+
+    { test if s contains e }
+    function DFASetIn(const s : tdfaset;e : integer) : boolean;
+
+    { d:=s1+s2; }
+    procedure DFASetUnion(var d : tdfaset;const s1,s2 : tdfaset);
+
+    { d:=s1*s2; }
+    procedure DFASetIntersect(var d : tdfaset;const s1,s2 : tdfaset);
+
+    { d:=s1-s2; }
+    procedure DFASetDiff(var d : tdfaset;const s1,s2 : tdfaset);
+
+    { s1<>s2; }
     function DFASetNotEqual(const s1,s2 : tdfaset) : boolean;
+
+    { output DFA set }
+    procedure PrintDFASet(var f : text;s : TDFASet);
 
   implementation
 
     uses
       cutils;
 
-    procedure TDFASetInclude(var s : tdfaset;e : integer);
+    procedure DFASetInclude(var s : tdfaset;e : integer);
       var
+        i,
+        oldhigh,
         e8 : Integer;
       begin
         e8:=e div 8;
         if e8>high(s) then
-          SetLength(s,e8+1);
+          begin
+            oldhigh:=high(s);
+            SetLength(s,e8+1);
+            for i:=oldhigh+1 to high(s) do
+              s[i]:=0;
+          end;
         s[e8]:=s[e8] or (1 shl (e mod 8));
       end;
 
 
-    procedure TDFASetExclude(var s : tdfaset;e : integer);
+    procedure DFASetIncludeSet(var d : tdfaset;const s : tdfaset);
+      var
+        i : integer;
+      begin
+        if length(s)>length(d) then
+          SetLength(d,length(s));
+        for i:=0 to high(s) do
+          d[i]:=d[i] or s[i];
+      end;
+
+
+    procedure DFASetExclude(var s : tdfaset;e : integer);
       var
         e8 : Integer;
       begin
@@ -79,7 +118,7 @@ unit optbase;
       end;
 
 
-    function TDFASetIn(const s : tdfaset;e : integer) : boolean;
+    function DFASetIn(const s : tdfaset;e : integer) : boolean;
       var
         e8 : Integer;
       begin
@@ -91,7 +130,7 @@ unit optbase;
       end;
 
 
-    procedure TDFASetUnion(var d : tdfaset;const s1,s2 : tdfaset);
+    procedure DFASetUnion(var d : tdfaset;const s1,s2 : tdfaset);
       var
         i : integer;
       begin
@@ -103,7 +142,7 @@ unit optbase;
       end;
 
 
-    procedure TDFASetIntersect(var d : tdfaset;const s1,s2 : tdfaset);
+    procedure DFASetIntersect(var d : tdfaset;const s1,s2 : tdfaset);
       var
         i : integer;
       begin
@@ -113,13 +152,16 @@ unit optbase;
       end;
 
 
-    procedure TDFASetDiff(var d : tdfaset;const s1,s2 : tdfaset);
+    procedure DFASetDiff(var d : tdfaset;const s1,s2 : tdfaset);
       var
         i : integer;
       begin
-        SetLength(d,min(Length(s1),Length(s2)));
-        for i:=0 to min(high(s1),high(s2)) do
-          d[i]:=s1[i] and not(s2[i]);
+        SetLength(d,length(s1));
+        for i:=0 to high(d) do
+          if i>high(s2) then
+            d[i]:=s1[i]
+          else
+            d[i]:=s1[i] and not(s2[i]);
       end;
 
 
@@ -151,5 +193,25 @@ unit optbase;
           end;
         result:=false;
       end;
+
+
+    procedure PrintDFASet(var f : text;s : TDFASet);
+      var
+        i : integer;
+        first : boolean;
+      begin
+        first:=true;
+        for i:=0 to Length(s)*8 do
+          begin
+            if DFASetIn(s,i) then
+              begin
+                if not(first) then
+                  write(f,',');
+                write(f,i);
+                first:=false;
+              end;
+          end;
+      end;
+
 
 end.

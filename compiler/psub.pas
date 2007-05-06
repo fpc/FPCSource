@@ -103,7 +103,8 @@ implementation
        tgobj,cgbase,cgobj,dbgbase,
        ncgutil,regvars,
        opttail,
-       optcse
+       optcse,
+       optdfa
 {$if defined(arm) or defined(powerpc) or defined(powerpc64)}
        ,aasmcpu
 {$endif arm}
@@ -754,6 +755,11 @@ implementation
         if (cs_opt_tailrecursion in current_settings.optimizerswitches) and
           (pi_is_recursive in flags) then
           do_opttail(code,procdef);
+
+        if cs_opt_nodedfa in current_settings.optimizerswitches then
+          begin
+            createdfainfo(code);
+          end;
 
         if cs_opt_nodecse in current_settings.optimizerswitches then
           do_optcse(code);

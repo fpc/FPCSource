@@ -26,6 +26,7 @@ unit optutils;
   interface
 
     uses
+      cclasses,
       node;
 
     type
@@ -37,16 +38,16 @@ unit optutils;
         function Remove(node : tnode) : boolean;
       end;
 
-      TNodeMap = class(TNodeSet)
-        function (node : tnode) : boolean;
-      end;
-
     procedure SetNodeSucessors(p : tnode);
+    procedure PrintDFAInfo(var f : text;p : tnode);
+    procedure PrintIndexedNodeSet(var f : text;s : TIndexedNodeSet);
 
   implementation
 
     uses
-      nbas,nflw;
+      verbose,
+      optbase,
+      nbas,nflw,nutils;
 
     function TIndexedNodeSet.Add(node : tnode) : boolean;
       var
@@ -62,7 +63,7 @@ unit optutils;
           end
         else
           begin
-            i:=Add(node);
+            i:=inherited Add(node);
             node.optinfo^.index:=i;
             result:=true;
           end
@@ -73,10 +74,10 @@ unit optutils;
       var
         i : longint;
       begin
-        for i:=0 to FCount-1 do
-          if tnode(FList^[i]).isequal(node) then
+        for i:=0 to Count-1 do
+          if tnode(List^[i]).isequal(node) then
             begin
-              result:=tnode(FList^[i]);
+              result:=tnode(List^[i]);
               exit;
             end;
         result:=nil;
@@ -91,20 +92,44 @@ unit optutils;
         p:=Includes(node);
         if assigned(p) then
           begin
-            if Remove(p)<>-1 then
+            if inherited Remove(p)<>-1 then
               result:=true;
           end;
       end;
 
 
-    procedure PrintIndexedNodeSet(f : text;s : TIndexedNodeSet);
+    procedure PrintIndexedNodeSet(var f : text;s : TIndexedNodeSet);
+      var
+        i : integer;
       begin
-        for i:=0 to high(s) do
+        for i:=0 to s.count-1 do
           begin
             writeln(f,'=============================== Node ',i,' ===============================');
-            printnode(f,s[i]);
+            printnode(f,tnode(s[i]));
             writeln(f);
           end;
+      end;
+
+
+    function PrintNodeDFA(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if assigned(n.optinfo) and ((n.optinfo^.life<>nil) or (n.optinfo^.use<>nil) or (n.optinfo^.def<>nil)) then
+          begin
+            write(text(arg^),nodetype2str[n.nodetype],'(',n.fileinfo.line,',',n.fileinfo.column,') Life: ');
+            PrintDFASet(text(arg^),n.optinfo^.life);
+            write(text(arg^),' Def: ');
+            PrintDFASet(text(arg^),n.optinfo^.def);
+            write(text(arg^),' Use: ');
+            PrintDFASet(text(arg^),n.optinfo^.use);
+            writeln(text(arg^));
+          end;
+        result:=fen_false;
+      end;
+
+
+    procedure PrintDFAInfo(var f : text;p : tnode);
+      begin
+        foreachnodestatic(pm_postprocess,p,@PrintNodeDFA,@f);
       end;
 
 
@@ -119,6 +144,8 @@ unit optutils;
           hp1,hp2 : tnode;
         begin
           result:=nil;
+          if p=nil then
+            exit;
           case p.nodetype of
             statementn:
               begin
@@ -126,36 +153,41 @@ unit optutils;
                 result:=p;
                 while assigned(hp1) do
                   begin
-                    if assigned(tstatementnode(hp1).right) then
+                    { does another statement follow? }
+                    if assigned(tstatementnode(hp1).next) then
                       begin
                         hp2:=DoSet(tstatementnode(hp1).statement,tstatementnode(hp1).next);
                         if assigned(hp2) then
                           tstatementnode(hp1).successor:=hp2
                         else
-                          tstatementnode(hp1).successor:=tstatementnode(hp1).right;
+                          tstatementnode(hp1).successor:=tstatementnode(hp1).next;
                       end
                     else
                       begin
-                        hp2:=DoSet(tstatementnode(hp1).statement,successor);
+                        hp2:=DoSet(tstatementnode(hp1).statement,succ);
                         if assigned(hp2) then
                           tstatementnode(hp1).successor:=hp2
                         else
-                          tstatementnode(hp1).successor:=successor;
+                          tstatementnode(hp1).successor:=succ;
                       end;
+                    hp1:=tstatementnode(hp1).next;
                   end;
               end;
             blockn:
               begin
-                result:=DoSet(tblocknode(p).statements,successor);
+                result:=p;
+                DoSet(tblocknode(p).statements,succ);
+                p.successor:=succ;
               end;
             forn:
               begin
-                Breakstack.Add(successor);
+                Breakstack.Add(succ);
                 Continuestack.Add(p);
                 result:=p;
-                DoSet(tfornode(p).statements,successor);
-                Breakstack.Delete(Count-1);
-                Continuestack.Delete(Count-1);
+                { the successor of the last node of the for body is the for node itself }
+                DoSet(tfornode(p).t2,p);
+                Breakstack.Delete(Breakstack.Count-1);
+                Continuestack.Delete(Continuestack.Count-1);
               end;
             breakn:
               begin
@@ -167,6 +199,17 @@ unit optutils;
                 result:=p;
                 p.successor:=tnode(Continuestack.Last);
               end;
+            whilerepeatn:
+              begin
+                Breakstack.Add(succ);
+                Continuestack.Add(p);
+                result:=p;
+                { the successor of the last node of the for body is the while node itself }
+                DoSet(twhilerepeatnode(p).right,p);
+                p.successor:=succ;
+                Breakstack.Delete(Breakstack.Count-1);
+                Continuestack.Delete(Continuestack.Count-1);
+              end;
             { exit is actually a jump to some final. code
             exitn:
               begin
@@ -175,7 +218,6 @@ unit optutils;
               end;
             }
             ifn,
-            whilerepeatn,
             exitn,
             withn,
             casen,
