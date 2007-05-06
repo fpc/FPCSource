@@ -4,7 +4,7 @@
 
 [package]
 name=httpd-2.0
-version=2.0.4
+version=2.1.4
 
 [target]
 units=apr/apr apriconv/apriconv aprutil/aprutil httpd
