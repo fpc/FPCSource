@@ -152,7 +152,7 @@ uses
 const
   DefaultEnvironment:TODBCEnvironment = nil;
   ODBCLoadCount:integer = 0; // ODBC is loaded when > 0; modified by TODBCEnvironment.Create/Destroy
-  
+
 { Generic ODBC helper functions }
 
 function ODBCSucces(const Res:SQLRETURN):boolean;
@@ -225,13 +225,13 @@ begin
         CheckSQLGetDiagResult(Res);
       end;
       // add to TotalMessage
-      TotalMessage+=Format(' Record %d: SqlState: %s; NativeError: %d; Message: %s;',[RecNumber,SqlState,NativeError,MessageText]);
+      TotalMessage:=TotalMessage+Format(' Record %d: SqlState: %s; NativeError: %d; Message: %s;',[RecNumber,SqlState,NativeError,MessageText]);
       // incement counter
       Inc(RecNumber);
     until false;
   except
     on E:EODBCException do begin
-      TotalMessage+=Format('Could not get error message: %s',[E.Message]);
+      TotalMessage:=TotalMessage+Format('Could not get error message: %s',[E.Message]);
     end
   end;
   // raise error
@@ -817,7 +817,7 @@ var
 {$ENDIF}
 begin
   ODBCCursor:=cursor as TODBCCursor;
-  
+
 {$IF NOT((FPC_VERSION>=2) AND (FPC_RELEASE>=1))}
   // Free TMemoryStreams in cursor.FBlobStreams and clear it
   for i:=0 to ODBCCursor.FBlobStreams.Count-1 do
@@ -851,7 +851,7 @@ var
   FieldSize:word;
 begin
   ODBCCursor:=cursor as TODBCCursor;
-  
+
   // get number of columns in result set
   ODBCCheckResult(
     SQLNumResultCols(ODBCCursor.FSTMTHandle, ColumnCount),
@@ -948,11 +948,11 @@ begin
     begin
       FieldSize:=dsMaxStringSize-1;
     end;
-    
+
     if FieldType=ftUnknown then // if unknown field type encountered, try finding more specific information about the ODBC SQL DataType
     begin
       SetLength(TypeName,TypeNameDefaultLength); // also garantuees uniqueness
-      
+
       ODBCCheckResult(
         SQLColAttribute(ODBCCursor.FSTMTHandle,  // statement handle
                         i,                       // column number
@@ -1013,7 +1013,7 @@ begin
     SQLAllocHandle(SQL_HANDLE_STMT, FDBCHandle, StmtHandle),
     SQL_HANDLE_DBC, FDBCHandle, 'Could not allocate ODBC Statement handle.'
   );
-  
+
   try
     // Disabled: only works if we can specify a SchemaName and, if supported by the data source, a CatalogName
     //           otherwise SQLPrimaryKeys returns error HY0009 (Invalid use of null pointer)
@@ -1022,7 +1022,7 @@ begin
     //  SQLSetStmtAttr(StmtHandle, SQL_ATTR_METADATA_ID, SQLPOINTER(SQL_TRUE), SQL_IS_UINTEGER),
     //  SQL_HANDLE_STMT, StmtHandle, 'Could not set SQL_ATTR_METADATA_ID statement attribute to SQL_TRUE.'
     //);
-    
+
     // alloc result column buffers
     SetLength(ColName,  DEFAULT_NAME_LEN);
     SetLength(PKName,   DEFAULT_NAME_LEN);
@@ -1061,7 +1061,7 @@ begin
             KeyName:=PChar(@PKName[1]);
             KeyFields:=    PChar(@ColName[1]);
           end else begin
-            KeyFields+=';'+PChar(@ColName[1]);
+            KeyFields:=KeyFields+';'+PChar(@ColName[1]);
           end;
         end else begin
           ODBCCheckResult(Res, SQL_HANDLE_STMT, StmtHandle, 'Could not fetch primary key metadata row.');
@@ -1072,7 +1072,7 @@ begin
       ODBCCheckResult(SQLFreeStmt(StmtHandle, SQL_UNBIND), SQL_HANDLE_STMT, StmtHandle, 'Could not unbind columns.');
       ODBCCheckResult(SQLFreeStmt(StmtHandle, SQL_CLOSE),  SQL_HANDLE_STMT, StmtHandle, 'Could not close cursor.');
     end;
-    
+
     //WriteLn('KeyName: ',KeyName,'; KeyFields: ',KeyFields);
 
     // use SQLStatistics to get index information
@@ -1137,7 +1137,7 @@ begin
       ODBCCheckResult(SQLFreeStmt(StmtHandle, SQL_UNBIND), SQL_HANDLE_STMT, StmtHandle, 'Could not unbind columns.');
       ODBCCheckResult(SQLFreeStmt(StmtHandle, SQL_CLOSE),  SQL_HANDLE_STMT, StmtHandle, 'Could not close cursor.');
     end;
-    
+
   finally
     if StmtHandle<>SQL_NULL_HANDLE then begin
       // Free the statement handle
@@ -1196,7 +1196,7 @@ begin
     SQLAllocHandle(SQL_HANDLE_STMT, Connection.FDBCHandle, FSTMTHandle),
     SQL_HANDLE_DBC, Connection.FDBCHandle, 'Could not allocate ODBC Statement handle.'
   );
-  
+
 {$IF NOT((FPC_VERSION>=2) AND (FPC_RELEASE>=1))}
   // allocate FBlobStreams
   FBlobStreams:=TList.Create;
@@ -1208,7 +1208,7 @@ var
   Res:SQLRETURN;
 begin
   inherited Destroy;
-  
+
 {$IF NOT((FPC_VERSION>=2) AND (FPC_RELEASE>=1))}
   FBlobStreams.Free;
 {$ENDIF}
