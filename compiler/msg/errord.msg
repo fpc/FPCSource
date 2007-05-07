@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at physik.uni-halle.de>
 #
-#   Based on errore.msg of SVN revision 6685
+#   Based on errore.msg of SVN revision 7250
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2000 by the Free Pascal Development team
@@ -1133,6 +1133,8 @@ parser_f_no_anonymous_specializations=03232_F_Anonyme generische Spezialisierung
 % \end{verbatim}
 parser_e_initialized_not_for_external=03233_E_Extern deklarierte Variablen kînnen nicht intialisiert werden 
 % Variables declared as external can not be initialized with a default value.
+parser_e_illegal_function_result=03234_E_UngÅltiger Funktionsergebnistyp
+% Some types like file types can not be used as function result.
 % \end{description}
 #
 # Type Checking
@@ -1254,7 +1256,8 @@ type_e_wrong_math_argument=04027_E_UnzulÑssige Konstante an interne Algebrafunkt
 % the definition range of these functions.
 type_e_no_addr_of_constant=04028_E_Von Konstanten kann keine Adresse bestimmt werden
 % It's not possible to get the address of a constant, because they
-% aren't stored in memory, you can try making it a typed constant.
+% aren't stored in memory, you can try making it a typed constant. This error
+% can also be displayed if you try to pass a property to a var parameter.
 type_e_argument_cant_be_assigned=04029_E_An das Argument kann nichts zugewiesen werden
 % Only expressions which can be on the left side of an
 % assignment can be passed as call by reference argument
@@ -2603,9 +2606,9 @@ S*2Aas_assembliere mit Hilfe von GNU AS
 A*2Tlinux_Linux
 A*2Twince_Windows CE
 P*2Tamiga_AmigaOS on PowerPC
-P*2Tdarwin_Darwin und MacOS X on PowerPC
+P*2Tdarwin_Darwin und Mac OS X on PowerPC
 P*2Tlinux_Linux auf PowerPC
-P*2Tmacos_MacOS (classic) auf PowerPC
+P*2Tmacos_Mac OS (classic) auf PowerPC
 P*2Tmorphos_MorphOS
 S*2Tlinux_Linux
 **1u<x>_entferne die Definition fÅr das Symbol <x>
@@ -2633,9 +2636,9 @@ S*2Tlinux_Linux
 3*2WG_spezifiziere "graphic type application"
 3*2WN_erzeuge keinen "relocation code" (notwendig fÅr debugging)
 3*2WR_erzeuge "relocation code"
-P*2WC_spezifiziere "console type application" (nur MacOS)
-P*2WG_spezifiziere "graphic type application" (nur MacOS)
-P*2WT_spezifiziere "tool type application"    (MPW tool, nur MacOS)
+P*2WC_spezifiziere "console type application" (nur Mac OS)
+P*2WG_spezifiziere "graphic type application" (nur Mac OS)
+P*2WT_spezifiziere "tool type application"    (MPW tool, nur Mac OS)
 **1X_Programm-Optionen:
 **2Xc_Åbergebe --shared an den Linker (nur Unix)
 **2Xd_den Standard Bibliotheks-Suchphad NICHT nutzen (benîtigt fÅr cross compile)
