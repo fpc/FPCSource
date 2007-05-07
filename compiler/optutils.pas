@@ -240,16 +240,13 @@ unit optutils;
                   internalerror(2007050701);
                 p.successor:=tgotonode(p).labelnode;
               end;
-            { exit is actually a jump to some final. code
             exitn:
               begin
                 result:=p;
                 p.successor:=nil;
               end;
-            }
             inlinen,
             calln,
-            exitn,
             withn,
             casen,
             tryexceptn,

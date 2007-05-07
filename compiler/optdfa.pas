@@ -45,6 +45,8 @@ unit optdfa;
       verbose,
       cpuinfo,
       symdef,
+      defutil,
+      procinfo,
       nutils,
       nbas,nflw,ncon,ninl,ncal,
       optbase,optutils;
@@ -125,6 +127,7 @@ unit optdfa;
 
       var
         changed : boolean;
+        Resultnode : TNode;
 
       procedure CreateInfo(node : tnode);
 
@@ -286,6 +289,16 @@ unit optdfa;
                 { finally, update the life info of the node }
                 UpdateLifeInfo(node,l);
               end;
+            exitn:
+              begin
+                if not(is_void(current_procinfo.procdef.returndef)) then
+                  begin
+                    { get info from faked resultnode }
+                    node.optinfo^.use:=resultnode.optinfo^.use;
+                    node.optinfo^.life:=node.optinfo^.use;
+                  end;
+              end;
+            nothingn,
             continuen,
             goton,
             breakn,
@@ -302,9 +315,22 @@ unit optdfa;
 
       var
         runs : integer;
-
+        dfarec : tdfainfo;
       begin
         runs:=0;
+        if not(is_void(current_procinfo.procdef.returndef)) then
+          begin
+            { create a fake node using the result }
+            resultnode:=load_result_node;
+            resultnode.allocoptinfo;
+            dfarec.use:=@resultnode.optinfo^.use;
+            dfarec.def:=@resultnode.optinfo^.def;
+            dfarec.map:=map;
+            AddDefUse(resultnode,@dfarec);
+          end
+        else
+          resultnode:=nil;
+
         repeat
           inc(runs);
           changed:=false;
@@ -317,6 +343,7 @@ unit optdfa;
 {$ifdef DEBUG_DFA}
         writeln('DFA solver iterations: ',runs);
 {$endif DEBUG_DFA}
+        resultnode.free;
       end;
 
 
