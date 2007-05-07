@@ -20,7 +20,7 @@
  ****************************************************************************
 }
 
-{ $define DEBUG_DFA}
+{$define DEBUG_DFA}
 
 { this unit implements routines to perform dfa }
 unit optdfa;
@@ -154,7 +154,6 @@ unit optdfa;
           var
             l : TDFASet;
           begin
-            n.allocoptinfo;
             if assigned(n.successor) then
               begin
                 {
@@ -187,6 +186,9 @@ unit optdfa;
           if node=nil then
             exit;
 
+          { ensure we've already optinfo set }
+          node.allocoptinfo;
+
           if nf_processing in node.flags then
             exit;
           include(node.flags,nf_processing);
@@ -202,7 +204,6 @@ unit optdfa;
                 calclife(node);
                 if lnf_testatbegin in twhilerepeatnode(node).loopflags then
                   begin
-                    { first, do things as usual, get life information from the successor }
                     node.allocoptinfo;
                     if not(assigned(node.optinfo^.def)) and
                        not(assigned(node.optinfo^.use)) then
@@ -228,39 +229,70 @@ unit optdfa;
                     CreateInfo(twhilerepeatnode(node).right);
                   end;
               end;
+            assignn:
+              begin
+                if not(assigned(node.optinfo^.def)) and
+                  not(assigned(node.optinfo^.use)) then
+                  begin
+                    dfainfo.use:=@node.optinfo^.use;
+                    dfainfo.def:=@node.optinfo^.def;
+                    dfainfo.map:=map;
+                    foreachnodestatic(pm_postprocess,node,@AddDefUse,@dfainfo);
+                  end;
+                calclife(node);
+              end;
             statementn:
               begin
-                { actually an expression doing something? }
-                case tstatementnode(node).statement.nodetype of
-                  assignn:
-                    begin
-                      node.allocoptinfo;
-                      if not(assigned(node.optinfo^.def)) and
-                        not(assigned(node.optinfo^.use)) then
-                        begin
-                          dfainfo.use:=@node.optinfo^.use;
-                          dfainfo.def:=@node.optinfo^.def;
-                          dfainfo.map:=map;
-                          foreachnodestatic(pm_postprocess,tstatementnode(node).left,@AddDefUse,@dfainfo);
-                        end;
-                      calclife(node);
-                    end;
-                  else
-                    begin
-                      { nested statement }
-                      CreateInfo(tstatementnode(node).statement);
-                      { inherit info }
-                      node.allocoptinfo;
-                      node.optinfo^.life:=tstatementnode(node).statement.optinfo^.life;
-                    end;
-                end;
+                { nested statement }
+                CreateInfo(tstatementnode(node).statement);
+                { inherit info }
+                node.optinfo^.life:=tstatementnode(node).statement.optinfo^.life;
               end;
             blockn:
               begin
                 CreateInfo(tblocknode(node).statements);
-                node.allocoptinfo;
                 if assigned(tblocknode(node).statements) then
                   node.optinfo^.life:=tblocknode(node).statements.optinfo^.life;
+              end;
+            ifn:
+              begin
+                { get information from cond. expression }
+                if not(assigned(node.optinfo^.def)) and
+                   not(assigned(node.optinfo^.use)) then
+                  begin
+                    dfainfo.use:=@node.optinfo^.use;
+                    dfainfo.def:=@node.optinfo^.def;
+                    dfainfo.map:=map;
+                    foreachnodestatic(pm_postprocess,tifnode(node).left,@AddDefUse,@dfainfo);
+                  end;
+                { create life info for left and right node }
+                CreateInfo(tifnode(node).right);
+                CreateInfo(tifnode(node).t1);
+
+                { ensure that we don't remove life info }
+                l:=node.optinfo^.life;
+
+                { get life info from then branch }
+                if assigned(tifnode(node).right) then
+                  DFASetIncludeSet(l,tifnode(node).right.optinfo^.life);
+                { get life info from else branch }
+                if assigned(tifnode(node).t1) then
+                  DFASetIncludeSet(l,tifnode(node).t1.optinfo^.life)
+                else
+                  if assigned(node.successor) then
+                    DFASetIncludeSet(l,node.successor.optinfo^.life);
+                { add use info from cond. expression }
+                DFASetIncludeSet(l,tifnode(node).optinfo^.use);
+                { finally, update the life info of the node }
+                UpdateLifeInfo(node,l);
+              end;
+            goton:
+              begin
+                calclife(node);
+              end;
+            labeln:
+              begin
+                calclife(node);
               end;
             else
               internalerror(2007050502);

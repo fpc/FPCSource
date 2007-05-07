@@ -210,6 +210,36 @@ unit optutils;
                 Breakstack.Delete(Breakstack.Count-1);
                 Continuestack.Delete(Continuestack.Count-1);
               end;
+            ifn:
+              begin
+                result:=p;
+                DoSet(tifnode(p).right,succ);
+                DoSet(tifnode(p).t1,succ);
+                p.successor:=succ;
+              end;
+            labeln:
+              begin
+                result:=p;
+                if assigned(tlabelnode(p).left) then
+                  begin
+                    DoSet(tlabelnode(p).left,succ);
+                    p.successor:=tlabelnode(p).left;
+                  end
+                else
+                  p.successor:=succ;
+              end;
+            assignn:
+              begin
+                result:=p;
+                p.successor:=succ;
+              end;
+            goton:
+              begin
+                result:=p;
+                if not(assigned(tgotonode(p).labelnode)) then
+                  internalerror(2007050701);
+                p.successor:=tgotonode(p).labelnode;
+              end;
             { exit is actually a jump to some final. code
             exitn:
               begin
@@ -217,12 +247,11 @@ unit optutils;
                 p.successor:=nil;
               end;
             }
-            ifn,
+            inlinen,
+            calln,
             exitn,
             withn,
             casen,
-            labeln,
-            goton,
             tryexceptn,
             raisen,
             tryfinallyn,
