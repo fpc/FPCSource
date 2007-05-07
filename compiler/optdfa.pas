@@ -286,10 +286,9 @@ unit optdfa;
                 { finally, update the life info of the node }
                 UpdateLifeInfo(node,l);
               end;
-            goton:
-              begin
-                calclife(node);
-              end;
+            continuen,
+            goton,
+            breakn,
             labeln:
               begin
                 calclife(node);
