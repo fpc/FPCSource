@@ -59,10 +59,6 @@ begin
   args[5]:=a5;
   args[6]:=a6;
   SocketCall:=do_Syscall(syscall_nr_socketcall,sockcallnr,TSysParam(@args));
-  If SocketCall<0 then
-   SocketError:=fpgetErrno
-  else
-   SocketError:=0;
 end;
 
 
