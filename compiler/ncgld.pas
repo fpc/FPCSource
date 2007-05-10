@@ -591,8 +591,10 @@ implementation
                - char
             }
 
-            { The addn is replaced by a blockn or calln }
-            if right.nodetype in [blockn,calln] then
+            { The addn is replaced by a blockn or calln that already returns
+              a shortstring }
+            if is_shortstring(right.resultdef) and
+               (right.nodetype in [blockn,calln]) then
               begin
                 { nothing to do }
               end
