@@ -78,6 +78,7 @@ function  GetTimezoneFile:string;
 function FpExecLE (Const PathName:AnsiString;const S:Array Of AnsiString;MyEnv:ppchar):cint;
 function FpExecL  (Const PathName:AnsiString;const S:Array Of AnsiString):cint;
 function FpExecLP (Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+function FpExecLPE(Const PathName:AnsiString;const S:Array Of AnsiString;env:ppchar):cint;
 function FpExecV  (Const PathName:AnsiString;args:ppchar):cint;
 function FpExecVP (Const PathName:AnsiString;args:ppchar):cint;
 function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
@@ -297,6 +298,7 @@ Begin
   FpExecLE:=intFPExecl(PathName,s,MyEnv,false);
 End;
 
+
 function FpExecL(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
 
 Begin
@@ -307,6 +309,12 @@ function FpExecLP(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
 
 Begin
   FpExecLP:=intFPExecl(PathName,S,EnvP,True);
+End;
+
+function FpExecLPE(Const PathName:AnsiString;const S:Array Of AnsiString;env:ppchar):cint;
+
+Begin
+  FpExecLPE:=intFPExecl(PathName,S,Env,True);
 End;
 
 function FpExecV(Const PathName:AnsiString;args:ppchar):cint;
