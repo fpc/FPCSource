@@ -30,7 +30,7 @@ type
     TParamID =
       (idNone,idAlign,idRangeChecks,idStackChecks,idIOChecks,
        idOverflowChecks,idObjMethCallChecks,
-       idAsmDirect,idAsmATT,idAsmIntel,idAsmMot,
+       idAsmDirect,idAsmATT,idAsmIntel,idAsmMot,idAsmStandard,
        idSymInfNone,idSymInfGlobalOnly,idSymInfGlobalLocal,
        idStackSize,idHeapSize,idStrictVarStrings,idExtendedSyntax,
        idMMXOps,idTypedAddress,idPackRecords,idPackEnum,idStackFrames,
@@ -199,6 +199,7 @@ implementation
 uses
   Dos,
   GlobType,
+  CpuInfo,
   FPVars,FPUtils;
 
 var
@@ -256,7 +257,8 @@ const
       opt_level1optimizations = 'Level ~1~ optimizations';
       opt_level2optimizations = 'Level ~2~ optimizations';
       opt_i386486 = 'i~3~86/i486';
-      opt_pentiumandmmx = 'Pentium/PentiumMM~X~ (tm)';
+      opt_pentium = 'Pentium (tm)';
+      opt_pentiummmx = 'PentiumMM~X~ (tm)';
       opt_pentiumpro = '~P~entium2/PentiumM/AMD';
       opt_pentiumiv = 'Pentium~4~';
       opt_m68000 = 'm~6~8000';
@@ -266,6 +268,7 @@ const
       opt_attassembler = '~A~T&T style assembler';
       opt_intelassembler = '~I~ntel style assembler';
       opt_motassembler = '~M~otorola style assembler';
+      opt_standardassembler = '~S~tandard style assembler';
       opt_listsource = '~L~ist source';
       opt_listregisterallocation = 'list ~r~egister allocation';
       opt_listtempallocation = 'list ~t~emp allocation';
@@ -1137,6 +1140,8 @@ end;
 procedure InitSwitches;
 var
   t : tsystem;
+  cpu : tcputype;
+  st : string;
 begin
   New(SyntaxSwitches,Init('S'));
   with SyntaxSwitches^ do
@@ -1214,17 +1219,30 @@ begin
   New(ProcessorSwitches,InitSelect('O'));
   with ProcessorSwitches^ do
    begin
+     for cpu:=low(tcputype) to high(tcputype) do
+       begin
+         st:=cputypestr[cpu];
 {$ifdef I386}
-     AddSelectItem(opt_i386486,'p1',idNone);
-     AddSelectItem(opt_pentiumandmmx,'p2',idNone);
-     AddSelectItem(opt_pentiumpro,'p3',idNone);
-     AddSelectItem(opt_pentiumiv,'p4',idNone);
-{$else not I386}
- {$ifdef m68k}
-     AddSelectItem(opt_m68000,'',idNone);
-     AddSelectItem(opt_m68020,'2',idNone);
- {$endif m68k}
+         if st='386' then
+           st:=opt_i386486;
+         if st='PENTIUM' then
+           st:=opt_pentium;
+         if st='PENTIUM2' then
+           st:=opt_pentiummmx;
+         if st='PENTIUM3' then
+           st:=opt_pentiumpro;
+         if st='PENTIUM4' then
+           st:=opt_pentiumiv;
 {$endif not I386}
+{$ifdef m68k}
+         if st='68000' then
+           st:=opt_m68000;
+         if st='68020' then
+           st:=opt_m68020;
+{$endif m68k}
+         if st<>'' then
+           AddSelectItem(st,'p'+cputypestr[cpu],idNone);
+       end;
    end;
   New(TargetSwitches,InitSelect('T'));
   with TargetSwitches^ do
@@ -1243,7 +1261,8 @@ begin
      AddSelectItem(opt_intelassembler,'intel',idAsmIntel);
 {$endif I386}
 {$ifdef M68K}
-     AddSelectItem(opt_motassembler,'mot',idAsmDirect);
+     AddSelectItem(opt_standardassembler,'standard',idAsmStandard);
+     AddSelectItem(opt_motassembler,'motorola',idAsmMot);
 {$endif M68K}
    end;
   New(AsmInfoSwitches,Init('a'));
@@ -1461,7 +1480,8 @@ begin
 {    idAsmDirect      : if P^.GetParamValueBool[SM] then AddParam('ASMMODE DIRECT');
     idAsmATT         : if P^.GetParamValueBool[SM] then AddParam('ASMMODE ATT');
     idAsmIntel       : if P^.GetParamValueBool[SM] then AddParam('ASMMODE INTEL');
-    idAsmMot         : if P^.GetParamValueBool[SM] then AddParam('ASMMODE MOT');}
+    idAsmMot         : if P^.GetParamValueBool[SM] then AddParam('ASMMODE MOTOROLA');
+    idAsmStandard    : if P^.GetParamValueBool[SM] then AddParam('ASMMODE STANDARD');}
 {    idSymInfNone     : ;
     idSymInfGlobalOnly:;
     idSymInfGlobalLocal:if P^.ParamValueBool(SM) then AddSwitch('L+');}
