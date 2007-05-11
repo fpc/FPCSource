@@ -63,67 +63,39 @@ Implementation
 function fpsocket       (domain:cint; xtype:cint; protocol: cint):cint;
 begin
   fpSocket:=WinSock2.Socket(Domain,xtype,ProtoCol);
-  if fpSocket<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
 end;
 
 function fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t;
 begin
   fpSend:=WinSock2.Send(S,msg,len,flags);
-  if fpSend<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
 end;
 
 function fpsendto (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t;
 begin
   // Dubious construct, this should be checked. (IPV6 fails ?)
   fpSendTo:=WinSock2.SendTo(S,msg,Len,Flags,Winsock2.PSockAddr(tox),toLen);
-  if fpSendTo<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
 end;
 
 function fprecv         (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;
 begin
   fpRecv:=WinSock2.Recv(S,Buf,Len,Flags);
-  if fpRecv<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
 end;
 
 function fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
 
 begin
   fpRecvFrom:=WinSock2.RecvFrom(S,Buf,Len,Flags,WinSock2.PSockAddr(From),FromLen);
-  if fpRecvFrom<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
 end;
 
 function fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;
 
 begin
   fpConnect:=Winsock2.Connect(S,WinSock2.PSockAddr(name),nameLen);
-  if fpConnect<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
 end;
 
 function fpshutdown     (s:cint; how:cint):cint;
 begin
   fpShutDown:=Winsock2.ShutDown(S,How);
-  if fpShutDown<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
 end;
 
 Function socket(Domain,SocketType,Protocol:Longint):Longint;
@@ -154,91 +126,49 @@ begin
 end;
 
 function fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;
-
 begin
   fpbind:=Winsock2.Bind(S,Winsock2.PSockAddr(Addrx),AddrLen);
-  if fpbind<0 then
-       SocketError:=WSAGetLastError
-  else
-       SocketError:=0;
 end;
 
 function fplisten      (s:cint; backlog : cint):cint;
-
 begin
   fplisten:=Winsock2.Listen(S,backlog);
-  if fplisten<0 then
-       SocketError:=WSAGetLastError
-  else
-       SocketError:=0;
 end;
 
 function fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
 begin
   fpAccept:=Winsock2.Accept(S,Winsock2.PSockAddr(Addrx), AddrLen);
-  if fpAccept<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
 end;
 
 function fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint;
-
 begin
   fpGetSockName:=Winsock2.GetSockName(S,Winsock2.TSockAddr(name^),nameLen^);
-  if fpGetSockName<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
 end;
 
 function fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
   fpGetPeerName:=Winsock2.GetPeerName(S,Winsock2.TSockAddr(name^),NameLen^);
-  if fpGetPeerName<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
 end;
 
 function fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint;
 begin
   fpGetSockOpt:=Winsock2.GetSockOpt(S,Level,OptName,OptVal,OptLen^);
-  if fpGetSockOpt<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
 end;
 
 function fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen :tsocklen):cint;
-
 begin
   fpSetSockOpt:=Winsock2.SetSockOpt(S,Level,OptName,OptVal,OptLen);
-  if fpSetSockOpt<0 then
-    SocketError:=WSAGetLastError
-  else
-    SocketError:=0;
 end;
 
 function fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
 begin
   fpsocketpair:=-1;
-  SocketError:=EOPNOTSUPP;
+  WSASetLastError(EOPNOTSUPP); // so that wsagetlasterror retrieves it
 end;
 
 Function CloseSocket(Sock:Longint):Longint;
-var i : longint;
 begin
-  i := Winsock2.CloseSocket (Sock);
-  if i <> 0 then
-  begin
-    SocketError:=WSAGetLastError;
-    CloseSocket := i;
-  end else
-  begin
-    CloseSocket := 0;
-    SocketError := 0;
-  end;
+  result := Winsock2.CloseSocket (Sock);
 end;
 
 Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
@@ -301,12 +231,7 @@ function fpWrite(handle : longint;Const bufptr;size : dword) : dword;
 begin
   fpWrite := dword(Winsock2.send(handle, bufptr, size, 0));
   if fpWrite = dword(winsock2.SOCKET_ERROR) then
-  begin
-    SocketError := WSAGetLastError;
     fpWrite := 0;
-  end
-  else
-    SocketError := 0;
 end;
 
 function fpRead(handle : longint;var bufptr;size : dword) : dword;
@@ -316,7 +241,6 @@ function fpRead(handle : longint;var bufptr;size : dword) : dword;
   begin
      if ioctlsocket(handle,FIONREAD,@d) = winsock2.SOCKET_ERROR then
        begin
-         SocketError:=WSAGetLastError;
          fpRead:=0;
          exit;
        end;
@@ -326,14 +250,8 @@ function fpRead(handle : longint;var bufptr;size : dword) : dword;
            size:=d;
          fpRead := dword(Winsock2.recv(handle, bufptr, size, 0));
          if fpRead = dword(winsock2.SOCKET_ERROR) then
-         begin
-           SocketError:= WSAGetLastError;
            fpRead := 0;
-         end else
-           SocketError:=0;
-       end
-     else
-       SocketError:=0;
+       end;
   end;
 
 {$i sockets.inc}

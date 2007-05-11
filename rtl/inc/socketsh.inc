@@ -162,8 +162,12 @@ type
 
 {$ifdef Unix}
    {$define socketerror_defined}
-   
    property socketerror : cint read fpgeterrno;
+{$endif}
+
+{$ifdef MSWindows}
+   {$define socketerror_defined}
+   property socketerror : cint read WSAGetLastError;
 {$endif}
 
 {$ifndef socketerror_defined}
