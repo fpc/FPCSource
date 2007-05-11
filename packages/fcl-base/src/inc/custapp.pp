@@ -428,7 +428,6 @@ begin
               If (P<Length(ShortOptions)) and (Shortoptions[P+1]=':') then
                 begin
                 // Required argument
-                Writeln('P ',P,' J ',J,' ',O[J],' ',l,' Havearg ',HaveArg);
                 If ((P+1)=Length(ShortOptions)) or (Shortoptions[P+2]<>':') Then
                   If (J<L) or not haveArg then // Must be last in multi-opt !!
                     Result:=Format(SErrOptionNeeded,[I,O[J]]);
