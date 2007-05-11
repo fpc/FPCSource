@@ -1155,6 +1155,7 @@ implementation
 {$if not(defined(arm)) and not(defined(sparc))}
         { may need to be split into several smaller loads/stores }
         if (tf_requires_proper_alignment in target_info.flags) and
+           (intloadsize <> 1) and
            (intloadsize <> sref.ref.alignment) then
           internalerror(2006082011);
 {$endif not(defined(arm)) and not(defined(sparc))}
