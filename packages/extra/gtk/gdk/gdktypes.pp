@@ -114,18 +114,18 @@ Const
      GDK_COPY = 0;
      GDK_INVERT = 1;
      GDK_XOR = 2;
-     GDK_CLEAR = 4;
-     GDK_AND = 5;
-     GDK_AND_REVERSE = 6;
-     GDK_AND_INVERT = 7;
-     GDK_NOOP = 8;
-     GDK_OR = 9;
-     GDK_EQUIV = 10;
-     GDK_OR_REVERSE = 11;
-     GDK_COPY_INVERT = 12;
-     GDK_OR_INVERT = 13;
-     GDK_NAND = 14;
-     GDK_SET = 15;
+     GDK_CLEAR = 3;
+     GDK_AND = 4;
+     GDK_AND_REVERSE = 5;
+     GDK_AND_INVERT = 6;
+     GDK_NOOP = 7;
+     GDK_OR = 8;
+     GDK_EQUIV = 9;
+     GDK_OR_REVERSE = 10;
+     GDK_COPY_INVERT = 11;
+     GDK_OR_INVERT = 12;
+     GDK_NAND = 13;
+     GDK_SET = 14;
 
 type
    PGdkFill = ^TGdkFill;
