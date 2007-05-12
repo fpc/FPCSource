@@ -29,6 +29,11 @@
 { DEBUG: Dump info when the heap needs to grow }
 { define DUMPGROW}
 
+{ Memory profiling: at moment in time of max heap size usage,
+  keep statistics of number of each size allocated 
+  (with 16 byte granularity) }
+{ define DUMP_MEM_USAGE}
+
 {$ifdef HAS_MT_MEMORYMANAGER}
   {$define HAS_MEMORYMANAGER}
 {$endif HAS_MT_MEMORYMANAGER}
@@ -184,6 +189,17 @@ var
   freeoslist         : poschunk;
   freeoslistend      : poschunk;
   freeoslistcount    : dword;
+
+{$ifdef DUMP_MEM_USAGE}
+const
+  sizeusageshift = 4;
+  sizeusageindex = 2049;
+  sizeusagesize = sizeusageindex shl sizeusageshift;
+type
+  tsizeusagelist = array[0..sizeusageindex] of longint;
+var
+  sizeusage, maxsizeusage: tsizeusagelist;
+{$endif}
 
 {$endif HAS_MEMORYMANAGER}
 
@@ -992,7 +1008,12 @@ begin
   { statistics }
   inc(internal_status.currheapused,chunksize);
   if internal_status.currheapused>internal_status.maxheapused then
+  begin
     internal_status.maxheapused:=internal_status.currheapused;
+{$ifdef DUMP_MEM_USAGE}        
+    maxsizeusage := sizeusage;
+{$endif}        
+  end;
 end;
 
 function SysGetMem_Var(size: ptrint): pointer;
@@ -1053,7 +1074,12 @@ begin
   { statistics }
   inc(internal_status.currheapused,size);
   if internal_status.currheapused>internal_status.maxheapused then
+  begin
     internal_status.maxheapused:=internal_status.currheapused;
+{$ifdef DUMP_MEM_USAGE}        
+    maxsizeusage := sizeusage;
+{$endif}        
+  end;
 end;
 
 function SysGetMem(size : ptrint):pointer;
@@ -1079,6 +1105,14 @@ begin
       size := (size+(sizeof(tmemchunk_var_hdr)+(blocksize-1))) and sizemask;
       result := sysgetmem_var(size);
     end;
+
+{$ifdef DUMP_MEM_USAGE}
+  size := sysmemsize(result);
+  if size > sizeusagesize then
+    inc(sizeusage[sizeusageindex])
+  else
+    inc(sizeusage[size shr sizeusageshift]);
+{$endif}
 end;
 
 
@@ -1136,12 +1170,22 @@ end;
 function SysFreeMem(p: pointer): ptrint;
 var
   pmc: pmemchunk_fixed;
+{$ifdef DUMP_MEM_USAGE}
+  size: sizeint;
+{$endif}
 begin
   if p=nil then
     begin
       result:=0;
       exit;
     end;
+{$ifdef DUMP_MEM_USAGE}
+  size := sysmemsize(p);
+  if size > sizeusagesize then
+    dec(sizeusage[sizeusageindex])
+  else
+    dec(sizeusage[size shr sizeusageshift]);
+{$endif}
   pmc := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr));
   { check if this is a fixed- or var-sized chunk }
   if (pmc^.size and fixedsizeflag) = 0 then
@@ -1303,8 +1347,12 @@ begin
       p := MemoryManager.GetMem(size);
     end
   else
-   { Resize block }
-   if not SysTryResizeMem(p,size) then
+   begin
+    { Resize block }
+{$ifdef DUMP_MEM_USAGE}
+    oldsize:=SysMemSize(p);
+{$endif}    
+    if not SysTryResizeMem(p,size) then
     begin
       oldsize:=MemoryManager.MemSize(p);
       { Grow with bigger steps to prevent the need for
@@ -1327,7 +1375,23 @@ begin
         Move(p^,p2^,minsize);
       MemoryManager.FreeMem(p);
       p := p2;
+{$ifdef DUMP_MEM_USAGE}
+    end else begin
+      size := sysmemsize(p);
+      if size <> oldsize then
+      begin
+        if oldsize > sizeusagesize then
+          dec(sizeusage[sizeusageindex])
+        else if oldsize >= 0 then
+          dec(sizeusage[oldsize shr sizeusageshift]);
+        if size > sizeusagesize then
+          inc(sizeusage[sizeusageindex])
+        else if size >= 0 then
+          inc(sizeusage[size shr sizeusageshift]);
+      end;
+{$endif}
     end;
+   end;
   SysReAllocMem := p;
 end;
 
@@ -1381,15 +1445,26 @@ begin
   freeoslist := nil;
   freeoslistcount := 0;
   fillchar(internal_status,sizeof(internal_status),0);
+{$ifdef DUMP_MEM_USAGE}
+  fillchar(sizeusage,sizeof(sizeusage),0);
+  fillchar(maxsizeusage,sizeof(sizeusage),0);
+{$endif}
 end;
 {$endif}
 
 procedure FinalizeHeap;
 var
   poc : poschunk;
-  pmc : pmemchunk_fixed;
   i : longint;
 begin
+{$ifdef DUMP_MEM_USAGE}
+  writeln('Max heap used/size: ', internal_status.maxheapused, '/', 
+    internal_status.maxheapsize);
+  for i := 0 to sizeusageindex-1 do
+    if maxsizeusage[i] <> 0 then
+      writeln('size ', i shl sizeusageshift, ' usage ', maxsizeusage[i]);
+  writeln('size >', sizeusagesize, ' usage ', maxsizeusage[sizeusageindex]);
+{$endif}
 {$ifdef HAS_SYSOSFREE}
   while assigned(freeoslist) do
     begin
