@@ -108,6 +108,7 @@ implementation
              paranr:=paranr_result;
            { Generate result variable accessing function result }
            vs:=tparavarsym.create('$result',paranr,vs_var,pd.returndef,[vo_is_funcret,vo_is_hidden_para]);
+           vs.symoptions:=[sp_public];
            pd.parast.insert(vs);
            { Store the this symbol as funcretsym for procedures }
            if pd.typ=procdef then
@@ -135,6 +136,7 @@ implementation
             vs:=tparavarsym.create('$parentfp',paranr_parentfp,vs_value
                   ,voidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
             vs.varregable:=vr_none;
+            vs.symoptions:=[sp_public];
             pd.parast.insert(vs);
 
             current_tokenpos:=storepos;
@@ -154,6 +156,7 @@ implementation
           begin
             { Generate self variable }
             vs:=tparavarsym.create('$self',paranr_self,vs_value,voidpointertype,[vo_is_self,vo_is_hidden_para]);
+            vs.symoptions:=[sp_public];
             pd.parast.insert(vs);
           end
         else
@@ -171,6 +174,7 @@ implementation
                    { can't use classrefdef as type because inheriting
                      will then always file because of a type mismatch }
                    vs:=tparavarsym.create('$vmt',paranr_vmt,vs_value,voidpointertype,[vo_is_vmt,vo_is_hidden_para]);
+                   vs.symoptions:=[sp_public];
                    pd.parast.insert(vs);
                  end;
 
@@ -188,6 +192,7 @@ implementation
                     hdef:=tprocdef(pd)._class;
                   end;
                 vs:=tparavarsym.create('$self',paranr_self,vsp,hdef,[vo_is_self,vo_is_hidden_para]);
+                vs.symoptions:=[sp_public];
                 pd.parast.insert(vs);
 
                 current_tokenpos:=storepos;
@@ -272,6 +277,7 @@ implementation
            if paramanager.push_high_param(varspez,vardef,pd.proccalloption) then
              begin
                hvs:=tparavarsym.create('$high'+name,paranr+1,vs_const,sinttype,[vo_is_high_para,vo_is_hidden_para]);
+               hvs.symoptions:=[sp_public];
                owner.insert(hvs);
              end
            else
