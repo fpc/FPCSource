@@ -180,6 +180,11 @@ const
       and not $f) - sizeof(tmemchunk_fixed_hdr);
   varfirstoffset = ((sizeof(toschunk) + sizeof(tmemchunk_var_hdr) + $f) 
       and not $f) - sizeof(tmemchunk_var_hdr);
+{$ifdef BESTMATCH}
+  matcheffort = high(longint);
+{$else}
+  matcheffort = 10;
+{$endif}
 
 var
   internal_status : TFPCHeapStatus;
@@ -1019,41 +1024,29 @@ end;
 function SysGetMem_Var(size: ptrint): pointer;
 var
   pcurr : pmemchunk_var;
-{$ifdef BESTMATCH}
   pbest : pmemchunk_var;
-{$endif}
+  iter : longint;
 begin
   result:=nil;
-{$ifdef BESTMATCH}
   pbest := nil;
-{$endif}
   pcurr := freelist_var;
-  while assigned(pcurr) do
+  iter := high(longint);
+  while assigned(pcurr) and (iter>0) do
+  begin
+    if (pcurr^.size>size) then
     begin
-{$ifdef BESTMATCH}
-      if pcurr^.size=size then
-        begin
+      if not assigned(pbest) or (pcurr^.size<pbest^.size) then
+      begin
+        pbest := pcurr;
+        if pcurr^.size = size then
           break;
-        end
-      else
-        begin
-          if (pcurr^.size>size) then
-            begin
-              if (not assigned(pbest)) or
-                 (pcurr^.size<pbest^.size) then
-               pbest := pcurr;
-            end;
-        end;
-{$else BESTMATCH}
-      if pcurr^.size>=size then
-        break;
-{$endif BESTMATCH}
-      pcurr := pcurr^.next_var;
+      end;
+      iter := matcheffort;
     end;
-{$ifdef BESTMATCH}
-  if not assigned(pcurr) then
-    pcurr := pbest;
-{$endif}
+    pcurr := pcurr^.next_var;
+    dec(iter);
+  end;
+  pcurr := pbest;
 
   if not assigned(pcurr) then
    begin
