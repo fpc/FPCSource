@@ -949,6 +949,7 @@ Implementation
         myexit;
       var
         bsssize : aint;
+        bsssec : TExeSection;
       begin
         result:=false;
 
@@ -996,7 +997,11 @@ Implementation
 {$warning TODO fixed section names}
         status.codesize:=exeoutput.findexesection('.text').size;
         status.datasize:=exeoutput.findexesection('.data').size;
-        bsssize:=exeoutput.findexesection('.bss').size;
+        bsssec:=exeoutput.findexesection('.bss');
+        if assigned(bsssec) then
+          bsssize:=bsssec.size
+        else
+          bsssize:=0;
 
         { Executable info }
         Message1(execinfo_x_codesize,tostr(status.codesize));
