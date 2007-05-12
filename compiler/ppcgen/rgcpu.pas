@@ -59,6 +59,7 @@ unit rgcpu;
         helplist : TAsmList;
         l : tasmlabel;
         hreg : tregister;
+        ins : Taicpu;
       begin
         if (spilltemp.offset<low(smallint)) or
            (spilltemp.offset>high(smallint)) then
@@ -71,18 +72,23 @@ unit rgcpu;
             if getregtype(tempreg)=R_INTREGISTER then
               begin
                 hreg:=getregisterinline(helplist,R_SUBWHOLE);
-                add_edge(getsupreg(hreg),RS_R0);
+                {Done by add_cpu_interferences now.
+                add_edge(getsupreg(hreg),RS_R0);}
               end
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
             reference_reset(tmpref);
             tmpref.offset:=spilltemp.offset;
             tmpref.refaddr:=addr_hi;
-            helplist.concat(taicpu.op_reg_reg_ref(A_ADDIS,hreg,spilltemp.base,tmpref));
+            ins:=taicpu.op_reg_reg_ref(A_ADDIS,hreg,spilltemp.base,tmpref);
+            add_cpu_interferences(ins);
+            helplist.concat(ins);
             tmpref:=spilltemp;
             tmpref.refaddr:=addr_lo;
             tmpref.base:=hreg;
-            helplist.concat(spilling_create_load(tmpref,tempreg));
+            ins:=spilling_create_load(tmpref,tempreg);
+            add_cpu_interferences(ins);
+            helplist.concat(ins);
 
             if getregtype(tempreg)=R_INTREGISTER then
               ungetregisterinline(helplist,hreg);
@@ -101,6 +107,7 @@ unit rgcpu;
         helplist : TAsmList;
         l : tasmlabel;
         hreg : tregister;
+        ins : Taicpu;
       begin
         if (spilltemp.offset<low(smallint)) or
            (spilltemp.offset>high(smallint)) then
@@ -113,18 +120,23 @@ unit rgcpu;
             if getregtype(tempreg)=R_INTREGISTER then
               begin
                 hreg:=getregisterinline(helplist,R_SUBWHOLE);
-                add_edge(getsupreg(hreg),RS_R0);
+                {Done by add_cpu_interferences now.
+                add_edge(getsupreg(hreg),RS_R0);}
               end
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
             reference_reset(tmpref);
             tmpref.offset:=spilltemp.offset;
             tmpref.refaddr:=addr_hi;
-            helplist.concat(taicpu.op_reg_reg_ref(A_ADDIS,hreg,spilltemp.base,tmpref));
+            ins:=taicpu.op_reg_reg_ref(A_ADDIS,hreg,spilltemp.base,tmpref);
+            add_cpu_interferences(ins);
+            helplist.concat(ins);
             tmpref:=spilltemp;
             tmpref.refaddr:=addr_lo;
             tmpref.base:=hreg;
-            helplist.concat(spilling_create_store(tempreg,tmpref));
+            ins:=spilling_create_store(tempreg,tmpref);
+            add_cpu_interferences(ins);
+            helplist.concat(ins);
 
             if getregtype(tempreg)=R_INTREGISTER then
               ungetregisterinline(helplist,hreg);

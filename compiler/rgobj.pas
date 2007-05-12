@@ -1787,14 +1787,24 @@ unit rgobj;
 
 
     procedure Trgobj.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+
+    var ins:Taicpu;
+
       begin
-        list.insertafter(spilling_create_load(spilltemp,tempreg),pos);
+        ins:=spilling_create_load(spilltemp,tempreg);
+        add_cpu_interferences(ins);
+        list.insertafter(ins,pos);
       end;
 
 
     procedure Trgobj.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+
+    var ins:Taicpu;
+
       begin
-        list.insertafter(spilling_create_store(tempreg,spilltemp),pos);
+        ins:=spilling_create_store(tempreg,spilltemp);
+        add_cpu_interferences(ins);
+        list.insertafter(ins,pos);
       end;
 
 
@@ -2048,8 +2058,7 @@ unit rgobj;
 
         { substitute registers }
         for counter:=0 to instr.ops-1 do
-         with instr.oper[counter]^ do
-          begin
+          with instr.oper[counter]^ do
             case typ of
               top_reg:
                 begin
@@ -2072,7 +2081,10 @@ unit rgobj;
                 end;
 {$endif ARM}
             end;
-          end;
+         {We have modified the instruction; perhaps the new instruction has
+          certain constraints regarding which imaginary registers interfere
+          with certain physical registers.}
+         add_cpu_interferences(instr);
       end;
 
 end.

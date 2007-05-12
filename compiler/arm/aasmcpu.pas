@@ -228,8 +228,8 @@ uses
         { nothing to add }
       end;
 
-    function spilling_create_load(const ref:treference;r:tregister): tai;
-    function spilling_create_store(r:tregister; const ref:treference): tai;
+    function spilling_create_load(const ref:treference;r:tregister):Taicpu;
+    function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
     function setoppostfix(i : taicpu;pf : toppostfix) : taicpu;
     function setroundingmode(i : taicpu;rm : troundingmode) : taicpu;
@@ -499,7 +499,7 @@ implementation
       end;
 
 
-    function spilling_create_load(const ref:treference;r:tregister): tai;
+    function spilling_create_load(const ref:treference;r:tregister):Taicpu;
       begin
         case getregtype(r) of
           R_INTREGISTER :
@@ -515,7 +515,7 @@ implementation
       end;
 
 
-    function spilling_create_store(r:tregister; const ref:treference): tai;
+    function spilling_create_store(r:tregister; const ref:treference):Taicpu;
       begin
         case getregtype(r) of
           R_INTREGISTER :

@@ -262,8 +262,8 @@ interface
          function  FindInsentry(objdata:TObjData):boolean;
       end;
 
-    function spilling_create_load(const ref:treference;r:tregister): tai;
-    function spilling_create_store(r:tregister; const ref:treference): tai;
+    function spilling_create_load(const ref:treference;r:tregister):Taicpu;
+    function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
     procedure InitAsm;
     procedure DoneAsm;
@@ -2366,7 +2366,7 @@ implementation
       end;
 
 
-    function spilling_create_load(const ref:treference;r:tregister): tai;
+    function spilling_create_load(const ref:treference;r:tregister):Taicpu;
       begin
         case getregtype(r) of
           R_INTREGISTER :
@@ -2388,7 +2388,7 @@ implementation
       end;
 
 
-    function spilling_create_store(r:tregister; const ref:treference): tai;
+    function spilling_create_store(r:tregister; const ref:treference):Taicpu;
       begin
         case getregtype(r) of
           R_INTREGISTER :

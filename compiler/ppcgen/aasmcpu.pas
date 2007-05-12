@@ -96,8 +96,8 @@ uses
     procedure DoneAsm;
 
 
-    function spilling_create_load(const ref:treference;r:tregister): tai;
-    function spilling_create_store(r:tregister; const ref:treference): tai;
+    function spilling_create_load(const ref:treference;r:tregister):Taicpu;
+    function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
     procedure fixup_jmps(list: TAsmList);
 
@@ -436,7 +436,7 @@ uses cutils, cclasses;
       end;
 
 
-    function spilling_create_load(const ref:treference;r:tregister): tai;
+    function spilling_create_load(const ref:treference;r:tregister):Taicpu;
       begin
         case getregtype(r) of
           R_INTREGISTER:
@@ -453,7 +453,7 @@ uses cutils, cclasses;
       end;
 
 
-    function spilling_create_store(r:tregister; const ref:treference): tai;
+    function spilling_create_store(r:tregister; const ref:treference):Taicpu;
       begin
         case getregtype(r) of
           R_INTREGISTER:
