@@ -2317,8 +2317,9 @@ implementation
 
     procedure TExeOutput.RemoveEmptySections;
       var
-        i      : longint;
+        i, j   : aint;
         exesec : TExeSection;
+        doremove : boolean;
       begin
         for i:=0 to ExeSectionList.Count-1 do
           begin
@@ -2335,14 +2336,26 @@ implementation
               end
             else
               begin
-                if not(oso_keep in exesec.SecOptions) and
+                doremove:=not(oso_keep in exesec.SecOptions) and
                     (
                      (exesec.ObjSectionlist.count=0) or
                      (
                       (cs_link_strip in current_settings.globalswitches) and
                       (oso_debug in exesec.SecOptions)
                      )
-                   ) then
+                   );
+                if not doremove then
+                  begin
+                   { Check if section has no actual data }
+                    doremove:=true;
+                    for j:=0 to exesec.ObjSectionList.Count-1 do
+                      if TObjSection(exesec.ObjSectionList[j]).Size<>0 then
+                        begin
+                          doremove:=false;
+                          break;
+                        end;
+                  end;
+                if doremove then
                   begin
                     Comment(V_Debug,'Deleting empty section '+exesec.name);
                     ExeSectionList[i]:=nil;

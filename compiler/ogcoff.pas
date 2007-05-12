@@ -2113,8 +2113,7 @@ const pemagic : array[0..3] of byte = (
         dataExeSec:=FindExeSection('.data');
         bssExeSec:=FindExeSection('.bss');
         if not assigned(TextExeSec) or
-           not assigned(DataExeSec) or
-           not assigned(BSSExeSec) then
+           not assigned(DataExeSec) then
           internalerror(200602231);
         { Stub }
         if win32 then
@@ -2162,7 +2161,8 @@ const pemagic : array[0..3] of byte = (
             peoptheader.MinorLinkerVersion:=(ord(release_nr)-ord('0'))*10 + (ord(patch_nr)-ord('0'));
             peoptheader.tsize:=TextExeSec.Size;
             peoptheader.dsize:=DataExeSec.Size;
-            peoptheader.bsize:=BSSExeSec.Size;
+            if assigned(BSSExeSec) then
+              peoptheader.bsize:=BSSExeSec.Size;
             peoptheader.text_start:=TextExeSec.mempos;
 {$ifndef x86_64}
             peoptheader.data_start:=DataExeSec.mempos;
@@ -2211,7 +2211,8 @@ const pemagic : array[0..3] of byte = (
             djoptheader.magic:=COFF_OPT_MAGIC;
             djoptheader.tsize:=TextExeSec.Size;
             djoptheader.dsize:=DataExeSec.Size;
-            djoptheader.bsize:=BSSExeSec.Size;
+            if assigned(BSSExeSec) then
+              djoptheader.bsize:=BSSExeSec.Size;
             djoptheader.text_start:=TextExeSec.mempos;
             djoptheader.data_start:=DataExeSec.mempos;
             djoptheader.entry:=EntrySym.offset;
