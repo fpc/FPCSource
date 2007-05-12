@@ -115,8 +115,7 @@ var
   AddrLen  : longint;
 begin
   Str2UnixSockAddr(addr,UnixAddr,AddrLen);
-  Bind(Sock,UnixAddr,AddrLen);
-  Bind:=(SocketError=0);
+  Bind := Bind(Sock, UnixAddr, AddrLen); // what the flying fuck were you thinking?
 end;
 
 

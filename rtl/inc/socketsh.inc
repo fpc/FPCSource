@@ -160,7 +160,7 @@ type
   Tsocket=longint;   {To easy porting code from Kylix libc unit to sockets unit.}
 
 
-{$ifdef Unix}
+(*{$ifdef Unix}
    {$define socketerror_defined}
    property socketerror : cint read fpgeterrno;
 {$endif}
@@ -173,7 +173,7 @@ type
 {$ifndef socketerror_defined}
 Var
   SocketError:cint;
-{$endif}
+{$endif}*)
 
 function  fpsocket      (domain:cint; xtype:cint; protocol: cint):cint;
 function  fprecv        (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;
