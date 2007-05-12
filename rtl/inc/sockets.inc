@@ -48,7 +48,7 @@ begin
 {$else}
               r:=send(handle,bufptr^,bufpos,0);
 {$endif}
-            until (r<>-1) or (fpGetErrno <> EsockEINTR);
+            until (r<>-1) or (SocketError <> EsockEINTR);
             bufend:=r;
             def_error:=101; {File write error.}
           end;
@@ -60,13 +60,13 @@ begin
 {$else}
               r:=recv(handle,bufptr^,bufsize,0);
 {$endif}
-            until (r<>-1) or (fpGetErrno <> EsockEINTR);
+            until (r<>-1) or (SocketError <> EsockEINTR);
             bufend:=r;
             def_error:=100; {File read error.}
           end;
       end;
       if r=-1 then
-        case fpGetErrno of
+        case SocketError of
           EsockEBADF:
 {          EsysENOTSOCK:}   {Why is this constant not defined? (DM)}
             inoutres:=6;    {Invalid file handle.}
