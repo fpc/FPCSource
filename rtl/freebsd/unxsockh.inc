@@ -346,4 +346,6 @@ Const
   MSG_COMPAT    = $8000;
   MSG_SOCALLBCK = $10000;
   MSG_NOSIGNAL  = $20000;              { Do not generate SIGPIPE }
-
+  
+  INVALID_SOCKET = -1;
+  SOCKET_ERROR = -1;

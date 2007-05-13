@@ -124,6 +124,9 @@ Type
 // OS/2 stack based on BSD stack
 {$DEFINE BSD}
 {$I socketsh.inc}
+  INVALID_SOCKET = TSocket(not(0));
+  SOCKET_ERROR = -1;
+
 
 Implementation
 
