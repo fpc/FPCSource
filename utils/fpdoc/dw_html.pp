@@ -1401,6 +1401,10 @@ end;
 { Returns the new CodeEl, which will be the old CodeEl in most cases }
 function THTMLWriter.AppendType(CodeEl, TableEl: TDOMElement;
   Element: TPasType; Expanded: Boolean; NestingLevel: Integer): TDOMElement;
+  
+Var
+  S : String;  
+  
 begin
   Result := CodeEl;
 
@@ -1412,9 +1416,15 @@ begin
   // Array
   if Element.ClassType = TPasArrayType then
   begin
-    AppendPasSHFragment(CodeEl,
-      'array [' + TPasArrayType(Element).IndexRange + '] of ', 0);
-    Result := AppendType(CodeEl, TableEl, TPasArrayType(Element).ElType, False);
+    S:='array ';
+    If (TPasArrayType(Element).IndexRange<>'') then
+      S:=S+'[' + TPasArrayType(Element).IndexRange + '] ';
+    S:=S+'of ';  
+    If (TPasArrayType(Element).ElType=Nil) then
+      S:=S+'Const';
+    AppendPasSHFragment(CodeEl,S,0);
+    If (TPasArrayType(Element).ElType<>Nil) then
+      Result := AppendType(CodeEl, TableEl, TPasArrayType(Element).ElType, False);
   end else
   // Procedure or funtion type
   if Element.InheritsFrom(TPasProcedureType) then
