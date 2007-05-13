@@ -38,6 +38,10 @@
   {$define HAS_MEMORYMANAGER}
 {$endif HAS_MT_MEMORYMANAGER}
 
+{$ifdef DUMP_MEM_USAGE}
+  {$define SHOW_MEM_USAGE}
+{$endif}
+
 const
 {$ifdef CPU64}
   blocksize    = 32;  { at least size of freerecord }
@@ -1450,9 +1454,11 @@ var
   poc : poschunk;
   i : longint;
 begin
-{$ifdef DUMP_MEM_USAGE}
+{$ifdef SHOW_MEM_USAGE}
   writeln('Max heap used/size: ', internal_status.maxheapused, '/', 
     internal_status.maxheapsize);
+{$endif}
+{$ifdef DUMP_MEM_USAGE}
   for i := 0 to sizeusageindex-1 do
     if maxsizeusage[i] <> 0 then
       writeln('size ', i shl sizeusageshift, ' usage ', maxsizeusage[i]);
