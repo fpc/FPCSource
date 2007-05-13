@@ -46,10 +46,8 @@ type
 
   TLHandleEvent = procedure (aHandle: TLHandle) of object;
   TLHandleErrorEvent = procedure (aHandle: TLHandle; const msg: string) of object;
-  TLEventerErrorCallback = procedure (const msg: string; Sender: TLEventer) of object;
+  TLEventerErrorEvent = procedure (const msg: string; Sender: TLEventer) of object;
   
-  TArrayP = array of Pointer;
-
   { TLHandle }
 
   TLHandle = class(TObject)
@@ -67,12 +65,12 @@ type
     FPrev: TLHandle;
     FNext: TLHandle;
     FFreeNext: TLHandle;
-    FUserData: Pointer;
     FInternalData: Pointer;
     procedure SetIgnoreError(const aValue: Boolean);
     procedure SetIgnoreWrite(const aValue: Boolean);
     procedure SetIgnoreRead(const aValue: Boolean);
    public
+    UserData: Pointer;
     constructor Create; virtual;
     destructor Destroy; override;
     procedure Free; virtual;          // this is a trick
@@ -85,7 +83,6 @@ type
     property OnRead: TLHandleEvent read FOnRead write FOnRead;
     property OnWrite: TLHandleEvent read FOnWrite write FOnWrite;
     property OnError: TLHandleErrorEvent read FOnError write FOnError;
-    property UserData: Pointer read FUserData write FUserData;
     property Dispose: Boolean read FDispose write FDispose;
     property Handle: THandle read FHandle write FHandle;
     property Eventer: TLEventer read FEventer;
@@ -138,7 +135,7 @@ type
    protected
     FRoot: TLHandle;
     FCount: Integer;
-    FOnError: TLEventerErrorCallback;
+    FOnError: TLEventerErrorEvent;
     FReferences: Integer;
     FFreeRoot: TLHandle; // the root of "free" list if any
     FFreeIter: TLHandle; // the last of "free" list if any
@@ -166,7 +163,7 @@ type
     procedure AddRef;
     procedure DeleteRef;
     property Timeout: DWord read GetTimeout write SetTimeout;
-    property OnError: TLEventerErrorCallback read FOnError write FOnError;
+    property OnError: TLEventerErrorEvent read FOnError write FOnError;
     property Count: Integer read FCount;
   end;
   TLEventerClass = class of TLEventer;
@@ -231,7 +228,7 @@ begin
   FOnRead := nil;
   FOnWrite := nil;
   FOnError := nil;
-  FUserData := nil;
+  UserData := nil;
   FEventer := nil;
   FPrev := nil;
   FNext := nil;
