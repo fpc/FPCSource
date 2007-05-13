@@ -190,17 +190,17 @@ end;
 
 Function Shutdown(Sock:Longint;How:Longint):Longint;
 begin
-  ShutDown:=so32dll.ShutDown(Sock,How) = 0;
+  ShutDown:=so32dll.ShutDown(Sock,How);
 end;
 
 Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 begin
-  GetSocketName:=so32dll.GetSockName(Sock, so32dll.SockAddr(Addr),AddrLen) = 0;
+  GetSocketName:=so32dll.GetSockName(Sock, so32dll.SockAddr(Addr),AddrLen);
 end;
 
 Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 begin
-  GetPeerName:=so32dll.GetPeerName(Sock,so32dll.SockAddr(Addr),AddrLen) = 0;
+  GetPeerName:=so32dll.GetPeerName(Sock,so32dll.SockAddr(Addr),AddrLen);
 end;
 
 Function SetSocketOptions(Sock,Level,OptName:Longint;Const OptVal;optlen:longint):Longint;
@@ -210,7 +210,7 @@ end;
 
 Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
 begin
-  GetSocketOptions:=so32dll.GetSockOpt(Sock,Level,OptName,OptVal,OptLen) = 0;
+  GetSocketOptions:=so32dll.GetSockOpt(Sock,Level,OptName,OptVal,OptLen);
 end;
 
 Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
