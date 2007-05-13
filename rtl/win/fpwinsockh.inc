@@ -201,3 +201,7 @@ const
 
   { options for socket level  }
   SOL_SOCKET = $ffff;
+  
+  INVALID_SOCKET = winsock2.INVALID_SOCKET;
+  SOCKET_ERROR = winsock2.SOCKET_ERROR;
+
