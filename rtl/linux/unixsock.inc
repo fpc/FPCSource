@@ -48,7 +48,7 @@ Const
   Socket_Sys_RECVMSG     = 17;
 
 
-Function SocketCall(SockCallNr,a1,a2,a3,a4,a5,a6:TSysParam):longint;
+Function SocketCall(SockCallNr,a1,a2,a3,a4,a5,a6:TSysParam):longint; inline;
 var
   Args:array[1..6] of TSysParam;
 begin
@@ -65,6 +65,7 @@ end;
 function SocketCall(SockCallNr,a1,a2,a3:TSysParam):longint;
 begin
   SocketCall:=SocketCall(SockCallNr,a1,a2,a3,0,0,0);
+  internal_socketerror:=fpgeterrno;
 end;
 
 function  fpsocket (domain:cint; xtype:cint; protocol: cint):cint;

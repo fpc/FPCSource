@@ -59,6 +59,10 @@ Implementation
 
 //function fpsocket     (domain:cint; xtype:cint; protocol: cint):cint;
 
+function socketerror:cint;
+begin
+ result:=wsagetlasterror;
+end;
 
 function fpsocket       (domain:cint; xtype:cint; protocol: cint):cint;
 begin

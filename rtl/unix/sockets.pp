@@ -68,12 +68,20 @@ Implementation
 
 Uses {$ifndef FPC_USE_LIBC}SysCall{$else}initc{$endif};
 
+threadvar internal_socketerror : cint;
+
 { Include filerec and textrec structures }
 {$i filerec.inc}
 {$i textrec.inc}
 {******************************************************************************
                           Kernel Socket Callings
 ******************************************************************************}
+
+function socketerror:cint;
+
+begin
+  socketerror:=internal_socketerror;
+end;
 
 {$ifndef FPC_USE_LIBC}
 {$i unixsock.inc}
@@ -82,5 +90,4 @@ Uses {$ifndef FPC_USE_LIBC}SysCall{$else}initc{$endif};
 {$endif}
 {$i sockovl.inc}
 {$i sockets.inc}
-
 end.
