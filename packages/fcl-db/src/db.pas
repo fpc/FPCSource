@@ -143,7 +143,7 @@ type
     procedure SetDisplayName(const AValue: string); override;
   public
     property Name : string read FName write SetDisplayName;
-    property DisplayName : string read GetDisplayName;
+    property DisplayName : string read GetDisplayName write SetDisplayName;
   end;
 
   { TDefCollection }
