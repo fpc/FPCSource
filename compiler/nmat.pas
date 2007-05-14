@@ -209,16 +209,23 @@ implementation
          { Do the same for qwords and positive constants as well, otherwise things like   }
          { "qword mod 10" are evaluated with int64 as result, which is wrong if the       }
          { "qword" was > high(int64) (JM)                                                 }
+         { Additionally, do the same for cardinal/qwords and other positive types, but    }
+         { always in a way that a smaller type is converted to a bigger type              }
+         { (webtbs/tw8870)                                                                }
          if (rd.ordtype in [u32bit,u64bit]) and
-            is_constintnode(left) and
-            (tordconstnode(left).value >= 0) then
+            ((is_constintnode(left) and
+              (tordconstnode(left).value >= 0)) or
+             (not is_signed(ld) and
+              (rd.size >= ld.size))) then
            begin
              inserttypeconv(left,right.resultdef);
              ld:=torddef(left.resultdef);
            end;
          if (ld.ordtype in [u32bit,u64bit]) and
-            is_constintnode(right) and
-            (tordconstnode(right).value >= 0) then
+            ((is_constintnode(right) and
+              (tordconstnode(right).value >= 0)) or
+             (not is_signed(rd) and
+              (ld.size >= rd.size))) then
           begin
             inserttypeconv(right,left.resultdef);
             rd:=torddef(right.resultdef);
