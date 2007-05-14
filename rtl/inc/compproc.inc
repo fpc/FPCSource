@@ -278,6 +278,14 @@ Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Curren
 Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); compilerproc;
 Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); compilerproc;
 Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); compilerproc;
+
+function fpc_SetupWriteStr_Shortstr(out s: shortstring): PText; compilerproc;
+function fpc_SetupWriteStr_Ansistr(out s: ansistring): PText; compilerproc;
+function fpc_SetupWriteStr_Widestr(out s: widestring): PText; compilerproc;
+
+function fpc_SetupReadStr_Shortstr(const s: shortstring): PText; compilerproc;
+function fpc_SetupReadStr_Ansistr(const s: ansistring): PText; compilerproc;
+function fpc_SetupReadStr_Widestr(const s: widestring): PText; compilerproc;
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_VARIANTS}

@@ -1288,6 +1288,224 @@ End;
 {$endif CPU64}
 
 
+
+{*****************************************************************************
+                              WriteStr/ReadStr
+*****************************************************************************}
+
+const
+  StrPtrIndex = 1;
+  { leave space for 128 bit string pointers :) (used for writestr) }
+  ShortStrLenIndex = 17;
+  { how many bytes of the string have been processed already (used for readstr) }
+  BytesReadIndex = 17;
+
+threadvar
+  ReadWriteStrText: textrec;
+
+procedure WriteStrShort(var t: textrec);
+var
+  str: pshortstring;
+  newbytes,
+  oldlen: longint;
+begin
+  if (t.bufpos=0) then
+    exit;
+  str:=pshortstring(ppointer(@t.userdata[StrPtrIndex])^);
+  newbytes:=t.BufPos;
+  oldlen:=length(str^);
+  if (oldlen+t.bufpos > t.userdata[ShortStrLenIndex]) then
+    begin
+      newbytes:=t.userdata[ShortStrLenIndex]-oldlen;
+{$ifdef writestr_iolencheck}
+      // GPC only gives an io error if {$no-truncate-strings} is active
+      // FPC does not have this setting (it always gives errors when a
+      // a string expression is truncated)
+
+      { "disk full" }
+      inoutres:=101;
+{$endif}
+    end;
+  setlength(str^,length(str^)+newbytes);
+  move(t.bufptr^,str^[oldlen+1],newbytes);
+  t.bufpos:=0;
+end;
+
+
+procedure WriteStrAnsi(var t: textrec);
+var
+  str: pansistring;
+  newbytes,
+  oldlen: longint;
+begin
+  if (t.bufpos=0) then
+    exit;
+  str:=pansistring(ppointer(@t.userdata[StrPtrIndex])^);
+  oldlen:=length(str^);
+  setlength(str^,oldlen+t.bufpos);
+  move(t.bufptr^,str^[oldlen+1],t.bufpos);
+  t.bufpos:=0;
+end;
+
+
+procedure WriteStrWide(var t: textrec);
+var
+  temp: ansistring;
+  str: pwidestring;
+begin
+  if (t.bufpos=0) then
+    exit;
+  str:=pwidestring(ppointer(@t.userdata[StrPtrIndex])^);
+  setlength(temp,t.bufpos);
+  move(t.bufptr^,temp[1],t.bufpos);
+  str^:=str^+temp;
+  t.bufpos:=0;
+end;
+
+
+procedure SetupWriteStrCommon(out t: textrec);
+begin
+  // initialise
+  Assign(text(t),'');
+  t.mode:=fmOutput;
+  t.OpenFunc:=nil;
+  t.CloseFunc:=nil;
+end;
+
+
+function fpc_SetupWriteStr_Shortstr(out s: shortstring): PText; compilerproc;
+begin
+  setupwritestrcommon(ReadWriteStrText);
+  PPointer(@ReadWriteStrText.userdata[StrPtrIndex])^:=@s;
+  ReadWriteStrText.userdata[ShortStrLenIndex]:=high(s);
+  setlength(s,0);
+  ReadWriteStrText.InOutFunc:=@WriteStrShort;
+  ReadWriteStrText.FlushFunc:=@WriteStrShort;
+  result:=@ReadWriteStrText;
+end;
+
+
+function fpc_SetupWriteStr_Ansistr(out s: ansistring): PText; compilerproc;
+begin
+  setupwritestrcommon(ReadWriteStrText);
+  PPointer(@ReadWriteStrText.userdata[StrPtrIndex])^:=@s;
+// automatically done by out-semantics
+//  setlength(s,0);
+  ReadWriteStrText.InOutFunc:=@WriteStrAnsi;
+  ReadWriteStrText.FlushFunc:=@WriteStrAnsi;
+  result:=@ReadWriteStrText;
+end;
+
+
+function fpc_SetupWriteStr_Widestr(out s: widestring): PText; compilerproc;
+begin
+  setupwritestrcommon(ReadWriteStrText);
+  PPointer(@ReadWriteStrText.userdata[StrPtrIndex])^:=@s;
+// automatically done by out-semantics
+//  setlength(s,0);
+  ReadWriteStrText.InOutFunc:=@WriteStrWide;
+  ReadWriteStrText.FlushFunc:=@WriteStrWide;
+  result:=@ReadWriteStrText;
+end;
+
+
+
+procedure ReadAnsiStrFinal(var t: textrec);
+begin
+  { finalise the temp ansistring }
+  PAnsiString(@t.userdata[StrPtrIndex])^ := '';
+end;
+
+
+procedure ReadStrCommon(var t: textrec; strdata: pchar; len: sizeint);
+var
+  newbytes: sizeint;
+begin
+  newbytes := len - PSizeInt(@t.userdata[BytesReadIndex])^;
+  if (t.BufSize <= newbytes) then
+    newbytes := t.BufSize;
+  if (newbytes > 0) then
+    begin
+      move(strdata[PSizeInt(@t.userdata[BytesReadIndex])^],t.BufPtr^,newbytes);
+      inc(PSizeInt(@t.userdata[BytesReadIndex])^,newbytes);
+    end;
+  t.BufEnd:=newbytes;
+  t.BufPos:=0;
+end;
+
+
+procedure ReadStrAnsi(var t: textrec);
+var
+  str: pansistring;
+begin
+  str:=pansistring(@t.userdata[StrPtrIndex]);
+  ReadStrCommon(t,@str^[1],length(str^));
+end;
+
+
+procedure SetupReadStrCommon(out t: textrec);
+begin
+  // initialise
+  Assign(text(t),'');
+  t.mode:=fmInput;
+  t.OpenFunc:=nil;
+  t.CloseFunc:=nil;
+  PSizeInt(@t.userdata[BytesReadIndex])^:=0;
+end;
+
+
+function fpc_SetupReadStr_Ansistr(const s: ansistring): PText; [public, alias: 'FPC_SETUPREADSTR_ANSISTR']; compilerproc;
+begin
+  setupreadstrcommon(ReadWriteStrText);
+  { we need a reference, because 's' may be a temporary expression }
+  PAnsiString(@ReadWriteStrText.userdata[StrPtrIndex])^:=s;
+  ReadWriteStrText.InOutFunc:=@ReadStrAnsi;
+  { this is called at the end, by fpc_read_end }
+  ReadWriteStrText.FlushFunc:=@ReadAnsiStrFinal;
+  result:=@ReadWriteStrText;
+end;
+
+function fpc_SetupReadStr_Ansistr_Intern(const s: ansistring): PText; [external name 'FPC_SETUPREADSTR_ANSISTR'];
+
+
+function fpc_SetupReadStr_Shortstr(const s: shortstring): PText; compilerproc;
+begin
+  { the reason we convert the short string to ansistring, is because the semantics of
+    readstr are defined as:
+
+    *********************
+    Apart from the restrictions imposed by requirements given in this clause,
+    the execution of readstr(e,v 1 ,...,v n ) where e denotes a
+    string-expression and v 1 ,...,v n denote variable-accesses possessing the
+    char-type (or a subrange of char-type), the integer-type (or a subrange of
+    integer-type), the real-type, a fixed-string-type, or a
+    variable-string-type, shall be equivalent to
+    
+            begin 
+            rewrite(f); 
+            writeln(f, e); 
+            reset(f); 
+            read(f, v 1 ,...,v n ) 
+            end 
+    *********************
+
+    This means that any side effects caused by the evaluation of v 1 .. v n
+    must not affect the value of e (= our argument s) -> we need a copy of it.
+    An ansistring is the easiest way to get a threadsafe copy, and allows us
+    to use the other ansistring readstr helpers too.
+  }
+  result:=fpc_SetupReadStr_Ansistr_Intern(s);
+end;
+
+
+function fpc_SetupReadStr_Widestr(const s: widestring): PText; compilerproc;
+begin
+  { we use an ansistring to avoid code duplication, and let the    }
+  { assignment convert the widestring to an equivalent ansistring  }
+  result:=fpc_SetupReadStr_Ansistr_Intern(s);
+end;
+
+
 {*****************************************************************************
                                Initializing
 *****************************************************************************}

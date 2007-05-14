@@ -782,7 +782,8 @@ implementation
             end;
 
           in_read_x,
-          in_readln_x :
+          in_readln_x,
+          in_readstr_x:
             begin
               if try_to_consume(_LKLAMMER) then
                begin
@@ -811,7 +812,8 @@ implementation
             end;
 
           in_write_x,
-          in_writeln_x :
+          in_writeln_x,
+          in_writestr_x :
             begin
               if try_to_consume(_LKLAMMER) then
                begin

@@ -57,9 +57,11 @@ implementation
         systemunit.insert(tsyssym.create('Concat',in_concat_x));
         systemunit.insert(tsyssym.create('Write',in_write_x));
         systemunit.insert(tsyssym.create('WriteLn',in_writeln_x));
+        systemunit.insert(tsyssym.create('WriteStr',in_writestr_x));
         systemunit.insert(tsyssym.create('Assigned',in_assigned_x));
         systemunit.insert(tsyssym.create('Read',in_read_x));
         systemunit.insert(tsyssym.create('ReadLn',in_readln_x));
+        systemunit.insert(tsyssym.create('ReadStr',in_readstr_x));
         systemunit.insert(tsyssym.create('Ofs',in_ofs_x));
         systemunit.insert(tsyssym.create('SizeOf',in_sizeof_x));
         systemunit.insert(tsyssym.create('BitSizeOf',in_bitsizeof_x));

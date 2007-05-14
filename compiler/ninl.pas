@@ -364,7 +364,7 @@ implementation
     begin
       para:=Tcallparanode(params);
       found_error:=false;
-      do_read:=inlinenumber in [in_read_x,in_readln_x];
+      do_read:=inlinenumber in [in_read_x,in_readln_x,in_readstr_x];
       while assigned(para) do
         begin
           { is this parameter faulty? }
@@ -710,9 +710,11 @@ implementation
       if not found_error then
         begin
           case inlinenumber of
-            in_read_x:
+            in_read_x,
+            in_readstr_x:
               name:='fpc_read_end';
-            in_write_x:
+            in_write_x,
+            in_writestr_x:
               name:='fpc_write_end';
             in_readln_x:
               name:='fpc_readln_end';
@@ -729,9 +731,9 @@ implementation
     {Read/write for typed files.}
 
     const  procprefixes:array[boolean] of string[15]=('fpc_typed_write','fpc_typed_read');
-           procnamesdisplay:array[boolean] of string[5] = ('Write','Read');
+           procnamesdisplay:array[boolean,boolean] of string[8] = (('Write','Read'),('WriteStr','ReadStr'));
 
-    var found_error,do_read:boolean;
+    var found_error,do_read,is_rwstr:boolean;
         para,nextpara:Tcallparanode;
         p1:Tnode;
         temp:Ttempcreatenode;
@@ -739,7 +741,8 @@ implementation
     begin
       found_error:=false;
       para:=Tcallparanode(params);
-      do_read:=inlinenumber in [in_read_x,in_readln_x];
+      do_read:=inlinenumber in [in_read_x,in_readln_x,in_readstr_x];
+      is_rwstr := inlinenumber in [in_readstr_x,in_writestr_x];
       { add the typesize to the filepara }
       if filepara.resultdef.typ=filedef then
         filepara.right := ccallparanode.create(cordconstnode.create(
@@ -748,7 +751,7 @@ implementation
       { check for "no parameters" (you need at least one extra para for typed files) }
       if not assigned(para) then
         begin
-          CGMessage1(parser_e_wrong_parameter_size,procnamesdisplay[do_read]);
+          CGMessage1(parser_e_wrong_parameter_size,procnamesdisplay[is_rwstr,do_read]);
           found_error := true;
         end;
 
@@ -847,12 +850,15 @@ implementation
         readfunctype  : tdef;
         is_typed,
         do_read,
+        is_rwstr,
         found_error   : boolean;
       begin
         filepara := nil;
         is_typed := false;
         filetemp := nil;
-        do_read := inlinenumber in [in_read_x,in_readln_x];
+        do_read := inlinenumber in [in_read_x,in_readln_x,in_readstr_x];
+        is_rwstr := inlinenumber in [in_readstr_x,in_writestr_x];
+
         { if we fail, we can quickly exit this way. We must generate something }
         { instead of the inline node, because firstpass will bomb with an      }
         { internalerror if it encounters a read/write                          }
@@ -862,7 +868,28 @@ implementation
         { correct order when processing write(ln)                           }
         left := reverseparameters(tcallparanode(left));
 
-        if assigned(left) then
+        if is_rwstr then
+          begin
+            filepara := tcallparanode(left);
+            { needs at least two parameters: source/dest string + min. 1 value }
+            if not(assigned(filepara)) or
+               not(assigned(filepara.right)) then
+              begin
+                CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,'ReadStr/WriteStr');
+                exit;
+              end
+            else if (filepara.resultdef.typ <> stringdef) then
+              begin
+                { convert chararray to string, or give an appropriate error message }
+                { (if you want to optimize to use shortstring, keep in mind that    }
+                {  readstr internally always uses ansistring, and to account for    }
+                {  chararrays with > 255 characters)                                }
+                inserttypeconv(filepara.left,cansistringtype);
+                if codegenerror then
+                  exit;
+              end
+          end
+        else if assigned(left) then
           begin
             { check if we have a file parameter and if yes, what kind it is }
             filepara := tcallparanode(left);
@@ -897,7 +924,8 @@ implementation
         newblock:=internalstatements(newstatement);
 
         { if we don't have a filepara, create one containing the default }
-        if not assigned(filepara) then
+        if not assigned(filepara) or
+           is_rwstr then
           begin
             { since the input/output variables are threadvars loading them into
               a temp once is faster. Create a temp which will hold a pointer to the file }
@@ -911,14 +939,34 @@ implementation
             { typecheckpassed if the resultdef of the temp is known) }
             typecheckpass(tnode(filetemp));
 
-            { assign the address of the file to the temp }
-            if do_read then
-              name := 'input'
+            if not is_rwstr then
+              begin
+                { assign the address of the file to the temp }
+                if do_read then
+                  name := 'input'
+                else
+                  name := 'output';
+                addstatement(newstatement,
+                  cassignmentnode.create(ctemprefnode.create(filetemp),
+                    ccallnode.createintern('fpc_get_'+name,nil)));
+              end
             else
-              name := 'output';
-            addstatement(newstatement,
-              cassignmentnode.create(ctemprefnode.create(filetemp),
-                ccallnode.createintern('fpc_get_'+name,nil)));
+              begin
+                if (do_read) then
+                  name := 'fpc_setupreadstr_'
+                else
+                  name := 'fpc_setupwritestr_';
+                name:=name+tstringdef(filepara.resultdef).stringtypname;
+                { remove the source/destination string parameter from the }
+                { parameter chain                                         }
+                left:=filepara.right;
+                filepara.right:=nil;
+                { pass the source/destination string to the setup routine, which }
+                { will store the string's address in the returned textrec        }
+                addstatement(newstatement,
+                  cassignmentnode.create(ctemprefnode.create(filetemp),
+                    ccallnode.createintern(name,filepara)));
+              end;
 
             { create a new fileparameter as follows: file_type(temp^)    }
             { (so that we pass the value and not the address of the temp }
@@ -1935,8 +1983,10 @@ implementation
 
               in_read_x,
               in_readln_x,
+              in_readstr_x,
               in_write_x,
-              in_writeln_x :
+              in_writeln_x,
+              in_writestr_x :
                 begin
                   result := handle_read_write;
                 end;

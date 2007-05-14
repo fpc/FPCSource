@@ -1,0 +1,5 @@
+{ %fail }
+
+begin
+  readstr;
+end.

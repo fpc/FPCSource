@@ -70,6 +70,8 @@ const
    fpc_in_pack_x_y_z        = 59;
    fpc_in_unpack_x_y_z      = 60;
    fpc_in_bitsizeof_x       = 61;
+   fpc_in_writestr_x        = 62;
+   fpc_in_readstr_x         = 63;
 
 { Internal constant functions }
    fpc_in_const_sqr        = 100;
