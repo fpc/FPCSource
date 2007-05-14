@@ -1497,7 +1497,9 @@ begin
                                  (((taicpu(hp1).opcode = A_INC) or
                                    (taicpu(hp1).opcode = A_DEC)) and
                                   (taicpu(hp1).oper[0]^.typ = Top_Reg) and
-                                  (taicpu(hp1).oper[0]^.reg = taicpu(p).oper[1]^.reg))) Do
+                                  (taicpu(hp1).oper[0]^.reg = taicpu(p).oper[1]^.reg))) and
+                                (not GetNextInstruction(hp1,hp2) or
+                                 not instrReadsFlags(hp2)) Do
                             begin
                               TmpBool1 := False;
                               if (taicpu(hp1).oper[0]^.typ = Top_Const) then
