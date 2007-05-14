@@ -520,22 +520,22 @@ end;
 
     procedure PThreadHeapMutexInit;
       begin
-         pthread_mutex_init(@heapmutex,nil);
+         CInitCriticalSection(heapmutex);
       end;
 
     procedure PThreadHeapMutexDone;
       begin
-         pthread_mutex_destroy(@heapmutex);
+         CDoneCriticalSection(heapmutex);
       end;
 
     procedure PThreadHeapMutexLock;
       begin
-         pthread_mutex_lock(@heapmutex);
+         CEnterCriticalSection(heapmutex);
       end;
 
     procedure PThreadHeapMutexUnlock;
       begin
-         pthread_mutex_unlock(@heapmutex);
+         CLeaveCriticalSection(heapmutex);
       end;
 
     const
