@@ -249,7 +249,6 @@ interface
           constdefderef : tderef;
           consttyp    : tconsttyp;
           value       : tconstvalue;
-          resstrindex  : longint;     { needed for resource strings }
           constructor create_ord(const n : string;t : tconsttyp;v : tconstexprint;def:tdef);
           constructor create_ordptr(const n : string;t : tconsttyp;v : tconstptruint;def:tdef);
           constructor create_ptr(const n : string;t : tconsttyp;v : pointer;def:tdef);
@@ -1496,7 +1495,6 @@ implementation
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueord:=v;
-         ResStrIndex:=0;
          constdef:=def;
       end;
 
@@ -1507,7 +1505,6 @@ implementation
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueordptr:=v;
-         ResStrIndex:=0;
          constdef:=def;
       end;
 
@@ -1518,7 +1515,6 @@ implementation
          fillchar(value, sizeof(value), #0);
          consttyp:=t;
          value.valueptr:=v;
-         ResStrIndex:=0;
          constdef:=def;
       end;
 
@@ -1580,8 +1576,6 @@ implementation
                value.len:=ppufile.getlongint;
                getmem(pc,value.len+1);
                ppufile.getdata(pc^,value.len);
-               if consttyp=constresourcestring then
-                 ResStrIndex:=ppufile.getlongint;
                value.valueptr:=pc;
              end;
            constreal :
@@ -1668,8 +1662,6 @@ implementation
              begin
                ppufile.putlongint(value.len);
                ppufile.putdata(pchar(value.valueptr)^,value.len);
-               if consttyp=constresourcestring then
-                 ppufile.putlongint(ResStrIndex);
              end;
            constreal :
              ppufile.putreal(pbestreal(value.valueptr)^);

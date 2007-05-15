@@ -512,7 +512,7 @@ implementation
                         list.concat(Tai_const.Createname(tlabelsym(srsym).mangledname,offset));
                       constsym :
                         if tconstsym(srsym).consttyp=constresourcestring then
-                          list.concat(Tai_const.Createname(make_mangledname('RESOURCESTRINGLIST',tconstsym(srsym).owner,''),tconstsym(srsym).resstrindex*(4+sizeof(aint)*3)+4+sizeof(aint)))
+                          list.concat(Tai_const.Createname(make_mangledname('RESSTR',tconstsym(srsym).owner,tconstsym(srsym).name),sizeof(aint)))
                         else
                           Message(type_e_variable_id_expected);
                       else
@@ -1077,7 +1077,7 @@ implementation
                         begin
                           flush_packed_value(list,bp);
                           curroffset:=align(curroffset,8);
-                        end;          
+                        end;
                       read_typed_const_data(list,tfieldvarsym(srsym).vardef);
                     end
                   else
