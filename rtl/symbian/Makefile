@@ -237,6 +237,8 @@ RTL=..
 INC=$(RTL)/inc
 COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
+SYMBIANINC=./symbianinc
+UIQINC=./uiqinc
 UNITPREFIX=rtl
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(FULL_TARGET),i386-symbian)
@@ -1529,4 +1531,4 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
 macpas$(PPUEXT) : $(INC)/macpas.pp system$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
 buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) macpas$(PPUEXT)
-	$(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
+	$(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -I$(INC) -I$(SYMBIANINC) -I$(UIQINC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl

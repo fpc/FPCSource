@@ -4,7 +4,7 @@ unit buildrtl;
 
     uses
       ctypes, strings,
-      symbian;
+      symbian, uiq, uiqclasses;
 
   implementation
 
