@@ -277,7 +277,7 @@ implementation
              result := 1;
            { 10 bits can never be split over 3 bytes via 1-8-1, because it }
            { always starts at a multiple of 10 bits. Same for the others.  }
-           3,5,7,9,10,12,16:
+           3,5,6,7,9,10,12,16:
              result := 2;
   {$ifdef cpu64bit}
            { performance penalty for unaligned 8 byte access is much   }
