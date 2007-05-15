@@ -494,6 +494,7 @@ compiler/tokens.pas svneol=native#text/plain
 compiler/utils/Makefile svneol=native#text/plain
 compiler/utils/Makefile.fpc svneol=native#text/plain
 compiler/utils/README -text
+compiler/utils/dummyas.pp -text
 compiler/utils/fixlog.pp svneol=native#text/plain
 compiler/utils/fixmsg.pp svneol=native#text/plain
 compiler/utils/fixnasm.pp svneol=native#text/plain
