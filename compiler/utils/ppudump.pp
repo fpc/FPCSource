@@ -1471,8 +1471,6 @@ begin
                    writeln(space,'       Length : ',len);
                    writeln(space,'        Value : "',pc,'"');
                    freemem(pc,len+1);
-                   if tconsttyp(b)=constresourcestring then
-                    writeln(space,'        Index : ',getlongint);
                  end;
                constreal :
                  writeln(space,'        Value : ',getreal);
