@@ -1718,16 +1718,57 @@ implementation
 
 
     procedure specialize_objectdefs(p:TObject;arg:pointer);
+
+        function find_module_from_symtable(st:tsymtable):tmodule;
+        var
+          hp : tmodule;
+        begin
+          result:=nil;
+          hp:=tmodule(loaded_units.first);
+          while assigned(hp) do
+            begin
+              if (hp.globalsymtable=st) or
+                 (hp.localsymtable=st) then
+                begin
+                  result:=hp;
+                  exit;
+                end;
+              hp:=tmodule(hp.next);
+           end;
+        end;
+
       var
         i  : longint;
         hp : tdef;
         oldcurrent_filepos : tfileposinfo;
+        oldsymtablestack   : tsymtablestack;
+        pu : tused_unit;
+        hmodule : tmodule;
       begin
         if not((tsym(p).typ=typesym) and
                (ttypesym(p).typedef.typ=objectdef) and
                (df_specialization in ttypesym(p).typedef.defoptions)
               ) then
           exit;
+
+        { Setup symtablestack a definition time }
+        oldsymtablestack:=symtablestack;
+        symtablestack:=tsymtablestack.create;
+        if not assigned(tobjectdef(ttypesym(p).typedef).genericdef) then
+          internalerror(200705151);
+        hmodule:=find_module_from_symtable(tobjectdef(ttypesym(p).typedef).genericdef.owner);
+        if hmodule=nil then
+          internalerror(200705152);
+        pu:=tused_unit(hmodule.used_units.first);
+        while assigned(pu) do
+          begin
+            if not assigned(pu.u.globalsymtable) then
+              internalerror(200705153);
+            symtablestack.push(pu.u.globalsymtable);
+            pu:=tused_unit(pu.next);
+          end;
+        symtablestack.push(hmodule.globalsymtable);
+        symtablestack.push(hmodule.localsymtable);
 
         { definitions }
         for i:=0 to tobjectdef(ttypesym(p).typedef).symtable.DefList.Count-1 do
@@ -1750,6 +1791,10 @@ implementation
                  MessagePos1(tprocdef(tprocdef(hp).genericdef).fileinfo,sym_e_forward_not_resolved,tprocdef(tprocdef(hp).genericdef).fullprocname(false));
              end;
          end;
+
+        { Restore symtablestack }
+        symtablestack.free;
+        symtablestack:=oldsymtablestack;
       end;
 
 
@@ -1758,11 +1803,7 @@ implementation
         if assigned(current_module.globalsymtable) then
           current_module.globalsymtable.SymList.ForEachCall(@specialize_objectdefs,nil);
         if assigned(current_module.localsymtable) then
-          begin
-            symtablestack.push(current_module.localsymtable);
-            current_module.localsymtable.SymList.ForEachCall(@specialize_objectdefs,nil);
-            symtablestack.pop(current_module.localsymtable);
-          end;
+          current_module.localsymtable.SymList.ForEachCall(@specialize_objectdefs,nil);
       end;
 
 end.
