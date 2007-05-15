@@ -447,7 +447,7 @@ implementation
          if t1.nodetype<>ordconstn then
            begin
               do_loopvar_at_end:=false;
-              location_force_reg(current_asmdata.CurrAsmList,t1.location,t1.location.size,true);
+              location_force_reg(current_asmdata.CurrAsmList,t1.location,t1.location.size,false);
               temptovalue:=true;
            end
          else
