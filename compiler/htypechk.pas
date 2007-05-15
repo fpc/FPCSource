@@ -80,7 +80,7 @@ interface
       end;
 
     const
-      tok2nodes=25;
+      tok2nodes=24;
       tok2node:array[1..tok2nodes] of ttok2noderec=(
         (tok:_PLUS    ;nod:addn;op_overloading_supported:true),      { binary overloading supported }
         (tok:_MINUS   ;nod:subn;op_overloading_supported:true),      { binary and unary overloading supported }
@@ -105,7 +105,6 @@ interface
         (tok:_OP_SHR    ;nod:shrn;op_overloading_supported:true),    { binary overloading supported }
         (tok:_OP_XOR    ;nod:xorn;op_overloading_supported:true),    { binary overloading supported }
         (tok:_ASSIGNMENT;nod:assignn;op_overloading_supported:true), { unary overloading supported }
-        (tok:_CARET   ;nod:caretn;op_overloading_supported:false),    { binary overloading NOT supported }
         (tok:_UNEQUAL ;nod:unequaln;op_overloading_supported:false)   { binary overloading NOT supported  overload = instead }
       );
     const

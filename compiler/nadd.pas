@@ -486,8 +486,7 @@ implementation
                   t:=crealconstnode.create(lvd-rvd,resultrealdef);
                 muln :
                   t:=crealconstnode.create(lvd*rvd,resultrealdef);
-                starstarn,
-                caretn :
+                starstarn:
                   begin
                     if lvd<0 then
                      begin

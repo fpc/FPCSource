@@ -122,7 +122,6 @@ implementation
              'on',    {onn}
              'is',    {isn}
              'as',    {asn}
-             'error-caret',       {caretn}
              'add-starstar',  {starstarn}
              'arrayconstruc', {arrayconstructn}
              'noth-arrcnstr',     {arrayconstructrangen}
