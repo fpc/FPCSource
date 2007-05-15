@@ -446,6 +446,14 @@ begin
    end;
 end;
 
+{$ifdef DEBUG_LFN}
+const
+  LFNFileName : string = 'LFN.log';
+  LFNOpenNb : longint = 0;
+  LogLFN : boolean = false;
+var
+  lfnfile : text;
+{$endif DEBUG_LFN}
 
 procedure LFNFindFirst(path:pchar;attr:longint;var s:searchrec);
 var
@@ -469,6 +477,15 @@ begin
   dosregs.ax:=$714e;
   msdos(dosregs);
   LoadDosError;
+{$ifdef DEBUG_LFN}
+  if (DosError=0) and LogLFN then
+    begin
+      Append(lfnfile);
+      inc(LFNOpenNb);
+      Writeln(lfnfile,LFNOpenNb,' LFNFindFirst called ',path);
+      close(lfnfile);
+    end;
+{$endif DEBUG_LFN}
   copyfromdos(w,sizeof(LFNSearchRec));
   LFNSearchRec2Dos(w,dosregs.ax,s,true);
 end;
@@ -507,6 +524,16 @@ begin
   dosregs.ax:=$71a1;
   msdos(dosregs);
   LoadDosError;
+{$ifdef DEBUG_LFN}
+  if (DosError=0) and LogLFN  then
+    begin
+      Append(lfnfile);
+      Writeln(lfnfile,LFNOpenNb,' LFNFindClose called ');
+      close(lfnfile);
+      if LFNOpenNb>0 then
+        dec(LFNOpenNb);
+    end;
+{$endif DEBUG_LFN}
 end;
 
 
@@ -839,5 +866,18 @@ begin
    end;
 end;
 
+{$ifdef DEBUG_LFN}
+begin
+  LogLFN:=(GetEnv('LOGLFN')<>'');
+  assign(lfnfile,LFNFileName);
+{$I-}
+  Reset(lfnfile);
+  if IOResult<>0 then
+    begin
+      Rewrite(lfnfile);
+      Writeln(lfnfile,'New lfn.log');
+    end;
+  close(lfnfile);
+{$endif DEBUG_LFN}
 
 end.
