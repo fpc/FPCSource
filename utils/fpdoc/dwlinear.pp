@@ -38,6 +38,8 @@ Type
     function  ConstValue(ConstDecl: TPasConst): String; virtual;
     procedure ProcessSection(ASection: TPasSection); virtual;
     // Procedures which MAY be overridden in descendents
+    procedure WriteBeginDocument; virtual;
+    procedure WriteEndDocument; virtual;
     Function  EscapeText(S : String) : String; virtual;
     Function  StripText(S : String) : String; virtual;
     Procedure StartProcedure; Virtual;
@@ -449,8 +451,7 @@ begin
     Engine.Output:=PackageName+FileNameExtension;
   FStream:=TFileStream.Create(Engine.Output,fmCreate);
   try
-    WriteComment('This file has been created automatically by FPDoc.');
-    WriteComment('Linear output (c) 2005 Michael Van Canneyt');
+    WriteBeginDocument;
     ProcessPackage;
     L:=TStringList.Create;
     Try
@@ -474,6 +475,7 @@ begin
     Finally
       L.Free;
     end;
+    WriteEndDocument;
   finally
     FSTream.Free;
   end;
@@ -1146,6 +1148,17 @@ begin
     end;
   for i := 0 to Package.Modules.Count - 1 do
     ScanModule(TPasModule(Package.Modules[i]));
+end;
+
+procedure TLinearWriter.WriteBeginDocument;
+
+begin
+  WriteComment('This file has been created automatically by FPDoc.');
+  WriteComment('Linear output (c) 2005 Michael Van Canneyt');
+end;
+
+procedure TLinearWriter.WriteEndDocument;
+begin
 end;
 
 end.

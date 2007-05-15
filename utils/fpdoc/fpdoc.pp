@@ -17,15 +17,16 @@ program FPDoc;
 
 uses
   SysUtils, Classes, Gettext, DOM, XMLWrite, PasTree, PParser,
-  dGlobals, // GLobal definitions, constants.
-  dwriter,  // TFPDocWriter definition.
-  dwlinear, // Linear (abstract) writer
-  dw_LaTeX, // TLaTex writer
-  dw_XML,   // XML writer
-  dw_HTML,  // HTML writer
-  dw_ipf,   // IPF writer
-  dw_man,   // Man page writer
-  dw_txt;   // TXT writer
+  dGlobals,  // GLobal definitions, constants.
+  dwriter,   // TFPDocWriter definition.
+  dwlinear,  // Linear (abstract) writer
+  dw_LaTeX,  // TLaTex writer
+  dw_XML,    // XML writer
+  dw_HTML,   // HTML writer
+  dw_ipf,    // IPF writer
+  dw_man,    // Man page writer
+  dw_linrtf, // lineair RTF writer
+  dw_txt;    // TXT writer
 
 const
   OSTarget: String = {$I %FPCTARGETOS%};
