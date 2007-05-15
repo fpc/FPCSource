@@ -18,20 +18,21 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
  ****************************************************************************}
-{$ifdef TP}
-  {$N+,E+}
-{$endif}
-program pppdump;
+program ppudump;
+
+{$mode objfpc}
+{$H+}
+
 uses
-  dos,
+  SysUtils,
   ppu,
   globals,
   tokens;
 
 const
-  Version   = 'Version 2.1.1';
+  Version   = 'Version 2.2.0';
   Title     = 'PPU-Analyser';
-  Copyright = 'Copyright (c) 1998-2006 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2007 by the Free Pascal Development Team';
 
 { verbosity }
   v_none           = $0;
@@ -293,7 +294,7 @@ end;
 
 const
   HexTbl : array[0..15] of char='0123456789ABCDEF';
-function HexB(b:byte):string;
+function HexB(b:byte):shortstring;
 begin
   HexB[0]:=#2;
   HexB[1]:=HexTbl[b shr 4];
@@ -301,7 +302,7 @@ begin
 end;
 
 
-function hexstr(val : cardinal;cnt : byte) : string;
+function hexstr(val : cardinal;cnt : byte) : shortstring;
 const
   HexTbl : array[0..15] of char='0123456789ABCDEF';
 var
@@ -336,15 +337,20 @@ end;
      convert dos datetime t to a string YY/MM/DD HH:MM:SS
    }
      var
-       DT : DateTime;
+       DT : TDateTime;
+       hsec : word;
+       Year,Month,Day: Word;
+       hour,min,sec : word;
      begin
        if t=-1 then
         begin
-          FileTimeString:='Not Found';
+          Result := 'Not Found';
           exit;
         end;
-       unpacktime(t,DT);
-       filetimestring:=L0(dt.Year)+'/'+L0(dt.Month)+'/'+L0(dt.Day)+' '+L0(dt.Hour)+':'+L0(dt.min)+':'+L0(dt.sec);
+       DT := FileDateToDateTime(t);
+       DecodeTime(DT,hour,min,sec,hsec);
+       DecodeDate(DT,year,month,day);
+       Result := L0(Year)+'/'+L0(Month)+'/'+L0(Day)+' '+L0(Hour)+':'+L0(min)+':'+L0(sec);
      end;
 
 
