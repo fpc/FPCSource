@@ -1382,9 +1382,9 @@ implementation
             if (tcgprocinfo(current_procinfo).nestedprocs.count>0) then
               begin
                 if (df_generic in current_procinfo.procdef.defoptions) then
-{$warning TODO Add error message for nested procs in generics}
-                  internalerror(200511151)
-                else if (po_inline in current_procinfo.procdef.procoptions) then
+                  Comment(V_Error,'Generic methods cannot have nested procedures')
+                else
+                 if (po_inline in current_procinfo.procdef.procoptions) then
                   begin
                     Message1(parser_w_not_supported_for_inline,'nested procedures');
                     Message(parser_w_inlining_disabled);

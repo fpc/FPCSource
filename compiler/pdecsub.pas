@@ -834,7 +834,8 @@ implementation
         pd.proctypeoption:=potype;
 
         { methods inherit df_generic or df_specialization from the objectdef }
-        if assigned(pd._class) then
+        if assigned(pd._class) and
+           (pd.parast.symtablelevel=normal_function_level) then
           begin
             if (df_generic in pd._class.defoptions) then
               include(pd.defoptions,df_generic);
