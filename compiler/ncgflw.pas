@@ -390,9 +390,8 @@ implementation
                  get_used_regvars(right,usedregvars);
                  { loop body }
                  get_used_regvars(t2,usedregvars);
-                 { end value if necessary }
-                 if (t1.location.loc = LOC_CREGISTER) then
-                   get_used_regvars(t1,usedregvars);
+                 { end value (t1) is not necessary (it cannot be a regvar, }
+                 { see webtbs/tw8883)                                      }
 
                  gen_sync_regvars(current_asmdata.CurrAsmList,usedregvars);
                end
