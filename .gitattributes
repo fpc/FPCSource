@@ -3948,6 +3948,8 @@ packages/fcl-base/tests/intl/restest.fr.mo -text
 packages/fcl-base/tests/intl/restest.fr.po svneol=native#text/plain
 packages/fcl-base/tests/intl/restest.nl.mo -text
 packages/fcl-base/tests/intl/restest.nl.po svneol=native#text/plain
+packages/fcl-base/tests/intl/restest.pb.mo -text
+packages/fcl-base/tests/intl/restest.pb.po svneol=native#text/plain
 packages/fcl-base/tests/intl/resttest.po svneol=native#text/plain
 packages/fcl-base/tests/ipcclient.pp svneol=native#text/plain
 packages/fcl-base/tests/ipcserver.pp svneol=native#text/plain
