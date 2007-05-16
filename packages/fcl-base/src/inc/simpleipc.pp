@@ -46,13 +46,14 @@ Type
   TIPCServerComm = Class(TObject)
   Private
     FOwner  : TSimpleIPCServer;
+  Protected  
+    Function  GetInstanceID : String; virtual; abstract;
   Public
     Constructor Create(AOwner : TSimpleIPCServer); virtual;
     Property Owner : TSimpleIPCServer read FOwner;
     Procedure StartServer; virtual; Abstract;
     Procedure StopServer;virtual; Abstract;
     Function  PeekMessage(TimeOut : Integer) : Boolean;virtual; Abstract;
-    Function  GetInstanceID : String; virtual; abstract;
     Procedure ReadMessage ;virtual; Abstract;
     Property InstanceID : String read GetInstanceID;
   end;
@@ -372,16 +373,28 @@ end;
 
 procedure TSimpleIPCClient.Connect;
 begin
-  FIPCComm:=CommClass.Create(Self);
-  FIPCComm.Connect;
-  FActive:=True;
+  If Not assigned(FIPCComm) then
+    begin
+    FIPCComm:=CommClass.Create(Self);
+    Try
+      FIPCComm.Connect;
+    Except
+      FreeAndNil(FIPCComm);
+      Raise;
+    end;  
+    FActive:=True;
+    end;
 end;
 
 procedure TSimpleIPCClient.Disconnect;
 begin
-  FIPCComm.DisConnect;
-  FreeAndNil(FIPCComm);
-  FActive:=False;
+  If Assigned(FIPCComm) then
+    Try
+      FIPCComm.DisConnect;
+    Finally
+      FActive:=False;
+      FreeAndNil(FIPCComm);
+    end;  
 end;
 
 function TSimpleIPCClient.ServerRunning: Boolean;
