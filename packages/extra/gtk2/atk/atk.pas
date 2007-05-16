@@ -34,7 +34,9 @@ const
   {$define atkwin}
   atklib = 'libatk-1.0-0.dll';
   {$IFDEF FPC}
-  {$smartlink on}
+    {$ifndef NO_SMART_LINK}
+      {$smartlink on}
+    {$endif}
   {$ENDIF}
 {$else}
   {$ifdef UseCustomLibs}

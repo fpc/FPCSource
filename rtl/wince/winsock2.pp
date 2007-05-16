@@ -12,7 +12,9 @@
 
 unit WinSock2;
 
+{$ifndef NO_SMART_LINK}
 {$smartlink on}
+{$endif}
 { convention is cdecl for WinCE API}
 {$calling cdecl}
 
@@ -1093,8 +1095,8 @@ Type
 { WSAAccept() and overlapped I/O completion routine. }
 Type
         LPCONDITIONPROC = function (lpCallerId: LPWSABUF; lpCallerData : LPWSABUF; lpSQOS,lpGQOS : LPQOS; lpCalleeId,lpCalleeData : LPWSABUF;
-                g : GROUP; dwCallbackData : DWORD ) : Longint; 
-        LPWSAOVERLAPPED_COMPLETION_ROUTINE = procedure ( const dwError, cbTransferred : DWORD; const lpOverlapped : LPWSAOVERLAPPED; const dwFlags : DWORD ); 
+                g : GROUP; dwCallbackData : DWORD ) : Longint;
+        LPWSAOVERLAPPED_COMPLETION_ROUTINE = procedure ( const dwError, cbTransferred : DWORD; const lpOverlapped : LPWSAOVERLAPPED; const dwFlags : DWORD );
 
 
 //begin common win & wince

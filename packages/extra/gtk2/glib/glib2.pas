@@ -45,7 +45,9 @@ const
   gmodulelib = 'libgmodule-2.0-0.dll';
   gobjectlib = 'libgobject-2.0-0.dll';
   {$IFDEF FPC}
-  {$smartlink on}
+    {$ifndef NO_SMART_LINK}
+      {$smartlink on}
+    {$endif}
   {$ENDIF}
 {$else}
   {$ifdef UseCustomLibs}

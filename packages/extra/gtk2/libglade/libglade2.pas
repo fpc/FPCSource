@@ -38,7 +38,9 @@ const
   {$define gtkwin}
   LibGladeLib = 'libglade-2.0-0.dll';
   {$IFDEF FPC}
-  {$smartlink on}
+    {$ifndef NO_SMART_LINK}
+      {$smartlink on}
+    {$endif}
   {$ENDIF}
 {$else}
   LibGladeLib = 'libglade-2.0.so';

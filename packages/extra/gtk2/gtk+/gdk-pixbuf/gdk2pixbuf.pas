@@ -40,7 +40,9 @@ const
   {$define gdkpixbufwin}
   gdkpixbuflib = 'libgdk_pixbuf-2.0-0.dll';
   {$IFDEF FPC}
-  {$smartlink on}
+    {$ifndef NO_SMART_LINK}
+      {$smartlink on}
+    {$endif}
   {$ENDIF}
 {$else}
   {$ifdef darwin}
@@ -49,8 +51,8 @@ const
     {$linklib gdk-x11-2.0}
     {$linklib pango-1.0.0}
     {$linklib glib-2.0.0}
-    {$linklib gobject-2.0.0} 
-    {$linklib gdk_pixbuf-2.0.0} 
+    {$linklib gobject-2.0.0}
+    {$linklib gdk_pixbuf-2.0.0}
     {$linklib atk-1.0.0}
   {$else}
     {$ifdef UseCustomLibs}

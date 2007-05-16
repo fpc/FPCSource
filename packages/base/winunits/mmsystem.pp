@@ -7,13 +7,15 @@
                                     (*********************************)
 
 Unit mmsystem;
-{$smartlink on}
+{$ifndef NO_SMART_LINK}
+  {$smartlink on}
+{$endif}
 {$MODE DELPHI}
 interface
 uses
  windows;
 
-Type 
+Type
     MMRESULT   = UINT;
     MMVERSION  = UINT;
     HWAVEOUT   = THandle;
@@ -24,7 +26,7 @@ Type
     LPHWAVE    = ^THandle;
     LPUINT     = ^UINT;
 
-Const 
+Const
     MAXPNAMELEN = 32;
     MAXERRORLENGTH = 256;
     MAX_JOYSTICKOEMVXDNAME = 260;
@@ -138,10 +140,10 @@ Const
     CALLBACK_THREAD = CALLBACK_TASK;
     CALLBACK_FUNCTION = $30000;
 
-Type 
+Type
   HDRVR = THandle;
 
-Const 
+Const
     DRV_LOAD = 1;
     DRV_ENABLE = 2;
     DRV_OPEN = $3;
@@ -165,7 +167,7 @@ Const
     DRV_MCI_FIRST = DRV_RESERVED;
     DRV_MCI_LAST = (DRV_RESERVED+$FFF);
 
-Type 
+Type
   PDRVCALLBACK = Procedure (hdrvr: tHandle; uMsg: UINT; dwUser, dw1, dw2: DWORD);  stdcall;
 
 Function sndPlaySoundA(Name: LPCSTR; flags: UINT): BOOL; stdcall; external 'winmm.dll' name 'sndPlaySoundA';
@@ -175,7 +177,7 @@ Function sndPlaySoundW(Name: LPCWSTR; flags: UINT): BOOL;stdcall; external 'winm
 Function sndPlaySound(Name: PChar; flags: UINT): BOOL;stdcall; external 'winmm.dll' name
  {$ifdef UNICODE}'sndPlaySoundW' {$else}'sndPlaySoundA'{$endif};
 
-Const 
+Const
     SND_NODEFAULT = 2;
     SND_MEMORY = 4;
     SND_LOOP = 8;
@@ -258,7 +260,7 @@ Const
 Function MEVT_EVENTTYPE(x: byte): byte;inline;
 Function MEVT_EVENTPARM(x: DWORD): DWORD;inline;
 
-Const 
+Const
     MEVT_SHORTMSG = 0;
     MEVT_TEMPO = $1;
     MEVT_NOP = $2;
@@ -724,7 +726,7 @@ Function MCI_MSF_SECOND(msf: longint): byte;inline;
 Function MCI_MSF_FRAME(msf: longint): byte;inline;
 Function MCI_MAKE_MSF(m, s, f: byte): longint;inline;
 
-Const 
+Const
     MCI_SET_DOOR_OPEN = 256;
     MCI_SET_DOOR_CLOSED = 512;
     MCI_SET_TIME_FORMAT = $400;
@@ -745,7 +747,7 @@ Function MCI_HMS_MINUTE(h: longint): byte;inline;
 Function MCI_HMS_SECOND(h: longint): byte;inline;
 Function MCI_MAKE_HMS(h, m, s: byte): longint;inline;
 
-Const 
+Const
     MCI_INFO_PRODUCT = 256;
     MCI_INFO_FILE = 512;
     MCI_INFO_MEDIA_UPC = $400;
@@ -755,7 +757,7 @@ Const
 
 Function MCI_MAKE_TMSF(t, m, s, f: byte): longint;inline;
 
-Const 
+Const
     MCI_WAIT = 2;
     MCI_FROM = 4;
     MCI_TO = 8;
@@ -958,7 +960,7 @@ Const
     SELECTDIB = 41;
 Function DIBINDEX(n: longint): longint;inline;
 
-Const 
+Const
     SC_SCREENSAVE = $F140;
     AUXCAPS_CDAUDIO = 1;
     AUXCAPS_AUXIN = 2;
@@ -969,7 +971,7 @@ Const
 (* Structures and typedefs*)
 (*/////////////////////////////////////////////////////////*)
 
-Type 
+Type
   _mmtime = packed Record
                      wType: UINT;
                      Case integer Of
@@ -1064,7 +1066,7 @@ Type
  NPWAVEINCAPSA = ^_WAVEINCAPSA;
  LPWAVEINCAPSA = ^_WAVEINCAPSA;
  TWAVEINCAPSA  = WAVEINCAPSA;
- 
+
  _WAVEINCAPSW  = packed Record
                         wMid: WORD;
                         wPid: WORD;
@@ -1104,11 +1106,11 @@ Type
  NPWAVEFORMAT = ^_waveformat;
  LPWAVEFORMAT = ^_waveformat;
  TWAVEFORMAT  = _waveformat;
- 
-Const 
+
+Const
   WAVE_FORMAT_PCM = 1;
 
-Type 
+Type
   _pcmwaveformat = packed Record
                             wf: WAVEFORMAT;
                             wBitsPerSample: WORD;
@@ -1143,10 +1145,10 @@ Type
  LPHMIDISTRM = ^HMIDISTRM;
  LPMIDICALLBACK = PDRVCALLBACK;
 
-Const 
+Const
   MIDIPATCHSIZE = 128;
 
-Type 
+Type
   PATCHARRAY = array [0..Pred(MIDIPATCHSIZE)] Of WORD;
   LPPATCHARRAY = ^WORD;
   KEYARRAY = array [0..Pred(MIDIPATCHSIZE)] Of WORD;
@@ -1208,7 +1210,7 @@ Type
  NPMIDIINCAPSW = ^_MIDIINCAPSW;
  LPMIDIINCAPSW = ^_MIDIINCAPSW;
  TMIDIINCAPSW  = MIDIINCAPSW;
- 
+
  {$ifdef UNICODE}
   MIDIINCAPS    = MIDIINCAPSW;
   PMIDIINCAPS   = PMIDIINCAPSW;
@@ -1224,7 +1226,7 @@ Type
   NPMIDIOUTCAPS = NPMIDIOUTCAPSA;
   LPMIDIOUTCAPS = LPMIDIOUTCAPSA;
   MIDIINCAPS    = MIDIINCAPSA;
-  PMIDIINCAPS   = PMIDIINCAPSA; 
+  PMIDIINCAPS   = PMIDIINCAPSA;
   NPMIDIINCAPS  = NPMIDIINCAPSA;
   LPMIDIINCAPS  = LPMIDIINCAPSA;
  {$endif}
@@ -1313,7 +1315,7 @@ Type
   PAUXCAPS = PAUXCAPSW;
   NPAUXCAPS = NPAUXCAPSW;
   LPAUXCAPS = LPAUXCAPSW;
- {$else} 
+ {$else}
   AUXCAPS = AUXCAPSA;
   PAUXCAPS = PAUXCAPSA;
   NPAUXCAPS = NPAUXCAPSA;
@@ -1328,7 +1330,7 @@ Type
 
 Function mixerGetNumDevs: UINT;stdcall; external 'winmm.dll' name 'mixerGetNumDevs';
 
-Type 
+Type
   _MIXERCAPSA = packed Record
                          wMid: WORD;
                          wPid: WORD;
@@ -1488,7 +1490,7 @@ Type
  {$endif}
  TMIXERCONTROL   = MIXERCONTROL;
 
- 
+
  _MIXERLINECONTROLSA  = packed Record
                                cbStruct: DWORD;
                                dwLineID: DWORD;
@@ -1592,7 +1594,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  LPMIXERCONTROLDETAILS_UNSIGNED = ^_MIXERCONTROLDETAILS_UNSIGNED;
  TMIXERCONTROLDETAILS_UNSIGNED  = _MIXERCONTROLDETAILS_UNSIGNED;
 
- LPTIMECALLBACK = 
+ LPTIMECALLBACK =
     Procedure (uTimerID, uMsg: UINT; dwUser, dw1, dw2: DWORD);stdcall;
  TTIMECALLBACK=LPTIMECALLBACK;
 
@@ -1637,7 +1639,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  NPJOYCAPSA = ^_JOYCAPSA;
  LPJOYCAPSA = ^_JOYCAPSA;
  TJOYCAPSA  = _JOYCAPSA;
- 
+
  _JOYCAPSW = packed Record
                      wMid: WORD;
                      wPid: WORD;
@@ -1719,7 +1721,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
  FOURCC = DWORD;
  HPSTR = ^char;
  HMMIO = THandle;
- LPMMIOPROC = 
+ LPMMIOPROC =
      Function (x1: LPSTR; x2: UINT; x3, x4: LPARAM): LRESULT;stdcall;
  TMMIOPROC = LPMMIOPROC;
 
@@ -1764,7 +1766,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
 
  MCIERROR = DWORD;
  MCIDEVICEID = UINT;
- YIELDPROC = 
+ YIELDPROC =
      Function (mciId: MCIDEVICEID;  dwYieldData: DWORD): UINT;stdcall;
   TYIELDPROC = YIELDPROC;
 
@@ -1794,7 +1796,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
                             lpstrDeviceType: LPCWSTR;
                             lpstrElementName: LPCWSTR;
                             lpstrAlias: LPCWSTR;
-			  End; 
+			  End;
  MCI_OPEN_PARMSW   = _MCI_OPEN_PARMSW;
  PMCI_OPEN_PARMSW  = ^_MCI_OPEN_PARMSW;
  LPMCI_OPEN_PARMSW = ^_MCI_OPEN_PARMSW;
@@ -1865,7 +1867,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
   MCI_INFO_PARMS   = MCI_INFO_PARMSA;
   LPMCI_INFO_PARMS = LPMCI_INFO_PARMSA;
  {$endif}
-  TMCI_INFO_PARMS = MCI_INFO_PARMS; 
+  TMCI_INFO_PARMS = MCI_INFO_PARMS;
 
  _MCI_GETDEVCAPS_PARMS = packed Record
                                  dwCallback: DWORD;
@@ -1906,7 +1908,7 @@ _MIXERCONTROLDETAILS_BOOLEAN = packed Record
   MCI_SYSINFO_PARMS = MCI_SYSINFO_PARMSW;
   PMCI_SYSINFO_PARMS = PMCI_SYSINFO_PARMSW;
   LPMCI_SYSINFO_PARMS = LPMCI_SYSINFO_PARMSW;
- {$else} 
+ {$else}
   MCI_SYSINFO_PARMS = MCI_SYSINFO_PARMSA;
   PMCI_SYSINFO_PARMS = PMCI_SYSINFO_PARMSA;
   LPMCI_SYSINFO_PARMS = LPMCI_SYSINFO_PARMSA;
@@ -2093,7 +2095,7 @@ _MCI_VD_ESCAPE_PARMSW   = packed Record
  PMCI_WAVE_DELETE_PARMS = ^_MCI_WAVE_DELETE_PARMS;
  LPMCI_WAVE_DELETE_PARMS = ^_MCI_WAVE_DELETE_PARMS;
  TMCI_WAVE_DELETE_PARMS = _MCI_WAVE_DELETE_PARMS;
- 
+
  _MCI_WAVE_SET_PARMS = packed Record
                                dwCallback: DWORD;
                                dwTimeFormat: DWORD;
@@ -2293,7 +2295,7 @@ _MCI_OVLY_WINDOW_PARMSA = packed Record
 				End;
  MCI_OVLY_WINDOW_PARMSW   = _MCI_OVLY_WINDOW_PARMSW;
  PMCI_OVLY_WINDOW_PARMSW  = ^_MCI_OVLY_WINDOW_PARMSW;
- LPMCI_OVLY_WINDOW_PARMSW = ^_MCI_OVLY_WINDOW_PARMSW; 
+ LPMCI_OVLY_WINDOW_PARMSW = ^_MCI_OVLY_WINDOW_PARMSW;
  TMCI_OVLY_WINDOW_PARMSW  = _MCI_OVLY_WINDOW_PARMSW;
 
  {$ifdef UNICODE}
@@ -2302,7 +2304,7 @@ _MCI_OVLY_WINDOW_PARMSA = packed Record
   LPMCI_OVLY_WINDOW_PARMS = LPMCI_OVLY_WINDOW_PARMSW;
  {$else}
   MCI_OVLY_WINDOW_PARMS   = MCI_OVLY_WINDOW_PARMSA;
-  PMCI_OVLY_WINDOW_PARMS  = PMCI_OVLY_WINDOW_PARMSA; 
+  PMCI_OVLY_WINDOW_PARMS  = PMCI_OVLY_WINDOW_PARMSA;
   LPMCI_OVLY_WINDOW_PARMS = LPMCI_OVLY_WINDOW_PARMSA;
  {$endif}
  TMCI_OVLY_WINDOW_PARMS   = MCI_OVLY_WINDOW_PARMSW;
@@ -2611,7 +2613,7 @@ Function MEVT_EVENTPARM(x: DWORD): DWORD;
    MEVT_EVENTPARM := x And $00FFFFFF;
  End;
 
-Type 
+Type
   TFourBytes = packed array [0..3] Of byte;
 
 Function MCI_MSF_MINUTE(msf: longint): byte;
