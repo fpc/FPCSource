@@ -63,7 +63,7 @@ interface
         FParaNode   : tnode;
         FParaLength : smallint;
         FAllowVariant : boolean;
-        function proc_add(pd:tprocdef):pcandidate;
+        function proc_add(ps:tprocsym;pd:tprocdef):pcandidate;
       public
         constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;isprop,ignorevis : boolean);
         constructor create_operator(op:ttoken;ppn:tnode);
@@ -1645,7 +1645,7 @@ implementation
                if (FParalength>=pd.minparacount) and
                   ((po_varargs in pd.procoptions) or { varargs }
                    (FParalength<=pd.maxparacount)) then
-                 proc_add(pd);
+                 proc_add(sym,pd);
              end;
           end;
 
@@ -1710,7 +1710,7 @@ implementation
                                   hp:=hp^.next;
                                 end;
                                if not found then
-                                 proc_add(pd);
+                                 proc_add(srprocsym,pd);
                              end;
                          end;
                       end;
@@ -1792,7 +1792,7 @@ implementation
                                 hp:=hp^.next;
                               end;
                             if not found then
-                              proc_add(pd);
+                              proc_add(srprocsym,pd);
                           end;
                       end;
                   end;
@@ -1817,7 +1817,7 @@ implementation
       end;
 
 
-    function tcallcandidates.proc_add(pd:tprocdef):pcandidate;
+    function tcallcandidates.proc_add(ps:tprocsym;pd:tprocdef):pcandidate;
       var
         defaultparacnt : integer;
       begin
@@ -1844,6 +1844,10 @@ implementation
                dec(result^.firstparaidx,defaultparacnt);
              end;
          end;
+        { Give a small penalty for overloaded methods not in
+          defined the current class/unit }
+        if ps.owner<>pd.owner then
+          result^.ordinal_distance:=result^.ordinal_distance+1.0;
       end;
 
 
