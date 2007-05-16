@@ -657,7 +657,8 @@ implementation
                                 begin
                                   subeq:=compare_defs_ext(tarraydef(def_from).elementdef,
                                                        tarraydef(def_to).elementdef,
-                                                       arrayconstructorn,hct,hpd,[cdo_check_operator]);
+                                                       { reason for cdo_allow_variant: see webtbs/tw7070a and webtbs/tw7070b }
+                                                       arrayconstructorn,hct,hpd,[cdo_check_operator,cdo_allow_variant]);
                                   if (subeq>=te_equal) then
                                     begin
                                       doconv:=tc_equal;
@@ -892,23 +893,23 @@ implementation
                           end;
                       end;
                      { allow explicit typecasts from ordinals to pointer.
-		       Support for delphi compatibility
-		       Support constructs like pointer(cardinal-cardinal) or pointer(longint+cardinal) where
-		        the result of the ordinal operation is int64 also on 32 bit platforms.
+                       Support for delphi compatibility
+                       Support constructs like pointer(cardinal-cardinal) or pointer(longint+cardinal) where
+                        the result of the ordinal operation is int64 also on 32 bit platforms.
                        It is also used by the compiler internally for inc(pointer,ordinal) }
                      if (eq=te_incompatible) and
                         not is_void(def_from) and
-			(
+                        (
                          (
-			  (cdo_explicit in cdoptions) and
-			  (
-			   (m_delphi in current_settings.modeswitches) or
-			   { Don't allow pchar(char) in fpc modes }
-			   is_integer(def_from)
-			  )
-			 ) or
-			 (cdo_internal in cdoptions)
-			) then
+                          (cdo_explicit in cdoptions) and
+                          (
+                           (m_delphi in current_settings.modeswitches) or
+                           { Don't allow pchar(char) in fpc modes }
+                           is_integer(def_from)
+                          )
+                         ) or
+                         (cdo_internal in cdoptions)
+                        ) then
                        begin
                          doconv:=tc_int_2_int;
                          eq:=te_convert_l1;
@@ -918,14 +919,14 @@ implementation
                  enumdef :
                    begin
                      { allow explicit typecasts from enums to pointer.
-		       Support for delphi compatibility
+                       Support for delphi compatibility
                      }
                      if (eq=te_incompatible) and
                         (((cdo_explicit in cdoptions) and
                           (m_delphi in current_settings.modeswitches)
- 		         ) or
-			 (cdo_internal in cdoptions)
-			) then
+                          ) or
+                         (cdo_internal in cdoptions)
+                        ) then
                        begin
                          doconv:=tc_int_2_int;
                          eq:=te_convert_l1;
@@ -1332,6 +1333,13 @@ implementation
         { if we didn't find an appropriate type conversion yet
           then we search also the := operator }
         if (eq=te_incompatible) and
+           { make sure there is not a single variant if variants   }
+           { are not allowed (otherwise if only cdo_check_operator }
+           { and e.g. fromdef=stringdef and todef=variantdef, then }
+           { the test will still succeed                           }
+           ((cdo_allow_variant in cdoptions) or
+            ((def_from.typ<>variantdef) and (def_to.typ<>variantdef))
+           ) and
            (
             { Check for variants? }
             (
@@ -1341,8 +1349,8 @@ implementation
             { Check for operators? }
             (
              (cdo_check_operator in cdoptions) and
-             ((def_from.typ in [objectdef,recorddef,arraydef,stringdef,variantdef]) or
-              (def_to.typ in [objectdef,recorddef,arraydef,stringdef,variantdef]))
+             ((def_from.typ in [objectdef,recorddef,arraydef,stringdef]) or
+              (def_to.typ in [objectdef,recorddef,arraydef,stringdef]))
             )
            ) then
           begin
