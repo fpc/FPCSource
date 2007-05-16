@@ -298,9 +298,9 @@ end;
 var
   initialstkptr : Pointer;external name '__stkptr';
 begin
-{$IFDEF i386}
+{$if defined(i386) and not defined(FPC_USE_LIBC)}
   InitSyscallIntf;
-{$ENDIF}
+{$endif}
 
   SysResetFPU;
 {$if defined(cpupowerpc)}
