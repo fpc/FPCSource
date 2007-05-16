@@ -29,6 +29,7 @@ type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, 
 type
   TSQLConnection = class;
   TSQLTransaction = class;
+  TCustomSQLQuery = class;
   TSQLQuery = class;
   TSQLScript = class;
 
@@ -162,9 +163,9 @@ type
     property Params : TStringList read FParams write FParams;
   end;
 
-{ TSQLQuery }
+{ TCustomSQLQuery }
 
-  TSQLQuery = class (Tbufdataset)
+  TCustomSQLQuery = class (Tbufdataset)
   private
     FCursor              : TSQLCursor;
     FUpdateable          : boolean;
@@ -193,7 +194,7 @@ type
 
     FUpdateQry,
     FDeleteQry,
-    FInsertQry           : TSQLQuery;
+    FInsertQry           : TCustomSQLQuery;
 
     procedure FreeFldBuffers;
     procedure InitUpdates(ASQL : string);
@@ -240,13 +241,12 @@ type
     procedure SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string); virtual;
     property Prepared : boolean read IsPrepared;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-  published
+  protected
+      
     // redeclared data set properties
     property Active;
     property Filter;
     property Filtered;
-    property ServerFilter: string read FServerFilterText write SetServerFilterText;
-    property ServerFiltered: Boolean read FServerFiltered write SetServerFiltered default False;
 //    property FilterOptions;
     property BeforeOpen;
     property AfterOpen;
@@ -272,7 +272,8 @@ type
     property OnPostError;
     property AutoCalcFields;
     property Database;
-
+  // protected
+//    property SchemaInfo : TSchemaInfo read FSchemaInfo default stNoSchema;
     property Transaction;
     property ReadOnly : Boolean read FReadOnly write SetReadOnly;
     property SQL : TStringlist read FSQL write FSQL;
@@ -286,7 +287,29 @@ type
     property StatementType : TStatementType read GetStatementType;
     property ParseSQL : Boolean read FParseSQL write SetParseSQL;
     Property DataSource : TDatasource Read GetDataSource Write SetDatasource;
-//    property SchemaInfo : TSchemaInfo read FSchemaInfo default stNoSchema;
+    property ServerFilter: string read FServerFilterText write SetServerFilterText;
+    property ServerFiltered: Boolean read FServerFiltered write SetServerFiltered default False;
+  end;
+
+{ TSQLQuery }
+  TSQLQuery = Class(TCustomSQLQuery)
+  Published
+    //    property SchemaInfo default stNoSchema;
+    property Transaction;
+    property ReadOnly;
+    property SQL;
+    property UpdateSQL;
+    property InsertSQL;
+    property DeleteSQL;
+    property IndexDefs;
+    property Params;
+    property UpdateMode;
+    property UsePrimaryKeyAsKey;
+    property StatementType;
+    property ParseSQL;
+    Property DataSource;
+    property ServerFilter;
+    property ServerFiltered;
   end;
 
 { TSQLScript }
@@ -294,7 +317,7 @@ type
   TSQLScript = class (Tcomponent)
   private
     FScript  : TStrings;
-    FQuery   : TSQLQuery;
+    FQuery   : TCustomSQLQuery;
     FDatabase : TDatabase;
     FTransaction : TDBTransaction;
   protected
@@ -476,13 +499,13 @@ end;
 
 procedure TSQLConnection.GetDBInfo(const SchemaType : TSchemaType; const SchemaObjectName, ReturnField : string; List: TStrings);
 
-var qry : TSQLQuery;
+var qry : TCustomSQLQuery;
 
 begin
   if not assigned(Transaction) then
     DatabaseError(SErrConnTransactionnSet);
 
-  qry := tsqlquery.Create(nil);
+  qry := TCustomSQLQuery.Create(nil);
   qry.transaction := Transaction;
   qry.database := Self;
   with qry do
@@ -668,8 +691,8 @@ begin
     end;
 end;
 
-{ TSQLQuery }
-procedure TSQLQuery.OnChangeSQL(Sender : TObject);
+{ TCustomSQLQuery }
+procedure TCustomSQLQuery.OnChangeSQL(Sender : TObject);
 
 var ConnOptions : TConnOptions;
 
@@ -687,20 +710,20 @@ begin
     end;
 end;
 
-procedure TSQLQuery.OnChangeModifySQL(Sender : TObject);
+procedure TCustomSQLQuery.OnChangeModifySQL(Sender : TObject);
 
 begin
   CheckInactive;
 end;
 
-Procedure TSQLQuery.SetTransaction(Value : TDBTransaction);
+Procedure TCustomSQLQuery.SetTransaction(Value : TDBTransaction);
 
 begin
   UnPrepare;
   inherited;
 end;
 
-procedure TSQLQuery.SetDatabase(Value : TDatabase);
+procedure TCustomSQLQuery.SetDatabase(Value : TDatabase);
 
 var db : tsqlconnection;
 
@@ -717,13 +740,13 @@ begin
     end;
 end;
 
-Function TSQLQuery.IsPrepared : Boolean;
+Function TCustomSQLQuery.IsPrepared : Boolean;
 
 begin
   Result := Assigned(FCursor) and FCursor.FPrepared;
 end;
 
-Function TSQLQuery.AddFilter(SQLstr : string) : string;
+Function TCustomSQLQuery.AddFilter(SQLstr : string) : string;
 
 begin
   if FWhereStartPos = 0 then
@@ -735,7 +758,7 @@ begin
   Result := SQLstr;
 end;
 
-procedure TSQLQuery.ApplyFilter;
+procedure TCustomSQLQuery.ApplyFilter;
 
 var S : String;
 
@@ -756,7 +779,7 @@ begin
   First;
 end;
 
-Procedure TSQLQuery.SetActive (Value : Boolean);
+Procedure TCustomSQLQuery.SetActive (Value : Boolean);
 
 begin
   inherited SetActive(Value);
@@ -766,7 +789,7 @@ begin
 end;
 
 
-procedure TSQLQuery.SetServerFiltered(Value: Boolean);
+procedure TCustomSQLQuery.SetServerFiltered(Value: Boolean);
 
 begin
   if Value and not FParseSQL then DatabaseErrorFmt(SNoParseSQL,['Filtering ']);
@@ -777,7 +800,7 @@ begin
     end;
 end;
 
-procedure TSQLQuery.SetServerFilterText(const Value: string);
+procedure TCustomSQLQuery.SetServerFilterText(const Value: string);
 begin
   if Value <> ServerFilter then
     begin
@@ -786,7 +809,7 @@ begin
     end;
 end;
 
-procedure TSQLQuery.Prepare;
+procedure TCustomSQLQuery.Prepare;
 var
   db    : tsqlconnection;
   sqltr : tsqltransaction;
@@ -828,7 +851,7 @@ begin
     end;
 end;
 
-procedure TSQLQuery.UnPrepare;
+procedure TCustomSQLQuery.UnPrepare;
 
 begin
   CheckInactive;
@@ -836,12 +859,12 @@ begin
     UnPrepareStatement(FCursor);
 end;
 
-procedure TSQLQuery.FreeFldBuffers;
+procedure TCustomSQLQuery.FreeFldBuffers;
 begin
   if assigned(FCursor) then (Database as tsqlconnection).FreeFldBuffers(FCursor);
 end;
 
-function TSQLQuery.Fetch : boolean;
+function TCustomSQLQuery.Fetch : boolean;
 begin
   if not (Fcursor.FStatementType in [stSelect]) then
     Exit;
@@ -850,25 +873,25 @@ begin
   Result := not FIsEOF;
 end;
 
-procedure TSQLQuery.Execute;
+procedure TCustomSQLQuery.Execute;
 begin
   If (FParams.Count>0) and Assigned(FMasterLink) then
     FMasterLink.CopyParamsFromMaster(False);
   (Database as tsqlconnection).execute(Fcursor,Transaction as tsqltransaction, FParams);
 end;
 
-function TSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
+function TCustomSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
 
 begin
   result := (Database as tSQLConnection).LoadField(FCursor,FieldDef,buffer, Createblob)
 end;
 
-procedure TSQLQuery.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);
+procedure TCustomSQLQuery.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);
 begin
   // not implemented - sql dataset
 end;
 
-procedure TSQLQuery.InternalClose;
+procedure TCustomSQLQuery.InternalClose;
 begin
   if StatementType = stSelect then FreeFldBuffers;
 // Database and FCursor could be nil, for example if the database is not assigned, and .open is called
@@ -883,7 +906,7 @@ begin
   inherited internalclose;
 end;
 
-procedure TSQLQuery.InternalInitFieldDefs;
+procedure TCustomSQLQuery.InternalInitFieldDefs;
 begin
   if FLoadingFieldDefs then
     Exit;
@@ -900,7 +923,7 @@ begin
   end;
 end;
 
-procedure TSQLQuery.SQLParser(var ASQL : string);
+procedure TCustomSQLQuery.SQLParser(var ASQL : string);
 
 type TParsePart = (ppStart,ppSelect,ppWhere,ppFrom,ppOrder,ppComment,ppGroup,ppBogus);
 
@@ -1029,7 +1052,7 @@ begin
     end
 end;
 
-procedure TSQLQuery.InitUpdates(ASQL : string);
+procedure TCustomSQLQuery.InitUpdates(ASQL : string);
 
 
 begin
@@ -1043,12 +1066,12 @@ begin
 
 end;
 
-procedure TSQLQuery.InternalOpen;
+procedure TCustomSQLQuery.InternalOpen;
 
-  procedure InitialiseModifyQuery(var qry : TSQLQuery; aSQL: TSTringList);
+  procedure InitialiseModifyQuery(var qry : TCustomSQLQuery; aSQL: TSTringList);
   
   begin
-    qry := TSQLQuery.Create(nil);
+    qry := TCustomSQLQuery.Create(nil);
     with qry do
       begin
       ParseSQL := False;
@@ -1120,7 +1143,7 @@ end;
 
 // public part
 
-procedure TSQLQuery.ExecSQL;
+procedure TCustomSQLQuery.ExecSQL;
 begin
   try
     Prepare;
@@ -1132,7 +1155,7 @@ begin
   end;
 end;
 
-constructor TSQLQuery.Create(AOwner : TComponent);
+constructor TCustomSQLQuery.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
   FParams := TParams.create(self);
@@ -1159,7 +1182,7 @@ begin
   FUsePrimaryKeyAsKey := True;
 end;
 
-destructor TSQLQuery.Destroy;
+destructor TCustomSQLQuery.Destroy;
 begin
   if Active then Close;
   UnPrepare;
@@ -1174,7 +1197,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TSQLQuery.SetReadOnly(AValue : Boolean);
+procedure TCustomSQLQuery.SetReadOnly(AValue : Boolean);
 
 begin
   CheckInactive;
@@ -1186,7 +1209,7 @@ begin
   else FReadOnly := True;
 end;
 
-procedure TSQLQuery.SetParseSQL(AValue : Boolean);
+procedure TCustomSQLQuery.SetParseSQL(AValue : Boolean);
 
 begin
   CheckInactive;
@@ -1200,7 +1223,7 @@ begin
     FParseSQL := True;
 end;
 
-procedure TSQLQuery.SetUsePrimaryKeyAsKey(AValue : Boolean);
+procedure TCustomSQLQuery.SetUsePrimaryKeyAsKey(AValue : Boolean);
 
 begin
   if not Active then FusePrimaryKeyAsKey := AValue
@@ -1211,14 +1234,14 @@ begin
     end;
 end;
 
-Procedure TSQLQuery.UpdateIndexDefs;
+Procedure TCustomSQLQuery.UpdateIndexDefs;
 
 begin
   if assigned(DataBase) then
     (DataBase as TSQLConnection).UpdateIndexDefs(FIndexDefs,FTableName);
 end;
 
-Procedure TSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
+Procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
 
   procedure UpdateWherePart(var sql_where : string;x : integer);
 
@@ -1294,7 +1317,7 @@ Procedure TSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
     result := 'delete from ' + FTableName + ' where ' + sql_where;
   end;
 
-var qry : tsqlquery;
+var qry : TCustomSQLQuery;
     x   : integer;
     Fld : TField;
     
@@ -1330,7 +1353,7 @@ begin
 end;
 
 
-Function TSQLQuery.GetCanModify: Boolean;
+Function TCustomSQLQuery.GetCanModify: Boolean;
 
 begin
   // the test for assigned(FCursor) is needed for the case that the dataset isn't opened
@@ -1340,25 +1363,25 @@ begin
     Result := False;
 end;
 
-function TSQLQuery.GetIndexDefs : TIndexDefs;
+function TCustomSQLQuery.GetIndexDefs : TIndexDefs;
 
 begin
   Result := FIndexDefs;
 end;
 
-procedure TSQLQuery.SetIndexDefs(AValue : TIndexDefs);
+procedure TCustomSQLQuery.SetIndexDefs(AValue : TIndexDefs);
 
 begin
   FIndexDefs := AValue;
 end;
 
-procedure TSQLQuery.SetUpdateMode(AValue : TUpdateMode);
+procedure TCustomSQLQuery.SetUpdateMode(AValue : TUpdateMode);
 
 begin
   FUpdateMode := AValue;
 end;
 
-procedure TSQLQuery.SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string);
+procedure TCustomSQLQuery.SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string);
 
 begin
   ReadOnly := True;
@@ -1366,20 +1389,20 @@ begin
   SQL.Add((DataBase as tsqlconnection).GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaPattern));
 end;
 
-procedure TSQLQuery.LoadBlobIntoBuffer(FieldDef: TFieldDef;
+procedure TCustomSQLQuery.LoadBlobIntoBuffer(FieldDef: TFieldDef;
   ABlobBuf: PBufBlobField);
 begin
   (DataBase as tsqlconnection).LoadBlobIntoBuffer(FieldDef, ABlobBuf, FCursor,(Transaction as tsqltransaction));
 end;
 
-function TSQLQuery.GetStatementType : TStatementType;
+function TCustomSQLQuery.GetStatementType : TStatementType;
 
 begin
   if assigned(FCursor) then Result := FCursor.FStatementType
     else Result := stNone;
 end;
 
-Procedure TSQLQuery.SetDataSource(AVAlue : TDatasource);
+Procedure TCustomSQLQuery.SetDataSource(AVAlue : TDatasource);
 
 Var
   DS : TDatasource;
@@ -1401,7 +1424,7 @@ begin
     end;
 end;
 
-Function TSQLQuery.GetDataSource : TDatasource;
+Function TCustomSQLQuery.GetDataSource : TDatasource;
 
 begin
   If Assigned(FMasterLink) then
@@ -1410,7 +1433,7 @@ begin
     Result:=Nil;
 end;
 
-procedure TSQLQuery.Notification(AComponent: TComponent; Operation: TOperation); 
+procedure TCustomSQLQuery.Notification(AComponent: TComponent; Operation: TOperation); 
 
 begin
   Inherited;
@@ -1445,7 +1468,7 @@ constructor TSQLScript.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FScript := TStringList.Create;
-  FQuery := TSQLQuery.Create(nil);
+  FQuery := TCustomSQLQuery.Create(nil);
 end;
 
 destructor TSQLScript.Destroy;
