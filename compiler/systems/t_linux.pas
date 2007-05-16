@@ -258,10 +258,18 @@ begin
 {$endif m68k}
 
 {$ifdef i386}
-     { default is glibc 2.1+ compatible }
-     libctype:=glibc21;
+     {
+       Search order:
+         glibc 2.1+
+         uclibc
+         glibc 2.0
+       If none is found (e.g. when cross compiling) glibc21 is assumed
+     }
      if FileExists('/lib/ld-linux.so.2',false) then
-       DynamicLinker:='/lib/ld-linux.so.2'
+       begin
+         DynamicLinker:='/lib/ld-linux.so.2';
+         libctype:=glibc21;
+       end
      else if fileexists('/lib/ld-uClibc.so.0',false) then
        begin
          dynamiclinker:='/lib/ld-uClibc.so.0';
@@ -271,6 +279,12 @@ begin
        begin
          DynamicLinker:='/lib/ld-linux.so.1';
          libctype:=glibc2;
+       end
+     else
+       begin
+         { default is glibc 2.1+ compatible }
+         DynamicLinker:='/lib/ld-linux.so.2';
+         libctype:=glibc21;
        end;
 {$endif i386}
 
