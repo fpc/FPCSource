@@ -390,9 +390,8 @@ implementation
                  get_used_regvars(right,usedregvars);
                  { loop body }
                  get_used_regvars(t2,usedregvars);
-                 { end value if necessary }
-                 if (t1.location.loc = LOC_CREGISTER) then
-                   get_used_regvars(t1,usedregvars);
+                 { end value (t1) is not necessary (it cannot be a regvar, }
+                 { see webtbs/tw8883)                                      }
 
                  gen_sync_regvars(current_asmdata.CurrAsmList,usedregvars);
                end
@@ -447,7 +446,7 @@ implementation
          if t1.nodetype<>ordconstn then
            begin
               do_loopvar_at_end:=false;
-              location_force_reg(current_asmdata.CurrAsmList,t1.location,t1.location.size,true);
+              location_force_reg(current_asmdata.CurrAsmList,t1.location,t1.location.size,false);
               temptovalue:=true;
            end
          else
