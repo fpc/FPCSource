@@ -2319,7 +2319,7 @@ implementation
 
     procedure TExeOutput.RemoveEmptySections;
       var
-        i, j   : aint;
+        i, j   : longint;
         exesec : TExeSection;
         doremove : boolean;
       begin
