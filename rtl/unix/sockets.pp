@@ -14,7 +14,7 @@ unit Sockets;
 Interface
 
 {$ifdef Unix}
-Uses UnixType;
+Uses baseunix,UnixType;
 {$endif}
 
 {$ifdef FreeBSD}
@@ -37,14 +37,28 @@ type
                   path:array[0..107] of char;    //104 total for freebsd.
                   end;
 
+const
+  EsockEINTR            = EsysEINTR;   
+  EsockEBADF            = EsysEBADF;
+  EsockEFAULT           = EsysEFAULT;
+  EsockEINVAL           = EsysEINVAL;
+  EsockEACCESS          = ESysEAcces;
+  EsockEMFILE           = ESysEmfile;
+  EsockEMSGSIZE         = ESysEMsgSize;
+  EsockENOBUFS          = ESysENoBufs;
+  EsockENOTCONN         = ESysENotConn;
+  EsockENOTSOCK         = ESysENotSock;
+  EsockEPROTONOSUPPORT  = ESysEProtoNoSupport;
+  EsockEWOULDBLOCK      = ESysEWouldBlock;
+
 
 { unix socket specific functions }
-Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint);
-Function Bind(Sock:longint;const addr:string):boolean;
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean;
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean;
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
+Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint); deprecated;
+Function Bind(Sock:longint;const addr:string):boolean; deprecated;
+Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean; deprecated;
+Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean; deprecated;
+Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;    deprecated;
+Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;    deprecated;
 
 //function  fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; maybelibc
 //function  fpbind      (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  maybelibc
@@ -52,7 +66,9 @@ Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
 
 Implementation
 
-Uses BaseUnix,{$ifndef FPC_USE_LIBC}SysCall{$else}initc{$endif};
+Uses {$ifndef FPC_USE_LIBC}SysCall{$else}initc{$endif};
+
+threadvar internal_socketerror : cint;
 
 { Include filerec and textrec structures }
 {$i filerec.inc}
@@ -61,6 +77,12 @@ Uses BaseUnix,{$ifndef FPC_USE_LIBC}SysCall{$else}initc{$endif};
                           Kernel Socket Callings
 ******************************************************************************}
 
+function socketerror:cint;
+
+begin
+  socketerror:=internal_socketerror;
+end;
+
 {$ifndef FPC_USE_LIBC}
 {$i unixsock.inc}
 {$else}
@@ -68,5 +90,4 @@ Uses BaseUnix,{$ifndef FPC_USE_LIBC}SysCall{$else}initc{$endif};
 {$endif}
 {$i sockovl.inc}
 {$i sockets.inc}
-
 end.

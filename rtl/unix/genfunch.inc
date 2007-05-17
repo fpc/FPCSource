@@ -14,8 +14,8 @@
 
  **********************************************************************}
 
-function CreateShellArgV(const prog:string):ppchar;
+function CreateShellArgV(const prog:string):ppchar; deprecated;
 
-function CreateShellArgV(const prog:Ansistring):ppchar;
+function CreateShellArgV(const prog:Ansistring):ppchar; deprecated;
 
-procedure FreeShellArgV(p:ppchar);
+procedure FreeShellArgV(p:ppchar); deprecated;

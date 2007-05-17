@@ -25,6 +25,9 @@ Uses
 
 Const
 //  AF_LOCAL       = so32dll.AF_LOCAL;
+  AF_UNSPEC      = so32dll.AF_UNSPEC;
+  AF_LOCAL       = so32dll.AF_LOCAL;
+  AF_UNIX        = so32dll.AF_UNIX;
   AF_OS2         = so32dll.AF_OS2;
   AF_IMPLINK     = so32dll.AF_IMPLINK;     // arpanet imp addresses
   AF_PUP         = so32dll.AF_PUP;         // pup protocols: e.g. BSP
@@ -93,6 +96,19 @@ Const
 
   PF_MAX       = so32dll.PF_MAX;
 
+const EsockEINTR  = SOCEINTR;
+      EsockEBADF  = SOCEBADF;
+      EsockEFAULT = SOCEFAULT;
+      EsockEINVAL = SOCEINVAL;
+      EsockEACCESS = SOCEACCES;
+      EsockEMFILE  = SOCEMFILE;
+      EsockEMSGSIZE = SOCEMSGSIZE;
+      EsockENOBUFS = SOCENOBUFS;
+      EsockENOTCONN = SOCENOTCONN;
+      EsockENOTSOCK = SOCENOTSOCK;
+      EsockEPROTONOSUPPORT = SOCEPROTONOSUPPORT;
+      EsockEWOULDBLOCK = SOCEWOULDBLOCK;
+
 
 Type
   cushort=word;
@@ -108,6 +124,9 @@ Type
 // OS/2 stack based on BSD stack
 {$DEFINE BSD}
 {$I socketsh.inc}
+  INVALID_SOCKET = TSocket(not(0));
+  SOCKET_ERROR = -1;
+
 
 Implementation
 
@@ -119,13 +138,14 @@ Implementation
                           Basic Socket Functions
 ******************************************************************************}
 
+function SocketError: cint;
+begin
+  SocketError := so32dll.Sock_ErrNo;
+end;
+
 Function socket(Domain,SocketType,Protocol:Longint):Longint;
 begin
   Socket:=so32dll.Socket(Domain,SocketType,ProtoCol);
-  if Socket<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
@@ -141,19 +161,11 @@ end;
 Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
 begin
   Recv:=so32dll.Recv(Sock,Buf,BufLen,Flags);
-  if Recv<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr; var AddrLen : longInt) : longint;
 begin
   RecvFrom:=so32dll.RecvFrom(Sock,Buf,BufLen,Flags,so32dll.SockAddr(Addr),AddrLen);
-  if RecvFrom<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
@@ -162,28 +174,13 @@ begin
 end;
 
 Function Listen(Sock,MaxConnect:Longint):Boolean;
-var
-  l : longint;
 begin
-  l:=so32dll.Listen(Sock,MaxConnect);
-  if l<0 then
-  begin
-    SocketError:=so32dll.sock_errno;
-    Listen:=false;
-  end else
-  begin
-    SocketError:=0;
-    Listen:=true;
-  end;
+  Listen := so32dll.Listen(Sock,MaxConnect) = 0;
 end;
 
 Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 begin
   Accept:=so32dll.Accept(Sock,so32dll.SockAddr(Addr), AddrLen);
-  if Accept<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 Function Connect(Sock:Longint;const Addr; Addrlen:Longint):Boolean;
@@ -194,28 +191,16 @@ end;
 Function Shutdown(Sock:Longint;How:Longint):Longint;
 begin
   ShutDown:=so32dll.ShutDown(Sock,How);
-  if ShutDown<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 begin
   GetSocketName:=so32dll.GetSockName(Sock, so32dll.SockAddr(Addr),AddrLen);
-  if GetSocketName<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 begin
   GetPeerName:=so32dll.GetPeerName(Sock,so32dll.SockAddr(Addr),AddrLen);
-  if GetPeerName<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 Function SetSocketOptions(Sock,Level,OptName:Longint;Const OptVal;optlen:longint):Longint;
@@ -226,10 +211,6 @@ end;
 Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
 begin
   GetSocketOptions:=so32dll.GetSockOpt(Sock,Level,OptName,OptVal,OptLen);
-  if GetSocketOptions<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
@@ -241,39 +222,29 @@ begin
 end;
 
 { mimic the linux fdWrite/fdRead calls for the file/text socket wrapper }
-function fdWrite(handle : longint;Const bufptr;size : dword) : dword;
+function fpWrite(handle : longint;Const bufptr;size : dword) : dword;
 begin
-  fdWrite := dword(fpsend(handle, @bufptr, size, 0));
-  if fdWrite = dword(-1) then
-  begin
-    SocketError := so32dll.sock_errno;
-    fdWrite := 0;
-  end
-  else
-    SocketError := 0;
+  fpWrite := dword(fpsend(handle, @bufptr, size, 0));
+  if fpWrite = dword(-1) then
+    fpWrite := 0;
 end;
 
-function fdRead(handle : longint;var bufptr;size : dword) : dword;
+function fpRead(handle : longint;var bufptr;size : dword) : dword;
 var
   d : dword;
 begin
   d:=dword(so32dll.os2_ioctl(handle,FIONREAD,d,SizeOf(d)));
   if d=dword(-1) then
   begin
-    SocketError:=so32dll.sock_errno;
-    fdRead:=0;
+    fpRead:=0;
   end else
   begin
     if size>d then
       size:=d;
-    fdRead := dword(so32dll.recv(handle, bufptr, size, 0));
-    if fdRead = dword(-1) then
-    begin
-      SocketError:= so32dll.sock_errno;
-      fdRead := 0;
-    end else
-      SocketError:=0;
-  end;
+    fpRead := dword(so32dll.recv(handle, bufptr, size, 0));
+    if fpRead = dword(-1) then
+     fpRead := 0;
+   end;
 end;
 
 {$i sockets.inc}
@@ -281,128 +252,72 @@ end;
 function fpsocket       (domain:cint; xtype:cint; protocol: cint):cint;
 begin
   fpSocket:=so32dll.Socket(Domain,xtype,ProtoCol);
-  if fpSocket<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 function fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t;
 begin
   fpSend:=so32dll.Send(S,msg^,len,flags);
-  if fpSend<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 function fpsendto (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t;
 begin
   // Dubious construct, this should be checked. (IPV6 fails ?)
   fpSendTo:=so32dll.SendTo(S,msg^,Len,Flags,so32dll.SockAddr(tox^),toLen);
-  if fpSendTo<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 function fprecv         (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;
 begin
   fpRecv:=so32dll.Recv(S,Buf,Len,Flags);
-  if fpRecv<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 function fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
 begin
   fpRecvFrom:=so32dll.RecvFrom(S,Buf,Len,Flags,so32dll.SockAddr(from^),FromLen^);
-  if fpRecvFrom<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 function fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;
 begin
   fpConnect:=so32dll.Connect(S,so32dll.SockAddr(name^),nameLen);
-  if fpConnect<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 function fpshutdown     (s:cint; how:cint):cint;
 begin
   fpShutDown:=so32dll.ShutDown(S,How);
-  if fpShutDown<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 function fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;
 begin
   fpbind:=so32dll.Bind(S,so32dll.SockAddr(Addrx^),AddrLen);
-  if fpbind<0 then
-       SocketError:=so32dll.sock_errno
-  else
-       SocketError:=0;
 end;
 
 function fplisten      (s:cint; backlog : cint):cint;
 begin
   fplisten:=so32dll.Listen(S,backlog);
-  if fplisten<0 then
-       SocketError:=so32dll.sock_errno
-  else
-       SocketError:=0;
 end;
 
 function fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
 begin
   fpAccept:=so32dll.Accept(S,so32dll.SockAddr(Addrx^),longint(@AddrLen));
-  if fpAccept<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 function fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
   fpGetSockName:=so32dll.GetSockName(S,so32dll.SockAddr(name^),nameLen^);
-  if fpGetSockName<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 function fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
   fpGetPeerName:=so32dll.GetPeerName(S,so32dll.SockAddr(name^),NameLen^);
-  if fpGetPeerName<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 function fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint;
 begin
   fpGetSockOpt:=so32dll.GetSockOpt(S,Level,OptName,OptVal,OptLen^);
-  if fpGetSockOpt<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 function fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen :tsocklen):cint;
 begin
   fpSetSockOpt:=so32dll.SetSockOpt(S,Level,OptName,OptVal,OptLen);
-  if fpSetSockOpt<0 then
-    SocketError:=so32dll.sock_errno
-  else
-    SocketError:=0;
 end;
 
 function fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
@@ -413,14 +328,6 @@ end;
 Function CloseSocket(Sock:Longint):Longint;
 begin
   CloseSocket:=so32dll.soclose (Sock);
-  if CloseSocket<>0 then
-  begin
-    SocketError:=so32dll.sock_errno;
-  end else
-  begin
-    CloseSocket := 0;
-    SocketError := 0;
-  end;
 end;
 
 

@@ -4227,6 +4227,7 @@ rtl/netware/mouse.pp svneol=native#text/plain
 rtl/netware/ndpsrpc.imp -text
 rtl/netware/netnlm32.imp -text
 rtl/netware/netware.pp svneol=native#text/plain
+rtl/netware/netwsockh.inc svneol=native#text/plain
 rtl/netware/nit.imp -text
 rtl/netware/nlmlib.imp -text
 rtl/netware/npackoff.inc svneol=native#text/plain
@@ -4283,6 +4284,7 @@ rtl/netwlibc/libc.pp svneol=native#text/plain
 rtl/netwlibc/libcclib.imp -text
 rtl/netwlibc/mouse.pp svneol=native#text/plain
 rtl/netwlibc/netware.imp -text
+rtl/netwlibc/netwsockh.inc svneol=native#text/plain
 rtl/netwlibc/nwl_dlle.as -text
 rtl/netwlibc/nwl_main.as -text
 rtl/netwlibc/nwsnut.imp -text
@@ -4396,6 +4398,7 @@ rtl/openbsd/termiosproc.inc svneol=native#text/plain
 rtl/openbsd/tthread.inc svneol=native#text/plain
 rtl/openbsd/unixsock.inc svneol=native#text/plain
 rtl/openbsd/unixsysc.inc svneol=native#text/plain
+rtl/openbsd/unxsockh.inc svneol=native#text/plain
 rtl/os2/Makefile svneol=native#text/plain
 rtl/os2/Makefile.fpc svneol=native#text/plain
 rtl/os2/classes.pp svneol=native#text/plain
@@ -5427,6 +5430,7 @@ tests/tbs/tb0497c.pp -text
 tests/tbs/tb0498.pp svneol=native#text/plain
 tests/tbs/tb0499.pp svneol=native#text/plain
 tests/tbs/tb0500.pp svneol=native#text/plain
+tests/tbs/tb0524.pp svneol=native#text/x-pascal
 tests/tbs/ub0060.pp svneol=native#text/plain
 tests/tbs/ub0069.pp svneol=native#text/plain
 tests/tbs/ub0119.pp svneol=native#text/plain

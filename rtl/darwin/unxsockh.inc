@@ -14,29 +14,101 @@
 }
 
 Const
-  AF_AX25         = 3;      { Amateur Radio AX.25          }
-  AF_IPX          = 4;      { Novell IPX                   }
-  AF_APPLETALK    = 5;      { Appletalk DDP                }
-  AF_NETROM       = 6;      { Amateur radio NetROM         }
-  AF_BRIDGE       = 7;       { Multiprotocol bridge         }
-  AF_AAL5         = 8;       { Reserved for Werner's ATM    }
-  AF_X25          = 9;       { Reserved for X.25 project    }
-  AF_INET6        = 10;      { IP version 6                 }
-  AF_MAX          = 12;
+   AF_UNSPEC = 0;     
+   AF_UNIX = 1;     
+   AF_LOCAL = AF_UNIX;     
+   AF_INET = 2;     
+   AF_IMPLINK = 3;     
+   AF_PUP = 4;     
+   AF_CHAOS = 5;     
+   AF_NS = 6;     
+   AF_ISO = 7;     
+   AF_OSI = AF_ISO;     
+   AF_ECMA = 8;     
+   AF_DATAKIT = 9;     
+   AF_CCITT = 10;     
+   AF_SNA = 11;     
+   AF_DECnet = 12;     
+   AF_DLI = 13;     
+   AF_LAT = 14;     
+   AF_HYLINK = 15;     
+   AF_APPLETALK = 16;     
+   AF_ROUTE = 17;     
+   AF_LINK = 18;     
+   pseudo_AF_XTP = 19;     
+   AF_COIP = 20;     
+   AF_CNT = 21;     
+   pseudo_AF_RTIP = 22;     
+   AF_IPX = 23;     
+   AF_SIP = 24;     
+   pseudo_AF_PIP = 25;     
+   AF_NDRV = 27;     
+   AF_ISDN = 28;     
+   AF_E164 = AF_ISDN;     
+   pseudo_AF_KEY = 29;     
+   AF_INET6 = 30;     
+   AF_NATM = 31;     
+   AF_SYSTEM = 32;     
+   AF_NETBIOS = 33;     
+   AF_PPP = 34;     
+   AF_ATM = 30;     
+   pseudo_AF_HDRCMPLT = 35;     
+   AF_RESERVED_36 = 36;     
+   AF_NETGRAPH = 32;     
+   AF_MAX = 37;     
+
+
+  {
+   * Protocol families, same as address families for now.
+    }
+
+     PF_UNSPEC = AF_UNSPEC;     
+     PF_LOCAL = AF_LOCAL;     
+  { backward compatibility  }
+     PF_UNIX = PF_LOCAL;     
+     PF_INET = AF_INET;     
+     PF_IMPLINK = AF_IMPLINK;     
+     PF_PUP = AF_PUP;     
+     PF_CHAOS = AF_CHAOS;     
+     PF_NS = AF_NS;     
+     PF_ISO = AF_ISO;     
+     PF_OSI = AF_ISO;     
+     PF_ECMA = AF_ECMA;     
+     PF_DATAKIT = AF_DATAKIT;     
+     PF_CCITT = AF_CCITT;     
+     PF_SNA = AF_SNA;     
+     PF_DECnet = AF_DECnet;     
+     PF_DLI = AF_DLI;     
+     PF_LAT = AF_LAT;     
+     PF_HYLINK = AF_HYLINK;     
+     PF_APPLETALK = AF_APPLETALK;     
+     PF_ROUTE = AF_ROUTE;     
+     PF_LINK = AF_LINK;     
+  { really just proto family, no AF  }
+     PF_XTP = pseudo_AF_XTP;     
+     PF_COIP = AF_COIP;     
+     PF_CNT = AF_CNT;     
+     PF_SIP = AF_SIP;     
+  { same format as AF_NS  }
+     PF_IPX = AF_IPX;     
+  { same format as AF_INET  }
+     PF_RTIP = pseudo_AF_RTIP;     
+     PF_PIP = pseudo_AF_PIP;     
+     PF_NDRV = AF_NDRV;     
+     PF_ISDN = AF_ISDN;     
+     PF_KEY = pseudo_AF_KEY;     
+     PF_INET6 = AF_INET6;     
+     PF_NATM = AF_NATM;     
+     PF_SYSTEM = AF_SYSTEM;     
+     PF_NETBIOS = AF_NETBIOS;     
+     PF_PPP = AF_PPP;     
+     PF_RESERVED_36 = AF_RESERVED_36;     
+     PF_ATM = AF_ATM;     
+     PF_NETGRAPH = AF_NETGRAPH;     
+     PF_MAX = AF_MAX;     
+
 
   SOCK_PACKET     = 10;
-
-  PF_AX25         = AF_AX25;
-  PF_IPX          = AF_IPX;
-  PF_APPLETALK    = AF_APPLETALK;
-  PF_NETROM       = AF_NETROM;
-  PF_BRIDGE       = AF_BRIDGE;
-  PF_AAL5         = AF_AAL5;
-  PF_X25          = AF_X25;
-  PF_INET6        = AF_INET6;
-
-  PF_MAX          = AF_MAX;
-
 
 { Maximum queue length specifiable by listen.  }
   SOMAXCONN     = 128;
@@ -53,6 +125,9 @@ Const
         SO_OOBINLINE     =$0100;        { leave received OOB data in line }
         SO_REUSEPORT     =$0200;        { allow local address & port reuse }
         SO_TIMESTAMP     =$0400;        { timestamp received dgram traffic }
+        SO_ACCEPTFILTER  =$1000;        { there is an accept filter }
+        SO_DONTTRUNC     =$2000;        { APPLE: Retain unread data (ATOMIC proto) }
+        SO_WANTMORE      =$4000;        { APPLE: Want OOB in MSG_FLAG on receive }
 
 {
  * Additional options, not kept in so_options.
@@ -65,6 +140,13 @@ Const
         SO_RCVTIMEO      =$1006;        { receive timeout }
         SO_ERROR         =$1007;        { get error status and clear }
         SO_TYPE          =$1008;        { get socket type }
+
+        SO_NREAD         =$1020;        { APPLE: get 1st-packet byte count }
+        SO_NKE           =$1021;        { APPLE: Install socket-level NKE }
+        SO_NOSIGPIPE     =$1022;        { APPLE: No SIGPIPE on EPIPE }
+        SO_NOADDRERR     =$1023;        { APPLE: Returns EADDRNOTAVAIL when src is not available anymore }
+        SO_NWRITE        =$1024;        { APPLE: Get number of bytes currently in send socket buffer }
+        SO_LINGER_SEC    =$1080;        { linger on close if data present (in seconds) }
 
 
         SHUT_RD         =0;             { shut down the reading side }
@@ -184,14 +266,14 @@ Const
 
       	IPPROTO_DONE		=257;
 
-        IPV6_OPTIONS		= 1;  { buf/ip6_opts; set/get IP6 options }
-        IPV6_RECVOPTS		= 5;  { bool; receive all IP6 opts w/dgram }
-        IPV6_RECVRETOPTS	= 6;  { bool; receive IP6 opts for response }
-        IPV6_RECVDSTADDR	= 7;  { bool; receive IP6 dst addr w/dgram }
-        IPV6_RETOPTS		= 8;  { ip6_opts; set/get IP6 options }
-        IPV6_SOCKOPT_RESERVED1	= 3;  { reserved for future use }
-        IPV6_UNICAST_HOPS	= 4;  { int; IP6 hops }
-        IPV6_MULTICAST_IF	= 9;  { __uint8_t; set/get IP6 multicast i/f  }
+        IPV6_OPTIONS		= 1; { buf/ip6_opts; set/get IP6 options }
+        IPV6_RECVOPTS		= 5; { bool; receive all IP6 opts w/dgram }
+        IPV6_RECVRETOPTS	= 6; { bool; receive IP6 opts for response }
+        IPV6_RECVDSTADDR	= 7; { bool; receive IP6 dst addr w/dgram }
+        IPV6_RETOPTS		= 8; { ip6_opts; set/get IP6 options }
+        IPV6_SOCKOPT_RESERVED1	= 3; { reserved for future use }
+        IPV6_UNICAST_HOPS	= 4; { int; IP6 hops }
+        IPV6_MULTICAST_IF	= 9; { __uint8_t; set/get IP6 multicast i/f  }
         IPV6_MULTICAST_HOPS	=10; { __uint8_t; set/get IP6 multicast hops }
         IPV6_MULTICAST_LOOP	=11; { __uint8_t; set/get IP6 mcast loopback }
         IPV6_JOIN_GROUP		=12; { ip6_mreq; join a group membership }
@@ -218,10 +300,10 @@ Const
       	IP_RECVDSTADDR		=  7;    { bool; receive IP dst addr w/dgram }
       	IP_RETOPTS		=  8;    { ip_opts; set/get IP options }
       	IP_MULTICAST_IF		=  9;    { u_char; set/get IP multicast i/f  }
-      	IP_MULTICAST_TTL	= 10;   { u_char; set/get IP multicast ttl }
-      	IP_MULTICAST_LOOP	= 11;   { u_char; set/get IP multicast loopback }
-      	IP_ADD_MEMBERSHIP	= 12;   { ip_mreq; add an IP group membership }
-      	IP_DROP_MEMBERSHIP	= 13;   { ip_mreq; drop an IP group membership }
+      	IP_MULTICAST_TTL	= 10;    { u_char; set/get IP multicast ttl }
+      	IP_MULTICAST_LOOP	= 11;    { u_char; set/get IP multicast loopback }
+      	IP_ADD_MEMBERSHIP	= 12;    { ip_mreq; add an IP group membership }
+      	IP_DROP_MEMBERSHIP	= 13;    { ip_mreq; drop an IP group membership }
 
   { Flags for send, recv etc. }
   MSG_OOB        = $0001;              { Process out-of-band data}
@@ -233,8 +315,8 @@ Const
   MSG_WAITALL    = $0040;              { Wait for a full request }
   MSG_DONTWAIT   = $0080;              { Non-blocking I/O }
   MSG_EOF        = $0100;
-  MSG_WAITSTREAM = $0200;	             { wait up to full request.. may return partial }
-  MSG_FLUSH 	   = $0400;              { Start of 'hold' seq; dump so_temp }
+  MSG_WAITSTREAM = $0200;              { wait up to full request.. may return partial }
+  MSG_FLUSH 	 = $0400;              { Start of 'hold' seq; dump so_temp }
   MSG_HOLD       = $0800;              { Hold frag in so_temp }
   MSG_SEND       = $1000;              { Send the packet in so_temp }
   MSG_HAVEMORE   = $2000;              { Data ready to be read }
