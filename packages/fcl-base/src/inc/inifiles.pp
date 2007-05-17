@@ -57,6 +57,7 @@ uses classes, sysutils;
 
 type
   TIniFileKey = class
+  Private
     FIdent: string;
     FValue: string;
   public
@@ -76,6 +77,7 @@ type
   end;
 
   TIniFileSection = class
+  private
     FName: string;
     FKeyList: TIniFileKeyList;
   public
