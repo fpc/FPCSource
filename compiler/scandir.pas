@@ -489,7 +489,9 @@ implementation
           end
         else
           s:= trimspace(current_scanner.readcomment);
-        s:=ChangeFileExt(FixFileName(s),target_info.objext);
+        s:=FixFileName(s);
+        if ExtractFileExt(s)='' then
+          s:=ChangeFileExt(s,target_info.objext);
         current_module.linkotherofiles.add(s,link_always);
       end;
 

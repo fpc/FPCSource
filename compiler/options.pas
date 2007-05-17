@@ -1039,9 +1039,15 @@ begin
                        '2' : //an alternative to -Mobjfpc
                          SetCompileMode('OBJFPC',true);
                        'a' :
-                         include(init_settings.localswitches,cs_do_assertion);
+                         If UnsetBool(More, j) then
+                           exclude(init_settings.localswitches,cs_do_assertion)
+                         else
+                           include(init_settings.localswitches,cs_do_assertion);
                        'c' :
-                         include(init_settings.moduleswitches,cs_support_c_operators);
+                         If UnsetBool(More, j) then
+                           include(init_settings.moduleswitches,cs_support_c_operators)
+                         else
+                           include(init_settings.moduleswitches,cs_support_c_operators);
                        'd' : //an alternative to -Mdelphi
                          SetCompileMode('DELPHI',true);
                        'e' :
@@ -1065,15 +1071,30 @@ begin
                              end;
                          end;
                        'g' :
-                         include(init_settings.moduleswitches,cs_support_goto);
+                         If UnsetBool(More, j) then
+                           exclude(init_settings.moduleswitches,cs_support_goto)
+                         else
+                           include(init_settings.moduleswitches,cs_support_goto);
                        'h' :
-                         include(init_settings.localswitches,cs_ansistrings);
+                         If UnsetBool(More, j) then
+                           exclude(init_settings.localswitches,cs_ansistrings)
+                         else
+                           include(init_settings.localswitches,cs_ansistrings);
                        'i' :
-                         include(init_settings.localswitches,cs_do_inline);
+                         If UnsetBool(More, j) then
+                           exclude(init_settings.localswitches,cs_do_inline)
+                         else
+                           include(init_settings.localswitches,cs_do_inline);
                        'k' :
-                         include(init_settings.globalswitches,cs_load_fpcylix_unit);
+                         If UnsetBool(More, j) then
+                           exclude(init_settings.globalswitches,cs_load_fpcylix_unit)
+                         else
+                           include(init_settings.globalswitches,cs_load_fpcylix_unit);
                        'm' :
-                         include(init_settings.moduleswitches,cs_support_macro);
+                         If UnsetBool(More, j) then
+                           exclude(init_settings.moduleswitches,cs_support_macro)
+                         else
+                           include(init_settings.moduleswitches,cs_support_macro);
                        'o' : //an alternative to -Mtp
                          SetCompileMode('TP',true);
 {$ifdef gpc_mode}
@@ -1081,13 +1102,25 @@ begin
                          SetCompileMode('GPC',true);
 {$endif}
                        's' :
-                         include(init_settings.globalswitches,cs_constructor_name);
+                         If UnsetBool(More, j) then
+                           exclude(init_settings.globalswitches,cs_constructor_name)
+                         else
+                           include(init_settings.globalswitches,cs_constructor_name);
                        't' :
-                         include(init_settings.moduleswitches,cs_static_keyword);
+                         If UnsetBool(More, j) then
+                           exclude(init_settings.moduleswitches,cs_static_keyword)
+                         else
+                           include(init_settings.moduleswitches,cs_static_keyword);
                        'v' :
-                         include(init_settings.globalswitches,cs_support_vectors);
+                         If UnsetBool(More, j) then
+                           exclude(init_settings.globalswitches,cs_support_vectors)
+                         else
+                           include(init_settings.globalswitches,cs_support_vectors);
                        'x' :
-                         include(init_settings.globalswitches,cs_support_exceptions);
+                         If UnsetBool(More, j) then
+                           exclude(init_settings.globalswitches,cs_support_exceptions)
+                         else
+                           include(init_settings.globalswitches,cs_support_exceptions);
                        '-' :
                          begin
                            init_settings.globalswitches:=init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions];
