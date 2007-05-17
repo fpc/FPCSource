@@ -86,6 +86,7 @@ Type
   DWord    = LongWord;
   Cardinal = LongWord;
   Integer  = SmallInt;
+	UInt64   = QWord;
 
   { moved here from psystem.pas
     Delphi allows chose of overloaded procedure depending
