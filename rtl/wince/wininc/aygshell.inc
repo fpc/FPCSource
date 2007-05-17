@@ -387,6 +387,7 @@ const
   { DoneButton - Valid state}
   SHDB_SHOW            = $0001;
   SHDB_HIDE            = $0002;
+  SHDB_SHOWCANCEL      = $0004;   // added by Windows Mobile 5.0
   WS_NONAVDONEBUTTON   = WS_MINIMIZEBOX;
 
 //*****************************************************************************
