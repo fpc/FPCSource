@@ -387,59 +387,27 @@ begin
 end;
 
 function TCustomIniFile.ReadDate(const Section, Ident: string; Default: TDateTime): TDateTime;
-var
-  s: string;
+
 begin
-  Result := Default;
-  s := ReadString(Section, Ident, '');
-  if s > '' then try
-    Result := StrToDate(s);
-  except
-    on EConvertError do
-    else raise;
-  end;
+  Result := StrToDateDef(ReadString(Section, Ident, ''),Default);
 end;
 
 function TCustomIniFile.ReadDateTime(const Section, Ident: string; Default: TDateTime): TDateTime;
-var
-  s: string;
+
 begin
-  Result := Default;
-  s := ReadString(Section, Ident, '');
-  if s > '' then try
-    Result := StrToDateTime(s);
-  except
-    on EConvertError do
-    else raise;
-  end;
+  Result := StrToDateTimeDef(ReadString(Section, Ident, ''),Default);
 end;
 
 function TCustomIniFile.ReadFloat(const Section, Ident: string; Default: Double): Double;
-var
-  s: string;
+
 begin
-  Result := Default;
-  s := ReadString(Section, Ident, '');
-  if s > '' then try
-    Result := StrToFloat(s);
-  except
-    on EConvertError do
-    else raise;
-  end;
+  Result:=StrToFloatDef(ReadString(Section, Ident, ''),Default);
 end;
 
 function TCustomIniFile.ReadTime(const Section, Ident: string; Default: TDateTime): TDateTime;
-var
-  s: string;
+
 begin
-  Result := Default;
-  s := ReadString(Section, Ident, '');
-  if s > '' then try
-    Result := StrToTime(s);
-  except
-    on EConvertError do
-    else raise;
-  end;
+  Result := StrToTimeDef(ReadString(Section, Ident, ''),Default);
 end;
 
 procedure TCustomIniFile.WriteDate(const Section, Ident: string; Value: TDateTime);
