@@ -108,7 +108,23 @@ begin
             ShowRunComparison;
         2 : CreateRunPie;
         3 : ShowOneTest;
-      end;
+{$ifdef TEST}        
+        98 :
+          begin
+            EmitOverviewForm;
+            Writeln(stdout,'<PRE>');
+            FreeMem(pointer($ffffffff));
+            Writeln(stdout,'</PRE>');
+          end;
+        99 : 
+          begin
+            EmitOverviewForm;
+            Writeln(stdout,'<PRE>');
+            Dump_stack(stdout,get_frame);
+            Writeln(stdout,'</PRE>');
+          end;
+{$endif TEST}
+        end;
     finally
       EmitEnd; 
       DisConnectFromDB;
@@ -515,7 +531,8 @@ end;
 Function TTestSuite.ShowRunData : Boolean;
 
 Const
-  SGetRunData = 'SELECT TU_ID,TU_DATE,TC_NAME,TO_NAME,TU_COMMENT,TV_VERSION '+
+  SGetRunData = 'SELECT TU_ID,TU_DATE,TC_NAME,TO_NAME,' +
+                'TU_SUBMITTER,TU_MACHINE,TU_COMMENT,TV_VERSION '+
                 ' FROM TESTRUN,TESTCPU,TESTOS,TESTVERSION '+
                 'WHERE '+
                 ' (TC_ID=TU_CPU_FK) AND '+
@@ -591,6 +608,24 @@ begin
             CellNext;
               if Q2 <> nil then
                 Write(Q2.FieldByName('TU_COMMENT').AsString);
+            CellEnd;
+          RowNext;
+            CellStart;
+              Write('Machine:');
+            CellNext;
+              Write(Q1.FieldByName('TU_MACHINE').AsString);
+            CellNext;
+              if Q2 <> nil then
+                Write(Q2.FieldByName('TU_MACHINE').AsString);
+            CellEnd;
+          RowNext;
+            CellStart;
+              Write('Submitter:');
+            CellNext;
+              Write(Q1.FieldByName('TU_SUBMITTER').AsString);
+            CellNext;
+              if Q2 <> nil then
+                Write(Q2.FieldByName('TU_SUBMITTER').AsString);
             CellEnd;
           RowNext;
             CellStart;
@@ -906,7 +941,7 @@ begin
                   if Log='' then
                     begin
                       HeaderStart(2);
-                      Write('No log.');
+                      Write('No log of '+FRunId+'.');
                       HeaderEnd(2);
                     end;  
                 end;  
@@ -931,7 +966,7 @@ begin
                   if Log='' then
                     begin
                       HeaderStart(2);
-                      Write('No alternate log.');
+                      Write('No log of '+FCompareRunId+'.');
                       HeaderEnd(2);
                     end;  
                 end;  
@@ -955,8 +990,18 @@ begin
             if Source='' then
               begin
                 HeaderStart(3);
-                DumpLn('<P>No Source.</P>');
-                DumpLn('Link to CVS view of '+
+                DumpLn('<P>No Source in TestSuite DataBase.</P>');
+                DumpLn('Link to SVN view of '+
+                  '<A HREF="http://www.freepascal.org'+
+                  '/cgi-bin/viewcvs.cgi/trunk/tests/'+
+                  FTestFileName+'?view=markup'+
+                  '" TARGET="_blank"> '+FTestFileName+'</A> source. ');
+                HeaderEnd(3);
+              end
+            else
+              begin
+                HeaderStart(3);
+                DumpLn('Link to SVN view of '+
                   '<A HREF="http://www.freepascal.org'+
                   '/cgi-bin/viewcvs.cgi/trunk/tests/'+
                   FTestFileName+'?view=markup'+
@@ -1031,12 +1076,15 @@ begin
          +'tr2.TR_OK as Run2_OK, tr1.TR_Result as Run1_Result,'
          +'tr2.TR_RESULT as Run2_Result '
          +'FROM TESTS, tr2 LEFT JOIN tr1 USING (TR_TEST_FK) '
-         +'WHERE ((tr1.TR_SKIP IS NULL) or (%s(tr1.TR_OK<>tr2.TR_OK)))'
+         +'WHERE ((tr1.TR_SKIP IS NULL) or'
+         +' (tr2.TR_SKIP IS NULL) or '
+         +' (%s (tr1.TR_Result<>tr2.TR_Result)))'
          +'and (T_ID=tr2.TR_TEST_FK)';
       If FNoSkipped then
         begin
-        S:=S+' and (tr2.TR_SKIP<>"+")';
-        Qry:='(tr1.TR_SKIP<>"+") and';
+        Qry:='(((tr1.TR_SKIP="+") and (tr2.TR_OK="-") and (tr2.TR_SKIP="-")) or '
+           +'((tr1.TR_OK="-") and (tr1.TR_SKIP="-") and (tr2.TR_SKIP="+")) or '
+           +'((tr1.TR_SKIP="-") and (tr2.TR_SKIP="-"))) and ';
         end
       else
         Qry:='';
@@ -1129,16 +1177,18 @@ begin
       BGColor:='yellow';    // Yellow
       end
     else If Run2Field.AsString='+' then
+      begin
       if Run1Field.AsString='' then
         BGColor:='#68DFB8'
-      else
-        BGColor:='#98FB98'    // pale Green
-    else
+      else if Run1Field.ASString<>'+' then
+        BGColor:='#98FB98';    // pale Green
+      end  
+    else if Run2Field.AsString='-' then
       begin
       Inc(FRunFailedCount);
       if Run1Field.AsString='' then
         BGColor:='#FF82AB'    // Light red
-      else
+      else if Run1Field.AsString<>'-' then
         BGColor:='#FF225B';
       end;
     end;
