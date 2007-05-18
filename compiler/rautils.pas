@@ -859,9 +859,8 @@ Begin
                 SetSize(harrdef.elesize,false)
                else
                  begin
-                   if (harrdef.elepackedbitsize mod 8) <> 0 then
-                     Message(asmr_e_packed_element);
-                   SetSize((harrdef.elepackedbitsize + 7) div 8,false);
+                   if (harrdef.elepackedbitsize mod 8) = 0 then
+                     SetSize(harrdef.elepackedbitsize div 8,false);
                  end;
             end;
         end;
