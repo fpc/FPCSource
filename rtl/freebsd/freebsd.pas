@@ -185,6 +185,19 @@ Type
   function kse_release(timeout: PTimeSpec): cInt; extdecl;
   function kse_switchin(tmbx: PKseThrMailBox; flags: cInt): cInt; extdecl;
 
+Const
+ MAP_FILE         = $0000;  { map from file (default) }
+ MAP_ANON         = $1000;  { allocated from memory, swap space }
+   
+ MAP_RENAME       = $0020; { Sun: rename private pages to file }
+ MAP_NORESERVE    = $0040; { Sun: don't reserve needed swap area }
+ //  MAP_INHERIT      = $0080; { region is retained after exec. not anymore in 5.x? }
+ //  MAP_NOEXTEND     = $0100; { for MAP_FILE, don't change file size. not anymore in 5.x? }
+ MAP_HASSEMAPHORE = $0200; { region may contain semaphores }
+ MAP_STACK        = $0400; { region grows down, like a stack }
+ MAP_NOSYNC       = $0800; { page to but do not sync underlying file}
+ MAP_NOCORE       = $20000;{ dont include these pages in a coredump}
+
 implementation
 
 Uses

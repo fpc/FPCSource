@@ -47,6 +47,25 @@ Uses UnixType;
 
 {$i genfunch.inc}
 
+{ Fairly portable constants. I'm not going to waste time to duplicate and alias
+them anywhere}
+
+Const
+  MAP_FAILED    = pointer(-1);  { mmap() has failed }
+  MAP_SHARED    =  $1;          { Share changes }
+  MAP_PRIVATE   =  $2;          { Changes are private }
+  MAP_TYPE      =  $f;          { Mask for type of mapping }
+  MAP_FIXED     = $10;          { Interpret addr exactly }
+
+// MAP_ANON(YMOUS) is OS dependant but used in the RTL and in ostypes.inc
+// Under BSD without -YMOUS, so alias it:
+  MAP_ANON	= MAP_ANONYMOUS;
+
+  PROT_READ     =  $1;          { page can be read }
+  PROT_WRITE    =  $2;          { page can be written }
+  PROT_EXEC     =  $4;          { page can be executed }
+  PROT_NONE     =  $0;          { page can not be accessed }
+
 implementation
 
 {$ifdef hassysctl}

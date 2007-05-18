@@ -22,46 +22,46 @@ Uses BaseUnix,UnixType;
 {$endif}
 
 {$i aliasptp.inc}
+{$i unxconst.inc} { Get Types and Constants only exported in this unit }
 
-{ Get Types and Constants only exported in this unit }
-{$i unxconst.inc}
-
-// We init to zero to be able to put timezone stuff under IFDEF, and still
-// keep the code working.
-// We can't do this hear, since unixutil functions access this.
-
-// var
-//  Tzseconds : Longint = 0;
-
-
-{********************
-      File
-********************}
+{**  File handling **}
 
 Const
   P_IN  = 1;                    // pipes (?)
   P_OUT = 2;
 
-Const
   LOCK_SH = 1;                  // flock constants ?
   LOCK_EX = 2;
   LOCK_UN = 8;
   LOCK_NB = 4;
 
+// The portable MAP_* and PROT_ constants are exported from unit Unix for compability.
+  PROT_READ  = baseunix.PROT_READ;             { page can be read }
+  PROT_WRITE = baseunix.PROT_WRITE;             { page can be written }
+  PROT_EXEC  = baseunix.PROT_EXEC;             { page can be executed }
+  PROT_NONE  = baseunix.PROT_NONE;             { page can not be accessed }
+
+  MAP_FAILED    = baseunix.MAP_FAILED;	      { mmap() failed }
+  MAP_SHARED    = baseunix.MAP_SHARED;        { Share changes }
+  MAP_PRIVATE   = baseunix.MAP_PRIVATE;       { Changes are private }
+  MAP_TYPE      = baseunix.MAP_TYPE;          { Mask for type of mapping }
+  MAP_FIXED     = baseunix.MAP_FIXED;         { Interpret addr exactly }
+
+{ Flags to `msync'.  There is non msync() call in this unit? }
+  MS_ASYNC        = 1;               { Sync memory asynchronously.  }
+  MS_SYNC         = 4;               { Synchronous memory sync.  }
+  MS_INVALIDATE   = 2;               { Invalidate the caches.  }
+
 Type
   Tpipe = baseunix.tfildes;     // compability.
 
-{******************************************************************************
-                            Procedure/Functions
-******************************************************************************}
-
-{**************************
-     Time/Date Handling
-***************************}
+{** Time/Date Handling **}
 
 var
   tzdaylight : boolean;
   tzname     : array[boolean] of pchar;
+
+{************     Procedure/Functions     ************}
 
 {$IFNDEF DONT_READ_TIMEZONE}  // allows to disable linking in and trying for platforms
                        // it doesn't (yet) work for.
@@ -73,19 +73,14 @@ procedure ReadTimezoneFile(fn:string);
 function  GetTimezoneFile:string;
 {$ENDIF}
 
-{**************************
-     Process Handling
-***************************}
-
-//
-// These are much better, in nearly all ways.
-//
+{**  Process Handling  **}
 
 function FpExecLE (Const PathName:AnsiString;const S:Array Of AnsiString;MyEnv:ppchar):cint;
-function FpExecL(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
-function FpExecLP(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
-function FpExecV(Const PathName:AnsiString;args:ppchar):cint;
-function FpExecVP(Const PathName:AnsiString;args:ppchar):cint;
+function FpExecL  (Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+function FpExecLP (Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+function FpExecLPE(Const PathName:AnsiString;const S:Array Of AnsiString;env:ppchar):cint;
+function FpExecV  (Const PathName:AnsiString;args:ppchar):cint;
+function FpExecVP (Const PathName:AnsiString;args:ppchar):cint;
 function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
 
 Function Shell   (const Command:String):cint;     deprecated;
@@ -94,22 +89,24 @@ Function fpSystem(const Command:string):cint;
 Function fpSystem(const Command:AnsiString):cint;
 
 Function WaitProcess (Pid:cint):cint; 
-{ like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
 
 Function WIFSTOPPED (Status: Integer): Boolean;
 Function W_EXITCODE (ReturnCode, Signal: Integer): Integer;
 Function W_STOPCODE (Signal: Integer): Integer;
 
-{**************************
-     File Handling
-***************************}
+{**      File Handling     **}
 
 {$ifndef FPC_USE_LIBC} // defined using cdecl for libc.
-Function  fsync (fd : cint) : cint;
+// some of these are formally listed as deprecated, but specially statfs will remain for a while, no rush.
+Function  fsync (fd : cint) : cint; deprecated;	
 Function  fpFlock   (fd,mode : cint)   : cint ;
-Function  fStatFS (Fd: cint;Var Info:tstatfs):cint;
-Function  StatFS  (Path:pchar;Var Info:tstatfs):cint;
+Function  fStatFS (Fd: cint;Var Info:tstatfs):cint; deprecated;
+Function  StatFS  (Path:pchar;Var Info:tstatfs):cint; deprecated;
 {$endif}
+
+Function  fpfStatFS (Fd: cint; Info:pstatfs):cint;
+Function  fpStatFS  (Path:pchar; Info:pstatfs):cint;
+Function  fpfsync (fd : cint) : cint;
 
 Function  fpFlock   (var T : text;mode : cint) : cint;
 Function  fpFlock   (var F : File;mode : cint) : cint;
@@ -117,78 +114,24 @@ Function  fpFlock   (var F : File;mode : cint) : cint;
 Function  SelectText (var T:Text;TimeOut :PTimeVal):cint; deprecated;
 Function  SelectText (var T:Text;TimeOut :cint):cint; deprecated;
 
-{**************************
-   Directory Handling
-***************************}
+{**  Directory Handling  **}
 
 procedure SeekDir(p:pdir;loc:clong);
 function  TellDir(p:pdir):TOff;
 
-{**************************
-    Pipe/Fifo/Stream
-***************************}
+{**     Pipe/Fifo/Stream     **}
 
 Function AssignPipe  (var pipe_in,pipe_out:cint):cint;
 Function AssignPipe  (var pipe_in,pipe_out:text):cint;
 Function AssignPipe  (var pipe_in,pipe_out:file):cint;
-//Function PClose      (Var F:text) : cint;
-//Function PClose      (Var F:file) : cint;
 Function POpen       (var F:text;const Prog:Ansistring;rw:char):cint;
 Function POpen       (var F:file;const Prog:Ansistring;rw:char):cint;
 Function AssignStream(Var StreamIn,Streamout:text;Const Prog:ansiString;const args : array of ansistring) : cint;
 Function AssignStream(Var StreamIn,Streamout,streamerr:text;Const Prog:ansiString;const args : array of ansistring) : cint;
-
-Function  GetDomainName:String;
+Function  GetDomainName:String; deprecated; // because linux only.
 Function  GetHostName:String;
 
-
-{**************************
-     Memory functions
-***************************}
-
-const
-  PROT_READ  = $1;             { page can be read }
-  PROT_WRITE = $2;             { page can be written }
-  PROT_EXEC  = $4;             { page can be executed }
-  PROT_NONE  = $0;             { page can not be accessed }
-
-  MAP_FAILED    = pointer(-1); { mmap() has failed }
-  MAP_SHARED    = $1;          { Share changes }
-//  MAP_PRIVATE   = $2;          { Changes are private }
-  MAP_TYPE      = $f;          { Mask for type of mapping }
-  MAP_FIXED     = $10;         { Interpret addr exactly }
-//  MAP_ANONYMOUS = $20;         { don't use a file }
-
-{ Flags to `msync'.  }
-  MS_ASYNC        = 1;               { Sync memory asynchronously.  }
-  MS_SYNC         = 4;               { Synchronous memory sync.  }
-  MS_INVALIDATE   = 2;               { Invalidate the caches.  }
-
-{$ifdef Linux}
-  MAP_GROWSDOWN  = $100;       { stack-like segment }
-  MAP_DENYWRITE  = $800;       { ETXTBSY }
-  MAP_EXECUTABLE = $1000;      { mark it as an executable }
-  MAP_LOCKED     = $2000;      { pages are locked }
-  MAP_NORESERVE  = $4000;      { don't check for reservations }
-{$else}
-  {$ifdef FreeBSD}
-  // FreeBSD defines MAP_COPY=MAP_PRIVATE=$2;
-  MAP_FILE         = $0000;  { map from file (default) }
-  MAP_ANON         = $1000;  { allocated from memory, swap space }
-
-  MAP_RENAME       = $0020; { Sun: rename private pages to file }
-  MAP_NORESERVE    = $0040; { Sun: don't reserve needed swap area }
-  MAP_INHERIT      = $0080; { region is retained after exec }
-  MAP_NOEXTEND     = $0100; { for MAP_FILE, don't change file size }
-  MAP_HASSEMAPHORE = $0200; { region may contain semaphores }
-  MAP_STACK        = $0400; { region grows down, like a stack }
-  MAP_NOSYNC       = $0800; { page to but do not sync underlying file}
-  MAP_NOCORE       = $20000;{ dont include these pages in a coredump}
-  {$endif}
-{$endif}
-{**************************
-    Utility functions
-***************************}
+{** Utility functions  **}
 
 Type
         TFSearchOption  = (NoCurrentDirectory,
@@ -198,7 +141,7 @@ Type
 Function  FSearch  (const path:AnsiString;dirlist:Ansistring;CurrentDirStrategy:TFSearchOption):AnsiString;
 Function  FSearch  (const path:AnsiString;dirlist:AnsiString):AnsiString;
 
-procedure SigRaise (sig:integer);
+procedure SigRaise (sig:integer); deprecated;
 
 {$ifdef FPC_USE_LIBC}
   const clib = 'c';
@@ -355,6 +298,7 @@ Begin
   FpExecLE:=intFPExecl(PathName,s,MyEnv,false);
 End;
 
+
 function FpExecL(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
 
 Begin
@@ -365,6 +309,12 @@ function FpExecLP(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
 
 Begin
   FpExecLP:=intFPExecl(PathName,S,EnvP,True);
+End;
+
+function FpExecLPE(Const PathName:AnsiString;const S:Array Of AnsiString;env:ppchar):cint;
+
+Begin
+  FpExecLPE:=intFPExecl(PathName,S,Env,True);
 End;
 
 function FpExecV(Const PathName:AnsiString;args:ppchar):cint;
@@ -1288,7 +1238,6 @@ begin
   fpKill(fpGetPid,Sig);
 end;
 
-
 {******************************************************************************
                              Utility calls
 ******************************************************************************}
@@ -1357,9 +1306,22 @@ Begin
  FSearch:=FSearch(path,dirlist,CurrentDirectoryFirst);
 End;
 
-{--------------------------------
-      Stat.Mode Macro's
---------------------------------}
+Function  fpfStatFS (Fd: cint; Info:pstatfs):cint;
+begin
+  fpfstatfs:=fstatfs(fd,info^);
+end;
+
+Function  fpStatFS  (Path:pchar; Info:pstatfs):cint;
+
+begin
+  fpstatfs:=statfs(Path,info^);
+end;
+
+Function  fpfsync (fd : cint) : cint;
+
+begin
+  fpfsync:=fsync(fd);
+end;
 
 Initialization
 {$IFNDEF DONT_READ_TIMEZONE}
