@@ -3931,17 +3931,11 @@
      type
        HTREEITEM = THandle;
 
-    { was #define dname def_expr }
-    function TVI_ROOT : HTREEITEM;
-
-    { was #define dname def_expr }
-    function TVI_FIRST : HTREEITEM;
-
-    { was #define dname def_expr }
-    function TVI_LAST : HTREEITEM;
-
-    { was #define dname def_expr }
-    function TVI_SORT : HTREEITEM;
+  const
+    TVI_ROOT = HTREEITEM($FFFF0000);
+    TVI_FIRST =HTREEITEM($FFFF0001);
+    TVI_LAST = HTREEITEM($FFFF0002);
+    TVI_SORT = HTREEITEM($FFFF0003);
 
   { TV_HITTESTINFO structure  }
 
@@ -5817,32 +5811,6 @@ const
     begin
      IS_TARGET_UNWIND:=(Flag and EXCEPTION_TARGET_UNWIND);
     end;
-
-
-//  INVALID_HANDLE_VALUE        = HANDLE(-(1));
-    { was #define dname def_expr }
-    function TVI_ROOT : HTREEITEM;
-      begin
-         TVI_ROOT:=HTREEITEM($FFFF0000);
-      end;
-
-    { was #define dname def_expr }
-    function TVI_FIRST : HTREEITEM;
-      begin
-         TVI_FIRST:=HTREEITEM($FFFF0001);
-      end;
-
-    { was #define dname def_expr }
-    function TVI_LAST : HTREEITEM;
-      begin
-         TVI_LAST:=HTREEITEM($FFFF0002);
-      end;
-
-    { was #define dname def_expr }
-    function TVI_SORT : HTREEITEM;
-      begin
-         TVI_SORT:=HTREEITEM($FFFF0003);
-      end;
 
     { was #define dname(params) def_expr }
     { argument types are unknown }
