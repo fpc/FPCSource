@@ -43,7 +43,9 @@ const
   {$DEFINE GTK_WINDOWING_WIN32}
   gtkhtmllib = 'libgtkhtml-win32-2.0-0.dll';
   {$IFDEF FPC}
-  {$smartlink on}
+    {$ifndef NO_SMART_LINK}
+      {$smartlink on}
+    {$endif}
   {$ENDIF}
 {$else}
   {$ifdef linux}

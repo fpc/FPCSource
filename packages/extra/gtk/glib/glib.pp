@@ -26,7 +26,9 @@ interface
 { Always use smartlinking for win32, this solves some undefined functions
   in the development gtk versions which change often (PFV) }
 {$ifdef win32}
-  {$smartlink on}
+  {$ifndef NO_SMART_LINK}
+    {$smartlink on}
+  {$endif}
 {$endif}
 
 {$ifdef win32}
@@ -556,7 +558,10 @@ procedure g_hash_table_foreach(hash_table:PGHashTable; func:TGHFunc; user_data:g
 function  g_hash_table_foreach_remove(hash_table:PGHashTable; func:TGHRFunc; user_data:gpointer):guint;cdecl;external glibdll name 'g_hash_table_foreach_remove';
 function  g_hash_table_size(hash_table:PGHashTable):guint;cdecl;external glibdll name 'g_hash_table_size';
 
-function  g_cache_new(value_new_func:TGCacheNewFunc; value_destroy_func:TGCacheDestroyFunc; key_dup_func:TGCacheDupFunc; key_destroy_func:TGCacheDestroyFunc; hash_key_func:TGHashFunc; hash_value_func:TGHashFunc; key_compare_func:TGCompareFunc):PGCache;cdecl;external glibdll name 'g_cache_new';
+function  g_cache_new(value_new_func:TGCacheNewFunc; value_destroy_func:TGCacheDestroyFunc;
+                      key_dup_func:TGCacheDupFunc; key_destroy_func:TGCacheDestroyFunc;
+                      hash_key_func:TGHashFunc; hash_value_func:TGHashFunc; key_compare_func:TGCompareFunc):PGCache;
+                      cdecl;external glibdll name 'g_cache_new';
 procedure g_cache_destroy(cache:PGCache);cdecl;external glibdll name 'g_cache_destroy';
 function  g_cache_insert(cache:PGCache; key:gpointer):gpointer;cdecl;external glibdll name 'g_cache_insert';
 procedure g_cache_remove(cache:PGCache; value:gpointer);cdecl;external glibdll name 'g_cache_remove';

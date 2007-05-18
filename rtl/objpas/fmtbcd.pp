@@ -84,7 +84,9 @@
  {$note BCD Digits > 180}
 {$endif}
 
+{$ifndef NO_SMART_LINK}
 { $smartlink on}
+{$endif}
 
 {$define some_packed} { enable this to keep some local structures PACKED }
 

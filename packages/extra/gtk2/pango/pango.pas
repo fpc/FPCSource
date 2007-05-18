@@ -40,7 +40,9 @@ const
   {$define pangowin}
   pangolib = 'libpango-1.0-0.dll';
   {$IFDEF FPC}
-  {$smartlink on}
+    {$ifndef NO_SMART_LINK}
+      {$smartlink on}
+    {$endif}
   {$ENDIF}
 {$else}
   {$ifdef UseCustomLibs}

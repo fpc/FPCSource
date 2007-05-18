@@ -25,7 +25,9 @@ interface
 { Always use smartlinking for win32, this solves some undefined functions
   in the development gtk versions which change often (PFV) }
 {$ifdef win32}
-  {$smartlink on}
+  {$ifndef NO_SMART_LINK}
+    {$smartlink on}
+  {$endif}
 {$endif}
 
 {$mode objfpc} { needed for array of const }

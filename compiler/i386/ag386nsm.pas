@@ -325,7 +325,7 @@ interface
                   if not ((opcode = A_LEA) or (opcode = A_LGS) or
                           (opcode = A_LSS) or (opcode = A_LFS) or
                           (opcode = A_LES) or (opcode = A_LDS) or
-                          (opcode = A_SHR) or (opcode = A_SHL) or
+                          //(opcode = A_SHR) or (opcode = A_SHL) or
                           (opcode = A_SAR) or (opcode = A_SAL) or
                           (opcode = A_OUT) or (opcode = A_IN)) then
                     AsmWrite(sizestr(s,dest));

@@ -37,7 +37,9 @@ const
   {$DEFINE GDK_WINDOWING_WIN32}
   gdklib = 'libgdk-win32-2.0-0.dll';
   {$IFDEF FPC}
-  {$smartlink on}
+    {$ifndef NO_SMART_LINK}
+      {$smartlink on}
+    {$endif}
   {$ENDIF}
   GDK_HAVE_WCHAR_H=1;
   GDK_HAVE_WCTYPE_H=1;
