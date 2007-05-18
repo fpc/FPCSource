@@ -46,10 +46,8 @@
 
 {$PACKRECORDS C}
 
-  { was #define dname def_expr }
-  function UNICODE_NULL : WCHAR;
-
   const
+     UNICODE_NULL = WCHAR(#0);
      MAX_PATH = 260;
      LF_FACESIZE = 32;
      LF_FULLFACESIZE = 64;
@@ -1561,93 +1559,30 @@
      HANDLE_FLAG_INHERIT = 1;
      HANDLE_FLAG_PROTECT_FROM_CLOSE = 2;
   { GetIconInfo  }
-    { was #define dname def_expr }
-    function IDC_ARROW : LPTSTR;
-      { return type might be wrong }
+     IDC_ARROW = MAKEINTRESOURCE(32512);
+     IDC_IBEAM = MAKEINTRESOURCE(32513);
+     IDC_WAIT  = MAKEINTRESOURCE(32514);
+     IDC_CROSS = MAKEINTRESOURCE(32515);
+     IDC_UPARROW = MAKEINTRESOURCE(32516);
+     IDC_SIZENWSE = MAKEINTRESOURCE(32642);
+     IDC_SIZENESW = MAKEINTRESOURCE(32643);
+     IDC_SIZEWE = MAKEINTRESOURCE(32644);
+     IDC_SIZENS = MAKEINTRESOURCE(32645);
+     IDC_SIZEALL = MAKEINTRESOURCE(32646);
+     IDC_NO = MAKEINTRESOURCE(32648);
+     IDC_APPSTARTING = MAKEINTRESOURCE(32650);
+     IDC_HELP = MAKEINTRESOURCE(32651);
 
-    { was #define dname def_expr }
-    function IDC_IBEAM : LPTSTR;
-      { return type might be wrong }
+     IDI_APPLICATION = MAKEINTRESOURCE(32512);
+     IDI_HAND = MAKEINTRESOURCE(32513);
+     IDI_QUESTION = MAKEINTRESOURCE(32514);
+     IDI_EXCLAMATION = MAKEINTRESOURCE(32515);
+     IDI_ASTERISK = MAKEINTRESOURCE(32516);
+     IDI_WINLOGO = MAKEINTRESOURCE(32517);
 
-    { was #define dname def_expr }
-    function IDC_WAIT : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDC_CROSS : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDC_UPARROW : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDC_SIZENWSE : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDC_SIZENESW : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDC_SIZEWE : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDC_SIZENS : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDC_SIZEALL : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDC_NO : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDC_APPSTARTING : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDC_HELP : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDI_APPLICATION : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDI_HAND : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDI_QUESTION : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDI_EXCLAMATION : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDI_ASTERISK : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDI_WINLOGO : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDC_SIZE : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDC_ICON : LPTSTR;
-      { return type might be wrong }
-
-    { was #define dname def_expr }
-    function IDC_HAND : LPTSTR;
-      { return type might be wrong }
+     IDC_SIZE = MAKEINTRESOURCE(32640);
+     IDC_ICON = MAKEINTRESOURCE(32641);
+     IDC_HAND = MAKEINTRESOURCE(32649);
 
   { GetMapMode  }
 
@@ -1708,18 +1643,11 @@
      SIF_RANGE = 1;
      SIF_DISABLENOSCROLL = 8;
   { GetStdHandle  }
-    { was #define dname def_expr }
-    function STD_INPUT_HANDLE : DWORD;
+     STD_INPUT_HANDLE = HANDLE(-10);
+     STD_OUTPUT_HANDLE = HANDLE(-11);
+     STD_ERROR_HANDLE = HANDLE(-12);
 
-    { was #define dname def_expr }
-    function STD_OUTPUT_HANDLE : DWORD;
-
-    { was #define dname def_expr }
-    function STD_ERROR_HANDLE : DWORD;
-
-    { was #define dname def_expr }
-Const
-  INVALID_HANDLE_VALUE = HANDLE(-1);
+     INVALID_HANDLE_VALUE = HANDLE(-1);
 
   { GetStockObject  }
 
@@ -2280,8 +2208,7 @@ Const
      SC_MANAGER_QUERY_LOCK_STATUS = 16;
      SC_MANAGER_MODIFY_BOOT_CONFIG = 32;
   { PostMessage  }
-    { was #define dname def_expr }
-    function HWND_BROADCAST : HWND;
+     HWND_BROADCAST = HWND($FFFF);
 
   { PrepareTape  }
 
@@ -2332,26 +2259,13 @@ Const
      RDW_ALLCHILDREN = 128;
      RDW_NOCHILDREN = 64;
   { RegCreateKey  }
-    { was #define dname def_expr }
-    function HKEY_CLASSES_ROOT : HKEY;
-
-    { was #define dname def_expr }
-    function HKEY_CURRENT_USER : HKEY;
-
-    { was #define dname def_expr }
-    function HKEY_LOCAL_MACHINE : HKEY;
-
-    { was #define dname def_expr }
-    function HKEY_USERS : HKEY;
-
-    { was #define dname def_expr }
-    function HKEY_PERFORMANCE_DATA : HKEY;
-
-    { was #define dname def_expr }
-    function HKEY_CURRENT_CONFIG : HKEY;
-
-    { was #define dname def_expr }
-    function HKEY_DYN_DATA : HKEY;
+     HKEY_CLASSES_ROOT = HKEY($80000000);
+     HKEY_CURRENT_USER = HKEY($80000001);
+     HKEY_LOCAL_MACHINE = HKEY($80000002);
+     HKEY_USERS = HKEY($80000003);
+     HKEY_PERFORMANCE_DATA = HKEY($80000004);
+     HKEY_CURRENT_CONFIG = HKEY($80000005);	 
+     HKEY_DYN_DATA = HKEY($80000006);
 
   { RegCreateKeyEx  }
 
@@ -2601,17 +2515,10 @@ Const
      EXCEPTION_CONTINUE_EXECUTION = -(1);
      EXCEPTION_CONTINUE_SEARCH = 0;
   { SetWindowPos, DeferWindowPos  }
-    { was #define dname def_expr }
-    function HWND_BOTTOM : HWND;
-
-    { was #define dname def_expr }
-    function HWND_NOTOPMOST : HWND;
-
-    { was #define dname def_expr }
-    function HWND_TOP : HWND;
-
-    { was #define dname def_expr }
-    function HWND_TOPMOST : HWND;
+     HWND_BOTTOM = HWND(1);
+     HWND_NOTOPMOST = HWND(-2);
+     HWND_TOP = HWND(0);
+     HWND_TOPMOST = HWND(-1);
 
 
   const
@@ -3137,9 +3044,7 @@ Const
      WIZ_CXDLG = 276;
      WIZ_CYDLG = 140;
   { VX_FIXEDFILEINFO structure  }
-    { was #define dname def_expr }
-    function VS_FILE_INFO : LPTSTR;
-      { return type might be wrong }
+     VS_FILE_INFO = MAKEINTRESOURCE(16);  
 
 
   const
@@ -3668,9 +3573,7 @@ Const
      HHT_TOLEFT = 2048;
      HHT_TORIGHT = 1024;
   { TBADDBITMAP structure  }
-    { was #define dname def_expr }
-    function HINST_COMMCTRL : HINST;
-
+     HINST_COMMCTRL = HINST(-1);  
 
   const
      IDB_STD_LARGE_COLOR = 1;
@@ -3813,23 +3716,14 @@ Const
      LVIS_SELECTED = 2;
      LVIS_OVERLAYMASK = 3840;
      LVIS_STATEIMAGEMASK = 61440;
-    { was #define dname def_expr }
-    function LPSTR_TEXTCALLBACKW : LPWSTR;
 
-    { was #define dname def_expr }
-    function LPSTR_TEXTCALLBACKA : LPSTR;
+     LPSTR_TEXTCALLBACKW = LPWSTR(-1);	
+     LPSTR_TEXTCALLBACKA = LPSTR(-1);
 
 {$ifdef UNICODE}
-
-  {const this is a function in fact !!
-     LPSTR_TEXTCALLBACK = LPSTR_TEXTCALLBACKW;}
-    function LPSTR_TEXTCALLBACK : LPWSTR;
-
+    LPSTR_TEXTCALLBACK = LPSTR_TEXTCALLBACKW;
 {$else}
-
-  {const
-     LPSTR_TEXTCALLBACK = LPSTR_TEXTCALLBACKA; }
-    function LPSTR_TEXTCALLBACK : LPSTR;
+    LPSTR_TEXTCALLBACK = LPSTR_TEXTCALLBACKA;
 {$endif}
   { UNICODE  }
   { LV_ITEM structure  }
@@ -3923,17 +3817,11 @@ Const
        TTREEITEM = TREEITEM;
        PTREEITEM = ^TREEITEM;
 
-    { was #define dname def_expr }
-    function TVI_ROOT : HTREEITEM;
-
-    { was #define dname def_expr }
-    function TVI_FIRST : HTREEITEM;
-
-    { was #define dname def_expr }
-    function TVI_LAST : HTREEITEM;
-
-    { was #define dname def_expr }
-    function TVI_SORT : HTREEITEM;
+  const
+    TVI_ROOT = HTREEITEM($FFFF0000);
+    TVI_FIRST =HTREEITEM($FFFF0001);
+    TVI_LAST = HTREEITEM($FFFF0002);
+    TVI_SORT = HTREEITEM($FFFF0003);
 
   { TV_HITTESTINFO structure  }
 
@@ -4890,8 +4778,7 @@ Const
      PRF_NONCLIENT = $2;
      PRF_OWNED = $20;
   { MapWindowPoints  }
-    { was #define dname def_expr }
-    function HWND_DESKTOP : HWND;
+     HWND_DESKTOP = HWND(0);
 
   { WM_SYSCOMMAND message  }
 
@@ -5537,336 +5424,6 @@ const
 
 
 {$ifdef read_implementation}
-    { was #define dname def_expr }
-    function UNICODE_NULL : WCHAR;
-      begin
-         UNICODE_NULL:=#0;
-      end;
-
-    { was #define dname def_expr }
-    function IDC_ARROW : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_ARROW:=MAKEINTRESOURCE(32512);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_IBEAM : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_IBEAM:=MAKEINTRESOURCE(32513);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_WAIT : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_WAIT:=MAKEINTRESOURCE(32514);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_CROSS : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_CROSS:=MAKEINTRESOURCE(32515);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_UPARROW : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_UPARROW:=MAKEINTRESOURCE(32516);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_SIZENWSE : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_SIZENWSE:=MAKEINTRESOURCE(32642);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_SIZENESW : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_SIZENESW:=MAKEINTRESOURCE(32643);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_SIZEWE : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_SIZEWE:=MAKEINTRESOURCE(32644);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_SIZENS : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_SIZENS:=MAKEINTRESOURCE(32645);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_SIZEALL : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_SIZEALL:=MAKEINTRESOURCE(32646);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_NO : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_NO:=MAKEINTRESOURCE(32648);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_APPSTARTING : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_APPSTARTING:=MAKEINTRESOURCE(32650);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_HELP : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_HELP:=MAKEINTRESOURCE(32651);
-      end;
-
-    { was #define dname def_expr }
-    function IDI_APPLICATION : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDI_APPLICATION:=MAKEINTRESOURCE(32512);
-      end;
-
-    { was #define dname def_expr }
-    function IDI_HAND : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDI_HAND:=MAKEINTRESOURCE(32513);
-      end;
-
-    { was #define dname def_expr }
-    function IDI_QUESTION : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDI_QUESTION:=MAKEINTRESOURCE(32514);
-      end;
-
-    { was #define dname def_expr }
-    function IDI_EXCLAMATION : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDI_EXCLAMATION:=MAKEINTRESOURCE(32515);
-      end;
-
-    { was #define dname def_expr }
-    function IDI_ASTERISK : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDI_ASTERISK:=MAKEINTRESOURCE(32516);
-      end;
-
-    { was #define dname def_expr }
-    function IDI_WINLOGO : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDI_WINLOGO:=MAKEINTRESOURCE(32517);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_SIZE : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_SIZE:=MAKEINTRESOURCE(32640);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_ICON : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_ICON:=MAKEINTRESOURCE(32641);
-      end;
-
-    { was #define dname def_expr }
-    function IDC_HAND : LPTSTR;
-      { return type might be wrong }
-      begin
-         IDC_HAND:=MAKEINTRESOURCE(32649);
-      end;
-
-    { was #define dname def_expr }
-    function STD_INPUT_HANDLE : DWORD;
-      begin
-         STD_INPUT_HANDLE:=DWORD(-(10));
-      end;
-
-    { was #define dname def_expr }
-    function STD_OUTPUT_HANDLE : DWORD;
-      begin
-         STD_OUTPUT_HANDLE:=DWORD(-(11));
-      end;
-
-    { was #define dname def_expr }
-    function STD_ERROR_HANDLE : DWORD;
-      begin
-         STD_ERROR_HANDLE:=DWORD(-(12));
-      end;
-
-    { was #define dname def_expr }
-{
-    function INVALID_HANDLE_VALUE : HANDLE;
-      begin
-         INVALID_HANDLE_VALUE:=HANDLE(-(1));
-      end;
-}
-
-    { was #define dname def_expr }
-    function HWND_BROADCAST : HWND;
-      begin
-         HWND_BROADCAST:=HWND($FFFF);
-      end;
-
-    { was #define dname def_expr }
-    function HKEY_CLASSES_ROOT : HKEY;
-      begin
-         HKEY_CLASSES_ROOT:=HKEY($80000000);
-      end;
-
-    { was #define dname def_expr }
-    function HKEY_CURRENT_USER : HKEY;
-      begin
-         HKEY_CURRENT_USER:=HKEY($80000001);
-      end;
-
-    { was #define dname def_expr }
-    function HKEY_LOCAL_MACHINE : HKEY;
-      begin
-         HKEY_LOCAL_MACHINE:=HKEY($80000002);
-      end;
-
-    { was #define dname def_expr }
-    function HKEY_USERS : HKEY;
-      begin
-         HKEY_USERS:=HKEY($80000003);
-      end;
-
-    { was #define dname def_expr }
-    function HKEY_PERFORMANCE_DATA : HKEY;
-      begin
-         HKEY_PERFORMANCE_DATA:=HKEY($80000004);
-      end;
-
-    { was #define dname def_expr }
-    function HKEY_CURRENT_CONFIG : HKEY;
-      begin
-         HKEY_CURRENT_CONFIG:=HKEY($80000005);
-      end;
-
-    { was #define dname def_expr }
-    function HKEY_DYN_DATA : HKEY;
-      begin
-         HKEY_DYN_DATA:=HKEY($80000006);
-      end;
-
-    { was #define dname def_expr }
-    function HWND_BOTTOM : HWND;
-      begin
-         HWND_BOTTOM:=HWND(1);
-      end;
-
-    { was #define dname def_expr }
-    function HWND_NOTOPMOST : HWND;
-      begin
-         HWND_NOTOPMOST:=HWND(-(2));
-      end;
-
-    { was #define dname def_expr }
-    function HWND_TOP : HWND;
-      begin
-         HWND_TOP:=HWND(0);
-      end;
-
-    { was #define dname def_expr }
-    function HWND_TOPMOST : HWND;
-      begin
-         HWND_TOPMOST:=HWND(-(1));
-      end;
-
-    { was #define dname def_expr }
-    function VS_FILE_INFO : LPTSTR;
-      { return type might be wrong }
-      begin
-         VS_FILE_INFO:=MAKEINTRESOURCE(16);
-      end;
-
-    { was #define dname def_expr }
-    function HINST_COMMCTRL : HINST;
-      begin
-         HINST_COMMCTRL:=HINST(-(1));
-      end;
-
-    { was #define dname def_expr }
-    function LPSTR_TEXTCALLBACKW : LPWSTR;
-      begin
-         LPSTR_TEXTCALLBACKW:=LPWSTR(-(1));
-      end;
-
-    { was #define dname def_expr }
-    function LPSTR_TEXTCALLBACKA : LPSTR;
-      begin
-         LPSTR_TEXTCALLBACKA:=LPSTR(-(1));
-      end;
-{$ifdef UNICODE}
-
-  {const this is a function in fact !!
-     LPSTR_TEXTCALLBACK = LPSTR_TEXTCALLBACKW;}
-    function LPSTR_TEXTCALLBACK : LPWSTR;
-      begin
-         LPSTR_TEXTCALLBACK:=LPWSTR(-(1));
-      end;
-
-{$else}
-
-  {const
-     LPSTR_TEXTCALLBACK = LPSTR_TEXTCALLBACKA; }
-    function LPSTR_TEXTCALLBACK : LPSTR;
-      begin
-         LPSTR_TEXTCALLBACK:=LPSTR(-(1));
-      end;
-{$endif}
-
-    { was #define dname def_expr }
-    function TVI_ROOT : HTREEITEM;
-      begin
-         TVI_ROOT:=HTREEITEM($FFFF0000);
-      end;
-
-    { was #define dname def_expr }
-    function TVI_FIRST : HTREEITEM;
-      begin
-         TVI_FIRST:=HTREEITEM($FFFF0001);
-      end;
-
-    { was #define dname def_expr }
-    function TVI_LAST : HTREEITEM;
-      begin
-         TVI_LAST:=HTREEITEM($FFFF0002);
-      end;
-
-    { was #define dname def_expr }
-    function TVI_SORT : HTREEITEM;
-      begin
-         TVI_SORT:=HTREEITEM($FFFF0003);
-      end;
-
-    { was #define dname def_expr }
-    function HWND_DESKTOP : HWND;
-      begin
-         HWND_DESKTOP:=HWND(0);
-      end;
 
   { was #define dname(params) def_expr }
   function GetFirstChild(h:HWND):HWND;
