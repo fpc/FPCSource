@@ -52,3 +52,6 @@ const
        PF_ATM = AF_ATM;
        PF_INET6 = AF_INET6;
        PF_MAX = AF_MAX;
+       
+  INVALID_SOCKET = -1;
+  SOCKET_ERROR = -1;

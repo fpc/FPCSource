@@ -88,12 +88,13 @@ function FpExecV(Const PathName:AnsiString;args:ppchar):cint;
 function FpExecVP(Const PathName:AnsiString;args:ppchar):cint;
 function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
 
-Function Shell   (const Command:String):cint;
-Function Shell   (const Command:AnsiString):cint;
+Function Shell   (const Command:String):cint;     deprecated;
+Function Shell   (const Command:AnsiString):cint; deprecated;
 Function fpSystem(const Command:string):cint;
 Function fpSystem(const Command:AnsiString):cint;
 
-Function WaitProcess (Pid:cint):cint; { like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
+Function WaitProcess (Pid:cint):cint; 
+{ like WaitPid(PID,@result,0) Handling of Signal interrupts (errno=EINTR), returning the Exitcode of Process (>=0) or -Status if terminated}
 
 Function WIFSTOPPED (Status: Integer): Boolean;
 Function W_EXITCODE (ReturnCode, Signal: Integer): Integer;
@@ -113,9 +114,8 @@ Function  StatFS  (Path:pchar;Var Info:tstatfs):cint;
 Function  fpFlock   (var T : text;mode : cint) : cint;
 Function  fpFlock   (var F : File;mode : cint) : cint;
 
-
-Function  SelectText (var T:Text;TimeOut :PTimeVal):cint;
-Function  SelectText (var T:Text;TimeOut :cint):cint;
+Function  SelectText (var T:Text;TimeOut :PTimeVal):cint; deprecated;
+Function  SelectText (var T:Text;TimeOut :cint):cint; deprecated;
 
 {**************************
    Directory Handling
@@ -394,7 +394,7 @@ End;
 {$if defined(FPC_USE_FPEXEC) and not defined(USE_VFORK)}
 {$define SHELL_USE_FPEXEC}
 {$endif}
-Function Shell(const Command:String):cint;
+Function Shell(const Command:String):cint; deprecated;
 {
   Executes the shell, and passes it the string Command. (Through /bin/sh -c)
   The current environment is passed to the shell.
