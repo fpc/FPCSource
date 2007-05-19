@@ -1990,6 +1990,7 @@ begin
   def_system_macro('FPC_HAS_STR_CURRENCY');
   def_system_macro('FPC_REAL2REAL_FIXED');
   def_system_macro('FPC_STRTOCHARARRAYPROC');
+  def_system_macro('FPC_NEW_BIGENDIAN_SETS');
 
 {$if defined(x86) or defined(arm)}
   def_system_macro('INTERNAL_BACKTRACE');

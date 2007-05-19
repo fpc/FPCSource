@@ -27,7 +27,7 @@ interface
 
     uses
        globtype,globals,
-       node,nset,cpubase,cgbase,cgobj,aasmbase,aasmtai,aasmdata;
+       node,nset,cpubase,cgbase,cgutils,cgobj,aasmbase,aasmtai,aasmdata;
 
     type
        tcgsetelementnode = class(tsetelementnode)
@@ -45,18 +45,6 @@ interface
           function pass_1: tnode;override;
           procedure pass_generate_code;override;
        protected
-          {# Routine to test bitnumber in bitnumber register on value
-             in value register. The __result register should be set
-             to one if the bit is set, otherwise __result register
-             should be set to zero.
-
-             Should be overriden on processors which have specific
-             instructions to do bit tests.
-          }
-
-          procedure emit_bit_test_reg_reg(list : TAsmList;
-                                          bitsize: tcgsize; bitnumber,value : tregister;
-                                          ressize: tcgsize; res :tregister);virtual;
           function checkgenjumps(out setparts: Tsetparts; out numparts: byte; out use_small: boolean): boolean; virtual;
           function analizeset(const Aset:Tconstset;out setparts: Tsetparts; out numparts: byte;is_small:boolean):boolean;virtual;
        end;
@@ -100,8 +88,7 @@ implementation
       paramgr,
       procinfo,pass_2,tgobj,
       nbas,ncon,nflw,
-      ncgutil,regvars,
-      cgutils;
+      ncgutil;
 
 
 {*****************************************************************************
@@ -132,45 +119,6 @@ implementation
 
 {*****************************************************************************
 *****************************************************************************}
-
-  {**********************************************************************}
-  {  Description: Emit operation to do a bit test, where the bitnumber   }
-  {  to test is in the bitnumber register. The value to test against is  }
-  {  located in the value register.                                      }
-  {   WARNING: Bitnumber register value is DESTROYED!                    }
-  {  __Result register is set to 1, if the bit is set otherwise, __Result}
-  {   is set to zero. __RESULT register is also used as scratch.         }
-  {**********************************************************************}
-  procedure tcginnode.emit_bit_test_reg_reg(list : TAsmList;
-                                            bitsize: tcgsize; bitnumber,value : tregister;
-                                            ressize: tcgsize; res :tregister);
-    begin
-      { first make sure that the bit number is modulo 32 }
-
-      { not necessary, since if it's > 31, we have a range error -> will }
-      { be caught when range checking is on! (JM)                        }
-      { cg.a_op_const_reg(list,OP_AND,31,bitnumber);                     }
-
-      if tcgsize2unsigned[bitsize]<>tcgsize2unsigned[ressize] then
-        begin
-          internalerror(2007020401);
-          { FIX ME! We're not allowed to modify the value register here! }
-
-          { shift value register "bitnumber" bits to the right }
-          cg.a_op_reg_reg(list,OP_SHR,bitsize,bitnumber,value);
-          { extract the bit we want }
-          cg.a_op_const_reg(list,OP_AND,bitsize,1,value);
-          cg.a_load_reg_reg(list,bitsize,ressize,value,res);
-        end
-      else
-        begin
-          { rotate value register "bitnumber" bits to the right }
-          cg.a_op_reg_reg_reg(list,OP_SHR,bitsize,bitnumber,value,res);
-          { extract the bit we want }
-          cg.a_op_const_reg(list,OP_AND,bitsize,1,res);
-        end;
-    end;
-
 
   function tcginnode.analizeset(const Aset:Tconstset; out setparts:tsetparts; out numparts: byte; is_small:boolean):boolean;
     var
@@ -234,8 +182,8 @@ implementation
          { check if we can use smallset operation using btl which is limited
            to 32 bits, the left side may also not contain higher values !! }
          use_small:=(tsetdef(right.resultdef).settype=smallset) and not is_signed(left.resultdef) and
-                    ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high<=32) or
-                     (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<=32));
+                    ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high<32) or
+                     (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<32));
 
          { Can we generate jumps? Possible for all types of sets }
          checkgenjumps:=(right.nodetype=setconstn) and
@@ -258,6 +206,7 @@ implementation
     procedure tcginnode.pass_generate_code;
        var
          adjustment : aint;
+         l, l2      : tasmlabel;
          href : treference;
          hr,hr2,
          pleftreg   : tregister;
@@ -268,7 +217,6 @@ implementation
          genjumps,
          use_small  : boolean;
          i,numparts : byte;
-         l, l2      : tasmlabel;
          needslabel : Boolean;
        begin
          { We check first if we can generate jumps, this can be done
@@ -375,30 +323,25 @@ implementation
           begin
             { location is always LOC_REGISTER }
             location_reset(location, LOC_REGISTER, uopsize{def_cgsize(resultdef)});
+            { allocate a register for the result }
+            location.register := cg.getintregister(current_asmdata.CurrAsmList, uopsize);
 
             { We will now generated code to check the set itself, no jmps,
               handle smallsets separate, because it allows faster checks }
             if use_small then
              begin
                {****************************  SMALL SET **********************}
-               if left.nodetype=ordconstn then
+               if left.location.loc=LOC_CONSTANT then
                 begin
-                  location_force_reg(current_asmdata.CurrAsmList, right.location, uopsize, true);
-                  location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-                  { first SHR the register }
-                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, uopsize, tordconstnode(left).value and 31, right.location.register, location.register);
-                  { then extract the lowest bit }
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_AND, uopsize, 1, location.register);
+                  cg.a_bit_test_const_loc_reg(current_asmdata.CurrAsmList,location.size,
+                    left.location.value,right.location,
+                    location.register);
                 end
                else
                 begin
-                  location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
-                  location_force_reg(current_asmdata.CurrAsmList, right.location, uopsize, false);
-                  { allocate a register for the result }
-                  location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-                  { emit bit test operation }
-                  emit_bit_test_reg_reg(current_asmdata.CurrAsmList,left.location.size,left.location.register,
-                      right.location.register,location.size,location.register);
+                  location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+                  cg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,left.location.size,
+                    location.size,left.location.register,right.location,location.register);
                 end;
              end
             else
@@ -413,58 +356,38 @@ implementation
                   { assumption (other cases will be caught by range checking) (JM)  }
 
                   { load left in register }
-                  location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
-                  if left.location.loc = LOC_CREGISTER then
-                    hr := cg.getintregister(current_asmdata.CurrAsmList,opsize)
-                  else
-                    hr := left.location.register;
-                  { load right in register }
-                  hr2:=cg.getintregister(current_asmdata.CurrAsmList, uopsize);
-                  cg.a_load_const_reg(current_asmdata.CurrAsmList, uopsize, right.location.value, hr2);
-
+                  location_force_reg(current_asmdata.CurrAsmList,left.location,location.size,true);
+                  location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,true);
                   { emit bit test operation }
-                  emit_bit_test_reg_reg(current_asmdata.CurrAsmList, left.location.size, left.location.register, hr2, uopsize, hr2);
+                  cg.a_bit_test_reg_reg_reg(current_asmdata.CurrAsmList,
+                    left.location.size,right.location.size,location.size,
+                    left.location.register, right.location.register,location.register);
 
-                  { if left > 31 then hr := 0 else hr := $ffffffff }
-                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SUB, uopsize, 32, left.location.register, hr);
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SAR, uopsize, 31, hr);
+                  { now zero the result if left > nr_of_bits_in_right_register }
+                  hr := cg.getintregister(current_asmdata.CurrAsmList,location.size);
+                  { if left > tcgsize2size[opsize]*8 then hr := 0 else hr := $ffffffff }
+                  { (left.location.size = location.size at this point) }
+                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SUB, location.size, tcgsize2size[opsize]*8, left.location.register, hr);
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SAR, location.size, (tcgsize2size[opsize]*8)-1, hr);
 
-                  { if left > 31, then result := 0 else result := result of bit test }
-                  cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_AND, uopsize, hr, hr2);
-                  { allocate a register for the result }
-                  location.register := cg.getintregister(current_asmdata.CurrAsmList,location.size);
-                  cg.a_load_reg_reg(current_asmdata.CurrAsmList, uopsize, location.size, hr2, location.register);
+                  { if left > tcgsize2size[opsize]*8-1, then result := 0 else result := result of bit test }
+                  cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_AND, location.size, hr, location.register);
                 end { of right.location.loc=LOC_CONSTANT }
                { do search in a normal set which could have >32 elementsm
                  but also used if the left side contains higher values > 32 }
-               else if left.nodetype=ordconstn then
+               else if (left.location.loc=LOC_CONSTANT) then
                 begin
-                  if (tordconstnode(left).value < 0) or ((tordconstnode(left).value shr 3) >= right.resultdef.size) then
+                  if (left.location.value < 0) or ((left.location.value shr 3) >= right.resultdef.size) then
                     {should be caught earlier }
                     internalerror(2007020402);
 
-                  { use location.register as scratch register here }
-                  if (target_info.endian = endian_little) then
-                    inc(right.location.reference.offset,tordconstnode(left).value shr 3)
-                  else
-                    { adjust for endianess differences }
-                    inc(right.location.reference.offset,(tordconstnode(left).value shr 3) xor 3);
-                  { allocate a register for the result }
-                  location.register := cg.getintregister(current_asmdata.CurrAsmList,location.size);
-                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_8,location.size,right.location.reference, location.register);
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,location.size,tordconstnode(left).value and 7,
-                    location.register);
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,location.size,1,location.register);
+                  cg.a_bit_test_const_loc_reg(current_asmdata.CurrAsmList,location.size,left.location.value,
+                    right.location,location.register);
                 end
                else
                 begin
                   location_force_reg(current_asmdata.CurrAsmList, left.location, opsize, true);
                   pleftreg := left.location.register;
-
-                  location_freetemp(current_asmdata.CurrAsmList,left.location);
-
-                  { allocate a register for the result }
-                  location.register := cg.getintregister(current_asmdata.CurrAsmList, uopsize);
 
                   if (opsize >= OS_S8) or { = if signed }
                      ((left.resultdef.typ=orddef)  and (torddef(left.resultdef).high > tsetdef(right.resultdef).setmax)) or
@@ -474,47 +397,16 @@ implementation
                       current_asmdata.getjumplabel(l2);
                       needslabel := True;
 
-                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, opsize, OC_BE, tsetdef(right.resultdef).setmax, pleftreg, l);
+                      cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, left.location.size, OC_BE, tsetdef(right.resultdef).setmax, pleftreg, l);
 
-                      cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, 0, location.register);
+                      cg.a_load_const_reg(current_asmdata.CurrAsmList, location.size, 0, location.register);
                       cg.a_jmp_always(current_asmdata.CurrAsmList, l2);
 
                       cg.a_label(current_asmdata.CurrAsmList, l);
                     end;
 
-                  case right.location.loc of
-                    LOC_REGISTER, LOC_CREGISTER :
-                      begin
-                        cg.a_load_reg_reg(current_asmdata.CurrAsmList, uopsize, uopsize, right.location.register, location.register);
-                      end;
-                    LOC_CREFERENCE, LOC_REFERENCE :
-                      begin
-                        hr := cg.getaddressregister(current_asmdata.CurrAsmList);
-                        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, uopsize, 5, pleftreg, hr);
-                        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SHL, uopsize, 2, hr);
-
-                        href := right.location.reference;
-                        if (href.base = NR_NO) then
-                          href.base := hr
-                        else if (right.location.reference.index = NR_NO) then
-                          href.index := hr
-                        else
-                          begin
-                            hr2 := cg.getaddressregister(current_asmdata.CurrAsmList);
-                            cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, href, hr2);
-                            reference_reset_base(href, hr2, 0);
-                            href.index := hr;
-                          end;
-                        cg.a_load_ref_reg(current_asmdata.CurrAsmList, uopsize, uopsize, href, location.register);
-                      end
-                    else
-                      internalerror(2007020403);
-                  end;
-
-                  hr := cg.getintregister(current_asmdata.CurrAsmList, uopsize);
-                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_AND, uopsize, 31, pleftreg, hr);
-                  cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_SHR, uopsize, hr, location.register);
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_AND, uopsize, 1, location.register);
+                  cg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,left.location.size,location.size,
+                    left.location.register,right.location,location.register);
 
                   if needslabel then
                     cg.a_label(current_asmdata.CurrAsmList, l2);

@@ -67,7 +67,7 @@ implementation
 
     uses
       globtype,widestr,systems,
-      verbose,globals,
+      verbose,globals,cutils,
       symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
       cpuinfo,cpubase,
       cgbase,cgobj,cgutils,
@@ -511,23 +511,38 @@ implementation
          lastlabel   : tasmlabel;
          i           : longint;
          neededtyp   : taiconst_type;
-         indexadjust : longint;
       type
          setbytes=array[0..31] of byte;
          Psetbytes=^setbytes;
       begin
-        { xor indexadjust with indexes in a set typecasted to an array of   }
-        { bytes to get the correct locations, also when endianess of source }
-        { and destiantion differs (JM)                                      }
-        if (source_info.endian = target_info.endian) then
-          indexadjust := 0
-        else
-          indexadjust := 3;
         { small sets are loaded as constants }
         if not(is_varset(resultdef)) and not(is_normalset(resultdef)) then
          begin
            location_reset(location,LOC_CONSTANT,int_cgsize(resultdef.size));
-           location.value:=pLongint(value_set)^;
+           if (source_info.endian=target_info.endian) then
+             begin
+{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
+               { not plongint, because that will "sign extend" the set on 64 bit platforms }
+               { if changed to "paword", please also modify "32-resultdef.size*8" and      }
+               { cross-endian code below                                                   }
+               location.value:=pCardinal(value_set)^
+{$else}
+               location.value:=reverse_byte(Psetbytes(value_set)^[0]);
+               location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[1]) shl 8);
+               location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[2]) shl 16);
+               location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[3]) shl 24);
+{$endif}
+             end
+           else
+             begin
+               location.value:=cardinal(SwapLong(pLongint(value_set)^));
+               location.value:= reverse_byte (location.value         and $ff)         or
+                               (reverse_byte((location.value shr  8) and $ff) shl  8) or
+                               (reverse_byte((location.value shr 16) and $ff) shl 16) or
+                               (reverse_byte((location.value shr 24) and $ff) shl 24);
+             end;
+           if (target_info.endian=endian_big) then
+             location.value:=location.value shr (32-resultdef.size*8);
            exit;
          end;
         location_reset(location,LOC_CREFERENCE,OS_NO);
@@ -554,7 +569,16 @@ implementation
                              i:=0;
                              while assigned(hp1) and (i<32) do
                               begin
-                                if tai_const(hp1).value<>Psetbytes(value_set)^[i xor indexadjust] then
+                                if (source_info.endian=target_info.endian) then
+                                  begin
+{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
+                                    if tai_const(hp1).value<>Psetbytes(value_set)^[i ] then
+{$else}
+                                    if tai_const(hp1).value<>reverse_byte(Psetbytes(value_set)^[i xor 3]) then
+{$endif}
+                                      break
+                                  end
+                                else if tai_const(hp1).value<>reverse_byte(Psetbytes(value_set)^[i]) then
                                   break;
                                 inc(i);
                                 hp1:=tai(hp1.next);
@@ -602,8 +626,17 @@ implementation
                  else
                  }
                   begin
-                    for i:=0 to 31 do
-                      current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i xor indexadjust]));
+                    if (source_info.endian=target_info.endian) then
+{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
+                      for i:=0 to 31 do
+                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]))
+{$else}
+                      for i:=0 to 31 do
+                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i xor 3])))
+{$endif}
+                    else
+                      for i:=0 to 31 do
+                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i])));
                   end;
                end;
           end;

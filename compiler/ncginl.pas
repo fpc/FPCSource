@@ -508,126 +508,26 @@ implementation
 
       procedure tcginlinenode.second_IncludeExclude;
         var
-          bitsperop,l : longint;
-          opsize : tcgsize;
-          cgop : topcg;
-          addrreg2,addrreg,
-          hregister,hregister2: tregister;
-          use_small : boolean;
-          href : treference;
+          setpara, elepara: tnode;
         begin
-          if not(is_varset(tcallparanode(left).resultdef)) and
-             not(is_normalset(tcallparanode(left).resultdef)) then
-            opsize:=int_cgsize(tcallparanode(left).resultdef.size)
-          else
-            opsize:=OS_32;
-          bitsperop:=(8*tcgsize2size[opsize]);
+          { the set }
           secondpass(tcallparanode(left).left);
-          if tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn then
-            begin
-              { calculate bit position }
-              l:=1 shl (tordconstnode(tcallparanode(tcallparanode(left).right).left).value mod bitsperop);
+          { the element to set }
+          secondpass(tcallparanode(tcallparanode(left).right).left);
 
-              { determine operator }
-              if inlinenumber=in_include_x_y then
-                cgop:=OP_OR
-              else
-                begin
-                  cgop:=OP_AND;
-                  l:=not(l);
-                end;
-              case tcallparanode(left).left.location.loc of
-                LOC_REFERENCE :
-                  begin
-                    inc(tcallparanode(left).left.location.reference.offset,
-                      (tordconstnode(tcallparanode(tcallparanode(left).right).left).value div bitsperop)*tcgsize2size[opsize]);
-                    cg.a_op_const_ref(current_asmdata.CurrAsmList,cgop,opsize,l,tcallparanode(left).left.location.reference);
-                  end;
-                LOC_CREGISTER :
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList,cgop,tcallparanode(left).left.location.size,l,tcallparanode(left).left.location.register);
-                else
-                  internalerror(200405021);
-              end;
+          setpara:=tcallparanode(left).left;
+          elepara:=tcallparanode(tcallparanode(left).right).left;
+
+          if elepara.location.loc=LOC_CONSTANT then
+            begin
+              cg.a_bit_set_const_loc(current_asmdata.CurrAsmList,(inlinenumber=in_include_x_y),
+                elepara.location.value,setpara.location);
             end
           else
             begin
-              use_small:=
-                 { set type }
-                 (tsetdef(tcallparanode(left).left.resultdef).settype=smallset)
-                  and
-                   { elemenut number between 1 and 32 }
-                  ((tcallparanode(tcallparanode(left).right).left.resultdef.typ=orddef) and
-                   (torddef(tcallparanode(tcallparanode(left).right).left.resultdef).high<=32) or
-                   (tcallparanode(tcallparanode(left).right).left.resultdef.typ=enumdef) and
-                   (tenumdef(tcallparanode(tcallparanode(left).right).left.resultdef).max<=32));
-
-              { generate code for the element to set }
-              secondpass(tcallparanode(tcallparanode(left).right).left);
-
-              { bitnumber - which must be loaded into register }
-              hregister:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-              hregister2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-
-              cg.a_load_loc_reg(current_asmdata.CurrAsmList,opsize,
-                  tcallparanode(tcallparanode(left).right).left.location,hregister);
-
-              if use_small then
-                begin
-                  { hregister contains the bitnumber to add }
-                  cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, 1, hregister2);
-                  cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_SHL, opsize, hregister, hregister2);
-
-                  { possiblities :
-                       bitnumber : LOC_REFERENCE, LOC_REGISTER, LOC_CREGISTER
-                       set value : LOC_REFERENCE, LOC_REGISTER
-                  }
-                  { location of set }
-                  if inlinenumber=in_include_x_y then
-                    begin
-                      cg.a_op_reg_loc(current_asmdata.CurrAsmList, OP_OR, hregister2,
-                      tcallparanode(left).left.location);
-                    end
-                  else
-                    begin
-                      cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_NOT, opsize, hregister2,hregister2);
-                      cg.a_op_reg_loc(current_asmdata.CurrAsmList, OP_AND, hregister2,
-                          tcallparanode(left).left.location);
-                    end;
-                end
-              else
-                begin
-                  { possiblities :
-                       bitnumber : LOC_REFERENCE, LOC_REGISTER, LOC_CREGISTER
-                       set value : LOC_REFERENCE
-                  }
-                  { hregister contains the bitnumber (div 32 to get the correct offset) }
-                  { hregister contains the bitnumber to add }
-
-                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SHR, opsize, 5, hregister,hregister2);
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_SHL, opsize, 2, hregister2);
-                  addrreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                  { we need an extra address register to be able to do an ADD operation }
-                  addrreg2:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                  cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,OS_ADDR,hregister2,addrreg2);
-                  { calculate the correct address of the operand }
-                  cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, tcallparanode(left).left.location.reference,addrreg);
-                  cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_ADDR, addrreg2, addrreg);
-
-                  { hregister contains the bitnumber to add }
-                  cg.a_load_const_reg(current_asmdata.CurrAsmList, opsize, 1, hregister2);
-                  cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_AND, opsize, 31, hregister);
-                  cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_SHL, opsize, hregister, hregister2);
-
-                  reference_reset_base(href,addrreg,0);
-
-                  if inlinenumber=in_include_x_y then
-                    cg.a_op_reg_ref(current_asmdata.CurrAsmList, OP_OR, opsize, hregister2, href)
-                  else
-                    begin
-                      cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_NOT, opsize, hregister2, hregister2);
-                      cg.a_op_reg_ref(current_asmdata.CurrAsmList, OP_AND, opsize, hregister2, href);
-                    end;
-                end;
+              location_force_reg(current_asmdata.CurrAsmList,elepara.location,OS_INT,true);
+              cg.a_bit_set_reg_loc(current_asmdata.CurrAsmList,(inlinenumber=in_include_x_y),
+                elepara.location.size,elepara.location.register,setpara.location);
             end;
         end;
 

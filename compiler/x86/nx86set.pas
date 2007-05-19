@@ -162,8 +162,8 @@ implementation
          { check if we can use smallset operation using btl which is limited
            to 32 bits, the left side may also not contain higher values or be signed !! }
          use_small:=(tsetdef(right.resultdef).settype=smallset) and not is_signed(left.resultdef) and
-                    ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high<=32) or
-                     (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<=32));
+                    ((left.resultdef.typ=orddef) and (torddef(left.resultdef).high<32) or
+                     (left.resultdef.typ=enumdef) and (tenumdef(left.resultdef).max<32));
 
          { Can we generate jumps? Possible for all types of sets }
          genjumps:=(right.nodetype=setconstn) and
@@ -191,6 +191,8 @@ implementation
 
          if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
            location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+         if (right.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) then
+           location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,true);
 
          if genjumps then
           begin
@@ -388,8 +390,19 @@ implementation
                     internalerror(2007020201);
 
                   location.resflags:=F_NE;
-                  inc(right.location.reference.offset,tordconstnode(left).value shr 3);
-                  emit_const_ref(A_TEST,S_B,1 shl (tordconstnode(left).value and 7),right.location.reference);
+                  case right.location.loc of
+                    LOC_REFERENCE,LOC_CREFERENCE:
+                      begin
+                        inc(right.location.reference.offset,tordconstnode(left).value shr 3);
+                        emit_const_ref(A_TEST,S_B,1 shl (tordconstnode(left).value and 7),right.location.reference);
+                      end;
+                    LOC_REGISTER,LOC_CREGISTER:
+                      begin
+                        emit_const_reg(A_TEST,TCGSize2OpSize[right.location.size],1 shl (tordconstnode(left).value),right.location.register);
+                      end;
+                    else
+                      internalerror(2007051901);
+                  end;
                 end
                else
                 begin

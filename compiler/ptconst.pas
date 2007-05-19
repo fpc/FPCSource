@@ -546,7 +546,7 @@ implementation
            Psetbytes = ^setbytes;
         var
           p : tnode;
-          i,j : longint;
+          i : longint;
         begin
           p:=comp_expr(true);
           if p.nodetype=setconstn then
@@ -564,21 +564,18 @@ implementation
                   { arrays of 32-bit values CEC          }
                   if source_info.endian = target_info.endian then
                     begin
+{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
                       for i:=0 to p.resultdef.size-1 do
                         list.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[i]));
+{$else}
+                      for i:=0 to p.resultdef.size-1 do
+                        list.concat(tai_const.create_8bit(reverse_byte(Psetbytes(tsetconstnode(p).value_set)^[i xor 3])));
+{$endif}
                     end
                   else
                     begin
-                      { store as longint values in swaped format }
-                      j:=0;
-                      for i:=0 to ((p.resultdef.size-1) div 4) do
-                        begin
-                          list.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+3]));
-                          list.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+2]));
-                          list.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+1]));
-                          list.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j]));
-                          Inc(j,4);
-                        end;
+                      for i:=0 to p.resultdef.size-1 do
+                        list.concat(tai_const.create_8bit(reverse_byte(Psetbytes(tsetconstnode(p).value_set)^[i])));
                     end;
                 end;
             end

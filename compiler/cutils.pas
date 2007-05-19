@@ -54,6 +54,8 @@ interface
     Function SwapQWord(x : qword) : qword;{$ifdef USEINLINE}inline;{$endif}
     {# Return value @var(i) aligned on @var(a) boundary }
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
+    {# Return @var(b) with the bit order reversed }
+    function reverse_byte(b: byte): byte;
 
     function used_align(varalign,minalign,maxalign:shortint):shortint;
     function isbetteralignedthan(new, org, limit: cardinal): boolean;
@@ -234,6 +236,15 @@ implementation
         SwapWord := x or z;
       End;
 
+
+    function reverse_byte(b: byte): byte;
+      const
+        reverse_nible:array[0..15] of 0..15 =
+          (%0000,%1000,%0100,%1100,%0010,%1010,%0110,%1110,
+           %0001,%1001,%0101,%1101,%0011,%1011,%0111,%1111);
+      begin
+        reverse_byte:=(reverse_nible[b and $f] shl 4) or reverse_nible[b shr 4];
+      end;
 
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
     {

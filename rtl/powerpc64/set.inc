@@ -50,6 +50,7 @@ asm
         stw     r0,24(r3)
         stw     r0,28(r3)
 
+{$ifndef FPC_NEW_BIGENDIAN_SETS}
         // r0 := 1 shl r4[27-31] -> bit index in dword (rotate instructions
         // with count in register only consider lower 5 bits of this register)
         li      r0,1
@@ -59,9 +60,17 @@ asm
         // (((b div 8) div 4)*4= (b div 8) and not(3))
         // r5 := (r4 rotl(32-3)) and (0x01ffffff8)
         rlwinm  r4,r4,31-3+1,3,31-2
-
         // store the result
         stwx    r0,r3,r4
+{$else}
+        { must be done byte- instead of dword-based }
+        rlwinm  r5,r4,0,31-3+1,31
+        li      r0,0x80
+        srw     r0,r0,r5
+        srwi    r4,r4,3
+        // store the result
+        stbx    r0,r3,r4
+{$endif}
 end;
 
 
@@ -83,6 +92,7 @@ asm
        stfd     f2,16(r3)
        stfd     f3,24(r3)
 
+{$ifndef FPC_NEW_BIGENDIAN_SETS}
        // get the index of the correct *dword* in the set
        // r0 := (r5 rotl(32-3)) and (0x0fffffff8)
        rlwinm   r0,r5,31-3+1,3,31-2
@@ -96,6 +106,17 @@ asm
        or       r5,r4,r5
        // store result
        stw      r5,0(r3)
+{$else}
+        { must be done byte- instead of dword-based }
+        srwi    r6,r5,3
+        lbzx    r7,r6,r3
+        rlwinm  r5,r5,0,31-3+1,31
+        li      r0,0x80
+        srw     r0,r0,r5
+        or      r7,r7,r0
+        // store the result
+        stbx    r7,r6,r3
+{$endif}
 end;
 
 
@@ -117,6 +138,7 @@ asm
        stfd     f1,8(r3)
        stfd     f2,16(r3)
        stfd     f3,24(r3)
+{$ifndef FPC_NEW_BIGENDIAN_SETS}
        // get the index of the correct *dword* in the set
        // r0 := (r4 rotl(32-3)) and (0x0fffffff8)
        rlwinm   r0,r5,31-3+1,3,31-2
@@ -129,8 +151,20 @@ asm
        andc     r5,r4,r5
        // store result
        stw      r4,0(r3)
+{$else}
+        { must be done byte- instead of dword-based }
+        srwi    r6,r5,3
+        lbzx    r7,r6,r3
+        rlwinm  r5,r5,0,31-3+1,31
+        li      r0,0x80
+        srw     r0,r0,r5
+        andc    r7,r7,r0
+        // store the result
+        stbx    r7,r6,r3
+{$endif}
 end;
 
+{$ifndef FPC_NEW_BIGENDIAN_SETS}
 
 {$define FPC_SYSTEM_HAS_FPC_SET_SET_RANGE}
 function fpc_set_set_range(const orgset: fpc_normal_set; l,h : byte): fpc_normal_set;assembler; compilerproc;
@@ -193,29 +227,7 @@ asm
   stw    r5,0(r3)             // store to set
 .Lset_range_exit:
 end;
-
-
-{$define FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
-function fpc_set_in_byte(const p: fpc_normal_set; b : byte): boolean;compilerproc;assembler;[public,alias:'FPC_SET_IN_BYTE'];
-{
-  tests if the element b is in the set p, the **zero** flag is cleared if it's present
-
-  on entry: p in r3, b in r4
-}
-asm
-       // get the index of the correct *dword* in the set
-       // r0 := (r4 rotl(32-3)) and (0x0fffffff8)
-       rlwinm   r0,r4,31-3+1,3,31-2
-
-       // load dword in which the bit has to be tested
-       lwzx     r3,r3,r0
-
-       // r4 := 32 - r4 (no problem if r4 > 32, the rlwnm next does a mod 32)
-       subfic   r4,r4,32
-       // r3 := (r3 shr (r4 mod 32)) and 1
-       rlwnm    r3,r3,r4,31,31
-end;
-
+{$endif}
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_ADD_SETS}
