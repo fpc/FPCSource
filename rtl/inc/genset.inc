@@ -134,7 +134,7 @@ function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_
  var
    src1: fpc_normal_set_long absolute set1;
    src2: fpc_normal_set_long absolute set2;
-   dest: fpc_normal_set absolute fpc_set_mul_sets;
+   dest: fpc_normal_set_long absolute fpc_set_mul_sets;
  {
    multiplies (takes common elements of) set1 and set2 result put in dest
  }
@@ -152,7 +152,7 @@ function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_
  var
    src1: fpc_normal_set_long absolute set1;
    src2: fpc_normal_set_long absolute set2;
-   dest: fpc_normal_set absolute fpc_set_sub_sets;
+   dest: fpc_normal_set_long absolute fpc_set_sub_sets;
  {
   computes the diff from set1 to set2 result in dest
  }
@@ -170,7 +170,7 @@ function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_
  var
    src1: fpc_normal_set_long absolute set1;
    src2: fpc_normal_set_long absolute set2;
-   dest: fpc_normal_set absolute fpc_set_symdif_sets;
+   dest: fpc_normal_set_long absolute fpc_set_symdif_sets;
  {
    computes the symetric diff from set1 to set2 result in dest
  }
