@@ -624,6 +624,12 @@ implementation
                 end;
               if special_handling then
                 begin
+                  { since we're not going to pass the parameter as var-parameter }
+                  { to the read function, manually check whether the parameter   }
+                  { can be used as var-parameter (e.g., whether it isn't a       }
+                  { property)                                                    }
+                  valid_for_var(para.left,true);
+
                   { create the parameter list: the temp ... }
                   temp := ctempcreatenode.create(readfunctype,readfunctype.size,tt_persistent,false);
                   addstatement(Tstatementnode(newstatement),temp);
