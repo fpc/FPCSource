@@ -476,7 +476,7 @@ const
    inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has_protected,
                 oo_has_strictprotected,oo_has_strictprivate,oo_has_constructor,oo_has_destructor];
    clearstack_pocalls = [
-     pocall_cdecl,pocall_cppdecl,pocall_syscall
+     pocall_cdecl,pocall_cppdecl,pocall_syscall,pocall_mwpascal
    ];
 
    pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
