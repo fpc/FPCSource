@@ -32,7 +32,13 @@ uses Glib2, Gdk2;
 const
   GdkGLExtLib = 
     {$ifdef WIN32} 'libgdkglext-win32-1.0-0.dll'
-    {$else}        'libgdkglext-x11-1.0.so'
+    {$else}        
+      {$ifdef DARWIN}
+        'gdkglext-x11-1.0'
+        {$linklib gdkglext-x11-1.0}
+      {$else}
+        'libgdkglext-x11-1.0.so'
+      {$endif}
     {$endif};
 
 type

@@ -32,7 +32,13 @@ uses Glib2, Gdk2, Gtk2, GdkGLExt;
 const
   GtkGLExtLib = 
     {$ifdef WIN32} 'libgtkglext-win32-1.0-0.dll'
-    {$else}        'libgtkglext-x11-1.0.so'
+    {$else}        
+      {$ifdef DARWIN}
+        'gtkglext-x11-1.0'
+        {$linklib gtkglext-x11-1.0}
+      {$else}
+        'libgtkglext-x11-1.0.so'
+      {$endif}
     {$endif};
 
 { gtkglext does not (for now) define any objects ("objects" in the glib sense),

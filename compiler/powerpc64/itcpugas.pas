@@ -50,7 +50,7 @@ const
     'fsel', 'fsel.', 'fsqrt', 'fsqrt.', 'fsqrts', 'fsqrts.', 'fsub', 'fsub.',
     'fsubs', 'fsubs.', 'icbi', 'isync', 'lbz', 'lbzu', 'lbzux', 'lbzx',
     'lfd', 'lfdu', 'lfdux', 'lfdx', 'lfs', 'lfsu', 'lfsux', 'lfsx', 'lha',
-    'lhau', 'lhaux', 'lhax', 'hbrx', 'lhz', 'lhzu', 'lhzux', 'lhzx', 'lmw',
+    'lhau', 'lhaux', 'lhax', 'lhbrx', 'lhz', 'lhzu', 'lhzux', 'lhzx', 'lmw',
     'lswi', 'lswx', 'lwarx', 'lwbrx', 'lwz', 'lwzu', 'lwzux', 'lwzx', 'mcrf',
     'mcrfs', 'mcrxr', 'mfcr', 'mffs', 'mffs.', 'mfmsr', 'mfspr', 'mfsr',
     'mfsrin', 'mftb', 'mtcrf', 'mtfsb0', 'mtfsb1', 'mtfsf', 'mtfsf.',
