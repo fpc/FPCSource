@@ -233,9 +233,7 @@ interface
       begin
         { when a setdef is passed, it has to be a smallset }
         if is_varset(left.resultdef) or
-          is_normalset(left.resultdef) or
-          is_varset(right.resultdef) or
-          is_normalset(right.resultdef) then
+          is_varset(right.resultdef) then
           internalerror(200203302);
 
         if nodetype in [equaln,unequaln,gtn,gten,lten,ltn] then
@@ -786,8 +784,7 @@ interface
             begin
               {Normalsets are already handled in pass1 if mmx
                should not be used.}
-              if is_varset(tsetdef(left.resultdef)) or
-                is_normalset(tsetdef(left.resultdef)) then
+              if is_varset(tsetdef(left.resultdef)) then
                 begin
 {$ifdef SUPPORT_MMX}
                 {$ifdef i386}

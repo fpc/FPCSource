@@ -412,6 +412,8 @@ Procedure fpc_DecRef (Data,TypeInfo : Pointer);  compilerproc;
 procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); compilerproc;
 {$endif FPC_HAS_FEATURE_RTTI}
 
+
+{$ifndef FPC_NEW_BIGENDIAN_SETS}
 function fpc_set_load_small(l: fpc_small_set): fpc_normal_set; compilerproc;
 function fpc_set_create_element(b : byte): fpc_normal_set; compilerproc;
 function fpc_set_set_byte(const source: fpc_normal_set; b : byte): fpc_normal_set; compilerproc;
@@ -423,6 +425,7 @@ function fpc_set_sub_sets(const set1,set2: fpc_normal_set): fpc_normal_set; comp
 function fpc_set_symdif_sets(const set1,set2: fpc_normal_set): fpc_normal_set; compilerproc;
 function fpc_set_comp_sets(const set1,set2: fpc_normal_set): boolean; compilerproc;
 function fpc_set_contains_sets(const set1,set2: fpc_normal_set): boolean; compilerproc;
+{$endif ndef FPC_NEW_BIGENDIAN_SETS}
 
 procedure fpc_varset_load(const l;sourcesize : longint;var dest;size : ptrint); compilerproc;
 procedure fpc_varset_create_element(b,size : ptrint; var data); compilerproc;

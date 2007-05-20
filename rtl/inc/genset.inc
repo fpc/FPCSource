@@ -13,6 +13,8 @@
 
  **********************************************************************}
 
+{$ifndef FPC_NEW_BIGENDIAN_SETS}
+
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
 { Error No pascal version of FPC_SET_LOAD_SMALL}
  { THIS DEPENDS ON THE ENDIAN OF THE ARCHITECTURE!
@@ -220,6 +222,7 @@ function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_
  end;
 {$endif}
 
+{$endif ndef FPC_NEW_BIGENDIAN_SETS}
 
 {****************************************************************************
                                  Var sets
