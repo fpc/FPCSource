@@ -64,7 +64,6 @@ Type
   DWord    = LongWord;
   Cardinal = LongWord;
   Integer  = SmallInt;
-	UInt64   = QWord;
 
 {$ifdef CPUI386}
   {$define CPU32}
