@@ -762,7 +762,7 @@ begin
  c:=#0;
  // make sure the statement after this does not write to a read-only location
  GlobalStrValidate28 := c;
- PInteger(Integer(GlobalStrValidate28)-4)^ := 0; //Set Length to 0
+ PSizeInt(Pointer(GlobalStrValidate28)-sizeof(SizeInt))^ := 0; //Set Length to 0
  try
   StrToInt(GlobalStrValidate28);
   ErrorTrap(VALIDATENO, GlobalStrValidate28);

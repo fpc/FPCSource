@@ -1,4 +1,4 @@
-{$mode objpas}
+{$mode objfpc}
 {$packset 1}
 uses
   sysutils;
