@@ -1,3 +1,9 @@
+{ %fail }
+
+{ currently fails under FPC, because parameters to read(ln) have to be  }
+{ var parameters, and you cannot pass bitpacked record fields and array }
+{ elements as var parameters                                            }
+
 { from gpc tests, original name: bitfields.pas }
 
 {$ifdef fpc}
