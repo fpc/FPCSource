@@ -12,6 +12,40 @@
 
  **********************************************************************}
 
+function FPUExceptionMaskToSoftFloatMask(const Mask: TFPUExceptionMask): byte;
+begin
+    result:=0;
+    if exInvalidOp in Mask then
+      result:=result or (1 shl ord(exInvalidOp));
+    if exDenormalized in Mask then
+      result:=result or (1 shl ord(exDenormalized));
+    if exZeroDivide in Mask then
+      result:=result or (1 shl ord(exZeroDivide));
+    if exOverflow in Mask then
+      result:=result or (1 shl ord(exOverflow));
+    if exUnderflow in Mask then
+      result:=result or (1 shl ord(exUnderflow));
+    if exPrecision in Mask then
+      result:=result or (1 shl ord(exPrecision));
+end;
+
+function SoftFloatMaskToFPUExceptionMask(const Mask: byte): TFPUExceptionMask;
+begin
+    result:=[];
+    if (mask and (1 shl ord(exInvalidOp)) <> 0) then
+      include(result,exInvalidOp);
+    if (mask and (1 shl ord(exDenormalized)) <> 0) then
+      include(result,exDenormalized);
+    if (mask and (1 shl ord(exZeroDivide)) <> 0) then
+      include(result,exZeroDivide);
+    if (mask and (1 shl ord(exOverflow)) <> 0) then
+      include(result,exOverflow);
+    if (mask and (1 shl ord(exUnderflow)) <> 0) then
+      include(result,exUnderflow);
+    if (mask and (1 shl ord(exPrecision)) <> 0) then
+      include(result,exPrecision);
+end;
+
 {$ifdef wince}
 
 const
@@ -126,7 +160,7 @@ begin
     c:=c or _EM_INEXACT;
   c:=_controlfp(c, _MCW_EM);
   Result:=ConvertExceptionMask(c);
-  softfloat_exception_mask:=dword(Mask);
+  softfloat_exception_mask:=FPUExceptionMaskToSoftFloatMask(mask);
 end;
 
 procedure ClearExceptions(RaisePending: Boolean =true);
@@ -285,7 +319,7 @@ function GetExceptionMask: TFPUExceptionMask;
     if (cw and _FPU_MASK_PM)=0 then
       include(Result,exPrecision);
 {$else}
-    dword(Result):=softfloat_exception_mask;
+    Result:=SoftFloatMaskToFPUExceptionMask(softfloat_exception_mask);
 {$endif}
   end;
 
@@ -317,7 +351,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 
     FPU_SetCW(cw);
 {$endif}
-    softfloat_exception_mask:=dword(Mask);
+    softfloat_exception_mask:=FPUExceptionMaskToSoftFloatMask(Mask);
   end;
 
 
