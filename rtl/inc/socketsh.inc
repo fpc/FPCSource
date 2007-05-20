@@ -36,6 +36,21 @@ const
   SOCK_SEQPACKET  = 5;               { sequential packet socket     }
 {$endif}
 
+  { Protocol families }
+  PF_UNSPEC    = 0;                  { Unspecified }
+  PF_LOCAL     = 1;                  { Local to host (pipes and file-domain) }
+  PF_UNIX      = PF_LOCAL;           { Old BSD name for PF_LOCAL }
+  PF_FILE      = PF_LOCAL;           { Another non-standard name for PF_LOCAL }
+  PF_INET      = 2;                  { IP protocol family }
+
+
+  { Address families }
+  AF_UNSPEC    = PF_UNSPEC;
+  AF_LOCAL     = PF_LOCAL;
+  AF_UNIX      = PF_UNIX;
+  AF_FILE      = PF_FILE;
+  AF_INET      = PF_INET;
+
   INADDR_ANY   = CARDINAL(0);
   INADDR_NONE  = CARDINAL($FFFFFFFF);
 
@@ -145,19 +160,9 @@ type
   TSockPairArray = Array[0..1] of Longint;
   TSockArray     = Array[1..2] of Longint;              //legacy
 
-  psockaddr_un = ^sockaddr_un;
-  sockaddr_un = packed record
-    {$ifdef SOCK_HAS_SINLEN}
-      sun_len     : cuint8;
-    {$endif}
-    sun_family    : sa_family_t;
-    sun_path      : array[0..107] of char;
-  end;
 
-  Tsocket=longint;   {To easy porting code from Kylix libc unit to sockets unit.}
-
-
-function socketerror : cint; 
+Var
+  SocketError:cint;
 
 function  fpsocket      (domain:cint; xtype:cint; protocol: cint):cint;
 function  fprecv        (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;
@@ -176,33 +181,34 @@ function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optle
 function  fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
 
 {Basic Socket Functions}
-Function Socket(Domain,SocketType,Protocol:Longint):Longint; deprecated;
-Function CloseSocket(Sock:Longint):Longint; // vote is still out on this one
-Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint; deprecated;
-Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint; deprecated;
-Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint; deprecated;
-Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr; var AddrLen : longInt) : longint;deprecated; 
-Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;deprecated;
-Function Listen (Sock,MaxConnect:Longint):Boolean;deprecated;
-Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;deprecated;
-Function Connect(Sock:Longint;Const Addr;Addrlen:Longint):boolean;deprecated;
-Function Shutdown(Sock:Longint;How:Longint):Longint;deprecated;
-Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;deprecated;
-Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;deprecated;
-Function SetSocketOptions(Sock,Level,OptName:Longint;const OptVal;optlen:longint):Longint;deprecated;
-Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;deprecated;
-Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;deprecated;
+Function Socket(Domain,SocketType,Protocol:Longint):Longint;
+Function CloseSocket(Sock:Longint):Longint;
+Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
+Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
+Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
+Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr; var AddrLen : longInt) : longint;
+Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
+Function Listen (Sock,MaxConnect:Longint):Boolean;
+Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
+Function Connect(Sock:Longint;Const Addr;Addrlen:Longint):boolean;
+Function Shutdown(Sock:Longint;How:Longint):Longint;
+Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
+Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
+Function SetSocketOptions(Sock,Level,OptName:Longint;const OptVal;optlen:longint):Longint;
+Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
+Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
 
 {Text Support}
-Procedure Sock2Text(Sock:Longint;Var SockIn,SockOut:Text);deprecated;
+Procedure Sock2Text(Sock:Longint;Var SockIn,SockOut:Text);
 
 {Untyped File Support}
-Procedure Sock2File(Sock:Longint;Var SockIn,SockOut:File);deprecated;
+Procedure Sock2File(Sock:Longint;Var SockIn,SockOut:File);
 
-Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:File):Boolean; deprecated;
-Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;deprecated;
-Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:text):Boolean; deprecated;
-Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):Boolean;deprecated;
+{Better Pascal Calling, Overloaded Functions!}
+Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:File):Boolean;
+Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;
+Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;
+Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):Boolean;
 
 
 { Utility routines}

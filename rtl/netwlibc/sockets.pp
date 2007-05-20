@@ -34,21 +34,11 @@ Type
   tsocklen=cint;
   psocklen=^tsocklen;
 
-const
-  EsockEINTR            = WSAEINTR;
-  EsockEBADF            = WSAEBADF;
-  EsockEFAULT           = WSAEFAULT;
-  EsockEINVAL           = WSAEINVAL;
-  EsockEACCESS         = WSAEACCES;
-  EsockEMFILE          = WSAEMFILE;
-  EsockEMSGSIZE        = WSAEMSGSIZE;
-  EsockENOBUFS         = WSAENOBUFS;
-  EsockENOTCONN        = WSAENOTCONN;
-  EsockENOTSOCK        = WSAENOTSOCK;
-  EsockEPROTONOSUPPORT = WSAEPROTONOSUPPORT;
-  EsockEWOULDBLOCK     = WSAEWOULDBLOCK;
 
-{$i netwsockh.inc}
+  Const
+     AF_MAX          = WinSock.AF_MAX;
+     PF_MAX          = AF_MAX;
+
 {$i socketsh.inc}
 
 Implementation
@@ -349,19 +339,19 @@ function fpRead(handle : longint;var bufptr;size : dword) : dword;
   end;
 {$else}
 { mimic the linux fdWrite/fdRead calls for the file/text socket wrapper }
-function fpWrite(handle : longint;Const bufptr;size : dword) : dword;
+function fdWrite(handle : longint;Const bufptr;size : dword) : dword;
 begin
-  fpWrite := dword(WinSock.send(handle, bufptr, size, 0));
-  if fpWrite = dword(SOCKET_ERROR) then
+  fdWrite := dword(WinSock.send(handle, bufptr, size, 0));
+  if fdWrite = dword(SOCKET_ERROR) then
   begin
     SocketError := WSAGetLastError;
-    fpWrite := 0;
+    fdWrite := 0;
   end
   else
     SocketError := 0;
 end;
 
-function fpRead(handle : longint;var bufptr;size : dword) : dword;
+function fdRead(handle : longint;var bufptr;size : dword) : dword;
   var
      d : dword;
 
@@ -369,18 +359,18 @@ function fpRead(handle : longint;var bufptr;size : dword) : dword;
      if ioctlsocket(handle,FIONREAD,@d) = SOCKET_ERROR then
        begin
          SocketError:=WSAGetLastError;
-         fpread:=0;
+         fdRead:=0;
          exit;
        end;
      if d>0 then
        begin
          if size>d then
            size:=d;
-         fpRead := dword(WinSock.recv(handle, bufptr, size, 0));
-         if fpRead = dword(SOCKET_ERROR) then
+         fdRead := dword(WinSock.recv(handle, bufptr, size, 0));
+         if fdRead = dword(SOCKET_ERROR) then
          begin
            SocketError:= WSAGetLastError;
-           fpRead := 0;
+           fdRead := 0;
          end else
            SocketError:=0;
        end

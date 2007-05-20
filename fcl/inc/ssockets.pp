@@ -62,8 +62,6 @@ type
   TConnectEvent = Procedure (Sender : TObject; Data : TSocketStream) Of Object;
   TConnectQuery = Procedure (Sender : TObject; ASocket : Longint; Var Allow : Boolean) of Object;
 
-  { TSocketServer }
-
   TSocketServer = Class(TObject)
   Private
     FOnIdle : TNotifyEvent;
@@ -103,27 +101,19 @@ type
     Property SockType : Longint Read FSockType;
   end;
 
-  { TInetServer }
-
   TInetServer = Class(TSocketServer)
   Protected
     FAddr : TINetSockAddr;
     Function  SockToStream (ASocket : Longint) : TSocketStream;Override;
     Function Accept : Longint;override;
     FPort : Word;
-    FHost: string;
   Public
     Procedure Bind; Override;
     Constructor Create(APort: Word);
-    Constructor Create(const aHost: string; const APort: Word);
     Property Port : Word Read FPort;
-    Property Host : string Read FHost;
   end;
 
 {$ifdef Unix}
-
-  { TUnixServer }
-
   TUnixServer = Class(TSocketServer)
   Private
     FUnixAddr : TUnixSockAddr;
@@ -403,16 +393,9 @@ end;
 
 Constructor TInetServer.Create(APort: Word);
 
-begin
-  Create('0.0.0.0', aPort);
-end;
-
-Constructor TInetServer.Create(const aHost: string; const APort: Word);
-
 Var S : longint;
 
 begin
-  FHost:=aHost;
   FPort:=APort;
   S:=Sockets.Socket(AF_INET,SOCK_STREAM,0);
   If S=-1 Then
@@ -420,12 +403,14 @@ begin
   Inherited Create(S);
 end;
 
+
 Procedure TInetServer.Bind;
+
 
 begin
   Faddr.family := AF_INET;
   Faddr.port := ShortHostToNet(FPort);
-  Faddr.addr := LongWord(StrToNetAddr(FHost));
+  Faddr.addr := 0;
   if not Sockets.Bind(FSocket, FAddr, Sizeof(FAddr)) then
     raise ESocketError.Create(seBindFailed, [IntToStr(FPort)]);
   FBound:=True;
@@ -555,7 +540,7 @@ begin
       end;
   addr.family := AF_INET;
   addr.port := ShortHostToNet(FPort);
-  addr.addr := hosttonet(a.s_addr); // hosttonet(A).s_addr;
+  addr.addr := a.s_addr; // hosttonet(A).s_addr;
 //Cardinal(A);
 
   If not Sockets.Connect(ASocket, addr, sizeof(addr)) then

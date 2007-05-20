@@ -15,6 +15,7 @@
                      Text File Writeln/ReadLn Support
 ******************************************************************************}
 
+
 Procedure OpenSock(var F:Text);
 begin
   if textrec(f).handle=UnusedHandle then
@@ -28,55 +29,18 @@ begin
    end;
 end;
 
-procedure iosock(var f:text);
 
-var r:sizeint;
-    def_error:word;
 
+Procedure IOSock(var F:text);
 begin
-  with textrec(f) do
-    begin
-      case mode of
-        fmoutput:
-          begin
-            repeat
-{$ifdef use_readwrite}
-              r:=fpwrite(handle,bufptr^,bufpos);
-{$else}
-              r:=send(handle,bufptr^,bufpos,0);
-{$endif}
-            until (r<>-1) or (SocketError <> EsockEINTR);
-            bufend:=r;
-            def_error:=101; {File write error.}
-          end;
-        fminput:
-          begin
-            repeat
-{$ifdef use_readwrite}
-              r:=fpread(handle,bufptr^,bufsize);
-{$else}
-              r:=recv(handle,bufptr^,bufsize,0);
-{$endif}
-            until (r<>-1) or (SocketError <> EsockEINTR);
-            bufend:=r;
-            def_error:=100; {File read error.}
-          end;
-      end;
-      if r=-1 then
-        case SocketError of
-          EsockEBADF:
-{          EsysENOTSOCK:}   {Why is this constant not defined? (DM)}
-            inoutres:=6;    {Invalid file handle.}
-          EsockEFAULT:
-            inoutres:=217;
-          EsockEINVAL:
-            inoutres:=218;
-        else
-          inoutres:=def_error;
-        end;
-      bufpos:=0;
-    end;
+  case textrec(f).mode of
+   fmoutput : {$ifdef unix}fpWrite{$else}fdwrite{$endif}(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufpos);
+    fminput : textrec(f).BufEnd:={$ifdef Unix}fpRead{$else}fdread{$endif}(textrec(f).handle,textrec(f).bufptr^,textrec(f).bufsize);
+  end;
+  textrec(f).bufpos:=0;
 end;
+
+
 
 Procedure FlushSock(var F:Text);
 begin
@@ -87,10 +51,14 @@ begin
    end;
 end;
 
+
+
 Procedure CloseSock(var F:text);
 begin
   { Nothing special has to be done here }
 end;
+
+
 
 Procedure Sock2Text(Sock:Longint;Var SockIn,SockOut:Text);
 {
@@ -116,6 +84,7 @@ begin
   TextRec(SockOut).CloseFunc:=@CloseSock;
   TextRec(SockOut).Mode := fmOutput;
 end;
+
 
 {******************************************************************************
                                 Untyped File
@@ -143,18 +112,22 @@ end;
 ******************************************************************************}
 
 Function DoAccept(Sock:longint;Var addr:TInetSockAddr):longint;
+
 Var AddrLen : Longint;
+
 begin
   AddrLEn:=SizeOf(Addr);
   DoAccept:=Accept(Sock,Addr,AddrLen);
 end;
 
 Function DoConnect(Sock:longint;const addr: TInetSockAddr): Boolean;
+
 begin
   DoConnect:=Connect(Sock,Addr,SizeOF(TInetSockAddr));
 end;
 
 Function Connect(Sock:longint;const addr: TInetSockAddr;var SockIn,SockOut:text):Boolean;
+
 begin
   Connect:=DoConnect(Sock,addr);
   If Connect then
@@ -162,6 +135,7 @@ begin
 end;
 
 Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):Boolean;
+
 begin
   Connect:=DoConnect(Sock,addr);
   If Connect then
