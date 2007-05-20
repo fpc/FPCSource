@@ -155,6 +155,9 @@ Const
       AllocMem : @CAllocMem;
       ReallocMem : @CReAllocMem;
       MemSize : @CMemSize;
+      InitThread : nil;
+      DoneThread : nil;
+      RelocateHeap : nil;
       GetHeapStatus : @CGetHeapStatus;
       GetFPCHeapStatus: @CGetFPCHeapStatus;	
     );

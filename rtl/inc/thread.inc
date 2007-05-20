@@ -24,6 +24,10 @@ Var
     procedure InitThread(stklen:SizeUInt);
       begin
         SysResetFPU;
+        { initialize this thread's heap }
+        InitHeap;
+        if MemoryManager.InitThread <> nil then
+          MemoryManager.InitThread();
         { ExceptAddrStack and ExceptObjectStack are threadvars       }
         { so every thread has its on exception handling capabilities }
         SysInitExceptions;
@@ -35,6 +39,14 @@ Var
         StackLength:= CheckInitialStkLen(stkLen);
         StackBottom:=Sptr - StackLength;
         ThreadID := CurrentTM.GetCurrentThreadID();
+      end;
+
+    procedure DoneThread;
+      begin
+        FinalizeHeap;
+        if MemoryManager.DoneThread <> nil then
+          MemoryManager.DoneThread();
+        CurrentTM.ReleaseThreadVars;
       end;
 
 {*****************************************************************************

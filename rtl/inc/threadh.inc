@@ -106,6 +106,7 @@ Function SetThreadManager(Const NewTM : TThreadManager) : Boolean;
 // Needs to be exported, so the manager can call it.
 procedure InitThreadVars(RelocProc : Pointer);
 procedure InitThread(stklen:SizeUInt);
+procedure DoneThread;
 
 {*****************************************************************************
                          Multithread Handling

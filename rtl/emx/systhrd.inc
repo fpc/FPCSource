@@ -149,44 +149,12 @@ procedure SysLeaveCriticalSection(var cs : TRTLCriticalSection);
 
 
 {*****************************************************************************
-                           Heap Mutex Protection
+                           Thread management
 *****************************************************************************}
-
-    var
-      HeapMutex : TRTLCriticalSection;
-
-    procedure OS2HeapMutexInit;
-      begin
-         SysInitCriticalSection(heapmutex);
-      end;
-
-    procedure OS2HeapMutexDone;
-      begin
-         SysDoneCriticalSection(heapmutex);
-      end;
-
-    procedure OS2HeapMutexLock;
-      begin
-         SysEnterCriticalSection(heapmutex);
-      end;
-
-    procedure OS2HeapMutexUnlock;
-      begin
-         SysLeaveCriticalSection(heapmutex);
-      end;
-
-    const
-      OS2MemoryMutexManager : TMemoryMutexManager = (
-        MutexInit : @OS2HeapMutexInit;
-        MutexDone : @OS2HeapMutexDone;
-        MutexLock : @OS2HeapMutexLock;
-        MutexUnlock : @OS2HeapMutexUnlock;
-      );
 
     procedure InitSystemThreads;
       begin
         SetNoThreadManager;
-        SetMemoryMutexManager(OS2MemoryMutexManager);
       end;
 
 

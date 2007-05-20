@@ -154,13 +154,6 @@ end;
 *)
 
 
-    procedure DoneThread;
-      begin
-        { Release Threadvars }
-        SysReleaseThreadVars;
-      end;
-
-
     function ThreadMain(param : pointer) : pointer;cdecl;
       var
         ti : tthreadinfo;
@@ -330,53 +323,6 @@ end;
 
 
 
-{*****************************************************************************
-                           Heap Mutex Protection
-*****************************************************************************}
-
-    var
-      HeapMutex: TRTLCriticalSection;
-
-
-    procedure OS2HeapMutexInit;
-      begin
-         InitCriticalSection (HeapMutex);
-      end;
-
-
-    procedure OS2HeapMutexDone;
-      begin
-         DoneCriticalSection (HeapMutex);
-      end;
-
-
-    procedure OS2HeapMutexLock;
-      begin
-         EnterCriticalSection (HeapMutex);
-      end;
-
-
-    procedure OS2HeapMutexUnlock;
-      begin
-         LeaveCriticalSection (HeapMutex);
-      end;
-
-
-    const
-      OS2MemoryMutexManager : TMemoryMutexManager = (
-        MutexInit : @OS2HeapMutexInit;
-        MutexDone : @OS2HeapMutexDone;
-        MutexLock : @OS2HeapMutexLock;
-        MutexUnlock : @OS2HeapMutexUnlock;
-      );
-
-
-    procedure InitHeapMutexes;
-      begin
-        SetMemoryMutexManager (OS2MemoryMutexManager);
-      end;
-
-
 type
   TBasicEventState = record
                       FHandle: THandle;
@@ -523,7 +469,6 @@ begin
     RTLEventWaitFor        :=@IntRTLEventWaitFor;
     end;
   SetThreadManager (OS2ThreadManager);
-  InitHeapMutexes;
 end;
 
 

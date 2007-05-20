@@ -121,14 +121,6 @@ type
 
 
 
-procedure DoneThread;
-
-  begin
-     { release thread vars }
-     SysReleaseThreadVars;
-  end;
-
-
 function ThreadMain(param : pointer) : dword; cdecl;
 
   var
@@ -400,46 +392,6 @@ end;
 
 
 
-{*****************************************************************************
-                           Heap Mutex Protection
-*****************************************************************************}
-
-var
-  HeapMutex : TRTLCriticalSection;
-
-procedure NWHeapMutexInit;
-begin
-  InitCriticalSection(heapmutex);
-end;
-
-procedure NWHeapMutexDone;
-begin
-  DoneCriticalSection(heapmutex);
-end;
-
-procedure NWHeapMutexLock;
-begin
-  EnterCriticalSection(heapmutex);
-end;
-
-procedure NWHeapMutexUnlock;
-begin
-  LeaveCriticalSection(heapmutex);
-end;
-
-const
-  NWMemoryMutexManager : TMemoryMutexManager = (
-           MutexInit : @NWHeapMutexInit;
-           MutexDone : @NWHeapMutexDone;
-           MutexLock : @NWHeapMutexLock;
-           MutexUnlock : @NWHeapMutexUnlock;
-  );
-
-procedure InitHeapMutexes;
-begin
-  SetMemoryMutexManager(NWMemoryMutexManager);
-end;
-
 Var
   NWThreadManager : TThreadManager;
 
@@ -475,7 +427,6 @@ begin
     basiceventWaitFor      :=@NobasiceventWaitFor;
     end;
   SetThreadManager(NWThreadManager);
-  InitHeapMutexes;
   NWSysSetThreadFunctions (@SysCloseAllRemainingSemaphores,
                            @SysReleaseThreadVars,
                            @SysSetThreadDataAreaPtr);

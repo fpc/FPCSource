@@ -134,13 +134,6 @@ CONST
         stklen : cardinal;
       end;
 
-    procedure DoneThread;
-      begin
-        { Release Threadvars }
-        SysReleaseThreadVars;
-      end;
-
-
     function ThreadMain(param : pointer) : Longint; {$ifdef wince}cdecl{$else}stdcall{$endif};
       var
         ti : tthreadinfo;
@@ -295,49 +288,6 @@ begin
 end;
 
 
-{*****************************************************************************
-                           Heap Mutex Protection
-*****************************************************************************}
-
-{$ifndef HAS_MT_MEMORYMANAGER}
-    var
-      HeapMutex : TRTLCriticalSection;
-
-    procedure Win32HeapMutexInit;
-      begin
-         InitCriticalSection(heapmutex);
-      end;
-
-    procedure Win32HeapMutexDone;
-      begin
-         DoneCriticalSection(heapmutex);
-      end;
-
-    procedure Win32HeapMutexLock;
-      begin
-         EnterCriticalSection(heapmutex);
-      end;
-
-    procedure Win32HeapMutexUnlock;
-      begin
-         LeaveCriticalSection(heapmutex);
-      end;
-
-    const
-      Win32MemoryMutexManager : TMemoryMutexManager = (
-        MutexInit : @Win32HeapMutexInit;
-        MutexDone : @Win32HeapMutexDone;
-        MutexLock : @Win32HeapMutexLock;
-        MutexUnlock : @Win32HeapMutexUnlock;
-      );
-
-    procedure InitHeapMutexes;
-      begin
-        SetMemoryMutexManager(Win32MemoryMutexManager);
-      end;
-      
-{$endif HAS_MT_MEMORYMANAGER}
-
 Const
         wrSignaled = 0;
         wrTimeout  = 1;
@@ -467,8 +417,5 @@ begin
     RTLEventWaitForTimeout :=@intRTLEventWaitForTimeout;
     end;
   SetThreadManager(WinThreadManager);
-{$ifndef HAS_MT_MEMORYMANAGER}
-  InitHeapMutexes;
-{$endif HAS_MT_MEMORYMANAGER}
   ThreadID := GetCurrentThreadID;
 end;

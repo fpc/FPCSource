@@ -94,6 +94,9 @@ begin
    copy_all_unit_threadvars;
    { install threadvar handler }
    fpc_threadvar_relocate_proc:=RelocProc;
+{$ifdef FPC_HAS_FEATURE_HEAP}
+   RelocateHeap;
+{$endif}
 end;
 
 

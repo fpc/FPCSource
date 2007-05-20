@@ -91,8 +91,6 @@ const
   { function to fill this info up }
   fill_extra_info_proc : TFillExtraInfoProc = nil;
   display_extra_info_proc : TDisplayExtraInfoProc = nil;
-  error_in_heap : boolean = false;
-  inside_trace_getmem : boolean = false;
   { indicates where the output will be redirected }
   { only set using environment variables          }
   outputstr : shortstring = '';
@@ -107,16 +105,25 @@ type
            end;
   end;
 
+  pheap_mem_info = ^theap_mem_info;
+
+  pheap_todo = ^theap_todo;
+  theap_todo = record
+    lock : trtlcriticalsection;
+    list : pheap_mem_info;
+  end;
+
   { warning the size of theap_mem_info
     must be a multiple of 8
     because otherwise you will get
     problems when releasing the usual memory part !!
     sizeof(theap_mem_info = 16+tracesize*4 so
     tracesize must be even !! PM }
-  pheap_mem_info = ^theap_mem_info;
   theap_mem_info = record
     previous,
     next     : pheap_mem_info;
+    todolist : pheap_todo;
+    todonext : pheap_mem_info;
     size     : ptrint;
     sig      : longword;
 {$ifdef EXTRA}
@@ -134,16 +141,24 @@ var
   ownfile : text;
 {$ifdef EXTRA}
   error_file : text;
+{$endif EXTRA}
+  main_orig_todolist: pheap_todo;
+  main_relo_todolist: pheap_todo;
+threadvar
+{$ifdef EXTRA}
   heap_valid_first,
   heap_valid_last : pheap_mem_info;
 {$endif EXTRA}
   heap_mem_root : pheap_mem_info;
+  heap_free_todo : theap_todo;
   getmem_cnt,
   freemem_cnt   : ptrint;
   getmem_size,
   freemem_size   : ptrint;
   getmem8_size,
   freemem8_size   : ptrint;
+  error_in_heap : boolean;
+  inside_trace_getmem : boolean;
 
 
 {*****************************************************************************
@@ -234,6 +249,8 @@ end;
                                 Helpers
 *****************************************************************************}
 
+function TraceFreeMem(p: pointer): ptrint; forward;
+
 procedure call_stack(pp : pheap_mem_info;var ptext : text);
 var
   i  : ptrint;
@@ -314,7 +331,6 @@ begin
   call_stack(p,ptext);
 end;
 
-
 function is_in_getmem_list (p : pheap_mem_info) : boolean;
 var
   i  : ptrint;
@@ -347,6 +363,24 @@ begin
    end;
 end;
 
+procedure finish_heap_free_todo_list;
+var
+  bp: pointer;
+  loc_list: pheap_todo;
+begin
+  loc_list := @heap_free_todo;
+  if loc_list^.list <> nil then
+  begin
+    entercriticalsection(loc_list^.lock);
+    repeat
+      bp := pointer(loc_list^.list)+sizeof(theap_mem_info);
+      loc_list^.list := loc_list^.list^.todonext;
+      TraceFreeMem(bp);
+    until loc_list^.list = nil;
+    leavecriticalsection(loc_list^.lock);
+  end;
+end;
+
 
 {*****************************************************************************
                                TraceGetMem
@@ -361,6 +395,7 @@ var
   p  : pointer;
   pp : pheap_mem_info;
 begin
+  finish_heap_free_todo_list;
   inc(getmem_size,size);
   inc(getmem8_size,((size+7) div 8)*8);
 { Do the real GetMem, but alloc also for the info block }
@@ -383,6 +418,8 @@ begin
   inc(p,sizeof(theap_mem_info));
 { Create the info block }
   pp^.sig:=$DEADBEEF;
+  pp^.todolist:=@heap_free_todo;
+  pp^.todonext:=nil;
   pp^.size:=size;
   pp^.extra_info_size:=extra_info_size;
   pp^.exact_info_size:=exact_info_size;
@@ -462,18 +499,31 @@ var
   extra_size : ptrint;
   ptext : ^text;
 begin
-  if useownfile then
-    ptext:=@ownfile
-  else
-    ptext:=@stderr;
   if p=nil then
     begin
       TraceFreeMemSize:=0;
       exit;
     end;
+  pp:=pheap_mem_info(p-sizeof(theap_mem_info));
+  if @heap_free_todo <> pp^.todolist then
+  begin
+    if pp^.todolist = main_orig_todolist then
+      pp^.todolist := main_relo_todolist;
+    if @heap_free_todo <> pp^.todolist then
+    begin
+      entercriticalsection(pp^.todolist^.lock);
+      pp^.todonext := pp^.todolist^.list;
+      pp^.todolist^.list := pp;
+      leavecriticalsection(pp^.todolist^.lock);
+      exit(pp^.size);
+    end;
+  end;
+  if useownfile then
+    ptext:=@ownfile
+  else
+    ptext:=@stderr;
   inc(freemem_size,size);
   inc(freemem8_size,((size+7) div 8)*8);
-  pp:=pheap_mem_info(p-sizeof(theap_mem_info));
   ppsize:= size + sizeof(theap_mem_info)+pp^.extra_info_size;
   if add_tail then
     inc(ppsize,sizeof(ptrint));
@@ -1045,6 +1095,36 @@ end;
                             No specific tracing calls
 *****************************************************************************}
 
+procedure TraceInitThread;
+begin
+{$ifdef EXTRA}
+  heap_valid_first := nil;
+  heap_valid_last := nil;
+{$endif}
+  heap_mem_root := nil;
+  getmem_cnt := 0;
+  freemem_cnt := 0;
+  getmem_size := 0;
+  freemem_size := 0;
+  getmem8_size := 0;
+  freemem8_size := 0;
+  error_in_heap := false;
+  inside_trace_getmem := false;
+  EntryMemUsed := SysGetFPCHeapStatus.CurrHeapUsed;
+end;
+
+procedure TraceRelocateHeap;
+begin
+  main_relo_todolist := @heap_free_todo;
+end;
+
+procedure TraceExitThread;
+begin
+  finish_heap_free_todo_list;
+  if not error_in_heap then
+    Dumpheap;
+end;
+
 function TraceGetHeapStatus:THeapStatus;
 begin
   TraceGetHeapStatus:=SysGetHeapStatus;
@@ -1104,18 +1184,18 @@ const
     AllocMem : @TraceAllocMem;
     ReAllocMem : @TraceReAllocMem;
     MemSize : @TraceMemSize;
+    InitThread: @TraceInitThread;
+    DoneThread: @TraceExitThread;
+    RelocateHeap: @TraceRelocateHeap;
     GetHeapStatus : @TraceGetHeapStatus;
     GetFPCHeapStatus : @TraceGetFPCHeapStatus;
   );
 
-
 procedure TraceInit;
-var
-  initheapstatus : TFPCHeapStatus;
 begin
-  initheapstatus:=SysGetFPCHeapStatus;
-  EntryMemUsed:=initheapstatus.CurrHeapUsed;
   MakeCRC32Tbl;
+  main_orig_todolist := @heap_free_todo;
+  TraceInitThread;
   SetMemoryManager(TraceManager);
   useownfile:=false;
   if outputstr <> '' then
@@ -1125,7 +1205,6 @@ begin
   Rewrite(error_file);
 {$endif EXTRA}
 end;
-
 
 procedure TraceExit;
 begin
@@ -1152,8 +1231,7 @@ begin
          end;
        exit;
     end;
-  if not error_in_heap then
-    Dumpheap;
+  TraceExitThread;
   if error_in_heap and (exitcode=0) then
     exitcode:=203;
 {$ifdef EXTRA}

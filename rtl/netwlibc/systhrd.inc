@@ -95,14 +95,6 @@
         stklen : cardinal;
       end;
 
-    procedure DoneThread;
-      begin
-        { Release Threadvars }
-        WRITE_DEBUG('DoneThread, releasing threadvars'#13#10);
-        SysReleaseThreadVars;
-      end;
-
-
     function ThreadMain(param : pointer) : pointer;cdecl;
       var
         ti : tthreadinfo;
@@ -120,6 +112,7 @@
         { Start thread function }
         WRITE_DEBUG('Jumping to thread function'#13#10);
         ThreadMain:=pointer(ti.f(ti.p));
+        WRITE_DEBUG('DoneThread, releasing threadvars'#13#10);
         DoneThread;
         //pthread_detach(pointer(pthread_self));
         pthread_exit (nil);
@@ -260,46 +253,6 @@
       end;
 
 
-{*****************************************************************************
-                           Heap Mutex Protection
-*****************************************************************************}
-
-    var
-      HeapMutex : pthread_mutex_t;
-
-    procedure PThreadHeapMutexInit;
-      begin
-         pthread_mutex_init(@heapmutex,nil);
-      end;
-
-    procedure PThreadHeapMutexDone;
-      begin
-         pthread_mutex_destroy(@heapmutex);
-      end;
-
-    procedure PThreadHeapMutexLock;
-      begin
-         pthread_mutex_lock(@heapmutex);
-      end;
-
-    procedure PThreadHeapMutexUnlock;
-      begin
-         pthread_mutex_unlock(@heapmutex);
-      end;
-
-    const
-      PThreadMemoryMutexManager : TMemoryMutexManager = (
-        MutexInit : @PThreadHeapMutexInit;
-        MutexDone : @PThreadHeapMutexDone;
-        MutexLock : @PThreadHeapMutexLock;
-        MutexUnlock : @PThreadHeapMutexUnlock;
-      );
-
-    procedure InitHeapMutexes;
-      begin
-        SetMemoryMutexManager(PThreadMemoryMutexManager);
-      end;
-
 type
      Tbasiceventstate=record
          FSem: Pointer;
@@ -426,7 +379,6 @@ begin
     BasiceventWaitFor      :=@intBasiceventWaitFor;
     end;
   SetThreadManager(NWThreadManager);
-  InitHeapMutexes;
   ThVarAllocResourceTag := AllocateResourceTag(getnlmhandle,'Threadvar Memory',AllocSignature);
   NWSysSetThreadFunctions (@SysAllocateThreadVars,
                            @SysReleaseThreadVars,

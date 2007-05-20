@@ -173,13 +173,6 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         stklen : cardinal;
       end;
 
-    procedure DoneThread;
-      begin
-        { Release Threadvars }
-        CReleaseThreadVars;
-      end;
-
-
     function ThreadMain(param : pointer) : pointer;cdecl;
       var
         ti : tthreadinfo;
@@ -509,47 +502,6 @@ begin
 {$endif}
 {$endif}
 end;
-
-
-{*****************************************************************************
-                           Heap Mutex Protection
-*****************************************************************************}
-
-    var
-      HeapMutex : pthread_mutex_t;
-
-    procedure PThreadHeapMutexInit;
-      begin
-         CInitCriticalSection(heapmutex);
-      end;
-
-    procedure PThreadHeapMutexDone;
-      begin
-         CDoneCriticalSection(heapmutex);
-      end;
-
-    procedure PThreadHeapMutexLock;
-      begin
-         CEnterCriticalSection(heapmutex);
-      end;
-
-    procedure PThreadHeapMutexUnlock;
-      begin
-         CLeaveCriticalSection(heapmutex);
-      end;
-
-    const
-      PThreadMemoryMutexManager : TMemoryMutexManager = (
-        MutexInit : @PThreadHeapMutexInit;
-        MutexDone : @PThreadHeapMutexDone;
-        MutexLock : @PThreadHeapMutexLock;
-        MutexUnlock : @PThreadHeapMutexUnlock;
-      );
-
-    procedure InitHeapMutexes;
-      begin
-        SetMemoryMutexManager(PThreadMemoryMutexManager);
-      end;
 
 
 type
@@ -893,7 +845,6 @@ begin
     SemaphorePost          :=@cSemaphorePost;
   end;
   SetThreadManager(CThreadManager);
-  InitHeapMutexes;
 end;
 
 

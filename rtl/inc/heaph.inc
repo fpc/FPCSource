@@ -44,21 +44,16 @@ type
     AllocMem            : Function(Size:ptrint):Pointer;
     ReAllocMem          : Function(var p:pointer;Size:ptrint):Pointer;
     MemSize             : function(p:pointer):ptrint;
+    InitThread          : procedure;
+    DoneThread          : procedure;
+    RelocateHeap        : procedure;
     GetHeapStatus       : function :THeapStatus;
     GetFPCHeapStatus    : function :TFPCHeapStatus;
-  end;
-
-  TMemoryMutexManager = record
-    MutexInit : procedure;
-    MutexDone : procedure;
-    MutexLock : procedure;
-    MutexUnlock : procedure;
   end;
 
 procedure GetMemoryManager(var MemMgr: TMemoryManager);
 procedure SetMemoryManager(const MemMgr: TMemoryManager);
 function  IsMemoryManagerSet: Boolean;
-procedure SetMemoryMutexManager(var MutexMgr: TMemoryMutexManager);
 
 { Variables }
 const
