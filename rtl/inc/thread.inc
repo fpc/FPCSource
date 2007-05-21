@@ -25,7 +25,7 @@ Var
       begin
         SysResetFPU;
         { initialize this thread's heap }
-        InitHeap;
+        InitHeapThread;
         if MemoryManager.InitThread <> nil then
           MemoryManager.InitThread();
         { ExceptAddrStack and ExceptObjectStack are threadvars       }

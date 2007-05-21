@@ -821,6 +821,7 @@ begin
 {$endif}        
   end;
 end;
+
 {*****************************************************************************
                                  SysGetMem
 *****************************************************************************}
@@ -1350,22 +1351,42 @@ end;
 {$if not(defined(gba)) and not(defined(nds))}
 { This function will initialize the Heap manager and need to be called from
   the initialization of the system unit }
-procedure InitHeap;
+procedure InitHeapThread;
+var
+  loc_freelists: pfreelists;
 begin
-  fillchar(freelists,sizeof(tfreelists),0);
-  { main freelist will be copied in memory }
-  main_orig_freelists := @freelists;
+  loc_freelists := @freelists;
+  fillchar(loc_freelists^,sizeof(tfreelists),0);
+  initcriticalsection(loc_freelists^.lockfixed);
+  initcriticalsection(loc_freelists^.lockvar);
 {$ifdef DUMP_MEM_USAGE}
   fillchar(sizeusage,sizeof(sizeusage),0);
   fillchar(maxsizeusage,sizeof(sizeusage),0);
 {$endif}
 end;
+
+procedure InitHeap;
+var
+  loc_freelists: pfreelists;
+begin
+  { we cannot initialize the locks here yet, thread support is
+    not loaded yet }
+  loc_freelists := @freelists;
+  fillchar(loc_freelists^,sizeof(tfreelists),0);
+  { main freelist will be copied in memory }
+  main_orig_freelists := loc_freelists;
+end;
 {$endif}
 
 procedure RelocateHeap;
+var
+  loc_freelists: pfreelists;
 begin
   { this function should be called in main thread context }
-  main_relo_freelists := @freelists;
+  loc_freelists := @freelists;
+  main_relo_freelists := loc_freelists;
+  initcriticalsection(loc_freelists^.lockfixed);
+  initcriticalsection(loc_freelists^.lockvar);
   if MemoryManager.RelocateHeap <> nil then
     MemoryManager.RelocateHeap();
 end;
@@ -1379,6 +1400,11 @@ begin
   loc_freelists := @freelists;
   finish_waitfixedlist(loc_freelists);
   finish_waitvarlist(loc_freelists);
+  if main_relo_freelists <> nil then
+  begin
+    donecriticalsection(loc_freelists^.lockfixed);
+    donecriticalsection(loc_freelists^.lockvar);
+  end;
 {$ifdef SHOW_MEM_USAGE}
   writeln('Max heap used/size: ', loc_freelists^.internal_status.maxheapused, '/', 
     loc_freelists^.internal_status.maxheapsize);
