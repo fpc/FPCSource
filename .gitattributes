@@ -6711,7 +6711,6 @@ tests/test/cg/variants/tvarol98.pp svneol=native#text/plain
 tests/test/cg/variants/tvarol99.pp svneol=native#text/plain
 tests/test/dumpclass.pp svneol=native#text/plain
 tests/test/dumpmethods.pp svneol=native#text/plain
-tests/test/heapthread.pas svneol=native#text/plain
 tests/test/opt/README -text
 tests/test/opt/tcmov.pp svneol=native#text/plain
 tests/test/opt/tcse1.pp svneol=native#text/plain
@@ -6808,6 +6807,7 @@ tests/test/tgeneric8.pp svneol=native#text/plain
 tests/test/tgeneric9.pp svneol=native#text/plain
 tests/test/tgoto.pp svneol=native#text/plain
 tests/test/theap.pp svneol=native#text/plain
+tests/test/theapthread.pp svneol=native#text/plain
 tests/test/thintdir.pp svneol=native#text/plain
 tests/test/timplprog.pp svneol=native#text/plain
 tests/test/tinivar.pp svneol=native#text/plain
