@@ -21,6 +21,7 @@ var
   writeindex: integer;
   fifo: array[0..1023] of pointer;
   done: boolean;
+  freefifolock: trtlcriticalsection;
 
 type
   ttestarray = array[0..31] of pointer;
@@ -79,7 +80,9 @@ begin
     end;
   end;
   freearray(p, sizeof(p) div sizeof(pointer));
+  entercriticalsection(freefifolock);
   freearray(fifo, sizeof(fifo) div sizeof(pointer));
+  leavecriticalsection(freefifolock);
 end;
 
 procedure consumer;
@@ -91,6 +94,7 @@ begin
   i := 0;
   j := 0;
   k := 0;
+  entercriticalsection(freefifolock);
   while not done do
   begin
     if readindex <> writeindex then
@@ -108,6 +112,7 @@ begin
       end;
     end;
   end;
+  leavecriticalsection(freefifolock);
   freearray(p, sizeof(p) div sizeof(pointer));
 end;
 
@@ -127,6 +132,7 @@ var
   produce_thread: tproducethread;
   consume_thread: tconsumethread;
 begin
+  initcriticalsection(freefifolock);
   done := false;
   filldword(fifo, sizeof(fifo) div sizeof(dword), 0);
   readindex := 0;
@@ -139,4 +145,5 @@ begin
   consume_thread.waitfor;
   produce_thread.free;
   consume_thread.free;
+  donecriticalsection(freefifolock);
 end.
