@@ -287,7 +287,7 @@ ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_DIRS+=interbase postgres mysql odbc oracle
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_DIRS+=interbase odbc
+override TARGET_DIRS+=interbase odbc mysql
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 override TARGET_DIRS+=interbase postgres mysql odbc oracle
@@ -1760,6 +1760,7 @@ ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
 REQUIRE_PACKAGES_IBASE=1
 REQUIRE_PACKAGES_ODBC=1
+REQUIRE_PACKAGES_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
@@ -2577,6 +2578,7 @@ endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 TARGET_DIRS_INTERBASE=1
 TARGET_DIRS_ODBC=1
+TARGET_DIRS_MYSQL=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 TARGET_DIRS_INTERBASE=1
