@@ -1408,12 +1408,14 @@ begin
 {$ifdef SHOW_MEM_USAGE}
   writeln('Max heap used/size: ', loc_freelists^.internal_status.maxheapused, '/', 
     loc_freelists^.internal_status.maxheapsize);
+  flush(output);
 {$endif}
 {$ifdef DUMP_MEM_USAGE}
   for i := 0 to sizeusageindex-1 do
     if maxsizeusage[i] <> 0 then
       writeln('size ', i shl sizeusageshift, ' usage ', maxsizeusage[i]);
   writeln('size >', sizeusagesize, ' usage ', maxsizeusage[sizeusageindex]);
+  flush(output);
 {$endif}
 {$ifdef HAS_SYSOSFREE}
   while assigned(freelists.osfirst) do
