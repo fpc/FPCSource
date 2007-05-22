@@ -182,6 +182,7 @@ end;
 
 procedure TWindowListDialog.HandleEvent(var Event: TEvent);
 var W: PWindow;
+    KeePOwner : PGroup;
 begin
   case Event.What of
     evKeyDown :
@@ -203,7 +204,22 @@ begin
         cmDeleteItem :
           if C^.Count>0 then
           begin
-            Message(C^.At(LB^.Focused),evCommand,cmClose,nil);
+            W:=PWindow(C^.At(LB^.Focused));
+            { we need to remove the window from the list
+              because otherwise
+              IDEApp.SourceWindowClosed
+              is called after the object has been freed
+              but the ListBox.Redraw will still try to
+              read the title PM }
+            KeepOwner:=W^.Owner;
+            if assigned(KeepOwner) then
+              KeepOwner^.Delete(W);
+            UpdateList;
+            { But reinsert it as Close might only
+              trigger Hide in some cases }
+            if assigned(KeepOwner) then
+              KeepOwner^.Insert(W);
+            Message(W,evCommand,cmClose,nil);
             UpdateList;
             ClearEvent(Event);
           end;
