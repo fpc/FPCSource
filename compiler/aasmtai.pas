@@ -1308,6 +1308,7 @@ implementation
           aitconst_64bit :
             result:=8;
           aitconst_indirect_symbol,
+          aitconst_secrel32_symbol,
           aitconst_rva_symbol :
             if target_info.system=system_x86_64_win64 then
               result:=sizeof(longint)
