@@ -2501,6 +2501,7 @@ S*2Aas_assemble using GNU AS
 **2Fi<x>_adds <x> to include path
 **2Fl<x>_adds <x> to library path
 **2FL<x>_uses <x> as dynamic linker
+**2Fm<x>_load unicode conversion table from <x>.txt in the compiler dir
 **2Fo<x>_adds <x> to object path
 **2Fr<x>_load error message file <x>
 **2Fu<x>_adds <x> to unit path

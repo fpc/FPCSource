@@ -70,6 +70,7 @@ implementation
 
 uses
   widestr,
+  charset,
   SysUtils,
   version,
   cutils,cmsgs,
@@ -372,6 +373,7 @@ var
   error : integer;
   j,l   : longint;
   d,s   : TCmdStr;
+  unicodemapping : punicodemap;
 begin
   if opt='' then
    exit;
@@ -704,6 +706,14 @@ begin
                        ParaIncludePath.AddPath(More,false)
                      else
                        includesearchpath.AddPath(More,true);
+                   end;
+                 'm' :
+                   begin
+                     unicodemapping:=loadunicodemapping(More,More+'.txt');
+                     if assigned(unicodemapping) then
+                       registermapping(unicodemapping)
+                     else
+                       IllegalPara(opt);
                    end;
                  'g' :
                    Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
