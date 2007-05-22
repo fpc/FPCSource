@@ -1111,16 +1111,21 @@ begin
   error_in_heap := false;
   inside_trace_getmem := false;
   EntryMemUsed := SysGetFPCHeapStatus.CurrHeapUsed;
+  if main_relo_todolist <> nil then
+    initcriticalsection(heap_free_todo.lock);
 end;
 
 procedure TraceRelocateHeap;
 begin
   main_relo_todolist := @heap_free_todo;
+  initcriticalsection(main_relo_todolist^.lock);
 end;
 
 procedure TraceExitThread;
 begin
   finish_heap_free_todo_list;
+  if main_relo_todolist <> nil then
+    donecriticalsection(heap_free_todo.lock);
   if not error_in_heap then
     Dumpheap;
 end;
@@ -1195,6 +1200,7 @@ procedure TraceInit;
 begin
   MakeCRC32Tbl;
   main_orig_todolist := @heap_free_todo;
+  main_relo_todolist := nil;
   TraceInitThread;
   SetMemoryManager(TraceManager);
   useownfile:=false;
