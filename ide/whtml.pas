@@ -30,7 +30,8 @@ type
       constructor Init;
       procedure   AddLine(const S: string); virtual;
       function    GetLine(Idx: sw_integer; var S: string): boolean; virtual;
-      function GetFileName : string; virtual;
+      function    GetFileName : string; virtual;
+      function    GetLineCount : sw_integer;
       destructor  Done; virtual;
     private
       Lines : PUnsortedStrCollection;
@@ -140,6 +141,11 @@ end;
 function TMemoryTextFile.GetFileName : string;
 begin
   GetFileName:='unknown';
+end;
+
+function TMemoryTextFile.GetLineCount : sw_integer;
+begin
+  GetLineCount:=Lines^.Count;
 end;
 
 procedure TMemoryTextFile.AddLine(const S: string);
@@ -617,7 +623,9 @@ var Found: boolean;
     InStr: boolean;
     I: sw_integer;
 begin
-  Found:=false; Name:=UpcaseStr(Name);
+  Found:=false;
+  Name:=UpcaseStr(Name);
+  Value:='';
   S:=TagParams;
   repeat
     InStr:=false;
