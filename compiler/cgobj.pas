@@ -2138,37 +2138,40 @@ implementation
             case FromSize of
               OS_16,OS_S16:
                 begin
+                  tmpreg:=getintregister(list,OS_16);
+                  a_load_reg_reg(list,fromsize,OS_16,register,tmpreg);
                   if target_info.endian=endian_big then
                     inc(tmpref.offset);
-                  register:=makeregsize(list,register,OS_8);
-                  a_load_reg_ref(list,OS_8,OS_8,register,tmpref);
-                  register:=makeregsize(list,register,OS_16);
-                  a_op_const_reg(list,OP_SHR,OS_16,8,register);
+                  tmpreg:=makeregsize(list,tmpreg,OS_8);
+                  a_load_reg_ref(list,OS_8,OS_8,tmpreg,tmpref);
+                  tmpreg:=makeregsize(list,tmpreg,OS_16);
+                  a_op_const_reg(list,OP_SHR,OS_16,8,tmpreg);
                   if target_info.endian=endian_big then
                     dec(tmpref.offset)
                   else
                     inc(tmpref.offset);
-                  register:=makeregsize(list,register,OS_8);
-                  a_load_reg_ref(list,OS_8,OS_8,register,tmpref);
-                  register:=makeregsize(list,register,OS_16);
+                  tmpreg:=makeregsize(list,tmpreg,OS_8);
+                  a_load_reg_ref(list,OS_8,OS_8,tmpreg,tmpref);
                 end;
               OS_32,OS_S32:
                 begin
+                  tmpreg:=getintregister(list,OS_32);
+                  a_load_reg_reg(list,fromsize,OS_32,register,tmpreg);
                   if target_info.endian=endian_big then
                     inc(tmpref.offset,3);
-                  register:=makeregsize(list,register,OS_8);
-                  a_load_reg_ref(list,OS_8,OS_8,register,tmpref);
-                  register:=makeregsize(list,register,OS_32);
+                  tmpreg:=makeregsize(list,tmpreg,OS_8);
+                  a_load_reg_ref(list,OS_8,OS_8,tmpreg,tmpref);
+                  tmpreg:=makeregsize(list,tmpreg,OS_32);
                   for i:=1 to 3 do
                     begin
-                      a_op_const_reg(list,OP_SHR,OS_32,8,register);
+                      a_op_const_reg(list,OP_SHR,OS_32,8,tmpreg);
                       if target_info.endian=endian_big then
                         dec(tmpref.offset)
                       else
                         inc(tmpref.offset);
-                      register:=makeregsize(list,register,OS_8);
-                      a_load_reg_ref(list,OS_8,OS_8,register,tmpref);
-                      register:=makeregsize(list,register,OS_32);
+                      tmpreg:=makeregsize(list,tmpreg,OS_8);
+                      a_load_reg_ref(list,OS_8,OS_8,tmpreg,tmpref);
+                      tmpreg:=makeregsize(list,tmpreg,OS_32);
                     end;
                 end
               else
