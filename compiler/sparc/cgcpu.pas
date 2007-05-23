@@ -482,21 +482,29 @@ implementation
       begin
         if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
           fromsize := tosize;
-        case fromsize of
-          { signed integer registers }
-          OS_8,
-          OS_S8:
-            Op:=A_STB;
-          OS_16,
-          OS_S16:
-            Op:=A_STH;
-          OS_32,
-          OS_S32:
-            Op:=A_ST;
-          else
-            InternalError(2002122100);
-        end;
-        handle_load_store(list,true,op,reg,ref);
+        if (ref.alignment<>0) and
+           (ref.alignment<tcgsize2size[tosize]) then
+          begin
+            a_load_reg_ref_unaligned(list,FromSize,ToSize,reg,ref);
+          end
+        else
+          begin
+            case fromsize of
+              { signed integer registers }
+              OS_8,
+              OS_S8:
+                Op:=A_STB;
+              OS_16,
+              OS_S16:
+                Op:=A_STH;
+              OS_32,
+              OS_S32:
+                Op:=A_ST;
+              else
+                InternalError(2002122100);
+            end;
+            handle_load_store(list,true,op,reg,ref);
+          end;
       end;
 
 
@@ -506,7 +514,8 @@ implementation
       begin
         if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
           fromsize := tosize;
-         if Ref.alignment<>0 then
+        if (ref.alignment<>0) and
+           (ref.alignment<tcgsize2size[fromsize]) then
            begin
              a_load_ref_reg_unaligned(list,FromSize,ToSize,ref,reg);
            end
