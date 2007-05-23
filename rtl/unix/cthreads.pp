@@ -284,10 +284,15 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
     end;
 
 
+  procedure sched_yield; cdecl; external 'c' name 'sched_yield';
+
   procedure CThreadSwitch;  {give time to other threads}
     begin
-      {extern int pthread_yield (void) __THROW;}
-      {$Warning ThreadSwitch needs to be implemented}
+      { At least on Mac OS X, the pthread_yield_np calls through to this. }
+      { Further, sched_yield is in POSIX and supported on FreeBSD 4+,     }
+      { Linux, Mac OS X and Solaris, while the thread-specific yield      }
+      { routines are called differently everywhere and non-standard.      }
+      sched_yield;
     end;
 
 
