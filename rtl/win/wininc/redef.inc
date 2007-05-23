@@ -888,6 +888,7 @@ function VerInstallFileW(uFlags: DWORD; szSrcFileName, szDestFileName, szSrcDir,
 function VerQueryValue(pBlock: Pointer; lpSubBlock: PChar; var lplpBuffer: Pointer; var puLen: UINT): BOOL;external 'version' name 'VerQueryValueA';
 function VerQueryValueA(pBlock: Pointer; lpSubBlock: LPCSTR; var lplpBuffer: Pointer; var puLen: UINT): BOOL; external 'version' name 'VerQueryValueA';
 function VerQueryValueW(pBlock: Pointer; lpSubBlock: LPWSTR; var lplpBuffer: Pointer; var puLen: UINT): BOOL; external 'version' name 'VerQueryValueW';
+function VirtualProtect(lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; var lpflOldProtect:DWORD):WINBOOL; external 'kernel32' name 'VirtualProtect';
 function VirtualQuery(lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; external 'kernel32' name 'VirtualQuery';
 function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; external 'kernel32' name 'VirtualQueryEx';
 function WaitCommEvent(hFile: THandle; var lpEvtMask: DWORD; lpOverlapped: POverlapped): BOOL; external 'kernel32' name 'WaitCommEvent';
