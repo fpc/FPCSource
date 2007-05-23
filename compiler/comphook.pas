@@ -98,8 +98,7 @@ type
     use_redir,
     use_bugreport,
     use_gccoutput,
-    print_source_path,
-    compiling_current : boolean;
+    print_source_path : boolean;
   { Redirection support }
     redirfile : text;
   { Special file for bug report }

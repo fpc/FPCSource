@@ -79,7 +79,6 @@ interface
     procedure PrepareReport;
 
     function  CheckVerbosity(v:longint):boolean;
-    procedure SetCompileModule(p:tmodulebase);
     procedure ShowStatus;
     function  ErrorCount:longint;
     procedure SetErrorFlags(const s:string);
@@ -119,9 +118,6 @@ implementation
 
     uses
       comphook,fmodule;
-
-var
-  compiling_module : tmodulebase;
 
 
 {****************************************************************************
@@ -367,12 +363,6 @@ var
       end;
 
 
-    procedure SetCompileModule(p:tmodulebase);
-      begin
-        compiling_module:=p;
-      end;
-
-
     var
       lastfileidx,
       lastmoduleidx : longint;
@@ -403,9 +393,6 @@ var
              lastfileidx:=0;
            lastmoduleidx:=module.unit_index;
          end;
-        status.compiling_current:=assigned(compiling_module) and
-                                  (module=compiling_module) and
-                                  (compiling_module.state in [ms_compile,ms_second_compile]);
       end;
 
 
@@ -871,8 +858,6 @@ end;
         status.currentmodule:='';
         status.currentsource:='';
         status.currentsourcepath:='';
-        status.compiling_current:=false;
-        compiling_module:=nil;
         { Register internalerrorproc for cutils/cclasses }
         internalerrorproc:=@internalerror;
       end;

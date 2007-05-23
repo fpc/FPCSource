@@ -348,7 +348,7 @@ implementation
           pbestrealtype:=@s64floattype;
 
         oldcurrentmodule:=current_module;
-        current_module:=nil;
+        set_current_module(nil);
         loadtype('byte',u8inttype);
         loadtype('shortint',s8inttype);
         loadtype('word',u16inttype);
@@ -399,7 +399,7 @@ implementation
         ptruinttype:=u32inttype;
         ptrsinttype:=s32inttype;
 {$endif cpu64bit}
-        current_module:=oldcurrentmodule;
+        set_current_module(oldcurrentmodule);
       end;
 
 

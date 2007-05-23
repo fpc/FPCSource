@@ -178,7 +178,7 @@ begin
 { this is needed here for the IDE
   in case of compilation failure
   at the previous compile }
-  current_module:=nil;
+  set_current_module(nil);
 { read the arguments }
   read_arguments(cmd);
 { inits which depend on arguments }

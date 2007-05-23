@@ -1318,9 +1318,7 @@ uses
         { reset }
         do_load:=true;
         second_time:=false;
-        current_module:=self;
-        SetCompileModule(current_module);
-        Fillchar(current_filepos,0,sizeof(current_filepos));
+        set_current_module(self);
 
         { A force reload }
         if do_reload then
@@ -1353,12 +1351,6 @@ uses
 
         if do_load then
          begin
-           { we are loading a new module, save the state of the scanner
-             and reset scanner+module }
-           if assigned(current_scanner) then
-             current_scanner.tempcloseinputfile;
-           current_scanner:=nil;
-
            { loading the unit for a second time? }
            if state=ms_registered then
             state:=ms_load
@@ -1470,21 +1462,10 @@ uses
               assigned(tppumodule(old_current_module).ppufile) then
              tppumodule(old_current_module).ppufile.tempopen;
 {$endif SHORT_ON_FILE_HANDLES}
-
-           { reload old scanner }
-           current_scanner:=tscannerfile(old_current_module.scanner);
-           if assigned(current_scanner) then
-            begin
-              current_scanner.tempopeninputfile;
-              current_scanner.gettokenpos
-            end
-           else
-            fillchar(current_filepos,sizeof(current_filepos),0);
          end;
 
         { we are back, restore current_module }
-        current_module:=old_current_module;
-        SetCompileModule(current_module);
+        set_current_module(old_current_module);
       end;
 
 
