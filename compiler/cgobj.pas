@@ -1281,6 +1281,19 @@ implementation
             { < loadsize-sref.bitlen, and therefore tmpreg will now be >= loadsize }
             { => extra_value_reg is now 0                                          }
 
+{$ifdef sparc}
+            { except on sparc, where "shr X" = "shr (X and (bitsize-1))" }
+            if (loadbitsize = AIntBits) then
+              begin
+                { if (tmpreg >= cpu_bit_size) then tmpreg := 1 else tmpreg := 0 }
+                a_op_const_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bit}6{$else}5{$endif},tmpreg);
+                { if (tmpreg = cpu_bit_size) then tmpreg := 0 else tmpreg := -1 }
+                a_op_const_reg(list,OP_SUB,OS_INT,1,tmpreg);
+                { if (tmpreg = cpu_bit_size) then extra_value_reg := 0 }
+                a_op_reg_reg(list,OP_AND,OS_INT,tmpreg,extra_value_reg);
+              end;
+{$endif sparc}
+
             { merge }
             a_op_reg_reg(list,OP_OR,OS_INT,extra_value_reg,valuereg);
             { no need to mask, necessary masking happened earlier on }
@@ -1673,6 +1686,20 @@ implementation
                         a_op_reg_reg(list,OP_NEG,OS_INT,tmpindexreg,tmpindexreg);
                         a_load_const_reg(list,OS_INT,aint((aword(1) shl sref.bitlen)-1),maskreg);
                         a_op_reg_reg(list,OP_SHL,OS_INT,tmpindexreg,maskreg);
+{$ifdef sparc}
+                        {  on sparc, "shr X" = "shr (X and (bitsize-1))" -> fix so shr (x>32) = 0 }
+                        if (loadbitsize = AIntBits) then
+                          begin
+                            { if (tmpindexreg >= cpu_bit_size) then tmpreg := 1 else tmpreg := 0 }
+                            a_op_const_reg_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bit}6{$else}5{$endif},tmpindexreg,valuereg);
+                            { if (tmpindexreg = cpu_bit_size) then maskreg := 0 else maskreg := -1 }
+                            a_op_const_reg(list,OP_SUB,OS_INT,1,valuereg);
+                            { if (tmpindexreg = cpu_bit_size) then maskreg := 0 }
+                            if (slopt <> SL_SETZERO) then
+                              a_op_reg_reg(list,OP_AND,OS_INT,valuereg,tmpreg);
+                            a_op_reg_reg(list,OP_AND,OS_INT,valuereg,maskreg);
+                          end;
+{$endif sparc}
                       end
                     else
                       begin
