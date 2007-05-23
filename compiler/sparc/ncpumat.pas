@@ -107,8 +107,8 @@ implementation
                  { if signed, tmpreg=right value-1, otherwise 0 }
                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,tordconstnode(right).value-1,tmpreg);
                  { add to the left value }
-                 cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,tmpreg,numerator);
-                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,aword(power),numerator,resultreg);
+                 cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,numerator,tmpreg);
+                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SAR,OS_INT,aword(power),tmpreg,resultreg);
                end
              else
                cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,aword(power),numerator,resultreg);
