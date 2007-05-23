@@ -1420,7 +1420,7 @@ uses
                   begin
                     printcomments;
                     if recompile_reason=rr_noppu then
-                      Message1(unit_f_cant_find_ppu,realmodulename^)
+                      Message2(unit_f_cant_find_ppu,realmodulename^,loaded_from.realmodulename^)
                     else
                       Message1(unit_f_cant_compile_unit,realmodulename^);
                   end;

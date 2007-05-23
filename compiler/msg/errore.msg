@@ -2149,7 +2149,7 @@ unit_f_circular_unit_reference=10020_F_Circular unit reference between $1 and $2
 unit_f_cant_compile_unit=10021_F_Can't compile unit $1, no sources available
 % A unit was found that needs to be recompiled, but no sources are
 % available.
-unit_f_cant_find_ppu=10022_F_Can't find unit $1
+unit_f_cant_find_ppu=10022_F_Can't find unit $1 used by $2
 % You tried to use a unit of which the PPU file isn't found by the
 % compiler. Check your configuration file for the unit paths
 unit_w_unit_name_error=10023_W_Unit $1 was not found but $2 exists
