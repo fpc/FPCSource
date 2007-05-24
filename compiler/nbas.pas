@@ -727,7 +727,8 @@ implementation
           { no init/final needed }
           not (_typedef.needs_inittable) and
           ((_typedef.typ <> pointerdef) or
-           (not tpointerdef(_typedef).pointeddef.needs_inittable));
+           (is_object(tpointerdef(_typedef).pointeddef) or
+            not tpointerdef(_typedef).pointeddef.needs_inittable));
       end;
 
     constructor ttempcreatenode.create_withnode(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean; withnode: tnode);
