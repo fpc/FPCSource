@@ -371,11 +371,13 @@ end;
 
 initialization
   SetCWideStringManager;
+  initcriticalsection(iconv_lock);
   { init conversion tables }
   iconv_wide2ansi:=iconv_open(nl_langinfo(CODESET),unicode_encoding);
   iconv_ansi2wide:=iconv_open(unicode_encoding,nl_langinfo(CODESET));
   iconv_ucs42ansi:=iconv_open(nl_langinfo(CODESET),'UCS4');
   iconv_ansi2ucs4:=iconv_open('UCS4',nl_langinfo(CODESET));
 finalization
+  donecriticalsection(iconv_lock);
   iconv_close(iconv_ansi2wide);
 end.
