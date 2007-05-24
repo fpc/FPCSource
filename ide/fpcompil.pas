@@ -587,7 +587,7 @@ begin
     cpCompiling :
       begin
         ClearFormatParams;
-        if Status.Compiling_current then
+        if Upcase(Status.currentmodulestate)='COMPILE' then
           begin
             AddFormatParamStr(ShrinkPath(SmartPath(Status.Currentsourcepath+Status.CurrentSource),
               MaxFileNameSize - Length(msg_compilingfile)));
