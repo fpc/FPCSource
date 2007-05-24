@@ -185,12 +185,12 @@ begin
     Inc(TSuiteResults(FResultsList[i]).Ignores);
 end;
 
-
 constructor TCustomResultsWriter.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FLevel := -1;
   FCount := 1;
+  FFilename := '';
   FSuiteResultsStack := TSuiteResultsStack.Create;
 end;
 

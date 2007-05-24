@@ -238,10 +238,15 @@ begin
   n := FDoc.CreateElement('DateTimeRan');
   n.AppendChild(FDoc.CreateTextNode(FormatDateTime('yyyy-mm-dd hh:mm:ss', Now)));
   lResults.AppendChild(n);
-  system.Assign(f, FileName);
-  rewrite(f);
-  WriteXMLFile(FDoc, f);
-  close(f);
+
+  // This is so that the GUI Test Runner doesn't output text as well.
+  if FileName <> 'null' then
+  begin
+    system.Assign(f, FileName);
+    rewrite(f);
+    WriteXMLFile(FDoc, f);
+    close(f);
+  end;
 end;
 
 end.
