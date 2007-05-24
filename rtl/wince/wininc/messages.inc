@@ -441,6 +441,7 @@
      LVM_APPROXIMATEVIEWRECT      = 4160;   //LVM_FIRST + 64
      LVM_GETSELECTIONMARK         = 4162;   //LVM_FIRST + 66
      LVM_SETSELECTIONMARK         = 4163;   //LVM_FIRST + 67
+     LVM_GETHEADER                = 4127;   //LVM_FIRST + 31
 
 {$ifdef UNICODE}
 
