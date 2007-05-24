@@ -18,11 +18,18 @@ type filedesarray=array[0..1] of cint;
 {$ifdef solaris}
 Function fpFlock (fd,mode : longint) : cint;{$ifdef IN_SYSTEM}forward;{$endif IN_SYSTEM}
 {$else solaris}
+{$ifndef beos}
 Function fpFlock (fd,mode : longint) : cint; cdecl; external clib name 'flock';
+{$endif beos}
 {$endif solaris}
 
+{$ifndef beos}
 Function fStatFS(Fd:Longint;Var Info:tstatfs):cint; cdecl; external clib name 'fstatfs';
+{$endif beos}
+
 Function fsync (fd : cint) : cint; cdecl; external clib name 'fsync';
+{$ifndef beos}
 Function StatFS  (Path:pchar;Var Info:tstatfs):cint; cdecl; external clib name 'statfs';
+{$endif beos}
 function pipe (var fildes: filedesarray):cint;  cdecl; external clib name 'pipe';
 function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint;   cdecl; external clib name 'gettimeofday';

@@ -570,13 +570,17 @@ end;
 
 Function fpFlock (var T : text;mode : cint) : cint;
 begin
+{$ifndef beos}
   fpFlock:=fpFlock(TextRec(T).Handle,mode);
+{$endif}
 end;
 
 
 Function  fpFlock (var F : File;mode : cint) :cint;
 begin
+{$ifndef beos}
   fpFlock:=fpFlock(FileRec(F).Handle,mode);
+{$endif}
 end;
 
 Function SelectText(var T:Text;TimeOut :PTimeval):cint;
@@ -623,11 +627,13 @@ begin
      fpseterrno(ESysEBADF);
      exit;
    end;
- {$if not(defined(bsd)) and not(defined(solaris)) }
+ {$if not(defined(bsd)) and not(defined(solaris)) and not(defined(beos)) }
   p^.dd_nextoff:=fplseek(p^.dd_fd,loc,seek_set);
  {$endif}
+ {$if not(defined(beos))}
   p^.dd_size:=0;
   p^.dd_loc:=0;
+ {$endif} 
 end;
 
 function TellDir(p:pdir):TOff;
@@ -638,7 +644,9 @@ begin
      telldir:=-1;
      exit;
    end;
+ {$ifndef beos}   
   telldir:=fplseek(p^.dd_fd,0,seek_cur)
+ {$endif}     
   { We could try to use the nextoff field here, but on my 1.2.13
     kernel, this gives nothing... This may have to do with
     the readdir implementation of libc... I also didn't find any trace of

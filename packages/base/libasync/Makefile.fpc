@@ -14,6 +14,7 @@ fpcpackage=y
 
 [compiler]
 sourcedir_linux=unix
+sourcedir_beos=unix
 sourcedir_freebsd=unix
 sourcedir_darwin=unix
 sourcedir_solaris=unix

@@ -16,6 +16,8 @@ dirs_netbsd=gdbint libasync \
             mysql ibase postgres oracle odbc imagemagick httpd
 dirs_openbsd=gdbint libasync \
             mysql ibase postgres oracle odbc imagemagick httpd
+dirs_beos=gdbint libasync graph \
+             mysql ibase postgres odbc sqlite pthreads imagemagick
 dirs_freebsd=gdbint libasync graph \
              mysql ibase postgres oracle odbc sqlite pthreads imagemagick httpd
 dirs_darwin=libasync \

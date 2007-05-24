@@ -44,10 +44,14 @@ const
   EsockEINVAL           = EsysEINVAL;
   EsockEACCESS          = ESysEAcces;
   EsockEMFILE           = ESysEmfile;
+{$ifndef beos}
   EsockEMSGSIZE         = ESysEMsgSize;
+{$endif beos}
   EsockENOBUFS          = ESysENoBufs;
   EsockENOTCONN         = ESysENotConn;
+{$ifndef beos}  
   EsockENOTSOCK         = ESysENotSock;
+{$endif beos}
   EsockEPROTONOSUPPORT  = ESysEProtoNoSupport;
   EsockEWOULDBLOCK      = ESysEWouldBlock;
 

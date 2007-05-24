@@ -9,6 +9,7 @@ version=2.0.0
 [require]
 packages=paszlib hash
 packages_linux=netdb libasync pthreads
+packages_beos=netdb libasync pthreads
 packages_freebsd=netdb libasync pthreads
 packages_darwin=netdb libasync pthreads
 packages_solaris=netdb libasync pthreads
@@ -34,6 +35,7 @@ units=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
       iostream zstream cachecls avl_tree \
       eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream \
       streamex blowfish zipper streamio inicol pooledmm libtar streamcoll
+units_beos=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf 
 units_freebsd=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf daemonapp
 units_darwin=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf daemonapp
 units_solaris=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf daemonapp

@@ -72,6 +72,10 @@ function geterrnolocation: pcint; cdecl;external clib name '__error';
 function geterrnolocation: pcint; cdecl;external clib name '___errno';
 {$endif}
 
+{$ifdef beos}
+function geterrnolocation: pcint; cdecl;external 'root' name '_errnop';
+{$endif}
+
 function fpgetCerrno:cint;
 
 begin

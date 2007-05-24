@@ -815,8 +815,45 @@ end;
 {$ifdef beos}
 
 {$i osposixh.inc}
-{$i syscall.inc}
-{$i beos.inc}
+
+{ ------------------------- Images --------------------------- }
+
+type
+  // Descriptive formats
+  status_t = Longint;
+  team_id   = Longint;
+  image_id = Longint;
+
+    { image types }
+const
+   B_APP_IMAGE     = 1;
+   B_LIBRARY_IMAGE = 2;
+   B_ADD_ON_IMAGE  = 3;
+   B_SYSTEM_IMAGE  = 4;
+
+type
+    image_info = packed record
+     id      : image_id;   
+     _type   : longint;
+     sequence: longint;
+     init_order: longint;
+     init_routine: pointer;
+     term_routine: pointer;
+     device: dev_t;
+     node: ino_t;
+     name: array[0..MAXPATHLEN-1] of char;
+{     name: string[255];
+     name2: string[255];
+     name3: string[255];
+     name4: string[255];
+     name5: string[5];
+}
+     text: pointer;
+     data: pointer;
+     text_size: longint;
+     data_size: longint;
+    end;
+
 function get_next_image_info(team: team_id; var cookie:longint; var info:image_info; size: size_t) : status_t;cdecl; external 'root' name '_get_next_image_info';
 
 function LoadElf32Beos:boolean;
