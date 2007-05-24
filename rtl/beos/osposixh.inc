@@ -63,29 +63,29 @@ TYPE
   { file characteristics services }
    stat = packed record { verify the alignment of the members }
     st_dev : dev_t;     { Device containing the file (POSIX) }
-    st_ino : ino_t;             { File serial number (POSIX)         }
-    st_mode: mode_t;    { File mode (POSIX)                  }
-    st_nlink: nlink_t;  { Link count (POSIX)                 }
-    st_uid: uid_t;              { User ID of the file's owner. (POSIX)}
-    st_gid: gid_t;              { Group ID of the file's group.(POSIX)}
-    st_size : off_t;    { Size of file, in bytes.      (POSIX)}
-    st_rdev : dev_t;    { Device type (not used).            }
+    st_ino : ino_t;		{ File serial number (POSIX)         }
+    st_mode: mode_t;	{ File mode (POSIX)                  }
+    st_nlink: nlink_t;	{ Link count (POSIX)                 }
+    st_uid: uid_t;		{ User ID of the file's owner. (POSIX)}
+    st_gid: gid_t;		{ Group ID of the file's group.(POSIX)}
+    st_size : off_t;	{ Size of file, in bytes.      (POSIX)}
+    st_rdev : dev_t;	{ Device type (not used).            }
     st_blksize: cardinal;{ Preferred block size for I/O.     }
     st_atime: time_t;   { Time of last access (POSIX)        }
-    st_mtime: time_t;   { Time of last modification (POSIX)  }
-    st_ctime: time_t;   { Time of last status change (POSIX) }
-    st_crtime: time_t;  { Time of creation                   }
+    st_mtime: time_t;	{ Time of last modification (POSIX)  }
+    st_ctime: time_t;	{ Time of last status change (POSIX) }
+    st_crtime: time_t;	{ Time of creation                   }
   end;
 
   { directory services }
    pdirent = ^dirent;
    dirent = packed record    { directory entry record - verify alignment }
-         d_dev: dev_t;
-         d_pdev: dev_t;
-         d_fileno: ino_t;
-         d_pino: ino_t;
-         d_reclen:word;
-         d_name:array[0..255] of char;      { Filename in DIRENT (POSIX) }
+	 d_dev: dev_t;
+	 d_pdev: dev_t;
+	 d_fileno: ino_t;
+	 d_pino: ino_t;
+	 d_reclen:word;
+	 d_name:array[0..255] of char;      { Filename in DIRENT (POSIX) }
    end;
 
    pdir = ^dir;
@@ -119,17 +119,21 @@ CONST
     SEEK_END    =  2;    { seek from end of file       }
     { open routine                                 }
     { File access modes for `open' and `fcntl'.    }
-    O_RDONLY    =  0;   { Open read-only.  }
-    O_WRONLY    =  1;   { Open write-only. }
-    O_RDWR      =  2;   { Open read/write. }
+    O_RDONLY    =  0;	{ Open read-only.  }
+    O_WRONLY    =  1;	{ Open write-only. }
+    O_RDWR      =  2;	{ Open read/write. }
+    O_RWMASK    =  3; { Mask to get open mode. }
     { Bits OR'd into the second argument to open.  }
-    O_CREAT     =$0200; { Create file if it doesn't exist.  }
-    O_EXCL      =$0100; { Fail if file already exists.      }
-    O_TRUNC     =$0400; { Truncate file to zero length.     }
-    O_NOCTTY    =$1000; { Don't assign a controlling terminal. }
+    O_CREAT     =$0200;	{ Create file if it doesn't exist.  }
+    O_TEXT      =$4000;
+    O_BINARY    =$8000;
+    
+    O_EXCL      =$0100;	{ Fail if file already exists.      }
+    O_TRUNC     =$0400;	{ Truncate file to zero length.     }
+    O_NOCTTY    =$1000;	{ Don't assign a controlling terminal. }
     { File status flags for `open' and `fcntl'.  }
-    O_APPEND    =$0800; { Writes append to the file.        }
-    O_NONBLOCK  =$0080; { Non-blocking I/O.                 }
+    O_APPEND    =$0800;	{ Writes append to the file.        }
+    O_NONBLOCK	=$0080;	{ Non-blocking I/O.                 }
 
     { mode_t possible values                                 }
     S_IRUSR = $0100;           { Read permission for owner   }
@@ -177,5 +181,3 @@ CONST
     ARG_MAX =  128*1024; { Maximum number of arguments           }
     NAME_MAX = 256;      { Maximum number of bytes in a filename }
     PATH_MAX = 1024;     { Maximum number of bytes in a pathname }
-
-

@@ -8,9 +8,9 @@ start:
         movl 16(%ebp),%ecx
         movl 12(%ebp),%ebx
         movl 8(%ebp),%eax
-        movl %eax,U_SYSTEM_ARGC
-        movl %ebx,U_SYSTEM_ARGV
-        movl %ecx,U_SYSTEM_ENVP
+        movl %eax,operatingsystem_parameter_argc
+        movl %ebx,operatingsystem_parameter_argv
+        movl %ecx,operatingsystem_parameter_envp
         xorl %ebp,%ebp
         call PASCALMAIN
 
@@ -18,7 +18,7 @@ start:
 .type   _haltproc,@function
 _haltproc:
         xorl %ebx,%ebx
-        movw U_SYSTEM_EXITCODE,%bx
+        movw operatingsystem_result,%bx
         pushl %ebx
         call sys_exit
 
@@ -179,3 +179,8 @@ ret
 sys_call:
 int $0x25
 ret
+
+.bss
+        .comm operatingsystem_parameter_envp,4
+        .comm operatingsystem_parameter_argc,4
+        .comm operatingsystem_parameter_argv,4

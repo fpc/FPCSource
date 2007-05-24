@@ -7,12 +7,15 @@ main=rtl
 
 [target]
 loaders=prt0 cprt0 func dllprt
-units=system posix objpas macpas strings \
-      beos \
-      dos matrix \
-      sysutils fgl classes typinfo math varutils fmtbcd \
-      cpu mmx getopts heaptrc lineinfo lnfodwrf variants types sysconst
-rsts=math varutils typinfo sysconst
+units=system baseunix unixtype objpas strings \
+#      beos \
+      errors dos objects \
+      sysconst sysutils \
+      types typinfo classes math varutils \
+      cpu mmx getopts heaptrc lineinfo variants \
+      rtlconsts syscall unix unixutil strutils termio initc crt video keyboard \
+      dateutils fmtbcd sockets dynlibs
+rsts=math varutils typinfo variants sysconst rtlconsts dateutils
 
 [require]
 nortl=y
@@ -26,8 +29,19 @@ target=beos
 cpu=i386
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(UNIXINC)
-sourcedir=$(INC) $(PROCINC) $(UNIXINC)
+includedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET) $(OSPROCINC)
+sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET)
+targetdir=.
+
+[lib]
+libname=libfprtl.so
+libversion=2.0.0
+libunits=$(SYSTEMUNIT) objpas strings \
+      unix  \
+      dos crt objects printer \
+      sysutils typinfo math \
+      $(CPU_UNITS) getopts heaptrc \
+      errors sockets ipc dynlibs
 
 
 [prerules]
@@ -45,12 +59,13 @@ ifdef RELEASE
 override FPCOPT+=-Ur
 endif
 
+override FPCOPT+= -dHASUNIX -n -dFPC_USE_LIBC -Si
+
 # Paths
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
 
 [rules]
-.NOTPARALLEL:
 # Get the system independent include file names.
 # This will set the following variables :
 # SYSINCNAMES
@@ -65,7 +80,7 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-
+SYSTEMUNIT=system
 
 #
 # Loaders
@@ -87,29 +102,55 @@ dllprt$(OEXT) : $(CPU_TARGET)/dllprt.as
 # system Units (system, Objpas, Strings)
 #
 
-system$(PPUEXT) : system.pp sysfiles.inc $(SYSDEPS)
-        $(COMPILER) -Us -Sg system.pp
+system$(PPUEXT) : system.pp $(SYSDEPS) $(UNIXINC)/sysunixh.inc
+        $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 
-objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
 
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
-                   system$(PPUEXT)
+dateutils$(PPUEXT): $(OBJPASDIR)/dateutils.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutils.pp
+
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
+                   $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # system Dependent Units
 #
 
-beos$(PPUEXT) : beos.pp system$(PPUEXT)
+# beos$(PPUEXT) : beos.pp $(SYSTEMUNIT)$(PPUEXT)
+
+baseunix$(PPUEXT) : $(UNIXINC)/unixtype.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) -Fi$(UNIXINC) -Fu$(UNIXINC) baseunix.pp
+
+unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+                 sysconst.inc $(UNIXINC)/timezone.inc \
+                 unxsysc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+linux$(PPUEXT) : baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # TP7 Compatible RTL Units
 #
 
-dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
-               beos$(PPUEXT) system$(PPUEXT)
+# dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
+#               beos$(PPUEXT) system$(PPUEXT)
 
+dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
+               unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) -I$(INC) -Fu$(INC) $(UNIXINC)/dos.pp
+                       
+crt$(PPUEXT) : crt.pp $(INC)/textrec.inc termio.pp system$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/crt.pp $(REDIR)
+
+video$(PPUEXT) : video.pp $(INC)/textrec.inc termio.pp system$(PPUEXT)
+        $(COMPILER) -Fu$(UNIXINC) $(UNIXINC)/video.pp $(REDIR)
+        
+keyboard$(PPUEXT) : $(UNIXINC)/keyboard.pp $(INC)/textrec.inc termio.pp system$(PPUEXT)
+        $(COMPILER) $(UNIXINC)/keyboard.pp $(REDIR) -dNOGPM
+
+                       
 objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
 
 #
@@ -117,12 +158,13 @@ objects$(PPUEXT) : $(INC)/objects.pp system$(PPUEXT)
 #
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) beos$(PPUEXT) sysconst$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/sysutils sysutils.pp
+                    objpas$(PPUEXT) $(OBJPASDIR)/sysconst$(PPUEXT) # beos$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(UNIXINC) $(UNIXINC)/sysutils.pp
 
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-                   sysutils$(PPUEXT) typinfo$(PPUEXT) fgl$(PPUEXT)
-        $(COMPILER) -Fi$(OBJPASDIR)/classes classes.pp
+                   sysutils$(PPUEXT) $(OBJPASDIR)/typinfo$(PPUEXT) $(OBJPASDIR)/rtlconsts$(PPUEXT) 
+#                   $(UNIXINC)/systhrd$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR) -Fi$(OBJPASDIR)/classes classes.pp
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
@@ -135,24 +177,24 @@ gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 
 varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
                     $(OBJPASDIR)/varutilh.inc varutils.pp
-        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
+				$(COMPILER) -Fi$(OBJPASDIR) $(UNIXINC)/varutils.pp
 
 fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) variants$(PPUEXT) classes$(PPUEXT) system$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fmtbcd.pp
 
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/types.pp
+       	$(COMPILER) $(OBJPASDIR)/types.pp
 
-fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
-        $(COMPILER) $(OBJPASDIR)/fgl.pp
+sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
-#
-# Mac Pascal Model
-#
+rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
-macpas$(PPUEXT) : $(INC)/macpas.pp system$(PPUEXT)
-        $(COMPILER) $(INC)/macpas.pp $(REDIR)
-
+strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/strutils.pp
+        
 #
 # Other system-independent RTL Units
 #
@@ -164,12 +206,15 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
 getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
-        $(COMPILER) -Sg $(INC)/heaptrc.pp
+        $(COMPILER) $(INC)/heaptrc.pp
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
 
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp system$(PPUEXT)
-
-
 #
 # Other system-dependent RTL Units
+#
+
+sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
+                   unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)

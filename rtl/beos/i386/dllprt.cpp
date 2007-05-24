@@ -16,9 +16,9 @@ static FPC_DLL fpc_dll();
 
 
 extern "C" void PASCALMAIN(void);
-extern int U_SYSBEOS_ARGC;
-extern void * U_SYSBEOS_ARGV;
-extern void * U_SYSBEOS_ENVP;
+extern int operatingsystem_parameter_argc;
+extern void * operatingsystem_parameter_argv;
+extern void * operatingsystem_parameter_envp;
 
 static char * _argv[] = {"dll",0};
 static char * _envp[] = {0};
@@ -26,9 +26,9 @@ static char * _envp[] = {0};
 extern "C" void BEGIN()
 {
         printf ("init\n");
-        U_SYSBEOS_ARGC=0;
-        U_SYSBEOS_ARGV = (void *)_argv;
-        U_SYSBEOS_ENVP = (void *)_envp;
+        operatingsystem_parameter_argc=0;
+        operatingsystem_parameter_argv = (void *)_argv;
+        operatingsystem_parameter_envp = (void *)_envp;
         PASCALMAIN();
 }
 
