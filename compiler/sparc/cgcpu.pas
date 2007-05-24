@@ -54,6 +54,7 @@ interface
         procedure a_call_name(list:TAsmList;const s:string);override;
         procedure a_call_reg(list:TAsmList;Reg:TRegister);override;
         { General purpose instructions }
+        procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
         procedure a_op_const_reg(list:TAsmList;Op:TOpCG;size:tcgsize;a:aint;reg:TRegister);override;
         procedure a_op_reg_reg(list:TAsmList;Op:TOpCG;size:TCGSize;src, dst:TRegister);override;
         procedure a_op_const_reg_reg(list:TAsmList;op:TOpCg;size:tcgsize;a:aint;src, dst:tregister);override;
@@ -481,21 +482,29 @@ implementation
       begin
         if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
           fromsize := tosize;
-        case fromsize of
-          { signed integer registers }
-          OS_8,
-          OS_S8:
-            Op:=A_STB;
-          OS_16,
-          OS_S16:
-            Op:=A_STH;
-          OS_32,
-          OS_S32:
-            Op:=A_ST;
-          else
-            InternalError(2002122100);
-        end;
-        handle_load_store(list,true,op,reg,ref);
+        if (ref.alignment<>0) and
+           (ref.alignment<tcgsize2size[tosize]) then
+          begin
+            a_load_reg_ref_unaligned(list,FromSize,ToSize,reg,ref);
+          end
+        else
+          begin
+            case fromsize of
+              { signed integer registers }
+              OS_8,
+              OS_S8:
+                Op:=A_STB;
+              OS_16,
+              OS_S16:
+                Op:=A_STH;
+              OS_32,
+              OS_S32:
+                Op:=A_ST;
+              else
+                InternalError(2002122100);
+            end;
+            handle_load_store(list,true,op,reg,ref);
+          end;
       end;
 
 
@@ -505,25 +514,33 @@ implementation
       begin
         if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
           fromsize := tosize;
-        case fromsize of
-          OS_S8:
-            Op:=A_LDSB;{Load Signed Byte}
-          OS_8:
-            Op:=A_LDUB;{Load Unsigned Byte}
-          OS_S16:
-            Op:=A_LDSH;{Load Signed Halfword}
-          OS_16:
-            Op:=A_LDUH;{Load Unsigned Halfword}
-          OS_S32,
-          OS_32:
-            Op:=A_LD;{Load Word}
-          OS_S64,
-          OS_64:
-            Op:=A_LDD;{Load a Long Word}
-          else
-            InternalError(2002122101);
-        end;
-        handle_load_store(list,false,op,reg,ref);
+        if (ref.alignment<>0) and
+           (ref.alignment<tcgsize2size[fromsize]) then
+           begin
+             a_load_ref_reg_unaligned(list,FromSize,ToSize,ref,reg);
+           end
+         else
+           begin
+             case fromsize of
+               OS_S8:
+                 Op:=A_LDSB;{Load Signed Byte}
+               OS_8:
+                 Op:=A_LDUB;{Load Unsigned Byte}
+               OS_S16:
+                 Op:=A_LDSH;{Load Signed Halfword}
+               OS_16:
+                 Op:=A_LDUH;{Load Unsigned Halfword}
+               OS_S32,
+               OS_32:
+                 Op:=A_LD;{Load Word}
+               OS_S64,
+               OS_64:
+                 Op:=A_LDD;{Load a Long Word}
+               else
+                 InternalError(2002122101);
+             end;
+             handle_load_store(list,false,op,reg,ref);
+           end;
       end;
 
 
@@ -531,53 +548,47 @@ implementation
       var
         instr : taicpu;
       begin
-        if (tcgsize2size[tosize]<tcgsize2size[fromsize]) or
-           (
-            (tcgsize2size[tosize] = tcgsize2size[fromsize]) and
-            (tosize <> fromsize) and
-            not(fromsize in [OS_32,OS_S32])
-           ) then
-          begin
-            case tosize of
-              OS_8 :
-                a_op_const_reg_reg(list,OP_AND,tosize,$ff,reg1,reg2);
-              OS_16 :
-                a_op_const_reg_reg(list,OP_AND,tosize,$ffff,reg1,reg2);
-              OS_32,
-              OS_S32 :
-                begin
-                  instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
-                  list.Concat(instr);
-                  { Notify the register allocator that we have written a move instruction so
-                   it can try to eliminate it. }
-                  add_move_instruction(instr);
-                end;
-              OS_S8 :
-                begin
-                  list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,24,reg2));
-                  list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,24,reg2));
-                end;
-              OS_S16 :
-                begin
-                  list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,16,reg2));
-                  list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,16,reg2));
-                end;
-              else
-                internalerror(2002090901);
-            end;
-          end
-        else
-          begin
-            if reg1<>reg2 then
-              begin
-                { same size, only a register mov required }
-                instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
-                list.Concat(instr);
-                { Notify the register allocator that we have written a move instruction so
+         if (tcgsize2size[fromsize] > tcgsize2size[tosize]) or
+            ((tcgsize2size[fromsize] = tcgsize2size[tosize]) and
+             (fromsize <> tosize)) or
+            { needs to mask out the sign in the top 16 bits }
+            ((fromsize = OS_S8) and
+             (tosize = OS_16)) then
+           case tosize of
+             OS_8 :
+               a_op_const_reg_reg(list,OP_AND,tosize,$ff,reg1,reg2);
+             OS_16 :
+               a_op_const_reg_reg(list,OP_AND,tosize,$ffff,reg1,reg2);
+             OS_32,
+             OS_S32 :
+               begin
+                 instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
+                 list.Concat(instr);
+                 { Notify the register allocator that we have written a move instruction so
                   it can try to eliminate it. }
-                add_move_instruction(instr);
-              end;
-          end;
+                 add_move_instruction(instr);
+               end;
+             OS_S8 :
+               begin
+                 list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,24,reg2));
+                 list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,24,reg2));
+               end;
+             OS_S16 :
+               begin
+                 list.concat(taicpu.op_reg_const_reg(A_SLL,reg1,16,reg2));
+                 list.concat(taicpu.op_reg_const_reg(A_SRA,reg2,16,reg2));
+               end;
+             else
+               internalerror(2002090901);
+           end
+         else
+           begin
+             instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
+             list.Concat(instr);
+             { Notify the register allocator that we have written a move instruction so
+              it can try to eliminate it. }
+             add_move_instruction(instr);
+           end;
       end;
 
 
@@ -732,6 +743,16 @@ implementation
        end;
 
 
+    procedure tcgsparc.maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
+      const
+        overflowops = [OP_MUL,OP_SHL,OP_ADD,OP_SUB,OP_NOT,OP_NEG];
+      begin
+        if (op in overflowops) and
+           (size in [OS_8,OS_S8,OS_16,OS_S16]) then
+          a_load_reg_reg(list,OS_32,size,dst,dst);
+      end;
+
+
     procedure TCgSparc.a_op_const_reg(list:TAsmList;Op:TOpCG;size:tcgsize;a:aint;reg:TRegister);
       begin
         if Op in [OP_NEG,OP_NOT] then
@@ -740,6 +761,7 @@ implementation
           list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],reg,NR_G0,reg))
         else
           handle_reg_const_reg(list,TOpCG2AsmOp[op],reg,a,reg);
+        maybeadjustresult(list,op,size,reg);
       end;
 
 
@@ -765,6 +787,7 @@ implementation
           else
             list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],dst,src,dst));
         end;
+        maybeadjustresult(list,op,size,dst);
       end;
 
 
@@ -794,12 +817,14 @@ implementation
             end;
         end;
         handle_reg_const_reg(list,TOpCG2AsmOp[op],src,a,dst);
+        maybeadjustresult(list,op,size,dst);
       end;
 
 
     procedure TCgSparc.a_op_reg_reg_reg(list:TAsmList;op:TOpCg;size:tcgsize;src1, src2, dst:tregister);
       begin
         list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],src2,src1,dst));
+        maybeadjustresult(list,op,size,dst);
       end;
 
 
@@ -845,7 +870,8 @@ implementation
             end;
           end
         else
-          handle_reg_const_reg(list,TOpCG2AsmOp[op],src,a,dst)
+          handle_reg_const_reg(list,TOpCG2AsmOp[op],src,a,dst);
+        maybeadjustresult(list,op,size,dst);
       end;
 
 
@@ -879,7 +905,8 @@ implementation
             end;
           end
         else
-          list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],src2,src1,dst))
+          list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOp[op],src2,src1,dst));
+        maybeadjustresult(list,op,size,dst);
       end;
 
 

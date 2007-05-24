@@ -207,9 +207,11 @@ unit cgobj;
           procedure a_load_const_ref(list : TAsmList;size : tcgsize;a : aint;const ref : treference);virtual;
           procedure a_load_const_loc(list : TAsmList;a : aint;const loc : tlocation);
           procedure a_load_reg_ref(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);virtual; abstract;
+          procedure a_load_reg_ref_unaligned(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);virtual;
           procedure a_load_reg_reg(list : TAsmList;fromsize,tosize : tcgsize;reg1,reg2 : tregister);virtual; abstract;
           procedure a_load_reg_loc(list : TAsmList;fromsize : tcgsize;reg : tregister;const loc: tlocation);
           procedure a_load_ref_reg(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);virtual; abstract;
+          procedure a_load_ref_reg_unaligned(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);virtual;
           procedure a_load_ref_ref(list : TAsmList;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);virtual;
           procedure a_load_loc_reg(list : TAsmList;tosize: tcgsize; const loc: tlocation; reg : tregister);
           procedure a_load_loc_ref(list : TAsmList;tosize: tcgsize; const loc: tlocation; const ref : treference);
@@ -1150,7 +1152,7 @@ implementation
       begin
         intloadsize := packedbitsloadsize(sref.bitlen);
 
-{$if defined(cpurequiresproperalignment) and not defined(arm)}
+{$if defined(cpurequiresproperalignment) and not defined(arm) and not(defined(sparc))}
         { may need to be split into several smaller loads/stores }
         if intloadsize <> sref.ref.alignment then
            internalerror(2006082011);
@@ -1254,6 +1256,19 @@ implementation
             { if there are no bits in extra_value_reg, then sref.bitindex was      }
             { < loadsize-sref.bitlen, and therefore tmpreg will now be >= loadsize }
             { => extra_value_reg is now 0                                          }
+
+{$ifdef sparc}
+            { except on sparc, where "shr X" = "shr (X and (bitsize-1))" }
+            if (loadbitsize = AIntBits) then
+              begin
+                { if (tmpreg >= cpu_bit_size) then tmpreg := 1 else tmpreg := 0 }
+                a_op_const_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bit}6{$else}5{$endif},tmpreg);
+                { if (tmpreg = cpu_bit_size) then tmpreg := 0 else tmpreg := -1 }
+                a_op_const_reg(list,OP_SUB,OS_INT,1,tmpreg);
+                { if (tmpreg = cpu_bit_size) then extra_value_reg := 0 }
+                a_op_reg_reg(list,OP_AND,OS_INT,tmpreg,extra_value_reg);
+              end;
+{$endif sparc}
 
             { merge }
             a_op_reg_reg(list,OP_OR,OS_INT,extra_value_reg,valuereg);
@@ -1631,6 +1646,20 @@ implementation
                         a_op_reg_reg(list,OP_NEG,OS_INT,tmpindexreg,tmpindexreg);
                         a_load_const_reg(list,OS_INT,aint((aword(1) shl sref.bitlen)-1),maskreg);
                         a_op_reg_reg(list,OP_SHL,OS_INT,tmpindexreg,maskreg);
+{$ifdef sparc}
+                        {  on sparc, "shr X" = "shr (X and (bitsize-1))" -> fix so shr (x>32) = 0 }
+                        if (loadbitsize = AIntBits) then
+                          begin
+                            { if (tmpindexreg >= cpu_bit_size) then tmpreg := 1 else tmpreg := 0 }
+                            a_op_const_reg_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bit}6{$else}5{$endif},tmpindexreg,valuereg);
+                            { if (tmpindexreg = cpu_bit_size) then maskreg := 0 else maskreg := -1 }
+                            a_op_const_reg(list,OP_SUB,OS_INT,1,valuereg);
+                            { if (tmpindexreg = cpu_bit_size) then maskreg := 0 }
+                            if (slopt <> SL_SETZERO) then
+                              a_op_reg_reg(list,OP_AND,OS_INT,valuereg,tmpreg);
+                            a_op_reg_reg(list,OP_AND,OS_INT,valuereg,maskreg);
+                          end;
+{$endif sparc}
                       end
                     else
                       begin
@@ -1717,7 +1746,7 @@ implementation
         { perform masking of the source value in advance }
         slopt := SL_REGNOSRCMASK;
         if (sref.bitlen <> AIntBits) then
-          aword(a) := aword(a) and ((aword(1) shl sref.bitlen) -1); 
+          aword(a) := aword(a) and ((aword(1) shl sref.bitlen) -1);
         if (
             { broken x86 "x shl regbitsize = x" }
             ((sref.bitlen <> AIntBits) and
@@ -1781,6 +1810,120 @@ implementation
 {$q+}
 {$undef overflowon}
 {$endif}
+
+    procedure tcg.a_load_reg_ref_unaligned(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);
+      var
+        tmpref : treference;
+        tmpreg : tregister;
+        i : longint;
+      begin
+        if ref.alignment<>0 then
+          begin
+            tmpref:=ref;
+            { we take care of the alignment now }
+            tmpref.alignment:=0;
+            case FromSize of
+              OS_16,OS_S16:
+                begin
+                  tmpreg:=getintregister(list,OS_16);
+                  a_load_reg_reg(list,fromsize,OS_16,register,tmpreg);
+                  if target_info.endian=endian_big then
+                    inc(tmpref.offset);
+                  tmpreg:=makeregsize(list,tmpreg,OS_8);
+                  a_load_reg_ref(list,OS_8,OS_8,tmpreg,tmpref);
+                  tmpreg:=makeregsize(list,tmpreg,OS_16);
+                  a_op_const_reg(list,OP_SHR,OS_16,8,tmpreg);
+                  if target_info.endian=endian_big then
+                    dec(tmpref.offset)
+                  else
+                    inc(tmpref.offset);
+                  tmpreg:=makeregsize(list,tmpreg,OS_8);
+                  a_load_reg_ref(list,OS_8,OS_8,tmpreg,tmpref);
+                end;
+              OS_32,OS_S32:
+                begin
+                  tmpreg:=getintregister(list,OS_32);
+                  a_load_reg_reg(list,fromsize,OS_32,register,tmpreg);
+                  if target_info.endian=endian_big then
+                    inc(tmpref.offset,3);
+                  tmpreg:=makeregsize(list,tmpreg,OS_8);
+                  a_load_reg_ref(list,OS_8,OS_8,tmpreg,tmpref);
+                  tmpreg:=makeregsize(list,tmpreg,OS_32);
+                  for i:=1 to 3 do
+                    begin
+                      a_op_const_reg(list,OP_SHR,OS_32,8,tmpreg);
+                      if target_info.endian=endian_big then
+                        dec(tmpref.offset)
+                      else
+                        inc(tmpref.offset);
+                      tmpreg:=makeregsize(list,tmpreg,OS_8);
+                      a_load_reg_ref(list,OS_8,OS_8,tmpreg,tmpref);
+                      tmpreg:=makeregsize(list,tmpreg,OS_32);
+                    end;
+                end
+              else
+                a_load_reg_ref(list,fromsize,tosize,register,tmpref);
+            end;
+          end
+        else
+          a_load_reg_ref(list,fromsize,tosize,register,ref);
+      end;
+
+
+    procedure tcg.a_load_ref_reg_unaligned(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);
+      var
+        tmpref : treference;
+        tmpreg : tregister;
+        i : longint;
+      begin
+        if ref.alignment<>0 then
+          begin
+            tmpref:=ref;
+            { we take care of the alignment now }
+            tmpref.alignment:=0;
+            case FromSize of
+              OS_16,OS_S16:
+                begin
+                  if target_info.endian=endian_little then
+                    inc(tmpref.offset);
+                  register:=makeregsize(list,register,OS_8);
+                  a_load_ref_reg(list,OS_8,OS_8,tmpref,register);
+                  register:=makeregsize(list,register,OS_16);
+                  a_op_const_reg(list,OP_SHL,OS_16,8,register);
+                  if target_info.endian=endian_little then
+                    dec(tmpref.offset)
+                  else
+                    inc(tmpref.offset);
+                  tmpreg:=getintregister(list,OS_16);
+                  a_load_ref_reg(list,OS_8,OS_16,tmpref,tmpreg);
+                  a_op_reg_reg(list,OP_OR,OS_16,tmpreg,register);
+                end;
+              OS_32,OS_S32:
+                begin
+                  if target_info.endian=endian_little then
+                    inc(tmpref.offset,3);
+                  register:=makeregsize(list,register,OS_8);
+                  a_load_ref_reg(list,OS_8,OS_8,tmpref,register);
+                  register:=makeregsize(list,register,OS_32);
+                  for i:=1 to 3 do
+                    begin
+                      a_op_const_reg(list,OP_SHL,OS_32,8,register);
+                      if target_info.endian=endian_little then
+                        dec(tmpref.offset)
+                      else
+                        inc(tmpref.offset);
+                      tmpreg:=getintregister(list,OS_32);
+                      a_load_ref_reg(list,OS_8,OS_32,tmpref,tmpreg);
+                      a_op_reg_reg(list,OP_OR,OS_32,tmpreg,register);
+                    end;
+                end
+              else
+                a_load_ref_reg(list,fromsize,tosize,tmpref,register);
+            end;
+          end
+        else
+          a_load_ref_reg(list,fromsize,tosize,ref,register);
+      end;
 
 
     procedure tcg.a_load_ref_ref(list : TAsmList;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);
