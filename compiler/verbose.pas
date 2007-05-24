@@ -383,6 +383,7 @@ implementation
          begin
            { update status record }
            status.currentmodule:=module.modulename^;
+					 status.currentmodulestate:=ModuleStateStr[module.state];
            status.currentsource:=module.sourcefiles.get_file_name(current_filepos.fileindex);
            status.currentsourcepath:=module.sourcefiles.get_file_path(current_filepos.fileindex);
 
