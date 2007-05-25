@@ -447,7 +447,11 @@ begin
   if add_tail then
     begin
       pl:=pointer(pp)+allocsize-pp^.extra_info_size-sizeof(ptrint);
+{$ifdef FPC_SUPPORTS_UNALIGNED}
+      unaligned(pl^):=$DEADBEEF;
+{$else FPC_SUPPORTS_UNALIGNED}
       pl^:=$DEADBEEF;
+{$endif FPC_SUPPORTS_UNALIGNED}
     end;
   { clear the memory }
   fillchar(p^,size,#255);
@@ -783,7 +787,11 @@ begin
   if add_tail then
     begin
       pl:=pointer(pp)+allocsize-pp^.extra_info_size-sizeof(ptrint);
+{$ifdef FPC_SUPPORTS_UNALIGNED}
+      unaligned(pl^):=$DEADBEEF;
+{$else FPC_SUPPORTS_UNALIGNED}
       pl^:=$DEADBEEF;
+{$endif FPC_SUPPORTS_UNALIGNED}
     end;
   { adjust like a freemem and then a getmem, so you get correct
     results in the summary display }
