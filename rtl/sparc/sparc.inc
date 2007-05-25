@@ -73,21 +73,29 @@ function get_frame:pointer;assembler;nostackframe;
 function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
   asm
     { framebp = %o0 }
+    subcc   %o0,0,%o0
+    be      .Lframezero
+    nop
     { flush register windows, so they are stored in the stack }
     ta      3
     ld [%o0+60],%o0
     { add 8 to skip jmpl and delay slot }
     add %o0,8,%o0
+.Lframezero:
   end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer):pointer;assembler;nostackframe;
   asm
+    { framebp = %o0 }
+    subcc   %o0,0,%o0
+    be      .Lframezero
+    nop
     { flush register windows, so they are stored in the stack }
     ta      3
-    { framebp = %o0 }
     ld [%o0+56],%o0
+.Lframezero:
   end;
 
 
