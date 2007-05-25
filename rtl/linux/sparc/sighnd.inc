@@ -26,7 +26,6 @@ begin
     SIGFPE :
         begin
           addr := siginfo^._sifields._sigfault._addr;
-          res := 207;
           case  siginfo^.si_code of
             FPE_INTDIV:
               res:=200;
@@ -38,10 +37,6 @@ begin
               res:=205;
             FPE_FLTUND:
               res:=206;
-            FPE_FLTRES,
-            FPE_FLTINV,
-            FPE_FLTSUB:
-              res:=216;
             else
               res:=207;
           end;
