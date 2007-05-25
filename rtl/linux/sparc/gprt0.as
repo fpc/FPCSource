@@ -86,7 +86,7 @@ _start:
         .globl  _haltproc
         .type   _haltproc,@function
   _haltproc:
-        mov	1, %g1			/* "exit" system call */
+        mov	188, %g1			/* "exit" system call */
         ta	0x10			/* dot the system call */
         nop				/* delay slot */
         /* Die very horribly if exit returns.  */
