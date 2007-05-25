@@ -128,9 +128,6 @@ implementation
         bitstowrite: longint;
         writeval : byte;
       begin
-        { these values have to be byte swapped when cross-compiling }
-        { from one endianess to another, but this will be done      }
-        { automatically by the assembler writer                     }
         if (bp.curbitoffset < AIntBits) then
           begin
             { forced flush -> write multiple of loadsize }
