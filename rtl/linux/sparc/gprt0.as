@@ -87,9 +87,6 @@ _start:
         .type   _haltproc,@function
   _haltproc:
         mov	1, %g1			/* "exit" system call */
-        sethi	%hi(operatingsystem_result),%o0
-        or	%o0,%lo(operatingsystem_result),%o0
-        ldsh	[%o0], %o0			/* give exit status to parent process*/
         ta	0x10			/* dot the system call */
         nop				/* delay slot */
         /* Die very horribly if exit returns.  */
