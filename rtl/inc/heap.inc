@@ -1226,7 +1226,13 @@ begin
       exit;
     end;
 
-  { var memchunck }
+  { var memchunk }
+
+  { do not fragment the heap with small shrinked blocks }
+  {  also solves problem with var sized chunks smaller than sizeof(tmemchunk_var) }
+  if size < maxblocksize div 2 then
+    exit(false);
+
   currsize := chunksize and sizemask;
   size := (size+sizeof(tmemchunk_var_hdr)+(blocksize-1)) and sizemask;
 
