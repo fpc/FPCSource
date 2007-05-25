@@ -144,7 +144,11 @@ const
 {$if defined(PowerPC) or defined(PowerPc64)}
   IOCtl_TCGETS=$402c7413;
 {$else}
+{$if defined(sparc)}
+  IOCtl_TCGETS=$40245408;
+{$else}
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
+{$endif}
 {$endif}
 var
   Data : array[0..255] of byte; {Large enough for termios info}

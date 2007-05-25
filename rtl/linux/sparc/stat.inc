@@ -14,7 +14,10 @@
 
 {$IFNDEF FPC_USE_LIBC}
 
-  Stat = packed record  // No unix typing because of differences
+  { do NOT declare this record as packed, because it needs to be aligned }
+  { to its largest member (i.e., 8 bytes), and declaring it as packed    }
+  { disables that                                                        }
+  Stat = record  // No unix typing because of differences
     case byte of
     0:
       (dev   : culonglong;

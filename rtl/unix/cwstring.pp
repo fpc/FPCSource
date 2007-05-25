@@ -25,7 +25,7 @@ implementation
 
 {$linklib c}
 
-{$ifndef linux}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
+{$if not defined(linux) and not defined(solaris)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
  {$linklib iconv}
  {$define useiconv}
 {$endif linux}
@@ -87,9 +87,9 @@ const
 
 { unicode encoding name }
 {$ifdef FPC_LITTLE_ENDIAN}
-  unicode_encoding = 'UNICODELITTLE';
+  unicode_encoding = 'UTF-16LE';
 {$else  FPC_LITTLE_ENDIAN}
-  unicode_encoding = 'UNICODEBIG';
+  unicode_encoding = 'UTF-16BE';
 {$endif  FPC_LITTLE_ENDIAN}
 
 type
@@ -371,11 +371,13 @@ end;
 
 initialization
   SetCWideStringManager;
+  initcriticalsection(iconv_lock);
   { init conversion tables }
   iconv_wide2ansi:=iconv_open(nl_langinfo(CODESET),unicode_encoding);
   iconv_ansi2wide:=iconv_open(unicode_encoding,nl_langinfo(CODESET));
   iconv_ucs42ansi:=iconv_open(nl_langinfo(CODESET),'UCS4');
   iconv_ansi2ucs4:=iconv_open('UCS4',nl_langinfo(CODESET));
 finalization
+  donecriticalsection(iconv_lock);
   iconv_close(iconv_ansi2wide);
 end.
