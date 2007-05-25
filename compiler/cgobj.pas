@@ -2186,7 +2186,8 @@ implementation
     procedure tcg.a_load_ref_reg_unaligned(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);
       var
         tmpref : treference;
-        tmpreg : tregister;
+        tmpreg,
+        tmpreg2 : tregister;
         i : longint;
       begin
         if ref.alignment<>0 then
@@ -2197,38 +2198,39 @@ implementation
             case FromSize of
               OS_16,OS_S16:
                 begin
+                  { first load in tmpreg, because the target register }
+                  { may be used in ref as well                        }
                   if target_info.endian=endian_little then
                     inc(tmpref.offset);
-                  register:=makeregsize(list,register,OS_8);
-                  a_load_ref_reg(list,OS_8,OS_8,tmpref,register);
-                  register:=makeregsize(list,register,OS_16);
-                  a_op_const_reg(list,OP_SHL,OS_16,8,register);
+                  tmpreg:=getintregister(list,OS_8);
+                  a_load_ref_reg(list,OS_8,OS_8,tmpref,tmpreg);
+                  tmpreg:=makeregsize(list,tmpreg,OS_16);
+                  a_op_const_reg(list,OP_SHL,OS_16,8,tmpreg);
                   if target_info.endian=endian_little then
                     dec(tmpref.offset)
                   else
                     inc(tmpref.offset);
-                  tmpreg:=getintregister(list,OS_16);
-                  a_load_ref_reg(list,OS_8,OS_16,tmpref,tmpreg);
+                  a_load_ref_reg(list,OS_8,OS_16,tmpref,register);
                   a_op_reg_reg(list,OP_OR,OS_16,tmpreg,register);
                 end;
               OS_32,OS_S32:
                 begin
                   if target_info.endian=endian_little then
                     inc(tmpref.offset,3);
-                  register:=makeregsize(list,register,OS_8);
-                  a_load_ref_reg(list,OS_8,OS_8,tmpref,register);
-                  register:=makeregsize(list,register,OS_32);
+                  tmpreg:=getintregister(list,OS_32);
+                  a_load_ref_reg(list,OS_8,OS_32,tmpref,tmpreg);
+                  tmpreg2:=getintregister(list,OS_32);
                   for i:=1 to 3 do
                     begin
-                      a_op_const_reg(list,OP_SHL,OS_32,8,register);
+                      a_op_const_reg(list,OP_SHL,OS_32,8,tmpreg);
                       if target_info.endian=endian_little then
                         dec(tmpref.offset)
                       else
                         inc(tmpref.offset);
-                      tmpreg:=getintregister(list,OS_32);
-                      a_load_ref_reg(list,OS_8,OS_32,tmpref,tmpreg);
-                      a_op_reg_reg(list,OP_OR,OS_32,tmpreg,register);
+                      a_load_ref_reg(list,OS_8,OS_32,tmpref,tmpreg2);
+                      a_op_reg_reg(list,OP_OR,OS_32,tmpreg2,tmpreg);
                     end;
+                  a_load_reg_reg(list,OS_32,OS_32,tmpreg,register);
                 end
               else
                 a_load_ref_reg(list,fromsize,tosize,tmpref,register);
