@@ -1,3 +1,5 @@
+program bansi1mt;
+{$define THREAD}
 {$i bansi1.inc}
 
 var
