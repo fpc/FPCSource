@@ -183,17 +183,16 @@ asm
         subcc   %o3,%g0,%g0
         bne     .LThread
         nop
-        sethi   %hi(Errno+4),%o2
+        sethi   %hi(Errno+4),%o0
         ba      .LNoThread
-        or      %o2,%lo(Errno+4),%o2
+        or      %o0,%lo(Errno+4),%o0
 .LThread:
         sethi   %hi(Errno),%o0
-        ld      [%o3],%o1
         or      %o0,%lo(Errno),%o0
-        call    %o1
-        nop
+        call    %o3
+        ld      [%o0],%o0
 .LNoThread:
-        st      %o0,[%o2]
+        st      %l0,[%o0]
         mov     -1,%o0
 .LSyscOK:
         mov     %o0,%i0
