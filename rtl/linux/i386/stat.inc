@@ -14,29 +14,29 @@
 
 {$ifndef FPC_USE_LIBC} // kernel record
 
-  Stat = packed record  // No unix typing because of differences
+  Stat = packed record  
     case byte of
       0:
-        (dev    : qword;
-        __pad0  : array[0..3] of byte;
-        __ino,
-        mode,
-        nlink,
-        uid,
-        gid     : cardinal;
-        rdev    : qword;
-        __pad3  : array[0..3] of byte;
-        size    : qword;
-        blksize : cardinal;
-        blocks  : qword;
-        atime,
-        atime_nsec,
-        mtime,
-        mtime_nsec,
-        ctime,
-        ctime_nsec : cardinal;
-        ino    : qword);
-      1:
+        (dev        : qword    deprecated;
+        __pad0      : array[0..3] of byte deprecated;
+        __ino       : cardinal deprecated;
+        mode        : cardinal deprecated;
+        nlink       : cardinal deprecated;
+        uid	    : cardinal deprecated;
+        gid         : cardinal deprecated;
+        rdev        : qword deprecated;
+        __pad3      : array[0..3] of byte deprecated;
+        size        : qword    deprecated;
+        blksize     : cardinal deprecated;
+        blocks      : qword    deprecated;
+        atime	    : cardinal deprecated;
+        atime_nsec  : cardinal deprecated;
+        mtime	    : cardinal deprecated; 
+        mtime_nsec  : cardinal deprecated;
+        ctime	    : cardinal deprecated;
+        ctime_nsec  : cardinal deprecated;
+        ino         : qword    deprecated);
+      1:		// Unix typing will be reintroduced.
         (st_dev   : qword;
         __pad0_   : array[0..3] of byte;
         __st_ino_,
@@ -65,36 +65,37 @@
     case byte of
       0:
                               // kernel <->libc
-        (dev     : dev_t;
-        pad1       : word;
+        (dev    	 : dev_t    deprecated;
+        pad1    	 : word     deprecated;
 {$ifdef fs32bit}
-        ino     : ino_t;
+        ino     	 : ino_t    deprecated;
 {$else}
-        __ino   : ino_t;
-{$endif}    
-        mode    : mode_t;
-        nlink   : nlink_t;
-        uid     : uid_t;
-        gid     : gid_t;
-        rdev    : dev_t;
-        pad2       : word;
-        size    : off_t;
-        blksize : blksize_t;
+        __ino   	 : ino_t    deprecated;
+{$endif}
+        mode    	 : mode_t   deprecated;
+        nlink   	 : nlink_t  deprecated;
+        uid     	 : uid_t    deprecated;
+        gid     	 : gid_t    deprecated;
+        rdev    	 : dev_t    deprecated;
+        pad2    	 : word     deprecated;
+        size    	 : off_t    deprecated;
+        blksize 	 : blksize_t deprecated;
 {$ifdef fs32bit}
-        blocks  : blkcnt_t;
+        blocks  	 : blkcnt_t deprecated;
 {$else}    
-        blocks  : blkcnt64_t;
+        blocks  	 : blkcnt64_t deprecated;
 {$endif}    
-        atime,
-        atime_nsec,
-        mtime,
-        mtime_nsec,
-        ctime,
-        ctime_nsec : cardinal;
+        atime		 : cardinal deprecated;
+        atime_nsec 	 : cardinal deprecated;
+        mtime 		 : cardinal deprecated;
+        mtime_nsec 	 : cardinal deprecated;
+        ctime 		 : cardinal deprecated;
+        ctime_nsec 	 : cardinal deprecated;
 {$ifdef fs32bit}
-        unused4, unused5: cardinal;
+        unused4		 : cardinal deprecated;
+	unused5		 : cardinal deprecated;
 {$else}    
-        ino     : ino64_t;
+        ino     	 : ino64_t  deprecated;
 {$endif});
       1:
                               // kernel <->libc
