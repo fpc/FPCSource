@@ -118,12 +118,12 @@ const
   of user freeing/allocing same or a small set of sizes, we only do
   the conversion to the new fixed os chunk size format after we
   reuse the os chunk for another fixed size, or variable. Note that
-  while the fixed size os chunk is on the freelists.osfirst, it is also 
+  while the fixed size os chunk is on the freelists.oslist, it is also 
   still present in a freelists.fixedlists, therefore we can easily remove 
-  the os chunk from the freelists.osfirst if this size is needed again; we 
-  don't need to search freelists.osfirst in alloc_oschunk, since it won't
+  the os chunk from the freelists.oslist if this size is needed again; we 
+  don't need to search freelists.oslist in alloc_oschunk, since it won't
   be present anymore if alloc_oschunk is reached. Note that removing
-  from the freelists.osfirst is not really done, only the recycleflag is
+  from the freelists.oslist is not really done, only the recycleflag is
   set, allowing to reset the flag easily. alloc_oschunk will clean up
   the list while passing over it, that was a slow function anyway.
 }
@@ -178,8 +178,7 @@ type
   tfixedfreelists = array[1..maxblockindex] of pmemchunk_fixed;
 
   tfreelists = record
-    osfirst : poschunk;
-    oslast : poschunk;
+    oslist : poschunk;
     oscount : dword;
     fixedlists : tfixedfreelists;
     varlist : pmemchunk_var;
@@ -353,7 +352,7 @@ begin
   status^.CurrHeapFree := status^.CurrHeapSize - status^.CurrHeapUsed;
   result.TotalAllocated   :=status^.CurrHeapUsed;
   result.TotalFree        :=status^.CurrHeapFree;
-  result.TotalAddrSpace   :=0;
+  result.TotalAddrSpace   :=status^.CurrHeapSize;
   result.TotalUncommitted :=0;
   result.TotalCommitted   :=0;
   result.FreeSmall        :=0;
@@ -495,11 +494,8 @@ begin
   else
     begin
 {$endif}
-      if loc_freelists^.oslast = nil then
-        loc_freelists^.oslast := poc
-      else
-        loc_freelists^.oslast^.next := poc;
-      loc_freelists^.osfirst := poc;
+      poc^.next := loc_freelists^.oslist;
+      loc_freelists^.oslist := poc;
       inc(loc_freelists^.oscount);
 {$ifdef HAS_SYSOSFREE}
    end;
@@ -527,7 +523,7 @@ end;
                          Split block
 *****************************************************************************}
 
-procedure split_block(pcurr: pmemchunk_var; size: ptrint);
+function split_block(pcurr: pmemchunk_var; size: ptrint): pmemchunk_var;
 var
   pcurr_tmp : pmemchunk_var;
   sizeleft: ptrint;
@@ -548,7 +544,10 @@ begin
       pcurr^.size := size or (pcurr^.size and (not sizemask and not lastblockflag));
       { insert the block in the freelist }
       append_to_list_var(pcurr_tmp);
-    end;
+      result := pcurr_tmp;
+    end
+  else
+    result := nil;
 end;
 
 
@@ -620,30 +619,6 @@ begin
 end;
 
 
-function check_concat_free_chunk_forward(mc: pmemchunk_var;reqsize:ptrint):boolean;
-var
-  mc_tmp : pmemchunk_var;
-  freesize : ptrint;
-begin
-  check_concat_free_chunk_forward:=false;
-  freesize:=0;
-  mc_tmp:=mc;
-  repeat
-     inc(freesize,mc_tmp^.size and sizemask);
-     if freesize>=reqsize then
-       begin
-         check_concat_free_chunk_forward:=true;
-         exit;
-       end;
-     if (mc_tmp^.size and lastblockflag) <> 0 then
-       break;
-     mc_tmp := pmemchunk_var(pointer(mc_tmp)+(mc_tmp^.size and sizemask));
-     if (mc_tmp^.size and usedflag) <> 0 then
-       break;
-  until false;
-end;
-
-
 {*****************************************************************************
                                 Grow Heap
 *****************************************************************************}
@@ -671,7 +646,7 @@ begin
   else
     maxsize := high(ptrint);
   { blocks available in freelist? }
-  poc := loc_freelists^.osfirst;
+  poc := loc_freelists^.oslist;
   prev_poc := nil;
   while poc <> nil do
     begin
@@ -681,11 +656,9 @@ begin
         poc^.size := poc^.size and not ocrecycleflag;
         poc := poc^.next;
         if prev_poc = nil then
-          loc_freelists^.osfirst := poc
+          loc_freelists^.oslist := poc
         else
           prev_poc^.next := poc;
-        if poc = nil then
-          loc_freelists^.oslast := nil;
         continue;
       end;
       pocsize := poc^.size and sizemask;
@@ -694,11 +667,9 @@ begin
         begin
           size := pocsize;
           if prev_poc = nil then
-            loc_freelists^.osfirst := poc^.next
+            loc_freelists^.oslist := poc^.next
           else
             prev_poc^.next := poc^.next;
-          if poc^.next = nil then
-            loc_freelists^.oslast := nil;
           dec(loc_freelists^.oscount);
           pmc := pmemchunk_fixed(pointer(poc)+fixedfirstoffset);
           if pmc^.size <> 0 then
@@ -810,18 +781,6 @@ begin
     end;
 end;
 
-procedure update_heapused(var status: tfpcheapstatus; var size: ptrint);
-begin
-  inc(status.currheapused, size);
-  if status.currheapused > status.maxheapused then
-  begin
-    status.maxheapused := status.currheapused;
-{$ifdef DUMP_MEM_USAGE}        
-    maxsizeusage := sizeusage;
-{$endif}        
-  end;
-end;
-
 {*****************************************************************************
                                  SysGetMem
 *****************************************************************************}
@@ -929,6 +888,7 @@ begin
   { create the left over freelist block, if at least 16 bytes are free }
   split_block(pcurr, size);
   { flag block as used }
+  size := pcurr^.size and sizemask;
   pcurr^.size := pcurr^.size or usedflag;
   pcurr^.freelists := loc_freelists;
   { statistics }
@@ -1198,6 +1158,7 @@ var
   oldsize,
   currsize : ptrint;
   pcurr : pmemchunk_var;
+  pnext : pmemchunk_var;
 begin
   SysTryResizeMem := false;
 
@@ -1253,20 +1214,32 @@ begin
      { the size is bigger than the previous size, we need to allocated more mem.
        We first check if the blocks after the current block are free. If not then we
        simply call getmem/freemem to get the new block }
-     if check_concat_free_chunk_forward(pcurr,size) then
-       repeat
-         concat_two_blocks(pcurr,pmemchunk_var(pointer(pcurr)+currsize));
+     pnext:=pmemchunk_var(pointer(pcurr)+currsize);
+     if ((pnext^.size and usedflag) = 0) 
+        and ((pnext^.size and sizemask) > size-currsize) then
+       begin
+         concat_two_blocks(pcurr,pnext);
          currsize := pcurr^.size and sizemask;
-       until currsize>=size
+       end
      else
        exit;
    end;
   { is the size smaller then we can adjust the block to that size and insert
     the other part into the freelist }
   if currsize>size then
-    split_block(pcurr, size);
+  begin
+    pnext := split_block(pcurr, size);
+    currsize := pcurr^.size and sizemask;
+    if pnext <> nil then
+      try_concat_free_chunk_forward(pnext);
+  end;
 
-  inc(freelists.internal_status.currheapused, size-oldsize);
+  with freelists.internal_status do
+  begin
+    inc(currheapused, currsize-oldsize);
+    if currheapused > maxheapused then
+      maxheapused := currheapused;
+  end;
   SysTryResizeMem := true;
 end;
 
@@ -1424,14 +1397,13 @@ begin
   flush(output);
 {$endif}
 {$ifdef HAS_SYSOSFREE}
-  while assigned(freelists.osfirst) do
+  while assigned(loc_freelists^.oslist) do
     begin
-      poc:=loc_freelists^.osfirst^.next;
-      SysOSFree(loc_freelists^.osfirst, loc_freelists^.osfirst^.size and sizemask);
+      poc:=loc_freelists^.oslist^.next;
+      SysOSFree(loc_freelists^.oslist, loc_freelists^.oslist^.size and sizemask);
       dec(loc_freelists^.oscount);
-      loc_freelists^.osfirst:=poc;
+      loc_freelists^.oslist:=poc;
     end;
-  loc_freelists^.oslast:=nil;
 {$endif HAS_SYSOSFREE}
 end;
 
