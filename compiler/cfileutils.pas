@@ -153,6 +153,10 @@ implementation
                  (dir.Name<>'.') or
                  (dir.Name<>'..') then
                 begin
+                  { Force Archive bit so the attribute always has a value. This is needed
+                    to be able to see the difference in the directoryentries lookup if a file
+                    exists or not }
+                  Dir.Attr:=Dir.Attr or faArchive;
                   if not(tf_files_case_sensitive in source_info.flags) then
                     DirectoryEntries.Add(Lower(Dir.Name),Pointer(Ptrint(Dir.Attr)))
                   else
@@ -1003,7 +1007,7 @@ implementation
              while (pc^<>sepch) and (pc^<>';') and (pc^<>#0) do
               inc(pc);
              SetLength(singlepathstring, pc-startpc);
-             move(startpc^,singlepathstring[1],pc-startpc);            
+             move(startpc^,singlepathstring[1],pc-startpc);
              singlepathstring:=FixPath(ExpandFileName(singlepathstring),false);
              result:=FileExistsNonCase(singlepathstring,f,allowcache,FoundFile);
              if result then
