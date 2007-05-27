@@ -1391,21 +1391,27 @@ Begin
 End;
 
 
+{$ifdef linux}
 const
   KIOCSOUND = $4B2F;    // start sound generation (0 for off)
+{$endif}
 
 Procedure Sound(Hz: Word);
 begin
+{$ifdef linux}
   if not OutputRedir then
     fpIoctl(TextRec(Output).Handle, KIOCSOUND, Pointer(1193180 div Hz));
+{$endif}
 end;
 
 
 
 Procedure NoSound;
 begin
+{$ifdef linux}
   if not OutputRedir then
     fpIoctl(TextRec(Output).Handle, KIOCSOUND, nil);
+{$endif}
 end;
 
 
