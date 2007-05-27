@@ -649,6 +649,9 @@ implementation
         { call helpers for interface }
         if is_interfacecom(left.resultdef) then
          begin
+           { remove property flag to avoid errors, see comments for }
+           { tf_winlikewidestring assignments below                 }
+           exclude(left.flags,nf_isproperty);
            if right.resultdef.is_related(left.resultdef) then
              begin
                hp:=
