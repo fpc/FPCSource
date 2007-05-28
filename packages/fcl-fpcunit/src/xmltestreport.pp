@@ -65,8 +65,46 @@ type
     property Document: TXMLDocument read FDoc;
   end;
 
+function GetSuiteAsXML(aSuite: TTestSuite): string;
+function TestSuiteAsXML(n: TDOMElement; FDoc: TXMLDocument; aSuite:TTestSuite): string;
 
 implementation
+
+function GetSuiteAsXML(aSuite: TTestSuite): string;
+var
+  FDoc: TXMLDocument;
+  n: TDOMElement;
+  stream : TStringStream;
+begin
+  Result := '';
+
+  if aSuite <> nil then
+  begin
+    FDoc:= TXMLDocument.Create;
+
+    n := FDoc.CreateElement('TestSuites');
+    FDoc.AppendChild(n);
+
+    TestSuiteAsXML(n, FDoc, aSuite);
+
+    stream := TStringStream.Create('');
+    WriteXMLFile(FDoc, stream);
+    writeln(stream.DataString);
+    stream.Free;
+  end;
+end;
+
+function TestSuiteAsXML(n: TDOMElement; FDoc: TXMLDocument; aSuite:TTestSuite): string;
+var
+  i: integer;
+begin
+  for i := 0 to Pred(aSuite.Tests.Count) do
+    if TTest(aSuite.Tests.Items[i]) is TTestSuite then
+      TestSuiteAsXML(n, FDoc, TTestSuite(aSuite.Tests.Items[i]))
+    else
+      if TTest(aSuite.Tests.Items[i]) is TTestCase then
+        n.AppendChild(FDoc.CreateTextNode(TTestcase(aSuite.Tests.Items[i]).TestName + ' '));
+end;
 
 
 { TXMLResultsWriter }
@@ -250,4 +288,6 @@ begin
 end;
 
 end.
+
+
 
