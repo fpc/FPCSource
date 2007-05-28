@@ -5520,6 +5520,7 @@ tests/bench/drystone.pas svneol=native#text/plain
 tests/bench/pi.c -text
 tests/bench/pi.pp svneol=native#text/plain
 tests/bench/shootout/README.txt svneol=native#text/plain
+tests/bench/shootout/fpascal2.diff svneol=native#text/plain
 tests/bench/shootout/io/binarytrees-output.txt svneol=native#text/plain
 tests/bench/shootout/io/knucleotide-output.txt svneol=native#text/plain
 tests/bench/shootout/io/moments.in -text
