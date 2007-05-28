@@ -1215,8 +1215,9 @@ begin
        We first check if the blocks after the current block are free. If not then we
        simply call getmem/freemem to get the new block }
      pnext:=pmemchunk_var(pointer(pcurr)+currsize);
-     if ((pnext^.size and usedflag) = 0) 
-        and ((pnext^.size and sizemask) > size-currsize) then
+     if ((chunksize and lastblockflag) = 0)
+        and ((pnext^.size and usedflag) = 0) 
+        and ((pnext^.size and sizemask) >= size-currsize) then
        begin
          concat_two_blocks(pcurr,pnext);
          currsize := pcurr^.size and sizemask;
