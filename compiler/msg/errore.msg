@@ -2213,7 +2213,7 @@ unit_w_cant_compile_unit_with_changed_incfile=10040_W_Can't recompile unit $1, b
 % some source files were not found, so recompilation is impossible.
 unit_u_source_modified=10041_U_File $1 is newer than PPU file $2
 % A modified source file for a compiler unit was found.
-unit_u_ppu_invalid_fpumode=10042_U_Using a unit which was not compiled with correct FPU mode
+unit_u_ppu_invalid_fpumode=10042_U_Trying to use a unit which was compiled with a different FPU mode
 % Trying to compile code while using units which were not compiled with
 % the same floating point format mode. Either all code should be compiled
 % with FPU emulation on, or with FPU emulation off.

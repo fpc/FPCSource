@@ -228,17 +228,16 @@ uses
            exit;
          end;
 {$ifdef cpufpemu}
-       { check if floating point emulation is on?}
-       { fpu emulation isn't unit levelwise
-        if ((ppufile.header.flags and uf_fpu_emulation)<>0) and
+       { check if floating point emulation is on?
+         fpu emulation isn't unit levelwise because it affects calling convention }
+       if ((ppufile.header.flags and uf_fpu_emulation)<>0) xor
             (cs_fp_emulation in current_settings.moduleswitches) then
          begin
            ppufile.free;
            ppufile:=nil;
-           Message(unit_u_ppu_invalid_fpumode);
+           Message(unit_u_ppu_invalid_fpumode,@queuecomment);
            exit;
          end;
-       }
 {$endif cpufpemu}
 
       { Load values to be access easier }
