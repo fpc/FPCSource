@@ -85,7 +85,8 @@ begin
       if p.oper[1]^.typ = top_ref then
         for regCounter := RS_EAX to RS_EDI do
           begin
-            if p.oper[0]^.typ<>top_reg then
+            if (p.oper[0]^.typ<>top_reg) or
+               (getregtype(p.oper[0]^.reg) <> R_INTREGISTER) then
                break;
             if writeToMemDestroysContents(getsupreg(p.oper[0]^.reg),p.oper[1]^.ref^,
                  regCounter,topsize2tcgsize[p.opsize],c[regCounter],dummy) then

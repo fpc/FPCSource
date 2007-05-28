@@ -1901,6 +1901,7 @@ begin
   case op.typ of
     top_reg:
       writeDestroysContents :=
+        (getregtype(op.reg) = R_INTREGISTER) and
         writeToRegDestroysContents(getsupreg(op.reg),supreg,c);
     top_ref:
       writeDestroysContents :=
@@ -2097,6 +2098,7 @@ begin
             labeltable^[tai_label(p).labsym.labelnr-lolab].taiobj := p;
 {$ifdef i386}
         ait_regalloc:
+         if (getregtype(tai_regalloc(p).reg) = R_INTREGISTER) then
           begin
             supreg:=getsupreg(tai_regalloc(p).reg);
             case tai_regalloc(p).ratype of
