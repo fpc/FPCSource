@@ -1071,7 +1071,7 @@ procedure TFPHashList.Put(Index: Integer; Item: Pointer);
 begin
   if (Index < 0) or (Index >= FCount) then
     RaiseIndexError(Index);
-  FHashList^[Index].Data:=Item;;
+  FHashList^[Index].Data:=Item;
 end;
 
 

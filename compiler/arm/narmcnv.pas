@@ -130,7 +130,7 @@ implementation
         instr:=taicpu.op_reg_reg(A_FLT,location.register,left.location.register);
         if is_signed(left.resultdef) then
           begin
-            instr.oppostfix:=cgsize2fpuoppostfix[def_cgsize(resultdef)];;
+            instr.oppostfix:=cgsize2fpuoppostfix[def_cgsize(resultdef)];
             current_asmdata.CurrAsmList.concat(instr);
           end
         else

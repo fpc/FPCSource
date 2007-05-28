@@ -1483,7 +1483,7 @@ implementation
          { We might need the symbols info if not using
            the default do_extractsymbolinfo
            which is a dummy function PM }
-         needsymbolinfo:=do_extractsymbolinfo<>@def_extractsymbolinfo;;
+         needsymbolinfo:=do_extractsymbolinfo<>@def_extractsymbolinfo;
          { release all local symtables that are not needed anymore }
          if (not needsymbolinfo) then
            free_localsymtables(current_module.localsymtable);

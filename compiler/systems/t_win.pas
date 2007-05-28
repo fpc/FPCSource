@@ -829,7 +829,7 @@ implementation
                 temtexport.concat(hp)
               else
                 temtexport.insertbefore(hp,hp2);
-              hp:=texported_item(current_module._exports.first);;
+              hp:=texported_item(current_module._exports.first);
            end;
 
          { write the export adress table }

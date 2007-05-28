@@ -2236,7 +2236,7 @@ begin
 {$endif noinstremove}
           begin
             p.optinfo := nil;
-            p := tai(p.next);;
+            p := tai(p.next);
           end;
     end;
 end;
