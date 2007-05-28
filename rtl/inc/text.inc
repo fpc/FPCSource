@@ -1000,20 +1000,9 @@ End;
 Function ReadPCharLen(var f:Text;s:pchar;maxlen:longint):longint;
 var
   sPos,len : Longint;
-  p,q,startp,maxp : pchar;
-  stop_chars:array[0..2] of char;
+  p,startp,maxp : pchar;
   end_of_string:boolean;
 Begin
-  {Avoid use of ctrlZmarkseof in the inner loop.}
-  stop_chars[0]:=#13;
-{ #10 must be always the last valid element in stop_chars - see below. }
-  if ctrlZmarkseof then
-   begin
-    stop_chars[1]:=#26;
-    stop_chars[2]:=#10;
-   end
-  else
-   stop_chars[1]:=#10;
   ReadPCharLen:=0;
   If not CheckRead(f) then
     exit;
@@ -1034,19 +1023,17 @@ Begin
      maxp:=@TextRec(f).Bufptr^[TextRec(f).BufEnd];
     startp:=p;
   { find stop character }
-{    while (p<maxp) and not(P^ in [#10,#13]) do
-     inc(p);}
     while p<maxp do
       begin
-        q:=@stop_chars[0];
-{ The following line relies on the fact that stop_chars array
-  is always initialized to have #10 as the last valid element. }
-        while (q^<>#10) and (p^<>q^) do
-          inc(q);
-        if p^=q^ then
+        { Optimization: Do a quick check for a control character first }
+        if (p^<' ') then
           begin
-            end_of_string:=true;
-            break;
+            if (p^ in [#10,#13]) or
+               (ctrlZmarkseof and (p^=#26)) then
+              begin
+                end_of_string:=true;
+                break;
+              end;
           end;
         inc(p);
       end;
@@ -1480,13 +1467,13 @@ begin
     char-type (or a subrange of char-type), the integer-type (or a subrange of
     integer-type), the real-type, a fixed-string-type, or a
     variable-string-type, shall be equivalent to
-    
-            begin 
-            rewrite(f); 
-            writeln(f, e); 
-            reset(f); 
-            read(f, v 1 ,...,v n ) 
-            end 
+
+            begin
+            rewrite(f);
+            writeln(f, e);
+            reset(f);
+            read(f, v 1 ,...,v n )
+            end
     *********************
 
     This means that any side effects caused by the evaluation of v 1 .. v n
