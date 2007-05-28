@@ -47,7 +47,7 @@ begin
     halt(3);
   d:=nil;
   d:=c.da;
-  c.fda:=nil;
+  c.da:=nil;
   if (length(d)<>4) or
      (d[0]<>245) or
      (d[1]<>1) or
