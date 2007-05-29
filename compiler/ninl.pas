@@ -891,6 +891,7 @@ implementation
                 {  readstr internally always uses ansistring, and to account for    }
                 {  chararrays with > 255 characters)                                }
                 inserttypeconv(filepara.left,cansistringtype);
+                filepara.resultdef:=filepara.left.resultdef;
                 if codegenerror then
                   exit;
               end
