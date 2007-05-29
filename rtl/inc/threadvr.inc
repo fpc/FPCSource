@@ -95,7 +95,9 @@ begin
    { install threadvar handler }
    fpc_threadvar_relocate_proc:=RelocProc;
 {$ifdef FPC_HAS_FEATURE_HEAP}
+{$ifndef HAS_MEMORYMANAGER}
    RelocateHeap;
+{$endif HAS_MEMORYMANAGER}
 {$endif}
 end;
 

@@ -24,8 +24,10 @@ Var
     procedure InitThread(stklen:SizeUInt);
       begin
         SysResetFPU;
+{$ifndef HAS_MEMORYMANAGER}
         { initialize this thread's heap }
         InitHeapThread;
+{$endif HAS_MEMORYMANAGER}
         if MemoryManager.InitThread <> nil then
           MemoryManager.InitThread();
         { ExceptAddrStack and ExceptObjectStack are threadvars       }
@@ -43,7 +45,9 @@ Var
 
     procedure DoneThread;
       begin
+{$ifndef HAS_MEMORYMANAGER}
         FinalizeHeap;
+{$endif HAS_MEMORYMANAGER}
         if MemoryManager.DoneThread <> nil then
           MemoryManager.DoneThread();
         CurrentTM.ReleaseThreadVars;
