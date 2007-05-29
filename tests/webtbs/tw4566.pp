@@ -7,9 +7,8 @@ program bug4566;
 
 var
   s: string;
-  
+
 begin
   //accidently use #1310 instead of #13#10
   s := 'Message Text' + #1310 + #1310 + 'More Text';
 end.
-                   

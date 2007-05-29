@@ -16,7 +16,7 @@ type
   public
     property Value[AsInt : Boolean] : Variant read GetValue;
   end;
-  
+
 function TMyClass.GetValue(AsInt : Boolean) : Variant;
 begin
   if AsInt then
@@ -26,7 +26,7 @@ begin
 end;
 
 var
-  AClass : TMyClass;  
+  AClass : TMyClass;
 begin
   AClass := TMyClass.Create;
   if (AClass.Value[True] = 1) and

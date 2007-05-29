@@ -5,7 +5,7 @@ program project1;
 {$mode objfpc}{$h+}
 uses
  classes;
- 
+
 type
  ttestcomp = class(tcomponent)
   private
@@ -15,7 +15,7 @@ type
   protected
    procedure defineproperties(filer: tfiler); override;
  end;
- 
+
 { ttestcomp }
 
 procedure ttestcomp.readstringvar(reader: treader);
@@ -36,7 +36,7 @@ end;
 var
  testcomp: ttestcomp;
  stream1,stream2: tmemorystream;
- 
+
 begin
  testcomp:= ttestcomp.create(nil);
  stream1:= tmemorystream.create;

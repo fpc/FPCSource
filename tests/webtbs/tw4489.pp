@@ -22,4 +22,4 @@ begin
    s := format('pid=%d', [d]);
    writeln(s);
 end.
-    
+
