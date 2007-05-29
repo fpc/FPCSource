@@ -525,7 +525,8 @@ implementation
                { not plongint, because that will "sign extend" the set on 64 bit platforms }
                { if changed to "paword", please also modify "32-resultdef.size*8" and      }
                { cross-endian code below                                                   }
-               location.value:=pCardinal(value_set)^
+               { Extra aint type cast to avoid range errors                                }
+               location.value:=aint(pCardinal(value_set)^)
 {$else}
                location.value:=reverse_byte(Psetbytes(value_set)^[0]);
                location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[1]) shl 8);
