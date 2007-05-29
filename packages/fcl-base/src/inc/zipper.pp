@@ -908,12 +908,13 @@ Procedure TZipper.GetFileInfo;
 
 Var
    Info : TSearchRec;
-   I       : Word;
+   I       : Longint;
    NewNode : TZipItem;
 
 
 Begin
    For I := 0 to FFiles.Count-1 do
+    begin
      If FindFirst(FFiles[I], STDATTR, Info)=0 then
        try
          NewNode:=TZipItem.Create;
@@ -925,6 +926,7 @@ Begin
        finally
          FindClose(Info);
        end;
+     end;  
 end;
 
 Procedure TZipper.OpenOutput;
@@ -972,17 +974,20 @@ Begin
     Crc32 := 0;
     Compressed_Size := 0;
     Uncompressed_Size := Item.Size;
-    FileName_Length := Length(Item.Name);
+    FileName_Length := 0;
     Extra_Field_Length := 0;
   end ;
 End;
 
 
 Function TZipper.UpdateZipHeader(Item : TZipItem; FZip : TStream; ACRC : LongWord; AMethod : Word) : Boolean;
-
+var
+  ZFileName  : ShortString;
 Begin
+  ZFileName:=Item.Path+Item.Name;
   With LocalHdr do
     begin
+    FileName_Length := Length(ZFileName);
     Compressed_Size := FZip.Size;
     Crc32 := ACRC;
     Compress_method:=AMethod;
@@ -994,7 +999,7 @@ Begin
       end;
     end;
   FOutFile.WriteBuffer(LocalHdr,SizeOf(LocalHdr));
-  FOutFile.WriteBuffer(Item.Name[1],Length(Item.Name));
+  FOutFile.WriteBuffer(ZFileName[1],Length(ZFileName));
 End;
 
 
@@ -1064,7 +1069,7 @@ end;
 Procedure TZipper.ZipOneFile(Item : TZipItem);
 
 Var
-  CRC : Integer;
+  CRC : LongWord;
   ZMethod : Word;
   ZipStream : TStream;
   TmpFileName : String;
@@ -1114,21 +1119,29 @@ Procedure TZipper.ZipAllFiles;
 Var
    Item : TZipItem;
    I : Integer;
-
+   filecnt : integer;
 Begin
+  if FFiles.Count=0 then
+    exit;
   FZipping:=True;
   Try
     GetFileInfo;
     OpenOutput;
     Try
+      filecnt:=0;
       For I:=0 to FFiles.Count-1 do
         begin
-        Item:=FFiles.Objects[i] as TZipItem;
-        ZipOneFile(Item);
+          Item:=FFiles.Objects[i] as TZipItem;
+	  if assigned(Item) then
+	    begin
+              ZipOneFile(Item);
+	      inc(filecnt);
+	    end;  
         end;
-      BuildZipDirectory;
-    Finally
-       CloseOutput;
+      if filecnt>0 then	
+        BuildZipDirectory;
+    finally
+      CloseOutput;
     end;
   finally
     FZipping:=False;
