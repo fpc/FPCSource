@@ -156,7 +156,6 @@ Type
     function GetPackage(Index : Integer): TFPPackage;
     function GetPackageCount: Integer;
   Protected
-    Property PackageCollection : TFPPackages Read FPackages;
     procedure CreatePackages; virtual;
     Procedure BackupFile(AFileName : String); virtual;
     Procedure DoGetPackageDependencies(PackageName : String; List : TStringList; Level : Integer); virtual;
@@ -189,6 +188,7 @@ Type
     Property PackageCount : Integer Read GetPackageCount;
     Property BackupFiles : Boolean Read FBackUpFiles Write FBackupFiles;
     Property MaxDependencyLevel : Integer Read FMaxDependencyLevel Write FMaxDependencyLevel;
+    Property PackageCollection : TFPPackages Read FPackages;
   end;
 
   EPackage = Class(Exception);

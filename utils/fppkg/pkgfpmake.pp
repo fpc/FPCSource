@@ -120,7 +120,6 @@ end;
 
 Function TFPMakeRunner.RunFPMake(const Command:string) : Integer;
 Var
-  I : integer;
   FPMakeBin : string;
 begin
   { Maybe compile fpmake executable? }

@@ -42,6 +42,7 @@ Resourcestring
   SLogChangeDir              = 'CurrentDir: "%s"';
   SLogDownloading            = 'Downloading "%s" to "%s"';
   SLogUnzippping             = 'Unzipping "%s"';
+  SLogZippping               = 'Zipping "%s"';
   SLogLoadingGlobalConfig    = 'Loading global configuration from "%s"';
   SLogLoadingCompilerConfig  = 'Loading compiler configuration from "%s"';
   SLogGeneratingGlobalConfig = 'Generating default global configuration in "%s"';

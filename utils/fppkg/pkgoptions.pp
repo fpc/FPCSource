@@ -18,6 +18,9 @@ interface
 
 uses Classes, Sysutils, Inifiles, fpmktype;
 
+Const
+  DefaultManifestFile      = 'manifest.xml';
+
 Type
 
   { TPackagerOptions }
@@ -34,6 +37,7 @@ Type
     FPackagesDir,
     FBuildDir : String;
     FDefaultVerbosity,
+    FCurrentCompilerConfig,
     FDefaultCompilerConfig : String;
     // Compiler specific options
     FCompiler : String;
@@ -80,13 +84,14 @@ Type
     Property CompilerConfigDir : String Index 13 Read GetOptString Write SetOptString;
     Property FPMakeCompiler : String Index 14 Read GetOptString Write SetOptString;
     Property FPMakeUnitDir : String Index 15 Read GetOptString Write SetOptString;
+    Property CurrentCompilerConfig : String Index 16 Read GetOptString Write SetOptString;
     Property CompilerOS : TOS Read FCompilerOS Write SetCompilerOS;
     Property CompilerCPU : TCPU Read FCompilerCPU Write SetCompilerCPU;
   end;
 
 var
   Defaults : TPackagerOptions;
-    
+
 Implementation
 
 uses
@@ -157,6 +162,7 @@ begin
    13 : Result:=FCompilerConfigDir;
    14 : Result:=FFPMakeCompiler;
    15 : Result:=FFPMakeUnitDir;
+   16 : Result:=FCurrentCompilerConfig;
   end;
 end;
 
@@ -180,6 +186,7 @@ begin
    13 : FCompilerConfigDir:=FixPath(AValue);
    14 : FFPMakeCompiler:=AValue;
    15 : FFPMakeUnitDir:=FixPath(AValue);
+   16 : FCurrentCompilerConfig:=AValue;
   end;
   FDirty:=True;
 end;
@@ -250,6 +257,7 @@ begin
   FRemoteRepository:=DefaultRemoteRepository;
   // Other config
   FDefaultCompilerConfig:='default';
+  FCurrentCompilerConfig:=FDefaultCompilerConfig;
   FDefaultVerbosity:='error,info,debug,commands';
 end;
 

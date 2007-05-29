@@ -11,8 +11,10 @@ uses
 Const
 {$ifdef unix}
   ExeExt = '';
+  AllFiles='*';
 {$else unix}
   ExeExt = '.exe';
+  AllFiles='*.*';
 {$endif unix}
 
 Type
@@ -20,7 +22,7 @@ Type
   TVerbosities = Set of TVerbosity;
 
   EPackagerError = class(Exception);
-  
+
 // Logging
 Function StringToVerbosity (S : String) : TVerbosity;
 Function VerbosityToString (V : TVerbosity): String;
@@ -32,6 +34,8 @@ Procedure Error(Fmt : String; const Args : array of const);
 // Utils
 function maybequoted(const s:string):string;
 Function FixPath(const S : String) : string;
+Procedure DeleteDir(const ADir:string);
+Procedure SearchFiles(SL:TStringList;const APattern:string);
 
 var
   Verbosity : TVerbosities;
@@ -138,6 +142,49 @@ begin
     Result:=IncludeTrailingPathDelimiter(S)
   else
     Result:='';
+end;
+
+
+Procedure DeleteDir(const ADir:string);
+var
+  Info : TSearchRec;
+begin
+  if FindFirst(ADir+PathDelim+AllFiles,faAnyFile, Info)=0 then
+    try
+      repeat
+        if (Info.Attr and faDirectory)=faDirectory then
+          begin
+            if (Info.Name<>'.') and (Info.Name<>'..') then
+              DeleteDir(ADir+PathDelim+Info.Name)
+          end
+        else
+          DeleteFile(ADir+PathDelim+Info.Name);
+      until FindNext(Info)<>0;
+    finally
+      FindClose(Info);
+    end;
+end;
+
+
+Procedure SearchFiles(SL:TStringList;const APattern:string);
+var
+  Info : TSearchRec;
+  ADir : string;
+begin
+  ADir:=ExtractFilePath(APattern);
+  if FindFirst(APattern,faAnyFile, Info)=0 then
+    try
+      repeat
+        if (Info.Attr and faDirectory)=faDirectory then
+          begin
+            if (Info.Name<>'.') and (Info.Name<>'..') then
+              SearchFiles(SL,ADir+Info.Name+PathDelim+ExtractFileName(APattern))
+          end;
+        SL.Add(ADir+Info.Name);
+      until FindNext(Info)<>0;
+    finally
+      FindClose(Info);
+    end;
 end;
 
 
