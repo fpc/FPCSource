@@ -220,7 +220,7 @@ var
   opt: DWord;
 begin
   opt := BlockAr[aValue];
-  if ioctlsocket(aHandle, FIONBIO, opt) = SOCKET_ERROR then
+  if ioctlsocket(aHandle, Longint(FIONBIO), opt) = SOCKET_ERROR then
     Exit(False);
   Result := True;
 end;

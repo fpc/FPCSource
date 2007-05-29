@@ -132,7 +132,7 @@ type
     procedure OnControlRe(aSocket: TLSocket);
     procedure OnControlCo(aSocket: TLSocket);
     procedure OnControlDs(aSocket: TLSocket);
-    
+
     function GetTransfer: Boolean;
 
     function GetEcho: Boolean;
