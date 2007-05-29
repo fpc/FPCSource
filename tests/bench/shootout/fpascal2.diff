@@ -1,0 +1,156 @@
+Index: Make.header
+===================================================================
+RCS file: /cvsroot/shootout/shootout/Make.header,v
+retrieving revision 1.95
+diff -u -r1.95 Make.header
+--- Make.header	18 May 2007 03:09:48 -0000	1.95
++++ Make.header	28 May 2007 10:36:22 -0000
+@@ -26,6 +26,7 @@
+ ERLANG := /usr/bin/erl
+ FELIX := /usr/bin/flx
+ FPASCAL := /usr/bin/fpc
++FPASCAL2 := /usr/bin/fpc2
+ G95 := /usr/bin/g95
+ GFORTRAN := /usr/bin/gfortran
+ GAWK := /usr/bin/gawk
+@@ -113,7 +114,7 @@
+ XEMACS := /usr/bin/xemacs
+ 
+ LANGS := $(BASH) $(BIGLOO) $(CHICKEN) $(CIAOC) $(CLM) $(CMUCL) $(CURRY) $(CYCLONE) \
+-	 $(DLANG) $(ERLANG) $(FELIX) $(FPASCAL) $(G95) $(GFORTRAN) \
++	 $(DLANG) $(ERLANG) $(FELIX) $(FPASCAL) $(FPASCAL2) $(G95) $(GFORTRAN) \
+ 	 $(GAWK) $(GCC) $(GCL) $(GCJ) $(GFORTH) $(GHC) $(GPC) $(GST) $(GUILE) \
+ 	 $(GWYDION) $(GXX) $(HUGS) $(ICON) $(ICPP) $(IFC) $(IO) $(IRON) $(GIJ) \
+ 	 $(JAVA14) $(JAVA15) $(KAFFE) $(JAVASCRIPT) $(LUA) $(MAWK) $(MERCURY) \
+Index: Minibench.conf
+===================================================================
+RCS file: /cvsroot/shootout/shootout/Minibench.conf,v
+retrieving revision 1.101
+diff -u -r1.101 Minibench.conf
+--- Minibench.conf	18 May 2007 03:09:48 -0000	1.101
++++ Minibench.conf	28 May 2007 10:36:22 -0000
+@@ -6,7 +6,7 @@
+ tabdir       data
+ 
+ automake     bigloo,chicken,ciao,clean,cmucl,csharp,curry,cyc,dlang,erlang,
+-automake     felix,fpascal,g95,gpp,gcc,gcj,gcl,gfortran,ghc,gij,gnat,gpc,
++automake     felix,fpascal,fpascal2,g95,gpp,gcc,gcj,gcl,gfortran,ghc,gij,gnat,gpc,
+ automake     gprolog,gwydion,hipe,hugs,icc,icon,icpp,ifc,iron,java,java14,javaxint,
+ automake     javaclient,kaffe,mercury,mlton,mzscheme,mzc,
+ automake     nhc98,nice,objc,ocaml,ocamlb,ooc,oz,parrot,pike,poly,python,psyco,
+Index: langs.pl
+===================================================================
+RCS file: /cvsroot/shootout/shootout/langs.pl,v
+retrieving revision 1.100
+diff -u -r1.100 langs.pl
+--- langs.pl	1 May 2007 20:43:32 -0000	1.100
++++ langs.pl	28 May 2007 10:36:22 -0000
+@@ -932,6 +932,22 @@
+        },
+      },
+ 
++     fpascal2 =>
++     { Lang => 'Pascal2',
++       Name => 'Free Pascal',
++       Status => '+',
++       Home => 'http://www.freepascal.org',
++       Down => 'http://www.freepascal.org/download.html',
++       Type => 'native compiled',
++       Note => 'Structured programming plus objects',
++       Ext  => 'pas',
++       Verfun => sub {
++           my $ver = `$ENV{FPASCAL2} -i`;
++	   $ver =~ /(Free Pascal.*version [\d\.]+)/;
++	   return $1;
++       },
++     },
++
+      php =>
+      { Lang => 'PHP',
+        Home => 'http://www.php.net/',
+Index: bench/Makefile.mb
+===================================================================
+RCS file: /cvsroot/shootout/shootout/bench/Makefile.mb,v
+retrieving revision 1.148
+diff -u -r1.148 Makefile.mb
+--- bench/Makefile.mb	8 Apr 2007 06:17:43 -0000	1.148
++++ bench/Makefile.mb	28 May 2007 10:36:22 -0000
+@@ -23,6 +23,7 @@
+ DLANGOPTS := -O -inline -release $(DLANGOPTS)
+ FLXOPTS := -c --optimize --static
+ FPCOPTS := -XX -Xs -O3p3r -Fi../../Include/fpascal -Fu../../Include/fpascal -I../../Include/fpascal $(FPCOPTS)
++FPC2OPTS := -XX -Xs -O3 -Fi../../Include/fpascal -Fu../../Include/fpascal -I../../Include/fpascal $(FPC2OPTS)
+ G95OPTS := -pipe -Wall $(COPTS) $(G95OPTS)
+ GCCOPTS := -pipe -Wall $(COPTS) $(GCCOPTS)
+ GCJOPTS := $(COPTS) $(GCJOPTS)
+@@ -665,6 +666,15 @@
+ 	-mv FPASCAL_RUN $@
+ 	-@rm -f $*.o
+ 
++%.pas: $(MB_SRCDIR)/%.fpascal2 $(FPASCAL2)
++	-cp $< $@
++
++%.fpascal2_run: %.pas
++	-@rm -f $@ 
++	-$(FPASCAL2) $(FPC2OPTS) -oFPASCAL_RUN $<
++	-mv FPASCAL_RUN $@
++	-@rm -f $*.o
++
+ ########################################
+ # gpc (GNU Pascal Compiler)
+ ########################################
+Index: bench/hello/Minibench.conf
+===================================================================
+RCS file: /cvsroot/shootout/shootout/bench/hello/Minibench.conf,v
+retrieving revision 1.76
+diff -u -r1.76 Minibench.conf
+--- bench/hello/Minibench.conf	18 May 2007 03:09:48 -0000	1.76
++++ bench/hello/Minibench.conf	28 May 2007 10:36:23 -0000
+@@ -2,7 +2,7 @@
+ #
+ 
+ automake     bigloo,chicken,ciao,clean,cmucl,csharp,cyc,dlang,erlang,felix,
+-automake     fpascal,g95,gfortran,gpp,gcc,gcj,gcl,ghc,gij,gnat,gprolog,gwydion,hipe,hugs,
++automake     fpascal,fpascal2,g95,gfortran,gpp,gcc,gcj,gcl,ghc,gij,gnat,gprolog,gwydion,hipe,hugs,
+ automake     icon,icc,icpp,ifc,iron,java,java14,javaxint,javaclient,kaffe,mercury,
+ automake     mlton,mzc,nhc98,nice,oberon2,objc,ocaml,ocamlb,ooc,oz,parrot,pike,
+ automake     python,poly,psyco,rep,sablevm,sbcl,scala,se,smlnj,stalin,swiprolog,
+@@ -27,6 +27,7 @@
+ commandline  gwydion: repeat %A ./%X
+ commandline  felix: repeat %A %X
+ commandline  fpascal: repeat %A %X
++commandline  fpascal2: repeat %A %X
+ commandline  erlang: repeat %A $ERLANG $ERLFLAGS -noinput -run %T main
+ commandline  gawk: repeat %A $GAWK -f ../%X
+ commandline  g95: repeat %A %X
+Index: bench/lists/Minibench.conf
+===================================================================
+RCS file: /cvsroot/shootout/shootout/bench/lists/Minibench.conf,v
+retrieving revision 1.29
+diff -u -r1.29 Minibench.conf
+--- bench/lists/Minibench.conf	3 Nov 2006 15:16:11 -0000	1.29
++++ bench/lists/Minibench.conf	28 May 2007 10:36:23 -0000
+@@ -6,7 +6,7 @@
+ tabdir       data
+ 
+ automake     bigloo,chicken,ciao,clean,cmucl,csharp,curry,cyc,dlang,erlang,
+-automake     felix,fpascal,g95,gfortran,gpp,gcc,gcj,gcl,ghc,gij,gnat,gprolog,
++automake     felix,fpascal,fpascal2,g95,gfortran,gpp,gcc,gcj,gcl,ghc,gij,gnat,gprolog,
+ automake     gwydion,hipe,hugs,icon,icc,icpp,iron,java,java14,kaffe,mercury,mlton,
+ automake     mzc,nhc98,nice,oberon2,objc,ocaml,ocamlb,ooc,oz,poly,python,psyco,
+ automake     rep,sablevm,sbcl,scala,se,smlnj,stalin,tcc,xds,xemacs,njs
+Index: bin/make_links
+===================================================================
+RCS file: /cvsroot/shootout/shootout/bin/make_links,v
+retrieving revision 1.11
+diff -u -r1.11 make_links
+--- bin/make_links	6 Oct 2006 17:00:29 -0000	1.11
++++ bin/make_links	28 May 2007 10:36:24 -0000
+@@ -11,6 +11,7 @@
+ 
+    cmucl =>    [ 'sbcl', 'gcl' ],
+    erlang =>   [ 'hipe' ],
++   fpascal =>  [ 'fpascal2' ],
+    ghc =>      [ 'nhc98', 'hugs' ],
+    gcc =>      [ 'icc', 'tcc' ],
+    gpp =>      [ 'icpp' ],
