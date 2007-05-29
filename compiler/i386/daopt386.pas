@@ -1265,6 +1265,7 @@ begin
     begin
       p := tai(p.previous);
       if (p.typ = ait_regalloc) and
+         (getregtype(tai_regalloc(p).reg) = R_INTREGISTER) and
          (getsupreg(tai_regalloc(p).reg) = supreg) then
         if (tai_regalloc(p).ratype=ra_dealloc) then
           if first then
