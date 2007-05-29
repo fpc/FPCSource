@@ -274,8 +274,13 @@ interface
        presinfo = ^tresinfo;
        tresinfo = record
           id      : tres;
+          { Compiler for resource (.rc or .res) to obj }
           resbin  : string[8];
           rescmd  : string[50];
+          { Optional compiler for resource script (.rc) to binary resource (.res). }
+          { If it is not provided resbin and rescmd will be used.                 }
+          rcbin   : string[8];
+          rccmd   : string[50];
           resourcefileclass : TAbstractResourceFileClass;
        end;
 

@@ -124,6 +124,7 @@ const
   {implementation/ObjData}
   ibnodetree       = 80;
   ibasmsymbols     = 81;
+  ibresources      = 82;
 
 { unit flags }
   uf_init          = $1;
