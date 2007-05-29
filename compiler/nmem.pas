@@ -677,6 +677,7 @@ implementation
 
     function tvecnode.pass_typecheck:tnode;
       var
+         hightree: tnode;
          htype,elementdef : tdef;
          valid : boolean;
       begin
@@ -739,6 +740,31 @@ implementation
                  resultdef:=left.resultdef
                else
                  resultdef:=Tarraydef(left.resultdef).elementdef;
+
+               { if we are range checking an open array or array of const, we }
+               { need to load the high parameter. If the current procedure is }
+               { nested inside the procedure to which the open array/of const }
+               { was passed, then the high parameter must not be a regvar.    }
+               { So create a loadnode for the high parameter here and         }
+               { typecheck it, then the loadnode will make the high parameter }
+               { not regable. Otherwise this would only happen inside pass_2, }
+               { which is too late since by then the regvars are already      }
+               { assigned (pass_1 is also already too late, because then the  }
+               { regvars of the parent are also already assigned).            }
+               { webtbs/tw8975                                                }
+               if (cs_check_range in current_settings.localswitches) and
+                  (is_open_array(left.resultdef) or
+                   is_array_of_const(left.resultdef)) and
+                  { cdecl functions don't have high() so we can not check the range }
+                  { (can't use current_procdef, since it may be a nested procedure) }
+                  not(tprocdef(tparasymtable(tparavarsym(tloadnode(left).symtableentry).owner).defowner).proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+                   begin
+                     { load_high_value_node already typechecks }
+                     hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));
+                     hightree.free;
+                   end;
+      
+      
              end;
            pointerdef :
              begin
@@ -874,6 +900,7 @@ implementation
                 registersint:=max(registersint,1);
               }
            end;
+
          registersfpu:=max(left.registersfpu,right.registersfpu);
 {$ifdef SUPPORT_MMX}
          registersmmx:=max(left.registersmmx,right.registersmmx);
