@@ -268,8 +268,13 @@ interface
                              end;
                            end;
                         end;
+{$ifdef x86}
+                        { can only be checked now that all local operands }
+                        { have been resolved                              }
+                        taicpu(hp2).CheckIfValid;
+{$endif x86}
                      end;
-                   ait_marker :
+                  ait_marker :
                      begin
                      { it's not an assembler block anymore }
                        if (tai_marker(hp2).kind in [mark_AsmBlockStart, mark_AsmBlockEnd]) then
@@ -303,6 +308,11 @@ interface
                        { fixup the references }
                        for i:=1 to taicpu(hp).ops do
                          ResolveRef(taicpu(hp).oper[i-1]^);
+{$ifdef x86}
+                      { can only be checked now that all local operands }
+                      { have been resolved                              }
+                      taicpu(hp).CheckIfValid;
+{$endif x86}
                      end;
                 end;
                 hp:=tai(hp.next);
