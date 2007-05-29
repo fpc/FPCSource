@@ -128,7 +128,7 @@ begin
   if cs_link_nolink in current_settings.globalswitches then
     AsmRes.AddLinkCommand(resbin,s,'');
   if ObjUsed then
-    current_module.linkotherofiles.add(resobj,link_always);
+    current_module.linkunitofiles.add(resobj,link_always);
 end;
 
 
