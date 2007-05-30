@@ -12,8 +12,12 @@ units=fpmktype fpmkunit
 [install]
 fpcpackage=y
 
+[compiler]
+sourcedir=src
+includedir=src
+
 [default]
-fpcdir=../../..
+fpcdir=../..
 
 [rules]
 .NOTPARALLEL:
