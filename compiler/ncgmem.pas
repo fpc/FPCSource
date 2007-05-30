@@ -543,7 +543,8 @@ implementation
             is_array_of_const(left.resultdef) then
           begin
             { cdecl functions don't have high() so we can not check the range }
-            if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+            { (can't use current_procdef, since it may be a nested procedure) }
+            if not(tprocdef(tparasymtable(tparavarsym(tloadnode(left).symtableentry).owner).defowner).proccalloption in [pocall_cdecl,pocall_cppdecl]) then
              begin
                { Get high value }
                hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));

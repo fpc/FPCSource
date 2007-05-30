@@ -744,11 +744,7 @@ begin
 
  { Concat the opcode or give an error }
   if assigned(ai) then
-   begin
-     { Check the instruction if it's valid }
-     ai.CheckIfValid;
-     p.concat(ai);
-   end
+    p.concat(ai)
   else
    Message(asmr_e_invalid_opcode_and_operand);
   result:=ai;
