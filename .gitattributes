@@ -4308,11 +4308,11 @@ packages/fcl-xml/tests/README svneol=native#text/plain
 packages/fcl-xml/tests/template.xml svneol=native#text/plain
 packages/fcl-xml/tests/xmlts.pp svneol=native#text/plain
 packages/fpmake.pp svneol=native#text/plain
-packages/fpmake/Makefile svneol=native#text/plain
-packages/fpmake/Makefile.fpc svneol=native#text/plain
-packages/fpmake/fpmake.inc svneol=native#text/plain
-packages/fpmake/fpmake.pp svneol=native#text/plain
-packages/fpmake/src/fpmkunit.pp svneol=native#text/plain
+packages/fpmkunit/Makefile svneol=native#text/plain
+packages/fpmkunit/Makefile.fpc svneol=native#text/plain
+packages/fpmkunit/fpmake.inc svneol=native#text/plain
+packages/fpmkunit/fpmake.pp svneol=native#text/plain
+packages/fpmkunit/src/fpmkunit.pp svneol=native#text/plain
 rtl/COPYING -text
 rtl/COPYING.FPC -text
 rtl/Makefile svneol=native#text/plain

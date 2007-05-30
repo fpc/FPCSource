@@ -3,11 +3,11 @@
 #
 
 [package]
-name=fpmake
+name=fpmkunit
 version=2.0.0
 
 [target]
-units=fpmktype fpmkunit
+units=fpmkunit
 
 [install]
 fpcpackage=y
@@ -21,6 +21,4 @@ fpcdir=../..
 
 [rules]
 .NOTPARALLEL:
-fpmkunit$(PPUEXT) : fpmkunit.pp fpmkcnst.inc fpmktype$(PPUEXT)
-
-fpmktype$(PPUEXT) : fpmktype.pp fpmkcnst.inc
+fpmkunit$(PPUEXT) : fpmkunit.pp
