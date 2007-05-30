@@ -1,7 +1,7 @@
 {$mode objfpc}{$H+}
 program fpmake;
 
-uses fpmktype,fpmkunit;
+uses fpmkunit;
 
 var
   T : TTarget;

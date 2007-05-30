@@ -8,8 +8,73 @@ Interface
 uses SysUtils,Classes,fpmktype;
 
 Type
+  TFileType = (ftSource,ftUnit,ftObject,ftResource,ftExecutable,ftStaticLibrary,
+               ftSharedLibrary);
+  TFileTypes = set of TFileType;
+
+  TOS = (osNone,Amiga,Atari,Darwin,FreeBSD,Go32v2,Linux,MacOS,MorphOS,NetBSD,
+         Netware,NetwLibc,OpenBSD,OS2,PalmOS,Solaris,Win32,Win64,WinCE,Emx);
+  TOSes = Set of TOS;
+
+  TCPU = (cpuNone,Arm,I386,PPC,SPARC,X86_64,M68K,PPC64);
+  TCPUS = Set of TCPU;
+
+  TCompilerMode = (cmFPC,cmTP,cmObjFPC,cmDelphi,cmMacPas);
+  TCompilerModes = Set of TCompilerMode;
+
+  TTargetType = (ttUnit,ttProgram,ttExampleUnit,ttExampleProgram);
+  TTargetTypes = set of TTargetType;
+
+  TTargetState = (tsNeutral,tsCompiling,tsCompiled,tsInstalled);
+  TTargetStates = Set of TTargetState;
+
+  TSourceType = (stDoc,stSrc,stExample,stTest);
+  TSourceTypes = set of TSourceType;
+
+  TVerboseLevel = (vlError,vlWarning,vlInfo,vlCompare,vlCommand,vldebug);
+  TVerboseLevels = Set of TVerboseLevel;
+
+  TCommandAt = (caBeforeCompile,caAfterCompile,
+                caBeforeInstall,caAfterInstall,
+                caBeforeArchive,caAfterArchive,
+                caBeforeClean,caAfterClean,
+                caBeforeDownload,caAfterDownload);
+
+  TLogEvent = Procedure (Level : TVerboseLevel; Const Msg : String) of Object;
+
   TRunMode = (rmCompile,rmBuild,rmInstall,rmArchive,rmClean,rmManifest,rmListSources);
 
+Const
+  // Aliases
+  Amd64   = X86_64;
+  PowerPC = PPC;
+  PowerPC64 = PPC64;
+  DOS = Go32v2;
+  MacOSX = Darwin;
+
+  AllOSs  = [Low(TOS)..High(TOS)];
+  AllCPUs = [Low(TCPU)..High(TCPU)];
+
+  // Useful
+  UnitExt = '.ppu';
+  PPUExt  = UnitExt;
+  PasExt  = '.pas';
+  PPExt   = '.pp';
+  IncExt  = '.inc';
+  ObjExt  = '.o';
+  RstExt  = '.rst';
+  LibExt  = '.a';
+  SharedLibExt = '.so';
+  DLLExt  = '.dll';
+  ExeExt  = '.exe';
+  ZipExt  = '.zip';
+
+  UnitTargets = [ttUnit,ttExampleUnit];
+  ProgramTargets = [ttProgram,ttExampleProgram];
+
+  AllMessages = [vlError,vlWarning,vlInfo,vlCompare,vlCommand];
+
+Type
   { TNamedItem }
 
   TNamedItem = Class(TCollectionItem)
@@ -42,8 +107,6 @@ Type
     Function ItemByName(ANAme : String) : TNamedItem;
     Property NamedItems[Index : Integer] : TNamedItem Read GetNamedItem Write SetNamedItem; default;
   end;
-
-  TCommandAt = fpmktype.TCommandAt;
 
   { TCommand }
   TCommand = Class(TNamedItem)
@@ -612,15 +675,11 @@ Type
   end;
 
   ECollectionError = Class(Exception);
-  EInstallerError = fpmktype.EInstallerError;
   EDictionaryError = Class(Exception);
+  EInstallerError = Class(Exception);
 
   TInstallerClass = Class of TInstaller;
   TDictionaryClass = Class of TDictionary;
-
-// Constants are in the file as for fpmktype.
-
-{$i fpmkcnst.inc}
 
 
 Type
@@ -666,6 +725,10 @@ Implementation
 uses typinfo;
 
 ResourceString
+  SErrInvalidCPU        = 'Invalid CPU name : "%s"';
+  SErrInvalidOS         = 'Invalid OS name : "%s"';
+  SErrInvalidMode       = 'Invalid compiler mode : "%s"';
+  SErrInvalidTarget     = 'Invalid compiler target: %s';
   SErrNameExists        = 'Name "%s" already exists in the collection.';
   SErrNoSuchName        = 'Could not find item with name "%s" in the collection.';
   SErrNoPackage         = 'No package available. Add package with StartPackage Call';
@@ -772,75 +835,102 @@ end;
 Function OSToString(OS: TOS) : String;
 
 begin
-  Result:=fpmktype.OsToString(OS);
+  Result:=LowerCase(GetenumName(TypeInfo(TOS),Ord(OS)));
 end;
 
 Function OSesToString(OSes: TOSes) : String;
 
 begin
-  Result:=fpmktype.OSesToString(OSes);
+  Result:=LowerCase(SetToString(PtypeInfo(TypeInfo(TOSes)),Integer(OSes),False));
 end;
 
 Function CPUToString(CPU: TCPU) : String;
 
 begin
-  Result:=fpmkType.CPUToString(CPU);
+  Result:=LowerCase(GetenumName(TypeInfo(TCPU),Ord(CPU)));
 end;
 
 Function CPUSToString(CPUS: TCPUS) : String;
 
 begin
-  Result:=fpmktype.CPUSToString(CPUS);
+  Result:=LowerCase(SetToString(PTypeInfo(TypeInfo(TCPUS)),Integer(CPUS),False));
 end;
 
 Function StringToOS(S : String) : TOS;
 
+Var
+  I : Integer;
+
 begin
-  Result:=fpmktype.StringToOS(S);
+  I:=GetEnumValue(TypeInfo(TOS),S);
+  if (I=-1) then
+    Raise EInstallerError.CreateFmt(SErrInvalidOS,[S]);
+  Result:=TOS(I);
 end;
+
 
 Function OSesToString(S : String) : TOSes;
 
 begin
-  Result:=fpmktype.OSesToString(S);
+  Result:=TOSes(StringToSet(PTypeInfo(TypeInfo(TOSes)),S));
 end;
 
 Function StringToCPU(S : String) : TCPU;
 
+Var
+  I : Integer;
+
 begin
-  Result:=fpmktype.StringToCPU(S);
+  I:=GetEnumValue(TypeInfo(TCPU),S);
+  if (I=-1) then
+    Raise EInstallerError.CreateFmt(SErrInvalidCPU,[S]);
+  Result:=TCPU(I);
 end;
 
 Function StringToCPUS(S : String) : TCPUS;
 
 begin
-  Result:=fpmktype.StringToCPUS(S);
+  Result:=TCPUS(StringToSet(PTypeInfo(TypeInfo(TCPUS)),S));
 end;
 
 Function ModeToString(Mode: TCompilerMode) : String;
 
 begin
-  Result:=fpmktype.ModeToString(Mode);
+  Result:=LowerCase(GetenumName(TypeInfo(TCompilerMode),Ord(Mode)));
 end;
 
 Function StringToMode(S : String) : TCompilerMode;
 
+Var
+  I : Integer;
+
 begin
-  Result:=fpmktype.StringToMode(S);
+  I:=GetEnumValue(TypeInfo(TCompilerMode),S);
+  if (I=-1) then
+    Raise EInstallerError.CreateFmt(SErrInvalidMode,[S]);
+  Result:=TCompilerMode(I);
 end;
 
 
 Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
 
 begin
-  Result:=fpmktype.MakeTargetString(CPU,OS);
+  Result:=CPUToString(CPU)+'-'+OSToString(OS);
 end;
 
 Procedure StringToCPUOS(S : String; Var CPU : TCPU; Var OS: TOS);
 
+Var
+  P : integer;
+
 begin
- fpmktype.StringToCPUOS(S,CPU,OS);
+  P:=Pos('-',S);
+  If (P=0) then
+    Raise EInstallerError.CreateFmt(SErrInvalidTarget,[S]);
+  CPU:=StringToCPU(Copy(S,1,P-1));
+  OS:=StringToOs(Copy(S,P+1,Length(S)-P));
 end;
+
 
 Procedure ResolveDependencies(L : TStrings; P : TNamedCollection);
 

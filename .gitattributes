@@ -4312,8 +4312,6 @@ packages/fpmake/Makefile svneol=native#text/plain
 packages/fpmake/Makefile.fpc svneol=native#text/plain
 packages/fpmake/fpmake.inc svneol=native#text/plain
 packages/fpmake/fpmake.pp svneol=native#text/plain
-packages/fpmake/src/fpmkcnst.inc svneol=native#text/plain
-packages/fpmake/src/fpmktype.pp svneol=native#text/plain
 packages/fpmake/src/fpmkunit.pp svneol=native#text/plain
 rtl/COPYING -text
 rtl/COPYING.FPC -text
