@@ -1370,7 +1370,9 @@ Begin
       For I:=0 to FZipEntries.Count-1 do
         begin
           Item:=FZipEntries[i] as TZipItem;
-          UnZipOneFile(Item);
+	  if (FFiles=nil) or
+	     (FFiles.IndexOf(Item.Name)<>-1) then
+            UnZipOneFile(Item);
         end;
     Finally
        CloseInput;
