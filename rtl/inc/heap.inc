@@ -523,31 +523,33 @@ end;
                          Split block
 *****************************************************************************}
 
-function split_block(pcurr: pmemchunk_var; size: ptrint): pmemchunk_var;
+function split_block(pcurr: pmemchunk_var; size: ptrint): ptrint;
 var
   pcurr_tmp : pmemchunk_var;
-  sizeleft: ptrint;
+  size_flags, oldsize, sizeleft: ptrint;
 begin
-  sizeleft := (pcurr^.size and sizemask)-size;
+  size_flags := pcurr^.size;
+  oldsize := size_flags and sizemask;
+  sizeleft := oldsize-size;
   if sizeleft>=sizeof(tmemchunk_var) then
     begin
       pcurr_tmp := pmemchunk_var(pointer(pcurr)+size);
       { update prevsize of block to the right }
-      if (pcurr^.size and lastblockflag) = 0 then
-        pmemchunk_var(pointer(pcurr)+(pcurr^.size and sizemask))^.prevsize := sizeleft;
+      if (size_flags and lastblockflag) = 0 then
+        pmemchunk_var(pointer(pcurr)+oldsize)^.prevsize := sizeleft;
       { inherit the lastblockflag }
-      pcurr_tmp^.size := sizeleft or (pcurr^.size and lastblockflag);
+      pcurr_tmp^.size := sizeleft or (size_flags and lastblockflag);
       pcurr_tmp^.prevsize := size;
       pcurr_tmp^.freelists := pcurr^.freelists;
       { the block we return is not the last one anymore (there's now a block after it) }
       { decrease size of block to new size }
-      pcurr^.size := size or (pcurr^.size and (not sizemask and not lastblockflag));
+      pcurr^.size := size or (size_flags and (not sizemask and not lastblockflag));
       { insert the block in the freelist }
       append_to_list_var(pcurr_tmp);
-      result := pcurr_tmp;
+      result := size;
     end
   else
-    result := nil;
+    result := oldsize;
 end;
 
 
@@ -581,11 +583,12 @@ begin
   remove_from_list_var(mc_right);
 end;
 
-procedure try_concat_free_chunk_forward(mc: pmemchunk_var);
+function try_concat_free_chunk_forward(mc: pmemchunk_var): boolean;
 var
   mc_tmp : pmemchunk_var;
 begin
   { try concat forward }
+  result := false;
   if (mc^.size and lastblockflag) = 0 then
    begin
      mc_tmp := pmemchunk_var(pointer(mc)+(mc^.size and sizemask));
@@ -593,6 +596,7 @@ begin
        begin
          // next block free: concat
          concat_two_blocks(mc, mc_tmp);
+         result := true;
        end;
    end;
 end;
@@ -886,9 +890,8 @@ begin
   { remove the current block from the freelist }
   remove_from_list_var(pcurr);
   { create the left over freelist block, if at least 16 bytes are free }
-  split_block(pcurr, size);
+  size := split_block(pcurr, size);
   { flag block as used }
-  size := pcurr^.size and sizemask;
   pcurr^.size := pcurr^.size or usedflag;
   pcurr^.freelists := loc_freelists;
   { statistics }
@@ -1209,33 +1212,21 @@ begin
   oldsize := currsize;
 
   { do we need to allocate more memory ? }
+  if try_concat_free_chunk_forward(pcurr) then
+    currsize := pcurr^.size and sizemask;
   if size>currsize then
-   begin
-     { the size is bigger than the previous size, we need to allocated more mem.
-       We first check if the blocks after the current block are free. If not then we
-       simply call getmem/freemem to get the new block }
-     pnext:=pmemchunk_var(pointer(pcurr)+currsize);
-     if ((chunksize and lastblockflag) = 0)
-        and ((pnext^.size and usedflag) = 0) 
-        and ((pnext^.size and sizemask) >= size-currsize) then
-       begin
-         concat_two_blocks(pcurr,pnext);
-         currsize := pcurr^.size and sizemask;
-       end
-     else
-       exit;
-   end;
+    begin
+      { the size is bigger than the previous size, we need to allocate more mem
+        but we could not concatenate with next block or not big enough }
+      exit;
+    end
+  else
   { is the size smaller then we can adjust the block to that size and insert
     the other part into the freelist }
   if currsize>size then
-  begin
-    pnext := split_block(pcurr, size);
-    currsize := pcurr^.size and sizemask;
-    if pnext <> nil then
-      try_concat_free_chunk_forward(pnext);
-  end;
+    currsize := split_block(pcurr, size);
 
-  with freelists.internal_status do
+  with pcurr^.freelists^.internal_status do
   begin
     inc(currheapused, currsize-oldsize);
     if currheapused > maxheapused then
@@ -1276,7 +1267,7 @@ begin
     { Resize block }
 {$ifdef DUMP_MEM_USAGE}
     oldsize:=SysMemSize(p);
-{$endif}    
+{$endif}
     if not SysTryResizeMem(p,size) then
     begin
       oldsize:=MemoryManager.MemSize(p);
