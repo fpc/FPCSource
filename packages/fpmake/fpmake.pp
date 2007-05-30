@@ -3,14 +3,14 @@ program fpmake;
 
 uses fpmktype,fpmkunit;
 
-Var
+var
   T : TTarget;
-
+  S : TSource;
 begin
-  With Installer do 
+  with Installer do
     begin
-    {$i fpmake.inc}
-    Run;
+      {$i fpmake.inc}
+      Run;
     end;
 end.
 
