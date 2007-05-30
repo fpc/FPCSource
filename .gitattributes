@@ -771,12 +771,6 @@ packages/base/dbus/example/Makefile.fpc svneol=native#text/plain
 packages/base/dbus/example/busexample.pp svneol=native#text/plain
 packages/base/fpmake.inc svneol=native#text/plain
 packages/base/fpmake.pp svneol=native#text/plain
-packages/base/fpmake/Makefile svneol=native#text/plain
-packages/base/fpmake/Makefile.fpc svneol=native#text/plain
-packages/base/fpmake/fpmake.pp svneol=native#text/plain
-packages/base/fpmake/fpmkcnst.inc svneol=native#text/plain
-packages/base/fpmake/fpmktype.pp svneol=native#text/plain
-packages/base/fpmake/fpmkunit.pp svneol=native#text/plain
 packages/base/gdbint/Makefile svneol=native#text/plain
 packages/base/gdbint/Makefile.fpc svneol=native#text/plain
 packages/base/gdbint/fpmake.inc svneol=native#text/plain
@@ -4314,6 +4308,12 @@ packages/fcl-xml/tests/README svneol=native#text/plain
 packages/fcl-xml/tests/template.xml svneol=native#text/plain
 packages/fcl-xml/tests/xmlts.pp svneol=native#text/plain
 packages/fpmake.pp svneol=native#text/plain
+packages/fpmake/src/Makefile svneol=native#text/plain
+packages/fpmake/src/Makefile.fpc svneol=native#text/plain
+packages/fpmake/src/fpmake.pp svneol=native#text/plain
+packages/fpmake/src/fpmkcnst.inc svneol=native#text/plain
+packages/fpmake/src/fpmktype.pp svneol=native#text/plain
+packages/fpmake/src/fpmkunit.pp svneol=native#text/plain
 rtl/COPYING -text
 rtl/COPYING.FPC -text
 rtl/Makefile svneol=native#text/plain
