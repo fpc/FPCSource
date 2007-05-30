@@ -17,7 +17,7 @@ unit reptest;
 interface
 
 uses
-  Classes, SysUtils, fprepos, fpmktype;
+  Classes, SysUtils, fprepos;
 
 // Num restricted to 1 2 3. 4 will create package with unsatisfied dependency.
 Function CreateTestRep(Num : Integer) : TFPRepository;

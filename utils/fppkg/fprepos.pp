@@ -19,14 +19,23 @@ interface
 uses
   classes,sysutils,
   contnrs,
-  streamcoll,
-  fpmktype;
+  streamcoll;
 
 Const
   StreamVersion   : Integer = 1;
   StreamSignature = $FEEF;
 
 Type
+  TOS = (osNone,Amiga,Atari,Darwin,FreeBSD,Go32v2,Linux,MacOS,MorphOS,NetBSD,
+         Netware,NetwLibc,OpenBSD,OS2,PalmOS,Solaris,Win32,Win64,WinCE,Emx);
+  TOSes = Set of TOS;
+
+  TCPU = (cpuNone,Arm,I386,PPC,SPARC,X86_64,M68K,PPC64);
+  TCPUS = Set of TCPU;
+
+  TCompilerMode = (cmFPC,cmTP,cmObjFPC,cmDelphi,cmMacPas);
+  TCompilerModes = Set of TCompilerMode;
+
   { TFPVersion }
 
   TFPVersion = Class(TPersistent)
@@ -197,6 +206,20 @@ Const
   // Max level of dependency searching before we decide it's a circular dependency.
   DefaultMaxDependencyLevel = 15;
 
+Function OSToString(OS: TOS) : String;
+Function OSesToString(OSes: TOSes) : String;
+Function CPUToString(CPU: TCPU) : String;
+Function CPUSToString(CPUS: TCPUS) : String;
+Function StringToOS(S : String) : TOS;
+Function OSesToString(S : String) : TOSes;
+Function StringToCPU(S : String) : TCPU;
+Function StringToCPUS(S : String) : TCPUS;
+Function ModeToString(Mode: TCompilerMode) : String;
+Function StringToMode(S : String) : TCompilerMode;
+Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
+Procedure StringToCPUOS(S : String; Var CPU : TCPU; Var OS: TOS);
+
+
 Implementation
 
 uses
@@ -204,13 +227,116 @@ uses
   uriparser;
 
 ResourceString
-
+  SErrInvalidCPU           = 'Invalid CPU name : "%s"';
+  SErrInvalidOS            = 'Invalid OS name : "%s"';
+  SErrInvalidMode          = 'Invalid compiler mode : "%s"';
+  SErrInvalidTarget        = 'Invalid compiler target: %s';
   SErrPackageNotFound      = 'Package "%s" not found.';
   SErrInvalidRepositorySig = 'Invalid repository stream. Stream signature incorrect';
   SErrBackupFailed         = 'Failed to back up file "%s" to "%s".';
   SErrNoFileName           = 'No filename for repository specified.';
   SErrDuplicatePackageName = 'Duplicate package name : "%s"';
   SErrMaxLevelExceeded     = 'Maximum number of dependency levels exceeded (%d) at package "%s".';
+
+
+Function OSToString(OS: TOS) : String;
+
+begin
+  Result:=LowerCase(GetenumName(TypeInfo(TOS),Ord(OS)));
+end;
+
+Function OSesToString(OSes: TOSes) : String;
+
+begin
+  Result:=LowerCase(SetToString(PtypeInfo(TypeInfo(TOSes)),Integer(OSes),False));
+end;
+
+Function CPUToString(CPU: TCPU) : String;
+
+begin
+  Result:=LowerCase(GetenumName(TypeInfo(TCPU),Ord(CPU)));
+end;
+
+Function CPUSToString(CPUS: TCPUS) : String;
+
+begin
+  Result:=LowerCase(SetToString(PTypeInfo(TypeInfo(TCPUS)),Integer(CPUS),False));
+end;
+
+Function StringToOS(S : String) : TOS;
+
+Var
+  I : Integer;
+
+begin
+  I:=GetEnumValue(TypeInfo(TOS),S);
+  if (I=-1) then
+    Raise EPackage.CreateFmt(SErrInvalidOS,[S]);
+  Result:=TOS(I);
+end;
+
+
+Function OSesToString(S : String) : TOSes;
+
+begin
+  Result:=TOSes(StringToSet(PTypeInfo(TypeInfo(TOSes)),S));
+end;
+
+Function StringToCPU(S : String) : TCPU;
+
+Var
+  I : Integer;
+
+begin
+  I:=GetEnumValue(TypeInfo(TCPU),S);
+  if (I=-1) then
+    Raise EPackage.CreateFmt(SErrInvalidCPU,[S]);
+  Result:=TCPU(I);
+end;
+
+Function StringToCPUS(S : String) : TCPUS;
+
+begin
+  Result:=TCPUS(StringToSet(PTypeInfo(TypeInfo(TCPUS)),S));
+end;
+
+Function ModeToString(Mode: TCompilerMode) : String;
+
+begin
+  Result:=LowerCase(GetenumName(TypeInfo(TCompilerMode),Ord(Mode)));
+end;
+
+Function StringToMode(S : String) : TCompilerMode;
+
+Var
+  I : Integer;
+
+begin
+  I:=GetEnumValue(TypeInfo(TCompilerMode),S);
+  if (I=-1) then
+    Raise EPackage.CreateFmt(SErrInvalidMode,[S]);
+  Result:=TCompilerMode(I);
+end;
+
+
+Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
+
+begin
+  Result:=CPUToString(CPU)+'-'+OSToString(OS);
+end;
+
+Procedure StringToCPUOS(S : String; Var CPU : TCPU; Var OS: TOS);
+
+Var
+  P : integer;
+
+begin
+  P:=Pos('-',S);
+  If (P=0) then
+    Raise EPackage.CreateFmt(SErrInvalidTarget,[S]);
+  CPU:=StringToCPU(Copy(S,1,P-1));
+  OS:=StringToOs(Copy(S,P+1,Length(S)-P));
+end;
 
 
 { TFPVersion }

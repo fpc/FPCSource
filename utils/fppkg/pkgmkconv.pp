@@ -77,7 +77,7 @@ end;
 Function IsCPU (S: String) : Boolean;
 
 begin
-  Result:=Pos(lowercase(S)+',','i386,powerpc,arm,alpha,sparc,')<>0
+  Result:=Pos(lowercase(S)+',','i386,powerpc,arm,alpha,sparc,x86_64,powerpc64,')<>0
 end;
 
 Function GetOSCPU(L : String; var OS,CPU : String) : String;
@@ -123,7 +123,7 @@ begin
     Add('');
     Add(' { Generated automatically by '+ExtractFileName(Paramstr(0))+' on '+DateToStr(Sysutils.Date)+' }');
     Add('');
-    Add('uses fpmktype,fpmkunit;');
+    Add('uses fpmkunit;');
     Add('');
     Add('Var');
     Add('  T : TTarget;');

@@ -16,7 +16,7 @@ unit pkgoptions;
 
 interface
 
-uses Classes, Sysutils, Inifiles, fpmktype;
+uses Classes, Sysutils, Inifiles, fprepos;
 
 Const
   DefaultManifestFile      = 'manifest.xml';
