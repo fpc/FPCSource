@@ -293,7 +293,7 @@ begin
 {$endif unix}
   // Detect directory where fpmake units are located
   FFPMakeCompiler:=FCompiler;
-  FFPMakeUnitDir:=FInstallDir+'units'+PathDelim+CompilerTarget+PathDelim+'fpmake'+PathDelim;
+  FFPMakeUnitDir:=FInstallDir+'units'+PathDelim+CompilerTarget+PathDelim+'fpmkunit'+PathDelim;
 end;
 
 
