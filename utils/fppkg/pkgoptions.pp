@@ -258,19 +258,27 @@ begin
   // Other config
   FDefaultCompilerConfig:='default';
   FCurrentCompilerConfig:=FDefaultCompilerConfig;
-  FDefaultVerbosity:='error,info,debug,commands';
+  FDefaultVerbosity:='error,warning,info,debug,commands';
 end;
 
 
 Procedure TPackagerOptions.InitCompilerDefaults;
+var
+  infoSL : TStringList;
 begin
   FCompiler:=FileSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
   if FCompiler='' then
     Raise EPackagerError.Create(SErrMissingFPC);
-{$warning TODO detect compiler version/target from -i options }
-  FCompilerVersion:='2.0.4';
-  FCompilerCPU:=StringToCPU({$I %FPCTARGETCPU%});
-  FCompilerOS:=StringToOS({$I %FPCTARGETOS%});
+  // Detect compiler version/target from -i option
+  infosl:=TStringList.Create;
+  infosl.Delimiter:=' ';
+  infosl.DelimitedText:=GetCompilerInfo(FCompiler,'-iVTPTO');
+  if infosl.Count<>3 then
+    Raise EPackagerError.Create(SErrInvalidFPCInfo);
+  FCompilerVersion:=infosl[0];
+  FCompilerCPU:=StringToCPU(infosl[1]);
+  FCompilerOS:=StringToOS(infosl[2]);
+  Log(vDebug,SLogDetectedCompiler,[FCompiler,FCompilerVersion,MakeTargetString(FCompilerCPU,FCompilerOS)]);
   // Use the same algorithm as the compiler, see options.pas
 {$ifdef Unix}
   FInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
@@ -291,9 +299,12 @@ begin
         FInstallDir:=FInstallDir+'../';
     end;
 {$endif unix}
+  Log(vDebug,SLogDetectedFPCDIR,[FInstallDir]);
   // Detect directory where fpmake units are located
   FFPMakeCompiler:=FCompiler;
   FFPMakeUnitDir:=FInstallDir+'units'+PathDelim+CompilerTarget+PathDelim+'fpmkunit'+PathDelim;
+  if not DirectoryExists(FFPMakeUnitDir) then
+    Log(vWarning,SWarnFPMKUnitNotFound);
 end;
 
 

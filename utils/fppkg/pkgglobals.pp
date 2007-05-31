@@ -18,7 +18,7 @@ Const
 {$endif unix}
 
 Type
-  TVerbosity = (vError,vInfo,vCommands,vDebug);
+  TVerbosity = (vError,vWarning,vInfo,vCommands,vDebug);
   TVerbosities = Set of TVerbosity;
 
   EPackagerError = class(Exception);
@@ -36,6 +36,7 @@ function maybequoted(const s:string):string;
 Function FixPath(const S : String) : string;
 Procedure DeleteDir(const ADir:string);
 Procedure SearchFiles(SL:TStringList;const APattern:string);
+Function GetCompilerInfo(const ACompiler,AOptions:string):string;
 
 var
   Verbosity : TVerbosities;
@@ -45,6 +46,7 @@ Implementation
 
 uses
   typinfo,
+  process,
   contnrs,
   uriparser,
   pkgmessages;
@@ -68,9 +70,15 @@ end;
 
 
 procedure Log(Level:TVerbosity;Msg: String);
+var
+  Prefix : string;
 begin
-  if Level in Verbosity then
-    Writeln(stdErr,Msg);
+  if not(Level in Verbosity) then
+    exit;
+  Prefix:='';
+  if Level=vWarning then
+    Prefix:=SWarning;
+  Writeln(stdErr,Prefix,Msg);
 end;
 
 
@@ -188,5 +196,22 @@ begin
 end;
 
 
+Function GetCompilerInfo(const ACompiler,AOptions:string):string;
+Const
+  BUFSIZE=1024;
+Var
+  S : TProcess;
+  Buf : Array[0..BUFSIZE-1] of char;
+  Count : longint;
+begin
+  S:=TProcess.Create(Nil);
+  S.Commandline:=ACOmpiler+' '+AOptions;
+  S.Options:=[poUsePipes,poNoConsole];
+  S.execute;
+  Count:=s.output.read(buf,BufSize);
+  SetLength(Result,Count);
+  Move(Buf,Result[1],Count);
+  S.Free;
+end;
 
 end.
