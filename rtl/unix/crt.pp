@@ -1390,25 +1390,34 @@ Begin
   ScrollScrnRegionDown(WindMinX, CurrY, WindMaxX, WindMaxY, 1);
 End;
 
+{$ifdef linux}
+  {$define havekiocsound}
+   const  KIOCSOUND = $4B2F;    // start sound generation (0 for off)
+{$else}
+ {$ifdef FreeBSD}
+   const  KIOCSOUND =$20004b3f;
+   {$define havekiocsound}
+ {$endif}
+{$endif}
 
-const
-  KIOCSOUND = $4B2F;    // start sound generation (0 for off)
+// ioctl might fail e.g. in putty. A redirect check is not enough, 
+// needs check for physical console too.
 
 Procedure Sound(Hz: Word);
 begin
-  if not OutputRedir then
+{$ifdef havekiocsound}
+  if (not OutputRedir) and (hz>0) then 
     fpIoctl(TextRec(Output).Handle, KIOCSOUND, Pointer(1193180 div Hz));
+{$endif}
 end;
-
-
 
 Procedure NoSound;
 begin
+{$ifdef havekiocsound}
   if not OutputRedir then
     fpIoctl(TextRec(Output).Handle, KIOCSOUND, nil);
+{$endif}
 end;
-
-
 
 Procedure TextMode (Mode: word);
 {
