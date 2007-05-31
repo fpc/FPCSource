@@ -283,6 +283,9 @@ begin
   for r := 0 to High(FUpdateBlobBuffers) do
     FreeBlobBuffer(FUpdateBlobBuffers[r]);
 
+  SetLength(FBlobBuffers,0);
+  SetLength(FUpdateBlobBuffers,0);
+
   FFirstRecBuf:= nil;
   SetLength(FFieldBufPositions,0);
 
@@ -1077,7 +1080,8 @@ procedure TBufDataset.FreeBlobBuffer(var ABlobBuffer: PBlobBuffer);
 begin
   if not Assigned(ABlobBuffer) then Exit;
   FreeMem(ABlobBuffer^.Buffer, ABlobBuffer^.Size);
-  FreeMem(ABlobBuffer, SizeOf(TBlobBuffer));
+  Dispose(ABlobBuffer);
+  ABlobBuffer := Nil;
 end;
 
 function TBufBlobStream.Seek(Offset: Longint; Origin: Word): Longint;
