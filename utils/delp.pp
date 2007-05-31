@@ -210,7 +210,7 @@ begin
   AddMask('ppas.bat ppas.sh link.res fpcmaked fpcmade fpcmade.*');
   AddMask('*.tpu *.tpp *.tpw *.tr');
   AddMask('*.dcu *.dcp *.bpl');
-  AddMask('*.log *.bak *.~pas *.~pp');
+  AddMask('*.log *.bak *.~pas *.~pp *.*~');
   AddMask('*.ppu *.o *.a *.s');
   AddMask('*.pp1 *.o1 *.a1 *.s1');
   AddMask('*.ppo *.oo *.ao *.so');
