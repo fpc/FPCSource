@@ -473,6 +473,7 @@ begin
   inherited init(R,nil,nil);
   HTMLOwner:=AOwner;
   HTMLConsole:=New(PHTMLAnsiConsole,Init(@Self));
+  HTMLConsole^.HighVideo;
   Dispose(Console,Done);
   Console:=HTMLConsole;
   HTMLConsole^.Size.X:=80;
