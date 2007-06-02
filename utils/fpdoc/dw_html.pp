@@ -1439,7 +1439,9 @@ begin
   // Record type
   else if Element.ClassType = TPasRecordType then
     Result := AppendRecordType(CodeEl, TableEl, TPasRecordType(Element), NestingLevel)
-  else
+  else if (Element.ClassType = TPasFileType) and (TPasFileType(Element).elType=Nil) then
+    AppendPasSHFragment(CodeEl,'file',0)
+  else  
   // Other types
     AppendHyperlink(CodeEl, Element);
 end;
