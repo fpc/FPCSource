@@ -1096,7 +1096,9 @@ implementation
                 end;
             end;
         end;
-        if pd.returndef.typ=filedef then
+        { file types can't be function results }
+        if assigned(pd) and
+           (pd.returndef.typ=filedef) then
           message(parser_e_illegal_function_result);
         { support procedure proc stdcall export; }
         if not(check_proc_directive(false)) then
