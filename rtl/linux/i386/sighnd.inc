@@ -69,6 +69,7 @@ begin
         begin
           os_supports_sse:=false;
           res:=0;
+          inc(ucontext^.uc_mcontext.eip,3);
         end
       else
         res:=216;
