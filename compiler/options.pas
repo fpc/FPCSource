@@ -677,6 +677,8 @@ begin
 
            'F' :
              begin
+               if more='' then
+                 IllegalPara(opt);
                c:=more[1];
                Delete(more,1,1);
                DefaultReplacements(More);
@@ -1021,6 +1023,8 @@ begin
 
            'S' :
              begin
+               if more='' then
+                 IllegalPara(opt);
                if more[1]='I' then
                  begin
                    if upper(more)='ICOM' then
