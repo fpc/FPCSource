@@ -274,13 +274,21 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
   function  CSuspendThread (threadHandle : TThreadID) : dword;
     begin
-      result := pthread_kill(threadHandle,SIGSTOP);
+    {  pthread_kill(SIGSTOP) cannot be used, because posix-compliant
+       implementations then freeze the entire process instead of only
+       the target thread. Suspending a particular thread is not
+       supported by posix nor by most *nix implementations, presumably
+       because of concerns mentioned in E.4 at
+       http://pauillac.inria.fr/~xleroy/linuxthreads/faq.html#E and in
+       http://java.sun.com/j2se/1.4.2/docs/guide/misc/threadPrimitiveDeprecation.html
+    }
+//      result := pthread_kill(threadHandle,SIGSTOP);
     end;
 
 
   function  CResumeThread  (threadHandle : TThreadID) : dword;
     begin
-      result := pthread_kill(threadHandle,SIGCONT);
+//      result := pthread_kill(threadHandle,SIGCONT);
     end;
 
 

@@ -199,34 +199,38 @@ end;
 
 procedure TThread.Suspend;
 begin
-  if not FSuspended and
-     (InterLockedExchange(longint(FSuspended),ord(true)) = ord(false)) then
+  if FThreadID = GetCurrentThreadID then
     begin
-      if FThreadID = GetCurrentThreadID then
+      if not FSuspended and
+         (InterLockedExchange(longint(FSuspended),ord(true)) = ord(false)) then
         CurrentTM.SemaphoreWait(FSem)
-      else
-        begin
-          FSuspendedExternal := true;
-          SuspendThread(FHandle);
-        end;
+    end
+  else
+    begin
+      Raise EThread.create('Suspending one thread from inside another one is unsupported (because it is unsafe and deadlock prone) by *nix and posix operating systems');
+//      FSuspendedExternal := true;
+//      SuspendThread(FHandle);
     end;
 end;
 
 
 procedure TThread.Resume;
 begin
-  if FSuspended and
-     (InterLockedExchange(longint(FSuspended),ord(false)) = ord(true)) then
-    if (not FSuspendedExternal) then
-      begin
-        WRITE_DEBUG('resuming ',ptrint(self));
-        CurrentTM.SemaphorePost(FSem);
-      end
-    else
-      begin
-        FSuspendedExternal := false;
-        ResumeThread(FHandle);
-      end;
+  if (not FSuspendedExternal) then
+    begin
+      if FSuspended and
+         (InterLockedExchange(longint(FSuspended),ord(false)) = ord(true)) then
+        begin
+          WRITE_DEBUG('resuming ',ptrint(self));
+          CurrentTM.SemaphorePost(FSem);
+        end
+    end
+  else
+    begin
+      raise EThread.create('External suspending is not supported under *nix/posix, so trying to resume from from an external suspension should never happen');
+//      FSuspendedExternal := false;
+//      ResumeThread(FHandle);
+    end;
 end;
 
 
