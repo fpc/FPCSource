@@ -776,35 +776,41 @@ var
 begin
   if pos('tex4ht:',Comment)=0 then
     exit;
+{$ifdef DEBUG}
   DebugMessage(GetFileName,'tex4ht comment "'
         +Comment+'"',Line,1);
+{$endif DEBUG}
   if SuppressOutput then
     begin
       if (pos(SuppressUntil,Comment)=0) then
         exit
       else
         begin
+{$ifdef DEBUG}
           DebugMessage(GetFileName,' Found '+SuppressUntil+'comment "'
             +Comment+'" SuppressOuput reset to false',Line,1);
+{$endif DEBUG}
           SuppressOutput:=false;
           SuppressUntil:='';
         end;
     end;
-{$ifdef DEBUG}
   if (pos('tex4ht:graphics ',Comment)>0) and
      LastAnsiLoadFailed then
     begin
+{$ifdef DEBUG}
       DebugMessage(GetFileName,' Using tex4ht comment "'
         +Comment+'"',Line,1);
+{$endif DEBUG}
       { Try again with this info }
       TagParams:=Comment;
       DocImage;
     end;
-{$endif DEBUG}
   if (pos('tex4ht:syntaxdiagram ',Comment)>0) then
     begin
+{$ifdef DEBUG}
       DebugMessage(GetFileName,' Using tex4ht:syntaxdiagram comment "'
         +Comment+'"',Line,1);
+{$endif DEBUG}
       { Try again with this info }
       TagParams:=Comment;
       DocImage;
@@ -816,8 +822,10 @@ begin
     end;
   if (pos('tex4ht:mysyntdiag ',Comment)>0) then
     begin
+{$ifdef DEBUG}
       DebugMessage(GetFileName,' Using tex4ht:mysyntdiag comment "'
         +Comment+'"',Line,1);
+{$endif DEBUG}
       { Try again with this info }
       TagParams:=Comment;
       DocGetTagParam('SRC',src);
