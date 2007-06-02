@@ -39,41 +39,41 @@ begin
   res:=0;
   case sig of
     SIGFPE :
+      begin
+        { this is not allways necessary but I don't know yet
+          how to tell if it is or not PM }
+        res:=200;
+        fpustate:=GetFPUState(UContext^.uc_mcontext);
+        if (FpuState and FPU_All) <> 0 then
           begin
-    { this is not allways necessary but I don't know yet
-      how to tell if it is or not PM }
-          res:=200;
-          fpustate:=GetFPUState(UContext^.uc_mcontext);
-          if (FpuState and FPU_All) <> 0 then
-            begin
-              { first check the more precise options }
-              if (FpuState and FPU_DivisionByZero)<>0 then
-                res:=200
-              else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
-                res:=207
-              else if (FpuState and FPU_Overflow)<>0 then
-                res:=205
-              else if (FpuState and FPU_Underflow)<>0 then
-                res:=206
-              else if (FpuState and FPU_Denormal)<>0 then
-                res:=216
-              else
-                res:=207;  {'Coprocessor Error'}
-            end;
-            sysResetFPU;
-        end;
+            { first check the more precise options }
+            if (FpuState and FPU_DivisionByZero)<>0 then
+              res:=200
+            else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
+              res:=207
+            else if (FpuState and FPU_Overflow)<>0 then
+              res:=205
+            else if (FpuState and FPU_Underflow)<>0 then
+              res:=206
+            else if (FpuState and FPU_Denormal)<>0 then
+              res:=216
+            else
+              res:=207;  {'Coprocessor Error'}
+          end;
+        sysResetFPU;
+      end;
     SIGBUS:
-        res:=214;
+      res:=214;
     SIGILL:
-        if sse_check then
-          begin
-            os_supports_sse:=false;
-            res:=0;
-          end
-        else
-          res:=216;
-    SIGSEGV :
+      if sse_check then
+        begin
+          os_supports_sse:=false;
+          res:=0;
+        end
+      else
         res:=216;
+    SIGSEGV :
+      res:=216;
   end;
   reenable_signal(sig);
 { give runtime error at the position where the signal was raised }

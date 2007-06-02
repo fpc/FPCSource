@@ -1241,7 +1241,7 @@ procedure fpc_cpucodeinit;
       { force an sse exception if no sse is supported, the exception handler sets
         os_supports_sse to false then }
       { don't change this instruction, the code above depends on its size }
-      movq %xmm0,%xmm0
+      movaps %xmm7, %xmm6
     end;
     sse_check:=false;
     has_sse_support:=sse_support;
