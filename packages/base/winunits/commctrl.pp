@@ -72,6 +72,9 @@ CONST CommCtrlDLL = 'commctrl.dll';
 {$define IE5plus}
 {$DEFINE WIN32XP}
 
+{$ifdef win32}
+  {$define _win32}
+{$endif win32}
 
 {$DEFINE WIN32_WINNT=0}                     // NO XP
 {$DEFINE __IStream_INTERFACE_DEFINED__}  // lpstream defined in activex afaik.
@@ -625,13 +628,15 @@ function ImageList_DrawIndirect(pimldp:PIMAGELISTDRAWPARAMS):BOOL; external comm
 {$ENDIF}
 function ImageList_Remove(himl:HIMAGELIST;i:cint):BOOL; external commctrldll name 'ImageList_Remove';
 function ImageList_GetIcon(himl:HIMAGELIST;i:cint;flags:UINT):HICON; external commctrldll name 'ImageList_GetIcon';
-function ImageList_LoadImageA(hi:HINSTANCE;lpbmp:LPCSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageA';
-function ImageList_LoadImageW(hi:HINSTANCE;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageW';
+function ImageList_LoadImageA(hi:HINST;lpbmp:LPCSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageA';
+function ImageList_LoadImageW(hi:HINST;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageW';
+function ImageList_LoadImage(hi:HINST;lpbmp:LPCSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageA';
+function ImageList_LoadImage(hi:HINST;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageW';
 
 {$IFDEF UNICODE}
-function ImageList_LoadImageW(hi:HINSTANCE;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageW';
+// function ImageList_LoadImageW(hi:HINSTANCE;lpbmp:LPCWSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageW';
 {$ELSE}
-function ImageList_LoadImageA(hi:HINSTANCE;lpbmp:LPCSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageA';
+// function ImageList_LoadImageA(hi:HINSTANCE;lpbmp:LPCSTR;cx:cint;cGrow:cint;crMask:COLORREF;uType:UINT;uFlags:UINT):HIMAGELIST; external commctrldll name 'ImageList_LoadImageA';
 {$ENDIF}
 
 {$ifdef ie3plus}
@@ -661,12 +666,12 @@ Procedure ImageList_ExtractIcon(hi:longint; {dummy?} himl:HIMAGELIST;i:cint);
 
 
 // Macro 15
-Procedure ImageList_LoadBitmap(hi:HInstance;lpbmp:LPCTSTR;cx:cint;cGrow:cint;crMask:COLORREF);
+Procedure ImageList_LoadBitmap(hi:HInst;bmp:LPCTSTR;cx:cint;cGrow:cint;crMask:COLORREF);
 
 {$IFDEF __IStream_INTERFACE_DEFINED__}
 
-function ImageList_Read(pstm:LPSTREAM):HIMAGELIST; external commctrldll name 'ImageList_Read';
-function ImageList_Write(himl:HIMAGELIST;pstm:LPSTREAM):BOOL; external commctrldll name 'ImageList_Write';
+function ImageList_Read(pstm:ISTREAM):HIMAGELIST; external commctrldll name 'ImageList_Read';
+function ImageList_Write(himl:HIMAGELIST;pstm:ISTREAM):BOOL; external commctrldll name 'ImageList_Write';
 
 {$ifdef Win32XP}
 
@@ -675,8 +680,8 @@ CONST
          ILP_DOWNLEVEL                  = 1;                  // Write or reads the stream using downlevel sematics.
 
 
-function ImageList_ReadEx(dwFlags:DWORD;pstm:LPSTREAM;riid:REFIID;ppv:PPVOID):HRESULT; external commctrldll name 'ImageList_ReadEx';
-function ImageList_WriteEx(himl:HIMAGELIST;dwFlags:DWORD;pstm:LPSTREAM):HRESULT; external commctrldll name 'ImageList_WriteEx';
+function ImageList_ReadEx(dwFlags:DWORD;pstm:ISTREAM;riid:REFIID;ppv:PPointer):HRESULT; external commctrldll name 'ImageList_ReadEx';
+function ImageList_WriteEx(himl:HIMAGELIST;dwFlags:DWORD;pstm:ISTREAM):HRESULT; external commctrldll name 'ImageList_WriteEx';
 {$ENDIF}
 
 {$ENDIF}
@@ -722,8 +727,6 @@ function ImageList_Duplicate(himl:HIMAGELIST):HIMAGELIST; external commctrldll n
 CONST
          WC_HEADERA                     = 'SysHeader32';
          WC_HEADERW                     = {L}'SysHeader32';
-
-TYPE
 {$IFDEF UNICODE}
          WC_HEADER           = WC_HEADERW;
 {$ELSE}
@@ -735,6 +738,8 @@ TYPE
 CONST
          WC_HEADER                      = 'SysHeader';
 {$ENDIF}
+
+CONST
 
 // begin_r_commctrl
 
@@ -1305,7 +1310,6 @@ CONST
          TOOLBARCLASSNAMEW              = {L}'ToolbarWindow32';
          TOOLBARCLASSNAMEA              = 'ToolbarWindow32';
 
-TYPE
 {$IFDEF  UNICODE}
          TOOLBARCLASSNAME    = TOOLBARCLASSNAMEW;
 {$ELSE}
@@ -1313,8 +1317,6 @@ TYPE
 {$ENDIF}
 
 {$ELSE}
-
-CONST
          TOOLBARCLASSNAME               = 'ToolbarWindow';
 {$ENDIF}
 
@@ -1497,7 +1499,7 @@ CONST
 TYPE
 
          tagTBADDBITMAP       = Record
-                                 hInst        : HINSTANCE;
+                                 hInst        : HINST;
                                  nID          : UINT_PTR;
                                  END;
          TBADDBITMAP          = tagTBADDBITMAP;
@@ -1508,7 +1510,7 @@ TYPE
 
 
 CONST
-         HINST_COMMCTRL                 = ((HINSTANCE)-1);
+         HINST_COMMCTRL                 = HINST(-1);
          IDB_STD_SMALL_COLOR            = 0;
          IDB_STD_LARGE_COLOR            = 1;
          IDB_VIEW_SMALL_COLOR           = 4;
@@ -1800,11 +1802,12 @@ CONST
          TB_GETBUTTONINFOA              = (WM_USER + 65);
          TB_SETBUTTONINFOA              = (WM_USER + 66);
 
-TYPE
 {$IFDEF UNICODE}
+CONST
          TB_GETBUTTONINFO    = TB_GETBUTTONINFOW;
          TB_SETBUTTONINFO    = TB_SETBUTTONINFOW;
 {$ELSE}
+CONST
          TB_GETBUTTONINFO    = TB_GETBUTTONINFOA;
          TB_SETBUTTONINFO    = TB_SETBUTTONINFOA;
 {$ENDIF}
@@ -1819,11 +1822,12 @@ CONST
 // is a pointer to a string, it will be handled as a string like listview
 // (although LPSTR_TEXTCALLBACK is not supported).
 
-TYPE
 {$IFDEF UNICODE}
+CONST
          TB_INSERTBUTTON     = TB_INSERTBUTTONW;
          TB_ADDBUTTONS       = TB_ADDBUTTONSW;
 {$ELSE}
+CONST
          TB_INSERTBUTTON     = TB_INSERTBUTTONA;
          TB_ADDBUTTONS       = TB_ADDBUTTONSA;
 {$ENDIF}
@@ -2009,11 +2013,15 @@ TYPE
 
 
 {$IFDEF UNICODE}
+CONST
          TBN_GETINFOTIP      = TBN_GETINFOTIPW;
+TYPE
          NMTBGETINFOTIP      = NMTBGETINFOTIPW;
          LPNMTBGETINFOTIP    = LPNMTBGETINFOTIPW;
 {$ELSE}
+CONST
          TBN_GETINFOTIP      = TBN_GETINFOTIPA;
+TYPE
          NMTBGETINFOTIP      = NMTBGETINFOTIPA;
          LPNMTBGETINFOTIP    = LPNMTBGETINFOTIPA;
 {$ENDIF}
@@ -2054,11 +2062,15 @@ TYPE
          PNMTBDISPINFOW       = ^NMTBDISPINFOW;
 
 {$IFDEF UNICODE}
+CONST
          TBN_GETDISPINFO     = TBN_GETDISPINFOW;
+TYPE
          NMTBDISPINFO        = NMTBDISPINFOW;
          LPNMTBDISPINFO      = LPNMTBDISPINFOW;
 {$ELSE}
+CONST
          TBN_GETDISPINFO     = TBN_GETDISPINFOA;
+TYPE
          NMTBDISPINFO        = NMTBDISPINFOA;
          LPNMTBDISPINFO      = LPNMTBDISPINFOA;
 {$ENDIF}
@@ -2071,36 +2083,12 @@ CONST
          TBDDRET_TREATPRESSED           = 2;                  // Treat as a standard press button
 
 {$ENDIF}
-
-
 {$IFDEF UNICODE}
-
-TYPE
          TBN_GETBUTTONINFO   = TBN_GETBUTTONINFOW;
 {$ELSE}
          TBN_GETBUTTONINFO   = TBN_GETBUTTONINFOA;
 {$ENDIF}
-
-{$ifdef ie3plus}
-         TBNOTIFYA           = NMTOOLBARA;
-         TBNOTIFYW           = NMTOOLBARW;
-         LPTBNOTIFYA         = LPNMTOOLBARA;
-         LPTBNOTIFYW         = LPNMTOOLBARW;
-{$ELSE}
-         tagNMTOOLBARA       = tagTBNOTIFYA;
-         NMTOOLBARA          = TBNOTIFYA;
-         LPNMTOOLBARA        = LPTBNOTIFYA;
-         tagNMTOOLBARW       = tagTBNOTIFYW;
-         NMTOOLBARW          = TBNOTIFYW;
-         LPNMTOOLBARW        = LPTBNOTIFYW;
-{$ENDIF}
-
-
-CONST
-         TBNOTIFY                       = NMTOOLBAR;
-
 TYPE
-         LPTBNOTIFY          = LPNMTOOLBAR;
 
 {$ifdef ie3plus}
          tagNMTOOLBARA        = Record
@@ -2115,10 +2103,12 @@ TYPE
                                  END;
          NMTOOLBARA           = tagNMTOOLBARA;
          LPNMTOOLBARA         = ^tagNMTOOLBARA;
+         LPNMTOOLBAR          = LPNMTOOLBARA;
          TNMTOOLBARA          = tagNMTOOLBARA;
-         PNMTOOLBARA          = ^tagNMTOOLBARA;
-
+         PNMTOOLBARA          = LPNMTOOLBARA;
 {$ENDIF}
+         LPTBNOTIFY          = LPNMTOOLBARA;
+         TBNOTIFYA           = NMTOOLBARA;
 
 
 {$ifdef ie3plus}
@@ -2136,7 +2126,19 @@ TYPE
          LPNMTOOLBARW         = ^tagNMTOOLBARW;
          TNMTOOLBARW          = tagNMTOOLBARW;
          PNMTOOLBARW          = ^tagNMTOOLBARW;
+{$ENDIF}
 
+
+{$ifdef ie3plus}
+         TBNOTIFYW           = NMTOOLBARW;
+         LPTBNOTIFYA         = LPNMTOOLBARA;
+{$ELSE}
+         tagNMTOOLBARA       = tagTBNOTIFYA;
+         NMTOOLBARA          = TBNOTIFYA;
+         LPNMTOOLBARA        = LPTBNOTIFYA;
+         tagNMTOOLBARW       = tagTBNOTIFYW;
+         NMTOOLBARW          = TBNOTIFYW;
+         LPNMTOOLBARW        = LPTBNOTIFYW;
 {$ENDIF}
 
 
@@ -2145,13 +2147,14 @@ TYPE
          LPNMTOOLBAR         = LPNMTOOLBARW;
 {$ELSE}
          NMTOOLBAR           = NMTOOLBARA;
-         LPNMTOOLBAR         = LPNMTOOLBARA;
 {$ENDIF}
 
+         TBNOTIFY                       = NMTOOLBAR;
 {$ENDIF}
 
 {$ENDIF}      // NOTOOLBAR
 
+         LPTBNOTIFYW         = LPNMTOOLBARW;
 
 {$ifdef ie3plus}
 //====== REBAR CONTROL ========================================================
@@ -2164,7 +2167,6 @@ CONST
          REBARCLASSNAMEW                = {L}'ReBarWindow32';
          REBARCLASSNAMEA                = 'ReBarWindow32';
 
-TYPE
 {$IFDEF  UNICODE}
          REBARCLASSNAME      = REBARCLASSNAMEW;
 {$ELSE}
@@ -2177,6 +2179,7 @@ CONST
          REBARCLASSNAME                 = 'ReBarWindow';
 {$ENDIF}
 
+CONST
          RBIM_IMAGELIST                 = $00000001;
 
 // begin_r_commctrl
@@ -6290,7 +6293,7 @@ CONST
 
 
 {$IFDEF _WIN32}
-#include <pshpack1.h>
+// #include <pshpack1.h>
 {$ENDIF}
 
 TYPE
@@ -6314,7 +6317,7 @@ TYPE
 
 
 {$IFDEF _WIN32}
-#include <poppack.h>
+// #include <poppack.h>
 {$ENDIF}
 
 Const
@@ -7216,7 +7219,7 @@ CONST
 
 
 {$IFDEF _WIN32}
-#include <pshpack1.h>
+// #include <pshpack1.h>
 {$ENDIF}
 
 TYPE
@@ -7239,7 +7242,7 @@ TYPE
 
 
 {$IFDEF _WIN32}
-#include <poppack.h>
+// #include <poppack.h>
 {$ENDIF}
 
 
@@ -7306,7 +7309,7 @@ CONST
 // Macro 246
 
 
-Procedure Animate_Create(hwndP :HWND;id:HMENU;dwStyle:dword;hInstance:HINST);
+Function Animate_Create(hwndP :HWND;id:HMENU;dwStyle:dword;hInstance:HINST):HWND;
 
 // Macro 247
 
@@ -7942,11 +7945,15 @@ TYPE
 
 
 {$IFDEF UNICODE}
+CONST
          DTN_USERSTRING      = DTN_USERSTRINGW;
+TYPE
          NMDATETIMESTRING    = NMDATETIMESTRINGW;
          LPNMDATETIMESTRING  = LPNMDATETIMESTRINGW;
 {$ELSE}
+CONST
          DTN_USERSTRING      = DTN_USERSTRINGA;
+TYPE
          NMDATETIMESTRING    = NMDATETIMESTRINGA;
          LPNMDATETIMESTRING  = LPNMDATETIMESTRINGA;
 {$ENDIF}
@@ -7983,11 +7990,15 @@ TYPE
 
 
 {$IFDEF UNICODE}
+CONST
          DTN_WMKEYDOWN       = DTN_WMKEYDOWNW;
+TYPE
          NMDATETIMEWMKEYDOWN = NMDATETIMEWMKEYDOWNW;
          LPNMDATETIMEWMKEYDOWN= LPNMDATETIMEWMKEYDOWNW;
 {$ELSE}
+CONST
          DTN_WMKEYDOWN       = DTN_WMKEYDOWNA;
+TYPE
          NMDATETIMEWMKEYDOWN = NMDATETIMEWMKEYDOWNA;
          LPNMDATETIMEWMKEYDOWN= LPNMDATETIMEWMKEYDOWNA;
 {$ENDIF}
@@ -8026,11 +8037,15 @@ TYPE
 
 
 {$IFDEF UNICODE}
+CONST
          DTN_FORMAT          = DTN_FORMATW;
+TYPE
          NMDATETIMEFORMAT    = NMDATETIMEFORMATW;
          LPNMDATETIMEFORMAT  = LPNMDATETIMEFORMATW;
 {$ELSE}
+CONST
          DTN_FORMAT          = DTN_FORMATA;
+TYPE
          NMDATETIMEFORMAT    = NMDATETIMEFORMATA;
          LPNMDATETIMEFORMAT  = LPNMDATETIMEFORMATA;
 {$ENDIF}
@@ -8065,11 +8080,15 @@ TYPE
 
 
 {$IFDEF UNICODE}
+CONST
          DTN_FORMATQUERY     = DTN_FORMATQUERYW;
+TYPE
          NMDATETIMEFORMATQUERY= NMDATETIMEFORMATQUERYW;
          LPNMDATETIMEFORMATQUERY= LPNMDATETIMEFORMATQUERYW;
 {$ELSE}
+CONST
          DTN_FORMATQUERY     = DTN_FORMATQUERYA;
+TYPE
          NMDATETIMEFORMATQUERY= NMDATETIMEFORMATQUERYA;
          LPNMDATETIMEFORMATQUERY= LPNMDATETIMEFORMATQUERYA;
 {$ENDIF}
@@ -8362,7 +8381,7 @@ CONST
 
 
 {$IFDEF _WIN32}
-#include <pshpack1.h>
+// #include <pshpack1.h>
 {$ENDIF}
 
 // This structure is sent along with PGN_SCROLL notifications
@@ -8384,7 +8403,7 @@ TYPE
 
 
 {$IFDEF _WIN32}
-#include <poppack.h>
+// #include <poppack.h>
 {$ENDIF}
 
 // PGN_CALCSIZE Notification Message
@@ -8813,7 +8832,7 @@ CONST
 
          INVALID_LINK_INDEX             = (-1);
          MAX_LINKID_TEXT                = 48;
-         L_MAX_URL_LENGTH               = (2048 + 32 + sizeof("://"));
+         L_MAX_URL_LENGTH               = (2048 + 32 + length('://'));
 
          WC_LINK                        = {L}'SysLink';
 
@@ -8842,7 +8861,7 @@ TYPE
          LITEM                = tagLITEM;
          PLITEM               = ^tagLITEM;
          TLITEM               = tagLITEM;
-         PLITEM               = ^tagLITEM;
+//         PLITEM               = ^tagLITEM;
 
 
          tagLHITTESTINFO      = Record
@@ -8852,7 +8871,7 @@ TYPE
          LHITTESTINFO         = tagLHITTESTINFO;
          PLHITTESTINFO        = ^tagLHITTESTINFO;
          TLHITTESTINFO        = tagLHITTESTINFO;
-         PLHITTESTINFO        = ^tagLHITTESTINFO;
+//         PLHITTESTINFO        = ^tagLHITTESTINFO;
 
 
          tagNMLINK            = Record
@@ -8862,7 +8881,7 @@ TYPE
          NMLINK               = tagNMLINK;
          PNMLINK              = ^tagNMLINK;
          TNMLINK              = tagNMLINK;
-         PNMLINK              = ^tagNMLINK;
+//         PNMLINK              = ^tagNMLINK;
 
 
 //  SysLink notifications
@@ -8919,7 +8938,7 @@ CONST
          TME_LEAVE                      = $00000002;
 {$ifdef win32xp}
          TME_NONCLIENT                  = $00000010;
-{$ENDIF} /* WINVER >= 0x0500 */
+{$ENDIF} { WINVER >= 0x0500 }
          TME_QUERY                      = $40000000;
          TME_CANCEL                     = $80000000;
 
@@ -8960,54 +8979,53 @@ function _TrackMouseEvent(lpEventTrack:LPTRACKMOUSEEVENT):BOOL; external commctr
 
 
 CONST
-         WSB_PROP_CYVSCROLL             = $00000001L;
-         WSB_PROP_CXHSCROLL             = $00000002L;
-         WSB_PROP_CYHSCROLL             = $00000004L;
-         WSB_PROP_CXVSCROLL             = $00000008L;
-         WSB_PROP_CXHTHUMB              = $00000010L;
-         WSB_PROP_CYVTHUMB              = $00000020L;
-         WSB_PROP_VBKGCOLOR             = $00000040L;
-         WSB_PROP_HBKGCOLOR             = $00000080L;
-         WSB_PROP_VSTYLE                = $00000100L;
-         WSB_PROP_HSTYLE                = $00000200L;
-         WSB_PROP_WINSTYLE              = $00000400L;
-         WSB_PROP_PALETTE               = $00000800L;
-         WSB_PROP_MASK                  = $00000FFFL;
+         WSB_PROP_CYVSCROLL             = LONG($00000001);
+         WSB_PROP_CXHSCROLL             = LONG($00000002);
+         WSB_PROP_CYHSCROLL             = LONG($00000004);
+         WSB_PROP_CXVSCROLL             = LONG($00000008);
+         WSB_PROP_CXHTHUMB              = LONG($00000010);
+         WSB_PROP_CYVTHUMB              = LONG($00000020);
+         WSB_PROP_VBKGCOLOR             = LONG($00000040);
+         WSB_PROP_HBKGCOLOR             = LONG($00000080);
+         WSB_PROP_VSTYLE                = LONG($00000100);
+         WSB_PROP_HSTYLE                = LONG($00000200);
+         WSB_PROP_WINSTYLE              = LONG($00000400);
+         WSB_PROP_PALETTE               = LONG($00000800);
+         WSB_PROP_MASK                  = LONG($00000FFF);
 
          FSB_FLAT_MODE                  = 2;
          FSB_ENCARTA_MODE               = 1;
          FSB_REGULAR_MODE               = 0;
 
-function FlatSB_EnableScrollBar(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_EnableScrollBar';
-function FlatSB_ShowScrollBar(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_ShowScrollBar';
+function FlatSB_EnableScrollBar(hwnd:HWND;code : cint;p3 : UINT):BOOL; external commctrldll name 'FlatSB_EnableScrollBar';
+function FlatSB_ShowScrollBar(hwnd:HWND;code : cint;p3 : BOOL):BOOL; external commctrldll name 'FlatSB_ShowScrollBar';
 
-function FlatSB_GetScrollRange(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_GetScrollRange';
-function FlatSB_GetScrollInfo(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_GetScrollInfo';
+function FlatSB_GetScrollRange(hwnd:HWND;code : cint;p3 : LPINT;p4 : LPINT):BOOL; external commctrldll name 'FlatSB_GetScrollRange';
+function FlatSB_GetScrollRange(hwnd:HWND;code : cint;var p3,p4 : cint):BOOL; external commctrldll name 'FlatSB_GetScrollRange';
+function FlatSB_GetScrollInfo(hwnd:HWND;code : cint;ScrollInfo : LPSCROLLINFO):BOOL; external commctrldll name 'FlatSB_GetScrollInfo';
+function FlatSB_GetScrollInfo(hwnd:HWND;code : cint;var ScrollInfo : TSCROLLINFO):BOOL; external commctrldll name 'FlatSB_GetScrollInfo';
 
-function FlatSB_GetScrollPos(hwnd:HWND):cint; external commctrldll name 'FlatSB_GetScrollPos';
+function FlatSB_GetScrollPos(hwnd:HWND;code : cint):cint; external commctrldll name 'FlatSB_GetScrollPos';
 
 
 function FlatSB_GetScrollProp(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_GetScrollProp';
 {$IFDEF _WIN64}
-function FlatSB_GetScrollPropPtr(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_GetScrollPropPtr';
+function FlatSB_GetScrollPropPtr(hwnd:HWND;propIndex : cint;p3 : LPINT):BOOL; external commctrldll name 'FlatSB_GetScrollPropPtr';
 {$ELSE}
-function FlatSB_GetScrollPropPtr(hwnd:HWND):BOOL; external commctrldll name 'FlatSB_GetScrollProp';
+function FlatSB_GetScrollPropPtr(hwnd:HWND;code : cint):BOOL; external commctrldll name 'FlatSB_GetScrollProp';
 {$ENDIF}
 
 
-function FlatSB_SetScrollPos(:HWND):cint; external commctrldll name 'FlatSB_SetScrollPos';
+function FlatSB_SetScrollPos(hWnd:HWND;nBar,nPos:cint;bRedraw:BOOL):cint; external commctrldll name 'FlatSB_SetScrollPos';
 
-function FlatSB_SetScrollInfo(:HWND):cint; external commctrldll name 'FlatSB_SetScrollInfo';
+function FlatSB_SetScrollInfo(hWnd:HWND;BarFlag:cint;const ScrollInfo:TScrollInfo;Redraw:BOOL):cint; external commctrldll name 'FlatSB_SetScrollInfo';
 
 
-function FlatSB_SetScrollRange(:HWND):cint; external commctrldll name 'FlatSB_SetScrollRange';
-function FlatSB_SetScrollProp(:HWND):BOOL; external commctrldll name 'FlatSB_SetScrollProp';
+function FlatSB_SetScrollRange(hWnd: HWND; nBar,nMinPos,nMaxPos: cint; bRedraw: BOOL):cint; external commctrldll name 'FlatSB_SetScrollRange';
+function FlatSB_SetScrollProp(p1: HWND; index : UINT; newValue: INT_PTR; p4: BOOL):BOOL; external commctrldll name 'FlatSB_SetScrollProp';
 
-CONST
-         FlatSB_SetScrollPropPtr        = FlatSB_SetScrollProp;
-
-function InitializeFlatSB(:HWND):BOOL; external commctrldll name 'InitializeFlatSB';
-function UninitializeFlatSB(:HWND):HRESULT; external commctrldll name 'UninitializeFlatSB';
+function InitializeFlatSB(hWnd:HWND):BOOL; external commctrldll name 'InitializeFlatSB';
+function UninitializeFlatSB(hWnd:HWND):HRESULT; external commctrldll name 'UninitializeFlatSB';
 
 {$ENDIF}  //  NOFLATSBAPIS
 
@@ -9114,10 +9132,10 @@ end;
 // #define     ImageList_LoadBitmap(hi, lpbmp, cx, cGrow, crMask)
 // ImageList_LoadImage(hi, lpbmp, cx, cGrow, crMask, IMAGE_BITMAP, 0)
 
-Procedure ImageList_LoadBitmap(hi:HINST;lpbmp:LPCTSTR;cx:cint;cGrow:cint;crMask:COLORREF);
+Procedure ImageList_LoadBitmap(hi:HINST;bmp:LPCTSTR;cx:cint;cGrow:cint;crMask:COLORREF);
 
 Begin
- ImageList_LoadImage(hi, lpbmp, cx, cGrow, crMask, IMAGE_BITMAP, 0);
+ ImageList_LoadImage(hi, bmp, cx, cGrow, crMask, IMAGE_BITMAP, 0);
 End;
 
 // Macro 16

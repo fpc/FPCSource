@@ -3293,13 +3293,16 @@ type
     TDispIDList = array[0..65535] of TDispID;
     PDispIDList = ^TDispIDList;
 
+    REFIID = TIID;
+    TREFIID = TIID;
+
   function SetErrorInfo(dwReserved:ULONG;errinfo:IErrorInfo):HResult;stdcall; external 'ole32.dll' name 'SetErrorInfo';
   function GetErrorInfo(dwReserved:ULONG;out errinfo:IErrorInfo):HResult;stdcall; external 'ole32.dll' name 'GetErrorInfo';
   function CreateErrorInfo(out errinfo:ICreateErrorInfo):HResult;stdcall; external 'ole32.dll' name 'CreateErrorInfo';
-  
+
   const
     oleaut32dll   = 'oleaut32.dll';
-    
+
   function  SysAllocString(psz: pointer): Integer; external oleaut32dll name 'SysAllocString';
   function  SysAllocStringLen(psz: pointer; len:dword): Integer; external oleaut32dll name 'SysAllocStringLen';
   procedure SysFreeString(bstr:pointer); external oleaut32dll name 'SysFreeString';
@@ -3315,7 +3318,7 @@ type
 	function RegisterActiveObject(unk: IUnknown; const clsid: TCLSID; dwFlags: DWORD; out dwRegister: culong): HResult; external oleaut32dll name 'RegisterActiveObject';
 	function RevokeActiveObject(dwRegister: culong; pvReserved: Pointer) : HResult; external oleaut32dll name 'RevokeActiveObject';
 	function GetActiveObject(const clsid: TCLSID; pvReserved: Pointer; out unk: IUnknown) : HResult; external oleaut32dll name 'GetActiveObject';
-  
+
 function Succeeded(Res: HResult) : Boolean;inline;
 function Failed(Res: HResult) : Boolean;inline;
 function ResultCode(Res: HResult) : Longint;inline;
