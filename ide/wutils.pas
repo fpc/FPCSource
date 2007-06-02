@@ -76,9 +76,9 @@ type
     constructor Init;
     function    GetPos: Longint; virtual;
     function    GetSize: Longint; virtual;
-    procedure   Read(var Buf; Count: Word); virtual;
+    procedure   Read(var Buf; Count: longint); virtual;
     procedure   Seek(Pos: Longint); virtual;
-    procedure   Write(var Buf; Count: Word); virtual;
+    procedure   Write(var Buf; Count: longint); virtual;
   end;
 
   PSubStream = ^TSubStream;
@@ -86,9 +86,9 @@ type
     constructor Init(AStream: PStream; AStartPos, ASize: longint);
     function    GetPos: Longint; virtual;
     function    GetSize: Longint; virtual;
-    procedure   Read(var Buf; Count: Word); virtual;
+    procedure   Read(var Buf; Count: longint); virtual;
     procedure   Seek(Pos: Longint); virtual;
-    procedure   Write(var Buf; Count: Word); virtual;
+    procedure   Write(var Buf; Count: longint); virtual;
   private
     StartPos: longint;
     S       : PStream;
@@ -827,7 +827,7 @@ begin
   GetSize:=Position;
 end;
 
-procedure TNulStream.Read(var Buf; Count: Word);
+procedure TNulStream.Read(var Buf; Count: longint);
 begin
   Error(stReadError,0);
 end;
@@ -838,7 +838,7 @@ begin
     Position:=Pos;
 end;
 
-procedure TNulStream.Write(var Buf; Count: Word);
+procedure TNulStream.Write(var Buf; Count: longint);
 begin
   Inc(Position,Count);
 end;
@@ -863,9 +863,9 @@ begin
   GetSize:=StreamSize;
 end;
 
-procedure TSubStream.Read(var Buf; Count: Word);
+procedure TSubStream.Read(var Buf; Count: longint);
 var Pos: longint;
-    RCount: word;
+    RCount: longint;
 begin
   Pos:=GetPos;
   if Pos+Count>StreamSize then RCount:=StreamSize-Pos else RCount:=Count;
@@ -881,7 +881,7 @@ begin
   S^.Seek(StartPos+RPos);
 end;
 
-procedure TSubStream.Write(var Buf; Count: Word);
+procedure TSubStream.Write(var Buf; Count: longint);
 begin
   S^.Write(Buf,Count);
 end;

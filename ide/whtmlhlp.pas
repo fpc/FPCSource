@@ -87,11 +87,12 @@ type
       procedure DocTITLE(Entered: boolean); virtual;
       procedure DocBODY(Entered: boolean); virtual;
       procedure DocAnchor(Entered: boolean); virtual;
-      procedure   DocUnknownTag; virtual;
+      procedure DocUnknownTag; virtual;
       procedure DocHeading(Level: integer; Entered: boolean); virtual;
       procedure DocParagraph(Entered: boolean); virtual;
       procedure DocBreak; virtual;
       procedure DocImage; virtual;
+      procedure DocProcessComment(Comment: string); virtual;
       procedure DocBold(Entered: boolean); virtual;
       procedure DocCite(Entered: boolean); virtual;
       procedure DocCode(Entered: boolean); virtual;
@@ -127,10 +128,13 @@ type
       InAnchor: boolean;
       InParagraph: boolean;
       InPreformatted: boolean;
+      SuppressOutput: boolean;
+      SuppressUntil : string;
       InDefExp: boolean;
       TopicTitle: string;
       Indent: integer;
-      AnyCharsInLine: boolean;
+      AnyCharsInLine,
+      LastAnsiLoadFailed: boolean;
       CurHeadLevel: integer;
       PAlign: TParagraphAlign;
       LinkIndexes: array[0..MaxTopicLinks] of sw_integer;
@@ -469,6 +473,7 @@ begin
   inherited init(R,nil,nil);
   HTMLOwner:=AOwner;
   HTMLConsole:=New(PHTMLAnsiConsole,Init(@Self));
+  HTMLConsole^.HighVideo;
   Dispose(Console,Done);
   Console:=HTMLConsole;
   HTMLConsole^.Size.X:=80;
@@ -658,7 +663,7 @@ begin
         begin
           Topic^.NamedMarks^.InsertStr(Name);
 {$ifdef DEBUG}
-          DebugMessage('',' Adding Name '+Name,1,1);
+          DebugMessage('',' Adding Name "'+Name+'"',1,1);
 {$endif DEBUG}
           AddChar(hscNamedMark);
         end;
@@ -669,10 +674,12 @@ begin
             begin
               InAnchor:=true;
               AddChar(hscLink);
+              if pos('#',HRef)=1 then
+                Href:=NameAndExtOf(GetFilename)+Href;
               HRef:=CompleteURL(URL,HRef);
               LinkIndexes[LinkPtr]:=TopicLinks^.AddItem(HRef);
 {$ifdef DEBUG}
-          DebugMessage('',' Adding Link '+HRef,1,1);
+              DebugMessage('',' Adding Link "'+HRef+'"',1,1);
 {$endif DEBUG}
               Inc(LinkPtr);
             end;
@@ -763,15 +770,95 @@ begin
   AnyCharsInLine:=false;
 end;
 
+procedure THTMLTopicRenderer.DocProcessComment(Comment: string);
+var
+  src,index : string;
+begin
+  if pos('tex4ht:',Comment)=0 then
+    exit;
+{$ifdef DEBUG}
+  DebugMessage(GetFileName,'tex4ht comment "'
+        +Comment+'"',Line,1);
+{$endif DEBUG}
+  if SuppressOutput then
+    begin
+      if (pos(SuppressUntil,Comment)=0) then
+        exit
+      else
+        begin
+{$ifdef DEBUG}
+          DebugMessage(GetFileName,' Found '+SuppressUntil+'comment "'
+            +Comment+'" SuppressOuput reset to false',Line,1);
+{$endif DEBUG}
+          SuppressOutput:=false;
+          SuppressUntil:='';
+        end;
+    end;
+  if (pos('tex4ht:graphics ',Comment)>0) and
+     LastAnsiLoadFailed then
+    begin
+{$ifdef DEBUG}
+      DebugMessage(GetFileName,' Using tex4ht comment "'
+        +Comment+'"',Line,1);
+{$endif DEBUG}
+      { Try again with this info }
+      TagParams:=Comment;
+      DocImage;
+    end;
+  if (pos('tex4ht:syntaxdiagram ',Comment)>0) then
+    begin
+{$ifdef DEBUG}
+      DebugMessage(GetFileName,' Using tex4ht:syntaxdiagram comment "'
+        +Comment+'"',Line,1);
+{$endif DEBUG}
+      { Try again with this info }
+      TagParams:=Comment;
+      DocImage;
+      if not LastAnsiLoadFailed then
+        begin
+          SuppressOutput:=true;
+          SuppressUntil:='tex4ht:endsyntaxdiagram ';
+        end
+    end;
+  if (pos('tex4ht:mysyntdiag ',Comment)>0) then
+    begin
+{$ifdef DEBUG}
+      DebugMessage(GetFileName,' Using tex4ht:mysyntdiag comment "'
+        +Comment+'"',Line,1);
+{$endif DEBUG}
+      { Try again with this info }
+      TagParams:=Comment;
+      DocGetTagParam('SRC',src);
+      DocGetTagParam('INDEX',index);
+      TagParams:='src="../syntax/'+src+'-'+index+'.png"';
+      DocImage;
+      if not LastAnsiLoadFailed then
+        begin
+          SuppressOutput:=true;
+          SuppressUntil:='tex4ht:endmysyntdiag ';
+        end
+    end;
+end;
+
 procedure THTMLTopicRenderer.DocImage;
-var Src,Alt,SrcLine: string;
+var Name,Src,Alt,SrcLine: string;
     f : text;
     attr : byte;
     PA : PHTMLAnsiView;
     StorePreformatted : boolean;
 begin
+  if SuppressOutput then
+    exit;
+{$ifdef DEBUG}
+  if not DocGetTagParam('NAME',Name) then
+     Name:='<No name>';
+  DebugMessage(GetFileName,' Image "'+Name+'"',Line,1);
+{$endif DEBUG}
   if DocGetTagParam('SRC',src) then
     begin
+{$ifdef DEBUG}
+      DebugMessage(GetFileName,' Image source tag "'+Src+'"',Line,1);
+{$endif DEBUG}
       if src<>'' then
         begin
           src:=CompleteURL(URL,src);
@@ -779,10 +866,30 @@ begin
             Try to see if a file with same name and extension .git
             exists PM }
           src:=DirAndNameOf(src)+'.ans';
-          if ExistsFile(src) then
+{$ifdef DEBUG}
+  DebugMessage(GetFileName,' Trying "'+Src+'"',Line,1);
+{$endif DEBUG}
+          if not ExistsFile(src) then
+            begin
+              DocGetTagParam('SRC',src);
+              src:=DirAndNameOf(src)+'.ans';
+              src:=CompleteURL(DirOf(URL)+'../',src);
+{$ifdef DEBUG}
+              DebugMessage(GetFileName,' Trying "'+Src+'"',Line,1);
+{$endif DEBUG}
+            end;
+          if not ExistsFile(src) then
+            begin
+              LastAnsiLoadFailed:=true;
+{$ifdef DEBUG}
+              DebugMessage(GetFileName,' "'+Src+'" not found',Line,1);
+{$endif DEBUG}
+            end
+          else
             begin
               PA:=New(PHTMLAnsiView,init(@self));
               PA^.LoadFile(src);
+              LastAnsiLoadFailed:=false;
               if AnyCharsInLine then DocBreak;
               StorePreformatted:=InPreformatted;
               InPreformatted:=true;
@@ -798,7 +905,14 @@ begin
             end;
           { also look for a raw text file without colors }
           src:=DirAndNameOf(src)+'.txt';
-          if ExistsFile(src) then
+          if not ExistsFile(src) then
+            begin
+              LastAnsiLoadFailed:=true;
+{$ifdef DEBUG}
+              DebugMessage(GetFileName,' "'+Src+'" not found',Line,1);
+{$endif DEBUG}
+            end
+          else
             begin
               Assign(f,src);
               Reset(f);
@@ -809,7 +923,9 @@ begin
                   AddText(SrcLine+hscLineBreak);
                 end;
               Close(f);
+              LastAnsiLoadFailed:=false;
               DocPreformatted(false);
+              LastAnsiLoadFailed:=false;
               Exit;
             end;
         end;
@@ -1071,7 +1187,7 @@ end;
 
 procedure THTMLTopicRenderer.AddChar(C: char);
 begin
-  if (Topic=nil) or (TextPtr=MaxBytes) then Exit;
+  if (Topic=nil) or (TextPtr=MaxBytes) or SuppressOutput then Exit;
   Topic^.Text^[TextPtr]:=ord(C);
   Inc(TextPtr);
   if (C>#15) and ((C<>' ') or (InPreFormatted=true)) then
@@ -1080,7 +1196,7 @@ end;
 
 procedure THTMLTopicRenderer.AddCharAt(C: char;AtPtr : sw_word);
 begin
-  if (Topic=nil) or (TextPtr=MaxBytes) then Exit;
+  if (Topic=nil) or (TextPtr=MaxBytes) or SuppressOutput then Exit;
   if AtPtr>TextPtr then
     AtPtr:=TextPtr
   else
@@ -1132,7 +1248,7 @@ function THTMLTopicRenderer.AddTextAt(const S: String;AtPtr : sw_word) : sw_word
 var
   i,slen,len : sw_word;
 begin
-  if (Topic=nil) or (TextPtr>=MaxBytes) then Exit;
+  if (Topic=nil) or (TextPtr>=MaxBytes)  or SuppressOutput then Exit;
   slen:=length(s);
   if TextPtr+slen>=MaxBytes then
     slen:=MaxBytes-TextPtr;
@@ -1185,6 +1301,8 @@ begin
       TextPtr:=0; LinkPtr:=0;
       AnyCharsInLine:=false;
       LastTextChar:=#0;
+      SuppressUntil:='';
+      SuppressOutput:=false;
       OK:=Process(HTMLFile);
 
       if OK then

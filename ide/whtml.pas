@@ -30,7 +30,8 @@ type
       constructor Init;
       procedure   AddLine(const S: string); virtual;
       function    GetLine(Idx: sw_integer; var S: string): boolean; virtual;
-      function GetFileName : string; virtual;
+      function    GetFileName : string; virtual;
+      function    GetLineCount : sw_integer;
       destructor  Done; virtual;
     private
       Lines : PUnsortedStrCollection;
@@ -140,6 +141,11 @@ end;
 function TMemoryTextFile.GetFileName : string;
 begin
   GetFileName:='unknown';
+end;
+
+function TMemoryTextFile.GetLineCount : sw_integer;
+begin
+  GetLineCount:=Lines^.Count;
 end;
 
 procedure TMemoryTextFile.AddLine(const S: string);
@@ -415,24 +421,32 @@ begin
           Code:=$ffff;
         end;
     end;
-  if (Code=$22) or (Name='quot')   then E:='"'   else { double quote sign             }
-  if (Code=$26) or (Name='amp')    then E:='&'   else { ampersand                     }
-  if (Code=$3C) or (Name='lt')     then E:='<'   else { less-than sign                }
-  if (Code=$3E) or (Name='gt')     then E:='>'   else { greater-than sign              }
+  { #0 to #127 is same for Unicode and Code page 437 }
+  if (code<=127) then
+    begin
+      E:=chr(code);
+      DocDecodeNamedEntity:=true;
+      exit;
+    end;
+  if (Code=$22{34}) or (Name='quot')   then E:='"'   else { double quote sign             }
+  if (Code=$26{38}) or (Name='amp')    then E:='&'   else { ampersand                     }
+  if (Code=$27{39}) or (Name='apos')    then E:='''' else { apostrophe  }
+  if (Code=$3C{60}) or (Name='lt')     then E:='<'   else { less-than sign                }
+  if (Code=$3E{62}) or (Name='gt')     then E:='>'   else { greater-than sign              }
   if (Code=$5B)                    then E:='['   else { [ }
   if (Code=$5C)                    then E:='\'   else { \ }
   if (Code=$5D)                    then E:=']'   else { ] }
   if (Code=$5E)                    then E:='^'   else { ^ }
   if (Code=$5F)                    then E:='_'   else { _ }
   if (Code=160) or (Name='nbsp')   then E:=#255  else { no-break space                }
-  if (Code=161) or (Name='iexcl')  then E:='≠'   else { inverted excalamation mark    }
+  if (Code=161) or (Name='iexcl')  then E:='≠'   else { inverted exclamation mark    }
   if (Code=162) or (Name='cent')   then E:='õ'   else { cent sign                     }
   if (Code=163) or (Name='pound')  then E:='ú'   else { pound sterling sign           }
   if (Code=164) or (Name='curren') then E:='$'   else { general currency sign         }
   if (Code=165) or (Name='yen')    then E:='ù'   else { yen sign                      }
   if (Code=166) or (Name='brvbar') then E:='|'   else { broken vertical bar           }
-(*  if (Code=167) or (Name='sect')   then E:=#255  else { section sign                  }*)
-(*  if (Code=168) or (Name='uml')    then E:=#255  else { umlaut  (dieresis)            }*)
+  if (Code=167) or (Name='sect')   then E:=''   else { section sign                  }
+  if (Code=168) or (Name='uml')    then E:='"'   else { umlaut  (dieresis)            }
   if (Code=169) or (Name='copy')   then E:='(C)' else { copyright sign                }
 (*  if (Code=170) or (Name='ordf')   then E:=#255  else { ordinal indicator, feminine   }*)
   if (Code=171) or (Name='laquo')  then E:='"'   else { angle quotation mark -left    }
@@ -462,8 +476,8 @@ begin
   if (Code=195) or (Name='Atilde') then E:='A'   else { capital A, tilde accent       }
   if (Code=196) or (Name='Auml')   then E:='é'   else { capital A, dieresis or umlaut }
   if (Code=197) or (Name='Aring')  then E:='è'   else { capital A, ring               }
-  if (Code=198) or (Name='AElig')  then E:='AE'  else { capital AE diphthong          }
-(*  if (Code=199) or (Name='Ccedil') then E:='?'   else { capital C, cedilla            }*)
+  if (Code=198) or (Name='AElig')  then E:='í'   else { capital AE diphthong          }
+  if (Code=199) or (Name='Ccedil') then E:='Ä'   else { capital C, cedilla            }
   if (Code=200) or (Name='Egrave') then E:='ê'   else { capital E, grave accent       }
   if (Code=201) or (Name='Eacute') then E:='ê'   else { capital E, acute accent       }
   if (Code=202) or (Name='Ecirc')  then E:='E'   else { capital E, circumflex accent  }
@@ -495,7 +509,7 @@ begin
   if (Code=228) or (Name='auml')   then E:='Ñ'   else { small a, dieresis or umlaut   }
   if (Code=229) or (Name='aring')  then E:='Ü'   else { small a, ring                 }
   if (Code=230) or (Name='aelig')  then E:='ae'  else { small ae, diphthong           }
-(*  if (Code=231) or (Name='ccedil') then E:='?'   else { small c, cedilla              }*)
+  if (Code=231) or (Name='ccedil') then E:='á'   else { small c, cedilla              }
   if (Code=232) or (Name='egrave') then E:='ä'   else { small e, grave accent         }
   if (Code=233) or (Name='eacute') then E:='Ç'   else { small e, acute accent         }
   if (Code=234) or (Name='ecirc')  then E:='à'   else { small e, circumflex accent    }
@@ -521,15 +535,20 @@ begin
 (*  if (Code=254) or (Name='thorn')  then E:='?'   else { small thorn, Icelandic        }*)
   if (Code=255) or (Name='yuml')   then E:='y'   else { small y, dieresis or umlaut   }
   { Special codes appearing in TeXH generated files }
-  if (Code=8217) then E:=''''   else                  { acute accent as generated by TeXH   }
-  if (code=$2c6) then E:='^'  else                    { Modifier Letter Circumflex Accent }
-  if (code=$2013) then E:='-'  else                   { En dash }
-  if (code=$2014) then E:='--'  else                  { Em dash }
-  if (code=$201D) then E:='``'  else                  { right double quotation marks }
+  if (code=$2c6{710}) or (Name='circ')  then E:='^' else      { Modifier Letter Circumflex Accent }
+  if (code=$2dc{732}) or (Name='tilde') then E:='~' else      { Small tilde }
+  if (code=$2013{8211}) or (Name='endash') then E:='-' else   { En dash }
+  if (code=$2014{8212}) or (Name='emdash') then E:='--' else  { Em dash }
+  if (Code=$2018{8216}) or (Name='lsquo') then E:='`'  else   { Acute accent as generated by TeXH   }
+  if (Code=$2019{8217}) or (Name='rsquo') then E:='''' else   { acute accent as generated by TeXH   }
+  if (code=$201C{8220}) or (Name='ldquo') then E:='''''' else { left double quotation marks }
+  if (code=$201D{8221}) or (Name='rdquo') then E:='``' else   { right double quotation marks }
+  if (code=$2026{8230}) or (Name='hellip') then E:='...' else { horizontal ellipsis }
   if (Code=$FB00) then E:='ff'  else                  { ff together }
   if (Code=$FB01) then E:='fi'  else                  { fi together }
   if (Code=$FB02) then E:='fl'  else                  { fl together }
   if (Code=$FB03) then E:='ffi' else                  { ffi together }
+  if (Code=$FB04) then E:='ffl' else                  { ffl together }
   Found:=false;
   DocDecodeNamedEntity:=Found;
 {$ifdef DEBUG}
@@ -617,7 +636,9 @@ var Found: boolean;
     InStr: boolean;
     I: sw_integer;
 begin
-  Found:=false; Name:=UpcaseStr(Name);
+  Found:=false;
+  Name:=UpcaseStr(Name);
+  Value:='';
   S:=TagParams;
   repeat
     InStr:=false;
@@ -625,7 +646,10 @@ begin
     S:=Trim(S); I:=1;
     while (I<=length(S)) and (S[I]<>'=') do
       begin
-        ParamName:=ParamName+S[I];
+        if S[I]=' ' then
+          ParamName:=''
+        else
+          ParamName:=ParamName+S[I];
         Inc(I);
       end;
     ParamName:=Trim(ParamName);
