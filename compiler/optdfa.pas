@@ -329,7 +329,7 @@ unit optdfa;
                     dfainfo.map:=map;
                     foreachnodestatic(pm_postprocess,tifnode(node).left,@AddDefUse,@dfainfo);
                   end;
-                { create life info for left and right node }
+                { create life info for then and else node }
                 CreateInfo(tifnode(node).right);
                 CreateInfo(tifnode(node).t1);
 
@@ -418,10 +418,22 @@ unit optdfa;
                 calclife(node);
               end;
 
+            calln:
+              begin
+                if not(assigned(node.optinfo^.def)) and
+                  not(assigned(node.optinfo^.use)) then
+                  begin
+                    dfainfo.use:=@node.optinfo^.use;
+                    dfainfo.def:=@node.optinfo^.def;
+                    dfainfo.map:=map;
+                    foreachnodestatic(pm_postprocess,node,@AddDefUse,@dfainfo);
+                  end;
+                calclife(node);
+              end;
+
             tempcreaten,
             tempdeleten,
             inlinen,
-            calln,
             nothingn,
             continuen,
             goton,
@@ -484,17 +496,14 @@ unit optdfa;
 
 
     procedure createdfainfo(node : tnode);
-      var
-        map : TIndexedNodeSet;
       begin
-        map:=TIndexedNodeSet.Create;
+        if not(assigned(current_procinfo.nodemap)) then
+          current_procinfo.nodemap:=TIndexedNodeSet.Create;
         { add controll flow information }
         SetNodeSucessors(node);
 
         { now, collect life information }
-        CreateLifeInfo(node,map);
-
-        map.free;
+        CreateLifeInfo(node,current_procinfo.nodemap);
       end;
 
 end.

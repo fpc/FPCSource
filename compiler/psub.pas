@@ -102,9 +102,11 @@ implementation
        { codegen }
        tgobj,cgbase,cgobj,dbgbase,
        ncgutil,regvars,
+       optbase,
        opttail,
        optcse,
-       optdfa
+       optdfa,
+       optutils
 {$if defined(arm) or defined(powerpc) or defined(powerpc64)}
        ,aasmcpu
 {$endif arm}
@@ -692,6 +694,8 @@ implementation
         oldfilepos : tfileposinfo;
         templist : TAsmList;
         headertai : tai;
+        i : integer;
+        varsym : tabstractnormalvarsym;
       begin
         { the initialization procedure can be empty, then we
           don't need to generate anything. When it was an empty
@@ -763,6 +767,33 @@ implementation
                   pi_needs_stackframe])=[]) then
           begin
             createdfainfo(code);
+            { when life info is available, we can give more sophisticated warning about unintialized
+              variables }
+
+            { iterate through life info of the first node }
+            for i:=0 to nodemap.count-1 do
+              begin
+                if DFASetIn(code.optinfo^.life,i) then
+                  case tnode(nodemap[i]).nodetype of
+                    loadn:
+                      begin
+                        varsym:=tabstractnormalvarsym(tloadnode(nodemap[i]).symtableentry);
+
+                        { Give warning/note for living locals }
+                        if assigned(varsym.owner) and
+                          not(vo_is_external in varsym.varoptions) then
+                          begin
+                            if (vo_is_funcret in varsym.varoptions) then
+                              CGMessage(sym_w_function_result_uninitialized)
+                            else
+                              begin
+                                if varsym.owner=procdef.localst then
+                                  CGMessage1(sym_w_uninitialized_local_variable,varsym.realname);
+                              end;
+                          end;
+                      end;
+                  end;
+              end;
           end;
 
         if cs_opt_nodecse in current_settings.optimizerswitches then
