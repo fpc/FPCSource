@@ -48,14 +48,14 @@
       __unused : array[0..2] of cULong
       );
     1 : (
-      dev        : cULong;
-      ino        : cULong;
-      nlink      : cULong;
-      mode       : mode_t;
-      uid        : uid_t;
-      gid        : gid_t;
-      rdev       : cULong;
-      size       : off_t;
+      dev        : cULong deprecated;
+      ino        : cULong deprecated;
+      nlink      : cULong deprecated;
+      mode       : mode_t deprecated;
+      uid        : uid_t deprecated;
+      gid        : gid_t deprecated;
+      rdev       : cULong deprecated;
+      size       : off_t deprecated;
       blksize,
       blocks,
       atime,
@@ -63,7 +63,7 @@
       mtime,
       mtime_nsec,
       ctime,
-      ctime_nsec : cULong;
-      __unused_dummy : array[0..2] of cULong;
+      ctime_nsec : cULong deprecated;
+      __unused_dummy : array[0..2] of cULong deprecated;
       );
   end;

@@ -19,24 +19,24 @@
       0:
         (dev,
         ino,
-        nlink  : qword;
+        nlink  : qword deprecated;
 
         mode,
         uid,
         gid,
-        __pad0 : cardinal;
-        rdev   : qword;
+        __pad0 : cardinal deprecated;
+        rdev   : qword deprecated;
         size,
         blksize,
-        blocks : int64;
+        blocks : int64 deprecated;
 
         atime,
         atime_nsec,
         mtime,
         mtime_nsec,
         ctime,
-        ctime_nsec : qword;
-        __unused  : array[0..2] of qword);
+        ctime_nsec : qword deprecated;
+        __unused  : array[0..2] of qword deprecated);
       1:
         (st_dev,
         st_ino,
