@@ -20,7 +20,8 @@
  ****************************************************************************
 }
 
-{$define DEBUG_DFA}
+{ $define DEBUG_DFA}
+{ $define EXTDEBUG_DFA}
 
 { this unit implements routines to perform dfa }
 unit optdfa;
@@ -44,7 +45,7 @@ unit optdfa;
       globtype,globals,
       verbose,
       cpuinfo,
-      symdef,
+      symconst,symdef,
       defutil,
       procinfo,
       nutils,
@@ -123,6 +124,13 @@ unit optdfa;
       end;
 
 
+    function ResetProcessing(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        exclude(n.flags,nf_processing);
+        result:=fen_false;
+      end;
+
+
     procedure CreateLifeInfo(node : tnode;map : TIndexedNodeSet);
 
       var
@@ -149,6 +157,11 @@ unit optdfa;
                 writeln;
               end;
             }
+{$ifdef DEBUG_DFA}
+            if not(changed) and b then
+              writeln('Another DFA pass caused by: ',nodetype2str[n.nodetype],'(',n.fileinfo.line,',',n.fileinfo.column,')');
+{$endif DEBUG_DFA}
+
             changed:=changed or b;
             node.optinfo^.life:=l;
           end;
@@ -177,7 +190,10 @@ unit optdfa;
                 DFASetIncludeSet(l,n.optinfo^.life);
               end
             else
-              l:=n.optinfo^.use;
+              begin
+                l:=n.optinfo^.use;
+                DFASetIncludeSet(l,n.optinfo^.life);
+              end;
             updatelifeinfo(n,l);
           end;
 
@@ -200,12 +216,16 @@ unit optdfa;
           if assigned(node.successor) then
             CreateInfo(node.successor);
 
+{$ifdef EXTDEBUG_DFA}
+          writeln('Handling: ',nodetype2str[node.nodetype],'(',node.fileinfo.line,',',node.fileinfo.column,')');
+{$endif EXTDEBUG_DFA}
           { life:=succesorlive-definition+use }
 
           case node.nodetype of
             whilerepeatn:
               begin
                 calclife(node);
+                { take care of repeat until! }
                 if lnf_testatbegin in twhilerepeatnode(node).loopflags then
                   begin
                     node.allocoptinfo;
@@ -233,6 +253,43 @@ unit optdfa;
                     CreateInfo(twhilerepeatnode(node).right);
                   end;
               end;
+
+            forn:
+              begin
+                {
+                  left: loopvar
+                  right: from
+                  t1: to
+                  t2: body
+                }
+                calclife(node);
+                node.allocoptinfo;
+                if not(assigned(node.optinfo^.def)) and
+                   not(assigned(node.optinfo^.use)) then
+                  begin
+                    dfainfo.use:=@node.optinfo^.use;
+                    dfainfo.def:=@node.optinfo^.def;
+                    dfainfo.map:=map;
+                    foreachnodestatic(pm_postprocess,tfornode(node).left,@AddDefUse,@dfainfo);
+                    foreachnodestatic(pm_postprocess,tfornode(node).right,@AddDefUse,@dfainfo);
+                    foreachnodestatic(pm_postprocess,tfornode(node).t1,@AddDefUse,@dfainfo);
+                  end;
+                calclife(node);
+
+                { create life the body }
+                CreateInfo(tfornode(node).t2);
+
+                { update for node }
+                { life:=life+use+body }
+                l:=node.optinfo^.life;
+                DFASetIncludeSet(l,node.optinfo^.use);
+                DFASetIncludeSet(l,tfornode(node).t2.optinfo^.life);
+                UpdateLifeInfo(node,l);
+
+                { ... and a second iteration for fast convergence }
+                CreateInfo(tfornode(node).t2);
+              end;
+
             assignn:
               begin
                 if not(assigned(node.optinfo^.def)) and
@@ -332,15 +389,39 @@ unit optdfa;
                 { finally, update the life info of the node }
                 UpdateLifeInfo(node,l);
               end;
+
             exitn:
               begin
-                if not(is_void(current_procinfo.procdef.returndef)) then
+                if not(is_void(current_procinfo.procdef.returndef)) and
+                  not(current_procinfo.procdef.proctypeoption=potype_constructor) then
                   begin
                     { get info from faked resultnode }
                     node.optinfo^.use:=resultnode.optinfo^.use;
                     node.optinfo^.life:=node.optinfo^.use;
                   end;
               end;
+
+            raisen:
+              begin
+                calclife(node);
+                node.allocoptinfo;
+                if not(assigned(node.optinfo^.def)) and
+                   not(assigned(node.optinfo^.use)) then
+                  begin
+                    dfainfo.use:=@node.optinfo^.use;
+                    dfainfo.def:=@node.optinfo^.def;
+                    dfainfo.map:=map;
+                    foreachnodestatic(pm_postprocess,traisenode(node).left,@AddDefUse,@dfainfo);
+                    foreachnodestatic(pm_postprocess,traisenode(node).right,@AddDefUse,@dfainfo);
+                    foreachnodestatic(pm_postprocess,traisenode(node).third,@AddDefUse,@dfainfo);
+                  end;
+                calclife(node);
+              end;
+
+            tempcreaten,
+            tempdeleten,
+            inlinen,
+            calln,
             nothingn,
             continuen,
             goton,
@@ -350,10 +431,13 @@ unit optdfa;
                 calclife(node);
               end;
             else
-              internalerror(2007050502);
+              begin
+                writeln(nodetype2str[node.nodetype]);
+                internalerror(2007050502);
+              end;
           end;
 
-          exclude(node.flags,nf_processing);
+          // exclude(node.flags,nf_processing);
         end;
 
       var
@@ -361,7 +445,8 @@ unit optdfa;
         dfarec : tdfainfo;
       begin
         runs:=0;
-        if not(is_void(current_procinfo.procdef.returndef)) then
+        if not(is_void(current_procinfo.procdef.returndef)) and
+          not(current_procinfo.procdef.proctypeoption=potype_constructor) then
           begin
             { create a fake node using the result }
             resultnode:=load_result_node;
@@ -378,6 +463,7 @@ unit optdfa;
           inc(runs);
           changed:=false;
           CreateInfo(node);
+          foreachnodestatic(pm_postprocess,node,@ResetProcessing,nil);
 {$ifdef DEBUG_DFA}
           PrintIndexedNodeSet(output,map);
           PrintDFAInfo(output,node);

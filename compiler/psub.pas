@@ -756,7 +756,11 @@ implementation
           (pi_is_recursive in flags) then
           do_opttail(code,procdef);
 
-        if cs_opt_nodedfa in current_settings.optimizerswitches then
+        if (cs_opt_nodedfa in current_settings.optimizerswitches) and
+          { creating dfa is not always possible }
+          ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
+                  pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter,
+                  pi_needs_stackframe])=[]) then
           begin
             createdfainfo(code);
           end;

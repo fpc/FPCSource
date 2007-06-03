@@ -271,9 +271,14 @@ unit optutils;
                 result:=p;
                 p.successor:=succ;
               end;
+            raisen:
+              begin
+                result:=p;
+                { raise never returns }
+                p.successor:=nil;
+              end;
             withn,
             tryexceptn,
-            raisen,
             tryfinallyn,
             onn:
               internalerror(2007050501);
