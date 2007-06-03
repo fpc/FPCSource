@@ -2695,10 +2695,16 @@ implementation
           end
         else
           begin
-            tmpreg:=getintregister(list,size);
-            a_load_reg_reg(list,size,size,src2,tmpreg);
-            a_op_reg_reg(list,op,size,src1,tmpreg);
-            a_load_reg_reg(list,size,size,tmpreg,dst);
+            { can we do a direct operation on the target register ? }
+            if op in [OP_ADD,OP_MUL,OP_AND,OP_MOVE,OP_XOR,OP_IMUL,OP_OR] then
+              a_op_reg_reg(list,op,size,src2,dst)
+            else
+              begin
+                tmpreg:=getintregister(list,size);
+                a_load_reg_reg(list,size,size,src2,tmpreg);
+                a_op_reg_reg(list,op,size,src1,tmpreg);
+                a_load_reg_reg(list,size,size,tmpreg,dst);
+              end;
           end;
       end;
 
