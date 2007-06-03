@@ -48,7 +48,7 @@ unit optdfa;
       defutil,
       procinfo,
       nutils,
-      nbas,nflw,ncon,ninl,ncal,
+      nbas,nflw,ncon,ninl,ncal,nset,
       optbase,optutils;
 
 
@@ -184,6 +184,7 @@ unit optdfa;
         var
           dfainfo : tdfainfo;
           l : TDFASet;
+          i : longint;
 
         begin
           if node=nil then
@@ -244,6 +245,7 @@ unit optdfa;
                   end;
                 calclife(node);
               end;
+
             statementn:
               begin
                 { nested statement }
@@ -251,12 +253,14 @@ unit optdfa;
                 { inherit info }
                 node.optinfo^.life:=tstatementnode(node).statement.optinfo^.life;
               end;
+
             blockn:
               begin
                 CreateInfo(tblocknode(node).statements);
                 if assigned(tblocknode(node).statements) then
                   node.optinfo^.life:=tblocknode(node).statements.optinfo^.life;
               end;
+
             ifn:
               begin
                 { get information from cond. expression }
@@ -284,8 +288,47 @@ unit optdfa;
                 else
                   if assigned(node.successor) then
                     DFASetIncludeSet(l,node.successor.optinfo^.life);
-                { add use info from cond. expression }
+                { add use info from the cond. expression }
                 DFASetIncludeSet(l,tifnode(node).optinfo^.use);
+                { finally, update the life info of the node }
+                UpdateLifeInfo(node,l);
+              end;
+
+            casen:
+              begin
+                { get information from "case" expression }
+                if not(assigned(node.optinfo^.def)) and
+                   not(assigned(node.optinfo^.use)) then
+                  begin
+                    dfainfo.use:=@node.optinfo^.use;
+                    dfainfo.def:=@node.optinfo^.def;
+                    dfainfo.map:=map;
+                    foreachnodestatic(pm_postprocess,tcasenode(node).left,@AddDefUse,@dfainfo);
+                  end;
+
+                { create life info for block and else nodes }
+                for i:=0 to tcasenode(node).blocks.count-1 do
+                  CreateInfo(pcaseblock(tcasenode(node).blocks[i])^.statement);
+
+                CreateInfo(tcasenode(node).elseblock);
+
+                { ensure that we don't remove life info }
+                l:=node.optinfo^.life;
+
+                { get life info from case branches }
+                for i:=0 to tcasenode(node).blocks.count-1 do
+                  DFASetIncludeSet(l,pcaseblock(tcasenode(node).blocks[i])^.statement.optinfo^.life);
+
+                { get life info from else branch or the succesor }
+                if assigned(tcasenode(node).elseblock) then
+                  DFASetIncludeSet(l,tcasenode(node).elseblock.optinfo^.life)
+                else
+                  if assigned(node.successor) then
+                    DFASetIncludeSet(l,node.successor.optinfo^.life);
+
+                { add use info from the "case" expression }
+                DFASetIncludeSet(l,tcasenode(node).optinfo^.use);
+
                 { finally, update the life info of the node }
                 UpdateLifeInfo(node,l);
               end;

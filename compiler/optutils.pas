@@ -47,7 +47,7 @@ unit optutils;
     uses
       verbose,
       optbase,
-      nbas,nflw,nutils;
+      nbas,nflw,nutils,nset;
 
     function TIndexedNodeSet.Add(node : tnode) : boolean;
       var
@@ -142,6 +142,7 @@ unit optutils;
       function DoSet(p : tnode;succ : tnode) : tnode;
         var
           hp1,hp2 : tnode;
+          i : longint;
         begin
           result:=nil;
           if p=nil then
@@ -245,15 +246,36 @@ unit optutils;
                 result:=p;
                 p.successor:=nil;
               end;
-            inlinen,
-            calln,
+            casen:
+              begin
+                result:=p;
+                DoSet(tcasenode(p).elseblock,succ);
+                for i:=0 to tcasenode(p).blocks.count-1 do
+                  DoSet(pcaseblock(tcasenode(p).blocks[i])^.statement,succ);
+                p.successor:=succ;
+              end;
+            calln:
+              begin
+                { not sure if this is enough (FK) }
+                result:=p;
+                p.successor:=succ;
+              end;
+            inlinen:
+              begin
+                { not sure if this is enough (FK) }
+                result:=p;
+                p.successor:=succ;
+              end;
+            nothingn:
+               begin
+                result:=p;
+                p.successor:=succ;
+              end;
             withn,
-            casen,
             tryexceptn,
             raisen,
             tryfinallyn,
-            onn,
-            nothingn:
+            onn:
               internalerror(2007050501);
           end;
         end;
