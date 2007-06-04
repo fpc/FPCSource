@@ -125,9 +125,6 @@ interface
        TCoffObjData = class(TObjData)
        private
          win32      : boolean;
-{$ifdef arm}
-         eVCobj     : boolean;
-{$endif arm}
        public
          constructor createcoff(const n:string;awin32:boolean;acObjSection:TObjSectionClass);
          destructor  destroy;override;
@@ -820,7 +817,7 @@ const pemagic : array[0..3] of byte = (
                   if (relocsec.objdata=objdata) then
                     dec(address,TCoffObjSection(relocsec).orgmempos);
 {$ifdef arm}
-                  if (relocsec.objdata=objdata) and not TCoffObjData(objdata).eVCobj then
+                  if (relocsec.objdata=objdata) then
                     inc(address, relocsec.MemPos)
                   else
 {$endif arm}
@@ -883,7 +880,7 @@ const pemagic : array[0..3] of byte = (
                         dec(address,TCoffObjSection(relocsec).orgmempos);
                     end;
 {$ifdef arm}
-                  if (relocsec.objdata=objdata) and not TCoffObjData(objdata).eVCobj then
+                  if (relocsec.objdata=objdata) then
                     inc(address, relocsec.MemPos)
                   else
 {$endif arm}
@@ -1766,9 +1763,6 @@ const pemagic : array[0..3] of byte = (
                InputError('Illegal COFF Magic');
                exit;
              end;
-{$ifdef arm}
-           eVCobj:=header.flag=$100;
-{$endif arm}
            { Strings }
            AReader.Seek(header.sympos+header.syms*sizeof(CoffSymbol));
            if not AReader.Read(strsize,4) then
