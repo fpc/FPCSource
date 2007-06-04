@@ -63,7 +63,7 @@ procedure TIDEApp.DoCompilerSwitch;
 var R,R2,R3,TabR,TabIR: TRect;
     D: PCenterDialog;
     CB1,CB2,CB3,CB4,CB5: PCheckBoxes;
-    RB1,RB2,RB3,RB4,RB5,RB6: PRadioButtons;
+    RB1,RB1b,RB2,RB3,RB4,RB5,RB6: PRadioButtons;
     Items: PSItem;
     IL: PEditorInputLine;
     IL2: PEditorInputLine;
@@ -71,7 +71,7 @@ var R,R2,R3,TabR,TabIR: TRect;
     I,L: longint;
     Tab: PTab;
     Label11,Label12,
-    Label21,Label22,Label23,
+    Label21,Label22,Label23,Label23b,
     Label31,Label41,
     Label51,Label52,Label53: PLabel;
 begin
@@ -172,22 +172,39 @@ begin
     R2.B.Y:=R2.A.Y+1;
 
     { --- Sheet 3 --- }
-    Count:=ProcessorSwitches^.ItemCount;
+    Count:=ProcessorOptimizationSwitches^.ItemCount;
     R.Copy(TabIR);
     R2.Copy(R);
     R2.B.X:=R2.A.X+(R2.B.X-R2.A.X) div 2;
+    Dec(R2.B.X,4);
     R2.B.Y:=R2.A.Y+Count;
     Items:=nil;
     for I:=Count-1 downto 0 do
-      Items:=NewSItem(ProcessorSwitches^.ItemName(I), Items);
+      Items:=NewSItem(ProcessorOptimizationSwitches^.ItemName(I), Items);
     New(RB1, Init(R2, Items));
-    L:=ProcessorSwitches^.GetCurrSel;
+    L:=ProcessorOptimizationSwitches^.GetCurrSel;
     RB1^.SetData(L);
     Dec(R2.A.Y);
     R2.B.Y:=R2.A.Y+1;
-    New(Label23, Init(R2, label_compiler_targetprocessor, RB1));
+    New(Label23, Init(R2, label_compiler_opt_targetprocessor, RB1));
 
-    { --- Sheet 3 --- }
+    Count:=ProcessorCodeGenerationSwitches^.ItemCount;
+    R.Copy(TabIR);
+    R2.Copy(R);
+    R2.A.X:=R2.A.X+(R2.B.X-R2.A.X) div 2;
+    R2.B.X:=R2.B.X-3;
+    R2.B.Y:=R2.A.Y+Count;
+    Items:=nil;
+    for I:=Count-1 downto 0 do
+      Items:=NewSItem(ProcessorCodeGenerationSwitches^.ItemName(I), Items);
+    New(RB1b, Init(R2, Items));
+    L:=ProcessorCodeGenerationSwitches^.GetCurrSel;
+    RB1b^.SetData(L);
+    Dec(R2.A.Y);
+    R2.B.Y:=R2.A.Y+1;
+    New(Label23b, Init(R2, label_compiler_codegen_targetprocessor, RB1b));
+
+    { --- Sheet 4 --- }
     Count:=VerboseSwitches^.ItemCount;
     R.Copy(TabIR);
     R2.Copy(R);
@@ -204,7 +221,7 @@ begin
     R2.B.Y:=R2.A.Y+1;
     New(Label31, Init(R2, label_compiler_verboseswitches, CB4));
 
-    { --- Sheet 4 --- }
+    { --- Sheet 5 --- }
     Count:=BrowserSwitches^.ItemCount;
     R.Copy(TabIR);
     R2.Copy(R);
@@ -220,7 +237,7 @@ begin
     R2.B.Y:=R2.A.Y+1;
     New(Label41, Init(R2, label_compiler_browser, RB4));
 
-    { --- Sheet 5 --- }
+    { --- Sheet 6 --- }
     Count:=AsmReaderSwitches^.ItemCount;
     R2.Copy(TabIR);
     R2.B.X:=R2.B.X-(R2.B.X-R2.A.X) div 2;
@@ -287,7 +304,9 @@ begin
       NewTabDef('~P~rocessor',RB1,
         NewTabItem(Label23,
         NewTabItem(RB1,
-        nil)),
+        NewTabItem(Label23b,
+        NewTabItem(RB1b,
+        nil)))),
       NewTabDef(page_compiler_verbose,CB4,
         NewTabItem(Label31,
         NewTabItem(CB4,
@@ -341,7 +360,8 @@ begin
     for I:=0 to VerboseSwitches^.ItemCount-1 do
       VerboseSwitches^.SetBooleanItem(I,CB4^.Mark(I));
     OptimizingGoalSwitches^.SetCurrSel(RB3^.Value);
-    ProcessorSwitches^.SetCurrSel(RB1^.Value);
+    ProcessorOptimizationSwitches^.SetCurrSel(RB1^.Value);
+    ProcessorCodeGenerationSwitches^.SetCurrSel(RB1b^.Value);
     AsmReaderSwitches^.SetCurrSel(RB5^.Value);
     for I:=0 to AsmInfoSwitches^.ItemCount-1 do
       AsmInfoSwitches^.SetBooleanItem(I,CB5^.Mark(I));
