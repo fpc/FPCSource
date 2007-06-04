@@ -385,6 +385,7 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 menu_key_run_stepover  = 'F8';
                 menu_key_run_traceinto = 'F7';
                 menu_key_run_conttocursor = 'F4';
+                menu_key_run_untilreturn= 'Alt+F4';
                 menu_key_run_resetdebugger = 'Ctrl+F2';
 
                 menu_key_compile_compile = 'Alt+F9';
@@ -892,7 +893,7 @@ begin
       NewItem(menu_run_stepover,menu_key_run_stepover, kbF8, cmStepOver, hcRun,
       NewItem(menu_run_traceinto,menu_key_run_traceinto, kbF7, cmTraceInto, hcRun,
       NewItem(menu_run_conttocursor,menu_key_run_conttocursor, kbF4, cmContToCursor, hcContToCursor,
-      NewItem(menu_run_untilreturn,'', kbNoKey,cmUntilReturn,hcUntilReturn,
+      NewItem(menu_run_untilreturn,menu_key_run_untilreturn, kbAltF4,cmUntilReturn,hcUntilReturn,
       NewItem(menu_run_rundir,'', kbNoKey, cmRunDir, hcRunDir,
       NewItem(menu_run_parameters,'', kbNoKey, cmParameters, hcParameters,
       NewItem(menu_run_resetdebugger,menu_key_run_resetdebugger, kbCtrlF2, cmResetDebugger, hcResetDebugger,
@@ -1257,7 +1258,8 @@ begin
              cmParameters    : Parameters;
              cmStepOver      : DoStepOver;
              cmTraceInto     : DoTraceInto;
-             cmRun           : DoRun;
+             cmRun,
+             cmContinue      : DoRun;
              cmResetDebugger : DoResetDebugger;
              cmContToCursor  : DoContToCursor;
              cmUntilReturn   : DoContUntilReturn;
