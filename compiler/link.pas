@@ -954,6 +954,7 @@ Implementation
         result:=false;
 
         Message1(exec_i_linking,outputname);
+        FlushOutput;
 
 {$warning TODO Load custom linker script}
         DefaultLinkScript;
