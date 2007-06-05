@@ -5583,6 +5583,7 @@ tests/bench/shootout/src/simple_hash.pp svneol=native#text/plain
 tests/bench/shootout/src/spectralnorm.pp svneol=native#text/plain
 tests/bench/shootout/src/sumcol.pp svneol=native#text/plain
 tests/bench/shortbench.pp svneol=native#text/plain
+tests/bench/stream.pp svneol=native#text/x-pascal
 tests/bench/timer.pas svneol=native#text/plain
 tests/bench/whet.pas svneol=native#text/plain
 tests/dbdigest.cfg.example -text
