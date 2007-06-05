@@ -1,6 +1,12 @@
 program stream;
 
+{$ifdef unix}
 uses baseunix,unix;
+{$endif}
+
+{$ifdef windows}
+uses windows;
+{$endif}
 
 {-----------------------------------------------------------------------}
 { Original code developed by John D. McCalpin                           }
@@ -79,18 +85,18 @@ const N	        = 2000000;
 
 const HLINE = '-------------------------------------------------------------';
 
-const inf = 1/0;
+      inf = 1/0;
 
 var a,b,c:array[0..N+OFFSET-1] of double;
 
-var avgtime:array[0..3] of double = (0,0,0,0);
+    avgtime:array[0..3] of double = (0,0,0,0);
     maxtime:array[0..3] of double = (0,0,0,0);
 	mintime:array[0..3] of double = (inf,inf,inf,inf);
 
-    labels:array[0..3] of string[16]= ('Copy:      ',
-                                       'Scale:     ',
-                                       'Add:       ',
-                                       'Triad:     ');
+    labels:array[0..3] of string[16]= ('Copy:',
+                                       'Scale:',
+                                       'Add:',
+                                       'Triad:');
 
     bytes:array[0..3] of cardinal = (
       2 * sizeof(double) * N,
@@ -98,13 +104,6 @@ var avgtime:array[0..3] of double = (0,0,0,0);
       3 * sizeof(double) * N,
       3 * sizeof(double) * N
     );
-
-{$ifdef TUNED}
-procedure tuned_STREAM_Copy;external;
-procedure tuned_STREAM_Scale(double scalar);external
-procedure void tuned_STREAM_Add();external;
-procedure tuned_STREAM_Triad(double scalar);external;
-{$endif}
 
 const	M=20;
 
@@ -144,6 +143,44 @@ begin
     max:=b;
 end;
 
+procedure tuned_STREAM_Copy;
+
+var j:longint;
+
+begin
+  for j:=0 to N-1 do
+    c[j]:=a[j];
+end;
+
+procedure tuned_STREAM_Scale(scalar:double);
+
+var j:longint;
+
+begin
+  for j:=0 to N-1 do
+    b[j]:=scalar*c[j];
+end;
+
+procedure tuned_STREAM_Add;
+
+var j:longint;
+
+begin
+  for j:=0 to N-1 do
+   c[j]:=a[j]+b[j];
+end;
+
+procedure tuned_STREAM_Triad(scalar:double);
+
+var j:longint;
+
+begin
+  for j:=0 to N-1 do
+    a[j]:=b[j]+scalar*c[j];
+end;
+
+{$ifdef unix}
+{$define have_mysecond}
 function mysecond:double;
 
 var tp:timeval;
@@ -153,12 +190,26 @@ begin
   fpgettimeofday(@tp,@tzp);
   mysecond:=double(tp.tv_sec)+double(tp.tv_usec)*1e-6;
 end;
+{$endif}
+
+{$ifdef windows}
+{$define have_mysecond}
+function mysecond:double;
+
+begin
+  mysecond:=gettickcount*1e-3;
+end;
+{$endif}
+
+{$ifndef have_mysecond}
+{$error Please implement a mysecond for your platform.}
+{$endif}
 
 function checktick:longint;
 
 var i,minDelta,Delta:longint;
     t1,t2:double;
-    timesfound:array [0..M-1] of double;
+    timesfound:array[0..M-1] of double;
 
 begin
   {  Collect a sequence of M unique time values from the system. }
@@ -263,7 +314,7 @@ var quantum:longint;
 begin
     { --- SETUP --- determine precision and check timing --- }
     writeln(HLINE);
-    writeln('STREAM version $Revision: 5.6 $\n');
+    writeln('STREAM version Revision: 5.6');
     writeln(HLINE);
     BytesPerWord:=sizeof(double);
     writeln('This system uses ',BytesPerWord,' bytes per DOUBLE PRECISION word.');
@@ -272,7 +323,7 @@ begin
     writeln('Array size = ',N,', Offset = ',OFFSET);
     writeln('Total memory required = ',3*BytesPerWord*(N/1048576),' MB.');
     writeln('Each test is run ',NTIMES,' times, but only');
-    writeln('the *best* time for each is used.\n');
+    writeln('the *best* time for each is used.');
 
     writeln(HLINE);
     writeln('writelning one line per active thread....');
@@ -363,10 +414,10 @@ begin
         end;
     
     writeln('Function      Rate (MB/s)   Avg time     Min time     Max time');
-    for j:= 0 to 3 do
+    for j:=0 to 3 do
       begin
         avgtime[j]:=avgtime[j]/(NTIMES-1);
-        writeln(labels[j],
+        writeln(labels[j]:11,
                 1E-6*bytes[j]/mintime[j]:11:4,
                 avgtime[j]:11:4,
                 mintime[j]:11:4,
@@ -375,6 +426,6 @@ begin
     writeln(HLINE);
 
     { --- Check Results --- }
-    checkSTREAMresults();
+    checkSTREAMresults;
     writeln(HLINE);
 end.
