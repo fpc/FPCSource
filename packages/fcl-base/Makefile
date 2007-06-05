@@ -278,7 +278,7 @@ ifeq ($(FULL_TARGET),i386-watcom)
 override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio inicol pooledmm libtar streamcoll
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio inicol pooledmm libtar streamcoll  resolve ssockets
+override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio inicol pooledmm libtar streamcoll  resolve ssockets syncobjs
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 override TARGET_UNITS+=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls avl_tree eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream streamex blowfish zipper streamio inicol pooledmm libtar streamcoll  process fileinfo resolve ssockets syncobjs simpleipc dbugmsg dbugintf

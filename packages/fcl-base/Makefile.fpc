@@ -47,11 +47,11 @@ units_win64=process fileinfo resolve ssockets syncobjs simpleipc dbugmsg dbugint
 units_wince=process fileinfo resolve ssockets syncobjs simpleipc dbugmsg dbugintf
 units_os2=resolve ssockets
 units_emx=resolve ssockets
-units_netware=resolve ssockets
 # syncobjs requires GetLastOSError function
-# which is noot implemented for netwlibc target
-# units_netwlibc=resolve ssockets syncobjs
-units_netwlibc=resolve ssockets
+# which is not implemented for netware target
+# units_netware=resolve ssockets syncobjs
+units_netware=resolve ssockets
+units_netwlibc=resolve ssockets syncobjs
 rsts=ssockets cachecls resolve custapp cgiapp eventlog registry simpleipc streamcoll inicol
 
 [compiler]
