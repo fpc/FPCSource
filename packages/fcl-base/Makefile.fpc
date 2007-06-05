@@ -35,7 +35,7 @@ units=contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
       iostream zstream cachecls avl_tree \
       eventlog custapp cgiapp wformat whtml wtex rttiutils bufstream \
       streamex blowfish zipper streamio inicol pooledmm libtar streamcoll
-units_beos=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf 
+units_beos=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf
 units_freebsd=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf daemonapp
 units_darwin=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf daemonapp
 units_solaris=process ssockets resolve fpasync syncobjs simpleipc dbugmsg dbugintf daemonapp
@@ -48,7 +48,10 @@ units_wince=process fileinfo resolve ssockets syncobjs simpleipc dbugmsg dbugint
 units_os2=resolve ssockets
 units_emx=resolve ssockets
 units_netware=resolve ssockets
-units_netwlibc=resolve ssockets syncobjs
+# syncobjs requires GetLastOSError function
+# which is noot implemented for netwlibc target
+# units_netwlibc=resolve ssockets syncobjs
+units_netwlibc=resolve ssockets
 rsts=ssockets cachecls resolve custapp cgiapp eventlog registry simpleipc streamcoll inicol
 
 [compiler]
