@@ -276,6 +276,7 @@ const
 
      cmDebuggerStopped   = 2600;
      cmDisassemble       = 2601;
+     cmContinue          = 2602;
 
      cmSymBrowse         = 2700;
      cmSymGotoSource     = 2701;
