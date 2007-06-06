@@ -208,7 +208,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$endif DEBUG_MT}
         ThreadMain:=pointer(ti.f(ti.p));
         DoneThread;
-        pthread_exit(nil);
+        pthread_exit(ThreadMain);
       end;
 
 
@@ -314,12 +314,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
   function  CWaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;  {0=no timeout}
     var
       LResultP: Pointer;
-      LResult: DWord;
     begin
-      LResult := 0;
-      LResultP := @LResult;
       pthread_join(pthread_t(threadHandle), @LResultP);
-      CWaitForThreadTerminate := LResult;
+      CWaitForThreadTerminate := dword(LResultP);
     end;
 
 {$warning threadhandle can be larger than a dword}
