@@ -823,10 +823,7 @@ implementation
                 begin
                   left.resultdef := s64inttype;
                   right.resultdef := s64inttype;
-                end
-            else if (left.resultdef.typ <> floatdef) and
-               (right.resultdef.typ <> floatdef) then
-              CGMessage(type_h_use_div_for_int);
+                end;
             inserttypeconv(right,resultrealdef);
             inserttypeconv(left,resultrealdef);
           end
