@@ -611,8 +611,8 @@ implementation
          {An attempt to convert the result of a floating point division
           (with the / operator) to an integer type will fail. Give a hint
           to use the div operator.}
-          if (node.nodetype=slashn) and (def.typ=orddef) then
-            cgmessage(type_h_use_div_for_int);
+         if (node.nodetype=slashn) and (def.typ=orddef) then
+           cgmessage(type_h_use_div_for_int);
       end;
 
 
