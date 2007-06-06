@@ -26,6 +26,7 @@ uses DOS;
 {$I nwsys.inc}
 {$I errno.inc}
 {$DEFINE HAS_SLEEP}
+{$DEFINE HAS_OSERROR}
 
 TYPE
   TNetwareFindData =
@@ -572,6 +573,13 @@ procedure Sleep(milliseconds: Cardinal);
 begin
   _delay (milliseconds);
 end;
+
+Function GetLastOSError : Integer;
+
+begin
+  Result:=Integer(__get_errno_ptr^);
+end;
+
 
 
 {****************************************************************************

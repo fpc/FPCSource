@@ -36,6 +36,7 @@ TYPE
   END;
 
 {$DEFINE HAS_SLEEP}
+{$DEFINE HAS_OSERROR}
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -626,6 +627,12 @@ begin
     inc(i);
   end;
   result := ExecuteProcess (Path, params);
+end;
+
+Function GetLastOSError : Integer;
+
+begin
+  Result:=Integer(GetLastError);
 end;
 
 
