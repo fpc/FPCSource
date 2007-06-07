@@ -801,8 +801,8 @@ function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;s
           if sse_check then
             begin
               os_supports_sse:=false;
-              { skip the offending movq xmm0,xmm0 instruction }
-              inc(excep^.ContextRecord^.Eip,4);
+              { skip the offending movaps %xmm7, %xmm6 instruction }
+              inc(excep^.ContextRecord^.Eip,3);
               excep^.ExceptionRecord^.ExceptionCode := 0;
               res:=EXCEPTION_CONTINUE_EXECUTION;
             end
