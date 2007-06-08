@@ -330,6 +330,12 @@ begin
   MemoryManager.FreeMem(p);
 end;
 
+procedure fpc_freemem2(p:pointer; size: ptruint);compilerproc;
+begin
+  MemoryManager.FreeMemSize(p,Size);
+end;  
+
+
 {$ifndef HAS_MEMORYMANAGER}
 {*****************************************************************************
                                GetHeapStatus

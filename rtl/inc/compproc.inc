@@ -47,6 +47,8 @@ type
 { Needed to solve overloading problem with call from assembler (PFV) }
 Function  fpc_getmem(size:ptrint):pointer;compilerproc;
 Procedure fpc_freemem(p:pointer);compilerproc;
+{needed for macpas mode }
+Procedure fpc_freemem2(p:pointer; size: ptruint);compilerproc;
 {$endif FPC_HAS_FEATURE_HEAP}
 
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt); compilerproc;

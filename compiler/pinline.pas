@@ -284,16 +284,33 @@ implementation
                   if (tpointerdef(p.resultdef).pointeddef.typ=orddef) and
                      (torddef(tpointerdef(p.resultdef).pointeddef).ordtype=uvoid) then
                     begin
-                      if (m_tp7 in current_settings.modeswitches) or
-                         (m_delphi in current_settings.modeswitches) then
-                       Message(parser_w_no_new_dispose_on_void_pointers)
-                      else
-                       Message(parser_e_no_new_dispose_on_void_pointers);
+                      if not(m_mac in current_settings.modeswitches) or
+                         (token <> _COMMA) then
+                        if (m_tp7 in current_settings.modeswitches) or
+                           (m_delphi in current_settings.modeswitches) then
+                         Message(parser_w_no_new_dispose_on_void_pointers)
+                        else
+                         Message(parser_e_no_new_dispose_on_void_pointers);
                     end;
 
                   { create statements with call to getmem+initialize or
                     finalize+freemem }
                   new_dispose_statement:=internalstatements(newstatement);
+
+                  { MacPas also allows new(ptr,1000) like getmem(ptr,1000) }
+                  { and dispose(ptr,1000) like freemem(ptr,1000)           }
+                  if (m_mac in current_settings.modeswitches) and
+                     try_to_consume(_COMMA) then
+                    begin
+                      para:=ccallparanode.create(ctypeconvnode.create(comp_expr(true),sinttype),nil);
+                      { can't use this with refcounted types, because the typeinfo will }
+                      { be wrong in case another amount of memory is allocated than the }
+                      { "native" size                                                   }
+                      if tpointerdef(p.resultdef).pointeddef.needs_inittable then
+                        Message(parser_e_no_macpas_new_dispose_on_init_types);
+                    end
+                  else
+                    para:=nil;
 
                   if is_new then
                    begin
@@ -302,7 +319,8 @@ implementation
                      addstatement(newstatement,temp);
 
                      { create call to fpc_getmem }
-                     para := ccallparanode.create(cordconstnode.create
+                     if not(assigned(para)) then
+                       para := ccallparanode.create(cordconstnode.create
                          (tpointerdef(p.resultdef).pointeddef.size,s32inttype,true),nil);
                      addstatement(newstatement,cassignmentnode.create(
                          ctemprefnode.create(temp),
@@ -327,8 +345,16 @@ implementation
                        addstatement(newstatement,finalize_data_node(cderefnode.create(p.getcopy)));
 
                      { create call to fpc_freemem }
-                     para := ccallparanode.create(p,nil);
-                     addstatement(newstatement,ccallnode.createintern('fpc_freemem',para));
+                     if not assigned(para) then
+                       begin
+                         para := ccallparanode.create(p,nil);
+                         addstatement(newstatement,ccallnode.createintern('fpc_freemem',para));
+                       end
+                     else
+                       begin
+                         para.right := ccallparanode.create(p,nil);
+                         addstatement(newstatement,ccallnode.createintern('fpc_freemem2',para));
+                       end;
                    end;
                end;
           end;
