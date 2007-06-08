@@ -1,3 +1,5 @@
+{$mode macpas}
+
 program FatalError_200608051;
 
    type
