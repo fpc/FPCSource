@@ -781,7 +781,9 @@ implementation
               end;
               if not(is_packed_array(left.resultdef)) or
                  ((mulsize mod 8 = 0) and
-                  ispowerof2(mulsize div 8,temp)) then
+                  (ispowerof2(mulsize div 8,temp) or
+                   { only orddefs are bitpacked }
+                   not is_ordinal(resultdef))) then
                 begin
                   inc(location.reference.offset,
                     bytemulsize*tordconstnode(right).value);
