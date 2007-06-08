@@ -480,8 +480,12 @@ implementation
          byteoffs, bitoffs, alignpower: aint;
          temp : longint;
        begin
+         { only orddefs are bitpacked. Even then we only need special code in }
+         { case the bitpacked *byte size* is not a power of two, otherwise    }
+         { everything can be handled using the the regular array code.        }
          if ((l mod 8) = 0) and
-            ispowerof2(l div 8,temp) then
+            (ispowerof2(l div 8,temp) or
+             not is_ordinal(resultdef)) then
            begin
              update_reference_reg_mul(reg,l div 8);
              exit;
