@@ -1132,9 +1132,6 @@ parser_e_initialized_not_for_external=03233_E_Cannot initialize variables declar
 % Variables declared as external can not be initialized with a default value.
 parser_e_illegal_function_result=03234_E_Illegal function result type
 % Some types like file types can not be used as function result.
-parser_e_no_macpas_new_dispose_on_init_types=03235_E_Use of NEW or DISPOSE with an extra size parameter is not possible for types which need initialization/finalization
-% Certain types, such as ansistrings and dynamic arrays, are reference counted. This means that when you allocate memory for pointers to them, or to an array or record containing them, the compiler has to initialize/finalize the memory block to prevent memory corruption and memory leaks. It cannot do this if you potentially allocate/free more or less memory than the size of the composite structure, because then the type information used for this process will be incorrect. Remove the extra size parameter to solve this problem.
-
 % \end{description}
 #
 # Type Checking
