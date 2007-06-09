@@ -387,8 +387,12 @@ implementation
          begin
            if a>0 then
          ... always evaluates to true. (DM)}
-        else if is_constintnode(left) and (right.resultdef.typ=orddef)
-            {workaround for u64bit bugs} and (Torddef(right.resultdef).ordtype<>u64bit) then
+        else if is_constintnode(left) and (right.resultdef.typ=orddef) and
+            { all type limits are stored using tconstexprint = int64   }
+            { currently, so u64bit support would need extra type casts }
+            (Torddef(right.resultdef).ordtype<>u64bit) and
+            { don't ignore type checks }
+            is_subequal(left.resultdef,right.resultdef) then
             begin
               t:=nil;
               lv:=Tordconstnode(left).value;
@@ -427,8 +431,12 @@ implementation
                   exit;
                 end
             end
-          else if (left.resultdef.typ=orddef) and is_constintnode(right)
-            {workaround for u64bit bugs} and (Torddef(left.resultdef).ordtype<>u64bit) then
+          else if (left.resultdef.typ=orddef) and is_constintnode(right) and
+              { all type limits are stored using tconstexprint = int64   }
+              { currently, so u64bit support would need extra type casts }
+              (Torddef(left.resultdef).ordtype<>u64bit) and
+              { don't ignore type checks }
+              is_subequal(left.resultdef,right.resultdef) then
             begin
               t:=nil;
               rv:=Tordconstnode(right).value;
