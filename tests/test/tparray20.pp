@@ -1,4 +1,5 @@
 {$mode macpas}
+{$packrecords 4}
 
 program FatalError_200608051;
 
