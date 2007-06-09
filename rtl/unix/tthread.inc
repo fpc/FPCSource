@@ -172,9 +172,6 @@ begin
       inherited destroy;
       exit;
     end;
-  // if someone calls .Free on a thread with
-  // FreeOnTerminate, then don't crash!
-  FFreeOnTerminate := false;
   if (FThreadID = GetCurrentThreadID) then
     begin
       if not(FFreeOnTerminate) and not FFinished then
@@ -183,6 +180,11 @@ begin
     end
   else
     begin
+      // if someone calls .Free on a thread with not(FreeOnTerminate), there
+      // is no problem. Otherwise, FreeOnTerminate must be set to false so
+      // when ThreadFunc exits the main runloop, it does try to Free itself
+      // again
+      FFreeOnTerminate := false;
       { you can't join yourself, so only for FThreadID<>GetCurrentThreadID }
       { and you can't join twice -> make sure we didn't join already       }
       if not FThreadReaped then
