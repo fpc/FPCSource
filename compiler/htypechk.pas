@@ -1115,7 +1115,9 @@ implementation
                     not(valid_packed in opts) and
                     (tvecnode(hp).left.resultdef.typ = arraydef) and
                     (ado_IsBitPacked in tarraydef(tvecnode(hp).left.resultdef).arrayoptions) and
-                    (tarraydef(tvecnode(hp).left.resultdef).elepackedbitsize mod 8 <> 0) then
+                    ((tarraydef(tvecnode(hp).left.resultdef).elepackedbitsize mod 8 <> 0) or
+                     (is_ordinal(tarraydef(tvecnode(hp).left.resultdef).elementdef) and
+                      not ispowerof2(tarraydef(tvecnode(hp).left.resultdef).elepackedbitsize div 8,temp))) then
                    begin
                      if report_errors then
                        if (valid_property in opts) then
