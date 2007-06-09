@@ -594,5 +594,11 @@ attsufNONE,
 attsufNONE,
 attsufNONE,
 attsufNONE,
-attsufINT
+attsufINT,
+attsufNONE,
+attsufNONE,
+attsufNONE,
+attsufNONE,
+attsufNONE,
+attsufNONE
 );
