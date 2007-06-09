@@ -954,7 +954,8 @@ implementation
         gotderef : boolean;
         fromdef,
         todef    : tdef;
-        errmsg   : longint;
+        errmsg,
+        temp     : longint;
       begin
         if valid_const in opts then
           errmsg:=type_e_variable_id_expected
@@ -1164,7 +1165,10 @@ implementation
                  { only check first (= outermost) subscriptn }
                  if not gotsubscript and
                     not(valid_packed in opts) and
-                    is_packed_record_or_object(tsubscriptnode(hp).left.resultdef) then
+                    is_packed_record_or_object(tsubscriptnode(hp).left.resultdef) and
+                    ((tsubscriptnode(hp).vs.fieldoffset mod 8 <> 0) or
+                     (is_ordinal(tsubscriptnode(hp).resultdef) and
+                      not ispowerof2(tsubscriptnode(hp).resultdef.packedbitsize div 8,temp)))  then
                    begin
                      if report_errors then
                        if (valid_property in opts) then
