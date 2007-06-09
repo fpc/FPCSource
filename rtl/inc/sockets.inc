@@ -115,6 +115,11 @@ begin
   TextRec(SockIn).FlushFunc:=@FlushSock;
   TextRec(SockIn).CloseFunc:=@CloseSock;
   TextRec(SockIn).Mode := fmInput;
+  Case DefaultTextLineBreakStyle Of
+    tlbsLF: TextRec(sockin).LineEnd := #10;
+    tlbsCRLF: TextRec(sockin).LineEnd := #13#10;
+    tlbsCR: TextRec(sockin).LineEnd := #13;
+   End;
 { Now the writing part. }
   Assign(SockOut,'.');
   Textrec(SockOut).Handle:=Sock;
@@ -124,6 +129,12 @@ begin
   TextRec(SockOut).FlushFunc:=@FlushSock;
   TextRec(SockOut).CloseFunc:=@CloseSock;
   TextRec(SockOut).Mode := fmOutput;
+
+   Case DefaultTextLineBreakStyle Of
+    tlbsLF: TextRec(sockout).LineEnd := #10;
+    tlbsCRLF: TextRec(sockout).LineEnd := #13#10;
+    tlbsCR: TextRec(sockout).LineEnd := #13;
+   End;
 end;
 
 
