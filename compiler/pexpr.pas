@@ -434,24 +434,12 @@ implementation
 
           in_break :
             begin
-              if not (m_mac in current_settings.modeswitches) then
-               statement_syssym:=cbreaknode.create
-              else
-                begin
-                  Message1(sym_e_id_not_found, orgpattern);
-                  statement_syssym:=cerrornode.create;
-                end;
+              statement_syssym:=cbreaknode.create
             end;
 
           in_continue :
             begin
-              if not (m_mac in current_settings.modeswitches) then
-                statement_syssym:=ccontinuenode.create
-              else
-                begin
-                  Message1(sym_e_id_not_found, orgpattern);
-                  statement_syssym:=cerrornode.create;
-                end;
+              statement_syssym:=ccontinuenode.create
             end;
 
           in_leave :
