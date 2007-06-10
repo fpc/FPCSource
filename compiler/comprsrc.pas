@@ -187,7 +187,7 @@ var
   i: longint;
 begin
   Result:=CompareText(ExtractFileExt(fn), target_info.resext) = 0;
-  if Result then exit;
+  if Result or not FileExists(fn, False) then exit;
   oldfmode:=Filemode;
   Filemode:=0;
   assign(f,fn);
