@@ -44,6 +44,9 @@ interface
       N_LSYM = $80;
       N_tsym = 160;
       N_SourceFile = $64;
+{ APPLE LOCAL N_OSO: This is the stab that associated the .o file with the
+   N_SO stab, in the case where debug info is mostly stored in the .o file.  }
+      N_OSO        = $66;
       N_IncludeFile = $84;
       N_BINCL = $82;
       N_EINCL = $A2;
@@ -1572,6 +1575,11 @@ implementation
         current_asmdata.getlabel(hlabel,alt_dbgfile);
         new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',current_module.localsymtable,''),0,secorder_end);
         current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',current_module.localsymtable,''),AT_DATA,0));
+        { for darwin, you need an "end of module marker too" to work around }
+        { either some assembler or gdb bug (radar 4386531 according to a    }
+        { comment in dbxout.c of Apple's gcc)                               }
+        if (target_info.system in systems_darwin) then
+          current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stab_stabs,'"",'+tostr(N_OSO)+',0,0,'+hlabel.name));
         current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stab_stabs,'"",'+tostr(n_sourcefile)+',0,0,'+hlabel.name));
         current_asmdata.asmlists[al_end].concat(tai_label.create(hlabel));
       end;
