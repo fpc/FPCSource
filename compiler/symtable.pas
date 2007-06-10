@@ -791,12 +791,14 @@ implementation
               begin
                 databitsize:=_datasize*8;
                 sym.fieldoffset:=databitsize;
+                if (l>high(aint) div 8) then
+                  Message(sym_e_segment_too_large);
                 l:=l*8;
               end;
             { bit packed records are limited to high(aint) bits }
             { instead of bytes to avoid double precision        }
             { arithmetic in offset calculations                 }
-            if (int64(l)+sym.fieldoffset)>high(aint) then
+            if int64(l)>high(aint)-sym.fieldoffset then
               begin
                 Message(sym_e_segment_too_large);
                 _datasize:=high(aint);
@@ -843,7 +845,7 @@ implementation
           varalignfield:=used_align(varalign,current_settings.alignment.recordalignmin,fieldalignment);
 
         sym.fieldoffset:=align(_datasize,varalignfield);
-        if (int64(l)+sym.fieldoffset)>high(aint) then
+        if l>high(aint)-sym.fieldoffset then
           begin
             Message(sym_e_segment_too_large);
             _datasize:=high(aint);
@@ -934,7 +936,8 @@ implementation
         def : tdef;
         i,
         varalignrecord,varalign,
-        storesize,storealign : longint;
+        storesize,storealign : aint;
+        bitsize: aint;
       begin
         storesize:=_datasize;
         storealign:=fieldalignment;
@@ -963,7 +966,16 @@ implementation
                 { bit packed records are limited to high(aint) bits }
                 { instead of bytes to avoid double precision        }
                 { arithmetic in offset calculations                 }
-                if databitsize>high(aint) then
+                if is_ordinal(tfieldvarsym(sym).vardef) then
+                  bitsize:=tfieldvarsym(sym).getpackedbitsize
+                else
+                  begin
+                    bitsize:=tfieldvarsym(sym).getsize;
+                    if (bitsize>high(aint) div 8) then
+                      Message(sym_e_segment_too_large);
+                    bitsize:=bitsize*8;
+                  end;
+                if bitsize>high(aint)-databitsize then
                   begin
                     Message(sym_e_segment_too_large);
                     _datasize:=high(aint);
@@ -978,12 +990,13 @@ implementation
               end
             else
               begin
-                _datasize:=tfieldvarsym(sym).fieldoffset+offset;
-                if _datasize>high(aint) then
+                if tfieldvarsym(sym).getsize>high(aint)-_datasize then
                   begin
                     Message(sym_e_segment_too_large);
                     _datasize:=high(aint);
-                  end;
+                  end
+                else
+                  _datasize:=tfieldvarsym(sym).fieldoffset+offset;
                 { update address }
                 tfieldvarsym(sym).fieldoffset:=_datasize;
                 { update alignment of this record }

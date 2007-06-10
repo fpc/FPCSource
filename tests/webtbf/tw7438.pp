@@ -7,8 +7,8 @@ interface
 
 type
   tr = bitpacked record
-    l1: longint;
-    l2: longint;
+    l1: 0..15;
+    l2: 0..15;
   end;
 
 
