@@ -724,6 +724,9 @@ implementation
             result:=state.stabstring;
           end;
 
+      var
+        tempstr: pchar;
+
       begin
         result:=nil;
         case def.typ of
@@ -754,13 +757,16 @@ implementation
               result:=def_stabstr_evaluate(def,'ar$1;$2;$3;$4',[def_stab_number(tarraydef(def).rangedef),
                  tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange),def_stab_number(tarraydef(def).elementdef)])
             else
-              // will only show highrange-lowrange+1 bits in gdb
-              result:=def_stabstr_evaluate(def,'@s$1;@S;S$2',
-                [tostr(TConstExprInt(tarraydef(def).elepackedbitsize) * tarraydef(def).elecount),def_stabstr_evaluate(tarraydef(def).rangedef,'r${numberstring};$1;$2;',
-                  [tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange)
-                ])]);
+              begin
 // the @P seems to be ignored by gdb
-//              result:=def_stabstr_evaluate(def,'ar$1;$2;$3;$4;@P;',[def_stab_number(tarraydef(def).rangedef),tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange),def_stab_number(tarraydef(def).elementdef)]);
+//                result:=def_stabstr_evaluate(def,'ar$1;$2;$3;$4;@P;',[def_stab_number(tarraydef(def).rangedef),tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange),def_stab_number(tarraydef(def).elementdef)]);
+                tempstr:=def_stabstr_evaluate(tarraydef(def).rangedef,'r${numberstring};$1;$2;',
+                  [tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange)]);
+                // will only show highrange-lowrange+1 bits in gdb
+                result:=def_stabstr_evaluate(def,'@s$1;@S;S$2',
+                  [tostr(TConstExprInt(tarraydef(def).elepackedbitsize) * tarraydef(def).elecount),tempstr]);
+                freemem(tempstr);
+              end;
           procdef :
             result:=procdef_stabstr(tprocdef(def));
           procvardef :
