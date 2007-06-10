@@ -1086,9 +1086,11 @@ implementation
         if left.nodetype=realconstn then
           result:=cordconstnode.create(round(trealconstnode(left).value_real),resultdef,false)
         else
-          result:=ccallnode.createinternres('fpc_round_real',
-            ccallparanode.create(left,nil),resultdef);
-        left:=nil;
+          begin
+            result:=ccallnode.createinternres('fpc_round_real',
+              ccallparanode.create(left,nil),resultdef);
+            left:=nil;
+          end;
       end;
 
 
