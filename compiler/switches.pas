@@ -162,15 +162,24 @@ begin
          begin
            if current_module.in_global then
             begin
-              if state='+' then
-                include(current_settings.moduleswitches,tmoduleswitch(setsw))
-              else
+{$ifndef cpufpemu}
+              if tmoduleswitch(setsw)=cs_fp_emulation then
                 begin
-                  { Turning off debuginfo when lineinfo is requested
-                    is not possible }
-                  if not((cs_use_lineinfo in current_settings.globalswitches) and
-                         (tmoduleswitch(setsw)=cs_debuginfo)) then
-                    exclude(current_settings.moduleswitches,tmoduleswitch(setsw));
+                  Message1(scan_w_unsupported_switch_by_target,'$'+switch);
+                end
+              else
+{$endif cpufpemu}
+                begin
+                  if state='+' then
+                    include(current_settings.moduleswitches,tmoduleswitch(setsw))
+                  else
+                    begin
+                      { Turning off debuginfo when lineinfo is requested
+                        is not possible }
+                      if not((cs_use_lineinfo in current_settings.globalswitches) and
+                             (tmoduleswitch(setsw)=cs_debuginfo)) then
+                        exclude(current_settings.moduleswitches,tmoduleswitch(setsw));
+                    end;
                 end;
             end
            else

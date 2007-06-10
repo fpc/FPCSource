@@ -2349,9 +2349,11 @@ begin
 {$endif arm}
   then
     begin
+{$ifdef cpufpemu}
       include(init_settings.moduleswitches,cs_fp_emulation);
       { cs_fp_emulation and fpu_soft are equal on arm }
       init_settings.fputype:=fpu_soft;
+{$endif cpufpemu}
     end;
 
 

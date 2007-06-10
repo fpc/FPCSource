@@ -348,6 +348,8 @@ scan_e_only_packset=02080_E_Illegal set packing value
 scan_w_pic_ignored=02081_W_PIC directive ignored
 % Several targets like windows do not support the PIC directive and need it to be
 % ignored.
+scan_w_unsupported_switch_by_target=02082_W_The switch "$1" is not supported by the currently selected target
+% Some compiler switches like $E are not supported by all targets.
 % \end{description}
 #
 # Parser
