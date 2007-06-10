@@ -28,6 +28,10 @@ type
   LongDouble = ValReal;
   FourCharArray = packed array[1..4] of char;
 
+  UnsignedByte = Byte;
+  UnsignedWord = Word;
+  UnsignedLong = Longword;
+
 {FourCharCode coercion
 This routine coreces string literals to a FourCharCode.}
 function FCC(const literal: string): LongWord; {$ifdef systeminline}inline;{$endif}
