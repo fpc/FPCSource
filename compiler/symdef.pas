@@ -1505,14 +1505,14 @@ implementation
         if ordtype = uvoid then
           exit;
 
-        if (low >= 0) and
+        if (ordtype = u64bit) or
+           ((ordtype = s64bit) and
+            ((low <= (system.low(int64) div 2)) or
+             (high > (system.high(int64) div 2)))) then
+          result := 64
+        else if (low >= 0) and
            (high <= 1) then
           result := 1
-        else if (ordtype = u64bit) or
-                ((ordtype = s64bit) and
-                 ((low <= (system.low(int64) div 2)) or
-                  (high > (system.high(int64) div 2)))) then
-          result := 64
         else
           begin
             if (low>=0) then
