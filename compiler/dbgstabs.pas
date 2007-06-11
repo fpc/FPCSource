@@ -1578,7 +1578,7 @@ implementation
         { for darwin, you need an "end of module marker too" to work around }
         { either some assembler or gdb bug (radar 4386531 according to a    }
         { comment in dbxout.c of Apple's gcc)                               }
-        if (target_info.system in systems_darwin) then
+        if (target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
           current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stab_stabs,'"",'+tostr(N_OSO)+',0,0,'+hlabel.name));
         current_asmdata.asmlists[al_end].concat(Tai_stab.Create_str(stab_stabs,'"",'+tostr(n_sourcefile)+',0,0,'+hlabel.name));
         current_asmdata.asmlists[al_end].concat(tai_label.create(hlabel));
