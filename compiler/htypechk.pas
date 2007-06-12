@@ -873,6 +873,7 @@ implementation
                       begin
                         { Give warning/note for uninitialized locals }
                         if assigned(hsym.owner) and
+                          not(cs_opt_nodedfa in current_settings.optimizerswitches) and
                            not(vo_is_external in hsym.varoptions) and
                            (hsym.owner.symtabletype in [parasymtable,localsymtable,staticsymtable]) and
                            ((hsym.owner=current_procinfo.procdef.localst) or
