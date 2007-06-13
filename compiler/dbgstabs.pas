@@ -350,13 +350,21 @@ implementation
               spec:='/0'
             else
               spec:='';
-            varsize:=tfieldvarsym(p).vardef.size;
-            { open arrays made overflows !! }
-            if varsize>$fffffff then
-              varsize:=$fffffff;
-            newrec:=def_stabstr_evaluate(nil,'$1:$2,$3,$4;',[GetSymName(tfieldvarsym(p)),
+            if (tabstractrecordsymtable(tsym(p).owner).usefieldalignment<>bit_alignment) then
+              begin
+                varsize:=tfieldvarsym(p).vardef.size;
+                { open arrays made overflows !! }
+                { how can a record/object/class contain an open array? (JM) }
+                if varsize>$fffffff then
+                  varsize:=$fffffff;
+                newrec:=def_stabstr_evaluate(nil,'$1:$2,$3,$4;',[GetSymName(tfieldvarsym(p)),
                                      spec+def_stab_number(tfieldvarsym(p).vardef),
-                                     tostr(TConstExprInt(tfieldvarsym(p).fieldoffset)*8),tostr(varsize*8)]);
+                                     tostr(TConstExprInt(tfieldvarsym(p).fieldoffset)*8),tostr(varsize*8)])
+              end
+            else
+              newrec:=def_stabstr_evaluate(nil,'$1:$2,$3,$4;',[GetSymName(tfieldvarsym(p)),
+                                   spec+def_stab_number(tfieldvarsym(p).vardef),
+                                   tostr(TConstExprInt(tfieldvarsym(p).fieldoffset)),tostr(tfieldvarsym(p).vardef.packedbitsize)]);
             if state^.stabsize+strlen(newrec)>=state^.staballoc-256 then
               begin
                 inc(state^.staballoc,strlen(newrec)+64);
