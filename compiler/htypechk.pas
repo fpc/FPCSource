@@ -49,7 +49,7 @@ interface
          cl2_count,
          cl3_count,
          coper_count : integer; { should be signed }
-         ordinal_distance : bestreal;
+         ordinal_distance : double;
          invalid     : boolean;
          wrongparanr : byte;
       end;
@@ -1931,7 +1931,7 @@ implementation
         currpara : tparavarsym;
         paraidx  : integer;
         currparanr : byte;
-        rfh,rth  : bestreal;
+        rfh,rth  : double;
         objdef   : tobjectdef;
         def_from,
         def_to   : tdef;
@@ -1943,6 +1943,12 @@ implementation
         pdoper   : tprocdef;
         releasecurrpt : boolean;
         cdoptions : tcompare_defs_options;
+
+    {$ifopt r+}{$define ena_rq}{$q-}{$r-}{$endif}
+      const
+        inf=1.0/0.0;
+    {$ifdef ena_rq}{$q+}{$r+}{$endif}
+
       begin
         cdoptions:=[cdo_check_operator];
         if FAllowVariant then
@@ -2020,15 +2026,11 @@ implementation
                  (currparanr>hp^.data.minparacount) and
                  not is_array_of_const(def_from) and
                  not is_array_constructor(def_from) then
-               begin
-                 eq:=te_equal;
-               end
+                eq:=te_equal
               else
               { same definition -> exact }
                if (def_from=def_to) then
-                begin
-                  eq:=te_exact;
-                end
+                 eq:=te_exact
               else
               { for value and const parameters check if a integer is constant or
                 included in other integer -> equal and calc ordinal_distance }
@@ -2046,7 +2048,9 @@ implementation
                    { Give wrong sign a small penalty, this is need to get a diffrence
                      from word->[longword,longint] }
                    if is_signed(def_from)<>is_signed(def_to) then
-                     hp^.ordinal_distance:=hp^.ordinal_distance+1.0;
+                   {$ifopt r+}{$define ena_rq}{$q-}{$r-}{$endif}
+                     hp^.ordinal_distance:=nextafter(hp^.ordinal_distance,inf);
+                   {$ifdef ena_rq}{$r+}{$q+}{$endif}
                  end
               else
               { for value and const parameters check precision of real, give
@@ -2057,19 +2061,19 @@ implementation
                  begin
                    eq:=te_equal;
                    if is_extended(def_to) then
-                     rth:=bestreal(4)
+                     rth:=4
                    else
                      if is_double (def_to) then
-                       rth:=bestreal(2)
+                       rth:=2
                    else
-                     rth:=bestreal(1);
+                     rth:=1;
                    if is_extended(def_from) then
-                     rfh:=bestreal(4)
+                     rfh:=4
                    else
                      if is_double (def_from) then
-                       rfh:=bestreal(2)
+                       rfh:=2
                    else
-                     rfh:=bestreal(1);
+                     rfh:=1;
                    { penalty for shrinking of precision }
                    if rth<rfh then
                      rfh:=(rfh-rth)*16

@@ -140,6 +140,7 @@ interface
     function minilzw_encode(const s:string):string;
     function minilzw_decode(const s:string):string;
 
+    Function nextafter(x,y:double):double;
 
 implementation
 
@@ -1265,6 +1266,112 @@ implementation
         runerror(255);
       end;
 
+    Function Nextafter(x,y:double):double;
+    // Returns the double precision number closest to x in
+    // the direction toward y.
+
+    // Initial direct translation by Soeren Haastrup from
+    // www.netlib.org/fdlibm/s_nextafter.c according to
+    // ====================================================
+    // Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+    // Developed at SunSoft, a Sun Microsystems, Inc. business.
+    // Permission to use, copy, modify, and distribute this
+    // software is freely granted, provided that this notice
+    // is preserved.
+    // ====================================================
+    // and with all signaling policies preserved as is.
+
+    type
+      {$ifdef ENDIAN_LITTLE}
+        twoword=record
+                  lo,hi:longword; // Little Endian split of a double.
+                end;
+      {$else}
+        twoword=record
+                  hi,lo:longword; // Little Endian split of a double.
+                end;
+      {$endif}
+
+    var
+        hx,hy,ix,iy:longint;
+        lx,ly:longword;
+
+    Begin
+    hx:=twoword(x).hi;    // high and low words of x and y
+    lx:=twoword(x).lo;
+    hy:=twoword(y).hi;
+    ly:=twoword(y).lo;
+    ix:=hx and $7fffffff;  // absolute values
+    iy:=hy and $7fffffff;
+
+    // Case x=NAN or y=NAN
+
+    if ( (ix>=$7ff00000) and (((ix-$7ff00000) or lx) <> 0) )
+        or ( (iy>=$7ff00000) and (((iy-$7ff00000) OR ly) <> 0) )
+    then exit(x+y);
+
+    // Case x=y
+
+    if x=y then exit(x); // (implies Nextafter(0,-0) is 0 and not -0...)
+
+    // Case x=0
+
+    if (ix or lx)=0
+    then begin
+          twoword(x).hi:=hy and $80000000;  // return +-minimalSubnormal
+          twoword(x).lo:=1;
+          y:=x*x;    // set underflow flag (ignored in FPC as default)
+          if y=x
+          then exit(y)
+          else exit(x);
+        end;
+
+    // all other cases
+
+    if hx>=0  // x>0
+    then begin
+          if (hx>hy) or ( (hx=hy) and (lx>ly) ) // x>y , return x-ulp
+          then begin
+                if (lx=0) then hx:=hx-1;
+                lx:=lx-1;
+              end
+          else begin                      // x<y, return x+ulp
+                lx:=lx+1;
+                if lx=0 then hx:=hx+1;
+              end
+        end
+    else begin // x<0
+          if (hy>=0) or (hx>=hy) or ( (hx=hy) and (lx>ly)) // x<y, return x-ulp
+          then begin
+                if (lx=0) then hx:=hx-1;
+                lx:=lx-1;
+              end
+          else begin            // x>y , return x+ulp
+                lx:=lx+1;
+                if lx=0 then hx:=hx+1;
+              end
+        end;
+
+    // finally check if overflow or underflow just happend
+
+    hy:=hx and $7ff00000;
+    if (hy>= $7ff00000) then exit(x+x); // overflow and signal
+    if (hy<$0010000)                    // underflow
+    then begin
+          y:=x*x;              // raise underflow flag
+          if y<>x
+          then begin
+                twoword(y).hi:=hx;
+                twoword(y).lo:=lx;
+                exit(y);
+              end
+        end;
+
+    twoword(x).hi:=hx;
+    twoword(x).lo:=lx;
+    nextafter:=x;
+
+    end;
 
 initialization
   internalerrorproc:=@defaulterror;

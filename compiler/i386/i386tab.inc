@@ -9606,7 +9606,7 @@
   ),
   (
     opcode  : A_INSERTQ;
-    ops     : 1768187245;
+    ops     : 4;
     optypes : (ot_xmmreg,ot_xmmreg,ot_immediate);
     code    : #76#2#15#120#63#253#18#253#19;
     flags   : if_sse4 or if_sb
