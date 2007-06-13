@@ -2040,14 +2040,8 @@ implementation
                    eq:=te_equal;
                    hp^.ordinal_distance:=hp^.ordinal_distance+
                      abs(bestreal(torddef(def_from).low)-bestreal(torddef(def_to).low));
-                   if (torddef(def_to).ordtype=u64bit) then
-                     rth:=bestreal(qword(torddef(def_to).high))
-                   else
-                     rth:=bestreal(torddef(def_to).high);
-                   if (torddef(def_from).ordtype=u64bit) then
-                     rfh:=bestreal(qword(torddef(def_from).high))
-                   else
-                     rfh:=bestreal(torddef(def_from).high);
+                   rth:=bestreal(torddef(def_to).high);
+                   rfh:=bestreal(torddef(def_from).high);
                    hp^.ordinal_distance:=hp^.ordinal_distance+abs(rth-rfh);
                    { Give wrong sign a small penalty, this is need to get a diffrence
                      from word->[longword,longint] }
