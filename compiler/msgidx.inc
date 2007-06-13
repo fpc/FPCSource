@@ -243,7 +243,7 @@ const
   parser_e_exit_with_argument_not__possible=03153;
   parser_e_stored_property_must_be_boolean=03154;
   parser_e_ill_property_storage_sym=03155;
-  parser_e_only_publishable_classes_can__be_published=03156;
+  parser_e_only_publishable_classes_can_be_published=03156;
   parser_e_proc_directive_expected=03157;
   parser_e_invalid_property_index_value=03158;
   parser_e_procname_to_short_for_export=03159;
@@ -723,7 +723,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 43171;
+  MsgTxtSize = 43173;
 
   MsgIdxMax : array[1..20] of longint=(
     24,83,235,79,63,49,107,22,135,60,

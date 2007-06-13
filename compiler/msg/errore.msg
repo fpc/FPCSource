@@ -850,7 +850,7 @@ parser_e_ill_property_storage_sym=03155_E_This symbol isn't allowed as storage s
 % You can't use this type of symbol as storage specifier in property
 % declaration. You can use only methods with the result type boolean,
 % boolean class fields or boolean constants
-parser_e_only_publishable_classes_can__be_published=03156_E_Only class which are compiled in $M+ mode can be published
+parser_e_only_publishable_classes_can_be_published=03156_E_Only classes which are compiled in $M+ mode can be published
 % In the published section of a class can be only class as fields used which
 % are compiled in \var{\{\$M+\}} or which are derived from such a class. Normally
 % such a class should be derived from TPersitent
