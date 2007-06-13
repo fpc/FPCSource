@@ -216,7 +216,7 @@ implementation
         htype : tdef;
       begin
          htype:=v.definition;
-         genenumnode:=cordconstnode.create(v.value,htype,true);
+         genenumnode:=cordconstnode.create(int64(v.value),htype,true);
       end;
 
 

@@ -266,7 +266,7 @@ procedure RegisterSymbols;
 implementation
 
 uses
-  globtype,globals,comphook,
+  globtype,globals,comphook,constexp,
 {$ifdef DEBUG}
   verbose,
 {$endif DEBUG}

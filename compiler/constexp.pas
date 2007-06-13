@@ -355,7 +355,7 @@ begin
       if sa xor sb then
         begin
           result.signed:=true;
-          result.svalue:=r;
+          result.svalue:=-r;
         end
       else
         begin
