@@ -16,10 +16,13 @@ type
     procedure execute; override;
   end;
 
+const
+  fifolength = 1024;
 var
   readindex: integer;
   writeindex: integer;
-  fifo: array[0..1023] of pointer;
+  fifo: array[0..fifolength-1] of pointer;
+  shared: pointer;
   done: boolean;
   freefifolock: trtlcriticalsection;
 
@@ -64,7 +67,7 @@ begin
   k := 0;
   while not done do
   begin
-    if ((writeindex+1) mod 1024) <> readindex then
+    if ((writeindex+1) mod fifolength) <> readindex then
     begin
       freemem(fifo[writeindex]);
       fifo[writeindex] := getmem(((writeindex*17) mod 520)+8);
@@ -80,8 +83,10 @@ begin
     end;
   end;
   freearray(p, sizeof(p) div sizeof(pointer));
+  sleep(200);
   entercriticalsection(freefifolock);
   freearray(fifo, sizeof(fifo) div sizeof(pointer));
+  freemem(shared);
   leavecriticalsection(freefifolock);
 end;
 
@@ -101,7 +106,7 @@ begin
     begin
       freemem(fifo[readindex]);
       fifo[readindex] := getmem(((writeindex*17) mod 520)+8);
-      readindex := (readindex + 1) mod 1024;
+      readindex := (readindex + 1) mod fifolength;
     end else begin
       exercise_heap(p,i,j);
       inc(k);
@@ -112,6 +117,7 @@ begin
       end;
     end;
   end;
+  shared := getmem(12);
   leavecriticalsection(freefifolock);
   freearray(p, sizeof(p) div sizeof(pointer));
 end;
@@ -119,13 +125,11 @@ end;
 procedure tproducethread.execute;
 begin
   producer;
-  sleep(100);
 end;
 
 procedure tconsumethread.execute;
 begin
   consumer;
-  sleep(100);
 end;
 
 var
@@ -139,7 +143,7 @@ begin
   writeindex := 0;
   produce_thread := tproducethread.create(false);
   consume_thread := tconsumethread.create(false);
-  sleep(10000);
+  sleep(3000);
   done := true;
   produce_thread.waitfor;
   consume_thread.waitfor;
