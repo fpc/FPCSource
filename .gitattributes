@@ -7008,6 +7008,7 @@ tests/test/tvarset1.pp svneol=native#text/plain
 tests/test/tw6727.pp svneol=native#text/plain
 tests/test/twide1.pp svneol=native#text/plain
 tests/test/twide2.pp svneol=native#text/plain
+tests/test/twide3.pp svneol=native#text/plain
 tests/test/twrstr1.pp svneol=native#text/plain
 tests/test/twrstr2.pp svneol=native#text/plain
 tests/test/twrstr3.pp svneol=native#text/plain
